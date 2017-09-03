@@ -1,54 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:42823 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754787AbdIFNaS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 09:30:18 -0400
-From: Colin King <colin.king@canonical.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] ov9640: make const arrays res_x/y static const, reduces object code size
-Date: Wed,  6 Sep 2017 14:30:16 +0100
-Message-Id: <20170906133016.17950-1-colin.king@canonical.com>
+Received: from mout.gmx.net ([212.227.17.21]:49194 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752878AbdICPT2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 3 Sep 2017 11:19:28 -0400
+Date: Sun, 3 Sep 2017 17:19:21 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Edgar Thier <edgar.thier@theimagingsource.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: UVC property auto update
+In-Reply-To: <c3f8b20a-65f9-ead3-9ffd-041641254af7@theimagingsource.com>
+Message-ID: <Pine.LNX.4.64.1709031714570.29016@axis700.grange>
+References: <c3f8b20a-65f9-ead3-9ffd-041641254af7@theimagingsource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+Hi Edgar,
 
-Don't populate the arrays res_x and resy_y on the stack, instead make them
-static const.  Makes the object code smaller by over 160 bytes:
+I'm adding UVC maintainer to CC, he might have missed this email. Could 
+you also tell us what cameras have those features? A recent patch from me 
+extends the UVC driver use of the Interrupt endpoint for asynchronous 
+control completion notifications. This would be another extension for the 
+same interface. I guess the way to implement it would be using V4L events.
 
-Before:
-   text	   data	    bss	    dec	    hex	filename
-  10509	   2800	     64	  13373	   343d	ov9640.o
+Thanks
+Guennadi
 
-After:
-   text	   data	    bss	    dec	    hex	filename
-  10184	   2960	     64	  13208	   3398	ov9640.o
+On Mon, 7 Aug 2017, Edgar Thier wrote:
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/media/i2c/soc_camera/ov9640.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/i2c/soc_camera/ov9640.c b/drivers/media/i2c/soc_camera/ov9640.c
-index 0146d1f7aacb..dafea6d90ad9 100644
---- a/drivers/media/i2c/soc_camera/ov9640.c
-+++ b/drivers/media/i2c/soc_camera/ov9640.c
-@@ -335,8 +335,8 @@ static void ov9640_res_roundup(u32 *width, u32 *height)
- {
- 	int i;
- 	enum { QQCIF, QQVGA, QCIF, QVGA, CIF, VGA, SXGA };
--	int res_x[] = { 88, 160, 176, 320, 352, 640, 1280 };
--	int res_y[] = { 72, 120, 144, 240, 288, 480, 960 };
-+	static const int res_x[] = { 88, 160, 176, 320, 352, 640, 1280 };
-+	static const int res_y[] = { 72, 120, 144, 240, 288, 480, 960 };
- 
- 	for (i = 0; i < ARRAY_SIZE(res_x); i++) {
- 		if (res_x[i] >= *width && res_y[i] >= *height) {
--- 
-2.14.1
+> Hi all,
+> 
+> I have some USB-3.0 cameras that use UVC.
+> These cameras offer auto updates for various properties.
+> An example of such a property would be gain, that will be adjusted when activating the auto-gain
+> property. These property changes are not queried by the UVC driver, unless it already has the
+> property marked as auto update via UVC_CTRL_FLAG_AUTO_UPDATE.
+> >From what I have seen, it seems that this flag is not checked when indexing the camera controls.
+> However it is checked when using extension units, so all properties loaded through such a unit are
+> being updates as one would hope.
+> 
+> My questions:
+> 
+> Is it intended that properties cannot mark themselves as autoupdate?
+> If yes:
+> 	Is there a recommended way of working around this?
+> 	Do all autoupdate properties have to be in an extension unit?
+> If no:
+> 	What should a fix look like?
+> 
+> Regards,
+> 
+> Edgar
+> 
