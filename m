@@ -1,54 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:56215 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751223AbdIPQTp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Sep 2017 12:19:45 -0400
-Subject: [PATCH 2/2] [media] fc0012: Improve a size determination in
- fc0012_attach()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Colin Ian King <colin.king@canonical.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <8f64b84d-cca0-d618-eb62-ec12f42b8c06@users.sourceforge.net>
-Message-ID: <27e2548c-09cb-2adb-9f65-f06c0e4ba86d@users.sourceforge.net>
-Date: Sat, 16 Sep 2017 18:19:34 +0200
-MIME-Version: 1.0
-In-Reply-To: <8f64b84d-cca0-d618-eb62-ec12f42b8c06@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50498 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751649AbdICUSH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 3 Sep 2017 16:18:07 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v7 1/1] dt: bindings: smiapp: Document lens-focus and flash properties
+Date: Sun,  3 Sep 2017 23:18:05 +0300
+Message-Id: <20170903201805.31998-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170903174958.27058-18-sakari.ailus@linux.intel.com>
+References: <20170903174958.27058-18-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 16 Sep 2017 17:55:27 +0200
+Document optional lens-focus and flash properties for the smiapp driver.
 
-Replace the specification of a data structure by a pointer dereference
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
-
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/tuners/fc0012.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi all,
 
-diff --git a/drivers/media/tuners/fc0012.c b/drivers/media/tuners/fc0012.c
-index 7126dd1d5151..c008513bd64a 100644
---- a/drivers/media/tuners/fc0012.c
-+++ b/drivers/media/tuners/fc0012.c
-@@ -445,5 +445,5 @@ struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
+This should precede the smiapp driver change.
+
+ Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+index 855e1faf73e2..f02178eef84d 100644
+--- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
++++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+@@ -27,6 +27,8 @@ Optional properties
+ - nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
+   the NVM contents will not be read.
+ - reset-gpios: XSHUTDOWN GPIO
++- flash: One or more phandles to refer to flash LEDs
++- lens-focus: Phandle for lens focus
  
--	priv = kzalloc(sizeof(struct fc0012_priv), GFP_KERNEL);
-+	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
- 	if (!priv) {
+ 
+ Endpoint node mandatory properties
 -- 
-2.14.1
+2.11.0
