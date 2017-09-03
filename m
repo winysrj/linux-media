@@ -1,61 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:36469 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932103AbdI1P1k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Sep 2017 11:27:40 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: linux-api@vger.kernel.org, tfiga@chromium.org, yong.zhi@intel.com
-Subject: [PATCH v2 0/2] Add V4L2_BUF_TYPE_META_OUTPUT buffer type
-Date: Thu, 28 Sep 2017 18:24:12 +0300
-Message-Id: <1506612254-3946-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-io0-f178.google.com ([209.85.223.178]:33053 "EHLO
+        mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751461AbdICJAp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Sep 2017 05:00:45 -0400
+Received: by mail-io0-f178.google.com with SMTP id b2so12887703iof.0
+        for <linux-media@vger.kernel.org>; Sun, 03 Sep 2017 02:00:45 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAF6AEGu1v-_hWbyRfdoWnJN=bqBV_OZcEaNhWgdrjqNamvu62A@mail.gmail.com>
+References: <20170821155203.GB38943@e107564-lin.cambridge.arm.com>
+ <4559442.sz5HF0f0o4@avalon> <1504195978.18413.14.camel@ndufresne.ca>
+ <1962548.KP01uVGcTd@avalon> <CAF6AEGu1v-_hWbyRfdoWnJN=bqBV_OZcEaNhWgdrjqNamvu62A@mail.gmail.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Date: Sun, 3 Sep 2017 11:00:43 +0200
+Message-ID: <CAKMK7uG+oP36sipLyV5L+wzWT-C00WXQZRmrFsborjzkoZTQUg@mail.gmail.com>
+Subject: Re: DRM Format Modifiers in v4l2
+To: Rob Clark <robdclark@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, jonathan.chai@arm.com,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi folks,
+On Fri, Sep 1, 2017 at 2:43 PM, Rob Clark <robdclark@gmail.com> wrote:
+> On Fri, Sep 1, 2017 at 3:13 AM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi Nicolas,
+>>
+>> On Thursday, 31 August 2017 19:12:58 EEST Nicolas Dufresne wrote:
+>>> Le jeudi 31 ao=C3=BBt 2017 =C3=A0 17:28 +0300, Laurent Pinchart a =C3=
+=A9crit :
+>>> >> e.g. if I have two devices which support MODIFIER_FOO, I could attem=
+pt
+>>> >> to share a buffer between them which uses MODIFIER_FOO without
+>>> >> necessarily knowing exactly what it is/does.
+>>> >
+>>> > Userspace could certainly set modifiers blindly, but the point of
+>>> > modifiers is to generate side effects benefitial to the use case at h=
+and
+>>> > (for instance by optimizing the memory access pattern). To use them
+>>> > meaningfully userspace would need to have at least an idea of the sid=
+e
+>>> > effects they generate.
+>>>
+>>> Generic userspace will basically pick some random combination.
+>>
+>> In that case userspace could set no modifier at all by default (except i=
+n the
+>> case where unmodified formats are not supported by the hardware, but I d=
+on't
+>> expect that to be the most common case).
+>>
+>>> To allow generically picking the optimal configuration we could indeed =
+rely
+>>> on the application knowledge, but we could also enhance the spec so tha=
+t
+>>> the order in the enumeration becomes meaningful.
+>>
+>> I'm not sure how far we should go. I could imagine a system where the AP=
+I
+>> would report capabilities for modifiers (e.g. this modifier lowers the
+>> bandwidth, this one enhances the quality, ...), but going in that direct=
+ion,
+>> where do we stop ? In practice I expect userspace to know some informati=
+on
+>> about the hardware, so I'd rather avoid over-engineering the API.
+>>
+>
+> I think in the (hopefully not too) long term, something like
+> https://github.com/cubanismo/allocator/ is the way forward.  That
+> doesn't quite solve how v4l2 kernel part sorts out w/ corresponding
+> userspace .so what is preferable, but at least that is
+> compartmentalized to v4l2.. on the gl/vk side of things there will ofc
+> be a hardware specific userspace part that knows what it prefers.  For
+> v4l2, it probably makes sense to sort out what the userspace level API
+> is and work backwards from there, rather than risk trying to design a
+> kernel uapi that might turn out to be the wrong thing.
 
-Here's a second non-RFC version of the META_OUTPUT buffer type patches.
+I thought for kms the plan is to make the ordering meaningful, because
+it doesn't necessarily match the gl/vk one. E.g. on intel gl would
+prefer Y compressed, Y, X, untiled. Whereas display would be Y
+compressed, X (much easier to scan out, in many cases allows more
+planes to be used), Y (is necessary for 90=C2=B0 rotation), untiled. So if
+drm_hwc really wants to use all the planes, it could prioritize the
+display over rendering and request X instead of Y tiled.
 
-The V4L2_BUF_TYPE_META_OUTPUT buffer type complements the metadata buffer
-types support for OUTPUT buffers, capture being already supported. This is
-intended for similar cases than V4L2_BUF_TYPE_META_CAPTURE but for output
-buffers, e.g. device parameters that may be complex and highly
-hierarchical data structure. Statistics are a current use case for
-metadata capture buffers.
-
-Yong: could you take these to your IPU3 ImgU patchset, please? As that
-would be the first user, the patches would be merged with the driver
-itself.
-
-since v1:
-
-- Correctly determine valid IOCTLs for META_OUTPUT type in
-  determine_valid_ioctls().
-
-since RFC:
-
-- Fix make htmldocs build.
-
-- Fix CAPTURE -> OUTPUT in buffer.rst.
-
-- Added " for specifying how the device processes images" in the
-  documentation.
-
-Sakari Ailus (2):
-  v4l: Add support for V4L2_BUF_TYPE_META_OUTPUT
-  docs-rst: v4l: Document V4L2_BUF_TYPE_META_OUTPUT interface
-
- Documentation/media/uapi/v4l/buffer.rst          |  3 +++
- Documentation/media/uapi/v4l/dev-meta.rst        | 33 ++++++++++++++----------
- Documentation/media/uapi/v4l/vidioc-querycap.rst |  3 +++
- Documentation/media/videodev2.h.rst.exceptions   |  2 ++
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c    |  2 ++
- drivers/media/v4l2-core/v4l2-dev.c               | 12 ++++++---
- drivers/media/v4l2-core/v4l2-ioctl.c             | 25 ++++++++++++++++++
- drivers/media/v4l2-core/videobuf2-v4l2.c         |  1 +
- include/media/v4l2-ioctl.h                       | 17 ++++++++++++
- include/uapi/linux/videodev2.h                   |  2 ++
- 10 files changed, 83 insertions(+), 17 deletions(-)
-
--- 
-2.7.4
+I think the same would go for v4l.
+-Daniel
+--=20
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
