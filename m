@@ -1,59 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47484 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755978AbdIHNS3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 09:18:29 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v9 13/24] v4l: async: Allow async notifier register call succeed with no subdevs
-Date: Fri,  8 Sep 2017 16:18:11 +0300
-Message-Id: <20170908131822.31020-9-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:36151 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752497AbdICUbs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Sep 2017 16:31:48 -0400
+MIME-Version: 1.0
+In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
+From: =?UTF-8?Q?Honza_Petrou=C5=A1?= <jpetrous@gmail.com>
+Date: Sun, 3 Sep 2017 22:31:46 +0200
+Message-ID: <CAJbz7-2uDNfbYw4k5e-X7HB_gJTfah-u64kCYXZx_5apsE5KOw@mail.gmail.com>
+Subject: Re: [PATCH v2 00/26] Improve DVB documentation and reduce its gap
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The information on how many async sub-devices would be bindable to a
-notifier is typically dependent on information from platform firmware and
-it's not driver's business to be aware of that.
+> There is still a gap at the CA API, as there are three ioctls that are used
+> only by a few drivers and whose structs are not properly documented:
+> CA_GET_MSG, CA_SEND_MSG and CA_SET_DESCR.
+>
+> The first two ones seem to be related to a way that a few drivers
+> provide to send/receive messages. Yet, I was unable to get what
+> "index" and "type" means on those ioctls. The CA_SET_DESCR is
+> only supported by av7110 driver, and has an even weirder
+> undocumented struct. I was unable to discover at the Kernel, VDR
+> or Kaffeine how those structs are filled. I suspect that there's
+> something wrong there, but I won't risk trying to fix without
+> knowing more about them. So, let's just document that those
+> are needing documentation :-)
+>
 
-Many V4L2 main drivers are perfectly usable (and useful) without async
-sub-devices and so if there aren't any around, just proceed call the
-notifier's complete callback immediately without registering the notifier
-itself.
+BTW, I just remembered dvblast app, part of videolan.org:
 
-If a driver needs to check whether there are async sub-devices available,
-it can be done by inspecting the notifier's num_subdevs field which tells
-the number of async sub-devices.
+http://www.videolan.org/projects/dvblast.html
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+which is using CA_GET_MSG/CA_SEND_MSG:
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 7b396ff4302b..9ebc2e079d03 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -170,10 +170,12 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 	struct v4l2_async_subdev *asd;
- 	int i;
- 
--	if (!v4l2_dev || !notifier->num_subdevs ||
--	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-+	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
- 		return -EINVAL;
- 
-+	if (!notifier->num_subdevs)
-+		return v4l2_async_notifier_call_complete(notifier);
-+
- 	notifier->v4l2_dev = v4l2_dev;
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
--- 
-2.11.0
+https://code.videolan.org/videolan/dvblast/blob/master/en50221.c
+
+/Honza
