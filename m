@@ -1,43 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:49455 "EHLO gofer.mess.org"
+Received: from mout.web.de ([212.227.15.14]:55521 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752241AbdIXMnB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Sep 2017 08:43:01 -0400
-Date: Sun, 24 Sep 2017 13:42:59 +0100
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v4.15] RC cleanup fixes
-Message-ID: <20170924124259.7dw7i4hax5chpnec@gofer.mess.org>
-References: <20170923103356.hl5zrqekfjbsy7gt@gofer.mess.org>
- <20170923163531.3c1b1f06@vento.lan>
- <20170923203859.5msycu25qoqzy7iv@gofer.mess.org>
- <20170924060932.6e0962f1@vento.lan>
- <20170924104020.ni55zs5gtm7sklgw@gofer.mess.org>
+        id S1752130AbdICUhl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 3 Sep 2017 16:37:41 -0400
+Subject: [PATCH 7/7] [media] Hexium Orion: Adjust one function call together
+ with a variable assignment
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <170abf7f-3b62-a37c-966a-8b574acae230@users.sourceforge.net>
+Message-ID: <fa33d58b-56c4-38aa-8346-6f6e9f3d5296@users.sourceforge.net>
+Date: Sun, 3 Sep 2017 22:37:21 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170924104020.ni55zs5gtm7sklgw@gofer.mess.org>
+In-Reply-To: <170abf7f-3b62-a37c-966a-8b574acae230@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Sep 24, 2017 at 11:40:20AM +0100, Sean Young wrote:
-> On Sun, Sep 24, 2017 at 06:09:32AM -0300, Mauro Carvalho Chehab wrote:
-> > Ah, I see. Well, if none of the in-kernel drivers use it, we can
-> > drop it.
-> 
-> Looks like our emails crossed each other -- I have already pushed out
-> another PR without it.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 3 Sep 2017 20:12:36 +0200
 
-So I force pushed a new version with this commit dropped. That probably
-wasn't the right thing to do.
+The script "checkpatch.pl" pointed information out like the following.
 
-Should you prefer the original request without min/max timeout dropped for
-lirc kapi drivers, please note that the original pull request now has
-branch name v4.15a-v1 (commit fe96866c81291a2887559fdfcc58ddf8fe54111d,
-as the pull request says.
+ERROR: do not use assignment in if condition
 
-Sorry about that.
+Thus fix the affected source code place.
 
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/pci/saa7146/hexium_orion.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Sean
+diff --git a/drivers/media/pci/saa7146/hexium_orion.c b/drivers/media/pci/saa7146/hexium_orion.c
+index 187e072a3697..691472763696 100644
+--- a/drivers/media/pci/saa7146/hexium_orion.c
++++ b/drivers/media/pci/saa7146/hexium_orion.c
+@@ -266,7 +266,9 @@ static int hexium_probe(struct saa7146_dev *dev)
+ 
+ 	/* check if this is an old hexium Orion card by looking at
+ 	   a saa7110 at address 0x4e */
+-	if (0 == (err = i2c_smbus_xfer(&hexium->i2c_adapter, 0x4e, 0, I2C_SMBUS_READ, 0x00, I2C_SMBUS_BYTE_DATA, &data))) {
++	err = i2c_smbus_xfer(&hexium->i2c_adapter, 0x4e, 0, I2C_SMBUS_READ,
++			     0x00, I2C_SMBUS_BYTE_DATA, &data);
++	if (err == 0) {
+ 		pr_info("device is a Hexium HV-PCI6/Orion (old)\n");
+ 		/* we store the pointer in our private data field */
+ 		dev->ext_priv = hexium;
+-- 
+2.14.1
