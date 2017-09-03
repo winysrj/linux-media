@@ -1,45 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36470 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751478AbdILNmL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 09:42:11 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v12 21/26] dt: bindings: smiapp: Document lens-focus and flash-leds properties
-Date: Tue, 12 Sep 2017 16:41:55 +0300
-Message-Id: <20170912134200.19556-22-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
-References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+Received: from mout.web.de ([212.227.15.14]:55003 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751765AbdICOB2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 3 Sep 2017 10:01:28 -0400
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pan Bian <bianpan2016@163.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/2] [media] Motion Eye: Adjustments for meye_probe()
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Message-ID: <4370c644-e440-1268-089b-8a8686bbcd5c@users.sourceforge.net>
+Date: Sun, 3 Sep 2017 16:01:03 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document optional lens-focus and flash-leds properties for the smiapp
-driver.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 3 Sep 2017 15:54:45 +0200
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
----
- Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
- 1 file changed, 2 insertions(+)
+Two update suggestions were taken into account
+from static source code analysis.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-index 855e1faf73e2..33f10a94c381 100644
---- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-@@ -27,6 +27,8 @@ Optional properties
- - nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
-   the NVM contents will not be read.
- - reset-gpios: XSHUTDOWN GPIO
-+- flash-leds: See ../video-interfaces.txt
-+- lens-focus: See ../video-interfaces.txt
- 
- 
- Endpoint node mandatory properties
+Markus Elfring (2):
+  Delete three error messages for a failed memory allocation
+  Adjust two function calls together with a variable assignment
+
+ drivers/media/pci/meye/meye.c | 20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
+
 -- 
-2.11.0
+2.14.1
