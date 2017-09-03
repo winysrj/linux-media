@@ -1,68 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:43905 "EHLO
-        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750974AbdISJfc (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46250 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751030AbdICHnm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 05:35:32 -0400
-Received: by mail-lf0-f52.google.com with SMTP id c80so3090766lfh.0
-        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 02:35:32 -0700 (PDT)
-Subject: Re: [PATCHv2 1/2] dt-bindings: adi,adv7511.txt: document cec clock
-To: Hans Verkuil <hansverk@cisco.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
-        Archit Taneja <architt@codeaurora.org>,
-        linux-renesas-soc@vger.kernel.org,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20170919073331.29007-1-hverkuil@xs4all.nl>
- <20170919073331.29007-2-hverkuil@xs4all.nl>
- <505bc74f-6563-ab1d-9aab-7893410aef7e@cogentembedded.com>
- <74b252c8-c1eb-8498-7b9b-54604fe2806a@cisco.com>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <e68cffb1-346c-2018-9048-3f8523903809@cogentembedded.com>
-Date: Tue, 19 Sep 2017 12:35:29 +0300
+        Sun, 3 Sep 2017 03:43:42 -0400
+Date: Sun, 3 Sep 2017 10:43:39 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH v6 5/5] v4l: fwnode: Support generic parsing of graph
+ endpoints in a single port
+Message-ID: <20170903074339.vswbczv2lfxykssq@valkosipuli.retiisi.org.uk>
+References: <20170830114946.17743-1-sakari.ailus@linux.intel.com>
+ <95945222-3562-a330-609f-ad1a64034dd3@xs4all.nl>
+ <20170901225748.ygk35gzmt6vrtetw@valkosipuli.retiisi.org.uk>
+ <1981884.TcuAFemERJ@avalon>
 MIME-Version: 1.0
-In-Reply-To: <74b252c8-c1eb-8498-7b9b-54604fe2806a@cisco.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1981884.TcuAFemERJ@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 9/19/2017 12:29 PM, Hans Verkuil wrote:
+Hi Laurent,
 
->>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> Document the cec clock binding.
->>>
->>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> Acked-by: Rob Herring <robh@kernel.org>
->>> ---
->>>    Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt | 4 ++++
->>>    1 file changed, 4 insertions(+)
->>>
->>> diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->>> index 06668bca7ffc..4497ae054d49 100644
->>> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->>> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->>> @@ -68,6 +68,8 @@ Optional properties:
->>>    - adi,disable-timing-generator: Only for ADV7533. Disables the internal timing
->>>      generator. The chip will rely on the sync signals in the DSI data lanes,
->>>      rather than generate its own timings for HDMI output.
->>> +- clocks: from common clock binding: handle to CEC clock.
->>
->>      It's called "phandle" in the DT speak. :-)
->>      Are you sure the clock specifier would always be absent?
+On Sat, Sep 02, 2017 at 12:52:47PM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> Sorry? I don't understand the question. Did you mean: "can be absent?"?
-
-    No, you only say that there'll be the clock phandle only. The clock 
-specifier may follow the phandle for the clock devices that have 
-"#clock-cells" prop != 0.
-
-> Regards,
+> On Saturday, 2 September 2017 01:57:48 EEST Sakari Ailus wrote:
+> > On Fri, Sep 01, 2017 at 01:28:40PM +0200, Hans Verkuil wrote:
+> > >> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+> > >> index d063ab4ff67b..dd13604178b4 100644
+> > >> --- a/include/media/v4l2-fwnode.h
+> > >> +++ b/include/media/v4l2-fwnode.h
+> > >> @@ -249,4 +249,53 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
+> > >>  			    struct v4l2_fwnode_endpoint *vep,
+> > >>  			    struct v4l2_async_subdev *asd));
+> > >> 
+> > >> +/**
+> > >> + * v4l2_async_notifier_parse_fwnode_endpoint - Set up async notifier
+> > >> for an
+> > >> + *					       fwnode based sub-device
+> > >> + * @dev: @struct device pointer
+> > >> + * @notifier: pointer to &struct v4l2_async_notifier
+> > >> + * @port_id: port number
+> > >> + * @endpoint_id: endpoint number
+> > >> + * @asd_struct_size: size of the driver's async sub-device struct,
+> > >> including
+> > >> + *		     sizeof(struct v4l2_async_subdev). The &struct
+> > >> + *		     v4l2_async_subdev shall be the first member of
+> > >> + *		     the driver's async sub-device struct, i.e. both
+> > >> + *		     begin at the same memory address.
+> > >> + * @parse_single: driver's callback function called on each V4L2 fwnode
+> > >> endpoint
+> > >> + *
+> > >> + * Parse the fwnode endpoint of the @dev device corresponding to the
+> > >> given port
+> > >> + * and endpoint numbres and populate the async sub- devices array of
+> > >> the
+> > > 
+> > > numbers
+> > > no space after sub-
+> > > 
+> > > > + * notifier. The @parse_endpoint callback function is called for the
+> > > > endpoint
+> > > 
+> > > parse_single, but (as in the previous patch) I actually prefer
+> > > parse_endpoint.
+> > > 
+> > >> + * with the corresponding async sub-device pointer to let the caller
+> > >> initialize
+> > >> + * the driver-specific part of the async sub-device structure.
+> > >> + *
+> > >> + * The notifier memory shall be zeroed before this function is called
+> > >> on the
+> > >> + * notifier.
+> > > 
+> > > Should it? Doesn't this add additional subdevs?
+> > > 
+> > > I'm lost. What's the relationship between
+> > > v4l2_async_notifier_parse_fwnode_endpoints and this function? When do you
+> > > use which? When you should zero the notifier?
+> > I thought there would be advantages in this approach as it lets you to
+> > choose which endpoints specifically you want to parse. That said, the
+> > expectation is that the device has no endpoints that aren't supported in
+> > hardware either.
+> > 
+> > Some drivers currently iterate over all the endpoints and then validate
+> > them whereas others poke for some endpoints only (port 0, endpoint 0, for
+> > the rcar-vin driver, for instance). In DT binding documentation the
+> > endpoint numbers are currently not specified nor drivers have checked them.
+> > Common sense tells to use zero if there's no reason to do otherwise, but
+> > still this hasn't been documented nor validated in the past. So if we add
+> > that now, there could be a chance of breaking something.
+> > 
+> > Additionally, specifying the endpoints to parse explicitly has been seen
+> > beneficial (or even necessary) in parsing endpoints for devices that have
+> > both input and output interfaces. Perhaps Niklas can comment on that.
+> > 
+> > What I though was to introduce a specific error code (EPERM, better
+> > suggestions are taken)
 > 
->          Hans
-[...]
+> Maybe ENOTCONN ?
 
-MBR, Sergei
+Sounds good to me.
+
+> 
+> > for the driver callback function (parse_endpoint) to silently skip endpoints
+> > the driver doesn't like for reason or another. This lets drivers to use the
+> > endpoint parser function added by the previous patch and still maintain the
+> > old behaviour, i.e. ignore endpoints that aren't explicitly recognised by
+> > the driver.
+> > 
+> > I'll drop this patch from the next version.
+> 
+> Parsing a specific endpoint of a specific port is probably indeed a bit too 
+> fine-grained, but I think there are use cases for parsing at the port level 
+> instead of parsing all ports.
+
+Could you elaborate?
+
+If a driver would be interested in skipping endpoints in a subset of ports,
+in which case only a single port would be excluded from this?
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
