@@ -1,73 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52823 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750909AbdIPHSY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Sep 2017 03:18:24 -0400
-Date: Sat, 16 Sep 2017 09:18:20 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        devicetree@vger.kernel.org, sre@kernel.org
-Subject: Re: [PATCH v13 06/25] omap3isp: Use generic parser for parsing
- fwnode endpoints
-Message-ID: <20170916071820.GA9432@amd>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
- <20170915141724.23124-7-sakari.ailus@linux.intel.com>
- <20170916070431.GA8257@amd>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="WIyZ46R2i8wDzkSu"
-Content-Disposition: inline
-In-Reply-To: <20170916070431.GA8257@amd>
+Received: from www17.your-server.de ([213.133.104.17]:34284 "EHLO
+        www17.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752828AbdICMad (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Sep 2017 08:30:33 -0400
+Subject: [PATCH 5/10] [media] lgdt3306a: Use ARRAY_SIZE macro
+From: Thomas Meyer <thomas@m3y3r.de>
+To: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Message-ID: <1504439110050-1380074870-5-diffsplit-thomas@m3y3r.de>
+References: <1504439110050-939061377-0-diffsplit-thomas@m3y3r.de>
+In-Reply-To: <1504439110050-939061377-0-diffsplit-thomas@m3y3r.de>
+Date: Sun, 03 Sep 2017 14:19:31 +0200
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Use ARRAY_SIZE macro, rather than explicitly coding some variant of it
+yourself.
+Found with: find -type f -name "*.c" -o -name "*.h" | xargs perl -p -i -e
+'s/\bsizeof\s*\(\s*(\w+)\s*\)\s*\ /\s*sizeof\s*\(\s*\1\s*\[\s*0\s*\]\s*\)
+/ARRAY_SIZE(\1)/g' and manual check/verification.
 
---WIyZ46R2i8wDzkSu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+---
 
-On Sat 2017-09-16 09:04:31, Pavel Machek wrote:
-> Hi!
->=20
-> > Instead of using driver implementation, use
-> > v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoi=
-nts
-> > of the device.
-> >=20
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->=20
-> Patches at least up to here look fine o me.
-
-I went through some others.
-
-So, 2,4,5,6,10,12:
-
-Acked-by: Pavel Machek <pavel@ucw.cz>
-
-Best regards,
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---WIyZ46R2i8wDzkSu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlm80DwACgkQMOfwapXb+vJNVwCgpFTjiBBLG/0oK+qEbk/8ptR6
-WqoAnRSgCqcVZ4uoXDiiWtGehRtaAINt
-=o9qu
------END PGP SIGNATURE-----
-
---WIyZ46R2i8wDzkSu--
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index c9b1eb38444e..724e9aac0f11 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -19,6 +19,7 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <asm/div64.h>
++#include <linux/kernel.h>
+ #include <linux/dvb/frontend.h>
+ #include "dvb_math.h"
+ #include "lgdt3306a.h"
+@@ -2072,7 +2073,7 @@ static const short regtab[] = {
+ 	0x30aa, /* MPEGLOCK */
+ };
+ 
+-#define numDumpRegs (sizeof(regtab)/sizeof(regtab[0]))
++#define numDumpRegs (ARRAY_SIZE(regtab))
+ static u8 regval1[numDumpRegs] = {0, };
+ static u8 regval2[numDumpRegs] = {0, };
+ 
