@@ -1,86 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:57418 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751678AbdIUPHc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 11:07:32 -0400
-Subject: [PATCH 2/4] [media] usbvision-core: Use common error handling code in
- usbvision_set_compress_params()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Davidlohr Bueso <dave@stgolabs.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <c0e6e8e7-e47d-dc88-3317-2e46eaa51dc6@users.sourceforge.net>
-Message-ID: <52c09836-83d7-c509-6e85-c7af16160302@users.sourceforge.net>
-Date: Thu, 21 Sep 2017 17:07:06 +0200
-MIME-Version: 1.0
-In-Reply-To: <c0e6e8e7-e47d-dc88-3317-2e46eaa51dc6@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52282
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751640AbdICTEB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Sep 2017 15:04:01 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 1/7] media: format.rst: use the right markup for important notes
+Date: Sun,  3 Sep 2017 16:03:47 -0300
+Message-Id: <635fbe9cd54183944368f5f94106e35e1ddfff9c.1504464984.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504464984.git.mchehab@s-opensource.com>
+References: <cover.1504464984.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504464984.git.mchehab@s-opensource.com>
+References: <cover.1504464984.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 21 Sep 2017 12:45:49 +0200
+There's an important note there, but it is not using the
+ReST markup. So, it doesn't get any visual highlight on
+the output.
 
-* Add a jump target so that a bit of exception handling can be better
-  reused at the end of this function.
-
-* Replace the local variable "proc" by the identifier "__func__".
-
-* Use the interface "dev_err" instead of "printk".
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/usbvision/usbvision-core.c | 18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ Documentation/media/uapi/v4l/format.rst | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/usbvision/usbvision-core.c b/drivers/media/usb/usbvision/usbvision-core.c
-index 16b76c85eeec..bb6f4f69165f 100644
---- a/drivers/media/usb/usbvision/usbvision-core.c
-+++ b/drivers/media/usb/usbvision/usbvision-core.c
-@@ -1857,7 +1857,6 @@ int usbvision_stream_interrupt(struct usb_usbvision *usbvision)
+diff --git a/Documentation/media/uapi/v4l/format.rst b/Documentation/media/uapi/v4l/format.rst
+index 452c6d59cad5..3e3efb0e349e 100644
+--- a/Documentation/media/uapi/v4l/format.rst
++++ b/Documentation/media/uapi/v4l/format.rst
+@@ -78,7 +78,7 @@ output devices is available. [#f1]_
+ The :ref:`VIDIOC_ENUM_FMT` ioctl must be supported
+ by all drivers exchanging image data with applications.
  
- static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
- {
--	static const char proc[] = "usbvision_set_compresion_params: ";
- 	int rc;
- 	unsigned char *value = usbvision->ctrl_urb_buffer;
+-    **Important**
++.. important::
  
-@@ -1882,12 +1881,8 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
- 			     USB_DIR_OUT | USB_TYPE_VENDOR |
- 			     USB_RECIP_ENDPOINT, 0,
- 			     (__u16) USBVISION_INTRA_CYC, value, 5, HZ);
--
--	if (rc < 0) {
--		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
--		       proc, rc);
--		return rc;
--	}
-+	if (rc < 0)
-+		goto report_failure;
- 
- 	if (usbvision->bridge_type == BRIDGE_NT1004) {
- 		value[0] =  20; /* PCM Threshold 1 */
-@@ -1913,11 +1908,12 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
- 			     USB_DIR_OUT | USB_TYPE_VENDOR |
- 			     USB_RECIP_ENDPOINT, 0,
- 			     (__u16) USBVISION_PCM_THR1, value, 6, HZ);
-+	if (rc < 0)
-+report_failure:
-+		dev_err(&usbvision->dev->dev,
-+			"%s: ERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
-+			__func__, rc);
- 
--	if (rc < 0) {
--		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
--		       proc, rc);
--	}
- 	return rc;
- }
- 
+     Drivers are not supposed to convert image formats in kernel space.
+     They must enumerate only formats directly supported by the hardware.
 -- 
-2.14.1
+2.13.5
