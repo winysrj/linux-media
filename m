@@ -1,101 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eddie.linux-mips.org ([148.251.95.138]:47226 "EHLO
-        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750742AbdIKHNj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 03:13:39 -0400
-Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S23990686AbdIKHNhLQ7tQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 09:13:37 +0200
-Date: Mon, 11 Sep 2017 09:13:32 +0200
-From: Ladislav Michl <ladis@linux-mips.org>
-To: Andi Shyti <andi.shyti@samsung.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>
-Subject: Re: [PATCH v2 00/10] media: rc: gpio-ir-recv: driver update
-Message-ID: <20170911071332.r47nt5m26l6tsrpw@lenoch>
-References: <CGME20170907233401epcas4p4424e892b32d469233705af5014e20604@epcas4p4.samsung.com>
- <20170907233355.bv3hsv3rfhcx52i3@lenoch>
- <20170908022110.GB14947@gangnam>
- <20170908081630.oiypchglntemwba4@lenoch>
- <20170911025843.GA31540@gangnam>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54628
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753493AbdIDMPi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Sep 2017 08:15:38 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 1/2] media: ca docs: document CA_SET_DESCR ioctl and structs
+Date: Mon,  4 Sep 2017 09:15:31 -0300
+Message-Id: <25b64639e9b3c7880a64b20955174196c877fdb8.1504526763.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504526763.git.mchehab@s-opensource.com>
+References: <cover.1504526763.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1504526763.git.mchehab@s-opensource.com>
+References: <cover.1504526763.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170911025843.GA31540@gangnam>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 11, 2017 at 11:58:43AM +0900, Andi Shyti wrote:
-> Hi Ladislav,
-> 
-> > > > Serie was rebased on top of current linux.git, but something
-> > > > happened there and my userspace decoder no longer works: driver
-> > > > reports completely bogus timing such as (rc-5):
-> > > > ^427, _1342, ^945, _183, ^1128, _671, ^1586, _91, ^1189, _1525,
-> > > > ^1738, _1433, ^915, _1159, ^1464, _1525, ^213, _1067, ^793, _0
-> > > > (^ used for pulse and _ for space)
-> > > > As it has nothing to do with my changes, I'm sending it anyway
-> > > > for review, which I do not expect to happen until merge window
-> > > > ends.
-> > > 
-> > > This means that your patch is anyway untested.
-> > 
-> > Previous version is pretty well tested. GPIO IR stopped working
-> > after pulling other changes from linux.git yesterday. And does not
-> > work even without this patch set. I'll try to bisect later as omiting
-> > linux-media merge did not fix it either.
-> 
-> OK
+The av7110 driver uses CA_SET_DESCR to store the descrambler
+control words at the CA descrambler slots.
 
-In all truth, changes were developed on top of 4.9.40, testing was done at
-customer's site and for generally usefull changes usual attempt for merge
-was done :-) I tried unmodified driver over weekend:
-4.9.0: Not OK
-4.9.40: OK
-4.9.13: Not OK
-linux.git: Not OK
-Tested on IGEPv2 board based on DM3730, so something went wrong again.
-Based on driver principle I suspect either ktime_get returning "strange"
-values or interrupts are broken again (but that does not explain those
-short pulses and spaces):
-https://www.spinics.net/lists/linux-omap/msg135915.html
-Verifying that would require some test setup with signal generator and
-scope, as described in said email thread; or combine that test driver
-with this one and look what is really happening. Unfortunately I'm not
-able to do this any time soon, so if someone has hardware reliably working
-with current mainline and is willing to test this patch serie I would
-be very happy to see it happen.
+Document it.
 
-> > > In any case I don't see much use if patch 1/10 as it doesn't
-> > > simplify much, but the rest (from 2 to 10) looks good to me.
-> > 
-> > Just look at patch 9 and imagine how it would look without this
-> > change. If you are still unconvinced I'll drop this change.
-> 
-> You don't need to, that's just my personal taste and I'm not
-> strong with it. Patch 1 is quite common and not a big deal anyway.
-> If you like it you like you can leave it :)
-> 
-> > > P.S. I don't see in this V2 the changelog from V1. Next time,
-> > > please add the changelog.
-> > 
-> > It was just a rebase with conflicts resolved. I do not see how
-> > to describe it better than I did.
-> 
-> You could write the above (i.e. V2 fixed rebase conflicts :) ).
-> The reason is that as no change is stated, I have to anyway, as
-> reviewer, compare side by side all patches to figure out if there
-> is any difference (even if small) that is not expected.
+Thanks-to: Honza Petrouš <jpetrous@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/dvb/ca-set-descr.rst | 15 ++-------------
+ include/uapi/linux/dvb/ca.h                   |  9 ++++++++-
+ 2 files changed, 10 insertions(+), 14 deletions(-)
 
-Fair enough. Let's wait if there will any more comments and I'll do
-better in V3.
-
-> Thanks,
-> Andi
-
-Best regards,
-	ladis
+diff --git a/Documentation/media/uapi/dvb/ca-set-descr.rst b/Documentation/media/uapi/dvb/ca-set-descr.rst
+index 9c484317d55c..a6c47205ffd8 100644
+--- a/Documentation/media/uapi/dvb/ca-set-descr.rst
++++ b/Documentation/media/uapi/dvb/ca-set-descr.rst
+@@ -28,22 +28,11 @@ Arguments
+ ``msg``
+   Pointer to struct :c:type:`ca_descr`.
+ 
+-.. c:type:: ca_descr
+-
+-.. code-block:: c
+-
+-    struct ca_descr {
+-	unsigned int index;
+-	unsigned int parity;
+-	unsigned char cw[8];
+-    };
+-
+-
+ Description
+ -----------
+ 
+-.. note:: This ioctl is undocumented. Documentation is welcome.
+-
++CA_SET_DESCR is used for feeding descrambler CA slots with descrambling
++keys (refered as control words).
+ 
+ Return Value
+ ------------
+diff --git a/include/uapi/linux/dvb/ca.h b/include/uapi/linux/dvb/ca.h
+index f66ed53f4dc7..a62ddf0cebcd 100644
+--- a/include/uapi/linux/dvb/ca.h
++++ b/include/uapi/linux/dvb/ca.h
+@@ -109,9 +109,16 @@ struct ca_msg {
+ 	unsigned char msg[256];
+ };
+ 
++/**
++ * struct ca_descr - CA descrambler control words info
++ *
++ * @index: CA Descrambler slot
++ * @parity: control words parity, where 0 means even and 1 means odd
++ * @cw: CA Descrambler control words
++ */
+ struct ca_descr {
+ 	unsigned int index;
+-	unsigned int parity;	/* 0 == even, 1 == odd */
++	unsigned int parity;
+ 	unsigned char cw[8];
+ };
+ 
+-- 
+2.13.5
