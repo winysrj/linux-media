@@ -1,189 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:3795 "EHLO mga11.intel.com"
+Received: from mout.gmx.net ([212.227.17.21]:64398 "EHLO mout.gmx.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752046AbdI0SZS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 14:25:18 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 11/13] staging: atomisp: Remove Gmin dead code #2
-Date: Wed, 27 Sep 2017 21:25:06 +0300
-Message-Id: <20170927182508.52119-12-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20170927182508.52119-1-andriy.shevchenko@linux.intel.com>
-References: <20170927182508.52119-1-andriy.shevchenko@linux.intel.com>
+        id S1753283AbdIDIQ5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Sep 2017 04:16:57 -0400
+Date: Mon, 4 Sep 2017 08:17:04 +0000 (UTC)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Edgar Thier <edgar.thier@theimagingsource.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: UVC property auto update
+In-Reply-To: <4ce389e0-f63e-049e-b200-14ada55bb630@theimagingsource.com>
+Message-ID: <alpine.DEB.2.20.1709040801550.13291@axis700.grange>
+References: <c3f8b20a-65f9-ead3-9ffd-041641254af7@theimagingsource.com> <Pine.LNX.4.64.1709031714570.29016@axis700.grange> <4ce389e0-f63e-049e-b200-14ada55bb630@theimagingsource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-media/lm3642.h is not used anywhere. Moreover, there is a driver under
-LEDs framework for very same IP which would be used anyway.
+Hi Edgar,
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- .../staging/media/atomisp/include/media/lm3642.h   | 153 ---------------------
- 1 file changed, 153 deletions(-)
- delete mode 100644 drivers/staging/media/atomisp/include/media/lm3642.h
+Thanks for the explanation.
 
-diff --git a/drivers/staging/media/atomisp/include/media/lm3642.h b/drivers/staging/media/atomisp/include/media/lm3642.h
-deleted file mode 100644
-index 545d95763335..000000000000
---- a/drivers/staging/media/atomisp/include/media/lm3642.h
-+++ /dev/null
-@@ -1,153 +0,0 @@
--/*
-- * include/media/lm3642.h
-- *
-- * Copyright (c) 2010-2012 Intel Corporation. All Rights Reserved.
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License version
-- * 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program.
-- */
--
--#ifndef _LM3642_H_
--#define _LM3642_H_
--
--#include <linux/videodev2.h>
--#include <media/v4l2-subdev.h>
--
--#define LM3642_NAME    "lm3642"
--#define LM3642_ID      3642
--
--#define	v4l2_queryctrl_entry_integer(_id, _name,\
--		_minimum, _maximum, _step, \
--		_default_value, _flags)	\
--	{\
--		.id = (_id), \
--		.type = V4L2_CTRL_TYPE_INTEGER, \
--		.name = _name, \
--		.minimum = (_minimum), \
--		.maximum = (_maximum), \
--		.step = (_step), \
--		.default_value = (_default_value),\
--		.flags = (_flags),\
--	}
--#define	v4l2_queryctrl_entry_boolean(_id, _name,\
--		_default_value, _flags)	\
--	{\
--		.id = (_id), \
--		.type = V4L2_CTRL_TYPE_BOOLEAN, \
--		.name = _name, \
--		.minimum = 0, \
--		.maximum = 1, \
--		.step = 1, \
--		.default_value = (_default_value),\
--		.flags = (_flags),\
--	}
--
--#define	s_ctrl_id_entry_integer(_id, _name, \
--		_minimum, _maximum, _step, \
--		_default_value, _flags, \
--		_s_ctrl, _g_ctrl)	\
--	{\
--		.qc = v4l2_queryctrl_entry_integer(_id, _name,\
--				_minimum, _maximum, _step,\
--				_default_value, _flags), \
--		.s_ctrl = _s_ctrl, \
--		.g_ctrl = _g_ctrl, \
--	}
--
--#define	s_ctrl_id_entry_boolean(_id, _name, \
--		_default_value, _flags, \
--		_s_ctrl, _g_ctrl)	\
--	{\
--		.qc = v4l2_queryctrl_entry_boolean(_id, _name,\
--				_default_value, _flags), \
--		.s_ctrl = _s_ctrl, \
--		.g_ctrl = _g_ctrl, \
--	}
--
--
--/* Default Values */
--#define LM3642_DEFAULT_TIMEOUT           300U
--#define LM3642_DEFAULT_RAMP_TIME	 0x10 /* 1.024ms */
--#define LM3642_DEFAULT_INDICATOR_CURRENT 0x01 /* 1.88A */
--#define LM3642_DEFAULT_FLASH_CURRENT	 0x0f /* 1500mA */
--
--/* Value settings for Flash Time-out Duration*/
--#define LM3642_MIN_TIMEOUT              100U
--#define LM3642_MAX_TIMEOUT              800U
--#define LM3642_TIMEOUT_STEPSIZE         100U
--
--/* Flash modes */
--#define LM3642_MODE_SHUTDOWN            0
--#define LM3642_MODE_INDICATOR           1
--#define LM3642_MODE_TORCH               2
--#define LM3642_MODE_FLASH               3
--
--/* timer delay time */
--#define LM3642_TIMER_DELAY		5
--
--/* Percentage <-> value macros */
--#define LM3642_MIN_PERCENT                   0U
--#define LM3642_MAX_PERCENT                   100U
--#define LM3642_CLAMP_PERCENTAGE(val) \
--	clamp(val, LM3642_MIN_PERCENT, LM3642_MAX_PERCENT)
--
--#define LM3642_VALUE_TO_PERCENT(v, step) \
--	(((((unsigned long)((v)+1))*(step))+50)/100)
--#define LM3642_PERCENT_TO_VALUE(p, step) \
--	(((((unsigned long)(p))*100)+((step)>>1))/(step)-1)
--
--/* Product specific limits
-- * TODO: get these from platform data */
--#define LM3642_FLASH_MAX_LVL   0x0F /* 1500mA */
--#define LM3642_TORCH_MAX_LVL   0x07 /* 187mA */
--#define LM3642_INDICATOR_MAX_LVL   0x01 /* 1.88A */
--
--/* Flash brightness, input is percentage, output is [0..15] */
--#define LM3642_FLASH_STEP	\
--	((100ul*(LM3642_MAX_PERCENT) \
--	+((LM3642_FLASH_MAX_LVL+1)>>1)) \
--	/((LM3642_FLASH_MAX_LVL+1)))
--#define LM3642_FLASH_DEFAULT_BRIGHTNESS \
--	LM3642_VALUE_TO_PERCENT(15, LM3642_FLASH_STEP)
--
--/* Torch brightness, input is percentage, output is [0..7] */
--#define LM3642_TORCH_STEP	\
--	((100ul*(LM3642_MAX_PERCENT) \
--	+((LM3642_TORCH_MAX_LVL+1)>>1)) \
--	/((LM3642_TORCH_MAX_LVL+1)))
--#define LM3642_TORCH_DEFAULT_BRIGHTNESS \
--	LM3642_VALUE_TO_PERCENT(0, LM3642_TORCH_STEP)
--
--/* Indicator brightness, input is percentage, output is [0..1] */
--#define LM3642_INDICATOR_STEP	\
--	((100ul*(LM3642_MAX_PERCENT) \
--	+((LM3642_INDICATOR_MAX_LVL+1)>>1)) \
--	/((LM3642_INDICATOR_MAX_LVL+1)))
--#define LM3642_INDICATOR_DEFAULT_BRIGHTNESS \
--	LM3642_VALUE_TO_PERCENT(1, LM3642_INDICATOR_STEP)
--
--/*
-- * lm3642_platform_data - Flash controller platform data
-- */
--struct lm3642_platform_data {
--	int gpio_torch;
--	int gpio_strobe;
--	int (*power_ctrl)(struct v4l2_subdev *subdev, int on);
--
--	unsigned int torch_en;
--	unsigned int flash_en;
--	unsigned int tx_en;
--	unsigned int ivfm_en;
--};
--
--#endif /* _LM3642_H_ */
--
--- 
-2.14.1
+On Mon, 4 Sep 2017, Edgar Thier wrote:
+
+> Hi Guennadi,
+> 
+> The cameras in question are USB-3.0 industrial cameras from The Imaging Source.
+> The ones I tested were the DFK UX250 and DFK UX264 models.
+> I do not know if there are other devices that have the AUTO_UPDATE flag for various properties.
+> 
+> Since I received no immediate answer I tried fixing it myself.
+> The result can be found here:
+> https://patchwork.linuxtv.org/patch/43289/
+
+But that patch only re-reads the flags. What does that give you? Do those 
+flags change? In which way? As far as I understand the UVC Autoupdate 
+feature, a change in GET_INFO data is only one possibility, (arguably) a 
+more important one is changes in GET_CUR data. In either case, this should 
+be implemented using the UVC Interrupt endpoint. Here's my latest 
+asynchronous control patch:
+
+https://patchwork.linuxtv.org/patch/42800/
+
+As you can see, it only handles the VALUE_CHANGE (GET_CUR) case. I would 
+suggest implementing a patch on top of it to add support for INFO_CHANGE 
+and you'd be the best person to test it then!
+
+Thanks
+Guennadi
+
+> Cheers,
+> 
+> Edgar
