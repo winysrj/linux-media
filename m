@@ -1,170 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33174
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752156AbdI0Vky (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:42055 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753740AbdIDO6S (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:54 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>
-Subject: [PATCH v2 07/37] media: dvb_frontend: cleanup dvb_frontend_ioctl_properties()
-Date: Wed, 27 Sep 2017 18:40:08 -0300
-Message-Id: <b172f37079f9e0f09e068d0bbfded540b491bc8f.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+        Mon, 4 Sep 2017 10:58:18 -0400
+Subject: Re: [PATCH v7 16/18] v4l2-fwnode: Add convenience function for
+ parsing common external refs
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+References: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
+ <20170903174958.27058-17-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4900fc41-1b57-deb6-2041-26a6333f2033@xs4all.nl>
+Date: Mon, 4 Sep 2017 16:58:13 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170903174958.27058-17-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use a switch() on this function, just like on other ioctl
-handlers and handle parameters inside each part of the
-switch.
+On 09/03/2017 07:49 PM, Sakari Ailus wrote:
+> Add v4l2_fwnode_parse_reference_sensor_common for parsing common
+> sensor properties that refer to adjacent devices such as flash or lens
+> driver chips.
+> 
+> As this is an association only, there's little a regular driver needs to
+> know about these devices as such.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-That makes it easier to integrate with the already existing
-ioctl handler function.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_frontend.c | 83 +++++++++++++++++++++--------------
- 1 file changed, 51 insertions(+), 32 deletions(-)
+Regards,
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 8abe4f541a36..725cb1c8a088 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -1971,21 +1971,25 @@ static int dvb_frontend_ioctl_properties(struct file *file,
- 	struct dvb_frontend *fe = dvbdev->priv;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	int err = 0;
--
--	struct dtv_properties *tvps = parg;
--	struct dtv_property *tvp = NULL;
--	int i;
-+	int err, i;
- 
- 	dev_dbg(fe->dvb->device, "%s:\n", __func__);
- 
--	if (cmd == FE_SET_PROPERTY) {
--		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n", __func__, tvps->num);
--		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n", __func__, tvps->props);
-+	switch(cmd) {
-+	case FE_SET_PROPERTY: {
-+		struct dtv_properties *tvps = parg;
-+		struct dtv_property *tvp = NULL;
- 
--		/* Put an arbitrary limit on the number of messages that can
--		 * be sent at once */
--		if ((tvps->num == 0) || (tvps->num > DTV_IOCTL_MAX_MSGS))
-+		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n",
-+			__func__, tvps->num);
-+		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n",
-+			__func__, tvps->props);
-+
-+		/*
-+		 * Put an arbitrary limit on the number of messages that can
-+		 * be sent at once
-+		 */
-+		if (!tvps->num || (tvps->num > DTV_IOCTL_MAX_MSGS))
- 			return -EINVAL;
- 
- 		tvp = memdup_user(tvps->props, tvps->num * sizeof(*tvp));
-@@ -1994,23 +1998,34 @@ static int dvb_frontend_ioctl_properties(struct file *file,
- 
- 		for (i = 0; i < tvps->num; i++) {
- 			err = dtv_property_process_set(fe, tvp + i, file);
--			if (err < 0)
--				goto out;
-+			if (err < 0) {
-+				kfree(tvp);
-+				return err;
-+			}
- 			(tvp + i)->result = err;
- 		}
- 
- 		if (c->state == DTV_TUNE)
- 			dev_dbg(fe->dvb->device, "%s: Property cache is full, tuning\n", __func__);
- 
--	} else if (cmd == FE_GET_PROPERTY) {
-+		kfree(tvp);
-+		break;
-+	}
-+	case FE_GET_PROPERTY: {
-+		struct dtv_properties *tvps = parg;
-+		struct dtv_property *tvp = NULL;
- 		struct dtv_frontend_properties getp = fe->dtv_property_cache;
- 
--		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n", __func__, tvps->num);
--		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n", __func__, tvps->props);
-+		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n",
-+			__func__, tvps->num);
-+		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n",
-+			__func__, tvps->props);
- 
--		/* Put an arbitrary limit on the number of messages that can
--		 * be sent at once */
--		if ((tvps->num == 0) || (tvps->num > DTV_IOCTL_MAX_MSGS))
-+		/*
-+		 * Put an arbitrary limit on the number of messages that can
-+		 * be sent at once
-+		 */
-+		if (!tvps->num || (tvps->num > DTV_IOCTL_MAX_MSGS))
- 			return -EINVAL;
- 
- 		tvp = memdup_user(tvps->props, tvps->num * sizeof(*tvp));
-@@ -2025,28 +2040,32 @@ static int dvb_frontend_ioctl_properties(struct file *file,
- 		 */
- 		if (fepriv->state != FESTATE_IDLE) {
- 			err = dtv_get_frontend(fe, &getp, NULL);
--			if (err < 0)
--				goto out;
-+			if (err < 0) {
-+				kfree(tvp);
-+				return err;
-+			}
- 		}
- 		for (i = 0; i < tvps->num; i++) {
- 			err = dtv_property_process_get(fe, &getp, tvp + i, file);
--			if (err < 0)
--				goto out;
-+			if (err < 0) {
-+				kfree(tvp);
-+				return err;
-+			}
- 			(tvp + i)->result = err;
- 		}
- 
- 		if (copy_to_user((void __user *)tvps->props, tvp,
- 				 tvps->num * sizeof(struct dtv_property))) {
--			err = -EFAULT;
--			goto out;
-+			kfree(tvp);
-+			return -EFAULT;
- 		}
--
--	} else
--		err = -EOPNOTSUPP;
--
--out:
--	kfree(tvp);
--	return err;
-+		kfree(tvp);
-+		break;
-+	}
-+	default:
-+		return -ENOTSUPP;
-+	} /* switch */
-+	return 0;
- }
- 
- static int dtv_set_frontend(struct dvb_frontend *fe)
--- 
-2.13.5
+	Hans
+
+> ---
+>  drivers/media/v4l2-core/v4l2-fwnode.c | 27 +++++++++++++++++++++++++++
+>  include/media/v4l2-fwnode.h           |  3 +++
+>  2 files changed, 30 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> index 24f8020caf28..f28be3b751d3 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -530,6 +530,33 @@ int v4l2_fwnode_reference_parse(
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse);
+>  
+> +int v4l2_fwnode_reference_parse_sensor_common(
+> +	struct device *dev, struct v4l2_async_notifier *notifier)
+> +{
+> +	static const struct {
+> +		char *name;
+> +		char *cells;
+> +		unsigned int nr_cells;
+> +	} props[] = {
+> +		{ "flash", NULL, 0 },
+> +		{ "lens-focus", NULL, 0 },
+> +	};
+> +	unsigned int i;
+> +	int rval;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(props); i++) {
+> +		rval = v4l2_fwnode_reference_parse(
+> +			dev, notifier, props[i].name, props[i].cells,
+> +			props[i].nr_cells, sizeof(struct v4l2_async_subdev),
+> +			NULL);
+> +		if (rval < 0 && rval != -ENOENT)
+> +			return rval;
+> +	}
+> +
+> +	return rval;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse_sensor_common);
+> +
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+>  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+> index 52f528162818..fd14f1d38966 100644
+> --- a/include/media/v4l2-fwnode.h
+> +++ b/include/media/v4l2-fwnode.h
+> @@ -282,4 +282,7 @@ int v4l2_fwnode_reference_parse(
+>  			    struct fwnode_reference_args *args,
+>  			    struct v4l2_async_subdev *asd));
+>  
+> +int v4l2_fwnode_reference_parse_sensor_common(
+> +	struct device *dev, struct v4l2_async_notifier *notifier);
+> +
+>  #endif /* _V4L2_FWNODE_H */
+> 
