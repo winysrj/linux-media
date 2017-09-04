@@ -1,20 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:54604 "EHLO mout.web.de"
+Received: from mout.web.de ([212.227.17.11]:56638 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752399AbdIBNGY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 2 Sep 2017 09:06:24 -0400
-Subject: [PATCH 1/4] [media] adv7604: Delete an error message for a failed
- memory allocation in adv76xx_probe()
+        id S1754442AbdIDUMr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Sep 2017 16:12:47 -0400
+Subject: [PATCH 6/6] [media] atmel-isi: Adjust a null pointer check in three
+ functions
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
+To: linux-media@vger.kernel.org,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Songjun Wu <songjun.wu@microchip.com>
 Cc: LKML <linux-kernel@vger.kernel.org>,
         kernel-janitors@vger.kernel.org
-References: <0e67e095-4931-b78f-a925-7335326ab69c@users.sourceforge.net>
-Message-ID: <e714ab2d-4d08-8103-6d05-2eee7a58ba10@users.sourceforge.net>
-Date: Sat, 2 Sep 2017 15:06:16 +0200
+References: <88d0739c-fdc1-9d7d-fe53-b7c2eeed1849@users.sourceforge.net>
+Message-ID: <c539c64a-c6f7-cb03-0dec-1eb4b74de71f@users.sourceforge.net>
+Date: Mon, 4 Sep 2017 22:12:38 +0200
 MIME-Version: 1.0
-In-Reply-To: <0e67e095-4931-b78f-a925-7335326ab69c@users.sourceforge.net>
+In-Reply-To: <88d0739c-fdc1-9d7d-fe53-b7c2eeed1849@users.sourceforge.net>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
@@ -22,29 +24,52 @@ Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 2 Sep 2017 11:28:55 +0200
+Date: Mon, 4 Sep 2017 21:30:48 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Omit an extra message for a memory allocation failure in this function.
+The script “checkpatch.pl” pointed information out like the following.
 
-This issue was detected by using the Coccinelle software.
+Comparison to NULL could be written !…
+
+Thus fix the affected source code places.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/i2c/adv7604.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/media/platform/atmel/atmel-isi.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 660bacb8f7d9..cc693ef71f33 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -3319,7 +3319,5 @@ static int adv76xx_probe(struct i2c_client *client,
--	if (!state) {
--		v4l_err(client, "Could not allocate adv76xx_state memory!\n");
-+	if (!state)
+diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
+index ac40defce1e7..f2e13dfb19a1 100644
+--- a/drivers/media/platform/atmel/atmel-isi.c
++++ b/drivers/media/platform/atmel/atmel-isi.c
+@@ -411,7 +411,7 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 	spin_lock_irqsave(&isi->irqlock, flags);
+ 	list_add_tail(&buf->list, &isi->video_buffer_list);
+ 
+-	if (isi->active == NULL) {
++	if (!isi->active) {
+ 		isi->active = buf;
+ 		if (vb2_is_streaming(vb->vb2_queue))
+ 			start_dma(isi, buf);
+@@ -1141,7 +1141,7 @@ static int isi_graph_init(struct atmel_isi *isi)
+ 
+ 	/* Register the subdevices notifier. */
+ 	subdevs = devm_kzalloc(isi->dev, sizeof(*subdevs), GFP_KERNEL);
+-	if (subdevs == NULL) {
++	if (!subdevs) {
+ 		of_node_put(isi->entity.node);
  		return -ENOMEM;
--	}
+ 	}
+@@ -1200,7 +1200,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 		return ret;
  
- 	state->i2c_clients[ADV76XX_PAGE_IO] = client;
- 
+ 	isi->vdev = video_device_alloc();
+-	if (isi->vdev == NULL) {
++	if (!isi->vdev) {
+ 		ret = -ENOMEM;
+ 		goto err_vdev_alloc;
+ 	}
 -- 
 2.14.1
