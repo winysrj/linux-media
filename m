@@ -1,56 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:37487 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751787AbdI0IF6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 04:05:58 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH] [media] cx231xx: make cx231xx_vbi_qops const
-Date: Wed, 27 Sep 2017 13:35:43 +0530
-Message-Id: <1506499543-11139-1-git-send-email-bhumirks@gmail.com>
+Received: from mout.web.de ([217.72.192.78]:56775 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754601AbdIDUIr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Sep 2017 16:08:47 -0400
+Subject: [PATCH 3/6] [media] atmel-isc: Adjust three checks for null pointers
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Songjun Wu <songjun.wu@microchip.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <88d0739c-fdc1-9d7d-fe53-b7c2eeed1849@users.sourceforge.net>
+Message-ID: <fe343b19-3c18-16d0-8019-7999bf25f049@users.sourceforge.net>
+Date: Mon, 4 Sep 2017 22:08:38 +0200
+MIME-Version: 1.0
+In-Reply-To: <88d0739c-fdc1-9d7d-fe53-b7c2eeed1849@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make this const as it is only passed to the const argument of the
-function videobuf_queue_vmalloc_init in the file referencing it.
-Also, make the declaration in the header const.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 4 Sep 2017 20:54:20 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Structure found using Coccienlle and changes done by hand.
+The script “checkpatch.pl” pointed information out like the following.
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+Comparison to NULL could be written !…
+
+Thus fix the affected source code places.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/usb/cx231xx/cx231xx-vbi.c | 2 +-
- drivers/media/usb/cx231xx/cx231xx-vbi.h | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/atmel/atmel-isc.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-vbi.c b/drivers/media/usb/cx231xx/cx231xx-vbi.c
-index 76e9019..330b86e 100644
---- a/drivers/media/usb/cx231xx/cx231xx-vbi.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-vbi.c
-@@ -285,7 +285,7 @@ static void vbi_buffer_release(struct videobuf_queue *vq,
- 	free_buffer(vq, buf);
- }
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index f16bab0105c2..b6048cedb6cc 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -1590,7 +1590,7 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
+ 	spin_lock_init(&isc->dma_queue_lock);
  
--struct videobuf_queue_ops cx231xx_vbi_qops = {
-+const struct videobuf_queue_ops cx231xx_vbi_qops = {
- 	.buf_setup   = vbi_buffer_setup,
- 	.buf_prepare = vbi_buffer_prepare,
- 	.buf_queue   = vbi_buffer_queue,
-diff --git a/drivers/media/usb/cx231xx/cx231xx-vbi.h b/drivers/media/usb/cx231xx/cx231xx-vbi.h
-index 16c7d20..b33d2bd 100644
---- a/drivers/media/usb/cx231xx/cx231xx-vbi.h
-+++ b/drivers/media/usb/cx231xx/cx231xx-vbi.h
-@@ -22,7 +22,7 @@
- #ifndef _CX231XX_VBI_H
- #define _CX231XX_VBI_H
+ 	sd_entity->config = v4l2_subdev_alloc_pad_config(sd_entity->sd);
+-	if (sd_entity->config == NULL)
++	if (!sd_entity->config)
+ 		return -ENOMEM;
  
--extern struct videobuf_queue_ops cx231xx_vbi_qops;
-+extern const struct videobuf_queue_ops cx231xx_vbi_qops;
+ 	ret = isc_formats_init(isc);
+@@ -1714,7 +1714,7 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
  
- #define   NTSC_VBI_START_LINE 10	/* line 10 - 21 */
- #define   NTSC_VBI_END_LINE   21
+ 		subdev_entity = devm_kzalloc(dev,
+ 					  sizeof(*subdev_entity), GFP_KERNEL);
+-		if (subdev_entity == NULL) {
++		if (!subdev_entity) {
+ 			of_node_put(rem);
+ 			ret = -ENOMEM;
+ 			break;
+@@ -1722,7 +1722,7 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
+ 
+ 		subdev_entity->asd = devm_kzalloc(dev,
+ 				     sizeof(*subdev_entity->asd), GFP_KERNEL);
+-		if (subdev_entity->asd == NULL) {
++		if (!subdev_entity->asd) {
+ 			of_node_put(rem);
+ 			ret = -ENOMEM;
+ 			break;
 -- 
-1.9.1
+2.14.1
