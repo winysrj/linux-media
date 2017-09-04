@@ -1,53 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:50595 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750763AbdIITNu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 9 Sep 2017 15:13:50 -0400
-Subject: [PATCH 1/2] [media] xc4000: Delete two error messages for a failed
- memory allocation in xc4000_fwupload()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <61016489-eb01-2977-b094-343aa70686b0@users.sourceforge.net>
-Message-ID: <0ad4caf5-a0fd-2852-5d01-9c9e45a9e480@users.sourceforge.net>
-Date: Sat, 9 Sep 2017 21:13:40 +0200
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:44745 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753957AbdIDRhO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Sep 2017 13:37:14 -0400
+Subject: Re: [PATCH v7 04/18] v4l: fwnode: Support generic parsing of graph
+ endpoints in a device
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, laurent.pinchart@ideasonboard.com,
+        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+References: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
+ <20170903174958.27058-5-sakari.ailus@linux.intel.com>
+ <e07f9b4d-e8dc-5598-98ee-3c69e3100b81@xs4all.nl>
+ <20170904155415.nak4dofd2k6ytupa@valkosipuli.retiisi.org.uk>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <cad608c6-93b6-d791-a14a-a5b38fe6e1bf@xs4all.nl>
+Date: Mon, 4 Sep 2017 19:37:09 +0200
 MIME-Version: 1.0
-In-Reply-To: <61016489-eb01-2977-b094-343aa70686b0@users.sourceforge.net>
+In-Reply-To: <20170904155415.nak4dofd2k6ytupa@valkosipuli.retiisi.org.uk>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 9 Sep 2017 20:46:35 +0200
+On 09/04/2017 05:54 PM, Sakari Ailus wrote:
+>>> +/**
+>>> + * v4l2_async_notifier_parse_fwnode_endpoints - Parse V4L2 fwnode endpoints in a
+>>> + *						device node
+>>> + * @dev: the device the endpoints of which are to be parsed
+>>> + * @notifier: notifier for @dev
+>>> + * @asd_struct_size: size of the driver's async sub-device struct, including
+>>> + *		     sizeof(struct v4l2_async_subdev). The &struct
+>>> + *		     v4l2_async_subdev shall be the first member of
+>>> + *		     the driver's async sub-device struct, i.e. both
+>>> + *		     begin at the same memory address.
+>>> + * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
+>>> + *		    endpoint. Optional.
+>>> + *		    Return: %0 on success
+>>> + *			    %-ENOTCONN if the endpoint is to be skipped but this
+>>> + *				       should not be considered as an error
+>>> + *			    %-EINVAL if the endpoint configuration is invalid
+>>> + *
+>>> + * Parse the fwnode endpoints of the @dev device and populate the async sub-
+>>> + * devices array of the notifier. The @parse_endpoint callback function is
+>>> + * called for each endpoint with the corresponding async sub-device pointer to
+>>> + * let the caller initialize the driver-specific part of the async sub-device
+>>> + * structure.
+>>> + *
+>>> + * The notifier memory shall be zeroed before this function is called on the
+>>> + * notifier.
+>>> + *
+>>> + * This function may not be called on a registered notifier and may be called on
+>>> + * a notifier only once. When using this function, the user may not access the
+>>> + * notifier's subdevs array nor change notifier's num_subdevs field, these are
+>>> + * reserved for the framework's internal use only.
+>>
+>> I don't think the sentence "When using...only" makes any sense. How would you
+>> even be able to access any of the notifier fields? You don't have access to it
+>> from the parse_endpoint callback.
+> 
+> Not from the parse_endpoint callback. The notifier is first set up by the
+> driver, and this text applies to that --- whether or not parse_endpoint is
+> given.
 
-Omit extra messages for a memory allocation failure in this function.
+What you mean is "After calling this function..." since v4l2_async_notifier_release()
+needs this to release all the memory.
 
-This issue was detected by using the Coccinelle software.
+I'll take another look at this text when I see v8.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/tuners/xc4000.c | 2 --
- 1 file changed, 2 deletions(-)
+Regards,
 
-diff --git a/drivers/media/tuners/xc4000.c b/drivers/media/tuners/xc4000.c
-index e30948e4ff87..bbf386127fc4 100644
---- a/drivers/media/tuners/xc4000.c
-+++ b/drivers/media/tuners/xc4000.c
-@@ -779,4 +779,3 @@ static int xc4000_fwupload(struct dvb_frontend *fe)
--		printk(KERN_ERR "Not enough memory to load firmware file.\n");
- 		rc = -ENOMEM;
- 		goto done;
- 	}
-@@ -826,4 +825,3 @@ static int xc4000_fwupload(struct dvb_frontend *fe)
--			printk(KERN_ERR "Not enough memory to load firmware file.\n");
- 			rc = -ENOMEM;
- 			goto done;
- 		}
--- 
-2.14.1
+	Hans
+
+> 
+>>
+>> I think it can just be dropped.
+>>
+>>> + *
+>>> + * The @struct v4l2_fwnode_endpoint passed to the callback function
+>>> + * @parse_endpoint is released once the function is finished. If there is a need
+>>> + * to retain that configuration, the user needs to allocate memory for it.
+>>> + *
+>>> + * Any notifier populated using this function must be released with a call to
+>>> + * v4l2_async_notifier_release() after it has been unregistered and the async
+>>> + * sub-devices are no longer in use.
+>>> + *
+>>> + * Return: %0 on success, including when no async sub-devices are found
+>>> + *	   %-ENOMEM if memory allocation failed
+>>> + *	   %-EINVAL if graph or endpoint parsing failed
+>>> + *	   Other error codes as returned by @parse_endpoint
+>>> + */
+>>> +int v4l2_async_notifier_parse_fwnode_endpoints(
+>>> +	struct device *dev, struct v4l2_async_notifier *notifier,
+>>> +	size_t asd_struct_size,
+>>> +	int (*parse_endpoint)(struct device *dev,
+>>> +			      struct v4l2_fwnode_endpoint *vep,
+>>> +			      struct v4l2_async_subdev *asd));
+>>> +
+>>>  #endif /* _V4L2_FWNODE_H */
+>>>
+> 
