@@ -1,47 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0233.hostedemail.com ([216.40.44.233]:42627 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751364AbdIOSQe (ORCPT
+Received: from vsmx009.vodafonemail.xion.oxcs.net ([153.92.174.87]:55009 "EHLO
+        vsmx009.vodafonemail.xion.oxcs.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753681AbdIDN1s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 14:16:34 -0400
-Message-ID: <1505499388.27581.13.camel@perches.com>
-Subject: Re: [PATCH 2/2] [media] stm32-dcmi: Improve four size determinations
-From: Joe Perches <joe@perches.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Date: Fri, 15 Sep 2017 11:16:28 -0700
-In-Reply-To: <f4e400ea-9660-05cd-3194-cdf2495a2376@users.sourceforge.net>
-References: <730b535e-39a5-2c2b-f463-e76da967a723@users.sourceforge.net>
-         <f4e400ea-9660-05cd-3194-cdf2495a2376@users.sourceforge.net>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Mon, 4 Sep 2017 09:27:48 -0400
+From: =?UTF-8?q?Christian=20K=C3=B6nig?= <deathsimple@vodafone.de>
+To: chris@chris-wilson.co.uk, daniel.vetter@ffwll.ch,
+        sumit.semwal@linaro.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org
+Subject: [PATCH] dma-fence: fix dma_fence_get_rcu_safe
+Date: Mon,  4 Sep 2017 15:27:33 +0200
+Message-Id: <1504531653-13779-1-git-send-email-deathsimple@vodafone.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2017-09-15 at 19:29 +0200, SF Markus Elfring wrote:
-> diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-[]
-> @@ -1372,9 +1372,8 @@ static int dcmi_formats_init(struct stm32_dcmi *dcmi)
->  	dcmi->sd_formats = devm_kcalloc(dcmi->dev,
-> -					num_fmts, sizeof(struct dcmi_format *),
-> +					num_fmts, sizeof(*dcmi->sd_formats),
->  					GFP_KERNEL);
->  	if (!dcmi->sd_formats)
->  		return -ENOMEM;
->  
-> -	memcpy(dcmi->sd_formats, sd_fmts,
-> -	       num_fmts * sizeof(struct dcmi_format *));
-> +	memcpy(dcmi->sd_formats, sd_fmts, num_fmts * sizeof(*dcmi->sd_formats));
+From: Christian König <christian.koenig@amd.com>
 
-devm_kmemdup
+The logic is buggy and unnecessary complex. When dma_fence_get_rcu() fails to
+acquire a reference it doesn't necessary mean that there is no fence at all.
+
+It usually mean that the fence was replaced by a new one and in this situation
+we certainly want to have the new one as result and *NOT* NULL.
+
+Signed-off-by: Christian König <christian.koenig@amd.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linaro-mm-sig@lists.linaro.org
+---
+ include/linux/dma-fence.h | 23 ++---------------------
+ 1 file changed, 2 insertions(+), 21 deletions(-)
+
+diff --git a/include/linux/dma-fence.h b/include/linux/dma-fence.h
+index a5195a7..37f3d67 100644
+--- a/include/linux/dma-fence.h
++++ b/include/linux/dma-fence.h
+@@ -246,27 +246,8 @@ dma_fence_get_rcu_safe(struct dma_fence * __rcu *fencep)
+ 		struct dma_fence *fence;
+ 
+ 		fence = rcu_dereference(*fencep);
+-		if (!fence || !dma_fence_get_rcu(fence))
+-			return NULL;
+-
+-		/* The atomic_inc_not_zero() inside dma_fence_get_rcu()
+-		 * provides a full memory barrier upon success (such as now).
+-		 * This is paired with the write barrier from assigning
+-		 * to the __rcu protected fence pointer so that if that
+-		 * pointer still matches the current fence, we know we
+-		 * have successfully acquire a reference to it. If it no
+-		 * longer matches, we are holding a reference to some other
+-		 * reallocated pointer. This is possible if the allocator
+-		 * is using a freelist like SLAB_TYPESAFE_BY_RCU where the
+-		 * fence remains valid for the RCU grace period, but it
+-		 * may be reallocated. When using such allocators, we are
+-		 * responsible for ensuring the reference we get is to
+-		 * the right fence, as below.
+-		 */
+-		if (fence == rcu_access_pointer(*fencep))
+-			return rcu_pointer_handoff(fence);
+-
+-		dma_fence_put(fence);
++		if (!fence || dma_fence_get_rcu(fence))
++			return fence;
+ 	} while (1);
+ }
+ 
+-- 
+2.7.4
