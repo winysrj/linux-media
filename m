@@ -1,83 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:53204 "EHLO osg.samsung.com"
+Received: from mout.web.de ([212.227.17.12]:65235 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751577AbdI3J3M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 30 Sep 2017 05:29:12 -0400
-Date: Sat, 30 Sep 2017 06:28:47 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Russell King <rmk+kernel@armlinux.org.uk>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
+        id S1754531AbdIDUHd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Sep 2017 16:07:33 -0400
+Subject: [PATCH 2/6] [media] atmel-isc: Improve a size determination in
+ isc_formats_init()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: Re: [PATCH RFC] media: staging/imx: fix complete handler
-Message-ID: <20170930062847.74110364@vento.lan>
-In-Reply-To: <E1dy2zX-0003NB-5J@rmk-PC.armlinux.org.uk>
-References: <E1dy2zX-0003NB-5J@rmk-PC.armlinux.org.uk>
+        Songjun Wu <songjun.wu@microchip.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <88d0739c-fdc1-9d7d-fe53-b7c2eeed1849@users.sourceforge.net>
+Message-ID: <2b909a2d-0986-fb5e-f2d9-5d9c0fd71a06@users.sourceforge.net>
+Date: Mon, 4 Sep 2017 22:07:24 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <88d0739c-fdc1-9d7d-fe53-b7c2eeed1849@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 29 Sep 2017 22:38:39 +0100
-Russell King <rmk+kernel@armlinux.org.uk> escreveu:
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 4 Sep 2017 20:50:22 +0200
 
-> The complete handler walks all entities, expecting to find an imx
-> subdevice for each and every entity.
-> 
-> However, camera drivers such as smiapp can themselves contain multiple
-> entities, for which there will not be an imx subdevice.  This causes
-> imx_media_find_subdev_by_sd() to fail, making the imx capture system
-> unusable with such cameras.
-> 
-> Work around this by killing the error entirely, thereby allowing
-> the imx capture to be used with such cameras.
-> 
-> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-> ---
-> Not the best solution, but the only one I can think of to fix the
-> regression that happened sometime between a previous revision of
-> Steve's patch set and the version that got merged.
+Replace the specification of a data type by a pointer dereference
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer according to the Linux coding style convention.
 
-Yeah, ideally, the complete handling should somehow be aware
-about smiapp entities and do the right thing, instead of
-just ignoring the errors.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/platform/atmel/atmel-isc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Sakari,
-
-What do you think?
-
-Regards,
-Mauro
-
-
-> 
->  drivers/staging/media/imx/imx-media-dev.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-> index d96f4512224f..6ba59939dd7a 100644
-> --- a/drivers/staging/media/imx/imx-media-dev.c
-> +++ b/drivers/staging/media/imx/imx-media-dev.c
-> @@ -345,8 +345,11 @@ static int imx_media_add_vdev_to_pad(struct imx_media_dev *imxmd,
->  
->  	sd = media_entity_to_v4l2_subdev(entity);
->  	imxsd = imx_media_find_subdev_by_sd(imxmd, sd);
-> -	if (IS_ERR(imxsd))
-> -		return PTR_ERR(imxsd);
-> +	if (IS_ERR(imxsd)) {
-> +		v4l2_err(&imxmd->v4l2_dev, "failed to find subdev for entity %s, sd %p err %ld\n",
-> +			 entity->name, sd, PTR_ERR(imxsd));
-> +		return 0;
-> +	}
->  
->  	imxpad = &imxsd->pad[srcpad->index];
->  	vdev_idx = imxpad->num_vdevs;
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index f1e635edef72..f16bab0105c2 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -1505,6 +1505,6 @@ static int isc_formats_init(struct isc_device *isc)
+ 
+ 	isc->num_user_formats = num_fmts;
+ 	isc->user_formats = devm_kcalloc(isc->dev,
+-					 num_fmts, sizeof(struct isc_format *),
++					 num_fmts, sizeof(*isc->user_formats),
+ 					 GFP_KERNEL);
+ 	if (!isc->user_formats)
+-- 
+2.14.1
