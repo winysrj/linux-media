@@ -1,53 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:59980 "EHLO mga01.intel.com"
+Received: from mout.web.de ([217.72.192.78]:49520 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750813AbdIRWtD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 18:49:03 -0400
-From: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: tfiga@chromium.org, jian.xu.zheng@intel.com,
-        tian.shu.qiu@intel.com, andy.yeh@intel.com,
-        rajmohan.mani@intel.com, hyungwoo.yang@intel.com,
-        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-Subject: [PATCH v2] media: ov13858: Fix 4224x3136 video flickering at some vblanks
-Date: Mon, 18 Sep 2017 15:47:43 -0700
-Message-Id: <d946c138dc7d9657e986bfe37d255a595ad1671c.1505774663.git.chiranjeevi.rapolu@intel.com>
-In-Reply-To: <1505342325-9180-1-git-send-email-chiranjeevi.rapolu@intel.com>
-References: <1505342325-9180-1-git-send-email-chiranjeevi.rapolu@intel.com>
+        id S1754686AbdIDULb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Sep 2017 16:11:31 -0400
+Subject: [PATCH 5/6] [media] atmel-isi: Improve three size determinations
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Songjun Wu <songjun.wu@microchip.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <88d0739c-fdc1-9d7d-fe53-b7c2eeed1849@users.sourceforge.net>
+Message-ID: <2a5b21a7-91af-238a-0064-e382fb85afe3@users.sourceforge.net>
+Date: Mon, 4 Sep 2017 22:11:22 +0200
+MIME-Version: 1.0
+In-Reply-To: <88d0739c-fdc1-9d7d-fe53-b7c2eeed1849@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Previously, with crop (0, 0), (4255, 3167), VTS < 0xC9E was resulting in blank
-frames sometimes. This appeared as video flickering. But we need VTS < 0xC9E to
-get ~30fps.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 4 Sep 2017 21:27:45 +0200
 
-Omni Vision recommends to use crop (0,8), (4255, 3159) for 4224x3136. With this
-crop, VTS 0xC8E is supported and yields ~30fps.
+Replace the specification of data types by pointer dereferences
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer according to the Linux coding style convention.
 
-Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
-Changes in v2:
-	- Include Tomasz clarifications in the commit message.
- drivers/media/i2c/ov13858.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/atmel/atmel-isi.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
-index af7af0d..f7c5771 100644
---- a/drivers/media/i2c/ov13858.c
-+++ b/drivers/media/i2c/ov13858.c
-@@ -238,11 +238,11 @@ struct ov13858_mode {
- 	{0x3800, 0x00},
- 	{0x3801, 0x00},
- 	{0x3802, 0x00},
--	{0x3803, 0x00},
-+	{0x3803, 0x08},
- 	{0x3804, 0x10},
- 	{0x3805, 0x9f},
- 	{0x3806, 0x0c},
--	{0x3807, 0x5f},
-+	{0x3807, 0x57},
- 	{0x3808, 0x10},
- 	{0x3809, 0x80},
- 	{0x380a, 0x0c},
+diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
+index 154e9c39b64f..ac40defce1e7 100644
+--- a/drivers/media/platform/atmel/atmel-isi.c
++++ b/drivers/media/platform/atmel/atmel-isi.c
+@@ -1036,13 +1036,13 @@ static int isi_formats_init(struct atmel_isi *isi)
+ 
+ 	isi->num_user_formats = num_fmts;
+ 	isi->user_formats = devm_kcalloc(isi->dev,
+-					 num_fmts, sizeof(struct isi_format *),
++					 num_fmts, sizeof(*isi->user_formats),
+ 					 GFP_KERNEL);
+ 	if (!isi->user_formats)
+ 		return -ENOMEM;
+ 
+ 	memcpy(isi->user_formats, isi_fmts,
+-	       num_fmts * sizeof(struct isi_format *));
++	       num_fmts * sizeof(*isi->user_formats));
+ 	isi->current_fmt = isi->user_formats[0];
+ 
+ 	return 0;
+@@ -1173,5 +1173,5 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	struct resource *regs;
+ 	int ret, i;
+ 
+-	isi = devm_kzalloc(&pdev->dev, sizeof(struct atmel_isi), GFP_KERNEL);
++	isi = devm_kzalloc(&pdev->dev, sizeof(*isi), GFP_KERNEL);
+ 	if (!isi)
 -- 
-1.9.1
+2.14.1
