@@ -1,79 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:28594 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751308AbdINAzs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 20:55:48 -0400
-Subject: Re: [PATCH v4 4/4] [media] exynos-gsc: Add hardware rotation limits
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: inki.dae@samsung.com, airlied@linux.ie, kgene@kernel.org,
-        krzk@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        catalin.marinas@arm.com, will.deacon@arm.com, mchehab@kernel.org,
-        m.szyprowski@samsung.com, robin.murphy@arm.com,
-        devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        Hoegeun Kwon <hoegeun.kwon@samsung.com>
-From: Hoegeun Kwon <hoegeun.kwon@samsung.com>
-Message-id: <8171b8d8-f14b-21ba-9e3b-7c6a2e442f3d@samsung.com>
-Date: Thu, 14 Sep 2017 09:55:48 +0900
-MIME-version: 1.0
-In-reply-to: <509750b5-22d0-77ee-8295-0e52679e0d1e@samsung.com>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-transfer-encoding: 7bit
-Content-language: en-US
-References: <1505302915-15699-1-git-send-email-hoegeun.kwon@samsung.com>
-        <CGME20170913114215epcas2p346dd3987cf25481bc780e0eef8b91ed8@epcas2p3.samsung.com>
-        <1505302915-15699-5-git-send-email-hoegeun.kwon@samsung.com>
-        <509750b5-22d0-77ee-8295-0e52679e0d1e@samsung.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:38032 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751949AbdIDIOc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Sep 2017 04:14:32 -0400
+Received: by mail-wm0-f66.google.com with SMTP id u26so5670944wma.5
+        for <linux-media@vger.kernel.org>; Mon, 04 Sep 2017 01:14:31 -0700 (PDT)
+From: Pavel Rojtberg <rojtberg@gmail.com>
+To: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
+        linux-media@vger.kernel.org
+Cc: Pavel Rojtberg <rojtberg@gmail.com>
+Subject: [PATCH] uvcvideo: extend UVC_QUIRK_FIX_BANDWIDTH to MJPEG streams
+Date: Mon,  4 Sep 2017 10:14:17 +0200
+Message-Id: <1504512857-4202-1-git-send-email-rojtberg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/13/2017 09:13 PM, Sylwester Nawrocki wrote:
-> On 09/13/2017 01:41 PM, Hoegeun Kwon wrote:
->> @@ -1004,11 +1088,33 @@ static irqreturn_t gsc_irq_handler(int irq, 
->> void *priv)
->>       .num_clocks = 1,
->>   };
->>   +static struct gsc_driverdata gsc_v_5250_drvdata = {
->> +    .variant = {
->> +        [0] = &gsc_v_5250_variant,
->> +        [1] = &gsc_v_5250_variant,
->> +        [2] = &gsc_v_5250_variant,
->> +        [3] = &gsc_v_5250_variant,
->> +    },
->> +    .num_entities = 4,
->> +    .clk_names = { "gscl" },
->> +    .num_clocks = 1,
->> +};
->> +
->> +static struct gsc_driverdata gsc_v_5420_drvdata = {
->> +    .variant = {
->> +        [0] = &gsc_v_5420_variant,
->> +        [1] = &gsc_v_5420_variant,
->> +    },
->> +    .num_entities = 4,
->
-> Shouldn't num_enities be 2 here? You don't need to resend, I can
-> amend that when applying.
->
+From: Pavel Rojtberg <rojtberg@gmail.com>
 
+attaching two Logitech C615 webcams currently results in
+    VIDIOC_STREAMON: No space left on device
+as the required bandwidth is not estimated correctly by the device.
+In fact it always requests 3060 bytes - no matter the format or resolution.
 
-Yes, num_enities is 2.
-Sorry I made a mistake.
+setting UVC_QUIRK_FIX_BANDWIDTH does not help either as it is only implemented
+for uncompressed streams.
 
-Thanks Sylwester.
+This patch extends UVC_QUIRK_FIX_BANDWIDTH to MJPEG streams by making a
+(conservative) assumption of 4bpp for MJPEG streams.
+As the actual compression ration is often closer to 1bpp this can be overridden
+ via the new mjpeg_bpp parameter.
 
-Best regards,
-Hoegeun
+Based on:
+https://www.mail-archive.com/linux-uvc-devel@lists.berlios.de/msg05724.html
+---
+ drivers/media/usb/uvc/uvc_driver.c | 14 +++++++++++++-
+ drivers/media/usb/uvc/uvc_video.c  |  3 ++-
+ 2 files changed, 15 insertions(+), 2 deletions(-)
 
->> +    .clk_names = { "gscl" },
->> +    .num_clocks = 1,
->> +};
->> +
->
-> -- 
-> Regards,
-> Sylwester
->
->
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 70842c5..f7b759e 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -37,6 +37,7 @@ unsigned int uvc_no_drop_param;
+ static unsigned int uvc_quirks_param = -1;
+ unsigned int uvc_trace_param;
+ unsigned int uvc_timeout_param = UVC_CTRL_STREAMING_TIMEOUT;
++static unsigned int uvc_mjpeg_bpp_param;
+ 
+ /* ------------------------------------------------------------------------
+  * Video formats
+@@ -463,7 +464,16 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 		strlcpy(format->name, "MJPEG", sizeof format->name);
+ 		format->fcc = V4L2_PIX_FMT_MJPEG;
+ 		format->flags = UVC_FMT_FLAG_COMPRESSED;
+-		format->bpp = 0;
++		if ((uvc_mjpeg_bpp_param >= 1) && (uvc_mjpeg_bpp_param <= 16)) {
++			format->bpp = uvc_mjpeg_bpp_param;
++		} else {
++			/* conservative estimate. Actual values are around 1bpp.
++			 * see e.g.
++			 * https://developers.google.com/speed/webp/docs/webp_study
++			 */
++			format->bpp = 4;
++		}
++
+ 		ftype = UVC_VS_FRAME_MJPEG;
+ 		break;
+ 
+@@ -2274,6 +2284,8 @@ module_param_named(trace, uvc_trace_param, uint, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(trace, "Trace level bitmask");
+ module_param_named(timeout, uvc_timeout_param, uint, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(timeout, "Streaming control requests timeout");
++module_param_named(mjpeg_bpp, uvc_mjpeg_bpp_param, uint, S_IRUGO|S_IWUSR);
++MODULE_PARM_DESC(mjpeg_bpp, "MJPEG bits per pixel for bandwidth quirk");
+ 
+ /* ------------------------------------------------------------------------
+  * Driver initialization and cleanup
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index fb86d6a..382a0be 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -127,7 +127,8 @@ static void uvc_fixup_video_ctrl(struct uvc_streaming *stream,
+ 	if ((ctrl->dwMaxPayloadTransferSize & 0xffff0000) == 0xffff0000)
+ 		ctrl->dwMaxPayloadTransferSize &= ~0xffff0000;
+ 
+-	if (!(format->flags & UVC_FMT_FLAG_COMPRESSED) &&
++	if ((!(format->flags & UVC_FMT_FLAG_COMPRESSED) ||
++			(format->fcc == V4L2_PIX_FMT_MJPEG)) &&
+ 	    stream->dev->quirks & UVC_QUIRK_FIX_BANDWIDTH &&
+ 	    stream->intf->num_altsetting > 1) {
+ 		u32 interval;
+-- 
+2.7.4
