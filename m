@@ -1,129 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:53694 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753152AbdIDDx4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 3 Sep 2017 23:53:56 -0400
-Message-ID: <3fa171942e14ab7e0697ac82edb93adc@smtp-cloud9.xs4all.net>
-Date: Mon, 04 Sep 2017 05:53:53 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53038
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753090AbdIDAyQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Sep 2017 20:54:16 -0400
+Date: Sun, 3 Sep 2017 21:54:04 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Honza =?UTF-8?B?UGV0cm91xaE=?= <jpetrous@gmail.com>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH v2 00/26] Improve DVB documentation and reduce its gap
+Message-ID: <20170903215404.425af4aa@vento.lan>
+In-Reply-To: <CAJbz7-29pV9u0UZUC+sUtncsCbqbjNToA-yANJ7hExLRFw_tiQ@mail.gmail.com>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
+        <CAJbz7-29pV9u0UZUC+sUtncsCbqbjNToA-yANJ7hExLRFw_tiQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Sun, 3 Sep 2017 22:05:23 +0200
+Honza Petrouš <jpetrous@gmail.com> escreveu:
 
-Results of the daily build of media_tree:
+> 1) #define CA_SET_DESCR      _IOW('o', 134, ca_descr_t)
+> ============================================
+> 
+> CA_SET_DESCR is used for feeding descrambler device
+> with correct keys (called here "control words") what
+> allows to get services unscrambled.
+> 
+> The best docu is:
+> 
+> "Digital Video Broadcasting (DVB);
+> Support for use of the DVB Scrambling Algorithm version 3
+> within digital broadcasting systems"
+> 
+> Defined as DVB Document A125 and publicly
+> available here:
+> 
+> https://www.dvb.org/resources/public/standards/a125_dvb-csa3.pdf
+> 
+> 
+> typedef struct ca_descr {
+>         unsigned int index;
+>         unsigned int parity;    /* 0 == even, 1 == odd */
+>         unsigned char cw[8];
+> } ca_descr_t;
+> 
+> The 'index' is adress of the descrambler instance, as there exist
+> limited number of them (retieved by CA_GET_DESCR_INFO).
 
-date:			Mon Sep  4 05:00:15 CEST 2017
-media-tree git hash:	fce4b371fe5c99a9c05db8493d72f0d1a474ab26
-media_build git hash:	767234f97b7e967bd0ce362957de82764937951c
-v4l-utils git hash:	3296adfa7fa169111bf37c041c0ca70ac8506054
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+Thanks for the info. If I understood well, the enclosed patch should
+be documenting it. 
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
 
-Detailed results are available here:
+Thanks,
+Mauro
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+[PATCH] media: ca docs: document CA_SET_DESCR ioctl and structs
 
-Full logs are available here:
+The av7110 driver uses CA_SET_DESCR to store the descrambler
+control words at the CA descrambler slots.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+Document it.
 
-The Media Infrastructure API from this daily build is here:
+Thanks-to: Honza Petrouš <jpetrous@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/Documentation/media/uapi/dvb/ca-set-descr.rst b/Documentation/media/uapi/dvb/ca-set-descr.rst
+index 9c484317d55c..a6c47205ffd8 100644
+--- a/Documentation/media/uapi/dvb/ca-set-descr.rst
++++ b/Documentation/media/uapi/dvb/ca-set-descr.rst
+@@ -28,22 +28,11 @@ Arguments
+ ``msg``
+   Pointer to struct :c:type:`ca_descr`.
+ 
+-.. c:type:: ca_descr
+-
+-.. code-block:: c
+-
+-    struct ca_descr {
+-	unsigned int index;
+-	unsigned int parity;
+-	unsigned char cw[8];
+-    };
+-
+-
+ Description
+ -----------
+ 
+-.. note:: This ioctl is undocumented. Documentation is welcome.
+-
++CA_SET_DESCR is used for feeding descrambler CA slots with descrambling
++keys (refered as control words).
+ 
+ Return Value
+ ------------
+diff --git a/include/uapi/linux/dvb/ca.h b/include/uapi/linux/dvb/ca.h
+index f66ed53f4dc7..a62ddf0cebcd 100644
+--- a/include/uapi/linux/dvb/ca.h
++++ b/include/uapi/linux/dvb/ca.h
+@@ -109,9 +109,16 @@ struct ca_msg {
+ 	unsigned char msg[256];
+ };
+ 
++/**
++ * struct ca_descr - CA descrambler control words info
++ *
++ * @index: CA Descrambler slot
++ * @parity: control words parity, where 0 means even and 1 means odd
++ * @cw: CA Descrambler control words
++ */
+ struct ca_descr {
+ 	unsigned int index;
+-	unsigned int parity;	/* 0 == even, 1 == odd */
++	unsigned int parity;
+ 	unsigned char cw[8];
+ };
+ 
