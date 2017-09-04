@@ -1,131 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:47549 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751726AbdIVD5H (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 23:57:07 -0400
-Message-ID: <e8f032026abe8db07d37381b82d100bc@smtp-cloud7.xs4all.net>
-Date: Fri, 22 Sep 2017 05:57:05 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:36242 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753390AbdIDJlA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Sep 2017 05:41:00 -0400
+MIME-Version: 1.0
+In-Reply-To: <20170904060629.2f8feeab@vento.lan>
+References: <cover.1504272067.git.mchehab@s-opensource.com>
+ <CAJbz7-29pV9u0UZUC+sUtncsCbqbjNToA-yANJ7hExLRFw_tiQ@mail.gmail.com>
+ <20170903215404.425af4aa@vento.lan> <CAJbz7-2EBp0U=jdQ6QyFmkNS=PSVNDrKGj1_H0RAEMmJsoxa8Q@mail.gmail.com>
+ <20170904060629.2f8feeab@vento.lan>
+From: =?UTF-8?Q?Honza_Petrou=C5=A1?= <jpetrous@gmail.com>
+Date: Mon, 4 Sep 2017 11:40:59 +0200
+Message-ID: <CAJbz7-24qJ8Qz9V_KArhn4uf_3fJwaDcGS399JCZ7nz2O_oBGQ@mail.gmail.com>
+Subject: Re: [PATCH v2 00/26] Improve DVB documentation and reduce its gap
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+2017-09-04 11:06 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>=
+:
+> Em Mon, 4 Sep 2017 09:12:49 +0200
+> Honza Petrou=C5=A1 <jpetrous@gmail.com> escreveu:
+>
+>> 2017-09-04 2:54 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.co=
+m>:
+>> > Em Sun, 3 Sep 2017 22:05:23 +0200
+>> > Honza Petrou=C5=A1 <jpetrous@gmail.com> escreveu:
+>> >
+>> >> 1) #define CA_SET_DESCR      _IOW('o', 134, ca_descr_t)
+>> >> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>> >>
+>> >> CA_SET_DESCR is used for feeding descrambler device
+>> >> with correct keys (called here "control words") what
+>> >> allows to get services unscrambled.
+>> >>
+>> >> The best docu is:
+>> >>
+>> >> "Digital Video Broadcasting (DVB);
+>> >> Support for use of the DVB Scrambling Algorithm version 3
+>> >> within digital broadcasting systems"
+>> >>
+>> >> Defined as DVB Document A125 and publicly
+>> >> available here:
+>> >>
+>> >> https://www.dvb.org/resources/public/standards/a125_dvb-csa3.pdf
+>> >>
+>> >>
+>> >> typedef struct ca_descr {
+>> >>         unsigned int index;
+>> >>         unsigned int parity;    /* 0 =3D=3D even, 1 =3D=3D odd */
+>> >>         unsigned char cw[8];
+>> >> } ca_descr_t;
+>> >>
+>> >> The 'index' is adress of the descrambler instance, as there exist
+>> >> limited number of them (retieved by CA_GET_DESCR_INFO).
+>> >
+>> > Thanks for the info. If I understood well, the enclosed patch should
+>> > be documenting it.
+>> >
+>> >
+>> > Thanks,
+>> > Mauro
+>> >
+>> > [PATCH] media: ca docs: document CA_SET_DESCR ioctl and structs
+>> >
+>> > The av7110 driver uses CA_SET_DESCR to store the descrambler
+>> > control words at the CA descrambler slots.
+>> >
+>> > Document it.
+>> >
+>> > Thanks-to: Honza Petrou=C5=A1 <jpetrous@gmail.com>
+>> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>> >
+>> > diff --git a/Documentation/media/uapi/dvb/ca-set-descr.rst b/Documenta=
+tion/media/uapi/dvb/ca-set-descr.rst
+>> > index 9c484317d55c..a6c47205ffd8 100644
+>> > --- a/Documentation/media/uapi/dvb/ca-set-descr.rst
+>> > +++ b/Documentation/media/uapi/dvb/ca-set-descr.rst
+>> > @@ -28,22 +28,11 @@ Arguments
+>> >  ``msg``
+>> >    Pointer to struct :c:type:`ca_descr`.
+>> >
+>> > -.. c:type:: ca_descr
+>> > -
+>> > -.. code-block:: c
+>> > -
+>> > -    struct ca_descr {
+>> > -       unsigned int index;
+>> > -       unsigned int parity;
+>> > -       unsigned char cw[8];
+>> > -    };
+>> > -
+>> > -
+>> >  Description
+>> >  -----------
+>> >
+>> > -.. note:: This ioctl is undocumented. Documentation is welcome.
+>> > -
+>> > +CA_SET_DESCR is used for feeding descrambler CA slots with descrambli=
+ng
+>> > +keys (refered as control words).
+>> >
+>> >  Return Value
+>> >  ------------
+>> > diff --git a/include/uapi/linux/dvb/ca.h b/include/uapi/linux/dvb/ca.h
+>> > index f66ed53f4dc7..a62ddf0cebcd 100644
+>> > --- a/include/uapi/linux/dvb/ca.h
+>> > +++ b/include/uapi/linux/dvb/ca.h
+>> > @@ -109,9 +109,16 @@ struct ca_msg {
+>> >         unsigned char msg[256];
+>> >  };
+>> >
+>> > +/**
+>> > + * struct ca_descr - CA descrambler control words info
+>> > + *
+>> > + * @index: CA Descrambler slot
+>> > + * @parity: control words parity, where 0 means even and 1 means odd
+>> > + * @cw: CA Descrambler control words
+>> > + */
+>> >  struct ca_descr {
+>> >         unsigned int index;
+>> > -       unsigned int parity;    /* 0 =3D=3D even, 1 =3D=3D odd */
+>> > +       unsigned int parity;
+>> >         unsigned char cw[8];
+>> >  };
+>> >
+>> >
+>>
+>> Yeh, it should be that way.
+>
+> Good! I'll add this patch to the series.
+>
+>> BTW, the only issue I have in mind is how to link particular
+>> descrambler with the PID
+>> after your removal of the CA_SET_PID. And yes, I know that currently we =
+have
+>> no any user of such ioctl in our driver base :)
+>
+> Well, I don't think that an ioctl like CA_SET_PID would solve it.
+>
+> On a generic case with is quite common nowadays on embedded hardware,
+> We have K demods and M CIs (where K may be different than M).
+>
+> Also, You may need to route N PIDs to O descramblers.
 
-Results of the daily build of media_tree:
+TBH that is exactly most common use-case =3D most Digital TV
+vendors are scrambling per-service, what requires one descrambler
+for all scrambled PIDs (usually only A/V PIDs are scrambled)
+for particular service. So we have to add more PIDs to one descrambler
 
-date:			Fri Sep 22 05:00:16 CEST 2017
-media-tree git hash:	1efdf1776e2253b77413c997bed862410e4b6aaf
-media_build git hash:	19087750b61fc0c5528e798c47ff845f9234bbbb
-v4l-utils git hash:	9ee29df352dad950784f0f6f4a1bb96c0aefacc4
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+What was possible by multiple call of CA_SET_PID (I agree that much
+better would be name like CA_ADD_PID)
+>
+> As user switch channels, the N PIDs should be unset, and another
+> set of N' pids will be routed.
+>
+> CA_SET_PID allows to set just one PID, without identifying from
+> what demod it would be received, and doesn't have a "reset"
+> function to undo.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: OK
-spec-git: OK
+Here I can agree - it looks like the value -1 in 'index' should
+do the job, but it, unfortunately, looses info from which descrambler
+it should be removed (see note in struct ca_pid for value -1)
 
-Detailed results are available here:
+>
+> So, IMHO, the interface is broken by design. Perhaps that's
+> the reason why no upstream driver uses it.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+I have the same feeling regarding brokenness.
 
-Full logs are available here:
+>
+> What seems to be a much better design would be to use the demux
+> set filter ioctls and route the PIDs to the right CA.
+>
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+I don't have access to any programmer reference documentation
+for any modern DVB-enabled SoC, but I see two possible scenario
+of connecting descramblers to the demuxes (most of modern SoCs
+have more then one demux) - static one, when every demux has
+predefined descramblers already connected to it and dynamic ones,
+when any descrambler can be connected to the any demux.
 
-The Media Infrastructure API from this daily build is here:
+>From that reason I vote to have some descrambler specific ioctl,
+which allow more flexibility then if we add it to the filter set ioctl.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+My 5 cents
+
+/Honza
+
+PS: I understand that until we get some multi-descrambler device included,
+we don't need to address descrambler management.
