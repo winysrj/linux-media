@@ -1,108 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46809 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751289AbdILLkx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 07:40:53 -0400
-Date: Tue, 12 Sep 2017 13:40:51 +0200
-From: Pavel Machek <pavel@ucw.cz>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60385 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753422AbdIDKFy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Sep 2017 06:05:54 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        jacek.anaszewski@gmail.com, linux-leds@vger.kernel.org,
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        sre@kernel.org
-Subject: Re: as3645a flash userland interface
-Message-ID: <20170912114051.GA1655@amd>
-References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
- <20170912084236.1154-25-sakari.ailus@linux.intel.com>
- <20170912103628.GB27117@amd>
- <20170912104720.ifyouc5pa5et6gzk@valkosipuli.retiisi.org.uk>
+        robh@kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH v6 5/5] v4l: fwnode: Support generic parsing of graph endpoints in a single port
+Date: Mon, 04 Sep 2017 13:05:52 +0300
+Message-ID: <41798047.7Eux7kmorh@avalon>
+In-Reply-To: <20170903074339.vswbczv2lfxykssq@valkosipuli.retiisi.org.uk>
+References: <20170830114946.17743-1-sakari.ailus@linux.intel.com> <1981884.TcuAFemERJ@avalon> <20170903074339.vswbczv2lfxykssq@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="0F1p//8PRICkK4MW"
-Content-Disposition: inline
-In-Reply-To: <20170912104720.ifyouc5pa5et6gzk@valkosipuli.retiisi.org.uk>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sakari,
 
---0F1p//8PRICkK4MW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Sunday, 3 September 2017 10:43:39 EEST Sakari Ailus wrote:
+> On Sat, Sep 02, 2017 at 12:52:47PM +0300, Laurent Pinchart wrote:
+> > On Saturday, 2 September 2017 01:57:48 EEST Sakari Ailus wrote:
+> >> On Fri, Sep 01, 2017 at 01:28:40PM +0200, Hans Verkuil wrote:
 
-Hi!
+[sinp]
 
-> On Tue, Sep 12, 2017 at 12:36:28PM +0200, Pavel Machek wrote:
-> > Hi!
-> >=20
-> > There were some changes to as3645a flash controller. Before we have
-> > stable interface we have to keep forever I want to ask:
-> >=20
-> > What directory are the flash controls in?
-> >=20
-> > /sys/class/leds/led-controller:flash ?
-> >=20
-> > Could we arrange for something less generic, like
-> >=20
-> > /sys/class/leds/main-camera:flash ?
-> >=20
-> > Thanks,
->=20
-> The LEDs are called as3645a:flash and as3645a:indicator currently, based =
-on
-> the name of the LED controller's device node. There are no patches related
-> to this set though; these have already been merged.
->=20
-> The label should be a "human readable string describing the device" (from
-> ePAPR, please excuse me for not having a newer spec), and the led common
-> bindings define it as:
->=20
-> - label : The label for this LED. If omitted, the label is taken from the=
- node
->           name (excluding the unit address). It has to uniquely identify
->           a device, i.e. no other LED class device can be assigned the sa=
-me
->           label.
+> >>> I'm lost. What's the relationship between
+> >>> v4l2_async_notifier_parse_fwnode_endpoints and this function? When do
+> >>> you use which? When you should zero the notifier?
+> >> 
+> >> I thought there would be advantages in this approach as it lets you to
+> >> choose which endpoints specifically you want to parse. That said, the
+> >> expectation is that the device has no endpoints that aren't supported in
+> >> hardware either.
+> >> 
+> >> Some drivers currently iterate over all the endpoints and then validate
+> >> them whereas others poke for some endpoints only (port 0, endpoint 0,
+> >> for the rcar-vin driver, for instance). In DT binding documentation the
+> >> endpoint numbers are currently not specified nor drivers have checked
+> >> them. Common sense tells to use zero if there's no reason to do
+> >> otherwise, but still this hasn't been documented nor validated in the
+> >> past. So if we add that now, there could be a chance of breaking
+> >> something.
+> >> 
+> >> Additionally, specifying the endpoints to parse explicitly has been seen
+> >> beneficial (or even necessary) in parsing endpoints for devices that
+> >> have both input and output interfaces. Perhaps Niklas can comment on
+> >> that.
+> >> 
+> >> What I though was to introduce a specific error code (EPERM, better
+> >> suggestions are taken)
+> > 
+> > Maybe ENOTCONN ?
+> 
+> Sounds good to me.
+> 
+> >> for the driver callback function (parse_endpoint) to silently skip
+> >> endpoints the driver doesn't like for reason or another. This lets
+> >> drivers to use the endpoint parser function added by the previous patch
+> >> and still maintain the old behaviour, i.e. ignore endpoints that aren't
+> >> explicitly recognised by the driver.
+> >> 
+> >> I'll drop this patch from the next version.
+> > 
+> > Parsing a specific endpoint of a specific port is probably indeed a bit
+> > too fine-grained, but I think there are use cases for parsing at the port
+> > level instead of parsing all ports.
+> 
+> Could you elaborate?
+> 
+> If a driver would be interested in skipping endpoints in a subset of ports,
+> in which case only a single port would be excluded from this?
 
-Ok, can we set the label to "main_camera" for N9 and n950 cases?
+I meant that I see use cases for parsing specific ports only (for instance in 
+the R-Car case parsing only the sink ports in a CSI-2 receiver DT node), but 
+not really for parsing specific endpoints only.
 
-"as3645a:flash" is really wrong name for a LED. Information that
-as3645 is already present elsewhere in /sys. Information where the LED
-is and what it does is not.
+-- 
+Regards,
 
-I'd like to have torch application that just writes
-/sys/class/leds/main_camera:white:flash/brightness . It should not
-need to know hardware details of differnet phones.
-
-> I don't think that you should be looking to use this to associate it with
-> the camera as such. The association information with the sensor is
-> available to the kernel but there's no interface that could meaningfully
-> expose it to the user right now.
-
-Yeah, I'm not looking for sensor association. I'm looking for
-reasonable userland interface.
-
-Thanks,
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---0F1p//8PRICkK4MW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlm3x8MACgkQMOfwapXb+vJruACgvXqnXR5o/7rhska7wPeJDBrX
-7HkAn2hHmz2zVpyZQ5Xlo+9KKf03jVV1
-=9UsP
------END PGP SIGNATURE-----
-
---0F1p//8PRICkK4MW--
+Laurent Pinchart
