@@ -1,50 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zeniv.linux.org.uk ([195.92.253.2]:59026 "EHLO
-        ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755580AbdIGWD2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 18:03:28 -0400
-Date: Thu, 7 Sep 2017 23:03:25 +0100
-From: Al Viro <viro@ZenIV.linux.org.uk>
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        linux-fsdevel@vger.kernel.org,
-        Riley Andrews <riandrews@android.com>
-Subject: Re: [PATCH v3 14/15] fs/files: export close_fd() symbol
-Message-ID: <20170907220325.GY5426@ZenIV.linux.org.uk>
-References: <20170907184226.27482-1-gustavo@padovan.org>
- <20170907184226.27482-15-gustavo@padovan.org>
- <20170907203610.GX5426@ZenIV.linux.org.uk>
- <20170907212245.GA19307@jade>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46040 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753780AbdIDPtm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Sep 2017 11:49:42 -0400
+Date: Mon, 4 Sep 2017 17:49:40 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        sre@kernel.org
+Subject: Re: [PATCH v7 01/18] v4l: fwnode: Move KernelDoc documentation to
+ the header
+Message-ID: <20170904154940.GA19484@amd>
+References: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
+ <20170903174958.27058-2-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
 Content-Disposition: inline
-In-Reply-To: <20170907212245.GA19307@jade>
+In-Reply-To: <20170903174958.27058-2-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 07, 2017 at 06:22:45PM -0300, Gustavo Padovan wrote:
 
-> Sorry for my lack of knowledge here and thank you for the explanation,
-> things are a lot clear to me. For some reasons I were trying to delay
-> the sharing of the fd to a event later. I can delay the install of it
-> but that my require __fd_install() to be available and exportedi as it
-> may happen in a thread, but I believe you wouldn't be okay with that either,
-> is that so?
+--xHFwDpU9dbj6ez1V
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Only if it has been given a reference to descriptor table to start with.
-Which reference should've been acquired by the target process itself.
+On Sun 2017-09-03 20:49:41, Sakari Ailus wrote:
+> In V4L2 the practice is to have the KernelDoc documentation in the header
+> and not in .c source code files. This consequientally makes the V4L2
 
-Why bother, anyway?  You need to handle the case when the stream has
-ended just after you'd copied the value to userland; at that point you
-obviously can't go hunting for all references to struct file in question,
-so you have to guaratee that methods will start giving an error from
-that point on.  What's the problem with just leaving it installed?
+consequientally: spelling?
 
-Both userland and kernel must cope with that sort of thing anyway, so
-what does removing it from descriptor table and not reporting it buy
-you?  AFAICS, it's an extra layer of complexity for no good reason -
-you are not getting it offset by simplifications anywhere else...
+> fwnode function documentation part of the Media documentation build.
+>=20
+> Also correct the link related function and argument naming in
+> documentation.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.se>
+
+Something funny going on with utf-8 here.
+
+Acked-by: Pavel Machek <pavel@ucw.cz>
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--xHFwDpU9dbj6ez1V
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlmtdhQACgkQMOfwapXb+vLaIwCeOPrJsSUSKtY1Z/guQjHpjW+R
+uREAoKP9bKses/ZucaZ3e/C2dMBIo/2f
+=ZfIc
+-----END PGP SIGNATURE-----
+
+--xHFwDpU9dbj6ez1V--
