@@ -1,131 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:36738 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753819AbdIED4U (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Sep 2017 23:56:20 -0400
-Message-ID: <856265646cd8090803994810edb555a4@smtp-cloud7.xs4all.net>
-Date: Tue, 05 Sep 2017 05:56:17 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60363 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753422AbdIDJ4m (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Sep 2017 05:56:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Pavel Rojtberg <rojtberg@gmail.com>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] uvcvideo: extend UVC_QUIRK_FIX_BANDWIDTH to MJPEG streams
+Date: Mon, 04 Sep 2017 12:56:40 +0300
+Message-ID: <3504719.Oh46EvsF34@avalon>
+In-Reply-To: <1504512857-4202-1-git-send-email-rojtberg@gmail.com>
+References: <1504512857-4202-1-git-send-email-rojtberg@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Pavel,
 
-Results of the daily build of media_tree:
+Thank you for the patch.
 
-date:			Tue Sep  5 05:00:17 CEST 2017
-media-tree git hash:	fce4b371fe5c99a9c05db8493d72f0d1a474ab26
-media_build git hash:	767234f97b7e967bd0ce362957de82764937951c
-v4l-utils git hash:	3296adfa7fa169111bf37c041c0ca70ac8506054
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+On Monday, 4 September 2017 11:14:17 EEST Pavel Rojtberg wrote:
+> From: Pavel Rojtberg <rojtberg@gmail.com>
+> 
+> attaching two Logitech C615 webcams currently results in
+>     VIDIOC_STREAMON: No space left on device
+> as the required bandwidth is not estimated correctly by the device.
+> In fact it always requests 3060 bytes - no matter the format or resolution.
+> 
+> setting UVC_QUIRK_FIX_BANDWIDTH does not help either as it is only
+> implemented for uncompressed streams.
+> 
+> This patch extends UVC_QUIRK_FIX_BANDWIDTH to MJPEG streams by making a
+> (conservative) assumption of 4bpp for MJPEG streams.
+> As the actual compression ration is often closer to 1bpp this can be
+> overridden via the new mjpeg_bpp parameter.
+> 
+> Based on:
+> https://www.mail-archive.com/linux-uvc-devel@lists.berlios.de/msg05724.html
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c | 14 +++++++++++++-
+>  drivers/media/usb/uvc/uvc_video.c  |  3 ++-
+>  2 files changed, 15 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> b/drivers/media/usb/uvc/uvc_driver.c index 70842c5..f7b759e 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -37,6 +37,7 @@ unsigned int uvc_no_drop_param;
+>  static unsigned int uvc_quirks_param = -1;
+>  unsigned int uvc_trace_param;
+>  unsigned int uvc_timeout_param = UVC_CTRL_STREAMING_TIMEOUT;
+> +static unsigned int uvc_mjpeg_bpp_param;
+> 
+>  /* ------------------------------------------------------------------------
+> * Video formats
+> @@ -463,7 +464,16 @@ static int uvc_parse_format(struct uvc_device *dev,
+>  		strlcpy(format->name, "MJPEG", sizeof format->name);
+>  		format->fcc = V4L2_PIX_FMT_MJPEG;
+>  		format->flags = UVC_FMT_FLAG_COMPRESSED;
+> -		format->bpp = 0;
+> +		if ((uvc_mjpeg_bpp_param >= 1) && (uvc_mjpeg_bpp_param <= 16)) {
+> +			format->bpp = uvc_mjpeg_bpp_param;
+> +		} else {
+> +			/* conservative estimate. Actual values are around 1bpp.
+> +			 * see e.g.
+> +			 * https://developers.google.com/speed/webp/docs/webp_study
+> +			 */
+> +			format->bpp = 4;
+> +		}
+> +
+>  		ftype = UVC_VS_FRAME_MJPEG;
+>  		break;
+> 
+> @@ -2274,6 +2284,8 @@ module_param_named(trace, uvc_trace_param, uint,
+> S_IRUGO|S_IWUSR); MODULE_PARM_DESC(trace, "Trace level bitmask");
+>  module_param_named(timeout, uvc_timeout_param, uint, S_IRUGO|S_IWUSR);
+>  MODULE_PARM_DESC(timeout, "Streaming control requests timeout");
+> +module_param_named(mjpeg_bpp, uvc_mjpeg_bpp_param, uint, S_IRUGO|S_IWUSR);
+> +MODULE_PARM_DESC(mjpeg_bpp, "MJPEG bits per pixel for bandwidth quirk");
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: WARNINGS
-spec-git: OK
+I'd rather avoid adding a new module parameter for this, it would be confusing 
+for users. What is your use case to make the MJPEG average BPP configurable ? 
+Can't we come up with a heuristic that would calculate it automatically ?
 
-Detailed results are available here:
+>  /* ------------------------------------------------------------------------
+> * Driver initialization and cleanup
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index fb86d6a..382a0be 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -127,7 +127,8 @@ static void uvc_fixup_video_ctrl(struct uvc_streaming
+> *stream, if ((ctrl->dwMaxPayloadTransferSize & 0xffff0000) == 0xffff0000)
+> ctrl->dwMaxPayloadTransferSize &= ~0xffff0000;
+> 
+> -	if (!(format->flags & UVC_FMT_FLAG_COMPRESSED) &&
+> +	if ((!(format->flags & UVC_FMT_FLAG_COMPRESSED) ||
+> +			(format->fcc == V4L2_PIX_FMT_MJPEG)) &&
+>  	    stream->dev->quirks & UVC_QUIRK_FIX_BANDWIDTH &&
+>  	    stream->intf->num_altsetting > 1) {
+>  		u32 interval;
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Full logs are available here:
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Laurent Pinchart
