@@ -1,55 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:55930 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751476AbdIQUXj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Sep 2017 16:23:39 -0400
-Subject: [PATCH 7/8] [media] cx231xx: Delete an unnecessary variable
- initialisation in read_eeprom()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Bhumika Goyal <bhumirks@gmail.com>,
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55856
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754003AbdIDUlg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Sep 2017 16:41:36 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Johan Hovold <johan@kernel.org>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Matthias Schwarzott <zzam@gentoo.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Oleh Kravchenko <oleg@kaa.org.ua>,
-        Peter Rosin <peda@axentia.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <f2c1ca56-ecdc-318c-f18f-9bef6c670ffb@users.sourceforge.net>
-Message-ID: <3c6d0990-b341-9359-94ef-e6cb74f94a5b@users.sourceforge.net>
-Date: Sun, 17 Sep 2017 22:23:12 +0200
-MIME-Version: 1.0
-In-Reply-To: <f2c1ca56-ecdc-318c-f18f-9bef6c670ffb@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+        Aviv Greenberg <aviv.d.greenberg@intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 1/2] docs-rst: media: Don't use \small for V4L2_PIX_FMT_SRGGB10 documentation
+Date: Mon,  4 Sep 2017 17:41:27 -0300
+Message-Id: <a9f55d8af529d904db475134271a37ab70ac5d38.1504557671.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 17 Sep 2017 20:28:00 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-The local variable "ret" will be set to an appropriate value a bit later.
-Thus omit the explicit initialisation at the beginning.
+There appears to be an issue in using \small in certain cases on Sphinx
+1.4 and 1.5. Other format documents don't use \small either, remove it
+from here as well.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+[mchehab@s-opensource.com: kept tabularcolumns - readjusted - and
+ add a few blank lines for it to display better]
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-cards.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/media/uapi/v4l/pixfmt-srggb10p.rst | 15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 04c0734aee79..69fdd507fa92 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -1106,6 +1106,6 @@ static void cx231xx_config_tuner(struct cx231xx *dev)
- static int read_eeprom(struct cx231xx *dev, struct i2c_client *client,
- 		       u8 *eedata, int len)
- {
--	int ret = 0;
-+	int ret;
- 	u8 start_offset = 0;
- 	int len_todo = len;
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
+index 9e52610aa954..d9e07a4b8b31 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
+@@ -33,12 +33,7 @@ of a small V4L2_PIX_FMT_SBGGR10P image:
+ **Byte Order.**
+ Each cell is one byte.
+ 
+-
+-.. raw:: latex
+-
+-    \newline\small
+-
+-.. tabularcolumns:: |p{2.0cm}|p{1.0cm}|p{1.0cm}|p{1.0cm}|p{1.0cm}|p{10.0cm}|
++.. tabularcolumns:: |p{2.0cm}|p{1.0cm}|p{1.0cm}|p{1.0cm}|p{1.0cm}|p{5.4cm}|
+ 
+ .. flat-table::
+     :header-rows:  0
+@@ -51,6 +46,7 @@ Each cell is one byte.
+       - B\ :sub:`02high`
+       - G\ :sub:`03high`
+       - G\ :sub:`03low`\ (bits 7--6) B\ :sub:`02low`\ (bits 5--4)
++
+ 	G\ :sub:`01low`\ (bits 3--2) B\ :sub:`00low`\ (bits 1--0)
+     * - start + 5:
+       - G\ :sub:`10high`
+@@ -58,6 +54,7 @@ Each cell is one byte.
+       - G\ :sub:`12high`
+       - R\ :sub:`13high`
+       - R\ :sub:`13low`\ (bits 7--6) G\ :sub:`12low`\ (bits 5--4)
++
+ 	R\ :sub:`11low`\ (bits 3--2) G\ :sub:`10low`\ (bits 1--0)
+     * - start + 10:
+       - B\ :sub:`20high`
+@@ -65,6 +62,7 @@ Each cell is one byte.
+       - B\ :sub:`22high`
+       - G\ :sub:`23high`
+       - G\ :sub:`23low`\ (bits 7--6) B\ :sub:`22low`\ (bits 5--4)
++
+ 	G\ :sub:`21low`\ (bits 3--2) B\ :sub:`20low`\ (bits 1--0)
+     * - start + 15:
+       - G\ :sub:`30high`
+@@ -72,8 +70,5 @@ Each cell is one byte.
+       - G\ :sub:`32high`
+       - R\ :sub:`33high`
+       - R\ :sub:`33low`\ (bits 7--6) G\ :sub:`32low`\ (bits 5--4)
++
+ 	R\ :sub:`31low`\ (bits 3--2) G\ :sub:`30low`\ (bits 1--0)
+-
+-.. raw:: latex
+-
+-    \normalsize
 -- 
-2.14.1
+2.13.5
