@@ -1,106 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:40758 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751256AbdIPORi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Sep 2017 10:17:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?=
-        <ville.syrjala@linux.intel.com>, Sean Paul <seanpaul@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 3/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
-Date: Sat, 16 Sep 2017 16:17:26 +0200
-Message-Id: <20170916141726.4921-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170916141726.4921-1-hverkuil@xs4all.nl>
-References: <20170916141726.4921-1-hverkuil@xs4all.nl>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55854
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753953AbdIDUlg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Sep 2017 16:41:36 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 2/2] media: pixfmt-srggb12p.rst: better format the table for PDF output
+Date: Mon,  4 Sep 2017 17:41:28 -0300
+Message-Id: <662653a6f051497957a8804940ae59595123e668.1504557671.git.mchehab@s-opensource.com>
+In-Reply-To: <a9f55d8af529d904db475134271a37ab70ac5d38.1504557671.git.mchehab@s-opensource.com>
+References: <a9f55d8af529d904db475134271a37ab70ac5d38.1504557671.git.mchehab@s-opensource.com>
+In-Reply-To: <a9f55d8af529d904db475134271a37ab70ac5d38.1504557671.git.mchehab@s-opensource.com>
+References: <a9f55d8af529d904db475134271a37ab70ac5d38.1504557671.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Adjust the table to be better displayed on PDF output.
 
-Implement support for this DisplayPort feature.
-
-The cec device is created whenever it detects an adapter that
-has this feature. It is only removed when a new adapter is connected
-that does not support this. If a new adapter is connected that has
-different properties than the previous one, then the old cec device is
-unregistered and a new one is registered to replace the old one.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Carlos Santa <carlos.santa@intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/gpu/drm/i915/intel_dp.c | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ Documentation/media/uapi/v4l/pixfmt-srggb12p.rst | 59 +++++++++---------------
+ 1 file changed, 21 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
-index 64fa774c855b..fdb853d2c458 100644
---- a/drivers/gpu/drm/i915/intel_dp.c
-+++ b/drivers/gpu/drm/i915/intel_dp.c
-@@ -32,6 +32,7 @@
- #include <linux/notifier.h>
- #include <linux/reboot.h>
- #include <asm/byteorder.h>
-+#include <media/cec.h>
- #include <drm/drmP.h>
- #include <drm/drm_atomic_helper.h>
- #include <drm/drm_crtc.h>
-@@ -1449,6 +1450,7 @@ static void intel_aux_reg_init(struct intel_dp *intel_dp)
- static void
- intel_dp_aux_fini(struct intel_dp *intel_dp)
- {
-+	cec_unregister_adapter(intel_dp->aux.cec_adap);
- 	kfree(intel_dp->aux.name);
- }
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb12p.rst b/Documentation/media/uapi/v4l/pixfmt-srggb12p.rst
+index c0541e5acd01..59918a7913fe 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-srggb12p.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb12p.rst
+@@ -30,6 +30,7 @@ Below is an example of a small V4L2_PIX_FMT_SBGGR12P image:
+ **Byte Order.**
+ Each cell is one byte.
  
-@@ -4587,6 +4589,7 @@ intel_dp_set_edid(struct intel_dp *intel_dp)
- 	intel_connector->detect_edid = edid;
++.. tabularcolumns:: |p{2.0cm}|p{1.0cm}|p{1.0cm}|p{2.7cm}|p{1.0cm}|p{1.0cm}|p{2.7cm}|
  
- 	intel_dp->has_audio = drm_detect_monitor_audio(edid);
-+	cec_s_phys_addr_from_edid(intel_dp->aux.cec_adap, edid);
- }
  
- static void
-@@ -4596,6 +4599,7 @@ intel_dp_unset_edid(struct intel_dp *intel_dp)
+ .. flat-table::
+@@ -38,66 +39,48 @@ Each cell is one byte.
+     :widths:       2 1 1 1 1 1 1
  
- 	kfree(intel_connector->detect_edid);
- 	intel_connector->detect_edid = NULL;
-+	cec_phys_addr_invalidate(intel_dp->aux.cec_adap);
  
- 	intel_dp->has_audio = false;
- }
-@@ -4616,13 +4620,17 @@ intel_dp_long_pulse(struct intel_connector *intel_connector)
- 	intel_display_power_get(to_i915(dev), intel_dp->aux_power_domain);
+-    -  .. row 1
+-
+-       -  start + 0:
+-
++    -  -  start + 0:
+        -  B\ :sub:`00high`
+-
+        -  G\ :sub:`01high`
++       -  G\ :sub:`01low`\ (bits 7--4)
  
- 	/* Can't disconnect eDP, but you can close the lid... */
--	if (is_edp(intel_dp))
-+	if (is_edp(intel_dp)) {
- 		status = edp_detect(intel_dp);
--	else if (intel_digital_port_connected(to_i915(dev),
--					      dp_to_dig_port(intel_dp)))
-+	} else if (intel_digital_port_connected(to_i915(dev),
-+						dp_to_dig_port(intel_dp))) {
- 		status = intel_dp_detect_dpcd(intel_dp);
--	else
-+		if (status == connector_status_connected)
-+			drm_dp_cec_configure_adapter(&intel_dp->aux,
-+				     intel_dp->aux.name, dev->dev);
-+	} else {
- 		status = connector_status_disconnected;
-+	}
+-       -  G\ :sub:`01low`\ (bits 7--4) B\ :sub:`00low`\ (bits 3--0)
+-
++          B\ :sub:`00low`\ (bits 3--0)
+        -  B\ :sub:`02high`
+-
+        -  G\ :sub:`03high`
++       -  G\ :sub:`03low`\ (bits 7--4)
  
- 	if (status == connector_status_disconnected) {
- 		memset(&intel_dp->compliance, 0, sizeof(intel_dp->compliance));
-@@ -5011,6 +5019,8 @@ intel_dp_hpd_pulse(struct intel_digital_port *intel_dig_port, bool long_hpd)
+-       -  G\ :sub:`03low`\ (bits 7--4) B\ :sub:`02low`\ (bits 3--0)
+-
+-    -  .. row 2
+-
+-       -  start + 6:
++          B\ :sub:`02low`\ (bits 3--0)
  
- 	intel_display_power_get(dev_priv, intel_dp->aux_power_domain);
++    -  -  start + 6:
+        -  G\ :sub:`10high`
+-
+        -  R\ :sub:`11high`
++       -  R\ :sub:`11low`\ (bits 7--4)
  
-+	drm_dp_cec_irq(&intel_dp->aux);
-+
- 	if (intel_dp->is_mst) {
- 		if (intel_dp_check_mst_status(intel_dp) == -EINVAL) {
- 			/*
+-       -  R\ :sub:`11low`\ (bits 7--4) G\ :sub:`10low`\ (bits 3--0)
+-
++          G\ :sub:`10low`\ (bits 3--0)
+        -  G\ :sub:`12high`
+-
+        -  R\ :sub:`13high`
++       -  R\ :sub:`13low`\ (bits 3--2)
+ 
+-       -  R\ :sub:`13low`\ (bits 3--2) G\ :sub:`12low`\ (bits 3--0)
+-
+-    -  .. row 3
+-
+-       -  start + 12:
+-
++          G\ :sub:`12low`\ (bits 3--0)
++    -  -  start + 12:
+        -  B\ :sub:`20high`
+-
+        -  G\ :sub:`21high`
++       -  G\ :sub:`21low`\ (bits 7--4)
+ 
+-       -  G\ :sub:`21low`\ (bits 7--4) B\ :sub:`20low`\ (bits 3--0)
+-
++          B\ :sub:`20low`\ (bits 3--0)
+        -  B\ :sub:`22high`
+-
+        -  G\ :sub:`23high`
++       -  G\ :sub:`23low`\ (bits 7--4)
+ 
+-       -  G\ :sub:`23low`\ (bits 7--4) B\ :sub:`22low`\ (bits 3--0)
+-
+-    -  .. row 4
+-
+-       -  start + 18:
+-
++          B\ :sub:`22low`\ (bits 3--0)
++    -  -  start + 18:
+        -  G\ :sub:`30high`
+-
+        -  R\ :sub:`31high`
++       -  R\ :sub:`31low`\ (bits 7--4)
+ 
+-       -  R\ :sub:`31low`\ (bits 7--4) G\ :sub:`30low`\ (bits 3--0)
+-
++          G\ :sub:`30low`\ (bits 3--0)
+        -  G\ :sub:`32high`
+-
+        -  R\ :sub:`33high`
++       -  R\ :sub:`33low`\ (bits 3--2)
+ 
+-       -  R\ :sub:`33low`\ (bits 3--2) G\ :sub:`32low`\ (bits 3--0)
++          G\ :sub:`32low`\ (bits 3--0)
 -- 
-2.14.1
+2.13.5
