@@ -1,60 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57124 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750918AbdISHOq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 03:14:46 -0400
-Date: Tue, 19 Sep 2017 10:14:43 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Yeh, Andy" <andy.yeh@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
-Subject: Re: [PATCH v2] media: ov13858: Fix 4224x3136 video flickering at
- some vblanks
-Message-ID: <20170919071443.wfd7leio44euozze@valkosipuli.retiisi.org.uk>
-References: <1505342325-9180-1-git-send-email-chiranjeevi.rapolu@intel.com>
- <d946c138dc7d9657e986bfe37d255a595ad1671c.1505774663.git.chiranjeevi.rapolu@intel.com>
- <CAAFQd5Cqxrbutd-FL3EAJde1q2JmjY+6xHAMGuGjkR3VdpQxQA@mail.gmail.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54621
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753477AbdIDMPi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Sep 2017 08:15:38 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        =?UTF-8?q?Honza=20Petrou=C5=A1?= <jpetrous@gmail.com>
+Subject: [PATCH 0/2] Documents the two remaining CA ioctls
+Date: Mon,  4 Sep 2017 09:15:30 -0300
+Message-Id: <cover.1504526763.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5Cqxrbutd-FL3EAJde1q2JmjY+6xHAMGuGjkR3VdpQxQA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 19, 2017 at 01:32:27PM +0900, Tomasz Figa wrote:
-> Hi Chiranjeevi,
-> 
-> On Tue, Sep 19, 2017 at 7:47 AM, Chiranjeevi Rapolu
-> <chiranjeevi.rapolu@intel.com> wrote:
-> > Previously, with crop (0, 0), (4255, 3167), VTS < 0xC9E was resulting in blank
-> > frames sometimes. This appeared as video flickering. But we need VTS < 0xC9E to
-> > get ~30fps.
-> >
-> > Omni Vision recommends to use crop (0,8), (4255, 3159) for 4224x3136. With this
-> > crop, VTS 0xC8E is supported and yields ~30fps.
-> >
-> > Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-> > ---
-> > Changes in v2:
-> >         - Include Tomasz clarifications in the commit message.
-> 
-> Thanks for explanation. It makes perfect sense now.
-> 
-> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+Thanks to some discussions I had with Honza, I got some ideas about how to
+document the last three undocumented ioctls from ca.h, together with the
+two data structures.
 
-Thanks, applied!
+With this series (and the previous one), everything at CA, Net, Demux 
+and DVBv5 Frontend DVB APIs are now documented. That's IMHO
+a very good reason to celebrate! Yay!
 
-Chiranjeevi: please wrap the commit message at 75 on the next time.
+Please notice that are still gaps at the DVB API documentation, but
+those are related to legacy stuff that aren't touched for ages
+(DVBv3 frontend API, audio.h, osd.h and video.h). The legacy
+ DVBv3 frontend API was completely replaced by DVBv5 API.
+The other ones are used only by a single driver (av7110).
+
+Mauro Carvalho Chehab (2):
+  media: ca docs: document CA_SET_DESCR ioctl and structs
+  media: ca.h: document ca_msg and the corresponding ioctls
+
+ Documentation/media/uapi/dvb/ca-get-msg.rst   | 19 ++++++-------------
+ Documentation/media/uapi/dvb/ca-send-msg.rst  |  6 +++++-
+ Documentation/media/uapi/dvb/ca-set-descr.rst | 15 ++-------------
+ include/uapi/linux/dvb/ca.h                   | 20 ++++++++++++++++++--
+ 4 files changed, 31 insertions(+), 29 deletions(-)
 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.5
