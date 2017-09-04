@@ -1,233 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44925
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S964892AbdIYSW1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 14:22:27 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-doc@vger.kernel.org,
-        Markus Heiser <markus.heiser@darmarit.de>
-Subject: [PATCH] scripts: kernel-doc: parse next structs/unions
-Date: Mon, 25 Sep 2017 15:22:20 -0300
-Message-Id: <3eff4e45c88ce0d5449d5794cf3019898c2a16bc.1506363302.git.mchehab@s-opensource.com>
+Received: from mail.free-electrons.com ([62.4.15.54]:42576 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753543AbdIDNDj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Sep 2017 09:03:39 -0400
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Cyprian Wronka <cwronka@cadence.com>,
+        Neil Webb <neilw@cadence.com>,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: [PATCH v3 0/2] media: v4l: Add support for the Cadence MIPI-CSI2 RX
+Date: Mon,  4 Sep 2017 15:03:33 +0200
+Message-Id: <20170904130335.23280-1-maxime.ripard@free-electrons.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several places within the Kernel tree with nested
-structs/unions, like this one:
+Hi,
 
-  struct ingenic_cgu_clk_info {
-    const char *name;
-    enum {
-      CGU_CLK_NONE = 0,
-      CGU_CLK_EXT = BIT(0),
-      CGU_CLK_PLL = BIT(1),
-      CGU_CLK_GATE = BIT(2),
-      CGU_CLK_MUX = BIT(3),
-      CGU_CLK_MUX_GLITCHFREE = BIT(4),
-      CGU_CLK_DIV = BIT(5),
-      CGU_CLK_FIXDIV = BIT(6),
-      CGU_CLK_CUSTOM = BIT(7),
-    } type;
-    int parents[4];
-    union {
-      struct ingenic_cgu_pll_info pll;
-      struct {
-        struct ingenic_cgu_gate_info gate;
-        struct ingenic_cgu_mux_info mux;
-        struct ingenic_cgu_div_info div;
-        struct ingenic_cgu_fixdiv_info fixdiv;
-      };
-      struct ingenic_cgu_custom_info custom;
-    };
-  };
+Here is an attempt at supporting the MIPI-CSI2 RX block from Cadence.
 
-Currently, such struct is documented as:
+This IP block is able to receive CSI data over up to 4 lanes, and
+split it to over 4 streams. Those streams are basically the interfaces
+to the video grabbers that will perform the capture.
 
-	**Definition**
+It is able to map streams to both CSI datatypes and virtual channels,
+dynamically. This is unclear at this point what the right way to
+support it would be, so the driver only uses a static mapping between
+the virtual channels and streams, and ignores the data types.
 
-	::
-	struct ingenic_cgu_clk_info {
-	    const char * name;
-	};
+This serie depends on the version 5 of the serie "v4l2-async: add subnotifier
+registration for subdevices" from Niklas Söderlund.
 
-	**Members**
+Let me know what you think!
+Maxime
 
-	``name``
-	  name of the clock
+Changes from v2:
+  - Added reference counting for the controller initialisation
+  - Fixed checkpatch warnings
+  - Moved the sensor initialisation after the DPHY configuration
+  - Renamed the sensor fields to source for consistency
+  - Defined some variables
+  - Renamed a few structures variables
+  - Added internal and external phy errors messages
+  - Reworked the binding slighty by making the external D-PHY optional
+  - Moved the notifier registration in the probe function
+  - Removed some clocks that are not system clocks
+  - Added clocks enabling where needed
+  - Added the code to remap the data lanes
+  - Changed the memory allocator for the non-devm function, and a
+    comment explaining why
+  - Reworked the binding wording
 
-With is obvioulsy wrong. It also generates an error:
-	drivers/clk/ingenic/cgu.h:169: warning: No description found for parameter 'enum'
+Changes from v1:
+  - Amended the DT bindings as suggested by Rob
+  - Rebase on top of 4.13-rc1 and latest Niklas' serie iteration
 
-However, there's nothing wrong with this kernel-doc markup: everything
-is documented there.
+Maxime Ripard (2):
+  dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
+  v4l: cadence: Add Cadence MIPI-CSI2 RX driver
 
-It makes sense to document all fields there. So, add a
-way for the core to parse those structs.
+ .../devicetree/bindings/media/cdns-csi2rx.txt      |  98 ++++
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/cadence/Kconfig             |  12 +
+ drivers/media/platform/cadence/Makefile            |   1 +
+ drivers/media/platform/cadence/cdns-csi2rx.c       | 494 +++++++++++++++++++++
+ 6 files changed, 608 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns-csi2rx.txt
+ create mode 100644 drivers/media/platform/cadence/Kconfig
+ create mode 100644 drivers/media/platform/cadence/Makefile
+ create mode 100644 drivers/media/platform/cadence/cdns-csi2rx.c
 
-With this patch, all documented fields will properly generate
-documentation.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
-
-Jon,
-
-Please let me know what you think about this approach. IMHO, it is a way
-better than what we do right now. This is more a proof of concept, as the
-patch is not complete. 
-
-With it, we can now document both anonymous and named unions/structs.
-
-For named structs, the name of the fields should be in the format:
-	foo.bar
-
-What's missing on this PoC:
-
-1) I didn't check if @foo.bar: would work, though.  Probably the parser
-   for it should be added to allow this new syntax.
-
-2) I only changed the ReST output to preserve the struct format with
-   nested fields. 
-
-For (2), I'm thinking is we should still have all those output formats for
-kernel-doc. IMHO, I would keep just RST (and perhaps man - while we don't
-have a "make man" targed working.
-
-Depending on your comments, I'll proceed addressing (1) and (2)
-and doing more tests with it.
-
-
-
- scripts/kernel-doc | 83 +++++++++++++++++++++++++++++++++++-------------------
- 1 file changed, 54 insertions(+), 29 deletions(-)
-
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index 9d3eafea58f0..5ca81b879088 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -2035,29 +2035,9 @@ sub output_struct_rst(%) {
- 
-     print "**Definition**\n\n";
-     print "::\n\n";
--    print "  " . $args{'type'} . " " . $args{'struct'} . " {\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	if ($parameter =~ /^#/) {
--	    print "  " . "$parameter\n";
--	    next;
--	}
--
--	my $parameter_name = $parameter;
--	$parameter_name =~ s/\[.*//;
--
--	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
--	$type = $args{'parametertypes'}{$parameter};
--	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
--	    # pointer-to-function
--	    print "    $1 $parameter) ($2);\n";
--	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
--	    # bitfield
--	    print "    $1 $parameter$2;\n";
--	} else {
--	    print "    " . $type . " " . $parameter . ";\n";
--	}
--    }
--    print "  };\n\n";
-+    my $declaration = $args{'definition'};
-+    $declaration =~ s/\t/  /g;
-+    print "  " . $args{'type'} . " " . $args{'struct'} . " {\n$declaration  };\n\n";
- 
-     print "**Members**\n\n";
-     $lineprefix = "  ";
-@@ -2168,20 +2148,15 @@ sub dump_struct($$) {
-     my $nested;
- 
-     if ($x =~ /(struct|union)\s+(\w+)\s*{(.*)}/) {
--	#my $decl_type = $1;
-+	my $decl_type = $1;
- 	$declaration_name = $2;
- 	my $members = $3;
- 
--	# ignore embedded structs or unions
--	$members =~ s/({.*})//g;
--	$nested = $1;
--
- 	# ignore members marked private:
- 	$members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gosi;
- 	$members =~ s/\/\*\s*private:.*//gosi;
- 	# strip comments:
- 	$members =~ s/\/\*.*?\*\///gos;
--	$nested =~ s/\/\*.*?\*\///gos;
- 	# strip kmemcheck_bitfield_{begin,end}.*;
- 	$members =~ s/kmemcheck_bitfield_.*?;//gos;
- 	# strip attributes
-@@ -2193,13 +2168,63 @@ sub dump_struct($$) {
- 	# replace DECLARE_HASHTABLE
- 	$members =~ s/DECLARE_HASHTABLE\s*\(([^,)]+), ([^,)]+)\)/unsigned long $1\[1 << (($2) - 1)\]/gos;
- 
-+	my $declaration = $members;
-+
-+	# Split nested struct/union elements as newer ones
-+	my $cont = 1;
-+	while ($cont) {
-+		$cont = 0;
-+		while ($members =~ m/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/) {
-+			my $newmember = "$1 $4;";
-+			my $id = $4;
-+			my $content = $3;
-+			$id =~ s/[:\[].*//;
-+			foreach my $arg (split /;/, $content) {
-+				next if ($arg =~ m/^\s*$/);
-+				my $type = $arg;
-+				my $name = $arg;
-+				$type =~ s/\s\S+$//;
-+				$name =~ s/.*\s//;
-+				next if (($name =~ m/^\s*$/));
-+				if ($id =~ m/^\s*$/) {
-+					# anonymous struct/union
-+					$newmember .= "$type $name;";
-+				} else {
-+					$newmember .= "$type $id.$name;";
-+				}
-+			}
-+			$members =~ s/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/$newmember/;
-+			$cont = 1;
-+		};
-+	};
-+
-+	# Ignore other nested elements, like enums
-+	$members =~ s/({[^\{\}]*})//g;
-+	$nested = $decl_type;
-+	$nested =~ s/\/\*.*?\*\///gos;
-+
- 	create_parameterlist($members, ';', $file);
- 	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual, $nested);
- 
-+	# Adjust declaration for better display
-+	$declaration =~ s/([{,;])/$1\n/g;
-+	$declaration =~ s/}\s+;/};/g;
-+	my @def_args = split /\n/, $declaration;
-+	my $level = 2;
-+	$declaration = "";
-+	foreach my $clause (@def_args) {
-+		$clause =~ s/^\s+//;
-+		$clause =~ s/\s+$//;
-+		$clause =~ s/\s+/ /;
-+		$level-- if ($clause =~ m/}/ && $level > 2);
-+		$declaration .= "\t" x $level . $clause . "\n" if ($clause);
-+		$level++ if ($clause =~ m/{/);
-+	}
- 	output_declaration($declaration_name,
- 			   'struct',
- 			   {'struct' => $declaration_name,
- 			    'module' => $modulename,
-+			    'definition' => $declaration,
- 			    'parameterlist' => \@parameterlist,
- 			    'parameterdescs' => \%parameterdescs,
- 			    'parametertypes' => \%parametertypes,
 -- 
 2.13.5
