@@ -1,31 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:45589 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750776AbdIMIrP (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59718 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753847AbdIDQ1I (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 04:47:15 -0400
-Date: Wed, 13 Sep 2017 11:46:54 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Allen Pais <allen.lkml@gmail.com>
-Cc: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
-        gregkh@linuxfoundation.org, mchehab@kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] drivers:staging/media:Use ARRAY_SIZE() for the size
- calculation of the array
-Message-ID: <20170913084654.yiht6ck7ljexohjx@mwanda>
-References: <1505291965-27118-1-git-send-email-allen.lkml@gmail.com>
+        Mon, 4 Sep 2017 12:27:08 -0400
+Date: Mon, 4 Sep 2017 19:27:05 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, laurent.pinchart@ideasonboard.com,
+        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+Subject: Re: [PATCH v7 13/18] dt: bindings: Add a binding for flash devices
+ associated to a sensor
+Message-ID: <20170904162705.thujzc7xw6hgjau3@valkosipuli.retiisi.org.uk>
+References: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
+ <20170903174958.27058-14-sakari.ailus@linux.intel.com>
+ <9a68a9a6-0949-f1c2-f029-8045d7d688b0@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1505291965-27118-1-git-send-email-allen.lkml@gmail.com>
+In-Reply-To: <9a68a9a6-0949-f1c2-f029-8045d7d688b0@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 13, 2017 at 02:09:25PM +0530, Allen Pais wrote:
-> Signed-off-by: Allen Pais <allen.lkml@gmail.com>
+On Mon, Sep 04, 2017 at 04:31:51PM +0200, Hans Verkuil wrote:
+> On 09/03/2017 07:49 PM, Sakari Ailus wrote:
+> > Camera flash drivers (and LEDs) are separate from the sensor devices in
+> > DT. In order to make an association between the two, provide the
+> > association information to the software.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Acked-by: Rob Herring <robh@kernel.org>
+> > ---
+> >  Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
+> >  1 file changed, 8 insertions(+)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > index 852041a7480c..fee73cf2a714 100644
+> > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > @@ -67,6 +67,14 @@ are required in a relevant parent node:
+> >  		    identifier, should be 1.
+> >   - #size-cells    : should be zero.
+> >  
+> > +
+> > +Optional properties
+> > +-------------------
+> > +
+> > +- flash: An array of phandles referring to the flash LED, a sub-node
+> > +  of the LED driver device node.
+> 
+> If it is an array, then I guess it should say: "An array of phandles, each referring to
+> a flash LED,"
 
-This is going through linux-media and maybe they won't insist on some
-kind of commit message, but I know Greg does.
+Sounds good, I'll use that in v8.
 
-regards,
-dan carpenter
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
