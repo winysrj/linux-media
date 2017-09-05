@@ -1,258 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46541
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751825AbdIAKpW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 06:45:22 -0400
-Date: Fri, 1 Sep 2017 07:45:13 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Honza =?UTF-8?B?UGV0cm91xaE=?= <jpetrous@gmail.com>
-Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH 12/15] media: dmx.h: get rid of DMX_SET_SOURCE
-Message-ID: <20170901074513.5e5ddbbe@vento.lan>
-In-Reply-To: <CAJbz7-10_dX2rL9piwKPdwE6V6n8w-_=u4Mf7NccufrwpYEdog@mail.gmail.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
-        <cf4b97ba0e68bf92cf899d04a3862cad1b3a7874.1504222628.git.mchehab@s-opensource.com>
-        <CAJbz7-1PijPZm1Sa87cHQmwMDURtW4PVUZZT9OvHPTfeFQafHg@mail.gmail.com>
-        <20170901063703.673d2d37@vento.lan>
-        <CAJbz7-10_dX2rL9piwKPdwE6V6n8w-_=u4Mf7NccufrwpYEdog@mail.gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40680 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751236AbdIENF4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Sep 2017 09:05:56 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v8 00/21] Unified fwnode endpoint parser, async sub-device notifier support, N9 flash DTS
+Date: Tue,  5 Sep 2017 16:05:32 +0300
+Message-Id: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 1 Sep 2017 11:53:11 +0200
-Honza Petrouš <jpetrous@gmail.com> escreveu:
+Hi folks,
 
-> 2017-09-01 11:37 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-> > Em Fri, 1 Sep 2017 08:28:20 +0200
-> > Honza Petrouš <jpetrous@gmail.com> escreveu:
-> >  
-> >> 2017-09-01 1:46 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>:  
-> >> > No driver uses this ioctl, nor it is documented anywhere.
-> >> >
-> >> > So, get rid of it.
-> >> >
-> >> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> >> > ---
-> >> >  Documentation/media/dmx.h.rst.exceptions        | 13 --------
-> >> >  Documentation/media/uapi/dvb/dmx-set-source.rst | 44 -------------------------
-> >> >  Documentation/media/uapi/dvb/dmx_fcalls.rst     |  1 -
-> >> >  Documentation/media/uapi/dvb/dmx_types.rst      | 20 -----------
-> >> >  include/uapi/linux/dvb/dmx.h                    | 12 -------
-> >> >  5 files changed, 90 deletions(-)
-> >> >  delete mode 100644 Documentation/media/uapi/dvb/dmx-set-source.rst
-> >> >
-> >> > diff --git a/Documentation/media/dmx.h.rst.exceptions b/Documentation/media/dmx.h.rst.exceptions
-> >> > index 5572d2dc9d0e..d2dac35bb84b 100644
-> >> > --- a/Documentation/media/dmx.h.rst.exceptions
-> >> > +++ b/Documentation/media/dmx.h.rst.exceptions
-> >> > @@ -40,18 +40,6 @@ replace enum dmx_input :c:type:`dmx_input`
-> >> >  replace symbol DMX_IN_FRONTEND :c:type:`dmx_input`
-> >> >  replace symbol DMX_IN_DVR :c:type:`dmx_input`
-> >> >
-> >> > -# dmx_source_t symbols
-> >> > -replace enum dmx_source :c:type:`dmx_source`
-> >> > -replace symbol DMX_SOURCE_FRONT0 :c:type:`dmx_source`
-> >> > -replace symbol DMX_SOURCE_FRONT1 :c:type:`dmx_source`
-> >> > -replace symbol DMX_SOURCE_FRONT2 :c:type:`dmx_source`
-> >> > -replace symbol DMX_SOURCE_FRONT3 :c:type:`dmx_source`
-> >> > -replace symbol DMX_SOURCE_DVR0 :c:type:`dmx_source`
-> >> > -replace symbol DMX_SOURCE_DVR1 :c:type:`dmx_source`
-> >> > -replace symbol DMX_SOURCE_DVR2 :c:type:`dmx_source`
-> >> > -replace symbol DMX_SOURCE_DVR3 :c:type:`dmx_source`
-> >> > -
-> >> > -
-> >> >  # Flags for struct dmx_sct_filter_params
-> >> >  replace define DMX_CHECK_CRC :c:type:`dmx_sct_filter_params`
-> >> >  replace define DMX_ONESHOT :c:type:`dmx_sct_filter_params`
-> >> > @@ -61,4 +49,3 @@ replace define DMX_IMMEDIATE_START :c:type:`dmx_sct_filter_params`
-> >> >  replace typedef dmx_filter_t :c:type:`dmx_filter`
-> >> >  replace typedef dmx_pes_type_t :c:type:`dmx_pes_type`
-> >> >  replace typedef dmx_input_t :c:type:`dmx_input`
-> >> > -replace typedef dmx_source_t :c:type:`dmx_source`
-> >> > diff --git a/Documentation/media/uapi/dvb/dmx-set-source.rst b/Documentation/media/uapi/dvb/dmx-set-source.rst
-> >> > deleted file mode 100644
-> >> > index ac7f77b25e06..000000000000
-> >> > --- a/Documentation/media/uapi/dvb/dmx-set-source.rst
-> >> > +++ /dev/null
-> >> > @@ -1,44 +0,0 @@
-> >> > -.. -*- coding: utf-8; mode: rst -*-
-> >> > -
-> >> > -.. _DMX_SET_SOURCE:
-> >> > -
-> >> > -==============
-> >> > -DMX_SET_SOURCE
-> >> > -==============
-> >> > -
-> >> > -Name
-> >> > -----
-> >> > -
-> >> > -DMX_SET_SOURCE
-> >> > -
-> >> > -
-> >> > -Synopsis
-> >> > ---------
-> >> > -
-> >> > -.. c:function:: int ioctl(fd, DMX_SET_SOURCE, struct dmx_source *src)
-> >> > -    :name: DMX_SET_SOURCE
-> >> > -
-> >> > -
-> >> > -Arguments
-> >> > ----------
-> >> > -
-> >> > -
-> >> > -``fd``
-> >> > -    File descriptor returned by :c:func:`open() <dvb-dmx-open>`.
-> >> > -
-> >> > -``src``
-> >> > -   Undocumented.
-> >> > -
-> >> > -
-> >> > -Description
-> >> > ------------
-> >> > -
-> >> > -.. note:: This ioctl is undocumented. Documentation is welcome.
-> >> > -
-> >> > -
-> >> > -Return Value
-> >> > -------------
-> >> > -
-> >> > -On success 0 is returned, on error -1 and the ``errno`` variable is set
-> >> > -appropriately. The generic error codes are described at the
-> >> > -:ref:`Generic Error Codes <gen-errors>` chapter.
-> >> > diff --git a/Documentation/media/uapi/dvb/dmx_fcalls.rst b/Documentation/media/uapi/dvb/dmx_fcalls.rst
-> >> > index 49e013d4540f..be98d60877f2 100644
-> >> > --- a/Documentation/media/uapi/dvb/dmx_fcalls.rst
-> >> > +++ b/Documentation/media/uapi/dvb/dmx_fcalls.rst
-> >> > @@ -21,6 +21,5 @@ Demux Function Calls
-> >> >      dmx-get-event
-> >> >      dmx-get-stc
-> >> >      dmx-get-pes-pids
-> >> > -    dmx-set-source
-> >> >      dmx-add-pid
-> >> >      dmx-remove-pid
-> >> > diff --git a/Documentation/media/uapi/dvb/dmx_types.rst b/Documentation/media/uapi/dvb/dmx_types.rst
-> >> > index 9e907b85cf16..a205c02ccdc1 100644
-> >> > --- a/Documentation/media/uapi/dvb/dmx_types.rst
-> >> > +++ b/Documentation/media/uapi/dvb/dmx_types.rst
-> >> > @@ -197,23 +197,3 @@ struct dmx_stc
-> >> >         unsigned int base;  /* output: divisor for stc to get 90 kHz clock */
-> >> >         __u64 stc;      /* output: stc in 'base'*90 kHz units */
-> >> >      };
-> >> > -
-> >> > -
-> >> > -
-> >> > -enum dmx_source
-> >> > -===============
-> >> > -
-> >> > -.. c:type:: dmx_source
-> >> > -
-> >> > -.. code-block:: c
-> >> > -
-> >> > -    typedef enum dmx_source {
-> >> > -       DMX_SOURCE_FRONT0 = 0,
-> >> > -       DMX_SOURCE_FRONT1,
-> >> > -       DMX_SOURCE_FRONT2,
-> >> > -       DMX_SOURCE_FRONT3,
-> >> > -       DMX_SOURCE_DVR0   = 16,
-> >> > -       DMX_SOURCE_DVR1,
-> >> > -       DMX_SOURCE_DVR2,
-> >> > -       DMX_SOURCE_DVR3
-> >> > -    } dmx_source_t;
-> >> > diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
-> >> > index c0ee44fbdb13..dd2b832c02ce 100644
-> >> > --- a/include/uapi/linux/dvb/dmx.h
-> >> > +++ b/include/uapi/linux/dvb/dmx.h
-> >> > @@ -117,17 +117,6 @@ struct dmx_pes_filter_params
-> >> >         __u32          flags;
-> >> >  };
-> >> >
-> >> > -typedef enum dmx_source {
-> >> > -       DMX_SOURCE_FRONT0 = 0,
-> >> > -       DMX_SOURCE_FRONT1,
-> >> > -       DMX_SOURCE_FRONT2,
-> >> > -       DMX_SOURCE_FRONT3,
-> >> > -       DMX_SOURCE_DVR0   = 16,
-> >> > -       DMX_SOURCE_DVR1,
-> >> > -       DMX_SOURCE_DVR2,
-> >> > -       DMX_SOURCE_DVR3
-> >> > -} dmx_source_t;
-> >> > -
-> >> >  struct dmx_stc {
-> >> >         unsigned int num;       /* input : which STC? 0..N */
-> >> >         unsigned int base;      /* output: divisor for stc to get 90 kHz clock */
-> >> > @@ -140,7 +129,6 @@ struct dmx_stc {
-> >> >  #define DMX_SET_PES_FILTER       _IOW('o', 44, struct dmx_pes_filter_params)
-> >> >  #define DMX_SET_BUFFER_SIZE      _IO('o', 45)
-> >> >  #define DMX_GET_PES_PIDS         _IOR('o', 47, __u16[5])
-> >> > -#define DMX_SET_SOURCE           _IOW('o', 49, dmx_source_t)
-> >> >  #define DMX_GET_STC              _IOWR('o', 50, struct dmx_stc)
-> >> >  #define DMX_ADD_PID              _IOW('o', 51, __u16)
-> >> >  #define DMX_REMOVE_PID           _IOW('o', 52, __u16)
-> >> > --
-> >> > 2.13.5
-> >> >  
-> >>
-> >> Hi Mauro.
-> >>
-> >> May be I missed something, but how it should be managed the demux
-> >> source without that?
-> >> Do we have some other way how to set the demux input?  
-> >
-> > Yes: via the media controller.
-> >  
-> >> Even in one-frontend configuration we should have to have option
-> >> to switch between DMX_SOURCE_FRONT0 & DMX_SOURCE_DVR0.  
-> >
-> > Actually, the sources are configured when a filter is set. I've  
-> 
-> Do you mean in DMX_SET_FILTER?
-> 
-> I don't see any way how to do it inside struct:
-> 
-> struct dmx_sct_filter_params
-> {
->         __u16          pid;
->         dmx_filter_t   filter;
->         __u32          timeout;
->         __u32          flags;
-> #define DMX_CHECK_CRC       1
-> #define DMX_ONESHOT         2
-> #define DMX_IMMEDIATE_START 4
-> #define DMX_KERNEL_CLIENT   0x8000
-> };
+We have a large influx of new, unmerged, drivers that are now parsing
+fwnode endpoints and each one of them is doing this a little bit
+differently. The needs are still exactly the same for the graph data
+structure is device independent. This is still a non-trivial task and the
+majority of the driver implementations are buggy, just buggy in different
+ways.
 
+Facilitate parsing endpoints by adding a convenience function for parsing
+the endpoints, and make the omap3isp and rcar-vin drivers use them as an
+example.
 
-No, I'm actually talking about DMX_SET_PES_FILTER filter:
+To show where we're getting with this, I've added support for async
+sub-device notifier support that is notifiers that can be registered by
+sub-device drivers as well as V4L2 fwnode improvements to make use of them
+and the DTS changes for the Nokia N9. Some of these patches I've posted
+previously in this set here:
 
-struct dmx_pes_filter_params
-{
-	__u16           pid;
-	enum dmx_input  input;
-	enum dmx_output output;
-	enum dmx_ts_pes pes_type;
-	__u32           flags;
-};
+<URL:http://www.spinics.net/lists/linux-media/msg118764.html>
 
-it explicitly allows setting both input and output, per PES filter.
+Since that, the complete callback of the master notifier registering the
+V4L2 device is only called once all sub-notifiers have been completed as
+well. This way the device node creation can be postponed until all devices
+have been successfully initialised.
 
-> And more - I don't see any reason why it should be done in filter set.
-> It looks for me like superfluous side-effect. The setting
-> of the demux source should not be connected with filter setup.
-> 
-> > no idea what was the original purpose of this API, as there's no
-> > documentation about it anywhere and no drivers use it kernelwide.  
-> 
-> If I remember correctly, the original idea (or at least how I remember it) was
-> to switch source of TS data - from frontend or from dvr (injecting
-> from userspace).
+With this, the as3645a driver successfully registers a sub-device to the
+media device created by the omap3isp driver. The kernel also has the
+information it's related to the sensor driven by the smiapp driver but we
+don't have a way to expose that information yet.
 
-Well, nobody implemented it (at least upstream).
+since v7:
 
+- Added three more patches:
 
-Thanks,
-Mauro
+	v4l: async: Remove re-probing support
+	v4l: async: Use more intuitive names for internal functions
+	dt: bindings: smiapp: Document lens-focus and flash properties
+
+  The last one was already sent previously after the rest of the patchset.
+
+- Removed re-probing support. This is hard to support and only useful in
+  special cases. It can be reintroduced later on if there's really a need
+  --- note that in e.g. omap3isp this was always broken and no-one ever
+  complained.
+
+- Remove smiapp driver's async complete callback (and ops). It is
+  redundant: the sub-device nodes are created through the master notifier.
+
+- Improve flash property documentation in video-interfaces.txt.
+
+- Introduce helper functions to call notifier operations, one for each
+  operation.
+
+- Rename v4l2_async_test_notify as v4l2_async_match_notify and
+  v4l2_async_belongs to v4l2_async_find_match.
+
+- v4l2_async_notifier_test_all_subdevs() renamed as
+  v4l2_async_notifier_try_all_subdevs().
+
+- Made notifier_v4l2_dev a function (it was a macro).
+
+- Registering subdev notifiers from sub-device drivers that control
+  sub-devices created through sub-notifiers is now supported. In other
+  words, subdev notifiers may be registered through other subdev
+  notifiers. This is the source of the bulk of the changes between v7 and
+  v8.
+
+- Add explanatory comments to helper functions used by V4L2 async
+  framework. This should help understanding the internal workings of the
+  framework.
+
+- Removed the "notifiers" list in struct v4l2_async_notifier. The
+  information can be found from existing data structures.
+
+- Explicitly check that registering a non-subdev notifier has v4l2_dev and
+  a subdev notifier has a sub-device pointer.
+
+- Unified several code paths between subdev notifiers and non-subdev
+  notifiers.
+
+- Fixed v4l2_async_notifier_release() --- calling it on a notifier for
+  which the driver had allocated the subdevs array would lead calling
+  kvfree() on that array. Now notifier->max_subdevs is checked before
+  proceeding.
+
+- Fixed a use-after-free issue in
+  v4l2_async_notifier_fwnode_parse_endpoints().
+
+- Small fixes to KernelDoc documentation for
+  v4l2_async_notifier_parse_fwnode_endpoints().
+
+since v6:
+
+- Drop the last patch that added variant for parsing endpoints given
+  specific port and endpoints numbers.
+
+- Separate driver changes from the fwnode endpoint parser patch into two
+  patches. rcar-vin driver is now using the name function.
+
+- Use -ENOTCONN to tell the parser that and endpoint (or a reference) is
+  to be ignored.
+
+- parse_endpoint and parse_single callback functions are now optional and
+  documented as such.
+
+- Added Laurent's patch adding notifier operations struct which I rebase
+  on the fwnode parser patchset. I wrote another patch to call the
+  notifier operations through macros.
+
+- Add DT bindings for flash and lens devices.
+
+- V4L2 fwnode parser for references (such as flash and lens).
+
+- Added smiapp driver support for async sub-devices (lens and flash).
+
+- Added a few fixes for omap3isp.
+
+since v5:
+
+- Use v4l2_async_ prefix for static functions as well (4th patch)
+
+- Use memcpy() to copy array rather than a loop
+
+- Document that the v4l2_async_subdev pointer in driver specific struct
+  must be the first member
+
+- Improve documentation of the added functions (4th and 5th
+  patches)
+
+	- Arguments
+
+	- More thorough explation of the purpose, usage and object
+	  lifetime
+
+- Added acks
+
+since v4:
+
+- Prepend the set with three documentation fixes.
+
+- The driver's async struct must begin with struct v4l2_async_subdev. Fix this
+  for omap3isp and document it.
+
+- Improve documentation for new functions.
+
+- Don't use devm_ family of functions for allocating memory. Introduce
+  v4l2_async_notifier_release() to release memory resources.
+
+- Rework both v4l2_async_notifier_fwnode_parse_endpoints() and
+  v4l2_async_notifier_fwnode_parse_endpoint() and the local functions they
+  call. This should make the code cleaner. Despite the name, for linking
+  and typical usage reasons the functions remain in v4l2-fwnode.c.
+
+- Convert rcar-vin to use v4l2_async_notifier_fwnode_parse_endpoint().
+
+- Use kvmalloc() for allocating the notifier's subdevs array.
+
+- max_subdevs argument for notifier_realloc is now the total maximum
+  number of subdevs, not the number of available subdevs.
+
+- Use fwnode_device_is_available() to make sure the device actually
+  exists.
+
+- Move the note telling v4l2_async_notifier_fwnode_parse_endpoints()
+  should not be used by new drivers to the last patch adding
+  v4l2_async_notifier_fwnode_parse_endpoint().
+
+since v3:
+
+- Rebase on current mediatree master.
+
+since v2:
+
+- Rebase on CCP2 support patches.
+
+- Prepend a patch cleaning up omap3isp driver a little.
+
+since v1:
+
+- The first patch has been merged (it was a bugfix).
+
+- In anticipation that the parsing can take place over several iterations,
+  take the existing number of async sub-devices into account when
+  re-allocating an array of async sub-devices.
+
+- Rework the first patch to better anticipate parsing single endpoint at a
+  time by a driver.
+
+- Add a second patch that adds a function for parsing endpoints one at a
+  time based on port and endpoint numbers.
+
+Laurent Pinchart (1):
+  v4l: async: Move async subdev notifier operations to a separate
+    structure
+
+Sakari Ailus (20):
+  v4l: fwnode: Move KernelDoc documentation to the header
+  v4l: async: Remove re-probing support
+  v4l: async: Use more intuitive names for internal functions
+  v4l: async: Add V4L2 async documentation to the documentation build
+  docs-rst: v4l: Include Qualcomm CAMSS in documentation build
+  v4l: fwnode: Support generic parsing of graph endpoints in a device
+  omap3isp: Use generic parser for parsing fwnode endpoints
+  rcar-vin: Use generic parser for parsing fwnode endpoints
+  omap3isp: Fix check for our own sub-devices
+  omap3isp: Print the name of the entity where no source pads could be
+    found
+  v4l: async: Introduce helpers for calling async ops callbacks
+  v4l: async: Register sub-devices before calling bound callback
+  v4l: async: Allow binding notifiers to sub-devices
+  dt: bindings: Add a binding for flash devices associated to a sensor
+  dt: bindings: Add lens-focus binding for image sensors
+  v4l: fwnode: Add convenience function for parsing generic references
+  v4l: fwnode: Add convenience function for parsing common external refs
+  smiapp: Add support for flash and lens devices
+  dt: bindings: smiapp: Document lens-focus and flash properties
+  arm: dts: omap3: N9/N950: Add flash references to the camera
+
+ .../devicetree/bindings/media/i2c/nokia,smia.txt   |   2 +
+ .../devicetree/bindings/media/video-interfaces.txt |  10 +
+ Documentation/media/kapi/v4l2-async.rst            |   3 +
+ Documentation/media/kapi/v4l2-core.rst             |   1 +
+ Documentation/media/v4l-drivers/index.rst          |   1 +
+ arch/arm/boot/dts/omap3-n9.dts                     |   1 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi               |   4 +-
+ arch/arm/boot/dts/omap3-n950.dts                   |   1 +
+ drivers/media/i2c/smiapp/smiapp-core.c             |  18 +-
+ drivers/media/i2c/smiapp/smiapp.h                  |   4 +-
+ drivers/media/platform/am437x/am437x-vpfe.c        |   8 +-
+ drivers/media/platform/atmel/atmel-isc.c           |  10 +-
+ drivers/media/platform/atmel/atmel-isi.c           |  10 +-
+ drivers/media/platform/davinci/vpif_capture.c      |   8 +-
+ drivers/media/platform/davinci/vpif_display.c      |   8 +-
+ drivers/media/platform/exynos4-is/media-dev.c      |   8 +-
+ drivers/media/platform/omap3isp/isp.c              | 127 +++-----
+ drivers/media/platform/omap3isp/isp.h              |   5 +-
+ drivers/media/platform/pxa_camera.c                |   8 +-
+ drivers/media/platform/qcom/camss-8x16/camss.c     |   8 +-
+ drivers/media/platform/rcar-vin/rcar-core.c        | 122 +++-----
+ drivers/media/platform/rcar-vin/rcar-dma.c         |  10 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c        |  14 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h         |   4 +-
+ drivers/media/platform/rcar_drif.c                 |  10 +-
+ drivers/media/platform/soc_camera/soc_camera.c     |  14 +-
+ drivers/media/platform/stm32/stm32-dcmi.c          |  10 +-
+ drivers/media/platform/ti-vpe/cal.c                |   8 +-
+ drivers/media/platform/xilinx/xilinx-vipp.c        |   8 +-
+ drivers/media/v4l2-core/v4l2-async.c               | 326 ++++++++++++++------
+ drivers/media/v4l2-core/v4l2-fwnode.c              | 327 ++++++++++++++++-----
+ drivers/staging/media/imx/imx-media-dev.c          |   8 +-
+ include/media/v4l2-async.h                         |  68 ++++-
+ include/media/v4l2-fwnode.h                        | 165 ++++++++++-
+ 34 files changed, 934 insertions(+), 405 deletions(-)
+ create mode 100644 Documentation/media/kapi/v4l2-async.rst
+
+-- 
+2.11.0
