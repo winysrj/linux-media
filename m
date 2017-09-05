@@ -1,44 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:60504 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750895AbdISSo4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 14:44:56 -0400
-To: linux-media@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Jonathan Sims <jonathan.625266@earthlink.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 0/3] [media] HD PVR USB: Adjustments for two function
- implementations
-Message-ID: <82d14066-5816-111c-9d21-f6a439e559c1@users.sourceforge.net>
-Date: Tue, 19 Sep 2017 20:44:24 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40766 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751670AbdIENF7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Sep 2017 09:05:59 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v8 10/21] omap3isp: Print the name of the entity where no source pads could be found
+Date: Tue,  5 Sep 2017 16:05:42 +0300
+Message-Id: <20170905130553.1332-11-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 19 Sep 2017 20:21:23 +0200
+If no source pads are found in an entity, print the name of the entity.
 
-Three update suggestions were taken into account
-from static source code analysis.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/platform/omap3isp/isp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Markus Elfring (3):
-  Delete three error messages for a failed memory allocation
-  Improve a size determination in hdpvr_alloc_buffers()
-  Return an error code only as a constant in hdpvr_alloc_buffers()
-
- drivers/media/usb/hdpvr/hdpvr-core.c  |  8 ++------
- drivers/media/usb/hdpvr/hdpvr-video.c | 11 ++++-------
- 2 files changed, 6 insertions(+), 13 deletions(-)
-
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 3b1a9cd0e591..9a694924e46e 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -1669,8 +1669,8 @@ static int isp_link_entity(
+ 			break;
+ 	}
+ 	if (i == entity->num_pads) {
+-		dev_err(isp->dev, "%s: no source pad in external entity\n",
+-			__func__);
++		dev_err(isp->dev, "%s: no source pad in external entity %s\n",
++			__func__, entity->name);
+ 		return -EINVAL;
+ 	}
+ 
 -- 
-2.14.1
+2.11.0
