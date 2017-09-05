@@ -1,71 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f176.google.com ([209.85.223.176]:43468 "EHLO
-        mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751175AbdITTSI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 15:18:08 -0400
-Received: by mail-io0-f176.google.com with SMTP id k101so5974126iod.0
-        for <linux-media@vger.kernel.org>; Wed, 20 Sep 2017 12:18:08 -0700 (PDT)
-MIME-Version: 1.0
-From: Andrey Konovalov <andreyknvl@google.com>
-Date: Wed, 20 Sep 2017 21:18:07 +0200
-Message-ID: <CAAeHK+yqz3dhY1wGQnvNEzY9k=roJToCdoPo_hjtqFGtDeA22g@mail.gmail.com>
-Subject: usb/media/pvrusb2: warning in pvr2_send_request_ex/usb_submit_urb
-To: Mike Isely <isely@pobox.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        syzkaller <syzkaller@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mga09.intel.com ([134.134.136.24]:31080 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752717AbdIEXwj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Sep 2017 19:52:39 -0400
+From: Rajmohan Mani <rajmohan.mani@intel.com>
+To: rajmohan.mani@intel.com, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com
+Cc: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
+        tfiga@chromium.org
+Subject: [PATCH v1] media: ov13858: Calculate pixel-rate at runtime, use mode
+Date: Tue,  5 Sep 2017 16:44:58 -0700
+Message-Id: <1504655098-39951-1-git-send-email-rajmohan.mani@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+From: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
 
-I've got the following report while fuzzing the kernel with syzkaller.
+Instead of calculating pixle-rate at two different places, calculate at run
+time at a single place.
 
-On commit ebb2c2437d8008d46796902ff390653822af6cc4 (Sep 18).
+Instead of using hardcoded pixels-per-line, extract it from current sensor
+mode.
 
-There seems to be no check on endpoint type before submitting bulk urb
-in pvr2_send_request_ex().
+Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+---
+ drivers/media/i2c/ov13858.c | 42 +++++++++++++++++++++++++-----------------
+ 1 file changed, 25 insertions(+), 17 deletions(-)
 
-usb 1-1: New USB device found, idVendor=2040, idProduct=7500
-usb 1-1: New USB device strings: Mfr=0, Product=255, SerialNumber=0
-usb 1-1: Product: a
-gadgetfs: configuration #6
-pvrusb2: Hardware description: WinTV HVR-1950 Model 750xx
-usb 1-1: BOGUS urb xfer, pipe 3 != type 1
-------------[ cut here ]------------
-WARNING: CPU: 1 PID: 2713 at drivers/usb/core/urb.c:449
-usb_submit_urb+0xf8a/0x11d0
-Modules linked in:
-CPU: 1 PID: 2713 Comm: pvrusb2-context Not tainted
-4.14.0-rc1-42251-gebb2c2437d80 #210
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-task: ffff88006b7a18c0 task.stack: ffff880069978000
-RIP: 0010:usb_submit_urb+0xf8a/0x11d0 drivers/usb/core/urb.c:448
-RSP: 0018:ffff88006997f990 EFLAGS: 00010286
-RAX: 0000000000000029 RBX: ffff880063661900 RCX: 0000000000000000
-RDX: 0000000000000029 RSI: ffffffff86876d60 RDI: ffffed000d32ff24
-RBP: ffff88006997fa90 R08: 1ffff1000d32fdca R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff1000d32ff39
-R13: 0000000000000001 R14: 0000000000000003 R15: ffff880068bbed68
-FS:  0000000000000000(0000) GS:ffff88006c600000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000001032000 CR3: 000000006a0ff000 CR4: 00000000000006f0
-Call Trace:
- pvr2_send_request_ex+0xa57/0x1d80 drivers/media/usb/pvrusb2/pvrusb2-hdw.c:3645
- pvr2_hdw_check_firmware drivers/media/usb/pvrusb2/pvrusb2-hdw.c:1812
- pvr2_hdw_setup_low drivers/media/usb/pvrusb2/pvrusb2-hdw.c:2107
- pvr2_hdw_setup drivers/media/usb/pvrusb2/pvrusb2-hdw.c:2250
- pvr2_hdw_initialize+0x548/0x3c10 drivers/media/usb/pvrusb2/pvrusb2-hdw.c:2327
- pvr2_context_check drivers/media/usb/pvrusb2/pvrusb2-context.c:118
- pvr2_context_thread_func+0x361/0x8c0
-drivers/media/usb/pvrusb2/pvrusb2-context.c:167
- kthread+0x3a1/0x470 kernel/kthread.c:231
- ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
-Code: 48 8b 85 30 ff ff ff 48 8d b8 98 00 00 00 e8 ee 82 89 fe 45 89
-e8 44 89 f1 4c 89 fa 48 89 c6 48 c7 c7 40 c0 ea 86 e8 30 1b dc fc <0f>
-ff e9 9b f7 ff ff e8 aa 95 25 fd e9 80 f7 ff ff e8 50 74 f3
----[ end trace 6919030503719da6 ]---
+diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+index af7af0d..2821824 100644
+--- a/drivers/media/i2c/ov13858.c
++++ b/drivers/media/i2c/ov13858.c
+@@ -955,11 +955,9 @@ struct ov13858_mode {
+ };
+ 
+ /* Link frequency configs */
+-static const struct ov13858_link_freq_config
++static struct ov13858_link_freq_config
+ 			link_freq_configs[OV13858_NUM_OF_LINK_FREQS] = {
+ 	{
+-		/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
+-		.pixel_rate = (OV13858_LINK_FREQ_540MHZ * 2 * 4) / 10,
+ 		.pixels_per_line = OV13858_PPL_540MHZ,
+ 		.reg_list = {
+ 			.num_of_regs = ARRAY_SIZE(mipi_data_rate_1080mbps),
+@@ -967,8 +965,6 @@ struct ov13858_mode {
+ 		}
+ 	},
+ 	{
+-		/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
+-		.pixel_rate = (OV13858_LINK_FREQ_270MHZ * 2 * 4) / 10,
+ 		.pixels_per_line = OV13858_PPL_270MHZ,
+ 		.reg_list = {
+ 			.num_of_regs = ARRAY_SIZE(mipi_data_rate_540mbps),
+@@ -1617,6 +1613,10 @@ static int ov13858_init_controls(struct ov13858 *ov13858)
+ 	s64 exposure_max;
+ 	s64 vblank_def;
+ 	s64 vblank_min;
++	s64 hblank;
++	s64 pixel_rate_min;
++	s64 pixel_rate_max;
++	const struct ov13858_mode *mode;
+ 	int ret;
+ 
+ 	ctrl_hdlr = &ov13858->ctrl_handler;
+@@ -1634,29 +1634,30 @@ static int ov13858_init_controls(struct ov13858 *ov13858)
+ 				link_freq_menu_items);
+ 	ov13858->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 
++	pixel_rate_max = link_freq_configs[0].pixel_rate;
++	pixel_rate_min = link_freq_configs[1].pixel_rate;
+ 	/* By default, PIXEL_RATE is read only */
+ 	ov13858->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops,
+-					V4L2_CID_PIXEL_RATE, 0,
+-					link_freq_configs[0].pixel_rate, 1,
+-					link_freq_configs[0].pixel_rate);
++						V4L2_CID_PIXEL_RATE,
++						pixel_rate_min, pixel_rate_max,
++						1, pixel_rate_max);
+ 
+-	vblank_def = ov13858->cur_mode->vts_def - ov13858->cur_mode->height;
+-	vblank_min = ov13858->cur_mode->vts_min - ov13858->cur_mode->height;
++	mode = ov13858->cur_mode;
++	vblank_def = mode->vts_def - mode->height;
++	vblank_min = mode->vts_min - mode->height;
+ 	ov13858->vblank = v4l2_ctrl_new_std(
+ 				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_VBLANK,
+-				vblank_min,
+-				OV13858_VTS_MAX - ov13858->cur_mode->height, 1,
++				vblank_min, OV13858_VTS_MAX - mode->height, 1,
+ 				vblank_def);
+ 
++	hblank = link_freq_configs[mode->link_freq_index].pixels_per_line -
++		 mode->width;
+ 	ov13858->hblank = v4l2_ctrl_new_std(
+ 				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_HBLANK,
+-				OV13858_PPL_540MHZ - ov13858->cur_mode->width,
+-				OV13858_PPL_540MHZ - ov13858->cur_mode->width,
+-				1,
+-				OV13858_PPL_540MHZ - ov13858->cur_mode->width);
++				hblank, hblank, 1, hblank);
+ 	ov13858->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 
+-	exposure_max = ov13858->cur_mode->vts_def - 8;
++	exposure_max = mode->vts_def - 8;
+ 	ov13858->exposure = v4l2_ctrl_new_std(
+ 				ctrl_hdlr, &ov13858_ctrl_ops,
+ 				V4L2_CID_EXPOSURE, OV13858_EXPOSURE_MIN,
+@@ -1704,6 +1705,7 @@ static int ov13858_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *devid)
+ {
+ 	struct ov13858 *ov13858;
++	int i;
+ 	int ret;
+ 	u32 val = 0;
+ 
+@@ -1725,6 +1727,12 @@ static int ov13858_probe(struct i2c_client *client,
+ 		return ret;
+ 	}
+ 
++	for (i = 0; i < OV13858_NUM_OF_LINK_FREQS; i++) {
++		/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
++		link_freq_configs[i].pixel_rate  =
++					(link_freq_menu_items[i] * 2 * 4) / 10;
++	}
++
+ 	/* Set default mode to max resolution */
+ 	ov13858->cur_mode = &supported_modes[0];
+ 
+-- 
+1.9.1
