@@ -1,154 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33404
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752355AbdI0VrG (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40744 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751670AbdIENGD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:47:06 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: [PATCH v2 09/17] media: cec-pin.h: convert comments for cec_pin_state into kernel-doc
-Date: Wed, 27 Sep 2017 18:46:52 -0300
-Message-Id: <41e0821221f6e601791c5e1e6ee74a0f26339a7e.1506548682.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
-References: <cover.1506548682.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
-References: <cover.1506548682.git.mchehab@s-opensource.com>
+        Tue, 5 Sep 2017 09:06:03 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v8 20/21] dt: bindings: smiapp: Document lens-focus and flash properties
+Date: Tue,  5 Sep 2017 16:05:52 +0300
+Message-Id: <20170905130553.1332-21-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This enum is already documented, but it is not using a kernel-doc
-format. Convert its format, in order to produce documentation.
+Document optional lens-focus and flash properties for the smiapp driver.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- include/media/cec-pin.h | 81 +++++++++++++++++++++++++++++++------------------
- 1 file changed, 52 insertions(+), 29 deletions(-)
+ Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/include/media/cec-pin.h b/include/media/cec-pin.h
-index f09cc9579d53..fbe8c256820e 100644
---- a/include/media/cec-pin.h
-+++ b/include/media/cec-pin.h
-@@ -24,65 +24,88 @@
- #include <linux/atomic.h>
- #include <media/cec.h>
+diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+index 855e1faf73e2..f02178eef84d 100644
+--- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
++++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+@@ -27,6 +27,8 @@ Optional properties
+ - nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
+   the NVM contents will not be read.
+ - reset-gpios: XSHUTDOWN GPIO
++- flash: One or more phandles to refer to flash LEDs
++- lens-focus: Phandle for lens focus
  
-+/**
-+ * enum cec_pin_state - state of CEC pins
-+ * @CEC_ST_OFF:
-+ *	CEC is off
-+ * @CEC_ST_IDLE:
-+ *	CEC is idle, waiting for Rx or Tx
-+ * @CEC_ST_TX_WAIT:
-+ *	Pending Tx, waiting for Signal Free Time to expire
-+ * @CEC_ST_TX_WAIT_FOR_HIGH:
-+ *	Low-drive was detected, wait for bus to go high
-+ * @CEC_ST_TX_START_BIT_LOW:
-+ *	Drive CEC low for the start bit
-+ * @CEC_ST_TX_START_BIT_HIGH:
-+ *	Drive CEC high for the start bit
-+ * @CEC_ST_TX_DATA_BIT_0_LOW:
-+ *	Drive CEC low for the 0 bit
-+ * @CEC_ST_TX_DATA_BIT_0_HIGH:
-+ *	Drive CEC high for the 0 bit
-+ * @CEC_ST_TX_DATA_BIT_1_LOW:
-+ *	Drive CEC low for the 1 bit
-+ * @CEC_ST_TX_DATA_BIT_1_HIGH:
-+ *	Drive CEC high for the 1 bit
-+ * @CEC_ST_TX_DATA_BIT_1_HIGH_PRE_SAMPLE:
-+ *	Wait for start of sample time to check for Ack bit or first
-+ *	four initiator bits to check for Arbitration Lost.
-+ * @CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE:
-+ *	Wait for end of bit period after sampling
-+ * @CEC_ST_RX_START_BIT_LOW:
-+ *	Start bit low detected
-+ * @CEC_ST_RX_START_BIT_HIGH:
-+ *	Start bit high detected
-+ * @CEC_ST_RX_DATA_SAMPLE:
-+ *	Wait for bit sample time
-+ * @CEC_ST_RX_DATA_POST_SAMPLE:
-+ *	Wait for earliest end of bit period after sampling
-+ * @CEC_ST_RX_DATA_HIGH:
-+ *	Wait for CEC to go high (i.e. end of bit period
-+ * @CEC_ST_RX_ACK_LOW:
-+ *	Drive CEC low to send 0 Ack bit
-+ * @CEC_ST_RX_ACK_LOW_POST:
-+ *	End of 0 Ack time, wait for earliest end of bit period
-+ * @CEC_ST_RX_ACK_HIGH_POST:
-+ *	Wait for CEC to go high (i.e. end of bit period
-+ * @CEC_ST_RX_ACK_FINISH:
-+ *	Wait for earliest end of bit period and end of message
-+ * @CEC_ST_LOW_DRIVE:
-+ *	Start low drive
-+ * @CEC_ST_RX_IRQ:
-+ *	Monitor pin using interrupts
-+ * @CEC_PIN_STATES:
-+ *	Total number of pin states
-+ */
- enum cec_pin_state {
--	/* CEC is off */
- 	CEC_ST_OFF,
--	/* CEC is idle, waiting for Rx or Tx */
- 	CEC_ST_IDLE,
  
- 	/* Tx states */
--
--	/* Pending Tx, waiting for Signal Free Time to expire */
- 	CEC_ST_TX_WAIT,
--	/* Low-drive was detected, wait for bus to go high */
- 	CEC_ST_TX_WAIT_FOR_HIGH,
--	/* Drive CEC low for the start bit */
- 	CEC_ST_TX_START_BIT_LOW,
--	/* Drive CEC high for the start bit */
- 	CEC_ST_TX_START_BIT_HIGH,
--	/* Drive CEC low for the 0 bit */
- 	CEC_ST_TX_DATA_BIT_0_LOW,
--	/* Drive CEC high for the 0 bit */
- 	CEC_ST_TX_DATA_BIT_0_HIGH,
--	/* Drive CEC low for the 1 bit */
- 	CEC_ST_TX_DATA_BIT_1_LOW,
--	/* Drive CEC high for the 1 bit */
- 	CEC_ST_TX_DATA_BIT_1_HIGH,
--	/*
--	 * Wait for start of sample time to check for Ack bit or first
--	 * four initiator bits to check for Arbitration Lost.
--	 */
- 	CEC_ST_TX_DATA_BIT_1_HIGH_PRE_SAMPLE,
--	/* Wait for end of bit period after sampling */
- 	CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE,
- 
- 	/* Rx states */
--
--	/* Start bit low detected */
- 	CEC_ST_RX_START_BIT_LOW,
--	/* Start bit high detected */
- 	CEC_ST_RX_START_BIT_HIGH,
--	/* Wait for bit sample time */
- 	CEC_ST_RX_DATA_SAMPLE,
--	/* Wait for earliest end of bit period after sampling */
- 	CEC_ST_RX_DATA_POST_SAMPLE,
--	/* Wait for CEC to go high (i.e. end of bit period */
- 	CEC_ST_RX_DATA_HIGH,
--	/* Drive CEC low to send 0 Ack bit */
- 	CEC_ST_RX_ACK_LOW,
--	/* End of 0 Ack time, wait for earliest end of bit period */
- 	CEC_ST_RX_ACK_LOW_POST,
--	/* Wait for CEC to go high (i.e. end of bit period */
- 	CEC_ST_RX_ACK_HIGH_POST,
--	/* Wait for earliest end of bit period and end of message */
- 	CEC_ST_RX_ACK_FINISH,
- 
--	/* Start low drive */
- 	CEC_ST_LOW_DRIVE,
--	/* Monitor pin using interrupts */
- 	CEC_ST_RX_IRQ,
- 
--	/* Total number of pin states */
- 	CEC_PIN_STATES
- };
- 
+ Endpoint node mandatory properties
 -- 
-2.13.5
+2.11.0
