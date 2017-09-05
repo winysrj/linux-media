@@ -1,231 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f169.google.com ([209.85.192.169]:56146 "EHLO
-        mail-pf0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752710AbdI1JvN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Sep 2017 05:51:13 -0400
-Received: by mail-pf0-f169.google.com with SMTP id r71so601823pfe.12
-        for <linux-media@vger.kernel.org>; Thu, 28 Sep 2017 02:51:13 -0700 (PDT)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFC PATCH 4/9] [media] v4l2-ctrls: add support for jobs API
-Date: Thu, 28 Sep 2017 18:50:22 +0900
-Message-Id: <20170928095027.127173-5-acourbot@chromium.org>
-In-Reply-To: <20170928095027.127173-1-acourbot@chromium.org>
-References: <20170928095027.127173-1-acourbot@chromium.org>
+Received: from mga06.intel.com ([134.134.136.31]:55369 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752201AbdIERbS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Sep 2017 13:31:18 -0400
+From: "Zhi, Yong" <yong.zhi@intel.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
+Subject: RE: [PATCH 04/12] intel-ipu3: Add user space ABI definitions
+Date: Tue, 5 Sep 2017 17:31:16 +0000
+Message-ID: <C193D76D23A22742993887E6D207B54D1AE1B688@ORSMSX106.amr.corp.intel.com>
+References: <1496695157-19926-1-git-send-email-yong.zhi@intel.com>
+ <1496695157-19926-5-git-send-email-yong.zhi@intel.com>
+ <32e8b3e1-f5b2-5add-6060-928e2609b326@xs4all.nl>
+ <20170607222259.GB21034@kekkonen.localdomain>
+In-Reply-To: <20170607222259.GB21034@kekkonen.localdomain>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add generic support for jobs in the control framework by handling the
-new V4L2_CTRL_WHICH_*JOB_VAL which values. This calls the state handler
-callbacks in such a case and takes care of control management for
-drivers with jobs API support.
+Hi, Sakari and Hans,
 
-Note: this is a very simple and naive way to manage controls in jobs.
-Doing this properly will probably require more changes to the control
-framework, but the current form is enough to demonstrate the general
-ideas.
+Sorry for the late response to this header file.
 
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 50 ++++++++++++++++++++++++++++++++----
- include/media/v4l2-ctrls.h           |  6 +++++
- 2 files changed, 51 insertions(+), 5 deletions(-)
+> -----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
+> Sent: Wednesday, June 7, 2017 3:23 PM
+> To: Hans Verkuil <hverkuil@xs4all.nl>
+> Cc: Zhi, Yong <yong.zhi@intel.com>; linux-media@vger.kernel.org; Zheng,
+> Jian Xu <jian.xu.zheng@intel.com>; tfiga@chromium.org; Mani, Rajmohan
+> <rajmohan.mani@intel.com>; Toivonen, Tuukka
+> <tuukka.toivonen@intel.com>
+> Subject: Re: [PATCH 04/12] intel-ipu3: Add user space ABI definitions
+> 
+> Hi Hans,
+> 
+> On Tue, Jun 06, 2017 at 10:28:26AM +0200, Hans Verkuil wrote:
+> > On 05/06/17 22:39, Yong Zhi wrote:
+> >
+> > Commit message missing.
+> >
+> > > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > > ---
+> > >  include/uapi/linux/intel-ipu3.h | 2182
+> > > +++++++++++++++++++++++++++++++++++++++
+> > >  1 file changed, 2182 insertions(+)
+> > >  create mode 100644 include/uapi/linux/intel-ipu3.h
+> > >
+> > > diff --git a/include/uapi/linux/intel-ipu3.h
+> > > b/include/uapi/linux/intel-ipu3.h new file mode 100644 index
+> > > 0000000..9e90aec
+> > > --- /dev/null
+> > > +++ b/include/uapi/linux/intel-ipu3.h
+> > > @@ -0,0 +1,2182 @@
+> > > +/*
+> > > + * Copyright (c) 2017 Intel Corporation.
+> > > + *
+> > > + * This program is free software; you can redistribute it and/or
+> > > + * modify it under the terms of the GNU General Public License
+> > > +version
+> > > + * 2 as published by the Free Software Foundation.
+> > > + *
+> > > + * This program is distributed in the hope that it will be useful,
+> > > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> > > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > > + * GNU General Public License for more details.
+> > > + */
+> > > +
+> > > +#ifndef __IPU3_UAPI_H
+> > > +#define __IPU3_UAPI_H
+> > > +
+> > > +#include <linux/types.h>
+> > > +
+> > > +#define IPU3_UAPI_ISP_VEC_ELEMS				64
+> > > +
+> > > +#define IMGU_ABI_PAD	__aligned(IPU3_UAPI_ISP_WORD_BYTES)
+> > > +#define IPU3_ALIGN
+> 	__attribute__((aligned(IPU3_UAPI_ISP_WORD_BYTES)))
+> > > +
+> > > +#define IPU3_UAPI_ISP_WORD_BYTES			32
+> > > +#define IPU3_UAPI_MAX_STRIPES				2
+> > > +
+> > > +/******************* ipu3_uapi_stats_3a *******************/
+> > > +
+> > > +#define IPU3_UAPI_MAX_BUBBLE_SIZE			10
+> > > +
+> > > +#define IPU3_UAPI_AE_COLORS				4
+> > > +#define IPU3_UAPI_AE_BINS				256
+> > > +
+> > > +#define IPU3_UAPI_AWB_MD_ITEM_SIZE			8
+> > > +#define IPU3_UAPI_AWB_MAX_SETS				60
+> > > +#define IPU3_UAPI_AWB_SET_SIZE				0x500
+> > > +#define IPU3_UAPI_AWB_SPARE_FOR_BUBBLES \
+> > > +		(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES *
+> \
+> > > +		 IPU3_UAPI_AWB_MD_ITEM_SIZE)
+> > > +#define IPU3_UAPI_AWB_MAX_BUFFER_SIZE \
+> > > +		(IPU3_UAPI_AWB_MAX_SETS * \
+> > > +		 (IPU3_UAPI_AWB_SET_SIZE +
+> IPU3_UAPI_AWB_SPARE_FOR_BUBBLES))
+> > > +
+> > > +#define IPU3_UAPI_AF_MAX_SETS				24
+> > > +#define IPU3_UAPI_AF_MD_ITEM_SIZE			4
+> > > +#define IPU3_UAPI_AF_SPARE_FOR_BUBBLES \
+> > > +		(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES *
+> \
+> > > +		 IPU3_UAPI_AF_MD_ITEM_SIZE)
+> > > +#define IPU3_UAPI_AF_Y_TABLE_SET_SIZE			0x80
+> > > +#define IPU3_UAPI_AF_Y_TABLE_MAX_SIZE \
+> > > +	(IPU3_UAPI_AF_MAX_SETS * \
+> > > +	 (IPU3_UAPI_AF_Y_TABLE_SET_SIZE +
+> IPU3_UAPI_AF_SPARE_FOR_BUBBLES) * \
+> > > +	 IPU3_UAPI_MAX_STRIPES)
+> > > +
+> > > +#define IPU3_UAPI_AWB_FR_MAX_SETS			24
+> > > +#define IPU3_UAPI_AWB_FR_MD_ITEM_SIZE			8
+> > > +#define IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE			0x100
+> > > +#define IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES \
+> > > +		(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES *
+> \
+> > > +		IPU3_UAPI_AWB_FR_MD_ITEM_SIZE)
+> > > +#define IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE \
+> > > +	(IPU3_UAPI_AWB_FR_MAX_SETS * \
+> > > +	(IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE + \
+> > > +	 IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES) * \
+> > > +	IPU3_UAPI_MAX_STRIPES)
+> > > +
+> > > +struct ipu3_uapi_grid_config {
+> > > +	__u8 width;				/* 6 or 7 (rgbs_grd_cfg) bits
+> */
+> > > +	__u8 height;
+> > > +	__u16 block_width_log2:3;
+> > > +	__u16 block_height_log2:3;
+> > > +	__u16 height_per_slice:8;			/* default value 1 */
+> > > +	__u16 x_start;					/* 12 bits */
+> > > +	__u16 y_start;
+> > > +#define IPU3_UAPI_GRID_START_MASK			((1 << 12) - 1)
+> > > +#define IPU3_UAPI_GRID_Y_START_EN			(1 << 15)
+> > > +	__u16 x_end;					/* 12 bits */
+> > > +	__u16 y_end;
+> > > +};
+> >
+> > You can't use bitfields in a public API. It is up to the compiler to
+> > decide how to place bitfields, so this is not a stable API.
+> 
+> We-ell --- it's ABI dependent, yes. The sheer number of structs with bit fields
+> in the header will make using the definitions rather cumbersome if not
+> unwieldy. Therefore it'd be very nice to continue using bit fields.
+> 
+> There are certainly caveats with bit fields but using them in the user space
+> interface is certainly not unforeseen. Just grep under /usr/include/linux .
+> 
+> Endianness is a major factor here. That said, the Intel x86 / x86-64 systems
+> this driver works with are almost as certainly little endian as the world is
+> round. It'd still be good to fail compilation if anyone attempts using the
+> header in a big endian system.
+> 
+> >
+> > The other thing that is broken here is 32 vs 64 bit: many of these
+> > structures have different layouts depending on that. That's not going
+> > to work either.
+> 
+> __packed needs to be added to the structs, that's for sure. Some structs will
+> need padding to maintain the current layout.
+> 
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index dd1db678718c..fcc644a83cf0 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -27,6 +27,7 @@
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-event.h>
- #include <media/v4l2-dev.h>
-+#include <media/v4l2-job-state.h>
- 
- #define has_op(master, op) \
- 	(master->ops && master->ops->op)
-@@ -1603,8 +1604,14 @@ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
- 
- 	/* has_changed is set by cluster_changed */
- 	changed = ctrl->has_changed;
--	if (changed)
-+	if (changed) {
-+		struct v4l2_job_state_handler *state = ctrl->handler->state_handler;
-+
-+		if (state && state->ops->ctrl_changed)
-+			state->ops->ctrl_changed(state, ctrl);
-+
- 		ptr_to_ptr(ctrl, ctrl->p_new, ctrl->p_cur);
-+	}
- 
- 	if (ch_flags & V4L2_EVENT_CTRL_CH_FLAGS) {
- 		/* Note: CH_FLAGS is only set for auto clusters. */
-@@ -2738,6 +2745,8 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 
- 		if (cs->which &&
- 		    cs->which != V4L2_CTRL_WHICH_DEF_VAL &&
-+		    cs->which != V4L2_CTRL_WHICH_CURJOB_VAL &&
-+		    cs->which != V4L2_CTRL_WHICH_DEQJOB_VAL &&
- 		    V4L2_CTRL_ID2WHICH(id) != cs->which)
- 			return -EINVAL;
- 
-@@ -2817,7 +2826,9 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-    whether there are any controls at all. */
- static int class_check(struct v4l2_ctrl_handler *hdl, u32 which)
- {
--	if (which == 0 || which == V4L2_CTRL_WHICH_DEF_VAL)
-+	if (which == 0 || which == V4L2_CTRL_WHICH_DEF_VAL ||
-+	    which == V4L2_CTRL_WHICH_CURJOB_VAL ||
-+	    which == V4L2_CTRL_WHICH_DEQJOB_VAL)
- 		return list_empty(&hdl->ctrl_refs) ? -EINVAL : 0;
- 	return find_ref_lock(hdl, which | 1) ? 0 : -EINVAL;
- }
-@@ -2829,11 +2840,14 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- {
- 	struct v4l2_ctrl_helper helper[4];
- 	struct v4l2_ctrl_helper *helpers = helper;
-+	struct v4l2_job_state_handler *state;
- 	int ret;
- 	int i, j;
--	bool def_value;
-+	bool def_value, job_value;
- 
- 	def_value = (cs->which == V4L2_CTRL_WHICH_DEF_VAL);
-+	job_value = (cs->which == V4L2_CTRL_WHICH_DEQJOB_VAL ||
-+		     cs->which == V4L2_CTRL_WHICH_CURJOB_VAL);
- 
- 	cs->error_idx = cs->count;
- 	cs->which = V4L2_CTRL_ID2WHICH(cs->which);
-@@ -2841,6 +2855,10 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 	if (hdl == NULL)
- 		return -EINVAL;
- 
-+	state = hdl->state_handler;
-+	if (!state && job_value)
-+		return -EINVAL;
-+
- 	if (cs->count == 0)
- 		return class_check(hdl, cs->which);
- 
-@@ -2874,18 +2892,20 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 		v4l2_ctrl_lock(master);
- 
- 		/* g_volatile_ctrl will update the new control values */
--		if (!def_value &&
-+		if (!def_value && !job_value &&
- 		    ((master->flags & V4L2_CTRL_FLAG_VOLATILE) ||
- 		    (master->has_volatiles && !is_cur_manual(master)))) {
- 			for (j = 0; j < master->ncontrols; j++)
- 				cur_to_new(master->cluster[j]);
- 			ret = call_op(master, g_volatile_ctrl);
- 			ctrl_to_user = new_to_user;
-+		} else if (job_value) {
-+			ret = state->ops->g_ctrl(state, master->id, cs->controls + i, cs->which);
- 		}
- 		/* If OK, then copy the current (for non-volatile controls)
- 		   or the new (for volatile controls) control values to the
- 		   caller */
--		if (!ret) {
-+		if (!ret && !job_value) {
- 			u32 idx = i;
- 
- 			do {
-@@ -3008,6 +3028,7 @@ static int try_or_set_cluster(struct v4l2_fh *fh, struct v4l2_ctrl *master,
- 	/* Don't set if there is no change */
- 	if (ret || !set || !cluster_changed(master))
- 		return ret;
-+
- 	ret = call_op(master, s_ctrl);
- 	if (ret)
- 		return ret;
-@@ -3082,6 +3103,8 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- {
- 	struct v4l2_ctrl_helper helper[4];
- 	struct v4l2_ctrl_helper *helpers = helper;
-+	struct v4l2_job_state_handler *state;
-+	bool job_value;
- 	unsigned i, j;
- 	int ret;
- 
-@@ -3096,6 +3119,14 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 	if (hdl == NULL)
- 		return -EINVAL;
- 
-+	if (cs->which == V4L2_CTRL_WHICH_DEQJOB_VAL)
-+		return -EINVAL;
-+
-+	job_value = (cs->which == V4L2_CTRL_WHICH_CURJOB_VAL);
-+	state = hdl->state_handler;
-+	if (!state && job_value)
-+		return -EINVAL;
-+
- 	if (cs->count == 0)
- 		return class_check(hdl, cs->which);
- 
-@@ -3121,6 +3152,15 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 		master = helpers[i].mref->ctrl;
- 		v4l2_ctrl_lock(master);
- 
-+		if (job_value) {
-+			ret = state->ops->s_ctrl(state, cs->controls + idx);
-+			v4l2_ctrl_unlock(master);
-+			if (ret)
-+				return ret;
-+			continue;
-+		}
-+
-+
- 		/* Reset the 'is_new' flags of the cluster */
- 		for (j = 0; j < master->ncontrols; j++)
- 			if (master->cluster[j])
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 2d2aed56922f..da3eb69d1af1 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -21,8 +21,11 @@
- #include <linux/mutex.h>
- #include <linux/videodev2.h>
- 
-+#include <media/v4l2-jobqueue.h>
-+
- /* forward references */
- struct file;
-+struct v4l2_job_state_handler;
- struct v4l2_ctrl_handler;
- struct v4l2_ctrl_helper;
- struct v4l2_ctrl;
-@@ -72,6 +75,7 @@ struct v4l2_ctrl_ops {
- 	int (*s_ctrl)(struct v4l2_ctrl *ctrl);
- };
- 
-+
- /**
-  * struct v4l2_ctrl_type_ops - The control type operations that the driver
-  *			       has to provide.
-@@ -257,6 +261,7 @@ struct v4l2_ctrl_ref {
-  *	controls: both the controls owned by the handler and those inherited
-  *	from other handlers.
-  *
-+ * @state_handler: State handler to use when jobs API is in use.
-  * @_lock:	Default for "lock".
-  * @lock:	Lock to control access to this handler and its controls.
-  *		May be replaced by the user right after init.
-@@ -275,6 +280,7 @@ struct v4l2_ctrl_ref {
-  * @error:	The error code of the first failed control addition.
-  */
- struct v4l2_ctrl_handler {
-+	struct v4l2_job_state_handler *state_handler;
- 	struct mutex _lock;
- 	struct mutex *lock;
- 	struct list_head ctrls;
--- 
-2.14.2.822.g60be5d43e6-goog
+Ack, will add __packed attribute in v4.
+
+> >
+> > The third part is lack of documentation. Are there public datasheets?
+> > If so, then you can point to that.
+> 
+> There will be (format) documentation to be added to the patchset but
+> unfortunately it's not available yet.
+> 
+> >
+> > Sakari, how did we do that for the omap3? I believe part of the
+> > statistics etc. was in closed documentation as well. Was it documented
+> > in the header or did we just refer to that closed documentation?
+> 
+> There are public TRMs for OMAP3 but I'm not sure if everything is
+> documented there. I wonder if Laurent has some idea about that; let's check
+> with him when he's back.
+> 
+> There is documentation for the private IOCTLs the omap3isp driver
+> implements in Documentation/media/v4l-drivers/omap3isp.rst as well as the
+> header file include/uapi/linux/omap3isp.h .
+> 
+> --
+> Regards,
+> 
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
