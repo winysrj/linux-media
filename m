@@ -1,111 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45658 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751607AbdIOOSb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 10:18:31 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v13 17/25] v4l: fwnode: Add a helper function for parsing generic references
-Date: Fri, 15 Sep 2017 17:17:16 +0300
-Message-Id: <20170915141724.23124-18-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58015
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751445AbdIEMxG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Sep 2017 08:53:06 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        devendra sharma <devendra.sharma9091@gmail.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        linux-fsdevel@vger.kernel.org
+Subject: [PATCH] media: get rid of removed DMX_GET_CAPS and DMX_SET_SOURCE leftovers
+Date: Tue,  5 Sep 2017 08:52:59 -0400
+Message-Id: <4cd7d6c957b085d319bcf97814f95854375da0a6.1504615976.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add function v4l2_fwnode_reference_parse() for parsing them as async
-sub-devices. This can be done on e.g. flash or lens async sub-devices that
-are not part of but are associated with a sensor.
+Those two ioctls were never used within the Kernel. Still, there
+used to have compat32 code there (and an if #0 block at the core).
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Get rid of them.
+
+Fixes: 286fe1ca3fa1 ("media: dmx.h: get rid of DMX_GET_CAPS")
+Fixes: 13adefbe9e56 ("media: dmx.h: get rid of DMX_SET_SOURCE")
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 69 +++++++++++++++++++++++++++++++++++
- 1 file changed, 69 insertions(+)
+ drivers/media/dvb-core/dmxdev.c | 20 --------------------
+ fs/compat_ioctl.c               |  2 --
+ 2 files changed, 22 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 44ee35f6aad5..65e84ea1cc35 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -498,6 +498,75 @@ int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
- }
- EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints_by_port);
+diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
+index 16b0b74c3114..18e4230865be 100644
+--- a/drivers/media/dvb-core/dmxdev.c
++++ b/drivers/media/dvb-core/dmxdev.c
+@@ -1025,26 +1025,6 @@ static int dvb_demux_do_ioctl(struct file *file,
+ 		dmxdev->demux->get_pes_pids(dmxdev->demux, parg);
+ 		break;
  
-+/*
-+ * v4l2_fwnode_reference_parse - parse references for async sub-devices
-+ * @dev: the device node the properties of which are parsed for references
-+ * @notifier: the async notifier where the async subdevs will be added
-+ * @prop: the name of the property
-+ *
-+ * Return: 0 on success
-+ *	   -ENOENT if no entries were found
-+ *	   -ENOMEM if memory allocation failed
-+ *	   -EINVAL if property parsing failed
-+ */
-+static int v4l2_fwnode_reference_parse(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	const char *prop)
-+{
-+	struct fwnode_reference_args args;
-+	unsigned int index;
-+	int ret;
-+
-+	for (index = 0;
-+	     !(ret = fwnode_property_get_reference_args(
-+		       dev_fwnode(dev), prop, NULL, 0, index, &args));
-+	     index++)
-+		fwnode_handle_put(args.fwnode);
-+
-+	if (!index)
-+		return -ENOENT;
-+
-+	/*
-+	 * Note that right now both -ENODATA and -ENOENT may signal
-+	 * out-of-bounds access. Return the error in cases other than that.
-+	 */
-+	if (ret != -ENOENT && ret != -ENODATA)
-+		return ret;
-+
-+	ret = v4l2_async_notifier_realloc(notifier,
-+					  notifier->num_subdevs + index);
-+	if (ret)
-+		return ret;
-+
-+	for (index = 0; !fwnode_property_get_reference_args(
-+		     dev_fwnode(dev), prop, NULL, 0, index, &args);
-+	     index++) {
-+		struct v4l2_async_subdev *asd;
-+
-+		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-+			ret = -EINVAL;
-+			goto error;
-+		}
-+
-+		asd = kzalloc(sizeof(*asd), GFP_KERNEL);
-+		if (!asd) {
-+			ret = -ENOMEM;
-+			goto error;
-+		}
-+
-+		notifier->subdevs[notifier->num_subdevs] = asd;
-+		asd->match.fwnode.fwnode = args.fwnode;
-+		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-+		notifier->num_subdevs++;
-+	}
-+
-+	return 0;
-+
-+error:
-+	fwnode_handle_put(args.fwnode);
-+	return ret;
-+}
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
- MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+-#if 0
+-	/* Not used upstream and never documented */
+-
+-	case DMX_GET_CAPS:
+-		if (!dmxdev->demux->get_caps) {
+-			ret = -EINVAL;
+-			break;
+-		}
+-		ret = dmxdev->demux->get_caps(dmxdev->demux, parg);
+-		break;
+-
+-	case DMX_SET_SOURCE:
+-		if (!dmxdev->demux->set_source) {
+-			ret = -EINVAL;
+-			break;
+-		}
+-		ret = dmxdev->demux->set_source(dmxdev->demux, parg);
+-		break;
+-#endif
+-
+ 	case DMX_GET_STC:
+ 		if (!dmxdev->demux->get_stc) {
+ 			ret = -EINVAL;
+diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
+index 2dd4a7af7dd7..d27b326d96f4 100644
+--- a/fs/compat_ioctl.c
++++ b/fs/compat_ioctl.c
+@@ -1331,8 +1331,6 @@ COMPATIBLE_IOCTL(DMX_SET_FILTER)
+ COMPATIBLE_IOCTL(DMX_SET_PES_FILTER)
+ COMPATIBLE_IOCTL(DMX_SET_BUFFER_SIZE)
+ COMPATIBLE_IOCTL(DMX_GET_PES_PIDS)
+-COMPATIBLE_IOCTL(DMX_GET_CAPS)
+-COMPATIBLE_IOCTL(DMX_SET_SOURCE)
+ COMPATIBLE_IOCTL(DMX_GET_STC)
+ COMPATIBLE_IOCTL(FE_GET_INFO)
+ COMPATIBLE_IOCTL(FE_DISEQC_RESET_OVERLOAD)
 -- 
-2.11.0
+2.13.3
