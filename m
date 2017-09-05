@@ -1,77 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:36360 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751787AbdIKM36 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40768 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751662AbdIENF7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 08:29:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Tue, 5 Sep 2017 09:05:59 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: linux-tegra@vger.kernel.org, devicetree@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, thierry.reding@gmail.com,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 2/4] ARM: tegra: add CEC support to tegra124.dtsi
-Date: Mon, 11 Sep 2017 14:29:50 +0200
-Message-Id: <20170911122952.33980-3-hverkuil@xs4all.nl>
-In-Reply-To: <20170911122952.33980-1-hverkuil@xs4all.nl>
-References: <20170911122952.33980-1-hverkuil@xs4all.nl>
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v8 09/21] omap3isp: Fix check for our own sub-devices
+Date: Tue,  5 Sep 2017 16:05:41 +0300
+Message-Id: <20170905130553.1332-10-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+We only want to link sub-devices that were bound to the async notifier the
+isp driver registered but there may be other sub-devices in the
+v4l2_device as well. Check for the correct async notifier.
 
-Add support for the Tegra CEC IP to tegra124.dtsi and enable it on the
-Jetson TK1.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- arch/arm/boot/dts/tegra124-jetson-tk1.dts |  4 ++++
- arch/arm/boot/dts/tegra124.dtsi           | 12 +++++++++++-
- 2 files changed, 15 insertions(+), 1 deletion(-)
+ drivers/media/platform/omap3isp/isp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/tegra124-jetson-tk1.dts b/arch/arm/boot/dts/tegra124-jetson-tk1.dts
-index 7bacb2954f58..7f56de6890c3 100644
---- a/arch/arm/boot/dts/tegra124-jetson-tk1.dts
-+++ b/arch/arm/boot/dts/tegra124-jetson-tk1.dts
-@@ -67,6 +67,10 @@
- 		};
- 	};
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index a546cf774d40..3b1a9cd0e591 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2155,7 +2155,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+ 		return ret;
  
-+	cec@70015000 {
-+		status = "okay";
-+	};
-+
- 	gpu@0,57000000 {
- 		/*
- 		 * Node left disabled on purpose - the bootloader will enable
-diff --git a/arch/arm/boot/dts/tegra124.dtsi b/arch/arm/boot/dts/tegra124.dtsi
-index 1b10b14a6abd..1a21e527fb6e 100644
---- a/arch/arm/boot/dts/tegra124.dtsi
-+++ b/arch/arm/boot/dts/tegra124.dtsi
-@@ -123,7 +123,7 @@
- 			nvidia,head = <1>;
- 		};
+ 	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
+-		if (!sd->asd)
++		if (sd->notifier != &isp->notifier)
+ 			continue;
  
--		hdmi@54280000 {
-+		hdmi: hdmi@54280000 {
- 			compatible = "nvidia,tegra124-hdmi";
- 			reg = <0x0 0x54280000 0x0 0x00040000>;
- 			interrupts = <GIC_SPI 75 IRQ_TYPE_LEVEL_HIGH>;
-@@ -851,6 +851,16 @@
- 		status = "disabled";
- 	};
- 
-+	cec@70015000 {
-+		compatible = "nvidia,tegra124-cec";
-+		reg = <0x0 0x70015000 0x0 0x00001000>;
-+		interrupts = <GIC_SPI 3 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&tegra_car TEGRA124_CLK_CEC>;
-+		clock-names = "cec";
-+		hdmi-phandle = <&hdmi>;
-+		status = "disabled";
-+	};
-+
- 	soctherm: thermal-sensor@700e2000 {
- 		compatible = "nvidia,tegra124-soctherm";
- 		reg = <0x0 0x700e2000 0x0 0x600 /* SOC_THERM reg_base */
+ 		ret = isp_link_entity(isp, &sd->entity,
 -- 
-2.14.1
+2.11.0
