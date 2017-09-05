@@ -1,43 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40768 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42050 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751662AbdIENF7 (ORCPT
+        by vger.kernel.org with ESMTP id S1751345AbdIEOxk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Sep 2017 09:05:59 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        Tue, 5 Sep 2017 10:53:40 -0400
+Date: Tue, 5 Sep 2017 17:53:37 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl,
         laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v8 09/21] omap3isp: Fix check for our own sub-devices
-Date: Tue,  5 Sep 2017 16:05:41 +0300
-Message-Id: <20170905130553.1332-10-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
-References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+        sre@kernel.org
+Subject: Re: [PATCH v7 01/18] v4l: fwnode: Move KernelDoc documentation to
+ the header
+Message-ID: <20170905145337.h6qy42k3hv6ha73y@valkosipuli.retiisi.org.uk>
+References: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
+ <20170903174958.27058-2-sakari.ailus@linux.intel.com>
+ <20170904154940.GA19484@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170904154940.GA19484@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We only want to link sub-devices that were bound to the async notifier the
-isp driver registered but there may be other sub-devices in the
-v4l2_device as well. Check for the correct async notifier.
+On Mon, Sep 04, 2017 at 05:49:40PM +0200, Pavel Machek wrote:
+> On Sun 2017-09-03 20:49:41, Sakari Ailus wrote:
+> > In V4L2 the practice is to have the KernelDoc documentation in the header
+> > and not in .c source code files. This consequientally makes the V4L2
+> 
+> consequientally: spelling?
+> 
+> > fwnode function documentation part of the Media documentation build.
+> > 
+> > Also correct the link related function and argument naming in
+> > documentation.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> 
+> Something funny going on with utf-8 here.
+> 
+> Acked-by: Pavel Machek <pavel@ucw.cz>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/platform/omap3isp/isp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks! Will fix for v9.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index a546cf774d40..3b1a9cd0e591 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2155,7 +2155,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- 		return ret;
- 
- 	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
--		if (!sd->asd)
-+		if (sd->notifier != &isp->notifier)
- 			continue;
- 
- 		ret = isp_link_entity(isp, &sd->entity,
+I had bad commit message encoding in .gitconfig, that's now fixed.
+
 -- 
-2.11.0
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
