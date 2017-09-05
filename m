@@ -1,87 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:53745 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752156AbdI1ObB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41958 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751316AbdIEOqY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Sep 2017 10:31:01 -0400
+        Tue, 5 Sep 2017 10:46:24 -0400
+Date: Tue, 5 Sep 2017 17:46:20 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Cyprian Wronka <cwronka@cadence.com>,
+        Neil Webb <neilw@cadence.com>,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>
+Subject: Re: [PATCH v3 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 RX
+ Device Tree bindings
+Message-ID: <20170905144620.mleywtmz7nmbdb5j@valkosipuli.retiisi.org.uk>
+References: <20170904130335.23280-1-maxime.ripard@free-electrons.com>
+ <20170904130335.23280-2-maxime.ripard@free-electrons.com>
 MIME-Version: 1.0
-In-Reply-To: <2631e8a6-03f2-69ea-d889-afd9a345e7ef@virtuozzo.com>
-References: <20170922212930.620249-1-arnd@arndb.de> <20170922212930.620249-5-arnd@arndb.de>
- <063D6719AE5E284EB5DD2968C1650D6DD007F521@AcuExch.aculab.com>
- <CAK8P3a1zxjMsQTBPijCo8FJjEU5aRVTr7n_NZ1YM2UnDPKoRLw@mail.gmail.com>
- <CAK8P3a37Ts5q7BvA2JWse87huyAp+=e18CUXEt8731RrBnB+Ow@mail.gmail.com>
- <e7e6418e-4340-5057-aa17-800082aca5fb@virtuozzo.com> <CAK8P3a2C7DBTfQZvRi-QQfrfm1GXktFcXQRmXmzpF4SCa+BADA@mail.gmail.com>
- <2631e8a6-03f2-69ea-d889-afd9a345e7ef@virtuozzo.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 28 Sep 2017 07:30:59 -0700
-Message-ID: <CAK8P3a3BiPh+d4vcb4pbbOsZLegp6YGk+BU3L=71sxatTuk-GQ@mail.gmail.com>
-Subject: Re: [PATCH v4 4/9] em28xx: fix em28xx_dvb_init for KASAN
-To: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: David Laight <David.Laight@aculab.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jiri Pirko <jiri@resnulli.us>,
-        Arend van Spriel <arend.vanspriel@broadcom.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Michal Marek <mmarek@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Kees Cook <keescook@chromium.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>,
-        "brcm80211-dev-list.pdl@broadcom.com"
-        <brcm80211-dev-list.pdl@broadcom.com>,
-        "brcm80211-dev-list@cypress.com" <brcm80211-dev-list@cypress.com>,
-        "kasan-dev@googlegroups.com" <kasan-dev@googlegroups.com>,
-        "linux-kbuild@vger.kernel.org" <linux-kbuild@vger.kernel.org>,
-        Jakub Jelinek <jakub@gcc.gnu.org>,
-        =?UTF-8?Q?Martin_Li=C5=A1ka?= <marxin@gcc.gnu.org>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170904130335.23280-2-maxime.ripard@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 28, 2017 at 6:09 AM, Andrey Ryabinin
-<aryabinin@virtuozzo.com> wrote:
-> On 09/27/2017 04:26 PM, Arnd Bergmann wrote:
->> On Tue, Sep 26, 2017 at 9:49 AM, Andrey Ryabinin
->> <aryabinin@virtuozzo.com> wrote:
+Hi Maxime,
 
->> --- a/include/linux/string.h
->> +++ b/include/linux/string.h
->> @@ -227,7 +227,7 @@ static inline const char *kbasename(const char *path)
->>  #define __FORTIFY_INLINE extern __always_inline __attribute__((gnu_inline))
->>  #define __RENAME(x) __asm__(#x)
->>
->> -void fortify_panic(const char *name) __noreturn __cold;
->> +void fortify_panic(const char *name) __cold;
->>  void __read_overflow(void) __compiletime_error("detected read beyond
->> size of object passed as 1st parameter");
->>  void __read_overflow2(void) __compiletime_error("detected read beyond
->> size of object passed as 2nd parameter");
->>  void __read_overflow3(void) __compiletime_error("detected read beyond
->> size of object passed as 3rd parameter");
->>
->> I don't immediately see why the __noreturn changes the behavior here, any idea?
->>
->
->
-> At first I thought that this somehow might be related to __asan_handle_no_return(). GCC calls it
-> before noreturn function. So I made patch to remove generation of these calls (we don't need them in the kernel anyway)
-> but it didn't help. It must be something else than.
+On Mon, Sep 04, 2017 at 03:03:34PM +0200, Maxime Ripard wrote:
+> The Cadence MIPI-CSI2 RX controller is a CSI2RX bridge that supports up to
+> 4 CSI-2 lanes, and can route the frames to up to 4 streams, depending on
+> the hardware implementation.
+> 
+> It can operate with an external D-PHY, an internal one or no D-PHY at all
+> in some configurations.
+> 
+> Acked-by: Rob Herring <robh@kernel.org>
+> Acked-by: Benoit Parrot <bparrot@ti.com>
+> Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+> ---
+>  .../devicetree/bindings/media/cdns-csi2rx.txt      | 98 ++++++++++++++++++++++
+>  1 file changed, 98 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/cdns-csi2rx.txt
 
-I made a reduced test case yesterday (see http://paste.ubuntu.com/25628030/),
-and it shows the same behavior with and without the sanitizer, it uses 128
-bytes without the noreturn attribute and 480 bytes when its added, the sanitizer
-adds a factor of 1.5x on top. It's possible that I did something wrong while
-reducing, since the original driver file uses very little stack (a few hundred
-bytes) without -fsanitize=kernel-address, but finding out what happens in
-the reduced case may still help understand the other one.
+Naming this according to the compatible string would make it easier to
+find. The same pattern is used by a number of existing binding files.
 
-        Arnd
+Up to you.
+
+> 
+> diff --git a/Documentation/devicetree/bindings/media/cdns-csi2rx.txt b/Documentation/devicetree/bindings/media/cdns-csi2rx.txt
+> new file mode 100644
+> index 000000000000..2395030d8c72
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/cdns-csi2rx.txt
+> @@ -0,0 +1,98 @@
+> +Cadence MIPI-CSI2 RX controller
+> +===============================
+> +
+> +The Cadence MIPI-CSI2 RX controller is a CSI-2 bridge supporting up to 4 CSI
+> +lanes in input, and 4 different pixel streams in output.
+> +
+> +Required properties:
+> +  - compatible: must be set to "cdns,csi2rx" and an SoC-specific compatible
+> +  - reg: base address and size of the memory mapped region
+> +  - clocks: phandles to the clocks driving the controller
+> +  - clock-names: must contain:
+> +    * sys_clk: main clock
+> +    * p_clk: register bank clock
+> +    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
+> +                         implemented in hardware, between 0 and 3
+> +
+> +Optional properties:
+> +  - phys: phandle to the external D-PHY, phy-names must be provided
+> +  - phy-names: must contain dphy, if the implementation uses an
+> +               external D-PHY
+> +
+> +Required subnodes:
+> +  - ports: A ports node with endpoint definitions as defined in
+> +           Documentation/devicetree/bindings/media/video-interfaces.txt. The
+> +           first port subnode should be the input endpoint, the next ones the
+> +           output, one for each stream supported by the CSI2-RX controller.
+
+While I guess the DT compiler won't rearrange the nodes, it'd be better to
+define the port numbers explicitly, i.e. that input is number 0.
+
+> +           The ports ID must be the stream output number used in the
+> +           implementation, plus 1.
+
+And also that outputs are from 1 to 4.
+
+With that,
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
