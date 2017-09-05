@@ -1,220 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f177.google.com ([209.85.217.177]:37802 "EHLO
-        mail-ua0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751774AbdIER2A (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Sep 2017 13:28:00 -0400
-Received: by mail-ua0-f177.google.com with SMTP id k23so9617902uaf.4
-        for <linux-media@vger.kernel.org>; Tue, 05 Sep 2017 10:28:00 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <3504719.Oh46EvsF34@avalon>
-References: <1504512857-4202-1-git-send-email-rojtberg@gmail.com> <3504719.Oh46EvsF34@avalon>
-From: Pavel Rojtberg <rojtberg@gmail.com>
-Date: Tue, 5 Sep 2017 19:27:39 +0200
-Message-ID: <CA+b0ujcJ3+vzPJNJVN01gXaaJYXob0zdB0SWK3-aH2yJUqQ6tQ@mail.gmail.com>
-Subject: Re: [PATCH] uvcvideo: extend UVC_QUIRK_FIX_BANDWIDTH to MJPEG streams
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40758 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751641AbdIENGD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Sep 2017 09:06:03 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v8 19/21] smiapp: Add support for flash and lens devices
+Date: Tue,  5 Sep 2017 16:05:51 +0300
+Message-Id: <20170905130553.1332-20-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Parse async sub-devices by using
+v4l2_subdev_fwnode_reference_parse_sensor_common().
 
-2017-09-04 11:56 GMT+02:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Pavel,
->
-> Thank you for the patch.
->
-> On Monday, 4 September 2017 11:14:17 EEST Pavel Rojtberg wrote:
->> From: Pavel Rojtberg <rojtberg@gmail.com>
->>
->> attaching two Logitech C615 webcams currently results in
->>     VIDIOC_STREAMON: No space left on device
->> as the required bandwidth is not estimated correctly by the device.
->> In fact it always requests 3060 bytes - no matter the format or resolution.
->>
->> setting UVC_QUIRK_FIX_BANDWIDTH does not help either as it is only
->> implemented for uncompressed streams.
->>
->> This patch extends UVC_QUIRK_FIX_BANDWIDTH to MJPEG streams by making a
->> (conservative) assumption of 4bpp for MJPEG streams.
->> As the actual compression ration is often closer to 1bpp this can be
->> overridden via the new mjpeg_bpp parameter.
->>
->> Based on:
->> https://www.mail-archive.com/linux-uvc-devel@lists.berlios.de/msg05724.html
->> ---
->>  drivers/media/usb/uvc/uvc_driver.c | 14 +++++++++++++-
->>  drivers/media/usb/uvc/uvc_video.c  |  3 ++-
->>  2 files changed, 15 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/usb/uvc/uvc_driver.c
->> b/drivers/media/usb/uvc/uvc_driver.c index 70842c5..f7b759e 100644
->> --- a/drivers/media/usb/uvc/uvc_driver.c
->> +++ b/drivers/media/usb/uvc/uvc_driver.c
->> @@ -37,6 +37,7 @@ unsigned int uvc_no_drop_param;
->>  static unsigned int uvc_quirks_param = -1;
->>  unsigned int uvc_trace_param;
->>  unsigned int uvc_timeout_param = UVC_CTRL_STREAMING_TIMEOUT;
->> +static unsigned int uvc_mjpeg_bpp_param;
->>
->>  /* ------------------------------------------------------------------------
->> * Video formats
->> @@ -463,7 +464,16 @@ static int uvc_parse_format(struct uvc_device *dev,
->>               strlcpy(format->name, "MJPEG", sizeof format->name);
->>               format->fcc = V4L2_PIX_FMT_MJPEG;
->>               format->flags = UVC_FMT_FLAG_COMPRESSED;
->> -             format->bpp = 0;
->> +             if ((uvc_mjpeg_bpp_param >= 1) && (uvc_mjpeg_bpp_param <= 16)) {
->> +                     format->bpp = uvc_mjpeg_bpp_param;
->> +             } else {
->> +                     /* conservative estimate. Actual values are around 1bpp.
->> +                      * see e.g.
->> +                      * https://developers.google.com/speed/webp/docs/webp_study
->> +                      */
->> +                     format->bpp = 4;
->> +             }
->> +
->>               ftype = UVC_VS_FRAME_MJPEG;
->>               break;
->>
->> @@ -2274,6 +2284,8 @@ module_param_named(trace, uvc_trace_param, uint,
->> S_IRUGO|S_IWUSR); MODULE_PARM_DESC(trace, "Trace level bitmask");
->>  module_param_named(timeout, uvc_timeout_param, uint, S_IRUGO|S_IWUSR);
->>  MODULE_PARM_DESC(timeout, "Streaming control requests timeout");
->> +module_param_named(mjpeg_bpp, uvc_mjpeg_bpp_param, uint, S_IRUGO|S_IWUSR);
->> +MODULE_PARM_DESC(mjpeg_bpp, "MJPEG bits per pixel for bandwidth quirk");
->
-> I'd rather avoid adding a new module parameter for this, it would be confusing
-> for users. What is your use case to make the MJPEG average BPP configurable ?
-> Can't we come up with a heuristic that would calculate it automatically ?
-this is the minimal expected JPEG compression ratio. It depends on the
-JPEG quality
-chosen by the hardware (which we do not know) as well as the actual image (which
-we can not control either).
-We could hardcode it to the average bpp which 1 - but this will break
-when somebody
-films a high-frequency checkerborad. We could leave it at 4, but this
-would again
-artificially limit the number of possible cameras when not filming a
-checkerboard.
-4 would already be a noticable improvement over the current state though.
+These types devices aren't directly related to the sensor, but are
+nevertheless handled by the smiapp driver due to the relationship of these
+component to the main part of the camera module --- the sensor.
 
-If you can come up with a working heuristic - I am open for that too.
+This does not yet address providing the user space with information on how
+to associate the sensor or lens devices but the kernel now has the
+necessary information to do that.
 
->>  /* ------------------------------------------------------------------------
->> * Driver initialization and cleanup
->> diff --git a/drivers/media/usb/uvc/uvc_video.c
->> b/drivers/media/usb/uvc/uvc_video.c index fb86d6a..382a0be 100644
->> --- a/drivers/media/usb/uvc/uvc_video.c
->> +++ b/drivers/media/usb/uvc/uvc_video.c
->> @@ -127,7 +127,8 @@ static void uvc_fixup_video_ctrl(struct uvc_streaming
->> *stream, if ((ctrl->dwMaxPayloadTransferSize & 0xffff0000) == 0xffff0000)
->> ctrl->dwMaxPayloadTransferSize &= ~0xffff0000;
->>
->> -     if (!(format->flags & UVC_FMT_FLAG_COMPRESSED) &&
->> +     if ((!(format->flags & UVC_FMT_FLAG_COMPRESSED) ||
->> +                     (format->fcc == V4L2_PIX_FMT_MJPEG)) &&
->>           stream->dev->quirks & UVC_QUIRK_FIX_BANDWIDTH &&
->>           stream->intf->num_altsetting > 1) {
->>               u32 interval;
->
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 18 ++++++++++++++++--
+ drivers/media/i2c/smiapp/smiapp.h      |  4 +++-
+ 2 files changed, 19 insertions(+), 3 deletions(-)
 
-2017-09-04 11:56 GMT+02:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Pavel,
->
-> Thank you for the patch.
->
-> On Monday, 4 September 2017 11:14:17 EEST Pavel Rojtberg wrote:
->> From: Pavel Rojtberg <rojtberg@gmail.com>
->>
->> attaching two Logitech C615 webcams currently results in
->>     VIDIOC_STREAMON: No space left on device
->> as the required bandwidth is not estimated correctly by the device.
->> In fact it always requests 3060 bytes - no matter the format or resolution.
->>
->> setting UVC_QUIRK_FIX_BANDWIDTH does not help either as it is only
->> implemented for uncompressed streams.
->>
->> This patch extends UVC_QUIRK_FIX_BANDWIDTH to MJPEG streams by making a
->> (conservative) assumption of 4bpp for MJPEG streams.
->> As the actual compression ration is often closer to 1bpp this can be
->> overridden via the new mjpeg_bpp parameter.
->>
->> Based on:
->> https://www.mail-archive.com/linux-uvc-devel@lists.berlios.de/msg05724.html
->> ---
->>  drivers/media/usb/uvc/uvc_driver.c | 14 +++++++++++++-
->>  drivers/media/usb/uvc/uvc_video.c  |  3 ++-
->>  2 files changed, 15 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/usb/uvc/uvc_driver.c
->> b/drivers/media/usb/uvc/uvc_driver.c index 70842c5..f7b759e 100644
->> --- a/drivers/media/usb/uvc/uvc_driver.c
->> +++ b/drivers/media/usb/uvc/uvc_driver.c
->> @@ -37,6 +37,7 @@ unsigned int uvc_no_drop_param;
->>  static unsigned int uvc_quirks_param = -1;
->>  unsigned int uvc_trace_param;
->>  unsigned int uvc_timeout_param = UVC_CTRL_STREAMING_TIMEOUT;
->> +static unsigned int uvc_mjpeg_bpp_param;
->>
->>  /* ------------------------------------------------------------------------
->> * Video formats
->> @@ -463,7 +464,16 @@ static int uvc_parse_format(struct uvc_device *dev,
->>               strlcpy(format->name, "MJPEG", sizeof format->name);
->>               format->fcc = V4L2_PIX_FMT_MJPEG;
->>               format->flags = UVC_FMT_FLAG_COMPRESSED;
->> -             format->bpp = 0;
->> +             if ((uvc_mjpeg_bpp_param >= 1) && (uvc_mjpeg_bpp_param <= 16)) {
->> +                     format->bpp = uvc_mjpeg_bpp_param;
->> +             } else {
->> +                     /* conservative estimate. Actual values are around 1bpp.
->> +                      * see e.g.
->> +                      * https://developers.google.com/speed/webp/docs/webp_study
->> +                      */
->> +                     format->bpp = 4;
->> +             }
->> +
->>               ftype = UVC_VS_FRAME_MJPEG;
->>               break;
->>
->> @@ -2274,6 +2284,8 @@ module_param_named(trace, uvc_trace_param, uint,
->> S_IRUGO|S_IWUSR); MODULE_PARM_DESC(trace, "Trace level bitmask");
->>  module_param_named(timeout, uvc_timeout_param, uint, S_IRUGO|S_IWUSR);
->>  MODULE_PARM_DESC(timeout, "Streaming control requests timeout");
->> +module_param_named(mjpeg_bpp, uvc_mjpeg_bpp_param, uint, S_IRUGO|S_IWUSR);
->> +MODULE_PARM_DESC(mjpeg_bpp, "MJPEG bits per pixel for bandwidth quirk");
->
-> I'd rather avoid adding a new module parameter for this, it would be confusing
-> for users. What is your use case to make the MJPEG average BPP configurable ?
-> Can't we come up with a heuristic that would calculate it automatically ?
->
->>  /* ------------------------------------------------------------------------
->> * Driver initialization and cleanup
->> diff --git a/drivers/media/usb/uvc/uvc_video.c
->> b/drivers/media/usb/uvc/uvc_video.c index fb86d6a..382a0be 100644
->> --- a/drivers/media/usb/uvc/uvc_video.c
->> +++ b/drivers/media/usb/uvc/uvc_video.c
->> @@ -127,7 +127,8 @@ static void uvc_fixup_video_ctrl(struct uvc_streaming
->> *stream, if ((ctrl->dwMaxPayloadTransferSize & 0xffff0000) == 0xffff0000)
->> ctrl->dwMaxPayloadTransferSize &= ~0xffff0000;
->>
->> -     if (!(format->flags & UVC_FMT_FLAG_COMPRESSED) &&
->> +     if ((!(format->flags & UVC_FMT_FLAG_COMPRESSED) ||
->> +                     (format->fcc == V4L2_PIX_FMT_MJPEG)) &&
->>           stream->dev->quirks & UVC_QUIRK_FIX_BANDWIDTH &&
->>           stream->intf->num_altsetting > 1) {
->>               u32 interval;
->
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 700f433261d0..2a7cf430270c 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -31,7 +31,7 @@
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/smiapp.h>
+-#include <linux/v4l2-mediabus.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+ #include <media/v4l2-device.h>
+ 
+@@ -2887,6 +2887,11 @@ static int smiapp_probe(struct i2c_client *client,
+ 	v4l2_i2c_subdev_init(&sensor->src->sd, client, &smiapp_ops);
+ 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
+ 
++	rval = v4l2_fwnode_reference_parse_sensor_common(
++		&client->dev, &sensor->notifier);
++	if (rval < 0 && rval != -ENOENT)
++		return rval;
++
+ 	sensor->vana = devm_regulator_get(&client->dev, "vana");
+ 	if (IS_ERR(sensor->vana)) {
+ 		dev_err(&client->dev, "could not get regulator for vana\n");
+@@ -3092,9 +3097,14 @@ static int smiapp_probe(struct i2c_client *client,
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
+ 
++	rval = v4l2_async_subdev_notifier_register(&sensor->src->sd,
++						   &sensor->notifier);
++	if (rval)
++		goto out_media_entity_cleanup;
++
+ 	rval = v4l2_async_register_subdev(&sensor->src->sd);
+ 	if (rval < 0)
+-		goto out_media_entity_cleanup;
++		goto out_unregister_async_notifier;
+ 
+ 	pm_runtime_set_active(&client->dev);
+ 	pm_runtime_get_noresume(&client->dev);
+@@ -3105,6 +3115,9 @@ static int smiapp_probe(struct i2c_client *client,
+ 
+ 	return 0;
+ 
++out_unregister_async_notifier:
++	v4l2_async_notifier_unregister(&sensor->notifier);
++
+ out_media_entity_cleanup:
+ 	media_entity_cleanup(&sensor->src->sd.entity);
+ 
+@@ -3124,6 +3137,7 @@ static int smiapp_remove(struct i2c_client *client)
+ 	unsigned int i;
+ 
+ 	v4l2_async_unregister_subdev(subdev);
++	v4l2_async_notifier_unregister(&sensor->notifier);
+ 
+ 	pm_runtime_disable(&client->dev);
+ 	if (!pm_runtime_status_suspended(&client->dev))
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index f74d695018b9..be92cb5713f4 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -20,9 +20,10 @@
+ #define __SMIAPP_PRIV_H_
+ 
+ #include <linux/mutex.h>
++#include <media/i2c/smiapp.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-subdev.h>
+-#include <media/i2c/smiapp.h>
+ 
+ #include "smiapp-pll.h"
+ #include "smiapp-reg.h"
+@@ -172,6 +173,7 @@ struct smiapp_subdev {
+  * struct smiapp_sensor - Main device structure
+  */
+ struct smiapp_sensor {
++	struct v4l2_async_notifier notifier;
+ 	/*
+ 	 * "mutex" is used to serialise access to all fields here
+ 	 * except v4l2_ctrls at the end of the struct. "mutex" is also
+-- 
+2.11.0
