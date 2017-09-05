@@ -1,135 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47452 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1756136AbdIHNSb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 09:18:31 -0400
+Received: from mga14.intel.com ([192.55.52.115]:6434 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752017AbdIEUSN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Sep 2017 16:18:13 -0400
+Subject: Re: [PATCH] media: leds: as3645a: add V4L2_FLASH_LED_CLASS
+ depdendency
+To: Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Richard Purdie <rpurdie@rpsys.net>, Pavel Machek <pavel@ucw.cz>
+Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <20170905071345.3807685-1-arnd@arndb.de>
+ <ffbecf66-df9d-d8cf-8820-a119c76d8145@gmail.com>
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v9 20/24] v4l: fwnode: Add a helper function to obtain device / interger references
-Date: Fri,  8 Sep 2017 16:18:18 +0300
-Message-Id: <20170908131822.31020-16-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+Message-ID: <737270d1-98df-a207-7137-cdf2cce950c8@linux.intel.com>
+Date: Tue, 5 Sep 2017 23:18:07 +0300
+MIME-Version: 1.0
+In-Reply-To: <ffbecf66-df9d-d8cf-8820-a119c76d8145@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
-the device's own fwnode, it will follow child fwnodes with the given
-property -- value pair and return the resulting fwnode.
+Hi Jacek and Arnd,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-fwnode.c | 93 +++++++++++++++++++++++++++++++++++
- 1 file changed, 93 insertions(+)
+Thanks for fixing this plus the ack! I chatted with Mauro, and as the 
+patches are still only in mediatree, we'll apply this there, possibly 
+with a minor spelling fix to the subject (depdendency -> dependency).
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 4821c4989119..56eee5bbd3b5 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -496,6 +496,99 @@ static int v4l2_fwnode_reference_parse(
- 	return ret;
- }
- 
-+static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
-+	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
-+	const char **props, unsigned int nprops)
-+{
-+	struct fwnode_reference_args fwnode_args;
-+	unsigned int *args = fwnode_args.args;
-+	struct fwnode_handle *child;
-+	int ret;
-+
-+	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
-+						 index, &fwnode_args);
-+	if (ret)
-+		return ERR_PTR(ret == -EINVAL ? -ENOENT : ret);
-+
-+	for (fwnode = fwnode_args.fwnode;
-+	     nprops; nprops--, fwnode = child, props++, args++) {
-+		u32 val;
-+
-+		fwnode_for_each_child_node(fwnode, child) {
-+			if (fwnode_property_read_u32(child, *props, &val))
-+				continue;
-+
-+			if (val == *args)
-+				break;
-+		}
-+
-+		fwnode_handle_put(fwnode);
-+
-+		if (!child) {
-+			fwnode = ERR_PTR(-ENOENT);
-+			break;
-+		}
-+	}
-+
-+	return fwnode;
-+}
-+
-+static int v4l2_fwnode_reference_parse_int_props(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	const char *prop, const char **props, unsigned int nprops)
-+{
-+	struct fwnode_handle *fwnode;
-+	unsigned int index = 0;
-+	int ret;
-+
-+	while (!IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-+				dev_fwnode(dev), prop, index, props,
-+				nprops)))) {
-+		fwnode_handle_put(fwnode);
-+		index++;
-+	}
-+
-+	if (PTR_ERR(fwnode) != -ENOENT)
-+		return PTR_ERR(fwnode);
-+
-+	ret = v4l2_async_notifier_realloc(notifier,
-+					  notifier->num_subdevs + index);
-+	if (ret)
-+		return -ENOMEM;
-+
-+	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-+					 dev_fwnode(dev), prop, index, props,
-+					 nprops))); ) {
-+		struct v4l2_async_subdev *asd;
-+
-+		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-+			ret = -EINVAL;
-+			goto error;
-+		}
-+
-+		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
-+		if (!asd) {
-+			ret = -ENOMEM;
-+			goto error;
-+		}
-+
-+		notifier->subdevs[notifier->num_subdevs] = asd;
-+		asd->match.fwnode.fwnode = fwnode;
-+		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-+		notifier->num_subdevs++;
-+
-+		fwnode_handle_put(fwnode);
-+
-+		index++;
-+	}
-+
-+	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
-+
-+error:
-+	fwnode_handle_put(fwnode);
-+	return ret;
-+}
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
- MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+<URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=as3645a-fix2>
+
+Cc linux-media.
+
+Jacek Anaszewski wrote:
+> Hi Arnd,
+>
+> Thanks for the patch.
+>
+> On 09/05/2017 09:13 AM, Arnd Bergmann wrote:
+>> We get a link error when V4L2_FLASH_LED_CLASS=m and AS3645A is built-in:
+>>
+>> drivers/leds/leds-as3645a.o: In function `as3645a_v4l2_setup':
+>> leds-as3645a.c:(.text+0x258): undefined reference to `v4l2_flash_init'
+>> leds-as3645a.c:(.text+0x284): undefined reference to `v4l2_flash_indicator_init'
+>> leds-as3645a.c:(.text+0x2a4): undefined reference to `v4l2_flash_release'
+>> drivers/leds/leds-as3645a.o: In function `as3645a_remove':
+>> leds-as3645a.c:(.text+0x784): undefined reference to `v4l2_flash_release'
+>>
+>> This adds the same Kconfig dependency that the other V4L2 flash
+>> drivers in drivers/leds use, to avoid that broken configuration.
+>>
+>> Fixes: a56ba8fbcb55 ("media: leds: as3645a: Add LED flash class driver")
+>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>> ---
+>>  drivers/leds/Kconfig | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> The patch that caused the problem is currently in the v4l git tree,
+>> rather than the leds tree. Please merge this through an appropriate
+>> path, either v4l or led, depending on the timing.
+>>
+>> diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
+>> index 0bf022bcb6ac..52ea34e337cd 100644
+>> --- a/drivers/leds/Kconfig
+>> +++ b/drivers/leds/Kconfig
+>> @@ -61,6 +61,7 @@ config LEDS_AAT1290
+>>  config LEDS_AS3645A
+>>  	tristate "AS3645A LED flash controller support"
+>>  	depends on I2C && LEDS_CLASS_FLASH
+>> +	depends on V4L2_FLASH_LED_CLASS || !V4L2_FLASH_LED_CLASS
+>>  	help
+>>  	  Enable LED flash class support for AS3645A LED flash
+>>  	  controller. V4L2 flash API is provided as well if
+>>
+>
+> Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+>
+
+
 -- 
-2.11.0
+Sakari Ailus
+sakari.ailus@linux.intel.com
