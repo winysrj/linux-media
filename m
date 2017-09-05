@@ -1,50 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:53263 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751185AbdIPKwf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Sep 2017 06:52:35 -0400
-Subject: [PATCH 2/3] [media] mr800: Improve a size determination in
- usb_amradio_probe()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Alexey Klimov <klimov.linux@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <7efe75db-dbb4-0fe7-509d-908b81072ca1@users.sourceforge.net>
-Message-ID: <bb6b93dd-f25b-ff5d-e56c-9aa1abfc635e@users.sourceforge.net>
-Date: Sat, 16 Sep 2017 12:52:30 +0200
-MIME-Version: 1.0
-In-Reply-To: <7efe75db-dbb4-0fe7-509d-908b81072ca1@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40760 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751732AbdIENGC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Sep 2017 09:06:02 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v8 18/21] v4l: fwnode: Add convenience function for parsing common external refs
+Date: Tue,  5 Sep 2017 16:05:50 +0300
+Message-Id: <20170905130553.1332-19-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 16 Sep 2017 11:34:11 +0200
+Add v4l2_fwnode_parse_reference_sensor_common for parsing common
+sensor properties that refer to adjacent devices such as flash or lens
+driver chips.
 
-Replace the specification of a data structure by a pointer dereference
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+As this is an association only, there's little a regular driver needs to
+know about these devices as such.
 
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/radio/radio-mr800.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-fwnode.c | 27 +++++++++++++++++++++++++++
+ include/media/v4l2-fwnode.h           |  3 +++
+ 2 files changed, 30 insertions(+)
 
-diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
-index 63a9b92ab495..7c4554ce1cf0 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -515,4 +515,3 @@ static int usb_amradio_probe(struct usb_interface *intf,
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 8c059a4217b4..3c86229629b2 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -538,6 +538,33 @@ int v4l2_fwnode_reference_parse(
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse);
  
--	radio = kzalloc(sizeof(struct amradio_device), GFP_KERNEL);
--
-+	radio = kzalloc(sizeof(*radio), GFP_KERNEL);
- 	if (!radio) {
++int v4l2_fwnode_reference_parse_sensor_common(
++	struct device *dev, struct v4l2_async_notifier *notifier)
++{
++	static const struct {
++		char *name;
++		char *cells;
++		unsigned int nr_cells;
++	} props[] = {
++		{ "flash", NULL, 0 },
++		{ "lens-focus", NULL, 0 },
++	};
++	unsigned int i;
++	int rval;
++
++	for (i = 0; i < ARRAY_SIZE(props); i++) {
++		rval = v4l2_fwnode_reference_parse(
++			dev, notifier, props[i].name, props[i].cells,
++			props[i].nr_cells, sizeof(struct v4l2_async_subdev),
++			NULL);
++		if (rval < 0 && rval != -ENOENT)
++			return rval;
++	}
++
++	return rval;
++}
++EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse_sensor_common);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index 3ad71241cb20..36b6514dd6ef 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -282,4 +282,7 @@ int v4l2_fwnode_reference_parse(
+ 			    struct fwnode_reference_args *args,
+ 			    struct v4l2_async_subdev *asd));
+ 
++int v4l2_fwnode_reference_parse_sensor_common(
++	struct device *dev, struct v4l2_async_notifier *notifier);
++
+ #endif /* _V4L2_FWNODE_H */
 -- 
-2.14.1
+2.11.0
