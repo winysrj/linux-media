@@ -1,82 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.200.34]:59243 "EHLO
-        mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751387AbdITVMz (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:55277 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751837AbdIFHBc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 17:12:55 -0400
-Reply-To: shuah@kernel.org
-Subject: Re: [PATCH 5/6] media: dvb_frontend: better document the -EPERM
- condition
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Shuah Khan <shuah@kernel.org>
-References: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
- <347ca7486c6c33f4229c6dc182cdde73b7e8879e.1505827883.git.mchehab@s-opensource.com>
-From: Shuah Khan <shuah@kernel.org>
-Message-ID: <5ce292d7-380a-61f9-07f4-7a2663459abe@kernel.org>
-Date: Wed, 20 Sep 2017 15:12:43 -0600
+        Wed, 6 Sep 2017 03:01:32 -0400
+Subject: Re: [PATCH v8 03/21] v4l: async: Use more intuitive names for
+ internal functions
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+ <20170905130553.1332-4-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <7e466832-2c73-a552-1396-e9c282409272@xs4all.nl>
+Date: Wed, 6 Sep 2017 09:01:27 +0200
 MIME-Version: 1.0
-In-Reply-To: <347ca7486c6c33f4229c6dc182cdde73b7e8879e.1505827883.git.mchehab@s-opensource.com>
+In-Reply-To: <20170905130553.1332-4-sakari.ailus@linux.intel.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/19/2017 07:42 AM, Mauro Carvalho Chehab wrote:
-> Two readonly ioctls can't be allowed if the frontend device
-> is opened in read only mode. Explain why.
+On 09/05/2017 03:05 PM, Sakari Ailus wrote:
+> Rename internal functions to make the names of the functions better
+> describe what they do.
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> 	Old name			New name
+> 	v4l2_async_test_notify	v4l2_async_match_notify
+> 	v4l2_async_belongs	v4l2_async_find_match
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
 > ---
->  drivers/media/dvb-core/dvb_frontend.c | 20 +++++++++++++++++---
->  1 file changed, 17 insertions(+), 3 deletions(-)
+>  drivers/media/v4l2-core/v4l2-async.c | 19 ++++++++++---------
+>  1 file changed, 10 insertions(+), 9 deletions(-)
 > 
-> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-> index d0a17d67ab1b..db3f8c597a24 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb-core/dvb_frontend.c
-> @@ -1940,9 +1940,23 @@ static int dvb_frontend_ioctl(struct file *file, unsigned int cmd, void *parg)
->  		return -ENODEV;
->  	}
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index f50a82767863..3d81ff6a496f 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -65,8 +65,8 @@ static LIST_HEAD(subdev_list);
+>  static LIST_HEAD(notifier_list);
+>  static DEFINE_MUTEX(list_lock);
 >  
-> -	if ((file->f_flags & O_ACCMODE) == O_RDONLY &&
-> -	    (_IOC_DIR(cmd) != _IOC_READ || cmd == FE_GET_EVENT ||
-> -	     cmd == FE_DISEQC_RECV_SLAVE_REPLY)) {
-> +	/*
-> +	 * If the frontend is opened in read-only mode, only the ioctls
-> +	 * that don't interfere at the tune logic should be accepted.
-
-Nit:
-
-with the tune logic
-
-> +	 * That allows an external application to monitor the DVB QoS and
-> +	 * statistics parameters.
-> +	 *
-> +	 * That matches all _IOR() ioctls, except for two special cases:
-> +	 *   - FE_GET_EVENT is part of the tuning logic on a DVB application;
-> +	 *   - FE_DISEQC_RECV_SLAVE_REPLY is part of DiSEqC 2.0
-> +	 *     setup
-> +	 * So, those two ioctls should also return -EPERM, as otherwise
-> +	 * reading from them would interfere with a DVB tune application
-> +	 */
-> +	if ((file->f_flags & O_ACCMODE) == O_RDONLY
-> +	    && (_IOC_DIR(cmd) != _IOC_READ
-> +		|| cmd == FE_GET_EVENT
-> +		|| cmd == FE_DISEQC_RECV_SLAVE_REPLY)) {
->  		up(&fepriv->sem);
->  		return -EPERM;
->  	}
+> -static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
+> -						    struct v4l2_subdev *sd)
+> +static struct v4l2_async_subdev *v4l2_async_find_match(
+> +	struct v4l2_async_notifier *notifier, struct v4l2_subdev *sd)
+>  {
+>  	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
+>  	struct v4l2_async_subdev *asd;
+> @@ -100,9 +100,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
+>  	return NULL;
+>  }
+>  
+> -static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
+> -				  struct v4l2_subdev *sd,
+> -				  struct v4l2_async_subdev *asd)
+> +static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+> +				   struct v4l2_subdev *sd,
+> +				   struct v4l2_async_subdev *asd)
+>  {
+>  	int ret;
+>  
+> @@ -180,11 +180,11 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+>  		int ret;
+>  
+> -		asd = v4l2_async_belongs(notifier, sd);
+> +		asd = v4l2_async_find_match(notifier, sd);
+>  		if (!asd)
+>  			continue;
+>  
+> -		ret = v4l2_async_test_notify(notifier, sd, asd);
+> +		ret = v4l2_async_match_notify(notifier, sd, asd);
+>  		if (ret < 0) {
+>  			mutex_unlock(&list_lock);
+>  			return ret;
+> @@ -241,9 +241,10 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  	INIT_LIST_HEAD(&sd->async_list);
+>  
+>  	list_for_each_entry(notifier, &notifier_list, list) {
+> -		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
+> +		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
+> +								      sd);
+>  		if (asd) {
+> -			int ret = v4l2_async_test_notify(notifier, sd, asd);
+> +			int ret = v4l2_async_match_notify(notifier, sd, asd);
+>  			mutex_unlock(&list_lock);
+>  			return ret;
+>  		}
 > 
-
-Looks good to me
-
-Reviewed by: Shuah Khan <shuahkh@osg.samsung.com>
-
-thanks,
--- Shuah
