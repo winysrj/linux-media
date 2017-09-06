@@ -1,76 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39449 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750969AbdIKVPO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 17:15:14 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v2 8/8] v4l: vsp1: Reduce display list body size
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
- <fa078611769415d7adbad208f1299d05bee3bda8.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
- <3704707.T2fvHgbeUE@avalon>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <af16106d-4a56-c022-49cf-8d5e5b143f80@ideasonboard.com>
-Date: Mon, 11 Sep 2017 22:15:10 +0100
+Received: from esa1.microchip.iphmx.com ([68.232.147.91]:58794 "EHLO
+        esa1.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752747AbdIFA6t (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Sep 2017 20:58:49 -0400
+Subject: Re: [PATCH 0/6] [media] Atmel: Adjustments for seven function
+ implementations
+To: SF Markus Elfring <elfring@users.sourceforge.net>,
+        <linux-media@vger.kernel.org>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Songjun Wu <songjun.wu@microchip.com>
+CC: LKML <linux-kernel@vger.kernel.org>,
+        <kernel-janitors@vger.kernel.org>
+References: <88d0739c-fdc1-9d7d-fe53-b7c2eeed1849@users.sourceforge.net>
+From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
+Message-ID: <30c46f61-5c4f-9f75-e8b5-fab77fe1e11f@Microchip.com>
+Date: Wed, 6 Sep 2017 08:58:26 +0800
 MIME-Version: 1.0
-In-Reply-To: <3704707.T2fvHgbeUE@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+In-Reply-To: <88d0739c-fdc1-9d7d-fe53-b7c2eeed1849@users.sourceforge.net>
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17/08/17 17:11, Laurent Pinchart wrote:
-> Hi Kieran,
-> 
-> Thank you for the patch.
-> 
-> On Monday 14 Aug 2017 16:13:31 Kieran Bingham wrote:
->> The display list originally allocated a body of 256 entries to store all
->> of the register lists required for each frame.
->>
->> This has now been separated into fragments for constant stream setup, and
->> runtime updates.
->>
->> Empirical testing shows that the body0 now uses a maximum of 41
->> registers for each frame, for both DRM and Video API pipelines thus a
->> rounded 64 entries provides a suitable allocation.
-> 
-> Didn't you mention in patch 7/8 that one of the fragments uses exactly 64 
-> entries ? Which one is it, and is there a risk it could use more ? 
+Hi,
 
-No, that referred to the fragments(bodies) which had been attached. This change
-refers only to the body0 allocation which has a maximum of 41 entries written.
 
-The fragment and partition allocations which reach 64 entries, are allocated
-with room for 128 currently...
+On 2017/9/5 4:04, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Mon, 4 Sep 2017 21:44:55 +0200
+>
+> A few update suggestions were taken into account
+> from static source code analysis.
+Thank you for your patches.
 
-< yes, this can be revisited >
+You can add my Acked-by for the patch series.
 
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->> ---
->>  drivers/media/platform/vsp1/vsp1_dl.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
->> b/drivers/media/platform/vsp1/vsp1_dl.c index 176a258146ac..b3f5eb2f9a4f
->> 100644
->> --- a/drivers/media/platform/vsp1/vsp1_dl.c
->> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
->> @@ -21,7 +21,7 @@
->>  #include "vsp1.h"
->>  #include "vsp1_dl.h"
->>
->> -#define VSP1_DL_NUM_ENTRIES		256
->> +#define VSP1_DL_NUM_ENTRIES		64
+Acked-by: Wenyou Yang <wenyou.yang@microchip.com>
 
-This now only defines the size of the body0 which is the defacto list of entries
-in a display list.
+>
+> Markus Elfring (6):
+>    Delete an error message for a failed memory allocation in isc_formats_init()
+>    Improve a size determination in isc_formats_init()
+>    Adjust three checks for null pointers
+>    Delete an error message for a failed memory allocation in two functions
+>    Improve three size determinations
+>    Adjust a null pointer check in three functions
+>
+>   drivers/media/platform/atmel/atmel-isc.c | 12 +++++-------
+>   drivers/media/platform/atmel/atmel-isi.c | 20 ++++++++------------
+>   2 files changed, 13 insertions(+), 19 deletions(-)
+>
 
-This too could / should be removed at somepoint I believe, leaving allocations
-only where they are needed.
->>  #define VSP1_DLH_INT_ENABLE		(1 << 1)
->>  #define VSP1_DLH_AUTO_START		(1 << 0)
-> 
+Best Regards,
+Wenyou Yang
