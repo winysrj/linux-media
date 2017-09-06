@@ -1,191 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46951
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752107AbdIANZB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:25:01 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v2 14/27] media: dmx.h: get rid of DMX_SET_SOURCE
-Date: Fri,  1 Sep 2017 10:24:36 -0300
-Message-Id: <da4f827cf899b9dd4e45c2aa32a77133f70a1ff4.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:33916 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751675AbdIFHva (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 6 Sep 2017 03:51:30 -0400
+Subject: Re: [PATCH v8 13/21] v4l: async: Register sub-devices before calling
+ bound callback
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+ <20170905130553.1332-14-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ddbea2fe-a740-518e-deb4-bdb3d65c0e9d@xs4all.nl>
+Date: Wed, 6 Sep 2017 09:51:26 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170905130553.1332-14-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No driver uses this ioctl, nor it is documented anywhere.
+On 09/05/2017 03:05 PM, Sakari Ailus wrote:
+> Register the sub-device before calling the notifier's bound callback.
+> Doing this the other way around is problematic as the struct v4l2_device
+> has not assigned for the sub-device yet and may be required by the bound
+> callback.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-So, get rid of it.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/dmx.h.rst.exceptions        | 13 --------
- Documentation/media/uapi/dvb/dmx-set-source.rst | 44 -------------------------
- Documentation/media/uapi/dvb/dmx_fcalls.rst     |  1 -
- Documentation/media/uapi/dvb/dmx_types.rst      | 20 -----------
- include/uapi/linux/dvb/dmx.h                    | 12 -------
- 5 files changed, 90 deletions(-)
- delete mode 100644 Documentation/media/uapi/dvb/dmx-set-source.rst
+Regards,
 
-diff --git a/Documentation/media/dmx.h.rst.exceptions b/Documentation/media/dmx.h.rst.exceptions
-index 5572d2dc9d0e..d2dac35bb84b 100644
---- a/Documentation/media/dmx.h.rst.exceptions
-+++ b/Documentation/media/dmx.h.rst.exceptions
-@@ -40,18 +40,6 @@ replace enum dmx_input :c:type:`dmx_input`
- replace symbol DMX_IN_FRONTEND :c:type:`dmx_input`
- replace symbol DMX_IN_DVR :c:type:`dmx_input`
- 
--# dmx_source_t symbols
--replace enum dmx_source :c:type:`dmx_source`
--replace symbol DMX_SOURCE_FRONT0 :c:type:`dmx_source`
--replace symbol DMX_SOURCE_FRONT1 :c:type:`dmx_source`
--replace symbol DMX_SOURCE_FRONT2 :c:type:`dmx_source`
--replace symbol DMX_SOURCE_FRONT3 :c:type:`dmx_source`
--replace symbol DMX_SOURCE_DVR0 :c:type:`dmx_source`
--replace symbol DMX_SOURCE_DVR1 :c:type:`dmx_source`
--replace symbol DMX_SOURCE_DVR2 :c:type:`dmx_source`
--replace symbol DMX_SOURCE_DVR3 :c:type:`dmx_source`
--
--
- # Flags for struct dmx_sct_filter_params
- replace define DMX_CHECK_CRC :c:type:`dmx_sct_filter_params`
- replace define DMX_ONESHOT :c:type:`dmx_sct_filter_params`
-@@ -61,4 +49,3 @@ replace define DMX_IMMEDIATE_START :c:type:`dmx_sct_filter_params`
- replace typedef dmx_filter_t :c:type:`dmx_filter`
- replace typedef dmx_pes_type_t :c:type:`dmx_pes_type`
- replace typedef dmx_input_t :c:type:`dmx_input`
--replace typedef dmx_source_t :c:type:`dmx_source`
-diff --git a/Documentation/media/uapi/dvb/dmx-set-source.rst b/Documentation/media/uapi/dvb/dmx-set-source.rst
-deleted file mode 100644
-index ac7f77b25e06..000000000000
---- a/Documentation/media/uapi/dvb/dmx-set-source.rst
-+++ /dev/null
-@@ -1,44 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--.. _DMX_SET_SOURCE:
--
--==============
--DMX_SET_SOURCE
--==============
--
--Name
------
--
--DMX_SET_SOURCE
--
--
--Synopsis
----------
--
--.. c:function:: int ioctl(fd, DMX_SET_SOURCE, struct dmx_source *src)
--    :name: DMX_SET_SOURCE
--
--
--Arguments
-----------
--
--
--``fd``
--    File descriptor returned by :c:func:`open() <dvb-dmx-open>`.
--
--``src``
--   Undocumented.
--
--
--Description
-------------
--
--.. note:: This ioctl is undocumented. Documentation is welcome.
--
--
--Return Value
--------------
--
--On success 0 is returned, on error -1 and the ``errno`` variable is set
--appropriately. The generic error codes are described at the
--:ref:`Generic Error Codes <gen-errors>` chapter.
-diff --git a/Documentation/media/uapi/dvb/dmx_fcalls.rst b/Documentation/media/uapi/dvb/dmx_fcalls.rst
-index 49e013d4540f..be98d60877f2 100644
---- a/Documentation/media/uapi/dvb/dmx_fcalls.rst
-+++ b/Documentation/media/uapi/dvb/dmx_fcalls.rst
-@@ -21,6 +21,5 @@ Demux Function Calls
-     dmx-get-event
-     dmx-get-stc
-     dmx-get-pes-pids
--    dmx-set-source
-     dmx-add-pid
-     dmx-remove-pid
-diff --git a/Documentation/media/uapi/dvb/dmx_types.rst b/Documentation/media/uapi/dvb/dmx_types.rst
-index 9e907b85cf16..a205c02ccdc1 100644
---- a/Documentation/media/uapi/dvb/dmx_types.rst
-+++ b/Documentation/media/uapi/dvb/dmx_types.rst
-@@ -197,23 +197,3 @@ struct dmx_stc
- 	unsigned int base;  /* output: divisor for stc to get 90 kHz clock */
- 	__u64 stc;      /* output: stc in 'base'*90 kHz units */
-     };
--
--
--
--enum dmx_source
--===============
--
--.. c:type:: dmx_source
--
--.. code-block:: c
--
--    typedef enum dmx_source {
--	DMX_SOURCE_FRONT0 = 0,
--	DMX_SOURCE_FRONT1,
--	DMX_SOURCE_FRONT2,
--	DMX_SOURCE_FRONT3,
--	DMX_SOURCE_DVR0   = 16,
--	DMX_SOURCE_DVR1,
--	DMX_SOURCE_DVR2,
--	DMX_SOURCE_DVR3
--    } dmx_source_t;
-diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
-index db8bd00c93de..08dc17060321 100644
---- a/include/uapi/linux/dvb/dmx.h
-+++ b/include/uapi/linux/dvb/dmx.h
-@@ -115,16 +115,6 @@ struct dmx_pes_filter_params
- 	__u32           flags;
- };
- 
--enum dmx_source {
--	DMX_SOURCE_FRONT0 = 0,
--	DMX_SOURCE_FRONT1,
--	DMX_SOURCE_FRONT2,
--	DMX_SOURCE_FRONT3,
--	DMX_SOURCE_DVR0   = 16,
--	DMX_SOURCE_DVR1,
--	DMX_SOURCE_DVR2,
--	DMX_SOURCE_DVR3
--};
- 
- struct dmx_stc {
- 	unsigned int num;	/* input : which STC? 0..N */
-@@ -138,7 +128,6 @@ struct dmx_stc {
- #define DMX_SET_PES_FILTER       _IOW('o', 44, struct dmx_pes_filter_params)
- #define DMX_SET_BUFFER_SIZE      _IO('o', 45)
- #define DMX_GET_PES_PIDS         _IOR('o', 47, __u16[5])
--#define DMX_SET_SOURCE           _IOW('o', 49, enum dmx_source)
- #define DMX_GET_STC              _IOWR('o', 50, struct dmx_stc)
- #define DMX_ADD_PID              _IOW('o', 51, __u16)
- #define DMX_REMOVE_PID           _IOW('o', 52, __u16)
-@@ -150,7 +139,6 @@ typedef enum dmx_output dmx_output_t;
- typedef enum dmx_input dmx_input_t;
- typedef enum dmx_ts_pes dmx_pes_type_t;
- typedef struct dmx_filter dmx_filter_t;
--typedef enum dmx_source  dmx_source_t;
- 
- #endif
- 
--- 
-2.13.5
+	Hans
+
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index baee95eacbba..79f216723a3f 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -135,13 +135,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+>  {
+>  	int ret;
+>  
+> -	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
+> +	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+> +	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
+>  	if (ret < 0) {
+> -		v4l2_async_notifier_call_unbind(notifier, sd, asd);
+> +		v4l2_device_unregister_subdev(sd);
+>  		return ret;
+>  	}
+>  
+> 
