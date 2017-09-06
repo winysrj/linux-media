@@ -1,243 +1,397 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:53884 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752899AbdICPLo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 3 Sep 2017 11:11:44 -0400
-Date: Sun, 3 Sep 2017 17:11:36 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] v4l: use struct v4l2_buffer explicitly instead of void
- *
-In-Reply-To: <20170827190546.2c01463f@vento.lan>
-Message-ID: <Pine.LNX.4.64.1709031710330.29016@axis700.grange>
-References: <Pine.LNX.4.64.1707281439030.16637@axis700.grange>
- <20170827190546.2c01463f@vento.lan>
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:37875 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751021AbdIFHoh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 6 Sep 2017 03:44:37 -0400
+Subject: Re: [PATCH v8 08/21] rcar-vin: Use generic parser for parsing fwnode
+ endpoints
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+ <20170905130553.1332-9-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <a51aea1f-0a00-7a7b-8197-e0f5a0443a05@xs4all.nl>
+Date: Wed, 6 Sep 2017 09:44:32 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <20170905130553.1332-9-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 09/05/2017 03:05 PM, Sakari Ailus wrote:
+> Instead of using driver implementation, use
+> v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
+> of the device.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 112 +++++++++-------------------
+>  drivers/media/platform/rcar-vin/rcar-dma.c  |  10 +--
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c |  14 ++--
+>  drivers/media/platform/rcar-vin/rcar-vin.h  |   4 +-
+>  4 files changed, 48 insertions(+), 92 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index 142de447aaaa..bd551f0be213 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/pm_runtime.h>
+>  
+> +#include <media/v4l2-async.h>
+>  #include <media/v4l2-fwnode.h>
+>  
+>  #include "rcar-vin.h"
+> @@ -77,14 +78,14 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+>  	int ret;
+>  
+>  	/* Verify subdevices mbus format */
+> -	if (!rvin_mbus_supported(&vin->digital)) {
+> +	if (!rvin_mbus_supported(vin->digital)) {
+>  		vin_err(vin, "Unsupported media bus format for %s\n",
+> -			vin->digital.subdev->name);
+> +			vin->digital->subdev->name);
+>  		return -EINVAL;
+>  	}
+>  
+>  	vin_dbg(vin, "Found media bus format for %s: %d\n",
+> -		vin->digital.subdev->name, vin->digital.code);
+> +		vin->digital->subdev->name, vin->digital->code);
+>  
+>  	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
+>  	if (ret < 0) {
+> @@ -103,7 +104,7 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
+>  
+>  	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
+>  	rvin_v4l2_remove(vin);
+> -	vin->digital.subdev = NULL;
+> +	vin->digital->subdev = NULL;
+>  }
+>  
+>  static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+> @@ -120,117 +121,70 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+>  	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
+>  	if (ret < 0)
+>  		return ret;
+> -	vin->digital.source_pad = ret;
+> +	vin->digital->source_pad = ret;
+>  
+>  	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
+> -	vin->digital.sink_pad = ret < 0 ? 0 : ret;
+> +	vin->digital->sink_pad = ret < 0 ? 0 : ret;
+>  
+> -	vin->digital.subdev = subdev;
+> +	vin->digital->subdev = subdev;
+>  
+>  	vin_dbg(vin, "bound subdev %s source pad: %u sink pad: %u\n",
+> -		subdev->name, vin->digital.source_pad,
+> -		vin->digital.sink_pad);
+> +		subdev->name, vin->digital->source_pad,
+> +		vin->digital->sink_pad);
+>  
+>  	return 0;
+>  }
+>  
+> -static int rvin_digitial_parse_v4l2(struct rvin_dev *vin,
+> -				    struct device_node *ep,
+> -				    struct v4l2_mbus_config *mbus_cfg)
+> +static int rvin_digital_parse_v4l2(struct device *dev,
+> +				   struct v4l2_fwnode_endpoint *vep,
+> +				   struct v4l2_async_subdev *asd)
+>  {
+> -	struct v4l2_fwnode_endpoint v4l2_ep;
+> -	int ret;
+> +	struct rvin_dev *vin = dev_get_drvdata(dev);
+> +	struct rvin_graph_entity *rvge =
+> +		container_of(asd, struct rvin_graph_entity, asd);
+>  
+> -	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
+> -	if (ret) {
+> -		vin_err(vin, "Could not parse v4l2 endpoint\n");
+> -		return -EINVAL;
+> -	}
+> +	if (vep->base.port || vep->base.id)
+> +		return -EPERM;
+>  
+> -	mbus_cfg->type = v4l2_ep.bus_type;
+> +	rvge->mbus_cfg.type = vep->bus_type;
+>  
+> -	switch (mbus_cfg->type) {
+> +	switch (rvge->mbus_cfg.type) {
+>  	case V4L2_MBUS_PARALLEL:
+>  		vin_dbg(vin, "Found PARALLEL media bus\n");
+> -		mbus_cfg->flags = v4l2_ep.bus.parallel.flags;
+> +		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
+>  		break;
+>  	case V4L2_MBUS_BT656:
+>  		vin_dbg(vin, "Found BT656 media bus\n");
+> -		mbus_cfg->flags = 0;
+> +		rvge->mbus_cfg.flags = 0;
+>  		break;
+>  	default:
+>  		vin_err(vin, "Unknown media bus type\n");
+>  		return -EINVAL;
+>  	}
+>  
+> -	return 0;
+> -}
+> -
+> -static int rvin_digital_graph_parse(struct rvin_dev *vin)
+> -{
+> -	struct device_node *ep, *np;
+> -	int ret;
+> -
+> -	vin->digital.asd.match.fwnode.fwnode = NULL;
+> -	vin->digital.subdev = NULL;
+> -
+> -	/*
+> -	 * Port 0 id 0 is local digital input, try to get it.
+> -	 * Not all instances can or will have this, that is OK
+> -	 */
+> -	ep = of_graph_get_endpoint_by_regs(vin->dev->of_node, 0, 0);
+> -	if (!ep)
+> -		return 0;
+> -
+> -	np = of_graph_get_remote_port_parent(ep);
+> -	if (!np) {
+> -		vin_err(vin, "No remote parent for digital input\n");
+> -		of_node_put(ep);
+> -		return -EINVAL;
+> -	}
+> -	of_node_put(np);
+> -
+> -	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->digital.mbus_cfg);
+> -	of_node_put(ep);
+> -	if (ret)
+> -		return ret;
+> -
+> -	vin->digital.asd.match.fwnode.fwnode = of_fwnode_handle(np);
+> -	vin->digital.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> +	vin->digital = rvge;
+>  
+>  	return 0;
+>  }
+>  
+>  static int rvin_digital_graph_init(struct rvin_dev *vin)
+>  {
+> -	struct v4l2_async_subdev **subdevs = NULL;
+>  	int ret;
+>  
+> -	ret = rvin_digital_graph_parse(vin);
+> +	ret = v4l2_async_notifier_parse_fwnode_endpoints(
+> +		vin->dev, &vin->notifier,
+> +		sizeof(struct rvin_graph_entity), rvin_digital_parse_v4l2);
+>  	if (ret)
+>  		return ret;
+>  
+> -	if (!vin->digital.asd.match.fwnode.fwnode) {
+> -		vin_dbg(vin, "No digital subdevice found\n");
+> -		return -ENODEV;
+> -	}
+> -
+> -	/* Register the subdevices notifier. */
+> -	subdevs = devm_kzalloc(vin->dev, sizeof(*subdevs), GFP_KERNEL);
+> -	if (subdevs == NULL)
+> -		return -ENOMEM;
+> -
+> -	subdevs[0] = &vin->digital.asd;
+> -
+> -	vin_dbg(vin, "Found digital subdevice %pOF\n",
+> -		to_of_node(subdevs[0]->match.fwnode.fwnode));
+> +	if (vin->notifier.num_subdevs > 0)
+> +		vin_dbg(vin, "Found digital subdevice %pOF\n",
+> +			to_of_node(
+> +				vin->notifier.subdevs[0]->match.fwnode.fwnode));
 
-On Sun, 27 Aug 2017, Mauro Carvalho Chehab wrote:
+As mentioned in my review of patch 6/21, this violates the documentation of the
+v4l2_async_notifier_parse_fwnode_endpoints function.
 
-> Em Fri, 28 Jul 2017 14:45:37 +0200 (CEST)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
-> 
-> > A number of functions use void * for a struct v4l2_buffer parameter.
-> > Avoid that to improve compile-time checking.
-> 
-> Nack.
-> 
-> The videbuf2-core should be be independent of videobuf2-v4l2. The
-> plan is to use it for DVB too. There's a patch floating around,
-> lacking people to take a look.
-> 
-> I intend to review and merge it when I have some time along
-> the year.
+However, I think the problem is with the documentation and not with this code,
+so:
 
-Ok, I thought there would be a reason similar to this, thanks for 
-explaining.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Regards
-Guennadi
+Regards,
 
-> > Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> > ---
-> > 
-> > This probably was done on purpose, maybe to reuse the video buffers by 
-> > other than V4L2 users, but I haven't found any, and the code doesn't seem 
-> > very new...
-> > 
-> >  drivers/media/v4l2-core/videobuf2-core.c | 17 +++++++++--------
-> >  drivers/media/v4l2-core/videobuf2-v4l2.c | 15 +++++++--------
-> >  include/media/videobuf2-core.h           | 19 ++++++++++++-------
-> >  3 files changed, 28 insertions(+), 23 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> > index 14f83cec..170a416 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-core.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > @@ -958,7 +958,7 @@ void vb2_discard_done(struct vb2_queue *q)
-> >  /**
-> >   * __prepare_mmap() - prepare an MMAP buffer
-> >   */
-> > -static int __prepare_mmap(struct vb2_buffer *vb, const void *pb)
-> > +static int __prepare_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *pb)
-> >  {
-> >  	int ret = 0;
-> >  
-> > @@ -971,7 +971,7 @@ static int __prepare_mmap(struct vb2_buffer *vb, const void *pb)
-> >  /**
-> >   * __prepare_userptr() - prepare a USERPTR buffer
-> >   */
-> > -static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
-> > +static int __prepare_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *pb)
-> >  {
-> >  	struct vb2_plane planes[VB2_MAX_PLANES];
-> >  	struct vb2_queue *q = vb->vb2_queue;
-> > @@ -1089,7 +1089,7 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
-> >  /**
-> >   * __prepare_dmabuf() - prepare a DMABUF buffer
-> >   */
-> > -static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
-> > +static int __prepare_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *pb)
-> >  {
-> >  	struct vb2_plane planes[VB2_MAX_PLANES];
-> >  	struct vb2_queue *q = vb->vb2_queue;
-> > @@ -1236,7 +1236,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
-> >  	call_void_vb_qop(vb, buf_queue, vb);
-> >  }
-> >  
-> > -static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
-> > +static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *pb)
-> >  {
-> >  	struct vb2_queue *q = vb->vb2_queue;
-> >  	unsigned int plane;
-> > @@ -1279,7 +1279,8 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
-> >  	return 0;
-> >  }
-> >  
-> > -int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
-> > +int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index,
-> > +			 struct v4l2_buffer *pb)
-> >  {
-> >  	struct vb2_buffer *vb;
-> >  	int ret;
-> > @@ -1514,7 +1515,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
-> >   * Will sleep if required for nonblocking == false.
-> >   */
-> >  static int __vb2_get_done_vb(struct vb2_queue *q, struct vb2_buffer **vb,
-> > -			     void *pb, int nonblocking)
-> > +			     struct v4l2_buffer *pb, int nonblocking)
-> >  {
-> >  	unsigned long flags;
-> >  	int ret = 0;
-> > @@ -1583,8 +1584,8 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
-> >  		}
-> >  }
-> >  
-> > -int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
-> > -		   bool nonblocking)
-> > +int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex,
-> > +		   struct v4l2_buffer *pb, bool nonblocking)
-> >  {
-> >  	struct vb2_buffer *vb = NULL;
-> >  	int ret;
-> > diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> > index 0c06699..3c425ea 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> > @@ -53,7 +53,8 @@
-> >   * __verify_planes_array() - verify that the planes array passed in struct
-> >   * v4l2_buffer from userspace can be safely used
-> >   */
-> > -static int __verify_planes_array(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-> > +static int __verify_planes_array(struct vb2_buffer *vb,
-> > +				 const struct v4l2_buffer *b)
-> >  {
-> >  	if (!V4L2_TYPE_IS_MULTIPLANAR(b->type))
-> >  		return 0;
-> > @@ -73,7 +74,8 @@ static int __verify_planes_array(struct vb2_buffer *vb, const struct v4l2_buffer
-> >  	return 0;
-> >  }
-> >  
-> > -static int __verify_planes_array_core(struct vb2_buffer *vb, const void *pb)
-> > +static int __verify_planes_array_core(struct vb2_buffer *vb,
-> > +				      const struct v4l2_buffer *pb)
-> >  {
-> >  	return __verify_planes_array(vb, pb);
-> >  }
-> > @@ -118,9 +120,8 @@ static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-> >  	return 0;
-> >  }
-> >  
-> > -static void __copy_timestamp(struct vb2_buffer *vb, const void *pb)
-> > +static void __copy_timestamp(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-> >  {
-> > -	const struct v4l2_buffer *b = pb;
-> >  	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-> >  	struct vb2_queue *q = vb->vb2_queue;
-> >  
-> > @@ -185,9 +186,8 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
-> >   * __fill_v4l2_buffer() - fill in a struct v4l2_buffer with information to be
-> >   * returned to userspace
-> >   */
-> > -static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
-> > +static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
-> >  {
-> > -	struct v4l2_buffer *b = pb;
-> >  	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-> >  	struct vb2_queue *q = vb->vb2_queue;
-> >  	unsigned int plane;
-> > @@ -292,10 +292,9 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
-> >   * v4l2_buffer has a valid number of planes.
-> >   */
-> >  static int __fill_vb2_buffer(struct vb2_buffer *vb,
-> > -		const void *pb, struct vb2_plane *planes)
-> > +		const struct v4l2_buffer *b, struct vb2_plane *planes)
-> >  {
-> >  	struct vb2_queue *q = vb->vb2_queue;
-> > -	const struct v4l2_buffer *b = pb;
-> >  	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-> >  	unsigned int plane;
-> >  	int ret;
-> > diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> > index cb97c22..86e9605 100644
-> > --- a/include/media/videobuf2-core.h
-> > +++ b/include/media/videobuf2-core.h
-> > @@ -395,6 +395,8 @@ struct vb2_ops {
-> >  	void (*buf_queue)(struct vb2_buffer *vb);
-> >  };
-> >  
-> > +struct v4l2_buffer;
-> > +
-> >  /**
-> >   * struct vb2_buf_ops - driver-specific callbacks
-> >   *
-> > @@ -410,11 +412,13 @@ struct vb2_ops {
-> >   *			the vb2_buffer struct.
-> >   */
-> >  struct vb2_buf_ops {
-> > -	int (*verify_planes_array)(struct vb2_buffer *vb, const void *pb);
-> > -	void (*fill_user_buffer)(struct vb2_buffer *vb, void *pb);
-> > -	int (*fill_vb2_buffer)(struct vb2_buffer *vb, const void *pb,
-> > +	int (*verify_planes_array)(struct vb2_buffer *vb,
-> > +				const struct v4l2_buffer *pb);
-> > +	void (*fill_user_buffer)(struct vb2_buffer *vb, struct v4l2_buffer *b);
-> > +	int (*fill_vb2_buffer)(struct vb2_buffer *vb, const struct v4l2_buffer *pb,
-> >  				struct vb2_plane *planes);
-> > -	void (*copy_timestamp)(struct vb2_buffer *vb, const void *pb);
-> > +	void (*copy_timestamp)(struct vb2_buffer *vb,
-> > +				const struct v4l2_buffer *b);
-> >  };
-> >  
-> >  /**
-> > @@ -704,7 +708,8 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
-> >   * The return values from this function are intended to be directly returned
-> >   * from vidioc_prepare_buf handler in driver.
-> >   */
-> > -int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-> > +int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index,
-> > +			 struct v4l2_buffer *pb);
-> >  
-> >  /**
-> >   * vb2_core_qbuf() - Queue a buffer from userspace
-> > @@ -753,8 +758,8 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
-> >   * The return values from this function are intended to be directly returned
-> >   * from vidioc_dqbuf handler in driver.
-> >   */
-> > -int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
-> > -		   bool nonblocking);
-> > +int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex,
-> > +		   struct v4l2_buffer *pb, bool nonblocking);
-> >  
-> >  int vb2_core_streamon(struct vb2_queue *q, unsigned int type);
-> >  int vb2_core_streamoff(struct vb2_queue *q, unsigned int type);
-> 
-> 
-> 
-> Thanks,
-> Mauro
+	Hans
+
+>  
+> -	vin->notifier.num_subdevs = 1;
+> -	vin->notifier.subdevs = subdevs;
+>  	vin->notifier.bound = rvin_digital_notify_bound;
+>  	vin->notifier.unbind = rvin_digital_notify_unbind;
+>  	vin->notifier.complete = rvin_digital_notify_complete;
+> -
+>  	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
+>  	if (ret < 0) {
+>  		vin_err(vin, "Notifier registration failed\n");
+> @@ -290,6 +244,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
+>  	if (ret)
+>  		return ret;
+>  
+> +	platform_set_drvdata(pdev, vin);
+> +
+>  	ret = rvin_digital_graph_init(vin);
+>  	if (ret < 0)
+>  		goto error;
+> @@ -297,11 +253,10 @@ static int rcar_vin_probe(struct platform_device *pdev)
+>  	pm_suspend_ignore_children(&pdev->dev, true);
+>  	pm_runtime_enable(&pdev->dev);
+>  
+> -	platform_set_drvdata(pdev, vin);
+> -
+>  	return 0;
+>  error:
+>  	rvin_dma_remove(vin);
+> +	v4l2_async_notifier_release(&vin->notifier);
+>  
+>  	return ret;
+>  }
+> @@ -313,6 +268,7 @@ static int rcar_vin_remove(struct platform_device *pdev)
+>  	pm_runtime_disable(&pdev->dev);
+>  
+>  	v4l2_async_notifier_unregister(&vin->notifier);
+> +	v4l2_async_notifier_release(&vin->notifier);
+>  
+>  	rvin_dma_remove(vin);
+>  
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index b136844499f6..23fdff7a7370 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -183,7 +183,7 @@ static int rvin_setup(struct rvin_dev *vin)
+>  	/*
+>  	 * Input interface
+>  	 */
+> -	switch (vin->digital.code) {
+> +	switch (vin->digital->code) {
+>  	case MEDIA_BUS_FMT_YUYV8_1X16:
+>  		/* BT.601/BT.1358 16bit YCbCr422 */
+>  		vnmc |= VNMC_INF_YUV16;
+> @@ -191,7 +191,7 @@ static int rvin_setup(struct rvin_dev *vin)
+>  		break;
+>  	case MEDIA_BUS_FMT_UYVY8_2X8:
+>  		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+> -		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
+> +		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
+>  			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+>  		input_is_yuv = true;
+>  		break;
+> @@ -200,7 +200,7 @@ static int rvin_setup(struct rvin_dev *vin)
+>  		break;
+>  	case MEDIA_BUS_FMT_UYVY10_2X10:
+>  		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+> -		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
+> +		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
+>  			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+>  		input_is_yuv = true;
+>  		break;
+> @@ -212,11 +212,11 @@ static int rvin_setup(struct rvin_dev *vin)
+>  	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+>  
+>  	/* Hsync Signal Polarity Select */
+> -	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+> +	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+>  		dmr2 |= VNDMR2_HPS;
+>  
+>  	/* Vsync Signal Polarity Select */
+> -	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+> +	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+>  		dmr2 |= VNDMR2_VPS;
+>  
+>  	/*
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> index dd37ea811680..b479b882da12 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -111,7 +111,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
+>  	struct v4l2_mbus_framefmt *mf = &fmt.format;
+>  	int ret;
+>  
+> -	fmt.pad = vin->digital.source_pad;
+> +	fmt.pad = vin->digital->source_pad;
+>  
+>  	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
+>  	if (ret)
+> @@ -172,13 +172,13 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+>  
+>  	sd = vin_to_source(vin);
+>  
+> -	v4l2_fill_mbus_format(&format.format, pix, vin->digital.code);
+> +	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
+>  
+>  	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
+>  	if (pad_cfg == NULL)
+>  		return -ENOMEM;
+>  
+> -	format.pad = vin->digital.source_pad;
+> +	format.pad = vin->digital->source_pad;
+>  
+>  	field = pix->field;
+>  
+> @@ -555,7 +555,7 @@ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
+>  	if (timings->pad)
+>  		return -EINVAL;
+>  
+> -	timings->pad = vin->digital.sink_pad;
+> +	timings->pad = vin->digital->sink_pad;
+>  
+>  	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
+>  
+> @@ -607,7 +607,7 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
+>  	if (cap->pad)
+>  		return -EINVAL;
+>  
+> -	cap->pad = vin->digital.sink_pad;
+> +	cap->pad = vin->digital->sink_pad;
+>  
+>  	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
+>  
+> @@ -625,7 +625,7 @@ static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+>  	if (edid->pad)
+>  		return -EINVAL;
+>  
+> -	edid->pad = vin->digital.sink_pad;
+> +	edid->pad = vin->digital->sink_pad;
+>  
+>  	ret = v4l2_subdev_call(sd, pad, get_edid, edid);
+>  
+> @@ -643,7 +643,7 @@ static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+>  	if (edid->pad)
+>  		return -EINVAL;
+>  
+> -	edid->pad = vin->digital.sink_pad;
+> +	edid->pad = vin->digital->sink_pad;
+>  
+>  	ret = v4l2_subdev_call(sd, pad, set_edid, edid);
+>  
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index 9bfb5a7c4dc4..5382078143fb 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -126,7 +126,7 @@ struct rvin_dev {
+>  	struct v4l2_device v4l2_dev;
+>  	struct v4l2_ctrl_handler ctrl_handler;
+>  	struct v4l2_async_notifier notifier;
+> -	struct rvin_graph_entity digital;
+> +	struct rvin_graph_entity *digital;
+>  
+>  	struct mutex lock;
+>  	struct vb2_queue queue;
+> @@ -145,7 +145,7 @@ struct rvin_dev {
+>  	struct v4l2_rect compose;
+>  };
+>  
+> -#define vin_to_source(vin)		vin->digital.subdev
+> +#define vin_to_source(vin)		((vin)->digital->subdev)
+>  
+>  /* Debug */
+>  #define vin_dbg(d, fmt, arg...)		dev_dbg(d->dev, fmt, ##arg)
 > 
