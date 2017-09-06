@@ -1,59 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:35709
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751227AbdISNmr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 09:42:47 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 4/6] media: dvb_frontend.h: fix alignment at the cache properties
-Date: Tue, 19 Sep 2017 10:42:36 -0300
-Message-Id: <0db9ab598c0c7cbcb4324efbc990331ea00f11cb.1505827883.git.mchehab@s-opensource.com>
-In-Reply-To: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
-References: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
-In-Reply-To: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
-References: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
+Received: from eddie.linux-mips.org ([148.251.95.138]:37710 "EHLO
+        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751938AbdIFIIB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 04:08:01 -0400
+Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S23990506AbdIFIH62l2v4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 10:07:58 +0200
+Date: Wed, 6 Sep 2017 10:07:48 +0200
+From: Ladislav Michl <ladis@linux-mips.org>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
+Subject: [PATCH 00/10] media: rc: gpio-ir-recv: driver update
+Message-ID: <20170906080748.wgxbmunfsu33bd6x@lenoch>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are too much tabs on several properties, for no good
-reason. That sounds confusing while reading the struct, so
-adjust them.
+This patch serie brings driver closer to recently used APIs
+and removes no longer used gpio_ir_recv_platform_data
+support.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_frontend.h | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+It was done as an excercise before writing similar driver using
+FIQ and hw timers as this one gives too imprecise timing.
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 1bdeb10f0d78..d273ed2f72c9 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -557,15 +557,15 @@ struct dtv_frontend_properties {
- 
- 	enum fe_sec_voltage	voltage;
- 	enum fe_sec_tone_mode	sectone;
--	enum fe_spectral_inversion	inversion;
--	enum fe_code_rate		fec_inner;
-+	enum fe_spectral_inversion inversion;
-+	enum fe_code_rate	fec_inner;
- 	enum fe_transmit_mode	transmission_mode;
- 	u32			bandwidth_hz;	/* 0 = AUTO */
- 	enum fe_guard_interval	guard_interval;
--	enum fe_hierarchy		hierarchy;
-+	enum fe_hierarchy	hierarchy;
- 	u32			symbol_rate;
--	enum fe_code_rate		code_rate_HP;
--	enum fe_code_rate		code_rate_LP;
-+	enum fe_code_rate	code_rate_HP;
-+	enum fe_code_rate	code_rate_LP;
- 
- 	enum fe_pilot		pilot;
- 	enum fe_rolloff		rolloff;
+Ladislav Michl (10):
+  media: rc: gpio-ir-recv: use helper vaiable to acess device info
+  media: rc: gpio-ir-recv: use devm_kzalloc
+  media: rc: gpio-ir-recv: use devm_rc_allocate_device
+  media: rc: gpio-ir-recv: use devm_gpio_request_one
+  media: rc: gpio-ir-recv: use devm_rc_register_device
+  media: rc: gpio-ir-recv: do not allow threaded interrupt handler
+  media: rc: gpio-ir-recv: use devm_request_irq
+  media: rc: gpio-ir-recv: use KBUILD_MODNAME
+  media: rc: gpio-ir-recv: remove gpio_ir_recv_platform_data
+  media: rc: gpio-ir-recv: use gpiolib API
+
+ drivers/media/rc/Kconfig                         |   1 +
+ drivers/media/rc/gpio-ir-recv.c                  | 191 +++++++----------------
+ include/linux/platform_data/media/gpio-ir-recv.h |  23 ---
+ 3 files changed, 58 insertions(+), 157 deletions(-)
+ delete mode 100644 include/linux/platform_data/media/gpio-ir-recv.h
+
 -- 
-2.13.5
+2.11.0
