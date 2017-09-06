@@ -1,100 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:55568 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752624AbdIXSHh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Sep 2017 14:07:37 -0400
-Subject: [PATCH 3/4] [media] omap3isp: Use common error handling code in
- isp_video_open()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <692bab24-7990-c971-b577-b2dea4176e64@users.sourceforge.net>
-Message-ID: <a3bcee14-f5d2-8648-a925-3dfd393e8f55@users.sourceforge.net>
-Date: Sun, 24 Sep 2017 20:07:31 +0200
+Received: from eddie.linux-mips.org ([148.251.95.138]:37710 "EHLO
+        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751913AbdIFIK2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 04:10:28 -0400
+Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S23990506AbdIFIK1U9Wm4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 10:10:27 +0200
+Date: Wed, 6 Sep 2017 10:10:14 +0200
+From: Ladislav Michl <ladis@linux-mips.org>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
+Subject: [PATCH 03/10] media: rc: gpio-ir-recv: use devm_rc_allocate_device
+Message-ID: <20170906081014.jmw256c4q344isql@lenoch>
+References: <20170906080748.wgxbmunfsu33bd6x@lenoch>
 MIME-Version: 1.0
-In-Reply-To: <692bab24-7990-c971-b577-b2dea4176e64@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170906080748.wgxbmunfsu33bd6x@lenoch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 24 Sep 2017 19:30:52 +0200
+Use of devm_rc_allocate_device simplifies error unwinding.
 
-* Adjust jump targets so that a bit of exception handling can be better
-  reused at the end of this function.
-
-  This issue was detected by using the Coccinelle software.
-
-* Delete a repeated check (for the variable "ret") which became unnecessary
-  with this refactoring.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 ---
- drivers/media/platform/omap3isp/ispvideo.c | 29 +++++++++++++----------------
- 1 file changed, 13 insertions(+), 16 deletions(-)
+ drivers/media/rc/gpio-ir-recv.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 7b9bd684337a..d4118466fc8a 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -1315,14 +1315,12 @@ static int isp_video_open(struct file *file)
- 	/* If this is the first user, initialise the pipeline. */
- 	if (omap3isp_get(video->isp) == NULL) {
- 		ret = -EBUSY;
--		goto done;
-+		goto delete_fh;
- 	}
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index fd5742b23447..0e0b6988c08e 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -143,7 +143,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 	if (!gpio_dev)
+ 		return -ENOMEM;
  
- 	ret = v4l2_pipeline_pm_use(&video->video.entity, 1);
--	if (ret < 0) {
--		omap3isp_put(video->isp);
--		goto done;
--	}
-+	if (ret < 0)
-+		goto put_isp;
+-	rcdev = rc_allocate_device(RC_DRIVER_IR_RAW);
++	rcdev = devm_rc_allocate_device(dev, RC_DRIVER_IR_RAW);
+ 	if (!rcdev)
+ 		return -ENOMEM;
  
- 	queue = &handle->queue;
- 	queue->type = video->type;
-@@ -1335,10 +1333,8 @@ static int isp_video_open(struct file *file)
- 	queue->dev = video->isp->dev;
+@@ -174,7 +174,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
  
- 	ret = vb2_queue_init(&handle->queue);
--	if (ret < 0) {
--		omap3isp_put(video->isp);
--		goto done;
--	}
-+	if (ret < 0)
-+		goto put_isp;
- 
- 	memset(&handle->format, 0, sizeof(handle->format));
- 	handle->format.type = video->type;
-@@ -1346,14 +1342,15 @@ static int isp_video_open(struct file *file)
- 
- 	handle->video = video;
- 	file->private_data = &handle->vfh;
-+	goto exit;
- 
--done:
--	if (ret < 0) {
--		v4l2_fh_del(&handle->vfh);
--		v4l2_fh_exit(&handle->vfh);
--		kfree(handle);
--	}
--
-+put_isp:
-+	omap3isp_put(video->isp);
-+delete_fh:
-+	v4l2_fh_del(&handle->vfh);
-+	v4l2_fh_exit(&handle->vfh);
-+	kfree(handle);
-+exit:
- 	return ret;
+ 	rc = gpio_request(pdata->gpio_nr, "gpio-ir-recv");
+ 	if (rc < 0)
+-		goto err_gpio_request;
++		return rc;
+ 	rc  = gpio_direction_input(pdata->gpio_nr);
+ 	if (rc < 0)
+ 		goto err_gpio_direction_input;
+@@ -202,8 +202,6 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ err_register_rc_device:
+ err_gpio_direction_input:
+ 	gpio_free(pdata->gpio_nr);
+-err_gpio_request:
+-	rc_free_device(rcdev);
+ 	return rc;
  }
  
 -- 
-2.14.1
+2.11.0
