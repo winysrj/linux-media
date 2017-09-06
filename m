@@ -1,109 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58459 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753824AbdIIPe0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 9 Sep 2017 11:34:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, hverkuil@xs4all.nl, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v9 03/24] v4l: async: Use more intuitive names for internal functions
-Date: Sat, 09 Sep 2017 18:34:25 +0300
-Message-ID: <3924992.Y6xJjAbaat@avalon>
-In-Reply-To: <20170908131235.30294-4-sakari.ailus@linux.intel.com>
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com> <20170908131235.30294-4-sakari.ailus@linux.intel.com>
+Received: from eddie.linux-mips.org ([148.251.95.138]:37710 "EHLO
+        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751737AbdIFIJC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 04:09:02 -0400
+Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S23990889AbdIFIJA518q4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 10:09:00 +0200
+Date: Wed, 6 Sep 2017 10:08:54 +0200
+From: Ladislav Michl <ladis@linux-mips.org>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
+Subject: [PATCH 01/10] media: rc: gpio-ir-recv: use helper vaiable to acess
+ device info
+Message-ID: <20170906080854.xanrfwmywy6w4irj@lenoch>
+References: <20170906080748.wgxbmunfsu33bd6x@lenoch>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170906080748.wgxbmunfsu33bd6x@lenoch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Using explicit struct device variable makes code a bit more readable.
 
-Thank you for the patch.
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+---
+ drivers/media/rc/gpio-ir-recv.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-On Friday, 8 September 2017 16:11:54 EEST Sakari Ailus wrote:
-> Rename internal functions to make the names of the functions better
-> describe what they do.
-> 
-> 	Old name			New name
-> 	v4l2_async_test_notify	v4l2_async_match_notify
-> 	v4l2_async_belongs	v4l2_async_find_match
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Looks good to me.
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Kerneldoc for the two functions would of course have been even better :-) That 
-can be added in a separate patch.
-
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 19 ++++++++++---------
->  1 file changed, 10 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> b/drivers/media/v4l2-core/v4l2-async.c index e109d9da4653..831f185ecd47
-> 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -60,8 +60,8 @@ static LIST_HEAD(subdev_list);
->  static LIST_HEAD(notifier_list);
->  static DEFINE_MUTEX(list_lock);
-> 
-> -static struct v4l2_async_subdev *v4l2_async_belongs(struct
-> v4l2_async_notifier *notifier, -						    struct v4l2_subdev *sd)
-> +static struct v4l2_async_subdev *v4l2_async_find_match(
-> +	struct v4l2_async_notifier *notifier, struct v4l2_subdev *sd)
->  {
->  	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
->  	struct v4l2_async_subdev *asd;
-> @@ -95,9 +95,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct
-> v4l2_async_notifier * return NULL;
->  }
-> 
-> -static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
-> -				  struct v4l2_subdev *sd,
-> -				  struct v4l2_async_subdev *asd)
-> +static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-> +				   struct v4l2_subdev *sd,
-> +				   struct v4l2_async_subdev *asd)
->  {
->  	int ret;
-> 
-> @@ -175,11 +175,11 @@ int v4l2_async_notifier_register(struct v4l2_device
-> *v4l2_dev, list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
->  		int ret;
-> 
-> -		asd = v4l2_async_belongs(notifier, sd);
-> +		asd = v4l2_async_find_match(notifier, sd);
->  		if (!asd)
->  			continue;
-> 
-> -		ret = v4l2_async_test_notify(notifier, sd, asd);
-> +		ret = v4l2_async_match_notify(notifier, sd, asd);
->  		if (ret < 0) {
->  			mutex_unlock(&list_lock);
->  			return ret;
-> @@ -236,9 +236,10 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  	INIT_LIST_HEAD(&sd->async_list);
-> 
->  	list_for_each_entry(notifier, &notifier_list, list) {
-> -		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
-> +		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
-> +								      sd);
->  		if (asd) {
-> -			int ret = v4l2_async_test_notify(notifier, sd, asd);
-> +			int ret = v4l2_async_match_notify(notifier, sd, asd);
->  			mutex_unlock(&list_lock);
->  			return ret;
->  		}
-
-
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index b4f773b9dc1d..2f6233186ce9 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -116,18 +116,18 @@ static void flush_timer(unsigned long arg)
+ 
+ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ {
++	struct device *dev = &pdev->dev;
+ 	struct gpio_rc_dev *gpio_dev;
+ 	struct rc_dev *rcdev;
+-	const struct gpio_ir_recv_platform_data *pdata =
+-					pdev->dev.platform_data;
++	const struct gpio_ir_recv_platform_data *pdata = dev->platform_data;
+ 	int rc;
+ 
+ 	if (pdev->dev.of_node) {
+ 		struct gpio_ir_recv_platform_data *dtpdata =
+-			devm_kzalloc(&pdev->dev, sizeof(*dtpdata), GFP_KERNEL);
++			devm_kzalloc(dev, sizeof(*dtpdata), GFP_KERNEL);
+ 		if (!dtpdata)
+ 			return -ENOMEM;
+-		rc = gpio_ir_recv_get_devtree_pdata(&pdev->dev, dtpdata);
++		rc = gpio_ir_recv_get_devtree_pdata(dev, dtpdata);
+ 		if (rc)
+ 			return rc;
+ 		pdata = dtpdata;
+@@ -156,7 +156,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 	rcdev->input_id.vendor = 0x0001;
+ 	rcdev->input_id.product = 0x0001;
+ 	rcdev->input_id.version = 0x0100;
+-	rcdev->dev.parent = &pdev->dev;
++	rcdev->dev.parent = dev;
+ 	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
+ 	rcdev->min_timeout = 1;
+ 	rcdev->timeout = IR_DEFAULT_TIMEOUT;
+@@ -183,7 +183,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 
+ 	rc = rc_register_device(rcdev);
+ 	if (rc < 0) {
+-		dev_err(&pdev->dev, "failed to register rc device\n");
++		dev_err(dev, "failed to register rc device\n");
+ 		goto err_register_rc_device;
+ 	}
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
