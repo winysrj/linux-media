@@ -1,181 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:48477 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751005AbdIKJf1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 05:35:27 -0400
-Subject: Re: [PATCH v3 4/6] [media] exynos-gsc: Add hardware rotation limits
-To: Hoegeun Kwon <hoegeun.kwon@samsung.com>, mchehab@kernel.org
-Cc: inki.dae@samsung.com, airlied@linux.ie, kgene@kernel.org,
-        krzk@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        catalin.marinas@arm.com, will.deacon@arm.com,
-        m.szyprowski@samsung.com, devicetree@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <27b46679-e6c7-2471-f10e-3f0634178ebf@samsung.com>
-Date: Mon, 11 Sep 2017 11:35:15 +0200
-MIME-version: 1.0
-In-reply-to: <1504850560-27950-5-git-send-email-hoegeun.kwon@samsung.com>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
-        <CGME20170908060309epcas1p3d48dd0871d3fde02ba3c9921bbe5a7a6@epcas1p3.samsung.com>
-        <1504850560-27950-5-git-send-email-hoegeun.kwon@samsung.com>
+Received: from mout.gmx.net ([212.227.15.15]:56193 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750933AbdIFTUQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 6 Sep 2017 15:20:16 -0400
+MIME-Version: 1.0
+Message-ID: <trinity-e1aa6ee8-e9cc-4001-8e19-92255757329d-1504725614678@3c-app-gmx-bs76>
+From: =?UTF-8?Q?=22Oliver_M=C3=BCller=22?= <oliver.mueller85@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: BUGREPORT: IR keytable 1.12.3
+Content-Type: text/plain; charset=UTF-8
+Date: Wed, 6 Sep 2017 21:20:14 +0200
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/08/2017 08:02 AM, Hoegeun Kwon wrote:
-> The hardware rotation limits of gsc depends on SOC (Exynos
-> 5250/5420/5433). Distinguish them and add them to the driver data.
-> 
-> Signed-off-by: Hoegeun Kwon <hoegeun.kwon@samsung.com>
-> ---
->   drivers/media/platform/exynos-gsc/gsc-core.c | 96 ++++++++++++++++++++++++----
->   1 file changed, 83 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-> index 4380150..8f8636e 100644
-> --- a/drivers/media/platform/exynos-gsc/gsc-core.c
-> +++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-> @@ -943,7 +943,37 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
->   	return IRQ_HANDLED;
->   }
->   
-> -static struct gsc_pix_max gsc_v_100_max = {
-> +static struct gsc_pix_max gsc_v_5250_max = {
-> +	.org_scaler_bypass_w	= 8192,
-> +	.org_scaler_bypass_h	= 8192,
-> +	.org_scaler_input_w	= 4800,
-> +	.org_scaler_input_h	= 3344,
-> +	.real_rot_dis_w		= 4800,
-> +	.real_rot_dis_h		= 3344,
-> +	.real_rot_en_w		= 2016,
-> +	.real_rot_en_h		= 2016,
-> +	.target_rot_dis_w	= 4800,
-> +	.target_rot_dis_h	= 3344,
-> +	.target_rot_en_w	= 2016,
-> +	.target_rot_en_h	= 2016,
-> +};
-> +
-> +static struct gsc_pix_max gsc_v_5420_max = {
-> +	.org_scaler_bypass_w	= 8192,
-> +	.org_scaler_bypass_h	= 8192,
-> +	.org_scaler_input_w	= 4800,
-> +	.org_scaler_input_h	= 3344,
-> +	.real_rot_dis_w		= 4800,
-> +	.real_rot_dis_h		= 3344,
-> +	.real_rot_en_w		= 2048,
-> +	.real_rot_en_h		= 2048,
-> +	.target_rot_dis_w	= 4800,
-> +	.target_rot_dis_h	= 3344,
-> +	.target_rot_en_w	= 2016,
-> +	.target_rot_en_h	= 2016,
-> +};
-> +
-> +static struct gsc_pix_max gsc_v_5433_max = {
->   	.org_scaler_bypass_w	= 8192,
->   	.org_scaler_bypass_h	= 8192,
->   	.org_scaler_input_w	= 4800,
-> @@ -979,8 +1009,8 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
->   	.target_h		= 2,  /* yuv420 : 2, others : 1 */
->   };
->   
-> -static struct gsc_variant gsc_v_100_variant = {
-> -	.pix_max		= &gsc_v_100_max,
-> +static struct gsc_variant gsc_v_5250_variant = {
-> +	.pix_max		= &gsc_v_5250_max,
->   	.pix_min		= &gsc_v_100_min,
->   	.pix_align		= &gsc_v_100_align,
->   	.in_buf_cnt		= 32,
-> @@ -992,12 +1022,48 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
->   	.local_sc_down		= 2,
->   };
->   
-> -static struct gsc_driverdata gsc_v_100_drvdata = {
-> +static struct gsc_variant gsc_v_5420_variant = {
-> +	.pix_max		= &gsc_v_5420_max,
-> +	.pix_min		= &gsc_v_100_min,
-> +	.pix_align		= &gsc_v_100_align,
-> +	.in_buf_cnt		= 32,
-> +	.out_buf_cnt		= 32,
-> +	.sc_up_max		= 8,
-> +	.sc_down_max		= 16,
-> +	.poly_sc_down_max	= 4,
-> +	.pre_sc_down_max	= 4,
-> +	.local_sc_down		= 2,
-> +};
-> +
-> +static struct gsc_variant gsc_v_5433_variant = {
-> +	.pix_max		= &gsc_v_5433_max,
-> +	.pix_min		= &gsc_v_100_min,
-> +	.pix_align		= &gsc_v_100_align,
-> +	.in_buf_cnt		= 32,
-> +	.out_buf_cnt		= 32,
-> +	.sc_up_max		= 8,
-> +	.sc_down_max		= 16,
-> +	.poly_sc_down_max	= 4,
-> +	.pre_sc_down_max	= 4,
-> +	.local_sc_down		= 2,
-> +};
-> +
-> +static struct gsc_driverdata gsc_v_5250_drvdata = {
->   	.variant = {
-> -		[0] = &gsc_v_100_variant,
-> -		[1] = &gsc_v_100_variant,
-> -		[2] = &gsc_v_100_variant,
-> -		[3] = &gsc_v_100_variant,
-> +		[0] = &gsc_v_5250_variant,
-> +		[1] = &gsc_v_5250_variant,
-> +		[2] = &gsc_v_5250_variant,
-> +		[3] = &gsc_v_5250_variant,
-> +	},
-> +	.num_entities = 4,
-> +	.clk_names = { "gscl" },
-> +	.num_clocks = 1,
-> +};
-> +
-> +static struct gsc_driverdata gsc_v_5420_drvdata = {
-> +	.variant = {
-> +		[0] = &gsc_v_5420_variant,
-> +		[1] = &gsc_v_5420_variant,
->   	},
->   	.num_entities = 4,
->   	.clk_names = { "gscl" },
-> @@ -1006,9 +1072,9 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
->   
->   static struct gsc_driverdata gsc_5433_drvdata = {
->   	.variant = {
-> -		[0] = &gsc_v_100_variant,
-> -		[1] = &gsc_v_100_variant,
-> -		[2] = &gsc_v_100_variant,
-> +		[0] = &gsc_v_5433_variant,
-> +		[1] = &gsc_v_5433_variant,
-> +		[2] = &gsc_v_5433_variant,
->   	},
->   	.num_entities = 3,
->   	.clk_names = { "pclk", "aclk", "aclk_xiu", "aclk_gsclbend" },
-> @@ -1017,8 +1083,12 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
->   
->   static const struct of_device_id exynos_gsc_match[] = {
->   	{
-> -		.compatible = "samsung,exynos5-gsc",
-> -		.data = &gsc_v_100_drvdata,
-
-Can you keep the "samsung,exynos5-gsc" entry with the gsc_v_5250_variant
-data, so that it can work with "samsung,exynos5-gsc" compatible in DT
-on both exynos5250 and exynos5420 SoCs?
-
-> +		.compatible = "samsung,exynos5250-gsc",
-> +		.data = &gsc_v_5250_drvdata,
-> +	},
-> +	{
-> +		.compatible = "samsung,exynos5420-gsc",
-> +		.data = &gsc_v_5420_drvdata,
->   	},
-
--- 
-Regards,
-Sylwester
+BUG IR keytable 1.12.3
+ 
+OS: Distributor ID:    Debian
+    Description:    Debian GNU/Linux 9.1 (stretch)
+    Release:    9.1
+    Codename:    stretch
+ 
+Kernel: 4.9.0-3-amd64 #1 SMP Debian 4.9.30-2+deb9u3 (2017-08-06) x86_64 GNU/Linux
+ 
+Programversion: IR keytable control version 1.12.3
+ 
+IR-Device: I: Bus=0003 Vendor=0471 Product=20cc Version=0100
+           N: Name="PHILIPS MCE USB IR Receiver- Spinel plus"
+           P: Phys=usb-0000:06:00.0-2/input0
+           S: Sysfs=/devices/pci0000:00/0000:00:15.2/0000:06:00.0/usb1/1-2/1-2:1.0/0003:0471:20CC.0006/input/input14
+           U: Uniq=
+           H: Handlers=sysrq kbd leds event3
+           B: PROP=0
+           B: EV=120013
+           B: KEY=c0000 40000000000 0 58000 8001f84000c004 e0beffdf01cfffff fffffffffffffffe
+           B: MSC=10
+           B: LED=1f
+ 
+ir-keytable gives /sys/class/rc/: No such file or directory
+ 
+using ir-keytable -d /dev/input/event3 I get this output with no mention of the protocol(s):
+Name: PHILIPS MCE USB IR Receiver- Spi
+bus: 3, vendor/product: 0471:20cc, version: 0x0100
+ 
+if I use ir-keytable -s rc0 instead it comes back to /sys/class/rc/: No such file or directory which is also true
+ 
+ir-keytable -d /dev/input/event3 -t works, ir-keytable -d /dev/input/event3 -r also works
+ 
+after I introduce the new keymap, like so ir-keytable -d /dev/input/event3 -c -w /etc/rc_keymaps/rc6_mce_zotac_zbox-ad05br it doesn't work. I can't read the newly introduced keymap nor can I test it. Of course can't I be sure which protocol to use because it's not displayed in the initial output.
+ 
+thx in advance
