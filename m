@@ -1,68 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50932
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752857AbdICCfK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Sep 2017 22:35:10 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Sean Young <sean@mess.org>
-Subject: [PATCH 06/12] media: rc-sysfs-nodes.rst: better use literals
-Date: Sat,  2 Sep 2017 23:34:58 -0300
-Message-Id: <1c7141e8a4191f298d648cd16993ca9b7b36abdc.1504405125.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504405124.git.mchehab@s-opensource.com>
-References: <cover.1504405124.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504405124.git.mchehab@s-opensource.com>
-References: <cover.1504405124.git.mchehab@s-opensource.com>
+Received: from eddie.linux-mips.org ([148.251.95.138]:37710 "EHLO
+        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751913AbdIFIJn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 04:09:43 -0400
+Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S23990506AbdIFIJm1ZVy4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 10:09:42 +0200
+Date: Wed, 6 Sep 2017 10:09:22 +0200
+From: Ladislav Michl <ladis@linux-mips.org>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
+Subject: [PATCH 02/10] media: rc: gpio-ir-recv: use devm_kzalloc
+Message-ID: <20170906080922.5a7qmrfvpppb4wix@lenoch>
+References: <20170906080748.wgxbmunfsu33bd6x@lenoch>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170906080748.wgxbmunfsu33bd6x@lenoch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A literal box provides a better visual when pdf and html output
-is generated for things like the output of a sysfs devnode.
-It alsod matches other conventions used within the media book.
+Use of devm_kzalloc simplifies error unwinding.
 
-So, use it.
-
-While here, use literals for protocol names.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 ---
- Documentation/media/uapi/rc/rc-sysfs-nodes.rst | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/media/rc/gpio-ir-recv.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/Documentation/media/uapi/rc/rc-sysfs-nodes.rst b/Documentation/media/uapi/rc/rc-sysfs-nodes.rst
-index 3476ae29708f..2d01358d5504 100644
---- a/Documentation/media/uapi/rc/rc-sysfs-nodes.rst
-+++ b/Documentation/media/uapi/rc/rc-sysfs-nodes.rst
-@@ -34,9 +34,9 @@ receiver device where N is the number of the receiver.
- /sys/class/rc/rcN/protocols
- ===========================
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index 2f6233186ce9..fd5742b23447 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -139,15 +139,13 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 	if (pdata->gpio_nr < 0)
+ 		return -EINVAL;
  
--Reading this file returns a list of available protocols, something like:
-+Reading this file returns a list of available protocols, something like::
+-	gpio_dev = kzalloc(sizeof(struct gpio_rc_dev), GFP_KERNEL);
++	gpio_dev = devm_kzalloc(dev, sizeof(struct gpio_rc_dev), GFP_KERNEL);
+ 	if (!gpio_dev)
+ 		return -ENOMEM;
  
--``rc5 [rc6] nec jvc [sony]``
-+	rc5 [rc6] nec jvc [sony]
+ 	rcdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+-	if (!rcdev) {
+-		rc = -ENOMEM;
+-		goto err_allocate_device;
+-	}
++	if (!rcdev)
++		return -ENOMEM;
  
- Enabled protocols are shown in [] brackets.
+ 	rcdev->priv = gpio_dev;
+ 	rcdev->input_name = GPIO_IR_DEVICE_NAME;
+@@ -206,8 +204,6 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 	gpio_free(pdata->gpio_nr);
+ err_gpio_request:
+ 	rc_free_device(rcdev);
+-err_allocate_device:
+-	kfree(gpio_dev);
+ 	return rc;
+ }
  
-@@ -90,11 +90,11 @@ This value may be reset to 0 if the current protocol is altered.
- ==================================
+@@ -219,7 +215,6 @@ static int gpio_ir_recv_remove(struct platform_device *pdev)
+ 	del_timer_sync(&gpio_dev->flush_timer);
+ 	rc_unregister_device(gpio_dev->rcdev);
+ 	gpio_free(gpio_dev->gpio_nr);
+-	kfree(gpio_dev);
+ 	return 0;
+ }
  
- Reading this file returns a list of available protocols to use for the
--wakeup filter, something like:
-+wakeup filter, something like::
- 
--``rc-5 nec nec-x rc-6-0 rc-6-6a-24 [rc-6-6a-32] rc-6-mce``
-+	rc-5 nec nec-x rc-6-0 rc-6-6a-24 [rc-6-6a-32] rc-6-mce
- 
--Note that protocol variants are listed, so "nec", "sony", "rc-5", "rc-6"
-+Note that protocol variants are listed, so ``nec``, ``sony``, ``rc-5``, ``rc-6``
- have their different bit length encodings listed if available.
- 
- Note that all protocol variants are listed.
 -- 
-2.13.5
+2.11.0
