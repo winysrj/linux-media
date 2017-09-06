@@ -1,85 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:43255 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756440AbdIHNme (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48514 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750752AbdIFGXh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 09:42:34 -0400
-Subject: Re: [PATCH 3/4] [media] sp2: Adjust a jump target in sp2_probe()
-To: SF Markus Elfring <elfring@users.sourceforge.net>,
-        linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Olli Salonen <olli.salonen@iki.fi>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <6142ca34-fcda-f2b6-bc35-dbbde0d34378@users.sourceforge.net>
- <88ff94f8-ee01-7a11-f98e-92b3944dc930@users.sourceforge.net>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b98816a2-1e81-f309-c870-477dc08b7c60@xs4all.nl>
-Date: Fri, 8 Sep 2017 15:42:27 +0200
+        Wed, 6 Sep 2017 02:23:37 -0400
+Date: Wed, 6 Sep 2017 09:23:34 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Rajmohan Mani <rajmohan.mani@intel.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
+        tfiga@chromium.org
+Subject: Re: [PATCH v1] media: ov13858: Calculate pixel-rate at runtime, use
+ mode
+Message-ID: <20170906062333.b6csvjeuixlbrq6p@valkosipuli.retiisi.org.uk>
+References: <1504655098-39951-1-git-send-email-rajmohan.mani@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <88ff94f8-ee01-7a11-f98e-92b3944dc930@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1504655098-39951-1-git-send-email-rajmohan.mani@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Markus,
+Hi Rajmohan,
 
-On 09/01/17 21:44, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Fri, 1 Sep 2017 21:08:38 +0200
+Thanks for the patch. A few comments below.
+
+On Tue, Sep 05, 2017 at 04:44:58PM -0700, Rajmohan Mani wrote:
+> From: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
 > 
-> * Adjust a jump target so that a null pointer will not be passed to a call
->   of the function "kfree".
+> Instead of calculating pixle-rate at two different places, calculate at run
+> time at a single place.
 > 
-> * Move this function call into an if branch.
+> Instead of using hardcoded pixels-per-line, extract it from current sensor
+> mode.
 > 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
 > ---
->  drivers/media/dvb-frontends/sp2.c | 13 +++++++------
->  1 file changed, 7 insertions(+), 6 deletions(-)
+>  drivers/media/i2c/ov13858.c | 42 +++++++++++++++++++++++++-----------------
+>  1 file changed, 25 insertions(+), 17 deletions(-)
 > 
-> diff --git a/drivers/media/dvb-frontends/sp2.c b/drivers/media/dvb-frontends/sp2.c
-> index dd556012ceb6..b2a7a54174ae 100644
-> --- a/drivers/media/dvb-frontends/sp2.c
-> +++ b/drivers/media/dvb-frontends/sp2.c
-> @@ -384,7 +384,7 @@ static int sp2_probe(struct i2c_client *client,
->  	s = kzalloc(sizeof(*s), GFP_KERNEL);
->  	if (!s) {
->  		ret = -ENOMEM;
-> -		goto err;
-> +		goto report_failure;
+> diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+> index af7af0d..2821824 100644
+> --- a/drivers/media/i2c/ov13858.c
+> +++ b/drivers/media/i2c/ov13858.c
+> @@ -955,11 +955,9 @@ struct ov13858_mode {
+>  };
+>  
+>  /* Link frequency configs */
+> -static const struct ov13858_link_freq_config
+> +static struct ov13858_link_freq_config
+>  			link_freq_configs[OV13858_NUM_OF_LINK_FREQS] = {
+>  	{
+> -		/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
+> -		.pixel_rate = (OV13858_LINK_FREQ_540MHZ * 2 * 4) / 10,
+
+Could you remove the pixel_rate field from the struct definition as well?
+
+>  		.pixels_per_line = OV13858_PPL_540MHZ,
+>  		.reg_list = {
+>  			.num_of_regs = ARRAY_SIZE(mipi_data_rate_1080mbps),
+> @@ -967,8 +965,6 @@ struct ov13858_mode {
+>  		}
+>  	},
+>  	{
+> -		/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
+> -		.pixel_rate = (OV13858_LINK_FREQ_270MHZ * 2 * 4) / 10,
+>  		.pixels_per_line = OV13858_PPL_270MHZ,
+>  		.reg_list = {
+>  			.num_of_regs = ARRAY_SIZE(mipi_data_rate_540mbps),
+> @@ -1617,6 +1613,10 @@ static int ov13858_init_controls(struct ov13858 *ov13858)
+>  	s64 exposure_max;
+>  	s64 vblank_def;
+>  	s64 vblank_min;
+> +	s64 hblank;
+> +	s64 pixel_rate_min;
+> +	s64 pixel_rate_max;
+> +	const struct ov13858_mode *mode;
+>  	int ret;
+>  
+>  	ctrl_hdlr = &ov13858->ctrl_handler;
+> @@ -1634,29 +1634,30 @@ static int ov13858_init_controls(struct ov13858 *ov13858)
+>  				link_freq_menu_items);
+>  	ov13858->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+>  
+> +	pixel_rate_max = link_freq_configs[0].pixel_rate;
+> +	pixel_rate_min = link_freq_configs[1].pixel_rate;
+>  	/* By default, PIXEL_RATE is read only */
+>  	ov13858->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops,
+> -					V4L2_CID_PIXEL_RATE, 0,
+> -					link_freq_configs[0].pixel_rate, 1,
+> -					link_freq_configs[0].pixel_rate);
+> +						V4L2_CID_PIXEL_RATE,
+> +						pixel_rate_min, pixel_rate_max,
+> +						1, pixel_rate_max);
+>  
+> -	vblank_def = ov13858->cur_mode->vts_def - ov13858->cur_mode->height;
+> -	vblank_min = ov13858->cur_mode->vts_min - ov13858->cur_mode->height;
+> +	mode = ov13858->cur_mode;
+> +	vblank_def = mode->vts_def - mode->height;
+> +	vblank_min = mode->vts_min - mode->height;
+>  	ov13858->vblank = v4l2_ctrl_new_std(
+>  				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_VBLANK,
+> -				vblank_min,
+> -				OV13858_VTS_MAX - ov13858->cur_mode->height, 1,
+> +				vblank_min, OV13858_VTS_MAX - mode->height, 1,
+>  				vblank_def);
+>  
+> +	hblank = link_freq_configs[mode->link_freq_index].pixels_per_line -
+> +		 mode->width;
+>  	ov13858->hblank = v4l2_ctrl_new_std(
+>  				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_HBLANK,
+> -				OV13858_PPL_540MHZ - ov13858->cur_mode->width,
+> -				OV13858_PPL_540MHZ - ov13858->cur_mode->width,
+> -				1,
+> -				OV13858_PPL_540MHZ - ov13858->cur_mode->width);
+> +				hblank, hblank, 1, hblank);
+>  	ov13858->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+>  
+> -	exposure_max = ov13858->cur_mode->vts_def - 8;
+> +	exposure_max = mode->vts_def - 8;
+>  	ov13858->exposure = v4l2_ctrl_new_std(
+>  				ctrl_hdlr, &ov13858_ctrl_ops,
+>  				V4L2_CID_EXPOSURE, OV13858_EXPOSURE_MIN,
+> @@ -1704,6 +1705,7 @@ static int ov13858_probe(struct i2c_client *client,
+>  			 const struct i2c_device_id *devid)
+>  {
+>  	struct ov13858 *ov13858;
+> +	int i;
+>  	int ret;
+>  	u32 val = 0;
+>  
+> @@ -1725,6 +1727,12 @@ static int ov13858_probe(struct i2c_client *client,
+>  		return ret;
 >  	}
 >  
->  	s->client = client;
-> @@ -395,15 +395,16 @@ static int sp2_probe(struct i2c_client *client,
->  	i2c_set_clientdata(client, s);
->  
->  	ret = sp2_init(s);
-> -	if (ret)
-> -		goto err;
-> +	if (ret) {
-> +		kfree(s);
-> +		goto report_failure;
+> +	for (i = 0; i < OV13858_NUM_OF_LINK_FREQS; i++) {
+> +		/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
+> +		link_freq_configs[i].pixel_rate  =
+> +					(link_freq_menu_items[i] * 2 * 4) / 10;
+
+Could you use the formula where you need pixel rate?
+
 > +	}
+> +
+>  	/* Set default mode to max resolution */
+>  	ov13858->cur_mode = &supported_modes[0];
 >  
->  	dev_info(&s->client->dev, "CIMaX SP2 successfully attached\n");
->  	return 0;
-> -err:
-> -	dev_dbg(&client->dev, "init failed=%d\n", ret);
-> -	kfree(s);
->  
-> +report_failure:
-> +	dev_dbg(&client->dev, "init failed=%d\n", ret);
->  	return ret;
->  }
->  
-> 
 
-It's perfectly fine to call kfree() with a NULL pointer, and I don't think
-that this patch makes the code more readable, so I'm dropping this patch.
-
+-- 
 Regards,
 
-	Hans
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
