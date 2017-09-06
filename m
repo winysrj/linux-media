@@ -1,232 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa3.microchip.iphmx.com ([68.232.153.233]:24311 "EHLO
-        esa3.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751046AbdI1Fct (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Sep 2017 01:32:49 -0400
-Subject: Re: [PATCH v2 5/5] media: atmel-isc: Rework the format list
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: <linux-kernel@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Jonathan Corbet <corbet@lwn.net>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20170918063925.6372-1-wenyou.yang@microchip.com>
- <20170918063925.6372-6-wenyou.yang@microchip.com>
- <33dbaf5d-f51a-c148-460b-9079a2696fb1@xs4all.nl>
- <2557b706-9786-0d81-08d5-b61547ddb3e1@Microchip.com>
- <c3a96aa1-2faf-1d1d-b73e-347b25affeab@xs4all.nl>
-From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
-Message-ID: <38ec3518-556f-7d0c-932b-bb475de02c8b@Microchip.com>
-Date: Thu, 28 Sep 2017 13:32:42 +0800
+Received: from eddie.linux-mips.org ([148.251.95.138]:37710 "EHLO
+        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750832AbdIFIPp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 04:15:45 -0400
+Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S23990506AbdIFIPoDE8a4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 10:15:44 +0200
+Date: Wed, 6 Sep 2017 10:15:30 +0200
+From: Ladislav Michl <ladis@linux-mips.org>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
+Subject: [PATCH 10/10] media: rc: gpio-ir-recv: use gpiolib API
+Message-ID: <20170906081530.ya3rs56vfathcvh7@lenoch>
+References: <20170906080748.wgxbmunfsu33bd6x@lenoch>
 MIME-Version: 1.0
-In-Reply-To: <c3a96aa1-2faf-1d1d-b73e-347b25affeab@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170906080748.wgxbmunfsu33bd6x@lenoch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Use of gpiolib API simplifies driver a bit.
 
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+---
+ drivers/media/rc/Kconfig        |  1 +
+ drivers/media/rc/gpio-ir-recv.c | 64 +++++++++++++++++------------------------
+ 2 files changed, 27 insertions(+), 38 deletions(-)
 
-On 2017/9/27 16:03, Hans Verkuil wrote:
-> On 09/27/2017 07:15 AM, Yang, Wenyou wrote:
->> Hi Hans,
->>
->> Thank  you very much for your review.
->>
->> On 2017/9/25 21:24, Hans Verkuil wrote:
->>> Hi Wenyou,
->>>
->>> On 18/09/17 08:39, Wenyou Yang wrote:
->>>> To improve the readability of code, split the format array into two,
->>>> one for the format description, other for the register configuration.
->>>> Meanwhile, add the flag member to indicate the format can be achieved
->>>> from the sensor or be produced by the controller, and rename members
->>>> related to the register configuration.
->>>>
->>>> Also add more formats support: GREY, ARGB444, ARGB555 and ARGB32.
->>>>
->>>> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
->>> This looks better. Just a few comments, see below.
->>>
->>>> ---
->>>>
->>>> Changes in v2:
->>>>    - Add the new patch to remove the unnecessary member from
->>>>      isc_subdev_entity struct.
->>>>    - Rebase on the patch set,
->>>>           [PATCH 0/6] [media] Atmel: Adjustments for seven function implementations
->>>>           https://www.mail-archive.com/linux-media@vger.kernel.org/msg118342.html
->>>>
->>>>    drivers/media/platform/atmel/atmel-isc.c | 524 ++++++++++++++++++++++++-------
->>>>    1 file changed, 405 insertions(+), 119 deletions(-)
->>>>
->>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
->>>> index 2d876903da71..90bd0b28a975 100644
->>>> --- a/drivers/media/platform/atmel/atmel-isc.c
->>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
->>>> @@ -89,34 +89,56 @@ struct isc_subdev_entity {
->>>>    	struct list_head list;
->>>>    };
->>>>    
->>>> +#define FMT_FLAG_FROM_SENSOR		BIT(0)
->>>> +#define FMT_FLAG_FROM_CONTROLLER	BIT(1)
->>> Document the meaning of these flags.
->> Will add it in next version.
->>>> +
->>>>    /*
->>>>     * struct isc_format - ISC media bus format information
->>>>     * @fourcc:		Fourcc code for this format
->>>>     * @mbus_code:		V4L2 media bus format code.
->>>> + * flags:		Indicate format from sensor or converted by controller
->>>>     * @bpp:		Bits per pixel (when stored in memory)
->>>> - * @reg_bps:		reg value for bits per sample
->>>>     *			(when transferred over a bus)
->>>> - * @pipeline:		pipeline switch
->>>>     * @sd_support:		Subdev supports this format
->>>>     * @isc_support:	ISC can convert raw format to this format
->>>>     */
->>>> +
->>>>    struct isc_format {
->>>>    	u32	fourcc;
->>>>    	u32	mbus_code;
->>>> +	u32	flags;
->>>>    	u8	bpp;
->>>>    
->>>> -	u32	reg_bps;
->>>> -	u32	reg_bay_cfg;
->>>> -	u32	reg_rlp_mode;
->>>> -	u32	reg_dcfg_imode;
->>>> -	u32	reg_dctrl_dview;
->>>> -
->>>> -	u32	pipeline;
->>>> -
->>>>    	bool	sd_support;
->>>>    	bool	isc_support;
->>>>    };
->>>>    
->>>> +/* Pipeline bitmap */
->>>> +#define WB_ENABLE	BIT(0)
->>>> +#define CFA_ENABLE	BIT(1)
->>>> +#define CC_ENABLE	BIT(2)
->>>> +#define GAM_ENABLE	BIT(3)
->>>> +#define GAM_BENABLE	BIT(4)
->>>> +#define GAM_GENABLE	BIT(5)
->>>> +#define GAM_RENABLE	BIT(6)
->>>> +#define CSC_ENABLE	BIT(7)
->>>> +#define CBC_ENABLE	BIT(8)
->>>> +#define SUB422_ENABLE	BIT(9)
->>>> +#define SUB420_ENABLE	BIT(10)
->>>> +
->>>> +#define GAM_ENABLES	(GAM_RENABLE | GAM_GENABLE | GAM_BENABLE | GAM_ENABLE)
->>>> +
->>>> +struct fmt_config {
->>>> +	u32	fourcc;
->>>> +
->>>> +	u32	pfe_cfg0_bps;
->>>> +	u32	cfa_baycfg;
->>>> +	u32	rlp_cfg_mode;
->>>> +	u32	dcfg_imode;
->>>> +	u32	dctrl_dview;
->>>> +
->>>> +	u32	bits_pipeline;
->>>> +};
->>>>    
->>>>    #define HIST_ENTRIES		512
->>>>    #define HIST_BAYER		(ISC_HIS_CFG_MODE_B + 1)
->>>> @@ -181,80 +203,321 @@ struct isc_device {
->>>>    	struct list_head		subdev_entities;
->>>>    };
->>>>    
->>>> -#define RAW_FMT_IND_START    0
->>>> -#define RAW_FMT_IND_END      11
->>>> -#define ISC_FMT_IND_START    12
->>>> -#define ISC_FMT_IND_END      14
->>>> -
->>>> -static struct isc_format isc_formats[] = {
->>>> -	{ V4L2_PIX_FMT_SBGGR8, MEDIA_BUS_FMT_SBGGR8_1X8, 8,
->>>> -	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT8,
->>>> -	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
->>>> -	  false, false },
->>>> -	{ V4L2_PIX_FMT_SGBRG8, MEDIA_BUS_FMT_SGBRG8_1X8, 8,
->>>> -	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_GBGB, ISC_RLP_CFG_MODE_DAT8,
->>>> -	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
->>>> -	  false, false },
->>>> -	{ V4L2_PIX_FMT_SGRBG8, MEDIA_BUS_FMT_SGRBG8_1X8, 8,
->>>> -	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_GRGR, ISC_RLP_CFG_MODE_DAT8,
->>>> -	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
->>>> -	  false, false },
->>>> -	{ V4L2_PIX_FMT_SRGGB8, MEDIA_BUS_FMT_SRGGB8_1X8, 8,
->>>> -	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_RGRG, ISC_RLP_CFG_MODE_DAT8,
->>>> -	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
->>>> -	  false, false },
->>>> -
->>>> -	{ V4L2_PIX_FMT_SBGGR10, MEDIA_BUS_FMT_SBGGR10_1X10, 16,
->>>> -	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT10,
->>>> -	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
->>>> -	  false, false },
->>>> -	{ V4L2_PIX_FMT_SGBRG10, MEDIA_BUS_FMT_SGBRG10_1X10, 16,
->>>> -	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_GBGB, ISC_RLP_CFG_MODE_DAT10,
->>>> -	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
->>>> -	  false, false },
->>>> -	{ V4L2_PIX_FMT_SGRBG10, MEDIA_BUS_FMT_SGRBG10_1X10, 16,
->>>> -	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_GRGR, ISC_RLP_CFG_MODE_DAT10,
->>>> -	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
->>>> -	  false, false },
->>>> -	{ V4L2_PIX_FMT_SRGGB10, MEDIA_BUS_FMT_SRGGB10_1X10, 16,
->>>> -	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_RGRG, ISC_RLP_CFG_MODE_DAT10,
->>>> -	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
->>>> -	  false, false },
->>>> -
->>>> -	{ V4L2_PIX_FMT_SBGGR12, MEDIA_BUS_FMT_SBGGR12_1X12, 16,
->>>> -	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT12,
->>>> -	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
->>>> -	  false, false },
->>>> -	{ V4L2_PIX_FMT_SGBRG12, MEDIA_BUS_FMT_SGBRG12_1X12, 16,
->>>> -	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_GBGB, ISC_RLP_CFG_MODE_DAT12,
->>>> -	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
->>>> -	  false, false },
->>>> -	{ V4L2_PIX_FMT_SGRBG12, MEDIA_BUS_FMT_SGRBG12_1X12, 16,
->>>> -	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_GRGR, ISC_RLP_CFG_MODE_DAT12,
->>>> -	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
->>>> -	  false, false },
->>>> -	{ V4L2_PIX_FMT_SRGGB12, MEDIA_BUS_FMT_SRGGB12_1X12, 16,
->>>> -	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_RGRG, ISC_RLP_CFG_MODE_DAT12,
->>>> -	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
->>>> -	  false, false },
->>>> -
->>>> -	{ V4L2_PIX_FMT_YUV420, 0x0, 12,
->>>> -	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_YYCC,
->>>> -	  ISC_DCFG_IMODE_YC420P, ISC_DCTRL_DVIEW_PLANAR, 0x7fb,
->>>> -	  false, false },
->>>> -	{ V4L2_PIX_FMT_YUV422P, 0x0, 16,
->>>> -	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_YYCC,
->>>> -	  ISC_DCFG_IMODE_YC422P, ISC_DCTRL_DVIEW_PLANAR, 0x3fb,
->>>> -	  false, false },
->>>> -	{ V4L2_PIX_FMT_RGB565, MEDIA_BUS_FMT_RGB565_2X8_LE, 16,
->>>> -	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_RGB565,
->>>> -	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x7b,
->>>> -	  false, false },
->>>> -
->>>> -	{ V4L2_PIX_FMT_YUYV, MEDIA_BUS_FMT_YUYV8_2X8, 16,
->>>> -	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT8,
->>>> -	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
->>>> -	  false, false },
->>>> +#define MAX_RAW_FMT_INDEX	11
->>> Do you still need this? The FMT_FLAG_FROM_SENSOR already tells you if it
->>> is a raw format or not.
->>>
->>> As far as I can tell you can drop this define.
->> The MAX_RAW_FMT_INDEX is used to get the raw format supported by the sensor.
->> Some sensor provide more formats other than the raw format, so the
->> FMT_FLAG_FROM_SENSOR is not enough.
-> So, add a new flag. The problem with a define like that is that is easily
-> can get out-of-sync with the array. It's a fragile coding approach.
-Yes, adding a new flag is better.
-Thanks.
-
-Best Regards,
-Wenyou Yang
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 5e83b76495f7..852bf639f1ca 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -382,6 +382,7 @@ config RC_LOOPBACK
+ config IR_GPIO_CIR
+ 	tristate "GPIO IR remote control"
+ 	depends on RC_CORE
++	depends on (OF && GPIOLIB) || COMPILE_TEST
+ 	---help---
+ 	   Say Y if you want to use GPIO based IR Receiver.
+ 
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index 77498d0c8970..c87f085226f2 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -26,39 +26,34 @@
+ 
+ struct gpio_rc_dev {
+ 	struct rc_dev *rcdev;
+-	int gpio_nr;
+-	bool active_low;
++	struct gpio_desc *gpiod;
++	int irq;
+ 	struct timer_list flush_timer;
+ };
+ 
+ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
+ {
++	int val;
+ 	struct gpio_rc_dev *gpio_dev = dev_id;
+-	int gval;
+-	int rc = 0;
+ 	enum raw_event_type type = IR_SPACE;
+ 
+-	gval = gpio_get_value(gpio_dev->gpio_nr);
++	val = gpiod_get_value(gpio_dev->gpiod);
++	if (val < 0)
++		goto err;
+ 
+-	if (gval < 0)
+-		goto err_get_value;
+-
+-	if (gpio_dev->active_low)
+-		gval = !gval;
+-
+-	if (gval == 1)
++	if (val)
+ 		type = IR_PULSE;
+ 
+-	rc = ir_raw_event_store_edge(gpio_dev->rcdev, type);
+-	if (rc < 0)
+-		goto err_get_value;
++	val = ir_raw_event_store_edge(gpio_dev->rcdev, type);
++	if (val < 0)
++		goto err;
+ 
+ 	mod_timer(&gpio_dev->flush_timer,
+ 		  jiffies + nsecs_to_jiffies(gpio_dev->rcdev->timeout));
+ 
+ 	ir_raw_event_handle(gpio_dev->rcdev);
+ 
+-err_get_value:
++err:
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -76,7 +71,6 @@ static void flush_timer(unsigned long arg)
+ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ {
+ 	int rc;
+-	enum of_gpio_flags flags;
+ 	struct rc_dev *rcdev;
+ 	struct gpio_rc_dev *gpio_dev;
+ 	struct device *dev = &pdev->dev;
+@@ -89,15 +83,17 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 	if (!gpio_dev)
+ 		return -ENOMEM;
+ 
+-	rc = of_get_gpio_flags(np, 0, &flags);
+-	if (rc < 0) {
++	gpio_dev->gpiod = devm_gpiod_get(dev, NULL, GPIOD_IN);
++	if (IS_ERR(gpio_dev->gpiod)) {
++		rc = PTR_ERR(gpio_dev->gpiod);
++		/* Just try again if this happens */
+ 		if (rc != -EPROBE_DEFER)
+-			dev_err(dev, "Failed to get gpio flags (%d)\n", rc);
++			dev_err(dev, "error getting gpio (%d)\n", rc);
+ 		return rc;
+ 	}
+-
+-	gpio_dev->gpio_nr = rc;
+-	gpio_dev->active_low = (flags & OF_GPIO_ACTIVE_LOW);
++	gpio_dev->irq = gpiod_to_irq(gpio_dev->gpiod);
++	if (gpio_dev->irq < 0)
++		return gpio_dev->irq;
+ 
+ 	rcdev = devm_rc_allocate_device(dev, RC_DRIVER_IR_RAW);
+ 	if (!rcdev)
+@@ -125,11 +121,6 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 	setup_timer(&gpio_dev->flush_timer, flush_timer,
+ 		    (unsigned long)gpio_dev);
+ 
+-	rc = devm_gpio_request_one(dev, gpio_dev->gpio_nr, GPIOF_DIR_IN,
+-					"gpio-ir-recv");
+-	if (rc < 0)
+-		return rc;
+-
+ 	rc = devm_rc_register_device(dev, rcdev);
+ 	if (rc < 0) {
+ 		dev_err(dev, "failed to register rc device\n");
+@@ -138,8 +129,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, gpio_dev);
+ 
+-	return devm_request_irq(dev, gpio_to_irq(gpio_dev->gpio_nr),
+-				gpio_ir_recv_irq,
++	return devm_request_irq(dev, gpio_dev->irq, gpio_ir_recv_irq,
+ 				IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
+ 				"gpio-ir-recv-irq", gpio_dev);
+ }
+@@ -155,26 +145,24 @@ static int gpio_ir_recv_remove(struct platform_device *pdev)
+ #ifdef CONFIG_PM
+ static int gpio_ir_recv_suspend(struct device *dev)
+ {
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
++	struct gpio_rc_dev *gpio_dev = dev_get_drvdata(dev);
+ 
+ 	if (device_may_wakeup(dev))
+-		enable_irq_wake(gpio_to_irq(gpio_dev->gpio_nr));
++		enable_irq_wake(gpio_dev->irq);
+ 	else
+-		disable_irq(gpio_to_irq(gpio_dev->gpio_nr));
++		disable_irq(gpio_dev->irq);
+ 
+ 	return 0;
+ }
+ 
+ static int gpio_ir_recv_resume(struct device *dev)
+ {
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
++	struct gpio_rc_dev *gpio_dev = dev_get_drvdata(dev);
+ 
+ 	if (device_may_wakeup(dev))
+-		disable_irq_wake(gpio_to_irq(gpio_dev->gpio_nr));
++		disable_irq_wake(gpio_dev->irq);
+ 	else
+-		enable_irq(gpio_to_irq(gpio_dev->gpio_nr));
++		enable_irq(gpio_dev->irq);
+ 
+ 	return 0;
+ }
+-- 
+2.11.0
