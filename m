@@ -1,290 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:40901 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751345AbdIFHm3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Sep 2017 03:42:29 -0400
-Subject: Re: [PATCH v8 07/21] omap3isp: Use generic parser for parsing fwnode
- endpoints
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
- <20170905130553.1332-8-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2d01200b-7d63-c548-a3c8-97ab9a147bee@xs4all.nl>
-Date: Wed, 6 Sep 2017 09:42:24 +0200
+Received: from eddie.linux-mips.org ([148.251.95.138]:37710 "EHLO
+        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751675AbdIFIOz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 04:14:55 -0400
+Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S23990506AbdIFIOyxjvq4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 10:14:54 +0200
+Date: Wed, 6 Sep 2017 10:14:41 +0200
+From: Ladislav Michl <ladis@linux-mips.org>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
+Subject: [PATCH 09/10] media: rc: gpio-ir-recv: remove
+ gpio_ir_recv_platform_data
+Message-ID: <20170906081441.4vxr2x4h4ted5alv@lenoch>
+References: <20170906080748.wgxbmunfsu33bd6x@lenoch>
 MIME-Version: 1.0
-In-Reply-To: <20170905130553.1332-8-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170906080748.wgxbmunfsu33bd6x@lenoch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/05/2017 03:05 PM, Sakari Ailus wrote:
-> Instead of using driver implementation, use
-> v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
-> of the device.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+gpio_ir_recv_platform_data are not used anywhere in kernel tree,
+so remove it.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+---
+ drivers/media/rc/gpio-ir-recv.c                  | 98 +++++++-----------------
+ include/linux/platform_data/media/gpio-ir-recv.h | 23 ------
+ 2 files changed, 29 insertions(+), 92 deletions(-)
 
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/platform/omap3isp/isp.c | 115 +++++++++++-----------------------
->  drivers/media/platform/omap3isp/isp.h |   5 +-
->  2 files changed, 37 insertions(+), 83 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> index 1a428fe9f070..a546cf774d40 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -2001,6 +2001,7 @@ static int isp_remove(struct platform_device *pdev)
->  	__omap3isp_put(isp, false);
->  
->  	media_entity_enum_cleanup(&isp->crashed);
-> +	v4l2_async_notifier_release(&isp->notifier);
->  
->  	return 0;
->  }
-> @@ -2011,44 +2012,41 @@ enum isp_of_phy {
->  	ISP_OF_PHY_CSIPHY2,
->  };
->  
-> -static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
-> -			    struct isp_async_subdev *isd)
-> +static int isp_fwnode_parse(struct device *dev,
-> +			    struct v4l2_fwnode_endpoint *vep,
-> +			    struct v4l2_async_subdev *asd)
->  {
-> +	struct isp_async_subdev *isd =
-> +		container_of(asd, struct isp_async_subdev, asd);
->  	struct isp_bus_cfg *buscfg = &isd->bus;
-> -	struct v4l2_fwnode_endpoint vep;
-> -	unsigned int i;
-> -	int ret;
->  	bool csi1 = false;
-> -
-> -	ret = v4l2_fwnode_endpoint_parse(fwnode, &vep);
-> -	if (ret)
-> -		return ret;
-> +	unsigned int i;
->  
->  	dev_dbg(dev, "parsing endpoint %pOF, interface %u\n",
-> -		to_of_node(fwnode), vep.base.port);
-> +		to_of_node(vep->base.local_fwnode), vep->base.port);
->  
-> -	switch (vep.base.port) {
-> +	switch (vep->base.port) {
->  	case ISP_OF_PHY_PARALLEL:
->  		buscfg->interface = ISP_INTERFACE_PARALLEL;
->  		buscfg->bus.parallel.data_lane_shift =
-> -			vep.bus.parallel.data_shift;
-> +			vep->bus.parallel.data_shift;
->  		buscfg->bus.parallel.clk_pol =
-> -			!!(vep.bus.parallel.flags
-> +			!!(vep->bus.parallel.flags
->  			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
->  		buscfg->bus.parallel.hs_pol =
-> -			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
-> +			!!(vep->bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
->  		buscfg->bus.parallel.vs_pol =
-> -			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
-> +			!!(vep->bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
->  		buscfg->bus.parallel.fld_pol =
-> -			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
-> +			!!(vep->bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
->  		buscfg->bus.parallel.data_pol =
-> -			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
-> -		buscfg->bus.parallel.bt656 = vep.bus_type == V4L2_MBUS_BT656;
-> +			!!(vep->bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
-> +		buscfg->bus.parallel.bt656 = vep->bus_type == V4L2_MBUS_BT656;
->  		break;
->  
->  	case ISP_OF_PHY_CSIPHY1:
->  	case ISP_OF_PHY_CSIPHY2:
-> -		switch (vep.bus_type) {
-> +		switch (vep->bus_type) {
->  		case V4L2_MBUS_CCP2:
->  		case V4L2_MBUS_CSI1:
->  			dev_dbg(dev, "CSI-1/CCP-2 configuration\n");
-> @@ -2060,11 +2058,11 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
->  			break;
->  		default:
->  			dev_err(dev, "unsupported bus type %u\n",
-> -				vep.bus_type);
-> +				vep->bus_type);
->  			return -EINVAL;
->  		}
->  
-> -		switch (vep.base.port) {
-> +		switch (vep->base.port) {
->  		case ISP_OF_PHY_CSIPHY1:
->  			if (csi1)
->  				buscfg->interface = ISP_INTERFACE_CCP2B_PHY1;
-> @@ -2080,47 +2078,47 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
->  		}
->  		if (csi1) {
->  			buscfg->bus.ccp2.lanecfg.clk.pos =
-> -				vep.bus.mipi_csi1.clock_lane;
-> +				vep->bus.mipi_csi1.clock_lane;
->  			buscfg->bus.ccp2.lanecfg.clk.pol =
-> -				vep.bus.mipi_csi1.lane_polarity[0];
-> +				vep->bus.mipi_csi1.lane_polarity[0];
->  			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
->  				buscfg->bus.ccp2.lanecfg.clk.pol,
->  				buscfg->bus.ccp2.lanecfg.clk.pos);
->  
->  			buscfg->bus.ccp2.lanecfg.data[0].pos =
-> -				vep.bus.mipi_csi1.data_lane;
-> +				vep->bus.mipi_csi1.data_lane;
->  			buscfg->bus.ccp2.lanecfg.data[0].pol =
-> -				vep.bus.mipi_csi1.lane_polarity[1];
-> +				vep->bus.mipi_csi1.lane_polarity[1];
->  
->  			dev_dbg(dev, "data lane polarity %u, pos %u\n",
->  				buscfg->bus.ccp2.lanecfg.data[0].pol,
->  				buscfg->bus.ccp2.lanecfg.data[0].pos);
->  
->  			buscfg->bus.ccp2.strobe_clk_pol =
-> -				vep.bus.mipi_csi1.clock_inv;
-> -			buscfg->bus.ccp2.phy_layer = vep.bus.mipi_csi1.strobe;
-> +				vep->bus.mipi_csi1.clock_inv;
-> +			buscfg->bus.ccp2.phy_layer = vep->bus.mipi_csi1.strobe;
->  			buscfg->bus.ccp2.ccp2_mode =
-> -				vep.bus_type == V4L2_MBUS_CCP2;
-> +				vep->bus_type == V4L2_MBUS_CCP2;
->  			buscfg->bus.ccp2.vp_clk_pol = 1;
->  
->  			buscfg->bus.ccp2.crc = 1;
->  		} else {
->  			buscfg->bus.csi2.lanecfg.clk.pos =
-> -				vep.bus.mipi_csi2.clock_lane;
-> +				vep->bus.mipi_csi2.clock_lane;
->  			buscfg->bus.csi2.lanecfg.clk.pol =
-> -				vep.bus.mipi_csi2.lane_polarities[0];
-> +				vep->bus.mipi_csi2.lane_polarities[0];
->  			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
->  				buscfg->bus.csi2.lanecfg.clk.pol,
->  				buscfg->bus.csi2.lanecfg.clk.pos);
->  
->  			buscfg->bus.csi2.num_data_lanes =
-> -				vep.bus.mipi_csi2.num_data_lanes;
-> +				vep->bus.mipi_csi2.num_data_lanes;
->  
->  			for (i = 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
->  				buscfg->bus.csi2.lanecfg.data[i].pos =
-> -					vep.bus.mipi_csi2.data_lanes[i];
-> +					vep->bus.mipi_csi2.data_lanes[i];
->  				buscfg->bus.csi2.lanecfg.data[i].pol =
-> -					vep.bus.mipi_csi2.lane_polarities[i + 1];
-> +					vep->bus.mipi_csi2.lane_polarities[i + 1];
->  				dev_dbg(dev,
->  					"data lane %u polarity %u, pos %u\n", i,
->  					buscfg->bus.csi2.lanecfg.data[i].pol,
-> @@ -2137,57 +2135,13 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
->  
->  	default:
->  		dev_warn(dev, "%pOF: invalid interface %u\n",
-> -			 to_of_node(fwnode), vep.base.port);
-> +			 to_of_node(vep->base.local_fwnode), vep->base.port);
->  		return -EINVAL;
->  	}
->  
->  	return 0;
->  }
->  
-> -static int isp_fwnodes_parse(struct device *dev,
-> -			     struct v4l2_async_notifier *notifier)
-> -{
-> -	struct fwnode_handle *fwnode = NULL;
-> -
-> -	notifier->subdevs = devm_kcalloc(
-> -		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
-> -	if (!notifier->subdevs)
-> -		return -ENOMEM;
-> -
-> -	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
-> -	       (fwnode = fwnode_graph_get_next_endpoint(
-> -			of_fwnode_handle(dev->of_node), fwnode))) {
-> -		struct isp_async_subdev *isd;
-> -
-> -		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
-> -		if (!isd)
-> -			goto error;
-> -
-> -		if (isp_fwnode_parse(dev, fwnode, isd)) {
-> -			devm_kfree(dev, isd);
-> -			continue;
-> -		}
-> -
-> -		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
-> -
-> -		isd->asd.match.fwnode.fwnode =
-> -			fwnode_graph_get_remote_port_parent(fwnode);
-> -		if (!isd->asd.match.fwnode.fwnode) {
-> -			dev_warn(dev, "bad remote port parent\n");
-> -			goto error;
-> -		}
-> -
-> -		isd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-> -		notifier->num_subdevs++;
-> -	}
-> -
-> -	return notifier->num_subdevs;
-> -
-> -error:
-> -	fwnode_handle_put(fwnode);
-> -	return -EINVAL;
-> -}
-> -
->  static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
->  {
->  	struct isp_device *isp = container_of(async, struct isp_device,
-> @@ -2256,7 +2210,9 @@ static int isp_probe(struct platform_device *pdev)
->  	if (ret)
->  		return ret;
->  
-> -	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
-> +	ret = v4l2_async_notifier_parse_fwnode_endpoints(
-> +		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
-> +		isp_fwnode_parse);
->  	if (ret < 0)
->  		return ret;
->  
-> @@ -2407,6 +2363,7 @@ static int isp_probe(struct platform_device *pdev)
->  	__omap3isp_put(isp, false);
->  error:
->  	mutex_destroy(&isp->isp_mutex);
-> +	v4l2_async_notifier_release(&isp->notifier);
->  
->  	return ret;
->  }
-> diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-> index e528df6efc09..8b9043db94b3 100644
-> --- a/drivers/media/platform/omap3isp/isp.h
-> +++ b/drivers/media/platform/omap3isp/isp.h
-> @@ -220,14 +220,11 @@ struct isp_device {
->  
->  	unsigned int sbl_resources;
->  	unsigned int subclk_resources;
-> -
-> -#define ISP_MAX_SUBDEVS		8
-> -	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
->  };
->  
->  struct isp_async_subdev {
-> -	struct isp_bus_cfg bus;
->  	struct v4l2_async_subdev asd;
-> +	struct isp_bus_cfg bus;
->  };
->  
->  #define v4l2_subdev_to_bus_cfg(sd) \
-> 
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index 92a060f776d5..77498d0c8970 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -21,7 +21,6 @@
+ #include <linux/platform_device.h>
+ #include <linux/irq.h>
+ #include <media/rc-core.h>
+-#include <linux/platform_data/media/gpio-ir-recv.h>
+ 
+ #define GPIO_IR_DEVICE_NAME	"gpio_ir_recv"
+ 
+@@ -32,45 +31,6 @@ struct gpio_rc_dev {
+ 	struct timer_list flush_timer;
+ };
+ 
+-#ifdef CONFIG_OF
+-/*
+- * Translate OpenFirmware node properties into platform_data
+- */
+-static int gpio_ir_recv_get_devtree_pdata(struct device *dev,
+-				  struct gpio_ir_recv_platform_data *pdata)
+-{
+-	struct device_node *np = dev->of_node;
+-	enum of_gpio_flags flags;
+-	int gpio;
+-
+-	gpio = of_get_gpio_flags(np, 0, &flags);
+-	if (gpio < 0) {
+-		if (gpio != -EPROBE_DEFER)
+-			dev_err(dev, "Failed to get gpio flags (%d)\n", gpio);
+-		return gpio;
+-	}
+-
+-	pdata->gpio_nr = gpio;
+-	pdata->active_low = (flags & OF_GPIO_ACTIVE_LOW);
+-	/* probe() takes care of map_name == NULL or allowed_protos == 0 */
+-	pdata->map_name = of_get_property(np, "linux,rc-map-name", NULL);
+-	pdata->allowed_protos = 0;
+-
+-	return 0;
+-}
+-
+-static const struct of_device_id gpio_ir_recv_of_match[] = {
+-	{ .compatible = "gpio-ir-receiver", },
+-	{ },
+-};
+-MODULE_DEVICE_TABLE(of, gpio_ir_recv_of_match);
+-
+-#else /* !CONFIG_OF */
+-
+-#define gpio_ir_recv_get_devtree_pdata(dev, pdata)	(-ENOSYS)
+-
+-#endif
+-
+ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
+ {
+ 	struct gpio_rc_dev *gpio_dev = dev_id;
+@@ -115,33 +75,30 @@ static void flush_timer(unsigned long arg)
+ 
+ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ {
+-	struct device *dev = &pdev->dev;
+-	struct gpio_rc_dev *gpio_dev;
+-	struct rc_dev *rcdev;
+-	const struct gpio_ir_recv_platform_data *pdata = dev->platform_data;
+ 	int rc;
++	enum of_gpio_flags flags;
++	struct rc_dev *rcdev;
++	struct gpio_rc_dev *gpio_dev;
++	struct device *dev = &pdev->dev;
++	struct device_node *np = dev->of_node;
+ 
+-	if (pdev->dev.of_node) {
+-		struct gpio_ir_recv_platform_data *dtpdata =
+-			devm_kzalloc(dev, sizeof(*dtpdata), GFP_KERNEL);
+-		if (!dtpdata)
+-			return -ENOMEM;
+-		rc = gpio_ir_recv_get_devtree_pdata(dev, dtpdata);
+-		if (rc)
+-			return rc;
+-		pdata = dtpdata;
+-	}
+-
+-	if (!pdata)
+-		return -EINVAL;
+-
+-	if (pdata->gpio_nr < 0)
+-		return -EINVAL;
++	if (!np)
++		return -ENODEV;
+ 
+ 	gpio_dev = devm_kzalloc(dev, sizeof(struct gpio_rc_dev), GFP_KERNEL);
+ 	if (!gpio_dev)
+ 		return -ENOMEM;
+ 
++	rc = of_get_gpio_flags(np, 0, &flags);
++	if (rc < 0) {
++		if (rc != -EPROBE_DEFER)
++			dev_err(dev, "Failed to get gpio flags (%d)\n", rc);
++		return rc;
++	}
++
++	gpio_dev->gpio_nr = rc;
++	gpio_dev->active_low = (flags & OF_GPIO_ACTIVE_LOW);
++
+ 	rcdev = devm_rc_allocate_device(dev, RC_DRIVER_IR_RAW);
+ 	if (!rcdev)
+ 		return -ENOMEM;
+@@ -158,20 +115,17 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 	rcdev->min_timeout = 1;
+ 	rcdev->timeout = IR_DEFAULT_TIMEOUT;
+ 	rcdev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
+-	if (pdata->allowed_protos)
+-		rcdev->allowed_protocols = pdata->allowed_protos;
+-	else
+-		rcdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
+-	rcdev->map_name = pdata->map_name ?: RC_MAP_EMPTY;
++	rcdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
++	rcdev->map_name = of_get_property(np, "linux,rc-map-name", NULL);
++	if (!rcdev->map_name)
++		rcdev->map_name = RC_MAP_EMPTY;
+ 
+ 	gpio_dev->rcdev = rcdev;
+-	gpio_dev->gpio_nr = pdata->gpio_nr;
+-	gpio_dev->active_low = pdata->active_low;
+ 
+ 	setup_timer(&gpio_dev->flush_timer, flush_timer,
+ 		    (unsigned long)gpio_dev);
+ 
+-	rc = devm_gpio_request_one(dev, pdata->gpio_nr, GPIOF_DIR_IN,
++	rc = devm_gpio_request_one(dev, gpio_dev->gpio_nr, GPIOF_DIR_IN,
+ 					"gpio-ir-recv");
+ 	if (rc < 0)
+ 		return rc;
+@@ -184,7 +138,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, gpio_dev);
+ 
+-	return devm_request_irq(dev, gpio_to_irq(pdata->gpio_nr),
++	return devm_request_irq(dev, gpio_to_irq(gpio_dev->gpio_nr),
+ 				gpio_ir_recv_irq,
+ 				IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
+ 				"gpio-ir-recv-irq", gpio_dev);
+@@ -231,6 +185,12 @@ static const struct dev_pm_ops gpio_ir_recv_pm_ops = {
+ };
+ #endif
+ 
++static const struct of_device_id gpio_ir_recv_of_match[] = {
++	{ .compatible = "gpio-ir-receiver", },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, gpio_ir_recv_of_match);
++
+ static struct platform_driver gpio_ir_recv_driver = {
+ 	.probe  = gpio_ir_recv_probe,
+ 	.remove = gpio_ir_recv_remove,
+diff --git a/include/linux/platform_data/media/gpio-ir-recv.h b/include/linux/platform_data/media/gpio-ir-recv.h
+deleted file mode 100644
+index 0c298f569d5a..000000000000
+--- a/include/linux/platform_data/media/gpio-ir-recv.h
++++ /dev/null
+@@ -1,23 +0,0 @@
+-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 and
+- * only version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- */
+-
+-#ifndef __GPIO_IR_RECV_H__
+-#define __GPIO_IR_RECV_H__
+-
+-struct gpio_ir_recv_platform_data {
+-	int		gpio_nr;
+-	bool		active_low;
+-	u64		allowed_protos;
+-	const char	*map_name;
+-};
+-
+-#endif /* __GPIO_IR_RECV_H__ */
+-- 
+2.11.0
