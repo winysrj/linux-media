@@ -1,55 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46533
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752166AbdIVVrM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 17:47:12 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/8] media: tuner-types: add kernel-doc markups for struct tunertype
-Date: Fri, 22 Sep 2017 18:46:59 -0300
-Message-Id: <375a66118102a2c6a8bf4d2619b0ab818d320604.1506116720.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
-References: <cover.1506116720.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
-References: <cover.1506116720.git.mchehab@s-opensource.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:33483 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932104AbdIGJug (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 05:50:36 -0400
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Schwarzott <zzam@gentoo.org>,
+        linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: cx23885: make const array buf static, reduces object code size
+Date: Thu,  7 Sep 2017 10:50:23 +0100
+Message-Id: <20170907095023.26948-1-colin.king@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This struct is lacking documentation. Add it.
+From: Colin Ian King <colin.king@canonical.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Don't populate the array buf on the stack, instead make it static.
+Makes the object code smaller by over 240 bytes:
+
+Before:
+   text	   data	    bss	    dec	    hex	filename
+  21689	  22992	    416	  45097	   b029	cx23885-cards.o
+
+After:
+   text	   data	    bss	    dec	    hex	filename
+  21348	  23088	    416	  44852	   af34	cx23885-cards.o
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- include/media/tuner-types.h | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/media/pci/cx23885/cx23885-cards.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/media/tuner-types.h b/include/media/tuner-types.h
-index aed539068d2d..55bc14093c0f 100644
---- a/include/media/tuner-types.h
-+++ b/include/media/tuner-types.h
-@@ -170,6 +170,21 @@ struct tuner_params {
- 	struct tuner_range *ranges;
- };
+diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+index 78a8836d03e4..28eab9c518c5 100644
+--- a/drivers/media/pci/cx23885/cx23885-cards.c
++++ b/drivers/media/pci/cx23885/cx23885-cards.c
+@@ -1323,7 +1323,7 @@ static void hauppauge_eeprom(struct cx23885_dev *dev, u8 *eeprom_data)
+ static void tbs_card_init(struct cx23885_dev *dev)
+ {
+ 	int i;
+-	const u8 buf[] = {
++	static const u8 buf[] = {
+ 		0xe0, 0x06, 0x66, 0x33, 0x65,
+ 		0x01, 0x17, 0x06, 0xde};
  
-+/**
-+ * struct tunertype - describes the known tuners.
-+ *
-+ * @name:	string with the tuner's name.
-+ * @count:	size of &struct tuner_params array.
-+ * @params:	pointer to &struct tuner_params array.
-+ *
-+ * @min:	minimal tuner frequency, in 62.5 kHz step.
-+ *		should be multiplied to 16 to convert to MHz.
-+ * @max:	minimal tuner frequency, in 62.5 kHz step.
-+ *		Should be multiplied to 16 to convert to MHz.
-+ * @stepsize:	frequency step, in Hz.
-+ * @initdata:	optional byte sequence to initialize the tuner.
-+ * @sleepdata:	optional byte sequence to power down the tuner.
-+ */
- struct tunertype {
- 	char *name;
- 	unsigned int count;
 -- 
-2.13.5
+2.14.1
