@@ -1,158 +1,282 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:32991
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751992AbdI0VKe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:10:34 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: [PATCH v2 11/13] scripts: kernel-doc: print the declaration name on warnings
-Date: Wed, 27 Sep 2017 18:10:22 -0300
-Message-Id: <ed5273749b3f54b50b0f5c0bde953d10c622fd04.1506546492.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506546492.git.mchehab@s-opensource.com>
-References: <cover.1506546492.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506546492.git.mchehab@s-opensource.com>
-References: <cover.1506546492.git.mchehab@s-opensource.com>
+Received: from gofer.mess.org ([88.97.38.141]:37859 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754005AbdIGOJ3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 7 Sep 2017 10:09:29 -0400
+Date: Thu, 7 Sep 2017 15:09:28 +0100
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [GIT FIXES FOR v4.14] a800 probe fix
+Message-ID: <20170907140928.uamnxi2prmmuofad@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The logic at create_parameterlist()'s ancillary push_parameter()
-function has already a way to output the declaration name, with
-would help to discover what declaration is missing.
+Hi Mauro,
 
-However, currently, the logic is utterly broken, as it uses
-the var $type with a wrong meaning. With the current code,
-it will never print anything. I suspect that originally
-it was using the second argument of output_declaration().
+This is a single fix for doing dma from the stack. After this, the a800 works
+again.
 
-I opted to not rely on a globally defined $declaration_name,
-but, instead, to pass it explicitly as a parameter.
+Thanks,
+Sean
 
-While here, I removed a unaligned check for !$anon_struct_union.
-This is not needed, as, if $anon_struct_union is not zero,
-$parameterdescs{$param} will be defined.
+--
+The following changes since commit 1efdf1776e2253b77413c997bed862410e4b6aaf:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- scripts/kernel-doc | 38 ++++++++++++++++----------------------
- 1 file changed, 16 insertions(+), 22 deletions(-)
+  media: leds: as3645a: add V4L2_FLASH_LED_CLASS dependency (2017-09-05 16:32:45 -0400)
 
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index 28c5fe63fb58..713608046d3a 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -1037,7 +1037,7 @@ sub dump_struct($$) {
- 	# Ignore other nested elements, like enums
- 	$members =~ s/({[^\{\}]*})//g;
+are available in the git repository at:
+
+  git://linuxtv.org/syoung/media_tree.git for-v4.14d
+
+for you to fetch changes up to c55f09661483373cb55b8c67a22ca3371167214c:
+
+  media: dvb: i2c transfers over usb cannot be done from stack (2017-09-07 12:59:01 +0100)
+
+----------------------------------------------------------------
+Sean Young (1):
+      media: dvb: i2c transfers over usb cannot be done from stack
+
+ drivers/media/dvb-frontends/dib3000mc.c | 50 ++++++++++++++++++++++------
+ drivers/media/dvb-frontends/dvb-pll.c   | 22 +++++++++---
+ drivers/media/tuners/mt2060.c           | 59 ++++++++++++++++++++++++++-------
+ 3 files changed, 103 insertions(+), 28 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/dib3000mc.c b/drivers/media/dvb-frontends/dib3000mc.c
+index 224283fe100a..4d086a7248e9 100644
+--- a/drivers/media/dvb-frontends/dib3000mc.c
++++ b/drivers/media/dvb-frontends/dib3000mc.c
+@@ -55,29 +55,57 @@ struct dib3000mc_state {
  
--	create_parameterlist($members, ';', $file);
-+	create_parameterlist($members, ';', $file, $declaration_name);
- 	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual);
+ static u16 dib3000mc_read_word(struct dib3000mc_state *state, u16 reg)
+ {
+-	u8 wb[2] = { (reg >> 8) | 0x80, reg & 0xff };
+-	u8 rb[2];
+ 	struct i2c_msg msg[2] = {
+-		{ .addr = state->i2c_addr >> 1, .flags = 0,        .buf = wb, .len = 2 },
+-		{ .addr = state->i2c_addr >> 1, .flags = I2C_M_RD, .buf = rb, .len = 2 },
++		{ .addr = state->i2c_addr >> 1, .flags = 0,        .len = 2 },
++		{ .addr = state->i2c_addr >> 1, .flags = I2C_M_RD, .len = 2 },
+ 	};
++	u16 word;
++	u8 *b;
++
++	b = kmalloc(4, GFP_KERNEL);
++	if (!b)
++		return 0;
++
++	b[0] = (reg >> 8) | 0x80;
++	b[1] = reg;
++	b[2] = 0;
++	b[3] = 0;
++
++	msg[0].buf = b;
++	msg[1].buf = b + 2;
  
- 	# Adjust declaration for better display
-@@ -1137,7 +1137,7 @@ sub dump_typedef($$) {
- 	$declaration_name = $2;
- 	my $args = $3;
+ 	if (i2c_transfer(state->i2c_adap, msg, 2) != 2)
+ 		dprintk("i2c read error on %d\n",reg);
  
--	create_parameterlist($args, ',', $file);
-+	create_parameterlist($args, ',', $file, $declaration_name);
- 
- 	output_declaration($declaration_name,
- 			   'function',
-@@ -1186,10 +1186,11 @@ sub save_struct_actual($) {
-     $struct_actual = $struct_actual . $actual . " ";
+-	return (rb[0] << 8) | rb[1];
++	word = (b[2] << 8) | b[3];
++	kfree(b);
++
++	return word;
  }
  
--sub create_parameterlist($$$) {
-+sub create_parameterlist($$$$) {
-     my $args = shift;
-     my $splitter = shift;
-     my $file = shift;
-+    my $declaration_name = shift;
-     my $type;
-     my $param;
- 
-@@ -1219,7 +1220,7 @@ sub create_parameterlist($$$) {
- 	    $type = $arg;
- 	    $type =~ s/([^\(]+\(\*?)\s*$param/$1/;
- 	    save_struct_actual($param);
--	    push_parameter($param, $type, $file);
-+	    push_parameter($param, $type, $file, $declaration_name);
- 	} elsif ($arg) {
- 	    $arg =~ s/\s*:\s*/:/g;
- 	    $arg =~ s/\s*\[/\[/g;
-@@ -1244,27 +1245,28 @@ sub create_parameterlist($$$) {
- 	    foreach $param (@args) {
- 		if ($param =~ m/^(\*+)\s*(.*)/) {
- 		    save_struct_actual($2);
--		    push_parameter($2, "$type $1", $file);
-+		    push_parameter($2, "$type $1", $file, $declaration_name);
- 		}
- 		elsif ($param =~ m/(.*?):(\d+)/) {
- 		    if ($type ne "") { # skip unnamed bit-fields
- 			save_struct_actual($1);
--			push_parameter($1, "$type:$2", $file)
-+			push_parameter($1, "$type:$2", $file, $declaration_name)
- 		    }
- 		}
- 		else {
- 		    save_struct_actual($param);
--		    push_parameter($param, $type, $file);
-+		    push_parameter($param, $type, $file, $declaration_name);
- 		}
- 	    }
- 	}
-     }
+ static int dib3000mc_write_word(struct dib3000mc_state *state, u16 reg, u16 val)
+ {
+-	u8 b[4] = {
+-		(reg >> 8) & 0xff, reg & 0xff,
+-		(val >> 8) & 0xff, val & 0xff,
+-	};
+ 	struct i2c_msg msg = {
+-		.addr = state->i2c_addr >> 1, .flags = 0, .buf = b, .len = 4
++		.addr = state->i2c_addr >> 1, .flags = 0, .len = 4
+ 	};
+-	return i2c_transfer(state->i2c_adap, &msg, 1) != 1 ? -EREMOTEIO : 0;
++	int rc;
++	u8 *b;
++
++	b = kmalloc(4, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
++
++	b[0] = reg >> 8;
++	b[1] = reg;
++	b[2] = val >> 8;
++	b[3] = val;
++
++	msg.buf = b;
++
++	rc = i2c_transfer(state->i2c_adap, &msg, 1) != 1 ? -EREMOTEIO : 0;
++	kfree(b);
++
++	return rc;
  }
  
--sub push_parameter($$$) {
-+sub push_parameter($$$$) {
- 	my $param = shift;
- 	my $type = shift;
- 	my $file = shift;
-+	my $declaration_name = shift;
+ static int dib3000mc_identify(struct dib3000mc_state *state)
+diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-frontends/dvb-pll.c
+index 7bec3e028bee..5553b89b804e 100644
+--- a/drivers/media/dvb-frontends/dvb-pll.c
++++ b/drivers/media/dvb-frontends/dvb-pll.c
+@@ -753,13 +753,19 @@ struct dvb_frontend *dvb_pll_attach(struct dvb_frontend *fe, int pll_addr,
+ 				    struct i2c_adapter *i2c,
+ 				    unsigned int pll_desc_id)
+ {
+-	u8 b1 [] = { 0 };
+-	struct i2c_msg msg = { .addr = pll_addr, .flags = I2C_M_RD,
+-			       .buf = b1, .len = 1 };
++	u8 *b1;
++	struct i2c_msg msg = { .addr = pll_addr, .flags = I2C_M_RD, .len = 1 };
+ 	struct dvb_pll_priv *priv = NULL;
+ 	int ret;
+ 	const struct dvb_pll_desc *desc;
  
- 	if (($anon_struct_union == 1) && ($type eq "") &&
- 	    ($param eq "}")) {
-@@ -1301,21 +1303,13 @@ sub push_parameter($$$) {
- 	# warn if parameter has no description
- 	# (but ignore ones starting with # as these are not parameters
- 	# but inline preprocessor statements);
--	# also ignore unnamed structs/unions;
--	if (!$anon_struct_union) {
-+	# Note: It will also ignore void params and unnamed structs/unions
- 	if (!defined $parameterdescs{$param} && $param !~ /^#/) {
-+		$parameterdescs{$param} = $undescribed;
++	b1 = kmalloc(1, GFP_KERNEL);
++	if (!b1)
++		return NULL;
++
++	b1[0] = 0;
++	msg.buf = b1;
++
+ 	if ((id[dvb_pll_devcount] > DVB_PLL_UNDEFINED) &&
+ 	    (id[dvb_pll_devcount] < ARRAY_SIZE(pll_list)))
+ 		pll_desc_id = id[dvb_pll_devcount];
+@@ -773,15 +779,19 @@ struct dvb_frontend *dvb_pll_attach(struct dvb_frontend *fe, int pll_addr,
+ 			fe->ops.i2c_gate_ctrl(fe, 1);
  
--	    $parameterdescs{$param} = $undescribed;
--
--	    if (($type eq 'function') || ($type eq 'enum')) {
--		print STDERR "${file}:$.: warning: Function parameter ".
--		    "or member '$param' not " .
--		    "described in '$declaration_name'\n";
--	    }
--	    print STDERR "${file}:$.: warning:" .
--			 " No description found for parameter '$param'\n";
--	    ++$warnings;
--	}
-+		print STDERR
-+		      "${file}:$.: warning: Function parameter or member '$param' not described in '$declaration_name'\n";
-+		++$warnings;
+ 		ret = i2c_transfer (i2c, &msg, 1);
+-		if (ret != 1)
++		if (ret != 1) {
++			kfree(b1);
+ 			return NULL;
++		}
+ 		if (fe->ops.i2c_gate_ctrl)
+ 			     fe->ops.i2c_gate_ctrl(fe, 0);
  	}
  
- 	$param = xml_escape($param);
-@@ -1472,7 +1466,7 @@ sub dump_function($$) {
- 	$declaration_name = $2;
- 	my $args = $3;
+ 	priv = kzalloc(sizeof(struct dvb_pll_priv), GFP_KERNEL);
+-	if (priv == NULL)
++	if (!priv) {
++		kfree(b1);
+ 		return NULL;
++	}
  
--	create_parameterlist($args, ',', $file);
-+	create_parameterlist($args, ',', $file, $declaration_name);
-     } else {
- 	print STDERR "${file}:$.: warning: cannot understand function prototype: '$prototype'\n";
- 	return;
--- 
-2.13.5
+ 	priv->pll_i2c_address = pll_addr;
+ 	priv->i2c = i2c;
+@@ -811,6 +821,8 @@ struct dvb_frontend *dvb_pll_attach(struct dvb_frontend *fe, int pll_addr,
+ 				"insmod option" : "autodetected");
+ 	}
+ 
++	kfree(b1);
++
+ 	return fe;
+ }
+ EXPORT_SYMBOL(dvb_pll_attach);
+diff --git a/drivers/media/tuners/mt2060.c b/drivers/media/tuners/mt2060.c
+index 2e487f9a2cc3..4983eeb39f36 100644
+--- a/drivers/media/tuners/mt2060.c
++++ b/drivers/media/tuners/mt2060.c
+@@ -38,41 +38,74 @@ MODULE_PARM_DESC(debug, "Turn on/off debugging (default:off).");
+ static int mt2060_readreg(struct mt2060_priv *priv, u8 reg, u8 *val)
+ {
+ 	struct i2c_msg msg[2] = {
+-		{ .addr = priv->cfg->i2c_address, .flags = 0,        .buf = &reg, .len = 1 },
+-		{ .addr = priv->cfg->i2c_address, .flags = I2C_M_RD, .buf = val,  .len = 1 },
++		{ .addr = priv->cfg->i2c_address, .flags = 0, .len = 1 },
++		{ .addr = priv->cfg->i2c_address, .flags = I2C_M_RD, .len = 1 },
+ 	};
++	int rc = 0;
++	u8 *b;
++
++	b = kmalloc(2, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
++
++	b[0] = reg;
++	b[1] = 0;
++
++	msg[0].buf = b;
++	msg[1].buf = b + 1;
+ 
+ 	if (i2c_transfer(priv->i2c, msg, 2) != 2) {
+ 		printk(KERN_WARNING "mt2060 I2C read failed\n");
+-		return -EREMOTEIO;
++		rc = -EREMOTEIO;
+ 	}
+-	return 0;
++	*val = b[1];
++	kfree(b);
++
++	return rc;
+ }
+ 
+ // Writes a single register
+ static int mt2060_writereg(struct mt2060_priv *priv, u8 reg, u8 val)
+ {
+-	u8 buf[2] = { reg, val };
+ 	struct i2c_msg msg = {
+-		.addr = priv->cfg->i2c_address, .flags = 0, .buf = buf, .len = 2
++		.addr = priv->cfg->i2c_address, .flags = 0, .len = 2
+ 	};
++	u8 *buf;
++	int rc = 0;
++
++	buf = kmalloc(2, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++
++	buf[0] = reg;
++	buf[1] = val;
++
++	msg.buf = buf;
+ 
+ 	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
+ 		printk(KERN_WARNING "mt2060 I2C write failed\n");
+-		return -EREMOTEIO;
++		rc = -EREMOTEIO;
+ 	}
+-	return 0;
++	kfree(buf);
++	return rc;
+ }
+ 
+ // Writes a set of consecutive registers
+ static int mt2060_writeregs(struct mt2060_priv *priv,u8 *buf, u8 len)
+ {
+ 	int rem, val_len;
+-	u8 xfer_buf[16];
++	u8 *xfer_buf;
++	int rc = 0;
+ 	struct i2c_msg msg = {
+-		.addr = priv->cfg->i2c_address, .flags = 0, .buf = xfer_buf
++		.addr = priv->cfg->i2c_address, .flags = 0
+ 	};
+ 
++	xfer_buf = kmalloc(16, GFP_KERNEL);
++	if (!xfer_buf)
++		return -ENOMEM;
++
++	msg.buf = xfer_buf;
++
+ 	for (rem = len - 1; rem > 0; rem -= priv->i2c_max_regs) {
+ 		val_len = min_t(int, rem, priv->i2c_max_regs);
+ 		msg.len = 1 + val_len;
+@@ -81,11 +114,13 @@ static int mt2060_writeregs(struct mt2060_priv *priv,u8 *buf, u8 len)
+ 
+ 		if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
+ 			printk(KERN_WARNING "mt2060 I2C write failed (len=%i)\n", val_len);
+-			return -EREMOTEIO;
++			rc = -EREMOTEIO;
++			break;
+ 		}
+ 	}
+ 
+-	return 0;
++	kfree(xfer_buf);
++	return rc;
+ }
+ 
+ // Initialisation sequences
