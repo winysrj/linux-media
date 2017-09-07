@@ -1,148 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47009
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752155AbdIANZH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:25:07 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v2 25/27] media: dvb CA docs: place undocumented data together with ioctls
-Date: Fri,  1 Sep 2017 10:24:47 -0300
-Message-Id: <fcebe5a3582acc707db78b0ad294c8463c5b8998.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:38252 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755868AbdIGSmh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 14:42:37 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v3 01/15] [media] v4l: Document explicit synchronization behaviour
+Date: Thu,  7 Sep 2017 15:42:12 -0300
+Message-Id: <20170907184226.27482-2-gustavo@padovan.org>
+In-Reply-To: <20170907184226.27482-1-gustavo@padovan.org>
+References: <20170907184226.27482-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right now, the same undocumented structs are on two places:
-at ca_data_types.rst and together with their ioctls.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Move them to just one place and use the standard way to
-represent them.
+Add section to VIDIOC_QBUF about it
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+v2:
+	- mention that fences are files (Hans)
+	- rework for the new API
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- Documentation/media/uapi/dvb/ca-get-msg.rst    | 38 ++++++--------------------
- Documentation/media/uapi/dvb/ca-set-descr.rst  | 10 +++++++
- Documentation/media/uapi/dvb/ca_data_types.rst | 32 ----------------------
- 3 files changed, 19 insertions(+), 61 deletions(-)
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst | 31 ++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff --git a/Documentation/media/uapi/dvb/ca-get-msg.rst b/Documentation/media/uapi/dvb/ca-get-msg.rst
-index 121588da3ef1..1ee9d667c901 100644
---- a/Documentation/media/uapi/dvb/ca-get-msg.rst
-+++ b/Documentation/media/uapi/dvb/ca-get-msg.rst
-@@ -28,37 +28,17 @@ Arguments
- ``msg``
-   Pointer to struct :c:type:`ca_msg`.
+diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+index 1f3612637200..fae0b1431672 100644
+--- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
++++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+@@ -117,6 +117,37 @@ immediately with an ``EAGAIN`` error code when no buffer is available.
+ The struct :c:type:`v4l2_buffer` structure is specified in
+ :ref:`buffer`.
  
-+.. c:type:: ca_msg
- 
--.. c:type:: struct ca_msg
--
--.. flat-table:: struct ca_msg
--    :header-rows:  1
--    :stub-columns: 0
--
--    -
--      - type
--      - name
--      - description
--    -
--       - unsigned int
--       - index
--       -
--
--    -
--       - unsigned int
--       - type
--       -
--
--    -
--       - unsigned int
--       - length
--       -
--
--    -
--       - unsigned char
--       - msg[256]
--       -
-+.. code-block:: c
- 
-+    /* a message to/from a CI-CAM */
-+    struct ca_msg {
-+	unsigned int index;
-+	unsigned int type;
-+	unsigned int length;
-+	unsigned char msg[256];
-+    };
- 
- Description
- -----------
-diff --git a/Documentation/media/uapi/dvb/ca-set-descr.rst b/Documentation/media/uapi/dvb/ca-set-descr.rst
-index 70f7b3cf12ad..95de34cf74ba 100644
---- a/Documentation/media/uapi/dvb/ca-set-descr.rst
-+++ b/Documentation/media/uapi/dvb/ca-set-descr.rst
-@@ -28,6 +28,16 @@ Arguments
- ``msg``
-   Pointer to struct :c:type:`ca_descr`.
- 
-+.. c:type:: ca_descr
++Explicit Synchronization
++------------------------
 +
-+.. code-block:: c
++Explicit Synchronization allows us to control the synchronization of
++shared buffers from userspace by passing fences to the kernel and/or
++receiving them from it. Fences passed to the kernel are named in-fences and
++the kernel should wait them to signal before using the buffer, i.e., queueing
++it to the driver. On the other side, the kernel can create out-fences for the
++buffers it queues to the drivers, out-fences signal when the driver is
++finished with buffer, that is the buffer is ready. The fence are represented
++by file and passed as file descriptor to userspace.
 +
-+    struct ca_descr {
-+	unsigned int index;
-+	unsigned int parity;
-+	unsigned char cw[8];
-+    };
++The in-fences are communicated to the kernel at the ``VIDIOC_QBUF`` ioctl
++using the ``V4L2_BUF_FLAG_IN_FENCE`` buffer
++flags and the `fence_fd` field. If an in-fence needs to be passed to the kernel,
++`fence_fd` should be set to the fence file descriptor number and the
++``V4L2_BUF_FLAG_IN_FENCE`` should be set as well. Failure to set both will
++cause ``VIDIOC_QBUF`` to return with error.
 +
++To get a out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE`` flag should
++be set to notify it that the next queued buffer should have a fence attached to
++it. That means the out-fence may not be associated with the buffer in the
++current ``VIDIOC_QBUF`` ioctl call because the ordering in which videobuf2 core
++queues the buffers to the drivers can't be guaranteed. To become aware of the
++of the next queued buffer and the out-fence attached to it the
++``V4L2_EVENT_BUF_QUEUED`` event should be used. It will trigger an event
++for every buffer queued to the V4L2 driver.
++
++At streamoff the out-fences will either signal normally if the drivers wait
++for the operations on the buffers to finish or signal with error if the
++driver cancel the pending operations.
  
- Description
- -----------
-diff --git a/Documentation/media/uapi/dvb/ca_data_types.rst b/Documentation/media/uapi/dvb/ca_data_types.rst
-index aa57dd176825..ac7cbd76ddd5 100644
---- a/Documentation/media/uapi/dvb/ca_data_types.rst
-+++ b/Documentation/media/uapi/dvb/ca_data_types.rst
-@@ -7,35 +7,3 @@ CA Data Types
- *************
- 
- .. kernel-doc:: include/uapi/linux/dvb/ca.h
--
--.. c:type:: ca_msg
--
--Undocumented data types
--=======================
--
--.. note::
--
--   Those data types are undocumented. Documentation is welcome.
--
--.. c:type:: ca_msg
--
--.. code-block:: c
--
--    /* a message to/from a CI-CAM */
--    struct ca_msg {
--	unsigned int index;
--	unsigned int type;
--	unsigned int length;
--	unsigned char msg[256];
--    };
--
--
--.. c:type:: ca_descr
--
--.. code-block:: c
--
--    struct ca_descr {
--	unsigned int index;
--	unsigned int parity;
--	unsigned char cw[8];
--    };
+ Return Value
+ ============
 -- 
 2.13.5
