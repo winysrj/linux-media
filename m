@@ -1,46 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:50082 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S968951AbdIZQf4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 12:35:56 -0400
-From: Baruch Siach <baruch@tkos.co.il>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Adam Jackson <ajax@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Baruch Siach <baruch@tkos.co.il>
-Subject: [PATCH 3/3] edid-decode: parse_extension: fix maybe uninitialized warning
-Date: Tue, 26 Sep 2017 19:33:40 +0300
-Message-Id: <93ffb19c3563c5f7fdd0bdb134de1c9e0c1956ba.1506443620.git.baruch@tkos.co.il>
-In-Reply-To: <07a4901aea4f30db053028fd3a84806b7777ef64.1506443620.git.baruch@tkos.co.il>
-References: <07a4901aea4f30db053028fd3a84806b7777ef64.1506443620.git.baruch@tkos.co.il>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:33719 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755548AbdIGSmo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 14:42:44 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v3 03/15] [media] vb2: check earlier if stream can be started
+Date: Thu,  7 Sep 2017 15:42:14 -0300
+Message-Id: <20170907184226.27482-4-gustavo@padovan.org>
+In-Reply-To: <20170907184226.27482-1-gustavo@padovan.org>
+References: <20170907184226.27482-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the following warning:
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-edid-decode.c: In function ‘main’:
-edid-decode.c:2962:26: warning: ‘conformant_extension’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+To support explicit synchronization we need to run all operations that can
+fail before we queue the buffer to the driver. With fences the queueing
+will be delayed if the fence is not signaled yet and it will be better if
+such callback do not fail.
 
-Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+For that we move the vb2_start_streaming() before the queuing for the
+buffer may happen.
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- edid-decode.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff --git a/edid-decode.c b/edid-decode.c
-index 4abd79333d61..d3aafa926900 100644
---- a/edid-decode.c
-+++ b/edid-decode.c
-@@ -2397,7 +2397,7 @@ extension_version(unsigned char *x)
- static int
- parse_extension(unsigned char *x)
- {
--    int conformant_extension;
-+    int conformant_extension = 0;
-     printf("\n");
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index cb115ba6a1d2..60f8b582396a 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1399,29 +1399,27 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	trace_vb2_qbuf(q, vb);
  
-     switch(x[0]) {
+ 	/*
+-	 * If already streaming, give the buffer to driver for processing.
+-	 * If not, the buffer will be given to driver on next streamon.
+-	 */
+-	if (q->start_streaming_called)
+-		__enqueue_in_driver(vb);
+-
+-	/* Fill buffer information for the userspace */
+-	if (pb)
+-		call_void_bufop(q, fill_user_buffer, vb, pb);
+-
+-	/*
+ 	 * If streamon has been called, and we haven't yet called
+ 	 * start_streaming() since not enough buffers were queued, and
+ 	 * we now have reached the minimum number of queued buffers,
+ 	 * then we can finally call start_streaming().
++	 *
++	 * If already streaming, give the buffer to driver for processing.
++	 * If not, the buffer will be given to driver on next streamon.
+ 	 */
+ 	if (q->streaming && !q->start_streaming_called &&
+ 	    q->queued_count >= q->min_buffers_needed) {
+ 		ret = vb2_start_streaming(q);
+ 		if (ret)
+ 			return ret;
++	} else if (q->start_streaming_called) {
++		__enqueue_in_driver(vb);
+ 	}
+ 
++	/* Fill buffer information for the userspace */
++	if (pb)
++		call_void_bufop(q, fill_user_buffer, vb, pb);
++
+ 	dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
+ 	return 0;
+ }
 -- 
-2.14.1
+2.13.5
