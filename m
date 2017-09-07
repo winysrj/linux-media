@@ -1,310 +1,406 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37474 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752433AbdIMLTF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 07:19:05 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com,
-        linux-renesas-soc@vger.kernel.org
-Cc: linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v3 8/9] v4l: vsp1: Move video configuration to a cached dlb
-Date: Wed, 13 Sep 2017 12:18:47 +0100
-Message-Id: <49c105fa5695bfba367f2077eeb004bc5526e8ce.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:35766 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753830AbdIGSmr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 14:42:47 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v3 04/15] [media] vb2: add in-fence support to QBUF
+Date: Thu,  7 Sep 2017 15:42:15 -0300
+Message-Id: <20170907184226.27482-5-gustavo@padovan.org>
+In-Reply-To: <20170907184226.27482-1-gustavo@padovan.org>
+References: <20170907184226.27482-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We are now able to configure a pipeline directly into a local display
-list body. Take advantage of this fact, and create a cacheable body to
-store the configuration of the pipeline in the video object.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-vsp1_video_pipeline_run() is now the last user of the pipe->dl object.
-Convert this function to use the cached video->config body and obtain a
-local display list reference.
+Receive in-fence from userspace and add support for waiting on them
+before queueing the buffer to the driver. Buffers are only queued
+to the driver once they are ready. A buffer is ready when its
+in-fence signals.
 
-Attach the video->config body to the display list when needed before
-committing to hardware.
+v4:
+	- Add a comment about dma_fence_add_callback() not returning a
+	error (Hans)
+	- Call dma_fence_put(vb->in_fence) if fence signaled (Hans)
+	- select SYNC_FILE under config VIDEOBUF2_CORE (Hans)
+	- Move dma_fence_is_signaled() check to __enqueue_in_driver() (Hans)
+	- Remove list_for_each_entry() in __vb2_core_qbuf() (Hans)
+	-  Remove if (vb->state != VB2_BUF_STATE_QUEUED) from
+	vb2_start_streaming() (Hans)
+	- set IN_FENCE flags on __fill_v4l2_buffer (Hans)
+	- Queue buffers to the driver as soon as they are ready (Hans)
+	- call fill_user_buffer() after queuing the buffer (Hans)
+	- add err: label to clean up fence
+	- add dma_fence_wait() before calling vb2_start_streaming()
 
-The pipe object is marked as un-configured when entering a suspend. This
-ensures that upon resume, where the hardware is reset - our cached
-configuration will be re-attached to the next committed DL.
+v3:	- document fence parameter
+	- remove ternary if at vb2_qbuf() return (Mauro)
+	- do not change if conditions behaviour (Mauro)
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+v2:
+	- fix vb2_queue_or_prepare_buf() ret check
+	- remove check for VB2_MEMORY_DMABUF only (Javier)
+	- check num of ready buffers to start streaming
+	- when queueing, start from the first ready buffer
+	- handle queue cancel
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
+ drivers/media/v4l2-core/Kconfig          |   1 +
+ drivers/media/v4l2-core/videobuf2-core.c | 103 +++++++++++++++++++++++++++----
+ drivers/media/v4l2-core/videobuf2-v4l2.c |  27 +++++++-
+ include/media/videobuf2-core.h           |  11 +++-
+ 4 files changed, 127 insertions(+), 15 deletions(-)
 
-v3:
- - 's/fragment/body/', 's/fragments/bodies/'
- - video dlb cache allocation increased from 2 to 3 dlbs
-
-Our video DL usage now looks like the below output:
-
-dl->body0 contains our disposable runtime configuration. Max 41.
-dl_child->body0 is our partition specific configuration. Max 12.
-dl->bodies shows our constant configuration and LUTs.
-
-  These two are LUT/CLU:
-     * dl->bodies[x]->num_entries 256 / max 256
-     * dl->bodies[x]->num_entries 4914 / max 4914
-
-Which shows that our 'constant' configuration cache is currently
-utilised to a maximum of 64 entries.
-
-trace-cmd report | \
-    grep max | sed 's/.*vsp1_dl_list_commit://g' | sort | uniq;
-
-  dl->body0->num_entries 13 / max 128
-  dl->body0->num_entries 14 / max 128
-  dl->body0->num_entries 16 / max 128
-  dl->body0->num_entries 20 / max 128
-  dl->body0->num_entries 27 / max 128
-  dl->body0->num_entries 34 / max 128
-  dl->body0->num_entries 41 / max 128
-  dl_child->body0->num_entries 10 / max 128
-  dl_child->body0->num_entries 12 / max 128
-  dl->bodies[x]->num_entries 15 / max 128
-  dl->bodies[x]->num_entries 16 / max 128
-  dl->bodies[x]->num_entries 17 / max 128
-  dl->bodies[x]->num_entries 18 / max 128
-  dl->bodies[x]->num_entries 20 / max 128
-  dl->bodies[x]->num_entries 21 / max 128
-  dl->bodies[x]->num_entries 256 / max 256
-  dl->bodies[x]->num_entries 31 / max 128
-  dl->bodies[x]->num_entries 32 / max 128
-  dl->bodies[x]->num_entries 39 / max 128
-  dl->bodies[x]->num_entries 40 / max 128
-  dl->bodies[x]->num_entries 47 / max 128
-  dl->bodies[x]->num_entries 48 / max 128
-  dl->bodies[x]->num_entries 4914 / max 4914
-  dl->bodies[x]->num_entries 55 / max 128
-  dl->bodies[x]->num_entries 56 / max 128
-  dl->bodies[x]->num_entries 63 / max 128
-  dl->bodies[x]->num_entries 64 / max 128
----
- drivers/media/platform/vsp1/vsp1_pipe.c  |  4 +-
- drivers/media/platform/vsp1/vsp1_pipe.h  |  4 +-
- drivers/media/platform/vsp1/vsp1_video.c | 67 ++++++++++++++++---------
- drivers/media/platform/vsp1/vsp1_video.h |  2 +-
- 4 files changed, 51 insertions(+), 26 deletions(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index 5012643583b6..7d1f7ba43060 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -249,6 +249,7 @@ void vsp1_pipeline_run(struct vsp1_pipeline *pipe)
- 		vsp1_write(vsp1, VI6_CMD(pipe->output->entity.index),
- 			   VI6_CMD_STRCMD);
- 		pipe->state = VSP1_PIPELINE_RUNNING;
-+		pipe->configured = true;
- 	}
+diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+index a35c33686abf..3f988c407c80 100644
+--- a/drivers/media/v4l2-core/Kconfig
++++ b/drivers/media/v4l2-core/Kconfig
+@@ -83,6 +83,7 @@ config VIDEOBUF_DVB
+ # Used by drivers that need Videobuf2 modules
+ config VIDEOBUF2_CORE
+ 	select DMA_SHARED_BUFFER
++	select SYNC_FILE
+ 	tristate
  
- 	pipe->buffers_ready = 0;
-@@ -430,6 +431,9 @@ void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
- 		spin_lock_irqsave(&pipe->irqlock, flags);
- 		if (pipe->state == VSP1_PIPELINE_RUNNING)
- 			pipe->state = VSP1_PIPELINE_STOPPING;
-+
-+		/* After a suspend, the hardware will be reset */
-+		pipe->configured = false;
- 		spin_unlock_irqrestore(&pipe->irqlock, flags);
- 	}
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index 90d29492b9b9..e7ad6211b4d0 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -90,6 +90,7 @@ struct vsp1_partition {
-  * @irqlock: protects the pipeline state
-  * @state: current state
-  * @wq: wait queue to wait for state change completion
-+ * @configured: flag determining if the hardware has run since reset
-  * @frame_end: frame end interrupt handler
-  * @lock: protects the pipeline use count and stream count
-  * @kref: pipeline reference count
-@@ -117,6 +118,7 @@ struct vsp1_pipeline {
- 	spinlock_t irqlock;
- 	enum vsp1_pipeline_state state;
- 	wait_queue_head_t wq;
-+	bool configured;
- 
- 	void (*frame_end)(struct vsp1_pipeline *pipe, bool completed);
- 
-@@ -143,8 +145,6 @@ struct vsp1_pipeline {
- 	 */
- 	struct list_head entities;
- 
--	struct vsp1_dl_list *dl;
--
- 	unsigned int partitions;
- 	struct vsp1_partition *partition;
- 	struct vsp1_partition *part_table;
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 9366b41c1b43..54fef64c3457 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -394,37 +394,43 @@ static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
- static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+ config VIDEOBUF2_MEMOPS
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 60f8b582396a..b19c1bc4b083 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1222,6 +1222,9 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
  {
- 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
-+	struct vsp1_video *video = pipe->output->video;
- 	unsigned int partition;
-+	struct vsp1_dl_list *dl;
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 
++	if (vb->in_fence && !dma_fence_is_signaled(vb->in_fence))
++		return;
 +
-+	dl = vsp1_dl_list_get(pipe->output->dlm);
+ 	vb->state = VB2_BUF_STATE_ACTIVE;
+ 	atomic_inc(&q->owned_by_drv_count);
  
--	if (!pipe->dl)
--		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-+	/* Attach our pipe configuration to fully initialise the hardware */
-+	if (!pipe->configured) {
-+		vsp1_dl_list_add_body(dl, video->pipe_config);
-+		pipe->configured = true;
-+	}
- 
- 	/* Run the first partition */
--	vsp1_video_pipeline_run_partition(pipe, pipe->dl, 0);
-+	vsp1_video_pipeline_run_partition(pipe, dl, 0);
- 
- 	/* Process consecutive partitions as necessary */
- 	for (partition = 1; partition < pipe->partitions; ++partition) {
--		struct vsp1_dl_list *dl;
-+		struct vsp1_dl_list *dl_child;
- 
--		dl = vsp1_dl_list_get(pipe->output->dlm);
-+		dl_child = vsp1_dl_list_get(pipe->output->dlm);
- 
- 		/*
- 		 * An incomplete chain will still function, but output only
- 		 * the partitions that had a dl available. The frame end
- 		 * interrupt will be marked on the last dl in the chain.
- 		 */
--		if (!dl) {
-+		if (!dl_child) {
- 			dev_err(vsp1->dev, "Failed to obtain a dl list. Frame will be incomplete\n");
- 			break;
- 		}
- 
--		vsp1_video_pipeline_run_partition(pipe, dl, partition);
--		vsp1_dl_list_add_chain(pipe->dl, dl);
-+		vsp1_video_pipeline_run_partition(pipe, dl_child, partition);
-+		vsp1_dl_list_add_chain(dl, dl_child);
- 	}
- 
- 	/* Complete, and commit the head display list. */
--	vsp1_dl_list_commit(pipe->dl);
--	pipe->dl = NULL;
-+	vsp1_dl_list_commit(dl);
- 
- 	vsp1_pipeline_run(pipe);
- }
-@@ -790,8 +796,8 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
- 
- static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- {
-+	struct vsp1_video *video = pipe->output->video;
- 	struct vsp1_entity *entity;
--	struct vsp1_dl_body *dlb;
- 	int ret;
- 
- 	/* Determine this pipelines sizes for image partitioning support. */
-@@ -799,14 +805,6 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- 	if (ret < 0)
- 		return ret;
- 
--	/* Prepare the display list. */
--	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
--	if (!pipe->dl)
--		return -ENOMEM;
--
--	/* Retrieve the default DLB from the list */
--	dlb = vsp1_dl_list_get_body(pipe->dl);
--
- 	if (pipe->uds) {
- 		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
- 
-@@ -828,11 +826,20 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- 		}
- 	}
- 
-+	/* Obtain a clean body from our pool */
-+	video->pipe_config = vsp1_dl_body_get(video->dlbs);
-+	if (!video->pipe_config)
-+		return -ENOMEM;
-+
-+	/* Configure the entities into our cached pipe configuration */
- 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
--		vsp1_entity_route_setup(entity, pipe, dlb);
--		vsp1_entity_prepare(entity, pipe, dlb);
-+		vsp1_entity_route_setup(entity, pipe, video->pipe_config);
-+		vsp1_entity_prepare(entity, pipe, video->pipe_config);
- 	}
- 
-+	/* Ensure that our cached configuration is updated in the next DL */
-+	pipe->configured = false;
-+
+@@ -1273,6 +1276,20 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
  	return 0;
  }
  
-@@ -842,6 +849,9 @@ static void vsp1_video_cleanup_pipeline(struct vsp1_pipeline *pipe)
- 	struct vsp1_vb2_buffer *buffer;
- 	unsigned long flags;
- 
-+	/* Release any cached configuration */
-+	vsp1_dl_body_put(video->pipe_config);
++static int __get_num_ready_buffers(struct vb2_queue *q)
++{
++	struct vb2_buffer *vb;
++	int ready_count = 0;
 +
- 	/* Remove all buffers from the IRQ queue. */
- 	spin_lock_irqsave(&video->irqlock, flags);
- 	list_for_each_entry(buffer, &video->irqqueue, queue)
-@@ -918,9 +928,6 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
- 		ret = vsp1_pipeline_stop(pipe);
- 		if (ret == -ETIMEDOUT)
- 			dev_err(video->vsp1->dev, "pipeline stop timeout\n");
--
--		vsp1_dl_list_put(pipe->dl);
--		pipe->dl = NULL;
- 	}
- 	mutex_unlock(&pipe->lock);
++	/* count num of buffers ready in front of the queued_list */
++	list_for_each_entry(vb, &q->queued_list, queued_entry) {
++		if (!vb->in_fence || dma_fence_is_signaled(vb->in_fence))
++			ready_count++;
++	}
++
++	return ready_count;
++}
++
+ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
+ {
+ 	struct vb2_buffer *vb;
+@@ -1361,7 +1378,19 @@ static int vb2_start_streaming(struct vb2_queue *q)
+ 	return ret;
+ }
  
-@@ -1240,6 +1247,16 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 		goto error;
+-int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
++static void vb2_qbuf_fence_cb(struct dma_fence *f, struct dma_fence_cb *cb)
++{
++	struct vb2_buffer *vb = container_of(cb, struct vb2_buffer, fence_cb);
++
++	dma_fence_put(vb->in_fence);
++	vb->in_fence = NULL;
++
++	if (vb->vb2_queue->start_streaming_called)
++		__enqueue_in_driver(vb);
++}
++
++int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
++		  struct dma_fence *fence)
+ {
+ 	struct vb2_buffer *vb;
+ 	int ret;
+@@ -1372,16 +1401,18 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	case VB2_BUF_STATE_DEQUEUED:
+ 		ret = __buf_prepare(vb, pb);
+ 		if (ret)
+-			return ret;
++			goto err;
+ 		break;
+ 	case VB2_BUF_STATE_PREPARED:
+ 		break;
+ 	case VB2_BUF_STATE_PREPARING:
+ 		dprintk(1, "buffer still being prepared\n");
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto err;
+ 	default:
+ 		dprintk(1, "invalid buffer state %d\n", vb->state);
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto err;
+ 	}
+ 
+ 	/*
+@@ -1392,6 +1423,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	q->queued_count++;
+ 	q->waiting_for_buffers = false;
+ 	vb->state = VB2_BUF_STATE_QUEUED;
++	vb->in_fence = fence;
+ 
+ 	if (pb)
+ 		call_void_bufop(q, copy_timestamp, vb, pb);
+@@ -1399,6 +1431,16 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	trace_vb2_qbuf(q, vb);
+ 
+ 	/*
++	 * If it is time to call vb2_start_streaming() wait for the fence
++	 * to signal first. Of course, this happens only once per streaming.
++	 * We want to run any step that might fail before we set the callback
++	 * to queue the fence when it signals.
++	 */
++	if (fence && !q->start_streaming_called &&
++	    __get_num_ready_buffers(q) == q->min_buffers_needed - 1)
++		dma_fence_wait(fence, true);
++
++	/*
+ 	 * If streamon has been called, and we haven't yet called
+ 	 * start_streaming() since not enough buffers were queued, and
+ 	 * we now have reached the minimum number of queued buffers,
+@@ -1408,20 +1450,48 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	 * If not, the buffer will be given to driver on next streamon.
+ 	 */
+ 	if (q->streaming && !q->start_streaming_called &&
+-	    q->queued_count >= q->min_buffers_needed) {
++	    __get_num_ready_buffers(q) >= q->min_buffers_needed) {
+ 		ret = vb2_start_streaming(q);
+ 		if (ret)
+-			return ret;
+-	} else if (q->start_streaming_called) {
+-		__enqueue_in_driver(vb);
++			goto err;
  	}
  
 +	/*
-+	 * Utilise a body pool to cache the constant configuration of the
-+	 * pipeline object.
++	 * For explicit synchronization: If the fence didn't signal
++	 * yet we setup a callback to queue the buffer once the fence
++	 * signals, and then, return successfully. But if the fence
++	 * already signaled we lose the reference we held and queue the
++	 * buffer to the driver.
 +	 */
-+	video->dlbs = vsp1_dl_body_pool_create(vsp1, 3, 128, 0);
-+	if (!video->dlbs) {
-+		ret = -ENOMEM;
-+		goto error;
++	if (fence) {
++		ret = dma_fence_add_callback(fence, &vb->fence_cb,
++					     vb2_qbuf_fence_cb);
++		if (!ret)
++			goto fill;
++
++		dma_fence_put(fence);
++		vb->in_fence = NULL;
 +	}
 +
- 	return video;
- 
- error:
-@@ -1249,6 +1266,8 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 
- void vsp1_video_cleanup(struct vsp1_video *video)
- {
-+	vsp1_dl_body_pool_destroy(video->dlbs);
++fill:
++	if (q->start_streaming_called && !vb->in_fence)
++		__enqueue_in_driver(vb);
 +
- 	if (video_is_registered(&video->video))
- 		video_unregister_device(&video->video);
+ 	/* Fill buffer information for the userspace */
+ 	if (pb)
+ 		call_void_bufop(q, fill_user_buffer, vb, pb);
  
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index 50ea7f02205f..e84f8ee902c1 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -43,6 +43,8 @@ struct vsp1_video {
+ 	dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
+ 	return 0;
++
++err:
++	if (vb->in_fence) {
++		dma_fence_put(vb->in_fence);
++		vb->in_fence = NULL;
++	}
++
++	return ret;
++
+ }
+ EXPORT_SYMBOL_GPL(vb2_core_qbuf);
  
- 	struct mutex lock;
+@@ -1632,6 +1702,7 @@ EXPORT_SYMBOL_GPL(vb2_core_dqbuf);
+ static void __vb2_queue_cancel(struct vb2_queue *q)
+ {
+ 	unsigned int i;
++	struct vb2_buffer *vb;
  
-+	struct vsp1_dl_body_pool *dlbs;
-+	struct vsp1_dl_body *pipe_config;
- 	unsigned int pipe_index;
+ 	/*
+ 	 * Tell driver to stop all transactions and release all queued
+@@ -1654,6 +1725,14 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 		WARN_ON(atomic_read(&q->owned_by_drv_count));
+ 	}
  
- 	struct vb2_queue queue;
++	list_for_each_entry(vb, &q->queued_list, queued_entry) {
++		if (vb->in_fence) {
++			dma_fence_remove_callback(vb->in_fence, &vb->fence_cb);
++			dma_fence_put(vb->in_fence);
++			vb->in_fence = NULL;
++		}
++	}
++
+ 	q->streaming = 0;
+ 	q->start_streaming_called = 0;
+ 	q->queued_count = 0;
+@@ -1720,7 +1799,7 @@ int vb2_core_streamon(struct vb2_queue *q, unsigned int type)
+ 	 * Tell driver to start streaming provided sufficient buffers
+ 	 * are available.
+ 	 */
+-	if (q->queued_count >= q->min_buffers_needed) {
++	if (__get_num_ready_buffers(q) >= q->min_buffers_needed) {
+ 		ret = v4l_vb2q_enable_media_source(q);
+ 		if (ret)
+ 			return ret;
+@@ -2240,7 +2319,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 		 * Queue all buffers.
+ 		 */
+ 		for (i = 0; i < q->num_buffers; i++) {
+-			ret = vb2_core_qbuf(q, i, NULL);
++			ret = vb2_core_qbuf(q, i, NULL, NULL);
+ 			if (ret)
+ 				goto err_reqbufs;
+ 			fileio->bufs[i].queued = 1;
+@@ -2419,7 +2498,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 
+ 		if (copy_timestamp)
+ 			b->timestamp = ktime_get_ns();
+-		ret = vb2_core_qbuf(q, index, NULL);
++		ret = vb2_core_qbuf(q, index, NULL, NULL);
+ 		dprintk(5, "vb2_dbuf result: %d\n", ret);
+ 		if (ret)
+ 			return ret;
+@@ -2522,7 +2601,7 @@ static int vb2_thread(void *data)
+ 		if (copy_timestamp)
+ 			vb->timestamp = ktime_get_ns();;
+ 		if (!threadio->stop)
+-			ret = vb2_core_qbuf(q, vb->index, NULL);
++			ret = vb2_core_qbuf(q, vb->index, NULL, NULL);
+ 		call_void_qop(q, wait_prepare, q);
+ 		if (ret || threadio->stop)
+ 			break;
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 110fb45fef6f..8c322cd1b346 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -23,6 +23,7 @@
+ #include <linux/sched.h>
+ #include <linux/freezer.h>
+ #include <linux/kthread.h>
++#include <linux/sync_file.h>
+ 
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
+@@ -178,6 +179,11 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 		return -EINVAL;
+ 	}
+ 
++	if ((b->fence_fd != -1) && !(b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
++		dprintk(1, "%s: fence_fd set without IN_FENCE flag\n", opname);
++		return -EINVAL;
++	}
++
+ 	return __verify_planes_array(q->bufs[b->index], b);
+ }
+ 
+@@ -203,9 +209,14 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->timestamp = ns_to_timeval(vb->timestamp);
+ 	b->timecode = vbuf->timecode;
+ 	b->sequence = vbuf->sequence;
+-	b->fence_fd = -1;
+ 	b->reserved = 0;
+ 
++	b->fence_fd = -1;
++	if (vb->in_fence)
++		b->flags |= V4L2_BUF_FLAG_IN_FENCE;
++	else
++		b->flags &= ~V4L2_BUF_FLAG_IN_FENCE;
++
+ 	if (q->is_multiplanar) {
+ 		/*
+ 		 * Fill in plane-related data if userspace provided an array
+@@ -560,6 +571,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
+ 
+ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ {
++	struct dma_fence *fence = NULL;
+ 	int ret;
+ 
+ 	if (vb2_fileio_is_active(q)) {
+@@ -568,7 +580,18 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 	}
+ 
+ 	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
+-	return ret ? ret : vb2_core_qbuf(q, b->index, b);
++	if (ret)
++		return ret;
++
++	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
++		fence = sync_file_get_fence(b->fence_fd);
++		if (!fence) {
++			dprintk(1, "failed to get in-fence from fd\n");
++			return -EINVAL;
++		}
++	}
++
++	return vb2_core_qbuf(q, b->index, b, fence);
+ }
+ EXPORT_SYMBOL_GPL(vb2_qbuf);
+ 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index ef9b64398c8c..41cda762ff0a 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -16,6 +16,7 @@
+ #include <linux/mutex.h>
+ #include <linux/poll.h>
+ #include <linux/dma-buf.h>
++#include <linux/dma-fence.h>
+ 
+ #define VB2_MAX_FRAME	(32)
+ #define VB2_MAX_PLANES	(8)
+@@ -254,11 +255,17 @@ struct vb2_buffer {
+ 	 *			all buffers queued from userspace
+ 	 * done_entry:		entry on the list that stores all buffers ready
+ 	 *			to be dequeued to userspace
++	 * in_fence:		fence receive from vb2 client to wait on before
++	 *			using the buffer (queueing to the driver)
++	 * fence_cb:		fence callback information
+ 	 */
+ 	enum vb2_buffer_state	state;
+ 
+ 	struct list_head	queued_entry;
+ 	struct list_head	done_entry;
++
++	struct dma_fence	*in_fence;
++	struct dma_fence_cb	fence_cb;
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	/*
+ 	 * Counters for how often these buffer-related ops are
+@@ -726,6 +733,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
+  * @index:	id number of the buffer
+  * @pb:		buffer structure passed from userspace to vidioc_qbuf handler
+  *		in driver
++ * @fence:	in-fence to wait on before queueing the buffer
+  *
+  * Should be called from vidioc_qbuf ioctl handler of a driver.
+  * The passed buffer should have been verified.
+@@ -740,7 +748,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
+  * The return values from this function are intended to be directly returned
+  * from vidioc_qbuf handler in driver.
+  */
+-int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
++int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
++		  struct dma_fence *fence);
+ 
+ /**
+  * vb2_core_dqbuf() - Dequeue a buffer to the userspace
 -- 
-git-series 0.9.1
+2.13.5
