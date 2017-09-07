@@ -1,80 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58015
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751445AbdIEMxG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Sep 2017 08:53:06 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        devendra sharma <devendra.sharma9091@gmail.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        linux-fsdevel@vger.kernel.org
-Subject: [PATCH] media: get rid of removed DMX_GET_CAPS and DMX_SET_SOURCE leftovers
-Date: Tue,  5 Sep 2017 08:52:59 -0400
-Message-Id: <4cd7d6c957b085d319bcf97814f95854375da0a6.1504615976.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:33769 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755740AbdIGSmy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 14:42:54 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v3 06/15] [media] vivid: assign the specific device to the vb2_queue->dev
+Date: Thu,  7 Sep 2017 15:42:17 -0300
+Message-Id: <20170907184226.27482-7-gustavo@padovan.org>
+In-Reply-To: <20170907184226.27482-1-gustavo@padovan.org>
+References: <20170907184226.27482-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those two ioctls were never used within the Kernel. Still, there
-used to have compat32 code there (and an if #0 block at the core).
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Get rid of them.
+Instead of assigning the global v4l2 device, assign the specific device.
+This was causing trouble when using using V4L2 events with vivid
+devices. The device's queue should be the same we opened in userspace.
 
-Fixes: 286fe1ca3fa1 ("media: dmx.h: get rid of DMX_GET_CAPS")
-Fixes: 13adefbe9e56 ("media: dmx.h: get rid of DMX_SET_SOURCE")
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+This is needed for the upcoming V4L2_EVENT_BUF_QUEUED support. The current
+vivid code isn't wrong, it just needs to be changed so V4L2_EVENT_BUF_QUEUED
+can be supported. The change doesn't affect any other behaviour of vivid.
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-core/dmxdev.c | 20 --------------------
- fs/compat_ioctl.c               |  2 --
- 2 files changed, 22 deletions(-)
+ drivers/media/platform/vivid/vivid-core.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-index 16b0b74c3114..18e4230865be 100644
---- a/drivers/media/dvb-core/dmxdev.c
-+++ b/drivers/media/dvb-core/dmxdev.c
-@@ -1025,26 +1025,6 @@ static int dvb_demux_do_ioctl(struct file *file,
- 		dmxdev->demux->get_pes_pids(dmxdev->demux, parg);
- 		break;
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 5f316a5e38db..608bcceed463 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -1070,7 +1070,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vid_cap_dev.dev;
  
--#if 0
--	/* Not used upstream and never documented */
--
--	case DMX_GET_CAPS:
--		if (!dmxdev->demux->get_caps) {
--			ret = -EINVAL;
--			break;
--		}
--		ret = dmxdev->demux->get_caps(dmxdev->demux, parg);
--		break;
--
--	case DMX_SET_SOURCE:
--		if (!dmxdev->demux->set_source) {
--			ret = -EINVAL;
--			break;
--		}
--		ret = dmxdev->demux->set_source(dmxdev->demux, parg);
--		break;
--#endif
--
- 	case DMX_GET_STC:
- 		if (!dmxdev->demux->get_stc) {
- 			ret = -EINVAL;
-diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
-index 2dd4a7af7dd7..d27b326d96f4 100644
---- a/fs/compat_ioctl.c
-+++ b/fs/compat_ioctl.c
-@@ -1331,8 +1331,6 @@ COMPATIBLE_IOCTL(DMX_SET_FILTER)
- COMPATIBLE_IOCTL(DMX_SET_PES_FILTER)
- COMPATIBLE_IOCTL(DMX_SET_BUFFER_SIZE)
- COMPATIBLE_IOCTL(DMX_GET_PES_PIDS)
--COMPATIBLE_IOCTL(DMX_GET_CAPS)
--COMPATIBLE_IOCTL(DMX_SET_SOURCE)
- COMPATIBLE_IOCTL(DMX_GET_STC)
- COMPATIBLE_IOCTL(FE_GET_INFO)
- COMPATIBLE_IOCTL(FE_DISEQC_RESET_OVERLOAD)
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1090,7 +1090,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vid_out_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1110,7 +1110,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vbi_cap_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1130,7 +1130,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vbi_out_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1149,7 +1149,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 8;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->sdr_cap_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
 -- 
-2.13.3
+2.13.5
