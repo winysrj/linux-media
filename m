@@ -1,79 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:46205 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751193AbdINJYS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Sep 2017 05:24:18 -0400
-Subject: Re: as3645a flash userland interface
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-        niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        sre@kernel.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <4bf12e8e-beff-0199-cdee-4a52ebe7cdaf@samsung.com>
-Date: Thu, 14 Sep 2017 11:24:10 +0200
-MIME-version: 1.0
-In-reply-to: <21824758-28a1-7007-6db5-86a900025d14@gmail.com>
-Content-type: text/plain; charset="windows-1252"; format="flowed"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
-        <20170912084236.1154-25-sakari.ailus@linux.intel.com>
-        <20170912103628.GB27117@amd>
-        <7b679cb3-ce58-e1d1-60bf-995896bf46eb@gmail.com>
-        <20170912215529.GA17218@amd>
-        <21824758-28a1-7007-6db5-86a900025d14@gmail.com>
-        <CGME20170914092415epcas2p26c049a698851778673034c16afb290b9@epcas2p2.samsung.com>
+Received: from eddie.linux-mips.org ([148.251.95.138]:42566 "EHLO
+        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752070AbdIGXhr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 19:37:47 -0400
+Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S23994828AbdIGXgQH7rkk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 01:36:16 +0200
+Date: Fri, 8 Sep 2017 01:36:11 +0200
+From: Ladislav Michl <ladis@linux-mips.org>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
+Subject: [PATCH v2 03/10] media: rc: gpio-ir-recv: use devm_rc_allocate_device
+Message-ID: <20170907233611.p37c3hwsuoq2r73k@lenoch>
+References: <20170907233355.bv3hsv3rfhcx52i3@lenoch>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170907233355.bv3hsv3rfhcx52i3@lenoch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Use of devm_rc_allocate_device simplifies error unwinding.
 
-On 09/13/2017 07:53 PM, Jacek Anaszewski wrote:
-> On 09/12/2017 11:55 PM, Pavel Machek wrote:
->> On Tue 2017-09-12 20:53:33, Jacek Anaszewski wrote:
->>> On 09/12/2017 12:36 PM, Pavel Machek wrote:
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+---
+ Changes:
+ -v2: rebased to current linux.git
 
->>>> What directory are the flash controls in?
->>>>
->>>> /sys/class/leds/led-controller:flash ?
->>>>
->>>> Could we arrange for something less generic, like
->>>>
->>>> /sys/class/leds/main-camera:flash ?
->>>
->>> I'd rather avoid overcomplicating this. LED class device name pattern
->>> is well defined to devicename:colour:function
->>> (see Documentation/leds/leds-class.txt, "LED Device Naming" section).
->>>
->>> In this case "flash" in place of the "function" segment makes the
->>> things clear enough I suppose.
->>
->> It does not.
->>
->> Phones usually have two cameras, front and back, and these days both
->> cameras have their flash.
->>
->> And poor userspace flashlight application can not know if as3645
->> drivers front LED or back LED. Thus, I'd set devicename to
->> front-camera or main-camera -- because that's what it is associated
->> with. Userspace does not care what hardware drives the LED, but needs
->> to know if it is front or back camera.
-> 
-> The name of a LED flash class device isn't fixed and is derived
-> from DT label property. Name in the example of some DT bindings
-> will not force people to apply similar pattern for the other
-> drivers and even for the related one. No worry about having
-> to keep anything forever basing on that.
+ drivers/media/rc/gpio-ir-recv.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-Isn't the V4L2 subdev/Media Controller API supposed to provide means
-for associating flash LEDs with camera sensors? You seem to be insisting
-on using the sysfs leds interface for that, which is not a primary
-interface for camera flash AFAICT.
-
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index 8f5e3a84a95e..ee191f26efb4 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -122,7 +122,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 	if (!gpio_dev)
+ 		return -ENOMEM;
+ 
+-	rcdev = rc_allocate_device(RC_DRIVER_IR_RAW);
++	rcdev = devm_rc_allocate_device(dev, RC_DRIVER_IR_RAW);
+ 	if (!rcdev)
+ 		return -ENOMEM;
+ 
+@@ -150,7 +150,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 
+ 	rc = gpio_request(pdata->gpio_nr, "gpio-ir-recv");
+ 	if (rc < 0)
+-		goto err_gpio_request;
++		return rc;
+ 	rc  = gpio_direction_input(pdata->gpio_nr);
+ 	if (rc < 0)
+ 		goto err_gpio_direction_input;
+@@ -178,8 +178,6 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ err_register_rc_device:
+ err_gpio_direction_input:
+ 	gpio_free(pdata->gpio_nr);
+-err_gpio_request:
+-	rc_free_device(rcdev);
+ 	return rc;
+ }
+ 
 -- 
-Regards,
-Sylwester
+2.11.0
