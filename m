@@ -1,48 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:45210 "EHLO
-        DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750783AbdIRGqh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 02:46:37 -0400
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Jonathan Corbet <corbet@lwn.net>
-CC: Nicolas Ferre <nicolas.ferre@microchip.com>,
-        <linux-kernel@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH v4 0/3] media: ov7670: Add entity init and power operation
-Date: Mon, 18 Sep 2017 14:45:11 +0800
-Message-ID: <20170918064514.6841-1-wenyou.yang@microchip.com>
+Received: from zeniv.linux.org.uk ([195.92.253.2]:59026 "EHLO
+        ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755580AbdIGWD2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 18:03:28 -0400
+Date: Thu, 7 Sep 2017 23:03:25 +0100
+From: Al Viro <viro@ZenIV.linux.org.uk>
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        linux-fsdevel@vger.kernel.org,
+        Riley Andrews <riandrews@android.com>
+Subject: Re: [PATCH v3 14/15] fs/files: export close_fd() symbol
+Message-ID: <20170907220325.GY5426@ZenIV.linux.org.uk>
+References: <20170907184226.27482-1-gustavo@padovan.org>
+ <20170907184226.27482-15-gustavo@padovan.org>
+ <20170907203610.GX5426@ZenIV.linux.org.uk>
+ <20170907212245.GA19307@jade>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170907212245.GA19307@jade>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set is to add the media entity pads initialization,
-the s_power operation and get_fmt callback support.
+On Thu, Sep 07, 2017 at 06:22:45PM -0300, Gustavo Padovan wrote:
 
-Changes in v4:
- - Fix the build error when not enabling Media Controller API option.
- - Fix the build error when not enabling V4L2 sub-device userspace API option.
+> Sorry for my lack of knowledge here and thank you for the explanation,
+> things are a lot clear to me. For some reasons I were trying to delay
+> the sharing of the fd to a event later. I can delay the install of it
+> but that my require __fd_install() to be available and exportedi as it
+> may happen in a thread, but I believe you wouldn't be okay with that either,
+> is that so?
 
-Changes in v3:
- - Keep tried format info in the try_fmt member of
-   v4l2_subdev__pad_config struct.
- - Add the internal_ops callback to set default format.
+Only if it has been given a reference to descriptor table to start with.
+Which reference should've been acquired by the target process itself.
 
-Changes in v2:
- - Add the patch to support the get_fmt ops.
- - Remove the redundant invoking ov7670_init_gpio().
+Why bother, anyway?  You need to handle the case when the stream has
+ended just after you'd copied the value to userland; at that point you
+obviously can't go hunting for all references to struct file in question,
+so you have to guaratee that methods will start giving an error from
+that point on.  What's the problem with just leaving it installed?
 
-Wenyou Yang (3):
-  media: ov7670: Add entity pads initialization
-  media: ov7670: Add the get_fmt callback
-  media: ov7670: Add the s_power operation
-
- drivers/media/i2c/ov7670.c | 128 ++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 121 insertions(+), 7 deletions(-)
-
--- 
-2.13.0
+Both userland and kernel must cope with that sort of thing anyway, so
+what does removing it from descriptor table and not reporting it buy
+you?  AFAICS, it's an extra layer of complexity for no good reason -
+you are not getting it offset by simplifications anywhere else...
