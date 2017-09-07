@@ -1,134 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:34891 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751837AbdIFHAm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Sep 2017 03:00:42 -0400
-Subject: Re: [PATCH v8 02/21] v4l: async: Remove re-probing support
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
- <20170905130553.1332-3-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <255d6d56-e6b8-0919-4e22-a38255d15e3d@xs4all.nl>
-Date: Wed, 6 Sep 2017 09:00:30 +0200
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:42797
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753905AbdIGK0h (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 06:26:37 -0400
+Date: Thu, 7 Sep 2017 07:26:25 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tbird20d@gmail.com" <tbird20d@gmail.com>,
+        "frowand.list@gmail.com" <frowand.list@gmail.com>,
+        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
+        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
+        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
+        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
+        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>
+Subject: Re: [PATCH v3 05/14] [media] cxd2880: Add tuner part of the driver
+Message-ID: <20170907072625.460caacf@vento.lan>
+In-Reply-To: <22918ced-b130-abf6-847d-369b7a5c0ebf@sony.com>
+References: <20170816041714.20551-1-Yasunari.Takiguchi@sony.com>
+        <20170816043714.21394-1-Yasunari.Takiguchi@sony.com>
+        <20170827114544.39865dbb@vento.lan>
+        <22918ced-b130-abf6-847d-369b7a5c0ebf@sony.com>
 MIME-Version: 1.0
-In-Reply-To: <20170905130553.1332-3-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/05/2017 03:05 PM, Sakari Ailus wrote:
-> Remove V4L2 async re-probing support. The re-probing support has been
-> there to support cases where the sub-devices require resources provided by
-> the main driver's hardware to function, such as clocks.
-> 
-> Reprobing has allowed unbinding and again binding the main driver without
-> explicilty unbinding the sub-device drivers. This is certainly not a
-> common need, and the responsibility will be the user's going forward.
-> 
-> An alternative could have been to introduce notifier specific locks.
-> Considering the complexity of the re-probing and that it isn't really a
-> solution to a problem but a workaround, remove re-probing instead.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Em Thu, 7 Sep 2017 19:12:57 +0900
+"Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com> escreveu:
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 54 ------------------------------------
->  1 file changed, 54 deletions(-)
+> Dear Mauro
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index 851f128eba22..f50a82767863 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -203,78 +203,24 @@ EXPORT_SYMBOL(v4l2_async_notifier_register);
->  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  {
->  	struct v4l2_subdev *sd, *tmp;
-> -	unsigned int notif_n_subdev = notifier->num_subdevs;
-> -	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
-> -	struct device **dev;
-> -	int i = 0;
->  
->  	if (!notifier->v4l2_dev)
->  		return;
->  
-> -	dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
-> -	if (!dev) {
-> -		dev_err(notifier->v4l2_dev->dev,
-> -			"Failed to allocate device cache!\n");
-> -	}
-> -
->  	mutex_lock(&list_lock);
->  
->  	list_del(&notifier->list);
->  
->  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> -		struct device *d;
-> -
-> -		d = get_device(sd->dev);
-> -
->  		v4l2_async_cleanup(sd);
->  
-> -		/* If we handled USB devices, we'd have to lock the parent too */
-> -		device_release_driver(d);
-> -
->  		if (notifier->unbind)
->  			notifier->unbind(notifier, sd, sd->asd);
-> -
-> -		/*
-> -		 * Store device at the device cache, in order to call
-> -		 * put_device() on the final step
-> -		 */
-> -		if (dev)
-> -			dev[i++] = d;
-> -		else
-> -			put_device(d);
->  	}
->  
->  	mutex_unlock(&list_lock);
->  
-> -	/*
-> -	 * Call device_attach() to reprobe devices
-> -	 *
-> -	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
-> -	 * executed.
-> -	 */
-> -	while (i--) {
-> -		struct device *d = dev[i];
-> -
-> -		if (d && device_attach(d) < 0) {
-> -			const char *name = "(none)";
-> -			int lock = device_trylock(d);
-> -
-> -			if (lock && d->driver)
-> -				name = d->driver->name;
-> -			dev_err(d, "Failed to re-probe to %s\n", name);
-> -			if (lock)
-> -				device_unlock(d);
-> -		}
-> -		put_device(d);
-> -	}
-> -	kvfree(dev);
-> -
->  	notifier->v4l2_dev = NULL;
-> -
-> -	/*
-> -	 * Don't care about the waiting list, it is initialised and populated
-> -	 * upon notifier registration.
-> -	 */
->  }
->  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
->  
+> Thanks for your review and reply.
 > 
+> We are going to discuss how to change our code with your comments internally.
+> 
+> I reply for your  2 comments,
+> 
+> >> [Change list]
+> >> Changes in V3
+> >>    drivers/media/dvb-frontends/cxd2880/cxd2880_dtv.h
+> >>       -removed code relevant to ISDB-T
+> > 
+> > Just curiosity here: why is it removed?
+> We decided to withhold the ISDB-T functionality as it contains some company proprietary code.
+
+I'm sorry to hear. I hope that such code could be released
+on some future.
+
+> >> +	if (ret)
+> >> +		return ret;
+> >> +	if ((sys == CXD2880_DTV_SYS_DVBT2) && en_fef_intmtnt_ctrl) {
+> >> +		data[0] = 0x01;
+> >> +		data[1] = 0x01;
+> >> +		data[2] = 0x01;
+> >> +		data[3] = 0x01;
+> >> +		data[4] = 0x01;
+> >> +		data[5] = 0x01;
+> >> +	} else {
+> >> +		data[0] = 0x00;
+> >> +		data[1] = 0x00;
+> >> +		data[2] = 0x00;
+> >> +		data[3] = 0x00;
+> >> +		data[4] = 0x00;
+> >> +		data[5] = 0x00;
+> >> +	}
+> > 
+> > Instead, just do:
+> > 
+> > 	if ((sys == CXD2880_DTV_SYS_DVBT2) && en_fef_intmtnt_ctrl)
+> > 		memset(data, 0x01, sizeof(data));
+> > 	else
+> > 		memset(data, 0x00, sizeof(data));
+> > 
+> >> +	ret = tnr_dmd->io->write_regs(tnr_dmd->io,
+> >> +				      CXD2880_IO_TGT_SYS,
+> >> +				      0xef, data, 6);
+> >> +	if (ret)
+> >> +		return ret;
+> >> +
+> >> +	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
+> >> +				     CXD2880_IO_TGT_DMD,
+> >> +				     0x00, 0x2d);
+> >> +	if (ret)
+> >> +		return ret;
+> > 
+> >> +	if ((sys == CXD2880_DTV_SYS_DVBT2) && en_fef_intmtnt_ctrl)
+> >> +		data[0] = 0x00;
+> >> +	else
+> >> +		data[0] = 0x01;
+> > 
+> > Not actually needed, as the previous logic already set data[0]
+> > accordingly.
+> > 
+> >> +	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
+> >> +				     CXD2880_IO_TGT_DMD,
+> >> +				     0xb1, data[0]);
+> 
+> In this case、logic of data[0]( logic of if() ) is different from that of previous one.
+> And with setting register for address 0xb1, a bug might occur in the future, 
+> if our software specification (sequence) is changed.
+> So we would like to keep setting value of data[0] for address 0xb1.
+
+OK. Better to document it then, as otherwise someone might
+end by sending cleanup patches that would touch it.
+
+> 
+> Thanks,
+> Takiguchi
+
+
+
+Thanks,
+Mauro
