@@ -1,51 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f181.google.com ([209.85.192.181]:54574 "EHLO
-        mail-pf0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752128AbdITXiD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 19:38:03 -0400
-Received: by mail-pf0-f181.google.com with SMTP id d187so2297951pfg.11
-        for <linux-media@vger.kernel.org>; Wed, 20 Sep 2017 16:38:03 -0700 (PDT)
-From: Kees Cook <keescook@chromium.org>
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Kees Cook <keescook@chromium.org>,
-        Mats Randgaard <matrandg@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2 17/31] media/i2c/tc358743: Initialize timer
-Date: Wed, 20 Sep 2017 16:27:41 -0700
-Message-Id: <1505950075-50223-18-git-send-email-keescook@chromium.org>
-In-Reply-To: <1505950075-50223-1-git-send-email-keescook@chromium.org>
-References: <1505950075-50223-1-git-send-email-keescook@chromium.org>
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:35295 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755950AbdIGSnE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 14:43:04 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v3 09/15] [media] v4l: add support to BUF_QUEUED event
+Date: Thu,  7 Sep 2017 15:42:20 -0300
+Message-Id: <20170907184226.27482-10-gustavo@padovan.org>
+In-Reply-To: <20170907184226.27482-1-gustavo@padovan.org>
+References: <20170907184226.27482-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This converts to use setup_timer() to set callback and data, though it
-doesn't look like this would have worked with timer checking enabled
-since no init_timer() was ever called before.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Cc: Mats Randgaard <matrandg@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
+Implement the needed pieces to let userspace subscribe for
+V4L2_EVENT_BUF_QUEUED events. Videobuf2 will queue the event for the
+DQEVENT ioctl.
+
+v3:	- Do not call v4l2 event API from vb2 (Mauro)
+
+v2:	- Use VIDEO_MAX_FRAME to allocate room for events at
+	v4l2_event_subscribe() (Hans)
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- drivers/media/i2c/tc358743.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c     |  6 +++++-
+ drivers/media/v4l2-core/videobuf2-core.c |  2 ++
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 14 ++++++++++++++
+ 3 files changed, 21 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index e6f5c363ccab..07ad6a3ff1ec 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -1964,8 +1964,8 @@ static int tc358743_probe(struct i2c_client *client,
- 	} else {
- 		INIT_WORK(&state->work_i2c_poll,
- 			  tc358743_work_i2c_poll);
--		state->timer.data = (unsigned long)state;
--		state->timer.function = tc358743_irq_poll_timer;
-+		setup_timer(&state->timer, tc358743_irq_poll_timer,
-+			    (unsigned long)state);
- 		state->timer.expires = jiffies +
- 				       msecs_to_jiffies(POLL_INTERVAL_MS);
- 		add_timer(&state->timer);
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index dd1db678718c..17d4b9e3eec6 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -3438,8 +3438,12 @@ EXPORT_SYMBOL(v4l2_ctrl_log_status);
+ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
+ 				const struct v4l2_event_subscription *sub)
+ {
+-	if (sub->type == V4L2_EVENT_CTRL)
++	switch (sub->type) {
++	case V4L2_EVENT_CTRL:
+ 		return v4l2_event_subscribe(fh, sub, 0, &v4l2_ctrl_sub_ev_ops);
++	case V4L2_EVENT_BUF_QUEUED:
++		return v4l2_event_subscribe(fh, sub, VIDEO_MAX_FRAME, NULL);
++	}
+ 	return -EINVAL;
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_subscribe_event);
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index b19c1bc4b083..bbbae0eed567 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1231,6 +1231,8 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ 	trace_vb2_buf_queue(q, vb);
+ 
+ 	call_void_vb_qop(vb, buf_queue, vb);
++
++	call_void_bufop(q, buffer_queued, vb);
+ }
+ 
+ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 8c322cd1b346..bbfcd054e6f6 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -138,6 +138,19 @@ static void __copy_timestamp(struct vb2_buffer *vb, const void *pb)
+ 	}
+ };
+ 
++static void __buffer_queued(struct vb2_buffer *vb)
++{
++	struct video_device *vdev = to_video_device(vb->vb2_queue->dev);
++	struct v4l2_fh *fh = vdev->queue->owner;
++	struct v4l2_event event;
++
++	memset(&event, 0, sizeof(event));
++	event.type = V4L2_EVENT_BUF_QUEUED;
++	event.u.buf_queued.index = vb->index;
++
++	v4l2_event_queue_fh(fh, &event);
++}
++
+ static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
+ {
+ 	static bool check_once;
+@@ -455,6 +468,7 @@ static const struct vb2_buf_ops v4l2_buf_ops = {
+ 	.fill_user_buffer	= __fill_v4l2_buffer,
+ 	.fill_vb2_buffer	= __fill_vb2_buffer,
+ 	.copy_timestamp		= __copy_timestamp,
++	.buffer_queued		= __buffer_queued,
+ };
+ 
+ /**
 -- 
-2.7.4
+2.13.5
