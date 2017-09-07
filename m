@@ -1,77 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:32950 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751924AbdIRK47 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 06:56:59 -0400
-Date: Mon, 18 Sep 2017 12:56:55 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [RESEND PATCH v2 4/6] dt: bindings: as3645a: Improve label
- documentation, DT example
-Message-ID: <20170918105655.GA14591@amd>
-References: <20170918102349.8935-1-sakari.ailus@linux.intel.com>
- <20170918102349.8935-5-sakari.ailus@linux.intel.com>
+Received: from eddie.linux-mips.org ([148.251.95.138]:42566 "EHLO
+        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750739AbdIGXij (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 19:38:39 -0400
+Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S23993950AbdIGXiiW5O7k (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 01:38:38 +0200
+Date: Fri, 8 Sep 2017 01:38:20 +0200
+From: Ladislav Michl <ladis@linux-mips.org>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
+Subject: [PATCH v2 07/10] media: rc: gpio-ir-recv: use devm_request_irq
+Message-ID: <20170907233820.nfve3zfuiu2bhwvu@lenoch>
+References: <20170907233355.bv3hsv3rfhcx52i3@lenoch>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="J/dobhs11T7y2rNN"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170918102349.8935-5-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170907233355.bv3hsv3rfhcx52i3@lenoch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Use of devm_request_irq simplifies error unwinding and as
+free_irq was the last user of driver remove function,
+remove it too.
 
---J/dobhs11T7y2rNN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+---
+ Changes:
+ -v2: rebased to current linux.git
 
-Hi!
+ drivers/media/rc/gpio-ir-recv.c | 22 +++-------------------
+ 1 file changed, 3 insertions(+), 19 deletions(-)
 
-> Specify the exact label used if the label property is omitted in DT, as
-> well as use label in the example that conforms to LED device naming.
->=20
-> @@ -69,11 +73,11 @@ Example
->  			flash-max-microamp =3D <320000>;
->  			led-max-microamp =3D <60000>;
->  			ams,input-max-microamp =3D <1750000>;
-> -			label =3D "as3645a:flash";
-> +			label =3D "as3645a:white:flash";
->  		};
->  		indicator@1 {
->  			reg =3D <0x1>;
->  			led-max-microamp =3D <10000>;
-> -			label =3D "as3645a:indicator";
-> +			label =3D "as3645a:red:indicator";
->  		};
->  	};
-
-Ok, but userspace still has no chance to determine if this is flash
-=66rom main camera or flash for front camera; todays smartphones have
-flashes on both cameras.
-
-So.. Can I suggset as3645a:white:main_camera_flash or main_flash or
-=2E...?
-
-Thanks,
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---J/dobhs11T7y2rNN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlm/pncACgkQMOfwapXb+vJuqgCdH1bee2vh9lyEEt7Sa5YX50g3
-kpIAnivXE1m31wGFd/GP2m0D6V2Srk5D
-=UP2N
------END PGP SIGNATURE-----
-
---J/dobhs11T7y2rNN--
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index 110276d49495..1d115f8531ba 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -161,25 +161,10 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, gpio_dev);
+ 
+-	rc = request_irq(gpio_to_irq(pdata->gpio_nr),
++	return devm_request_irq(dev, gpio_to_irq(pdata->gpio_nr),
+ 				gpio_ir_recv_irq,
+-			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
+-					"gpio-ir-recv-irq", gpio_dev);
+-	if (rc < 0)
+-		goto err_request_irq;
+-
+-	return 0;
+-
+-err_request_irq:
+-	return rc;
+-}
+-
+-static int gpio_ir_recv_remove(struct platform_device *pdev)
+-{
+-	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
+-
+-	free_irq(gpio_to_irq(gpio_dev->gpio_nr), gpio_dev);
+-	return 0;
++				IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
++				"gpio-ir-recv-irq", gpio_dev);
+ }
+ 
+ #ifdef CONFIG_PM
+@@ -217,7 +202,6 @@ static const struct dev_pm_ops gpio_ir_recv_pm_ops = {
+ 
+ static struct platform_driver gpio_ir_recv_driver = {
+ 	.probe  = gpio_ir_recv_probe,
+-	.remove = gpio_ir_recv_remove,
+ 	.driver = {
+ 		.name   = GPIO_IR_DRIVER_NAME,
+ 		.of_match_table = of_match_ptr(gpio_ir_recv_of_match),
+-- 
+2.11.0
