@@ -1,141 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:11809 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751196AbdIFS2P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Sep 2017 14:28:15 -0400
-From: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: tfiga@chromium.org, jian.xu.zheng@intel.com,
-        tian.shu.qiu@intel.com, rajmohan.mani@intel.com,
-        hyungwoo.yang@intel.com,
-        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-Subject: [PATCH v2] media: ov13858: Calculate pixel-rate at runtime, use mode
-Date: Wed,  6 Sep 2017 11:26:33 -0700
-Message-Id: <ac8d16fed1d466c3381532b627e7dde5737650ec.1504721789.git.chiranjeevi.rapolu@intel.com>
-In-Reply-To: <1504655098-39951-1-git-send-email-rajmohan.mani@intel.com>
-References: <1504655098-39951-1-git-send-email-rajmohan.mani@intel.com>
+Received: from mail-bn3nam01on0098.outbound.protection.outlook.com ([104.47.33.98]:29741
+        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754699AbdIGKNJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 7 Sep 2017 06:13:09 -0400
+Subject: Re: [PATCH v3 05/14] [media] cxd2880: Add tuner part of the driver
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <20170816041714.20551-1-Yasunari.Takiguchi@sony.com>
+ <20170816043714.21394-1-Yasunari.Takiguchi@sony.com>
+ <20170827114544.39865dbb@vento.lan>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tbird20d@gmail.com" <tbird20d@gmail.com>,
+        "frowand.list@gmail.com" <frowand.list@gmail.com>,
+        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
+        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
+        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
+        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
+        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
+        <yasunari.takiguchi@sony.com>
+From: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
+Message-ID: <22918ced-b130-abf6-847d-369b7a5c0ebf@sony.com>
+Date: Thu, 7 Sep 2017 19:12:57 +0900
+MIME-Version: 1.0
+In-Reply-To: <20170827114544.39865dbb@vento.lan>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Calculate pixel-rate at run time instead of compile time.
+Dear Mauro
 
-Instead of using hardcoded pixels-per-line, extract it from current sensor
-mode.
+Thanks for your review and reply.
 
-Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
----
-Changes in v2:
-	- Removed pixel-rate from struct definition.
-	- Used pixel-rate formula wherever needed.
-	- Changed commit message to reflect above changes.
- drivers/media/i2c/ov13858.c | 42 ++++++++++++++++++++++--------------------
- 1 file changed, 22 insertions(+), 20 deletions(-)
+We are going to discuss how to change our code with your comments internally.
 
-diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
-index af7af0d..77f256e 100644
---- a/drivers/media/i2c/ov13858.c
-+++ b/drivers/media/i2c/ov13858.c
-@@ -104,7 +104,6 @@ struct ov13858_reg_list {
- 
- /* Link frequency config */
- struct ov13858_link_freq_config {
--	u32 pixel_rate;
- 	u32 pixels_per_line;
- 
- 	/* PLL registers for this link frequency */
-@@ -958,8 +957,6 @@ struct ov13858_mode {
- static const struct ov13858_link_freq_config
- 			link_freq_configs[OV13858_NUM_OF_LINK_FREQS] = {
- 	{
--		/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
--		.pixel_rate = (OV13858_LINK_FREQ_540MHZ * 2 * 4) / 10,
- 		.pixels_per_line = OV13858_PPL_540MHZ,
- 		.reg_list = {
- 			.num_of_regs = ARRAY_SIZE(mipi_data_rate_1080mbps),
-@@ -967,8 +964,6 @@ struct ov13858_mode {
- 		}
- 	},
- 	{
--		/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
--		.pixel_rate = (OV13858_LINK_FREQ_270MHZ * 2 * 4) / 10,
- 		.pixels_per_line = OV13858_PPL_270MHZ,
- 		.reg_list = {
- 			.num_of_regs = ARRAY_SIZE(mipi_data_rate_540mbps),
-@@ -1385,6 +1380,7 @@ static int ov13858_get_pad_format(struct v4l2_subdev *sd,
- 	s32 vblank_def;
- 	s32 vblank_min;
- 	s64 h_blank;
-+	s64 pixel_rate;
- 
- 	mutex_lock(&ov13858->mutex);
- 
-@@ -1400,9 +1396,9 @@ static int ov13858_get_pad_format(struct v4l2_subdev *sd,
- 	} else {
- 		ov13858->cur_mode = mode;
- 		__v4l2_ctrl_s_ctrl(ov13858->link_freq, mode->link_freq_index);
--		__v4l2_ctrl_s_ctrl_int64(
--			ov13858->pixel_rate,
--			link_freq_configs[mode->link_freq_index].pixel_rate);
-+		pixel_rate =
-+		(link_freq_menu_items[mode->link_freq_index] * 2 * 4) / 10;
-+		__v4l2_ctrl_s_ctrl_int64(ov13858->pixel_rate, pixel_rate);
- 		/* Update limits and set FPS to default */
- 		vblank_def = ov13858->cur_mode->vts_def -
- 			     ov13858->cur_mode->height;
-@@ -1617,6 +1613,10 @@ static int ov13858_init_controls(struct ov13858 *ov13858)
- 	s64 exposure_max;
- 	s64 vblank_def;
- 	s64 vblank_min;
-+	s64 hblank;
-+	s64 pixel_rate_min;
-+	s64 pixel_rate_max;
-+	const struct ov13858_mode *mode;
- 	int ret;
- 
- 	ctrl_hdlr = &ov13858->ctrl_handler;
-@@ -1634,29 +1634,31 @@ static int ov13858_init_controls(struct ov13858 *ov13858)
- 				link_freq_menu_items);
- 	ov13858->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 
-+	/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
-+	pixel_rate_max = (link_freq_menu_items[0] * 2 * 4) / 10;
-+	pixel_rate_min = (link_freq_menu_items[1] * 2 * 4) / 10;
- 	/* By default, PIXEL_RATE is read only */
- 	ov13858->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops,
--					V4L2_CID_PIXEL_RATE, 0,
--					link_freq_configs[0].pixel_rate, 1,
--					link_freq_configs[0].pixel_rate);
-+						V4L2_CID_PIXEL_RATE,
-+						pixel_rate_min, pixel_rate_max,
-+						1, pixel_rate_max);
- 
--	vblank_def = ov13858->cur_mode->vts_def - ov13858->cur_mode->height;
--	vblank_min = ov13858->cur_mode->vts_min - ov13858->cur_mode->height;
-+	mode = ov13858->cur_mode;
-+	vblank_def = mode->vts_def - mode->height;
-+	vblank_min = mode->vts_min - mode->height;
- 	ov13858->vblank = v4l2_ctrl_new_std(
- 				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_VBLANK,
--				vblank_min,
--				OV13858_VTS_MAX - ov13858->cur_mode->height, 1,
-+				vblank_min, OV13858_VTS_MAX - mode->height, 1,
- 				vblank_def);
- 
-+	hblank = link_freq_configs[mode->link_freq_index].pixels_per_line -
-+		 mode->width;
- 	ov13858->hblank = v4l2_ctrl_new_std(
- 				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_HBLANK,
--				OV13858_PPL_540MHZ - ov13858->cur_mode->width,
--				OV13858_PPL_540MHZ - ov13858->cur_mode->width,
--				1,
--				OV13858_PPL_540MHZ - ov13858->cur_mode->width);
-+				hblank, hblank, 1, hblank);
- 	ov13858->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 
--	exposure_max = ov13858->cur_mode->vts_def - 8;
-+	exposure_max = mode->vts_def - 8;
- 	ov13858->exposure = v4l2_ctrl_new_std(
- 				ctrl_hdlr, &ov13858_ctrl_ops,
- 				V4L2_CID_EXPOSURE, OV13858_EXPOSURE_MIN,
--- 
-1.9.1
+I reply for your  2 comments,
+
+>> [Change list]
+>> Changes in V3
+>>    drivers/media/dvb-frontends/cxd2880/cxd2880_dtv.h
+>>       -removed code relevant to ISDB-T
+> 
+> Just curiosity here: why is it removed?
+We decided to withhold the ISDB-T functionality as it contains some company proprietary code.
+
+
+>> +	if (ret)
+>> +		return ret;
+>> +	if ((sys == CXD2880_DTV_SYS_DVBT2) && en_fef_intmtnt_ctrl) {
+>> +		data[0] = 0x01;
+>> +		data[1] = 0x01;
+>> +		data[2] = 0x01;
+>> +		data[3] = 0x01;
+>> +		data[4] = 0x01;
+>> +		data[5] = 0x01;
+>> +	} else {
+>> +		data[0] = 0x00;
+>> +		data[1] = 0x00;
+>> +		data[2] = 0x00;
+>> +		data[3] = 0x00;
+>> +		data[4] = 0x00;
+>> +		data[5] = 0x00;
+>> +	}
+> 
+> Instead, just do:
+> 
+> 	if ((sys == CXD2880_DTV_SYS_DVBT2) && en_fef_intmtnt_ctrl)
+> 		memset(data, 0x01, sizeof(data));
+> 	else
+> 		memset(data, 0x00, sizeof(data));
+> 
+>> +	ret = tnr_dmd->io->write_regs(tnr_dmd->io,
+>> +				      CXD2880_IO_TGT_SYS,
+>> +				      0xef, data, 6);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
+>> +				     CXD2880_IO_TGT_DMD,
+>> +				     0x00, 0x2d);
+>> +	if (ret)
+>> +		return ret;
+> 
+>> +	if ((sys == CXD2880_DTV_SYS_DVBT2) && en_fef_intmtnt_ctrl)
+>> +		data[0] = 0x00;
+>> +	else
+>> +		data[0] = 0x01;
+> 
+> Not actually needed, as the previous logic already set data[0]
+> accordingly.
+> 
+>> +	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
+>> +				     CXD2880_IO_TGT_DMD,
+>> +				     0xb1, data[0]);
+
+In this case、logic of data[0]( logic of if() ) is different from that of previous one.
+And with setting register for address 0xb1, a bug might occur in the future, 
+if our software specification (sequence) is changed.
+So we would like to keep setting value of data[0] for address 0xb1.
+
+Thanks,
+Takiguchi
