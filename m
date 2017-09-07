@@ -1,274 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:51275 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936940AbdIZUOF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 16:14:05 -0400
-From: Sean Young <sean@mess.org>
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:35406 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756029AbdIGSnX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 14:43:23 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 10/20] media: lirc: merge lirc_dev_fop_ioctl and ir_lirc_ioctl
-Date: Tue, 26 Sep 2017 21:13:49 +0100
-Message-Id: <c179693af1381a1ae3f7debf1fff7344d46fb13e.1506455086.git.sean@mess.org>
-In-Reply-To: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
-References: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
-In-Reply-To: <cover.1506455086.git.sean@mess.org>
-References: <cover.1506455086.git.sean@mess.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v3 13/15] [media] vb2: add infrastructure to support out-fences
+Date: Thu,  7 Sep 2017 15:42:24 -0300
+Message-Id: <20170907184226.27482-14-gustavo@padovan.org>
+In-Reply-To: <20170907184226.27482-1-gustavo@padovan.org>
+References: <20170907184226.27482-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Calculate lirc features when necessary, and add LIRC_{S,G}ET_REC_MODE
-cases to ir_lirc_ioctl.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-This makes lirc_dev_fop_ioctl() unnecessary since all cases are
-already handled by ir_lirc_ioctl().
+Add vb2_setup_out_fence() and the needed members to struct vb2_buffer.
 
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- drivers/media/rc/ir-lirc-codec.c | 85 +++++++++++++++++++++++-----------------
- drivers/media/rc/lirc_dev.c      | 62 ++---------------------------
- include/media/lirc_dev.h         |  4 --
- 3 files changed, 53 insertions(+), 98 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 55 ++++++++++++++++++++++++++++++++
+ include/media/videobuf2-core.h           | 34 ++++++++++++++++++++
+ 2 files changed, 89 insertions(+)
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 0b977c22b9cf..f96f2a2c4eb1 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -225,8 +225,57 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 	}
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index bbbae0eed567..34adf1916194 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -23,8 +23,11 @@
+ #include <linux/sched.h>
+ #include <linux/freezer.h>
+ #include <linux/kthread.h>
++#include <linux/sync_file.h>
++#include <linux/dma-fence.h>
  
- 	switch (cmd) {
-+	case LIRC_GET_FEATURES:
-+		if (dev->driver_type == RC_DRIVER_IR_RAW) {
-+			val |= LIRC_CAN_REC_MODE2;
-+			if (dev->rx_resolution)
-+				val |= LIRC_CAN_GET_REC_RESOLUTION;
-+		}
-+
-+		if (dev->tx_scancode)
-+			val |= LIRC_CAN_SEND_SCANCODE;
-+
-+		if (dev->tx_ir) {
-+			val |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
-+			if (dev->s_tx_mask)
-+				val |= LIRC_CAN_SET_TRANSMITTER_MASK;
-+			if (dev->s_tx_carrier)
-+				val |= LIRC_CAN_SET_SEND_CARRIER;
-+			if (dev->s_tx_duty_cycle)
-+				val |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
-+		}
-+
-+		if (dev->s_rx_carrier_range)
-+			val |= LIRC_CAN_SET_REC_CARRIER |
-+				LIRC_CAN_SET_REC_CARRIER_RANGE;
-+
-+		if (dev->s_learning_mode)
-+			val |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
-+
-+		if (dev->s_carrier_report)
-+			val |= LIRC_CAN_MEASURE_CARRIER;
-+
-+		if (dev->max_timeout)
-+			val |= LIRC_CAN_SET_REC_TIMEOUT;
-+
-+		break;
+ #include <media/videobuf2-core.h>
++#include <media/videobuf2-fence.h>
+ #include <media/v4l2-mc.h>
  
- 	/* mode support */
-+	case LIRC_GET_REC_MODE:
-+		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
-+			return -ENOTTY;
-+
-+		val = LIRC_MODE_MODE2;
-+		break;
-+
-+	case LIRC_SET_REC_MODE:
-+		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
-+			return -ENOTTY;
-+
-+		if (val != LIRC_MODE_MODE2)
-+			return -EINVAL;
-+		return 0;
-+
- 	case LIRC_GET_SEND_MODE:
- 		if (!dev->tx_ir)
- 			return -ENOTTY;
-@@ -344,7 +393,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 		break;
- 
- 	default:
--		return lirc_dev_fop_ioctl(filep, cmd, arg);
-+		return -ENOTTY;
- 	}
- 
- 	if (_IOC_DIR(cmd) & _IOC_READ)
-@@ -371,47 +420,13 @@ int ir_lirc_register(struct rc_dev *dev)
- {
- 	struct lirc_dev *ldev;
- 	int rc = -ENOMEM;
--	unsigned long features = 0;
- 
- 	ldev = lirc_allocate_device();
- 	if (!ldev)
- 		return rc;
- 
--	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
--		features |= LIRC_CAN_REC_MODE2;
--		if (dev->rx_resolution)
--			features |= LIRC_CAN_GET_REC_RESOLUTION;
--	}
--
--	if (dev->tx_scancode)
--		features |= LIRC_CAN_SEND_SCANCODE;
--
--	if (dev->tx_ir) {
--		features |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
--		if (dev->s_tx_mask)
--			features |= LIRC_CAN_SET_TRANSMITTER_MASK;
--		if (dev->s_tx_carrier)
--			features |= LIRC_CAN_SET_SEND_CARRIER;
--		if (dev->s_tx_duty_cycle)
--			features |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
--	}
--
--	if (dev->s_rx_carrier_range)
--		features |= LIRC_CAN_SET_REC_CARRIER |
--			LIRC_CAN_SET_REC_CARRIER_RANGE;
--
--	if (dev->s_learning_mode)
--		features |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
--
--	if (dev->s_carrier_report)
--		features |= LIRC_CAN_MEASURE_CARRIER;
--
--	if (dev->max_timeout)
--		features |= LIRC_CAN_SET_REC_TIMEOUT;
--
- 	snprintf(ldev->name, sizeof(ldev->name), "ir-lirc-codec (%s)",
- 		 dev->driver_name);
--	ldev->features = features;
- 	ldev->buf = NULL;
- 	ldev->chunk_size = sizeof(int);
- 	ldev->buffer_size = LIRCBUF_SIZE;
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 884923cbee9d..f149fbf382ca 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -109,6 +109,7 @@ EXPORT_SYMBOL(lirc_free_device);
- 
- int lirc_register_device(struct lirc_dev *d)
- {
-+	struct rc_dev *rcdev = d->rdev;
- 	int minor;
- 	int err;
- 
-@@ -146,7 +147,7 @@ int lirc_register_device(struct lirc_dev *d)
- 	/* some safety check 8-) */
- 	d->name[sizeof(d->name) - 1] = '\0';
- 
--	if (LIRC_CAN_REC(d->features)) {
-+	if (rcdev->driver_type == RC_DRIVER_IR_RAW) {
- 		err = lirc_allocate_buffer(d);
- 		if (err)
- 			return err;
-@@ -290,63 +291,6 @@ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait)
+ #include <trace/events/vb2.h>
+@@ -1317,6 +1320,58 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
  }
- EXPORT_SYMBOL(lirc_dev_fop_poll);
+ EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
  
--long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
--{
--	struct rc_dev *rcdev = file->private_data;
--	struct lirc_dev *d = rcdev->lirc_dev;
--	__u32 mode;
--	int result;
--
--	dev_dbg(&d->dev, LOGHEAD "ioctl called (0x%x)\n",
--		d->name, d->minor, cmd);
--
--	result = mutex_lock_interruptible(&d->mutex);
--	if (result)
--		return result;
--
--	if (!d->attached) {
--		result = -ENODEV;
--		goto out;
--	}
--
--	switch (cmd) {
--	case LIRC_GET_FEATURES:
--		result = put_user(d->features, (__u32 __user *)arg);
--		break;
--	case LIRC_GET_REC_MODE:
--		if (!LIRC_CAN_REC(d->features)) {
--			result = -ENOTTY;
--			break;
--		}
--
--		result = put_user(LIRC_REC2MODE
--				  (d->features & LIRC_CAN_REC_MASK),
--				  (__u32 __user *)arg);
--		break;
--	case LIRC_SET_REC_MODE:
--		if (!LIRC_CAN_REC(d->features)) {
--			result = -ENOTTY;
--			break;
--		}
--
--		result = get_user(mode, (__u32 __user *)arg);
--		if (!result && !(LIRC_MODE2REC(mode) & d->features))
--			result = -EINVAL;
--		/*
--		 * FIXME: We should actually set the mode somehow but
--		 * for now, lirc_serial doesn't support mode changing either
--		 */
--		break;
--	default:
--		result = -ENOTTY;
--	}
--
--out:
--	mutex_unlock(&d->mutex);
--	return result;
--}
--EXPORT_SYMBOL(lirc_dev_fop_ioctl);
--
- ssize_t lirc_dev_fop_read(struct file *file,
- 			  char __user *buffer,
- 			  size_t length,
-@@ -369,7 +313,7 @@ ssize_t lirc_dev_fop_read(struct file *file,
- 		goto out_locked;
- 	}
++int vb2_setup_out_fence(struct vb2_queue *q)
++{
++	struct vb2_fence *fence;
++
++	fence = kzalloc(sizeof(*fence), GFP_KERNEL);
++	if (!fence)
++		return -ENOMEM;
++
++	fence->out_fence_fd = get_unused_fd_flags(O_CLOEXEC);
++	if (fence->out_fence_fd < 0) {
++		kfree(fence);
++		return fence->out_fence_fd;
++	}
++
++	fence->out_fence = vb2_fence_alloc();
++	if (!fence->out_fence)
++		goto err_fence;
++
++	fence->sync_file = sync_file_create(fence->out_fence);
++	if (!fence->sync_file) {
++		dma_fence_put(fence->out_fence);
++		goto err_fence;
++	}
++
++	spin_lock(&q->out_fence_lock);
++	list_add_tail(&fence->entry, &q->out_fence_list);
++	spin_unlock(&q->out_fence_lock);
++
++	return 0;
++
++err_fence:
++	kfree(fence);
++	put_unused_fd(fence->out_fence_fd);
++	return -ENOMEM;
++}
++EXPORT_SYMBOL_GPL(vb2_setup_out_fence);
++
++void vb2_cleanup_out_fence(struct vb2_queue *q)
++{
++	struct vb2_fence *fence;
++
++	spin_lock(&q->out_fence_lock);
++	fence = list_last_entry(&q->out_fence_list,
++				    struct vb2_fence, entry);
++	put_unused_fd(fence->out_fence_fd);
++	fput(fence->sync_file->file);
++	list_del(&fence->entry);
++	spin_unlock(&q->out_fence_lock);
++	kfree(fence);
++}
++EXPORT_SYMBOL_GPL(vb2_cleanup_out_fence);
++
+ /**
+  * vb2_start_streaming() - Attempt to start streaming.
+  * @q:		videobuf2 queue
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 20099dc22f26..84e5e7216a1e 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -427,6 +427,24 @@ struct vb2_buf_ops {
+ 	void (*buffer_queued)(struct vb2_buffer *vb);
+ };
  
--	if (!LIRC_CAN_REC(d->features)) {
-+	if (rcdev->driver_type != RC_DRIVER_IR_RAW) {
- 		ret = -EINVAL;
- 		goto out_locked;
- 	}
-diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
-index dd0c078796e8..86a3cf798775 100644
---- a/include/media/lirc_dev.h
-+++ b/include/media/lirc_dev.h
-@@ -115,8 +115,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
++/*
++ * struct vb2_fence - storage for fence data before queueing to the driver.
++ *
++ * @out_fence_fd:	the fd where to install the sync_file
++ * @out_fence:		the fence associated to the sync_file
++ * @sync_file:		the sync_file to be shared with userspace via the
++ *			out_fence_fd
++ * @files:		stores files struct for cleanup purposes
++ * @entry:		the list head element for the out_fence_list
++ */
++struct vb2_fence {
++	int out_fence_fd;
++	struct dma_fence *out_fence;
++	struct sync_file *sync_file;
++	struct files_struct *files;
++	struct list_head entry;
++};
++
+ /**
+  * struct vb2_queue - a videobuf queue
   *
-  * @name:		used for logging
-  * @minor:		the minor device (/dev/lircX) number for the device
-- * @features:		lirc compatible hardware features, like LIRC_MODE_RAW,
-- *			LIRC_CAN\_\*, as defined at include/media/lirc.h.
-  * @buffer_size:	Number of FIFO buffers with @chunk_size size.
-  *			Only used if @rbuf is NULL.
-  * @chunk_size:		Size of each FIFO buffer.
-@@ -138,7 +136,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
- struct lirc_dev {
- 	char name[40];
- 	unsigned int minor;
--	__u32 features;
+@@ -734,6 +752,22 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
+ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
  
- 	unsigned int buffer_size; /* in chunks holding one code each */
- 	unsigned int chunk_size;
-@@ -172,7 +169,6 @@ void lirc_unregister_device(struct lirc_dev *d);
- int lirc_dev_fop_open(struct inode *inode, struct file *file);
- int lirc_dev_fop_close(struct inode *inode, struct file *file);
- unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait);
--long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
- ssize_t lirc_dev_fop_read(struct file *file, char __user *buffer, size_t length,
- 			  loff_t *ppos);
- #endif
+ /**
++ * vb2_setup_out_fence() - setup new out-fence
++ * @q:		The vb2_queue where to setup it
++ *
++ * Setup the file descriptor, the fence and the sync_file for the next
++ * buffer to be queued and add everything to the tail of the q->out_fence_list.
++ */
++int vb2_setup_out_fence(struct vb2_queue *q);
++
++/**
++ * vb2_cleanup_out_fence() - cleanup out-fence
++ * @q:		The vb2_queue to use for cleanup
++ *
++ * Clean up the last fence on the list. Used only when QBUF fails.
++ */
++void vb2_cleanup_out_fence(struct vb2_queue *q);
++/**
+  * vb2_core_qbuf() - Queue a buffer from userspace
+  *
+  * @q:		videobuf2 queue
 -- 
 2.13.5
