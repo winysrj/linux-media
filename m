@@ -1,149 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33143
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751969AbdI0Vkv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:51 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Ingo Molnar <mingo@kernel.org>
-Subject: [PATCH v2 29/37] media: dvb_demux.h: document structs defined on it
-Date: Wed, 27 Sep 2017 18:40:30 -0300
-Message-Id: <b6f0f14e87518b753223903b3d439eded1af2c83.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:33703 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755591AbdIGSml (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 14:42:41 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v3 02/15] [media] vb2: add explicit fence user API
+Date: Thu,  7 Sep 2017 15:42:13 -0300
+Message-Id: <20170907184226.27482-3-gustavo@padovan.org>
+In-Reply-To: <20170907184226.27482-1-gustavo@padovan.org>
+References: <20170907184226.27482-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are three structs defined inside dvb_demux.h. None
-of them are currently documented.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Add documentation for them.
+Turn the reserved2 field into fence_fd that we will use to send
+an in-fence to the kernel and return an out-fence from the kernel to
+userspace.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+when sending a fence to the kernel to be waited on, and
+V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
+
+v2: add documentation
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- drivers/media/dvb-core/dvb_demux.c |  1 +
- drivers/media/dvb-core/dvb_demux.h | 58 ++++++++++++++++++++++++++++++++------
- 2 files changed, 50 insertions(+), 9 deletions(-)
+ Documentation/media/uapi/v4l/buffer.rst       | 19 +++++++++++++++++++
+ drivers/media/usb/cpia2/cpia2_v4l.c           |  2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  4 ++--
+ drivers/media/v4l2-core/videobuf2-v4l2.c      |  2 +-
+ include/uapi/linux/videodev2.h                |  4 +++-
+ 5 files changed, 26 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
-index b9360cbc3519..acade7543b82 100644
---- a/drivers/media/dvb-core/dvb_demux.c
-+++ b/drivers/media/dvb-core/dvb_demux.c
-@@ -367,6 +367,7 @@ static inline void dvb_dmx_swfilter_packet_type(struct dvb_demux_feed *feed,
- 			else
- 				feed->cb.ts(buf, 188, NULL, 0, &feed->feed.ts);
- 		}
-+		/* Used only on full-featured devices */
- 		if (feed->ts_type & TS_DECODER)
- 			if (feed->demux->write_to_decoder)
- 				feed->demux->write_to_decoder(feed, buf, 188);
-diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
-index 5b05e6320e33..43b0cab2e932 100644
---- a/drivers/media/dvb-core/dvb_demux.h
-+++ b/drivers/media/dvb-core/dvb_demux.h
-@@ -95,15 +95,16 @@ struct dvb_demux_filter {
-  * struct dvb_demux_feed - describes a DVB field
-  *
-  * @feed:	a digital TV feed. It can either be a TS or a section feed:
-- *		  - if the feed is TS, it contains &struct dvb_ts_feed;
-- *		  - if the feed is section, it contains
-- *		    &struct dmx_section_feed.
-+ *		if the feed is TS, it contains &struct dvb_ts_feed @ts;
-+ *		if the feed is section, it contains
-+ *		&struct dmx_section_feed @sec.
-  * @cb:		digital TV callbacks. depending on the feed type, it can be:
-- *		  - if the feed is TS, it contains a dmx_ts_cb() callback;
-- *		  - if the feed is section, it contains a dmx_section_cb() callback.
-+ *		if the feed is TS, it contains a dmx_ts_cb() @ts callback;
-+ *		if the feed is section, it contains a dmx_section_cb() @sec
-+ * 		callback.
-  *
-  * @demux:	pointer to &struct dvb_demux.
-- * @priv:	private data for the filter handling routine.
-+ * @priv:	private data that can optionally be used by a DVB driver.
-  * @type:	type of the filter, as defined by &enum dvb_dmx_filter_type.
-  * @state:	state of the filter as defined by &enum dvb_dmx_state.
-  * @pid:	PID to be filtered.
-@@ -118,7 +119,6 @@ struct dvb_demux_filter {
-  * @list_head:	head for the list of digital TV demux feeds.
-  * @index:	a unique index for each feed. Can be used as hardware
-  * 		pid filter index.
-- *
-  */
- struct dvb_demux_feed {
- 	union {
-@@ -152,6 +152,44 @@ struct dvb_demux_feed {
- 	unsigned int index;
- };
- 
-+/**
-+ * struct dvb_demux - represents a digital TV demux
-+ * @dmx:		embedded &struct dmx_demux with demux capabilities
-+ *			and callbacks.
-+ * @priv:		private data that can optionally be used by
-+ *			a DVB driver.
-+ * @filternum:		maximum amount of DVB filters.
-+ * @feednum:		maximum amount of DVB feeds.
-+ * @start_feed:		callback routine to be called in order to start
-+ *			a DVB feed.
-+ * @stop_feed:		callback routine to be called in order to stop
-+ *			a DVB feed.
-+ * @write_to_decoder:	callback routine to be called if the feed is TS and
-+ *			it is routed to an A/V decoder, when a new TS packet
-+ *			is received.
-+ *			Used only on av7110-av.c.
-+ * @check_crc32:	callback routine to check CRC. If not initialized,
-+ *			dvb_demux will use an internal one.
-+ * @memcopy:		callback routine to memcopy received data.
-+ *			If not initialized, dvb_demux will default to memcpy().
-+ * @users:		counter for the number of demux opened file descriptors.
-+ *			Currently, it is limited to 10 users.
-+ * @filter:		pointer to &struct dvb_demux_filter.
-+ * @feed:		pointer to &struct dvb_demux_feed.
-+ * @frontend_list:	&struct list_head with frontends used by the demux.
-+ * @pesfilter:		array of &struct dvb_demux_feed with the PES types
-+ *			that will be filtered.
-+ * @pids:		list of filtered program IDs.
-+ * @feed_list:		&struct list_head with feeds.
-+ * @tsbuf:		temporary buffer used internally to store TS packets.
-+ * @tsbufp:		temporary buffer index used internally.
-+ * @mutex:		pointer to &struct mutex used to protect feed set
-+ *			logic.
-+ * @lock:		pointer to &spinlock_t, used to protect buffer handling.
-+ * @cnt_storage:	buffer used for TS/TEI continuity check.
-+ * @speed_last_time:	&ktime_t used for TS speed check.
-+ * @speed_pkts_cnt:	packets count used for TS speed check.
-+ */
- struct dvb_demux {
- 	struct dmx_demux dmx;
- 	void *priv;
-@@ -175,8 +213,6 @@ struct dvb_demux {
- 
- 	struct dvb_demux_feed *pesfilter[DMX_PES_OTHER];
- 	u16 pids[DMX_PES_OTHER];
--	int playing;
--	int recording;
- 
- #define DMX_MAX_PID 0x2000
- 	struct list_head feed_list;
-@@ -190,6 +226,10 @@ struct dvb_demux {
- 
- 	ktime_t speed_last_time; /* for TS speed check */
- 	uint32_t speed_pkts_cnt; /* for TS speed check */
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index ae6ee73f151c..664507ad06c6 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -648,6 +648,25 @@ Buffer Flags
+       - Start Of Exposure. The buffer timestamp has been taken when the
+ 	exposure of the frame has begun. This is only valid for the
+ 	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
++    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
 +
-+	/* private: used only on av7110 */
-+	int playing;
-+	int recording;
++      - ``V4L2_BUF_FLAG_IN_FENCE``
++      - 0x00200000
++      - Ask V4L2 to wait on fence passed in ``fence_fd`` field. The buffer
++	won't be queued to the driver until the fence signals.
++
++    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
++
++      - ``V4L2_BUF_FLAG_OUT_FENCE``
++      - 0x00400000
++      - Request a fence for the next buffer to be queued to V4L2 driver.
++	The fence received back through the ``fence_fd`` field  doesn't
++	necessarily relate to the current buffer in the
++	:ref:`VIDIOC_QBUF <VIDIOC_QBUF>` ioctl. Although, most of the time
++	the fence will relate to the current buffer it can't be guaranteed.
++	So to tell userspace which buffer is associated to the out_fence,
++	one should listen for the ``V4L2_EVENT_BUF_QUEUED`` event that
++	provide the id of the buffer when it is queued to the V4L2 driver.
+ 
+ 
+ 
+diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+index 3dedd83f0b19..6cde686bf44c 100644
+--- a/drivers/media/usb/cpia2/cpia2_v4l.c
++++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+@@ -948,7 +948,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	buf->sequence = cam->buffers[buf->index].seq;
+ 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+ 	buf->length = cam->frame_size;
+-	buf->reserved2 = 0;
++	buf->fence_fd = -1;
+ 	buf->reserved = 0;
+ 	memset(&buf->timecode, 0, sizeof(buf->timecode));
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 821f2aa299ae..d624fb5df130 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -370,7 +370,7 @@ struct v4l2_buffer32 {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__s32			fence_fd;
+ 	__u32			reserved;
  };
  
- int dvb_dmx_init(struct dvb_demux *dvbdemux);
+@@ -533,8 +533,8 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+ 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+ 		put_user(kp->sequence, &up->sequence) ||
+-		put_user(kp->reserved2, &up->reserved2) ||
+ 		put_user(kp->reserved, &up->reserved) ||
++		put_user(kp->fence_fd, &up->fence_fd) ||
+ 		put_user(kp->length, &up->length))
+ 			return -EFAULT;
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 0c0669976bdc..110fb45fef6f 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->timestamp = ns_to_timeval(vb->timestamp);
+ 	b->timecode = vbuf->timecode;
+ 	b->sequence = vbuf->sequence;
+-	b->reserved2 = 0;
++	b->fence_fd = -1;
+ 	b->reserved = 0;
+ 
+ 	if (q->is_multiplanar) {
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 185d6a0acc06..e5abab9a908c 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -924,7 +924,7 @@ struct v4l2_buffer {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__s32			fence_fd;
+ 	__u32			reserved;
+ };
+ 
+@@ -961,6 +961,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+ /* mem2mem encoder/decoder */
+ #define V4L2_BUF_FLAG_LAST			0x00100000
++#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
++#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
+ 
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
 -- 
 2.13.5
