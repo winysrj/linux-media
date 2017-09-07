@@ -1,97 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33160
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752183AbdI0Vkx (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33170 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753018AbdIGIJE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:53 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>
-Subject: [PATCH v2 28/37] media: dvb_frontend: get rid of dtv_get_property_dump()
-Date: Wed, 27 Sep 2017 18:40:29 -0300
-Message-Id: <73d697184e4d17e59a2fdca4c949e108fe66f766.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+        Thu, 7 Sep 2017 04:09:04 -0400
+Date: Thu, 7 Sep 2017 11:09:01 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, laurent.pinchart@ideasonboard.com,
+        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+Subject: Re: [PATCH v8 08/21] rcar-vin: Use generic parser for parsing fwnode
+ endpoints
+Message-ID: <20170907080900.nhjbaaacg4jrxpva@valkosipuli.retiisi.org.uk>
+References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+ <20170905130553.1332-9-sakari.ailus@linux.intel.com>
+ <a51aea1f-0a00-7a7b-8197-e0f5a0443a05@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <a51aea1f-0a00-7a7b-8197-e0f5a0443a05@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simplify the get property handling and move it to the existing
-code at dtv_property_process_get() directly.
+Hi Hans,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_frontend.c | 43 ++++++++++-------------------------
- 1 file changed, 12 insertions(+), 31 deletions(-)
+On Wed, Sep 06, 2017 at 09:44:32AM +0200, Hans Verkuil wrote:
+> On 09/05/2017 03:05 PM, Sakari Ailus wrote:
+> >  static int rvin_digital_graph_init(struct rvin_dev *vin)
+> >  {
+> > -	struct v4l2_async_subdev **subdevs = NULL;
+> >  	int ret;
+> >  
+> > -	ret = rvin_digital_graph_parse(vin);
+> > +	ret = v4l2_async_notifier_parse_fwnode_endpoints(
+> > +		vin->dev, &vin->notifier,
+> > +		sizeof(struct rvin_graph_entity), rvin_digital_parse_v4l2);
+> >  	if (ret)
+> >  		return ret;
+> >  
+> > -	if (!vin->digital.asd.match.fwnode.fwnode) {
+> > -		vin_dbg(vin, "No digital subdevice found\n");
+> > -		return -ENODEV;
+> > -	}
+> > -
+> > -	/* Register the subdevices notifier. */
+> > -	subdevs = devm_kzalloc(vin->dev, sizeof(*subdevs), GFP_KERNEL);
+> > -	if (subdevs == NULL)
+> > -		return -ENOMEM;
+> > -
+> > -	subdevs[0] = &vin->digital.asd;
+> > -
+> > -	vin_dbg(vin, "Found digital subdevice %pOF\n",
+> > -		to_of_node(subdevs[0]->match.fwnode.fwnode));
+> > +	if (vin->notifier.num_subdevs > 0)
+> > +		vin_dbg(vin, "Found digital subdevice %pOF\n",
+> > +			to_of_node(
+> > +				vin->notifier.subdevs[0]->match.fwnode.fwnode));
+> 
+> As mentioned in my review of patch 6/21, this violates the documentation of the
+> v4l2_async_notifier_parse_fwnode_endpoints function.
+> 
+> However, I think the problem is with the documentation and not with this code,
+> so:
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 717b84e50a4a..5f69b2ba1173 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -1107,36 +1107,6 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
- 	_DTV_CMD(DTV_STAT_TOTAL_BLOCK_COUNT, 0, 0),
- };
+Thanks. I still don't like to encourage accessing the notifier fields
+directly from drivers, and in this case there isn't a need to either. The
+following changes work, too, and I'll use them in the next version:
+
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index bd551f0be213..d1e5909da087 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -177,10 +177,10 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+ 	if (ret)
+ 		return ret;
  
--static void dtv_get_property_dump(struct dvb_frontend *fe,
--			      struct dtv_property *tvp)
--{
--	int i;
--
--	if (tvp->cmd <= 0 || tvp->cmd > DTV_MAX_COMMAND) {
--		dev_warn(fe->dvb->device, "%s: GET tvp.cmd = 0x%08x undefined\n"
--				, __func__,
--				tvp->cmd);
--		return;
--	}
--
--	dev_dbg(fe->dvb->device, "%s: GET tvp.cmd    = 0x%08x (%s)\n", __func__,
--		tvp->cmd,
--		dtv_cmds[tvp->cmd].name);
--
--	if (dtv_cmds[tvp->cmd].buffer) {
--		dev_dbg(fe->dvb->device, "%s: tvp.u.buffer.len = 0x%02x\n",
--			__func__, tvp->u.buffer.len);
--
--		for(i = 0; i < tvp->u.buffer.len; i++)
--			dev_dbg(fe->dvb->device,
--					"%s: tvp.u.buffer.data[0x%02x] = 0x%02x\n",
--					__func__, i, tvp->u.buffer.data[i]);
--	} else {
--		dev_dbg(fe->dvb->device, "%s: tvp.u.data = 0x%08x\n", __func__,
--				tvp->u.data);
--	}
--}
--
- /* Synchronise the legacy tuning parameters into the cache, so that demodulator
-  * drivers can use a single set_frontend tuning function, regardless of whether
-  * it's being used for the legacy or new API, reducing code and complexity.
-@@ -1529,7 +1499,18 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
- 		return -EINVAL;
- 	}
+-	if (vin->notifier.num_subdevs > 0)
++	if (vin->digital)
+ 		vin_dbg(vin, "Found digital subdevice %pOF\n",
+ 			to_of_node(
+-				vin->notifier.subdevs[0]->match.fwnode.fwnode));
++				vin->digital->asd.match.fwnode.fwnode));
  
--	dtv_get_property_dump(fe, tvp);
-+	if (!dtv_cmds[tvp->cmd].buffer)
-+		dev_dbg(fe->dvb->device,
-+			"%s: GET cmd 0x%08x (%s) = 0x%08x\n",
-+			__func__, tvp->cmd, dtv_cmds[tvp->cmd].name,
-+			tvp->u.data);
-+	else
-+		dev_dbg(fe->dvb->device,
-+			"%s: GET cmd 0x%08x (%s) len %d: %*ph\n",
-+			__func__,
-+			tvp->cmd, dtv_cmds[tvp->cmd].name,
-+			tvp->u.buffer.len,
-+			tvp->u.buffer.len, tvp->u.buffer.data);
- 
- 	return 0;
- }
+ 	vin->notifier.bound = rvin_digital_notify_bound;
+ 	vin->notifier.unbind = rvin_digital_notify_unbind;
+
+I also changed EPERM still used in this version to ENOTCONN.
+
 -- 
-2.13.5
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
