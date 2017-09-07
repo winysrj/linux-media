@@ -1,119 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34590 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751564AbdISOuw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 10:50:52 -0400
-Date: Tue, 19 Sep 2017 17:50:49 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
-        sre@kernel.org
-Subject: Re: [PATCH v13 11/25] v4l: async: Introduce helpers for calling
- async ops callbacks
-Message-ID: <20170919145049.uivohp6qvkf7x4fc@valkosipuli.retiisi.org.uk>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
- <1751597.tWjkEME5YS@avalon>
- <20170919121311.n2fvoo7tebywsc5d@paasikivi.fi.intel.com>
- <2693952.YdpSRMO0xE@avalon>
+Received: from gofer.mess.org ([88.97.38.141]:48755 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751398AbdIGHdr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 7 Sep 2017 03:33:47 -0400
+Date: Thu, 7 Sep 2017 08:33:45 +0100
+From: Sean Young <sean@mess.org>
+To: =?iso-8859-1?B?Ik9saXZlciBN/GxsZXIi?= <oliver.mueller85@gmx.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: BUGREPORT: IR keytable 1.12.3
+Message-ID: <20170907073345.oths2wgfurnxv7i2@gofer.mess.org>
+References: <trinity-e1aa6ee8-e9cc-4001-8e19-92255757329d-1504725614678@3c-app-gmx-bs76>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <2693952.YdpSRMO0xE@avalon>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <trinity-e1aa6ee8-e9cc-4001-8e19-92255757329d-1504725614678@3c-app-gmx-bs76>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Oliver,
 
-On Tue, Sep 19, 2017 at 03:43:48PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Tuesday, 19 September 2017 15:13:11 EEST Sakari Ailus wrote:
-> > On Tue, Sep 19, 2017 at 03:01:14PM +0300, Laurent Pinchart wrote:
-> > > On Friday, 15 September 2017 17:17:10 EEST Sakari Ailus wrote:
-> > >> Add three helper functions to call async operations callbacks. Besides
-> > >> simplifying callbacks, this allows async notifiers to have no ops set,
-> > >> i.e. it can be left NULL.
-> > >> 
-> > >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > >> ---
-> > >> 
-> > >>  drivers/media/v4l2-core/v4l2-async.c | 49 +++++++++++++++++++++--------
-> > >>  include/media/v4l2-async.h           |  1 +
-> > >>  2 files changed, 37 insertions(+), 13 deletions(-)
-> > >> 
-> > >> diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> > >> b/drivers/media/v4l2-core/v4l2-async.c index 7b2125b3d62f..c35d04b9122f
-> > >> 100644
-> > >> --- a/drivers/media/v4l2-core/v4l2-async.c
-> > >> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> > >> @@ -25,6 +25,34 @@
-> > >> 
-> > >>  #include <media/v4l2-fwnode.h>
-> > >>  #include <media/v4l2-subdev.h>
-> > >> 
-> > >> +static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier
-> > >> *n,
-> > >> +					  struct v4l2_subdev *subdev,
-> > >> +					  struct v4l2_async_subdev *asd)
-> > >> +{
-> > >> +	if (!n->ops || !n->ops->bound)
-> > >> +		return 0;
-> > >> +
-> > >> +	return n->ops->bound(n, subdev, asd);
-> > >> +}
-> > >> +
-> > >> +static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier
-> > >> *n,
-> > >> +					    struct v4l2_subdev *subdev,
-> > >> +					    struct v4l2_async_subdev *asd)
-> > >> +{
-> > >> +	if (!n->ops || !n->ops->unbind)
-> > >> +		return;
-> > >> +
-> > >> +	n->ops->unbind(n, subdev, asd);
-> > >> +}
-> > >> +
-> > >> +static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier
-> > >> *n)
-> > >> +{
-> > >> +	if (!n->ops || !n->ops->complete)
-> > >> +		return 0;
-> > >> +
-> > >> +	return n->ops->complete(n);
-> > >> +}
-> > >> +
-> > > 
-> > > Wouldn't it be enough to add a single v4l2_async_notifier_call() macro ?
-> > > 
-> > > #define v4l2_async_notifier_call(n, op, args...) \
-> > > 
-> > > 	((n)->ops && (n)->ops->op ? (n)->ops->op(n, ##args) : 0)
-> > 
-> > I actually had that in an earlier version but I changed it based on review
-> > comments from Hans. A single macro isn't enough: some functions have int
-> > return type. I think the way it is now is nicer.
-> 
-> What bothers me there is the overhead of a function call.
+On Wed, Sep 06, 2017 at 09:20:14PM +0200, "Oliver Müller" wrote:
+> BUG IR keytable 1.12.3
+>  
+> OS: Distributor ID:    Debian
+>     Description:    Debian GNU/Linux 9.1 (stretch)
+>     Release:    9.1
+>     Codename:    stretch
+>  
+> Kernel: 4.9.0-3-amd64 #1 SMP Debian 4.9.30-2+deb9u3 (2017-08-06) x86_64 GNU/Linux
+>  
+> Programversion: IR keytable control version 1.12.3
+>  
+> IR-Device: I: Bus=0003 Vendor=0471 Product=20cc Version=0100
+>            N: Name="PHILIPS MCE USB IR Receiver- Spinel plus"
+>            P: Phys=usb-0000:06:00.0-2/input0
+>            S: Sysfs=/devices/pci0000:00/0000:00:15.2/0000:06:00.0/usb1/1-2/1-2:1.0/0003:0471:20CC.0006/input/input14
+>            U: Uniq=
+>            H: Handlers=sysrq kbd leds event3
+>            B: PROP=0
+>            B: EV=120013
+>            B: KEY=c0000 40000000000 0 58000 8001f84000c004 e0beffdf01cfffff fffffffffffffffe
+>            B: MSC=10
+>            B: LED=1f
+>  
+> ir-keytable gives /sys/class/rc/: No such file or directory
 
-Overhead... of a function call?
+Could you please post the output of dmesg (or journalctl -b -k), it would be
+useful to see the output of the usb probe.
 
-Do you really mean what you're saying? :-) The functions will be called a
-relatively small number of times during module loading / device probing.
+> using ir-keytable -d /dev/input/event3 I get this output with no mention of the protocol(s):
+> Name: PHILIPS MCE USB IR Receiver- Spi
+> bus: 3, vendor/product: 0471:20cc, version: 0x0100
+>
+> if I use ir-keytable -s rc0 instead it comes back to /sys/class/rc/: No such file or directory which is also true
+>  
+> ir-keytable -d /dev/input/event3 -t works, ir-keytable -d /dev/input/event3 -r also works
+>  
+> after I introduce the new keymap, like so ir-keytable -d /dev/input/event3 -c -w /etc/rc_keymaps/rc6_mce_zotac_zbox-ad05br it doesn't work. I can't read the newly introduced keymap nor can I test it. Of course can't I be sure which protocol to use because it's not displayed in the initial output.
+>  
+> thx in advance
 
-> 
-> By the way, what's the use case for ops being NULL ?
+Thanks
 
-If a driver has no need for any of the callbacks, there's no benefit from
-having to set ops struct either. This applies to devices that are
-associated to the sensor, for instance.
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Sean
