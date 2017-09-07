@@ -1,98 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33674
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752220AbdI0WX5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 18:23:57 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH v7 6/7] media: videodev2: add a flag for MC-centric devices
-Date: Wed, 27 Sep 2017 19:23:48 -0300
-Message-Id: <5a3872ab652ba0633e4ec1e1c5149f3022552cb4.1506550930.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506550930.git.mchehab@s-opensource.com>
-References: <cover.1506550930.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506550930.git.mchehab@s-opensource.com>
-References: <cover.1506550930.git.mchehab@s-opensource.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:55129 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932287AbdIGWTI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 18:19:08 -0400
+Message-ID: <1504822731.11339.2.camel@collabora.com>
+Subject: Re: [PATCH v3 14/15] fs/files: export close_fd() symbol
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        linux-fsdevel@vger.kernel.org,
+        Riley Andrews <riandrews@android.com>
+Date: Thu, 07 Sep 2017 19:18:51 -0300
+In-Reply-To: <73f8820e-216b-5d7e-87e7-7a8b90bfb0d2@xs4all.nl>
+References: <20170907184226.27482-1-gustavo@padovan.org>
+         <20170907184226.27482-15-gustavo@padovan.org>
+         <73f8820e-216b-5d7e-87e7-7a8b90bfb0d2@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As both vdev-centric and MC-centric devices may implement the
-same APIs, we need a flag to allow userspace to distinguish
-between them.
+On Fri, 2017-09-08 at 00:09 +0200, Hans Verkuil wrote:
+> On 09/07/2017 08:42 PM, Gustavo Padovan wrote:
+> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > 
+> > Rename __close_fd() to close_fd() and export it to be able close
+> > files
+> > in modules using file descriptors.
+> > 
+> > The usecase that motivates this change happens in V4L2 where we
+> > send
+> > events to userspace with a fd that has file installed in it. But if
+> > for
+> > some reason we have to cancel the video stream we need to close the
+> > files
+> > that haven't been shared with userspace yet. Thus the export of
+> > close_fd() becomes necessary.
+> > 
+> > fd_install() happens when we call an ioctl to queue a buffer, but
+> > we only
+> > share the fd with userspace later, and that may happen in a kernel
+> > thread
+> > instead.
+> 
+> This isn't the way to do this.
+> 
+> You should only create the out fence file descriptor when userspace
+> dequeues
+> (i.e. calls VIDIOC_DQEVENT) the BUF_QUEUED event. That's when you
+> give it to
+> userspace and at that moment closing the fd is the responsibility of
+> userspace.
+> There is no point creating it earlier anyway since userspace can't
+> get to it
+> until it dequeues the event.
+> 
+> It does mean some more work in the V4L2 core since you need to hook
+> into the
+> DQEVENT code in order to do this.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/open.rst            | 7 +++++++
- Documentation/media/uapi/v4l/vidioc-querycap.rst | 5 +++++
- Documentation/media/videodev2.h.rst.exceptions   | 1 +
- include/uapi/linux/videodev2.h                   | 2 ++
- 4 files changed, 15 insertions(+)
+Right, that makes a lot more sense. I'll change the implementation so
+it can reflecting that. Thanks.
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index 0daf0c122c19..75ccc9d6614d 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -47,6 +47,13 @@ the periferal can be used. For such devices, the sub-devices' configuration
- can be controlled via the :ref:`sub-device API <subdev>`, which creates one
- device node per sub-device.
- 
-+.. attention::
-+
-+   Devices that require **MC-centric** media hardware control should
-+   report a ``V4L2_MC_CENTRIC`` :c:type:`v4l2_capability` flag
-+   (see :ref:`VIDIOC_QUERYCAP`).
-+
-+
- .. _v4l2_device_naming:
- 
- V4L2 Device Node Naming
-diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-index 66fb1b3d6e6e..944bc5ba484f 100644
---- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-@@ -254,6 +254,11 @@ specification the ioctl returns an ``EINVAL`` error code.
-     * - ``V4L2_CAP_TOUCH``
-       - 0x10000000
-       - This is a touch device.
-+    * - ``V4L2_MC_CENTRIC``
-+      - 0x20000000
-+      - Indicates that the device require **MC-centric** hardware
-+        control, and thus can't be used by **vdevnode-centric** applications.
-+        See :ref:`v4l2_hardware_control` for more details.
-     * - ``V4L2_CAP_DEVICE_CAPS``
-       - 0x80000000
-       - The driver fills the ``device_caps`` field. This capability can
-diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-index a5cb0a8686ac..b51a575f9f75 100644
---- a/Documentation/media/videodev2.h.rst.exceptions
-+++ b/Documentation/media/videodev2.h.rst.exceptions
-@@ -157,6 +157,7 @@ replace define V4L2_CAP_META_CAPTURE device-capabilities
- replace define V4L2_CAP_READWRITE device-capabilities
- replace define V4L2_CAP_ASYNCIO device-capabilities
- replace define V4L2_CAP_STREAMING device-capabilities
-+replace define V4L2_CAP_MC_CENTRIC device-capabilities
- replace define V4L2_CAP_DEVICE_CAPS device-capabilities
- replace define V4L2_CAP_TOUCH device-capabilities
- 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 185d6a0acc06..4ff1224719a7 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -460,6 +460,8 @@ struct v4l2_capability {
- 
- #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
- 
-+#define V4L2_CAP_MC_CENTRIC             0x20000000  /* Device require MC-centric hardware control */
-+
- #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
- 
- /*
--- 
-2.13.5
+Gustavo
