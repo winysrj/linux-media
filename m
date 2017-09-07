@@ -1,171 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40766 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751728AbdIENGC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Sep 2017 09:06:02 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:33771 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754650AbdIGSnQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 14:43:16 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v8 17/21] v4l: fwnode: Add convenience function for parsing generic references
-Date: Tue,  5 Sep 2017 16:05:49 +0300
-Message-Id: <20170905130553.1332-18-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
-References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v3 11/15] [media] vivid: mark vivid queues as ordered
+Date: Thu,  7 Sep 2017 15:42:22 -0300
+Message-Id: <20170907184226.27482-12-gustavo@padovan.org>
+In-Reply-To: <20170907184226.27482-1-gustavo@padovan.org>
+References: <20170907184226.27482-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add function v4l2_fwnode_reference_count() for counting external
-references and v4l2_fwnode_reference_parse() for parsing them as async
-sub-devices.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-This can be done on e.g. flash or lens async sub-devices that are not part
-of but are associated with a sensor.
+To enable vivid to be used with explicit synchronization we need
+to mark its queues as ordered. vivid queues are already ordered by
+default so we no changes are needed.
 
-struct v4l2_async_notifier.max_subdevs field is added to contain the
-maximum number of sub-devices in a notifier to reflect the memory
-allocated for the subdevs array.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 85 +++++++++++++++++++++++++++++++++++
- include/media/v4l2-fwnode.h           | 28 ++++++++++++
- 2 files changed, 113 insertions(+)
+ drivers/media/platform/vivid/vivid-core.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index e6932d7d47b6..8c059a4217b4 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -453,6 +453,91 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
- }
- EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints);
- 
-+static void v4l2_fwnode_print_args(struct fwnode_reference_args *args)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < args->nargs; i++) {
-+		pr_cont(" %u", args->args[i]);
-+		if (i + 1 < args->nargs)
-+			pr_cont(",");
-+	}
-+}
-+
-+int v4l2_fwnode_reference_parse(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	const char *prop, const char *nargs_prop, unsigned int nargs,
-+	size_t asd_struct_size,
-+	int (*parse_single)(struct device *dev,
-+			    struct fwnode_reference_args *args,
-+			    struct v4l2_async_subdev *asd))
-+{
-+	struct fwnode_reference_args args;
-+	unsigned int index = 0;
-+	int ret = -ENOENT;
-+
-+	if (asd_struct_size < sizeof(struct v4l2_async_subdev))
-+		return -EINVAL;
-+
-+	for (; !fwnode_property_get_reference_args(
-+		     dev_fwnode(dev), prop, nargs_prop, nargs,
-+		     index, &args); index++)
-+		fwnode_handle_put(args.fwnode);
-+
-+	ret = v4l2_async_notifier_realloc(notifier,
-+					  notifier->num_subdevs + index);
-+	if (ret)
-+		return -ENOMEM;
-+
-+	for (ret = -ENOENT, index = 0; !fwnode_property_get_reference_args(
-+		     dev_fwnode(dev), prop, nargs_prop, nargs,
-+		     index, &args); index++) {
-+		struct v4l2_async_subdev *asd;
-+
-+		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-+			ret = -EINVAL;
-+			goto error;
-+		}
-+
-+		asd = kzalloc(asd_struct_size, GFP_KERNEL);
-+		if (!asd) {
-+			ret = -ENOMEM;
-+			goto error;
-+		}
-+
-+		ret = parse_single ? parse_single(dev, &args, asd) : 0;
-+		if (ret < 0) {
-+			kfree(asd);
-+			if (ret == -ENOTCONN)
-+				dev_dbg(dev,
-+					"ignoring reference prop \"%s\", nargs_prop \"%s\", nargs %u, index %u",
-+					prop, nargs_prop, nargs, index);
-+			else
-+				dev_warn(dev,
-+					 "driver could not parse reference prop \"%s\", nargs_prop \"%s\", nargs %u, index %u",
-+					 prop, nargs_prop, nargs, index);
-+			v4l2_fwnode_print_args(&args);
-+			pr_cont("\n");
-+			if (ret == -ENOTCONN)
-+				continue;
-+			else
-+				goto error;
-+		}
-+
-+		notifier->subdevs[notifier->num_subdevs] = asd;
-+		asd->match.fwnode.fwnode = args.fwnode;
-+		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-+		notifier->num_subdevs++;
-+	}
-+
-+	return 0;
-+
-+error:
-+	fwnode_handle_put(args.fwnode);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse);
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
- MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index 6d125f26ec84..3ad71241cb20 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -254,4 +254,32 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
- 			      struct v4l2_fwnode_endpoint *vep,
- 			      struct v4l2_async_subdev *asd));
- 
-+/**
-+ * v4l2_fwnode_reference_parse - parse references for async sub-devices
-+ * @dev: the device node the properties of which are parsed for references
-+ * @notifier: the async notifier where the async subdevs will be added
-+ * @prop: the name of the property
-+ * @nargs_prop: the name of the property in the remote node that specifies the
-+ *		number of integer arguments (may be NULL, in that case nargs
-+ *		will be used).
-+ * @nargs: the number of integer arguments after the reference
-+ * @asd_struct_size: the size of the driver's async sub-device struct, including
-+ *		     @struct v4l2_async_subdev
-+ * @parse_single: driver's callback function for parsing a reference. Optional.
-+ *		  Return: 0 on success
-+ *			  %-ENOTCONN if the reference is to be skipped. This
-+ *				     will not be considered as an error
-+ *
-+ * Return: 0 on success
-+ *	   -ENOMEM if memory allocation failed
-+ *	   -EINVAL if property parsing failed
-+ */
-+int v4l2_fwnode_reference_parse(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	const char *prop, const char *nargs_prop, unsigned int nargs,
-+	size_t asd_struct_size,
-+	int (*parse_single)(struct device *dev,
-+			    struct fwnode_reference_args *args,
-+			    struct v4l2_async_subdev *asd));
-+
- #endif /* _V4L2_FWNODE_H */
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 608bcceed463..239790e8ccc6 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -1063,6 +1063,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE :
+ 			V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
++		q->ordered = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vid_cap_qops;
+@@ -1083,6 +1084,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
+ 			V4L2_BUF_TYPE_VIDEO_OUTPUT;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
++		q->ordered = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vid_out_qops;
+@@ -1103,6 +1105,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->has_raw_vbi_cap ? V4L2_BUF_TYPE_VBI_CAPTURE :
+ 					      V4L2_BUF_TYPE_SLICED_VBI_CAPTURE;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
++		q->ordered = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vbi_cap_qops;
+@@ -1123,6 +1126,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->has_raw_vbi_out ? V4L2_BUF_TYPE_VBI_OUTPUT :
+ 					      V4L2_BUF_TYPE_SLICED_VBI_OUTPUT;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
++		q->ordered = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vbi_out_qops;
+@@ -1142,6 +1146,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q = &dev->vb_sdr_cap_q;
+ 		q->type = V4L2_BUF_TYPE_SDR_CAPTURE;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
++		q->ordered = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_sdr_cap_qops;
 -- 
-2.11.0
+2.13.5
