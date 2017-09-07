@@ -1,69 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49888
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751225AbdIOJLI (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:58489 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754219AbdIGMTE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 05:11:08 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Colin Ian King <colin.king@canonical.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Ingo Molnar <mingo@kernel.org>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>
-Subject: [PATCH 5/5] media: dvb_frontend: get rid of set_property() callback
-Date: Fri, 15 Sep 2017 06:11:01 -0300
-Message-Id: <e62a34ca2d5ef94b041e723892b6c5c36d466fbe.1505466580.git.mchehab@s-opensource.com>
-In-Reply-To: <1f1452d2f07a107e152754559a88166af50a3cbf.1505466580.git.mchehab@s-opensource.com>
-References: <1f1452d2f07a107e152754559a88166af50a3cbf.1505466580.git.mchehab@s-opensource.com>
-In-Reply-To: <1f1452d2f07a107e152754559a88166af50a3cbf.1505466580.git.mchehab@s-opensource.com>
-References: <1f1452d2f07a107e152754559a88166af50a3cbf.1505466580.git.mchehab@s-opensource.com>
+        Thu, 7 Sep 2017 08:19:04 -0400
+Subject: Re: [PATCH 1/1] media: Check for active and has_no_links overrun
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+References: <20170829134640.7054-1-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <de9b504a-26d5-f681-7628-b8a2836403f0@xs4all.nl>
+Date: Thu, 7 Sep 2017 14:18:59 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170829134640.7054-1-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that all clients of set_property() were removed, get rid
-of this callback.
+On 08/29/17 15:46, Sakari Ailus wrote:
+> From: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> The active and has_no_links arrays will overrun in
+> media_entity_pipeline_start() if there's an entity which has more than
+> MEDIA_ENTITY_MAX_PAD pads. Ensure in media_entity_init() that there are
+> fewer pads than that.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_frontend.c | 7 -------
- drivers/media/dvb-core/dvb_frontend.h | 2 --
- 2 files changed, 9 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 5d00e46d9432..8abe4f541a36 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -1766,13 +1766,6 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 	int r = 0;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 
--	/* Allow the frontend to validate incoming properties */
--	if (fe->ops.set_property) {
--		r = fe->ops.set_property(fe, tvp);
--		if (r < 0)
--			return r;
--	}
--
- 	dtv_property_dump(fe, true, tvp);
- 
- 	switch(tvp->cmd) {
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 4d05846f2c1c..a50f8216ab76 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -401,8 +401,6 @@ struct dtv_frontend_properties;
-  * @search:		callback function used on some custom algo search algos.
-  * @tuner_ops:		pointer to struct dvb_tuner_ops
-  * @analog_ops:		pointer to struct analog_demod_ops
-- * @set_property:	callback function to allow the frontend to validade
-- *			incoming properties. Should not be used on new drivers.
-  */
- struct dvb_frontend_ops {
- 
--- 
-2.13.5
+Thanks!
+
+	Hans
+
+> ---
+>  drivers/media/media-entity.c | 13 ++++++++-----
+>  1 file changed, 8 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 2ace0410d277..f7c6d64e6031 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -214,12 +214,20 @@ void media_gobj_destroy(struct media_gobj *gobj)
+>  	gobj->mdev = NULL;
+>  }
+>  
+> +/*
+> + * TODO: Get rid of this.
+> + */
+> +#define MEDIA_ENTITY_MAX_PADS		512
+> +
+>  int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
+>  			   struct media_pad *pads)
+>  {
+>  	struct media_device *mdev = entity->graph_obj.mdev;
+>  	unsigned int i;
+>  
+> +	if (num_pads >= MEDIA_ENTITY_MAX_PADS)
+> +		return -E2BIG;
+> +
+>  	entity->num_pads = num_pads;
+>  	entity->pads = pads;
+>  
+> @@ -280,11 +288,6 @@ static struct media_entity *stack_pop(struct media_graph *graph)
+>  #define link_top(en)	((en)->stack[(en)->top].link)
+>  #define stack_top(en)	((en)->stack[(en)->top].entity)
+>  
+> -/*
+> - * TODO: Get rid of this.
+> - */
+> -#define MEDIA_ENTITY_MAX_PADS		512
+> -
+>  /**
+>   * media_graph_walk_init - Allocate resources for graph walk
+>   * @graph: Media graph structure that will be used to walk the graph
+> 
