@@ -1,43 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:57129 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751197AbdIOR21 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 13:28:27 -0400
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 0/2] [media] STM32-DCMI: Adjustments for three function
- implementations
-Message-ID: <730b535e-39a5-2c2b-f463-e76da967a723@users.sourceforge.net>
-Date: Fri, 15 Sep 2017 19:27:03 +0200
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:36425 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752538AbdIGSvu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 14:51:50 -0400
+Date: Thu, 7 Sep 2017 11:51:47 -0700
+From: Eric Biggers <ebiggers3@gmail.com>
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        linux-fsdevel@vger.kernel.org,
+        Riley Andrews <riandrews@android.com>
+Subject: Re: [PATCH v3 14/15] fs/files: export close_fd() symbol
+Message-ID: <20170907185147.GB92996@gmail.com>
+References: <20170907184226.27482-1-gustavo@padovan.org>
+ <20170907184226.27482-15-gustavo@padovan.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170907184226.27482-15-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 15 Sep 2017 19:01:23 +0200
+On Thu, Sep 07, 2017 at 03:42:25PM -0300, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> Rename __close_fd() to close_fd() and export it to be able close files
+> in modules using file descriptors.
+> 
+> The usecase that motivates this change happens in V4L2 where we send
+> events to userspace with a fd that has file installed in it. But if for
+> some reason we have to cancel the video stream we need to close the files
+> that haven't been shared with userspace yet. Thus the export of
+> close_fd() becomes necessary.
+> 
+> fd_install() happens when we call an ioctl to queue a buffer, but we only
+> share the fd with userspace later, and that may happen in a kernel thread
+> instead.
 
-Two update suggestions were taken into account
-from static source code analysis.
+What do you mean?  A file descriptor is shared with userspace as soon as it's
+installed in the fdtable by fd_install().  As soon as it's there, another thread
+can use it (or close it, duplicate it, etc.), even before the syscall that
+installed it returns...
 
-Markus Elfring (2):
-  Delete an error message for a failed memory allocation in two functions
-  Improve four size determinations
-
- drivers/media/platform/stm32/stm32-dcmi.c | 17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
-
--- 
-2.14.1
+Eric
