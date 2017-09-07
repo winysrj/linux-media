@@ -1,262 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:36418 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750759AbdIITHh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 9 Sep 2017 15:07:37 -0400
-Subject: Re: [PATCH v9 18/24] as3645a: Switch to fwnode property API
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
- <20170908131822.31020-14-sakari.ailus@linux.intel.com>
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Message-ID: <f6c79aff-dcc7-ee7d-e224-1f9bc6af1fee@gmail.com>
-Date: Sat, 9 Sep 2017 21:06:41 +0200
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44059
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932279AbdIGOws (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 10:52:48 -0400
+Date: Thu, 7 Sep 2017 11:52:40 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Brad Love <brad@nextdimension.cc>
+Cc: Christian Steiner <christian.steiner@outlook.de>,
+        Olli Salonen <olli.salonen@iki.fi>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] em28xx: add support for Hauppauge WinTV-dualHD DVB
+ tuner
+Message-ID: <20170907115240.78ea1a06@vento.lan>
+In-Reply-To: <b2017939-2029-a306-8767-3f11e780959e@nextdimension.cc>
+References: <1459782772-21451-1-git-send-email-olli.salonen@iki.fi>
+        <570A6FED.4090700@outlook.de>
+        <CAAZRmGy1=8UXe0WqpucCt0qUfZQS+NHsHYmAq3yKu_pxK38yTw@mail.gmail.com>
+        <CAAZRmGzXcHz21m4yL4rFOpippzLq07nYsenwTvUgqkhbRJ8X4w@mail.gmail.com>
+        <VI1P194MB004719DAD98521F900F5D11191FD0@VI1P194MB0047.EURP194.PROD.OUTLOOK.COM>
+        <b2017939-2029-a306-8767-3f11e780959e@nextdimension.cc>
 MIME-Version: 1.0
-In-Reply-To: <20170908131822.31020-14-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Brad,
 
-I've come across this patch only by a chance. I believe that merging
-leds-as3645a.c patches via media tree is not going to be a persistent
-pattern. At least we haven't agreed on that, and in any case I should
-have a possibility to give my ack for this patch.
+Em Wed, 31 May 2017 15:01:00 -0500
+Brad Love <brad@nextdimension.cc> escreveu:
 
-Would you mind also adding linux-leds list on cc when touching areas
-related to LED/flash devices?
-
-Thanks in advance.
-
-Best regards,
-Jacek Anaszewski
-
-On 09/08/2017 03:18 PM, Sakari Ailus wrote:
-> Switch the as3645a from OF to the fwnode property API. Also add ACPI
-> support.
+> Christian et al,
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/leds/leds-as3645a.c | 81 +++++++++++++++++++++++++--------------------
->  1 file changed, 46 insertions(+), 35 deletions(-)
-> 
-> diff --git a/drivers/leds/leds-as3645a.c b/drivers/leds/leds-as3645a.c
-> index 605e0c64e974..2e73c3f818f1 100644
-> --- a/drivers/leds/leds-as3645a.c
-> +++ b/drivers/leds/leds-as3645a.c
-> @@ -25,7 +25,7 @@
->  #include <linux/leds.h>
->  #include <linux/module.h>
->  #include <linux/mutex.h>
-> -#include <linux/of.h>
-> +#include <linux/property.h>
->  #include <linux/slab.h>
->  
->  #include <media/v4l2-flash-led-class.h>
-> @@ -148,8 +148,8 @@ struct as3645a {
->  	struct v4l2_flash *vf;
->  	struct v4l2_flash *vfind;
->  
-> -	struct device_node *flash_node;
-> -	struct device_node *indicator_node;
-> +	struct fwnode_handle *flash_node;
-> +	struct fwnode_handle *indicator_node;
->  
->  	struct as3645a_config cfg;
->  
-> @@ -492,30 +492,33 @@ static int as3645a_detect(struct as3645a *flash)
->  
->  static int as3645a_parse_node(struct as3645a *flash,
->  			      struct as3645a_names *names,
-> -			      struct device_node *node)
-> +			      struct fwnode_handle *fwnode)
->  {
->  	struct as3645a_config *cfg = &flash->cfg;
-> -	struct device_node *child;
-> +	struct fwnode_handle *child;
->  	const char *name;
-> +	const char *str;
->  	int rval;
->  
-> -	for_each_child_of_node(node, child) {
-> +	fwnode_for_each_child_node(fwnode, child) {
->  		u32 id = 0;
->  
-> -		of_property_read_u32(child, "reg", &id);
-> +		fwnode_property_read_u32(
-> +			child, is_of_node(child) ? "reg" : "led", &id);
->  
->  		switch (id) {
->  		case AS_LED_FLASH:
-> -			flash->flash_node = of_node_get(child);
-> +			flash->flash_node = child;
->  			break;
->  		case AS_LED_INDICATOR:
-> -			flash->indicator_node = of_node_get(child);
-> +			flash->indicator_node = child;
->  			break;
->  		default:
->  			dev_warn(&flash->client->dev,
->  				 "unknown LED %u encountered, ignoring\n", id);
->  			break;
->  		}
-> +		fwnode_handle_get(child);
->  	}
->  
->  	if (!flash->flash_node) {
-> @@ -523,14 +526,18 @@ static int as3645a_parse_node(struct as3645a *flash,
->  		return -ENODEV;
->  	}
->  
-> -	rval = of_property_read_string(flash->flash_node, "label", &name);
-> -	if (!rval)
-> +	rval = fwnode_property_read_string(flash->flash_node, "label", &name);
-> +	if (!rval) {
->  		strlcpy(names->flash, name, sizeof(names->flash));
-> -	else
-> +	} else if (is_of_node(fwnode)) {
->  		snprintf(names->flash, sizeof(names->flash),
-> -			 "%s:flash", node->name);
-> +			 "%s:flash", to_of_node(fwnode)->name);
-> +	} else {
-> +		dev_err(&flash->client->dev, "flash node has no label!\n");
-> +		return -EINVAL;
-> +	}
->  
-> -	rval = of_property_read_u32(flash->flash_node, "flash-timeout-us",
-> +	rval = fwnode_property_read_u32(flash->flash_node, "flash-timeout-us",
->  				    &cfg->flash_timeout_us);
->  	if (rval < 0) {
->  		dev_err(&flash->client->dev,
-> @@ -538,7 +545,7 @@ static int as3645a_parse_node(struct as3645a *flash,
->  		goto out_err;
->  	}
->  
-> -	rval = of_property_read_u32(flash->flash_node, "flash-max-microamp",
-> +	rval = fwnode_property_read_u32(flash->flash_node, "flash-max-microamp",
->  				    &cfg->flash_max_ua);
->  	if (rval < 0) {
->  		dev_err(&flash->client->dev,
-> @@ -546,7 +553,7 @@ static int as3645a_parse_node(struct as3645a *flash,
->  		goto out_err;
->  	}
->  
-> -	rval = of_property_read_u32(flash->flash_node, "led-max-microamp",
-> +	rval = fwnode_property_read_u32(flash->flash_node, "led-max-microamp",
->  				    &cfg->assist_max_ua);
->  	if (rval < 0) {
->  		dev_err(&flash->client->dev,
-> @@ -554,10 +561,10 @@ static int as3645a_parse_node(struct as3645a *flash,
->  		goto out_err;
->  	}
->  
-> -	of_property_read_u32(flash->flash_node, "voltage-reference",
-> +	fwnode_property_read_u32(flash->flash_node, "voltage-reference",
->  			     &cfg->voltage_reference);
->  
-> -	of_property_read_u32(flash->flash_node, "ams,input-max-microamp",
-> +	fwnode_property_read_u32(flash->flash_node, "ams,input-max-microamp",
->  			     &cfg->peak);
->  	cfg->peak = AS_PEAK_mA_TO_REG(cfg->peak);
->  
-> @@ -567,14 +574,18 @@ static int as3645a_parse_node(struct as3645a *flash,
->  		goto out_err;
->  	}
->  
-> -	rval = of_property_read_string(flash->indicator_node, "label", &name);
-> -	if (!rval)
-> +	rval = fwnode_property_read_string(flash->indicator_node, "label", &name);
-> +	if (!rval) {
->  		strlcpy(names->indicator, name, sizeof(names->indicator));
-> -	else
-> +	} else if (is_of_node(fwnode)) {
->  		snprintf(names->indicator, sizeof(names->indicator),
-> -			 "%s:indicator", node->name);
-> +			 "%s:indicator", to_of_node(fwnode)->name);
-> +	} else {
-> +		dev_err(&flash->client->dev, "flash node has no label!\n");
-> +		return -EINVAL;
-> +	}
->  
-> -	rval = of_property_read_u32(flash->indicator_node, "led-max-microamp",
-> +	rval = fwnode_property_read_u32(flash->indicator_node, "led-max-microamp",
->  				    &cfg->indicator_max_ua);
->  	if (rval < 0) {
->  		dev_err(&flash->client->dev,
-> @@ -585,8 +596,8 @@ static int as3645a_parse_node(struct as3645a *flash,
->  	return 0;
->  
->  out_err:
-> -	of_node_put(flash->flash_node);
-> -	of_node_put(flash->indicator_node);
-> +	fwnode_handle_put(flash->flash_node);
-> +	fwnode_handle_put(flash->indicator_node);
->  
->  	return rval;
->  }
-> @@ -667,14 +678,14 @@ static int as3645a_v4l2_setup(struct as3645a *flash)
->  	strlcpy(cfgind.dev_name, flash->iled_cdev.name, sizeof(cfg.dev_name));
->  
->  	flash->vf = v4l2_flash_init(
-> -		&flash->client->dev, of_fwnode_handle(flash->flash_node),
-> -		&flash->fled, NULL, &cfg);
-> +		&flash->client->dev, flash->flash_node, &flash->fled, NULL,
-> +		&cfg);
->  	if (IS_ERR(flash->vf))
->  		return PTR_ERR(flash->vf);
->  
->  	flash->vfind = v4l2_flash_indicator_init(
-> -		&flash->client->dev, of_fwnode_handle(flash->indicator_node),
-> -		&flash->iled_cdev, &cfgind);
-> +		&flash->client->dev, flash->indicator_node, &flash->iled_cdev,
-> +		&cfgind);
->  	if (IS_ERR(flash->vfind)) {
->  		v4l2_flash_release(flash->vf);
->  		return PTR_ERR(flash->vfind);
-> @@ -689,7 +700,7 @@ static int as3645a_probe(struct i2c_client *client)
->  	struct as3645a *flash;
->  	int rval;
->  
-> -	if (client->dev.of_node == NULL)
-> +	if (!dev_fwnode(&client->dev))
->  		return -ENODEV;
->  
->  	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
-> @@ -698,7 +709,7 @@ static int as3645a_probe(struct i2c_client *client)
->  
->  	flash->client = client;
->  
-> -	rval = as3645a_parse_node(flash, &names, client->dev.of_node);
-> +	rval = as3645a_parse_node(flash, &names, dev_fwnode(&client->dev));
->  	if (rval < 0)
->  		return rval;
->  
-> @@ -730,8 +741,8 @@ static int as3645a_probe(struct i2c_client *client)
->  	mutex_destroy(&flash->mutex);
->  
->  out_put_nodes:
-> -	of_node_put(flash->flash_node);
-> -	of_node_put(flash->indicator_node);
-> +	fwnode_handle_put(flash->flash_node);
-> +	fwnode_handle_put(flash->indicator_node);
->  
->  	return rval;
->  }
-> @@ -749,8 +760,8 @@ static int as3645a_remove(struct i2c_client *client)
->  
->  	mutex_destroy(&flash->mutex);
->  
-> -	of_node_put(flash->flash_node);
-> -	of_node_put(flash->indicator_node);
-> +	fwnode_handle_put(flash->flash_node);
-> +	fwnode_handle_put(flash->indicator_node);
->  
->  	return 0;
->  }
-> 
+> I am an engineer at Hauppauge. This repo is the staging area for all the
+> patches I am testing, with the intention of getting them upstreamed. I
+> will be inaccessible for the next 18 days however, so I will not be able
+> to put any effort until I get back.
+
+Any news on such patchset?
+
+On a side note, I took a quick look on some of the patches at the
+git repository at:
+
+	https://github.com/b-rad-NDi/Ubuntu-media-tree-kernel-builder/tree/master/patches/ubuntu-zesty-4.10.0/extra
+
+I suspect that some of the patches there could have some side effect on
+existing drivers, like this one that unconditionally changes the size
+of URB:
+
+	https://github.com/b-rad-NDi/Ubuntu-media-tree-kernel-builder/blob/master/patches/ubuntu-zesty-4.10.0/extra/0003-em28xx-usb-packet-size-tweaks.patch
+
+So, it would be good to be able to test this set also with older
+em28xx devices that also support bulk transfers.
+
+Thanks,
+Mauro
