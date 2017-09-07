@@ -1,55 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:36386 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751997AbdIMI6B (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 04:58:01 -0400
-From: Allen Pais <allen.lkml@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Allen Pais <allen.lkml@gmail.com>
-Subject: [PATCH v3] drivers/staging:[media]atomisp:use ARRAY_SIZE() instead of open coding.
-Date: Wed, 13 Sep 2017 14:27:53 +0530
-Message-Id: <1505293073-27622-1-git-send-email-allen.lkml@gmail.com>
+Received: from eddie.linux-mips.org ([148.251.95.138]:42566 "EHLO
+        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752070AbdIGXhp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 19:37:45 -0400
+Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S23993950AbdIGXd6rVQhk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 01:33:58 +0200
+Date: Fri, 8 Sep 2017 01:33:55 +0200
+From: Ladislav Michl <ladis@linux-mips.org>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
+Subject: [PATCH v2 00/10] media: rc: gpio-ir-recv: driver update
+Message-ID: <20170907233355.bv3hsv3rfhcx52i3@lenoch>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Allen Pais <allen.lkml@gmail.com>
----
- drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+This patch serie brings driver closer to recently used APIs
+and removes no longer used gpio_ir_recv_platform_data
+support.
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-index e882b55..bee3043 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-@@ -451,8 +451,6 @@ static enum ia_css_frame_format yuv422_copy_formats[] = {
- 	IA_CSS_FRAME_FORMAT_YUYV
- };
- 
--#define array_length(array) (sizeof(array)/sizeof(array[0]))
--
- /* Verify whether the selected output format is can be produced
-  * by the copy binary given the stream format.
-  * */
-@@ -468,7 +466,7 @@ verify_copy_out_frame_format(struct ia_css_pipe *pipe)
- 	switch (pipe->stream->config.input_config.format) {
- 	case IA_CSS_STREAM_FORMAT_YUV420_8_LEGACY:
- 	case IA_CSS_STREAM_FORMAT_YUV420_8:
--		for (i=0; i<array_length(yuv420_copy_formats) && !found; i++)
-+		for (i=0; i<ARRAY_SIZE(yuv420_copy_formats) && !found; i++)
- 			found = (out_fmt == yuv420_copy_formats[i]);
- 		break;
- 	case IA_CSS_STREAM_FORMAT_YUV420_10:
-@@ -476,7 +474,7 @@ verify_copy_out_frame_format(struct ia_css_pipe *pipe)
- 		found = (out_fmt == IA_CSS_FRAME_FORMAT_YUV420_16);
- 		break;
- 	case IA_CSS_STREAM_FORMAT_YUV422_8:
--		for (i=0; i<array_length(yuv422_copy_formats) && !found; i++)
-+		for (i=0; i<ARRAY_SIZE(yuv422_copy_formats) && !found; i++)
- 			found = (out_fmt == yuv422_copy_formats[i]);
- 		break;
- 	case IA_CSS_STREAM_FORMAT_YUV422_10:
+It was done as an excercise before writing similar driver using
+FIQ and hw timers as this one gives too imprecise timing.
+
+Serie was rebased on top of current linux.git, but something
+happened there and my userspace decoder no longer works: driver
+reports completely bogus timing such as (rc-5):
+^427, _1342, ^945, _183, ^1128, _671, ^1586, _91, ^1189, _1525,
+^1738, _1433, ^915, _1159, ^1464, _1525, ^213, _1067, ^793, _0
+(^ used for pulse and _ for space)
+As it has nothing to do with my changes, I'm sending it anyway
+for review, which I do not expect to happen until merge window
+ends.
+
+Ladislav Michl (10):
+  media: rc: gpio-ir-recv: use helper vaiable to acess device info
+  media: rc: gpio-ir-recv: use devm_kzalloc
+  media: rc: gpio-ir-recv: use devm_rc_allocate_device
+  media: rc: gpio-ir-recv: use devm_gpio_request_one
+  media: rc: gpio-ir-recv: use devm_rc_register_device
+  media: rc: gpio-ir-recv: do not allow threaded interrupt handler
+  media: rc: gpio-ir-recv: use devm_request_irq
+  media: rc: gpio-ir-recv: use KBUILD_MODNAME
+  media: rc: gpio-ir-recv: remove gpio_ir_recv_platform_data
+  media: rc: gpio-ir-recv: use gpiolib API
+
+ drivers/media/rc/Kconfig                         |   1 +
+ drivers/media/rc/gpio-ir-recv.c                  | 194 ++++++-----------------
+ include/linux/platform_data/media/gpio-ir-recv.h |  23 ---
+ 3 files changed, 53 insertions(+), 165 deletions(-)
+ delete mode 100644 include/linux/platform_data/media/gpio-ir-recv.h
+
 -- 
-2.7.4
+2.11.0
