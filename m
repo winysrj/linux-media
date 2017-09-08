@@ -1,174 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45728 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48776 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751661AbdIOOSp (ORCPT
+        by vger.kernel.org with ESMTP id S1753740AbdIHNyK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 10:18:45 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        Fri, 8 Sep 2017 09:54:10 -0400
+Date: Fri, 8 Sep 2017 16:54:07 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mika Westerberg <mika.westerberg@intel.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
         robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v13 21/25] smiapp: Add support for flash and lens devices
-Date: Fri, 15 Sep 2017 17:17:20 +0300
-Message-Id: <20170915141724.23124-22-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+Subject: Re: [PATCH v9 17/24] ACPI: Document how to refer to LEDs from remote
+ nodes
+Message-ID: <20170908135407.qxustmjr3yqhp7y5@valkosipuli.retiisi.org.uk>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131822.31020-13-sakari.ailus@linux.intel.com>
+ <20170908134320.GC2477@lahna.fi.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170908134320.GC2477@lahna.fi.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse async sub-devices by using
-v4l2_subdev_fwnode_reference_parse_sensor_common().
+On Fri, Sep 08, 2017 at 04:43:20PM +0300, Mika Westerberg wrote:
+> On Fri, Sep 08, 2017 at 04:18:15PM +0300, Sakari Ailus wrote:
+> > +	Device (LED)
+> > +	{
+> > +		Name ((_DSD), Package () {
+> > +			ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+> > +			Package () {
+> > +				Package () { "led0", "LED0" },
+> > +				Package () { "led1", "LED1" },
+> > +			}
+> > +		})
+> > +		Name ((LED0), Package () {
+> > +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> > +			Package () {
+> > +				Package () { "led", 0 },
+> > +				Package () { "flash-max-microamp", 1000000 },
+> > +				Package () { "led-max-microamp", 100000 },
+> > +				Package () { "label", "led:salama" },
+> > +			}
+> > +		})
+> > +		Name ((LED1), Package () {
+> > +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> > +			Package () {
+> > +				Package () { "led", 1 },
+> > +				Package () { "led-max-microamp", 10000 },
+> > +				Package () { "label", "led:huomiovalo" },
+> > +			}
+> > +		})
+> > +	}
+> > +
+> > +	Device (SEN)
+> > +	{
+> > +		Name ((_DSD), Package () {
+> > +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> > +			Package () {
+> > +				Package () {
+> > +					"flash-leds",
+> > +					Package () { \\LED, 0, \\LED, 1 },
+> > +				}
+> > +			}
+> > +		})
+> > +	}
+> 
+> You should probably try to compile these examples first ;-)
 
-These types devices aren't directly related to the sensor, but are
-nevertheless handled by the smiapp driver due to the relationship of these
-component to the main part of the camera module --- the sensor.
+Do you think I'm missing something else than s/\\\\/^/g ? :-)
 
-This does not yet address providing the user space with information on how
-to associate the sensor or lens devices but the kernel now has the
-necessary information to do that.
+Yes, I tested it but then changed the tested ASL afterwards. :-P
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 38 +++++++++++++++++++++++++++-------
- drivers/media/i2c/smiapp/smiapp.h      |  4 +++-
- 2 files changed, 33 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 700f433261d0..a4735a96ea41 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -31,7 +31,7 @@
- #include <linux/regulator/consumer.h>
- #include <linux/slab.h>
- #include <linux/smiapp.h>
--#include <linux/v4l2-mediabus.h>
-+#include <media/v4l2-async.h>
- #include <media/v4l2-fwnode.h>
- #include <media/v4l2-device.h>
- 
-@@ -2887,17 +2887,24 @@ static int smiapp_probe(struct i2c_client *client,
- 	v4l2_i2c_subdev_init(&sensor->src->sd, client, &smiapp_ops);
- 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
- 
-+	rval = v4l2_async_notifier_parse_fwnode_sensor_common(
-+		&client->dev, &sensor->notifier);
-+	if (rval < 0)
-+		return rval;
-+
- 	sensor->vana = devm_regulator_get(&client->dev, "vana");
- 	if (IS_ERR(sensor->vana)) {
- 		dev_err(&client->dev, "could not get regulator for vana\n");
--		return PTR_ERR(sensor->vana);
-+		rval = PTR_ERR(sensor->vana);
-+		goto out_release_async_notifier;
- 	}
- 
- 	sensor->ext_clk = devm_clk_get(&client->dev, NULL);
- 	if (IS_ERR(sensor->ext_clk)) {
- 		dev_err(&client->dev, "could not get clock (%ld)\n",
- 			PTR_ERR(sensor->ext_clk));
--		return -EPROBE_DEFER;
-+		rval = -EPROBE_DEFER;
-+		goto out_release_async_notifier;
- 	}
- 
- 	rval = clk_set_rate(sensor->ext_clk, sensor->hwcfg->ext_clk);
-@@ -2905,17 +2912,19 @@ static int smiapp_probe(struct i2c_client *client,
- 		dev_err(&client->dev,
- 			"unable to set clock freq to %u\n",
- 			sensor->hwcfg->ext_clk);
--		return rval;
-+		goto out_release_async_notifier;
- 	}
- 
- 	sensor->xshutdown = devm_gpiod_get_optional(&client->dev, "xshutdown",
- 						    GPIOD_OUT_LOW);
--	if (IS_ERR(sensor->xshutdown))
--		return PTR_ERR(sensor->xshutdown);
-+	if (IS_ERR(sensor->xshutdown)) {
-+		rval = PTR_ERR(sensor->xshutdown);
-+		goto out_release_async_notifier;
-+	}
- 
- 	rval = smiapp_power_on(&client->dev);
- 	if (rval < 0)
--		return rval;
-+		goto out_release_async_notifier;
- 
- 	rval = smiapp_identify_module(sensor);
- 	if (rval) {
-@@ -3092,9 +3101,14 @@ static int smiapp_probe(struct i2c_client *client,
- 	if (rval < 0)
- 		goto out_media_entity_cleanup;
- 
-+	rval = v4l2_async_subdev_notifier_register(&sensor->src->sd,
-+						   &sensor->notifier);
-+	if (rval)
-+		goto out_media_entity_cleanup;
-+
- 	rval = v4l2_async_register_subdev(&sensor->src->sd);
- 	if (rval < 0)
--		goto out_media_entity_cleanup;
-+		goto out_unregister_async_notifier;
- 
- 	pm_runtime_set_active(&client->dev);
- 	pm_runtime_get_noresume(&client->dev);
-@@ -3105,6 +3119,9 @@ static int smiapp_probe(struct i2c_client *client,
- 
- 	return 0;
- 
-+out_unregister_async_notifier:
-+	v4l2_async_notifier_unregister(&sensor->notifier);
-+
- out_media_entity_cleanup:
- 	media_entity_cleanup(&sensor->src->sd.entity);
- 
-@@ -3114,6 +3131,9 @@ static int smiapp_probe(struct i2c_client *client,
- out_power_off:
- 	smiapp_power_off(&client->dev);
- 
-+out_release_async_notifier:
-+	v4l2_async_notifier_release(&sensor->notifier);
-+
- 	return rval;
- }
- 
-@@ -3124,6 +3144,8 @@ static int smiapp_remove(struct i2c_client *client)
- 	unsigned int i;
- 
- 	v4l2_async_unregister_subdev(subdev);
-+	v4l2_async_notifier_unregister(&sensor->notifier);
-+	v4l2_async_notifier_release(&sensor->notifier);
- 
- 	pm_runtime_disable(&client->dev);
- 	if (!pm_runtime_status_suspended(&client->dev))
-diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
-index f74d695018b9..be92cb5713f4 100644
---- a/drivers/media/i2c/smiapp/smiapp.h
-+++ b/drivers/media/i2c/smiapp/smiapp.h
-@@ -20,9 +20,10 @@
- #define __SMIAPP_PRIV_H_
- 
- #include <linux/mutex.h>
-+#include <media/i2c/smiapp.h>
-+#include <media/v4l2-async.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-subdev.h>
--#include <media/i2c/smiapp.h>
- 
- #include "smiapp-pll.h"
- #include "smiapp-reg.h"
-@@ -172,6 +173,7 @@ struct smiapp_subdev {
-  * struct smiapp_sensor - Main device structure
-  */
- struct smiapp_sensor {
-+	struct v4l2_async_notifier notifier;
- 	/*
- 	 * "mutex" is used to serialise access to all fields here
- 	 * except v4l2_ctrls at the end of the struct. "mutex" is also
 -- 
-2.11.0
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
