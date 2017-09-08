@@ -1,60 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:37681 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751262AbdIPO2d (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46800 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755392AbdIHMmQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Sep 2017 10:28:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Fri, 8 Sep 2017 08:42:16 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Rob Herring <robh@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv5 2/5] cec-ioc-dqevent.rst: document new CEC_EVENT_PIN_HPD_LOW/HIGH events
-Date: Sat, 16 Sep 2017 16:28:24 +0200
-Message-Id: <20170916142827.5878-3-hverkuil@xs4all.nl>
-In-Reply-To: <20170916142827.5878-1-hverkuil@xs4all.nl>
-References: <20170916142827.5878-1-hverkuil@xs4all.nl>
+Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org
+Subject: [PATCH 2/3] dt: bindings: as3645a: Use LED number to refer to LEDs
+Date: Fri,  8 Sep 2017 15:42:12 +0300
+Message-Id: <20170908124213.18904-3-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170908124213.18904-1-sakari.ailus@linux.intel.com>
+References: <20170908124213.18904-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Use integers (reg property) to tell the number of the LED to the driver
+instead of the node name. While both of these approaches are currently
+used by the LED bindings, using integers will require less driver changes
+for ACPI support. Additionally, it will make possible LED naming using
+chip and LED node names, effectively making the label property most useful
+for human-readable names only.
 
-Document these new CEC events.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/media/uapi/cec/cec-ioc-dqevent.rst | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ .../devicetree/bindings/leds/ams,as3645a.txt       | 28 ++++++++++++++--------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-index db615e3405c0..32b47763f5a6 100644
---- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-@@ -160,6 +160,24 @@ it is guaranteed that the state did change in between the two events.
-       - Generated if the CEC pin goes from a low voltage to a high voltage.
-         Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
- 	capability set.
-+    * .. _`CEC-EVENT-PIN-HPD-LOW`:
-+
-+      - ``CEC_EVENT_PIN_HPD_LOW``
-+      - 5
-+      - Generated if the HPD pin goes from a high voltage to a low voltage.
-+        Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
-+	capability set. When open() is called, the HPD pin can be read and
-+	the HPD is low, then an initial event will be generated for that
-+	filehandle.
-+    * .. _`CEC-EVENT-PIN-HPD-HIGH`:
-+
-+      - ``CEC_EVENT_PIN_HPD_HIGH``
-+      - 6
-+      - Generated if the HPD pin goes from a low voltage to a high voltage.
-+        Only applies to adapters that have the ``CEC_CAP_MONITOR_PIN``
-+	capability set. When open() is called, the HPD pin can be read and
-+	the HPD is high, then an initial event will be generated for that
-+	filehandle.
+diff --git a/Documentation/devicetree/bindings/leds/ams,as3645a.txt b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
+index 12c5ef26ec73..fdc40e354a64 100644
+--- a/Documentation/devicetree/bindings/leds/ams,as3645a.txt
++++ b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
+@@ -15,11 +15,14 @@ Required properties
+ 
+ compatible	: Must be "ams,as3645a".
+ reg		: The I2C address of the device. Typically 0x30.
++#address-cells	: 1
++#size-cells	: 0
  
  
- .. tabularcolumns:: |p{6.0cm}|p{0.6cm}|p{10.9cm}|
+-Required properties of the "flash" child node
+-=============================================
++Required properties of the flash child node (0)
++===============================================
+ 
++reg: 0
+ flash-timeout-us: Flash timeout in microseconds. The value must be in
+ 		  the range [100000, 850000] and divisible by 50000.
+ flash-max-microamp: Maximum flash current in microamperes. Has to be
+@@ -33,20 +36,21 @@ ams,input-max-microamp: Maximum flash controller input current. The
+ 			and divisible by 50000.
+ 
+ 
+-Optional properties of the "flash" child node
+-=============================================
++Optional properties of the flash child node
++===========================================
+ 
+ label		: The label of the flash LED.
+ 
+ 
+-Required properties of the "indicator" child node
+-=================================================
++Required properties of the indicator child node (1)
++===================================================
+ 
++reg: 1
+ led-max-microamp: Maximum indicator current. The allowed values are
+ 		  2500, 5000, 7500 and 10000.
+ 
+-Optional properties of the "indicator" child node
+-=================================================
++Optional properties of the indicator child node
++===============================================
+ 
+ label		: The label of the indicator LED.
+ 
+@@ -55,16 +59,20 @@ Example
+ =======
+ 
+ 	as3645a@30 {
++		#address-cells: 1
++		#size-cells: 0
+ 		reg = <0x30>;
+ 		compatible = "ams,as3645a";
+-		flash {
++		flash@0 {
++			reg = <0x0>;
+ 			flash-timeout-us = <150000>;
+ 			flash-max-microamp = <320000>;
+ 			led-max-microamp = <60000>;
+ 			ams,input-max-microamp = <1750000>;
+ 			label = "as3645a:flash";
+ 		};
+-		indicator {
++		indicator@1 {
++			reg = <0x1>;
+ 			led-max-microamp = <10000>;
+ 			label = "as3645a:indicator";
+ 		};
 -- 
-2.14.1
+2.11.0
