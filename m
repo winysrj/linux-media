@@ -1,32 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:28833 "EHLO mga02.intel.com"
+Received: from mout.web.de ([212.227.17.11]:63140 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752206AbdIXN5G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Sep 2017 09:57:06 -0400
-Subject: Re: [PATCH v3 0/4] AS3645A fixes
-To: Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        linux-leds@vger.kernel.org
-Cc: linux-media@vger.kernel.org,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-References: <20170922093238.13070-1-sakari.ailus@linux.intel.com>
- <650b7cb3-f7dd-5959-3147-df7284415521@gmail.com>
- <076725cc-ef46-898d-34e5-099ece5d50b4@linux.intel.com>
- <a15c166f-48ec-faf8-a500-940fd912813a@gmail.com>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <95877949-8c9d-84b4-2f55-bf976c6b6c67@linux.intel.com>
-Date: Sun, 24 Sep 2017 16:56:55 +0300
+        id S932391AbdIHUvB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Sep 2017 16:51:01 -0400
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/3] S5P MFC: Adjustments for five function implementations
+Message-ID: <482a6c92-a85e-0bcd-edf7-3c2f63ea74c5@users.sourceforge.net>
+Date: Fri, 8 Sep 2017 22:50:13 +0200
 MIME-Version: 1.0
-In-Reply-To: <a15c166f-48ec-faf8-a500-940fd912813a@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jacek Anaszewski wrote:
-> Patch set applied to the fixes-4.14-rc3 branch of linux-leds.git.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 8 Sep 2017 22:44:55 +0200
 
-Thanks, Jacek!
+Three update suggestions were taken into account
+from static source code analysis.
+
+Markus Elfring (3):
+  Delete an error message for a failed memory allocation in s5p_mfc_probe()
+  Improve a size determination ins5p_mfc_alloc_memdev()
+  Adjust a null pointer check in four functions
+
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.14.1
