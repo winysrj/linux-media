@@ -1,110 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us-smtp-delivery-107.mimecast.com ([63.128.21.107]:50792 "EHLO
-        us-smtp-delivery-107.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751387AbdIUNcH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 09:32:07 -0400
-Subject: Re: [PATCH v2] media: rc: Add driver for tango IR decoder
-To: Sean Young <sean@mess.org>, Mans Rullgard <mans@mansr.com>
-CC: Rob Herring <robh+dt@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>,
-        Mason <slash.tmp@free.fr>
-References: <38397d63-f0db-6d8e-60cf-e8535447de63@free.fr>
- <20170921112540.vgsaj7lfz7q66alb@gofer.mess.org>
-From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
-Message-ID: <408143ff-9ea4-6cd4-8f17-4e67e359a97c@sigmadesigns.com>
-Date: Thu, 21 Sep 2017 15:32:01 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170921112540.vgsaj7lfz7q66alb@gofer.mess.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout4.samsung.com ([203.254.224.34]:15269 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754424AbdIHGDL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 02:03:11 -0400
+From: Hoegeun Kwon <hoegeun.kwon@samsung.com>
+To: inki.dae@samsung.com, airlied@linux.ie, kgene@kernel.org,
+        krzk@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        catalin.marinas@arm.com, will.deacon@arm.com, mchehab@kernel.org,
+        s.nawrocki@samsung.com, m.szyprowski@samsung.com
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org, a.hajda@samsung.com,
+        Hoegeun Kwon <hoegeun.kwon@samsung.com>
+Subject: [PATCH v3 1/6] [media] exynos-gsc: Add compatible for Exynos 5250
+ and 5420 specific version
+Date: Fri, 08 Sep 2017 15:02:35 +0900
+Message-id: <1504850560-27950-2-git-send-email-hoegeun.kwon@samsung.com>
+In-reply-to: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
+References: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
+        <CGME20170908060308epcas1p4cd62b065429a7ab1591593e94853c7b8@epcas1p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21/09/2017 13:25, Sean Young wrote:
+Exynos 5250 and 5420 have different hardware rotation limits.
+Since we have to distinguish between these two, we add different
+compatible(samsung,exynos5250-gsc and samsung,exynos5420-gsc).
 
-> On Wed, Sep 20, 2017 at 10:39:11AM +0200, Marc Gonzalez wrote:
-> 
->> From: Mans Rullgard <mans@mansr.com>
->>
->> The tango IR decoder supports NEC, RC-5, RC-6 protocols.
->>
->> Signed-off-by: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
-> 
-> This needs a signed-off-by from all the authors.
+Signed-off-by: Hoegeun Kwon <hoegeun.kwon@samsung.com>
+---
+ Documentation/devicetree/bindings/media/exynos5-gsc.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-Mans, the ball is in your court :-)
-
-In the mean time, I might work on the universal IR receiver,
-or the IR blaster.
-
->>  .../devicetree/bindings/media/tango-ir.txt         |  21 ++
->>  drivers/media/rc/Kconfig                           |   5 +
->>  drivers/media/rc/Makefile                          |   1 +
->>  drivers/media/rc/tango-ir.c                        | 265 +++++++++++++++++++++
->>  4 files changed, 292 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/tango-ir.txt
->>  create mode 100644 drivers/media/rc/tango-ir.c
-> 
-> You should add an entry to the MAINTAINERS file.
-
-It's already taken care of, with a file regex pattern for
-ARM/TANGO ARCHITECTURE (N: tango)
-
->> diff --git a/Documentation/devicetree/bindings/media/tango-ir.txt b/Documentation/devicetree/bindings/media/tango-ir.txt
->> new file mode 100644
->> index 000000000000..a9f00c2bf897
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/tango-ir.txt
->> @@ -0,0 +1,21 @@
->> +Sigma Designs Tango IR NEC/RC-5/RC-6 decoder (SMP86xx and SMP87xx)
->> +
->> +Required properties:
->> +
->> +- compatible: "sigma,smp8642-ir"
->> +- reg: address/size of NEC+RC5 area, address/size of RC6 area
->> +- interrupts: spec for IR IRQ
->> +- clocks: spec for IR clock (typically the crystal oscillator)
->> +
->> +Optional properties:
->> +
->> +- linux,rc-map-name: see Documentation/devicetree/bindings/media/rc.txt
->> +
->> +Example:
->> +
->> +	ir@10518 {
->> +		compatible = "sigma,smp8642-ir";
->> +		reg = <0x10518 0x18>, <0x105e0 0x1c>;
->> +		interrupts = <21 IRQ_TYPE_EDGE_RISING>;
->> +		clocks = <&xtal>;
->> +	};
-> 
-> This needs to be a separate commit/patch.
-
-OK, I will send a v3 series. Could you explain the rationale behind
-having separate patches? (I don't think Rob minds having a binding
-description pushed through a different tree.)
-
->> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
->> index d9ce8ff55d0c..f84923289964 100644
->> --- a/drivers/media/rc/Kconfig
->> +++ b/drivers/media/rc/Kconfig
->> @@ -469,6 +469,11 @@ config IR_SIR
->>  	   To compile this driver as a module, choose M here: the module will
->>  	   be called sir-ir.
->>  
->> +config IR_TANGO
->> +	tristate "Sigma Designs SMP86xx IR decoder"
->> +	depends on RC_CORE
->> +	depends on ARCH_TANGO || COMPILE_TEST
-> 
-> This needs --help-- a section, even if it is mostly boilerplate.
-> 
-> This will be catched by ./scripts/checkpatch.pl, please run this script
-> on your patches.
-
-OK.
-
-Regards.
+diff --git a/Documentation/devicetree/bindings/media/exynos5-gsc.txt b/Documentation/devicetree/bindings/media/exynos5-gsc.txt
+index 26ca25b..daa56d5 100644
+--- a/Documentation/devicetree/bindings/media/exynos5-gsc.txt
++++ b/Documentation/devicetree/bindings/media/exynos5-gsc.txt
+@@ -5,6 +5,7 @@ G-Scaler is used for scaling and color space conversion on EXYNOS5 SoCs.
+ Required properties:
+ - compatible: should be "samsung,exynos5-gsc" (for Exynos 5250, 5420 and
+ 	      5422 SoCs) or "samsung,exynos5433-gsc" (Exynos 5433)
++	      or "samsung,exynos5250-gsc" or "samsung,exynos5420-gsc"
+ - reg: should contain G-Scaler physical address location and length.
+ - interrupts: should contain G-Scaler interrupt number
+ 
+-- 
+1.9.1
