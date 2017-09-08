@@ -1,62 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.60.111]:37311 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752028AbdINLdr (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47440 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1756134AbdIHNSb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Sep 2017 07:33:47 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
+        Fri, 8 Sep 2017 09:18:31 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Joao Pinto <Joao.Pinto@synopsys.com>
-Subject: [PATCH] [media] cec: GIVE_PHYSICAL_ADDR should respond to unregistered device
-Date: Thu, 14 Sep 2017 12:33:31 +0100
-Message-Id: <73019b13e5e8d727c37ec1b99f2e746aad0a7153.1505388690.git.joabreu@synopsys.com>
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v9 19/24] v4l: fwnode: Add a helper function for parsing generic references
+Date: Fri,  8 Sep 2017 16:18:17 +0300
+Message-Id: <20170908131822.31020-15-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Running CEC 1.4 compliance test we get the following error on test
-11.1.6.2: "ERROR: The DUT did not broadcast a
-<Report Physical Address> message to the unregistered device."
+Add function v4l2_fwnode_reference_count() for counting external
+references and v4l2_fwnode_reference_parse() for parsing them as async
+sub-devices.
 
-Fix this by letting GIVE_PHYSICAL_ADDR message respond to unregistered
-device.
+This can be done on e.g. flash or lens async sub-devices that are not part
+of but are associated with a sensor.
 
-With this fix we pass CEC 1.4 official compliance.
+struct v4l2_async_notifier.max_subdevs field is added to contain the
+maximum number of sub-devices in a notifier to reflect the memory
+allocated for the subdevs array.
 
-Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Joao Pinto <jpinto@synopsys.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/cec/cec-adap.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-fwnode.c | 47 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index dd769e4..48482aa 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -1797,9 +1797,12 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 	case CEC_MSG_GIVE_DEVICE_VENDOR_ID:
- 	case CEC_MSG_ABORT:
- 	case CEC_MSG_GIVE_DEVICE_POWER_STATUS:
--	case CEC_MSG_GIVE_PHYSICAL_ADDR:
- 	case CEC_MSG_GIVE_OSD_NAME:
- 	case CEC_MSG_GIVE_FEATURES:
-+		if (from_unregistered)
-+			return 0;
-+		/* Fall through */
-+	case CEC_MSG_GIVE_PHYSICAL_ADDR:
- 		/*
- 		 * Skip processing these messages if the passthrough mode
- 		 * is on.
-@@ -1807,7 +1810,7 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 		if (adap->passthrough)
- 			goto skip_processing;
- 		/* Ignore if addressing is wrong */
--		if (is_broadcast || from_unregistered)
-+		if (is_broadcast)
- 			return 0;
- 		break;
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index d978f2d714ca..4821c4989119 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -449,6 +449,53 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
+ }
+ EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints);
  
++static int v4l2_fwnode_reference_parse(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	const char *prop)
++{
++	struct fwnode_reference_args args;
++	unsigned int index = 0;
++	int ret;
++
++	for (; !fwnode_property_get_reference_args(
++		     dev_fwnode(dev), prop, NULL, 0, index, &args); index++)
++		fwnode_handle_put(args.fwnode);
++
++	ret = v4l2_async_notifier_realloc(notifier,
++					  notifier->num_subdevs + index);
++	if (ret)
++		return -ENOMEM;
++
++	for (ret = -ENOENT, index = 0;
++	     !fwnode_property_get_reference_args(
++		     dev_fwnode(dev), prop, NULL, 0, index, &args);
++	     index++) {
++		struct v4l2_async_subdev *asd;
++
++		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
++			ret = -EINVAL;
++			goto error;
++		}
++
++		asd = kzalloc(sizeof(*asd), GFP_KERNEL);
++		if (!asd) {
++			ret = -ENOMEM;
++			goto error;
++		}
++
++		notifier->subdevs[notifier->num_subdevs] = asd;
++		asd->match.fwnode.fwnode = args.fwnode;
++		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
++		notifier->num_subdevs++;
++	}
++
++	return 0;
++
++error:
++	fwnode_handle_put(args.fwnode);
++	return ret;
++}
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
 -- 
-1.9.1
+2.11.0
