@@ -1,38 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:55003 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751765AbdICOB2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 3 Sep 2017 10:01:28 -0400
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pan Bian <bianpan2016@163.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 0/2] [media] Motion Eye: Adjustments for meye_probe()
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Message-ID: <4370c644-e440-1268-089b-8a8686bbcd5c@users.sourceforge.net>
-Date: Sun, 3 Sep 2017 16:01:03 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:38306 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751985AbdIHPLQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 11:11:16 -0400
+From: Srishti Sharma <srishtishar@gmail.com>
+To: gregkh@linuxfoundation.org
+Cc: slongerbeam@gmail.com, p.zabel@pengutronix.de, mchehab@kernel.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, outreachy-kernel@googlegroups.com,
+        Srishti Sharma <srishtishar@gmail.com>
+Subject: [PATCH] Staging: media: imx: Prefer using BIT macro
+Date: Fri,  8 Sep 2017 20:41:09 +0530
+Message-Id: <1504883469-8127-1-git-send-email-srishtishar@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 3 Sep 2017 15:54:45 +0200
+Use BIT(x) instead of (1<<x).
 
-Two update suggestions were taken into account
-from static source code analysis.
+Signed-off-by: Srishti Sharma <srishtishar@gmail.com>
+---
+ drivers/staging/media/imx/imx-media.h | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-Markus Elfring (2):
-  Delete three error messages for a failed memory allocation
-  Adjust two function calls together with a variable assignment
+diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+index d409170..e5b8d29 100644
+--- a/drivers/staging/media/imx/imx-media.h
++++ b/drivers/staging/media/imx/imx-media.h
+@@ -310,16 +310,16 @@ void imx_media_capture_device_set_format(struct imx_media_video_dev *vdev,
+ void imx_media_capture_device_error(struct imx_media_video_dev *vdev);
 
- drivers/media/pci/meye/meye.c | 20 ++++++++------------
- 1 file changed, 8 insertions(+), 12 deletions(-)
+ /* subdev group ids */
+-#define IMX_MEDIA_GRP_ID_SENSOR    (1 << 8)
+-#define IMX_MEDIA_GRP_ID_VIDMUX    (1 << 9)
+-#define IMX_MEDIA_GRP_ID_CSI2      (1 << 10)
++#define IMX_MEDIA_GRP_ID_SENSOR    BIT(8)
++#define IMX_MEDIA_GRP_ID_VIDMUX    BIT(9)
++#define IMX_MEDIA_GRP_ID_CSI2      BIT(10)
+ #define IMX_MEDIA_GRP_ID_CSI_BIT   11
+ #define IMX_MEDIA_GRP_ID_CSI       (0x3 << IMX_MEDIA_GRP_ID_CSI_BIT)
+-#define IMX_MEDIA_GRP_ID_CSI0      (1 << IMX_MEDIA_GRP_ID_CSI_BIT)
++#define IMX_MEDIA_GRP_ID_CSI0      BIT(IMX_MEDIA_GRP_ID_CSI_BIT)
+ #define IMX_MEDIA_GRP_ID_CSI1      (2 << IMX_MEDIA_GRP_ID_CSI_BIT)
+-#define IMX_MEDIA_GRP_ID_VDIC      (1 << 13)
+-#define IMX_MEDIA_GRP_ID_IC_PRP    (1 << 14)
+-#define IMX_MEDIA_GRP_ID_IC_PRPENC (1 << 15)
+-#define IMX_MEDIA_GRP_ID_IC_PRPVF  (1 << 16)
++#define IMX_MEDIA_GRP_ID_VDIC      BIT(13)
++#define IMX_MEDIA_GRP_ID_IC_PRP    BIT(14)
++#define IMX_MEDIA_GRP_ID_IC_PRPENC BIT(15)
++#define IMX_MEDIA_GRP_ID_IC_PRPVF  BIT(16)
 
--- 
-2.14.1
+ #endif
+--
+2.7.4
