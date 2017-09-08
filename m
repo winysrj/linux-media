@@ -1,60 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:37301 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751062AbdIMJQF (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47510 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1756083AbdIHNSa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 05:16:05 -0400
-From: Allen Pais <allen.lkml@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Allen Pais <allen.lkml@gmail.com>
-Subject: [PATCH v4] [media]atomisp:use ARRAY_SIZE() instead of open coding.
-Date: Wed, 13 Sep 2017 14:45:58 +0530
-Message-Id: <1505294158-28408-1-git-send-email-allen.lkml@gmail.com>
+        Fri, 8 Sep 2017 09:18:30 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v9 15/24] dt: bindings: Add a binding for flash LED devices associated to a sensor
+Date: Fri,  8 Sep 2017 16:18:13 +0300
+Message-Id: <20170908131822.31020-11-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The array_length() macro just duplicates ARRAY_SIZE(), so we can
-delete it.
+Camera flash drivers (and LEDs) are separate from the sensor devices in
+DT. In order to make an association between the two, provide the
+association information to the software.
 
-v4: Update the commit message.
-
-Signed-off-by: Allen Pais <allen.lkml@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-index e882b55..bee3043 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-@@ -451,8 +451,6 @@ static enum ia_css_frame_format yuv422_copy_formats[] = {
- 	IA_CSS_FRAME_FORMAT_YUYV
- };
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index 852041a7480c..fdba30479b47 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -67,6 +67,14 @@ are required in a relevant parent node:
+ 		    identifier, should be 1.
+  - #size-cells    : should be zero.
  
--#define array_length(array) (sizeof(array)/sizeof(array[0]))
--
- /* Verify whether the selected output format is can be produced
-  * by the copy binary given the stream format.
-  * */
-@@ -468,7 +466,7 @@ verify_copy_out_frame_format(struct ia_css_pipe *pipe)
- 	switch (pipe->stream->config.input_config.format) {
- 	case IA_CSS_STREAM_FORMAT_YUV420_8_LEGACY:
- 	case IA_CSS_STREAM_FORMAT_YUV420_8:
--		for (i=0; i<array_length(yuv420_copy_formats) && !found; i++)
-+		for (i=0; i<ARRAY_SIZE(yuv420_copy_formats) && !found; i++)
- 			found = (out_fmt == yuv420_copy_formats[i]);
- 		break;
- 	case IA_CSS_STREAM_FORMAT_YUV420_10:
-@@ -476,7 +474,7 @@ verify_copy_out_frame_format(struct ia_css_pipe *pipe)
- 		found = (out_fmt == IA_CSS_FRAME_FORMAT_YUV420_16);
- 		break;
- 	case IA_CSS_STREAM_FORMAT_YUV422_8:
--		for (i=0; i<array_length(yuv422_copy_formats) && !found; i++)
-+		for (i=0; i<ARRAY_SIZE(yuv422_copy_formats) && !found; i++)
- 			found = (out_fmt == yuv422_copy_formats[i]);
- 		break;
- 	case IA_CSS_STREAM_FORMAT_YUV422_10:
++
++Optional properties
++-------------------
++
++- flash-leds: An array of phandles, each referring to a flash LED, a sub-node
++  of the LED driver device node.
++
++
+ Optional endpoint properties
+ ----------------------------
+ 
 -- 
-2.7.4
+2.11.0
