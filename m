@@ -1,37 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from unicorn.mansr.com ([81.2.72.234]:50916 "EHLO unicorn.mansr.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935560AbdIYQpB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 12:45:01 -0400
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-To: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
-Cc: Sean Young <sean@mess.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Mason <slash.tmp@free.fr>
-Subject: Re: [PATCH v5 2/2] media: rc: Add driver for tango HW IR decoder
-References: <308711ef-0ba8-d533-26fd-51e5b8f32cc8@free.fr>
-        <e3d91250-e6bd-bb8c-5497-689c351ac55f@free.fr>
-        <yw1xzi9ieuqe.fsf@mansr.com>
-        <893874ee-a6e0-e4be-5b4f-a49e60197e92@free.fr>
-Date: Mon, 25 Sep 2017 17:45:00 +0100
-In-Reply-To: <893874ee-a6e0-e4be-5b4f-a49e60197e92@free.fr> (Marc Gonzalez's
-        message of "Mon, 25 Sep 2017 18:07:14 +0200")
-Message-ID: <yw1xr2uuenhv.fsf@mansr.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47484 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1756140AbdIHNSd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Sep 2017 09:18:33 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v9 22/24] smiapp: Add support for flash and lens devices
+Date: Fri,  8 Sep 2017 16:18:20 +0300
+Message-Id: <20170908131822.31020-18-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Marc Gonzalez <marc_gonzalez@sigmadesigns.com> writes:
+Parse async sub-devices by using
+v4l2_subdev_fwnode_reference_parse_sensor_common().
 
-> * Delete two writes clearing interrupts in probe (cleared is reset value)
+These types devices aren't directly related to the sensor, but are
+nevertheless handled by the smiapp driver due to the relationship of these
+component to the main part of the camera module --- the sensor.
 
-Noooooo.  You can't know what state the hardware is in when this code
-runs.  Drivers should *always* fully initialise the hardware to a known
-state.  It is especially important to clear any pending interrupts since
-otherwise they'll fire the moment the irq is unmasked and can cause all
-sorts of mayhem.
+This does not yet address providing the user space with information on how
+to associate the sensor or lens devices but the kernel now has the
+necessary information to do that.
 
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 18 ++++++++++++++++--
+ drivers/media/i2c/smiapp/smiapp.h      |  4 +++-
+ 2 files changed, 19 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 700f433261d0..2a7cf430270c 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -31,7 +31,7 @@
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/smiapp.h>
+-#include <linux/v4l2-mediabus.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+ #include <media/v4l2-device.h>
+ 
+@@ -2887,6 +2887,11 @@ static int smiapp_probe(struct i2c_client *client,
+ 	v4l2_i2c_subdev_init(&sensor->src->sd, client, &smiapp_ops);
+ 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
+ 
++	rval = v4l2_fwnode_reference_parse_sensor_common(
++		&client->dev, &sensor->notifier);
++	if (rval < 0 && rval != -ENOENT)
++		return rval;
++
+ 	sensor->vana = devm_regulator_get(&client->dev, "vana");
+ 	if (IS_ERR(sensor->vana)) {
+ 		dev_err(&client->dev, "could not get regulator for vana\n");
+@@ -3092,9 +3097,14 @@ static int smiapp_probe(struct i2c_client *client,
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
+ 
++	rval = v4l2_async_subdev_notifier_register(&sensor->src->sd,
++						   &sensor->notifier);
++	if (rval)
++		goto out_media_entity_cleanup;
++
+ 	rval = v4l2_async_register_subdev(&sensor->src->sd);
+ 	if (rval < 0)
+-		goto out_media_entity_cleanup;
++		goto out_unregister_async_notifier;
+ 
+ 	pm_runtime_set_active(&client->dev);
+ 	pm_runtime_get_noresume(&client->dev);
+@@ -3105,6 +3115,9 @@ static int smiapp_probe(struct i2c_client *client,
+ 
+ 	return 0;
+ 
++out_unregister_async_notifier:
++	v4l2_async_notifier_unregister(&sensor->notifier);
++
+ out_media_entity_cleanup:
+ 	media_entity_cleanup(&sensor->src->sd.entity);
+ 
+@@ -3124,6 +3137,7 @@ static int smiapp_remove(struct i2c_client *client)
+ 	unsigned int i;
+ 
+ 	v4l2_async_unregister_subdev(subdev);
++	v4l2_async_notifier_unregister(&sensor->notifier);
+ 
+ 	pm_runtime_disable(&client->dev);
+ 	if (!pm_runtime_status_suspended(&client->dev))
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index f74d695018b9..be92cb5713f4 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -20,9 +20,10 @@
+ #define __SMIAPP_PRIV_H_
+ 
+ #include <linux/mutex.h>
++#include <media/i2c/smiapp.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-subdev.h>
+-#include <media/i2c/smiapp.h>
+ 
+ #include "smiapp-pll.h"
+ #include "smiapp-reg.h"
+@@ -172,6 +173,7 @@ struct smiapp_subdev {
+  * struct smiapp_sensor - Main device structure
+  */
+ struct smiapp_sensor {
++	struct v4l2_async_notifier notifier;
+ 	/*
+ 	 * "mutex" is used to serialise access to all fields here
+ 	 * except v4l2_ctrls at the end of the struct. "mutex" is also
 -- 
-Måns Rullgård
+2.11.0
