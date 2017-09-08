@@ -1,77 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50298
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751462AbdITTL4 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47428 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755884AbdIHNS0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 15:11:56 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 09/25] media: dvb_demux.h: add an enum for DMX_TYPE_* and document
-Date: Wed, 20 Sep 2017 16:11:34 -0300
-Message-Id: <d42c16fad6a35dbeec01b3c70fd2fb35a64d55b0.1505933919.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
-References: <cover.1505933919.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
-References: <cover.1505933919.git.mchehab@s-opensource.com>
+        Fri, 8 Sep 2017 09:18:26 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v9 09/24] omap3isp: Print the name of the entity where no source pads could be found
+Date: Fri,  8 Sep 2017 16:18:07 +0300
+Message-Id: <20170908131822.31020-5-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kernel-doc allows documenting enums. Also, it makes clearer
-about the meaning of each field on structures.
+If no source pads are found in an entity, print the name of the entity.
 
-So, convert DMX_TYPE_* to an enum.
-
-While here, get rid of the unused DMX_TYPE_PES.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-core/dvb_demux.h | 17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ drivers/media/platform/omap3isp/isp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
-index 6f572ca8d339..6bc4b27dbff3 100644
---- a/drivers/media/dvb-core/dvb_demux.h
-+++ b/drivers/media/dvb-core/dvb_demux.h
-@@ -26,9 +26,16 @@
- 
- #include "demux.h"
- 
--#define DMX_TYPE_TS  0
--#define DMX_TYPE_SEC 1
--#define DMX_TYPE_PES 2
-+/**
-+ * enum dvb_dmx_filter_type - type of demux feed.
-+ *
-+ * @DMX_TYPE_TS:	feed is in TS mode.
-+ * @DMX_TYPE_SEC:	feed is in Section mode.
-+ */
-+enum dvb_dmx_filter_type {
-+	DMX_TYPE_TS,
-+	DMX_TYPE_SEC,
-+};
- 
- #define DMX_STATE_FREE      0
- #define DMX_STATE_ALLOCATED 1
-@@ -52,7 +59,7 @@ struct dvb_demux_filter {
- 	struct dvb_demux_feed *feed;
- 	int index;
- 	int state;
--	int type;
-+	enum dvb_dmx_filter_type type;
- 
- 	u16 hw_handle;
- 	struct timer_list timer;
-@@ -73,7 +80,7 @@ struct dvb_demux_feed {
- 
- 	struct dvb_demux *demux;
- 	void *priv;
--	int type;
-+	enum dvb_dmx_filter_type type;
- 	int state;
- 	u16 pid;
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 3b1a9cd0e591..9a694924e46e 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -1669,8 +1669,8 @@ static int isp_link_entity(
+ 			break;
+ 	}
+ 	if (i == entity->num_pads) {
+-		dev_err(isp->dev, "%s: no source pad in external entity\n",
+-			__func__);
++		dev_err(isp->dev, "%s: no source pad in external entity %s\n",
++			__func__, entity->name);
+ 		return -EINVAL;
+ 	}
  
 -- 
-2.13.5
+2.11.0
