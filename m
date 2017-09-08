@@ -1,278 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37446 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752336AbdIMLS5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 07:18:57 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com,
-        linux-renesas-soc@vger.kernel.org
-Cc: linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v3 3/9] v4l: vsp1: Provide a body pool
-Date: Wed, 13 Sep 2017 12:18:42 +0100
-Message-Id: <4b5af3f82f9c00e3bd6c2f72435ffeb0525efa29.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47384 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755515AbdIHNSZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Sep 2017 09:18:25 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v9 06/24] omap3isp: Use generic parser for parsing fwnode endpoints
+Date: Fri,  8 Sep 2017 16:18:04 +0300
+Message-Id: <20170908131822.31020-2-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each display list allocates a body to store register values in a dma
-accessible buffer from a dma_alloc_wc() allocation. Each of these
-results in an entry in the TLB, and a large number of display list
-allocations adds pressure to this resource.
+Instead of using driver implementation, use
+v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
+of the device.
 
-Reduce TLB pressure on the IPMMUs by allocating multiple display list
-bodies in a single allocation, and providing these to the display list
-through a 'body pool'. A pool can be allocated by the display list
-manager or entities which require their own body allocations.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-v3:
- - s/fragment/body/, s/fragments/bodies/
- - qty -> num_bodies
- - indentation fix
- - s/vsp1_dl_body_pool_{alloc,free}/vsp1_dl_body_pool_{create,destroy}/'
- - Add kerneldoc to non-static functions
+ drivers/media/platform/omap3isp/isp.c | 115 +++++++++++-----------------------
+ drivers/media/platform/omap3isp/isp.h |   5 +-
+ 2 files changed, 37 insertions(+), 83 deletions(-)
 
-v2:
- - assign dlb->dma correctly
----
- drivers/media/platform/vsp1/vsp1_dl.c | 157 +++++++++++++++++++++++++++-
- drivers/media/platform/vsp1/vsp1_dl.h |   8 +-
- 2 files changed, 165 insertions(+)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index a45d35aa676e..e6f3e68367ff 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -45,6 +45,8 @@ struct vsp1_dl_entry {
- /**
-  * struct vsp1_dl_body - Display list body
-  * @list: entry in the display list list of bodies
-+ * @free: entry in the pool free body list
-+ * @pool: pool to which this body belongs
-  * @vsp1: the VSP1 device
-  * @entries: array of entries
-  * @dma: DMA address of the entries
-@@ -54,6 +56,9 @@ struct vsp1_dl_entry {
-  */
- struct vsp1_dl_body {
- 	struct list_head list;
-+	struct list_head free;
-+
-+	struct vsp1_dl_body_pool *pool;
- 	struct vsp1_device *vsp1;
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 1a428fe9f070..a546cf774d40 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2001,6 +2001,7 @@ static int isp_remove(struct platform_device *pdev)
+ 	__omap3isp_put(isp, false);
  
- 	struct vsp1_dl_entry *entries;
-@@ -65,6 +70,30 @@ struct vsp1_dl_body {
+ 	media_entity_enum_cleanup(&isp->crashed);
++	v4l2_async_notifier_release(&isp->notifier);
+ 
+ 	return 0;
+ }
+@@ -2011,44 +2012,41 @@ enum isp_of_phy {
+ 	ISP_OF_PHY_CSIPHY2,
  };
  
- /**
-+ * struct vsp1_dl_body_pool - display list body pool
-+ * @dma: DMA address of the entries
-+ * @size: size of the full DMA memory pool in bytes
-+ * @mem: CPU memory pointer for the pool
-+ * @bodies: Array of DLB structures for the pool
-+ * @free: List of free DLB entries
-+ * @lock: Protects the pool and free list
-+ * @vsp1: the VSP1 device
-+ */
-+struct vsp1_dl_body_pool {
-+	/* DMA allocation */
-+	dma_addr_t dma;
-+	size_t size;
-+	void *mem;
-+
-+	/* Body management */
-+	struct vsp1_dl_body *bodies;
-+	struct list_head free;
-+	spinlock_t lock;
-+
-+	struct vsp1_device *vsp1;
-+};
-+
-+/**
-  * struct vsp1_dl_list - Display list
-  * @list: entry in the display list manager lists
-  * @dlm: the display list manager
-@@ -104,6 +133,7 @@ enum vsp1_dl_mode {
-  * @active: list currently being processed (loaded) by hardware
-  * @queued: list queued to the hardware (written to the DL registers)
-  * @pending: list waiting to be queued to the hardware
-+ * @pool: body pool for the display list bodies
-  * @gc_work: bodies garbage collector work struct
-  * @gc_bodies: array of display list bodies waiting to be freed
-  */
-@@ -119,6 +149,8 @@ struct vsp1_dl_manager {
- 	struct vsp1_dl_list *queued;
- 	struct vsp1_dl_list *pending;
- 
-+	struct vsp1_dl_body_pool *pool;
-+
- 	struct work_struct gc_work;
- 	struct list_head gc_bodies;
- };
-@@ -127,6 +159,131 @@ struct vsp1_dl_manager {
-  * Display List Body Management
-  */
- 
-+/**
-+ * vsp1_dl_body_pool_create - Create a pool of bodies from a single allocation
-+ * @vsp1: The VSP1 device
-+ * @num_bodies: The quantity of bodies to allocate
-+ * @num_entries: The maximum number of entries that the body can contain
-+ * @extra_size: Extra allocation provided for the bodies
-+ *
-+ * Allocate a pool of display list bodies each with enough memory to contain the
-+ * requested number of entries.
-+ *
-+ * Return a pointer to a pool on success or NULL if memory can't be allocated.
-+ */
-+struct vsp1_dl_body_pool *
-+vsp1_dl_body_pool_create(struct vsp1_device *vsp1, unsigned int num_bodies,
-+			 unsigned int num_entries, size_t extra_size)
-+{
-+	struct vsp1_dl_body_pool *pool;
-+	size_t dlb_size;
+-static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+-			    struct isp_async_subdev *isd)
++static int isp_fwnode_parse(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd)
+ {
++	struct isp_async_subdev *isd =
++		container_of(asd, struct isp_async_subdev, asd);
+ 	struct isp_bus_cfg *buscfg = &isd->bus;
+-	struct v4l2_fwnode_endpoint vep;
+-	unsigned int i;
+-	int ret;
+ 	bool csi1 = false;
+-
+-	ret = v4l2_fwnode_endpoint_parse(fwnode, &vep);
+-	if (ret)
+-		return ret;
 +	unsigned int i;
-+
-+	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
-+	if (!pool)
-+		return NULL;
-+
-+	pool->vsp1 = vsp1;
-+
-+	dlb_size = num_entries * sizeof(struct vsp1_dl_entry) + extra_size;
-+	pool->size = dlb_size * num_bodies;
-+
-+	pool->bodies = kcalloc(num_bodies, sizeof(*pool->bodies), GFP_KERNEL);
-+	if (!pool->bodies) {
-+		kfree(pool);
-+		return NULL;
-+	}
-+
-+	pool->mem = dma_alloc_wc(vsp1->bus_master, pool->size, &pool->dma,
-+				 GFP_KERNEL);
-+	if (!pool->mem) {
-+		kfree(pool->bodies);
-+		kfree(pool);
-+		return NULL;
-+	}
-+
-+	spin_lock_init(&pool->lock);
-+	INIT_LIST_HEAD(&pool->free);
-+
-+	for (i = 0; i < num_bodies; ++i) {
-+		struct vsp1_dl_body *dlb = &pool->bodies[i];
-+
-+		dlb->pool = pool;
-+		dlb->max_entries = num_entries;
-+
-+		dlb->dma = pool->dma + i * dlb_size;
-+		dlb->entries = pool->mem + i * dlb_size;
-+
-+		list_add_tail(&dlb->free, &pool->free);
-+	}
-+
-+	return pool;
-+}
-+
-+/**
-+ * vsp1_dl_body_pool_destroy - Release a body pool
-+ * @pool: The body pool
-+ *
-+ * Release all components of a pool allocation.
-+ */
-+void vsp1_dl_body_pool_destroy(struct vsp1_dl_body_pool *pool)
-+{
-+	if (!pool)
-+		return;
-+
-+	if (pool->mem)
-+		dma_free_wc(pool->vsp1->bus_master, pool->size, pool->mem,
-+			    pool->dma);
-+
-+	kfree(pool->bodies);
-+	kfree(pool);
-+}
-+
-+/**
-+ * vsp1_dl_body_get - Obtain a body from a pool
-+ * @pool: The body pool
-+ *
-+ * Obtain a body from the pool allocation without blocking.
-+ *
-+ * Returns a display list body or NULL if there are none available.
-+ */
-+struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool)
-+{
-+	struct vsp1_dl_body *dlb = NULL;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&pool->lock, flags);
-+
-+	if (!list_empty(&pool->free)) {
-+		dlb = list_first_entry(&pool->free, struct vsp1_dl_body, free);
-+		list_del(&dlb->free);
-+	}
-+
-+	spin_unlock_irqrestore(&pool->lock, flags);
-+
-+	return dlb;
-+}
-+
-+/**
-+ * vsp1_dl_body_put - Return a body back to its pool
-+ * @dlb: The display list body
-+ *
-+ * Return a body back to the pool, and reset the num_entries to clear the list.
-+ */
-+void vsp1_dl_body_put(struct vsp1_dl_body *dlb)
-+{
-+	unsigned long flags;
-+
-+	if (!dlb)
-+		return;
-+
-+	dlb->num_entries = 0;
-+
-+	spin_lock_irqsave(&dlb->pool->lock, flags);
-+	list_add_tail(&dlb->free, &dlb->pool->free);
-+	spin_unlock_irqrestore(&dlb->pool->lock, flags);
-+}
-+
- /*
-  * Initialize a display list body object and allocate DMA memory for the body
-  * data. The display list body object is expected to have been initialized to
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-index d4f7695c4ed3..785b88472375 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.h
-+++ b/drivers/media/platform/vsp1/vsp1_dl.h
-@@ -17,6 +17,7 @@
  
- struct vsp1_device;
- struct vsp1_dl_body;
-+struct vsp1_dl_body_pool;
- struct vsp1_dl_list;
- struct vsp1_dl_manager;
+ 	dev_dbg(dev, "parsing endpoint %pOF, interface %u\n",
+-		to_of_node(fwnode), vep.base.port);
++		to_of_node(vep->base.local_fwnode), vep->base.port);
  
-@@ -34,6 +35,13 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl);
- void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data);
- void vsp1_dl_list_commit(struct vsp1_dl_list *dl);
+-	switch (vep.base.port) {
++	switch (vep->base.port) {
+ 	case ISP_OF_PHY_PARALLEL:
+ 		buscfg->interface = ISP_INTERFACE_PARALLEL;
+ 		buscfg->bus.parallel.data_lane_shift =
+-			vep.bus.parallel.data_shift;
++			vep->bus.parallel.data_shift;
+ 		buscfg->bus.parallel.clk_pol =
+-			!!(vep.bus.parallel.flags
++			!!(vep->bus.parallel.flags
+ 			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
+ 		buscfg->bus.parallel.hs_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
+ 		buscfg->bus.parallel.vs_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
+ 		buscfg->bus.parallel.fld_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
+ 		buscfg->bus.parallel.data_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
+-		buscfg->bus.parallel.bt656 = vep.bus_type == V4L2_MBUS_BT656;
++			!!(vep->bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
++		buscfg->bus.parallel.bt656 = vep->bus_type == V4L2_MBUS_BT656;
+ 		break;
  
-+struct vsp1_dl_body_pool *
-+vsp1_dl_body_pool_create(struct vsp1_device *vsp1, unsigned int num_bodies,
-+			 unsigned int num_entries, size_t extra_size);
-+void vsp1_dl_body_pool_destroy(struct vsp1_dl_body_pool *pool);
-+struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool);
-+void vsp1_dl_body_put(struct vsp1_dl_body *dlb);
-+
- struct vsp1_dl_body *vsp1_dl_body_alloc(struct vsp1_device *vsp1,
- 					unsigned int num_entries);
- void vsp1_dl_body_free(struct vsp1_dl_body *dlb);
+ 	case ISP_OF_PHY_CSIPHY1:
+ 	case ISP_OF_PHY_CSIPHY2:
+-		switch (vep.bus_type) {
++		switch (vep->bus_type) {
+ 		case V4L2_MBUS_CCP2:
+ 		case V4L2_MBUS_CSI1:
+ 			dev_dbg(dev, "CSI-1/CCP-2 configuration\n");
+@@ -2060,11 +2058,11 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 			break;
+ 		default:
+ 			dev_err(dev, "unsupported bus type %u\n",
+-				vep.bus_type);
++				vep->bus_type);
+ 			return -EINVAL;
+ 		}
+ 
+-		switch (vep.base.port) {
++		switch (vep->base.port) {
+ 		case ISP_OF_PHY_CSIPHY1:
+ 			if (csi1)
+ 				buscfg->interface = ISP_INTERFACE_CCP2B_PHY1;
+@@ -2080,47 +2078,47 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 		}
+ 		if (csi1) {
+ 			buscfg->bus.ccp2.lanecfg.clk.pos =
+-				vep.bus.mipi_csi1.clock_lane;
++				vep->bus.mipi_csi1.clock_lane;
+ 			buscfg->bus.ccp2.lanecfg.clk.pol =
+-				vep.bus.mipi_csi1.lane_polarity[0];
++				vep->bus.mipi_csi1.lane_polarity[0];
+ 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+ 				buscfg->bus.ccp2.lanecfg.clk.pol,
+ 				buscfg->bus.ccp2.lanecfg.clk.pos);
+ 
+ 			buscfg->bus.ccp2.lanecfg.data[0].pos =
+-				vep.bus.mipi_csi1.data_lane;
++				vep->bus.mipi_csi1.data_lane;
+ 			buscfg->bus.ccp2.lanecfg.data[0].pol =
+-				vep.bus.mipi_csi1.lane_polarity[1];
++				vep->bus.mipi_csi1.lane_polarity[1];
+ 
+ 			dev_dbg(dev, "data lane polarity %u, pos %u\n",
+ 				buscfg->bus.ccp2.lanecfg.data[0].pol,
+ 				buscfg->bus.ccp2.lanecfg.data[0].pos);
+ 
+ 			buscfg->bus.ccp2.strobe_clk_pol =
+-				vep.bus.mipi_csi1.clock_inv;
+-			buscfg->bus.ccp2.phy_layer = vep.bus.mipi_csi1.strobe;
++				vep->bus.mipi_csi1.clock_inv;
++			buscfg->bus.ccp2.phy_layer = vep->bus.mipi_csi1.strobe;
+ 			buscfg->bus.ccp2.ccp2_mode =
+-				vep.bus_type == V4L2_MBUS_CCP2;
++				vep->bus_type == V4L2_MBUS_CCP2;
+ 			buscfg->bus.ccp2.vp_clk_pol = 1;
+ 
+ 			buscfg->bus.ccp2.crc = 1;
+ 		} else {
+ 			buscfg->bus.csi2.lanecfg.clk.pos =
+-				vep.bus.mipi_csi2.clock_lane;
++				vep->bus.mipi_csi2.clock_lane;
+ 			buscfg->bus.csi2.lanecfg.clk.pol =
+-				vep.bus.mipi_csi2.lane_polarities[0];
++				vep->bus.mipi_csi2.lane_polarities[0];
+ 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+ 				buscfg->bus.csi2.lanecfg.clk.pol,
+ 				buscfg->bus.csi2.lanecfg.clk.pos);
+ 
+ 			buscfg->bus.csi2.num_data_lanes =
+-				vep.bus.mipi_csi2.num_data_lanes;
++				vep->bus.mipi_csi2.num_data_lanes;
+ 
+ 			for (i = 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
+ 				buscfg->bus.csi2.lanecfg.data[i].pos =
+-					vep.bus.mipi_csi2.data_lanes[i];
++					vep->bus.mipi_csi2.data_lanes[i];
+ 				buscfg->bus.csi2.lanecfg.data[i].pol =
+-					vep.bus.mipi_csi2.lane_polarities[i + 1];
++					vep->bus.mipi_csi2.lane_polarities[i + 1];
+ 				dev_dbg(dev,
+ 					"data lane %u polarity %u, pos %u\n", i,
+ 					buscfg->bus.csi2.lanecfg.data[i].pol,
+@@ -2137,57 +2135,13 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 
+ 	default:
+ 		dev_warn(dev, "%pOF: invalid interface %u\n",
+-			 to_of_node(fwnode), vep.base.port);
++			 to_of_node(vep->base.local_fwnode), vep->base.port);
+ 		return -EINVAL;
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-static int isp_fwnodes_parse(struct device *dev,
+-			     struct v4l2_async_notifier *notifier)
+-{
+-	struct fwnode_handle *fwnode = NULL;
+-
+-	notifier->subdevs = devm_kcalloc(
+-		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+-	if (!notifier->subdevs)
+-		return -ENOMEM;
+-
+-	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
+-	       (fwnode = fwnode_graph_get_next_endpoint(
+-			of_fwnode_handle(dev->of_node), fwnode))) {
+-		struct isp_async_subdev *isd;
+-
+-		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+-		if (!isd)
+-			goto error;
+-
+-		if (isp_fwnode_parse(dev, fwnode, isd)) {
+-			devm_kfree(dev, isd);
+-			continue;
+-		}
+-
+-		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+-
+-		isd->asd.match.fwnode.fwnode =
+-			fwnode_graph_get_remote_port_parent(fwnode);
+-		if (!isd->asd.match.fwnode.fwnode) {
+-			dev_warn(dev, "bad remote port parent\n");
+-			goto error;
+-		}
+-
+-		isd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		notifier->num_subdevs++;
+-	}
+-
+-	return notifier->num_subdevs;
+-
+-error:
+-	fwnode_handle_put(fwnode);
+-	return -EINVAL;
+-}
+-
+ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+ {
+ 	struct isp_device *isp = container_of(async, struct isp_device,
+@@ -2256,7 +2210,9 @@ static int isp_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
++	ret = v4l2_async_notifier_parse_fwnode_endpoints(
++		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
++		isp_fwnode_parse);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -2407,6 +2363,7 @@ static int isp_probe(struct platform_device *pdev)
+ 	__omap3isp_put(isp, false);
+ error:
+ 	mutex_destroy(&isp->isp_mutex);
++	v4l2_async_notifier_release(&isp->notifier);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index e528df6efc09..8b9043db94b3 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -220,14 +220,11 @@ struct isp_device {
+ 
+ 	unsigned int sbl_resources;
+ 	unsigned int subclk_resources;
+-
+-#define ISP_MAX_SUBDEVS		8
+-	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
+ };
+ 
+ struct isp_async_subdev {
+-	struct isp_bus_cfg bus;
+ 	struct v4l2_async_subdev asd;
++	struct isp_bus_cfg bus;
+ };
+ 
+ #define v4l2_subdev_to_bus_cfg(sd) \
 -- 
-git-series 0.9.1
+2.11.0
