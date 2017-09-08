@@ -1,147 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46944
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752087AbdIANY7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:24:59 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v2 23/27] media: ca-get-slot-info.rst: document this ioctl
-Date: Fri,  1 Sep 2017 10:24:45 -0300
-Message-Id: <6f1e7979981a4aec031f8f635041ac599e5c1004.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47452 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755226AbdIHNS2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Sep 2017 09:18:28 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v9 11/24] v4l: async: Introduce helpers for calling async ops callbacks
+Date: Fri,  8 Sep 2017 16:18:09 +0300
+Message-Id: <20170908131822.31020-7-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of a generic boilerplate, fill it with relevant
-information about this ioctl.
+Add three helper functions to call async operations callbacks. Besides
+simplifying callbacks, this allows async notifiers to have no ops set,
+i.e. it can be left NULL.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/media/uapi/dvb/ca-get-slot-info.rst | 98 +++--------------------
- 1 file changed, 11 insertions(+), 87 deletions(-)
+ drivers/media/v4l2-core/v4l2-async.c | 49 ++++++++++++++++++++++++++----------
+ include/media/v4l2-async.h           |  1 +
+ 2 files changed, 37 insertions(+), 13 deletions(-)
 
-diff --git a/Documentation/media/uapi/dvb/ca-get-slot-info.rst b/Documentation/media/uapi/dvb/ca-get-slot-info.rst
-index 54e5dc78a2dc..d7e41e038ca7 100644
---- a/Documentation/media/uapi/dvb/ca-get-slot-info.rst
-+++ b/Documentation/media/uapi/dvb/ca-get-slot-info.rst
-@@ -26,100 +26,24 @@ Arguments
-   File descriptor returned by a previous call to :c:func:`open() <cec-open>`.
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index a2df85ea00f4..c34f93593b41 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -25,6 +25,34 @@
+ #include <media/v4l2-fwnode.h>
+ #include <media/v4l2-subdev.h>
  
- ``info``
--  Pointer to struct c:type:`ca_slot_info`.
--
--.. _ca_slot_info_type:
--
--.. flat-table:: ca_slot_info types
--    :header-rows:  1
--    :stub-columns: 0
--
--    -
--      - type
--      - name
--      - description
--    -
--       - CA_CI
--       - 1
--       - CI high level interface
--
--    -
--       - CA_CI_LINK
--       - 2
--       - CI link layer level interface
--
--    -
--       - CA_CI_PHYS
--       - 4
--       - CI physical layer level interface
--
--    -
--       - CA_DESCR
--       - 8
--       - built-in descrambler
--
--    -
--       - CA_SC
--       - 128
--       - simple smart card interface
--
--.. _ca_slot_info_flag:
--
--.. flat-table:: ca_slot_info flags
--    :header-rows:  1
--    :stub-columns: 0
--
--    -
--      - type
--      - name
--      - description
--
--    -
--       - CA_CI_MODULE_PRESENT
--       - 1
--       - module (or card) inserted
--
--    -
--       - CA_CI_MODULE_READY
--       - 2
--       -
--
--.. c:type:: ca_slot_info
--
--.. flat-table:: struct ca_slot_info
--    :header-rows:  1
--    :stub-columns: 0
--
--    -
--      - type
--      - name
--      - description
--
--    -
--       - int
--       - num
--       - slot number
--
--    -
--       - int
--       - type
--       - CA interface this slot supports, as defined at :ref:`ca_slot_info_type`.
--
--    -
--       - unsigned int
--       - flags
--       - flags as defined at :ref:`ca_slot_info_flag`.
--
-+  Pointer to struct :c:type:`ca_slot_info`.
- 
- Description
- -----------
- 
--.. note:: This ioctl is undocumented. Documentation is welcome.
-+Returns information about a CA slot identified by
-+:c:type:`ca_slot_info`.slot_num.
- 
- 
- Return Value
- ------------
- 
--On success 0 is returned, on error -1 and the ``errno`` variable is set
--appropriately. The generic error codes are described at the
-+On success 0 is returned, and :c:type:`ca_slot_info` is filled.
++static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
++					  struct v4l2_subdev *subdev,
++					  struct v4l2_async_subdev *asd)
++{
++	if (!n->ops || !n->ops->bound)
++		return 0;
 +
-+On error -1 is returned, and the ``errno`` variable is set
-+appropriately.
++	return n->ops->bound(n, subdev, asd);
++}
 +
-+If the slot is not available, ``errno`` will contain ``-EINVAL``.
++static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier *n,
++					    struct v4l2_subdev *subdev,
++					    struct v4l2_async_subdev *asd)
++{
++	if (!n->ops || !n->ops->unbind)
++		return;
 +
-+The generic error codes are described at the
- :ref:`Generic Error Codes <gen-errors>` chapter.
++	n->ops->unbind(n, subdev, asd);
++}
++
++static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
++{
++	if (!n->ops || !n->ops->complete)
++		return 0;
++
++	return n->ops->complete(n);
++}
++
+ static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+ #if IS_ENABLED(CONFIG_I2C)
+@@ -102,16 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ {
+ 	int ret;
+ 
+-	if (notifier->ops->bound) {
+-		ret = notifier->ops->bound(notifier, sd, asd);
+-		if (ret < 0)
+-			return ret;
+-	}
++	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
++	if (ret < 0)
++		return ret;
+ 
+ 	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+ 	if (ret < 0) {
+-		if (notifier->ops->unbind)
+-			notifier->ops->unbind(notifier, sd, asd);
++		v4l2_async_notifier_call_unbind(notifier, sd, asd);
+ 		return ret;
+ 	}
+ 
+@@ -123,8 +148,8 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ 	/* Move from the global subdevice list to notifier's done */
+ 	list_move(&sd->async_list, &notifier->done);
+ 
+-	if (list_empty(&notifier->waiting) && notifier->ops->complete)
+-		return notifier->ops->complete(notifier);
++	if (list_empty(&notifier->waiting))
++		return v4l2_async_notifier_call_complete(notifier);
+ 
+ 	return 0;
+ }
+@@ -210,8 +235,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+ 		v4l2_async_cleanup(sd);
+ 
+-		if (notifier->ops->unbind)
+-			notifier->ops->unbind(notifier, sd, sd->asd);
++		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+ 	}
+ 
+ 	mutex_unlock(&list_lock);
+@@ -300,8 +324,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+ 
+ 	v4l2_async_cleanup(sd);
+ 
+-	if (notifier->ops->unbind)
+-		notifier->ops->unbind(notifier, sd, sd->asd);
++	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+ 
+ 	mutex_unlock(&list_lock);
+ }
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 3c48f8b66d12..3bc8a7c0d83f 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -164,4 +164,5 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd);
+  * @sd: pointer to &struct v4l2_subdev
+  */
+ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
++
+ #endif
 -- 
-2.13.5
+2.11.0
