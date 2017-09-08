@@ -1,69 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52489 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751221AbdIPHEh (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:43255 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756440AbdIHNme (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Sep 2017 03:04:37 -0400
-Date: Sat, 16 Sep 2017 09:04:31 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        devicetree@vger.kernel.org, sre@kernel.org
-Subject: Re: [PATCH v13 06/25] omap3isp: Use generic parser for parsing
- fwnode endpoints
-Message-ID: <20170916070431.GA8257@amd>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
- <20170915141724.23124-7-sakari.ailus@linux.intel.com>
+        Fri, 8 Sep 2017 09:42:34 -0400
+Subject: Re: [PATCH 3/4] [media] sp2: Adjust a jump target in sp2_probe()
+To: SF Markus Elfring <elfring@users.sourceforge.net>,
+        linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Olli Salonen <olli.salonen@iki.fi>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <6142ca34-fcda-f2b6-bc35-dbbde0d34378@users.sourceforge.net>
+ <88ff94f8-ee01-7a11-f98e-92b3944dc930@users.sourceforge.net>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <b98816a2-1e81-f309-c870-477dc08b7c60@xs4all.nl>
+Date: Fri, 8 Sep 2017 15:42:27 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="BOKacYhQ+x31HxR3"
-Content-Disposition: inline
-In-Reply-To: <20170915141724.23124-7-sakari.ailus@linux.intel.com>
+In-Reply-To: <88ff94f8-ee01-7a11-f98e-92b3944dc930@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Markus,
 
---BOKacYhQ+x31HxR3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 09/01/17 21:44, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Fri, 1 Sep 2017 21:08:38 +0200
+> 
+> * Adjust a jump target so that a null pointer will not be passed to a call
+>   of the function "kfree".
+> 
+> * Move this function call into an if branch.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/media/dvb-frontends/sp2.c | 13 +++++++------
+>  1 file changed, 7 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-frontends/sp2.c b/drivers/media/dvb-frontends/sp2.c
+> index dd556012ceb6..b2a7a54174ae 100644
+> --- a/drivers/media/dvb-frontends/sp2.c
+> +++ b/drivers/media/dvb-frontends/sp2.c
+> @@ -384,7 +384,7 @@ static int sp2_probe(struct i2c_client *client,
+>  	s = kzalloc(sizeof(*s), GFP_KERNEL);
+>  	if (!s) {
+>  		ret = -ENOMEM;
+> -		goto err;
+> +		goto report_failure;
+>  	}
+>  
+>  	s->client = client;
+> @@ -395,15 +395,16 @@ static int sp2_probe(struct i2c_client *client,
+>  	i2c_set_clientdata(client, s);
+>  
+>  	ret = sp2_init(s);
+> -	if (ret)
+> -		goto err;
+> +	if (ret) {
+> +		kfree(s);
+> +		goto report_failure;
+> +	}
+>  
+>  	dev_info(&s->client->dev, "CIMaX SP2 successfully attached\n");
+>  	return 0;
+> -err:
+> -	dev_dbg(&client->dev, "init failed=%d\n", ret);
+> -	kfree(s);
+>  
+> +report_failure:
+> +	dev_dbg(&client->dev, "init failed=%d\n", ret);
+>  	return ret;
+>  }
+>  
+> 
 
-Hi!
+It's perfectly fine to call kfree() with a NULL pointer, and I don't think
+that this patch makes the code more readable, so I'm dropping this patch.
 
-> Instead of using driver implementation, use
-> v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
-> of the device.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Regards,
 
-Patches at least up to here look fine o me.
-
-We are at version 13 of the series... Is merge of the series expected
-anytimme soon?
-
-If not, can we at least merge patches up to here, so that less stuff
-is retransmitted over and over?
-
-Thanks,
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---BOKacYhQ+x31HxR3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlm8zP8ACgkQMOfwapXb+vIXPgCgobzSQMs7Sp8DBUq3/VmwOvKz
-EewAmwVRyOhJG6tOrP4dj3T1S8sxDBL5
-=98tm
------END PGP SIGNATURE-----
-
---BOKacYhQ+x31HxR3--
+	Hans
