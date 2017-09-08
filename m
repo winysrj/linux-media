@@ -1,94 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35243 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751176AbdIKSu2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 14:50:28 -0400
-Date: Mon, 11 Sep 2017 20:50:26 +0200
-From: Vincent Hervieux <vincent.hervieux@gmail.com>
-To: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        alan@llwyncelyn.cymru, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com, rvarsha016@gmail.com,
-        dan.carpenter@oracle.com, fengguang.wu@intel.com,
-        daeseok.youn@gmail.com
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, vincent.hervieux@gmail.com
-Subject: [PATCH 1/2] staging: atomisp: add menu entries to choose between
- ATOMISP_2400 and ATOMISP_2401.
-Message-ID: <d7f3632c989a2af3279cc2ce5b71d7f77f01a623.1505142435.git.vincent.hervieux@gmail.com>
-References: <cover.1505142435.git.vincent.hervieux@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1505142435.git.vincent.hervieux@gmail.com>
+Received: from mailout1.samsung.com ([203.254.224.24]:48822 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754443AbdIHGDM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 02:03:12 -0400
+From: Hoegeun Kwon <hoegeun.kwon@samsung.com>
+To: inki.dae@samsung.com, airlied@linux.ie, kgene@kernel.org,
+        krzk@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        catalin.marinas@arm.com, will.deacon@arm.com, mchehab@kernel.org,
+        s.nawrocki@samsung.com, m.szyprowski@samsung.com
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org, a.hajda@samsung.com,
+        Hoegeun Kwon <hoegeun.kwon@samsung.com>
+Subject: [PATCH v3 4/6] [media] exynos-gsc: Add hardware rotation limits
+Date: Fri, 08 Sep 2017 15:02:38 +0900
+Message-id: <1504850560-27950-5-git-send-email-hoegeun.kwon@samsung.com>
+In-reply-to: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
+References: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
+        <CGME20170908060309epcas1p3d48dd0871d3fde02ba3c9921bbe5a7a6@epcas1p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- drivers/staging/media/atomisp/pci/Kconfig          | 23 ++++++++++++++++++++++
- .../staging/media/atomisp/pci/atomisp2/Makefile    | 10 +++++++++-
- 2 files changed, 32 insertions(+), 1 deletion(-)
+The hardware rotation limits of gsc depends on SOC (Exynos
+5250/5420/5433). Distinguish them and add them to the driver data.
 
-diff --git a/drivers/staging/media/atomisp/pci/Kconfig b/drivers/staging/media/atomisp/pci/Kconfig
-index a72421431c7a..e3e00ade1d38 100644
---- a/drivers/staging/media/atomisp/pci/Kconfig
-+++ b/drivers/staging/media/atomisp/pci/Kconfig
-@@ -11,3 +11,26 @@ config VIDEO_ATOMISP
-           camera imaging subsystem.
-           To compile this driver as a module, choose M here: the
-           module will be called atomisp
-+
-+choice
-+        prompt "Intel Atom Image Signal Processor Driver Type"
-+        depends on VIDEO_ATOMISP
-+        default VIDEO_ATOMISP_ISP2400
-+        help
-+          Intel Atom Image Signal Processor Driver actually doesn't support
-+          dynamically all SoC.
-+          So need to choose at compilation time which SoC it can support.
-+          Please refer to staging TODO for more details.
-+
-+config VIDEO_ATOMISP_ISP2400
-+        bool "ISP2400"
-+        help
-+          Atom ISP for Merrifield, Baytrail SoC.
-+
-+config VIDEO_ATOMISP_ISP2401
-+        bool "ISP2401"
-+        help
-+          Atom ISP for Anniedale (Merrifield+ / Moorefield), Cherrytrail SoC.
-+
-+endchoice
-+
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/Makefile b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-index 2bd98f0667ec..27ac23c0c18d 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-@@ -155,7 +155,7 @@ atomisp-objs += \
- 	hmm/hmm_dynamic_pool.o \
- 	hrt/hive_isp_css_mm_hrt.o \
- 	atomisp_v4l2.o
--	
-+
- # These will be needed when clean merge CHT support nicely into the driver
- # Keep them here handy for when we get to that point
- #
-@@ -347,8 +347,16 @@ DEFINES := -DHRT_HW -DHRT_ISP_CSS_CUSTOM_HOST -DHRT_USE_VIR_ADDRS -D__HOST__
- #DEFINES += -DPUNIT_CAMERA_BUSY
- #DEFINES += -DUSE_KMEM_CACHE
+Signed-off-by: Hoegeun Kwon <hoegeun.kwon@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c | 96 ++++++++++++++++++++++++----
+ 1 file changed, 83 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 4380150..8f8636e 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -943,7 +943,37 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
+ 	return IRQ_HANDLED;
+ }
  
-+ifeq ($(CONFIG_VIDEO_ATOMISP_ISP2400),y)
-+# Merrifield, Baytrail
- DEFINES += -DATOMISP_POSTFIX=\"css2400b0_v21\" -DISP2400B0
- DEFINES += -DSYSTEM_hive_isp_css_2400_system -DISP2400
-+endif
-+ifeq ($(CONFIG_VIDEO_ATOMISP_ISP2401),y)
-+# Anniedale (Merrifield+ / Moorefield), Cherrytrail
-+DEFINES += -DATOMISP_POSTFIX=\"css2401a0_v21\" -DISP2401A0
-+DEFINES += -DSYSTEM_hive_isp_css_2400_system -DISP2401 -DISP2401_NEW_INPUT_SYSTEM
-+endif
+-static struct gsc_pix_max gsc_v_100_max = {
++static struct gsc_pix_max gsc_v_5250_max = {
++	.org_scaler_bypass_w	= 8192,
++	.org_scaler_bypass_h	= 8192,
++	.org_scaler_input_w	= 4800,
++	.org_scaler_input_h	= 3344,
++	.real_rot_dis_w		= 4800,
++	.real_rot_dis_h		= 3344,
++	.real_rot_en_w		= 2016,
++	.real_rot_en_h		= 2016,
++	.target_rot_dis_w	= 4800,
++	.target_rot_dis_h	= 3344,
++	.target_rot_en_w	= 2016,
++	.target_rot_en_h	= 2016,
++};
++
++static struct gsc_pix_max gsc_v_5420_max = {
++	.org_scaler_bypass_w	= 8192,
++	.org_scaler_bypass_h	= 8192,
++	.org_scaler_input_w	= 4800,
++	.org_scaler_input_h	= 3344,
++	.real_rot_dis_w		= 4800,
++	.real_rot_dis_h		= 3344,
++	.real_rot_en_w		= 2048,
++	.real_rot_en_h		= 2048,
++	.target_rot_dis_w	= 4800,
++	.target_rot_dis_h	= 3344,
++	.target_rot_en_w	= 2016,
++	.target_rot_en_h	= 2016,
++};
++
++static struct gsc_pix_max gsc_v_5433_max = {
+ 	.org_scaler_bypass_w	= 8192,
+ 	.org_scaler_bypass_h	= 8192,
+ 	.org_scaler_input_w	= 4800,
+@@ -979,8 +1009,8 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
+ 	.target_h		= 2,  /* yuv420 : 2, others : 1 */
+ };
  
- ccflags-y += $(INCLUDES) $(DEFINES) -fno-common
+-static struct gsc_variant gsc_v_100_variant = {
+-	.pix_max		= &gsc_v_100_max,
++static struct gsc_variant gsc_v_5250_variant = {
++	.pix_max		= &gsc_v_5250_max,
+ 	.pix_min		= &gsc_v_100_min,
+ 	.pix_align		= &gsc_v_100_align,
+ 	.in_buf_cnt		= 32,
+@@ -992,12 +1022,48 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
+ 	.local_sc_down		= 2,
+ };
  
+-static struct gsc_driverdata gsc_v_100_drvdata = {
++static struct gsc_variant gsc_v_5420_variant = {
++	.pix_max		= &gsc_v_5420_max,
++	.pix_min		= &gsc_v_100_min,
++	.pix_align		= &gsc_v_100_align,
++	.in_buf_cnt		= 32,
++	.out_buf_cnt		= 32,
++	.sc_up_max		= 8,
++	.sc_down_max		= 16,
++	.poly_sc_down_max	= 4,
++	.pre_sc_down_max	= 4,
++	.local_sc_down		= 2,
++};
++
++static struct gsc_variant gsc_v_5433_variant = {
++	.pix_max		= &gsc_v_5433_max,
++	.pix_min		= &gsc_v_100_min,
++	.pix_align		= &gsc_v_100_align,
++	.in_buf_cnt		= 32,
++	.out_buf_cnt		= 32,
++	.sc_up_max		= 8,
++	.sc_down_max		= 16,
++	.poly_sc_down_max	= 4,
++	.pre_sc_down_max	= 4,
++	.local_sc_down		= 2,
++};
++
++static struct gsc_driverdata gsc_v_5250_drvdata = {
+ 	.variant = {
+-		[0] = &gsc_v_100_variant,
+-		[1] = &gsc_v_100_variant,
+-		[2] = &gsc_v_100_variant,
+-		[3] = &gsc_v_100_variant,
++		[0] = &gsc_v_5250_variant,
++		[1] = &gsc_v_5250_variant,
++		[2] = &gsc_v_5250_variant,
++		[3] = &gsc_v_5250_variant,
++	},
++	.num_entities = 4,
++	.clk_names = { "gscl" },
++	.num_clocks = 1,
++};
++
++static struct gsc_driverdata gsc_v_5420_drvdata = {
++	.variant = {
++		[0] = &gsc_v_5420_variant,
++		[1] = &gsc_v_5420_variant,
+ 	},
+ 	.num_entities = 4,
+ 	.clk_names = { "gscl" },
+@@ -1006,9 +1072,9 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
+ 
+ static struct gsc_driverdata gsc_5433_drvdata = {
+ 	.variant = {
+-		[0] = &gsc_v_100_variant,
+-		[1] = &gsc_v_100_variant,
+-		[2] = &gsc_v_100_variant,
++		[0] = &gsc_v_5433_variant,
++		[1] = &gsc_v_5433_variant,
++		[2] = &gsc_v_5433_variant,
+ 	},
+ 	.num_entities = 3,
+ 	.clk_names = { "pclk", "aclk", "aclk_xiu", "aclk_gsclbend" },
+@@ -1017,8 +1083,12 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
+ 
+ static const struct of_device_id exynos_gsc_match[] = {
+ 	{
+-		.compatible = "samsung,exynos5-gsc",
+-		.data = &gsc_v_100_drvdata,
++		.compatible = "samsung,exynos5250-gsc",
++		.data = &gsc_v_5250_drvdata,
++	},
++	{
++		.compatible = "samsung,exynos5420-gsc",
++		.data = &gsc_v_5420_drvdata,
+ 	},
+ 	{
+ 		.compatible = "samsung,exynos5433-gsc",
 -- 
-2.11.0
+1.9.1
