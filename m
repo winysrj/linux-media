@@ -1,123 +1,1040 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36394 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48680 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751404AbdILNmD (ORCPT
+        by vger.kernel.org with ESMTP id S1753857AbdIHNvm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 09:42:03 -0400
+        Fri, 8 Sep 2017 09:51:42 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v12 02/26] v4l: async: Remove re-probing support
-Date: Tue, 12 Sep 2017 16:41:36 +0300
-Message-Id: <20170912134200.19556-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
-References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+Cc: laurent.pinchart@ideasonboard.com, pavel@ucw.cz
+Subject: [PATCH 1/1] media: i2c: as3645a: Remove driver
+Date: Fri,  8 Sep 2017 16:51:40 +0300
+Message-Id: <20170908135140.7733-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove V4L2 async re-probing support. The re-probing support has been
-there to support cases where the sub-devices require resources provided by
-the main driver's hardware to function, such as clocks.
-
-Reprobing has allowed unbinding and again binding the main driver without
-explicilty unbinding the sub-device drivers. This is certainly not a
-common need, and the responsibility will be the user's going forward.
-
-An alternative could have been to introduce notifier specific locks.
-Considering the complexity of the re-probing and that it isn't really a
-solution to a problem but a workaround, remove re-probing instead.
+Remove the V4L2 AS3645A sub-device driver in favour of the LED flash class
+driver for the same hardware, drivers/leds/leds-as3645a.c. The latter uses
+the V4L2 flash LED class framework to provide V4L2 sub-device interface.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 54 ------------------------------------
- 1 file changed, 54 deletions(-)
+ MAINTAINERS                 |   8 -
+ drivers/media/i2c/Kconfig   |   8 -
+ drivers/media/i2c/Makefile  |   1 -
+ drivers/media/i2c/as3645a.c | 880 --------------------------------------------
+ include/media/i2c/as3645a.h |  66 ----
+ 5 files changed, 963 deletions(-)
+ delete mode 100644 drivers/media/i2c/as3645a.c
+ delete mode 100644 include/media/i2c/as3645a.h
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index d741a8e0fdac..e109d9da4653 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -198,78 +198,24 @@ EXPORT_SYMBOL(v4l2_async_notifier_register);
- void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- {
- 	struct v4l2_subdev *sd, *tmp;
--	unsigned int notif_n_subdev = notifier->num_subdevs;
--	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
--	struct device **dev;
--	int i = 0;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index eb930ebecfcb..40964ab8cbbd 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2129,14 +2129,6 @@ L:	linux-leds@vger.kernel.org
+ S:	Maintained
+ F:	drivers/leds/leds-as3645a.c
  
- 	if (!notifier->v4l2_dev)
- 		return;
+-AS3645A LED FLASH CONTROLLER DRIVER
+-M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+-L:	linux-media@vger.kernel.org
+-T:	git git://linuxtv.org/media_tree.git
+-S:	Maintained
+-F:	drivers/media/i2c/as3645a.c
+-F:	include/media/i2c/as3645a.h
+-
+ ASAHI KASEI AK8974 DRIVER
+ M:	Linus Walleij <linus.walleij@linaro.org>
+ L:	linux-iio@vger.kernel.org
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 94153895fcd4..559ee95a47cf 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -796,14 +796,6 @@ config VIDEO_ADP1653
+ 	  This is a driver for the ADP1653 flash controller. It is used for
+ 	  example in Nokia N900.
  
--	dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
--	if (!dev) {
--		dev_err(notifier->v4l2_dev->dev,
--			"Failed to allocate device cache!\n");
+-config VIDEO_AS3645A
+-	tristate "AS3645A flash driver support"
+-	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
+-	depends on MEDIA_CAMERA_SUPPORT
+-	---help---
+-	  This is a driver for the AS3645A and LM3555 flash controllers. It has
+-	  build in control for flash, torch and indicator LEDs.
+-
+ config VIDEO_LM3560
+ 	tristate "LM3560 dual flash driver support"
+ 	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index c843c181dfb9..e88cdb20eb72 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -83,7 +83,6 @@ obj-$(CONFIG_VIDEO_S5K4ECGX)	+= s5k4ecgx.o
+ obj-$(CONFIG_VIDEO_S5K5BAF)	+= s5k5baf.o
+ obj-$(CONFIG_VIDEO_S5C73M3)	+= s5c73m3/
+ obj-$(CONFIG_VIDEO_ADP1653)	+= adp1653.o
+-obj-$(CONFIG_VIDEO_AS3645A)	+= as3645a.o
+ obj-$(CONFIG_VIDEO_LM3560)	+= lm3560.o
+ obj-$(CONFIG_VIDEO_LM3646)	+= lm3646.o
+ obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
+diff --git a/drivers/media/i2c/as3645a.c b/drivers/media/i2c/as3645a.c
+deleted file mode 100644
+index af5db71a0888..000000000000
+--- a/drivers/media/i2c/as3645a.c
++++ /dev/null
+@@ -1,880 +0,0 @@
+-/*
+- * drivers/media/i2c/as3645a.c - AS3645A and LM3555 flash controllers driver
+- *
+- * Copyright (C) 2008-2011 Nokia Corporation
+- * Copyright (c) 2011, Intel Corporation.
+- *
+- * Contact: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * TODO:
+- * - Check hardware FSTROBE control when sensor driver add support for this
+- *
+- */
+-
+-#include <linux/delay.h>
+-#include <linux/i2c.h>
+-#include <linux/module.h>
+-#include <linux/mutex.h>
+-#include <linux/slab.h>
+-
+-#include <media/i2c/as3645a.h>
+-#include <media/v4l2-ctrls.h>
+-#include <media/v4l2-device.h>
+-
+-#define AS_TIMER_MS_TO_CODE(t)			(((t) - 100) / 50)
+-#define AS_TIMER_CODE_TO_MS(c)			(50 * (c) + 100)
+-
+-/* Register definitions */
+-
+-/* Read-only Design info register: Reset state: xxxx 0001 */
+-#define AS_DESIGN_INFO_REG			0x00
+-#define AS_DESIGN_INFO_FACTORY(x)		(((x) >> 4))
+-#define AS_DESIGN_INFO_MODEL(x)			((x) & 0x0f)
+-
+-/* Read-only Version control register: Reset state: 0000 0000
+- * for first engineering samples
+- */
+-#define AS_VERSION_CONTROL_REG			0x01
+-#define AS_VERSION_CONTROL_RFU(x)		(((x) >> 4))
+-#define AS_VERSION_CONTROL_VERSION(x)		((x) & 0x0f)
+-
+-/* Read / Write	(Indicator and timer register): Reset state: 0000 1111 */
+-#define AS_INDICATOR_AND_TIMER_REG		0x02
+-#define AS_INDICATOR_AND_TIMER_TIMEOUT_SHIFT	0
+-#define AS_INDICATOR_AND_TIMER_VREF_SHIFT	4
+-#define AS_INDICATOR_AND_TIMER_INDICATOR_SHIFT	6
+-
+-/* Read / Write	(Current set register): Reset state: 0110 1001 */
+-#define AS_CURRENT_SET_REG			0x03
+-#define AS_CURRENT_ASSIST_LIGHT_SHIFT		0
+-#define AS_CURRENT_LED_DET_ON			(1 << 3)
+-#define AS_CURRENT_FLASH_CURRENT_SHIFT		4
+-
+-/* Read / Write	(Control register): Reset state: 1011 0100 */
+-#define AS_CONTROL_REG				0x04
+-#define AS_CONTROL_MODE_SETTING_SHIFT		0
+-#define AS_CONTROL_STROBE_ON			(1 << 2)
+-#define AS_CONTROL_OUT_ON			(1 << 3)
+-#define AS_CONTROL_EXT_TORCH_ON			(1 << 4)
+-#define AS_CONTROL_STROBE_TYPE_EDGE		(0 << 5)
+-#define AS_CONTROL_STROBE_TYPE_LEVEL		(1 << 5)
+-#define AS_CONTROL_COIL_PEAK_SHIFT		6
+-
+-/* Read only (D3 is read / write) (Fault and info): Reset state: 0000 x000 */
+-#define AS_FAULT_INFO_REG			0x05
+-#define AS_FAULT_INFO_INDUCTOR_PEAK_LIMIT	(1 << 1)
+-#define AS_FAULT_INFO_INDICATOR_LED		(1 << 2)
+-#define AS_FAULT_INFO_LED_AMOUNT		(1 << 3)
+-#define AS_FAULT_INFO_TIMEOUT			(1 << 4)
+-#define AS_FAULT_INFO_OVER_TEMPERATURE		(1 << 5)
+-#define AS_FAULT_INFO_SHORT_CIRCUIT		(1 << 6)
+-#define AS_FAULT_INFO_OVER_VOLTAGE		(1 << 7)
+-
+-/* Boost register */
+-#define AS_BOOST_REG				0x0d
+-#define AS_BOOST_CURRENT_DISABLE		(0 << 0)
+-#define AS_BOOST_CURRENT_ENABLE			(1 << 0)
+-
+-/* Password register is used to unlock boost register writing */
+-#define AS_PASSWORD_REG				0x0f
+-#define AS_PASSWORD_UNLOCK_VALUE		0x55
+-
+-enum as_mode {
+-	AS_MODE_EXT_TORCH = 0 << AS_CONTROL_MODE_SETTING_SHIFT,
+-	AS_MODE_INDICATOR = 1 << AS_CONTROL_MODE_SETTING_SHIFT,
+-	AS_MODE_ASSIST = 2 << AS_CONTROL_MODE_SETTING_SHIFT,
+-	AS_MODE_FLASH = 3 << AS_CONTROL_MODE_SETTING_SHIFT,
+-};
+-
+-/*
+- * struct as3645a
+- *
+- * @subdev:		V4L2 subdev
+- * @pdata:		Flash platform data
+- * @power_lock:		Protects power_count
+- * @power_count:	Power reference count
+- * @led_mode:		V4L2 flash LED mode
+- * @timeout:		Flash timeout in microseconds
+- * @flash_current:	Flash current (0=200mA ... 15=500mA). Maximum
+- *			values are 400mA for two LEDs and 500mA for one LED.
+- * @assist_current:	Torch/Assist light current (0=20mA, 1=40mA ... 7=160mA)
+- * @indicator_current:	Indicator LED current (0=0mA, 1=2.5mA ... 4=10mA)
+- * @strobe_source:	Flash strobe source (software or external)
+- */
+-struct as3645a {
+-	struct v4l2_subdev subdev;
+-	const struct as3645a_platform_data *pdata;
+-
+-	struct mutex power_lock;
+-	int power_count;
+-
+-	/* Controls */
+-	struct v4l2_ctrl_handler ctrls;
+-
+-	enum v4l2_flash_led_mode led_mode;
+-	unsigned int timeout;
+-	u8 flash_current;
+-	u8 assist_current;
+-	u8 indicator_current;
+-	enum v4l2_flash_strobe_source strobe_source;
+-};
+-
+-#define to_as3645a(sd) container_of(sd, struct as3645a, subdev)
+-
+-/* Return negative errno else zero on success */
+-static int as3645a_write(struct as3645a *flash, u8 addr, u8 val)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(&flash->subdev);
+-	int rval;
+-
+-	rval = i2c_smbus_write_byte_data(client, addr, val);
+-
+-	dev_dbg(&client->dev, "Write Addr:%02X Val:%02X %s\n", addr, val,
+-		rval < 0 ? "fail" : "ok");
+-
+-	return rval;
+-}
+-
+-/* Return negative errno else a data byte received from the device. */
+-static int as3645a_read(struct as3645a *flash, u8 addr)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(&flash->subdev);
+-	int rval;
+-
+-	rval = i2c_smbus_read_byte_data(client, addr);
+-
+-	dev_dbg(&client->dev, "Read Addr:%02X Val:%02X %s\n", addr, rval,
+-		rval < 0 ? "fail" : "ok");
+-
+-	return rval;
+-}
+-
+-/* -----------------------------------------------------------------------------
+- * Hardware configuration and trigger
+- */
+-
+-/*
+- * as3645a_set_config - Set flash configuration registers
+- * @flash: The flash
+- *
+- * Configure the hardware with flash, assist and indicator currents, as well as
+- * flash timeout.
+- *
+- * Return 0 on success, or a negative error code if an I2C communication error
+- * occurred.
+- */
+-static int as3645a_set_config(struct as3645a *flash)
+-{
+-	int ret;
+-	u8 val;
+-
+-	val = (flash->flash_current << AS_CURRENT_FLASH_CURRENT_SHIFT)
+-	    | (flash->assist_current << AS_CURRENT_ASSIST_LIGHT_SHIFT)
+-	    | AS_CURRENT_LED_DET_ON;
+-
+-	ret = as3645a_write(flash, AS_CURRENT_SET_REG, val);
+-	if (ret < 0)
+-		return ret;
+-
+-	val = AS_TIMER_MS_TO_CODE(flash->timeout / 1000)
+-		    << AS_INDICATOR_AND_TIMER_TIMEOUT_SHIFT;
+-
+-	val |= (flash->pdata->vref << AS_INDICATOR_AND_TIMER_VREF_SHIFT)
+-	    |  ((flash->indicator_current ? flash->indicator_current - 1 : 0)
+-		 << AS_INDICATOR_AND_TIMER_INDICATOR_SHIFT);
+-
+-	return as3645a_write(flash, AS_INDICATOR_AND_TIMER_REG, val);
+-}
+-
+-/*
+- * as3645a_set_control - Set flash control register
+- * @flash: The flash
+- * @mode: Desired output mode
+- * @on: Desired output state
+- *
+- * Configure the hardware with output mode and state.
+- *
+- * Return 0 on success, or a negative error code if an I2C communication error
+- * occurred.
+- */
+-static int
+-as3645a_set_control(struct as3645a *flash, enum as_mode mode, bool on)
+-{
+-	u8 reg;
+-
+-	/* Configure output parameters and operation mode. */
+-	reg = (flash->pdata->peak << AS_CONTROL_COIL_PEAK_SHIFT)
+-	    | (on ? AS_CONTROL_OUT_ON : 0)
+-	    | mode;
+-
+-	if (flash->led_mode == V4L2_FLASH_LED_MODE_FLASH &&
+-	    flash->strobe_source == V4L2_FLASH_STROBE_SOURCE_EXTERNAL) {
+-		reg |= AS_CONTROL_STROBE_TYPE_LEVEL
+-		    |  AS_CONTROL_STROBE_ON;
 -	}
 -
- 	mutex_lock(&list_lock);
- 
- 	list_del(&notifier->list);
- 
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
--		struct device *d;
+-	return as3645a_write(flash, AS_CONTROL_REG, reg);
+-}
 -
--		d = get_device(sd->dev);
+-/*
+- * as3645a_set_output - Configure output and operation mode
+- * @flash: Flash controller
+- * @strobe: Strobe the flash (only valid in flash mode)
+- *
+- * Turn the LEDs output on/off and set the operation mode based on the current
+- * parameters.
+- *
+- * The AS3645A can't control the indicator LED independently of the flash/torch
+- * LED. If the flash controller is in V4L2_FLASH_LED_MODE_NONE mode, set the
+- * chip to indicator mode. Otherwise set it to assist light (torch) or flash
+- * mode.
+- *
+- * In indicator and assist modes, turn the output on/off based on the indicator
+- * and torch currents. In software strobe flash mode, turn the output on/off
+- * based on the strobe parameter.
+- */
+-static int as3645a_set_output(struct as3645a *flash, bool strobe)
+-{
+-	enum as_mode mode;
+-	bool on;
 -
- 		v4l2_async_cleanup(sd);
- 
--		/* If we handled USB devices, we'd have to lock the parent too */
--		device_release_driver(d);
+-	switch (flash->led_mode) {
+-	case V4L2_FLASH_LED_MODE_NONE:
+-		on = flash->indicator_current != 0;
+-		mode = AS_MODE_INDICATOR;
+-		break;
+-	case V4L2_FLASH_LED_MODE_TORCH:
+-		on = true;
+-		mode = AS_MODE_ASSIST;
+-		break;
+-	case V4L2_FLASH_LED_MODE_FLASH:
+-		on = strobe;
+-		mode = AS_MODE_FLASH;
+-		break;
+-	default:
+-		BUG();
+-	}
 -
- 		if (notifier->unbind)
- 			notifier->unbind(notifier, sd, sd->asd);
+-	/* Configure output parameters and operation mode. */
+-	return as3645a_set_control(flash, mode, on);
+-}
 -
--		/*
--		 * Store device at the device cache, in order to call
--		 * put_device() on the final step
--		 */
--		if (dev)
--			dev[i++] = d;
--		else
--			put_device(d);
- 	}
- 
- 	mutex_unlock(&list_lock);
- 
--	/*
--	 * Call device_attach() to reprobe devices
--	 *
--	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
--	 * executed.
--	 */
--	while (i--) {
--		struct device *d = dev[i];
+-/* -----------------------------------------------------------------------------
+- * V4L2 controls
+- */
 -
--		if (d && device_attach(d) < 0) {
--			const char *name = "(none)";
--			int lock = device_trylock(d);
+-static int as3645a_is_active(struct as3645a *flash)
+-{
+-	int ret;
 -
--			if (lock && d->driver)
--				name = d->driver->name;
--			dev_err(d, "Failed to re-probe to %s\n", name);
--			if (lock)
--				device_unlock(d);
+-	ret = as3645a_read(flash, AS_CONTROL_REG);
+-	return ret < 0 ? ret : !!(ret & AS_CONTROL_OUT_ON);
+-}
+-
+-static int as3645a_read_fault(struct as3645a *flash)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(&flash->subdev);
+-	int rval;
+-
+-	/* NOTE: reading register clear fault status */
+-	rval = as3645a_read(flash, AS_FAULT_INFO_REG);
+-	if (rval < 0)
+-		return rval;
+-
+-	if (rval & AS_FAULT_INFO_INDUCTOR_PEAK_LIMIT)
+-		dev_dbg(&client->dev, "Inductor Peak limit fault\n");
+-
+-	if (rval & AS_FAULT_INFO_INDICATOR_LED)
+-		dev_dbg(&client->dev,
+-			"Indicator LED fault: Short circuit or open loop\n");
+-
+-	dev_dbg(&client->dev, "%u connected LEDs\n",
+-		rval & AS_FAULT_INFO_LED_AMOUNT ? 2 : 1);
+-
+-	if (rval & AS_FAULT_INFO_TIMEOUT)
+-		dev_dbg(&client->dev, "Timeout fault\n");
+-
+-	if (rval & AS_FAULT_INFO_OVER_TEMPERATURE)
+-		dev_dbg(&client->dev, "Over temperature fault\n");
+-
+-	if (rval & AS_FAULT_INFO_SHORT_CIRCUIT)
+-		dev_dbg(&client->dev, "Short circuit fault\n");
+-
+-	if (rval & AS_FAULT_INFO_OVER_VOLTAGE)
+-		dev_dbg(&client->dev,
+-			"Over voltage fault: Indicates missing capacitor or open connection\n");
+-
+-	return rval;
+-}
+-
+-static int as3645a_get_ctrl(struct v4l2_ctrl *ctrl)
+-{
+-	struct as3645a *flash =
+-		container_of(ctrl->handler, struct as3645a, ctrls);
+-	struct i2c_client *client = v4l2_get_subdevdata(&flash->subdev);
+-	int value;
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_FLASH_FAULT:
+-		value = as3645a_read_fault(flash);
+-		if (value < 0)
+-			return value;
+-
+-		ctrl->cur.val = 0;
+-		if (value & AS_FAULT_INFO_SHORT_CIRCUIT)
+-			ctrl->cur.val |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
+-		if (value & AS_FAULT_INFO_OVER_TEMPERATURE)
+-			ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
+-		if (value & AS_FAULT_INFO_TIMEOUT)
+-			ctrl->cur.val |= V4L2_FLASH_FAULT_TIMEOUT;
+-		if (value & AS_FAULT_INFO_OVER_VOLTAGE)
+-			ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_VOLTAGE;
+-		if (value & AS_FAULT_INFO_INDUCTOR_PEAK_LIMIT)
+-			ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_CURRENT;
+-		if (value & AS_FAULT_INFO_INDICATOR_LED)
+-			ctrl->cur.val |= V4L2_FLASH_FAULT_INDICATOR;
+-		break;
+-
+-	case V4L2_CID_FLASH_STROBE_STATUS:
+-		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH) {
+-			ctrl->cur.val = 0;
+-			break;
 -		}
--		put_device(d);
+-
+-		value = as3645a_is_active(flash);
+-		if (value < 0)
+-			return value;
+-
+-		ctrl->cur.val = value;
+-		break;
 -	}
--	kvfree(dev);
 -
- 	notifier->v4l2_dev = NULL;
+-	dev_dbg(&client->dev, "G_CTRL %08x:%d\n", ctrl->id, ctrl->cur.val);
 -
--	/*
--	 * Don't care about the waiting list, it is initialised and populated
--	 * upon notifier registration.
+-	return 0;
+-}
+-
+-static int as3645a_set_ctrl(struct v4l2_ctrl *ctrl)
+-{
+-	struct as3645a *flash =
+-		container_of(ctrl->handler, struct as3645a, ctrls);
+-	struct i2c_client *client = v4l2_get_subdevdata(&flash->subdev);
+-	int ret;
+-
+-	dev_dbg(&client->dev, "S_CTRL %08x:%d\n", ctrl->id, ctrl->val);
+-
+-	/* If a control that doesn't apply to the current mode is modified,
+-	 * we store the value and return immediately. The setting will be
+-	 * applied when the LED mode is changed. Otherwise we apply the setting
+-	 * immediately.
 -	 */
- }
- EXPORT_SYMBOL(v4l2_async_notifier_unregister);
- 
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_FLASH_LED_MODE:
+-		if (flash->indicator_current)
+-			return -EBUSY;
+-
+-		ret = as3645a_set_config(flash);
+-		if (ret < 0)
+-			return ret;
+-
+-		flash->led_mode = ctrl->val;
+-		return as3645a_set_output(flash, false);
+-
+-	case V4L2_CID_FLASH_STROBE_SOURCE:
+-		flash->strobe_source = ctrl->val;
+-
+-		/* Applies to flash mode only. */
+-		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
+-			break;
+-
+-		return as3645a_set_output(flash, false);
+-
+-	case V4L2_CID_FLASH_STROBE:
+-		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
+-			return -EBUSY;
+-
+-		return as3645a_set_output(flash, true);
+-
+-	case V4L2_CID_FLASH_STROBE_STOP:
+-		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
+-			return -EBUSY;
+-
+-		return as3645a_set_output(flash, false);
+-
+-	case V4L2_CID_FLASH_TIMEOUT:
+-		flash->timeout = ctrl->val;
+-
+-		/* Applies to flash mode only. */
+-		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
+-			break;
+-
+-		return as3645a_set_config(flash);
+-
+-	case V4L2_CID_FLASH_INTENSITY:
+-		flash->flash_current = (ctrl->val - AS3645A_FLASH_INTENSITY_MIN)
+-				     / AS3645A_FLASH_INTENSITY_STEP;
+-
+-		/* Applies to flash mode only. */
+-		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
+-			break;
+-
+-		return as3645a_set_config(flash);
+-
+-	case V4L2_CID_FLASH_TORCH_INTENSITY:
+-		flash->assist_current =
+-			(ctrl->val - AS3645A_TORCH_INTENSITY_MIN)
+-			/ AS3645A_TORCH_INTENSITY_STEP;
+-
+-		/* Applies to torch mode only. */
+-		if (flash->led_mode != V4L2_FLASH_LED_MODE_TORCH)
+-			break;
+-
+-		return as3645a_set_config(flash);
+-
+-	case V4L2_CID_FLASH_INDICATOR_INTENSITY:
+-		if (flash->led_mode != V4L2_FLASH_LED_MODE_NONE)
+-			return -EBUSY;
+-
+-		flash->indicator_current =
+-			(ctrl->val - AS3645A_INDICATOR_INTENSITY_MIN)
+-			/ AS3645A_INDICATOR_INTENSITY_STEP;
+-
+-		ret = as3645a_set_config(flash);
+-		if (ret < 0)
+-			return ret;
+-
+-		if ((ctrl->val == 0) == (ctrl->cur.val == 0))
+-			break;
+-
+-		return as3645a_set_output(flash, false);
+-	}
+-
+-	return 0;
+-}
+-
+-static const struct v4l2_ctrl_ops as3645a_ctrl_ops = {
+-	.g_volatile_ctrl = as3645a_get_ctrl,
+-	.s_ctrl = as3645a_set_ctrl,
+-};
+-
+-/* -----------------------------------------------------------------------------
+- * V4L2 subdev core operations
+- */
+-
+-/* Put device into know state. */
+-static int as3645a_setup(struct as3645a *flash)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(&flash->subdev);
+-	int ret;
+-
+-	/* clear errors */
+-	ret = as3645a_read(flash, AS_FAULT_INFO_REG);
+-	if (ret < 0)
+-		return ret;
+-
+-	dev_dbg(&client->dev, "Fault info: %02x\n", ret);
+-
+-	ret = as3645a_set_config(flash);
+-	if (ret < 0)
+-		return ret;
+-
+-	ret = as3645a_set_output(flash, false);
+-	if (ret < 0)
+-		return ret;
+-
+-	/* read status */
+-	ret = as3645a_read_fault(flash);
+-	if (ret < 0)
+-		return ret;
+-
+-	dev_dbg(&client->dev, "AS_INDICATOR_AND_TIMER_REG: %02x\n",
+-		as3645a_read(flash, AS_INDICATOR_AND_TIMER_REG));
+-	dev_dbg(&client->dev, "AS_CURRENT_SET_REG: %02x\n",
+-		as3645a_read(flash, AS_CURRENT_SET_REG));
+-	dev_dbg(&client->dev, "AS_CONTROL_REG: %02x\n",
+-		as3645a_read(flash, AS_CONTROL_REG));
+-
+-	return ret & ~AS_FAULT_INFO_LED_AMOUNT ? -EIO : 0;
+-}
+-
+-static int __as3645a_set_power(struct as3645a *flash, int on)
+-{
+-	int ret;
+-
+-	if (!on)
+-		as3645a_set_control(flash, AS_MODE_EXT_TORCH, false);
+-
+-	if (flash->pdata->set_power) {
+-		ret = flash->pdata->set_power(&flash->subdev, on);
+-		if (ret < 0)
+-			return ret;
+-	}
+-
+-	if (!on)
+-		return 0;
+-
+-	ret = as3645a_setup(flash);
+-	if (ret < 0) {
+-		if (flash->pdata->set_power)
+-			flash->pdata->set_power(&flash->subdev, 0);
+-	}
+-
+-	return ret;
+-}
+-
+-static int as3645a_set_power(struct v4l2_subdev *sd, int on)
+-{
+-	struct as3645a *flash = to_as3645a(sd);
+-	int ret = 0;
+-
+-	mutex_lock(&flash->power_lock);
+-
+-	if (flash->power_count == !on) {
+-		ret = __as3645a_set_power(flash, !!on);
+-		if (ret < 0)
+-			goto done;
+-	}
+-
+-	flash->power_count += on ? 1 : -1;
+-	WARN_ON(flash->power_count < 0);
+-
+-done:
+-	mutex_unlock(&flash->power_lock);
+-	return ret;
+-}
+-
+-static int as3645a_registered(struct v4l2_subdev *sd)
+-{
+-	struct as3645a *flash = to_as3645a(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	int rval, man, model, rfu, version;
+-	const char *vendor;
+-
+-	/* Power up the flash driver and read manufacturer ID, model ID, RFU
+-	 * and version.
+-	 */
+-	rval = as3645a_set_power(&flash->subdev, 1);
+-	if (rval < 0)
+-		return rval;
+-
+-	rval = as3645a_read(flash, AS_DESIGN_INFO_REG);
+-	if (rval < 0)
+-		goto power_off;
+-
+-	man = AS_DESIGN_INFO_FACTORY(rval);
+-	model = AS_DESIGN_INFO_MODEL(rval);
+-
+-	rval = as3645a_read(flash, AS_VERSION_CONTROL_REG);
+-	if (rval < 0)
+-		goto power_off;
+-
+-	rfu = AS_VERSION_CONTROL_RFU(rval);
+-	version = AS_VERSION_CONTROL_VERSION(rval);
+-
+-	/* Verify the chip model and version. */
+-	if (model != 0x01 || rfu != 0x00) {
+-		dev_err(&client->dev,
+-			"AS3645A not detected (model %d rfu %d)\n", model, rfu);
+-		rval = -ENODEV;
+-		goto power_off;
+-	}
+-
+-	switch (man) {
+-	case 1:
+-		vendor = "AMS, Austria Micro Systems";
+-		break;
+-	case 2:
+-		vendor = "ADI, Analog Devices Inc.";
+-		break;
+-	case 3:
+-		vendor = "NSC, National Semiconductor";
+-		break;
+-	case 4:
+-		vendor = "NXP";
+-		break;
+-	case 5:
+-		vendor = "TI, Texas Instrument";
+-		break;
+-	default:
+-		vendor = "Unknown";
+-	}
+-
+-	dev_info(&client->dev, "Chip vendor: %s (%d) Version: %d\n", vendor,
+-		 man, version);
+-
+-	rval = as3645a_write(flash, AS_PASSWORD_REG, AS_PASSWORD_UNLOCK_VALUE);
+-	if (rval < 0)
+-		goto power_off;
+-
+-	rval = as3645a_write(flash, AS_BOOST_REG, AS_BOOST_CURRENT_DISABLE);
+-	if (rval < 0)
+-		goto power_off;
+-
+-	/* Setup default values. This makes sure that the chip is in a known
+-	 * state, in case the power rail can't be controlled.
+-	 */
+-	rval = as3645a_setup(flash);
+-
+-power_off:
+-	as3645a_set_power(&flash->subdev, 0);
+-
+-	return rval;
+-}
+-
+-static int as3645a_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+-{
+-	return as3645a_set_power(sd, 1);
+-}
+-
+-static int as3645a_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+-{
+-	return as3645a_set_power(sd, 0);
+-}
+-
+-static const struct v4l2_subdev_core_ops as3645a_core_ops = {
+-	.s_power		= as3645a_set_power,
+-};
+-
+-static const struct v4l2_subdev_ops as3645a_ops = {
+-	.core = &as3645a_core_ops,
+-};
+-
+-static const struct v4l2_subdev_internal_ops as3645a_internal_ops = {
+-	.registered = as3645a_registered,
+-	.open = as3645a_open,
+-	.close = as3645a_close,
+-};
+-
+-/* -----------------------------------------------------------------------------
+- *  I2C driver
+- */
+-#ifdef CONFIG_PM
+-
+-static int as3645a_suspend(struct device *dev)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+-	struct as3645a *flash = to_as3645a(subdev);
+-	int rval;
+-
+-	if (flash->power_count == 0)
+-		return 0;
+-
+-	rval = __as3645a_set_power(flash, 0);
+-
+-	dev_dbg(&client->dev, "Suspend %s\n", rval < 0 ? "failed" : "ok");
+-
+-	return rval;
+-}
+-
+-static int as3645a_resume(struct device *dev)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+-	struct as3645a *flash = to_as3645a(subdev);
+-	int rval;
+-
+-	if (flash->power_count == 0)
+-		return 0;
+-
+-	rval = __as3645a_set_power(flash, 1);
+-
+-	dev_dbg(&client->dev, "Resume %s\n", rval < 0 ? "fail" : "ok");
+-
+-	return rval;
+-}
+-
+-#else
+-
+-#define as3645a_suspend	NULL
+-#define as3645a_resume	NULL
+-
+-#endif /* CONFIG_PM */
+-
+-/*
+- * as3645a_init_controls - Create controls
+- * @flash: The flash
+- *
+- * The number of LEDs reported in platform data is used to compute default
+- * limits. Parameters passed through platform data can override those limits.
+- */
+-static int as3645a_init_controls(struct as3645a *flash)
+-{
+-	const struct as3645a_platform_data *pdata = flash->pdata;
+-	struct v4l2_ctrl *ctrl;
+-	int maximum;
+-
+-	v4l2_ctrl_handler_init(&flash->ctrls, 10);
+-
+-	/* V4L2_CID_FLASH_LED_MODE */
+-	v4l2_ctrl_new_std_menu(&flash->ctrls, &as3645a_ctrl_ops,
+-			       V4L2_CID_FLASH_LED_MODE, 2, ~7,
+-			       V4L2_FLASH_LED_MODE_NONE);
+-
+-	/* V4L2_CID_FLASH_STROBE_SOURCE */
+-	v4l2_ctrl_new_std_menu(&flash->ctrls, &as3645a_ctrl_ops,
+-			       V4L2_CID_FLASH_STROBE_SOURCE,
+-			       pdata->ext_strobe ? 1 : 0,
+-			       pdata->ext_strobe ? ~3 : ~1,
+-			       V4L2_FLASH_STROBE_SOURCE_SOFTWARE);
+-
+-	flash->strobe_source = V4L2_FLASH_STROBE_SOURCE_SOFTWARE;
+-
+-	/* V4L2_CID_FLASH_STROBE */
+-	v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
+-			  V4L2_CID_FLASH_STROBE, 0, 0, 0, 0);
+-
+-	/* V4L2_CID_FLASH_STROBE_STOP */
+-	v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
+-			  V4L2_CID_FLASH_STROBE_STOP, 0, 0, 0, 0);
+-
+-	/* V4L2_CID_FLASH_STROBE_STATUS */
+-	ctrl = v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
+-				 V4L2_CID_FLASH_STROBE_STATUS, 0, 1, 1, 1);
+-	if (ctrl != NULL)
+-		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
+-
+-	/* V4L2_CID_FLASH_TIMEOUT */
+-	maximum = pdata->timeout_max;
+-
+-	v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
+-			  V4L2_CID_FLASH_TIMEOUT, AS3645A_FLASH_TIMEOUT_MIN,
+-			  maximum, AS3645A_FLASH_TIMEOUT_STEP, maximum);
+-
+-	flash->timeout = maximum;
+-
+-	/* V4L2_CID_FLASH_INTENSITY */
+-	maximum = pdata->flash_max_current;
+-
+-	v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
+-			  V4L2_CID_FLASH_INTENSITY, AS3645A_FLASH_INTENSITY_MIN,
+-			  maximum, AS3645A_FLASH_INTENSITY_STEP, maximum);
+-
+-	flash->flash_current = (maximum - AS3645A_FLASH_INTENSITY_MIN)
+-			     / AS3645A_FLASH_INTENSITY_STEP;
+-
+-	/* V4L2_CID_FLASH_TORCH_INTENSITY */
+-	maximum = pdata->torch_max_current;
+-
+-	v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
+-			  V4L2_CID_FLASH_TORCH_INTENSITY,
+-			  AS3645A_TORCH_INTENSITY_MIN, maximum,
+-			  AS3645A_TORCH_INTENSITY_STEP,
+-			  AS3645A_TORCH_INTENSITY_MIN);
+-
+-	flash->assist_current = 0;
+-
+-	/* V4L2_CID_FLASH_INDICATOR_INTENSITY */
+-	v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
+-			  V4L2_CID_FLASH_INDICATOR_INTENSITY,
+-			  AS3645A_INDICATOR_INTENSITY_MIN,
+-			  AS3645A_INDICATOR_INTENSITY_MAX,
+-			  AS3645A_INDICATOR_INTENSITY_STEP,
+-			  AS3645A_INDICATOR_INTENSITY_MIN);
+-
+-	flash->indicator_current = 0;
+-
+-	/* V4L2_CID_FLASH_FAULT */
+-	ctrl = v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
+-				 V4L2_CID_FLASH_FAULT, 0,
+-				 V4L2_FLASH_FAULT_OVER_VOLTAGE |
+-				 V4L2_FLASH_FAULT_TIMEOUT |
+-				 V4L2_FLASH_FAULT_OVER_TEMPERATURE |
+-				 V4L2_FLASH_FAULT_SHORT_CIRCUIT, 0, 0);
+-	if (ctrl != NULL)
+-		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
+-
+-	flash->subdev.ctrl_handler = &flash->ctrls;
+-
+-	return flash->ctrls.error;
+-}
+-
+-static int as3645a_probe(struct i2c_client *client,
+-			 const struct i2c_device_id *devid)
+-{
+-	struct as3645a *flash;
+-	int ret;
+-
+-	if (client->dev.platform_data == NULL)
+-		return -ENODEV;
+-
+-	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
+-	if (flash == NULL)
+-		return -ENOMEM;
+-
+-	flash->pdata = client->dev.platform_data;
+-
+-	v4l2_i2c_subdev_init(&flash->subdev, client, &as3645a_ops);
+-	flash->subdev.internal_ops = &as3645a_internal_ops;
+-	flash->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-
+-	ret = as3645a_init_controls(flash);
+-	if (ret < 0)
+-		goto done;
+-
+-	ret = media_entity_pads_init(&flash->subdev.entity, 0, NULL);
+-	if (ret < 0)
+-		goto done;
+-
+-	flash->subdev.entity.function = MEDIA_ENT_F_FLASH;
+-
+-	mutex_init(&flash->power_lock);
+-
+-	flash->led_mode = V4L2_FLASH_LED_MODE_NONE;
+-
+-done:
+-	if (ret < 0)
+-		v4l2_ctrl_handler_free(&flash->ctrls);
+-
+-	return ret;
+-}
+-
+-static int as3645a_remove(struct i2c_client *client)
+-{
+-	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+-	struct as3645a *flash = to_as3645a(subdev);
+-
+-	v4l2_device_unregister_subdev(subdev);
+-	v4l2_ctrl_handler_free(&flash->ctrls);
+-	media_entity_cleanup(&flash->subdev.entity);
+-	mutex_destroy(&flash->power_lock);
+-
+-	return 0;
+-}
+-
+-static const struct i2c_device_id as3645a_id_table[] = {
+-	{ AS3645A_NAME, 0 },
+-	{ },
+-};
+-MODULE_DEVICE_TABLE(i2c, as3645a_id_table);
+-
+-static const struct dev_pm_ops as3645a_pm_ops = {
+-	.suspend = as3645a_suspend,
+-	.resume = as3645a_resume,
+-};
+-
+-static struct i2c_driver as3645a_i2c_driver = {
+-	.driver	= {
+-		.name = AS3645A_NAME,
+-		.pm   = &as3645a_pm_ops,
+-	},
+-	.probe	= as3645a_probe,
+-	.remove	= as3645a_remove,
+-	.id_table = as3645a_id_table,
+-};
+-
+-module_i2c_driver(as3645a_i2c_driver);
+-
+-MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
+-MODULE_DESCRIPTION("LED flash driver for AS3645A, LM3555 and their clones");
+-MODULE_LICENSE("GPL");
+diff --git a/include/media/i2c/as3645a.h b/include/media/i2c/as3645a.h
+deleted file mode 100644
+index fffd4b563f5a..000000000000
+--- a/include/media/i2c/as3645a.h
++++ /dev/null
+@@ -1,66 +0,0 @@
+-/*
+- * include/media/i2c/as3645a.h
+- *
+- * Copyright (C) 2008-2011 Nokia Corporation
+- *
+- * Contact: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- */
+-
+-#ifndef __AS3645A_H__
+-#define __AS3645A_H__
+-
+-#include <media/v4l2-subdev.h>
+-
+-#define AS3645A_NAME				"as3645a"
+-#define AS3645A_I2C_ADDR			(0x60 >> 1) /* W:0x60, R:0x61 */
+-
+-#define AS3645A_FLASH_TIMEOUT_MIN		100000	/* us */
+-#define AS3645A_FLASH_TIMEOUT_MAX		850000
+-#define AS3645A_FLASH_TIMEOUT_STEP		50000
+-
+-#define AS3645A_FLASH_INTENSITY_MIN		200	/* mA */
+-#define AS3645A_FLASH_INTENSITY_MAX_1LED	500
+-#define AS3645A_FLASH_INTENSITY_MAX_2LEDS	400
+-#define AS3645A_FLASH_INTENSITY_STEP		20
+-
+-#define AS3645A_TORCH_INTENSITY_MIN		20	/* mA */
+-#define AS3645A_TORCH_INTENSITY_MAX		160
+-#define AS3645A_TORCH_INTENSITY_STEP		20
+-
+-#define AS3645A_INDICATOR_INTENSITY_MIN		0	/* uA */
+-#define AS3645A_INDICATOR_INTENSITY_MAX		10000
+-#define AS3645A_INDICATOR_INTENSITY_STEP	2500
+-
+-/*
+- * as3645a_platform_data - Flash controller platform data
+- * @set_power:	Set power callback
+- * @vref:	VREF offset (0=0V, 1=+0.3V, 2=-0.3V, 3=+0.6V)
+- * @peak:	Inductor peak current limit (0=1.25A, 1=1.5A, 2=1.75A, 3=2.0A)
+- * @ext_strobe:	True if external flash strobe can be used
+- * @flash_max_current:	Max flash current (mA, <= AS3645A_FLASH_INTENSITY_MAX)
+- * @torch_max_current:	Max torch current (mA, >= AS3645A_TORCH_INTENSITY_MAX)
+- * @timeout_max:	Max flash timeout (us, <= AS3645A_FLASH_TIMEOUT_MAX)
+- */
+-struct as3645a_platform_data {
+-	int (*set_power)(struct v4l2_subdev *subdev, int on);
+-	unsigned int vref;
+-	unsigned int peak;
+-	bool ext_strobe;
+-
+-	/* Flash and torch currents and timeout limits */
+-	unsigned int flash_max_current;
+-	unsigned int torch_max_current;
+-	unsigned int timeout_max;
+-};
+-
+-#endif /* __AS3645A_H__ */
 -- 
 2.11.0
