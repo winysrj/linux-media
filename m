@@ -1,72 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eddie.linux-mips.org ([148.251.95.138]:42566 "EHLO
-        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752454AbdIGXhu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 19:37:50 -0400
-Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S23994827AbdIGXgo0aHXk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 01:36:44 +0200
-Date: Fri, 8 Sep 2017 01:36:39 +0200
-From: Ladislav Michl <ladis@linux-mips.org>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
-Subject: [PATCH v2 04/10] media: rc: gpio-ir-recv: use devm_gpio_request_one
-Message-ID: <20170907233639.5y3gsa633nix7mox@lenoch>
-References: <20170907233355.bv3hsv3rfhcx52i3@lenoch>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54091 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756581AbdIHTQk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 15:16:40 -0400
+Date: Fri, 8 Sep 2017 21:16:38 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 1/1] media: i2c: as3645a: Remove driver
+Message-ID: <20170908191638.GT18365@amd>
+References: <20170908135140.7733-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="vru7fAags9pVPvn5"
 Content-Disposition: inline
-In-Reply-To: <20170907233355.bv3hsv3rfhcx52i3@lenoch>
+In-Reply-To: <20170908135140.7733-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use of devm_gpio_request_one simplifies error unwinding.
 
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
----
- Changes:
- -v2: rebased to current linux.git
+--vru7fAags9pVPvn5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
- drivers/media/rc/gpio-ir-recv.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+On Fri 2017-09-08 16:51:40, Sakari Ailus wrote:
+1;2802;0c> Remove the V4L2 AS3645A sub-device driver in favour of the LED f=
+lash class
+> driver for the same hardware, drivers/leds/leds-as3645a.c. The latter uses
+> the V4L2 flash LED class framework to provide V4L2 sub-device interface.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-index ee191f26efb4..5ce97b3612d6 100644
---- a/drivers/media/rc/gpio-ir-recv.c
-+++ b/drivers/media/rc/gpio-ir-recv.c
-@@ -148,12 +148,10 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
- 	gpio_dev->gpio_nr = pdata->gpio_nr;
- 	gpio_dev->active_low = pdata->active_low;
- 
--	rc = gpio_request(pdata->gpio_nr, "gpio-ir-recv");
-+	rc = devm_gpio_request_one(dev, pdata->gpio_nr, GPIOF_DIR_IN,
-+					"gpio-ir-recv");
- 	if (rc < 0)
- 		return rc;
--	rc  = gpio_direction_input(pdata->gpio_nr);
--	if (rc < 0)
--		goto err_gpio_direction_input;
- 
- 	rc = rc_register_device(rcdev);
- 	if (rc < 0) {
-@@ -176,8 +174,6 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
- 	rc_unregister_device(rcdev);
- 	rcdev = NULL;
- err_register_rc_device:
--err_gpio_direction_input:
--	gpio_free(pdata->gpio_nr);
- 	return rc;
- }
- 
-@@ -187,7 +183,6 @@ static int gpio_ir_recv_remove(struct platform_device *pdev)
- 
- 	free_irq(gpio_to_irq(gpio_dev->gpio_nr), gpio_dev);
- 	rc_unregister_device(gpio_dev->rcdev);
--	gpio_free(gpio_dev->gpio_nr);
- 	return 0;
- }
- 
--- 
-2.11.0
+Acked-by: Pavel Machek <pavel@ucw.cz>
+
+Thanks!
+								Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--vru7fAags9pVPvn5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlmy7JYACgkQMOfwapXb+vJ1qgCggdF2xOJfslaKFYJkujmYUhH1
+9rEAnAjabFi/GoYf+pDhzcXH+mZaPF+z
+=MxqL
+-----END PGP SIGNATURE-----
+
+--vru7fAags9pVPvn5--
