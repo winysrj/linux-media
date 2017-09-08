@@ -1,64 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:26089 "EHLO
-        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751819AbdIUOBV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 10:01:21 -0400
-Subject: Re: [PATCH] tc358743: fix connected/active CSI-2 lane reporting
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Ian Arkver <ian.arkver.dev@gmail.com>,
-        linux-media@vger.kernel.org
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mats Randgaard <matrandg@cisco.com>
-References: <20170921102428.30709-1-p.zabel@pengutronix.de>
- <f3d4ce20-d3aa-f76f-0d07-e8153e3558a9@gmail.com>
- <9518ed83-48da-472f-f895-4cd4c3797373@gmail.com>
- <1505997354.10081.11.camel@pengutronix.de>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <1bcb0bb3-b6b3-aca3-78c5-810753b7da6f@cisco.com>
-Date: Thu, 21 Sep 2017 16:01:19 +0200
-MIME-Version: 1.0
-In-Reply-To: <1505997354.10081.11.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:35643 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754446AbdIHGDM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 02:03:12 -0400
+From: Hoegeun Kwon <hoegeun.kwon@samsung.com>
+To: inki.dae@samsung.com, airlied@linux.ie, kgene@kernel.org,
+        krzk@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        catalin.marinas@arm.com, will.deacon@arm.com, mchehab@kernel.org,
+        s.nawrocki@samsung.com, m.szyprowski@samsung.com
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org, a.hajda@samsung.com,
+        Hoegeun Kwon <hoegeun.kwon@samsung.com>
+Subject: [PATCH v3 5/6] [media] exynos-gsc: Remove unnecessary compatible
+Date: Fri, 08 Sep 2017 15:02:39 +0900
+Message-id: <1504850560-27950-6-git-send-email-hoegeun.kwon@samsung.com>
+In-reply-to: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
+References: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
+        <CGME20170908060309epcas1p4061542ce39ddfdd385b1b6b51eda2ace@epcas1p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/21/17 14:35, Philipp Zabel wrote:
-> Hi Ian,
-> 
-> On Thu, 2017-09-21 at 12:06 +0100, Ian Arkver wrote:
-> [...]
->>> My understanding of Hans' comment:
->>> "I'd also add a comment that all other flags must be 0 if the device 
->>> tree is used. This to avoid mixing the two."
->>>
->>> is that all the above should only happen if (!!state->pdata).
->>
->> Except that state->pdata is a copy of the pdata, not a pointer, but you 
->> know what I mean. Some other check for DT needed here.
-> 
-> Yes, I'll change this to zero all V4L2_MBUS_CSI2_[1-4]_LANE in the DT
-> case. I suppose the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK and
-> V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK bits should be zeroed as well, then?
+Currently, the compatible('samsung,exynos5-gsc') is not used.
+Remove unnecessary compatible.
 
-Yes. Just zero all bits except those in the V4L2_MBUS_CSI2_LANE_MASK. And
-changing that to (0xf << 10) makes sense.
+Signed-off-by: Hoegeun Kwon <hoegeun.kwon@samsung.com>
+---
+ Documentation/devicetree/bindings/media/exynos5-gsc.txt | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Regards,
-
-	Hans
-
-> 
->>> I don't know if this would break any existing DT-using bridge drivers.
-> 
-> The only current users of g_mbus_config are the pxa_camera and
-> sh_mobile_ceu_camera soc_camera drivers. Neither supports MIPI CSI-2, as
-> far as I can tell.
-> 
-> regards
-> Philipp
-> 
+diff --git a/Documentation/devicetree/bindings/media/exynos5-gsc.txt b/Documentation/devicetree/bindings/media/exynos5-gsc.txt
+index daa56d5..1ea05f1 100644
+--- a/Documentation/devicetree/bindings/media/exynos5-gsc.txt
++++ b/Documentation/devicetree/bindings/media/exynos5-gsc.txt
+@@ -3,9 +3,9 @@
+ G-Scaler is used for scaling and color space conversion on EXYNOS5 SoCs.
+ 
+ Required properties:
+-- compatible: should be "samsung,exynos5-gsc" (for Exynos 5250, 5420 and
+-	      5422 SoCs) or "samsung,exynos5433-gsc" (Exynos 5433)
+-	      or "samsung,exynos5250-gsc" or "samsung,exynos5420-gsc"
++- compatible: should be "samsung,exynos5250-gsc", "samsung,exynos5420-gsc"
++	      or "samsung,exynos5433-gsc" (for Exynos 5250, 5420, 5422,
++	      and 5433 SoCs)
+ - reg: should contain G-Scaler physical address location and length.
+ - interrupts: should contain G-Scaler interrupt number
+ 
+@@ -16,7 +16,7 @@ Optional properties:
+ Example:
+ 
+ gsc_0:  gsc@0x13e00000 {
+-	compatible = "samsung,exynos5-gsc";
++	compatible = "samsung,exynos5250-gsc;
+ 	reg = <0x13e00000 0x1000>;
+ 	interrupts = <0 85 0>;
+ };
+-- 
+1.9.1
