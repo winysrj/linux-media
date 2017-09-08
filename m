@@ -1,188 +1,245 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:23248 "EHLO
-        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932698AbdIYJCX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 05:02:23 -0400
-Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
-        by mx07-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v8P8xHiW007774
-        for <linux-media@vger.kernel.org>; Mon, 25 Sep 2017 10:02:22 +0100
-Received: from mail-pf0-f199.google.com (mail-pf0-f199.google.com [209.85.192.199])
-        by mx07-00252a01.pphosted.com with ESMTP id 2d5d101145-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-        for <linux-media@vger.kernel.org>; Mon, 25 Sep 2017 10:02:21 +0100
-Received: by mail-pf0-f199.google.com with SMTP id y29so12526855pff.6
-        for <linux-media@vger.kernel.org>; Mon, 25 Sep 2017 02:02:21 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4570fde5-db67-1066-597c-698e7886a756@xs4all.nl>
-References: <cover.1505140980.git.dave.stevenson@raspberrypi.org>
- <CAAoAYcM6puYbYTzyjqzmOzMPQMDZRENZskbvwgqQsuEFDNAU6A@mail.gmail.com>
- <cf31b493-3f8a-8e0d-0e45-0b70898dd8b1@xs4all.nl> <CAAoAYcNZvS-0ikrO9yOubM67hEEAN9ATOeX-+nh89cNKrqbzTQ@mail.gmail.com>
- <4570fde5-db67-1066-597c-698e7886a756@xs4all.nl>
-From: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Date: Mon, 25 Sep 2017 10:02:19 +0100
-Message-ID: <CAAoAYcMX-_W7v8h8FJxksBNyfKC59cMNY2W+n9U0JOJg-S0xVw@mail.gmail.com>
-Subject: Re: [PATCH v2 0/4] BCM283x Camera Receiver driver
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org
-Content-Type: text/plain; charset="UTF-8"
+Received: from mailout1.samsung.com ([203.254.224.24]:48816 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754427AbdIHGDM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 02:03:12 -0400
+From: Hoegeun Kwon <hoegeun.kwon@samsung.com>
+To: inki.dae@samsung.com, airlied@linux.ie, kgene@kernel.org,
+        krzk@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        catalin.marinas@arm.com, will.deacon@arm.com, mchehab@kernel.org,
+        s.nawrocki@samsung.com, m.szyprowski@samsung.com
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org, a.hajda@samsung.com,
+        Hoegeun Kwon <hoegeun.kwon@samsung.com>
+Subject: [PATCH v3 3/6] drm/exynos/gsc: Add hardware rotation limits
+Date: Fri, 08 Sep 2017 15:02:37 +0900
+Message-id: <1504850560-27950-4-git-send-email-hoegeun.kwon@samsung.com>
+In-reply-to: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
+References: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
+        <CGME20170908060308epcas1p3016314e10d2ba9fb5129cd2b398086f4@epcas1p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22 September 2017 at 18:17, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 22/09/17 18:31, Dave Stevenson wrote:
->> On 22 September 2017 at 12:00, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> On 13/09/17 17:49, Dave Stevenson wrote:
->>>> OV5647
->>>>
->>>> v4l2-compliance SHA   : f6ecbc90656815d91dc6ba90aac0ad8193a14b38
->>>>
->>>> Driver Info:
->>>>     Driver name   : unicam
->>>>     Card type     : unicam
->>>>     Bus info      : platform:unicam 3f801000.csi1
->>>>     Driver version: 4.13.0
->>>>     Capabilities  : 0x85200001
->>>>         Video Capture
->>>>         Read/Write
->>>>         Streaming
->>>>         Extended Pix Format
->>>>         Device Capabilities
->>>>     Device Caps   : 0x05200001
->>>>         Video Capture
->>>>         Read/Write
->>>>         Streaming
->>>>         Extended Pix Format
->>>>
->>>> Compliance test for device /dev/video0 (not using libv4l2):
->>>>
->>>> Required ioctls:
->>>>     test VIDIOC_QUERYCAP: OK
->>>>
->>>> Allow for multiple opens:
->>>>     test second video open: OK
->>>>     test VIDIOC_QUERYCAP: OK
->>>>     test VIDIOC_G/S_PRIORITY: OK
->>>>     test for unlimited opens: OK
->>>>
->>>> Debug ioctls:
->>>>     test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
->>>>     test VIDIOC_LOG_STATUS: OK
->>>>
->>>> Input ioctls:
->>>>     test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
->>>>     test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->>>>     test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
->>>>     test VIDIOC_ENUMAUDIO: OK (Not Supported)
->>>>     test VIDIOC_G/S/ENUMINPUT: OK
->>>>     test VIDIOC_G/S_AUDIO: OK (Not Supported)
->>>>     Inputs: 1 Audio Inputs: 0 Tuners: 0
->>>>
->>>> Output ioctls:
->>>>     test VIDIOC_G/S_MODULATOR: OK (Not Supported)
->>>>     test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->>>>     test VIDIOC_ENUMAUDOUT: OK (Not Supported)
->>>>     test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
->>>>     test VIDIOC_G/S_AUDOUT: OK (Not Supported)
->>>>     Outputs: 0 Audio Outputs: 0 Modulators: 0
->>>>
->>>> Input/Output configuration ioctls:
->>>>     test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
->>>>     test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
->>>>     test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
->>>>     test VIDIOC_G/S_EDID: OK (Not Supported)
->>>>
->>>> Test input 0:
->>>>
->>>>     Control ioctls:
->>>>         test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
->>>>         test VIDIOC_QUERYCTRL: OK
->>>>         test VIDIOC_G/S_CTRL: OK
->>>>         fail: v4l2-test-controls.cpp(587): g_ext_ctrls does not
->>>> support count == 0
->>>
->>> Huh. The issue here is that there are no controls at all, but the
->>> control API is present. The class_check() function in v4l2-ctrls.c expects
->>> that there are controls and if not it returns -EINVAL, causing this test
->>> to fail.
->>>
->>> Try to apply this patch:
->>>
->>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> ---
->>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
->>> index dd1db678718c..4e53a8654690 100644
->>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
->>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
->>> @@ -2818,7 +2818,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->>>  static int class_check(struct v4l2_ctrl_handler *hdl, u32 which)
->>>  {
->>>         if (which == 0 || which == V4L2_CTRL_WHICH_DEF_VAL)
->>> -               return list_empty(&hdl->ctrl_refs) ? -EINVAL : 0;
->>> +               return 0;
->>>         return find_ref_lock(hdl, which | 1) ? 0 : -EINVAL;
->>>  }
->>>
->>>
->>> and see if it will pass the compliance test. There may be other issues.
->>> I think that the compliance test should handle the case where there are no
->>> controls, so this is a good test.
->>
->> Fails.
->>         fail: v4l2-test-controls.cpp(589): g_ext_ctrls worked even
->> when no controls are present
->>         test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
->
-> Try this patch:
->
-> -----------------
-> diff --git a/utils/v4l2-compliance/v4l2-test-controls.cpp b/utils/v4l2-compliance/v4l2-test-controls.cpp
-> index 7514459f..508daf05 100644
-> --- a/utils/v4l2-compliance/v4l2-test-controls.cpp
-> +++ b/utils/v4l2-compliance/v4l2-test-controls.cpp
-> @@ -585,8 +585,6 @@ int testExtendedControls(struct node *node)
->                 return ret;
->         if (ret)
->                 return fail("g_ext_ctrls does not support count == 0\n");
-> -       if (node->controls.empty())
-> -               return fail("g_ext_ctrls worked even when no controls are present\n");
->         if (ctrls.which)
->                 return fail("field which changed\n");
->         if (ctrls.count)
-> @@ -600,8 +598,6 @@ int testExtendedControls(struct node *node)
->                 return ret;
->         if (ret)
->                 return fail("try_ext_ctrls does not support count == 0\n");
-> -       if (node->controls.empty())
-> -               return fail("try_ext_ctrls worked even when no controls are present\n");
->         if (ctrls.which)
->                 return fail("field which changed\n");
->         if (ctrls.count)
-> @@ -687,6 +683,8 @@ int testExtendedControls(struct node *node)
->         }
->
->         ctrls.which = 0;
-> +       ctrls.count = 1;
-> +       ctrls.controls = &ctrl;
->         ctrl.id = 0;
->         ctrl.size = 0;
->         ret = doioctl(node, VIDIOC_G_EXT_CTRLS, &ctrls);
-> @@ -745,6 +743,9 @@ int testExtendedControls(struct node *node)
->         if (ret)
->                 return fail("could not set all controls\n");
->
-> +       if (!which)
-> +               return 0;
-> +
->         ctrls.which = which;
->         ret = doioctl(node, VIDIOC_G_EXT_CTRLS, &ctrls);
->         if (ret && !multiple_classes)
+The gscaler has hardware rotation limits that need to be hardcoded
+into driver. Distinguish them and add them to the property list.
 
-Thanks Hans. That passes.
-I'll leave you to work out the correct thing to apply for compliance,
-and will fix the unicam driver in v4 to disable the control handler if
-the subdevice registers no controls.
+The hardware rotation limits are related to the cropped source size.
+When swap occurs, use rot_max size instead of crop_max size.
 
-  Dave
+Also the scaling limits are related to pos size, use pos size to check
+the limits.
+
+Signed-off-by: Hoegeun Kwon <hoegeun.kwon@samsung.com>
+---
+ drivers/gpu/drm/exynos/exynos_drm_gsc.c | 93 +++++++++++++++++++++++----------
+ include/uapi/drm/exynos_drm.h           |  2 +
+ 2 files changed, 66 insertions(+), 29 deletions(-)
+
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_gsc.c b/drivers/gpu/drm/exynos/exynos_drm_gsc.c
+index 0506b2b..a4fb347 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_gsc.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_gsc.c
+@@ -17,6 +17,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/mfd/syscon.h>
+ #include <linux/regmap.h>
++#include <linux/of_device.h>
+ 
+ #include <drm/drmP.h>
+ #include <drm/exynos_drm.h>
+@@ -150,6 +151,15 @@ struct gsc_context {
+ 	bool	suspended;
+ };
+ 
++/*
++ * struct gsc_driverdata - per device type driver data for init time.
++ *
++ * @rot_max: rotation max resolution.
++ */
++struct gsc_driverdata {
++	struct drm_exynos_sz rot_max;
++};
++
+ /* 8-tap Filter Coefficient */
+ static const int h_coef_8t[GSC_COEF_RATIO][GSC_COEF_ATTR][GSC_COEF_H_8T] = {
+ 	{	/* Ratio <= 65536 (~8:8) */
+@@ -1401,6 +1411,23 @@ static int gsc_ippdrv_check_property(struct device *dev,
+ 	bool swap;
+ 	int i;
+ 
++	config = &property->config[EXYNOS_DRM_OPS_DST];
++
++	/* check for degree */
++	switch (config->degree) {
++	case EXYNOS_DRM_DEGREE_90:
++	case EXYNOS_DRM_DEGREE_270:
++		swap = true;
++		break;
++	case EXYNOS_DRM_DEGREE_0:
++	case EXYNOS_DRM_DEGREE_180:
++		swap = false;
++		break;
++	default:
++		DRM_ERROR("invalid degree.\n");
++		goto err_property;
++	}
++
+ 	for_each_ipp_ops(i) {
+ 		if ((i == EXYNOS_DRM_OPS_SRC) &&
+ 			(property->cmd == IPP_CMD_WB))
+@@ -1416,21 +1443,6 @@ static int gsc_ippdrv_check_property(struct device *dev,
+ 			goto err_property;
+ 		}
+ 
+-		/* check for degree */
+-		switch (config->degree) {
+-		case EXYNOS_DRM_DEGREE_90:
+-		case EXYNOS_DRM_DEGREE_270:
+-			swap = true;
+-			break;
+-		case EXYNOS_DRM_DEGREE_0:
+-		case EXYNOS_DRM_DEGREE_180:
+-			swap = false;
+-			break;
+-		default:
+-			DRM_ERROR("invalid degree.\n");
+-			goto err_property;
+-		}
+-
+ 		/* check for buffer bound */
+ 		if ((pos->x + pos->w > sz->hsize) ||
+ 			(pos->y + pos->h > sz->vsize)) {
+@@ -1438,21 +1450,27 @@ static int gsc_ippdrv_check_property(struct device *dev,
+ 			goto err_property;
+ 		}
+ 
++		/*
++		 * The rotation hardware limits are related to the cropped
++		 * source size. So use rot_max size to check the limits when
++		 * swap happens. And also the scaling limits are related to pos
++		 * size, use pos size to check the limits.
++		 */
+ 		/* check for crop */
+ 		if ((i == EXYNOS_DRM_OPS_SRC) && (pp->crop)) {
+ 			if (swap) {
+ 				if ((pos->h < pp->crop_min.hsize) ||
+-					(sz->vsize > pp->crop_max.hsize) ||
++					(pos->h > pp->rot_max.hsize) ||
+ 					(pos->w < pp->crop_min.vsize) ||
+-					(sz->hsize > pp->crop_max.vsize)) {
++					(pos->w > pp->rot_max.vsize)) {
+ 					DRM_ERROR("out of crop size.\n");
+ 					goto err_property;
+ 				}
+ 			} else {
+ 				if ((pos->w < pp->crop_min.hsize) ||
+-					(sz->hsize > pp->crop_max.hsize) ||
++					(pos->w > pp->crop_max.hsize) ||
+ 					(pos->h < pp->crop_min.vsize) ||
+-					(sz->vsize > pp->crop_max.vsize)) {
++					(pos->h > pp->crop_max.vsize)) {
+ 					DRM_ERROR("out of crop size.\n");
+ 					goto err_property;
+ 				}
+@@ -1463,17 +1481,17 @@ static int gsc_ippdrv_check_property(struct device *dev,
+ 		if ((i == EXYNOS_DRM_OPS_DST) && (pp->scale)) {
+ 			if (swap) {
+ 				if ((pos->h < pp->scale_min.hsize) ||
+-					(sz->vsize > pp->scale_max.hsize) ||
++					(pos->h > pp->scale_max.hsize) ||
+ 					(pos->w < pp->scale_min.vsize) ||
+-					(sz->hsize > pp->scale_max.vsize)) {
++					(pos->w > pp->scale_max.vsize)) {
+ 					DRM_ERROR("out of scale size.\n");
+ 					goto err_property;
+ 				}
+ 			} else {
+ 				if ((pos->w < pp->scale_min.hsize) ||
+-					(sz->hsize > pp->scale_max.hsize) ||
++					(pos->w > pp->scale_max.hsize) ||
+ 					(pos->h < pp->scale_min.vsize) ||
+-					(sz->vsize > pp->scale_max.vsize)) {
++					(pos->h > pp->scale_max.vsize)) {
+ 					DRM_ERROR("out of scale size.\n");
+ 					goto err_property;
+ 				}
+@@ -1657,12 +1675,34 @@ static void gsc_ippdrv_stop(struct device *dev, enum drm_exynos_ipp_cmd cmd)
+ 	gsc_write(cfg, GSC_ENABLE);
+ }
+ 
++static struct gsc_driverdata gsc_exynos5250_drvdata = {
++	.rot_max = { 2048, 2048 },
++};
++
++static struct gsc_driverdata gsc_exynos5420_drvdata = {
++	.rot_max = { 2016, 2016 },
++};
++
++static const struct of_device_id exynos_drm_gsc_of_match[] = {
++	{
++		.compatible = "samsung,exynos5250-gsc",
++		.data = &gsc_exynos5250_drvdata,
++	},
++	{
++		.compatible = "samsung,exynos5420-gsc",
++		.data = &gsc_exynos5420_drvdata,
++	},
++	{ },
++};
++MODULE_DEVICE_TABLE(of, exynos_drm_gsc_of_match);
++
+ static int gsc_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct gsc_context *ctx;
+ 	struct resource *res;
+ 	struct exynos_drm_ippdrv *ippdrv;
++	const struct gsc_driverdata *drv_data = of_device_get_match_data(dev);
+ 	int ret;
+ 
+ 	ctx = devm_kzalloc(dev, sizeof(*ctx), GFP_KERNEL);
+@@ -1722,6 +1762,7 @@ static int gsc_probe(struct platform_device *pdev)
+ 		dev_err(dev, "failed to init property list.\n");
+ 		return ret;
+ 	}
++	ctx->ippdrv.prop_list.rot_max = drv_data->rot_max;
+ 
+ 	DRM_DEBUG_KMS("id[%d]ippdrv[%pK]\n", ctx->id, ippdrv);
+ 
+@@ -1784,12 +1825,6 @@ static int __maybe_unused gsc_runtime_resume(struct device *dev)
+ 	SET_RUNTIME_PM_OPS(gsc_runtime_suspend, gsc_runtime_resume, NULL)
+ };
+ 
+-static const struct of_device_id exynos_drm_gsc_of_match[] = {
+-	{ .compatible = "samsung,exynos5-gsc" },
+-	{ },
+-};
+-MODULE_DEVICE_TABLE(of, exynos_drm_gsc_of_match);
+-
+ struct platform_driver gsc_driver = {
+ 	.probe		= gsc_probe,
+ 	.remove		= gsc_remove,
+diff --git a/include/uapi/drm/exynos_drm.h b/include/uapi/drm/exynos_drm.h
+index cb3e9f9..d5d5518 100644
+--- a/include/uapi/drm/exynos_drm.h
++++ b/include/uapi/drm/exynos_drm.h
+@@ -192,6 +192,7 @@ enum drm_exynos_planer {
+  * @crop_max: crop max resolution.
+  * @scale_min: scale min resolution.
+  * @scale_max: scale max resolution.
++ * @rot_max: rotation max resolution.
+  */
+ struct drm_exynos_ipp_prop_list {
+ 	__u32	version;
+@@ -210,6 +211,7 @@ struct drm_exynos_ipp_prop_list {
+ 	struct drm_exynos_sz	crop_max;
+ 	struct drm_exynos_sz	scale_min;
+ 	struct drm_exynos_sz	scale_max;
++	struct drm_exynos_sz	rot_max;
+ };
+ 
+ /**
+-- 
+1.9.1
