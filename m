@@ -1,67 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:47852 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933029AbdIHNnZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 09:43:25 -0400
-Date: Fri, 8 Sep 2017 16:43:20 +0300
-From: Mika Westerberg <mika.westerberg@intel.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, hverkuil@xs4all.nl,
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47510 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755884AbdIHNSd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Sep 2017 09:18:33 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
         laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v9 17/24] ACPI: Document how to refer to LEDs from remote
- nodes
-Message-ID: <20170908134320.GC2477@lahna.fi.intel.com>
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v9 24/24] arm: dts: omap3: N9/N950: Add flash references to the camera
+Date: Fri,  8 Sep 2017 16:18:22 +0300
+Message-Id: <20170908131822.31020-20-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
 References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
- <20170908131822.31020-13-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170908131822.31020-13-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 08, 2017 at 04:18:15PM +0300, Sakari Ailus wrote:
-> +	Device (LED)
-> +	{
-> +		Name ((_DSD), Package () {
-> +			ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-> +			Package () {
-> +				Package () { "led0", "LED0" },
-> +				Package () { "led1", "LED1" },
-> +			}
-> +		})
-> +		Name ((LED0), Package () {
-> +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> +			Package () {
-> +				Package () { "led", 0 },
-> +				Package () { "flash-max-microamp", 1000000 },
-> +				Package () { "led-max-microamp", 100000 },
-> +				Package () { "label", "led:salama" },
-> +			}
-> +		})
-> +		Name ((LED1), Package () {
-> +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> +			Package () {
-> +				Package () { "led", 1 },
-> +				Package () { "led-max-microamp", 10000 },
-> +				Package () { "label", "led:huomiovalo" },
-> +			}
-> +		})
-> +	}
-> +
-> +	Device (SEN)
-> +	{
-> +		Name ((_DSD), Package () {
-> +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> +			Package () {
-> +				Package () {
-> +					"flash-leds",
-> +					Package () { \\LED, 0, \\LED, 1 },
-> +				}
-> +			}
-> +		})
-> +	}
+Add flash and indicator LED phandles to the sensor node.
 
-You should probably try to compile these examples first ;-)
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ arch/arm/boot/dts/omap3-n9.dts       | 1 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 4 ++--
+ arch/arm/boot/dts/omap3-n950.dts     | 1 +
+ 3 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
+index b9e58c536afd..39e35f8b8206 100644
+--- a/arch/arm/boot/dts/omap3-n9.dts
++++ b/arch/arm/boot/dts/omap3-n9.dts
+@@ -26,6 +26,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash-leds = <&as3645a_flash &as3645a_indicator>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index 1b0bd72945f2..12fbb3da5fce 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -271,14 +271,14 @@
+ 		#size-cells = <0>;
+ 		reg = <0x30>;
+ 		compatible = "ams,as3645a";
+-		flash@0 {
++		as3645a_flash: flash@0 {
+ 			reg = <0x0>;
+ 			flash-timeout-us = <150000>;
+ 			flash-max-microamp = <320000>;
+ 			led-max-microamp = <60000>;
+ 			ams,input-max-microamp = <1750000>;
+ 		};
+-		indicator@1 {
++		as3645a_indicator: indicator@1 {
+ 			reg = <0x1>;
+ 			led-max-microamp = <10000>;
+ 		};
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+index 646601a3ebd8..c354a1ed1e70 100644
+--- a/arch/arm/boot/dts/omap3-n950.dts
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -60,6 +60,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash-leds = <&as3645a_flash &as3645a_indicator>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
+-- 
+2.11.0
