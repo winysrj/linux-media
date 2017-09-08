@@ -1,57 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46551
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752320AbdIVVrO (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47906 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S933298AbdIHNXg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 17:47:14 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 6/8] media: v4l2-dv-timings.h: convert comment into kernel-doc markup
-Date: Fri, 22 Sep 2017 18:47:04 -0300
-Message-Id: <542daab70488196b8ecd45c86ff02cc83b568940.1506116720.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
-References: <cover.1506116720.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
-References: <cover.1506116720.git.mchehab@s-opensource.com>
+        Fri, 8 Sep 2017 09:23:36 -0400
+Date: Fri, 8 Sep 2017 16:23:34 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH 3/3] as3645a: Use integer numbers for parsing LEDs
+Message-ID: <20170908132333.rlhurlwrzq43ss2k@valkosipuli.retiisi.org.uk>
+References: <20170908124213.18904-1-sakari.ailus@linux.intel.com>
+ <20170908124213.18904-4-sakari.ailus@linux.intel.com>
+ <20170908131758.GQ18365@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170908131758.GQ18365@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The can_reduce_fps() is already documented, but it is not
-using the kernel-doc markup. Convert it, in order to generate
-documentation from it.
+Hi Pavel,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- include/media/v4l2-dv-timings.h | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+Thanks for the review.
 
-diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
-index 61a18893e004..c0855887ad87 100644
---- a/include/media/v4l2-dv-timings.h
-+++ b/include/media/v4l2-dv-timings.h
-@@ -203,13 +203,15 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait);
-  */
- struct v4l2_fract v4l2_dv_timings_aspect_ratio(const struct v4l2_dv_timings *t);
- 
--/*
-- * reduce_fps - check if conditions for reduced fps are true.
-- * bt - v4l2 timing structure
-+/**
-+ * can_reduce_fps - check if conditions for reduced fps are true.
-+ * @bt: v4l2 timing structure
-+ *
-  * For different timings reduced fps is allowed if following conditions
-- * are met -
-- * For CVT timings: if reduced blanking v2 (vsync == 8) is true.
-- * For CEA861 timings: if V4L2_DV_FL_CAN_REDUCE_FPS flag is true.
-+ * are met:
-+ *
-+ *   - For CVT timings: if reduced blanking v2 (vsync == 8) is true.
-+ *   - For CEA861 timings: if %V4L2_DV_FL_CAN_REDUCE_FPS flag is true.
-  */
- static inline  bool can_reduce_fps(struct v4l2_bt_timings *bt)
- {
+On Fri, Sep 08, 2017 at 03:17:58PM +0200, Pavel Machek wrote:
+> On Fri 2017-09-08 15:42:13, Sakari Ailus wrote:
+> > Use integer numbers for LEDs, 0 is the flash and 1 is the indicator.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> Dunno. Old code is shorter, old device tree is shorter, ... IMO both
+> versions are fine, because the LEDs are really different. Do we have
+> documentation somewhere saying that reg= should be used for this? Are
+> you doing this for consistency?
+
+Well, actually for ACPI support. :-) It requires less driver changes this
+way. See 17th and 18th patches in "[PATCH v9 00/23] Unified fwnode endpoint
+parser, async sub-device notifier support, N9 flash DTS".
+
+A number of chips have LED binding that is aligned, see e.g.
+Documentation/devicetree/bindings/leds/leds-bcm6328.txt .
+
 -- 
-2.13.5
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
