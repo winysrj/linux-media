@@ -1,169 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33122
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751958AbdI0Vkr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:47 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 31/37] media: dmxdev.h: add kernel-doc markups for data types and functions
-Date: Wed, 27 Sep 2017 18:40:32 -0300
-Message-Id: <ff34ec3ab9020561e5333481bf9fa03af8485430.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+Received: from foss.arm.com ([217.140.101.70]:39318 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752549AbdIHLdf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Sep 2017 07:33:35 -0400
+Subject: Re: [PATCH v3 2/6] ARM: dts: exynos: Add clean name of compatible.
+To: Hoegeun Kwon <hoegeun.kwon@samsung.com>, inki.dae@samsung.com,
+        airlied@linux.ie, kgene@kernel.org, krzk@kernel.org,
+        robh+dt@kernel.org, mark.rutland@arm.com, catalin.marinas@arm.com,
+        will.deacon@arm.com, mchehab@kernel.org, s.nawrocki@samsung.com,
+        m.szyprowski@samsung.com
+Cc: devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        a.hajda@samsung.com, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org
+References: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
+ <CGME20170908060308epcas1p2b275c76f63f5742092a7bc4ef14c05a5@epcas1p2.samsung.com>
+ <1504850560-27950-3-git-send-email-hoegeun.kwon@samsung.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Message-ID: <1a2dfeb9-b2e1-3bc6-772a-e3b55fc51b7f@arm.com>
+Date: Fri, 8 Sep 2017 12:33:29 +0100
+MIME-Version: 1.0
+In-Reply-To: <1504850560-27950-3-git-send-email-hoegeun.kwon@samsung.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Despite being used by DVB drivers, this header was not documented.
+On 08/09/17 07:02, Hoegeun Kwon wrote:
+> Exynos 5250 and 5420 have different hardware rotation limits. However,
+> currently it uses only one compatible - "exynos5-gsc". Since we have
+> to distinguish between these two, we add different compatible.
+> 
+> Signed-off-by: Hoegeun Kwon <hoegeun.kwon@samsung.com>
+> ---
+>  arch/arm/boot/dts/exynos5250.dtsi | 8 ++++----
+>  arch/arm/boot/dts/exynos5420.dtsi | 4 ++--
+>  2 files changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
+> index 8dbeb87..bf08101 100644
+> --- a/arch/arm/boot/dts/exynos5250.dtsi
+> +++ b/arch/arm/boot/dts/exynos5250.dtsi
+> @@ -637,7 +637,7 @@
+>  		};
+>  
+>  		gsc_0:  gsc@13e00000 {
+> -			compatible = "samsung,exynos5-gsc";
+> +			compatible = "samsung,exynos5-gsc", "samsung,exynos5250-gsc";
 
-Document it.
+These should be the other way round - the most specific compatible
+should come first, then the more general fallback afterwards.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dmxdev.h | 90 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 88 insertions(+), 2 deletions(-)
+(and similarly in all cases below)
 
-diff --git a/drivers/media/dvb-core/dmxdev.h b/drivers/media/dvb-core/dmxdev.h
-index 054fd4eb6192..9aa3ce3fc407 100644
---- a/drivers/media/dvb-core/dmxdev.h
-+++ b/drivers/media/dvb-core/dmxdev.h
-@@ -36,12 +36,33 @@
- #include "demux.h"
- #include "dvb_ringbuffer.h"
- 
-+/**
-+ * enum dmxdev_type - type of demux filter type.
-+ *
-+ * @DMXDEV_TYPE_NONE:	no filter set.
-+ * @DMXDEV_TYPE_SEC:	section filter.
-+ * @DMXDEV_TYPE_PES:	Program Elementary Stream (PES) filter.
-+ */
- enum dmxdev_type {
- 	DMXDEV_TYPE_NONE,
- 	DMXDEV_TYPE_SEC,
- 	DMXDEV_TYPE_PES,
- };
- 
-+/**
-+ * enum dmxdev_state - state machine for the dmxdev.
-+ *
-+ * @DMXDEV_STATE_FREE:		indicates that the filter is freed.
-+ * @DMXDEV_STATE_ALLOCATED:	indicates that the filter was allocated
-+ *				to be used.
-+ * @DMXDEV_STATE_SET:		indicates that the filter parameters are set.
-+ * @DMXDEV_STATE_GO:		indicates that the filter is running.
-+ * @DMXDEV_STATE_DONE:		indicates that a packet was already filtered
-+ * 				and the filter is now disabled.
-+ * 				Set only if %DMX_ONESHOT. See
-+ *				&dmx_sct_filter_params.
-+ * @DMXDEV_STATE_TIMEDOUT:	Indicates a timeout condition.
-+ */
- enum dmxdev_state {
- 	DMXDEV_STATE_FREE,
- 	DMXDEV_STATE_ALLOCATED,
-@@ -51,12 +72,49 @@ enum dmxdev_state {
- 	DMXDEV_STATE_TIMEDOUT
- };
- 
-+/**
-+ * struct dmxdev_feed - digital TV dmxdev feed
-+ *
-+ * @pid:	Program ID to be filtered
-+ * @ts:		pointer to &struct dmx_ts_feed
-+ * @next:	&struct list_head pointing to the next feed.
-+ */
-+
- struct dmxdev_feed {
- 	u16 pid;
- 	struct dmx_ts_feed *ts;
- 	struct list_head next;
- };
- 
-+/**
-+ * struct dmxdev_filter - digital TV dmxdev filter
-+ *
-+ * @filter:	a dmxdev filter. Currently used only for section filter:
-+ *		if the filter is Section, it contains a
-+ *		&struct dmx_section_filter @sec pointer.
-+ * @feed:	a dmxdev feed. Depending on the feed type, it can be:
-+ *		for TS feed: a &struct list_head @ts list of TS and PES
-+ *		feeds;
-+ *		for section feed: a &struct dmx_section_feed @sec pointer.
-+ * @params:	dmxdev filter parameters. Depending on the feed type, it
-+ *		can be:
-+ *		for section filter: a &struct dmx_sct_filter_params @sec
-+ *		embedded struct;
-+ *		for a TS filter: a &struct dmx_pes_filter_params @pes
-+ *		embedded struct.
-+ * @type:	type of the dmxdev filter, as defined by &enum dmxdev_type.
-+ * @state:	state of the dmxdev filter, as defined by &enum dmxdev_state.
-+ * @dev:	pointer to &struct dmxdev.
-+ * @buffer:	an embedded &struct dvb_ringbuffer buffer.
-+ * @mutex:	protects the access to &struct dmxdev_filter.
-+ * @timer:	&struct timer_list embedded timer, used to check for
-+ *		feed timeouts.
-+ * 		Only for section filter.
-+ * @todo:	index for the @secheader.
-+ * 		Only for section filter.
-+ * @secheader:	buffer cache to parse the section header.
-+ * 		Only for section filter.
-+ */
- struct dmxdev_filter {
- 	union {
- 		struct dmx_section_filter *sec;
-@@ -86,7 +144,23 @@ struct dmxdev_filter {
- 	u8 secheader[3];
- };
- 
--
-+/**
-+ * struct dmxdev - Describes a digital TV demux device.
-+ *
-+ * @dvbdev:		pointer to &struct dvb_device associated with
-+ *			the demux device node.
-+ * @dvr_dvbdev:		pointer to &struct dvb_device associated with
-+ *			the dvr device node.
-+ * @filter:		pointer to &struct dmxdev_filter.
-+ * @demux:		pointer to &struct dmx_demux.
-+ * @filternum:		number of filters.
-+ * @capabilities:	demux capabilities as defined by &enum dmx_demux_caps.
-+ * @exit:		flag to indicate that the demux is being released.
-+ * @dvr_orig_fe:	pointer to &struct dmx_frontend.
-+ * @dvr_buffer:		embedded &struct dvb_ringbuffer for DVB output.
-+ * @mutex:		protects the usage of this structure.
-+ * @lock:		protects access to &dmxdev->filter->data.
-+ */
- struct dmxdev {
- 	struct dvb_device *dvbdev;
- 	struct dvb_device *dvr_dvbdev;
-@@ -108,8 +182,20 @@ struct dmxdev {
- 	spinlock_t lock;
- };
- 
-+/**
-+ * dvb_dmxdev_init - initializes a digital TV demux and registers both demux
-+ * 	and DVR devices.
-+ *
-+ * @dmxdev: pointer to &struct dmxdev.
-+ * @adap: pointer to &struct dvb_adapter.
-+ */
-+int dvb_dmxdev_init(struct dmxdev *dmxdev, struct dvb_adapter *adap);
- 
--int dvb_dmxdev_init(struct dmxdev *dmxdev, struct dvb_adapter *);
-+/**
-+ * dvb_dmxdev_release - releases a digital TV demux and unregisters it.
-+ *
-+ * @dmxdev: pointer to &struct dmxdev.
-+ */
- void dvb_dmxdev_release(struct dmxdev *dmxdev);
- 
- #endif /* _DMXDEV_H_ */
--- 
-2.13.5
+Robin.
+
+>  			reg = <0x13e00000 0x1000>;
+>  			interrupts = <GIC_SPI 85 IRQ_TYPE_LEVEL_HIGH>;
+>  			power-domains = <&pd_gsc>;
+> @@ -647,7 +647,7 @@
+>  		};
+>  
+>  		gsc_1:  gsc@13e10000 {
+> -			compatible = "samsung,exynos5-gsc";
+> +			compatible = "samsung,exynos5-gsc", "samsung,exynos5250-gsc";
+>  			reg = <0x13e10000 0x1000>;
+>  			interrupts = <GIC_SPI 86 IRQ_TYPE_LEVEL_HIGH>;
+>  			power-domains = <&pd_gsc>;
+> @@ -657,7 +657,7 @@
+>  		};
+>  
+>  		gsc_2:  gsc@13e20000 {
+> -			compatible = "samsung,exynos5-gsc";
+> +			compatible = "samsung,exynos5-gsc", "samsung,exynos5250-gsc";
+>  			reg = <0x13e20000 0x1000>;
+>  			interrupts = <GIC_SPI 87 IRQ_TYPE_LEVEL_HIGH>;
+>  			power-domains = <&pd_gsc>;
+> @@ -667,7 +667,7 @@
+>  		};
+>  
+>  		gsc_3:  gsc@13e30000 {
+> -			compatible = "samsung,exynos5-gsc";
+> +			compatible = "samsung,exynos5-gsc", "samsung,exynos5250-gsc";
+>  			reg = <0x13e30000 0x1000>;
+>  			interrupts = <GIC_SPI 88 IRQ_TYPE_LEVEL_HIGH>;
+>  			power-domains = <&pd_gsc>;
+> diff --git a/arch/arm/boot/dts/exynos5420.dtsi b/arch/arm/boot/dts/exynos5420.dtsi
+> index 02d2f89..86afe77 100644
+> --- a/arch/arm/boot/dts/exynos5420.dtsi
+> +++ b/arch/arm/boot/dts/exynos5420.dtsi
+> @@ -658,7 +658,7 @@
+>  		};
+>  
+>  		gsc_0: video-scaler@13e00000 {
+> -			compatible = "samsung,exynos5-gsc";
+> +			compatible = "samsung,exynos5-gsc", "samsung,exynos5420-gsc";
+>  			reg = <0x13e00000 0x1000>;
+>  			interrupts = <GIC_SPI 85 IRQ_TYPE_LEVEL_HIGH>;
+>  			clocks = <&clock CLK_GSCL0>;
+> @@ -668,7 +668,7 @@
+>  		};
+>  
+>  		gsc_1: video-scaler@13e10000 {
+> -			compatible = "samsung,exynos5-gsc";
+> +			compatible = "samsung,exynos5-gsc", "samsung,exynos5420-gsc";
+>  			reg = <0x13e10000 0x1000>;
+>  			interrupts = <GIC_SPI 86 IRQ_TYPE_LEVEL_HIGH>;
+>  			clocks = <&clock CLK_GSCL1>;
+> 
