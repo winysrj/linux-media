@@ -1,50 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:57298 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S968016AbdIZI1U (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 04:27:20 -0400
-Subject: Re: [PATCH v14 27/28] ov13858: Add support for flash and lens devices
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
- <20170925222540.371-29-sakari.ailus@linux.intel.com>
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, laurent.pinchart@ideasonboard.com,
-        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <483250c9-ba06-a778-b88f-0e4734a36834@xs4all.nl>
-Date: Tue, 26 Sep 2017 10:27:19 +0200
+Received: from mout.web.de ([217.72.192.78]:60796 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757094AbdIHTm1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Sep 2017 15:42:27 -0400
+Subject: [PATCH 1/3] [media] fsl-viu: Delete an error message for a failed
+ memory allocation in viu_of_probe()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Geliang Tang <geliangtang@gmail.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <bf912679-c695-c9c0-a464-3bd3e976fa8a@users.sourceforge.net>
+Message-ID: <c5314800-1b8b-b9cd-17e5-a1ffe633bb53@users.sourceforge.net>
+Date: Fri, 8 Sep 2017 21:42:17 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170925222540.371-29-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <bf912679-c695-c9c0-a464-3bd3e976fa8a@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/09/17 00:25, Sakari Ailus wrote:
-> Parse async sub-devices related to the sensor by switching the async
-> sub-device registration function.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 8 Sep 2017 21:03:22 +0200
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Omit an extra message for a memory allocation failure in this function.
 
-> ---
->  drivers/media/i2c/ov13858.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
-> index af7af0d14c69..c86525982e17 100644
-> --- a/drivers/media/i2c/ov13858.c
-> +++ b/drivers/media/i2c/ov13858.c
-> @@ -1746,7 +1746,7 @@ static int ov13858_probe(struct i2c_client *client,
->  		goto error_handler_free;
->  	}
->  
-> -	ret = v4l2_async_register_subdev(&ov13858->sd);
-> +	ret = v4l2_async_register_subdev_sensor_common(&ov13858->sd);
->  	if (ret < 0)
->  		goto error_media_entity;
->  
-> 
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/platform/fsl-viu.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
+index fb43025df573..526f80649864 100644
+--- a/drivers/media/platform/fsl-viu.c
++++ b/drivers/media/platform/fsl-viu.c
+@@ -1433,5 +1433,4 @@ static int viu_of_probe(struct platform_device *op)
+ 	if (!viu_dev) {
+-		dev_err(&op->dev, "Can't allocate private structure\n");
+ 		ret = -ENOMEM;
+ 		goto err;
+ 	}
+-- 
+2.14.1
