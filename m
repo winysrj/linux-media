@@ -1,87 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:59212 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751205AbdISKgC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 06:36:02 -0400
-Subject: Re: [PATCHv2 1/2] dt-bindings: adi,adv7511.txt: document cec clock
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
-        Archit Taneja <architt@codeaurora.org>,
-        linux-renesas-soc@vger.kernel.org,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        devicetree@vger.kernel.org
-References: <20170919073331.29007-1-hverkuil@xs4all.nl>
- <20170919073331.29007-2-hverkuil@xs4all.nl>
- <505bc74f-6563-ab1d-9aab-7893410aef7e@cogentembedded.com>
- <74b252c8-c1eb-8498-7b9b-54604fe2806a@cisco.com>
- <e68cffb1-346c-2018-9048-3f8523903809@cogentembedded.com>
- <7bfcd125-db23-61e3-2bc9-67e5c11f27fa@xs4all.nl>
- <ce0588ed-eb3f-0008-0608-b54aefeee704@cogentembedded.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <82f72432-51fa-722b-b1c7-d6f7ea6ae758@xs4all.nl>
-Date: Tue, 19 Sep 2017 12:35:55 +0200
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59275 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757209AbdIHVpq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 17:45:46 -0400
+Date: Fri, 8 Sep 2017 23:45:44 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        sre@kernel.org
+Subject: Re: [PATCH v9 23/24] dt: bindings: smiapp: Document lens-focus and
+ flash properties
+Message-ID: <20170908214544.GB27428@amd>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131822.31020-19-sakari.ailus@linux.intel.com>
+ <20170908133652.GR18365@amd>
+ <20170908134226.m5ts637dej7oa4jw@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <ce0588ed-eb3f-0008-0608-b54aefeee704@cogentembedded.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="0ntfKIWw70PvrIHh"
+Content-Disposition: inline
+In-Reply-To: <20170908134226.m5ts637dej7oa4jw@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/19/17 12:15, Sergei Shtylyov wrote:
-> On 9/19/2017 1:07 PM, Hans Verkuil wrote:
-> 
->>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>>>
->>>>>> Document the cec clock binding.
->>>>>>
->>>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>>>> Acked-by: Rob Herring <robh@kernel.org>
->>>>>> ---
->>>>>>     Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt | 4 ++++
->>>>>>     1 file changed, 4 insertions(+)
->>>>>>
->>>>>> diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->>>>>> index 06668bca7ffc..4497ae054d49 100644
->>>>>> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->>>>>> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->>>>>> @@ -68,6 +68,8 @@ Optional properties:
->>>>>>     - adi,disable-timing-generator: Only for ADV7533. Disables the internal timing
->>>>>>       generator. The chip will rely on the sync signals in the DSI data lanes,
->>>>>>       rather than generate its own timings for HDMI output.
->>>>>> +- clocks: from common clock binding: handle to CEC clock.
->>>>>
->>>>>       It's called "phandle" in the DT speak. :-)
->>>>>       Are you sure the clock specifier would always be absent?
->>>>
->>>> Sorry? I don't understand the question. Did you mean: "can be absent?"?
->>>
->>>      No, you only say that there'll be the clock phandle only. The clock
->>> specifier may follow the phandle for the clock devices that have
->>> "#clock-cells" prop != 0.
->>
->> I have to say that I just copy-and-pasted this from other bindings.
-> 
->     :-)
-> 
->> Would this be better?
->>
->> - clocks: list of clock specifiers, corresponding to entries in
->>    the clock-names property;
-> 
->     Didn't you say that there'll be only one clock, "cec"? If so, there's 
-> gonna  be a single clock phandle+specifier pair. They always go in pairs. :-)
-> 
->> - clock-names: from common clock binding: must be "cec".
 
-- clocks: cec clock phandle, corresponding to the clock-names entry.
-- clock-names: from common clock binding: must be "cec".
+--0ntfKIWw70PvrIHh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This OK?
+On Fri 2017-09-08 16:42:26, Sakari Ailus wrote:
+> Hi Pavel,
+>=20
+> On Fri, Sep 08, 2017 at 03:36:52PM +0200, Pavel Machek wrote:
+> > Hi!
+> >=20
+> > > Document optional lens-focus and flash properties for the smiapp driv=
+er.
+> > >=20
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > ---
+> > >  Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
+> > >  1 file changed, 2 insertions(+)
+> > >=20
+> > > diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.t=
+xt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> > > index 855e1faf73e2..a052969365d9 100644
+> > > --- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> > > +++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+> > > @@ -27,6 +27,8 @@ Optional properties
+> > >  - nokia,nvm-size: The size of the NVM, in bytes. If the size is not =
+given,
+> > >    the NVM contents will not be read.
+> > >  - reset-gpios: XSHUTDOWN GPIO
+> > > +- flash-leds: One or more phandles to refer to flash LEDs
+> > > +- lens-focus: Phandle for lens focus
+> >=20
+> > Should we simply reference the generic documentation here? If it needs
+> > changing, it will be easier changing single place.
+>=20
+> Good question.
+>=20
+> Ideally the properties at least would never change; we do have a common
+> parser for the properties which is part of the patchset so in theory it
+> would be possible to change the documentation in a backward-compatible wa=
+y.
+>=20
+> I added these properties as well as all the other properties supported by
+> the sensor driver are documented here. That has been the practice AFAIU,
+> albeit omissions do happen occasionally.
+>=20
+> The issue I see with omitting the documentation here is that the user
+> otherwise won't know whether a driver uses a given property or not: it
+> shouldn't be necessary to read driver code to write DT source.
 
-Regards,
+I see... OTOH documentation in central place _is_ a bit more verbose:
 
-	Hans
++- flash-leds: An array of phandles, each referring to a flash LED, a sub-n=
+ode
++  of the LED driver device node.
+
+What about:
+
+flash-leds, lens-focus: see <reference to central place>
+
+?
+
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--0ntfKIWw70PvrIHh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlmzD4gACgkQMOfwapXb+vJg3gCdFHDoYN/4wdVf9lsg2ODFOle7
+EhgAmwevFhan9WjuQkPNYZxXby0dOGP1
+=AHq7
+-----END PGP SIGNATURE-----
+
+--0ntfKIWw70PvrIHh--
