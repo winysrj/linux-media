@@ -1,64 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:45462 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753789AbdIDOhe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Sep 2017 10:37:34 -0400
-Subject: Re: [PATCH v7 14/18] dt: bindings: Add lens-focus binding for image
- sensors
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-References: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
- <20170903174958.27058-15-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <96371574-0205-fd0e-452e-d001695bd69e@xs4all.nl>
-Date: Mon, 4 Sep 2017 16:37:29 +0200
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:37439 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751048AbdIHO7e (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 10:59:34 -0400
 MIME-Version: 1.0
-In-Reply-To: <20170903174958.27058-15-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170908143833.yisoj3t2yp5httle@mwanda>
+References: <1504879698-5855-1-git-send-email-srishtishar@gmail.com> <20170908143833.yisoj3t2yp5httle@mwanda>
+From: Srishti Sharma <srishtishar@gmail.com>
+Date: Fri, 8 Sep 2017 20:29:33 +0530
+Message-ID: <CAB3L5owMjYyFcLQP7p_+R2DzZz3KpUhCxaVrB0qJeJh08UzM1w@mail.gmail.com>
+Subject: Re: [PATCH] Staging: media: omap4iss: Use WARN_ON() instead of BUG_ON().
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>, devel@driverdev.osuosl.org,
+        Linux kernel mailing list <linux-kernel@vger.kernel.org>,
+        outreachy-kernel@googlegroups.com,
+        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/03/2017 07:49 PM, Sakari Ailus wrote:
-> The lens-focus property contains a phandle to the lens voice coil driver
-> that is associated to the sensor; typically both are contained in the same
-> camera module.
+On Fri, Sep 8, 2017 at 8:08 PM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> On Fri, Sep 08, 2017 at 07:38:18PM +0530, Srishti Sharma wrote:
+>> Use WARN_ON() instead of BUG_ON() to avoid crashing the kernel.
+>>
+>> Signed-off-by: Srishti Sharma <srishtishar@gmail.com>
+>> ---
+>>  drivers/staging/media/omap4iss/iss.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+>> index c26c99fd..b1036ba 100644
+>> --- a/drivers/staging/media/omap4iss/iss.c
+>> +++ b/drivers/staging/media/omap4iss/iss.c
+>> @@ -893,7 +893,7 @@ void omap4iss_put(struct iss_device *iss)
+>>               return;
+>>
+>>       mutex_lock(&iss->iss_mutex);
+>> -     BUG_ON(iss->ref_count == 0);
+>> +     WARN_ON(iss->ref_count == 0);
+>
+> ref_counting bugs often have a security aspect.  BUG_ON() is probably
+> safer here.  Better to crash than to lose all your bitcoin.
 
-Just to be certain: this lens-focus phandle should also work fine for a motor
-driver, right?
-
-We (Cisco) also have a camera that has an iris motor, but since nothing upstream
-uses that I'm not sure if we should bother adding that as well.
+Okay, Thanks for this.
 
 Regards,
+Srishti
 
-	Hans
-
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> Acked-by: Rob Herring <robh@kernel.org>
-> ---
->  Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> index fee73cf2a714..73d045127dcf 100644
-> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> @@ -74,6 +74,8 @@ Optional properties
->  - flash: An array of phandles referring to the flash LED, a sub-node
->    of the LED driver device node.
->  
-> +- lens-focus: A phandle to the node of the focus lens controller.
-> +
->  
->  Optional endpoint properties
->  ----------------------------
-> 
+>
+> regards,
+> dan carpenter
+>
