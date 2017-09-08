@@ -1,55 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:53645 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752434AbdIHUP2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 16:15:28 -0400
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Petr Cvek <petr.cvek@tul.cz>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Wei Yongjun <weiyongjun1@huawei.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] [media] pxa_camera: Delete an error message for a failed
- memory allocation in pxa_camera_probe()
-Message-ID: <c7f8c07d-3cbd-c705-a8e5-d0c6941cd09e@users.sourceforge.net>
-Date: Fri, 8 Sep 2017 22:14:59 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:35633 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754421AbdIHGDL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 02:03:11 -0400
+From: Hoegeun Kwon <hoegeun.kwon@samsung.com>
+To: inki.dae@samsung.com, airlied@linux.ie, kgene@kernel.org,
+        krzk@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        catalin.marinas@arm.com, will.deacon@arm.com, mchehab@kernel.org,
+        s.nawrocki@samsung.com, m.szyprowski@samsung.com
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org, a.hajda@samsung.com,
+        Hoegeun Kwon <hoegeun.kwon@samsung.com>
+Subject: [PATCH v3 0/6] Exynos-gsc: Support the hardware rotation limits
+Date: Fri, 08 Sep 2017 15:02:34 +0900
+Message-id: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
+References: <CGME20170908060308epcas1p343cfab485cca84b9ff1d543637ef9a42@epcas1p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 8 Sep 2017 22:05:14 +0200
+Hello all,
 
-Omit an extra message for a memory allocation failure in this function.
+The gscaler has hardware rotation limits. So this patch set support
+the rotate hardware limits of gsc.
 
-This issue was detected by using the Coccinelle software.
+To avoid problems with bisectability, patches 1~4 must be merged and
+then merged 5 and 6.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/pxa_camera.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+Changes for V3:
+- Fixed of_match_node() to of_device_get_match_data() in drm gsc driver.
+- Added hardware rotation limits for gsc driver of v4l2.
+- Added the remove unnecessary compatible for DT document and Exynos dts.
 
-diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-index edca993c2b1f..d2a4432a98ea 100644
---- a/drivers/media/platform/pxa_camera.c
-+++ b/drivers/media/platform/pxa_camera.c
-@@ -2362,10 +2362,8 @@ static int pxa_camera_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 
- 	pcdev = devm_kzalloc(&pdev->dev, sizeof(*pcdev), GFP_KERNEL);
--	if (!pcdev) {
--		dev_err(&pdev->dev, "Could not allocate pcdev\n");
-+	if (!pcdev)
- 		return -ENOMEM;
--	}
- 
- 	pcdev->clk = devm_clk_get(&pdev->dev, NULL);
- 	if (IS_ERR(pcdev->clk))
+Changes for V2:
+- Added the interface info in binding document.
+- Added clean name of compatible in Exynos dts.
+- Added maximum supported picture size hardcoded into driver.
+
+Best regards,
+Hoegeun
+
+Hoegeun Kwon (6):
+  [media] exynos-gsc: Add compatible for Exynos 5250 and 5420 specific
+    version
+  ARM: dts: exynos: Add clean name of compatible.
+  drm/exynos/gsc: Add hardware rotation limits
+  [media] exynos-gsc: Add hardware rotation limits
+  [media] exynos-gsc: Remove unnecessary compatible
+  ARM: dts: exynos: Remove unnecessary compatible
+
+ .../devicetree/bindings/media/exynos5-gsc.txt      |  7 +-
+ arch/arm/boot/dts/exynos5250.dtsi                  |  8 +-
+ arch/arm/boot/dts/exynos5420.dtsi                  |  4 +-
+ drivers/gpu/drm/exynos/exynos_drm_gsc.c            | 93 ++++++++++++++-------
+ drivers/media/platform/exynos-gsc/gsc-core.c       | 96 +++++++++++++++++++---
+ include/uapi/drm/exynos_drm.h                      |  2 +
+ 6 files changed, 159 insertions(+), 51 deletions(-)
+
 -- 
-2.14.1
+1.9.1
