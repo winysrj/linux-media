@@ -1,183 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:60523
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751687AbdIUPip (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46802 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755546AbdIHMmQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 11:38:45 -0400
-Date: Thu, 21 Sep 2017 12:38:36 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Michael Ira Krufky <mkrufky@linuxtv.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "=?UTF-8?B?0JHRg9C00Lgg0KA=?= =?UTF-8?B?0L7QvNCw0L3RgtC+LA==?= AreMa Inc"
-        <knightrider@are.ma>
-Subject: Re: [PATCH 03/25] media: dvbdev: convert DVB device types into an
- enum
-Message-ID: <20170921123836.5f4804af@recife.lan>
-In-Reply-To: <CAOcJUbyoW9D8cyngc1VFpLLwOCPPqpzfhYEZ3n+nYyaLux4Hug@mail.gmail.com>
-References: <cover.1505933919.git.mchehab@s-opensource.com>
-        <47fa1e847d761e20c8d5c88701523abf7730f00d.1505933919.git.mchehab@s-opensource.com>
-        <CAOcJUbyoW9D8cyngc1VFpLLwOCPPqpzfhYEZ3n+nYyaLux4Hug@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 8 Sep 2017 08:42:16 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org
+Subject: [PATCH 3/3] as3645a: Use integer numbers for parsing LEDs
+Date: Fri,  8 Sep 2017 15:42:13 +0300
+Message-Id: <20170908124213.18904-4-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170908124213.18904-1-sakari.ailus@linux.intel.com>
+References: <20170908124213.18904-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 21 Sep 2017 09:06:54 -0400
-Michael Ira Krufky <mkrufky@linuxtv.org> escreveu:
+Use integer numbers for LEDs, 0 is the flash and 1 is the indicator.
 
-> On Wed, Sep 20, 2017 at 3:11 PM, Mauro Carvalho Chehab
-> <mchehab@s-opensource.com> wrote:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ arch/arm/boot/dts/omap3-n950-n9.dtsi |  8 ++++++--
+ drivers/leds/leds-as3645a.c          | 26 ++++++++++++++++++++++++--
+ 2 files changed, 30 insertions(+), 4 deletions(-)
 
-> > +enum dvb_device_type {
-> > +       DVB_DEVICE_SEC,
-> > +       DVB_DEVICE_FRONTEND,
-> > +       DVB_DEVICE_DEMUX,
-> > +       DVB_DEVICE_DVR,
-> > +       DVB_DEVICE_CA,
-> > +       DVB_DEVICE_NET,
-> > +
-> > +       DVB_DEVICE_VIDEO,
-> > +       DVB_DEVICE_AUDIO,
-> > +       DVB_DEVICE_OSD,
-> > +};  
-> 
-> maybe instead:
-> ```
-> enum dvb_device_type {
->  DVB_DEVICE_SEC      = 0,
->  DVB_DEVICE_FRONTEND = 1,
->  DVB_DEVICE_DEMUX    = 2,
->  DVB_DEVICE_DVR      = 3,
->  DVB_DEVICE_CA       = 4,
->  DVB_DEVICE_NET      = 5,
-> 
->  DVB_DEVICE_VIDEO    = 6,
->  DVB_DEVICE_AUDIO    = 7,
->  DVB_DEVICE_OSD      = 8,
-> };
-> ```
-> 
-> ...and then maybe `nums2minor()` can be optimized to take advantage of
-> that assignment.
-
-That will break userspace :-) The DVB minor ranges are
-(from Documentation/drivers.txt):
-
- 212 char	LinuxTV.org DVB driver subsystem
-		  0 = /dev/dvb/adapter0/video0    first video decoder of first c
-ard
-		  1 = /dev/dvb/adapter0/audio0    first audio decoder of first c
-ard
-		  2 = /dev/dvb/adapter0/sec0      (obsolete/unused)
-		  3 = /dev/dvb/adapter0/frontend0 first frontend device of first
- card
-		  4 = /dev/dvb/adapter0/demux0    first demux device of first ca
-rd
-		  5 = /dev/dvb/adapter0/dvr0      first digital video recoder de
-vice of first card
-		  6 = /dev/dvb/adapter0/ca0       first common access port of fi
-rst card
-		  7 = /dev/dvb/adapter0/net0      first network device of first 
-card
-		  8 = /dev/dvb/adapter0/osd0      first on-screen-display device
- of first card
-
-Btw, the main reason to add a switch at nums2minor() is due to that:
-it requires an specific number for each device type, and it is very easy
-to forget about that when looking at the implementation.
-
-As some day we may get rid of video/audio/osd types, it sounded worth to 
-add an extra code. Please notice, however, that nums2minor only exists
-if !CONFIG_DVB_DYNAMIC_MINORS.
-
-I suspect that, except for some embedded devices, the default is
-to have it enabled everywhere.
-
-Yet, after revisiting it and checking the generated assembly code,
-I guess we could fold the enclosed patch, in order to simplify the
-static minor support of the DVB core:
-
-
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -68,22 +68,20 @@ static const char * const dnames[] = {
- #else
- #define DVB_MAX_IDS            4
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index b86fc83a5a65..1b0bd72945f2 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -267,15 +267,19 @@
+ 	clock-frequency = <400000>;
  
--static int nums2minor(int num, enum dvb_device_type type, int id)
--{
--       int n = (num << 6) | (id << 4);
-+static const u8 minor_type[] = {
-+       [DVB_DEVICE_VIDEO]      = 0,
-+       [DVB_DEVICE_AUDIO]      = 1,
-+       [DVB_DEVICE_SEC]        = 2,
-+       [DVB_DEVICE_FRONTEND]   = 3,
-+       [DVB_DEVICE_DEMUX]      = 4,
-+       [DVB_DEVICE_DVR]        = 5,
-+       [DVB_DEVICE_CA]         = 6,
-+       [DVB_DEVICE_NET]        = 7,
-+       [DVB_DEVICE_OSD]        = 8,
-+};
+ 	as3645a@30 {
++		#address-cells = <1>;
++		#size-cells = <0>;
+ 		reg = <0x30>;
+ 		compatible = "ams,as3645a";
+-		flash {
++		flash@0 {
++			reg = <0x0>;
+ 			flash-timeout-us = <150000>;
+ 			flash-max-microamp = <320000>;
+ 			led-max-microamp = <60000>;
+ 			ams,input-max-microamp = <1750000>;
+ 		};
+-		indicator {
++		indicator@1 {
++			reg = <0x1>;
+ 			led-max-microamp = <10000>;
+ 		};
+ 	};
+diff --git a/drivers/leds/leds-as3645a.c b/drivers/leds/leds-as3645a.c
+index e3f89c6130d2..605e0c64e974 100644
+--- a/drivers/leds/leds-as3645a.c
++++ b/drivers/leds/leds-as3645a.c
+@@ -112,6 +112,10 @@
+ #define AS_PEAK_mA_TO_REG(a) \
+ 	((min_t(u32, AS_PEAK_mA_MAX, a) - 1250) / 250)
  
--       switch (type) {
--       case DVB_DEVICE_VIDEO:          return n;
--       case DVB_DEVICE_AUDIO:          return n | 1;
--       case DVB_DEVICE_SEC:            return n | 2;
--       case DVB_DEVICE_FRONTEND:       return n | 3;
--       case DVB_DEVICE_DEMUX:          return n | 4;
--       case DVB_DEVICE_DVR:            return n | 5;
--       case DVB_DEVICE_CA:             return n | 6;
--       case DVB_DEVICE_NET:            return n | 7;
--       case DVB_DEVICE_OSD:            return n | 8;
--       }
--}
-+#define nums2minor(num, type, id) \
-+       (((num) << 6) | ((id) << 4) | minor_type[type])
++/* LED numbers for Devicetree */
++#define AS_LED_FLASH				0
++#define AS_LED_INDICATOR			1
++
+ enum as_mode {
+ 	AS_MODE_EXT_TORCH = 0 << AS_CONTROL_MODE_SETTING_SHIFT,
+ 	AS_MODE_INDICATOR = 1 << AS_CONTROL_MODE_SETTING_SHIFT,
+@@ -491,10 +495,29 @@ static int as3645a_parse_node(struct as3645a *flash,
+ 			      struct device_node *node)
+ {
+ 	struct as3645a_config *cfg = &flash->cfg;
++	struct device_node *child;
+ 	const char *name;
+ 	int rval;
  
- #define MAX_DVB_MINORS         (DVB_MAX_ADAPTERS*64)
- #endif
-
-With the above change, it seems that the code is likely only a few bytes
-longer than the original code, and make it clearer about the
-static minor numbering requirements.
-
-The generated i386 asm code at the read only data segment is:
-
-minor_type:
-	.byte	2
-	.byte	3
-	.byte	4
-	.byte	5
-	.byte	6
-	.byte	7
-	.byte	0
-	.byte	1
-	.byte	8
-
-And at the code segment:
-
-# drivers/media/dvb-core/dvbdev.c:511: 	minor = nums2minor(adap->num, type, id);
-	.loc 1 511 0
-	movl	-20(%ebp), %eax	# %sfp, adap
-.LVL295:
-	movl	(%eax), %eax	# adap_29(D)->num, adap_29(D)->num
-.LVL296:
-	movl	%eax, -24(%ebp)	# adap_29(D)->num, %sfp
-	movl	%eax, %edx	# adap_29(D)->num, adap_29(D)->num
-	movl	12(%ebp), %eax	# type, tmp265
-	sall	$6, %edx	#, adap_29(D)->num
-	movzbl	minor_type(%eax), %eax	# minor_type, tmp193
-	orl	%eax, %edx	# tmp193, tmp194
-	movl	-16(%ebp), %eax	# %sfp, tmp195
-	movl	%edx, %edi	# tmp194, tmp194
-	sall	$4, %eax	#, tmp195
-	orl	%eax, %edi	# tmp195, tmp194
-
-That seems good enough on my eyes.
-
-Thanks,
-Mauro
+-	flash->flash_node = of_get_child_by_name(node, "flash");
++	for_each_child_of_node(node, child) {
++		u32 id = 0;
++
++		of_property_read_u32(child, "reg", &id);
++
++		switch (id) {
++		case AS_LED_FLASH:
++			flash->flash_node = of_node_get(child);
++			break;
++		case AS_LED_INDICATOR:
++			flash->indicator_node = of_node_get(child);
++			break;
++		default:
++			dev_warn(&flash->client->dev,
++				 "unknown LED %u encountered, ignoring\n", id);
++			break;
++		}
++	}
++
+ 	if (!flash->flash_node) {
+ 		dev_err(&flash->client->dev, "can't find flash node\n");
+ 		return -ENODEV;
+@@ -538,7 +561,6 @@ static int as3645a_parse_node(struct as3645a *flash,
+ 			     &cfg->peak);
+ 	cfg->peak = AS_PEAK_mA_TO_REG(cfg->peak);
+ 
+-	flash->indicator_node = of_get_child_by_name(node, "indicator");
+ 	if (!flash->indicator_node) {
+ 		dev_warn(&flash->client->dev,
+ 			 "can't find indicator node\n");
+-- 
+2.11.0
