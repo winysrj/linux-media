@@ -1,82 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eddie.linux-mips.org ([148.251.95.138]:42566 "EHLO
-        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751456AbdIGXhs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 19:37:48 -0400
-Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S23994834AbdIGXexdgEGk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 01:34:53 +0200
-Date: Fri, 8 Sep 2017 01:34:35 +0200
-From: Ladislav Michl <ladis@linux-mips.org>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
-Subject: [PATCH v2 01/10] media: rc: gpio-ir-recv: use helper vaiable to
- acess device info
-Message-ID: <20170907233435.sw4dr6k6x7svmdbt@lenoch>
-References: <20170907233355.bv3hsv3rfhcx52i3@lenoch>
+Received: from mout.web.de ([217.72.192.78]:56461 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932214AbdIHUwO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Sep 2017 16:52:14 -0400
+Subject: [PATCH 1/3] [media] s5p-mfc: Delete an error message for a failed
+ memory allocation in s5p_mfc_probe()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <482a6c92-a85e-0bcd-edf7-3c2f63ea74c5@users.sourceforge.net>
+Message-ID: <ff8f7dcd-c3e8-2a12-c0db-997b514f5d94@users.sourceforge.net>
+Date: Fri, 8 Sep 2017 22:51:35 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170907233355.bv3hsv3rfhcx52i3@lenoch>
+In-Reply-To: <482a6c92-a85e-0bcd-edf7-3c2f63ea74c5@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using explicit struct device variable makes code a bit more readable.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 8 Sep 2017 22:25:17 +0200
 
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+Omit an extra message for a memory allocation failure in this function.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- Changes:
- -v2: rebased to current linux.git
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
- drivers/media/rc/gpio-ir-recv.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-index 7248b3662285..741a68c192ce 100644
---- a/drivers/media/rc/gpio-ir-recv.c
-+++ b/drivers/media/rc/gpio-ir-recv.c
-@@ -95,18 +95,18 @@ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 1afde5021ca6..8af45d53846f 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1270,10 +1270,8 @@ static int s5p_mfc_probe(struct platform_device *pdev)
  
- static int gpio_ir_recv_probe(struct platform_device *pdev)
- {
-+	struct device *dev = &pdev->dev;
- 	struct gpio_rc_dev *gpio_dev;
- 	struct rc_dev *rcdev;
--	const struct gpio_ir_recv_platform_data *pdata =
--					pdev->dev.platform_data;
-+	const struct gpio_ir_recv_platform_data *pdata = dev->platform_data;
- 	int rc;
+ 	pr_debug("%s++\n", __func__);
+ 	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&pdev->dev, "Not enough memory for MFC device\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
  
- 	if (pdev->dev.of_node) {
- 		struct gpio_ir_recv_platform_data *dtpdata =
--			devm_kzalloc(&pdev->dev, sizeof(*dtpdata), GFP_KERNEL);
-+			devm_kzalloc(dev, sizeof(*dtpdata), GFP_KERNEL);
- 		if (!dtpdata)
- 			return -ENOMEM;
--		rc = gpio_ir_recv_get_devtree_pdata(&pdev->dev, dtpdata);
-+		rc = gpio_ir_recv_get_devtree_pdata(dev, dtpdata);
- 		if (rc)
- 			return rc;
- 		pdata = dtpdata;
-@@ -135,7 +135,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
- 	rcdev->input_id.vendor = 0x0001;
- 	rcdev->input_id.product = 0x0001;
- 	rcdev->input_id.version = 0x0100;
--	rcdev->dev.parent = &pdev->dev;
-+	rcdev->dev.parent = dev;
- 	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
- 	rcdev->min_timeout = 1;
- 	rcdev->timeout = IR_DEFAULT_TIMEOUT;
-@@ -159,7 +159,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
- 
- 	rc = rc_register_device(rcdev);
- 	if (rc < 0) {
--		dev_err(&pdev->dev, "failed to register rc device\n");
-+		dev_err(dev, "failed to register rc device (%d)\n", rc);
- 		goto err_register_rc_device;
- 	}
- 
+ 	spin_lock_init(&dev->irqlock);
+ 	spin_lock_init(&dev->condlock);
 -- 
-2.11.0
+2.14.1
