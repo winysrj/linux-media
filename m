@@ -1,93 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37436 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752268AbdIMLSy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 07:18:54 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com,
-        linux-renesas-soc@vger.kernel.org
-Cc: linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v3 0/9] vsp1: TLB optimisation and DL caching
-Date: Wed, 13 Sep 2017 12:18:39 +0100
-Message-Id: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40227 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752858AbdIHM2m (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 08:28:42 -0400
+Date: Fri, 8 Sep 2017 14:28:40 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, laurent.pinchart@ideasonboard.com,
+        devicetree@vger.kernel.org, sre@kernel.org
+Subject: Re: [PATCH v7 11/18] v4l: async: Register sub-devices before calling
+ bound callback
+Message-ID: <20170908122840.GL18365@amd>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="I4VOKWutKNZEOIPu"
+Content-Disposition: inline
+In-Reply-To: <20170903201805.31998-1-sakari.ailus@linux.intel.com>
+ <20170903174958.27058-18-sakari.ailus@linux.intel.com>
+ <4900fc41-1b57-deb6-2041-26a6333f2033@xs4all.nl>
+ <20170903174958.27058-17-sakari.ailus@linux.intel.com>
+ <3921fde8-6192-87d7-9c5d-5dd2035a9565@xs4all.nl>
+ <20170904163400.z26qmxuejhgdcmrw@valkosipuli.retiisi.org.uk>
+ <0bb75f81-cc81-a4bf-f2af-41862c1d777a@xs4all.nl>
+ <20170903174958.27058-16-sakari.ailus@linux.intel.com>
+ <20170904162925.hxtzy5jagv5ylq4c@valkosipuli.retiisi.org.uk>
+ <96371574-0205-fd0e-452e-d001695bd69e@xs4all.nl>
+ <20170903174958.27058-15-sakari.ailus@linux.intel.com>
+ <20170904162705.thujzc7xw6hgjau3@valkosipuli.retiisi.org.uk>
+ <9a68a9a6-0949-f1c2-f029-8045d7d688b0@xs4all.nl>
+ <20170903174958.27058-14-sakari.ailus@linux.intel.com>
+ <31d63a76-adab-2a04-12dc-4717b1512eaa@linux.intel.com>
+ <6ad1c25a-e2a7-b73f-4d7c-6a5c071e6366@xs4all.nl>
+ <20170904164201.7rycyycvrukiusjz@valkosipuli.retiisi.org.uk>
+ <60db0a4b-0560-9591-f41f-1d055a50ba12@xs4all.nl>
+ <20170903174958.27058-13-sakari.ailus@linux.intel.com>
+ <20170903174958.27058-12-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each display list currently allocates an area of DMA memory to store register
-settings for the VSP1 to process. Each of these allocations adds pressure to
-the IPMMU TLB entries.
 
-We can reduce the pressure by pre-allocating larger areas and dividing the area
-across multiple bodies represented as a pool.
+--I4VOKWutKNZEOIPu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-With this reconfiguration of bodies, we can adapt the configuration code to
-separate out constant hardware configuration and cache it for re-use.
+On Sun 2017-09-03 20:49:51, Sakari Ailus wrote:
+> Register the sub-device before calling the notifier's bound callback.
+> Doing this the other way around is problematic as the struct v4l2_device
+> has not assigned for the sub-device yet and may be required by the bound
+> callback.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-This posting is only really a status update following the previous review after
-quite a bit of work has been done. However this series is not yet complete, and
-I do not expect a full review - or integration of this series in its current
-form.
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
-In particular:
-  Patch 1 : Reword uses of 'fragment' as 'body'
-          - Is new and can be reviewed if desired.
 
-Otherwise, most other issues have been addressed, and the series is rebased to
-utilise the term 'bodies' instead of 'fragments'. A few 'larger' topics came up
-in review, and will be considered in a follow up series. (v4+)
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-  Patch 3 : Provide a body pool
-          - Allocates more memory than is required for 'extra_size'
+--I4VOKWutKNZEOIPu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-  Patch 5 : Use reference counting for bodies
-          - Minor comment to be fixed up. (I should have done this already)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-  Patch 7 : Adapt entities to configure into a body
-          - To be reworked, quite substantially.
+iEYEARECAAYFAlmyjPgACgkQMOfwapXb+vIU7QCePl5cQWXsl+r5gT5D11yR2Zf4
+rS8AnAjJkMAIdUkaudTEa+Bjt/zMdFPo
+=gAI5
+-----END PGP SIGNATURE-----
 
-  Patch 8 : Move video configuration to a cached dlb
-          - Previous review comments still to be addressed
-
-The patches provided in this series can be found at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git  tags/vsp1/tlb-optimise/v3
-
-Kieran Bingham (9):
-  v4l: vsp1: Reword uses of 'fragment' as 'body'
-  v4l: vsp1: Protect bodies against overflow
-  v4l: vsp1: Provide a body pool
-  v4l: vsp1: Convert display lists to use new body pool
-  v4l: vsp1: Use reference counting for bodies
-  v4l: vsp1: Refactor display list configure operations
-  v4l: vsp1: Adapt entities to configure into a body
-  v4l: vsp1: Move video configuration to a cached dlb
-  v4l: vsp1: Reduce display list body size
-
- drivers/media/platform/vsp1/vsp1_bru.c    |  32 +--
- drivers/media/platform/vsp1/vsp1_clu.c    |  94 +++---
- drivers/media/platform/vsp1/vsp1_clu.h    |   1 +-
- drivers/media/platform/vsp1/vsp1_dl.c     | 387 +++++++++++++----------
- drivers/media/platform/vsp1/vsp1_dl.h     |  21 +-
- drivers/media/platform/vsp1/vsp1_drm.c    |  21 +-
- drivers/media/platform/vsp1/vsp1_entity.c |  23 +-
- drivers/media/platform/vsp1/vsp1_entity.h |  31 +--
- drivers/media/platform/vsp1/vsp1_hgo.c    |  26 +--
- drivers/media/platform/vsp1/vsp1_hgt.c    |  28 +--
- drivers/media/platform/vsp1/vsp1_hsit.c   |  20 +-
- drivers/media/platform/vsp1/vsp1_lif.c    |  23 +-
- drivers/media/platform/vsp1/vsp1_lut.c    |  71 ++--
- drivers/media/platform/vsp1/vsp1_lut.h    |   1 +-
- drivers/media/platform/vsp1/vsp1_pipe.c   |   8 +-
- drivers/media/platform/vsp1/vsp1_pipe.h   |   7 +-
- drivers/media/platform/vsp1/vsp1_rpf.c    | 179 +++++------
- drivers/media/platform/vsp1/vsp1_sru.c    |  24 +-
- drivers/media/platform/vsp1/vsp1_uds.c    |  73 ++--
- drivers/media/platform/vsp1/vsp1_uds.h    |   2 +-
- drivers/media/platform/vsp1/vsp1_video.c  |  82 ++---
- drivers/media/platform/vsp1/vsp1_video.h  |   2 +-
- drivers/media/platform/vsp1/vsp1_wpf.c    | 325 +++++++++----------
- 23 files changed, 811 insertions(+), 670 deletions(-)
-
-base-commit: f44bd631453bf7dcbe57f79b924db3a6dd038bff
--- 
-git-series 0.9.1
+--I4VOKWutKNZEOIPu--
