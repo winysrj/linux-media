@@ -1,56 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33637
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752111AbdI0WX4 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47502 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1756144AbdIHNSd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 18:23:56 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v7 7/7] media: open.rst: add a notice about subdev-API on vdev-centric
-Date: Wed, 27 Sep 2017 19:23:49 -0300
-Message-Id: <628a25e694c33ab6dd1ea061bc4d766ec4fe30ef.1506550930.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506550930.git.mchehab@s-opensource.com>
-References: <cover.1506550930.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506550930.git.mchehab@s-opensource.com>
-References: <cover.1506550930.git.mchehab@s-opensource.com>
+        Fri, 8 Sep 2017 09:18:33 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v9 23/24] dt: bindings: smiapp: Document lens-focus and flash properties
+Date: Fri,  8 Sep 2017 16:18:21 +0300
+Message-Id: <20170908131822.31020-19-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The documentation doesn't mention if vdev-centric hardware
-control would have subdev API or not.
+Document optional lens-focus and flash properties for the smiapp driver.
 
-Add a notice about that, reflecting the current status, where
-three drivers use it, in order to support some subdev-specific
-controls.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/media/uapi/v4l/open.rst | 7 +++++++
- 1 file changed, 7 insertions(+)
+ Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index 75ccc9d6614d..ed011ed123cc 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -47,6 +47,13 @@ the periferal can be used. For such devices, the sub-devices' configuration
- can be controlled via the :ref:`sub-device API <subdev>`, which creates one
- device node per sub-device.
+diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+index 855e1faf73e2..a052969365d9 100644
+--- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
++++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+@@ -27,6 +27,8 @@ Optional properties
+ - nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
+   the NVM contents will not be read.
+ - reset-gpios: XSHUTDOWN GPIO
++- flash-leds: One or more phandles to refer to flash LEDs
++- lens-focus: Phandle for lens focus
  
-+.. note::
-+
-+   A **vdevnode-centric** may also optionally expose V4L2 sub-devices via
-+   :ref:`sub-device API <subdev>`. In that case, it has to implement
-+   the :ref:`media controller API <media_controller>` as well.
-+
-+
- .. attention::
  
-    Devices that require **MC-centric** media hardware control should
+ Endpoint node mandatory properties
 -- 
-2.13.5
+2.11.0
