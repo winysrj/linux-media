@@ -1,315 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50387
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751769AbdITTME (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:34730 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754879AbdIHOfB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 15:12:04 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+        Fri, 8 Sep 2017 10:35:01 -0400
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 05/25] media: dvb_frontend.h: improve kernel-doc markups
-Date: Wed, 20 Sep 2017 16:11:30 -0300
-Message-Id: <343e6afe835437f43f5f2e6e3839036b0a728809.1505933919.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
-References: <cover.1505933919.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
-References: <cover.1505933919.git.mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.15] Cleanup fixes
+Message-ID: <7f18a823-3827-5a9c-053d-61f113a2d36f@xs4all.nl>
+Date: Fri, 8 Sep 2017 16:34:56 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Several minor adjustments at the kernel-doc markups:
+coccinelle, checkpatch, coverity, etc. etc.
 
-- some syntax fixes;
-- some cross-references;
-- add cross-references for the mentioned ioctls;
-- some constants marked as such.
+Regards,
 
-No functional changes.
+	Hans
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_frontend.h | 94 +++++++++++++++++------------------
- 1 file changed, 47 insertions(+), 47 deletions(-)
+The following changes since commit 1efdf1776e2253b77413c997bed862410e4b6aaf:
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index d273ed2f72c9..ace0c2fb26c2 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -180,8 +180,8 @@ enum dvbfe_search {
- /**
-  * struct dvb_tuner_ops - Tuner information and callbacks
-  *
-- * @info:		embedded struct dvb_tuner_info with tuner properties
-- * @release:		callback function called when frontend is dettached.
-+ * @info:		embedded &struct dvb_tuner_info with tuner properties
-+ * @release:		callback function called when frontend is detached.
-  *			drivers should free any allocated memory.
-  * @init:		callback function used to initialize the tuner device.
-  * @sleep:		callback function used to put the tuner to sleep.
-@@ -191,14 +191,14 @@ enum dvbfe_search {
-  *			resuming from suspend.
-  * @set_params:		callback function used to inform the tuner to tune
-  *			into a digital TV channel. The properties to be used
-- *			are stored at @dvb_frontend.dtv_property_cache;. The
-- *			tuner demod can change the parameters to reflect the
-- *			changes needed for the channel to be tuned, and
-+ *			are stored at &struct dvb_frontend.dtv_property_cache.
-+ *			The tuner demod can change the parameters to reflect
-+ *			the changes needed for the channel to be tuned, and
-  *			update statistics. This is the recommended way to set
-  *			the tuner parameters and should be used on newer
-  *			drivers.
-  * @set_analog_params:	callback function used to tune into an analog TV
-- *			channel on hybrid tuners. It passes @analog_parameters;
-+ *			channel on hybrid tuners. It passes @analog_parameters
-  *			to the driver.
-  * @set_config:		callback function used to send some tuner-specific
-  *			parameters.
-@@ -207,9 +207,9 @@ enum dvbfe_search {
-  * @get_if_frequency:	get the Intermediate Frequency, in Hz. For baseband,
-  * 			should return 0.
-  * @get_status:		returns the frontend lock status
-- * @get_rf_strength:	returns the RF signal strengh. Used mostly to support
-+ * @get_rf_strength:	returns the RF signal strength. Used mostly to support
-  *			analog TV and radio. Digital TV should report, instead,
-- *			via DVBv5 API (@dvb_frontend.dtv_property_cache;).
-+ *			via DVBv5 API (&struct dvb_frontend.dtv_property_cache).
-  * @get_afc:		Used only by analog TV core. Reports the frequency
-  *			drift due to AFC.
-  * @calc_regs:		callback function used to pass register data settings
-@@ -217,7 +217,7 @@ enum dvbfe_search {
-  * @set_frequency:	Set a new frequency. Shouldn't be used on newer drivers.
-  * @set_bandwidth:	Set a new frequency. Shouldn't be used on newer drivers.
-  *
-- * NOTE: frequencies used on get_frequency and set_frequency are in Hz for
-+ * NOTE: frequencies used on @get_frequency and @set_frequency are in Hz for
-  * terrestrial/cable or kHz for satellite.
-  *
-  */
-@@ -283,14 +283,14 @@ struct analog_demod_info {
-  * @set_params:		callback function used to inform the demod to set the
-  *			demodulator parameters needed to decode an analog or
-  *			radio channel. The properties are passed via
-- *			struct @analog_params;.
-+ *			&struct analog_params.
-  * @has_signal:		returns 0xffff if has signal, or 0 if it doesn't.
-  * @get_afc:		Used only by analog TV core. Reports the frequency
-  *			drift due to AFC.
-  * @tuner_status:	callback function that returns tuner status bits, e. g.
-- *			TUNER_STATUS_LOCKED and TUNER_STATUS_STEREO.
-+ *			%TUNER_STATUS_LOCKED and %TUNER_STATUS_STEREO.
-  * @standby:		set the tuner to standby mode.
-- * @release:		callback function called when frontend is dettached.
-+ * @release:		callback function called when frontend is detached.
-  *			drivers should free any allocated memory.
-  * @i2c_gate_ctrl:	controls the I2C gate. Newer drivers should use I2C
-  *			mux support instead.
-@@ -321,10 +321,10 @@ struct dtv_frontend_properties;
-  * struct dvb_frontend_ops - Demodulation information and callbacks for
-  *			      ditialt TV
-  *
-- * @info:		embedded struct dvb_tuner_info with tuner properties
-+ * @info:		embedded &struct dvb_tuner_info with tuner properties
-  * @delsys:		Delivery systems supported by the frontend
-  * @detach:		callback function called when frontend is detached.
-- *			drivers should clean up, but not yet free the struct
-+ *			drivers should clean up, but not yet free the &struct
-  *			dvb_frontend allocation.
-  * @release:		callback function called when frontend is ready to be
-  *			freed.
-@@ -338,57 +338,57 @@ struct dtv_frontend_properties;
-  *			allow other drivers to write data into their registers.
-  *			Should not be used on new drivers.
-  * @tune:		callback function used by demod drivers that use
-- *			@DVBFE_ALGO_HW; to tune into a frequency.
-+ *			@DVBFE_ALGO_HW to tune into a frequency.
-  * @get_frontend_algo:	returns the desired hardware algorithm.
-  * @set_frontend:	callback function used to inform the demod to set the
-  *			parameters for demodulating a digital TV channel.
-- *			The properties to be used are stored at
-- *			@dvb_frontend.dtv_property_cache;. The demod can change
-+ *			The properties to be used are stored at &struct
-+ *			dvb_frontend.dtv_property_cache. The demod can change
-  *			the parameters to reflect the changes needed for the
-  *			channel to be decoded, and update statistics.
-  * @get_tune_settings:	callback function
-  * @get_frontend:	callback function used to inform the parameters
-  *			actuall in use. The properties to be used are stored at
-- *			@dvb_frontend.dtv_property_cache; and update
-+ *			&struct dvb_frontend.dtv_property_cache and update
-  *			statistics. Please notice that it should not return
-  *			an error code if the statistics are not available
-  *			because the demog is not locked.
-  * @read_status:	returns the locking status of the frontend.
-  * @read_ber:		legacy callback function to return the bit error rate.
-  *			Newer drivers should provide such info via DVBv5 API,
-- *			e. g. @set_frontend;/@get_frontend;, implementing this
-+ *			e. g. @set_frontend;/@get_frontend, implementing this
-  *			callback only if DVBv3 API compatibility is wanted.
-  * @read_signal_strength: legacy callback function to return the signal
-  *			strength. Newer drivers should provide such info via
-- *			DVBv5 API, e. g. @set_frontend;/@get_frontend;,
-+ *			DVBv5 API, e. g. @set_frontend/@get_frontend,
-  *			implementing this callback only if DVBv3 API
-  *			compatibility is wanted.
-  * @read_snr:		legacy callback function to return the Signal/Noise
-  * 			rate. Newer drivers should provide such info via
-- *			DVBv5 API, e. g. @set_frontend;/@get_frontend;,
-+ *			DVBv5 API, e. g. @set_frontend/@get_frontend,
-  *			implementing this callback only if DVBv3 API
-  *			compatibility is wanted.
-  * @read_ucblocks:	legacy callback function to return the Uncorrected Error
-  *			Blocks. Newer drivers should provide such info via
-- *			DVBv5 API, e. g. @set_frontend;/@get_frontend;,
-+ *			DVBv5 API, e. g. @set_frontend/@get_frontend,
-  *			implementing this callback only if DVBv3 API
-  *			compatibility is wanted.
-  * @diseqc_reset_overload: callback function to implement the
-- *			FE_DISEQC_RESET_OVERLOAD ioctl (only Satellite)
-+ *			FE_DISEQC_RESET_OVERLOAD() ioctl (only Satellite)
-  * @diseqc_send_master_cmd: callback function to implement the
-- *			FE_DISEQC_SEND_MASTER_CMD ioctl (only Satellite).
-+ *			FE_DISEQC_SEND_MASTER_CMD() ioctl (only Satellite).
-  * @diseqc_recv_slave_reply: callback function to implement the
-- *			FE_DISEQC_RECV_SLAVE_REPLY ioctl (only Satellite)
-+ *			FE_DISEQC_RECV_SLAVE_REPLY() ioctl (only Satellite)
-  * @diseqc_send_burst:	callback function to implement the
-- *			FE_DISEQC_SEND_BURST ioctl (only Satellite).
-+ *			FE_DISEQC_SEND_BURST() ioctl (only Satellite).
-  * @set_tone:		callback function to implement the
-- *			FE_SET_TONE ioctl (only Satellite).
-+ *			FE_SET_TONE() ioctl (only Satellite).
-  * @set_voltage:	callback function to implement the
-- *			FE_SET_VOLTAGE ioctl (only Satellite).
-+ *			FE_SET_VOLTAGE() ioctl (only Satellite).
-  * @enable_high_lnb_voltage: callback function to implement the
-- *			FE_ENABLE_HIGH_LNB_VOLTAGE ioctl (only Satellite).
-+ *			FE_ENABLE_HIGH_LNB_VOLTAGE() ioctl (only Satellite).
-  * @dishnetwork_send_legacy_command: callback function to implement the
-- *			FE_DISHNETWORK_SEND_LEGACY_CMD ioctl (only Satellite).
-+ *			FE_DISHNETWORK_SEND_LEGACY_CMD() ioctl (only Satellite).
-  *			Drivers should not use this, except when the DVB
-  *			core emulation fails to provide proper support (e.g.
-  *			if @set_voltage takes more than 8ms to work), and
-@@ -399,8 +399,8 @@ struct dtv_frontend_properties;
-  * @ts_bus_ctrl:	callback function used to take control of the TS bus.
-  * @set_lna:		callback function to power on/off/auto the LNA.
-  * @search:		callback function used on some custom algo search algos.
-- * @tuner_ops:		pointer to struct dvb_tuner_ops
-- * @analog_ops:		pointer to struct analog_demod_ops
-+ * @tuner_ops:		pointer to &struct dvb_tuner_ops
-+ * @analog_ops:		pointer to &struct analog_demod_ops
-  */
- struct dvb_frontend_ops {
- 	struct dvb_frontend_info info;
-@@ -630,16 +630,16 @@ struct dtv_frontend_properties {
- /**
-  * struct dvb_frontend - Frontend structure to be used on drivers.
-  *
-- * @refcount:		refcount to keep track of struct dvb_frontend
-+ * @refcount:		refcount to keep track of &struct dvb_frontend
-  *			references
-- * @ops:		embedded struct dvb_frontend_ops
-- * @dvb:		pointer to struct dvb_adapter
-+ * @ops:		embedded &struct dvb_frontend_ops
-+ * @dvb:		pointer to &struct dvb_adapter
-  * @demodulator_priv:	demod private data
-  * @tuner_priv:		tuner private data
-  * @frontend_priv:	frontend private data
-  * @sec_priv:		SEC private data
-  * @analog_demod_priv:	Analog demod private data
-- * @dtv_property_cache:	embedded struct dtv_frontend_properties
-+ * @dtv_property_cache:	embedded &struct dtv_frontend_properties
-  * @callback:		callback function used on some drivers to call
-  *			either the tuner or the demodulator.
-  * @id:			Frontend ID
-@@ -668,8 +668,8 @@ struct dvb_frontend {
- /**
-  * dvb_register_frontend() - Registers a DVB frontend at the adapter
-  *
-- * @dvb: pointer to the dvb adapter
-- * @fe: pointer to the frontend struct
-+ * @dvb: pointer to &struct dvb_adapter
-+ * @fe: pointer to &struct dvb_frontend
-  *
-  * Allocate and initialize the private data needed by the frontend core to
-  * manage the frontend and calls dvb_register_device() to register a new
-@@ -682,7 +682,7 @@ int dvb_register_frontend(struct dvb_adapter *dvb,
- /**
-  * dvb_unregister_frontend() - Unregisters a DVB frontend
-  *
-- * @fe: pointer to the frontend struct
-+ * @fe: pointer to &struct dvb_frontend
-  *
-  * Stops the frontend kthread, calls dvb_unregister_device() and frees the
-  * private frontend data allocated by dvb_register_frontend().
-@@ -696,14 +696,14 @@ int dvb_unregister_frontend(struct dvb_frontend *fe);
- /**
-  * dvb_frontend_detach() - Detaches and frees frontend specific data
-  *
-- * @fe: pointer to the frontend struct
-+ * @fe: pointer to &struct dvb_frontend
-  *
-  * This function should be called after dvb_unregister_frontend(). It
-  * calls the SEC, tuner and demod release functions:
-  * &dvb_frontend_ops.release_sec, &dvb_frontend_ops.tuner_ops.release,
-  * &dvb_frontend_ops.analog_ops.release and &dvb_frontend_ops.release.
-  *
-- * If the driver is compiled with CONFIG_MEDIA_ATTACH, it also decreases
-+ * If the driver is compiled with %CONFIG_MEDIA_ATTACH, it also decreases
-  * the module reference count, needed to allow userspace to remove the
-  * previously used DVB frontend modules.
-  */
-@@ -712,7 +712,7 @@ void dvb_frontend_detach(struct dvb_frontend *fe);
- /**
-  * dvb_frontend_suspend() - Suspends a Digital TV frontend
-  *
-- * @fe: pointer to the frontend struct
-+ * @fe: pointer to &struct dvb_frontend
-  *
-  * This function prepares a Digital TV frontend to suspend.
-  *
-@@ -730,7 +730,7 @@ int dvb_frontend_suspend(struct dvb_frontend *fe);
- /**
-  * dvb_frontend_resume() - Resumes a Digital TV frontend
-  *
-- * @fe: pointer to the frontend struct
-+ * @fe: pointer to &struct dvb_frontend
-  *
-  * This function resumes the usual operation of the tuner after resume.
-  *
-@@ -751,7 +751,7 @@ int dvb_frontend_resume(struct dvb_frontend *fe);
- /**
-  * dvb_frontend_reinitialise() - forces a reinitialisation at the frontend
-  *
-- * @fe: pointer to the frontend struct
-+ * @fe: pointer to &struct dvb_frontend
-  *
-  * Calls &dvb_frontend_ops.init\(\) and &dvb_frontend_ops.tuner_ops.init\(\),
-  * and resets SEC tone and voltage (for Satellite systems).
-@@ -766,16 +766,16 @@ void dvb_frontend_reinitialise(struct dvb_frontend *fe);
-  * dvb_frontend_sleep_until() - Sleep for the amount of time given by
-  *                      add_usec parameter
-  *
-- * @waketime: pointer to a struct ktime_t
-+ * @waketime: pointer to &struct ktime_t
-  * @add_usec: time to sleep, in microseconds
-  *
-  * This function is used to measure the time required for the
-- * %FE_DISHNETWORK_SEND_LEGACY_CMD ioctl to work. It needs to be as precise
-+ * FE_DISHNETWORK_SEND_LEGACY_CMD() ioctl to work. It needs to be as precise
-  * as possible, as it affects the detection of the dish tone command at the
-  * satellite subsystem.
-  *
-  * Its used internally by the DVB frontend core, in order to emulate
-- * %FE_DISHNETWORK_SEND_LEGACY_CMD using the &dvb_frontend_ops.set_voltage\(\)
-+ * FE_DISHNETWORK_SEND_LEGACY_CMD() using the &dvb_frontend_ops.set_voltage\(\)
-  * callback.
-  *
-  * NOTE: it should not be used at the drivers, as the emulation for the
--- 
-2.13.5
+  media: leds: as3645a: add V4L2_FLASH_LED_CLASS dependency (2017-09-05 16:32:45 -0400)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.15a
+
+for you to fetch changes up to d50cd4ba25f6a9b5cfd7012cbe0d8c146212cda1:
+
+  media: cx23885: make const array buf static, reduces object code size (2017-09-08 16:13:36 +0200)
+
+----------------------------------------------------------------
+Bhumika Goyal (2):
+      usb: make i2c_client const
+      pci: make i2c_client const
+
+Colin Ian King (5):
+      rtl28xxu: make array rc_nec_tab static const
+      cx25840: make array stds static const, reduces object code size
+      cobalt: remove redundant zero check on retval
+      ov9640: make const arrays res_x/y static const, reduces object code size
+      media: cx23885: make const array buf static, reduces object code size
+
+Daniel Scheller (1):
+      dvb-frontends/mxl5xx: declare LIST_HEAD(mxllist) static
+
+Markus Elfring (62):
+      Cypress: Delete an error message for a failed memory allocation in cypress_load_firmware()
+      Cypress: Improve a size determination in cypress_load_firmware()
+      Siano: Delete an error message for a failed memory allocation in three functions
+      Siano: Improve a size determination in six functions
+      Siano: Adjust five checks for null pointers
+      zr364xx: Delete an error message for a failed memory allocation in two functions
+      zr364xx: Improve a size determination in zr364xx_probe()
+      zr364xx: Adjust ten checks for null pointers
+      as102_fe: Delete an error message for a failed memory allocation in as102_attach()
+      as102_fe: Improve a size determination in as102_attach()
+      cx24113: Delete an error message for a failed memory allocation in cx24113_attach()
+      cx24113: Return directly after a failed kzalloc() in cx24113_attach()
+      cx24113: Improve a size determination in cx24113_attach()
+      cx24116: Delete an error message for a failed memory allocation in cx24116_writeregN()
+      cx24116: Return directly after a failed kmalloc() in cx24116_writeregN()
+      cx24116: Delete an unnecessary variable initialisation in cx24116_writeregN()
+      cx24116: Improve a size determination in cx24116_attach()
+      cx24116: Delete an unnecessary variable initialisation in cx24116_attach()
+      cx24116: Delete jump targets in cx24116_attach()
+      drxd: Delete an error message for a failed memory allocation in load_firmware()
+      drxd: Adjust a null pointer check in three functions
+      ds3000: Delete an error message for a failed memory allocation in two functions
+      ds3000: Improve a size determination in ds3000_attach()
+      ds3000: Delete an unnecessary variable initialisation in ds3000_attach()
+      ds3000: Delete jump targets in ds3000_attach()
+      mb86a20s: Delete an error message for a failed memory allocation in mb86a20s_attach()
+      mb86a20s: Improve a size determination in mb86a20s_attach()
+      mb86a20s: Delete a jump target in mb86a20s_attach()
+      si2168: Delete an error message for a failed memory allocation in si2168_probe()
+      sp2: Delete an error message for a failed memory allocation in sp2_probe()
+      sp2: Improve a size determination in sp2_probe()
+      sp2: Adjust three null pointer checks in sp2_exit()
+      adv7604: Delete an error message for a failed memory allocation in adv76xx_probe()
+      adv7604: Adjust a null pointer check in three functions
+      adv7842: Delete an error message for a failed memory allocation in adv7842_probe()
+      adv7842: Improve a size determination in adv7842_probe()
+      cx18: Delete an error message for a failed memory allocation in cx18_probe()
+      cx18: Improve a size determination in cx18_probe()
+      cx18: Adjust ten checks for null pointers
+      Hopper: Delete an error message for a failed memory allocation in hopper_pci_probe()
+      Hopper: Improve a size determination in hopper_pci_probe()
+      Hopper: Adjust a null pointer check in two functions
+      Hopper: Delete an unnecessary variable initialisation in hopper_pci_probe()
+      Mantis: Delete an error message for a failed memory allocation in mantis_pci_probe()
+      Mantis: Improve a size determination in mantis_pci_probe()
+      Mantis: Delete an unnecessary variable initialisation in mantis_pci_probe()
+      meye: Delete three error messages for a failed memory allocation in meye_probe()
+      meye: Adjust two function calls together with a variable assignment
+      saa7164: Delete an error message for a failed memory allocation in saa7164_buffer_alloc()
+      saa7164: Improve a size determination in two functions
+      Hexium Gemini: Delete an error message for a failed memory allocation in hexium_attach()
+      Hexium Gemini: Improve a size determination in hexium_attach()
+      Hexium Orion: Delete an error message for a failed memory allocation in hexium_probe()
+      Hexium Orion: Improve a size determination in hexium_probe()
+      Hexium Orion: Adjust one function call together with a variable assignment
+      atmel-isc: Delete an error message for a failed memory allocation in isc_formats_init()
+      atmel-isc: Improve a size determination in isc_formats_init()
+      atmel-isc: Adjust three checks for null pointers
+      atmel-isi: Delete an error message for a failed memory allocation in two functions
+      atmel-isi: Improve three size determinations
+      atmel-isi: Adjust a null pointer check in three functions
+      blackfin: Delete an error message for a failed memory allocation in ppi_create_instance()
+
+Thomas Meyer (1):
+      lgdt3306a: Use ARRAY_SIZE macro
+
+ drivers/media/common/cypress_firmware.c    |  6 ++----
+ drivers/media/common/siano/smscoreapi.c    | 39 ++++++++++++++++-----------------------
+ drivers/media/dvb-frontends/as102_fe.c     |  7 +++----
+ drivers/media/dvb-frontends/cx24113.c      | 10 ++++------
+ drivers/media/dvb-frontends/cx24116.c      | 22 ++++++++--------------
+ drivers/media/dvb-frontends/drxd_hard.c    |  7 +++----
+ drivers/media/dvb-frontends/ds3000.c       | 22 +++++++---------------
+ drivers/media/dvb-frontends/lgdt3306a.c    |  3 ++-
+ drivers/media/dvb-frontends/mb86a20s.c     | 23 +++++++----------------
+ drivers/media/dvb-frontends/mxl5xx.c       |  2 +-
+ drivers/media/dvb-frontends/si2168.c       |  1 -
+ drivers/media/dvb-frontends/sp2.c          |  9 ++++-----
+ drivers/media/i2c/adv7604.c                | 10 ++++------
+ drivers/media/i2c/adv7842.c                |  6 ++----
+ drivers/media/i2c/cx25840/cx25840-core.c   |  2 +-
+ drivers/media/i2c/soc_camera/ov9640.c      |  4 ++--
+ drivers/media/pci/cobalt/cobalt-driver.c   |  2 --
+ drivers/media/pci/cx18/cx18-driver.c       | 28 +++++++++++++---------------
+ drivers/media/pci/cx23885/cx23885-cards.c  |  2 +-
+ drivers/media/pci/cx23885/cx23885-i2c.c    |  2 +-
+ drivers/media/pci/cx25821/cx25821-i2c.c    |  2 +-
+ drivers/media/pci/ivtv/ivtv-i2c.c          |  2 +-
+ drivers/media/pci/mantis/hopper_cards.c    |  9 ++++-----
+ drivers/media/pci/mantis/mantis_cards.c    |  8 +++-----
+ drivers/media/pci/meye/meye.c              | 20 ++++++++------------
+ drivers/media/pci/saa7134/saa7134-i2c.c    |  2 +-
+ drivers/media/pci/saa7146/hexium_gemini.c  |  7 +++----
+ drivers/media/pci/saa7146/hexium_orion.c   | 10 +++++-----
+ drivers/media/pci/saa7164/saa7164-buffer.c |  8 +++-----
+ drivers/media/pci/saa7164/saa7164-i2c.c    |  2 +-
+ drivers/media/platform/atmel/atmel-isc.c   | 12 +++++-------
+ drivers/media/platform/atmel/atmel-isi.c   | 20 ++++++++------------
+ drivers/media/platform/blackfin/ppi.c      |  1 -
+ drivers/media/usb/au0828/au0828-i2c.c      |  2 +-
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c    |  2 +-
+ drivers/media/usb/em28xx/em28xx-i2c.c      |  2 +-
+ drivers/media/usb/stk1160/stk1160-i2c.c    |  2 +-
+ drivers/media/usb/zr364xx/zr364xx.c        | 32 ++++++++++++++------------------
+ 38 files changed, 142 insertions(+), 208 deletions(-)
