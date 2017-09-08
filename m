@@ -1,200 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:34825 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751473AbdISUqm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 16:46:42 -0400
-From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>,
-        =?UTF-8?q?J=C3=A9r=C3=A9my=20Lefaure?=
-        <jeremy.lefaure@lse.epita.fr>,
-        Avraham Shukron <avraham.shukron@gmail.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Varsha Rao <rvarsha016@gmail.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] staging: atomisp: use clock framework for camera clocks
-Date: Tue, 19 Sep 2017 15:45:16 -0500
-Message-Id: <20170919204549.27468-1-pierre-louis.bossart@linux.intel.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:35648 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754448AbdIHGDM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 02:03:12 -0400
+From: Hoegeun Kwon <hoegeun.kwon@samsung.com>
+To: inki.dae@samsung.com, airlied@linux.ie, kgene@kernel.org,
+        krzk@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        catalin.marinas@arm.com, will.deacon@arm.com, mchehab@kernel.org,
+        s.nawrocki@samsung.com, m.szyprowski@samsung.com
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org, a.hajda@samsung.com,
+        Hoegeun Kwon <hoegeun.kwon@samsung.com>
+Subject: [PATCH v3 6/6] ARM: dts: exynos: Remove unnecessary compatible
+Date: Fri, 08 Sep 2017 15:02:40 +0900
+Message-id: <1504850560-27950-7-git-send-email-hoegeun.kwon@samsung.com>
+In-reply-to: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
+References: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
+        <CGME20170908060309epcas1p3f995a5092a5b8c7d9a9e4b6d982bc3d9@epcas1p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Atom ISP driver initializes and configures PMC clocks which are
-already handled by the clock framework.
+Currently, the compatible('samsung,exynos5-gsc') is not used.
+Remove unnecessary compatible.
 
-Remove all legacy vlv2_platform_clock stuff and move to the clk API to
-avoid conflicts, e.g. with audio machine drivers enabling the MCLK for
-external codecs
-
-Tested-by: Carlo Caione <carlo@endlessm.com>
-Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Signed-off-by: Hoegeun Kwon <hoegeun.kwon@samsung.com>
 ---
- drivers/staging/media/atomisp/Kconfig              |   1 +
- drivers/staging/media/atomisp/platform/Makefile    |   1 -
- .../staging/media/atomisp/platform/clock/Makefile  |   6 -
- .../platform/clock/platform_vlv2_plat_clk.c        |  40 ----
- .../platform/clock/platform_vlv2_plat_clk.h        |  27 ---
- .../media/atomisp/platform/clock/vlv2_plat_clock.c | 247 ---------------------
- .../platform/intel-mid/atomisp_gmin_platform.c     |  63 +++++-
- 7 files changed, 52 insertions(+), 333 deletions(-)
- delete mode 100644 drivers/staging/media/atomisp/platform/clock/Makefile
- delete mode 100644 drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.c
- delete mode 100644 drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.h
- delete mode 100644 drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
+ arch/arm/boot/dts/exynos5250.dtsi | 8 ++++----
+ arch/arm/boot/dts/exynos5420.dtsi | 4 ++--
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/Kconfig b/drivers/staging/media/atomisp/Kconfig
-index 8eb13c3ba29c..7cdebea35ccf 100644
---- a/drivers/staging/media/atomisp/Kconfig
-+++ b/drivers/staging/media/atomisp/Kconfig
-@@ -1,6 +1,7 @@
- menuconfig INTEL_ATOMISP
-         bool "Enable support to Intel MIPI camera drivers"
-         depends on X86 && EFI && MEDIA_CONTROLLER && PCI && ACPI
-+	select COMMON_CLK
-         help
-           Enable support for the Intel ISP2 camera interfaces and MIPI
-           sensor drivers.
-diff --git a/drivers/staging/media/atomisp/platform/Makefile b/drivers/staging/media/atomisp/platform/Makefile
-index df157630bda9..0e3b7e1c81c6 100644
---- a/drivers/staging/media/atomisp/platform/Makefile
-+++ b/drivers/staging/media/atomisp/platform/Makefile
-@@ -2,5 +2,4 @@
- # Makefile for camera drivers.
- #
+diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
+index bf08101..e632faf 100644
+--- a/arch/arm/boot/dts/exynos5250.dtsi
++++ b/arch/arm/boot/dts/exynos5250.dtsi
+@@ -637,7 +637,7 @@
+ 		};
  
--obj-$(CONFIG_INTEL_ATOMISP) += clock/
- obj-$(CONFIG_INTEL_ATOMISP) += intel-mid/
-diff --git a/drivers/staging/media/atomisp/platform/clock/Makefile b/drivers/staging/media/atomisp/platform/clock/Makefile
-deleted file mode 100644
-index 82fbe8b6968a..000000000000
-diff --git a/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.c b/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.c
-deleted file mode 100644
-index 0aae9b0283bb..000000000000
-diff --git a/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.h b/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.h
-deleted file mode 100644
-index b730ab0e8223..000000000000
-diff --git a/drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c b/drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
-deleted file mode 100644
-index f96789a31819..000000000000
-diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-index edaae93af8f9..17b4cfae5abf 100644
---- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-+++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-@@ -4,10 +4,10 @@
- #include <linux/efi.h>
- #include <linux/pci.h>
- #include <linux/acpi.h>
-+#include <linux/clk.h>
- #include <linux/delay.h>
- #include <media/v4l2-subdev.h>
- #include <linux/mfd/intel_soc_pmic.h>
--#include "../../include/linux/vlv2_plat_clock.h"
- #include <linux/regulator/consumer.h>
- #include <linux/gpio/consumer.h>
- #include <linux/gpio.h>
-@@ -17,11 +17,7 @@
+ 		gsc_0:  gsc@13e00000 {
+-			compatible = "samsung,exynos5-gsc", "samsung,exynos5250-gsc";
++			compatible = "samsung,exynos5250-gsc";
+ 			reg = <0x13e00000 0x1000>;
+ 			interrupts = <GIC_SPI 85 IRQ_TYPE_LEVEL_HIGH>;
+ 			power-domains = <&pd_gsc>;
+@@ -647,7 +647,7 @@
+ 		};
  
- #define MAX_SUBDEVS 8
+ 		gsc_1:  gsc@13e10000 {
+-			compatible = "samsung,exynos5-gsc", "samsung,exynos5250-gsc";
++			compatible = "samsung,exynos5250-gsc";
+ 			reg = <0x13e10000 0x1000>;
+ 			interrupts = <GIC_SPI 86 IRQ_TYPE_LEVEL_HIGH>;
+ 			power-domains = <&pd_gsc>;
+@@ -657,7 +657,7 @@
+ 		};
  
--/* Should be defined in vlv2_plat_clock API, isn't: */
--#define VLV2_CLK_PLL_19P2MHZ 1
--#define VLV2_CLK_XTAL_19P2MHZ 0
--#define VLV2_CLK_ON      1
--#define VLV2_CLK_OFF     2
-+#define VLV2_CLK_PLL_19P2MHZ 1 /* XTAL on CHT */
- #define ELDO1_SEL_REG	0x19
- #define ELDO1_1P8V	0x16
- #define ELDO1_CTRL_SHIFT 0x00
-@@ -33,6 +29,7 @@ struct gmin_subdev {
- 	struct v4l2_subdev *subdev;
- 	int clock_num;
- 	int clock_src;
-+	struct clk *pmc_clk;
- 	struct gpio_desc *gpio0;
- 	struct gpio_desc *gpio1;
- 	struct regulator *v1p8_reg;
-@@ -344,6 +341,9 @@ static int gmin_platform_deinit(void)
- 	return 0;
- }
+ 		gsc_2:  gsc@13e20000 {
+-			compatible = "samsung,exynos5-gsc", "samsung,exynos5250-gsc";
++			compatible = "samsung,exynos5250-gsc";
+ 			reg = <0x13e20000 0x1000>;
+ 			interrupts = <GIC_SPI 87 IRQ_TYPE_LEVEL_HIGH>;
+ 			power-domains = <&pd_gsc>;
+@@ -667,7 +667,7 @@
+ 		};
  
-+#define GMIN_PMC_CLK_NAME 14 /* "pmc_plt_clk_[0..5]" */
-+static char gmin_pmc_clk_name[GMIN_PMC_CLK_NAME];
-+
- static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
- {
- 	int i, ret;
-@@ -377,6 +377,37 @@ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
- 	gmin_subdevs[i].gpio0 = gpiod_get_index(dev, NULL, 0, GPIOD_OUT_LOW);
- 	gmin_subdevs[i].gpio1 = gpiod_get_index(dev, NULL, 1, GPIOD_OUT_LOW);
+ 		gsc_3:  gsc@13e30000 {
+-			compatible = "samsung,exynos5-gsc", "samsung,exynos5250-gsc";
++			compatible = "samsung,exynos5250-gsc";
+ 			reg = <0x13e30000 0x1000>;
+ 			interrupts = <GIC_SPI 88 IRQ_TYPE_LEVEL_HIGH>;
+ 			power-domains = <&pd_gsc>;
+diff --git a/arch/arm/boot/dts/exynos5420.dtsi b/arch/arm/boot/dts/exynos5420.dtsi
+index 86afe77..58392b3 100644
+--- a/arch/arm/boot/dts/exynos5420.dtsi
++++ b/arch/arm/boot/dts/exynos5420.dtsi
+@@ -658,7 +658,7 @@
+ 		};
  
-+	/* get PMC clock with clock framework */
-+	snprintf(gmin_pmc_clk_name,
-+		 sizeof(gmin_pmc_clk_name),
-+		 "%s_%d", "pmc_plt_clk", gmin_subdevs[i].clock_num);
-+
-+	gmin_subdevs[i].pmc_clk = devm_clk_get(dev, gmin_pmc_clk_name);
-+	if (IS_ERR(gmin_subdevs[i].pmc_clk)) {
-+		ret = PTR_ERR(gmin_subdevs[i].pmc_clk);
-+
-+		dev_err(dev,
-+			"Failed to get clk from %s : %d\n",
-+			gmin_pmc_clk_name,
-+			ret);
-+
-+		return NULL;
-+	}
-+
-+	/*
-+	 * The firmware might enable the clock at
-+	 * boot (this information may or may not
-+	 * be reflected in the enable clock register).
-+	 * To change the rate we must disable the clock
-+	 * first to cover these cases. Due to common
-+	 * clock framework restrictions that do not allow
-+	 * to disable a clock that has not been enabled,
-+	 * we need to enable the clock first.
-+	 */
-+	ret = clk_prepare_enable(gmin_subdevs[i].pmc_clk);
-+	if (!ret)
-+		clk_disable_unprepare(gmin_subdevs[i].pmc_clk);
-+
- 	if (!IS_ERR(gmin_subdevs[i].gpio0)) {
- 		ret = gpiod_direction_output(gmin_subdevs[i].gpio0, 0);
- 		if (ret)
-@@ -539,13 +570,21 @@ static int gmin_flisclk_ctrl(struct v4l2_subdev *subdev, int on)
- {
- 	int ret = 0;
- 	struct gmin_subdev *gs = find_gmin_subdev(subdev);
-+	struct i2c_client *client = v4l2_get_subdevdata(subdev);
-+
-+	if (on) {
-+		ret = clk_set_rate(gs->pmc_clk, gs->clock_src);
-+
-+		if (ret)
-+			dev_err(&client->dev, "unable to set PMC rate %d\n",
-+				gs->clock_src);
+ 		gsc_0: video-scaler@13e00000 {
+-			compatible = "samsung,exynos5-gsc", "samsung,exynos5420-gsc";
++			compatible = "samsung,exynos5420-gsc";
+ 			reg = <0x13e00000 0x1000>;
+ 			interrupts = <GIC_SPI 85 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&clock CLK_GSCL0>;
+@@ -668,7 +668,7 @@
+ 		};
  
--	if (on)
--		ret = vlv2_plat_set_clock_freq(gs->clock_num, gs->clock_src);
--	if (ret)
--		return ret;
--	return vlv2_plat_configure_clock(gs->clock_num,
--					 on ? VLV2_CLK_ON : VLV2_CLK_OFF);
-+		ret = clk_prepare_enable(gs->pmc_clk);
-+	} else {
-+		clk_disable_unprepare(gs->pmc_clk);
-+	}
-+
-+	return ret;
- }
- 
- static int gmin_csi_cfg(struct v4l2_subdev *sd, int flag)
+ 		gsc_1: video-scaler@13e10000 {
+-			compatible = "samsung,exynos5-gsc", "samsung,exynos5420-gsc";
++			compatible = "samsung,exynos5420-gsc";
+ 			reg = <0x13e10000 0x1000>;
+ 			interrupts = <GIC_SPI 86 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&clock CLK_GSCL1>;
 -- 
-2.11.0
+1.9.1
