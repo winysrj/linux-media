@@ -1,43 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33468 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751441AbdILImv (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:34980 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753213AbdIID4q (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 04:42:51 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+        Fri, 8 Sep 2017 23:56:46 -0400
+Message-ID: <a920f30ad88807c12c2a18b860e7e74f@smtp-cloud9.xs4all.net>
+Date: Sat, 09 Sep 2017 05:56:43 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v11 20/24] dt: bindings: smiapp: Document lens-focus and flash-leds properties
-Date: Tue, 12 Sep 2017 11:42:32 +0300
-Message-Id: <20170912084236.1154-21-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
-References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document optional lens-focus and flash-leds properties for the smiapp driver.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
----
- Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
- 1 file changed, 2 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-index 855e1faf73e2..33f10a94c381 100644
---- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-@@ -27,6 +27,8 @@ Optional properties
- - nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
-   the NVM contents will not be read.
- - reset-gpios: XSHUTDOWN GPIO
-+- flash-leds: See ../video-interfaces.txt
-+- lens-focus: See ../video-interfaces.txt
- 
- 
- Endpoint node mandatory properties
--- 
-2.11.0
+date:			Sat Sep  9 05:00:20 CEST 2017
+media-tree git hash:	1efdf1776e2253b77413c997bed862410e4b6aaf
+media_build git hash:	bbd9f669f0da6705fe44aff89281c0d6e7bfd73e
+v4l-utils git hash:	3296adfa7fa169111bf37c041c0ca70ac8506054
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
