@@ -1,312 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:57952 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751408AbdIYJyS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 05:54:18 -0400
-Subject: Re: [PATCH v6 10/25] rcar-vin: read subdevice format for crop only
- when needed
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
- <20170822232640.26147-11-niklas.soderlund+renesas@ragnatech.se>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <f5264994-1325-beb1-a1f0-ad8285aa5e4a@xs4all.nl>
-Date: Mon, 25 Sep 2017 11:54:15 +0200
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42443 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750821AbdIIVr1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 9 Sep 2017 17:47:27 -0400
+Date: Sat, 9 Sep 2017 23:47:24 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        sre@kernel.org
+Subject: [RFC] et8ek8: Add support for flash and lens devices
+Message-ID: <20170909214724.GA18677@amd>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131822.31020-18-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20170822232640.26147-11-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="9amGYk9869ThD9tj"
+Content-Disposition: inline
+In-Reply-To: <20170908131822.31020-18-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23/08/17 01:26, Niklas Söderlund wrote:
-> Instead of caching the subdevice format each time the video device
-> format is set read it directly when its needed. As it turns out the
 
-its -> it's
+--9amGYk9869ThD9tj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> format is only needed when figuring out the max rectangle for cropping.
-> 
-> This simplify the code and makes it clearer what the source format is
 
-simplify -> simplifies
+Parse async sub-devices by using
+v4l2_subdev_fwnode_reference_parse_sensor_common().
 
-> used for.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+These types devices aren't directly related to the sensor, but are
+nevertheless handled by the et8ek8 driver due to the relationship of these
+component to the main part of the camera module --- the sensor.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz> # Not yet ready -- broken whites=
+pace
 
-Regards,
+---
 
-	Hans
+Whitespace is horribly bad. But otherwise... does it look ok?
 
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 88 ++++++++++++++---------------
->  drivers/media/platform/rcar-vin/rcar-vin.h  | 12 ----
->  2 files changed, 42 insertions(+), 58 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index 305a74d033b2d9c5..c8c764188b85a926 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -90,24 +90,30 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
->   * V4L2
->   */
->  
-> -int rvin_reset_format(struct rvin_dev *vin)
-> +static int rvin_get_sd_format(struct rvin_dev *vin, struct v4l2_pix_format *pix)
->  {
->  	struct v4l2_subdev_format fmt = {
->  		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-> +		.pad = vin->digital.source_pad,
->  	};
-> -	struct v4l2_mbus_framefmt *mf = &fmt.format;
->  	int ret;
->  
-> -	fmt.pad = vin->digital.source_pad;
-> -
->  	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
->  	if (ret)
->  		return ret;
->  
-> -	vin->format.width	= mf->width;
-> -	vin->format.height	= mf->height;
-> -	vin->format.colorspace	= mf->colorspace;
-> -	vin->format.field	= mf->field;
-> +	v4l2_fill_pix_format(pix, &fmt.format);
-> +
-> +	return 0;
-> +}
-> +
-> +int rvin_reset_format(struct rvin_dev *vin)
-> +{
-> +	int ret;
-> +
-> +	ret = rvin_get_sd_format(vin, &vin->format);
-> +	if (ret)
-> +		return ret;
->  
->  	/*
->  	 * If the subdevice uses ALTERNATE field mode and G_STD is
-> @@ -137,12 +143,12 @@ int rvin_reset_format(struct rvin_dev *vin)
->  	}
->  
->  	vin->crop.top = vin->crop.left = 0;
-> -	vin->crop.width = mf->width;
-> -	vin->crop.height = mf->height;
-> +	vin->crop.width = vin->format.width;
-> +	vin->crop.height = vin->format.height;
->  
->  	vin->compose.top = vin->compose.left = 0;
-> -	vin->compose.width = mf->width;
-> -	vin->compose.height = mf->height;
-> +	vin->compose.width = vin->format.width;
-> +	vin->compose.height = vin->format.height;
->  
->  	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
->  	vin->format.sizeimage = rvin_format_sizeimage(&vin->format);
-> @@ -151,9 +157,7 @@ int rvin_reset_format(struct rvin_dev *vin)
->  }
->  
->  static int __rvin_try_format_source(struct rvin_dev *vin,
-> -				    u32 which,
-> -				    struct v4l2_pix_format *pix,
-> -				    struct rvin_source_fmt *source)
-> +				    u32 which, struct v4l2_pix_format *pix)
->  {
->  	struct v4l2_subdev *sd;
->  	struct v4l2_subdev_pad_config *pad_cfg;
-> @@ -186,25 +190,15 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
->  	v4l2_fill_pix_format(pix, &format.format);
->  
->  	pix->field = field;
-> -
-> -	source->width = pix->width;
-> -	source->height = pix->height;
-> -
->  	pix->width = width;
->  	pix->height = height;
-> -
-> -	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
-> -		source->height);
-> -
->  done:
->  	v4l2_subdev_free_pad_config(pad_cfg);
->  	return ret;
->  }
->  
->  static int __rvin_try_format(struct rvin_dev *vin,
-> -			     u32 which,
-> -			     struct v4l2_pix_format *pix,
-> -			     struct rvin_source_fmt *source)
-> +			     u32 which, struct v4l2_pix_format *pix)
->  {
->  	u32 walign;
->  	int ret;
-> @@ -225,7 +219,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
->  	pix->sizeimage = 0;
->  
->  	/* Limit to source capabilities */
-> -	ret = __rvin_try_format_source(vin, which, pix, source);
-> +	ret = __rvin_try_format_source(vin, which, pix);
->  	if (ret)
->  		return ret;
->  
-> @@ -234,7 +228,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
->  	case V4L2_FIELD_BOTTOM:
->  	case V4L2_FIELD_ALTERNATE:
->  		pix->height /= 2;
-> -		source->height /= 2;
->  		break;
->  	case V4L2_FIELD_NONE:
->  	case V4L2_FIELD_INTERLACED_TB:
-> @@ -286,30 +279,23 @@ static int rvin_try_fmt_vid_cap(struct file *file, void *priv,
->  				struct v4l2_format *f)
->  {
->  	struct rvin_dev *vin = video_drvdata(file);
-> -	struct rvin_source_fmt source;
->  
-> -	return __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_TRY, &f->fmt.pix,
-> -				 &source);
-> +	return __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_TRY, &f->fmt.pix);
->  }
->  
->  static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
->  			      struct v4l2_format *f)
->  {
->  	struct rvin_dev *vin = video_drvdata(file);
-> -	struct rvin_source_fmt source;
->  	int ret;
->  
->  	if (vb2_is_busy(&vin->queue))
->  		return -EBUSY;
->  
-> -	ret = __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_ACTIVE, &f->fmt.pix,
-> -				&source);
-> +	ret = __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_ACTIVE, &f->fmt.pix);
->  	if (ret)
->  		return ret;
->  
-> -	vin->source.width = source.width;
-> -	vin->source.height = source.height;
-> -
->  	vin->format = f->fmt.pix;
->  
->  	return 0;
-> @@ -340,6 +326,8 @@ static int rvin_g_selection(struct file *file, void *fh,
->  			    struct v4l2_selection *s)
->  {
->  	struct rvin_dev *vin = video_drvdata(file);
-> +	struct v4l2_pix_format pix;
-> +	int ret;
->  
->  	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->  		return -EINVAL;
-> @@ -347,9 +335,12 @@ static int rvin_g_selection(struct file *file, void *fh,
->  	switch (s->target) {
->  	case V4L2_SEL_TGT_CROP_BOUNDS:
->  	case V4L2_SEL_TGT_CROP_DEFAULT:
-> +		ret = rvin_get_sd_format(vin, &pix);
-> +		if (ret)
-> +			return ret;
->  		s->r.left = s->r.top = 0;
-> -		s->r.width = vin->source.width;
-> -		s->r.height = vin->source.height;
-> +		s->r.width = pix.width;
-> +		s->r.height = pix.height;
->  		break;
->  	case V4L2_SEL_TGT_CROP:
->  		s->r = vin->crop;
-> @@ -375,12 +366,14 @@ static int rvin_s_selection(struct file *file, void *fh,
->  {
->  	struct rvin_dev *vin = video_drvdata(file);
->  	const struct rvin_video_format *fmt;
-> +	struct v4l2_pix_format pix;
->  	struct v4l2_rect r = s->r;
->  	struct v4l2_rect max_rect;
->  	struct v4l2_rect min_rect = {
->  		.width = 6,
->  		.height = 2,
->  	};
-> +	int ret;
->  
->  	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->  		return -EINVAL;
-> @@ -390,22 +383,25 @@ static int rvin_s_selection(struct file *file, void *fh,
->  	switch (s->target) {
->  	case V4L2_SEL_TGT_CROP:
->  		/* Can't crop outside of source input */
-> +		ret = rvin_get_sd_format(vin, &pix);
-> +		if (ret)
-> +			return ret;
->  		max_rect.top = max_rect.left = 0;
-> -		max_rect.width = vin->source.width;
-> -		max_rect.height = vin->source.height;
-> +		max_rect.width = pix.width;
-> +		max_rect.height = pix.height;
->  		v4l2_rect_map_inside(&r, &max_rect);
->  
-> -		v4l_bound_align_image(&r.width, 2, vin->source.width, 1,
-> -				      &r.height, 4, vin->source.height, 2, 0);
-> +		v4l_bound_align_image(&r.width, 2, pix.width, 1,
-> +				      &r.height, 4, pix.height, 2, 0);
->  
-> -		r.top  = clamp_t(s32, r.top, 0, vin->source.height - r.height);
-> -		r.left = clamp_t(s32, r.left, 0, vin->source.width - r.width);
-> +		r.top  = clamp_t(s32, r.top, 0, pix.height - r.height);
-> +		r.left = clamp_t(s32, r.left, 0, pix.width - r.width);
->  
->  		vin->crop = s->r = r;
->  
->  		vin_dbg(vin, "Cropped %dx%d@%d:%d of %dx%d\n",
->  			r.width, r.height, r.left, r.top,
-> -			vin->source.width, vin->source.height);
-> +			pix.width, pix.height);
->  		break;
->  	case V4L2_SEL_TGT_COMPOSE:
->  		/* Make sure compose rect fits inside output format */
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-> index fc70ded462ed3244..cd8d9a96f78f3267 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -48,16 +48,6 @@ enum rvin_dma_state {
->  	STOPPING,
->  };
->  
-> -/**
-> - * struct rvin_source_fmt - Source information
-> - * @width:	Width from source
-> - * @height:	Height from source
-> - */
-> -struct rvin_source_fmt {
-> -	u32 width;
-> -	u32 height;
-> -};
-> -
->  /**
->   * struct rvin_video_format - Data format stored in memory
->   * @fourcc:	Pixelformat
-> @@ -125,7 +115,6 @@ struct rvin_info {
->   * @sequence:		V4L2 buffers sequence number
->   * @state:		keeps track of operation state
->   *
-> - * @source:		active format from the video source
->   * @format:		active V4L2 pixel format
->   *
->   * @crop:		active cropping
-> @@ -152,7 +141,6 @@ struct rvin_dev {
->  	unsigned int sequence;
->  	enum rvin_dma_state state;
->  
-> -	struct rvin_source_fmt source;
->  	struct v4l2_pix_format format;
->  
->  	struct v4l2_rect crop;
-> 
+
+diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c/e=
+t8ek8/et8ek8_driver.c
+index c14f0fd..7714d2c 100644
+--- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
++++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+@@ -34,10 +34,12 @@
+ #include <linux/sort.h>
+ #include <linux/v4l2-mediabus.h>
+=20
++#include <media/v4l2-async.h>
+ #include <media/media-entity.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
++#include <media/v4l2-fwnode.h>
+=20
+ #include "et8ek8_reg.h"
+=20
+@@ -46,6 +48,7 @@
+ #define ET8EK8_MAX_MSG		8
+=20
+ struct et8ek8_sensor {
++	struct v4l2_async_notifier notifier;
+ 	struct v4l2_subdev subdev;
+ 	struct media_pad pad;
+ 	struct v4l2_mbus_framefmt format;
+@@ -1446,6 +1449,11 @@ static int et8ek8_probe(struct i2c_client *client,
+ 	sensor->subdev.flags |=3D V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	sensor->subdev.internal_ops =3D &et8ek8_internal_ops;
+=20
++	ret =3D v4l2_fwnode_reference_parse_sensor_common(
++                &client->dev, &sensor->notifier);
++        if (ret < 0 && ret !=3D -ENOENT)
++                return ret;
++
+ 	sensor->pad.flags =3D MEDIA_PAD_FL_SOURCE;
+ 	ret =3D media_entity_pads_init(&sensor->subdev.entity, 1, &sensor->pad);
+ 	if (ret < 0) {
+@@ -1453,14 +1461,21 @@ static int et8ek8_probe(struct i2c_client *client,
+ 		goto err_mutex;
+ 	}
+=20
++        ret =3D v4l2_async_subdev_notifier_register(&sensor->subdev,
++						  &sensor->notifier);
++	if (ret)
++		goto err_entity;
++
+ 	ret =3D v4l2_async_register_subdev(&sensor->subdev);
+ 	if (ret < 0)
+-		goto err_entity;
++		goto err_async;
+=20
+ 	dev_dbg(dev, "initialized!\n");
+=20
+ 	return 0;
+=20
++err_async:
++	v4l2_async_notifier_unregister(&sensor->notifier);
+ err_entity:
+ 	media_entity_cleanup(&sensor->subdev.entity);
+ err_mutex:
+@@ -1480,6 +1495,7 @@ static int __exit et8ek8_remove(struct i2c_client *cl=
+ient)
+ 	}
+=20
+ 	v4l2_device_unregister_subdev(&sensor->subdev);
++	v4l2_async_notifier_unregister(&sensor->notifier);
+ 	device_remove_file(&client->dev, &dev_attr_priv_mem);
+ 	v4l2_ctrl_handler_free(&sensor->ctrl_handler);
+ 	v4l2_async_unregister_subdev(&sensor->subdev);
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--9amGYk9869ThD9tj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlm0YWwACgkQMOfwapXb+vI5LwCdGGZ6Fws0gfHlx+JaebUPe+6k
+OOgAn3PCwf7UwIUZyYg/oUjHeQtmnHYT
+=4xH7
+-----END PGP SIGNATURE-----
+
+--9amGYk9869ThD9tj--
