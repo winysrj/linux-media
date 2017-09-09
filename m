@@ -1,50 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48385
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752438AbdIATiD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 15:38:03 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 03/14] media: gen-errors.rst: document ENXIO error code
-Date: Fri,  1 Sep 2017 16:37:39 -0300
-Message-Id: <5847e375f1bacc37558b44946e025ab326721b11.1504293108.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
-References: <cover.1504293108.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
-References: <cover.1504293108.git.mchehab@s-opensource.com>
+Received: from mout.web.de ([212.227.17.11]:62026 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750789AbdIITMq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 9 Sep 2017 15:12:46 -0400
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/2] [media] xc4000: Adjustments for xc4000_fwupload()
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Message-ID: <61016489-eb01-2977-b094-343aa70686b0@users.sourceforge.net>
+Date: Sat, 9 Sep 2017 21:12:31 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This error can be produced at least at the DVB subsystem.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 9 Sep 2017 21:00:12 +0200
 
-As it is generic enough, document it.
+Two update suggestions were taken into account
+from static source code analysis.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/gen-errors.rst | 5 +++++
- 1 file changed, 5 insertions(+)
+Markus Elfring (2):
+  Delete two error messages for a failed memory allocation
+  Adjust two null pointer checks
 
-diff --git a/Documentation/media/uapi/gen-errors.rst b/Documentation/media/uapi/gen-errors.rst
-index d51f672021c4..689d3b101ede 100644
---- a/Documentation/media/uapi/gen-errors.rst
-+++ b/Documentation/media/uapi/gen-errors.rst
-@@ -80,6 +80,11 @@ Generic Error Codes
-           a hardware device. This could indicate broken or flaky hardware.
- 	  It's a 'Something is wrong, I give up!' type of error.
- 
-+    -  - ``ENXIO``
-+
-+       -  No device corresponding to this device special file exists.
-+
-+
- .. note::
- 
-   #. This list is not exhaustive; ioctls may return other error codes.
+ drivers/media/tuners/xc4000.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
 -- 
-2.13.5
+2.14.1
