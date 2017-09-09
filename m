@@ -1,74 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:33268 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751507AbdINBTt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 21:19:49 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        heiko@sntech.de, robh+dt@kernel.org, mchehab@kernel.org,
-        linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, nicolas@ndufresne.ca,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Yakir Yang <ykk@rock-chips.com>
-Subject: [PATCH v9 4/4] dt-bindings: Document the Rockchip RGA bindings
-Date: Thu, 14 Sep 2017 09:19:17 +0800
-Message-Id: <1505351957-14479-5-git-send-email-jacob-chen@iotwrt.com>
-In-Reply-To: <1505351957-14479-1-git-send-email-jacob-chen@iotwrt.com>
-References: <1505351957-14479-1-git-send-email-jacob-chen@iotwrt.com>
+Received: from mout.web.de ([212.227.17.12]:59253 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751012AbdIIUcS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 9 Sep 2017 16:32:18 -0400
+Subject: [PATCH 2/3] [media] xc2028: Adjust two null pointer checks in
+ load_all_firmwares()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <c2317603-f640-b0a6-ab86-7fda8040b6ba@users.sourceforge.net>
+Message-ID: <10e92128-444a-bec3-e021-61379c21bf4d@users.sourceforge.net>
+Date: Sat, 9 Sep 2017 22:32:11 +0200
+MIME-Version: 1.0
+In-Reply-To: <c2317603-f640-b0a6-ab86-7fda8040b6ba@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT bindings documentation for Rockchip RGA
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 9 Sep 2017 21:48:58 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-Signed-off-by: Yakir Yang <ykk@rock-chips.com>
-Acked-by: Rob Herring <robh@kernel.org>
+The script “checkpatch.pl” pointed information out like the following.
+
+Comparison to NULL could be written !…
+
+Thus fix the affected source code places.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- .../devicetree/bindings/media/rockchip-rga.txt     | 33 ++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
+ drivers/media/tuners/tuner-xc2028.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/rockchip-rga.txt b/Documentation/devicetree/bindings/media/rockchip-rga.txt
-new file mode 100644
-index 0000000..fd5276a
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/rockchip-rga.txt
-@@ -0,0 +1,33 @@
-+device-tree bindings for rockchip 2D raster graphic acceleration controller (RGA)
-+
-+RGA is a standalone 2D raster graphic acceleration unit. It accelerates 2D
-+graphics operations, such as point/line drawing, image scaling, rotation,
-+BitBLT, alpha blending and image blur/sharpness.
-+
-+Required properties:
-+- compatible: value should be one of the following
-+		"rockchip,rk3288-rga";
-+		"rockchip,rk3399-rga";
-+
-+- interrupts: RGA interrupt specifier.
-+
-+- clocks: phandle to RGA sclk/hclk/aclk clocks
-+
-+- clock-names: should be "aclk", "hclk" and "sclk"
-+
-+- resets: Must contain an entry for each entry in reset-names.
-+  See ../reset/reset.txt for details.
-+- reset-names: should be "core", "axi" and "ahb"
-+
-+Example:
-+SoC-specific DT entry:
-+	rga: rga@ff680000 {
-+		compatible = "rockchip,rk3399-rga";
-+		reg = <0xff680000 0x10000>;
-+		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA_CORE>;
-+		clock-names = "aclk", "hclk", "sclk";
-+
-+		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru SRST_H_RGA>;
-+		reset-names = "core, "axi", "ahb";
-+	};
+diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
+index 7353f25f9e7d..90efe11aa0a8 100644
+--- a/drivers/media/tuners/tuner-xc2028.c
++++ b/drivers/media/tuners/tuner-xc2028.c
+@@ -335,5 +335,5 @@ static int load_all_firmwares(struct dvb_frontend *fe,
+ 		   priv->firm_version >> 8, priv->firm_version & 0xff);
+ 
+ 	priv->firm = kcalloc(n_array, sizeof(*priv->firm), GFP_KERNEL);
+-	if (priv->firm == NULL) {
++	if (!priv->firm) {
+ 		rc = -ENOMEM;
+@@ -384,5 +384,5 @@ static int load_all_firmwares(struct dvb_frontend *fe,
+ 		}
+ 
+ 		priv->firm[n].ptr = kzalloc(size, GFP_KERNEL);
+-		if (priv->firm[n].ptr == NULL) {
++		if (!priv->firm[n].ptr) {
+ 			rc = -ENOMEM;
 -- 
-2.7.4
+2.14.1
