@@ -1,55 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:40921 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756615AbdIHSwt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 14:52:49 -0400
-Date: Fri, 8 Sep 2017 19:52:47 +0100
-From: Sean Young <sean@mess.org>
-To: Stephen Hemminger <stephen@networkplumber.org>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Stephen Hemminger <sthemmin@microsoft.com>
-Subject: Re: [PATCH] media: default for RC_CORE should be n
-Message-ID: <20170908185247.un3c7bjnety6uja3@gofer.mess.org>
-References: <20170908163929.9277-1-sthemmin@microsoft.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33612 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750935AbdIIWGN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 9 Sep 2017 18:06:13 -0400
+Date: Sun, 10 Sep 2017 01:06:10 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        sre@kernel.org
+Subject: Re: [RFC] et8ek8: Add support for flash and lens devices
+Message-ID: <20170909220610.mireq3wv6leokvjk@valkosipuli.retiisi.org.uk>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131822.31020-18-sakari.ailus@linux.intel.com>
+ <20170909214724.GA18677@amd>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170908163929.9277-1-sthemmin@microsoft.com>
+In-Reply-To: <20170909214724.GA18677@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 08, 2017 at 09:39:29AM -0700, Stephen Hemminger wrote:
-> The Linus policy on Kconfig is that the default should be no
-> for all new devices. I.e the user rebuild a new kernel from an
-> old config should not by default get a larger kernel.
+Hi Pavel,
 
-That might make sense for new config, but RC_CORE has been present for
-7 years; I don't see how changing defaults for existing config makes
-sense.
-
-
-Sean
-
+On Sat, Sep 09, 2017 at 11:47:24PM +0200, Pavel Machek wrote:
 > 
-> Fixes: b4c184e506a4 ("[media] media: reorganize the main Kconfig items")
-> Signed-off-by: Stephen Hemminger <sthemmin@microsoft.com>
+> Parse async sub-devices by using
+> v4l2_subdev_fwnode_reference_parse_sensor_common().
+> 
+> These types devices aren't directly related to the sensor, but are
+> nevertheless handled by the et8ek8 driver due to the relationship of these
+> component to the main part of the camera module --- the sensor.
+> 
+> Signed-off-by: Pavel Machek <pavel@ucw.cz> # Not yet ready -- broken whitespace
+> 
 > ---
->  drivers/media/rc/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> index d9ce8ff55d0c..5aa384afcfef 100644
-> --- a/drivers/media/rc/Kconfig
-> +++ b/drivers/media/rc/Kconfig
-> @@ -2,7 +2,7 @@
->  menuconfig RC_CORE
->  	tristate "Remote Controller support"
->  	depends on INPUT
-> -	default y
-> +	default n
->  	---help---
->  	  Enable support for Remote Controllers on Linux. This is
->  	  needed in order to support several video capture adapters,
-> -- 
-> 2.11.0
+> Whitespace is horribly bad. But otherwise... does it look ok?
+
+It mostly mirrors the smiapp driver implementation and, well, is an issue.
+Namely it's lacking releasing the notifier's resources, just like the
+smiapp driver. I'll update the smiapp patch --- the notifier's resources
+need to be released by calling v4l2_async_notifier_release(); see the 5th
+patch.
+
+Other than that it seems good.
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
