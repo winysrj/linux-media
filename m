@@ -1,54 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42638 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750865AbdIOQmN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 12:42:13 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com,
-        linux-renesas-soc@vger.kernel.org
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v1 0/3] drm/media: Implement DU Suspend and Resume on VSP pipelines
-Date: Fri, 15 Sep 2017 17:42:04 +0100
-Message-Id: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:48760 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757293AbdIIJQs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 9 Sep 2017 05:16:48 -0400
+Date: Sat, 9 Sep 2017 11:16:46 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        sre@kernel.org
+Subject: Re: [PATCH v9 09/24] omap3isp: Print the name of the entity where no
+ source pads could be found
+Message-ID: <20170909091646.GL27428@amd>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131822.31020-5-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="B92bTrfKjyax39gr"
+Content-Disposition: inline
+In-Reply-To: <20170908131822.31020-5-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This short series covers two subsystems and implements support for suspend and
-resume operations on the DU pipelines on Gen3 Rcar platforms.
 
-Patch 1: Prevent resuming DRM pipelines,
-  - Ensures that the VSP does not incorrectly start DU pipelines.
+--B92bTrfKjyax39gr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Patch 2: Add suspend resume helpers
-  - Makes use of the atomic helper functions to control the CRTCs
-    and fbdev emulation.
+On Fri 2017-09-08 16:18:07, Sakari Ailus wrote:
+> If no source pads are found in an entity, print the name of the entity.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Patch 3: Remove unused CRTC suspend/resume functions
-  - Cleans up some old, related but unused functions that are not
-    necessary to keep in the code base.
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
-Whilst this is posted as a single series, there are no hard dependencies
-between any of the three patches. They can be picked up independently as
-and when they are successfully reviewed.
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-This series can be fetched from the following:
+--B92bTrfKjyax39gr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
- git://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git tags/vsp-du/du-suspend-resume/v1
-  
-It is based upon a merge of both the current linux-media master branch and the DRM drm-next tree.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Kieran Bingham (3):
-  media: vsp1: Prevent resuming DRM pipelines
-  drm: rcar-du: Add suspend resume helpers
-  drm: rcar-du: Remove unused CRTC suspend/resume functions
+iEYEARECAAYFAlmzsX4ACgkQMOfwapXb+vL4kgCfQ0VfbYsglb2a6RBGOAIXZj+s
+HuwAoJmkt+Qw8UeLeDmx+bSzKGGoy/MT
+=YSIA
+-----END PGP SIGNATURE-----
 
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 35 +---------------------------
- drivers/gpu/drm/rcar-du/rcar_du_drv.c  | 18 +++++++++++---
- drivers/gpu/drm/rcar-du/rcar_du_drv.h  |  1 +-
- drivers/media/platform/vsp1/vsp1_drv.c |  8 +++++-
- 4 files changed, 23 insertions(+), 39 deletions(-)
-
-base-commit: 8d2ec9ae96657bbd539d88dbc9d01088f2c9ee63
--- 
-git-series 0.9.1
+--B92bTrfKjyax39gr--
