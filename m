@@ -1,51 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:58898 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751649AbdICUfR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 3 Sep 2017 16:35:17 -0400
-Subject: [PATCH 5/7] [media] Hexium Orion: Delete an error message for a
- failed memory allocation in hexium_probe()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <170abf7f-3b62-a37c-966a-8b574acae230@users.sourceforge.net>
-Message-ID: <80c8a86a-5b26-0c40-5d71-730870958556@users.sourceforge.net>
-Date: Sun, 3 Sep 2017 22:35:06 +0200
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:48701 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757293AbdIIJPL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 9 Sep 2017 05:15:11 -0400
+Date: Sat, 9 Sep 2017 11:15:09 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        sre@kernel.org
+Subject: Re: [PATCH v9 03/24] v4l: async: Use more intuitive names for
+ internal functions
+Message-ID: <20170909091509.GJ27428@amd>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131235.30294-4-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <170abf7f-3b62-a37c-966a-8b574acae230@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="FCKy2vjPBX+S/5dE"
+Content-Disposition: inline
+In-Reply-To: <20170908131235.30294-4-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 3 Sep 2017 19:55:25 +0200
 
-Omit an extra message for a memory allocation failure in this function.
+--FCKy2vjPBX+S/5dE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This issue was detected by using the Coccinelle software.
+On Fri 2017-09-08 16:11:54, Sakari Ailus wrote:
+> Rename internal functions to make the names of the functions better
+> describe what they do.
+>=20
+> 	Old name			New name
+> 	v4l2_async_test_notify	v4l2_async_match_notify
+> 	v4l2_async_belongs	v4l2_async_find_match
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/pci/saa7146/hexium_orion.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
-diff --git a/drivers/media/pci/saa7146/hexium_orion.c b/drivers/media/pci/saa7146/hexium_orion.c
-index c306a92e8909..72fac6a8494a 100644
---- a/drivers/media/pci/saa7146/hexium_orion.c
-+++ b/drivers/media/pci/saa7146/hexium_orion.c
-@@ -223,7 +223,5 @@ static int hexium_probe(struct saa7146_dev *dev)
--	if (NULL == hexium) {
--		pr_err("hexium_probe: not enough kernel memory\n");
-+	if (!hexium)
- 		return -ENOMEM;
--	}
- 
- 	/* enable i2c-port pins */
- 	saa7146_write(dev, MC1, (MASK_08 | MASK_24 | MASK_10 | MASK_26));
--- 
-2.14.1
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--FCKy2vjPBX+S/5dE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlmzsR0ACgkQMOfwapXb+vJLWgCgnQ0MJZ5q6mmVzFVDUE+JwbN6
+BTEAoJYG02xlSAHlmwUG/WbPZ6oOnR6y
+=UJaZ
+-----END PGP SIGNATURE-----
+
+--FCKy2vjPBX+S/5dE--
