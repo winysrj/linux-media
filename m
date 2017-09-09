@@ -1,131 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:33135 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S968951AbdI0Dwi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 23:52:38 -0400
-Message-ID: <03a481c09a71bb58f68d39a796c8ba46@smtp-cloud7.xs4all.net>
-Date: Wed, 27 Sep 2017 05:52:35 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36142 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751166AbdIIScn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 9 Sep 2017 14:32:43 -0400
+Date: Sat, 9 Sep 2017 20:32:40 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        sre@kernel.org
+Subject: Re: [PATCH v9 24/24] arm: dts: omap3: N9/N950: Add flash references
+ to the camera
+Message-ID: <20170909183240.GA15397@amd>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131822.31020-20-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
+Content-Disposition: inline
+In-Reply-To: <20170908131822.31020-20-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-date:			Wed Sep 27 05:00:15 CEST 2017
-media-tree git hash:	d5426f4c2ebac8cf05de43988c3fccddbee13d28
-media_build git hash:	b829b621b4c2e6c5cbedbd1ce62b4e958f7d13a4
-v4l-utils git hash:	8be65674f9a57e4bc35858f86bb5489f0afd22c1
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+Hi!
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: OK
-spec-git: OK
+> Add flash and indicator LED phandles to the sensor node.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Detailed results are available here:
+I'm adding similar support to et8ek8 and wonder.. why don't you also
+add support for autofocus? Driver not yet available?
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Thanks,
+							Pavel
+> @@ -26,6 +26,7 @@
+>  		clocks =3D <&isp 0>;
+>  		clock-frequency =3D <9600000>;
+>  		nokia,nvm-size =3D <(16 * 64)>;
+> +		flash-leds =3D <&as3645a_flash &as3645a_indicator>;
+>  		port {
+>  			smia_1_1: endpoint {
+>  				link-frequencies =3D /bits/ 64 <199200000 210000000 499200000>;
+> diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/oma=
+p3-n950-n9.dtsi
+> index 1b0bd72945f2..12fbb3da5fce 100644
+> --- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
+> +++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+> @@ -271,14 +271,14 @@
+>  		#size-cells =3D <0>;
+>  		reg =3D <0x30>;
+>  		compatible =3D "ams,as3645a";
+> -		flash@0 {
+> +		as3645a_flash: flash@0 {
+>  			reg =3D <0x0>;
+>  			flash-timeout-us =3D <150000>;
+>  			flash-max-microamp =3D <320000>;
+>  			led-max-microamp =3D <60000>;
+>  			ams,input-max-microamp =3D <1750000>;
+>  		};
+> -		indicator@1 {
+> +		as3645a_indicator: indicator@1 {
+>  			reg =3D <0x1>;
+>  			led-max-microamp =3D <10000>;
+>  		};
+> diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n=
+950.dts
+> index 646601a3ebd8..c354a1ed1e70 100644
+> --- a/arch/arm/boot/dts/omap3-n950.dts
+> +++ b/arch/arm/boot/dts/omap3-n950.dts
+> @@ -60,6 +60,7 @@
+>  		clocks =3D <&isp 0>;
+>  		clock-frequency =3D <9600000>;
+>  		nokia,nvm-size =3D <(16 * 64)>;
+> +		flash-leds =3D <&as3645a_flash &as3645a_indicator>;
+>  		port {
+>  			smia_1_1: endpoint {
+>  				link-frequencies =3D /bits/ 64 <210000000 333600000 398400000>;
 
-Full logs are available here:
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+--oyUTqETQ0mS9luUI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-The Media Infrastructure API from this daily build is here:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+iEYEARECAAYFAlm0M8gACgkQMOfwapXb+vIvZQCfate7l5DVw3yuBkMxAzasFiS3
+fE8AoJKmlEnPsw/DqFrOArXFG6qVcieC
+=ASCE
+-----END PGP SIGNATURE-----
+
+--oyUTqETQ0mS9luUI--
