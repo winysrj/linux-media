@@ -1,82 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:34467 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750965AbdIKKoN (ORCPT
+Received: from angelia.univ-tours.fr ([193.52.209.20]:42475 "EHLO
+        angelia.univ-tours.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751315AbdIJJuR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 06:44:13 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, nicolas@ndufresne.ca,
-        Jacob Chen <jacob-chen@iotwrt.com>
-Subject: [PATCH v8 0/4] Add Rockchip RGA V4l2 support
-Date: Mon, 11 Sep 2017 18:44:00 +0800
-Message-Id: <1505126644-18396-1-git-send-email-jacob-chen@iotwrt.com>
+        Sun, 10 Sep 2017 05:50:17 -0400
+Subject: [SUSPECTED SPAM] Can you be our Supplier
+Date: Sun, 10 Sep 2017 11:40:21 +0200 (CEST)
+From: mackenzie <antoine.touze@univ-tours.fr>
+Message-ID: <1093485825.45464970.1505036421295.JavaMail.zimbra@univ-tours.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series add a v4l2 m2m drvier for rockchip RGA direct rendering based 2d graphics acceleration module.
-
-Recently I tried to add protduff support for gstreamer on rockchip platform, and i found that API 
-were not very suitable for my purpose. 
-It shouldn't go upstream until we can figure out what people need, 
-
-change in V8:
-- remove protduff things
-
-change in V6,V7:
-- correct warning in checkpatch.pl
-
-change in V5:
-- v4l2-compliance: handle invalid pxielformat 
-- v4l2-compliance: add subscribe_event
-- add colorspace support
-
-change in V4:
-- document the controls.
-- change according to Hans's comments
-
-change in V3:
-- rename the controls.
-- add pm_runtime support.
-- enable node by default.
-- correct spelling in documents.
-
-change in V2:
-- generalize the controls.
-- map buffers (10-50 us) in every cmd-run rather than in buffer-import to avoid get_free_pages failed on
-actively used systems.
-- remove status in dt-bindings examples.
 
 
-Jacob Chen (4):
-  rockchip/rga: v4l2 m2m support
-  ARM: dts: rockchip: add RGA device node for RK3288
-  arm64: dts: rockchip: add RGA device node for RK3399
-  dt-bindings: Document the Rockchip RGA bindings
+Dear Sir/Madam,
 
- .../devicetree/bindings/media/rockchip-rga.txt     |   33 +
- arch/arm/boot/dts/rk3288.dtsi                      |   11 +
- arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   11 +
- drivers/media/platform/Kconfig                     |   11 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/rockchip-rga/Makefile       |    3 +
- drivers/media/platform/rockchip-rga/rga-buf.c      |  156 +++
- drivers/media/platform/rockchip-rga/rga-hw.c       |  435 ++++++++
- drivers/media/platform/rockchip-rga/rga-hw.h       |  437 +++++++++
- drivers/media/platform/rockchip-rga/rga.c          | 1035 ++++++++++++++++++++
- drivers/media/platform/rockchip-rga/rga.h          |  110 +++
- 11 files changed, 2244 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
- create mode 100644 drivers/media/platform/rockchip-rga/Makefile
- create mode 100644 drivers/media/platform/rockchip-rga/rga-buf.c
- create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.c
- create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.h
- create mode 100644 drivers/media/platform/rockchip-rga/rga.c
- create mode 100644 drivers/media/platform/rockchip-rga/rga.h
+I am Becca MacKenzie, We are interested in your products and want to make you and your company our major suppliers but first we would like your to send us your best price list and Catalog if possible.
 
--- 
-2.7.4
+We will be ordering in large quantity so we are looking forward in making a good relationship with you and your company.
+
+My contact email: becca.mackenzie100@outlook.com
+
+Regards
+Becca MacKenzie
