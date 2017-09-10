@@ -1,56 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55632 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752987AbdI1N1t (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Sep 2017 09:27:49 -0400
-Date: Thu, 28 Sep 2017 16:27:45 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: Re: [RESEND PATCH v2 13/17] media: v4l2-async: simplify
- v4l2_async_subdev structure
-Message-ID: <20170928132745.6pojquwpzcccu6g5@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170928125316.texy2qrzpvzekp7a@valkosipuli.retiisi.org.uk>
+Received: from mail.anw.at ([195.234.101.228]:38598 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751770AbdIJWXR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 10 Sep 2017 18:23:17 -0400
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, jasmin@anw.at
+Subject: [PATCH] build: Added missing functions nsecs_to_jiffies(64)
+Date: Mon, 11 Sep 2017 00:23:17 +0200
+Message-Id: <1505082197-11962-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Jasmin Jessich <jasmin@anw.at>
 
-On Wed, Sep 27, 2017 at 06:46:56PM -0300, Mauro Carvalho Chehab wrote:
-> The V4L2_ASYNC_MATCH_FWNODE match criteria requires just one
-> struct to be filled (struct fwnode_handle). The V4L2_ASYNC_MATCH_DEVNAME
-> match criteria requires just a device name.
-> 
-> So, it doesn't make sense to enclose those into structs,
-> as the criteria can go directly into the union.
-> 
-> That makes easier to document it, as we don't need to document
-> weird senseless structs.
+Several modules expect the functions nsecs_to_jiffies64 and
+nsecs_to_jiffies to be available when they get loaded. For Kernels prior
+to 3.16, this symbol is not exported in time.c .
+Copied the functions to compat.h, so that they get already resolved during
+compilation. Define also a macro with a name conversion, because the
+mentioned functions are defined as extern in include/linux/jiffies.h,
+which gives an error when the are re-defined as static.
 
-The idea is that in the union, there's a struct which is specific to the
-match_type field. I wouldn't call it senseless.
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ v4l/compat.h | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
-In the two cases there's just a single field in the containing struct. You
-could remove the struct in that case as you do in this patch, and just use
-the field. But I think the result is less clean and so I wouldn't make this
-change.
-
-The confusion comes possibly from the fact that the struct is named the
-same as the field in the struct. These used to be called of and node, but
-with the fwnode property framework the references to the fwnode are, well,
-typically similarly called "fwnode". There's no underlying firmware
-interface with that name, fwnode property API is just an API.
-
+diff --git a/v4l/compat.h b/v4l/compat.h
+index 7a49551..3dedf26 100644
+--- a/v4l/compat.h
++++ b/v4l/compat.h
+@@ -2118,4 +2118,41 @@ static inline int pm_runtime_get_if_in_use(struct device *dev)
+ 	.subvendor = (subvend), .subdevice = (subdev)
+ #endif
+ 
++
++#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 16, 0)
++/*
++ * copied from kernel/time/time.c
++ */
++static inline u64 nsecs_to_jiffies64_static(u64 n)
++{
++#if (NSEC_PER_SEC % HZ) == 0
++    /* Common case, HZ = 100, 128, 200, 250, 256, 500, 512, 1000 etc. */
++    return div_u64(n, NSEC_PER_SEC / HZ);
++#elif (HZ % 512) == 0
++    /* overflow after 292 years if HZ = 1024 */
++    return div_u64(n * HZ / 512, NSEC_PER_SEC / 512);
++#else
++    /*
++     * Generic case - optimized for cases where HZ is a multiple of 3.
++     * overflow after 64.99 years, exact for HZ = 60, 72, 90, 120 etc.
++     */
++    return div_u64(n * 9, (9ull * NSEC_PER_SEC + HZ / 2) / HZ);
++#endif
++}
++
++static inline unsigned long nsecs_to_jiffies_static(u64 n)
++{
++    return (unsigned long)nsecs_to_jiffies64_static(n);
++}
++
++/*
++ * linux/jiffies.h defines nsecs_to_jiffies64 and nsecs_to_jiffies
++ * as externals. To get rid of the compiler error, we redefine the
++ * functions to the static variant just defined above.
++ */
++#define nsecs_to_jiffies64(_n) nsecs_to_jiffies64_static(_n)
++#define nsecs_to_jiffies(_n) nsecs_to_jiffies_static(_n)
++
++#endif
++
+ #endif /*  _COMPAT_H */
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
