@@ -1,111 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:39318 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752549AbdIHLdf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 07:33:35 -0400
-Subject: Re: [PATCH v3 2/6] ARM: dts: exynos: Add clean name of compatible.
-To: Hoegeun Kwon <hoegeun.kwon@samsung.com>, inki.dae@samsung.com,
-        airlied@linux.ie, kgene@kernel.org, krzk@kernel.org,
-        robh+dt@kernel.org, mark.rutland@arm.com, catalin.marinas@arm.com,
-        will.deacon@arm.com, mchehab@kernel.org, s.nawrocki@samsung.com,
-        m.szyprowski@samsung.com
-Cc: devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        a.hajda@samsung.com, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org
-References: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
- <CGME20170908060308epcas1p2b275c76f63f5742092a7bc4ef14c05a5@epcas1p2.samsung.com>
- <1504850560-27950-3-git-send-email-hoegeun.kwon@samsung.com>
-From: Robin Murphy <robin.murphy@arm.com>
-Message-ID: <1a2dfeb9-b2e1-3bc6-772a-e3b55fc51b7f@arm.com>
-Date: Fri, 8 Sep 2017 12:33:29 +0100
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:45470 "EHLO
+        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750842AbdIKNVO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 09:21:14 -0400
 MIME-Version: 1.0
-In-Reply-To: <1504850560-27950-3-git-send-email-hoegeun.kwon@samsung.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <9be97d7f-57bc-1c7e-fd86-187a38e0f994@users.sourceforge.net>
+References: <e980c48c-9525-4942-a58e-20af8a96e531@users.sourceforge.net> <9be97d7f-57bc-1c7e-fd86-187a38e0f994@users.sourceforge.net>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Mon, 11 Sep 2017 14:20:42 +0100
+Message-ID: <CA+V-a8u0_RD7k8Db=x6UUPyAaXADa3ouFk7v1N9hXDndf0zk8Q@mail.gmail.com>
+Subject: Re: [PATCH 1/3] [media] DaVinci-VPBE-Display: Delete an error message
+ for a failed memory allocation in init_vpbe_layer()
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/09/17 07:02, Hoegeun Kwon wrote:
-> Exynos 5250 and 5420 have different hardware rotation limits. However,
-> currently it uses only one compatible - "exynos5-gsc". Since we have
-> to distinguish between these two, we add different compatible.
-> 
-> Signed-off-by: Hoegeun Kwon <hoegeun.kwon@samsung.com>
-> ---
->  arch/arm/boot/dts/exynos5250.dtsi | 8 ++++----
->  arch/arm/boot/dts/exynos5420.dtsi | 4 ++--
->  2 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
-> index 8dbeb87..bf08101 100644
-> --- a/arch/arm/boot/dts/exynos5250.dtsi
-> +++ b/arch/arm/boot/dts/exynos5250.dtsi
-> @@ -637,7 +637,7 @@
->  		};
->  
->  		gsc_0:  gsc@13e00000 {
-> -			compatible = "samsung,exynos5-gsc";
-> +			compatible = "samsung,exynos5-gsc", "samsung,exynos5250-gsc";
+On Fri, Sep 8, 2017 at 1:31 PM, SF Markus Elfring
+<elfring@users.sourceforge.net> wrote:
+>
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Thu, 7 Sep 2017 22:37:16 +0200
+>
+> Omit an extra message for a memory allocation failure in this function.
+>
+> This issue was detected by using the Coccinelle software.
+>
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 
-These should be the other way round - the most specific compatible
-should come first, then the more general fallback afterwards.
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-(and similarly in all cases below)
-
-Robin.
-
->  			reg = <0x13e00000 0x1000>;
->  			interrupts = <GIC_SPI 85 IRQ_TYPE_LEVEL_HIGH>;
->  			power-domains = <&pd_gsc>;
-> @@ -647,7 +647,7 @@
->  		};
->  
->  		gsc_1:  gsc@13e10000 {
-> -			compatible = "samsung,exynos5-gsc";
-> +			compatible = "samsung,exynos5-gsc", "samsung,exynos5250-gsc";
->  			reg = <0x13e10000 0x1000>;
->  			interrupts = <GIC_SPI 86 IRQ_TYPE_LEVEL_HIGH>;
->  			power-domains = <&pd_gsc>;
-> @@ -657,7 +657,7 @@
->  		};
->  
->  		gsc_2:  gsc@13e20000 {
-> -			compatible = "samsung,exynos5-gsc";
-> +			compatible = "samsung,exynos5-gsc", "samsung,exynos5250-gsc";
->  			reg = <0x13e20000 0x1000>;
->  			interrupts = <GIC_SPI 87 IRQ_TYPE_LEVEL_HIGH>;
->  			power-domains = <&pd_gsc>;
-> @@ -667,7 +667,7 @@
->  		};
->  
->  		gsc_3:  gsc@13e30000 {
-> -			compatible = "samsung,exynos5-gsc";
-> +			compatible = "samsung,exynos5-gsc", "samsung,exynos5250-gsc";
->  			reg = <0x13e30000 0x1000>;
->  			interrupts = <GIC_SPI 88 IRQ_TYPE_LEVEL_HIGH>;
->  			power-domains = <&pd_gsc>;
-> diff --git a/arch/arm/boot/dts/exynos5420.dtsi b/arch/arm/boot/dts/exynos5420.dtsi
-> index 02d2f89..86afe77 100644
-> --- a/arch/arm/boot/dts/exynos5420.dtsi
-> +++ b/arch/arm/boot/dts/exynos5420.dtsi
-> @@ -658,7 +658,7 @@
->  		};
->  
->  		gsc_0: video-scaler@13e00000 {
-> -			compatible = "samsung,exynos5-gsc";
-> +			compatible = "samsung,exynos5-gsc", "samsung,exynos5420-gsc";
->  			reg = <0x13e00000 0x1000>;
->  			interrupts = <GIC_SPI 85 IRQ_TYPE_LEVEL_HIGH>;
->  			clocks = <&clock CLK_GSCL0>;
-> @@ -668,7 +668,7 @@
->  		};
->  
->  		gsc_1: video-scaler@13e10000 {
-> -			compatible = "samsung,exynos5-gsc";
-> +			compatible = "samsung,exynos5-gsc", "samsung,exynos5420-gsc";
->  			reg = <0x13e10000 0x1000>;
->  			interrupts = <GIC_SPI 86 IRQ_TYPE_LEVEL_HIGH>;
->  			clocks = <&clock CLK_GSCL1>;
-> 
+Cheers,
+--Prabhakar Lad
