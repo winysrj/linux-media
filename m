@@ -1,52 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eddie.linux-mips.org ([148.251.95.138]:42566 "EHLO
-        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751456AbdIGXho (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 19:37:44 -0400
-Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S23994830AbdIGXhl2FHKk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 01:37:41 +0200
-Date: Fri, 8 Sep 2017 01:37:36 +0200
-From: Ladislav Michl <ladis@linux-mips.org>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
-Subject: [PATCH v2 06/10] media: rc: gpio-ir-recv: do not allow threaded
- interrupt handler
-Message-ID: <20170907233735.rrdgxabrqp2pzqyt@lenoch>
-References: <20170907233355.bv3hsv3rfhcx52i3@lenoch>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170907233355.bv3hsv3rfhcx52i3@lenoch>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:34467 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750965AbdIKKoN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 06:44:13 -0400
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, nicolas@ndufresne.ca,
+        Jacob Chen <jacob-chen@iotwrt.com>
+Subject: [PATCH v8 0/4] Add Rockchip RGA V4l2 support
+Date: Mon, 11 Sep 2017 18:44:00 +0800
+Message-Id: <1505126644-18396-1-git-send-email-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Requesting any context irq is not actually great idea since threaded
-interrupt handler is run at too unpredictable time which turns
-timing information wrong. Fix it by requesting regular interrupt.
+This patch series add a v4l2 m2m drvier for rockchip RGA direct rendering based 2d graphics acceleration module.
 
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
----
- Changes:
- -v2: rebased to current linux.git
+Recently I tried to add protduff support for gstreamer on rockchip platform, and i found that API 
+were not very suitable for my purpose. 
+It shouldn't go upstream until we can figure out what people need, 
 
- drivers/media/rc/gpio-ir-recv.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+change in V8:
+- remove protduff things
 
-diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-index 733e4ed35078..110276d49495 100644
---- a/drivers/media/rc/gpio-ir-recv.c
-+++ b/drivers/media/rc/gpio-ir-recv.c
-@@ -161,7 +161,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, gpio_dev);
- 
--	rc = request_any_context_irq(gpio_to_irq(pdata->gpio_nr),
-+	rc = request_irq(gpio_to_irq(pdata->gpio_nr),
- 				gpio_ir_recv_irq,
- 			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
- 					"gpio-ir-recv-irq", gpio_dev);
+change in V6,V7:
+- correct warning in checkpatch.pl
+
+change in V5:
+- v4l2-compliance: handle invalid pxielformat 
+- v4l2-compliance: add subscribe_event
+- add colorspace support
+
+change in V4:
+- document the controls.
+- change according to Hans's comments
+
+change in V3:
+- rename the controls.
+- add pm_runtime support.
+- enable node by default.
+- correct spelling in documents.
+
+change in V2:
+- generalize the controls.
+- map buffers (10-50 us) in every cmd-run rather than in buffer-import to avoid get_free_pages failed on
+actively used systems.
+- remove status in dt-bindings examples.
+
+
+Jacob Chen (4):
+  rockchip/rga: v4l2 m2m support
+  ARM: dts: rockchip: add RGA device node for RK3288
+  arm64: dts: rockchip: add RGA device node for RK3399
+  dt-bindings: Document the Rockchip RGA bindings
+
+ .../devicetree/bindings/media/rockchip-rga.txt     |   33 +
+ arch/arm/boot/dts/rk3288.dtsi                      |   11 +
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   11 +
+ drivers/media/platform/Kconfig                     |   11 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/rockchip-rga/Makefile       |    3 +
+ drivers/media/platform/rockchip-rga/rga-buf.c      |  156 +++
+ drivers/media/platform/rockchip-rga/rga-hw.c       |  435 ++++++++
+ drivers/media/platform/rockchip-rga/rga-hw.h       |  437 +++++++++
+ drivers/media/platform/rockchip-rga/rga.c          | 1035 ++++++++++++++++++++
+ drivers/media/platform/rockchip-rga/rga.h          |  110 +++
+ 11 files changed, 2244 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
+ create mode 100644 drivers/media/platform/rockchip-rga/Makefile
+ create mode 100644 drivers/media/platform/rockchip-rga/rga-buf.c
+ create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.c
+ create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.h
+ create mode 100644 drivers/media/platform/rockchip-rga/rga.c
+ create mode 100644 drivers/media/platform/rockchip-rga/rga.h
+
 -- 
-2.11.0
+2.7.4
