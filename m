@@ -1,148 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54384
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751833AbdIWTnl (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49426 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750922AbdIKIVp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Sep 2017 15:43:41 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/2] media: cec-pin.h: convert comments for cec_pin_state into kernel-doc
-Date: Sat, 23 Sep 2017 16:43:33 -0300
-Message-Id: <b9e7680dfaec02a007ccfc883be1d95712051d1f.1506195810.git.mchehab@s-opensource.com>
+        Mon, 11 Sep 2017 04:21:45 -0400
+Date: Mon, 11 Sep 2017 11:21:40 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, laurent.pinchart@ideasonboard.com,
+        linux-acpi@vger.kernel.org, mika.westerberg@intel.com,
+        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+Subject: Re: [PATCH v9 13/24] v4l: async: Allow async notifier register call
+ succeed with no subdevs
+Message-ID: <20170911082140.ejsajh6zq2kfdxn2@valkosipuli.retiisi.org.uk>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131822.31020-9-sakari.ailus@linux.intel.com>
+ <beb494e4-44f7-2eec-8d24-8d92e23dafd2@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <beb494e4-44f7-2eec-8d24-8d92e23dafd2@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This enum is already documented, but it is not using a kernel-doc
-format. Convert its format, in order to produce documentation.
+On Mon, Sep 11, 2017 at 10:05:40AM +0200, Hans Verkuil wrote:
+> On 09/08/2017 03:18 PM, Sakari Ailus wrote:
+> > The information on how many async sub-devices would be bindable to a
+> > notifier is typically dependent on information from platform firmware and
+> > it's not driver's business to be aware of that.
+> > 
+> > Many V4L2 main drivers are perfectly usable (and useful) without async
+> > sub-devices and so if there aren't any around, just proceed call the
+> > notifier's complete callback immediately without registering the notifier
+> > itself.
+> > 
+> > If a driver needs to check whether there are async sub-devices available,
+> > it can be done by inspecting the notifier's num_subdevs field which tells
+> > the number of async sub-devices.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-async.c | 6 ++++--
+> >  1 file changed, 4 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> > index 7b396ff4302b..9ebc2e079d03 100644
+> > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > @@ -170,10 +170,12 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> >  	struct v4l2_async_subdev *asd;
+> >  	int i;
+> >  
+> > -	if (!v4l2_dev || !notifier->num_subdevs ||
+> > -	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+> > +	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+> >  		return -EINVAL;
+> >  
+> > +	if (!notifier->num_subdevs)
+> > +		return v4l2_async_notifier_call_complete(notifier);
+> > +
+> 
+> I would move this 'if' down to after the next three lines...
+> 
+> >  	notifier->v4l2_dev = v4l2_dev;
+> >  	INIT_LIST_HEAD(&notifier->waiting);
+> >  	INIT_LIST_HEAD(&notifier->done);
+> > 
+> 
+> ...that way the notifier struct is properly initialized. Just in case anyone
+> ever looks at these three fields.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- include/media/cec-pin.h | 81 +++++++++++++++++++++++++++++++------------------
- 1 file changed, 52 insertions(+), 29 deletions(-)
+Makes sense. Fixed.
 
-diff --git a/include/media/cec-pin.h b/include/media/cec-pin.h
-index f09cc9579d53..3ac0e12ab237 100644
---- a/include/media/cec-pin.h
-+++ b/include/media/cec-pin.h
-@@ -24,65 +24,88 @@
- #include <linux/atomic.h>
- #include <media/cec.h>
- 
-+/**
-+ * enum cec_pin_state - state of CEC pins
-+ * @CEC_ST_OFF:
-+ *	CEC is off
-+ * @CEC_ST_IDLE:
-+ *	CEC is idle, waiting for Rx or Tx
-+ * @CEC_ST_TX_WAIT:
-+ *	Pending Tx, waiting for Signal Free Time to expire
-+ * @CEC_ST_TX_WAIT_FOR_HIGH:
-+ *	Low-drive was detected, wait for bus to go high
-+ * @CEC_ST_TX_START_BIT_LOW:
-+ *	Drive CEC low for the start bit
-+ * @CEC_ST_TX_START_BIT_HIGH:
-+ *	Drive CEC high for the start bit
-+ * @CEC_ST_TX_DATA_BIT_0_LOW:
-+ *	Drive CEC low for the 0 bit
-+ * @CEC_ST_TX_DATA_BIT_0_HIGH:
-+ *	Drive CEC high for the 0 bit
-+ * @CEC_ST_TX_DATA_BIT_1_LOW:
-+ *	Drive CEC low for the 1 bit
-+ * @CEC_ST_TX_DATA_BIT_1_HIGH:
-+ *	Drive CEC high for the 1 bit
-+ * @CEC_ST_TX_DATA_BIT_1_HIGH_PRE_SAMPLE:
-+ *	Wait for start of sample time to check for Ack bit or first
-+ *	four initiator bits to check for Arbitration Lost.
-+ * @CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE:
-+ *	Wait for end of bit period after sampling
-+ * @CEC_ST_RX_START_BIT_LOW:
-+ *	Start bit low detected
-+ * @CEC_ST_RX_START_BIT_HIGH:
-+ *	Start bit high detected
-+ * @CEC_ST_RX_DATA_SAMPLE:
-+ *	Wait for bit sample time
-+ * @CEC_ST_RX_DATA_POST_SAMPLE:
-+ *	Wait for earliest end of bit period after sampling
-+ * @CEC_ST_RX_DATA_HIGH:
-+ *	Wait for CEC to go high (i.e. end of bit period
-+ * @CEC_ST_RX_ACK_LOW:
-+ *	Drive CEC low to send 0 Ack bit
-+ * @CEC_ST_RX_ACK_LOW_POST:
-+ *	End of 0 Ack * @time:	 wait for earliest end of bit period
-+ * @CEC_ST_RX_ACK_HIGH_POST:
-+ *	Wait for CEC to go high (i.e. end of bit period
-+ * @CEC_ST_RX_ACK_FINISH:
-+ *	Wait for earliest end of bit period and end of message
-+ * @CEC_ST_LOW_DRIVE:
-+ *	Start low drive
-+ * @CEC_ST_RX_IRQ:
-+ *	Monitor pin using interrupts
-+ * @CEC_PIN_STATES:
-+ *	Total number of pin states
-+ */
- enum cec_pin_state {
--	/* CEC is off */
- 	CEC_ST_OFF,
--	/* CEC is idle, waiting for Rx or Tx */
- 	CEC_ST_IDLE,
- 
- 	/* Tx states */
--
--	/* Pending Tx, waiting for Signal Free Time to expire */
- 	CEC_ST_TX_WAIT,
--	/* Low-drive was detected, wait for bus to go high */
- 	CEC_ST_TX_WAIT_FOR_HIGH,
--	/* Drive CEC low for the start bit */
- 	CEC_ST_TX_START_BIT_LOW,
--	/* Drive CEC high for the start bit */
- 	CEC_ST_TX_START_BIT_HIGH,
--	/* Drive CEC low for the 0 bit */
- 	CEC_ST_TX_DATA_BIT_0_LOW,
--	/* Drive CEC high for the 0 bit */
- 	CEC_ST_TX_DATA_BIT_0_HIGH,
--	/* Drive CEC low for the 1 bit */
- 	CEC_ST_TX_DATA_BIT_1_LOW,
--	/* Drive CEC high for the 1 bit */
- 	CEC_ST_TX_DATA_BIT_1_HIGH,
--	/*
--	 * Wait for start of sample time to check for Ack bit or first
--	 * four initiator bits to check for Arbitration Lost.
--	 */
- 	CEC_ST_TX_DATA_BIT_1_HIGH_PRE_SAMPLE,
--	/* Wait for end of bit period after sampling */
- 	CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE,
- 
- 	/* Rx states */
--
--	/* Start bit low detected */
- 	CEC_ST_RX_START_BIT_LOW,
--	/* Start bit high detected */
- 	CEC_ST_RX_START_BIT_HIGH,
--	/* Wait for bit sample time */
- 	CEC_ST_RX_DATA_SAMPLE,
--	/* Wait for earliest end of bit period after sampling */
- 	CEC_ST_RX_DATA_POST_SAMPLE,
--	/* Wait for CEC to go high (i.e. end of bit period */
- 	CEC_ST_RX_DATA_HIGH,
--	/* Drive CEC low to send 0 Ack bit */
- 	CEC_ST_RX_ACK_LOW,
--	/* End of 0 Ack time, wait for earliest end of bit period */
- 	CEC_ST_RX_ACK_LOW_POST,
--	/* Wait for CEC to go high (i.e. end of bit period */
- 	CEC_ST_RX_ACK_HIGH_POST,
--	/* Wait for earliest end of bit period and end of message */
- 	CEC_ST_RX_ACK_FINISH,
- 
--	/* Start low drive */
- 	CEC_ST_LOW_DRIVE,
--	/* Monitor pin using interrupts */
- 	CEC_ST_RX_IRQ,
- 
--	/* Total number of pin states */
- 	CEC_PIN_STATES
- };
- 
 -- 
-2.13.5
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
