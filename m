@@ -1,378 +1,438 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46935
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752073AbdIANY6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:24:58 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v2 10/27] media: fe_property_parameters.rst: better define properties usage
-Date: Fri,  1 Sep 2017 10:24:32 -0300
-Message-Id: <86fc94f744c75664d65e432ff7c9cd789dd6474f.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48804 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751005AbdIKIAL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 04:00:11 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v10 00/24] Unified fwnode endpoint parser, async sub-device notifier support, N9 flash DTS
+Date: Mon, 11 Sep 2017 10:59:44 +0300
+Message-Id: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Several frontend properties are specific to a subset of the
-delivery systems. Make it clearer when describing each
-property.
+Hi folks,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- .../media/uapi/dvb/fe_property_parameters.rst      | 82 ++++++++++++++++++++--
- 1 file changed, 75 insertions(+), 7 deletions(-)
+We have a large influx of new, unmerged, drivers that are now parsing
+fwnode endpoints and each one of them is doing this a little bit
+differently. The needs are still exactly the same for the graph data
+structure is device independent. This is still a non-trivial task and the
+majority of the driver implementations are buggy, just buggy in different
+ways.
 
-diff --git a/Documentation/media/uapi/dvb/fe_property_parameters.rst b/Documentation/media/uapi/dvb/fe_property_parameters.rst
-index c6eb74f59b00..e085e84fef38 100644
---- a/Documentation/media/uapi/dvb/fe_property_parameters.rst
-+++ b/Documentation/media/uapi/dvb/fe_property_parameters.rst
-@@ -111,6 +111,8 @@ DTV_BANDWIDTH_HZ
- 
- Bandwidth for the channel, in HZ.
- 
-+Should be set only for terrestrial delivery systems.
-+
- Possible values: ``1712000``, ``5000000``, ``6000000``, ``7000000``,
- ``8000000``, ``10000000``.
- 
-@@ -148,6 +150,7 @@ Specifies if the frontend should do spectral inversion or not.
- 
- The acceptable values are defined by :c:type:`fe_spectral_inversion`.
- 
-+
- .. _DTV-DISEQC-MASTER:
- 
- DTV_DISEQC_MASTER
-@@ -161,8 +164,9 @@ Currently not implemented.
- DTV_SYMBOL_RATE
- ===============
- 
--Digital TV symbol rate, in bauds (symbols/second). Used on cable
--standards.
-+Used on cable and satellite delivery systems.
-+
-+Digital TV symbol rate, in bauds (symbols/second).
- 
- 
- .. _DTV-INNER-FEC:
-@@ -170,7 +174,7 @@ standards.
- DTV_INNER_FEC
- =============
- 
--Used cable/satellite transmissions.
-+Used on cable and satellite delivery systems.
- 
- The acceptable values are defined by :c:type:`fe_code_rate`.
- 
-@@ -180,6 +184,8 @@ The acceptable values are defined by :c:type:`fe_code_rate`.
- DTV_VOLTAGE
- ===========
- 
-+Used on satellite delivery systems.
-+
- The voltage is usually used with non-DiSEqC capable LNBs to switch the
- polarzation (horizontal/vertical). When using DiSEqC epuipment this
- voltage has to be switched consistently to the DiSEqC commands as
-@@ -201,6 +207,8 @@ Currently not used.
- DTV_PILOT
- =========
- 
-+Used on DVB-S2.
-+
- Sets DVB-S2 pilot.
- 
- The acceptable values are defined by :c:type:`fe_pilot`.
-@@ -211,7 +219,9 @@ The acceptable values are defined by :c:type:`fe_pilot`.
- DTV_ROLLOFF
- ===========
- 
--Sets DVB-S2 rolloff
-+Used on DVB-S2.
-+
-+Sets DVB-S2 rolloff.
- 
- The acceptable values are defined by :c:type:`fe_rolloff`.
- 
-@@ -245,7 +255,7 @@ Currently not implemented.
- DTV_DELIVERY_SYSTEM
- ===================
- 
--Specifies the type of Delivery system.
-+Specifies the type of the delivery system.
- 
- The acceptable values are defined by :c:type:`fe_delivery_system`.
- 
-@@ -255,6 +265,8 @@ The acceptable values are defined by :c:type:`fe_delivery_system`.
- DTV_ISDBT_PARTIAL_RECEPTION
- ===========================
- 
-+Used only on ISDB.
-+
- If ``DTV_ISDBT_SOUND_BROADCASTING`` is '0' this bit-field represents
- whether the channel is in partial reception mode or not.
- 
-@@ -273,6 +285,8 @@ Possible values: 0, 1, -1 (AUTO)
- DTV_ISDBT_SOUND_BROADCASTING
- ============================
- 
-+Used only on ISDB.
-+
- This field represents whether the other DTV_ISDBT_*-parameters are
- referring to an ISDB-T and an ISDB-Tsb channel. (See also
- ``DTV_ISDBT_PARTIAL_RECEPTION``).
-@@ -285,6 +299,8 @@ Possible values: 0, 1, -1 (AUTO)
- DTV_ISDBT_SB_SUBCHANNEL_ID
- ==========================
- 
-+Used only on ISDB.
-+
- This field only applies if ``DTV_ISDBT_SOUND_BROADCASTING`` is '1'.
- 
- (Note of the author: This might not be the correct description of the
-@@ -320,6 +336,8 @@ Possible values: 0 .. 41, -1 (AUTO)
- DTV_ISDBT_SB_SEGMENT_IDX
- ========================
- 
-+Used only on ISDB.
-+
- This field only applies if ``DTV_ISDBT_SOUND_BROADCASTING`` is '1'.
- 
- ``DTV_ISDBT_SB_SEGMENT_IDX`` gives the index of the segment to be
-@@ -336,6 +354,8 @@ Note: This value cannot be determined by an automatic channel search.
- DTV_ISDBT_SB_SEGMENT_COUNT
- ==========================
- 
-+Used only on ISDB.
-+
- This field only applies if ``DTV_ISDBT_SOUND_BROADCASTING`` is '1'.
- 
- ``DTV_ISDBT_SB_SEGMENT_COUNT`` gives the total count of connected
-@@ -351,6 +371,8 @@ Note: This value cannot be determined by an automatic channel search.
- DTV-ISDBT-LAYER[A-C] parameters
- ===============================
- 
-+Used only on ISDB.
-+
- ISDB-T channels can be coded hierarchically. As opposed to DVB-T in
- ISDB-T hierarchical layers can be decoded simultaneously. For that
- reason a ISDB-T demodulator has 3 Viterbi and 3 Reed-Solomon decoders.
-@@ -367,6 +389,8 @@ There are 3 parameter sets, for Layers A, B and C.
- DTV_ISDBT_LAYER_ENABLED
- -----------------------
- 
-+Used only on ISDB.
-+
- Hierarchical reception in ISDB-T is achieved by enabling or disabling
- layers in the decoding process. Setting all bits of
- ``DTV_ISDBT_LAYER_ENABLED`` to '1' forces all layers (if applicable) to
-@@ -397,6 +421,8 @@ Only the values of the first 3 bits are used. Other bits will be silently ignore
- DTV_ISDBT_LAYER[A-C]_FEC
- ------------------------
- 
-+Used only on ISDB.
-+
- The Forward Error Correction mechanism used by a given ISDB Layer, as
- defined by :c:type:`fe_code_rate`.
- 
-@@ -410,6 +436,8 @@ Possible values are: ``FEC_AUTO``, ``FEC_1_2``, ``FEC_2_3``, ``FEC_3_4``,
- DTV_ISDBT_LAYER[A-C]_MODULATION
- -------------------------------
- 
-+Used only on ISDB.
-+
- The modulation used by a given ISDB Layer, as defined by
- :c:type:`fe_modulation`.
- 
-@@ -428,6 +456,8 @@ Possible values are: ``QAM_AUTO``, ``QPSK``, ``QAM_16``, ``QAM_64``, ``DQPSK``
- DTV_ISDBT_LAYER[A-C]_SEGMENT_COUNT
- ----------------------------------
- 
-+Used only on ISDB.
-+
- Possible values: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, -1 (AUTO)
- 
- Note: Truth table for ``DTV_ISDBT_SOUND_BROADCASTING`` and
-@@ -517,6 +547,8 @@ Note: Truth table for ``DTV_ISDBT_SOUND_BROADCASTING`` and
- DTV_ISDBT_LAYER[A-C]_TIME_INTERLEAVING
- --------------------------------------
- 
-+Used only on ISDB.
-+
- Valid values: 0, 1, 2, 4, -1 (AUTO)
- 
- when DTV_ISDBT_SOUND_BROADCASTING is active, value 8 is also valid.
-@@ -590,6 +622,8 @@ TMCC-structure, as shown in the table below.
- DTV_ATSCMH_FIC_VER
- ------------------
- 
-+Used only on ATSC-MH.
-+
- Version number of the FIC (Fast Information Channel) signaling data.
- 
- FIC is used for relaying information to allow rapid service acquisition
-@@ -603,6 +637,8 @@ Possible values: 0, 1, 2, 3, ..., 30, 31
- DTV_ATSCMH_PARADE_ID
- --------------------
- 
-+Used only on ATSC-MH.
-+
- Parade identification number
- 
- A parade is a collection of up to eight MH groups, conveying one or two
-@@ -616,6 +652,8 @@ Possible values: 0, 1, 2, 3, ..., 126, 127
- DTV_ATSCMH_NOG
- --------------
- 
-+Used only on ATSC-MH.
-+
- Number of MH groups per MH subframe for a designated parade.
- 
- Possible values: 1, 2, 3, 4, 5, 6, 7, 8
-@@ -626,6 +664,8 @@ Possible values: 1, 2, 3, 4, 5, 6, 7, 8
- DTV_ATSCMH_TNOG
- ---------------
- 
-+Used only on ATSC-MH.
-+
- Total number of MH groups including all MH groups belonging to all MH
- parades in one MH subframe.
- 
-@@ -637,6 +677,8 @@ Possible values: 0, 1, 2, 3, ..., 30, 31
- DTV_ATSCMH_SGN
- --------------
- 
-+Used only on ATSC-MH.
-+
- Start group number.
- 
- Possible values: 0, 1, 2, 3, ..., 14, 15
-@@ -647,6 +689,8 @@ Possible values: 0, 1, 2, 3, ..., 14, 15
- DTV_ATSCMH_PRC
- --------------
- 
-+Used only on ATSC-MH.
-+
- Parade repetition cycle.
- 
- Possible values: 1, 2, 3, 4, 5, 6, 7, 8
-@@ -657,6 +701,8 @@ Possible values: 1, 2, 3, 4, 5, 6, 7, 8
- DTV_ATSCMH_RS_FRAME_MODE
- ------------------------
- 
-+Used only on ATSC-MH.
-+
- Reed Solomon (RS) frame mode.
- 
- The acceptable values are defined by :c:type:`atscmh_rs_frame_mode`.
-@@ -667,6 +713,8 @@ The acceptable values are defined by :c:type:`atscmh_rs_frame_mode`.
- DTV_ATSCMH_RS_FRAME_ENSEMBLE
- ----------------------------
- 
-+Used only on ATSC-MH.
-+
- Reed Solomon(RS) frame ensemble.
- 
- The acceptable values are defined by :c:type:`atscmh_rs_frame_ensemble`.
-@@ -677,6 +725,8 @@ The acceptable values are defined by :c:type:`atscmh_rs_frame_ensemble`.
- DTV_ATSCMH_RS_CODE_MODE_PRI
- ---------------------------
- 
-+Used only on ATSC-MH.
-+
- Reed Solomon (RS) code mode (primary).
- 
- The acceptable values are defined by :c:type:`atscmh_rs_code_mode`.
-@@ -687,6 +737,8 @@ The acceptable values are defined by :c:type:`atscmh_rs_code_mode`.
- DTV_ATSCMH_RS_CODE_MODE_SEC
- ---------------------------
- 
-+Used only on ATSC-MH.
-+
- Reed Solomon (RS) code mode (secondary).
- 
- The acceptable values are defined by :c:type:`atscmh_rs_code_mode`.
-@@ -697,6 +749,8 @@ The acceptable values are defined by :c:type:`atscmh_rs_code_mode`.
- DTV_ATSCMH_SCCC_BLOCK_MODE
- --------------------------
- 
-+Used only on ATSC-MH.
-+
- Series Concatenated Convolutional Code Block Mode.
- 
- The acceptable values are defined by :c:type:`atscmh_sccc_block_mode`.
-@@ -707,6 +761,8 @@ The acceptable values are defined by :c:type:`atscmh_sccc_block_mode`.
- DTV_ATSCMH_SCCC_CODE_MODE_A
- ---------------------------
- 
-+Used only on ATSC-MH.
-+
- Series Concatenated Convolutional Code Rate.
- 
- The acceptable values are defined by :c:type:`atscmh_sccc_code_mode`.
-@@ -716,6 +772,8 @@ The acceptable values are defined by :c:type:`atscmh_sccc_code_mode`.
- DTV_ATSCMH_SCCC_CODE_MODE_B
- ---------------------------
- 
-+Used only on ATSC-MH.
-+
- Series Concatenated Convolutional Code Rate.
- 
- Possible values are the same as documented on enum
-@@ -727,6 +785,8 @@ Possible values are the same as documented on enum
- DTV_ATSCMH_SCCC_CODE_MODE_C
- ---------------------------
- 
-+Used only on ATSC-MH.
-+
- Series Concatenated Convolutional Code Rate.
- 
- Possible values are the same as documented on enum
-@@ -738,6 +798,8 @@ Possible values are the same as documented on enum
- DTV_ATSCMH_SCCC_CODE_MODE_D
- ---------------------------
- 
-+Used only on ATSC-MH.
-+
- Series Concatenated Convolutional Code Rate.
- 
- Possible values are the same as documented on enum
-@@ -797,9 +859,11 @@ The acceptable values are defined by :c:type:`fe_guard_interval`.
- DTV_TRANSMISSION_MODE
- =====================
- 
-+
-+Used only on OFTM-based standards, e. g. DVB-T/T2, ISDB-T, DTMB.
-+
- Specifies the FFT size (with corresponds to the approximate number of
--carriers) used by the standard. This is used only on OFTM-based standards,
--e. g. DVB-T/T2, ISDB-T, DTMB.
-+carriers) used by the standard.
- 
- The acceptable values are defined by :c:type:`fe_transmit_mode`.
- 
-@@ -832,6 +896,8 @@ The acceptable values are defined by :c:type:`fe_transmit_mode`.
- DTV_HIERARCHY
- =============
- 
-+Used only on DVB-T and DVB-T2.
-+
- Frontend hierarchy.
- 
- The acceptable values are defined by :c:type:`fe_hierarchy`.
-@@ -842,6 +908,8 @@ The acceptable values are defined by :c:type:`fe_hierarchy`.
- DTV_STREAM_ID
- =============
- 
-+Used on DVB-S2, DVB-T2 and ISDB-S.
-+
- DVB-S2, DVB-T2 and ISDB-S support the transmission of several streams on
- a single transport stream. This property enables the DVB driver to
- handle substream filtering, when supported by the hardware. By default,
+Facilitate parsing endpoints by adding a convenience function for parsing
+the endpoints, and make the omap3isp and rcar-vin drivers use them as an
+example.
+
+To show where we're getting with this, I've added support for async
+sub-device notifier support that is notifiers that can be registered by
+sub-device drivers as well as V4L2 fwnode improvements to make use of them
+and the DTS changes for the Nokia N9. Some of these patches I've posted
+previously in this set here:
+
+<URL:http://www.spinics.net/lists/linux-media/msg118764.html>
+
+Since that, the complete callback of the master notifier registering the
+V4L2 device is only called once all sub-notifiers have been completed as
+well. This way the device node creation can be postponed until all devices
+have been successfully initialised.
+
+With this, the as3645a driver successfully registers a sub-device to the
+media device created by the omap3isp driver. The kernel also has the
+information it's related to the sensor driven by the smiapp driver but we
+don't have a way to expose that information yet.
+
+since v9:
+
+- Drop "as3645a: Switch to fwnode property API" and "ACPI: Document how to
+  refer to LEDs from remote nodes" patches. They're better off separately
+  from this set.
+
+- Address property documentation redundancy in smiapp DT binding
+  documentation.
+
+- Add patches "ov5670: Add support for flash and lens devices" and
+  "ov13858: Add support for flash and lens devices".
+
+since v8:
+
+- Improve terminology for notifiers. Instead of master / subdev, we
+  have root, parent and subdev notifiers.
+
+- Renamed "flash" property as "flash-leds". There are many, and currently
+  we make assumptions in a lot of places (e.g. LED bindings) that these
+  are LEDs. While we don't have any other types of flashes supported right
+  now (e.g. Xenon), it's safer to assume we might have them in the future.
+
+- Use ENOTCONN instead of EPERM to tell from driver's callback function
+  that an endpoint is to be skipped but not handled as an error.
+
+- Avoid accessing notifier's subdevs array as well as num_subdevs field
+  from rcar-vin driver.
+
+- Add a patch "v4l: async: Allow async notifier register call succeed with no
+  subdevs", which allows, well, what the subject says.
+
+- Move checks for subdev / v4l2_dev from __v4l2_async_notifier_register()
+  to v4l2_async_notifier_register() and
+  v4l2_async_subdev_notifier_register().
+
+- Don't initialise notifier->list. There was no need to do so, as this is
+  the entry added to the list and not used otherwise. I.e. regarding this,
+  the state before this patchset is restored.
+
+- Clean up error handling in v4l2_async_notifier_fwnode_parse_endpoint().
+
+- WARN_ON() in v4l2_async_notifier_parse_fwnode_endpoints() if the
+  asd_struct_size is smaller than size of struct v4l2_async_subdev.
+
+- Make v4l2_fwnode_reference_parse() static as there should be no need to
+  use it outside the V4L2 fwnode framework. Also, remove the callback
+  function as well as other arguments that always have the same value in
+  current usage. (This can be changed later on if needed without affecting
+  drivers.)
+
+- Add the patch "v4l: fwnode: Add a helper function to obtain device /
+  interger references", which allows similar use than
+  v4l2_fwnode_reference_parse() but is more useful on ACPI based systems
+  --- on ACPI, you can only refer to device nodes (corresponding struct
+  deice in Linux), not to data extension nodes under the devices.
+
+- Improve v4l2_fwnode_reference_parse_sensor_common() to work on ACPI
+  based systems.
+
+- Add patch "ACPI: Document how to refer to LEDs from remote nodes" to
+  document using and referring to LEDs on ACPI.
+
+- Rebase the set on AS3645A fixes I just sent ("AS3645A fixes")
+
+- In v4l2_fwnode_reference_parse_sensor_common(), tell if parsing a
+  property failed.
+
+- Improved documentation for v4l2_async_notifier_parse_fwnode_endpoints().
+
+- Fix v4l2_async_notifier_try_all_subdevs(); it is allowed that the list
+  entry being iterated over is deleted but no other changes to the list
+  are allowed. This could be the case if a sub-device driver's notifier
+  binds a sub-device. Restart the loop whenever a match is found.
+
+- Add patch "as3645a: Switch to fwnode property API" which also adds ACPI
+  support.
+
+since v7:
+
+- Added three more patches:
+
+	v4l: async: Remove re-probing support
+	v4l: async: Use more intuitive names for internal functions
+	dt: bindings: smiapp: Document lens-focus and flash properties
+
+  The last one was already sent previously after the rest of the patchset.
+
+- Removed re-probing support. This is hard to support and only useful in
+  special cases. It can be reintroduced later on if there's really a need
+  --- note that in e.g. omap3isp this was always broken and no-one ever
+  complained.
+
+- Remove smiapp driver's async complete callback (and ops). It is
+  redundant: the sub-device nodes are created through the master notifier.
+
+- Improve flash property documentation in video-interfaces.txt.
+
+- Introduce helper functions to call notifier operations, one for each
+  operation.
+
+- Rename v4l2_async_test_notify as v4l2_async_match_notify and
+  v4l2_async_belongs to v4l2_async_find_match.
+
+- v4l2_async_notifier_test_all_subdevs() renamed as
+  v4l2_async_notifier_try_all_subdevs().
+
+- Made notifier_v4l2_dev a function (it was a macro).
+
+- Registering subdev notifiers from sub-device drivers that control
+  sub-devices created through sub-notifiers is now supported. In other
+  words, subdev notifiers may be registered through other subdev
+  notifiers. This is the source of the bulk of the changes between v7 and
+  v8.
+
+- Add explanatory comments to helper functions used by V4L2 async
+  framework. This should help understanding the internal workings of the
+  framework.
+
+- Removed the "notifiers" list in struct v4l2_async_notifier. The
+  information can be found from existing data structures.
+
+- Explicitly check that registering a non-subdev notifier has v4l2_dev and
+  a subdev notifier has a sub-device pointer.
+
+- Unified several code paths between subdev notifiers and non-subdev
+  notifiers.
+
+- Fixed v4l2_async_notifier_release() --- calling it on a notifier for
+  which the driver had allocated the subdevs array would lead calling
+  kvfree() on that array. Now notifier->max_subdevs is checked before
+  proceeding.
+
+- Fixed a use-after-free issue in
+  v4l2_async_notifier_fwnode_parse_endpoints().
+
+- Small fixes to KernelDoc documentation for
+  v4l2_async_notifier_parse_fwnode_endpoints().
+
+since v6:
+
+- Drop the last patch that added variant for parsing endpoints given
+  specific port and endpoints numbers.
+
+- Separate driver changes from the fwnode endpoint parser patch into two
+  patches. rcar-vin driver is now using the name function.
+
+- Use -ENOTCONN to tell the parser that and endpoint (or a reference) is
+  to be ignored.
+
+- parse_endpoint and parse_single callback functions are now optional and
+  documented as such.
+
+- Added Laurent's patch adding notifier operations struct which I rebase
+  on the fwnode parser patchset. I wrote another patch to call the
+  notifier operations through macros.
+
+- Add DT bindings for flash and lens devices.
+
+- V4L2 fwnode parser for references (such as flash and lens).
+
+- Added smiapp driver support for async sub-devices (lens and flash).
+
+- Added a few fixes for omap3isp.
+
+since v5:
+
+- Use v4l2_async_ prefix for static functions as well (4th patch)
+
+- Use memcpy() to copy array rather than a loop
+
+- Document that the v4l2_async_subdev pointer in driver specific struct
+  must be the first member
+
+- Improve documentation of the added functions (4th and 5th
+  patches)
+
+	- Arguments
+
+	- More thorough explation of the purpose, usage and object
+	  lifetime
+
+- Added acks
+
+since v4:
+
+- Prepend the set with three documentation fixes.
+
+- The driver's async struct must begin with struct v4l2_async_subdev. Fix this
+  for omap3isp and document it.
+
+- Improve documentation for new functions.
+
+- Don't use devm_ family of functions for allocating memory. Introduce
+  v4l2_async_notifier_release() to release memory resources.
+
+- Rework both v4l2_async_notifier_fwnode_parse_endpoints() and
+  v4l2_async_notifier_fwnode_parse_endpoint() and the local functions they
+  call. This should make the code cleaner. Despite the name, for linking
+  and typical usage reasons the functions remain in v4l2-fwnode.c.
+
+- Convert rcar-vin to use v4l2_async_notifier_fwnode_parse_endpoint().
+
+- Use kvmalloc() for allocating the notifier's subdevs array.
+
+- max_subdevs argument for notifier_realloc is now the total maximum
+  number of subdevs, not the number of available subdevs.
+
+- Use fwnode_device_is_available() to make sure the device actually
+  exists.
+
+- Move the note telling v4l2_async_notifier_fwnode_parse_endpoints()
+  should not be used by new drivers to the last patch adding
+  v4l2_async_notifier_fwnode_parse_endpoint().
+
+since v3:
+
+- Rebase on current mediatree master.
+
+since v2:
+
+- Rebase on CCP2 support patches.
+
+- Prepend a patch cleaning up omap3isp driver a little.
+
+since v1:
+
+- The first patch has been merged (it was a bugfix).
+
+- In anticipation that the parsing can take place over several iterations,
+  take the existing number of async sub-devices into account when
+  re-allocating an array of async sub-devices.
+
+- Rework the first patch to better anticipate parsing single endpoint at a
+  time by a driver.
+
+- Add a second patch that adds a function for parsing endpoints one at a
+  time based on port and endpoint numbers.
+
+
+Laurent Pinchart (1):
+  v4l: async: Move async subdev notifier operations to a separate
+    structure
+
+Sakari Ailus (23):
+  v4l: fwnode: Move KernelDoc documentation to the header
+  v4l: async: Remove re-probing support
+  v4l: async: Use more intuitive names for internal functions
+  v4l: async: Add V4L2 async documentation to the documentation build
+  v4l: fwnode: Support generic parsing of graph endpoints in a device
+  omap3isp: Use generic parser for parsing fwnode endpoints
+  rcar-vin: Use generic parser for parsing fwnode endpoints
+  omap3isp: Fix check for our own sub-devices
+  omap3isp: Print the name of the entity where no source pads could be
+    found
+  v4l: async: Introduce helpers for calling async ops callbacks
+  v4l: async: Register sub-devices before calling bound callback
+  v4l: async: Allow async notifier register call succeed with no subdevs
+  v4l: async: Allow binding notifiers to sub-devices
+  dt: bindings: Add a binding for flash LED devices associated to a
+    sensor
+  dt: bindings: Add lens-focus binding for image sensors
+  ACPI: Document how to refer to LEDs from remote nodes
+  as3645a: Switch to fwnode property API
+  v4l: fwnode: Add a helper function for parsing generic references
+  v4l: fwnode: Add a helper function to obtain device / interger
+    references
+  v4l: fwnode: Add convenience function for parsing common external refs
+  smiapp: Add support for flash and lens devices
+  dt: bindings: smiapp: Document lens-focus and flash properties
+  arm: dts: omap3: N9/N950: Add flash references to the camera
+
+ Documentation/acpi/dsd/leds.txt                    |  92 +++++
+ .../devicetree/bindings/media/i2c/nokia,smia.txt   |   2 +
+ .../devicetree/bindings/media/video-interfaces.txt |  10 +
+ Documentation/media/kapi/v4l2-async.rst            |   3 +
+ Documentation/media/kapi/v4l2-core.rst             |   1 +
+ arch/arm/boot/dts/omap3-n9.dts                     |   1 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi               |   4 +-
+ arch/arm/boot/dts/omap3-n950.dts                   |   1 +
+ drivers/leds/leds-as3645a.c                        |  81 +++--
+ drivers/media/i2c/smiapp/smiapp-core.c             |  18 +-
+ drivers/media/i2c/smiapp/smiapp.h                  |   4 +-
+ drivers/media/platform/am437x/am437x-vpfe.c        |   8 +-
+ drivers/media/platform/atmel/atmel-isc.c           |  10 +-
+ drivers/media/platform/atmel/atmel-isi.c           |  10 +-
+ drivers/media/platform/davinci/vpif_capture.c      |   8 +-
+ drivers/media/platform/davinci/vpif_display.c      |   8 +-
+ drivers/media/platform/exynos4-is/media-dev.c      |   8 +-
+ drivers/media/platform/omap3isp/isp.c              | 127 +++----
+ drivers/media/platform/omap3isp/isp.h              |   5 +-
+ drivers/media/platform/pxa_camera.c                |   8 +-
+ drivers/media/platform/qcom/camss-8x16/camss.c     |   8 +-
+ drivers/media/platform/rcar-vin/rcar-core.c        | 122 +++----
+ drivers/media/platform/rcar-vin/rcar-dma.c         |  10 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c        |  14 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h         |   4 +-
+ drivers/media/platform/rcar_drif.c                 |  10 +-
+ drivers/media/platform/soc_camera/soc_camera.c     |  14 +-
+ drivers/media/platform/stm32/stm32-dcmi.c          |  10 +-
+ drivers/media/platform/ti-vpe/cal.c                |   8 +-
+ drivers/media/platform/xilinx/xilinx-vipp.c        |   8 +-
+ drivers/media/v4l2-core/v4l2-async.c               | 345 +++++++++++++-----
+ drivers/media/v4l2-core/v4l2-fwnode.c              | 386 +++++++++++++++++----
+ drivers/staging/media/imx/imx-media-dev.c          |   8 +-
+ include/media/v4l2-async.h                         |  68 +++-
+ include/media/v4l2-fwnode.h                        | 150 +++++++-
+ 35 files changed, 1135 insertions(+), 439 deletions(-)
+ create mode 100644 Documentation/acpi/dsd/leds.txt
+ create mode 100644 Documentation/media/kapi/v4l2-async.rst
+
 -- 
-2.13.5
+2.11.0
+
+
+Laurent Pinchart (1):
+  v4l: async: Move async subdev notifier operations to a separate
+    structure
+
+Sakari Ailus (23):
+  v4l: fwnode: Move KernelDoc documentation to the header
+  v4l: async: Remove re-probing support
+  v4l: async: Use more intuitive names for internal functions
+  v4l: async: Add V4L2 async documentation to the documentation build
+  v4l: fwnode: Support generic parsing of graph endpoints in a device
+  omap3isp: Use generic parser for parsing fwnode endpoints
+  rcar-vin: Use generic parser for parsing fwnode endpoints
+  omap3isp: Fix check for our own sub-devices
+  omap3isp: Print the name of the entity where no source pads could be
+    found
+  v4l: async: Introduce helpers for calling async ops callbacks
+  v4l: async: Register sub-devices before calling bound callback
+  v4l: async: Allow async notifier register call succeed with no subdevs
+  v4l: async: Allow binding notifiers to sub-devices
+  dt: bindings: Add a binding for flash LED devices associated to a
+    sensor
+  dt: bindings: Add lens-focus binding for image sensors
+  v4l: fwnode: Add a helper function for parsing generic references
+  v4l: fwnode: Add a helper function to obtain device / interger
+    references
+  v4l: fwnode: Add convenience function for parsing common external refs
+  dt: bindings: smiapp: Document lens-focus and flash properties
+  smiapp: Add support for flash and lens devices
+  ov5670: Add support for flash and lens devices
+  ov13858: Add support for flash and lens devices
+  arm: dts: omap3: N9/N950: Add flash references to the camera
+
+ .../devicetree/bindings/media/i2c/nokia,smia.txt   |   2 +
+ .../devicetree/bindings/media/video-interfaces.txt |  10 +
+ Documentation/media/kapi/v4l2-async.rst            |   3 +
+ Documentation/media/kapi/v4l2-core.rst             |   1 +
+ arch/arm/boot/dts/omap3-n9.dts                     |   1 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi               |   4 +-
+ arch/arm/boot/dts/omap3-n950.dts                   |   1 +
+ drivers/media/i2c/ov13858.c                        |  26 +-
+ drivers/media/i2c/ov5670.c                         |  33 +-
+ drivers/media/i2c/smiapp/smiapp-core.c             |  38 +-
+ drivers/media/i2c/smiapp/smiapp.h                  |   4 +-
+ drivers/media/platform/am437x/am437x-vpfe.c        |   8 +-
+ drivers/media/platform/atmel/atmel-isc.c           |  10 +-
+ drivers/media/platform/atmel/atmel-isi.c           |  10 +-
+ drivers/media/platform/davinci/vpif_capture.c      |   8 +-
+ drivers/media/platform/davinci/vpif_display.c      |   8 +-
+ drivers/media/platform/exynos4-is/media-dev.c      |   8 +-
+ drivers/media/platform/omap3isp/isp.c              | 127 +++----
+ drivers/media/platform/omap3isp/isp.h              |   5 +-
+ drivers/media/platform/pxa_camera.c                |   8 +-
+ drivers/media/platform/qcom/camss-8x16/camss.c     |   8 +-
+ drivers/media/platform/rcar-vin/rcar-core.c        | 122 +++----
+ drivers/media/platform/rcar-vin/rcar-dma.c         |  10 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c        |  14 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h         |   4 +-
+ drivers/media/platform/rcar_drif.c                 |  10 +-
+ drivers/media/platform/soc_camera/soc_camera.c     |  14 +-
+ drivers/media/platform/stm32/stm32-dcmi.c          |  10 +-
+ drivers/media/platform/ti-vpe/cal.c                |   8 +-
+ drivers/media/platform/xilinx/xilinx-vipp.c        |   8 +-
+ drivers/media/v4l2-core/v4l2-async.c               | 345 +++++++++++++-----
+ drivers/media/v4l2-core/v4l2-fwnode.c              | 386 +++++++++++++++++----
+ drivers/staging/media/imx/imx-media-dev.c          |   8 +-
+ include/media/v4l2-async.h                         |  68 +++-
+ include/media/v4l2-fwnode.h                        | 150 +++++++-
+ 35 files changed, 1059 insertions(+), 421 deletions(-)
+ create mode 100644 Documentation/media/kapi/v4l2-async.rst
+
+-- 
+2.11.0
