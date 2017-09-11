@@ -1,101 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:33763 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935367AbdIZUM0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 16:12:26 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: [PATCH 00/20] lirc scancode interface, and more
-Date: Tue, 26 Sep 2017 21:12:23 +0100
-Message-Id: <cover.1506455086.git.sean@mess.org>
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:59187 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750937AbdIKHvW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 03:51:22 -0400
+Subject: Re: [PATCH v9 03/24] v4l: async: Use more intuitive names for
+ internal functions
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131235.30294-4-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <200dbf2a-bae6-2f35-220f-a312f838a827@xs4all.nl>
+Date: Mon, 11 Sep 2017 09:51:17 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170908131235.30294-4-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Introduce lirc scancode mode, use that to port lirc_zilog to rc-core
-using that interface, and then remove the lirc kernel api.
+On 09/08/2017 03:11 PM, Sakari Ailus wrote:
+> Rename internal functions to make the names of the functions better
+> describe what they do.
+> 
+> 	Old name			New name
+> 	v4l2_async_test_notify	v4l2_async_match_notify
+> 	v4l2_async_belongs	v4l2_async_find_match
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-In summary:
- - This removes the lirc staging directory.
- - lirc IR TX can use in-kernel encoders for scancode encoding
- - lirc_zilog uses the same interface
- - lirc kapi (not uapi!) is gone
- - The reading lirc scancode gives more information (e.g. protocol,
-   toggle, repeat). So you can determine what protocol variant a remotes uses
- - Line count is actually down and code cleaner (imo)
- - The scancode interface can be used for cec keycode transmit.
+Same here, my Ack is missing. Please double-check my v8 comments: I
+Acked patches 2, 3, 7, 9, 10, 12, 13, 15, 16 of the v8 series.
 
-On the cec keycode transmit I am hoping for feedback. Also I am ensure what
-to do with the new firmware file for the zilog_ir.
+Regards,
 
-Sean Young (20):
-  media: lirc: implement scancode sending
-  media: lirc: use the correct carrier for scancode transmit
-  media: rc: auto load encoder if necessary
-  media: lirc_zilog: remove receiver
-  media: lirc_zilog: fix variable types and other ugliness
-  media: lirc_zilog: port to rc-core using scancode tx interface
-  media: promote lirc_zilog out of staging
-  media: lirc: remove LIRCCODE and LIRC_GET_LENGTH
-  media: lirc: lirc interface should not be a raw decoder
-  media: lirc: merge lirc_dev_fop_ioctl and ir_lirc_ioctl
-  media: lirc: use kfifo rather than lirc_buffer for raw IR
-  media: lirc: move lirc_dev->attached to rc_dev->registered
-  media: lirc: do not call rc_close() on unregistered devices
-  media: lirc: create rc-core open and close lirc functions
-  media: lirc: remove name from lirc_dev
-  media: lirc: be gone, lirc kernel api!
-  media: lirc: implement reading scancode
-  media: lirc: introduce LIRC_SET_POLL_MODE
-  media: lirc: scancode rc devices should have a lirc device too
-  media: lirc: document LIRC_MODE_SCANCODE
+	Hans
 
- Documentation/media/kapi/rc-core.rst               |    5 -
- Documentation/media/lirc.h.rst.exceptions          |   49 +
- Documentation/media/uapi/rc/lirc-dev-intro.rst     |   42 +-
- Documentation/media/uapi/rc/lirc-func.rst          |    2 +-
- Documentation/media/uapi/rc/lirc-get-features.rst  |   17 +-
- Documentation/media/uapi/rc/lirc-get-length.rst    |   44 -
- Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |    8 +-
- Documentation/media/uapi/rc/lirc-get-send-mode.rst |    5 +-
- Documentation/media/uapi/rc/lirc-read.rst          |    6 +
- Documentation/media/uapi/rc/lirc-set-poll-mode.rst |   44 +
- Documentation/media/uapi/rc/lirc-write.rst         |    8 +
- drivers/media/rc/Kconfig                           |   41 +-
- drivers/media/rc/Makefile                          |    5 +-
- drivers/media/rc/ir-jvc-decoder.c                  |    1 +
- drivers/media/rc/ir-lirc-codec.c                   |  513 ++++--
- drivers/media/rc/ir-mce_kbd-decoder.c              |    7 +
- drivers/media/rc/ir-nec-decoder.c                  |    1 +
- drivers/media/rc/ir-rc5-decoder.c                  |    1 +
- drivers/media/rc/ir-rc6-decoder.c                  |    1 +
- drivers/media/rc/ir-sanyo-decoder.c                |    1 +
- drivers/media/rc/ir-sharp-decoder.c                |    1 +
- drivers/media/rc/ir-sony-decoder.c                 |    1 +
- drivers/media/rc/lirc_dev.c                        |  480 +-----
- drivers/media/rc/rc-core-priv.h                    |   53 +-
- drivers/media/rc/rc-ir-raw.c                       |   56 +-
- drivers/media/rc/rc-main.c                         |   72 +-
- drivers/media/rc/zilog_ir.c                        |  739 +++++++++
- drivers/staging/media/Kconfig                      |    3 -
- drivers/staging/media/Makefile                     |    1 -
- drivers/staging/media/lirc/Kconfig                 |   21 -
- drivers/staging/media/lirc/Makefile                |    6 -
- drivers/staging/media/lirc/TODO                    |   36 -
- drivers/staging/media/lirc/lirc_zilog.c            | 1653 --------------------
- include/media/lirc_dev.h                           |  192 ---
- include/media/rc-core.h                            |   55 +-
- include/media/rc-map.h                             |   54 +-
- include/uapi/linux/lirc.h                          |   93 ++
- 37 files changed, 1605 insertions(+), 2712 deletions(-)
- delete mode 100644 Documentation/media/uapi/rc/lirc-get-length.rst
- create mode 100644 Documentation/media/uapi/rc/lirc-set-poll-mode.rst
- create mode 100644 drivers/media/rc/zilog_ir.c
- delete mode 100644 drivers/staging/media/lirc/Kconfig
- delete mode 100644 drivers/staging/media/lirc/Makefile
- delete mode 100644 drivers/staging/media/lirc/TODO
- delete mode 100644 drivers/staging/media/lirc/lirc_zilog.c
- delete mode 100644 include/media/lirc_dev.h
-
--- 
-2.13.5
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 19 ++++++++++---------
+>  1 file changed, 10 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index e109d9da4653..831f185ecd47 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -60,8 +60,8 @@ static LIST_HEAD(subdev_list);
+>  static LIST_HEAD(notifier_list);
+>  static DEFINE_MUTEX(list_lock);
+>  
+> -static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
+> -						    struct v4l2_subdev *sd)
+> +static struct v4l2_async_subdev *v4l2_async_find_match(
+> +	struct v4l2_async_notifier *notifier, struct v4l2_subdev *sd)
+>  {
+>  	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
+>  	struct v4l2_async_subdev *asd;
+> @@ -95,9 +95,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
+>  	return NULL;
+>  }
+>  
+> -static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
+> -				  struct v4l2_subdev *sd,
+> -				  struct v4l2_async_subdev *asd)
+> +static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+> +				   struct v4l2_subdev *sd,
+> +				   struct v4l2_async_subdev *asd)
+>  {
+>  	int ret;
+>  
+> @@ -175,11 +175,11 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+>  		int ret;
+>  
+> -		asd = v4l2_async_belongs(notifier, sd);
+> +		asd = v4l2_async_find_match(notifier, sd);
+>  		if (!asd)
+>  			continue;
+>  
+> -		ret = v4l2_async_test_notify(notifier, sd, asd);
+> +		ret = v4l2_async_match_notify(notifier, sd, asd);
+>  		if (ret < 0) {
+>  			mutex_unlock(&list_lock);
+>  			return ret;
+> @@ -236,9 +236,10 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  	INIT_LIST_HEAD(&sd->async_list);
+>  
+>  	list_for_each_entry(notifier, &notifier_list, list) {
+> -		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
+> +		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
+> +								      sd);
+>  		if (asd) {
+> -			int ret = v4l2_async_test_notify(notifier, sd, asd);
+> +			int ret = v4l2_async_match_notify(notifier, sd, asd);
+>  			mutex_unlock(&list_lock);
+>  			return ret;
+>  		}
+> 
