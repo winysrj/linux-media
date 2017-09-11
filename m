@@ -1,37 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f169.google.com ([209.85.220.169]:37201 "EHLO
-        mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750722AbdIEKHz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Sep 2017 06:07:55 -0400
-Received: by mail-qk0-f169.google.com with SMTP id b82so9981616qkc.4
-        for <linux-media@vger.kernel.org>; Tue, 05 Sep 2017 03:07:54 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4c24c976-2ae3-b0f3-d16a-ec31a9b2ea50@xs4all.nl>
-References: <4c24c976-2ae3-b0f3-d16a-ec31a9b2ea50@xs4all.nl>
-From: =?UTF-8?Q?Honza_Petrou=C5=A1?= <jpetrous@gmail.com>
-Date: Tue, 5 Sep 2017 12:07:54 +0200
-Message-ID: <CAJbz7-0piE1kx5pceUx+JHndugO9VJfOO_yOKFGf2PWa90878A@mail.gmail.com>
-Subject: Re: [ANN] Call for topics for the media mini-summit on Friday Oct 27
- in Prague
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail.kernel.org ([198.145.29.99]:51118 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750926AbdIKW06 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 18:26:58 -0400
+From: Kieran Bingham <kbingham@kernel.org>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        mchehab@kernel.org
+Cc: niklas.soderlund@ragnatech.se, Simon Yuan <simon.yuan@navico.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH] media: i2c: adv748x: Map v4l2_std_id to the internal reg value
+Date: Mon, 11 Sep 2017 23:26:53 +0100
+Message-Id: <1505168813-13529-1-git-send-email-kbingham@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->
-> Also, if you plan to attend, please let me know. It is open for all, but it is
-> nice if we know beforehand who we can expect.
->
-> So if you have a topic that you want to discuss there, then just reply to this
-> post. If possible, please add a rough idea of how much time you think you will
-> need.
->
+From: Simon Yuan <simon.yuan@navico.com>
 
-Hi Hans,
+The video standard was not mapped to the corresponding value of the
+internal video standard in adv748x_afe_querystd, causing the wrong
+video standard to be selected.
 
-I'm going to attend LCE, but I still don't know if I will be able to
-stay till Friday.
-When I know more I drop message.
+Fixes: 3e89586a64df ("media: i2c: adv748x: add adv748x driver")
+Signed-off-by: Simon Yuan <simon.yuan@navico.com>
+[Kieran: Obtain the std from the afe->curr_norm]
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-/Honza
+---
+Simon,
+
+I've added your implicit Signed-off-by tag as part of resubmitting this
+patch. Please confirm your agreement to this!
+
+ drivers/media/i2c/adv748x/adv748x-afe.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
+index 134d981d69d3..5188178588c9 100644
+--- a/drivers/media/i2c/adv748x/adv748x-afe.c
++++ b/drivers/media/i2c/adv748x/adv748x-afe.c
+@@ -217,6 +217,7 @@ static int adv748x_afe_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+ {
+ 	struct adv748x_afe *afe = adv748x_sd_to_afe(sd);
+ 	struct adv748x_state *state = adv748x_afe_to_state(afe);
++	int afe_std;
+ 	int ret;
+ 
+ 	mutex_lock(&state->mutex);
+@@ -235,8 +236,12 @@ static int adv748x_afe_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+ 	/* Read detected standard */
+ 	ret = adv748x_afe_status(afe, NULL, std);
+ 
++	afe_std = adv748x_afe_std(afe->curr_norm);
++	if (afe_std < 0)
++		goto unlock;
++
+ 	/* Restore original state */
+-	adv748x_afe_set_video_standard(state, afe->curr_norm);
++	adv748x_afe_set_video_standard(state, afe_std);
+ 
+ unlock:
+ 	mutex_unlock(&state->mutex);
+-- 
+2.7.4
