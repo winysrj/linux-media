@@ -1,106 +1,430 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46930
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751966AbdIANY5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:24:57 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v2 03/27] media: dvb/intro: use the term Digital TV to refer to the system
-Date: Fri,  1 Sep 2017 10:24:25 -0300
-Message-Id: <afb6f526ea85004fc9368ce1ca38bc75e2408856.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:58450 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751541AbdIKLZw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 07:25:52 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        dri-devel@lists.freedesktop.org, Sean Paul <seanpaul@chromium.org>,
+        Imre Deak <imre.deak@intel.com>,
+        =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?=
+        <ville.syrjala@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 1/3] drm: add support for DisplayPort CEC-Tunneling-over-AUX
+Date: Mon, 11 Sep 2017 13:25:45 +0200
+Message-Id: <20170911112547.7133-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170911112547.7133-1-hverkuil@xs4all.nl>
+References: <20170911112547.7133-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On several places at the introduction, a digital TV board and its
-kernel support is called as DVB. The reason is simple: by the
-time the document was written, there were no other digital TV
-standards :-)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Modernize the specs by referring to them as Digital TV.
+This adds support for the DisplayPort CEC-Tunneling-over-AUX
+feature that is part of the DisplayPort 1.3 standard.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Unfortunately, not all DisplayPort/USB-C to HDMI adapters with a
+chip that has this capability actually hook up the CEC pin, so
+even though a CEC device is created, it may not actually work.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Carlos Santa <carlos.santa@intel.com>
 ---
- Documentation/media/uapi/dvb/intro.rst | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/gpu/drm/Kconfig      |  10 ++
+ drivers/gpu/drm/Makefile     |   1 +
+ drivers/gpu/drm/drm_dp_cec.c | 301 +++++++++++++++++++++++++++++++++++++++++++
+ include/drm/drm_dp_helper.h  |  24 ++++
+ 4 files changed, 336 insertions(+)
+ create mode 100644 drivers/gpu/drm/drm_dp_cec.c
 
-diff --git a/Documentation/media/uapi/dvb/intro.rst b/Documentation/media/uapi/dvb/intro.rst
-index 20bd7aec2665..de432ffcba50 100644
---- a/Documentation/media/uapi/dvb/intro.rst
-+++ b/Documentation/media/uapi/dvb/intro.rst
-@@ -13,7 +13,7 @@ What you need to know
- =====================
+diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+index 83cb2a88c204..1f2708df5c4e 100644
+--- a/drivers/gpu/drm/Kconfig
++++ b/drivers/gpu/drm/Kconfig
+@@ -120,6 +120,16 @@ config DRM_LOAD_EDID_FIRMWARE
+ 	  default case is N. Details and instructions how to build your own
+ 	  EDID data are given in Documentation/EDID/HOWTO.txt.
  
- The reader of this document is required to have some knowledge in the
--area of digital video broadcasting (DVB) and should be familiar with
-+area of digital video broadcasting (Digital TV) and should be familiar with
- part I of the MPEG2 specification ISO/IEC 13818 (aka ITU-T H.222), i.e
- you should know what a program/transport stream (PS/TS) is and what is
- meant by a packetized elementary stream (PES) or an I-frame.
-@@ -59,14 +59,14 @@ Overview
-     :alt:   dvbstb.svg
-     :align: center
++config DRM_DP_CEC
++	bool "Enable DisplayPort CEC-Tunneling-over-AUX HDMI support"
++	select CEC_CORE
++	help
++	  Choose this option if you want to enable HDMI CEC support for
++	  DisplayPort/USB-C to HDMI adapters.
++
++	  Note: not all adapters support this feature, and even for those
++	  that do support this they often do not hook up the CEC pin.
++
+ config DRM_TTM
+ 	tristate
+ 	depends on DRM && MMU
+diff --git a/drivers/gpu/drm/Makefile b/drivers/gpu/drm/Makefile
+index 24a066e1841c..c6552c62049e 100644
+--- a/drivers/gpu/drm/Makefile
++++ b/drivers/gpu/drm/Makefile
+@@ -40,6 +40,7 @@ drm_kms_helper-$(CONFIG_DRM_LOAD_EDID_FIRMWARE) += drm_edid_load.o
+ drm_kms_helper-$(CONFIG_DRM_FBDEV_EMULATION) += drm_fb_helper.o
+ drm_kms_helper-$(CONFIG_DRM_KMS_CMA_HELPER) += drm_fb_cma_helper.o
+ drm_kms_helper-$(CONFIG_DRM_DP_AUX_CHARDEV) += drm_dp_aux_dev.o
++drm_kms_helper-$(CONFIG_DRM_DP_CEC) += drm_dp_cec.o
  
--    Components of a DVB card/STB
-+    Components of a Digital TV card/STB
+ obj-$(CONFIG_DRM_KMS_HELPER) += drm_kms_helper.o
+ obj-$(CONFIG_DRM_DEBUG_MM_SELFTEST) += selftests/
+diff --git a/drivers/gpu/drm/drm_dp_cec.c b/drivers/gpu/drm/drm_dp_cec.c
+new file mode 100644
+index 000000000000..b831bb72c932
+--- /dev/null
++++ b/drivers/gpu/drm/drm_dp_cec.c
+@@ -0,0 +1,301 @@
++/*
++ * DisplayPort CEC-Tunneling-over-AUX support
++ *
++ * Copyright 2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
++ *
++ * This program is free software; you may redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <drm/drm_dp_helper.h>
++#include <media/cec.h>
++
++/*
++ * Unfortunately it turns out that we have a chicken-and-egg situation
++ * here. Quite a few active (mini-)DP-to-HDMI or USB-C-to-HDMI adapters
++ * have a converter chip that supports CEC-Tunneling-over-AUX (usually the
++ * Parade PS176), but they do not wire up the CEC pin, thus making CEC
++ * useless.
++ *
++ * Sadly there is no way for this driver to know this. What happens is
++ * that a /dev/cecX device is created that is isolated and unable to see
++ * any of the other CEC devices. Quite literally the CEC wire is cut
++ * (or in this case, never connected in the first place).
++ *
++ * I suspect that the reason so few adapters support this is that this
++ * tunneling protocol was never supported by any OS. So there was no
++ * easy way of testing it, and no incentive to correctly wire up the
++ * CEC pin.
++ *
++ * Hopefully by creating this driver it will be easier for vendors to
++ * finally fix their adapters and test the CEC functionality.
++ *
++ * I keep a list of known working adapters here:
++ *
++ * https://hverkuil.home.xs4all.nl/cec-status.txt
++ *
++ * Please mail me (hverkuil@xs4all.nl) if you find an adapter that works
++ * and is not yet listed there.
++ */
++
++/**
++ * DOC: dp cec helpers
++ *
++ * These functions take care of supporting the CEC-Tunneling-over-AUX
++ * feature of DisplayPort-to-HDMI adapters.
++ */
++
++static int drm_dp_cec_adap_enable(struct cec_adapter *adap, bool enable)
++{
++	struct drm_dp_aux *aux = cec_get_drvdata(adap);
++	u32 val = enable ? DP_CEC_TUNNELING_ENABLE : 0;
++	ssize_t err = 0;
++
++	err = drm_dp_dpcd_writeb(aux, DP_CEC_TUNNELING_CONTROL, val);
++	return (enable && err < 0) ? err : 0;
++}
++
++static int drm_dp_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
++{
++	struct drm_dp_aux *aux = cec_get_drvdata(adap);
++	/* Bit 15 (logical address 15) should always be set */
++	u16 la_mask = 1 << CEC_LOG_ADDR_BROADCAST;
++	u8 mask[2];
++	ssize_t err;
++
++	if (addr != CEC_LOG_ADDR_INVALID)
++		la_mask |= adap->log_addrs.log_addr_mask | (1 << addr);
++	mask[0] = la_mask & 0xff;
++	mask[1] = la_mask >> 8;
++	err = drm_dp_dpcd_write(aux, DP_CEC_LOGICAL_ADDRESS_MASK, mask, 2);
++	return (addr != CEC_LOG_ADDR_INVALID && err < 0) ? err : 0;
++}
++
++static int drm_dp_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
++				    u32 signal_free_time, struct cec_msg *msg)
++{
++	struct drm_dp_aux *aux = cec_get_drvdata(adap);
++	unsigned int retries = min(5, attempts - 1);
++	ssize_t err;
++
++	err = drm_dp_dpcd_write(aux, DP_CEC_TX_MESSAGE_BUFFER,
++				msg->msg, msg->len);
++	if (err < 0)
++		return err;
++
++	err = drm_dp_dpcd_writeb(aux, DP_CEC_TX_MESSAGE_INFO,
++				 (msg->len - 1) | (retries << 4) |
++				 DP_CEC_TX_MESSAGE_SEND);
++	return err < 0 ? err : 0;
++}
++
++static int drm_dp_cec_adap_monitor_all_enable(struct cec_adapter *adap,
++					      bool enable)
++{
++	struct drm_dp_aux *aux = cec_get_drvdata(adap);
++	ssize_t err;
++	u8 val;
++
++	if (!(adap->capabilities & CEC_CAP_MONITOR_ALL))
++		return 0;
++
++	err = drm_dp_dpcd_readb(aux, DP_CEC_TUNNELING_CONTROL, &val);
++	if (err >= 0) {
++		if (enable)
++			val |= DP_CEC_SNOOPING_ENABLE;
++		else
++			val &= ~DP_CEC_SNOOPING_ENABLE;
++		err = drm_dp_dpcd_writeb(aux, DP_CEC_TUNNELING_CONTROL, val);
++	}
++	return (enable && err < 0) ? err : 0;
++}
++
++static void drm_dp_cec_adap_status(struct cec_adapter *adap,
++				   struct seq_file *file)
++{
++	struct drm_dp_aux *aux = cec_get_drvdata(adap);
++	u8 buf[DP_AUX_MAX_PAYLOAD_BYTES];
++	u8 hw_rev;
++
++	if (drm_dp_dpcd_read(aux, DP_BRANCH_OUI,
++			     buf, sizeof(buf)) != sizeof(buf))
++		return;
++	hw_rev = buf[9];
++	buf[9] = 0;
++	seq_printf(file, "OUI: %02x-%02x-%02x\n",
++		   buf[0], buf[1], buf[2]);
++	seq_printf(file, "ID: %s\n", buf + 3);
++	seq_printf(file, "HW Rev: %d.%d\n", hw_rev >> 4, hw_rev & 0xf);
++	/*
++	 * Show this both in decimal and hex: at least one vendor
++	 * always reports this in hex.
++	 */
++	seq_printf(file, "FW/SW Rev: %d.%d (0x%02x.0x%02x)\n",
++		   buf[10], buf[11], buf[10], buf[11]);
++}
++
++static const struct cec_adap_ops drm_dp_cec_adap_ops = {
++	.adap_enable = drm_dp_cec_adap_enable,
++	.adap_log_addr = drm_dp_cec_adap_log_addr,
++	.adap_transmit = drm_dp_cec_adap_transmit,
++	.adap_monitor_all_enable = drm_dp_cec_adap_monitor_all_enable,
++	.adap_status = drm_dp_cec_adap_status,
++};
++
++static int drm_dp_cec_received(struct drm_dp_aux *aux)
++{
++	struct cec_adapter *adap = aux->cec_adap;
++	struct cec_msg msg;
++	u8 rx_msg_info;
++	ssize_t err;
++
++	err = drm_dp_dpcd_readb(aux, DP_CEC_RX_MESSAGE_INFO, &rx_msg_info);
++	if (err < 0)
++		return err;
++	if (!(rx_msg_info & DP_CEC_RX_MESSAGE_ENDED))
++		return 0;
++	msg.len = (rx_msg_info & DP_CEC_RX_MESSAGE_LEN_MASK) + 1;
++	err = drm_dp_dpcd_read(aux, DP_CEC_RX_MESSAGE_BUFFER, msg.msg, msg.len);
++	if (err < 0)
++		return err;
++	cec_received_msg(adap, &msg);
++	return 0;
++}
++
++static int drm_dp_cec_handle_irq(struct drm_dp_aux *aux)
++{
++	struct cec_adapter *adap = aux->cec_adap;
++	u8 flags;
++	ssize_t err;
++
++	err = drm_dp_dpcd_readb(aux, DP_CEC_TUNNELING_IRQ_FLAGS, &flags);
++	if (err < 0)
++		return err;
++
++	if (flags & DP_CEC_RX_MESSAGE_INFO_VALID)
++		drm_dp_cec_received(aux);
++
++	if (flags & DP_CEC_TX_MESSAGE_SENT)
++		cec_transmit_attempt_done(adap, CEC_TX_STATUS_OK);
++	else if (flags & DP_CEC_TX_LINE_ERROR)
++		cec_transmit_attempt_done(adap, CEC_TX_STATUS_ERROR |
++						CEC_TX_STATUS_MAX_RETRIES);
++	else if (flags &
++		 (DP_CEC_TX_ADDRESS_NACK_ERROR | DP_CEC_TX_DATA_NACK_ERROR))
++		cec_transmit_attempt_done(adap, CEC_TX_STATUS_NACK |
++						CEC_TX_STATUS_MAX_RETRIES);
++	drm_dp_dpcd_writeb(aux, DP_CEC_TUNNELING_IRQ_FLAGS, flags);
++	return 0;
++}
++
++/**
++ * drm_dp_cec_irq() - handle CEC interrupt, if any
++ * @aux: DisplayPort AUX channel
++ *
++ * Should be called when handling an IRQ_HPD request. If CEC-tunneling-over-AUX
++ * is present, then it will check for a CEC_IRQ and handle it accordingly.
++ *
++ * Returns true if an interrupt was handled successfully or false otherwise.
++ */
++bool drm_dp_cec_irq(struct drm_dp_aux *aux)
++{
++	bool handled = false;
++	int attempts;
++
++	if (!aux->cec_adap)
++		return false;
++
++	for (attempts = 0; attempts < 4; attempts++) {
++		u8 cec_irq;
++		int ret;
++
++		ret = drm_dp_dpcd_readb(aux, DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1,
++					&cec_irq);
++		if (ret < 0 || !(cec_irq & DP_CEC_IRQ))
++			break;
++
++		if (!drm_dp_cec_handle_irq(aux))
++			handled = true;
++
++		ret = drm_dp_dpcd_writeb(aux, DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1,
++					 DP_CEC_IRQ);
++		if (ret < 0)
++			break;
++	}
++	return handled;
++}
++EXPORT_SYMBOL(drm_dp_cec_irq);
++
++/**
++ * drm_dp_cec_configure_adapter() - configure the CEC adapter
++ * @aux: DisplayPort AUX channel
++ * @name: name of the CEC device
++ * @parent: parent device
++ *
++ * Checks if this is a DisplayPort-to-HDMI adapter that supports
++ * CEC-tunneling-over-AUX, and if so it creates a CEC device.
++ *
++ * If a CEC device was already created, then check if the capabilities
++ * have changed. If not, then do nothing. Otherwise destroy the old
++ * CEC device and create a new CEC device.
++ *
++ * This can happen when one DP-to-HDMI adapter is disconnected and
++ * replaced by another adapter with different CEC capabilities.
++ *
++ * Returns 0 on success or a negative error code on failure.
++ */
++int drm_dp_cec_configure_adapter(struct drm_dp_aux *aux, const char *name,
++				 struct device *parent)
++{
++	u32 cec_caps = CEC_CAP_DEFAULTS | CEC_CAP_NEEDS_HPD;
++	unsigned int num_las = 1;
++	int err;
++	u8 cap;
++
++	if (drm_dp_dpcd_readb(aux, DP_CEC_TUNNELING_CAPABILITY, &cap) != 1 ||
++	    !(cap & DP_CEC_TUNNELING_CAPABLE)) {
++		cec_unregister_adapter(aux->cec_adap);
++		aux->cec_adap = NULL;
++		return -ENODEV;
++	}
++
++	if (cap & DP_CEC_SNOOPING_CAPABLE)
++		cec_caps |= CEC_CAP_MONITOR_ALL;
++	if (cap & DP_CEC_MULTIPLE_LA_CAPABLE)
++		num_las = CEC_MAX_LOG_ADDRS;
++
++	if (aux->cec_adap) {
++		if (aux->cec_adap->capabilities == cec_caps &&
++		    aux->cec_adap->available_log_addrs == num_las)
++			return 0;
++		cec_unregister_adapter(aux->cec_adap);
++	}
++
++	aux->cec_adap = cec_allocate_adapter(&drm_dp_cec_adap_ops,
++			 aux, name, cec_caps, num_las);
++	if (IS_ERR(aux->cec_adap)) {
++		err = PTR_ERR(aux->cec_adap);
++		aux->cec_adap = NULL;
++		return err;
++	}
++	err = cec_register_adapter(aux->cec_adap, parent);
++	if (err) {
++		cec_delete_adapter(aux->cec_adap);
++		aux->cec_adap = NULL;
++	}
++	return err;
++}
++EXPORT_SYMBOL(drm_dp_cec_configure_adapter);
+diff --git a/include/drm/drm_dp_helper.h b/include/drm/drm_dp_helper.h
+index b17476a6909c..0e236dd40b42 100644
+--- a/include/drm/drm_dp_helper.h
++++ b/include/drm/drm_dp_helper.h
+@@ -952,6 +952,8 @@ struct drm_dp_aux_msg {
+ 	size_t size;
+ };
  
--A DVB PCI card or DVB set-top-box (STB) usually consists of the
-+A Digital TV card or set-top-box (STB) usually consists of the
- following main hardware components:
++struct cec_adapter;
++
+ /**
+  * struct drm_dp_aux - DisplayPort AUX channel
+  * @name: user-visible name of this AUX channel and the I2C-over-AUX adapter
+@@ -1010,6 +1012,10 @@ struct drm_dp_aux {
+ 	 * @i2c_defer_count: Counts I2C DEFERs, used for DP validation.
+ 	 */
+ 	unsigned i2c_defer_count;
++	/**
++	 * @cec_adap: the CEC adapter for CEC-Tunneling-over-AUX support.
++	 */
++	struct cec_adapter *cec_adap;
+ };
  
---  Frontend consisting of tuner and DVB demodulator
-+-  Frontend consisting of tuner and digital TV demodulator
+ ssize_t drm_dp_dpcd_read(struct drm_dp_aux *aux, unsigned int offset,
+@@ -1132,4 +1138,22 @@ drm_dp_has_quirk(const struct drm_dp_desc *desc, enum drm_dp_quirk quirk)
+ 	return desc->quirks & BIT(quirk);
+ }
  
--   Here the raw signal reaches the DVB hardware from a satellite dish or
-+   Here the raw signal reaches the digital TV hardware from a satellite dish or
-    antenna or directly from cable. The frontend down-converts and
-    demodulates this signal into an MPEG transport stream (TS). In case
-    of a satellite frontend, this includes a facility for satellite
-@@ -105,10 +105,10 @@ conditional access hardware.
- 
- .. _dvb_devices:
- 
--Linux DVB Devices
--=================
-+Linux Digital TV Devices
-+========================
- 
--The Linux DVB API lets you control these hardware components through
-+The Linux Digital TV API lets you control these hardware components through
- currently six Unix-style character devices for video, audio, frontend,
- demux, CA and IP-over-DVB networking. The video and audio devices
- control the MPEG2 decoder hardware, the frontend device the tuner and
-@@ -137,8 +137,8 @@ individual devices are called:
- 
- -  ``/dev/dvb/adapterN/caM``,
- 
--where ``N`` enumerates the DVB PCI cards in a system starting from 0, and ``M``
--enumerates the devices of each type within each adapter, starting
-+where ``N`` enumerates the Digital TV cards in a system starting from 0, and
-+``M`` enumerates the devices of each type within each adapter, starting
- from 0, too. We will omit the “``/dev/dvb/adapterN/``\ ” in the further
- discussion of these devices.
- 
-@@ -151,8 +151,8 @@ devices are described in the following chapters.
- API include files
- =================
- 
--For each of the DVB devices a corresponding include file exists. The DVB
--API include files should be included in application sources with a
-+For each of the Digital TV devices a corresponding include file exists. The
-+Digital TV API include files should be included in application sources with a
- partial path like:
- 
- 
++#ifdef CONFIG_DRM_DP_CEC
++bool drm_dp_cec_irq(struct drm_dp_aux *aux);
++int drm_dp_cec_configure_adapter(struct drm_dp_aux *aux, const char *name,
++				 struct device *parent);
++#else
++static inline bool drm_dp_cec_irq(struct drm_dp_aux *aux)
++{
++	return false;
++}
++
++static inline int drm_dp_cec_configure_adapter(struct drm_dp_aux *aux,
++					       const char *name,
++					       struct device *parent)
++{
++	return -ENODEV;
++}
++#endif
++
+ #endif /* _DRM_DP_HELPER_H_ */
 -- 
-2.13.5
+2.14.1
