@@ -1,106 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34700 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750919AbdISO6f (ORCPT
+Received: from mail-qk0-f175.google.com ([209.85.220.175]:37679 "EHLO
+        mail-qk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750980AbdIKKrw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 10:58:35 -0400
-Date: Tue, 19 Sep 2017 17:58:32 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
-        sre@kernel.org
-Subject: Re: [PATCH v13 13/25] v4l: async: Allow async notifier register call
- succeed with no subdevs
-Message-ID: <20170919145831.uztphjdtd3fdxzvr@valkosipuli.retiisi.org.uk>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
- <20170915141724.23124-14-sakari.ailus@linux.intel.com>
- <1674305.pu9Ti8eC3U@avalon>
- <2068881.oMWDSm4mNc@avalon>
+        Mon, 11 Sep 2017 06:47:52 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2068881.oMWDSm4mNc@avalon>
+In-Reply-To: <1505126644-18396-1-git-send-email-jacob-chen@iotwrt.com>
+References: <1505126644-18396-1-git-send-email-jacob-chen@iotwrt.com>
+From: Jacob Chen <jacobchen110@gmail.com>
+Date: Mon, 11 Sep 2017 18:47:51 +0800
+Message-ID: <CAFLEztQZVJycPydqUKF8ysvL0BceS5U6_zDLDctzYFuiVS+jqQ@mail.gmail.com>
+Subject: Re: [PATCH v8 0/4] Add Rockchip RGA V4l2 support
+To: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>,
+        robh+dt@kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        laurent.pinchart+renesas@ideasonboard.com,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Jacob Chen <jacob-chen@iotwrt.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Hans,
 
-On Tue, Sep 19, 2017 at 03:52:02PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Tuesday, 19 September 2017 15:04:43 EEST Laurent Pinchart wrote:
-> > Hi Sakari,
-> > 
-> > Thank you for the patch.
-> > 
-> > On Friday, 15 September 2017 17:17:12 EEST Sakari Ailus wrote:
-> > > The information on how many async sub-devices would be bindable to a
-> > > notifier is typically dependent on information from platform firmware and
-> > > it's not driver's business to be aware of that.
-> > > 
-> > > Many V4L2 main drivers are perfectly usable (and useful) without async
-> > > sub-devices and so if there aren't any around, just proceed call the
-> > > notifier's complete callback immediately without registering the notifier
-> > > itself.
-> > > 
-> > > If a driver needs to check whether there are async sub-devices available,
-> > > it can be done by inspecting the notifier's num_subdevs field which tells
-> > > the number of async sub-devices.
-> > > 
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> I take this back.
-> 
-> > > ---
-> > > 
-> > >  drivers/media/v4l2-core/v4l2-async.c | 6 ++++--
-> > >  1 file changed, 4 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> > > b/drivers/media/v4l2-core/v4l2-async.c index 9895b610e2a0..4be2f16af051
-> > > 100644
-> > > --- a/drivers/media/v4l2-core/v4l2-async.c
-> > > +++ b/drivers/media/v4l2-core/v4l2-async.c
-> > > @@ -170,14 +170,16 @@ int v4l2_async_notifier_register(struct v4l2_device
-> > > *v4l2_dev, struct v4l2_async_subdev *asd;
-> > > 
-> > >  	int i;
-> > > 
-> > > -	if (!v4l2_dev || !notifier->num_subdevs ||
-> > > -	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-> > > +	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-> > > 
-> > >  		return -EINVAL;
-> > >  	
-> > >  	notifier->v4l2_dev = v4l2_dev;
-> > >  	INIT_LIST_HEAD(&notifier->waiting);
-> > >  	INIT_LIST_HEAD(&notifier->done);
-> > > 
-> > > +	if (!notifier->num_subdevs)
-> > > +		return v4l2_async_notifier_call_complete(notifier);
-> > > +
-> 
-> This skips adding the notifier to the notifier_list. Won't this result in an 
-> oops when calling list_del(&notifier->list) in 
-> v4l2_async_notifier_unregister() ?
+v4l2-compliance result:
 
-Good point. I'll add initialising the list head to the register function,
-with an appropriate comment.
+v4l2-compliance SHA   : not available
 
-> 
-> > >  	for (i = 0; i < notifier->num_subdevs; i++) {
-> > >  	
-> > >  		asd = notifier->subdevs[i];
-> 
+Driver Info:
+        Driver name   : rockchip-rga
+        Card type     : rockchip-rga
+        Bus info      : platform:rga
+        Driver version: 4.13.0
+        Capabilities  : 0x84208000
+                Video Memory-to-Memory
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04208000
+                Video Memory-to-Memory
+                Streaming
+                Extended Pix Format
 
--- 
-Regards,
+Compliance test for device /dev/video0 (not using libv4l2):
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 7 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                fail: v4l2-test-formats.cpp(779):
+fmt_cap.g_colorspace() != col
+                test VIDIOC_S_FMT: FAIL
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                fail: v4l2-test-formats.cpp(1273): doioctl(node,
+VIDIOC_G_SELECTION, &sel) != EI
+NVAL
+                test Cropping: OK (Not Supported)
+                fail: v4l2-test-formats.cpp(1273): doioctl(node,
+VIDIOC_G_SELECTION, &sel) != EI
+NVAL
+                test Composing: FAIL
+                test Scaling: OK
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 43, Succeeded: 41, Failed: 2, Warnings: 0
+root@linaro-alip:~#
