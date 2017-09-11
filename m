@@ -1,58 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34682 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754740AbdIGK1A (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:52278 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751532AbdIKLZw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Sep 2017 06:27:00 -0400
-Date: Thu, 7 Sep 2017 13:26:57 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org, javier@dowhile0.org,
-        jacek.anaszewski@gmail.com
-Subject: Re: [PATCH v3 2/3] leds: as3645a: Add LED flash class driver
-Message-ID: <20170907102657.stoqw5e7glbkbz2z@valkosipuli.retiisi.org.uk>
-References: <20170823081100.11733-1-sakari.ailus@linux.intel.com>
- <20170823081100.11733-3-sakari.ailus@linux.intel.com>
- <20170828110451.GB492@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170828110451.GB492@amd>
+        Mon, 11 Sep 2017 07:25:52 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        dri-devel@lists.freedesktop.org, Sean Paul <seanpaul@chromium.org>,
+        Imre Deak <imre.deak@intel.com>,
+        =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?=
+        <ville.syrjala@linux.intel.com>
+Subject: [PATCHv3 0/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
+Date: Mon, 11 Sep 2017 13:25:44 +0200
+Message-Id: <20170911112547.7133-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Mon, Aug 28, 2017 at 01:04:51PM +0200, Pavel Machek wrote:
-> On Wed 2017-08-23 11:10:59, Sakari Ailus wrote:
-> > Add a LED flash class driver for the as3654a flash controller. A V4L2 flash
-> > driver for it already exists (drivers/media/i2c/as3645a.c), and this driver
-> > is based on that.
-> 
-> We do not want to have two drivers for same hardware... how is that
-> supposed to work?
+This patch series adds support for the DisplayPort CEC-Tunneling-over-AUX
+feature. This patch series is based on the current pre-4.14-rc1 mainline
+which has all the needed cec 4.14 patches merged.
 
-No, we don't. The intent is to remove the other driver later on, as it's
-implemented as a V4L2 sub-device driver. It also lacks DT support.
+This patch series has been tested with my NUC7i5BNK and a Samsung USB-C to 
+HDMI adapter.
 
-> 
-> Yes, we might want to have both LED and v4l2 interface for a single
-> LED, because v4l2 is just too hairy to use, but we should not
-> duplicate drivers for that.
-> 
-> We _might_ want to do some helpers; as these LED drivers are all quite
-> similar, it should be possible to have "flash led driver" and just
-> link it to v4l2 and LED interfaces...
+Please note this comment at the start of drm_dp_cec.c:
 
-This is what the new LED (flash) class driver does. Feature-wise it's a
-superset of the old one. There's a minor matter left, though, which is
-querying the flash strobe status which the old driver did and the new one
-does not do yet. I don't know if anyone ever even used that feature though.
+----------------------------------------------------------------------
+Unfortunately it turns out that we have a chicken-and-egg situation
+here. Quite a few active (mini-)DP-to-HDMI or USB-C-to-HDMI adapters
+have a converter chip that supports CEC-Tunneling-over-AUX (usually the
+Parade PS176), but they do not wire up the CEC pin, thus making CEC
+useless.
 
--- 
+Sadly there is no way for this driver to know this. What happens is 
+that a /dev/cecX device is created that is isolated and unable to see
+any of the other CEC devices. Quite literally the CEC wire is cut
+(or in this case, never connected in the first place).
+
+I suspect that the reason so few adapters support this is that this
+tunneling protocol was never supported by any OS. So there was no 
+easy way of testing it, and no incentive to correctly wire up the
+CEC pin.
+
+Hopefully by creating this driver it will be easier for vendors to 
+finally fix their adapters and test the CEC functionality.
+
+I keep a list of known working adapters here:
+
+https://hverkuil.home.xs4all.nl/cec-status.txt
+
+Please mail me (hverkuil@xs4all.nl) if you find an adapter that works
+and is not yet listed there.
+----------------------------------------------------------------------
+
+I really hope that this work will provide an incentive for vendors to
+finally connect the CEC pin. It's a shame that there are so few adapters
+that work (I found only two USB-C to HDMI adapters that work, and no
+(mini-)DP to HDMI adapters at all).
+
+Note that a colleague who actually knows his way around a soldering iron
+modified an UpTab DisplayPort-to-HDMI adapter for me, hooking up the CEC
+pin. And after that change it worked. I also received confirmation that
+this really is a chicken-and-egg situation: it is because there is no CEC
+support for this feature in any OS that they do not hook up the CEC pin.
+
+So hopefully if this gets merged there will be an incentive for vendors
+to make adapters where this actually works. It is a very nice feature
+for HTPC boxes.
+
+I've added Imre and Ville. It would be great if this can go in for 4.15.
+
+Changes since v2:
+
+- Use the new CEC_CAP_DEFAULTS define
+- Replace 'if (!IS_ERR_OR_NULL(aux->cec_adap)) {' in drm_dp_cec_configure_adapter()
+  by just 'if (aux->cec_adap) {'.
+
+Changes since v1:
+
+- Incorporated Sean's review comments in patch 1/3.
+
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+        Hans
+
+Hans Verkuil (3):
+  drm: add support for DisplayPort CEC-Tunneling-over-AUX
+  drm-kms-helpers.rst: document the DP CEC helpers
+  drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
+
+ Documentation/gpu/drm-kms-helpers.rst |   9 +
+ drivers/gpu/drm/Kconfig               |  10 ++
+ drivers/gpu/drm/Makefile              |   1 +
+ drivers/gpu/drm/drm_dp_cec.c          | 301 ++++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/i915/intel_dp.c       |  18 +-
+ include/drm/drm_dp_helper.h           |  24 +++
+ 6 files changed, 359 insertions(+), 4 deletions(-)
+ create mode 100644 drivers/gpu/drm/drm_dp_cec.c
+
+-- 
+2.14.1
