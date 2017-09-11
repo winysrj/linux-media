@@ -1,131 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:52930 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751041AbdILD6A (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39509 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751004AbdIKVmO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 23:58:00 -0400
-Message-ID: <0d130417d5c4efc185cc2adac3355046@smtp-cloud7.xs4all.net>
-Date: Tue, 12 Sep 2017 05:57:57 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Mon, 11 Sep 2017 17:42:14 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH v2 6/8] v4l: vsp1: Adapt entities to configure into a body
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <b37d6201d498f4e32016217adb33557cea30e655.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <1807083.ZJnR2iqIOD@avalon>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <112c0f66-4918-40d0-d2dd-17f9bbd03f12@ideasonboard.com>
+Date: Mon, 11 Sep 2017 22:42:09 +0100
+MIME-Version: 1.0
+In-Reply-To: <1807083.ZJnR2iqIOD@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Laurent,
 
-Results of the daily build of media_tree:
+On 17/08/17 18:58, Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> Thank you for the patch.
+> 
+> On Monday 14 Aug 2017 16:13:29 Kieran Bingham wrote:
+>> Currently the entities store their configurations into a display list.
+>> Adapt this such that the code can be configured into a body fragment
+>> directly, allowing greater flexibility and control of the content.
+>>
+>> All users of vsp1_dl_list_write() are removed in this process, thus it
+>> too is removed.
+>>
+>> A helper, vsp1_dl_list_body() is provided to access the internal body0
+>> from the display list.
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>> ---
+>>  drivers/media/platform/vsp1/vsp1_bru.c    | 22 ++++++------
+>>  drivers/media/platform/vsp1/vsp1_clu.c    | 22 ++++++------
+>>  drivers/media/platform/vsp1/vsp1_dl.c     | 12 ++-----
+>>  drivers/media/platform/vsp1/vsp1_dl.h     |  2 +-
+>>  drivers/media/platform/vsp1/vsp1_drm.c    | 14 +++++---
+>>  drivers/media/platform/vsp1/vsp1_entity.c | 16 ++++-----
+>>  drivers/media/platform/vsp1/vsp1_entity.h | 12 ++++---
+>>  drivers/media/platform/vsp1/vsp1_hgo.c    | 16 ++++-----
+>>  drivers/media/platform/vsp1/vsp1_hgt.c    | 18 +++++-----
+>>  drivers/media/platform/vsp1/vsp1_hsit.c   | 10 +++---
+>>  drivers/media/platform/vsp1/vsp1_lif.c    | 13 +++----
+>>  drivers/media/platform/vsp1/vsp1_lut.c    | 21 ++++++------
+>>  drivers/media/platform/vsp1/vsp1_pipe.c   |  4 +-
+>>  drivers/media/platform/vsp1/vsp1_pipe.h   |  3 +-
+>>  drivers/media/platform/vsp1/vsp1_rpf.c    | 43 +++++++++++-------------
+>>  drivers/media/platform/vsp1/vsp1_sru.c    | 14 ++++----
+>>  drivers/media/platform/vsp1/vsp1_uds.c    | 24 +++++++------
+>>  drivers/media/platform/vsp1/vsp1_uds.h    |  2 +-
+>>  drivers/media/platform/vsp1/vsp1_video.c  | 11 ++++--
+>>  drivers/media/platform/vsp1/vsp1_wpf.c    | 42 ++++++++++++-----------
+>>  20 files changed, 168 insertions(+), 153 deletions(-)
+> 
+> This is quite intrusive, and it bothers me slightly that we need to pass both 
+> the DL and the DLB to the configure function in order to add fragments to the 
+> DL in the CLU and LUT modules. Wouldn't it be simpler to add a pointer to the 
+> current body in the DL structure, and modify vsp1_dl_list_write() to write to 
+> the current fragment ?
+> 
 
-date:			Tue Sep 12 05:00:15 CEST 2017
-media-tree git hash:	1efdf1776e2253b77413c997bed862410e4b6aaf
-media_build git hash:	bbd9f669f0da6705fe44aff89281c0d6e7bfd73e
-v4l-utils git hash:	7f937d31ac2af7416c60cd5ff7b5153c85e23d3a
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+No doubt about it, 168+, 153- is certainly intrusive.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: WARNINGS
-spec-git: OK
+Yes, now I'm looking back at this, I think this does look like this part is not
+quite the right approach.
 
-Detailed results are available here:
+Which otherwise stalls the series until I have time to reconsider. I will likely
+repost the work I have done on the earlier patches, including the
+'s/fragment/body/g' changes and ready myself for a v4 which will contain the
+heavier reworks.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+--
+Kieran
