@@ -1,187 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36606 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751470AbdILNmL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 09:42:11 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v12 19/26] v4l: fwnode: Add a helper function to obtain device / interger references
-Date: Tue, 12 Sep 2017 16:41:53 +0300
-Message-Id: <20170912134200.19556-20-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
-References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+Received: from www.llwyncelyn.cymru ([82.70.14.225]:57100 "EHLO fuzix.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750969AbdIKX0F (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 19:26:05 -0400
+Date: Tue, 12 Sep 2017 00:25:28 +0100
+From: Alan Cox <alan@llwyncelyn.cymru>
+To: Vincent Hervieux <vincent.hervieux@gmail.com>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        rvarsha016@gmail.com, dan.carpenter@oracle.com,
+        fengguang.wu@intel.com, daeseok.youn@gmail.com,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/2] staging: atomisp: activate ATOMISP2401 support
+Message-ID: <20170912002528.615d0e40@alans-desktop>
+In-Reply-To: <cover.1505142435.git.vincent.hervieux@gmail.com>
+References: <cover.1505142435.git.vincent.hervieux@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
-the device's own fwnode, it will follow child fwnodes with the given
-property -- value pair and return the resulting fwnode.
+On Mon, 11 Sep 2017 20:49:27 +0200
+Vincent Hervieux <vincent.hervieux@gmail.com> wrote:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-fwnode.c | 145 ++++++++++++++++++++++++++++++++++
- 1 file changed, 145 insertions(+)
+> Currently atomisp module supports Intel's Baytrail SoC and contains
+> some compilation switches to support Intel's Cherrytrail SoC instead.
+> The patchset aims to :
+> - 1/2: activate ATOMISP2400 or ATOMISP2401 from the menu.
+> - 2/2: fix compilation errors for ATOMISP2401.
+> I'm not so confident with patch 2/2, as it is only working around the non declared functions by using the 2400 path. As I couln't find any declaration/definition for the ISP2401 missing functions...So any help would be appreciated.
+> Also patch 2/2 doesn't correct any cosmetic changes reported by checkpatch.pl as explained in TODO step 6.
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index a32473f95be1..a07599a8f647 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -567,6 +567,151 @@ static int v4l2_fwnode_reference_parse(
- 	return ret;
- }
- 
-+/*
-+ * v4l2_fwnode_reference_get_int_prop - parse a reference with integer
-+ *					arguments
-+ * @dev: struct device pointer
-+ * @notifier: notifier for @dev
-+ * @prop: the name of the property
-+ * @props: the array of integer property names
-+ * @nprops: the number of integer properties
-+ *
-+ * Find fwnodes referred to by a property @prop, then under that iteratively
-+ * follow each child node which has a property the value matches the integer
-+ * argument at an index.
-+ *
-+ * Return: 0 on success
-+ *	   -ENOENT if no entries (or the property itself) were found
-+ *	   -EINVAL if property parsing otherwisefailed
-+ *	   -ENOMEM if memory allocation failed
-+ */
-+static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
-+	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
-+	const char **props, unsigned int nprops)
-+{
-+	struct fwnode_reference_args fwnode_args;
-+	unsigned int *args = fwnode_args.args;
-+	struct fwnode_handle *child;
-+	int ret;
-+
-+	/*
-+	 * Obtain remote fwnode as well as the integer arguments.
-+	 *
-+	 * To-do: handle -ENODATA when "device property: Align return
-+	 * codes of acpi_fwnode_get_reference_with_args" is merged.
-+	 */
-+	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
-+						 index, &fwnode_args);
-+	if (ret)
-+		return ERR_PTR(ret == -ENODATA ? -ENOENT : ret);
-+
-+	/*
-+	 * Find a node in the tree under the referred fwnode corresponding the
-+	 * integer arguments.
-+	 */
-+	fwnode = fwnode_args.fwnode;
-+	while (nprops) {
-+		u32 val;
-+
-+		/* Loop over all child nodes under fwnode. */
-+		fwnode_for_each_child_node(fwnode, child) {
-+			if (fwnode_property_read_u32(child, *props, &val))
-+				continue;
-+
-+			/* Found property, see if its value matches. */
-+			if (val == *args)
-+				break;
-+		}
-+
-+		fwnode_handle_put(fwnode);
-+
-+		/* No property found; return an error here. */
-+		if (!child) {
-+			fwnode = ERR_PTR(-ENOENT);
-+			break;
-+		}
-+
-+		props++;
-+		args++;
-+		fwnode = child;
-+		nprops--;
-+	}
-+
-+	return fwnode;
-+}
-+
-+/*
-+ * v4l2_fwnode_reference_parse_int_props - parse references for async sub-devices
-+ * @dev: struct device pointer
-+ * @notifier: notifier for @dev
-+ * @prop: the name of the property
-+ * @props: the array of integer property names
-+ * @nprops: the number of integer properties
-+ *
-+ * Use v4l2_fwnode_reference_get_int_prop to find fwnodes through reference in
-+ * property @prop with integer arguments with child nodes matching in properties
-+ * @props. Then, set up V4L2 async sub-devices for those fwnodes in the notifier
-+ * accordingly.
-+ *
-+ * While it is technically possible to use this function on DT, it is only
-+ * meaningful on ACPI. On Device tree you can refer to any node in the tree but
-+ * on ACPI the references are limited to devices.
-+ *
-+ * Return: 0 on success
-+ *	   -ENOENT if no entries (or the property itself) were found
-+ *	   -EINVAL if property parsing otherwisefailed
-+ *	   -ENOMEM if memory allocation failed
-+ */
-+static int v4l2_fwnode_reference_parse_int_props(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	const char *prop, const char **props, unsigned int nprops)
-+{
-+	struct fwnode_handle *fwnode;
-+	unsigned int index;
-+	int ret;
-+
-+	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-+					 dev_fwnode(dev), prop, index, props,
-+					 nprops))); index++)
-+		fwnode_handle_put(fwnode);
-+
-+	if (PTR_ERR(fwnode) != -ENOENT)
-+		return PTR_ERR(fwnode);
-+
-+	ret = v4l2_async_notifier_realloc(notifier,
-+					  notifier->num_subdevs + index);
-+	if (ret)
-+		return -ENOMEM;
-+
-+	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-+					 dev_fwnode(dev), prop, index, props,
-+					 nprops))); index++) {
-+		struct v4l2_async_subdev *asd;
-+
-+		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-+			ret = -EINVAL;
-+			goto error;
-+		}
-+
-+		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
-+		if (!asd) {
-+			ret = -ENOMEM;
-+			goto error;
-+		}
-+
-+		notifier->subdevs[notifier->num_subdevs] = asd;
-+		asd->match.fwnode.fwnode = fwnode;
-+		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-+		notifier->num_subdevs++;
-+	}
-+
-+	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
-+
-+error:
-+	fwnode_handle_put(fwnode);
-+	return ret;
-+}
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
- MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
--- 
-2.11.0
+Please don't. Right now we know what work is to be done and tested.
+
+Alan
