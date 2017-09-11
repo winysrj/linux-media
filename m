@@ -1,142 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:46811 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752223AbdI2PT0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Sep 2017 11:19:26 -0400
-Date: Fri, 29 Sep 2017 12:19:10 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: Re: [PATCH v2 09/13] scripts: kernel-doc: parse next structs/unions
-Message-ID: <20170929121910.4c3cd1e2@recife.lan>
-In-Reply-To: <6071B3F0-A0D8-4E03-927D-79C624E3ACAF@darmarit.de>
-References: <cover.1506546492.git.mchehab@s-opensource.com>
-        <cover.1506546492.git.mchehab@s-opensource.com>
-        <b2528c4f1d2e76b7dacde8c5660e94de32e2eb71.1506546492.git.mchehab@s-opensource.com>
-        <68968C67-7CD6-4264-A46D-1EE195CBC58D@darmarit.de>
-        <20170929090853.469ea73b@recife.lan>
-        <768B7EAA-53EB-4D43-95C3-D4710E6DCB41@darmarit.de>
-        <20170929103234.38ea8086@recife.lan>
-        <6071B3F0-A0D8-4E03-927D-79C624E3ACAF@darmarit.de>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:58388 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751515AbdIKNfF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 09:35:05 -0400
+Subject: Re: [PATCH v3 01/15] [media] v4l: Document explicit synchronization
+ behaviour
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+References: <20170907184226.27482-1-gustavo@padovan.org>
+ <20170907184226.27482-2-gustavo@padovan.org>
+ <22b8926c-4a44-0f22-0717-c36d64003272@xs4all.nl>
+ <6bb8df91-4cd2-2ca5-dc4b-aea5ea14e7b1@xs4all.nl> <20170911131846.GA7552@jade>
+ <33e4711c-87dc-de98-a9da-33470f5ee083@xs4all.nl> <20170911133405.GB7552@jade>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5301d746-07be-7d06-6046-b3438a95e539@xs4all.nl>
+Date: Mon, 11 Sep 2017 15:35:00 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20170911133405.GB7552@jade>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 29 Sep 2017 17:00:36 +0200
-Markus Heiser <markus.heiser@darmarit.de> escreveu:
-
-> > None to argue here. If it is part of the language, either comply or use
-> > some other language that it isn't position oriented.  
+On 09/11/2017 03:34 PM, Gustavo Padovan wrote:
+> 2017-09-11 Hans Verkuil <hverkuil@xs4all.nl>:
 > 
-> Just for info; when Guido van Rossum created python he thought, that
-> readability counts. With indentation as a part of the syntax, python
-> forces the developer to write readable code.
-
-I'm sympathetic with the idea of having a more readable code, but a similar
-effect could be produced by noisy warnings if the indentation is not
-correct. It also wouldn't force the others about a personal tabs usage
-preference.
-
-For me, the issue that bothers most on Python is that, if I need to comment
-out part of the code (for example, to remove an IF clause) to do some tests
-or add new prints, the code inside it needs to be re-indented, with slows
-down my tests ;)
-
-On all other languages, I just comment out the lines, and, if I want to
-place additional prints, I start from column 1, as this is very easy to
-notice and strip before pushing the final version.
-
-> I have stack of punched card right here: Nowadays they are excellent
-> cigarettes filter ;)
-
-:-)
-
+>> On 09/11/2017 03:18 PM, Gustavo Padovan wrote:
+>>> 2017-09-11 Hans Verkuil <hverkuil@xs4all.nl>:
+>>>
+>>>> On 09/11/2017 12:50 PM, Hans Verkuil wrote:
+>>>>> On 09/07/2017 08:42 PM, Gustavo Padovan wrote:
+>>>>>> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+>>>>>>
+>>>>>> Add section to VIDIOC_QBUF about it
+>>>>>>
+>>>>>> v2:
+>>>>>> 	- mention that fences are files (Hans)
+>>>>>> 	- rework for the new API
+>>>>>>
+>>>>>> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+>>>>>> ---
+>>>>>>  Documentation/media/uapi/v4l/vidioc-qbuf.rst | 31 ++++++++++++++++++++++++++++
+>>>>>>  1 file changed, 31 insertions(+)
+>>>>>>
+>>>>>> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+>>>>>> index 1f3612637200..fae0b1431672 100644
+>>>>>> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+>>>>>> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+>>>>>> @@ -117,6 +117,37 @@ immediately with an ``EAGAIN`` error code when no buffer is available.
+>>>>>>  The struct :c:type:`v4l2_buffer` structure is specified in
+>>>>>>  :ref:`buffer`.
+>>>>>>  
+>>>>>> +Explicit Synchronization
+>>>>>> +------------------------
+>>>>>> +
+>>>>>> +Explicit Synchronization allows us to control the synchronization of
+>>>>>> +shared buffers from userspace by passing fences to the kernel and/or
+>>>>>> +receiving them from it. Fences passed to the kernel are named in-fences and
+>>>>>> +the kernel should wait them to signal before using the buffer, i.e., queueing
+>>>>>
+>>>>> wait them -> wait on them
+>>>>>
+>>>>> (do you wait 'on' a fence or 'for' a fence? I think it's 'on' but I'm not 100% sure)
+>>>>>
+>>>>>> +it to the driver. On the other side, the kernel can create out-fences for the
+>>>>>> +buffers it queues to the drivers, out-fences signal when the driver is
+>>>>>
+>>>>> Start a new sentence here: ...drivers. Out-fences...
+>>>>>
+>>>>>> +finished with buffer, that is the buffer is ready. The fence are represented
+>>>>>
+>>>>> s/that is/i.e/
+>>>>>
+>>>>> s/The fence/The fences/
+>>>>>
+>>>>>> +by file and passed as file descriptor to userspace.
+>>>>>
+>>>>> s/by file/as a file/
+>>>>> s/as file/as a file/
+>>>>>
+>>>>>> +
+>>>>>> +The in-fences are communicated to the kernel at the ``VIDIOC_QBUF`` ioctl
+>>>>>> +using the ``V4L2_BUF_FLAG_IN_FENCE`` buffer
+>>>>>> +flags and the `fence_fd` field. If an in-fence needs to be passed to the kernel,
+>>>>>> +`fence_fd` should be set to the fence file descriptor number and the
+>>>>>> +``V4L2_BUF_FLAG_IN_FENCE`` should be set as well. Failure to set both will
+>>>>>
+>>>>> s/Failure to set both/Setting one but not the other/
+>>>>>
+>>>>>> +cause ``VIDIOC_QBUF`` to return with error.
+>>>>>> +
+>>>>>> +To get a out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE`` flag should
+>>>>>> +be set to notify it that the next queued buffer should have a fence attached to
+>>>>>> +it. That means the out-fence may not be associated with the buffer in the
+>>>>>> +current ``VIDIOC_QBUF`` ioctl call because the ordering in which videobuf2 core
+>>>>>> +queues the buffers to the drivers can't be guaranteed. To become aware of the
+>>>>>> +of the next queued buffer and the out-fence attached to it the
+>>>>>> +``V4L2_EVENT_BUF_QUEUED`` event should be used. It will trigger an event
+>>>>>> +for every buffer queued to the V4L2 driver.
+>>>>>
+>>>>> This makes no sense.
+>>>>>
+>>>>> Setting this flag means IMHO that when *this* buffer is queued up to the driver,
+>>>>> then it should send the BUF_QUEUED event with an out fence.
+>>>>>
+>>>>> I.e. it signals that userspace wants to have the out-fence. The requirement w.r.t.
+>>>>> ordering is that the BUF_QUEUED events have to be in order, but that is something
+>>>>> that the driver can ensure in the case it is doing internal re-ordering.
+>>>>>
+>>>>> This requirement is something that needs to be documented here, BTW.
+>>>>>
+>>>>> Anyway, the flag shouldn't refer to some 'next buffer', since that's very confusing.
+>>>>
+>>>> Just ignore this comment. I assume v4 will implement it like this.
+>>>
+>>> What approach do you mean by "like this". I'm confused now. :)
+>>>
+>>> In fact, I was in doubt between these two different approaches here.
+>>> Should the flag mean *this* or the *next* buffer? The buffers can still
+>>> be reordered at the videobuf2 level, because they might be waiting on
+>>> in-fences and the fences may signal out of order. Then I went for the
+>>> *next* buffer approach because we don't know that buffer for sure.
+>>> But now thinking on this again we shouldn't have problems with the 
+>>> *this* buffer approach also.
+>>
+>> It should mean *this* buffer. It's really weird to set this flag for one
+>> buffer, only for it to mean 'next' buffer.
+>>
+>> Keep it simple: the flag just means: send me the output fence fd for this
+>> buffer once you have it. If it is not set, then no BUF_QUEUE event is sent.
+>>
+>> Actually, it could mean one of two things: either if it is not set, then no
+>> BUF_QUEUE event is sent, or if it is not set, then the fd in the BUF_QUEUE
+>> event is -1.
+>>
+>> I'm leaning towards the first. I can't see any use-case for sending that
+>> event if you are not requesting out fences.
 > 
->   https://github.com/return42/linuxdoc/blob/master/linuxdoc/kernel_doc.py#L1713
-> 
-> I guess we should do the same in sub process_file($) with <IN>. My
-> perl is to bad, may you could take a look at? / Thanks!
+> We could go with the first one but in this case it is better to rename it to
+> V4L2_EVENT_OUT_FENCE or something like this, isn't it?
 
-Gah! I guess I forgot to attach the patch I wrote on my previous e-mail...
-I did exactly what you suggested.
+I was thinking the same thing. That would be a better name, yes.
 
-I opted to use this:
+Regards,
 
-    while (<IN>) {
-	while (s/\\\s*$//) {
-	    $_ .= <IN>;
-	}
-	# Replace tabs by spaces
-        while ($_ =~ s/\t+/' ' x (length($&) * 8 - length($`) % 8)/e) {};
-
-To replace them. I could, instead, use a perl extension, but that
-would add an extra dependency for something that can be done on a
-single Perl regex statement.
-
-Thanks,
-Mauro
-
--
-
->From 7c4ef302b855aeb68773621f379fb6e8813c886c Mon Sep 17 00:00:00 2001
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Date: Fri, 29 Sep 2017 08:53:40 -0300
-Subject: [PATCH] kernel-doc: replace tabs by spaces
-
-Sphinx has a hard time dealing with tabs, causing it to
-misinterpret paragraph continuation.
-
-As we're now mainly focused on supporting ReST output,
-replace tabs by spaces, in order to avoid troubles when
-the output is parsed by Sphinx.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index 69757ee9db4c..7bc139184177 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -1544,7 +1544,7 @@ sub tracepoint_munge($) {
- sub syscall_munge() {
- 	my $void = 0;
- 
--	$prototype =~ s@[\r\n\t]+@ @gos; # strip newlines/CR's/tabs
-+	$prototype =~ s@[\r\n]+@ @gos; # strip newlines/CR's
- ##	if ($prototype =~ m/SYSCALL_DEFINE0\s*\(\s*(a-zA-Z0-9_)*\s*\)/) {
- 	if ($prototype =~ m/SYSCALL_DEFINE0/) {
- 		$void = 1;
-@@ -1743,6 +1743,8 @@ sub process_file($) {
- 	while (s/\\\s*$//) {
- 	    $_ .= <IN>;
- 	}
-+	# Replace tabs by spaces
-+        while ($_ =~ s/\t+/' ' x (length($&) * 8 - length($`) % 8)/e) {};
- 	if ($state == STATE_NORMAL) {
- 	    if (/$doc_start/o) {
- 		$state = STATE_NAME;	# next line is always the function name
-@@ -1842,8 +1844,7 @@ sub process_file($) {
- 		$in_purpose = 0;
- 		$contents = $newcontents;
-                 $new_start_line = $.;
--		while ((substr($contents, 0, 1) eq " ") ||
--		       substr($contents, 0, 1) eq "\t") {
-+		while (substr($contents, 0, 1) eq " ") {
- 		    $contents = substr($contents, 1);
- 		}
- 		if ($contents ne "") {
-@@ -1912,8 +1913,7 @@ sub process_file($) {
- 		$contents = $2;
-                 $new_start_line = $.;
- 		if ($contents ne "") {
--		    while ((substr($contents, 0, 1) eq " ") ||
--		           substr($contents, 0, 1) eq "\t") {
-+		    while (substr($contents, 0, 1) eq " ") {
- 			$contents = substr($contents, 1);
- 		    }
- 		    $contents .= "\n";
+	Hans
