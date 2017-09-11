@@ -1,78 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f44.google.com ([209.85.215.44]:37489 "EHLO
-        mail-lf0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751813AbdIAMnL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 08:43:11 -0400
-Received: by mail-lf0-f44.google.com with SMTP id y128so365889lfd.4
-        for <linux-media@vger.kernel.org>; Fri, 01 Sep 2017 05:43:11 -0700 (PDT)
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:47790 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751071AbdIKJOI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 05:14:08 -0400
+Subject: Re: [PATCH v10 17/24] v4l: fwnode: Add a helper function for parsing
+ generic references
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+ <20170911080008.21208-18-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e71bb2d0-d68d-0c9a-4234-482a2898a5fb@xs4all.nl>
+Date: Mon, 11 Sep 2017 11:14:03 +0200
 MIME-Version: 1.0
-In-Reply-To: <1962548.KP01uVGcTd@avalon>
-References: <20170821155203.GB38943@e107564-lin.cambridge.arm.com>
- <4559442.sz5HF0f0o4@avalon> <1504195978.18413.14.camel@ndufresne.ca> <1962548.KP01uVGcTd@avalon>
-From: Rob Clark <robdclark@gmail.com>
-Date: Fri, 1 Sep 2017 08:43:09 -0400
-Message-ID: <CAF6AEGu1v-_hWbyRfdoWnJN=bqBV_OZcEaNhWgdrjqNamvu62A@mail.gmail.com>
-Subject: Re: DRM Format Modifiers in v4l2
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Nicolas Dufresne <nicolas@ndufresne.ca>, jonathan.chai@arm.com,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20170911080008.21208-18-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 1, 2017 at 3:13 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Nicolas,
->
-> On Thursday, 31 August 2017 19:12:58 EEST Nicolas Dufresne wrote:
->> Le jeudi 31 ao=C3=BBt 2017 =C3=A0 17:28 +0300, Laurent Pinchart a =C3=A9=
-crit :
->> >> e.g. if I have two devices which support MODIFIER_FOO, I could attemp=
-t
->> >> to share a buffer between them which uses MODIFIER_FOO without
->> >> necessarily knowing exactly what it is/does.
->> >
->> > Userspace could certainly set modifiers blindly, but the point of
->> > modifiers is to generate side effects benefitial to the use case at ha=
-nd
->> > (for instance by optimizing the memory access pattern). To use them
->> > meaningfully userspace would need to have at least an idea of the side
->> > effects they generate.
->>
->> Generic userspace will basically pick some random combination.
->
-> In that case userspace could set no modifier at all by default (except in=
- the
-> case where unmodified formats are not supported by the hardware, but I do=
-n't
-> expect that to be the most common case).
->
->> To allow generically picking the optimal configuration we could indeed r=
-ely
->> on the application knowledge, but we could also enhance the spec so that
->> the order in the enumeration becomes meaningful.
->
-> I'm not sure how far we should go. I could imagine a system where the API
-> would report capabilities for modifiers (e.g. this modifier lowers the
-> bandwidth, this one enhances the quality, ...), but going in that directi=
-on,
-> where do we stop ? In practice I expect userspace to know some informatio=
-n
-> about the hardware, so I'd rather avoid over-engineering the API.
->
+On 09/11/2017 10:00 AM, Sakari Ailus wrote:
+> Add function v4l2_fwnode_reference_count() for counting external
+> references and v4l2_fwnode_reference_parse() for parsing them as async
+> sub-devices.
+> 
+> This can be done on e.g. flash or lens async sub-devices that are not part
+> of but are associated with a sensor.
+> 
+> struct v4l2_async_notifier.max_subdevs field is added to contain the
+> maximum number of sub-devices in a notifier to reflect the memory
+> allocated for the subdevs array.
 
-I think in the (hopefully not too) long term, something like
-https://github.com/cubanismo/allocator/ is the way forward.  That
-doesn't quite solve how v4l2 kernel part sorts out w/ corresponding
-userspace .so what is preferable, but at least that is
-compartmentalized to v4l2.. on the gl/vk side of things there will ofc
-be a hardware specific userspace part that knows what it prefers.  For
-v4l2, it probably makes sense to sort out what the userspace level API
-is and work backwards from there, rather than risk trying to design a
-kernel uapi that might turn out to be the wrong thing.
+This paragraph appears to be out-of-date.
 
-BR,
--R
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-fwnode.c | 47 +++++++++++++++++++++++++++++++++++
+>  1 file changed, 47 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> index d978f2d714ca..4821c4989119 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -449,6 +449,53 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints);
+>  
+> +static int v4l2_fwnode_reference_parse(
+> +	struct device *dev, struct v4l2_async_notifier *notifier,
+> +	const char *prop)
+> +{
+> +	struct fwnode_reference_args args;
+> +	unsigned int index = 0;
+> +	int ret;
+> +
+> +	for (; !fwnode_property_get_reference_args(
+> +		     dev_fwnode(dev), prop, NULL, 0, index, &args); index++)
+> +		fwnode_handle_put(args.fwnode);
+> +
+
+If nothing is found (i.e. index == 0), shouldn't you just return here?
+
+> +	ret = v4l2_async_notifier_realloc(notifier,
+> +					  notifier->num_subdevs + index);
+> +	if (ret)
+> +		return -ENOMEM;
+> +
+> +	for (ret = -ENOENT, index = 0;
+
+There is no reason for the 'ret = -ENOENT' to be in the for(), just set it before
+the 'for' statement.
+
+> +	     !fwnode_property_get_reference_args(
+> +		     dev_fwnode(dev), prop, NULL, 0, index, &args);
+> +	     index++) {
+> +		struct v4l2_async_subdev *asd;
+> +
+> +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
+> +			ret = -EINVAL;
+> +			goto error;
+> +		}
+> +
+> +		asd = kzalloc(sizeof(*asd), GFP_KERNEL);
+> +		if (!asd) {
+> +			ret = -ENOMEM;
+> +			goto error;
+> +		}
+> +
+> +		notifier->subdevs[notifier->num_subdevs] = asd;
+> +		asd->match.fwnode.fwnode = args.fwnode;
+> +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> +		notifier->num_subdevs++;
+> +	}
+
+If the loop doesn't find anything, then it still returns 0, not -ENOENT.
+So why set ret to ENOENT? Something weird going on here.
+
+I think you should also add a comment explaining this function.
+
+> +
+> +	return 0;
+> +
+> +error:
+> +	fwnode_handle_put(args.fwnode);
+> +	return ret;
+> +}
+> +
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+>  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+> 
+
+Regards,
+
+	Hans
