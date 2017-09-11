@@ -1,72 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:60027 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1030262AbdIZNe7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 09:34:59 -0400
-Subject: [PATCH 1/2] [media] dmxdev: Use common error handling code in
- dvb_dmxdev_start_feed()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Devendra Sharma <devendra.sharma9091@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <5f169dcb-b834-5ca3-2195-668e5295a7ca@users.sourceforge.net>
-Message-ID: <2c7d9cb4-983c-154c-6c0c-9d6a41bb82e1@users.sourceforge.net>
-Date: Tue, 26 Sep 2017 15:34:45 +0200
-MIME-Version: 1.0
-In-Reply-To: <5f169dcb-b834-5ca3-2195-668e5295a7ca@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48964 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751026AbdIKIAR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 04:00:17 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v10 12/24] v4l: async: Register sub-devices before calling bound callback
+Date: Mon, 11 Sep 2017 10:59:56 +0300
+Message-Id: <20170911080008.21208-13-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 26 Sep 2017 15:12:47 +0200
+Register the sub-device before calling the notifier's bound callback.
+Doing this the other way around is problematic as the struct v4l2_device
+has not assigned for the sub-device yet and may be required by the bound
+callback.
 
-Add a jump target so that a bit of exception handling can be better reused
-at the end of this function.
-
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-core/dmxdev.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/media/v4l2-core/v4l2-async.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-index 45e91add73ba..f8bf7459d5ca 100644
---- a/drivers/media/dvb-core/dmxdev.c
-+++ b/drivers/media/dvb-core/dmxdev.c
-@@ -594,18 +594,18 @@ static int dvb_dmxdev_start_feed(struct dmxdev *dmxdev,
- 	tsfeed->priv = filter;
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index c34f93593b41..7b396ff4302b 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -130,13 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ {
+ 	int ret;
  
- 	ret = tsfeed->set(tsfeed, feed->pid, ts_type, ts_pes, timeout);
--	if (ret < 0) {
--		dmxdev->demux->release_ts_feed(dmxdev->demux, tsfeed);
--		return ret;
--	}
-+	if (ret < 0)
-+		goto release_feed;
+-	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
++	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+ 	if (ret < 0)
+ 		return ret;
  
- 	ret = tsfeed->start_filtering(tsfeed);
--	if (ret < 0) {
--		dmxdev->demux->release_ts_feed(dmxdev->demux, tsfeed);
--		return ret;
--	}
-+	if (ret < 0)
-+		goto release_feed;
+-	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
++	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
+ 	if (ret < 0) {
+-		v4l2_async_notifier_call_unbind(notifier, sd, asd);
++		v4l2_device_unregister_subdev(sd);
+ 		return ret;
+ 	}
  
- 	return 0;
-+
-+release_feed:
-+	dmxdev->demux->release_ts_feed(dmxdev->demux, tsfeed);
-+	return ret;
- }
- 
- static int dvb_dmxdev_filter_start(struct dmxdev_filter *filter)
 -- 
-2.14.1
+2.11.0
