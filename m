@@ -1,123 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:53902 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934808AbdIYMj6 (ORCPT
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:34384 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750810AbdIKNSx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 08:39:58 -0400
-Received: by mail-oi0-f42.google.com with SMTP id j126so6640902oia.10
-        for <linux-media@vger.kernel.org>; Mon, 25 Sep 2017 05:39:58 -0700 (PDT)
+        Mon, 11 Sep 2017 09:18:53 -0400
+Date: Mon, 11 Sep 2017 10:18:46 -0300
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH v3 01/15] [media] v4l: Document explicit synchronization
+ behaviour
+Message-ID: <20170911131846.GA7552@jade>
+References: <20170907184226.27482-1-gustavo@padovan.org>
+ <20170907184226.27482-2-gustavo@padovan.org>
+ <22b8926c-4a44-0f22-0717-c36d64003272@xs4all.nl>
+ <6bb8df91-4cd2-2ca5-dc4b-aea5ea14e7b1@xs4all.nl>
 MIME-Version: 1.0
-From: Andrey Konovalov <andreyknvl@google.com>
-Date: Mon, 25 Sep 2017 14:39:57 +0200
-Message-ID: <CAAeHK+xrQtsE8vSoxXRidXhXk+Dj-tF0cQ9jEDwH_E+fX0mP0A@mail.gmail.com>
-Subject: usb/media/lmedm04: GPF in lme2510_int_read/usb_pipe_endpoint
-To: Malcolm Priestley <tvboxspy@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        syzkaller <syzkaller@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6bb8df91-4cd2-2ca5-dc4b-aea5ea14e7b1@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+2017-09-11 Hans Verkuil <hverkuil@xs4all.nl>:
 
-I've got the following report while fuzzing the kernel with syzkaller.
+> On 09/11/2017 12:50 PM, Hans Verkuil wrote:
+> > On 09/07/2017 08:42 PM, Gustavo Padovan wrote:
+> >> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> >>
+> >> Add section to VIDIOC_QBUF about it
+> >>
+> >> v2:
+> >> 	- mention that fences are files (Hans)
+> >> 	- rework for the new API
+> >>
+> >> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> >> ---
+> >>  Documentation/media/uapi/v4l/vidioc-qbuf.rst | 31 ++++++++++++++++++++++++++++
+> >>  1 file changed, 31 insertions(+)
+> >>
+> >> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+> >> index 1f3612637200..fae0b1431672 100644
+> >> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+> >> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+> >> @@ -117,6 +117,37 @@ immediately with an ``EAGAIN`` error code when no buffer is available.
+> >>  The struct :c:type:`v4l2_buffer` structure is specified in
+> >>  :ref:`buffer`.
+> >>  
+> >> +Explicit Synchronization
+> >> +------------------------
+> >> +
+> >> +Explicit Synchronization allows us to control the synchronization of
+> >> +shared buffers from userspace by passing fences to the kernel and/or
+> >> +receiving them from it. Fences passed to the kernel are named in-fences and
+> >> +the kernel should wait them to signal before using the buffer, i.e., queueing
+> > 
+> > wait them -> wait on them
+> > 
+> > (do you wait 'on' a fence or 'for' a fence? I think it's 'on' but I'm not 100% sure)
+> > 
+> >> +it to the driver. On the other side, the kernel can create out-fences for the
+> >> +buffers it queues to the drivers, out-fences signal when the driver is
+> > 
+> > Start a new sentence here: ...drivers. Out-fences...
+> > 
+> >> +finished with buffer, that is the buffer is ready. The fence are represented
+> > 
+> > s/that is/i.e/
+> > 
+> > s/The fence/The fences/
+> > 
+> >> +by file and passed as file descriptor to userspace.
+> > 
+> > s/by file/as a file/
+> > s/as file/as a file/
+> > 
+> >> +
+> >> +The in-fences are communicated to the kernel at the ``VIDIOC_QBUF`` ioctl
+> >> +using the ``V4L2_BUF_FLAG_IN_FENCE`` buffer
+> >> +flags and the `fence_fd` field. If an in-fence needs to be passed to the kernel,
+> >> +`fence_fd` should be set to the fence file descriptor number and the
+> >> +``V4L2_BUF_FLAG_IN_FENCE`` should be set as well. Failure to set both will
+> > 
+> > s/Failure to set both/Setting one but not the other/
+> > 
+> >> +cause ``VIDIOC_QBUF`` to return with error.
+> >> +
+> >> +To get a out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE`` flag should
+> >> +be set to notify it that the next queued buffer should have a fence attached to
+> >> +it. That means the out-fence may not be associated with the buffer in the
+> >> +current ``VIDIOC_QBUF`` ioctl call because the ordering in which videobuf2 core
+> >> +queues the buffers to the drivers can't be guaranteed. To become aware of the
+> >> +of the next queued buffer and the out-fence attached to it the
+> >> +``V4L2_EVENT_BUF_QUEUED`` event should be used. It will trigger an event
+> >> +for every buffer queued to the V4L2 driver.
+> > 
+> > This makes no sense.
+> > 
+> > Setting this flag means IMHO that when *this* buffer is queued up to the driver,
+> > then it should send the BUF_QUEUED event with an out fence.
+> > 
+> > I.e. it signals that userspace wants to have the out-fence. The requirement w.r.t.
+> > ordering is that the BUF_QUEUED events have to be in order, but that is something
+> > that the driver can ensure in the case it is doing internal re-ordering.
+> > 
+> > This requirement is something that needs to be documented here, BTW.
+> > 
+> > Anyway, the flag shouldn't refer to some 'next buffer', since that's very confusing.
+> 
+> Just ignore this comment. I assume v4 will implement it like this.
 
-On commit e19b205be43d11bff638cad4487008c48d21c103 (4.14-rc2).
+What approach do you mean by "like this". I'm confused now. :)
 
-usb 1-1: new full-speed USB device number 2 using dummy_hcd
-gadgetfs: connected
-gadgetfs: disconnected
-gadgetfs: connected
-usb 1-1: config 63 interface 0 altsetting 32 endpoint 0x7 has invalid
-maxpacket 476, setting to 64
-usb 1-1: config 63 interface 0 altsetting 32 has an invalid endpoint
-with address 0x0, skipping
-usb 1-1: config 63 interface 0 altsetting 32 has an invalid endpoint
-with address 0xE7, skipping
-usb 1-1: config 63 interface 0 altsetting 32 has an invalid endpoint
-with address 0x7F, skipping
-usb 1-1: config 63 interface 0 has no altsetting 0
-usb 1-1: New USB device found, idVendor=3344, idProduct=22f0
-usb 1-1: New USB device strings: Mfr=255, Product=0, SerialNumber=8
-usb 1-1: Manufacturer: a
-usb 1-1: SerialNumber: a
-gadgetfs: configuration #63
-gadgetfs: configuration #63
-usb 1-1: selecting invalid altsetting 1
-LME2510(C): Firmware Status: 4 (61)
-usb 1-1: dvb_usb_v2: found a 'DM04_LME2510C_DVB-S RS2000' in warm state
-usb 1-1: dvb_usb_v2: will use the device's hardware PID filter (table count: 15)
-dvbdev: DVB: registering new adapter (DM04_LME2510C_DVB-S RS2000)
-usb 1-1: media controller created
-dvbdev: dvb_create_media_entity: media entity 'dvb-demux' registered.
-LME2510(C): FE Found M88RS2000
-ts2020: probe of 0-0060 failed with error -11
-usb 1-1: DVB: registering adapter 0 frontend 0 (DM04_LME2510C_DVB-S
-RS2000 RS2000)...
-dvbdev: dvb_create_media_entity: media entity 'DM04_LME2510C_DVB-S
-RS2000 RS2000' registered.
-LME2510(C): TUN Found RS2000 tuner
-kasan: CONFIG_KASAN_INLINE enabled
-kasan: GPF could be caused by NULL-ptr deref or user memory access
-general protection fault: 0000 [#1] PREEMPT SMP KASAN
-Modules linked in:
-CPU: 0 PID: 1845 Comm: kworker/0:2 Not tainted
-4.14.0-rc2-42613-g1488251d1a98 #238
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-Workqueue: usb_hub_wq hub_event
-task: ffff88006b9e18c0 task.stack: ffff880064368000
-RIP: 0010:usb_pipe_endpoint ./include/linux/usb.h:1913
-RIP: 0010:lme2510_int_read drivers/media/usb/dvb-usb-v2/lmedm04.c:436
-RIP: 0010:dm04_lme2510_tuner+0xa38/0xe60
-drivers/media/usb/dvb-usb-v2/lmedm04.c:1156
-RSP: 0018:ffff88006436e2d0 EFLAGS: 00010246
-RAX: dffffc0000000000 RBX: 1ffff1000c86dc5f RCX: 1ffff1000d4b136d
-RDX: 0000000000000000 RSI: ffff88006a589b00 RDI: 0000000000000003
-RBP: ffff88006436e440 R08: 1ffff1000c86db41 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: ffff88006a589b00
-R13: ffff880069829f00 R14: ffff8800686d6600 R15: 0000000000000000
-FS:  0000000000000000(0000) GS:ffff88006c800000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007fb711d159b8 CR3: 0000000062b33000 CR4: 00000000000006f0
-Call Trace:
- dvb_usbv2_adapter_frontend_init drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:689
- dvb_usbv2_adapter_init drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:818
- dvb_usbv2_init drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:881
- dvb_usbv2_probe+0x15b1/0x3310 drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:992
- usb_probe_interface+0x35d/0x8e0 drivers/usb/core/driver.c:361
- really_probe drivers/base/dd.c:413
- driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
- __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
- bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
- __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
- device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
- bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
- device_add+0xd0b/0x1660 drivers/base/core.c:1835
- usb_set_configuration+0x104e/0x1870 drivers/usb/core/message.c:1932
- generic_probe+0x73/0xe0 drivers/usb/core/generic.c:174
- usb_probe_device+0xaf/0xe0 drivers/usb/core/driver.c:266
- really_probe drivers/base/dd.c:413
- driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
- __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
- bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
- __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
- device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
- bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
- device_add+0xd0b/0x1660 drivers/base/core.c:1835
- usb_new_device+0x7b8/0x1020 drivers/usb/core/hub.c:2457
- hub_port_connect drivers/usb/core/hub.c:4903
- hub_port_connect_change drivers/usb/core/hub.c:5009
- port_event drivers/usb/core/hub.c:5115
- hub_event+0x194d/0x3740 drivers/usb/core/hub.c:5195
- process_one_work+0xc7f/0x1db0 kernel/workqueue.c:2119
- worker_thread+0x221/0x1850 kernel/workqueue.c:2253
- kthread+0x3a1/0x470 kernel/kthread.c:231
- ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
-Code: ff df 4c 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 51 02 00 00 48 b8
-00 00 00 00 00 fc ff df 4d 8b 3f 49 8d 7f 03 48 89 fa 48 c1 ea 03 <0f>
-b6 04 02 48 89 fa 83 e2 07 38 d0 7f 08 84 c0 0f 85 19 02 00
-RIP: dm04_lme2510_tuner+0xa38/0xe60 RSP: ffff88006436e2d0
----[ end trace 8adf929c013d2744 ]---
+In fact, I was in doubt between these two different approaches here.
+Should the flag mean *this* or the *next* buffer? The buffers can still
+be reordered at the videobuf2 level, because they might be waiting on
+in-fences and the fences may signal out of order. Then I went for the
+*next* buffer approach because we don't know that buffer for sure.
+But now thinking on this again we shouldn't have problems with the 
+*this* buffer approach also.
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> >> +
+> >> +At streamoff the out-fences will either signal normally if the drivers wait
+> > 
+> > s/drivers wait/driver waits/
+> > 
+> >> +for the operations on the buffers to finish or signal with error if the
+> >> +driver cancel the pending operations.
+> > 
+> > s/cancel/cancels/
+> > 
+> > Thinking with my evil hat on:
+> > 
+> > What happens if the application dequeues the buffer (VIDIOC_DQBUF) before
+> > dequeuing the BUF_QUEUED event? Or if the application doesn't call VIDIOC_DQEVENT
+> > at all? Should any pending BUF_QUEUED event with an out fence be removed from the
+> > event queue if the application calls DQBUF on the corresponding buffer?
+
+Good catch, we need to clean that up.
+
+Gustavo
