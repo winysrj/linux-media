@@ -1,117 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:49679 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933186AbdIYKLu (ORCPT
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:34093 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752246AbdIKB7h (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 06:11:50 -0400
-Subject: Re: [PATCH v6 18/25] rcar-vin: prepare for media controller mode
- initialization
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
- <20170822232640.26147-19-niklas.soderlund+renesas@ragnatech.se>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5bd4faf5-a325-3cd3-8f3b-2e3ef6e99fc1@xs4all.nl>
-Date: Mon, 25 Sep 2017 12:11:48 +0200
+        Sun, 10 Sep 2017 21:59:37 -0400
 MIME-Version: 1.0
-In-Reply-To: <20170822232640.26147-19-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <5121da6b-a37d-270b-2587-b2ee77635546@synopsys.com>
+References: <1500950041-5449-1-git-send-email-jacob-chen@iotwrt.com>
+ <CAFLEztQHYWAk39+gQCD0XkKPVqmUY5kPZydWgw8+zu53+D2_pA@mail.gmail.com>
+ <1502093851.2490.4.camel@pengutronix.de> <CAFLEztQcCijnmkp_r3-gy2ptM0b+WFEw4Sf1MeiatJbvnKqA8A@mail.gmail.com>
+ <1502108760.2490.28.camel@pengutronix.de> <5121da6b-a37d-270b-2587-b2ee77635546@synopsys.com>
+From: Jacob Chen <jacobchen110@gmail.com>
+Date: Mon, 11 Sep 2017 09:59:35 +0800
+Message-ID: <CAFLEztTTFKV76fyV7kfNO+=tpor5u-9ap6UAd1NS39YyQ=QF2Q@mail.gmail.com>
+Subject: Re: [PATCH] media: i2c: OV5647: gate clock lane before stream on
+To: Luis Oliveira <Luis.Oliveira@synopsys.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        linux-kernel@vger.kernel.org, roliveir@synopsys.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        vladimir_zapolskiy@mentor.com,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23/08/17 01:26, Niklas Söderlund wrote:
-> When running in media controller mode a media pad is needed, register
-> one. Also set the media bus format to CSI-2.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Hi Luis,
+
+2017-08-07 22:48 GMT+08:00 Luis Oliveira <Luis.Oliveira@synopsys.com>:
+> Hi all,
+>
+> I'm new here, I got to be Maintainer of this driver by the old Maintainer
+> recommendation. Still getting the hang of it :)
+>
+> On 07-Aug-17 13:26, Philipp Zabel wrote:
+>> Hi Jacob,
+>>
+>> On Mon, 2017-08-07 at 19:06 +0800, Jacob Chen wrote:
+>> [...]
+>>>>>> --- a/drivers/media/i2c/ov5647.c
+>>>>>> +++ b/drivers/media/i2c/ov5647.c
+>>>>>> @@ -253,6 +253,10 @@ static int ov5647_stream_on(struct v4l2_subdev =
+*sd)
+>>>>>>  {
+>>>>>>         int ret;
+>>>>>>
+>>>>>> +       ret =3D ov5647_write(sd, 0x4800, 0x04);
+>>>>>> +       if (ret < 0)
+>>>>>> +               return ret;
+>>>>>> +
+>>
+>> So this clears BIT(1) (force clock lane to low power mode) and BIT(5)
+>> (gate clock lane while idle) that were set by ov5647_stream_off() during
+>> __sensor_init() due to the change below.
+>>
+>> Is there a reason, btw, that this driver is full of magic register
+>> addresses and values? A few #defines would make this a lot more
+>> readable.
+>>
+>
+> For what I can see I agree that a few register name setting could be done=
+.
+>
+>>>>>>         ret =3D ov5647_write(sd, 0x4202, 0x00);
+>>>>>>         if (ret < 0)
+>>>>>>                 return ret;
+>>>>>> @@ -264,6 +268,10 @@ static int ov5647_stream_off(struct v4l2_subdev=
+ *sd)
+>>>>>>  {
+>>>>>>         int ret;
+>>>>>>
+>>>>>> +       ret =3D ov5647_write(sd, 0x4800, 0x25);
+>>>>>> +       if (ret < 0)
+>>>>>> +               return ret;
+>>>>>> +
+>>>>>>         ret =3D ov5647_write(sd, 0x4202, 0x0f);
+>>>>>>         if (ret < 0)
+>>>>>>                 return ret;
+>>>>>> @@ -320,7 +328,7 @@ static int __sensor_init(struct v4l2_subdev *sd)
+>>>>>>                         return ret;
+>>>>>>         }
+>>>>>>
+>>>>>> -       return ov5647_write(sd, 0x4800, 0x04);
+>>>>>> +       return ov5647_stream_off(sd);
+>>
+>> I see now that BIT(2) (keep bus in LP-11 while idle) is and was always
+>> set. So the change is that initially, additionally to LP-11 mode, the
+>> clock lane is gated and forced into low power mode, as well?
+>>
+>
+> This is my interpretation as well.
+>
+>>>>>>  }
+>>>>>>
+>>>>>>  static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
+>>>>>> --
+>>>>>> 2.7.4
+>>>>>>
+>>>>>
+>>>>> Can anyone comment on it?
+>>>>>
+>>>>> I saw there is a same discussion in  https://urldefense.proofpoint.co=
+m/v2/url?u=3Dhttps-3A__patchwork.kernel.org_patch_9569031_&d=3DDwICaQ&c=3DD=
+PL6_X_6JkXFx7AXWqB0tg&r=3DeMn12aiiNuIDjtRi5xEzC7tWJkpra2vl_XYFVvfxIGE&m=3De=
+ortcRXje2uLyZNI_-Uw3Ur_z24tb-e4pZfom7WhdE0&s=3D6sLc76bhjR0IdaA3ArZ7F7slgtcy=
+Gz8pDTzAF_CBLno&e=3D
+>>>>> There is a comment in i.MX CSI2 driver.
+>>>>> "
+>>>>> Configure MIPI Camera Sensor to put all Tx lanes in LP-11 state.
+>>>>> This must be carried out by the MIPI sensor's s_power(ON) subdev
+>>>>> op.
+>>>>> "
+>>>>> That's what this patch do, sensor driver should make sure that clock
+>>>>> lanes are in stop state while not streaming.
+>>>>
+>>>> This is not the same, as far as I can tell. BIT(5) is just clock lane
+>>>> gating, as you describe above. To put the bus into LP-11 state, BIT(2)
+>>>> needs to be set.
+>>>>
+>>>
+>>> Yeah, but i double that clock lane is not in LP11 when continue clock
+>>> mode is enabled.
+>
+> I think by spec it shouldn't got to stopstate in continuous clock.
+>
+>>
+>> If indeed LP-11 state is not achieved while the sensor is idle, as long
+>> as BIT(5) is cleared, I think this patch is correct.
+>>
+>> regards
+>> Philipp
+>>
+>
+> As far as I understand, bit[5] set to 1 will force clock lane to be gated=
+ (in
+> other words it will be forced to be in LP-11 if there are no packets to
+> transmit). But also LP-11 must not be achieved with the BIT(5) cleared (f=
+ree
+> running mode)?
+>
+
+Yes. When the BIT(5) is cleared, clock lane will be in continuous mode
+immediately,
+unless BIT(0) is set.
 
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 23 ++++++++++++++++++++++-
->  drivers/media/platform/rcar-vin/rcar-vin.h  |  4 ++++
->  2 files changed, 26 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index fbbb22924cf3a045..dd0525f2ba336bc2 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -45,6 +45,10 @@ static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
->  	return -EINVAL;
->  }
->  
-> +/* -----------------------------------------------------------------------------
-> + * Digital async notifier
-> + */
-> +
->  static bool rvin_mbus_supported(struct rvin_dev *vin)
->  {
->  	struct v4l2_subdev *sd = vin->digital.subdev;
-> @@ -273,6 +277,20 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
->  	return 0;
->  }
->  
-> +/* -----------------------------------------------------------------------------
-> + * Group async notifier
-> + */
-> +
-> +static int rvin_group_init(struct rvin_dev *vin)
-> +{
-> +	/* All our sources are CSI-2 */
-> +	vin->mbus_cfg.type = V4L2_MBUS_CSI2;
-> +	vin->mbus_cfg.flags = 0;
-> +
-> +	vin->pad.flags = MEDIA_PAD_FL_SINK;
-> +	return media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
-> +}
-> +
->  /* -----------------------------------------------------------------------------
->   * Platform Device Driver
->   */
-> @@ -365,7 +383,10 @@ static int rcar_vin_probe(struct platform_device *pdev)
->  	if (ret)
->  		return ret;
->  
-> -	ret = rvin_digital_graph_init(vin);
-> +	if (vin->info->use_mc)
-> +		ret = rvin_group_init(vin);
-> +	else
-> +		ret = rvin_digital_graph_init(vin);
->  	if (ret < 0)
->  		goto error;
->  
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-> index 12daff804bb6f77f..9c47669669c0469c 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -103,6 +103,8 @@ struct rvin_info {
->   * @notifier:		V4L2 asynchronous subdevs notifier
->   * @digital:		entity in the DT for local digital subdevice
->   *
-> + * @pad:		pad for media controller
-> + *
->   * @lock:		protects @queue
->   * @queue:		vb2 buffers queue
->   *
-> @@ -132,6 +134,8 @@ struct rvin_dev {
->  	struct v4l2_async_notifier notifier;
->  	struct rvin_graph_entity digital;
->  
-> +	struct media_pad pad;
-> +
->  	struct mutex lock;
->  	struct vb2_queue queue;
->  
-> 
+> Sorry if I misunderstood something.
+>
+> regards,
+> Luis
+>
