@@ -1,122 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:38346 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751554AbdIULEe (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:44890 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752135AbdIKD5a (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 07:04:34 -0400
-Received: by mail-wm0-f68.google.com with SMTP id x17so4870053wmd.5
-        for <linux-media@vger.kernel.org>; Thu, 21 Sep 2017 04:04:34 -0700 (PDT)
-Subject: Re: [PATCH] tc358743: fix connected/active CSI-2 lane reporting
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mats Randgaard <matrandg@cisco.com>
-References: <20170921102428.30709-1-p.zabel@pengutronix.de>
-From: Ian Arkver <ian.arkver.dev@gmail.com>
-Message-ID: <f3d4ce20-d3aa-f76f-0d07-e8153e3558a9@gmail.com>
-Date: Thu, 21 Sep 2017 12:04:31 +0100
-MIME-Version: 1.0
-In-Reply-To: <20170921102428.30709-1-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+        Sun, 10 Sep 2017 23:57:30 -0400
+Message-ID: <c0bc7c98c58856fce799deb069aecd4c@smtp-cloud9.xs4all.net>
+Date: Mon, 11 Sep 2017 05:57:26 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 21/09/17 11:24, Philipp Zabel wrote:
-> g_mbus_config was supposed to indicate all supported lane numbers, not
-> only the number of those currently in active use. Since the tc358743
-> can dynamically reduce the number of active lanes if the required
-> bandwidth allows for it, report all lane numbers up to the connected
-> number of lanes as supported.
-> To allow communicating the number of currently active lanes, add a new
-> bitfield to the v4l2_mbus_config flags. This is a temporary fix, until
-> a better solution is found.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->   drivers/media/i2c/tc358743.c  | 22 ++++++++++++----------
->   include/media/v4l2-mediabus.h |  8 ++++++++
->   2 files changed, 20 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-> index e6f5c363ccab5..e2a9e6a18a49d 100644
-> --- a/drivers/media/i2c/tc358743.c
-> +++ b/drivers/media/i2c/tc358743.c
-> @@ -1464,21 +1464,22 @@ static int tc358743_g_mbus_config(struct v4l2_subdev *sd,
->   	/* Support for non-continuous CSI-2 clock is missing in the driver */
->   	cfg->flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
->   
-> -	switch (state->csi_lanes_in_use) {
-> -	case 1:
-> +	if (state->bus.num_data_lanes > 0)
->   		cfg->flags |= V4L2_MBUS_CSI2_1_LANE;
-> -		break;
-> -	case 2:
-> +	if (state->bus.num_data_lanes > 1)
->   		cfg->flags |= V4L2_MBUS_CSI2_2_LANE;
-> -		break;
-> -	case 3:
-> +	if (state->bus.num_data_lanes > 2)
->   		cfg->flags |= V4L2_MBUS_CSI2_3_LANE;
-> -		break;
-> -	case 4:
-> +	if (state->bus.num_data_lanes > 3)
->   		cfg->flags |= V4L2_MBUS_CSI2_4_LANE;
-> -		break;
-> -	default:
-> +
-> +	if (state->csi_lanes_in_use > 4)
->   		return -EINVAL;
-> +
+Results of the daily build of media_tree:
 
-My understanding of Hans' comment:
-"I'd also add a comment that all other flags must be 0 if the device 
-tree is used. This to avoid mixing the two."
+date:			Mon Sep 11 05:00:16 CEST 2017
+media-tree git hash:	1efdf1776e2253b77413c997bed862410e4b6aaf
+media_build git hash:	bbd9f669f0da6705fe44aff89281c0d6e7bfd73e
+v4l-utils git hash:	7f937d31ac2af7416c60cd5ff7b5153c85e23d3a
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-is that all the above should only happen if (!!state->pdata).
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: WARNINGS
+spec-git: OK
 
-I don't know if this would break any existing DT-using bridge drivers.
+Detailed results are available here:
 
-Regards,
-Ian
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-> +	if (state->csi_lanes_in_use < state->bus.num_data_lanes) {
-> +		const u32 mask = V4L2_MBUS_CSI2_LANE_MASK;
-> +
-> +		cfg->flags |= (state->csi_lanes_in_use << __ffs(mask)) & mask;
->   	}
->   
->   	return 0;
-> @@ -1885,6 +1886,7 @@ static int tc358743_probe(struct i2c_client *client,
->   	if (pdata) {
->   		state->pdata = *pdata;
->   		state->bus.flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-> +		state->bus.num_data_lanes = 4;
->   	} else {
->   		err = tc358743_probe_of(state);
->   		if (err == -ENODEV)
-> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> index 93f8afcb7a220..3467d97be5f5b 100644
-> --- a/include/media/v4l2-mediabus.h
-> +++ b/include/media/v4l2-mediabus.h
-> @@ -63,6 +63,14 @@
->   					 V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
->   #define V4L2_MBUS_CSI2_CHANNELS		(V4L2_MBUS_CSI2_CHANNEL_0 | V4L2_MBUS_CSI2_CHANNEL_1 | \
->   					 V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
-> +/*
-> + * Number of lanes in use, 0 == use all available lanes (default)
-> + *
-> + * This is a temporary fix for devices that need to reduce the number of active
-> + * lanes for certain modes, until g_mbus_config() can be replaced with a better
-> + * solution.
-> + */
-> +#define V4L2_MBUS_CSI2_LANE_MASK                (3 << 10)
->   
->   /**
->    * enum v4l2_mbus_type - media bus type
-> 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
