@@ -1,121 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50938
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752858AbdICCfL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Sep 2017 22:35:11 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 08/12] media: cec uapi: Adjust table sizes for PDF output
-Date: Sat,  2 Sep 2017 23:35:00 -0300
-Message-Id: <f6e061ec80a6d3a8d59c1e47708ab2a798e1fcf8.1504405125.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504405124.git.mchehab@s-opensource.com>
-References: <cover.1504405124.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504405124.git.mchehab@s-opensource.com>
-References: <cover.1504405124.git.mchehab@s-opensource.com>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:59040 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750969AbdIKN0Y (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 09:26:24 -0400
+Subject: Re: [PATCH v3 01/15] [media] v4l: Document explicit synchronization
+ behaviour
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+References: <20170907184226.27482-1-gustavo@padovan.org>
+ <20170907184226.27482-2-gustavo@padovan.org>
+ <22b8926c-4a44-0f22-0717-c36d64003272@xs4all.nl>
+ <6bb8df91-4cd2-2ca5-dc4b-aea5ea14e7b1@xs4all.nl> <20170911131846.GA7552@jade>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <33e4711c-87dc-de98-a9da-33470f5ee083@xs4all.nl>
+Date: Mon, 11 Sep 2017 15:26:18 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170911131846.GA7552@jade>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Several tables at this media book chapter have issues
-when PDF is produced. Adjust them.
+On 09/11/2017 03:18 PM, Gustavo Padovan wrote:
+> 2017-09-11 Hans Verkuil <hverkuil@xs4all.nl>:
+> 
+>> On 09/11/2017 12:50 PM, Hans Verkuil wrote:
+>>> On 09/07/2017 08:42 PM, Gustavo Padovan wrote:
+>>>> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+>>>>
+>>>> Add section to VIDIOC_QBUF about it
+>>>>
+>>>> v2:
+>>>> 	- mention that fences are files (Hans)
+>>>> 	- rework for the new API
+>>>>
+>>>> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+>>>> ---
+>>>>  Documentation/media/uapi/v4l/vidioc-qbuf.rst | 31 ++++++++++++++++++++++++++++
+>>>>  1 file changed, 31 insertions(+)
+>>>>
+>>>> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+>>>> index 1f3612637200..fae0b1431672 100644
+>>>> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+>>>> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+>>>> @@ -117,6 +117,37 @@ immediately with an ``EAGAIN`` error code when no buffer is available.
+>>>>  The struct :c:type:`v4l2_buffer` structure is specified in
+>>>>  :ref:`buffer`.
+>>>>  
+>>>> +Explicit Synchronization
+>>>> +------------------------
+>>>> +
+>>>> +Explicit Synchronization allows us to control the synchronization of
+>>>> +shared buffers from userspace by passing fences to the kernel and/or
+>>>> +receiving them from it. Fences passed to the kernel are named in-fences and
+>>>> +the kernel should wait them to signal before using the buffer, i.e., queueing
+>>>
+>>> wait them -> wait on them
+>>>
+>>> (do you wait 'on' a fence or 'for' a fence? I think it's 'on' but I'm not 100% sure)
+>>>
+>>>> +it to the driver. On the other side, the kernel can create out-fences for the
+>>>> +buffers it queues to the drivers, out-fences signal when the driver is
+>>>
+>>> Start a new sentence here: ...drivers. Out-fences...
+>>>
+>>>> +finished with buffer, that is the buffer is ready. The fence are represented
+>>>
+>>> s/that is/i.e/
+>>>
+>>> s/The fence/The fences/
+>>>
+>>>> +by file and passed as file descriptor to userspace.
+>>>
+>>> s/by file/as a file/
+>>> s/as file/as a file/
+>>>
+>>>> +
+>>>> +The in-fences are communicated to the kernel at the ``VIDIOC_QBUF`` ioctl
+>>>> +using the ``V4L2_BUF_FLAG_IN_FENCE`` buffer
+>>>> +flags and the `fence_fd` field. If an in-fence needs to be passed to the kernel,
+>>>> +`fence_fd` should be set to the fence file descriptor number and the
+>>>> +``V4L2_BUF_FLAG_IN_FENCE`` should be set as well. Failure to set both will
+>>>
+>>> s/Failure to set both/Setting one but not the other/
+>>>
+>>>> +cause ``VIDIOC_QBUF`` to return with error.
+>>>> +
+>>>> +To get a out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE`` flag should
+>>>> +be set to notify it that the next queued buffer should have a fence attached to
+>>>> +it. That means the out-fence may not be associated with the buffer in the
+>>>> +current ``VIDIOC_QBUF`` ioctl call because the ordering in which videobuf2 core
+>>>> +queues the buffers to the drivers can't be guaranteed. To become aware of the
+>>>> +of the next queued buffer and the out-fence attached to it the
+>>>> +``V4L2_EVENT_BUF_QUEUED`` event should be used. It will trigger an event
+>>>> +for every buffer queued to the V4L2 driver.
+>>>
+>>> This makes no sense.
+>>>
+>>> Setting this flag means IMHO that when *this* buffer is queued up to the driver,
+>>> then it should send the BUF_QUEUED event with an out fence.
+>>>
+>>> I.e. it signals that userspace wants to have the out-fence. The requirement w.r.t.
+>>> ordering is that the BUF_QUEUED events have to be in order, but that is something
+>>> that the driver can ensure in the case it is doing internal re-ordering.
+>>>
+>>> This requirement is something that needs to be documented here, BTW.
+>>>
+>>> Anyway, the flag shouldn't refer to some 'next buffer', since that's very confusing.
+>>
+>> Just ignore this comment. I assume v4 will implement it like this.
+> 
+> What approach do you mean by "like this". I'm confused now. :)
+> 
+> In fact, I was in doubt between these two different approaches here.
+> Should the flag mean *this* or the *next* buffer? The buffers can still
+> be reordered at the videobuf2 level, because they might be waiting on
+> in-fences and the fences may signal out of order. Then I went for the
+> *next* buffer approach because we don't know that buffer for sure.
+> But now thinking on this again we shouldn't have problems with the 
+> *this* buffer approach also.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst | 7 +++++--
- Documentation/media/uapi/cec/cec-ioc-dqevent.rst          | 9 +++++----
- Documentation/media/uapi/cec/cec-ioc-g-mode.rst           | 2 ++
- Documentation/media/uapi/cec/cec-ioc-receive.rst          | 2 ++
- 4 files changed, 14 insertions(+), 6 deletions(-)
+It should mean *this* buffer. It's really weird to set this flag for one
+buffer, only for it to mean 'next' buffer.
 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
-index b25e003a04d7..84f431a022ad 100644
---- a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
-@@ -65,7 +65,7 @@ logical address types are already defined will return with error ``EBUSY``.
- 
- .. c:type:: cec_log_addrs
- 
--.. tabularcolumns:: |p{1.0cm}|p{7.5cm}|p{8.0cm}|
-+.. tabularcolumns:: |p{1.0cm}|p{8.0cm}|p{7.5cm}|
- 
- .. cssclass:: longtable
- 
-@@ -148,6 +148,9 @@ logical address types are already defined will return with error ``EBUSY``.
-         give the CEC framework more information about the device type, even
-         though the framework won't use it directly in the CEC message.
- 
-+
-+.. tabularcolumns:: |p{7.8cm}|p{1.0cm}|p{8.7cm}|
-+
- .. _cec-log-addrs-flags:
- 
- .. flat-table:: Flags for struct cec_log_addrs
-@@ -183,7 +186,7 @@ logical address types are already defined will return with error ``EBUSY``.
- 	All other messages are ignored.
- 
- 
--.. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
-+.. tabularcolumns:: |p{7.8cm}|p{1.0cm}|p{8.7cm}|
- 
- .. _cec-versions:
- 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-index db615e3405c0..a5c821809cc6 100644
---- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-@@ -87,7 +87,7 @@ it is guaranteed that the state did change in between the two events.
- 	this is more than enough.
- 
- 
--.. tabularcolumns:: |p{1.0cm}|p{4.2cm}|p{2.5cm}|p{8.8cm}|
-+.. tabularcolumns:: |p{1.0cm}|p{4.4cm}|p{2.5cm}|p{9.6cm}|
- 
- .. c:type:: cec_event
- 
-@@ -98,10 +98,11 @@ it is guaranteed that the state did change in between the two events.
- 
-     * - __u64
-       - ``ts``
--      - :cspan:`1` Timestamp of the event in ns.
-+      - :cspan:`1`\ Timestamp of the event in ns.
- 
--	The timestamp has been taken from the ``CLOCK_MONOTONIC`` clock. To access
--	the same clock from userspace use :c:func:`clock_gettime`.
-+	The timestamp has been taken from the ``CLOCK_MONOTONIC`` clock.
-+
-+	To access the same clock from userspace use :c:func:`clock_gettime`.
-     * - __u32
-       - ``event``
-       - :cspan:`1` The CEC event type, see :ref:`cec-events`.
-diff --git a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
-index 4d8e0647e832..508e2e325683 100644
---- a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
-@@ -108,6 +108,8 @@ Available follower modes are:
- 
- .. _cec-mode-follower_e:
- 
-+.. cssclass:: longtable
-+
- .. flat-table:: Follower Modes
-     :header-rows:  0
-     :stub-columns: 0
-diff --git a/Documentation/media/uapi/cec/cec-ioc-receive.rst b/Documentation/media/uapi/cec/cec-ioc-receive.rst
-index 267044f7ac30..0f397c535a4c 100644
---- a/Documentation/media/uapi/cec/cec-ioc-receive.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-receive.rst
-@@ -195,6 +195,8 @@ View On' messages from initiator 0xf ('Unregistered') to destination 0 ('TV').
- 	valid if the :ref:`CEC_TX_STATUS_ERROR <CEC-TX-STATUS-ERROR>` status bit is set.
- 
- 
-+.. tabularcolumns:: |p{6.2cm}|p{1.0cm}|p{10.3cm}|
-+
- .. _cec-msg-flags:
- 
- .. flat-table:: Flags for struct cec_msg
--- 
-2.13.5
+Keep it simple: the flag just means: send me the output fence fd for this
+buffer once you have it. If it is not set, then no BUF_QUEUE event is sent.
+
+Actually, it could mean one of two things: either if it is not set, then no
+BUF_QUEUE event is sent, or if it is not set, then the fd in the BUF_QUEUE
+event is -1.
+
+I'm leaning towards the first. I can't see any use-case for sending that
+event if you are not requesting out fences.
+
+Regards,
+
+	Hans
+
+> 
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>
+>>>> +
+>>>> +At streamoff the out-fences will either signal normally if the drivers wait
+>>>
+>>> s/drivers wait/driver waits/
+>>>
+>>>> +for the operations on the buffers to finish or signal with error if the
+>>>> +driver cancel the pending operations.
+>>>
+>>> s/cancel/cancels/
+>>>
+>>> Thinking with my evil hat on:
+>>>
+>>> What happens if the application dequeues the buffer (VIDIOC_DQBUF) before
+>>> dequeuing the BUF_QUEUED event? Or if the application doesn't call VIDIOC_DQEVENT
+>>> at all? Should any pending BUF_QUEUED event with an out fence be removed from the
+>>> event queue if the application calls DQBUF on the corresponding buffer?
+> 
+> Good catch, we need to clean that up.
+> 
+> Gustavo
+> 
