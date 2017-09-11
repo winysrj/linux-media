@@ -1,156 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33174
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752196AbdI0Vkz (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49028 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751251AbdIKIAW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:55 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 30/37] media: dvb_demux.h: document functions
-Date: Wed, 27 Sep 2017 18:40:31 -0300
-Message-Id: <7b4377dc26b9ef3e54042c979184c24286b4060e.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+        Mon, 11 Sep 2017 04:00:22 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v10 24/24] arm: dts: omap3: N9/N950: Add flash references to the camera
+Date: Mon, 11 Sep 2017 11:00:08 +0300
+Message-Id: <20170911080008.21208-25-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The functions used on dvb_demux.h are largely used on DVB drivers.
-Yet, none of them are documented.
+Add flash and indicator LED phandles to the sensor node.
 
-No functional changes.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/dvb-core/dvb_demux.h | 106 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 103 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/omap3-n9.dts       | 1 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 4 ++--
+ arch/arm/boot/dts/omap3-n950.dts     | 1 +
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
-index 43b0cab2e932..15ee2ea23efe 100644
---- a/drivers/media/dvb-core/dvb_demux.h
-+++ b/drivers/media/dvb-core/dvb_demux.h
-@@ -232,13 +232,113 @@ struct dvb_demux {
- 	int recording;
- };
- 
--int dvb_dmx_init(struct dvb_demux *dvbdemux);
--void dvb_dmx_release(struct dvb_demux *dvbdemux);
--void dvb_dmx_swfilter_packets(struct dvb_demux *dvbdmx, const u8 *buf,
-+/**
-+ * dvb_dmx_init - initialize a digital TV demux struct.
-+ *
-+ * @demux: &struct dvb_demux to be initialized.
-+ *
-+ * Before being able to register a digital TV demux struct, drivers
-+ * should call this routine. On its typical usage, some fields should
-+ * be initialized at the driver before calling it.
-+ *
-+ * A typical usecase is::
-+ *
-+ *	dvb->demux.dmx.capabilities =
-+ *		DMX_TS_FILTERING | DMX_SECTION_FILTERING |
-+ *		DMX_MEMORY_BASED_FILTERING;
-+ *	dvb->demux.priv       = dvb;
-+ *	dvb->demux.filternum  = 256;
-+ *	dvb->demux.feednum    = 256;
-+ *	dvb->demux.start_feed = driver_start_feed;
-+ *	dvb->demux.stop_feed  = driver_stop_feed;
-+ *	ret = dvb_dmx_init(&dvb->demux);
-+ *	if (ret < 0)
-+ *		return ret;
-+ */
-+int dvb_dmx_init(struct dvb_demux *demux);
-+
-+/**
-+ * dvb_dmx_release - releases a digital TV demux internal buffers.
-+ *
-+ * @demux: &struct dvb_demux to be released.
-+ *
-+ * The DVB core internally allocates data at @demux. This routine
-+ * releases those data. Please notice that the struct itelf is not
-+ * released, as it can be embedded on other structs.
-+ */
-+void dvb_dmx_release(struct dvb_demux *demux);
-+
-+/**
-+ * dvb_dmx_swfilter_packets - use dvb software filter for a buffer with
-+ *	multiple MPEG-TS packets with 188 bytes each.
-+ *
-+ * @demux: pointer to &struct dvb_demux
-+ * @buf: buffer with data to be filtered
-+ * @count: number of MPEG-TS packets with size of 188.
-+ *
-+ * The routine will discard a DVB packet that don't start with 0x47.
-+ *
-+ * Use this routine if the DVB demux fills MPEG-TS buffers that are
-+ * already aligned.
-+ *
-+ * NOTE: The @buf size should have size equal to ``count * 188``.
-+ */
-+void dvb_dmx_swfilter_packets(struct dvb_demux *demux, const u8 *buf,
- 			      size_t count);
-+
-+/**
-+ * dvb_dmx_swfilter -  use dvb software filter for a buffer with
-+ *	multiple MPEG-TS packets with 188 bytes each.
-+ *
-+ * @demux: pointer to &struct dvb_demux
-+ * @buf: buffer with data to be filtered
-+ * @count: number of MPEG-TS packets with size of 188.
-+ *
-+ * If a DVB packet doesn't start with 0x47, it will seek for the first
-+ * byte that starts with 0x47.
-+ *
-+ * Use this routine if the DVB demux fill buffers that may not start with
-+ * a packet start mark (0x47).
-+ *
-+ * NOTE: The @buf size should have size equal to ``count * 188``.
-+ */
- void dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf, size_t count);
-+
-+/**
-+ * dvb_dmx_swfilter_204 -  use dvb software filter for a buffer with
-+ *	multiple MPEG-TS packets with 204 bytes each.
-+ *
-+ * @demux: pointer to &struct dvb_demux
-+ * @buf: buffer with data to be filtered
-+ * @count: number of MPEG-TS packets with size of 204.
-+ *
-+ * If a DVB packet doesn't start with 0x47, it will seek for the first
-+ * byte that starts with 0x47.
-+ *
-+ * Use this routine if the DVB demux fill buffers that may not start with
-+ * a packet start mark (0x47).
-+ *
-+ * NOTE: The @buf size should have size equal to ``count * 204``.
-+ */
- void dvb_dmx_swfilter_204(struct dvb_demux *demux, const u8 *buf,
- 			  size_t count);
-+
-+/**
-+ * dvb_dmx_swfilter_raw -  make the raw data available to userspace without
-+ * 	filtering
-+ *
-+ * @demux: pointer to &struct dvb_demux
-+ * @buf: buffer with data
-+ * @count: number of packets to be passed. The actual size of each packet
-+ *	depends on the &dvb_demux->feed->cb.ts logic.
-+ *
-+ * Use it if the driver needs to deliver the raw payload to userspace without
-+ * passing through the kernel demux. That is meant to support some
-+ * delivery systems that aren't based on MPEG-TS.
-+ *
-+ * This function relies on &dvb_demux->feed->cb.ts to actually handle the
-+ * buffer.
-+ */
- void dvb_dmx_swfilter_raw(struct dvb_demux *demux, const u8 *buf,
- 			  size_t count);
- 
+diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
+index b9e58c536afd..39e35f8b8206 100644
+--- a/arch/arm/boot/dts/omap3-n9.dts
++++ b/arch/arm/boot/dts/omap3-n9.dts
+@@ -26,6 +26,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash-leds = <&as3645a_flash &as3645a_indicator>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index 1b0bd72945f2..12fbb3da5fce 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -271,14 +271,14 @@
+ 		#size-cells = <0>;
+ 		reg = <0x30>;
+ 		compatible = "ams,as3645a";
+-		flash@0 {
++		as3645a_flash: flash@0 {
+ 			reg = <0x0>;
+ 			flash-timeout-us = <150000>;
+ 			flash-max-microamp = <320000>;
+ 			led-max-microamp = <60000>;
+ 			ams,input-max-microamp = <1750000>;
+ 		};
+-		indicator@1 {
++		as3645a_indicator: indicator@1 {
+ 			reg = <0x1>;
+ 			led-max-microamp = <10000>;
+ 		};
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+index 646601a3ebd8..c354a1ed1e70 100644
+--- a/arch/arm/boot/dts/omap3-n950.dts
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -60,6 +60,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash-leds = <&as3645a_flash &as3645a_indicator>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
 -- 
-2.13.5
+2.11.0
