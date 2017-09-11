@@ -1,60 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:36279 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751109AbdISMZa (ORCPT
+Received: from eu-smtp-delivery-150.mimecast.com ([207.82.80.150]:52764 "EHLO
+        eu-smtp-delivery-150.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751214AbdIKWiJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 08:25:30 -0400
+        Mon, 11 Sep 2017 18:38:09 -0400
+From: Simon Yuan <Simon.Yuan@navico.com>
+To: Kieran Bingham <kbingham@kernel.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-renesas-soc@vger.kernel.org"
+        <linux-renesas-soc@vger.kernel.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "niklas.soderlund@ragnatech.se" <niklas.soderlund@ragnatech.se>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH] media: i2c: adv748x: Map v4l2_std_id to the internal reg
+ value
+Date: Mon, 11 Sep 2017 22:38:03 +0000
+Message-ID: <1668699.pcEPlNxhTE@siyuan>
+References: <1505168813-13529-1-git-send-email-kbingham@kernel.org>
+In-Reply-To: <1505168813-13529-1-git-send-email-kbingham@kernel.org>
+Content-Language: en-US
+Content-ID: <8F5B5599D9AFDC4A8AAFE3B9135BFA80@namprd08.prod.outlook.com>
 MIME-Version: 1.0
-In-Reply-To: <20170908163929.9277-1-sthemmin@microsoft.com>
-References: <20170908163929.9277-1-sthemmin@microsoft.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 19 Sep 2017 14:25:29 +0200
-Message-ID: <CAMuHMdXV=LFyKqrZ1-e7qnLdYay69ov3vxEsk-ZjWvs876RdpQ@mail.gmail.com>
-Subject: Re: [PATCH] media: default for RC_CORE should be n
-To: Stephen Hemminger <stephen@networkplumber.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Stephen Hemminger <sthemmin@microsoft.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 8, 2017 at 6:39 PM, Stephen Hemminger
-<stephen@networkplumber.org> wrote:
-> The Linus policy on Kconfig is that the default should be no
-> for all new devices. I.e the user rebuild a new kernel from an
-> old config should not by default get a larger kernel.
->
-> Fixes: b4c184e506a4 ("[media] media: reorganize the main Kconfig items")
-> Signed-off-by: Stephen Hemminger <sthemmin@microsoft.com>
-> ---
->  drivers/media/rc/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> index d9ce8ff55d0c..5aa384afcfef 100644
-> --- a/drivers/media/rc/Kconfig
-> +++ b/drivers/media/rc/Kconfig
-> @@ -2,7 +2,7 @@
->  menuconfig RC_CORE
->         tristate "Remote Controller support"
->         depends on INPUT
-> -       default y
-> +       default n
-
-"default n" is the default, so you can just drop this line.
-
-For the principle:
-Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+On Tuesday, 12 September 2017 10:26:53 NZST Kieran Bingham wrote:=0A> From:=
+ Simon Yuan <simon.yuan@navico.com>=0A>=20=0A> The video standard was not m=
+apped to the corresponding value of the=0A> internal video standard in adv7=
+48x_afe_querystd, causing the wrong=0A> video standard to be selected.=0A>=
+=20=0A> Fixes: 3e89586a64df ("media: i2c: adv748x: add adv748x driver")=0A>=
+ Signed-off-by: Simon Yuan <simon.yuan@navico.com>=0A> [Kieran: Obtain the =
+std from the afe->curr_norm]=0A> Signed-off-by: Kieran Bingham <kieran.bing=
+ham+renesas@ideasonboard.com>=0A>=20=0A> ---=0A> Simon,=0A>=20=0A> I've add=
+ed your implicit Signed-off-by tag as part of resubmitting this=0A> patch. =
+Please confirm your agreement to this!=0A>=20=0A>  drivers/media/i2c/adv748=
+x/adv748x-afe.c | 7 ++++++-=0A>  1 file changed, 6 insertions(+), 1 deletio=
+n(-)=0A>=20=0A> diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c=0A> b/=
+drivers/media/i2c/adv748x/adv748x-afe.c index 134d981d69d3..5188178588c9=0A=
+> 100644=0A> --- a/drivers/media/i2c/adv748x/adv748x-afe.c=0A> +++ b/driver=
+s/media/i2c/adv748x/adv748x-afe.c=0A> @@ -217,6 +217,7 @@ static int adv748=
+x_afe_querystd(struct v4l2_subdev *sd,=0A> v4l2_std_id *std) {=0A>  =09stru=
+ct adv748x_afe *afe =3D adv748x_sd_to_afe(sd);=0A>  =09struct adv748x_state=
+ *state =3D adv748x_afe_to_state(afe);=0A> +=09int afe_std;=0A>  =09int ret=
+;=0A>=20=0A>  =09mutex_lock(&state->mutex);=0A> @@ -235,8 +236,12 @@ static=
+ int adv748x_afe_querystd(struct v4l2_subdev *sd,=0A> v4l2_std_id *std) /* =
+Read detected standard */=0A>  =09ret =3D adv748x_afe_status(afe, NULL, std=
+);=0A>=20=0A> +=09afe_std =3D adv748x_afe_std(afe->curr_norm);=0A> +=09if (=
+afe_std < 0)=0A> +=09=09goto unlock;=0A> +=0A>  =09/* Restore original stat=
+e */=0A> -=09adv748x_afe_set_video_standard(state, afe->curr_norm);=0A> +=
+=09adv748x_afe_set_video_standard(state, afe_std);=0A>=20=0A>  unlock:=0A> =
+ =09mutex_unlock(&state->mutex);=0A=0AHi Kieran,=0A=0ANo problem from me, p=
+lease go ahead.=0A=0ABest regards,=0ASimon=0A
