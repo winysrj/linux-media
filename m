@@ -1,131 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:40294 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751326AbdIND5b (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58961 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751719AbdIKNSe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 23:57:31 -0400
-Message-ID: <36e6010535b32c950b860384a80c1241@smtp-cloud7.xs4all.net>
-Date: Thu, 14 Sep 2017 05:57:29 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Mon, 11 Sep 2017 09:18:34 -0400
+Date: Mon, 11 Sep 2017 15:18:31 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        sre@kernel.org
+Subject: [PATCH] et8ek8: Add support for flash and lens devices
+Message-ID: <20170911131831.GA12658@amd>
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131822.31020-18-sakari.ailus@linux.intel.com>
+ <20170909214724.GA18677@amd>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="FCuugMFkClbJLl1L"
+Content-Disposition: inline
+In-Reply-To: <20170909214724.GA18677@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--FCuugMFkClbJLl1L
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-date:			Thu Sep 14 05:00:16 CEST 2017
-media-tree git hash:	1efdf1776e2253b77413c997bed862410e4b6aaf
-media_build git hash:	bbd9f669f0da6705fe44aff89281c0d6e7bfd73e
-v4l-utils git hash:	d7c41e2576c09f37b33fe8bf2e38615703086045
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+Parse async sub-devices by using
+v4l2_subdev_fwnode_reference_parse_sensor_common().
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: WARNINGS
-spec-git: OK
+These types devices aren't directly related to the sensor, but are
+nevertheless handled by the et8ek8 driver due to the relationship of these
+component to the main part of the camera module --- the sensor.
 
-Detailed results are available here:
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+---
 
-Full logs are available here:
+This enables me to do autofocus on n900.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+Depends on Sakari's series, so best solution would be to append it there.
 
-The Media Infrastructure API from this daily build is here:
+Thanks,
+									Pavel
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c/e=
+t8ek8/et8ek8_driver.c
+index c14f0fd..cd1f15f 100644
+--- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
++++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+@@ -34,10 +34,12 @@
+ #include <linux/sort.h>
+ #include <linux/v4l2-mediabus.h>
+=20
++#include <media/v4l2-async.h>
+ #include <media/media-entity.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
++#include <media/v4l2-fwnode.h>
+=20
+ #include "et8ek8_reg.h"
+=20
+@@ -46,6 +48,7 @@
+ #define ET8EK8_MAX_MSG		8
+=20
+ struct et8ek8_sensor {
++	struct v4l2_async_notifier notifier;
+ 	struct v4l2_subdev subdev;
+ 	struct media_pad pad;
+ 	struct v4l2_mbus_framefmt format;
+@@ -1446,6 +1449,11 @@ static int et8ek8_probe(struct i2c_client *client,
+ 	sensor->subdev.flags |=3D V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	sensor->subdev.internal_ops =3D &et8ek8_internal_ops;
+=20
++	ret =3D v4l2_fwnode_reference_parse_sensor_common(
++		&client->dev, &sensor->notifier);
++	if (ret < 0 && ret !=3D -ENOENT)
++		goto err_release;
++
+ 	sensor->pad.flags =3D MEDIA_PAD_FL_SOURCE;
+ 	ret =3D media_entity_pads_init(&sensor->subdev.entity, 1, &sensor->pad);
+ 	if (ret < 0) {
+@@ -1453,18 +1461,27 @@ static int et8ek8_probe(struct i2c_client *client,
+ 		goto err_mutex;
+ 	}
+=20
++	ret =3D v4l2_async_subdev_notifier_register(&sensor->subdev,
++						  &sensor->notifier);
++	if (ret)
++		goto err_entity;
++
+ 	ret =3D v4l2_async_register_subdev(&sensor->subdev);
+ 	if (ret < 0)
+-		goto err_entity;
++		goto err_async;
+=20
+ 	dev_dbg(dev, "initialized!\n");
+=20
+ 	return 0;
+=20
++err_async:
++	v4l2_async_notifier_unregister(&sensor->notifier);
+ err_entity:
+ 	media_entity_cleanup(&sensor->subdev.entity);
+ err_mutex:
+ 	mutex_destroy(&sensor->power_lock);
++err_release:
++	v4l2_async_notifier_release(&sensor->notifier);
+ 	return ret;
+ }
+=20
+@@ -1480,6 +1497,8 @@ static int __exit et8ek8_remove(struct i2c_client *cl=
+ient)
+ 	}
+=20
+ 	v4l2_device_unregister_subdev(&sensor->subdev);
++	v4l2_async_notifier_unregister(&sensor->notifier);
++	v4l2_async_notifier_release(&sensor->notifier);
+ 	device_remove_file(&client->dev, &dev_attr_priv_mem);
+ 	v4l2_ctrl_handler_free(&sensor->ctrl_handler);
+ 	v4l2_async_unregister_subdev(&sensor->subdev);
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--FCuugMFkClbJLl1L
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlm2jScACgkQMOfwapXb+vJEXgCfZsYatBKGl3910TCeA/O18pYH
+N8EAoLB9P6HGY+oe5rWm/PHteFMnM5y8
+=j0xb
+-----END PGP SIGNATURE-----
+
+--FCuugMFkClbJLl1L--
