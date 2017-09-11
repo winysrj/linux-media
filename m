@@ -1,59 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:32921 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752732AbdI0ORB (ORCPT
+Received: from mail-io0-f193.google.com ([209.85.223.193]:36765 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750936AbdIKUdY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 10:17:01 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, mchehab@kernel.org,
-        mjpeg-users@lists.sourceforge.net, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH v2] [media] zoran: make zoran_template const
-Date: Wed, 27 Sep 2017 19:46:47 +0530
-Message-Id: <1506521807-18333-1-git-send-email-bhumirks@gmail.com>
+        Mon, 11 Sep 2017 16:33:24 -0400
+Date: Mon, 11 Sep 2017 15:33:21 -0500
+From: Rob Herring <robh@kernel.org>
+To: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] [media] v4l: vsp1: Use generic node name
+Message-ID: <20170911203321.dddfc443zjn23e3f@rob-hp-laptop>
+References: <1504087051-5449-1-git-send-email-geert+renesas@glider.be>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1504087051-5449-1-git-send-email-geert+renesas@glider.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make this const as it is only used in a copy operation in the file
-referencing it. Make the declaration const too.
+On Wed, Aug 30, 2017 at 11:57:31AM +0200, Geert Uytterhoeven wrote:
+> Use the preferred generic node name in the example.
+> 
+> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> ---
+>  Documentation/devicetree/bindings/media/renesas,vsp1.txt | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-Done using Coccinelle.
+Applied, thanks.
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
----
-Changes in v2:
-* Fix spelling mistake in the commit message. 
-
- drivers/media/pci/zoran/zoran_card.h   | 2 +-
- drivers/media/pci/zoran/zoran_driver.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/pci/zoran/zoran_card.h b/drivers/media/pci/zoran/zoran_card.h
-index 81cba17..0cdb7d3 100644
---- a/drivers/media/pci/zoran/zoran_card.h
-+++ b/drivers/media/pci/zoran/zoran_card.h
-@@ -37,7 +37,7 @@
- /* Anybody who uses more than four? */
- #define BUZ_MAX 4
- 
--extern struct video_device zoran_template;
-+extern const struct video_device zoran_template;
- 
- extern int zoran_check_jpg_settings(struct zoran *zr,
- 				    struct zoran_jpg_settings *settings,
-diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
-index a11cb50..d078400 100644
---- a/drivers/media/pci/zoran/zoran_driver.c
-+++ b/drivers/media/pci/zoran/zoran_driver.c
-@@ -2839,7 +2839,7 @@ static int zoran_s_jpegcomp(struct file *file, void *__fh,
- 	.poll = zoran_poll,
- };
- 
--struct video_device zoran_template = {
-+const struct video_device zoran_template = {
- 	.name = ZORAN_NAME,
- 	.fops = &zoran_fops,
- 	.ioctl_ops = &zoran_ioctl_ops,
--- 
-1.9.1
+Rob
