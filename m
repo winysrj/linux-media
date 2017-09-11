@@ -1,125 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49326 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754151AbdIYWZq (ORCPT
+Received: from eddie.linux-mips.org ([148.251.95.138]:47226 "EHLO
+        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750742AbdIKHNj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 18:25:46 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v14 02/28] v4l: async: Remove re-probing support
-Date: Tue, 26 Sep 2017 01:25:13 +0300
-Message-Id: <20170925222540.371-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170925222540.371-1-sakari.ailus@linux.intel.com>
-References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+        Mon, 11 Sep 2017 03:13:39 -0400
+Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S23990686AbdIKHNhLQ7tQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 09:13:37 +0200
+Date: Mon, 11 Sep 2017 09:13:32 +0200
+From: Ladislav Michl <ladis@linux-mips.org>
+To: Andi Shyti <andi.shyti@samsung.com>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>
+Subject: Re: [PATCH v2 00/10] media: rc: gpio-ir-recv: driver update
+Message-ID: <20170911071332.r47nt5m26l6tsrpw@lenoch>
+References: <CGME20170907233401epcas4p4424e892b32d469233705af5014e20604@epcas4p4.samsung.com>
+ <20170907233355.bv3hsv3rfhcx52i3@lenoch>
+ <20170908022110.GB14947@gangnam>
+ <20170908081630.oiypchglntemwba4@lenoch>
+ <20170911025843.GA31540@gangnam>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170911025843.GA31540@gangnam>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove V4L2 async re-probing support. The re-probing support has been
-there to support cases where the sub-devices require resources provided by
-the main driver's hardware to function, such as clocks.
+On Mon, Sep 11, 2017 at 11:58:43AM +0900, Andi Shyti wrote:
+> Hi Ladislav,
+> 
+> > > > Serie was rebased on top of current linux.git, but something
+> > > > happened there and my userspace decoder no longer works: driver
+> > > > reports completely bogus timing such as (rc-5):
+> > > > ^427, _1342, ^945, _183, ^1128, _671, ^1586, _91, ^1189, _1525,
+> > > > ^1738, _1433, ^915, _1159, ^1464, _1525, ^213, _1067, ^793, _0
+> > > > (^ used for pulse and _ for space)
+> > > > As it has nothing to do with my changes, I'm sending it anyway
+> > > > for review, which I do not expect to happen until merge window
+> > > > ends.
+> > > 
+> > > This means that your patch is anyway untested.
+> > 
+> > Previous version is pretty well tested. GPIO IR stopped working
+> > after pulling other changes from linux.git yesterday. And does not
+> > work even without this patch set. I'll try to bisect later as omiting
+> > linux-media merge did not fix it either.
+> 
+> OK
 
-Reprobing has allowed unbinding and again binding the main driver without
-explicilty unbinding the sub-device drivers. This is certainly not a
-common need, and the responsibility will be the user's going forward.
+In all truth, changes were developed on top of 4.9.40, testing was done at
+customer's site and for generally usefull changes usual attempt for merge
+was done :-) I tried unmodified driver over weekend:
+4.9.0: Not OK
+4.9.40: OK
+4.9.13: Not OK
+linux.git: Not OK
+Tested on IGEPv2 board based on DM3730, so something went wrong again.
+Based on driver principle I suspect either ktime_get returning "strange"
+values or interrupts are broken again (but that does not explain those
+short pulses and spaces):
+https://www.spinics.net/lists/linux-omap/msg135915.html
+Verifying that would require some test setup with signal generator and
+scope, as described in said email thread; or combine that test driver
+with this one and look what is really happening. Unfortunately I'm not
+able to do this any time soon, so if someone has hardware reliably working
+with current mainline and is willing to test this patch serie I would
+be very happy to see it happen.
 
-An alternative could have been to introduce notifier specific locks.
-Considering the complexity of the re-probing and that it isn't really a
-solution to a problem but a workaround, remove re-probing instead.
+> > > In any case I don't see much use if patch 1/10 as it doesn't
+> > > simplify much, but the rest (from 2 to 10) looks good to me.
+> > 
+> > Just look at patch 9 and imagine how it would look without this
+> > change. If you are still unconvinced I'll drop this change.
+> 
+> You don't need to, that's just my personal taste and I'm not
+> strong with it. Patch 1 is quite common and not a big deal anyway.
+> If you like it you like you can leave it :)
+> 
+> > > P.S. I don't see in this V2 the changelog from V1. Next time,
+> > > please add the changelog.
+> > 
+> > It was just a rebase with conflicts resolved. I do not see how
+> > to describe it better than I did.
+> 
+> You could write the above (i.e. V2 fixed rebase conflicts :) ).
+> The reason is that as no change is stated, I have to anyway, as
+> reviewer, compare side by side all patches to figure out if there
+> is any difference (even if small) that is not expected.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 54 +-----------------------------------
- 1 file changed, 1 insertion(+), 53 deletions(-)
+Fair enough. Let's wait if there will any more comments and I'll do
+better in V3.
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index d741a8e0fdac..60a1a50b9537 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -198,78 +198,26 @@ EXPORT_SYMBOL(v4l2_async_notifier_register);
- void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- {
- 	struct v4l2_subdev *sd, *tmp;
--	unsigned int notif_n_subdev = notifier->num_subdevs;
--	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
--	struct device **dev;
--	int i = 0;
- 
- 	if (!notifier->v4l2_dev)
- 		return;
- 
--	dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
--	if (!dev) {
--		dev_err(notifier->v4l2_dev->dev,
--			"Failed to allocate device cache!\n");
--	}
--
- 	mutex_lock(&list_lock);
- 
- 	list_del(&notifier->list);
- 
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
--		struct device *d;
--
--		d = get_device(sd->dev);
--
- 		v4l2_async_cleanup(sd);
- 
--		/* If we handled USB devices, we'd have to lock the parent too */
--		device_release_driver(d);
--
- 		if (notifier->unbind)
- 			notifier->unbind(notifier, sd, sd->asd);
- 
--		/*
--		 * Store device at the device cache, in order to call
--		 * put_device() on the final step
--		 */
--		if (dev)
--			dev[i++] = d;
--		else
--			put_device(d);
-+		list_move(&sd->async_list, &subdev_list);
- 	}
- 
- 	mutex_unlock(&list_lock);
- 
--	/*
--	 * Call device_attach() to reprobe devices
--	 *
--	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
--	 * executed.
--	 */
--	while (i--) {
--		struct device *d = dev[i];
--
--		if (d && device_attach(d) < 0) {
--			const char *name = "(none)";
--			int lock = device_trylock(d);
--
--			if (lock && d->driver)
--				name = d->driver->name;
--			dev_err(d, "Failed to re-probe to %s\n", name);
--			if (lock)
--				device_unlock(d);
--		}
--		put_device(d);
--	}
--	kvfree(dev);
--
- 	notifier->v4l2_dev = NULL;
--
--	/*
--	 * Don't care about the waiting list, it is initialised and populated
--	 * upon notifier registration.
--	 */
- }
- EXPORT_SYMBOL(v4l2_async_notifier_unregister);
- 
--- 
-2.11.0
+> Thanks,
+> Andi
+
+Best regards,
+	ladis
