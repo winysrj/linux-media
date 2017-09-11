@@ -1,164 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47008
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752123AbdIANZH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:25:07 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v2 13/27] media: dmx.h: get rid of DMX_GET_CAPS
-Date: Fri,  1 Sep 2017 10:24:35 -0300
-Message-Id: <9ef26c72c0d77b21b102b3e20da12e4101cab9dd.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39449 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750969AbdIKVPO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 17:15:14 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH v2 8/8] v4l: vsp1: Reduce display list body size
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <fa078611769415d7adbad208f1299d05bee3bda8.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <3704707.T2fvHgbeUE@avalon>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <af16106d-4a56-c022-49cf-8d5e5b143f80@ideasonboard.com>
+Date: Mon, 11 Sep 2017 22:15:10 +0100
+MIME-Version: 1.0
+In-Reply-To: <3704707.T2fvHgbeUE@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's no driver currently using it; it is also not
-documented about what it would be supposed to do.
+On 17/08/17 17:11, Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> Thank you for the patch.
+> 
+> On Monday 14 Aug 2017 16:13:31 Kieran Bingham wrote:
+>> The display list originally allocated a body of 256 entries to store all
+>> of the register lists required for each frame.
+>>
+>> This has now been separated into fragments for constant stream setup, and
+>> runtime updates.
+>>
+>> Empirical testing shows that the body0 now uses a maximum of 41
+>> registers for each frame, for both DRM and Video API pipelines thus a
+>> rounded 64 entries provides a suitable allocation.
+> 
+> Didn't you mention in patch 7/8 that one of the fragments uses exactly 64 
+> entries ? Which one is it, and is there a risk it could use more ? 
 
-So, get rid of it.
+No, that referred to the fragments(bodies) which had been attached. This change
+refers only to the body0 allocation which has a maximum of 41 entries written.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/dmx.h.rst.exceptions      |  1 -
- Documentation/media/uapi/dvb/dmx-get-caps.rst | 41 ---------------------------
- Documentation/media/uapi/dvb/dmx_fcalls.rst   |  1 -
- Documentation/media/uapi/dvb/dmx_types.rst    | 12 --------
- include/uapi/linux/dvb/dmx.h                  |  7 -----
- 5 files changed, 62 deletions(-)
- delete mode 100644 Documentation/media/uapi/dvb/dmx-get-caps.rst
+The fragment and partition allocations which reach 64 entries, are allocated
+with room for 128 currently...
 
-diff --git a/Documentation/media/dmx.h.rst.exceptions b/Documentation/media/dmx.h.rst.exceptions
-index 933ca5a61ce1..5572d2dc9d0e 100644
---- a/Documentation/media/dmx.h.rst.exceptions
-+++ b/Documentation/media/dmx.h.rst.exceptions
-@@ -58,7 +58,6 @@ replace define DMX_ONESHOT :c:type:`dmx_sct_filter_params`
- replace define DMX_IMMEDIATE_START :c:type:`dmx_sct_filter_params`
- 
- # some typedefs should point to struct/enums
--replace typedef dmx_caps_t :c:type:`dmx_caps`
- replace typedef dmx_filter_t :c:type:`dmx_filter`
- replace typedef dmx_pes_type_t :c:type:`dmx_pes_type`
- replace typedef dmx_input_t :c:type:`dmx_input`
-diff --git a/Documentation/media/uapi/dvb/dmx-get-caps.rst b/Documentation/media/uapi/dvb/dmx-get-caps.rst
-deleted file mode 100644
-index 145fb520d779..000000000000
---- a/Documentation/media/uapi/dvb/dmx-get-caps.rst
-+++ /dev/null
-@@ -1,41 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--.. _DMX_GET_CAPS:
--
--============
--DMX_GET_CAPS
--============
--
--Name
------
--
--DMX_GET_CAPS
--
--
--Synopsis
----------
--
--.. c:function:: int ioctl(fd, DMX_GET_CAPS, struct dmx_caps *caps)
--    :name: DMX_GET_CAPS
--
--Arguments
-----------
--
--``fd``
--    File descriptor returned by :c:func:`open() <dvb-dmx-open>`.
--
--``caps``
--    Pointer to struct :c:type:`dmx_caps`
--
--
--Description
-------------
--
--.. note:: This ioctl is undocumented. Documentation is welcome.
--
--Return Value
--------------
--
--On success 0 is returned, on error -1 and the ``errno`` variable is set
--appropriately. The generic error codes are described at the
--:ref:`Generic Error Codes <gen-errors>` chapter.
-diff --git a/Documentation/media/uapi/dvb/dmx_fcalls.rst b/Documentation/media/uapi/dvb/dmx_fcalls.rst
-index 77a1554d9834..49e013d4540f 100644
---- a/Documentation/media/uapi/dvb/dmx_fcalls.rst
-+++ b/Documentation/media/uapi/dvb/dmx_fcalls.rst
-@@ -21,7 +21,6 @@ Demux Function Calls
-     dmx-get-event
-     dmx-get-stc
-     dmx-get-pes-pids
--    dmx-get-caps
-     dmx-set-source
-     dmx-add-pid
-     dmx-remove-pid
-diff --git a/Documentation/media/uapi/dvb/dmx_types.rst b/Documentation/media/uapi/dvb/dmx_types.rst
-index 0f0113205c94..9e907b85cf16 100644
---- a/Documentation/media/uapi/dvb/dmx_types.rst
-+++ b/Documentation/media/uapi/dvb/dmx_types.rst
-@@ -199,18 +199,6 @@ struct dmx_stc
-     };
- 
- 
--struct dmx_caps
--===============
--
--.. c:type:: dmx_caps
--
--.. code-block:: c
--
--     typedef struct dmx_caps {
--	__u32 caps;
--	int num_decoders;
--    } dmx_caps_t;
--
- 
- enum dmx_source
- ===============
-diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
-index 1702f923d425..db8bd00c93de 100644
---- a/include/uapi/linux/dvb/dmx.h
-+++ b/include/uapi/linux/dvb/dmx.h
-@@ -115,11 +115,6 @@ struct dmx_pes_filter_params
- 	__u32           flags;
- };
- 
--struct dmx_caps {
--	__u32 caps;
--	int num_decoders;
--};
--
- enum dmx_source {
- 	DMX_SOURCE_FRONT0 = 0,
- 	DMX_SOURCE_FRONT1,
-@@ -143,7 +138,6 @@ struct dmx_stc {
- #define DMX_SET_PES_FILTER       _IOW('o', 44, struct dmx_pes_filter_params)
- #define DMX_SET_BUFFER_SIZE      _IO('o', 45)
- #define DMX_GET_PES_PIDS         _IOR('o', 47, __u16[5])
--#define DMX_GET_CAPS             _IOR('o', 48, struct dmx_caps)
- #define DMX_SET_SOURCE           _IOW('o', 49, enum dmx_source)
- #define DMX_GET_STC              _IOWR('o', 50, struct dmx_stc)
- #define DMX_ADD_PID              _IOW('o', 51, __u16)
-@@ -156,7 +150,6 @@ typedef enum dmx_output dmx_output_t;
- typedef enum dmx_input dmx_input_t;
- typedef enum dmx_ts_pes dmx_pes_type_t;
- typedef struct dmx_filter dmx_filter_t;
--typedef struct dmx_caps dmx_caps_t;
- typedef enum dmx_source  dmx_source_t;
- 
- #endif
--- 
-2.13.5
+< yes, this can be revisited >
+
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>> ---
+>>  drivers/media/platform/vsp1/vsp1_dl.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
+>> b/drivers/media/platform/vsp1/vsp1_dl.c index 176a258146ac..b3f5eb2f9a4f
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_dl.c
+>> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
+>> @@ -21,7 +21,7 @@
+>>  #include "vsp1.h"
+>>  #include "vsp1_dl.h"
+>>
+>> -#define VSP1_DL_NUM_ENTRIES		256
+>> +#define VSP1_DL_NUM_ENTRIES		64
+
+This now only defines the size of the body0 which is the defacto list of entries
+in a display list.
+
+This too could / should be removed at somepoint I believe, leaving allocations
+only where they are needed.
+>>  #define VSP1_DLH_INT_ENABLE		(1 << 1)
+>>  #define VSP1_DLH_AUTO_START		(1 << 0)
+> 
