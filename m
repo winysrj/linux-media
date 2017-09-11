@@ -1,77 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:19355 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751747AbdISMRM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 08:17:12 -0400
-Date: Tue, 19 Sep 2017 15:16:38 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
-        sre@kernel.org
-Subject: Re: [PATCH v13 15/25] dt: bindings: Add a binding for flash LED
- devices associated to a sensor
-Message-ID: <20170919121638.znu2drbzzayxrbwz@paasikivi.fi.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
- <20170915141724.23124-16-sakari.ailus@linux.intel.com>
- <8102551.bT9icskWgv@avalon>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:39642 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751003AbdIKIFp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 04:05:45 -0400
+Subject: Re: [PATCH v9 13/24] v4l: async: Allow async notifier register call
+ succeed with no subdevs
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+ <20170908131822.31020-9-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <beb494e4-44f7-2eec-8d24-8d92e23dafd2@xs4all.nl>
+Date: Mon, 11 Sep 2017 10:05:40 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8102551.bT9icskWgv@avalon>
+In-Reply-To: <20170908131822.31020-9-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On Tue, Sep 19, 2017 at 03:12:42PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
+On 09/08/2017 03:18 PM, Sakari Ailus wrote:
+> The information on how many async sub-devices would be bindable to a
+> notifier is typically dependent on information from platform firmware and
+> it's not driver's business to be aware of that.
 > 
-> Thank you for the patch.
+> Many V4L2 main drivers are perfectly usable (and useful) without async
+> sub-devices and so if there aren't any around, just proceed call the
+> notifier's complete callback immediately without registering the notifier
+> itself.
 > 
-> On Friday, 15 September 2017 17:17:14 EEST Sakari Ailus wrote:
-> > Camera flash drivers (and LEDs) are separate from the sensor devices in
-> > DT. In order to make an association between the two, provide the
-> > association information to the software.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Acked-by: Rob Herring <robh@kernel.org>
-> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > Acked-by: Pavel Machek <pavel@ucw.cz>
-> > ---
-> >  Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
-> >  1 file changed, 8 insertions(+)
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > b/Documentation/devicetree/bindings/media/video-interfaces.txt index
-> > 852041a7480c..fdba30479b47 100644
-> > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > @@ -67,6 +67,14 @@ are required in a relevant parent node:
-> >  		    identifier, should be 1.
-> >   - #size-cells    : should be zero.
-> > 
-> > +
-> > +Optional properties
-> > +-------------------
-> > +
-> > +- flash-leds: An array of phandles, each referring to a flash LED, a
-> > sub-node
-> > +  of the LED driver device node.
+> If a driver needs to check whether there are async sub-devices available,
+> it can be done by inspecting the notifier's num_subdevs field which tells
+> the number of async sub-devices.
 > 
-> What happens with non-LED flash controllers ?
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 7b396ff4302b..9ebc2e079d03 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -170,10 +170,12 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  	struct v4l2_async_subdev *asd;
+>  	int i;
+>  
+> -	if (!v4l2_dev || !notifier->num_subdevs ||
+> -	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+> +	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+>  		return -EINVAL;
+>  
+> +	if (!notifier->num_subdevs)
+> +		return v4l2_async_notifier_call_complete(notifier);
+> +
 
-We don't have any at the moment.
+I would move this 'if' down to after the next three lines...
 
-The way the bindings are currently defined (LED references are to
-individual LEDs for instance) are specific to LED bindings. I'd rather not
-make assumptions for e.g. Xenon flash devices. Which might never appear:
-LED luminosity, efficiency and maximum current has been steadily increasing
-over the past years.
+>  	notifier->v4l2_dev = v4l2_dev;
+>  	INIT_LIST_HEAD(&notifier->waiting);
+>  	INIT_LIST_HEAD(&notifier->done);
+> 
 
--- 
+...that way the notifier struct is properly initialized. Just in case anyone
+ever looks at these three fields.
+
 Regards,
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+	Hans
