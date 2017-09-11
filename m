@@ -1,52 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49774
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751024AbdITSHD (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:42673 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751013AbdIKJOm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 14:07:03 -0400
-Date: Wed, 20 Sep 2017 15:06:53 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Lubomir Rintel <lkundrak@v3.sk>
-Cc: linux-media@vger.kernel.org,
+        Mon, 11 Sep 2017 05:14:42 -0400
+Subject: Re: [PATCH 1/3] [media] s5p-mfc: Delete an error message for a
+ failed memory allocation in s5p_mfc_probe()
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-kernel@vger.kernel.org
-Subject: Re: A patch slipped through the cracks?
-Message-ID: <20170920150653.09f1a0d7@recife.lan>
-In-Reply-To: <1505927837.26708.8.camel@v3.sk>
-References: <1505927837.26708.8.camel@v3.sk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        kernel-janitors@vger.kernel.org,
+        LKML <linux-kernel@vger.kernel.org>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <ccf6b04a-6e8a-231c-f456-0b37ba350acc@samsung.com>
+Date: Mon, 11 Sep 2017 11:14:33 +0200
+MIME-version: 1.0
+In-reply-to: <ff8f7dcd-c3e8-2a12-c0db-997b514f5d94@users.sourceforge.net>
+Content-type: text/plain; charset="utf-8"; format="flowed"
+Content-language: en-GB
+Content-transfer-encoding: 7bit
+References: <482a6c92-a85e-0bcd-edf7-3c2f63ea74c5@users.sourceforge.net>
+        <ff8f7dcd-c3e8-2a12-c0db-997b514f5d94@users.sourceforge.net>
+        <CGME20170911091439epcas1p3f8b62f55cae4255d250b1fe990fbf1ff@epcas1p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 20 Sep 2017 19:17:17 +0200
-Lubomir Rintel <lkundrak@v3.sk> escreveu:
+On 09/08/2017 10:51 PM, SF Markus Elfring wrote:
+> Omit an extra message for a memory allocation failure in this function.
+> 
+> This issue was detected by using the Coccinelle software.
+> 
+> Signed-off-by: Markus Elfring<elfring@users.sourceforge.net>
 
-> Hi,
-> 
-> we're trying to get this reasonably trivial patch [1] applied for more
-> than a year and four attempts now. (I'm not including it in this
-> message so that this message won't be ignored for the same reason the
-> submissions were, whatever they are.)
-> 
-> [1] https://patchwork.linuxtv.org/patch/40862/
-> 
-> I have no idea what went wrong. There was a suspicion (somewhat
-> confirmed by the initial patch submitter) that spam filtering could
-> have dropped the first message. Since then the patch did make it to the
-> list numerous times and was picked up by patchwork.
-> 
-> The patchwork's idea about the patch being "Superseded" is wrong -- I
-> have no idea why. But someone *please* look into this and apply the
-> patch.
+Could you make the commit summary shorter, to keep it below 70
+characters [1]? With that changed feel free to add
 
-Not sure what happened, but I tagged is as new. I'll take a look
-on it later, when I start handling patches for Kernel 4.15.
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
+--
 Regards,
-Maur
+Sylwester
 
-Thanks,
-Mauro
+[1] Documentation/process/submitting-patches.rst
