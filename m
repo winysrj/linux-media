@@ -1,60 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:61905 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750947AbdIXK3V (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Sep 2017 06:29:21 -0400
-Subject: [PATCH 4/6] [media] omap_vout: Fix a possible null pointer
- dereference in omap_vout_open()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Jan Kara <jack@suse.cz>, Lorenzo Stoakes <lstoakes@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Muralidharan Karicheri <mkaricheri@gmail.com>,
-        Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
-Message-ID: <15332564-0c8d-a197-b987-f54e29768e56@users.sourceforge.net>
-Date: Sun, 24 Sep 2017 12:28:54 +0200
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54239 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751013AbdIKLL6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 07:11:58 -0400
+Date: Mon, 11 Sep 2017 13:11:56 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        sre@kernel.org
+Subject: Re: [PATCH v10 20/24] dt: bindings: smiapp: Document lens-focus and
+ flash properties
+Message-ID: <20170911111155.GA28095@amd>
+References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+ <20170911080008.21208-21-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
+Content-Disposition: inline
+In-Reply-To: <20170911080008.21208-21-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 24 Sep 2017 11:00:57 +0200
 
-Move a debug message so that a null pointer access can not happen
-for the variable "vout" in this function.
+--YiEDa0DAkWCtVeE4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Fixes: 5c7ab6348e7b3fcca2b8ee548306c774472971e2 ("V4L/DVB: V4L2: Add support for OMAP2/3 V4L2 display driver on top of DSS2")
+On Mon 2017-09-11 11:00:04, Sakari Ailus wrote:
+> Document optional lens-focus and flash properties for the smiapp
+driver.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/omap/omap_vout.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
-diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-index 2b55a8ebd1ad..71b77426271e 100644
---- a/drivers/media/platform/omap/omap_vout.c
-+++ b/drivers/media/platform/omap/omap_vout.c
-@@ -1004,11 +1004,11 @@ static int omap_vout_open(struct file *file)
- 	struct omap_vout_device *vout = NULL;
- 
- 	vout = video_drvdata(file);
--	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev, "Entering %s\n", __func__);
--
- 	if (!vout)
- 		return -ENODEV;
- 
-+	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev, "Entering %s\n", __func__);
-+
- 	/* for now, we only support single open */
- 	if (vout->opened)
- 		return -EBUSY;
--- 
-2.14.1
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--YiEDa0DAkWCtVeE4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlm2b3sACgkQMOfwapXb+vJcwwCdFUKHk2XhEQ9/vgkh/V3zet0Z
+KXEAn3bq/Mfwpb7otNwFi7tGZPoykuj3
+=Lt2/
+-----END PGP SIGNATURE-----
+
+--YiEDa0DAkWCtVeE4--
