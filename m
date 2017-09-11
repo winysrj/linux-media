@@ -1,135 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49436 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753869AbdIYWZv (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:42647 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751710AbdIKM36 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 18:25:51 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+        Mon, 11 Sep 2017 08:29:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v14 11/28] v4l: async: Introduce helpers for calling async ops callbacks
-Date: Tue, 26 Sep 2017 01:25:22 +0300
-Message-Id: <20170925222540.371-12-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170925222540.371-1-sakari.ailus@linux.intel.com>
-References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+Cc: linux-tegra@vger.kernel.org, devicetree@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, thierry.reding@gmail.com,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv4 1/4] dt-bindings: document the tegra CEC bindings
+Date: Mon, 11 Sep 2017 14:29:49 +0200
+Message-Id: <20170911122952.33980-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170911122952.33980-1-hverkuil@xs4all.nl>
+References: <20170911122952.33980-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add three helper functions to call async operations callbacks. Besides
-simplifying callbacks, this allows async notifiers to have no ops set,
-i.e. it can be left NULL.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+This documents the binding for the Tegra CEC module.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Rob Herring <robh@kernel.org>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 49 ++++++++++++++++++++++++++----------
- include/media/v4l2-async.h           |  1 +
- 2 files changed, 37 insertions(+), 13 deletions(-)
+ .../devicetree/bindings/media/tegra-cec.txt        | 27 ++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/tegra-cec.txt
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 051cb7566d50..8eed6676f15c 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -25,6 +25,34 @@
- #include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
- 
-+static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
-+					  struct v4l2_subdev *subdev,
-+					  struct v4l2_async_subdev *asd)
-+{
-+	if (!n->ops || !n->ops->bound)
-+		return 0;
+diff --git a/Documentation/devicetree/bindings/media/tegra-cec.txt b/Documentation/devicetree/bindings/media/tegra-cec.txt
+new file mode 100644
+index 000000000000..c503f06f3b84
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/tegra-cec.txt
+@@ -0,0 +1,27 @@
++* Tegra HDMI CEC hardware
 +
-+	return n->ops->bound(n, subdev, asd);
-+}
++The HDMI CEC module is present in Tegra SoCs and its purpose is to
++handle communication between HDMI connected devices over the CEC bus.
 +
-+static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier *n,
-+					    struct v4l2_subdev *subdev,
-+					    struct v4l2_async_subdev *asd)
-+{
-+	if (!n->ops || !n->ops->unbind)
-+		return;
++Required properties:
++  - compatible : value should be one of the following:
++	"nvidia,tegra114-cec"
++	"nvidia,tegra124-cec"
++	"nvidia,tegra210-cec"
++  - reg : Physical base address of the IP registers and length of memory
++	  mapped region.
++  - interrupts : HDMI CEC interrupt number to the CPU.
++  - clocks : from common clock binding: handle to HDMI CEC clock.
++  - clock-names : from common clock binding: must contain "cec",
++		  corresponding to the entry in the clocks property.
++  - hdmi-phandle : phandle to the HDMI controller, see also cec.txt.
 +
-+	n->ops->unbind(n, subdev, asd);
-+}
++Example:
 +
-+static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
-+{
-+	if (!n->ops || !n->ops->complete)
-+		return 0;
-+
-+	return n->ops->complete(n);
-+}
-+
- static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
- #if IS_ENABLED(CONFIG_I2C)
-@@ -102,16 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- {
- 	int ret;
- 
--	if (notifier->ops->bound) {
--		ret = notifier->ops->bound(notifier, sd, asd);
--		if (ret < 0)
--			return ret;
--	}
-+	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
-+	if (ret < 0)
-+		return ret;
- 
- 	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
- 	if (ret < 0) {
--		if (notifier->ops->unbind)
--			notifier->ops->unbind(notifier, sd, asd);
-+		v4l2_async_notifier_call_unbind(notifier, sd, asd);
- 		return ret;
- 	}
- 
-@@ -123,8 +148,8 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 	/* Move from the global subdevice list to notifier's done */
- 	list_move(&sd->async_list, &notifier->done);
- 
--	if (list_empty(&notifier->waiting) && notifier->ops->complete)
--		return notifier->ops->complete(notifier);
-+	if (list_empty(&notifier->waiting))
-+		return v4l2_async_notifier_call_complete(notifier);
- 
- 	return 0;
- }
-@@ -210,8 +235,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
- 		v4l2_async_cleanup(sd);
- 
--		if (notifier->ops->unbind)
--			notifier->ops->unbind(notifier, sd, sd->asd);
-+		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
- 
- 		list_move(&sd->async_list, &subdev_list);
- 	}
-@@ -302,8 +326,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
- 
- 	v4l2_async_cleanup(sd);
- 
--	if (notifier->ops->unbind)
--		notifier->ops->unbind(notifier, sd, sd->asd);
-+	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
- 
- 	mutex_unlock(&list_lock);
- }
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 68606afb5ef9..7d56c355138b 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -164,4 +164,5 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd);
-  * @sd: pointer to &struct v4l2_subdev
-  */
- void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
-+
- #endif
++cec@70015000 {
++	compatible = "nvidia,tegra124-cec";
++	reg = <0x0 0x70015000 0x0 0x00001000>;
++	interrupts = <GIC_SPI 3 IRQ_TYPE_LEVEL_HIGH>;
++	clocks = <&tegra_car TEGRA124_CLK_CEC>;
++	clock-names = "cec";
++};
 -- 
-2.11.0
+2.14.1
