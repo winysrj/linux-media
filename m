@@ -1,104 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:44679 "EHLO
-        DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752111AbdI1IVY (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:33795 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751532AbdIKNuy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Sep 2017 04:21:24 -0400
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: <linux-kernel@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        "Jonathan Corbet" <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH v3 2/5] media: atmel-isc: Add prepare and unprepare ops
-Date: Thu, 28 Sep 2017 16:18:25 +0800
-Message-ID: <20170928081828.20335-3-wenyou.yang@microchip.com>
-In-Reply-To: <20170928081828.20335-1-wenyou.yang@microchip.com>
-References: <20170928081828.20335-1-wenyou.yang@microchip.com>
+        Mon, 11 Sep 2017 09:50:54 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.15] Various fixes
+Message-ID: <274819a4-0590-efa9-7e44-5ca32dd2591e@xs4all.nl>
+Date: Mon, 11 Sep 2017 15:50:49 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A software write operation to the ISC_CLKEN or ISC_CLKDIS register
-requires double clock domain synchronization and is not permitted
-when the ISC_SR.SIP is asserted. So add the .prepare and .unprepare
-ops to make sure the ISC_CLKSR.SIP is unasserted before the write
-operation to the ISC_CLKEN or ISC_CLKDIS register.
+Hi Mauro,
 
-Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
----
+A bunch of small things all over the place.
 
-Changes in v3: None
-Changes in v2: None
+Please note the "media: fix media Kconfig help syntax issues" patch: double
+check that drivers/media/pci/netup_unidvb/Kconfig is OK.
 
- drivers/media/platform/atmel/atmel-isc-regs.h |  1 +
- drivers/media/platform/atmel/atmel-isc.c      | 30 +++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+Regards,
 
-diff --git a/drivers/media/platform/atmel/atmel-isc-regs.h b/drivers/media/platform/atmel/atmel-isc-regs.h
-index 6936ac467609..93e58fcf1d5f 100644
---- a/drivers/media/platform/atmel/atmel-isc-regs.h
-+++ b/drivers/media/platform/atmel/atmel-isc-regs.h
-@@ -42,6 +42,7 @@
- 
- /* ISC Clock Status Register */
- #define ISC_CLKSR               0x00000020
-+#define ISC_CLKSR_SIP		BIT(31)
- 
- #define ISC_CLK(n)		BIT(n)
- 
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-index 991f962b7023..0b15dc1a3a0b 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -308,6 +308,34 @@ module_param(sensor_preferred, uint, 0644);
- MODULE_PARM_DESC(sensor_preferred,
- 		 "Sensor is preferred to output the specified format (1-on 0-off), default 1");
- 
-+static int isc_wait_clk_stable(struct clk_hw *hw)
-+{
-+	struct isc_clk *isc_clk = to_isc_clk(hw);
-+	struct regmap *regmap = isc_clk->regmap;
-+	unsigned long timeout = jiffies + usecs_to_jiffies(1000);
-+	unsigned int status;
-+
-+	while (time_before(jiffies, timeout)) {
-+		regmap_read(regmap, ISC_CLKSR, &status);
-+		if (!(status & ISC_CLKSR_SIP))
-+			return 0;
-+
-+		usleep_range(10, 250);
-+	}
-+
-+	return -ETIMEDOUT;
-+}
-+
-+static int isc_clk_prepare(struct clk_hw *hw)
-+{
-+	return isc_wait_clk_stable(hw);
-+}
-+
-+static void isc_clk_unprepare(struct clk_hw *hw)
-+{
-+	isc_wait_clk_stable(hw);
-+}
-+
- static int isc_clk_enable(struct clk_hw *hw)
- {
- 	struct isc_clk *isc_clk = to_isc_clk(hw);
-@@ -459,6 +487,8 @@ static int isc_clk_set_rate(struct clk_hw *hw,
- }
- 
- static const struct clk_ops isc_clk_ops = {
-+	.prepare	= isc_clk_prepare,
-+	.unprepare	= isc_clk_unprepare,
- 	.enable		= isc_clk_enable,
- 	.disable	= isc_clk_disable,
- 	.is_enabled	= isc_clk_is_enabled,
--- 
-2.13.0
+	Hans
+
+The following changes since commit 1efdf1776e2253b77413c997bed862410e4b6aaf:
+
+  media: leds: as3645a: add V4L2_FLASH_LED_CLASS dependency (2017-09-05 16:32:45 -0400)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.15b
+
+for you to fetch changes up to 4730ba1fe2ef5074ce9465bfb9da99c8bc8cd832:
+
+  cec.h: initialize *parent and *port in cec_phys_addr_validate (2017-09-11 15:36:14 +0200)
+
+----------------------------------------------------------------
+Geert Uytterhoeven (1):
+      media: platform: VIDEO_QCOM_CAMSS should depend on HAS_DMA
+
+Hans Verkuil (3):
+      cobalt: do not register subdev nodes
+      media: fix media Kconfig help syntax issues
+      cec.h: initialize *parent and *port in cec_phys_addr_validate
+
+Markus Elfring (3):
+      DaVinci-VPBE-Display: Delete an error message for a failed memory allocation in init_vpbe_layer()
+      DaVinci-VPBE-Display: Improve a size determination in two functions
+      DaVinci-VPBE-Display: Adjust 12 checks for null pointers
+
+Ricardo Ribalda Delgado (1):
+      v4l-ioctl: Fix typo on v4l_print_frmsizeenum
+
+ drivers/media/dvb-frontends/Kconfig           |  6 +++---
+ drivers/media/pci/b2c2/Kconfig                |  4 ++--
+ drivers/media/pci/cobalt/cobalt-driver.c      |  3 ---
+ drivers/media/pci/netup_unidvb/Kconfig        | 12 ++++++------
+ drivers/media/platform/Kconfig                |  2 +-
+ drivers/media/platform/davinci/vpbe_display.c | 37 +++++++++++++++----------------------
+ drivers/media/platform/exynos4-is/Kconfig     |  2 +-
+ drivers/media/radio/wl128x/Kconfig            | 10 +++++-----
+ drivers/media/usb/b2c2/Kconfig                |  6 +++---
+ drivers/media/usb/gspca/Kconfig               | 16 ++++++++--------
+ drivers/media/usb/pvrusb2/Kconfig             |  1 -
+ drivers/media/v4l2-core/v4l2-ioctl.c          |  9 ++++++---
+ include/media/cec.h                           |  4 ++++
+ 13 files changed, 54 insertions(+), 58 deletions(-)
