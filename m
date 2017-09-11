@@ -1,184 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:42336 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934055AbdIYKIH (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48878 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751047AbdIKIAN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 06:08:07 -0400
-Subject: Re: [PATCH v6 16/25] rcar-vin: break out format alignment and
- checking
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
- <20170822232640.26147-17-niklas.soderlund+renesas@ragnatech.se>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <34d03f81-ff25-3fe0-8dee-33496ff9b46e@xs4all.nl>
-Date: Mon, 25 Sep 2017 12:08:04 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170822232640.26147-17-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+        Mon, 11 Sep 2017 04:00:13 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v10 06/24] omap3isp: Use generic parser for parsing fwnode endpoints
+Date: Mon, 11 Sep 2017 10:59:50 +0300
+Message-Id: <20170911080008.21208-7-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23/08/17 01:26, Niklas Söderlund wrote:
-> Part of the format aliment and checking can be shared with the Gen3
+Instead of using driver implementation, use
+v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
+of the device.
 
-aliment -> alignment
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/omap3isp/isp.c | 115 +++++++++++-----------------------
+ drivers/media/platform/omap3isp/isp.h |   5 +-
+ 2 files changed, 37 insertions(+), 83 deletions(-)
 
-> format handling. Break that part out to it's own function. While doing
-
-it's -> its
-
-> this clean up the checking and add more checks.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Please note the small typo in a comment below.
-
-Regards,
-
-	Hans
-
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 98 +++++++++++++++--------------
->  1 file changed, 51 insertions(+), 47 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index fb9f802e553e9b80..f71dea8d5d40323a 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -86,6 +86,56 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
->  	return pix->bytesperline * pix->height;
->  }
->  
-> +static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
-> +{
-> +	u32 walign;
-> +
-> +	/* If requested format is not supported fallback to the default */
-> +	if (!rvin_format_from_pixel(pix->pixelformat)) {
-> +		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
-> +			pix->pixelformat, RVIN_DEFAULT_FORMAT);
-> +		pix->pixelformat = RVIN_DEFAULT_FORMAT;
-> +	}
-> +
-> +	switch (pix->field) {
-> +	case V4L2_FIELD_TOP:
-> +	case V4L2_FIELD_BOTTOM:
-> +	case V4L2_FIELD_NONE:
-> +	case V4L2_FIELD_INTERLACED_TB:
-> +	case V4L2_FIELD_INTERLACED_BT:
-> +	case V4L2_FIELD_INTERLACED:
-> +		break;
-> +	default:
-> +		pix->field = V4L2_FIELD_NONE;
-> +		break;
-> +	}
-> +
-> +	/* Check that colorspace is resonable, if not keep current */
-
-resonable -> reasonable
-
-> +	if (!pix->colorspace || pix->colorspace >= 0xff)
-> +		pix->colorspace = vin->format.colorspace;
-> +
-> +	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
-> +	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
-> +
-> +	/* Limit to VIN capabilities */
-> +	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-> +			      &pix->height, 4, vin->info->max_height, 2, 0);
-> +
-> +	pix->bytesperline = rvin_format_bytesperline(pix);
-> +	pix->sizeimage = rvin_format_sizeimage(pix);
-> +
-> +	if (vin->info->chip == RCAR_M1 &&
-> +	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-> +		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
-> +		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
-> +
-> +	return 0;
-> +}
-> +
->  /* -----------------------------------------------------------------------------
->   * V4L2
->   */
-> @@ -191,64 +241,18 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
->  static int __rvin_try_format(struct rvin_dev *vin,
->  			     u32 which, struct v4l2_pix_format *pix)
->  {
-> -	u32 walign;
->  	int ret;
->  
->  	/* Keep current field if no specific one is asked for */
->  	if (pix->field == V4L2_FIELD_ANY)
->  		pix->field = vin->format.field;
->  
-> -	/* If requested format is not supported fallback to the default */
-> -	if (!rvin_format_from_pixel(pix->pixelformat)) {
-> -		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
-> -			pix->pixelformat, RVIN_DEFAULT_FORMAT);
-> -		pix->pixelformat = RVIN_DEFAULT_FORMAT;
-> -	}
-> -
-> -	/* Always recalculate */
-> -	pix->bytesperline = 0;
-> -	pix->sizeimage = 0;
-> -
->  	/* Limit to source capabilities */
->  	ret = __rvin_try_format_source(vin, which, pix);
->  	if (ret)
->  		return ret;
->  
-> -	switch (pix->field) {
-> -	case V4L2_FIELD_TOP:
-> -	case V4L2_FIELD_BOTTOM:
-> -	case V4L2_FIELD_NONE:
-> -	case V4L2_FIELD_INTERLACED_TB:
-> -	case V4L2_FIELD_INTERLACED_BT:
-> -	case V4L2_FIELD_INTERLACED:
-> -		break;
-> -	default:
-> -		pix->field = V4L2_FIELD_NONE;
-> -		break;
-> -	}
-> -
-> -	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
-> -	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
-> -
-> -	/* Limit to VIN capabilities */
-> -	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-> -			      &pix->height, 4, vin->info->max_height, 2, 0);
-> -
-> -	pix->bytesperline = max_t(u32, pix->bytesperline,
-> -				  rvin_format_bytesperline(pix));
-> -	pix->sizeimage = max_t(u32, pix->sizeimage,
-> -			       rvin_format_sizeimage(pix));
-> -
-> -	if (vin->info->chip == RCAR_M1 &&
-> -	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-> -		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
-> -		return -EINVAL;
-> -	}
-> -
-> -	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
-> -		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
-> -
-> -	return 0;
-> +	return rvin_format_align(vin, pix);
->  }
->  
->  static int rvin_querycap(struct file *file, void *priv,
-> 
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 1a428fe9f070..a546cf774d40 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2001,6 +2001,7 @@ static int isp_remove(struct platform_device *pdev)
+ 	__omap3isp_put(isp, false);
+ 
+ 	media_entity_enum_cleanup(&isp->crashed);
++	v4l2_async_notifier_release(&isp->notifier);
+ 
+ 	return 0;
+ }
+@@ -2011,44 +2012,41 @@ enum isp_of_phy {
+ 	ISP_OF_PHY_CSIPHY2,
+ };
+ 
+-static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+-			    struct isp_async_subdev *isd)
++static int isp_fwnode_parse(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd)
+ {
++	struct isp_async_subdev *isd =
++		container_of(asd, struct isp_async_subdev, asd);
+ 	struct isp_bus_cfg *buscfg = &isd->bus;
+-	struct v4l2_fwnode_endpoint vep;
+-	unsigned int i;
+-	int ret;
+ 	bool csi1 = false;
+-
+-	ret = v4l2_fwnode_endpoint_parse(fwnode, &vep);
+-	if (ret)
+-		return ret;
++	unsigned int i;
+ 
+ 	dev_dbg(dev, "parsing endpoint %pOF, interface %u\n",
+-		to_of_node(fwnode), vep.base.port);
++		to_of_node(vep->base.local_fwnode), vep->base.port);
+ 
+-	switch (vep.base.port) {
++	switch (vep->base.port) {
+ 	case ISP_OF_PHY_PARALLEL:
+ 		buscfg->interface = ISP_INTERFACE_PARALLEL;
+ 		buscfg->bus.parallel.data_lane_shift =
+-			vep.bus.parallel.data_shift;
++			vep->bus.parallel.data_shift;
+ 		buscfg->bus.parallel.clk_pol =
+-			!!(vep.bus.parallel.flags
++			!!(vep->bus.parallel.flags
+ 			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
+ 		buscfg->bus.parallel.hs_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
+ 		buscfg->bus.parallel.vs_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
+ 		buscfg->bus.parallel.fld_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
+ 		buscfg->bus.parallel.data_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
+-		buscfg->bus.parallel.bt656 = vep.bus_type == V4L2_MBUS_BT656;
++			!!(vep->bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
++		buscfg->bus.parallel.bt656 = vep->bus_type == V4L2_MBUS_BT656;
+ 		break;
+ 
+ 	case ISP_OF_PHY_CSIPHY1:
+ 	case ISP_OF_PHY_CSIPHY2:
+-		switch (vep.bus_type) {
++		switch (vep->bus_type) {
+ 		case V4L2_MBUS_CCP2:
+ 		case V4L2_MBUS_CSI1:
+ 			dev_dbg(dev, "CSI-1/CCP-2 configuration\n");
+@@ -2060,11 +2058,11 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 			break;
+ 		default:
+ 			dev_err(dev, "unsupported bus type %u\n",
+-				vep.bus_type);
++				vep->bus_type);
+ 			return -EINVAL;
+ 		}
+ 
+-		switch (vep.base.port) {
++		switch (vep->base.port) {
+ 		case ISP_OF_PHY_CSIPHY1:
+ 			if (csi1)
+ 				buscfg->interface = ISP_INTERFACE_CCP2B_PHY1;
+@@ -2080,47 +2078,47 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 		}
+ 		if (csi1) {
+ 			buscfg->bus.ccp2.lanecfg.clk.pos =
+-				vep.bus.mipi_csi1.clock_lane;
++				vep->bus.mipi_csi1.clock_lane;
+ 			buscfg->bus.ccp2.lanecfg.clk.pol =
+-				vep.bus.mipi_csi1.lane_polarity[0];
++				vep->bus.mipi_csi1.lane_polarity[0];
+ 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+ 				buscfg->bus.ccp2.lanecfg.clk.pol,
+ 				buscfg->bus.ccp2.lanecfg.clk.pos);
+ 
+ 			buscfg->bus.ccp2.lanecfg.data[0].pos =
+-				vep.bus.mipi_csi1.data_lane;
++				vep->bus.mipi_csi1.data_lane;
+ 			buscfg->bus.ccp2.lanecfg.data[0].pol =
+-				vep.bus.mipi_csi1.lane_polarity[1];
++				vep->bus.mipi_csi1.lane_polarity[1];
+ 
+ 			dev_dbg(dev, "data lane polarity %u, pos %u\n",
+ 				buscfg->bus.ccp2.lanecfg.data[0].pol,
+ 				buscfg->bus.ccp2.lanecfg.data[0].pos);
+ 
+ 			buscfg->bus.ccp2.strobe_clk_pol =
+-				vep.bus.mipi_csi1.clock_inv;
+-			buscfg->bus.ccp2.phy_layer = vep.bus.mipi_csi1.strobe;
++				vep->bus.mipi_csi1.clock_inv;
++			buscfg->bus.ccp2.phy_layer = vep->bus.mipi_csi1.strobe;
+ 			buscfg->bus.ccp2.ccp2_mode =
+-				vep.bus_type == V4L2_MBUS_CCP2;
++				vep->bus_type == V4L2_MBUS_CCP2;
+ 			buscfg->bus.ccp2.vp_clk_pol = 1;
+ 
+ 			buscfg->bus.ccp2.crc = 1;
+ 		} else {
+ 			buscfg->bus.csi2.lanecfg.clk.pos =
+-				vep.bus.mipi_csi2.clock_lane;
++				vep->bus.mipi_csi2.clock_lane;
+ 			buscfg->bus.csi2.lanecfg.clk.pol =
+-				vep.bus.mipi_csi2.lane_polarities[0];
++				vep->bus.mipi_csi2.lane_polarities[0];
+ 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+ 				buscfg->bus.csi2.lanecfg.clk.pol,
+ 				buscfg->bus.csi2.lanecfg.clk.pos);
+ 
+ 			buscfg->bus.csi2.num_data_lanes =
+-				vep.bus.mipi_csi2.num_data_lanes;
++				vep->bus.mipi_csi2.num_data_lanes;
+ 
+ 			for (i = 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
+ 				buscfg->bus.csi2.lanecfg.data[i].pos =
+-					vep.bus.mipi_csi2.data_lanes[i];
++					vep->bus.mipi_csi2.data_lanes[i];
+ 				buscfg->bus.csi2.lanecfg.data[i].pol =
+-					vep.bus.mipi_csi2.lane_polarities[i + 1];
++					vep->bus.mipi_csi2.lane_polarities[i + 1];
+ 				dev_dbg(dev,
+ 					"data lane %u polarity %u, pos %u\n", i,
+ 					buscfg->bus.csi2.lanecfg.data[i].pol,
+@@ -2137,57 +2135,13 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 
+ 	default:
+ 		dev_warn(dev, "%pOF: invalid interface %u\n",
+-			 to_of_node(fwnode), vep.base.port);
++			 to_of_node(vep->base.local_fwnode), vep->base.port);
+ 		return -EINVAL;
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-static int isp_fwnodes_parse(struct device *dev,
+-			     struct v4l2_async_notifier *notifier)
+-{
+-	struct fwnode_handle *fwnode = NULL;
+-
+-	notifier->subdevs = devm_kcalloc(
+-		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+-	if (!notifier->subdevs)
+-		return -ENOMEM;
+-
+-	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
+-	       (fwnode = fwnode_graph_get_next_endpoint(
+-			of_fwnode_handle(dev->of_node), fwnode))) {
+-		struct isp_async_subdev *isd;
+-
+-		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+-		if (!isd)
+-			goto error;
+-
+-		if (isp_fwnode_parse(dev, fwnode, isd)) {
+-			devm_kfree(dev, isd);
+-			continue;
+-		}
+-
+-		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+-
+-		isd->asd.match.fwnode.fwnode =
+-			fwnode_graph_get_remote_port_parent(fwnode);
+-		if (!isd->asd.match.fwnode.fwnode) {
+-			dev_warn(dev, "bad remote port parent\n");
+-			goto error;
+-		}
+-
+-		isd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		notifier->num_subdevs++;
+-	}
+-
+-	return notifier->num_subdevs;
+-
+-error:
+-	fwnode_handle_put(fwnode);
+-	return -EINVAL;
+-}
+-
+ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+ {
+ 	struct isp_device *isp = container_of(async, struct isp_device,
+@@ -2256,7 +2210,9 @@ static int isp_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
++	ret = v4l2_async_notifier_parse_fwnode_endpoints(
++		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
++		isp_fwnode_parse);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -2407,6 +2363,7 @@ static int isp_probe(struct platform_device *pdev)
+ 	__omap3isp_put(isp, false);
+ error:
+ 	mutex_destroy(&isp->isp_mutex);
++	v4l2_async_notifier_release(&isp->notifier);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index e528df6efc09..8b9043db94b3 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -220,14 +220,11 @@ struct isp_device {
+ 
+ 	unsigned int sbl_resources;
+ 	unsigned int subclk_resources;
+-
+-#define ISP_MAX_SUBDEVS		8
+-	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
+ };
+ 
+ struct isp_async_subdev {
+-	struct isp_bus_cfg bus;
+ 	struct v4l2_async_subdev asd;
++	struct isp_bus_cfg bus;
+ };
+ 
+ #define v4l2_subdev_to_bus_cfg(sd) \
+-- 
+2.11.0
