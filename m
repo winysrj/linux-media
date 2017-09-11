@@ -1,131 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:59634 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750775AbdIJD53 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53120 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750782AbdIKOPr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 9 Sep 2017 23:57:29 -0400
-Message-ID: <4d3f0e319ff39fac17ce46fd2c08b850@smtp-cloud8.xs4all.net>
-Date: Sun, 10 Sep 2017 05:57:26 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Mon, 11 Sep 2017 10:15:47 -0400
+Date: Mon, 11 Sep 2017 17:15:44 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        sre@kernel.org
+Subject: Re: [PATCH v10 19/24] v4l: fwnode: Add convenience function for
+ parsing common external refs
+Message-ID: <20170911141543.phkw3heyb2er2ozz@valkosipuli.retiisi.org.uk>
+References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+ <20170911080008.21208-20-sakari.ailus@linux.intel.com>
+ <20170911111746.GC28095@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170911111746.GC28095@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Mon, Sep 11, 2017 at 01:17:46PM +0200, Pavel Machek wrote:
+> On Mon 2017-09-11 11:00:03, Sakari Ailus wrote:
+> > Add v4l2_fwnode_parse_reference_sensor_common for parsing common
+> > sensor properties that refer to adjacent devices such as flash or lens
+> > driver chips.
+> > 
+> > As this is an association only, there's little a regular driver needs to
+> > know about these devices as such.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-fwnode.c | 35 +++++++++++++++++++++++++++++++++++
+> >  include/media/v4l2-fwnode.h           | 13 +++++++++++++
+> >  2 files changed, 48 insertions(+)
+> > 
+> >  
+> > +/**
+> > + * v4l2_fwnode_reference_parse_sensor_common - parse common references on
+> > + *					       sensors for async sub-devices
+> > + * @dev: the device node the properties of which are parsed for references
+> > + * @notifier: the async notifier where the async subdevs will be added
+> > + *
+> > + * Return: 0 on success
+> > + *	   -ENOMEM if memory allocation failed
+> > + *	   -EINVAL if property parsing failed
+> > + */
+> 
+> Returns: would sound more correct to me, but it seems kernel is split
+> on that.
 
-Results of the daily build of media_tree:
+I think in V4L2 there are roughly as many of each instances. I'll keep it
+as it is.
 
-date:			Sun Sep 10 05:00:17 CEST 2017
-media-tree git hash:	1efdf1776e2253b77413c997bed862410e4b6aaf
-media_build git hash:	bbd9f669f0da6705fe44aff89281c0d6e7bfd73e
-v4l-utils git hash:	7f937d31ac2af7416c60cd5ff7b5153c85e23d3a
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+> 
+> Acked-by: Pavel Machek <pavel@ucw.cz>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: WARNINGS
-spec-git: OK
+Thanks!
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
