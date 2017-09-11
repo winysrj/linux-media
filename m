@@ -1,184 +1,379 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50377
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751751AbdITTMD (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48892 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751099AbdIKIAO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 15:12:03 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?=
-        <knightrider@are.ma>
-Subject: [PATCH 03/25] media: dvbdev: convert DVB device types into an enum
-Date: Wed, 20 Sep 2017 16:11:28 -0300
-Message-Id: <47fa1e847d761e20c8d5c88701523abf7730f00d.1505933919.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
-References: <cover.1505933919.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
-References: <cover.1505933919.git.mchehab@s-opensource.com>
+        Mon, 11 Sep 2017 04:00:14 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v10 07/24] rcar-vin: Use generic parser for parsing fwnode endpoints
+Date: Mon, 11 Sep 2017 10:59:51 +0300
+Message-Id: <20170911080008.21208-8-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enums can be documented via kernel-doc. So, convert the
-DVB_DEVICE_* macros to an enum.
+Instead of using driver implementation, use
+v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
+of the device.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-core/dvbdev.c | 34 +++++++++++++++++++++++----
- drivers/media/dvb-core/dvbdev.h | 51 ++++++++++++++++++++++++++++-------------
- 2 files changed, 64 insertions(+), 21 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-core.c | 112 +++++++++-------------------
+ drivers/media/platform/rcar-vin/rcar-dma.c  |  10 +--
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  14 ++--
+ drivers/media/platform/rcar-vin/rcar-vin.h  |   4 +-
+ 4 files changed, 48 insertions(+), 92 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 41aad0f99d73..7b4cdcfbb02c 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -51,8 +51,15 @@ static LIST_HEAD(dvb_adapter_list);
- static DEFINE_MUTEX(dvbdev_register_lock);
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 142de447aaaa..62b4a94f9a39 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -21,6 +21,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
  
- static const char * const dnames[] = {
--	"video", "audio", "sec", "frontend", "demux", "dvr", "ca",
--	"net", "osd"
-+	[DVB_DEVICE_VIDEO] =		"video",
-+	[DVB_DEVICE_AUDIO] =		"audio",
-+	[DVB_DEVICE_SEC] =   		"sec",
-+	[DVB_DEVICE_FRONTEND] =		"frontend",
-+	[DVB_DEVICE_DEMUX] =		"demux",
-+	[DVB_DEVICE_DVR] =		"dvr",
-+	[DVB_DEVICE_CA] =		"ca",
-+	[DVB_DEVICE_NET] =		"net",
-+	[DVB_DEVICE_OSD] =		"osd"
- };
++#include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
  
- #ifdef CONFIG_DVB_DYNAMIC_MINORS
-@@ -60,7 +67,24 @@ static const char * const dnames[] = {
- #define DVB_MAX_IDS		MAX_DVB_MINORS
- #else
- #define DVB_MAX_IDS		4
--#define nums2minor(num, type, id)	((num << 6) | (id << 4) | type)
-+
-+static int nums2minor(int num, enum dvb_device_type type, int id)
-+{
-+	int n = (num << 6) | (id << 4);
-+
-+	switch (type) {
-+	case DVB_DEVICE_VIDEO:		return n;
-+	case DVB_DEVICE_AUDIO:		return n | 1;
-+	case DVB_DEVICE_SEC:		return n | 2;
-+	case DVB_DEVICE_FRONTEND:	return n | 3;
-+	case DVB_DEVICE_DEMUX:		return n | 4;
-+	case DVB_DEVICE_DVR:		return n | 5;
-+	case DVB_DEVICE_CA:		return n | 6;
-+	case DVB_DEVICE_NET:		return n | 7;
-+	case DVB_DEVICE_OSD:		return n | 8;
-+	}
-+}
-+
- #define MAX_DVB_MINORS		(DVB_MAX_ADAPTERS*64)
- #endif
+ #include "rcar-vin.h"
+@@ -77,14 +78,14 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+ 	int ret;
  
-@@ -426,8 +450,8 @@ static int dvb_register_media_device(struct dvb_device *dvbdev,
+ 	/* Verify subdevices mbus format */
+-	if (!rvin_mbus_supported(&vin->digital)) {
++	if (!rvin_mbus_supported(vin->digital)) {
+ 		vin_err(vin, "Unsupported media bus format for %s\n",
+-			vin->digital.subdev->name);
++			vin->digital->subdev->name);
+ 		return -EINVAL;
+ 	}
+ 
+ 	vin_dbg(vin, "Found media bus format for %s: %d\n",
+-		vin->digital.subdev->name, vin->digital.code);
++		vin->digital->subdev->name, vin->digital->code);
+ 
+ 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
+ 	if (ret < 0) {
+@@ -103,7 +104,7 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
+ 
+ 	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
+ 	rvin_v4l2_remove(vin);
+-	vin->digital.subdev = NULL;
++	vin->digital->subdev = NULL;
  }
  
- int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
--			const struct dvb_device *template, void *priv, int type,
--			int demux_sink_pads)
-+			const struct dvb_device *template, void *priv,
-+			enum dvb_device_type type, int demux_sink_pads)
+ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+@@ -120,117 +121,70 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+ 	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
+ 	if (ret < 0)
+ 		return ret;
+-	vin->digital.source_pad = ret;
++	vin->digital->source_pad = ret;
+ 
+ 	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
+-	vin->digital.sink_pad = ret < 0 ? 0 : ret;
++	vin->digital->sink_pad = ret < 0 ? 0 : ret;
+ 
+-	vin->digital.subdev = subdev;
++	vin->digital->subdev = subdev;
+ 
+ 	vin_dbg(vin, "bound subdev %s source pad: %u sink pad: %u\n",
+-		subdev->name, vin->digital.source_pad,
+-		vin->digital.sink_pad);
++		subdev->name, vin->digital->source_pad,
++		vin->digital->sink_pad);
+ 
+ 	return 0;
+ }
+ 
+-static int rvin_digitial_parse_v4l2(struct rvin_dev *vin,
+-				    struct device_node *ep,
+-				    struct v4l2_mbus_config *mbus_cfg)
++static int rvin_digital_parse_v4l2(struct device *dev,
++				   struct v4l2_fwnode_endpoint *vep,
++				   struct v4l2_async_subdev *asd)
  {
- 	struct dvb_device *dvbdev;
- 	struct file_operations *dvbdevfops;
-diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-index 49189392cf3b..53058da83873 100644
---- a/drivers/media/dvb-core/dvbdev.h
-+++ b/drivers/media/dvb-core/dvbdev.h
-@@ -35,15 +35,37 @@
+-	struct v4l2_fwnode_endpoint v4l2_ep;
+-	int ret;
++	struct rvin_dev *vin = dev_get_drvdata(dev);
++	struct rvin_graph_entity *rvge =
++		container_of(asd, struct rvin_graph_entity, asd);
  
- #define DVB_UNSET (-1)
+-	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
+-	if (ret) {
+-		vin_err(vin, "Could not parse v4l2 endpoint\n");
+-		return -EINVAL;
+-	}
++	if (vep->base.port || vep->base.id)
++		return -ENOTCONN;
  
--#define DVB_DEVICE_VIDEO      0
--#define DVB_DEVICE_AUDIO      1
--#define DVB_DEVICE_SEC        2
--#define DVB_DEVICE_FRONTEND   3
--#define DVB_DEVICE_DEMUX      4
--#define DVB_DEVICE_DVR        5
--#define DVB_DEVICE_CA         6
--#define DVB_DEVICE_NET        7
--#define DVB_DEVICE_OSD        8
-+/* List of DVB device types */
+-	mbus_cfg->type = v4l2_ep.bus_type;
++	rvge->mbus_cfg.type = vep->bus_type;
+ 
+-	switch (mbus_cfg->type) {
++	switch (rvge->mbus_cfg.type) {
+ 	case V4L2_MBUS_PARALLEL:
+ 		vin_dbg(vin, "Found PARALLEL media bus\n");
+-		mbus_cfg->flags = v4l2_ep.bus.parallel.flags;
++		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
+ 		break;
+ 	case V4L2_MBUS_BT656:
+ 		vin_dbg(vin, "Found BT656 media bus\n");
+-		mbus_cfg->flags = 0;
++		rvge->mbus_cfg.flags = 0;
+ 		break;
+ 	default:
+ 		vin_err(vin, "Unknown media bus type\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	return 0;
+-}
+-
+-static int rvin_digital_graph_parse(struct rvin_dev *vin)
+-{
+-	struct device_node *ep, *np;
+-	int ret;
+-
+-	vin->digital.asd.match.fwnode.fwnode = NULL;
+-	vin->digital.subdev = NULL;
+-
+-	/*
+-	 * Port 0 id 0 is local digital input, try to get it.
+-	 * Not all instances can or will have this, that is OK
+-	 */
+-	ep = of_graph_get_endpoint_by_regs(vin->dev->of_node, 0, 0);
+-	if (!ep)
+-		return 0;
+-
+-	np = of_graph_get_remote_port_parent(ep);
+-	if (!np) {
+-		vin_err(vin, "No remote parent for digital input\n");
+-		of_node_put(ep);
+-		return -EINVAL;
+-	}
+-	of_node_put(np);
+-
+-	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->digital.mbus_cfg);
+-	of_node_put(ep);
+-	if (ret)
+-		return ret;
+-
+-	vin->digital.asd.match.fwnode.fwnode = of_fwnode_handle(np);
+-	vin->digital.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
++	vin->digital = rvge;
+ 
+ 	return 0;
+ }
+ 
+ static int rvin_digital_graph_init(struct rvin_dev *vin)
+ {
+-	struct v4l2_async_subdev **subdevs = NULL;
+ 	int ret;
+ 
+-	ret = rvin_digital_graph_parse(vin);
++	ret = v4l2_async_notifier_parse_fwnode_endpoints(
++		vin->dev, &vin->notifier,
++		sizeof(struct rvin_graph_entity), rvin_digital_parse_v4l2);
+ 	if (ret)
+ 		return ret;
+ 
+-	if (!vin->digital.asd.match.fwnode.fwnode) {
+-		vin_dbg(vin, "No digital subdevice found\n");
+-		return -ENODEV;
+-	}
+-
+-	/* Register the subdevices notifier. */
+-	subdevs = devm_kzalloc(vin->dev, sizeof(*subdevs), GFP_KERNEL);
+-	if (subdevs == NULL)
+-		return -ENOMEM;
+-
+-	subdevs[0] = &vin->digital.asd;
+-
+-	vin_dbg(vin, "Found digital subdevice %pOF\n",
+-		to_of_node(subdevs[0]->match.fwnode.fwnode));
++	if (vin->digital)
++		vin_dbg(vin, "Found digital subdevice %pOF\n",
++			to_of_node(
++				vin->digital->asd.match.fwnode.fwnode));
+ 
+-	vin->notifier.num_subdevs = 1;
+-	vin->notifier.subdevs = subdevs;
+ 	vin->notifier.bound = rvin_digital_notify_bound;
+ 	vin->notifier.unbind = rvin_digital_notify_unbind;
+ 	vin->notifier.complete = rvin_digital_notify_complete;
+-
+ 	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
+ 	if (ret < 0) {
+ 		vin_err(vin, "Notifier registration failed\n");
+@@ -290,6 +244,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
++	platform_set_drvdata(pdev, vin);
 +
-+/**
-+ * enum dvb_device_type - type of the Digital TV device
-+ *
-+ * @DVB_DEVICE_SEC:		Digital TV standalone Common Interface (CI)
-+ * @DVB_DEVICE_FRONTEND:	Digital TV frontend.
-+ * @DVB_DEVICE_DEMUX:		Digital TV demux.
-+ * @DVB_DEVICE_DVR:		Digital TV digital video record (DVR).
-+ * @DVB_DEVICE_CA:		Digital TV Conditional Access (CA).
-+ * @DVB_DEVICE_NET:		Digital TV network.
-+ *
-+ * @DVB_DEVICE_VIDEO:		Digital TV video decoder.
-+ *				Deprecated. Used only on av7110-av.
-+ * @DVB_DEVICE_AUDIO:		Digital TV audio decoder.
-+ *				Deprecated. Used only on av7110-av.
-+ * @DVB_DEVICE_OSD:		Digital TV On Screen Display (OSD).
-+ *				Deprecated. Used only on av7110.
-+ */
-+enum dvb_device_type {
-+	DVB_DEVICE_SEC,
-+	DVB_DEVICE_FRONTEND,
-+	DVB_DEVICE_DEMUX,
-+	DVB_DEVICE_DVR,
-+	DVB_DEVICE_CA,
-+	DVB_DEVICE_NET,
-+
-+	DVB_DEVICE_VIDEO,
-+	DVB_DEVICE_AUDIO,
-+	DVB_DEVICE_OSD,
-+};
+ 	ret = rvin_digital_graph_init(vin);
+ 	if (ret < 0)
+ 		goto error;
+@@ -297,11 +253,10 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	pm_suspend_ignore_children(&pdev->dev, true);
+ 	pm_runtime_enable(&pdev->dev);
  
- #define DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr) \
- 	static short adapter_nr[] = \
-@@ -104,8 +126,7 @@ struct dvb_adapter {
-  * @list_head:	List head with all DVB devices
-  * @fops:	pointer to struct file_operations
-  * @adapter:	pointer to the adapter that holds this device node
-- * @type:	type of the device: DVB_DEVICE_SEC, DVB_DEVICE_FRONTEND,
-- *		DVB_DEVICE_DEMUX, DVB_DEVICE_DVR, DVB_DEVICE_CA, DVB_DEVICE_NET
-+ * @type:	type of the device, as defined by &enum dvb_device_type.
-  * @minor:	devnode minor number. Major number is always DVB_MAJOR.
-  * @id:		device ID number, inside the adapter
-  * @readers:	Initialized by the caller. Each call to open() in Read Only mode
-@@ -135,7 +156,7 @@ struct dvb_device {
- 	struct list_head list_head;
- 	const struct file_operations *fops;
- 	struct dvb_adapter *adapter;
--	int type;
-+	enum dvb_device_type type;
- 	int minor;
- 	u32 id;
+-	platform_set_drvdata(pdev, vin);
+-
+ 	return 0;
+ error:
+ 	rvin_dma_remove(vin);
++	v4l2_async_notifier_release(&vin->notifier);
  
-@@ -194,9 +215,7 @@ int dvb_unregister_adapter(struct dvb_adapter *adap);
-  *		stored
-  * @template:	Template used to create &pdvbdev;
-  * @priv:	private data
-- * @type:	type of the device: %DVB_DEVICE_SEC, %DVB_DEVICE_FRONTEND,
-- *		%DVB_DEVICE_DEMUX, %DVB_DEVICE_DVR, %DVB_DEVICE_CA,
-- *		%DVB_DEVICE_NET
-+ * @type:	type of the device, as defined by &enum dvb_device_type.
-  * @demux_sink_pads: Number of demux outputs, to be used to create the TS
-  *		outputs via the Media Controller.
-  */
-@@ -204,7 +223,7 @@ int dvb_register_device(struct dvb_adapter *adap,
- 			struct dvb_device **pdvbdev,
- 			const struct dvb_device *template,
- 			void *priv,
--			int type,
-+			enum dvb_device_type type,
- 			int demux_sink_pads);
+ 	return ret;
+ }
+@@ -313,6 +268,7 @@ static int rcar_vin_remove(struct platform_device *pdev)
+ 	pm_runtime_disable(&pdev->dev);
  
- /**
+ 	v4l2_async_notifier_unregister(&vin->notifier);
++	v4l2_async_notifier_release(&vin->notifier);
+ 
+ 	rvin_dma_remove(vin);
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index b136844499f6..23fdff7a7370 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -183,7 +183,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	/*
+ 	 * Input interface
+ 	 */
+-	switch (vin->digital.code) {
++	switch (vin->digital->code) {
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 		/* BT.601/BT.1358 16bit YCbCr422 */
+ 		vnmc |= VNMC_INF_YUV16;
+@@ -191,7 +191,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+-		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -200,7 +200,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+-		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -212,11 +212,11 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+ 
+ 	/* Hsync Signal Polarity Select */
+-	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
++	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_HPS;
+ 
+ 	/* Vsync Signal Polarity Select */
+-	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
++	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_VPS;
+ 
+ 	/*
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index dd37ea811680..b479b882da12 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -111,7 +111,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
+ 	struct v4l2_mbus_framefmt *mf = &fmt.format;
+ 	int ret;
+ 
+-	fmt.pad = vin->digital.source_pad;
++	fmt.pad = vin->digital->source_pad;
+ 
+ 	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
+ 	if (ret)
+@@ -172,13 +172,13 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 
+ 	sd = vin_to_source(vin);
+ 
+-	v4l2_fill_mbus_format(&format.format, pix, vin->digital.code);
++	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
+ 
+ 	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
+ 	if (pad_cfg == NULL)
+ 		return -ENOMEM;
+ 
+-	format.pad = vin->digital.source_pad;
++	format.pad = vin->digital->source_pad;
+ 
+ 	field = pix->field;
+ 
+@@ -555,7 +555,7 @@ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
+ 	if (timings->pad)
+ 		return -EINVAL;
+ 
+-	timings->pad = vin->digital.sink_pad;
++	timings->pad = vin->digital->sink_pad;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
+ 
+@@ -607,7 +607,7 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
+ 	if (cap->pad)
+ 		return -EINVAL;
+ 
+-	cap->pad = vin->digital.sink_pad;
++	cap->pad = vin->digital->sink_pad;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
+ 
+@@ -625,7 +625,7 @@ static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+ 	if (edid->pad)
+ 		return -EINVAL;
+ 
+-	edid->pad = vin->digital.sink_pad;
++	edid->pad = vin->digital->sink_pad;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, get_edid, edid);
+ 
+@@ -643,7 +643,7 @@ static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+ 	if (edid->pad)
+ 		return -EINVAL;
+ 
+-	edid->pad = vin->digital.sink_pad;
++	edid->pad = vin->digital->sink_pad;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, set_edid, edid);
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 9bfb5a7c4dc4..5382078143fb 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -126,7 +126,7 @@ struct rvin_dev {
+ 	struct v4l2_device v4l2_dev;
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	struct v4l2_async_notifier notifier;
+-	struct rvin_graph_entity digital;
++	struct rvin_graph_entity *digital;
+ 
+ 	struct mutex lock;
+ 	struct vb2_queue queue;
+@@ -145,7 +145,7 @@ struct rvin_dev {
+ 	struct v4l2_rect compose;
+ };
+ 
+-#define vin_to_source(vin)		vin->digital.subdev
++#define vin_to_source(vin)		((vin)->digital->subdev)
+ 
+ /* Debug */
+ #define vin_dbg(d, fmt, arg...)		dev_dbg(d->dev, fmt, ##arg)
 -- 
-2.13.5
+2.11.0
