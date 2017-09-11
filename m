@@ -1,57 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa1.microchip.iphmx.com ([68.232.147.91]:58794 "EHLO
-        esa1.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752747AbdIFA6t (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Sep 2017 20:58:49 -0400
-Subject: Re: [PATCH 0/6] [media] Atmel: Adjustments for seven function
- implementations
-To: SF Markus Elfring <elfring@users.sourceforge.net>,
-        <linux-media@vger.kernel.org>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Songjun Wu <songjun.wu@microchip.com>
-CC: LKML <linux-kernel@vger.kernel.org>,
-        <kernel-janitors@vger.kernel.org>
-References: <88d0739c-fdc1-9d7d-fe53-b7c2eeed1849@users.sourceforge.net>
-From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
-Message-ID: <30c46f61-5c4f-9f75-e8b5-fab77fe1e11f@Microchip.com>
-Date: Wed, 6 Sep 2017 08:58:26 +0800
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:40700 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751038AbdIKLBy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Sep 2017 07:01:54 -0400
+Subject: Re: [PATCH v3 01/15] [media] v4l: Document explicit synchronization
+ behaviour
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+References: <20170907184226.27482-1-gustavo@padovan.org>
+ <20170907184226.27482-2-gustavo@padovan.org>
+ <22b8926c-4a44-0f22-0717-c36d64003272@xs4all.nl>
+Message-ID: <6bb8df91-4cd2-2ca5-dc4b-aea5ea14e7b1@xs4all.nl>
+Date: Mon, 11 Sep 2017 13:01:49 +0200
 MIME-Version: 1.0
-In-Reply-To: <88d0739c-fdc1-9d7d-fe53-b7c2eeed1849@users.sourceforge.net>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <22b8926c-4a44-0f22-0717-c36d64003272@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 09/11/2017 12:50 PM, Hans Verkuil wrote:
+> On 09/07/2017 08:42 PM, Gustavo Padovan wrote:
+>> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+>>
+>> Add section to VIDIOC_QBUF about it
+>>
+>> v2:
+>> 	- mention that fences are files (Hans)
+>> 	- rework for the new API
+>>
+>> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+>> ---
+>>  Documentation/media/uapi/v4l/vidioc-qbuf.rst | 31 ++++++++++++++++++++++++++++
+>>  1 file changed, 31 insertions(+)
+>>
+>> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+>> index 1f3612637200..fae0b1431672 100644
+>> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+>> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+>> @@ -117,6 +117,37 @@ immediately with an ``EAGAIN`` error code when no buffer is available.
+>>  The struct :c:type:`v4l2_buffer` structure is specified in
+>>  :ref:`buffer`.
+>>  
+>> +Explicit Synchronization
+>> +------------------------
+>> +
+>> +Explicit Synchronization allows us to control the synchronization of
+>> +shared buffers from userspace by passing fences to the kernel and/or
+>> +receiving them from it. Fences passed to the kernel are named in-fences and
+>> +the kernel should wait them to signal before using the buffer, i.e., queueing
+> 
+> wait them -> wait on them
+> 
+> (do you wait 'on' a fence or 'for' a fence? I think it's 'on' but I'm not 100% sure)
+> 
+>> +it to the driver. On the other side, the kernel can create out-fences for the
+>> +buffers it queues to the drivers, out-fences signal when the driver is
+> 
+> Start a new sentence here: ...drivers. Out-fences...
+> 
+>> +finished with buffer, that is the buffer is ready. The fence are represented
+> 
+> s/that is/i.e/
+> 
+> s/The fence/The fences/
+> 
+>> +by file and passed as file descriptor to userspace.
+> 
+> s/by file/as a file/
+> s/as file/as a file/
+> 
+>> +
+>> +The in-fences are communicated to the kernel at the ``VIDIOC_QBUF`` ioctl
+>> +using the ``V4L2_BUF_FLAG_IN_FENCE`` buffer
+>> +flags and the `fence_fd` field. If an in-fence needs to be passed to the kernel,
+>> +`fence_fd` should be set to the fence file descriptor number and the
+>> +``V4L2_BUF_FLAG_IN_FENCE`` should be set as well. Failure to set both will
+> 
+> s/Failure to set both/Setting one but not the other/
+> 
+>> +cause ``VIDIOC_QBUF`` to return with error.
+>> +
+>> +To get a out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE`` flag should
+>> +be set to notify it that the next queued buffer should have a fence attached to
+>> +it. That means the out-fence may not be associated with the buffer in the
+>> +current ``VIDIOC_QBUF`` ioctl call because the ordering in which videobuf2 core
+>> +queues the buffers to the drivers can't be guaranteed. To become aware of the
+>> +of the next queued buffer and the out-fence attached to it the
+>> +``V4L2_EVENT_BUF_QUEUED`` event should be used. It will trigger an event
+>> +for every buffer queued to the V4L2 driver.
+> 
+> This makes no sense.
+> 
+> Setting this flag means IMHO that when *this* buffer is queued up to the driver,
+> then it should send the BUF_QUEUED event with an out fence.
+> 
+> I.e. it signals that userspace wants to have the out-fence. The requirement w.r.t.
+> ordering is that the BUF_QUEUED events have to be in order, but that is something
+> that the driver can ensure in the case it is doing internal re-ordering.
+> 
+> This requirement is something that needs to be documented here, BTW.
+> 
+> Anyway, the flag shouldn't refer to some 'next buffer', since that's very confusing.
 
+Just ignore this comment. I assume v4 will implement it like this.
 
-On 2017/9/5 4:04, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Mon, 4 Sep 2017 21:44:55 +0200
->
-> A few update suggestions were taken into account
-> from static source code analysis.
-Thank you for your patches.
+Regards,
 
-You can add my Acked-by for the patch series.
+	Hans
 
-Acked-by: Wenyou Yang <wenyou.yang@microchip.com>
-
->
-> Markus Elfring (6):
->    Delete an error message for a failed memory allocation in isc_formats_init()
->    Improve a size determination in isc_formats_init()
->    Adjust three checks for null pointers
->    Delete an error message for a failed memory allocation in two functions
->    Improve three size determinations
->    Adjust a null pointer check in three functions
->
->   drivers/media/platform/atmel/atmel-isc.c | 12 +++++-------
->   drivers/media/platform/atmel/atmel-isi.c | 20 ++++++++------------
->   2 files changed, 13 insertions(+), 19 deletions(-)
->
-
-Best Regards,
-Wenyou Yang
+> 
+>> +
+>> +At streamoff the out-fences will either signal normally if the drivers wait
+> 
+> s/drivers wait/driver waits/
+> 
+>> +for the operations on the buffers to finish or signal with error if the
+>> +driver cancel the pending operations.
+> 
+> s/cancel/cancels/
+> 
+> Thinking with my evil hat on:
+> 
+> What happens if the application dequeues the buffer (VIDIOC_DQBUF) before
+> dequeuing the BUF_QUEUED event? Or if the application doesn't call VIDIOC_DQEVENT
+> at all? Should any pending BUF_QUEUED event with an out fence be removed from the
+> event queue if the application calls DQBUF on the corresponding buffer?
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>>  
+>>  Return Value
+>>  ============
+>>
+> 
