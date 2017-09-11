@@ -1,106 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55731
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S969481AbdIZR71 (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:58461 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751005AbdIKJrQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 13:59:27 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        linux-kernel@vger.kernel.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: [PATCH 05/10] docs: kernel-doc.rst: improve structs chapter
-Date: Tue, 26 Sep 2017 14:59:15 -0300
-Message-Id: <f802564efce655a2c5b46fb71bb3886c6f95d615.1506448061.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
-References: <cover.1506448061.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
-References: <cover.1506448061.git.mchehab@s-opensource.com>
+        Mon, 11 Sep 2017 05:47:16 -0400
+Subject: Re: [PATCH v10 19/24] v4l: fwnode: Add convenience function for
+ parsing common external refs
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+ <20170911080008.21208-20-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c57c3f6b-aeb9-dc00-645b-0da2edad77b0@xs4all.nl>
+Date: Mon, 11 Sep 2017 11:47:11 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170911080008.21208-20-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is a mess on this chapter: it suggests that even
-enums and unions should be documented with "struct". That's
-not the way it should be ;-)
+On 09/11/2017 10:00 AM, Sakari Ailus wrote:
+> Add v4l2_fwnode_parse_reference_sensor_common for parsing common
+> sensor properties that refer to adjacent devices such as flash or lens
+> driver chips.
+> 
+> As this is an association only, there's little a regular driver needs to
+> know about these devices as such.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-fwnode.c | 35 +++++++++++++++++++++++++++++++++++
+>  include/media/v4l2-fwnode.h           | 13 +++++++++++++
+>  2 files changed, 48 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> index 56eee5bbd3b5..b9e60a0e8f86 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -589,6 +589,41 @@ static int v4l2_fwnode_reference_parse_int_props(
+>  	return ret;
+>  }
+>  
+> +int v4l2_fwnode_reference_parse_sensor_common(
+> +	struct device *dev, struct v4l2_async_notifier *notifier)
+> +{
+> +	static const char *led_props[] = { "led" };
+> +	static const struct {
+> +		const char *name;
+> +		const char **props;
+> +		unsigned int nprops;
+> +	} props[] = {
+> +		{ "flash-leds", led_props, ARRAY_SIZE(led_props) },
+> +		{ "lens-focus", NULL, 0 },
+> +	};
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(props); i++) {
+> +		int ret;
+> +
+> +		if (props[i].props && is_acpi_node(dev_fwnode(dev)))
+> +			ret = v4l2_fwnode_reference_parse_int_props(
+> +				dev, notifier, props[i].name,
+> +				props[i].props, props[i].nprops);
+> +		else
+> +			ret = v4l2_fwnode_reference_parse(
+> +				dev, notifier, props[i].name);
+> +		if (ret) {
+> +			dev_warn(dev, "parsing property \"%s\" failed (%d)\n",
+> +				 props[i].name, ret);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse_sensor_common);
+> +
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+>  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+> index 3819a73c3c8a..bcec1ce101dc 100644
+> --- a/include/media/v4l2-fwnode.h
+> +++ b/include/media/v4l2-fwnode.h
+> @@ -257,4 +257,17 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
+>  			      struct v4l2_fwnode_endpoint *vep,
+>  			      struct v4l2_async_subdev *asd));
+>  
+> +/**
+> + * v4l2_fwnode_reference_parse_sensor_common - parse common references on
+> + *					       sensors for async sub-devices
+> + * @dev: the device node the properties of which are parsed for references
+> + * @notifier: the async notifier where the async subdevs will be added
+> + *
 
-Fix it and move it to happen earlier.
+I think you should add a note that if this function returns 0 the
+caller should remember to call v4l2_async_notifier_release. That is not
+immediately obvious.
 
+Regards,
 
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+	Hans
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/doc-guide/kernel-doc.rst | 48 +++++++++++++++++-----------------
- 1 file changed, 24 insertions(+), 24 deletions(-)
-
-diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
-index 9b69dfe928d8..68cb1b496c73 100644
---- a/Documentation/doc-guide/kernel-doc.rst
-+++ b/Documentation/doc-guide/kernel-doc.rst
-@@ -258,6 +258,30 @@ named ``Return``.
-      as a new section heading, with probably won't produce the desired
-      effect.
- 
-+Structure, union, and enumeration documentation
-+-----------------------------------------------
-+
-+The general format of a struct, union, and enum kernel-doc comment is::
-+
-+  /**
-+   * struct struct_name - Brief description.
-+   * @argument: Description of member member_name.
-+   *
-+   * Description of the structure.
-+   */
-+
-+On the above, ``struct`` is used to mean structs. You can also use ``union``
-+and ``enum``  to describe unions and enums. ``argument`` is used
-+to mean struct and union member names as well as enumerations in an enum.
-+
-+The brief description following the structure name may span multiple lines, and
-+ends with a member description, a blank comment line, or the end of the
-+comment block.
-+
-+The kernel-doc data structure comments describe each member of the structure,
-+in order, with the member descriptions.
-+
-+
- 
- Highlights and cross-references
- -------------------------------
-@@ -331,30 +355,6 @@ cross-references.
- For further details, please refer to the `Sphinx C Domain`_ documentation.
- 
- 
--Structure, union, and enumeration documentation
-------------------------------------------------
--
--The general format of a struct, union, and enum kernel-doc comment is::
--
--  /**
--   * struct struct_name - Brief description.
--   * @member_name: Description of member member_name.
--   *
--   * Description of the structure.
--   */
--
--Below, "struct" is used to mean structs, unions and enums, and "member" is used
--to mean struct and union members as well as enumerations in an enum.
--
--The brief description following the structure name may span multiple lines, and
--ends with a ``@member:`` description, a blank comment line, or the end of the
--comment block.
--
--The kernel-doc data structure comments describe each member of the structure, in
--order, with the ``@member:`` descriptions. The ``@member:`` descriptions must
--begin on the very next line following the opening brief function description
--line, with no intervening blank comment lines. The ``@member:`` descriptions may
--span multiple lines. The continuation lines may contain indentation.
- 
- In-line member documentation comments
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
--- 
-2.13.5
+> + * Return: 0 on success
+> + *	   -ENOMEM if memory allocation failed
+> + *	   -EINVAL if property parsing failed
+> + */
+> +int v4l2_fwnode_reference_parse_sensor_common(
+> +	struct device *dev, struct v4l2_async_notifier *notifier);
+> +
+>  #endif /* _V4L2_FWNODE_H */
+> 
