@@ -1,69 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f182.google.com ([209.85.192.182]:53812 "EHLO
-        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S968771AbdIZMpX (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48924 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751018AbdIKIAP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 08:45:23 -0400
-Received: by mail-pf0-f182.google.com with SMTP id x78so5475062pff.10
-        for <linux-media@vger.kernel.org>; Tue, 26 Sep 2017 05:45:23 -0700 (PDT)
-Date: Tue, 26 Sep 2017 22:45:11 +1000
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Eyal Lebedinsky <eyal@eyal.emu.id.au>
-Cc: list linux-media <linux-media@vger.kernel.org>
-Subject: Re: [progress]: dvb_usb_rtl28xxu not tuning "Leadtek Winfast DTV2000
- DS PLUS TV"
-Message-ID: <20170926124508.GA17883@ubuntu.windy>
-References: <00ad85dd-2fe3-5f15-6c0c-47fcf580f541@eyal.emu.id.au>
- <678bf4fa-5849-1fb2-adf1-a07458767d9e@eyal.emu.id.au>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <678bf4fa-5849-1fb2-adf1-a07458767d9e@eyal.emu.id.au>
+        Mon, 11 Sep 2017 04:00:15 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v10 09/24] omap3isp: Print the name of the entity where no source pads could be found
+Date: Mon, 11 Sep 2017 10:59:53 +0300
+Message-Id: <20170911080008.21208-10-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 26, 2017 at 02:32:26PM +1000, Eyal Lebedinsky wrote:
-> 
-> While the problem persists, I managed to find a way around it for now.
-> 
-> I changed the antenna input.
-> 
-> Originally I used a powered splitter to feed all the tuners, and it worked
-> well with the out-of-kernel driver. This driver does not build or work with
-> a more modern kernel so I shifted to using dvb_usb_rtl28xxu which fails to
-> tune.
-> 
-> The new wiring splits (passive) the antenna in two, feeds one side directly
-> to the two "Leadtek Winfast DTV2000 DS PLUS TV" cards (through another passive
-> 2-way) and the other side goes to the old powered splitter that feeds a few
-> USB tuners.
-> 
-> Now all tuners are happy. It seems that the "Leadtek Winfast DTV2000 DS PLUS TV"
-> cannot handle the amplified input while the USB tuners require it.
-> 
-> I hope that there is a way to set a profile in dvb_usb_rtl28xxu to attenuate
-> the input to an acceptable level thus unravelling the antenna cables rat-nest.
+If no source pads are found in an entity, print the name of the entity.
 
-Glad you had some success.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+---
+ drivers/media/platform/omap3isp/isp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-I did some more rummaging in v4l-utils. It may help you to know about
-dvb-fe-tool, which gives information about the frontend device
-(eg /dev/dvb/adapter0/frontend0). In particular you can monitor the
-s/n as you make changes:
-
- # dvb-fe-tool --femon -a 0  #here doing adapter0/frontend0
-
-It displays info about the signal quality and the carrier/noise (C/N) ratio,
-which might help any investigation of where the driver fails to cope as
-you change what you are feeding it.
-
-I noticed your dvbv5-scan showed C/N around 20dB but the manpage shows
-'good signal' with C/N of 36dB which suggests the device should be
-expected to deal with higher signal levels.
-
-Once you figured out the signal level, did a dvbv5-scan work with no
-errors? In the example you showed I saw the channels getting 'lock'
-but then some kind of error occurred.
-
-Regards
-Vince
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 3b1a9cd0e591..9a694924e46e 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -1669,8 +1669,8 @@ static int isp_link_entity(
+ 			break;
+ 	}
+ 	if (i == entity->num_pads) {
+-		dev_err(isp->dev, "%s: no source pad in external entity\n",
+-			__func__);
++		dev_err(isp->dev, "%s: no source pad in external entity %s\n",
++			__func__, entity->name);
+ 		return -EINVAL;
+ 	}
+ 
+-- 
+2.11.0
