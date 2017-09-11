@@ -1,197 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:35177 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967292AbdIZIUd (ORCPT
+Received: from mail.fireflyinternet.com ([109.228.58.192]:54320 "EHLO
+        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751105AbdIKI7m (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 04:20:33 -0400
-Subject: Re: [PATCH v14 14/28] v4l: async: Prepare for async sub-device
- notifiers
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
- <20170925222540.371-15-sakari.ailus@linux.intel.com>
- <ba80e242-a3c2-39af-01cd-6aa54649fb93@xs4all.nl>
- <20170926081700.hqm6b4abpqvszrro@paasikivi.fi.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b2bf3d67-ee85-c0b5-a9c7-2492652eea4c@xs4all.nl>
-Date: Tue, 26 Sep 2017 10:20:31 +0200
+        Mon, 11 Sep 2017 04:59:42 -0400
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-In-Reply-To: <20170926081700.hqm6b4abpqvszrro@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+From: Chris Wilson <chris@chris-wilson.co.uk>
+To: =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        daniel.vetter@ffwll.ch, sumit.semwal@linaro.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org
+References: <1504531653-13779-1-git-send-email-deathsimple@vodafone.de>
+ <150453243791.23157.6907537389223890207@mail.alporthouse.com>
+ <67fe7e05-7743-40c8-558b-41b08eb986e9@amd.com>
+In-Reply-To: <67fe7e05-7743-40c8-558b-41b08eb986e9@amd.com>
+Message-ID: <150512037119.16759.472484663447331384@mail.alporthouse.com>
+Subject: Re: [PATCH] dma-fence: fix dma_fence_get_rcu_safe
+Date: Mon, 11 Sep 2017 09:59:31 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/09/17 10:17, Sakari Ailus wrote:
-> Hi Hans,
+Quoting Christian König (2017-09-11 09:50:40)
+> Sorry for the delayed response, but your mail somehow ended up in the 
+> Spam folder.
 > 
-> On Tue, Sep 26, 2017 at 10:12:50AM +0200, Hans Verkuil wrote:
->> On 26/09/17 00:25, Sakari Ailus wrote:
->>> Refactor the V4L2 async framework a little in preparation for async
->>> sub-device notifiers.
->>
->> Perhaps extend this a bit to also state the reason for these changes?
+> Am 04.09.2017 um 15:40 schrieb Chris Wilson:
+> > Quoting Christian König (2017-09-04 14:27:33)
+> >> From: Christian König <christian.koenig@amd.com>
+> >>
+> >> The logic is buggy and unnecessary complex. When dma_fence_get_rcu() fails to
+> >> acquire a reference it doesn't necessary mean that there is no fence at all.
+> >>
+> >> It usually mean that the fence was replaced by a new one and in this situation
+> >> we certainly want to have the new one as result and *NOT* NULL.
+> > Which is not guaranteed by the code you wrote either.
+> >
+> > The point of the comment is that the mb is only inside the successful
+> > kref_atomic_inc_unless_zero, and that only after that mb do you know
+> > whether or not you have the current fence.
+> >
+> > You can argue that you want to replace the
+> >       if (!dma_fence_get_rcu())
+> >               return NULL
+> > with
+> >       if (!dma_fence_get_rcu()
+> >               continue;
+> > but it would be incorrect to say that by simply ignoring the
+> > post-condition check that you do have the right fence.
 > 
-> Well, the true reason is that Laurent felt the following patch was doing
-> too much, but most of the changes in it are actually tightly
-> interconnected.
+> You are completely missing the point here.
 > 
-> How about adding:
+> It is irrelevant if you have the current fence or not when you return. 
+> You can only guarantee that it is the current fence when you take a look 
+> and that is exactly what we want to avoid.
 > 
-> This avoids making some structural changes in the patch actually
-> implementing sub-device notifiers, making that patch easier to review.
+> So the existing code is complete nonsense. Instead what we need to 
+> guarantee is that we return *ANY* fence which we can grab a reference for.
 
-That will do.
-
-I preferred the original version, that way I could see WHY things were done,
-even though the patch was larger.
-
-Regards,
-
-	Hans
-
-> 
->>
->>>
->>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>
->> Anyway,
->>
->> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Thanks!
-> 
->>
->>> ---
->>>  drivers/media/v4l2-core/v4l2-async.c | 66 +++++++++++++++++++++++++-----------
->>>  1 file changed, 47 insertions(+), 19 deletions(-)
->>>
->>> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
->>> index 77b9f851bfa9..1d4132305243 100644
->>> --- a/drivers/media/v4l2-core/v4l2-async.c
->>> +++ b/drivers/media/v4l2-core/v4l2-async.c
->>> @@ -125,12 +125,13 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
->>>  }
->>>  
->>>  static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
->>> +				   struct v4l2_device *v4l2_dev,
->>>  				   struct v4l2_subdev *sd,
->>>  				   struct v4l2_async_subdev *asd)
->>>  {
->>>  	int ret;
->>>  
->>> -	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
->>> +	ret = v4l2_device_register_subdev(v4l2_dev, sd);
->>>  	if (ret < 0)
->>>  		return ret;
->>>  
->>> @@ -154,6 +155,31 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
->>>  	return 0;
->>>  }
->>>  
->>> +/* Test all async sub-devices in a notifier for a match. */
->>> +static int v4l2_async_notifier_try_all_subdevs(
->>> +	struct v4l2_async_notifier *notifier)
->>> +{
->>> +	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
->>> +	struct v4l2_subdev *sd, *tmp;
->>> +
->>> +	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
->>> +		struct v4l2_async_subdev *asd;
->>> +		int ret;
->>> +
->>> +		asd = v4l2_async_find_match(notifier, sd);
->>> +		if (!asd)
->>> +			continue;
->>> +
->>> +		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
->>> +		if (ret < 0) {
->>> +			mutex_unlock(&list_lock);
->>> +			return ret;
->>> +		}
->>> +	}
->>> +
->>> +	return 0;
->>> +}
->>> +
->>>  static void v4l2_async_cleanup(struct v4l2_subdev *sd)
->>>  {
->>>  	v4l2_device_unregister_subdev(sd);
->>> @@ -163,17 +189,15 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
->>>  	sd->dev = NULL;
->>>  }
->>>  
->>> -int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->>> -				 struct v4l2_async_notifier *notifier)
->>> +static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
->>>  {
->>> -	struct v4l2_subdev *sd, *tmp;
->>>  	struct v4l2_async_subdev *asd;
->>> +	int ret;
->>>  	int i;
->>>  
->>> -	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
->>> +	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
->>>  		return -EINVAL;
->>>  
->>> -	notifier->v4l2_dev = v4l2_dev;
->>>  	INIT_LIST_HEAD(&notifier->waiting);
->>>  	INIT_LIST_HEAD(&notifier->done);
->>>  
->>> @@ -206,18 +230,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->>>  
->>>  	mutex_lock(&list_lock);
->>>  
->>> -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
->>> -		int ret;
->>> -
->>> -		asd = v4l2_async_find_match(notifier, sd);
->>> -		if (!asd)
->>> -			continue;
->>> -
->>> -		ret = v4l2_async_match_notify(notifier, sd, asd);
->>> -		if (ret < 0) {
->>> -			mutex_unlock(&list_lock);
->>> -			return ret;
->>> -		}
->>> +	ret = v4l2_async_notifier_try_all_subdevs(notifier);
->>> +	if (ret) {
->>> +		mutex_unlock(&list_lock);
->>> +		return ret;
->>>  	}
->>>  
->>>  	/* Keep also completed notifiers on the list */
->>> @@ -227,6 +243,17 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->>>  
->>>  	return 0;
->>>  }
->>> +
->>> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->>> +				 struct v4l2_async_notifier *notifier)
->>> +{
->>> +	if (WARN_ON(!v4l2_dev))
->>> +		return -EINVAL;
->>> +
->>> +	notifier->v4l2_dev = v4l2_dev;
->>> +
->>> +	return __v4l2_async_notifier_register(notifier);
->>> +}
->>>  EXPORT_SYMBOL(v4l2_async_notifier_register);
->>>  
->>>  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->>> @@ -303,7 +330,8 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->>>  		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
->>>  								      sd);
->>>  		if (asd) {
->>> -			int ret = v4l2_async_match_notify(notifier, sd, asd);
->>> +			int ret = v4l2_async_match_notify(
->>> +				notifier, notifier->v4l2_dev, sd, asd);
->>>  			mutex_unlock(&list_lock);
->>>  			return ret;
->>>  		}
->>>
->>
-> 
+Not quite. We can grab a reference on a fence that was already freed and
+reused between the rcu_dereference() and dma_fence_get_rcu().
+-Chris
