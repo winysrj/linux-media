@@ -1,116 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55033 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751435AbdIMC0g (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:52263 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751286AbdILJjg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 22:26:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: kieran.bingham@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 3/8] v4l: vsp1: Convert display lists to use new fragment pool
-Date: Wed, 13 Sep 2017 05:26:37 +0300
-Message-ID: <2301221.HrvjfJSAbq@avalon>
-In-Reply-To: <1bc44302-c8e0-973c-b7b8-312e24fe27a6@ideasonboard.com>
-References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com> <1922275.UObh22kbi7@avalon> <1bc44302-c8e0-973c-b7b8-312e24fe27a6@ideasonboard.com>
+        Tue, 12 Sep 2017 05:39:36 -0400
+Subject: Re: [PATCH v11 11/24] v4l: async: Introduce helpers for calling async
+ ops callbacks
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+ <20170912084236.1154-12-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <a9e96a8c-25d2-109d-da22-a6771da6b68d@xs4all.nl>
+Date: Tue, 12 Sep 2017 11:39:32 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20170912084236.1154-12-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
-
-On Monday, 11 September 2017 23:27:39 EEST Kieran Bingham wrote:
-> On 17/08/17 13:13, Laurent Pinchart wrote:
-> > On Monday 14 Aug 2017 16:13:26 Kieran Bingham wrote:
-> >> Adapt the dl->body0 object to use an object from the fragment pool.
-> >> This greatly reduces the pressure on the TLB for IPMMU use cases, as
-> >> all of the lists use a single allocation for the main body.
-> >> 
-> >> The CLU and LUT objects pre-allocate a pool containing two bodies,
-> >> allowing a userspace update before the hardware has committed a previous
-> >> set of tables.
-> > 
-> > I think you'll need three bodies, one for the DL queued to the hardware,
-> > one for the pending DL and one for the new DL needed when you update the
-> > LUT/CLU. Given that the VSP test suite hasn't caught this problem, we
-> > also need a new test :-)
-> > 
-> >> Fragments are no longer 'freed' in interrupt context, but instead
-> >> released back to their respective pools.  This allows us to remove the
-> >> garbage collector in the DLM.
-> >> 
-> >> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> >> 
-> >> ---
-> >> 
-> >> v2:
-> >>  - Use dl->body0->max_entries to determine header offset, instead of the
-> >>    global constant VSP1_DL_NUM_ENTRIES which is incorrect.
-> >>  
-> >>  - squash updates for LUT, CLU, and fragment cleanup into single patch.
-> >>    (Not fully bisectable when separated)
-> >> 
-> >> ---
-> >> 
-> >>  drivers/media/platform/vsp1/vsp1_clu.c |  22 ++-
-> >>  drivers/media/platform/vsp1/vsp1_clu.h |   1 +-
-> >>  drivers/media/platform/vsp1/vsp1_dl.c  | 223 +++++---------------------
-> >>  drivers/media/platform/vsp1/vsp1_dl.h  |   3 +-
-> >>  drivers/media/platform/vsp1/vsp1_lut.c |  23 ++-
-> >>  drivers/media/platform/vsp1/vsp1_lut.h |   1 +-
-> >>  6 files changed, 90 insertions(+), 183 deletions(-)
-> > 
-> > This is a nice diffstat, but only if you add kerneldoc for the new
-> > functions introduced in patch 2/8, otherwise the overall documentation
-> > diffstat looks bad :-)
-
-[snip]
-
-> >> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
-> >> b/drivers/media/platform/vsp1/vsp1_dl.c index aab9dd6ec0eb..6ffdc3549283
-> >> 100644
-> >> --- a/drivers/media/platform/vsp1/vsp1_dl.c
-> >> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
-
-[snip]
-
-> >>  static void vsp1_dl_list_free(struct vsp1_dl_list *dl)
-> >>  {
-> >> 
-> >> -	vsp1_dl_body_cleanup(&dl->body0);
-> >> -	list_splice_init(&dl->fragments, &dl->dlm->gc_fragments);
-> >> +	vsp1_dl_fragment_put(dl->body0);
-> >> +	vsp1_dl_list_fragments_free(dl);
-> > 
-> > I wonder whether the second line is actually needed. vsp1_dl_list_free()
-> > is called from vsp1_dlm_destroy() for every entry in the dlm->free list. A
-> > DL can only be put in that list by vsp1_dlm_create() or
-> > __vsp1_dl_list_put(). The former creates lists with no fragment, while
-> > the latter calls vsp1_dl_list_fragments_free() already.
-> > 
-> > If you're not entirely sure you could add a WARN_ON(!list_empty(&dl-
-> > >fragments)) and run the test suite. A comment explaining why the
-> > fragments list should already be empty here would be useful too.
+On 09/12/17 10:42, Sakari Ailus wrote:
+> Add three helper functions to call async operations callbacks. Besides
+> simplifying callbacks, this allows async notifiers to have no ops set,
+> i.e. it can be left NULL.
 > 
-> You may be right here, but would you object to leaving it in ?
-> 
-> Isn't it correct to ensure that the list is completely cleaned up on
-> release?
-> 
-> Furthermore - I would anticipate that in the future - 'body0' could be
-> removed, (becoming a fragment) and thus this line would then be required.
-> 
-> ## /where 's/fragments/bodies/g' applies to the above text. ##
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-I'm fine with that for now.
+I'm sure I acked this already, but in case it was lost:
 
-> >> +
-> >> 
-> >>  	kfree(dl);
-> >>  }
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 49 ++++++++++++++++++++++++++----------
+>  include/media/v4l2-async.h           |  1 +
+>  2 files changed, 37 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index a2df85ea00f4..c34f93593b41 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -25,6 +25,34 @@
+>  #include <media/v4l2-fwnode.h>
+>  #include <media/v4l2-subdev.h>
+>  
+> +static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
+> +					  struct v4l2_subdev *subdev,
+> +					  struct v4l2_async_subdev *asd)
+> +{
+> +	if (!n->ops || !n->ops->bound)
+> +		return 0;
+> +
+> +	return n->ops->bound(n, subdev, asd);
+> +}
+> +
+> +static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier *n,
+> +					    struct v4l2_subdev *subdev,
+> +					    struct v4l2_async_subdev *asd)
+> +{
+> +	if (!n->ops || !n->ops->unbind)
+> +		return;
+> +
+> +	n->ops->unbind(n, subdev, asd);
+> +}
+> +
+> +static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
+> +{
+> +	if (!n->ops || !n->ops->complete)
+> +		return 0;
+> +
+> +	return n->ops->complete(n);
+> +}
+> +
+>  static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+>  {
+>  #if IS_ENABLED(CONFIG_I2C)
+> @@ -102,16 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+>  {
+>  	int ret;
+>  
+> -	if (notifier->ops->bound) {
+> -		ret = notifier->ops->bound(notifier, sd, asd);
+> -		if (ret < 0)
+> -			return ret;
+> -	}
+> +	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
+> +	if (ret < 0)
+> +		return ret;
+>  
+>  	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+>  	if (ret < 0) {
+> -		if (notifier->ops->unbind)
+> -			notifier->ops->unbind(notifier, sd, asd);
+> +		v4l2_async_notifier_call_unbind(notifier, sd, asd);
+>  		return ret;
+>  	}
+>  
+> @@ -123,8 +148,8 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+>  	/* Move from the global subdevice list to notifier's done */
+>  	list_move(&sd->async_list, &notifier->done);
+>  
+> -	if (list_empty(&notifier->waiting) && notifier->ops->complete)
+> -		return notifier->ops->complete(notifier);
+> +	if (list_empty(&notifier->waiting))
+> +		return v4l2_async_notifier_call_complete(notifier);
+>  
+>  	return 0;
+>  }
+> @@ -210,8 +235,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+>  		v4l2_async_cleanup(sd);
+>  
+> -		if (notifier->ops->unbind)
+> -			notifier->ops->unbind(notifier, sd, sd->asd);
+> +		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+>  	}
+>  
+>  	mutex_unlock(&list_lock);
+> @@ -300,8 +324,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+>  
+>  	v4l2_async_cleanup(sd);
+>  
+> -	if (notifier->ops->unbind)
+> -		notifier->ops->unbind(notifier, sd, sd->asd);
+> +	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+>  
+>  	mutex_unlock(&list_lock);
+>  }
+> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> index 3c48f8b66d12..3bc8a7c0d83f 100644
+> --- a/include/media/v4l2-async.h
+> +++ b/include/media/v4l2-async.h
+> @@ -164,4 +164,5 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd);
+>   * @sd: pointer to &struct v4l2_subdev
+>   */
+>  void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
+> +
+>  #endif
+> 
