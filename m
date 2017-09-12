@@ -1,234 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:58827 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933162AbdIYKre (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36606 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751470AbdILNmL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 06:47:34 -0400
-Subject: Re: [PATCH v6 24/25] rcar-vin: enable support for r8a7795
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
- <20170822232640.26147-25-niklas.soderlund+renesas@ragnatech.se>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <c69e22ea-f407-a34f-01db-0fe88c69c8c3@xs4all.nl>
-Date: Mon, 25 Sep 2017 12:47:31 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170822232640.26147-25-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+        Tue, 12 Sep 2017 09:42:11 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v12 19/26] v4l: fwnode: Add a helper function to obtain device / interger references
+Date: Tue, 12 Sep 2017 16:41:53 +0300
+Message-Id: <20170912134200.19556-20-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23/08/17 01:26, Niklas Söderlund wrote:
-> Add the SoC specific information for Renesas r8a7795.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
+the device's own fwnode, it will follow child fwnodes with the given
+property -- value pair and return the resulting fwnode.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 145 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 145 insertions(+)
 
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/platform/rcar-vin/Kconfig     |   2 +-
->  drivers/media/platform/rcar-vin/rcar-core.c | 145 ++++++++++++++++++++++++++++
->  2 files changed, 146 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
-> index af4c98b44d2e22cb..8fa7ee468c63afb9 100644
-> --- a/drivers/media/platform/rcar-vin/Kconfig
-> +++ b/drivers/media/platform/rcar-vin/Kconfig
-> @@ -6,7 +6,7 @@ config VIDEO_RCAR_VIN
->  	select V4L2_FWNODE
->  	---help---
->  	  Support for Renesas R-Car Video Input (VIN) driver.
-> -	  Supports R-Car Gen2 SoCs.
-> +	  Supports R-Car Gen2 and Gen3 SoCs.
->  
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called rcar-vin.
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index dec91e2f3ccdbd93..58d903ab9fb83faf 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -21,6 +21,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/slab.h>
-> +#include <linux/sys_soc.h>
->  
->  #include <media/v4l2-fwnode.h>
->  
-> @@ -987,7 +988,139 @@ static const struct rvin_info rcar_info_gen2 = {
->  	.max_height = 2048,
->  };
->  
-> +static const struct rvin_info rcar_info_r8a7795 = {
-> +	.chip = RCAR_GEN3,
-> +	.use_mc = true,
-> +	.max_width = 4096,
-> +	.max_height = 4096,
-> +
-> +	.num_chsels = 5,
-> +	.chsels = {
-> +		{
-> +			{ .csi = RVIN_CSI40, .chan = 0 },
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +			{ .csi = RVIN_CSI40, .chan = 1 },
-> +			{ .csi = RVIN_CSI40, .chan = 0 },
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +		}, {
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +			{ .csi = RVIN_CSI40, .chan = 1 },
-> +			{ .csi = RVIN_CSI40, .chan = 0 },
-> +			{ .csi = RVIN_CSI40, .chan = 1 },
-> +			{ .csi = RVIN_CSI20, .chan = 1 },
-> +		}, {
-> +			{ .csi = RVIN_CSI20, .chan = 1 },
-> +			{ .csi = RVIN_CSI40, .chan = 0 },
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +			{ .csi = RVIN_CSI40, .chan = 2 },
-> +			{ .csi = RVIN_CSI20, .chan = 2 },
-> +		}, {
-> +			{ .csi = RVIN_CSI40, .chan = 1 },
-> +			{ .csi = RVIN_CSI20, .chan = 1 },
-> +			{ .csi = RVIN_CSI20, .chan = 1 },
-> +			{ .csi = RVIN_CSI40, .chan = 3 },
-> +			{ .csi = RVIN_CSI20, .chan = 3 },
-> +		}, {
-> +			{ .csi = RVIN_CSI41, .chan = 0 },
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +			{ .csi = RVIN_CSI41, .chan = 1 },
-> +			{ .csi = RVIN_CSI41, .chan = 0 },
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +		}, {
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +			{ .csi = RVIN_CSI41, .chan = 1 },
-> +			{ .csi = RVIN_CSI41, .chan = 0 },
-> +			{ .csi = RVIN_CSI41, .chan = 1 },
-> +			{ .csi = RVIN_CSI20, .chan = 1 },
-> +		}, {
-> +			{ .csi = RVIN_CSI20, .chan = 1 },
-> +			{ .csi = RVIN_CSI41, .chan = 0 },
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +			{ .csi = RVIN_CSI41, .chan = 2 },
-> +			{ .csi = RVIN_CSI20, .chan = 2 },
-> +		}, {
-> +			{ .csi = RVIN_CSI41, .chan = 1 },
-> +			{ .csi = RVIN_CSI20, .chan = 1 },
-> +			{ .csi = RVIN_CSI20, .chan = 1 },
-> +			{ .csi = RVIN_CSI41, .chan = 3 },
-> +			{ .csi = RVIN_CSI20, .chan = 3 },
-> +		},
-> +	},
-> +};
-> +
-> +static const struct rvin_info rcar_info_r8a7795es1 = {
-> +	.chip = RCAR_GEN3,
-> +	.use_mc = true,
-> +	.max_width = 4096,
-> +	.max_height = 4096,
-> +
-> +	.num_chsels = 6,
-> +	.chsels = {
-> +		{
-> +			{ .csi = RVIN_CSI40, .chan = 0 },
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +			{ .csi = RVIN_CSI21, .chan = 0 },
-> +			{ .csi = RVIN_CSI40, .chan = 0 },
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +			{ .csi = RVIN_CSI21, .chan = 0 },
-> +		}, {
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +			{ .csi = RVIN_CSI21, .chan = 0 },
-> +			{ .csi = RVIN_CSI40, .chan = 0 },
-> +			{ .csi = RVIN_CSI40, .chan = 1 },
-> +			{ .csi = RVIN_CSI20, .chan = 1 },
-> +			{ .csi = RVIN_CSI21, .chan = 1 },
-> +		}, {
-> +			{ .csi = RVIN_CSI21, .chan = 0 },
-> +			{ .csi = RVIN_CSI40, .chan = 0 },
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +			{ .csi = RVIN_CSI40, .chan = 2 },
-> +			{ .csi = RVIN_CSI20, .chan = 2 },
-> +			{ .csi = RVIN_CSI21, .chan = 2 },
-> +		}, {
-> +			{ .csi = RVIN_CSI40, .chan = 1 },
-> +			{ .csi = RVIN_CSI20, .chan = 1 },
-> +			{ .csi = RVIN_CSI21, .chan = 1 },
-> +			{ .csi = RVIN_CSI40, .chan = 3 },
-> +			{ .csi = RVIN_CSI20, .chan = 3 },
-> +			{ .csi = RVIN_CSI21, .chan = 3 },
-> +		}, {
-> +			{ .csi = RVIN_CSI41, .chan = 0 },
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +			{ .csi = RVIN_CSI21, .chan = 0 },
-> +			{ .csi = RVIN_CSI41, .chan = 0 },
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +			{ .csi = RVIN_CSI21, .chan = 0 },
-> +		}, {
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +			{ .csi = RVIN_CSI21, .chan = 0 },
-> +			{ .csi = RVIN_CSI41, .chan = 0 },
-> +			{ .csi = RVIN_CSI41, .chan = 1 },
-> +			{ .csi = RVIN_CSI20, .chan = 1 },
-> +			{ .csi = RVIN_CSI21, .chan = 1 },
-> +		}, {
-> +			{ .csi = RVIN_CSI21, .chan = 0 },
-> +			{ .csi = RVIN_CSI41, .chan = 0 },
-> +			{ .csi = RVIN_CSI20, .chan = 0 },
-> +			{ .csi = RVIN_CSI41, .chan = 2 },
-> +			{ .csi = RVIN_CSI20, .chan = 2 },
-> +			{ .csi = RVIN_CSI21, .chan = 2 },
-> +		}, {
-> +			{ .csi = RVIN_CSI41, .chan = 1 },
-> +			{ .csi = RVIN_CSI20, .chan = 1 },
-> +			{ .csi = RVIN_CSI21, .chan = 1 },
-> +			{ .csi = RVIN_CSI41, .chan = 3 },
-> +			{ .csi = RVIN_CSI20, .chan = 3 },
-> +			{ .csi = RVIN_CSI21, .chan = 3 },
-> +		},
-> +	},
-> +};
-> +
->  static const struct of_device_id rvin_of_id_table[] = {
-> +	{
-> +		.compatible = "renesas,vin-r8a7795",
-> +		.data = &rcar_info_r8a7795,
-> +	},
->  	{
->  		.compatible = "renesas,vin-r8a7794",
->  		.data = &rcar_info_gen2,
-> @@ -1020,6 +1153,11 @@ static const struct of_device_id rvin_of_id_table[] = {
->  };
->  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
->  
-> +static const struct soc_device_attribute r8a7795es1[] = {
-> +	{ .soc_id = "r8a7795", .revision = "ES1.*" },
-> +	{ /* sentinel */ }
-> +};
-> +
->  static int rcar_vin_probe(struct platform_device *pdev)
->  {
->  	const struct of_device_id *match;
-> @@ -1038,6 +1176,13 @@ static int rcar_vin_probe(struct platform_device *pdev)
->  	vin->dev = &pdev->dev;
->  	vin->info = match->data;
->  
-> +	/*
-> +	 * Special care is needed on r8a7795 ES1.x since it
-> +	 * uses different routing then r8a7795 ES2.0.
-> +	 */
-> +	if (vin->info == &rcar_info_r8a7795 && soc_device_match(r8a7795es1))
-> +		vin->info = &rcar_info_r8a7795es1;
-> +
->  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	if (mem == NULL)
->  		return -EINVAL;
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index a32473f95be1..a07599a8f647 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -567,6 +567,151 @@ static int v4l2_fwnode_reference_parse(
+ 	return ret;
+ }
+ 
++/*
++ * v4l2_fwnode_reference_get_int_prop - parse a reference with integer
++ *					arguments
++ * @dev: struct device pointer
++ * @notifier: notifier for @dev
++ * @prop: the name of the property
++ * @props: the array of integer property names
++ * @nprops: the number of integer properties
++ *
++ * Find fwnodes referred to by a property @prop, then under that iteratively
++ * follow each child node which has a property the value matches the integer
++ * argument at an index.
++ *
++ * Return: 0 on success
++ *	   -ENOENT if no entries (or the property itself) were found
++ *	   -EINVAL if property parsing otherwisefailed
++ *	   -ENOMEM if memory allocation failed
++ */
++static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
++	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
++	const char **props, unsigned int nprops)
++{
++	struct fwnode_reference_args fwnode_args;
++	unsigned int *args = fwnode_args.args;
++	struct fwnode_handle *child;
++	int ret;
++
++	/*
++	 * Obtain remote fwnode as well as the integer arguments.
++	 *
++	 * To-do: handle -ENODATA when "device property: Align return
++	 * codes of acpi_fwnode_get_reference_with_args" is merged.
++	 */
++	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
++						 index, &fwnode_args);
++	if (ret)
++		return ERR_PTR(ret == -ENODATA ? -ENOENT : ret);
++
++	/*
++	 * Find a node in the tree under the referred fwnode corresponding the
++	 * integer arguments.
++	 */
++	fwnode = fwnode_args.fwnode;
++	while (nprops) {
++		u32 val;
++
++		/* Loop over all child nodes under fwnode. */
++		fwnode_for_each_child_node(fwnode, child) {
++			if (fwnode_property_read_u32(child, *props, &val))
++				continue;
++
++			/* Found property, see if its value matches. */
++			if (val == *args)
++				break;
++		}
++
++		fwnode_handle_put(fwnode);
++
++		/* No property found; return an error here. */
++		if (!child) {
++			fwnode = ERR_PTR(-ENOENT);
++			break;
++		}
++
++		props++;
++		args++;
++		fwnode = child;
++		nprops--;
++	}
++
++	return fwnode;
++}
++
++/*
++ * v4l2_fwnode_reference_parse_int_props - parse references for async sub-devices
++ * @dev: struct device pointer
++ * @notifier: notifier for @dev
++ * @prop: the name of the property
++ * @props: the array of integer property names
++ * @nprops: the number of integer properties
++ *
++ * Use v4l2_fwnode_reference_get_int_prop to find fwnodes through reference in
++ * property @prop with integer arguments with child nodes matching in properties
++ * @props. Then, set up V4L2 async sub-devices for those fwnodes in the notifier
++ * accordingly.
++ *
++ * While it is technically possible to use this function on DT, it is only
++ * meaningful on ACPI. On Device tree you can refer to any node in the tree but
++ * on ACPI the references are limited to devices.
++ *
++ * Return: 0 on success
++ *	   -ENOENT if no entries (or the property itself) were found
++ *	   -EINVAL if property parsing otherwisefailed
++ *	   -ENOMEM if memory allocation failed
++ */
++static int v4l2_fwnode_reference_parse_int_props(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	const char *prop, const char **props, unsigned int nprops)
++{
++	struct fwnode_handle *fwnode;
++	unsigned int index;
++	int ret;
++
++	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
++					 dev_fwnode(dev), prop, index, props,
++					 nprops))); index++)
++		fwnode_handle_put(fwnode);
++
++	if (PTR_ERR(fwnode) != -ENOENT)
++		return PTR_ERR(fwnode);
++
++	ret = v4l2_async_notifier_realloc(notifier,
++					  notifier->num_subdevs + index);
++	if (ret)
++		return -ENOMEM;
++
++	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
++					 dev_fwnode(dev), prop, index, props,
++					 nprops))); index++) {
++		struct v4l2_async_subdev *asd;
++
++		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
++			ret = -EINVAL;
++			goto error;
++		}
++
++		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
++		if (!asd) {
++			ret = -ENOMEM;
++			goto error;
++		}
++
++		notifier->subdevs[notifier->num_subdevs] = asd;
++		asd->match.fwnode.fwnode = fwnode;
++		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
++		notifier->num_subdevs++;
++	}
++
++	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
++
++error:
++	fwnode_handle_put(fwnode);
++	return ret;
++}
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+-- 
+2.11.0
