@@ -1,368 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40834 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36648 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751702AbdIENGA (ORCPT
+        by vger.kernel.org with ESMTP id S1751420AbdILNmM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Sep 2017 09:06:00 -0400
+        Tue, 12 Sep 2017 09:42:12 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
         laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
         pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v8 14/21] v4l: async: Allow binding notifiers to sub-devices
-Date: Tue,  5 Sep 2017 16:05:46 +0300
-Message-Id: <20170905130553.1332-15-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
-References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+Subject: [PATCH v12 22/26] smiapp: Add support for flash and lens devices
+Date: Tue, 12 Sep 2017 16:41:56 +0300
+Message-Id: <20170912134200.19556-23-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Registering a notifier has required the knowledge of struct v4l2_device
-for the reason that sub-devices generally are registered to the
-v4l2_device (as well as the media device, also available through
-v4l2_device).
+Parse async sub-devices by using
+v4l2_subdev_fwnode_reference_parse_sensor_common().
 
-This information is not available for sub-device drivers at probe time.
+These types devices aren't directly related to the sensor, but are
+nevertheless handled by the smiapp driver due to the relationship of these
+component to the main part of the camera module --- the sensor.
 
-What this patch does is that it allows registering notifiers without
-having v4l2_device around. Instead the sub-device pointer is stored to the
-notifier. Once the sub-device of the driver that registered the notifier
-is registered, the notifier will gain the knowledge of the v4l2_device,
-and the binding of async sub-devices from the sub-device driver's notifier
-may proceed.
-
-The master notifier's complete callback is only called when all sub-device
-notifiers are completed.
+This does not yet address providing the user space with information on how
+to associate the sensor or lens devices but the kernel now has the
+necessary information to do that.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 209 ++++++++++++++++++++++++++++++-----
- include/media/v4l2-async.h           |  16 ++-
- 2 files changed, 194 insertions(+), 31 deletions(-)
+ drivers/media/i2c/smiapp/smiapp-core.c | 38 +++++++++++++++++++++++++++-------
+ drivers/media/i2c/smiapp/smiapp.h      |  4 +++-
+ 2 files changed, 33 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 79f216723a3f..620b2cd29fc3 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -53,6 +53,10 @@ static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
- 	return n->ops->complete(n);
- }
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 700f433261d0..a4735a96ea41 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -31,7 +31,7 @@
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/smiapp.h>
+-#include <linux/v4l2-mediabus.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+ #include <media/v4l2-device.h>
  
-+static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-+				   struct v4l2_subdev *sd,
-+				   struct v4l2_async_subdev *asd);
-+
- static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
- #if IS_ENABLED(CONFIG_I2C)
-@@ -129,14 +133,119 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
- 	return NULL;
- }
+@@ -2887,17 +2887,24 @@ static int smiapp_probe(struct i2c_client *client,
+ 	v4l2_i2c_subdev_init(&sensor->src->sd, client, &smiapp_ops);
+ 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
  
-+/* Get the sub-device notifier registered by a sub-device driver. */
-+static struct v4l2_async_notifier *v4l2_async_get_subdev_notifier(
-+	struct v4l2_subdev *sd)
-+{
-+	struct v4l2_async_notifier *n;
++	rval = v4l2_async_notifier_parse_fwnode_sensor_common(
++		&client->dev, &sensor->notifier);
++	if (rval < 0)
++		return rval;
 +
-+	list_for_each_entry(n, &notifier_list, list)
-+		if (n->sd == sd)
-+			return n;
-+
-+	return NULL;
-+}
-+
-+/* Return true if all sub-device notifiers are complete, false otherwise. */
-+static bool v4l2_async_subdev_notifiers_complete(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_subdev *sd;
-+
-+	if (!list_empty(&notifier->waiting))
-+		return false;
-+
-+	list_for_each_entry(sd, &notifier->done, async_list) {
-+		struct v4l2_async_notifier *subdev_notifier =
-+			v4l2_async_get_subdev_notifier(sd);
-+
-+		if (!subdev_notifier)
-+			continue;
-+
-+		if (!v4l2_async_subdev_notifiers_complete(subdev_notifier))
-+			return false;
-+	}
-+
-+	return true;
-+}
-+
-+/* Get v4l2_device related to the notifier if one can be found. */
-+static struct v4l2_device *v4l2_async_notifier_get_v4l2_dev(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	while (notifier->master)
-+		notifier = notifier->master;
-+
-+	return notifier->v4l2_dev;
-+}
-+
-+/* Test all async sub-devices in a notifier for a match. */
-+static int v4l2_async_notifier_try_all_subdevs(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_subdev *sd, *tmp;
-+
-+	if (!v4l2_async_notifier_get_v4l2_dev(notifier))
-+		return 0;
-+
-+	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-+		struct v4l2_async_subdev *asd;
-+		int ret;
-+
-+		asd = v4l2_async_find_match(notifier, sd);
-+		if (!asd)
-+			continue;
-+
-+		ret = v4l2_async_match_notify(notifier, sd, asd);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+/* Try completing a notifier. */
-+static int v4l2_async_notifier_try_complete(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	do {
-+		int ret;
-+
-+		/* Any local async sub-devices left? */
-+		if (!list_empty(&notifier->waiting))
-+			return 0;
-+
-+		/*
-+		 * Any sub-device notifiers waiting for async subdevs
-+		 * to be bound?
-+		 */
-+		if (!v4l2_async_subdev_notifiers_complete(notifier))
-+			return 0;
-+
-+		/* Proceed completing the notifier */
-+		ret = v4l2_async_notifier_call_complete(notifier);
-+		if (ret < 0)
-+			return ret;
-+
-+		/*
-+		 * Obtain notifier's master. If there is one, repeat
-+		 * the process, otherwise we're done here.
-+		 */
-+	} while ((notifier = notifier->master));
-+
-+	return 0;
-+}
-+
- static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 				   struct v4l2_subdev *sd,
- 				   struct v4l2_async_subdev *asd)
- {
-+	struct v4l2_async_notifier *subdev_notifier;
- 	int ret;
- 
--	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
--	if (ret < 0)
-+	ret = v4l2_device_register_subdev(
-+		v4l2_async_notifier_get_v4l2_dev(notifier), sd);
-+	if (ret)
- 		return ret;
- 
- 	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
-@@ -153,10 +262,20 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 	/* Move from the global subdevice list to notifier's done */
- 	list_move(&sd->async_list, &notifier->done);
- 
--	if (list_empty(&notifier->waiting))
--		return v4l2_async_notifier_call_complete(notifier);
-+	/*
-+	 * See if the sub-device has a notifier. If it does, proceed
-+	 * with checking for its async sub-devices.
-+	 */
-+	subdev_notifier = v4l2_async_get_subdev_notifier(sd);
-+	if (subdev_notifier && !subdev_notifier->master) {
-+		subdev_notifier->master = notifier;
-+		ret = v4l2_async_notifier_try_all_subdevs(subdev_notifier);
-+		if (ret)
-+			return ret;
-+	}
- 
--	return 0;
-+	/* Try completing the notifier and its master(s). */
-+	return v4l2_async_notifier_try_complete(notifier);
- }
- 
- static void v4l2_async_cleanup(struct v4l2_subdev *sd)
-@@ -168,18 +287,17 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
- 	sd->dev = NULL;
- }
- 
--int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
--				 struct v4l2_async_notifier *notifier)
-+static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- {
--	struct v4l2_subdev *sd, *tmp;
- 	struct v4l2_async_subdev *asd;
-+	int ret;
- 	int i;
- 
--	if (!v4l2_dev || !notifier->num_subdevs ||
-+	if (!notifier->v4l2_dev == !notifier->sd || !notifier->num_subdevs ||
- 	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
- 		return -EINVAL;
- 
--	notifier->v4l2_dev = v4l2_dev;
-+	INIT_LIST_HEAD(&notifier->list);
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
- 
-@@ -203,18 +321,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 
- 	mutex_lock(&list_lock);
- 
--	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
--		int ret;
--
--		asd = v4l2_async_find_match(notifier, sd);
--		if (!asd)
--			continue;
--
--		ret = v4l2_async_match_notify(notifier, sd, asd);
--		if (ret < 0) {
--			mutex_unlock(&list_lock);
--			return ret;
--		}
-+	ret = v4l2_async_notifier_try_all_subdevs(notifier);
-+	if (ret) {
-+		mutex_unlock(&list_lock);
-+		return ret;
+ 	sensor->vana = devm_regulator_get(&client->dev, "vana");
+ 	if (IS_ERR(sensor->vana)) {
+ 		dev_err(&client->dev, "could not get regulator for vana\n");
+-		return PTR_ERR(sensor->vana);
++		rval = PTR_ERR(sensor->vana);
++		goto out_release_async_notifier;
  	}
  
- 	/* Keep also completed notifiers on the list */
-@@ -224,28 +334,67 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 	sensor->ext_clk = devm_clk_get(&client->dev, NULL);
+ 	if (IS_ERR(sensor->ext_clk)) {
+ 		dev_err(&client->dev, "could not get clock (%ld)\n",
+ 			PTR_ERR(sensor->ext_clk));
+-		return -EPROBE_DEFER;
++		rval = -EPROBE_DEFER;
++		goto out_release_async_notifier;
+ 	}
+ 
+ 	rval = clk_set_rate(sensor->ext_clk, sensor->hwcfg->ext_clk);
+@@ -2905,17 +2912,19 @@ static int smiapp_probe(struct i2c_client *client,
+ 		dev_err(&client->dev,
+ 			"unable to set clock freq to %u\n",
+ 			sensor->hwcfg->ext_clk);
+-		return rval;
++		goto out_release_async_notifier;
+ 	}
+ 
+ 	sensor->xshutdown = devm_gpiod_get_optional(&client->dev, "xshutdown",
+ 						    GPIOD_OUT_LOW);
+-	if (IS_ERR(sensor->xshutdown))
+-		return PTR_ERR(sensor->xshutdown);
++	if (IS_ERR(sensor->xshutdown)) {
++		rval = PTR_ERR(sensor->xshutdown);
++		goto out_release_async_notifier;
++	}
+ 
+ 	rval = smiapp_power_on(&client->dev);
+ 	if (rval < 0)
+-		return rval;
++		goto out_release_async_notifier;
+ 
+ 	rval = smiapp_identify_module(sensor);
+ 	if (rval) {
+@@ -3092,9 +3101,14 @@ static int smiapp_probe(struct i2c_client *client,
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
+ 
++	rval = v4l2_async_subdev_notifier_register(&sensor->src->sd,
++						   &sensor->notifier);
++	if (rval)
++		goto out_media_entity_cleanup;
++
+ 	rval = v4l2_async_register_subdev(&sensor->src->sd);
+ 	if (rval < 0)
+-		goto out_media_entity_cleanup;
++		goto out_unregister_async_notifier;
+ 
+ 	pm_runtime_set_active(&client->dev);
+ 	pm_runtime_get_noresume(&client->dev);
+@@ -3105,6 +3119,9 @@ static int smiapp_probe(struct i2c_client *client,
  
  	return 0;
+ 
++out_unregister_async_notifier:
++	v4l2_async_notifier_unregister(&sensor->notifier);
++
+ out_media_entity_cleanup:
+ 	media_entity_cleanup(&sensor->src->sd.entity);
+ 
+@@ -3114,6 +3131,9 @@ static int smiapp_probe(struct i2c_client *client,
+ out_power_off:
+ 	smiapp_power_off(&client->dev);
+ 
++out_release_async_notifier:
++	v4l2_async_notifier_release(&sensor->notifier);
++
+ 	return rval;
  }
-+
-+int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-+				 struct v4l2_async_notifier *notifier)
-+{
-+	if (!v4l2_dev)
-+		return -EINVAL;
-+
-+	notifier->v4l2_dev = v4l2_dev;
-+
-+	return __v4l2_async_notifier_register(notifier);
-+}
- EXPORT_SYMBOL(v4l2_async_notifier_register);
  
--void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-+int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
-+					struct v4l2_async_notifier *notifier)
- {
--	struct v4l2_subdev *sd, *tmp;
-+	if (!sd)
-+		return -EINVAL;
+@@ -3124,6 +3144,8 @@ static int smiapp_remove(struct i2c_client *client)
+ 	unsigned int i;
  
--	if (!notifier->v4l2_dev)
--		return;
-+	notifier->sd = sd;
+ 	v4l2_async_unregister_subdev(subdev);
++	v4l2_async_notifier_unregister(&sensor->notifier);
++	v4l2_async_notifier_release(&sensor->notifier);
  
--	mutex_lock(&list_lock);
-+	return __v4l2_async_notifier_register(notifier);
-+}
-+EXPORT_SYMBOL(v4l2_async_subdev_notifier_register);
+ 	pm_runtime_disable(&client->dev);
+ 	if (!pm_runtime_status_suspended(&client->dev))
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index f74d695018b9..be92cb5713f4 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -20,9 +20,10 @@
+ #define __SMIAPP_PRIV_H_
  
--	list_del(&notifier->list);
-+/* Unbind all sub-devices in the notifier tree. */
-+static void v4l2_async_notifier_unbind_all_subdevs(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_subdev *sd, *tmp;
+ #include <linux/mutex.h>
++#include <media/i2c/smiapp.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-subdev.h>
+-#include <media/i2c/smiapp.h>
  
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-+		struct v4l2_async_notifier *subdev_notifier =
-+			v4l2_async_get_subdev_notifier(sd);
-+
-+		if (subdev_notifier)
-+			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
-+
- 		v4l2_async_cleanup(sd);
- 
- 		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
-+
-+		list_del(&sd->async_list);
-+		list_add(&sd->async_list, &subdev_list);
- 	}
- 
--	mutex_unlock(&list_lock);
-+	notifier->master = NULL;
-+}
-+
-+void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-+{
-+	if (!notifier->v4l2_dev && !notifier->sd)
-+		return;
- 
--	notifier->v4l2_dev = NULL;
-+	mutex_lock(&list_lock);
-+
-+	v4l2_async_notifier_unbind_all_subdevs(notifier);
-+
-+	list_del(&notifier->list);
-+
-+	mutex_unlock(&list_lock);
- }
- EXPORT_SYMBOL(v4l2_async_notifier_unregister);
- 
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 3bc8a7c0d83f..12739be44bd1 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -102,7 +102,9 @@ struct v4l2_async_notifier_operations {
-  * @num_subdevs: number of subdevices used in the subdevs array
-  * @max_subdevs: number of subdevices allocated in the subdevs array
-  * @subdevs:	array of pointers to subdevice descriptors
-- * @v4l2_dev:	pointer to struct v4l2_device
-+ * @v4l2_dev:	v4l2_device of the master, for subdev notifiers NULL
-+ * @sd:		sub-device that registered the notifier, NULL otherwise
-+ * @master:	master notifier carrying @v4l2_dev
-  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
-  * @done:	list of struct v4l2_subdev, already probed
-  * @list:	member in a global list of notifiers
-@@ -113,6 +115,8 @@ struct v4l2_async_notifier {
- 	unsigned int max_subdevs;
- 	struct v4l2_async_subdev **subdevs;
- 	struct v4l2_device *v4l2_dev;
-+	struct v4l2_subdev *sd;
-+	struct v4l2_async_notifier *master;
- 	struct list_head waiting;
- 	struct list_head done;
- 	struct list_head list;
-@@ -128,6 +132,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 				 struct v4l2_async_notifier *notifier);
- 
- /**
-+ * v4l2_async_subdev_notifier_register - registers a subdevice asynchronous
-+ *					 notifier for a sub-device
-+ *
-+ * @sd: pointer to &struct v4l2_subdev
-+ * @notifier: pointer to &struct v4l2_async_notifier
-+ */
-+int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
-+					struct v4l2_async_notifier *notifier);
-+
-+/**
-  * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
-  *
-  * @notifier: pointer to &struct v4l2_async_notifier
+ #include "smiapp-pll.h"
+ #include "smiapp-reg.h"
+@@ -172,6 +173,7 @@ struct smiapp_subdev {
+  * struct smiapp_sensor - Main device structure
+  */
+ struct smiapp_sensor {
++	struct v4l2_async_notifier notifier;
+ 	/*
+ 	 * "mutex" is used to serialise access to all fields here
+ 	 * except v4l2_ctrls at the end of the struct. "mutex" is also
 -- 
 2.11.0
