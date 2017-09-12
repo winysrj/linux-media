@@ -1,70 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:38844 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751506AbdITTAF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 15:00:05 -0400
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-To: linux-i2c@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [RFC PATCH v5 4/6] i2c: sh_mobile: use helper to decide if DMA is useful
-Date: Wed, 20 Sep 2017 20:59:54 +0200
-Message-Id: <20170920185956.13874-5-wsa+renesas@sang-engineering.com>
-In-Reply-To: <20170920185956.13874-1-wsa+renesas@sang-engineering.com>
-References: <20170920185956.13874-1-wsa+renesas@sang-engineering.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36444 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751462AbdILNmJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Sep 2017 09:42:09 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v12 17/26] dt: bindings: Add lens-focus binding for image sensors
+Date: Tue, 12 Sep 2017 16:41:51 +0300
+Message-Id: <20170912134200.19556-18-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This ensures that we fall back to PIO if the message length is too small
-for DMA being useful. Otherwise, we use DMA. A bounce buffer might be
-applied by the helper if the original message buffer is not DMA safe.
+The lens-focus property contains a phandle to the lens voice coil driver
+that is associated to the sensor; typically both are contained in the same
+camera module.
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/i2c/busses/i2c-sh_mobile.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/i2c/busses/i2c-sh_mobile.c b/drivers/i2c/busses/i2c-sh_mobile.c
-index 6f2aaeb7c4fa15..b76399d8a3abd3 100644
---- a/drivers/i2c/busses/i2c-sh_mobile.c
-+++ b/drivers/i2c/busses/i2c-sh_mobile.c
-@@ -145,6 +145,7 @@ struct sh_mobile_i2c_data {
- 	struct dma_chan *dma_rx;
- 	struct scatterlist sg;
- 	enum dma_data_direction dma_direction;
-+	u8 *dma_buf;
- };
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index fdba30479b47..b535bdde861c 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -74,6 +74,8 @@ Optional properties
+ - flash-leds: An array of phandles, each referring to a flash LED, a sub-node
+   of the LED driver device node.
  
- struct sh_mobile_dt_config {
-@@ -548,6 +549,8 @@ static void sh_mobile_i2c_dma_callback(void *data)
- 	pd->pos = pd->msg->len;
- 	pd->stop_after_dma = true;
- 
-+	i2c_release_dma_safe_msg_buf(pd->msg, pd->dma_buf);
++- lens-focus: A phandle to the node of the focus lens controller.
 +
- 	iic_set_clr(pd, ICIC, 0, ICIC_TDMAE | ICIC_RDMAE);
- }
  
-@@ -608,7 +611,7 @@ static void sh_mobile_i2c_xfer_dma(struct sh_mobile_i2c_data *pd)
- 	if (IS_ERR(chan))
- 		return;
- 
--	dma_addr = dma_map_single(chan->device->dev, pd->msg->buf, pd->msg->len, dir);
-+	dma_addr = dma_map_single(chan->device->dev, pd->dma_buf, pd->msg->len, dir);
- 	if (dma_mapping_error(chan->device->dev, dma_addr)) {
- 		dev_dbg(pd->dev, "dma map failed, using PIO\n");
- 		return;
-@@ -665,7 +668,8 @@ static int start_ch(struct sh_mobile_i2c_data *pd, struct i2c_msg *usr_msg,
- 	pd->pos = -1;
- 	pd->sr = 0;
- 
--	if (pd->msg->len > 8)
-+	pd->dma_buf = i2c_get_dma_safe_msg_buf(pd->msg, 8);
-+	if (pd->dma_buf)
- 		sh_mobile_i2c_xfer_dma(pd);
- 
- 	/* Enable all interrupts to begin with */
+ Optional endpoint properties
+ ----------------------------
 -- 
 2.11.0
