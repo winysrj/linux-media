@@ -1,38 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:53086 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752258AbdIATly (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Sep 2017 15:41:54 -0400
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Olli Salonen <olli.salonen@iki.fi>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 0/4] [media] SP2: Adjustments for two function implementations
-Message-ID: <6142ca34-fcda-f2b6-bc35-dbbde0d34378@users.sourceforge.net>
-Date: Fri, 1 Sep 2017 21:41:41 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36442 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751459AbdILNmJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Sep 2017 09:42:09 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v12 16/26] dt: bindings: Add a binding for flash LED devices associated to a sensor
+Date: Tue, 12 Sep 2017 16:41:50 +0300
+Message-Id: <20170912134200.19556-17-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 1 Sep 2017 21:31:23 +0200
+Camera flash drivers (and LEDs) are separate from the sensor devices in
+DT. In order to make an association between the two, provide the
+association information to the software.
 
-A few update suggestions were taken into account
-from static source code analysis.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+---
+ Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Markus Elfring (4):
-  Delete an error message for a failed memory allocation
-  Improve a size determination
-  Adjust a jump target
-  Adjust three null pointer checks
-
- drivers/media/dvb-frontends/sp2.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index 852041a7480c..fdba30479b47 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -67,6 +67,14 @@ are required in a relevant parent node:
+ 		    identifier, should be 1.
+  - #size-cells    : should be zero.
+ 
++
++Optional properties
++-------------------
++
++- flash-leds: An array of phandles, each referring to a flash LED, a sub-node
++  of the LED driver device node.
++
++
+ Optional endpoint properties
+ ----------------------------
+ 
 -- 
-2.14.1
+2.11.0
