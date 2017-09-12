@@ -1,45 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50958
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752874AbdICCfM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Sep 2017 22:35:12 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 10/12] media: v4l2-event.rst: adjust table to fit on PDF output
-Date: Sat,  2 Sep 2017 23:35:02 -0300
-Message-Id: <2e0f571faa8da2e579152e6440724165d74fdb59.1504405125.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504405124.git.mchehab@s-opensource.com>
-References: <cover.1504405124.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504405124.git.mchehab@s-opensource.com>
-References: <cover.1504405124.git.mchehab@s-opensource.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36490 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751423AbdILNmO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Sep 2017 09:42:14 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v12 26/26] arm: dts: omap3: N9/N950: Add flash references to the camera
+Date: Tue, 12 Sep 2017 16:42:00 +0300
+Message-Id: <20170912134200.19556-27-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The tables there don't quite fit on PDF output.
+Add flash and indicator LED phandles to the sensor node.
 
-Adjust it by adding a tabularcolumns macro.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
- Documentation/media/kapi/v4l2-event.rst | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/boot/dts/omap3-n9.dts       | 1 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 4 ++--
+ arch/arm/boot/dts/omap3-n950.dts     | 1 +
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/media/kapi/v4l2-event.rst b/Documentation/media/kapi/v4l2-event.rst
-index 9a5e31546ae3..9938d21ef4d1 100644
---- a/Documentation/media/kapi/v4l2-event.rst
-+++ b/Documentation/media/kapi/v4l2-event.rst
-@@ -67,6 +67,8 @@ type).
- 
- The ops argument allows the driver to specify a number of callbacks:
- 
-+.. tabularcolumns:: |p{1.5cm}|p{16.0cm}|
-+
- ======== ==============================================================
- Callback Description
- ======== ==============================================================
+diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
+index b9e58c536afd..39e35f8b8206 100644
+--- a/arch/arm/boot/dts/omap3-n9.dts
++++ b/arch/arm/boot/dts/omap3-n9.dts
+@@ -26,6 +26,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash-leds = <&as3645a_flash &as3645a_indicator>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index 1b0bd72945f2..12fbb3da5fce 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -271,14 +271,14 @@
+ 		#size-cells = <0>;
+ 		reg = <0x30>;
+ 		compatible = "ams,as3645a";
+-		flash@0 {
++		as3645a_flash: flash@0 {
+ 			reg = <0x0>;
+ 			flash-timeout-us = <150000>;
+ 			flash-max-microamp = <320000>;
+ 			led-max-microamp = <60000>;
+ 			ams,input-max-microamp = <1750000>;
+ 		};
+-		indicator@1 {
++		as3645a_indicator: indicator@1 {
+ 			reg = <0x1>;
+ 			led-max-microamp = <10000>;
+ 		};
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+index 646601a3ebd8..c354a1ed1e70 100644
+--- a/arch/arm/boot/dts/omap3-n950.dts
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -60,6 +60,7 @@
+ 		clocks = <&isp 0>;
+ 		clock-frequency = <9600000>;
+ 		nokia,nvm-size = <(16 * 64)>;
++		flash-leds = <&as3645a_flash &as3645a_indicator>;
+ 		port {
+ 			smia_1_1: endpoint {
+ 				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
 -- 
-2.13.5
+2.11.0
