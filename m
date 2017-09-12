@@ -1,544 +1,595 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:35703
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750972AbdISNmr (ORCPT
+Received: from fllnx210.ext.ti.com ([198.47.19.17]:23951 "EHLO
+        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751380AbdILSXx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 09:42:47 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Colin Ian King <colin.king@canonical.com>
-Subject: [PATCH 2/6] media: dvb_frontend: cleanup ioctl handling logic
-Date: Tue, 19 Sep 2017 10:42:34 -0300
-Message-Id: <616ac8323cfe1041ad05e9610c87ee9c5e247811.1505827883.git.mchehab@s-opensource.com>
-In-Reply-To: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
-References: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
-In-Reply-To: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
-References: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
+        Tue, 12 Sep 2017 14:23:53 -0400
+Date: Tue, 12 Sep 2017 13:23:39 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        Cyprian Wronka <cwronka@cadence.com>,
+        Neil Webb <neilw@cadence.com>,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v3 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
+Message-ID: <20170912182339.GA27713@ti.com>
+References: <20170904130335.23280-1-maxime.ripard@free-electrons.com>
+ <20170904130335.23280-3-maxime.ripard@free-electrons.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20170904130335.23280-3-maxime.ripard@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, there are two handlers for ioctls:
- - dvb_frontend_ioctl_properties()
- - dvb_frontend_ioctl_legacy()
+Maxime,
 
-Despite their names, both handles non-legacy DVB ioctls.
+Thanks for the patch.
 
-Besides that, there's no reason why to not handle all ioctls
-on a single handler function.
+Maxime Ripard <maxime.ripard@free-electrons.com> wrote on Mon [2017-Sep-04 15:03:35 +0200]:
+> The Cadence CSI-2 RX Controller is an hardware block meant to be used as a
+> bridge between a CSI-2 bus and pixel grabbers.
+> 
+> It supports operating with internal or external D-PHY, with up to 4 lanes,
+> or without any D-PHY. The current code only supports the former case.
+> 
+> It also support dynamic mapping of the CSI-2 virtual channels to the
+> associated pixel grabbers, but that isn't allowed at the moment either.
+> 
+> Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+> ---
+>  drivers/media/platform/Kconfig               |   1 +
+>  drivers/media/platform/Makefile              |   2 +
+>  drivers/media/platform/cadence/Kconfig       |  12 +
+>  drivers/media/platform/cadence/Makefile      |   1 +
+>  drivers/media/platform/cadence/cdns-csi2rx.c | 494 +++++++++++++++++++++++++++
+>  5 files changed, 510 insertions(+)
+>  create mode 100644 drivers/media/platform/cadence/Kconfig
+>  create mode 100644 drivers/media/platform/cadence/Makefile
+>  create mode 100644 drivers/media/platform/cadence/cdns-csi2rx.c
+>
 
-So, merge them into a single function (dvb_frontend_handle_ioctl)
-and reorganize the ioctl's to indicate what's the current DVB
-API and what's deprecated.
+<snip>
 
-Despite the big diff, the handling logic for each ioctl is the
-same as before.
+> diff --git a/drivers/media/platform/cadence/cdns-csi2rx.c b/drivers/media/platform/cadence/cdns-csi2rx.c
+> new file mode 100644
+> index 000000000000..e662b1890bba
+> --- /dev/null
+> +++ b/drivers/media/platform/cadence/cdns-csi2rx.c
+> @@ -0,0 +1,494 @@
+> +/*
+> + * Driver for Cadence MIPI-CSI2 RX Controller v1.3
+> + *
+> + * Copyright (C) 2017 Cadence Design Systems Inc.
+> + *
+> + * This program is free software; you can redistribute  it and/or modify it
+> + * under  the terms of  the GNU General  Public License as published by the
+> + * Free Software Foundation;  either version 2 of the  License, or (at your
+> + * option) any later version.
+> + */
+> +
+> +#include <linux/atomic.h>
+> +#include <linux/clk.h>
+> +#include <linux/delay.h>
+> +#include <linux/io.h>
+> +#include <linux/module.h>
+> +#include <linux/of.h>
+> +#include <linux/of_graph.h>
+> +#include <linux/phy/phy.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-fwnode.h>
+> +#include <media/v4l2-subdev.h>
+> +
+> +#define CSI2RX_DEVICE_CFG_REG			0x000
+> +
+> +#define CSI2RX_SOFT_RESET_REG			0x004
+> +#define CSI2RX_SOFT_RESET_PROTOCOL			BIT(1)
+> +#define CSI2RX_SOFT_RESET_FRONT				BIT(0)
+> +
+> +#define CSI2RX_STATIC_CFG_REG			0x008
+> +#define CSI2RX_STATIC_CFG_DLANE_MAP(llane, plane)	((plane) << (16 + (llane) * 4))
+> +#define CSI2RX_STATIC_CFG_LANES_MASK			GENMASK(11, 8)
+> +
+> +#define CSI2RX_STREAM_BASE(n)		(((n) + 1) * 0x100)
+> +
+> +#define CSI2RX_STREAM_CTRL_REG(n)		(CSI2RX_STREAM_BASE(n) + 0x000)
+> +#define CSI2RX_STREAM_CTRL_START			BIT(0)
+> +
+> +#define CSI2RX_STREAM_DATA_CFG_REG(n)		(CSI2RX_STREAM_BASE(n) + 0x008)
+> +#define CSI2RX_STREAM_DATA_CFG_EN_VC_SELECT		BIT(31)
+> +#define CSI2RX_STREAM_DATA_CFG_VC_SELECT(n)		BIT((n) + 16)
+> +
+> +#define CSI2RX_STREAM_CFG_REG(n)		(CSI2RX_STREAM_BASE(n) + 0x00c)
+> +#define CSI2RX_STREAM_CFG_FIFO_MODE_LARGE_BUF		(1 << 8)
+> +
+> +#define CSI2RX_STREAMS_MAX	4
+> +
+> +enum csi2rx_pads {
+> +	CSI2RX_PAD_SINK,
+> +	CSI2RX_PAD_SOURCE_STREAM0,
+> +	CSI2RX_PAD_SOURCE_STREAM1,
+> +	CSI2RX_PAD_SOURCE_STREAM2,
+> +	CSI2RX_PAD_SOURCE_STREAM3,
+> +	CSI2RX_PAD_MAX,
+> +};
+> +
+> +struct csi2rx_priv {
+> +	struct device			*dev;
+> +	atomic_t			count;
+> +
+> +	void __iomem			*base;
+> +	struct clk			*sys_clk;
+> +	struct clk			*p_clk;
+> +	struct clk			*pixel_clk[CSI2RX_STREAMS_MAX];
+> +	struct phy			*dphy;
+> +
+> +	u8				lanes[4];
+> +	u8				num_lanes;
+> +	u8				max_lanes;
+> +	u8				max_streams;
+> +	bool				has_internal_dphy;
+> +
+> +	struct v4l2_subdev		subdev;
+> +	struct media_pad		pads[CSI2RX_PAD_MAX];
+> +
+> +	/* Remote source */
+> +	struct v4l2_async_subdev	asd;
+> +	struct device_node		*source_node;
+> +	struct v4l2_subdev		*source_subdev;
+> +	int				source_pad;
+> +};
+> +
+> +static inline
+> +struct csi2rx_priv *v4l2_subdev_to_csi2rx(struct v4l2_subdev *subdev)
+> +{
+> +	return container_of(subdev, struct csi2rx_priv, subdev);
+> +}
+> +
+> +static void csi2rx_reset(struct csi2rx_priv *csi2rx)
+> +{
+> +	writel(CSI2RX_SOFT_RESET_PROTOCOL | CSI2RX_SOFT_RESET_FRONT,
+> +	       csi2rx->base + CSI2RX_SOFT_RESET_REG);
+> +
+> +	usleep_range(10, 20);
+> +
+> +	writel(0, csi2rx->base + CSI2RX_SOFT_RESET_REG);
+> +}
+> +
+> +static int csi2rx_start(struct csi2rx_priv *csi2rx)
+> +{
+> +	unsigned int i;
+> +	u32 reg;
+> +	int ret;
+> +
+> +	/*
+> +	 * We're not the first users, there's no need to enable the
+> +	 * whole controller.
+> +	 */
+> +	if (atomic_inc_return(&csi2rx->count) > 1)
+> +		return 0;
+> +
+> +	clk_prepare_enable(csi2rx->p_clk);
+> +
+> +	printk("%s %d\n", __func__, __LINE__);
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_frontend.c | 402 +++++++++++++++++-----------------
- 1 file changed, 195 insertions(+), 207 deletions(-)
+Some left over debug...
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 725cb1c8a088..cbe697a094d2 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -1315,10 +1315,8 @@ static int dtv_get_frontend(struct dvb_frontend *fe,
- 	return 0;
- }
- 
--static int dvb_frontend_ioctl_legacy(struct file *file,
--			unsigned int cmd, void *parg);
--static int dvb_frontend_ioctl_properties(struct file *file,
--			unsigned int cmd, void *parg);
-+static int dvb_frontend_handle_ioctl(struct file *file,
-+				     unsigned int cmd, void *parg);
- 
- static int dtv_property_process_get(struct dvb_frontend *fe,
- 				    const struct dtv_frontend_properties *c,
-@@ -1816,12 +1814,12 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 		break;
- 	case DTV_VOLTAGE:
- 		c->voltage = tvp->u.data;
--		r = dvb_frontend_ioctl_legacy(file, FE_SET_VOLTAGE,
-+		r = dvb_frontend_handle_ioctl(file, FE_SET_VOLTAGE,
- 			(void *)c->voltage);
- 		break;
- 	case DTV_TONE:
- 		c->sectone = tvp->u.data;
--		r = dvb_frontend_ioctl_legacy(file, FE_SET_TONE,
-+		r = dvb_frontend_handle_ioctl(file, FE_SET_TONE,
- 			(void *)c->sectone);
- 		break;
- 	case DTV_CODE_RATE_HP:
-@@ -1928,14 +1926,13 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 	return r;
- }
- 
--static int dvb_frontend_ioctl(struct file *file,
--			unsigned int cmd, void *parg)
-+static int dvb_frontend_ioctl(struct file *file, unsigned int cmd, void *parg)
- {
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct dvb_frontend *fe = dvbdev->priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
--	int err = -EOPNOTSUPP;
-+	int err;
- 
- 	dev_dbg(fe->dvb->device, "%s: (%d)\n", __func__, _IOC_NR(cmd));
- 	if (down_interruptible(&fepriv->sem))
-@@ -1953,121 +1950,13 @@ static int dvb_frontend_ioctl(struct file *file,
- 		return -EPERM;
- 	}
- 
--	if ((cmd == FE_SET_PROPERTY) || (cmd == FE_GET_PROPERTY))
--		err = dvb_frontend_ioctl_properties(file, cmd, parg);
--	else {
--		c->state = DTV_UNDEFINED;
--		err = dvb_frontend_ioctl_legacy(file, cmd, parg);
--	}
-+	c->state = DTV_UNDEFINED;
-+	err = dvb_frontend_handle_ioctl(file, cmd, parg);
- 
- 	up(&fepriv->sem);
- 	return err;
- }
- 
--static int dvb_frontend_ioctl_properties(struct file *file,
--			unsigned int cmd, void *parg)
--{
--	struct dvb_device *dvbdev = file->private_data;
--	struct dvb_frontend *fe = dvbdev->priv;
--	struct dvb_frontend_private *fepriv = fe->frontend_priv;
--	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	int err, i;
--
--	dev_dbg(fe->dvb->device, "%s:\n", __func__);
--
--	switch(cmd) {
--	case FE_SET_PROPERTY: {
--		struct dtv_properties *tvps = parg;
--		struct dtv_property *tvp = NULL;
--
--		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n",
--			__func__, tvps->num);
--		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n",
--			__func__, tvps->props);
--
--		/*
--		 * Put an arbitrary limit on the number of messages that can
--		 * be sent at once
--		 */
--		if (!tvps->num || (tvps->num > DTV_IOCTL_MAX_MSGS))
--			return -EINVAL;
--
--		tvp = memdup_user(tvps->props, tvps->num * sizeof(*tvp));
--		if (IS_ERR(tvp))
--			return PTR_ERR(tvp);
--
--		for (i = 0; i < tvps->num; i++) {
--			err = dtv_property_process_set(fe, tvp + i, file);
--			if (err < 0) {
--				kfree(tvp);
--				return err;
--			}
--			(tvp + i)->result = err;
--		}
--
--		if (c->state == DTV_TUNE)
--			dev_dbg(fe->dvb->device, "%s: Property cache is full, tuning\n", __func__);
--
--		kfree(tvp);
--		break;
--	}
--	case FE_GET_PROPERTY: {
--		struct dtv_properties *tvps = parg;
--		struct dtv_property *tvp = NULL;
--		struct dtv_frontend_properties getp = fe->dtv_property_cache;
--
--		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n",
--			__func__, tvps->num);
--		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n",
--			__func__, tvps->props);
--
--		/*
--		 * Put an arbitrary limit on the number of messages that can
--		 * be sent at once
--		 */
--		if (!tvps->num || (tvps->num > DTV_IOCTL_MAX_MSGS))
--			return -EINVAL;
--
--		tvp = memdup_user(tvps->props, tvps->num * sizeof(*tvp));
--		if (IS_ERR(tvp))
--			return PTR_ERR(tvp);
--
--		/*
--		 * Let's use our own copy of property cache, in order to
--		 * avoid mangling with DTV zigzag logic, as drivers might
--		 * return crap, if they don't check if the data is available
--		 * before updating the properties cache.
--		 */
--		if (fepriv->state != FESTATE_IDLE) {
--			err = dtv_get_frontend(fe, &getp, NULL);
--			if (err < 0) {
--				kfree(tvp);
--				return err;
--			}
--		}
--		for (i = 0; i < tvps->num; i++) {
--			err = dtv_property_process_get(fe, &getp, tvp + i, file);
--			if (err < 0) {
--				kfree(tvp);
--				return err;
--			}
--			(tvp + i)->result = err;
--		}
--
--		if (copy_to_user((void __user *)tvps->props, tvp,
--				 tvps->num * sizeof(struct dtv_property))) {
--			kfree(tvp);
--			return -EFAULT;
--		}
--		kfree(tvp);
--		break;
--	}
--	default:
--		return -ENOTSUPP;
--	} /* switch */
--	return 0;
--}
--
- static int dtv_set_frontend(struct dvb_frontend *fe)
- {
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
-@@ -2205,59 +2094,102 @@ static int dtv_set_frontend(struct dvb_frontend *fe)
- }
- 
- 
--static int dvb_frontend_ioctl_legacy(struct file *file,
--			unsigned int cmd, void *parg)
-+static int dvb_frontend_handle_ioctl(struct file *file,
-+				     unsigned int cmd, void *parg)
- {
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct dvb_frontend *fe = dvbdev->priv;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	int err = -EOPNOTSUPP;
-+	int i, err;
- 
--	switch (cmd) {
--	case FE_GET_INFO: {
--		struct dvb_frontend_info* info = parg;
-+	dev_dbg(fe->dvb->device, "%s:\n", __func__);
- 
--		memcpy(info, &fe->ops.info, sizeof(struct dvb_frontend_info));
--		dvb_frontend_get_frequency_limits(fe, &info->frequency_min, &info->frequency_max);
-+	switch(cmd) {
-+	case FE_SET_PROPERTY: {
-+		struct dtv_properties *tvps = parg;
-+		struct dtv_property *tvp = NULL;
-+
-+		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n",
-+			__func__, tvps->num);
-+		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n",
-+			__func__, tvps->props);
-+
-+		/*
-+		 * Put an arbitrary limit on the number of messages that can
-+		 * be sent at once
-+		 */
-+		if (!tvps->num || (tvps->num > DTV_IOCTL_MAX_MSGS))
-+			return -EINVAL;
-+
-+		tvp = memdup_user(tvps->props, tvps->num * sizeof(*tvp));
-+		if (IS_ERR(tvp))
-+			return PTR_ERR(tvp);
-+
-+		for (i = 0; i < tvps->num; i++) {
-+			err = dtv_property_process_set(fe, tvp + i, file);
-+			if (err < 0) {
-+				kfree(tvp);
-+				return err;
-+			}
-+			(tvp + i)->result = err;
-+		}
-+
-+		if (c->state == DTV_TUNE)
-+			dev_dbg(fe->dvb->device, "%s: Property cache is full, tuning\n", __func__);
-+
-+		kfree(tvp);
-+		break;
-+	}
-+	case FE_GET_PROPERTY: {
-+		struct dtv_properties *tvps = parg;
-+		struct dtv_property *tvp = NULL;
-+		struct dtv_frontend_properties getp = fe->dtv_property_cache;
-+
-+		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n",
-+			__func__, tvps->num);
-+		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n",
-+			__func__, tvps->props);
-+
-+		/*
-+		 * Put an arbitrary limit on the number of messages that can
-+		 * be sent at once
-+		 */
-+		if (!tvps->num || (tvps->num > DTV_IOCTL_MAX_MSGS))
-+			return -EINVAL;
-+
-+		tvp = memdup_user(tvps->props, tvps->num * sizeof(*tvp));
-+		if (IS_ERR(tvp))
-+			return PTR_ERR(tvp);
- 
- 		/*
--		 * Associate the 4 delivery systems supported by DVBv3
--		 * API with their DVBv5 counterpart. For the other standards,
--		 * use the closest type, assuming that it would hopefully
--		 * work with a DVBv3 application.
--		 * It should be noticed that, on multi-frontend devices with
--		 * different types (terrestrial and cable, for example),
--		 * a pure DVBv3 application won't be able to use all delivery
--		 * systems. Yet, changing the DVBv5 cache to the other delivery
--		 * system should be enough for making it work.
-+		 * Let's use our own copy of property cache, in order to
-+		 * avoid mangling with DTV zigzag logic, as drivers might
-+		 * return crap, if they don't check if the data is available
-+		 * before updating the properties cache.
- 		 */
--		switch (dvbv3_type(c->delivery_system)) {
--		case DVBV3_QPSK:
--			info->type = FE_QPSK;
--			break;
--		case DVBV3_ATSC:
--			info->type = FE_ATSC;
--			break;
--		case DVBV3_QAM:
--			info->type = FE_QAM;
--			break;
--		case DVBV3_OFDM:
--			info->type = FE_OFDM;
--			break;
--		default:
--			dev_err(fe->dvb->device,
--					"%s: doesn't know how to handle a DVBv3 call to delivery system %i\n",
--					__func__, c->delivery_system);
--			fe->ops.info.type = FE_OFDM;
-+		if (fepriv->state != FESTATE_IDLE) {
-+			err = dtv_get_frontend(fe, &getp, NULL);
-+			if (err < 0) {
-+				kfree(tvp);
-+				return err;
-+			}
-+		}
-+		for (i = 0; i < tvps->num; i++) {
-+			err = dtv_property_process_get(fe, &getp, tvp + i, file);
-+			if (err < 0) {
-+				kfree(tvp);
-+				return err;
-+			}
-+			(tvp + i)->result = err;
- 		}
--		dev_dbg(fe->dvb->device, "%s: current delivery system on cache: %d, V3 type: %d\n",
--				 __func__, c->delivery_system, fe->ops.info.type);
- 
--		/* Set CAN_INVERSION_AUTO bit on in other than oneshot mode */
--		if (!(fepriv->tune_mode_flags & FE_TUNE_MODE_ONESHOT))
--			info->caps |= FE_CAN_INVERSION_AUTO;
--		err = 0;
-+		if (copy_to_user((void __user *)tvps->props, tvp,
-+				 tvps->num * sizeof(struct dtv_property))) {
-+			kfree(tvp);
-+			return -EFAULT;
-+		}
-+		kfree(tvp);
- 		break;
- 	}
- 
-@@ -2278,42 +2210,6 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 		break;
- 	}
- 
--	case FE_READ_BER:
--		if (fe->ops.read_ber) {
--			if (fepriv->thread)
--				err = fe->ops.read_ber(fe, (__u32 *) parg);
--			else
--				err = -EAGAIN;
--		}
--		break;
--
--	case FE_READ_SIGNAL_STRENGTH:
--		if (fe->ops.read_signal_strength) {
--			if (fepriv->thread)
--				err = fe->ops.read_signal_strength(fe, (__u16 *) parg);
--			else
--				err = -EAGAIN;
--		}
--		break;
--
--	case FE_READ_SNR:
--		if (fe->ops.read_snr) {
--			if (fepriv->thread)
--				err = fe->ops.read_snr(fe, (__u16 *) parg);
--			else
--				err = -EAGAIN;
--		}
--		break;
--
--	case FE_READ_UNCORRECTED_BLOCKS:
--		if (fe->ops.read_ucblocks) {
--			if (fepriv->thread)
--				err = fe->ops.read_ucblocks(fe, (__u32 *) parg);
--			else
--				err = -EAGAIN;
--		}
--		break;
--
- 	case FE_DISEQC_RESET_OVERLOAD:
- 		if (fe->ops.diseqc_reset_overload) {
- 			err = fe->ops.diseqc_reset_overload(fe);
-@@ -2365,6 +2261,23 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 		}
- 		break;
- 
-+	case FE_DISEQC_RECV_SLAVE_REPLY:
-+		if (fe->ops.diseqc_recv_slave_reply)
-+			err = fe->ops.diseqc_recv_slave_reply(fe, (struct dvb_diseqc_slave_reply*) parg);
-+		break;
-+
-+	case FE_ENABLE_HIGH_LNB_VOLTAGE:
-+		if (fe->ops.enable_high_lnb_voltage)
-+			err = fe->ops.enable_high_lnb_voltage(fe, (long) parg);
-+		break;
-+
-+	case FE_SET_FRONTEND_TUNE_MODE:
-+		fepriv->tune_mode_flags = (unsigned long) parg;
-+		err = 0;
-+		break;
-+
-+	/* DEPRECATED dish control ioctls */
-+
- 	case FE_DISHNETWORK_SEND_LEGACY_CMD:
- 		if (fe->ops.dishnetwork_send_legacy_command) {
- 			err = fe->ops.dishnetwork_send_legacy_command(fe,
-@@ -2430,15 +2343,91 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 		}
- 		break;
- 
--	case FE_DISEQC_RECV_SLAVE_REPLY:
--		if (fe->ops.diseqc_recv_slave_reply)
--			err = fe->ops.diseqc_recv_slave_reply(fe, (struct dvb_diseqc_slave_reply*) parg);
-+	/* DEPRECATED statistics ioctls */
-+
-+	case FE_READ_BER:
-+		if (fe->ops.read_ber) {
-+			if (fepriv->thread)
-+				err = fe->ops.read_ber(fe, (__u32 *) parg);
-+			else
-+				err = -EAGAIN;
-+		}
-+		break;
-+
-+	case FE_READ_SIGNAL_STRENGTH:
-+		if (fe->ops.read_signal_strength) {
-+			if (fepriv->thread)
-+				err = fe->ops.read_signal_strength(fe, (__u16 *) parg);
-+			else
-+				err = -EAGAIN;
-+		}
- 		break;
- 
--	case FE_ENABLE_HIGH_LNB_VOLTAGE:
--		if (fe->ops.enable_high_lnb_voltage)
--			err = fe->ops.enable_high_lnb_voltage(fe, (long) parg);
-+	case FE_READ_SNR:
-+		if (fe->ops.read_snr) {
-+			if (fepriv->thread)
-+				err = fe->ops.read_snr(fe, (__u16 *) parg);
-+			else
-+				err = -EAGAIN;
-+		}
-+		break;
-+
-+	case FE_READ_UNCORRECTED_BLOCKS:
-+		if (fe->ops.read_ucblocks) {
-+			if (fepriv->thread)
-+				err = fe->ops.read_ucblocks(fe, (__u32 *) parg);
-+			else
-+				err = -EAGAIN;
-+		}
-+		break;
-+
-+	/* DEPRECATED DVBv3 ioctls */
-+
-+	case FE_GET_INFO: {
-+		struct dvb_frontend_info* info = parg;
-+
-+		memcpy(info, &fe->ops.info, sizeof(struct dvb_frontend_info));
-+		dvb_frontend_get_frequency_limits(fe, &info->frequency_min, &info->frequency_max);
-+
-+		/*
-+		 * Associate the 4 delivery systems supported by DVBv3
-+		 * API with their DVBv5 counterpart. For the other standards,
-+		 * use the closest type, assuming that it would hopefully
-+		 * work with a DVBv3 application.
-+		 * It should be noticed that, on multi-frontend devices with
-+		 * different types (terrestrial and cable, for example),
-+		 * a pure DVBv3 application won't be able to use all delivery
-+		 * systems. Yet, changing the DVBv5 cache to the other delivery
-+		 * system should be enough for making it work.
-+		 */
-+		switch (dvbv3_type(c->delivery_system)) {
-+		case DVBV3_QPSK:
-+			info->type = FE_QPSK;
-+			break;
-+		case DVBV3_ATSC:
-+			info->type = FE_ATSC;
-+			break;
-+		case DVBV3_QAM:
-+			info->type = FE_QAM;
-+			break;
-+		case DVBV3_OFDM:
-+			info->type = FE_OFDM;
-+			break;
-+		default:
-+			dev_err(fe->dvb->device,
-+					"%s: doesn't know how to handle a DVBv3 call to delivery system %i\n",
-+					__func__, c->delivery_system);
-+			fe->ops.info.type = FE_OFDM;
-+		}
-+		dev_dbg(fe->dvb->device, "%s: current delivery system on cache: %d, V3 type: %d\n",
-+				 __func__, c->delivery_system, fe->ops.info.type);
-+
-+		/* Set CAN_INVERSION_AUTO bit on in other than oneshot mode */
-+		if (!(fepriv->tune_mode_flags & FE_TUNE_MODE_ONESHOT))
-+			info->caps |= FE_CAN_INVERSION_AUTO;
-+		err = 0;
- 		break;
-+	}
- 
- 	case FE_SET_FRONTEND:
- 		err = dvbv3_set_delivery_system(fe);
-@@ -2466,11 +2455,10 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 		err = dtv_get_frontend(fe, &getp, parg);
- 		break;
- 	}
--	case FE_SET_FRONTEND_TUNE_MODE:
--		fepriv->tune_mode_flags = (unsigned long) parg;
--		err = 0;
--		break;
--	}
-+
-+	default:
-+		return -ENOTSUPP;
-+	} /* switch */
- 
- 	return err;
- }
--- 
-2.13.5
+> +
+> +	csi2rx_reset(csi2rx);
+> +
+> +	reg = csi2rx->num_lanes << 8;
+> +	for (i = 0; i < csi2rx->num_lanes; i++)
+> +		reg |= CSI2RX_STATIC_CFG_DLANE_MAP(i, csi2rx->lanes[i]);
+> +
+> +	writel(reg, csi2rx->base + CSI2RX_STATIC_CFG_REG);
+> +
+> +	ret = v4l2_subdev_call(csi2rx->source_subdev, video, s_stream, true);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/*
+> +	 * Create a static mapping between the CSI virtual channels
+> +	 * and the output stream.
+> +	 *
+> +	 * This should be enhanced, but v4l2 lacks the support for
+> +	 * changing that mapping dynamically.
+> +	 *
+> +	 * We also cannot enable and disable independant streams here,
+> +	 * hence the reference counting.
+> +	 */
+> +	for (i = 0; i < csi2rx->max_streams; i++) {
+> +		clk_prepare_enable(csi2rx->pixel_clk[i]);
+> +
+> +		writel(CSI2RX_STREAM_CFG_FIFO_MODE_LARGE_BUF,
+> +		       csi2rx->base + CSI2RX_STREAM_CFG_REG(i));
+> +
+> +		writel(CSI2RX_STREAM_DATA_CFG_EN_VC_SELECT |
+> +		       CSI2RX_STREAM_DATA_CFG_VC_SELECT(i),
+> +		       csi2rx->base + CSI2RX_STREAM_DATA_CFG_REG(i));
+> +
+> +		writel(CSI2RX_STREAM_CTRL_START,
+> +		       csi2rx->base + CSI2RX_STREAM_CTRL_REG(i));
+> +	}
+> +
+> +	clk_prepare_enable(csi2rx->sys_clk);
+> +
+> +	clk_disable_unprepare(csi2rx->p_clk);
+> +
+> +	return 0;
+> +}
+> +
+> +static int csi2rx_stop(struct csi2rx_priv *csi2rx)
+> +{
+> +	unsigned int i;
+> +
+> +	/*
+> +	 * Let the last user turn off the lights
+> +	 */
+> +	if (!atomic_dec_and_test(&csi2rx->count))
+> +		return 0;
+> +
+> +	printk("%s %d\n", __func__, __LINE__);
+
+Same here... dev_dbg perhaps? 
+
+> +
+> +	clk_prepare_enable(csi2rx->p_clk);
+> +
+> +	for (i = 0; i < csi2rx->max_streams; i++) {
+> +		writel(0, csi2rx->base + CSI2RX_STREAM_CTRL_REG(i));
+> +
+> +		clk_disable_unprepare(csi2rx->pixel_clk[i]);
+> +	}
+> +
+> +	clk_disable_unprepare(csi2rx->p_clk);
+> +
+> +	return v4l2_subdev_call(csi2rx->source_subdev, video, s_stream, false);
+> +}
+> +
+> +static int csi2rx_s_stream(struct v4l2_subdev *sd, int enable)
+> +{
+> +	struct csi2rx_priv *csi2rx = v4l2_subdev_to_csi2rx(sd);
+> +
+> +	if (enable)
+> +		csi2rx_start(csi2rx);
+> +	else
+> +		csi2rx_stop(csi2rx);
+> +
+> +	return 0;
+
+Since we added the error checking in both csi2rx_start/csi2rx_stop
+we should also propagate the error as well.
+Something like:
+
+	if (enable)
+		return csi2rx_start(csi2rx);
+
+	return csi2rx_stop(csi2rx);
+...
+
+> +}
+> +
+> +static const struct v4l2_subdev_video_ops csi2rx_video_ops = {
+> +	.s_stream	= csi2rx_s_stream,
+> +};
+> +
+> +static const struct v4l2_subdev_ops csi2rx_subdev_ops = {
+> +	.video		= &csi2rx_video_ops,
+> +};
+> +
+> +static int csi2rx_async_bound(struct v4l2_async_notifier *notifier,
+> +			      struct v4l2_subdev *s_subdev,
+> +			      struct v4l2_async_subdev *asd)
+> +{
+> +	struct v4l2_subdev *subdev = subnotifier_to_v4l2_subdev(notifier);
+> +	struct csi2rx_priv *csi2rx = v4l2_subdev_to_csi2rx(subdev);
+> +
+> +	csi2rx->source_pad = media_entity_get_fwnode_pad(&s_subdev->entity,
+> +							 &csi2rx->source_node->fwnode,
+> +							 MEDIA_PAD_FL_SOURCE);
+> +	if (csi2rx->source_pad < 0) {
+> +		dev_err(csi2rx->dev, "Couldn't find output pad for subdev %s\n",
+> +			s_subdev->name);
+> +		return csi2rx->source_pad;
+> +	}
+> +
+> +	csi2rx->source_subdev = s_subdev;
+> +
+> +	dev_dbg(csi2rx->dev, "Bound %s pad: %d\n", s_subdev->name,
+> +		csi2rx->source_pad);
+> +
+> +	return 0;
+> +}
+> +
+> +static int csi2rx_async_complete(struct v4l2_async_notifier *notifier)
+> +{
+> +	struct v4l2_subdev *subdev = subnotifier_to_v4l2_subdev(notifier);
+> +	struct csi2rx_priv *csi2rx = v4l2_subdev_to_csi2rx(subdev);
+> +
+> +	return media_create_pad_link(&csi2rx->source_subdev->entity,
+> +				     csi2rx->source_pad,
+> +				     &csi2rx->subdev.entity, 0,
+> +				     MEDIA_LNK_FL_ENABLED |
+> +				     MEDIA_LNK_FL_IMMUTABLE);
+> +}
+> +
+> +static void csi2rx_async_unbind(struct v4l2_async_notifier *notifier,
+> +				struct v4l2_subdev *s_subdev,
+> +				struct v4l2_async_subdev *asd)
+> +{
+> +	struct v4l2_subdev *subdev = subnotifier_to_v4l2_subdev(notifier);
+> +	struct csi2rx_priv *csi2rx = v4l2_subdev_to_csi2rx(subdev);
+> +
+> +	dev_dbg(csi2rx->dev, "Unbound %s pad: %d\n", s_subdev->name,
+> +		csi2rx->source_pad);
+> +
+> +	csi2rx->source_subdev = NULL;
+> +	csi2rx->source_pad = -EINVAL;
+> +}
+> +
+> +static int csi2rx_get_resources(struct csi2rx_priv *csi2rx,
+> +				struct platform_device *pdev)
+> +{
+> +	struct resource *res;
+> +	unsigned char i;
+> +	u32 reg;
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	csi2rx->base = devm_ioremap_resource(&pdev->dev, res);
+> +	if (IS_ERR(csi2rx->base))
+> +		return PTR_ERR(csi2rx->base);
+> +
+> +	csi2rx->sys_clk = devm_clk_get(&pdev->dev, "sys_clk");
+> +	if (IS_ERR(csi2rx->sys_clk)) {
+> +		dev_err(&pdev->dev, "Couldn't get sys clock\n");
+> +		return PTR_ERR(csi2rx->sys_clk);
+> +	}
+> +
+> +	csi2rx->p_clk = devm_clk_get(&pdev->dev, "p_clk");
+> +	if (IS_ERR(csi2rx->p_clk)) {
+> +		dev_err(&pdev->dev, "Couldn't get P clock\n");
+> +		return PTR_ERR(csi2rx->p_clk);
+> +	}
+> +
+> +	csi2rx->dphy = devm_phy_optional_get(&pdev->dev, "dphy");
+> +	if (IS_ERR(csi2rx->dphy)) {
+> +		dev_err(&pdev->dev, "Couldn't get external D-PHY\n");
+> +		return PTR_ERR(csi2rx->dphy);
+> +	}
+> +
+> +	/*
+> +	 * FIXME: Once we'll have external D-PHY support, the check
+> +	 * will need to be removed.
+> +	 */
+> +	if (csi2rx->dphy) {
+> +		dev_err(&pdev->dev, "External D-PHY not supported yet\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	clk_prepare_enable(csi2rx->p_clk);
+> +	reg = readl(csi2rx->base + CSI2RX_DEVICE_CFG_REG);
+> +	clk_disable_unprepare(csi2rx->p_clk);
+> +
+> +	csi2rx->max_lanes = (reg & 7);
+> +	if (csi2rx->max_lanes > 4) {
+
+Should use a macro here.
+
+> +		dev_err(&pdev->dev, "Invalid number of lanes: %u\n",
+> +			csi2rx->max_lanes);
+> +		return -EINVAL;
+> +	}
+> +
+> +	csi2rx->max_streams = ((reg >> 4) & 7);
+> +	if (csi2rx->max_streams > CSI2RX_STREAMS_MAX) {
+> +		dev_err(&pdev->dev, "Invalid number of streams: %u\n",
+> +			csi2rx->max_streams);
+> +		return -EINVAL;
+> +	}
+> +
+> +	csi2rx->has_internal_dphy = (reg & BIT(3)) ? true : false;
+> +
+> +	/*
+> +	 * FIXME: Once we'll have internal D-PHY support, the check
+> +	 * will need to be removed.
+> +	 */
+> +	if (csi2rx->has_internal_dphy) {
+> +		dev_err(&pdev->dev, "Internal D-PHY not supported yet\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	for (i = 0; i < csi2rx->max_streams; i++) {
+> +		char clk_name[16];
+> +
+> +		snprintf(clk_name, sizeof(clk_name), "pixel_if%u_clk", i);
+> +		csi2rx->pixel_clk[i] = devm_clk_get(&pdev->dev, clk_name);
+> +		if (IS_ERR(csi2rx->pixel_clk[i])) {
+> +			dev_err(&pdev->dev, "Couldn't get clock %s\n", clk_name);
+> +			return PTR_ERR(csi2rx->pixel_clk[i]);
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int csi2rx_parse_dt(struct csi2rx_priv *csi2rx)
+> +{
+> +	struct v4l2_fwnode_endpoint v4l2_ep;
+> +	struct device_node *ep, *remote;
+> +	int ret;
+> +
+> +	ep = of_graph_get_endpoint_by_regs(csi2rx->dev->of_node, 0, 0);
+> +	if (!ep)
+> +		return -EINVAL;
+> +
+> +	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
+> +	if (ret) {
+> +		dev_err(csi2rx->dev, "Could not parse v4l2 endpoint\n");
+> +		goto out;
+> +	}
+> +
+> +	if (v4l2_ep.bus_type != V4L2_MBUS_CSI2) {
+> +		dev_err(csi2rx->dev, "Unsupported media bus type: 0x%x\n",
+> +			v4l2_ep.bus_type);
+> +		ret = -EINVAL;
+> +		goto out;
+> +	}
+> +
+> +	memcpy(csi2rx->lanes, v4l2_ep.bus.mipi_csi2.data_lanes,
+> +	       sizeof(csi2rx->lanes));
+> +	csi2rx->num_lanes = v4l2_ep.bus.mipi_csi2.num_data_lanes;
+> +	if (csi2rx->num_lanes > csi2rx->max_lanes) {
+> +		dev_err(csi2rx->dev, "Unsupported number of data-lanes: %d\n",
+> +			csi2rx->num_lanes);
+> +		ret = -EINVAL;
+> +		goto out;
+> +	}
+> +
+> +	remote = of_graph_get_remote_port_parent(ep);
+> +	if (!remote) {
+> +		dev_err(csi2rx->dev, "No device found for endpoint %pOF\n", ep);
+> +		ret = -EINVAL;
+> +		goto out;
+> +	}
+> +
+> +	dev_dbg(csi2rx->dev, "Found remote device %pOF\n", remote);
+> +
+> +	csi2rx->source_node = remote;
+> +	csi2rx->asd.match.fwnode.fwnode = &remote->fwnode;
+> +	csi2rx->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> +
+> +out:
+> +	of_node_put(ep);
+> +	return ret;
+> +}
+> +
+> +static int csi2rx_probe(struct platform_device *pdev)
+> +{
+> +	struct v4l2_async_subdev **subdevs;
+> +	struct csi2rx_priv *csi2rx;
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	/*
+> +	 * Since the v4l2_subdev structure is embedded in our
+> +	 * csi2rx_priv structure, and that the structure is exposed to
+> +	 * the user-space, we cannot just use the devm_variant
+> +	 * here. Indeed, that would lead to a use-after-free in a
+> +	 * open() - unbind - close() pattern.
+> +	 */
+> +	csi2rx = kzalloc(sizeof(*csi2rx), GFP_KERNEL);
+> +	if (!csi2rx)
+> +		return -ENOMEM;
+> +	platform_set_drvdata(pdev, csi2rx);
+> +	csi2rx->dev = &pdev->dev;
+> +
+> +	ret = csi2rx_get_resources(csi2rx, pdev);
+> +	if (ret)
+> +		goto err_free_priv;
+> +
+> +	ret = csi2rx_parse_dt(csi2rx);
+> +	if (ret)
+> +		goto err_free_priv;
+> +
+> +	csi2rx->subdev.owner = THIS_MODULE;
+> +	csi2rx->subdev.dev = &pdev->dev;
+> +	v4l2_subdev_init(&csi2rx->subdev, &csi2rx_subdev_ops);
+> +	v4l2_set_subdevdata(&csi2rx->subdev, &pdev->dev);
+> +	snprintf(csi2rx->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s.%s",
+> +		 KBUILD_MODNAME, dev_name(&pdev->dev));
+> +
+> +	/* Create our media pads */
+> +	csi2rx->subdev.entity.function = MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
+> +	csi2rx->pads[CSI2RX_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
+> +	for (i = CSI2RX_PAD_SOURCE_STREAM0; i < CSI2RX_PAD_MAX; i++)
+> +		csi2rx->pads[i].flags = MEDIA_PAD_FL_SOURCE;
+> +
+> +	subdevs = devm_kzalloc(csi2rx->dev, sizeof(*subdevs), GFP_KERNEL);
+> +	if (!subdevs) {
+> +		ret = -ENOMEM;
+> +		goto err_free_priv;
+> +	}
+> +	subdevs[0] = &csi2rx->asd;
+> +
+
+Shouldn't the comment related to lifetime of memory allocation be also applied here?
+A reference to the "subdevs" pointer is taken internally so it might suffer the same fate.
+Not sure how many "struct v4l2_async_subdev **subdevs" we would end up needing
+but since here we are only dealing with one, why not just make it a member of the
+struct csi2rx_priv object.
+
+> +	ret = v4l2_async_subdev_notifier_register(&csi2rx->subdev, 1, subdevs,
+> +						  csi2rx_async_bound,
+> +						  csi2rx_async_complete,
+> +						  csi2rx_async_unbind);
+> +	if (ret < 0) {
+> +		dev_err(csi2rx->dev, "Failed to register our notifier\n");
+> +		goto err_free_priv;
+> +	}
+> +
+> +	ret = media_entity_pads_init(&csi2rx->subdev.entity, CSI2RX_PAD_MAX,
+> +				     csi2rx->pads);
+> +	if (ret)
+> +		goto err_free_priv;
+> +
+> +	ret = v4l2_async_register_subdev(&csi2rx->subdev);
+> +	if (ret < 0)
+> +		goto err_free_priv;
+> +
+> +	dev_info(&pdev->dev,
+> +		 "Probed CSI2RX with %u/%u lanes, %u streams, %s D-PHY\n",
+> +		 csi2rx->num_lanes, csi2rx->max_lanes, csi2rx->max_streams,
+> +		 csi2rx->has_internal_dphy ? "internal" : "no");
+> +
+> +	return 0;
+> +
+> +err_free_priv:
+> +	kfree(csi2rx);
+> +	return ret;
+> +}
+> +
+> +static int csi2rx_remove(struct platform_device *pdev)
+> +{
+> +	struct csi2rx_priv *csi2rx = platform_get_drvdata(pdev);
+> +
+> +	v4l2_async_unregister_subdev(&csi2rx->subdev);
+> +	kfree(csi2rx);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct of_device_id csi2rx_of_table[] = {
+> +	{ .compatible = "cdns,csi2rx" },
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, csi2rx_of_table);
+> +
+> +static struct platform_driver csi2rx_driver = {
+> +	.probe	= csi2rx_probe,
+> +	.remove	= csi2rx_remove,
+> +
+> +	.driver	= {
+> +		.name		= "cdns-csi2rx",
+> +		.of_match_table	= csi2rx_of_table,
+> +	},
+> +};
+> +module_platform_driver(csi2rx_driver);
+> -- 
+> 2.13.5
+> 
