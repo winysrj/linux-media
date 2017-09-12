@@ -1,221 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:64102 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751057AbdISKB1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 06:01:27 -0400
-Date: Tue, 19 Sep 2017 13:00:48 +0300
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33500 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751518AbdILImv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Sep 2017 04:42:51 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
         laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
         pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v13 05/25] v4l: fwnode: Support generic parsing of graph
- endpoints in a device
-Message-ID: <20170919100048.7jut3benh2vbb32q@paasikivi.fi.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
- <20170915141724.23124-6-sakari.ailus@linux.intel.com>
- <a17ab793-b859-f04a-2dff-d8f6a314e9bf@xs4all.nl>
- <20170919082015.vt6olgirnvmpcrpa@paasikivi.fi.intel.com>
- <af99e12c-6fb8-a633-eec2-c1eb9d82226a@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <af99e12c-6fb8-a633-eec2-c1eb9d82226a@xs4all.nl>
+Subject: [PATCH v11 21/24] smiapp: Add support for flash and lens devices
+Date: Tue, 12 Sep 2017 11:42:33 +0300
+Message-Id: <20170912084236.1154-22-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Parse async sub-devices by using
+v4l2_subdev_fwnode_reference_parse_sensor_common().
 
-On Tue, Sep 19, 2017 at 10:40:14AM +0200, Hans Verkuil wrote:
-> On 09/19/2017 10:20 AM, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > Thank you for the review.
-> > 
-> > On Tue, Sep 19, 2017 at 10:03:27AM +0200, Hans Verkuil wrote:
-> >> On 09/15/2017 04:17 PM, Sakari Ailus wrote:
-...
-> >>> +static int __v4l2_async_notifier_parse_fwnode_endpoints(
-> >>> +	struct device *dev, struct v4l2_async_notifier *notifier,
-> >>> +	size_t asd_struct_size, unsigned int port, bool has_port,
-> >>> +	int (*parse_endpoint)(struct device *dev,
-> >>> +			    struct v4l2_fwnode_endpoint *vep,
-> >>> +			    struct v4l2_async_subdev *asd))
-> >>> +{
-> >>> +	struct fwnode_handle *fwnode = NULL;
-> >>> +	unsigned int max_subdevs = notifier->max_subdevs;
-> >>> +	int ret;
-> >>> +
-> >>> +	if (WARN_ON(asd_struct_size < sizeof(struct v4l2_async_subdev)))
-> >>> +		return -EINVAL;
-> >>> +
-> >>> +	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
-> >>> +				     dev_fwnode(dev), fwnode)); ) {
-> >>
-> >> You can replace this by:
-> >>
-> >> 	while ((fwnode = fwnode_graph_get_next_endpoint(dev_fwnode(dev), fwnode))) {
-> >>
-> >>> +		if (!fwnode_device_is_available(
-> >>> +			    fwnode_graph_get_port_parent(fwnode)))
-> >>> +			continue;
-> >>> +
-> >>> +		if (has_port) {
-> >>> +			struct fwnode_endpoint ep;
-> >>> +
-> >>> +			ret = fwnode_graph_parse_endpoint(fwnode, &ep);
-> >>> +			if (ret) {
-> >>> +				fwnode_handle_put(fwnode);
-> >>> +				return ret;
-> >>> +			}
-> >>> +
-> >>> +			if (ep.port != port)
-> >>> +				continue;
-> >>> +		}
-> >>> +		max_subdevs++;
-> >>> +	}
-> >>> +
-> >>> +	/* No subdevs to add? Return here. */
-> >>> +	if (max_subdevs == notifier->max_subdevs)
-> >>> +		return 0;
-> >>> +
-> >>> +	ret = v4l2_async_notifier_realloc(notifier, max_subdevs);
-> >>> +	if (ret)
-> >>> +		return ret;
-> >>> +
-> >>> +	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
-> >>> +				     dev_fwnode(dev), fwnode)); ) {
-> >>
-> >> Same here: this can be a 'while'.
-> > 
-> > The fwnode = NULL assignment still needs to be done. A for loop has a
-> > natural initialiser for the loop, I think it's cleaner than using while
-> > here.
-> 
-> After the previous while fwnode is NULL again (since that's when the while
-> stops).
-> 
-> > 
-> > The macro would be implemented this way as well.
-> > 
-> > For the loop above this one, I'd use for for consistency: it's the same
-> > loop after all.
-> > 
-> > This reminds me --- I'll send the patch for the macro.
-> 
-> If this is going to be replaced by a macro, then disregard my comment.
+These types devices aren't directly related to the sensor, but are
+nevertheless handled by the smiapp driver due to the relationship of these
+component to the main part of the camera module --- the sensor.
 
-Yes. I just sent that to linux-acpi (as well as devicetree and to you).
+This does not yet address providing the user space with information on how
+to associate the sensor or lens devices but the kernel now has the
+necessary information to do that.
 
-...
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 38 +++++++++++++++++++++++++++-------
+ drivers/media/i2c/smiapp/smiapp.h      |  4 +++-
+ 2 files changed, 33 insertions(+), 9 deletions(-)
 
-> >>> +/**
-> >>> + * v4l2_async_notifier_parse_fwnode_endpoints - Parse V4L2 fwnode endpoints in a
-> >>> + *						device node
-> >>> + * @dev: the device the endpoints of which are to be parsed
-> >>> + * @notifier: notifier for @dev
-> >>> + * @asd_struct_size: size of the driver's async sub-device struct, including
-> >>> + *		     sizeof(struct v4l2_async_subdev). The &struct
-> >>> + *		     v4l2_async_subdev shall be the first member of
-> >>> + *		     the driver's async sub-device struct, i.e. both
-> >>> + *		     begin at the same memory address.
-> >>> + * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
-> >>> + *		    endpoint. Optional.
-> >>> + *		    Return: %0 on success
-> >>> + *			    %-ENOTCONN if the endpoint is to be skipped but this
-> >>> + *				       should not be considered as an error
-> >>> + *			    %-EINVAL if the endpoint configuration is invalid
-> >>> + *
-> >>> + * Parse the fwnode endpoints of the @dev device and populate the async sub-
-> >>> + * devices array of the notifier. The @parse_endpoint callback function is
-> >>> + * called for each endpoint with the corresponding async sub-device pointer to
-> >>> + * let the caller initialize the driver-specific part of the async sub-device
-> >>> + * structure.
-> >>> + *
-> >>> + * The notifier memory shall be zeroed before this function is called on the
-> >>> + * notifier.
-> >>> + *
-> >>> + * This function may not be called on a registered notifier and may be called on
-> >>> + * a notifier only once.
-> >>> + *
-> >>> + * Do not change the notifier's subdevs array, take references to the subdevs
-> >>> + * array itself or change the notifier's num_subdevs field. This is because this
-> >>> + * function allocates and reallocates the subdevs array based on parsing
-> >>> + * endpoints.
-> >>> + *
-> >>> + * The @struct v4l2_fwnode_endpoint passed to the callback function
-> >>> + * @parse_endpoint is released once the function is finished. If there is a need
-> >>> + * to retain that configuration, the user needs to allocate memory for it.
-> >>> + *
-> >>> + * Any notifier populated using this function must be released with a call to
-> >>> + * v4l2_async_notifier_release() after it has been unregistered and the async
-> >>> + * sub-devices are no longer in use, even if the function returned an error.
-> >>> + *
-> >>> + * Return: %0 on success, including when no async sub-devices are found
-> >>> + *	   %-ENOMEM if memory allocation failed
-> >>> + *	   %-EINVAL if graph or endpoint parsing failed
-> >>> + *	   Other error codes as returned by @parse_endpoint
-> >>> + */
-> >>> +int v4l2_async_notifier_parse_fwnode_endpoints(
-> >>> +	struct device *dev, struct v4l2_async_notifier *notifier,
-> >>> +	size_t asd_struct_size,
-> >>> +	int (*parse_endpoint)(struct device *dev,
-> >>> +			      struct v4l2_fwnode_endpoint *vep,
-> >>> +			      struct v4l2_async_subdev *asd));
-> >>> +
-> >>> +/**
-> >>> + * v4l2_async_notifier_parse_fwnode_endpoints_by_port - Parse V4L2 fwnode
-> >>> + *							endpoints of a port in a
-> >>> + *							device node
-> >>> + * @dev: the device the endpoints of which are to be parsed
-> >>> + * @notifier: notifier for @dev
-> >>> + * @asd_struct_size: size of the driver's async sub-device struct, including
-> >>> + *		     sizeof(struct v4l2_async_subdev). The &struct
-> >>> + *		     v4l2_async_subdev shall be the first member of
-> >>> + *		     the driver's async sub-device struct, i.e. both
-> >>> + *		     begin at the same memory address.
-> >>> + * @port: port number where endpoints are to be parsed
-> >>> + * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
-> >>> + *		    endpoint. Optional.
-> >>> + *		    Return: %0 on success
-> >>> + *			    %-ENOTCONN if the endpoint is to be skipped but this
-> >>> + *				       should not be considered as an error
-> >>> + *			    %-EINVAL if the endpoint configuration is invalid
-> >>> + *
-> >>> + * This function is just like @v4l2_async_notifier_parse_fwnode_endpoints with
-> >>> + * the exception that it only parses endpoints in a given port. This is useful
-> >>> + * on devices that have both sinks and sources: the async sub-devices connected
-> >>
-> >> on -> for
-> >>
-> >>> + * to sources have already been set up by another driver (on capture devices).
-> >>
-> >> on -> for
-> > 
-> > Agreed on both.
-> > 
-> >>
-> >> So if I understand this correctly for devices with both sinks and sources you use
-> >> this function to just parse the sink ports. And you have to give explicit port
-> >> numbers since you can't tell from parsing the device tree if a port is a sink or
-> >> source port, right? Only the driver knows this.
-> > 
-> > Correct. The graph data structure in DT isn't directed, so this is only
-> > known by the driver.
-> 
-> I think this should be clarified.
-> 
-> I wonder if there is any way around it. I don't have time to dig into this, but
-> isn't it possible to tell that the source ports are already configured?
-
-Well, this is essentially what the documentation is attempting to convey.
-:-)
-
-I can add this / change the existing wording, if you think it could help.
-
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 700f433261d0..a65a839135d2 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -31,7 +31,7 @@
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/smiapp.h>
+-#include <linux/v4l2-mediabus.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+ #include <media/v4l2-device.h>
+ 
+@@ -2887,17 +2887,24 @@ static int smiapp_probe(struct i2c_client *client,
+ 	v4l2_i2c_subdev_init(&sensor->src->sd, client, &smiapp_ops);
+ 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
+ 
++	rval = v4l2_fwnode_reference_parse_sensor_common(
++		&client->dev, &sensor->notifier);
++	if (rval < 0)
++		return rval;
++
+ 	sensor->vana = devm_regulator_get(&client->dev, "vana");
+ 	if (IS_ERR(sensor->vana)) {
+ 		dev_err(&client->dev, "could not get regulator for vana\n");
+-		return PTR_ERR(sensor->vana);
++		rval = PTR_ERR(sensor->vana);
++		goto out_release_async_notifier;
+ 	}
+ 
+ 	sensor->ext_clk = devm_clk_get(&client->dev, NULL);
+ 	if (IS_ERR(sensor->ext_clk)) {
+ 		dev_err(&client->dev, "could not get clock (%ld)\n",
+ 			PTR_ERR(sensor->ext_clk));
+-		return -EPROBE_DEFER;
++		rval = -EPROBE_DEFER;
++		goto out_release_async_notifier;
+ 	}
+ 
+ 	rval = clk_set_rate(sensor->ext_clk, sensor->hwcfg->ext_clk);
+@@ -2905,17 +2912,19 @@ static int smiapp_probe(struct i2c_client *client,
+ 		dev_err(&client->dev,
+ 			"unable to set clock freq to %u\n",
+ 			sensor->hwcfg->ext_clk);
+-		return rval;
++		goto out_release_async_notifier;
+ 	}
+ 
+ 	sensor->xshutdown = devm_gpiod_get_optional(&client->dev, "xshutdown",
+ 						    GPIOD_OUT_LOW);
+-	if (IS_ERR(sensor->xshutdown))
+-		return PTR_ERR(sensor->xshutdown);
++	if (IS_ERR(sensor->xshutdown)) {
++		rval = PTR_ERR(sensor->xshutdown);
++		goto out_release_async_notifier;
++	}
+ 
+ 	rval = smiapp_power_on(&client->dev);
+ 	if (rval < 0)
+-		return rval;
++		goto out_release_async_notifier;
+ 
+ 	rval = smiapp_identify_module(sensor);
+ 	if (rval) {
+@@ -3092,9 +3101,14 @@ static int smiapp_probe(struct i2c_client *client,
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
+ 
++	rval = v4l2_async_subdev_notifier_register(&sensor->src->sd,
++						   &sensor->notifier);
++	if (rval)
++		goto out_media_entity_cleanup;
++
+ 	rval = v4l2_async_register_subdev(&sensor->src->sd);
+ 	if (rval < 0)
+-		goto out_media_entity_cleanup;
++		goto out_unregister_async_notifier;
+ 
+ 	pm_runtime_set_active(&client->dev);
+ 	pm_runtime_get_noresume(&client->dev);
+@@ -3105,6 +3119,9 @@ static int smiapp_probe(struct i2c_client *client,
+ 
+ 	return 0;
+ 
++out_unregister_async_notifier:
++	v4l2_async_notifier_unregister(&sensor->notifier);
++
+ out_media_entity_cleanup:
+ 	media_entity_cleanup(&sensor->src->sd.entity);
+ 
+@@ -3114,6 +3131,9 @@ static int smiapp_probe(struct i2c_client *client,
+ out_power_off:
+ 	smiapp_power_off(&client->dev);
+ 
++out_release_async_notifier:
++	v4l2_async_notifier_release(&sensor->notifier);
++
+ 	return rval;
+ }
+ 
+@@ -3124,6 +3144,8 @@ static int smiapp_remove(struct i2c_client *client)
+ 	unsigned int i;
+ 
+ 	v4l2_async_unregister_subdev(subdev);
++	v4l2_async_notifier_unregister(&sensor->notifier);
++	v4l2_async_notifier_release(&sensor->notifier);
+ 
+ 	pm_runtime_disable(&client->dev);
+ 	if (!pm_runtime_status_suspended(&client->dev))
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index f74d695018b9..be92cb5713f4 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -20,9 +20,10 @@
+ #define __SMIAPP_PRIV_H_
+ 
+ #include <linux/mutex.h>
++#include <media/i2c/smiapp.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-subdev.h>
+-#include <media/i2c/smiapp.h>
+ 
+ #include "smiapp-pll.h"
+ #include "smiapp-reg.h"
+@@ -172,6 +173,7 @@ struct smiapp_subdev {
+  * struct smiapp_sensor - Main device structure
+  */
+ struct smiapp_sensor {
++	struct v4l2_async_notifier notifier;
+ 	/*
+ 	 * "mutex" is used to serialise access to all fields here
+ 	 * except v4l2_ctrls at the end of the struct. "mutex" is also
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.11.0
