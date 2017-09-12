@@ -1,80 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:48516 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757293AbdIIJIV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 9 Sep 2017 05:08:21 -0400
-Date: Sat, 9 Sep 2017 11:08:18 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        sre@kernel.org
-Subject: Re: [PATCH v9 17/24] ACPI: Document how to refer to LEDs from remote
- nodes
-Message-ID: <20170909090817.GG27428@amd>
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
- <20170908131822.31020-13-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="eVzOFob/8UvintSX"
-Content-Disposition: inline
-In-Reply-To: <20170908131822.31020-13-sakari.ailus@linux.intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33508 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751520AbdILImx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Sep 2017 04:42:53 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v11 23/24] ov13858: Add support for flash and lens devices
+Date: Tue, 12 Sep 2017 11:42:35 +0300
+Message-Id: <20170912084236.1154-24-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Parse async sub-devices by using
+v4l2_subdev_fwnode_reference_parse_sensor_common().
 
---eVzOFob/8UvintSX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/ov13858.c | 26 +++++++++++++++++++++++---
+ 1 file changed, 23 insertions(+), 3 deletions(-)
 
-On Fri 2017-09-08 16:18:15, Sakari Ailus wrote:
-> Document referring to LEDs from remote device nodes, such as from camera
-> sensors.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-> diff --git a/Documentation/acpi/dsd/leds.txt b/Documentation/acpi/dsd/led=
-s.txt
-> new file mode 100644
-> index 000000000000..6217fcda15c9
-> --- /dev/null
-> +++ b/Documentation/acpi/dsd/leds.txt
-> @@ -0,0 +1,92 @@
-> +Describing and referring to LEDs in ACPI
-> +
-> +Individual LEDs are described by hierarchical data extension [6] nodes
-> +under the device node, the LED driver chip. The "led" property in the
-> +LED specific nodes tells the numerical ID of each individual LED. The
-> +"led" property is used here in a similar fashion as the "reg" property
-> +in DT. [3]
-> +
-> +Referring to LEDs in Devicetree is documented in [4], in "flash-leds"
-> +property documentation. In short, LEDs are directly referred to by
-> +using phandles.
-> +
-> +While Devicetree allows referring to any node in the tree[1], in
-
-Documentation/devicetree/usage-model.txt talks about "device tree" or
-"Device Tree" . Single word looks strange to me...
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---eVzOFob/8UvintSX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlmzr4EACgkQMOfwapXb+vLf8gCeK2pBgd7UqLUBZ/mHDV4jTLkZ
-ixsAniVaWicTXQzKE4erA50jgdo79qF+
-=lQ1r
------END PGP SIGNATURE-----
-
---eVzOFob/8UvintSX--
+diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+index af7af0d14c69..0d60defc7492 100644
+--- a/drivers/media/i2c/ov13858.c
++++ b/drivers/media/i2c/ov13858.c
+@@ -18,6 +18,7 @@
+ #include <linux/pm_runtime.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-fwnode.h>
+ 
+ #define OV13858_REG_VALUE_08BIT		1
+ #define OV13858_REG_VALUE_16BIT		2
+@@ -1028,6 +1029,7 @@ static const struct ov13858_mode supported_modes[] = {
+ struct ov13858 {
+ 	struct v4l2_subdev sd;
+ 	struct media_pad pad;
++	struct v4l2_async_notifier notifier;
+ 
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	/* V4L2 Controls */
+@@ -1715,6 +1717,11 @@ static int ov13858_probe(struct i2c_client *client,
+ 	if (!ov13858)
+ 		return -ENOMEM;
+ 
++	ret = v4l2_fwnode_reference_parse_sensor_common(
++		&client->dev, &ov13858->notifier);
++	if (ret < 0)
++		return ret;
++
+ 	/* Initialize subdev */
+ 	v4l2_i2c_subdev_init(&ov13858->sd, client, &ov13858_subdev_ops);
+ 
+@@ -1722,7 +1729,7 @@ static int ov13858_probe(struct i2c_client *client,
+ 	ret = ov13858_identify_module(ov13858);
+ 	if (ret) {
+ 		dev_err(&client->dev, "failed to find sensor: %d\n", ret);
+-		return ret;
++		goto error_notifier_release;
+ 	}
+ 
+ 	/* Set default mode to max resolution */
+@@ -1730,7 +1737,7 @@ static int ov13858_probe(struct i2c_client *client,
+ 
+ 	ret = ov13858_init_controls(ov13858);
+ 	if (ret)
+-		return ret;
++		goto error_notifier_release;
+ 
+ 	/* Initialize subdev */
+ 	ov13858->sd.internal_ops = &ov13858_internal_ops;
+@@ -1746,9 +1753,14 @@ static int ov13858_probe(struct i2c_client *client,
+ 		goto error_handler_free;
+ 	}
+ 
++	ret = v4l2_async_subdev_notifier_register(&ov13858->sd,
++						  &ov13858->notifier);
++	if (ret)
++		goto error_media_entity;
++
+ 	ret = v4l2_async_register_subdev(&ov13858->sd);
+ 	if (ret < 0)
+-		goto error_media_entity;
++		goto error_notifier_unregister;
+ 
+ 	/*
+ 	 * Device is already turned on by i2c-core with ACPI domain PM.
+@@ -1761,11 +1773,17 @@ static int ov13858_probe(struct i2c_client *client,
+ 
+ 	return 0;
+ 
++error_notifier_unregister:
++	v4l2_async_notifier_unregister(&ov13858->notifier);
++
+ error_media_entity:
+ 	media_entity_cleanup(&ov13858->sd.entity);
+ 
+ error_handler_free:
+ 	ov13858_free_controls(ov13858);
++
++error_notifier_release:
++	v4l2_async_notifier_release(&ov13858->notifier);
+ 	dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
+ 
+ 	return ret;
+@@ -1777,6 +1795,8 @@ static int ov13858_remove(struct i2c_client *client)
+ 	struct ov13858 *ov13858 = to_ov13858(sd);
+ 
+ 	v4l2_async_unregister_subdev(sd);
++	v4l2_async_notifier_unregister(&ov13858->notifier);
++	v4l2_async_notifier_release(&ov13858->notifier);
+ 	media_entity_cleanup(&sd->entity);
+ 	ov13858_free_controls(ov13858);
+ 
+-- 
+2.11.0
