@@ -1,84 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40564 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750869AbdILTSt (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33506 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751519AbdILImv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 15:18:49 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: kieran.bingham@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 6/8] v4l: vsp1: Adapt entities to configure into a body
-Date: Tue, 12 Sep 2017 22:18:50 +0300
-Message-ID: <4353515.cR2bnzc1Fq@avalon>
-In-Reply-To: <112c0f66-4918-40d0-d2dd-17f9bbd03f12@ideasonboard.com>
-References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com> <1807083.ZJnR2iqIOD@avalon> <112c0f66-4918-40d0-d2dd-17f9bbd03f12@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Tue, 12 Sep 2017 04:42:51 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v11 22/24] ov5670: Add support for flash and lens devices
+Date: Tue, 12 Sep 2017 11:42:34 +0300
+Message-Id: <20170912084236.1154-23-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Parse async sub-devices by using
+v4l2_subdev_fwnode_reference_parse_sensor_common().
 
-On Tuesday, 12 September 2017 00:42:09 EEST Kieran Bingham wrote:
-> On 17/08/17 18:58, Laurent Pinchart wrote:
-> > On Monday 14 Aug 2017 16:13:29 Kieran Bingham wrote:
-> >> Currently the entities store their configurations into a display list.
-> >> Adapt this such that the code can be configured into a body fragment
-> >> directly, allowing greater flexibility and control of the content.
-> >> 
-> >> All users of vsp1_dl_list_write() are removed in this process, thus it
-> >> too is removed.
-> >> 
-> >> A helper, vsp1_dl_list_body() is provided to access the internal body0
-> >> from the display list.
-> >> 
-> >> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> >> ---
-> >> 
-> >>  drivers/media/platform/vsp1/vsp1_bru.c    | 22 ++++++------
-> >>  drivers/media/platform/vsp1/vsp1_clu.c    | 22 ++++++------
-> >>  drivers/media/platform/vsp1/vsp1_dl.c     | 12 ++-----
-> >>  drivers/media/platform/vsp1/vsp1_dl.h     |  2 +-
-> >>  drivers/media/platform/vsp1/vsp1_drm.c    | 14 +++++---
-> >>  drivers/media/platform/vsp1/vsp1_entity.c | 16 ++++-----
-> >>  drivers/media/platform/vsp1/vsp1_entity.h | 12 ++++---
-> >>  drivers/media/platform/vsp1/vsp1_hgo.c    | 16 ++++-----
-> >>  drivers/media/platform/vsp1/vsp1_hgt.c    | 18 +++++-----
-> >>  drivers/media/platform/vsp1/vsp1_hsit.c   | 10 +++---
-> >>  drivers/media/platform/vsp1/vsp1_lif.c    | 13 +++----
-> >>  drivers/media/platform/vsp1/vsp1_lut.c    | 21 ++++++------
-> >>  drivers/media/platform/vsp1/vsp1_pipe.c   |  4 +-
-> >>  drivers/media/platform/vsp1/vsp1_pipe.h   |  3 +-
-> >>  drivers/media/platform/vsp1/vsp1_rpf.c    | 43 +++++++++++-------------
-> >>  drivers/media/platform/vsp1/vsp1_sru.c    | 14 ++++----
-> >>  drivers/media/platform/vsp1/vsp1_uds.c    | 24 +++++++------
-> >>  drivers/media/platform/vsp1/vsp1_uds.h    |  2 +-
-> >>  drivers/media/platform/vsp1/vsp1_video.c  | 11 ++++--
-> >>  drivers/media/platform/vsp1/vsp1_wpf.c    | 42 ++++++++++++-----------
-> >>  20 files changed, 168 insertions(+), 153 deletions(-)
-> > 
-> > This is quite intrusive, and it bothers me slightly that we need to pass
-> > both the DL and the DLB to the configure function in order to add
-> > fragments to the DL in the CLU and LUT modules. Wouldn't it be simpler to
-> > add a pointer to the current body in the DL structure, and modify
-> > vsp1_dl_list_write() to write to the current fragment ?
-> 
-> No doubt about it, 168+, 153- is certainly intrusive.
-> 
-> Yes, now I'm looking back at this, I think this does look like this part is
-> not quite the right approach.
-> 
-> Which otherwise stalls the series until I have time to reconsider. I will
-> likely repost the work I have done on the earlier patches, including the
-> 's/fragment/body/g' changes and ready myself for a v4 which will contain the
-> heavier reworks.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/ov5670.c | 33 +++++++++++++++++++++++++--------
+ 1 file changed, 25 insertions(+), 8 deletions(-)
 
-Fine with me. Could you make sure to mention the open issues in the cover 
-letter ? I want to avoid commenting on them if you know already that you will 
-rework them later.
-
+diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
+index 6f7a1d6d2200..25970307dd75 100644
+--- a/drivers/media/i2c/ov5670.c
++++ b/drivers/media/i2c/ov5670.c
+@@ -18,6 +18,7 @@
+ #include <linux/pm_runtime.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-fwnode.h>
+ 
+ #define OV5670_REG_CHIP_ID		0x300a
+ #define OV5670_CHIP_ID			0x005670
+@@ -1807,6 +1808,7 @@ static const struct ov5670_mode supported_modes[] = {
+ struct ov5670 {
+ 	struct v4l2_subdev sd;
+ 	struct media_pad pad;
++	struct v4l2_async_notifier notifier;
+ 
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	/* V4L2 Controls */
+@@ -2473,11 +2475,13 @@ static int ov5670_probe(struct i2c_client *client)
+ 		return -EINVAL;
+ 
+ 	ov5670 = devm_kzalloc(&client->dev, sizeof(*ov5670), GFP_KERNEL);
+-	if (!ov5670) {
+-		ret = -ENOMEM;
+-		err_msg = "devm_kzalloc() error";
+-		goto error_print;
+-	}
++	if (!ov5670)
++		return -ENOMEM;
++
++	ret = v4l2_fwnode_reference_parse_sensor_common(
++		&client->dev, &ov5670->notifier);
++	if (ret < 0)
++		return ret;
+ 
+ 	/* Initialize subdev */
+ 	v4l2_i2c_subdev_init(&ov5670->sd, client, &ov5670_subdev_ops);
+@@ -2486,7 +2490,7 @@ static int ov5670_probe(struct i2c_client *client)
+ 	ret = ov5670_identify_module(ov5670);
+ 	if (ret) {
+ 		err_msg = "ov5670_identify_module() error";
+-		goto error_print;
++		goto error_release_notifier;
+ 	}
+ 
+ 	mutex_init(&ov5670->mutex);
+@@ -2513,11 +2517,18 @@ static int ov5670_probe(struct i2c_client *client)
+ 		goto error_handler_free;
+ 	}
+ 
++	ret = v4l2_async_subdev_notifier_register(&ov5670->sd,
++						  &ov5670->notifier);
++	if (ret) {
++		err_msg = "can't register async notifier";
++		goto error_entity_cleanup;
++	}
++
+ 	/* Async register for subdev */
+ 	ret = v4l2_async_register_subdev(&ov5670->sd);
+ 	if (ret < 0) {
+ 		err_msg = "v4l2_async_register_subdev() error";
+-		goto error_entity_cleanup;
++		goto error_unregister_notifier;
+ 	}
+ 
+ 	ov5670->streaming = false;
+@@ -2533,6 +2544,9 @@ static int ov5670_probe(struct i2c_client *client)
+ 
+ 	return 0;
+ 
++error_unregister_notifier:
++	v4l2_async_notifier_unregister(&ov5670->notifier);
++
+ error_entity_cleanup:
+ 	media_entity_cleanup(&ov5670->sd.entity);
+ 
+@@ -2542,7 +2556,8 @@ static int ov5670_probe(struct i2c_client *client)
+ error_mutex_destroy:
+ 	mutex_destroy(&ov5670->mutex);
+ 
+-error_print:
++error_release_notifier:
++	v4l2_async_notifier_release(&ov5670->notifier);
+ 	dev_err(&client->dev, "%s: %s %d\n", __func__, err_msg, ret);
+ 
+ 	return ret;
+@@ -2554,6 +2569,8 @@ static int ov5670_remove(struct i2c_client *client)
+ 	struct ov5670 *ov5670 = to_ov5670(sd);
+ 
+ 	v4l2_async_unregister_subdev(sd);
++	v4l2_async_notifier_unregister(&ov5670->notifier);
++	v4l2_async_notifier_release(&ov5670->notifier);
+ 	media_entity_cleanup(&sd->entity);
+ 	v4l2_ctrl_handler_free(sd->ctrl_handler);
+ 	mutex_destroy(&ov5670->mutex);
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
