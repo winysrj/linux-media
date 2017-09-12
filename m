@@ -1,56 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33444 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36444 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750941AbdIIVhD (ORCPT
+        by vger.kernel.org with ESMTP id S1751404AbdILNmH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 9 Sep 2017 17:37:03 -0400
-Date: Sun, 10 Sep 2017 00:36:59 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        Tue, 12 Sep 2017 09:42:07 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
         robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
         pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v9 18/24] as3645a: Switch to fwnode property API
-Message-ID: <20170909213658.6hqbsn66q4xc2sex@valkosipuli.retiisi.org.uk>
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
- <20170908131822.31020-14-sakari.ailus@linux.intel.com>
- <f6c79aff-dcc7-ee7d-e224-1f9bc6af1fee@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <f6c79aff-dcc7-ee7d-e224-1f9bc6af1fee@gmail.com>
+Subject: [PATCH v12 12/26] v4l: async: Introduce helpers for calling async ops callbacks
+Date: Tue, 12 Sep 2017 16:41:46 +0300
+Message-Id: <20170912134200.19556-13-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Add three helper functions to call async operations callbacks. Besides
+simplifying callbacks, this allows async notifiers to have no ops set,
+i.e. it can be left NULL.
 
-On Sat, Sep 09, 2017 at 09:06:41PM +0200, Jacek Anaszewski wrote:
-> Hi Sakari,
-> 
-> I've come across this patch only by a chance. I believe that merging
-> leds-as3645a.c patches via media tree is not going to be a persistent
-> pattern. At least we haven't agreed on that, and in any case I should
-> have a possibility to give my ack for this patch.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 49 ++++++++++++++++++++++++++----------
+ include/media/v4l2-async.h           |  1 +
+ 2 files changed, 37 insertions(+), 13 deletions(-)
 
-Correct. The reason the previous patches went through linux-media was
-because these patches dependend on other patches only in linux-media at the
-time. This is no longer the case (the three as3645a patches I'd like to get
-in as fixes are another matter but let's discuss that separately).
-
-> 
-> Would you mind also adding linux-leds list on cc when touching areas
-> related to LED/flash devices?
-
-I added this patch to this version of the set and missed cc'ing it to
-linux-leds. I think I'll send it there separately once the 17th patch (ACPI
-support) has been reviewed. The two are loosely related to the rest of the
-patches in the set but there's no hard dependency.
-
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index a2df85ea00f4..c34f93593b41 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -25,6 +25,34 @@
+ #include <media/v4l2-fwnode.h>
+ #include <media/v4l2-subdev.h>
+ 
++static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
++					  struct v4l2_subdev *subdev,
++					  struct v4l2_async_subdev *asd)
++{
++	if (!n->ops || !n->ops->bound)
++		return 0;
++
++	return n->ops->bound(n, subdev, asd);
++}
++
++static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier *n,
++					    struct v4l2_subdev *subdev,
++					    struct v4l2_async_subdev *asd)
++{
++	if (!n->ops || !n->ops->unbind)
++		return;
++
++	n->ops->unbind(n, subdev, asd);
++}
++
++static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
++{
++	if (!n->ops || !n->ops->complete)
++		return 0;
++
++	return n->ops->complete(n);
++}
++
+ static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+ #if IS_ENABLED(CONFIG_I2C)
+@@ -102,16 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ {
+ 	int ret;
+ 
+-	if (notifier->ops->bound) {
+-		ret = notifier->ops->bound(notifier, sd, asd);
+-		if (ret < 0)
+-			return ret;
+-	}
++	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
++	if (ret < 0)
++		return ret;
+ 
+ 	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+ 	if (ret < 0) {
+-		if (notifier->ops->unbind)
+-			notifier->ops->unbind(notifier, sd, asd);
++		v4l2_async_notifier_call_unbind(notifier, sd, asd);
+ 		return ret;
+ 	}
+ 
+@@ -123,8 +148,8 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ 	/* Move from the global subdevice list to notifier's done */
+ 	list_move(&sd->async_list, &notifier->done);
+ 
+-	if (list_empty(&notifier->waiting) && notifier->ops->complete)
+-		return notifier->ops->complete(notifier);
++	if (list_empty(&notifier->waiting))
++		return v4l2_async_notifier_call_complete(notifier);
+ 
+ 	return 0;
+ }
+@@ -210,8 +235,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+ 		v4l2_async_cleanup(sd);
+ 
+-		if (notifier->ops->unbind)
+-			notifier->ops->unbind(notifier, sd, sd->asd);
++		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+ 	}
+ 
+ 	mutex_unlock(&list_lock);
+@@ -300,8 +324,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+ 
+ 	v4l2_async_cleanup(sd);
+ 
+-	if (notifier->ops->unbind)
+-		notifier->ops->unbind(notifier, sd, sd->asd);
++	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+ 
+ 	mutex_unlock(&list_lock);
+ }
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 3c48f8b66d12..3bc8a7c0d83f 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -164,4 +164,5 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd);
+  * @sd: pointer to &struct v4l2_subdev
+  */
+ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
++
+ #endif
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.11.0
