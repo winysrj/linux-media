@@ -1,84 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f50.google.com ([209.85.215.50]:43889 "EHLO
-        mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751300AbdISKPU (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36484 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751451AbdILNmI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 06:15:20 -0400
-Received: by mail-lf0-f50.google.com with SMTP id c80so3188125lfh.0
-        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 03:15:20 -0700 (PDT)
-Subject: Re: [PATCHv2 1/2] dt-bindings: adi,adv7511.txt: document cec clock
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
-        Archit Taneja <architt@codeaurora.org>,
-        linux-renesas-soc@vger.kernel.org,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        devicetree@vger.kernel.org
-References: <20170919073331.29007-1-hverkuil@xs4all.nl>
- <20170919073331.29007-2-hverkuil@xs4all.nl>
- <505bc74f-6563-ab1d-9aab-7893410aef7e@cogentembedded.com>
- <74b252c8-c1eb-8498-7b9b-54604fe2806a@cisco.com>
- <e68cffb1-346c-2018-9048-3f8523903809@cogentembedded.com>
- <7bfcd125-db23-61e3-2bc9-67e5c11f27fa@xs4all.nl>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <ce0588ed-eb3f-0008-0608-b54aefeee704@cogentembedded.com>
-Date: Tue, 19 Sep 2017 13:15:18 +0300
-MIME-Version: 1.0
-In-Reply-To: <7bfcd125-db23-61e3-2bc9-67e5c11f27fa@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Tue, 12 Sep 2017 09:42:08 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v12 14/26] v4l: async: Allow async notifier register call succeed with no subdevs
+Date: Tue, 12 Sep 2017 16:41:48 +0300
+Message-Id: <20170912134200.19556-15-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 9/19/2017 1:07 PM, Hans Verkuil wrote:
+The information on how many async sub-devices would be bindable to a
+notifier is typically dependent on information from platform firmware and
+it's not driver's business to be aware of that.
 
->>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>>
->>>>> Document the cec clock binding.
->>>>>
->>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>>> Acked-by: Rob Herring <robh@kernel.org>
->>>>> ---
->>>>>     Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt | 4 ++++
->>>>>     1 file changed, 4 insertions(+)
->>>>>
->>>>> diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->>>>> index 06668bca7ffc..4497ae054d49 100644
->>>>> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->>>>> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->>>>> @@ -68,6 +68,8 @@ Optional properties:
->>>>>     - adi,disable-timing-generator: Only for ADV7533. Disables the internal timing
->>>>>       generator. The chip will rely on the sync signals in the DSI data lanes,
->>>>>       rather than generate its own timings for HDMI output.
->>>>> +- clocks: from common clock binding: handle to CEC clock.
->>>>
->>>>       It's called "phandle" in the DT speak. :-)
->>>>       Are you sure the clock specifier would always be absent?
->>>
->>> Sorry? I don't understand the question. Did you mean: "can be absent?"?
->>
->>      No, you only say that there'll be the clock phandle only. The clock
->> specifier may follow the phandle for the clock devices that have
->> "#clock-cells" prop != 0.
-> 
-> I have to say that I just copy-and-pasted this from other bindings.
+Many V4L2 main drivers are perfectly usable (and useful) without async
+sub-devices and so if there aren't any around, just proceed call the
+notifier's complete callback immediately without registering the notifier
+itself.
 
-    :-)
+If a driver needs to check whether there are async sub-devices available,
+it can be done by inspecting the notifier's num_subdevs field which tells
+the number of async sub-devices.
 
-> Would this be better?
-> 
-> - clocks: list of clock specifiers, corresponding to entries in
->    the clock-names property;
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-    Didn't you say that there'll be only one clock, "cec"? If so, there's 
-gonna  be a single clock phandle+specifier pair. They always go in pairs. :-)
-
-> - clock-names: from common clock binding: must be "cec".
-> 
-> Regards,
-> 
-> 	Hans
-
-MBR, Sergei
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 7b396ff4302b..4525b03d59c1 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -170,14 +170,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 	struct v4l2_async_subdev *asd;
+ 	int i;
+ 
+-	if (!v4l2_dev || !notifier->num_subdevs ||
+-	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
++	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+ 		return -EINVAL;
+ 
+ 	notifier->v4l2_dev = v4l2_dev;
+ 	INIT_LIST_HEAD(&notifier->waiting);
+ 	INIT_LIST_HEAD(&notifier->done);
+ 
++	if (!notifier->num_subdevs)
++		return v4l2_async_notifier_call_complete(notifier);
++
+ 	for (i = 0; i < notifier->num_subdevs; i++) {
+ 		asd = notifier->subdevs[i];
+ 
+-- 
+2.11.0
