@@ -1,46 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:52740 "EHLO mout.web.de"
+Received: from mout.web.de ([212.227.17.12]:57251 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752403AbdIRNxA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 09:53:00 -0400
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
+        id S1750742AbdILUeP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Sep 2017 16:34:15 -0400
+Subject: Re: [media] s5p-mfc: Adjust a null pointer check in four functions
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        LKML <linux-kernel@vger.kernel.org>
+References: <482a6c92-a85e-0bcd-edf7-3c2f63ea74c5@users.sourceforge.net>
+ <e794361b-8f2a-7457-007f-72ef4fa66d02@users.sourceforge.net>
+ <CGME20170911092134epcas2p1a1b11c056b52d68c3b0e4ea2e1e8f758@epcas2p1.samsung.com>
+ <6c2d20b3-4437-0473-73d4-73c049ba52a9@samsung.com>
+ <a68020cc-2477-5d6c-bc61-d753253b755a@users.sourceforge.net>
+ <0fa9a180-be67-3a33-682c-bff819c36c6a@samsung.com>
+ <5b8eb902-d97c-3308-5ba9-64469320e0e2@users.sourceforge.net>
+ <ee8ba7fd-1de4-b1b9-8aa0-130c86c38f30@samsung.com>
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 0/6] [media] Go7007: Adjustments for some function
- implementations
-Message-ID: <b36ece3f-0f31-9bb6-14ae-c4abf7cd23ee@users.sourceforge.net>
-Date: Mon, 18 Sep 2017 15:52:49 +0200
+Message-ID: <ecb9823b-007c-f2c2-29bb-fbd08429385c@users.sourceforge.net>
+Date: Tue, 12 Sep 2017 22:33:16 +0200
 MIME-Version: 1.0
+In-Reply-To: <ee8ba7fd-1de4-b1b9-8aa0-130c86c38f30@samsung.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
+Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 18 Sep 2017 14:54:32 +0200
+> Generating patch is only part of the story,
 
-Some update suggestions were taken into account
-from static source code analysis.
+I can follow this view in principle.
 
-Markus Elfring (6):
-  Delete an error message for a failed memory allocation in go7007_load_encoder()
-  Adjust 35 checks for null pointers
-  Improve a size determination in four functions
-  Use common error handling code in s2250_probe()
-  Use common error handling code in go7007_snd_init()
-  Delete an unnecessary variable initialisation in go7007_snd_init()
 
- drivers/media/usb/go7007/go7007-driver.c | 13 ++++---
- drivers/media/usb/go7007/go7007-fw.c     |  8 ++---
- drivers/media/usb/go7007/go7007-loader.c |  4 +--
- drivers/media/usb/go7007/go7007-usb.c    | 20 +++++------
- drivers/media/usb/go7007/go7007-v4l2.c   |  6 ++--
- drivers/media/usb/go7007/s2250-board.c   | 59 +++++++++++++++-----------------
- drivers/media/usb/go7007/snd-go7007.c    | 45 ++++++++++++------------
- 7 files changed, 75 insertions(+), 80 deletions(-)
+> it seems the patch is not sent properly
 
--- 
-2.14.1
+I got an other impression.
+
+
+> and tags which should be in SMTP header end up in the message body.
+
+I agree that extra message fields were presented by the git software for
+a reason.
+You might have got other opinions about the original reason (than me).
+
+
+> I think there would not be such issues if you have used git
+> format-patch + git send-email.
+
+I have got also doubts about your corresponding expectations when you
+would find
+the proposed commit message itself acceptable (besides the small source
+code changes).
+
+
+> I normally do amend things like this while applying,
+
+That is interesting.
+
+
+> I will do that this time as well.
+
+Such an action can also be nice.
+
+
+> It's already too much time wasted for such a dubious patch.
+
+A bit of time is needed to resolve a temporary disagreement.
+
+Regards,
+Markus
