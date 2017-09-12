@@ -1,41 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:53759 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751787AbdIUPcN (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34920 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751381AbdILKrY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 11:32:13 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mats Randgaard <matrandg@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] tc358743: set entity function to video interface bridge
-Date: Thu, 21 Sep 2017 17:32:11 +0200
-Message-Id: <20170921153211.16836-1-p.zabel@pengutronix.de>
+        Tue, 12 Sep 2017 06:47:24 -0400
+Date: Tue, 12 Sep 2017 13:47:20 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        jacek.anaszewski@gmail.com, linux-leds@vger.kernel.org,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        sre@kernel.org
+Subject: Re: as3645a flash userland interface
+Message-ID: <20170912104720.ifyouc5pa5et6gzk@valkosipuli.retiisi.org.uk>
+References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+ <20170912084236.1154-25-sakari.ailus@linux.intel.com>
+ <20170912103628.GB27117@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170912103628.GB27117@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The TC358743 is an HDMI to MIPI CSI2-2 bridge.
+Hi Pavel,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/i2c/tc358743.c | 1 +
- 1 file changed, 1 insertion(+)
+On Tue, Sep 12, 2017 at 12:36:28PM +0200, Pavel Machek wrote:
+> Hi!
+> 
+> There were some changes to as3645a flash controller. Before we have
+> stable interface we have to keep forever I want to ask:
+> 
+> What directory are the flash controls in?
+> 
+> /sys/class/leds/led-controller:flash ?
+> 
+> Could we arrange for something less generic, like
+> 
+> /sys/class/leds/main-camera:flash ?
+> 
+> Thanks,
 
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index b7285e45b908a..82927ef0cd913 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -1947,6 +1947,7 @@ static int tc358743_probe(struct i2c_client *client,
- 	}
- 
- 	state->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	sd->entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
- 	err = media_entity_pads_init(&sd->entity, 1, &state->pad);
- 	if (err < 0)
- 		goto err_hdl;
+The LEDs are called as3645a:flash and as3645a:indicator currently, based on
+the name of the LED controller's device node. There are no patches related
+to this set though; these have already been merged.
+
+The label should be a "human readable string describing the device" (from
+ePAPR, please excuse me for not having a newer spec), and the led common
+bindings define it as:
+
+- label : The label for this LED. If omitted, the label is taken from the node
+          name (excluding the unit address). It has to uniquely identify
+          a device, i.e. no other LED class device can be assigned the same
+          label.
+
+I don't think that you should be looking to use this to associate it with
+the camera as such. The association information with the sensor is
+available to the kernel but there's no interface that could meaningfully
+expose it to the user right now.
+
 -- 
-2.11.0
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
