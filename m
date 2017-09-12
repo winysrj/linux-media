@@ -1,105 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn3nam01on0098.outbound.protection.outlook.com ([104.47.33.98]:29741
-        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754699AbdIGKNJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Sep 2017 06:13:09 -0400
-Subject: Re: [PATCH v3 05/14] [media] cxd2880: Add tuner part of the driver
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <20170816041714.20551-1-Yasunari.Takiguchi@sony.com>
- <20170816043714.21394-1-Yasunari.Takiguchi@sony.com>
- <20170827114544.39865dbb@vento.lan>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "tbird20d@gmail.com" <tbird20d@gmail.com>,
-        "frowand.list@gmail.com" <frowand.list@gmail.com>,
-        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
-        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
-        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
-        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
-        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
-        <yasunari.takiguchi@sony.com>
-From: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
-Message-ID: <22918ced-b130-abf6-847d-369b7a5c0ebf@sony.com>
-Date: Thu, 7 Sep 2017 19:12:57 +0900
-MIME-Version: 1.0
-In-Reply-To: <20170827114544.39865dbb@vento.lan>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36620 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751476AbdILNmL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Sep 2017 09:42:11 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v12 20/26] v4l: fwnode: Add convenience function for parsing common external refs
+Date: Tue, 12 Sep 2017 16:41:54 +0300
+Message-Id: <20170912134200.19556-21-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Mauro
+Add v4l2_fwnode_parse_reference_sensor_common for parsing common
+sensor properties that refer to adjacent devices such as flash or lens
+driver chips.
 
-Thanks for your review and reply.
+As this is an association only, there's little a regular driver needs to
+know about these devices as such.
 
-We are going to discuss how to change our code with your comments internally.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 35 +++++++++++++++++++++++++++++++++++
+ include/media/v4l2-async.h            |  3 ++-
+ include/media/v4l2-fwnode.h           | 21 +++++++++++++++++++++
+ 3 files changed, 58 insertions(+), 1 deletion(-)
 
-I reply for your  2 comments,
-
->> [Change list]
->> Changes in V3
->>    drivers/media/dvb-frontends/cxd2880/cxd2880_dtv.h
->>       -removed code relevant to ISDB-T
-> 
-> Just curiosity here: why is it removed?
-We decided to withhold the ISDB-T functionality as it contains some company proprietary code.
-
-
->> +	if (ret)
->> +		return ret;
->> +	if ((sys == CXD2880_DTV_SYS_DVBT2) && en_fef_intmtnt_ctrl) {
->> +		data[0] = 0x01;
->> +		data[1] = 0x01;
->> +		data[2] = 0x01;
->> +		data[3] = 0x01;
->> +		data[4] = 0x01;
->> +		data[5] = 0x01;
->> +	} else {
->> +		data[0] = 0x00;
->> +		data[1] = 0x00;
->> +		data[2] = 0x00;
->> +		data[3] = 0x00;
->> +		data[4] = 0x00;
->> +		data[5] = 0x00;
->> +	}
-> 
-> Instead, just do:
-> 
-> 	if ((sys == CXD2880_DTV_SYS_DVBT2) && en_fef_intmtnt_ctrl)
-> 		memset(data, 0x01, sizeof(data));
-> 	else
-> 		memset(data, 0x00, sizeof(data));
-> 
->> +	ret = tnr_dmd->io->write_regs(tnr_dmd->io,
->> +				      CXD2880_IO_TGT_SYS,
->> +				      0xef, data, 6);
->> +	if (ret)
->> +		return ret;
->> +
->> +	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
->> +				     CXD2880_IO_TGT_DMD,
->> +				     0x00, 0x2d);
->> +	if (ret)
->> +		return ret;
-> 
->> +	if ((sys == CXD2880_DTV_SYS_DVBT2) && en_fef_intmtnt_ctrl)
->> +		data[0] = 0x00;
->> +	else
->> +		data[0] = 0x01;
-> 
-> Not actually needed, as the previous logic already set data[0]
-> accordingly.
-> 
->> +	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
->> +				     CXD2880_IO_TGT_DMD,
->> +				     0xb1, data[0]);
-
-In this case、logic of data[0]( logic of if() ) is different from that of previous one.
-And with setting register for address 0xb1, a bug might occur in the future, 
-if our software specification (sequence) is changed.
-So we would like to keep setting value of data[0] for address 0xb1.
-
-Thanks,
-Takiguchi
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index a07599a8f647..0a1a784b11a8 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -712,6 +712,41 @@ static int v4l2_fwnode_reference_parse_int_props(
+ 	return ret;
+ }
+ 
++int v4l2_async_notifier_parse_fwnode_sensor_common(
++	struct device *dev, struct v4l2_async_notifier *notifier)
++{
++	static const char *led_props[] = { "led" };
++	static const struct {
++		const char *name;
++		const char **props;
++		unsigned int nprops;
++	} props[] = {
++		{ "flash-leds", led_props, ARRAY_SIZE(led_props) },
++		{ "lens-focus", NULL, 0 },
++	};
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(props); i++) {
++		int ret;
++
++		if (props[i].props && is_acpi_node(dev_fwnode(dev)))
++			ret = v4l2_fwnode_reference_parse_int_props(
++				dev, notifier, props[i].name,
++				props[i].props, props[i].nprops);
++		else
++			ret = v4l2_fwnode_reference_parse(
++				dev, notifier, props[i].name);
++		if (ret && ret != -ENOENT) {
++			dev_warn(dev, "parsing property \"%s\" failed (%d)\n",
++				 props[i].name, ret);
++			return ret;
++		}
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_sensor_common);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index a13803a6371d..378e20e3b44d 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -155,7 +155,8 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
+  * Release memory resources related to a notifier, including the async
+  * sub-devices allocated for the purposes of the notifier. The user is
+  * responsible for releasing the notifier's resources after calling
+- * @v4l2_async_notifier_parse_fwnode_endpoints.
++ * @v4l2_async_notifier_parse_fwnode_endpoints or
++ * @v4l2_fwnode_reference_parse_sensor_common.
+  *
+  * There is no harm from calling v4l2_async_notifier_release in other
+  * cases as long as its memory has been zeroed after it has been
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index b2eed4f33e6a..5791355401bd 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -316,4 +316,25 @@ int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+ 			      struct v4l2_fwnode_endpoint *vep,
+ 			      struct v4l2_async_subdev *asd));
+ 
++/**
++ * v4l2_fwnode_reference_parse_sensor_common - parse common references on
++ *					       sensors for async sub-devices
++ * @dev: the device node the properties of which are parsed for references
++ * @notifier: the async notifier where the async subdevs will be added
++ *
++ * Parse common sensor properties for remote devices related to the
++ * sensor and set up async sub-devices for them.
++ *
++ * Any notifier populated using this function must be released with a call to
++ * v4l2_async_notifier_release() after it has been unregistered and the async
++ * sub-devices are no longer in use, even in the case the function returned an
++ * error.
++ *
++ * Return: 0 on success
++ *	   -ENOMEM if memory allocation failed
++ *	   -EINVAL if property parsing failed
++ */
++int v4l2_async_notifier_parse_fwnode_sensor_common(
++	struct device *dev, struct v4l2_async_notifier *notifier);
++
+ #endif /* _V4L2_FWNODE_H */
+-- 
+2.11.0
