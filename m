@@ -1,74 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46529
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752134AbdIVVrM (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:52930 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751041AbdILD6A (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 17:47:12 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 8/8] media: v4l2-ioctl.h: convert debug macros into enum and document
-Date: Fri, 22 Sep 2017 18:47:06 -0300
-Message-Id: <28dfd60cbe16605062003e895532bfeddfcc6ebc.1506116720.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
-References: <cover.1506116720.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
-References: <cover.1506116720.git.mchehab@s-opensource.com>
+        Mon, 11 Sep 2017 23:58:00 -0400
+Message-ID: <0d130417d5c4efc185cc2adac3355046@smtp-cloud7.xs4all.net>
+Date: Tue, 12 Sep 2017 05:57:57 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, there's no way to document #define foo <value>
-with kernel-doc. So, convert it to an enum, and document.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- include/media/v4l2-ioctl.h | 33 +++++++++++++++++++--------------
- 1 file changed, 19 insertions(+), 14 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index bd5312118013..136e2cffcf9e 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -588,20 +588,25 @@ struct v4l2_ioctl_ops {
- };
- 
- 
--/* v4l debugging and diagnostics */
--
--/* Device debug flags to be used with the video device debug attribute */
--
--/* Just log the ioctl name + error code */
--#define V4L2_DEV_DEBUG_IOCTL		0x01
--/* Log the ioctl name arguments + error code */
--#define V4L2_DEV_DEBUG_IOCTL_ARG	0x02
--/* Log the file operations open, release, mmap and get_unmapped_area */
--#define V4L2_DEV_DEBUG_FOP		0x04
--/* Log the read and write file operations and the VIDIOC_(D)QBUF ioctls */
--#define V4L2_DEV_DEBUG_STREAMING	0x08
--/* Log poll() */
--#define V4L2_DEV_DEBUG_POLL		0x10
-+/**
-+ * enum v4l2_debug_flags - Device debug flags to be used with the video
-+ *	device debug attribute
-+ *
-+ * @V4L2_DEV_DEBUG_IOCTL:	Just log the ioctl name + error code.
-+ * @V4L2_DEV_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
-+ * @V4L2_DEV_DEBUG_FOP:		Log the file operations and open, release,
-+ *				mmap and get_unmapped_area syscalls.
-+ * @V4L2_DEV_DEBUG_STREAMING:	Log the read and write syscalls and
-+ *				:c:ref:`VIDIOC_[Q|DQ]BUFF <VIDIOC_QBUF>` ioctls.
-+ * @V4L2_DEV_DEBUG_POLL:	Log poll syscalls.
-+ */
-+enum v4l2_debug_flags {
-+	V4L2_DEV_DEBUG_IOCTL		= 0x01,
-+	V4L2_DEV_DEBUG_IOCTL_ARG	= 0x02,
-+	V4L2_DEV_DEBUG_FOP		= 0x04,
-+	V4L2_DEV_DEBUG_STREAMING	= 0x08,
-+	V4L2_DEV_DEBUG_POLL		= 0x10,
-+};
- 
- /*  Video standard functions  */
- 
--- 
-2.13.5
+date:			Tue Sep 12 05:00:15 CEST 2017
+media-tree git hash:	1efdf1776e2253b77413c997bed862410e4b6aaf
+media_build git hash:	bbd9f669f0da6705fe44aff89281c0d6e7bfd73e
+v4l-utils git hash:	7f937d31ac2af7416c60cd5ff7b5153c85e23d3a
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
