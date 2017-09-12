@@ -1,159 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:59310 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751807AbdIQUYo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Sep 2017 16:24:44 -0400
-Subject: [PATCH 8/8] [media] cx231xx: Use common error handling code in
- cx231xx_load_firmware()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Bhumika Goyal <bhumirks@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Johan Hovold <johan@kernel.org>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Matthias Schwarzott <zzam@gentoo.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Oleh Kravchenko <oleg@kaa.org.ua>,
-        Peter Rosin <peda@axentia.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <f2c1ca56-ecdc-318c-f18f-9bef6c670ffb@users.sourceforge.net>
-Message-ID: <57f0d209-1b87-690c-589a-bff8e0ffe24f@users.sourceforge.net>
-Date: Sun, 17 Sep 2017 22:24:16 +0200
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:41995 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751326AbdILJie (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Sep 2017 05:38:34 -0400
+Subject: Re: [PATCH v11 13/24] v4l: async: Allow async notifier register call
+ succeed with no subdevs
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+ <20170912084236.1154-14-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e803a034-b0c8-4f28-c4c2-ef964699d7e3@xs4all.nl>
+Date: Tue, 12 Sep 2017 11:38:27 +0200
 MIME-Version: 1.0
-In-Reply-To: <f2c1ca56-ecdc-318c-f18f-9bef6c670ffb@users.sourceforge.net>
+In-Reply-To: <20170912084236.1154-14-sakari.ailus@linux.intel.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 17 Sep 2017 21:07:39 +0200
+On 09/12/17 10:42, Sakari Ailus wrote:
+> The information on how many async sub-devices would be bindable to a
+> notifier is typically dependent on information from platform firmware and
+> it's not driver's business to be aware of that.
+> 
+> Many V4L2 main drivers are perfectly usable (and useful) without async
+> sub-devices and so if there aren't any around, just proceed call the
+> notifier's complete callback immediately without registering the notifier
+> itself.
+> 
+> If a driver needs to check whether there are async sub-devices available,
+> it can be done by inspecting the notifier's num_subdevs field which tells
+> the number of async sub-devices.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Add jump targets so that a bit of exception handling can be better reused
-at the end of this function.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/cx231xx/cx231xx-417.c | 61 ++++++++++++++++-----------------
- 1 file changed, 29 insertions(+), 32 deletions(-)
+Regards,
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
-index d43345593172..88aac129b678 100644
---- a/drivers/media/usb/cx231xx/cx231xx-417.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-417.c
-@@ -954,16 +954,13 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
- 
- 	p_current_fw = vmalloc(1884180 * 4);
- 	p_fw = p_current_fw;
--	if (!p_current_fw) {
--		dprintk(2, "FAIL!!!\n");
--		return -ENOMEM;
--	}
-+	if (!p_current_fw)
-+		goto e_nomem;
- 
- 	p_buffer = vmalloc(4096);
- 	if (!p_buffer) {
--		dprintk(2, "FAIL!!!\n");
- 		vfree(p_current_fw);
--		return -ENOMEM;
-+		goto e_nomem;
- 	}
- 
- 	dprintk(2, "%s()\n", __func__);
-@@ -986,9 +983,7 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
- 	if (retval != 0) {
- 		dev_err(dev->dev,
- 			"%s: Error with mc417_register_write\n", __func__);
--		vfree(p_current_fw);
--		vfree(p_buffer);
--		return retval;
-+		goto free_fw;
- 	}
- 
- 	retval = request_firmware(&firmware, CX231xx_FIRM_IMAGE_NAME,
-@@ -1000,28 +995,20 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
- 			CX231xx_FIRM_IMAGE_NAME);
- 		dev_err(dev->dev,
- 			"Please fix your hotplug setup, the board will not work without firmware loaded!\n");
--		vfree(p_current_fw);
--		vfree(p_buffer);
--		return retval;
-+		goto free_fw;
- 	}
- 
- 	if (firmware->size != CX231xx_FIRM_IMAGE_SIZE) {
- 		dev_err(dev->dev,
- 			"ERROR: Firmware size mismatch (have %zd, expected %d)\n",
- 			firmware->size, CX231xx_FIRM_IMAGE_SIZE);
--		release_firmware(firmware);
--		vfree(p_current_fw);
--		vfree(p_buffer);
--		return -EINVAL;
-+		goto e_inval;
- 	}
- 
- 	if (0 != memcmp(firmware->data, magic, 8)) {
- 		dev_err(dev->dev,
- 			"ERROR: Firmware magic mismatch, wrong file?\n");
--		release_firmware(firmware);
--		vfree(p_current_fw);
--		vfree(p_buffer);
--		return -EINVAL;
-+		goto e_inval;
- 	}
- 
- 	initGPIO(dev);
-@@ -1065,26 +1052,36 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
- 
- 	retval |= mc417_register_write(dev, IVTV_REG_HW_BLOCKS,
- 		IVTV_CMD_HW_BLOCKS_RST);
--	if (retval < 0) {
--		dev_err(dev->dev,
--			"%s: Error with mc417_register_write\n",
--			__func__);
--		return retval;
--	}
-+	if (retval < 0)
-+		goto report_write_failure;
-+
- 	/* F/W power up disturbs the GPIOs, restore state */
- 	retval |= mc417_register_write(dev, 0x9020, gpio_output);
- 	retval |= mc417_register_write(dev, 0x900C, value);
- 
- 	retval |= mc417_register_read(dev, IVTV_REG_VPU, &value);
- 	retval |= mc417_register_write(dev, IVTV_REG_VPU, value & 0xFFFFFFE8);
-+	if (retval < 0)
-+		goto report_write_failure;
- 
--	if (retval < 0) {
--		dev_err(dev->dev,
--			"%s: Error with mc417_register_write\n",
--			__func__);
--		return retval;
--	}
- 	return 0;
-+
-+e_nomem:
-+	dprintk(2, "FAIL!!!\n");
-+	return -ENOMEM;
-+
-+e_inval:
-+	retval = -EINVAL;
-+	release_firmware(firmware);
-+
-+free_fw:
-+	vfree(p_current_fw);
-+	vfree(p_buffer);
-+	return retval;
-+
-+report_write_failure:
-+	dev_err(dev->dev, "%s: Error with mc417_register_write\n", __func__);
-+	return retval;
- }
- 
- static void cx231xx_417_check_encoder(struct cx231xx *dev)
--- 
-2.14.1
+	Hans
+
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 7b396ff4302b..4525b03d59c1 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -170,14 +170,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  	struct v4l2_async_subdev *asd;
+>  	int i;
+>  
+> -	if (!v4l2_dev || !notifier->num_subdevs ||
+> -	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+> +	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+>  		return -EINVAL;
+>  
+>  	notifier->v4l2_dev = v4l2_dev;
+>  	INIT_LIST_HEAD(&notifier->waiting);
+>  	INIT_LIST_HEAD(&notifier->done);
+>  
+> +	if (!notifier->num_subdevs)
+> +		return v4l2_async_notifier_call_complete(notifier);
+> +
+>  	for (i = 0; i < notifier->num_subdevs; i++) {
+>  		asd = notifier->subdevs[i];
+>  
+> 
