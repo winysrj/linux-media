@@ -1,49 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway31.websitewelcome.com ([192.185.144.91]:11048 "EHLO
-        gateway31.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751521AbdITDD3 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36470 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751444AbdILNmI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 23:03:29 -0400
-Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
-        by gateway31.websitewelcome.com (Postfix) with ESMTP id 3DA576E8462
-        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 21:41:45 -0500 (CDT)
-Date: Tue, 19 Sep 2017 21:41:37 -0500
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] ov9655: fix potential integer overflow
-Message-ID: <20170920024043.GA372@embeddedor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Tue, 12 Sep 2017 09:42:08 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v12 13/26] v4l: async: Register sub-devices before calling bound callback
+Date: Tue, 12 Sep 2017 16:41:47 +0300
+Message-Id: <20170912134200.19556-14-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add suffix ULL to constant 10000 rather than casting the result of the
-operation in order to avoid a potential integer overflow. This constant
-is used in a context that expects an expression of type u64.
+Register the sub-device before calling the notifier's bound callback.
+Doing this the other way around is problematic as the struct v4l2_device
+has not assigned for the sub-device yet and may be required by the bound
+callback.
 
-Addresses-Coverity-ID: 1324146
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/ov9650.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-async.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-index 6ffb460..91a09ee 100644
---- a/drivers/media/i2c/ov9650.c
-+++ b/drivers/media/i2c/ov9650.c
-@@ -1129,8 +1129,8 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
- 	if (fi->interval.denominator == 0)
- 		return -EINVAL;
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index c34f93593b41..7b396ff4302b 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -130,13 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ {
+ 	int ret;
  
--	req_int = (u64)(fi->interval.numerator * 10000) /
--		fi->interval.denominator;
-+	req_int = (fi->interval.numerator * 10000ULL) /
-+		  fi->interval.denominator;
+-	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
++	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+ 	if (ret < 0)
+ 		return ret;
  
- 	for (i = 0; i < ARRAY_SIZE(ov965x_intervals); i++) {
- 		const struct ov965x_interval *iv = &ov965x_intervals[i];
+-	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
++	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
+ 	if (ret < 0) {
+-		v4l2_async_notifier_call_unbind(notifier, sd, asd);
++		v4l2_device_unregister_subdev(sd);
+ 		return ret;
+ 	}
+ 
 -- 
-2.7.4
+2.11.0
