@@ -1,313 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:49752 "EHLO smtp5-g21.free.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751581AbdIMOD6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 10:03:58 -0400
-Subject: Re: IR driver support for tango platforms
-To: Sean Young <sean@mess.org>, Mans Rullgard <mans@mansr.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>,
-        Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
-References: <6076a18d-c5ba-cb83-ac36-8eda965c7eb8@free.fr>
- <20170911211210.a7a2st4hfn7leec3@gofer.mess.org>
- <7942dc9f-e7a2-e088-e843-f013ac1b0302@free.fr>
- <20170912181957.zhd4fwwannpxblqx@gofer.mess.org>
-From: Mason <slash.tmp@free.fr>
-Message-ID: <c5aa1452-44e9-49a9-828a-5b32395609f4@free.fr>
-Date: Wed, 13 Sep 2017 16:03:43 +0200
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46809 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751289AbdILLkx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Sep 2017 07:40:53 -0400
+Date: Tue, 12 Sep 2017 13:40:51 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        jacek.anaszewski@gmail.com, linux-leds@vger.kernel.org,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        sre@kernel.org
+Subject: Re: as3645a flash userland interface
+Message-ID: <20170912114051.GA1655@amd>
+References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+ <20170912084236.1154-25-sakari.ailus@linux.intel.com>
+ <20170912103628.GB27117@amd>
+ <20170912104720.ifyouc5pa5et6gzk@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <20170912181957.zhd4fwwannpxblqx@gofer.mess.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="0F1p//8PRICkK4MW"
+Content-Disposition: inline
+In-Reply-To: <20170912104720.ifyouc5pa5et6gzk@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/09/2017 20:19, Sean Young wrote:
 
-> It looks great, thanks! I have made some minor points below.
-
-Thanks for having reviewed the driver! :-)
-
-I have now fixed all the points you mentioned.
-
-Changes from v1 to v2:
-
-o Rebase driver on top of linuxtv/master
-o Use ir_nec_bytes_to_scancode() in tango_ir_handle_nec()
-o Use devm_rc_allocate_device() in tango_ir_probe()
-o Use Use devm_rc_register_device() in tango_ir_probe()
-o Rename rc->input_name to rc->device_name (not sure what value to use here)
-o List all NEC variants for rc->allowed_protocols
-o Change type of clkrate to u64
-o Fix tango_ir_probe and tango_ir_remove for devm
-o Move around some init calls in tango_ir_probe() for devm
-o Use relaxed variants of MMIO accessors
-
-TODO: test RC-5 and RC-6 (I need to locate proper remote)
-
-
-/*
-  * Copyright (C) 2015 Mans Rullgard <mans@mansr.com>
-  *
-  * This program is free software; you can redistribute  it and/or modify it
-  * under  the terms of  the GNU General  Public License as published by the
-  * Free Software Foundation;  either version 2 of the  License, or (at your
-  * option) any later version.
-  */
-
-#include <linux/input.h>
-#include <linux/module.h>
-#include <linux/platform_device.h>
-#include <linux/interrupt.h>
-#include <linux/io.h>
-#include <linux/clk.h>
-#include <linux/of.h>
-#include <media/rc-core.h>
-
-#define IR_NEC_CTRL	0x00
-#define IR_NEC_DATA	0x04
-#define IR_CTRL		0x08
-#define IR_RC5_CLK_DIV	0x0c
-#define IR_RC5_DATA	0x10
-#define IR_INT		0x14
-
-#define NEC_TIME_BASE	560
-#define RC5_TIME_BASE	1778
-
-#define RC6_CTRL	0x00
-#define RC6_CLKDIV	0x04
-#define RC6_DATA0	0x08
-#define RC6_DATA1	0x0c
-#define RC6_DATA2	0x10
-#define RC6_DATA3	0x14
-#define RC6_DATA4	0x18
-
-#define RC6_CARRIER	36000
-#define RC6_TIME_BASE	16
-
-struct tango_ir {
-	void __iomem *rc5_base;
-	void __iomem *rc6_base;
-	struct rc_dev *rc;
-	struct clk *clk;
-};
-
-static void tango_ir_handle_nec(struct tango_ir *ir)
-{
-	u32 v, code;
-	enum rc_proto proto;
-
-	v = readl_relaxed(ir->rc5_base + IR_NEC_DATA);
-	if (!v) {
-		rc_repeat(ir->rc);
-		return;
-	}
-
-	code = ir_nec_bytes_to_scancode(v, v >> 8, v >> 16, v >> 24, &proto);
-	rc_keydown(ir->rc, proto, code, 0);
-}
-
-static void tango_ir_handle_rc5(struct tango_ir *ir)
-{
-	u32 data, field, toggle, addr, cmd, code;
-
-	data = readl_relaxed(ir->rc5_base + IR_RC5_DATA);
-	if (data & BIT(31))
-		return;
-
-	field = data >> 12 & 1;
-	toggle = data >> 11 & 1;
-	addr = data >> 6 & 0x1f;
-	cmd = (data & 0x3f) | (field ^ 1) << 6;
-
-	code = RC_SCANCODE_RC5(addr, cmd);
-	rc_keydown(ir->rc, RC_PROTO_RC5, code, toggle);
-}
-
-static void tango_ir_handle_rc6(struct tango_ir *ir)
-{
-	u32 data0, data1, toggle, mode, addr, cmd, code;
-
-	data0 = readl_relaxed(ir->rc6_base + RC6_DATA0);
-	data1 = readl_relaxed(ir->rc6_base + RC6_DATA1);
-
-	mode = data0 >> 1 & 7;
-	if (mode != 0)
-		return;
-
-	toggle = data0 & 1;
-	addr = data0 >> 16;
-	cmd = data1;
-
-	code = RC_SCANCODE_RC6_0(addr, cmd);
-	rc_keydown(ir->rc, RC_PROTO_RC6_0, code, toggle);
-}
-
-static irqreturn_t tango_ir_irq(int irq, void *dev_id)
-{
-	struct tango_ir *ir = dev_id;
-	unsigned int rc5_stat;
-	unsigned int rc6_stat;
-
-	rc5_stat = readl_relaxed(ir->rc5_base + IR_INT);
-	writel_relaxed(rc5_stat, ir->rc5_base + IR_INT);
-
-	rc6_stat = readl_relaxed(ir->rc6_base + RC6_CTRL);
-	writel_relaxed(rc6_stat, ir->rc6_base + RC6_CTRL);
-
-	if (!(rc5_stat & 3) && !(rc6_stat & BIT(31)))
-		return IRQ_NONE;
-
-	if (rc5_stat & BIT(0))
-		tango_ir_handle_rc5(ir);
-
-	if (rc5_stat & BIT(1))
-		tango_ir_handle_nec(ir);
-
-	if (rc6_stat & BIT(31))
-		tango_ir_handle_rc6(ir);
-
-	return IRQ_HANDLED;
-}
-
-#define DISABLE_NEC	(BIT(4) | BIT(8))
-#define ENABLE_RC5	(BIT(0) | BIT(9))
-#define ENABLE_RC6	(BIT(0) | BIT(7))
-
-static int tango_change_protocol(struct rc_dev *dev, u64 *rc_type)
-{
-	struct tango_ir *ir = dev->priv;
-	u32 rc5_ctrl = DISABLE_NEC;
-	u32 rc6_ctrl = 0;
-
-	if (*rc_type & RC_PROTO_BIT_NEC)
-		rc5_ctrl = 0;
-
-	if (*rc_type & RC_PROTO_BIT_RC5)
-		rc5_ctrl |= ENABLE_RC5;
-
-	if (*rc_type & RC_PROTO_BIT_RC6_0)
-		rc6_ctrl = ENABLE_RC6;
-
-	writel_relaxed_relaxed(rc5_ctrl, ir->rc5_base + IR_CTRL);
-	writel_relaxed_relaxed(rc6_ctrl, ir->rc6_base + RC6_CTRL);
-
-	return 0;
-}
-
-static int tango_ir_probe(struct platform_device *pdev)
-{
-	struct device *dev = &pdev->dev;
-	struct rc_dev *rc;
-	struct tango_ir *ir;
-	struct resource *rc5_res;
-	struct resource *rc6_res;
-	u64 clkrate, clkdiv;
-	int irq, err;
-
-	rc5_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!rc5_res)
-		return -EINVAL;
-
-	rc6_res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-	if (!rc6_res)
-		return -EINVAL;
-
-	irq = platform_get_irq(pdev, 0);
-	if (irq <= 0)
-		return -EINVAL;
-
-	ir = devm_kzalloc(dev, sizeof(*ir), GFP_KERNEL);
-	if (!ir)
-		return -ENOMEM;
-
-	ir->rc5_base = devm_ioremap_resource(dev, rc5_res);
-	if (IS_ERR(ir->rc5_base))
-		return PTR_ERR(ir->rc5_base);
-
-	ir->rc6_base = devm_ioremap_resource(dev, rc6_res);
-	if (IS_ERR(ir->rc6_base))
-		return PTR_ERR(ir->rc6_base);
-
-	ir->clk = devm_clk_get(dev, NULL);
-	if (IS_ERR(ir->clk))
-		return PTR_ERR(ir->clk);
-
-	rc = devm_rc_allocate_device(dev, RC_DRIVER_SCANCODE);
-	if (!rc)
-		return -ENOMEM;
-
-	rc->device_name = "tango-ir"; /* not sure what else to use here??? */
-	rc->input_phys = "tango-ir/input0";
-	rc->driver_name = "tango-ir";
-	rc->map_name = RC_MAP_EMPTY;
-	rc->allowed_protocols = RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC6_0 |
-		RC_PROTO_BIT_NEC | RC_PROTO_BIT_NECX | RC_PROTO_BIT_NEC32;
-	rc->change_protocol = tango_change_protocol;
-	rc->priv = ir;
-	ir->rc = rc;
-
-	err = devm_rc_register_device(dev, rc);
-	if (err)
-		return err;
-
-	err = devm_request_irq(dev, irq, tango_ir_irq, IRQF_SHARED, dev_name(dev), ir);
-	if (err)
-		return err;
-
-	err = clk_prepare_enable(ir->clk);
-	if (err)
-		return err;
-
-	clkrate = clk_get_rate(ir->clk);
-
-	clkdiv = clkrate * NEC_TIME_BASE;
-	do_div(clkdiv, 1000000);
-
-	writel_relaxed(31 << 24 | 12 << 16 | clkdiv, ir->rc5_base + IR_NEC_CTRL);
-
-	clkdiv = clkrate * RC5_TIME_BASE;
-	do_div(clkdiv, 1000000);
-
-	writel_relaxed(0x110, ir->rc5_base + IR_CTRL);
-	writel_relaxed(clkdiv, ir->rc5_base + IR_RC5_CLK_DIV);
-	writel_relaxed(0x3, ir->rc5_base + IR_INT);
-
-	clkdiv = clkrate * RC6_TIME_BASE;
-	do_div(clkdiv, RC6_CARRIER);
-
-	writel_relaxed(0xc0000000, ir->rc6_base + RC6_CTRL);
-	writel_relaxed((clkdiv >> 2) << 18 | clkdiv, ir->rc6_base + RC6_CLKDIV);
-
-	platform_set_drvdata(pdev, ir);
-
-	return 0;
-}
-
-static int tango_ir_remove(struct platform_device *pdev)
-{
-	struct tango_ir *ir = platform_get_drvdata(pdev);
-	clk_disable_unprepare(ir->clk);
-	return 0;
-}
-
-static const struct of_device_id tango_ir_dt_ids[] = {
-	{ .compatible = "sigma,smp8642-ir" },
-	{ }
-};
-MODULE_DEVICE_TABLE(of, tango_ir_dt_ids);
-
-static struct platform_driver tango_ir_driver = {
-	.probe	= tango_ir_probe,
-	.remove	= tango_ir_remove,
-	.driver	= {
-		.name		= "tango-ir",
-		.of_match_table	= tango_ir_dt_ids,
-	},
-};
-module_platform_driver(tango_ir_driver);
-
-MODULE_DESCRIPTION("SMP86xx IR decoder driver");
-MODULE_AUTHOR("Mans Rullgard <mans@mansr.com>");
-MODULE_LICENSE("GPL");
+--0F1p//8PRICkK4MW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> On Tue, Sep 12, 2017 at 12:36:28PM +0200, Pavel Machek wrote:
+> > Hi!
+> >=20
+> > There were some changes to as3645a flash controller. Before we have
+> > stable interface we have to keep forever I want to ask:
+> >=20
+> > What directory are the flash controls in?
+> >=20
+> > /sys/class/leds/led-controller:flash ?
+> >=20
+> > Could we arrange for something less generic, like
+> >=20
+> > /sys/class/leds/main-camera:flash ?
+> >=20
+> > Thanks,
+>=20
+> The LEDs are called as3645a:flash and as3645a:indicator currently, based =
+on
+> the name of the LED controller's device node. There are no patches related
+> to this set though; these have already been merged.
+>=20
+> The label should be a "human readable string describing the device" (from
+> ePAPR, please excuse me for not having a newer spec), and the led common
+> bindings define it as:
+>=20
+> - label : The label for this LED. If omitted, the label is taken from the=
+ node
+>           name (excluding the unit address). It has to uniquely identify
+>           a device, i.e. no other LED class device can be assigned the sa=
+me
+>           label.
+
+Ok, can we set the label to "main_camera" for N9 and n950 cases?
+
+"as3645a:flash" is really wrong name for a LED. Information that
+as3645 is already present elsewhere in /sys. Information where the LED
+is and what it does is not.
+
+I'd like to have torch application that just writes
+/sys/class/leds/main_camera:white:flash/brightness . It should not
+need to know hardware details of differnet phones.
+
+> I don't think that you should be looking to use this to associate it with
+> the camera as such. The association information with the sensor is
+> available to the kernel but there's no interface that could meaningfully
+> expose it to the user right now.
+
+Yeah, I'm not looking for sensor association. I'm looking for
+reasonable userland interface.
+
+Thanks,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--0F1p//8PRICkK4MW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlm3x8MACgkQMOfwapXb+vJruACgvXqnXR5o/7rhska7wPeJDBrX
+7HkAn2hHmz2zVpyZQ5Xlo+9KKf03jVV1
+=9UsP
+-----END PGP SIGNATURE-----
+
+--0F1p//8PRICkK4MW--
