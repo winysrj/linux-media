@@ -1,106 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45498 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33378 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752331AbdIRKXw (ORCPT
+        by vger.kernel.org with ESMTP id S1751509AbdILImr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 06:23:52 -0400
+        Tue, 12 Sep 2017 04:42:47 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-leds@vger.kernel.org
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        pavel@ucw.cz
-Subject: [RESEND PATCH v2 2/6] dt: bindings: as3645a: Use LED number to refer to LEDs
-Date: Mon, 18 Sep 2017 13:23:45 +0300
-Message-Id: <20170918102349.8935-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170918102349.8935-1-sakari.ailus@linux.intel.com>
-References: <20170918102349.8935-1-sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v11 16/24] dt: bindings: Add lens-focus binding for image sensors
+Date: Tue, 12 Sep 2017 11:42:28 +0300
+Message-Id: <20170912084236.1154-17-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use integers (reg property) to tell the number of the LED to the driver
-instead of the node name. While both of these approaches are currently
-used by the LED bindings, using integers will require less driver changes
-for ACPI support. Additionally, it will make possible LED naming using
-chip and LED node names, effectively making the label property most useful
-for human-readable names only.
+The lens-focus property contains a phandle to the lens voice coil driver
+that is associated to the sensor; typically both are contained in the same
+camera module.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../devicetree/bindings/leds/ams,as3645a.txt       | 28 ++++++++++++++--------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+ Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/leds/ams,as3645a.txt b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-index 12c5ef26ec73..fdc40e354a64 100644
---- a/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-+++ b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-@@ -15,11 +15,14 @@ Required properties
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index fdba30479b47..b535bdde861c 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -74,6 +74,8 @@ Optional properties
+ - flash-leds: An array of phandles, each referring to a flash LED, a sub-node
+   of the LED driver device node.
  
- compatible	: Must be "ams,as3645a".
- reg		: The I2C address of the device. Typically 0x30.
-+#address-cells	: 1
-+#size-cells	: 0
++- lens-focus: A phandle to the node of the focus lens controller.
++
  
- 
--Required properties of the "flash" child node
--=============================================
-+Required properties of the flash child node (0)
-+===============================================
- 
-+reg: 0
- flash-timeout-us: Flash timeout in microseconds. The value must be in
- 		  the range [100000, 850000] and divisible by 50000.
- flash-max-microamp: Maximum flash current in microamperes. Has to be
-@@ -33,20 +36,21 @@ ams,input-max-microamp: Maximum flash controller input current. The
- 			and divisible by 50000.
- 
- 
--Optional properties of the "flash" child node
--=============================================
-+Optional properties of the flash child node
-+===========================================
- 
- label		: The label of the flash LED.
- 
- 
--Required properties of the "indicator" child node
--=================================================
-+Required properties of the indicator child node (1)
-+===================================================
- 
-+reg: 1
- led-max-microamp: Maximum indicator current. The allowed values are
- 		  2500, 5000, 7500 and 10000.
- 
--Optional properties of the "indicator" child node
--=================================================
-+Optional properties of the indicator child node
-+===============================================
- 
- label		: The label of the indicator LED.
- 
-@@ -55,16 +59,20 @@ Example
- =======
- 
- 	as3645a@30 {
-+		#address-cells: 1
-+		#size-cells: 0
- 		reg = <0x30>;
- 		compatible = "ams,as3645a";
--		flash {
-+		flash@0 {
-+			reg = <0x0>;
- 			flash-timeout-us = <150000>;
- 			flash-max-microamp = <320000>;
- 			led-max-microamp = <60000>;
- 			ams,input-max-microamp = <1750000>;
- 			label = "as3645a:flash";
- 		};
--		indicator {
-+		indicator@1 {
-+			reg = <0x1>;
- 			led-max-microamp = <10000>;
- 			label = "as3645a:indicator";
- 		};
+ Optional endpoint properties
+ ----------------------------
 -- 
 2.11.0
