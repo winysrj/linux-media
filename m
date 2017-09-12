@@ -1,38 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:55402 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751009AbdITGdn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 02:33:43 -0400
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mike Isely <isely@pobox.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 0/3] [media] pvrusb2-ioread: Fine-tuning for eight function
- implementations
-Message-ID: <c8117427-6d4d-0a1c-96c7-56e25d838b3e@users.sourceforge.net>
-Date: Wed, 20 Sep 2017 08:33:26 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33376 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751507AbdILImr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Sep 2017 04:42:47 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v11 15/24] dt: bindings: Add a binding for flash LED devices associated to a sensor
+Date: Tue, 12 Sep 2017 11:42:27 +0300
+Message-Id: <20170912084236.1154-16-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 20 Sep 2017 08:28:48 +0200
+Camera flash drivers (and LEDs) are separate from the sensor devices in
+DT. In order to make an association between the two, provide the
+association information to the software.
 
-Three update suggestions were taken into account
-from static source code analysis.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+---
+ Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Markus Elfring (3):
-  Use common error handling code in pvr2_ioread_get_buffer()
-  Delete an unnecessary check before kfree() in two functions
-  Delete unnecessary braces in six functions
-
- drivers/media/usb/pvrusb2/pvrusb2-ioread.c | 60 +++++++++++++-----------------
- 1 file changed, 25 insertions(+), 35 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index 852041a7480c..fdba30479b47 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -67,6 +67,14 @@ are required in a relevant parent node:
+ 		    identifier, should be 1.
+  - #size-cells    : should be zero.
+ 
++
++Optional properties
++-------------------
++
++- flash-leds: An array of phandles, each referring to a flash LED, a sub-node
++  of the LED driver device node.
++
++
+ Optional endpoint properties
+ ----------------------------
+ 
 -- 
-2.14.1
+2.11.0
