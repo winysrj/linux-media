@@ -1,49 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:48760 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752218AbdIVRlv (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36470 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751478AbdILNmL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 13:41:51 -0400
-Date: Fri, 22 Sep 2017 19:41:13 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-cc: Julia Lawall <julia.lawall@lip6.fr>, linux-media@vger.kernel.org,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [media] spca500: Use common error handling code in
- spca500_synch310()
-In-Reply-To: <4921ea61-49cd-4071-e636-c199daddec8e@users.sourceforge.net>
-Message-ID: <alpine.DEB.2.20.1709221941020.3170@hadrien>
-References: <d496ca24-1725-768b-5e55-4e45097cb77d@users.sourceforge.net> <alpine.DEB.2.20.1709221908230.3170@hadrien> <4921ea61-49cd-4071-e636-c199daddec8e@users.sourceforge.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        Tue, 12 Sep 2017 09:42:11 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v12 21/26] dt: bindings: smiapp: Document lens-focus and flash-leds properties
+Date: Tue, 12 Sep 2017 16:41:55 +0300
+Message-Id: <20170912134200.19556-22-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Document optional lens-focus and flash-leds properties for the smiapp
+driver.
 
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+---
+ Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
+ 1 file changed, 2 insertions(+)
 
-On Fri, 22 Sep 2017, SF Markus Elfring wrote:
-
-> >>  	return 0;
-> >> -error:
-> >> +
-> >> +report_failure:
-> >> +	PERR("Set packet size: set interface error");
-> >>  	return -EBUSY;
-> >>  }
-> >
-> > Why change the label name?
->
-> I find the suggested variant a bi better.
->
->
-> > They are both equally uninformative.
->
-> Which identifier would you find appropriate there?
-
-error was fine.
-
-julia
+diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+index 855e1faf73e2..33f10a94c381 100644
+--- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
++++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
+@@ -27,6 +27,8 @@ Optional properties
+ - nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
+   the NVM contents will not be read.
+ - reset-gpios: XSHUTDOWN GPIO
++- flash-leds: See ../video-interfaces.txt
++- lens-focus: See ../video-interfaces.txt
+ 
+ 
+ Endpoint node mandatory properties
+-- 
+2.11.0
