@@ -1,66 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp106.iad3a.emailsrvr.com ([173.203.187.106]:37369 "EHLO
-        smtp106.iad3a.emailsrvr.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753480AbdIDLQq (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:24147 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751645AbdIMLmT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Sep 2017 07:16:46 -0400
-Subject: Re: UVC property auto update
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <c3f8b20a-65f9-ead3-9ffd-041641254af7@theimagingsource.com>
- <Pine.LNX.4.64.1709031714570.29016@axis700.grange>
- <4ce389e0-f63e-049e-b200-14ada55bb630@theimagingsource.com>
- <alpine.DEB.2.20.1709040801550.13291@axis700.grange>
-From: Edgar Thier <edgar.thier@theimagingsource.com>
-Message-ID: <c36606bf-a412-894b-82bc-37fb88b50121@theimagingsource.com>
-Date: Mon, 4 Sep 2017 13:16:45 +0200
-MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.20.1709040801550.13291@axis700.grange>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        Wed, 13 Sep 2017 07:42:19 -0400
+From: Hoegeun Kwon <hoegeun.kwon@samsung.com>
+To: inki.dae@samsung.com, airlied@linux.ie, kgene@kernel.org,
+        krzk@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        catalin.marinas@arm.com, will.deacon@arm.com, mchehab@kernel.org,
+        s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+        robin.murphy@arm.com
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org, a.hajda@samsung.com,
+        Hoegeun Kwon <hoegeun.kwon@samsung.com>
+Subject: [PATCH v4 4/4] [media] exynos-gsc: Add hardware rotation limits
+Date: Wed, 13 Sep 2017 20:41:55 +0900
+Message-id: <1505302915-15699-5-git-send-email-hoegeun.kwon@samsung.com>
+In-reply-to: <1505302915-15699-1-git-send-email-hoegeun.kwon@samsung.com>
+References: <1505302915-15699-1-git-send-email-hoegeun.kwon@samsung.com>
+        <CGME20170913114215epcas2p346dd3987cf25481bc780e0eef8b91ed8@epcas2p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+The hardware rotation limits of gsc depends on SOC (Exynos
+5250/5420/5433). Distinguish them and add them to the driver data.
 
+Signed-off-by: Hoegeun Kwon <hoegeun.kwon@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c | 127 +++++++++++++++++++++++++--
+ 1 file changed, 122 insertions(+), 5 deletions(-)
 
-> But that patch only re-reads the flags. What does that give you? Do those > flags change? In which way? As far as I understand the UVC Autoupdate
-> feature, a change in GET_INFO data is only one possibility, (arguably) a 
-> more important one is changes in GET_CUR data.
-
-My understanding of the driver is rather narrow, so please correct me if I am wrong.
->From what I can see the uvc driver is currently not asking the device if a property has self
-modifying properties (and thus would require the AUTO_UPDATE flag).
-This is only done for properties in the extension unit but not for 'standard' properties.
-Thus properties exhibit different behavior depending on where they are defined.
-By changing this the driver now assumes that a property with AUTO_UPDATE has to be re-read when
-getting/setting a property and does not rely on cached values, no matter if extension unit or not.
-
-I did not consider the possibility that a lower level change would be necessary or that a more
-previce update mechanism for different property parts was possible.
-
-Basically the entry point for my change would be here:
-https://git.linuxtv.org/media_tree.git/tree/drivers/media/usb/uvc/uvc_ctrl.c#n1405
-
-How an update is handled by the driver did not seem important for this patch as the retrieval of a
-correct property value seemed more important.
-
-> In either case, this should 
-> be implemented using the UVC Interrupt endpoint. Here's my latest 
-> asynchronous control patch:
-> 
-> https://patchwork.linuxtv.org/patch/42800/
-> 
-> As you can see, it only handles the VALUE_CHANGE (GET_CUR) case. I would 
-> suggest implementing a patch on top of it to add support for INFO_CHANGE 
-> and you'd be the best person to test it then!
-
-I will try it out. I should be able to give you feedback tomorrow.
-I will also ask the firmware developer if only value changes are available or flag changes are also
-a possibility.
-
-Cheers,
-
-Edgar
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 4380150..173a238 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -958,6 +958,51 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
+ 	.target_rot_en_h	= 2016,
+ };
+ 
++static struct gsc_pix_max gsc_v_5250_max = {
++	.org_scaler_bypass_w	= 8192,
++	.org_scaler_bypass_h	= 8192,
++	.org_scaler_input_w	= 4800,
++	.org_scaler_input_h	= 3344,
++	.real_rot_dis_w		= 4800,
++	.real_rot_dis_h		= 3344,
++	.real_rot_en_w		= 2016,
++	.real_rot_en_h		= 2016,
++	.target_rot_dis_w	= 4800,
++	.target_rot_dis_h	= 3344,
++	.target_rot_en_w	= 2016,
++	.target_rot_en_h	= 2016,
++};
++
++static struct gsc_pix_max gsc_v_5420_max = {
++	.org_scaler_bypass_w	= 8192,
++	.org_scaler_bypass_h	= 8192,
++	.org_scaler_input_w	= 4800,
++	.org_scaler_input_h	= 3344,
++	.real_rot_dis_w		= 4800,
++	.real_rot_dis_h		= 3344,
++	.real_rot_en_w		= 2048,
++	.real_rot_en_h		= 2048,
++	.target_rot_dis_w	= 4800,
++	.target_rot_dis_h	= 3344,
++	.target_rot_en_w	= 2016,
++	.target_rot_en_h	= 2016,
++};
++
++static struct gsc_pix_max gsc_v_5433_max = {
++	.org_scaler_bypass_w	= 8192,
++	.org_scaler_bypass_h	= 8192,
++	.org_scaler_input_w	= 4800,
++	.org_scaler_input_h	= 3344,
++	.real_rot_dis_w		= 4800,
++	.real_rot_dis_h		= 3344,
++	.real_rot_en_w		= 2047,
++	.real_rot_en_h		= 2047,
++	.target_rot_dis_w	= 4800,
++	.target_rot_dis_h	= 3344,
++	.target_rot_en_w	= 2016,
++	.target_rot_en_h	= 2016,
++};
++
+ static struct gsc_pix_min gsc_v_100_min = {
+ 	.org_w			= 64,
+ 	.org_h			= 32,
+@@ -992,6 +1037,45 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
+ 	.local_sc_down		= 2,
+ };
+ 
++static struct gsc_variant gsc_v_5250_variant = {
++	.pix_max		= &gsc_v_5250_max,
++	.pix_min		= &gsc_v_100_min,
++	.pix_align		= &gsc_v_100_align,
++	.in_buf_cnt		= 32,
++	.out_buf_cnt		= 32,
++	.sc_up_max		= 8,
++	.sc_down_max		= 16,
++	.poly_sc_down_max	= 4,
++	.pre_sc_down_max	= 4,
++	.local_sc_down		= 2,
++};
++
++static struct gsc_variant gsc_v_5420_variant = {
++	.pix_max		= &gsc_v_5420_max,
++	.pix_min		= &gsc_v_100_min,
++	.pix_align		= &gsc_v_100_align,
++	.in_buf_cnt		= 32,
++	.out_buf_cnt		= 32,
++	.sc_up_max		= 8,
++	.sc_down_max		= 16,
++	.poly_sc_down_max	= 4,
++	.pre_sc_down_max	= 4,
++	.local_sc_down		= 2,
++};
++
++static struct gsc_variant gsc_v_5433_variant = {
++	.pix_max		= &gsc_v_5433_max,
++	.pix_min		= &gsc_v_100_min,
++	.pix_align		= &gsc_v_100_align,
++	.in_buf_cnt		= 32,
++	.out_buf_cnt		= 32,
++	.sc_up_max		= 8,
++	.sc_down_max		= 16,
++	.poly_sc_down_max	= 4,
++	.pre_sc_down_max	= 4,
++	.local_sc_down		= 2,
++};
++
+ static struct gsc_driverdata gsc_v_100_drvdata = {
+ 	.variant = {
+ 		[0] = &gsc_v_100_variant,
+@@ -1004,11 +1088,33 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
+ 	.num_clocks = 1,
+ };
+ 
++static struct gsc_driverdata gsc_v_5250_drvdata = {
++	.variant = {
++		[0] = &gsc_v_5250_variant,
++		[1] = &gsc_v_5250_variant,
++		[2] = &gsc_v_5250_variant,
++		[3] = &gsc_v_5250_variant,
++	},
++	.num_entities = 4,
++	.clk_names = { "gscl" },
++	.num_clocks = 1,
++};
++
++static struct gsc_driverdata gsc_v_5420_drvdata = {
++	.variant = {
++		[0] = &gsc_v_5420_variant,
++		[1] = &gsc_v_5420_variant,
++	},
++	.num_entities = 4,
++	.clk_names = { "gscl" },
++	.num_clocks = 1,
++};
++
+ static struct gsc_driverdata gsc_5433_drvdata = {
+ 	.variant = {
+-		[0] = &gsc_v_100_variant,
+-		[1] = &gsc_v_100_variant,
+-		[2] = &gsc_v_100_variant,
++		[0] = &gsc_v_5433_variant,
++		[1] = &gsc_v_5433_variant,
++		[2] = &gsc_v_5433_variant,
+ 	},
+ 	.num_entities = 3,
+ 	.clk_names = { "pclk", "aclk", "aclk_xiu", "aclk_gsclbend" },
+@@ -1017,13 +1123,21 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
+ 
+ static const struct of_device_id exynos_gsc_match[] = {
+ 	{
+-		.compatible = "samsung,exynos5-gsc",
+-		.data = &gsc_v_100_drvdata,
++		.compatible = "samsung,exynos5250-gsc",
++		.data = &gsc_v_5250_drvdata,
++	},
++	{
++		.compatible = "samsung,exynos5420-gsc",
++		.data = &gsc_v_5420_drvdata,
+ 	},
+ 	{
+ 		.compatible = "samsung,exynos5433-gsc",
+ 		.data = &gsc_5433_drvdata,
+ 	},
++	{
++		.compatible = "samsung,exynos5-gsc",
++		.data = &gsc_v_100_drvdata,
++	},
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, exynos_gsc_match);
+@@ -1045,6 +1159,9 @@ static int gsc_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		return ret;
+ 
++	if (drv_data == &gsc_v_100_drvdata)
++		dev_info(dev, "compatible 'exynos5-gsc' is deprecated\n");
++
+ 	gsc->id = ret;
+ 	if (gsc->id >= drv_data->num_entities) {
+ 		dev_err(dev, "Invalid platform device id: %d\n", gsc->id);
+-- 
+1.9.1
