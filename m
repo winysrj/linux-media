@@ -1,80 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54628 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S967519AbdIZHd5 (ORCPT
+Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:19961 "EHLO
+        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751399AbdIMPIn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 03:33:57 -0400
-Date: Tue, 26 Sep 2017 10:33:53 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
+        Wed, 13 Sep 2017 11:08:43 -0400
+Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
+        by mx07-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v8DF3eNK022610
+        for <linux-media@vger.kernel.org>; Wed, 13 Sep 2017 16:08:41 +0100
+Received: from mail-wm0-f70.google.com (mail-wm0-f70.google.com [74.125.82.70])
+        by mx07-00252a01.pphosted.com with ESMTP id 2cv5pysxk5-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Wed, 13 Sep 2017 16:08:41 +0100
+Received: by mail-wm0-f70.google.com with SMTP id i192so1048874wme.5
+        for <linux-media@vger.kernel.org>; Wed, 13 Sep 2017 08:08:41 -0700 (PDT)
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Rob Herring <robh+dt@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Cyprian Wronka <cwronka@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com
-Subject: Re: [PATCH v4 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 RX
- Device Tree bindings
-Message-ID: <20170926073353.jzfx2gxy5pa5piyp@valkosipuli.retiisi.org.uk>
-References: <20170922100823.18184-1-maxime.ripard@free-electrons.com>
- <20170922100823.18184-2-maxime.ripard@free-electrons.com>
- <20170922113522.4nbls3bb3sglsu55@valkosipuli.retiisi.org.uk>
- <20170922145404.444dqynmqz34jm7c@flea.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170922145404.444dqynmqz34jm7c@flea.lan>
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org
+Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Subject: [PATCH v2 0/4] BCM283x Camera Receiver driver
+Date: Wed, 13 Sep 2017 16:07:45 +0100
+Message-Id: <cover.1505140980.git.dave.stevenson@raspberrypi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+Hi All.
 
-On Fri, Sep 22, 2017 at 04:54:04PM +0200, Maxime Ripard wrote:
-> Hi Sakari,
-> 
-> On Fri, Sep 22, 2017 at 11:35:23AM +0000, Sakari Ailus wrote:
-...
-> > > +           Documentation/devicetree/bindings/media/video-interfaces.txt. The
-> > > +           port nodes numbered as follows.
-> > > +
-> > > +           Port Description
-> > > +           -----------------------------
-> > > +           0    CSI-2 input
-> > > +           1    Stream 0 output
-> > > +           2    Stream 1 output
-> > > +           3    Stream 2 output
-> > > +           4    Stream 3 output
-> > > +
-> > > +           The stream output port nodes are optional if they are not connected
-> > > +           to anything at the hardware level or implemented in the design.
-> > 
-> > Could you add supported endpoint numbers, please?
-> > 
-> > <URL:https://patchwork.linuxtv.org/patch/44409/>
-> 
-> So in the case where you have a single endpoint, usually you don't
-> provide an endpoint number at all. Should I document it as zero, or as
-> "no number"?
+This is v2 for adding a V4L2 subdevice driver for the CSI2/CCP2 camera
+receiver peripheral on BCM283x, as used on Raspberry Pi.
+Sorry for the delay since v1 - other tasks assigned, got sucked
+into investigating why some devices were misbehaving, and
+picking up on new features that had been added to the tree (eg CCP2).
 
-Good question. If the endpoint numbers generally aren't meaningful for the
-device, no number should be equally good. But that should be documented.
+v4l2-compliance results depend on the sensor subdevice connected to.
+I have results for TC358743, ADV7282M, and OV5647 that I'll
+send them as a follow up email.
 
-Just my opinion. I wonder what Rob thinks.
+OV647 and ADV7282M are now working with this driver, as well as TC358743.
+v1 of the driver only supported continuous clock mode which Unicam was
+failing to lock on to correctly.
+The driver now checks the clock mode and adjusts termination accordingly.
+Something is still a little off for OV5647, but I'll investigate that
+later.
 
-I'll update the documentation patch.
+As per the v1 discussion with Hans, I have added text describing the
+differences between this driver and the one in staging/vc04_service.
+Addressing some of the issues in the bcm2835-camera driver is on my to-do
+list, and I'll add similar text there when I'm dealing with that.
+
+For those wanting to see the driver in context,
+https://github.com/6by9/upstream-linux/tree/unicam is the linux-media
+tree with my mods on top. It also includes a couple of TC358743 and
+OV5647 driver updates that I'll send to the list in the next few days.
+
+Thanks in advance.
+  Dave
+
+Changes from v1 to v2:
+- Broken out a new helper function v4l2_fourcc2s as requested by Hans.
+- Documented difference between this driver and the bcm2835-camera driver
+  in staging/vc04_services.
+- Corrected handling of s_dv_timings and s_std to update the current format
+  but only if not streaming. This refactored some of the s_fmt code to
+  remove duplication.
+- Updated handling of sizeimage to include vertical padding. (Not updated
+  the bytesperline calcs as the app can override).
+- Added support for continuous clock mode (requires changes to lane
+  termination configuration).
+- Add support for CCP2 as Sakari's patches to support it have now been merged.
+  I don't have a suitable sensor to test it with at present, but all settings
+  have been taken from a known working configuration. If people would prefer
+  I remove this until it has been proved against hardware then I'm happy to
+  do so.
+- Updated DT bindings to use <data-lanes> on the Unicam node to set the
+  maximum number of lanes present instead of a having a custom property.
+  Documents the mandatory endpoint properties.
+- Removed RAW16 from the list of input formats as it isn't defined in the
+  CSI-2 spec. The peripheral can still unpack the other Bayer formats to
+  a 16 bit/pixel packing though.
+- Added a log-status handler to get the status from the sensor.
+- Automatically switch away from any interlaced formats reported via g_fmt,
+  or that are attempted to be set via try/s_fmt.
+- Addressed other more minor code review comments from v1.
+
+Dave Stevenson (4):
+  [media] v4l2-common: Add helper function for fourcc to string
+  [media] dt-bindings: Document BCM283x CSI2/CCP2 receiver
+  [media] bcm2835-unicam: Driver for CCP2/CSI2 camera interface
+  MAINTAINERS: Add entry for BCM2835 camera driver
+
+ .../devicetree/bindings/media/bcm2835-unicam.txt   |  107 +
+ MAINTAINERS                                        |    7 +
+ drivers/media/platform/Kconfig                     |    1 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/bcm2835/Kconfig             |   14 +
+ drivers/media/platform/bcm2835/Makefile            |    3 +
+ drivers/media/platform/bcm2835/bcm2835-unicam.c    | 2192 ++++++++++++++++++++
+ drivers/media/platform/bcm2835/vc4-regs-unicam.h   |  264 +++
+ drivers/media/v4l2-core/v4l2-common.c              |   18 +
+ include/media/v4l2-common.h                        |    3 +
+ 10 files changed, 2610 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+ create mode 100644 drivers/media/platform/bcm2835/Kconfig
+ create mode 100644 drivers/media/platform/bcm2835/Makefile
+ create mode 100644 drivers/media/platform/bcm2835/bcm2835-unicam.c
+ create mode 100644 drivers/media/platform/bcm2835/vc4-regs-unicam.h
 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
