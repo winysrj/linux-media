@@ -1,76 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:56177 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750715AbdI2MeY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Sep 2017 08:34:24 -0400
-Message-ID: <1506688459.4729.88.camel@linux.intel.com>
-Subject: Re: [PATCH] dma-fence: fix dma_fence_get_rcu_safe
-From: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-To: Daniel Vetter <daniel@ffwll.ch>,
-        Christian =?ISO-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
-        Chris Wilson <chris@chris-wilson.co.uk>
-Date: Fri, 29 Sep 2017 15:34:19 +0300
-In-Reply-To: <CAKMK7uGkEFzbrhAS1qWs-g3dC20jubXitR5ALkTg4PhMwoQ-Rg@mail.gmail.com>
-References: <1504531653-13779-1-git-send-email-deathsimple@vodafone.de>
-         <150453243791.23157.6907537389223890207@mail.alporthouse.com>
-         <67fe7e05-7743-40c8-558b-41b08eb986e9@amd.com>
-         <150512037119.16759.472484663447331384@mail.alporthouse.com>
-         <3c412ee3-854a-292a-e036-7c5fd7888979@amd.com>
-         <150512178199.16759.73667469529688@mail.alporthouse.com>
-         <5ff4b100-b580-a93d-aa5e-c66173ac091d@amd.com>
-         <150512410278.16759.10537429613477592631@mail.alporthouse.com>
-         <79e447f8-f2e3-57e3-b5fe-503e5feb2f82@amd.com>
-         <CAKMK7uGkEFzbrhAS1qWs-g3dC20jubXitR5ALkTg4PhMwoQ-Rg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:48106 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751031AbdIMH55 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Sep 2017 03:57:57 -0400
+Subject: Re: [PATCH v12 19/26] v4l: fwnode: Add a helper function to obtain
+ device / interger references
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, laurent.pinchart@ideasonboard.com,
+        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+ <20170912134200.19556-20-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f92245da-0823-c95e-2208-b038f1bbb869@xs4all.nl>
+Date: Wed, 13 Sep 2017 09:57:52 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170912134200.19556-20-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2017-09-20 at 20:20 +0200, Daniel Vetter wrote:
-> On Mon, Sep 11, 2017 at 01:06:32PM +0200, Christian König wrote:
-> > Am 11.09.2017 um 12:01 schrieb Chris Wilson:
-> > > [SNIP]
-> > > > Yeah, but that is illegal with a fence objects.
-> > > > 
-> > > > When anybody allocates fences this way it breaks at least
-> > > > reservation_object_get_fences_rcu(),
-> > > > reservation_object_wait_timeout_rcu() and
-> > > > reservation_object_test_signaled_single().
-> > > 
-> > > Many, many months ago I sent patches to fix them all.
-> > 
-> > Found those after a bit a searching. Yeah, those patches where proposed more
-> > than a year ago, but never pushed upstream.
-> > 
-> > Not sure if we really should go this way. dma_fence objects are shared
-> > between drivers and since we can't judge if it's the correct fence based on
-> > a criteria in the object (only the read counter which is outside) all
-> > drivers need to be correct for this.
-> > 
-> > I would rather go the way and change dma_fence_release() to wrap
-> > fence->ops->release into call_rcu() to keep the whole RCU handling outside
-> > of the individual drivers.
-> 
-> Hm, I entirely dropped the ball on this, I kinda assumed that we managed
-> to get some agreement on this between i915 and dma_fence. Adding a pile
-> more people.
-> 
-> Joonas, Tvrtko, I guess we need to fix this one way or the other.
+The subject still has the 'interger' typo.
 
-I definitely didn't get the memo or notice this before. Tvrtko/Chris?
+On 09/12/2017 03:41 PM, Sakari Ailus wrote:
+> v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
+> the device's own fwnode, it will follow child fwnodes with the given
+> property -- value pair and return the resulting fwnode.
 
-Regars, Joonas
--- 
-Joonas Lahtinen
-Open Source Technology Center
-Intel Corporation
+As suggested before: 'property-value' is easier to read than ' -- '.
+
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-fwnode.c | 145 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 145 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> index a32473f95be1..a07599a8f647 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -567,6 +567,151 @@ static int v4l2_fwnode_reference_parse(
+>  	return ret;
+>  }
+>  
+> +/*
+> + * v4l2_fwnode_reference_get_int_prop - parse a reference with integer
+> + *					arguments
+> + * @dev: struct device pointer
+> + * @notifier: notifier for @dev
+> + * @prop: the name of the property
+
+@index is not documented.
+
+> + * @props: the array of integer property names
+> + * @nprops: the number of integer properties
+
+properties -> property names in @props
+
+> + *
+> + * Find fwnodes referred to by a property @prop, then under that iteratively
+> + * follow each child node which has a property the value matches the integer
+
+"the value" -> "whose value" or "with a value that"
+
+At least, I think that's what you mean here.
+
+How is @props/@nprops used?
+
+> + * argument at an index.
+
+I assume this should be "the @index"?
+
+> + *
+> + * Return: 0 on success
+> + *	   -ENOENT if no entries (or the property itself) were found
+> + *	   -EINVAL if property parsing otherwisefailed
+
+Missing space before "failed"
+
+> + *	   -ENOMEM if memory allocation failed
+> + */
+> +static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
+> +	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
+> +	const char **props, unsigned int nprops)
+> +{
+> +	struct fwnode_reference_args fwnode_args;
+> +	unsigned int *args = fwnode_args.args;
+> +	struct fwnode_handle *child;
+> +	int ret;
+> +
+> +	/*
+> +	 * Obtain remote fwnode as well as the integer arguments.
+> +	 *
+> +	 * To-do: handle -ENODATA when "device property: Align return
+> +	 * codes of acpi_fwnode_get_reference_with_args" is merged.
+> +	 */
+> +	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
+> +						 index, &fwnode_args);
+> +	if (ret)
+> +		return ERR_PTR(ret == -ENODATA ? -ENOENT : ret);
+> +
+> +	/*
+> +	 * Find a node in the tree under the referred fwnode corresponding the
+
+the -> to the
+
+> +	 * integer arguments.
+> +	 */
+> +	fwnode = fwnode_args.fwnode;
+> +	while (nprops) {
+
+This can be 'while (nprops--) {'.
+
+> +		u32 val;
+> +
+> +		/* Loop over all child nodes under fwnode. */
+> +		fwnode_for_each_child_node(fwnode, child) {
+> +			if (fwnode_property_read_u32(child, *props, &val))
+> +				continue;
+> +
+> +			/* Found property, see if its value matches. */
+> +			if (val == *args)
+> +				break;
+> +		}
+> +
+> +		fwnode_handle_put(fwnode);
+> +
+> +		/* No property found; return an error here. */
+> +		if (!child) {
+> +			fwnode = ERR_PTR(-ENOENT);
+> +			break;
+> +		}
+> +
+> +		props++;
+> +		args++;
+> +		fwnode = child;
+> +		nprops--;
+> +	}
+> +
+> +	return fwnode;
+> +}
+
+You really need to add an ACPI example as comment for this source code.
+
+I still don't understand the code. I know you pointed me to an example,
+but I can't remember/find what it was. Either copy the example here or
+point to the file containing the example (copying is best IMHO).
+
+Regards,
+
+	Hans
+
+> +
+> +/*
+> + * v4l2_fwnode_reference_parse_int_props - parse references for async sub-devices
+> + * @dev: struct device pointer
+> + * @notifier: notifier for @dev
+> + * @prop: the name of the property
+> + * @props: the array of integer property names
+> + * @nprops: the number of integer properties
+> + *
+> + * Use v4l2_fwnode_reference_get_int_prop to find fwnodes through reference in
+> + * property @prop with integer arguments with child nodes matching in properties
+> + * @props. Then, set up V4L2 async sub-devices for those fwnodes in the notifier
+> + * accordingly.
+> + *
+> + * While it is technically possible to use this function on DT, it is only
+> + * meaningful on ACPI. On Device tree you can refer to any node in the tree but
+> + * on ACPI the references are limited to devices.
+> + *
+> + * Return: 0 on success
+> + *	   -ENOENT if no entries (or the property itself) were found
+> + *	   -EINVAL if property parsing otherwisefailed
+> + *	   -ENOMEM if memory allocation failed
+> + */
+> +static int v4l2_fwnode_reference_parse_int_props(
+> +	struct device *dev, struct v4l2_async_notifier *notifier,
+> +	const char *prop, const char **props, unsigned int nprops)
+> +{
+> +	struct fwnode_handle *fwnode;
+> +	unsigned int index;
+> +	int ret;
+> +
+> +	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
+> +					 dev_fwnode(dev), prop, index, props,
+> +					 nprops))); index++)
+> +		fwnode_handle_put(fwnode);
+> +
+> +	if (PTR_ERR(fwnode) != -ENOENT)
+> +		return PTR_ERR(fwnode);
+> +
+> +	ret = v4l2_async_notifier_realloc(notifier,
+> +					  notifier->num_subdevs + index);
+> +	if (ret)
+> +		return -ENOMEM;
+> +
+> +	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
+> +					 dev_fwnode(dev), prop, index, props,
+> +					 nprops))); index++) {
+> +		struct v4l2_async_subdev *asd;
+> +
+> +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
+> +			ret = -EINVAL;
+> +			goto error;
+> +		}
+> +
+> +		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
+> +		if (!asd) {
+> +			ret = -ENOMEM;
+> +			goto error;
+> +		}
+> +
+> +		notifier->subdevs[notifier->num_subdevs] = asd;
+> +		asd->match.fwnode.fwnode = fwnode;
+> +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> +		notifier->num_subdevs++;
+> +	}
+> +
+> +	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
+> +
+> +error:
+> +	fwnode_handle_put(fwnode);
+> +	return ret;
+> +}
+> +
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+>  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+> 
