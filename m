@@ -1,595 +1,455 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fllnx210.ext.ti.com ([198.47.19.17]:23951 "EHLO
-        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751380AbdILSXx (ORCPT
+Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:51115 "EHLO
+        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751258AbdIMPtk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 14:23:53 -0400
-Date: Tue, 12 Sep 2017 13:23:39 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        Cyprian Wronka <cwronka@cadence.com>,
-        Neil Webb <neilw@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v3 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
-Message-ID: <20170912182339.GA27713@ti.com>
-References: <20170904130335.23280-1-maxime.ripard@free-electrons.com>
- <20170904130335.23280-3-maxime.ripard@free-electrons.com>
+        Wed, 13 Sep 2017 11:49:40 -0400
+Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
+        by mx07-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v8DFmSu6014915
+        for <linux-media@vger.kernel.org>; Wed, 13 Sep 2017 16:49:39 +0100
+Received: from mail-pg0-f72.google.com (mail-pg0-f72.google.com [74.125.83.72])
+        by mx07-00252a01.pphosted.com with ESMTP id 2cv5pysy3d-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Wed, 13 Sep 2017 16:49:38 +0100
+Received: by mail-pg0-f72.google.com with SMTP id p5so855751pgn.7
+        for <linux-media@vger.kernel.org>; Wed, 13 Sep 2017 08:49:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20170904130335.23280-3-maxime.ripard@free-electrons.com>
+In-Reply-To: <cover.1505140980.git.dave.stevenson@raspberrypi.org>
+References: <cover.1505140980.git.dave.stevenson@raspberrypi.org>
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Wed, 13 Sep 2017 16:49:35 +0100
+Message-ID: <CAAoAYcM6puYbYTzyjqzmOzMPQMDZRENZskbvwgqQsuEFDNAU6A@mail.gmail.com>
+Subject: Re: [PATCH v2 0/4] BCM283x Camera Receiver driver
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Maxime,
+(dropping to linux-media and linux-rpi-kernel mailing lists as the
+device tree folk aren't going to be bothered by v4l2-compliance
+results)
 
-Thanks for the patch.
+v4l2-compliance results:
 
-Maxime Ripard <maxime.ripard@free-electrons.com> wrote on Mon [2017-Sep-04 15:03:35 +0200]:
-> The Cadence CSI-2 RX Controller is an hardware block meant to be used as a
-> bridge between a CSI-2 bus and pixel grabbers.
-> 
-> It supports operating with internal or external D-PHY, with up to 4 lanes,
-> or without any D-PHY. The current code only supports the former case.
-> 
-> It also support dynamic mapping of the CSI-2 virtual channels to the
-> associated pixel grabbers, but that isn't allowed at the moment either.
-> 
-> Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
-> ---
->  drivers/media/platform/Kconfig               |   1 +
->  drivers/media/platform/Makefile              |   2 +
->  drivers/media/platform/cadence/Kconfig       |  12 +
->  drivers/media/platform/cadence/Makefile      |   1 +
->  drivers/media/platform/cadence/cdns-csi2rx.c | 494 +++++++++++++++++++++++++++
->  5 files changed, 510 insertions(+)
->  create mode 100644 drivers/media/platform/cadence/Kconfig
->  create mode 100644 drivers/media/platform/cadence/Makefile
->  create mode 100644 drivers/media/platform/cadence/cdns-csi2rx.c
+TC358743 (having loaded an EDID config)
+
+v4l2-compliance SHA   : f6ecbc90656815d91dc6ba90aac0ad8193a14b38
+
+Driver Info:
+    Driver name   : unicam
+    Card type     : unicam
+    Bus info      : platform:unicam 3f801000.csi1
+    Driver version: 4.13.0
+    Capabilities  : 0x85200001
+        Video Capture
+        Read/Write
+        Streaming
+        Extended Pix Format
+        Device Capabilities
+    Device Caps   : 0x05200001
+        Video Capture
+        Read/Write
+        Streaming
+        Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+    test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+    test second video open: OK
+    test VIDIOC_QUERYCAP: OK
+    test VIDIOC_G/S_PRIORITY: OK
+    test for unlimited opens: OK
+
+Debug ioctls:
+    test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+    test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+    test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+    test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+    test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+    test VIDIOC_ENUMAUDIO: OK (Not Supported)
+    test VIDIOC_G/S/ENUMINPUT: OK
+    test VIDIOC_G/S_AUDIO: OK (Not Supported)
+    Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+    test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+    test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+    test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+    test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+    test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+    Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+    test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+    test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK
+    test VIDIOC_DV_TIMINGS_CAP: OK
+    test VIDIOC_G/S_EDID: OK
+
+Test input 0:
+
+    Control ioctls:
+        test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+        test VIDIOC_QUERYCTRL: OK
+        test VIDIOC_G/S_CTRL: OK
+        test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+        test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+        test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+        Standard Controls: 3 Private Controls: 2
+
+    Format ioctls:
+        test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+        test VIDIOC_G/S_PARM: OK (Not Supported)
+        test VIDIOC_G_FBUF: OK (Not Supported)
+        test VIDIOC_G_FMT: OK
+        test VIDIOC_TRY_FMT: OK
+        test VIDIOC_S_FMT: OK
+        test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+        test Cropping: OK (Not Supported)
+        test Composing: OK (Not Supported)
+        test Scaling: OK (Not Supported)
+
+    Codec ioctls:
+        test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+        test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+        test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+    Buffer ioctls:
+        test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+        test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Stream using all formats:
+    test MMAP for Format RGB3, Frame Size 1920x1080:
+        Stride 5760, Field None: OK
+        Stride 5824, Field None: OK
+    test MMAP for Format UYVY, Frame Size 1920x1080:
+        Stride 3840, Field None: OK
+        Stride 3904, Field None: OK
+
+Total: 47, Succeeded: 47, Failed: 0, Warnings: 0
+
+------
+ADV7282-M
+Minor hack required to select the first valid input (in my case
+CVBS_AIN1). The hardware default is DIFF_CVBS_AIN1_AIN2.
+
+v4l2-compliance SHA   : f6ecbc90656815d91dc6ba90aac0ad8193a14b38
+
+Driver Info:
+    Driver name   : unicam
+    Card type     : unicam
+    Bus info      : platform:unicam 3f801000.csi1
+    Driver version: 4.13.0
+    Capabilities  : 0x85200001
+        Video Capture
+        Read/Write
+        Streaming
+        Extended Pix Format
+        Device Capabilities
+    Device Caps   : 0x05200001
+        Video Capture
+        Read/Write
+        Streaming
+        Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+    test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+    test second video open: OK
+    test VIDIOC_QUERYCAP: OK
+    test VIDIOC_G/S_PRIORITY: OK
+    test for unlimited opens: OK
+
+Debug ioctls:
+    test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+    test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+    test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+    test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+    test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+    test VIDIOC_ENUMAUDIO: OK (Not Supported)
+    test VIDIOC_G/S/ENUMINPUT: OK
+    test VIDIOC_G/S_AUDIO: OK (Not Supported)
+    Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+    test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+    test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+    test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+    test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+    test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+    Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+    test VIDIOC_ENUM/G/S/QUERY_STD: OK
+    test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+    test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+    test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+    Control ioctls:
+        test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+        test VIDIOC_QUERYCTRL: OK
+        test VIDIOC_G/S_CTRL: OK
+        test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+        test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+        test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+        Standard Controls: 5 Private Controls: 1
+
+    Format ioctls:
+        test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+        test VIDIOC_G/S_PARM: OK
+        test VIDIOC_G_FBUF: OK (Not Supported)
+        test VIDIOC_G_FMT: OK
+        test VIDIOC_TRY_FMT: OK
+        test VIDIOC_S_FMT: OK
+        test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+        test Cropping: OK (Not Supported)
+        test Composing: OK (Not Supported)
+        test Scaling: OK (Not Supported)
+
+    Codec ioctls:
+        test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+        test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+        test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+    Buffer ioctls:
+Retrieved std of 0000B000
+        test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+        test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Stream using all formats:
+    test MMAP for Format UYVY, Frame Size 720x480:
+        Stride 1440, Field None: OK
+        Stride 1504, Field None: OK
+
+Total: 45, Succeeded: 45, Failed: 0, Warnings: 0
+
+-------
+OV5647
+
+v4l2-compliance SHA   : f6ecbc90656815d91dc6ba90aac0ad8193a14b38
+
+Driver Info:
+    Driver name   : unicam
+    Card type     : unicam
+    Bus info      : platform:unicam 3f801000.csi1
+    Driver version: 4.13.0
+    Capabilities  : 0x85200001
+        Video Capture
+        Read/Write
+        Streaming
+        Extended Pix Format
+        Device Capabilities
+    Device Caps   : 0x05200001
+        Video Capture
+        Read/Write
+        Streaming
+        Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+    test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+    test second video open: OK
+    test VIDIOC_QUERYCAP: OK
+    test VIDIOC_G/S_PRIORITY: OK
+    test for unlimited opens: OK
+
+Debug ioctls:
+    test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+    test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+    test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+    test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+    test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+    test VIDIOC_ENUMAUDIO: OK (Not Supported)
+    test VIDIOC_G/S/ENUMINPUT: OK
+    test VIDIOC_G/S_AUDIO: OK (Not Supported)
+    Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+    test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+    test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+    test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+    test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+    test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+    Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+    test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+    test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+    test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+    test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+    Control ioctls:
+        test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+        test VIDIOC_QUERYCTRL: OK
+        test VIDIOC_G/S_CTRL: OK
+        fail: v4l2-test-controls.cpp(587): g_ext_ctrls does not
+support count == 0
+        test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
+        test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+        test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+        Standard Controls: 0 Private Controls: 0
+
+    Format ioctls:
+        test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+        test VIDIOC_G/S_PARM: OK (Not Supported)
+        test VIDIOC_G_FBUF: OK (Not Supported)
+        test VIDIOC_G_FMT: OK
+        test VIDIOC_TRY_FMT: OK
+        test VIDIOC_S_FMT: OK
+        test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+        test Cropping: OK (Not Supported)
+        test Composing: OK (Not Supported)
+        test Scaling: OK (Not Supported)
+
+    Codec ioctls:
+        test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+        test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+        test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+    Buffer ioctls:
+        test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+        test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Stream using all formats:
+    test MMAP for Format BA81, Frame Size 640x480:
+        Stride 640, Field None: OK
+        Stride 704, Field None: OK
+    test MMAP for Format pBAA, Frame Size 640x480:
+        Stride 800, Field None: OK
+        Stride 864, Field None: OK
+    test MMAP for Format BG12, Frame Size 640x480:
+        Stride 960, Field None: OK
+        Stride 1024, Field None: OK
+    test MMAP for Format BYR2, Frame Size 640x480:
+        Stride 1280, Field None: OK
+        Stride 1344, Field None: OK
+
+Total: 51, Succeeded: 50, Failed: 1, Warnings: 0
+
+
+Hans previously requested the output of "v4l2-ctl -l" for this case:
+pi@raspberrypi:~/v4l-utils/utils/v4l2-ctl $ ./v4l2-ctl -l
+pi@raspberrypi:~/v4l-utils/utils/v4l2-ctl $
+ie nothing - the sub device driver has no controls registered, and
+that is what causes the failure:
+        fail: v4l2-test-controls.cpp(587): g_ext_ctrls does not
+support count == 0
+        test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
+I don't know what the correct behaviour should be in those
+circumstances, but it isn't really a failure of this driver.
+
+  Dave
+
+On 13 September 2017 at 16:07, Dave Stevenson
+<dave.stevenson@raspberrypi.org> wrote:
+> Hi All.
 >
-
-<snip>
-
-> diff --git a/drivers/media/platform/cadence/cdns-csi2rx.c b/drivers/media/platform/cadence/cdns-csi2rx.c
-> new file mode 100644
-> index 000000000000..e662b1890bba
-> --- /dev/null
-> +++ b/drivers/media/platform/cadence/cdns-csi2rx.c
-> @@ -0,0 +1,494 @@
-> +/*
-> + * Driver for Cadence MIPI-CSI2 RX Controller v1.3
-> + *
-> + * Copyright (C) 2017 Cadence Design Systems Inc.
-> + *
-> + * This program is free software; you can redistribute  it and/or modify it
-> + * under  the terms of  the GNU General  Public License as published by the
-> + * Free Software Foundation;  either version 2 of the  License, or (at your
-> + * option) any later version.
-> + */
-> +
-> +#include <linux/atomic.h>
-> +#include <linux/clk.h>
-> +#include <linux/delay.h>
-> +#include <linux/io.h>
-> +#include <linux/module.h>
-> +#include <linux/of.h>
-> +#include <linux/of_graph.h>
-> +#include <linux/phy/phy.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/slab.h>
-> +
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-fwnode.h>
-> +#include <media/v4l2-subdev.h>
-> +
-> +#define CSI2RX_DEVICE_CFG_REG			0x000
-> +
-> +#define CSI2RX_SOFT_RESET_REG			0x004
-> +#define CSI2RX_SOFT_RESET_PROTOCOL			BIT(1)
-> +#define CSI2RX_SOFT_RESET_FRONT				BIT(0)
-> +
-> +#define CSI2RX_STATIC_CFG_REG			0x008
-> +#define CSI2RX_STATIC_CFG_DLANE_MAP(llane, plane)	((plane) << (16 + (llane) * 4))
-> +#define CSI2RX_STATIC_CFG_LANES_MASK			GENMASK(11, 8)
-> +
-> +#define CSI2RX_STREAM_BASE(n)		(((n) + 1) * 0x100)
-> +
-> +#define CSI2RX_STREAM_CTRL_REG(n)		(CSI2RX_STREAM_BASE(n) + 0x000)
-> +#define CSI2RX_STREAM_CTRL_START			BIT(0)
-> +
-> +#define CSI2RX_STREAM_DATA_CFG_REG(n)		(CSI2RX_STREAM_BASE(n) + 0x008)
-> +#define CSI2RX_STREAM_DATA_CFG_EN_VC_SELECT		BIT(31)
-> +#define CSI2RX_STREAM_DATA_CFG_VC_SELECT(n)		BIT((n) + 16)
-> +
-> +#define CSI2RX_STREAM_CFG_REG(n)		(CSI2RX_STREAM_BASE(n) + 0x00c)
-> +#define CSI2RX_STREAM_CFG_FIFO_MODE_LARGE_BUF		(1 << 8)
-> +
-> +#define CSI2RX_STREAMS_MAX	4
-> +
-> +enum csi2rx_pads {
-> +	CSI2RX_PAD_SINK,
-> +	CSI2RX_PAD_SOURCE_STREAM0,
-> +	CSI2RX_PAD_SOURCE_STREAM1,
-> +	CSI2RX_PAD_SOURCE_STREAM2,
-> +	CSI2RX_PAD_SOURCE_STREAM3,
-> +	CSI2RX_PAD_MAX,
-> +};
-> +
-> +struct csi2rx_priv {
-> +	struct device			*dev;
-> +	atomic_t			count;
-> +
-> +	void __iomem			*base;
-> +	struct clk			*sys_clk;
-> +	struct clk			*p_clk;
-> +	struct clk			*pixel_clk[CSI2RX_STREAMS_MAX];
-> +	struct phy			*dphy;
-> +
-> +	u8				lanes[4];
-> +	u8				num_lanes;
-> +	u8				max_lanes;
-> +	u8				max_streams;
-> +	bool				has_internal_dphy;
-> +
-> +	struct v4l2_subdev		subdev;
-> +	struct media_pad		pads[CSI2RX_PAD_MAX];
-> +
-> +	/* Remote source */
-> +	struct v4l2_async_subdev	asd;
-> +	struct device_node		*source_node;
-> +	struct v4l2_subdev		*source_subdev;
-> +	int				source_pad;
-> +};
-> +
-> +static inline
-> +struct csi2rx_priv *v4l2_subdev_to_csi2rx(struct v4l2_subdev *subdev)
-> +{
-> +	return container_of(subdev, struct csi2rx_priv, subdev);
-> +}
-> +
-> +static void csi2rx_reset(struct csi2rx_priv *csi2rx)
-> +{
-> +	writel(CSI2RX_SOFT_RESET_PROTOCOL | CSI2RX_SOFT_RESET_FRONT,
-> +	       csi2rx->base + CSI2RX_SOFT_RESET_REG);
-> +
-> +	usleep_range(10, 20);
-> +
-> +	writel(0, csi2rx->base + CSI2RX_SOFT_RESET_REG);
-> +}
-> +
-> +static int csi2rx_start(struct csi2rx_priv *csi2rx)
-> +{
-> +	unsigned int i;
-> +	u32 reg;
-> +	int ret;
-> +
-> +	/*
-> +	 * We're not the first users, there's no need to enable the
-> +	 * whole controller.
-> +	 */
-> +	if (atomic_inc_return(&csi2rx->count) > 1)
-> +		return 0;
-> +
-> +	clk_prepare_enable(csi2rx->p_clk);
-> +
-> +	printk("%s %d\n", __func__, __LINE__);
-
-Some left over debug...
-
-> +
-> +	csi2rx_reset(csi2rx);
-> +
-> +	reg = csi2rx->num_lanes << 8;
-> +	for (i = 0; i < csi2rx->num_lanes; i++)
-> +		reg |= CSI2RX_STATIC_CFG_DLANE_MAP(i, csi2rx->lanes[i]);
-> +
-> +	writel(reg, csi2rx->base + CSI2RX_STATIC_CFG_REG);
-> +
-> +	ret = v4l2_subdev_call(csi2rx->source_subdev, video, s_stream, true);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/*
-> +	 * Create a static mapping between the CSI virtual channels
-> +	 * and the output stream.
-> +	 *
-> +	 * This should be enhanced, but v4l2 lacks the support for
-> +	 * changing that mapping dynamically.
-> +	 *
-> +	 * We also cannot enable and disable independant streams here,
-> +	 * hence the reference counting.
-> +	 */
-> +	for (i = 0; i < csi2rx->max_streams; i++) {
-> +		clk_prepare_enable(csi2rx->pixel_clk[i]);
-> +
-> +		writel(CSI2RX_STREAM_CFG_FIFO_MODE_LARGE_BUF,
-> +		       csi2rx->base + CSI2RX_STREAM_CFG_REG(i));
-> +
-> +		writel(CSI2RX_STREAM_DATA_CFG_EN_VC_SELECT |
-> +		       CSI2RX_STREAM_DATA_CFG_VC_SELECT(i),
-> +		       csi2rx->base + CSI2RX_STREAM_DATA_CFG_REG(i));
-> +
-> +		writel(CSI2RX_STREAM_CTRL_START,
-> +		       csi2rx->base + CSI2RX_STREAM_CTRL_REG(i));
-> +	}
-> +
-> +	clk_prepare_enable(csi2rx->sys_clk);
-> +
-> +	clk_disable_unprepare(csi2rx->p_clk);
-> +
-> +	return 0;
-> +}
-> +
-> +static int csi2rx_stop(struct csi2rx_priv *csi2rx)
-> +{
-> +	unsigned int i;
-> +
-> +	/*
-> +	 * Let the last user turn off the lights
-> +	 */
-> +	if (!atomic_dec_and_test(&csi2rx->count))
-> +		return 0;
-> +
-> +	printk("%s %d\n", __func__, __LINE__);
-
-Same here... dev_dbg perhaps? 
-
-> +
-> +	clk_prepare_enable(csi2rx->p_clk);
-> +
-> +	for (i = 0; i < csi2rx->max_streams; i++) {
-> +		writel(0, csi2rx->base + CSI2RX_STREAM_CTRL_REG(i));
-> +
-> +		clk_disable_unprepare(csi2rx->pixel_clk[i]);
-> +	}
-> +
-> +	clk_disable_unprepare(csi2rx->p_clk);
-> +
-> +	return v4l2_subdev_call(csi2rx->source_subdev, video, s_stream, false);
-> +}
-> +
-> +static int csi2rx_s_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> +	struct csi2rx_priv *csi2rx = v4l2_subdev_to_csi2rx(sd);
-> +
-> +	if (enable)
-> +		csi2rx_start(csi2rx);
-> +	else
-> +		csi2rx_stop(csi2rx);
-> +
-> +	return 0;
-
-Since we added the error checking in both csi2rx_start/csi2rx_stop
-we should also propagate the error as well.
-Something like:
-
-	if (enable)
-		return csi2rx_start(csi2rx);
-
-	return csi2rx_stop(csi2rx);
-...
-
-> +}
-> +
-> +static const struct v4l2_subdev_video_ops csi2rx_video_ops = {
-> +	.s_stream	= csi2rx_s_stream,
-> +};
-> +
-> +static const struct v4l2_subdev_ops csi2rx_subdev_ops = {
-> +	.video		= &csi2rx_video_ops,
-> +};
-> +
-> +static int csi2rx_async_bound(struct v4l2_async_notifier *notifier,
-> +			      struct v4l2_subdev *s_subdev,
-> +			      struct v4l2_async_subdev *asd)
-> +{
-> +	struct v4l2_subdev *subdev = subnotifier_to_v4l2_subdev(notifier);
-> +	struct csi2rx_priv *csi2rx = v4l2_subdev_to_csi2rx(subdev);
-> +
-> +	csi2rx->source_pad = media_entity_get_fwnode_pad(&s_subdev->entity,
-> +							 &csi2rx->source_node->fwnode,
-> +							 MEDIA_PAD_FL_SOURCE);
-> +	if (csi2rx->source_pad < 0) {
-> +		dev_err(csi2rx->dev, "Couldn't find output pad for subdev %s\n",
-> +			s_subdev->name);
-> +		return csi2rx->source_pad;
-> +	}
-> +
-> +	csi2rx->source_subdev = s_subdev;
-> +
-> +	dev_dbg(csi2rx->dev, "Bound %s pad: %d\n", s_subdev->name,
-> +		csi2rx->source_pad);
-> +
-> +	return 0;
-> +}
-> +
-> +static int csi2rx_async_complete(struct v4l2_async_notifier *notifier)
-> +{
-> +	struct v4l2_subdev *subdev = subnotifier_to_v4l2_subdev(notifier);
-> +	struct csi2rx_priv *csi2rx = v4l2_subdev_to_csi2rx(subdev);
-> +
-> +	return media_create_pad_link(&csi2rx->source_subdev->entity,
-> +				     csi2rx->source_pad,
-> +				     &csi2rx->subdev.entity, 0,
-> +				     MEDIA_LNK_FL_ENABLED |
-> +				     MEDIA_LNK_FL_IMMUTABLE);
-> +}
-> +
-> +static void csi2rx_async_unbind(struct v4l2_async_notifier *notifier,
-> +				struct v4l2_subdev *s_subdev,
-> +				struct v4l2_async_subdev *asd)
-> +{
-> +	struct v4l2_subdev *subdev = subnotifier_to_v4l2_subdev(notifier);
-> +	struct csi2rx_priv *csi2rx = v4l2_subdev_to_csi2rx(subdev);
-> +
-> +	dev_dbg(csi2rx->dev, "Unbound %s pad: %d\n", s_subdev->name,
-> +		csi2rx->source_pad);
-> +
-> +	csi2rx->source_subdev = NULL;
-> +	csi2rx->source_pad = -EINVAL;
-> +}
-> +
-> +static int csi2rx_get_resources(struct csi2rx_priv *csi2rx,
-> +				struct platform_device *pdev)
-> +{
-> +	struct resource *res;
-> +	unsigned char i;
-> +	u32 reg;
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	csi2rx->base = devm_ioremap_resource(&pdev->dev, res);
-> +	if (IS_ERR(csi2rx->base))
-> +		return PTR_ERR(csi2rx->base);
-> +
-> +	csi2rx->sys_clk = devm_clk_get(&pdev->dev, "sys_clk");
-> +	if (IS_ERR(csi2rx->sys_clk)) {
-> +		dev_err(&pdev->dev, "Couldn't get sys clock\n");
-> +		return PTR_ERR(csi2rx->sys_clk);
-> +	}
-> +
-> +	csi2rx->p_clk = devm_clk_get(&pdev->dev, "p_clk");
-> +	if (IS_ERR(csi2rx->p_clk)) {
-> +		dev_err(&pdev->dev, "Couldn't get P clock\n");
-> +		return PTR_ERR(csi2rx->p_clk);
-> +	}
-> +
-> +	csi2rx->dphy = devm_phy_optional_get(&pdev->dev, "dphy");
-> +	if (IS_ERR(csi2rx->dphy)) {
-> +		dev_err(&pdev->dev, "Couldn't get external D-PHY\n");
-> +		return PTR_ERR(csi2rx->dphy);
-> +	}
-> +
-> +	/*
-> +	 * FIXME: Once we'll have external D-PHY support, the check
-> +	 * will need to be removed.
-> +	 */
-> +	if (csi2rx->dphy) {
-> +		dev_err(&pdev->dev, "External D-PHY not supported yet\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	clk_prepare_enable(csi2rx->p_clk);
-> +	reg = readl(csi2rx->base + CSI2RX_DEVICE_CFG_REG);
-> +	clk_disable_unprepare(csi2rx->p_clk);
-> +
-> +	csi2rx->max_lanes = (reg & 7);
-> +	if (csi2rx->max_lanes > 4) {
-
-Should use a macro here.
-
-> +		dev_err(&pdev->dev, "Invalid number of lanes: %u\n",
-> +			csi2rx->max_lanes);
-> +		return -EINVAL;
-> +	}
-> +
-> +	csi2rx->max_streams = ((reg >> 4) & 7);
-> +	if (csi2rx->max_streams > CSI2RX_STREAMS_MAX) {
-> +		dev_err(&pdev->dev, "Invalid number of streams: %u\n",
-> +			csi2rx->max_streams);
-> +		return -EINVAL;
-> +	}
-> +
-> +	csi2rx->has_internal_dphy = (reg & BIT(3)) ? true : false;
-> +
-> +	/*
-> +	 * FIXME: Once we'll have internal D-PHY support, the check
-> +	 * will need to be removed.
-> +	 */
-> +	if (csi2rx->has_internal_dphy) {
-> +		dev_err(&pdev->dev, "Internal D-PHY not supported yet\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	for (i = 0; i < csi2rx->max_streams; i++) {
-> +		char clk_name[16];
-> +
-> +		snprintf(clk_name, sizeof(clk_name), "pixel_if%u_clk", i);
-> +		csi2rx->pixel_clk[i] = devm_clk_get(&pdev->dev, clk_name);
-> +		if (IS_ERR(csi2rx->pixel_clk[i])) {
-> +			dev_err(&pdev->dev, "Couldn't get clock %s\n", clk_name);
-> +			return PTR_ERR(csi2rx->pixel_clk[i]);
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int csi2rx_parse_dt(struct csi2rx_priv *csi2rx)
-> +{
-> +	struct v4l2_fwnode_endpoint v4l2_ep;
-> +	struct device_node *ep, *remote;
-> +	int ret;
-> +
-> +	ep = of_graph_get_endpoint_by_regs(csi2rx->dev->of_node, 0, 0);
-> +	if (!ep)
-> +		return -EINVAL;
-> +
-> +	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
-> +	if (ret) {
-> +		dev_err(csi2rx->dev, "Could not parse v4l2 endpoint\n");
-> +		goto out;
-> +	}
-> +
-> +	if (v4l2_ep.bus_type != V4L2_MBUS_CSI2) {
-> +		dev_err(csi2rx->dev, "Unsupported media bus type: 0x%x\n",
-> +			v4l2_ep.bus_type);
-> +		ret = -EINVAL;
-> +		goto out;
-> +	}
-> +
-> +	memcpy(csi2rx->lanes, v4l2_ep.bus.mipi_csi2.data_lanes,
-> +	       sizeof(csi2rx->lanes));
-> +	csi2rx->num_lanes = v4l2_ep.bus.mipi_csi2.num_data_lanes;
-> +	if (csi2rx->num_lanes > csi2rx->max_lanes) {
-> +		dev_err(csi2rx->dev, "Unsupported number of data-lanes: %d\n",
-> +			csi2rx->num_lanes);
-> +		ret = -EINVAL;
-> +		goto out;
-> +	}
-> +
-> +	remote = of_graph_get_remote_port_parent(ep);
-> +	if (!remote) {
-> +		dev_err(csi2rx->dev, "No device found for endpoint %pOF\n", ep);
-> +		ret = -EINVAL;
-> +		goto out;
-> +	}
-> +
-> +	dev_dbg(csi2rx->dev, "Found remote device %pOF\n", remote);
-> +
-> +	csi2rx->source_node = remote;
-> +	csi2rx->asd.match.fwnode.fwnode = &remote->fwnode;
-> +	csi2rx->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-> +
-> +out:
-> +	of_node_put(ep);
-> +	return ret;
-> +}
-> +
-> +static int csi2rx_probe(struct platform_device *pdev)
-> +{
-> +	struct v4l2_async_subdev **subdevs;
-> +	struct csi2rx_priv *csi2rx;
-> +	unsigned int i;
-> +	int ret;
-> +
-> +	/*
-> +	 * Since the v4l2_subdev structure is embedded in our
-> +	 * csi2rx_priv structure, and that the structure is exposed to
-> +	 * the user-space, we cannot just use the devm_variant
-> +	 * here. Indeed, that would lead to a use-after-free in a
-> +	 * open() - unbind - close() pattern.
-> +	 */
-> +	csi2rx = kzalloc(sizeof(*csi2rx), GFP_KERNEL);
-> +	if (!csi2rx)
-> +		return -ENOMEM;
-> +	platform_set_drvdata(pdev, csi2rx);
-> +	csi2rx->dev = &pdev->dev;
-> +
-> +	ret = csi2rx_get_resources(csi2rx, pdev);
-> +	if (ret)
-> +		goto err_free_priv;
-> +
-> +	ret = csi2rx_parse_dt(csi2rx);
-> +	if (ret)
-> +		goto err_free_priv;
-> +
-> +	csi2rx->subdev.owner = THIS_MODULE;
-> +	csi2rx->subdev.dev = &pdev->dev;
-> +	v4l2_subdev_init(&csi2rx->subdev, &csi2rx_subdev_ops);
-> +	v4l2_set_subdevdata(&csi2rx->subdev, &pdev->dev);
-> +	snprintf(csi2rx->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s.%s",
-> +		 KBUILD_MODNAME, dev_name(&pdev->dev));
-> +
-> +	/* Create our media pads */
-> +	csi2rx->subdev.entity.function = MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
-> +	csi2rx->pads[CSI2RX_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
-> +	for (i = CSI2RX_PAD_SOURCE_STREAM0; i < CSI2RX_PAD_MAX; i++)
-> +		csi2rx->pads[i].flags = MEDIA_PAD_FL_SOURCE;
-> +
-> +	subdevs = devm_kzalloc(csi2rx->dev, sizeof(*subdevs), GFP_KERNEL);
-> +	if (!subdevs) {
-> +		ret = -ENOMEM;
-> +		goto err_free_priv;
-> +	}
-> +	subdevs[0] = &csi2rx->asd;
-> +
-
-Shouldn't the comment related to lifetime of memory allocation be also applied here?
-A reference to the "subdevs" pointer is taken internally so it might suffer the same fate.
-Not sure how many "struct v4l2_async_subdev **subdevs" we would end up needing
-but since here we are only dealing with one, why not just make it a member of the
-struct csi2rx_priv object.
-
-> +	ret = v4l2_async_subdev_notifier_register(&csi2rx->subdev, 1, subdevs,
-> +						  csi2rx_async_bound,
-> +						  csi2rx_async_complete,
-> +						  csi2rx_async_unbind);
-> +	if (ret < 0) {
-> +		dev_err(csi2rx->dev, "Failed to register our notifier\n");
-> +		goto err_free_priv;
-> +	}
-> +
-> +	ret = media_entity_pads_init(&csi2rx->subdev.entity, CSI2RX_PAD_MAX,
-> +				     csi2rx->pads);
-> +	if (ret)
-> +		goto err_free_priv;
-> +
-> +	ret = v4l2_async_register_subdev(&csi2rx->subdev);
-> +	if (ret < 0)
-> +		goto err_free_priv;
-> +
-> +	dev_info(&pdev->dev,
-> +		 "Probed CSI2RX with %u/%u lanes, %u streams, %s D-PHY\n",
-> +		 csi2rx->num_lanes, csi2rx->max_lanes, csi2rx->max_streams,
-> +		 csi2rx->has_internal_dphy ? "internal" : "no");
-> +
-> +	return 0;
-> +
-> +err_free_priv:
-> +	kfree(csi2rx);
-> +	return ret;
-> +}
-> +
-> +static int csi2rx_remove(struct platform_device *pdev)
-> +{
-> +	struct csi2rx_priv *csi2rx = platform_get_drvdata(pdev);
-> +
-> +	v4l2_async_unregister_subdev(&csi2rx->subdev);
-> +	kfree(csi2rx);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct of_device_id csi2rx_of_table[] = {
-> +	{ .compatible = "cdns,csi2rx" },
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(of, csi2rx_of_table);
-> +
-> +static struct platform_driver csi2rx_driver = {
-> +	.probe	= csi2rx_probe,
-> +	.remove	= csi2rx_remove,
-> +
-> +	.driver	= {
-> +		.name		= "cdns-csi2rx",
-> +		.of_match_table	= csi2rx_of_table,
-> +	},
-> +};
-> +module_platform_driver(csi2rx_driver);
-> -- 
-> 2.13.5
-> 
+> This is v2 for adding a V4L2 subdevice driver for the CSI2/CCP2 camera
+> receiver peripheral on BCM283x, as used on Raspberry Pi.
+> Sorry for the delay since v1 - other tasks assigned, got sucked
+> into investigating why some devices were misbehaving, and
+> picking up on new features that had been added to the tree (eg CCP2).
+>
+> v4l2-compliance results depend on the sensor subdevice connected to.
+> I have results for TC358743, ADV7282M, and OV5647 that I'll
+> send them as a follow up email.
+>
+> OV647 and ADV7282M are now working with this driver, as well as TC358743.
+> v1 of the driver only supported continuous clock mode which Unicam was
+> failing to lock on to correctly.
+> The driver now checks the clock mode and adjusts termination accordingly.
+> Something is still a little off for OV5647, but I'll investigate that
+> later.
+>
+> As per the v1 discussion with Hans, I have added text describing the
+> differences between this driver and the one in staging/vc04_service.
+> Addressing some of the issues in the bcm2835-camera driver is on my to-do
+> list, and I'll add similar text there when I'm dealing with that.
+>
+> For those wanting to see the driver in context,
+> https://github.com/6by9/upstream-linux/tree/unicam is the linux-media
+> tree with my mods on top. It also includes a couple of TC358743 and
+> OV5647 driver updates that I'll send to the list in the next few days.
+>
+> Thanks in advance.
+>   Dave
+>
+> Changes from v1 to v2:
+> - Broken out a new helper function v4l2_fourcc2s as requested by Hans.
+> - Documented difference between this driver and the bcm2835-camera driver
+>   in staging/vc04_services.
+> - Corrected handling of s_dv_timings and s_std to update the current format
+>   but only if not streaming. This refactored some of the s_fmt code to
+>   remove duplication.
+> - Updated handling of sizeimage to include vertical padding. (Not updated
+>   the bytesperline calcs as the app can override).
+> - Added support for continuous clock mode (requires changes to lane
+>   termination configuration).
+> - Add support for CCP2 as Sakari's patches to support it have now been merged.
+>   I don't have a suitable sensor to test it with at present, but all settings
+>   have been taken from a known working configuration. If people would prefer
+>   I remove this until it has been proved against hardware then I'm happy to
+>   do so.
+> - Updated DT bindings to use <data-lanes> on the Unicam node to set the
+>   maximum number of lanes present instead of a having a custom property.
+>   Documents the mandatory endpoint properties.
+> - Removed RAW16 from the list of input formats as it isn't defined in the
+>   CSI-2 spec. The peripheral can still unpack the other Bayer formats to
+>   a 16 bit/pixel packing though.
+> - Added a log-status handler to get the status from the sensor.
+> - Automatically switch away from any interlaced formats reported via g_fmt,
+>   or that are attempted to be set via try/s_fmt.
+> - Addressed other more minor code review comments from v1.
+>
+> Dave Stevenson (4):
+>   [media] v4l2-common: Add helper function for fourcc to string
+>   [media] dt-bindings: Document BCM283x CSI2/CCP2 receiver
+>   [media] bcm2835-unicam: Driver for CCP2/CSI2 camera interface
+>   MAINTAINERS: Add entry for BCM2835 camera driver
+>
+>  .../devicetree/bindings/media/bcm2835-unicam.txt   |  107 +
+>  MAINTAINERS                                        |    7 +
+>  drivers/media/platform/Kconfig                     |    1 +
+>  drivers/media/platform/Makefile                    |    1 +
+>  drivers/media/platform/bcm2835/Kconfig             |   14 +
+>  drivers/media/platform/bcm2835/Makefile            |    3 +
+>  drivers/media/platform/bcm2835/bcm2835-unicam.c    | 2192 ++++++++++++++++++++
+>  drivers/media/platform/bcm2835/vc4-regs-unicam.h   |  264 +++
+>  drivers/media/v4l2-core/v4l2-common.c              |   18 +
+>  include/media/v4l2-common.h                        |    3 +
+>  10 files changed, 2610 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+>  create mode 100644 drivers/media/platform/bcm2835/Kconfig
+>  create mode 100644 drivers/media/platform/bcm2835/Makefile
+>  create mode 100644 drivers/media/platform/bcm2835/bcm2835-unicam.c
+>  create mode 100644 drivers/media/platform/bcm2835/vc4-regs-unicam.h
+>
+> --
+> 2.7.4
+>
