@@ -1,75 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:56759 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751602AbdINKiN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Sep 2017 06:38:13 -0400
-Subject: [PATCH 8/8] [media] ttusb_dec: Delete four unwanted spaces
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <66b087d3-6dd3-1e1c-d33d-e34c9e2ffe25@users.sourceforge.net>
-Message-ID: <525012eb-3970-c64f-b21d-24f13232a999@users.sourceforge.net>
-Date: Thu, 14 Sep 2017 12:38:03 +0200
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47422 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751714AbdIMKEx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Sep 2017 06:04:53 -0400
+Date: Wed, 13 Sep 2017 13:04:50 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: Re: [PATCH v12 19/26] v4l: fwnode: Add a helper function to obtain
+ device / interger references
+Message-ID: <20170913100449.7pgg6pdglo3b43ml@valkosipuli.retiisi.org.uk>
+References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+ <20170912134200.19556-20-sakari.ailus@linux.intel.com>
+ <f92245da-0823-c95e-2208-b038f1bbb869@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <66b087d3-6dd3-1e1c-d33d-e34c9e2ffe25@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <f92245da-0823-c95e-2208-b038f1bbb869@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 13 Sep 2017 22:22:41 +0200
+Hi Hans,
 
-The script "checkpatch.pl" pointed information out like the following.
+On Wed, Sep 13, 2017 at 09:57:52AM +0200, Hans Verkuil wrote:
+> The subject still has the 'interger' typo.
+> 
+> On 09/12/2017 03:41 PM, Sakari Ailus wrote:
+> > v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
+> > the device's own fwnode, it will follow child fwnodes with the given
+> > property -- value pair and return the resulting fwnode.
+> 
+> As suggested before: 'property-value' is easier to read than ' -- '.
 
-ERROR: space prohibited after that open parenthesis '('
+Oops. I must have missed some of your comments while making changes.
+Apologies for that.
 
-Thus fix affected source code places.
+> 
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-fwnode.c | 145 ++++++++++++++++++++++++++++++++++
+> >  1 file changed, 145 insertions(+)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> > index a32473f95be1..a07599a8f647 100644
+> > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> > @@ -567,6 +567,151 @@ static int v4l2_fwnode_reference_parse(
+> >  	return ret;
+> >  }
+> >  
+> > +/*
+> > + * v4l2_fwnode_reference_get_int_prop - parse a reference with integer
+> > + *					arguments
+> > + * @dev: struct device pointer
+> > + * @notifier: notifier for @dev
+> > + * @prop: the name of the property
+> 
+> @index is not documented.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/ttusb-dec/ttusb_dec.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Fixed.
 
-diff --git a/drivers/media/usb/ttusb-dec/ttusb_dec.c b/drivers/media/usb/ttusb-dec/ttusb_dec.c
-index 58256d518fa6..b05f83eac95d 100644
---- a/drivers/media/usb/ttusb-dec/ttusb_dec.c
-+++ b/drivers/media/usb/ttusb-dec/ttusb_dec.c
-@@ -258,7 +258,7 @@ static int dvb_filter_pes2ts(struct dvb_filter_pes2ts *p2ts,
- static void ttusb_dec_set_model(struct ttusb_dec *dec,
- 				enum ttusb_dec_model model);
- 
--static void ttusb_dec_handle_irq( struct urb *urb)
-+static void ttusb_dec_handle_irq(struct urb *urb)
- {
- 	struct ttusb_dec *dec = urb->context;
- 	char *buffer = dec->irq_buffer;
-@@ -393,8 +393,8 @@ static int ttusb_dec_send_command(struct ttusb_dec *dec, const u8 command,
- 	}
- }
- 
--static int ttusb_dec_get_stb_state (struct ttusb_dec *dec, unsigned int *mode,
--				    unsigned int *model, unsigned int *version)
-+static int ttusb_dec_get_stb_state(struct ttusb_dec *dec, unsigned int *mode,
-+				   unsigned int *model, unsigned int *version)
- {
- 	u8 c[COMMAND_PACKET_SIZE];
- 	int c_length;
-@@ -1233,7 +1233,7 @@ static void ttusb_dec_init_tasklet(struct ttusb_dec *dec)
- 		     (unsigned long)dec);
- }
- 
--static int ttusb_init_rc( struct ttusb_dec *dec)
-+static int ttusb_init_rc(struct ttusb_dec *dec)
- {
- 	struct input_dev *input_dev;
- 	u8 b[] = { 0x00, 0x01 };
+> 
+> > + * @props: the array of integer property names
+> > + * @nprops: the number of integer properties
+> 
+> properties -> property names in @props
+
+Fixed.
+
+> 
+> > + *
+> > + * Find fwnodes referred to by a property @prop, then under that iteratively
+> > + * follow each child node which has a property the value matches the integer
+> 
+> "the value" -> "whose value" or "with a value that"
+> 
+> At least, I think that's what you mean here.
+> 
+> How is @props/@nprops used?
+> 
+> > + * argument at an index.
+> 
+> I assume this should be "the @index"?
+
+Um, no. This is the index to the @props array. I'll clarify the
+documentation for this function.
+
+> 
+> > + *
+> > + * Return: 0 on success
+> > + *	   -ENOENT if no entries (or the property itself) were found
+> > + *	   -EINVAL if property parsing otherwisefailed
+> 
+> Missing space before "failed"
+
+Fixed.
+
+> 
+> > + *	   -ENOMEM if memory allocation failed
+> > + */
+> > +static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
+> > +	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
+> > +	const char **props, unsigned int nprops)
+> > +{
+> > +	struct fwnode_reference_args fwnode_args;
+> > +	unsigned int *args = fwnode_args.args;
+> > +	struct fwnode_handle *child;
+> > +	int ret;
+> > +
+> > +	/*
+> > +	 * Obtain remote fwnode as well as the integer arguments.
+> > +	 *
+> > +	 * To-do: handle -ENODATA when "device property: Align return
+> > +	 * codes of acpi_fwnode_get_reference_with_args" is merged.
+> > +	 */
+> > +	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
+> > +						 index, &fwnode_args);
+> > +	if (ret)
+> > +		return ERR_PTR(ret == -ENODATA ? -ENOENT : ret);
+> > +
+> > +	/*
+> > +	 * Find a node in the tree under the referred fwnode corresponding the
+> 
+> the -> to the
+
+Fixed.
+
+> 
+> > +	 * integer arguments.
+> > +	 */
+> > +	fwnode = fwnode_args.fwnode;
+> > +	while (nprops) {
+> 
+> This can be 'while (nprops--) {'.
+
+Changed.
+
+> 
+> > +		u32 val;
+> > +
+> > +		/* Loop over all child nodes under fwnode. */
+> > +		fwnode_for_each_child_node(fwnode, child) {
+> > +			if (fwnode_property_read_u32(child, *props, &val))
+> > +				continue;
+> > +
+> > +			/* Found property, see if its value matches. */
+> > +			if (val == *args)
+> > +				break;
+> > +		}
+> > +
+> > +		fwnode_handle_put(fwnode);
+> > +
+> > +		/* No property found; return an error here. */
+> > +		if (!child) {
+> > +			fwnode = ERR_PTR(-ENOENT);
+> > +			break;
+> > +		}
+> > +
+> > +		props++;
+> > +		args++;
+> > +		fwnode = child;
+> > +		nprops--;
+> > +	}
+> > +
+> > +	return fwnode;
+> > +}
+> 
+> You really need to add an ACPI example as comment for this source code.
+
+I can copy the relevant portions of the LED flash example, and remove them
+once the example is merged to mainline. That example really doesn't belong
+here though.
+
+> 
+> I still don't understand the code. I know you pointed me to an example,
+> but I can't remember/find what it was. Either copy the example here or
+> point to the file containing the example (copying is best IMHO).
+
+:-)
+
 -- 
-2.14.1
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
