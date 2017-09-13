@@ -1,112 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:28637 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752322AbdIANgo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Sep 2017 09:36:44 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org, Alan Cox <alan@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 4/7] staging: atomisp: Remove dead code for MID (#3)
-Date: Fri,  1 Sep 2017 16:36:37 +0300
-Message-Id: <20170901133640.17589-4-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20170901133640.17589-1-andriy.shevchenko@linux.intel.com>
-References: <20170901133640.17589-1-andriy.shevchenko@linux.intel.com>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:35430 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752054AbdIMTiI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Sep 2017 15:38:08 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, hverkuil@xs4all.nl, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] [media] saa7146: make saa7146_use_ops const
+Date: Thu, 14 Sep 2017 01:07:50 +0530
+Message-Id: <1505331470-28925-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-intel_mid_msgbus_*_raw*() are not used anywhere.
+Make these const as they are not modified in the file referencing them.
+They are only used when their function pointer fields invokes a
+function and therefore none of the structure fields are getting modified.
+Also, add a const to the declaration in the header.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- .../atomisp/include/asm/intel_mid_pcihelpers.h     |  4 --
- .../platform/intel-mid/intel_mid_pcihelpers.c      | 58 ----------------------
- 2 files changed, 62 deletions(-)
+ drivers/media/common/saa7146/saa7146_vbi.c   | 2 +-
+ drivers/media/common/saa7146/saa7146_video.c | 2 +-
+ include/media/drv-intf/saa7146_vv.h          | 4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h b/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
-index 5d8451ee391e..bf39f42c1c96 100644
---- a/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
-+++ b/drivers/staging/media/atomisp/include/asm/intel_mid_pcihelpers.h
-@@ -18,9 +18,5 @@
- #define PCI_ROOT_MSGBUS_WRITE           0x11
- #define PCI_ROOT_MSGBUS_DWORD_ENABLE    0xf0
- 
--u32 intel_mid_msgbus_read32_raw(u32 cmd);
- u32 intel_mid_msgbus_read32(u8 port, u32 addr);
--void intel_mid_msgbus_write32_raw(u32 cmd, u32 data);
- void intel_mid_msgbus_write32(u8 port, u32 addr, u32 data);
--u32 intel_mid_msgbus_read32_raw_ext(u32 cmd, u32 cmd_ext);
--void intel_mid_msgbus_write32_raw_ext(u32 cmd, u32 cmd_ext, u32 data);
-diff --git a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
-index c34f461653db..4ed3268c4e63 100644
---- a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
-+++ b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
-@@ -46,64 +46,6 @@ static int intel_mid_msgbus_init(void)
+diff --git a/drivers/media/common/saa7146/saa7146_vbi.c b/drivers/media/common/saa7146/saa7146_vbi.c
+index d79e4d7..69525ca 100644
+--- a/drivers/media/common/saa7146/saa7146_vbi.c
++++ b/drivers/media/common/saa7146/saa7146_vbi.c
+@@ -488,7 +488,7 @@ static ssize_t vbi_read(struct file *file, char __user *data, size_t count, loff
+ 	return ret;
  }
- fs_initcall(intel_mid_msgbus_init);
  
--u32 intel_mid_msgbus_read32_raw(u32 cmd)
--{
--	unsigned long irq_flags;
--	u32 data;
--
--	spin_lock_irqsave(&msgbus_lock, irq_flags);
--	pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_CTRL_REG, cmd);
--	pci_read_config_dword(pci_root, PCI_ROOT_MSGBUS_DATA_REG, &data);
--	spin_unlock_irqrestore(&msgbus_lock, irq_flags);
--
--	return data;
--}
--EXPORT_SYMBOL(intel_mid_msgbus_read32_raw);
--
--/*
-- * GU: this function is only used by the VISA and 'VXD' drivers.
-- */
--u32 intel_mid_msgbus_read32_raw_ext(u32 cmd, u32 cmd_ext)
--{
--	unsigned long irq_flags;
--	u32 data;
--
--	spin_lock_irqsave(&msgbus_lock, irq_flags);
--	pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_CTRL_EXT_REG, cmd_ext);
--	pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_CTRL_REG, cmd);
--	pci_read_config_dword(pci_root, PCI_ROOT_MSGBUS_DATA_REG, &data);
--	spin_unlock_irqrestore(&msgbus_lock, irq_flags);
--
--	return data;
--}
--EXPORT_SYMBOL(intel_mid_msgbus_read32_raw_ext);
--
--void intel_mid_msgbus_write32_raw(u32 cmd, u32 data)
--{
--	unsigned long irq_flags;
--
--	spin_lock_irqsave(&msgbus_lock, irq_flags);
--	pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_DATA_REG, data);
--	pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_CTRL_REG, cmd);
--	spin_unlock_irqrestore(&msgbus_lock, irq_flags);
--}
--EXPORT_SYMBOL(intel_mid_msgbus_write32_raw);
--
--/*
-- * GU: this function is only used by the VISA and 'VXD' drivers.
-- */
--void intel_mid_msgbus_write32_raw_ext(u32 cmd, u32 cmd_ext, u32 data)
--{
--	unsigned long irq_flags;
--
--	spin_lock_irqsave(&msgbus_lock, irq_flags);
--	pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_DATA_REG, data);
--	pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_CTRL_EXT_REG, cmd_ext);
--	pci_write_config_dword(pci_root, PCI_ROOT_MSGBUS_CTRL_REG, cmd);
--	spin_unlock_irqrestore(&msgbus_lock, irq_flags);
--}
--EXPORT_SYMBOL(intel_mid_msgbus_write32_raw_ext);
--
- u32 intel_mid_msgbus_read32(u8 port, u32 addr)
- {
- 	unsigned long irq_flags;
+-struct saa7146_use_ops saa7146_vbi_uops = {
++const struct saa7146_use_ops saa7146_vbi_uops = {
+ 	.init		= vbi_init,
+ 	.open		= vbi_open,
+ 	.release	= vbi_close,
+diff --git a/drivers/media/common/saa7146/saa7146_video.c b/drivers/media/common/saa7146/saa7146_video.c
+index 37b4654..51eeed8 100644
+--- a/drivers/media/common/saa7146/saa7146_video.c
++++ b/drivers/media/common/saa7146/saa7146_video.c
+@@ -1303,7 +1303,7 @@ static ssize_t video_read(struct file *file, char __user *data, size_t count, lo
+ 	return ret;
+ }
+ 
+-struct saa7146_use_ops saa7146_video_uops = {
++const struct saa7146_use_ops saa7146_video_uops = {
+ 	.init = video_init,
+ 	.open = video_open,
+ 	.release = video_close,
+diff --git a/include/media/drv-intf/saa7146_vv.h b/include/media/drv-intf/saa7146_vv.h
+index 0da6ccc..736f4f2 100644
+--- a/include/media/drv-intf/saa7146_vv.h
++++ b/include/media/drv-intf/saa7146_vv.h
+@@ -202,14 +202,14 @@ void saa7146_dma_free(struct saa7146_dev* dev,struct videobuf_queue *q,
+ /* from saa7146_video.c */
+ extern const struct v4l2_ioctl_ops saa7146_video_ioctl_ops;
+ extern const struct v4l2_ioctl_ops saa7146_vbi_ioctl_ops;
+-extern struct saa7146_use_ops saa7146_video_uops;
++extern const struct saa7146_use_ops saa7146_video_uops;
+ int saa7146_start_preview(struct saa7146_fh *fh);
+ int saa7146_stop_preview(struct saa7146_fh *fh);
+ long saa7146_video_do_ioctl(struct file *file, unsigned int cmd, void *arg);
+ int saa7146_s_ctrl(struct v4l2_ctrl *ctrl);
+ 
+ /* from saa7146_vbi.c */
+-extern struct saa7146_use_ops saa7146_vbi_uops;
++extern const struct saa7146_use_ops saa7146_vbi_uops;
+ 
+ /* resource management functions */
+ int saa7146_res_get(struct saa7146_fh *fh, unsigned int bit);
 -- 
-2.14.1
+1.9.1
