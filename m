@@ -1,75 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsmx009.vodafonemail.xion.oxcs.net ([153.92.174.87]:23326 "EHLO
-        vsmx009.vodafonemail.xion.oxcs.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752835AbdIDNUU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Sep 2017 09:20:20 -0400
-From: =?UTF-8?q?Christian=20K=C3=B6nig?= <deathsimple@vodafone.de>
-Cc: chris@chris-wilson.co.uk, daniel.vetter@ffwll.ch,
-        sumit.semwal@linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org
-Subject: [PATCH] dma-fence: fix dma_fence_get_rcu_safe
-Date: Mon,  4 Sep 2017 15:20:02 +0200
-Message-Id: <1504531202-2533-1-git-send-email-deathsimple@vodafone.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail.kernel.org ([198.145.29.99]:37442 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752343AbdIMLS4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Sep 2017 07:18:56 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com,
+        linux-renesas-soc@vger.kernel.org
+Cc: linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 2/9] v4l: vsp1: Protect bodies against overflow
+Date: Wed, 13 Sep 2017 12:18:41 +0100
+Message-Id: <0b4c1b3d8b0e56e736540855b91894bd9a43242e.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Christian König <christian.koenig@amd.com>
+The body write function relies on the code never asking it to write more
+than the entries available in the list.
 
-The logic is buggy and unnecessary complex. When dma_fence_get_rcu() fails to
-acquire a reference it doesn't necessary mean that there is no fence at all.
+Currently with each list body containing 256 entries, this is fine, but
+we can reduce this number greatly saving memory. In preparation of this
+add a level of protection to catch any buffer overflows.
 
-It usually mean that the fence was replaced by a new one and in this situation
-we certainly want to have the new one as result and *NOT* NULL.
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Christian König <christian.koenig@amd.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: linaro-mm-sig@lists.linaro.org
 ---
- include/linux/dma-fence.h | 23 ++---------------------
- 1 file changed, 2 insertions(+), 21 deletions(-)
 
-diff --git a/include/linux/dma-fence.h b/include/linux/dma-fence.h
-index a5195a7..37f3d67 100644
---- a/include/linux/dma-fence.h
-+++ b/include/linux/dma-fence.h
-@@ -246,27 +246,8 @@ dma_fence_get_rcu_safe(struct dma_fence * __rcu *fencep)
- 		struct dma_fence *fence;
+v3:
+ - adapt for new 'body' terminology
+ - simplify WARN_ON macro usage
+---
+ drivers/media/platform/vsp1/vsp1_dl.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 643f7ea3af24..a45d35aa676e 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -50,6 +50,7 @@ struct vsp1_dl_entry {
+  * @dma: DMA address of the entries
+  * @size: size of the DMA memory in bytes
+  * @num_entries: number of stored entries
++ * @max_entries: number of entries available
+  */
+ struct vsp1_dl_body {
+ 	struct list_head list;
+@@ -60,6 +61,7 @@ struct vsp1_dl_body {
+ 	size_t size;
  
- 		fence = rcu_dereference(*fencep);
--		if (!fence || !dma_fence_get_rcu(fence))
--			return NULL;
--
--		/* The atomic_inc_not_zero() inside dma_fence_get_rcu()
--		 * provides a full memory barrier upon success (such as now).
--		 * This is paired with the write barrier from assigning
--		 * to the __rcu protected fence pointer so that if that
--		 * pointer still matches the current fence, we know we
--		 * have successfully acquire a reference to it. If it no
--		 * longer matches, we are holding a reference to some other
--		 * reallocated pointer. This is possible if the allocator
--		 * is using a freelist like SLAB_TYPESAFE_BY_RCU where the
--		 * fence remains valid for the RCU grace period, but it
--		 * may be reallocated. When using such allocators, we are
--		 * responsible for ensuring the reference we get is to
--		 * the right fence, as below.
--		 */
--		if (fence == rcu_access_pointer(*fencep))
--			return rcu_pointer_handoff(fence);
--
--		dma_fence_put(fence);
-+		if (!fence || dma_fence_get_rcu(fence))
-+			return fence;
- 	} while (1);
- }
+ 	unsigned int num_entries;
++	unsigned int max_entries;
+ };
  
+ /**
+@@ -138,6 +140,7 @@ static int vsp1_dl_body_init(struct vsp1_device *vsp1,
+ 
+ 	dlb->vsp1 = vsp1;
+ 	dlb->size = size;
++	dlb->max_entries = num_entries;
+ 
+ 	dlb->entries = dma_alloc_wc(vsp1->bus_master, dlb->size, &dlb->dma,
+ 				    GFP_KERNEL);
+@@ -219,6 +222,10 @@ void vsp1_dl_body_free(struct vsp1_dl_body *dlb)
+  */
+ void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ {
++	if (WARN_ONCE(dlb->num_entries >= dlb->max_entries,
++		      "DLB size exceeded (max %u)", dlb->max_entries))
++		return;
++
+ 	dlb->entries[dlb->num_entries].addr = reg;
+ 	dlb->entries[dlb->num_entries].data = data;
+ 	dlb->num_entries++;
 -- 
-2.7.4
+git-series 0.9.1
