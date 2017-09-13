@@ -1,55 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:38075 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751431AbdIKKo1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 06:44:27 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, nicolas@ndufresne.ca,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Yakir Yang <ykk@rock-chips.com>
-Subject: [PATCH v8 3/4] arm64: dts: rockchip: add RGA device node for RK3399
-Date: Mon, 11 Sep 2017 18:44:03 +0800
-Message-Id: <1505126644-18396-4-git-send-email-jacob-chen@iotwrt.com>
-In-Reply-To: <1505126644-18396-1-git-send-email-jacob-chen@iotwrt.com>
-References: <1505126644-18396-1-git-send-email-jacob-chen@iotwrt.com>
+Received: from mail.kernel.org ([198.145.29.99]:37460 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752406AbdIMLTF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Sep 2017 07:19:05 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com,
+        linux-renesas-soc@vger.kernel.org
+Cc: linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 9/9] v4l: vsp1: Reduce display list body size
+Date: Wed, 13 Sep 2017 12:18:48 +0100
+Message-Id: <56bf843c98242a55deeed7c6ddcfea8f9a2a9092.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add the RGA dt config of RK3399 SoC.
+The display list originally allocated a body of 256 entries to store all
+of the register lists required for each frame.
 
-Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-Signed-off-by: Yakir Yang <ykk@rock-chips.com>
+This has now been separated into fragments for constant stream setup, and
+runtime updates.
+
+Empirical testing shows that the body0 now uses a maximum of 41
+registers for each frame, for both DRM and Video API pipelines thus a
+rounded 64 entries provides a suitable allocation.
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
- arch/arm64/boot/dts/rockchip/rk3399.dtsi | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/media/platform/vsp1/vsp1_dl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-index 5b78ce1..fa15770 100644
---- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-+++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-@@ -1153,6 +1153,17 @@
- 		status = "disabled";
- 	};
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index bca9bd45ac7f..5bb1e9103f84 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -21,7 +21,7 @@
+ #include "vsp1.h"
+ #include "vsp1_dl.h"
  
-+	rga: rga@ff680000 {
-+		compatible = "rockchip,rk3399-rga";
-+		reg = <0x0 0xff680000 0x0 0x10000>;
-+		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH 0>;
-+		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA_CORE>;
-+		clock-names = "aclk", "hclk", "sclk";
-+		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru SRST_H_RGA>;
-+		reset-names = "core", "axi", "ahb";
-+		power-domains = <&power RK3399_PD_RGA>;
-+	};
-+
- 	efuse0: efuse@ff690000 {
- 		compatible = "rockchip,rk3399-efuse";
- 		reg = <0x0 0xff690000 0x0 0x80>;
+-#define VSP1_DL_NUM_ENTRIES		256
++#define VSP1_DL_NUM_ENTRIES		64
+ 
+ #define VSP1_DLH_INT_ENABLE		(1 << 1)
+ #define VSP1_DLH_AUTO_START		(1 << 0)
 -- 
-2.7.4
+git-series 0.9.1
