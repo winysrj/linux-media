@@ -1,105 +1,415 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:52278 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751532AbdIKLZw (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:52805 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751842AbdIMHRN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 07:25:52 -0400
+        Wed, 13 Sep 2017 03:17:13 -0400
+Subject: Re: [PATCH v12 15/26] v4l: async: Allow binding notifiers to
+ sub-devices
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, laurent.pinchart@ideasonboard.com,
+        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+ <20170912134200.19556-16-sakari.ailus@linux.intel.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-        dri-devel@lists.freedesktop.org, Sean Paul <seanpaul@chromium.org>,
-        Imre Deak <imre.deak@intel.com>,
-        =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?=
-        <ville.syrjala@linux.intel.com>
-Subject: [PATCHv3 0/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
-Date: Mon, 11 Sep 2017 13:25:44 +0200
-Message-Id: <20170911112547.7133-1-hverkuil@xs4all.nl>
+Message-ID: <575bf15b-62d2-3a51-d550-d462578471f7@xs4all.nl>
+Date: Wed, 13 Sep 2017 09:17:08 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170912134200.19556-16-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 09/12/2017 03:41 PM, Sakari Ailus wrote:
+> Registering a notifier has required the knowledge of struct v4l2_device
+> for the reason that sub-devices generally are registered to the
+> v4l2_device (as well as the media device, also available through
+> v4l2_device).
+> 
+> This information is not available for sub-device drivers at probe time.
+> 
+> What this patch does is that it allows registering notifiers without
+> having v4l2_device around. Instead the sub-device pointer is stored in the
+> notifier. Once the sub-device of the driver that registered the notifier
+> is registered, the notifier will gain the knowledge of the v4l2_device,
+> and the binding of async sub-devices from the sub-device driver's notifier
+> may proceed.
+> 
+> The root notifier's complete callback is only called when all sub-device
+> notifiers are completed.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-This patch series adds support for the DisplayPort CEC-Tunneling-over-AUX
-feature. This patch series is based on the current pre-4.14-rc1 mainline
-which has all the needed cec 4.14 patches merged.
+Just two small comments (see below).
 
-This patch series has been tested with my NUC7i5BNK and a Samsung USB-C to 
-HDMI adapter.
+After changing those (the first is up to you) you can add my:
 
-Please note this comment at the start of drm_dp_cec.c:
-
-----------------------------------------------------------------------
-Unfortunately it turns out that we have a chicken-and-egg situation
-here. Quite a few active (mini-)DP-to-HDMI or USB-C-to-HDMI adapters
-have a converter chip that supports CEC-Tunneling-over-AUX (usually the
-Parade PS176), but they do not wire up the CEC pin, thus making CEC
-useless.
-
-Sadly there is no way for this driver to know this. What happens is 
-that a /dev/cecX device is created that is isolated and unable to see
-any of the other CEC devices. Quite literally the CEC wire is cut
-(or in this case, never connected in the first place).
-
-I suspect that the reason so few adapters support this is that this
-tunneling protocol was never supported by any OS. So there was no 
-easy way of testing it, and no incentive to correctly wire up the
-CEC pin.
-
-Hopefully by creating this driver it will be easier for vendors to 
-finally fix their adapters and test the CEC functionality.
-
-I keep a list of known working adapters here:
-
-https://hverkuil.home.xs4all.nl/cec-status.txt
-
-Please mail me (hverkuil@xs4all.nl) if you find an adapter that works
-and is not yet listed there.
-----------------------------------------------------------------------
-
-I really hope that this work will provide an incentive for vendors to
-finally connect the CEC pin. It's a shame that there are so few adapters
-that work (I found only two USB-C to HDMI adapters that work, and no
-(mini-)DP to HDMI adapters at all).
-
-Note that a colleague who actually knows his way around a soldering iron
-modified an UpTab DisplayPort-to-HDMI adapter for me, hooking up the CEC
-pin. And after that change it worked. I also received confirmation that
-this really is a chicken-and-egg situation: it is because there is no CEC
-support for this feature in any OS that they do not hook up the CEC pin.
-
-So hopefully if this gets merged there will be an incentive for vendors
-to make adapters where this actually works. It is a very nice feature
-for HTPC boxes.
-
-I've added Imre and Ville. It would be great if this can go in for 4.15.
-
-Changes since v2:
-
-- Use the new CEC_CAP_DEFAULTS define
-- Replace 'if (!IS_ERR_OR_NULL(aux->cec_adap)) {' in drm_dp_cec_configure_adapter()
-  by just 'if (aux->cec_adap) {'.
-
-Changes since v1:
-
-- Incorporated Sean's review comments in patch 1/3.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 Regards,
 
-        Hans
+	Hans
 
-Hans Verkuil (3):
-  drm: add support for DisplayPort CEC-Tunneling-over-AUX
-  drm-kms-helpers.rst: document the DP CEC helpers
-  drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 219 ++++++++++++++++++++++++++++++-----
+>  include/media/v4l2-async.h           |  16 ++-
+>  2 files changed, 204 insertions(+), 31 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 4525b03d59c1..5082b01d2b96 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -53,6 +53,10 @@ static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
+>  	return n->ops->complete(n);
+>  }
+>  
+> +static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+> +				   struct v4l2_subdev *sd,
+> +				   struct v4l2_async_subdev *asd);
+> +
+>  static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+>  {
+>  #if IS_ENABLED(CONFIG_I2C)
+> @@ -124,14 +128,128 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
+>  	return NULL;
+>  }
+>  
+> +/* Find the sub-device notifier registered by a sub-device driver. */
+> +static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
+> +	struct v4l2_subdev *sd)
+> +{
+> +	struct v4l2_async_notifier *n;
+> +
+> +	list_for_each_entry(n, &notifier_list, list)
+> +		if (n->sd == sd)
+> +			return n;
+> +
+> +	return NULL;
+> +}
+> +
+> +/* Return true if all sub-device notifiers are complete, false otherwise. */
+> +static bool v4l2_async_subdev_notifiers_complete(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	struct v4l2_subdev *sd;
+> +
+> +	if (!list_empty(&notifier->waiting))
+> +		return false;
+> +
+> +	list_for_each_entry(sd, &notifier->done, async_list) {
+> +		struct v4l2_async_notifier *subdev_notifier =
+> +			v4l2_async_find_subdev_notifier(sd);
+> +
+> +		if (!subdev_notifier)
+> +			continue;
+> +
+> +		if (!v4l2_async_subdev_notifiers_complete(subdev_notifier))
 
- Documentation/gpu/drm-kms-helpers.rst |   9 +
- drivers/gpu/drm/Kconfig               |  10 ++
- drivers/gpu/drm/Makefile              |   1 +
- drivers/gpu/drm/drm_dp_cec.c          | 301 ++++++++++++++++++++++++++++++++++
- drivers/gpu/drm/i915/intel_dp.c       |  18 +-
- include/drm/drm_dp_helper.h           |  24 +++
- 6 files changed, 359 insertions(+), 4 deletions(-)
- create mode 100644 drivers/gpu/drm/drm_dp_cec.c
+I think it is better to change this to:
 
--- 
-2.14.1
+		if (subdev_notifier &&
+		    !v4l2_async_subdev_notifiers_complete(subdev_notifier))
+
+and drop this if..continue above. That's a bit overkill in this simple case.
+
+It's up to you, though.
+
+> +			return false;
+> +	}
+> +
+> +	return true;
+> +}
+> +
+> +/* Get v4l2_device related to the notifier if one can be found. */
+> +static struct v4l2_device *v4l2_async_notifier_find_v4l2_dev(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	while (notifier->parent)
+> +		notifier = notifier->parent;
+> +
+> +	return notifier->v4l2_dev;
+> +}
+> +
+> +/* Test all async sub-devices in a notifier for a match. */
+> +static int v4l2_async_notifier_try_all_subdevs(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	struct v4l2_subdev *sd;
+> +
+> +	if (!v4l2_async_notifier_find_v4l2_dev(notifier))
+> +		return 0;
+> +
+> +again:
+> +	list_for_each_entry(sd, &subdev_list, async_list) {
+> +		struct v4l2_async_subdev *asd;
+> +		int ret;
+> +
+> +		asd = v4l2_async_find_match(notifier, sd);
+> +		if (!asd)
+> +			continue;
+> +
+> +		ret = v4l2_async_match_notify(notifier, sd, asd);
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +		/*
+> +		 * v4l2_async_match_notify() may lead to registering a
+> +		 * new notifier and thus changing the async subdevs
+> +		 * list. In order to proceed safely from here, restart
+> +		 * parsing the list from the beginning.
+> +		 */
+> +		goto again;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +/* Try completing a notifier. */
+> +static int v4l2_async_notifier_try_complete(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	do {
+> +		int ret;
+> +
+> +		/* Any local async sub-devices left? */
+> +		if (!list_empty(&notifier->waiting))
+> +			return 0;
+> +
+> +		/*
+> +		 * Any sub-device notifiers waiting for async subdevs
+> +		 * to be bound?
+> +		 */
+> +		if (!v4l2_async_subdev_notifiers_complete(notifier))
+> +			return 0;
+> +
+> +		/* Proceed completing the notifier */
+> +		ret = v4l2_async_notifier_call_complete(notifier);
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +		/*
+> +		 * Obtain notifier's parent. If there is one, repeat
+> +		 * the process, otherwise we're done here.
+> +		 */
+> +	} while ((notifier = notifier->parent));
+
+I'd change this to:
+
+		notifier = notifier->parent;
+	} while (notifier);
+
+Assignment in a condition is frowned upon, and there is no need to do that
+here.
+
+> +
+> +	return 0;
+> +}
+> +
+>  static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+>  				   struct v4l2_subdev *sd,
+>  				   struct v4l2_async_subdev *asd)
+>  {
+> +	struct v4l2_async_notifier *subdev_notifier;
+>  	int ret;
+>  
+> -	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+> -	if (ret < 0)
+> +	ret = v4l2_device_register_subdev(
+> +		v4l2_async_notifier_find_v4l2_dev(notifier), sd);
+> +	if (ret)
+>  		return ret;
+>  
+>  	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
+> @@ -148,10 +266,20 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+>  	/* Move from the global subdevice list to notifier's done */
+>  	list_move(&sd->async_list, &notifier->done);
+>  
+> -	if (list_empty(&notifier->waiting))
+> -		return v4l2_async_notifier_call_complete(notifier);
+> +	/*
+> +	 * See if the sub-device has a notifier. If it does, proceed
+> +	 * with checking for its async sub-devices.
+> +	 */
+> +	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
+> +	if (subdev_notifier && !subdev_notifier->parent) {
+> +		subdev_notifier->parent = notifier;
+> +		ret = v4l2_async_notifier_try_all_subdevs(subdev_notifier);
+> +		if (ret)
+> +			return ret;
+> +	}
+>  
+> -	return 0;
+> +	/* Try completing the notifier and its parent(s). */
+> +	return v4l2_async_notifier_try_complete(notifier);
+>  }
+>  
+>  static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+> @@ -163,17 +291,15 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+>  	sd->dev = NULL;
+>  }
+>  
+> -int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> -				 struct v4l2_async_notifier *notifier)
+> +static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  {
+> -	struct v4l2_subdev *sd, *tmp;
+>  	struct v4l2_async_subdev *asd;
+> +	int ret;
+>  	int i;
+>  
+> -	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+> +	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+>  		return -EINVAL;
+>  
+> -	notifier->v4l2_dev = v4l2_dev;
+>  	INIT_LIST_HEAD(&notifier->waiting);
+>  	INIT_LIST_HEAD(&notifier->done);
+>  
+> @@ -200,18 +326,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  
+>  	mutex_lock(&list_lock);
+>  
+> -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+> -		int ret;
+> -
+> -		asd = v4l2_async_find_match(notifier, sd);
+> -		if (!asd)
+> -			continue;
+> -
+> -		ret = v4l2_async_match_notify(notifier, sd, asd);
+> -		if (ret < 0) {
+> -			mutex_unlock(&list_lock);
+> -			return ret;
+> -		}
+> +	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+> +	if (ret) {
+> +		mutex_unlock(&list_lock);
+> +		return ret;
+>  	}
+>  
+>  	/* Keep also completed notifiers on the list */
+> @@ -221,29 +339,70 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  
+>  	return 0;
+>  }
+> +
+> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> +				 struct v4l2_async_notifier *notifier)
+> +{
+> +	if (WARN_ON(!v4l2_dev || notifier->sd))
+> +		return -EINVAL;
+> +
+> +	notifier->v4l2_dev = v4l2_dev;
+> +
+> +	return __v4l2_async_notifier_register(notifier);
+> +}
+>  EXPORT_SYMBOL(v4l2_async_notifier_register);
+>  
+> -void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> +int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
+> +					struct v4l2_async_notifier *notifier)
+>  {
+> -	struct v4l2_subdev *sd, *tmp;
+> +	if (WARN_ON(!sd || notifier->v4l2_dev))
+> +		return -EINVAL;
+>  
+> -	if (!notifier->v4l2_dev)
+> -		return;
+> +	notifier->sd = sd;
+>  
+> -	mutex_lock(&list_lock);
+> +	return __v4l2_async_notifier_register(notifier);
+> +}
+> +EXPORT_SYMBOL(v4l2_async_subdev_notifier_register);
+>  
+> -	list_del(&notifier->list);
+> +/* Unbind all sub-devices in the notifier tree. */
+> +static void v4l2_async_notifier_unbind_all_subdevs(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	struct v4l2_subdev *sd, *tmp;
+>  
+>  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+> +		struct v4l2_async_notifier *subdev_notifier =
+> +			v4l2_async_find_subdev_notifier(sd);
+> +
+> +		if (subdev_notifier)
+> +			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
+> +
+>  		v4l2_async_cleanup(sd);
+>  
+>  		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+> -	}
+>  
+> -	mutex_unlock(&list_lock);
+> +		list_del(&sd->async_list);
+> +		list_add(&sd->async_list, &subdev_list);
+> +	}
+>  
+> +	notifier->parent = NULL;
+> +	notifier->sd = NULL;
+>  	notifier->v4l2_dev = NULL;
+>  }
+> +
+> +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> +{
+> +	if (!notifier->v4l2_dev && !notifier->sd)
+> +		return;
+> +
+> +	mutex_lock(&list_lock);
+> +
+> +	v4l2_async_notifier_unbind_all_subdevs(notifier);
+> +
+> +	list_del(&notifier->list);
+> +
+> +	mutex_unlock(&list_lock);
+> +}
+>  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+>  
+>  void v4l2_async_notifier_release(struct v4l2_async_notifier *notifier)
+> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> index 3bc8a7c0d83f..a13803a6371d 100644
+> --- a/include/media/v4l2-async.h
+> +++ b/include/media/v4l2-async.h
+> @@ -102,7 +102,9 @@ struct v4l2_async_notifier_operations {
+>   * @num_subdevs: number of subdevices used in the subdevs array
+>   * @max_subdevs: number of subdevices allocated in the subdevs array
+>   * @subdevs:	array of pointers to subdevice descriptors
+> - * @v4l2_dev:	pointer to struct v4l2_device
+> + * @v4l2_dev:	v4l2_device of the root notifier, NULL otherwise
+> + * @sd:		sub-device that registered the notifier, NULL otherwise
+> + * @parent:	parent notifier
+>   * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+>   * @done:	list of struct v4l2_subdev, already probed
+>   * @list:	member in a global list of notifiers
+> @@ -113,6 +115,8 @@ struct v4l2_async_notifier {
+>  	unsigned int max_subdevs;
+>  	struct v4l2_async_subdev **subdevs;
+>  	struct v4l2_device *v4l2_dev;
+> +	struct v4l2_subdev *sd;
+> +	struct v4l2_async_notifier *parent;
+>  	struct list_head waiting;
+>  	struct list_head done;
+>  	struct list_head list;
+> @@ -128,6 +132,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  				 struct v4l2_async_notifier *notifier);
+>  
+>  /**
+> + * v4l2_async_subdev_notifier_register - registers a subdevice asynchronous
+> + *					 notifier for a sub-device
+> + *
+> + * @sd: pointer to &struct v4l2_subdev
+> + * @notifier: pointer to &struct v4l2_async_notifier
+> + */
+> +int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
+> +					struct v4l2_async_notifier *notifier);
+> +
+> +/**
+>   * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
+>   *
+>   * @notifier: pointer to &struct v4l2_async_notifier
+> 
