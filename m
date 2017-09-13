@@ -1,44 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42650 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932698AbdIYKBb (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:32850 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751311AbdIMIEr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 06:01:31 -0400
-Date: Mon, 25 Sep 2017 13:01:28 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Dave Stevenson <dave.stevenson@raspberrypi.org>
-Subject: Re: [PATCH] v4l2-ctrls.c: allow empty control handlers
-Message-ID: <20170925100127.h6675epro4hawq6p@valkosipuli.retiisi.org.uk>
-References: <98443a09-f861-0976-3b6e-cfd52c0cce43@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <98443a09-f861-0976-3b6e-cfd52c0cce43@xs4all.nl>
+        Wed, 13 Sep 2017 04:04:47 -0400
+From: Allen Pais <allen.lkml@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Allen Pais <allen.lkml@gmail.com>
+Subject: [PATCH] drivers:staging/media:Use ARRAY_SIZE() for the size calculation of the array
+Date: Wed, 13 Sep 2017 13:34:39 +0530
+Message-Id: <1505289879-26163-1-git-send-email-allen.lkml@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 25, 2017 at 11:41:02AM +0200, Hans Verkuil wrote:
-> If you have a control handler that does not contain any controls, then
-> currently calling VIDIOC_G/S/TRY_EXT_CTRLS with count == 0 will return
-> -EINVAL in the class_check() function.
-> 
-> This is not correct, there is no reason why this should return an error.
-> 
-> The purpose of setting count to 0 is to test if the ioctl can mix controls
-> from different control classes. And this is possible. The fact that there
-> are not actually any controls defined is another matter that is unrelated
-> to this test.
-> 
-> This caused v4l2-compliance to fail, so that is fixed with this patch applied.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Reported-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
-> Tested-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Signed-off-by: Allen Pais <allen.lkml@gmail.com>
+---
+ drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+index e882b55..d822918 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+@@ -451,7 +451,7 @@ static enum ia_css_frame_format yuv422_copy_formats[] = {
+ 	IA_CSS_FRAME_FORMAT_YUYV
+ };
+ 
+-#define array_length(array) (sizeof(array)/sizeof(array[0]))
++#define array_length(array) (ARRAY_SIZE(array))
+ 
+ /* Verify whether the selected output format is can be produced
+  * by the copy binary given the stream format.
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
