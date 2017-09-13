@@ -1,53 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:52019 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750762AbdIWHfk (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:33407 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751123AbdIMPyw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Sep 2017 03:35:40 -0400
-Subject: Re: [PATCH 0/8] [media] v4l2-core: Fine-tuning for some function
- implementations
-To: SF Markus Elfring <elfring@users.sourceforge.net>,
-        linux-media@vger.kernel.org
-References: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
- <20161227115111.GN16630@valkosipuli.retiisi.org.uk>
- <b804f4dd-392e-ae8e-41de-a02260fef550@xs4all.nl>
- <8241c145-03f4-6dd2-401e-7d251cd5d251@users.sourceforge.net>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Jan Kara <jack@suse.cz>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Wed, 13 Sep 2017 11:54:52 -0400
+Subject: Re: [PATCH] [media] s3c-camif: fix out-of-bounds array access
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Sylwester Nawrocki <snawrocki@kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Hocko <mhocko@suse.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <f48e9219-3092-1b1f-4458-f9437746bf14@xs4all.nl>
-Date: Sat, 23 Sep 2017 09:35:31 +0200
-MIME-Version: 1.0
-In-Reply-To: <8241c145-03f4-6dd2-401e-7d251cd5d251@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "moderated list:ARM/SAMSUNG EXYNOS ARM ARCHITECTURES"
+        <linux-samsung-soc@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <ce741db2-dc57-7d23-90bc-319411006861@samsung.com>
+Date: Wed, 13 Sep 2017 17:54:45 +0200
+MIME-version: 1.0
+In-reply-to: <CAK8P3a2CDqgaqZiopJJOB6WsTgQEB49sz7=7izmFfaBOgG5_xA@mail.gmail.com>
+Content-type: text/plain; charset="utf-8"; format="flowed"
+Content-language: en-GB
+Content-transfer-encoding: 7bit
+References: <CGME20170913092551epcas1p4f84e118f364f605cb5cc6b8b669ac095@epcas1p4.samsung.com>
+        <20170912200932.3634089-1-arnd@arndb.de>
+        <4355b20a-504c-4e83-92c8-049e6c6d6a5f@samsung.com>
+        <CAK8P3a2CDqgaqZiopJJOB6WsTgQEB49sz7=7izmFfaBOgG5_xA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22/09/17 22:08, SF Markus Elfring wrote:
->> Sorry Markus, just stay away from the videobuf-* sources.
+On 09/13/2017 04:03 PM, Arnd Bergmann wrote:
+> On Wed, Sep 13, 2017 at 11:25 AM, Sylwester Nawrocki
+> <s.nawrocki@samsung.com>  wrote:
+>> On 09/12/2017 10:09 PM, Arnd Bergmann wrote:
+>>>    {
+>>>        const struct s3c_camif_variant *variant = camif->variant;
+>>>        const struct vp_pix_limits *pix_lim;
+>>> -     int i = ARRAY_SIZE(camif_mbus_formats);
+>>>
+>>>        /* FIXME: constraints against codec or preview path ? */
+>>>        pix_lim = &variant->vp_pix_limits[VP_CODEC];
+>>>
+>>> -     while (i-- >= 0)
+>>> -             if (camif_mbus_formats[i] == mf->code)
+>>> -                     break;
+>>> -
+>>> -     mf->code = camif_mbus_formats[i];
+>>
+>> Interesting finding... the function needs to ensure mf->code is set
+>> to one of supported values by the driver, so instead of removing
+>> how about changing the above line to:
+>>
+>>          if (i < 0)
+>>                  mf->code = camif_mbus_formats[0];
+>>
+>> ?
+> That would still have one of the two out-of-bounds accesses;-)
+
+Ah, indeed :/
+
+> maybe this
 > 
-> Will the software evolution be continued for related source files?
-> Are there any update candidates left over in the directory “v4l2-core”?
+> for (i = 0; i < ARRAY_SIZE(camif_mbus_formats); i++)
+>          if (camif_mbus_formats[i] == mf->code)
+>                 break;
+> 
+> if (i == ARRAY_SIZE(camif_mbus_formats))
+>         mf->code = camif_mbus_formats[0];
 
-Sorry, I don't understand the question. We don't want to touch the
-videobuf-* files unless there is a very good reason. That old videobuf
-framework is deprecated and the code is quite fragile (i.e. easy to break
-things).
+Yes, it should work that way.
 
-Everything else in that directory is under continuous development.
-
-It's core code though, so it gets a much more in-depth code review than
-patches for e.g. a driver.
-
-Regards,
-
-	Hans
+-- 
+Thanks,
+Sylwester
