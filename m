@@ -1,115 +1,313 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48493
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751715AbdIATrk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 15:47:40 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH] media: net.h: add kernel-doc and use it at Documentation/
-Date: Fri,  1 Sep 2017 16:47:34 -0300
-Message-Id: <6ae6e9fbd1515e29eb9d90b99e2db9e5ea7ea0f2.1504295251.git.mchehab@s-opensource.com>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:49752 "EHLO smtp5-g21.free.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751581AbdIMOD6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Sep 2017 10:03:58 -0400
+Subject: Re: IR driver support for tango platforms
+To: Sean Young <sean@mess.org>, Mans Rullgard <mans@mansr.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>,
+        Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+References: <6076a18d-c5ba-cb83-ac36-8eda965c7eb8@free.fr>
+ <20170911211210.a7a2st4hfn7leec3@gofer.mess.org>
+ <7942dc9f-e7a2-e088-e843-f013ac1b0302@free.fr>
+ <20170912181957.zhd4fwwannpxblqx@gofer.mess.org>
+From: Mason <slash.tmp@free.fr>
+Message-ID: <c5aa1452-44e9-49a9-828a-5b32395609f4@free.fr>
+Date: Wed, 13 Sep 2017 16:03:43 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170912181957.zhd4fwwannpxblqx@gofer.mess.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we did with frontend.h, ca.h and dmx.h, move the struct
-definition to net.h.
+On 12/09/2017 20:19, Sean Young wrote:
 
-That should help to keep it updated, as more stuff gets
-added there.
+> It looks great, thanks! I have made some minor points below.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/dvb/net-add-if.rst | 34 -----------------------------
- Documentation/media/uapi/dvb/net.rst        |  1 +
- include/uapi/linux/dvb/net.h                | 15 +++++++++++++
- 3 files changed, 16 insertions(+), 34 deletions(-)
+Thanks for having reviewed the driver! :-)
 
-diff --git a/Documentation/media/uapi/dvb/net-add-if.rst b/Documentation/media/uapi/dvb/net-add-if.rst
-index 1087efb9baa0..6749b70246c5 100644
---- a/Documentation/media/uapi/dvb/net-add-if.rst
-+++ b/Documentation/media/uapi/dvb/net-add-if.rst
-@@ -41,40 +41,6 @@ created.
- The struct :c:type:`dvb_net_if`::ifnum field will be
- filled with the number of the created interface.
- 
--.. c:type:: dvb_net_if
--
--.. flat-table:: struct dvb_net_if
--    :header-rows:  1
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ID
--
--       -  Description
--
--    -  .. row 2
--
--       -  pid
--
--       -  Packet ID (PID) of the MPEG-TS that contains data
--
--    -  .. row 3
--
--       -  ifnum
--
--       -  number of the Digital TV interface.
--
--    -  .. row 4
--
--       -  feedtype
--
--       -  Encapsulation type of the feed. It can be:
--	  ``DVB_NET_FEEDTYPE_MPE`` for MPE encoding or
--	  ``DVB_NET_FEEDTYPE_ULE`` for ULE encoding.
--
--
- Return Value
- ============
- 
-diff --git a/Documentation/media/uapi/dvb/net.rst b/Documentation/media/uapi/dvb/net.rst
-index fdb5301a4b1f..e0cd4e402627 100644
---- a/Documentation/media/uapi/dvb/net.rst
-+++ b/Documentation/media/uapi/dvb/net.rst
-@@ -35,6 +35,7 @@ Digital TV net Function Calls
- .. toctree::
-     :maxdepth: 1
- 
-+    net-types
-     net-add-if
-     net-remove-if
-     net-get-if
-diff --git a/include/uapi/linux/dvb/net.h b/include/uapi/linux/dvb/net.h
-index f451e7eb0b0b..90dd207f63ad 100644
---- a/include/uapi/linux/dvb/net.h
-+++ b/include/uapi/linux/dvb/net.h
-@@ -26,6 +26,21 @@
- 
- #include <linux/types.h>
- 
-+/**
-+ * struct dvb_net_if - describes a DVB network interface
-+ *
-+ * @pid: Packet ID (PID) of the MPEG-TS that contains data
-+ * @ifnum: number of the Digital TV interface.
-+ * @feedtype: Encapsulation type of the feed.
-+ *
-+ * A MPEG-TS stream may contain packet IDs with IP packages on it.
-+ * This struct describes it, and the type of encoding.
-+ *
-+ * @feedtype can be:
-+ *
-+ *	- %DVB_NET_FEEDTYPE_MPE for MPE encoding
-+ *	- %DVB_NET_FEEDTYPE_ULE for ULE encoding.
-+ */
- struct dvb_net_if {
- 	__u16 pid;
- 	__u16 if_num;
--- 
-2.13.5
+I have now fixed all the points you mentioned.
+
+Changes from v1 to v2:
+
+o Rebase driver on top of linuxtv/master
+o Use ir_nec_bytes_to_scancode() in tango_ir_handle_nec()
+o Use devm_rc_allocate_device() in tango_ir_probe()
+o Use Use devm_rc_register_device() in tango_ir_probe()
+o Rename rc->input_name to rc->device_name (not sure what value to use here)
+o List all NEC variants for rc->allowed_protocols
+o Change type of clkrate to u64
+o Fix tango_ir_probe and tango_ir_remove for devm
+o Move around some init calls in tango_ir_probe() for devm
+o Use relaxed variants of MMIO accessors
+
+TODO: test RC-5 and RC-6 (I need to locate proper remote)
+
+
+/*
+  * Copyright (C) 2015 Mans Rullgard <mans@mansr.com>
+  *
+  * This program is free software; you can redistribute  it and/or modify it
+  * under  the terms of  the GNU General  Public License as published by the
+  * Free Software Foundation;  either version 2 of the  License, or (at your
+  * option) any later version.
+  */
+
+#include <linux/input.h>
+#include <linux/module.h>
+#include <linux/platform_device.h>
+#include <linux/interrupt.h>
+#include <linux/io.h>
+#include <linux/clk.h>
+#include <linux/of.h>
+#include <media/rc-core.h>
+
+#define IR_NEC_CTRL	0x00
+#define IR_NEC_DATA	0x04
+#define IR_CTRL		0x08
+#define IR_RC5_CLK_DIV	0x0c
+#define IR_RC5_DATA	0x10
+#define IR_INT		0x14
+
+#define NEC_TIME_BASE	560
+#define RC5_TIME_BASE	1778
+
+#define RC6_CTRL	0x00
+#define RC6_CLKDIV	0x04
+#define RC6_DATA0	0x08
+#define RC6_DATA1	0x0c
+#define RC6_DATA2	0x10
+#define RC6_DATA3	0x14
+#define RC6_DATA4	0x18
+
+#define RC6_CARRIER	36000
+#define RC6_TIME_BASE	16
+
+struct tango_ir {
+	void __iomem *rc5_base;
+	void __iomem *rc6_base;
+	struct rc_dev *rc;
+	struct clk *clk;
+};
+
+static void tango_ir_handle_nec(struct tango_ir *ir)
+{
+	u32 v, code;
+	enum rc_proto proto;
+
+	v = readl_relaxed(ir->rc5_base + IR_NEC_DATA);
+	if (!v) {
+		rc_repeat(ir->rc);
+		return;
+	}
+
+	code = ir_nec_bytes_to_scancode(v, v >> 8, v >> 16, v >> 24, &proto);
+	rc_keydown(ir->rc, proto, code, 0);
+}
+
+static void tango_ir_handle_rc5(struct tango_ir *ir)
+{
+	u32 data, field, toggle, addr, cmd, code;
+
+	data = readl_relaxed(ir->rc5_base + IR_RC5_DATA);
+	if (data & BIT(31))
+		return;
+
+	field = data >> 12 & 1;
+	toggle = data >> 11 & 1;
+	addr = data >> 6 & 0x1f;
+	cmd = (data & 0x3f) | (field ^ 1) << 6;
+
+	code = RC_SCANCODE_RC5(addr, cmd);
+	rc_keydown(ir->rc, RC_PROTO_RC5, code, toggle);
+}
+
+static void tango_ir_handle_rc6(struct tango_ir *ir)
+{
+	u32 data0, data1, toggle, mode, addr, cmd, code;
+
+	data0 = readl_relaxed(ir->rc6_base + RC6_DATA0);
+	data1 = readl_relaxed(ir->rc6_base + RC6_DATA1);
+
+	mode = data0 >> 1 & 7;
+	if (mode != 0)
+		return;
+
+	toggle = data0 & 1;
+	addr = data0 >> 16;
+	cmd = data1;
+
+	code = RC_SCANCODE_RC6_0(addr, cmd);
+	rc_keydown(ir->rc, RC_PROTO_RC6_0, code, toggle);
+}
+
+static irqreturn_t tango_ir_irq(int irq, void *dev_id)
+{
+	struct tango_ir *ir = dev_id;
+	unsigned int rc5_stat;
+	unsigned int rc6_stat;
+
+	rc5_stat = readl_relaxed(ir->rc5_base + IR_INT);
+	writel_relaxed(rc5_stat, ir->rc5_base + IR_INT);
+
+	rc6_stat = readl_relaxed(ir->rc6_base + RC6_CTRL);
+	writel_relaxed(rc6_stat, ir->rc6_base + RC6_CTRL);
+
+	if (!(rc5_stat & 3) && !(rc6_stat & BIT(31)))
+		return IRQ_NONE;
+
+	if (rc5_stat & BIT(0))
+		tango_ir_handle_rc5(ir);
+
+	if (rc5_stat & BIT(1))
+		tango_ir_handle_nec(ir);
+
+	if (rc6_stat & BIT(31))
+		tango_ir_handle_rc6(ir);
+
+	return IRQ_HANDLED;
+}
+
+#define DISABLE_NEC	(BIT(4) | BIT(8))
+#define ENABLE_RC5	(BIT(0) | BIT(9))
+#define ENABLE_RC6	(BIT(0) | BIT(7))
+
+static int tango_change_protocol(struct rc_dev *dev, u64 *rc_type)
+{
+	struct tango_ir *ir = dev->priv;
+	u32 rc5_ctrl = DISABLE_NEC;
+	u32 rc6_ctrl = 0;
+
+	if (*rc_type & RC_PROTO_BIT_NEC)
+		rc5_ctrl = 0;
+
+	if (*rc_type & RC_PROTO_BIT_RC5)
+		rc5_ctrl |= ENABLE_RC5;
+
+	if (*rc_type & RC_PROTO_BIT_RC6_0)
+		rc6_ctrl = ENABLE_RC6;
+
+	writel_relaxed_relaxed(rc5_ctrl, ir->rc5_base + IR_CTRL);
+	writel_relaxed_relaxed(rc6_ctrl, ir->rc6_base + RC6_CTRL);
+
+	return 0;
+}
+
+static int tango_ir_probe(struct platform_device *pdev)
+{
+	struct device *dev = &pdev->dev;
+	struct rc_dev *rc;
+	struct tango_ir *ir;
+	struct resource *rc5_res;
+	struct resource *rc6_res;
+	u64 clkrate, clkdiv;
+	int irq, err;
+
+	rc5_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+	if (!rc5_res)
+		return -EINVAL;
+
+	rc6_res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+	if (!rc6_res)
+		return -EINVAL;
+
+	irq = platform_get_irq(pdev, 0);
+	if (irq <= 0)
+		return -EINVAL;
+
+	ir = devm_kzalloc(dev, sizeof(*ir), GFP_KERNEL);
+	if (!ir)
+		return -ENOMEM;
+
+	ir->rc5_base = devm_ioremap_resource(dev, rc5_res);
+	if (IS_ERR(ir->rc5_base))
+		return PTR_ERR(ir->rc5_base);
+
+	ir->rc6_base = devm_ioremap_resource(dev, rc6_res);
+	if (IS_ERR(ir->rc6_base))
+		return PTR_ERR(ir->rc6_base);
+
+	ir->clk = devm_clk_get(dev, NULL);
+	if (IS_ERR(ir->clk))
+		return PTR_ERR(ir->clk);
+
+	rc = devm_rc_allocate_device(dev, RC_DRIVER_SCANCODE);
+	if (!rc)
+		return -ENOMEM;
+
+	rc->device_name = "tango-ir"; /* not sure what else to use here??? */
+	rc->input_phys = "tango-ir/input0";
+	rc->driver_name = "tango-ir";
+	rc->map_name = RC_MAP_EMPTY;
+	rc->allowed_protocols = RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC6_0 |
+		RC_PROTO_BIT_NEC | RC_PROTO_BIT_NECX | RC_PROTO_BIT_NEC32;
+	rc->change_protocol = tango_change_protocol;
+	rc->priv = ir;
+	ir->rc = rc;
+
+	err = devm_rc_register_device(dev, rc);
+	if (err)
+		return err;
+
+	err = devm_request_irq(dev, irq, tango_ir_irq, IRQF_SHARED, dev_name(dev), ir);
+	if (err)
+		return err;
+
+	err = clk_prepare_enable(ir->clk);
+	if (err)
+		return err;
+
+	clkrate = clk_get_rate(ir->clk);
+
+	clkdiv = clkrate * NEC_TIME_BASE;
+	do_div(clkdiv, 1000000);
+
+	writel_relaxed(31 << 24 | 12 << 16 | clkdiv, ir->rc5_base + IR_NEC_CTRL);
+
+	clkdiv = clkrate * RC5_TIME_BASE;
+	do_div(clkdiv, 1000000);
+
+	writel_relaxed(0x110, ir->rc5_base + IR_CTRL);
+	writel_relaxed(clkdiv, ir->rc5_base + IR_RC5_CLK_DIV);
+	writel_relaxed(0x3, ir->rc5_base + IR_INT);
+
+	clkdiv = clkrate * RC6_TIME_BASE;
+	do_div(clkdiv, RC6_CARRIER);
+
+	writel_relaxed(0xc0000000, ir->rc6_base + RC6_CTRL);
+	writel_relaxed((clkdiv >> 2) << 18 | clkdiv, ir->rc6_base + RC6_CLKDIV);
+
+	platform_set_drvdata(pdev, ir);
+
+	return 0;
+}
+
+static int tango_ir_remove(struct platform_device *pdev)
+{
+	struct tango_ir *ir = platform_get_drvdata(pdev);
+	clk_disable_unprepare(ir->clk);
+	return 0;
+}
+
+static const struct of_device_id tango_ir_dt_ids[] = {
+	{ .compatible = "sigma,smp8642-ir" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, tango_ir_dt_ids);
+
+static struct platform_driver tango_ir_driver = {
+	.probe	= tango_ir_probe,
+	.remove	= tango_ir_remove,
+	.driver	= {
+		.name		= "tango-ir",
+		.of_match_table	= tango_ir_dt_ids,
+	},
+};
+module_platform_driver(tango_ir_driver);
+
+MODULE_DESCRIPTION("SMP86xx IR decoder driver");
+MODULE_AUTHOR("Mans Rullgard <mans@mansr.com>");
+MODULE_LICENSE("GPL");
