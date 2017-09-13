@@ -1,433 +1,533 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59894 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753962AbdIDQmF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Sep 2017 12:42:05 -0400
-Date: Mon, 4 Sep 2017 19:42:02 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mga11.intel.com ([192.55.52.93]:32543 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752227AbdIMK4J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Sep 2017 06:56:09 -0400
+Date: Wed, 13 Sep 2017 13:56:04 +0300
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, laurent.pinchart@ideasonboard.com,
-        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v7 12/18] v4l: async: Allow binding notifiers to
- sub-devices
-Message-ID: <20170904164201.7rycyycvrukiusjz@valkosipuli.retiisi.org.uk>
-References: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
- <20170903174958.27058-13-sakari.ailus@linux.intel.com>
- <60db0a4b-0560-9591-f41f-1d055a50ba12@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        dri-devel@lists.freedesktop.org, Sean Paul <seanpaul@chromium.org>,
+        Imre Deak <imre.deak@intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv3 1/3] drm: add support for DisplayPort
+ CEC-Tunneling-over-AUX
+Message-ID: <20170913105604.GF4914@intel.com>
+References: <20170911112547.7133-1-hverkuil@xs4all.nl>
+ <20170911112547.7133-2-hverkuil@xs4all.nl>
+ <20170912173935.GB4914@intel.com>
+ <1757067a-d0dc-cbe6-0cb3-084d0bb5fc97@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <60db0a4b-0560-9591-f41f-1d055a50ba12@xs4all.nl>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1757067a-d0dc-cbe6-0cb3-084d0bb5fc97@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Mon, Sep 04, 2017 at 04:56:29PM +0200, Hans Verkuil wrote:
-> On 09/03/2017 07:49 PM, Sakari Ailus wrote:
-> > Registering a notifier has required the knowledge of struct v4l2_device
-> > for the reason that sub-devices generally are registered to the
-> > v4l2_device (as well as the media device, also available through
-> > v4l2_device).
+On Wed, Sep 13, 2017 at 10:51:02AM +0200, Hans Verkuil wrote:
+> On 09/12/2017 07:39 PM, Ville Syrjälä wrote:
+> > On Mon, Sep 11, 2017 at 01:25:45PM +0200, Hans Verkuil wrote:
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> This adds support for the DisplayPort CEC-Tunneling-over-AUX
+> >> feature that is part of the DisplayPort 1.3 standard.
+> >>
+> >> Unfortunately, not all DisplayPort/USB-C to HDMI adapters with a
+> >> chip that has this capability actually hook up the CEC pin, so
+> >> even though a CEC device is created, it may not actually work.
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> Tested-by: Carlos Santa <carlos.santa@intel.com>
+> >> ---
+> >>  drivers/gpu/drm/Kconfig      |  10 ++
+> >>  drivers/gpu/drm/Makefile     |   1 +
+> >>  drivers/gpu/drm/drm_dp_cec.c | 301 +++++++++++++++++++++++++++++++++++++++++++
+> >>  include/drm/drm_dp_helper.h  |  24 ++++
+> >>  4 files changed, 336 insertions(+)
+> >>  create mode 100644 drivers/gpu/drm/drm_dp_cec.c
+> >>
+> >> diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+> >> index 83cb2a88c204..1f2708df5c4e 100644
+> >> --- a/drivers/gpu/drm/Kconfig
+> >> +++ b/drivers/gpu/drm/Kconfig
+> >> @@ -120,6 +120,16 @@ config DRM_LOAD_EDID_FIRMWARE
+> >>  	  default case is N. Details and instructions how to build your own
+> >>  	  EDID data are given in Documentation/EDID/HOWTO.txt.
+> >>  
+> >> +config DRM_DP_CEC
+> >> +	bool "Enable DisplayPort CEC-Tunneling-over-AUX HDMI support"
+> >> +	select CEC_CORE
+> >> +	help
+> >> +	  Choose this option if you want to enable HDMI CEC support for
+> >> +	  DisplayPort/USB-C to HDMI adapters.
+> >> +
+> >> +	  Note: not all adapters support this feature, and even for those
+> >> +	  that do support this they often do not hook up the CEC pin.
+> >> +
+> >>  config DRM_TTM
+> >>  	tristate
+> >>  	depends on DRM && MMU
+> >> diff --git a/drivers/gpu/drm/Makefile b/drivers/gpu/drm/Makefile
+> >> index 24a066e1841c..c6552c62049e 100644
+> >> --- a/drivers/gpu/drm/Makefile
+> >> +++ b/drivers/gpu/drm/Makefile
+> >> @@ -40,6 +40,7 @@ drm_kms_helper-$(CONFIG_DRM_LOAD_EDID_FIRMWARE) += drm_edid_load.o
+> >>  drm_kms_helper-$(CONFIG_DRM_FBDEV_EMULATION) += drm_fb_helper.o
+> >>  drm_kms_helper-$(CONFIG_DRM_KMS_CMA_HELPER) += drm_fb_cma_helper.o
+> >>  drm_kms_helper-$(CONFIG_DRM_DP_AUX_CHARDEV) += drm_dp_aux_dev.o
+> >> +drm_kms_helper-$(CONFIG_DRM_DP_CEC) += drm_dp_cec.o
+> >>  
+> >>  obj-$(CONFIG_DRM_KMS_HELPER) += drm_kms_helper.o
+> >>  obj-$(CONFIG_DRM_DEBUG_MM_SELFTEST) += selftests/
+> >> diff --git a/drivers/gpu/drm/drm_dp_cec.c b/drivers/gpu/drm/drm_dp_cec.c
+> >> new file mode 100644
+> >> index 000000000000..b831bb72c932
+> >> --- /dev/null
+> >> +++ b/drivers/gpu/drm/drm_dp_cec.c
+> >> @@ -0,0 +1,301 @@
+> >> +/*
+> >> + * DisplayPort CEC-Tunneling-over-AUX support
+> >> + *
+> >> + * Copyright 2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+> >> + *
+> >> + * This program is free software; you may redistribute it and/or modify
+> >> + * it under the terms of the GNU General Public License as published by
+> >> + * the Free Software Foundation; version 2 of the License.
+> >> + *
+> >> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> >> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> >> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> >> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> >> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> >> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> >> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> >> + * SOFTWARE.
+> >> + */
+> >> +
+> >> +#include <linux/kernel.h>
+> >> +#include <linux/module.h>
+> >> +#include <linux/slab.h>
+> >> +#include <drm/drm_dp_helper.h>
+> >> +#include <media/cec.h>
+> >> +
+> >> +/*
+> >> + * Unfortunately it turns out that we have a chicken-and-egg situation
+> >> + * here. Quite a few active (mini-)DP-to-HDMI or USB-C-to-HDMI adapters
+> >> + * have a converter chip that supports CEC-Tunneling-over-AUX (usually the
+> >> + * Parade PS176), but they do not wire up the CEC pin, thus making CEC
+> >> + * useless.
+> >> + *
+> >> + * Sadly there is no way for this driver to know this. What happens is
+> >> + * that a /dev/cecX device is created that is isolated and unable to see
+> >> + * any of the other CEC devices. Quite literally the CEC wire is cut
+> >> + * (or in this case, never connected in the first place).
+> >> + *
+> >> + * I suspect that the reason so few adapters support this is that this
+> >> + * tunneling protocol was never supported by any OS. So there was no
+> >> + * easy way of testing it, and no incentive to correctly wire up the
+> >> + * CEC pin.
+> >> + *
+> >> + * Hopefully by creating this driver it will be easier for vendors to
+> >> + * finally fix their adapters and test the CEC functionality.
+> >> + *
+> >> + * I keep a list of known working adapters here:
+> >> + *
+> >> + * https://hverkuil.home.xs4all.nl/cec-status.txt
+> >> + *
+> >> + * Please mail me (hverkuil@xs4all.nl) if you find an adapter that works
+> >> + * and is not yet listed there.
+> >> + */
+> >> +
+> >> +/**
+> >> + * DOC: dp cec helpers
+> >> + *
+> >> + * These functions take care of supporting the CEC-Tunneling-over-AUX
+> >> + * feature of DisplayPort-to-HDMI adapters.
+> >> + */
+> >> +
+> >> +static int drm_dp_cec_adap_enable(struct cec_adapter *adap, bool enable)
+> >> +{
+> >> +	struct drm_dp_aux *aux = cec_get_drvdata(adap);
+> >> +	u32 val = enable ? DP_CEC_TUNNELING_ENABLE : 0;
+> >> +	ssize_t err = 0;
+> >> +
+> >> +	err = drm_dp_dpcd_writeb(aux, DP_CEC_TUNNELING_CONTROL, val);
+> >> +	return (enable && err < 0) ? err : 0;
+> >> +}
+> >> +
+> >> +static int drm_dp_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
+> >> +{
+> >> +	struct drm_dp_aux *aux = cec_get_drvdata(adap);
+> >> +	/* Bit 15 (logical address 15) should always be set */
+> >> +	u16 la_mask = 1 << CEC_LOG_ADDR_BROADCAST;
+> >> +	u8 mask[2];
+> >> +	ssize_t err;
+> >> +
+> >> +	if (addr != CEC_LOG_ADDR_INVALID)
+> >> +		la_mask |= adap->log_addrs.log_addr_mask | (1 << addr);
+> >> +	mask[0] = la_mask & 0xff;
+> >> +	mask[1] = la_mask >> 8;
+> >> +	err = drm_dp_dpcd_write(aux, DP_CEC_LOGICAL_ADDRESS_MASK, mask, 2);
+> >> +	return (addr != CEC_LOG_ADDR_INVALID && err < 0) ? err : 0;
+> >> +}
+> >> +
+> >> +static int drm_dp_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
+> >> +				    u32 signal_free_time, struct cec_msg *msg)
+> >> +{
+> >> +	struct drm_dp_aux *aux = cec_get_drvdata(adap);
+> >> +	unsigned int retries = min(5, attempts - 1);
+> >> +	ssize_t err;
+> >> +
+> >> +	err = drm_dp_dpcd_write(aux, DP_CEC_TX_MESSAGE_BUFFER,
+> >> +				msg->msg, msg->len);
+> >> +	if (err < 0)
+> >> +		return err;
 > > 
-> > This information is not available for sub-device drivers at probe time.
+> > What happens if we managed to write the data only partially?
 > > 
-> > What this patch does is that it allows registering notifiers without
-> > having v4l2_device around. Instead the sub-device pointer is stored to the
-> > notifier. Once the sub-device of the driver that registered the notifier
-> > is registered, the notifier will gain the knowledge of the v4l2_device,
-> > and the binding of async sub-devices from the sub-device driver's notifier
-> > may proceed.
+> > Looking at our code, I *think* we can't actally return 0 ever, so the 
+> > _writeb() variant seem safe with the <0 checks. But the full _write()
+> > could certainly return something between 1 and the total size.
+> 
+> Not according to the drm_dp_dpcd_write() documentation:
+> 
+> "If not all bytes were transferred, this function returns -EPROTO."
+> 
+> Looking at the implementation, that is exactly what happens.
+
+Hmm. Indeed. The documentation sure is confusing because it starts by
+saying "Returns the number of bytes transferred on success, or a
+negative error code on failure.", and only later it seems to clarify
+that a not being able to transfer all the bytes is considered an error.
+We might want to reword that somehow because I'm surely not the only
+one that's confused by this.
+
+Also making something look like read(2)/write(2) and then not following
+the same conventions is rather bad IMO. We should probably just change
+these to return 0/-errno, or we should really start following the
+common convention for read/write. Not quite sure which is better really.
+The 0/-errno thing is easier to use certainly, but for just dumping out
+the entire DPCD short reads might be nice for the cases where some
+random pieces of DPCD can't be succesfully read. But I guess the
+0/-errno would be the safer option since it wouldn't actually change
+the implementation.
+
+> 
 > > 
-> > The master notifier's complete callback is only called when all sub-device
-> > notifiers are completed.
+> >> +
+> >> +	err = drm_dp_dpcd_writeb(aux, DP_CEC_TX_MESSAGE_INFO,
+> >> +				 (msg->len - 1) | (retries << 4) |
+> >> +				 DP_CEC_TX_MESSAGE_SEND);
+> >> +	return err < 0 ? err : 0;
+> >> +}
+> >> +
+> >> +static int drm_dp_cec_adap_monitor_all_enable(struct cec_adapter *adap,
+> >> +					      bool enable)
+> >> +{
+> >> +	struct drm_dp_aux *aux = cec_get_drvdata(adap);
+> >> +	ssize_t err;
+> >> +	u8 val;
+> >> +
+> >> +	if (!(adap->capabilities & CEC_CAP_MONITOR_ALL))
+> >> +		return 0;
+> >> +
+> >> +	err = drm_dp_dpcd_readb(aux, DP_CEC_TUNNELING_CONTROL, &val);
+> >> +	if (err >= 0) {
+> >> +		if (enable)
+> >> +			val |= DP_CEC_SNOOPING_ENABLE;
+> >> +		else
+> >> +			val &= ~DP_CEC_SNOOPING_ENABLE;
+> >> +		err = drm_dp_dpcd_writeb(aux, DP_CEC_TUNNELING_CONTROL, val);
+> >> +	}
+> >> +	return (enable && err < 0) ? err : 0;
+> >> +}
+> >> +
+> >> +static void drm_dp_cec_adap_status(struct cec_adapter *adap,
+> >> +				   struct seq_file *file)
+> >> +{
+> >> +	struct drm_dp_aux *aux = cec_get_drvdata(adap);
+> >> +	u8 buf[DP_AUX_MAX_PAYLOAD_BYTES];
+> >> +	u8 hw_rev;
+> >> +
+> >> +	if (drm_dp_dpcd_read(aux, DP_BRANCH_OUI,
+> >> +			     buf, sizeof(buf)) != sizeof(buf))
+> >> +		return;
+> >> +	hw_rev = buf[9];
+> >> +	buf[9] = 0;
+> >> +	seq_printf(file, "OUI: %02x-%02x-%02x\n",
+> >> +		   buf[0], buf[1], buf[2]);
+> >> +	seq_printf(file, "ID: %s\n", buf + 3);
+> >> +	seq_printf(file, "HW Rev: %d.%d\n", hw_rev >> 4, hw_rev & 0xf);
+> >> +	/*
+> >> +	 * Show this both in decimal and hex: at least one vendor
+> >> +	 * always reports this in hex.
+> >> +	 */
+> >> +	seq_printf(file, "FW/SW Rev: %d.%d (0x%02x.0x%02x)\n",
+> >> +		   buf[10], buf[11], buf[10], buf[11]);
 > > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-async.c | 153 +++++++++++++++++++++++++++++------
-> >  include/media/v4l2-async.h           |  19 ++++-
-> >  2 files changed, 146 insertions(+), 26 deletions(-)
+> > I believe struct drm_dp_dpcd_ident provides a slightly easier way to
+> > parse these registers.
+> 
+> I'll take a look at that.
+> 
 > > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> > index 70d02378b48f..55d7886103d2 100644
-> > --- a/drivers/media/v4l2-core/v4l2-async.c
-> > +++ b/drivers/media/v4l2-core/v4l2-async.c
-> > @@ -25,6 +25,10 @@
-> >  #include <media/v4l2-fwnode.h>
-> >  #include <media/v4l2-subdev.h>
-> >  
-> > +static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
-> > +				  struct v4l2_subdev *sd,
-> > +				  struct v4l2_async_subdev *asd);
-> > +
-> >  static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
-> >  {
-> >  #if IS_ENABLED(CONFIG_I2C)
-> > @@ -101,14 +105,69 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
-> >  	return NULL;
-> >  }
-> >  
-> > +static bool v4l2_async_subdev_notifiers_complete(
-> > +	struct v4l2_async_notifier *notifier)
-> > +{
-> > +	struct v4l2_async_notifier *n;
-> > +
-> > +	list_for_each_entry(n, &notifier->notifiers, notifiers) {
-> > +		if (!n->master)
-> > +			return false;
-> > +	}
-> > +
-> > +	return true;
-> > +}
-> > +
-> > +#define notifier_v4l2_dev(n) \
-> > +	(!!(n)->v4l2_dev ? (n)->v4l2_dev : \
-> > +	 !!(n)->master ? (n)->master->v4l2_dev : NULL)
+> >> +}
+> >> +
+> >> +static const struct cec_adap_ops drm_dp_cec_adap_ops = {
+> >> +	.adap_enable = drm_dp_cec_adap_enable,
+> >> +	.adap_log_addr = drm_dp_cec_adap_log_addr,
+> >> +	.adap_transmit = drm_dp_cec_adap_transmit,
+> >> +	.adap_monitor_all_enable = drm_dp_cec_adap_monitor_all_enable,
+> >> +	.adap_status = drm_dp_cec_adap_status,
+> >> +};
+> >> +
+> >> +static int drm_dp_cec_received(struct drm_dp_aux *aux)
+> >> +{
+> >> +	struct cec_adapter *adap = aux->cec_adap;
+> >> +	struct cec_msg msg;
+> >> +	u8 rx_msg_info;
+> >> +	ssize_t err;
+> >> +
+> >> +	err = drm_dp_dpcd_readb(aux, DP_CEC_RX_MESSAGE_INFO, &rx_msg_info);
+> >> +	if (err < 0)
+> >> +		return err;
+> >> +	if (!(rx_msg_info & DP_CEC_RX_MESSAGE_ENDED))
+> >> +		return 0;
+> >> +	msg.len = (rx_msg_info & DP_CEC_RX_MESSAGE_LEN_MASK) + 1;
+> >> +	err = drm_dp_dpcd_read(aux, DP_CEC_RX_MESSAGE_BUFFER, msg.msg, msg.len);
+> >> +	if (err < 0)
+> >> +		return err;
+> >> +	cec_received_msg(adap, &msg);
+> >> +	return 0;
+> > 
+> > nit: The code in general feels a bit crowded. Could use a few more
+> > empty lines IMO.
 > 
-> Why '!!'?
-
-I've since replaced this by a function.
-
-My understanding is GCC 7 doesn't like a ? x : y construct where a is a
-non-boolean. This will be effectively the same, but a boolean.
-
-See e.g.
-
-commit da48c948c263c9d87dfc64566b3373a858cc8aa2
-Author: Arnd Bergmann <arnd@arndb.de>
-Date:   Wed Jul 19 15:23:27 2017 -0400
-
-    media: fix warning on v4l2_subdev_call() result interpreted as bool
-    
-    v4l2_subdev_call is a macro returning whatever the callback return
-    type is, usually 'int'. With gcc-7 and ccache, this can lead to
-    many wanings like:
-    
-    media/platform/pxa_camera.c: In function 'pxa_mbus_build_fmts_xlate':
-    media/platform/pxa_camera.c:766:27: error: ?: using integer constants in boolean context [-Werror=int-in-bool-context]
-      while (!v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
-    media/atomisp/pci/atomisp2/atomisp_cmd.c: In function 'atomisp_s_ae_window':
-    media/atomisp/pci/atomisp2/atomisp_cmd.c:6414:52: error: ?: using integer constants in boolean context [-Werror=int-in-bool-context]
-      if (v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
-    
-    The problem here is that after preprocessing, we the compiler
-    sees a variation of
-    
-            if (a ? 0 : 2)
-    
-    that it thinks is suspicious.
-    
-    This replaces the ?: operator with an different expression that
-    does the same thing in a more easily readable way that cannot
-    tigger the warning
-    
-    Link: https://lkml.org/lkml/2017/7/14/156
-    
-    Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
+> Will do.
 > 
-> > +
-> > +static struct v4l2_async_notifier *v4l2_async_get_subdev_notifier(
-> > +	struct v4l2_async_notifier *notifier, struct v4l2_subdev *sd)
-> > +{
-> > +	struct v4l2_async_notifier *n;
-> > +
-> > +	list_for_each_entry(n, &notifier_list, list) {
-> > +		if (n->sd == sd)
-> > +			return n;
-> > +	}
-> > +
-> > +	return NULL;
-> > +}
-> > +
-> > +static int v4l2_async_notifier_test_all_subdevs(
-> > +	struct v4l2_async_notifier *notifier)
-> > +{
-> > +	struct v4l2_subdev *sd, *tmp;
-> > +
-> > +	if (!notifier_v4l2_dev(notifier))
-> > +		return 0;
-> > +
-> > +	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> > +		struct v4l2_async_subdev *asd;
-> > +		int ret;
-> > +
-> > +		asd = v4l2_async_belongs(notifier, sd);
-> > +		if (!asd)
-> > +			continue;
-> > +
-> > +		ret = v4l2_async_test_notify(notifier, sd, asd);
-> > +		if (ret < 0)
-> > +			return ret;
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +
-> >  static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
-> >  				  struct v4l2_subdev *sd,
-> >  				  struct v4l2_async_subdev *asd)
+> > 
+> >> +}
+> >> +
+> >> +static int drm_dp_cec_handle_irq(struct drm_dp_aux *aux)
+> >> +{
+> >> +	struct cec_adapter *adap = aux->cec_adap;
+> >> +	u8 flags;
+> >> +	ssize_t err;
+> >> +
+> >> +	err = drm_dp_dpcd_readb(aux, DP_CEC_TUNNELING_IRQ_FLAGS, &flags);
+> >> +	if (err < 0)
+> >> +		return err;
+> >> +
+> >> +	if (flags & DP_CEC_RX_MESSAGE_INFO_VALID)
+> >> +		drm_dp_cec_received(aux);
+> >> +
+> >> +	if (flags & DP_CEC_TX_MESSAGE_SENT)
+> >> +		cec_transmit_attempt_done(adap, CEC_TX_STATUS_OK);
+> >> +	else if (flags & DP_CEC_TX_LINE_ERROR)
+> >> +		cec_transmit_attempt_done(adap, CEC_TX_STATUS_ERROR |
+> >> +						CEC_TX_STATUS_MAX_RETRIES);
+> >> +	else if (flags &
+> >> +		 (DP_CEC_TX_ADDRESS_NACK_ERROR | DP_CEC_TX_DATA_NACK_ERROR))
+> >> +		cec_transmit_attempt_done(adap, CEC_TX_STATUS_NACK |
+> >> +						CEC_TX_STATUS_MAX_RETRIES);
+> >> +	drm_dp_dpcd_writeb(aux, DP_CEC_TUNNELING_IRQ_FLAGS, flags);
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +/**
+> >> + * drm_dp_cec_irq() - handle CEC interrupt, if any
+> >> + * @aux: DisplayPort AUX channel
+> >> + *
+> >> + * Should be called when handling an IRQ_HPD request. If CEC-tunneling-over-AUX
+> >> + * is present, then it will check for a CEC_IRQ and handle it accordingly.
+> >> + *
+> >> + * Returns true if an interrupt was handled successfully or false otherwise.
+> >> + */
+> >> +bool drm_dp_cec_irq(struct drm_dp_aux *aux)
+> >> +{
+> >> +	bool handled = false;
+> >> +	int attempts;
+> >> +
+> >> +	if (!aux->cec_adap)
+> >> +		return false;
+> >> +
+> >> +	for (attempts = 0; attempts < 4; attempts++) {
+> > 
+> > What's the deal with this loop?
 > 
-> A general note (not specific to this patch series): I really don't like
-> this function name. v4l2_async_match_notify is a much better name.
+> It was copied from what intel_dp_check_mst_status() does.
 > 
-> With 'test' I get association with 'testing something' and not that it is
-> a match.
+> However, I think it can be removed since drm_dp_dpcd_access already retries
+> for up to 32 times.
 > 
-> I have a similar problem with v4l2_async_belongs: v4l2_async_find_match
-> makes a lot more sense.
+> Does that make sense?
 
-I can prepend the set with a patch renaming them.
+Yeah, better to not add something if we don't have a good reason for
+it. It's just going make life hard when/if when/if we want to refactor
+the sink irq handling.
 
 > 
-> >  {
-> > +	struct v4l2_async_notifier *subdev_notifier;
-> >  	int ret;
-> >  
-> > -	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
-> > -	if (ret < 0)
-> > +	ret = v4l2_device_register_subdev(notifier_v4l2_dev(notifier), sd);
-> > +	if (ret)
-> >  		return ret;
-> >  
-> >  	ret = v4l2_async_notifier_call_int_op(notifier, bound, sd, asd);
-> > @@ -125,8 +184,26 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
-> >  	/* Move from the global subdevice list to notifier's done */
-> >  	list_move(&sd->async_list, &notifier->done);
-> >  
-> > -	if (list_empty(&notifier->waiting) && notifier->ops->complete)
-> > -		return v4l2_async_notifier_call_int_op(notifier, complete);
-> > +	subdev_notifier = v4l2_async_get_subdev_notifier(notifier, sd);
-> > +	if (subdev_notifier && !subdev_notifier->master) {
-> > +		subdev_notifier->master = notifier;
-> > +		list_add(&subdev_notifier->notifiers, &notifier->notifiers);
-> > +		ret = v4l2_async_notifier_test_all_subdevs(subdev_notifier);
-> > +		if (ret)
-> > +			return ret;
-> > +	}
-> > +
-> > +	if (list_empty(&notifier->waiting) &&
-> > +	    v4l2_async_subdev_notifiers_complete(notifier)) {
-> > +		ret = v4l2_async_notifier_call_int_op(notifier, complete);
-> > +		if (ret)
-> > +			return ret;
-> > +	}
-> > +
-> > +	if (notifier->master && list_empty(&notifier->master->waiting) &&
-> > +	    v4l2_async_subdev_notifiers_complete(notifier->master))
-> > +		return v4l2_async_notifier_call_int_op(notifier->master,
-> > +						       complete);
-> >  
-> >  	return 0;
-> >  }
-> > @@ -140,18 +217,17 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
-> >  	sd->dev = NULL;
-> >  }
-> >  
-> > -int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> > -				 struct v4l2_async_notifier *notifier)
-> > +static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
-> >  {
-> > -	struct v4l2_subdev *sd, *tmp;
-> >  	struct v4l2_async_subdev *asd;
-> > +	int ret;
-> >  	int i;
-> >  
-> > -	if (!v4l2_dev || !notifier->num_subdevs ||
-> > +	if (!!notifier->v4l2_dev == !!notifier->sd || !notifier->num_subdevs ||
+> > 
+> >> +		u8 cec_irq;
+> >> +		int ret;
+> >> +
+> >> +		ret = drm_dp_dpcd_readb(aux, DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1,
+> >> +					&cec_irq);
+> > 
+> > I believe ESI only exists for DPCD 1.2+. Are we protected from reaching
+> > this on earlier devices? Hmm. I guess the cec_adap check should protect us.
+> > 
+> > Supposedly DPCD should just return zeroes for nonexisting registers, but
+> > I've seen at least one device that failed on that front. In that
+> > particular case there were just a handful of bytes in the entire DPCD
+> > address space that couldn't be read succesfully.
 > 
-> '!!notifier->v4l2_dev == !!notifier->sd'???
-> 
-> This is '(notifier->v4l2_dev && notifier->sd) || (!notifier->v4l2_dev && !notifier->sd)'
-> but it took me a bit of time to parse that.
-> 
-> A 10 for creativity, but not so much for readability :-)
+> I'm not sure if I can do anything to make this more robust. If you have
+> any suggestions, then I'm happy to try and implement those.
 
-:-D
+Nah. I think looks fine as is.
 
 > 
-> I suspect it can be simplified as well, or some of these tests can be moved to
-> the two functions that call this one. I think that might be best, in fact.
-
-A single ! would be actually enough. What would you think of that? A bit
-less too loud? :-) It should be easies to grasp: both cannot be NULL or
-non-NULL.
-
-I've moved the check for v4l2_dev or sd to the appropriate functions. Still
-it could be worth checking for this just in case.
-
-> 
-> >  	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-> >  		return -EINVAL;
-> >  
-> > -	notifier->v4l2_dev = v4l2_dev;
-> > +	INIT_LIST_HEAD(&notifier->notifiers);
-> >  	INIT_LIST_HEAD(&notifier->waiting);
-> >  	INIT_LIST_HEAD(&notifier->done);
-> >  
-> > @@ -175,18 +251,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> >  
-> >  	mutex_lock(&list_lock);
-> >  
-> > -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> > -		int ret;
-> > -
-> > -		asd = v4l2_async_belongs(notifier, sd);
-> > -		if (!asd)
-> > -			continue;
-> > -
-> > -		ret = v4l2_async_test_notify(notifier, sd, asd);
-> > -		if (ret < 0) {
-> > -			mutex_unlock(&list_lock);
-> > -			return ret;
-> > -		}
-> > +	ret = v4l2_async_notifier_test_all_subdevs(notifier);
-> > +	if (ret) {
-> > +		mutex_unlock(&list_lock);
-> > +		return ret;
-> >  	}
-> >  
-> >  	/* Keep also completed notifiers on the list */
-> > @@ -196,27 +264,62 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> >  
-> >  	return 0;
-> >  }
-> > +
-> > +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> > +				 struct v4l2_async_notifier *notifier)
-> > +{
-> > +	notifier->v4l2_dev = v4l2_dev;
-> > +
-> > +	return __v4l2_async_notifier_register(notifier);
-> > +}
-> >  EXPORT_SYMBOL(v4l2_async_notifier_register);
-> >  
-> > +int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
-> > +					struct v4l2_async_notifier *notifier)
-> > +{
-> > +	notifier->sd = sd;
-> > +
-> > +	return __v4l2_async_notifier_register(notifier);
-> > +}
-> > +EXPORT_SYMBOL(v4l2_async_subdev_notifier_register);
-> > +
-> >  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> >  {
-> > +	struct v4l2_async_notifier *notifier_iter, *notifier_tmp;
-> >  	struct v4l2_subdev *sd, *tmp;
-> >  	unsigned int notif_n_subdev = notifier->num_subdevs;
-> >  	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
-> >  	struct device **dev;
-> >  	int i = 0;
-> >  
-> > -	if (!notifier->v4l2_dev)
-> > +	if (!notifier->v4l2_dev && !notifier->sd)
-> >  		return;
-> >  
-> >  	dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
-> >  	if (!dev) {
-> > -		dev_err(notifier->v4l2_dev->dev,
-> > +		dev_err(notifier->v4l2_dev ?
-> > +			notifier->v4l2_dev->dev : notifier->sd->dev,
-> >  			"Failed to allocate device cache!\n");
-> >  	}
-> >  
-> >  	mutex_lock(&list_lock);
-> >  
-> > +	if (notifier->v4l2_dev) {
-> > +		/* Remove all subdev notifiers from the master's list */
-> > +		list_for_each_entry_safe(notifier_iter, notifier_tmp,
-> > +					 &notifier->notifiers, notifiers) {
-> > +			list_del_init(&notifier_iter->notifiers);
-> > +			WARN_ON(notifier_iter->master != notifier);
-> > +			notifier_iter->master = NULL;
-> > +		}
-> > +		notifier->v4l2_dev = NULL;
-> > +	} else {
-> > +		/* Remove subdev notifier from the master's list */
-> > +		list_del_init(&notifier->notifiers);
-> > +		notifier->master = NULL;
-> > +		notifier->sd = NULL;
-> > +	}
-> > +
-> >  	list_del(&notifier->list);
-> >  
-> >  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> > @@ -266,8 +369,6 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> >  	}
-> >  	kvfree(dev);
-> >  
-> > -	notifier->v4l2_dev = NULL;
-> > -
-> >  	/*
-> >  	 * Don't care about the waiting list, it is initialised and populated
-> >  	 * upon notifier registration.
-> > @@ -287,6 +388,8 @@ void v4l2_async_notifier_release(struct v4l2_async_notifier *notifier)
-> >  
-> >  	kvfree(notifier->subdevs);
-> >  	notifier->subdevs = NULL;
-> > +
-> > +	WARN_ON(!list_empty(&notifier->notifiers));
-> >  }
-> >  EXPORT_SYMBOL_GPL(v4l2_async_notifier_release);
-> >  
-> > diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> > index c3e001e0d1f1..a5c123ac2873 100644
-> > --- a/include/media/v4l2-async.h
-> > +++ b/include/media/v4l2-async.h
-> > @@ -110,7 +110,11 @@ struct v4l2_async_notifier_operations {
-> >   * @num_subdevs: number of subdevices used in the subdevs array
-> >   * @max_subdevs: number of subdevices allocated in the subdevs array
-> >   * @subdevs:	array of pointers to subdevice descriptors
-> > - * @v4l2_dev:	pointer to struct v4l2_device
-> > + * @v4l2_dev:	v4l2_device of the master, for subdev notifiers NULL
-> > + * @sd:		sub-device that registered the notifier, NULL otherwise
-> > + * @notifiers:	list of struct v4l2_async_notifier, notifiers linked to this
-> > + *		notifier
-> > + * @master:	master notifier carrying @v4l2_dev
-> >   * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
-> >   * @done:	list of struct v4l2_subdev, already probed
-> >   * @list:	member in a global list of notifiers
-> > @@ -121,6 +125,9 @@ struct v4l2_async_notifier {
-> >  	unsigned int max_subdevs;
-> >  	struct v4l2_async_subdev **subdevs;
-> >  	struct v4l2_device *v4l2_dev;
-> > +	struct v4l2_subdev *sd;
-> > +	struct list_head notifiers;
-> > +	struct v4l2_async_notifier *master;
-> >  	struct list_head waiting;
-> >  	struct list_head done;
-> >  	struct list_head list;
-> > @@ -136,6 +143,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> >  				 struct v4l2_async_notifier *notifier);
-> >  
-> >  /**
-> > + * v4l2_async_subdev_notifier_register - registers a subdevice asynchronous
-> > + *					 notifier for a sub-device
-> > + *
-> > + * @sd: pointer to &struct v4l2_subdev
-> > + * @notifier: pointer to &struct v4l2_async_notifier
-> > + */
-> > +int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
-> > +					struct v4l2_async_notifier *notifier);
-> > +
-> > +/**
-> >   * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
-> >   *
-> >   * @notifier: pointer to &struct v4l2_async_notifier
+> > 
+> > I don't entirely like this function doing irq read/ack part. There
+> > really should be some kind of central sink irq dispatch thingy, but
+> > since we don't have that currently I think this is an OK approach.
+> > At some point I did start on trying to clean up the sink irq handling
+> > mess, but I didn't get very far with it before I had to move on to
+> > something else.
+> > 
+> >> +		if (ret < 0 || !(cec_irq & DP_CEC_IRQ))
+> >> +			break;
+> >> +
+> >> +		if (!drm_dp_cec_handle_irq(aux))
+> >> +			handled = true;
+> >> +
+> >> +		ret = drm_dp_dpcd_writeb(aux, DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1,
+> >> +					 DP_CEC_IRQ);
+> >> +		if (ret < 0)
+> >> +			break;
+> >> +	}
+> >> +	return handled;
+> >> +}
+> >> +EXPORT_SYMBOL(drm_dp_cec_irq);
+> >> +
+> >> +/**
+> >> + * drm_dp_cec_configure_adapter() - configure the CEC adapter
+> >> + * @aux: DisplayPort AUX channel
+> >> + * @name: name of the CEC device
+> >> + * @parent: parent device
+> >> + *
+> >> + * Checks if this is a DisplayPort-to-HDMI adapter that supports
+> >> + * CEC-tunneling-over-AUX, and if so it creates a CEC device.
+> >> + *
+> >> + * If a CEC device was already created, then check if the capabilities
+> >> + * have changed. If not, then do nothing. Otherwise destroy the old
+> >> + * CEC device and create a new CEC device.
+> >> + *
+> >> + * This can happen when one DP-to-HDMI adapter is disconnected and
+> >> + * replaced by another adapter with different CEC capabilities.
+> >> + *
+> >> + * Returns 0 on success or a negative error code on failure.
+> >> + */
+> >> +int drm_dp_cec_configure_adapter(struct drm_dp_aux *aux, const char *name,
+> >> +				 struct device *parent)
+> >> +{
+> >> +	u32 cec_caps = CEC_CAP_DEFAULTS | CEC_CAP_NEEDS_HPD;
+> >> +	unsigned int num_las = 1;
+> >> +	int err;
+> >> +	u8 cap;
+> >> +
+> >> +	if (drm_dp_dpcd_readb(aux, DP_CEC_TUNNELING_CAPABILITY, &cap) != 1 ||
+> >> +	    !(cap & DP_CEC_TUNNELING_CAPABLE)) {
+> >> +		cec_unregister_adapter(aux->cec_adap);
+> >> +		aux->cec_adap = NULL;
+> >> +		return -ENODEV;
+> >> +	}
+> >> +
+> >> +	if (cap & DP_CEC_SNOOPING_CAPABLE)
+> >> +		cec_caps |= CEC_CAP_MONITOR_ALL;
+> >> +	if (cap & DP_CEC_MULTIPLE_LA_CAPABLE)
+> >> +		num_las = CEC_MAX_LOG_ADDRS;
+> >> +
+> >> +	if (aux->cec_adap) {
+> >> +		if (aux->cec_adap->capabilities == cec_caps &&
+> >> +		    aux->cec_adap->available_log_addrs == num_las)
+> >> +			return 0;
+> >> +		cec_unregister_adapter(aux->cec_adap);
+> >> +	}
+> >> +
+> >> +	aux->cec_adap = cec_allocate_adapter(&drm_dp_cec_adap_ops,
+> >> +			 aux, name, cec_caps, num_las);
+> >> +	if (IS_ERR(aux->cec_adap)) {
+> >> +		err = PTR_ERR(aux->cec_adap);
+> >> +		aux->cec_adap = NULL;
+> >> +		return err;
+> >> +	}
+> >> +	err = cec_register_adapter(aux->cec_adap, parent);
+> >> +	if (err) {
+> >> +		cec_delete_adapter(aux->cec_adap);
+> >> +		aux->cec_adap = NULL;
+> >> +	}
+> >> +	return err;
+> >> +}
+> >> +EXPORT_SYMBOL(drm_dp_cec_configure_adapter);
+> >> diff --git a/include/drm/drm_dp_helper.h b/include/drm/drm_dp_helper.h
+> >> index b17476a6909c..0e236dd40b42 100644
+> >> --- a/include/drm/drm_dp_helper.h
+> >> +++ b/include/drm/drm_dp_helper.h
+> >> @@ -952,6 +952,8 @@ struct drm_dp_aux_msg {
+> >>  	size_t size;
+> >>  };
+> >>  
+> >> +struct cec_adapter;
+> >> +
+> >>  /**
+> >>   * struct drm_dp_aux - DisplayPort AUX channel
+> >>   * @name: user-visible name of this AUX channel and the I2C-over-AUX adapter
+> >> @@ -1010,6 +1012,10 @@ struct drm_dp_aux {
+> >>  	 * @i2c_defer_count: Counts I2C DEFERs, used for DP validation.
+> >>  	 */
+> >>  	unsigned i2c_defer_count;
+> >> +	/**
+> >> +	 * @cec_adap: the CEC adapter for CEC-Tunneling-over-AUX support.
+> >> +	 */
+> >> +	struct cec_adapter *cec_adap;
+> >>  };
+> >>  
+> >>  ssize_t drm_dp_dpcd_read(struct drm_dp_aux *aux, unsigned int offset,
+> >> @@ -1132,4 +1138,22 @@ drm_dp_has_quirk(const struct drm_dp_desc *desc, enum drm_dp_quirk quirk)
+> >>  	return desc->quirks & BIT(quirk);
+> >>  }
+> >>  
+> >> +#ifdef CONFIG_DRM_DP_CEC
+> >> +bool drm_dp_cec_irq(struct drm_dp_aux *aux);
+> >> +int drm_dp_cec_configure_adapter(struct drm_dp_aux *aux, const char *name,
+> >> +				 struct device *parent);
+> >> +#else
+> >> +static inline bool drm_dp_cec_irq(struct drm_dp_aux *aux)
+> >> +{
+> >> +	return false;
+> >> +}
+> >> +
+> >> +static inline int drm_dp_cec_configure_adapter(struct drm_dp_aux *aux,
+> >> +					       const char *name,
+> >> +					       struct device *parent)
+> >> +{
+> >> +	return -ENODEV;
+> >> +}
+> >> +#endif
+> >> +
+> >>  #endif /* _DRM_DP_HELPER_H_ */
+> >> -- 
+> >> 2.14.1
 > > 
 > 
-> Do you have a git tree with this patch series? I think I need to look at this
-> in the final version, not just the patch.
-
-I'll upload the patches after making the latest changes.
+> Regards,
+> 
+> 	Hans
 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Ville Syrjälä
+Intel OTC
