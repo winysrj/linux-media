@@ -1,94 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-he1eur01on0127.outbound.protection.outlook.com ([104.47.0.127]:54965
-        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S935225AbdIZThv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 15:37:51 -0400
-Subject: Re: [PATCH v4 9/9] kasan: rework Kconfig settings
-To: Arnd Bergmann <arnd@arndb.de>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Michal Marek <mmarek@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jiri Pirko <jiri@resnulli.us>,
-        Arend van Spriel <arend.vanspriel@broadcom.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Kees Cook <keescook@chromium.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-        brcm80211-dev-list.pdl@broadcom.com,
-        brcm80211-dev-list@cypress.com, kasan-dev@googlegroups.com,
-        linux-kbuild@vger.kernel.org, Jakub Jelinek <jakub@gcc.gnu.org>,
-        =?UTF-8?Q?Martin_Li=c5=a1ka?= <marxin@gcc.gnu.org>
-References: <20170922212930.620249-1-arnd@arndb.de>
- <20170922212930.620249-10-arnd@arndb.de>
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Message-ID: <aeb9c144-10a6-53c2-89ba-cc7864f254e1@virtuozzo.com>
-Date: Tue, 26 Sep 2017 22:36:38 +0300
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:59923 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751031AbdIMH7M (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Sep 2017 03:59:12 -0400
+Subject: Re: [PATCH v12 23/26] et8ek8: Add support for flash and lens devices
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, laurent.pinchart@ideasonboard.com,
+        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+ <20170912134200.19556-24-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <b49cb26b-75cb-6a7c-e459-e468efc40ac5@xs4all.nl>
+Date: Wed, 13 Sep 2017 09:59:08 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170922212930.620249-10-arnd@arndb.de>
+In-Reply-To: <20170912134200.19556-24-sakari.ailus@linux.intel.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/23/2017 12:29 AM, Arnd Bergmann wrote:
-> We get a lot of very large stack frames using gcc-7.0.1 with the default
-> -fsanitize-address-use-after-scope --param asan-stack=1 options, which
-> can easily cause an overflow of the kernel stack, e.g.
+On 09/12/2017 03:41 PM, Sakari Ailus wrote:
+> From: Pavel Machek <pavel@ucw.cz>
 > 
-> drivers/gpu/drm/i915/gvt/handlers.c:2407:1: error: the frame size of 31216 bytes is larger than 2048 bytes
-> drivers/net/wireless/ralink/rt2x00/rt2800lib.c:5650:1: error: the frame size of 23632 bytes is larger than 2048 bytes
-> drivers/scsi/fnic/fnic_trace.c:451:1: error: the frame size of 5152 bytes is larger than 2048 bytes
-> fs/btrfs/relocation.c:1202:1: error: the frame size of 4256 bytes is larger than 2048 bytes
-> fs/fscache/stats.c:287:1: error: the frame size of 6552 bytes is larger than 2048 bytes
-> lib/atomic64_test.c:250:1: error: the frame size of 12616 bytes is larger than 2048 bytes
-> mm/vmscan.c:1367:1: error: the frame size of 5080 bytes is larger than 2048 bytes
-> net/wireless/nl80211.c:1905:1: error: the frame size of 4232 bytes is larger than 2048 bytes
+> Parse async sub-devices by using
+> v4l2_subdev_fwnode_reference_parse_sensor_common().
 > 
-> To reduce this risk, -fsanitize-address-use-after-scope is now split
-> out into a separate CONFIG_KASAN_EXTRA Kconfig option, leading to stack
-> frames that are smaller than 2 kilobytes most of the time on x86_64. An
-> earlier version of this patch also prevented combining KASAN_EXTRA with
-> KASAN_INLINE, but that is no longer necessary with gcc-7.0.1.
+> These types devices aren't directly related to the sensor, but are
+> nevertheless handled by the et8ek8 driver due to the relationship of these
+> component to the main part of the camera module --- the sensor.
 > 
-> A lot of warnings with KASAN_EXTRA go away if we disable KMEMCHECK,
-> as -fsanitize-address-use-after-scope seems to understand the builtin
-> memcpy, but adds checking code around an extern memcpy call. I had to work
-> around a circular dependency, as DEBUG_SLAB/SLUB depended on !KMEMCHECK,
-> while KASAN did it the other way round. Now we handle both the same way
-> and make KASAN and KMEMCHECK mutually exclusive.
-> 
-> All patches to get the frame size below 2048 bytes with CONFIG_KASAN=y
-> and CONFIG_KASAN_EXTRA=n have been submitted along with this patch, so
-> we can bring back that default now. KASAN_EXTRA=y still causes lots of
-> warnings but now defaults to !COMPILE_TEST to disable it in allmodconfig,
-> and it remains disabled in all other defconfigs since it is a new option.
-> I arbitrarily raise the warning limit for KASAN_EXTRA to 3072 to reduce
-> the noise, but an allmodconfig kernel still has around 50 warnings
-> on gcc-7.
-> 
-> I experimented a bit more with smaller stack frames and have another
-> follow-up series that reduces the warning limit for 64-bit architectures
-> to 1280 bytes (without CONFIG_KASAN).
-> 
-> With earlier versions of this patch series, I also had patches to
-> address the warnings we get with KASAN and/or KASAN_EXTRA, using a
-> "noinline_if_stackbloat" annotation. That annotation now got replaced with
-> a gcc-8 bugfix (see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81715)
-> and a workaround for older compilers, which means that KASAN_EXTRA is
-> now just as bad as before and will lead to an instant stack overflow in
-> a few extreme cases.
-> 
-> This reverts parts of commit commit 3f181b4 ("lib/Kconfig.debug: disable
-> -Wframe-larger-than warnings with KASAN=y").
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> [Sakari Ailus: Rename fwnode function, check for ret < 0 only.]
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+> ---
+>  drivers/media/i2c/et8ek8/et8ek8_driver.c | 21 ++++++++++++++++++++-
+>  1 file changed, 20 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+> index c14f0fd6ded3..0ef1b8025935 100644
+> --- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
+> +++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+> @@ -34,10 +34,12 @@
+>  #include <linux/sort.h>
+>  #include <linux/v4l2-mediabus.h>
+>  
+> +#include <media/v4l2-async.h>
+>  #include <media/media-entity.h>
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-subdev.h>
+> +#include <media/v4l2-fwnode.h>
+>  
+>  #include "et8ek8_reg.h"
+>  
+> @@ -46,6 +48,7 @@
+>  #define ET8EK8_MAX_MSG		8
+>  
+>  struct et8ek8_sensor {
+> +	struct v4l2_async_notifier notifier;
+>  	struct v4l2_subdev subdev;
+>  	struct media_pad pad;
+>  	struct v4l2_mbus_framefmt format;
+> @@ -1446,6 +1449,11 @@ static int et8ek8_probe(struct i2c_client *client,
+>  	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>  	sensor->subdev.internal_ops = &et8ek8_internal_ops;
+>  
+> +	ret = v4l2_async_notifier_parse_fwnode_sensor_common(
+> +		&client->dev, &sensor->notifier);
+> +	if (ret < 0)
+> +		goto err_release;
+> +
+>  	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
+>  	ret = media_entity_pads_init(&sensor->subdev.entity, 1, &sensor->pad);
+>  	if (ret < 0) {
+> @@ -1453,18 +1461,27 @@ static int et8ek8_probe(struct i2c_client *client,
+>  		goto err_mutex;
+>  	}
+>  
+> +	ret = v4l2_async_subdev_notifier_register(&sensor->subdev,
+> +						  &sensor->notifier);
+> +	if (ret)
+> +		goto err_entity;
+> +
+>  	ret = v4l2_async_register_subdev(&sensor->subdev);
+>  	if (ret < 0)
+> -		goto err_entity;
+> +		goto err_async;
+>  
+>  	dev_dbg(dev, "initialized!\n");
+>  
+>  	return 0;
+>  
+> +err_async:
+> +	v4l2_async_notifier_unregister(&sensor->notifier);
+>  err_entity:
+>  	media_entity_cleanup(&sensor->subdev.entity);
+>  err_mutex:
+>  	mutex_destroy(&sensor->power_lock);
+> +err_release:
+> +	v4l2_async_notifier_release(&sensor->notifier);
+>  	return ret;
+>  }
+>  
+> @@ -1480,6 +1497,8 @@ static int __exit et8ek8_remove(struct i2c_client *client)
+>  	}
+>  
+>  	v4l2_device_unregister_subdev(&sensor->subdev);
+> +	v4l2_async_notifier_unregister(&sensor->notifier);
+> +	v4l2_async_notifier_release(&sensor->notifier);
+>  	device_remove_file(&client->dev, &dev_attr_priv_mem);
+>  	v4l2_ctrl_handler_free(&sensor->ctrl_handler);
+>  	v4l2_async_unregister_subdev(&sensor->subdev);
+> 
