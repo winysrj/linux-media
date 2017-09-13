@@ -1,252 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33322 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751289AbdILImj (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:26390 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750960AbdIMCe3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 04:42:39 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v11 01/24] v4l: fwnode: Move KernelDoc documentation to the header
-Date: Tue, 12 Sep 2017 11:42:13 +0300
-Message-Id: <20170912084236.1154-2-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
-References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Tue, 12 Sep 2017 22:34:29 -0400
+Subject: Re: [PATCH v3 4/6] [media] exynos-gsc: Add hardware rotation limits
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>, mchehab@kernel.org
+Cc: inki.dae@samsung.com, airlied@linux.ie, kgene@kernel.org,
+        krzk@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        catalin.marinas@arm.com, will.deacon@arm.com,
+        m.szyprowski@samsung.com, devicetree@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        Hoegeun Kwon <hoegeun.kwon@samsung.com>
+From: Hoegeun Kwon <hoegeun.kwon@samsung.com>
+Message-id: <bb025fcb-e316-dfe9-a8eb-8a9535f35b93@samsung.com>
+Date: Wed, 13 Sep 2017 11:33:45 +0900
+MIME-version: 1.0
+In-reply-to: <27b46679-e6c7-2471-f10e-3f0634178ebf@samsung.com>
+Content-type: text/plain; charset="utf-8"; format="flowed"
+Content-transfer-encoding: 7bit
+Content-language: en-US
+References: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
+        <CGME20170908060309epcas1p3d48dd0871d3fde02ba3c9921bbe5a7a6@epcas1p3.samsung.com>
+        <1504850560-27950-5-git-send-email-hoegeun.kwon@samsung.com>
+        <27b46679-e6c7-2471-f10e-3f0634178ebf@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In V4L2 the practice is to have the KernelDoc documentation in the header
-and not in .c source code files. This consequently makes the V4L2 fwnode
-function documentation part of the Media documentation build.
+Hi Sylwester,
 
-Also correct the link related function and argument naming in
-documentation.
+On 09/11/2017 06:35 PM, Sylwester Nawrocki wrote:
+> On 09/08/2017 08:02 AM, Hoegeun Kwon wrote:
+>> The hardware rotation limits of gsc depends on SOC (Exynos
+>> 5250/5420/5433). Distinguish them and add them to the driver data.
+>>
+>> Signed-off-by: Hoegeun Kwon <hoegeun.kwon@samsung.com>
+>> ---
+>>   drivers/media/platform/exynos-gsc/gsc-core.c | 96 
+>> ++++++++++++++++++++++++----
+>>   1 file changed, 83 insertions(+), 13 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c 
+>> b/drivers/media/platform/exynos-gsc/gsc-core.c
+>> index 4380150..8f8636e 100644
+>> --- a/drivers/media/platform/exynos-gsc/gsc-core.c
+>> +++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+>> @@ -943,7 +943,37 @@ static irqreturn_t gsc_irq_handler(int irq, void 
+>> *priv)
+>>       return IRQ_HANDLED;
+>>   }
+>>   -static struct gsc_pix_max gsc_v_100_max = {
+>> +static struct gsc_pix_max gsc_v_5250_max = {
+>> +    .org_scaler_bypass_w    = 8192,
+>> +    .org_scaler_bypass_h    = 8192,
+>> +    .org_scaler_input_w    = 4800,
+>> +    .org_scaler_input_h    = 3344,
+>> +    .real_rot_dis_w        = 4800,
+>> +    .real_rot_dis_h        = 3344,
+>> +    .real_rot_en_w        = 2016,
+>> +    .real_rot_en_h        = 2016,
+>> +    .target_rot_dis_w    = 4800,
+>> +    .target_rot_dis_h    = 3344,
+>> +    .target_rot_en_w    = 2016,
+>> +    .target_rot_en_h    = 2016,
+>> +};
+>> +
+>> +static struct gsc_pix_max gsc_v_5420_max = {
+>> +    .org_scaler_bypass_w    = 8192,
+>> +    .org_scaler_bypass_h    = 8192,
+>> +    .org_scaler_input_w    = 4800,
+>> +    .org_scaler_input_h    = 3344,
+>> +    .real_rot_dis_w        = 4800,
+>> +    .real_rot_dis_h        = 3344,
+>> +    .real_rot_en_w        = 2048,
+>> +    .real_rot_en_h        = 2048,
+>> +    .target_rot_dis_w    = 4800,
+>> +    .target_rot_dis_h    = 3344,
+>> +    .target_rot_en_w    = 2016,
+>> +    .target_rot_en_h    = 2016,
+>> +};
+>> +
+>> +static struct gsc_pix_max gsc_v_5433_max = {
+>>       .org_scaler_bypass_w    = 8192,
+>>       .org_scaler_bypass_h    = 8192,
+>>       .org_scaler_input_w    = 4800,
+>> @@ -979,8 +1009,8 @@ static irqreturn_t gsc_irq_handler(int irq, void 
+>> *priv)
+>>       .target_h        = 2,  /* yuv420 : 2, others : 1 */
+>>   };
+>>   -static struct gsc_variant gsc_v_100_variant = {
+>> -    .pix_max        = &gsc_v_100_max,
+>> +static struct gsc_variant gsc_v_5250_variant = {
+>> +    .pix_max        = &gsc_v_5250_max,
+>>       .pix_min        = &gsc_v_100_min,
+>>       .pix_align        = &gsc_v_100_align,
+>>       .in_buf_cnt        = 32,
+>> @@ -992,12 +1022,48 @@ static irqreturn_t gsc_irq_handler(int irq, 
+>> void *priv)
+>>       .local_sc_down        = 2,
+>>   };
+>>   -static struct gsc_driverdata gsc_v_100_drvdata = {
+>> +static struct gsc_variant gsc_v_5420_variant = {
+>> +    .pix_max        = &gsc_v_5420_max,
+>> +    .pix_min        = &gsc_v_100_min,
+>> +    .pix_align        = &gsc_v_100_align,
+>> +    .in_buf_cnt        = 32,
+>> +    .out_buf_cnt        = 32,
+>> +    .sc_up_max        = 8,
+>> +    .sc_down_max        = 16,
+>> +    .poly_sc_down_max    = 4,
+>> +    .pre_sc_down_max    = 4,
+>> +    .local_sc_down        = 2,
+>> +};
+>> +
+>> +static struct gsc_variant gsc_v_5433_variant = {
+>> +    .pix_max        = &gsc_v_5433_max,
+>> +    .pix_min        = &gsc_v_100_min,
+>> +    .pix_align        = &gsc_v_100_align,
+>> +    .in_buf_cnt        = 32,
+>> +    .out_buf_cnt        = 32,
+>> +    .sc_up_max        = 8,
+>> +    .sc_down_max        = 16,
+>> +    .poly_sc_down_max    = 4,
+>> +    .pre_sc_down_max    = 4,
+>> +    .local_sc_down        = 2,
+>> +};
+>> +
+>> +static struct gsc_driverdata gsc_v_5250_drvdata = {
+>>       .variant = {
+>> -        [0] = &gsc_v_100_variant,
+>> -        [1] = &gsc_v_100_variant,
+>> -        [2] = &gsc_v_100_variant,
+>> -        [3] = &gsc_v_100_variant,
+>> +        [0] = &gsc_v_5250_variant,
+>> +        [1] = &gsc_v_5250_variant,
+>> +        [2] = &gsc_v_5250_variant,
+>> +        [3] = &gsc_v_5250_variant,
+>> +    },
+>> +    .num_entities = 4,
+>> +    .clk_names = { "gscl" },
+>> +    .num_clocks = 1,
+>> +};
+>> +
+>> +static struct gsc_driverdata gsc_v_5420_drvdata = {
+>> +    .variant = {
+>> +        [0] = &gsc_v_5420_variant,
+>> +        [1] = &gsc_v_5420_variant,
+>>       },
+>>       .num_entities = 4,
+>>       .clk_names = { "gscl" },
+>> @@ -1006,9 +1072,9 @@ static irqreturn_t gsc_irq_handler(int irq, 
+>> void *priv)
+>>     static struct gsc_driverdata gsc_5433_drvdata = {
+>>       .variant = {
+>> -        [0] = &gsc_v_100_variant,
+>> -        [1] = &gsc_v_100_variant,
+>> -        [2] = &gsc_v_100_variant,
+>> +        [0] = &gsc_v_5433_variant,
+>> +        [1] = &gsc_v_5433_variant,
+>> +        [2] = &gsc_v_5433_variant,
+>>       },
+>>       .num_entities = 3,
+>>       .clk_names = { "pclk", "aclk", "aclk_xiu", "aclk_gsclbend" },
+>> @@ -1017,8 +1083,12 @@ static irqreturn_t gsc_irq_handler(int irq, 
+>> void *priv)
+>>     static const struct of_device_id exynos_gsc_match[] = {
+>>       {
+>> -        .compatible = "samsung,exynos5-gsc",
+>> -        .data = &gsc_v_100_drvdata,
+>
+> Can you keep the "samsung,exynos5-gsc" entry with the gsc_v_5250_variant
+> data, so that it can work with "samsung,exynos5-gsc" compatible in DT
+> on both exynos5250 and exynos5420 SoCs?
+>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
----
- drivers/media/v4l2-core/v4l2-fwnode.c | 75 --------------------------------
- include/media/v4l2-fwnode.h           | 81 ++++++++++++++++++++++++++++++++++-
- 2 files changed, 80 insertions(+), 76 deletions(-)
+Thank you for your question.
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 40b2fbfe8865..706f9e7b90f1 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -181,25 +181,6 @@ v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
- 		vep->bus_type = V4L2_MBUS_CSI1;
- }
- 
--/**
-- * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
-- * @fwnode: pointer to the endpoint's fwnode handle
-- * @vep: pointer to the V4L2 fwnode data structure
-- *
-- * All properties are optional. If none are found, we don't set any flags. This
-- * means the port has a static configuration and no properties have to be
-- * specified explicitly. If any properties that identify the bus as parallel
-- * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-- * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-- * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-- * reference to @fwnode.
-- *
-- * NOTE: This function does not parse properties the size of which is variable
-- * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in
-- * new drivers instead.
-- *
-- * Return: 0 on success or a negative error code on failure.
-- */
- int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 			       struct v4l2_fwnode_endpoint *vep)
- {
-@@ -239,14 +220,6 @@ int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_parse);
- 
--/*
-- * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-- * v4l2_fwnode_endpoint_alloc_parse()
-- * @vep - the V4L2 fwnode the resources of which are to be released
-- *
-- * It is safe to call this function with NULL argument or on a V4L2 fwnode the
-- * parsing of which failed.
-- */
- void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
- {
- 	if (IS_ERR_OR_NULL(vep))
-@@ -257,29 +230,6 @@ void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_free);
- 
--/**
-- * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
-- * @fwnode: pointer to the endpoint's fwnode handle
-- *
-- * All properties are optional. If none are found, we don't set any flags. This
-- * means the port has a static configuration and no properties have to be
-- * specified explicitly. If any properties that identify the bus as parallel
-- * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-- * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-- * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-- * reference to @fwnode.
-- *
-- * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
-- * v4l2_fwnode_endpoint_parse():
-- *
-- * 1. It also parses variable size data.
-- *
-- * 2. The memory it has allocated to store the variable size data must be freed
-- *    using v4l2_fwnode_endpoint_free() when no longer needed.
-- *
-- * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error pointer
-- * on error.
-- */
- struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
- 	struct fwnode_handle *fwnode)
- {
-@@ -322,24 +272,6 @@ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_alloc_parse);
- 
--/**
-- * v4l2_fwnode_endpoint_parse_link() - parse a link between two endpoints
-- * @__fwnode: pointer to the endpoint's fwnode at the local end of the link
-- * @link: pointer to the V4L2 fwnode link data structure
-- *
-- * Fill the link structure with the local and remote nodes and port numbers.
-- * The local_node and remote_node fields are set to point to the local and
-- * remote port's parent nodes respectively (the port parent node being the
-- * parent node of the port node if that node isn't a 'ports' node, or the
-- * grand-parent node of the port node otherwise).
-- *
-- * A reference is taken to both the local and remote nodes, the caller must use
-- * v4l2_fwnode_endpoint_put_link() to drop the references when done with the
-- * link.
-- *
-- * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't be
-- * found.
-- */
- int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
- 			   struct v4l2_fwnode_link *link)
- {
-@@ -374,13 +306,6 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_parse_link);
- 
--/**
-- * v4l2_fwnode_put_link() - drop references to nodes in a link
-- * @link: pointer to the V4L2 fwnode link data structure
-- *
-- * Drop references to the local and remote nodes in the link. This function
-- * must be called on every link parsed with v4l2_fwnode_parse_link().
-- */
- void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
- {
- 	fwnode_handle_put(link->local_node);
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index 7adec9851d9e..68eb22ba571b 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -113,13 +113,92 @@ struct v4l2_fwnode_link {
- 	unsigned int remote_port;
- };
- 
-+/**
-+ * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
-+ * @fwnode: pointer to the endpoint's fwnode handle
-+ * @vep: pointer to the V4L2 fwnode data structure
-+ *
-+ * All properties are optional. If none are found, we don't set any flags. This
-+ * means the port has a static configuration and no properties have to be
-+ * specified explicitly. If any properties that identify the bus as parallel
-+ * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-+ * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-+ * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-+ * reference to @fwnode.
-+ *
-+ * NOTE: This function does not parse properties the size of which is variable
-+ * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in
-+ * new drivers instead.
-+ *
-+ * Return: 0 on success or a negative error code on failure.
-+ */
- int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 			       struct v4l2_fwnode_endpoint *vep);
-+
-+/*
-+ * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-+ * v4l2_fwnode_endpoint_alloc_parse()
-+ * @vep - the V4L2 fwnode the resources of which are to be released
-+ *
-+ * It is safe to call this function with NULL argument or on a V4L2 fwnode the
-+ * parsing of which failed.
-+ */
-+void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
-+
-+/**
-+ * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
-+ * @fwnode: pointer to the endpoint's fwnode handle
-+ *
-+ * All properties are optional. If none are found, we don't set any flags. This
-+ * means the port has a static configuration and no properties have to be
-+ * specified explicitly. If any properties that identify the bus as parallel
-+ * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-+ * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-+ * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-+ * reference to @fwnode.
-+ *
-+ * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
-+ * v4l2_fwnode_endpoint_parse():
-+ *
-+ * 1. It also parses variable size data.
-+ *
-+ * 2. The memory it has allocated to store the variable size data must be freed
-+ *    using v4l2_fwnode_endpoint_free() when no longer needed.
-+ *
-+ * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error pointer
-+ * on error.
-+ */
- struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
- 	struct fwnode_handle *fwnode);
--void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
-+
-+/**
-+ * v4l2_fwnode_parse_link() - parse a link between two endpoints
-+ * @fwnode: pointer to the endpoint's fwnode at the local end of the link
-+ * @link: pointer to the V4L2 fwnode link data structure
-+ *
-+ * Fill the link structure with the local and remote nodes and port numbers.
-+ * The local_node and remote_node fields are set to point to the local and
-+ * remote port's parent nodes respectively (the port parent node being the
-+ * parent node of the port node if that node isn't a 'ports' node, or the
-+ * grand-parent node of the port node otherwise).
-+ *
-+ * A reference is taken to both the local and remote nodes, the caller must use
-+ * v4l2_fwnode_put_link() to drop the references when done with the
-+ * link.
-+ *
-+ * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't be
-+ * found.
-+ */
- int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
- 			   struct v4l2_fwnode_link *link);
-+
-+/**
-+ * v4l2_fwnode_put_link() - drop references to nodes in a link
-+ * @link: pointer to the V4L2 fwnode link data structure
-+ *
-+ * Drop references to the local and remote nodes in the link. This function
-+ * must be called on every link parsed with v4l2_fwnode_parse_link().
-+ */
- void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
- 
- #endif /* _V4L2_FWNODE_H */
--- 
-2.11.0
+Exynos 5250 and 5420 have different hardware rotation limits.
+Exynos 5250 is '.real_rot_en_w/h = 2016' and 5420 is '.real_rot_en_w/h = 
+2048'.
+
+So my opinion they must have different compatible.
+
+Best regards,
+Hoegeun
+
+>> +        .compatible = "samsung,exynos5250-gsc",
+>> +        .data = &gsc_v_5250_drvdata,
+>> +    },
+>> +    {
+>> +        .compatible = "samsung,exynos5420-gsc",
+>> +        .data = &gsc_v_5420_drvdata,
+>>       },
+>
