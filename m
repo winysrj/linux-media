@@ -1,105 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42402 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751878AbdIVJe4 (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:60278 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750776AbdIMIVN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 05:34:56 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: [RESEND PATCH v3 2/4] dt: bindings: as3645a: Use LED number to refer to LEDs
-Date: Fri, 22 Sep 2017 12:34:51 +0300
-Message-Id: <20170922093453.13250-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170922093453.13250-1-sakari.ailus@linux.intel.com>
-References: <20170922093453.13250-1-sakari.ailus@linux.intel.com>
+        Wed, 13 Sep 2017 04:21:13 -0400
+Subject: Re: [PATCHv4 3/5] dt-bindings: document the CEC GPIO bindings
+To: Rob Herring <robh@kernel.org>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        devicetree@vger.kernel.org,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20170831110156.11018-1-hverkuil@xs4all.nl>
+ <20170831110156.11018-4-hverkuil@xs4all.nl>
+ <20170912144308.j53eclicbhay5dsz@rob-hp-laptop>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <30a2fa9d-1aa9-84c1-7842-05167eee73d3@xs4all.nl>
+Date: Wed, 13 Sep 2017 10:21:07 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170912144308.j53eclicbhay5dsz@rob-hp-laptop>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use integers (reg property) to tell the number of the LED to the driver
-instead of the node name. While both of these approaches are currently
-used by the LED bindings, using integers will require less driver changes
-for ACPI support. Additionally, it will make possible LED naming using
-chip and LED node names, effectively making the label property most useful
-for human-readable names only.
+On 09/12/2017 04:43 PM, Rob Herring wrote:
+> On Thu, Aug 31, 2017 at 01:01:54PM +0200, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Document the bindings for the cec-gpio module for hardware where the
+>> CEC line and optionally the HPD line are connected to GPIO lines.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  .../devicetree/bindings/media/cec-gpio.txt         | 22 ++++++++++++++++++++++
+>>  1 file changed, 22 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/cec-gpio.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/cec-gpio.txt b/Documentation/devicetree/bindings/media/cec-gpio.txt
+>> new file mode 100644
+>> index 000000000000..db20a7452dbd
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/cec-gpio.txt
+>> @@ -0,0 +1,22 @@
+>> +* HDMI CEC GPIO driver
+>> +
+>> +The HDMI CEC GPIO module supports CEC implementations where the CEC line
+>> +is hooked up to a pull-up GPIO line and - optionally - the HPD line is
+>> +hooked up to another GPIO line.
+>> +
+>> +Required properties:
+>> +  - compatible: value must be "cec-gpio"
+>> +  - cec-gpio: gpio that the CEC line is connected to
+> 
+> cec-gpios
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
- .../devicetree/bindings/leds/ams,as3645a.txt       | 28 ++++++++++++++--------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+Will change.
 
-diff --git a/Documentation/devicetree/bindings/leds/ams,as3645a.txt b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-index 12c5ef26ec73..fdc40e354a64 100644
---- a/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-+++ b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-@@ -15,11 +15,14 @@ Required properties
- 
- compatible	: Must be "ams,as3645a".
- reg		: The I2C address of the device. Typically 0x30.
-+#address-cells	: 1
-+#size-cells	: 0
- 
- 
--Required properties of the "flash" child node
--=============================================
-+Required properties of the flash child node (0)
-+===============================================
- 
-+reg: 0
- flash-timeout-us: Flash timeout in microseconds. The value must be in
- 		  the range [100000, 850000] and divisible by 50000.
- flash-max-microamp: Maximum flash current in microamperes. Has to be
-@@ -33,20 +36,21 @@ ams,input-max-microamp: Maximum flash controller input current. The
- 			and divisible by 50000.
- 
- 
--Optional properties of the "flash" child node
--=============================================
-+Optional properties of the flash child node
-+===========================================
- 
- label		: The label of the flash LED.
- 
- 
--Required properties of the "indicator" child node
--=================================================
-+Required properties of the indicator child node (1)
-+===================================================
- 
-+reg: 1
- led-max-microamp: Maximum indicator current. The allowed values are
- 		  2500, 5000, 7500 and 10000.
- 
--Optional properties of the "indicator" child node
--=================================================
-+Optional properties of the indicator child node
-+===============================================
- 
- label		: The label of the indicator LED.
- 
-@@ -55,16 +59,20 @@ Example
- =======
- 
- 	as3645a@30 {
-+		#address-cells: 1
-+		#size-cells: 0
- 		reg = <0x30>;
- 		compatible = "ams,as3645a";
--		flash {
-+		flash@0 {
-+			reg = <0x0>;
- 			flash-timeout-us = <150000>;
- 			flash-max-microamp = <320000>;
- 			led-max-microamp = <60000>;
- 			ams,input-max-microamp = <1750000>;
- 			label = "as3645a:flash";
- 		};
--		indicator {
-+		indicator@1 {
-+			reg = <0x1>;
- 			led-max-microamp = <10000>;
- 			label = "as3645a:indicator";
- 		};
--- 
-2.11.0
+> 
+>> +
+>> +Optional property:
+>> +  - hpd-gpio: gpio that the HPD line is connected to
+> 
+> hpd-gpios
+
+Will change.
+
+> 
+> However, HPD is already part of the HDMI connector binding. Having it in 
+> 2 places would be wrong.
+
+No. This is not an HDMI receiver/transmitter. There are two use-cases for this
+driver:
+
+1) For HDMI receivers/transmitters that connect the CEC pin of an HDMI connector
+   to a GPIO pin. In that case the HPD goes to the HDMI transmitter/receiver and
+   not to this driver. As you say, that would not make any sense.
+
+   But currently no such devices are in the kernel (I know they exist, though).
+   Once such a driver would appear in the kernel then these bindings need to be
+   extended with an hdmi-phandle.
+
+2) This driver is used for debugging CEC like this:
+
+	https://hverkuil.home.xs4all.nl/rpi3-cec.jpg
+
+   Here the CEC pin of an HDMI breakout connector is hooked up to a Raspberry Pi
+   GPIO pin and the RPi monitors it. It's a cheap but very effective CEC analyzer.
+   In this use-case it is very helpful to also monitor the HPD pin since some
+   displays do weird things with the HPD and knowing the state of the HPD helps
+   a lot when debugging CEC problems. It's optional and it only monitors the pin.
+
+   Actually, there does not have to be an HDMI connector involved at all: you can
+   make two cec-gpio instances and just connect the two GPIO pins together in
+   order to emulate two CEC adapters and play with that.
+
+> 
+> I think we should have either:
+> 
+> hdmi-connector {
+> 	compatible = 'hdmi-connector-a";
+> 	hpd-gpios = <...>;
+> 	cec-gpios = <...>;
+> 	ports {
+> 		// port to HDMI controller
+> 	...
+> 	};
+> };
+> 
+> Or:
+> 
+> hdmi-connector {
+>         compatible = 'hdmi-connector-a";
+>         hpd-gpios = <...>;
+>         cec = <&cec>;
+>         ... 
+> };
+> 
+> cec: cec-gpio {
+> 	compatible = "cec-gpio";
+> 	cec-gpios = <...>;
+> };
+> 
+> My preference is probably the former. The latter just helps create a 
+> device to bind to a driver, but DT is not the only way to create 
+> devices. Then again, if you have a phandle to real CEC controllers in 
+> the HDMI connector node, it may make sense to do the same thing with 
+> cec-gpio. 
+> 
+>> +
+>> +Example for the Raspberry Pi 3 where the CEC line is connected to
+>> +pin 26 aka BCM7 aka CE1 on the GPIO pin header and the HPD line is
+>> +connected to pin 11 aka BCM17:
+>> +
+>> +cec-gpio@7 {
+> 
+> unit address is not valid. Build your dts's with W=2.
+
+I'll do that.
+
+> 
+>> +       compatible = "cec-gpio";
+>> +       cec-gpio = <&gpio 7 GPIO_OPEN_DRAIN>;
+>> +       hpd-gpio = <&gpio 17 GPIO_ACTIVE_HIGH>;
+>> +};
+>> -- 
+>> 2.14.1
+
+Regards,
+
+	Hans
