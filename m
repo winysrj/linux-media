@@ -1,84 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54507 "EHLO
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40310 "EHLO
         atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751707AbdIKLRt (ORCPT
+        with ESMTP id S1751323AbdINLxZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 07:17:49 -0400
-Date: Mon, 11 Sep 2017 13:17:46 +0200
+        Thu, 14 Sep 2017 07:53:25 -0400
+Date: Thu, 14 Sep 2017 13:53:23 +0200
 From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+        niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
         sre@kernel.org
-Subject: Re: [PATCH v10 19/24] v4l: fwnode: Add convenience function for
- parsing common external refs
-Message-ID: <20170911111746.GC28095@amd>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-20-sakari.ailus@linux.intel.com>
+Subject: Re: as3645a flash userland interface
+Message-ID: <20170914115323.GA1850@amd>
+References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+ <20170912084236.1154-25-sakari.ailus@linux.intel.com>
+ <20170912103628.GB27117@amd>
+ <7b679cb3-ce58-e1d1-60bf-995896bf46eb@gmail.com>
+ <20170912215529.GA17218@amd>
+ <21824758-28a1-7007-6db5-86a900025d14@gmail.com>
+ <CGME20170914092415epcas2p26c049a698851778673034c16afb290b9@epcas2p2.samsung.com>
+ <4bf12e8e-beff-0199-cdee-4a52ebe7cdaf@samsung.com>
+ <20170914100718.GA3843@amd>
+ <1f34a891-edb1-251c-86a8-ba4a90c485d3@samsung.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="lCAWRPmW1mITcIfM"
+        protocol="application/pgp-signature"; boundary="+HP7ph2BbKc20aGI"
 Content-Disposition: inline
-In-Reply-To: <20170911080008.21208-20-sakari.ailus@linux.intel.com>
+In-Reply-To: <1f34a891-edb1-251c-86a8-ba4a90c485d3@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---lCAWRPmW1mITcIfM
+--+HP7ph2BbKc20aGI
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon 2017-09-11 11:00:03, Sakari Ailus wrote:
-> Add v4l2_fwnode_parse_reference_sensor_common for parsing common
-> sensor properties that refer to adjacent devices such as flash or lens
-> driver chips.
+On Thu 2017-09-14 13:01:19, Sylwester Nawrocki wrote:
+> On 09/14/2017 12:07 PM, Pavel Machek wrote:
+> >>Isn't the V4L2 subdev/Media Controller API supposed to provide means
+> >>for associating flash LEDs with camera sensors? You seem to be insisting
+> >>on using the sysfs leds interface for that, which is not a primary
+> >>interface for camera flash AFAICT.
+> >
+> >a) subdev/media controller API currently does not provide such means.
 >=20
-> As this is an association only, there's little a regular driver needs to
-> know about these devices as such.
+> Yes, but it should, that's what it was designed for AFAIK.
 >=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/v4l2-fwnode.c | 35 +++++++++++++++++++++++++++++=
-++++++
->  include/media/v4l2-fwnode.h           | 13 +++++++++++++
->  2 files changed, 48 insertions(+)
+> >b) if we have /sys/class/leds interface to userland, it should be
+> >useful.
 >=20
-> =20
-> +/**
-> + * v4l2_fwnode_reference_parse_sensor_common - parse common references on
-> + *					       sensors for async sub-devices
-> + * @dev: the device node the properties of which are parsed for referenc=
-es
-> + * @notifier: the async notifier where the async subdevs will be added
-> + *
-> + * Return: 0 on success
-> + *	   -ENOMEM if memory allocation failed
-> + *	   -EINVAL if property parsing failed
-> + */
+> At the same time we shouldn't overcomplicate it with the camera
+> functionality.
 
-Returns: would sound more correct to me, but it seems kernel is split
-on that.
+I'm advocating adding label =3D "main_camera" into the .dts. That's all.
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+> >c) having flashlight application going through media controller API is
+> >a bad joke.
+>=20
+> It doesn't have to, maybe I misunderstood what you exactly ask for.
+> Nevertheless what's missing is some user visible name/label for each
+> flash LED, right? Currently enumerating flash LEDs can be done by looking
+> at the function part of /sys/class/leds/<led-controller>:<colour>:
+> <function> path.
+>=20
+> Could additional information be appended to the <function> part, so
+> user can identify which LED is which? E.g. "flash(rear)", "flash(front)",
+> etc. This could be achieved by simply adding label property in DT.
+> Or is the list of supported <function> strings already standardized?
+
+label =3D "flash_main_camera" would work for me, yes. And yes, I'd
+prefer to do this before 4.14 release, so that userland-visible
+interface does not change.
+
+								Pavel
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---lCAWRPmW1mITcIfM
+--+HP7ph2BbKc20aGI
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAlm2cNoACgkQMOfwapXb+vJgZACcCkVn13IDbgYN+aUCh7kCVYQ+
-PjIAmgK5ZOmxTcoJB57+7kr6xAhYFos7
-=0Inh
+iEYEARECAAYFAlm6bbMACgkQMOfwapXb+vLs5ACfSHGpLyqkbp6oPuWYh9pfwq6S
+9RkAmwabXDg4cqAZMqZP9Si2IOvyxCDb
+=yM0y
 -----END PGP SIGNATURE-----
 
---lCAWRPmW1mITcIfM--
+--+HP7ph2BbKc20aGI--
