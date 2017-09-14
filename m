@@ -1,123 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48832 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751022AbdIKIAL (ORCPT
+Received: from nasmtp01.atmel.com ([192.199.1.245]:55138 "EHLO
+        DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750770AbdINFOS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 04:00:11 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v10 02/24] v4l: async: Remove re-probing support
-Date: Mon, 11 Sep 2017 10:59:46 +0300
-Message-Id: <20170911080008.21208-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+        Thu, 14 Sep 2017 01:14:18 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Jonathan Corbet <corbet@lwn.net>
+CC: Nicolas Ferre <nicolas.ferre@microchip.com>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v2 3/3] media: ov7670: Add the s_power operation
+Date: Thu, 14 Sep 2017 13:11:11 +0800
+Message-ID: <20170914051111.18197-4-wenyou.yang@microchip.com>
+In-Reply-To: <20170914051111.18197-1-wenyou.yang@microchip.com>
+References: <20170914051111.18197-1-wenyou.yang@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove V4L2 async re-probing support. The re-probing support has been
-there to support cases where the sub-devices require resources provided by
-the main driver's hardware to function, such as clocks.
+Add the s_power operation which is responsible for manipulating the
+power dowm mode through the PWDN pin and the reset operation through
+the RESET pin.
 
-Reprobing has allowed unbinding and again binding the main driver without
-explicilty unbinding the sub-device drivers. This is certainly not a
-common need, and the responsibility will be the user's going forward.
-
-An alternative could have been to introduce notifier specific locks.
-Considering the complexity of the re-probing and that it isn't really a
-solution to a problem but a workaround, remove re-probing instead.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 54 ------------------------------------
- 1 file changed, 54 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index d741a8e0fdac..e109d9da4653 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -198,78 +198,24 @@ EXPORT_SYMBOL(v4l2_async_notifier_register);
- void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- {
- 	struct v4l2_subdev *sd, *tmp;
--	unsigned int notif_n_subdev = notifier->num_subdevs;
--	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
--	struct device **dev;
--	int i = 0;
+Changes in v2:
+ - Add the patch to support the get_fmt ops.
+ - Remove the redundant invoking ov7670_init_gpio().
+
+ drivers/media/i2c/ov7670.c | 32 +++++++++++++++++++++++++++-----
+ 1 file changed, 27 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index efc738112e2a..d1211ae48f63 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -1530,6 +1530,22 @@ static int ov7670_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_regis
+ }
+ #endif
  
- 	if (!notifier->v4l2_dev)
- 		return;
++static int ov7670_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct ov7670_info *info = to_state(sd);
++
++	if (info->pwdn_gpio)
++		gpiod_direction_output(info->pwdn_gpio, !on);
++	if (on && info->resetb_gpio) {
++		gpiod_set_value(info->resetb_gpio, 1);
++		usleep_range(500, 1000);
++		gpiod_set_value(info->resetb_gpio, 0);
++		usleep_range(3000, 5000);
++	}
++
++	return 0;
++}
++
+ /* ----------------------------------------------------------------------- */
  
--	dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
--	if (!dev) {
--		dev_err(notifier->v4l2_dev->dev,
--			"Failed to allocate device cache!\n");
--	}
--
- 	mutex_lock(&list_lock);
+ static const struct v4l2_subdev_core_ops ov7670_core_ops = {
+@@ -1539,6 +1555,7 @@ static const struct v4l2_subdev_core_ops ov7670_core_ops = {
+ 	.g_register = ov7670_g_register,
+ 	.s_register = ov7670_s_register,
+ #endif
++	.s_power = ov7670_s_power,
+ };
  
- 	list_del(&notifier->list);
+ static const struct v4l2_subdev_video_ops ov7670_video_ops = {
+@@ -1645,23 +1662,25 @@ static int ov7670_probe(struct i2c_client *client,
+ 	if (ret)
+ 		return ret;
  
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
--		struct device *d;
+-	ret = ov7670_init_gpio(client, info);
+-	if (ret)
+-		goto clk_disable;
 -
--		d = get_device(sd->dev);
--
- 		v4l2_async_cleanup(sd);
- 
--		/* If we handled USB devices, we'd have to lock the parent too */
--		device_release_driver(d);
--
- 		if (notifier->unbind)
- 			notifier->unbind(notifier, sd, sd->asd);
--
--		/*
--		 * Store device at the device cache, in order to call
--		 * put_device() on the final step
--		 */
--		if (dev)
--			dev[i++] = d;
--		else
--			put_device(d);
+ 	info->clock_speed = clk_get_rate(info->clk) / 1000000;
+ 	if (info->clock_speed < 10 || info->clock_speed > 48) {
+ 		ret = -EINVAL;
+ 		goto clk_disable;
  	}
  
- 	mutex_unlock(&list_lock);
- 
--	/*
--	 * Call device_attach() to reprobe devices
--	 *
--	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
--	 * executed.
--	 */
--	while (i--) {
--		struct device *d = dev[i];
--
--		if (d && device_attach(d) < 0) {
--			const char *name = "(none)";
--			int lock = device_trylock(d);
--
--			if (lock && d->driver)
--				name = d->driver->name;
--			dev_err(d, "Failed to re-probe to %s\n", name);
--			if (lock)
--				device_unlock(d);
--		}
--		put_device(d);
--	}
--	kvfree(dev);
--
- 	notifier->v4l2_dev = NULL;
--
--	/*
--	 * Don't care about the waiting list, it is initialised and populated
--	 * upon notifier registration.
--	 */
++	ret = ov7670_init_gpio(client, info);
++	if (ret)
++		goto clk_disable;
++
++	ov7670_s_power(sd, 1);
++
+ 	/* Make sure it's an ov7670 */
+ 	ret = ov7670_detect(sd);
+ 	if (ret) {
+ 		v4l_dbg(1, debug, client,
+ 			"chip found @ 0x%x (%s) is not an ov7670 chip.\n",
+ 			client->addr << 1, client->adapter->name);
+-		goto clk_disable;
++		goto power_off;
+ 	}
+ 	v4l_info(client, "chip found @ 0x%02x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
+@@ -1734,6 +1753,8 @@ static int ov7670_probe(struct i2c_client *client,
+ 	media_entity_cleanup(&info->sd.entity);
+ hdl_free:
+ 	v4l2_ctrl_handler_free(&info->hdl);
++power_off:
++	ov7670_s_power(sd, 0);
+ clk_disable:
+ 	clk_disable_unprepare(info->clk);
+ 	return ret;
+@@ -1749,6 +1770,7 @@ static int ov7670_remove(struct i2c_client *client)
+ 	v4l2_ctrl_handler_free(&info->hdl);
+ 	clk_disable_unprepare(info->clk);
+ 	media_entity_cleanup(&info->sd.entity);
++	ov7670_s_power(sd, 0);
+ 	return 0;
  }
- EXPORT_SYMBOL(v4l2_async_notifier_unregister);
  
 -- 
-2.11.0
+2.13.0
