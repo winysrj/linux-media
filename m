@@ -1,167 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50372
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751738AbdITTMB (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:55305 "EHLO
+        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750770AbdINFNN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 15:12:01 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 22/25] media: dmxdev.h: add kernel-doc markups for data types and functions
-Date: Wed, 20 Sep 2017 16:11:47 -0300
-Message-Id: <ae11b2c87851068072d5d000b8ec2625c5901af2.1505933919.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
-References: <cover.1505933919.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
-References: <cover.1505933919.git.mchehab@s-opensource.com>
+        Thu, 14 Sep 2017 01:13:13 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Jonathan Corbet <corbet@lwn.net>
+CC: Nicolas Ferre <nicolas.ferre@microchip.com>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v2 2/3] media: ov7670: Add the get_fmt callback
+Date: Thu, 14 Sep 2017 13:11:10 +0800
+Message-ID: <20170914051111.18197-3-wenyou.yang@microchip.com>
+In-Reply-To: <20170914051111.18197-1-wenyou.yang@microchip.com>
+References: <20170914051111.18197-1-wenyou.yang@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Despite being used by DVB drivers, this header was not documented.
+Add the get_fmt callback, also enable V4L2_SUBDEV_FL_HAS_DEVNODE flag
+to make this subdev has device node.
 
-Document it.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
 ---
- drivers/media/dvb-core/dmxdev.h | 90 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 88 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dmxdev.h b/drivers/media/dvb-core/dmxdev.h
-index 054fd4eb6192..9aa3ce3fc407 100644
---- a/drivers/media/dvb-core/dmxdev.h
-+++ b/drivers/media/dvb-core/dmxdev.h
-@@ -36,12 +36,33 @@
- #include "demux.h"
- #include "dvb_ringbuffer.h"
- 
-+/**
-+ * enum dmxdev_type - type of demux filter type.
-+ *
-+ * @DMXDEV_TYPE_NONE:	no filter set.
-+ * @DMXDEV_TYPE_SEC:	section filter.
-+ * @DMXDEV_TYPE_PES:	Program Elementary Stream (PES) filter.
-+ */
- enum dmxdev_type {
- 	DMXDEV_TYPE_NONE,
- 	DMXDEV_TYPE_SEC,
- 	DMXDEV_TYPE_PES,
- };
- 
-+/**
-+ * enum dmxdev_state - state machine for the dmxdev.
-+ *
-+ * @DMXDEV_STATE_FREE:		indicates that the filter is freed.
-+ * @DMXDEV_STATE_ALLOCATED:	indicates that the filter was allocated
-+ *				to be used.
-+ * @DMXDEV_STATE_SET:		indicates that the filter parameters are set.
-+ * @DMXDEV_STATE_GO:		indicates that the filter is running.
-+ * @DMXDEV_STATE_DONE:		indicates that a packet was already filtered
-+ * 				and the filter is now disabled.
-+ * 				Set only if %DMX_ONESHOT. See
-+ *				&dmx_sct_filter_params.
-+ * @DMXDEV_STATE_TIMEDOUT:	Indicates a timeout condition.
-+ */
- enum dmxdev_state {
- 	DMXDEV_STATE_FREE,
- 	DMXDEV_STATE_ALLOCATED,
-@@ -51,12 +72,49 @@ enum dmxdev_state {
- 	DMXDEV_STATE_TIMEDOUT
- };
- 
-+/**
-+ * struct dmxdev_feed - digital TV dmxdev feed
-+ *
-+ * @pid:	Program ID to be filtered
-+ * @ts:		pointer to &struct dmx_ts_feed
-+ * @next:	&struct list_head pointing to the next feed.
-+ */
+Changes in v2: None
+
+ drivers/media/i2c/ov7670.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index 5c8460ee65c3..efc738112e2a 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -230,6 +230,7 @@ struct ov7670_info {
+ 		struct v4l2_ctrl *saturation;
+ 		struct v4l2_ctrl *hue;
+ 	};
++	struct v4l2_mbus_framefmt format;
+ 	struct ov7670_format_struct *fmt;  /* Current format */
+ 	struct clk *clk;
+ 	struct gpio_desc *resetb_gpio;
+@@ -973,6 +974,29 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev *sd,
+ 	fmt->width = wsize->width;
+ 	fmt->height = wsize->height;
+ 	fmt->colorspace = ov7670_formats[index].colorspace;
 +
- struct dmxdev_feed {
- 	u16 pid;
- 	struct dmx_ts_feed *ts;
- 	struct list_head next;
++	info->format.code = fmt->code;
++	info->format.width = fmt->width;
++	info->format.height = fmt->height;
++	info->format.colorspace = fmt->colorspace;
++
++	return 0;
++}
++
++static int ov7670_get_fmt(struct v4l2_subdev *sd,
++			  struct v4l2_subdev_pad_config *cfg,
++			  struct v4l2_subdev_format *format)
++{
++	struct ov7670_info *info = to_state(sd);
++	struct v4l2_mbus_framefmt *fmt;
++
++	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
++		fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
++	else
++		fmt = &info->format;
++
++	format->format = *fmt;
++
+ 	return 0;
+ }
+ 
+@@ -1526,6 +1550,7 @@ static const struct v4l2_subdev_pad_ops ov7670_pad_ops = {
+ 	.enum_frame_interval = ov7670_enum_frame_interval,
+ 	.enum_frame_size = ov7670_enum_frame_size,
+ 	.enum_mbus_code = ov7670_enum_mbus_code,
++	.get_fmt = ov7670_get_fmt,
+ 	.set_fmt = ov7670_set_fmt,
  };
  
-+/**
-+ * struct dmxdev_filter - digital TV dmxdev filter
-+ *
-+ * @filter:	a dmxdev filter. Currently used only for section filter:
-+ *		if the filter is Section, it contains a
-+ *		&struct dmx_section_filter @sec pointer.
-+ * @feed:	a dmxdev feed. Depending on the feed type, it can be:
-+ *		for TS feed: a &struct list_head @ts list of TS and PES
-+ *		feeds;
-+ *		for section feed: a &struct dmx_section_feed @sec pointer.
-+ * @params:	dmxdev filter parameters. Depending on the feed type, it
-+ *		can be:
-+ *		for section filter: a &struct dmx_sct_filter_params @sec
-+ *		embedded struct;
-+ *		for a TS filter: a &struct dmx_pes_filter_params @pes
-+ *		embedded struct.
-+ * @type:	type of the dmxdev filter, as defined by &enum dmxdev_type.
-+ * @state:	state of the dmxdev filter, as defined by &enum dmxdev_state.
-+ * @dev:	pointer to &struct dmxdev.
-+ * @buffer:	an embedded &struct dvb_ringbuffer buffer.
-+ * @mutex:	protects the access to &struct dmxdev_filter.
-+ * @timer:	&struct timer_list embedded timer, used to check for
-+ *		feed timeouts.
-+ * 		Only for section filter.
-+ * @todo:	index for the @secheader.
-+ * 		Only for section filter.
-+ * @secheader:	buffer cache to parse the section header.
-+ * 		Only for section filter.
-+ */
- struct dmxdev_filter {
- 	union {
- 		struct dmx_section_filter *sec;
-@@ -86,7 +144,23 @@ struct dmxdev_filter {
- 	u8 secheader[3];
- };
+@@ -1698,6 +1723,7 @@ static int ov7670_probe(struct i2c_client *client,
  
--
-+/**
-+ * struct dmxdev - Describes a digital TV demux device.
-+ *
-+ * @dvbdev:		pointer to &struct dvb_device associated with
-+ *			the demux device node.
-+ * @dvr_dvbdev:		pointer to &struct dvb_device associated with
-+ *			the dvr device node.
-+ * @filter:		pointer to &struct dmxdev_filter.
-+ * @demux:		pointer to &struct dmx_demux.
-+ * @filternum:		number of filters.
-+ * @capabilities:	demux capabilities as defined by &enum dmx_demux_caps.
-+ * @exit:		flag to indicate that the demux is being released.
-+ * @dvr_orig_fe:	pointer to &struct dmx_frontend.
-+ * @dvr_buffer:		embedded &struct dvb_ringbuffer for DVB output.
-+ * @mutex:		protects the usage of this structure.
-+ * @lock:		protects access to &dmxdev->filter->data.
-+ */
- struct dmxdev {
- 	struct dvb_device *dvbdev;
- 	struct dvb_device *dvr_dvbdev;
-@@ -108,8 +182,20 @@ struct dmxdev {
- 	spinlock_t lock;
- };
+ 	v4l2_ctrl_handler_setup(&info->hdl);
  
-+/**
-+ * dvb_dmxdev_init - initializes a digital TV demux and registers both demux
-+ * 	and DVR devices.
-+ *
-+ * @dmxdev: pointer to &struct dmxdev.
-+ * @adap: pointer to &struct dvb_adapter.
-+ */
-+int dvb_dmxdev_init(struct dmxdev *dmxdev, struct dvb_adapter *adap);
- 
--int dvb_dmxdev_init(struct dmxdev *dmxdev, struct dvb_adapter *);
-+/**
-+ * dvb_dmxdev_release - releases a digital TV demux and unregisters it.
-+ *
-+ * @dmxdev: pointer to &struct dmxdev.
-+ */
- void dvb_dmxdev_release(struct dmxdev *dmxdev);
- 
- #endif /* _DMXDEV_H_ */
++	info->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	ret = v4l2_async_register_subdev(&info->sd);
+ 	if (ret < 0)
+ 		goto entity_cleanup;
 -- 
-2.13.5
+2.13.0
