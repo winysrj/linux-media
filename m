@@ -1,85 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:36917 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751279AbdINBTc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 21:19:32 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        heiko@sntech.de, robh+dt@kernel.org, mchehab@kernel.org,
-        linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, nicolas@ndufresne.ca,
-        Jacob Chen <jacob-chen@iotwrt.com>
-Subject: [PATCH v9 0/4]  Add Rockchip RGA V4l2 support
-Date: Thu, 14 Sep 2017 09:19:13 +0800
-Message-Id: <1505351957-14479-1-git-send-email-jacob-chen@iotwrt.com>
+Received: from mout.web.de ([212.227.17.11]:61471 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751418AbdINKbz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Sep 2017 06:31:55 -0400
+Subject: [PATCH 1/8] [media] ttusb_dec: Use common error handling code in
+ ttusb_dec_init_dvb()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <66b087d3-6dd3-1e1c-d33d-e34c9e2ffe25@users.sourceforge.net>
+Message-ID: <996e39c1-b041-1bfa-b2e2-ab94ca2450ed@users.sourceforge.net>
+Date: Thu, 14 Sep 2017 12:31:43 +0200
+MIME-Version: 1.0
+In-Reply-To: <66b087d3-6dd3-1e1c-d33d-e34c9e2ffe25@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series add a v4l2 m2m drvier for rockchip RGA direct rendering based 2d graphics acceleration module.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 13 Sep 2017 18:08:19 +0200
 
-Recently I tried to add protduff support for gstreamer on rockchip platform, and i found that API 
-were not very suitable for my purpose. 
-It shouldn't go upstream until we can figure out what people need, 
+Add jump targets so that a bit of exception handling can be better reused
+at the end of this function.
 
-change in V9:
-- remove protduff things
-- test with the latest v4l2-compliance
+This issue was detected by using the Coccinelle software.
 
-change in V8:
-- remove protduff things
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/ttusb-dec/ttusb_dec.c | 43 ++++++++++++---------------------
+ 1 file changed, 15 insertions(+), 28 deletions(-)
 
-change in V6,V7:
-- correct warning in checkpatch.pl
-
-change in V5:
-- v4l2-compliance: handle invalid pxielformat 
-- v4l2-compliance: add subscribe_event
-- add colorspace support
-
-change in V4:
-- document the controls.
-- change according to Hans's comments
-
-change in V3:
-- rename the controls.
-- add pm_runtime support.
-- enable node by default.
-- correct spelling in documents.
-
-change in V2:
-- generalize the controls.
-- map buffers (10-50 us) in every cmd-run rather than in buffer-import to avoid get_free_pages failed on
-actively used systems.
-- remove status in dt-bindings examples.
-
-Jacob Chen (4):
-  rockchip/rga: v4l2 m2m support
-  ARM: dts: rockchip: add RGA device node for RK3288
-  arm64: dts: rockchip: add RGA device node for RK3399
-  dt-bindings: Document the Rockchip RGA bindings
-
- .../devicetree/bindings/media/rockchip-rga.txt     |   33 +
- arch/arm/boot/dts/rk3288.dtsi                      |   11 +
- arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   11 +
- drivers/media/platform/Kconfig                     |   11 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/rockchip-rga/Makefile       |    3 +
- drivers/media/platform/rockchip-rga/rga-buf.c      |  156 +++
- drivers/media/platform/rockchip-rga/rga-hw.c       |  435 +++++++++
- drivers/media/platform/rockchip-rga/rga-hw.h       |  437 +++++++++
- drivers/media/platform/rockchip-rga/rga.c          | 1030 ++++++++++++++++++++
- drivers/media/platform/rockchip-rga/rga.h          |  110 +++
- 11 files changed, 2239 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
- create mode 100644 drivers/media/platform/rockchip-rga/Makefile
- create mode 100644 drivers/media/platform/rockchip-rga/rga-buf.c
- create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.c
- create mode 100644 drivers/media/platform/rockchip-rga/rga-hw.h
- create mode 100644 drivers/media/platform/rockchip-rga/rga.c
- create mode 100644 drivers/media/platform/rockchip-rga/rga.h
-
+diff --git a/drivers/media/usb/ttusb-dec/ttusb_dec.c b/drivers/media/usb/ttusb-dec/ttusb_dec.c
+index cdefb5dfbbdc..0bc80daf6e2e 100644
+--- a/drivers/media/usb/ttusb-dec/ttusb_dec.c
++++ b/drivers/media/usb/ttusb-dec/ttusb_dec.c
+@@ -1508,10 +1508,7 @@ static int ttusb_dec_init_dvb(struct ttusb_dec *dec)
+ 	if ((result = dvb_dmx_init(&dec->demux)) < 0) {
+ 		printk("%s: dvb_dmx_init failed: error %d\n", __func__,
+ 		       result);
+-
+-		dvb_unregister_adapter(&dec->adapter);
+-
+-		return result;
++		goto unregister_adapter;
+ 	}
+ 
+ 	dec->dmxdev.filternum = 32;
+@@ -1521,43 +1518,33 @@ static int ttusb_dec_init_dvb(struct ttusb_dec *dec)
+ 	if ((result = dvb_dmxdev_init(&dec->dmxdev, &dec->adapter)) < 0) {
+ 		printk("%s: dvb_dmxdev_init failed: error %d\n",
+ 		       __func__, result);
+-
+-		dvb_dmx_release(&dec->demux);
+-		dvb_unregister_adapter(&dec->adapter);
+-
+-		return result;
++		goto release_demux;
+ 	}
+ 
+ 	dec->frontend.source = DMX_FRONTEND_0;
+ 
+-	if ((result = dec->demux.dmx.add_frontend(&dec->demux.dmx,
+-						  &dec->frontend)) < 0) {
+-		printk("%s: dvb_dmx_init failed: error %d\n", __func__,
+-		       result);
+-
+-		dvb_dmxdev_release(&dec->dmxdev);
+-		dvb_dmx_release(&dec->demux);
+-		dvb_unregister_adapter(&dec->adapter);
+-
+-		return result;
+-	}
++	result = dec->demux.dmx.add_frontend(&dec->demux.dmx, &dec->frontend);
++	if (result < 0)
++		goto report_failure;
+ 
+ 	if ((result = dec->demux.dmx.connect_frontend(&dec->demux.dmx,
+ 						      &dec->frontend)) < 0) {
+-		printk("%s: dvb_dmx_init failed: error %d\n", __func__,
+-		       result);
+-
+ 		dec->demux.dmx.remove_frontend(&dec->demux.dmx, &dec->frontend);
+-		dvb_dmxdev_release(&dec->dmxdev);
+-		dvb_dmx_release(&dec->demux);
+-		dvb_unregister_adapter(&dec->adapter);
+-
+-		return result;
++		goto report_failure;
+ 	}
+ 
+ 	dvb_net_init(&dec->adapter, &dec->dvb_net, &dec->demux.dmx);
+ 
+ 	return 0;
++
++report_failure:
++	printk("%s: dvb_dmx_init failed: error %d\n", __func__, result);
++	dvb_dmxdev_release(&dec->dmxdev);
++release_demux:
++	dvb_dmx_release(&dec->demux);
++unregister_adapter:
++	dvb_unregister_adapter(&dec->adapter);
++	return result;
+ }
+ 
+ static void ttusb_dec_exit_dvb(struct ttusb_dec *dec)
 -- 
-2.7.4
+2.14.1
