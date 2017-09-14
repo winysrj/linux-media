@@ -1,90 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:63992 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752624AbdIXSE5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Sep 2017 14:04:57 -0400
-Subject: [PATCH 1/4] [media] omap3isp: Delete an error message for a failed
- memory allocation in three functions
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <692bab24-7990-c971-b577-b2dea4176e64@users.sourceforge.net>
-Message-ID: <f99181c5-b31e-1727-a6ac-9ee7acdd0a90@users.sourceforge.net>
-Date: Sun, 24 Sep 2017 20:04:51 +0200
-MIME-Version: 1.0
-In-Reply-To: <692bab24-7990-c971-b577-b2dea4176e64@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:40294 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751326AbdIND5b (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Sep 2017 23:57:31 -0400
+Message-ID: <36e6010535b32c950b860384a80c1241@smtp-cloud7.xs4all.net>
+Date: Thu, 14 Sep 2017 05:57:29 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 24 Sep 2017 18:25:44 +0200
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Omit an extra message for a memory allocation failure in these functions.
+Results of the daily build of media_tree:
 
-This issue was detected by using the Coccinelle software.
+date:			Thu Sep 14 05:00:16 CEST 2017
+media-tree git hash:	1efdf1776e2253b77413c997bed862410e4b6aaf
+media_build git hash:	bbd9f669f0da6705fe44aff89281c0d6e7bfd73e
+v4l-utils git hash:	d7c41e2576c09f37b33fe8bf2e38615703086045
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/omap3isp/isp.c         | 4 +---
- drivers/media/platform/omap3isp/isph3a_aewb.c | 5 +----
- drivers/media/platform/omap3isp/isph3a_af.c   | 5 +----
- 3 files changed, 3 insertions(+), 11 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: WARNINGS
+spec-git: OK
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 1a428fe9f070..874b883ac83a 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2236,10 +2236,8 @@ static int isp_probe(struct platform_device *pdev)
- 	int i, m;
- 
- 	isp = devm_kzalloc(&pdev->dev, sizeof(*isp), GFP_KERNEL);
--	if (!isp) {
--		dev_err(&pdev->dev, "could not allocate memory\n");
-+	if (!isp)
- 		return -ENOMEM;
--	}
- 
- 	ret = fwnode_property_read_u32(of_fwnode_handle(pdev->dev.of_node),
- 				       "ti,phy-type", &isp->phy_type);
-diff --git a/drivers/media/platform/omap3isp/isph3a_aewb.c b/drivers/media/platform/omap3isp/isph3a_aewb.c
-index d44626f20ac6..9844b9d06634 100644
---- a/drivers/media/platform/omap3isp/isph3a_aewb.c
-+++ b/drivers/media/platform/omap3isp/isph3a_aewb.c
-@@ -303,11 +303,8 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
- 	/* Set recover state configuration */
- 	aewb_recover_cfg = devm_kzalloc(isp->dev, sizeof(*aewb_recover_cfg),
- 					GFP_KERNEL);
--	if (!aewb_recover_cfg) {
--		dev_err(aewb->isp->dev,
--			"AEWB: cannot allocate memory for recover configuration.\n");
-+	if (!aewb_recover_cfg)
- 		return -ENOMEM;
--	}
- 
- 	aewb_recover_cfg->saturation_limit = OMAP3ISP_AEWB_MAX_SATURATION_LIM;
- 	aewb_recover_cfg->win_height = OMAP3ISP_AEWB_MIN_WIN_H;
-diff --git a/drivers/media/platform/omap3isp/isph3a_af.c b/drivers/media/platform/omap3isp/isph3a_af.c
-index 99bd6cc21d86..b81e869ade8c 100644
---- a/drivers/media/platform/omap3isp/isph3a_af.c
-+++ b/drivers/media/platform/omap3isp/isph3a_af.c
-@@ -366,11 +366,8 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
- 	/* Set recover state configuration */
- 	af_recover_cfg = devm_kzalloc(isp->dev, sizeof(*af_recover_cfg),
- 				      GFP_KERNEL);
--	if (!af_recover_cfg) {
--		dev_err(af->isp->dev,
--			"AF: cannot allocate memory for recover configuration.\n");
-+	if (!af_recover_cfg)
- 		return -ENOMEM;
--	}
- 
- 	af_recover_cfg->paxel.h_start = OMAP3ISP_AF_PAXEL_HZSTART_MIN;
- 	af_recover_cfg->paxel.width = OMAP3ISP_AF_PAXEL_WIDTH_MIN;
--- 
-2.14.1
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
