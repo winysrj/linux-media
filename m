@@ -1,368 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40744 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751635AbdIENF7 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47006
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751407AbdINUvN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Sep 2017 09:05:59 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v8 06/21] v4l: fwnode: Support generic parsing of graph endpoints in a device
-Date: Tue,  5 Sep 2017 16:05:38 +0300
-Message-Id: <20170905130553.1332-7-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
-References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+        Thu, 14 Sep 2017 16:51:13 -0400
+Date: Thu, 14 Sep 2017 17:50:59 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Satendra Singh Thakur <satendra.t@samsung.com>
+Cc: mchehab@kernel.org, max.kellermann@gmail.com,
+        sakari.ailus@linux.intel.com, mingo@kernel.org,
+        hans.verkuil@cisco.com, yamada.masahiro@socionext.com,
+        shuah@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, taeyoung0432.lee@samsung.com,
+        jackee.lee@samsung.com, hemanshu.s@samsung.com,
+        p.awasthi@samsung.com, siddharth.s@samsung.com,
+        madhur.verma@samsung.com
+Subject: Re: [RFC] [DVB][FRONTEND] Added a new ioctl for optimizing frontend
+ property set operation
+Message-ID: <20170914175059.722ac4f3@vento.lan>
+In-Reply-To: <1505383167-2836-1-git-send-email-satendra.t@samsung.com>
+References: <CGME20170914095941epcas5p3520a04d543890249b4952fea48747276@epcas5p3.samsung.com>
+ <1505383167-2836-1-git-send-email-satendra.t@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current practice is that drivers iterate over their endpoints and
-parse each endpoint separately. This is very similar in a number of
-drivers, implement a generic function for the job. Driver specific matters
-can be taken into account in the driver specific callback.
+Hi Satendra,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-async.c  |  19 +++++
- drivers/media/v4l2-core/v4l2-fwnode.c | 140 ++++++++++++++++++++++++++++++++++
- include/media/v4l2-async.h            |  24 +++++-
- include/media/v4l2-fwnode.h           |  53 +++++++++++++
- 4 files changed, 234 insertions(+), 2 deletions(-)
+Em Thu, 14 Sep 2017 05:59:27 -0400
+Satendra Singh Thakur <satendra.t@samsung.com> escreveu:
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 3d81ff6a496f..7bd595c4094a 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -22,6 +22,7 @@
- 
- #include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
- 
- static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
-@@ -224,6 +225,24 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- }
- EXPORT_SYMBOL(v4l2_async_notifier_unregister);
- 
-+void v4l2_async_notifier_release(struct v4l2_async_notifier *notifier)
-+{
-+	unsigned int i;
-+
-+	if (!notifier->max_subdevs)
-+		return;
-+
-+	for (i = 0; i < notifier->num_subdevs; i++)
-+		kfree(notifier->subdevs[i]);
-+
-+	notifier->max_subdevs = 0;
-+	notifier->num_subdevs = 0;
-+
-+	kvfree(notifier->subdevs);
-+	notifier->subdevs = NULL;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_async_notifier_release);
-+
- int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- {
- 	struct v4l2_async_notifier *notifier;
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 706f9e7b90f1..e6932d7d47b6 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -19,6 +19,7 @@
-  */
- #include <linux/acpi.h>
- #include <linux/kernel.h>
-+#include <linux/mm.h>
- #include <linux/module.h>
- #include <linux/of.h>
- #include <linux/property.h>
-@@ -26,6 +27,7 @@
- #include <linux/string.h>
- #include <linux/types.h>
- 
-+#include <media/v4l2-async.h>
- #include <media/v4l2-fwnode.h>
- 
- enum v4l2_fwnode_bus_type {
-@@ -313,6 +315,144 @@ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_put_link);
- 
-+static int v4l2_async_notifier_realloc(struct v4l2_async_notifier *notifier,
-+				       unsigned int max_subdevs)
-+{
-+	struct v4l2_async_subdev **subdevs;
-+
-+	if (max_subdevs <= notifier->max_subdevs)
-+		return 0;
-+
-+	subdevs = kvmalloc_array(
-+		max_subdevs, sizeof(*notifier->subdevs),
-+		GFP_KERNEL | __GFP_ZERO);
-+	if (!subdevs)
-+		return -ENOMEM;
-+
-+	if (notifier->subdevs) {
-+		memcpy(subdevs, notifier->subdevs,
-+		       sizeof(*subdevs) * notifier->num_subdevs);
-+
-+		kvfree(notifier->subdevs);
-+	}
-+
-+	notifier->subdevs = subdevs;
-+	notifier->max_subdevs = max_subdevs;
-+
-+	return 0;
-+}
-+
-+static int v4l2_async_notifier_fwnode_parse_endpoint(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	struct fwnode_handle *endpoint, unsigned int asd_struct_size,
-+	int (*parse_endpoint)(struct device *dev,
-+			    struct v4l2_fwnode_endpoint *vep,
-+			    struct v4l2_async_subdev *asd))
-+{
-+	struct v4l2_async_subdev *asd;
-+	struct v4l2_fwnode_endpoint *vep;
-+	struct fwnode_endpoint ep;
-+	int ret = 0;
-+
-+	asd = kzalloc(asd_struct_size, GFP_KERNEL);
-+	if (!asd)
-+		return -ENOMEM;
-+
-+	asd->match.fwnode.fwnode =
-+		fwnode_graph_get_remote_port_parent(endpoint);
-+	if (!asd->match.fwnode.fwnode) {
-+		dev_warn(dev, "bad remote port parent\n");
-+		ret = -EINVAL;
-+		goto out_err;
-+	}
-+
-+	/* Ignore endpoints the parsing of which failed. */
-+	vep = v4l2_fwnode_endpoint_alloc_parse(endpoint);
-+	if (IS_ERR(vep)) {
-+		ret = PTR_ERR(vep);
-+		dev_warn(dev, "unable to parse V4L2 fwnode endpoint (%d)\n",
-+			 ret);
-+		goto out_err;
-+	}
-+
-+	ep = vep->base;
-+
-+	ret = parse_endpoint ? parse_endpoint(dev, vep, asd) : 0;
-+	v4l2_fwnode_endpoint_free(vep);
-+	if (ret == -ENOTCONN) {
-+		dev_dbg(dev, "ignoring endpoint %u,%u\n", ep.port, ep.id);
-+		kfree(asd);
-+		return 0;
-+	} else if (ret < 0) {
-+		dev_warn(dev, "driver could not parse endpoint %u,%u (%d)\n",
-+			 ep.port, ep.id, ret);
-+		goto out_err;
-+	}
-+
-+	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-+	notifier->subdevs[notifier->num_subdevs] = asd;
-+	notifier->num_subdevs++;
-+
-+	return 0;
-+
-+out_err:
-+	fwnode_handle_put(asd->match.fwnode.fwnode);
-+	kfree(asd);
-+
-+	return ret;
-+}
-+
-+int v4l2_async_notifier_parse_fwnode_endpoints(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	size_t asd_struct_size,
-+	int (*parse_endpoint)(struct device *dev,
-+			    struct v4l2_fwnode_endpoint *vep,
-+			    struct v4l2_async_subdev *asd))
-+{
-+	struct fwnode_handle *fwnode = NULL;
-+	unsigned int max_subdevs = notifier->max_subdevs;
-+	int ret;
-+
-+	if (asd_struct_size < sizeof(struct v4l2_async_subdev))
-+		return -EINVAL;
-+
-+	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
-+				     dev_fwnode(dev), fwnode)); )
-+		if (fwnode_device_is_available(
-+			    fwnode_graph_get_port_parent(fwnode)))
-+			max_subdevs++;
-+
-+	/* No subdevs to add? Return here. */
-+	if (max_subdevs == notifier->max_subdevs)
-+		return 0;
-+
-+	ret = v4l2_async_notifier_realloc(notifier, max_subdevs);
-+	if (ret)
-+		return ret;
-+
-+	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
-+				     dev_fwnode(dev), fwnode)); ) {
-+		if (!fwnode_device_is_available(
-+			    fwnode_graph_get_port_parent(fwnode)))
-+			continue;
-+
-+		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-+			ret = -EINVAL;
-+			break;
-+		}
-+
-+		ret = v4l2_async_notifier_fwnode_parse_endpoint(
-+			dev, notifier, fwnode, asd_struct_size, parse_endpoint);
-+		if (ret < 0)
-+			break;
-+	}
-+
-+	fwnode_handle_put(fwnode);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints);
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
- MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index c69d8c8a66d0..96fa1afc00dd 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -18,7 +18,6 @@ struct device;
- struct device_node;
- struct v4l2_device;
- struct v4l2_subdev;
--struct v4l2_async_notifier;
- 
- /* A random max subdevice number, used to allocate an array on stack */
- #define V4L2_MAX_SUBDEVS 128U
-@@ -50,6 +49,10 @@ enum v4l2_async_match_type {
-  * @match:	union of per-bus type matching data sets
-  * @list:	used to link struct v4l2_async_subdev objects, waiting to be
-  *		probed, to a notifier->waiting list
-+ *
-+ * When this struct is used as a member in a driver specific struct,
-+ * the driver specific struct shall contain the @struct
-+ * v4l2_async_subdev as its first member.
-  */
- struct v4l2_async_subdev {
- 	enum v4l2_async_match_type match_type;
-@@ -78,7 +81,8 @@ struct v4l2_async_subdev {
- /**
-  * struct v4l2_async_notifier - v4l2_device notifier data
-  *
-- * @num_subdevs: number of subdevices
-+ * @num_subdevs: number of subdevices used in the subdevs array
-+ * @max_subdevs: number of subdevices allocated in the subdevs array
-  * @subdevs:	array of pointers to subdevice descriptors
-  * @v4l2_dev:	pointer to struct v4l2_device
-  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
-@@ -90,6 +94,7 @@ struct v4l2_async_subdev {
-  */
- struct v4l2_async_notifier {
- 	unsigned int num_subdevs;
-+	unsigned int max_subdevs;
- 	struct v4l2_async_subdev **subdevs;
- 	struct v4l2_device *v4l2_dev;
- 	struct list_head waiting;
-@@ -121,6 +126,21 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
- 
- /**
-+ * v4l2_async_notifier_release - release notifier resources
-+ * @notifier: the notifier the resources of which are to be released
-+ *
-+ * Release memory resources related to a notifier, including the async
-+ * sub-devices allocated for the purposes of the notifier. The user is
-+ * responsible for releasing the notifier's resources after calling
-+ * @v4l2_async_notifier_parse_fwnode_endpoints.
-+ *
-+ * There is no harm from calling v4l2_async_notifier_release in other
-+ * cases as long as its memory has been zeroed after it has been
-+ * allocated.
-+ */
-+void v4l2_async_notifier_release(struct v4l2_async_notifier *notifier);
-+
-+/**
-  * v4l2_async_register_subdev - registers a sub-device to the asynchronous
-  * 	subdevice framework
-  *
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index 68eb22ba571b..6d125f26ec84 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -25,6 +25,8 @@
- #include <media/v4l2-mediabus.h>
- 
- struct fwnode_handle;
-+struct v4l2_async_notifier;
-+struct v4l2_async_subdev;
- 
- #define V4L2_FWNODE_CSI2_MAX_DATA_LANES	4
- 
-@@ -201,4 +203,55 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
-  */
- void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
- 
-+/**
-+ * v4l2_async_notifier_parse_fwnode_endpoints - Parse V4L2 fwnode endpoints in a
-+ *						device node
-+ * @dev: the device the endpoints of which are to be parsed
-+ * @notifier: notifier for @dev
-+ * @asd_struct_size: size of the driver's async sub-device struct, including
-+ *		     sizeof(struct v4l2_async_subdev). The &struct
-+ *		     v4l2_async_subdev shall be the first member of
-+ *		     the driver's async sub-device struct, i.e. both
-+ *		     begin at the same memory address.
-+ * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
-+ *		    endpoint. Optional.
-+ *		    Return: %0 on success
-+ *			    %-ENOTCONN if the endpoint is to be skipped but this
-+ *				       should not be considered as an error
-+ *			    %-EINVAL if the endpoint configuration is invalid
-+ *
-+ * Parse the fwnode endpoints of the @dev device and populate the async sub-
-+ * devices array of the notifier. The @parse_endpoint callback function is
-+ * called for each endpoint with the corresponding async sub-device pointer to
-+ * let the caller initialize the driver-specific part of the async sub-device
-+ * structure.
-+ *
-+ * The notifier memory shall be zeroed before this function is called on the
-+ * notifier.
-+ *
-+ * This function may not be called on a registered notifier and may be called on
-+ * a notifier only once. When using this function, the user may not access the
-+ * notifier's subdevs array nor change notifier's num_subdevs field, these are
-+ * reserved for the framework's internal use only.
-+ *
-+ * The @struct v4l2_fwnode_endpoint passed to the callback function
-+ * @parse_endpoint is released once the function is finished. If there is a need
-+ * to retain that configuration, the user needs to allocate memory for it.
-+ *
-+ * Any notifier populated using this function must be released with a call to
-+ * v4l2_async_notifier_release() after it has been unregistered and the async
-+ * sub-devices are no longer in use.
-+ *
-+ * Return: %0 on success, including when no async sub-devices are found
-+ *	   %-ENOMEM if memory allocation failed
-+ *	   %-EINVAL if graph or endpoint parsing failed
-+ *	   Other error codes as returned by @parse_endpoint
-+ */
-+int v4l2_async_notifier_parse_fwnode_endpoints(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	size_t asd_struct_size,
-+	int (*parse_endpoint)(struct device *dev,
-+			      struct v4l2_fwnode_endpoint *vep,
-+			      struct v4l2_async_subdev *asd));
-+
- #endif /* _V4L2_FWNODE_H */
--- 
-2.11.0
+> -For setting one frontend property , one FE_SET_PROPERTY ioctl is called
+> -Since, size of struct dtv_property is 72 bytes, this ioctl requires
+> ---allocating 72 bytes of memory in user space
+> ---allocating 72 bytes of memory in kernel space
+> ---copying 72 bytes of data from user space to kernel space
+> -However, for all the properties, only 8 out of 72 bytes are used
+>  for setting the property  
+
+That's true. Yet, for get, the size can be bigger, as ISDB-T can
+return statistics per layer, plus a global one.
+
+> -Four bytes are needed for specifying property type and another 4 for
+>  property value
+> -Moreover, there are 2 properties DTV_CLEAR and DTV_TUNE which use
+>  only 4 bytes for property name
+> ---They don't use property value
+> -Therefore, we have defined new short variant/forms/version of currently
+>  used structures for such 8 byte properties.
+> -This results in 89% (8*100/72) of memory saving in user and kernel space
+>  each.
+> -This also results in faster copy (8 bytes as compared to 72 bytes) from
+>  user to kernel space
+> -We have added new ioctl FE_SET_PROPERTY_SHORT which utilizes above
+>  mentioned new property structures
+> -This ioctl can co-exist with present ioctl FE_SET_PROPERTY
+> -If the apps wish to use shorter forms they can use
+>  proposed FE_SET_PROPERTY_SHORT, rest of them can continue to use
+>  current versions FE_SET_PROPERTY  
+
+> -We are currently not validating incoming properties in
+>  function dtv_property_short_process_set because most of
+>  the frontend drivers in linux source are not using the
+>  method ops.set_property. Just two drivers are using it
+>  drivers/media/dvb-frontends/stv0288.c
+>  driver/media/usb/dvb-usb/friio-fe.c
+>  -Moreover, stv0288 driver implemments blank function
+>  for set_property.
+> -If needed in future, we can define a new
+>  ops.set_property_short method to support
+>  struct dtv_property_short.  
+
+Nah. Better to just get rid of get_property()/set_froperty() for good.
+
+Just sent a RFC patch series doing that.
+
+The only thing is that stv6110 seems to have a dirty hack that may
+depend on that. Someone need to double-check if the patch series
+I just sent doesn't break anything. If it breaks, then we'll need
+to add an extra parameter to stv6110 attach for it to know what
+behavior is needed there.
+
+
+> Signed-off-by: Satendra Singh Thakur <satendra.t@samsung.com>
+> ---
+>  drivers/media/dvb-core/dvb_frontend.c | 228 +++++++++++++++++++++++++++++++++-
+>  include/uapi/linux/dvb/frontend.h     |  24 ++++
+>  2 files changed, 248 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+> index e3fff8f..e183025 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> @@ -1914,6 +1914,192 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+>  	return r;
+>  }
+>  
+> +/**
+> + * dtv_property_short_process_set
+> + * @fe: Pointer to struct dvb_frontend
+> + * @tvp: Pointer to struct dtv_property_short
+> + * @file: Pointer to struct file
+> + *
+> + * helper function for dvb_frontend_ioctl_properties,
+> + * which can be used to set dtv property using ioctl
+> + * cmd FE_SET_PROPERTY_SHORT.
+> + * It assigns property value to corresponding member of
+> + * property-cache structure
+> + * This func is a variant of the func dtv_property_process_set
+> + * Returns:
+> + * Zero on success, negative errno on failure.
+> + */
+> +static int dtv_property_short_process_set(struct dvb_frontend *fe,
+> +				    struct dtv_property_short *tvp,
+> +				    struct file *file)
+> +{
+> +	int r = 0;
+> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+> +	/* Currently, We do not allow the frontend to validate incoming
+> +	 * properties, currently, just 2 drivers are using
+> +	 * ops.set_property method , If required, we can define new
+> +	 * ops.set_property_short method for this purpose
+> +	 */
+> +	switch (tvp->cmd) {
+> +	case DTV_CLEAR:  
+
+Nah. Let's not have multiple validation routines for each variant.
+
+It would be better to change the parameters for dtv_property_process_set
+to something like:
+
+static int dtv_property_process_set(struct dvb_frontend *fe,
+                                    struct file *file,
+				    u32 cmd, u32 data)
+
+And have just one validation routine that would work for both.
+
+If we end by adding some DTV properties that would require more than
+4 bytes, only such properties would be implemented on a different
+function.
+
+>  static int dvb_frontend_ioctl(struct file *file,
+>  			unsigned int cmd, void *parg)
+>  {
+> @@ -1939,7 +2125,8 @@ static int dvb_frontend_ioctl(struct file *file,
+>  		return -EPERM;
+>  	}
+>  
+> -	if ((cmd == FE_SET_PROPERTY) || (cmd == FE_GET_PROPERTY))
+> +	if ((cmd == FE_SET_PROPERTY) || (cmd == FE_GET_PROPERTY)
+> +		|| (cmd == FE_SET_PROPERTY_SHORT))
+>  		err = dvb_frontend_ioctl_properties(file, cmd, parg);
+>  	else {
+>  		c->state = DTV_UNDEFINED;
+> @@ -2026,9 +2213,42 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+>  			err = -EFAULT;
+>  			goto out;
+>  		}
+> -
+> -	} else
+> -		err = -EOPNOTSUPP;
+> +	/* New ioctl for optimizing property set
+> +	 */
+> +	} else if (cmd == FE_SET_PROPERTY_SHORT) {
+> +		struct dtv_property_short *tvp_short = NULL;
+> +		struct dtv_properties_short *tvps_short = parg;
+> +
+> +		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n", \
+> +		__func__, tvps_short->num);
+> +		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n", \
+> +		__func__, tvps_short->props);
+> +		if ((!tvps_short->num) ||
+> +		(tvps_short->num > DTV_IOCTL_MAX_MSGS))
+> +			return -EINVAL;
+> +		tvp_short = memdup_user(tvps_short->props,
+> +		tvps_short->num * sizeof(*tvp_short));
+> +		if (IS_ERR(tvp_short))
+> +			return PTR_ERR(tvp_short);
+> +		for (i = 0; i < tvps_short->num; i++) {
+> +			err = dtv_property_short_process_set(fe, tvp_short + i,\
+> +				file);
+> +			if (err < 0) {
+> +				kfree(tvp_short);
+> +				return err;
+> +			}
+> +			/* Since we are returning when error occurs
+> +			 * There is no need to store the result as it
+> +			 * would have been >=0 in case we didn't return
+> +			 * (tvp + i)->result = err;
+> +			 */
+> +		}
+> +		if (c->state == DTV_TUNE)
+> +			dev_dbg(fe->dvb->device, "%s: Property cache\
+> +		is full, tuning\n", __func__);  
+
+Don't break strings on two lines.
+
+> +		kfree(tvp_short);  
+
+> +		} else
+> +			err = -EOPNOTSUPP;  
+
+Indentation here is wrong.
+
+>  
+>  out:
+>  	kfree(tvp);
+> diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+> index 00a20cd..aa82179 100644
+> --- a/include/uapi/linux/dvb/frontend.h
+> +++ b/include/uapi/linux/dvb/frontend.h
+> @@ -476,6 +476,17 @@ struct dtv_property {
+>  	int result;
+>  } __attribute__ ((packed));
+>  
+> +/**
+> + * @struct dtv_property_short
+> + * A shorter version of struct dtv_property
+> + * @cmd: Property type
+> + * @data: Property value
+> + */
+> +struct dtv_property_short {
+> +	__u32 cmd;
+> +	__u32 data;
+> +};
+> +
+>  /* num of properties cannot exceed DTV_IOCTL_MAX_MSGS per ioctl */
+>  #define DTV_IOCTL_MAX_MSGS 64
+>  
+> @@ -484,6 +495,18 @@ struct dtv_properties {
+>  	struct dtv_property *props;
+>  };
+>  
+> +/**
+> + * @struct dtv_properties_short
+> + * A variant of struct dtv_properties
+> + * to support struct dtv_property_short
+> + * @num: Number of properties
+> + * @props: Pointer to struct dtv_property_short
+> + */
+> +struct dtv_properties_short {
+> +	__u32 num;
+> +	struct dtv_property_short *props;
+> +};
+> +
+>  #if defined(__DVB_CORE__) || !defined (__KERNEL__)
+>  
+>  /*
+> @@ -565,6 +588,7 @@ struct dvb_frontend_event {
+>  
+>  #define FE_SET_PROPERTY		   _IOW('o', 82, struct dtv_properties)
+>  #define FE_GET_PROPERTY		   _IOR('o', 83, struct dtv_properties)
+> +#define FE_SET_PROPERTY_SHORT	   _IOW('o', 84, struct dtv_properties_short)  
+>  
+>  /**
+>   * When set, this flag will disable any zigzagging or other "normal" tuning  
+
+Thanks,
+Mauro
