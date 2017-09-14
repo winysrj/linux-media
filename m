@@ -1,55 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:48071 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750998AbdISHdi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 03:33:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
-        Archit Taneja <architt@codeaurora.org>,
-        linux-renesas-soc@vger.kernel.org,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 1/2] dt-bindings: adi,adv7511.txt: document cec clock
-Date: Tue, 19 Sep 2017 09:33:30 +0200
-Message-Id: <20170919073331.29007-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170919073331.29007-1-hverkuil@xs4all.nl>
-References: <20170919073331.29007-1-hverkuil@xs4all.nl>
+Received: from mout.web.de ([212.227.17.11]:62935 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751882AbdINKej (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Sep 2017 06:34:39 -0400
+Subject: [PATCH 4/8] [media] ttusb_dec: Delete an error message for a failed
+ memory allocation in ttusb_dec_probe()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <66b087d3-6dd3-1e1c-d33d-e34c9e2ffe25@users.sourceforge.net>
+Message-ID: <afc9e33f-65d2-ee56-ac4b-20f76a6489ab@users.sourceforge.net>
+Date: Thu, 14 Sep 2017 12:34:27 +0200
+MIME-Version: 1.0
+In-Reply-To: <66b087d3-6dd3-1e1c-d33d-e34c9e2ffe25@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 13 Sep 2017 20:10:39 +0200
 
-Document the cec clock binding.
+Omit an extra message for a memory allocation failure in this function.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/usb/ttusb-dec/ttusb_dec.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-index 06668bca7ffc..4497ae054d49 100644
---- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-+++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-@@ -68,6 +68,8 @@ Optional properties:
- - adi,disable-timing-generator: Only for ADV7533. Disables the internal timing
-   generator. The chip will rely on the sync signals in the DSI data lanes,
-   rather than generate its own timings for HDMI output.
-+- clocks: from common clock binding: handle to CEC clock.
-+- clock-names: from common clock binding: must be "cec".
+diff --git a/drivers/media/usb/ttusb-dec/ttusb_dec.c b/drivers/media/usb/ttusb-dec/ttusb_dec.c
+index 76070da3b7c7..26d637684b30 100644
+--- a/drivers/media/usb/ttusb-dec/ttusb_dec.c
++++ b/drivers/media/usb/ttusb-dec/ttusb_dec.c
+@@ -1659,10 +1659,8 @@ static int ttusb_dec_probe(struct usb_interface *intf,
+ 	udev = interface_to_usbdev(intf);
  
- Required nodes:
+ 	dec = kzalloc(sizeof(*dec), GFP_KERNEL);
+-	if (!dec) {
+-		printk("%s: couldn't allocate memory.\n", __func__);
++	if (!dec)
+ 		return -ENOMEM;
+-	}
  
-@@ -89,6 +91,8 @@ Example
- 		reg = <39>;
- 		interrupt-parent = <&gpio3>;
- 		interrupts = <29 IRQ_TYPE_EDGE_FALLING>;
-+		clocks = <&cec_clock>;
-+		clock-names = "cec";
+ 	usb_set_intfdata(intf, (void *)dec);
  
- 		adi,input-depth = <8>;
- 		adi,input-colorspace = "rgb";
 -- 
 2.14.1
