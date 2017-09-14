@@ -1,64 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:59252 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750992AbdILUJj (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:33079 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751658AbdINJQt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 16:09:39 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] s3c-camif: fix out-of-bounds array access
-Date: Tue, 12 Sep 2017 22:09:18 +0200
-Message-Id: <20170912200932.3634089-1-arnd@arndb.de>
+        Thu, 14 Sep 2017 05:16:49 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAMuHMdU8A0dZR9RzeJ4Tz1gR4CYTc5A2Ni6r0D92q8ryDUpghw@mail.gmail.com>
+References: <E1dY9S1-0004Ke-L1@www.linuxtv.org> <CAMuHMdU8A0dZR9RzeJ4Tz1gR4CYTc5A2Ni6r0D92q8ryDUpghw@mail.gmail.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Thu, 14 Sep 2017 11:16:48 +0200
+Message-ID: <CAMuHMdW5p2LeA3DiEutpkaewGoqyi1UrWsUgPkDJB7XG7TsCvw@mail.gmail.com>
+Subject: Re: [git:media_tree/master] media: adv7180: add missing adv7180cp,
+ adv7180st i2c device IDs
+To: stable <stable@vger.kernel.org>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>,
+        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While experimenting with older compiler versions, I ran
-into a warning that no longer shows up on gcc-4.8 or newer:
+On Wed, Sep 13, 2017 at 10:50 AM, Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+> On Thu, Jul 20, 2017 at 12:54 PM, Mauro Carvalho Chehab
+> <mchehab@s-opensource.com> wrote:
+>> This is an automatic generated email to let you know that the following patch were queued:
+>>
+>> Subject: media: adv7180: add missing adv7180cp, adv7180st i2c device IDs
+>> Author:  Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+>> Date:    Mon Jul 3 04:43:33 2017 -0400
+>>
+>> Fixes a crash on Renesas R8A7793 Gose board that uses these "compatible"
+>> entries.
+>>
+>> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+>> Tested-by: Geert Uytterhoeven <geert+renesas@glider.be>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>
+> Fixes: ce1ec5c07e0671cc ("[media] media: adv7180: add adv7180cp,
+> adv7180st compatible strings")
+>
+> This fix is now upstream, as commit 281ddc3cdc10413b ("media: adv7180: add
+> missing adv7180cp, adv7180st i2c device IDs").
+>
+> Greg: Can you please backport it to v3.14.x?
 
-drivers/media/platform/s3c-camif/camif-capture.c: In function '__camif_subdev_try_format':
-drivers/media/platform/s3c-camif/camif-capture.c:1265:25: error: array subscript is below array bounds
+Oops, v4.13.x, of course. The \pi-line is dead...
 
-This is an off-by-one bug, leading to an access before the start of the
-array, while newer compilers silently assume this undefined behavior
-cannot happen and leave the loop at index 0 if no other entry matches.
+Gr{oetje,eeting}s,
 
-Since the code is not only wrong, but also has no effect besides the
-out-of-bounds access, this patch just removes it.
+                        Geert
 
-I found an existing gcc bug for it and added a reduced version
-of the function there.
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69249#c3
-Fixes: babde1c243b2 ("[media] V4L: Add driver for S3C24XX/S3C64XX SoC series camera interface")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/platform/s3c-camif/camif-capture.c | 7 -------
- 1 file changed, 7 deletions(-)
-
-diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
-index 25c7a7d42292..c6921f6a5a6a 100644
---- a/drivers/media/platform/s3c-camif/camif-capture.c
-+++ b/drivers/media/platform/s3c-camif/camif-capture.c
-@@ -1256,17 +1256,10 @@ static void __camif_subdev_try_format(struct camif_dev *camif,
- {
- 	const struct s3c_camif_variant *variant = camif->variant;
- 	const struct vp_pix_limits *pix_lim;
--	int i = ARRAY_SIZE(camif_mbus_formats);
- 
- 	/* FIXME: constraints against codec or preview path ? */
- 	pix_lim = &variant->vp_pix_limits[VP_CODEC];
- 
--	while (i-- >= 0)
--		if (camif_mbus_formats[i] == mf->code)
--			break;
--
--	mf->code = camif_mbus_formats[i];
--
- 	if (pad == CAMIF_SD_PAD_SINK) {
- 		v4l_bound_align_image(&mf->width, 8, CAMIF_MAX_PIX_WIDTH,
- 				      ffs(pix_lim->out_width_align) - 1,
--- 
-2.9.0
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
