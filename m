@@ -1,83 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40830 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751795AbdIVHE2 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44315
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751898AbdINLo1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 03:04:28 -0400
-Date: Fri, 22 Sep 2017 10:04:25 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mats Randgaard <matrandg@cisco.com>
-Subject: Re: [PATCH] [media] tc358743: validate lane count and order
-Message-ID: <20170922070425.7qnolzosl2fmql3j@valkosipuli.retiisi.org.uk>
-References: <20170921153139.16657-1-p.zabel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170921153139.16657-1-p.zabel@pengutronix.de>
+        Thu, 14 Sep 2017 07:44:27 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Shuah Khan <shuah@kernel.org>, Ingo Molnar <mingo@kernel.org>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [RFC 5/5] media: dvb_frontend: get rid of set_property() callback
+Date: Thu, 14 Sep 2017 08:44:22 -0300
+Message-Id: <ac23ee1094f2de1c2ef8f581a5232224855433a1.1505389446.git.mchehab@s-opensource.com>
+In-Reply-To: <129c5ae599d0502a3fe8c3f09a174ef33879a021.1505389446.git.mchehab@s-opensource.com>
+References: <129c5ae599d0502a3fe8c3f09a174ef33879a021.1505389446.git.mchehab@s-opensource.com>
+In-Reply-To: <129c5ae599d0502a3fe8c3f09a174ef33879a021.1505389446.git.mchehab@s-opensource.com>
+References: <129c5ae599d0502a3fe8c3f09a174ef33879a021.1505389446.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Now that all clients of set_property() were removed, get rid
+of this callback.
 
-On Thu, Sep 21, 2017 at 05:31:39PM +0200, Philipp Zabel wrote:
-> The TC358743 does not support reordering lanes, or more than 4 data
-> lanes.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/i2c/tc358743.c | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-> index a35043cefe128..b7285e45b908a 100644
-> --- a/drivers/media/i2c/tc358743.c
-> +++ b/drivers/media/i2c/tc358743.c
-> @@ -1743,6 +1743,7 @@ static int tc358743_probe_of(struct tc358743_state *state)
->  	struct clk *refclk;
->  	u32 bps_pr_lane;
->  	int ret = -EINVAL;
-> +	int i;
->  
->  	refclk = devm_clk_get(dev, "refclk");
->  	if (IS_ERR(refclk)) {
-> @@ -1771,6 +1772,21 @@ static int tc358743_probe_of(struct tc358743_state *state)
->  		goto free_endpoint;
->  	}
->  
-> +	if (endpoint->bus.mipi_csi2.num_data_lanes > 4) {
-> +		dev_err(dev, "invalid number of lanes\n");
-> +		goto free_endpoint;
-> +	}
-> +
-> +	for (i = 0; i < endpoint->bus.mipi_csi2.num_data_lanes; i++) {
-> +		if (endpoint->bus.mipi_csi2.data_lanes[i] != i + 1)
-> +			break;
-> +	}
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/dvb_frontend.c | 7 -------
+ drivers/media/dvb-core/dvb_frontend.h | 2 --
+ 2 files changed, 9 deletions(-)
 
-No other drivers perform such checks and if the hardware just doesn't
-support it, then I'd just care about the number.
-
-Checking that there are no more lanes configured than the hardware supports
-makes definitely sense.
-
-> +	if (i != endpoint->bus.mipi_csi2.num_data_lanes ||
-> +	    endpoint->bus.mipi_csi2.clock_lane != 0) {
-> +		dev_err(dev, "invalid lane order\n");
-> +		goto free_endpoint;
-> +	}
-> +
->  	state->bus = endpoint->bus.mipi_csi2;
->  
->  	ret = clk_prepare_enable(refclk);
-
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 0e9273d184f2..8e90e3a2fe0d 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -1738,13 +1738,6 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+ 	int r = 0;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 
+-	/* Allow the frontend to validate incoming properties */
+-	if (fe->ops.set_property) {
+-		r = fe->ops.set_property(fe, tvp);
+-		if (r < 0)
+-			return r;
+-	}
+-
+ 	dtv_property_dump(fe, true, tvp);
+ 
+ 	switch(tvp->cmd) {
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 4d05846f2c1c..a50f8216ab76 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -401,8 +401,6 @@ struct dtv_frontend_properties;
+  * @search:		callback function used on some custom algo search algos.
+  * @tuner_ops:		pointer to struct dvb_tuner_ops
+  * @analog_ops:		pointer to struct analog_demod_ops
+- * @set_property:	callback function to allow the frontend to validade
+- *			incoming properties. Should not be used on new drivers.
+  */
+ struct dvb_frontend_ops {
+ 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.5
