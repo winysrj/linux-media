@@ -1,36 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:50735 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751278AbdIPUHH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Sep 2017 16:07:07 -0400
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 0/2] [media] M88RS6000T: Adjustments for two function
- implementations
-Message-ID: <278b14e0-f717-7471-6dc3-45dc98d64443@users.sourceforge.net>
-Date: Sat, 16 Sep 2017 22:07:00 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:38068 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751768AbdINKSq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Sep 2017 06:18:46 -0400
+From: Srishti Sharma <srishtishar@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com,
+        Srishti Sharma <srishtishar@gmail.com>
+Subject: [PATCH] Staging: media: atomisp: Use kcalloc instead of kzalloc
+Date: Thu, 14 Sep 2017 15:48:40 +0530
+Message-Id: <1505384320-6093-1-git-send-email-srishtishar@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 16 Sep 2017 21:48:45 +0200
+Use kcalloc instead of kzalloc to check for an overflow before
+multiplication. Done using the following semantic patch by
+coccinelle.
 
-Two update suggestions were taken into account
-from static source code analysis.
+http://coccinelle.lip6.fr/rules/kzalloc.cocci
 
-Markus Elfring (2):
-  Delete an error message for a failed memory allocation
-  Improve three size determinations
+Signed-off-by: Srishti Sharma <srishtishar@gmail.com>
+---
+ drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
- drivers/media/tuners/m88rs6000t.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
-
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+index 6358216..2f4b71a 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+@@ -235,7 +235,9 @@ sh_css_load_firmware(const char *fw_data,
+ 		sh_css_blob_info = NULL;
+ 	}
+ 
+-	fw_minibuffer = kzalloc(sh_css_num_binaries * sizeof(struct fw_param), GFP_KERNEL);
++	fw_minibuffer = kcalloc(sh_css_num_binaries, sizeof(struct fw_param),
++				GFP_KERNEL);
++
+ 	if (fw_minibuffer == NULL)
+ 		return IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 
 -- 
-2.14.1
+2.7.4
