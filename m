@@ -1,65 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:60324 "EHLO mout.web.de"
+Received: from mout.web.de ([212.227.17.12]:61122 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752400AbdIATqC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Sep 2017 15:46:02 -0400
-Subject: [PATCH 4/4] [media] sp2: Adjust three null pointer checks in
- sp2_exit()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
+        id S1750838AbdIOHrj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Sep 2017 03:47:39 -0400
+To: linux-media@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
+        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Olli Salonen <olli.salonen@iki.fi>
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Santosh Kumar Singh <kumar.san1093@gmail.com>,
+        Sean Young <sean@mess.org>,
+        Wei Yongjun <weiyongjun1@huawei.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/9] [media] TM6000: Adjustments for some function
+ implementations
 Cc: LKML <linux-kernel@vger.kernel.org>,
         kernel-janitors@vger.kernel.org
-References: <6142ca34-fcda-f2b6-bc35-dbbde0d34378@users.sourceforge.net>
-Message-ID: <2d2b6ac7-eb35-a439-3dab-ed4e01e3a9f8@users.sourceforge.net>
-Date: Fri, 1 Sep 2017 21:45:49 +0200
+Message-ID: <2aade468-5dfd-76ee-f59f-c25864930f61@users.sourceforge.net>
+Date: Fri, 15 Sep 2017 09:46:31 +0200
 MIME-Version: 1.0
-In-Reply-To: <6142ca34-fcda-f2b6-bc35-dbbde0d34378@users.sourceforge.net>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 1 Sep 2017 21:16:06 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Date: Fri, 15 Sep 2017 08:24:56 +0200
 
-The script “checkpatch.pl” pointed information out like the following.
+Some update suggestions were taken into account
+from static source code analysis.
 
-Comparison to NULL could be written !…
+Markus Elfring (9):
+  Delete seven error messages for a failed memory allocation
+  Adjust seven checks for null pointers
+  Use common error handling code in tm6000_usb_probe()
+  One function call less in tm6000_usb_probe() after error detection
+  Delete an unnecessary variable initialisation in tm6000_usb_probe()
+  Use common error handling code in tm6000_cards_setup()
+  Improve a size determination in dvb_init()
+  Use common error handling code in tm6000_start_stream()
+  Use common error handling code in tm6000_prepare_isoc()
 
-Thus fix the affected source code places.
+ drivers/media/usb/tm6000/tm6000-cards.c | 36 ++++++++++++++++-----------------
+ drivers/media/usb/tm6000/tm6000-dvb.c   | 24 +++++++++++-----------
+ drivers/media/usb/tm6000/tm6000-input.c |  2 +-
+ drivers/media/usb/tm6000/tm6000-video.c | 30 +++++++++++----------------
+ 4 files changed, 42 insertions(+), 50 deletions(-)
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/dvb-frontends/sp2.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/sp2.c b/drivers/media/dvb-frontends/sp2.c
-index b2a7a54174ae..9bd71ba36d86 100644
---- a/drivers/media/dvb-frontends/sp2.c
-+++ b/drivers/media/dvb-frontends/sp2.c
-@@ -357,14 +357,14 @@ static int sp2_exit(struct i2c_client *client)
- 
- 	dev_dbg(&client->dev, "\n");
- 
--	if (client == NULL)
-+	if (!client)
- 		return 0;
- 
- 	s = i2c_get_clientdata(client);
--	if (s == NULL)
-+	if (!s)
- 		return 0;
- 
--	if (s->ca.data == NULL)
-+	if (!s->ca.data)
- 		return 0;
- 
- 	dvb_ca_en50221_release(&s->ca);
 -- 
 2.14.1
