@@ -1,63 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40576 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753645AbdIHMjP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 08:39:15 -0400
-Date: Fri, 8 Sep 2017 14:39:14 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        sre@kernel.org
-Subject: Re: [PATCH v8 01/21] v4l: fwnode: Move KernelDoc documentation to
- the header
-Message-ID: <20170908123914.GN18365@amd>
-References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
- <20170905130553.1332-2-sakari.ailus@linux.intel.com>
+Received: from mout.web.de ([212.227.15.14]:62658 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751499AbdIOSld (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Sep 2017 14:41:33 -0400
+Subject: [PATCH 1/2] [media] ti-vpe: Delete an error message for a failed
+ memory allocation in two functions
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Archit Taneja <archit@ti.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <8137a759-cbfd-e04d-0adb-06de1b3246d1@users.sourceforge.net>
+Message-ID: <066c05d5-ca92-2ff9-4b1d-ce21528ae938@users.sourceforge.net>
+Date: Fri, 15 Sep 2017 20:41:25 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="vDEbda84Uy/oId5W"
-Content-Disposition: inline
-In-Reply-To: <20170905130553.1332-2-sakari.ailus@linux.intel.com>
+In-Reply-To: <8137a759-cbfd-e04d-0adb-06de1b3246d1@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 15 Sep 2017 20:15:17 +0200
 
---vDEbda84Uy/oId5W
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Omit an extra message for a memory allocation failure in these functions.
 
-On Tue 2017-09-05 16:05:33, Sakari Ailus wrote:
-> In V4L2 the practice is to have the KernelDoc documentation in the header
-> and not in .c source code files. This consequientally makes the V4L2
-> fwnode function documentation part of the Media documentation build.
->=20
-> Also correct the link related function and argument naming in
-> documentation.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+This issue was detected by using the Coccinelle software.
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/platform/ti-vpe/csc.c | 4 +---
+ drivers/media/platform/ti-vpe/sc.c  | 4 +---
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---vDEbda84Uy/oId5W
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlmyj3IACgkQMOfwapXb+vKVZQCeNYuNhpjpg6+J5bBwhwhDahjs
-UNQAnjxsYtZ4TT+omtGn+j/PzljFBkAB
-=WhPU
------END PGP SIGNATURE-----
-
---vDEbda84Uy/oId5W--
+diff --git a/drivers/media/platform/ti-vpe/csc.c b/drivers/media/platform/ti-vpe/csc.c
+index 44b8465cf101..135fc9993679 100644
+--- a/drivers/media/platform/ti-vpe/csc.c
++++ b/drivers/media/platform/ti-vpe/csc.c
+@@ -176,8 +176,6 @@ struct csc_data *csc_create(struct platform_device *pdev, const char *res_name)
+ 	csc = devm_kzalloc(&pdev->dev, sizeof(*csc), GFP_KERNEL);
+-	if (!csc) {
+-		dev_err(&pdev->dev, "couldn't alloc csc_data\n");
++	if (!csc)
+ 		return ERR_PTR(-ENOMEM);
+-	}
+ 
+ 	csc->pdev = pdev;
+ 
+diff --git a/drivers/media/platform/ti-vpe/sc.c b/drivers/media/platform/ti-vpe/sc.c
+index e9273b713782..e9e307875feb 100644
+--- a/drivers/media/platform/ti-vpe/sc.c
++++ b/drivers/media/platform/ti-vpe/sc.c
+@@ -284,8 +284,6 @@ struct sc_data *sc_create(struct platform_device *pdev, const char *res_name)
+ 	sc = devm_kzalloc(&pdev->dev, sizeof(*sc), GFP_KERNEL);
+-	if (!sc) {
+-		dev_err(&pdev->dev, "couldn't alloc sc_data\n");
++	if (!sc)
+ 		return ERR_PTR(-ENOMEM);
+-	}
+ 
+ 	sc->pdev = pdev;
+ 
+-- 
+2.14.1
