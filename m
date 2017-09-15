@@ -1,200 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33417
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752376AbdI0VrJ (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:33991 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751424AbdIOW0q (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:47:09 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: [PATCH v2 04/17] media: v4l2-common.h: document ancillary functions
-Date: Wed, 27 Sep 2017 18:46:47 -0300
-Message-Id: <8b06a3313f0e991b37fd36f29d8ee33561177ec7.1506548682.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
-References: <cover.1506548682.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
-References: <cover.1506548682.git.mchehab@s-opensource.com>
+        Fri, 15 Sep 2017 18:26:46 -0400
+Received: by mail-pg0-f65.google.com with SMTP id v82so1963067pgb.1
+        for <linux-media@vger.kernel.org>; Fri, 15 Sep 2017 15:26:45 -0700 (PDT)
+Subject: Re: IMX6 ADV7180 no /dev/media
+To: Tim Harvey <tharvey@gateworks.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Stephan Bauroth <der_steffi@gmx.de>
+References: <CAJ+vNU3DPFEc6YnEfcYAv1=beJ96W5PSt=eBfoxCXqKnbNqfMg@mail.gmail.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <67ab090e-955d-9399-e182-cca049a66f1a@gmail.com>
+Date: Fri, 15 Sep 2017 15:26:43 -0700
+MIME-Version: 1.0
+In-Reply-To: <CAJ+vNU3DPFEc6YnEfcYAv1=beJ96W5PSt=eBfoxCXqKnbNqfMg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several ancillary functions that aren't documented.
+Hi Tim,
 
-Document them.
+On 09/15/2017 02:26 PM, Tim Harvey wrote:
+> Greetings,
+>
+> I'm testing Linux master built with imx_v6_v7_defconfig on a GW51xx 
+> which has an ADV7180 analog video decoder and am not seeing the imx6 
+> /dev/media node get created:
+>
+> [    0.000000] OF: fdt: Machine model: Gateworks Ventana i.MX6 
+> Dual/Quad GW51XX
+> ...
+> [    6.089039] imx-media: Registered subdev ipu1_vdic
+> [    6.094505] imx-media: Registered subdev ipu2_vdic
+> [    6.099851] imx-media: Registered subdev ipu1_ic_prp
+> [    6.105074] imx-media: Registered subdev ipu1_ic_prpenc
+> [    6.111346] ipu1_ic_prpenc: Registered ipu1_ic_prpenc capture as 
+> /dev/video0
+> [    6.119007] imx-media: Registered subdev ipu1_ic_prpvf
+> [    6.124733] ipu1_ic_prpvf: Registered ipu1_ic_prpvf capture as 
+> /dev/video1
+> [    6.131867] imx-media: Registered subdev ipu2_ic_prp
+> [    6.137125] imx-media: Registered subdev ipu2_ic_prpenc
+> [    6.142921] ipu2_ic_prpenc: Registered ipu2_ic_prpenc capture as 
+> /dev/video2
+> [    6.150226] imx-media: Registered subdev ipu2_ic_prpvf
+> [    6.155934] ipu2_ic_prpvf: Registered ipu2_ic_prpvf capture as 
+> /dev/video3
+> [    6.164011] imx-media: Registered subdev ipu1_csi0
+> [    6.169768] ipu1_csi0: Registered ipu1_csi0 capture as /dev/video4
+> [    6.176281] imx-media: Registered subdev ipu1_csi1
+> [    6.181681] ipu1_csi1: Registered ipu1_csi1 capture as /dev/video5
+> [    6.188189] imx-media: Registered subdev ipu2_csi0
+> [    6.193680] ipu2_csi0: Registered ipu2_csi0 capture as /dev/video6
+> [    6.200108] imx-media: Registered subdev ipu2_csi1
+> [    6.205577] ipu2_csi1: Registered ipu2_csi1 capture as /dev/video7
+> ...
+> [   96.981117] adv7180 2-0020: chip found @ 0x20 (21a8000.i2c)
+> [   97.019674] imx-media: Registered subdev adv7180 2-0020
+> [   97.019712] imx-media capture-subsystem: Entity type for entity 
+> adv7180 2-0020 was not initialized!
+>
+> I suspect the failure of the adv7180 is causing the issue. Steve 
+> mentioned some time ago that this was an error that needed to be fixed 
+> upstream but I'm not clear if that is still the case.
+>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/v4l2-common.c |  14 -----
- include/media/v4l2-common.h           | 104 ++++++++++++++++++++++++++++++----
- 2 files changed, 94 insertions(+), 24 deletions(-)
+That does need fixing but is not the cause.
 
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index fb9a2a3c1072..ac404d5083e0 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -320,20 +320,6 @@ static unsigned int clamp_align(unsigned int x, unsigned int min,
- 	return x;
- }
- 
--/* Bound an image to have a width between wmin and wmax, and height between
-- * hmin and hmax, inclusive.  Additionally, the width will be a multiple of
-- * 2^walign, the height will be a multiple of 2^halign, and the overall size
-- * (width*height) will be a multiple of 2^salign.  The image may be shrunk
-- * or enlarged to fit the alignment constraints.
-- *
-- * The width or height maximum must not be smaller than the corresponding
-- * minimum.  The alignments must not be so high there are no possible image
-- * sizes within the allowed bounds.  wmin and hmin must be at least 1
-- * (don't use 0).  If you don't care about a certain alignment, specify 0,
-- * as 2^0 is 1 and one byte alignment is equivalent to no alignment.  If
-- * you only want to adjust downward, specify a maximum that's the same as
-- * the initial value.
-- */
- void v4l_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
- 			   unsigned int walign,
- 			   u32 *h, unsigned int hmin, unsigned int hmax,
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 7ae7840df068..d3f5f907d566 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -174,17 +174,43 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
-  */
- unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd);
- 
-+/**
-+ * enum v4l2_i2c_tuner_type - specifies the range of tuner address that
-+ *	should be used when seeking for I2C devices.
-+ *
-+ * @ADDRS_RADIO:		Radio tuner addresses.
-+ * 				Represent the following I2C addresses:
-+ * 				0x10 (if compiled with tea5761 support)
-+ *				and 0x60.
-+ * @ADDRS_DEMOD:		Demod tuner addresses.
-+ * 				Represent the following I2C addresses:
-+ * 				0x42, 0x43, 0x4a and 0x4b.
-+ * @ADDRS_TV:			TV tuner addresses.
-+ * 				Represent the following I2C addresses:
-+ * 				0x42, 0x43, 0x4a, 0x4b, 0x60, 0x61, 0x62,
-+ *				0x63 and 0x64.
-+ * @ADDRS_TV_WITH_DEMOD:	TV tuner addresses if demod is present, this
-+ *				excludes addresses used by the demodulator
-+ *				from the list of candidates.
-+ * 				Represent the following I2C addresses:
-+ * 				0x60, 0x61, 0x62, 0x63 and 0x64.
-+ *
-+ * NOTE: All I2C addresses above use the 7-bit notation.
-+ */
- enum v4l2_i2c_tuner_type {
--	ADDRS_RADIO,	/* Radio tuner addresses */
--	ADDRS_DEMOD,	/* Demod tuner addresses */
--	ADDRS_TV,	/* TV tuner addresses */
--	/* TV tuner addresses if demod is present, this excludes
--	   addresses used by the demodulator from the list of
--	   candidates. */
-+	ADDRS_RADIO,
-+	ADDRS_DEMOD,
-+	ADDRS_TV,
- 	ADDRS_TV_WITH_DEMOD,
- };
--/* Return a list of I2C tuner addresses to probe. Use only if the tuner
--   addresses are unknown. */
-+/**
-+ * v4l2_i2c_tuner_addrs - Return a list of I2C tuner addresses to probe.
-+ *
-+ * @type: type of the tuner type to seek, as defined by
-+ *	  &enum v4l2_i2c_tuner_type.
-+ *
-+ * NOTE: Use only if the tuner addresses are unknown.
-+ */
- const unsigned short *v4l2_i2c_tuner_addrs(enum v4l2_i2c_tuner_type type);
- 
- /* ------------------------------------------------------------------------- */
-@@ -228,6 +254,9 @@ void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
-  * FIXME: these remaining ioctls/structs should be removed as well, but they
-  * are still used in tuner-simple.c (TUNER_SET_CONFIG) and cx18/ivtv (RESET).
-  * To remove these ioctls some more cleanup is needed in those modules.
-+ *
-+ * It doesn't make much sense on documenting them, as what we really want is
-+ * to get rid of them.
-  */
- 
- /* s_config */
-@@ -243,17 +272,72 @@ struct v4l2_priv_tun_config {
- 
- /* Miscellaneous helper functions */
- 
--void v4l_bound_align_image(unsigned int *w, unsigned int wmin,
-+/**
-+ * v4l_bound_align_image - adjust video dimensions according to
-+ * 	a given criteria.
-+ *
-+ * @width:	pointer to width that will be adjusted if needed.
-+ * @wmin:	minimum width.
-+ * @wmax:	maximum width.
-+ * @walign:	least significant bit on width.
-+ * @height:	pointer to height that will be adjusted if needed.
-+ * @hmin:	minimum height.
-+ * @hmax:	maximum height.
-+ * @halign:	least significant bit on width.
-+ * @salign:	least significant bit for the image size (e. g.
-+ *		:math:`width * height`).
-+ *
-+ * Bound an image to have @width between @wmin and @wmax, and @height between
-+ * @hmin and @hmax, inclusive.
-+ *
-+ * Additionally, the @width will be a multiple of :math:`2^{walign}`,
-+ * the @height will be a multiple of :math:`2^{halign}`, and the overall
-+ * size :math:`width * height` will be a multiple of :math:`2^{salign}`.
-+ *
-+ * .. note::
-+ *
-+ *    #. The image may be shrunk or enlarged to fit the alignment constraints.
-+ *    #. @wmax must not be smaller than @wmin.
-+ *    #. @hmax must not be smaller than @hmin.
-+ *    #. The alignments must not be so high there are no possible image
-+ *       sizes within the allowed bounds.
-+ *    #. @wmin and @hmin must be at least 1 (don't use 0).
-+ *    #. For @walign, @halign and @salign, if you don't care about a certain
-+ *       alignment, specify ``0``, as :math:`2^0 = 1` and one byte alignment
-+ *       is equivalent to no alignment.
-+ *    #. If you only want to adjust downward, specify a maximum that's the
-+ *       same as the initial value.
-+ */
-+void v4l_bound_align_image(unsigned int *width, unsigned int wmin,
- 			   unsigned int wmax, unsigned int walign,
--			   unsigned int *h, unsigned int hmin,
-+			   unsigned int *height, unsigned int hmin,
- 			   unsigned int hmax, unsigned int halign,
- 			   unsigned int salign);
- 
-+/**
-+ * v4l2_find_nearest_format - find the nearest format size among a discrete
-+ *	set of resolutions.
-+ *
-+ * @sizes: array with a pointer to & struct v4l2_frmsize_discrete image sizes.
-+ * @num_sizes: size of @sizes array.
-+ * @width: desired width.
-+ * @height: desired heigth.
-+ *
-+ * Finds the closest resolution to minimize the width and height differences
-+ * between what userspace requested and the supported resolutions.
-+ */
- const struct v4l2_frmsize_discrete
- *v4l2_find_nearest_format(const struct v4l2_frmsize_discrete *sizes,
- 			  const size_t num_sizes,
- 			  s32 width, s32 height);
- 
-+/**
-+ * v4l2_get_timestamp - ancillary routine to get a timestamp to be used when
-+ *	filling streaming metadata. Internally, it uses ktime_get_ts(),
-+ *	with is the recommended way to get it.
-+ *
-+ * @tv: pointer to &stuct timeval to be filled.
-+ */
- void v4l2_get_timestamp(struct timeval *tv);
- 
- #endif /* V4L2_COMMON_H_ */
--- 
-2.13.5
+> I haven't looked at IMX media drivers since they were accepted to 
+> mainline a few months back. Perhaps I'm simply forgetting to enable 
+> something in the kernel that imx_v6_v7_defconfig doesn't turn on?
+
+Yes, it looks like you are missing the video-mux. Enable CONFIG_VIDEO_MUX
+and CONFIG_MUX_MMIO.
+
+Steve
