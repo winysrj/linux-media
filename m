@@ -1,103 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46800 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755392AbdIHMmQ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48523 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750866AbdIORCn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 08:42:16 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org
-Subject: [PATCH 2/3] dt: bindings: as3645a: Use LED number to refer to LEDs
-Date: Fri,  8 Sep 2017 15:42:12 +0300
-Message-Id: <20170908124213.18904-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170908124213.18904-1-sakari.ailus@linux.intel.com>
-References: <20170908124213.18904-1-sakari.ailus@linux.intel.com>
+        Fri, 15 Sep 2017 13:02:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH v1 2/3] drm: rcar-du: Add suspend resume helpers
+Date: Fri, 15 Sep 2017 20:02:46 +0300
+Message-ID: <1607973.DTifMlLdNl@avalon>
+In-Reply-To: <199d29db89a7953f59e1eb4e91a3421336e3ed2a.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com> <199d29db89a7953f59e1eb4e91a3421336e3ed2a.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use integers (reg property) to tell the number of the LED to the driver
-instead of the node name. While both of these approaches are currently
-used by the LED bindings, using integers will require less driver changes
-for ACPI support. Additionally, it will make possible LED naming using
-chip and LED node names, effectively making the label property most useful
-for human-readable names only.
+Hi Kieran,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- .../devicetree/bindings/leds/ams,as3645a.txt       | 28 ++++++++++++++--------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+Thank you for the patch.
 
-diff --git a/Documentation/devicetree/bindings/leds/ams,as3645a.txt b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-index 12c5ef26ec73..fdc40e354a64 100644
---- a/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-+++ b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-@@ -15,11 +15,14 @@ Required properties
- 
- compatible	: Must be "ams,as3645a".
- reg		: The I2C address of the device. Typically 0x30.
-+#address-cells	: 1
-+#size-cells	: 0
- 
- 
--Required properties of the "flash" child node
--=============================================
-+Required properties of the flash child node (0)
-+===============================================
- 
-+reg: 0
- flash-timeout-us: Flash timeout in microseconds. The value must be in
- 		  the range [100000, 850000] and divisible by 50000.
- flash-max-microamp: Maximum flash current in microamperes. Has to be
-@@ -33,20 +36,21 @@ ams,input-max-microamp: Maximum flash controller input current. The
- 			and divisible by 50000.
- 
- 
--Optional properties of the "flash" child node
--=============================================
-+Optional properties of the flash child node
-+===========================================
- 
- label		: The label of the flash LED.
- 
- 
--Required properties of the "indicator" child node
--=================================================
-+Required properties of the indicator child node (1)
-+===================================================
- 
-+reg: 1
- led-max-microamp: Maximum indicator current. The allowed values are
- 		  2500, 5000, 7500 and 10000.
- 
--Optional properties of the "indicator" child node
--=================================================
-+Optional properties of the indicator child node
-+===============================================
- 
- label		: The label of the indicator LED.
- 
-@@ -55,16 +59,20 @@ Example
- =======
- 
- 	as3645a@30 {
-+		#address-cells: 1
-+		#size-cells: 0
- 		reg = <0x30>;
- 		compatible = "ams,as3645a";
--		flash {
-+		flash@0 {
-+			reg = <0x0>;
- 			flash-timeout-us = <150000>;
- 			flash-max-microamp = <320000>;
- 			led-max-microamp = <60000>;
- 			ams,input-max-microamp = <1750000>;
- 			label = "as3645a:flash";
- 		};
--		indicator {
-+		indicator@1 {
-+			reg = <0x1>;
- 			led-max-microamp = <10000>;
- 			label = "as3645a:indicator";
- 		};
+On Friday, 15 September 2017 19:42:06 EEST Kieran Bingham wrote:
+> The pipeline needs to ensure that the hardware is idle for suspend and
+> resume operations.
+
+I'm not sure to really understand this sentence.
+
+> Implement suspend and resume functions using the DRM atomic helper
+> functions.
+> 
+> CC: dri-devel@lists.freedesktop.org
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+The rest of the patch looks good to me. With the commit message clarified,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/gpu/drm/rcar-du/rcar_du_drv.c | 18 +++++++++++++++---
+>  drivers/gpu/drm/rcar-du/rcar_du_drv.h |  1 +
+>  2 files changed, 16 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.c
+> b/drivers/gpu/drm/rcar-du/rcar_du_drv.c index 09fbceade6b1..01b91d0c169c
+> 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_du_drv.c
+> +++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/wait.h>
+> 
+>  #include <drm/drmP.h>
+> +#include <drm/drm_atomic_helper.h>
+>  #include <drm/drm_crtc_helper.h>
+>  #include <drm/drm_fb_cma_helper.h>
+>  #include <drm/drm_gem_cma_helper.h>
+> @@ -267,9 +268,19 @@ static struct drm_driver rcar_du_driver = {
+>  static int rcar_du_pm_suspend(struct device *dev)
+>  {
+>  	struct rcar_du_device *rcdu = dev_get_drvdata(dev);
+> +	struct drm_atomic_state *state;
+> 
+>  	drm_kms_helper_poll_disable(rcdu->ddev);
+> -	/* TODO Suspend the CRTC */
+> +	drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, true);
+> +
+> +	state = drm_atomic_helper_suspend(rcdu->ddev);
+> +	if (IS_ERR(state)) {
+> +		drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, false);
+> +		drm_kms_helper_poll_enable(rcdu->ddev);
+> +		return PTR_ERR(state);
+> +	}
+> +
+> +	rcdu->suspend_state = state;
+> 
+>  	return 0;
+>  }
+> @@ -278,9 +289,10 @@ static int rcar_du_pm_resume(struct device *dev)
+>  {
+>  	struct rcar_du_device *rcdu = dev_get_drvdata(dev);
+> 
+> -	/* TODO Resume the CRTC */
+> -
+> +	drm_atomic_helper_resume(rcdu->ddev, rcdu->suspend_state);
+> +	drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, false);
+>  	drm_kms_helper_poll_enable(rcdu->ddev);
+> +
+>  	return 0;
+>  }
+>  #endif
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.h
+> b/drivers/gpu/drm/rcar-du/rcar_du_drv.h index f8cd79488ece..f400fde65a0c
+> 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_du_drv.h
+> +++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.h
+> @@ -81,6 +81,7 @@ struct rcar_du_device {
+> 
+>  	struct drm_device *ddev;
+>  	struct drm_fbdev_cma *fbdev;
+> +	struct drm_atomic_state *suspend_state;
+> 
+>  	struct rcar_du_crtc crtcs[RCAR_DU_MAX_CRTCS];
+>  	unsigned int num_crtcs;
+
+
 -- 
-2.11.0
+Regards,
+
+Laurent Pinchart
