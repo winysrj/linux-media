@@ -1,128 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36620 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751476AbdILNmL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 09:42:11 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v12 20/26] v4l: fwnode: Add convenience function for parsing common external refs
-Date: Tue, 12 Sep 2017 16:41:54 +0300
-Message-Id: <20170912134200.19556-21-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
-References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+Received: from mail.kernel.org ([198.145.29.99]:42670 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751184AbdIOQmP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Sep 2017 12:42:15 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com,
+        linux-renesas-soc@vger.kernel.org
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v1 2/3] drm: rcar-du: Add suspend resume helpers
+Date: Fri, 15 Sep 2017 17:42:06 +0100
+Message-Id: <199d29db89a7953f59e1eb4e91a3421336e3ed2a.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add v4l2_fwnode_parse_reference_sensor_common for parsing common
-sensor properties that refer to adjacent devices such as flash or lens
-driver chips.
+The pipeline needs to ensure that the hardware is idle for suspend and
+resume operations.
 
-As this is an association only, there's little a regular driver needs to
-know about these devices as such.
+Implement suspend and resume functions using the DRM atomic helper
+functions.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+CC: dri-devel@lists.freedesktop.org
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 35 +++++++++++++++++++++++++++++++++++
- include/media/v4l2-async.h            |  3 ++-
- include/media/v4l2-fwnode.h           | 21 +++++++++++++++++++++
- 3 files changed, 58 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/rcar-du/rcar_du_drv.c | 18 +++++++++++++++---
+ drivers/gpu/drm/rcar-du/rcar_du_drv.h |  1 +
+ 2 files changed, 16 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index a07599a8f647..0a1a784b11a8 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -712,6 +712,41 @@ static int v4l2_fwnode_reference_parse_int_props(
- 	return ret;
- }
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.c b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
+index 09fbceade6b1..01b91d0c169c 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_drv.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
+@@ -22,6 +22,7 @@
+ #include <linux/wait.h>
  
-+int v4l2_async_notifier_parse_fwnode_sensor_common(
-+	struct device *dev, struct v4l2_async_notifier *notifier)
-+{
-+	static const char *led_props[] = { "led" };
-+	static const struct {
-+		const char *name;
-+		const char **props;
-+		unsigned int nprops;
-+	} props[] = {
-+		{ "flash-leds", led_props, ARRAY_SIZE(led_props) },
-+		{ "lens-focus", NULL, 0 },
-+	};
-+	unsigned int i;
+ #include <drm/drmP.h>
++#include <drm/drm_atomic_helper.h>
+ #include <drm/drm_crtc_helper.h>
+ #include <drm/drm_fb_cma_helper.h>
+ #include <drm/drm_gem_cma_helper.h>
+@@ -267,9 +268,19 @@ static struct drm_driver rcar_du_driver = {
+ static int rcar_du_pm_suspend(struct device *dev)
+ {
+ 	struct rcar_du_device *rcdu = dev_get_drvdata(dev);
++	struct drm_atomic_state *state;
+ 
+ 	drm_kms_helper_poll_disable(rcdu->ddev);
+-	/* TODO Suspend the CRTC */
++	drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, true);
 +
-+	for (i = 0; i < ARRAY_SIZE(props); i++) {
-+		int ret;
-+
-+		if (props[i].props && is_acpi_node(dev_fwnode(dev)))
-+			ret = v4l2_fwnode_reference_parse_int_props(
-+				dev, notifier, props[i].name,
-+				props[i].props, props[i].nprops);
-+		else
-+			ret = v4l2_fwnode_reference_parse(
-+				dev, notifier, props[i].name);
-+		if (ret && ret != -ENOENT) {
-+			dev_warn(dev, "parsing property \"%s\" failed (%d)\n",
-+				 props[i].name, ret);
-+			return ret;
-+		}
++	state = drm_atomic_helper_suspend(rcdu->ddev);
++	if (IS_ERR(state)) {
++		drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, false);
++		drm_kms_helper_poll_enable(rcdu->ddev);
++		return PTR_ERR(state);
 +	}
 +
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_sensor_common);
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
- MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index a13803a6371d..378e20e3b44d 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -155,7 +155,8 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
-  * Release memory resources related to a notifier, including the async
-  * sub-devices allocated for the purposes of the notifier. The user is
-  * responsible for releasing the notifier's resources after calling
-- * @v4l2_async_notifier_parse_fwnode_endpoints.
-+ * @v4l2_async_notifier_parse_fwnode_endpoints or
-+ * @v4l2_fwnode_reference_parse_sensor_common.
-  *
-  * There is no harm from calling v4l2_async_notifier_release in other
-  * cases as long as its memory has been zeroed after it has been
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index b2eed4f33e6a..5791355401bd 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -316,4 +316,25 @@ int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
- 			      struct v4l2_fwnode_endpoint *vep,
- 			      struct v4l2_async_subdev *asd));
++	rcdu->suspend_state = state;
  
-+/**
-+ * v4l2_fwnode_reference_parse_sensor_common - parse common references on
-+ *					       sensors for async sub-devices
-+ * @dev: the device node the properties of which are parsed for references
-+ * @notifier: the async notifier where the async subdevs will be added
-+ *
-+ * Parse common sensor properties for remote devices related to the
-+ * sensor and set up async sub-devices for them.
-+ *
-+ * Any notifier populated using this function must be released with a call to
-+ * v4l2_async_notifier_release() after it has been unregistered and the async
-+ * sub-devices are no longer in use, even in the case the function returned an
-+ * error.
-+ *
-+ * Return: 0 on success
-+ *	   -ENOMEM if memory allocation failed
-+ *	   -EINVAL if property parsing failed
-+ */
-+int v4l2_async_notifier_parse_fwnode_sensor_common(
-+	struct device *dev, struct v4l2_async_notifier *notifier);
+ 	return 0;
+ }
+@@ -278,9 +289,10 @@ static int rcar_du_pm_resume(struct device *dev)
+ {
+ 	struct rcar_du_device *rcdu = dev_get_drvdata(dev);
+ 
+-	/* TODO Resume the CRTC */
+-
++	drm_atomic_helper_resume(rcdu->ddev, rcdu->suspend_state);
++	drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, false);
+ 	drm_kms_helper_poll_enable(rcdu->ddev);
 +
- #endif /* _V4L2_FWNODE_H */
+ 	return 0;
+ }
+ #endif
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.h b/drivers/gpu/drm/rcar-du/rcar_du_drv.h
+index f8cd79488ece..f400fde65a0c 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_drv.h
++++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.h
+@@ -81,6 +81,7 @@ struct rcar_du_device {
+ 
+ 	struct drm_device *ddev;
+ 	struct drm_fbdev_cma *fbdev;
++	struct drm_atomic_state *suspend_state;
+ 
+ 	struct rcar_du_crtc crtcs[RCAR_DU_MAX_CRTCS];
+ 	unsigned int num_crtcs;
 -- 
-2.11.0
+git-series 0.9.1
