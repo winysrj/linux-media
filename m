@@ -1,60 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:59253 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751012AbdIIUcS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 9 Sep 2017 16:32:18 -0400
-Subject: [PATCH 2/3] [media] xc2028: Adjust two null pointer checks in
- load_all_firmwares()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <c2317603-f640-b0a6-ab86-7fda8040b6ba@users.sourceforge.net>
-Message-ID: <10e92128-444a-bec3-e021-61379c21bf4d@users.sourceforge.net>
-Date: Sat, 9 Sep 2017 22:32:11 +0200
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:56509 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750865AbdIOIJm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Sep 2017 04:09:42 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Jose Abreu <Jose.Abreu@synopsys.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT FIXES FOR v4.14] Two CEC fixes
+Message-ID: <0bcb5447-de61-e420-2c6d-0ab625fe9f05@xs4all.nl>
+Date: Fri, 15 Sep 2017 10:09:37 +0200
 MIME-Version: 1.0
-In-Reply-To: <c2317603-f640-b0a6-ab86-7fda8040b6ba@users.sourceforge.net>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 9 Sep 2017 21:48:58 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Hi Mauro,
 
-The script “checkpatch.pl” pointed information out like the following.
+Two CEC fixes for 4.14. Both are also CC-ed to stable. These fixes fall in the
+category 'important but not urgent'.
 
-Comparison to NULL could be written !…
+Regards,
 
-Thus fix the affected source code places.
+	Hans
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/tuners/tuner-xc2028.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+The following changes since commit 1efdf1776e2253b77413c997bed862410e4b6aaf:
 
-diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
-index 7353f25f9e7d..90efe11aa0a8 100644
---- a/drivers/media/tuners/tuner-xc2028.c
-+++ b/drivers/media/tuners/tuner-xc2028.c
-@@ -335,5 +335,5 @@ static int load_all_firmwares(struct dvb_frontend *fe,
- 		   priv->firm_version >> 8, priv->firm_version & 0xff);
- 
- 	priv->firm = kcalloc(n_array, sizeof(*priv->firm), GFP_KERNEL);
--	if (priv->firm == NULL) {
-+	if (!priv->firm) {
- 		rc = -ENOMEM;
-@@ -384,5 +384,5 @@ static int load_all_firmwares(struct dvb_frontend *fe,
- 		}
- 
- 		priv->firm[n].ptr = kzalloc(size, GFP_KERNEL);
--		if (priv->firm[n].ptr == NULL) {
-+		if (!priv->firm[n].ptr) {
- 			rc = -ENOMEM;
--- 
-2.14.1
+  media: leds: as3645a: add V4L2_FLASH_LED_CLASS dependency (2017-09-05 16:32:45 -0400)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.14n
+
+for you to fetch changes up to 2f4c7705f22e53a13de2e4932f62f1393816fa73:
+
+  cec: Respond to unregistered initiators, when applicable (2017-09-15 10:04:28 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      s5p-cec: add NACK detection support
+
+Jose Abreu (1):
+      cec: Respond to unregistered initiators, when applicable
+
+ drivers/media/cec/cec-adap.c                         | 13 ++++++++++---
+ drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c |  3 ++-
+ drivers/media/platform/s5p-cec/s5p_cec.c             | 11 ++++++++++-
+ drivers/media/platform/s5p-cec/s5p_cec.h             |  2 ++
+ 4 files changed, 24 insertions(+), 5 deletions(-)
