@@ -1,73 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:57544 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750866AbdIOH5J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 03:57:09 -0400
-Subject: [PATCH 6/9] [media] tm6000: Use common error handling code in
- tm6000_cards_setup()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
-        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Santosh Kumar Singh <kumar.san1093@gmail.com>,
-        Sean Young <sean@mess.org>,
-        Wei Yongjun <weiyongjun1@huawei.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <2aade468-5dfd-76ee-f59f-c25864930f61@users.sourceforge.net>
-Message-ID: <1a2f24a8-6365-cd56-caaf-ff3dbadbd8e7@users.sourceforge.net>
-Date: Fri, 15 Sep 2017 09:56:31 +0200
-MIME-Version: 1.0
-In-Reply-To: <2aade468-5dfd-76ee-f59f-c25864930f61@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45404 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751259AbdIOORk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Sep 2017 10:17:40 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v13 03/25] v4l: async: Use more intuitive names for internal functions
+Date: Fri, 15 Sep 2017 17:17:02 +0300
+Message-Id: <20170915141724.23124-4-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 14 Sep 2017 16:26:42 +0200
+Rename internal functions to make the names of the functions better
+describe what they do.
 
-Add a jump target so that a bit of exception handling can be better reused
-in this function.
+	Old name			New name
+	v4l2_async_test_notify	v4l2_async_match_notify
+	v4l2_async_belongs	v4l2_async_find_match
 
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/usb/tm6000/tm6000-cards.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/media/v4l2-core/v4l2-async.c | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/usb/tm6000/tm6000-cards.c b/drivers/media/usb/tm6000/tm6000-cards.c
-index 72dd6b80394f..502e0b38b7f1 100644
---- a/drivers/media/usb/tm6000/tm6000-cards.c
-+++ b/drivers/media/usb/tm6000/tm6000-cards.c
-@@ -872,15 +872,14 @@ int tm6000_cards_setup(struct tm6000_core *dev)
- 		for (i = 0; i < 2; i++) {
- 			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
- 						dev->gpio.tuner_reset, 0x00);
--			if (rc < 0) {
--				printk(KERN_ERR "Error %i doing tuner reset\n", rc);
--				return rc;
--			}
-+			if (rc < 0)
-+				goto report_failure;
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index e109d9da4653..831f185ecd47 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -60,8 +60,8 @@ static LIST_HEAD(subdev_list);
+ static LIST_HEAD(notifier_list);
+ static DEFINE_MUTEX(list_lock);
  
- 			msleep(10); /* Just to be conservative */
- 			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
- 						dev->gpio.tuner_reset, 0x01);
- 			if (rc < 0) {
-+report_failure:
- 				printk(KERN_ERR "Error %i doing tuner reset\n", rc);
- 				return rc;
- 			}
+-static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
+-						    struct v4l2_subdev *sd)
++static struct v4l2_async_subdev *v4l2_async_find_match(
++	struct v4l2_async_notifier *notifier, struct v4l2_subdev *sd)
+ {
+ 	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
+ 	struct v4l2_async_subdev *asd;
+@@ -95,9 +95,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
+ 	return NULL;
+ }
+ 
+-static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
+-				  struct v4l2_subdev *sd,
+-				  struct v4l2_async_subdev *asd)
++static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
++				   struct v4l2_subdev *sd,
++				   struct v4l2_async_subdev *asd)
+ {
+ 	int ret;
+ 
+@@ -175,11 +175,11 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+ 		int ret;
+ 
+-		asd = v4l2_async_belongs(notifier, sd);
++		asd = v4l2_async_find_match(notifier, sd);
+ 		if (!asd)
+ 			continue;
+ 
+-		ret = v4l2_async_test_notify(notifier, sd, asd);
++		ret = v4l2_async_match_notify(notifier, sd, asd);
+ 		if (ret < 0) {
+ 			mutex_unlock(&list_lock);
+ 			return ret;
+@@ -236,9 +236,10 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 	INIT_LIST_HEAD(&sd->async_list);
+ 
+ 	list_for_each_entry(notifier, &notifier_list, list) {
+-		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
++		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
++								      sd);
+ 		if (asd) {
+-			int ret = v4l2_async_test_notify(notifier, sd, asd);
++			int ret = v4l2_async_match_notify(notifier, sd, asd);
+ 			mutex_unlock(&list_lock);
+ 			return ret;
+ 		}
 -- 
-2.14.1
+2.11.0
