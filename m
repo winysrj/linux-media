@@ -1,52 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:32975
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751953AbdI0VKd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:10:33 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Evgeniy Polyakov <zbr@ioremap.net>
-Subject: [PATCH v2 13/13] [RFC] w1_netlink.h: add support for nested structs
-Date: Wed, 27 Sep 2017 18:10:24 -0300
-Message-Id: <005aa796a4647b67e40a8047483c2ad31139920f.1506546492.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506546492.git.mchehab@s-opensource.com>
-References: <cover.1506546492.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506546492.git.mchehab@s-opensource.com>
-References: <cover.1506546492.git.mchehab@s-opensource.com>
+Received: from mout.web.de ([217.72.192.78]:59141 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750787AbdIOHye (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Sep 2017 03:54:34 -0400
+Subject: [PATCH 5/9] [media] tm6000: Delete an unnecessary variable
+ initialisation in tm6000_usb_probe()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
+        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Santosh Kumar Singh <kumar.san1093@gmail.com>,
+        Sean Young <sean@mess.org>,
+        Wei Yongjun <weiyongjun1@huawei.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <2aade468-5dfd-76ee-f59f-c25864930f61@users.sourceforge.net>
+Message-ID: <9c547e6f-8a78-ec7b-2054-dd64708d5823@users.sourceforge.net>
+Date: Fri, 15 Sep 2017 09:53:39 +0200
+MIME-Version: 1.0
+In-Reply-To: <2aade468-5dfd-76ee-f59f-c25864930f61@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Describe nested struct/union fields
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 14 Sep 2017 16:13:56 +0200
 
-NOTE: This is a pure test patch, meant to validate if the
-parsing logic for nested structs is working properly.
+The local variable "rc" will be set to an appropriate value a bit later.
+Thus omit the explicit initialisation at the beginning.
 
-I've no idea if the random text I added there is correct!
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/w1/w1_netlink.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/usb/tm6000/tm6000-cards.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/w1/w1_netlink.h b/drivers/w1/w1_netlink.h
-index a36661cd1f05..e781d1109cd7 100644
---- a/drivers/w1/w1_netlink.h
-+++ b/drivers/w1/w1_netlink.h
-@@ -60,6 +60,10 @@ enum w1_netlink_message_types {
-  * @status: kernel feedback for success 0 or errno failure value
-  * @len: length of data following w1_netlink_msg
-  * @id: union holding master bus id (msg.id) and slave device id (id[8]).
-+ * @id.id: Slave ID (8 bytes)
-+ * @id.mst: master bus identification
-+ * @id.mst.id: master bus ID
-+ * @id.mst.res: master bus reserved
-  * @data: start address of any following data
-  *
-  * The base message structure for w1 messages over netlink.
+diff --git a/drivers/media/usb/tm6000/tm6000-cards.c b/drivers/media/usb/tm6000/tm6000-cards.c
+index 77347541904d..72dd6b80394f 100644
+--- a/drivers/media/usb/tm6000/tm6000-cards.c
++++ b/drivers/media/usb/tm6000/tm6000-cards.c
+@@ -1185,7 +1185,7 @@ static int tm6000_usb_probe(struct usb_interface *interface,
+ {
+ 	struct usb_device *usbdev;
+ 	struct tm6000_core *dev;
+-	int i, rc = 0;
++	int i, rc;
+ 	int nr = 0;
+ 	char *speed;
+ 
 -- 
-2.13.5
+2.14.1
