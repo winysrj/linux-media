@@ -1,68 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50428 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751454AbdICUMg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 3 Sep 2017 16:12:36 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-doc@vger.kernel.org, mchehab@s-opensource.com
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Aviv Greenberg <aviv.d.greenberg@intel.com>
-Subject: [PATCH 1/1] docs-rst: media: Don't use \small for V4L2_PIX_FMT_SRGGB10 documentation
-Date: Sun,  3 Sep 2017 23:12:33 +0300
-Message-Id: <20170903201233.31638-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <82fc5322d611390dca21f28e3fd5f7cbe0c27be4.1504464984.git.mchehab@s-opensource.com>
-References: <82fc5322d611390dca21f28e3fd5f7cbe0c27be4.1504464984.git.mchehab@s-opensource.com>
+Received: from mout.web.de ([212.227.15.3]:52924 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751169AbdIOQBx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Sep 2017 12:01:53 -0400
+Subject: [PATCH 1/2] [media] c8sectpfe: Delete an error message for a failed
+ memory allocation in c8sectpfe_frontend_attach()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        Patrice Chotard <patrice.chotard@st.com>,
+        Peter Griffin <peter.griffin@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <3e5fcfbe-828a-8c15-12d4-c74e8a1f20f1@users.sourceforge.net>
+Message-ID: <04a4e480-c7a2-fe8c-ca38-8d0b32b42307@users.sourceforge.net>
+Date: Fri, 15 Sep 2017 18:01:13 +0200
+MIME-Version: 1.0
+In-Reply-To: <3e5fcfbe-828a-8c15-12d4-c74e8a1f20f1@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There appears to be an issue in using \small in certain cases on Sphinx
-1.4 and 1.5. Other format documents don't use \small either, remove it
-from here as well.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 15 Sep 2017 17:20:48 +0200
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Omit an extra message for a memory allocation failure in this function.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
-Hi Mauro,
+ drivers/media/platform/sti/c8sectpfe/c8sectpfe-dvb.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-What would you think of this as an alternative approach? No hacks needed.
-Just a recognition \small could have issues. For what it's worth, I
-couldn't reproduce the issue on Sphinx 1.4.9.
-
-Regards,
-Sakari
-
- Documentation/media/uapi/v4l/pixfmt-srggb10p.rst | 11 -----------
- 1 file changed, 11 deletions(-)
-
-diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
-index 86cd07e5bfa3..368ee61ab209 100644
---- a/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
-@@ -33,13 +33,6 @@ of a small V4L2_PIX_FMT_SBGGR10P image:
- **Byte Order.**
- Each cell is one byte.
+diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-dvb.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-dvb.c
+index 2c0015b1264d..1b23b188cd65 100644
+--- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-dvb.c
++++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-dvb.c
+@@ -166,7 +166,4 @@ int c8sectpfe_frontend_attach(struct dvb_frontend **fe,
+ 					GFP_KERNEL);
+-		if (!tda18212) {
+-			dev_err(c8sectpfe->device,
+-				"%s: devm_kzalloc failed\n", __func__);
++		if (!tda18212)
+ 			return -ENOMEM;
+-		}
  
--
--.. raw:: latex
--
--    \small
--
--.. tabularcolumns:: |p{2.0cm}|p{1.0cm}|p{1.0cm}|p{1.0cm}|p{1.0cm}|p{10.0cm}|
--
- .. flat-table::
-     :header-rows:  0
-     :stub-columns: 0
-@@ -73,7 +66,3 @@ Each cell is one byte.
-       - R\ :sub:`33high`
-       - R\ :sub:`33low`\ (bits 7--6) G\ :sub:`32low`\ (bits 5--4)
- 	R\ :sub:`31low`\ (bits 3--2) G\ :sub:`30low`\ (bits 1--0)
--
--.. raw:: latex
--
--    \normalsize
 -- 
-2.11.0
+2.14.1
