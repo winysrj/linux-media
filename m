@@ -1,206 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51088
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751520AbdITU1K (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 16:27:10 -0400
-Date: Wed, 20 Sep 2017 17:27:03 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Shuah Khan <shuah@kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Re: [PATCH 1/6] media: dvb_frontend: cleanup
- dvb_frontend_ioctl_properties()
-Message-ID: <20170920172703.6a10ae61@recife.lan>
-In-Reply-To: <bc18d8a6-cf50-3257-71b0-d90e7fb5ba25@kernel.org>
-References: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
-        <bc18d8a6-cf50-3257-71b0-d90e7fb5ba25@kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.kernel.org ([198.145.29.99]:42638 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750865AbdIOQmN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Sep 2017 12:42:13 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com,
+        linux-renesas-soc@vger.kernel.org
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v1 0/3] drm/media: Implement DU Suspend and Resume on VSP pipelines
+Date: Fri, 15 Sep 2017 17:42:04 +0100
+Message-Id: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 20 Sep 2017 14:11:39 -0600
-Shuah Khan <shuah@kernel.org> escreveu:
+This short series covers two subsystems and implements support for suspend and
+resume operations on the DU pipelines on Gen3 Rcar platforms.
 
-> On 09/19/2017 07:42 AM, Mauro Carvalho Chehab wrote:
-> > Use a switch() on this function, just like on other ioctl
-> > handlers and handle parameters inside each part of the
-> > switch.
-> > 
-> > That makes it easier to integrate with the already existing
-> > ioctl handler function.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
-> 
-> The change looks good. Couple of comments below:
-> 
-> > ---
-> >  drivers/media/dvb-core/dvb_frontend.c | 83 +++++++++++++++++++++--------------
-> >  1 file changed, 51 insertions(+), 32 deletions(-)
-> > 
-> > diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-> > index 8abe4f541a36..725cb1c8a088 100644
-> > --- a/drivers/media/dvb-core/dvb_frontend.c
-> > +++ b/drivers/media/dvb-core/dvb_frontend.c
-> > @@ -1971,21 +1971,25 @@ static int dvb_frontend_ioctl_properties(struct file *file,
-> >  	struct dvb_frontend *fe = dvbdev->priv;
-> >  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
-> >  	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-> > -	int err = 0;
-> > -
-> > -	struct dtv_properties *tvps = parg;
-> > -	struct dtv_property *tvp = NULL;
-> > -	int i;
-> > +	int err, i;
-> >  
-> >  	dev_dbg(fe->dvb->device, "%s:\n", __func__);
-> >  
-> > -	if (cmd == FE_SET_PROPERTY) {
-> > -		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n", __func__, tvps->num);
-> > -		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n", __func__, tvps->props);
-> > +	switch(cmd) {
-> > +	case FE_SET_PROPERTY: {
-> > +		struct dtv_properties *tvps = parg;
-> > +		struct dtv_property *tvp = NULL;
-> >  
-> > -		/* Put an arbitrary limit on the number of messages that can
-> > -		 * be sent at once */
-> > -		if ((tvps->num == 0) || (tvps->num > DTV_IOCTL_MAX_MSGS))
-> > +		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n",
-> > +			__func__, tvps->num);
-> > +		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n",
-> > +			__func__, tvps->props);
-> > +
-> > +		/*
-> > +		 * Put an arbitrary limit on the number of messages that can
-> > +		 * be sent at once
-> > +		 */
-> > +		if (!tvps->num || (tvps->num > DTV_IOCTL_MAX_MSGS))
-> >  			return -EINVAL;
-> >  
-> >  		tvp = memdup_user(tvps->props, tvps->num * sizeof(*tvp));
-> > @@ -1994,23 +1998,34 @@ static int dvb_frontend_ioctl_properties(struct file *file,
-> >  
-> >  		for (i = 0; i < tvps->num; i++) {
-> >  			err = dtv_property_process_set(fe, tvp + i, file);
-> > -			if (err < 0)
-> > -				goto out;
-> > +			if (err < 0) {
-> > +				kfree(tvp);
-> > +				return err;
-> > +			}
-> >  			(tvp + i)->result = err;
-> >  		}
-> >  
-> >  		if (c->state == DTV_TUNE)
-> >  			dev_dbg(fe->dvb->device, "%s: Property cache is full, tuning\n", __func__);
-> >  
-> > -	} else if (cmd == FE_GET_PROPERTY) {
-> > +		kfree(tvp);
-> > +		break;
-> > +	}
-> > +	case FE_GET_PROPERTY: {
-> > +		struct dtv_properties *tvps = parg;
-> > +		struct dtv_property *tvp = NULL;
-> >  		struct dtv_frontend_properties getp = fe->dtv_property_cache;
-> >  
-> > -		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n", __func__, tvps->num);
-> > -		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n", __func__, tvps->props);
-> > +		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n",
-> > +			__func__, tvps->num);
-> > +		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n",
-> > +			__func__, tvps->props);
-> >  
-> > -		/* Put an arbitrary limit on the number of messages that can
-> > -		 * be sent at once */
-> > -		if ((tvps->num == 0) || (tvps->num > DTV_IOCTL_MAX_MSGS))
-> > +		/*
-> > +		 * Put an arbitrary limit on the number of messages that can
-> > +		 * be sent at once
-> > +		 */
-> > +		if (!tvps->num || (tvps->num > DTV_IOCTL_MAX_MSGS))
-> >  			return -EINVAL;
-> >  
-> >  		tvp = memdup_user(tvps->props, tvps->num * sizeof(*tvp));
-> > @@ -2025,28 +2040,32 @@ static int dvb_frontend_ioctl_properties(struct file *file,
-> >  		 */
-> >  		if (fepriv->state != FESTATE_IDLE) {
-> >  			err = dtv_get_frontend(fe, &getp, NULL);
-> > -			if (err < 0)
-> > -				goto out;
-> > +			if (err < 0) {
-> > +				kfree(tvp);
-> > +				return err;
-> > +			}  
-> 
-> Could avoid duplicate code keeping out logic perhaps? Is there a reason
-> for removing this?
+Patch 1: Prevent resuming DRM pipelines,
+  - Ensures that the VSP does not incorrectly start DU pipelines.
 
-Yes. See the next patch :-)
+Patch 2: Add suspend resume helpers
+  - Makes use of the atomic helper functions to control the CRTCs
+    and fbdev emulation.
 
-Basically, the next patch remove dvb_frontend_ioctl_properties(), merging
-it with another ioctl handler. On such handler, the error handling path
-is different for each ioctl.
+Patch 3: Remove unused CRTC suspend/resume functions
+  - Cleans up some old, related but unused functions that are not
+    necessary to keep in the code base.
 
-We might still use gotos there, but that would be messy.
+Whilst this is posted as a single series, there are no hard dependencies
+between any of the three patches. They can be picked up independently as
+and when they are successfully reviewed.
 
-> 
-> >  		}
-> >  		for (i = 0; i < tvps->num; i++) {
-> >  			err = dtv_property_process_get(fe, &getp, tvp + i, file);
-> > -			if (err < 0)
-> > -				goto out;
-> > +			if (err < 0) {
-> > +				kfree(tvp);
-> > +				return err;
-> > +			}
-> >  			(tvp + i)->result = err;
-> >  		}
-> >  
-> >  		if (copy_to_user((void __user *)tvps->props, tvp,
-> >  				 tvps->num * sizeof(struct dtv_property))) {
-> > -			err = -EFAULT;
-> > -			goto out;
-> > +			kfree(tvp);
-> > +			return -EFAULT;
-> >  		}  
-> 
-> Could avoid duplicate code keeping out logic perhaps? Is there a reason
-> for removing this?
+This series can be fetched from the following:
 
-Same as above.
+ git://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git tags/vsp-du/du-suspend-resume/v1
+  
+It is based upon a merge of both the current linux-media master branch and the DRM drm-next tree.
 
-> 
-> > -
-> > -	} else
-> > -		err = -EOPNOTSUPP;
-> > -
-> > -out:
-> > -	kfree(tvp);
-> > -	return err;
-> > +		kfree(tvp);
-> > +		break;
-> > +	}
-> > +	default:
-> > +		return -ENOTSUPP;
-> > +	} /* switch */
-> > +	return 0;
-> >  }
-> >  
-> >  static int dtv_set_frontend(struct dvb_frontend *fe)
-> >   
-> 
-> Reviewed-by: Shuah Khan <shuahkh@osg.samsung.com>
-> 
-> thanks,
-> -- Shuah
+Kieran Bingham (3):
+  media: vsp1: Prevent resuming DRM pipelines
+  drm: rcar-du: Add suspend resume helpers
+  drm: rcar-du: Remove unused CRTC suspend/resume functions
 
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 35 +---------------------------
+ drivers/gpu/drm/rcar-du/rcar_du_drv.c  | 18 +++++++++++---
+ drivers/gpu/drm/rcar-du/rcar_du_drv.h  |  1 +-
+ drivers/media/platform/vsp1/vsp1_drv.c |  8 +++++-
+ 4 files changed, 23 insertions(+), 39 deletions(-)
 
-
-Thanks,
-Mauro
+base-commit: 8d2ec9ae96657bbd539d88dbc9d01088f2c9ee63
+-- 
+git-series 0.9.1
