@@ -1,61 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:59141 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750787AbdIOHye (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 03:54:34 -0400
-Subject: [PATCH 5/9] [media] tm6000: Delete an unnecessary variable
- initialisation in tm6000_usb_probe()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
-        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Santosh Kumar Singh <kumar.san1093@gmail.com>,
-        Sean Young <sean@mess.org>,
-        Wei Yongjun <weiyongjun1@huawei.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <2aade468-5dfd-76ee-f59f-c25864930f61@users.sourceforge.net>
-Message-ID: <9c547e6f-8a78-ec7b-2054-dd64708d5823@users.sourceforge.net>
-Date: Fri, 15 Sep 2017 09:53:39 +0200
-MIME-Version: 1.0
-In-Reply-To: <2aade468-5dfd-76ee-f59f-c25864930f61@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:55915 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751111AbdIOOvu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Sep 2017 10:51:50 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH 1/2] v4l2-tpg: add Y10 and Y12 support
+Date: Fri, 15 Sep 2017 16:51:44 +0200
+Message-Id: <20170915145145.44097-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 14 Sep 2017 16:13:56 +0200
+From: Hans Verkuil <hansverk@cisco.com>
 
-The local variable "rc" will be set to an appropriate value a bit later.
-Thus omit the explicit initialisation at the beginning.
+Support the 10 and 12 bit luma formats.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- drivers/media/usb/tm6000/tm6000-cards.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/media/usb/tm6000/tm6000-cards.c b/drivers/media/usb/tm6000/tm6000-cards.c
-index 77347541904d..72dd6b80394f 100644
---- a/drivers/media/usb/tm6000/tm6000-cards.c
-+++ b/drivers/media/usb/tm6000/tm6000-cards.c
-@@ -1185,7 +1185,7 @@ static int tm6000_usb_probe(struct usb_interface *interface,
- {
- 	struct usb_device *usbdev;
- 	struct tm6000_core *dev;
--	int i, rc = 0;
-+	int i, rc;
- 	int nr = 0;
- 	char *speed;
- 
+diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+index a772976cfe26..f96968c11312 100644
+--- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
++++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+@@ -238,6 +238,8 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+ 		tpg->color_enc = TGP_COLOR_ENC_RGB;
+ 		break;
+ 	case V4L2_PIX_FMT_GREY:
++	case V4L2_PIX_FMT_Y10:
++	case V4L2_PIX_FMT_Y12:
+ 	case V4L2_PIX_FMT_Y16:
+ 	case V4L2_PIX_FMT_Y16_BE:
+ 		tpg->color_enc = TGP_COLOR_ENC_LUMA;
+@@ -352,6 +354,8 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+ 	case V4L2_PIX_FMT_YUV444:
+ 	case V4L2_PIX_FMT_YUV555:
+ 	case V4L2_PIX_FMT_YUV565:
++	case V4L2_PIX_FMT_Y10:
++	case V4L2_PIX_FMT_Y12:
+ 	case V4L2_PIX_FMT_Y16:
+ 	case V4L2_PIX_FMT_Y16_BE:
+ 		tpg->twopixelsize[0] = 2 * 2;
+@@ -1056,6 +1060,14 @@ static void gen_twopix(struct tpg_data *tpg,
+ 	case V4L2_PIX_FMT_GREY:
+ 		buf[0][offset] = r_y_h;
+ 		break;
++	case V4L2_PIX_FMT_Y10:
++		buf[0][offset] = (r_y_h << 2) & 0xff;
++		buf[0][offset+1] = r_y_h >> 6;
++		break;
++	case V4L2_PIX_FMT_Y12:
++		buf[0][offset] = (r_y_h << 4) & 0xff;
++		buf[0][offset+1] = r_y_h >> 4;
++		break;
+ 	case V4L2_PIX_FMT_Y16:
+ 		/*
+ 		 * Ideally both bytes should be set to r_y_h, but then you won't
 -- 
 2.14.1
