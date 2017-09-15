@@ -1,146 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:57012 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751551AbdITGix (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 02:38:53 -0400
-Subject: [PATCH 3/3] [media] pvrusb2-ioread: Delete unnecessary braces in six
- functions
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mike Isely <isely@pobox.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <c8117427-6d4d-0a1c-96c7-56e25d838b3e@users.sourceforge.net>
-Message-ID: <4d51ebb3-67bc-42c5-4be7-1379f2fb259b@users.sourceforge.net>
-Date: Wed, 20 Sep 2017 08:38:46 +0200
-MIME-Version: 1.0
-In-Reply-To: <c8117427-6d4d-0a1c-96c7-56e25d838b3e@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45728 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751661AbdIOOSp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Sep 2017 10:18:45 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v13 21/25] smiapp: Add support for flash and lens devices
+Date: Fri, 15 Sep 2017 17:17:20 +0300
+Message-Id: <20170915141724.23124-22-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 20 Sep 2017 08:15:51 +0200
+Parse async sub-devices by using
+v4l2_subdev_fwnode_reference_parse_sensor_common().
 
-Do not use curly brackets at some source code places
-where a single statement should be sufficient.
+These types devices aren't directly related to the sensor, but are
+nevertheless handled by the smiapp driver due to the relationship of these
+component to the main part of the camera module --- the sensor.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+This does not yet address providing the user space with information on how
+to associate the sensor or lens devices but the kernel now has the
+necessary information to do that.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
- drivers/media/usb/pvrusb2/pvrusb2-ioread.c | 38 ++++++++++++------------------
- 1 file changed, 15 insertions(+), 23 deletions(-)
+ drivers/media/i2c/smiapp/smiapp-core.c | 38 +++++++++++++++++++++++++++-------
+ drivers/media/i2c/smiapp/smiapp.h      |  4 +++-
+ 2 files changed, 33 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-ioread.c b/drivers/media/usb/pvrusb2/pvrusb2-ioread.c
-index 4349f9b5f838..9a0eb2875c9a 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-ioread.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-ioread.c
-@@ -120,9 +120,8 @@ void pvr2_ioread_set_sync_key(struct pvr2_ioread *cp,
- 		cp->sync_key_len = 0;
- 		if (sync_key_len) {
- 			cp->sync_key_ptr = kmalloc(sync_key_len,GFP_KERNEL);
--			if (cp->sync_key_ptr) {
-+			if (cp->sync_key_ptr)
- 				cp->sync_key_len = sync_key_len;
--			}
- 		}
- 	}
- 	if (!cp->sync_key_len) return;
-@@ -203,9 +202,9 @@ int pvr2_ioread_setup(struct pvr2_ioread *cp,struct pvr2_stream *sp)
- 				   cp);
- 			pvr2_ioread_stop(cp);
- 			pvr2_stream_kill(cp->stream);
--			if (pvr2_stream_get_buffer_count(cp->stream)) {
-+			if (pvr2_stream_get_buffer_count(cp->stream))
- 				pvr2_stream_set_buffer_count(cp->stream,0);
--			}
-+
- 			cp->stream = NULL;
- 		}
- 		if (sp) {
-@@ -238,13 +237,10 @@ int pvr2_ioread_set_enabled(struct pvr2_ioread *cp,int fl)
- 	if ((!fl) == (!(cp->enabled))) return ret;
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 700f433261d0..a4735a96ea41 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -31,7 +31,7 @@
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/smiapp.h>
+-#include <linux/v4l2-mediabus.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+ #include <media/v4l2-device.h>
  
- 	mutex_lock(&cp->mutex);
--	do {
--		if (fl) {
--			ret = pvr2_ioread_start(cp);
--		} else {
--			pvr2_ioread_stop(cp);
--		}
--	} while (0);
-+	if (fl)
-+		ret = pvr2_ioread_start(cp);
-+	else
-+		pvr2_ioread_stop(cp);
- 	mutex_unlock(&cp->mutex);
- 	return ret;
+@@ -2887,17 +2887,24 @@ static int smiapp_probe(struct i2c_client *client,
+ 	v4l2_i2c_subdev_init(&sensor->src->sd, client, &smiapp_ops);
+ 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
+ 
++	rval = v4l2_async_notifier_parse_fwnode_sensor_common(
++		&client->dev, &sensor->notifier);
++	if (rval < 0)
++		return rval;
++
+ 	sensor->vana = devm_regulator_get(&client->dev, "vana");
+ 	if (IS_ERR(sensor->vana)) {
+ 		dev_err(&client->dev, "could not get regulator for vana\n");
+-		return PTR_ERR(sensor->vana);
++		rval = PTR_ERR(sensor->vana);
++		goto out_release_async_notifier;
+ 	}
+ 
+ 	sensor->ext_clk = devm_clk_get(&client->dev, NULL);
+ 	if (IS_ERR(sensor->ext_clk)) {
+ 		dev_err(&client->dev, "could not get clock (%ld)\n",
+ 			PTR_ERR(sensor->ext_clk));
+-		return -EPROBE_DEFER;
++		rval = -EPROBE_DEFER;
++		goto out_release_async_notifier;
+ 	}
+ 
+ 	rval = clk_set_rate(sensor->ext_clk, sensor->hwcfg->ext_clk);
+@@ -2905,17 +2912,19 @@ static int smiapp_probe(struct i2c_client *client,
+ 		dev_err(&client->dev,
+ 			"unable to set clock freq to %u\n",
+ 			sensor->hwcfg->ext_clk);
+-		return rval;
++		goto out_release_async_notifier;
+ 	}
+ 
+ 	sensor->xshutdown = devm_gpiod_get_optional(&client->dev, "xshutdown",
+ 						    GPIOD_OUT_LOW);
+-	if (IS_ERR(sensor->xshutdown))
+-		return PTR_ERR(sensor->xshutdown);
++	if (IS_ERR(sensor->xshutdown)) {
++		rval = PTR_ERR(sensor->xshutdown);
++		goto out_release_async_notifier;
++	}
+ 
+ 	rval = smiapp_power_on(&client->dev);
+ 	if (rval < 0)
+-		return rval;
++		goto out_release_async_notifier;
+ 
+ 	rval = smiapp_identify_module(sensor);
+ 	if (rval) {
+@@ -3092,9 +3101,14 @@ static int smiapp_probe(struct i2c_client *client,
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
+ 
++	rval = v4l2_async_subdev_notifier_register(&sensor->src->sd,
++						   &sensor->notifier);
++	if (rval)
++		goto out_media_entity_cleanup;
++
+ 	rval = v4l2_async_register_subdev(&sensor->src->sd);
+ 	if (rval < 0)
+-		goto out_media_entity_cleanup;
++		goto out_unregister_async_notifier;
+ 
+ 	pm_runtime_set_active(&client->dev);
+ 	pm_runtime_get_noresume(&client->dev);
+@@ -3105,6 +3119,9 @@ static int smiapp_probe(struct i2c_client *client,
+ 
+ 	return 0;
+ 
++out_unregister_async_notifier:
++	v4l2_async_notifier_unregister(&sensor->notifier);
++
+ out_media_entity_cleanup:
+ 	media_entity_cleanup(&sensor->src->sd.entity);
+ 
+@@ -3114,6 +3131,9 @@ static int smiapp_probe(struct i2c_client *client,
+ out_power_off:
+ 	smiapp_power_off(&client->dev);
+ 
++out_release_async_notifier:
++	v4l2_async_notifier_release(&sensor->notifier);
++
+ 	return rval;
  }
-@@ -318,13 +314,12 @@ static void pvr2_ioread_filter(struct pvr2_ioread *cp)
- 		for (idx = cp->c_data_offs; idx < cp->c_data_len; idx++) {
- 			if (cp->sync_buf_offs >= cp->sync_key_len) break;
- 			if (cp->c_data_ptr[idx] ==
--			    cp->sync_key_ptr[cp->sync_buf_offs]) {
-+			    cp->sync_key_ptr[cp->sync_buf_offs])
- 				// Found the next key byte
- 				(cp->sync_buf_offs)++;
--			} else {
-+			else
- 				// Whoops, mismatched.  Start key over...
- 				cp->sync_buf_offs = 0;
--			}
- 		}
  
- 		// Consume what we've walked through
-@@ -360,10 +355,10 @@ static void pvr2_ioread_filter(struct pvr2_ioread *cp)
- int pvr2_ioread_avail(struct pvr2_ioread *cp)
- {
- 	int ret;
--	if (!(cp->enabled)) {
-+
-+	if (!cp->enabled)
- 		// Stream is not enabled; so this is an I/O error
- 		return -EIO;
--	}
+@@ -3124,6 +3144,8 @@ static int smiapp_remove(struct i2c_client *client)
+ 	unsigned int i;
  
- 	if (cp->sync_state == 1) {
- 		pvr2_ioread_filter(cp);
-@@ -372,15 +367,13 @@ int pvr2_ioread_avail(struct pvr2_ioread *cp)
+ 	v4l2_async_unregister_subdev(subdev);
++	v4l2_async_notifier_unregister(&sensor->notifier);
++	v4l2_async_notifier_release(&sensor->notifier);
  
- 	ret = 0;
- 	if (cp->stream_running) {
--		if (!pvr2_stream_get_ready_count(cp->stream)) {
-+		if (!pvr2_stream_get_ready_count(cp->stream))
- 			// No data available at all right now.
- 			ret = -EAGAIN;
--		}
- 	} else {
--		if (pvr2_stream_get_ready_count(cp->stream) < BUFFER_COUNT/2) {
-+		if (pvr2_stream_get_ready_count(cp->stream) < BUFFER_COUNT / 2)
- 			// Haven't buffered up enough yet; try again later
- 			ret = -EAGAIN;
--		}
- 	}
+ 	pm_runtime_disable(&client->dev);
+ 	if (!pm_runtime_status_suspended(&client->dev))
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index f74d695018b9..be92cb5713f4 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -20,9 +20,10 @@
+ #define __SMIAPP_PRIV_H_
  
- 	if ((!(cp->spigot_open)) != (!(ret == 0))) {
-@@ -476,14 +469,13 @@ cp);
- 	mutex_unlock(&cp->mutex);
+ #include <linux/mutex.h>
++#include <media/i2c/smiapp.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-subdev.h>
+-#include <media/i2c/smiapp.h>
  
- 	if (!ret) {
--		if (copied_cnt) {
-+		if (copied_cnt)
- 			// If anything was copied, return that count
- 			ret = copied_cnt;
--		} else {
-+		else
- 			// Nothing copied; suggest to caller that another
- 			// attempt should be tried again later
- 			ret = -EAGAIN;
--		}
- 	}
- 
- 	pvr2_trace(PVR2_TRACE_DATA_FLOW,
+ #include "smiapp-pll.h"
+ #include "smiapp-reg.h"
+@@ -172,6 +173,7 @@ struct smiapp_subdev {
+  * struct smiapp_sensor - Main device structure
+  */
+ struct smiapp_sensor {
++	struct v4l2_async_notifier notifier;
+ 	/*
+ 	 * "mutex" is used to serialise access to all fields here
+ 	 * except v4l2_ctrls at the end of the struct. "mutex" is also
 -- 
-2.14.1
+2.11.0
