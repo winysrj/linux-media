@@ -1,43 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39472 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750872AbdISRyN (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49877
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751171AbdIOJLI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 13:54:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
-        sre@kernel.org
-Subject: Re: [PATCH v13 13/25] v4l: async: Allow async notifier register call succeed with no subdevs
-Date: Tue, 19 Sep 2017 20:54:12 +0300
-Message-ID: <2195038.iUeBRvYfe2@avalon>
-In-Reply-To: <20170919150348.2jsqtxbk6bji4gdb@valkosipuli.retiisi.org.uk>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com> <20170919145831.uztphjdtd3fdxzvr@valkosipuli.retiisi.org.uk> <20170919150348.2jsqtxbk6bji4gdb@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Fri, 15 Sep 2017 05:11:08 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Max Kellermann <max.kellermann@gmail.com>
+Subject: [PATCH 1/5] media: stv0288: get rid of set_property boilerplate
+Date: Fri, 15 Sep 2017 06:10:57 -0300
+Message-Id: <1f1452d2f07a107e152754559a88166af50a3cbf.1505466580.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This driver doesn't implement support for set_property(). Yet,
+it implements a boilerplate for it. Get rid of it.
 
-On Tuesday, 19 September 2017 18:03:48 EEST Sakari Ailus wrote:
-> On Tue, Sep 19, 2017 at 05:58:32PM +0300, Sakari Ailus wrote:
-> >> This skips adding the notifier to the notifier_list. Won't this result
-> >> in an oops when calling list_del(&notifier->list) in
-> >> v4l2_async_notifier_unregister() ?
-> > 
-> > Good point. I'll add initialising the list head to the register function,
-> > with an appropriate comment.
-> 
-> I'll set v4l2_dev NULL instead; no tricks with lists needed.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-frontends/stv0288.c | 7 -------
+ 1 file changed, 7 deletions(-)
 
-Shouldn't the notifier still be added to the notifier_list ?
-
+diff --git a/drivers/media/dvb-frontends/stv0288.c b/drivers/media/dvb-frontends/stv0288.c
+index 45cbc898ad25..67f91814b9f7 100644
+--- a/drivers/media/dvb-frontends/stv0288.c
++++ b/drivers/media/dvb-frontends/stv0288.c
+@@ -447,12 +447,6 @@ static int stv0288_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ 	return 0;
+ }
+ 
+-static int stv0288_set_property(struct dvb_frontend *fe, struct dtv_property *p)
+-{
+-	dprintk("%s(..)\n", __func__);
+-	return 0;
+-}
+-
+ static int stv0288_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct stv0288_state *state = fe->demodulator_priv;
+@@ -567,7 +561,6 @@ static const struct dvb_frontend_ops stv0288_ops = {
+ 	.set_tone = stv0288_set_tone,
+ 	.set_voltage = stv0288_set_voltage,
+ 
+-	.set_property = stv0288_set_property,
+ 	.set_frontend = stv0288_set_frontend,
+ };
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.13.5
