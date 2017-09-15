@@ -1,89 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33143
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751969AbdI0Vk5 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48719 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751316AbdIOSUR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:57 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: [PATCH v2 37/37] media: frontend: use the newly nested kernel-doc support
-Date: Wed, 27 Sep 2017 18:40:38 -0300
-Message-Id: <9feab24a2e963d4aef115c5c3a6ba16f3023c96e.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+        Fri, 15 Sep 2017 14:20:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: kieran.bingham@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH v1 2/3] drm: rcar-du: Add suspend resume helpers
+Date: Fri, 15 Sep 2017 21:20:18 +0300
+Message-ID: <41822401.KNpIGo2cP1@avalon>
+In-Reply-To: <3416c30a-620c-0238-2569-02de80a53ba2@ideasonboard.com>
+References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com> <1607973.DTifMlLdNl@avalon> <3416c30a-620c-0238-2569-02de80a53ba2@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that kernel-doc supports nested structs/unions, use it.
+Hi Kieran,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- include/uapi/linux/dvb/frontend.h | 35 +++++++++++++++++------------------
- 1 file changed, 17 insertions(+), 18 deletions(-)
+On Friday, 15 September 2017 20:49:15 EEST Kieran Bingham wrote:
+> On 15/09/17 18:02, Laurent Pinchart wrote:
+> > On Friday, 15 September 2017 19:42:06 EEST Kieran Bingham wrote:
+> >> The pipeline needs to ensure that the hardware is idle for suspend and
+> >> resume operations.
+> > 
+> > I'm not sure to really understand this sentence.
+> 
+> It makes sense to me ... :) - But I'm not the (only) target audience.
+> 
+> How about re-wording it in a similar way to your suggestion in [1/3]
+> 
+> """
+> To support system suspend operations we must ensure the hardware is stopped,
+> and resumed explicitly from the suspend and resume handlers.
+> 
+> Implement suspend and resume functions using the DRM atomic helper
+> functions.
+> """
 
-diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-index 6bc26f35217b..44b90a0a0079 100644
---- a/include/uapi/linux/dvb/frontend.h
-+++ b/include/uapi/linux/dvb/frontend.h
-@@ -755,16 +755,15 @@ enum fecap_scale_params {
- /**
-  * struct dtv_stats - Used for reading a DTV status property
-  *
-- * @scale:	Filled with enum fecap_scale_params - the scale
-- *		in usage for that parameter
-+ * @scale:
-+ *	Filled with enum fecap_scale_params - the scale in usage
-+ *	for that parameter
-  *
-- * The ``{unnamed_union}`` may have either one of the values below:
-- *
-- * %svalue
-+ * @svalue:
-  *	integer value of the measure, for %FE_SCALE_DECIBEL,
-  *	used for dB measures. The unit is 0.001 dB.
-  *
-- * %uvalue
-+ * @uvalue:
-  *	unsigned integer value of the measure, used when @scale is
-  *	either %FE_SCALE_RELATIVE or %FE_SCALE_COUNTER.
-  *
-@@ -827,19 +826,19 @@ struct dtv_fe_stats {
- /**
-  * struct dtv_property - store one of frontend command and its value
-  *
-- * @cmd:	Digital TV command.
-- * @reserved:	Not used.
-- * @u:		Union with the values for the command.
-- * @result:	Unused
-+ * @cmd:		Digital TV command.
-+ * @reserved:		Not used.
-+ * @u:			Union with the values for the command.
-+ * @u.data:		A unsigned 32 bits integer with command value.
-+ * @u.buffer:		Struct to store bigger properties.
-+ *			Currently unused.
-+ * @u.buffer.data:	an unsigned 32-bits array.
-+ * @u.buffer.len:	number of elements of the buffer.
-+ * @u.buffer.reserved1:	Reserved.
-+ * @u.buffer.reserved2:	Reserved.
-+ * @u.st:		a &struct dtv_fe_stats array of statistics.
-+ * @result:		Currently unused.
-  *
-- * The @u union may have either one of the values below:
-- *
-- * %data
-- *	an unsigned 32-bits number.
-- * %st
-- *	a &struct dtv_fe_stats array of statistics.
-- * %buffer
-- *	a buffer of up to 32 characters (currently unused).
-  */
- struct dtv_property {
- 	__u32 cmd;
+Sounds good to me. I'll update the commit message in my tree, and update the 
+subject line to "drm: rcar-du: Implement system suspend/resume support".
+
+> >> Implement suspend and resume functions using the DRM atomic helper
+> >> functions.
+> >> 
+> >> CC: dri-devel@lists.freedesktop.org
+> >> 
+> >> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> > 
+> > The rest of the patch looks good to me. With the commit message clarified,
+> > 
+> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> >> ---
+> >> 
+> >>  drivers/gpu/drm/rcar-du/rcar_du_drv.c | 18 +++++++++++++++---
+> >>  drivers/gpu/drm/rcar-du/rcar_du_drv.h |  1 +
+> >>  2 files changed, 16 insertions(+), 3 deletions(-)
+
+[snip]
+
 -- 
-2.13.5
+Regards,
+
+Laurent Pinchart
