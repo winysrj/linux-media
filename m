@@ -1,83 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:42658 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751022AbdIAHvi (ORCPT
+Received: from mail-wr0-f171.google.com ([209.85.128.171]:45864 "EHLO
+        mail-wr0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751164AbdIOX22 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Sep 2017 03:51:38 -0400
-Subject: Re: [PATCH] [media_build] update v4.7_dma_attrs.patch
-To: "Jasmin J." <jasmin@anw.at>,
-        Daniel Scheller <d.scheller.oss@gmail.com>,
-        linux-media@vger.kernel.org
-References: <20170828160851.618-1-d.scheller.oss@gmail.com>
- <e91ae137-433c-b9c1-c64a-c82b95f517ff@anw.at>
-Cc: mchehab@kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1e66e19f-ff6c-9582-d2bb-6dc36311be07@xs4all.nl>
-Date: Fri, 1 Sep 2017 09:51:36 +0200
+        Fri, 15 Sep 2017 19:28:28 -0400
+Received: by mail-wr0-f171.google.com with SMTP id m18so2820532wrm.2
+        for <linux-media@vger.kernel.org>; Fri, 15 Sep 2017 16:28:28 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <e91ae137-433c-b9c1-c64a-c82b95f517ff@anw.at>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <67ab090e-955d-9399-e182-cca049a66f1a@gmail.com>
+References: <CAJ+vNU3DPFEc6YnEfcYAv1=beJ96W5PSt=eBfoxCXqKnbNqfMg@mail.gmail.com>
+ <67ab090e-955d-9399-e182-cca049a66f1a@gmail.com>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Fri, 15 Sep 2017 16:28:26 -0700
+Message-ID: <CAJ+vNU3srz1u4x2wku4JKAOWGH8Gc8Wh0eo5aTEhACqoNeE1ow@mail.gmail.com>
+Subject: Re: IMX6 ADV7180 no /dev/media
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Stephan Bauroth <der_steffi@gmx.de>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/09/17 09:41, Jasmin J. wrote:
-> Hi!
-> 
-> To get media-build working again this is needs to be merged also.
+On Fri, Sep 15, 2017 at 3:26 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
+> Hi Tim,
+>
+>
+> On 09/15/2017 02:26 PM, Tim Harvey wrote:
+>>
+>> Greetings,
+>>
+>> I'm testing Linux master built with imx_v6_v7_defconfig on a GW51xx which
+>> has an ADV7180 analog video decoder and am not seeing the imx6 /dev/media
+>> node get created:
+>>
+>> [    0.000000] OF: fdt: Machine model: Gateworks Ventana i.MX6 Dual/Quad
+>> GW51XX
+>> ...
+>> [    6.089039] imx-media: Registered subdev ipu1_vdic
+>> [    6.094505] imx-media: Registered subdev ipu2_vdic
+>> [    6.099851] imx-media: Registered subdev ipu1_ic_prp
+>> [    6.105074] imx-media: Registered subdev ipu1_ic_prpenc
+>> [    6.111346] ipu1_ic_prpenc: Registered ipu1_ic_prpenc capture as
+>> /dev/video0
+>> [    6.119007] imx-media: Registered subdev ipu1_ic_prpvf
+>> [    6.124733] ipu1_ic_prpvf: Registered ipu1_ic_prpvf capture as
+>> /dev/video1
+>> [    6.131867] imx-media: Registered subdev ipu2_ic_prp
+>> [    6.137125] imx-media: Registered subdev ipu2_ic_prpenc
+>> [    6.142921] ipu2_ic_prpenc: Registered ipu2_ic_prpenc capture as
+>> /dev/video2
+>> [    6.150226] imx-media: Registered subdev ipu2_ic_prpvf
+>> [    6.155934] ipu2_ic_prpvf: Registered ipu2_ic_prpvf capture as
+>> /dev/video3
+>> [    6.164011] imx-media: Registered subdev ipu1_csi0
+>> [    6.169768] ipu1_csi0: Registered ipu1_csi0 capture as /dev/video4
+>> [    6.176281] imx-media: Registered subdev ipu1_csi1
+>> [    6.181681] ipu1_csi1: Registered ipu1_csi1 capture as /dev/video5
+>> [    6.188189] imx-media: Registered subdev ipu2_csi0
+>> [    6.193680] ipu2_csi0: Registered ipu2_csi0 capture as /dev/video6
+>> [    6.200108] imx-media: Registered subdev ipu2_csi1
+>> [    6.205577] ipu2_csi1: Registered ipu2_csi1 capture as /dev/video7
+>> ...
+>> [   96.981117] adv7180 2-0020: chip found @ 0x20 (21a8000.i2c)
+>> [   97.019674] imx-media: Registered subdev adv7180 2-0020
+>> [   97.019712] imx-media capture-subsystem: Entity type for entity adv7180
+>> 2-0020 was not initialized!
+>>
+>> I suspect the failure of the adv7180 is causing the issue. Steve mentioned
+>> some time ago that this was an error that needed to be fixed upstream but
+>> I'm not clear if that is still the case.
+>>
+>
+> That does need fixing but is not the cause.
+>
+>> I haven't looked at IMX media drivers since they were accepted to mainline
+>> a few months back. Perhaps I'm simply forgetting to enable something in the
+>> kernel that imx_v6_v7_defconfig doesn't turn on?
+>
+>
+> Yes, it looks like you are missing the video-mux. Enable CONFIG_VIDEO_MUX
+> and CONFIG_MUX_MMIO.
+>
 
-I just applied this. I had to wait until the ktime accessor function
-fixes were merged in the master tree and that got delayed a bit.
+Steve,
 
-Thanks,
+Indeed that was it! What clued you into that being the missing component?
 
-	Hans
+Sounds like we need to enable that for imx_v6_v7_defconfig.
 
-> 
-> BR,
->    Jasmin
-> 
-> 
-> On 08/28/2017 06:08 PM, Daniel Scheller wrote:
->> From: Daniel Scheller <d.scheller@gmx.net>
->>
->> Fixes apply_patches wrt
->>
->>   commit 5b6f9abe5a49 ("media: vb2: add bidirectional flag in vb2_queue")
->>
->> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
->> Tested-by: Jasmin Jessich <jasmin@anw.at>
->> ---
->> Tested and verified by Jasmin on 3.13, 3.4 and 2.6.36, and by me on 4.4.
->>
->>  backports/v4.7_dma_attrs.patch | 8 ++++----
->>  1 file changed, 4 insertions(+), 4 deletions(-)
->>
->> diff --git a/backports/v4.7_dma_attrs.patch b/backports/v4.7_dma_attrs.patch
->> index 28d8dbc..40a7e5b 100644
->> --- a/backports/v4.7_dma_attrs.patch
->> +++ b/backports/v4.7_dma_attrs.patch
->> @@ -294,18 +294,18 @@ index 9a144f2..c5e3113 100644
->>    *		doesn't fill in the @alloc_devs array.
->>  - * @dma_attrs:	DMA attributes to use for the DMA.
->>  + * @dma_attrs:	DMA attributes to use for the DMA. May be NULL.
->> -  * @fileio_read_once:		report EOF after reading the first buffer
->> -  * @fileio_write_immediately:	queue buffer after each write() call
->> -  * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
->> +  * @bidirectional: when this flag is set the DMA direction for the buffers of
->> +  *		this queue will be overridden with DMA_BIDIRECTIONAL direction.
->> +  *		This is useful in cases where the hardware (firmware) writes to
->>  @@ -494,7 +494,7 @@ struct vb2_queue {
->>   	unsigned int			type;
->>   	unsigned int			io_modes;
->>   	struct device			*dev;
->>  -	unsigned long			dma_attrs;
->>  +	const struct dma_attrs		*dma_attrs;
->> + 	unsigned			bidirectional:1;
->>   	unsigned			fileio_read_once:1;
->>   	unsigned			fileio_write_immediately:1;
->> - 	unsigned			allow_zero_bytesused:1;
->>  diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
->>  index 5604818..df2aabe 100644
->>  --- a/include/media/videobuf2-dma-contig.h
->>
+Thanks!
+
+Tim
