@@ -1,102 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:55277 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751837AbdIFHBc (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:37459 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750879AbdIOJxK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Sep 2017 03:01:32 -0400
-Subject: Re: [PATCH v8 03/21] v4l: async: Use more intuitive names for
- internal functions
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
- <20170905130553.1332-4-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7e466832-2c73-a552-1396-e9c282409272@xs4all.nl>
-Date: Wed, 6 Sep 2017 09:01:27 +0200
+        Fri, 15 Sep 2017 05:53:10 -0400
+Received: by mail-wm0-f66.google.com with SMTP id f4so2299460wmh.4
+        for <linux-media@vger.kernel.org>; Fri, 15 Sep 2017 02:53:09 -0700 (PDT)
+From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
+        <ckoenig.leichtzumerken@gmail.com>
+To: chris@chris-wilson.co.uk, daniel.vetter@ffwll.ch,
+        sumit.semwal@linaro.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org
+Subject: [PATCH] dma-fence: fix dma_fence_get_rcu_safe v2
+Date: Fri, 15 Sep 2017 11:53:07 +0200
+Message-Id: <1505469187-3565-1-git-send-email-deathsimple@vodafone.de>
 MIME-Version: 1.0
-In-Reply-To: <20170905130553.1332-4-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/05/2017 03:05 PM, Sakari Ailus wrote:
-> Rename internal functions to make the names of the functions better
-> describe what they do.
-> 
-> 	Old name			New name
-> 	v4l2_async_test_notify	v4l2_async_match_notify
-> 	v4l2_async_belongs	v4l2_async_find_match
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+From: Christian König <christian.koenig@amd.com>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+When dma_fence_get_rcu() fails to acquire a reference it doesn't necessary
+mean that there is no fence at all.
 
-Regards,
+It usually mean that the fence was replaced by a new one and in this situation
+we certainly want to have the new one as result and *NOT* NULL.
 
-	Hans
+v2: Keep extra check after dma_fence_get_rcu().
 
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 19 ++++++++++---------
->  1 file changed, 10 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index f50a82767863..3d81ff6a496f 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -65,8 +65,8 @@ static LIST_HEAD(subdev_list);
->  static LIST_HEAD(notifier_list);
->  static DEFINE_MUTEX(list_lock);
->  
-> -static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
-> -						    struct v4l2_subdev *sd)
-> +static struct v4l2_async_subdev *v4l2_async_find_match(
-> +	struct v4l2_async_notifier *notifier, struct v4l2_subdev *sd)
->  {
->  	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
->  	struct v4l2_async_subdev *asd;
-> @@ -100,9 +100,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
->  	return NULL;
->  }
->  
-> -static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
-> -				  struct v4l2_subdev *sd,
-> -				  struct v4l2_async_subdev *asd)
-> +static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-> +				   struct v4l2_subdev *sd,
-> +				   struct v4l2_async_subdev *asd)
->  {
->  	int ret;
->  
-> @@ -180,11 +180,11 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
->  		int ret;
->  
-> -		asd = v4l2_async_belongs(notifier, sd);
-> +		asd = v4l2_async_find_match(notifier, sd);
->  		if (!asd)
->  			continue;
->  
-> -		ret = v4l2_async_test_notify(notifier, sd, asd);
-> +		ret = v4l2_async_match_notify(notifier, sd, asd);
->  		if (ret < 0) {
->  			mutex_unlock(&list_lock);
->  			return ret;
-> @@ -241,9 +241,10 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  	INIT_LIST_HEAD(&sd->async_list);
->  
->  	list_for_each_entry(notifier, &notifier_list, list) {
-> -		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
-> +		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
-> +								      sd);
->  		if (asd) {
-> -			int ret = v4l2_async_test_notify(notifier, sd, asd);
-> +			int ret = v4l2_async_match_notify(notifier, sd, asd);
->  			mutex_unlock(&list_lock);
->  			return ret;
->  		}
-> 
+Signed-off-by: Christian König <christian.koenig@amd.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linaro-mm-sig@lists.linaro.org
+---
+ include/linux/dma-fence.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/dma-fence.h b/include/linux/dma-fence.h
+index 0a186c4..f4f23cb 100644
+--- a/include/linux/dma-fence.h
++++ b/include/linux/dma-fence.h
+@@ -248,9 +248,12 @@ dma_fence_get_rcu_safe(struct dma_fence * __rcu *fencep)
+ 		struct dma_fence *fence;
+ 
+ 		fence = rcu_dereference(*fencep);
+-		if (!fence || !dma_fence_get_rcu(fence))
++		if (!fence)
+ 			return NULL;
+ 
++		if (!dma_fence_get_rcu(fence))
++			continue;
++
+ 		/* The atomic_inc_not_zero() inside dma_fence_get_rcu()
+ 		 * provides a full memory barrier upon success (such as now).
+ 		 * This is paired with the write barrier from assigning
+-- 
+2.7.4
