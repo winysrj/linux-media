@@ -1,59 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:17022 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751082AbdI1JG0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Sep 2017 05:06:26 -0400
-Subject: Re: [PATCH v2 13/17] media: v4l2-async: simplify v4l2_async_subdev
- structure
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Javi Merino <javi.merino@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Markus Elfring <elfring@users.sourceforge.net>,
-        devel@driverdev.osuosl.org, Yannick Fertre <yannick.fertre@st.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Michal Simek <michal.simek@xilinx.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>,
-        Kukjin Kim <kgene@kernel.org>,
+Received: from mout.web.de ([217.72.192.78]:64150 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750866AbdIOH7r (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Sep 2017 03:59:47 -0400
+Subject: [PATCH 8/9] [media] tm6000: Use common error handling code in
+ tm6000_start_stream()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
+        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Tuukka Toivonen <tuukka.toivonen@intel.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        "Gustavo A. R. Silva" <garsilva@emb>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <2c9c90cc-a41a-ae08-1a50-7d2532aef3e2@samsung.com>
-Date: Thu, 28 Sep 2017 11:06:13 +0200
-MIME-version: 1.0
-In-reply-to: <cd089c6dac22c8ea2194c47c48386e52bb6e561f.1506548682.git.mchehab@s-opensource.com>
-Content-type: text/plain; charset="utf-8"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <cover.1506548682.git.mchehab@s-opensource.com>
-        <cd089c6dac22c8ea2194c47c48386e52bb6e561f.1506548682.git.mchehab@s-opensource.com>
-        <CGME20170928090623epcas2p37888b0350217812c84921c4e11340df1@epcas2p3.samsung.com>
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Santosh Kumar Singh <kumar.san1093@gmail.com>,
+        Sean Young <sean@mess.org>,
+        Wei Yongjun <weiyongjun1@huawei.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <2aade468-5dfd-76ee-f59f-c25864930f61@users.sourceforge.net>
+Message-ID: <0aac22c7-bac1-190c-d5b8-9129d309ca3f@users.sourceforge.net>
+Date: Fri, 15 Sep 2017 09:59:19 +0200
+MIME-Version: 1.0
+In-Reply-To: <2aade468-5dfd-76ee-f59f-c25864930f61@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/27/2017 11:46 PM, Mauro Carvalho Chehab wrote:
-> The V4L2_ASYNC_MATCH_FWNODE match criteria requires just one
-> struct to be filled (struct fwnode_handle). The V4L2_ASYNC_MATCH_DEVNAME
-> match criteria requires just a device name.
-> 
-> So, it doesn't make sense to enclose those into structs,
-> as the criteria can go directly into the union.
-> 
-> That makes easier to document it, as we don't need to document
-> weird senseless structs.
-> 
-> At drivers, this makes even clearer about the match criteria.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 15 Sep 2017 07:47:41 +0200
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Add a jump target so that a bit of exception handling can be better reused
+at the end of this function.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/tm6000/tm6000-dvb.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/usb/tm6000/tm6000-dvb.c b/drivers/media/usb/tm6000/tm6000-dvb.c
+index 855874134fcf..b45e54d5cab9 100644
+--- a/drivers/media/usb/tm6000/tm6000-dvb.c
++++ b/drivers/media/usb/tm6000/tm6000-dvb.c
+@@ -134,8 +134,8 @@ static int tm6000_start_stream(struct tm6000_core *dev)
+ 
+ 	dvb->bulk_urb->transfer_buffer = kzalloc(size, GFP_KERNEL);
+ 	if (!dvb->bulk_urb->transfer_buffer) {
+-		usb_free_urb(dvb->bulk_urb);
+-		return -ENOMEM;
++		ret = -ENOMEM;
++		goto free_urb;
+ 	}
+ 
+ 	usb_fill_bulk_urb(dvb->bulk_urb, dev->udev, pipe,
+@@ -160,11 +160,14 @@ static int tm6000_start_stream(struct tm6000_core *dev)
+ 									ret);
+ 
+ 		kfree(dvb->bulk_urb->transfer_buffer);
+-		usb_free_urb(dvb->bulk_urb);
+-		return ret;
++		goto free_urb;
+ 	}
+ 
+ 	return 0;
++
++free_urb:
++	usb_free_urb(dvb->bulk_urb);
++	return ret;
+ }
+ 
+ static void tm6000_stop_stream(struct tm6000_core *dev)
+-- 
+2.14.1
