@@ -1,227 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:58211 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752790AbdIYKCB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45388 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751259AbdIOORh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 06:02:01 -0400
-Subject: Re: [PATCH v6 13/25] rcar-vin: enable Gen3 hardware configuration
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
- <20170822232640.26147-14-niklas.soderlund+renesas@ragnatech.se>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8669e921-95e8-f36f-dfc2-464313959c2f@xs4all.nl>
-Date: Mon, 25 Sep 2017 12:01:58 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170822232640.26147-14-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+        Fri, 15 Sep 2017 10:17:37 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v13 02/25] v4l: async: Remove re-probing support
+Date: Fri, 15 Sep 2017 17:17:01 +0300
+Message-Id: <20170915141724.23124-3-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23/08/17 01:26, Niklas Söderlund wrote:
-> Add the register needed to work with Gen3 hardware. This patch adds
-> the logic for how to work with the Gen3 hardware. More work is required
-> to enable the subdevice structure needed to configure capturing.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Remove V4L2 async re-probing support. The re-probing support has been
+there to support cases where the sub-devices require resources provided by
+the main driver's hardware to function, such as clocks.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reprobing has allowed unbinding and again binding the main driver without
+explicilty unbinding the sub-device drivers. This is certainly not a
+common need, and the responsibility will be the user's going forward.
 
-Regards,
+An alternative could have been to introduce notifier specific locks.
+Considering the complexity of the re-probing and that it isn't really a
+solution to a problem but a workaround, remove re-probing instead.
 
-	Hans
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 54 ------------------------------------
+ 1 file changed, 54 deletions(-)
 
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-dma.c | 94 ++++++++++++++++++++----------
->  drivers/media/platform/rcar-vin/rcar-vin.h |  1 +
->  2 files changed, 64 insertions(+), 31 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> index 9362e7dba5e3ba95..c4f8e81e88c99e28 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -33,21 +33,23 @@
->  #define VNELPRC_REG	0x10	/* Video n End Line Pre-Clip Register */
->  #define VNSPPRC_REG	0x14	/* Video n Start Pixel Pre-Clip Register */
->  #define VNEPPRC_REG	0x18	/* Video n End Pixel Pre-Clip Register */
-> -#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
-> -#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
-> -#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
-> -#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
->  #define VNIS_REG	0x2C	/* Video n Image Stride Register */
->  #define VNMB_REG(m)	(0x30 + ((m) << 2)) /* Video n Memory Base m Register */
->  #define VNIE_REG	0x40	/* Video n Interrupt Enable Register */
->  #define VNINTS_REG	0x44	/* Video n Interrupt Status Register */
->  #define VNSI_REG	0x48	/* Video n Scanline Interrupt Register */
->  #define VNMTC_REG	0x4C	/* Video n Memory Transfer Control Register */
-> -#define VNYS_REG	0x50	/* Video n Y Scale Register */
-> -#define VNXS_REG	0x54	/* Video n X Scale Register */
->  #define VNDMR_REG	0x58	/* Video n Data Mode Register */
->  #define VNDMR2_REG	0x5C	/* Video n Data Mode Register 2 */
->  #define VNUVAOF_REG	0x60	/* Video n UV Address Offset Register */
-> +
-> +/* Register offsets specific for Gen2 */
-> +#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
-> +#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
-> +#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
-> +#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
-> +#define VNYS_REG	0x50	/* Video n Y Scale Register */
-> +#define VNXS_REG	0x54	/* Video n X Scale Register */
->  #define VNC1A_REG	0x80	/* Video n Coefficient Set C1A Register */
->  #define VNC1B_REG	0x84	/* Video n Coefficient Set C1B Register */
->  #define VNC1C_REG	0x88	/* Video n Coefficient Set C1C Register */
-> @@ -73,9 +75,13 @@
->  #define VNC8B_REG	0xF4	/* Video n Coefficient Set C8B Register */
->  #define VNC8C_REG	0xF8	/* Video n Coefficient Set C8C Register */
->  
-> +/* Register offsets specific for Gen3 */
-> +#define VNCSI_IFMD_REG		0x20 /* Video n CSI2 Interface Mode Register */
->  
->  /* Register bit fields for R-Car VIN */
->  /* Video n Main Control Register bits */
-> +#define VNMC_DPINE		(1 << 27) /* Gen3 specific */
-> +#define VNMC_SCLE		(1 << 26) /* Gen3 specific */
->  #define VNMC_FOC		(1 << 21)
->  #define VNMC_YCAL		(1 << 19)
->  #define VNMC_INF_YUV8_BT656	(0 << 16)
-> @@ -119,6 +125,13 @@
->  #define VNDMR2_FTEV		(1 << 17)
->  #define VNDMR2_VLV(n)		((n & 0xf) << 12)
->  
-> +/* Video n CSI2 Interface Mode Register (Gen3) */
-> +#define VNCSI_IFMD_DES2		(1 << 27)
-> +#define VNCSI_IFMD_DES1		(1 << 26)
-> +#define VNCSI_IFMD_DES0		(1 << 25)
-> +#define VNCSI_IFMD_CSI_CHSEL(n) ((n & 0xf) << 0)
-> +#define VNCSI_IFMD_CSI_CHSEL_MASK 0xf
-> +
->  struct rvin_buffer {
->  	struct vb2_v4l2_buffer vb;
->  	struct list_head list;
-> @@ -514,28 +527,10 @@ static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
->  	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
->  }
->  
-> -static void rvin_crop_scale_comp(struct rvin_dev *vin)
-> +static void rvin_crop_scale_comp_gen2(struct rvin_dev *vin)
->  {
->  	u32 xs, ys;
->  
-> -	/* Set Start/End Pixel/Line Pre-Clip */
-> -	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
-> -	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
-> -	switch (vin->format.field) {
-> -	case V4L2_FIELD_INTERLACED:
-> -	case V4L2_FIELD_INTERLACED_TB:
-> -	case V4L2_FIELD_INTERLACED_BT:
-> -		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
-> -		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
-> -			   VNELPRC_REG);
-> -		break;
-> -	default:
-> -		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
-> -		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
-> -			   VNELPRC_REG);
-> -		break;
-> -	}
-> -
->  	/* Set scaling coefficient */
->  	ys = 0;
->  	if (vin->crop.height != vin->compose.height)
-> @@ -573,11 +568,6 @@ static void rvin_crop_scale_comp(struct rvin_dev *vin)
->  		break;
->  	}
->  
-> -	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
-> -		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
-> -	else
-> -		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
-> -
->  	vin_dbg(vin,
->  		"Pre-Clip: %ux%u@%u:%u YS: %d XS: %d Post-Clip: %ux%u@%u:%u\n",
->  		vin->crop.width, vin->crop.height, vin->crop.left,
-> @@ -585,6 +575,37 @@ static void rvin_crop_scale_comp(struct rvin_dev *vin)
->  		0, 0);
->  }
->  
-> +static void rvin_crop_scale_comp(struct rvin_dev *vin)
-> +{
-> +	/* Set Start/End Pixel/Line Pre-Clip */
-> +	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
-> +	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
-> +
-> +	switch (vin->format.field) {
-> +	case V4L2_FIELD_INTERLACED:
-> +	case V4L2_FIELD_INTERLACED_TB:
-> +	case V4L2_FIELD_INTERLACED_BT:
-> +		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
-> +		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
-> +			   VNELPRC_REG);
-> +		break;
-> +	default:
-> +		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
-> +		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
-> +			   VNELPRC_REG);
-> +		break;
-> +	}
-> +
-> +	/* TODO: Add support for the UDS scaler. */
-> +	if (vin->info->chip != RCAR_GEN3)
-> +		rvin_crop_scale_comp_gen2(vin);
-> +
-> +	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
-> +		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
-> +	else
-> +		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
-> +}
-> +
->  /* -----------------------------------------------------------------------------
->   * Hardware setup
->   */
-> @@ -659,7 +680,10 @@ static int rvin_setup(struct rvin_dev *vin)
->  	}
->  
->  	/* Enable VSYNC Field Toogle mode after one VSYNC input */
-> -	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
-> +	if (vin->info->chip == RCAR_GEN3)
-> +		dmr2 = VNDMR2_FTEV;
-> +	else
-> +		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
->  
->  	/* Hsync Signal Polarity Select */
->  	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-> @@ -711,6 +735,14 @@ static int rvin_setup(struct rvin_dev *vin)
->  	if (input_is_yuv == output_is_yuv)
->  		vnmc |= VNMC_BPS;
->  
-> +	if (vin->info->chip == RCAR_GEN3) {
-> +		/* Select between CSI-2 and Digital input */
-> +		if (vin->mbus_cfg.type == V4L2_MBUS_CSI2)
-> +			vnmc &= ~VNMC_DPINE;
-> +		else
-> +			vnmc |= VNMC_DPINE;
-> +	}
-> +
->  	/* Progressive or interlaced mode */
->  	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
->  
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-> index 82f074c601ea4efe..c4608686666d2d81 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -33,6 +33,7 @@ enum chip_id {
->  	RCAR_H1,
->  	RCAR_M1,
->  	RCAR_GEN2,
-> +	RCAR_GEN3,
->  };
->  
->  /**
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index d741a8e0fdac..e109d9da4653 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -198,78 +198,24 @@ EXPORT_SYMBOL(v4l2_async_notifier_register);
+ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ {
+ 	struct v4l2_subdev *sd, *tmp;
+-	unsigned int notif_n_subdev = notifier->num_subdevs;
+-	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+-	struct device **dev;
+-	int i = 0;
+ 
+ 	if (!notifier->v4l2_dev)
+ 		return;
+ 
+-	dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(notifier->v4l2_dev->dev,
+-			"Failed to allocate device cache!\n");
+-	}
+-
+ 	mutex_lock(&list_lock);
+ 
+ 	list_del(&notifier->list);
+ 
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+-		struct device *d;
+-
+-		d = get_device(sd->dev);
+-
+ 		v4l2_async_cleanup(sd);
+ 
+-		/* If we handled USB devices, we'd have to lock the parent too */
+-		device_release_driver(d);
+-
+ 		if (notifier->unbind)
+ 			notifier->unbind(notifier, sd, sd->asd);
+-
+-		/*
+-		 * Store device at the device cache, in order to call
+-		 * put_device() on the final step
+-		 */
+-		if (dev)
+-			dev[i++] = d;
+-		else
+-			put_device(d);
+ 	}
+ 
+ 	mutex_unlock(&list_lock);
+ 
+-	/*
+-	 * Call device_attach() to reprobe devices
+-	 *
+-	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
+-	 * executed.
+-	 */
+-	while (i--) {
+-		struct device *d = dev[i];
+-
+-		if (d && device_attach(d) < 0) {
+-			const char *name = "(none)";
+-			int lock = device_trylock(d);
+-
+-			if (lock && d->driver)
+-				name = d->driver->name;
+-			dev_err(d, "Failed to re-probe to %s\n", name);
+-			if (lock)
+-				device_unlock(d);
+-		}
+-		put_device(d);
+-	}
+-	kvfree(dev);
+-
+ 	notifier->v4l2_dev = NULL;
+-
+-	/*
+-	 * Don't care about the waiting list, it is initialised and populated
+-	 * upon notifier registration.
+-	 */
+ }
+ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+ 
+-- 
+2.11.0
