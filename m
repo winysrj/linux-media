@@ -1,48 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:50034 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751192AbdIBUoI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 2 Sep 2017 16:44:08 -0400
-Subject: [PATCH 4/7] [media] Hopper: Delete an unnecessary variable
- initialisation in hopper_pci_probe()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
+Received: from mout.kundenserver.de ([212.227.17.10]:53854 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751259AbdIOTwf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Sep 2017 15:52:35 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        Anton Sviridenko <anton@corp.bluecherry.net>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        Ismael Luceno <ismael@iodev.co.uk>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <9ba22d42-0ec0-b865-dec5-4ce67ad443fb@users.sourceforge.net>
-Message-ID: <34198288-20f0-0ee1-572f-2eb3d7892299@users.sourceforge.net>
-Date: Sat, 2 Sep 2017 22:44:03 +0200
-MIME-Version: 1.0
-In-Reply-To: <9ba22d42-0ec0-b865-dec5-4ce67ad443fb@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] solo6x10: hide unused variable
+Date: Fri, 15 Sep 2017 21:52:04 +0200
+Message-Id: <20170915195225.1394284-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 2 Sep 2017 21:50:55 +0200
+When building without CONFIG_GPIOLIB, we get a harmless
+warning about an unused variable:
 
-The variable "err" will be set to an appropriate value a bit later.
-Thus omit the explicit initialisation at the beginning.
+drivers/media/pci/solo6x10/solo6x10-gpio.c: In function 'solo_gpio_init':
+drivers/media/pci/solo6x10/solo6x10-gpio.c:165:6: error: unused variable 'ret' [-Werror=unused-variable]
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+This adds another #ifdef around the declaration.
+
+Fixes: d3202d1981dc ("media: solo6x10: export hardware GPIO pins 8:31 to gpiolib interface")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/pci/mantis/hopper_cards.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/pci/solo6x10/solo6x10-gpio.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/pci/mantis/hopper_cards.c b/drivers/media/pci/mantis/hopper_cards.c
-index 88e5b2a97005..3826be19c156 100644
---- a/drivers/media/pci/mantis/hopper_cards.c
-+++ b/drivers/media/pci/mantis/hopper_cards.c
-@@ -161,6 +161,6 @@ static int hopper_pci_probe(struct pci_dev *pdev,
- 	struct mantis_pci_drvdata *drvdata;
- 	struct mantis_pci *mantis;
- 	struct mantis_hwconfig *config;
--	int err = 0;
-+	int err;
+diff --git a/drivers/media/pci/solo6x10/solo6x10-gpio.c b/drivers/media/pci/solo6x10/solo6x10-gpio.c
+index 3d0d1aa2f6a8..7b4641a2cb84 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-gpio.c
++++ b/drivers/media/pci/solo6x10/solo6x10-gpio.c
+@@ -162,7 +162,9 @@ static void solo_gpiochip_set(struct gpio_chip *chip,
  
- 	mantis = kzalloc(sizeof(*mantis), GFP_KERNEL);
+ int solo_gpio_init(struct solo_dev *solo_dev)
+ {
++#ifdef CONFIG_GPIOLIB
+ 	int ret;
++#endif
+ 
+ 	solo_gpio_config(solo_dev);
+ #ifdef CONFIG_GPIOLIB
 -- 
-2.14.1
+2.9.0
