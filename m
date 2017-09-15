@@ -1,53 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:49297 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751626AbdIOUlz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 16:41:55 -0400
-Subject: [PATCH 1/2] [media] ma901: Delete two error messages for a failed
- memory allocation in usb_ma901radio_probe()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Alexey Klimov <klimov.linux@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <6d4d9e92-9ac5-1e46-99ed-2b7d93bd7121@users.sourceforge.net>
-Message-ID: <0a794519-30e4-666d-d16b-7d3081f26a37@users.sourceforge.net>
-Date: Fri, 15 Sep 2017 22:41:48 +0200
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48646 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751184AbdIORtV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Sep 2017 13:49:21 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH v1 2/3] drm: rcar-du: Add suspend resume helpers
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <199d29db89a7953f59e1eb4e91a3421336e3ed2a.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <1607973.DTifMlLdNl@avalon>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <3416c30a-620c-0238-2569-02de80a53ba2@ideasonboard.com>
+Date: Fri, 15 Sep 2017 18:49:15 +0100
 MIME-Version: 1.0
-In-Reply-To: <6d4d9e92-9ac5-1e46-99ed-2b7d93bd7121@users.sourceforge.net>
+In-Reply-To: <1607973.DTifMlLdNl@avalon>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 15 Sep 2017 22:20:04 +0200
+Hi Laurent,
 
-Omit extra messages for a memory allocation failure in this function.
+Thanks for your speedy review!
 
-This issue was detected by using the Coccinelle software.
+On 15/09/17 18:02, Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> Thank you for the patch.
+> 
+> On Friday, 15 September 2017 19:42:06 EEST Kieran Bingham wrote:
+>> The pipeline needs to ensure that the hardware is idle for suspend and
+>> resume operations.
+> 
+> I'm not sure to really understand this sentence.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/radio/radio-ma901.c | 2 --
- 1 file changed, 2 deletions(-)
+It makes sense to me ... :) - But I'm not the (only) target audience.
 
-diff --git a/drivers/media/radio/radio-ma901.c b/drivers/media/radio/radio-ma901.c
-index fdc481257efd..c386fbd63703 100644
---- a/drivers/media/radio/radio-ma901.c
-+++ b/drivers/media/radio/radio-ma901.c
-@@ -361,10 +361,8 @@ static int usb_ma901radio_probe(struct usb_interface *intf,
- 	if (!radio) {
--		dev_err(&intf->dev, "kzalloc for ma901radio_device failed\n");
- 		retval = -ENOMEM;
- 		goto err;
- 	}
- 
- 	radio->buffer = kmalloc(BUFFER_LENGTH, GFP_KERNEL);
- 	if (!radio->buffer) {
--		dev_err(&intf->dev, "kmalloc for radio->buffer failed\n");
- 		retval = -ENOMEM;
--- 
-2.14.1
+How about re-wording it in a similar way to your suggestion in [1/3]
+
+"""
+To support system suspend operations we must ensure the hardware is stopped, and
+resumed explicitly from the suspend and resume handlers.
+
+Implement suspend and resume functions using the DRM atomic helper
+functions.
+"""
+
+
+> 
+>> Implement suspend and resume functions using the DRM atomic helper
+>> functions.
+>>
+>> CC: dri-devel@lists.freedesktop.org
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> The rest of the patch looks good to me. With the commit message clarified,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+>> ---
+>>  drivers/gpu/drm/rcar-du/rcar_du_drv.c | 18 +++++++++++++++---
+>>  drivers/gpu/drm/rcar-du/rcar_du_drv.h |  1 +
+>>  2 files changed, 16 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.c
+>> b/drivers/gpu/drm/rcar-du/rcar_du_drv.c index 09fbceade6b1..01b91d0c169c
+>> 100644
+>> --- a/drivers/gpu/drm/rcar-du/rcar_du_drv.c
+>> +++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
+>> @@ -22,6 +22,7 @@
+>>  #include <linux/wait.h>
+>>
+>>  #include <drm/drmP.h>
+>> +#include <drm/drm_atomic_helper.h>
+>>  #include <drm/drm_crtc_helper.h>
+>>  #include <drm/drm_fb_cma_helper.h>
+>>  #include <drm/drm_gem_cma_helper.h>
+>> @@ -267,9 +268,19 @@ static struct drm_driver rcar_du_driver = {
+>>  static int rcar_du_pm_suspend(struct device *dev)
+>>  {
+>>  	struct rcar_du_device *rcdu = dev_get_drvdata(dev);
+>> +	struct drm_atomic_state *state;
+>>
+>>  	drm_kms_helper_poll_disable(rcdu->ddev);
+>> -	/* TODO Suspend the CRTC */
+>> +	drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, true);
+>> +
+>> +	state = drm_atomic_helper_suspend(rcdu->ddev);
+>> +	if (IS_ERR(state)) {
+>> +		drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, false);
+>> +		drm_kms_helper_poll_enable(rcdu->ddev);
+>> +		return PTR_ERR(state);
+>> +	}
+>> +
+>> +	rcdu->suspend_state = state;
+>>
+>>  	return 0;
+>>  }
+>> @@ -278,9 +289,10 @@ static int rcar_du_pm_resume(struct device *dev)
+>>  {
+>>  	struct rcar_du_device *rcdu = dev_get_drvdata(dev);
+>>
+>> -	/* TODO Resume the CRTC */
+>> -
+>> +	drm_atomic_helper_resume(rcdu->ddev, rcdu->suspend_state);
+>> +	drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, false);
+>>  	drm_kms_helper_poll_enable(rcdu->ddev);
+>> +
+>>  	return 0;
+>>  }
+>>  #endif
+>> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.h
+>> b/drivers/gpu/drm/rcar-du/rcar_du_drv.h index f8cd79488ece..f400fde65a0c
+>> 100644
+>> --- a/drivers/gpu/drm/rcar-du/rcar_du_drv.h
+>> +++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.h
+>> @@ -81,6 +81,7 @@ struct rcar_du_device {
+>>
+>>  	struct drm_device *ddev;
+>>  	struct drm_fbdev_cma *fbdev;
+>> +	struct drm_atomic_state *suspend_state;
+>>
+>>  	struct rcar_du_crtc crtcs[RCAR_DU_MAX_CRTCS];
+>>  	unsigned int num_crtcs;
+> 
+> 
