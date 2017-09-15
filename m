@@ -1,64 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:44410 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750832AbdIFIr7 (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.10]:51088 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751562AbdIOTzW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Sep 2017 04:47:59 -0400
-Subject: Re: [PATCH v8 15/21] dt: bindings: Add a binding for flash devices
- associated to a sensor
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
- <20170905130553.1332-16-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <03250e06-6e14-8c79-2567-5c2bab10562d@xs4all.nl>
-Date: Wed, 6 Sep 2017 10:47:54 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170905130553.1332-16-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Fri, 15 Sep 2017 15:55:22 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Kyungmin Park <kyungmin.park@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] exynos4-is: properly initialize frame format
+Date: Fri, 15 Sep 2017 21:54:34 +0200
+Message-Id: <20170915195441.1505586-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/05/2017 03:05 PM, Sakari Ailus wrote:
-> Camera flash drivers (and LEDs) are separate from the sensor devices in
-> DT. In order to make an association between the two, provide the
-> association information to the software.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Rob Herring <robh@kernel.org>
+We copy the subdev frame format from a partially initialized
+structure, which is not entirely well-defined. Older compilers
+like gcc-4.4 can copy uninitialized stack data here and warn
+about it:
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+drivers/media/platform/exynos4-is/fimc-isp.c: In function 'fimc_isp_subdev_open':
+drivers/media/platform/exynos4-is/fimc-isp.c:379: error: 'fmt.reserved[10u]' may be used uninitialized in this function
+drivers/media/platform/exynos4-is/fimc-isp.c:379: error: 'fmt.reserved[9u]' may be used uninitialized in this function
+...
+drivers/media/platform/exynos4-is/fimc-isp.c:379: error: 'fmt.reserved[0u]' may be used uninitialized in this function
+drivers/media/platform/exynos4-is/fimc-isp.c:379: error: 'fmt.xfer_func' may be used uninitialized in this function
 
-Regards,
+On newer compilers, only the initialized fields get copied, but
+we should not rely on that, so this changes the code to zero-out
+the remaining fields first.
 
-	Hans
+Fixes: 9a761e436843 ("[media] exynos4-is: Add Exynos4x12 FIMC-IS driver")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/platform/exynos4-is/fimc-isp.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-> ---
->  Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> index 852041a7480c..efc67161e389 100644
-> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> @@ -67,6 +67,14 @@ are required in a relevant parent node:
->  		    identifier, should be 1.
->   - #size-cells    : should be zero.
->  
-> +
-> +Optional properties
-> +-------------------
-> +
-> +- flash: An array of phandles, each referring to a flash LED, a sub-node
-> +  of the LED driver device node.
-> +
-> +
->  Optional endpoint properties
->  ----------------------------
->  
-> 
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp.c b/drivers/media/platform/exynos4-is/fimc-isp.c
+index fd793d3ac072..9a48c0f69320 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp.c
++++ b/drivers/media/platform/exynos4-is/fimc-isp.c
+@@ -366,16 +366,16 @@ static int fimc_isp_subdev_s_power(struct v4l2_subdev *sd, int on)
+ static int fimc_isp_subdev_open(struct v4l2_subdev *sd,
+ 				struct v4l2_subdev_fh *fh)
+ {
+-	struct v4l2_mbus_framefmt fmt;
+ 	struct v4l2_mbus_framefmt *format;
++	struct v4l2_mbus_framefmt fmt = {
++		.colorspace = V4L2_COLORSPACE_SRGB,
++		.code = fimc_isp_formats[0].mbus_code,
++		.width = DEFAULT_PREVIEW_STILL_WIDTH + FIMC_ISP_CAC_MARGIN_WIDTH,
++		.height = DEFAULT_PREVIEW_STILL_HEIGHT + FIMC_ISP_CAC_MARGIN_HEIGHT,
++		.field = V4L2_FIELD_NONE,
++	};
+ 
+ 	format = v4l2_subdev_get_try_format(sd, fh->pad, FIMC_ISP_SD_PAD_SINK);
+-
+-	fmt.colorspace = V4L2_COLORSPACE_SRGB;
+-	fmt.code = fimc_isp_formats[0].mbus_code;
+-	fmt.width = DEFAULT_PREVIEW_STILL_WIDTH + FIMC_ISP_CAC_MARGIN_WIDTH;
+-	fmt.height = DEFAULT_PREVIEW_STILL_HEIGHT + FIMC_ISP_CAC_MARGIN_HEIGHT;
+-	fmt.field = V4L2_FIELD_NONE;
+ 	*format = fmt;
+ 
+ 	format = v4l2_subdev_get_try_format(sd, fh->pad, FIMC_ISP_SD_PAD_SRC_FIFO);
+-- 
+2.9.0
