@@ -1,53 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam03on0076.outbound.protection.outlook.com ([104.47.42.76]:47392
-        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751026AbdIKLGt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 07:06:49 -0400
-Subject: Re: [PATCH] dma-fence: fix dma_fence_get_rcu_safe
-To: Chris Wilson <chris@chris-wilson.co.uk>, daniel.vetter@ffwll.ch,
-        sumit.semwal@linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org
-References: <1504531653-13779-1-git-send-email-deathsimple@vodafone.de>
- <150453243791.23157.6907537389223890207@mail.alporthouse.com>
- <67fe7e05-7743-40c8-558b-41b08eb986e9@amd.com>
- <150512037119.16759.472484663447331384@mail.alporthouse.com>
- <3c412ee3-854a-292a-e036-7c5fd7888979@amd.com>
- <150512178199.16759.73667469529688@mail.alporthouse.com>
- <5ff4b100-b580-a93d-aa5e-c66173ac091d@amd.com>
- <150512410278.16759.10537429613477592631@mail.alporthouse.com>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
-Message-ID: <79e447f8-f2e3-57e3-b5fe-503e5feb2f82@amd.com>
-Date: Mon, 11 Sep 2017 13:06:32 +0200
-MIME-Version: 1.0
-In-Reply-To: <150512410278.16759.10537429613477592631@mail.alporthouse.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45740 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751661AbdIOOSr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Sep 2017 10:18:47 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v13 22/25] et8ek8: Add support for flash and lens devices
+Date: Fri, 15 Sep 2017 17:17:21 +0300
+Message-Id: <20170915141724.23124-23-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 11.09.2017 um 12:01 schrieb Chris Wilson:
-> [SNIP]
->> Yeah, but that is illegal with a fence objects.
->>
->> When anybody allocates fences this way it breaks at least
->> reservation_object_get_fences_rcu(),
->> reservation_object_wait_timeout_rcu() and
->> reservation_object_test_signaled_single().
-> Many, many months ago I sent patches to fix them all.
+From: Pavel Machek <pavel@ucw.cz>
 
-Found those after a bit a searching. Yeah, those patches where proposed 
-more than a year ago, but never pushed upstream.
+Parse async sub-devices by using
+v4l2_subdev_fwnode_reference_parse_sensor_common().
 
-Not sure if we really should go this way. dma_fence objects are shared 
-between drivers and since we can't judge if it's the correct fence based 
-on a criteria in the object (only the read counter which is outside) all 
-drivers need to be correct for this.
+These types devices aren't directly related to the sensor, but are
+nevertheless handled by the et8ek8 driver due to the relationship of these
+component to the main part of the camera module --- the sensor.
 
-I would rather go the way and change dma_fence_release() to wrap 
-fence->ops->release into call_rcu() to keep the whole RCU handling 
-outside of the individual drivers.
+[Sakari Ailus: Rename fwnode function, check for ret < 0 only.]
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/et8ek8/et8ek8_driver.c | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-Regards,
-Christian.
+diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+index c14f0fd6ded3..0ef1b8025935 100644
+--- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
++++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+@@ -34,10 +34,12 @@
+ #include <linux/sort.h>
+ #include <linux/v4l2-mediabus.h>
+ 
++#include <media/v4l2-async.h>
+ #include <media/media-entity.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
++#include <media/v4l2-fwnode.h>
+ 
+ #include "et8ek8_reg.h"
+ 
+@@ -46,6 +48,7 @@
+ #define ET8EK8_MAX_MSG		8
+ 
+ struct et8ek8_sensor {
++	struct v4l2_async_notifier notifier;
+ 	struct v4l2_subdev subdev;
+ 	struct media_pad pad;
+ 	struct v4l2_mbus_framefmt format;
+@@ -1446,6 +1449,11 @@ static int et8ek8_probe(struct i2c_client *client,
+ 	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	sensor->subdev.internal_ops = &et8ek8_internal_ops;
+ 
++	ret = v4l2_async_notifier_parse_fwnode_sensor_common(
++		&client->dev, &sensor->notifier);
++	if (ret < 0)
++		goto err_release;
++
+ 	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	ret = media_entity_pads_init(&sensor->subdev.entity, 1, &sensor->pad);
+ 	if (ret < 0) {
+@@ -1453,18 +1461,27 @@ static int et8ek8_probe(struct i2c_client *client,
+ 		goto err_mutex;
+ 	}
+ 
++	ret = v4l2_async_subdev_notifier_register(&sensor->subdev,
++						  &sensor->notifier);
++	if (ret)
++		goto err_entity;
++
+ 	ret = v4l2_async_register_subdev(&sensor->subdev);
+ 	if (ret < 0)
+-		goto err_entity;
++		goto err_async;
+ 
+ 	dev_dbg(dev, "initialized!\n");
+ 
+ 	return 0;
+ 
++err_async:
++	v4l2_async_notifier_unregister(&sensor->notifier);
+ err_entity:
+ 	media_entity_cleanup(&sensor->subdev.entity);
+ err_mutex:
+ 	mutex_destroy(&sensor->power_lock);
++err_release:
++	v4l2_async_notifier_release(&sensor->notifier);
+ 	return ret;
+ }
+ 
+@@ -1480,6 +1497,8 @@ static int __exit et8ek8_remove(struct i2c_client *client)
+ 	}
+ 
+ 	v4l2_device_unregister_subdev(&sensor->subdev);
++	v4l2_async_notifier_unregister(&sensor->notifier);
++	v4l2_async_notifier_release(&sensor->notifier);
+ 	device_remove_file(&client->dev, &dev_attr_priv_mem);
+ 	v4l2_ctrl_handler_free(&sensor->ctrl_handler);
+ 	v4l2_async_unregister_subdev(&sensor->subdev);
+-- 
+2.11.0
