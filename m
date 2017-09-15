@@ -1,86 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp82.ord1c.emailsrvr.com ([108.166.43.82]:36141 "EHLO
-        smtp82.ord1c.emailsrvr.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750881AbdIEI6r (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45468 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751434AbdIOORw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Sep 2017 04:58:47 -0400
-From: Edgar Thier <edgar.thier@theimagingsource.com>
-Subject: Re: UVC property auto update
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <c3f8b20a-65f9-ead3-9ffd-041641254af7@theimagingsource.com>
- <Pine.LNX.4.64.1709031714570.29016@axis700.grange>
- <4ce389e0-f63e-049e-b200-14ada55bb630@theimagingsource.com>
- <alpine.DEB.2.20.1709040801550.13291@axis700.grange>
- <c36606bf-a412-894b-82bc-37fb88b50121@theimagingsource.com>
- <alpine.DEB.2.20.1709041208520.13291@axis700.grange>
-Message-ID: <cb50a0e7-7f0f-bf98-df59-4fc95d7add2b@theimagingsource.com>
-Date: Tue, 5 Sep 2017 10:58:45 +0200
-MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.20.1709041208520.13291@axis700.grange>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        Fri, 15 Sep 2017 10:17:52 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v13 06/25] omap3isp: Use generic parser for parsing fwnode endpoints
+Date: Fri, 15 Sep 2017 17:17:05 +0300
+Message-Id: <20170915141724.23124-7-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Instead of using driver implementation, use
+v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
+of the device.
 
-> 
-> Ok, looking more at the spec, the driver and your patch, here's what I 
-> come up with:
-> 
-> 1. UVC defines which standard controls should have which flags. Among 
-> those flags it specifies, which controls should specify the Autoupdate 
-> flag. E.g. see the first of them as it appears in my copy of the spec 
-> "4.2.2.4.8 Average Bit Rate Control"
-> 2. The driver could read out flags from descriptors, but it hard-codes 
-> them instead. So, (arguably), there's no need to actually read them at 
-> probe time. XUs on the other hand aren't standard, therefore their flags 
-> have to be read out.
-> 3. In your patch you provide gain as an example. Do you mean the 
-> PU_GAIN_CONTROL? The spec doesn't specify, that it should have Autoupdate 
-> set. Now, whether that means, that using that flag with PU_GAIN_CONTROL is 
-> a violation of the spec - I'm not sure about.
-> 
-> So, I think, the question really is - are hard-coded flags a proper and 
-> sufficient approach or should flags be read from descriptors?
-> 
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/omap3isp/isp.c | 115 +++++++++++-----------------------
+ drivers/media/platform/omap3isp/isp.h |   5 +-
+ 2 files changed, 37 insertions(+), 83 deletions(-)
 
-That is the questioned I cannot answer. The current approach (with my patch) enables both.
-The cameras I work with either assume no AUTO_UPDATE or try to define the FLAG themselves.
-As to what the standard expects, I do not know as IMO it is not clearly enough defined if this flag
-is optional or somehow expected. But I think that it makes more sense to ask the device
-for its capabilities than the other way around. E.g. I have yet to encounter a camera that has hue
-with AUTO_UPDATE yet the driver expects it.
-
-> 
->> I will also ask the firmware developer if only value changes are available or flag changes are also
->> a possibility.
-> 
-> Well, flags aren't likely to change, perhaps. I think min and max values 
-> are more likely to be updated.
-> 
-
-I just talked to him. There are no plans to use the auto update functionality for anything besides
-GET_CUR. Flags could get messy since auto update itself could be toggled once other properties are
-changed. These cross dependencies are not handled in the standard as far as I am aware.
-
-> Well, flags aren't likely to change, perhaps. I think min and max values 
-> are more likely to be updated.
-
-That depends. When activating an auto feature, say auto-exposure. it could be interesting to set
-exposure to read-only. For boundary changes I would say the question is how many users would
-anticipate such a behavior.
-
->>>
->>> As you can see, it only handles the VALUE_CHANGE (GET_CUR) case. I would 
->>> suggest implementing a patch on top of it to add support for INFO_CHANGE 
->>> and you'd be the best person to test it then!
->>
->> I will try it out. I should be able to give you feedback tomorrow.
-> 
-> Thanks.
-> 
-
-Your patch works in combination with mine. I could not detect any problems.
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 1a428fe9f070..a546cf774d40 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2001,6 +2001,7 @@ static int isp_remove(struct platform_device *pdev)
+ 	__omap3isp_put(isp, false);
+ 
+ 	media_entity_enum_cleanup(&isp->crashed);
++	v4l2_async_notifier_release(&isp->notifier);
+ 
+ 	return 0;
+ }
+@@ -2011,44 +2012,41 @@ enum isp_of_phy {
+ 	ISP_OF_PHY_CSIPHY2,
+ };
+ 
+-static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+-			    struct isp_async_subdev *isd)
++static int isp_fwnode_parse(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd)
+ {
++	struct isp_async_subdev *isd =
++		container_of(asd, struct isp_async_subdev, asd);
+ 	struct isp_bus_cfg *buscfg = &isd->bus;
+-	struct v4l2_fwnode_endpoint vep;
+-	unsigned int i;
+-	int ret;
+ 	bool csi1 = false;
+-
+-	ret = v4l2_fwnode_endpoint_parse(fwnode, &vep);
+-	if (ret)
+-		return ret;
++	unsigned int i;
+ 
+ 	dev_dbg(dev, "parsing endpoint %pOF, interface %u\n",
+-		to_of_node(fwnode), vep.base.port);
++		to_of_node(vep->base.local_fwnode), vep->base.port);
+ 
+-	switch (vep.base.port) {
++	switch (vep->base.port) {
+ 	case ISP_OF_PHY_PARALLEL:
+ 		buscfg->interface = ISP_INTERFACE_PARALLEL;
+ 		buscfg->bus.parallel.data_lane_shift =
+-			vep.bus.parallel.data_shift;
++			vep->bus.parallel.data_shift;
+ 		buscfg->bus.parallel.clk_pol =
+-			!!(vep.bus.parallel.flags
++			!!(vep->bus.parallel.flags
+ 			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
+ 		buscfg->bus.parallel.hs_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
+ 		buscfg->bus.parallel.vs_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
+ 		buscfg->bus.parallel.fld_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
+ 		buscfg->bus.parallel.data_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
+-		buscfg->bus.parallel.bt656 = vep.bus_type == V4L2_MBUS_BT656;
++			!!(vep->bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
++		buscfg->bus.parallel.bt656 = vep->bus_type == V4L2_MBUS_BT656;
+ 		break;
+ 
+ 	case ISP_OF_PHY_CSIPHY1:
+ 	case ISP_OF_PHY_CSIPHY2:
+-		switch (vep.bus_type) {
++		switch (vep->bus_type) {
+ 		case V4L2_MBUS_CCP2:
+ 		case V4L2_MBUS_CSI1:
+ 			dev_dbg(dev, "CSI-1/CCP-2 configuration\n");
+@@ -2060,11 +2058,11 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 			break;
+ 		default:
+ 			dev_err(dev, "unsupported bus type %u\n",
+-				vep.bus_type);
++				vep->bus_type);
+ 			return -EINVAL;
+ 		}
+ 
+-		switch (vep.base.port) {
++		switch (vep->base.port) {
+ 		case ISP_OF_PHY_CSIPHY1:
+ 			if (csi1)
+ 				buscfg->interface = ISP_INTERFACE_CCP2B_PHY1;
+@@ -2080,47 +2078,47 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 		}
+ 		if (csi1) {
+ 			buscfg->bus.ccp2.lanecfg.clk.pos =
+-				vep.bus.mipi_csi1.clock_lane;
++				vep->bus.mipi_csi1.clock_lane;
+ 			buscfg->bus.ccp2.lanecfg.clk.pol =
+-				vep.bus.mipi_csi1.lane_polarity[0];
++				vep->bus.mipi_csi1.lane_polarity[0];
+ 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+ 				buscfg->bus.ccp2.lanecfg.clk.pol,
+ 				buscfg->bus.ccp2.lanecfg.clk.pos);
+ 
+ 			buscfg->bus.ccp2.lanecfg.data[0].pos =
+-				vep.bus.mipi_csi1.data_lane;
++				vep->bus.mipi_csi1.data_lane;
+ 			buscfg->bus.ccp2.lanecfg.data[0].pol =
+-				vep.bus.mipi_csi1.lane_polarity[1];
++				vep->bus.mipi_csi1.lane_polarity[1];
+ 
+ 			dev_dbg(dev, "data lane polarity %u, pos %u\n",
+ 				buscfg->bus.ccp2.lanecfg.data[0].pol,
+ 				buscfg->bus.ccp2.lanecfg.data[0].pos);
+ 
+ 			buscfg->bus.ccp2.strobe_clk_pol =
+-				vep.bus.mipi_csi1.clock_inv;
+-			buscfg->bus.ccp2.phy_layer = vep.bus.mipi_csi1.strobe;
++				vep->bus.mipi_csi1.clock_inv;
++			buscfg->bus.ccp2.phy_layer = vep->bus.mipi_csi1.strobe;
+ 			buscfg->bus.ccp2.ccp2_mode =
+-				vep.bus_type == V4L2_MBUS_CCP2;
++				vep->bus_type == V4L2_MBUS_CCP2;
+ 			buscfg->bus.ccp2.vp_clk_pol = 1;
+ 
+ 			buscfg->bus.ccp2.crc = 1;
+ 		} else {
+ 			buscfg->bus.csi2.lanecfg.clk.pos =
+-				vep.bus.mipi_csi2.clock_lane;
++				vep->bus.mipi_csi2.clock_lane;
+ 			buscfg->bus.csi2.lanecfg.clk.pol =
+-				vep.bus.mipi_csi2.lane_polarities[0];
++				vep->bus.mipi_csi2.lane_polarities[0];
+ 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+ 				buscfg->bus.csi2.lanecfg.clk.pol,
+ 				buscfg->bus.csi2.lanecfg.clk.pos);
+ 
+ 			buscfg->bus.csi2.num_data_lanes =
+-				vep.bus.mipi_csi2.num_data_lanes;
++				vep->bus.mipi_csi2.num_data_lanes;
+ 
+ 			for (i = 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
+ 				buscfg->bus.csi2.lanecfg.data[i].pos =
+-					vep.bus.mipi_csi2.data_lanes[i];
++					vep->bus.mipi_csi2.data_lanes[i];
+ 				buscfg->bus.csi2.lanecfg.data[i].pol =
+-					vep.bus.mipi_csi2.lane_polarities[i + 1];
++					vep->bus.mipi_csi2.lane_polarities[i + 1];
+ 				dev_dbg(dev,
+ 					"data lane %u polarity %u, pos %u\n", i,
+ 					buscfg->bus.csi2.lanecfg.data[i].pol,
+@@ -2137,57 +2135,13 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 
+ 	default:
+ 		dev_warn(dev, "%pOF: invalid interface %u\n",
+-			 to_of_node(fwnode), vep.base.port);
++			 to_of_node(vep->base.local_fwnode), vep->base.port);
+ 		return -EINVAL;
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-static int isp_fwnodes_parse(struct device *dev,
+-			     struct v4l2_async_notifier *notifier)
+-{
+-	struct fwnode_handle *fwnode = NULL;
+-
+-	notifier->subdevs = devm_kcalloc(
+-		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+-	if (!notifier->subdevs)
+-		return -ENOMEM;
+-
+-	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
+-	       (fwnode = fwnode_graph_get_next_endpoint(
+-			of_fwnode_handle(dev->of_node), fwnode))) {
+-		struct isp_async_subdev *isd;
+-
+-		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+-		if (!isd)
+-			goto error;
+-
+-		if (isp_fwnode_parse(dev, fwnode, isd)) {
+-			devm_kfree(dev, isd);
+-			continue;
+-		}
+-
+-		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+-
+-		isd->asd.match.fwnode.fwnode =
+-			fwnode_graph_get_remote_port_parent(fwnode);
+-		if (!isd->asd.match.fwnode.fwnode) {
+-			dev_warn(dev, "bad remote port parent\n");
+-			goto error;
+-		}
+-
+-		isd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		notifier->num_subdevs++;
+-	}
+-
+-	return notifier->num_subdevs;
+-
+-error:
+-	fwnode_handle_put(fwnode);
+-	return -EINVAL;
+-}
+-
+ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+ {
+ 	struct isp_device *isp = container_of(async, struct isp_device,
+@@ -2256,7 +2210,9 @@ static int isp_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
++	ret = v4l2_async_notifier_parse_fwnode_endpoints(
++		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
++		isp_fwnode_parse);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -2407,6 +2363,7 @@ static int isp_probe(struct platform_device *pdev)
+ 	__omap3isp_put(isp, false);
+ error:
+ 	mutex_destroy(&isp->isp_mutex);
++	v4l2_async_notifier_release(&isp->notifier);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index e528df6efc09..8b9043db94b3 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -220,14 +220,11 @@ struct isp_device {
+ 
+ 	unsigned int sbl_resources;
+ 	unsigned int subclk_resources;
+-
+-#define ISP_MAX_SUBDEVS		8
+-	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
+ };
+ 
+ struct isp_async_subdev {
+-	struct isp_bus_cfg bus;
+ 	struct v4l2_async_subdev asd;
++	struct isp_bus_cfg bus;
+ };
+ 
+ #define v4l2_subdev_to_bus_cfg(sd) \
+-- 
+2.11.0
