@@ -1,48 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36444 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751462AbdILNmJ (ORCPT
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:50404 "EHLO
+        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751331AbdIPKxq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 09:42:09 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v12 17/26] dt: bindings: Add lens-focus binding for image sensors
-Date: Tue, 12 Sep 2017 16:41:51 +0300
-Message-Id: <20170912134200.19556-18-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
-References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+        Sat, 16 Sep 2017 06:53:46 -0400
+Received: by mail-wm0-f46.google.com with SMTP id v142so13110703wmv.5
+        for <linux-media@vger.kernel.org>; Sat, 16 Sep 2017 03:53:46 -0700 (PDT)
+Date: Sat, 16 Sep 2017 14:53:39 +0400
+From: Anton Sviridenko <anton@corp.bluecherry.net>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        Ismael Luceno <ismael@iodev.co.uk>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] solo6x10: hide unused variable
+Message-ID: <20170916105337.GA8054@magpie-gentoo>
+References: <20170915195225.1394284-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170915195225.1394284-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The lens-focus property contains a phandle to the lens voice coil driver
-that is associated to the sensor; typically both are contained in the same
-camera module.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
- 1 file changed, 2 insertions(+)
+On Fri, Sep 15, 2017 at 09:52:04PM +0200, Arnd Bergmann wrote:
+> When building without CONFIG_GPIOLIB, we get a harmless
+> warning about an unused variable:
+> 
+> drivers/media/pci/solo6x10/solo6x10-gpio.c: In function 'solo_gpio_init':
+> drivers/media/pci/solo6x10/solo6x10-gpio.c:165:6: error: unused variable 'ret' [-Werror=unused-variable]
+> 
+> This adds another #ifdef around the declaration.
+> 
+> Fixes: d3202d1981dc ("media: solo6x10: export hardware GPIO pins 8:31 to gpiolib interface")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/media/pci/solo6x10/solo6x10-gpio.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/media/pci/solo6x10/solo6x10-gpio.c b/drivers/media/pci/solo6x10/solo6x10-gpio.c
+> index 3d0d1aa2f6a8..7b4641a2cb84 100644
+> --- a/drivers/media/pci/solo6x10/solo6x10-gpio.c
+> +++ b/drivers/media/pci/solo6x10/solo6x10-gpio.c
+> @@ -162,7 +162,9 @@ static void solo_gpiochip_set(struct gpio_chip *chip,
+>  
+>  int solo_gpio_init(struct solo_dev *solo_dev)
+>  {
+> +#ifdef CONFIG_GPIOLIB
+>  	int ret;
+> +#endif
+>  
+>  	solo_gpio_config(solo_dev);
+>  #ifdef CONFIG_GPIOLIB
+> -- 
+> 2.9.0
+> 
 
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index fdba30479b47..b535bdde861c 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -74,6 +74,8 @@ Optional properties
- - flash-leds: An array of phandles, each referring to a flash LED, a sub-node
-   of the LED driver device node.
- 
-+- lens-focus: A phandle to the node of the focus lens controller.
-+
- 
- Optional endpoint properties
- ----------------------------
--- 
-2.11.0
+Acked-by: Anton Sviridenko <anton@corp.bluecherry.net>
