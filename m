@@ -1,274 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:64738 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751973AbdI0SZn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 14:25:43 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from bombadil.infradead.org ([65.50.211.133]:41224 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751248AbdIPRto (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 16 Sep 2017 13:49:44 -0400
+Date: Sat, 16 Sep 2017 14:49:29 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Soeren Moch <smoch@web.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 03/13] staging: atomisp: Use module_i2c_driver() macro
-Date: Wed, 27 Sep 2017 21:24:58 +0300
-Message-Id: <20170927182508.52119-4-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20170927182508.52119-1-andriy.shevchenko@linux.intel.com>
-References: <20170927182508.52119-1-andriy.shevchenko@linux.intel.com>
+        Andreas Regel <andreas.regel@gmx.de>,
+        Manu Abraham <manu@linuxtv.org>,
+        Oliver Endriss <o.endriss@gmx.de>, linux-media@vger.kernel.org,
+        Eugene Syromiatnikov <esyr@redhat.com>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] SAA716x DVB driver
+Message-ID: <20170916125042.78c4abad@recife.lan>
+In-Reply-To: <a44b8eb0-cdd5-aa28-ad30-68db0126b6f6@web.de>
+References: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de>
+ <d693cf1b-de3d-5994-5ef0-eeb0e37065a3@web.de>
+ <20170827073040.6e96d79a@vento.lan>
+ <e9d87f55-18fc-e57b-f9aa-a41c7f983b34@web.de>
+ <20170909181123.392cfbb0@vento.lan>
+ <a44b8eb0-cdd5-aa28-ad30-68db0126b6f6@web.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is done using coccinelle semantic patch:
+Em Sat, 16 Sep 2017 14:54:15 +0200
+Soeren Moch <smoch@web.de> escreveu:
 
-//<smpl>
-@a@
-identifier f, x;
-@@
--static f(...) { return i2c_add_driver(&x); }
+> On 09.09.2017 23:20, Mauro Carvalho Chehab wrote:
+> > Em Sat, 9 Sep 2017 14:52:18 +0200
+> > Soeren Moch <smoch@web.de> escreveu:
+> >  
 
-@b depends on a@
-identifier e, a.x;
-@@
--static e(...) { i2c_del_driver(&x); }
+> >> You explicitly
+> >> want to discourage new driver and application implementations.   
+> > Me? It is just the opposite: sticking with a poorly documented API
+> > that almost nobody knows seems to be what discouraged new drivers
+> > and applications.  
+> OK, then you are fine to keep the audio/video/osd API in this driver, great!
 
-@c depends on a && b@
-identifier a.f;
-declarer name module_init;
-@@
--module_init(f);
+My current understanding is that keeping audio/video API doesn't make
+any sense, for a couple of reasons:
 
-@d depends on a && b && c@
-identifier b.e, a.x;
-declarer name module_exit;
-declarer name module_i2c_driver;
-@@
--module_exit(e);
-+module_i2c_driver(x);
-//</smpl>
+1. it was never fully documented;
+2. the only upstream hardware that supports them was developed on
+   about 17 years ago;
+3. the API is broken with regards to compat32 and Y2038 (see more
+   below);
+4. almost all (if not all) features they support are also supported
+   by V4L2 and ALSA;
+5. V4L2 supports a lot more features that video decoders support
+   than video API, like H.264 and other newer video standards, plus
+   HDMI setup features.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/staging/media/atomisp/i2c/gc0310.c        | 15 +--------------
- drivers/staging/media/atomisp/i2c/gc2235.c        | 15 +--------------
- drivers/staging/media/atomisp/i2c/lm3554.c        | 13 +------------
- drivers/staging/media/atomisp/i2c/mt9m114.c       | 14 +-------------
- drivers/staging/media/atomisp/i2c/ov2680.c        | 16 +---------------
- drivers/staging/media/atomisp/i2c/ov2722.c        | 15 +--------------
- drivers/staging/media/atomisp/i2c/ov5693/ov5693.c | 15 +--------------
- drivers/staging/media/atomisp/i2c/ov8858.c        | 14 +-------------
- 8 files changed, 8 insertions(+), 109 deletions(-)
+In the past, we tried a lot to get documentation for those
+DVB APIs, but, unfortunately, nobody that worked on its development
+sent us patches addressing the API documentation.
 
-diff --git a/drivers/staging/media/atomisp/i2c/gc0310.c b/drivers/staging/media/atomisp/i2c/gc0310.c
-index 35ed51ffe944..730fa5dd80f5 100644
---- a/drivers/staging/media/atomisp/i2c/gc0310.c
-+++ b/drivers/staging/media/atomisp/i2c/gc0310.c
-@@ -1470,20 +1470,7 @@ static struct i2c_driver gc0310_driver = {
- 	.remove = gc0310_remove,
- 	.id_table = gc0310_id,
- };
--
--static int init_gc0310(void)
--{
--	return i2c_add_driver(&gc0310_driver);
--}
--
--static void exit_gc0310(void)
--{
--
--	i2c_del_driver(&gc0310_driver);
--}
--
--module_init(init_gc0310);
--module_exit(exit_gc0310);
-+module_i2c_driver(gc0310_driver);
- 
- MODULE_AUTHOR("Lai, Angie <angie.lai@intel.com>");
- MODULE_DESCRIPTION("A low-level driver for GalaxyCore GC0310 sensors");
-diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
-index e43d31ea9676..6d4a432b6bae 100644
---- a/drivers/staging/media/atomisp/i2c/gc2235.c
-+++ b/drivers/staging/media/atomisp/i2c/gc2235.c
-@@ -1199,20 +1199,7 @@ static struct i2c_driver gc2235_driver = {
- 	.remove = gc2235_remove,
- 	.id_table = gc2235_id,
- };
--
--static int init_gc2235(void)
--{
--	return i2c_add_driver(&gc2235_driver);
--}
--
--static void exit_gc2235(void)
--{
--
--	i2c_del_driver(&gc2235_driver);
--}
--
--module_init(init_gc2235);
--module_exit(exit_gc2235);
-+module_i2c_driver(gc2235_driver);
- 
- MODULE_AUTHOR("Shuguang Gong <Shuguang.Gong@intel.com>");
- MODULE_DESCRIPTION("A low-level driver for GC2235 sensors");
-diff --git a/drivers/staging/media/atomisp/i2c/lm3554.c b/drivers/staging/media/atomisp/i2c/lm3554.c
-index 679176f7c542..5424685eb447 100644
---- a/drivers/staging/media/atomisp/i2c/lm3554.c
-+++ b/drivers/staging/media/atomisp/i2c/lm3554.c
-@@ -991,19 +991,8 @@ static struct i2c_driver lm3554_driver = {
- 	.remove = lm3554_remove,
- 	.id_table = lm3554_id,
- };
-+module_i2c_driver(lm3554_driver);
- 
--static __init int init_lm3554(void)
--{
--	return i2c_add_driver(&lm3554_driver);
--}
--
--static __exit void exit_lm3554(void)
--{
--	i2c_del_driver(&lm3554_driver);
--}
--
--module_init(init_lm3554);
--module_exit(exit_lm3554);
- MODULE_AUTHOR("Jing Tao <jing.tao@intel.com>");
- MODULE_DESCRIPTION("LED flash driver for LM3554");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/staging/media/atomisp/i2c/mt9m114.c b/drivers/staging/media/atomisp/i2c/mt9m114.c
-index 3c837cb8859c..14fe39f9feb6 100644
---- a/drivers/staging/media/atomisp/i2c/mt9m114.c
-+++ b/drivers/staging/media/atomisp/i2c/mt9m114.c
-@@ -1945,19 +1945,7 @@ static struct i2c_driver mt9m114_driver = {
- 	.remove = mt9m114_remove,
- 	.id_table = mt9m114_id,
- };
--
--static __init int init_mt9m114(void)
--{
--	return i2c_add_driver(&mt9m114_driver);
--}
--
--static __exit void exit_mt9m114(void)
--{
--	i2c_del_driver(&mt9m114_driver);
--}
--
--module_init(init_mt9m114);
--module_exit(exit_mt9m114);
-+module_i2c_driver(mt9m114_driver);
- 
- MODULE_AUTHOR("Shuguang Gong <Shuguang.gong@intel.com>");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/staging/media/atomisp/i2c/ov2680.c b/drivers/staging/media/atomisp/i2c/ov2680.c
-index 51b7d61df0f5..0dce3c03b2cd 100644
---- a/drivers/staging/media/atomisp/i2c/ov2680.c
-+++ b/drivers/staging/media/atomisp/i2c/ov2680.c
-@@ -1527,7 +1527,6 @@ MODULE_DEVICE_TABLE(acpi, ov2680_acpi_match);
- MODULE_DEVICE_TABLE(i2c, ov2680_id);
- static struct i2c_driver ov2680_driver = {
- 	.driver = {
--		.owner = THIS_MODULE,
- 		.name = OV2680_NAME,
- 		.acpi_match_table = ACPI_PTR(ov2680_acpi_match),
- 
-@@ -1536,20 +1535,7 @@ static struct i2c_driver ov2680_driver = {
- 	.remove = ov2680_remove,
- 	.id_table = ov2680_id,
- };
--
--static int init_ov2680(void)
--{
--	return i2c_add_driver(&ov2680_driver);
--}
--
--static void exit_ov2680(void)
--{
--
--	i2c_del_driver(&ov2680_driver);
--}
--
--module_init(init_ov2680);
--module_exit(exit_ov2680);
-+module_i2c_driver(ov2680_driver);
- 
- MODULE_AUTHOR("Jacky Wang <Jacky_wang@ovt.com>");
- MODULE_DESCRIPTION("A low-level driver for OmniVision 2680 sensors");
-diff --git a/drivers/staging/media/atomisp/i2c/ov2722.c b/drivers/staging/media/atomisp/i2c/ov2722.c
-index 10094ac56561..c9b1b0cabe87 100644
---- a/drivers/staging/media/atomisp/i2c/ov2722.c
-+++ b/drivers/staging/media/atomisp/i2c/ov2722.c
-@@ -1353,20 +1353,7 @@ static struct i2c_driver ov2722_driver = {
- 	.remove = ov2722_remove,
- 	.id_table = ov2722_id,
- };
--
--static int init_ov2722(void)
--{
--	return i2c_add_driver(&ov2722_driver);
--}
--
--static void exit_ov2722(void)
--{
--
--	i2c_del_driver(&ov2722_driver);
--}
--
--module_init(init_ov2722);
--module_exit(exit_ov2722);
-+module_i2c_driver(ov2722_driver);
- 
- MODULE_AUTHOR("Wei Liu <wei.liu@intel.com>");
- MODULE_DESCRIPTION("A low-level driver for OmniVision 2722 sensors");
-diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-index 219501167584..0aafe5c37cc0 100644
---- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-+++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-@@ -2040,20 +2040,7 @@ static struct i2c_driver ov5693_driver = {
- 	.remove = ov5693_remove,
- 	.id_table = ov5693_id,
- };
--
--static int init_ov5693(void)
--{
--	return i2c_add_driver(&ov5693_driver);
--}
--
--static void exit_ov5693(void)
--{
--
--	i2c_del_driver(&ov5693_driver);
--}
--
--module_init(init_ov5693);
--module_exit(exit_ov5693);
-+module_i2c_driver(ov5693_driver);
- 
- MODULE_DESCRIPTION("A low-level driver for OmniVision 5693 sensors");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/staging/media/atomisp/i2c/ov8858.c b/drivers/staging/media/atomisp/i2c/ov8858.c
-index 43e1638fd674..d0d16b9015d0 100644
---- a/drivers/staging/media/atomisp/i2c/ov8858.c
-+++ b/drivers/staging/media/atomisp/i2c/ov8858.c
-@@ -2203,19 +2203,7 @@ static struct i2c_driver ov8858_driver = {
- 	.remove = ov8858_remove,
- 	.id_table = ov8858_id,
- };
--
--static __init int ov8858_init_mod(void)
--{
--	return i2c_add_driver(&ov8858_driver);
--}
--
--static __exit void ov8858_exit_mod(void)
--{
--	i2c_del_driver(&ov8858_driver);
--}
--
--module_init(ov8858_init_mod);
--module_exit(ov8858_exit_mod);
-+module_i2c_driver(ov8858_driver);
- 
- MODULE_DESCRIPTION("A low-level driver for Omnivision OV8858 sensors");
- MODULE_LICENSE("GPL");
--- 
-2.14.1
+With regards to OSD, as no other documented API emerged to
+fulfill what it does, it could make sense to keep it, if
+someone properly documents it.
+
+> >> With linux core APIs for FF you probably mean some new
+> >> API combination as successor of the audio/video/osd API.
+> >> The S2-6400 unfortunately directly implements the old API
+> >> in hardware and is therefore the worst possible match for
+> >> such new driver generation.  
+> > It sounds weird that the API is directly implemented in hardware.
+> > I can't tell much, though, as I didn't see the code yet.  
+> All the available code is in this pull request.
+
+I know. I'll look on it if we reach an agreement.
+
+> I really don't understand your Kaffeine use case. Kaffeine is a media
+> player, which displays the decoded video on a KDE/Gnome desktop.
+> With the S2-6400 it is not possible to read the decoded video back,
+> so it is not possible to display something in a desktop window.
+> I cannot image what you want to do with this hardware and Kaffeine.
+
+I see.
+
+> >>> One alternative we could do would be to add the proper APIs for the
+> >>> driver and keep for a couple of Kernel versions, in staging, a module
+> >>> that would provide backward compatibility to the legacy APIs. This way,
+> >>> applications will have some time to add support for the new API.
+> >>>
+> >>> If you're willing to do that, I can merge the patches.    
+> >> Here I do not understand what you expect me to do. The audio/video/osd
+> >> devices are closely tied together (as frontend/demux/dvr are for the
+> >> input side). The S2-6400 card expects an transport stream with audio and
+> >> video packets to be written to that video device (the audio device is
+> >> not used) and commands  for overlay text/graphics over the osd device.  
+> > There are two options here:
+> >
+> > 1) if the hardware itself allows to direct a filtered MPEG-TS to the demod,
+> >    by hardware, instead of reading it from /dev/dvb/.../dvr and writing it
+> >    to /dev/dvb.../video, you could use the Media Controller to
+> >    direct the video PID to the video decoder hardware directly;  
+> This is what you want me to implement: this shortcut from
+> /dev/dvb/.../dvr to /dev/dvb.../video ? Since you said above that this
+> is already implemented in the dvb core, this should be easy and.
+> can of course be implemented in this driver.
+> >    The V4L2 driver device node (let's say, /dev/video0) will just
+> >    implement the HDMI output.  
+> There is no separate decoder / HDMI hardware, from the driver's
+> point of view. The decoded video directly goes to the HDMI output.
+
+If there's nothing that can be controlled at the HDMI output, why do
+you need a /dev/dvb.../video devnode? If it can be controlled, a 
+V4L2 output will do the job.
+
+> > 2) if there's no hardware pipelines between the demux and the decoders,
+> >    userspace will read video from .../dvr and write it to a /dev/video
+> >    capture device node, implemented by a mem2mem V4L2 driver.  
+> There cannot be a separate capture device node for the decoded
+> video. You probably refer to the video_cature:one-shot feature,
+> which is switched off by default.
+> This is a debug feature, which vdr supports. It is intended to
+> take a snapshot of the output image, something for debugging
+> vdr-skins, the graphical user interface of vdr.
+
+Ah, so it can't play an arbitrary MPEG-TS stream from other
+sources, right?
+
+> From the msleep(100); in the read path you can easily see, that
+> this is meant for still images, not for video. Due to bandwidth
+> limitations on the hardware this should normally not be used
+> during normal decoding.
+> >    The mem2mem output device node (let's say, /dev/video1) will control
+> >    the HDMI output.  
+> As mentioned several times, it is only possible to write a transport
+> stream to the video device, and osd commands to the osd device.
+
+Hmm... now, I'm confused. Can it play a MPEG-TS video stored at the
+computer or not?
+
+> There is no hardware interface to directly access the HDMI output.
+> So it is not possible to create a separate v4l2 HDMI output device.
+> >> The osd part you considered to keep as-is. There is no general video
+> >> output possible as over a DRM device, there is no GPU processing
+> >> possible, and there is no API for video decoding as in a general v4l2
+> >> decoder device. This card's decoder only implements exactly the DVB
+> >> video and osd devices in hardware (well, card firmware I guess, as
+> >> hobbyist programmer I have no access to that), with this somewhat
+> >> strange mix of audio and video (for the card it is not strange, as audio
+> >> and video are always mux'ed in DVB streams).
+> >>  
+> >>>> I agree that new drivers should use modern APIs in the general case. But
+> >>>> for this driver the legacy DVB decoder API is a hard requirement for me,
+> >>>> as described. So I hope you will dispense with the v4l2 conversion for
+> >>>> this special case. I'm pretty sure that there will be no new hardware
+> >>>> and therefore no new driver with this legacy API, this saa716x_ff driver
+> >>>> also has a 7-year development history, in this sense it is not really new
+> >>>> and one could also think of it as some sort of legacy code.    
+> >>> FF hardware is still common on embedded devices. Sooner or later support
+> >>> for them will be added upstream, and applications that support it
+> >>> will appear.    
+> >> Yes, I would really like to get the same functionality as with S2-6400
+> >> on modern SoCs (i.MX6Q, Allwinner H5, meson-gxbb Amlogic S905,...)
+> >> with modern APIs, in an uniform way, see the other thread.  
+> > They likely need a lot more, as modern SoC may have lots of IP
+> > blocks to control (multiple inputs, scalers, mpeg encoding, etc). By
+> > adding MC support, the gaps can be fulfilled.  
+> Maybe this is a misunderstanding here. I do not plan to support
+> other hardware with this saa716x_ff driver. The other thread [1]
+> about documentation of modern APIs for modern SoCs is somewhat
+> related, but independent from this driver for the S2-6400.
+> This driver as successor of ttpci must implement the same DVB API
+> to support existing users.
+> 
+> Drivers for modern hardware may use other APIs, please answer
+> about this in the other thread (or maybe in a new one, if this is more
+> appropriate).
+
+Yeah, perhaps there's a misunderstanding here. What we currently have
+upstream is a single driver (av7110) that supports a hardware, developed
+about 17 years ago, and that it is out of production for a long time.
+
+We should remove this driver some day, but, as there isn't any strong
+reason to remove, it is staying (and so the API header files to talk
+with it).
+
+Actually, a couple of weeks before your saa716x pull request, there was
+a report that the current DVB video API is broken with regards to 
+compat32 and fix would break kABI [1]. It is also incompatible with
+Y2038 fixes that are happening system wide. So, perhaps is time to
+get rid of it for good.
+
+[1] see https://patchwork.kernel.org/patch/7187851/ and related
+    e-mails.
+
+If/when we add another full-featured DVB hardware (outside staging),
+as the API defined on audio/video is too old (from the time that all
+video decoders were MPEG 2), and it didn't receive any updates to
+support modern hardware, it is unlikely that it would work for such
+hardware. I bet that using V4L2/ALSA (perhaps with a few minor additions)
+would work a way better, as those APIs always got updatates as new audio
+and video codecs got added. The V4L2 also supports the needed bits to
+detect HDMI monitors and adjust parameters like resolution, 3D mode
+and fps rate there.
+
+Now, on this thread you're proposing to add another driver using
+DVB video obsolete (and Y2028 broken) API. What I'm saying is that,
+if we're adding it on staging, we need to have a plan to reimplement
+it to whatever API replaces the DVB video API, as this API likely
+won't stay upstream much longer.
+
+Thanks,
+Mauro
