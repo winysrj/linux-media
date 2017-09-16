@@ -1,66 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eddie.linux-mips.org ([148.251.95.138]:42566 "EHLO
-        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752525AbdIGXjX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 19:39:23 -0400
-Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S23994825AbdIGXjWBFD3k (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 01:39:22 +0200
-Date: Fri, 8 Sep 2017 01:39:14 +0200
-From: Ladislav Michl <ladis@linux-mips.org>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
-Subject: [PATCH v2 08/10] media: rc: gpio-ir-recv: use KBUILD_MODNAME
-Message-ID: <20170907233914.nr2qaqmjwk6vljaf@lenoch>
-References: <20170907233355.bv3hsv3rfhcx52i3@lenoch>
+Received: from mout.web.de ([212.227.15.14]:62979 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751297AbdIPScC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 16 Sep 2017 14:32:02 -0400
+Subject: [PATCH 1/2] [media] it913x: Delete two error messages for a failed
+ memory allocation in it913x_probe()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <0ad553a6-9aca-d20b-48df-4084d80e2223@users.sourceforge.net>
+Message-ID: <a1686dac-ad24-e46e-c1fc-64f897b458ff@users.sourceforge.net>
+Date: Sat, 16 Sep 2017 20:31:42 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170907233355.bv3hsv3rfhcx52i3@lenoch>
+In-Reply-To: <0ad553a6-9aca-d20b-48df-4084d80e2223@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There already is standard macro providing driver name, use it.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 16 Sep 2017 19:40:47 +0200
 
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+* Omit extra messages for a memory allocation failure in this function.
+
+  This issue was detected by using the Coccinelle software.
+
+* Delete the label "err" and the variable "ret" which became unnecessary
+  with this refactoring.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- Changes:
- -v2: rebased to current linux.git
+ drivers/media/tuners/it913x.c | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
- drivers/media/rc/gpio-ir-recv.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-index 1d115f8531ba..db193ad4b819 100644
---- a/drivers/media/rc/gpio-ir-recv.c
-+++ b/drivers/media/rc/gpio-ir-recv.c
-@@ -23,7 +23,6 @@
- #include <media/rc-core.h>
- #include <linux/platform_data/media/gpio-ir-recv.h>
+diff --git a/drivers/media/tuners/it913x.c b/drivers/media/tuners/it913x.c
+index 27e5bc1c3cb5..6af9507823fa 100644
+--- a/drivers/media/tuners/it913x.c
++++ b/drivers/media/tuners/it913x.c
+@@ -392,14 +392,10 @@ static int it913x_probe(struct platform_device *pdev)
+ 	struct it913x_dev *dev;
+ 	const struct platform_device_id *id = platform_get_device_id(pdev);
+-	int ret;
+ 	char *chip_ver_str;
  
--#define GPIO_IR_DRIVER_NAME	"gpio-rc-recv"
- #define GPIO_IR_DEVICE_NAME	"gpio_ir_recv"
+ 	dev = kzalloc(sizeof(struct it913x_dev), GFP_KERNEL);
+-	if (dev == NULL) {
+-		ret = -ENOMEM;
+-		dev_err(&pdev->dev, "kzalloc() failed\n");
+-		goto err;
+-	}
++	if (!dev)
++		return -ENOMEM;
  
- struct gpio_rc_dev {
-@@ -134,7 +133,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
- 	rcdev->input_id.product = 0x0001;
- 	rcdev->input_id.version = 0x0100;
- 	rcdev->dev.parent = dev;
--	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
-+	rcdev->driver_name = KBUILD_MODNAME;
- 	rcdev->min_timeout = 1;
- 	rcdev->timeout = IR_DEFAULT_TIMEOUT;
- 	rcdev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
-@@ -203,7 +202,7 @@ static const struct dev_pm_ops gpio_ir_recv_pm_ops = {
- static struct platform_driver gpio_ir_recv_driver = {
- 	.probe  = gpio_ir_recv_probe,
- 	.driver = {
--		.name   = GPIO_IR_DRIVER_NAME,
-+		.name   = KBUILD_MODNAME,
- 		.of_match_table = of_match_ptr(gpio_ir_recv_of_match),
- #ifdef CONFIG_PM
- 		.pm	= &gpio_ir_recv_pm_ops,
+ 	dev->pdev = pdev;
+ 	dev->regmap = pdata->regmap;
+@@ -423,9 +419,6 @@ static int it913x_probe(struct platform_device *pdev)
+ 		 chip_ver_str);
+ 	dev_dbg(&pdev->dev, "chip_ver %u, role %u\n", dev->chip_ver, dev->role);
+ 	return 0;
+-err:
+-	dev_dbg(&pdev->dev, "failed %d\n", ret);
+-	return ret;
+ }
+ 
+ static int it913x_remove(struct platform_device *pdev)
 -- 
-2.11.0
+2.14.1
