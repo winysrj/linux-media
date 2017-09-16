@@ -1,105 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42324 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751833AbdIVJck (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 05:32:40 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com
-Cc: linux-media@vger.kernel.org, devicetree@kernel.org
-Subject: [PATCH v3 2/4] dt: bindings: as3645a: Use LED number to refer to LEDs
-Date: Fri, 22 Sep 2017 12:32:36 +0300
-Message-Id: <20170922093238.13070-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170922093238.13070-1-sakari.ailus@linux.intel.com>
-References: <20170922093238.13070-1-sakari.ailus@linux.intel.com>
+Received: from mout.web.de ([212.227.15.4]:60332 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751274AbdIPUKV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 16 Sep 2017 16:10:21 -0400
+Subject: [PATCH 2/2] [media] m88rs6000t: Improve three size determinations
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <278b14e0-f717-7471-6dc3-45dc98d64443@users.sourceforge.net>
+Message-ID: <5bec5eaa-faca-ec11-87f4-4383181525d1@users.sourceforge.net>
+Date: Sat, 16 Sep 2017 22:10:16 +0200
+MIME-Version: 1.0
+In-Reply-To: <278b14e0-f717-7471-6dc3-45dc98d64443@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use integers (reg property) to tell the number of the LED to the driver
-instead of the node name. While both of these approaches are currently
-used by the LED bindings, using integers will require less driver changes
-for ACPI support. Additionally, it will make possible LED naming using
-chip and LED node names, effectively making the label property most useful
-for human-readable names only.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 16 Sep 2017 21:38:03 +0200
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Acked-by: Rob Herring <robh@kernel.org>
+Replace the specification of data structures by variable references
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer according to the Linux coding style convention.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- .../devicetree/bindings/leds/ams,as3645a.txt       | 28 ++++++++++++++--------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+ drivers/media/tuners/m88rs6000t.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/leds/ams,as3645a.txt b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-index 12c5ef26ec73..fdc40e354a64 100644
---- a/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-+++ b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
-@@ -15,11 +15,14 @@ Required properties
+diff --git a/drivers/media/tuners/m88rs6000t.c b/drivers/media/tuners/m88rs6000t.c
+index d89793a05862..1e55c679b25e 100644
+--- a/drivers/media/tuners/m88rs6000t.c
++++ b/drivers/media/tuners/m88rs6000t.c
+@@ -629,6 +629,6 @@ static int m88rs6000t_probe(struct i2c_client *client,
+ 	}
  
- compatible	: Must be "ams,as3645a".
- reg		: The I2C address of the device. Typically 0x30.
-+#address-cells	: 1
-+#size-cells	: 0
+-	memcpy(&dev->cfg, cfg, sizeof(struct m88rs6000t_config));
++	memcpy(&dev->cfg, cfg, sizeof(*cfg));
+ 	dev->client = client;
+ 	dev->regmap = devm_regmap_init_i2c(client, &regmap_config);
+ 	if (IS_ERR(dev->regmap)) {
+@@ -696,7 +696,7 @@ static int m88rs6000t_probe(struct i2c_client *client,
  
+ 	fe->tuner_priv = dev;
+ 	memcpy(&fe->ops.tuner_ops, &m88rs6000t_tuner_ops,
+-			sizeof(struct dvb_tuner_ops));
++	       sizeof(fe->ops.tuner_ops));
+ 	i2c_set_clientdata(client, dev);
+ 	return 0;
+ err:
+@@ -712,8 +712,7 @@ static int m88rs6000t_remove(struct i2c_client *client)
+ 	struct dvb_frontend *fe = dev->cfg.fe;
  
--Required properties of the "flash" child node
--=============================================
-+Required properties of the flash child node (0)
-+===============================================
+ 	dev_dbg(&client->dev, "\n");
+-
+-	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
++	memset(&fe->ops.tuner_ops, 0, sizeof(fe->ops.tuner_ops));
+ 	fe->tuner_priv = NULL;
+ 	kfree(dev);
  
-+reg: 0
- flash-timeout-us: Flash timeout in microseconds. The value must be in
- 		  the range [100000, 850000] and divisible by 50000.
- flash-max-microamp: Maximum flash current in microamperes. Has to be
-@@ -33,20 +36,21 @@ ams,input-max-microamp: Maximum flash controller input current. The
- 			and divisible by 50000.
- 
- 
--Optional properties of the "flash" child node
--=============================================
-+Optional properties of the flash child node
-+===========================================
- 
- label		: The label of the flash LED.
- 
- 
--Required properties of the "indicator" child node
--=================================================
-+Required properties of the indicator child node (1)
-+===================================================
- 
-+reg: 1
- led-max-microamp: Maximum indicator current. The allowed values are
- 		  2500, 5000, 7500 and 10000.
- 
--Optional properties of the "indicator" child node
--=================================================
-+Optional properties of the indicator child node
-+===============================================
- 
- label		: The label of the indicator LED.
- 
-@@ -55,16 +59,20 @@ Example
- =======
- 
- 	as3645a@30 {
-+		#address-cells: 1
-+		#size-cells: 0
- 		reg = <0x30>;
- 		compatible = "ams,as3645a";
--		flash {
-+		flash@0 {
-+			reg = <0x0>;
- 			flash-timeout-us = <150000>;
- 			flash-max-microamp = <320000>;
- 			led-max-microamp = <60000>;
- 			ams,input-max-microamp = <1750000>;
- 			label = "as3645a:flash";
- 		};
--		indicator {
-+		indicator@1 {
-+			reg = <0x1>;
- 			led-max-microamp = <10000>;
- 			label = "as3645a:indicator";
- 		};
 -- 
-2.11.0
+2.14.1
