@@ -1,62 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46531
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752165AbdIVVrM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 17:47:12 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 2/8] media: v4l2-common: get rid of v4l2_routing dead struct
-Date: Fri, 22 Sep 2017 18:47:00 -0300
-Message-Id: <e8c23e1dc03dc65b811edb80ffd2466fe5579810.1506116720.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
-References: <cover.1506116720.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
-References: <cover.1506116720.git.mchehab@s-opensource.com>
+Received: from mout.web.de ([212.227.15.4]:49560 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751253AbdIPOch (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 16 Sep 2017 10:32:37 -0400
+To: linux-media@vger.kernel.org, Bhumika Goyal <bhumirks@gmail.com>,
+        Eduardo Valentin <edubezval@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] [media] Si4713: Delete an error message for a failed memory
+ allocation in two functions
+Message-ID: <807ef494-8995-59dc-ee51-c7fbad3e01fa@users.sourceforge.net>
+Date: Sat, 16 Sep 2017 16:32:06 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This struct is not used anymore. Get rid of it and update
-the documentation about what should still be converted.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 16 Sep 2017 16:15:44 +0200
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Omit an extra message for a memory allocation failure in these functions.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- include/media/v4l2-common.h | 14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ drivers/media/radio/si4713/radio-platform-si4713.c | 1 -
+ drivers/media/radio/si4713/si4713.c                | 1 -
+ 2 files changed, 2 deletions(-)
 
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index aac8b7b6e691..7dbecbe3009c 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -224,10 +224,11 @@ void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
- 
- /* ------------------------------------------------------------------------- */
- 
--/* Note: these remaining ioctls/structs should be removed as well, but they are
--   still used in tuner-simple.c (TUNER_SET_CONFIG), cx18/ivtv (RESET) and
--   v4l2-int-device.h (v4l2_routing). To remove these ioctls some more cleanup
--   is needed in those modules. */
-+/*
-+ * FIXME: these remaining ioctls/structs should be removed as well, but they
-+ * are still used in tuner-simple.c (TUNER_SET_CONFIG) and cx18/ivtv (RESET).
-+ * To remove these ioctls some more cleanup is needed in those modules.
-+ */
- 
- /* s_config */
- struct v4l2_priv_tun_config {
-@@ -238,11 +239,6 @@ struct v4l2_priv_tun_config {
- 
- #define VIDIOC_INT_RESET            	_IOW ('d', 102, u32)
- 
--struct v4l2_routing {
--	u32 input;
--	u32 output;
--};
--
- /* ------------------------------------------------------------------------- */
- 
- /* Miscellaneous helper functions */
+diff --git a/drivers/media/radio/si4713/radio-platform-si4713.c b/drivers/media/radio/si4713/radio-platform-si4713.c
+index 27339ec495f6..4b7943e385a0 100644
+--- a/drivers/media/radio/si4713/radio-platform-si4713.c
++++ b/drivers/media/radio/si4713/radio-platform-si4713.c
+@@ -162,5 +162,4 @@ static int radio_si4713_pdriver_probe(struct platform_device *pdev)
+ 	if (!rsdev) {
+-		dev_err(&pdev->dev, "Failed to alloc video device.\n");
+ 		rval = -ENOMEM;
+ 		goto exit;
+ 	}
+diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+index f4a53f1e856e..46b1fe36f713 100644
+--- a/drivers/media/radio/si4713/si4713.c
++++ b/drivers/media/radio/si4713/si4713.c
+@@ -1451,5 +1451,4 @@ static int si4713_probe(struct i2c_client *client,
+ 	if (!sdev) {
+-		dev_err(&client->dev, "Failed to alloc video device.\n");
+ 		rval = -ENOMEM;
+ 		goto exit;
+ 	}
 -- 
-2.13.5
+2.14.1
