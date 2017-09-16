@@ -1,41 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40744 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751670AbdIENGD (ORCPT
+Received: from mail-pf0-f178.google.com ([209.85.192.178]:53016 "EHLO
+        mail-pf0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751201AbdIPAIL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Sep 2017 09:06:03 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v8 20/21] dt: bindings: smiapp: Document lens-focus and flash properties
-Date: Tue,  5 Sep 2017 16:05:52 +0300
-Message-Id: <20170905130553.1332-21-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
-References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+        Fri, 15 Sep 2017 20:08:11 -0400
+Received: by mail-pf0-f178.google.com with SMTP id p87so2202269pfj.9
+        for <linux-media@vger.kernel.org>; Fri, 15 Sep 2017 17:08:11 -0700 (PDT)
+Subject: Re: IMX6 ADV7180 no /dev/media
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Tim Harvey <tharvey@gateworks.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Stephan Bauroth <der_steffi@gmx.de>
+References: <CAJ+vNU3DPFEc6YnEfcYAv1=beJ96W5PSt=eBfoxCXqKnbNqfMg@mail.gmail.com>
+ <67ab090e-955d-9399-e182-cca049a66f1a@gmail.com>
+ <CAJ+vNU3srz1u4x2wku4JKAOWGH8Gc8Wh0eo5aTEhACqoNeE1ow@mail.gmail.com>
+ <421dbf8f-6574-7d3b-8842-ffe4c0c6da78@gmail.com>
+ <CAOMZO5CJ3=Yd=-=Bvj9pwW62D7eCDAf-uXe6Ri_X_yM+VYfBYw@mail.gmail.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <612b6ad5-cebe-e0e0-8af4-1d53d637fe1e@gmail.com>
+Date: Fri, 15 Sep 2017 17:08:08 -0700
+MIME-Version: 1.0
+In-Reply-To: <CAOMZO5CJ3=Yd=-=Bvj9pwW62D7eCDAf-uXe6Ri_X_yM+VYfBYw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document optional lens-focus and flash properties for the smiapp driver.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
- 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-index 855e1faf73e2..f02178eef84d 100644
---- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-@@ -27,6 +27,8 @@ Optional properties
- - nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
-   the NVM contents will not be read.
- - reset-gpios: XSHUTDOWN GPIO
-+- flash: One or more phandles to refer to flash LEDs
-+- lens-focus: Phandle for lens focus
- 
- 
- Endpoint node mandatory properties
--- 
-2.11.0
+On 09/15/2017 04:46 PM, Fabio Estevam wrote:
+> Hi Steve,
+>
+> On Fri, Sep 15, 2017 at 8:39 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
+>
+>> Agreed, but I notice now that CONFIG_MEDIA_CONTROLLER and
+>> CONFIG_VIDEO_V4L2_SUBDEV_API are not enabled there anymore.
+> I do see them enabled in mainline with imx_v6_v7_defconfig.
+
+Ah, I was looking at mediatree/master, the commit that
+enables MEDIA_CONTROLLER hasn't hit mediatree yet.
+
+Steve
+
+>
+> Tim,
+>
+> Care to send the patch enabling CONFIG_VIDEO_MUX?
+>
+> Thanks
