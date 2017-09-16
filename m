@@ -1,76 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49028 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751251AbdIKIAW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 04:00:22 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v10 24/24] arm: dts: omap3: N9/N950: Add flash references to the camera
-Date: Mon, 11 Sep 2017 11:00:08 +0300
-Message-Id: <20170911080008.21208-25-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+Received: from mout.web.de ([212.227.15.3]:56215 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751223AbdIPQTp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 16 Sep 2017 12:19:45 -0400
+Subject: [PATCH 2/2] [media] fc0012: Improve a size determination in
+ fc0012_attach()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Colin Ian King <colin.king@canonical.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <8f64b84d-cca0-d618-eb62-ec12f42b8c06@users.sourceforge.net>
+Message-ID: <27e2548c-09cb-2adb-9f65-f06c0e4ba86d@users.sourceforge.net>
+Date: Sat, 16 Sep 2017 18:19:34 +0200
+MIME-Version: 1.0
+In-Reply-To: <8f64b84d-cca0-d618-eb62-ec12f42b8c06@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add flash and indicator LED phandles to the sensor node.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 16 Sep 2017 17:55:27 +0200
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Replace the specification of a data structure by a pointer dereference
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer according to the Linux coding style convention.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- arch/arm/boot/dts/omap3-n9.dts       | 1 +
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 4 ++--
- arch/arm/boot/dts/omap3-n950.dts     | 1 +
- 3 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/tuners/fc0012.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
-index b9e58c536afd..39e35f8b8206 100644
---- a/arch/arm/boot/dts/omap3-n9.dts
-+++ b/arch/arm/boot/dts/omap3-n9.dts
-@@ -26,6 +26,7 @@
- 		clocks = <&isp 0>;
- 		clock-frequency = <9600000>;
- 		nokia,nvm-size = <(16 * 64)>;
-+		flash-leds = <&as3645a_flash &as3645a_indicator>;
- 		port {
- 			smia_1_1: endpoint {
- 				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index 1b0bd72945f2..12fbb3da5fce 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -271,14 +271,14 @@
- 		#size-cells = <0>;
- 		reg = <0x30>;
- 		compatible = "ams,as3645a";
--		flash@0 {
-+		as3645a_flash: flash@0 {
- 			reg = <0x0>;
- 			flash-timeout-us = <150000>;
- 			flash-max-microamp = <320000>;
- 			led-max-microamp = <60000>;
- 			ams,input-max-microamp = <1750000>;
- 		};
--		indicator@1 {
-+		as3645a_indicator: indicator@1 {
- 			reg = <0x1>;
- 			led-max-microamp = <10000>;
- 		};
-diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-index 646601a3ebd8..c354a1ed1e70 100644
---- a/arch/arm/boot/dts/omap3-n950.dts
-+++ b/arch/arm/boot/dts/omap3-n950.dts
-@@ -60,6 +60,7 @@
- 		clocks = <&isp 0>;
- 		clock-frequency = <9600000>;
- 		nokia,nvm-size = <(16 * 64)>;
-+		flash-leds = <&as3645a_flash &as3645a_indicator>;
- 		port {
- 			smia_1_1: endpoint {
- 				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
+diff --git a/drivers/media/tuners/fc0012.c b/drivers/media/tuners/fc0012.c
+index 7126dd1d5151..c008513bd64a 100644
+--- a/drivers/media/tuners/fc0012.c
++++ b/drivers/media/tuners/fc0012.c
+@@ -445,5 +445,5 @@ struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+ 
+-	priv = kzalloc(sizeof(struct fc0012_priv), GFP_KERNEL);
++	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+ 	if (!priv) {
 -- 
-2.11.0
+2.14.1
