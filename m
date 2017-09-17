@@ -1,64 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45592 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751548AbdIOOSR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 10:18:17 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v13 13/25] v4l: async: Allow async notifier register call succeed with no subdevs
-Date: Fri, 15 Sep 2017 17:17:12 +0300
-Message-Id: <20170915141724.23124-14-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+Received: from mout.web.de ([212.227.17.12]:64077 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750861AbdIQNbr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Sep 2017 09:31:47 -0400
+Subject: [PATCH 1/4] [media] cpia2: Use common error handling code in
+ cpia2_usb_probe()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Shyam Saini <mayhs11saini@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <c2ff478e-94d7-6c92-f467-69f5b66b8a1e@users.sourceforge.net>
+Message-ID: <a5c38437-f79b-e92e-b571-dd240090ca2b@users.sourceforge.net>
+Date: Sun, 17 Sep 2017 15:31:31 +0200
+MIME-Version: 1.0
+In-Reply-To: <c2ff478e-94d7-6c92-f467-69f5b66b8a1e@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The information on how many async sub-devices would be bindable to a
-notifier is typically dependent on information from platform firmware and
-it's not driver's business to be aware of that.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 17 Sep 2017 12:40:14 +0200
+Add a jump target so that a bit of exception handling can be better reused
+at the end of this function.
 
-Many V4L2 main drivers are perfectly usable (and useful) without async
-sub-devices and so if there aren't any around, just proceed call the
-notifier's complete callback immediately without registering the notifier
-itself.
+This issue was detected by using the Coccinelle software.
 
-If a driver needs to check whether there are async sub-devices available,
-it can be done by inspecting the notifier's num_subdevs field which tells
-the number of async sub-devices.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/usb/cpia2/cpia2_usb.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 9895b610e2a0..4be2f16af051 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -170,14 +170,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 	struct v4l2_async_subdev *asd;
- 	int i;
+diff --git a/drivers/media/usb/cpia2/cpia2_usb.c b/drivers/media/usb/cpia2/cpia2_usb.c
+index 6089036049d9..c6be2786a66f 100644
+--- a/drivers/media/usb/cpia2/cpia2_usb.c
++++ b/drivers/media/usb/cpia2/cpia2_usb.c
+@@ -849,13 +849,11 @@ static int cpia2_usb_probe(struct usb_interface *intf,
+ 	if (ret < 0) {
+ 		ERR("%s: usb_set_interface error (ret = %d)\n", __func__, ret);
+-		kfree(cam);
+-		return ret;
++		goto free_data;
+ 	}
  
--	if (!v4l2_dev || !notifier->num_subdevs ||
--	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-+	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
- 		return -EINVAL;
  
- 	notifier->v4l2_dev = v4l2_dev;
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
+ 	if((ret = cpia2_init_camera(cam)) < 0) {
+ 		ERR("%s: failed to initialize cpia2 camera (ret = %d)\n", __func__, ret);
+-		kfree(cam);
+-		return ret;
++		goto free_data;
+ 	}
+ 	LOG("  CPiA Version: %d.%02d (%d.%d)\n",
+@@ -877,9 +875,12 @@ static int cpia2_usb_probe(struct usb_interface *intf,
+ 	if (ret < 0) {
+ 		ERR("%s: Failed to register cpia2 camera (ret = %d)\n", __func__, ret);
+-		kfree(cam);
+-		return ret;
++		goto free_data;
+ 	}
  
-+	if (!notifier->num_subdevs)
-+		return v4l2_async_notifier_call_complete(notifier);
+ 	return 0;
 +
- 	for (i = 0; i < notifier->num_subdevs; i++) {
- 		asd = notifier->subdevs[i];
++free_data:
++	kfree(cam);
++	return ret;
+ }
  
 -- 
-2.11.0
+2.14.1
