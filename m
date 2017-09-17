@@ -1,21 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:53976 "EHLO mout.web.de"
+Received: from mout.web.de ([212.227.17.11]:59728 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965748AbdIZLab (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 07:30:31 -0400
-Subject: [PATCH 3/6] [media] tda8261: Return directly after a failed kzalloc()
- in tda8261_attach()
+        id S1751352AbdIQURU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Sep 2017 16:17:20 -0400
+Subject: [PATCH 1/8] [media] cx231xx: Delete eight error messages for a failed
+ memory allocation
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
+To: linux-media@vger.kernel.org, Bhumika Goyal <bhumirks@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Johan Hovold <johan@kernel.org>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Matthias Schwarzott <zzam@gentoo.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>
+        Oleh Kravchenko <oleg@kaa.org.ua>,
+        Peter Rosin <peda@axentia.se>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: LKML <linux-kernel@vger.kernel.org>,
         kernel-janitors@vger.kernel.org
-References: <15d74bee-7467-4687-24e1-3501c22f6d75@users.sourceforge.net>
-Message-ID: <6613af47-7855-2633-e4dd-40b259cb4dc4@users.sourceforge.net>
-Date: Tue, 26 Sep 2017 13:30:21 +0200
+References: <f2c1ca56-ecdc-318c-f18f-9bef6c670ffb@users.sourceforge.net>
+Message-ID: <dd754a24-d113-2b6b-5f5c-01e9e6454ad9@users.sourceforge.net>
+Date: Sun, 17 Sep 2017 22:16:50 +0200
 MIME-Version: 1.0
-In-Reply-To: <15d74bee-7467-4687-24e1-3501c22f6d75@users.sourceforge.net>
+In-Reply-To: <f2c1ca56-ecdc-318c-f18f-9bef6c670ffb@users.sourceforge.net>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
@@ -23,42 +29,93 @@ Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 26 Sep 2017 12:20:33 +0200
+Date: Sun, 17 Sep 2017 17:43:47 +0200
 
-* Return directly after a call of the function "kzalloc" failed
-  at the beginning.
+Omit extra messages for a memory allocation failure in these functions.
 
-* Delete a call of the function "kfree" and the jump target "exit"
-  which became unnecessary with this refactoring.
+This issue was detected by using the Coccinelle software.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/dvb-frontends/tda8261.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/media/usb/cx231xx/cx231xx-core.c | 14 ++------------
+ drivers/media/usb/cx231xx/cx231xx-dvb.c  |  7 ++-----
+ drivers/media/usb/cx231xx/cx231xx-vbi.c  | 11 +----------
+ 3 files changed, 5 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/tda8261.c b/drivers/media/dvb-frontends/tda8261.c
-index 5269a170c84e..e3b4183d00c2 100644
---- a/drivers/media/dvb-frontends/tda8261.c
-+++ b/drivers/media/dvb-frontends/tda8261.c
-@@ -187,7 +187,7 @@ struct dvb_frontend *tda8261_attach(struct dvb_frontend *fe,
+diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+index f372ad3917a8..d9f4ae50e869 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-core.c
++++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+@@ -1038,12 +1038,7 @@ int cx231xx_init_isoc(struct cx231xx *dev, int max_packets,
+-	if (!dev->video_mode.isoc_ctl.urb) {
+-		dev_err(dev->dev,
+-			"cannot alloc memory for usb buffers\n");
++	if (!dev->video_mode.isoc_ctl.urb)
+ 		return -ENOMEM;
+-	}
  
- 	state = kzalloc(sizeof(*state), GFP_KERNEL);
- 	if (!state)
--		goto exit;
-+		return NULL;
+ 	dev->video_mode.isoc_ctl.transfer_buffer =
+ 	    kzalloc(sizeof(void *) * num_bufs, GFP_KERNEL);
+ 	if (!dev->video_mode.isoc_ctl.transfer_buffer) {
+-		dev_err(dev->dev,
+-			"cannot allocate memory for usbtransfer\n");
+ 		kfree(dev->video_mode.isoc_ctl.urb);
+@@ -1173,12 +1168,7 @@ int cx231xx_init_bulk(struct cx231xx *dev, int max_packets,
+-	if (!dev->video_mode.bulk_ctl.urb) {
+-		dev_err(dev->dev,
+-			"cannot alloc memory for usb buffers\n");
++	if (!dev->video_mode.bulk_ctl.urb)
+ 		return -ENOMEM;
+-	}
  
- 	state->config		= config;
- 	state->i2c		= i2c;
-@@ -200,10 +200,6 @@ struct dvb_frontend *tda8261_attach(struct dvb_frontend *fe,
- 	pr_info("%s: Attaching TDA8261 8PSK/QPSK tuner\n", __func__);
- 
- 	return fe;
+ 	dev->video_mode.bulk_ctl.transfer_buffer =
+ 	    kzalloc(sizeof(void *) * num_bufs, GFP_KERNEL);
+ 	if (!dev->video_mode.bulk_ctl.transfer_buffer) {
+-		dev_err(dev->dev,
+-			"cannot allocate memory for usbtransfer\n");
+ 		kfree(dev->video_mode.bulk_ctl.urb);
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index c18bb33e060e..248b62e2099c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -618,9 +618,6 @@ static int dvb_init(struct cx231xx *dev)
 -
--exit:
--	kfree(state);
--	return NULL;
- }
+-	if (dvb == NULL) {
+-		dev_info(dev->dev,
+-			 "cx231xx_dvb: memory allocation failed\n");
++	if (!dvb)
+ 		return -ENOMEM;
+-	}
++
+ 	dev->dvb = dvb;
+ 	dev->cx231xx_set_analog_freq = cx231xx_set_analog_freq;
+ 	dev->cx231xx_reset_analog_tuner = cx231xx_reset_analog_tuner;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-vbi.c b/drivers/media/usb/cx231xx/cx231xx-vbi.c
+index 76e901920f6f..9c27db16db2a 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-vbi.c
++++ b/drivers/media/usb/cx231xx/cx231xx-vbi.c
+@@ -420,12 +420,7 @@ int cx231xx_init_vbi_isoc(struct cx231xx *dev, int max_packets,
+-	if (!dev->vbi_mode.bulk_ctl.urb) {
+-		dev_err(dev->dev,
+-			"cannot alloc memory for usb buffers\n");
++	if (!dev->vbi_mode.bulk_ctl.urb)
+ 		return -ENOMEM;
+-	}
  
- EXPORT_SYMBOL(tda8261_attach);
+ 	dev->vbi_mode.bulk_ctl.transfer_buffer =
+ 	    kzalloc(sizeof(void *) * num_bufs, GFP_KERNEL);
+ 	if (!dev->vbi_mode.bulk_ctl.transfer_buffer) {
+-		dev_err(dev->dev,
+-			"cannot allocate memory for usbtransfer\n");
+ 		kfree(dev->vbi_mode.bulk_ctl.urb);
+@@ -453,8 +448,4 @@ int cx231xx_init_vbi_isoc(struct cx231xx *dev, int max_packets,
+ 		if (!dev->vbi_mode.bulk_ctl.transfer_buffer[i]) {
+-			dev_err(dev->dev,
+-				"unable to allocate %i bytes for transfer buffer %i%s\n",
+-				sb_size, i,
+-				in_interrupt() ? " while in int" : "");
+ 			cx231xx_uninit_vbi_isoc(dev);
+ 			return -ENOMEM;
+ 		}
 -- 
 2.14.1
