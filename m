@@ -1,132 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33502 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751444AbdILImq (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:57322 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750824AbdIQKPx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 04:42:46 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+        Sun, 17 Sep 2017 06:15:53 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v11 11/24] v4l: async: Introduce helpers for calling async ops callbacks
-Date: Tue, 12 Sep 2017 11:42:23 +0300
-Message-Id: <20170912084236.1154-12-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
-References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Rob Herring <robh@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv6 1/5] cec: add CEC_EVENT_PIN_HPD_LOW/HIGH events
+Date: Sun, 17 Sep 2017 12:15:42 +0200
+Message-Id: <20170917101546.16993-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170917101546.16993-1-hverkuil@xs4all.nl>
+References: <20170917101546.16993-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add three helper functions to call async operations callbacks. Besides
-simplifying callbacks, this allows async notifiers to have no ops set,
-i.e. it can be left NULL.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Add support for two new low-level events: PIN_HPD_LOW and PIN_HPD_HIGH.
+
+This is specifically meant for use with the upcoming cec-gpio driver
+and makes it possible to trace when the HPD pin changes. Some HDMI
+sinks do strange things with the HPD and this makes it easy to debug
+this.
+
+Note that this also moves the initialization of a devnode mutex and
+list to the allocate_adapter function: if the HPD is high, then as
+soon as the HPD interrupt is created an interrupt occurs and
+cec_queue_pin_hpd_event() is called which requires that the devnode
+mutex and list are initialized.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 49 ++++++++++++++++++++++++++----------
- include/media/v4l2-async.h           |  1 +
- 2 files changed, 37 insertions(+), 13 deletions(-)
+ drivers/media/cec/cec-adap.c | 18 +++++++++++++++++-
+ drivers/media/cec/cec-api.c  | 18 ++++++++++++++----
+ drivers/media/cec/cec-core.c |  8 ++++----
+ include/media/cec-pin.h      |  4 ++++
+ include/media/cec.h          | 12 +++++++++++-
+ include/uapi/linux/cec.h     |  2 ++
+ 6 files changed, 52 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index a2df85ea00f4..c34f93593b41 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -25,6 +25,34 @@
- #include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index dd769e40416f..eb904a71609a 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -86,7 +86,7 @@ void cec_queue_event_fh(struct cec_fh *fh,
+ 			const struct cec_event *new_ev, u64 ts)
+ {
+ 	static const u8 max_events[CEC_NUM_EVENTS] = {
+-		1, 1, 64, 64,
++		1, 1, 64, 64, 8, 8,
+ 	};
+ 	struct cec_event_entry *entry;
+ 	unsigned int ev_idx = new_ev->event - 1;
+@@ -170,6 +170,22 @@ void cec_queue_pin_cec_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
+ }
+ EXPORT_SYMBOL_GPL(cec_queue_pin_cec_event);
  
-+static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
-+					  struct v4l2_subdev *subdev,
-+					  struct v4l2_async_subdev *asd)
++/* Notify userspace that the HPD pin changed state at the given time. */
++void cec_queue_pin_hpd_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
 +{
-+	if (!n->ops || !n->ops->bound)
-+		return 0;
++	struct cec_event ev = {
++		.event = is_high ? CEC_EVENT_PIN_HPD_HIGH :
++				   CEC_EVENT_PIN_HPD_LOW,
++	};
++	struct cec_fh *fh;
 +
-+	return n->ops->bound(n, subdev, asd);
++	mutex_lock(&adap->devnode.lock);
++	list_for_each_entry(fh, &adap->devnode.fhs, list)
++		cec_queue_event_fh(fh, &ev, ktime_to_ns(ts));
++	mutex_unlock(&adap->devnode.lock);
 +}
++EXPORT_SYMBOL_GPL(cec_queue_pin_hpd_event);
 +
-+static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier *n,
-+					    struct v4l2_subdev *subdev,
-+					    struct v4l2_async_subdev *asd)
-+{
-+	if (!n->ops || !n->ops->unbind)
-+		return;
-+
-+	n->ops->unbind(n, subdev, asd);
-+}
-+
-+static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
-+{
-+	if (!n->ops || !n->ops->complete)
-+		return 0;
-+
-+	return n->ops->complete(n);
-+}
-+
- static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
- #if IS_ENABLED(CONFIG_I2C)
-@@ -102,16 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- {
+ /*
+  * Queue a new message for this filehandle.
+  *
+diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
+index a079f7fe018c..465bb3ec21f6 100644
+--- a/drivers/media/cec/cec-api.c
++++ b/drivers/media/cec/cec-api.c
+@@ -529,7 +529,7 @@ static int cec_open(struct inode *inode, struct file *filp)
+ 	 * Initial events that are automatically sent when the cec device is
+ 	 * opened.
+ 	 */
+-	struct cec_event ev_state = {
++	struct cec_event ev = {
+ 		.event = CEC_EVENT_STATE_CHANGE,
+ 		.flags = CEC_EVENT_FL_INITIAL_STATE,
+ 	};
+@@ -569,9 +569,19 @@ static int cec_open(struct inode *inode, struct file *filp)
+ 	filp->private_data = fh;
+ 
+ 	/* Queue up initial state events */
+-	ev_state.state_change.phys_addr = adap->phys_addr;
+-	ev_state.state_change.log_addr_mask = adap->log_addrs.log_addr_mask;
+-	cec_queue_event_fh(fh, &ev_state, 0);
++	ev.state_change.phys_addr = adap->phys_addr;
++	ev.state_change.log_addr_mask = adap->log_addrs.log_addr_mask;
++	cec_queue_event_fh(fh, &ev, 0);
++#ifdef CONFIG_CEC_PIN
++	if (adap->pin && adap->pin->ops->read_hpd) {
++		err = adap->pin->ops->read_hpd(adap);
++		if (err >= 0) {
++			ev.event = err ? CEC_EVENT_PIN_HPD_HIGH :
++					 CEC_EVENT_PIN_HPD_LOW;
++			cec_queue_event_fh(fh, &ev, 0);
++		}
++	}
++#endif
+ 
+ 	list_add(&fh->list, &devnode->fhs);
+ 	mutex_unlock(&devnode->lock);
+diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+index 648136e552d5..e3a1fb6d6690 100644
+--- a/drivers/media/cec/cec-core.c
++++ b/drivers/media/cec/cec-core.c
+@@ -112,10 +112,6 @@ static int __must_check cec_devnode_register(struct cec_devnode *devnode,
+ 	int minor;
  	int ret;
  
--	if (notifier->ops->bound) {
--		ret = notifier->ops->bound(notifier, sd, asd);
--		if (ret < 0)
--			return ret;
--	}
-+	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
-+	if (ret < 0)
-+		return ret;
+-	/* Initialization */
+-	INIT_LIST_HEAD(&devnode->fhs);
+-	mutex_init(&devnode->lock);
+-
+ 	/* Part 1: Find a free minor number */
+ 	mutex_lock(&cec_devnode_lock);
+ 	minor = find_next_zero_bit(cec_devnode_nums, CEC_NUM_DEVICES, 0);
+@@ -242,6 +238,10 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 	INIT_LIST_HEAD(&adap->wait_queue);
+ 	init_waitqueue_head(&adap->kthread_waitq);
  
- 	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
- 	if (ret < 0) {
--		if (notifier->ops->unbind)
--			notifier->ops->unbind(notifier, sd, asd);
-+		v4l2_async_notifier_call_unbind(notifier, sd, asd);
- 		return ret;
- 	}
- 
-@@ -123,8 +148,8 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 	/* Move from the global subdevice list to notifier's done */
- 	list_move(&sd->async_list, &notifier->done);
- 
--	if (list_empty(&notifier->waiting) && notifier->ops->complete)
--		return notifier->ops->complete(notifier);
-+	if (list_empty(&notifier->waiting))
-+		return v4l2_async_notifier_call_complete(notifier);
- 
- 	return 0;
- }
-@@ -210,8 +235,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
- 		v4l2_async_cleanup(sd);
- 
--		if (notifier->ops->unbind)
--			notifier->ops->unbind(notifier, sd, sd->asd);
-+		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
- 	}
- 
- 	mutex_unlock(&list_lock);
-@@ -300,8 +324,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
- 
- 	v4l2_async_cleanup(sd);
- 
--	if (notifier->ops->unbind)
--		notifier->ops->unbind(notifier, sd, sd->asd);
-+	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
- 
- 	mutex_unlock(&list_lock);
- }
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 3c48f8b66d12..3bc8a7c0d83f 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -164,4 +164,5 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd);
-  * @sd: pointer to &struct v4l2_subdev
-  */
- void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
++	/* adap->devnode initialization */
++	INIT_LIST_HEAD(&adap->devnode.fhs);
++	mutex_init(&adap->devnode.lock);
 +
- #endif
+ 	adap->kthread = kthread_run(cec_thread_func, adap, "cec-%s", name);
+ 	if (IS_ERR(adap->kthread)) {
+ 		pr_err("cec-%s: kernel_thread() failed\n", name);
+diff --git a/include/media/cec-pin.h b/include/media/cec-pin.h
+index f09cc9579d53..ea84b9c9e0c3 100644
+--- a/include/media/cec-pin.h
++++ b/include/media/cec-pin.h
+@@ -97,6 +97,9 @@ enum cec_pin_state {
+  * @free:	optional. Free any allocated resources. Called when the
+  *		adapter is deleted.
+  * @status:	optional, log status information.
++ * @read_hpd:	read the HPD pin. Return true if high, false if low or
++ *		an error if negative. If NULL or -ENOTTY is returned,
++ *		then this is not supported.
+  *
+  * These operations are used by the cec pin framework to manipulate
+  * the CEC pin.
+@@ -109,6 +112,7 @@ struct cec_pin_ops {
+ 	void (*disable_irq)(struct cec_adapter *adap);
+ 	void (*free)(struct cec_adapter *adap);
+ 	void (*status)(struct cec_adapter *adap, struct seq_file *file);
++	int  (*read_hpd)(struct cec_adapter *adap);
+ };
+ 
+ #define CEC_NUM_PIN_EVENTS 128
+diff --git a/include/media/cec.h b/include/media/cec.h
+index df6b3bd31284..9d0f983faea9 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -91,7 +91,7 @@ struct cec_event_entry {
+ };
+ 
+ #define CEC_NUM_CORE_EVENTS 2
+-#define CEC_NUM_EVENTS CEC_EVENT_PIN_CEC_HIGH
++#define CEC_NUM_EVENTS CEC_EVENT_PIN_HPD_HIGH
+ 
+ struct cec_fh {
+ 	struct list_head	list;
+@@ -296,6 +296,16 @@ static inline void cec_received_msg(struct cec_adapter *adap,
+ void cec_queue_pin_cec_event(struct cec_adapter *adap,
+ 			     bool is_high, ktime_t ts);
+ 
++/**
++ * cec_queue_pin_hpd_event() - queue a pin event with a given timestamp.
++ *
++ * @adap:	pointer to the cec adapter
++ * @is_high:	when true the HPD pin is high, otherwise it is low
++ * @ts:		the timestamp for this event
++ *
++ */
++void cec_queue_pin_hpd_event(struct cec_adapter *adap, bool is_high, ktime_t ts);
++
+ /**
+  * cec_get_edid_phys_addr() - find and return the physical address
+  *
+diff --git a/include/uapi/linux/cec.h b/include/uapi/linux/cec.h
+index 4351c3481aea..b9f8df3a0477 100644
+--- a/include/uapi/linux/cec.h
++++ b/include/uapi/linux/cec.h
+@@ -410,6 +410,8 @@ struct cec_log_addrs {
+ #define CEC_EVENT_LOST_MSGS		2
+ #define CEC_EVENT_PIN_CEC_LOW		3
+ #define CEC_EVENT_PIN_CEC_HIGH		4
++#define CEC_EVENT_PIN_HPD_LOW		5
++#define CEC_EVENT_PIN_HPD_HIGH		6
+ 
+ #define CEC_EVENT_FL_INITIAL_STATE	(1 << 0)
+ #define CEC_EVENT_FL_DROPPED_EVENTS	(1 << 1)
 -- 
-2.11.0
+2.14.1
