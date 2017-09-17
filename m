@@ -1,438 +1,484 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48804 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751005AbdIKIAL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 04:00:11 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v10 00/24] Unified fwnode endpoint parser, async sub-device notifier support, N9 flash DTS
-Date: Mon, 11 Sep 2017 10:59:44 +0300
-Message-Id: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+Received: from mout.web.de ([217.72.192.78]:51188 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751352AbdIQUSb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Sep 2017 16:18:31 -0400
+Subject: [PATCH 2/8] [media] cx231xx: Adjust 56 checks for null pointers
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Bhumika Goyal <bhumirks@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Johan Hovold <johan@kernel.org>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Matthias Schwarzott <zzam@gentoo.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Oleh Kravchenko <oleg@kaa.org.ua>,
+        Peter Rosin <peda@axentia.se>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <f2c1ca56-ecdc-318c-f18f-9bef6c670ffb@users.sourceforge.net>
+Message-ID: <a928e43e-8b73-8d27-79a4-696540adae2b@users.sourceforge.net>
+Date: Sun, 17 Sep 2017 22:17:51 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <f2c1ca56-ecdc-318c-f18f-9bef6c670ffb@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi folks,
-
-We have a large influx of new, unmerged, drivers that are now parsing
-fwnode endpoints and each one of them is doing this a little bit
-differently. The needs are still exactly the same for the graph data
-structure is device independent. This is still a non-trivial task and the
-majority of the driver implementations are buggy, just buggy in different
-ways.
-
-Facilitate parsing endpoints by adding a convenience function for parsing
-the endpoints, and make the omap3isp and rcar-vin drivers use them as an
-example.
-
-To show where we're getting with this, I've added support for async
-sub-device notifier support that is notifiers that can be registered by
-sub-device drivers as well as V4L2 fwnode improvements to make use of them
-and the DTS changes for the Nokia N9. Some of these patches I've posted
-previously in this set here:
-
-<URL:http://www.spinics.net/lists/linux-media/msg118764.html>
-
-Since that, the complete callback of the master notifier registering the
-V4L2 device is only called once all sub-notifiers have been completed as
-well. This way the device node creation can be postponed until all devices
-have been successfully initialised.
-
-With this, the as3645a driver successfully registers a sub-device to the
-media device created by the omap3isp driver. The kernel also has the
-information it's related to the sensor driven by the smiapp driver but we
-don't have a way to expose that information yet.
-
-since v9:
-
-- Drop "as3645a: Switch to fwnode property API" and "ACPI: Document how to
-  refer to LEDs from remote nodes" patches. They're better off separately
-  from this set.
-
-- Address property documentation redundancy in smiapp DT binding
-  documentation.
-
-- Add patches "ov5670: Add support for flash and lens devices" and
-  "ov13858: Add support for flash and lens devices".
-
-since v8:
-
-- Improve terminology for notifiers. Instead of master / subdev, we
-  have root, parent and subdev notifiers.
-
-- Renamed "flash" property as "flash-leds". There are many, and currently
-  we make assumptions in a lot of places (e.g. LED bindings) that these
-  are LEDs. While we don't have any other types of flashes supported right
-  now (e.g. Xenon), it's safer to assume we might have them in the future.
-
-- Use ENOTCONN instead of EPERM to tell from driver's callback function
-  that an endpoint is to be skipped but not handled as an error.
-
-- Avoid accessing notifier's subdevs array as well as num_subdevs field
-  from rcar-vin driver.
-
-- Add a patch "v4l: async: Allow async notifier register call succeed with no
-  subdevs", which allows, well, what the subject says.
-
-- Move checks for subdev / v4l2_dev from __v4l2_async_notifier_register()
-  to v4l2_async_notifier_register() and
-  v4l2_async_subdev_notifier_register().
-
-- Don't initialise notifier->list. There was no need to do so, as this is
-  the entry added to the list and not used otherwise. I.e. regarding this,
-  the state before this patchset is restored.
-
-- Clean up error handling in v4l2_async_notifier_fwnode_parse_endpoint().
-
-- WARN_ON() in v4l2_async_notifier_parse_fwnode_endpoints() if the
-  asd_struct_size is smaller than size of struct v4l2_async_subdev.
-
-- Make v4l2_fwnode_reference_parse() static as there should be no need to
-  use it outside the V4L2 fwnode framework. Also, remove the callback
-  function as well as other arguments that always have the same value in
-  current usage. (This can be changed later on if needed without affecting
-  drivers.)
-
-- Add the patch "v4l: fwnode: Add a helper function to obtain device /
-  interger references", which allows similar use than
-  v4l2_fwnode_reference_parse() but is more useful on ACPI based systems
-  --- on ACPI, you can only refer to device nodes (corresponding struct
-  deice in Linux), not to data extension nodes under the devices.
-
-- Improve v4l2_fwnode_reference_parse_sensor_common() to work on ACPI
-  based systems.
-
-- Add patch "ACPI: Document how to refer to LEDs from remote nodes" to
-  document using and referring to LEDs on ACPI.
-
-- Rebase the set on AS3645A fixes I just sent ("AS3645A fixes")
-
-- In v4l2_fwnode_reference_parse_sensor_common(), tell if parsing a
-  property failed.
-
-- Improved documentation for v4l2_async_notifier_parse_fwnode_endpoints().
-
-- Fix v4l2_async_notifier_try_all_subdevs(); it is allowed that the list
-  entry being iterated over is deleted but no other changes to the list
-  are allowed. This could be the case if a sub-device driver's notifier
-  binds a sub-device. Restart the loop whenever a match is found.
-
-- Add patch "as3645a: Switch to fwnode property API" which also adds ACPI
-  support.
-
-since v7:
-
-- Added three more patches:
-
-	v4l: async: Remove re-probing support
-	v4l: async: Use more intuitive names for internal functions
-	dt: bindings: smiapp: Document lens-focus and flash properties
-
-  The last one was already sent previously after the rest of the patchset.
-
-- Removed re-probing support. This is hard to support and only useful in
-  special cases. It can be reintroduced later on if there's really a need
-  --- note that in e.g. omap3isp this was always broken and no-one ever
-  complained.
-
-- Remove smiapp driver's async complete callback (and ops). It is
-  redundant: the sub-device nodes are created through the master notifier.
-
-- Improve flash property documentation in video-interfaces.txt.
-
-- Introduce helper functions to call notifier operations, one for each
-  operation.
-
-- Rename v4l2_async_test_notify as v4l2_async_match_notify and
-  v4l2_async_belongs to v4l2_async_find_match.
-
-- v4l2_async_notifier_test_all_subdevs() renamed as
-  v4l2_async_notifier_try_all_subdevs().
-
-- Made notifier_v4l2_dev a function (it was a macro).
-
-- Registering subdev notifiers from sub-device drivers that control
-  sub-devices created through sub-notifiers is now supported. In other
-  words, subdev notifiers may be registered through other subdev
-  notifiers. This is the source of the bulk of the changes between v7 and
-  v8.
-
-- Add explanatory comments to helper functions used by V4L2 async
-  framework. This should help understanding the internal workings of the
-  framework.
-
-- Removed the "notifiers" list in struct v4l2_async_notifier. The
-  information can be found from existing data structures.
-
-- Explicitly check that registering a non-subdev notifier has v4l2_dev and
-  a subdev notifier has a sub-device pointer.
-
-- Unified several code paths between subdev notifiers and non-subdev
-  notifiers.
-
-- Fixed v4l2_async_notifier_release() --- calling it on a notifier for
-  which the driver had allocated the subdevs array would lead calling
-  kvfree() on that array. Now notifier->max_subdevs is checked before
-  proceeding.
-
-- Fixed a use-after-free issue in
-  v4l2_async_notifier_fwnode_parse_endpoints().
-
-- Small fixes to KernelDoc documentation for
-  v4l2_async_notifier_parse_fwnode_endpoints().
-
-since v6:
-
-- Drop the last patch that added variant for parsing endpoints given
-  specific port and endpoints numbers.
-
-- Separate driver changes from the fwnode endpoint parser patch into two
-  patches. rcar-vin driver is now using the name function.
-
-- Use -ENOTCONN to tell the parser that and endpoint (or a reference) is
-  to be ignored.
-
-- parse_endpoint and parse_single callback functions are now optional and
-  documented as such.
-
-- Added Laurent's patch adding notifier operations struct which I rebase
-  on the fwnode parser patchset. I wrote another patch to call the
-  notifier operations through macros.
-
-- Add DT bindings for flash and lens devices.
-
-- V4L2 fwnode parser for references (such as flash and lens).
-
-- Added smiapp driver support for async sub-devices (lens and flash).
-
-- Added a few fixes for omap3isp.
-
-since v5:
-
-- Use v4l2_async_ prefix for static functions as well (4th patch)
-
-- Use memcpy() to copy array rather than a loop
-
-- Document that the v4l2_async_subdev pointer in driver specific struct
-  must be the first member
-
-- Improve documentation of the added functions (4th and 5th
-  patches)
-
-	- Arguments
-
-	- More thorough explation of the purpose, usage and object
-	  lifetime
-
-- Added acks
-
-since v4:
-
-- Prepend the set with three documentation fixes.
-
-- The driver's async struct must begin with struct v4l2_async_subdev. Fix this
-  for omap3isp and document it.
-
-- Improve documentation for new functions.
-
-- Don't use devm_ family of functions for allocating memory. Introduce
-  v4l2_async_notifier_release() to release memory resources.
-
-- Rework both v4l2_async_notifier_fwnode_parse_endpoints() and
-  v4l2_async_notifier_fwnode_parse_endpoint() and the local functions they
-  call. This should make the code cleaner. Despite the name, for linking
-  and typical usage reasons the functions remain in v4l2-fwnode.c.
-
-- Convert rcar-vin to use v4l2_async_notifier_fwnode_parse_endpoint().
-
-- Use kvmalloc() for allocating the notifier's subdevs array.
-
-- max_subdevs argument for notifier_realloc is now the total maximum
-  number of subdevs, not the number of available subdevs.
-
-- Use fwnode_device_is_available() to make sure the device actually
-  exists.
-
-- Move the note telling v4l2_async_notifier_fwnode_parse_endpoints()
-  should not be used by new drivers to the last patch adding
-  v4l2_async_notifier_fwnode_parse_endpoint().
-
-since v3:
-
-- Rebase on current mediatree master.
-
-since v2:
-
-- Rebase on CCP2 support patches.
-
-- Prepend a patch cleaning up omap3isp driver a little.
-
-since v1:
-
-- The first patch has been merged (it was a bugfix).
-
-- In anticipation that the parsing can take place over several iterations,
-  take the existing number of async sub-devices into account when
-  re-allocating an array of async sub-devices.
-
-- Rework the first patch to better anticipate parsing single endpoint at a
-  time by a driver.
-
-- Add a second patch that adds a function for parsing endpoints one at a
-  time based on port and endpoint numbers.
-
-
-Laurent Pinchart (1):
-  v4l: async: Move async subdev notifier operations to a separate
-    structure
-
-Sakari Ailus (23):
-  v4l: fwnode: Move KernelDoc documentation to the header
-  v4l: async: Remove re-probing support
-  v4l: async: Use more intuitive names for internal functions
-  v4l: async: Add V4L2 async documentation to the documentation build
-  v4l: fwnode: Support generic parsing of graph endpoints in a device
-  omap3isp: Use generic parser for parsing fwnode endpoints
-  rcar-vin: Use generic parser for parsing fwnode endpoints
-  omap3isp: Fix check for our own sub-devices
-  omap3isp: Print the name of the entity where no source pads could be
-    found
-  v4l: async: Introduce helpers for calling async ops callbacks
-  v4l: async: Register sub-devices before calling bound callback
-  v4l: async: Allow async notifier register call succeed with no subdevs
-  v4l: async: Allow binding notifiers to sub-devices
-  dt: bindings: Add a binding for flash LED devices associated to a
-    sensor
-  dt: bindings: Add lens-focus binding for image sensors
-  ACPI: Document how to refer to LEDs from remote nodes
-  as3645a: Switch to fwnode property API
-  v4l: fwnode: Add a helper function for parsing generic references
-  v4l: fwnode: Add a helper function to obtain device / interger
-    references
-  v4l: fwnode: Add convenience function for parsing common external refs
-  smiapp: Add support for flash and lens devices
-  dt: bindings: smiapp: Document lens-focus and flash properties
-  arm: dts: omap3: N9/N950: Add flash references to the camera
-
- Documentation/acpi/dsd/leds.txt                    |  92 +++++
- .../devicetree/bindings/media/i2c/nokia,smia.txt   |   2 +
- .../devicetree/bindings/media/video-interfaces.txt |  10 +
- Documentation/media/kapi/v4l2-async.rst            |   3 +
- Documentation/media/kapi/v4l2-core.rst             |   1 +
- arch/arm/boot/dts/omap3-n9.dts                     |   1 +
- arch/arm/boot/dts/omap3-n950-n9.dtsi               |   4 +-
- arch/arm/boot/dts/omap3-n950.dts                   |   1 +
- drivers/leds/leds-as3645a.c                        |  81 +++--
- drivers/media/i2c/smiapp/smiapp-core.c             |  18 +-
- drivers/media/i2c/smiapp/smiapp.h                  |   4 +-
- drivers/media/platform/am437x/am437x-vpfe.c        |   8 +-
- drivers/media/platform/atmel/atmel-isc.c           |  10 +-
- drivers/media/platform/atmel/atmel-isi.c           |  10 +-
- drivers/media/platform/davinci/vpif_capture.c      |   8 +-
- drivers/media/platform/davinci/vpif_display.c      |   8 +-
- drivers/media/platform/exynos4-is/media-dev.c      |   8 +-
- drivers/media/platform/omap3isp/isp.c              | 127 +++----
- drivers/media/platform/omap3isp/isp.h              |   5 +-
- drivers/media/platform/pxa_camera.c                |   8 +-
- drivers/media/platform/qcom/camss-8x16/camss.c     |   8 +-
- drivers/media/platform/rcar-vin/rcar-core.c        | 122 +++----
- drivers/media/platform/rcar-vin/rcar-dma.c         |  10 +-
- drivers/media/platform/rcar-vin/rcar-v4l2.c        |  14 +-
- drivers/media/platform/rcar-vin/rcar-vin.h         |   4 +-
- drivers/media/platform/rcar_drif.c                 |  10 +-
- drivers/media/platform/soc_camera/soc_camera.c     |  14 +-
- drivers/media/platform/stm32/stm32-dcmi.c          |  10 +-
- drivers/media/platform/ti-vpe/cal.c                |   8 +-
- drivers/media/platform/xilinx/xilinx-vipp.c        |   8 +-
- drivers/media/v4l2-core/v4l2-async.c               | 345 +++++++++++++-----
- drivers/media/v4l2-core/v4l2-fwnode.c              | 386 +++++++++++++++++----
- drivers/staging/media/imx/imx-media-dev.c          |   8 +-
- include/media/v4l2-async.h                         |  68 +++-
- include/media/v4l2-fwnode.h                        | 150 +++++++-
- 35 files changed, 1135 insertions(+), 439 deletions(-)
- create mode 100644 Documentation/acpi/dsd/leds.txt
- create mode 100644 Documentation/media/kapi/v4l2-async.rst
-
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 17 Sep 2017 18:23:06 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The script “checkpatch.pl” pointed information out like the following.
+
+Comparison to NULL could be written …
+
+Thus fix the affected source code places.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/cx231xx/cx231xx-417.c   |  6 ++--
+ drivers/media/usb/cx231xx/cx231xx-audio.c |  2 +-
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 16 +++++-----
+ drivers/media/usb/cx231xx/cx231xx-core.c  | 20 ++++++------
+ drivers/media/usb/cx231xx/cx231xx-dvb.c   | 51 ++++++++++++-------------------
+ drivers/media/usb/cx231xx/cx231xx-vbi.c   |  6 ++--
+ drivers/media/usb/cx231xx/cx231xx-video.c |  4 +--
+ 7 files changed, 45 insertions(+), 60 deletions(-)
+
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index d538fa407742..d43345593172 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -954,13 +954,13 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
+ 
+ 	p_current_fw = vmalloc(1884180 * 4);
+ 	p_fw = p_current_fw;
+-	if (p_current_fw == NULL) {
++	if (!p_current_fw) {
+ 		dprintk(2, "FAIL!!!\n");
+ 		return -ENOMEM;
+ 	}
+ 
+ 	p_buffer = vmalloc(4096);
+-	if (p_buffer == NULL) {
++	if (!p_buffer) {
+ 		dprintk(2, "FAIL!!!\n");
+ 		vfree(p_current_fw);
+ 		return -ENOMEM;
+@@ -1711,7 +1711,7 @@ static int mpeg_open(struct file *file)
+ 
+ 	/* allocate + initialize per filehandle data */
+ 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
+-	if (NULL == fh) {
++	if (!fh) {
+ 		mutex_unlock(&dev->lock);
+ 		return -ENOMEM;
+ 	}
+diff --git a/drivers/media/usb/cx231xx/cx231xx-audio.c b/drivers/media/usb/cx231xx/cx231xx-audio.c
+index 06f10d7fc4b0..f98ba0c66f8f 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-audio.c
++++ b/drivers/media/usb/cx231xx/cx231xx-audio.c
+@@ -745,7 +745,7 @@ static int cx231xx_audio_init(struct cx231xx *dev)
+ 
+ static int cx231xx_audio_fini(struct cx231xx *dev)
+ {
+-	if (dev == NULL)
++	if (!dev)
+ 		return 0;
+ 
+ 	if (dev->has_alsa_audio != 1) {
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index e0daa9b6c2a0..d204f220dfe5 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -1156,7 +1156,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+ 					cx231xx_get_i2c_adap(dev, I2C_0),
+ 					"cx25840", 0x88 >> 1, NULL);
+-		if (dev->sd_cx25840 == NULL)
++		if (!dev->sd_cx25840)
+ 			dev_err(dev->dev,
+ 				"cx25840 subdev registration failure\n");
+ 		cx25840_call(dev, core, load_fw);
+@@ -1171,7 +1171,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 						    tuner_i2c,
+ 						    "tuner",
+ 						    dev->tuner_addr, NULL);
+-		if (dev->sd_tuner == NULL)
++		if (!dev->sd_tuner)
+ 			dev_err(dev->dev,
+ 				"tuner subdev registration failure\n");
+ 		else
+@@ -1190,7 +1190,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 			};
+ 			struct eeprom *e = kzalloc(sizeof(*e), GFP_KERNEL);
+ 
+-			if (e == NULL) {
++			if (!e) {
+ 				dev_err(dev->dev,
+ 					"failed to allocate memory to read eeprom\n");
+ 				break;
+@@ -1471,7 +1471,7 @@ static int cx231xx_init_v4l2(struct cx231xx *dev,
+ 		 dev->video_mode.num_alt);
+ 
+ 	dev->video_mode.alt_max_pkt_size = devm_kmalloc_array(&udev->dev, 32, dev->video_mode.num_alt, GFP_KERNEL);
+-	if (dev->video_mode.alt_max_pkt_size == NULL)
++	if (!dev->video_mode.alt_max_pkt_size)
+ 		return -ENOMEM;
+ 
+ 	for (i = 0; i < dev->video_mode.num_alt; i++) {
+@@ -1512,7 +1512,7 @@ static int cx231xx_init_v4l2(struct cx231xx *dev,
+ 
+ 	/* compute alternate max packet sizes for vbi */
+ 	dev->vbi_mode.alt_max_pkt_size = devm_kmalloc_array(&udev->dev, 32, dev->vbi_mode.num_alt, GFP_KERNEL);
+-	if (dev->vbi_mode.alt_max_pkt_size == NULL)
++	if (!dev->vbi_mode.alt_max_pkt_size)
+ 		return -ENOMEM;
+ 
+ 	for (i = 0; i < dev->vbi_mode.num_alt; i++) {
+@@ -1554,7 +1554,7 @@ static int cx231xx_init_v4l2(struct cx231xx *dev,
+ 		 dev->sliced_cc_mode.end_point_addr,
+ 		 dev->sliced_cc_mode.num_alt);
+ 	dev->sliced_cc_mode.alt_max_pkt_size = devm_kmalloc_array(&udev->dev, 32, dev->sliced_cc_mode.num_alt, GFP_KERNEL);
+-	if (dev->sliced_cc_mode.alt_max_pkt_size == NULL)
++	if (!dev->sliced_cc_mode.alt_max_pkt_size)
+ 		return -ENOMEM;
+ 
+ 	for (i = 0; i < dev->sliced_cc_mode.num_alt; i++) {
+@@ -1618,7 +1618,7 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 
+ 	/* allocate memory for our device state and initialize it */
+ 	dev = devm_kzalloc(&udev->dev, sizeof(*dev), GFP_KERNEL);
+-	if (dev == NULL) {
++	if (!dev) {
+ 		retval = -ENOMEM;
+ 		goto err_if;
+ 	}
+@@ -1748,7 +1748,7 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 			 dev->ts1_mode.num_alt);
+ 
+ 		dev->ts1_mode.alt_max_pkt_size = devm_kmalloc_array(&udev->dev, 32, dev->ts1_mode.num_alt, GFP_KERNEL);
+-		if (dev->ts1_mode.alt_max_pkt_size == NULL) {
++		if (!dev->ts1_mode.alt_max_pkt_size) {
+ 			retval = -ENOMEM;
+ 			goto err_video_alt;
+ 		}
+diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+index d9f4ae50e869..76ce18cf2383 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-core.c
++++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+@@ -69,9 +69,9 @@ static DEFINE_MUTEX(cx231xx_devlist_mutex);
+ */
+ void cx231xx_remove_from_devlist(struct cx231xx *dev)
+ {
+-	if (dev == NULL)
++	if (!dev)
+ 		return;
+-	if (dev->udev == NULL)
++	if (!dev->udev)
+ 		return;
+ 
+ 	if (atomic_read(&dev->devlist_count) > 0) {
+@@ -508,7 +508,7 @@ int cx231xx_set_video_alternate(struct cx231xx *dev)
+ 		cx231xx_coredbg("minimum isoc packet size: %u (alt=%d)\n",
+ 				min_pkt_size, dev->video_mode.alt);
+ 
+-		if (dev->video_mode.alt_max_pkt_size != NULL)
++		if (dev->video_mode.alt_max_pkt_size)
+ 			dev->video_mode.max_pkt_size =
+ 			dev->video_mode.alt_max_pkt_size[dev->video_mode.alt];
+ 		cx231xx_coredbg("setting alternate %d with wMaxPacketSize=%u\n",
+@@ -539,7 +539,7 @@ int cx231xx_set_alt_setting(struct cx231xx *dev, u8 index, u8 alt)
+ 		    dev->current_pcb_config.hs_config_info[0].interface_info.
+ 		    ts1_index + 1;
+ 		dev->ts1_mode.alt = alt;
+-		if (dev->ts1_mode.alt_max_pkt_size != NULL)
++		if (dev->ts1_mode.alt_max_pkt_size)
+ 			max_pkt_size = dev->ts1_mode.max_pkt_size =
+ 			    dev->ts1_mode.alt_max_pkt_size[dev->ts1_mode.alt];
+ 		break;
+@@ -553,7 +553,7 @@ int cx231xx_set_alt_setting(struct cx231xx *dev, u8 index, u8 alt)
+ 		    dev->current_pcb_config.hs_config_info[0].interface_info.
+ 		    audio_index + 1;
+ 		dev->adev.alt = alt;
+-		if (dev->adev.alt_max_pkt_size != NULL)
++		if (dev->adev.alt_max_pkt_size)
+ 			max_pkt_size = dev->adev.max_pkt_size =
+ 			    dev->adev.alt_max_pkt_size[dev->adev.alt];
+ 		break;
+@@ -562,7 +562,7 @@ int cx231xx_set_alt_setting(struct cx231xx *dev, u8 index, u8 alt)
+ 		    dev->current_pcb_config.hs_config_info[0].interface_info.
+ 		    video_index + 1;
+ 		dev->video_mode.alt = alt;
+-		if (dev->video_mode.alt_max_pkt_size != NULL)
++		if (dev->video_mode.alt_max_pkt_size)
+ 			max_pkt_size = dev->video_mode.max_pkt_size =
+ 			    dev->video_mode.alt_max_pkt_size[dev->video_mode.
+ 							     alt];
+@@ -574,7 +574,7 @@ int cx231xx_set_alt_setting(struct cx231xx *dev, u8 index, u8 alt)
+ 		    dev->current_pcb_config.hs_config_info[0].interface_info.
+ 		    vanc_index + 1;
+ 		dev->vbi_mode.alt = alt;
+-		if (dev->vbi_mode.alt_max_pkt_size != NULL)
++		if (dev->vbi_mode.alt_max_pkt_size)
+ 			max_pkt_size = dev->vbi_mode.max_pkt_size =
+ 			    dev->vbi_mode.alt_max_pkt_size[dev->vbi_mode.alt];
+ 		break;
+@@ -583,7 +583,7 @@ int cx231xx_set_alt_setting(struct cx231xx *dev, u8 index, u8 alt)
+ 		    dev->current_pcb_config.hs_config_info[0].interface_info.
+ 		    hanc_index + 1;
+ 		dev->sliced_cc_mode.alt = alt;
+-		if (dev->sliced_cc_mode.alt_max_pkt_size != NULL)
++		if (dev->sliced_cc_mode.alt_max_pkt_size)
+ 			max_pkt_size = dev->sliced_cc_mode.max_pkt_size =
+ 			    dev->sliced_cc_mode.alt_max_pkt_size[dev->
+ 								 sliced_cc_mode.
+@@ -768,7 +768,7 @@ int cx231xx_ep5_bulkout(struct cx231xx *dev, u8 *firmware, u16 size)
+ 	u32 *buffer;
+ 
+ 	buffer = kzalloc(4096, GFP_KERNEL);
+-	if (buffer == NULL)
++	if (!buffer)
+ 		return -ENOMEM;
+ 	memcpy(&buffer[0], firmware, 4096);
+ 
+@@ -1009,7 +1009,7 @@ int cx231xx_init_isoc(struct cx231xx *dev, int max_packets,
+ 	cx231xx_uninit_isoc(dev);
+ 
+ 	dma_q->p_left_data = kzalloc(4096, GFP_KERNEL);
+-	if (dma_q->p_left_data == NULL)
++	if (!dma_q->p_left_data)
+ 		return -ENOMEM;
+ 
+ 	dev->video_mode.isoc_ctl.isoc_copy = isoc_copy;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index 248b62e2099c..0813f368fb3c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -408,11 +408,10 @@ static int attach_xc5000(u8 addr, struct cx231xx *dev)
+ 
+ int cx231xx_set_analog_freq(struct cx231xx *dev, u32 freq)
+ {
+-	if ((dev->dvb != NULL) && (dev->dvb->frontend != NULL)) {
+-
++	if (dev->dvb && dev->dvb->frontend) {
+ 		struct dvb_tuner_ops *dops = &dev->dvb->frontend->ops.tuner_ops;
+ 
+-		if (dops->set_analog_params != NULL) {
++		if (dops->set_analog_params) {
+ 			struct analog_parameters params;
+ 
+ 			params.frequency = freq;
+@@ -433,12 +432,10 @@ int cx231xx_reset_analog_tuner(struct cx231xx *dev)
+ {
+ 	int status = 0;
+ 
+-	if ((dev->dvb != NULL) && (dev->dvb->frontend != NULL)) {
+-
++	if (dev->dvb && dev->dvb->frontend) {
+ 		struct dvb_tuner_ops *dops = &dev->dvb->frontend->ops.tuner_ops;
+ 
+-		if (dops->init != NULL && !dev->xc_fw_load_done) {
+-
++		if (dops->init && !dev->xc_fw_load_done) {
+ 			dev_dbg(dev->dev,
+ 				"Reloading firmware for XC5000\n");
+ 			status = dops->init(dev->dvb->frontend);
+@@ -635,8 +632,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		dev->dvb->frontend = dvb_attach(s5h1432_attach,
+ 					&dvico_s5h1432_config,
+ 					demod_i2c);
+-
+-		if (dev->dvb->frontend == NULL) {
++		if (!dev->dvb->frontend) {
+ 			dev_err(dev->dev,
+ 				"Failed to attach s5h1432 front end\n");
+ 			result = -EINVAL;
+@@ -660,8 +656,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		dev->dvb->frontend = dvb_attach(s5h1411_attach,
+ 					       &xc5000_s5h1411_config,
+ 					       demod_i2c);
+-
+-		if (dev->dvb->frontend == NULL) {
++		if (!dev->dvb->frontend) {
+ 			dev_err(dev->dev,
+ 				"Failed to attach s5h1411 front end\n");
+ 			result = -EINVAL;
+@@ -683,8 +678,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		dev->dvb->frontend = dvb_attach(s5h1432_attach,
+ 					&dvico_s5h1432_config,
+ 					demod_i2c);
+-
+-		if (dev->dvb->frontend == NULL) {
++		if (!dev->dvb->frontend) {
+ 			dev_err(dev->dev,
+ 				"Failed to attach s5h1432 front end\n");
+ 			result = -EINVAL;
+@@ -707,8 +701,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		dev->dvb->frontend = dvb_attach(s5h1411_attach,
+ 					       &tda18271_s5h1411_config,
+ 					       demod_i2c);
+-
+-		if (dev->dvb->frontend == NULL) {
++		if (!dev->dvb->frontend) {
+ 			dev_err(dev->dev,
+ 				"Failed to attach s5h1411 front end\n");
+ 			result = -EINVAL;
+@@ -734,8 +727,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		dev->dvb->frontend = dvb_attach(lgdt3305_attach,
+ 						&hcw_lgdt3305_config,
+ 						demod_i2c);
+-
+-		if (dev->dvb->frontend == NULL) {
++		if (!dev->dvb->frontend) {
+ 			dev_err(dev->dev,
+ 				"Failed to attach LG3305 front end\n");
+ 			result = -EINVAL;
+@@ -768,7 +760,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		info.platform_data = &si2165_pdata;
+ 		request_module(info.type);
+ 		client = i2c_new_device(demod_i2c, &info);
+-		if (client == NULL || client->dev.driver == NULL || dev->dvb->frontend == NULL) {
++		if (!client || !client->dev.driver || !dev->dvb->frontend) {
+ 			dev_err(dev->dev,
+ 				"Failed to attach SI2165 front end\n");
+ 			result = -EINVAL;
+@@ -815,7 +807,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		info.platform_data = &si2165_pdata;
+ 		request_module(info.type);
+ 		client = i2c_new_device(demod_i2c, &info);
+-		if (client == NULL || client->dev.driver == NULL || dev->dvb->frontend == NULL) {
++		if (!client || !client->dev.driver || !dev->dvb->frontend) {
+ 			dev_err(dev->dev,
+ 				"Failed to attach SI2165 front end\n");
+ 			result = -EINVAL;
+@@ -853,7 +845,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		client = i2c_new_device(
+ 			tuner_i2c,
+ 			&info);
+-		if (client == NULL || client->dev.driver == NULL) {
++		if (!client || !client->dev.driver) {
+ 			dvb_frontend_detach(dev->dvb->frontend);
+ 			result = -ENODEV;
+ 			goto out_free;
+@@ -883,8 +875,7 @@ static int dvb_init(struct cx231xx *dev)
+ 			&hauppauge_955q_lgdt3306a_config,
+ 			demod_i2c
+ 			);
+-
+-		if (dev->dvb->frontend == NULL) {
++		if (!dev->dvb->frontend) {
+ 			dev_err(dev->dev,
+ 				"Failed to attach LGDT3306A frontend.\n");
+ 			result = -EINVAL;
+@@ -912,7 +903,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		client = i2c_new_device(
+ 			tuner_i2c,
+ 			&info);
+-		if (client == NULL || client->dev.driver == NULL) {
++		if (!client || !client->dev.driver) {
+ 			dvb_frontend_detach(dev->dvb->frontend);
+ 			result = -ENODEV;
+ 			goto out_free;
+@@ -940,8 +931,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		dev->dvb->frontend = dvb_attach(mb86a20s_attach,
+ 						&pv_mb86a20s_config,
+ 						demod_i2c);
+-
+-		if (dev->dvb->frontend == NULL) {
++		if (!dev->dvb->frontend) {
+ 			dev_err(dev->dev,
+ 				"Failed to attach mb86a20s demod\n");
+ 			result = -EINVAL;
+@@ -976,8 +966,7 @@ static int dvb_init(struct cx231xx *dev)
+ 
+ 		request_module(info.type);
+ 		client = i2c_new_device(demod_i2c, &info);
+-
+-		if (client == NULL || client->dev.driver == NULL) {
++		if (!client || !client->dev.driver) {
+ 			result = -ENODEV;
+ 			goto out_free;
+ 		}
+@@ -1005,8 +994,7 @@ static int dvb_init(struct cx231xx *dev)
+ 
+ 		request_module(info.type);
+ 		client = i2c_new_device(tuner_i2c, &info);
+-
+-		if (client == NULL || client->dev.driver == NULL) {
++		if (!client || !client->dev.driver) {
+ 			module_put(dvb->i2c_client_demod->dev.driver->owner);
+ 			i2c_unregister_device(dvb->i2c_client_demod);
+ 			result = -ENODEV;
+@@ -1042,8 +1030,7 @@ static int dvb_init(struct cx231xx *dev)
+ 
+ 		request_module(info.type);
+ 		client = i2c_new_device(demod_i2c, &info);
+-
+-		if (client == NULL || client->dev.driver == NULL) {
++		if (!client || !client->dev.driver) {
+ 			result = -ENODEV;
+ 			goto out_free;
+ 		}
+@@ -1071,7 +1058,7 @@ static int dvb_init(struct cx231xx *dev)
+ 			dev->name);
+ 		break;
+ 	}
+-	if (NULL == dvb->frontend) {
++	if (!dvb->frontend) {
+ 		dev_err(dev->dev,
+ 		       "%s/2: frontend initialization failed\n", dev->name);
+ 		result = -EINVAL;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-vbi.c b/drivers/media/usb/cx231xx/cx231xx-vbi.c
+index 9c27db16db2a..8ec53017da2b 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-vbi.c
++++ b/drivers/media/usb/cx231xx/cx231xx-vbi.c
+@@ -630,8 +630,7 @@ void cx231xx_reset_vbi_buffer(struct cx231xx *dev,
+ 	struct cx231xx_buffer *buf;
+ 
+ 	buf = dev->vbi_mode.bulk_ctl.buf;
+-
+-	if (buf == NULL) {
++	if (!buf) {
+ 		/* first try to get the buffer */
+ 		get_next_vbi_buf(dma_q, &buf);
+ 
+@@ -654,8 +653,7 @@ int cx231xx_do_vbi_copy(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
+ 	int offset, lencopy;
+ 
+ 	buf = dev->vbi_mode.bulk_ctl.buf;
+-
+-	if (buf == NULL)
++	if (!buf)
+ 		return -EINVAL;
+ 
+ 	p_out_buffer = videobuf_to_vmalloc(&buf->vb);
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index 179b8481a870..956f8cbcb454 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -634,7 +634,7 @@ void cx231xx_reset_video_buffer(struct cx231xx *dev,
+ 	else
+ 		buf = dev->video_mode.bulk_ctl.buf;
+ 
+-	if (buf == NULL) {
++	if (!buf) {
+ 		/* first try to get the buffer */
+ 		get_next_buf(dma_q, &buf);
+ 
+@@ -663,7 +663,7 @@ int cx231xx_do_copy(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
+ 	else
+ 		buf = dev->video_mode.bulk_ctl.buf;
+ 
+-	if (buf == NULL)
++	if (!buf)
+ 		return -1;
+ 
+ 	p_out_buffer = videobuf_to_vmalloc(&buf->vb);
 -- 
-2.11.0
-
-
-Laurent Pinchart (1):
-  v4l: async: Move async subdev notifier operations to a separate
-    structure
-
-Sakari Ailus (23):
-  v4l: fwnode: Move KernelDoc documentation to the header
-  v4l: async: Remove re-probing support
-  v4l: async: Use more intuitive names for internal functions
-  v4l: async: Add V4L2 async documentation to the documentation build
-  v4l: fwnode: Support generic parsing of graph endpoints in a device
-  omap3isp: Use generic parser for parsing fwnode endpoints
-  rcar-vin: Use generic parser for parsing fwnode endpoints
-  omap3isp: Fix check for our own sub-devices
-  omap3isp: Print the name of the entity where no source pads could be
-    found
-  v4l: async: Introduce helpers for calling async ops callbacks
-  v4l: async: Register sub-devices before calling bound callback
-  v4l: async: Allow async notifier register call succeed with no subdevs
-  v4l: async: Allow binding notifiers to sub-devices
-  dt: bindings: Add a binding for flash LED devices associated to a
-    sensor
-  dt: bindings: Add lens-focus binding for image sensors
-  v4l: fwnode: Add a helper function for parsing generic references
-  v4l: fwnode: Add a helper function to obtain device / interger
-    references
-  v4l: fwnode: Add convenience function for parsing common external refs
-  dt: bindings: smiapp: Document lens-focus and flash properties
-  smiapp: Add support for flash and lens devices
-  ov5670: Add support for flash and lens devices
-  ov13858: Add support for flash and lens devices
-  arm: dts: omap3: N9/N950: Add flash references to the camera
-
- .../devicetree/bindings/media/i2c/nokia,smia.txt   |   2 +
- .../devicetree/bindings/media/video-interfaces.txt |  10 +
- Documentation/media/kapi/v4l2-async.rst            |   3 +
- Documentation/media/kapi/v4l2-core.rst             |   1 +
- arch/arm/boot/dts/omap3-n9.dts                     |   1 +
- arch/arm/boot/dts/omap3-n950-n9.dtsi               |   4 +-
- arch/arm/boot/dts/omap3-n950.dts                   |   1 +
- drivers/media/i2c/ov13858.c                        |  26 +-
- drivers/media/i2c/ov5670.c                         |  33 +-
- drivers/media/i2c/smiapp/smiapp-core.c             |  38 +-
- drivers/media/i2c/smiapp/smiapp.h                  |   4 +-
- drivers/media/platform/am437x/am437x-vpfe.c        |   8 +-
- drivers/media/platform/atmel/atmel-isc.c           |  10 +-
- drivers/media/platform/atmel/atmel-isi.c           |  10 +-
- drivers/media/platform/davinci/vpif_capture.c      |   8 +-
- drivers/media/platform/davinci/vpif_display.c      |   8 +-
- drivers/media/platform/exynos4-is/media-dev.c      |   8 +-
- drivers/media/platform/omap3isp/isp.c              | 127 +++----
- drivers/media/platform/omap3isp/isp.h              |   5 +-
- drivers/media/platform/pxa_camera.c                |   8 +-
- drivers/media/platform/qcom/camss-8x16/camss.c     |   8 +-
- drivers/media/platform/rcar-vin/rcar-core.c        | 122 +++----
- drivers/media/platform/rcar-vin/rcar-dma.c         |  10 +-
- drivers/media/platform/rcar-vin/rcar-v4l2.c        |  14 +-
- drivers/media/platform/rcar-vin/rcar-vin.h         |   4 +-
- drivers/media/platform/rcar_drif.c                 |  10 +-
- drivers/media/platform/soc_camera/soc_camera.c     |  14 +-
- drivers/media/platform/stm32/stm32-dcmi.c          |  10 +-
- drivers/media/platform/ti-vpe/cal.c                |   8 +-
- drivers/media/platform/xilinx/xilinx-vipp.c        |   8 +-
- drivers/media/v4l2-core/v4l2-async.c               | 345 +++++++++++++-----
- drivers/media/v4l2-core/v4l2-fwnode.c              | 386 +++++++++++++++++----
- drivers/staging/media/imx/imx-media-dev.c          |   8 +-
- include/media/v4l2-async.h                         |  68 +++-
- include/media/v4l2-fwnode.h                        | 150 +++++++-
- 35 files changed, 1059 insertions(+), 421 deletions(-)
- create mode 100644 Documentation/media/kapi/v4l2-async.rst
-
--- 
-2.11.0
+2.14.1
