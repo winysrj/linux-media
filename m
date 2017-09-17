@@ -1,53 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52034 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751350AbdI1IKp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Sep 2017 04:10:45 -0400
-Date: Thu, 28 Sep 2017 11:10:41 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Leon Luo <leonl@leopardimaging.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        =?iso-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>
-Subject: Re: [PATCH v6 2/2] media:imx274 V4l2 driver for Sony imx274 CMOS
- sensor
-Message-ID: <20170928081041.vygfd5l2igz5ewhe@valkosipuli.retiisi.org.uk>
-References: <20170924075329.9927-1-leonl@leopardimaging.com>
- <20170924075329.9927-2-leonl@leopardimaging.com>
- <20170927214005.adcj4jrw74abt2j6@valkosipuli.retiisi.org.uk>
- <CADu3m9zgmdP+hP_Es5gEbNyais-aBS+i-_EZdaZ-B1FKEGY92Q@mail.gmail.com>
+Received: from mout.web.de ([212.227.17.11]:64088 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751186AbdIQJun (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Sep 2017 05:50:43 -0400
+To: linux-media@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Shuah Khan <shuah@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] [media] au0828: Delete an error message for a failed memory
+ allocation in au0828_usb_probe()
+Message-ID: <0c29dc8f-d21a-911f-28db-780206061d6f@users.sourceforge.net>
+Date: Sun, 17 Sep 2017 11:50:20 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CADu3m9zgmdP+hP_Es5gEbNyais-aBS+i-_EZdaZ-B1FKEGY92Q@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Leon,
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 17 Sep 2017 11:40:31 +0200
 
-On Wed, Sep 27, 2017 at 11:48:21PM -0700, Leon Luo wrote:
-> Hi Sakari,
-> 
-> Thanks for your comments.
-> 
-> Regarding imx274_tp_regs[], the first value is the test pattern mode, which
-> will be updated according to the input value before writing the register.
-> So it can't be a const.
+Omit an extra message for a memory allocation failure in this function.
 
-In that case you'll need to explicitly write that register; this is
-specific to a device whereas the static variable is the same for all
-devices.
+This issue was detected by using the Coccinelle software.
 
-> 
-> I will use __v4l2_ctrl_s_ctrl instead of v4l2_ctrl_s_ctrl to keep the
-> lock/unlock mutex clean. I am traveling right now, will test it and send a
-> new patch this weekend.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/au0828/au0828-core.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Ack.
-
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index cd363a2100d4..9c5c05c90e15 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -583,7 +583,5 @@ static int au0828_usb_probe(struct usb_interface *interface,
+-	if (dev == NULL) {
+-		pr_err("%s() Unable to allocate memory\n", __func__);
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->lock);
+ 	mutex_lock(&dev->lock);
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.1
