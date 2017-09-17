@@ -1,84 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:6434 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752017AbdIEUSN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Sep 2017 16:18:13 -0400
-Subject: Re: [PATCH] media: leds: as3645a: add V4L2_FLASH_LED_CLASS
- depdendency
-To: Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Richard Purdie <rpurdie@rpsys.net>, Pavel Machek <pavel@ucw.cz>
-Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20170905071345.3807685-1-arnd@arndb.de>
- <ffbecf66-df9d-d8cf-8820-a119c76d8145@gmail.com>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <737270d1-98df-a207-7137-cdf2cce950c8@linux.intel.com>
-Date: Tue, 5 Sep 2017 23:18:07 +0300
-MIME-Version: 1.0
-In-Reply-To: <ffbecf66-df9d-d8cf-8820-a119c76d8145@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:50905 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751310AbdIQD5Z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 16 Sep 2017 23:57:25 -0400
+Message-ID: <fbcc052c3d5fac3fa2eec9e1df600fa5@smtp-cloud9.xs4all.net>
+Date: Sun, 17 Sep 2017 05:57:23 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek and Arnd,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for fixing this plus the ack! I chatted with Mauro, and as the 
-patches are still only in mediatree, we'll apply this there, possibly 
-with a minor spelling fix to the subject (depdendency -> dependency).
+Results of the daily build of media_tree:
 
-<URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=as3645a-fix2>
+date:			Sun Sep 17 05:00:21 CEST 2017
+media-tree git hash:	1efdf1776e2253b77413c997bed862410e4b6aaf
+media_build git hash:	19087750b61fc0c5528e798c47ff845f9234bbbb
+v4l-utils git hash:	8d89a6ad9940f520ae4e816c3973551e52557d71
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-Cc linux-media.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: OK
+spec-git: OK
 
-Jacek Anaszewski wrote:
-> Hi Arnd,
->
-> Thanks for the patch.
->
-> On 09/05/2017 09:13 AM, Arnd Bergmann wrote:
->> We get a link error when V4L2_FLASH_LED_CLASS=m and AS3645A is built-in:
->>
->> drivers/leds/leds-as3645a.o: In function `as3645a_v4l2_setup':
->> leds-as3645a.c:(.text+0x258): undefined reference to `v4l2_flash_init'
->> leds-as3645a.c:(.text+0x284): undefined reference to `v4l2_flash_indicator_init'
->> leds-as3645a.c:(.text+0x2a4): undefined reference to `v4l2_flash_release'
->> drivers/leds/leds-as3645a.o: In function `as3645a_remove':
->> leds-as3645a.c:(.text+0x784): undefined reference to `v4l2_flash_release'
->>
->> This adds the same Kconfig dependency that the other V4L2 flash
->> drivers in drivers/leds use, to avoid that broken configuration.
->>
->> Fixes: a56ba8fbcb55 ("media: leds: as3645a: Add LED flash class driver")
->> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->> ---
->>  drivers/leds/Kconfig | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> The patch that caused the problem is currently in the v4l git tree,
->> rather than the leds tree. Please merge this through an appropriate
->> path, either v4l or led, depending on the timing.
->>
->> diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
->> index 0bf022bcb6ac..52ea34e337cd 100644
->> --- a/drivers/leds/Kconfig
->> +++ b/drivers/leds/Kconfig
->> @@ -61,6 +61,7 @@ config LEDS_AAT1290
->>  config LEDS_AS3645A
->>  	tristate "AS3645A LED flash controller support"
->>  	depends on I2C && LEDS_CLASS_FLASH
->> +	depends on V4L2_FLASH_LED_CLASS || !V4L2_FLASH_LED_CLASS
->>  	help
->>  	  Enable LED flash class support for AS3645A LED flash
->>  	  controller. V4L2 flash API is provided as well if
->>
->
-> Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
->
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
