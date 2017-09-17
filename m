@@ -1,58 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:65412 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751240AbdIPMVL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Sep 2017 08:21:11 -0400
-Subject: [PATCH 2/3] [media] WL1273: Delete an unnecessary goto statement in
- wl1273_fm_suspend()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Bhumika Goyal <bhumirks@gmail.com>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <edf138b9-0d47-5074-3ff4-63831c44f196@users.sourceforge.net>
-Message-ID: <f725171e-5bf4-a4ce-0d07-987193df2ab7@users.sourceforge.net>
-Date: Sat, 16 Sep 2017 14:20:47 +0200
+Received: from mail-oi0-f47.google.com ([209.85.218.47]:43407 "EHLO
+        mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751198AbdIQAsZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 16 Sep 2017 20:48:25 -0400
+Received: by mail-oi0-f47.google.com with SMTP id r20so2616859oie.0
+        for <linux-media@vger.kernel.org>; Sat, 16 Sep 2017 17:48:25 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <edf138b9-0d47-5074-3ff4-63831c44f196@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOMZO5CJ3=Yd=-=Bvj9pwW62D7eCDAf-uXe6Ri_X_yM+VYfBYw@mail.gmail.com>
+References: <CAJ+vNU3DPFEc6YnEfcYAv1=beJ96W5PSt=eBfoxCXqKnbNqfMg@mail.gmail.com>
+ <67ab090e-955d-9399-e182-cca049a66f1a@gmail.com> <CAJ+vNU3srz1u4x2wku4JKAOWGH8Gc8Wh0eo5aTEhACqoNeE1ow@mail.gmail.com>
+ <421dbf8f-6574-7d3b-8842-ffe4c0c6da78@gmail.com> <CAOMZO5CJ3=Yd=-=Bvj9pwW62D7eCDAf-uXe6Ri_X_yM+VYfBYw@mail.gmail.com>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Sat, 16 Sep 2017 21:48:24 -0300
+Message-ID: <CAOMZO5D4e-x2Fkq3odDPOpzF020jDKFfM2Ooq59VaZ50AzLkwA@mail.gmail.com>
+Subject: Re: IMX6 ADV7180 no /dev/media
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Tim Harvey <tharvey@gateworks.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Stephan Bauroth <der_steffi@gmx.de>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 16 Sep 2017 13:53:22 +0200
+On Fri, Sep 15, 2017 at 8:46 PM, Fabio Estevam <festevam@gmail.com> wrote:
 
-* Remove an extra goto statement.
+> Tim,
+>
+> Care to send the patch enabling CONFIG_VIDEO_MUX?
 
-* Delete the label "out" which became unnecessary with this refactoring.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/radio/radio-wl1273.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
-
-diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
-index 020a792173f6..74dc3195ea2c 100644
---- a/drivers/media/radio/radio-wl1273.c
-+++ b/drivers/media/radio/radio-wl1273.c
-@@ -683,12 +683,9 @@ static int wl1273_fm_suspend(struct wl1273_device *radio)
- 	else
- 		r = -EINVAL;
- 
--	if (r) {
-+	if (r)
- 		dev_err(radio->dev, "%s: POWER_SET fails: %d\n", __func__, r);
--		goto out;
--	}
- 
--out:
- 	return r;
- }
- 
--- 
-2.14.1
+Nevermind. I have just sent it.
