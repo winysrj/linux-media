@@ -1,424 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33148
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752211AbdI0Vk5 (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.242]:2556 "EHLO
+        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751728AbdIRGmR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:57 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: [PATCH v2 34/37] media: dvb uAPI docs: get rid of examples section
-Date: Wed, 27 Sep 2017 18:40:35 -0300
-Message-Id: <e03cac6451200ae65a4733eeefd60420f0b80a58.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+        Mon, 18 Sep 2017 02:42:17 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        "Jonathan Corbet" <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v2 3/5] media: atmel-isc: Enable the clocks during probe
+Date: Mon, 18 Sep 2017 14:39:23 +0800
+Message-ID: <20170918063925.6372-4-wenyou.yang@microchip.com>
+In-Reply-To: <20170918063925.6372-1-wenyou.yang@microchip.com>
+References: <20170918063925.6372-1-wenyou.yang@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That section is too outdated and got superseded by DVBv5 and
-by libdvbv5.
+To meet the relationship, enable the HCLOCK and ispck during the
+device probe, "isc_pck frequency is less than or equal to isc_ispck,
+and isc_ispck is greater than or equal to HCLOCK."
+Meanwhile, call the pm_runtime_enable() in the right place.
 
-Maybe some day we'll end adding updated examples there, but
-while nobody has time or interest of doing that, just mention
-that there and get rid of the current examples for good.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
 ---
- Documentation/media/uapi/dvb/examples.rst | 378 +-----------------------------
- 1 file changed, 6 insertions(+), 372 deletions(-)
 
-diff --git a/Documentation/media/uapi/dvb/examples.rst b/Documentation/media/uapi/dvb/examples.rst
-index e0f627ca2e4d..16dd90fa9e94 100644
---- a/Documentation/media/uapi/dvb/examples.rst
-+++ b/Documentation/media/uapi/dvb/examples.rst
-@@ -6,377 +6,11 @@
- Examples
- ********
+Changes in v2: None
+
+ drivers/media/platform/atmel/atmel-isc.c | 31 +++++++++++++++++++++++++------
+ 1 file changed, 25 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index 8b9c1cafa348..3ecd2bf016a8 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -1593,6 +1593,7 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
+ 	struct isc_subdev_entity *sd_entity;
+ 	struct video_device *vdev = &isc->video_dev;
+ 	struct vb2_queue *q = &isc->vb2_vidq;
++	struct device *dev = isc->dev;
+ 	int ret;
  
--In this section we would like to present some examples for using the Digital
--TV API.
-+In the past, we used to have a set of examples here. However, those
-+examples got out of date and doesn't even compile nowadays.
+ 	ret = v4l2_device_register_subdev_nodes(&isc->v4l2_dev);
+@@ -1676,6 +1677,10 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
+ 		return ret;
+ 	}
  
--.. note::
-+Also, nowadays, the best is to use the libdvbv5 DVB API nowadays,
-+with is fully documented.
++	pm_runtime_set_active(dev);
++	pm_runtime_enable(dev);
++	pm_request_idle(dev);
++
+ 	return 0;
+ }
  
--   This section is out of date, and the code below won't even
--   compile. Please refer to the
--   `libdvbv5 <https://linuxtv.org/docs/libdvbv5/index.html>`__ for
--   updated/recommended examples.
--
--
--.. _tuning:
--
--Example: Tuning
--===============
--
--We will start with a generic tuning subroutine that uses the frontend
--and SEC, as well as the demux devices. The example is given for QPSK
--tuners, but can easily be adjusted for QAM.
--
--
--.. code-block:: c
--
--     #include <sys/ioctl.h>
--     #include <stdio.h>
--     #include <stdint.h>
--     #include <sys/types.h>
--     #include <sys/stat.h>
--     #include <fcntl.h>
--     #include <time.h>
--     #include <unistd.h>
--
--     #include <linux/dvb/dmx.h>
--     #include <linux/dvb/frontend.h>
--     #include <linux/dvb/sec.h>
--     #include <sys/poll.h>
--
--     #define DMX "/dev/dvb/adapter0/demux1"
--     #define FRONT "/dev/dvb/adapter0/frontend1"
--     #define SEC "/dev/dvb/adapter0/sec1"
--
--     /* routine for checking if we have a signal and other status information*/
--     int FEReadStatus(int fd, fe_status_t *stat)
--     {
--	 int ans;
--
--	 if ( (ans = ioctl(fd,FE_READ_STATUS,stat) < 0)){
--	     perror("FE READ STATUS: ");
--	     return -1;
--	 }
--
--	 if (*stat & FE_HAS_POWER)
--	     printf("FE HAS POWER\\n");
--
--	 if (*stat & FE_HAS_SIGNAL)
--	     printf("FE HAS SIGNAL\\n");
--
--	 if (*stat & FE_SPECTRUM_INV)
--	     printf("SPEKTRUM INV\\n");
--
--	 return 0;
--     }
--
--
--     /* tune qpsk */
--     /* freq:             frequency of transponder                      */
--     /* vpid, apid, tpid: PIDs of video, audio and teletext TS packets  */
--     /* diseqc:           DiSEqC address of the used LNB                */
--     /* pol:              Polarisation                                  */
--     /* srate:            Symbol Rate                                   */
--     /* fec.              FEC                                           */
--     /* lnb_lof1:         local frequency of lower LNB band             */
--     /* lnb_lof2:         local frequency of upper LNB band             */
--     /* lnb_slof:         switch frequency of LNB                       */
--
--     int set_qpsk_channel(int freq, int vpid, int apid, int tpid,
--	     int diseqc, int pol, int srate, int fec, int lnb_lof1,
--	     int lnb_lof2, int lnb_slof)
--     {
--	 struct secCommand scmd;
--	 struct secCmdSequence scmds;
--	 struct dmx_pes_filter_params pesFilterParams;
--	 FrontendParameters frp;
--	 struct pollfd pfd[1];
--	 FrontendEvent event;
--	 int demux1, demux2, demux3, front;
--
--	 frequency = (uint32_t) freq;
--	 symbolrate = (uint32_t) srate;
--
--	 if((front = open(FRONT,O_RDWR)) < 0){
--	     perror("FRONTEND DEVICE: ");
--	     return -1;
--	 }
--
--	 if((sec = open(SEC,O_RDWR)) < 0){
--	     perror("SEC DEVICE: ");
--	     return -1;
--	 }
--
--	 if (demux1 < 0){
--	     if ((demux1=open(DMX, O_RDWR|O_NONBLOCK))
--		 < 0){
--		 perror("DEMUX DEVICE: ");
--		 return -1;
--	     }
--	 }
--
--	 if (demux2 < 0){
--	     if ((demux2=open(DMX, O_RDWR|O_NONBLOCK))
--		 < 0){
--		 perror("DEMUX DEVICE: ");
--		 return -1;
--	     }
--	 }
--
--	 if (demux3 < 0){
--	     if ((demux3=open(DMX, O_RDWR|O_NONBLOCK))
--		 < 0){
--		 perror("DEMUX DEVICE: ");
--		 return -1;
--	     }
--	 }
--
--	 if (freq < lnb_slof) {
--	     frp.Frequency = (freq - lnb_lof1);
--	     scmds.continuousTone = SEC_TONE_OFF;
--	 } else {
--	     frp.Frequency = (freq - lnb_lof2);
--	     scmds.continuousTone = SEC_TONE_ON;
--	 }
--	 frp.Inversion = INVERSION_AUTO;
--	 if (pol) scmds.voltage = SEC_VOLTAGE_18;
--	 else scmds.voltage = SEC_VOLTAGE_13;
--
--	 scmd.type=0;
--	 scmd.u.diseqc.addr=0x10;
--	 scmd.u.diseqc.cmd=0x38;
--	 scmd.u.diseqc.numParams=1;
--	 scmd.u.diseqc.params[0] = 0xF0 | ((diseqc * 4) & 0x0F) |
--	     (scmds.continuousTone == SEC_TONE_ON ? 1 : 0) |
--	     (scmds.voltage==SEC_VOLTAGE_18 ? 2 : 0);
--
--	 scmds.miniCommand=SEC_MINI_NONE;
--	 scmds.numCommands=1;
--	 scmds.commands=&scmd;
--	 if (ioctl(sec, SEC_SEND_SEQUENCE, &scmds) < 0){
--	     perror("SEC SEND: ");
--	     return -1;
--	 }
--
--	 if (ioctl(sec, SEC_SEND_SEQUENCE, &scmds) < 0){
--	     perror("SEC SEND: ");
--	     return -1;
--	 }
--
--	 frp.u.qpsk.SymbolRate = srate;
--	 frp.u.qpsk.FEC_inner = fec;
--
--	 if (ioctl(front, FE_SET_FRONTEND, &frp) < 0){
--	     perror("QPSK TUNE: ");
--	     return -1;
--	 }
--
--	 pfd[0].fd = front;
--	 pfd[0].events = POLLIN;
--
--	 if (poll(pfd,1,3000)){
--	     if (pfd[0].revents & POLLIN){
--		 printf("Getting QPSK event\\n");
--		 if ( ioctl(front, FE_GET_EVENT, &event)
--
--		      == -EOVERFLOW){
--		     perror("qpsk get event");
--		     return -1;
--		 }
--		 printf("Received ");
--		 switch(event.type){
--		 case FE_UNEXPECTED_EV:
--		     printf("unexpected event\\n");
--		     return -1;
--		 case FE_FAILURE_EV:
--		     printf("failure event\\n");
--		     return -1;
--
--		 case FE_COMPLETION_EV:
--		     printf("completion event\\n");
--		 }
--	     }
--	 }
--
--
--	 pesFilterParams.pid     = vpid;
--	 pesFilterParams.input   = DMX_IN_FRONTEND;
--	 pesFilterParams.output  = DMX_OUT_DECODER;
--	 pesFilterParams.pes_type = DMX_PES_VIDEO;
--	 pesFilterParams.flags   = DMX_IMMEDIATE_START;
--	 if (ioctl(demux1, DMX_SET_PES_FILTER, &pesFilterParams) < 0){
--	     perror("set_vpid");
--	     return -1;
--	 }
--
--	 pesFilterParams.pid     = apid;
--	 pesFilterParams.input   = DMX_IN_FRONTEND;
--	 pesFilterParams.output  = DMX_OUT_DECODER;
--	 pesFilterParams.pes_type = DMX_PES_AUDIO;
--	 pesFilterParams.flags   = DMX_IMMEDIATE_START;
--	 if (ioctl(demux2, DMX_SET_PES_FILTER, &pesFilterParams) < 0){
--	     perror("set_apid");
--	     return -1;
--	 }
--
--	 pesFilterParams.pid     = tpid;
--	 pesFilterParams.input   = DMX_IN_FRONTEND;
--	 pesFilterParams.output  = DMX_OUT_DECODER;
--	 pesFilterParams.pes_type = DMX_PES_TELETEXT;
--	 pesFilterParams.flags   = DMX_IMMEDIATE_START;
--	 if (ioctl(demux3, DMX_SET_PES_FILTER, &pesFilterParams) < 0){
--	     perror("set_tpid");
--	     return -1;
--	 }
--
--	 return has_signal(fds);
--     }
--
--The program assumes that you are using a universal LNB and a standard
--DiSEqC switch with up to 4 addresses. Of course, you could build in some
--more checking if tuning was successful and maybe try to repeat the
--tuning process. Depending on the external hardware, i.e. LNB and DiSEqC
--switch, and weather conditions this may be necessary.
--
--
--.. _the_dvr_device:
--
--Example: The DVR device
--========================
--
--The following program code shows how to use the DVR device for
--recording.
--
--
--.. code-block:: c
--
--     #include <sys/ioctl.h>
--     #include <stdio.h>
--     #include <stdint.h>
--     #include <sys/types.h>
--     #include <sys/stat.h>
--     #include <fcntl.h>
--     #include <time.h>
--     #include <unistd.h>
--
--     #include <linux/dvb/dmx.h>
--     #include <linux/dvb/video.h>
--     #include <sys/poll.h>
--     #define DVR "/dev/dvb/adapter0/dvr1"
--     #define AUDIO "/dev/dvb/adapter0/audio1"
--     #define VIDEO "/dev/dvb/adapter0/video1"
--
--     #define BUFFY (188*20)
--     #define MAX_LENGTH (1024*1024*5) /* record 5MB */
--
--
--     /* switch the demuxes to recording, assuming the transponder is tuned */
--
--     /* demux1, demux2: file descriptor of video and audio filters */
--     /* vpid, apid:     PIDs of video and audio channels           */
--
--     int switch_to_record(int demux1, int demux2, uint16_t vpid, uint16_t apid)
--     {
--	 struct dmx_pes_filter_params pesFilterParams;
--
--	 if (demux1 < 0){
--	     if ((demux1=open(DMX, O_RDWR|O_NONBLOCK))
--		 < 0){
--		 perror("DEMUX DEVICE: ");
--		 return -1;
--	     }
--	 }
--
--	 if (demux2 < 0){
--	     if ((demux2=open(DMX, O_RDWR|O_NONBLOCK))
--		 < 0){
--		 perror("DEMUX DEVICE: ");
--		 return -1;
--	     }
--	 }
--
--	 pesFilterParams.pid = vpid;
--	 pesFilterParams.input = DMX_IN_FRONTEND;
--	 pesFilterParams.output = DMX_OUT_TS_TAP;
--	 pesFilterParams.pes_type = DMX_PES_VIDEO;
--	 pesFilterParams.flags = DMX_IMMEDIATE_START;
--	 if (ioctl(demux1, DMX_SET_PES_FILTER, &pesFilterParams) < 0){
--	     perror("DEMUX DEVICE");
--	     return -1;
--	 }
--	 pesFilterParams.pid = apid;
--	 pesFilterParams.input = DMX_IN_FRONTEND;
--	 pesFilterParams.output = DMX_OUT_TS_TAP;
--	 pesFilterParams.pes_type = DMX_PES_AUDIO;
--	 pesFilterParams.flags = DMX_IMMEDIATE_START;
--	 if (ioctl(demux2, DMX_SET_PES_FILTER, &pesFilterParams) < 0){
--	     perror("DEMUX DEVICE");
--	     return -1;
--	 }
--	 return 0;
--     }
--
--     /* start recording MAX_LENGTH , assuming the transponder is tuned */
--
--     /* demux1, demux2: file descriptor of video and audio filters */
--     /* vpid, apid:     PIDs of video and audio channels           */
--     int record_dvr(int demux1, int demux2, uint16_t vpid, uint16_t apid)
--     {
--	 int i;
--	 int len;
--	 int written;
--	 uint8_t buf[BUFFY];
--	 uint64_t length;
--	 struct pollfd pfd[1];
--	 int dvr, dvr_out;
--
--	 /* open dvr device */
--	 if ((dvr = open(DVR, O_RDONLY|O_NONBLOCK)) < 0){
--		 perror("DVR DEVICE");
--		 return -1;
--	 }
--
--	 /* switch video and audio demuxes to dvr */
--	 printf ("Switching dvr on\\n");
--	 i = switch_to_record(demux1, demux2, vpid, apid);
--	 printf("finished: ");
--
--	 printf("Recording %2.0f MB of test file in TS format\\n",
--	    MAX_LENGTH/(1024.0*1024.0));
--	 length = 0;
--
--	 /* open output file */
--	 if ((dvr_out = open(DVR_FILE,O_WRONLY|O_CREAT
--		      |O_TRUNC, S_IRUSR|S_IWUSR
--		      |S_IRGRP|S_IWGRP|S_IROTH|
--		      S_IWOTH)) < 0){
--	     perror("Can't open file for dvr test");
--	     return -1;
--	 }
--
--	 pfd[0].fd = dvr;
--	 pfd[0].events = POLLIN;
--
--	 /* poll for dvr data and write to file */
--	 while (length < MAX_LENGTH ) {
--	     if (poll(pfd,1,1)){
--		 if (pfd[0].revents & POLLIN){
--		     len = read(dvr, buf, BUFFY);
--		     if (len < 0){
--			 perror("recording");
--			 return -1;
--		     }
--		     if (len > 0){
--			 written = 0;
--			 while (written < len)
--			     written +=
--				 write (dvr_out,
--				    buf, len);
--			 length += len;
--			 printf("written %2.0f MB\\r",
--			    length/1024./1024.);
--		     }
--		 }
--	     }
--	 }
--	 return 0;
--     }
-+Please refer to the `libdvbv5 <https://linuxtv.org/docs/libdvbv5/index.html>`__
-+for updated/recommended examples.
+@@ -1855,25 +1860,37 @@ static int atmel_isc_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	ret = clk_prepare_enable(isc->hclock);
++	if (ret) {
++		dev_err(dev, "failed to enable hclock: %d\n", ret);
++		return ret;
++	}
++
+ 	ret = isc_clk_init(isc);
+ 	if (ret) {
+ 		dev_err(dev, "failed to init isc clock: %d\n", ret);
+-		goto clean_isc_clk;
++		goto unprepare_hclk;
+ 	}
+ 
+ 	isc->ispck = isc->isc_clks[ISC_ISPCK].clk;
+ 
++	ret = clk_prepare_enable(isc->ispck);
++	if (ret) {
++		dev_err(dev, "failed to enable ispck: %d\n", ret);
++		goto unprepare_hclk;
++	}
++
+ 	/* ispck should be greater or equal to hclock */
+ 	ret = clk_set_rate(isc->ispck, clk_get_rate(isc->hclock));
+ 	if (ret) {
+ 		dev_err(dev, "failed to set ispck rate: %d\n", ret);
+-		goto clean_isc_clk;
++		goto unprepare_clk;
+ 	}
+ 
+ 	ret = v4l2_device_register(dev, &isc->v4l2_dev);
+ 	if (ret) {
+ 		dev_err(dev, "unable to register v4l2 device.\n");
+-		goto clean_isc_clk;
++		goto unprepare_clk;
+ 	}
+ 
+ 	ret = isc_parse_dt(dev, isc);
+@@ -1906,8 +1923,6 @@ static int atmel_isc_probe(struct platform_device *pdev)
+ 			break;
+ 	}
+ 
+-	pm_runtime_enable(dev);
+-
+ 	return 0;
+ 
+ cleanup_subdev:
+@@ -1916,7 +1931,11 @@ static int atmel_isc_probe(struct platform_device *pdev)
+ unregister_v4l2_device:
+ 	v4l2_device_unregister(&isc->v4l2_dev);
+ 
+-clean_isc_clk:
++unprepare_clk:
++	clk_disable_unprepare(isc->ispck);
++unprepare_hclk:
++	clk_disable_unprepare(isc->hclock);
++
+ 	isc_clk_cleanup(isc);
+ 
+ 	return ret;
 -- 
-2.13.5
+2.13.0
