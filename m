@@ -1,88 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50924
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752856AbdICCfK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Sep 2017 22:35:10 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 05/12] media: docs: fix PDF build with Sphinx 1.4
-Date: Sat,  2 Sep 2017 23:34:57 -0300
-Message-Id: <63c085f9ab9e44c190353e015b46c3b2dfa0821c.1504405125.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504405124.git.mchehab@s-opensource.com>
-References: <cover.1504405124.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504405124.git.mchehab@s-opensource.com>
-References: <cover.1504405124.git.mchehab@s-opensource.com>
+Received: from mail-pf0-f180.google.com ([209.85.192.180]:49539 "EHLO
+        mail-pf0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750714AbdIRXFS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Sep 2017 19:05:18 -0400
+Received: by mail-pf0-f180.google.com with SMTP id l188so1000401pfc.6
+        for <linux-media@vger.kernel.org>; Mon, 18 Sep 2017 16:05:18 -0700 (PDT)
+From: Tim Harvey <tharvey@gateworks.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: imx: Fix VDIC CSI1 selection
+Date: Mon, 18 Sep 2017 16:08:16 -0700
+Message-Id: <1505776096-15867-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-changeset 70b074df4ed1 ("media: fix pdf build with Spinx 1.6") caused
-a regression at Sphinx 1.4 PDF build: although it produces a full
-document in batch mode, it returns errors on interactive mode:
+When using VDIC with CSI1, make sure to select the correct CSI in
+IPU_CONF.
 
-	[63]
-	Runaway argument?
-	{\relax
-	! Paragraph ended before \multicolumn was complete.
-	<to be read again>
-	                   \par
-	l.7703 \hline\end{tabulary}
-
-The error seems to be due to some bug at Sphinx PDF output:
-when multicolumns is used, it doesn't accept an empty string.
-
-Just removing the :cpan:`1` and replacing by two empty
-columns fix the issue.
-
-Fixes: 70b074df4ed1 ("media: fix pdf build with Spinx 1.6")
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Fixes: f0d9c8924e2c3376 ("[media] media: imx: Add IC subdev drivers")
+Suggested-by: Marek Vasut <marex@denx.de>
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
 ---
- Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst | 6 ++++--
- Documentation/media/uapi/v4l/pixfmt-packed-yuv.rst | 3 ++-
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/staging/media/imx/imx-ic-prp.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
-index bb85abcfceb5..4938d9655a41 100644
---- a/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
-@@ -35,7 +35,8 @@ next to each other in memory.
-       - :cspan:`7` Byte 1
-       - :cspan:`7` Byte 2
-       - :cspan:`7` Byte 3
--    * - :cspan:`1`
-+    * -
-+      -
-       - 7
-       - 6
-       - 5
-@@ -665,7 +666,8 @@ either the corresponding ARGB or XRGB format, depending on the driver.
-       - :cspan:`7` Byte 2
- 
-       - :cspan:`7` Byte 3
--    * - :cspan:`1`
-+    * -
-+      -
-       - 7
-       - 6
-       - 5
-diff --git a/Documentation/media/uapi/v4l/pixfmt-packed-yuv.rst b/Documentation/media/uapi/v4l/pixfmt-packed-yuv.rst
-index d6a6e890f5a9..d7644b411ccc 100644
---- a/Documentation/media/uapi/v4l/pixfmt-packed-yuv.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-packed-yuv.rst
-@@ -37,7 +37,8 @@ component of each pixel in one 16 or 32 bit word.
-       - :cspan:`7` Byte 2
- 
-       - :cspan:`7` Byte 3
--    * - :cspan:`1`
-+    * -
-+      -
-       - 7
-       - 6
-       - 5
+diff --git a/drivers/staging/media/imx/imx-ic-prp.c b/drivers/staging/media/imx/imx-ic-prp.c
+index c2bb5ef..9e41987 100644
+--- a/drivers/staging/media/imx/imx-ic-prp.c
++++ b/drivers/staging/media/imx/imx-ic-prp.c
+@@ -320,9 +320,10 @@ static int prp_link_validate(struct v4l2_subdev *sd,
+ 		 * the ->PRPENC link cannot be enabled if the source
+ 		 * is the VDIC
+ 		 */
+-		if (priv->sink_sd_prpenc)
++		if (priv->sink_sd_prpenc) {
+ 			ret = -EINVAL;
+-		goto out;
++			goto out;
++		}
+ 	} else {
+ 		/* the source is a CSI */
+ 		if (!csi) {
 -- 
-2.13.5
+2.7.4
