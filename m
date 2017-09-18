@@ -1,50 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46280 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750737AbdIMISZ (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:59118 "EHLO
+        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751341AbdIRGmo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 04:18:25 -0400
-Date: Wed, 13 Sep 2017 11:18:21 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v12 06/26] v4l: fwnode: Support generic parsing of graph
- endpoints, per port
-Message-ID: <20170913081821.4kqf2kfmkidkaqah@valkosipuli.retiisi.org.uk>
-References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
- <20170912134200.19556-7-sakari.ailus@linux.intel.com>
- <0b73f576-c37b-ad58-6f74-71ffc3f8f176@xs4all.nl>
- <a6cdf6cb-6abc-ac3b-274d-e8b43e2ac2c6@xs4all.nl>
+        Mon, 18 Sep 2017 02:42:44 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        "Jonathan Corbet" <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v2 4/5] media: atmel-isc: Remove unnecessary member
+Date: Mon, 18 Sep 2017 14:39:24 +0800
+Message-ID: <20170918063925.6372-5-wenyou.yang@microchip.com>
+In-Reply-To: <20170918063925.6372-1-wenyou.yang@microchip.com>
+References: <20170918063925.6372-1-wenyou.yang@microchip.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <a6cdf6cb-6abc-ac3b-274d-e8b43e2ac2c6@xs4all.nl>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Remove the memeber *config from the isc_subdev_entity struct,
+the member is useless afterward.
 
-Thanks for the review.
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+---
 
-On Wed, Sep 13, 2017 at 09:06:11AM +0200, Hans Verkuil wrote:
-> On 09/13/2017 09:01 AM, Hans Verkuil wrote:
-> > On 09/12/2017 03:41 PM, Sakari Ailus wrote:
-> >> This is just like like v4l2_async_notifier_parse_fwnode_endpoints but it
-> >> only parses endpoints on a single port. The behaviour is useful on devices
-> >> that have both sinks and sources, in other words only some of these should
-> >> be parsed.
-> 
-> I forgot to mention that I think the log message can be improved: it is not
-> clear why you would only parse some of the ports for devices that have both
-> sinks and sources. That should be explained better. And probably also in the
-> header documentation.
+Changes in v2: None
 
-I'll add both.
+ drivers/media/platform/atmel/atmel-isc.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index 3ecd2bf016a8..2d876903da71 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -83,7 +83,6 @@ struct isc_subdev_entity {
+ 	struct v4l2_subdev		*sd;
+ 	struct v4l2_async_subdev	*asd;
+ 	struct v4l2_async_notifier      notifier;
+-	struct v4l2_subdev_pad_config	*config;
+ 
+ 	u32 pfe_cfg0;
+ 
+@@ -983,6 +982,7 @@ static int isc_try_fmt(struct isc_device *isc, struct v4l2_format *f,
+ {
+ 	struct isc_format *isc_fmt;
+ 	struct v4l2_pix_format *pixfmt = &f->fmt.pix;
++	struct v4l2_subdev_pad_config pad_cfg;
+ 	struct v4l2_subdev_format format = {
+ 		.which = V4L2_SUBDEV_FORMAT_TRY,
+ 	};
+@@ -1013,7 +1013,7 @@ static int isc_try_fmt(struct isc_device *isc, struct v4l2_format *f,
+ 
+ 	v4l2_fill_mbus_format(&format.format, pixfmt, mbus_code);
+ 	ret = v4l2_subdev_call(isc->current_subdev->sd, pad, set_fmt,
+-			       isc->current_subdev->config, &format);
++			       &pad_cfg, &format);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1478,8 +1478,6 @@ static void isc_async_unbind(struct v4l2_async_notifier *notifier,
+ 					      struct isc_device, v4l2_dev);
+ 	cancel_work_sync(&isc->awb_work);
+ 	video_unregister_device(&isc->video_dev);
+-	if (isc->current_subdev->config)
+-		v4l2_subdev_free_pad_config(isc->current_subdev->config);
+ 	v4l2_ctrl_handler_free(&isc->ctrls.handler);
+ }
+ 
+@@ -1632,10 +1630,6 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
+ 	INIT_LIST_HEAD(&isc->dma_queue);
+ 	spin_lock_init(&isc->dma_queue_lock);
+ 
+-	sd_entity->config = v4l2_subdev_alloc_pad_config(sd_entity->sd);
+-	if (!sd_entity->config)
+-		return -ENOMEM;
+-
+ 	ret = isc_formats_init(isc);
+ 	if (ret < 0) {
+ 		v4l2_err(&isc->v4l2_dev,
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.0
