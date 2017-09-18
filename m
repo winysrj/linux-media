@@ -1,109 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:59249 "EHLO gofer.mess.org"
+Received: from mout.web.de ([217.72.192.78]:61684 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751554AbdIWUjA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Sep 2017 16:39:00 -0400
-Date: Sat, 23 Sep 2017 21:38:59 +0100
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v4.15] RC cleanup fixes
-Message-ID: <20170923203859.5msycu25qoqzy7iv@gofer.mess.org>
-References: <20170923103356.hl5zrqekfjbsy7gt@gofer.mess.org>
- <20170923163531.3c1b1f06@vento.lan>
+        id S1750868AbdIRUMh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Sep 2017 16:12:37 -0400
+Subject: [PATCH 2/2] [media] vicam: Return directly after a failed kmalloc()
+ in vicam_dostream()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <78839a2c-2076-f480-79d3-e783d2f8c0bf@users.sourceforge.net>
+Message-ID: <a03c7497-3c98-7ba9-368e-7e1f5296144b@users.sourceforge.net>
+Date: Mon, 18 Sep 2017 22:12:26 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <78839a2c-2076-f480-79d3-e783d2f8c0bf@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170923163531.3c1b1f06@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 18 Sep 2017 21:56:55 +0200
 
-On Sat, Sep 23, 2017 at 04:35:31PM -0300, Mauro Carvalho Chehab wrote:
-> Hi Sean,
-> 
-> Em Sat, 23 Sep 2017 11:33:56 +0100
-> Sean Young <sean@mess.org> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > Just cleanups this round. Line count does go down, though.
-> > 
-> > Thanks,
-> > 
-> > Sean
-> > 
-> > 
-> > The following changes since commit 1efdf1776e2253b77413c997bed862410e4b6aaf:
-> > 
-> >   media: leds: as3645a: add V4L2_FLASH_LED_CLASS dependency (2017-09-05 16:32:45 -0400)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://linuxtv.org/syoung/media_tree.git for-v4.15a
-> > 
-> > for you to fetch changes up to fe96866c81291a2887559fdfcc58ddf8fe54111d:
-> > 
-> >   imon: Improve a size determination in two functions (2017-09-23 11:20:12 +0100)
-> > 
-> > ----------------------------------------------------------------
-> > Arvind Yadav (1):
-> >       media: rc: constify usb_device_id
-> > 
-> > Bhumika Goyal (1):
-> >       media: rc: make device_type const
-> > 
-> > Colin Ian King (1):
-> >       media: imon: make two const arrays static, reduces object code size
-> > 
-> > David Härdeman (15):
-> >       media: lirc_dev: clarify error handling
-> >       media: lirc_dev: remove support for manually specifying minor number
-> >       media: lirc_dev: remove min_timeout and max_timeout
-> 
-> This patch doesn't get rid of the corresponding documentation bits:
-> 
-> $ git grep MIN_TIMEOUT Documentation/
-> Documentation/media/uapi/rc/lirc-get-timeout.rst:ioctls LIRC_GET_MIN_TIMEOUT and LIRC_GET_MAX_TIMEOUT
-> Documentation/media/uapi/rc/lirc-get-timeout.rst:LIRC_GET_MIN_TIMEOUT / LIRC_GET_MAX_TIMEOUT - Obtain the possible timeout
-> Documentation/media/uapi/rc/lirc-get-timeout.rst:.. c:function:: int ioctl( int fd, LIRC_GET_MIN_TIMEOUT, __u32 *timeout)
-> Documentation/media/uapi/rc/lirc-get-timeout.rst:    :name: LIRC_GET_MIN_TIMEOUT
-> Documentation/media/uapi/rc/lirc-set-rec-timeout.rst:   The range of supported timeout is given by :ref:`LIRC_GET_MIN_TIMEOUT`.
+* Return directly after a call of the function "kmalloc" failed
+  at the beginning.
 
-So this patch isn't removing those ioctls, it's just removing it from
-the lirc kernel api (so for lirc_zilog.c and out out of tree lirc drivers,
-like lirc_rpi). None of those use min/max timeout. It's probably better
-to drop this.
+* Delete the jump target "exit" which became unnecessary
+  with this refactoring.
 
-> I didn't see any other patches in this series getting rid of them
-> either.
-> 
-> >       media: lirc_dev: use cdev_device_add() helper function
-> >       media: lirc_dev: make better use of file->private_data
-> 
-> I suspect that this patch will likely break the imon driver:
-> 
-> $ git grep private_data drivers/media/rc/
-> drivers/media/rc/imon.c:                file->private_data = ictx;
-> drivers/media/rc/imon.c:        ictx = file->private_data;
-> drivers/media/rc/imon.c:        ictx = file->private_data;
-> drivers/media/rc/imon.c:        ictx = file->private_data;
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/gspca/vicam.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-That's for lcd chardev, nothing to do with lirc.
-
-> Please double-check if the remaining patches won't risk causing
-> regressions, as there are several patches there touching the RC
-> core ;-)
-
-Agreed, there are some painful patches. I've tested nearly all the IR
-hardware I have.
-
-> For now, I'll mark the pull request with "Changes requested".
-
-I'll re-roll and double-check.
-
-Thanks,
-
-Sean
+diff --git a/drivers/media/usb/gspca/vicam.c b/drivers/media/usb/gspca/vicam.c
+index 15b6887a8e97..11508ab283cd 100644
+--- a/drivers/media/usb/gspca/vicam.c
++++ b/drivers/media/usb/gspca/vicam.c
+@@ -184,7 +184,7 @@ static void vicam_dostream(struct work_struct *work)
+ 		   HEADER_SIZE;
+ 	buffer = kmalloc(frame_sz, GFP_KERNEL | GFP_DMA);
+ 	if (!buffer)
+-		goto exit;
++		return;
+ 
+ 	while (gspca_dev->present && gspca_dev->streaming) {
+ #ifdef CONFIG_PM
+@@ -205,7 +205,7 @@ static void vicam_dostream(struct work_struct *work)
+ 				frame_sz - HEADER_SIZE);
+ 		gspca_frame_add(gspca_dev, LAST_PACKET, NULL, 0);
+ 	}
+-exit:
++
+ 	kfree(buffer);
+ }
+ 
+-- 
+2.14.1
