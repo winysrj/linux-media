@@ -1,50 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:53448 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751256AbdIPMUM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Sep 2017 08:20:12 -0400
-Subject: [PATCH 1/3] [media] WL1273: Delete an error message for a failed
- memory allocation in wl1273_fm_radio_probe()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Bhumika Goyal <bhumirks@gmail.com>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <edf138b9-0d47-5074-3ff4-63831c44f196@users.sourceforge.net>
-Message-ID: <3cc3d260-6aed-3e39-24d1-9fcdf4a49685@users.sourceforge.net>
-Date: Sat, 16 Sep 2017 14:19:49 +0200
+Received: from nasmtp01.atmel.com ([192.199.1.246]:35221 "EHLO
+        DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750783AbdIRGrD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Sep 2017 02:47:03 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Jonathan Corbet <corbet@lwn.net>
+CC: Nicolas Ferre <nicolas.ferre@microchip.com>,
+        <linux-kernel@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v4 1/3] media: ov7670: Add entity pads initialization
+Date: Mon, 18 Sep 2017 14:45:12 +0800
+Message-ID: <20170918064514.6841-2-wenyou.yang@microchip.com>
+In-Reply-To: <20170918064514.6841-1-wenyou.yang@microchip.com>
+References: <20170918064514.6841-1-wenyou.yang@microchip.com>
 MIME-Version: 1.0
-In-Reply-To: <edf138b9-0d47-5074-3ff4-63831c44f196@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 16 Sep 2017 13:28:38 +0200
+Add the media entity pads initialization.
 
-Omit an extra message for a memory allocation failure in this function.
-
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
 ---
- drivers/media/radio/radio-wl1273.c | 1 -
- 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
-index 903fcd5e99c0..020a792173f6 100644
---- a/drivers/media/radio/radio-wl1273.c
-+++ b/drivers/media/radio/radio-wl1273.c
-@@ -2034,5 +2034,4 @@ static int wl1273_fm_radio_probe(struct platform_device *pdev)
- 	if (!radio->buffer) {
--		pr_err("Cannot allocate memory for RDS buffer.\n");
- 		r = -ENOMEM;
- 		goto pdata_err;
- 	}
+Changes in v4:
+ - Fix the build error when not enabling Media Controller API option.
+
+Changes in v3: None
+Changes in v2: None
+
+ drivers/media/i2c/ov7670.c | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index e88549f0e704..553945d4ca28 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -213,6 +213,9 @@ struct ov7670_devtype {
+ struct ov7670_format_struct;  /* coming later */
+ struct ov7670_info {
+ 	struct v4l2_subdev sd;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_pad pad;
++#endif
+ 	struct v4l2_ctrl_handler hdl;
+ 	struct {
+ 		/* gain cluster */
+@@ -1688,14 +1691,27 @@ static int ov7670_probe(struct i2c_client *client,
+ 	v4l2_ctrl_auto_cluster(2, &info->auto_exposure,
+ 			       V4L2_EXPOSURE_MANUAL, false);
+ 	v4l2_ctrl_cluster(2, &info->saturation);
++
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	info->pad.flags = MEDIA_PAD_FL_SOURCE;
++	info->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++	ret = media_entity_pads_init(&info->sd.entity, 1, &info->pad);
++	if (ret < 0)
++		goto hdl_free;
++#endif
++
+ 	v4l2_ctrl_handler_setup(&info->hdl);
+ 
+ 	ret = v4l2_async_register_subdev(&info->sd);
+ 	if (ret < 0)
+-		goto hdl_free;
++		goto entity_cleanup;
+ 
+ 	return 0;
+ 
++entity_cleanup:
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&info->sd.entity);
++#endif
+ hdl_free:
+ 	v4l2_ctrl_handler_free(&info->hdl);
+ clk_disable:
+@@ -1712,6 +1728,9 @@ static int ov7670_remove(struct i2c_client *client)
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&info->hdl);
+ 	clk_disable_unprepare(info->clk);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&info->sd.entity);
++#endif
+ 	return 0;
+ }
+ 
 -- 
-2.14.1
+2.13.0
