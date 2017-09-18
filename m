@@ -1,158 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:38096 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753789AbdIDPo6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Sep 2017 11:44:58 -0400
-Received: by mail-qt0-f194.google.com with SMTP id 12so495203qtn.5
-        for <linux-media@vger.kernel.org>; Mon, 04 Sep 2017 08:44:57 -0700 (PDT)
-Date: Mon, 4 Sep 2017 12:44:51 -0300
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH v2 14/14] [media] v4l: Document explicit synchronization
- behaviour
-Message-ID: <20170904154451.GA4818@jade>
-References: <20170901015041.7757-1-gustavo@padovan.org>
- <20170901015041.7757-15-gustavo@padovan.org>
- <b75d6534-9b05-a317-8a29-9f51687cb136@xs4all.nl>
- <20170901182137.GA26038@jade>
- <9b910f7c-c649-df53-5d59-9b99c0bef547@xs4all.nl>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:57551 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751661AbdIROHw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Sep 2017 10:07:52 -0400
+Subject: Re: [PATCHv4 3/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
+ support
+To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Sean Paul <seanpaul@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20170916141726.4921-1-hverkuil@xs4all.nl>
+ <20170916141726.4921-4-hverkuil@xs4all.nl> <20170918130531.GW4914@intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <24562161-6303-501b-fb28-25ee741e4bf5@xs4all.nl>
+Date: Mon, 18 Sep 2017 16:07:41 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9b910f7c-c649-df53-5d59-9b99c0bef547@xs4all.nl>
+In-Reply-To: <20170918130531.GW4914@intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-09-02 Hans Verkuil <hverkuil@xs4all.nl>:
+Hi Ville,
 
-> On 09/01/2017 08:21 PM, Gustavo Padovan wrote:
-> > Hi Hans,
-> > 
-> > 2017-09-01 Hans Verkuil <hverkuil@xs4all.nl>:
-> > 
-> >> Hi Gustavo,
-> >>
-> >> I think I concentrate on this last patch first. Once I fully understand this
-> >> I can review the code. Remember, it's been a while for me since I last looked
-> >> at fences, so forgive me if I ask stupid questions. On the other hand, others
-> >> with a similar lack of understanding of fences probably have similar questions,
-> >> so it is a good indication where the documentation needs improvement :-)
-> > 
-> > Please ask as many as you want, those are the best questions. :)
-> > 
-> >>
-> >> On 01/09/17 03:50, Gustavo Padovan wrote:
-> >>> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> >>>
-> >>> Add section to VIDIOC_QBUF about it
-> >>>
-> >>> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> >>> ---q
-> >>>  Documentation/media/uapi/v4l/vidioc-qbuf.rst | 30 ++++++++++++++++++++++++++++
-> >>>  1 file changed, 30 insertions(+)
-> >>>
-> >>> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> >>> index 1f3612637200..6bd960d3972b 100644
-> >>> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> >>> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> >>> @@ -117,6 +117,36 @@ immediately with an ``EAGAIN`` error code when no buffer is available.
-> >>>  The struct :c:type:`v4l2_buffer` structure is specified in
-> >>>  :ref:`buffer`.
-> >>>  
-> >>> +Explicit Synchronization
-> >>> +------------------------
-> >>> +
-> >>> +Explicit Synchronization allows us to control the synchronization of
-> >>> +shared buffers from userspace by passing fences to the kernel and/or
-> >>> +receiving them from it. Fences passed to the kernel are named in-fences and
-> >>> +the kernel should wait them to signal before using the buffer, i.e., queueing
-> >>> +it to the driver. On the other side, the kernel can create out-fences for the
-> >>> +buffers it queues to the drivers, out-fences signal when the driver is
-> >>> +finished with buffer, that is the buffer is ready.
-> >>
-> >> This should add a line explaining that fences are represented by file descriptors.
-> > 
-> > Okay.
-> > 
-> >>
-> >>> +
-> >>> +The in-fences and out-fences are communicated at the ``VIDIOC_QBUF`` ioctl
-> >>> +using the ``V4L2_BUF_FLAG_IN_FENCE`` and ``V4L2_BUF_FLAG_OUT_FENCE`` buffer
-> >>> +flags and the `fence_fd` field. If an in-fence needs to be passed to the kernel,
-> >>> +`fence_fd` should be set to the fence file descriptor number and the
-> >>> +``V4L2_BUF_FLAG_IN_FENCE`` should be set as well.
-> >>
-> >> Is it possible to have both flags at the same time? Or are they mutually exclusive?
-> >>
-> >> If only V4L2_BUF_FLAG_IN_FENCE is set, then what is the value of fence_fd after
-> >> the QBUF call? -1?
-> > 
-> > Yes, it is -1.
-> > 
-> >>
-> >>> +
-> >>> +To get a out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE`` flag should
-> >>> +be set and the `fence_fd` field will be returned with the out-fence file
-> >>> +descriptor related to the next buffer to be queued internally to the V4L2
-> >>> +driver. That means the out-fence may not be associated with the buffer in the
-> >>> +current ``VIDIOC_QBUF`` ioctl call because the ordering in which videobuf2 core
-> >>> +queues the buffers to the drivers can't be guaranteed. To become aware of the
-> >>> +buffer with which the out-fence will be attached the ``V4L2_EVENT_BUF_QUEUED``
-> >>> +should be used. It will trigger an event for every buffer queued to the V4L2
-> >>> +driver.
-> >>
-> >> General question: does it even make sense to use an out-fence if you don't know with
-> >> what buffer is it associated? I mean, QBUF returns an out fence, but only some
-> >> time later are you informed about a buffer being queued. It also looks like userspace
-> >> has to keep track of the issued out-fences and the queued buffers and map them
-> >> accordingly.
-> >>
-> >> If the out-fence cannot be used until you know the buffer as well, then wouldn't
-> >> it make more sense if the out-fence and the buffer index are both sent by the
-> >> event? Of course, in that case the event can only be sent to the owner file handle
-> >> of the streaming device node, but that's OK, we have that.
-> >>
-> >> Setting the OUT_FENCE flag will just cause this event to be sent whenever that
-> >> buffer is queued internally.
-> >>
-> >> Sorry if this just shows a complete lack of understanding of fences on my side,
-> >> that's perfectly possible.
-> > 
-> > Right, I can not think of anything that prevents what you are saying to
-> > work. I built it this way initially because on my lack of understanding
-> > of V4L2 (seems we complement each other here :) because I thought we
-> > needed to keep the QBUF ordering. In the last review you talked me away
-> > of this misconception but I really didn't took that to the
-> > implementation.
-> > 
-> > If there is no care about ordering, there is no need to receive the
-> > fence before and we could just do as you say. That makes sense to me.
-> > We could do it that way but I have one question, maybe a stupid one. :)
-> > 
-> > If a specific driver can guarantee the ordering of vb2 buffer, and
-> > userspace has a way to become aware of that. In this case we will
-> > receive the out-fence in QBUF knowing the buffer already (it is
-> > ordered!). Thus we can proceed right away and send it to the next
-> > driver. Does that makes sense? Is this a optmization we need? In your
-> > proposal we will have the timeframe between the queueing to the driver
-> > and buffer_done() to make the out_fence arrive on the next driver. If
-> > that is sufficient then we can just do as you propose.
+On 09/18/2017 03:05 PM, Ville Syrjälä wrote:
+> On Sat, Sep 16, 2017 at 04:17:26PM +0200, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Implement support for this DisplayPort feature.
+>>
+>> The cec device is created whenever it detects an adapter that
+>> has this feature. It is only removed when a new adapter is connected
+>> that does not support this. If a new adapter is connected that has
+>> different properties than the previous one, then the old cec device is
+>> unregistered and a new one is registered to replace the old one.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Tested-by: Carlos Santa <carlos.santa@intel.com>
+>> ---
+>>  drivers/gpu/drm/i915/intel_dp.c | 18 ++++++++++++++----
+>>  1 file changed, 14 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
+>> index 64fa774c855b..fdb853d2c458 100644
+>> --- a/drivers/gpu/drm/i915/intel_dp.c
+>> +++ b/drivers/gpu/drm/i915/intel_dp.c
+>> @@ -32,6 +32,7 @@
+>>  #include <linux/notifier.h>
+>>  #include <linux/reboot.h>
+>>  #include <asm/byteorder.h>
+>> +#include <media/cec.h>
+>>  #include <drm/drmP.h>
+>>  #include <drm/drm_atomic_helper.h>
+>>  #include <drm/drm_crtc.h>
+>> @@ -1449,6 +1450,7 @@ static void intel_aux_reg_init(struct intel_dp *intel_dp)
+>>  static void
+>>  intel_dp_aux_fini(struct intel_dp *intel_dp)
+>>  {
+>> +	cec_unregister_adapter(intel_dp->aux.cec_adap);
+>>  	kfree(intel_dp->aux.name);
+>>  }
+>>  
+>> @@ -4587,6 +4589,7 @@ intel_dp_set_edid(struct intel_dp *intel_dp)
+>>  	intel_connector->detect_edid = edid;
+>>  
+>>  	intel_dp->has_audio = drm_detect_monitor_audio(edid);
+>> +	cec_s_phys_addr_from_edid(intel_dp->aux.cec_adap, edid);
+>>  }
+>>  
+>>  static void
+>> @@ -4596,6 +4599,7 @@ intel_dp_unset_edid(struct intel_dp *intel_dp)
+>>  
+>>  	kfree(intel_connector->detect_edid);
+>>  	intel_connector->detect_edid = NULL;
+>> +	cec_phys_addr_invalidate(intel_dp->aux.cec_adap);
+>>  
+>>  	intel_dp->has_audio = false;
+>>  }
+>> @@ -4616,13 +4620,17 @@ intel_dp_long_pulse(struct intel_connector *intel_connector)
+>>  	intel_display_power_get(to_i915(dev), intel_dp->aux_power_domain);
+>>  
+>>  	/* Can't disconnect eDP, but you can close the lid... */
+>> -	if (is_edp(intel_dp))
+>> +	if (is_edp(intel_dp)) {
+>>  		status = edp_detect(intel_dp);
+>> -	else if (intel_digital_port_connected(to_i915(dev),
+>> -					      dp_to_dig_port(intel_dp)))
+>> +	} else if (intel_digital_port_connected(to_i915(dev),
+>> +						dp_to_dig_port(intel_dp))) {
+>>  		status = intel_dp_detect_dpcd(intel_dp);
+>> -	else
+>> +		if (status == connector_status_connected)
+>> +			drm_dp_cec_configure_adapter(&intel_dp->aux,
+>> +				     intel_dp->aux.name, dev->dev);
 > 
-> If it is ordered, then you can just send the event immediately from the
-> vb2 qbuf function. But you shouldn't return the out fence in the fence_fd
-> field.
+> This is cluttering up the code a bit. Maybe do this call somewhere
+> around the intel_dp_configure_mst() call instead since that seems to be
+> the place where we start to do changes to externally visible state.
 > 
-> The fence_fd field can be renamed to in_fence_fd. The field in the event
-> struct can then be out_fence_fd.
+> Actually, do we want to register cec adapters for MST devices?
 > 
-> This is much cleaner since the fence_fd field is no longer used for both
-> in and out fence (that was very confusing!).
+> And shouldn't we call this regardless of the connector state so that
+> the cec adapter gets unregistered when the device is disconnected?
 
-That makes sense. I'll work on a new version with this modification and
-send it out as soon as possible. Thanks for reviewing!
+This hasn't (AFAIK) anything to do with MST. This is in a branch device (i.e.
+a DP to HDMI adapter).
 
-Gustavo
+The CEC adapter should ideally be associated with the branch device (since that
+is what implements the CEC tunneling): i.e. when you connect the adapter, then
+the CEC device is created, when you disconnect the adapter, then the CEC device
+should be unregistered. This is not the same as connecting/disconnecting the
+HDMI cable to/from the adapter: that just sets or invalidates the CEC physical
+address (which is read from the EDID).
+
+However, I have not seen any code that tells me when the adapter is plugged in
+or is unplugged. So all I have to go on is when the HDMI cable is connected.
+
+Note that the 'late_register' you mentioned in your 1/3 review isn't called when
+connecting the adapter. So that too cannot be used as a trigger to detect if
+this protocol is supported.
+
+I know doing this here is not ideal, but I have not found another way and I am
+not even certain if it is possible at all, it might be intrinsic to how DP works.
+I do not consider myself a DP expert, though.
+
+So this is how it works now, e.g. on my Intel NUC and a USB-C to HDMI adapter:
+
+1) I connect the adapter (no HDMI connected yet): nothing happens.
+2) I connect the HDMI cable to the adapter: drm_dp_cec_configure_adapter is called and
+   it detects the CEC capability in the DPCD. It now creates the CEC device.
+3) I disconnect the HDMI cable: the physical address of the CEC device is invalidated,
+   but the CEC device is not removed.
+4) I disconnect the adapter: nothing happens.
+5) I reconnect the adapter: nothing happens.
+6) I reconnect the HDMI cable: drm_dp_cec_configure_adapter is called and it checks the
+   DPCD. If the capabilities are unchanged, then it will continue to use the registered
+   CEC device. If the capabilities have changed (i.e. the adapter is apparently a
+   different one), then the CEC device is unregistered and a new one is created, provided
+   that the new adapter supports CEC, of course.
+
+The bottom-line is that I cannot tell the difference between disconnecting the adapter
+and disconnecting the HDMI cable to the adapter.
+
+Another consideration is that CEC applications (i.e. HTPCs) do not expect the CEC device
+to disappear when you disconnect either the HDMI cable or the adapter. Even though the
+CEC device is strictly speaking associated with the adapter, from the point of view of
+the user there is no difference between disconnecting an HDMI cable from an adapter, or
+disconnecting the adapter itself. So there is a good argument to be made to only unregister
+the CEC device when a different (or no) adapter is detected the next time the HPD goes high.
+
+Regards,
+
+	Hans
+
+> 
+>> +	} else {
+>>  		status = connector_status_disconnected;
+>> +	}
+>>  
+>>  	if (status == connector_status_disconnected) {
+>>  		memset(&intel_dp->compliance, 0, sizeof(intel_dp->compliance));
+>> @@ -5011,6 +5019,8 @@ intel_dp_hpd_pulse(struct intel_digital_port *intel_dig_port, bool long_hpd)
+>>  
+>>  	intel_display_power_get(dev_priv, intel_dp->aux_power_domain);
+>>  
+>> +	drm_dp_cec_irq(&intel_dp->aux);
+>> +
+>>  	if (intel_dp->is_mst) {
+>>  		if (intel_dp_check_mst_status(intel_dp) == -EINVAL) {
+>>  			/*
+>> -- 
+>> 2.14.1
+> 
