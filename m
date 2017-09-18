@@ -1,52 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:56917 "EHLO mout.web.de"
+Received: from pide.tip.net.au ([203.10.76.2]:33048 "EHLO pide.tip.net.au"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754560AbdIHMbV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 08:31:21 -0400
-Subject: [PATCH 1/3] [media] DaVinci-VPBE-Display: Delete an error message for
- a failed memory allocation in init_vpbe_layer()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <e980c48c-9525-4942-a58e-20af8a96e531@users.sourceforge.net>
-Message-ID: <9be97d7f-57bc-1c7e-fd86-187a38e0f994@users.sourceforge.net>
-Date: Fri, 8 Sep 2017 14:31:05 +0200
+        id S1750711AbdIREdU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Sep 2017 00:33:20 -0400
+Received: from pide.tip.net.au (pide.tip.net.au [IPv6:2401:fc00:0:107::2])
+        by mailhost.tip.net.au (Postfix) with ESMTP id 3xwXy1069vzFskm
+        for <linux-media@vger.kernel.org>; Mon, 18 Sep 2017 14:26:17 +1000 (AEST)
+Received: from e4.eyal.emu.id.au (124-171-98-224.dyn.iinet.net.au [124.171.98.224])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by pide.tip.net.au (Postfix) with ESMTPSA id 3xwXy06q8bz9B59
+        for <linux-media@vger.kernel.org>; Mon, 18 Sep 2017 14:26:16 +1000 (AEST)
+To: list linux-media <linux-media@vger.kernel.org>
+From: Eyal Lebedinsky <eyal@eyal.emu.id.au>
+Subject: Urgent: dvb_usb_rtl28xxu not tuning "Leadtek Winfast DTV2000 DS PLUS
+ TV"
+Message-ID: <00ad85dd-2fe3-5f15-6c0c-47fcf580f541@eyal.emu.id.au>
+Date: Mon, 18 Sep 2017 14:26:12 +1000
 MIME-Version: 1.0
-In-Reply-To: <e980c48c-9525-4942-a58e-20af8a96e531@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-AU
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 7 Sep 2017 22:37:16 +0200
+I have just upgraded to f24. I am now using the standard dvb_usb_rtl28xxu fe
+which logs messages suggesting all is well (I get the /dev/dvb/adapter? etc.)
+but I get no channels tuned when I run mythfrontend or scandvb.
 
-Omit an extra message for a memory allocation failure in this function.
+Is anyone using this combination?
+Is this the correct way to use this tuner?
 
-This issue was detected by using the Coccinelle software.
+BTW:
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/davinci/vpbe_display.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+Until f22 I was using the out of kernel driver from
+	https://github.com/jaredquinn/DVB-Realtek-RTL2832U.git
+but I now get a compile error.
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 13d027031ff0..5b6fc550736b 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -1313,7 +1313,6 @@ static int init_vpbe_layer(int i, struct vpbe_display *disp_dev,
--	if (!disp_dev->dev[i]) {
--		printk(KERN_ERR "ran out of memory\n");
-+	if (!disp_dev->dev[i])
- 		return  -ENOMEM;
--	}
-+
- 	spin_lock_init(&disp_dev->dev[i]->irqlock);
- 	mutex_init(&disp_dev->dev[i]->opslock);
- 
+TIA
+
 -- 
-2.14.1
+Eyal Lebedinsky (eyal@eyal.emu.id.au)
