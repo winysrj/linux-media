@@ -1,56 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:44167 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751087AbdIKJk6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 05:40:58 -0400
-Subject: Re: [PATCH v10 20/24] dt: bindings: smiapp: Document lens-focus and
- flash properties
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-21-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6cf99eb6-7b59-661a-963a-d46747d51f1f@xs4all.nl>
-Date: Mon, 11 Sep 2017 11:40:53 +0200
+Received: from mout.web.de ([212.227.17.12]:49409 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751611AbdIRIOt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Sep 2017 04:14:49 -0400
+Subject: [PATCH 2/2] [media] dvb_usb_core: Improve a size determination in two
+ functions
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <38627457-f64f-7356-bf5e-fc41296a26e4@users.sourceforge.net>
+Message-ID: <204db820-7fd1-579e-442d-ff2b983148f9@users.sourceforge.net>
+Date: Mon, 18 Sep 2017 10:14:37 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170911080008.21208-21-sakari.ailus@linux.intel.com>
+In-Reply-To: <38627457-f64f-7356-bf5e-fc41296a26e4@users.sourceforge.net>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/11/2017 10:00 AM, Sakari Ailus wrote:
-> Document optional lens-focus and flash properties for the smiapp driver.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 18 Sep 2017 09:36:33 +0200
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Replace the specification of data structures by variable references
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer according to the Linux coding style convention.
 
-Regards,
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-	Hans
-
-> ---
->  Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-> index 855e1faf73e2..33f10a94c381 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-> @@ -27,6 +27,8 @@ Optional properties
->  - nokia,nvm-size: The size of the NVM, in bytes. If the size is not given,
->    the NVM contents will not be read.
->  - reset-gpios: XSHUTDOWN GPIO
-> +- flash-leds: See ../video-interfaces.txt
-> +- lens-focus: See ../video-interfaces.txt
->  
->  
->  Endpoint node mandatory properties
-> 
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index d0fbf0b0b1cb..f0b225ee4515 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -279,5 +279,5 @@ static int dvb_usb_start_feed(struct dvb_demux_feed *dvbdmxfeed)
+ 	if (d->props->get_stream_config) {
+ 		memcpy(&stream_props, &adap->props->stream,
+-				sizeof(struct usb_data_stream_properties));
++		       sizeof(stream_props));
+ 		ret = d->props->get_stream_config(adap->fe[adap->active_fe],
+ 				&adap->ts_type, &stream_props);
+@@ -919,5 +919,5 @@ int dvb_usbv2_probe(struct usb_interface *intf,
+ 		goto err;
+ 	}
+ 
+-	d = kzalloc(sizeof(struct dvb_usb_device), GFP_KERNEL);
++	d = kzalloc(sizeof(*d), GFP_KERNEL);
+ 	if (!d) {
+-- 
+2.14.1
