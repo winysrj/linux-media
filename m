@@ -1,136 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46346
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751694AbdIAJcN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 05:32:13 -0400
-Date: Fri, 1 Sep 2017 06:32:02 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Honza =?UTF-8?B?UGV0cm91xaE=?= <jpetrous@gmail.com>
-Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Shuah Khan <shuah@kernel.org>, Ingo Molnar <mingo@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Colin Ian King <colin.king@canonical.com>
-Subject: Re: [PATCH 00/15] Improve DVB documentation and reduce its gap
-Message-ID: <20170901063202.2abf561e@vento.lan>
-In-Reply-To: <CAJbz7-0QaB3Hpi23pZZ_DLFQyqQ7kynRiP6J0a8UUj9RzooLCA@mail.gmail.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
-        <CAJbz7-0QaB3Hpi23pZZ_DLFQyqQ7kynRiP6J0a8UUj9RzooLCA@mail.gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46616 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752971AbdIRMMZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Sep 2017 08:12:25 -0400
+Date: Mon, 18 Sep 2017 15:12:22 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        tfiga@chromium.org, jian.xu.zheng@intel.com,
+        tian.shu.qiu@intel.com, rajmohan.mani@intel.com,
+        hyungwoo.yang@intel.com
+Subject: Re: [PATCH v2] media: ov13858: Calculate pixel-rate at runtime, use
+ mode
+Message-ID: <20170918121219.eczq4s2desflgkxb@valkosipuli.retiisi.org.uk>
+References: <1504655098-39951-1-git-send-email-rajmohan.mani@intel.com>
+ <ac8d16fed1d466c3381532b627e7dde5737650ec.1504721789.git.chiranjeevi.rapolu@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ac8d16fed1d466c3381532b627e7dde5737650ec.1504721789.git.chiranjeevi.rapolu@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 1 Sep 2017 10:40:28 +0200
-Honza Petrouš <jpetrous@gmail.com> escreveu:
+Hi Chiranjeevi,
 
-> 2017-09-01 1:46 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-> > The DVB documentation was negligected for a long time, with
-> > resulted on several gaps between the API description and its
-> > documentation.
-> >
-> > I'm doing a new reading at the documentation. As result of it,
-> > this series:
-> >
-> > - improves the introductory chapter, making it more generic;
-> > - Do some adjustments at the frontend API, using kernel-doc
-> >   when possible.
-> > - Remove unused APIs at DVB demux. I suspect that the drivers
-> >   implementing such APIs were either never merged upstream,
-> >   or the API itself  were never used or was deprecated a long
-> >   time ago. In any case, it doesn't make any sense to carry
-> >   on APIs that aren't properly documented, nor are used on the
-> >   upstream Kernel.
-> >
-> > With this patch series, the gap between documentation and
-> > code is solved for 3 DVB APIs:
-> >
-> >   - Frontend API;
-> >   - Demux API;
-> >   - Net API.
-> >
-> > There is still a gap at the CA API that I'll try to address when I
-> > have some time[1].
-> >
-> > [1] There's a gap also on the legacy audio, video and OSD APIs,
-> >     but, as those are used only by a single very old deprecated
-> >     hardware (av7110), it is probably not worth the efforts.
-> >  
+On Wed, Sep 06, 2017 at 11:26:33AM -0700, Chiranjeevi Rapolu wrote:
+> Calculate pixel-rate at run time instead of compile time.
 > 
-> I agree that av7110 is very very old piece of hw (but it is already
-> in my hall of fame because of its Skystar 1 incarnation as
-> first implementation of DVB in Linux) and it is sad that we still
-> don't have at least one driver for any SoC with embedded DVB
-> devices.
-
-Yeah, av7110 made history. Please notice that this series doesn't
-remove any API that it is used by it. All it removes are the APIs
-that there's no Kernel driver using.
-
-Carry on APIs without client is usually a very bad idea, as nobody
-could be certain about how to use it. It is even worse when such
-APIs are not properly documented (with is the case here).
-
-> I understand that the main issue is that no any DVB-enabled
-> SoC vendor is interested in upstreaming theirs code, but I still hope
-> it will change in near future(*)
-
-We have one driver for a SoC DVB hardware at:
-	drivers/media/platform/sti/c8sectpfe/
-
-I guess it still doesn't cover the entire SoC, but this is a WiP. If I
-remember well, at the midia part of the SoC, they started by submitting
-the Remote Controller code.
-
-> Without having full-featured DVB device in vanilla, we surely don't
-> get some parts of DVB API covered. I can imagine that  when
-> somebody comes with such full-featured device he wants to reinvent
-> just removed bits.
-
-Re-adding the removed bits is easy. However, the API defined for
-av7110 is old and it is showing its age: it assumes a limited number
-of possible inputs/outputs. Modern SoC has a lot more ways link the
-audio/video IP blocks than what the API provides. On a modern SoC,
-not only DVB is supported, but also analog inputs (to support things
-like composite input), cameras, HDMI inputs and even analog TV.
-All of them interconnected to a media ISP. The current FF API can't
-represent such hardware.
-
-The best API to represent those pipelines that exist on SoC for
-multimedia is the media controller, where all IP blocks and their
-links (whatever they are) can be represented, if needed.
-
-The audio and video DVB API is also too limited: it hasn't
-evolved since when it was added. For audio, the ALSA API
-allows a way more control of the hardware; for video, the
-V4L2 API nowadays has all the bits to control video decoding
-and encoding. Both APIs provide support for audio and video
-inputs commonly found on those devices.
-
-Also, nowadays, video decoding usually happens at the GPU on SoC. So, 
-in practice, a SoC FF would likely use the DRM subsystem to control the
-video codecs.
-
-So, anyone wanting to upstream drivers for a modern FF hardware would need
-to touch a lot inside the DVB API, for it to cover all the needs. A more
-appropriate approach to support those devices would be, instead, 
-to use a set of APIs: DVB, V4L2, ALSA, RC, CEC, MC, DRM.
-
+> Instead of using hardcoded pixels-per-line, extract it from current sensor
+> mode.
 > 
-> It's my 5 cents
-> /Honza
+> Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+> ---
+> Changes in v2:
+> 	- Removed pixel-rate from struct definition.
+> 	- Used pixel-rate formula wherever needed.
+> 	- Changed commit message to reflect above changes.
+>  drivers/media/i2c/ov13858.c | 42 ++++++++++++++++++++++--------------------
+>  1 file changed, 22 insertions(+), 20 deletions(-)
 > 
-> (*) My favourite is HiSilicon with very nice Hi3798 4K chip
-> with announced support from Linaro and already available
-> devboard for reasonable price.
-> 
-> PS: I'm in no any way connected with HiSilicon nor
-> any other DVB-enabled SoC vendor.
+> diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+> index af7af0d..77f256e 100644
+> --- a/drivers/media/i2c/ov13858.c
+> +++ b/drivers/media/i2c/ov13858.c
+> @@ -104,7 +104,6 @@ struct ov13858_reg_list {
+>  
+>  /* Link frequency config */
+>  struct ov13858_link_freq_config {
+> -	u32 pixel_rate;
+>  	u32 pixels_per_line;
+>  
+>  	/* PLL registers for this link frequency */
+> @@ -958,8 +957,6 @@ struct ov13858_mode {
+>  static const struct ov13858_link_freq_config
+>  			link_freq_configs[OV13858_NUM_OF_LINK_FREQS] = {
+>  	{
+> -		/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
+> -		.pixel_rate = (OV13858_LINK_FREQ_540MHZ * 2 * 4) / 10,
+>  		.pixels_per_line = OV13858_PPL_540MHZ,
+>  		.reg_list = {
+>  			.num_of_regs = ARRAY_SIZE(mipi_data_rate_1080mbps),
+> @@ -967,8 +964,6 @@ struct ov13858_mode {
+>  		}
+>  	},
+>  	{
+> -		/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
+> -		.pixel_rate = (OV13858_LINK_FREQ_270MHZ * 2 * 4) / 10,
+>  		.pixels_per_line = OV13858_PPL_270MHZ,
+>  		.reg_list = {
+>  			.num_of_regs = ARRAY_SIZE(mipi_data_rate_540mbps),
+> @@ -1385,6 +1380,7 @@ static int ov13858_get_pad_format(struct v4l2_subdev *sd,
+>  	s32 vblank_def;
+>  	s32 vblank_min;
+>  	s64 h_blank;
+> +	s64 pixel_rate;
+>  
+>  	mutex_lock(&ov13858->mutex);
+>  
+> @@ -1400,9 +1396,9 @@ static int ov13858_get_pad_format(struct v4l2_subdev *sd,
+>  	} else {
+>  		ov13858->cur_mode = mode;
+>  		__v4l2_ctrl_s_ctrl(ov13858->link_freq, mode->link_freq_index);
+> -		__v4l2_ctrl_s_ctrl_int64(
+> -			ov13858->pixel_rate,
+> -			link_freq_configs[mode->link_freq_index].pixel_rate);
+> +		pixel_rate =
+> +		(link_freq_menu_items[mode->link_freq_index] * 2 * 4) / 10;
 
-Thanks,
-Mauro
+You should indent what falls on the next line, and add subsequent line
+wraps if needed.
+
+> +		__v4l2_ctrl_s_ctrl_int64(ov13858->pixel_rate, pixel_rate);
+>  		/* Update limits and set FPS to default */
+>  		vblank_def = ov13858->cur_mode->vts_def -
+>  			     ov13858->cur_mode->height;
+> @@ -1617,6 +1613,10 @@ static int ov13858_init_controls(struct ov13858 *ov13858)
+>  	s64 exposure_max;
+>  	s64 vblank_def;
+>  	s64 vblank_min;
+> +	s64 hblank;
+> +	s64 pixel_rate_min;
+> +	s64 pixel_rate_max;
+> +	const struct ov13858_mode *mode;
+>  	int ret;
+>  
+>  	ctrl_hdlr = &ov13858->ctrl_handler;
+> @@ -1634,29 +1634,31 @@ static int ov13858_init_controls(struct ov13858 *ov13858)
+>  				link_freq_menu_items);
+>  	ov13858->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+>  
+> +	/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
+> +	pixel_rate_max = (link_freq_menu_items[0] * 2 * 4) / 10;
+> +	pixel_rate_min = (link_freq_menu_items[1] * 2 * 4) / 10;
+
+You're using the same, some could say non-trivial, formula in three places.
+
+Could you add a macro for it? E.g.
+
+/* double data rate => 2; four lanes => four; 10 bits per pixel => 10 */
+#define link_freq_to_pixel_rate(f) ((f) * 2 * 4 / 10)
+
+>  	/* By default, PIXEL_RATE is read only */
+>  	ov13858->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops,
+> -					V4L2_CID_PIXEL_RATE, 0,
+> -					link_freq_configs[0].pixel_rate, 1,
+> -					link_freq_configs[0].pixel_rate);
+> +						V4L2_CID_PIXEL_RATE,
+> +						pixel_rate_min, pixel_rate_max,
+> +						1, pixel_rate_max);
+>  
+> -	vblank_def = ov13858->cur_mode->vts_def - ov13858->cur_mode->height;
+> -	vblank_min = ov13858->cur_mode->vts_min - ov13858->cur_mode->height;
+> +	mode = ov13858->cur_mode;
+> +	vblank_def = mode->vts_def - mode->height;
+> +	vblank_min = mode->vts_min - mode->height;
+>  	ov13858->vblank = v4l2_ctrl_new_std(
+>  				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_VBLANK,
+> -				vblank_min,
+> -				OV13858_VTS_MAX - ov13858->cur_mode->height, 1,
+> +				vblank_min, OV13858_VTS_MAX - mode->height, 1,
+>  				vblank_def);
+>  
+> +	hblank = link_freq_configs[mode->link_freq_index].pixels_per_line -
+> +		 mode->width;
+>  	ov13858->hblank = v4l2_ctrl_new_std(
+>  				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_HBLANK,
+> -				OV13858_PPL_540MHZ - ov13858->cur_mode->width,
+> -				OV13858_PPL_540MHZ - ov13858->cur_mode->width,
+> -				1,
+> -				OV13858_PPL_540MHZ - ov13858->cur_mode->width);
+> +				hblank, hblank, 1, hblank);
+>  	ov13858->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+>  
+> -	exposure_max = ov13858->cur_mode->vts_def - 8;
+> +	exposure_max = mode->vts_def - 8;
+>  	ov13858->exposure = v4l2_ctrl_new_std(
+>  				ctrl_hdlr, &ov13858_ctrl_ops,
+>  				V4L2_CID_EXPOSURE, OV13858_EXPOSURE_MIN,
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
