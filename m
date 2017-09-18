@@ -1,43 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us-smtp-delivery-107.mimecast.com ([63.128.21.107]:49785 "EHLO
-        us-smtp-delivery-107.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S966668AbdIZOO1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 10:14:27 -0400
-Subject: Re: [PATCH v6 2/2] media: rc: Add driver for tango HW IR decoder
-To: Mans Rullgard <mans@mansr.com>
-CC: Sean Young <sean@mess.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Mason <slash.tmp@free.fr>
-References: <308711ef-0ba8-d533-26fd-51e5b8f32cc8@free.fr>
- <e3d91250-e6bd-bb8c-5497-689c351ac55f@free.fr> <yw1xzi9ieuqe.fsf@mansr.com>
- <893874ee-a6e0-e4be-5b4f-a49e60197e92@free.fr> <yw1xr2uuenhv.fsf@mansr.com>
- <0690fbbb-a13f-63af-bc43-b1f9d4771bc4@free.fr> <yw1xmv5hehp0.fsf@mansr.com>
-From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
-Message-ID: <ee434b81-3406-7ea0-3a54-b5dc1d6720c9@sigmadesigns.com>
-Date: Tue, 26 Sep 2017 16:14:21 +0200
+Received: from mout.web.de ([212.227.17.12]:51115 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752538AbdIRNyB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Sep 2017 09:54:01 -0400
+Subject: [PATCH 1/6] [media] go7007: Delete an error message for a failed
+ memory allocation in go7007_load_encoder()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <b36ece3f-0f31-9bb6-14ae-c4abf7cd23ee@users.sourceforge.net>
+Message-ID: <ce46e264-73fe-4613-e1b8-79a4bccc796b@users.sourceforge.net>
+Date: Mon, 18 Sep 2017 15:53:53 +0200
 MIME-Version: 1.0
-In-Reply-To: <yw1xmv5hehp0.fsf@mansr.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <b36ece3f-0f31-9bb6-14ae-c4abf7cd23ee@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/09/2017 15:02, Måns Rullgård wrote:
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 18 Sep 2017 10:52:42 +0200
 
-> I could continue nit-picking, but I think this is good enough.
-> Thanks for being patient.
-> 
-> Signed-off-by: Mans Rullgard <mans@mansr.com>
+Omit an extra message for a memory allocation failure in this function.
 
-Smirk.
+This issue was detected by using the Coccinelle software.
 
-If you feel like making a final round of changes on top of this patch,
-then go for it. It's your code, after all.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/go7007/go7007-driver.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-(Too bad there is no devm variant of clk_prepare_enable.)
-
-Does it make sense to submit a keymap for the Sigma remote control
-used with Vantage boards? And define that as the default keymap?
-
-Regards.
+diff --git a/drivers/media/usb/go7007/go7007-driver.c b/drivers/media/usb/go7007/go7007-driver.c
+index 05b1126f263e..222332189fa4 100644
+--- a/drivers/media/usb/go7007/go7007-driver.c
++++ b/drivers/media/usb/go7007/go7007-driver.c
+@@ -107,4 +107,3 @@ static int go7007_load_encoder(struct go7007 *go)
+-			v4l2_err(go, "unable to allocate %d bytes for firmware transfer\n", fw_len);
+ 			release_firmware(fw_entry);
+ 			return -1;
+ 		}
+-- 
+2.14.1
