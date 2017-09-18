@@ -1,72 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:55148 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751022AbdIAHly (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Sep 2017 03:41:54 -0400
-Subject: Re: [PATCH] [media_build] update v4.7_dma_attrs.patch
-To: Daniel Scheller <d.scheller.oss@gmail.com>,
-        linux-media@vger.kernel.org
-Cc: mchehab@kernel.org, hverkuil@xs4all.nl
-References: <20170828160851.618-1-d.scheller.oss@gmail.com>
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <e91ae137-433c-b9c1-c64a-c82b95f517ff@anw.at>
-Date: Fri, 1 Sep 2017 09:41:57 +0200
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44056 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753748AbdIRJMH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Sep 2017 05:12:07 -0400
+Date: Mon, 18 Sep 2017 12:12:04 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+        niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        sre@kernel.org
+Subject: Re: as3645a flash userland interface
+Message-ID: <20170918091204.245dewmyruxtfhyb@valkosipuli.retiisi.org.uk>
+References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+ <20170912084236.1154-25-sakari.ailus@linux.intel.com>
+ <20170912103628.GB27117@amd>
+ <7b679cb3-ce58-e1d1-60bf-995896bf46eb@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20170828160851.618-1-d.scheller.oss@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7b679cb3-ce58-e1d1-60bf-995896bf46eb@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Hi Jacek,
 
-To get media-build working again this is needs to be merged also.
+On Tue, Sep 12, 2017 at 08:53:33PM +0200, Jacek Anaszewski wrote:
+> Hi Pavel,
+> 
+> On 09/12/2017 12:36 PM, Pavel Machek wrote:
+> > Hi!
+> > 
+> > There were some changes to as3645a flash controller. Before we have
+> > stable interface we have to keep forever I want to ask:
+> 
+> Note that we have already two LED flash class drivers - leds-max77693
+> and leds-aat1290. They have been present in mainline for over two years
+> now.
+> 
+> > What directory are the flash controls in?
+> > 
+> > /sys/class/leds/led-controller:flash ?
+> > 
+> > Could we arrange for something less generic, like
+> > 
+> > /sys/class/leds/main-camera:flash ?
+> 
+> I'd rather avoid overcomplicating this. LED class device name pattern
+> is well defined to devicename:colour:function
+> (see Documentation/leds/leds-class.txt, "LED Device Naming" section).
+> 
+> In this case "flash" in place of the "function" segment makes the
+> things clear enough I suppose.
 
-BR,
-   Jasmin
+Oh. I have to admit I've completely missed this. :-o
 
+I'll address this in v2 of the as3645a fixes, plus submit related V4L2
+flash class documentation fixes a little later.
 
-On 08/28/2017 06:08 PM, Daniel Scheller wrote:
-> From: Daniel Scheller <d.scheller@gmx.net>
-> 
-> Fixes apply_patches wrt
-> 
->   commit 5b6f9abe5a49 ("media: vb2: add bidirectional flag in vb2_queue")
-> 
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> Tested-by: Jasmin Jessich <jasmin@anw.at>
-> ---
-> Tested and verified by Jasmin on 3.13, 3.4 and 2.6.36, and by me on 4.4.
-> 
->  backports/v4.7_dma_attrs.patch | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/backports/v4.7_dma_attrs.patch b/backports/v4.7_dma_attrs.patch
-> index 28d8dbc..40a7e5b 100644
-> --- a/backports/v4.7_dma_attrs.patch
-> +++ b/backports/v4.7_dma_attrs.patch
-> @@ -294,18 +294,18 @@ index 9a144f2..c5e3113 100644
->    *		doesn't fill in the @alloc_devs array.
->  - * @dma_attrs:	DMA attributes to use for the DMA.
->  + * @dma_attrs:	DMA attributes to use for the DMA. May be NULL.
-> -  * @fileio_read_once:		report EOF after reading the first buffer
-> -  * @fileio_write_immediately:	queue buffer after each write() call
-> -  * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
-> +  * @bidirectional: when this flag is set the DMA direction for the buffers of
-> +  *		this queue will be overridden with DMA_BIDIRECTIONAL direction.
-> +  *		This is useful in cases where the hardware (firmware) writes to
->  @@ -494,7 +494,7 @@ struct vb2_queue {
->   	unsigned int			type;
->   	unsigned int			io_modes;
->   	struct device			*dev;
->  -	unsigned long			dma_attrs;
->  +	const struct dma_attrs		*dma_attrs;
-> + 	unsigned			bidirectional:1;
->   	unsigned			fileio_read_once:1;
->   	unsigned			fileio_write_immediately:1;
-> - 	unsigned			allow_zero_bytesused:1;
->  diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
->  index 5604818..df2aabe 100644
->  --- a/include/media/videobuf2-dma-contig.h
-> 
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
