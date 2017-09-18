@@ -1,159 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37984 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751794AbdISMBK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 08:01:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
-        sre@kernel.org
-Subject: Re: [PATCH v13 11/25] v4l: async: Introduce helpers for calling async ops callbacks
-Date: Tue, 19 Sep 2017 15:01:14 +0300
-Message-ID: <1751597.tWjkEME5YS@avalon>
-In-Reply-To: <20170915141724.23124-12-sakari.ailus@linux.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com> <20170915141724.23124-12-sakari.ailus@linux.intel.com>
+Received: from mout.web.de ([212.227.17.12]:59123 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755980AbdIRN52 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Sep 2017 09:57:28 -0400
+Subject: [PATCH 4/6] [media] go7007: Use common error handling code in
+ s2250_probe()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <b36ece3f-0f31-9bb6-14ae-c4abf7cd23ee@users.sourceforge.net>
+Message-ID: <c4d2e584-39ca-6e30-43ee-56088905149e@users.sourceforge.net>
+Date: Mon, 18 Sep 2017 15:57:21 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <b36ece3f-0f31-9bb6-14ae-c4abf7cd23ee@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 18 Sep 2017 13:50:45 +0200
 
-Thank you for the patch.
+Adjust jump targets so that a bit of exception handling can be better
+reused at the end of this function.
 
-On Friday, 15 September 2017 17:17:10 EEST Sakari Ailus wrote:
-> Add three helper functions to call async operations callbacks. Besides
-> simplifying callbacks, this allows async notifiers to have no ops set,
-> i.e. it can be left NULL.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 49 ++++++++++++++++++++++++--------
->  include/media/v4l2-async.h           |  1 +
->  2 files changed, 37 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> b/drivers/media/v4l2-core/v4l2-async.c index 7b2125b3d62f..c35d04b9122f
-> 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -25,6 +25,34 @@
->  #include <media/v4l2-fwnode.h>
->  #include <media/v4l2-subdev.h>
-> 
-> +static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
-> +					  struct v4l2_subdev *subdev,
-> +					  struct v4l2_async_subdev *asd)
-> +{
-> +	if (!n->ops || !n->ops->bound)
-> +		return 0;
-> +
-> +	return n->ops->bound(n, subdev, asd);
-> +}
-> +
-> +static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier *n,
-> +					    struct v4l2_subdev *subdev,
-> +					    struct v4l2_async_subdev *asd)
-> +{
-> +	if (!n->ops || !n->ops->unbind)
-> +		return;
-> +
-> +	n->ops->unbind(n, subdev, asd);
-> +}
-> +
-> +static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
-> +{
-> +	if (!n->ops || !n->ops->complete)
-> +		return 0;
-> +
-> +	return n->ops->complete(n);
-> +}
-> +
+This refactoring might fix also an error situation where the
+function "i2c_unregister_device" was not called after a software failure
+was noticed by the data member "hdl.error".
 
-Wouldn't it be enough to add a single v4l2_async_notifier_call() macro ?
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/go7007/s2250-board.c | 37 +++++++++++++++++-----------------
+ 1 file changed, 18 insertions(+), 19 deletions(-)
 
-#define v4l2_async_notifier_call(n, op, args...) \
-	((n)->ops && (n)->ops->op ? (n)->ops->op(n, ##args) : 0)
-
-Apart from that,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
->  static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev
-> *asd) {
->  #if IS_ENABLED(CONFIG_I2C)
-> @@ -102,16 +130,13 @@ static int v4l2_async_match_notify(struct
-> v4l2_async_notifier *notifier, {
->  	int ret;
-> 
-> -	if (notifier->ops->bound) {
-> -		ret = notifier->ops->bound(notifier, sd, asd);
-> -		if (ret < 0)
-> -			return ret;
-> -	}
-> +	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
-> +	if (ret < 0)
-> +		return ret;
-> 
->  	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
->  	if (ret < 0) {
-> -		if (notifier->ops->unbind)
-> -			notifier->ops->unbind(notifier, sd, asd);
-> +		v4l2_async_notifier_call_unbind(notifier, sd, asd);
->  		return ret;
->  	}
-> 
-> @@ -123,8 +148,8 @@ static int v4l2_async_match_notify(struct
-> v4l2_async_notifier *notifier, /* Move from the global subdevice list to
-> notifier's done */
->  	list_move(&sd->async_list, &notifier->done);
-> 
-> -	if (list_empty(&notifier->waiting) && notifier->ops->complete)
-> -		return notifier->ops->complete(notifier);
-> +	if (list_empty(&notifier->waiting))
-> +		return v4l2_async_notifier_call_complete(notifier);
-> 
->  	return 0;
->  }
-> @@ -210,8 +235,7 @@ void v4l2_async_notifier_unregister(struct
-> v4l2_async_notifier *notifier) list_for_each_entry_safe(sd, tmp,
-> &notifier->done, async_list) { v4l2_async_cleanup(sd);
-> 
-> -		if (notifier->ops->unbind)
-> -			notifier->ops->unbind(notifier, sd, sd->asd);
-> +		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
->  	}
-> 
->  	mutex_unlock(&list_lock);
-> @@ -300,8 +324,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev
-> *sd)
-> 
->  	v4l2_async_cleanup(sd);
-> 
-> -	if (notifier->ops->unbind)
-> -		notifier->ops->unbind(notifier, sd, sd->asd);
-> +	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
-> 
->  	mutex_unlock(&list_lock);
->  }
-> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> index 3c48f8b66d12..3bc8a7c0d83f 100644
-> --- a/include/media/v4l2-async.h
-> +++ b/include/media/v4l2-async.h
-> @@ -164,4 +164,5 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd);
->   * @sd: pointer to &struct v4l2_subdev
->   */
->  void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
-> +
->  #endif
-
-
+diff --git a/drivers/media/usb/go7007/s2250-board.c b/drivers/media/usb/go7007/s2250-board.c
+index 1fd4c09dd516..1bd9a7f2e7a3 100644
+--- a/drivers/media/usb/go7007/s2250-board.c
++++ b/drivers/media/usb/go7007/s2250-board.c
+@@ -510,6 +510,7 @@ static int s2250_probe(struct i2c_client *client,
+ 	u8 *data;
+ 	struct go7007 *go = i2c_get_adapdata(adapter);
+ 	struct go7007_usb *usb = go->hpi_context;
++	int code;
+ 
+ 	audio = i2c_new_dummy(adapter, TLV320_ADDRESS >> 1);
+ 	if (!audio)
+@@ -517,8 +518,8 @@ static int s2250_probe(struct i2c_client *client,
+ 
+ 	state = kzalloc(sizeof(*state), GFP_KERNEL);
+ 	if (!state) {
+-		i2c_unregister_device(audio);
+-		return -ENOMEM;
++		code = -ENOMEM;
++		goto unregister_device;
+ 	}
+ 
+ 	sd = &state->sd;
+@@ -538,11 +539,8 @@ static int s2250_probe(struct i2c_client *client,
+ 		V4L2_CID_HUE, -512, 511, 1, 0);
+ 	sd->ctrl_handler = &state->hdl;
+ 	if (state->hdl.error) {
+-		int err = state->hdl.error;
+-
+-		v4l2_ctrl_handler_free(&state->hdl);
+-		kfree(state);
+-		return err;
++		code = state->hdl.error;
++		goto free_handler;
+ 	}
+ 
+ 	state->std = V4L2_STD_NTSC;
+@@ -555,17 +553,13 @@ static int s2250_probe(struct i2c_client *client,
+ 	/* initialize the audio */
+ 	if (write_regs(audio, aud_regs) < 0) {
+ 		dev_err(&client->dev, "error initializing audio\n");
+-		goto fail;
++		goto e_io;
+ 	}
+ 
+-	if (write_regs(client, vid_regs) < 0) {
+-		dev_err(&client->dev, "error initializing decoder\n");
+-		goto fail;
+-	}
+-	if (write_regs_fp(client, vid_regs_fp) < 0) {
+-		dev_err(&client->dev, "error initializing decoder\n");
+-		goto fail;
+-	}
++	if (write_regs(client, vid_regs) < 0 ||
++	    write_regs_fp(client, vid_regs_fp) < 0)
++		goto report_write_failure;
++
+ 	/* set default channel */
+ 	/* composite */
+ 	write_reg_fp(client, 0x20, 0x020 | 1);
+@@ -602,11 +596,16 @@ static int s2250_probe(struct i2c_client *client,
+ 	v4l2_info(sd, "initialized successfully\n");
+ 	return 0;
+ 
+-fail:
+-	i2c_unregister_device(audio);
++report_write_failure:
++	dev_err(&client->dev, "error initializing decoder\n");
++e_io:
++	code = -EIO;
++free_handler:
+ 	v4l2_ctrl_handler_free(&state->hdl);
+ 	kfree(state);
+-	return -EIO;
++unregister_device:
++	i2c_unregister_device(audio);
++	return code;
+ }
+ 
+ static int s2250_remove(struct i2c_client *client)
 -- 
-Regards,
-
-Laurent Pinchart
+2.14.1
