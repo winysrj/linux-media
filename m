@@ -1,466 +1,527 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37814 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751205AbdISLe5 (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:63318 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753196AbdIRJgI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 07:34:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
-        sre@kernel.org
-Subject: Re: [PATCH v13 05/25] v4l: fwnode: Support generic parsing of graph endpoints in a device
-Date: Tue, 19 Sep 2017 14:35:01 +0300
-Message-ID: <2463205.SWm3RcFI57@avalon>
-In-Reply-To: <20170915141724.23124-6-sakari.ailus@linux.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com> <20170915141724.23124-6-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Mon, 18 Sep 2017 05:36:08 -0400
+Received: from epcas5p2.samsung.com (unknown [182.195.41.40])
+        by mailout1.samsung.com (KnoxPortal) with ESMTP id 20170918093607epoutp016e83989f6e548e8e54a8ac225098b68d~laxAPeIja0665706657epoutp01w
+        for <linux-media@vger.kernel.org>; Mon, 18 Sep 2017 09:36:07 +0000 (GMT)
+From: Satendra Singh Thakur <satendra.t@samsung.com>
+To: mchehab@kernel.org
+Cc: satendra.t@samsung.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v4] [DVB][FRONTEND] Added a new ioctl for optimizing
+ frontend property set operation
+Date: Mon, 18 Sep 2017 05:35:45 -0400
+Message-Id: <1505727345-30780-1-git-send-email-satendra.t@samsung.com>
+In-Reply-To: <1505722516-30026-1-git-send-email-satendra.t@samsung.com>
+Content-Type: text/plain; charset="utf-8"
+References: <1505722516-30026-1-git-send-email-satendra.t@samsung.com>
+        <CGME20170918093605epcas5p44f91f4ef218e9344e867f0729760d1d0@epcas5p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hello  Mr Chehab,
+It seems that there is a mismatch among tab spacing
+in local patch on my PC, the patch in email
+and the patch in lkml site.
+This is causing alignment problem. Even if I fix alignment problem
+in my PC, alignment is different in lkml and email.
+Anyway, I have run checkpatch and got 0 err and warnings
+Please review it.
+Thanks for the patience.
 
-Thank you for the patch.
+Signed-off-by: Satendra Singh Thakur <satendra.t@samsung.com>
+---
+ Documentation/media/uapi/dvb/fe-get-property.rst |  24 ++-
+ drivers/media/dvb-core/dvb_frontend.c            | 191 ++++++++++++++---------
+ include/uapi/linux/dvb/frontend.h                |  24 +++
+ 3 files changed, 158 insertions(+), 81 deletions(-)
 
-On Friday, 15 September 2017 17:17:04 EEST Sakari Ailus wrote:
-> Add two functions for parsing devices graph endpoints:
-> v4l2_async_notifier_parse_fwnode_endpoints and
-> v4l2_async_notifier_parse_fwnode_endpoints_by_port. The former iterates
-> over all endpoints whereas the latter only iterates over the endpoints in
-> a given port.
-> 
-> The former is mostly useful for existing drivers that currently implement
-> the iteration over all the endpoints themselves whereas the latter is
-> especially intended for devices with both sinks and sources: async
-> sub-devices for external devices connected to the device's sources will
-> have already been set up, or they are part of the master device.
-
-Did you mean s/or they/as they/ ?
-
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/v4l2-core/v4l2-async.c  |  30 ++++++
->  drivers/media/v4l2-core/v4l2-fwnode.c | 185 +++++++++++++++++++++++++++++++
->  include/media/v4l2-async.h            |  24 ++++-
->  include/media/v4l2-fwnode.h           | 117 +++++++++++++++++++++
->  4 files changed, 354 insertions(+), 2 deletions(-)
-
-[snip]
-
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c
-> b/drivers/media/v4l2-core/v4l2-fwnode.c index 706f9e7b90f1..44ee35f6aad5
-> 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-
-[snip]
-
-> +static int v4l2_async_notifier_fwnode_parse_endpoint(
-> +	struct device *dev, struct v4l2_async_notifier *notifier,
-> +	struct fwnode_handle *endpoint, unsigned int asd_struct_size,
-> +	int (*parse_endpoint)(struct device *dev,
-> +			    struct v4l2_fwnode_endpoint *vep,
-> +			    struct v4l2_async_subdev *asd))
-> +{
-> +	struct v4l2_async_subdev *asd;
-> +	struct v4l2_fwnode_endpoint *vep;
-> +	int ret = 0;
-> +
-> +	asd = kzalloc(asd_struct_size, GFP_KERNEL);
-> +	if (!asd)
-> +		return -ENOMEM;
-> +
-> +	asd->match.fwnode.fwnode =
-> +		fwnode_graph_get_remote_port_parent(endpoint);
-> +	if (!asd->match.fwnode.fwnode) {
-> +		dev_warn(dev, "bad remote port parent\n");
-> +		ret = -EINVAL;
-> +		goto out_err;
-> +	}
-> +
-> +	/* Ignore endpoints the parsing of which failed. */
-
-I think this comment is outdated.
-
-> +	vep = v4l2_fwnode_endpoint_alloc_parse(endpoint);
-> +	if (IS_ERR(vep)) {
-> +		ret = PTR_ERR(vep);
-> +		dev_warn(dev, "unable to parse V4L2 fwnode endpoint (%d)\n",
-> +			 ret);
-> +		goto out_err;
-> +	}
-> +
-> +	ret = parse_endpoint ? parse_endpoint(dev, vep, asd) : 0;
-> +	if (ret == -ENOTCONN)
-> +		dev_dbg(dev, "ignoring endpoint %u,%u\n", vep->base.port,
-> +			vep->base.id);
-
-How about "ignoring port@%u/endpoint@%u\n" ? It would make the message more 
-explicit.
-
-> +	else if (ret < 0)
-> +		dev_warn(dev, "driver could not parse endpoint %u,%u (%d)\n",
-
-Same here.
-
-> +			 vep->base.port, vep->base.id, ret);
-> +	v4l2_fwnode_endpoint_free(vep);
-> +	if (ret < 0)
-> +		goto out_err;
-> +
-> +	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-
-I'd move this line right before setting asd->match.fwnode.fwnode.
-
-> +	notifier->subdevs[notifier->num_subdevs] = asd;
-> +	notifier->num_subdevs++;
-> +
-> +	return 0;
-> +
-> +out_err:
-> +	fwnode_handle_put(asd->match.fwnode.fwnode);
-> +	kfree(asd);
-> +
-> +	return ret == -ENOTCONN ? 0 : ret;
-> +}
-> +
-> +static int __v4l2_async_notifier_parse_fwnode_endpoints(
-> +	struct device *dev, struct v4l2_async_notifier *notifier,
-> +	size_t asd_struct_size, unsigned int port, bool has_port,
-> +	int (*parse_endpoint)(struct device *dev,
-> +			    struct v4l2_fwnode_endpoint *vep,
-> +			    struct v4l2_async_subdev *asd))
-> +{
-> +	struct fwnode_handle *fwnode = NULL;
-> +	unsigned int max_subdevs = notifier->max_subdevs;
-> +	int ret;
-> +
-> +	if (WARN_ON(asd_struct_size < sizeof(struct v4l2_async_subdev)))
-> +		return -EINVAL;
-> +
-> +	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
-> +				     dev_fwnode(dev), fwnode)); ) {
-> +		if (!fwnode_device_is_available(
-> +			    fwnode_graph_get_port_parent(fwnode)))
-
-Doesn't fwnode_graph_get_port_parent() increment the refcount on the parent, 
-which you should then release ?
-
-> +			continue;
-> +
-> +		if (has_port) {
-> +			struct fwnode_endpoint ep;
-> +
-> +			ret = fwnode_graph_parse_endpoint(fwnode, &ep);
-> +			if (ret) {
-> +				fwnode_handle_put(fwnode);
-> +				return ret;
-> +			}
-> +
-> +			if (ep.port != port)
-> +				continue;
-> +		}
-> +		max_subdevs++;
-> +	}
-> +
-> +	/* No subdevs to add? Return here. */
-> +	if (max_subdevs == notifier->max_subdevs)
-> +		return 0;
-> +
-> +	ret = v4l2_async_notifier_realloc(notifier, max_subdevs);
-> +	if (ret)
-> +		return ret;
-> +
-> +	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
-> +				     dev_fwnode(dev), fwnode)); ) {
-> +		if (!fwnode_device_is_available(
-> +			    fwnode_graph_get_port_parent(fwnode)))
-
-Same here.
-
-> +			continue;
-> +
-> +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-> +			ret = -EINVAL;
-> +			break;
-> +		}
-> +
-> +		if (has_port) {
-> +			struct fwnode_endpoint ep;
-> +
-> +			ret = fwnode_graph_parse_endpoint(fwnode, &ep);
-> +			if (ret)
-> +				break;
-> +
-> +			if (ep.port != port)
-> +				continue;
-> +		}
-> +
-> +		ret = v4l2_async_notifier_fwnode_parse_endpoint(
-> +			dev, notifier, fwnode, asd_struct_size, parse_endpoint);
-> +		if (ret < 0)
-> +			break;
-> +	}
-> +
-> +	fwnode_handle_put(fwnode);
-> +
-> +	return ret;
-> +}
-
-[snip]
-
-> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> index c69d8c8a66d0..96fa1afc00dd 100644
-> --- a/include/media/v4l2-async.h
-> +++ b/include/media/v4l2-async.h
-> @@ -18,7 +18,6 @@ struct device;
->  struct device_node;
->  struct v4l2_device;
->  struct v4l2_subdev;
-> -struct v4l2_async_notifier;
-> 
->  /* A random max subdevice number, used to allocate an array on stack */
->  #define V4L2_MAX_SUBDEVS 128U
-> @@ -50,6 +49,10 @@ enum v4l2_async_match_type {
->   * @match:	union of per-bus type matching data sets
->   * @list:	used to link struct v4l2_async_subdev objects, waiting to be
->   *		probed, to a notifier->waiting list
-> + *
-> + * When this struct is used as a member in a driver specific struct,
-> + * the driver specific struct shall contain the @struct
-> + * v4l2_async_subdev as its first member.
-
-Unless I'm mistaken @ is used to refer to function arguments (sphinx typesets 
-it using <strong> in HTML). References to structures can be created with &. 
-Have you compiled the documentation ? :-)
-
->   */
->  struct v4l2_async_subdev {
->  	enum v4l2_async_match_type match_type;
-> @@ -78,7 +81,8 @@ struct v4l2_async_subdev {
->  /**
->   * struct v4l2_async_notifier - v4l2_device notifier data
->   *
-> - * @num_subdevs: number of subdevices
-> + * @num_subdevs: number of subdevices used in the subdevs array
-> + * @max_subdevs: number of subdevices allocated in the subdevs array
->   * @subdevs:	array of pointers to subdevice descriptors
->   * @v4l2_dev:	pointer to struct v4l2_device
->   * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
-> @@ -90,6 +94,7 @@ struct v4l2_async_subdev {
->   */
->  struct v4l2_async_notifier {
->  	unsigned int num_subdevs;
-> +	unsigned int max_subdevs;
->  	struct v4l2_async_subdev **subdevs;
->  	struct v4l2_device *v4l2_dev;
->  	struct list_head waiting;
-> @@ -121,6 +126,21 @@ int v4l2_async_notifier_register(struct v4l2_device
-> *v4l2_dev, void v4l2_async_notifier_unregister(struct v4l2_async_notifier
-> *notifier);
-> 
->  /**
-> + * v4l2_async_notifier_release - release notifier resources
-> + * @notifier: the notifier the resources of which are to be released
-> + *
-> + * Release memory resources related to a notifier, including the async
-> + * sub-devices allocated for the purposes of the notifier. The user is
-> + * responsible for releasing the notifier's resources after calling
-> + * @v4l2_async_notifier_parse_fwnode_endpoints.
-
-Don't use @. If you want sphinx to generate a link, just append () after the 
-function name.
-
-> + *
-> + * There is no harm from calling v4l2_async_notifier_release in other
-
-Here too.
-
-> + * cases as long as its memory has been zeroed after it has been
-> + * allocated.
-
-As the function WARNs for types other than V4L2_ASYNC_MATCH_FWNODE you might 
-want to mention that in the documentation.
-
-> + */
-> +void v4l2_async_notifier_release(struct v4l2_async_notifier *notifier);
-> +
-> +/**
->   * v4l2_async_register_subdev - registers a sub-device to the asynchronous
->   * 	subdevice framework
->   *
-> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-> index 68eb22ba571b..83afac48ea6b 100644
-> --- a/include/media/v4l2-fwnode.h
-> +++ b/include/media/v4l2-fwnode.h
-> @@ -25,6 +25,8 @@
->  #include <media/v4l2-mediabus.h>
-> 
->  struct fwnode_handle;
-> +struct v4l2_async_notifier;
-> +struct v4l2_async_subdev;
-> 
->  #define V4L2_FWNODE_CSI2_MAX_DATA_LANES	4
-> 
-> @@ -201,4 +203,119 @@ int v4l2_fwnode_parse_link(struct fwnode_handle
-> *fwnode, */
->  void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
-> 
-> +/**
-> + * v4l2_async_notifier_parse_fwnode_endpoints - Parse V4L2 fwnode endpoints
-> in a
-> + *						device node
-> + * @dev: the device the endpoints of which are to be parsed
-> + * @notifier: notifier for @dev
-> + * @asd_struct_size: size of the driver's async sub-device struct,
-> including
-> + *		     sizeof(struct v4l2_async_subdev). The &struct
-> + *		     v4l2_async_subdev shall be the first member of
-> + *		     the driver's async sub-device struct, i.e. both
-> + *		     begin at the same memory address.
-> + * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
-> + *		    endpoint. Optional.
-> + *		    Return: %0 on success
-> + *			    %-ENOTCONN if the endpoint is to be skipped but this
-> + *				       should not be considered as an error
-> + *			    %-EINVAL if the endpoint configuration is invalid
-> + *
-> + * Parse the fwnode endpoints of the @dev device and populate the async
-> sub-
-> + * devices array of the notifier. The @parse_endpoint callback function is
-> + * called for each endpoint with the corresponding async sub-device pointer
-> to
-> + * let the caller initialize the driver-specific part of the async sub-
-> device
-> + * structure.
-> + *
-> + * The notifier memory shall be zeroed before this function is called on
-> the
-> + * notifier.
-> + *
-> + * This function may not be called on a registered notifier and may be
-> called on
-> + * a notifier only once.
-> + *
-> + * Do not change the notifier's subdevs array, take references to the
-> subdevs
-> + * array itself or change the notifier's num_subdevs field. This is because
-> this
-> + * function allocates and reallocates the subdevs array based on parsing
-> + * endpoints.
-> + *
-> + * The @struct v4l2_fwnode_endpoint passed to the callback function
-> + * @parse_endpoint is released once the function is finished. If there is a
-> need
-> + * to retain that configuration, the user needs to allocate memory for it.
-> + *
-> + * Any notifier populated using this function must be released with a call
-> to
-> + * v4l2_async_notifier_release() after it has been unregistered and the
-> async
-> + * sub-devices are no longer in use, even if the function returned an
-> error.
-> + *
-> + * Return: %0 on success, including when no async sub-devices are found
-> + *	   %-ENOMEM if memory allocation failed
-> + *	   %-EINVAL if graph or endpoint parsing failed
-> + *	   Other error codes as returned by @parse_endpoint
-> + */
-> +int v4l2_async_notifier_parse_fwnode_endpoints(
-> +	struct device *dev, struct v4l2_async_notifier *notifier,
-> +	size_t asd_struct_size,
-> +	int (*parse_endpoint)(struct device *dev,
-> +			      struct v4l2_fwnode_endpoint *vep,
-> +			      struct v4l2_async_subdev *asd));
-> +
-> +/**
-> + * v4l2_async_notifier_parse_fwnode_endpoints_by_port - Parse V4L2 fwnode
-> + *							endpoints of a port in a
-> + *							device node
-
-This clearly shows that the function name is getting a bit long :-)
-
-> + * @dev: the device the endpoints of which are to be parsed
-> + * @notifier: notifier for @dev
-> + * @asd_struct_size: size of the driver's async sub-device struct,
-> including
-> + *		     sizeof(struct v4l2_async_subdev). The &struct
-> + *		     v4l2_async_subdev shall be the first member of
-> + *		     the driver's async sub-device struct, i.e. both
-> + *		     begin at the same memory address.
-> + * @port: port number where endpoints are to be parsed
-> + * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
-> + *		    endpoint. Optional.
-> + *		    Return: %0 on success
-> + *			    %-ENOTCONN if the endpoint is to be skipped but this
-> + *				       should not be considered as an error
-> + *			    %-EINVAL if the endpoint configuration is invalid
-> + *
-> + * This function is just like @v4l2_async_notifier_parse_fwnode_endpoints
-> with
-> + * the exception that it only parses endpoints in a given port. This is
-> useful
-> + * on devices that have both sinks and sources: the async sub-devices
-> connected
-> + * to sources have already been set up by another driver (on capture
-> devices).
-> + *
-> + * Parse the fwnode endpoints of the @dev device on a given @port and
-> populate
-> + * the async sub-devices array of the notifier. The @parse_endpoint
-> callback
-> + * function is called for each endpoint with the corresponding async sub-
-> device
-> + * pointer to let the caller initialize the driver-specific part of the
-> async
-> + * sub-device structure.
-> + *
-> + * The notifier memory shall be zeroed before this function is called on
-> the
-> + * notifier the first time.
-> + *
-> + * This function may not be called on a registered notifier and may be
-> called on
-> + * a notifier only once per port.
-> + *
-> + * Do not change the notifier's subdevs array, take references to the
-> subdevs
-> + * array itself or change the notifier's num_subdevs field. This is because
-> this
-> + * function allocates and reallocates the subdevs array based on parsing
-> + * endpoints.
-> + *
-> + * The @struct v4l2_fwnode_endpoint passed to the callback function
-> + * @parse_endpoint is released once the function is finished. If there is a
-> need
-> + * to retain that configuration, the user needs to allocate memory for it.
-> + *
-> + * Any notifier populated using this function must be released with a call
-> to
-> + * v4l2_async_notifier_release() after it has been unregistered and the
-> async
-> + * sub-devices are no longer in use, even if the function returned an
-> error.
-> + *
-> + * Return: %0 on success, including when no async sub-devices are found
-> + *	   %-ENOMEM if memory allocation failed
-> + *	   %-EINVAL if graph or endpoint parsing failed
-> + *	   Other error codes as returned by @parse_endpoint
-> + */
-> +int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
-> +	struct device *dev, struct v4l2_async_notifier *notifier,
-> +	size_t asd_struct_size, unsigned int port,
-> +	int (*parse_endpoint)(struct device *dev,
-> +			      struct v4l2_fwnode_endpoint *vep,
-> +			      struct v4l2_async_subdev *asd));
-> +
->  #endif /* _V4L2_FWNODE_H */
-
-
+diff --git a/Documentation/media/uapi/dvb/fe-get-property.rst b/Documentation/media/uapi/dvb/fe-get-property.rst
+index 015d4db..b63a588 100644
+--- a/Documentation/media/uapi/dvb/fe-get-property.rst
++++ b/Documentation/media/uapi/dvb/fe-get-property.rst
+@@ -2,14 +2,14 @@
+ 
+ .. _FE_GET_PROPERTY:
+ 
+-**************************************
+-ioctl FE_SET_PROPERTY, FE_GET_PROPERTY
+-**************************************
++**************************************************************
++ioctl FE_SET_PROPERTY, FE_GET_PROPERTY, FE_SET_PROPERTY_SHORT
++**************************************************************
+ 
+ Name
+ ====
+ 
+-FE_SET_PROPERTY - FE_GET_PROPERTY - FE_SET_PROPERTY sets one or more frontend properties. - FE_GET_PROPERTY returns one or more frontend properties.
++FE_SET_PROPERTY and FE_SET_PROPERTY_SHORT set one or more frontend properties. FE_GET_PROPERTY returns one or more frontend properties.
+ 
+ 
+ Synopsis
+@@ -21,6 +21,8 @@ Synopsis
+ .. c:function:: int ioctl( int fd, FE_SET_PROPERTY, struct dtv_properties *argp )
+     :name: FE_SET_PROPERTY
+ 
++.. c:function:: int ioctl( int fd, FE_SET_PROPERTY_SHORT, struct dtv_properties_short *argp )
++    :name: FE_SET_PROPERTY_SHORT
+ 
+ Arguments
+ =========
+@@ -29,15 +31,16 @@ Arguments
+     File descriptor returned by :ref:`open() <frontend_f_open>`.
+ 
+ ``argp``
+-    pointer to struct :c:type:`dtv_properties`
++    Pointer to struct :c:type:`dtv_properties` or
++	struct :c:type:`dtv_properties_short`.
+ 
+ 
+ Description
+ ===========
+ 
+-All DVB frontend devices support the ``FE_SET_PROPERTY`` and
+-``FE_GET_PROPERTY`` ioctls. The supported properties and statistics
+-depends on the delivery system and on the device:
++All DVB frontend devices support the ``FE_SET_PROPERTY``, ``FE_GET_PROPERTY``
++and ``FE_SET_PROPERTY_SHORT`` ioctls. The supported  properties and
++statistics depends on the delivery system and on the device:
+ 
+ -  ``FE_SET_PROPERTY:``
+ 
+@@ -60,6 +63,11 @@ depends on the delivery system and on the device:
+ 
+    -  This call only requires read-only access to the device.
+ 
++-  ``FE_SET_PROPERTY_SHORT:``
++
++   -  This ioctl is similar to FE_SET_PROPERTY ioctl mentioned above
++      except that the arguments of the former utilize a struct :c:type:`dtv_property_short`
++      which is smaller in size.
+ 
+ Return Value
+ ============
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index e3fff8f..7c96197 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -1081,28 +1081,25 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+ 	_DTV_CMD(DTV_STAT_TOTAL_BLOCK_COUNT, 0, 0),
+ };
+ 
+-static void dtv_property_dump(struct dvb_frontend *fe,
+-			      bool is_set,
++static void dtv_get_property_dump(struct dvb_frontend *fe,
+ 			      struct dtv_property *tvp)
+ {
+ 	int i;
+ 
+ 	if (tvp->cmd <= 0 || tvp->cmd > DTV_MAX_COMMAND) {
+-		dev_warn(fe->dvb->device, "%s: %s tvp.cmd = 0x%08x undefined\n",
+-				__func__,
+-				is_set ? "SET" : "GET",
+-				tvp->cmd);
++		dev_warn(fe->dvb->device, "%s: GET tvp.cmd = 0x%08x undefined\n"
++				 , __func__,
++				 tvp->cmd);
+ 		return;
+ 	}
+ 
+-	dev_dbg(fe->dvb->device, "%s: %s tvp.cmd    = 0x%08x (%s)\n", __func__,
+-		is_set ? "SET" : "GET",
+-		tvp->cmd,
+-		dtv_cmds[tvp->cmd].name);
++	dev_dbg(fe->dvb->device, "%s: GET tvp.cmd    = 0x%08x (%s)\n", __func__,
++			tvp->cmd,
++			dtv_cmds[tvp->cmd].name);
+ 
+ 	if (dtv_cmds[tvp->cmd].buffer) {
+ 		dev_dbg(fe->dvb->device, "%s: tvp.u.buffer.len = 0x%02x\n",
+-			__func__, tvp->u.buffer.len);
++				__func__, tvp->u.buffer.len);
+ 
+ 		for(i = 0; i < tvp->u.buffer.len; i++)
+ 			dev_dbg(fe->dvb->device,
+@@ -1515,7 +1512,7 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+ 			return r;
+ 	}
+ 
+-	dtv_property_dump(fe, false, tvp);
++	dtv_get_property_dump(fe, tvp);
+ 
+ 	return 0;
+ }
+@@ -1738,23 +1735,35 @@ static int dvbv3_set_delivery_system(struct dvb_frontend *fe)
+ 	return emulate_delivery_system(fe, delsys);
+ }
+ 
++/**
++ * dtv_property_process_set -  Sets a single DTV property
++ * @fe:		Pointer to &struct dvb_frontend
++ * @file:	Pointer to &struct file
++ * @cmd:	Digital TV command
++ * @data:	An unsigned 32-bits number
++ *
++ * This routine assigns the property
++ * value to the corresponding member of
++ * &struct dtv_frontend_properties
++ *
++ * Returns:
++ * Zero on success, negative errno on failure.
++ */
+ static int dtv_property_process_set(struct dvb_frontend *fe,
+-				    struct dtv_property *tvp,
+-				    struct file *file)
++					struct file *file,
++					u32 cmd, u32 data)
+ {
+ 	int r = 0;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-
+-	/* Allow the frontend to validate incoming properties */
+-	if (fe->ops.set_property) {
+-		r = fe->ops.set_property(fe, tvp);
+-		if (r < 0)
+-			return r;
+-	}
+-
+-	dtv_property_dump(fe, true, tvp);
+-
+-	switch(tvp->cmd) {
++	/** Dump DTV command name and value*/
++	if (!cmd || cmd > DTV_MAX_COMMAND)
++		dev_warn(fe->dvb->device, "%s: SET cmd 0x%08x undefined\n",
++				 __func__, cmd);
++	else
++		dev_dbg(fe->dvb->device,
++				"%s: SET cmd 0x%08x (%s) to 0x%08x\n",
++				__func__, cmd, dtv_cmds[cmd].name, data);
++	switch (cmd) {
+ 	case DTV_CLEAR:
+ 		/*
+ 		 * Reset a cache of data specific to the frontend here. This does
+@@ -1767,140 +1776,140 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+ 		 * tunerequest so we can pass validation in the FE_SET_FRONTEND
+ 		 * ioctl.
+ 		 */
+-		c->state = tvp->cmd;
++		c->state = cmd;
+ 		dev_dbg(fe->dvb->device, "%s: Finalised property cache\n",
+ 				__func__);
+ 
+ 		r = dtv_set_frontend(fe);
+ 		break;
+ 	case DTV_FREQUENCY:
+-		c->frequency = tvp->u.data;
++		c->frequency = data;
+ 		break;
+ 	case DTV_MODULATION:
+-		c->modulation = tvp->u.data;
++		c->modulation = data;
+ 		break;
+ 	case DTV_BANDWIDTH_HZ:
+-		c->bandwidth_hz = tvp->u.data;
++		c->bandwidth_hz = data;
+ 		break;
+ 	case DTV_INVERSION:
+-		c->inversion = tvp->u.data;
++		c->inversion = data;
+ 		break;
+ 	case DTV_SYMBOL_RATE:
+-		c->symbol_rate = tvp->u.data;
++		c->symbol_rate = data;
+ 		break;
+ 	case DTV_INNER_FEC:
+-		c->fec_inner = tvp->u.data;
++		c->fec_inner = data;
+ 		break;
+ 	case DTV_PILOT:
+-		c->pilot = tvp->u.data;
++		c->pilot = data;
+ 		break;
+ 	case DTV_ROLLOFF:
+-		c->rolloff = tvp->u.data;
++		c->rolloff = data;
+ 		break;
+ 	case DTV_DELIVERY_SYSTEM:
+-		r = dvbv5_set_delivery_system(fe, tvp->u.data);
++		r = dvbv5_set_delivery_system(fe, data);
+ 		break;
+ 	case DTV_VOLTAGE:
+-		c->voltage = tvp->u.data;
++		c->voltage = data;
+ 		r = dvb_frontend_ioctl_legacy(file, FE_SET_VOLTAGE,
+ 			(void *)c->voltage);
+ 		break;
+ 	case DTV_TONE:
+-		c->sectone = tvp->u.data;
++		c->sectone = data;
+ 		r = dvb_frontend_ioctl_legacy(file, FE_SET_TONE,
+ 			(void *)c->sectone);
+ 		break;
+ 	case DTV_CODE_RATE_HP:
+-		c->code_rate_HP = tvp->u.data;
++		c->code_rate_HP = data;
+ 		break;
+ 	case DTV_CODE_RATE_LP:
+-		c->code_rate_LP = tvp->u.data;
++		c->code_rate_LP = data;
+ 		break;
+ 	case DTV_GUARD_INTERVAL:
+-		c->guard_interval = tvp->u.data;
++		c->guard_interval = data;
+ 		break;
+ 	case DTV_TRANSMISSION_MODE:
+-		c->transmission_mode = tvp->u.data;
++		c->transmission_mode = data;
+ 		break;
+ 	case DTV_HIERARCHY:
+-		c->hierarchy = tvp->u.data;
++		c->hierarchy = data;
+ 		break;
+ 	case DTV_INTERLEAVING:
+-		c->interleaving = tvp->u.data;
++		c->interleaving = data;
+ 		break;
+ 
+ 	/* ISDB-T Support here */
+ 	case DTV_ISDBT_PARTIAL_RECEPTION:
+-		c->isdbt_partial_reception = tvp->u.data;
++		c->isdbt_partial_reception = data;
+ 		break;
+ 	case DTV_ISDBT_SOUND_BROADCASTING:
+-		c->isdbt_sb_mode = tvp->u.data;
++		c->isdbt_sb_mode = data;
+ 		break;
+ 	case DTV_ISDBT_SB_SUBCHANNEL_ID:
+-		c->isdbt_sb_subchannel = tvp->u.data;
++		c->isdbt_sb_subchannel = data;
+ 		break;
+ 	case DTV_ISDBT_SB_SEGMENT_IDX:
+-		c->isdbt_sb_segment_idx = tvp->u.data;
++		c->isdbt_sb_segment_idx = data;
+ 		break;
+ 	case DTV_ISDBT_SB_SEGMENT_COUNT:
+-		c->isdbt_sb_segment_count = tvp->u.data;
++		c->isdbt_sb_segment_count = data;
+ 		break;
+ 	case DTV_ISDBT_LAYER_ENABLED:
+-		c->isdbt_layer_enabled = tvp->u.data;
++		c->isdbt_layer_enabled = data;
+ 		break;
+ 	case DTV_ISDBT_LAYERA_FEC:
+-		c->layer[0].fec = tvp->u.data;
++		c->layer[0].fec = data;
+ 		break;
+ 	case DTV_ISDBT_LAYERA_MODULATION:
+-		c->layer[0].modulation = tvp->u.data;
++		c->layer[0].modulation = data;
+ 		break;
+ 	case DTV_ISDBT_LAYERA_SEGMENT_COUNT:
+-		c->layer[0].segment_count = tvp->u.data;
++		c->layer[0].segment_count = data;
+ 		break;
+ 	case DTV_ISDBT_LAYERA_TIME_INTERLEAVING:
+-		c->layer[0].interleaving = tvp->u.data;
++		c->layer[0].interleaving = data;
+ 		break;
+ 	case DTV_ISDBT_LAYERB_FEC:
+-		c->layer[1].fec = tvp->u.data;
++		c->layer[1].fec = data;
+ 		break;
+ 	case DTV_ISDBT_LAYERB_MODULATION:
+-		c->layer[1].modulation = tvp->u.data;
++		c->layer[1].modulation = data;
+ 		break;
+ 	case DTV_ISDBT_LAYERB_SEGMENT_COUNT:
+-		c->layer[1].segment_count = tvp->u.data;
++		c->layer[1].segment_count = data;
+ 		break;
+ 	case DTV_ISDBT_LAYERB_TIME_INTERLEAVING:
+-		c->layer[1].interleaving = tvp->u.data;
++		c->layer[1].interleaving = data;
+ 		break;
+ 	case DTV_ISDBT_LAYERC_FEC:
+-		c->layer[2].fec = tvp->u.data;
++		c->layer[2].fec = data;
+ 		break;
+ 	case DTV_ISDBT_LAYERC_MODULATION:
+-		c->layer[2].modulation = tvp->u.data;
++		c->layer[2].modulation = data;
+ 		break;
+ 	case DTV_ISDBT_LAYERC_SEGMENT_COUNT:
+-		c->layer[2].segment_count = tvp->u.data;
++		c->layer[2].segment_count = data;
+ 		break;
+ 	case DTV_ISDBT_LAYERC_TIME_INTERLEAVING:
+-		c->layer[2].interleaving = tvp->u.data;
++		c->layer[2].interleaving = data;
+ 		break;
+ 
+ 	/* Multistream support */
+ 	case DTV_STREAM_ID:
+ 	case DTV_DVBT2_PLP_ID_LEGACY:
+-		c->stream_id = tvp->u.data;
++		c->stream_id = data;
+ 		break;
+ 
+ 	/* ATSC-MH */
+ 	case DTV_ATSCMH_PARADE_ID:
+-		fe->dtv_property_cache.atscmh_parade_id = tvp->u.data;
++		fe->dtv_property_cache.atscmh_parade_id = data;
+ 		break;
+ 	case DTV_ATSCMH_RS_FRAME_ENSEMBLE:
+-		fe->dtv_property_cache.atscmh_rs_frame_ensemble = tvp->u.data;
++		fe->dtv_property_cache.atscmh_rs_frame_ensemble = data;
+ 		break;
+ 
+ 	case DTV_LNA:
+-		c->lna = tvp->u.data;
++		c->lna = data;
+ 		if (fe->ops.set_lna)
+ 			r = fe->ops.set_lna(fe);
+ 		if (r < 0)
+@@ -1939,7 +1948,8 @@ static int dvb_frontend_ioctl(struct file *file,
+ 		return -EPERM;
+ 	}
+ 
+-	if ((cmd == FE_SET_PROPERTY) || (cmd == FE_GET_PROPERTY))
++	if ((cmd == FE_SET_PROPERTY) || (cmd == FE_GET_PROPERTY)
++	    || (cmd == FE_SET_PROPERTY_SHORT))
+ 		err = dvb_frontend_ioctl_properties(file, cmd, parg);
+ 	else {
+ 		c->state = DTV_UNDEFINED;
+@@ -1966,8 +1976,10 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ 	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+ 
+ 	if (cmd == FE_SET_PROPERTY) {
+-		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n", __func__, tvps->num);
+-		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n", __func__, tvps->props);
++		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n",
++				__func__, tvps->num);
++		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n",
++				__func__, tvps->props);
+ 
+ 		/* Put an arbitrary limit on the number of messages that can
+ 		 * be sent at once */
+@@ -1979,20 +1991,25 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ 			return PTR_ERR(tvp);
+ 
+ 		for (i = 0; i < tvps->num; i++) {
+-			err = dtv_property_process_set(fe, tvp + i, file);
++			err = dtv_property_process_set(fe, file,
++					(tvp + i)->cmd,
++					(tvp + i)->u.data);
+ 			if (err < 0)
+ 				goto out;
+ 			(tvp + i)->result = err;
+ 		}
+ 
+ 		if (c->state == DTV_TUNE)
+-			dev_dbg(fe->dvb->device, "%s: Property cache is full, tuning\n", __func__);
++			dev_dbg(fe->dvb->device, "%s: Property cache is full, tuning\n",
++					__func__);
+ 
+ 	} else if (cmd == FE_GET_PROPERTY) {
+ 		struct dtv_frontend_properties getp = fe->dtv_property_cache;
+ 
+-		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n", __func__, tvps->num);
+-		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n", __func__, tvps->props);
++		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n",
++				__func__, tvps->num);
++		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n",
++				__func__, tvps->props);
+ 
+ 		/* Put an arbitrary limit on the number of messages that can
+ 		 * be sent at once */
+@@ -2026,7 +2043,35 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ 			err = -EFAULT;
+ 			goto out;
+ 		}
+-
++	/* New ioctl for optimizing property set*/
++	} else if (cmd == FE_SET_PROPERTY_SHORT) {
++		struct dtv_property_short *tvp_short = NULL;
++		struct dtv_properties_short *tvps_short = parg;
++
++		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n",
++				__func__, tvps_short->num);
++		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n",
++				__func__, tvps_short->props);
++		if ((!tvps_short->num) ||
++		    (tvps_short->num > DTV_IOCTL_MAX_MSGS))
++			return -EINVAL;
++		tvp_short = memdup_user(tvps_short->props,
++		tvps_short->num * sizeof(*tvp_short));
++		if (IS_ERR(tvp_short))
++			return PTR_ERR(tvp_short);
++		for (i = 0; i < tvps_short->num; i++) {
++			err = dtv_property_process_set(fe, file,
++					(tvp_short + i)->cmd,
++					(tvp_short + i)->data);
++			if (err < 0) {
++				kfree(tvp_short);
++				return err;
++			}
++		}
++		if (c->state == DTV_TUNE)
++			dev_dbg(fe->dvb->device, "%s: Property cache is full, tuning\n",
++					__func__);
++		kfree(tvp_short);
+ 	} else
+ 		err = -EOPNOTSUPP;
+ 
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index 00a20cd..9d96dab 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -476,6 +476,17 @@ struct dtv_property {
+ 	int result;
+ } __attribute__ ((packed));
+ 
++/**
++ * struct dtv_property_short - A shorter version of &struct dtv_property
++ *
++ * @cmd:	Digital TV command.
++ * @data:	An unsigned 32-bits number.
++ */
++struct dtv_property_short {
++	__u32 cmd;
++	__u32 data;
++};
++
+ /* num of properties cannot exceed DTV_IOCTL_MAX_MSGS per ioctl */
+ #define DTV_IOCTL_MAX_MSGS 64
+ 
+@@ -484,6 +495,18 @@ struct dtv_properties {
+ 	struct dtv_property *props;
+ };
+ 
++/**
++ * struct dtv_properties_short - A variant of &struct dtv_properties
++ * to support &struct dtv_property_short
++ *
++ * @num:	Number of properties
++ * @props:	Pointer to &struct dtv_property_short
++ */
++struct dtv_properties_short {
++	__u32 num;
++	struct dtv_property_short *props;
++};
++
+ #if defined(__DVB_CORE__) || !defined (__KERNEL__)
+ 
+ /*
+@@ -565,6 +588,7 @@ struct dvb_frontend_event {
+ 
+ #define FE_SET_PROPERTY		   _IOW('o', 82, struct dtv_properties)
+ #define FE_GET_PROPERTY		   _IOR('o', 83, struct dtv_properties)
++#define FE_SET_PROPERTY_SHORT	   _IOW('o', 84, struct dtv_properties_short)
+ 
+ /**
+  * When set, this flag will disable any zigzagging or other "normal" tuning
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
