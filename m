@@ -1,51 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47906 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933298AbdIHNXg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 09:23:36 -0400
-Date: Fri, 8 Sep 2017 16:23:34 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH 3/3] as3645a: Use integer numbers for parsing LEDs
-Message-ID: <20170908132333.rlhurlwrzq43ss2k@valkosipuli.retiisi.org.uk>
-References: <20170908124213.18904-1-sakari.ailus@linux.intel.com>
- <20170908124213.18904-4-sakari.ailus@linux.intel.com>
- <20170908131758.GQ18365@amd>
+Received: from mout.web.de ([212.227.17.11]:60756 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750757AbdIRTfJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Sep 2017 15:35:09 -0400
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] [media] sq905: Delete an error message for a failed memory
+ allocation in sq905_dostream()
+Message-ID: <a0e659c0-38b8-cbb1-7207-85440273fc66@users.sourceforge.net>
+Date: Mon, 18 Sep 2017 21:34:56 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170908131758.GQ18365@amd>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 18 Sep 2017 21:30:58 +0200
 
-Thanks for the review.
+Omit an extra message for a memory allocation failure in this function.
 
-On Fri, Sep 08, 2017 at 03:17:58PM +0200, Pavel Machek wrote:
-> On Fri 2017-09-08 15:42:13, Sakari Ailus wrote:
-> > Use integer numbers for LEDs, 0 is the flash and 1 is the indicator.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> Dunno. Old code is shorter, old device tree is shorter, ... IMO both
-> versions are fine, because the LEDs are really different. Do we have
-> documentation somewhere saying that reg= should be used for this? Are
-> you doing this for consistency?
+This issue was detected by using the Coccinelle software.
 
-Well, actually for ACPI support. :-) It requires less driver changes this
-way. See 17th and 18th patches in "[PATCH v9 00/23] Unified fwnode endpoint
-parser, async sub-device notifier support, N9 flash DTS".
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/gspca/sq905.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-A number of chips have LED binding that is aligned, see e.g.
-Documentation/devicetree/bindings/leds/leds-bcm6328.txt .
-
+diff --git a/drivers/media/usb/gspca/sq905.c b/drivers/media/usb/gspca/sq905.c
+index f1da34a10ce8..ca8cdd753a2b 100644
+--- a/drivers/media/usb/gspca/sq905.c
++++ b/drivers/media/usb/gspca/sq905.c
+@@ -218,10 +218,8 @@ static void sq905_dostream(struct work_struct *work)
+ 	u8 *buffer;
+ 
+ 	buffer = kmalloc(SQ905_MAX_TRANSFER, GFP_KERNEL | GFP_DMA);
+-	if (!buffer) {
+-		pr_err("Couldn't allocate USB buffer\n");
++	if (!buffer)
+ 		goto quit_stream;
+-	}
+ 
+ 	frame_sz = gspca_dev->cam.cam_mode[gspca_dev->curr_mode].sizeimage
+ 			+ FRAME_HEADER_LEN;
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.1
