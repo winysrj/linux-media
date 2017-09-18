@@ -1,37 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:32850 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751311AbdIMIEr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 04:04:47 -0400
-From: Allen Pais <allen.lkml@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Allen Pais <allen.lkml@gmail.com>
-Subject: [PATCH] drivers:staging/media:Use ARRAY_SIZE() for the size calculation of the array
-Date: Wed, 13 Sep 2017 13:34:39 +0530
-Message-Id: <1505289879-26163-1-git-send-email-allen.lkml@gmail.com>
+Received: from mout.web.de ([212.227.17.12]:49823 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752894AbdIROAV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Sep 2017 10:00:21 -0400
+Subject: [PATCH 6/6] [media] go7007: Delete an unnecessary variable
+ initialisation in go7007_snd_init()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <b36ece3f-0f31-9bb6-14ae-c4abf7cd23ee@users.sourceforge.net>
+Message-ID: <cce9027f-ed91-44f8-a59e-a03291d9cf2e@users.sourceforge.net>
+Date: Mon, 18 Sep 2017 16:00:13 +0200
+MIME-Version: 1.0
+In-Reply-To: <b36ece3f-0f31-9bb6-14ae-c4abf7cd23ee@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Allen Pais <allen.lkml@gmail.com>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 18 Sep 2017 14:35:43 +0200
+
+The variable "ret" will eventually be set to an appropriate value
+a bit later. Thus omit the explicit initialisation at the beginning.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c | 2 +-
+ drivers/media/usb/go7007/snd-go7007.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-index e882b55..d822918 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-@@ -451,7 +451,7 @@ static enum ia_css_frame_format yuv422_copy_formats[] = {
- 	IA_CSS_FRAME_FORMAT_YUYV
- };
+diff --git a/drivers/media/usb/go7007/snd-go7007.c b/drivers/media/usb/go7007/snd-go7007.c
+index 7ae4d03ed3f7..27c09fd44657 100644
+--- a/drivers/media/usb/go7007/snd-go7007.c
++++ b/drivers/media/usb/go7007/snd-go7007.c
+@@ -227,7 +227,7 @@ int go7007_snd_init(struct go7007 *go)
+ {
+ 	static int dev;
+ 	struct go7007_snd *gosnd;
+-	int ret = 0;
++	int ret;
  
--#define array_length(array) (sizeof(array)/sizeof(array[0]))
-+#define array_length(array) (ARRAY_SIZE(array))
- 
- /* Verify whether the selected output format is can be produced
-  * by the copy binary given the stream format.
+ 	if (dev >= SNDRV_CARDS)
+ 		return -ENODEV;
 -- 
-2.7.4
+2.14.1
