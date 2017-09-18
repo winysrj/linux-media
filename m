@@ -1,69 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:59887 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752302AbdIVLrQ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45494 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752253AbdIRKXv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 07:47:16 -0400
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Cyprian Wronka <cwronka@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: [PATCH 0/2] media: v4l: Add support for the Cadence MIPI-CSI2 TX controller
-Date: Fri, 22 Sep 2017 13:47:01 +0200
-Message-Id: <20170922114703.30511-1-maxime.ripard@free-electrons.com>
+        Mon, 18 Sep 2017 06:23:51 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-leds@vger.kernel.org
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        pavel@ucw.cz
+Subject: [RESEND PATCH v2 1/6] as3645a: Use ams,input-max-microamp as documented in DT bindings
+Date: Mon, 18 Sep 2017 13:23:44 +0300
+Message-Id: <20170918102349.8935-2-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170918102349.8935-1-sakari.ailus@linux.intel.com>
+References: <20170918102349.8935-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+DT bindings document the property "ams,input-max-microamp" that limits the
+chip's maximum input current. The driver and the DTS however used
+"peak-current-limit" property. Fix this by using the property documented
+in DT binding documentation.
 
-Here is an attempt at supporting the MIPI-CSI2 TX block from Cadence.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+---
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 2 +-
+ drivers/leds/leds-as3645a.c          | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-This IP block is able to receive 4 video streams and stream them over
-a MIPI-CSI2 link using up to 4 lanes. Those streams are basically the
-interfaces to controllers generating some video signals, like a camera
-or a pattern generator.
-
-It is able to map input streams to CSI2 virtual channels and datatypes
-dynamically. The streaming devices choose their virtual channels
-through an additional signal that is transparent to the CSI2-TX. The
-datatypes however are yet another additional input signal, and can be
-mapped to any CSI2 datatypes.
-
-Since v4l2 doesn't really allow for that setup at the moment, this
-preliminary version is a rather dumb one in order to start the
-discussion on how to address this properly.
-
-This serie depends on the version 14 of the serie "Unified fwnode
-endpoint parser, async sub-device notifier support, N9 flash DTS" by
-Sakari Ailus
-
-Let me know what you think!
-Maxime
-
-Maxime Ripard (2):
-  dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
-  v4l: cadence: Add Cadence MIPI-CSI2 TX driver
-
- .../devicetree/bindings/media/cdns,csi2tx.txt      |  97 +++++
- drivers/media/platform/cadence/Kconfig             |   6 +
- drivers/media/platform/cadence/Makefile            |   1 +
- drivers/media/platform/cadence/cdns-csi2tx.c       | 479 +++++++++++++++++++++
- 4 files changed, 583 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
- create mode 100644 drivers/media/platform/cadence/cdns-csi2tx.c
-
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index cb47ae79a5f9..b86fc83a5a65 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -273,7 +273,7 @@
+ 			flash-timeout-us = <150000>;
+ 			flash-max-microamp = <320000>;
+ 			led-max-microamp = <60000>;
+-			peak-current-limit = <1750000>;
++			ams,input-max-microamp = <1750000>;
+ 		};
+ 		indicator {
+ 			led-max-microamp = <10000>;
+diff --git a/drivers/leds/leds-as3645a.c b/drivers/leds/leds-as3645a.c
+index bbbbe0898233..e3f89c6130d2 100644
+--- a/drivers/leds/leds-as3645a.c
++++ b/drivers/leds/leds-as3645a.c
+@@ -534,7 +534,7 @@ static int as3645a_parse_node(struct as3645a *flash,
+ 	of_property_read_u32(flash->flash_node, "voltage-reference",
+ 			     &cfg->voltage_reference);
+ 
+-	of_property_read_u32(flash->flash_node, "peak-current-limit",
++	of_property_read_u32(flash->flash_node, "ams,input-max-microamp",
+ 			     &cfg->peak);
+ 	cfg->peak = AS_PEAK_mA_TO_REG(cfg->peak);
+ 
 -- 
-2.13.5
+2.11.0
