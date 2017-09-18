@@ -1,320 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55758
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S969500AbdIZR73 (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53792 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750714AbdIRUyJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 13:59:29 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        linux-kernel@vger.kernel.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: [PATCH 09/10] scripts: kernel-doc: parse next structs/unions
-Date: Tue, 26 Sep 2017 14:59:19 -0300
-Message-Id: <e0ee97325e570a7f783122c88e152d89c755c254.1506448061.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
-References: <cover.1506448061.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
-References: <cover.1506448061.git.mchehab@s-opensource.com>
+        Mon, 18 Sep 2017 16:54:09 -0400
+Date: Mon, 18 Sep 2017 22:54:07 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, jacek.anaszewski@gmail.com
+Subject: Re: [RESEND PATCH v2 4/6] dt: bindings: as3645a: Improve label
+ documentation, DT example
+Message-ID: <20170918205407.GA1849@amd>
+References: <20170918102349.8935-1-sakari.ailus@linux.intel.com>
+ <20170918102349.8935-5-sakari.ailus@linux.intel.com>
+ <20170918105655.GA14591@amd>
+ <20170918144923.dnhrxkirle3fvdfo@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
+Content-Disposition: inline
+In-Reply-To: <20170918144923.dnhrxkirle3fvdfo@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several places within the Kernel tree with nested
-structs/unions, like this one:
 
-  struct ingenic_cgu_clk_info {
-    const char *name;
-    enum {
-      CGU_CLK_NONE = 0,
-      CGU_CLK_EXT = BIT(0),
-      CGU_CLK_PLL = BIT(1),
-      CGU_CLK_GATE = BIT(2),
-      CGU_CLK_MUX = BIT(3),
-      CGU_CLK_MUX_GLITCHFREE = BIT(4),
-      CGU_CLK_DIV = BIT(5),
-      CGU_CLK_FIXDIV = BIT(6),
-      CGU_CLK_CUSTOM = BIT(7),
-    } type;
-    int parents[4];
-    union {
-      struct ingenic_cgu_pll_info pll;
-      struct {
-        struct ingenic_cgu_gate_info gate;
-        struct ingenic_cgu_mux_info mux;
-        struct ingenic_cgu_div_info div;
-        struct ingenic_cgu_fixdiv_info fixdiv;
-      };
-      struct ingenic_cgu_custom_info custom;
-    };
-  };
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Currently, such struct is documented as:
+On Mon 2017-09-18 17:49:23, Sakari Ailus wrote:
+> Hi Pavel,
+>=20
+> On Mon, Sep 18, 2017 at 12:56:55PM +0200, Pavel Machek wrote:
+> > Hi!
+> >=20
+> > > Specify the exact label used if the label property is omitted in DT, =
+as
+> > > well as use label in the example that conforms to LED device naming.
+> > >=20
+> > > @@ -69,11 +73,11 @@ Example
+> > >  			flash-max-microamp =3D <320000>;
+> > >  			led-max-microamp =3D <60000>;
+> > >  			ams,input-max-microamp =3D <1750000>;
+> > > -			label =3D "as3645a:flash";
+> > > +			label =3D "as3645a:white:flash";
+> > >  		};
+> > >  		indicator@1 {
+> > >  			reg =3D <0x1>;
+> > >  			led-max-microamp =3D <10000>;
+> > > -			label =3D "as3645a:indicator";
+> > > +			label =3D "as3645a:red:indicator";
+> > >  		};
+> > >  	};
+> >=20
+> > Ok, but userspace still has no chance to determine if this is flash
+> > from main camera or flash for front camera; todays smartphones have
+> > flashes on both cameras.
+> >=20
+> > So.. Can I suggset as3645a:white:main_camera_flash or main_flash or
+> > ....?
+>=20
+> If there's just a single one in the device, could you use that?
+>=20
+> Even if we name this so for N9 (and N900), the application still would on=
+ly
+> work with the two devices.
 
-	**Definition**
+Well, I'd plan to name it on other devices, too.
 
-	::
-	struct ingenic_cgu_clk_info {
-	    const char * name;
-	};
+> My suggestion would be to look for a flash LED, and perhaps the maximum
+> current as well. That should generally work better than assumptions on the
+> label.
 
-	**Members**
+If you just look for flash LED, you don't know if it is front one or
+back one. Its true that if you have just one flash it is usually on
+the back camera, but you can't know if maybe driver is not available
+for the main flash.
 
-	``name``
-	  name of the clock
+Lets get this right, please "main_camera_flash" is 12 bytes more than
+"flash", and it saves application logic.. more than 12 bytes, I'm sure.=20
 
-With is obvioulsy wrong. It also generates an error:
-	drivers/clk/ingenic/cgu.h:169: warning: No description found for parameter 'enum'
+> For association with a particular camera --- in the long run I'd propose =
+to
+> use Media controller / property API for that in the long run. We don't ha=
+ve
+> that yet though.
 
-However, there's nothing wrong with this kernel-doc markup: everything
-is documented there.
+We don't have that yet. Plus simple applications may not want to talk
+v4l2 ioctls....
 
-It makes sense to document all fields there. So, add a
-way for the core to parse those structs.
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-With this patch, all documented fields will properly generate
-documentation.
+--oyUTqETQ0mS9luUI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/doc-guide/kernel-doc.rst |  46 +++++++++++++
- scripts/kernel-doc                     | 120 ++++++++++++++++++---------------
- 2 files changed, 112 insertions(+), 54 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
-index 50473f0db345..3916a28b82b7 100644
---- a/Documentation/doc-guide/kernel-doc.rst
-+++ b/Documentation/doc-guide/kernel-doc.rst
-@@ -281,6 +281,52 @@ comment block.
- The kernel-doc data structure comments describe each member of the structure,
- in order, with the member descriptions.
- 
-+Nested structs/unions
-+~~~~~~~~~~~~~~~~~~~~~
-+
-+It is possible to document nested structs unions, like::
-+
-+      /**
-+       * struct nested_foobar - a struct with nested unions and structs
-+       * @arg1: - first argument of anonymous union/anonymous struct
-+       * @arg2: - second argument of anonymous union/anonymous struct
-+       * @arg3: - third argument of anonymous union/anonymous struct
-+       * @arg4: - fourth argument of anonymous union/anonymous struct
-+       * @bar.st1.arg1 - first argument of struct st1 on union bar
-+       * @bar.st1.arg2 - second argument of struct st1 on union bar
-+       * @bar.st2.arg1 - first argument of struct st2 on union bar
-+       * @bar.st2.arg2 - second argument of struct st2 on union bar
-+      struct nested_foobar {
-+        /* Anonymous union/struct*/
-+        union {
-+          struct {
-+            int arg1;
-+            int arg2;
-+	  }
-+          struct {
-+            void *arg3;
-+            int arg4;
-+	  }
-+	}
-+	union {
-+          struct {
-+            int arg1;
-+            int arg2;
-+	  } st1;
-+          struct {
-+            void *arg1;
-+            int arg2;
-+	  } st2;
-+	} bar;
-+      };
-+
-+.. note::
-+
-+   #) When documenting nested structs or unions, if the struct/union ``foo``
-+      is named, the argument ``bar`` inside it should be documented as
-+      ``@foo.bar:``
-+   #) When the nested struct/union is anonymous, the argument ``bar`` on it
-+      should be documented as ``@bar:``
- 
- Typedef documentation
- ---------------------
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index b6f3f6962897..880a196c7dc7 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -210,7 +210,7 @@ my $anon_struct_union = 0;
- my $type_constant = '\b``([^\`]+)``\b';
- my $type_constant2 = '\%([-_\w]+)';
- my $type_func = '(\w+)\(\)';
--my $type_param = '\@(\w+(\.\.\.)?)';
-+my $type_param = '\@(\w[\.\w]*(\.\.\.)?)';
- my $type_fp_param = '\@(\w+)\(\)';  # Special RST handling for func ptr params
- my $type_env = '(\$\w+)';
- my $type_enum = '\&(enum\s*([_\w]+))';
-@@ -663,32 +663,12 @@ sub output_struct_man(%) {
-     print ".SH NAME\n";
-     print $args{'type'} . " " . $args{'struct'} . " \\- " . $args{'purpose'} . "\n";
- 
-+    my $declaration = $args{'definition'};
-+    $declaration =~ s/\t/  /g;
-+    $declaration =~ s/\n/"\n.br\n.BI \"/g;
-     print ".SH SYNOPSIS\n";
-     print $args{'type'} . " " . $args{'struct'} . " {\n.br\n";
--
--    foreach my $parameter (@{$args{'parameterlist'}}) {
--	if ($parameter =~ /^#/) {
--	    print ".BI \"$parameter\"\n.br\n";
--	    next;
--	}
--	my $parameter_name = $parameter;
--	$parameter_name =~ s/\[.*//;
--
--	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
--	$type = $args{'parametertypes'}{$parameter};
--	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
--	    # pointer-to-function
--	    print ".BI \"    " . $1 . "\" " . $parameter . " \") (" . $2 . ")" . "\"\n;\n";
--	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
--	    # bitfield
--	    print ".BI \"    " . $1 . "\ \" " . $parameter . $2 . " \"" . "\"\n;\n";
--	} else {
--	    $type =~ s/([^\*])$/$1 /;
--	    print ".BI \"    " . $type . "\" " . $parameter . " \"" . "\"\n;\n";
--	}
--	print "\n.br\n";
--    }
--    print "};\n.br\n";
-+    print ".BI \"$declaration\n};\n.br\n\n";
- 
-     print ".SH Members\n";
-     foreach $parameter (@{$args{'parameterlist'}}) {
-@@ -926,29 +906,9 @@ sub output_struct_rst(%) {
- 
-     print "**Definition**\n\n";
-     print "::\n\n";
--    print "  " . $args{'type'} . " " . $args{'struct'} . " {\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	if ($parameter =~ /^#/) {
--	    print "  " . "$parameter\n";
--	    next;
--	}
--
--	my $parameter_name = $parameter;
--	$parameter_name =~ s/\[.*//;
--
--	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
--	$type = $args{'parametertypes'}{$parameter};
--	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
--	    # pointer-to-function
--	    print "    $1 $parameter) ($2);\n";
--	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
--	    # bitfield
--	    print "    $1 $parameter$2;\n";
--	} else {
--	    print "    " . $type . " " . $parameter . ";\n";
--	}
--    }
--    print "  };\n\n";
-+    my $declaration = $args{'definition'};
-+    $declaration =~ s/\t/  /g;
-+    print "  " . $args{'type'} . " " . $args{'struct'} . " {\n$declaration  };\n\n";
- 
-     print "**Members**\n\n";
-     $lineprefix = "  ";
-@@ -1022,20 +982,15 @@ sub dump_struct($$) {
-     my $nested;
- 
-     if ($x =~ /(struct|union)\s+(\w+)\s*{(.*)}/) {
--	#my $decl_type = $1;
-+	my $decl_type = $1;
- 	$declaration_name = $2;
- 	my $members = $3;
- 
--	# ignore embedded structs or unions
--	$members =~ s/({.*})//g;
--	$nested = $1;
--
- 	# ignore members marked private:
- 	$members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gosi;
- 	$members =~ s/\/\*\s*private:.*//gosi;
- 	# strip comments:
- 	$members =~ s/\/\*.*?\*\///gos;
--	$nested =~ s/\/\*.*?\*\///gos;
- 	# strip kmemcheck_bitfield_{begin,end}.*;
- 	$members =~ s/kmemcheck_bitfield_.*?;//gos;
- 	# strip attributes
-@@ -1047,13 +1002,70 @@ sub dump_struct($$) {
- 	# replace DECLARE_HASHTABLE
- 	$members =~ s/DECLARE_HASHTABLE\s*\(([^,)]+), ([^,)]+)\)/unsigned long $1\[1 << (($2) - 1)\]/gos;
- 
-+	my $declaration = $members;
-+
-+	# Split nested struct/union elements as newer ones
-+	my $cont = 1;
-+	while ($cont) {
-+		$cont = 0;
-+		while ($members =~ m/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/) {
-+			my $newmember = "$1 $4;";
-+			my $id = $4;
-+			my $content = $3;
-+			$id =~ s/[:\[].*//;
-+			foreach my $arg (split /;/, $content) {
-+				next if ($arg =~ m/^\s*$/);
-+				my $type = $arg;
-+				my $name = $arg;
-+				$type =~ s/\s\S+$//;
-+				$name =~ s/.*\s//;
-+				next if (($name =~ m/^\s*$/));
-+				if ($id =~ m/^\s*$/) {
-+					# anonymous struct/union
-+					$newmember .= "$type $name;";
-+				} else {
-+					$newmember .= "$type $id.$name;";
-+				}
-+			}
-+			$members =~ s/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/$newmember/;
-+			$cont = 1;
-+		};
-+	};
-+
-+	# Ignore other nested elements, like enums
-+	$members =~ s/({[^\{\}]*})//g;
-+	$nested = $decl_type;
-+	$nested =~ s/\/\*.*?\*\///gos;
-+
- 	create_parameterlist($members, ';', $file);
- 	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual, $nested);
- 
-+	# Adjust declaration for better display
-+	$declaration =~ s/([{;])/$1\n/g;
-+	$declaration =~ s/}\s+;/};/g;
-+	# Better handle inlined enums
-+	do {} while ($declaration =~ s/(enum\s+{[^}]+),([^\n])/$1,\n$2/);
-+
-+	my @def_args = split /\n/, $declaration;
-+	my $level = 1;
-+	$declaration = "";
-+	foreach my $clause (@def_args) {
-+		$clause =~ s/^\s+//;
-+		$clause =~ s/\s+$//;
-+		$clause =~ s/\s+/ /;
-+		next if (!$clause);
-+		$level-- if ($clause =~ m/(})/ && $level > 1);
-+		if (!($clause =~ m/^\s*#/)) {
-+			$declaration .= "\t" x $level;
-+		}
-+		$declaration .= "\t" . $clause . "\n";
-+		$level++ if ($clause =~ m/({)/ && !($clause =~m/}/));
-+	}
- 	output_declaration($declaration_name,
- 			   'struct',
- 			   {'struct' => $declaration_name,
- 			    'module' => $modulename,
-+			    'definition' => $declaration,
- 			    'parameterlist' => \@parameterlist,
- 			    'parameterdescs' => \%parameterdescs,
- 			    'parametertypes' => \%parametertypes,
--- 
-2.13.5
+iEYEARECAAYFAlnAMm8ACgkQMOfwapXb+vKPigCaAx2L6G1ehx1bKrHjBe6YxTfb
+KrUAoIx20jUf7Eo83qf+6CdWJ6Ea49gq
+=z1/K
+-----END PGP SIGNATURE-----
+
+--oyUTqETQ0mS9luUI--
