@@ -1,117 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:38777 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751197AbdIOXjR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 19:39:17 -0400
-Received: by mail-pg0-f65.google.com with SMTP id m30so2020922pgn.5
-        for <linux-media@vger.kernel.org>; Fri, 15 Sep 2017 16:39:17 -0700 (PDT)
-Subject: Re: IMX6 ADV7180 no /dev/media
-To: Tim Harvey <tharvey@gateworks.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Stephan Bauroth <der_steffi@gmx.de>
-References: <CAJ+vNU3DPFEc6YnEfcYAv1=beJ96W5PSt=eBfoxCXqKnbNqfMg@mail.gmail.com>
- <67ab090e-955d-9399-e182-cca049a66f1a@gmail.com>
- <CAJ+vNU3srz1u4x2wku4JKAOWGH8Gc8Wh0eo5aTEhACqoNeE1ow@mail.gmail.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <421dbf8f-6574-7d3b-8842-ffe4c0c6da78@gmail.com>
-Date: Fri, 15 Sep 2017 16:39:14 -0700
-MIME-Version: 1.0
-In-Reply-To: <CAJ+vNU3srz1u4x2wku4JKAOWGH8Gc8Wh0eo5aTEhACqoNeE1ow@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from mga07.intel.com ([134.134.136.100]:36376 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751541AbdIRUpQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Sep 2017 16:45:16 -0400
+From: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: tfiga@chromium.org, jian.xu.zheng@intel.com,
+        tian.shu.qiu@intel.com, andy.yeh@intel.com,
+        rajmohan.mani@intel.com, hyungwoo.yang@intel.com,
+        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+Subject: [PATCH v3] media: ov13858: Calculate pixel-rate at runtime, use mode
+Date: Mon, 18 Sep 2017 13:43:40 -0700
+Message-Id: <a1eb729dec349823e60ac257630a3f850b24f241.1505766850.git.chiranjeevi.rapolu@intel.com>
+In-Reply-To: <1504655098-39951-1-git-send-email-rajmohan.mani@intel.com>
+References: <1504655098-39951-1-git-send-email-rajmohan.mani@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Calculate pixel-rate at run time instead of compile time.
 
+Instead of using hardcoded pixels-per-line, extract it from current sensor
+mode.
 
-On 09/15/2017 04:28 PM, Tim Harvey wrote:
-> On Fri, Sep 15, 2017 at 3:26 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
->> Hi Tim,
->>
->>
->> On 09/15/2017 02:26 PM, Tim Harvey wrote:
->>> Greetings,
->>>
->>> I'm testing Linux master built with imx_v6_v7_defconfig on a GW51xx which
->>> has an ADV7180 analog video decoder and am not seeing the imx6 /dev/media
->>> node get created:
->>>
->>> [    0.000000] OF: fdt: Machine model: Gateworks Ventana i.MX6 Dual/Quad
->>> GW51XX
->>> ...
->>> [    6.089039] imx-media: Registered subdev ipu1_vdic
->>> [    6.094505] imx-media: Registered subdev ipu2_vdic
->>> [    6.099851] imx-media: Registered subdev ipu1_ic_prp
->>> [    6.105074] imx-media: Registered subdev ipu1_ic_prpenc
->>> [    6.111346] ipu1_ic_prpenc: Registered ipu1_ic_prpenc capture as
->>> /dev/video0
->>> [    6.119007] imx-media: Registered subdev ipu1_ic_prpvf
->>> [    6.124733] ipu1_ic_prpvf: Registered ipu1_ic_prpvf capture as
->>> /dev/video1
->>> [    6.131867] imx-media: Registered subdev ipu2_ic_prp
->>> [    6.137125] imx-media: Registered subdev ipu2_ic_prpenc
->>> [    6.142921] ipu2_ic_prpenc: Registered ipu2_ic_prpenc capture as
->>> /dev/video2
->>> [    6.150226] imx-media: Registered subdev ipu2_ic_prpvf
->>> [    6.155934] ipu2_ic_prpvf: Registered ipu2_ic_prpvf capture as
->>> /dev/video3
->>> [    6.164011] imx-media: Registered subdev ipu1_csi0
->>> [    6.169768] ipu1_csi0: Registered ipu1_csi0 capture as /dev/video4
->>> [    6.176281] imx-media: Registered subdev ipu1_csi1
->>> [    6.181681] ipu1_csi1: Registered ipu1_csi1 capture as /dev/video5
->>> [    6.188189] imx-media: Registered subdev ipu2_csi0
->>> [    6.193680] ipu2_csi0: Registered ipu2_csi0 capture as /dev/video6
->>> [    6.200108] imx-media: Registered subdev ipu2_csi1
->>> [    6.205577] ipu2_csi1: Registered ipu2_csi1 capture as /dev/video7
->>> ...
->>> [   96.981117] adv7180 2-0020: chip found @ 0x20 (21a8000.i2c)
->>> [   97.019674] imx-media: Registered subdev adv7180 2-0020
->>> [   97.019712] imx-media capture-subsystem: Entity type for entity adv7180
->>> 2-0020 was not initialized!
->>>
->>> I suspect the failure of the adv7180 is causing the issue. Steve mentioned
->>> some time ago that this was an error that needed to be fixed upstream but
->>> I'm not clear if that is still the case.
->>>
->> That does need fixing but is not the cause.
->>
->>> I haven't looked at IMX media drivers since they were accepted to mainline
->>> a few months back. Perhaps I'm simply forgetting to enable something in the
->>> kernel that imx_v6_v7_defconfig doesn't turn on?
->>
->> Yes, it looks like you are missing the video-mux. Enable CONFIG_VIDEO_MUX
->> and CONFIG_MUX_MMIO.
->>
-> Steve,
->
-> Indeed that was it! What clued you into that being the missing component?
+Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+---
+Changes in v3:
+	- Use LINK_FREQ_TO_PIXEL_RATE macro.
+	- Fix incorrect indentation.
+ drivers/media/i2c/ov13858.c | 49 +++++++++++++++++++++++++++------------------
+ 1 file changed, 29 insertions(+), 20 deletions(-)
 
-It was easy :) There needs to be the following message from imx-media:
-
-imx-media: Registered subdev ipu1_csi0_mux
-imx-media: Registered subdev ipu2_csi1_mux
-
-for quad, and
-
-imx-media: Registered subdev ipu1_csi0_mux
-imx-media: Registered subdev ipu1_csi1_mux
-
-for D/L.
-
-All imx6 platforms require the video-mux for video capture.
-
-Steve
-
->
-> Sounds like we need to enable that for imx_v6_v7_defconfig.
-
-Agreed, but I notice now that CONFIG_MEDIA_CONTROLLER and
-CONFIG_VIDEO_V4L2_SUBDEV_API are not enabled there anymore.
-I guess there was some config conflict that necessitated disabling
-them, but without them there is no media platform device support at
-all anyway. Those must be enabled first before getting CONFIG_VIDEO_MUX.
-
-Steve
+diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+index af7af0d..4e331b4 100644
+--- a/drivers/media/i2c/ov13858.c
++++ b/drivers/media/i2c/ov13858.c
+@@ -104,7 +104,6 @@ struct ov13858_reg_list {
+ 
+ /* Link frequency config */
+ struct ov13858_link_freq_config {
+-	u32 pixel_rate;
+ 	u32 pixels_per_line;
+ 
+ 	/* PLL registers for this link frequency */
+@@ -948,6 +947,12 @@ struct ov13858_mode {
+ #define OV13858_LINK_FREQ_INDEX_0	0
+ #define OV13858_LINK_FREQ_INDEX_1	1
+ 
++/*
++ * pixel_rate = link_freq * data-rate * nr_of_lanes / bits_per_sample
++ * data rate => double data rate; number of lanes => 4; bits per pixel => 10
++ */
++#define LINK_FREQ_TO_PIXEL_RATE(f)	(((f) * 2 * 4) / 10)
++
+ /* Menu items for LINK_FREQ V4L2 control */
+ static const s64 link_freq_menu_items[OV13858_NUM_OF_LINK_FREQS] = {
+ 	OV13858_LINK_FREQ_540MHZ,
+@@ -958,8 +963,6 @@ struct ov13858_mode {
+ static const struct ov13858_link_freq_config
+ 			link_freq_configs[OV13858_NUM_OF_LINK_FREQS] = {
+ 	{
+-		/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
+-		.pixel_rate = (OV13858_LINK_FREQ_540MHZ * 2 * 4) / 10,
+ 		.pixels_per_line = OV13858_PPL_540MHZ,
+ 		.reg_list = {
+ 			.num_of_regs = ARRAY_SIZE(mipi_data_rate_1080mbps),
+@@ -967,8 +970,6 @@ struct ov13858_mode {
+ 		}
+ 	},
+ 	{
+-		/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
+-		.pixel_rate = (OV13858_LINK_FREQ_270MHZ * 2 * 4) / 10,
+ 		.pixels_per_line = OV13858_PPL_270MHZ,
+ 		.reg_list = {
+ 			.num_of_regs = ARRAY_SIZE(mipi_data_rate_540mbps),
+@@ -1385,6 +1386,8 @@ static int ov13858_get_pad_format(struct v4l2_subdev *sd,
+ 	s32 vblank_def;
+ 	s32 vblank_min;
+ 	s64 h_blank;
++	s64 pixel_rate;
++	s64 link_freq;
+ 
+ 	mutex_lock(&ov13858->mutex);
+ 
+@@ -1400,9 +1403,10 @@ static int ov13858_get_pad_format(struct v4l2_subdev *sd,
+ 	} else {
+ 		ov13858->cur_mode = mode;
+ 		__v4l2_ctrl_s_ctrl(ov13858->link_freq, mode->link_freq_index);
+-		__v4l2_ctrl_s_ctrl_int64(
+-			ov13858->pixel_rate,
+-			link_freq_configs[mode->link_freq_index].pixel_rate);
++		link_freq = link_freq_menu_items[mode->link_freq_index];
++		pixel_rate = LINK_FREQ_TO_PIXEL_RATE(link_freq);
++		__v4l2_ctrl_s_ctrl_int64(ov13858->pixel_rate, pixel_rate);
++
+ 		/* Update limits and set FPS to default */
+ 		vblank_def = ov13858->cur_mode->vts_def -
+ 			     ov13858->cur_mode->height;
+@@ -1617,6 +1621,10 @@ static int ov13858_init_controls(struct ov13858 *ov13858)
+ 	s64 exposure_max;
+ 	s64 vblank_def;
+ 	s64 vblank_min;
++	s64 hblank;
++	s64 pixel_rate_min;
++	s64 pixel_rate_max;
++	const struct ov13858_mode *mode;
+ 	int ret;
+ 
+ 	ctrl_hdlr = &ov13858->ctrl_handler;
+@@ -1634,29 +1642,30 @@ static int ov13858_init_controls(struct ov13858 *ov13858)
+ 				link_freq_menu_items);
+ 	ov13858->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 
++	pixel_rate_max = LINK_FREQ_TO_PIXEL_RATE(link_freq_menu_items[0]);
++	pixel_rate_min = LINK_FREQ_TO_PIXEL_RATE(link_freq_menu_items[1]);
+ 	/* By default, PIXEL_RATE is read only */
+ 	ov13858->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &ov13858_ctrl_ops,
+-					V4L2_CID_PIXEL_RATE, 0,
+-					link_freq_configs[0].pixel_rate, 1,
+-					link_freq_configs[0].pixel_rate);
++						V4L2_CID_PIXEL_RATE,
++						pixel_rate_min, pixel_rate_max,
++						1, pixel_rate_max);
+ 
+-	vblank_def = ov13858->cur_mode->vts_def - ov13858->cur_mode->height;
+-	vblank_min = ov13858->cur_mode->vts_min - ov13858->cur_mode->height;
++	mode = ov13858->cur_mode;
++	vblank_def = mode->vts_def - mode->height;
++	vblank_min = mode->vts_min - mode->height;
+ 	ov13858->vblank = v4l2_ctrl_new_std(
+ 				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_VBLANK,
+-				vblank_min,
+-				OV13858_VTS_MAX - ov13858->cur_mode->height, 1,
++				vblank_min, OV13858_VTS_MAX - mode->height, 1,
+ 				vblank_def);
+ 
++	hblank = link_freq_configs[mode->link_freq_index].pixels_per_line -
++		 mode->width;
+ 	ov13858->hblank = v4l2_ctrl_new_std(
+ 				ctrl_hdlr, &ov13858_ctrl_ops, V4L2_CID_HBLANK,
+-				OV13858_PPL_540MHZ - ov13858->cur_mode->width,
+-				OV13858_PPL_540MHZ - ov13858->cur_mode->width,
+-				1,
+-				OV13858_PPL_540MHZ - ov13858->cur_mode->width);
++				hblank, hblank, 1, hblank);
+ 	ov13858->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 
+-	exposure_max = ov13858->cur_mode->vts_def - 8;
++	exposure_max = mode->vts_def - 8;
+ 	ov13858->exposure = v4l2_ctrl_new_std(
+ 				ctrl_hdlr, &ov13858_ctrl_ops,
+ 				V4L2_CID_EXPOSURE, OV13858_EXPOSURE_MIN,
+-- 
+1.9.1
