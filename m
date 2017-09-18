@@ -1,54 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50308
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751729AbdITTMA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 15:12:00 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 23/25] media: dtv-demux.rst: parse other demux headers with kernel-doc
-Date: Wed, 20 Sep 2017 16:11:48 -0300
-Message-Id: <94f6ca6253c8ee4387e965ae55959b710a770b9e.1505933919.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
-References: <cover.1505933919.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
-References: <cover.1505933919.git.mchehab@s-opensource.com>
+Received: from mout.web.de ([217.72.192.78]:61715 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752555AbdIRQKp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Sep 2017 12:10:45 -0400
+To: linux-media@vger.kernel.org, Bhumika Goyal <bhumirks@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] [media] gspca: Delete two error messages for a failed memory
+ allocation in gspca_dev_probe2()
+Message-ID: <6bef0198-a455-6ede-c6da-58667771a45a@users.sourceforge.net>
+Date: Mon, 18 Sep 2017 18:10:22 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we have kernel-doc markups at dvb_demux.h and dmxdev.h,
-parse them.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 18 Sep 2017 17:47:58 +0200
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Omit extra messages for a memory allocation failure in this function.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- Documentation/media/kapi/dtv-demux.rst | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ drivers/media/usb/gspca/gspca.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/media/kapi/dtv-demux.rst b/Documentation/media/kapi/dtv-demux.rst
-index 3ee69266e206..7aa865a2b43f 100644
---- a/Documentation/media/kapi/dtv-demux.rst
-+++ b/Documentation/media/kapi/dtv-demux.rst
-@@ -66,7 +66,17 @@ function call directly from a hardware interrupt.
- This mechanism is implemented by :c:func:`dmx_ts_cb()` and :c:func:`dmx_section_cb()`
- callbacks.
- 
--Digital TV Demux functions and types
--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+Digital TV Demux device registration functions and data structures
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+index 0f141762abf1..8be1c81b7cab 100644
+--- a/drivers/media/usb/gspca/gspca.c
++++ b/drivers/media/usb/gspca/gspca.c
+@@ -2037,10 +2037,8 @@ int gspca_dev_probe2(struct usb_interface *intf,
+-	if (!gspca_dev) {
+-		pr_err("couldn't kzalloc gspca struct\n");
++	if (!gspca_dev)
+ 		return -ENOMEM;
+-	}
 +
-+.. kernel-doc:: drivers/media/dvb-core/dmxdev.h
-+
-+High-level Digital TV demux interface
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+.. kernel-doc:: drivers/media/dvb-core/dvb_demux.h
-+
-+Driver-internal low-level hardware specific driver demux interface
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
- .. kernel-doc:: drivers/media/dvb-core/demux.h
+ 	gspca_dev->usb_buf = kmalloc(USB_BUF_SZ, GFP_KERNEL);
+ 	if (!gspca_dev->usb_buf) {
+-		pr_err("out of memory\n");
+ 		ret = -ENOMEM;
+ 		goto out;
+ 	}
 -- 
-2.13.5
+2.14.1
