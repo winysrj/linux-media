@@ -1,61 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:59864 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750832AbdIFIsP (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48334 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932102AbdIROt0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Sep 2017 04:48:15 -0400
-Subject: Re: [PATCH v8 16/21] dt: bindings: Add lens-focus binding for image
- sensors
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
- <20170905130553.1332-17-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2701f7b1-9e17-b5fd-f5ec-77ec8d557c66@xs4all.nl>
-Date: Wed, 6 Sep 2017 10:48:10 +0200
+        Mon, 18 Sep 2017 10:49:26 -0400
+Date: Mon, 18 Sep 2017 17:49:23 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, jacek.anaszewski@gmail.com
+Subject: Re: [RESEND PATCH v2 4/6] dt: bindings: as3645a: Improve label
+ documentation, DT example
+Message-ID: <20170918144923.dnhrxkirle3fvdfo@valkosipuli.retiisi.org.uk>
+References: <20170918102349.8935-1-sakari.ailus@linux.intel.com>
+ <20170918102349.8935-5-sakari.ailus@linux.intel.com>
+ <20170918105655.GA14591@amd>
 MIME-Version: 1.0
-In-Reply-To: <20170905130553.1332-17-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170918105655.GA14591@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/05/2017 03:05 PM, Sakari Ailus wrote:
-> The lens-focus property contains a phandle to the lens voice coil driver
-> that is associated to the sensor; typically both are contained in the same
-> camera module.
+Hi Pavel,
+
+On Mon, Sep 18, 2017 at 12:56:55PM +0200, Pavel Machek wrote:
+> Hi!
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> Acked-by: Rob Herring <robh@kernel.org>
-
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-> ---
->  Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
->  1 file changed, 2 insertions(+)
+> > Specify the exact label used if the label property is omitted in DT, as
+> > well as use label in the example that conforms to LED device naming.
+> > 
+> > @@ -69,11 +73,11 @@ Example
+> >  			flash-max-microamp = <320000>;
+> >  			led-max-microamp = <60000>;
+> >  			ams,input-max-microamp = <1750000>;
+> > -			label = "as3645a:flash";
+> > +			label = "as3645a:white:flash";
+> >  		};
+> >  		indicator@1 {
+> >  			reg = <0x1>;
+> >  			led-max-microamp = <10000>;
+> > -			label = "as3645a:indicator";
+> > +			label = "as3645a:red:indicator";
+> >  		};
+> >  	};
 > 
-> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> index efc67161e389..39b19d9d8426 100644
-> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> @@ -74,6 +74,8 @@ Optional properties
->  - flash: An array of phandles, each referring to a flash LED, a sub-node
->    of the LED driver device node.
->  
-> +- lens-focus: A phandle to the node of the focus lens controller.
-> +
->  
->  Optional endpoint properties
->  ----------------------------
+> Ok, but userspace still has no chance to determine if this is flash
+> from main camera or flash for front camera; todays smartphones have
+> flashes on both cameras.
 > 
+> So.. Can I suggset as3645a:white:main_camera_flash or main_flash or
+> ....?
+
+If there's just a single one in the device, could you use that?
+
+Even if we name this so for N9 (and N900), the application still would only
+work with the two devices.
+
+My suggestion would be to look for a flash LED, and perhaps the maximum
+current as well. That should generally work better than assumptions on the
+label.
+
+For association with a particular camera --- in the long run I'd propose to
+use Media controller / property API for that in the long run. We don't have
+that yet though.
+
+Cc Jacek, too.
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
