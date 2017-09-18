@@ -1,94 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f171.google.com ([209.85.128.171]:45864 "EHLO
-        mail-wr0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751164AbdIOX22 (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:46552 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751548AbdIRP0t (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 19:28:28 -0400
-Received: by mail-wr0-f171.google.com with SMTP id m18so2820532wrm.2
-        for <linux-media@vger.kernel.org>; Fri, 15 Sep 2017 16:28:28 -0700 (PDT)
+        Mon, 18 Sep 2017 11:26:49 -0400
+Subject: Re: [PATCHv4 3/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
+ support
+To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Sean Paul <seanpaul@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20170916141726.4921-1-hverkuil@xs4all.nl>
+ <20170916141726.4921-4-hverkuil@xs4all.nl> <20170918130531.GW4914@intel.com>
+ <24562161-6303-501b-fb28-25ee741e4bf5@xs4all.nl>
+ <20170918143646.GB4914@intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d3cd40cc-1f91-29f5-fafa-f2bf0982916a@xs4all.nl>
+Date: Mon, 18 Sep 2017 17:26:43 +0200
 MIME-Version: 1.0
-In-Reply-To: <67ab090e-955d-9399-e182-cca049a66f1a@gmail.com>
-References: <CAJ+vNU3DPFEc6YnEfcYAv1=beJ96W5PSt=eBfoxCXqKnbNqfMg@mail.gmail.com>
- <67ab090e-955d-9399-e182-cca049a66f1a@gmail.com>
-From: Tim Harvey <tharvey@gateworks.com>
-Date: Fri, 15 Sep 2017 16:28:26 -0700
-Message-ID: <CAJ+vNU3srz1u4x2wku4JKAOWGH8Gc8Wh0eo5aTEhACqoNeE1ow@mail.gmail.com>
-Subject: Re: IMX6 ADV7180 no /dev/media
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Stephan Bauroth <der_steffi@gmx.de>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20170918143646.GB4914@intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 15, 2017 at 3:26 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
-> Hi Tim,
->
->
-> On 09/15/2017 02:26 PM, Tim Harvey wrote:
+On 09/18/2017 04:36 PM, Ville Syrjälä wrote:
+> On Mon, Sep 18, 2017 at 04:07:41PM +0200, Hans Verkuil wrote:
+>> Hi Ville,
 >>
->> Greetings,
+>> On 09/18/2017 03:05 PM, Ville Syrjälä wrote:
+>>> On Sat, Sep 16, 2017 at 04:17:26PM +0200, Hans Verkuil wrote:
+>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>
+>>>> Implement support for this DisplayPort feature.
+>>>>
+>>>> The cec device is created whenever it detects an adapter that
+>>>> has this feature. It is only removed when a new adapter is connected
+>>>> that does not support this. If a new adapter is connected that has
+>>>> different properties than the previous one, then the old cec device is
+>>>> unregistered and a new one is registered to replace the old one.
+>>>>
+>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>> Tested-by: Carlos Santa <carlos.santa@intel.com>
+>>>> ---
+>>>>  drivers/gpu/drm/i915/intel_dp.c | 18 ++++++++++++++----
+>>>>  1 file changed, 14 insertions(+), 4 deletions(-)
+>>>>
+>>>> diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
+>>>> index 64fa774c855b..fdb853d2c458 100644
+>>>> --- a/drivers/gpu/drm/i915/intel_dp.c
+>>>> +++ b/drivers/gpu/drm/i915/intel_dp.c
+>>>> @@ -32,6 +32,7 @@
+>>>>  #include <linux/notifier.h>
+>>>>  #include <linux/reboot.h>
+>>>>  #include <asm/byteorder.h>
+>>>> +#include <media/cec.h>
+>>>>  #include <drm/drmP.h>
+>>>>  #include <drm/drm_atomic_helper.h>
+>>>>  #include <drm/drm_crtc.h>
+>>>> @@ -1449,6 +1450,7 @@ static void intel_aux_reg_init(struct intel_dp *intel_dp)
+>>>>  static void
+>>>>  intel_dp_aux_fini(struct intel_dp *intel_dp)
+>>>>  {
+>>>> +	cec_unregister_adapter(intel_dp->aux.cec_adap);
+>>>>  	kfree(intel_dp->aux.name);
+>>>>  }
+>>>>  
+>>>> @@ -4587,6 +4589,7 @@ intel_dp_set_edid(struct intel_dp *intel_dp)
+>>>>  	intel_connector->detect_edid = edid;
+>>>>  
+>>>>  	intel_dp->has_audio = drm_detect_monitor_audio(edid);
+>>>> +	cec_s_phys_addr_from_edid(intel_dp->aux.cec_adap, edid);
+>>>>  }
+>>>>  
+>>>>  static void
+>>>> @@ -4596,6 +4599,7 @@ intel_dp_unset_edid(struct intel_dp *intel_dp)
+>>>>  
+>>>>  	kfree(intel_connector->detect_edid);
+>>>>  	intel_connector->detect_edid = NULL;
+>>>> +	cec_phys_addr_invalidate(intel_dp->aux.cec_adap);
+>>>>  
+>>>>  	intel_dp->has_audio = false;
+>>>>  }
+>>>> @@ -4616,13 +4620,17 @@ intel_dp_long_pulse(struct intel_connector *intel_connector)
+>>>>  	intel_display_power_get(to_i915(dev), intel_dp->aux_power_domain);
+>>>>  
+>>>>  	/* Can't disconnect eDP, but you can close the lid... */
+>>>> -	if (is_edp(intel_dp))
+>>>> +	if (is_edp(intel_dp)) {
+>>>>  		status = edp_detect(intel_dp);
+>>>> -	else if (intel_digital_port_connected(to_i915(dev),
+>>>> -					      dp_to_dig_port(intel_dp)))
+>>>> +	} else if (intel_digital_port_connected(to_i915(dev),
+>>>> +						dp_to_dig_port(intel_dp))) {
+>>>>  		status = intel_dp_detect_dpcd(intel_dp);
+>>>> -	else
+>>>> +		if (status == connector_status_connected)
+>>>> +			drm_dp_cec_configure_adapter(&intel_dp->aux,
+>>>> +				     intel_dp->aux.name, dev->dev);
+>>>
+>>> This is cluttering up the code a bit. Maybe do this call somewhere
+>>> around the intel_dp_configure_mst() call instead since that seems to be
+>>> the place where we start to do changes to externally visible state.
+>>>
+>>> Actually, do we want to register cec adapters for MST devices?
+>>>
+>>> And shouldn't we call this regardless of the connector state so that
+>>> the cec adapter gets unregistered when the device is disconnected?
 >>
->> I'm testing Linux master built with imx_v6_v7_defconfig on a GW51xx which
->> has an ADV7180 analog video decoder and am not seeing the imx6 /dev/media
->> node get created:
+>> This hasn't (AFAIK) anything to do with MST. This is in a branch device (i.e.
+>> a DP to HDMI adapter).
+> 
+> You are now potentiall registering the CEC adapter to the immediately
+> upstream MST device (ie. the one that we talk to over the normal AUX stuff),
+> but kms will consider that paticular connector as disconnected, and
+> instead only sinks downstream of that device may have connected connectors
+> associated with them. Presumably the CEC towards that device goes
+> nowhere, and instead we'd have to talk to the remote branch devices
+> somewhere downstream.
+> 
+> Thus my question whether we want to potentially register the CEC adapter
+> to the immediately upstream MST device or not. I would imagine not, and
+> thus the call should perhaps be moved past the 'is_mst? -> disconnected'
+> checks.
+
+Ah, now I see what you mean. Sorry, I misunderstood you earlier. I can
+certainly move it down. But an MST device would never set the CEC capability
+in the DPCD, would it? That makes no sense. So it would never register a
+CEC device in practice. Although I do need to test what happens when you
+first connect a USB-C to HDMI adapter that supports CEC, then disconnect it,
+then connect an MST hub. The CEC device should be unregistered in that case,
+but I'm not sure if that actually happens. I'll have to test that tomorrow.
+
+> 
 >>
->> [    0.000000] OF: fdt: Machine model: Gateworks Ventana i.MX6 Dual/Quad
->> GW51XX
->> ...
->> [    6.089039] imx-media: Registered subdev ipu1_vdic
->> [    6.094505] imx-media: Registered subdev ipu2_vdic
->> [    6.099851] imx-media: Registered subdev ipu1_ic_prp
->> [    6.105074] imx-media: Registered subdev ipu1_ic_prpenc
->> [    6.111346] ipu1_ic_prpenc: Registered ipu1_ic_prpenc capture as
->> /dev/video0
->> [    6.119007] imx-media: Registered subdev ipu1_ic_prpvf
->> [    6.124733] ipu1_ic_prpvf: Registered ipu1_ic_prpvf capture as
->> /dev/video1
->> [    6.131867] imx-media: Registered subdev ipu2_ic_prp
->> [    6.137125] imx-media: Registered subdev ipu2_ic_prpenc
->> [    6.142921] ipu2_ic_prpenc: Registered ipu2_ic_prpenc capture as
->> /dev/video2
->> [    6.150226] imx-media: Registered subdev ipu2_ic_prpvf
->> [    6.155934] ipu2_ic_prpvf: Registered ipu2_ic_prpvf capture as
->> /dev/video3
->> [    6.164011] imx-media: Registered subdev ipu1_csi0
->> [    6.169768] ipu1_csi0: Registered ipu1_csi0 capture as /dev/video4
->> [    6.176281] imx-media: Registered subdev ipu1_csi1
->> [    6.181681] ipu1_csi1: Registered ipu1_csi1 capture as /dev/video5
->> [    6.188189] imx-media: Registered subdev ipu2_csi0
->> [    6.193680] ipu2_csi0: Registered ipu2_csi0 capture as /dev/video6
->> [    6.200108] imx-media: Registered subdev ipu2_csi1
->> [    6.205577] ipu2_csi1: Registered ipu2_csi1 capture as /dev/video7
->> ...
->> [   96.981117] adv7180 2-0020: chip found @ 0x20 (21a8000.i2c)
->> [   97.019674] imx-media: Registered subdev adv7180 2-0020
->> [   97.019712] imx-media capture-subsystem: Entity type for entity adv7180
->> 2-0020 was not initialized!
+>> The CEC adapter should ideally be associated with the branch device (since that
+>> is what implements the CEC tunneling): i.e. when you connect the adapter, then
+>> the CEC device is created, when you disconnect the adapter, then the CEC device
+>> should be unregistered. This is not the same as connecting/disconnecting the
+>> HDMI cable to/from the adapter: that just sets or invalidates the CEC physical
+>> address (which is read from the EDID).
 >>
->> I suspect the failure of the adv7180 is causing the issue. Steve mentioned
->> some time ago that this was an error that needed to be fixed upstream but
->> I'm not clear if that is still the case.
+>> However, I have not seen any code that tells me when the adapter is plugged in
+>> or is unplugged. So all I have to go on is when the HDMI cable is connected.
 >>
->
-> That does need fixing but is not the cause.
->
->> I haven't looked at IMX media drivers since they were accepted to mainline
->> a few months back. Perhaps I'm simply forgetting to enable something in the
->> kernel that imx_v6_v7_defconfig doesn't turn on?
->
->
-> Yes, it looks like you are missing the video-mux. Enable CONFIG_VIDEO_MUX
-> and CONFIG_MUX_MMIO.
->
+>> Note that the 'late_register' you mentioned in your 1/3 review isn't called when
+>> connecting the adapter. So that too cannot be used as a trigger to detect if
+>> this protocol is supported.
+> 
+> Like I said, you should do the registration directly if the connector
+> has already been registered, otherwise defer to .late_register().
 
-Steve,
+So intel_dp_long_pulse() can be called even if the connector hasn't been fully
+registered yet? Just making sure I really understand this.
 
-Indeed that was it! What clued you into that being the missing component?
+> 
+>>
+>> I know doing this here is not ideal, but I have not found another way and I am
+>> not even certain if it is possible at all, it might be intrinsic to how DP works.
+>> I do not consider myself a DP expert, though.
+>>
+>> So this is how it works now, e.g. on my Intel NUC and a USB-C to HDMI adapter:
+>>
+>> 1) I connect the adapter (no HDMI connected yet): nothing happens.
+>> 2) I connect the HDMI cable to the adapter: drm_dp_cec_configure_adapter is called and
+>>    it detects the CEC capability in the DPCD. It now creates the CEC device.
+>> 3) I disconnect the HDMI cable: the physical address of the CEC device is invalidated,
+>>    but the CEC device is not removed.
+>> 4) I disconnect the adapter: nothing happens.
+>> 5) I reconnect the adapter: nothing happens.
+>> 6) I reconnect the HDMI cable: drm_dp_cec_configure_adapter is called and it checks the
+>>    DPCD. If the capabilities are unchanged, then it will continue to use the registered
+>>    CEC device. If the capabilities have changed (i.e. the adapter is apparently a
+>>    different one), then the CEC device is unregistered and a new one is created, provided
+>>    that the new adapter supports CEC, of course.
+>>
+>> The bottom-line is that I cannot tell the difference between disconnecting the adapter
+>> and disconnecting the HDMI cable to the adapter.
+>>
+>> Another consideration is that CEC applications (i.e. HTPCs) do not expect the CEC device
+>> to disappear when you disconnect either the HDMI cable or the adapter. Even though the
+>> CEC device is strictly speaking associated with the adapter, from the point of view of
+>> the user there is no difference between disconnecting an HDMI cable from an adapter, or
+>> disconnecting the adapter itself. So there is a good argument to be made to only unregister
+>> the CEC device when a different (or no) adapter is detected the next time the HPD goes high.
+> 
+> Should we just register a CEC adapter always then? Seems rather
+> inconsistent to do it only when a CEC capable device gets plugged in but
+> then leave it lingering around when the device gets disconnected.
 
-Sounds like we need to enable that for imx_v6_v7_defconfig.
+I thought about that, but that would clutter /dev with lots of non-functioning CEC
+device nodes. CEC only becomes available if you have an HDMI adapter that actually
+supports this. Most do not. And of course if you connect to a display using a DP
+cable (i.e. without an HDMI adapter), then it is obviously not supported either.
 
-Thanks!
+Another problem is that if you switch between adapters with different CEC capabilities,
+then there is no way to signal that to userspace in the CEC API, and I don't think
+that would be a good idea at all anyway.
 
-Tim
+Having experimented with this for some time now I found that this is a good compromise
+that fits how this is used in practice.
+
+Regards,
+
+	Hans
+
+> 
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>
+>>>> +	} else {
+>>>>  		status = connector_status_disconnected;
+>>>> +	}
+>>>>  
+>>>>  	if (status == connector_status_disconnected) {
+>>>>  		memset(&intel_dp->compliance, 0, sizeof(intel_dp->compliance));
+>>>> @@ -5011,6 +5019,8 @@ intel_dp_hpd_pulse(struct intel_digital_port *intel_dig_port, bool long_hpd)
+>>>>  
+>>>>  	intel_display_power_get(dev_priv, intel_dp->aux_power_domain);
+>>>>  
+>>>> +	drm_dp_cec_irq(&intel_dp->aux);
+>>>> +
+>>>>  	if (intel_dp->is_mst) {
+>>>>  		if (intel_dp_check_mst_status(intel_dp) == -EINVAL) {
+>>>>  			/*
+>>>> -- 
+>>>> 2.14.1
+>>>
+> 
