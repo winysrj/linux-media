@@ -1,79 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33190
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752181AbdI0Vkx (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37957 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751476AbdISL4U (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:53 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 19/37] media: dvb_demux.h: add an enum for DMX_TYPE_* and document
-Date: Wed, 27 Sep 2017 18:40:20 -0300
-Message-Id: <30efefac5e2afc6509ae7fd53028b33186314905.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+        Tue, 19 Sep 2017 07:56:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
+        sre@kernel.org
+Subject: Re: [PATCH v13 09/25] omap3isp: Print the name of the entity where no source pads could be found
+Date: Tue, 19 Sep 2017 14:56:24 +0300
+Message-ID: <3405875.r0PdsRIrir@avalon>
+In-Reply-To: <20170915141724.23124-10-sakari.ailus@linux.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com> <20170915141724.23124-10-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kernel-doc allows documenting enums. Also, it makes clearer
-about the meaning of each field on structures.
+Hi Sakari,
 
-So, convert DMX_TYPE_* to an enum.
+Thank you for the patch.
 
-While here, get rid of the unused DMX_TYPE_PES.
+On Friday, 15 September 2017 17:17:08 EEST Sakari Ailus wrote:
+> If no source pads are found in an entity, print the name of the entity.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_demux.h | 17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
-index 6f572ca8d339..6bc4b27dbff3 100644
---- a/drivers/media/dvb-core/dvb_demux.h
-+++ b/drivers/media/dvb-core/dvb_demux.h
-@@ -26,9 +26,16 @@
- 
- #include "demux.h"
- 
--#define DMX_TYPE_TS  0
--#define DMX_TYPE_SEC 1
--#define DMX_TYPE_PES 2
-+/**
-+ * enum dvb_dmx_filter_type - type of demux feed.
-+ *
-+ * @DMX_TYPE_TS:	feed is in TS mode.
-+ * @DMX_TYPE_SEC:	feed is in Section mode.
-+ */
-+enum dvb_dmx_filter_type {
-+	DMX_TYPE_TS,
-+	DMX_TYPE_SEC,
-+};
- 
- #define DMX_STATE_FREE      0
- #define DMX_STATE_ALLOCATED 1
-@@ -52,7 +59,7 @@ struct dvb_demux_filter {
- 	struct dvb_demux_feed *feed;
- 	int index;
- 	int state;
--	int type;
-+	enum dvb_dmx_filter_type type;
- 
- 	u16 hw_handle;
- 	struct timer_list timer;
-@@ -73,7 +80,7 @@ struct dvb_demux_feed {
- 
- 	struct dvb_demux *demux;
- 	void *priv;
--	int type;
-+	enum dvb_dmx_filter_type type;
- 	int state;
- 	u16 pid;
- 
+> ---
+>  drivers/media/platform/omap3isp/isp.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 3b1a9cd0e591..9a694924e46e
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -1669,8 +1669,8 @@ static int isp_link_entity(
+>  			break;
+>  	}
+>  	if (i == entity->num_pads) {
+> -		dev_err(isp->dev, "%s: no source pad in external entity\n",
+> -			__func__);
+> +		dev_err(isp->dev, "%s: no source pad in external entity %s\n",
+> +			__func__, entity->name);
+>  		return -EINVAL;
+>  	}
+
+
 -- 
-2.13.5
+Regards,
+
+Laurent Pinchart
