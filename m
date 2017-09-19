@@ -1,74 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:33282 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751472AbdIKKob (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57124 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750918AbdISHOq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 06:44:31 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, nicolas@ndufresne.ca,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Yakir Yang <ykk@rock-chips.com>
-Subject: [PATCH v8 4/4] dt-bindings: Document the Rockchip RGA bindings
-Date: Mon, 11 Sep 2017 18:44:04 +0800
-Message-Id: <1505126644-18396-5-git-send-email-jacob-chen@iotwrt.com>
-In-Reply-To: <1505126644-18396-1-git-send-email-jacob-chen@iotwrt.com>
-References: <1505126644-18396-1-git-send-email-jacob-chen@iotwrt.com>
+        Tue, 19 Sep 2017 03:14:46 -0400
+Date: Tue, 19 Sep 2017 10:14:43 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Yeh, Andy" <andy.yeh@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
+Subject: Re: [PATCH v2] media: ov13858: Fix 4224x3136 video flickering at
+ some vblanks
+Message-ID: <20170919071443.wfd7leio44euozze@valkosipuli.retiisi.org.uk>
+References: <1505342325-9180-1-git-send-email-chiranjeevi.rapolu@intel.com>
+ <d946c138dc7d9657e986bfe37d255a595ad1671c.1505774663.git.chiranjeevi.rapolu@intel.com>
+ <CAAFQd5Cqxrbutd-FL3EAJde1q2JmjY+6xHAMGuGjkR3VdpQxQA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5Cqxrbutd-FL3EAJde1q2JmjY+6xHAMGuGjkR3VdpQxQA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT bindings documentation for Rockchip RGA
+On Tue, Sep 19, 2017 at 01:32:27PM +0900, Tomasz Figa wrote:
+> Hi Chiranjeevi,
+> 
+> On Tue, Sep 19, 2017 at 7:47 AM, Chiranjeevi Rapolu
+> <chiranjeevi.rapolu@intel.com> wrote:
+> > Previously, with crop (0, 0), (4255, 3167), VTS < 0xC9E was resulting in blank
+> > frames sometimes. This appeared as video flickering. But we need VTS < 0xC9E to
+> > get ~30fps.
+> >
+> > Omni Vision recommends to use crop (0,8), (4255, 3159) for 4224x3136. With this
+> > crop, VTS 0xC8E is supported and yields ~30fps.
+> >
+> > Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+> > ---
+> > Changes in v2:
+> >         - Include Tomasz clarifications in the commit message.
+> 
+> Thanks for explanation. It makes perfect sense now.
+> 
+> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 
-Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-Signed-off-by: Yakir Yang <ykk@rock-chips.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
- .../devicetree/bindings/media/rockchip-rga.txt     | 33 ++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
+Thanks, applied!
 
-diff --git a/Documentation/devicetree/bindings/media/rockchip-rga.txt b/Documentation/devicetree/bindings/media/rockchip-rga.txt
-new file mode 100644
-index 0000000..fd5276a
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/rockchip-rga.txt
-@@ -0,0 +1,33 @@
-+device-tree bindings for rockchip 2D raster graphic acceleration controller (RGA)
-+
-+RGA is a standalone 2D raster graphic acceleration unit. It accelerates 2D
-+graphics operations, such as point/line drawing, image scaling, rotation,
-+BitBLT, alpha blending and image blur/sharpness.
-+
-+Required properties:
-+- compatible: value should be one of the following
-+		"rockchip,rk3288-rga";
-+		"rockchip,rk3399-rga";
-+
-+- interrupts: RGA interrupt specifier.
-+
-+- clocks: phandle to RGA sclk/hclk/aclk clocks
-+
-+- clock-names: should be "aclk", "hclk" and "sclk"
-+
-+- resets: Must contain an entry for each entry in reset-names.
-+  See ../reset/reset.txt for details.
-+- reset-names: should be "core", "axi" and "ahb"
-+
-+Example:
-+SoC-specific DT entry:
-+	rga: rga@ff680000 {
-+		compatible = "rockchip,rk3399-rga";
-+		reg = <0xff680000 0x10000>;
-+		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA_CORE>;
-+		clock-names = "aclk", "hclk", "sclk";
-+
-+		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru SRST_H_RGA>;
-+		reset-names = "core, "axi", "ahb";
-+	};
+Chiranjeevi: please wrap the commit message at 75 on the next time.
+
 -- 
-2.7.4
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
