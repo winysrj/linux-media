@@ -1,58 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:56461 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932214AbdIHUwO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 16:52:14 -0400
-Subject: [PATCH 1/3] [media] s5p-mfc: Delete an error message for a failed
- memory allocation in s5p_mfc_probe()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <482a6c92-a85e-0bcd-edf7-3c2f63ea74c5@users.sourceforge.net>
-Message-ID: <ff8f7dcd-c3e8-2a12-c0db-997b514f5d94@users.sourceforge.net>
-Date: Fri, 8 Sep 2017 22:51:35 +0200
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37945 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751564AbdISLzi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 07:55:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
+        sre@kernel.org
+Subject: Re: [PATCH v13 08/25] omap3isp: Fix check for our own sub-devices
+Date: Tue, 19 Sep 2017 14:55:43 +0300
+Message-ID: <3444678.JLWYLn9vNP@avalon>
+In-Reply-To: <20170915141724.23124-9-sakari.ailus@linux.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com> <20170915141724.23124-9-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <482a6c92-a85e-0bcd-edf7-3c2f63ea74c5@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 8 Sep 2017 22:25:17 +0200
+Hi Sakari,
 
-Omit an extra message for a memory allocation failure in this function.
+Thank you for the patch.
 
-This issue was detected by using the Coccinelle software.
+On Friday, 15 September 2017 17:17:07 EEST Sakari Ailus wrote:
+> We only want to link sub-devices that were bound to the async notifier the
+> isp driver registered but there may be other sub-devices in the
+> v4l2_device as well. Check for the correct async notifier.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 1afde5021ca6..8af45d53846f 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1270,10 +1270,8 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 
- 	pr_debug("%s++\n", __func__);
- 	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
--	if (!dev) {
--		dev_err(&pdev->dev, "Not enough memory for MFC device\n");
-+	if (!dev)
- 		return -ENOMEM;
--	}
- 
- 	spin_lock_init(&dev->irqlock);
- 	spin_lock_init(&dev->condlock);
+> ---
+>  drivers/media/platform/omap3isp/isp.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index a546cf774d40..3b1a9cd0e591
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -2155,7 +2155,7 @@ static int isp_subdev_notifier_complete(struct
+> v4l2_async_notifier *async) return ret;
+> 
+>  	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
+> -		if (!sd->asd)
+> +		if (sd->notifier != &isp->notifier)
+>  			continue;
+> 
+>  		ret = isp_link_entity(isp, &sd->entity,
+
+
 -- 
-2.14.1
+Regards,
+
+Laurent Pinchart
