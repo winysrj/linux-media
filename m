@@ -1,216 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:33009 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935367AbdIZUOA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 16:14:00 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 02/20] media: lirc: use the correct carrier for scancode transmit
-Date: Tue, 26 Sep 2017 21:13:41 +0100
-Message-Id: <383e58a099c4733147db070f9fa10ece60eebeef.1506455086.git.sean@mess.org>
-In-Reply-To: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
-References: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
-In-Reply-To: <cover.1506455086.git.sean@mess.org>
-References: <cover.1506455086.git.sean@mess.org>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:49791 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751370AbdISPYw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 11:24:52 -0400
+Message-ID: <1505834685.10076.5.camel@pengutronix.de>
+Subject: Re: [PATCH 2/3] [media] tc358743: Increase FIFO level to 300.
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        Mats Randgaard <matrandg@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+Date: Tue, 19 Sep 2017 17:24:45 +0200
+In-Reply-To: <3e638375aff788b24f988e452214649d6100a596.1505826082.git.dave.stevenson@raspberrypi.org>
+References: <cover.1505826082.git.dave.stevenson@raspberrypi.org>
+         <3e638375aff788b24f988e452214649d6100a596.1505826082.git.dave.stevenson@raspberrypi.org>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the lirc device supports it, set the carrier for the protocol.
+Hi Dave,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-jvc-decoder.c     |  1 +
- drivers/media/rc/ir-lirc-codec.c      |  7 +++++++
- drivers/media/rc/ir-mce_kbd-decoder.c |  1 +
- drivers/media/rc/ir-nec-decoder.c     |  1 +
- drivers/media/rc/ir-rc5-decoder.c     |  1 +
- drivers/media/rc/ir-rc6-decoder.c     |  1 +
- drivers/media/rc/ir-sanyo-decoder.c   |  1 +
- drivers/media/rc/ir-sharp-decoder.c   |  1 +
- drivers/media/rc/ir-sony-decoder.c    |  1 +
- drivers/media/rc/rc-core-priv.h       |  1 +
- drivers/media/rc/rc-ir-raw.c          | 30 ++++++++++++++++++++++++++++++
- include/media/rc-core.h               |  1 +
- 12 files changed, 47 insertions(+)
+On Tue, 2017-09-19 at 14:08 +0100, Dave Stevenson wrote:
+> The existing fixed value of 16 worked for UYVY 720P60 over
+> 2 lanes at 594MHz, or UYVY 1080P60 over 4 lanes. (RGB888
+> 1080P60 needs 6 lanes at 594MHz).
+> It doesn't allow for lower resolutions to work as the FIFO
+> underflows.
+> 
+> Using a value of 300 works for all resolutions down to VGA60,
+> and the increase in frame delay is <4usecs for 1080P60 UYVY
+> (2.55usecs for RGB888).
+> 
+> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
 
-diff --git a/drivers/media/rc/ir-jvc-decoder.c b/drivers/media/rc/ir-jvc-decoder.c
-index e2bd68c42edf..2ae20dfc0e61 100644
---- a/drivers/media/rc/ir-jvc-decoder.c
-+++ b/drivers/media/rc/ir-jvc-decoder.c
-@@ -212,6 +212,7 @@ static struct ir_raw_handler jvc_handler = {
- 	.protocols	= RC_PROTO_BIT_JVC,
- 	.decode		= ir_jvc_decode,
- 	.encode		= ir_jvc_encode,
-+	.carrier	= 38000,
- };
- 
- static int __init ir_jvc_decode_init(void)
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 770d768824f4..ff7c46cc201c 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -155,6 +155,13 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 		for (i = 0; i < count; i++)
- 			/* Convert from NS to US */
- 			txbuf[i] = DIV_ROUND_UP(raw[i].duration, 1000);
-+
-+		if (dev->s_tx_carrier) {
-+			int carrier = ir_raw_encode_carrier(scan.rc_proto);
-+
-+			if (carrier > 0)
-+				dev->s_tx_carrier(dev, carrier);
-+		}
- 	} else {
- 		if (n < sizeof(unsigned int) || n % sizeof(unsigned int))
- 			return -EINVAL;
-diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
-index 7c572a643656..efa3b735dcc4 100644
---- a/drivers/media/rc/ir-mce_kbd-decoder.c
-+++ b/drivers/media/rc/ir-mce_kbd-decoder.c
-@@ -474,6 +474,7 @@ static struct ir_raw_handler mce_kbd_handler = {
- 	.encode		= ir_mce_kbd_encode,
- 	.raw_register	= ir_mce_kbd_register,
- 	.raw_unregister	= ir_mce_kbd_unregister,
-+	.carrier	= 36000,
- };
- 
- static int __init ir_mce_kbd_decode_init(void)
-diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-index 817c18f2ddd1..5380a9b23c07 100644
---- a/drivers/media/rc/ir-nec-decoder.c
-+++ b/drivers/media/rc/ir-nec-decoder.c
-@@ -259,6 +259,7 @@ static struct ir_raw_handler nec_handler = {
- 							RC_PROTO_BIT_NEC32,
- 	.decode		= ir_nec_decode,
- 	.encode		= ir_nec_encode,
-+	.carrier	= 38000,
- };
- 
- static int __init ir_nec_decode_init(void)
-diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
-index 1292f534de43..cd1c4ee5fcd4 100644
---- a/drivers/media/rc/ir-rc5-decoder.c
-+++ b/drivers/media/rc/ir-rc5-decoder.c
-@@ -282,6 +282,7 @@ static struct ir_raw_handler rc5_handler = {
- 							RC_PROTO_BIT_RC5_SZ,
- 	.decode		= ir_rc5_decode,
- 	.encode		= ir_rc5_encode,
-+	.carrier	= 36000,
- };
- 
- static int __init ir_rc5_decode_init(void)
-diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
-index 5d0d2fe3b7a7..665025303c28 100644
---- a/drivers/media/rc/ir-rc6-decoder.c
-+++ b/drivers/media/rc/ir-rc6-decoder.c
-@@ -408,6 +408,7 @@ static struct ir_raw_handler rc6_handler = {
- 			  RC_PROTO_BIT_RC6_MCE,
- 	.decode		= ir_rc6_decode,
- 	.encode		= ir_rc6_encode,
-+	.carrier	= 36000,
- };
- 
- static int __init ir_rc6_decode_init(void)
-diff --git a/drivers/media/rc/ir-sanyo-decoder.c b/drivers/media/rc/ir-sanyo-decoder.c
-index 758c60956850..723e7d75a593 100644
---- a/drivers/media/rc/ir-sanyo-decoder.c
-+++ b/drivers/media/rc/ir-sanyo-decoder.c
-@@ -218,6 +218,7 @@ static struct ir_raw_handler sanyo_handler = {
- 	.protocols	= RC_PROTO_BIT_SANYO,
- 	.decode		= ir_sanyo_decode,
- 	.encode		= ir_sanyo_encode,
-+	.carrier	= 38000,
- };
- 
- static int __init ir_sanyo_decode_init(void)
-diff --git a/drivers/media/rc/ir-sharp-decoder.c b/drivers/media/rc/ir-sharp-decoder.c
-index ed43a4212479..73174081e843 100644
---- a/drivers/media/rc/ir-sharp-decoder.c
-+++ b/drivers/media/rc/ir-sharp-decoder.c
-@@ -226,6 +226,7 @@ static struct ir_raw_handler sharp_handler = {
- 	.protocols	= RC_PROTO_BIT_SHARP,
- 	.decode		= ir_sharp_decode,
- 	.encode		= ir_sharp_encode,
-+	.carrier	= 38000,
- };
- 
- static int __init ir_sharp_decode_init(void)
-diff --git a/drivers/media/rc/ir-sony-decoder.c b/drivers/media/rc/ir-sony-decoder.c
-index a47ced763031..e4bcff21c025 100644
---- a/drivers/media/rc/ir-sony-decoder.c
-+++ b/drivers/media/rc/ir-sony-decoder.c
-@@ -221,6 +221,7 @@ static struct ir_raw_handler sony_handler = {
- 							RC_PROTO_BIT_SONY20,
- 	.decode		= ir_sony_decode,
- 	.encode		= ir_sony_encode,
-+	.carrier	= 40000,
- };
- 
- static int __init ir_sony_decode_init(void)
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 43eabea9f152..3cf09408df6c 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -29,6 +29,7 @@ struct ir_raw_handler {
- 	int (*decode)(struct rc_dev *dev, struct ir_raw_event event);
- 	int (*encode)(enum rc_proto protocol, u32 scancode,
- 		      struct ir_raw_event *events, unsigned int max);
-+	u32 carrier;
- 
- 	/* These two should only be used by the lirc decoder */
- 	int (*raw_register)(struct rc_dev *dev);
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 503bc425a187..0814e08a280b 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -492,6 +492,36 @@ static void edge_handle(unsigned long arg)
- 	ir_raw_event_handle(dev);
- }
- 
-+/**
-+ * ir_raw_encode_carrier() - Get carrier used for protocol
-+ *
-+ * @protocol:		protocol
-+ *
-+ * Attempts to find the carrier for the specified protocol
-+ *
-+ * Returns:	The carrier in Hz
-+ *		-EINVAL if the protocol is invalid, or if no
-+ *		compatible encoder was found.
-+ */
-+int ir_raw_encode_carrier(enum rc_proto protocol)
-+{
-+	struct ir_raw_handler *handler;
-+	int ret = -EINVAL;
-+	u64 mask = BIT_ULL(protocol);
-+
-+	mutex_lock(&ir_raw_handler_lock);
-+	list_for_each_entry(handler, &ir_raw_handler_list, list) {
-+		if (handler->protocols & mask && handler->encode) {
-+			ret = handler->carrier;
-+			break;
-+		}
-+	}
-+	mutex_unlock(&ir_raw_handler_lock);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(ir_raw_encode_carrier);
-+
- /*
-  * Used to (un)register raw event clients
-  */
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 314a1edb6189..ca48632ec8e2 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -309,6 +309,7 @@ int ir_raw_event_store_with_filter(struct rc_dev *dev,
- void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
- int ir_raw_encode_scancode(enum rc_proto protocol, u32 scancode,
- 			   struct ir_raw_event *events, unsigned int max);
-+int ir_raw_encode_carrier(enum rc_proto protocol);
- 
- static inline void ir_raw_event_reset(struct rc_dev *dev)
- {
--- 
-2.13.5
+Can we increase this to 320? This would also allow
+720p60 at 594 Mbps / 4 lanes, according to the xls.
+
+regards
+Philipp
