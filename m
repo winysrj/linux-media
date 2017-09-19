@@ -1,134 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48389
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752441AbdIATiD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 15:38:03 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 02/14] media: gen-errors.rst: remove row number comments
-Date: Fri,  1 Sep 2017 16:37:38 -0300
-Message-Id: <7279ec89ce20f404d538b036f9bb3f7bfcb4624b.1504293108.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
-References: <cover.1504293108.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504293108.git.mchehab@s-opensource.com>
-References: <cover.1504293108.git.mchehab@s-opensource.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35709 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750948AbdISIqd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 04:46:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: kieran.bingham@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH v1 1/3] media: vsp1: Prevent resuming DRM pipelines
+Date: Tue, 19 Sep 2017 11:46:36 +0300
+Message-ID: <2503926.ERnN7xSWg0@avalon>
+In-Reply-To: <50ab72f2-0d08-f0ff-e4f5-45cd32d74894@ideasonboard.com>
+References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com> <1514508.N9eClCS3vr@avalon> <50ab72f2-0d08-f0ff-e4f5-45cd32d74894@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those are introduced by the conversion scripts and don't
-really help. Get rid of them.
+Hi Kieran,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/gen-errors.rst | 44 +++++++++------------------------
- 1 file changed, 11 insertions(+), 33 deletions(-)
+On Monday, 18 September 2017 03:04:13 EEST Kieran Bingham wrote:
+> On 15/09/17 17:58, Laurent Pinchart wrote:
+> > On Friday, 15 September 2017 19:42:05 EEST Kieran Bingham wrote:
+> >> DRM pipelines utilising the VSP must stop all frame processing as part
+> >> of the suspend operation to ensure the hardware is idle. Upon resume,
+> >> the pipeline must not be started until the DU performs an atomic flush
+> >> to restore the hardware configuration and state.
+> >> 
+> >> Therefore the vsp1_pipeline_resume() call is not needed for DRM
+> >> pipelines, and we can disable it in this instance.
+> > 
+> > Being familiar with the issue I certainly understand the commit message,
+> > but I think it can be a bit confusing to a reader not familiar to the
+> > VSP/DU. How about something similar to the following ?
+> > 
+> > "When used as part of a display pipeline, the VSP is stopped and restarted
+> > explicitly by the DU from its suspend and resume handlers. There is thus
+> > no need to stop or restart pipelines in the VSP suspend and resume
+> > handlers."
+> 
+> That's fine with me.
+> 
+> >> CC: linux-media@vger.kernel.org
+> >> 
+> >> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >> ---
+> >> 
+> >>  drivers/media/platform/vsp1/vsp1_drv.c | 8 +++++++-
+> >>  1 file changed, 7 insertions(+), 1 deletion(-)
+> >> 
+> >> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
+> >> b/drivers/media/platform/vsp1/vsp1_drv.c index 962e4c304076..7604c7994c74
+> >> 100644
+> >> --- a/drivers/media/platform/vsp1/vsp1_drv.c
+> >> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
+> >> @@ -582,7 +582,13 @@ static int __maybe_unused vsp1_pm_resume(struct
+> >> device
+> >> *dev) struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+> >> 
+> >>  	pm_runtime_force_resume(vsp1->dev);
+> >> 
+> >> -	vsp1_pipelines_resume(vsp1);
+> >> +
+> >> +	/*
+> >> +	 * DRM pipelines are stopped before suspend, and will be resumed after
+> >> +	 * the DRM subsystem has reconfigured its pipeline with an atomic flush
+> >> +	 */
+> > 
+> > I would also adapt this comment similarly to the commit message.
+> > 
+> >> +	if (!vsp1->drm)
+> >> +		vsp1_pipelines_resume(vsp1);
+> > 
+> > Should we do the same in vsp1_pm_suspend() ? I know it shouldn't be
+> > strictly needed at the moment as vsp1_pipelines_suspend() should be a
+> > no-op when the pipelines are already stopped, but a symmetrical
+> > implementation sounds better to me.
+> 
+> I'm OK with that, it's not needed - but it doesn't hurt to be symmetrical.
+> 
+> (Updated locally for a v1.1 repost or such)
 
-diff --git a/Documentation/media/uapi/gen-errors.rst b/Documentation/media/uapi/gen-errors.rst
-index d39e34d1b19d..d51f672021c4 100644
---- a/Documentation/media/uapi/gen-errors.rst
-+++ b/Documentation/media/uapi/gen-errors.rst
-@@ -17,9 +17,7 @@ Generic Error Codes
-     :widths: 1 16
- 
- 
--    -  .. row 1
--
--       -  ``EAGAIN`` (aka ``EWOULDBLOCK``)
-+    -  -  ``EAGAIN`` (aka ``EWOULDBLOCK``)
- 
-        -  The ioctl can't be handled because the device is in state where it
- 	  can't perform it. This could happen for example in case where
-@@ -27,15 +25,11 @@ Generic Error Codes
- 	  is also returned when the ioctl would need to wait for an event,
- 	  but the device was opened in non-blocking mode.
- 
--    -  .. row 2
--
--       -  ``EBADF``
-+    -  -  ``EBADF``
- 
-        -  The file descriptor is not a valid.
- 
--    -  .. row 3
--
--       -  ``EBUSY``
-+    -  -  ``EBUSY``
- 
-        -  The ioctl can't be handled because the device is busy. This is
- 	  typically return while device is streaming, and an ioctl tried to
-@@ -44,59 +38,43 @@ Generic Error Codes
- 	  ioctl must not be retried without performing another action to fix
- 	  the problem first (typically: stop the stream before retrying).
- 
--    -  .. row 4
--
--       -  ``EFAULT``
-+    -  -  ``EFAULT``
- 
-        -  There was a failure while copying data from/to userspace, probably
- 	  caused by an invalid pointer reference.
- 
--    -  .. row 5
--
--       -  ``EINVAL``
-+    -  -  ``EINVAL``
- 
-        -  One or more of the ioctl parameters are invalid or out of the
- 	  allowed range. This is a widely used error code. See the
- 	  individual ioctl requests for specific causes.
- 
--    -  .. row 6
--
--       -  ``ENODEV``
-+    -  -  ``ENODEV``
- 
-        -  Device not found or was removed.
- 
--    -  .. row 7
--
--       -  ``ENOMEM``
-+    -  -  ``ENOMEM``
- 
-        -  There's not enough memory to handle the desired operation.
- 
--    -  .. row 8
--
--       -  ``ENOTTY``
-+    -  -  ``ENOTTY``
- 
-        -  The ioctl is not supported by the driver, actually meaning that
- 	  the required functionality is not available, or the file
- 	  descriptor is not for a media device.
- 
--    -  .. row 9
--
--       -  ``ENOSPC``
-+    -  -  ``ENOSPC``
- 
-        -  On USB devices, the stream ioctl's can return this error, meaning
- 	  that this request would overcommit the usb bandwidth reserved for
- 	  periodic transfers (up to 80% of the USB bandwidth).
- 
--    -  .. row 10
--
--       -  ``EPERM``
-+    -  -  ``EPERM``
- 
-        -  Permission denied. Can be returned if the device needs write
- 	  permission, or some special capabilities is needed (e. g. root)
- 
--    -  .. row 11
--
--       -  ``EIO``
-+    -  -  ``EIO``
- 
-        -  I/O error. Typically used when there are problems communicating with
-           a hardware device. This could indicate broken or flaky hardware.
+I've taken patches 2/3 and 3/3 in my tree so feel free to report 1/3 only.
+
+> > I also wonder whether the check shouldn't be moved inside the
+> > vsp1_pipelines_suspend() and vsp1_pipelines_resume() functions as we will
+> > likely need to handle suspend/resume of display pipelines when adding
+> > writeback support, but we could do so later.
+> 
+> I'll have to retest the writeback implementation - but I think that has got
+> quite stale now anyway and will need some rework.
+
+Agreed, I don't expect it to work out of the box. We can move the check later 
+when rebasing the writeback patches.
+
+> >>  	return 0;
+> >>  
+> >>  }
+
 -- 
-2.13.5
+Regards,
+
+Laurent Pinchart
