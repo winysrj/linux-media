@@ -1,71 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:63017 "EHLO mout.web.de"
+Received: from mga05.intel.com ([192.55.52.43]:61960 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751170AbdIORal (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 13:30:41 -0400
-Subject: [PATCH 2/2] [media] stm32-dcmi: Improve four size determinations
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <730b535e-39a5-2c2b-f463-e76da967a723@users.sourceforge.net>
-Message-ID: <f4e400ea-9660-05cd-3194-cdf2495a2376@users.sourceforge.net>
-Date: Fri, 15 Sep 2017 19:29:42 +0200
+        id S1751410AbdISMnb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 08:43:31 -0400
+Date: Tue, 19 Sep 2017 15:43:26 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
+        sre@kernel.org
+Subject: Re: [PATCH v13 06/25] omap3isp: Use generic parser for parsing
+ fwnode endpoints
+Message-ID: <20170919124326.f3q4c6kwt3cfyyno@paasikivi.fi.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+ <20170915141724.23124-7-sakari.ailus@linux.intel.com>
+ <1555926.RTv2yyCEgl@avalon>
 MIME-Version: 1.0
-In-Reply-To: <730b535e-39a5-2c2b-f463-e76da967a723@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1555926.RTv2yyCEgl@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 15 Sep 2017 18:48:14 +0200
+On Tue, Sep 19, 2017 at 02:40:29PM +0300, Laurent Pinchart wrote:
+> > @@ -2256,7 +2210,9 @@ static int isp_probe(struct platform_device *pdev)
+> >  	if (ret)
+> >  		return ret;
+> > 
+> > -	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
+> > +	ret = v4l2_async_notifier_parse_fwnode_endpoints(
+> > +		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
+> > +		isp_fwnode_parse);
+> >  	if (ret < 0)
+> 
+> The documentation in patch 05/25 states that v4l2_async_notifier_release() 
+> should be called even if v4l2_async_notifier_parse_fwnode_endpoints() fails. I 
+> don't think that's needed here, so you might want to update the documentation 
+> (and possibly the implementation of the function).
 
-Replace the specification of data types by pointer dereferences
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+It is. If parsing fails, async sub-devices may have been already set up.
+This happens e.g. when the parsing fails after the first one has been
+successfully set up already.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/stm32/stm32-dcmi.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index df12d10bd230..c4895cc95cc1 100644
---- a/drivers/media/platform/stm32/stm32-dcmi.c
-+++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -1372,9 +1372,8 @@ static int dcmi_formats_init(struct stm32_dcmi *dcmi)
- 	dcmi->sd_formats = devm_kcalloc(dcmi->dev,
--					num_fmts, sizeof(struct dcmi_format *),
-+					num_fmts, sizeof(*dcmi->sd_formats),
- 					GFP_KERNEL);
- 	if (!dcmi->sd_formats)
- 		return -ENOMEM;
- 
--	memcpy(dcmi->sd_formats, sd_fmts,
--	       num_fmts * sizeof(struct dcmi_format *));
-+	memcpy(dcmi->sd_formats, sd_fmts, num_fmts * sizeof(*dcmi->sd_formats));
- 	dcmi->sd_format = dcmi->sd_formats[0];
-@@ -1406,3 +1405,3 @@ static int dcmi_framesizes_init(struct stm32_dcmi *dcmi)
- 	dcmi->sd_framesizes = devm_kcalloc(dcmi->dev, num_fsize,
--					   sizeof(struct dcmi_framesize),
-+					   sizeof(*dcmi->sd_framesizes),
- 					   GFP_KERNEL);
-@@ -1570,5 +1569,5 @@ static int dcmi_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	dcmi = devm_kzalloc(&pdev->dev, sizeof(struct stm32_dcmi), GFP_KERNEL);
-+	dcmi = devm_kzalloc(&pdev->dev, sizeof(*dcmi), GFP_KERNEL);
- 	if (!dcmi)
 -- 
-2.14.1
+Sakari Ailus
+sakari.ailus@linux.intel.com
