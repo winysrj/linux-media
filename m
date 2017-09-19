@@ -1,103 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:32967
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751951AbdI0VKc (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59648 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750964AbdISLZy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:10:32 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: [PATCH v2 02/13] docs: kernel-doc.rst: better describe kernel-doc arguments
-Date: Wed, 27 Sep 2017 18:10:13 -0300
-Message-Id: <2ede8f1ea10681056e90d1ff7af8f4898a660ff3.1506546492.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506546492.git.mchehab@s-opensource.com>
-References: <cover.1506546492.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506546492.git.mchehab@s-opensource.com>
-References: <cover.1506546492.git.mchehab@s-opensource.com>
+        Tue, 19 Sep 2017 07:25:54 -0400
+Date: Tue, 19 Sep 2017 14:25:52 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
+        sre@kernel.org
+Subject: Re: [PATCH v13 01/25] v4l: fwnode: Move KernelDoc documentation to
+ the header
+Message-ID: <20170919112551.grmbc7sf6d4olyzn@valkosipuli.retiisi.org.uk>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+ <9077921.hsjkiRftLf@avalon>
+ <20170919111036.5va2unwqh2vymojr@valkosipuli.retiisi.org.uk>
+ <20634394.E3nNBE0rok@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20634394.E3nNBE0rok@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new section to describe kernel-doc arguments,
-adding examples about how identation should happen, as failing
-to do that causes Sphinx to do the wrong thing.
+Hi Laurent,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/doc-guide/kernel-doc.rst | 44 +++++++++++++++++++++++++++++++---
- 1 file changed, 41 insertions(+), 3 deletions(-)
+On Tue, Sep 19, 2017 at 02:14:39PM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Tuesday, 19 September 2017 14:10:37 EEST Sakari Ailus wrote:
+> > On Tue, Sep 19, 2017 at 01:48:27PM +0300, Laurent Pinchart wrote:
+> > > On Friday, 15 September 2017 17:17:00 EEST Sakari Ailus wrote:
+> > >> In V4L2 the practice is to have the KernelDoc documentation in the
+> > >> header and not in .c source code files. This consequently makes the V4L2
+> > >> fwnode function documentation part of the Media documentation build.
+> > >> 
+> > >> Also correct the link related function and argument naming in
+> > >> documentation.
+> > >> 
+> > >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > >> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > >> Acked-by: Pavel Machek <pavel@ucw.cz>
+> > > 
+> > > I'm still very opposed to this. In addition to increasing the risk of
+> > > documentation becoming stale, it also makes review more difficult. I'm
+> > > reviewing patch 05/25 of this series and I have to jump around the patch
+> > > to verify that the documentation matches the implementation, it's really
+> > > annoying.
+> > 
+> > I'd like to have this discussion separately from the patchset, which is
+> > right now in its 13th version. This patch simply makes the current state
+> > consistent; V4L2 async was the only part of V4L2 with KernelDoc
+> > documentation in .c files.
+> 
+> But there's no need to move the documentation at this point until we reach an 
+> agreement, is there ?
 
-diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
-index b24854b5d6be..662755f830d5 100644
---- a/Documentation/doc-guide/kernel-doc.rst
-+++ b/Documentation/doc-guide/kernel-doc.rst
-@@ -112,16 +112,17 @@ Example kernel-doc function comment::
- 
-   /**
-    * foobar() - Brief description of foobar.
--   * @arg: Description of argument of foobar.
-+   * @argument1: Description of parameter argument1 of foobar.
-+   * @argument2: Description of parameter argument2 of foobar.
-    *
-    * Longer description of foobar.
-    *
-    * Return: Description of return value of foobar.
-    */
--  int foobar(int arg)
-+  int foobar(int argument1, char *argument2)
- 
- The format is similar for documentation for structures, enums, paragraphs,
--etc. See the sections below for details.
-+etc. See the sections below for specific details of each type.
- 
- The kernel-doc structure is extracted from the comments, and proper `Sphinx C
- Domain`_ function and type descriptions with anchors are generated for them. The
-@@ -130,6 +131,43 @@ cross-references. See below for details.
- 
- .. _Sphinx C Domain: http://www.sphinx-doc.org/en/stable/domains.html
- 
-+
-+Parameters and member arguments
-+-------------------------------
-+
-+The kernel-doc function comments describe each parameter to the function and
-+function typedefs or each member of struct/union, in order, with the
-+``@argument:`` descriptions. For each non-private member argument, one
-+``@argument`` definition is needed.
-+
-+The ``@argument:`` descriptions begin on the very next line following
-+the opening brief function description line, with no intervening blank
-+comment lines.
-+
-+The ``@argument:`` descriptions may span multiple lines.
-+
-+.. note::
-+
-+   If the ``@argument`` description has multiple lines, the continuation
-+   of the description should be starting exactly at the same column as
-+   the previous line, e. g.::
-+
-+      * @argument: some long description
-+      *       that continues on next lines
-+
-+   or::
-+
-+      * @argument:
-+      *		some long description
-+      *		that continues on next lines
-+
-+If a function or typedef parameter argument is ``...`` (e. g. a variable
-+number of arguments), its description should be listed in kernel-doc
-+notation as::
-+
-+      * @...: description
-+
-+
- Highlights and cross-references
- -------------------------------
- 
+The status quo has is that the KernelDoc is in headers. Generally, if you
+change parts that appear to lack framework-wide changes already done, you
+do those changes before making other changes since it's a no-brainer.
+
+Which is what this patch represents.
+
+If we end up moving the KernelDoc to .c files moving this back could result
+into an extra patch. I'm not too worried about that frankly.
+
 -- 
-2.13.5
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
