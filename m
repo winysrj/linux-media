@@ -1,60 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out4.electric.net ([192.162.216.185]:52531 "EHLO
-        smtp-out4.electric.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934544AbdIYOtg (ORCPT
+Received: from mail-pf0-f182.google.com ([209.85.192.182]:55547 "EHLO
+        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751353AbdISPXs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 10:49:36 -0400
-From: David Laight <David.Laight@ACULAB.COM>
-To: 'Arnd Bergmann' <arnd@arndb.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: Jiri Pirko <jiri@resnulli.us>,
-        Arend van Spriel <arend.vanspriel@broadcom.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Michal Marek <mmarek@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Kees Cook <keescook@chromium.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>,
-        "brcm80211-dev-list.pdl@broadcom.com"
-        <brcm80211-dev-list.pdl@broadcom.com>,
-        "brcm80211-dev-list@cypress.com" <brcm80211-dev-list@cypress.com>,
-        "kasan-dev@googlegroups.com" <kasan-dev@googlegroups.com>,
-        "linux-kbuild@vger.kernel.org" <linux-kbuild@vger.kernel.org>,
-        Jakub Jelinek <jakub@gcc.gnu.org>,
-        =?Windows-1252?Q?Martin_Li=9Aka?= <marxin@gcc.gnu.org>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>
-Subject: RE: [PATCH v4 4/9] em28xx: fix em28xx_dvb_init for KASAN
-Date: Mon, 25 Sep 2017 14:41:30 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6DD007F521@AcuExch.aculab.com>
-References: <20170922212930.620249-1-arnd@arndb.de>
- <20170922212930.620249-5-arnd@arndb.de>
-In-Reply-To: <20170922212930.620249-5-arnd@arndb.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+        Tue, 19 Sep 2017 11:23:48 -0400
 MIME-Version: 1.0
+In-Reply-To: <20170919073331.29007-1-hverkuil@xs4all.nl>
+References: <20170919073331.29007-1-hverkuil@xs4all.nl>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 19 Sep 2017 17:23:46 +0200
+Message-ID: <CAMuHMdXTxLBNeBnnT2x95kdORFu1ya0QyqGChXKh5eK33ALYQg@mail.gmail.com>
+Subject: Re: [PATCHv2 0/2] drm/bridge/adv7511: add CEC support
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        DRI Development <dri-devel@lists.freedesktop.org>,
+        "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>,
+        Archit Taneja <architt@codeaurora.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Lars-Peter Clausen <lars@metafoo.de>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Arnd Bergmann
-> Sent: 22 September 2017 22:29
-...
-> It seems that this is triggered in part by using strlcpy(), which the
-> compiler doesn't recognize as copying at most 'len' bytes, since strlcpy
-> is not part of the C standard.
+Hi Hans,
 
-Neither is strncpy().
+On Tue, Sep 19, 2017 at 9:33 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> I should have posted this a month ago, but I completely forgot about
+> it. Apologies for that.
+>
+> This patch series adds CEC support to the drm adv7511/adv7533 drivers.
+>
+> I have tested this with the Qualcomm Dragonboard C410 (adv7533 based)
+> and the Renesas R-Car Koelsch board (adv7511 based).
+>
+> I only have the Koelsch board to test with, but it looks like other
+> R-Car boards use the same adv7511. It would be nice if someone can
+> add CEC support to the other R-Car boards as well. The main thing
+> to check is if they all use the same 12 MHz fixed CEC clock source.
 
-It'll almost certainly be a marker in a header file somewhere,
-so it should be possibly to teach it about other functions.
+Have a 12 MHz fixed CEC clock source connected to the CEC_CLK pin
+on ADV7511:
+  - r8a7790/lager
+  - r8a7791/koelsch
+  - r8a7791/porter
+  - r8a7792/blanche
+  - r8a7793/gose
+  - r8a7794/alt
+  - r8a7794/silk
 
-	David
+I don't know about r8a7792/wheat. But according to its .dts file, it has two
+instances of the ADV7513, not ADV7511.
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
