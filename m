@@ -1,104 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:54891 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750838AbdIOHwR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 03:52:17 -0400
-Subject: [PATCH 4/9] [media] tm6000: One function call less in
- tm6000_usb_probe() after error detection
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
-        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
+Received: from mail-io0-f194.google.com ([209.85.223.194]:38524 "EHLO
+        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751165AbdISOcu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 10:32:50 -0400
+Date: Tue, 19 Sep 2017 09:32:48 -0500
+From: Rob Herring <robh@kernel.org>
+To: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Santosh Kumar Singh <kumar.san1093@gmail.com>,
-        Sean Young <sean@mess.org>,
-        Wei Yongjun <weiyongjun1@huawei.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <2aade468-5dfd-76ee-f59f-c25864930f61@users.sourceforge.net>
-Message-ID: <66140cb8-68e4-b891-2313-3c07e54ab3e2@users.sourceforge.net>
-Date: Fri, 15 Sep 2017 09:51:49 +0200
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 2/4] [media] dt-bindings: Document BCM283x CSI2/CCP2
+ receiver
+Message-ID: <20170919143248.c65slho3l5vnvzku@rob-hp-laptop>
+References: <cover.1505314390.git.dave.stevenson@raspberrypi.org>
+ <9ad8b23d5c394b64ed02f9a5ebc49209696a5ace.1505314390.git.dave.stevenson@raspberrypi.org>
 MIME-Version: 1.0
-In-Reply-To: <2aade468-5dfd-76ee-f59f-c25864930f61@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9ad8b23d5c394b64ed02f9a5ebc49209696a5ace.1505314390.git.dave.stevenson@raspberrypi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 14 Sep 2017 16:11:55 +0200
+On Wed, Sep 13, 2017 at 04:07:47PM +0100, Dave Stevenson wrote:
+> Document the DT bindings for the CSI2/CCP2 receiver peripheral
+> (known as Unicam) on BCM283x SoCs.
+> 
+> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+> ---
+>  .../devicetree/bindings/media/bcm2835-unicam.txt   | 107 +++++++++++++++++++++
+>  1 file changed, 107 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/bcm2835-unicam.txt b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+> new file mode 100644
+> index 0000000..2ee5af7
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+> @@ -0,0 +1,107 @@
+> +Broadcom BCM283x Camera Interface (Unicam)
+> +------------------------------------------
+> +
+> +The Unicam block on BCM283x SoCs is the receiver for either
+> +CSI-2 or CCP2 data from image sensors or similar devices.
+> +
+> +There are two camera drivers in the kernel for BCM283x - this one
+> +and bcm2835-camera (currently in staging).
 
-* Adjust jump targets so that the function "kfree" will be always called
-  with a non-null pointer.
+Linux detail that is n/a for bindings.
 
-* Delete an initialisation for the local variable "dev"
-  which became unnecessary with this refactoring.
+> +
+> +This driver is purely the kernel controlling the Unicam peripheral - there
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/tm6000/tm6000-cards.c | 15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+Bindings describe h/w blocks, not drivers.
 
-diff --git a/drivers/media/usb/tm6000/tm6000-cards.c b/drivers/media/usb/tm6000/tm6000-cards.c
-index e18632056976..77347541904d 100644
---- a/drivers/media/usb/tm6000/tm6000-cards.c
-+++ b/drivers/media/usb/tm6000/tm6000-cards.c
-@@ -1184,7 +1184,7 @@ static int tm6000_usb_probe(struct usb_interface *interface,
- 			    const struct usb_device_id *id)
- {
- 	struct usb_device *usbdev;
--	struct tm6000_core *dev = NULL;
-+	struct tm6000_core *dev;
- 	int i, rc = 0;
- 	int nr = 0;
- 	char *speed;
-@@ -1194,7 +1194,7 @@ static int tm6000_usb_probe(struct usb_interface *interface,
- 	/* Selects the proper interface */
- 	rc = usb_set_interface(usbdev, 0, 1);
- 	if (rc < 0)
--		goto err;
-+		goto report_failure;
- 
- 	/* Check to see next free device and mark as used */
- 	nr = find_first_zero_bit(&tm6000_devused, TM6000_MAXBOARDS);
-@@ -1312,8 +1312,7 @@ static int tm6000_usb_probe(struct usb_interface *interface,
- 	if (!dev->isoc_in.endp) {
- 		printk(KERN_ERR "tm6000: probing error: no IN ISOC endpoint!\n");
- 		rc = -ENODEV;
--
--		goto err;
-+		goto free_device;
- 	}
- 
- 	/* save our data pointer in this interface device */
-@@ -1323,16 +1322,16 @@ static int tm6000_usb_probe(struct usb_interface *interface,
- 
- 	rc = tm6000_init_dev(dev);
- 	if (rc < 0)
--		goto err;
-+		goto free_device;
- 
- 	return 0;
- 
--err:
-+free_device:
-+	kfree(dev);
-+report_failure:
- 	printk(KERN_ERR "tm6000: Error %d while registering\n", rc);
- 
- 	clear_bit(nr, &tm6000_devused);
--
--	kfree(dev);
- put_device:
- 	usb_put_dev(usbdev);
- 	return rc;
--- 
-2.14.1
+> +is no involvement with the VideoCore firmware. Unicam receives CSI-2
+> +(or CCP2) data and writes it into SDRAM. There is no additional processing
+> +performed.
+> +It should be possible to connect it to any sensor with a
+> +suitable output interface and V4L2 subdevice driver.
+> +
+> +bcm2835-camera uses the VideoCore firmware to control the sensor,
+> +Unicam, ISP, and various tuner control loops. Fully processed frames are
+> +delivered to the driver by the firmware. It only has sensor drivers
+> +for Omnivision OV5647, and Sony IMX219 sensors, and is closed source.
+> +
+> +The two drivers are mutually exclusive for the same Unicam instance.
+> +The firmware checks the device tree configuration during boot. If
+> +it finds device tree nodes called csi0 or csi1 then it will block the
+> +firmware from accessing the peripheral, and bcm2835-camera will
+> +not be able to stream data.
+
+All interesting, but irrelavent to the binding other than the part about 
+node name. Reword to just state the requirements to get the firmware to 
+ignore things.
+
+> +It should be possible to use bcm2835-camera on one camera interface
+> +and bcm2835-unicam on the other interface if there is a need to.
+
+For upstream, I don't think we care to support that. We don't need 2 
+bindings.
+
+> +
+> +Required properties:
+> +===================
+> +- compatible	: must be "brcm,bcm2835-unicam".
+> +- reg		: physical base address and length of the register sets for the
+> +		  device.
+> +- interrupts	: should contain the IRQ line for this Unicam instance.
+> +- clocks	: list of clock specifiers, corresponding to entries in
+> +		  clock-names property.
+> +- clock-names	: must contain an "lp_clock" entry, matching entries
+> +		  in the clocks property.
+
+_clock is redundant.
+
+> +
+> +Unicam supports a single port node. It should contain one 'port' child node
+> +with child 'endpoint' node. Please refer to the bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +Within the endpoint node, the following properties are mandatory:
+> +- remote-endpoint	: links to the source device endpoint.
+> +- data-lanes		: An array denoting how many data lanes are physically
+> +			  present for this CSI-2 receiver instance. This can
+> +			  be limited by either the SoC itself, or by the
+> +			  breakout on the platform.
+> +			  Lane reordering is not supported, so lanes must be
+> +			  in order, starting at 1.
+
+Just refer to docs for standard properties. Just add any info on limits 
+of values like number of cells.
+
+
+> +
+> +Lane reordering is not supported on the clock lane, so the optional property
+> +"clock-lane" will implicitly be <0>.
+> +Similarly lane inversion is not supported, therefore "lane-polarities" will
+> +implicitly be <0 0 0 0 0>.
+> +Neither of these values will be checked.
+> +
+> +Example:
+> +	csi1: csi@7e801000 {
+
+I thought the node had to be called csi0 or csi1. The label (csi1) will 
+be gone from the compiled dtb.
+
+> +		compatible = "brcm,bcm2835-unicam";
+> +		reg = <0x7e801000 0x800>,
+> +		      <0x7e802004 0x4>;
+> +		interrupts = <2 7>;
+> +		clocks = <&clocks BCM2835_CLOCK_CAM1>;
+> +		clock-names = "lp_clock";
+> +
+> +		port {
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+
+Don't need these with a single endpoint.
+
+> +
+> +			csi1_ep: endpoint {
+> +				remote-endpoint = <&tc358743_0>;
+> +				data-lanes = <1 2>;
+> +			};
+> +		};
+> +	};
+> +
+> +	i2c0: i2c@7e205000 {
+> +
+> +		tc358743: csi-hdmi-bridge@0f {
+> +			compatible = "toshiba,tc358743";
+> +			reg = <0x0f>;
+> +			status = "okay";
+
+Don't show status in examples.
+
+> +
+> +			clocks = <&tc358743_clk>;
+> +			clock-names = "refclk";
+> +
+> +			tc358743_clk: bridge-clk {
+> +				compatible = "fixed-clock";
+> +				#clock-cells = <0>;
+> +				clock-frequency = <27000000>;
+> +			};
+> +
+> +			port {
+> +				tc358743_0: endpoint {
+> +					remote-endpoint = <&csi1_ep>;
+> +					clock-lanes = <0>;
+> +					data-lanes = <1 2>;
+> +					clock-noncontinuous;
+> +					link-frequencies =
+> +						/bits/ 64 <297000000>;
+> +				};
+> +			};
+> +		};
+> +	};
+> -- 
+> 2.7.4
+> 
