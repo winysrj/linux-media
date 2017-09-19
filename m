@@ -1,96 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f178.google.com ([209.85.223.178]:33053 "EHLO
-        mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751461AbdICJAp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Sep 2017 05:00:45 -0400
-Received: by mail-io0-f178.google.com with SMTP id b2so12887703iof.0
-        for <linux-media@vger.kernel.org>; Sun, 03 Sep 2017 02:00:45 -0700 (PDT)
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38302 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751824AbdISMqO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 08:46:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
+        sre@kernel.org
+Subject: Re: [PATCH v13 06/25] omap3isp: Use generic parser for parsing fwnode endpoints
+Date: Tue, 19 Sep 2017 15:46:18 +0300
+Message-ID: <3468276.k9eAkeO3hH@avalon>
+In-Reply-To: <20170919124326.f3q4c6kwt3cfyyno@paasikivi.fi.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com> <1555926.RTv2yyCEgl@avalon> <20170919124326.f3q4c6kwt3cfyyno@paasikivi.fi.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAF6AEGu1v-_hWbyRfdoWnJN=bqBV_OZcEaNhWgdrjqNamvu62A@mail.gmail.com>
-References: <20170821155203.GB38943@e107564-lin.cambridge.arm.com>
- <4559442.sz5HF0f0o4@avalon> <1504195978.18413.14.camel@ndufresne.ca>
- <1962548.KP01uVGcTd@avalon> <CAF6AEGu1v-_hWbyRfdoWnJN=bqBV_OZcEaNhWgdrjqNamvu62A@mail.gmail.com>
-From: Daniel Vetter <daniel@ffwll.ch>
-Date: Sun, 3 Sep 2017 11:00:43 +0200
-Message-ID: <CAKMK7uG+oP36sipLyV5L+wzWT-C00WXQZRmrFsborjzkoZTQUg@mail.gmail.com>
-Subject: Re: DRM Format Modifiers in v4l2
-To: Rob Clark <robdclark@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, jonathan.chai@arm.com,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 1, 2017 at 2:43 PM, Rob Clark <robdclark@gmail.com> wrote:
-> On Fri, Sep 1, 2017 at 3:13 AM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
->> Hi Nicolas,
->>
->> On Thursday, 31 August 2017 19:12:58 EEST Nicolas Dufresne wrote:
->>> Le jeudi 31 ao=C3=BBt 2017 =C3=A0 17:28 +0300, Laurent Pinchart a =C3=
-=A9crit :
->>> >> e.g. if I have two devices which support MODIFIER_FOO, I could attem=
-pt
->>> >> to share a buffer between them which uses MODIFIER_FOO without
->>> >> necessarily knowing exactly what it is/does.
->>> >
->>> > Userspace could certainly set modifiers blindly, but the point of
->>> > modifiers is to generate side effects benefitial to the use case at h=
-and
->>> > (for instance by optimizing the memory access pattern). To use them
->>> > meaningfully userspace would need to have at least an idea of the sid=
-e
->>> > effects they generate.
->>>
->>> Generic userspace will basically pick some random combination.
->>
->> In that case userspace could set no modifier at all by default (except i=
-n the
->> case where unmodified formats are not supported by the hardware, but I d=
-on't
->> expect that to be the most common case).
->>
->>> To allow generically picking the optimal configuration we could indeed =
-rely
->>> on the application knowledge, but we could also enhance the spec so tha=
-t
->>> the order in the enumeration becomes meaningful.
->>
->> I'm not sure how far we should go. I could imagine a system where the AP=
-I
->> would report capabilities for modifiers (e.g. this modifier lowers the
->> bandwidth, this one enhances the quality, ...), but going in that direct=
-ion,
->> where do we stop ? In practice I expect userspace to know some informati=
-on
->> about the hardware, so I'd rather avoid over-engineering the API.
->>
->
-> I think in the (hopefully not too) long term, something like
-> https://github.com/cubanismo/allocator/ is the way forward.  That
-> doesn't quite solve how v4l2 kernel part sorts out w/ corresponding
-> userspace .so what is preferable, but at least that is
-> compartmentalized to v4l2.. on the gl/vk side of things there will ofc
-> be a hardware specific userspace part that knows what it prefers.  For
-> v4l2, it probably makes sense to sort out what the userspace level API
-> is and work backwards from there, rather than risk trying to design a
-> kernel uapi that might turn out to be the wrong thing.
+Hi Sakari,
 
-I thought for kms the plan is to make the ordering meaningful, because
-it doesn't necessarily match the gl/vk one. E.g. on intel gl would
-prefer Y compressed, Y, X, untiled. Whereas display would be Y
-compressed, X (much easier to scan out, in many cases allows more
-planes to be used), Y (is necessary for 90=C2=B0 rotation), untiled. So if
-drm_hwc really wants to use all the planes, it could prioritize the
-display over rendering and request X instead of Y tiled.
+On Tuesday, 19 September 2017 15:43:26 EEST Sakari Ailus wrote:
+> On Tue, Sep 19, 2017 at 02:40:29PM +0300, Laurent Pinchart wrote:
+> > > @@ -2256,7 +2210,9 @@ static int isp_probe(struct platform_device *pdev)
+> > > 
+> > >  	if (ret)
+> > >  	
+> > >  		return ret;
+> > > 
+> > > -	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
+> > > +	ret = v4l2_async_notifier_parse_fwnode_endpoints(
+> > > +		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
+> > > +		isp_fwnode_parse);
+> > > 
+> > >  	if (ret < 0)
+> > 
+> > The documentation in patch 05/25 states that v4l2_async_notifier_release()
+> > should be called even if v4l2_async_notifier_parse_fwnode_endpoints()
+> > fails. I don't think that's needed here, so you might want to update the
+> > documentation (and possibly the implementation of the function).
+> 
+> It is. If parsing fails, async sub-devices may have been already set up.
+> This happens e.g. when the parsing fails after the first one has been
+> successfully set up already.
 
-I think the same would go for v4l.
--Daniel
---=20
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+But for v4l2_async_notifier_parse_fwnode_endpoints() we could clean up 
+internally when an error occurs. Otherwise you need to call 
+v4l2_async_notifier_release() here.
+
+-- 
+Regards,
+
+Laurent Pinchart
