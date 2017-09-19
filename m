@@ -1,122 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33336 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751326AbdILImk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 04:42:40 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v11 02/24] v4l: async: Remove re-probing support
-Date: Tue, 12 Sep 2017 11:42:14 +0300
-Message-Id: <20170912084236.1154-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
-References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+Received: from unicorn.mansr.com ([81.2.72.234]:52138 "EHLO unicorn.mansr.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751754AbdISLyU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 07:54:20 -0400
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+To: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+Cc: Sean Young <sean@mess.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>,
+        Mason <slash.tmp@free.fr>
+Subject: Re: [PATCH v1] media: rc: Add driver for tango IR decoder
+References: <e05783d3-012d-0798-9a54-ff42039e728d@sigmadesigns.com>
+        <yw1xd16oyqas.fsf@mansr.com>
+        <a898310b-3286-43cb-3c0e-4359239c49cf@sigmadesigns.com>
+        <yw1x60cfyq7a.fsf@mansr.com>
+        <f0fd5679-5e24-c0fc-e22a-6a819028baad@sigmadesigns.com>
+Date: Tue, 19 Sep 2017 12:54:18 +0100
+In-Reply-To: <f0fd5679-5e24-c0fc-e22a-6a819028baad@sigmadesigns.com> (Marc
+        Gonzalez's message of "Tue, 19 Sep 2017 13:34:38 +0200")
+Message-ID: <yw1x1sn2zyxh.fsf@mansr.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove V4L2 async re-probing support. The re-probing support has been
-there to support cases where the sub-devices require resources provided by
-the main driver's hardware to function, such as clocks.
+Marc Gonzalez <marc_gonzalez@sigmadesigns.com> writes:
 
-Reprobing has allowed unbinding and again binding the main driver without
-explicilty unbinding the sub-device drivers. This is certainly not a
-common need, and the responsibility will be the user's going forward.
+> On 19/09/2017 11:48, Måns Rullgård wrote:
+>
+>> Did you test the NEC32 variant?  I don't have anything that produces
+>> such codes.
+>
+> I don't have a NEC32 IR remote control either.
+>
+> IIUC, NEC32 means 16-bit address and 16-bit command.
+>
+> I checked the RTL with a HW engineer. The HW block translates the IR
+> pulses into logical 1s and 0s according to the protocol parameters,
+> stuffs the logical bits into a register, and fires an IRQ when there
+> are 32 bits available. The block doesn't care if the bits are significant
+> or just checksums (that is left up to software).
 
-An alternative could have been to introduce notifier specific locks.
-Considering the complexity of the re-probing and that it isn't really a
-solution to a problem but a workaround, remove re-probing instead.
+In that case I suppose it ought to just work.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 54 ------------------------------------
- 1 file changed, 54 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index d741a8e0fdac..e109d9da4653 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -198,78 +198,24 @@ EXPORT_SYMBOL(v4l2_async_notifier_register);
- void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- {
- 	struct v4l2_subdev *sd, *tmp;
--	unsigned int notif_n_subdev = notifier->num_subdevs;
--	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
--	struct device **dev;
--	int i = 0;
- 
- 	if (!notifier->v4l2_dev)
- 		return;
- 
--	dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
--	if (!dev) {
--		dev_err(notifier->v4l2_dev->dev,
--			"Failed to allocate device cache!\n");
--	}
--
- 	mutex_lock(&list_lock);
- 
- 	list_del(&notifier->list);
- 
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
--		struct device *d;
--
--		d = get_device(sd->dev);
--
- 		v4l2_async_cleanup(sd);
- 
--		/* If we handled USB devices, we'd have to lock the parent too */
--		device_release_driver(d);
--
- 		if (notifier->unbind)
- 			notifier->unbind(notifier, sd, sd->asd);
--
--		/*
--		 * Store device at the device cache, in order to call
--		 * put_device() on the final step
--		 */
--		if (dev)
--			dev[i++] = d;
--		else
--			put_device(d);
- 	}
- 
- 	mutex_unlock(&list_lock);
- 
--	/*
--	 * Call device_attach() to reprobe devices
--	 *
--	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
--	 * executed.
--	 */
--	while (i--) {
--		struct device *d = dev[i];
--
--		if (d && device_attach(d) < 0) {
--			const char *name = "(none)";
--			int lock = device_trylock(d);
--
--			if (lock && d->driver)
--				name = d->driver->name;
--			dev_err(d, "Failed to re-probe to %s\n", name);
--			if (lock)
--				device_unlock(d);
--		}
--		put_device(d);
--	}
--	kvfree(dev);
--
- 	notifier->v4l2_dev = NULL;
--
--	/*
--	 * Don't care about the waiting list, it is initialised and populated
--	 * upon notifier registration.
--	 */
- }
- EXPORT_SYMBOL(v4l2_async_notifier_unregister);
- 
 -- 
-2.11.0
+Måns Rullgård
