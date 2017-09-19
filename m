@@ -1,46 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp13.smtpout.orange.fr ([80.12.242.135]:60670 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752025AbdIKQyQ (ORCPT
+Received: from us-smtp-delivery-107.mimecast.com ([63.128.21.107]:28683 "EHLO
+        us-smtp-delivery-107.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751735AbdISLxg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 12:54:16 -0400
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-To: mchehab@kernel.org, hans.verkuil@cisco.com, Julia.Lawall@lip6.fr
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: [PATCH V2] media: v4l2-pci-skeleton: Fix error handling path in 'skeleton_probe()'
-Date: Mon, 11 Sep 2017 18:53:07 +0200
-Message-Id: <20170911165307.17139-1-christophe.jaillet@wanadoo.fr>
+        Tue, 19 Sep 2017 07:53:36 -0400
+Subject: Re: [PATCH v1] media: rc: Add driver for tango IR decoder
+To: Mans Rullgard <mans@mansr.com>, Sean Young <sean@mess.org>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>,
+        Mason <slash.tmp@free.fr>
+References: <e05783d3-012d-0798-9a54-ff42039e728d@sigmadesigns.com>
+ <yw1xd16oyqas.fsf@mansr.com>
+From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+Message-ID: <569e41a9-57c9-3d6f-4157-dffb23f997c6@sigmadesigns.com>
+Date: Tue, 19 Sep 2017 13:53:30 +0200
+MIME-Version: 1.0
+In-Reply-To: <yw1xd16oyqas.fsf@mansr.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If this memory allocation fails, we must release some resources, as
-already done in the code below and above.
+On 18/09/2017 17:33, Måns Rullgård wrote:
 
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
----
-v2: linux-media@vger.kernel.org added in cc
----
- samples/v4l/v4l2-pci-skeleton.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+> What have you changed compared to my original code?
 
-diff --git a/samples/v4l/v4l2-pci-skeleton.c b/samples/v4l/v4l2-pci-skeleton.c
-index 483e9bca9444..f520e3aef9c6 100644
---- a/samples/v4l/v4l2-pci-skeleton.c
-+++ b/samples/v4l/v4l2-pci-skeleton.c
-@@ -772,8 +772,10 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 
- 	/* Allocate a new instance */
- 	skel = devm_kzalloc(&pdev->dev, sizeof(struct skeleton), GFP_KERNEL);
--	if (!skel)
--		return -ENOMEM;
-+	if (!skel) {
-+		ret = -ENOMEM;
-+		goto disable_pci;
-+	}
- 
- 	/* Allocate the interrupt */
- 	ret = devm_request_irq(&pdev->dev, pdev->irq,
--- 
-2.11.0
+I forgot to mention one change you may not approve of, so we should
+probably discuss it.
+
+Your driver supported an optional DT property "linux,rc-map-name"
+to override the RC_MAP_EMPTY map. Since the IR decoder supports
+multiple protocols, I found it odd to specify a scancode map in
+something as low-level as the device tree.
+
+I saw only one board using that property:
+$ git grep "linux,rc-map-name" arch/
+arch/arm64/boot/dts/amlogic/meson-gxl-s905x-khadas-vim.dts:     linux,rc-map-name = "rc-geekbox";
+
+So I removed support for "linux,rc-map-name" and used ir-keytable
+to load a given map from user-space, depending on which RC I use.
+
+Mans, Sean, what do you think?
+
+Regards.
