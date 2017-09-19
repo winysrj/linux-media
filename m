@@ -1,39 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.246]:22224 "EHLO
-        DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750770AbdINFM1 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37573 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751237AbdISKsX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Sep 2017 01:12:27 -0400
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Jonathan Corbet <corbet@lwn.net>
-CC: Nicolas Ferre <nicolas.ferre@microchip.com>,
-        <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH v2 0/3] media: ov7670: Add entity init and power operation
-Date: Thu, 14 Sep 2017 13:11:08 +0800
-Message-ID: <20170914051111.18197-1-wenyou.yang@microchip.com>
+        Tue, 19 Sep 2017 06:48:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
+        sre@kernel.org
+Subject: Re: [PATCH v13 01/25] v4l: fwnode: Move KernelDoc documentation to the header
+Date: Tue, 19 Sep 2017 13:48:27 +0300
+Message-ID: <9077921.hsjkiRftLf@avalon>
+In-Reply-To: <20170915141724.23124-2-sakari.ailus@linux.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com> <20170915141724.23124-2-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set is to add the media entity pads initialization,
-the s_power operation and get_fmt callback support.
+Hi Sakari,
 
-Changes in v2:
- - Add the patch to support the get_fmt ops.
- - Remove the redundant invoking ov7670_init_gpio().
+Thank you for the patch.
 
-Wenyou Yang (3):
-  media: ov7670: Add entity pads initialization
-  media: ov7670: Add the get_fmt callback
-  media: ov7670: Add the s_power operation
+On Friday, 15 September 2017 17:17:00 EEST Sakari Ailus wrote:
+> In V4L2 the practice is to have the KernelDoc documentation in the header
+> and not in .c source code files. This consequently makes the V4L2 fwnode
+> function documentation part of the Media documentation build.
+>=20
+> Also correct the link related function and argument naming in
+> documentation.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
 
- drivers/media/i2c/ov7670.c | 71 ++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 65 insertions(+), 6 deletions(-)
+I'm still very opposed to this. In addition to increasing the risk of=20
+documentation becoming stale, it also makes review more difficult. I'm=20
+reviewing patch 05/25 of this series and I have to jump around the patch to=
+=20
+verify that the documentation matches the implementation, it's really=20
+annoying.
 
--- 
-2.13.0
+We should instead move all function documentation from header files to sour=
+ce=20
+files.
+
+> ---
+>  drivers/media/v4l2-core/v4l2-fwnode.c | 75 -----------------------------=
+=2D--
+> include/media/v4l2-fwnode.h            | 81 +++++++++++++++++++++++++++++=
+++-
+> 2 files changed, 80 insertions(+), 76 deletions(-)
+
+[snip]
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
