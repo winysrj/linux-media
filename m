@@ -1,127 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33506 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751519AbdILImv (ORCPT
+Received: from mx08-00252a01.pphosted.com ([91.207.212.211]:38152 "EHLO
+        mx08-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751845AbdISPNC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 04:42:51 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v11 22/24] ov5670: Add support for flash and lens devices
-Date: Tue, 12 Sep 2017 11:42:34 +0300
-Message-Id: <20170912084236.1154-23-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
-References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+        Tue, 19 Sep 2017 11:13:02 -0400
+Received: from pps.filterd (m0102629.ppops.net [127.0.0.1])
+        by mx08-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v8JF8wUq027500
+        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 16:13:00 +0100
+Received: from mail-pg0-f71.google.com (mail-pg0-f71.google.com [74.125.83.71])
+        by mx08-00252a01.pphosted.com with ESMTP id 2d0reg1mee-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 16:13:00 +0100
+Received: by mail-pg0-f71.google.com with SMTP id p5so6967479pgn.7
+        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 08:13:00 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170919143248.c65slho3l5vnvzku@rob-hp-laptop>
+References: <cover.1505314390.git.dave.stevenson@raspberrypi.org>
+ <9ad8b23d5c394b64ed02f9a5ebc49209696a5ace.1505314390.git.dave.stevenson@raspberrypi.org>
+ <20170919143248.c65slho3l5vnvzku@rob-hp-laptop>
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Tue, 19 Sep 2017 16:12:57 +0100
+Message-ID: <CAAoAYcMVYRgzVUt4j9gMNmL7jYtS1Mmt5mhQw_Xca=Sq=eTU2A@mail.gmail.com>
+Subject: Re: [PATCH v2 2/4] [media] dt-bindings: Document BCM283x CSI2/CCP2 receiver
+To: Rob Herring <robh@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse async sub-devices by using
-v4l2_subdev_fwnode_reference_parse_sensor_common().
+Hi Rob.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/ov5670.c | 33 +++++++++++++++++++++++++--------
- 1 file changed, 25 insertions(+), 8 deletions(-)
+Thanks for the review.
 
-diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
-index 6f7a1d6d2200..25970307dd75 100644
---- a/drivers/media/i2c/ov5670.c
-+++ b/drivers/media/i2c/ov5670.c
-@@ -18,6 +18,7 @@
- #include <linux/pm_runtime.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
- 
- #define OV5670_REG_CHIP_ID		0x300a
- #define OV5670_CHIP_ID			0x005670
-@@ -1807,6 +1808,7 @@ static const struct ov5670_mode supported_modes[] = {
- struct ov5670 {
- 	struct v4l2_subdev sd;
- 	struct media_pad pad;
-+	struct v4l2_async_notifier notifier;
- 
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	/* V4L2 Controls */
-@@ -2473,11 +2475,13 @@ static int ov5670_probe(struct i2c_client *client)
- 		return -EINVAL;
- 
- 	ov5670 = devm_kzalloc(&client->dev, sizeof(*ov5670), GFP_KERNEL);
--	if (!ov5670) {
--		ret = -ENOMEM;
--		err_msg = "devm_kzalloc() error";
--		goto error_print;
--	}
-+	if (!ov5670)
-+		return -ENOMEM;
-+
-+	ret = v4l2_fwnode_reference_parse_sensor_common(
-+		&client->dev, &ov5670->notifier);
-+	if (ret < 0)
-+		return ret;
- 
- 	/* Initialize subdev */
- 	v4l2_i2c_subdev_init(&ov5670->sd, client, &ov5670_subdev_ops);
-@@ -2486,7 +2490,7 @@ static int ov5670_probe(struct i2c_client *client)
- 	ret = ov5670_identify_module(ov5670);
- 	if (ret) {
- 		err_msg = "ov5670_identify_module() error";
--		goto error_print;
-+		goto error_release_notifier;
- 	}
- 
- 	mutex_init(&ov5670->mutex);
-@@ -2513,11 +2517,18 @@ static int ov5670_probe(struct i2c_client *client)
- 		goto error_handler_free;
- 	}
- 
-+	ret = v4l2_async_subdev_notifier_register(&ov5670->sd,
-+						  &ov5670->notifier);
-+	if (ret) {
-+		err_msg = "can't register async notifier";
-+		goto error_entity_cleanup;
-+	}
-+
- 	/* Async register for subdev */
- 	ret = v4l2_async_register_subdev(&ov5670->sd);
- 	if (ret < 0) {
- 		err_msg = "v4l2_async_register_subdev() error";
--		goto error_entity_cleanup;
-+		goto error_unregister_notifier;
- 	}
- 
- 	ov5670->streaming = false;
-@@ -2533,6 +2544,9 @@ static int ov5670_probe(struct i2c_client *client)
- 
- 	return 0;
- 
-+error_unregister_notifier:
-+	v4l2_async_notifier_unregister(&ov5670->notifier);
-+
- error_entity_cleanup:
- 	media_entity_cleanup(&ov5670->sd.entity);
- 
-@@ -2542,7 +2556,8 @@ static int ov5670_probe(struct i2c_client *client)
- error_mutex_destroy:
- 	mutex_destroy(&ov5670->mutex);
- 
--error_print:
-+error_release_notifier:
-+	v4l2_async_notifier_release(&ov5670->notifier);
- 	dev_err(&client->dev, "%s: %s %d\n", __func__, err_msg, ret);
- 
- 	return ret;
-@@ -2554,6 +2569,8 @@ static int ov5670_remove(struct i2c_client *client)
- 	struct ov5670 *ov5670 = to_ov5670(sd);
- 
- 	v4l2_async_unregister_subdev(sd);
-+	v4l2_async_notifier_unregister(&ov5670->notifier);
-+	v4l2_async_notifier_release(&ov5670->notifier);
- 	media_entity_cleanup(&sd->entity);
- 	v4l2_ctrl_handler_free(sd->ctrl_handler);
- 	mutex_destroy(&ov5670->mutex);
--- 
-2.11.0
+On 19 September 2017 at 15:32, Rob Herring <robh@kernel.org> wrote:
+> On Wed, Sep 13, 2017 at 04:07:47PM +0100, Dave Stevenson wrote:
+>> Document the DT bindings for the CSI2/CCP2 receiver peripheral
+>> (known as Unicam) on BCM283x SoCs.
+>>
+>> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+>> ---
+>>  .../devicetree/bindings/media/bcm2835-unicam.txt   | 107 +++++++++++++++++++++
+>>  1 file changed, 107 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/bcm2835-unicam.txt b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+>> new file mode 100644
+>> index 0000000..2ee5af7
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+>> @@ -0,0 +1,107 @@
+>> +Broadcom BCM283x Camera Interface (Unicam)
+>> +------------------------------------------
+>> +
+>> +The Unicam block on BCM283x SoCs is the receiver for either
+>> +CSI-2 or CCP2 data from image sensors or similar devices.
+>> +
+>> +There are two camera drivers in the kernel for BCM283x - this one
+>> +and bcm2835-camera (currently in staging).
+>
+> Linux detail that is n/a for bindings.
+>
+>> +
+>> +This driver is purely the kernel controlling the Unicam peripheral - there
+>
+> Bindings describe h/w blocks, not drivers.
+>
+>> +is no involvement with the VideoCore firmware. Unicam receives CSI-2
+>> +(or CCP2) data and writes it into SDRAM. There is no additional processing
+>> +performed.
+>> +It should be possible to connect it to any sensor with a
+>> +suitable output interface and V4L2 subdevice driver.
+>> +
+>> +bcm2835-camera uses the VideoCore firmware to control the sensor,
+>> +Unicam, ISP, and various tuner control loops. Fully processed frames are
+>> +delivered to the driver by the firmware. It only has sensor drivers
+>> +for Omnivision OV5647, and Sony IMX219 sensors, and is closed source.
+>> +
+>> +The two drivers are mutually exclusive for the same Unicam instance.
+>> +The firmware checks the device tree configuration during boot. If
+>> +it finds device tree nodes called csi0 or csi1 then it will block the
+>> +firmware from accessing the peripheral, and bcm2835-camera will
+>> +not be able to stream data.
+>
+> All interesting, but irrelavent to the binding other than the part about
+> node name. Reword to just state the requirements to get the firmware to
+> ignore things.
+
+Hans had suggested it was potentially appropriate for DT bindings too
+on last review [1] (which I apologise for missing off devicetree folk
+from), but I'll remove all mention of Linux/driver detail for v3.
+That will leave only a reworded version of the bit about making the
+firmware ignore the blocks.
+
+[1] http://www.spinics.net/lists/linux-media/msg117047.html
+
+>> +It should be possible to use bcm2835-camera on one camera interface
+>> +and bcm2835-unicam on the other interface if there is a need to.
+>
+> For upstream, I don't think we care to support that. We don't need 2
+> bindings.
+
+I'll remove as irrelevant, but in that case wouldn't you have 2
+bindings - one to bcm2835-camera which references the vchi node to the
+GPU, and one to bcm2835-unicam that gives the full block config as
+being discussed in this doc.
+(Currently bcm2835-camera is a platform device so has no binding doc).
+This probably isn't the place for such a discussion.
+
+>> +
+>> +Required properties:
+>> +===================
+>> +- compatible : must be "brcm,bcm2835-unicam".
+>> +- reg                : physical base address and length of the register sets for the
+>> +               device.
+>> +- interrupts : should contain the IRQ line for this Unicam instance.
+>> +- clocks     : list of clock specifiers, corresponding to entries in
+>> +               clock-names property.
+>> +- clock-names        : must contain an "lp_clock" entry, matching entries
+>> +               in the clocks property.
+>
+> _clock is redundant.
+
+So just "lp" as the clock name? Will assume so.
+
+>> +
+>> +Unicam supports a single port node. It should contain one 'port' child node
+>> +with child 'endpoint' node. Please refer to the bindings defined in
+>> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+>> +
+>> +Within the endpoint node, the following properties are mandatory:
+>> +- remote-endpoint    : links to the source device endpoint.
+>> +- data-lanes         : An array denoting how many data lanes are physically
+>> +                       present for this CSI-2 receiver instance. This can
+>> +                       be limited by either the SoC itself, or by the
+>> +                       breakout on the platform.
+>> +                       Lane reordering is not supported, so lanes must be
+>> +                       in order, starting at 1.
+>
+> Just refer to docs for standard properties. Just add any info on limits
+> of values like number of cells.
+
+So again from v1 Sakari had asked for a statement of mandatory
+properties for the endpoint [1].
+Would you be happy with something like:
+"Within the endpoint node the "remote-endpoint" and "data-lanes"
+properties are mandatory. Lane reordering is not supported so the
+lanes must be in order, starting at 1. The number of data lanes should
+represent the number of lanes usable on the platform, which may be
+limited by the SoC or the platform breakout."
+
+[1] http://www.spinics.net/lists/linux-media/msg117080.html
+
+>> +
+>> +Lane reordering is not supported on the clock lane, so the optional property
+>> +"clock-lane" will implicitly be <0>.
+>> +Similarly lane inversion is not supported, therefore "lane-polarities" will
+>> +implicitly be <0 0 0 0 0>.
+>> +Neither of these values will be checked.
+>> +
+>> +Example:
+>> +     csi1: csi@7e801000 {
+>
+> I thought the node had to be called csi0 or csi1. The label (csi1) will
+> be gone from the compiled dtb.
+
+Yes, typo :-(
+
+>> +             compatible = "brcm,bcm2835-unicam";
+>> +             reg = <0x7e801000 0x800>,
+>> +                   <0x7e802004 0x4>;
+>> +             interrupts = <2 7>;
+>> +             clocks = <&clocks BCM2835_CLOCK_CAM1>;
+>> +             clock-names = "lp_clock";
+>> +
+>> +             port {
+>> +                     #address-cells = <1>;
+>> +                     #size-cells = <0>;
+>
+> Don't need these with a single endpoint.
+
+OK.
+
+>> +
+>> +                     csi1_ep: endpoint {
+>> +                             remote-endpoint = <&tc358743_0>;
+>> +                             data-lanes = <1 2>;
+>> +                     };
+>> +             };
+>> +     };
+>> +
+>> +     i2c0: i2c@7e205000 {
+>> +
+>> +             tc358743: csi-hdmi-bridge@0f {
+>> +                     compatible = "toshiba,tc358743";
+>> +                     reg = <0x0f>;
+>> +                     status = "okay";
+>
+> Don't show status in examples.
+
+OK.
+
+>> +
+>> +                     clocks = <&tc358743_clk>;
+>> +                     clock-names = "refclk";
+>> +
+>> +                     tc358743_clk: bridge-clk {
+>> +                             compatible = "fixed-clock";
+>> +                             #clock-cells = <0>;
+>> +                             clock-frequency = <27000000>;
+>> +                     };
+>> +
+>> +                     port {
+>> +                             tc358743_0: endpoint {
+>> +                                     remote-endpoint = <&csi1_ep>;
+>> +                                     clock-lanes = <0>;
+>> +                                     data-lanes = <1 2>;
+>> +                                     clock-noncontinuous;
+>> +                                     link-frequencies =
+>> +                                             /bits/ 64 <297000000>;
+>> +                             };
+>> +                     };
+>> +             };
+>> +     };
+>> --
+>> 2.7.4
+>>
+
+Thanks.
+  Dave
