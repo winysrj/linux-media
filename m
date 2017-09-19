@@ -1,119 +1,374 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46536
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752171AbdIVVrN (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38615 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751411AbdISNwZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 17:47:13 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 3/8] media: v4l2-common: get rid of struct v4l2_discrete_probe
-Date: Fri, 22 Sep 2017 18:47:01 -0300
-Message-Id: <8a2157bc67ed496de1a2cda0a3a0d38c31d0f392.1506116720.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
-References: <cover.1506116720.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
-References: <cover.1506116720.git.mchehab@s-opensource.com>
+        Tue, 19 Sep 2017 09:52:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
+        sre@kernel.org
+Subject: Re: [PATCH v13 14/25] v4l: async: Allow binding notifiers to sub-devices
+Date: Tue, 19 Sep 2017 16:52:29 +0300
+Message-ID: <3338675.o4HGi8X83V@avalon>
+In-Reply-To: <20170915141724.23124-15-sakari.ailus@linux.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com> <20170915141724.23124-15-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This struct is there just two store two arguments of
-v4l2_find_nearest_format(). The other two arguments are passed
-as parameter.
+Hi Sakari,
 
-IMHO, there isn't much sense on doing that, and that will just
-add one more struct to document ;)
+Thank you for the patch.
 
-So, let's get rid of the struct, passing the parameters directly.
+On Friday, 15 September 2017 17:17:13 EEST Sakari Ailus wrote:
+> Registering a notifier has required the knowledge of struct v4l2_device
+> for the reason that sub-devices generally are registered to the
+> v4l2_device (as well as the media device, also available through
+> v4l2_device).
+> 
+> This information is not available for sub-device drivers at probe time.
+> 
+> What this patch does is that it allows registering notifiers without
+> having v4l2_device around. Instead the sub-device pointer is stored in the
+> notifier. Once the sub-device of the driver that registered the notifier
+> is registered, the notifier will gain the knowledge of the v4l2_device,
+> and the binding of async sub-devices from the sub-device driver's notifier
+> may proceed.
+> 
+> The root notifier's complete callback is only called when all sub-device
+> notifiers are completed.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/platform/vivid/vivid-vid-cap.c |  9 +++------
- drivers/media/v4l2-core/v4l2-common.c        | 13 +++++++------
- include/media/v4l2-common.h                  | 12 ++++--------
- 3 files changed, 14 insertions(+), 20 deletions(-)
+This is a bit hard to review, shouldn't it be split in two patches, one that 
+refactors the functions, and another one that allows binding notifiers to 
+subdevs ?
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index 01419455e545..0fbbcde19f0d 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -93,11 +93,6 @@ static const struct v4l2_fract webcam_intervals[VIVID_WEBCAM_IVALS] = {
- 	{  1, 60 },
- };
- 
--static const struct v4l2_discrete_probe webcam_probe = {
--	webcam_sizes,
--	VIVID_WEBCAM_SIZES
--};
--
- static int vid_cap_queue_setup(struct vb2_queue *vq,
- 		       unsigned *nbuffers, unsigned *nplanes,
- 		       unsigned sizes[], struct device *alloc_devs[])
-@@ -578,7 +573,9 @@ int vivid_try_fmt_vid_cap(struct file *file, void *priv,
- 	mp->field = vivid_field_cap(dev, mp->field);
- 	if (vivid_is_webcam(dev)) {
- 		const struct v4l2_frmsize_discrete *sz =
--			v4l2_find_nearest_format(&webcam_probe, mp->width, mp->height);
-+			v4l2_find_nearest_format(webcam_sizes,
-+						 VIVID_WEBCAM_SIZES,
-+						 mp->width, mp->height);
- 
- 		w = sz->width;
- 		h = sz->height;
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index a5ea1f517291..fb9a2a3c1072 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -371,18 +371,19 @@ void v4l_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
- }
- EXPORT_SYMBOL_GPL(v4l_bound_align_image);
- 
--const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
--		const struct v4l2_discrete_probe *probe,
--		s32 width, s32 height)
-+const struct v4l2_frmsize_discrete
-+*v4l2_find_nearest_format(const struct v4l2_frmsize_discrete *sizes,
-+			  const size_t num_sizes,
-+			  s32 width, s32 height)
- {
- 	int i;
- 	u32 error, min_error = UINT_MAX;
- 	const struct v4l2_frmsize_discrete *size, *best = NULL;
- 
--	if (!probe)
--		return best;
-+	if (!sizes)
-+		return NULL;
- 
--	for (i = 0, size = probe->sizes; i < probe->num_sizes; i++, size++) {
-+	for (i = 0, size = sizes; i < num_sizes; i++, size++) {
- 		error = abs(size->width - width) + abs(size->height - height);
- 		if (error < min_error) {
- 			min_error = error;
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 7dbecbe3009c..7ae7840df068 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -249,14 +249,10 @@ void v4l_bound_align_image(unsigned int *w, unsigned int wmin,
- 			   unsigned int hmax, unsigned int halign,
- 			   unsigned int salign);
- 
--struct v4l2_discrete_probe {
--	const struct v4l2_frmsize_discrete	*sizes;
--	int					num_sizes;
--};
--
--const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
--		const struct v4l2_discrete_probe *probe,
--		s32 width, s32 height);
-+const struct v4l2_frmsize_discrete
-+*v4l2_find_nearest_format(const struct v4l2_frmsize_discrete *sizes,
-+			  const size_t num_sizes,
-+			  s32 width, s32 height);
- 
- void v4l2_get_timestamp(struct timeval *tv);
- 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 218 +++++++++++++++++++++++++++-----
+>  include/media/v4l2-async.h           |  16 ++-
+>  2 files changed, 203 insertions(+), 31 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c
+> b/drivers/media/v4l2-core/v4l2-async.c index 4be2f16af051..52fe22b9b6b4
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -53,6 +53,10 @@ static int v4l2_async_notifier_call_complete(struct
+> v4l2_async_notifier *n) return n->ops->complete(n);
+>  }
+> 
+> +static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+> +				   struct v4l2_subdev *sd,
+> +				   struct v4l2_async_subdev *asd);
+
+Forward declarations are often a sign that something is wrong :-/ If you 
+really need to keep this I'd move it right before the function that needs it.
+
+>  static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev
+> *asd) {
+>  #if IS_ENABLED(CONFIG_I2C)
+> @@ -124,14 +128,127 @@ static struct v4l2_async_subdev
+> *v4l2_async_find_match( return NULL;
+>  }
+> 
+> +/* Find the sub-device notifier registered by a sub-device driver. */
+> +static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
+> +	struct v4l2_subdev *sd)
+> +{
+> +	struct v4l2_async_notifier *n;
+> +
+> +	list_for_each_entry(n, &notifier_list, list)
+> +		if (n->sd == sd)
+> +			return n;
+> +
+> +	return NULL;
+> +}
+> +
+> +/* Return true if all sub-device notifiers are complete, false otherwise.
+> */ 
+> +static bool v4l2_async_subdev_notifiers_complete(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	struct v4l2_subdev *sd;
+> +
+> +	if (!list_empty(&notifier->waiting))
+> +		return false;
+> +
+> +	list_for_each_entry(sd, &notifier->done, async_list) {
+> +		struct v4l2_async_notifier *subdev_notifier =
+> +			v4l2_async_find_subdev_notifier(sd);
+> +
+> +		if (subdev_notifier &&
+> +		    !v4l2_async_subdev_notifiers_complete(subdev_notifier))
+> +			return false;
+
+This will loop forever if two subdevs add each other to their respective 
+notifiers. We might not have any use case for that right now, but it's bound 
+to happen, at least as a bug during development, and an infinite loop (with an 
+additional stack overflow bonus) isn't very nice to debug.
+
+> +	}
+> +
+> +	return true;
+> +}
+> +
+> +/* Get v4l2_device related to the notifier if one can be found. */
+> +static struct v4l2_device *v4l2_async_notifier_find_v4l2_dev(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	while (notifier->parent)
+> +		notifier = notifier->parent;
+> +
+> +	return notifier->v4l2_dev;
+> +}
+> +
+> +/* Test all async sub-devices in a notifier for a match. */
+> +static int v4l2_async_notifier_try_all_subdevs(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	struct v4l2_subdev *sd;
+> +
+> +	if (!v4l2_async_notifier_find_v4l2_dev(notifier))
+> +		return 0;
+> +
+> +again:
+> +	list_for_each_entry(sd, &subdev_list, async_list) {
+> +		struct v4l2_async_subdev *asd;
+> +		int ret;
+> +
+> +		asd = v4l2_async_find_match(notifier, sd);
+> +		if (!asd)
+> +			continue;
+> +
+> +		ret = v4l2_async_match_notify(notifier, sd, asd);
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +		/*
+> +		 * v4l2_async_match_notify() may lead to registering a
+> +		 * new notifier and thus changing the async subdevs
+> +		 * list. In order to proceed safely from here, restart
+> +		 * parsing the list from the beginning.
+> +		 */
+> +		goto again;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +/* Try completing a notifier. */
+> +static int v4l2_async_notifier_try_complete(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	do {
+> +		int ret;
+> +
+> +		/* Any local async sub-devices left? */
+> +		if (!list_empty(&notifier->waiting))
+> +			return 0;
+> +
+> +		/*
+> +		 * Any sub-device notifiers waiting for async subdevs
+> +		 * to be bound?
+> +		 */
+> +		if (!v4l2_async_subdev_notifiers_complete(notifier))
+> +			return 0;
+> +
+> +		/* Proceed completing the notifier */
+> +		ret = v4l2_async_notifier_call_complete(notifier);
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +		/*
+> +		 * Obtain notifier's parent. If there is one, repeat
+> +		 * the process, otherwise we're done here.
+> +		 */
+> +		notifier = notifier->parent;
+> +	} while (notifier);
+> +
+> +	return 0;
+> +}
+> +
+>  static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+>  				   struct v4l2_subdev *sd,
+>  				   struct v4l2_async_subdev *asd)
+>  {
+> +	struct v4l2_async_notifier *subdev_notifier;
+>  	int ret;
+> 
+> -	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+> -	if (ret < 0)
+> +	ret = v4l2_device_register_subdev(
+> +		v4l2_async_notifier_find_v4l2_dev(notifier), sd);
+> +	if (ret)
+>  		return ret;
+> 
+>  	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
+> @@ -148,10 +265,20 @@ static int v4l2_async_match_notify(struct
+> v4l2_async_notifier *notifier, /* Move from the global subdevice list to
+> notifier's done */
+>  	list_move(&sd->async_list, &notifier->done);
+> 
+> -	if (list_empty(&notifier->waiting))
+> -		return v4l2_async_notifier_call_complete(notifier);
+> +	/*
+> +	 * See if the sub-device has a notifier. If it does, proceed
+> +	 * with checking for its async sub-devices.
+> +	 */
+> +	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
+> +	if (subdev_notifier && !subdev_notifier->parent) {
+> +		subdev_notifier->parent = notifier;
+> +		ret = v4l2_async_notifier_try_all_subdevs(subdev_notifier);
+> +		if (ret)
+> +			return ret;
+> +	}
+> 
+> -	return 0;
+> +	/* Try completing the notifier and its parent(s). */
+> +	return v4l2_async_notifier_try_complete(notifier);
+>  }
+> 
+>  static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+> @@ -163,17 +290,15 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+> sd->dev = NULL;
+>  }
+> 
+> -int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> -				 struct v4l2_async_notifier *notifier)
+> +static int __v4l2_async_notifier_register(struct v4l2_async_notifier
+> *notifier) {
+> -	struct v4l2_subdev *sd, *tmp;
+>  	struct v4l2_async_subdev *asd;
+> +	int ret;
+>  	int i;
+> 
+> -	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+> +	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+>  		return -EINVAL;
+> 
+> -	notifier->v4l2_dev = v4l2_dev;
+>  	INIT_LIST_HEAD(&notifier->waiting);
+>  	INIT_LIST_HEAD(&notifier->done);
+> 
+> @@ -200,18 +325,10 @@ int v4l2_async_notifier_register(struct v4l2_device
+> *v4l2_dev,
+> 
+>  	mutex_lock(&list_lock);
+> 
+> -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+> -		int ret;
+> -
+> -		asd = v4l2_async_find_match(notifier, sd);
+> -		if (!asd)
+> -			continue;
+> -
+> -		ret = v4l2_async_match_notify(notifier, sd, asd);
+> -		if (ret < 0) {
+> -			mutex_unlock(&list_lock);
+> -			return ret;
+> -		}
+> +	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+> +	if (ret) {
+> +		mutex_unlock(&list_lock);
+> +		return ret;
+>  	}
+> 
+>  	/* Keep also completed notifiers on the list */
+> @@ -221,29 +338,70 @@ int v4l2_async_notifier_register(struct v4l2_device
+> *v4l2_dev,
+> 
+>  	return 0;
+>  }
+> +
+> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> +				 struct v4l2_async_notifier *notifier)
+> +{
+> +	if (WARN_ON(!v4l2_dev || notifier->sd))
+> +		return -EINVAL;
+> +
+> +	notifier->v4l2_dev = v4l2_dev;
+> +
+> +	return __v4l2_async_notifier_register(notifier);
+> +}
+>  EXPORT_SYMBOL(v4l2_async_notifier_register);
+> 
+> -void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> +int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
+> +					struct v4l2_async_notifier *notifier)
+>  {
+> -	struct v4l2_subdev *sd, *tmp;
+> +	if (WARN_ON(!sd || notifier->v4l2_dev))
+> +		return -EINVAL;
+> 
+> -	if (!notifier->v4l2_dev)
+> -		return;
+> +	notifier->sd = sd;
+> 
+> -	mutex_lock(&list_lock);
+> +	return __v4l2_async_notifier_register(notifier);
+> +}
+> +EXPORT_SYMBOL(v4l2_async_subdev_notifier_register);
+> 
+> -	list_del(&notifier->list);
+> +/* Unbind all sub-devices in the notifier tree. */
+> +static void v4l2_async_notifier_unbind_all_subdevs(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	struct v4l2_subdev *sd, *tmp;
+> 
+>  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+> +		struct v4l2_async_notifier *subdev_notifier =
+> +			v4l2_async_find_subdev_notifier(sd);
+> +
+> +		if (subdev_notifier)
+> +			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
+> +
+>  		v4l2_async_cleanup(sd);
+> 
+>  		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+> -	}
+> 
+> -	mutex_unlock(&list_lock);
+> +		list_del(&sd->async_list);
+> +		list_add(&sd->async_list, &subdev_list);
+
+How about list_move() ?
+
+This seems to be new code, and by the look of it, I wonder whether it doesn't 
+belong in the reprobing removal patch.
+
+> +	}
+> 
+> +	notifier->parent = NULL;
+> +	notifier->sd = NULL;
+>  	notifier->v4l2_dev = NULL;
+>  }
+> +
+> +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> +{
+> +	if (!notifier->v4l2_dev && !notifier->sd)
+> +		return;
+> +
+> +	mutex_lock(&list_lock);
+> +
+> +	v4l2_async_notifier_unbind_all_subdevs(notifier);
+> +
+> +	list_del(&notifier->list);
+> +
+> +	mutex_unlock(&list_lock);
+> +}
+>  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+> 
+>  void v4l2_async_notifier_release(struct v4l2_async_notifier *notifier)
+
+[snip]
+
 -- 
-2.13.5
+Regards,
+
+Laurent Pinchart
