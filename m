@@ -1,137 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:60271 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751327AbdIKJtg (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37633 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751669AbdISLHD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 05:49:36 -0400
-Subject: Re: [PATCH v10 23/24] ov13858: Add support for flash and lens devices
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-24-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <38026d9b-53ab-2e58-cfd2-4364e2095cf3@xs4all.nl>
-Date: Mon, 11 Sep 2017 11:49:31 +0200
+        Tue, 19 Sep 2017 07:07:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+Subject: Re: [PATCH v13 01/25] v4l: fwnode: Move KernelDoc documentation to the header
+Date: Tue, 19 Sep 2017 14:07:08 +0300
+Message-ID: <15064920.NAWzJTdLf5@avalon>
+In-Reply-To: <29354478-ec46-278b-c457-4e6f3cc6848c@xs4all.nl>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com> <9077921.hsjkiRftLf@avalon> <29354478-ec46-278b-c457-4e6f3cc6848c@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20170911080008.21208-24-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/11/2017 10:00 AM, Sakari Ailus wrote:
-> Parse async sub-devices by using
-> v4l2_subdev_fwnode_reference_parse_sensor_common().
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Hi Hans,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On Tuesday, 19 September 2017 14:04:36 EEST Hans Verkuil wrote:
+> On 09/19/17 12:48, Laurent Pinchart wrote:
+> > On Friday, 15 September 2017 17:17:00 EEST Sakari Ailus wrote:
+> >> In V4L2 the practice is to have the KernelDoc documentation in the hea=
+der
+> >> and not in .c source code files. This consequently makes the V4L2 fwno=
+de
+> >> function documentation part of the Media documentation build.
+> >>=20
+> >> Also correct the link related function and argument naming in
+> >> documentation.
+> >>=20
+> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> Reviewed-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+> >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> Acked-by: Pavel Machek <pavel@ucw.cz>
+> >=20
+> > I'm still very opposed to this. In addition to increasing the risk of
+> > documentation becoming stale, it also makes review more difficult. I'm
+> > reviewing patch 05/25 of this series and I have to jump around the patch
+> > to verify that the documentation matches the implementation, it's really
+> > annoying.
+> >=20
+> > We should instead move all function documentation from header files to
+> > source files.
+>=20
+> I disagree with this. Yes, it makes reviewing harder, but when you have to
+> *use* these functions as e.g. a driver developer, then having it in the
+> header is much more convenient.
 
+When writing a driver you can use the compiled documentation. We're lacking=
+=20
+reviewers in V4L2, we should make their life easier if we want to attract=20
+more.
+
+=46urthermore, if documentation becomes stale, it will become useless for d=
+river=20
+authors, regardless of where it's stored.
+
+> >> ---
+> >>=20
+> >>  drivers/media/v4l2-core/v4l2-fwnode.c | 75 --------------------------=
+=2D--
+> >>  include/media/v4l2-fwnode.h           | 81 ++++++++++++++++++++++++++=
++-
+> >>  2 files changed, 80 insertions(+), 76 deletions(-)
+
+=2D-=20
 Regards,
 
-	Hans
-
-
-> ---
->  drivers/media/i2c/ov13858.c | 26 +++++++++++++++++++++++---
->  1 file changed, 23 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
-> index af7af0d14c69..0d60defc7492 100644
-> --- a/drivers/media/i2c/ov13858.c
-> +++ b/drivers/media/i2c/ov13858.c
-> @@ -18,6 +18,7 @@
->  #include <linux/pm_runtime.h>
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-device.h>
-> +#include <media/v4l2-fwnode.h>
->  
->  #define OV13858_REG_VALUE_08BIT		1
->  #define OV13858_REG_VALUE_16BIT		2
-> @@ -1028,6 +1029,7 @@ static const struct ov13858_mode supported_modes[] = {
->  struct ov13858 {
->  	struct v4l2_subdev sd;
->  	struct media_pad pad;
-> +	struct v4l2_async_notifier notifier;
->  
->  	struct v4l2_ctrl_handler ctrl_handler;
->  	/* V4L2 Controls */
-> @@ -1715,6 +1717,11 @@ static int ov13858_probe(struct i2c_client *client,
->  	if (!ov13858)
->  		return -ENOMEM;
->  
-> +	ret = v4l2_fwnode_reference_parse_sensor_common(
-> +		&client->dev, &ov13858->notifier);
-> +	if (ret < 0)
-> +		return ret;
-> +
->  	/* Initialize subdev */
->  	v4l2_i2c_subdev_init(&ov13858->sd, client, &ov13858_subdev_ops);
->  
-> @@ -1722,7 +1729,7 @@ static int ov13858_probe(struct i2c_client *client,
->  	ret = ov13858_identify_module(ov13858);
->  	if (ret) {
->  		dev_err(&client->dev, "failed to find sensor: %d\n", ret);
-> -		return ret;
-> +		goto error_notifier_release;
->  	}
->  
->  	/* Set default mode to max resolution */
-> @@ -1730,7 +1737,7 @@ static int ov13858_probe(struct i2c_client *client,
->  
->  	ret = ov13858_init_controls(ov13858);
->  	if (ret)
-> -		return ret;
-> +		goto error_notifier_release;
->  
->  	/* Initialize subdev */
->  	ov13858->sd.internal_ops = &ov13858_internal_ops;
-> @@ -1746,9 +1753,14 @@ static int ov13858_probe(struct i2c_client *client,
->  		goto error_handler_free;
->  	}
->  
-> +	ret = v4l2_async_subdev_notifier_register(&ov13858->sd,
-> +						  &ov13858->notifier);
-> +	if (ret)
-> +		goto error_media_entity;
-> +
->  	ret = v4l2_async_register_subdev(&ov13858->sd);
->  	if (ret < 0)
-> -		goto error_media_entity;
-> +		goto error_notifier_unregister;
->  
->  	/*
->  	 * Device is already turned on by i2c-core with ACPI domain PM.
-> @@ -1761,11 +1773,17 @@ static int ov13858_probe(struct i2c_client *client,
->  
->  	return 0;
->  
-> +error_notifier_unregister:
-> +	v4l2_async_notifier_unregister(&ov13858->notifier);
-> +
->  error_media_entity:
->  	media_entity_cleanup(&ov13858->sd.entity);
->  
->  error_handler_free:
->  	ov13858_free_controls(ov13858);
-> +
-> +error_notifier_release:
-> +	v4l2_async_notifier_release(&ov13858->notifier);
->  	dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
->  
->  	return ret;
-> @@ -1777,6 +1795,8 @@ static int ov13858_remove(struct i2c_client *client)
->  	struct ov13858 *ov13858 = to_ov13858(sd);
->  
->  	v4l2_async_unregister_subdev(sd);
-> +	v4l2_async_notifier_unregister(&ov13858->notifier);
-> +	v4l2_async_notifier_release(&ov13858->notifier);
->  	media_entity_cleanup(&sd->entity);
->  	ov13858_free_controls(ov13858);
->  
-> 
+Laurent Pinchart
