@@ -1,107 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50785
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751307AbdITT44 (ORCPT
+Received: from us-smtp-delivery-107.mimecast.com ([63.128.21.107]:25544 "EHLO
+        us-smtp-delivery-107.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751263AbdISMnW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 15:56:56 -0400
-Date: Wed, 20 Sep 2017 16:56:48 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [RFC PATCH v5 3/6] i2c: add docs to clarify DMA handling
-Message-ID: <20170920165626.2b41a587@recife.lan>
-In-Reply-To: <20170920185956.13874-4-wsa+renesas@sang-engineering.com>
-References: <20170920185956.13874-1-wsa+renesas@sang-engineering.com>
- <20170920185956.13874-4-wsa+renesas@sang-engineering.com>
+        Tue, 19 Sep 2017 08:43:22 -0400
+Subject: Re: [PATCH v1] media: rc: Add driver for tango IR decoder
+To: Mans Rullgard <mans@mansr.com>, Rob Herring <robh@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: Sean Young <sean@mess.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>,
+        Mason <slash.tmp@free.fr>
+References: <e05783d3-012d-0798-9a54-ff42039e728d@sigmadesigns.com>
+ <yw1xd16oyqas.fsf@mansr.com>
+ <569e41a9-57c9-3d6f-4157-dffb23f997c6@sigmadesigns.com>
+ <yw1xwp4uyj3n.fsf@mansr.com>
+From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+Message-ID: <f4478664-be7f-5193-372c-54b972776fbb@sigmadesigns.com>
+Date: Tue, 19 Sep 2017 14:43:17 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <yw1xwp4uyj3n.fsf@mansr.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 20 Sep 2017 20:59:53 +0200
-Wolfram Sang <wsa+renesas@sang-engineering.com> escreveu:
++ Rob & Mark for the DT bindings question.
 
-> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+On 19/09/2017 14:21, Måns Rullgård wrote:
 
-Documentation looks OK on my eyes. So:
-
-Reviewed-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-> ---
->  Documentation/i2c/DMA-considerations | 58 ++++++++++++++++++++++++++++++++++++
->  1 file changed, 58 insertions(+)
->  create mode 100644 Documentation/i2c/DMA-considerations
+> Marc Gonzalez writes:
 > 
-> diff --git a/Documentation/i2c/DMA-considerations b/Documentation/i2c/DMA-considerations
-> new file mode 100644
-> index 00000000000000..5a63355c6a9b6f
-> --- /dev/null
-> +++ b/Documentation/i2c/DMA-considerations
-> @@ -0,0 +1,58 @@
-> +=================
-> +Linux I2C and DMA
-> +=================
-> +
-> +Given that I2C is a low-speed bus where largely small messages are transferred,
-> +it is not considered a prime user of DMA access. At this time of writing, only
-> +10% of I2C bus master drivers have DMA support implemented. And the vast
-> +majority of transactions are so small that setting up DMA for it will likely
-> +add more overhead than a plain PIO transfer.
-> +
-> +Therefore, it is *not* mandatory that the buffer of an I2C message is DMA safe.
-> +It does not seem reasonable to apply additional burdens when the feature is so
-> +rarely used. However, it is recommended to use a DMA-safe buffer if your
-> +message size is likely applicable for DMA. Most drivers have this threshold
-> +around 8 bytes (as of today, this is mostly an educated guess, however). For
-> +any message of 16 byte or larger, it is probably a really good idea. Please
-> +note that other subsystems you use might add requirements. E.g., if your
-> +I2C bus master driver is using USB as a bridge, then you need to have DMA
-> +safe buffers always, because USB requires it.
-> +
-> +For clients, if you use a DMA safe buffer in i2c_msg, set the I2C_M_DMA_SAFE
-> +flag with it. Then, the I2C core and drivers know they can safely operate DMA
-> +on it. Note that using this flag is optional. I2C host drivers which are not
-> +updated to use this flag will work like before. And like before, they risk
-> +using an unsafe DMA buffer. To improve this situation, using I2C_M_DMA_SAFE in
-> +more and more clients and host drivers is the planned way forward. Note also
-> +that setting this flag makes only sense in kernel space. User space data is
-> +copied into kernel space anyhow. The I2C core makes sure the destination
-> +buffers in kernel space are always DMA capable.
-> +
-> +FIXME: Need to implement i2c_master_{send|receive}_dma and proper buffers for i2c_smbus_xfer_emulated.
-> +
-> +Drivers wishing to implement safe DMA can use helper functions from the I2C
-> +core. One gives you a DMA-safe buffer for a given i2c_msg as long as a certain
-> +threshold is met::
-> +
-> +	dma_buf = i2c_get_dma_safe_msg_buf(msg, threshold_in_byte);
-> +
-> +If a buffer is returned, it is either msg->buf for the I2C_M_DMA_SAFE case or a
-> +bounce buffer. But you don't need to care about that detail, just use the
-> +returned buffer. If NULL is returned, the threshold was not met or a bounce
-> +buffer could not be allocated. Fall back to PIO in that case.
-> +
-> +In any case, a buffer obtained from above needs to be released. It ensures data
-> +is copied back to the message and a potentially used bounce buffer is freed::
-> +
-> +	i2c_release_dma_safe_msg_buf(msg, dma_buf);
-> +
-> +The bounce buffer handling from the core is generic and simple. It will always
-> +allocate a new bounce buffer. If you want a more sophisticated handling (e.g.
-> +reusing pre-allocated buffers), you are free to implement your own.
-> +
-> +Please also check the in-kernel documentation for details. The i2c-sh_mobile
-> +driver can be used as a reference example how to use the above helpers.
-> +
-> +Final note: If you plan to use DMA with I2C (or with anything else, actually)
-> +make sure you have CONFIG_DMA_API_DEBUG enabled during development. It can help
-> +you find various issues which can be complex to debug otherwise.
+>> On 18/09/2017 17:33, Måns Rullgård wrote:
+>>
+>>> What have you changed compared to my original code?
+>>
+>> I forgot to mention one change you may not approve of, so we should
+>> probably discuss it.
+>>
+>> Your driver supported an optional DT property "linux,rc-map-name"
+>> to override the RC_MAP_EMPTY map. Since the IR decoder supports
+>> multiple protocols, I found it odd to specify a scancode map in
+>> something as low-level as the device tree.
+>>
+>> I saw only one board using that property:
+>> $ git grep "linux,rc-map-name" arch/
+>> arch/arm64/boot/dts/amlogic/meson-gxl-s905x-khadas-vim.dts:     linux,rc-map-name = "rc-geekbox";
+>>
+>> So I removed support for "linux,rc-map-name" and used ir-keytable
+>> to load a given map from user-space, depending on which RC I use.
+>>
+>> Mans, Sean, what do you think?
+> 
+> The property is documented as common for IR receivers although only a
+> few drivers seem to actually implement the feature.  Since driver
+> support is trivial, I see no reason to skip it.  Presumably someone
+> had a use for it, or it wouldn't have been added.
 
+I do not dispute the usefulness of the "linux,rc-map-name" property
+in general, e.g. for boards that support a single remote control.
 
+I am arguing that the person writing the device tree has no way of
+knowing which rc-map a given user will be using, because it depends
+on the actual remote control being used.
 
-Thanks,
-Mauro
+Maybe I'm missing something.
+
+Regards.
