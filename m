@@ -1,48 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:45892 "EHLO
-        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751628AbdI0VUI (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:46447 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750952AbdISItd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:20:08 -0400
-Subject: Re: [PATCH v2 07/13] docs: kernel-doc.rst: add documentation about
- man pages
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>
-References: <cover.1506546492.git.mchehab@s-opensource.com>
- <d728e50a675aad84310e1418c2d4ec9495322982.1506546492.git.mchehab@s-opensource.com>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <6ef754d0-4c7f-0547-e7e9-8afb87b28506@infradead.org>
-Date: Wed, 27 Sep 2017 14:20:03 -0700
+        Tue, 19 Sep 2017 04:49:33 -0400
+Date: Tue, 19 Sep 2017 11:49:11 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH 5/6] [media] go7007: Use common error handling code in
+ go7007_snd_init()
+Message-ID: <20170919084911.zknru7vuhafljuxb@mwanda>
+References: <b36ece3f-0f31-9bb6-14ae-c4abf7cd23ee@users.sourceforge.net>
+ <05efac78-3a14-803c-5b4a-68670728628b@users.sourceforge.net>
 MIME-Version: 1.0
-In-Reply-To: <d728e50a675aad84310e1418c2d4ec9495322982.1506546492.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <05efac78-3a14-803c-5b4a-68670728628b@users.sourceforge.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/27/17 14:10, Mauro Carvalho Chehab wrote:
-> kernel-doc-nano-HOWTO.txt has a chapter about man pages
+On Mon, Sep 18, 2017 at 03:58:37PM +0200, SF Markus Elfring wrote:
+> diff --git a/drivers/media/usb/go7007/snd-go7007.c b/drivers/media/usb/go7007/snd-go7007.c
+> index 68e421bf38e1..7ae4d03ed3f7 100644
+> --- a/drivers/media/usb/go7007/snd-go7007.c
+> +++ b/drivers/media/usb/go7007/snd-go7007.c
+> @@ -243,22 +243,18 @@ int go7007_snd_init(struct go7007 *go)
+>  	gosnd->capturing = 0;
+>  	ret = snd_card_new(go->dev, index[dev], id[dev], THIS_MODULE, 0,
+>  			   &gosnd->card);
+> -	if (ret < 0) {
+> -		kfree(gosnd);
+> -		return ret;
+> -	}
+> +	if (ret < 0)
+> +		goto free_snd;
+> +
+>  	ret = snd_device_new(gosnd->card, SNDRV_DEV_LOWLEVEL, go,
+>  			&go7007_snd_device_ops);
+> -	if (ret < 0) {
+> -		kfree(gosnd);
+> -		return ret;
+> -	}
+> +	if (ret < 0)
+> +		goto free_snd;
+> +
 
-  kernel-doc.rst has a chapter (or section)
 
-> production. While we don't have a working  "make manpages"
-> target, add it.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  Documentation/doc-guide/kernel-doc.rst | 34 ++++++++++++++++++++++++++++++++++
->  1 file changed, 34 insertions(+)
-> 
-> diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
-> index 0923c8bd5769..96012f9e314d 100644
-> --- a/Documentation/doc-guide/kernel-doc.rst
-> +++ b/Documentation/doc-guide/kernel-doc.rst
+I think the original code is buggy.  It should probably call
+snd_card_free() if snd_device_new() fails.
 
-
--- 
-~Randy
+regards,
+dan carpenter
