@@ -1,68 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:58224 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751272AbdIPO2d (ORCPT
+Received: from us-smtp-delivery-107.mimecast.com ([216.205.24.107]:22314 "EHLO
+        us-smtp-delivery-107.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751205AbdISLen (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Sep 2017 10:28:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Rob Herring <robh@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv5 3/5] dt-bindings: document the CEC GPIO bindings
-Date: Sat, 16 Sep 2017 16:28:25 +0200
-Message-Id: <20170916142827.5878-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170916142827.5878-1-hverkuil@xs4all.nl>
-References: <20170916142827.5878-1-hverkuil@xs4all.nl>
+        Tue, 19 Sep 2017 07:34:43 -0400
+Subject: Re: [PATCH v1] media: rc: Add driver for tango IR decoder
+To: Mans Rullgard <mans@mansr.com>
+CC: Sean Young <sean@mess.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>,
+        Mason <slash.tmp@free.fr>
+References: <e05783d3-012d-0798-9a54-ff42039e728d@sigmadesigns.com>
+ <yw1xd16oyqas.fsf@mansr.com>
+ <a898310b-3286-43cb-3c0e-4359239c49cf@sigmadesigns.com>
+ <yw1x60cfyq7a.fsf@mansr.com>
+From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+Message-ID: <f0fd5679-5e24-c0fc-e22a-6a819028baad@sigmadesigns.com>
+Date: Tue, 19 Sep 2017 13:34:38 +0200
+MIME-Version: 1.0
+In-Reply-To: <yw1x60cfyq7a.fsf@mansr.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 19/09/2017 11:48, Måns Rullgård wrote:
 
-Document the bindings for the cec-gpio module for hardware where the
-CEC line and optionally the HPD line are connected to GPIO lines.
+> Did you test the NEC32 variant?  I don't have anything that produces
+> such codes.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../devicetree/bindings/media/cec-gpio.txt         | 29 ++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cec-gpio.txt
+I don't have a NEC32 IR remote control either.
 
-diff --git a/Documentation/devicetree/bindings/media/cec-gpio.txt b/Documentation/devicetree/bindings/media/cec-gpio.txt
-new file mode 100644
-index 000000000000..1b7e13f36b08
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/cec-gpio.txt
-@@ -0,0 +1,29 @@
-+* HDMI CEC GPIO driver
-+
-+The HDMI CEC GPIO module supports CEC implementations where the CEC line
-+is hooked up to a pull-up GPIO line and - optionally - the HPD line is
-+hooked up to another GPIO line.
-+
-+Required properties:
-+  - compatible: value must be "cec-gpio".
-+  - cec-gpios: gpio that the CEC line is connected to.
-+
-+If the CEC line is associated with an HDMI receiver/transmitter, then the
-+following property is also required:
-+
-+  - hdmi-phandle - phandle to the HDMI controller, see also cec.txt.
-+
-+If the CEC line is not associated with an HDMI receiver/transmitter, then
-+the following property is optional:
-+
-+  - hpd-gpios: gpio that the HPD line is connected to.
-+
-+Example for the Raspberry Pi 3 where the CEC line is connected to
-+pin 26 aka BCM7 aka CE1 on the GPIO pin header and the HPD line is
-+connected to pin 11 aka BCM17:
-+
-+cec-gpio {
-+       compatible = "cec-gpio";
-+       cec-gpio = <&gpio 7 GPIO_OPEN_DRAIN>;
-+       hpd-gpio = <&gpio 17 GPIO_ACTIVE_HIGH>;
-+};
--- 
-2.14.1
+IIUC, NEC32 means 16-bit address and 16-bit command.
+
+I checked the RTL with a HW engineer. The HW block translates the IR
+pulses into logical 1s and 0s according to the protocol parameters,
+stuffs the logical bits into a register, and fires an IRQ when there
+are 32 bits available. The block doesn't care if the bits are significant
+or just checksums (that is left up to software).
+
+Regards.
