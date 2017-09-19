@@ -1,151 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47466 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752012AbdIMKHR (ORCPT
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:8181 "EHLO
+        aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751771AbdISK7Q (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 06:07:17 -0400
-Date: Wed, 13 Sep 2017 13:07:15 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v12 18/26] v4l: fwnode: Add a helper function for parsing
- generic references
-Message-ID: <20170913100714.5qy32qly3vlxguxz@valkosipuli.retiisi.org.uk>
-References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
- <20170912134200.19556-19-sakari.ailus@linux.intel.com>
- <020b9c86-dd73-3516-4a0e-827db9680b55@xs4all.nl>
- <20170913092430.cbdgerkhiuxakbxv@valkosipuli.retiisi.org.uk>
- <c85397c3-19f2-90be-4c5e-6214ca1294b8@xs4all.nl>
+        Tue, 19 Sep 2017 06:59:16 -0400
+Subject: Re: [PATCHv2 1/2] dt-bindings: adi,adv7511.txt: document cec clock
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
+        Archit Taneja <architt@codeaurora.org>,
+        linux-renesas-soc@vger.kernel.org,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        devicetree@vger.kernel.org
+References: <20170919073331.29007-1-hverkuil@xs4all.nl>
+ <20170919073331.29007-2-hverkuil@xs4all.nl>
+ <505bc74f-6563-ab1d-9aab-7893410aef7e@cogentembedded.com>
+ <74b252c8-c1eb-8498-7b9b-54604fe2806a@cisco.com>
+ <e68cffb1-346c-2018-9048-3f8523903809@cogentembedded.com>
+ <7bfcd125-db23-61e3-2bc9-67e5c11f27fa@xs4all.nl>
+ <ce0588ed-eb3f-0008-0608-b54aefeee704@cogentembedded.com>
+ <82f72432-51fa-722b-b1c7-d6f7ea6ae758@xs4all.nl>
+ <5c8f3625-26f3-8c6e-d42a-def8251a9ac6@cogentembedded.com>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <aa9c5c0e-c2c8-7913-0e6c-4b150ff09a9b@cisco.com>
+Date: Tue, 19 Sep 2017 12:59:13 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <c85397c3-19f2-90be-4c5e-6214ca1294b8@xs4all.nl>
+In-Reply-To: <5c8f3625-26f3-8c6e-d42a-def8251a9ac6@cogentembedded.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Wed, Sep 13, 2017 at 11:28:44AM +0200, Hans Verkuil wrote:
-> On 09/13/17 11:24, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > Thanks for the review!
-> > 
-> > On Wed, Sep 13, 2017 at 09:27:34AM +0200, Hans Verkuil wrote:
-> >> On 09/12/2017 03:41 PM, Sakari Ailus wrote:
-> >>> Add function v4l2_fwnode_reference_count() for counting external
-> >>
-> >> ???? There is no function v4l2_fwnode_reference_count()?!
-> > 
-> > It got removed during the revisions but the commit message was not changed
-> > accordingly, I do that now.
-> > 
-> >>
-> >>> references and v4l2_fwnode_reference_parse() for parsing them as async
-> >>> sub-devices.
-> >>>
-> >>> This can be done on e.g. flash or lens async sub-devices that are not part
-> >>> of but are associated with a sensor.
-> >>>
-> >>> struct v4l2_async_notifier.max_subdevs field is added to contain the
-> >>> maximum number of sub-devices in a notifier to reflect the memory
-> >>> allocated for the subdevs array.
-> >>
-> >> You forgot to remove this outdated paragraph.
-> > 
-> > Oops. Removed it now.
-> > 
-> >>
-> >>>
-> >>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >>> ---
-> >>>  drivers/media/v4l2-core/v4l2-fwnode.c | 69 +++++++++++++++++++++++++++++++++++
-> >>>  1 file changed, 69 insertions(+)
-> >>>
-> >>> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> >>> index 44ee35f6aad5..a32473f95be1 100644
-> >>> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> >>> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> >>> @@ -498,6 +498,75 @@ int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
-> >>>  }
-> >>>  EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints_by_port);
-> >>>  
-> >>> +/*
-> >>> + * v4l2_fwnode_reference_parse - parse references for async sub-devices
-> >>> + * @dev: the device node the properties of which are parsed for references
-> >>> + * @notifier: the async notifier where the async subdevs will be added
-> >>> + * @prop: the name of the property
-> >>> + *
-> >>> + * Return: 0 on success
-> >>> + *	   -ENOENT if no entries were found
-> >>> + *	   -ENOMEM if memory allocation failed
-> >>> + *	   -EINVAL if property parsing failed
-> >>> + */
-> >>> +static int v4l2_fwnode_reference_parse(
-> >>> +	struct device *dev, struct v4l2_async_notifier *notifier,
-> >>> +	const char *prop)
-> >>> +{
-> >>> +	struct fwnode_reference_args args;
-> >>> +	unsigned int index;
-> >>> +	int ret;
-> >>> +
-> >>> +	for (index = 0;
-> >>> +	     !(ret = fwnode_property_get_reference_args(
-> >>> +		       dev_fwnode(dev), prop, NULL, 0, index, &args));
-> >>> +	     index++)
-> >>> +		fwnode_handle_put(args.fwnode);
-> >>> +
-> >>> +	if (!index)
-> >>> +		return -ENOENT;
-> >>> +
-> >>> +	/*
-> >>> +	 * To-do: handle -ENODATA when "device property: Align return
-> >>> +	 * codes of acpi_fwnode_get_reference_with_args" is merged.
-> >>> +	 */
-> >>> +	if (ret != -ENOENT && ret != -ENODATA)
-> >>
-> >> So while that patch referenced in the To-do above is not merged yet,
-> >> what does fwnode_property_get_reference_args return? ENOENT or ENODATA?
-> >> Or ENOENT now and ENODATA later? Or vice versa?
-> >>
-> >> I can't tell based on that information whether this code is correct or not.
-> >>
-> >> The comment needs to explain this a bit better.
-> > 
-> > I'll add this:
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > index a32473f95be1..74fcc3ba9ebd 100644
-> > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > @@ -529,6 +529,9 @@ static int v4l2_fwnode_reference_parse(
-> >  	/*
-> >  	 * To-do: handle -ENODATA when "device property: Align return
-> >  	 * codes of acpi_fwnode_get_reference_with_args" is merged.
+On 09/19/17 12:42, Sergei Shtylyov wrote:
+> On 9/19/2017 1:35 PM, Hans Verkuil wrote:
 > 
-> So after this patch referred to in the To-do is applied it will only
-> return ENODATA?
+>>>>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>>>>
+>>>>>>>> Document the cec clock binding.
+>>>>>>>>
+>>>>>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>>>> Acked-by: Rob Herring <robh@kernel.org>
+>>>>>>>> ---
+>>>>>>>>      Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt | 4 ++++
+>>>>>>>>      1 file changed, 4 insertions(+)
+>>>>>>>>
+>>>>>>>> diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+>>>>>>>> index 06668bca7ffc..4497ae054d49 100644
+>>>>>>>> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+>>>>>>>> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+>>>>>>>> @@ -68,6 +68,8 @@ Optional properties:
+>>>>>>>>      - adi,disable-timing-generator: Only for ADV7533. Disables the internal timing
+>>>>>>>>        generator. The chip will rely on the sync signals in the DSI data lanes,
+>>>>>>>>        rather than generate its own timings for HDMI output.
+>>>>>>>> +- clocks: from common clock binding: handle to CEC clock.
+>>>>>>>
+>>>>>>>        It's called "phandle" in the DT speak. :-)
+>>>>>>>        Are you sure the clock specifier would always be absent?
+>>>>>>
+>>>>>> Sorry? I don't understand the question. Did you mean: "can be absent?"?
+>>>>>
+>>>>>       No, you only say that there'll be the clock phandle only. The clock
+>>>>> specifier may follow the phandle for the clock devices that have
+>>>>> "#clock-cells" prop != 0.
+>>>>
+>>>> I have to say that I just copy-and-pasted this from other bindings.
+>>>
+>>>      :-)
+>>>
+>>>> Would this be better?
+>>>>
+>>>> - clocks: list of clock specifiers, corresponding to entries in
+>>>>     the clock-names property;
+>>>
+>>>      Didn't you say that there'll be only one clock, "cec"? If so, there's
+>>> gonna  be a single clock phandle+specifier pair. They always go in pairs. :-)
+>>>
+>>>> - clock-names: from common clock binding: must be "cec".
+>>
+>> - clocks: cec clock phandle, corresponding to the clock-names entry.
 > 
-> In that case, change 'handle' to 'handle only'.
-
-That depends a bit in which form the patch will be eventually accepted. The
-underlying issue there is that different error codes are used to signal
-conditions for out-of-bounds access and missing entry. After aligning them
-the code here can be updated.
-
+>     The clock phandle and specifier.
 > 
-> > +	 * Right now, both -ENODATA and -ENOENT signal the end of
-> > +	 * references where only a single error code should be used
-> > +	 * for the purpose.
-> >  	 */
-> >  	if (ret != -ENOENT && ret != -ENODATA)
-> >  		return ret;
-> > 
+>> - clock-names: from common clock binding: must be "cec".
+>>
+>> This OK?
+> 
+>     Well, you seem to be going in circles, the above was almost the same as 
+> the original prop description...
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+- clocks: from common clock binding: reference to the CEC clock.
+- clock-names: from common clock binding: must be "cec".
+
+This avoids the whole issue of having just a phandle or a phandle + specifier.
+
+Regards,
+
+	Hans
