@@ -1,58 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48883
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751614AbdITQ1x (ORCPT
+Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:48506 "EHLO
+        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750822AbdISNJZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 12:27:53 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-doc@vger.kernel.org
-Subject: [PATCH] scripts: kernel-doc: fix nexted handling
-Date: Wed, 20 Sep 2017 13:27:47 -0300
-Message-Id: <a788284f66d113ceec57dd6f66b1d024e7b1ddf1.1505924829.git.mchehab@s-opensource.com>
+        Tue, 19 Sep 2017 09:09:25 -0400
+Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
+        by mx07-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v8JD99hG006009
+        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 14:09:24 +0100
+Received: from mail-wm0-f69.google.com (mail-wm0-f69.google.com [74.125.82.69])
+        by mx07-00252a01.pphosted.com with ESMTP id 2d0sc01jc3-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 14:09:24 +0100
+Received: by mail-wm0-f69.google.com with SMTP id r136so3865666wmf.4
+        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 06:09:24 -0700 (PDT)
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+To: Mats Randgaard <matrandg@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org
+Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Subject: [PATCH 0/3] [media] tc358743: Support for a wider range of inputs
+Date: Tue, 19 Sep 2017 14:08:50 +0100
+Message-Id: <cover.1505826082.git.dave.stevenson@raspberrypi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-At DVB, we have, at some structs, things like (see
-struct dvb_demux_feed, at dvb_demux.h):
+Three minor changes to the TC358743 HDMI to CSI2 bridge chip driver.
+- Correct the clock mode reported via g_mbus_config to match that set.
+- Increase the FIFO level to allow resolutions lower than 720P60 to work.
+- Add settings for a new link frequency of 972Mbit/s. This allows
+  1080P50 UYVY to work on two lanes (useful on the Raspberry Pi which
+  only brings out two CSI2 lanes to the camera connector).
 
-	union {
-		struct dmx_ts_feed ts;
-		struct dmx_section_feed sec;
-	} feed;
+I'd like to extend the last one to dynamically calculate all the values
+for an arbitrary link speed, but time hasn't allowed as yet.
 
-	union {
-		dmx_ts_cb ts;
-		dmx_section_cb sec;
-	} cb;
+Dave Stevenson (3):
+  [media] tc358743: Correct clock mode reported in g_mbus_config
+  [media] tc358743: Increase FIFO level to 300.
+  [media] tc358743: Add support for 972Mbit/s link freq.
 
-Fix the nested parser to avoid it to eat the first union.
+ drivers/media/i2c/tc358743.c | 62 +++++++++++++++++++++++++++++++-------------
+ 1 file changed, 44 insertions(+), 18 deletions(-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
-
-Jon,
-
-While documenting some DVB demux  headers, I noticed the above bug.
-
- scripts/kernel-doc | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index 9d3eafea58f0..15f934a23d1d 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -2173,7 +2173,7 @@ sub dump_struct($$) {
- 	my $members = $3;
- 
- 	# ignore embedded structs or unions
--	$members =~ s/({.*})//g;
-+	$members =~ s/({[^\}]*})//g;
- 	$nested = $1;
- 
- 	# ignore members marked private:
 -- 
-2.13.5
+2.7.4
