@@ -1,109 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42408 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751881AbdIVJe4 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:35688
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750972AbdISNmp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 05:34:56 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: [RESEND PATCH v3 3/4] as3645a: Use integer numbers for parsing LEDs
-Date: Fri, 22 Sep 2017 12:34:52 +0300
-Message-Id: <20170922093453.13250-4-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170922093453.13250-1-sakari.ailus@linux.intel.com>
-References: <20170922093453.13250-1-sakari.ailus@linux.intel.com>
+        Tue, 19 Sep 2017 09:42:45 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Shuah Khan <shuah@kernel.org>,
+        Colin Ian King <colin.king@canonical.com>,
+        Michael Ira Krufky <mkrufky@linuxtv.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 3/6] media: dvb_frontend: get rid of proprierty cache's state
+Date: Tue, 19 Sep 2017 10:42:35 -0300
+Message-Id: <c820984659f4930306921bf0cae09a646477611e.1505827883.git.mchehab@s-opensource.com>
+In-Reply-To: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
+References: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
+In-Reply-To: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
+References: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use integer numbers for LEDs, 0 is the flash and 1 is the indicator.
+In the past, I guess the idea was to use state in order to
+allow an autofush logic. However, in the current code, it is
+used only for debug messages, on a poor man's solution, as
+there's already a debug message to indicate when the properties
+got flushed.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+So, just get rid of it for good.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- arch/arm/boot/dts/omap3-n950-n9.dtsi |  8 ++++++--
- drivers/leds/leds-as3645a.c          | 26 ++++++++++++++++++++++++--
- 2 files changed, 30 insertions(+), 4 deletions(-)
+ drivers/media/dvb-core/dvb_frontend.c | 20 ++++++--------------
+ drivers/media/dvb-core/dvb_frontend.h |  5 -----
+ 2 files changed, 6 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index b86fc83a5a65..1b0bd72945f2 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -267,15 +267,19 @@
- 	clock-frequency = <400000>;
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index cbe697a094d2..d0a17d67ab1b 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -951,8 +951,6 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+ 	memset(c, 0, offsetof(struct dtv_frontend_properties, strength));
+ 	c->delivery_system = delsys;
  
- 	as3645a@30 {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
- 		reg = <0x30>;
- 		compatible = "ams,as3645a";
--		flash {
-+		flash@0 {
-+			reg = <0x0>;
- 			flash-timeout-us = <150000>;
- 			flash-max-microamp = <320000>;
- 			led-max-microamp = <60000>;
- 			ams,input-max-microamp = <1750000>;
- 		};
--		indicator {
-+		indicator@1 {
-+			reg = <0x1>;
- 			led-max-microamp = <10000>;
- 		};
- 	};
-diff --git a/drivers/leds/leds-as3645a.c b/drivers/leds/leds-as3645a.c
-index e3f89c6130d2..605e0c64e974 100644
---- a/drivers/leds/leds-as3645a.c
-+++ b/drivers/leds/leds-as3645a.c
-@@ -112,6 +112,10 @@
- #define AS_PEAK_mA_TO_REG(a) \
- 	((min_t(u32, AS_PEAK_mA_MAX, a) - 1250) / 250)
+-	c->state = DTV_CLEAR;
+-
+ 	dev_dbg(fe->dvb->device, "%s: Clearing cache for delivery system %d\n",
+ 			__func__, c->delivery_system);
  
-+/* LED numbers for Devicetree */
-+#define AS_LED_FLASH				0
-+#define AS_LED_INDICATOR			1
-+
- enum as_mode {
- 	AS_MODE_EXT_TORCH = 0 << AS_CONTROL_MODE_SETTING_SHIFT,
- 	AS_MODE_INDICATOR = 1 << AS_CONTROL_MODE_SETTING_SHIFT,
-@@ -491,10 +495,29 @@ static int as3645a_parse_node(struct as3645a *flash,
- 			      struct device_node *node)
+@@ -1775,13 +1773,13 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+ 		dvb_frontend_clear_cache(fe);
+ 		break;
+ 	case DTV_TUNE:
+-		/* interpret the cache of data, build either a traditional frontend
+-		 * tunerequest so we can pass validation in the FE_SET_FRONTEND
+-		 * ioctl.
++		/*
++		 * Use the cached Digital TV properties to tune the
++		 * frontend
+ 		 */
+-		c->state = tvp->cmd;
+-		dev_dbg(fe->dvb->device, "%s: Finalised property cache\n",
+-				__func__);
++		dev_dbg(fe->dvb->device,
++			"%s: Setting the frontend from property cache\n",
++			__func__);
+ 
+ 		r = dtv_set_frontend(fe);
+ 		break;
+@@ -1930,7 +1928,6 @@ static int dvb_frontend_ioctl(struct file *file, unsigned int cmd, void *parg)
  {
- 	struct as3645a_config *cfg = &flash->cfg;
-+	struct device_node *child;
- 	const char *name;
- 	int rval;
+ 	struct dvb_device *dvbdev = file->private_data;
+ 	struct dvb_frontend *fe = dvbdev->priv;
+-	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+ 	int err;
  
--	flash->flash_node = of_get_child_by_name(node, "flash");
-+	for_each_child_of_node(node, child) {
-+		u32 id = 0;
-+
-+		of_property_read_u32(child, "reg", &id);
-+
-+		switch (id) {
-+		case AS_LED_FLASH:
-+			flash->flash_node = of_node_get(child);
-+			break;
-+		case AS_LED_INDICATOR:
-+			flash->indicator_node = of_node_get(child);
-+			break;
-+		default:
-+			dev_warn(&flash->client->dev,
-+				 "unknown LED %u encountered, ignoring\n", id);
-+			break;
-+		}
-+	}
-+
- 	if (!flash->flash_node) {
- 		dev_err(&flash->client->dev, "can't find flash node\n");
- 		return -ENODEV;
-@@ -538,7 +561,6 @@ static int as3645a_parse_node(struct as3645a *flash,
- 			     &cfg->peak);
- 	cfg->peak = AS_PEAK_mA_TO_REG(cfg->peak);
+@@ -1950,7 +1947,6 @@ static int dvb_frontend_ioctl(struct file *file, unsigned int cmd, void *parg)
+ 		return -EPERM;
+ 	}
  
--	flash->indicator_node = of_get_child_by_name(node, "indicator");
- 	if (!flash->indicator_node) {
- 		dev_warn(&flash->client->dev,
- 			 "can't find indicator node\n");
+-	c->state = DTV_UNDEFINED;
+ 	err = dvb_frontend_handle_ioctl(file, cmd, parg);
+ 
+ 	up(&fepriv->sem);
+@@ -2134,10 +2130,6 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+ 			}
+ 			(tvp + i)->result = err;
+ 		}
+-
+-		if (c->state == DTV_TUNE)
+-			dev_dbg(fe->dvb->device, "%s: Property cache is full, tuning\n", __func__);
+-
+ 		kfree(tvp);
+ 		break;
+ 	}
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 852b91ba49d2..1bdeb10f0d78 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -620,11 +620,6 @@ struct dtv_frontend_properties {
+ 	struct dtv_fe_stats	post_bit_count;
+ 	struct dtv_fe_stats	block_error;
+ 	struct dtv_fe_stats	block_count;
+-
+-	/* private: */
+-	/* Cache State */
+-	u32			state;
+-
+ };
+ 
+ #define DVB_FE_NO_EXIT  0
 -- 
-2.11.0
+2.13.5
