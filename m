@@ -1,113 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33143
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752177AbdI0Vkx (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:44898 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750823AbdISHdh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:53 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 26/37] media: dvb_demux: document dvb_demux_filter and dvb_demux_feed
-Date: Wed, 27 Sep 2017 18:40:27 -0300
-Message-Id: <aaaef66891c78bafa3558c93f573c45cddbcda19.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+        Tue, 19 Sep 2017 03:33:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
+        Archit Taneja <architt@codeaurora.org>,
+        linux-renesas-soc@vger.kernel.org,
+        Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCHv2 0/2] drm/bridge/adv7511: add CEC support
+Date: Tue, 19 Sep 2017 09:33:29 +0200
+Message-Id: <20170919073331.29007-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document those two structs using kernel-doc markups.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_demux.h | 49 ++++++++++++++++++++++++++++++++++++--
- 1 file changed, 47 insertions(+), 2 deletions(-)
+I should have posted this a month ago, but I completely forgot about
+it. Apologies for that.
 
-diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
-index c9e94bc3a2e5..5b05e6320e33 100644
---- a/drivers/media/dvb-core/dvb_demux.h
-+++ b/drivers/media/dvb-core/dvb_demux.h
-@@ -60,6 +60,21 @@ enum dvb_dmx_state {
- 
- #define SPEED_PKTS_INTERVAL 50000
- 
-+/**
-+ * struct dvb_demux_filter - Describes a DVB demux section filter.
-+ *
-+ * @filter:		Section filter as defined by &struct dmx_section_filter.
-+ * @maskandmode:	logical ``and`` bit mask.
-+ * @maskandnotmode:	logical ``and not`` bit mask.
-+ * @doneq:		flag that indicates when a filter is ready.
-+ * @next:		pointer to the next section filter.
-+ * @feed:		&struct dvb_demux_feed pointer.
-+ * @index:		index of the used demux filter.
-+ * @state:		state of the filter as described by &enum dvb_dmx_state.
-+ * @type:		type of the filter as described
-+ *			by &enum dvb_dmx_filter_type.
-+ */
-+
- struct dvb_demux_filter {
- 	struct dmx_section_filter filter;
- 	u8 maskandmode[DMX_MAX_FILTER_SIZE];
-@@ -72,9 +87,39 @@ struct dvb_demux_filter {
- 	enum dvb_dmx_state state;
- 	enum dvb_dmx_filter_type type;
- 
-+	/* private: used only by av7110 */
- 	u16 hw_handle;
- };
- 
-+/**
-+ * struct dvb_demux_feed - describes a DVB field
-+ *
-+ * @feed:	a digital TV feed. It can either be a TS or a section feed:
-+ *		  - if the feed is TS, it contains &struct dvb_ts_feed;
-+ *		  - if the feed is section, it contains
-+ *		    &struct dmx_section_feed.
-+ * @cb:		digital TV callbacks. depending on the feed type, it can be:
-+ *		  - if the feed is TS, it contains a dmx_ts_cb() callback;
-+ *		  - if the feed is section, it contains a dmx_section_cb() callback.
-+ *
-+ * @demux:	pointer to &struct dvb_demux.
-+ * @priv:	private data for the filter handling routine.
-+ * @type:	type of the filter, as defined by &enum dvb_dmx_filter_type.
-+ * @state:	state of the filter as defined by &enum dvb_dmx_state.
-+ * @pid:	PID to be filtered.
-+ * @timeout:	feed timeout.
-+ * @filter:	pointer to &struct dvb_demux_filter.
-+ * @ts_type:	type of TS, as defined by &enum ts_filter_type.
-+ * @pes_type:	type of PES, as defined by &enum dmx_ts_pes.
-+ * @cc:		MPEG-TS packet continuity counter
-+ * @pusi_seen:	if true, indicates that a discontinuity was detected.
-+ *		it is used to prevent feeding of garbage from previous section.
-+ * @peslen:	length of the PES (Packet Elementary Stream).
-+ * @list_head:	head for the list of digital TV demux feeds.
-+ * @index:	a unique index for each feed. Can be used as hardware
-+ * 		pid filter index.
-+ *
-+ */
- struct dvb_demux_feed {
- 	union {
- 		struct dmx_ts_feed ts;
-@@ -99,12 +144,12 @@ struct dvb_demux_feed {
- 	enum dmx_ts_pes pes_type;
- 
- 	int cc;
--	bool pusi_seen;		/* prevents feeding of garbage from previous section */
-+	bool pusi_seen;
- 
- 	u16 peslen;
- 
- 	struct list_head list_head;
--	unsigned int index;	/* a unique index for each feed (can be used as hardware pid filter index) */
-+	unsigned int index;
- };
- 
- struct dvb_demux {
+This patch series adds CEC support to the drm adv7511/adv7533 drivers.
+
+I have tested this with the Qualcomm Dragonboard C410 (adv7533 based)
+and the Renesas R-Car Koelsch board (adv7511 based).
+
+I only have the Koelsch board to test with, but it looks like other
+R-Car boards use the same adv7511. It would be nice if someone can
+add CEC support to the other R-Car boards as well. The main thing
+to check is if they all use the same 12 MHz fixed CEC clock source.
+
+Anyone who wants to test this will need the CEC utilities that
+are part of the v4l-utils git repository:
+
+git clone git://linuxtv.org/v4l-utils.git
+cd v4l-utils
+./bootstrap.sh
+./configure
+make
+sudo make install
+
+Now configure the CEC adapter as a Playback device:
+
+cec-ctl --playback
+
+Discover other CEC devices:
+
+cec-ctl -S
+
+Regards,
+
+	Hans
+
+Changes since v1:
+- Incorporate Archit's comments:
+	use defines for irq masks
+	combine the adv7511/33 regmap_configs
+	adv7511_cec_init now handles dt parsing & CEC registration
+- Use the new (4.14) CEC_CAP_DEFAULTS define
+
+Hans Verkuil (2):
+  dt-bindings: adi,adv7511.txt: document cec clock
+  drm: adv7511/33: add HDMI CEC support
+
+ .../bindings/display/bridge/adi,adv7511.txt        |   4 +
+ drivers/gpu/drm/bridge/adv7511/Kconfig             |   8 +
+ drivers/gpu/drm/bridge/adv7511/Makefile            |   1 +
+ drivers/gpu/drm/bridge/adv7511/adv7511.h           |  43 ++-
+ drivers/gpu/drm/bridge/adv7511/adv7511_cec.c       | 337 +++++++++++++++++++++
+ drivers/gpu/drm/bridge/adv7511/adv7511_drv.c       | 116 ++++++-
+ drivers/gpu/drm/bridge/adv7511/adv7533.c           |  38 +--
+ 7 files changed, 489 insertions(+), 58 deletions(-)
+ create mode 100644 drivers/gpu/drm/bridge/adv7511/adv7511_cec.c
+
 -- 
-2.13.5
+2.14.1
