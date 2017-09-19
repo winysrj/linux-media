@@ -1,243 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45678 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751621AbdIOOSe (ORCPT
+Received: from mx08-00252a01.pphosted.com ([91.207.212.211]:60228 "EHLO
+        mx08-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751053AbdISNJm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 10:18:34 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v13 18/25] v4l: fwnode: Add a helper function to obtain device / integer references
-Date: Fri, 15 Sep 2017 17:17:17 +0300
-Message-Id: <20170915141724.23124-19-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+        Tue, 19 Sep 2017 09:09:42 -0400
+Received: from pps.filterd (m0102629.ppops.net [127.0.0.1])
+        by mx08-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v8JD9O9L023987
+        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 14:09:41 +0100
+Received: from mail-wm0-f72.google.com (mail-wm0-f72.google.com [74.125.82.72])
+        by mx08-00252a01.pphosted.com with ESMTP id 2d0reg1jgf-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 14:09:41 +0100
+Received: by mail-wm0-f72.google.com with SMTP id i131so3879562wma.1
+        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 06:09:41 -0700 (PDT)
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+To: Mats Randgaard <matrandg@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org
+Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Subject: [PATCH 3/3] [media] tc358743: Add support for 972Mbit/s link freq.
+Date: Tue, 19 Sep 2017 14:08:53 +0100
+Message-Id: <6de475044437c01c14429ac20292e5c29fdd39f9.1505826082.git.dave.stevenson@raspberrypi.org>
+In-Reply-To: <cover.1505826082.git.dave.stevenson@raspberrypi.org>
+References: <cover.1505826082.git.dave.stevenson@raspberrypi.org>
+In-Reply-To: <cover.1505826082.git.dave.stevenson@raspberrypi.org>
+References: <cover.1505826082.git.dave.stevenson@raspberrypi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
-the device's own fwnode, it will follow child fwnodes with the given
-property-value pair and return the resulting fwnode.
+Adds register setups for running the CSI lanes at 972Mbit/s,
+which allows 1080P50 UYVY down 2 lanes.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 201 ++++++++++++++++++++++++++++++++++
- 1 file changed, 201 insertions(+)
+ drivers/media/i2c/tc358743.c | 47 +++++++++++++++++++++++++++++++-------------
+ 1 file changed, 33 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 65e84ea1cc35..968a345a288f 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -567,6 +567,207 @@ static int v4l2_fwnode_reference_parse(
- 	return ret;
- }
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 7632daf..dcc100e 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -1809,6 +1809,7 @@ static int tc358743_probe_of(struct tc358743_state *state)
+ 	/*
+ 	 * The CSI bps per lane must be between 62.5 Mbps and 1 Gbps.
+ 	 * The default is 594 Mbps for 4-lane 1080p60 or 2-lane 720p60.
++	 * 972 Mbps allows 1080P50 UYVY over 2-lane.
+ 	 */
+ 	bps_pr_lane = 2 * endpoint->link_frequencies[0];
+ 	if (bps_pr_lane < 62500000U || bps_pr_lane > 1000000000U) {
+@@ -1821,23 +1822,41 @@ static int tc358743_probe_of(struct tc358743_state *state)
+ 			       state->pdata.refclk_hz * state->pdata.pll_prd;
  
-+/*
-+ * v4l2_fwnode_reference_get_int_prop - parse a reference with integer
-+ *					arguments
-+ * @dev: struct device pointer
-+ * @notifier: notifier for @dev
-+ * @prop: the name of the property
-+ * @index: the index of the reference to get
-+ * @props: the array of integer property names
-+ * @nprops: the number of integer property names in @nprops
-+ *
-+ * Find fwnodes referred to by a property @prop, then under that
-+ * iteratively, @nprops times, follow each child node which has a
-+ * property in @props array at a given child index the value of which
-+ * matches the integer argument at an index.
-+ *
-+ * For example, if this function was called with arguments and values
-+ * @dev corresponding to device "SEN", @prop == "flash-leds", @index
-+ * == 1, @props == { "led" }, @nprops == 1, with the ASL snippet below
-+ * it would return the node marked with THISONE. The @dev argument in
-+ * the ASL below.
-+ *
-+ *	Device (LED)
-+ *	{
-+ *		Name (_DSD, Package () {
-+ *			ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+ *			Package () {
-+ *				Package () { "led0", "LED0" },
-+ *				Package () { "led1", "LED1" },
-+ *			}
-+ *		})
-+ *		Name (LED0, Package () {
-+ *			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+ *			Package () {
-+ *				Package () { "led", 0 },
-+ *			}
-+ *		})
-+ *		Name (LED1, Package () {
-+ *			// THISONE
-+ *			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+ *			Package () {
-+ *				Package () { "led", 1 },
-+ *			}
-+ *		})
-+ *	}
-+ *
-+ *	Device (SEN)
-+ *	{
-+ *		Name (_DSD, Package () {
-+ *			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+ *			Package () {
-+ *				Package () {
-+ *					"flash-leds",
-+ *					Package () { ^LED, 0, ^LED, 1 },
-+ *				}
-+ *			}
-+ *		})
-+ *	}
-+ *
-+ * where
-+ *
-+ *	LED	LED driver device
-+ *	LED0	First LED
-+ *	LED1	Second LED
-+ *	SEN	Camera sensor device (or another device the LED is
-+ *		related to)
-+ *
-+ * Return: 0 on success
-+ *	   -ENOENT if no entries (or the property itself) were found
-+ *	   -EINVAL if property parsing otherwise failed
-+ *	   -ENOMEM if memory allocation failed
-+ */
-+static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
-+	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
-+	const char **props, unsigned int nprops)
-+{
-+	struct fwnode_reference_args fwnode_args;
-+	unsigned int *args = fwnode_args.args;
-+	struct fwnode_handle *child;
-+	int ret;
-+
-+	/*
-+	 * Obtain remote fwnode as well as the integer arguments.
-+	 *
-+	 * Note that right now both -ENODATA and -ENOENT may signal
-+	 * out-of-bounds access. Return -ENOENT in that case.
-+	 */
-+	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
-+						 index, &fwnode_args);
-+	if (ret)
-+		return ERR_PTR(ret == -ENODATA ? -ENOENT : ret);
-+
-+	/*
-+	 * Find a node in the tree under the referred fwnode corresponding the
-+	 * integer arguments.
-+	 */
-+	fwnode = fwnode_args.fwnode;
-+	while (nprops--) {
-+		u32 val;
-+
-+		/* Loop over all child nodes under fwnode. */
-+		fwnode_for_each_child_node(fwnode, child) {
-+			if (fwnode_property_read_u32(child, *props, &val))
-+				continue;
-+
-+			/* Found property, see if its value matches. */
-+			if (val == *args)
-+				break;
-+		}
-+
-+		fwnode_handle_put(fwnode);
-+
-+		/* No property found; return an error here. */
-+		if (!child) {
-+			fwnode = ERR_PTR(-ENOENT);
-+			break;
-+		}
-+
-+		props++;
-+		args++;
-+		fwnode = child;
+ 	/*
+-	 * FIXME: These timings are from REF_02 for 594 Mbps per lane (297 MHz
+-	 * link frequency). In principle it should be possible to calculate
++	 * FIXME: These timings are from REF_02 for 594 or 972 Mbps per lane
++	 * (297 MHz or 495 MHz link frequency).
++	 * In principle it should be possible to calculate
+ 	 * them based on link frequency and resolution.
+ 	 */
+-	if (bps_pr_lane != 594000000U)
++	switch (bps_pr_lane) {
++	default:
+ 		dev_warn(dev, "untested bps per lane: %u bps\n", bps_pr_lane);
+-	state->pdata.lineinitcnt = 0xe80;
+-	state->pdata.lptxtimecnt = 0x003;
+-	/* tclk-preparecnt: 3, tclk-zerocnt: 20 */
+-	state->pdata.tclk_headercnt = 0x1403;
+-	state->pdata.tclk_trailcnt = 0x00;
+-	/* ths-preparecnt: 3, ths-zerocnt: 1 */
+-	state->pdata.ths_headercnt = 0x0103;
+-	state->pdata.twakeup = 0x4882;
+-	state->pdata.tclk_postcnt = 0x008;
+-	state->pdata.ths_trailcnt = 0x2;
+-	state->pdata.hstxvregcnt = 0;
++	case 594000000U:
++		state->pdata.lineinitcnt = 0xe80;
++		state->pdata.lptxtimecnt = 0x003;
++		/* tclk-preparecnt: 3, tclk-zerocnt: 20 */
++		state->pdata.tclk_headercnt = 0x1403;
++		state->pdata.tclk_trailcnt = 0x00;
++		/* ths-preparecnt: 3, ths-zerocnt: 1 */
++		state->pdata.ths_headercnt = 0x0103;
++		state->pdata.twakeup = 0x4882;
++		state->pdata.tclk_postcnt = 0x008;
++		state->pdata.ths_trailcnt = 0x2;
++		state->pdata.hstxvregcnt = 0;
++		break;
++	case 972000000U:
++		state->pdata.lineinitcnt = 0xFA0;
++		state->pdata.lptxtimecnt = 0x007;
++		/* tclk-preparecnt: 6, tclk-zerocnt: 40 */
++		state->pdata.tclk_headercnt = 0x2806;
++		state->pdata.tclk_trailcnt = 0x00;
++		/* ths-preparecnt: 3, ths-zerocnt: 1 */
++		state->pdata.ths_headercnt = 0x0806;
++		state->pdata.twakeup = 0x4268;
++		state->pdata.tclk_postcnt = 0x008;
++		state->pdata.ths_trailcnt = 0x5;
++		state->pdata.hstxvregcnt = 0;
++		break;
 +	}
-+
-+	return fwnode;
-+}
-+
-+/*
-+ * v4l2_fwnode_reference_parse_int_props - parse references for async sub-devices
-+ * @dev: struct device pointer
-+ * @notifier: notifier for @dev
-+ * @prop: the name of the property
-+ * @props: the array of integer property names
-+ * @nprops: the number of integer properties
-+ *
-+ * Use v4l2_fwnode_reference_get_int_prop to find fwnodes through reference in
-+ * property @prop with integer arguments with child nodes matching in properties
-+ * @props. Then, set up V4L2 async sub-devices for those fwnodes in the notifier
-+ * accordingly.
-+ *
-+ * While it is technically possible to use this function on DT, it is only
-+ * meaningful on ACPI. On Device tree you can refer to any node in the tree but
-+ * on ACPI the references are limited to devices.
-+ *
-+ * Return: 0 on success
-+ *	   -ENOENT if no entries (or the property itself) were found
-+ *	   -EINVAL if property parsing otherwisefailed
-+ *	   -ENOMEM if memory allocation failed
-+ */
-+static int v4l2_fwnode_reference_parse_int_props(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	const char *prop, const char **props, unsigned int nprops)
-+{
-+	struct fwnode_handle *fwnode;
-+	unsigned int index;
-+	int ret;
-+
-+	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-+					 dev_fwnode(dev), prop, index, props,
-+					 nprops))); index++)
-+		fwnode_handle_put(fwnode);
-+
-+	/*
-+	 * Note that right now both -ENODATA and -ENOENT may signal
-+	 * out-of-bounds access. Return the error in cases other than that.
-+	 */
-+	if (PTR_ERR(fwnode) != -ENOENT && PTR_ERR(fwnode) != -ENODATA)
-+		return PTR_ERR(fwnode);
-+
-+	ret = v4l2_async_notifier_realloc(notifier,
-+					  notifier->num_subdevs + index);
-+	if (ret)
-+		return -ENOMEM;
-+
-+	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-+					 dev_fwnode(dev), prop, index, props,
-+					 nprops))); index++) {
-+		struct v4l2_async_subdev *asd;
-+
-+		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-+			ret = -EINVAL;
-+			goto error;
-+		}
-+
-+		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
-+		if (!asd) {
-+			ret = -ENOMEM;
-+			goto error;
-+		}
-+
-+		notifier->subdevs[notifier->num_subdevs] = asd;
-+		asd->match.fwnode.fwnode = fwnode;
-+		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-+		notifier->num_subdevs++;
-+	}
-+
-+	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
-+
-+error:
-+	fwnode_handle_put(fwnode);
-+	return ret;
-+}
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
- MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+ 
+ 	state->reset_gpio = devm_gpiod_get_optional(dev, "reset",
+ 						    GPIOD_OUT_LOW);
 -- 
-2.11.0
+2.7.4
