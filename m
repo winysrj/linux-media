@@ -1,111 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54622
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753486AbdIDMPi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Sep 2017 08:15:38 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 2/2] media: ca.h: document ca_msg and the corresponding ioctls
-Date: Mon,  4 Sep 2017 09:15:32 -0300
-Message-Id: <5d3763e16e3e910c51e7ced4fac7c3ec53bda1b5.1504526763.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504526763.git.mchehab@s-opensource.com>
-References: <cover.1504526763.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504526763.git.mchehab@s-opensource.com>
-References: <cover.1504526763.git.mchehab@s-opensource.com>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:59212 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751205AbdISKgC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 06:36:02 -0400
+Subject: Re: [PATCHv2 1/2] dt-bindings: adi,adv7511.txt: document cec clock
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
+        Archit Taneja <architt@codeaurora.org>,
+        linux-renesas-soc@vger.kernel.org,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        devicetree@vger.kernel.org
+References: <20170919073331.29007-1-hverkuil@xs4all.nl>
+ <20170919073331.29007-2-hverkuil@xs4all.nl>
+ <505bc74f-6563-ab1d-9aab-7893410aef7e@cogentembedded.com>
+ <74b252c8-c1eb-8498-7b9b-54604fe2806a@cisco.com>
+ <e68cffb1-346c-2018-9048-3f8523903809@cogentembedded.com>
+ <7bfcd125-db23-61e3-2bc9-67e5c11f27fa@xs4all.nl>
+ <ce0588ed-eb3f-0008-0608-b54aefeee704@cogentembedded.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <82f72432-51fa-722b-b1c7-d6f7ea6ae758@xs4all.nl>
+Date: Tue, 19 Sep 2017 12:35:55 +0200
+MIME-Version: 1.0
+In-Reply-To: <ce0588ed-eb3f-0008-0608-b54aefeee704@cogentembedded.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Usually, CA messages are sent/received via reading/writing at
-the CA device node. However, two drivers (dst_ca and firedtv-ci)
-also implement it via ioctls.
+On 09/19/17 12:15, Sergei Shtylyov wrote:
+> On 9/19/2017 1:07 PM, Hans Verkuil wrote:
+> 
+>>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>>
+>>>>>> Document the cec clock binding.
+>>>>>>
+>>>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>> Acked-by: Rob Herring <robh@kernel.org>
+>>>>>> ---
+>>>>>>     Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt | 4 ++++
+>>>>>>     1 file changed, 4 insertions(+)
+>>>>>>
+>>>>>> diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+>>>>>> index 06668bca7ffc..4497ae054d49 100644
+>>>>>> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+>>>>>> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+>>>>>> @@ -68,6 +68,8 @@ Optional properties:
+>>>>>>     - adi,disable-timing-generator: Only for ADV7533. Disables the internal timing
+>>>>>>       generator. The chip will rely on the sync signals in the DSI data lanes,
+>>>>>>       rather than generate its own timings for HDMI output.
+>>>>>> +- clocks: from common clock binding: handle to CEC clock.
+>>>>>
+>>>>>       It's called "phandle" in the DT speak. :-)
+>>>>>       Are you sure the clock specifier would always be absent?
+>>>>
+>>>> Sorry? I don't understand the question. Did you mean: "can be absent?"?
+>>>
+>>>      No, you only say that there'll be the clock phandle only. The clock
+>>> specifier may follow the phandle for the clock devices that have
+>>> "#clock-cells" prop != 0.
+>>
+>> I have to say that I just copy-and-pasted this from other bindings.
+> 
+>     :-)
+> 
+>> Would this be better?
+>>
+>> - clocks: list of clock specifiers, corresponding to entries in
+>>    the clock-names property;
+> 
+>     Didn't you say that there'll be only one clock, "cec"? If so, there's 
+> gonna  be a single clock phandle+specifier pair. They always go in pairs. :-)
+> 
+>> - clock-names: from common clock binding: must be "cec".
 
-Apparently, on both cases, the net result is the same.
+- clocks: cec clock phandle, corresponding to the clock-names entry.
+- clock-names: from common clock binding: must be "cec".
 
-Anyway, let's document it.
+This OK?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/dvb/ca-get-msg.rst  | 19 ++++++-------------
- Documentation/media/uapi/dvb/ca-send-msg.rst |  6 +++++-
- include/uapi/linux/dvb/ca.h                  | 11 ++++++++++-
- 3 files changed, 21 insertions(+), 15 deletions(-)
+Regards,
 
-diff --git a/Documentation/media/uapi/dvb/ca-get-msg.rst b/Documentation/media/uapi/dvb/ca-get-msg.rst
-index bdb116552068..ceeda623ce93 100644
---- a/Documentation/media/uapi/dvb/ca-get-msg.rst
-+++ b/Documentation/media/uapi/dvb/ca-get-msg.rst
-@@ -28,22 +28,15 @@ Arguments
- ``msg``
-   Pointer to struct :c:type:`ca_msg`.
- 
--.. c:type:: ca_msg
--
--.. code-block:: c
--
--    /* a message to/from a CI-CAM */
--    struct ca_msg {
--	unsigned int index;
--	unsigned int type;
--	unsigned int length;
--	unsigned char msg[256];
--    };
--
- Description
- -----------
- 
--.. note:: This ioctl is undocumented. Documentation is welcome.
-+Receives a message via a CI CA module.
-+
-+.. note::
-+
-+   Please notice that, on most drivers, this is done by reading from
-+   the /dev/adapter?/ca? device node.
- 
- 
- Return Value
-diff --git a/Documentation/media/uapi/dvb/ca-send-msg.rst b/Documentation/media/uapi/dvb/ca-send-msg.rst
-index 644b6bda1aea..9e91287b7bbc 100644
---- a/Documentation/media/uapi/dvb/ca-send-msg.rst
-+++ b/Documentation/media/uapi/dvb/ca-send-msg.rst
-@@ -32,8 +32,12 @@ Arguments
- Description
- -----------
- 
--.. note:: This ioctl is undocumented. Documentation is welcome.
-+Sends a message via a CI CA module.
- 
-+.. note::
-+
-+   Please notice that, on most drivers, this is done by writing
-+   to the /dev/adapter?/ca? device node.
- 
- Return Value
- ------------
-diff --git a/include/uapi/linux/dvb/ca.h b/include/uapi/linux/dvb/ca.h
-index a62ddf0cebcd..9bcd4cad497b 100644
---- a/include/uapi/linux/dvb/ca.h
-+++ b/include/uapi/linux/dvb/ca.h
-@@ -101,7 +101,16 @@ struct ca_caps {
- 	unsigned int descr_type;
- };
- 
--/* a message to/from a CI-CAM */
-+/**
-+ * struct ca_msg - a message to/from a CI-CAM
-+ *
-+ * @index:	unused
-+ * @type:	unused
-+ * @length:	length of the message
-+ * @msg:	message
-+ *
-+ * This struct carries a message to be send/received from a CI CA module.
-+ */
- struct ca_msg {
- 	unsigned int index;
- 	unsigned int type;
--- 
-2.13.5
+	Hans
