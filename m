@@ -1,129 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:42816 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751040AbdIADig (ORCPT
+Received: from mail-lf0-f43.google.com ([209.85.215.43]:54806 "EHLO
+        mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751306AbdISKmj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 23:38:36 -0400
-Message-ID: <a62547b26e56f8b9e22254d0db19e4f3@smtp-cloud9.xs4all.net>
-Date: Fri, 01 Sep 2017 05:38:34 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 19 Sep 2017 06:42:39 -0400
+Received: by mail-lf0-f43.google.com with SMTP id k23so3225610lfi.11
+        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 03:42:38 -0700 (PDT)
+Subject: Re: [PATCHv2 1/2] dt-bindings: adi,adv7511.txt: document cec clock
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
+        Archit Taneja <architt@codeaurora.org>,
+        linux-renesas-soc@vger.kernel.org,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        devicetree@vger.kernel.org
+References: <20170919073331.29007-1-hverkuil@xs4all.nl>
+ <20170919073331.29007-2-hverkuil@xs4all.nl>
+ <505bc74f-6563-ab1d-9aab-7893410aef7e@cogentembedded.com>
+ <74b252c8-c1eb-8498-7b9b-54604fe2806a@cisco.com>
+ <e68cffb1-346c-2018-9048-3f8523903809@cogentembedded.com>
+ <7bfcd125-db23-61e3-2bc9-67e5c11f27fa@xs4all.nl>
+ <ce0588ed-eb3f-0008-0608-b54aefeee704@cogentembedded.com>
+ <82f72432-51fa-722b-b1c7-d6f7ea6ae758@xs4all.nl>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <5c8f3625-26f3-8c6e-d42a-def8251a9ac6@cogentembedded.com>
+Date: Tue, 19 Sep 2017 13:42:36 +0300
+MIME-Version: 1.0
+In-Reply-To: <82f72432-51fa-722b-b1c7-d6f7ea6ae758@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 9/19/2017 1:35 PM, Hans Verkuil wrote:
 
-Results of the daily build of media_tree:
+>>>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>>>
+>>>>>>> Document the cec clock binding.
+>>>>>>>
+>>>>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>>> Acked-by: Rob Herring <robh@kernel.org>
+>>>>>>> ---
+>>>>>>>      Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt | 4 ++++
+>>>>>>>      1 file changed, 4 insertions(+)
+>>>>>>>
+>>>>>>> diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+>>>>>>> index 06668bca7ffc..4497ae054d49 100644
+>>>>>>> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+>>>>>>> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+>>>>>>> @@ -68,6 +68,8 @@ Optional properties:
+>>>>>>>      - adi,disable-timing-generator: Only for ADV7533. Disables the internal timing
+>>>>>>>        generator. The chip will rely on the sync signals in the DSI data lanes,
+>>>>>>>        rather than generate its own timings for HDMI output.
+>>>>>>> +- clocks: from common clock binding: handle to CEC clock.
+>>>>>>
+>>>>>>        It's called "phandle" in the DT speak. :-)
+>>>>>>        Are you sure the clock specifier would always be absent?
+>>>>>
+>>>>> Sorry? I don't understand the question. Did you mean: "can be absent?"?
+>>>>
+>>>>       No, you only say that there'll be the clock phandle only. The clock
+>>>> specifier may follow the phandle for the clock devices that have
+>>>> "#clock-cells" prop != 0.
+>>>
+>>> I have to say that I just copy-and-pasted this from other bindings.
+>>
+>>      :-)
+>>
+>>> Would this be better?
+>>>
+>>> - clocks: list of clock specifiers, corresponding to entries in
+>>>     the clock-names property;
+>>
+>>      Didn't you say that there'll be only one clock, "cec"? If so, there's
+>> gonna  be a single clock phandle+specifier pair. They always go in pairs. :-)
+>>
+>>> - clock-names: from common clock binding: must be "cec".
+> 
+> - clocks: cec clock phandle, corresponding to the clock-names entry.
 
-date:			Fri Sep  1 05:00:21 CEST 2017
-media-tree git hash:	fce4b371fe5c99a9c05db8493d72f0d1a474ab26
-media_build git hash:	96c1c79a9847387da3e8f51c1230b3118eed3ea6
-v4l-utils git hash:	3296adfa7fa169111bf37c041c0ca70ac8506054
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+    The clock phandle and specifier.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
+> - clock-names: from common clock binding: must be "cec".
+> 
+> This OK?
 
-Detailed results are available here:
+    Well, you seem to be going in circles, the above was almost the same as 
+the original prop description...
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+> Regards,
+> 
+> 	Hans
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+MBR, Sergei
