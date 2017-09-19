@@ -1,135 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:6969 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751387AbdIUOGK (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34590 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751564AbdISOuw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 10:06:10 -0400
-Date: Thu, 21 Sep 2017 15:05:54 +0100
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-CC: <linux-i2c@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-renesas-soc@vger.kernel.org>, <linux-iio@vger.kernel.org>,
-        <linux-input@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <dri-devel@lists.freedesktop.org>
-Subject: Re: [RFC PATCH v5 2/6] i2c: add helpers to ease DMA handling
-Message-ID: <20170921150554.0000273b@huawei.com>
-In-Reply-To: <20170921145922.000017b5@huawei.com>
-References: <20170920185956.13874-1-wsa+renesas@sang-engineering.com>
-        <20170920185956.13874-3-wsa+renesas@sang-engineering.com>
-        <20170921145922.000017b5@huawei.com>
+        Tue, 19 Sep 2017 10:50:52 -0400
+Date: Tue, 19 Sep 2017 17:50:49 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
+        sre@kernel.org
+Subject: Re: [PATCH v13 11/25] v4l: async: Introduce helpers for calling
+ async ops callbacks
+Message-ID: <20170919145049.uivohp6qvkf7x4fc@valkosipuli.retiisi.org.uk>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+ <1751597.tWjkEME5YS@avalon>
+ <20170919121311.n2fvoo7tebywsc5d@paasikivi.fi.intel.com>
+ <2693952.YdpSRMO0xE@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2693952.YdpSRMO0xE@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 21 Sep 2017 14:59:22 +0100
-Jonathan Cameron <Jonathan.Cameron@huawei.com> wrote:
+Hi Laurent,
 
-> On Wed, 20 Sep 2017 20:59:52 +0200
-> Wolfram Sang <wsa+renesas@sang-engineering.com> wrote:
+On Tue, Sep 19, 2017 at 03:43:48PM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> > One helper checks if DMA is suitable and optionally creates a bounce
-> > buffer, if not. The other function returns the bounce buffer and makes
-> > sure the data is properly copied back to the message.
+> On Tuesday, 19 September 2017 15:13:11 EEST Sakari Ailus wrote:
+> > On Tue, Sep 19, 2017 at 03:01:14PM +0300, Laurent Pinchart wrote:
+> > > On Friday, 15 September 2017 17:17:10 EEST Sakari Ailus wrote:
+> > >> Add three helper functions to call async operations callbacks. Besides
+> > >> simplifying callbacks, this allows async notifiers to have no ops set,
+> > >> i.e. it can be left NULL.
+> > >> 
+> > >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > >> ---
+> > >> 
+> > >>  drivers/media/v4l2-core/v4l2-async.c | 49 +++++++++++++++++++++--------
+> > >>  include/media/v4l2-async.h           |  1 +
+> > >>  2 files changed, 37 insertions(+), 13 deletions(-)
+> > >> 
+> > >> diff --git a/drivers/media/v4l2-core/v4l2-async.c
+> > >> b/drivers/media/v4l2-core/v4l2-async.c index 7b2125b3d62f..c35d04b9122f
+> > >> 100644
+> > >> --- a/drivers/media/v4l2-core/v4l2-async.c
+> > >> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > >> @@ -25,6 +25,34 @@
+> > >> 
+> > >>  #include <media/v4l2-fwnode.h>
+> > >>  #include <media/v4l2-subdev.h>
+> > >> 
+> > >> +static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier
+> > >> *n,
+> > >> +					  struct v4l2_subdev *subdev,
+> > >> +					  struct v4l2_async_subdev *asd)
+> > >> +{
+> > >> +	if (!n->ops || !n->ops->bound)
+> > >> +		return 0;
+> > >> +
+> > >> +	return n->ops->bound(n, subdev, asd);
+> > >> +}
+> > >> +
+> > >> +static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier
+> > >> *n,
+> > >> +					    struct v4l2_subdev *subdev,
+> > >> +					    struct v4l2_async_subdev *asd)
+> > >> +{
+> > >> +	if (!n->ops || !n->ops->unbind)
+> > >> +		return;
+> > >> +
+> > >> +	n->ops->unbind(n, subdev, asd);
+> > >> +}
+> > >> +
+> > >> +static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier
+> > >> *n)
+> > >> +{
+> > >> +	if (!n->ops || !n->ops->complete)
+> > >> +		return 0;
+> > >> +
+> > >> +	return n->ops->complete(n);
+> > >> +}
+> > >> +
+> > > 
+> > > Wouldn't it be enough to add a single v4l2_async_notifier_call() macro ?
+> > > 
+> > > #define v4l2_async_notifier_call(n, op, args...) \
+> > > 
+> > > 	((n)->ops && (n)->ops->op ? (n)->ops->op(n, ##args) : 0)
 > > 
-> > Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>  
+> > I actually had that in an earlier version but I changed it based on review
+> > comments from Hans. A single macro isn't enough: some functions have int
+> > return type. I think the way it is now is nicer.
 > 
-> One minor suggestion for wording. Otherwise looks good to me.
+> What bothers me there is the overhead of a function call.
+
+Overhead... of a function call?
+
+Do you really mean what you're saying? :-) The functions will be called a
+relatively small number of times during module loading / device probing.
+
 > 
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
->
+> By the way, what's the use case for ops being NULL ?
 
-Need more coffee. See below.
- 
-> > ---
-> >  drivers/i2c/i2c-core-base.c | 45 +++++++++++++++++++++++++++++++++++++++++++++
-> >  include/linux/i2c.h         |  3 +++
-> >  2 files changed, 48 insertions(+)
-> > 
-> > diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-> > index 56e46581b84bdb..925a22794d3ced 100644
-> > --- a/drivers/i2c/i2c-core-base.c
-> > +++ b/drivers/i2c/i2c-core-base.c
-> > @@ -2241,6 +2241,51 @@ void i2c_put_adapter(struct i2c_adapter *adap)
-> >  }
-> >  EXPORT_SYMBOL(i2c_put_adapter);
-> >  
-> > +/**
-> > + * i2c_get_dma_safe_msg_buf() - get a DMA safe buffer for the given i2c_msg
-> > + * @msg: the message to be checked
-> > + * @threshold: the amount of byte from which using DMA makes sense  
-> 
-> the minimum number of bytes for which using DMA makes sense.
-> 
-> > + *
-> > + * Return: NULL if a DMA safe buffer was not obtained. Use msg->buf with PIO.
-> > + *
-> > + *	   Or a valid pointer to be used with DMA. Note that it can either be
-> > + *	   msg->buf or a bounce buffer. After use, release it by calling
-> > + *	   i2c_release_dma_safe_msg_buf().
-> > + *
-> > + * This function must only be called from process context!
-> > + */
-> > +u8 *i2c_get_dma_safe_msg_buf(struct i2c_msg *msg, unsigned int threshold)
-> > +{
-> > +	if (msg->len < threshold)
-> > +		return NULL;
-> > +
-> > +	if (msg->flags & I2C_M_DMA_SAFE)
-> > +		return msg->buf;
-> > +
-> > +	if (msg->flags & I2C_M_RD)
-> > +		return kzalloc(msg->len, GFP_KERNEL);
-> > +	else
-> > +		return kmemdup(msg->buf, msg->len, GFP_KERNEL);
-> > +}
-> > +EXPORT_SYMBOL_GPL(i2c_get_dma_safe_msg_buf);
-> > +
-> > +/**
-> > + * i2c_release_dma_safe_msg_buf - release DMA safe buffer and sync with i2c_msg
-> > + * @msg: the message to be synced with
-> > + * @buf: the buffer obtained from i2c_get_dma_safe_msg_buf(). May be NULL.
-> > + */
-> > +void i2c_release_dma_safe_msg_buf(struct i2c_msg *msg, u8 *buf)
-> > +{
-> > +	if (!buf || buf == msg->buf)
-> > +		return;
-> > +
-> > +	if (msg->flags & I2C_M_RD)
-> > +		memcpy(msg->buf, buf, msg->len);
-> > +
-> > +	kfree(buf);
+If a driver has no need for any of the callbacks, there's no benefit from
+having to set ops struct either. This applies to devices that are
+associated to the sensor, for instance.
 
-Only free when you actually allocated it.  Seems to me like you need
-to check if (!(msg->flags & I2C_M_DMA_SAFE)) before kfree.
+-- 
+Regards,
 
-Otherwise the logic to do this will be needed in every driver
-which will get irritating fast.
-
-
-> > +}
-> > +EXPORT_SYMBOL_GPL(i2c_release_dma_safe_msg_buf);
-> > +
-> >  MODULE_AUTHOR("Simon G. Vogl <simon@tk.uni-linz.ac.at>");
-> >  MODULE_DESCRIPTION("I2C-Bus main module");
-> >  MODULE_LICENSE("GPL");
-> > diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-> > index d501d3956f13f0..1e99342f180f45 100644
-> > --- a/include/linux/i2c.h
-> > +++ b/include/linux/i2c.h
-> > @@ -767,6 +767,9 @@ static inline u8 i2c_8bit_addr_from_msg(const struct i2c_msg *msg)
-> >  	return (msg->addr << 1) | (msg->flags & I2C_M_RD ? 1 : 0);
-> >  }
-> >  
-> > +u8 *i2c_get_dma_safe_msg_buf(struct i2c_msg *msg, unsigned int threshold);
-> > +void i2c_release_dma_safe_msg_buf(struct i2c_msg *msg, u8 *buf);
-> > +
-> >  int i2c_handle_smbus_host_notify(struct i2c_adapter *adap, unsigned short addr);
-> >  /**
-> >   * module_i2c_driver() - Helper macro for registering a modular I2C driver  
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
