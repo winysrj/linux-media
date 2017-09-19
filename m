@@ -1,61 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:49609 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751413AbdIMJLs (ORCPT
+Received: from mail-wr0-f182.google.com ([209.85.128.182]:45778 "EHLO
+        mail-wr0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751367AbdISVB5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 05:11:48 -0400
-Subject: Re: [PATCH v3 4/6] [media] exynos-gsc: Add hardware rotation limits
-To: Hoegeun Kwon <hoegeun.kwon@samsung.com>
-Cc: mchehab@kernel.org, inki.dae@samsung.com, airlied@linux.ie,
-        kgene@kernel.org, krzk@kernel.org, robh+dt@kernel.org,
-        mark.rutland@arm.com, catalin.marinas@arm.com, will.deacon@arm.com,
-        m.szyprowski@samsung.com, devicetree@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <a915a1f7-2c01-472b-b9ee-5367c488a89f@samsung.com>
-Date: Wed, 13 Sep 2017 11:11:23 +0200
-MIME-version: 1.0
-In-reply-to: <bb025fcb-e316-dfe9-a8eb-8a9535f35b93@samsung.com>
-Content-type: text/plain; charset="utf-8"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
-        <CGME20170908060309epcas1p3d48dd0871d3fde02ba3c9921bbe5a7a6@epcas1p3.samsung.com>
-        <1504850560-27950-5-git-send-email-hoegeun.kwon@samsung.com>
-        <27b46679-e6c7-2471-f10e-3f0634178ebf@samsung.com>
-        <bb025fcb-e316-dfe9-a8eb-8a9535f35b93@samsung.com>
+        Tue, 19 Sep 2017 17:01:57 -0400
+Subject: Re: [RESEND PATCH v2 4/6] dt: bindings: as3645a: Improve label
+ documentation, DT example
+To: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>
+References: <20170918102349.8935-1-sakari.ailus@linux.intel.com>
+ <20170918102349.8935-5-sakari.ailus@linux.intel.com>
+ <20170918105655.GA14591@amd>
+ <20170918144923.dnhrxkirle3fvdfo@valkosipuli.retiisi.org.uk>
+ <20170918205407.GA1849@amd>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Message-ID: <809f7590-7641-e8bc-c009-4fed05d5827c@gmail.com>
+Date: Tue, 19 Sep 2017 23:01:02 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170918205407.GA1849@amd>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hoegeun,
+Hi Pavel,
 
-On 09/13/2017 04:33 AM, Hoegeun Kwon wrote:
->>> @@ -1017,8 +1083,12 @@ static irqreturn_t gsc_irq_handler(int irq,
->>> void *priv)
->>>      static const struct of_device_id exynos_gsc_match[] = {
->>>        {
->>> -        .compatible = "samsung,exynos5-gsc",
->>> -        .data = &gsc_v_100_drvdata,
->> Can you keep the "samsung,exynos5-gsc" entry with the gsc_v_5250_variant
->> data, so that it can work with "samsung,exynos5-gsc" compatible in DT
->> on both exynos5250 and exynos5420 SoCs?
+On 09/18/2017 10:54 PM, Pavel Machek wrote:
+> On Mon 2017-09-18 17:49:23, Sakari Ailus wrote:
+>> Hi Pavel,
 >>
-> Thank you for your question.
+>> On Mon, Sep 18, 2017 at 12:56:55PM +0200, Pavel Machek wrote:
+>>> Hi!
+>>>
+>>>> Specify the exact label used if the label property is omitted in DT, as
+>>>> well as use label in the example that conforms to LED device naming.
+>>>>
+>>>> @@ -69,11 +73,11 @@ Example
+>>>>  			flash-max-microamp = <320000>;
+>>>>  			led-max-microamp = <60000>;
+>>>>  			ams,input-max-microamp = <1750000>;
+>>>> -			label = "as3645a:flash";
+>>>> +			label = "as3645a:white:flash";
+>>>>  		};
+>>>>  		indicator@1 {
+>>>>  			reg = <0x1>;
+>>>>  			led-max-microamp = <10000>;
+>>>> -			label = "as3645a:indicator";
+>>>> +			label = "as3645a:red:indicator";
+>>>>  		};
+>>>>  	};
+>>>
+>>> Ok, but userspace still has no chance to determine if this is flash
+>>> from main camera or flash for front camera; todays smartphones have
+>>> flashes on both cameras.
+>>>
+>>> So.. Can I suggset as3645a:white:main_camera_flash or main_flash or
+>>> ....?
+>>
+>> If there's just a single one in the device, could you use that?
+>>
+>> Even if we name this so for N9 (and N900), the application still would only
+>> work with the two devices.
 > 
-> Exynos 5250 and 5420 have different hardware rotation limits.
-> Exynos 5250 is '.real_rot_en_w/h = 2016' and 5420 is '.real_rot_en_w/h =
-> 2048'.
+> Well, I'd plan to name it on other devices, too.
 > 
-> So my opinion they must have different compatible.
+>> My suggestion would be to look for a flash LED, and perhaps the maximum
+>> current as well. That should generally work better than assumptions on the
+>> label.
+> 
+> If you just look for flash LED, you don't know if it is front one or
+> back one. Its true that if you have just one flash it is usually on
+> the back camera, but you can't know if maybe driver is not available
+> for the main flash.
+> 
+> Lets get this right, please "main_camera_flash" is 12 bytes more than
+> "flash", and it saves application logic.. more than 12 bytes, I'm sure. 
 
-I think there is some misunderstanding, mu suggestion was to keep the 
-"samsung,exynos5-gsc" compatible entry in addition to the new introduced 
-ones: "samsung,exynos5250-gsc" and "samsung,exynos5420-gsc". That's in
-order to make your changes possibly backward compatible, in theory 
-the updated driver should still work without changes in dts.
+What you are trying to introduce is yet another level of LED class
+device naming standard, one level below devicename:colour:function.
+It seems you want also to come up with the set of standarized LED
+function names. This would certainly have to be covered for consistency.
 
 -- 
-Regards,
-Sylwester
+Best regards,
+Jacek Anaszewski
