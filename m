@@ -1,57 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33612 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750935AbdIIWGN (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:40525 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751205AbdISKHm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 9 Sep 2017 18:06:13 -0400
-Date: Sun, 10 Sep 2017 01:06:10 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        sre@kernel.org
-Subject: Re: [RFC] et8ek8: Add support for flash and lens devices
-Message-ID: <20170909220610.mireq3wv6leokvjk@valkosipuli.retiisi.org.uk>
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
- <20170908131822.31020-18-sakari.ailus@linux.intel.com>
- <20170909214724.GA18677@amd>
+        Tue, 19 Sep 2017 06:07:42 -0400
+Subject: Re: [PATCHv2 1/2] dt-bindings: adi,adv7511.txt: document cec clock
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
+        Archit Taneja <architt@codeaurora.org>,
+        linux-renesas-soc@vger.kernel.org,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        devicetree@vger.kernel.org
+References: <20170919073331.29007-1-hverkuil@xs4all.nl>
+ <20170919073331.29007-2-hverkuil@xs4all.nl>
+ <505bc74f-6563-ab1d-9aab-7893410aef7e@cogentembedded.com>
+ <74b252c8-c1eb-8498-7b9b-54604fe2806a@cisco.com>
+ <e68cffb1-346c-2018-9048-3f8523903809@cogentembedded.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <7bfcd125-db23-61e3-2bc9-67e5c11f27fa@xs4all.nl>
+Date: Tue, 19 Sep 2017 12:07:37 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170909214724.GA18677@amd>
+In-Reply-To: <e68cffb1-346c-2018-9048-3f8523903809@cogentembedded.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+On 09/19/17 11:35, Sergei Shtylyov wrote:
+> On 9/19/2017 12:29 PM, Hans Verkuil wrote:
+> 
+>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>
+>>>> Document the cec clock binding.
+>>>>
+>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>> Acked-by: Rob Herring <robh@kernel.org>
+>>>> ---
+>>>>    Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt | 4 ++++
+>>>>    1 file changed, 4 insertions(+)
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+>>>> index 06668bca7ffc..4497ae054d49 100644
+>>>> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+>>>> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+>>>> @@ -68,6 +68,8 @@ Optional properties:
+>>>>    - adi,disable-timing-generator: Only for ADV7533. Disables the internal timing
+>>>>      generator. The chip will rely on the sync signals in the DSI data lanes,
+>>>>      rather than generate its own timings for HDMI output.
+>>>> +- clocks: from common clock binding: handle to CEC clock.
+>>>
+>>>      It's called "phandle" in the DT speak. :-)
+>>>      Are you sure the clock specifier would always be absent?
+>>
+>> Sorry? I don't understand the question. Did you mean: "can be absent?"?
+> 
+>     No, you only say that there'll be the clock phandle only. The clock 
+> specifier may follow the phandle for the clock devices that have 
+> "#clock-cells" prop != 0.
 
-On Sat, Sep 09, 2017 at 11:47:24PM +0200, Pavel Machek wrote:
-> 
-> Parse async sub-devices by using
-> v4l2_subdev_fwnode_reference_parse_sensor_common().
-> 
-> These types devices aren't directly related to the sensor, but are
-> nevertheless handled by the et8ek8 driver due to the relationship of these
-> component to the main part of the camera module --- the sensor.
-> 
-> Signed-off-by: Pavel Machek <pavel@ucw.cz> # Not yet ready -- broken whitespace
-> 
-> ---
-> 
-> Whitespace is horribly bad. But otherwise... does it look ok?
+I have to say that I just copy-and-pasted this from other bindings. Would
+this be better?
 
-It mostly mirrors the smiapp driver implementation and, well, is an issue.
-Namely it's lacking releasing the notifier's resources, just like the
-smiapp driver. I'll update the smiapp patch --- the notifier's resources
-need to be released by calling v4l2_async_notifier_release(); see the 5th
-patch.
+- clocks: list of clock specifiers, corresponding to entries in
+  the clock-names property;
+- clock-names: from common clock binding: must be "cec".
 
-Other than that it seems good.
-
--- 
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+	Hans
