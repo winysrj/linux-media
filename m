@@ -1,36 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44986 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751664AbdIRUCA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 16:02:00 -0400
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59468 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751237AbdISLKl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 07:10:41 -0400
+Date: Tue, 19 Sep 2017 14:10:37 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
+        sre@kernel.org
+Subject: Re: [PATCH v13 01/25] v4l: fwnode: Move KernelDoc documentation to
+ the header
+Message-ID: <20170919111036.5va2unwqh2vymojr@valkosipuli.retiisi.org.uk>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+ <20170915141724.23124-2-sakari.ailus@linux.intel.com>
+ <9077921.hsjkiRftLf@avalon>
 MIME-Version: 1.0
-In-Reply-To: <20170917101546.16993-4-hverkuil@xs4all.nl>
-References: <20170917101546.16993-1-hverkuil@xs4all.nl> <20170917101546.16993-4-hverkuil@xs4all.nl>
-From: Rob Herring <robh@kernel.org>
-Date: Mon, 18 Sep 2017 15:01:38 -0500
-Message-ID: <CAL_JsqL47W337yMbGuYPFbo8ROJzZHLNvX+rufw1uBNjnwgzgg@mail.gmail.com>
-Subject: Re: [PATCHv6 3/5] dt-bindings: document the CEC GPIO bindings
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <9077921.hsjkiRftLf@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Sep 17, 2017 at 5:15 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Document the bindings for the cec-gpio module for hardware where the
-> CEC line and optionally the HPD line are connected to GPIO lines.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
-> ---
->  .../devicetree/bindings/media/cec-gpio.txt         | 32 ++++++++++++++++++++++
->  1 file changed, 32 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/cec-gpio.txt
+Hi Laurent,
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+On Tue, Sep 19, 2017 at 01:48:27PM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thank you for the patch.
+> 
+> On Friday, 15 September 2017 17:17:00 EEST Sakari Ailus wrote:
+> > In V4L2 the practice is to have the KernelDoc documentation in the header
+> > and not in .c source code files. This consequently makes the V4L2 fwnode
+> > function documentation part of the Media documentation build.
+> > 
+> > Also correct the link related function and argument naming in
+> > documentation.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > Acked-by: Pavel Machek <pavel@ucw.cz>
+> 
+> I'm still very opposed to this. In addition to increasing the risk of 
+> documentation becoming stale, it also makes review more difficult. I'm 
+> reviewing patch 05/25 of this series and I have to jump around the patch to 
+> verify that the documentation matches the implementation, it's really 
+> annoying.
+
+I'd like to have this discussion separately from the patchset, which is
+right now in its 13th version. This patch simply makes the current state
+consistent; V4L2 async was the only part of V4L2 with KernelDoc
+documentation in .c files.
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
