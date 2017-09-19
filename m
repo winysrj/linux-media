@@ -1,117 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33454 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751512AbdILImt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 04:42:49 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v11 17/24] v4l: fwnode: Add a helper function for parsing generic references
-Date: Tue, 12 Sep 2017 11:42:29 +0300
-Message-Id: <20170912084236.1154-18-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
-References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+Received: from mout.web.de ([212.227.17.11]:49616 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751661AbdISSp7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 14:45:59 -0400
+Subject: [PATCH 1/3] [media] hdpvr: Delete three error messages for a failed
+ memory allocation
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Jonathan Sims <jonathan.625266@earthlink.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <82d14066-5816-111c-9d21-f6a439e559c1@users.sourceforge.net>
+Message-ID: <3dc5f6be-6002-5cbf-a820-d803f9afad69@users.sourceforge.net>
+Date: Tue, 19 Sep 2017 20:45:40 +0200
+MIME-Version: 1.0
+In-Reply-To: <82d14066-5816-111c-9d21-f6a439e559c1@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add function v4l2_fwnode_reference_count() for counting external
-references and v4l2_fwnode_reference_parse() for parsing them as async
-sub-devices.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 19 Sep 2017 09:33:26 +0200
 
-This can be done on e.g. flash or lens async sub-devices that are not part
-of but are associated with a sensor.
+Omit extra messages for a memory allocation failure in these functions.
 
-struct v4l2_async_notifier.max_subdevs field is added to contain the
-maximum number of sub-devices in a notifier to reflect the memory
-allocated for the subdevs array.
+This issue was detected by using the Coccinelle software.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 69 +++++++++++++++++++++++++++++++++++
- 1 file changed, 69 insertions(+)
+ drivers/media/usb/hdpvr/hdpvr-core.c  | 8 ++------
+ drivers/media/usb/hdpvr/hdpvr-video.c | 5 ++---
+ 2 files changed, 4 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index d978f2d714ca..a61c16b337a0 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -449,6 +449,75 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
- }
- EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints);
+diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
+index dbe29c6c4d8b..f1c156814e10 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-core.c
++++ b/drivers/media/usb/hdpvr/hdpvr-core.c
+@@ -282,6 +282,4 @@ static int hdpvr_probe(struct usb_interface *interface,
+-	if (!dev) {
+-		dev_err(&interface->dev, "Out of memory\n");
++	if (!dev)
+ 		goto error;
+-	}
  
-+/*
-+ * v4l2_fwnode_reference_parse - parse references for async sub-devices
-+ * @dev: the device node the properties of which are parsed for references
-+ * @notifier: the async notifier where the async subdevs will be added
-+ * @prop: the name of the property
-+ *
-+ * Return: 0 on success
-+ *	   -ENOENT if no entries were found
-+ *	   -ENOMEM if memory allocation failed
-+ *	   -EINVAL if property parsing failed
-+ */
-+static int v4l2_fwnode_reference_parse(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	const char *prop)
-+{
-+	struct fwnode_reference_args args;
-+	unsigned int index;
-+	int ret;
+ 	/* init video transfer queues first of all */
+@@ -302,6 +300,4 @@ static int hdpvr_probe(struct usb_interface *interface,
+-	if (!dev->usbc_buf) {
+-		v4l2_err(&dev->v4l2_dev, "Out of memory\n");
++	if (!dev->usbc_buf)
+ 		goto error;
+-	}
+ 
+ 	init_waitqueue_head(&dev->wait_buffer);
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 7fb036d6a86e..657d910dfa1d 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -150,7 +150,6 @@ int hdpvr_alloc_buffers(struct hdpvr_device *dev, uint count)
+-		if (!buf) {
+-			v4l2_err(&dev->v4l2_dev, "cannot allocate buffer\n");
++		if (!buf)
+ 			goto exit;
+-		}
 +
-+	for (index = 0;
-+	     !(ret = fwnode_property_get_reference_args(
-+		       dev_fwnode(dev), prop, NULL, 0, index, &args));
-+	     index++)
-+		fwnode_handle_put(args.fwnode);
-+
-+	if (!index)
-+		return -ENOENT;
-+
-+	/*
-+	 * To-do: handle -ENODATA when "device property: Align return
-+	 * codes of acpi_fwnode_get_reference_with_args" is merged.
-+	 */
-+	if (ret != -ENOENT && ret != -ENODATA)
-+		return ret;
-+
-+	ret = v4l2_async_notifier_realloc(notifier,
-+					  notifier->num_subdevs + index);
-+	if (ret)
-+		return ret;
-+
-+	for (index = 0; !fwnode_property_get_reference_args(
-+		     dev_fwnode(dev), prop, NULL, 0, index, &args);
-+	     index++) {
-+		struct v4l2_async_subdev *asd;
-+
-+		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-+			ret = -EINVAL;
-+			goto error;
-+		}
-+
-+		asd = kzalloc(sizeof(*asd), GFP_KERNEL);
-+		if (!asd) {
-+			ret = -ENOMEM;
-+			goto error;
-+		}
-+
-+		notifier->subdevs[notifier->num_subdevs] = asd;
-+		asd->match.fwnode.fwnode = args.fwnode;
-+		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-+		notifier->num_subdevs++;
-+	}
-+
-+	return 0;
-+
-+error:
-+	fwnode_handle_put(args.fwnode);
-+	return ret;
-+}
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
- MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+ 		buf->dev = dev;
+ 
+ 		urb = usb_alloc_urb(0, GFP_KERNEL);
 -- 
-2.11.0
+2.14.1
