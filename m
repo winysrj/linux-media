@@ -1,47 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54621
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753477AbdIDMPi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Sep 2017 08:15:38 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        =?UTF-8?q?Honza=20Petrou=C5=A1?= <jpetrous@gmail.com>
-Subject: [PATCH 0/2] Documents the two remaining CA ioctls
-Date: Mon,  4 Sep 2017 09:15:30 -0300
-Message-Id: <cover.1504526763.git.mchehab@s-opensource.com>
+Received: from aserp1040.oracle.com ([141.146.126.69]:19948 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750952AbdISImg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 04:42:36 -0400
+Date: Tue, 19 Sep 2017 11:42:16 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH 4/6] [media] go7007: Use common error handling code in
+ s2250_probe()
+Message-ID: <20170919084216.ctvwpmswr3ckhwzc@mwanda>
+References: <b36ece3f-0f31-9bb6-14ae-c4abf7cd23ee@users.sourceforge.net>
+ <c4d2e584-39ca-6e30-43ee-56088905149e@users.sourceforge.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c4d2e584-39ca-6e30-43ee-56088905149e@users.sourceforge.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks to some discussions I had with Honza, I got some ideas about how to
-document the last three undocumented ioctls from ca.h, together with the
-two data structures.
+On Mon, Sep 18, 2017 at 03:57:21PM +0200, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Mon, 18 Sep 2017 13:50:45 +0200
+> 
+> Adjust jump targets so that a bit of exception handling can be better
+> reused at the end of this function.
+> 
+> This refactoring might fix also an error situation where the
+> function "i2c_unregister_device" was not called after a software failure
+> was noticed by the data member "hdl.error".
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/media/usb/go7007/s2250-board.c | 37 +++++++++++++++++-----------------
+>  1 file changed, 18 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/media/usb/go7007/s2250-board.c b/drivers/media/usb/go7007/s2250-board.c
+> index 1fd4c09dd516..1bd9a7f2e7a3 100644
+> --- a/drivers/media/usb/go7007/s2250-board.c
+> +++ b/drivers/media/usb/go7007/s2250-board.c
+> @@ -510,6 +510,7 @@ static int s2250_probe(struct i2c_client *client,
+>  	u8 *data;
+>  	struct go7007 *go = i2c_get_adapdata(adapter);
+>  	struct go7007_usb *usb = go->hpi_context;
+> +	int code;
 
-With this series (and the previous one), everything at CA, Net, Demux 
-and DVBv5 Frontend DVB APIs are now documented. That's IMHO
-a very good reason to celebrate! Yay!
+It should be called "int rc" to match the rest of the driver.  "ret" or
+"err" would also have been acceptable.
 
-Please notice that are still gaps at the DVB API documentation, but
-those are related to legacy stuff that aren't touched for ages
-(DVBv3 frontend API, audio.h, osd.h and video.h). The legacy
- DVBv3 frontend API was completely replaced by DVBv5 API.
-The other ones are used only by a single driver (av7110).
+>  
+>  	audio = i2c_new_dummy(adapter, TLV320_ADDRESS >> 1);
+>  	if (!audio)
+> @@ -517,8 +518,8 @@ static int s2250_probe(struct i2c_client *client,
+>  
+>  	state = kzalloc(sizeof(*state), GFP_KERNEL);
+>  	if (!state) {
+> -		i2c_unregister_device(audio);
+> -		return -ENOMEM;
+> +		code = -ENOMEM;
+> +		goto unregister_device;
+>  	}
+>  
+>  	sd = &state->sd;
+> @@ -538,11 +539,8 @@ static int s2250_probe(struct i2c_client *client,
+>  		V4L2_CID_HUE, -512, 511, 1, 0);
+>  	sd->ctrl_handler = &state->hdl;
+>  	if (state->hdl.error) {
+> -		int err = state->hdl.error;
+> -
+> -		v4l2_ctrl_handler_free(&state->hdl);
+> -		kfree(state);
+> -		return err;
+> +		code = state->hdl.error;
+> +		goto free_handler;
+>  	}
+>  
+>  	state->std = V4L2_STD_NTSC;
+> @@ -555,17 +553,13 @@ static int s2250_probe(struct i2c_client *client,
+>  	/* initialize the audio */
+>  	if (write_regs(audio, aud_regs) < 0) {
+>  		dev_err(&client->dev, "error initializing audio\n");
+> -		goto fail;
+> +		goto e_io;
 
-Mauro Carvalho Chehab (2):
-  media: ca docs: document CA_SET_DESCR ioctl and structs
-  media: ca.h: document ca_msg and the corresponding ioctls
+Preserve the error code.
 
- Documentation/media/uapi/dvb/ca-get-msg.rst   | 19 ++++++-------------
- Documentation/media/uapi/dvb/ca-send-msg.rst  |  6 +++++-
- Documentation/media/uapi/dvb/ca-set-descr.rst | 15 ++-------------
- include/uapi/linux/dvb/ca.h                   | 20 ++++++++++++++++++--
- 4 files changed, 31 insertions(+), 29 deletions(-)
-
--- 
-2.13.5
+regards,
+dan carpenter
