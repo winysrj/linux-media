@@ -1,185 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46925
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751778AbdIANY4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:24:56 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        devendra sharma <devendra.sharma9091@gmail.com>
-Subject: [PATCH v2 02/27] media: dmx.h: split typedefs from structs
-Date: Fri,  1 Sep 2017 10:24:24 -0300
-Message-Id: <3755a59f0e2fa5a2e32f3b7ad1216bdf244c37d9.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
+Received: from mga04.intel.com ([192.55.52.120]:21161 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751410AbdISMkf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 08:40:35 -0400
+Date: Tue, 19 Sep 2017 15:39:30 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
+        sre@kernel.org
+Subject: Re: [PATCH v13 07/25] rcar-vin: Use generic parser for parsing
+ fwnode endpoints
+Message-ID: <20170919123930.xtq44elhwy6vdfxv@paasikivi.fi.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+ <20170915141724.23124-8-sakari.ailus@linux.intel.com>
+ <3549838.F21OCYHXEu@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3549838.F21OCYHXEu@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using typedefs inside the Kernel is against CodingStyle, and
-there's no good usage here.
+Hi Laurent,
 
-Just like we did at frontend.h, at changeset 0df289a209e0
-("[media] dvb: Get rid of typedev usage for enums"), let's keep
-those typedefs only to provide userspace backward compatibility.
+On Tue, Sep 19, 2017 at 02:53:16PM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thank you for the patch.
+> 
+> On Friday, 15 September 2017 17:17:06 EEST Sakari Ailus wrote:
+> > Instead of using driver implementation, use
+> 
+> Same comment as for patch 06/25.
 
-No functional changes.
+Will fix.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dmxdev.c |  4 +--
- include/uapi/linux/dvb/dmx.h    | 56 ++++++++++++++++++++++++-----------------
- 2 files changed, 35 insertions(+), 25 deletions(-)
+> 
+> > v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
+> > of the device.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/platform/rcar-vin/rcar-core.c | 112 ++++++++-----------------
+> >  drivers/media/platform/rcar-vin/rcar-dma.c  |  10 +--
+> >  drivers/media/platform/rcar-vin/rcar-v4l2.c |  14 ++--
+> >  drivers/media/platform/rcar-vin/rcar-vin.h  |   4 +-
+> >  4 files changed, 48 insertions(+), 92 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
+> > b/drivers/media/platform/rcar-vin/rcar-core.c index
+> > 142de447aaaa..62b4a94f9a39 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> 
+> [snip]
+> 
+> > @@ -120,117 +121,70 @@ static int rvin_digital_notify_bound(struct
+> 
+> [snip]
+> 
+> > -static int rvin_digitial_parse_v4l2(struct rvin_dev *vin,
+> > -				    struct device_node *ep,
+> > -				    struct v4l2_mbus_config *mbus_cfg)
+> > +static int rvin_digital_parse_v4l2(struct device *dev,
+> > +				   struct v4l2_fwnode_endpoint *vep,
+> > +				   struct v4l2_async_subdev *asd)
+> >  {
+> > -	struct v4l2_fwnode_endpoint v4l2_ep;
+> > -	int ret;
+> > +	struct rvin_dev *vin = dev_get_drvdata(dev);
+> 
+> Doesn't this show that we miss a context argument to the callback function ? 
+> Storing the context in device driver data is probably OK if the driver parsing 
+> the endpoints controls the struct device, but is that always the case ?
 
-diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-index 45e91add73ba..16b0b74c3114 100644
---- a/drivers/media/dvb-core/dmxdev.c
-+++ b/drivers/media/dvb-core/dmxdev.c
-@@ -562,7 +562,7 @@ static int dvb_dmxdev_start_feed(struct dmxdev *dmxdev,
- {
- 	ktime_t timeout = 0;
- 	struct dmx_pes_filter_params *para = &filter->params.pes;
--	dmx_output_t otype;
-+	enum dmx_output otype;
- 	int ret;
- 	int ts_type;
- 	enum dmx_ts_pes ts_pes;
-@@ -787,7 +787,7 @@ static int dvb_dmxdev_filter_free(struct dmxdev *dmxdev,
- 	return 0;
- }
- 
--static inline void invert_mode(dmx_filter_t *filter)
-+static inline void invert_mode(struct dmx_filter *filter)
- {
- 	int i;
- 
-diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
-index 427e4899ed69..1bc4d6fb0f01 100644
---- a/include/uapi/linux/dvb/dmx.h
-+++ b/include/uapi/linux/dvb/dmx.h
-@@ -43,16 +43,14 @@ enum dmx_output
- 	DMX_OUT_TSDEMUX_TAP /* Like TS_TAP but retrieved from the DMX device */
- };
- 
--typedef enum dmx_output dmx_output_t;
--
--typedef enum dmx_input
-+enum dmx_input
- {
- 	DMX_IN_FRONTEND, /* Input from a front-end device.  */
- 	DMX_IN_DVR       /* Input from the logical DVR device.  */
--} dmx_input_t;
-+};
- 
- 
--typedef enum dmx_ts_pes
-+enum dmx_ts_pes
- {
- 	DMX_PES_AUDIO0,
- 	DMX_PES_VIDEO0,
-@@ -79,7 +77,7 @@ typedef enum dmx_ts_pes
- 	DMX_PES_PCR3,
- 
- 	DMX_PES_OTHER
--} dmx_pes_type_t;
-+};
- 
- #define DMX_PES_AUDIO    DMX_PES_AUDIO0
- #define DMX_PES_VIDEO    DMX_PES_VIDEO0
-@@ -88,20 +86,20 @@ typedef enum dmx_ts_pes
- #define DMX_PES_PCR      DMX_PES_PCR0
- 
- 
--typedef struct dmx_filter
-+struct dmx_filter
- {
- 	__u8  filter[DMX_FILTER_SIZE];
- 	__u8  mask[DMX_FILTER_SIZE];
- 	__u8  mode[DMX_FILTER_SIZE];
--} dmx_filter_t;
-+};
- 
- 
- struct dmx_sct_filter_params
- {
--	__u16          pid;
--	dmx_filter_t   filter;
--	__u32          timeout;
--	__u32          flags;
-+	__u16             pid;
-+	struct dmx_filter filter;
-+	__u32             timeout;
-+	__u32             flags;
- #define DMX_CHECK_CRC       1
- #define DMX_ONESHOT         2
- #define DMX_IMMEDIATE_START 4
-@@ -111,19 +109,19 @@ struct dmx_sct_filter_params
- 
- struct dmx_pes_filter_params
- {
--	__u16          pid;
--	dmx_input_t    input;
--	dmx_output_t   output;
--	dmx_pes_type_t pes_type;
--	__u32          flags;
-+	__u16           pid;
-+	enum dmx_input  input;
-+	enum dmx_output output;
-+	enum dmx_ts_pes pes_type;
-+	__u32           flags;
- };
- 
--typedef struct dmx_caps {
-+struct dmx_caps {
- 	__u32 caps;
- 	int num_decoders;
--} dmx_caps_t;
-+};
- 
--typedef enum dmx_source {
-+enum dmx_source {
- 	DMX_SOURCE_FRONT0 = 0,
- 	DMX_SOURCE_FRONT1,
- 	DMX_SOURCE_FRONT2,
-@@ -132,7 +130,7 @@ typedef enum dmx_source {
- 	DMX_SOURCE_DVR1,
- 	DMX_SOURCE_DVR2,
- 	DMX_SOURCE_DVR3
--} dmx_source_t;
-+};
- 
- struct dmx_stc {
- 	unsigned int num;	/* input : which STC? 0..N */
-@@ -146,10 +144,22 @@ struct dmx_stc {
- #define DMX_SET_PES_FILTER       _IOW('o', 44, struct dmx_pes_filter_params)
- #define DMX_SET_BUFFER_SIZE      _IO('o', 45)
- #define DMX_GET_PES_PIDS         _IOR('o', 47, __u16[5])
--#define DMX_GET_CAPS             _IOR('o', 48, dmx_caps_t)
--#define DMX_SET_SOURCE           _IOW('o', 49, dmx_source_t)
-+#define DMX_GET_CAPS             _IOR('o', 48, struct dmx_caps)
-+#define DMX_SET_SOURCE           _IOW('o', 49, enum dmx_source)
- #define DMX_GET_STC              _IOWR('o', 50, struct dmx_stc)
- #define DMX_ADD_PID              _IOW('o', 51, __u16)
- #define DMX_REMOVE_PID           _IOW('o', 52, __u16)
- 
-+#if !defined (__KERNEL__)
-+
-+/* This is needed for legacy userspace support */
-+typedef enum dmx_output dmx_output_t;
-+typedef enum dmx_input dmx_input_t;
-+typedef enum dmx_ts_pes dmx_pes_type_t;
-+typedef struct dmx_filter dmx_filter_t;
-+typedef struct dmx_caps dmx_caps_t;
-+typedef enum dmx_source  dmx_source_t;
-+
-+#endif
-+
- #endif /* _UAPI_DVBDMX_H_ */
+How does a driver know the hardware other than, uh, the device?
+
+I guess we could add a private pointer when the async notifier is
+registered if there's a real need for it. The notifier could be an
+alternative but it wouldn't be applicable to sub-devices.
+
+> 
+> > +	struct rvin_graph_entity *rvge =
+> > +		container_of(asd, struct rvin_graph_entity, asd);
+> > 
+> > -	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
+> > -	if (ret) {
+> > -		vin_err(vin, "Could not parse v4l2 endpoint\n");
+> > -		return -EINVAL;
+> > -	}
+> > +	if (vep->base.port || vep->base.id)
+> > +		return -ENOTCONN;
+> > 
+> > -	mbus_cfg->type = v4l2_ep.bus_type;
+> > +	rvge->mbus_cfg.type = vep->bus_type;
+> > 
+> > -	switch (mbus_cfg->type) {
+> > +	switch (rvge->mbus_cfg.type) {
+> >  	case V4L2_MBUS_PARALLEL:
+> >  		vin_dbg(vin, "Found PARALLEL media bus\n");
+> > -		mbus_cfg->flags = v4l2_ep.bus.parallel.flags;
+> > +		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
+> >  		break;
+> >  	case V4L2_MBUS_BT656:
+> >  		vin_dbg(vin, "Found BT656 media bus\n");
+> > -		mbus_cfg->flags = 0;
+> > +		rvge->mbus_cfg.flags = 0;
+> >  		break;
+> >  	default:
+> >  		vin_err(vin, "Unknown media bus type\n");
+> >  		return -EINVAL;
+> >  	}
+> > 
+> > -	return 0;
+> > -}
+> > -
+> > -static int rvin_digital_graph_parse(struct rvin_dev *vin)
+> > -{
+> > -	struct device_node *ep, *np;
+> > -	int ret;
+> > -
+> > -	vin->digital.asd.match.fwnode.fwnode = NULL;
+> > -	vin->digital.subdev = NULL;
+> > -
+> > -	/*
+> > -	 * Port 0 id 0 is local digital input, try to get it.
+> > -	 * Not all instances can or will have this, that is OK
+> > -	 */
+> > -	ep = of_graph_get_endpoint_by_regs(vin->dev->of_node, 0, 0);
+> > -	if (!ep)
+> > -		return 0;
+> > -
+> > -	np = of_graph_get_remote_port_parent(ep);
+> > -	if (!np) {
+> > -		vin_err(vin, "No remote parent for digital input\n");
+> > -		of_node_put(ep);
+> > -		return -EINVAL;
+> > -	}
+> > -	of_node_put(np);
+> > -
+> > -	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->digital.mbus_cfg);
+> > -	of_node_put(ep);
+> > -	if (ret)
+> > -		return ret;
+> > -
+> > -	vin->digital.asd.match.fwnode.fwnode = of_fwnode_handle(np);
+> > -	vin->digital.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> > +	vin->digital = rvge;
+> > 
+> >  	return 0;
+> >  }
+> > 
+> >  static int rvin_digital_graph_init(struct rvin_dev *vin)
+> >  {
+> > -	struct v4l2_async_subdev **subdevs = NULL;
+> >  	int ret;
+> > 
+> > -	ret = rvin_digital_graph_parse(vin);
+> > +	ret = v4l2_async_notifier_parse_fwnode_endpoints(
+> > +		vin->dev, &vin->notifier,
+> > +		sizeof(struct rvin_graph_entity), rvin_digital_parse_v4l2);
+> >  	if (ret)
+> >  		return ret;
+> > 
+> > -	if (!vin->digital.asd.match.fwnode.fwnode) {
+> > -		vin_dbg(vin, "No digital subdevice found\n");
+> > -		return -ENODEV;
+> > -	}
+> > -
+> > -	/* Register the subdevices notifier. */
+> > -	subdevs = devm_kzalloc(vin->dev, sizeof(*subdevs), GFP_KERNEL);
+> > -	if (subdevs == NULL)
+> > -		return -ENOMEM;
+> > -
+> > -	subdevs[0] = &vin->digital.asd;
+> > -
+> > -	vin_dbg(vin, "Found digital subdevice %pOF\n",
+> > -		to_of_node(subdevs[0]->match.fwnode.fwnode));
+> > +	if (vin->digital)
+> > +		vin_dbg(vin, "Found digital subdevice %pOF\n",
+> > +			to_of_node(
+> > +				vin->digital->asd.match.fwnode.fwnode));
+> 
+> Isn't this is a change in behaviour ? The driver currently returns -ENODEV 
+> when no digital subdev is found.
+
+Seems so, I'll address that in v14.
+
+> 
+> > -	vin->notifier.num_subdevs = 1;
+> > -	vin->notifier.subdevs = subdevs;
+> >  	vin->notifier.bound = rvin_digital_notify_bound;
+> >  	vin->notifier.unbind = rvin_digital_notify_unbind;
+> >  	vin->notifier.complete = rvin_digital_notify_complete;
+> > -
+> >  	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
+> >  	if (ret < 0) {
+> >  		vin_err(vin, "Notifier registration failed\n");
+> 
+
 -- 
-2.13.5
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
