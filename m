@@ -1,73 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eddie.linux-mips.org ([148.251.95.138]:37710 "EHLO
-        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751913AbdIFIJn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 04:09:43 -0400
-Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S23990506AbdIFIJm1ZVy4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 10:09:42 +0200
-Date: Wed, 6 Sep 2017 10:09:22 +0200
-From: Ladislav Michl <ladis@linux-mips.org>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
-Subject: [PATCH 02/10] media: rc: gpio-ir-recv: use devm_kzalloc
-Message-ID: <20170906080922.5a7qmrfvpppb4wix@lenoch>
-References: <20170906080748.wgxbmunfsu33bd6x@lenoch>
+Received: from mail-lf0-f52.google.com ([209.85.215.52]:43905 "EHLO
+        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750974AbdISJfc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 05:35:32 -0400
+Received: by mail-lf0-f52.google.com with SMTP id c80so3090766lfh.0
+        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 02:35:32 -0700 (PDT)
+Subject: Re: [PATCHv2 1/2] dt-bindings: adi,adv7511.txt: document cec clock
+To: Hans Verkuil <hansverk@cisco.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
+        Archit Taneja <architt@codeaurora.org>,
+        linux-renesas-soc@vger.kernel.org,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20170919073331.29007-1-hverkuil@xs4all.nl>
+ <20170919073331.29007-2-hverkuil@xs4all.nl>
+ <505bc74f-6563-ab1d-9aab-7893410aef7e@cogentembedded.com>
+ <74b252c8-c1eb-8498-7b9b-54604fe2806a@cisco.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <e68cffb1-346c-2018-9048-3f8523903809@cogentembedded.com>
+Date: Tue, 19 Sep 2017 12:35:29 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170906080748.wgxbmunfsu33bd6x@lenoch>
+In-Reply-To: <74b252c8-c1eb-8498-7b9b-54604fe2806a@cisco.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use of devm_kzalloc simplifies error unwinding.
+On 9/19/2017 12:29 PM, Hans Verkuil wrote:
 
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
----
- drivers/media/rc/gpio-ir-recv.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>
+>>> Document the cec clock binding.
+>>>
+>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>> Acked-by: Rob Herring <robh@kernel.org>
+>>> ---
+>>>    Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt | 4 ++++
+>>>    1 file changed, 4 insertions(+)
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+>>> index 06668bca7ffc..4497ae054d49 100644
+>>> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+>>> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+>>> @@ -68,6 +68,8 @@ Optional properties:
+>>>    - adi,disable-timing-generator: Only for ADV7533. Disables the internal timing
+>>>      generator. The chip will rely on the sync signals in the DSI data lanes,
+>>>      rather than generate its own timings for HDMI output.
+>>> +- clocks: from common clock binding: handle to CEC clock.
+>>
+>>      It's called "phandle" in the DT speak. :-)
+>>      Are you sure the clock specifier would always be absent?
+> 
+> Sorry? I don't understand the question. Did you mean: "can be absent?"?
 
-diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-index 2f6233186ce9..fd5742b23447 100644
---- a/drivers/media/rc/gpio-ir-recv.c
-+++ b/drivers/media/rc/gpio-ir-recv.c
-@@ -139,15 +139,13 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
- 	if (pdata->gpio_nr < 0)
- 		return -EINVAL;
- 
--	gpio_dev = kzalloc(sizeof(struct gpio_rc_dev), GFP_KERNEL);
-+	gpio_dev = devm_kzalloc(dev, sizeof(struct gpio_rc_dev), GFP_KERNEL);
- 	if (!gpio_dev)
- 		return -ENOMEM;
- 
- 	rcdev = rc_allocate_device(RC_DRIVER_IR_RAW);
--	if (!rcdev) {
--		rc = -ENOMEM;
--		goto err_allocate_device;
--	}
-+	if (!rcdev)
-+		return -ENOMEM;
- 
- 	rcdev->priv = gpio_dev;
- 	rcdev->input_name = GPIO_IR_DEVICE_NAME;
-@@ -206,8 +204,6 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
- 	gpio_free(pdata->gpio_nr);
- err_gpio_request:
- 	rc_free_device(rcdev);
--err_allocate_device:
--	kfree(gpio_dev);
- 	return rc;
- }
- 
-@@ -219,7 +215,6 @@ static int gpio_ir_recv_remove(struct platform_device *pdev)
- 	del_timer_sync(&gpio_dev->flush_timer);
- 	rc_unregister_device(gpio_dev->rcdev);
- 	gpio_free(gpio_dev->gpio_nr);
--	kfree(gpio_dev);
- 	return 0;
- }
- 
--- 
-2.11.0
+    No, you only say that there'll be the clock phandle only. The clock 
+specifier may follow the phandle for the clock devices that have 
+"#clock-cells" prop != 0.
+
+> Regards,
+> 
+>          Hans
+[...]
+
+MBR, Sergei
