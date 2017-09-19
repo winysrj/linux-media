@@ -1,145 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46940
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752049AbdIANY5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:24:57 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v2 15/27] media: dmx.h: get rid of GET_DMX_EVENT
-Date: Fri,  1 Sep 2017 10:24:37 -0300
-Message-Id: <02294126b52fedd272d1ff5da461a01b25f71440.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
+Received: from unicorn.mansr.com ([81.2.72.234]:52190 "EHLO unicorn.mansr.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751773AbdISMVd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 08:21:33 -0400
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+To: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+Cc: Sean Young <sean@mess.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>,
+        Mason <slash.tmp@free.fr>
+Subject: Re: [PATCH v1] media: rc: Add driver for tango IR decoder
+References: <e05783d3-012d-0798-9a54-ff42039e728d@sigmadesigns.com>
+        <yw1xd16oyqas.fsf@mansr.com>
+        <569e41a9-57c9-3d6f-4157-dffb23f997c6@sigmadesigns.com>
+Date: Tue, 19 Sep 2017 13:21:32 +0100
+In-Reply-To: <569e41a9-57c9-3d6f-4157-dffb23f997c6@sigmadesigns.com> (Marc
+        Gonzalez's message of "Tue, 19 Sep 2017 13:53:30 +0200")
+Message-ID: <yw1xwp4uyj3n.fsf@mansr.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This seems to be a pure fictional API :-)
+Marc Gonzalez <marc_gonzalez@sigmadesigns.com> writes:
 
-It only exists at the DVB book, with no code implemeting it.
+> On 18/09/2017 17:33, Måns Rullgård wrote:
+>
+>> What have you changed compared to my original code?
+>
+> I forgot to mention one change you may not approve of, so we should
+> probably discuss it.
+>
+> Your driver supported an optional DT property "linux,rc-map-name"
+> to override the RC_MAP_EMPTY map. Since the IR decoder supports
+> multiple protocols, I found it odd to specify a scancode map in
+> something as low-level as the device tree.
+>
+> I saw only one board using that property:
+> $ git grep "linux,rc-map-name" arch/
+> arch/arm64/boot/dts/amlogic/meson-gxl-s905x-khadas-vim.dts:     linux,rc-map-name = "rc-geekbox";
+>
+> So I removed support for "linux,rc-map-name" and used ir-keytable
+> to load a given map from user-space, depending on which RC I use.
+>
+> Mans, Sean, what do you think?
 
-So, just get rid of it.
+The property is documented as common for IR receivers although only a
+few drivers seem to actually implement the feature.  Since driver
+support is trivial, I see no reason to skip it.  Presumably someone
+had a use for it, or it wouldn't have been added.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/dvb/dmx-get-event.rst | 60 --------------------------
- Documentation/media/uapi/dvb/dmx_fcalls.rst    |  1 -
- Documentation/media/uapi/dvb/dmx_types.rst     | 19 --------
- 3 files changed, 80 deletions(-)
- delete mode 100644 Documentation/media/uapi/dvb/dmx-get-event.rst
-
-diff --git a/Documentation/media/uapi/dvb/dmx-get-event.rst b/Documentation/media/uapi/dvb/dmx-get-event.rst
-deleted file mode 100644
-index 8be626c29158..000000000000
---- a/Documentation/media/uapi/dvb/dmx-get-event.rst
-+++ /dev/null
-@@ -1,60 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--.. _DMX_GET_EVENT:
--
--=============
--DMX_GET_EVENT
--=============
--
--Name
------
--
--DMX_GET_EVENT
--
--
--Synopsis
----------
--
--.. c:function:: int ioctl( int fd, DMX_GET_EVENT, struct dmx_event *ev)
--    :name: DMX_GET_EVENT
--
--
--Arguments
-----------
--
--``fd``
--    File descriptor returned by :c:func:`open() <dvb-dmx-open>`.
--
--``ev``
--    Pointer to the location where the event is to be stored.
--
--
--Description
-------------
--
--This ioctl call returns an event if available. If an event is not
--available, the behavior depends on whether the device is in blocking or
--non-blocking mode. In the latter case, the call fails immediately with
--errno set to ``EWOULDBLOCK``. In the former case, the call blocks until an
--event becomes available.
--
--
--Return Value
--------------
--
--On success 0 is returned, on error -1 and the ``errno`` variable is set
--appropriately. The generic error codes are described at the
--:ref:`Generic Error Codes <gen-errors>` chapter.
--
--
--
--.. flat-table::
--    :header-rows:  0
--    :stub-columns: 0
--
--
--    -  .. row 1
--
--       -  ``EWOULDBLOCK``
--
--       -  There is no event pending, and the device is in non-blocking mode.
-diff --git a/Documentation/media/uapi/dvb/dmx_fcalls.rst b/Documentation/media/uapi/dvb/dmx_fcalls.rst
-index be98d60877f2..a17289143220 100644
---- a/Documentation/media/uapi/dvb/dmx_fcalls.rst
-+++ b/Documentation/media/uapi/dvb/dmx_fcalls.rst
-@@ -18,7 +18,6 @@ Demux Function Calls
-     dmx-set-filter
-     dmx-set-pes-filter
-     dmx-set-buffer-size
--    dmx-get-event
-     dmx-get-stc
-     dmx-get-pes-pids
-     dmx-add-pid
-diff --git a/Documentation/media/uapi/dvb/dmx_types.rst b/Documentation/media/uapi/dvb/dmx_types.rst
-index a205c02ccdc1..171205ed86a4 100644
---- a/Documentation/media/uapi/dvb/dmx_types.rst
-+++ b/Documentation/media/uapi/dvb/dmx_types.rst
-@@ -166,25 +166,6 @@ struct dmx_pes_filter_params
- 	__u32          flags;
-     };
- 
--
--struct dmx_event
--================
--
--.. c:type:: dmx_event
--
--.. code-block:: c
--
--     struct dmx_event
--     {
--	 dmx_event_t          event;
--	 time_t               timeStamp;
--	 union
--	 {
--	     dmx_scrambling_status_t scrambling;
--	 } u;
--     };
--
--
- struct dmx_stc
- ==============
- 
 -- 
-2.13.5
+Måns Rullgård
