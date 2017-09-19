@@ -1,52 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52266
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751071AbdICTD7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Sep 2017 15:03:59 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 7/7] media: index.rst: don't write "Contents:" on PDF output
-Date: Sun,  3 Sep 2017 16:03:53 -0300
-Message-Id: <1af1affbaae2f9e72846d3c78940f93c03c1c9fc.1504464984.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504464984.git.mchehab@s-opensource.com>
-References: <cover.1504464984.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504464984.git.mchehab@s-opensource.com>
-References: <cover.1504464984.git.mchehab@s-opensource.com>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:36279 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751109AbdISMZa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 08:25:30 -0400
+MIME-Version: 1.0
+In-Reply-To: <20170908163929.9277-1-sthemmin@microsoft.com>
+References: <20170908163929.9277-1-sthemmin@microsoft.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 19 Sep 2017 14:25:29 +0200
+Message-ID: <CAMuHMdXV=LFyKqrZ1-e7qnLdYay69ov3vxEsk-ZjWvs876RdpQ@mail.gmail.com>
+Subject: Re: [PATCH] media: default for RC_CORE should be n
+To: Stephen Hemminger <stephen@networkplumber.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Stephen Hemminger <sthemmin@microsoft.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right now, Sphinx unconditionally creates a blank page with
-just "Contents:" on it, on PDF output. While this makes sense
-for html, it doesn't o PDF, as LaTeX does what's required
-automatically.
+On Fri, Sep 8, 2017 at 6:39 PM, Stephen Hemminger
+<stephen@networkplumber.org> wrote:
+> The Linus policy on Kconfig is that the default should be no
+> for all new devices. I.e the user rebuild a new kernel from an
+> old config should not by default get a larger kernel.
+>
+> Fixes: b4c184e506a4 ("[media] media: reorganize the main Kconfig items")
+> Signed-off-by: Stephen Hemminger <sthemmin@microsoft.com>
+> ---
+>  drivers/media/rc/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+> index d9ce8ff55d0c..5aa384afcfef 100644
+> --- a/drivers/media/rc/Kconfig
+> +++ b/drivers/media/rc/Kconfig
+> @@ -2,7 +2,7 @@
+>  menuconfig RC_CORE
+>         tristate "Remote Controller support"
+>         depends on INPUT
+> -       default y
+> +       default n
 
-Fix it.
+"default n" is the default, so you can just drop this line.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/index.rst | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+For the principle:
+Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-diff --git a/Documentation/media/index.rst b/Documentation/media/index.rst
-index 7d2907d4f8d7..1cf5316c8ff8 100644
---- a/Documentation/media/index.rst
-+++ b/Documentation/media/index.rst
-@@ -1,7 +1,11 @@
- Linux Media Subsystem Documentation
- ===================================
- 
--Contents:
-+.. only:: html
-+
-+   .. class:: toc-title
-+
-+        Table of Contents
- 
- .. toctree::
-    :maxdepth: 2
--- 
-2.13.5
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
