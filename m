@@ -1,98 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:42055 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753740AbdIDO6S (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37857 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751476AbdISLkZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Sep 2017 10:58:18 -0400
-Subject: Re: [PATCH v7 16/18] v4l2-fwnode: Add convenience function for
- parsing common external refs
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-References: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
- <20170903174958.27058-17-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4900fc41-1b57-deb6-2041-26a6333f2033@xs4all.nl>
-Date: Mon, 4 Sep 2017 16:58:13 +0200
+        Tue, 19 Sep 2017 07:40:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
+        sre@kernel.org
+Subject: Re: [PATCH v13 06/25] omap3isp: Use generic parser for parsing fwnode endpoints
+Date: Tue, 19 Sep 2017 14:40:29 +0300
+Message-ID: <1555926.RTv2yyCEgl@avalon>
+In-Reply-To: <20170915141724.23124-7-sakari.ailus@linux.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com> <20170915141724.23124-7-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20170903174958.27058-17-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/03/2017 07:49 PM, Sakari Ailus wrote:
-> Add v4l2_fwnode_parse_reference_sensor_common for parsing common
-> sensor properties that refer to adjacent devices such as flash or lens
-> driver chips.
-> 
-> As this is an association only, there's little a regular driver needs to
-> know about these devices as such.
+Hi Sakari,
+
+Thank you for the patch.
+
+On Friday, 15 September 2017 17:17:05 EEST Sakari Ailus wrote:
+> Instead of using driver implementation, use
+
+Did you mean s/using driver implementation/using a driver implementation/ (or 
+perhaps "custom driver implementation") ?
+
+> v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
+> of the device.
 > 
 > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/platform/omap3isp/isp.c | 115 ++++++++++---------------------
+>  drivers/media/platform/omap3isp/isp.h |   5 +-
+>  2 files changed, 37 insertions(+), 83 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 1a428fe9f070..a546cf774d40
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+[snip]
 
+> @@ -2256,7 +2210,9 @@ static int isp_probe(struct platform_device *pdev)
+>  	if (ret)
+>  		return ret;
+> 
+> -	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
+> +	ret = v4l2_async_notifier_parse_fwnode_endpoints(
+> +		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
+> +		isp_fwnode_parse);
+>  	if (ret < 0)
+
+The documentation in patch 05/25 states that v4l2_async_notifier_release() 
+should be called even if v4l2_async_notifier_parse_fwnode_endpoints() fails. I 
+don't think that's needed here, so you might want to update the documentation 
+(and possibly the implementation of the function).
+
+Apart from that,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  		return ret;
+> 
+> @@ -2407,6 +2363,7 @@ static int isp_probe(struct platform_device *pdev)
+>  	__omap3isp_put(isp, false);
+>  error:
+>  	mutex_destroy(&isp->isp_mutex);
+> +	v4l2_async_notifier_release(&isp->notifier);
+> 
+>  	return ret;
+>  }
+
+[snip]
+
+-- 
 Regards,
 
-	Hans
-
-> ---
->  drivers/media/v4l2-core/v4l2-fwnode.c | 27 +++++++++++++++++++++++++++
->  include/media/v4l2-fwnode.h           |  3 +++
->  2 files changed, 30 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> index 24f8020caf28..f28be3b751d3 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -530,6 +530,33 @@ int v4l2_fwnode_reference_parse(
->  }
->  EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse);
->  
-> +int v4l2_fwnode_reference_parse_sensor_common(
-> +	struct device *dev, struct v4l2_async_notifier *notifier)
-> +{
-> +	static const struct {
-> +		char *name;
-> +		char *cells;
-> +		unsigned int nr_cells;
-> +	} props[] = {
-> +		{ "flash", NULL, 0 },
-> +		{ "lens-focus", NULL, 0 },
-> +	};
-> +	unsigned int i;
-> +	int rval;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(props); i++) {
-> +		rval = v4l2_fwnode_reference_parse(
-> +			dev, notifier, props[i].name, props[i].cells,
-> +			props[i].nr_cells, sizeof(struct v4l2_async_subdev),
-> +			NULL);
-> +		if (rval < 0 && rval != -ENOENT)
-> +			return rval;
-> +	}
-> +
-> +	return rval;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse_sensor_common);
-> +
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
->  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-> index 52f528162818..fd14f1d38966 100644
-> --- a/include/media/v4l2-fwnode.h
-> +++ b/include/media/v4l2-fwnode.h
-> @@ -282,4 +282,7 @@ int v4l2_fwnode_reference_parse(
->  			    struct fwnode_reference_args *args,
->  			    struct v4l2_async_subdev *asd));
->  
-> +int v4l2_fwnode_reference_parse_sensor_common(
-> +	struct device *dev, struct v4l2_async_notifier *notifier);
-> +
->  #endif /* _V4L2_FWNODE_H */
-> 
+Laurent Pinchart
