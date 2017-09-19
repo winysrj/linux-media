@@ -1,58 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42400 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751871AbdIVJe4 (ORCPT
+Received: from nasmtp01.atmel.com ([192.199.1.246]:28982 "EHLO
+        DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750893AbdISAql (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 05:34:56 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: [RESEND PATCH v3 1/4] as3645a: Use ams,input-max-microamp as documented in DT bindings
-Date: Fri, 22 Sep 2017 12:34:50 +0300
-Message-Id: <20170922093453.13250-2-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170922093453.13250-1-sakari.ailus@linux.intel.com>
-References: <20170922093453.13250-1-sakari.ailus@linux.intel.com>
+        Mon, 18 Sep 2017 20:46:41 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Jonathan Corbet <corbet@lwn.net>
+CC: Nicolas Ferre <nicolas.ferre@microchip.com>,
+        <linux-kernel@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v5 0/3] media: ov7670: Add entity init and power operation
+Date: Tue, 19 Sep 2017 08:45:06 +0800
+Message-ID: <20170919004509.12722-1-wenyou.yang@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DT bindings document the property "ams,input-max-microamp" that limits the
-chip's maximum input current. The driver and the DTS however used
-"peak-current-limit" property. Fix this by using the property documented
-in DT binding documentation.
+This patch set is to add the media entity pads initialization,
+the s_power operation and get_fmt callback support.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
----
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 2 +-
- drivers/leds/leds-as3645a.c          | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Changes in v5:
+ - Fix the build warning on the declaration *mbus_fmt(ISO C90 forbids mixed).
 
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index cb47ae79a5f9..b86fc83a5a65 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -273,7 +273,7 @@
- 			flash-timeout-us = <150000>;
- 			flash-max-microamp = <320000>;
- 			led-max-microamp = <60000>;
--			peak-current-limit = <1750000>;
-+			ams,input-max-microamp = <1750000>;
- 		};
- 		indicator {
- 			led-max-microamp = <10000>;
-diff --git a/drivers/leds/leds-as3645a.c b/drivers/leds/leds-as3645a.c
-index bbbbe0898233..e3f89c6130d2 100644
---- a/drivers/leds/leds-as3645a.c
-+++ b/drivers/leds/leds-as3645a.c
-@@ -534,7 +534,7 @@ static int as3645a_parse_node(struct as3645a *flash,
- 	of_property_read_u32(flash->flash_node, "voltage-reference",
- 			     &cfg->voltage_reference);
- 
--	of_property_read_u32(flash->flash_node, "peak-current-limit",
-+	of_property_read_u32(flash->flash_node, "ams,input-max-microamp",
- 			     &cfg->peak);
- 	cfg->peak = AS_PEAK_mA_TO_REG(cfg->peak);
- 
+Changes in v4:
+ - Fix the build error when not enabling Media Controller API option.
+ - Fix the build error when not enabling V4L2 sub-device userspace API option.
+
+Changes in v3:
+ - Keep tried format info in the try_fmt member of
+   v4l2_subdev__pad_config struct.
+ - Add the internal_ops callback to set default format.
+
+Changes in v2:
+ - Add the patch to support the get_fmt ops.
+ - Remove the redundant invoking ov7670_init_gpio().
+
+Wenyou Yang (3):
+  media: ov7670: Add entity pads initialization
+  media: ov7670: Add the get_fmt callback
+  media: ov7670: Add the s_power operation
+
+ drivers/media/i2c/ov7670.c | 130 ++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 123 insertions(+), 7 deletions(-)
+
 -- 
-2.11.0
+2.13.0
