@@ -1,78 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:38017 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757132AbdIHVIz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 17:08:55 -0400
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        "Gustavo A . R . Silva" <garsilva@embeddedor.com>,
-        linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] tuners: mxl5005s: make arrays static const, reduces object code size
-Date: Fri,  8 Sep 2017 22:08:51 +0100
-Message-Id: <20170908210851.12124-1-colin.king@canonical.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from mga09.intel.com ([134.134.136.24]:34825 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751473AbdISUqm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Sep 2017 16:46:42 -0400
+From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>,
+        =?UTF-8?q?J=C3=A9r=C3=A9my=20Lefaure?=
+        <jeremy.lefaure@lse.epita.fr>,
+        Avraham Shukron <avraham.shukron@gmail.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Varsha Rao <rvarsha016@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] staging: atomisp: use clock framework for camera clocks
+Date: Tue, 19 Sep 2017 15:45:16 -0500
+Message-Id: <20170919204549.27468-1-pierre-louis.bossart@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+The Atom ISP driver initializes and configures PMC clocks which are
+already handled by the clock framework.
 
-Don't populate the arrays RegAddr on the stack, instead make them static
-const.  Makes the object code smaller by over 980 bytes:
+Remove all legacy vlv2_platform_clock stuff and move to the clk API to
+avoid conflicts, e.g. with audio machine drivers enabling the MCLK for
+external codecs
 
-Before:
-   text	   data	    bss	    dec	    hex	filename
-  64923	    304	      0	  65227	   fecb	drivers/media/tuners/mxl5005s.o
-
-After:
-   text	   data	    bss	    dec	    hex	filename
-  63779	    464	      0	  64243	   faf3	drivers/media/tuners/mxl5005s.o
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Tested-by: Carlo Caione <carlo@endlessm.com>
+Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
 ---
- drivers/media/tuners/mxl5005s.c | 17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ drivers/staging/media/atomisp/Kconfig              |   1 +
+ drivers/staging/media/atomisp/platform/Makefile    |   1 -
+ .../staging/media/atomisp/platform/clock/Makefile  |   6 -
+ .../platform/clock/platform_vlv2_plat_clk.c        |  40 ----
+ .../platform/clock/platform_vlv2_plat_clk.h        |  27 ---
+ .../media/atomisp/platform/clock/vlv2_plat_clock.c | 247 ---------------------
+ .../platform/intel-mid/atomisp_gmin_platform.c     |  63 +++++-
+ 7 files changed, 52 insertions(+), 333 deletions(-)
+ delete mode 100644 drivers/staging/media/atomisp/platform/clock/Makefile
+ delete mode 100644 drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.c
+ delete mode 100644 drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.h
+ delete mode 100644 drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
 
-diff --git a/drivers/media/tuners/mxl5005s.c b/drivers/media/tuners/mxl5005s.c
-index dd59c2c0e4a5..20ab7b0171f9 100644
---- a/drivers/media/tuners/mxl5005s.c
-+++ b/drivers/media/tuners/mxl5005s.c
-@@ -3591,10 +3591,11 @@ static u16 MXL_GetInitRegister(struct dvb_frontend *fe, u8 *RegNum,
- 	u16 status = 0;
- 	int i ;
+diff --git a/drivers/staging/media/atomisp/Kconfig b/drivers/staging/media/atomisp/Kconfig
+index 8eb13c3ba29c..7cdebea35ccf 100644
+--- a/drivers/staging/media/atomisp/Kconfig
++++ b/drivers/staging/media/atomisp/Kconfig
+@@ -1,6 +1,7 @@
+ menuconfig INTEL_ATOMISP
+         bool "Enable support to Intel MIPI camera drivers"
+         depends on X86 && EFI && MEDIA_CONTROLLER && PCI && ACPI
++	select COMMON_CLK
+         help
+           Enable support for the Intel ISP2 camera interfaces and MIPI
+           sensor drivers.
+diff --git a/drivers/staging/media/atomisp/platform/Makefile b/drivers/staging/media/atomisp/platform/Makefile
+index df157630bda9..0e3b7e1c81c6 100644
+--- a/drivers/staging/media/atomisp/platform/Makefile
++++ b/drivers/staging/media/atomisp/platform/Makefile
+@@ -2,5 +2,4 @@
+ # Makefile for camera drivers.
+ #
  
--	u8 RegAddr[] = {
-+	static const u8 RegAddr[] = {
- 		11, 12, 13, 22, 32, 43, 44, 53, 56, 59, 73,
- 		76, 77, 91, 134, 135, 137, 147,
--		156, 166, 167, 168, 25 };
-+		156, 166, 167, 168, 25
-+	};
+-obj-$(CONFIG_INTEL_ATOMISP) += clock/
+ obj-$(CONFIG_INTEL_ATOMISP) += intel-mid/
+diff --git a/drivers/staging/media/atomisp/platform/clock/Makefile b/drivers/staging/media/atomisp/platform/clock/Makefile
+deleted file mode 100644
+index 82fbe8b6968a..000000000000
+diff --git a/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.c b/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.c
+deleted file mode 100644
+index 0aae9b0283bb..000000000000
+diff --git a/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.h b/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.h
+deleted file mode 100644
+index b730ab0e8223..000000000000
+diff --git a/drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c b/drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
+deleted file mode 100644
+index f96789a31819..000000000000
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+index edaae93af8f9..17b4cfae5abf 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+@@ -4,10 +4,10 @@
+ #include <linux/efi.h>
+ #include <linux/pci.h>
+ #include <linux/acpi.h>
++#include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <media/v4l2-subdev.h>
+ #include <linux/mfd/intel_soc_pmic.h>
+-#include "../../include/linux/vlv2_plat_clock.h"
+ #include <linux/regulator/consumer.h>
+ #include <linux/gpio/consumer.h>
+ #include <linux/gpio.h>
+@@ -17,11 +17,7 @@
  
- 	*count = ARRAY_SIZE(RegAddr);
+ #define MAX_SUBDEVS 8
  
-@@ -3616,11 +3617,15 @@ static u16 MXL_GetCHRegister(struct dvb_frontend *fe, u8 *RegNum, u8 *RegVal,
+-/* Should be defined in vlv2_plat_clock API, isn't: */
+-#define VLV2_CLK_PLL_19P2MHZ 1
+-#define VLV2_CLK_XTAL_19P2MHZ 0
+-#define VLV2_CLK_ON      1
+-#define VLV2_CLK_OFF     2
++#define VLV2_CLK_PLL_19P2MHZ 1 /* XTAL on CHT */
+ #define ELDO1_SEL_REG	0x19
+ #define ELDO1_1P8V	0x16
+ #define ELDO1_CTRL_SHIFT 0x00
+@@ -33,6 +29,7 @@ struct gmin_subdev {
+ 	struct v4l2_subdev *subdev;
+ 	int clock_num;
+ 	int clock_src;
++	struct clk *pmc_clk;
+ 	struct gpio_desc *gpio0;
+ 	struct gpio_desc *gpio1;
+ 	struct regulator *v1p8_reg;
+@@ -344,6 +341,9 @@ static int gmin_platform_deinit(void)
+ 	return 0;
+ }
  
- /* add 77, 166, 167, 168 register for 2.6.12 */
- #ifdef _MXL_PRODUCTION
--	u8 RegAddr[] = {14, 15, 16, 17, 22, 43, 65, 68, 69, 70, 73, 92, 93, 106,
--	   107, 108, 109, 110, 111, 112, 136, 138, 149, 77, 166, 167, 168 } ;
-+	static const u8 RegAddr[] = {
-+		14, 15, 16, 17, 22, 43, 65, 68, 69, 70, 73, 92, 93, 106,
-+		107, 108, 109, 110, 111, 112, 136, 138, 149, 77, 166, 167, 168
-+	};
- #else
--	u8 RegAddr[] = {14, 15, 16, 17, 22, 43, 68, 69, 70, 73, 92, 93, 106,
--	   107, 108, 109, 110, 111, 112, 136, 138, 149, 77, 166, 167, 168 } ;
-+	static const u8 RegAddr[] = {
-+		14, 15, 16, 17, 22, 43, 68, 69, 70, 73, 92, 93, 106,
-+		107, 108, 109, 110, 111, 112, 136, 138, 149, 77, 166, 167, 168
-+	};
- 	/*
- 	u8 RegAddr[171];
- 	for (i = 0; i <= 170; i++)
++#define GMIN_PMC_CLK_NAME 14 /* "pmc_plt_clk_[0..5]" */
++static char gmin_pmc_clk_name[GMIN_PMC_CLK_NAME];
++
+ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
+ {
+ 	int i, ret;
+@@ -377,6 +377,37 @@ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
+ 	gmin_subdevs[i].gpio0 = gpiod_get_index(dev, NULL, 0, GPIOD_OUT_LOW);
+ 	gmin_subdevs[i].gpio1 = gpiod_get_index(dev, NULL, 1, GPIOD_OUT_LOW);
+ 
++	/* get PMC clock with clock framework */
++	snprintf(gmin_pmc_clk_name,
++		 sizeof(gmin_pmc_clk_name),
++		 "%s_%d", "pmc_plt_clk", gmin_subdevs[i].clock_num);
++
++	gmin_subdevs[i].pmc_clk = devm_clk_get(dev, gmin_pmc_clk_name);
++	if (IS_ERR(gmin_subdevs[i].pmc_clk)) {
++		ret = PTR_ERR(gmin_subdevs[i].pmc_clk);
++
++		dev_err(dev,
++			"Failed to get clk from %s : %d\n",
++			gmin_pmc_clk_name,
++			ret);
++
++		return NULL;
++	}
++
++	/*
++	 * The firmware might enable the clock at
++	 * boot (this information may or may not
++	 * be reflected in the enable clock register).
++	 * To change the rate we must disable the clock
++	 * first to cover these cases. Due to common
++	 * clock framework restrictions that do not allow
++	 * to disable a clock that has not been enabled,
++	 * we need to enable the clock first.
++	 */
++	ret = clk_prepare_enable(gmin_subdevs[i].pmc_clk);
++	if (!ret)
++		clk_disable_unprepare(gmin_subdevs[i].pmc_clk);
++
+ 	if (!IS_ERR(gmin_subdevs[i].gpio0)) {
+ 		ret = gpiod_direction_output(gmin_subdevs[i].gpio0, 0);
+ 		if (ret)
+@@ -539,13 +570,21 @@ static int gmin_flisclk_ctrl(struct v4l2_subdev *subdev, int on)
+ {
+ 	int ret = 0;
+ 	struct gmin_subdev *gs = find_gmin_subdev(subdev);
++	struct i2c_client *client = v4l2_get_subdevdata(subdev);
++
++	if (on) {
++		ret = clk_set_rate(gs->pmc_clk, gs->clock_src);
++
++		if (ret)
++			dev_err(&client->dev, "unable to set PMC rate %d\n",
++				gs->clock_src);
+ 
+-	if (on)
+-		ret = vlv2_plat_set_clock_freq(gs->clock_num, gs->clock_src);
+-	if (ret)
+-		return ret;
+-	return vlv2_plat_configure_clock(gs->clock_num,
+-					 on ? VLV2_CLK_ON : VLV2_CLK_OFF);
++		ret = clk_prepare_enable(gs->pmc_clk);
++	} else {
++		clk_disable_unprepare(gs->pmc_clk);
++	}
++
++	return ret;
+ }
+ 
+ static int gmin_csi_cfg(struct v4l2_subdev *sd, int flag)
 -- 
-2.14.1
+2.11.0
