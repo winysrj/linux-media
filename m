@@ -1,69 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:37409 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751746AbdITHiT (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38069 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751210AbdISMMi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 03:38:19 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: p.zabel@pengutronix.de, mchehab@kernel.org, hans.verkuil@cisco.com,
-        sean@mess.org, andi.shyti@samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 2/2] [media] cx23885: Handle return value of kasprintf
-Date: Wed, 20 Sep 2017 13:07:13 +0530
-Message-Id: <1505893033-7491-3-git-send-email-arvind.yadav.cs@gmail.com>
-In-Reply-To: <1505893033-7491-1-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1505893033-7491-1-git-send-email-arvind.yadav.cs@gmail.com>
+        Tue, 19 Sep 2017 08:12:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
+        sre@kernel.org
+Subject: Re: [PATCH v13 15/25] dt: bindings: Add a binding for flash LED devices associated to a sensor
+Date: Tue, 19 Sep 2017 15:12:42 +0300
+Message-ID: <8102551.bT9icskWgv@avalon>
+In-Reply-To: <20170915141724.23124-16-sakari.ailus@linux.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com> <20170915141724.23124-16-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kasprintf() can fail here and we must check its return value.
+Hi Sakari,
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- drivers/media/pci/cx23885/cx23885-input.c | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
-index 944b7083..0f4e542 100644
---- a/drivers/media/pci/cx23885/cx23885-input.c
-+++ b/drivers/media/pci/cx23885/cx23885-input.c
-@@ -340,14 +340,23 @@ int cx23885_input_init(struct cx23885_dev *dev)
- 	kernel_ir->cx = dev;
- 	kernel_ir->name = kasprintf(GFP_KERNEL, "cx23885 IR (%s)",
- 				    cx23885_boards[dev->board].name);
-+	if (!kernel_ir->name) {
-+		ret = -ENOMEM;
-+		goto err_out_free;
-+	}
-+
- 	kernel_ir->phys = kasprintf(GFP_KERNEL, "pci-%s/ir0",
- 				    pci_name(dev->pci));
-+	if (!kernel_ir->phys) {
-+		ret = -ENOMEM;
-+		goto err_out_free_name;
-+	}
- 
- 	/* input device */
- 	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
- 	if (!rc) {
- 		ret = -ENOMEM;
--		goto err_out_free;
-+		goto err_out_free_phys;
- 	}
- 
- 	kernel_ir->rc = rc;
-@@ -382,9 +391,11 @@ int cx23885_input_init(struct cx23885_dev *dev)
- 	cx23885_input_ir_stop(dev);
- 	dev->kernel_ir = NULL;
- 	rc_free_device(rc);
--err_out_free:
-+err_out_free_phys:
- 	kfree(kernel_ir->phys);
-+err_out_free_name:
- 	kfree(kernel_ir->name);
-+err_out_free:
- 	kfree(kernel_ir);
- 	return ret;
- }
+On Friday, 15 September 2017 17:17:14 EEST Sakari Ailus wrote:
+> Camera flash drivers (and LEDs) are separate from the sensor devices in
+> DT. In order to make an association between the two, provide the
+> association information to the software.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Rob Herring <robh@kernel.org>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
+> ---
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> b/Documentation/devicetree/bindings/media/video-interfaces.txt index
+> 852041a7480c..fdba30479b47 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -67,6 +67,14 @@ are required in a relevant parent node:
+>  		    identifier, should be 1.
+>   - #size-cells    : should be zero.
+> 
+> +
+> +Optional properties
+> +-------------------
+> +
+> +- flash-leds: An array of phandles, each referring to a flash LED, a
+> sub-node
+> +  of the LED driver device node.
+
+What happens with non-LED flash controllers ?
+
+> +
+> +
+>  Optional endpoint properties
+>  ----------------------------
+
+
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
