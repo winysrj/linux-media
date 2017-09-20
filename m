@@ -1,41 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f174.google.com ([209.85.128.174]:32942 "EHLO
-        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752005AbdIAQfV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 12:35:21 -0400
-Received: by mail-wr0-f174.google.com with SMTP id k94so1917531wrc.0
-        for <linux-media@vger.kernel.org>; Fri, 01 Sep 2017 09:35:20 -0700 (PDT)
-Received: from [192.168.1.5] ([37.248.155.247])
-        by smtp.gmail.com with ESMTPSA id g106sm766171wrd.4.2017.09.01.09.35.18
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 01 Sep 2017 09:35:19 -0700 (PDT)
-To: linux-media@vger.kernel.org
-From: Rafal <fatwildcat@gmail.com>
-Subject: v4l2_ioctl vidioc_s_fmt/vidioc_try_fmt pix <--> pix_mp conversion
-Message-ID: <f4dba9e7-0ce9-1ba9-fd75-679709661e9d@gmail.com>
-Date: Fri, 1 Sep 2017 18:35:17 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50343
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751634AbdITTMA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 15:12:00 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 11/25] media: dvb_demux.h: get rid of unused timer at struct dvb_demux_filter
+Date: Wed, 20 Sep 2017 16:11:36 -0300
+Message-Id: <7d40d432e7d89c5ff5a2426ceb91cc1dbb223387.1505933919.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
+References: <cover.1505933919.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
+References: <cover.1505933919.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Could somebody explain to me some strange behavior of v4l2_ioctl call?
+This field is not used. So, get rid of it.
 
-When a device supports |V4L2_CAP_VIDEO_OUTPUT_MPLANE capability but does 
-not support ||V4L2_CAP_VIDEO_OUTPUT, the |v4l2_ioctl function converts 
-VIDIOC_S_FMT ioctl call: for example, when the specified buffer type is 
-V4L2_BUF_TYPE_VIDEO_OUTPUT, it is changed to 
-V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE. But the num_planes value is not 
-checked after the ioctl call, like after VIDIOC_G_FMT ioctl call is 
-made. Device may change the num_planes value in call, especially since 
-number of planes is determined by pixelformat. For example, V4L2 
-distinguishes single-plane variant of YUV420 format 
-(V4L2_PIX_FMT_YUV420) from multi-plane one (V4L2_PIX_FMT_YUV420M). If 
-the number of planes is not checked, program may select multi-plane 
-variant, which will not handle correctly. Shouldn't the library check 
-the number of planes after ioctl call?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/dvb_demux.h | 1 -
+ 1 file changed, 1 deletion(-)
 
-
-Rafal
+diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
+index b24d69b5a20f..045f7fd1a8b1 100644
+--- a/drivers/media/dvb-core/dvb_demux.h
++++ b/drivers/media/dvb-core/dvb_demux.h
+@@ -73,7 +73,6 @@ struct dvb_demux_filter {
+ 	enum dvb_dmx_filter_type type;
+ 
+ 	u16 hw_handle;
+-	struct timer_list timer;
+ };
+ 
+ #define DMX_FEED_ENTRY(pos) list_entry(pos, struct dvb_demux_feed, list_head)
+-- 
+2.13.5
