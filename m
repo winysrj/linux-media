@@ -1,113 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51240 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750967AbdIKLGi (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50377
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751751AbdITTMD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 07:06:38 -0400
-Date: Mon, 11 Sep 2017 14:06:34 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, laurent.pinchart@ideasonboard.com,
-        linux-acpi@vger.kernel.org, mika.westerberg@intel.com,
-        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v10 19/24] v4l: fwnode: Add convenience function for
- parsing common external refs
-Message-ID: <20170911110634.cgwrhdvnvzgmvfuk@valkosipuli.retiisi.org.uk>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-20-sakari.ailus@linux.intel.com>
- <c57c3f6b-aeb9-dc00-645b-0da2edad77b0@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <c57c3f6b-aeb9-dc00-645b-0da2edad77b0@xs4all.nl>
+        Wed, 20 Sep 2017 15:12:03 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?=
+        <knightrider@are.ma>
+Subject: [PATCH 03/25] media: dvbdev: convert DVB device types into an enum
+Date: Wed, 20 Sep 2017 16:11:28 -0300
+Message-Id: <47fa1e847d761e20c8d5c88701523abf7730f00d.1505933919.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
+References: <cover.1505933919.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
+References: <cover.1505933919.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 11, 2017 at 11:47:11AM +0200, Hans Verkuil wrote:
-> On 09/11/2017 10:00 AM, Sakari Ailus wrote:
-> > Add v4l2_fwnode_parse_reference_sensor_common for parsing common
-> > sensor properties that refer to adjacent devices such as flash or lens
-> > driver chips.
-> > 
-> > As this is an association only, there's little a regular driver needs to
-> > know about these devices as such.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-fwnode.c | 35 +++++++++++++++++++++++++++++++++++
-> >  include/media/v4l2-fwnode.h           | 13 +++++++++++++
-> >  2 files changed, 48 insertions(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > index 56eee5bbd3b5..b9e60a0e8f86 100644
-> > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > @@ -589,6 +589,41 @@ static int v4l2_fwnode_reference_parse_int_props(
-> >  	return ret;
-> >  }
-> >  
-> > +int v4l2_fwnode_reference_parse_sensor_common(
-> > +	struct device *dev, struct v4l2_async_notifier *notifier)
-> > +{
-> > +	static const char *led_props[] = { "led" };
-> > +	static const struct {
-> > +		const char *name;
-> > +		const char **props;
-> > +		unsigned int nprops;
-> > +	} props[] = {
-> > +		{ "flash-leds", led_props, ARRAY_SIZE(led_props) },
-> > +		{ "lens-focus", NULL, 0 },
-> > +	};
-> > +	unsigned int i;
-> > +
-> > +	for (i = 0; i < ARRAY_SIZE(props); i++) {
-> > +		int ret;
-> > +
-> > +		if (props[i].props && is_acpi_node(dev_fwnode(dev)))
-> > +			ret = v4l2_fwnode_reference_parse_int_props(
-> > +				dev, notifier, props[i].name,
-> > +				props[i].props, props[i].nprops);
-> > +		else
-> > +			ret = v4l2_fwnode_reference_parse(
-> > +				dev, notifier, props[i].name);
-> > +		if (ret) {
-> > +			dev_warn(dev, "parsing property \"%s\" failed (%d)\n",
-> > +				 props[i].name, ret);
-> > +			return ret;
-> > +		}
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse_sensor_common);
-> > +
-> >  MODULE_LICENSE("GPL");
-> >  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
-> >  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-> > diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-> > index 3819a73c3c8a..bcec1ce101dc 100644
-> > --- a/include/media/v4l2-fwnode.h
-> > +++ b/include/media/v4l2-fwnode.h
-> > @@ -257,4 +257,17 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
-> >  			      struct v4l2_fwnode_endpoint *vep,
-> >  			      struct v4l2_async_subdev *asd));
-> >  
-> > +/**
-> > + * v4l2_fwnode_reference_parse_sensor_common - parse common references on
-> > + *					       sensors for async sub-devices
-> > + * @dev: the device node the properties of which are parsed for references
-> > + * @notifier: the async notifier where the async subdevs will be added
-> > + *
-> 
-> I think you should add a note that if this function returns 0 the
-> caller should remember to call v4l2_async_notifier_release. That is not
-> immediately obvious.
+Enums can be documented via kernel-doc. So, convert the
+DVB_DEVICE_* macros to an enum.
 
-I'll add that, plus a note to v4l2_async_notifier_release() as well.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/dvbdev.c | 34 +++++++++++++++++++++++----
+ drivers/media/dvb-core/dvbdev.h | 51 ++++++++++++++++++++++++++++-------------
+ 2 files changed, 64 insertions(+), 21 deletions(-)
 
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 41aad0f99d73..7b4cdcfbb02c 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -51,8 +51,15 @@ static LIST_HEAD(dvb_adapter_list);
+ static DEFINE_MUTEX(dvbdev_register_lock);
+ 
+ static const char * const dnames[] = {
+-	"video", "audio", "sec", "frontend", "demux", "dvr", "ca",
+-	"net", "osd"
++	[DVB_DEVICE_VIDEO] =		"video",
++	[DVB_DEVICE_AUDIO] =		"audio",
++	[DVB_DEVICE_SEC] =   		"sec",
++	[DVB_DEVICE_FRONTEND] =		"frontend",
++	[DVB_DEVICE_DEMUX] =		"demux",
++	[DVB_DEVICE_DVR] =		"dvr",
++	[DVB_DEVICE_CA] =		"ca",
++	[DVB_DEVICE_NET] =		"net",
++	[DVB_DEVICE_OSD] =		"osd"
+ };
+ 
+ #ifdef CONFIG_DVB_DYNAMIC_MINORS
+@@ -60,7 +67,24 @@ static const char * const dnames[] = {
+ #define DVB_MAX_IDS		MAX_DVB_MINORS
+ #else
+ #define DVB_MAX_IDS		4
+-#define nums2minor(num, type, id)	((num << 6) | (id << 4) | type)
++
++static int nums2minor(int num, enum dvb_device_type type, int id)
++{
++	int n = (num << 6) | (id << 4);
++
++	switch (type) {
++	case DVB_DEVICE_VIDEO:		return n;
++	case DVB_DEVICE_AUDIO:		return n | 1;
++	case DVB_DEVICE_SEC:		return n | 2;
++	case DVB_DEVICE_FRONTEND:	return n | 3;
++	case DVB_DEVICE_DEMUX:		return n | 4;
++	case DVB_DEVICE_DVR:		return n | 5;
++	case DVB_DEVICE_CA:		return n | 6;
++	case DVB_DEVICE_NET:		return n | 7;
++	case DVB_DEVICE_OSD:		return n | 8;
++	}
++}
++
+ #define MAX_DVB_MINORS		(DVB_MAX_ADAPTERS*64)
+ #endif
+ 
+@@ -426,8 +450,8 @@ static int dvb_register_media_device(struct dvb_device *dvbdev,
+ }
+ 
+ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
+-			const struct dvb_device *template, void *priv, int type,
+-			int demux_sink_pads)
++			const struct dvb_device *template, void *priv,
++			enum dvb_device_type type, int demux_sink_pads)
+ {
+ 	struct dvb_device *dvbdev;
+ 	struct file_operations *dvbdevfops;
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index 49189392cf3b..53058da83873 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -35,15 +35,37 @@
+ 
+ #define DVB_UNSET (-1)
+ 
+-#define DVB_DEVICE_VIDEO      0
+-#define DVB_DEVICE_AUDIO      1
+-#define DVB_DEVICE_SEC        2
+-#define DVB_DEVICE_FRONTEND   3
+-#define DVB_DEVICE_DEMUX      4
+-#define DVB_DEVICE_DVR        5
+-#define DVB_DEVICE_CA         6
+-#define DVB_DEVICE_NET        7
+-#define DVB_DEVICE_OSD        8
++/* List of DVB device types */
++
++/**
++ * enum dvb_device_type - type of the Digital TV device
++ *
++ * @DVB_DEVICE_SEC:		Digital TV standalone Common Interface (CI)
++ * @DVB_DEVICE_FRONTEND:	Digital TV frontend.
++ * @DVB_DEVICE_DEMUX:		Digital TV demux.
++ * @DVB_DEVICE_DVR:		Digital TV digital video record (DVR).
++ * @DVB_DEVICE_CA:		Digital TV Conditional Access (CA).
++ * @DVB_DEVICE_NET:		Digital TV network.
++ *
++ * @DVB_DEVICE_VIDEO:		Digital TV video decoder.
++ *				Deprecated. Used only on av7110-av.
++ * @DVB_DEVICE_AUDIO:		Digital TV audio decoder.
++ *				Deprecated. Used only on av7110-av.
++ * @DVB_DEVICE_OSD:		Digital TV On Screen Display (OSD).
++ *				Deprecated. Used only on av7110.
++ */
++enum dvb_device_type {
++	DVB_DEVICE_SEC,
++	DVB_DEVICE_FRONTEND,
++	DVB_DEVICE_DEMUX,
++	DVB_DEVICE_DVR,
++	DVB_DEVICE_CA,
++	DVB_DEVICE_NET,
++
++	DVB_DEVICE_VIDEO,
++	DVB_DEVICE_AUDIO,
++	DVB_DEVICE_OSD,
++};
+ 
+ #define DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr) \
+ 	static short adapter_nr[] = \
+@@ -104,8 +126,7 @@ struct dvb_adapter {
+  * @list_head:	List head with all DVB devices
+  * @fops:	pointer to struct file_operations
+  * @adapter:	pointer to the adapter that holds this device node
+- * @type:	type of the device: DVB_DEVICE_SEC, DVB_DEVICE_FRONTEND,
+- *		DVB_DEVICE_DEMUX, DVB_DEVICE_DVR, DVB_DEVICE_CA, DVB_DEVICE_NET
++ * @type:	type of the device, as defined by &enum dvb_device_type.
+  * @minor:	devnode minor number. Major number is always DVB_MAJOR.
+  * @id:		device ID number, inside the adapter
+  * @readers:	Initialized by the caller. Each call to open() in Read Only mode
+@@ -135,7 +156,7 @@ struct dvb_device {
+ 	struct list_head list_head;
+ 	const struct file_operations *fops;
+ 	struct dvb_adapter *adapter;
+-	int type;
++	enum dvb_device_type type;
+ 	int minor;
+ 	u32 id;
+ 
+@@ -194,9 +215,7 @@ int dvb_unregister_adapter(struct dvb_adapter *adap);
+  *		stored
+  * @template:	Template used to create &pdvbdev;
+  * @priv:	private data
+- * @type:	type of the device: %DVB_DEVICE_SEC, %DVB_DEVICE_FRONTEND,
+- *		%DVB_DEVICE_DEMUX, %DVB_DEVICE_DVR, %DVB_DEVICE_CA,
+- *		%DVB_DEVICE_NET
++ * @type:	type of the device, as defined by &enum dvb_device_type.
+  * @demux_sink_pads: Number of demux outputs, to be used to create the TS
+  *		outputs via the Media Controller.
+  */
+@@ -204,7 +223,7 @@ int dvb_register_device(struct dvb_adapter *adap,
+ 			struct dvb_device **pdvbdev,
+ 			const struct dvb_device *template,
+ 			void *priv,
+-			int type,
++			enum dvb_device_type type,
+ 			int demux_sink_pads);
+ 
+ /**
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.5
