@@ -1,64 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:50843 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751192AbdIBUnU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 2 Sep 2017 16:43:20 -0400
-Subject: [PATCH 3/7] [media] Hopper: Adjust a null pointer check in two
- functions
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <9ba22d42-0ec0-b865-dec5-4ce67ad443fb@users.sourceforge.net>
-Message-ID: <56d490a2-4159-204f-cd69-16fd9b268f29@users.sourceforge.net>
-Date: Sat, 2 Sep 2017 22:43:10 +0200
-MIME-Version: 1.0
-In-Reply-To: <9ba22d42-0ec0-b865-dec5-4ce67ad443fb@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48883
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751614AbdITQ1x (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 12:27:53 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-doc@vger.kernel.org
+Subject: [PATCH] scripts: kernel-doc: fix nexted handling
+Date: Wed, 20 Sep 2017 13:27:47 -0300
+Message-Id: <a788284f66d113ceec57dd6f66b1d024e7b1ddf1.1505924829.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 2 Sep 2017 21:25:50 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+At DVB, we have, at some structs, things like (see
+struct dvb_demux_feed, at dvb_demux.h):
 
-The script “checkpatch.pl” pointed information out like the following.
+	union {
+		struct dmx_ts_feed ts;
+		struct dmx_section_feed sec;
+	} feed;
 
-Comparison to NULL could be written !…
+	union {
+		dmx_ts_cb ts;
+		dmx_section_cb sec;
+	} cb;
 
-Thus fix the affected source code places.
+Fix the nested parser to avoid it to eat the first union.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/pci/mantis/hopper_cards.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/mantis/hopper_cards.c b/drivers/media/pci/mantis/hopper_cards.c
-index fe7b40c306f7..88e5b2a97005 100644
---- a/drivers/media/pci/mantis/hopper_cards.c
-+++ b/drivers/media/pci/mantis/hopper_cards.c
-@@ -72,7 +72,7 @@ static irqreturn_t hopper_irq_handler(int irq, void *dev_id)
- 	struct mantis_ca *ca;
+Jon,
+
+While documenting some DVB demux  headers, I noticed the above bug.
+
+ scripts/kernel-doc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index 9d3eafea58f0..15f934a23d1d 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -2173,7 +2173,7 @@ sub dump_struct($$) {
+ 	my $members = $3;
  
- 	mantis = (struct mantis_pci *) dev_id;
--	if (unlikely(mantis == NULL)) {
-+	if (unlikely(!mantis)) {
- 		dprintk(MANTIS_ERROR, 1, "Mantis == NULL");
- 		return IRQ_NONE;
- 	}
-@@ -164,7 +164,7 @@ static int hopper_pci_probe(struct pci_dev *pdev,
- 	int err = 0;
+ 	# ignore embedded structs or unions
+-	$members =~ s/({.*})//g;
++	$members =~ s/({[^\}]*})//g;
+ 	$nested = $1;
  
- 	mantis = kzalloc(sizeof(*mantis), GFP_KERNEL);
--	if (mantis == NULL) {
-+	if (!mantis) {
- 		err = -ENOMEM;
- 		goto fail0;
- 	}
+ 	# ignore members marked private:
 -- 
-2.14.1
+2.13.5
