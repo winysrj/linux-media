@@ -1,80 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:38747 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750786AbdI0RIl (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:37409 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751746AbdITHiT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 13:08:41 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH] [media] vb2: make vb2_ops
-Date: Wed, 27 Sep 2017 22:38:19 +0530
-Message-Id: <1506532099-8114-1-git-send-email-bhumirks@gmail.com>
+        Wed, 20 Sep 2017 03:38:19 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: p.zabel@pengutronix.de, mchehab@kernel.org, hans.verkuil@cisco.com,
+        sean@mess.org, andi.shyti@samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 2/2] [media] cx23885: Handle return value of kasprintf
+Date: Wed, 20 Sep 2017 13:07:13 +0530
+Message-Id: <1505893033-7491-3-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1505893033-7491-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1505893033-7491-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make vb2_ops const as they are only stored in the const field of a
-vb2_queue structure. Make the declarations const too.
+kasprintf() can fail here and we must check its return value.
 
-Done using Coccinelle.
-
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- drivers/media/usb/au0828/au0828-vbi.c | 2 +-
- drivers/media/usb/au0828/au0828.h     | 2 +-
- drivers/media/usb/em28xx/em28xx-v4l.h | 2 +-
- drivers/media/usb/em28xx/em28xx-vbi.c | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/pci/cx23885/cx23885-input.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/au0828/au0828-vbi.c b/drivers/media/usb/au0828/au0828-vbi.c
-index e0930ce..9dd6bdb 100644
---- a/drivers/media/usb/au0828/au0828-vbi.c
-+++ b/drivers/media/usb/au0828/au0828-vbi.c
-@@ -79,7 +79,7 @@ static int vbi_buffer_prepare(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&dev->slock, flags);
+diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
+index 944b7083..0f4e542 100644
+--- a/drivers/media/pci/cx23885/cx23885-input.c
++++ b/drivers/media/pci/cx23885/cx23885-input.c
+@@ -340,14 +340,23 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 	kernel_ir->cx = dev;
+ 	kernel_ir->name = kasprintf(GFP_KERNEL, "cx23885 IR (%s)",
+ 				    cx23885_boards[dev->board].name);
++	if (!kernel_ir->name) {
++		ret = -ENOMEM;
++		goto err_out_free;
++	}
++
+ 	kernel_ir->phys = kasprintf(GFP_KERNEL, "pci-%s/ir0",
+ 				    pci_name(dev->pci));
++	if (!kernel_ir->phys) {
++		ret = -ENOMEM;
++		goto err_out_free_name;
++	}
+ 
+ 	/* input device */
+ 	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rc) {
+ 		ret = -ENOMEM;
+-		goto err_out_free;
++		goto err_out_free_phys;
+ 	}
+ 
+ 	kernel_ir->rc = rc;
+@@ -382,9 +391,11 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 	cx23885_input_ir_stop(dev);
+ 	dev->kernel_ir = NULL;
+ 	rc_free_device(rc);
+-err_out_free:
++err_out_free_phys:
+ 	kfree(kernel_ir->phys);
++err_out_free_name:
+ 	kfree(kernel_ir->name);
++err_out_free:
+ 	kfree(kernel_ir);
+ 	return ret;
  }
- 
--struct vb2_ops au0828_vbi_qops = {
-+const struct vb2_ops au0828_vbi_qops = {
- 	.queue_setup     = vbi_queue_setup,
- 	.buf_prepare     = vbi_buffer_prepare,
- 	.buf_queue       = vbi_buffer_queue,
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index 05e445f..f6f37e8 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -358,7 +358,7 @@ static inline int au0828_analog_unregister(struct au0828_dev *dev)
- void au0828_dvb_resume(struct au0828_dev *dev);
- 
- /* au0828-vbi.c */
--extern struct vb2_ops au0828_vbi_qops;
-+extern const struct vb2_ops au0828_vbi_qops;
- 
- #define dprintk(level, fmt, arg...)\
- 	do { if (au0828_debug & level)\
-diff --git a/drivers/media/usb/em28xx/em28xx-v4l.h b/drivers/media/usb/em28xx/em28xx-v4l.h
-index 8dfcb56..9c411aa 100644
---- a/drivers/media/usb/em28xx/em28xx-v4l.h
-+++ b/drivers/media/usb/em28xx/em28xx-v4l.h
-@@ -16,4 +16,4 @@
- 
- int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count);
- void em28xx_stop_vbi_streaming(struct vb2_queue *vq);
--extern struct vb2_ops em28xx_vbi_qops;
-+extern const struct vb2_ops em28xx_vbi_qops;
-diff --git a/drivers/media/usb/em28xx/em28xx-vbi.c b/drivers/media/usb/em28xx/em28xx-vbi.c
-index 0bac552..f512365 100644
---- a/drivers/media/usb/em28xx/em28xx-vbi.c
-+++ b/drivers/media/usb/em28xx/em28xx-vbi.c
-@@ -93,7 +93,7 @@ static int vbi_buffer_prepare(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&dev->slock, flags);
- }
- 
--struct vb2_ops em28xx_vbi_qops = {
-+const struct vb2_ops em28xx_vbi_qops = {
- 	.queue_setup    = vbi_queue_setup,
- 	.buf_prepare    = vbi_buffer_prepare,
- 	.buf_queue      = vbi_buffer_queue,
 -- 
 1.9.1
