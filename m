@@ -1,48 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:61960 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751410AbdISMnb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 08:43:31 -0400
-Date: Tue, 19 Sep 2017 15:43:26 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
-        sre@kernel.org
-Subject: Re: [PATCH v13 06/25] omap3isp: Use generic parser for parsing
- fwnode endpoints
-Message-ID: <20170919124326.f3q4c6kwt3cfyyno@paasikivi.fi.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
- <20170915141724.23124-7-sakari.ailus@linux.intel.com>
- <1555926.RTv2yyCEgl@avalon>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51669
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751378AbdITVQa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 17:16:30 -0400
+Date: Wed, 20 Sep 2017 18:16:23 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Shuah Khan <shuah@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: [PATCH 2/6] media: dvb_frontend: cleanup ioctl handling logic
+Message-ID: <20170920181623.67816753@recife.lan>
+In-Reply-To: <1446c8bb-4df9-299d-b565-afdbdada85f2@kernel.org>
+References: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
+        <616ac8323cfe1041ad05e9610c87ee9c5e247811.1505827883.git.mchehab@s-opensource.com>
+        <1446c8bb-4df9-299d-b565-afdbdada85f2@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1555926.RTv2yyCEgl@avalon>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 19, 2017 at 02:40:29PM +0300, Laurent Pinchart wrote:
-> > @@ -2256,7 +2210,9 @@ static int isp_probe(struct platform_device *pdev)
-> >  	if (ret)
-> >  		return ret;
-> > 
-> > -	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
-> > +	ret = v4l2_async_notifier_parse_fwnode_endpoints(
-> > +		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
-> > +		isp_fwnode_parse);
-> >  	if (ret < 0)
+Em Wed, 20 Sep 2017 14:58:12 -0600
+Shuah Khan <shuah@kernel.org> escreveu:
+
+> > +	c->state = DTV_UNDEFINED;> +	err = dvb_frontend_handle_ioctl(file, cmd, parg);  
 > 
-> The documentation in patch 05/25 states that v4l2_async_notifier_release() 
-> should be called even if v4l2_async_notifier_parse_fwnode_endpoints() fails. I 
-> don't think that's needed here, so you might want to update the documentation 
-> (and possibly the implementation of the function).
+> With this change, c->state value gets changed unconditionally before
+> calling the ioctl.
+> 
+> dvb_frontend_ioctl_properties() has logic for c->state == DTV_TUNE.
+> Is it safe to set change c->state here? I think it should be set
+> only when cmd is != FE_SET_PROPERTY or FE_GET_PROPERTY??
 
-It is. If parsing fails, async sub-devices may have been already set up.
-This happens e.g. when the parsing fails after the first one has been
-successfully set up already.
+It doesn't mind. c->state is used just for debugging purposes. One of the
+patches I made got rid of it.
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+
+
+Thanks,
+Mauro
