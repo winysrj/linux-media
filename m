@@ -1,55 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:36787 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750703AbdI0Iij (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 04:38:39 -0400
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, hverkuil@xs4all.nl, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH] [media] radio-si470x: make si470x_viddev_template const
-Date: Wed, 27 Sep 2017 14:08:29 +0530
-Message-Id: <1506501509-12369-1-git-send-email-bhumirks@gmail.com>
+Received: from mga04.intel.com ([192.55.52.120]:42537 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751825AbdITKw6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 06:52:58 -0400
+Date: Wed, 20 Sep 2017 13:51:53 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+        niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: Re: [PATCH v13 13/25] v4l: async: Allow async notifier register call
+ succeed with no subdevs
+Message-ID: <20170920105153.ohsdp4cgawdsjsae@paasikivi.fi.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+ <20170919145831.uztphjdtd3fdxzvr@valkosipuli.retiisi.org.uk>
+ <20170919150348.2jsqtxbk6bji4gdb@valkosipuli.retiisi.org.uk>
+ <2195038.iUeBRvYfe2@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2195038.iUeBRvYfe2@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make this const as it is only used in a copy operation in the files
-referencing it. Add const to declaration in the header too.
+Hi Laurent,
 
-Structure found using Coccienlle and changes done by hand.
+On Tue, Sep 19, 2017 at 08:54:12PM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Tuesday, 19 September 2017 18:03:48 EEST Sakari Ailus wrote:
+> > On Tue, Sep 19, 2017 at 05:58:32PM +0300, Sakari Ailus wrote:
+> > >> This skips adding the notifier to the notifier_list. Won't this result
+> > >> in an oops when calling list_del(&notifier->list) in
+> > >> v4l2_async_notifier_unregister() ?
+> > > 
+> > > Good point. I'll add initialising the list head to the register function,
+> > > with an appropriate comment.
+> > 
+> > I'll set v4l2_dev NULL instead; no tricks with lists needed.
+> 
+> Shouldn't the notifier still be added to the notifier_list ?
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
----
- drivers/media/radio/si470x/radio-si470x-common.c | 2 +-
- drivers/media/radio/si470x/radio-si470x.h        | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Would there be any benefit of that?
 
-diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
-index cd76fac..c89a7d5 100644
---- a/drivers/media/radio/si470x/radio-si470x-common.c
-+++ b/drivers/media/radio/si470x/radio-si470x-common.c
-@@ -749,7 +749,7 @@ static int si470x_vidioc_enum_freq_bands(struct file *file, void *priv,
- /*
-  * si470x_viddev_template - video device interface
-  */
--struct video_device si470x_viddev_template = {
-+const struct video_device si470x_viddev_template = {
- 	.fops			= &si470x_fops,
- 	.name			= DRIVER_NAME,
- 	.release		= video_device_release_empty,
-diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/radio/si470x/radio-si470x.h
-index 7d2defd..eb7b834 100644
---- a/drivers/media/radio/si470x/radio-si470x.h
-+++ b/drivers/media/radio/si470x/radio-si470x.h
-@@ -209,7 +209,7 @@ struct si470x_device {
- /**************************************************************************
-  * Common Functions
-  **************************************************************************/
--extern struct video_device si470x_viddev_template;
-+extern const struct video_device si470x_viddev_template;
- extern const struct v4l2_ctrl_ops si470x_ctrl_ops;
- int si470x_get_register(struct si470x_device *radio, int regnr);
- int si470x_set_register(struct si470x_device *radio, int regnr);
+The notifier's v4l2_dev field is also used to determine whether the
+notifier is registered currently. If the notifier is added to the notifier
+list, we need to remove it in unregistration as well.
+
 -- 
-1.9.1
+Sakari Ailus
+sakari.ailus@linux.intel.com
