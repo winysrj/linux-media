@@ -1,139 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49464 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753186AbdICRuG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 3 Sep 2017 13:50:06 -0400
+Received: from mga09.intel.com ([134.134.136.24]:27686 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751825AbdITPz2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 11:55:28 -0400
+Date: Wed, 20 Sep 2017 18:54:54 +0300
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+        niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl, devicetree@vger.kernel.org,
         pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v7 17/18] smiapp: Add support for flash and lens devices
-Date: Sun,  3 Sep 2017 20:49:57 +0300
-Message-Id: <20170903174958.27058-18-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
-References: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v13 11/25] v4l: async: Introduce helpers for calling
+ async ops callbacks
+Message-ID: <20170920155454.mm3ht6ysexii35gq@paasikivi.fi.intel.com>
+References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+ <2693952.YdpSRMO0xE@avalon>
+ <20170919145049.uivohp6qvkf7x4fc@valkosipuli.retiisi.org.uk>
+ <7185208.IfnHDmqMaa@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7185208.IfnHDmqMaa@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse async sub-devices by using
-v4l2_subdev_fwnode_reference_parse_sensor_common().
+Hi Laurent,
 
-These types devices aren't directly related to the sensor, but are
-nevertheless handled by the smiapp driver due to the relationship of these
-component to the main part of the camera module --- the sensor.
+On Tue, Sep 19, 2017 at 07:27:17PM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Tuesday, 19 September 2017 17:50:49 EEST Sakari Ailus wrote:
+> > On Tue, Sep 19, 2017 at 03:43:48PM +0300, Laurent Pinchart wrote:
+> > > On Tuesday, 19 September 2017 15:13:11 EEST Sakari Ailus wrote:
+> > >> On Tue, Sep 19, 2017 at 03:01:14PM +0300, Laurent Pinchart wrote:
+> > >>> On Friday, 15 September 2017 17:17:10 EEST Sakari Ailus wrote:
+> > >>>> Add three helper functions to call async operations callbacks.
+> > >>>> Besides simplifying callbacks, this allows async notifiers to have no
+> > >>>> ops set, i.e. it can be left NULL.
+> > >>>> 
+> > >>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > >>>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > >>>> ---
+> > >>>> 
+> > >>>>  drivers/media/v4l2-core/v4l2-async.c | 49 ++++++++++++++++++--------
+> > >>>>  include/media/v4l2-async.h           |  1 +
+> > >>>>  2 files changed, 37 insertions(+), 13 deletions(-)
+> > >>>> 
+> > >>>> diff --git a/drivers/media/v4l2-core/v4l2-async.c
+> > >>>> b/drivers/media/v4l2-core/v4l2-async.c index
+> > >>>> 7b2125b3d62f..c35d04b9122f
+> > >>>> 100644
+> > >>>> --- a/drivers/media/v4l2-core/v4l2-async.c
+> > >>>> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > >>>> @@ -25,6 +25,34 @@
+> > >>>> 
+> > >>>>  #include <media/v4l2-fwnode.h>
+> > >>>>  #include <media/v4l2-subdev.h>
+> > >>>> 
+> > >>>> +static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier
+> > >>>> *n,
+> > >>>> +					  struct v4l2_subdev *subdev,
+> > >>>> +					  struct v4l2_async_subdev *asd)
+> > >>>> +{
+> > >>>> +	if (!n->ops || !n->ops->bound)
+> > >>>> +		return 0;
+> > >>>> +
+> > >>>> +	return n->ops->bound(n, subdev, asd);
+> > >>>> +}
+> > >>>> +
+> > >>>> +static void v4l2_async_notifier_call_unbind(struct
+> > >>>> v4l2_async_notifier
+> > >>>> *n,
+> > >>>> +					    struct v4l2_subdev *subdev,
+> > >>>> +					    struct v4l2_async_subdev *asd)
+> > >>>> +{
+> > >>>> +	if (!n->ops || !n->ops->unbind)
+> > >>>> +		return;
+> > >>>> +
+> > >>>> +	n->ops->unbind(n, subdev, asd);
+> > >>>> +}
+> > >>>> +
+> > >>>> +static int v4l2_async_notifier_call_complete(struct
+> > >>>> v4l2_async_notifier
+> > >>>> *n)
+> > >>>> +{
+> > >>>> +	if (!n->ops || !n->ops->complete)
+> > >>>> +		return 0;
+> > >>>> +
+> > >>>> +	return n->ops->complete(n);
+> > >>>> +}
+> > >>>> +
+> > >>> 
+> > >>> Wouldn't it be enough to add a single v4l2_async_notifier_call() macro
+> > >>> ?
+> > >>> 
+> > >>> #define v4l2_async_notifier_call(n, op, args...) \
+> > >>> 
+> > >>> 	((n)->ops && (n)->ops->op ? (n)->ops->op(n, ##args) : 0)
+> > >> 
+> > >> I actually had that in an earlier version but I changed it based on
+> > >> review comments from Hans. A single macro isn't enough: some functions
+> > >> have int return type. I think the way it is now is nicer.
+> > > 
+> > > What bothers me there is the overhead of a function call.
+> > 
+> > Overhead... of a function call?
+> > 
+> > Do you really mean what you're saying? :-) The functions will be called a
+> > relatively small number of times during module loading / device probing.
+> 
+> That's why I haven't said it's a big deal :-) There's of course no need to 
+> optimize that if the tradeoff is large, but if all operations had the same 
+> return type a macro could have been useful (although in this very specific 
+> case I'm more concerned about code size than about CPU cycles).
 
-This does not yet address providing the user space with information on how
-to associate the sensor or lens devices but the kernel now has the
-necessary information to do that.
+Code size in the async framework? Generally calling a function doesn't take
+a lot of code, and the kernel is, well, full of function calls. I'm frankly
+more concerned about the number of lines of code to maintain and
+readability of that code.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 29 +++++++++++++++++++++++++++--
- drivers/media/i2c/smiapp/smiapp.h      |  4 +++-
- 2 files changed, 30 insertions(+), 3 deletions(-)
+> 
+> > > By the way, what's the use case for ops being NULL ?
+> > 
+> > If a driver has no need for any of the callbacks, there's no benefit from
+> > having to set ops struct either. This applies to devices that are
+> > associated to the sensor, for instance.
+> 
+> So in that case the subdev notifier is only registered to delay the complete() 
+> callback until the flash and lens controllers are available, with the sensor 
+> itself having no need to access the flash and lens controllers ?
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 700f433261d0..34fb5a2f63ce 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -31,7 +31,7 @@
- #include <linux/regulator/consumer.h>
- #include <linux/slab.h>
- #include <linux/smiapp.h>
--#include <linux/v4l2-mediabus.h>
-+#include <media/v4l2-async.h>
- #include <media/v4l2-fwnode.h>
- #include <media/v4l2-device.h>
- 
-@@ -2784,6 +2784,16 @@ static int __maybe_unused smiapp_resume(struct device *dev)
- 	return rval;
- }
- 
-+static int smiapp_async_complete(struct v4l2_async_notifier *notifier)
-+{
-+	return v4l2_device_register_subdev_nodes(
-+		notifier->master->v4l2_dev);
-+}
-+
-+static const struct v4l2_async_notifier_operations smiapp_async_notifier_ops = {
-+	.complete = smiapp_async_complete,
-+};
-+
- static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
- {
- 	struct smiapp_hwconfig *hwcfg;
-@@ -2887,6 +2897,11 @@ static int smiapp_probe(struct i2c_client *client,
- 	v4l2_i2c_subdev_init(&sensor->src->sd, client, &smiapp_ops);
- 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
- 
-+	rval = v4l2_fwnode_reference_parse_sensor_common(
-+		&client->dev, &sensor->notifier);
-+	if (rval < 0 && rval != -ENOENT)
-+		return rval;
-+
- 	sensor->vana = devm_regulator_get(&client->dev, "vana");
- 	if (IS_ERR(sensor->vana)) {
- 		dev_err(&client->dev, "could not get regulator for vana\n");
-@@ -3092,9 +3107,15 @@ static int smiapp_probe(struct i2c_client *client,
- 	if (rval < 0)
- 		goto out_media_entity_cleanup;
- 
-+	sensor->notifier.ops = &smiapp_async_notifier_ops;
-+	rval = v4l2_async_subdev_notifier_register(&sensor->src->sd,
-+						   &sensor->notifier);
-+	if (rval)
-+		goto out_media_entity_cleanup;
-+
- 	rval = v4l2_async_register_subdev(&sensor->src->sd);
- 	if (rval < 0)
--		goto out_media_entity_cleanup;
-+		goto out_unregister_async_notifier;
- 
- 	pm_runtime_set_active(&client->dev);
- 	pm_runtime_get_noresume(&client->dev);
-@@ -3105,6 +3126,9 @@ static int smiapp_probe(struct i2c_client *client,
- 
- 	return 0;
- 
-+out_unregister_async_notifier:
-+	v4l2_async_notifier_unregister(&sensor->notifier);
-+
- out_media_entity_cleanup:
- 	media_entity_cleanup(&sensor->src->sd.entity);
- 
-@@ -3124,6 +3148,7 @@ static int smiapp_remove(struct i2c_client *client)
- 	unsigned int i;
- 
- 	v4l2_async_unregister_subdev(subdev);
-+	v4l2_async_notifier_unregister(&sensor->notifier);
- 
- 	pm_runtime_disable(&client->dev);
- 	if (!pm_runtime_status_suspended(&client->dev))
-diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
-index f74d695018b9..be92cb5713f4 100644
---- a/drivers/media/i2c/smiapp/smiapp.h
-+++ b/drivers/media/i2c/smiapp/smiapp.h
-@@ -20,9 +20,10 @@
- #define __SMIAPP_PRIV_H_
- 
- #include <linux/mutex.h>
-+#include <media/i2c/smiapp.h>
-+#include <media/v4l2-async.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-subdev.h>
--#include <media/i2c/smiapp.h>
- 
- #include "smiapp-pll.h"
- #include "smiapp-reg.h"
-@@ -172,6 +173,7 @@ struct smiapp_subdev {
-  * struct smiapp_sensor - Main device structure
-  */
- struct smiapp_sensor {
-+	struct v4l2_async_notifier notifier;
- 	/*
- 	 * "mutex" is used to serialise access to all fields here
- 	 * except v4l2_ctrls at the end of the struct. "mutex" is also
+Essentially yes. In the future we'll need to make use of the association
+information to tell which devices are related but this shouldn't be a job
+for individual drivers.
+
 -- 
-2.11.0
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
