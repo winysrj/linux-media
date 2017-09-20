@@ -1,180 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:46517 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752149AbdIKNeW (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51088
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751520AbdITU1K (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 09:34:22 -0400
-Subject: Re: [PATCH v10 18/24] v4l: fwnode: Add a helper function to obtain
- device / interger references
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, laurent.pinchart@ideasonboard.com,
-        linux-acpi@vger.kernel.org, mika.westerberg@intel.com,
-        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-19-sakari.ailus@linux.intel.com>
- <11c951eb-0315-0149-829e-ed73d748e783@xs4all.nl>
- <20170911122820.fkbd2rnaddiestab@valkosipuli.retiisi.org.uk>
- <2e2eba02-39bc-11e1-d9f1-b83a6f580667@xs4all.nl>
- <20170911132710.mcgqn6tbiabzvpqq@valkosipuli.retiisi.org.uk>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <21d712c2-7608-7153-4421-2c12b90dcb7a@xs4all.nl>
-Date: Mon, 11 Sep 2017 15:34:16 +0200
+        Wed, 20 Sep 2017 16:27:10 -0400
+Date: Wed, 20 Sep 2017 17:27:03 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Shuah Khan <shuah@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: [PATCH 1/6] media: dvb_frontend: cleanup
+ dvb_frontend_ioctl_properties()
+Message-ID: <20170920172703.6a10ae61@recife.lan>
+In-Reply-To: <bc18d8a6-cf50-3257-71b0-d90e7fb5ba25@kernel.org>
+References: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
+        <bc18d8a6-cf50-3257-71b0-d90e7fb5ba25@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20170911132710.mcgqn6tbiabzvpqq@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/11/2017 03:27 PM, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Mon, Sep 11, 2017 at 02:38:23PM +0200, Hans Verkuil wrote:
->> On 09/11/2017 02:28 PM, Sakari Ailus wrote:
->>> Hi Hans,
->>>
->>> Thanks for the review.
->>>
->>> On Mon, Sep 11, 2017 at 11:38:58AM +0200, Hans Verkuil wrote:
->>>> Typo in subject: interger -> integer
->>>>
->>>> On 09/11/2017 10:00 AM, Sakari Ailus wrote:
->>>>> v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
->>>>> the device's own fwnode, 
->>>>
->>>> Sorry, you lost me here. Which device are we talking about?
->>>
->>> The fwnode related a struct device, in other words what dev_fwnode(dev)
->>> gives you. This is either struct device.fwnode or struct
->>> device.of_node.fwnode, depending on which firmware interface was used to
->>> create the device.
->>>
->>> I'll add a note of this.
->>>
->>>>
->>>>> it will follow child fwnodes with the given
->>>>> property -- value pair and return the resulting fwnode.
->>>>
->>>> property-value pair (easier readable that way).
->>>>
->>>> You only describe v4l2_fwnode_reference_parse_int_prop(), not
->>>> v4l2_fwnode_reference_parse_int_props().
->>>
->>> Yes, I think I changed the naming but forgot to update the commit. I'll do
->>> that now.
->>>
->>>>
->>>>>
->>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>>>> ---
->>>>>  drivers/media/v4l2-core/v4l2-fwnode.c | 93 +++++++++++++++++++++++++++++++++++
->>>>>  1 file changed, 93 insertions(+)
->>>>>
->>>>> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
->>>>> index 4821c4989119..56eee5bbd3b5 100644
->>>>> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
->>>>> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
->>>>> @@ -496,6 +496,99 @@ static int v4l2_fwnode_reference_parse(
->>>>>  	return ret;
->>>>>  }
->>>>>  
->>>>> +static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
->>>>> +	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
->>>>> +	const char **props, unsigned int nprops)
->>>>
->>>> Need comments describing what this does.
->>>
->>> Yes. I'll also rename it (get -> read) for consistency with the async
->>> changes.
->>
->> Which async changes? Since the fwnode_handle that's returned is refcounted
->> I wonder if 'get' isn't the right name in this case.
-> 
-> Right. True. I'll leave that as-is then.
-> 
->>
->>>
->>>>
->>>>> +{
->>>>> +	struct fwnode_reference_args fwnode_args;
->>>>> +	unsigned int *args = fwnode_args.args;
->>>>> +	struct fwnode_handle *child;
->>>>> +	int ret;
->>>>> +
->>>>> +	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
->>>>> +						 index, &fwnode_args);
->>>>> +	if (ret)
->>>>> +		return ERR_PTR(ret == -EINVAL ? -ENOENT : ret);
->>>>
->>>> Why map EINVAL to ENOENT? Needs a comment, either here or in the function description.
->>>
->>> fwnode_property_get_reference_args() returns currently a little bit
->>> different error codes in ACPI / DT. This is worth documenting there and
->>> fixing as well.
->>>
->>>>
->>>>> +
->>>>> +	for (fwnode = fwnode_args.fwnode;
->>>>> +	     nprops; nprops--, fwnode = child, props++, args++) {
->>>>
->>>> I think you cram too much in this for-loop: fwnode, nprops, fwnode, props, args...
->>>> It's hard to parse.
->>>
->>> Hmm. I'm not sure if that really helps; the function is just handling each
->>> entry in the array and related array pointers are changed accordingly. The
->>> fwnode = child assignment is there to move to the child node. I.e. what you
->>> need for handling the loop itself.
->>>
->>> I can change this though if you think it really makes a difference for
->>> better.
->>
->> I think so, yes. I noticed you like complex for-loops :-)
-> 
-> I don't really see a difference. The loop increment will just move at the
-> end of the block inside the loop.
-> 
->>
->>>
->>>>
->>>> I would make this a 'while (nprops)' and write out all the other assignments,
->>>> increments and decrements.
->>>>
->>>>> +		u32 val;
->>>>> +
->>>>> +		fwnode_for_each_child_node(fwnode, child) {
->>>>> +			if (fwnode_property_read_u32(child, *props, &val))
->>>>> +				continue;
->>>>> +
->>>>> +			if (val == *args)
->>>>> +				break;
->>>>
->>>> I'm lost. This really needs comments and perhaps even an DT or ACPI example
->>>> so you can see what exactly it is we're doing here.
->>>
->>> I'll add comments to the code. A good example will be ACPI documentation
->>> for LEDs, see 17th patch in v9. That will go through the linux-pm tree so
->>> it won't be available in the same tree for a while.
->>
->> Ideally an ACPI and an equivalent DT example would be nice to have, but I might
->> be asking too much. I'm not that familiar with ACPI, so for me a DT example
->> is easier.
-> 
-> This won't be useful on DT although you could technically use it. In DT you
-> can directly refer to any node but on ACPI you can just refer to devices,
-> hence this.
+Em Wed, 20 Sep 2017 14:11:39 -0600
+Shuah Khan <shuah@kernel.org> escreveu:
 
-So this function will effectively only be used with acpi? That should be
-documented. I think that explains some of my confusion since I was trying
-to map this code to a device tree, without much success.
+> On 09/19/2017 07:42 AM, Mauro Carvalho Chehab wrote:
+> > Use a switch() on this function, just like on other ioctl
+> > handlers and handle parameters inside each part of the
+> > switch.
+> > 
+> > That makes it easier to integrate with the already existing
+> > ioctl handler function.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
+> 
+> The change looks good. Couple of comments below:
+> 
+> > ---
+> >  drivers/media/dvb-core/dvb_frontend.c | 83 +++++++++++++++++++++--------------
+> >  1 file changed, 51 insertions(+), 32 deletions(-)
+> > 
+> > diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+> > index 8abe4f541a36..725cb1c8a088 100644
+> > --- a/drivers/media/dvb-core/dvb_frontend.c
+> > +++ b/drivers/media/dvb-core/dvb_frontend.c
+> > @@ -1971,21 +1971,25 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+> >  	struct dvb_frontend *fe = dvbdev->priv;
+> >  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+> >  	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+> > -	int err = 0;
+> > -
+> > -	struct dtv_properties *tvps = parg;
+> > -	struct dtv_property *tvp = NULL;
+> > -	int i;
+> > +	int err, i;
+> >  
+> >  	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+> >  
+> > -	if (cmd == FE_SET_PROPERTY) {
+> > -		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n", __func__, tvps->num);
+> > -		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n", __func__, tvps->props);
+> > +	switch(cmd) {
+> > +	case FE_SET_PROPERTY: {
+> > +		struct dtv_properties *tvps = parg;
+> > +		struct dtv_property *tvp = NULL;
+> >  
+> > -		/* Put an arbitrary limit on the number of messages that can
+> > -		 * be sent at once */
+> > -		if ((tvps->num == 0) || (tvps->num > DTV_IOCTL_MAX_MSGS))
+> > +		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n",
+> > +			__func__, tvps->num);
+> > +		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n",
+> > +			__func__, tvps->props);
+> > +
+> > +		/*
+> > +		 * Put an arbitrary limit on the number of messages that can
+> > +		 * be sent at once
+> > +		 */
+> > +		if (!tvps->num || (tvps->num > DTV_IOCTL_MAX_MSGS))
+> >  			return -EINVAL;
+> >  
+> >  		tvp = memdup_user(tvps->props, tvps->num * sizeof(*tvp));
+> > @@ -1994,23 +1998,34 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+> >  
+> >  		for (i = 0; i < tvps->num; i++) {
+> >  			err = dtv_property_process_set(fe, tvp + i, file);
+> > -			if (err < 0)
+> > -				goto out;
+> > +			if (err < 0) {
+> > +				kfree(tvp);
+> > +				return err;
+> > +			}
+> >  			(tvp + i)->result = err;
+> >  		}
+> >  
+> >  		if (c->state == DTV_TUNE)
+> >  			dev_dbg(fe->dvb->device, "%s: Property cache is full, tuning\n", __func__);
+> >  
+> > -	} else if (cmd == FE_GET_PROPERTY) {
+> > +		kfree(tvp);
+> > +		break;
+> > +	}
+> > +	case FE_GET_PROPERTY: {
+> > +		struct dtv_properties *tvps = parg;
+> > +		struct dtv_property *tvp = NULL;
+> >  		struct dtv_frontend_properties getp = fe->dtv_property_cache;
+> >  
+> > -		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n", __func__, tvps->num);
+> > -		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n", __func__, tvps->props);
+> > +		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n",
+> > +			__func__, tvps->num);
+> > +		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n",
+> > +			__func__, tvps->props);
+> >  
+> > -		/* Put an arbitrary limit on the number of messages that can
+> > -		 * be sent at once */
+> > -		if ((tvps->num == 0) || (tvps->num > DTV_IOCTL_MAX_MSGS))
+> > +		/*
+> > +		 * Put an arbitrary limit on the number of messages that can
+> > +		 * be sent at once
+> > +		 */
+> > +		if (!tvps->num || (tvps->num > DTV_IOCTL_MAX_MSGS))
+> >  			return -EINVAL;
+> >  
+> >  		tvp = memdup_user(tvps->props, tvps->num * sizeof(*tvp));
+> > @@ -2025,28 +2040,32 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+> >  		 */
+> >  		if (fepriv->state != FESTATE_IDLE) {
+> >  			err = dtv_get_frontend(fe, &getp, NULL);
+> > -			if (err < 0)
+> > -				goto out;
+> > +			if (err < 0) {
+> > +				kfree(tvp);
+> > +				return err;
+> > +			}  
+> 
+> Could avoid duplicate code keeping out logic perhaps? Is there a reason
+> for removing this?
 
-> Would you be happy with the leds.txt example? I think it's a good example
-> as it's directly related to this.
+Yes. See the next patch :-)
 
-Yes, that will work.
+Basically, the next patch remove dvb_frontend_ioctl_properties(), merging
+it with another ioctl handler. On such handler, the error handling path
+is different for each ioctl.
 
-Regards,
+We might still use gotos there, but that would be messy.
 
-	Hans
+> 
+> >  		}
+> >  		for (i = 0; i < tvps->num; i++) {
+> >  			err = dtv_property_process_get(fe, &getp, tvp + i, file);
+> > -			if (err < 0)
+> > -				goto out;
+> > +			if (err < 0) {
+> > +				kfree(tvp);
+> > +				return err;
+> > +			}
+> >  			(tvp + i)->result = err;
+> >  		}
+> >  
+> >  		if (copy_to_user((void __user *)tvps->props, tvp,
+> >  				 tvps->num * sizeof(struct dtv_property))) {
+> > -			err = -EFAULT;
+> > -			goto out;
+> > +			kfree(tvp);
+> > +			return -EFAULT;
+> >  		}  
+> 
+> Could avoid duplicate code keeping out logic perhaps? Is there a reason
+> for removing this?
+
+Same as above.
+
+> 
+> > -
+> > -	} else
+> > -		err = -EOPNOTSUPP;
+> > -
+> > -out:
+> > -	kfree(tvp);
+> > -	return err;
+> > +		kfree(tvp);
+> > +		break;
+> > +	}
+> > +	default:
+> > +		return -ENOTSUPP;
+> > +	} /* switch */
+> > +	return 0;
+> >  }
+> >  
+> >  static int dtv_set_frontend(struct dvb_frontend *fe)
+> >   
+> 
+> Reviewed-by: Shuah Khan <shuahkh@osg.samsung.com>
+> 
+> thanks,
+> -- Shuah
+
+
+
+Thanks,
+Mauro
