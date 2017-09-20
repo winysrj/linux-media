@@ -1,44 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:18847 "EHLO mga09.intel.com"
+Received: from sauhun.de ([88.99.104.3]:38556 "EHLO pokefinder.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752299AbdIRI14 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 04:27:56 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org
-Subject: [PATCH 2/2] dt: bindings: media: Document data lane numbering without lane reordering
-Date: Mon, 18 Sep 2017 11:25:05 +0300
-Message-Id: <1505723105-16238-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1505723105-16238-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1505723105-16238-1-git-send-email-sakari.ailus@linux.intel.com>
+        id S1751396AbdITRSn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 13:18:43 -0400
+Date: Wed, 20 Sep 2017 19:18:40 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+Subject: Re: [RFC PATCH v4 3/6] i2c: add docs to clarify DMA handling
+Message-ID: <20170920171840.nrzyiasezxisvg5m@ninjato>
+References: <20170817141449.23958-1-wsa+renesas@sang-engineering.com>
+ <20170817141449.23958-4-wsa+renesas@sang-engineering.com>
+ <20170827083748.248e2430@vento.lan>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="kfeduj5bsm57jf7d"
+Content-Disposition: inline
+In-Reply-To: <20170827083748.248e2430@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Most devices do not support lane reordering and in many cases the
-documentation of the data-lanes property is incomplete for such devices.
-Document that in case the lane reordering isn't supported, monotonically
-incremented values from 0 or 1 shall be used.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/devicetree/bindings/media/video-interfaces.txt | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+--kfeduj5bsm57jf7d
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index 4e0527d..fc1964e 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -111,7 +111,10 @@ Optional endpoint properties
-   determines the logical lane number, while the value of an entry indicates
-   physical lane, e.g. for 2-lane MIPI CSI-2 bus we could have
-   "data-lanes = <1 2>;", assuming the clock lane is on hardware lane 0.
--  This property is valid for serial busses only (e.g. MIPI CSI-2).
-+  If the hardware does not support lane reordering, monotonically
-+  incremented values shall be used from 0 or 1 onwards, depending on
-+  whether or not there is also a clock lane. This property is valid for
-+  serial busses only (e.g. MIPI CSI-2).
- - clock-lanes: an array of physical clock lane indexes. Position of an entry
-   determines the logical lane number, while the value of an entry indicates
-   physical lane, e.g. for a MIPI CSI-2 bus we could have "clock-lanes = <0>;",
--- 
-2.7.4
+Hi Mauro,
+
+> > +Linux I2C and DMA
+> > +-----------------
+>=20
+> I would use, instead:
+>=20
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> Linux I2C and DMA
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>=20
+> As this is the way we're starting document titles, after converted to
+> ReST. So, better to have it already using the right format, as one day
+
+I did this.
+
+> There are also a couple of things here that Sphinx would complain.
+
+The only complaint I got was
+
+	WARNING: document isn't included in any toctree
+
+which makes sense because I renamed it only temporarily to *.rst
+
+> So, it could be worth to rename it to *.rst, while you're writing
+> it, and see what:
+> 	make htmldocs
+> will complain and how it will look in html.
+
+So, no complaints from Sphinx and the HTML output looks good IMO. Was
+there anything specific you had in mind when saying that Sphinx would
+complain?
+
+Regards,
+
+   Wolfram
+
+
+--kfeduj5bsm57jf7d
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlnCouwACgkQFA3kzBSg
+KbbtHQ/8DWWirM1jOYSNEG8imNNd8t+h58mEXnl0kElz3P2KB1OhSKLLaa7v6fIS
+bPWfk2US6oAseSMWgdHjsLBL2/jir1pdKZVoNG3c8f/+rJ+lpSx6yT0HJVVrwv9A
+Jbgs7traQdoXlpw/ge0FtNKZcuHR86tN8tMSL6Na8o20cT6JilgGeEtTpNgfFuZj
+8nZ+V1mQNQR1z7WP/4fGnMm5LxyQIDFvUkroaY+DV2T+CXqCEGSvHhg1I4Iw+aM/
+Dn9DD9CuLlI/i6pqnGjRg9uszfncPXcI86Qqf39KiV/jGMfBS/mCtFqlYLOCFjbz
+jKjSnJyNaayaaXUJ/ODRQO3Nx51SswM+5HZzsaeM/8jH5wHk/ea36zKGC+qHLDKA
+6PFjCArdHx+e/TxDr6SpZUzkuiE25E9LJ6yH5FPv/6DYuajO1DDpRH7QPCaZfMw4
+L7UFQOGC3gzQLBeevSEmESQ2cUDCBkYOfSL9nSpfnAwJINUWfJCK0SCD2Ysjl3S7
+j1mflmPznRxW9wTaS1h+sY+GKrZgeZuHXZ7qkkFDEVSdle1kh8RprE7cLRuq++jU
+eLfG7zZhjlrgT6WB8xRFjXxUCXCIlHLRg/HA1CbS1ln7kg7Pl+7FplZlr1oWPsRS
+3OXCv5reMOOKXDaskiCTk/w2b3n2JzBJoaoFNXrfufDqQ4A0TTE=
+=gPvy
+-----END PGP SIGNATURE-----
+
+--kfeduj5bsm57jf7d--
