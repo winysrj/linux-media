@@ -1,45 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33454 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751332AbdILImo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 04:42:44 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v11 08/24] omap3isp: Fix check for our own sub-devices
-Date: Tue, 12 Sep 2017 11:42:20 +0300
-Message-Id: <20170912084236.1154-9-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
-References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+Received: from mout.web.de ([212.227.15.3]:52526 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751798AbdITTKe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 15:10:34 -0400
+To: linux-media@vger.kernel.org,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/3] [media] TTUSB DVB Budget: Fine-tuning for three function
+ implementations
+Message-ID: <1ad3c3ce-3738-fee1-2ee5-37142fa1bc70@users.sourceforge.net>
+Date: Wed, 20 Sep 2017 21:10:10 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We only want to link sub-devices that were bound to the async notifier the
-isp driver registered but there may be other sub-devices in the
-v4l2_device as well. Check for the correct async notifier.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 20 Sep 2017 21:03:45 +0200
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
----
- drivers/media/platform/omap3isp/isp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Three update suggestions were taken into account
+from static source code analysis.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index a546cf774d40..3b1a9cd0e591 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2155,7 +2155,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- 		return ret;
- 
- 	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
--		if (!sd->asd)
-+		if (sd->notifier != &isp->notifier)
- 			continue;
- 
- 		ret = isp_link_entity(isp, &sd->entity,
+Markus Elfring (3):
+  Use common error handling code in ttusb_probe()
+  Improve two size determinations in ttusb_probe()
+  Adjust eight checks for null pointers
+
+ drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c | 34 +++++++++++------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
+
 -- 
-2.11.0
+2.14.1
