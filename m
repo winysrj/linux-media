@@ -1,61 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f47.google.com ([74.125.83.47]:38294 "EHLO
-        mail-pg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751692AbdIMIuM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 04:50:12 -0400
+Received: from mout.web.de ([212.227.15.3]:51771 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750825AbdITRDF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 13:03:05 -0400
+Subject: [PATCH 5/5] [media] s2255drv: Delete an unnecessary return statement
+ in five functions
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mike Isely <isely@pobox.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <55718a41-d76f-36bf-7197-db92014dcd3c@users.sourceforge.net>
+Message-ID: <9c75bbfd-ee58-3f97-4fa7-47aa306d1396@users.sourceforge.net>
+Date: Wed, 20 Sep 2017 19:02:53 +0200
 MIME-Version: 1.0
-In-Reply-To: <E1dY9S1-0004Ke-L1@www.linuxtv.org>
-References: <E1dY9S1-0004Ke-L1@www.linuxtv.org>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Wed, 13 Sep 2017 10:50:11 +0200
-Message-ID: <CAMuHMdU8A0dZR9RzeJ4Tz1gR4CYTc5A2Ni6r0D92q8ryDUpghw@mail.gmail.com>
-Subject: Re: [git:media_tree/master] media: adv7180: add missing adv7180cp,
- adv7180st i2c device IDs
-To: stable <stable@vger.kernel.org>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>,
-        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <55718a41-d76f-36bf-7197-db92014dcd3c@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 20, 2017 at 12:54 PM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> This is an automatic generated email to let you know that the following patch were queued:
->
-> Subject: media: adv7180: add missing adv7180cp, adv7180st i2c device IDs
-> Author:  Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> Date:    Mon Jul 3 04:43:33 2017 -0400
->
-> Fixes a crash on Renesas R8A7793 Gose board that uses these "compatible"
-> entries.
->
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> Tested-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 20 Sep 2017 17:50:36 +0200
 
-Fixes: ce1ec5c07e0671cc ("[media] media: adv7180: add adv7180cp,
-adv7180st compatible strings")
+The script "checkpatch.pl" pointed information out like the following.
 
-This fix is now upstream, as commit 281ddc3cdc10413b ("media: adv7180: add
-missing adv7180cp, adv7180st i2c device IDs").
+WARNING: void function return statements are not generally useful
 
-Greg: Can you please backport it to v3.14.x?
+Thus remove such a statement in the affected functions.
 
-Thanks!
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/s2255/s2255drv.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index 5a5d5ae833ff..2f0e0fafc4e2 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -471,6 +471,5 @@ static void planar422p_to_yuv_packed(const unsigned char *in,
+ 		out[i + 3] = (fmt == V4L2_PIX_FMT_YUYV) ? *pCb++ : *pY++;
+ 	}
+-	return;
+ }
+ 
+ static void s2255_reset_dsppower(struct s2255_dev *dev)
+@@ -482,5 +481,4 @@ static void s2255_reset_dsppower(struct s2255_dev *dev)
+ 	s2255_vendor_req(dev, 0x10, 0x0000, 0x0000, NULL, 0, 1);
+-	return;
+ }
+ 
+ /* kickstarts the firmware loading. from probe
+@@ -1586,6 +1584,5 @@ static void s2255_video_device_release(struct video_device *vdev)
+ 	if (atomic_dec_and_test(&dev->num_channels))
+ 		s2255_destroy(dev);
+-	return;
+ }
+ 
+ static const struct video_device template = {
+@@ -1890,5 +1887,4 @@ static void s2255_read_video_callback(struct s2255_dev *dev,
+ 	dprintk(dev, 50, "callback read video done\n");
+-	return;
+ }
+ 
+ static long s2255_vendor_req(struct s2255_dev *dev, unsigned char Request,
+@@ -2205,5 +2201,4 @@ static void s2255_stop_readpipe(struct s2255_dev *dev)
+ 	dprintk(dev, 4, "%s", __func__);
+-	return;
+ }
+ 
+ static void s2255_fwload_start(struct s2255_dev *dev, int reset)
+-- 
+2.14.1
