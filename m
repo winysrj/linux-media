@@ -1,76 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:52692 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753650AbdIYEeA (ORCPT
+Received: from mailout.easymail.ca ([64.68.200.34]:44079 "EHLO
+        mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751739AbdITV3X (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 00:34:00 -0400
-From: Kalle Valo <kvalo@codeaurora.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Arend van Spriel <arend.vanspriel@broadcom.com>,
-        Franky Lin <franky.lin@broadcom.com>,
-        Hante Meuleman <hante.meuleman@broadcom.com>,
-        Chi-Hsien Lin <chi-hsien.lin@cypress.com>,
-        Wright Feng <wright.feng@cypress.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jiri Pirko <jiri@resnulli.us>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Michal Marek <mmarek@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Kees Cook <keescook@chromium.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-        brcm80211-dev-list.pdl@broadcom.com,
-        brcm80211-dev-list@cypress.com, kasan-dev@googlegroups.com,
-        linux-kbuild@vger.kernel.org, Jakub Jelinek <jakub@gcc.gnu.org>,
-        Martin =?utf-8?Q?Li=C5=A1ka?= <marxin@gcc.gnu.org>
-Subject: Re: [PATCH v4 1/9] brcmsmac: make some local variables 'static const' to reduce stack size
-References: <20170922212930.620249-1-arnd@arndb.de>
-        <20170922212930.620249-2-arnd@arndb.de>
-Date: Mon, 25 Sep 2017 07:33:50 +0300
-In-Reply-To: <20170922212930.620249-2-arnd@arndb.de> (Arnd Bergmann's message
-        of "Fri, 22 Sep 2017 23:29:12 +0200")
-Message-ID: <87h8vr75xt.fsf@kamboji.qca.qualcomm.com>
+        Wed, 20 Sep 2017 17:29:23 -0400
+Reply-To: shuah@kernel.org
+Subject: Re: [PATCH 01/25] media: dvb_frontend: better document the -EPERM
+ condition
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Shuah Khan <shuah@kernel.org>
+References: <cover.1505933919.git.mchehab@s-opensource.com>
+ <31b56d74c88c3d6a867468299e0498ebc15fcf63.1505933919.git.mchehab@s-opensource.com>
+From: Shuah Khan <shuah@kernel.org>
+Message-ID: <1aaca9b0-d704-cba1-c3ab-efe7125713cc@kernel.org>
+Date: Wed, 20 Sep 2017 15:29:11 -0600
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <31b56d74c88c3d6a867468299e0498ebc15fcf63.1505933919.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Arnd Bergmann <arnd@arndb.de> writes:
+On 09/20/2017 01:11 PM, Mauro Carvalho Chehab wrote:
+> Two readonly ioctls can't be allowed if the frontend device
+> is opened in read only mode. Explain why.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/dvb-core/dvb_frontend.c | 20 +++++++++++++++++---
+>  1 file changed, 17 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+> index 01bd19fd4c57..7dda5acea3f2 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> @@ -1940,9 +1940,23 @@ static int dvb_frontend_ioctl(struct file *file, unsigned int cmd, void *parg)
+>  		return -ENODEV;
+>  	}
+>  
+> -	if ((file->f_flags & O_ACCMODE) == O_RDONLY &&
+> -	    (_IOC_DIR(cmd) != _IOC_READ || cmd == FE_GET_EVENT ||
+> -	     cmd == FE_DISEQC_RECV_SLAVE_REPLY)) {
+> +	/*
+> +	 * If the frontend is opened in read-only mode, only the ioctls
+> +	 * that don't interfere at the tune logic should be accepted.
 
-> With KASAN and a couple of other patches applied, this driver is one
-> of the few remaining ones that actually use more than 2048 bytes of
-> kernel stack:
->
-> broadcom/brcm80211/brcmsmac/phy/phy_n.c: In function 'wlc_phy_workarounds_nphy_gainctrl':
-> broadcom/brcm80211/brcmsmac/phy/phy_n.c:16065:1: warning: the frame size of 3264 bytes is larger than 2048 bytes [-Wframe-larger-than=]
-> broadcom/brcm80211/brcmsmac/phy/phy_n.c: In function 'wlc_phy_workarounds_nphy':
-> broadcom/brcm80211/brcmsmac/phy/phy_n.c:17138:1: warning: the frame size of 2864 bytes is larger than 2048 bytes [-Wframe-larger-than=]
->
-> Here, I'm reducing the stack size by marking as many local variables as
-> 'static const' as I can without changing the actual code.
->
-> This is the first of three patches to improve the stack usage in this
-> driver. It would be good to have this backported to stabl kernels
-> to get all drivers in 'allmodconfig' below the 2048 byte limit so
-> we can turn on the frame warning again globally, but I realize that
-> the patch is larger than the normal limit for stable backports.
->
-> The other two patches do not need to be backported.
->
-> Acked-by: Arend van Spriel <arend.vanspriel@broadcom.com>
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Nit:
 
-I'll queue this and the two following brcmsmac patches for 4.14.
+with the tune logic
 
-Also I'll add (only for this patch):
+> +	 * That allows an external application to monitor the DVB QoS and
+> +	 * statistics parameters.
+> +	 *> +	 * That matches all _IOR() ioctls, except for two special cases:
+> +	 *   - FE_GET_EVENT is part of the tuning logic on a DVB application;
+> +	 *   - FE_DISEQC_RECV_SLAVE_REPLY is part of DiSEqC 2.0
+> +	 *     setup
+> +	 * So, those two ioctls should also return -EPERM, as otherwise
+> +	 * reading from them would interfere with a DVB tune application
+> +	 */
+> +	if ((file->f_flags & O_ACCMODE) == O_RDONLY
+> +	    && (_IOC_DIR(cmd) != _IOC_READ
+> +		|| cmd == FE_GET_EVENT
+> +		|| cmd == FE_DISEQC_RECV_SLAVE_REPLY)) {
+>  		up(&fepriv->sem);
+>  		return -EPERM;
+>  	}
+> 
 
-Cc: <stable@vger.kernel.org>
+Same comment from your previous series. I started looking at
+the old series and now the latest. Didn't realize the series
+has been revised. :(
 
--- 
-Kalle Valo
+Looks good to me
+
+Reviewed by: Shuah Khan <shuahkh@osg.samsung.com>
+
+thanks,
+-- Shuah
