@@ -1,25 +1,23 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:59595 "EHLO mout.web.de"
+Received: from mout.web.de ([212.227.15.4]:58242 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752684AbdIBPu2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 2 Sep 2017 11:50:28 -0400
-Subject: [PATCH 3/7] [media] ov6650: Delete an error message for a failed
- memory allocation in ov6650_probe()
+        id S1751851AbdITTM6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 15:12:58 -0400
+Subject: [PATCH 2/3] [media] dvb-ttusb-budget: Improve two size determinations
+ in ttusb_probe()
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Bhumika Goyal <bhumirks@gmail.com>,
-        =?UTF-8?Q?Frank_Sch=c3=a4fer?= <fschaefer.oss@googlemail.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+To: linux-media@vger.kernel.org,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
+        Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
         kernel-janitors@vger.kernel.org
-References: <c9f2ba21-c742-e1e8-26d9-a56c51c56d65@users.sourceforge.net>
-Message-ID: <32edb708-92f9-c51b-d424-aa975ca49b92@users.sourceforge.net>
-Date: Sat, 2 Sep 2017 17:50:16 +0200
+References: <1ad3c3ce-3738-fee1-2ee5-37142fa1bc70@users.sourceforge.net>
+Message-ID: <404d5faa-432b-9649-4b9e-f0cdf1c18338@users.sourceforge.net>
+Date: Wed, 20 Sep 2017 21:12:39 +0200
 MIME-Version: 1.0
-In-Reply-To: <c9f2ba21-c742-e1e8-26d9-a56c51c56d65@users.sourceforge.net>
+In-Reply-To: <1ad3c3ce-3738-fee1-2ee5-37142fa1bc70@users.sourceforge.net>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
@@ -27,30 +25,45 @@ Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 2 Sep 2017 16:16:39 +0200
+Date: Wed, 20 Sep 2017 20:46:11 +0200
 
-Omit an extra message for a memory allocation failure in this function.
+* The script "checkpatch.pl" pointed information out like the following.
 
-This issue was detected by using the Coccinelle software.
+  ERROR: do not use assignment in if condition
+
+  Thus fix an affected source code place.
+
+* Replace the specification of data structures by variable references
+  as the parameter for the operator "sizeof" to make the corresponding size
+  determination a bit safer according to the Linux coding style convention.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/i2c/ov6650.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/i2c/ov6650.c b/drivers/media/i2c/ov6650.c
-index 768f2950ea36..8975d16b2b24 100644
---- a/drivers/media/i2c/ov6650.c
-+++ b/drivers/media/i2c/ov6650.c
-@@ -954,8 +954,5 @@ static int ov6650_probe(struct i2c_client *client,
--	if (!priv) {
--		dev_err(&client->dev,
--			"Failed to allocate memory for private data!\n");
-+	if (!priv)
- 		return -ENOMEM;
--	}
+diff --git a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
+index 38394c9ecc67..fef3c8554e91 100644
+--- a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
++++ b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
+@@ -1657,7 +1657,8 @@ static int ttusb_probe(struct usb_interface *intf, const struct usb_device_id *i
  
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov6650_subdev_ops);
- 	v4l2_ctrl_handler_init(&priv->hdl, 13);
+ 	if (intf->altsetting->desc.bInterfaceNumber != 1) return -ENODEV;
+ 
+-	if (!(ttusb = kzalloc(sizeof(struct ttusb), GFP_KERNEL)))
++	ttusb = kzalloc(sizeof(*ttusb), GFP_KERNEL);
++	if (!ttusb)
+ 		return -ENOMEM;
+ 
+ 	ttusb->dev = udev;
+@@ -1692,7 +1693,7 @@ static int ttusb_probe(struct usb_interface *intf, const struct usb_device_id *i
+ 	ttusb->adapter.priv = ttusb;
+ 
+ 	/* i2c */
+-	memset(&ttusb->i2c_adap, 0, sizeof(struct i2c_adapter));
++	memset(&ttusb->i2c_adap, 0, sizeof(ttusb->i2c_adap));
+ 	strcpy(ttusb->i2c_adap.name, "TTUSB DEC");
+ 
+ 	i2c_set_adapdata(&ttusb->i2c_adap, ttusb);
 -- 
 2.14.1
