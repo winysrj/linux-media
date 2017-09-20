@@ -1,51 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:52604 "EHLO mout.web.de"
+Received: from mout.web.de ([212.227.15.4]:55402 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752133AbdICUg0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 3 Sep 2017 16:36:26 -0400
-Subject: [PATCH 6/7] [media] Hexium Orion: Improve a size determination in
- hexium_probe()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        id S1751009AbdITGdn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 02:33:43 -0400
+To: linux-media@vger.kernel.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
+        Mike Isely <isely@pobox.com>
 Cc: LKML <linux-kernel@vger.kernel.org>,
         kernel-janitors@vger.kernel.org
-References: <170abf7f-3b62-a37c-966a-8b574acae230@users.sourceforge.net>
-Message-ID: <f98489bb-88c0-b16d-8f0e-31212e243634@users.sourceforge.net>
-Date: Sun, 3 Sep 2017 22:36:15 +0200
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/3] [media] pvrusb2-ioread: Fine-tuning for eight function
+ implementations
+Message-ID: <c8117427-6d4d-0a1c-96c7-56e25d838b3e@users.sourceforge.net>
+Date: Wed, 20 Sep 2017 08:33:26 +0200
 MIME-Version: 1.0
-In-Reply-To: <170abf7f-3b62-a37c-966a-8b574acae230@users.sourceforge.net>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 3 Sep 2017 20:00:17 +0200
+Date: Wed, 20 Sep 2017 08:28:48 +0200
 
-Replace the specification of a data structure by a pointer dereference
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+Three update suggestions were taken into account
+from static source code analysis.
 
-This issue was detected by using the Coccinelle software.
+Markus Elfring (3):
+  Use common error handling code in pvr2_ioread_get_buffer()
+  Delete an unnecessary check before kfree() in two functions
+  Delete unnecessary braces in six functions
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/pci/saa7146/hexium_orion.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/pvrusb2/pvrusb2-ioread.c | 60 +++++++++++++-----------------
+ 1 file changed, 25 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/media/pci/saa7146/hexium_orion.c b/drivers/media/pci/saa7146/hexium_orion.c
-index 72fac6a8494a..187e072a3697 100644
---- a/drivers/media/pci/saa7146/hexium_orion.c
-+++ b/drivers/media/pci/saa7146/hexium_orion.c
-@@ -219,5 +219,5 @@ static int hexium_probe(struct saa7146_dev *dev)
- 		return -EFAULT;
- 	}
- 
--	hexium = kzalloc(sizeof(struct hexium), GFP_KERNEL);
-+	hexium = kzalloc(sizeof(*hexium), GFP_KERNEL);
- 	if (!hexium)
 -- 
 2.14.1
