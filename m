@@ -1,89 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:34756 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756009AbdIGSnU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 14:43:20 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        linux-kernel@vger.kernel.org,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH v3 12/15] [media] vb2: add videobuf2 dma-buf fence helpers
-Date: Thu,  7 Sep 2017 15:42:23 -0300
-Message-Id: <20170907184226.27482-13-gustavo@padovan.org>
-In-Reply-To: <20170907184226.27482-1-gustavo@padovan.org>
-References: <20170907184226.27482-1-gustavo@padovan.org>
+Received: from shell.v3.sk ([92.60.52.57]:39041 "EHLO shell.v3.sk"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751741AbdITRR0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 13:17:26 -0400
+Message-ID: <1505927837.26708.8.camel@v3.sk>
+Subject: A patch slipped through the cracks?
+From: Lubomir Rintel <lkundrak@v3.sk>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-kernel@vger.kernel.org
+Date: Wed, 20 Sep 2017 19:17:17 +0200
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Javier Martinez Canillas <javier@osg.samsung.com>
+Hi,
 
-Add a videobuf2-fence.h header file that contains different helpers
-for DMA buffer sharing explicit fence support in videobuf2.
+we're trying to get this reasonably trivial patch [1] applied for more
+than a year and four attempts now. (I'm not including it in this
+message so that this message won't be ignored for the same reason the
+submissions were, whatever they are.)
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- include/media/videobuf2-fence.h | 49 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
- create mode 100644 include/media/videobuf2-fence.h
+[1] https://patchwork.linuxtv.org/patch/40862/
 
-diff --git a/include/media/videobuf2-fence.h b/include/media/videobuf2-fence.h
-new file mode 100644
-index 000000000000..ed5612ca03d6
---- /dev/null
-+++ b/include/media/videobuf2-fence.h
-@@ -0,0 +1,49 @@
-+/*
-+ * videobuf2-fence.h - DMA buffer sharing fence helpers for videobuf 2
-+ *
-+ * Copyright (C) 2016 Samsung Electronics
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#include <linux/dma-fence.h>
-+#include <linux/slab.h>
-+
-+static DEFINE_SPINLOCK(vb2_fence_lock);
-+
-+static inline const char *vb2_fence_get_driver_name(struct dma_fence *fence)
-+{
-+	return "vb2_fence";
-+}
-+
-+static inline const char *vb2_fence_get_timeline_name(struct dma_fence *fence)
-+{
-+	return "vb2_fence_timeline";
-+}
-+
-+static inline bool vb2_fence_enable_signaling(struct dma_fence *fence)
-+{
-+	return true;
-+}
-+
-+static const struct dma_fence_ops vb2_fence_ops = {
-+	.get_driver_name = vb2_fence_get_driver_name,
-+	.get_timeline_name = vb2_fence_get_timeline_name,
-+	.enable_signaling = vb2_fence_enable_signaling,
-+	.wait = dma_fence_default_wait,
-+};
-+
-+static inline struct dma_fence *vb2_fence_alloc(void)
-+{
-+	struct dma_fence *vb2_fence = kzalloc(sizeof(*vb2_fence), GFP_KERNEL);
-+
-+	if (!vb2_fence)
-+		return NULL;
-+
-+	dma_fence_init(vb2_fence, &vb2_fence_ops, &vb2_fence_lock,
-+		       dma_fence_context_alloc(1), 1);
-+
-+	return vb2_fence;
-+}
--- 
-2.13.5
+I have no idea what went wrong. There was a suspicion (somewhat
+confirmed by the initial patch submitter) that spam filtering could
+have dropped the first message. Since then the patch did make it to the
+list numerous times and was picked up by patchwork.
+
+The patchwork's idea about the patch being "Superseded" is wrong -- I
+have no idea why. But someone *please* look into this and apply the
+patch.
+
+Thank you
+Lubo
