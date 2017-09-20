@@ -1,64 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fireflyinternet.com ([109.228.58.192]:54320 "EHLO
-        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751105AbdIKI7m (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35673 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752227AbdITUxP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 04:59:42 -0400
-Content-Type: text/plain; charset="utf-8"
+        Wed, 20 Sep 2017 16:53:15 -0400
+Date: Wed, 20 Sep 2017 15:53:13 -0500
+From: Rob Herring <robh@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH 1/2] dt: bindings: media: Document port and endpoint
+ numbering
+Message-ID: <20170920142438.wva4a5gz7ikfnlyh@rob-hp-laptop>
+References: <1505723105-16238-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1505723105-16238-2-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-From: Chris Wilson <chris@chris-wilson.co.uk>
-To: =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
-        daniel.vetter@ffwll.ch, sumit.semwal@linaro.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org
-References: <1504531653-13779-1-git-send-email-deathsimple@vodafone.de>
- <150453243791.23157.6907537389223890207@mail.alporthouse.com>
- <67fe7e05-7743-40c8-558b-41b08eb986e9@amd.com>
-In-Reply-To: <67fe7e05-7743-40c8-558b-41b08eb986e9@amd.com>
-Message-ID: <150512037119.16759.472484663447331384@mail.alporthouse.com>
-Subject: Re: [PATCH] dma-fence: fix dma_fence_get_rcu_safe
-Date: Mon, 11 Sep 2017 09:59:31 +0100
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1505723105-16238-2-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Quoting Christian König (2017-09-11 09:50:40)
-> Sorry for the delayed response, but your mail somehow ended up in the 
-> Spam folder.
+On Mon, Sep 18, 2017 at 11:25:04AM +0300, Sakari Ailus wrote:
+> A lot of devices do not need and do not document port or endpoint
+> numbering at all, e.g. in case where there's just a single port and a
+> single endpoint. Whereas this is just common sense, document it to make it
+> explicit.
 > 
-> Am 04.09.2017 um 15:40 schrieb Chris Wilson:
-> > Quoting Christian König (2017-09-04 14:27:33)
-> >> From: Christian König <christian.koenig@amd.com>
-> >>
-> >> The logic is buggy and unnecessary complex. When dma_fence_get_rcu() fails to
-> >> acquire a reference it doesn't necessary mean that there is no fence at all.
-> >>
-> >> It usually mean that the fence was replaced by a new one and in this situation
-> >> we certainly want to have the new one as result and *NOT* NULL.
-> > Which is not guaranteed by the code you wrote either.
-> >
-> > The point of the comment is that the mb is only inside the successful
-> > kref_atomic_inc_unless_zero, and that only after that mb do you know
-> > whether or not you have the current fence.
-> >
-> > You can argue that you want to replace the
-> >       if (!dma_fence_get_rcu())
-> >               return NULL
-> > with
-> >       if (!dma_fence_get_rcu()
-> >               continue;
-> > but it would be incorrect to say that by simply ignoring the
-> > post-condition check that you do have the right fence.
-> 
-> You are completely missing the point here.
-> 
-> It is irrelevant if you have the current fence or not when you return. 
-> You can only guarantee that it is the current fence when you take a look 
-> and that is exactly what we want to avoid.
-> 
-> So the existing code is complete nonsense. Instead what we need to 
-> guarantee is that we return *ANY* fence which we can grab a reference for.
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
 
-Not quite. We can grab a reference on a fence that was already freed and
-reused between the rcu_dereference() and dma_fence_get_rcu().
--Chris
+This is fine, but bindings should still be explicit. Otherwise, I'm 
+wondering if it's a single port/endpoint or they just forgot to document 
+it. And I shouldn't have to look at the example to infer that.
+
+Acked-by: Rob Herring <robh@kernel.org>
