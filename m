@@ -1,99 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:56833 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751029AbdIKN5j (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50293
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751450AbdITTL4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 09:57:39 -0400
-Subject: Re: [PATCH] build: Added missing functions nsecs_to_jiffies(64)
-To: "Jasmin J." <jasmin@anw.at>, linux-media@vger.kernel.org
-Cc: d.scheller@gmx.net
-References: <1505082197-11962-1-git-send-email-jasmin@anw.at>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <77d16f09-c450-737a-40d2-b1c268548d5d@xs4all.nl>
-Date: Mon, 11 Sep 2017 15:57:35 +0200
-MIME-Version: 1.0
-In-Reply-To: <1505082197-11962-1-git-send-email-jasmin@anw.at>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 20 Sep 2017 15:11:56 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: [PATCH 13/25] media: dvb_demux: dvb_demux_feed.pusi_seen is boolean
+Date: Wed, 20 Sep 2017 16:11:38 -0300
+Message-Id: <9e8228624ba9960cda4042c0901e5e7d55e49bb3.1505933919.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
+References: <cover.1505933919.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
+References: <cover.1505933919.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/11/2017 12:23 AM, Jasmin J. wrote:
-> From: Jasmin Jessich <jasmin@anw.at>
-> 
-> Several modules expect the functions nsecs_to_jiffies64 and
-> nsecs_to_jiffies to be available when they get loaded. For Kernels prior
-> to 3.16, this symbol is not exported in time.c .
-> Copied the functions to compat.h, so that they get already resolved during
-> compilation. Define also a macro with a name conversion, because the
-> mentioned functions are defined as extern in include/linux/jiffies.h,
-> which gives an error when the are re-defined as static.
-> 
-> Signed-off-by: Jasmin Jessich <jasmin@anw.at>
-> ---
->  v4l/compat.h | 37 +++++++++++++++++++++++++++++++++++++
->  1 file changed, 37 insertions(+)
-> 
-> diff --git a/v4l/compat.h b/v4l/compat.h
-> index 7a49551..3dedf26 100644
-> --- a/v4l/compat.h
-> +++ b/v4l/compat.h
-> @@ -2118,4 +2118,41 @@ static inline int pm_runtime_get_if_in_use(struct device *dev)
->  	.subvendor = (subvend), .subdevice = (subdev)
->  #endif
->  
-> +
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 16, 0)
-> +/*
-> + * copied from kernel/time/time.c
-> + */
-> +static inline u64 nsecs_to_jiffies64_static(u64 n)
-> +{
-> +#if (NSEC_PER_SEC % HZ) == 0
-> +    /* Common case, HZ = 100, 128, 200, 250, 256, 500, 512, 1000 etc. */
-> +    return div_u64(n, NSEC_PER_SEC / HZ);
-> +#elif (HZ % 512) == 0
-> +    /* overflow after 292 years if HZ = 1024 */
-> +    return div_u64(n * HZ / 512, NSEC_PER_SEC / 512);
-> +#else
-> +    /*
-> +     * Generic case - optimized for cases where HZ is a multiple of 3.
-> +     * overflow after 64.99 years, exact for HZ = 60, 72, 90, 120 etc.
-> +     */
-> +    return div_u64(n * 9, (9ull * NSEC_PER_SEC + HZ / 2) / HZ);
-> +#endif
-> +}
-> +
-> +static inline unsigned long nsecs_to_jiffies_static(u64 n)
-> +{
-> +    return (unsigned long)nsecs_to_jiffies64_static(n);
-> +}
-> +
-> +/*
-> + * linux/jiffies.h defines nsecs_to_jiffies64 and nsecs_to_jiffies
-> + * as externals. To get rid of the compiler error, we redefine the
-> + * functions to the static variant just defined above.
-> + */
-> +#define nsecs_to_jiffies64(_n) nsecs_to_jiffies64_static(_n)
-> +#define nsecs_to_jiffies(_n) nsecs_to_jiffies_static(_n)
+Instead of using an integer to represent it, use boolean,
+as this better describes what this field really means.
 
-For this to work reliably I think you should include jiffies.h before these
-defines. If the defines come before the header is included I would expect
-that the extern functions then become extern nsecs_to_jiffies64_static and
-you will have the same problem again.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/dvb_demux.c    | 12 ++++++------
+ drivers/media/dvb-core/dvb_demux.h    |  2 +-
+ drivers/media/pci/ttpci/av7110.c      |  2 +-
+ drivers/media/pci/ttpci/budget-core.c |  2 +-
+ 4 files changed, 9 insertions(+), 9 deletions(-)
 
-It is probably included already via another header, but it doesn't hurt to
-be safe.
-
-Looks good otherwise.
-
-Regards,
-
-	Hans
-
-> +
-> +#endif
-> +
->  #endif /*  _COMPAT_H */
-> 
+diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
+index 68e93362c081..b9360cbc3519 100644
+--- a/drivers/media/dvb-core/dvb_demux.c
++++ b/drivers/media/dvb-core/dvb_demux.c
+@@ -223,10 +223,10 @@ static void dvb_dmx_swfilter_section_new(struct dvb_demux_feed *feed)
+  *  when the second packet arrives.
+  *
+  * Fix:
+- * when demux is started, let feed->pusi_seen = 0 to
++ * when demux is started, let feed->pusi_seen = false to
+  * prevent initial feeding of garbage from the end of
+  * previous section. When you for the first time see PUSI=1
+- * then set feed->pusi_seen = 1
++ * then set feed->pusi_seen = true
+  */
+ static int dvb_dmx_swfilter_section_copy_dump(struct dvb_demux_feed *feed,
+ 					      const u8 *buf, u8 len)
+@@ -318,10 +318,10 @@ static int dvb_dmx_swfilter_section_packet(struct dvb_demux_feed *feed,
+ 		 */
+ #endif
+ 		/*
+-		 * Discontinuity detected. Reset pusi_seen = 0 to
++		 * Discontinuity detected. Reset pusi_seen to
+ 		 * stop feeding of suspicious data until next PUSI=1 arrives
+ 		 */
+-		feed->pusi_seen = 0;
++		feed->pusi_seen = false;
+ 		dvb_dmx_swfilter_section_new(feed);
+ 	}
+ 
+@@ -335,8 +335,8 @@ static int dvb_dmx_swfilter_section_packet(struct dvb_demux_feed *feed,
+ 
+ 			dvb_dmx_swfilter_section_copy_dump(feed, before,
+ 							   before_len);
+-			/* before start of new section, set pusi_seen = 1 */
+-			feed->pusi_seen = 1;
++			/* before start of new section, set pusi_seen */
++			feed->pusi_seen = true;
+ 			dvb_dmx_swfilter_section_new(feed);
+ 			dvb_dmx_swfilter_section_copy_dump(feed, after,
+ 							   after_len);
+diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
+index 700887938145..9db3c2b7c64e 100644
+--- a/drivers/media/dvb-core/dvb_demux.h
++++ b/drivers/media/dvb-core/dvb_demux.h
+@@ -101,7 +101,7 @@ struct dvb_demux_feed {
+ 	enum dmx_ts_pes pes_type;
+ 
+ 	int cc;
+-	int pusi_seen;		/* prevents feeding of garbage from previous section */
++	bool pusi_seen;		/* prevents feeding of garbage from previous section */
+ 
+ 	u16 peslen;
+ 
+diff --git a/drivers/media/pci/ttpci/av7110.c b/drivers/media/pci/ttpci/av7110.c
+index f46947d8adf8..f89fb23f6c57 100644
+--- a/drivers/media/pci/ttpci/av7110.c
++++ b/drivers/media/pci/ttpci/av7110.c
+@@ -1224,7 +1224,7 @@ static int budget_start_feed(struct dvb_demux_feed *feed)
+ 	dprintk(2, "av7110: %p\n", budget);
+ 
+ 	spin_lock(&budget->feedlock1);
+-	feed->pusi_seen = 0; /* have a clean section start */
++	feed->pusi_seen = false; /* have a clean section start */
+ 	status = start_ts_capture(budget);
+ 	spin_unlock(&budget->feedlock1);
+ 	return status;
+diff --git a/drivers/media/pci/ttpci/budget-core.c b/drivers/media/pci/ttpci/budget-core.c
+index 97499b2af714..b3dc45b91101 100644
+--- a/drivers/media/pci/ttpci/budget-core.c
++++ b/drivers/media/pci/ttpci/budget-core.c
+@@ -330,7 +330,7 @@ static int budget_start_feed(struct dvb_demux_feed *feed)
+ 		return -EINVAL;
+ 
+ 	spin_lock(&budget->feedlock);
+-	feed->pusi_seen = 0; /* have a clean section start */
++	feed->pusi_seen = false; /* have a clean section start */
+ 	if (budget->feeding++ == 0)
+ 		status = start_ts_capture(budget);
+ 	spin_unlock(&budget->feedlock);
+-- 
+2.13.5
