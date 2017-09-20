@@ -1,379 +1,422 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48904 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751167AbdIKIAS (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50376
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751750AbdITTMD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 04:00:18 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v10 14/24] v4l: async: Allow binding notifiers to sub-devices
-Date: Mon, 11 Sep 2017 10:59:58 +0300
-Message-Id: <20170911080008.21208-15-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+        Wed, 20 Sep 2017 15:12:03 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 25/25] media: dvb uAPI docs: get rid of examples section
+Date: Wed, 20 Sep 2017 16:11:50 -0300
+Message-Id: <5d81a102369d7eecb02f1f5ed5e8974d20709d41.1505933919.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
+References: <cover.1505933919.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
+References: <cover.1505933919.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Registering a notifier has required the knowledge of struct v4l2_device
-for the reason that sub-devices generally are registered to the
-v4l2_device (as well as the media device, also available through
-v4l2_device).
+That section is too outdated and got superseded by DVBv5 and
+by libdvbv5.
 
-This information is not available for sub-device drivers at probe time.
+Maybe some day we'll end adding updated examples there, but
+while nobody has time or interest of doing that, just mention
+that there and get rid of the current examples for good.
 
-What this patch does is that it allows registering notifiers without
-having v4l2_device around. Instead the sub-device pointer is stored in the
-notifier. Once the sub-device of the driver that registered the notifier
-is registered, the notifier will gain the knowledge of the v4l2_device,
-and the binding of async sub-devices from the sub-device driver's notifier
-may proceed.
-
-The root notifier's complete callback is only called when all sub-device
-notifiers are completed.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 217 ++++++++++++++++++++++++++++++-----
- include/media/v4l2-async.h           |  16 ++-
- 2 files changed, 202 insertions(+), 31 deletions(-)
+ Documentation/media/uapi/dvb/examples.rst | 378 +-----------------------------
+ 1 file changed, 6 insertions(+), 372 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 9ebc2e079d03..6f788b2e922a 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -53,6 +53,10 @@ static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
- 	return n->ops->complete(n);
- }
+diff --git a/Documentation/media/uapi/dvb/examples.rst b/Documentation/media/uapi/dvb/examples.rst
+index e0f627ca2e4d..16dd90fa9e94 100644
+--- a/Documentation/media/uapi/dvb/examples.rst
++++ b/Documentation/media/uapi/dvb/examples.rst
+@@ -6,377 +6,11 @@
+ Examples
+ ********
  
-+static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-+				   struct v4l2_subdev *sd,
-+				   struct v4l2_async_subdev *asd);
-+
- static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
- #if IS_ENABLED(CONFIG_I2C)
-@@ -124,14 +128,128 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
- 	return NULL;
- }
+-In this section we would like to present some examples for using the Digital
+-TV API.
++In the past, we used to have a set of examples here. However, those
++examples got out of date and doesn't even compile nowadays.
  
-+/* Get the sub-device notifier registered by a sub-device driver. */
-+static struct v4l2_async_notifier *v4l2_async_get_subdev_notifier(
-+	struct v4l2_subdev *sd)
-+{
-+	struct v4l2_async_notifier *n;
-+
-+	list_for_each_entry(n, &notifier_list, list)
-+		if (n->sd == sd)
-+			return n;
-+
-+	return NULL;
-+}
-+
-+/* Return true if all sub-device notifiers are complete, false otherwise. */
-+static bool v4l2_async_subdev_notifiers_complete(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_subdev *sd;
-+
-+	if (!list_empty(&notifier->waiting))
-+		return false;
-+
-+	list_for_each_entry(sd, &notifier->done, async_list) {
-+		struct v4l2_async_notifier *subdev_notifier =
-+			v4l2_async_get_subdev_notifier(sd);
-+
-+		if (!subdev_notifier)
-+			continue;
-+
-+		if (!v4l2_async_subdev_notifiers_complete(subdev_notifier))
-+			return false;
-+	}
-+
-+	return true;
-+}
-+
-+/* Get v4l2_device related to the notifier if one can be found. */
-+static struct v4l2_device *v4l2_async_notifier_get_v4l2_dev(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	while (notifier->parent)
-+		notifier = notifier->parent;
-+
-+	return notifier->v4l2_dev;
-+}
-+
-+/* Test all async sub-devices in a notifier for a match. */
-+static int v4l2_async_notifier_try_all_subdevs(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_subdev *sd;
-+
-+	if (!v4l2_async_notifier_get_v4l2_dev(notifier))
-+		return 0;
-+
-+again:
-+	list_for_each_entry(sd, &subdev_list, async_list) {
-+		struct v4l2_async_subdev *asd;
-+		int ret;
-+
-+		asd = v4l2_async_find_match(notifier, sd);
-+		if (!asd)
-+			continue;
-+
-+		ret = v4l2_async_match_notify(notifier, sd, asd);
-+		if (ret < 0)
-+			return ret;
-+
-+		/*
-+		 * v4l2_async_match_notify() may lead to registering a
-+		 * new notifier and thus changing the async subdevs
-+		 * list. In order to proceed safely from here, restart
-+		 * parsing the list from the beginning.
-+		 */
-+		goto again;
-+	}
-+
-+	return 0;
-+}
-+
-+/* Try completing a notifier. */
-+static int v4l2_async_notifier_try_complete(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	do {
-+		int ret;
-+
-+		/* Any local async sub-devices left? */
-+		if (!list_empty(&notifier->waiting))
-+			return 0;
-+
-+		/*
-+		 * Any sub-device notifiers waiting for async subdevs
-+		 * to be bound?
-+		 */
-+		if (!v4l2_async_subdev_notifiers_complete(notifier))
-+			return 0;
-+
-+		/* Proceed completing the notifier */
-+		ret = v4l2_async_notifier_call_complete(notifier);
-+		if (ret < 0)
-+			return ret;
-+
-+		/*
-+		 * Obtain notifier's parent. If there is one, repeat
-+		 * the process, otherwise we're done here.
-+		 */
-+	} while ((notifier = notifier->parent));
-+
-+	return 0;
-+}
-+
- static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 				   struct v4l2_subdev *sd,
- 				   struct v4l2_async_subdev *asd)
- {
-+	struct v4l2_async_notifier *subdev_notifier;
- 	int ret;
+-.. note::
++Also, nowadays, the best is to use the libdvbv5 DVB API nowadays,
++with is fully documented.
  
--	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
--	if (ret < 0)
-+	ret = v4l2_device_register_subdev(
-+		v4l2_async_notifier_get_v4l2_dev(notifier), sd);
-+	if (ret)
- 		return ret;
- 
- 	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
-@@ -148,10 +266,20 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 	/* Move from the global subdevice list to notifier's done */
- 	list_move(&sd->async_list, &notifier->done);
- 
--	if (list_empty(&notifier->waiting))
--		return v4l2_async_notifier_call_complete(notifier);
-+	/*
-+	 * See if the sub-device has a notifier. If it does, proceed
-+	 * with checking for its async sub-devices.
-+	 */
-+	subdev_notifier = v4l2_async_get_subdev_notifier(sd);
-+	if (subdev_notifier && !subdev_notifier->parent) {
-+		subdev_notifier->parent = notifier;
-+		ret = v4l2_async_notifier_try_all_subdevs(subdev_notifier);
-+		if (ret)
-+			return ret;
-+	}
- 
--	return 0;
-+	/* Try completing the notifier and its parent(s). */
-+	return v4l2_async_notifier_try_complete(notifier);
- }
- 
- static void v4l2_async_cleanup(struct v4l2_subdev *sd)
-@@ -163,20 +291,18 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
- 	sd->dev = NULL;
- }
- 
--int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
--				 struct v4l2_async_notifier *notifier)
-+static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- {
--	struct v4l2_subdev *sd, *tmp;
- 	struct v4l2_async_subdev *asd;
-+	int ret;
- 	int i;
- 
--	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-+	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
- 		return -EINVAL;
- 
- 	if (!notifier->num_subdevs)
- 		return v4l2_async_notifier_call_complete(notifier);
- 
--	notifier->v4l2_dev = v4l2_dev;
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
- 
-@@ -200,18 +326,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 
- 	mutex_lock(&list_lock);
- 
--	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
--		int ret;
+-   This section is out of date, and the code below won't even
+-   compile. Please refer to the
+-   `libdvbv5 <https://linuxtv.org/docs/libdvbv5/index.html>`__ for
+-   updated/recommended examples.
 -
--		asd = v4l2_async_find_match(notifier, sd);
--		if (!asd)
--			continue;
 -
--		ret = v4l2_async_match_notify(notifier, sd, asd);
--		if (ret < 0) {
--			mutex_unlock(&list_lock);
--			return ret;
--		}
-+	ret = v4l2_async_notifier_try_all_subdevs(notifier);
-+	if (ret) {
-+		mutex_unlock(&list_lock);
-+		return ret;
- 	}
- 
- 	/* Keep also completed notifiers on the list */
-@@ -221,28 +339,67 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 
- 	return 0;
- }
-+
-+int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-+				 struct v4l2_async_notifier *notifier)
-+{
-+	if (!v4l2_dev || notifier->sd)
-+		return -EINVAL;
-+
-+	notifier->v4l2_dev = v4l2_dev;
-+
-+	return __v4l2_async_notifier_register(notifier);
-+}
- EXPORT_SYMBOL(v4l2_async_notifier_register);
- 
--void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-+int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
-+					struct v4l2_async_notifier *notifier)
- {
--	struct v4l2_subdev *sd, *tmp;
-+	if (!sd || notifier->v4l2_dev)
-+		return -EINVAL;
- 
--	if (!notifier->v4l2_dev)
--		return;
-+	notifier->sd = sd;
- 
--	mutex_lock(&list_lock);
-+	return __v4l2_async_notifier_register(notifier);
-+}
-+EXPORT_SYMBOL(v4l2_async_subdev_notifier_register);
- 
--	list_del(&notifier->list);
-+/* Unbind all sub-devices in the notifier tree. */
-+static void v4l2_async_notifier_unbind_all_subdevs(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_subdev *sd, *tmp;
- 
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-+		struct v4l2_async_notifier *subdev_notifier =
-+			v4l2_async_get_subdev_notifier(sd);
-+
-+		if (subdev_notifier)
-+			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
-+
- 		v4l2_async_cleanup(sd);
- 
- 		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
-+
-+		list_del(&sd->async_list);
-+		list_add(&sd->async_list, &subdev_list);
- 	}
- 
--	mutex_unlock(&list_lock);
-+	notifier->parent = NULL;
-+}
-+
-+void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-+{
-+	if (!notifier->v4l2_dev && !notifier->sd)
-+		return;
- 
--	notifier->v4l2_dev = NULL;
-+	mutex_lock(&list_lock);
-+
-+	v4l2_async_notifier_unbind_all_subdevs(notifier);
-+
-+	list_del(&notifier->list);
-+
-+	mutex_unlock(&list_lock);
- }
- EXPORT_SYMBOL(v4l2_async_notifier_unregister);
- 
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 3bc8a7c0d83f..cf409d45208c 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -102,7 +102,9 @@ struct v4l2_async_notifier_operations {
-  * @num_subdevs: number of subdevices used in the subdevs array
-  * @max_subdevs: number of subdevices allocated in the subdevs array
-  * @subdevs:	array of pointers to subdevice descriptors
-- * @v4l2_dev:	pointer to struct v4l2_device
-+ * @v4l2_dev:	v4l2_device of the root notifier, NULL otherwise
-+ * @sd:		sub-device that registered the notifier, NULL otherwise
-+ * @parent:	parent notifier carrying @v4l2_dev
-  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
-  * @done:	list of struct v4l2_subdev, already probed
-  * @list:	member in a global list of notifiers
-@@ -113,6 +115,8 @@ struct v4l2_async_notifier {
- 	unsigned int max_subdevs;
- 	struct v4l2_async_subdev **subdevs;
- 	struct v4l2_device *v4l2_dev;
-+	struct v4l2_subdev *sd;
-+	struct v4l2_async_notifier *parent;
- 	struct list_head waiting;
- 	struct list_head done;
- 	struct list_head list;
-@@ -128,6 +132,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 				 struct v4l2_async_notifier *notifier);
- 
- /**
-+ * v4l2_async_subdev_notifier_register - registers a subdevice asynchronous
-+ *					 notifier for a sub-device
-+ *
-+ * @sd: pointer to &struct v4l2_subdev
-+ * @notifier: pointer to &struct v4l2_async_notifier
-+ */
-+int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
-+					struct v4l2_async_notifier *notifier);
-+
-+/**
-  * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
-  *
-  * @notifier: pointer to &struct v4l2_async_notifier
+-.. _tuning:
+-
+-Example: Tuning
+-===============
+-
+-We will start with a generic tuning subroutine that uses the frontend
+-and SEC, as well as the demux devices. The example is given for QPSK
+-tuners, but can easily be adjusted for QAM.
+-
+-
+-.. code-block:: c
+-
+-     #include <sys/ioctl.h>
+-     #include <stdio.h>
+-     #include <stdint.h>
+-     #include <sys/types.h>
+-     #include <sys/stat.h>
+-     #include <fcntl.h>
+-     #include <time.h>
+-     #include <unistd.h>
+-
+-     #include <linux/dvb/dmx.h>
+-     #include <linux/dvb/frontend.h>
+-     #include <linux/dvb/sec.h>
+-     #include <sys/poll.h>
+-
+-     #define DMX "/dev/dvb/adapter0/demux1"
+-     #define FRONT "/dev/dvb/adapter0/frontend1"
+-     #define SEC "/dev/dvb/adapter0/sec1"
+-
+-     /* routine for checking if we have a signal and other status information*/
+-     int FEReadStatus(int fd, fe_status_t *stat)
+-     {
+-	 int ans;
+-
+-	 if ( (ans = ioctl(fd,FE_READ_STATUS,stat) < 0)){
+-	     perror("FE READ STATUS: ");
+-	     return -1;
+-	 }
+-
+-	 if (*stat & FE_HAS_POWER)
+-	     printf("FE HAS POWER\\n");
+-
+-	 if (*stat & FE_HAS_SIGNAL)
+-	     printf("FE HAS SIGNAL\\n");
+-
+-	 if (*stat & FE_SPECTRUM_INV)
+-	     printf("SPEKTRUM INV\\n");
+-
+-	 return 0;
+-     }
+-
+-
+-     /* tune qpsk */
+-     /* freq:             frequency of transponder                      */
+-     /* vpid, apid, tpid: PIDs of video, audio and teletext TS packets  */
+-     /* diseqc:           DiSEqC address of the used LNB                */
+-     /* pol:              Polarisation                                  */
+-     /* srate:            Symbol Rate                                   */
+-     /* fec.              FEC                                           */
+-     /* lnb_lof1:         local frequency of lower LNB band             */
+-     /* lnb_lof2:         local frequency of upper LNB band             */
+-     /* lnb_slof:         switch frequency of LNB                       */
+-
+-     int set_qpsk_channel(int freq, int vpid, int apid, int tpid,
+-	     int diseqc, int pol, int srate, int fec, int lnb_lof1,
+-	     int lnb_lof2, int lnb_slof)
+-     {
+-	 struct secCommand scmd;
+-	 struct secCmdSequence scmds;
+-	 struct dmx_pes_filter_params pesFilterParams;
+-	 FrontendParameters frp;
+-	 struct pollfd pfd[1];
+-	 FrontendEvent event;
+-	 int demux1, demux2, demux3, front;
+-
+-	 frequency = (uint32_t) freq;
+-	 symbolrate = (uint32_t) srate;
+-
+-	 if((front = open(FRONT,O_RDWR)) < 0){
+-	     perror("FRONTEND DEVICE: ");
+-	     return -1;
+-	 }
+-
+-	 if((sec = open(SEC,O_RDWR)) < 0){
+-	     perror("SEC DEVICE: ");
+-	     return -1;
+-	 }
+-
+-	 if (demux1 < 0){
+-	     if ((demux1=open(DMX, O_RDWR|O_NONBLOCK))
+-		 < 0){
+-		 perror("DEMUX DEVICE: ");
+-		 return -1;
+-	     }
+-	 }
+-
+-	 if (demux2 < 0){
+-	     if ((demux2=open(DMX, O_RDWR|O_NONBLOCK))
+-		 < 0){
+-		 perror("DEMUX DEVICE: ");
+-		 return -1;
+-	     }
+-	 }
+-
+-	 if (demux3 < 0){
+-	     if ((demux3=open(DMX, O_RDWR|O_NONBLOCK))
+-		 < 0){
+-		 perror("DEMUX DEVICE: ");
+-		 return -1;
+-	     }
+-	 }
+-
+-	 if (freq < lnb_slof) {
+-	     frp.Frequency = (freq - lnb_lof1);
+-	     scmds.continuousTone = SEC_TONE_OFF;
+-	 } else {
+-	     frp.Frequency = (freq - lnb_lof2);
+-	     scmds.continuousTone = SEC_TONE_ON;
+-	 }
+-	 frp.Inversion = INVERSION_AUTO;
+-	 if (pol) scmds.voltage = SEC_VOLTAGE_18;
+-	 else scmds.voltage = SEC_VOLTAGE_13;
+-
+-	 scmd.type=0;
+-	 scmd.u.diseqc.addr=0x10;
+-	 scmd.u.diseqc.cmd=0x38;
+-	 scmd.u.diseqc.numParams=1;
+-	 scmd.u.diseqc.params[0] = 0xF0 | ((diseqc * 4) & 0x0F) |
+-	     (scmds.continuousTone == SEC_TONE_ON ? 1 : 0) |
+-	     (scmds.voltage==SEC_VOLTAGE_18 ? 2 : 0);
+-
+-	 scmds.miniCommand=SEC_MINI_NONE;
+-	 scmds.numCommands=1;
+-	 scmds.commands=&scmd;
+-	 if (ioctl(sec, SEC_SEND_SEQUENCE, &scmds) < 0){
+-	     perror("SEC SEND: ");
+-	     return -1;
+-	 }
+-
+-	 if (ioctl(sec, SEC_SEND_SEQUENCE, &scmds) < 0){
+-	     perror("SEC SEND: ");
+-	     return -1;
+-	 }
+-
+-	 frp.u.qpsk.SymbolRate = srate;
+-	 frp.u.qpsk.FEC_inner = fec;
+-
+-	 if (ioctl(front, FE_SET_FRONTEND, &frp) < 0){
+-	     perror("QPSK TUNE: ");
+-	     return -1;
+-	 }
+-
+-	 pfd[0].fd = front;
+-	 pfd[0].events = POLLIN;
+-
+-	 if (poll(pfd,1,3000)){
+-	     if (pfd[0].revents & POLLIN){
+-		 printf("Getting QPSK event\\n");
+-		 if ( ioctl(front, FE_GET_EVENT, &event)
+-
+-		      == -EOVERFLOW){
+-		     perror("qpsk get event");
+-		     return -1;
+-		 }
+-		 printf("Received ");
+-		 switch(event.type){
+-		 case FE_UNEXPECTED_EV:
+-		     printf("unexpected event\\n");
+-		     return -1;
+-		 case FE_FAILURE_EV:
+-		     printf("failure event\\n");
+-		     return -1;
+-
+-		 case FE_COMPLETION_EV:
+-		     printf("completion event\\n");
+-		 }
+-	     }
+-	 }
+-
+-
+-	 pesFilterParams.pid     = vpid;
+-	 pesFilterParams.input   = DMX_IN_FRONTEND;
+-	 pesFilterParams.output  = DMX_OUT_DECODER;
+-	 pesFilterParams.pes_type = DMX_PES_VIDEO;
+-	 pesFilterParams.flags   = DMX_IMMEDIATE_START;
+-	 if (ioctl(demux1, DMX_SET_PES_FILTER, &pesFilterParams) < 0){
+-	     perror("set_vpid");
+-	     return -1;
+-	 }
+-
+-	 pesFilterParams.pid     = apid;
+-	 pesFilterParams.input   = DMX_IN_FRONTEND;
+-	 pesFilterParams.output  = DMX_OUT_DECODER;
+-	 pesFilterParams.pes_type = DMX_PES_AUDIO;
+-	 pesFilterParams.flags   = DMX_IMMEDIATE_START;
+-	 if (ioctl(demux2, DMX_SET_PES_FILTER, &pesFilterParams) < 0){
+-	     perror("set_apid");
+-	     return -1;
+-	 }
+-
+-	 pesFilterParams.pid     = tpid;
+-	 pesFilterParams.input   = DMX_IN_FRONTEND;
+-	 pesFilterParams.output  = DMX_OUT_DECODER;
+-	 pesFilterParams.pes_type = DMX_PES_TELETEXT;
+-	 pesFilterParams.flags   = DMX_IMMEDIATE_START;
+-	 if (ioctl(demux3, DMX_SET_PES_FILTER, &pesFilterParams) < 0){
+-	     perror("set_tpid");
+-	     return -1;
+-	 }
+-
+-	 return has_signal(fds);
+-     }
+-
+-The program assumes that you are using a universal LNB and a standard
+-DiSEqC switch with up to 4 addresses. Of course, you could build in some
+-more checking if tuning was successful and maybe try to repeat the
+-tuning process. Depending on the external hardware, i.e. LNB and DiSEqC
+-switch, and weather conditions this may be necessary.
+-
+-
+-.. _the_dvr_device:
+-
+-Example: The DVR device
+-========================
+-
+-The following program code shows how to use the DVR device for
+-recording.
+-
+-
+-.. code-block:: c
+-
+-     #include <sys/ioctl.h>
+-     #include <stdio.h>
+-     #include <stdint.h>
+-     #include <sys/types.h>
+-     #include <sys/stat.h>
+-     #include <fcntl.h>
+-     #include <time.h>
+-     #include <unistd.h>
+-
+-     #include <linux/dvb/dmx.h>
+-     #include <linux/dvb/video.h>
+-     #include <sys/poll.h>
+-     #define DVR "/dev/dvb/adapter0/dvr1"
+-     #define AUDIO "/dev/dvb/adapter0/audio1"
+-     #define VIDEO "/dev/dvb/adapter0/video1"
+-
+-     #define BUFFY (188*20)
+-     #define MAX_LENGTH (1024*1024*5) /* record 5MB */
+-
+-
+-     /* switch the demuxes to recording, assuming the transponder is tuned */
+-
+-     /* demux1, demux2: file descriptor of video and audio filters */
+-     /* vpid, apid:     PIDs of video and audio channels           */
+-
+-     int switch_to_record(int demux1, int demux2, uint16_t vpid, uint16_t apid)
+-     {
+-	 struct dmx_pes_filter_params pesFilterParams;
+-
+-	 if (demux1 < 0){
+-	     if ((demux1=open(DMX, O_RDWR|O_NONBLOCK))
+-		 < 0){
+-		 perror("DEMUX DEVICE: ");
+-		 return -1;
+-	     }
+-	 }
+-
+-	 if (demux2 < 0){
+-	     if ((demux2=open(DMX, O_RDWR|O_NONBLOCK))
+-		 < 0){
+-		 perror("DEMUX DEVICE: ");
+-		 return -1;
+-	     }
+-	 }
+-
+-	 pesFilterParams.pid = vpid;
+-	 pesFilterParams.input = DMX_IN_FRONTEND;
+-	 pesFilterParams.output = DMX_OUT_TS_TAP;
+-	 pesFilterParams.pes_type = DMX_PES_VIDEO;
+-	 pesFilterParams.flags = DMX_IMMEDIATE_START;
+-	 if (ioctl(demux1, DMX_SET_PES_FILTER, &pesFilterParams) < 0){
+-	     perror("DEMUX DEVICE");
+-	     return -1;
+-	 }
+-	 pesFilterParams.pid = apid;
+-	 pesFilterParams.input = DMX_IN_FRONTEND;
+-	 pesFilterParams.output = DMX_OUT_TS_TAP;
+-	 pesFilterParams.pes_type = DMX_PES_AUDIO;
+-	 pesFilterParams.flags = DMX_IMMEDIATE_START;
+-	 if (ioctl(demux2, DMX_SET_PES_FILTER, &pesFilterParams) < 0){
+-	     perror("DEMUX DEVICE");
+-	     return -1;
+-	 }
+-	 return 0;
+-     }
+-
+-     /* start recording MAX_LENGTH , assuming the transponder is tuned */
+-
+-     /* demux1, demux2: file descriptor of video and audio filters */
+-     /* vpid, apid:     PIDs of video and audio channels           */
+-     int record_dvr(int demux1, int demux2, uint16_t vpid, uint16_t apid)
+-     {
+-	 int i;
+-	 int len;
+-	 int written;
+-	 uint8_t buf[BUFFY];
+-	 uint64_t length;
+-	 struct pollfd pfd[1];
+-	 int dvr, dvr_out;
+-
+-	 /* open dvr device */
+-	 if ((dvr = open(DVR, O_RDONLY|O_NONBLOCK)) < 0){
+-		 perror("DVR DEVICE");
+-		 return -1;
+-	 }
+-
+-	 /* switch video and audio demuxes to dvr */
+-	 printf ("Switching dvr on\\n");
+-	 i = switch_to_record(demux1, demux2, vpid, apid);
+-	 printf("finished: ");
+-
+-	 printf("Recording %2.0f MB of test file in TS format\\n",
+-	    MAX_LENGTH/(1024.0*1024.0));
+-	 length = 0;
+-
+-	 /* open output file */
+-	 if ((dvr_out = open(DVR_FILE,O_WRONLY|O_CREAT
+-		      |O_TRUNC, S_IRUSR|S_IWUSR
+-		      |S_IRGRP|S_IWGRP|S_IROTH|
+-		      S_IWOTH)) < 0){
+-	     perror("Can't open file for dvr test");
+-	     return -1;
+-	 }
+-
+-	 pfd[0].fd = dvr;
+-	 pfd[0].events = POLLIN;
+-
+-	 /* poll for dvr data and write to file */
+-	 while (length < MAX_LENGTH ) {
+-	     if (poll(pfd,1,1)){
+-		 if (pfd[0].revents & POLLIN){
+-		     len = read(dvr, buf, BUFFY);
+-		     if (len < 0){
+-			 perror("recording");
+-			 return -1;
+-		     }
+-		     if (len > 0){
+-			 written = 0;
+-			 while (written < len)
+-			     written +=
+-				 write (dvr_out,
+-				    buf, len);
+-			 length += len;
+-			 printf("written %2.0f MB\\r",
+-			    length/1024./1024.);
+-		     }
+-		 }
+-	     }
+-	 }
+-	 return 0;
+-     }
++Please refer to the `libdvbv5 <https://linuxtv.org/docs/libdvbv5/index.html>`__
++for updated/recommended examples.
 -- 
-2.11.0
+2.13.5
