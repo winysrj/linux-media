@@ -1,131 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:60831 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750788AbdI1Dwy (ORCPT
+Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:18550 "EHLO
+        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751480AbdITJOK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 23:52:54 -0400
-Message-ID: <10ac6dd079d57308712d83f13660c442@smtp-cloud9.xs4all.net>
-Date: Thu, 28 Sep 2017 05:52:52 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Wed, 20 Sep 2017 05:14:10 -0400
+Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
+        by mx07-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v8K9E9FJ006784
+        for <linux-media@vger.kernel.org>; Wed, 20 Sep 2017 10:14:09 +0100
+Received: from mail-pg0-f69.google.com (mail-pg0-f69.google.com [74.125.83.69])
+        by mx07-00252a01.pphosted.com with ESMTP id 2d0sc01ykj-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Wed, 20 Sep 2017 10:14:09 +0100
+Received: by mail-pg0-f69.google.com with SMTP id i130so4485975pgc.5
+        for <linux-media@vger.kernel.org>; Wed, 20 Sep 2017 02:14:08 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20170919134930.6fa28562@recife.lan>
+References: <cover.1505826082.git.dave.stevenson@raspberrypi.org>
+ <3e638375aff788b24f988e452214649d6100a596.1505826082.git.dave.stevenson@raspberrypi.org>
+ <1505834685.10076.5.camel@pengutronix.de> <20170919134930.6fa28562@recife.lan>
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Wed, 20 Sep 2017 10:14:06 +0100
+Message-ID: <CAAoAYcNCPrpZWvxTTsCtGd4vobsQKDw-ckLhXyRst0dS++h_Ag@mail.gmail.com>
+Subject: Re: [PATCH 2/3] [media] tc358743: Increase FIFO level to 300.
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Mats Randgaard <matrandg@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mauro & Philipp
 
-Results of the daily build of media_tree:
+On 19 September 2017 at 17:49, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+> Em Tue, 19 Sep 2017 17:24:45 +0200
+> Philipp Zabel <p.zabel@pengutronix.de> escreveu:
+>
+>> Hi Dave,
+>>
+>> On Tue, 2017-09-19 at 14:08 +0100, Dave Stevenson wrote:
+>> > The existing fixed value of 16 worked for UYVY 720P60 over
+>> > 2 lanes at 594MHz, or UYVY 1080P60 over 4 lanes. (RGB888
+>> > 1080P60 needs 6 lanes at 594MHz).
+>> > It doesn't allow for lower resolutions to work as the FIFO
+>> > underflows.
+>> >
+>> > Using a value of 300 works for all resolutions down to VGA60,
+>> > and the increase in frame delay is <4usecs for 1080P60 UYVY
+>> > (2.55usecs for RGB888).
+>> >
+>> > Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+>>
+>> Can we increase this to 320? This would also allow
+>> 720p60 at 594 Mbps / 4 lanes, according to the xls.
 
-date:			Thu Sep 28 05:00:15 CEST 2017
-media-tree git hash:	d5426f4c2ebac8cf05de43988c3fccddbee13d28
-media_build git hash:	b829b621b4c2e6c5cbedbd1ce62b4e958f7d13a4
-v4l-utils git hash:	8be65674f9a57e4bc35858f86bb5489f0afd22c1
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+Unless I've missed something then the driver would currently request
+only 2 lanes for 720p60 UYVY, and that works with the existing FIFO
+setting of 16. Likewise 720p60 RGB888 requests 3 lanes and also works
+on a FIFO setting of 16.
+How/why were you thinking we need to run all four lanes for 720p60
+without other significant driver mods around lane config?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: OK
-spec-git: OK
+Once I've got a v3 done on the Unicam driver I'll bash through the
+standard HDMI modes and check what value they need - I can see a big
+spreadsheet coming on.
+I'll ignore interlaced modes as I can't see any support for it in the
+driver. Receiving the fields on different CSI-2 data types is
+something I know the Unicam hardware won't handle nicely, and I
+suspect it'd be an issue for many other platforms too.
 
-Detailed results are available here:
+> Hmm... if this is dependent on the resolution and frame rate, wouldn't
+> it be better to dynamically adjust it accordingly?
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+It's setting up the FIFO matching the incoming HDMI data rate and
+outgoing CSI rate. That means it's dependent on the incoming pixel
+clock, blanking, colour format and resolution, and output CSI link
+frequency, number of lanes, and colour format.
+Whilst it could be set dynamically based on all those parameters, is
+there a significant enough gain in doing so?
 
-Full logs are available here:
+The value of 300 works for all cases I've tried, and referencing back
+it is also the value that Hans said Cisco use via platform data on
+their hardware [1]. Generally I'm seeing that values of 0-130 are
+required, so 300 is giving a fair safety margin.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+Second question is does anyone have a suitable relationship with
+Toshiba to get permission to release details of these register
+calculations? The datasheet and value spreadsheet are marked as
+confidential, and probably under NDA in almost all cases. Whilst they
+can't object to drivers containing values to make them work, they
+might over releasing significant details.
 
-The Media Infrastructure API from this daily build is here:
+Thanks,
+  Dave
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+[1] https://www.spinics.net/lists/linux-media/msg116360.html
