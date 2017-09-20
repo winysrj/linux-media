@@ -1,68 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eddie.linux-mips.org ([148.251.95.138]:52184 "EHLO
-        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754135AbdIHIQc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 04:16:32 -0400
-Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S23992800AbdIHIQbBKhsZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 10:16:31 +0200
-Date: Fri, 8 Sep 2017 10:16:30 +0200
-From: Ladislav Michl <ladis@linux-mips.org>
-To: Andi Shyti <andi.shyti@samsung.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>
-Subject: Re: [PATCH v2 00/10] media: rc: gpio-ir-recv: driver update
-Message-ID: <20170908081630.oiypchglntemwba4@lenoch>
-References: <CGME20170907233401epcas4p4424e892b32d469233705af5014e20604@epcas4p4.samsung.com>
- <20170907233355.bv3hsv3rfhcx52i3@lenoch>
- <20170908022110.GB14947@gangnam>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170908022110.GB14947@gangnam>
+Received: from mailoutvs1.siol.net ([213.250.19.134]:55833 "EHLO mail.siol.net"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751700AbdITUIn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 16:08:43 -0400
+From: Jernej Skrabec <jernej.skrabec@siol.net>
+To: maxime.ripard@free-electrons.com, wens@csie.org
+Cc: Laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+        narmstrong@baylibre.com, dri-devel@lists.freedesktop.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org,
+        icenowy@aosc.io, linux-sunxi@googlegroups.com,
+        linux-media@vger.kernel.org
+Subject: [RESEND RFC PATCH 0/7] sun8i H3 HDMI glue driver for DW HDMI
+Date: Wed, 20 Sep 2017 22:01:17 +0200
+Message-Id: <20170920200124.20457-1-jernej.skrabec@siol.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andi,
+[added media mailing list due to CEC question]
 
-On Fri, Sep 08, 2017 at 11:21:10AM +0900, Andi Shyti wrote:
-> Hi Ladislav,
-> 
-> > Serie was rebased on top of current linux.git, but something
-> > happened there and my userspace decoder no longer works: driver
-> > reports completely bogus timing such as (rc-5):
-> > ^427, _1342, ^945, _183, ^1128, _671, ^1586, _91, ^1189, _1525,
-> > ^1738, _1433, ^915, _1159, ^1464, _1525, ^213, _1067, ^793, _0
-> > (^ used for pulse and _ for space)
-> > As it has nothing to do with my changes, I'm sending it anyway
-> > for review, which I do not expect to happen until merge window
-> > ends.
-> 
-> This means that your patch is anyway untested.
+This patch series adds a HDMI glue driver for Allwinner H3 SoC. For now, only
+video and CEC functionality is supported. Audio needs more tweaks.
 
-Previous version is pretty well tested. GPIO IR stopped working
-after pulling other changes from linux.git yesterday. And does not
-work even without this patch set. I'll try to bisect later as omiting
-linux-media merge did not fix it either.
+Series is based on the H3 DE2 patch series available on mailing list:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2017-August/522697.html
+(ignore patches marked with [NOT FOR REVIEW NOW] tag)
 
-> In any case I don't see much use if patch 1/10 as it doesn't
-> simplify much, but the rest (from 2 to 10) looks good to me.
+Patch 1 adds support for polling plug detection since custom PHY used here
+doesn't support HPD interrupt.
 
-Just look at patch 9 and imagine how it would look without this
-change. If you are still unconvinced I'll drop this change.
+Patch 2 enables overflow workaround for v1.32a. This HDMI controller exhibits
+same issues as HDMI controller used in iMX6 SoCs.
 
-> Once it's tested you can add
-> 
-> Acked-by: Andi Shyti <andi.shyti@samsung.com>
-> 
-> Andi
-> 
-> P.S. I don't see in this V2 the changelog from V1. Next time,
-> please add the changelog.
+Patch 3 adds CLK_SET_RATE_PARENT to hdmi clock.
 
-It was just a rebase with conflicts resolved. I do not see how
-to describe it better than I did.
+Patch 4 adds dt bindings documentation.
 
-	ladis
+Patch 5 adds actual H3 HDMI glue driver.
+
+Patch 6 and 7 add HDMI node to DT and enable it where needed.
+
+Allwinner used DW HDMI controller in a non standard way:
+- register offsets obfuscation layer, which can fortunately be turned off
+- register read lock, which has to be disabled by magic number
+- custom PHY, which have to be initialized before DW HDMI controller
+- non standard clocks
+- no HPD interrupt
+
+Because of that, I have two questions:
+- Since HPD have to be polled, is it enough just to enable poll mode? I'm
+  mainly concerned about invalidating CEC address here.
+- PHY has to be initialized before DW HDMI controller to disable offset
+  obfuscation and read lock among other things. This means that all clocks have
+  to be enabled in glue driver. This poses a problem, since when using
+  component model, dw-hdmi bridge uses drvdata for it's own private data and
+  prevents glue layer to pass a pointer to unbind function, where clocks should
+  be disabled. I noticed same issue in meson DW HDMI glue driver, where clocks
+  are also not disabled when unbind callback is called. I noticed that when H3
+  SoC is shutdown, HDMI output is still enabled and lastest image is shown on
+  monitor until it is unplugged from power supply. Is there any simple solution
+  to this?
+
+Chen-Yu,
+TL Lim was unable to obtain any answer from Allwinner about HDMI clocks. I think
+it is safe to assume that divider in HDMI clock doesn't have any effect.
+
+Branch based on linux-next from 1. September with integrated patches is
+available here:
+https://github.com/jernejsk/linux-1/tree/h3_hdmi_rfc
+
+Some additonal info about H3 HDMI:
+https://linux-sunxi.org/DWC_HDMI_Controller
+
+Thanks to Jens Kuske, who figured out that it is actually DW HDMI controller
+and mapped scrambled register offsets to original ones.
+
+Icenowy Zheng (1):
+  ARM: sun8i: h3: Add DesignWare HDMI controller node
+
+Jernej Skrabec (6):
+  drm: bridge: Enable polling hpd event in dw_hdmi
+  drm: bridge: Enable workaround in dw_hdmi for v1.32a
+  clk: sunxi: Add CLK_SET_RATE_PARENT flag for H3 HDMI clock
+  dt-bindings: Document Allwinner DWC HDMI TX node
+  drm: sun4i: Add a glue for the DesignWare HDMI controller in H3
+  ARM: sun8i: h3: Enable HDMI output on H3 boards
+
+ .../bindings/display/sunxi/sun4i-drm.txt           | 158 ++++++-
+ arch/arm/boot/dts/sun8i-h3-bananapi-m2-plus.dts    |  33 ++
+ arch/arm/boot/dts/sun8i-h3-beelink-x2.dts          |  33 ++
+ arch/arm/boot/dts/sun8i-h3-nanopi-m1.dts           |  33 ++
+ arch/arm/boot/dts/sun8i-h3-orangepi-2.dts          |  33 ++
+ arch/arm/boot/dts/sun8i-h3-orangepi-lite.dts       |  33 ++
+ arch/arm/boot/dts/sun8i-h3-orangepi-one.dts        |  33 ++
+ arch/arm/boot/dts/sun8i-h3-orangepi-pc.dts         |  33 ++
+ arch/arm/boot/dts/sun8i-h3.dtsi                    |   5 +
+ arch/arm/boot/dts/sunxi-h3-h5.dtsi                 |  36 ++
+ drivers/clk/sunxi-ng/ccu-sun8i-h3.c                |   2 +-
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi.c          |  14 +-
+ drivers/gpu/drm/sun4i/Kconfig                      |   9 +
+ drivers/gpu/drm/sun4i/Makefile                     |   1 +
+ drivers/gpu/drm/sun4i/sun8i_dw_hdmi.c              | 500 +++++++++++++++++++++
+ 15 files changed, 950 insertions(+), 6 deletions(-)
+ create mode 100644 drivers/gpu/drm/sun4i/sun8i_dw_hdmi.c
+
+-- 
+2.14.1
