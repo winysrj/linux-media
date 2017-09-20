@@ -1,61 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40642 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754951AbdIHMkL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 08:40:11 -0400
-Date: Fri, 8 Sep 2017 14:40:10 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        sre@kernel.org
-Subject: Re: [PATCH v8 03/21] v4l: async: Use more intuitive names for
- internal functions
-Message-ID: <20170908124010.GO18365@amd>
-References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
- <20170905130553.1332-4-sakari.ailus@linux.intel.com>
+Received: from mout.web.de ([212.227.15.4]:56812 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751688AbdITGhz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 02:37:55 -0400
+Subject: [PATCH 2/3] [media] pvrusb2-ioread: Delete an unnecessary check
+ before kfree() in two functions
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mike Isely <isely@pobox.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <c8117427-6d4d-0a1c-96c7-56e25d838b3e@users.sourceforge.net>
+Message-ID: <a5db4b79-6b02-b49b-a618-fcb0f0ea762c@users.sourceforge.net>
+Date: Wed, 20 Sep 2017 08:37:47 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="XVTPT6MZt3zd/C+/"
-Content-Disposition: inline
-In-Reply-To: <20170905130553.1332-4-sakari.ailus@linux.intel.com>
+In-Reply-To: <c8117427-6d4d-0a1c-96c7-56e25d838b3e@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 19 Sep 2017 22:12:49 +0200
 
---XVTPT6MZt3zd/C+/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The script "checkpatch.pl" pointed information out like the following.
 
-On Tue 2017-09-05 16:05:35, Sakari Ailus wrote:
-> Rename internal functions to make the names of the functions better
-> describe what they do.
->=20
-> 	Old name			New name
-> 	v4l2_async_test_notify	v4l2_async_match_notify
-> 	v4l2_async_belongs	v4l2_async_find_match
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+WARNING: kfree(NULL) is safe and this check is probably not required
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Thus fix the affected source code places.
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/pvrusb2/pvrusb2-ioread.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
---XVTPT6MZt3zd/C+/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlmyj6kACgkQMOfwapXb+vJsAwCgku7G59h8hem9oZana53BkuRr
-f8wAnRk6GC4LxGcK/AiCBsYMaQZPhNMM
-=ICAd
------END PGP SIGNATURE-----
-
---XVTPT6MZt3zd/C+/--
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-ioread.c b/drivers/media/usb/pvrusb2/pvrusb2-ioread.c
+index 0218614ce988..4349f9b5f838 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-ioread.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-ioread.c
+@@ -98,10 +98,8 @@ void pvr2_ioread_destroy(struct pvr2_ioread *cp)
+ 	if (!cp) return;
+ 	pvr2_ioread_done(cp);
+ 	pvr2_trace(PVR2_TRACE_STRUCT,"pvr2_ioread_destroy id=%p",cp);
+-	if (cp->sync_key_ptr) {
+-		kfree(cp->sync_key_ptr);
+-		cp->sync_key_ptr = NULL;
+-	}
++	kfree(cp->sync_key_ptr);
++	cp->sync_key_ptr = NULL;
+ 	kfree(cp);
+ }
+ 
+@@ -117,10 +115,8 @@ void pvr2_ioread_set_sync_key(struct pvr2_ioread *cp,
+ 	     (!memcmp(sync_key_ptr,cp->sync_key_ptr,sync_key_len)))) return;
+ 
+ 	if (sync_key_len != cp->sync_key_len) {
+-		if (cp->sync_key_ptr) {
+-			kfree(cp->sync_key_ptr);
+-			cp->sync_key_ptr = NULL;
+-		}
++		kfree(cp->sync_key_ptr);
++		cp->sync_key_ptr = NULL;
+ 		cp->sync_key_len = 0;
+ 		if (sync_key_len) {
+ 			cp->sync_key_ptr = kmalloc(sync_key_len,GFP_KERNEL);
+-- 
+2.14.1
