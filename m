@@ -1,131 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:58112 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751219AbdI2Dwo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Sep 2017 23:52:44 -0400
-Message-ID: <f202298f55e0d42e7d6ea24cdf78e79d@smtp-cloud7.xs4all.net>
-Date: Fri, 29 Sep 2017 05:52:41 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mga06.intel.com ([134.134.136.31]:1977 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751000AbdITTbG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 15:31:06 -0400
+Message-ID: <1505935766.16112.24.camel@linux.intel.com>
+Subject: Re: [PATCH] [media] staging: atomisp: use clock framework for
+ camera clocks
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>,
+        =?ISO-8859-1?Q?J=E9r=E9my?= Lefaure <jeremy.lefaure@lse.epita.fr>,
+        Avraham Shukron <avraham.shukron@gmail.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Varsha Rao <rvarsha016@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Date: Wed, 20 Sep 2017 22:29:26 +0300
+In-Reply-To: <a547a897-37e9-1509-889e-d83ff055b3e4@linux.intel.com>
+References: <20170919204549.27468-1-pierre-louis.bossart@linux.intel.com>
+         <1505898738.16112.3.camel@linux.intel.com>
+         <a547a897-37e9-1509-889e-d83ff055b3e4@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Wed, 2017-09-20 at 12:01 -0500, Pierre-Louis Bossart wrote:
+> 
+> On 09/20/2017 04:12 AM, Andy Shevchenko wrote:
+> > On Tue, 2017-09-19 at 15:45 -0500, Pierre-Louis Bossart wrote:
+> > > The Atom ISP driver initializes and configures PMC clocks which
+> > > are
+> > > already handled by the clock framework.
+> > > 
+> > > Remove all legacy vlv2_platform_clock stuff and move to the clk
+> > > API to
+> > > avoid conflicts, e.g. with audio machine drivers enabling the MCLK
+> > > for
+> > > external codecs
+> > > 
+> > 
+> > I think it might have a Fixes: tag as well (though I dunno which
+> > commit
+> > could be considered as anchor).
+> 
+> The initial integration of the atomisp driver already had this
+> problem, 
+> i'll add a reference to
+> 'a49d25364dfb9 ("staging/atomisp: Add support for the Intel IPU v2")'
 
-Results of the daily build of media_tree:
+...which seems to be the best choice (you can check how many new commits
+use that one as an origin for Fixes: tag).
 
-date:			Fri Sep 29 05:00:17 CEST 2017
-media-tree git hash:	d5426f4c2ebac8cf05de43988c3fccddbee13d28
-media_build git hash:	b829b621b4c2e6c5cbedbd1ce62b4e958f7d13a4
-v4l-utils git hash:	8be65674f9a57e4bc35858f86bb5489f0afd22c1
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+> > 
+> > (I doubt Git is so clever to remove files based on information out
+> > of
+> > the diff, can you check it and if needed to resend without -D
+> > implied?)
+> 
+> Gee, I thought -C -M -D were the standard options to checkpatch,
+> never 
+> realized it'd prevent patches from applying. Thanks for the tip.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: OK
-spec-git: OK
+-C -M — yes for sure.
 
-Detailed results are available here:
+Last time I checked patches, generated with help of -D, do not remove
+the files when you do git am. So, I don't know if it still the case.
+Safe option is to use -C -M for public (+ -D locally only to see less
+noise).
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
