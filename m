@@ -1,166 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:40557 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967934AbdIZIMw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 04:12:52 -0400
-Subject: Re: [PATCH v14 14/28] v4l: async: Prepare for async sub-device
- notifiers
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
- <20170925222540.371-15-sakari.ailus@linux.intel.com>
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, laurent.pinchart@ideasonboard.com,
-        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ba80e242-a3c2-39af-01cd-6aa54649fb93@xs4all.nl>
-Date: Tue, 26 Sep 2017 10:12:50 +0200
+Received: from mout.web.de ([212.227.15.4]:53886 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751387AbdITGgs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 02:36:48 -0400
+Subject: [PATCH 1/3] [media] pvrusb2-ioread: Use common error handling code in
+ pvr2_ioread_get_buffer()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mike Isely <isely@pobox.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <c8117427-6d4d-0a1c-96c7-56e25d838b3e@users.sourceforge.net>
+Message-ID: <a104e713-00ee-54d2-7ba4-59db6384e146@users.sourceforge.net>
+Date: Wed, 20 Sep 2017 08:36:40 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170925222540.371-15-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <c8117427-6d4d-0a1c-96c7-56e25d838b3e@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/09/17 00:25, Sakari Ailus wrote:
-> Refactor the V4L2 async framework a little in preparation for async
-> sub-device notifiers.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 19 Sep 2017 21:50:05 +0200
 
-Perhaps extend this a bit to also state the reason for these changes?
+Add a jump target so that a bit of exception handling can be better reused
+at the end of this function.
 
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+This issue was detected by using the Coccinelle software.
 
-Anyway,
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/pvrusb2/pvrusb2-ioread.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 66 +++++++++++++++++++++++++-----------
->  1 file changed, 47 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index 77b9f851bfa9..1d4132305243 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -125,12 +125,13 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
->  }
->  
->  static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-> +				   struct v4l2_device *v4l2_dev,
->  				   struct v4l2_subdev *sd,
->  				   struct v4l2_async_subdev *asd)
->  {
->  	int ret;
->  
-> -	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
-> +	ret = v4l2_device_register_subdev(v4l2_dev, sd);
->  	if (ret < 0)
->  		return ret;
->  
-> @@ -154,6 +155,31 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
->  	return 0;
->  }
->  
-> +/* Test all async sub-devices in a notifier for a match. */
-> +static int v4l2_async_notifier_try_all_subdevs(
-> +	struct v4l2_async_notifier *notifier)
-> +{
-> +	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
-> +	struct v4l2_subdev *sd, *tmp;
-> +
-> +	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> +		struct v4l2_async_subdev *asd;
-> +		int ret;
-> +
-> +		asd = v4l2_async_find_match(notifier, sd);
-> +		if (!asd)
-> +			continue;
-> +
-> +		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
-> +		if (ret < 0) {
-> +			mutex_unlock(&list_lock);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static void v4l2_async_cleanup(struct v4l2_subdev *sd)
->  {
->  	v4l2_device_unregister_subdev(sd);
-> @@ -163,17 +189,15 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
->  	sd->dev = NULL;
->  }
->  
-> -int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> -				 struct v4l2_async_notifier *notifier)
-> +static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
->  {
-> -	struct v4l2_subdev *sd, *tmp;
->  	struct v4l2_async_subdev *asd;
-> +	int ret;
->  	int i;
->  
-> -	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-> +	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
->  		return -EINVAL;
->  
-> -	notifier->v4l2_dev = v4l2_dev;
->  	INIT_LIST_HEAD(&notifier->waiting);
->  	INIT_LIST_HEAD(&notifier->done);
->  
-> @@ -206,18 +230,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  
->  	mutex_lock(&list_lock);
->  
-> -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> -		int ret;
-> -
-> -		asd = v4l2_async_find_match(notifier, sd);
-> -		if (!asd)
-> -			continue;
-> -
-> -		ret = v4l2_async_match_notify(notifier, sd, asd);
-> -		if (ret < 0) {
-> -			mutex_unlock(&list_lock);
-> -			return ret;
-> -		}
-> +	ret = v4l2_async_notifier_try_all_subdevs(notifier);
-> +	if (ret) {
-> +		mutex_unlock(&list_lock);
-> +		return ret;
->  	}
->  
->  	/* Keep also completed notifiers on the list */
-> @@ -227,6 +243,17 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  
->  	return 0;
->  }
-> +
-> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> +				 struct v4l2_async_notifier *notifier)
-> +{
-> +	if (WARN_ON(!v4l2_dev))
-> +		return -EINVAL;
-> +
-> +	notifier->v4l2_dev = v4l2_dev;
-> +
-> +	return __v4l2_async_notifier_register(notifier);
-> +}
->  EXPORT_SYMBOL(v4l2_async_notifier_register);
->  
->  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> @@ -303,7 +330,8 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
->  								      sd);
->  		if (asd) {
-> -			int ret = v4l2_async_match_notify(notifier, sd, asd);
-> +			int ret = v4l2_async_match_notify(
-> +				notifier, notifier->v4l2_dev, sd, asd);
->  			mutex_unlock(&list_lock);
->  			return ret;
->  		}
-> 
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-ioread.c b/drivers/media/usb/pvrusb2/pvrusb2-ioread.c
+index 602097bdcf14..0218614ce988 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-ioread.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-ioread.c
+@@ -266,8 +266,7 @@ static int pvr2_ioread_get_buffer(struct pvr2_ioread *cp)
+ 				pvr2_trace(PVR2_TRACE_DATA_FLOW,
+ 					   "/*---TRACE_READ---*/ pvr2_ioread_read id=%p queue_error=%d",
+ 					   cp,stat);
+-				pvr2_ioread_stop(cp);
+-				return 0;
++				goto stop_read;
+ 			}
+ 			cp->c_buf = NULL;
+ 			cp->c_data_ptr = NULL;
+@@ -286,9 +285,8 @@ static int pvr2_ioread_get_buffer(struct pvr2_ioread *cp)
+ 				pvr2_trace(PVR2_TRACE_DATA_FLOW,
+ 					   "/*---TRACE_READ---*/ pvr2_ioread_read id=%p buffer_error=%d",
+ 					   cp,stat);
+-				pvr2_ioread_stop(cp);
+ 				// Give up.
+-				return 0;
++				goto stop_read;
+ 			}
+ 			// Start over...
+ 			continue;
+@@ -298,6 +296,10 @@ static int pvr2_ioread_get_buffer(struct pvr2_ioread *cp)
+ 			pvr2_buffer_get_id(cp->c_buf)];
+ 	}
+ 	return !0;
++
++stop_read:
++	pvr2_ioread_stop(cp);
++	return 0;
+ }
+ 
+ static void pvr2_ioread_filter(struct pvr2_ioread *cp)
+-- 
+2.14.1
