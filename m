@@ -1,52 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47510 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1756083AbdIHNSa (ORCPT
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:35694 "EHLO
+        aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751510AbdITKvs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 09:18:30 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v9 15/24] dt: bindings: Add a binding for flash LED devices associated to a sensor
-Date: Fri,  8 Sep 2017 16:18:13 +0300
-Message-Id: <20170908131822.31020-11-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+        Wed, 20 Sep 2017 06:51:48 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+Subject: [ANN] edid-decode on freedesktop.org has been updated to the latest
+ CTA-861 spec
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Maling list - DRI developers
+        <dri-devel@lists.freedesktop.org>
+Message-ID: <e7c940c9-af96-f97a-0cc6-18abe3550982@cisco.com>
+Date: Wed, 20 Sep 2017 12:51:46 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Camera flash drivers (and LEDs) are separate from the sensor devices in
-DT. In order to make an association between the two, provide the
-association information to the software.
+For anyone interested in decoding an EDID:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
- 1 file changed, 8 insertions(+)
+The edid-decode utility available from git://anongit.freedesktop.org/xorg/app/edid-decode
+has been updated to include the latest CTA-861-G standard. Also many bug fixes were
+applied and the utility does a much better job at checking the EDID for inconsistencies
+and errors.
 
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index 852041a7480c..fdba30479b47 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -67,6 +67,14 @@ are required in a relevant parent node:
- 		    identifier, should be 1.
-  - #size-cells    : should be zero.
- 
-+
-+Optional properties
-+-------------------
-+
-+- flash-leds: An array of phandles, each referring to a flash LED, a sub-node
-+  of the LED driver device node.
-+
-+
- Optional endpoint properties
- ----------------------------
- 
--- 
-2.11.0
+I did most of this work about a year ago for Cisco, then was sitting on them until I
+finally found the time to upstream the patches. Everything has now been merged, so
+I hope it will prove useful to others as well.
+
+Regards,
+
+	Hans
