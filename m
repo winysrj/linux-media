@@ -1,81 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:38071 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752375AbdIGURJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 16:17:09 -0400
-Date: Thu, 7 Sep 2017 22:17:07 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org, javier@dowhile0.org,
-        jacek.anaszewski@gmail.com
-Subject: Re: [PATCH v3 2/3] leds: as3645a: Add LED flash class driver
-Message-ID: <20170907201706.GA5478@amd>
-References: <20170823081100.11733-1-sakari.ailus@linux.intel.com>
- <20170823081100.11733-3-sakari.ailus@linux.intel.com>
- <20170828110451.GB492@amd>
- <20170907102657.stoqw5e7glbkbz2z@valkosipuli.retiisi.org.uk>
- <20170907125027.GA3108@amd>
- <20170907145205.k3uzwwgvv3hxrb5t@valkosipuli.retiisi.org.uk>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49912
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751283AbdITSWh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 14:22:37 -0400
+Date: Wed, 20 Sep 2017 15:22:20 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        linux-i2c@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+Subject: Re: [RFC PATCH v4 3/6] i2c: add docs to clarify DMA handling
+Message-ID: <20170920152220.74bd43c3@recife.lan>
+In-Reply-To: <20170920171840.nrzyiasezxisvg5m@ninjato>
+References: <20170817141449.23958-1-wsa+renesas@sang-engineering.com>
+        <20170817141449.23958-4-wsa+renesas@sang-engineering.com>
+        <20170827083748.248e2430@vento.lan>
+        <20170920171840.nrzyiasezxisvg5m@ninjato>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="zhXaljGHf11kAtnf"
-Content-Disposition: inline
-In-Reply-To: <20170907145205.k3uzwwgvv3hxrb5t@valkosipuli.retiisi.org.uk>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/pOBv1e7Rx6bBc5uaBC2oVJl"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---zhXaljGHf11kAtnf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--Sig_/pOBv1e7Rx6bBc5uaBC2oVJl
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-On Thu 2017-09-07 17:52:05, Sakari Ailus wrote:
-> On Thu, Sep 07, 2017 at 02:50:27PM +0200, Pavel Machek wrote:
-> > Hi!
-> >=20
-> > > On Mon, Aug 28, 2017 at 01:04:51PM +0200, Pavel Machek wrote:
-> > > > On Wed 2017-08-23 11:10:59, Sakari Ailus wrote:
-> > > > > Add a LED flash class driver for the as3654a flash controller. A =
-V4L2 flash
-> > > > > driver for it already exists (drivers/media/i2c/as3645a.c), and t=
-his driver
-> > > > > is based on that.
-> > > >=20
-> > > > We do not want to have two drivers for same hardware... how is that
-> > > > supposed to work?
-> > >=20
-> > > No, we don't. The intent is to remove the other driver later on, as i=
-t's
-> > > implemented as a V4L2 sub-device driver. It also lacks DT support.
-> >=20
-> > Could we perhaps remove the driver with the same patch that merges
-> > this?
->=20
-> This patch is already merged, but I can submit another patch removing the
-> other driver.
+Em Wed, 20 Sep 2017 19:18:40 +0200
+Wolfram Sang <wsa@the-dreams.de> escreveu:
 
-Yes, that would be nice.
+> Hi Mauro,
+>=20
+> > > +Linux I2C and DMA
+> > > +----------------- =20
+> >=20
+> > I would use, instead:
+> >=20
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > Linux I2C and DMA
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> >=20
+> > As this is the way we're starting document titles, after converted to
+> > ReST. So, better to have it already using the right format, as one day =
+=20
+>=20
+> I did this.
+>=20
+> > There are also a couple of things here that Sphinx would complain. =20
+>=20
+> The only complaint I got was
+>=20
+> 	WARNING: document isn't included in any toctree
+>=20
+> which makes sense because I renamed it only temporarily to *.rst
+
+Yeah, that is expected.
+
+> > So, it could be worth to rename it to *.rst, while you're writing
+> > it, and see what:
+> > 	make htmldocs
+> > will complain and how it will look in html. =20
+>=20
+> So, no complaints from Sphinx and the HTML output looks good IMO. Was
+> there anything specific you had in mind when saying that Sphinx would
+> complain?
+
+Perhaps my comments weren't clear enough. Sorry! I didn't actually=20
+tried to parse it with Sphinx. Just wanted to hint you about that,
+as testing the docs with Sphinx could be useful when writing
+documentation.=20
+
+Usually, things like function declarations produce warnings if they
+contain pointers, e. g. something like:
+
+	foo(void *bar);
+
+as asterisks mean italics. It would complain about the lack of
+an end asterisk.
+
+In order to avoid that, and to place them into a box using monotonic fonts,
+I usually add "::" at the preceding line, e. g.:
+
+	::
+
+		foo(void *bar);
+
+or:
+
+	some description::
+
+		foo(void *bar)
+
+on all functions (even the ones that don't use asterisks, as the
+html output looks nicer.
+
+I double-checked this patch: it doesn't contain anything that would
+cause warnings or parse errors. Still, I would prefer to use
+**not** instead of *not*, and would add the "::", but that's my
+personal taste.
 
 Thanks,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Mauro
 
---zhXaljGHf11kAtnf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+--Sig_/pOBv1e7Rx6bBc5uaBC2oVJl
+Content-Type: application/pgp-signature
+Content-Description: Assinatura digital OpenPGP
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iEYEARECAAYFAlmxqUIACgkQMOfwapXb+vJhWwCdEs9+IDelxw3fI3yoxETelcew
-/HUAoL9709t/qByf7xi8MKjsIFQmCEuY
-=TuVo
+iQIzBAEBCAAdFiEE+QmuaPwR3wnBdVwACF8+vY7k4RUFAlnCsdwACgkQCF8+vY7k
+4RXVfg/9HoQdB8G9uvYeRVJKHyQurXleRUdtMgXMSbbCjAkcdnAvcygkRyNHArYL
+B7lx6hi9yk4+bHmHTtqfuZo02381L1l8fcFBpGWyAsnW9C4L14SwogqpcJIHDLNf
+KOvMpfQtfZCXRzl05yNXnNCLTX82LiHbBk1f/VAmx9/RD6HY/nN3xNMQtA+aASRu
+6Q+EY+znWc4VuW2XxF5eq9bU7/YaOwRs0TplIObNcfGeEWlZdM1inyKzH45MhtCn
+Gb5UTCTyrsSAFkc5KdWrsxcTWR9V9pzaxsr7WIu7qfMyikenVrboMAouIEOfOEqx
+2HA/aXj0vm8SyxmH/KMReUAWjKHLHHRGsvwbde6edwRGTZ4v7R4L41Lw/Ne+3RSk
+KSYg/6Ww/AscugZ8rOg5WwmF5V4BymRM68PzIYzBsoAVmCfL5uvj2XCxHbIifFbH
+aorIASFsE8PX+Qi2ZtV41CMOhej9h7WbuxUwLqVyYeyJUIggOlE6YTX3U7+tuogo
+ByERwLharq5VAnK55kQFqHLy08ti/hKvyOvN83BOsHpPFzusY/WPLqFibToz9mKn
+joB/kDCxwYEwf1+yg8/csUYOFDWr4d/ldB6X9hPZP86Pu3qJ6Yoej03zrShfzMYp
+6CZYeMzTzllJCYigHcAtUH5ssbu3vECRrxnbmLB9dTBWmEc3hZM=
+=yepP
 -----END PGP SIGNATURE-----
 
---zhXaljGHf11kAtnf--
+--Sig_/pOBv1e7Rx6bBc5uaBC2oVJl--
