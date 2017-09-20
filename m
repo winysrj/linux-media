@@ -1,70 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:5840 "EHLO smtp5-g21.free.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751123AbdIMPfH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 11:35:07 -0400
-Subject: Re: IR driver support for tango platforms
-To: Sean Young <sean@mess.org>
-Cc: Mans Rullgard <mans@mansr.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>,
-        Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
-References: <6076a18d-c5ba-cb83-ac36-8eda965c7eb8@free.fr>
- <20170911211210.a7a2st4hfn7leec3@gofer.mess.org>
- <7942dc9f-e7a2-e088-e843-f013ac1b0302@free.fr>
- <20170912181957.zhd4fwwannpxblqx@gofer.mess.org>
- <c5aa1452-44e9-49a9-828a-5b32395609f4@free.fr>
- <20170913145735.y7uhfa4li5clnm75@gofer.mess.org>
-From: Mason <slash.tmp@free.fr>
-Message-ID: <84616dcf-0897-15e3-0a00-695711fbee09@free.fr>
-Date: Wed, 13 Sep 2017 17:34:22 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170913145735.y7uhfa4li5clnm75@gofer.mess.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx08-00252a01.pphosted.com ([91.207.212.211]:41804 "EHLO
+        mx08-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751636AbdITQIj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 12:08:39 -0400
+Received: from pps.filterd (m0102629.ppops.net [127.0.0.1])
+        by mx08-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v8KG8Wh2006768
+        for <linux-media@vger.kernel.org>; Wed, 20 Sep 2017 17:08:38 +0100
+Received: from mail-wm0-f72.google.com (mail-wm0-f72.google.com [74.125.82.72])
+        by mx08-00252a01.pphosted.com with ESMTP id 2d0reg260j-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Wed, 20 Sep 2017 17:08:37 +0100
+Received: by mail-wm0-f72.google.com with SMTP id e64so3293054wmi.0
+        for <linux-media@vger.kernel.org>; Wed, 20 Sep 2017 09:08:37 -0700 (PDT)
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org
+Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Subject: [PATCH v3 1/4] [media] v4l2-common: Add helper function for fourcc to string
+Date: Wed, 20 Sep 2017 17:07:54 +0100
+Message-Id: <e6dfbe4afd3f1db4c3f8a81c0813dc418896f5e1.1505916622.git.dave.stevenson@raspberrypi.org>
+In-Reply-To: <cover.1505916622.git.dave.stevenson@raspberrypi.org>
+References: <cover.1505916622.git.dave.stevenson@raspberrypi.org>
+In-Reply-To: <cover.1505916622.git.dave.stevenson@raspberrypi.org>
+References: <cover.1505916622.git.dave.stevenson@raspberrypi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13/09/2017 16:57, Sean Young wrote:
+New helper function char *v4l2_fourcc2s(u32 fourcc, char *buf)
+that converts a fourcc into a nice printable version.
 
-> On Sep 13, 2017 at 16:03, Mason wrote:
->
->> Changes from v1 to v2:
->>
->> o Rebase driver on top of linuxtv/master
->> o Use ir_nec_bytes_to_scancode() in tango_ir_handle_nec()
->> o Use devm_rc_allocate_device() in tango_ir_probe()
->> o Use Use devm_rc_register_device() in tango_ir_probe()
->> o Rename rc->input_name to rc->device_name (not sure what value to use here)
->> o List all NEC variants for rc->allowed_protocols
->> o Change type of clkrate to u64
->> o Fix tango_ir_probe and tango_ir_remove for devm
->> o Move around some init calls in tango_ir_probe() for devm
->> o Use relaxed variants of MMIO accessors
->>
->> TODO: test RC-5 and RC-6 (I need to locate proper remote)
-> 
-> You could get a IR transmitter (e.g. raspberry pi + IR led + resistor) or
-> some of the mceusb devices, and then you can use the ir-ctl tool to
-> test all the different protocols, including extended rc5 and the other
-> rc6 variants.
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+---
 
-Thanks for the suggestions.
+No changes from v2 to v3
 
-I do have a box full of remote controls, and I'm hoping some of
-them are RC-5 and RC-6. (Someone told me there is a Sony decoder
-in the chip, but I have found no documentation whatsoever regarding
-that feature!)
+ drivers/media/v4l2-core/v4l2-common.c | 18 ++++++++++++++++++
+ include/media/v4l2-common.h           |  3 +++
+ 2 files changed, 21 insertions(+)
 
-There is an IR transmitter on the board, but I have no driver for
-it, only a custom test app. So that doesn't help me for ir-ctl...
-I don't know how much time a driver would require.
-
-> But I don't think we need to block merging because these protocols haven't
-> been tested. It would be nice though.
-
-I'll try my best to test the driver thoroughly. And then I'll
-send a formal patch.
-
-Regards.
+diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+index a5ea1f5..0219895 100644
+--- a/drivers/media/v4l2-core/v4l2-common.c
++++ b/drivers/media/v4l2-core/v4l2-common.c
+@@ -405,3 +405,21 @@ void v4l2_get_timestamp(struct timeval *tv)
+ 	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_get_timestamp);
++
++char *v4l2_fourcc2s(u32 fourcc, char *buf)
++{
++	buf[0] = fourcc & 0x7f;
++	buf[1] = (fourcc >> 8) & 0x7f;
++	buf[2] = (fourcc >> 16) & 0x7f;
++	buf[3] = (fourcc >> 24) & 0x7f;
++	if (fourcc & (1 << 31)) {
++		buf[4] = '-';
++		buf[5] = 'B';
++		buf[6] = 'E';
++		buf[7] = '\0';
++	} else {
++		buf[4] = '\0';
++	}
++	return buf;
++}
++EXPORT_SYMBOL_GPL(v4l2_fourcc2s);
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index aac8b7b..5b0fff9 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -264,4 +264,7 @@ const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
+ 
+ void v4l2_get_timestamp(struct timeval *tv);
+ 
++#define V4L2_FOURCC_MAX_SIZE 8
++char *v4l2_fourcc2s(u32 fourcc, char *buf);
++
+ #endif /* V4L2_COMMON_H_ */
+-- 
+2.7.4
