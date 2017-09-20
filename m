@@ -1,55 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:41927 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751115AbdIOOvu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 10:51:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH 2/2] vivid: add support for Y10 and Y12
-Date: Fri, 15 Sep 2017 16:51:45 +0200
-Message-Id: <20170915145145.44097-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170915145145.44097-1-hverkuil@xs4all.nl>
-References: <20170915145145.44097-1-hverkuil@xs4all.nl>
+Received: from sauhun.de ([88.99.104.3]:38844 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751506AbdITTAF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 15:00:05 -0400
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: linux-i2c@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>
+Subject: [RFC PATCH v5 4/6] i2c: sh_mobile: use helper to decide if DMA is useful
+Date: Wed, 20 Sep 2017 20:59:54 +0200
+Message-Id: <20170920185956.13874-5-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20170920185956.13874-1-wsa+renesas@sang-engineering.com>
+References: <20170920185956.13874-1-wsa+renesas@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+This ensures that we fall back to PIO if the message length is too small
+for DMA being useful. Otherwise, we use DMA. A bounce buffer might be
+applied by the helper if the original message buffer is not DMA safe.
 
-Add support for 10 and 12 bit luma formats.
-
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 ---
- drivers/media/platform/vivid/vivid-vid-common.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/i2c/busses/i2c-sh_mobile.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
-index f0f423c7ca41..a651527d80db 100644
---- a/drivers/media/platform/vivid/vivid-vid-common.c
-+++ b/drivers/media/platform/vivid/vivid-vid-common.c
-@@ -188,6 +188,22 @@ struct vivid_fmt vivid_formats[] = {
- 		.planes   = 1,
- 		.buffers = 1,
- 	},
-+	{
-+		.fourcc   = V4L2_PIX_FMT_Y10,
-+		.vdownsampling = { 1 },
-+		.bit_depth = { 16 },
-+		.color_enc = TGP_COLOR_ENC_LUMA,
-+		.planes   = 1,
-+		.buffers = 1,
-+	},
-+	{
-+		.fourcc   = V4L2_PIX_FMT_Y12,
-+		.vdownsampling = { 1 },
-+		.bit_depth = { 16 },
-+		.color_enc = TGP_COLOR_ENC_LUMA,
-+		.planes   = 1,
-+		.buffers = 1,
-+	},
- 	{
- 		.fourcc   = V4L2_PIX_FMT_Y16,
- 		.vdownsampling = { 1 },
+diff --git a/drivers/i2c/busses/i2c-sh_mobile.c b/drivers/i2c/busses/i2c-sh_mobile.c
+index 6f2aaeb7c4fa15..b76399d8a3abd3 100644
+--- a/drivers/i2c/busses/i2c-sh_mobile.c
++++ b/drivers/i2c/busses/i2c-sh_mobile.c
+@@ -145,6 +145,7 @@ struct sh_mobile_i2c_data {
+ 	struct dma_chan *dma_rx;
+ 	struct scatterlist sg;
+ 	enum dma_data_direction dma_direction;
++	u8 *dma_buf;
+ };
+ 
+ struct sh_mobile_dt_config {
+@@ -548,6 +549,8 @@ static void sh_mobile_i2c_dma_callback(void *data)
+ 	pd->pos = pd->msg->len;
+ 	pd->stop_after_dma = true;
+ 
++	i2c_release_dma_safe_msg_buf(pd->msg, pd->dma_buf);
++
+ 	iic_set_clr(pd, ICIC, 0, ICIC_TDMAE | ICIC_RDMAE);
+ }
+ 
+@@ -608,7 +611,7 @@ static void sh_mobile_i2c_xfer_dma(struct sh_mobile_i2c_data *pd)
+ 	if (IS_ERR(chan))
+ 		return;
+ 
+-	dma_addr = dma_map_single(chan->device->dev, pd->msg->buf, pd->msg->len, dir);
++	dma_addr = dma_map_single(chan->device->dev, pd->dma_buf, pd->msg->len, dir);
+ 	if (dma_mapping_error(chan->device->dev, dma_addr)) {
+ 		dev_dbg(pd->dev, "dma map failed, using PIO\n");
+ 		return;
+@@ -665,7 +668,8 @@ static int start_ch(struct sh_mobile_i2c_data *pd, struct i2c_msg *usr_msg,
+ 	pd->pos = -1;
+ 	pd->sr = 0;
+ 
+-	if (pd->msg->len > 8)
++	pd->dma_buf = i2c_get_dma_safe_msg_buf(pd->msg, 8);
++	if (pd->dma_buf)
+ 		sh_mobile_i2c_xfer_dma(pd);
+ 
+ 	/* Enable all interrupts to begin with */
 -- 
-2.14.1
+2.11.0
