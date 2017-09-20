@@ -1,134 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45556 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751434AbdIOOSL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 10:18:11 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v13 11/25] v4l: async: Introduce helpers for calling async ops callbacks
-Date: Fri, 15 Sep 2017 17:17:10 +0300
-Message-Id: <20170915141724.23124-12-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+Received: from sauhun.de ([88.99.104.3]:38847 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751572AbdITTAG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 15:00:06 -0400
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: linux-i2c@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>
+Subject: [RFC PATCH v5 5/6] i2c: rcar: skip DMA if buffer is not safe
+Date: Wed, 20 Sep 2017 20:59:55 +0200
+Message-Id: <20170920185956.13874-6-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20170920185956.13874-1-wsa+renesas@sang-engineering.com>
+References: <20170920185956.13874-1-wsa+renesas@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add three helper functions to call async operations callbacks. Besides
-simplifying callbacks, this allows async notifiers to have no ops set,
-i.e. it can be left NULL.
+This HW is prone to races, so it needs to setup new messages in irq
+context. That means we can't alloc bounce buffers if a message buffer is
+not DMA safe. So, in that case, simply fall back to PIO.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 49 ++++++++++++++++++++++++++----------
- include/media/v4l2-async.h           |  1 +
- 2 files changed, 37 insertions(+), 13 deletions(-)
+ drivers/i2c/busses/i2c-rcar.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 7b2125b3d62f..c35d04b9122f 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -25,6 +25,34 @@
- #include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
+diff --git a/drivers/i2c/busses/i2c-rcar.c b/drivers/i2c/busses/i2c-rcar.c
+index 15d764afec3b29..8a2ae3e6c561c4 100644
+--- a/drivers/i2c/busses/i2c-rcar.c
++++ b/drivers/i2c/busses/i2c-rcar.c
+@@ -359,7 +359,7 @@ static void rcar_i2c_dma(struct rcar_i2c_priv *priv)
+ 	int len;
  
-+static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
-+					  struct v4l2_subdev *subdev,
-+					  struct v4l2_async_subdev *asd)
-+{
-+	if (!n->ops || !n->ops->bound)
-+		return 0;
-+
-+	return n->ops->bound(n, subdev, asd);
-+}
-+
-+static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier *n,
-+					    struct v4l2_subdev *subdev,
-+					    struct v4l2_async_subdev *asd)
-+{
-+	if (!n->ops || !n->ops->unbind)
-+		return;
-+
-+	n->ops->unbind(n, subdev, asd);
-+}
-+
-+static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
-+{
-+	if (!n->ops || !n->ops->complete)
-+		return 0;
-+
-+	return n->ops->complete(n);
-+}
-+
- static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
- #if IS_ENABLED(CONFIG_I2C)
-@@ -102,16 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- {
- 	int ret;
+ 	/* Do not use DMA if it's not available or for messages < 8 bytes */
+-	if (IS_ERR(chan) || msg->len < 8)
++	if (IS_ERR(chan) || msg->len < 8 || !(msg->flags & I2C_M_DMA_SAFE))
+ 		return;
  
--	if (notifier->ops->bound) {
--		ret = notifier->ops->bound(notifier, sd, asd);
--		if (ret < 0)
--			return ret;
--	}
-+	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
-+	if (ret < 0)
-+		return ret;
- 
- 	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
- 	if (ret < 0) {
--		if (notifier->ops->unbind)
--			notifier->ops->unbind(notifier, sd, asd);
-+		v4l2_async_notifier_call_unbind(notifier, sd, asd);
- 		return ret;
- 	}
- 
-@@ -123,8 +148,8 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 	/* Move from the global subdevice list to notifier's done */
- 	list_move(&sd->async_list, &notifier->done);
- 
--	if (list_empty(&notifier->waiting) && notifier->ops->complete)
--		return notifier->ops->complete(notifier);
-+	if (list_empty(&notifier->waiting))
-+		return v4l2_async_notifier_call_complete(notifier);
- 
- 	return 0;
- }
-@@ -210,8 +235,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
- 		v4l2_async_cleanup(sd);
- 
--		if (notifier->ops->unbind)
--			notifier->ops->unbind(notifier, sd, sd->asd);
-+		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
- 	}
- 
- 	mutex_unlock(&list_lock);
-@@ -300,8 +324,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
- 
- 	v4l2_async_cleanup(sd);
- 
--	if (notifier->ops->unbind)
--		notifier->ops->unbind(notifier, sd, sd->asd);
-+	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
- 
- 	mutex_unlock(&list_lock);
- }
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 3c48f8b66d12..3bc8a7c0d83f 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -164,4 +164,5 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd);
-  * @sd: pointer to &struct v4l2_subdev
-  */
- void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
-+
- #endif
+ 	if (read) {
 -- 
 2.11.0
