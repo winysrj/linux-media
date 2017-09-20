@@ -1,174 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:51555 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751747AbdITKXx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 06:23:53 -0400
-Message-ID: <1505903026.7865.6.camel@pengutronix.de>
-Subject: Re: [PATCH 2/3] [media] tc358743: Increase FIFO level to 300.
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mats Randgaard <matrandg@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from mga09.intel.com ([134.134.136.24]:63373 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751509AbdITJMw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 05:12:52 -0400
+Message-ID: <1505898738.16112.3.camel@linux.intel.com>
+Subject: Re: [PATCH] [media] staging: atomisp: use clock framework for
+ camera clocks
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>,
+        =?ISO-8859-1?Q?J=E9r=E9my?= Lefaure <jeremy.lefaure@lse.epita.fr>,
+        Avraham Shukron <avraham.shukron@gmail.com>,
+        Hans de Goede <hdegoede@redhat.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-Date: Wed, 20 Sep 2017 12:23:46 +0200
-In-Reply-To: <CAAoAYcNCPrpZWvxTTsCtGd4vobsQKDw-ckLhXyRst0dS++h_Ag@mail.gmail.com>
-References: <cover.1505826082.git.dave.stevenson@raspberrypi.org>
-         <3e638375aff788b24f988e452214649d6100a596.1505826082.git.dave.stevenson@raspberrypi.org>
-         <1505834685.10076.5.camel@pengutronix.de>
-         <20170919134930.6fa28562@recife.lan>
-         <CAAoAYcNCPrpZWvxTTsCtGd4vobsQKDw-ckLhXyRst0dS++h_Ag@mail.gmail.com>
+        Varsha Rao <rvarsha016@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Date: Wed, 20 Sep 2017 12:12:18 +0300
+In-Reply-To: <20170919204549.27468-1-pierre-louis.bossart@linux.intel.com>
+References: <20170919204549.27468-1-pierre-louis.bossart@linux.intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On Wed, 2017-09-20 at 10:14 +0100, Dave Stevenson wrote:
-> Hi Mauro & Philipp
+On Tue, 2017-09-19 at 15:45 -0500, Pierre-Louis Bossart wrote:
+> The Atom ISP driver initializes and configures PMC clocks which are
+> already handled by the clock framework.
 > 
-> On 19 September 2017 at 17:49, Mauro Carvalho Chehab
-> <mchehab@s-opensource.com> wrote:
-> > Em Tue, 19 Sep 2017 17:24:45 +0200
-> > Philipp Zabel <p.zabel@pengutronix.de> escreveu:
-> > 
-> > > Hi Dave,
-> > > 
-> > > On Tue, 2017-09-19 at 14:08 +0100, Dave Stevenson wrote:
-> > > > The existing fixed value of 16 worked for UYVY 720P60 over
-> > > > 2 lanes at 594MHz, or UYVY 1080P60 over 4 lanes. (RGB888
-> > > > 1080P60 needs 6 lanes at 594MHz).
-> > > > It doesn't allow for lower resolutions to work as the FIFO
-> > > > underflows.
-> > > > 
-> > > > Using a value of 300 works for all resolutions down to VGA60,
-> > > > and the increase in frame delay is <4usecs for 1080P60 UYVY
-> > > > (2.55usecs for RGB888).
-> > > > 
-> > > > Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
-> > > 
-> > > Can we increase this to 320? This would also allow
-> > > 720p60 at 594 Mbps / 4 lanes, according to the xls.
+> Remove all legacy vlv2_platform_clock stuff and move to the clk API to
+> avoid conflicts, e.g. with audio machine drivers enabling the MCLK for
+> external codecs
 > 
-> Unless I've missed something then the driver would currently request
-> only 2 lanes for 720p60 UYVY, and that works with the existing FIFO
-> setting of 16. Likewise 720p60 RGB888 requests 3 lanes and also works
-> on a FIFO setting of 16.
-> How/why were you thinking we need to run all four lanes for 720p60
-> without other significant driver mods around lane config?
 
-The driver currently silently changes the number of active lanes
-depending on required data rate, with no way to communicate it to the
-receiver.
-The i.MX6 MIPI CSI-2 receiver driver can't cope with that, as it always
-activates all four lanes that are configured in the device tree. I can
-work around that with the following patch:
+I think it might have a Fixes: tag as well (though I dunno which commit
+could be considered as anchor).
 
-----------8<----------
-Subject: [PATCH] [media] tc358743: do not dynamically reduce number of lanes
+(I doubt Git is so clever to remove files based on information out of
+the diff, can you check it and if needed to resend without -D implied?)
 
-Dynamic lane number reduction does not work with receivers that
-configure a fixed lane number according to the device tree settings.
-To allow 720p60 at 594 Mbit/s on 4 lanes, increase the fifo_level
-and tclk_trailcnt settings.
+Other than that - nice clean up!
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/i2c/tc358743.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index 64f504542a819..70a9435928cdb 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -683,7 +683,7 @@ static void tc358743_set_csi(struct v4l2_subdev *sd)
- {
- 	struct tc358743_state *state = to_state(sd);
- 	struct tc358743_platform_data *pdata = &state->pdata;
--	unsigned lanes = tc358743_num_csi_lanes_needed(sd);
-+	unsigned lanes = state->bus.num_data_lanes;
- 
- 	v4l2_dbg(3, debug, sd, "%s:\n", __func__);
- 
-@@ -1906,7 +1906,7 @@ static int tc358743_probe_of(struct tc358743_state *state)
- 	state->pdata.ddc5v_delay = DDC5V_DELAY_100_MS;
- 	state->pdata.enable_hdcp = false;
- 	/* A FIFO level of 16 should be enough for 2-lane 720p60 at 594 MHz. */
--	state->pdata.fifo_level = 16;
-+	state->pdata.fifo_level = 320;
- 	/*
- 	 * The PLL input clock is obtained by dividing refclk by pll_prd.
- 	 * It must be between 6 MHz and 40 MHz, lower frequency is better.
-@@ -1948,7 +1948,7 @@ static int tc358743_probe_of(struct tc358743_state *state)
- 	state->pdata.lptxtimecnt = 0x003;
- 	/* tclk-preparecnt: 3, tclk-zerocnt: 20 */
- 	state->pdata.tclk_headercnt = 0x1403;
--	state->pdata.tclk_trailcnt = 0x00;
-+	state->pdata.tclk_trailcnt = 0x01;
- 	/* ths-preparecnt: 3, ths-zerocnt: 1 */
- 	state->pdata.ths_headercnt = 0x0103;
- 	state->pdata.twakeup = 0x4882;
+
+> Tested-by: Carlo Caione <carlo@endlessm.com>
+> Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.
+> com>
+> ---
+>  drivers/staging/media/atomisp/Kconfig              |   1 +
+>  drivers/staging/media/atomisp/platform/Makefile    |   1 -
+>  .../staging/media/atomisp/platform/clock/Makefile  |   6 -
+>  .../platform/clock/platform_vlv2_plat_clk.c        |  40 ----
+>  .../platform/clock/platform_vlv2_plat_clk.h        |  27 ---
+>  .../media/atomisp/platform/clock/vlv2_plat_clock.c | 247 ------------
+> ---------
+>  .../platform/intel-mid/atomisp_gmin_platform.c     |  63 +++++-
+>  7 files changed, 52 insertions(+), 333 deletions(-)
+>  delete mode 100644
+> drivers/staging/media/atomisp/platform/clock/Makefile
+>  delete mode 100644
+> drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.c
+>  delete mode 100644
+> drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.h
+>  delete mode 100644
+> drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
+> 
+> diff --git a/drivers/staging/media/atomisp/Kconfig
+> b/drivers/staging/media/atomisp/Kconfig
+> index 8eb13c3ba29c..7cdebea35ccf 100644
+> --- a/drivers/staging/media/atomisp/Kconfig
+> +++ b/drivers/staging/media/atomisp/Kconfig
+> @@ -1,6 +1,7 @@
+>  menuconfig INTEL_ATOMISP
+>          bool "Enable support to Intel MIPI camera drivers"
+>          depends on X86 && EFI && MEDIA_CONTROLLER && PCI && ACPI
+> +	select COMMON_CLK
+>          help
+>            Enable support for the Intel ISP2 camera interfaces and
+> MIPI
+>            sensor drivers.
+> diff --git a/drivers/staging/media/atomisp/platform/Makefile
+> b/drivers/staging/media/atomisp/platform/Makefile
+> index df157630bda9..0e3b7e1c81c6 100644
+> --- a/drivers/staging/media/atomisp/platform/Makefile
+> +++ b/drivers/staging/media/atomisp/platform/Makefile
+> @@ -2,5 +2,4 @@
+>  # Makefile for camera drivers.
+>  #
+>  
+> -obj-$(CONFIG_INTEL_ATOMISP) += clock/
+>  obj-$(CONFIG_INTEL_ATOMISP) += intel-mid/
+> diff --git a/drivers/staging/media/atomisp/platform/clock/Makefile
+> b/drivers/staging/media/atomisp/platform/clock/Makefile
+> deleted file mode 100644
+> index 82fbe8b6968a..000000000000
+> diff --git
+> a/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.
+> c
+> b/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.
+> c
+> deleted file mode 100644
+> index 0aae9b0283bb..000000000000
+> diff --git
+> a/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.
+> h
+> b/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.
+> h
+> deleted file mode 100644
+> index b730ab0e8223..000000000000
+> diff --git
+> a/drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
+> b/drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
+> deleted file mode 100644
+> index f96789a31819..000000000000
+> diff --git a/drivers/staging/media/atomisp/platform/intel-
+> mid/atomisp_gmin_platform.c
+> b/drivers/staging/media/atomisp/platform/intel-
+> mid/atomisp_gmin_platform.c
+> index edaae93af8f9..17b4cfae5abf 100644
+> --- a/drivers/staging/media/atomisp/platform/intel-
+> mid/atomisp_gmin_platform.c
+> +++ b/drivers/staging/media/atomisp/platform/intel-
+> mid/atomisp_gmin_platform.c
+> @@ -4,10 +4,10 @@
+>  #include <linux/efi.h>
+>  #include <linux/pci.h>
+>  #include <linux/acpi.h>
+> +#include <linux/clk.h>
+>  #include <linux/delay.h>
+>  #include <media/v4l2-subdev.h>
+>  #include <linux/mfd/intel_soc_pmic.h>
+> -#include "../../include/linux/vlv2_plat_clock.h"
+>  #include <linux/regulator/consumer.h>
+>  #include <linux/gpio/consumer.h>
+>  #include <linux/gpio.h>
+> @@ -17,11 +17,7 @@
+>  
+>  #define MAX_SUBDEVS 8
+>  
+> -/* Should be defined in vlv2_plat_clock API, isn't: */
+> -#define VLV2_CLK_PLL_19P2MHZ 1
+> -#define VLV2_CLK_XTAL_19P2MHZ 0
+> -#define VLV2_CLK_ON      1
+> -#define VLV2_CLK_OFF     2
+> +#define VLV2_CLK_PLL_19P2MHZ 1 /* XTAL on CHT */
+>  #define ELDO1_SEL_REG	0x19
+>  #define ELDO1_1P8V	0x16
+>  #define ELDO1_CTRL_SHIFT 0x00
+> @@ -33,6 +29,7 @@ struct gmin_subdev {
+>  	struct v4l2_subdev *subdev;
+>  	int clock_num;
+>  	int clock_src;
+> +	struct clk *pmc_clk;
+>  	struct gpio_desc *gpio0;
+>  	struct gpio_desc *gpio1;
+>  	struct regulator *v1p8_reg;
+> @@ -344,6 +341,9 @@ static int gmin_platform_deinit(void)
+>  	return 0;
+>  }
+>  
+> +#define GMIN_PMC_CLK_NAME 14 /* "pmc_plt_clk_[0..5]" */
+> +static char gmin_pmc_clk_name[GMIN_PMC_CLK_NAME];
+> +
+>  static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev
+> *subdev)
+>  {
+>  	int i, ret;
+> @@ -377,6 +377,37 @@ static struct gmin_subdev *gmin_subdev_add(struct
+> v4l2_subdev *subdev)
+>  	gmin_subdevs[i].gpio0 = gpiod_get_index(dev, NULL, 0,
+> GPIOD_OUT_LOW);
+>  	gmin_subdevs[i].gpio1 = gpiod_get_index(dev, NULL, 1,
+> GPIOD_OUT_LOW);
+>  
+> +	/* get PMC clock with clock framework */
+> +	snprintf(gmin_pmc_clk_name,
+> +		 sizeof(gmin_pmc_clk_name),
+> +		 "%s_%d", "pmc_plt_clk", gmin_subdevs[i].clock_num);
+> +
+> +	gmin_subdevs[i].pmc_clk = devm_clk_get(dev,
+> gmin_pmc_clk_name);
+> +	if (IS_ERR(gmin_subdevs[i].pmc_clk)) {
+> +		ret = PTR_ERR(gmin_subdevs[i].pmc_clk);
+> +
+> +		dev_err(dev,
+> +			"Failed to get clk from %s : %d\n",
+> +			gmin_pmc_clk_name,
+> +			ret);
+> +
+> +		return NULL;
+> +	}
+> +
+> +	/*
+> +	 * The firmware might enable the clock at
+> +	 * boot (this information may or may not
+> +	 * be reflected in the enable clock register).
+> +	 * To change the rate we must disable the clock
+> +	 * first to cover these cases. Due to common
+> +	 * clock framework restrictions that do not allow
+> +	 * to disable a clock that has not been enabled,
+> +	 * we need to enable the clock first.
+> +	 */
+> +	ret = clk_prepare_enable(gmin_subdevs[i].pmc_clk);
+> +	if (!ret)
+> +		clk_disable_unprepare(gmin_subdevs[i].pmc_clk);
+> +
+>  	if (!IS_ERR(gmin_subdevs[i].gpio0)) {
+>  		ret = gpiod_direction_output(gmin_subdevs[i].gpio0,
+> 0);
+>  		if (ret)
+> @@ -539,13 +570,21 @@ static int gmin_flisclk_ctrl(struct v4l2_subdev
+> *subdev, int on)
+>  {
+>  	int ret = 0;
+>  	struct gmin_subdev *gs = find_gmin_subdev(subdev);
+> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> +
+> +	if (on) {
+> +		ret = clk_set_rate(gs->pmc_clk, gs->clock_src);
+> +
+> +		if (ret)
+> +			dev_err(&client->dev, "unable to set PMC rate
+> %d\n",
+> +				gs->clock_src);
+>  
+> -	if (on)
+> -		ret = vlv2_plat_set_clock_freq(gs->clock_num, gs-
+> >clock_src);
+> -	if (ret)
+> -		return ret;
+> -	return vlv2_plat_configure_clock(gs->clock_num,
+> -					 on ? VLV2_CLK_ON :
+> VLV2_CLK_OFF);
+> +		ret = clk_prepare_enable(gs->pmc_clk);
+> +	} else {
+> +		clk_disable_unprepare(gs->pmc_clk);
+> +	}
+> +
+> +	return ret;
+>  }
+>  
+>  static int gmin_csi_cfg(struct v4l2_subdev *sd, int flag)
+
 -- 
-2.11.0
----------->8----------
-
-Just adding the same heuristic as tc358743_num_csi_lanes_needed in the
-imx6-mipi-csi2 driver doesn't work, as the heuristic is specific to the
-Toshiba chip. There are MIPI CSI-2 sensors that only support a fixed
-number of lanes, for example.
-
-I'd need a way to communicate the number of active MIPI CSI-2 lanes
-between transmitting and receiving subdevice driver.
-
-> Once I've got a v3 done on the Unicam driver I'll bash through the
-> standard HDMI modes and check what value they need - I can see a big
-> spreadsheet coming on.
-
-Oh dear. Unless the point you make below can be resolved, I think we
-have no other choice.
-
-> I'll ignore interlaced modes as I can't see any support for it in the
-> driver. Receiving the fields on different CSI-2 data types is
-> something I know the Unicam hardware won't handle nicely, and I
-> suspect it'd be an issue for many other platforms too.
-
-Yes, let's pretend interlacing doesn't exist as long as possible.
-
-> > Hmm... if this is dependent on the resolution and frame rate,
-> > wouldn't
-> > it be better to dynamically adjust it accordingly?
-> 
-> It's setting up the FIFO matching the incoming HDMI data rate and
-> outgoing CSI rate. That means it's dependent on the incoming pixel
-> clock, blanking, colour format and resolution, and output CSI link
-> frequency, number of lanes, and colour format.
-> Whilst it could be set dynamically based on all those parameters, is
-> there a significant enough gain in doing so?
-
-Ideally there would be no need to maintain a timing database with -
-worst case - (number of link frequencies * number of HDMI modes) entries
-in the driver ...
-
-> The value of 300 works for all cases I've tried, and referencing back
-> it is also the value that Hans said Cisco use via platform data on
-> their hardware [1]. Generally I'm seeing that values of 0-130 are
-> required, so 300 is giving a fair safety margin.
-
-It does not work for 720p60 on 4 lanes at 594 Mbit/s, as the spreadsheet
-warns, and testing shows.
-
-> Second question is does anyone have a suitable relationship with
-> Toshiba to get permission to release details of these register
-> calculations? The datasheet and value spreadsheet are marked as
-> confidential, and probably under NDA in almost all cases. Whilst they
-> can't object to drivers containing values to make them work, they
-> might over releasing significant details.
-
-Unfortunately, I don't.
-
-regards
-Philipp
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
