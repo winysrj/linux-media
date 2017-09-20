@@ -1,31 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55016 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751949AbdIDHrm (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50382
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751735AbdITTMD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Sep 2017 03:47:42 -0400
-Date: Mon, 4 Sep 2017 10:47:39 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v7 00/18] Unified fwnode endpoint parser, async
- sub-device notifier support, N9 flash DTS
-Message-ID: <20170904074739.uo2yycszt6luoldd@valkosipuli.retiisi.org.uk>
-References: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
+        Wed, 20 Sep 2017 15:12:03 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 08/25] media: dtv-demux.rst: minor markup improvements
+Date: Wed, 20 Sep 2017 16:11:33 -0300
+Message-Id: <0ed80ca547a9cdac20139e94641e28d9dcfe7888.1505933919.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
+References: <cover.1505933919.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
+References: <cover.1505933919.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Oh, and this set depends on this patch, on its way to 4.14-rc1 I believe:
+Add a cross-reference to a mentioned structure and split
+the kernel-doc stuff on a separate chapter.
 
-<URL:https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git/commit/?h=device-properties&id=3e3119d3088f41106f3581d39e7694a50ca3fc02>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/kapi/dtv-demux.rst | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
+diff --git a/Documentation/media/kapi/dtv-demux.rst b/Documentation/media/kapi/dtv-demux.rst
+index 8169c479156e..3ee69266e206 100644
+--- a/Documentation/media/kapi/dtv-demux.rst
++++ b/Documentation/media/kapi/dtv-demux.rst
+@@ -7,8 +7,8 @@ Digital TV Demux
+ The Kernel Digital TV Demux kABI defines a driver-internal interface for
+ registering low-level, hardware specific driver to a hardware independent
+ demux layer. It is only of interest for Digital TV device driver writers.
+-The header file for this kABI is named demux.h and located in
+-drivers/media/dvb-core.
++The header file for this kABI is named ``demux.h`` and located in
++``drivers/media/dvb-core``.
+ 
+ The demux kABI should be implemented for each demux in the system. It is
+ used to select the TS source of a demux and to manage the demux resources.
+@@ -27,7 +27,7 @@ tuning, are devined via the Digital TV Frontend kABI.
+ The functions that implement the abstract interface demux should be defined
+ static or module private and registered to the Demux core for external
+ access. It is not necessary to implement every function in the struct
+-&dmx_demux. For example, a demux interface might support Section filtering,
++:c:type:`dmx_demux`. For example, a demux interface might support Section filtering,
+ but not PES filtering. The kABI client is expected to check the value of any
+ function pointer before calling the function: the value of ``NULL`` means
+ that the function is not available.
+@@ -43,8 +43,6 @@ Linux Kernel calls the functions of a network device interface from a
+ bottom half context. Thus, if a demux kABI function is called from network
+ device code, the function must not sleep.
+ 
+-
+-
+ Demux Callback API
+ ~~~~~~~~~~~~~~~~~~
+ 
+@@ -68,4 +66,7 @@ function call directly from a hardware interrupt.
+ This mechanism is implemented by :c:func:`dmx_ts_cb()` and :c:func:`dmx_section_cb()`
+ callbacks.
+ 
++Digital TV Demux functions and types
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
+ .. kernel-doc:: drivers/media/dvb-core/demux.h
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.5
