@@ -1,62 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa5.microchip.iphmx.com ([216.71.150.166]:21003 "EHLO
-        esa5.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751646AbdIFGAz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 02:00:55 -0400
-Date: Wed, 6 Sep 2017 07:59:06 +0200
-From: Ludovic Desroches <ludovic.desroches@microchip.com>
-To: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
-CC: SF Markus Elfring <elfring@users.sourceforge.net>,
-        <linux-media@vger.kernel.org>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        <kernel-janitors@vger.kernel.org>
-Subject: Re: [PATCH 0/6] [media] Atmel: Adjustments for seven function
- implementations
-Message-ID: <20170906055906.pzhqxor7goybrdif@rfolt0960.corp.atmel.com>
-References: <88d0739c-fdc1-9d7d-fe53-b7c2eeed1849@users.sourceforge.net>
- <30c46f61-5c4f-9f75-e8b5-fab77fe1e11f@Microchip.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <30c46f61-5c4f-9f75-e8b5-fab77fe1e11f@Microchip.com>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:42387 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751783AbdITIaR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 04:30:17 -0400
+Message-ID: <1505896209.7865.1.camel@pengutronix.de>
+Subject: Re: [PATCH 1/2] [media] coda: Handle return value of kasprintf
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>, mchehab@kernel.org,
+        hans.verkuil@cisco.com, sean@mess.org, andi.shyti@samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Wed, 20 Sep 2017 10:30:09 +0200
+In-Reply-To: <1505893033-7491-2-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1505893033-7491-1-git-send-email-arvind.yadav.cs@gmail.com>
+         <1505893033-7491-2-git-send-email-arvind.yadav.cs@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 06, 2017 at 08:58:26AM +0800, Yang, Wenyou wrote:
-> Hi,
-> 
-> 
-> On 2017/9/5 4:04, SF Markus Elfring wrote:
-> > From: Markus Elfring <elfring@users.sourceforge.net>
-> > Date: Mon, 4 Sep 2017 21:44:55 +0200
-> > 
-> > A few update suggestions were taken into account
-> > from static source code analysis.
-> Thank you for your patches.
-> 
-> You can add my Acked-by for the patch series.
-> 
-> Acked-by: Wenyou Yang <wenyou.yang@microchip.com>
+Hi Arvind,
 
-Acked-by: Ludovic Desroches <ludovic.desroches@microchip.com>
+On Wed, 2017-09-20 at 13:07 +0530, Arvind Yadav wrote:
+> kasprintf() can fail here and we must check its return value.
+> 
+> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+> ---
+>  drivers/media/platform/coda/coda-bit.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+> index 291c409..8d78183 100644
+> --- a/drivers/media/platform/coda/coda-bit.c
+> +++ b/drivers/media/platform/coda/coda-bit.c
+> @@ -417,6 +417,9 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx,
+> >  		    dev->devtype->product != CODA_DX6)
+> >  			size += ysize / 4;
+> >  		name = kasprintf(GFP_KERNEL, "fb%d", i);
+> +		if (!name)
+> +			return -ENOMEM;
+> +
 
-> 
-> > 
-> > Markus Elfring (6):
-> >    Delete an error message for a failed memory allocation in isc_formats_init()
-> >    Improve a size determination in isc_formats_init()
-> >    Adjust three checks for null pointers
-> >    Delete an error message for a failed memory allocation in two functions
-> >    Improve three size determinations
-> >    Adjust a null pointer check in three functions
-> > 
-> >   drivers/media/platform/atmel/atmel-isc.c | 12 +++++-------
-> >   drivers/media/platform/atmel/atmel-isi.c | 20 ++++++++------------
-> >   2 files changed, 13 insertions(+), 19 deletions(-)
-> > 
-> 
-> Best Regards,
-> Wenyou Yang
+Thank you for the patch. Instead of just returning here, this should
+also call coda_free_framebuffers to release already allocated buffers in
+earlier iterations of the loop.
+
+regards
+Philipp
