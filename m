@@ -1,114 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45740 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751661AbdIOOSr (ORCPT
+Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:32357 "EHLO
+        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751833AbdITQIu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 10:18:47 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v13 22/25] et8ek8: Add support for flash and lens devices
-Date: Fri, 15 Sep 2017 17:17:21 +0300
-Message-Id: <20170915141724.23124-23-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+        Wed, 20 Sep 2017 12:08:50 -0400
+Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
+        by mx07-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v8KG8NMX019822
+        for <linux-media@vger.kernel.org>; Wed, 20 Sep 2017 17:08:49 +0100
+Received: from mail-wr0-f197.google.com (mail-wr0-f197.google.com [209.85.128.197])
+        by mx07-00252a01.pphosted.com with ESMTP id 2d0sc0262d-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Wed, 20 Sep 2017 17:08:48 +0100
+Received: by mail-wr0-f197.google.com with SMTP id k20so3529272wre.6
+        for <linux-media@vger.kernel.org>; Wed, 20 Sep 2017 09:08:48 -0700 (PDT)
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org
+Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Subject: [PATCH v3 4/4] MAINTAINERS: Add entry for BCM2835 camera driver
+Date: Wed, 20 Sep 2017 17:07:57 +0100
+Message-Id: <ea03688b02c4a9ffbc04f610f98e6ee99ed22401.1505916622.git.dave.stevenson@raspberrypi.org>
+In-Reply-To: <cover.1505916622.git.dave.stevenson@raspberrypi.org>
+References: <cover.1505916622.git.dave.stevenson@raspberrypi.org>
+MIME-Version: 1.0
+In-Reply-To: <cover.1505916622.git.dave.stevenson@raspberrypi.org>
+References: <cover.1505916622.git.dave.stevenson@raspberrypi.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pavel Machek <pavel@ucw.cz>
-
-Parse async sub-devices by using
-v4l2_subdev_fwnode_reference_parse_sensor_common().
-
-These types devices aren't directly related to the sensor, but are
-nevertheless handled by the et8ek8 driver due to the relationship of these
-component to the main part of the camera module --- the sensor.
-
-[Sakari Ailus: Rename fwnode function, check for ret < 0 only.]
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
 ---
- drivers/media/i2c/et8ek8/et8ek8_driver.c | 21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c/et8ek8/et8ek8_driver.c
-index c14f0fd6ded3..0ef1b8025935 100644
---- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
-+++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
-@@ -34,10 +34,12 @@
- #include <linux/sort.h>
- #include <linux/v4l2-mediabus.h>
+No changes from v2 to v3
+
+ MAINTAINERS | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index eb930eb..b47ddaa 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2713,6 +2713,13 @@ S:	Maintained
+ N:	bcm2835
+ F:	drivers/staging/vc04_services
  
-+#include <media/v4l2-async.h>
- #include <media/media-entity.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
-+#include <media/v4l2-fwnode.h>
- 
- #include "et8ek8_reg.h"
- 
-@@ -46,6 +48,7 @@
- #define ET8EK8_MAX_MSG		8
- 
- struct et8ek8_sensor {
-+	struct v4l2_async_notifier notifier;
- 	struct v4l2_subdev subdev;
- 	struct media_pad pad;
- 	struct v4l2_mbus_framefmt format;
-@@ -1446,6 +1449,11 @@ static int et8ek8_probe(struct i2c_client *client,
- 	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	sensor->subdev.internal_ops = &et8ek8_internal_ops;
- 
-+	ret = v4l2_async_notifier_parse_fwnode_sensor_common(
-+		&client->dev, &sensor->notifier);
-+	if (ret < 0)
-+		goto err_release;
++BROADCOM BCM2835 CAMERA DRIVER
++M:	Dave Stevenson <dave.stevenson@raspberrypi.org>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/platform/bcm2835/
++F:	Documentation/devicetree/bindings/media/bcm2835-unicam.txt
 +
- 	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	ret = media_entity_pads_init(&sensor->subdev.entity, 1, &sensor->pad);
- 	if (ret < 0) {
-@@ -1453,18 +1461,27 @@ static int et8ek8_probe(struct i2c_client *client,
- 		goto err_mutex;
- 	}
- 
-+	ret = v4l2_async_subdev_notifier_register(&sensor->subdev,
-+						  &sensor->notifier);
-+	if (ret)
-+		goto err_entity;
-+
- 	ret = v4l2_async_register_subdev(&sensor->subdev);
- 	if (ret < 0)
--		goto err_entity;
-+		goto err_async;
- 
- 	dev_dbg(dev, "initialized!\n");
- 
- 	return 0;
- 
-+err_async:
-+	v4l2_async_notifier_unregister(&sensor->notifier);
- err_entity:
- 	media_entity_cleanup(&sensor->subdev.entity);
- err_mutex:
- 	mutex_destroy(&sensor->power_lock);
-+err_release:
-+	v4l2_async_notifier_release(&sensor->notifier);
- 	return ret;
- }
- 
-@@ -1480,6 +1497,8 @@ static int __exit et8ek8_remove(struct i2c_client *client)
- 	}
- 
- 	v4l2_device_unregister_subdev(&sensor->subdev);
-+	v4l2_async_notifier_unregister(&sensor->notifier);
-+	v4l2_async_notifier_release(&sensor->notifier);
- 	device_remove_file(&client->dev, &dev_attr_priv_mem);
- 	v4l2_ctrl_handler_free(&sensor->ctrl_handler);
- 	v4l2_async_unregister_subdev(&sensor->subdev);
+ BROADCOM BCM47XX MIPS ARCHITECTURE
+ M:	Hauke Mehrtens <hauke@hauke-m.de>
+ M:	Rafał Miłecki <zajec5@gmail.com>
 -- 
-2.11.0
+2.7.4
