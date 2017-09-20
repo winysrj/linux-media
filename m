@@ -1,144 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00252a01.pphosted.com ([91.207.212.211]:56404 "EHLO
-        mx08-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751387AbdIULlE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 07:41:04 -0400
-Received: from pps.filterd (m0102629.ppops.net [127.0.0.1])
-        by mx08-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v8LBeDG4017510
-        for <linux-media@vger.kernel.org>; Thu, 21 Sep 2017 12:41:03 +0100
-Received: from mail-pf0-f197.google.com (mail-pf0-f197.google.com [209.85.192.197])
-        by mx08-00252a01.pphosted.com with ESMTP id 2d0reg2hem-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-        for <linux-media@vger.kernel.org>; Thu, 21 Sep 2017 12:41:02 +0100
-Received: by mail-pf0-f197.google.com with SMTP id x78so9871776pff.7
-        for <linux-media@vger.kernel.org>; Thu, 21 Sep 2017 04:41:02 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170921102428.30709-1-p.zabel@pengutronix.de>
-References: <20170921102428.30709-1-p.zabel@pengutronix.de>
-From: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Date: Thu, 21 Sep 2017 12:41:00 +0100
-Message-ID: <CAAoAYcPckrO5-Z1quY+TCsMMgr7mRDsaqy5B3yYtSCBBdn0LiA@mail.gmail.com>
-Subject: Re: [PATCH] tc358743: fix connected/active CSI-2 lane reporting
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mats Randgaard <matrandg@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from cnc.isely.net ([75.149.91.89]:43823 "EHLO cnc.isely.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750938AbdITTd5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Sep 2017 15:33:57 -0400
+Date: Wed, 20 Sep 2017 14:33:56 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+Reply-To: Mike Isely at pobox <isely@pobox.com>
+To: Andrey Konovalov <andreyknvl@google.com>
+cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        syzkaller <syzkaller@googlegroups.com>,
+        Mike Isely at pobox <isely@pobox.com>
+Subject: Re: usb/media/pvrusb2: warning in
+ pvr2_send_request_ex/usb_submit_urb
+In-Reply-To: <CAAeHK+yqz3dhY1wGQnvNEzY9k=roJToCdoPo_hjtqFGtDeA22g@mail.gmail.com>
+Message-ID: <alpine.DEB.2.11.1709201424340.32054@cnc.isely.net>
+References: <CAAeHK+yqz3dhY1wGQnvNEzY9k=roJToCdoPo_hjtqFGtDeA22g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp
 
-On 21 September 2017 at 11:24, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> g_mbus_config was supposed to indicate all supported lane numbers, not
-> only the number of those currently in active use. Since the tc358743
-> can dynamically reduce the number of active lanes if the required
-> bandwidth allows for it, report all lane numbers up to the connected
-> number of lanes as supported.
-> To allow communicating the number of currently active lanes, add a new
-> bitfield to the v4l2_mbus_config flags. This is a temporary fix, until
-> a better solution is found.
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/i2c/tc358743.c  | 22 ++++++++++++----------
->  include/media/v4l2-mediabus.h |  8 ++++++++
->  2 files changed, 20 insertions(+), 10 deletions(-)
->
-> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-> index e6f5c363ccab5..e2a9e6a18a49d 100644
-> --- a/drivers/media/i2c/tc358743.c
-> +++ b/drivers/media/i2c/tc358743.c
-> @@ -1464,21 +1464,22 @@ static int tc358743_g_mbus_config(struct v4l2_subdev *sd,
->         /* Support for non-continuous CSI-2 clock is missing in the driver */
->         cfg->flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
->
-> -       switch (state->csi_lanes_in_use) {
-> -       case 1:
-> +       if (state->bus.num_data_lanes > 0)
->                 cfg->flags |= V4L2_MBUS_CSI2_1_LANE;
-> -               break;
-> -       case 2:
-> +       if (state->bus.num_data_lanes > 1)
->                 cfg->flags |= V4L2_MBUS_CSI2_2_LANE;
-> -               break;
-> -       case 3:
-> +       if (state->bus.num_data_lanes > 2)
->                 cfg->flags |= V4L2_MBUS_CSI2_3_LANE;
-> -               break;
-> -       case 4:
-> +       if (state->bus.num_data_lanes > 3)
->                 cfg->flags |= V4L2_MBUS_CSI2_4_LANE;
-> -               break;
-> -       default:
-> +
-> +       if (state->csi_lanes_in_use > 4)
+What you have here is way beyond just feeding random crap in via the 
+syscall interface.  To cause this you have to fake the presence of a 
+pvrusb2 compatible *hardware* USB device and then lie about its endpoint 
+configuration.  Is that really a concern here?  Are we now saying that 
+any kernel driver which talks via USB must now also specifically verify 
+the exact expected USB endpoint configuration?  Where does that end?  
+How about the vendor-specific RPC protocol that the hardware actually 
+implements over the bulk endpoint?  It's likely that the pvrusb2 driver 
+may be making assumptions about the expected responses over that 
+protocol.
 
-One could suggest
-if (state->csi_lanes_in_use > state->bus.num_data_lanes)
-here. Needing to use more lanes than are configured is surely an
-error, although that may be detectable at the other end. See below
-too.
+Please realize that I'm not dismissing this.  I can see some merit in 
+this.  But I'm just a bit surprised that now we're going this far.  Is 
+this really the intention?  You're talking about code 
+(pvrusb2_send_request_ex()) that hasn't changed in about 10 years.  
+With this level of paranoia there's got to be a pretty target-rich 
+environment over the set of kernel-supported USB devices.
 
->                 return -EINVAL;
-> +
-> +       if (state->csi_lanes_in_use < state->bus.num_data_lanes) {
-> +               const u32 mask = V4L2_MBUS_CSI2_LANE_MASK;
-> +
-> +               cfg->flags |= (state->csi_lanes_in_use << __ffs(mask)) & mask;
->         }
->
->         return 0;
-> @@ -1885,6 +1886,7 @@ static int tc358743_probe(struct i2c_client *client,
->         if (pdata) {
->                 state->pdata = *pdata;
->                 state->bus.flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-> +               state->bus.num_data_lanes = 4;
->         } else {
->                 err = tc358743_probe_of(state);
->                 if (err == -ENODEV)
-> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> index 93f8afcb7a220..3467d97be5f5b 100644
-> --- a/include/media/v4l2-mediabus.h
-> +++ b/include/media/v4l2-mediabus.h
-> @@ -63,6 +63,14 @@
->                                          V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
->  #define V4L2_MBUS_CSI2_CHANNELS                (V4L2_MBUS_CSI2_CHANNEL_0 | V4L2_MBUS_CSI2_CHANNEL_1 | \
->                                          V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
-> +/*
-> + * Number of lanes in use, 0 == use all available lanes (default)
-> + *
-> + * This is a temporary fix for devices that need to reduce the number of active
-> + * lanes for certain modes, until g_mbus_config() can be replaced with a better
-> + * solution.
-> + */
-> +#define V4L2_MBUS_CSI2_LANE_MASK                (3 << 10)
+To take this another step, wouldn't that same level of paranoia be a 
+concern for any externally connected PCI-Express device?  Because that's 
+another external way into the computer that involves very non-trivial 
+and very hardware-centric protocols.  Thunderbolt devices would be an 
+example of this.
 
-I know this was Hans' suggested define, but are we saying 4 lanes is
-not a valid value? If it is then the mask needs to be at least (7 <<
-10).
+  -Mike
 
-4 lanes is not necessarily "all available lanes".
-- There are now CSI2 devices supporting up to 8 lanes (although
-V4L2_FWNODE_CSI2_MAX_DATA_LANES limits you to 4 at the moment).
-- Or you could have 2 lanes configured in DT and ask TC358743 for (eg)
-1080P60 UYVY at 594Mbps (needs 4 lanes) which passes the current logic
-in the TC358743 driver and would return 0, when it is actually going
-to use 4 lanes. That could be classed as a driver bug though.
 
-My view is that if a driver is going to report how many lanes to use
-then it should always report it explicitly. The default 0 value should
-only be used for devices that will never change it from the DT
-settings. Perhaps others disagree
+On Wed, 20 Sep 2017, Andrey Konovalov wrote:
 
-Otherwise the patch works for me.
+> Hi!
+> 
+> I've got the following report while fuzzing the kernel with syzkaller.
+> 
+> On commit ebb2c2437d8008d46796902ff390653822af6cc4 (Sep 18).
+> 
+> There seems to be no check on endpoint type before submitting bulk urb
+> in pvr2_send_request_ex().
+> 
+> usb 1-1: New USB device found, idVendor=2040, idProduct=7500
+> usb 1-1: New USB device strings: Mfr=0, Product=255, SerialNumber=0
+> usb 1-1: Product: a
+> gadgetfs: configuration #6
+> pvrusb2: Hardware description: WinTV HVR-1950 Model 750xx
+> usb 1-1: BOGUS urb xfer, pipe 3 != type 1
+> ------------[ cut here ]------------
+> WARNING: CPU: 1 PID: 2713 at drivers/usb/core/urb.c:449
+> usb_submit_urb+0xf8a/0x11d0
+> Modules linked in:
+> CPU: 1 PID: 2713 Comm: pvrusb2-context Not tainted
+> 4.14.0-rc1-42251-gebb2c2437d80 #210
+> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+> task: ffff88006b7a18c0 task.stack: ffff880069978000
+> RIP: 0010:usb_submit_urb+0xf8a/0x11d0 drivers/usb/core/urb.c:448
+> RSP: 0018:ffff88006997f990 EFLAGS: 00010286
+> RAX: 0000000000000029 RBX: ffff880063661900 RCX: 0000000000000000
+> RDX: 0000000000000029 RSI: ffffffff86876d60 RDI: ffffed000d32ff24
+> RBP: ffff88006997fa90 R08: 1ffff1000d32fdca R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff1000d32ff39
+> R13: 0000000000000001 R14: 0000000000000003 R15: ffff880068bbed68
+> FS:  0000000000000000(0000) GS:ffff88006c600000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 0000000001032000 CR3: 000000006a0ff000 CR4: 00000000000006f0
+> Call Trace:
+>  pvr2_send_request_ex+0xa57/0x1d80 drivers/media/usb/pvrusb2/pvrusb2-hdw.c:3645
+>  pvr2_hdw_check_firmware drivers/media/usb/pvrusb2/pvrusb2-hdw.c:1812
+>  pvr2_hdw_setup_low drivers/media/usb/pvrusb2/pvrusb2-hdw.c:2107
+>  pvr2_hdw_setup drivers/media/usb/pvrusb2/pvrusb2-hdw.c:2250
+>  pvr2_hdw_initialize+0x548/0x3c10 drivers/media/usb/pvrusb2/pvrusb2-hdw.c:2327
+>  pvr2_context_check drivers/media/usb/pvrusb2/pvrusb2-context.c:118
+>  pvr2_context_thread_func+0x361/0x8c0
+> drivers/media/usb/pvrusb2/pvrusb2-context.c:167
+>  kthread+0x3a1/0x470 kernel/kthread.c:231
+>  ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+> Code: 48 8b 85 30 ff ff ff 48 8d b8 98 00 00 00 e8 ee 82 89 fe 45 89
+> e8 44 89 f1 4c 89 fa 48 89 c6 48 c7 c7 40 c0 ea 86 e8 30 1b dc fc <0f>
+> ff e9 9b f7 ff ff e8 aa 95 25 fd e9 80 f7 ff ff e8 50 74 f3
+> ---[ end trace 6919030503719da6 ]---
+> 
 
-  Dave.
+-- 
 
->  /**
->   * enum v4l2_mbus_type - media bus type
-> --
-> 2.11.0
->
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
