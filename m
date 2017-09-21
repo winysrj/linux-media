@@ -1,122 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:42827 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751675AbdIUPac (ORCPT
+Received: from mail-io0-f181.google.com ([209.85.223.181]:56891 "EHLO
+        mail-io0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751842AbdIUPjU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 11:30:32 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mats Randgaard <matrandg@cisco.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 1/2] [media] tc358743: fix connected/active CSI-2 lane reporting
-Date: Thu, 21 Sep 2017 17:30:24 +0200
-Message-Id: <20170921153024.15788-1-p.zabel@pengutronix.de>
+        Thu, 21 Sep 2017 11:39:20 -0400
+Received: by mail-io0-f181.google.com with SMTP id m103so11677872iod.13
+        for <linux-media@vger.kernel.org>; Thu, 21 Sep 2017 08:39:19 -0700 (PDT)
+MIME-Version: 1.0
+From: Andrey Konovalov <andreyknvl@google.com>
+Date: Thu, 21 Sep 2017 17:39:18 +0200
+Message-ID: <CAAeHK+wAzr0L1qYZT4VQh5nGOOwSYVR8hQE8J+TtNf4Uko-E1g@mail.gmail.com>
+Subject: usb/media/smsusb: use-after-free in worker_thread
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        syzkaller <syzkaller@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-g_mbus_config was supposed to indicate all supported lane numbers, not
-only the number of those currently in active use. Since the TC358743
-can dynamically reduce the number of active lanes if the required
-bandwidth allows for it, report all lane numbers up to the connected
-number of lanes as supported in pdata mode.
-In device tree mode, do not report lane count and clock mode at all, as
-the receiver driver can determine these from the device tree.
+Hi!
 
-To allow communicating the number of currently active lanes, add a new
-bitfield to the v4l2_mbus_config flags. This is a temporary fix, to be
-used only until a better solution is found.
+I've got the following report while fuzzing the kernel with syzkaller.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v1:
- - Check csi_lanes_in_use <= num_data_lanes before writing to cfg.
- - Increase size of lane mask to 4 bits and always explicitly report
-   number of lanes in use.
- - Clear clock and connected lane flags in DT mode.
----
- drivers/media/i2c/tc358743.c  | 30 ++++++++++++++++--------------
- include/media/v4l2-mediabus.h |  8 ++++++++
- 2 files changed, 24 insertions(+), 14 deletions(-)
+On commit ebb2c2437d8008d46796902ff390653822af6cc4 (Sep 18).
 
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index e6f5c363ccab5..a35043cefe128 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -1458,28 +1458,29 @@ static int tc358743_g_mbus_config(struct v4l2_subdev *sd,
- 			     struct v4l2_mbus_config *cfg)
- {
- 	struct tc358743_state *state = to_state(sd);
-+	const u32 mask = V4L2_MBUS_CSI2_LANE_MASK;
-+
-+	if (state->csi_lanes_in_use > state->bus.num_data_lanes)
-+		return -EINVAL;
- 
- 	cfg->type = V4L2_MBUS_CSI2;
-+	cfg->flags = (state->csi_lanes_in_use << __ffs(mask)) & mask;
- 
--	/* Support for non-continuous CSI-2 clock is missing in the driver */
--	cfg->flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-+	/* In DT mode, only report the number of active lanes */
-+	if (sd->dev->of_node)
-+		return 0;
- 
--	switch (state->csi_lanes_in_use) {
--	case 1:
-+	/* Support for non-continuous CSI-2 clock is missing in pdata mode */
-+	cfg->flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-+
-+	if (state->bus.num_data_lanes > 0)
- 		cfg->flags |= V4L2_MBUS_CSI2_1_LANE;
--		break;
--	case 2:
-+	if (state->bus.num_data_lanes > 1)
- 		cfg->flags |= V4L2_MBUS_CSI2_2_LANE;
--		break;
--	case 3:
-+	if (state->bus.num_data_lanes > 2)
- 		cfg->flags |= V4L2_MBUS_CSI2_3_LANE;
--		break;
--	case 4:
-+	if (state->bus.num_data_lanes > 3)
- 		cfg->flags |= V4L2_MBUS_CSI2_4_LANE;
--		break;
--	default:
--		return -EINVAL;
--	}
- 
- 	return 0;
- }
-@@ -1885,6 +1886,7 @@ static int tc358743_probe(struct i2c_client *client,
- 	if (pdata) {
- 		state->pdata = *pdata;
- 		state->bus.flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-+		state->bus.num_data_lanes = 4;
- 	} else {
- 		err = tc358743_probe_of(state);
- 		if (err == -ENODEV)
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 93f8afcb7a220..fc106c902bf47 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -63,6 +63,14 @@
- 					 V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
- #define V4L2_MBUS_CSI2_CHANNELS		(V4L2_MBUS_CSI2_CHANNEL_0 | V4L2_MBUS_CSI2_CHANNEL_1 | \
- 					 V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
-+/*
-+ * Number of lanes in use, 0 == use all available lanes (default)
-+ *
-+ * This is a temporary fix for devices that need to reduce the number of active
-+ * lanes for certain modes, until g_mbus_config() can be replaced with a better
-+ * solution.
-+ */
-+#define V4L2_MBUS_CSI2_LANE_MASK                (0xf << 10)
- 
- /**
-  * enum v4l2_mbus_type - media bus type
--- 
-2.11.0
+smsusb:smsusb_probe: board id=1, interface number 0
+smsusb:siano_media_device_register: media controller created
+smsusb:smsusb1_detectmode: product string not found
+smsmdtv:smscore_set_device_mode: return error code -22.
+smsmdtv:smscore_start_device: set device mode failed , rc -22
+smsusb:smsusb_init_device: smscore_start_device(...) failed
+smsusb:smsusb_onresponse: error, urb status -2, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_probe: Device initialized with return code -22
+==================================================================
+BUG: KASAN: use-after-free in worker_thread+0x1468/0x1850
+Read of size 8 at addr ffff880063be11f0 by task kworker/1:1/1152
+
+CPU: 1 PID: 1152 Comm: kworker/1:1 Not tainted
+4.14.0-rc1-42251-gebb2c2437d80 #215
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16
+ dump_stack+0x292/0x395 lib/dump_stack.c:52
+ print_address_description+0x78/0x280 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351
+ kasan_report+0x22f/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x19/0x20 mm/kasan/report.c:430
+ worker_thread+0x1468/0x1850 kernel/workqueue.c:2251
+ kthread+0x3a1/0x470 kernel/kthread.c:231
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+
+Allocated by task 1848:
+ save_stack_trace+0x1b/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x11e/0x2d0 mm/slub.c:2772
+ kmalloc ./include/linux/slab.h:493
+ kzalloc ./include/linux/slab.h:666
+ smsusb_init_device+0xd5/0xd10 drivers/media/usb/siano/smsusb.c:407
+ smsusb_probe+0x4f5/0xdc0 drivers/media/usb/siano/smsusb.c:571
+ usb_probe_interface+0x35d/0x8e0 drivers/usb/core/driver.c:361
+ really_probe drivers/base/dd.c:413
+ driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
+ __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
+ bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
+ __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
+ device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
+ bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
+ device_add+0xd0b/0x1660 drivers/base/core.c:1835
+ usb_set_configuration+0x104e/0x1870 drivers/usb/core/message.c:1932
+ generic_probe+0x73/0xe0 drivers/usb/core/generic.c:174
+ usb_probe_device+0xaf/0xe0 drivers/usb/core/driver.c:266
+ really_probe drivers/base/dd.c:413
+ driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
+ __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
+ bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
+ __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
+ device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
+ bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
+ device_add+0xd0b/0x1660 drivers/base/core.c:1835
+ usb_new_device+0x7b8/0x1020 drivers/usb/core/hub.c:2457
+ hub_port_connect drivers/usb/core/hub.c:4903
+ hub_port_connect_change drivers/usb/core/hub.c:5009
+ port_event drivers/usb/core/hub.c:5115
+ hub_event+0x194d/0x3740 drivers/usb/core/hub.c:5195
+ process_one_work+0xc7f/0x1db0 kernel/workqueue.c:2119
+ worker_thread+0x221/0x1850 kernel/workqueue.c:2253
+ kthread+0x3a1/0x470 kernel/kthread.c:231
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+
+Freed by task 1848:
+ save_stack_trace+0x1b/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459
+ kasan_slab_free+0x72/0xc0 mm/kasan/kasan.c:524
+ slab_free_hook mm/slub.c:1390
+ slab_free_freelist_hook mm/slub.c:1412
+ slab_free mm/slub.c:2988
+ kfree+0xf6/0x2f0 mm/slub.c:3919
+ smsusb_term_device+0xd2/0x130 drivers/media/usb/siano/smsusb.c:363
+ smsusb_init_device+0xd03/0xd10 drivers/media/usb/siano/smsusb.c:492
+ smsusb_probe+0x4f5/0xdc0 drivers/media/usb/siano/smsusb.c:571
+ usb_probe_interface+0x35d/0x8e0 drivers/usb/core/driver.c:361
+ really_probe drivers/base/dd.c:413
+ driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
+ __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
+ bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
+ __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
+ device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
+ bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
+ device_add+0xd0b/0x1660 drivers/base/core.c:1835
+ usb_set_configuration+0x104e/0x1870 drivers/usb/core/message.c:1932
+ generic_probe+0x73/0xe0 drivers/usb/core/generic.c:174
+ usb_probe_device+0xaf/0xe0 drivers/usb/core/driver.c:266
+ really_probe drivers/base/dd.c:413
+ driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
+ __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
+ bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
+ __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
+ device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
+ bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
+ device_add+0xd0b/0x1660 drivers/base/core.c:1835
+ usb_new_device+0x7b8/0x1020 drivers/usb/core/hub.c:2457
+ hub_port_connect drivers/usb/core/hub.c:4903
+ hub_port_connect_change drivers/usb/core/hub.c:5009
+ port_event drivers/usb/core/hub.c:5115
+ hub_event+0x194d/0x3740 drivers/usb/core/hub.c:5195
+ process_one_work+0xc7f/0x1db0 kernel/workqueue.c:2119
+ worker_thread+0x221/0x1850 kernel/workqueue.c:2253
+ kthread+0x3a1/0x470 kernel/kthread.c:231
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+
+The buggy address belongs to the object at ffff880063be1100
+ which belongs to the cache kmalloc-4096 of size 4096
+The buggy address is located 240 bytes inside of
+ 4096-byte region [ffff880063be1100, ffff880063be2100)
+The buggy address belongs to the page:
+page:ffffea00018ef800 count:1 mapcount:0 mapping:          (null)
+index:0x0 compound_mapcount: 0
+flags: 0x100000000008100(slab|head)
+raw: 0100000000008100 0000000000000000 0000000000000000 0000000180070007
+raw: 0000000000000000 0000000100000001 ffff88006c402c00 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff880063be1080: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff880063be1100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff880063be1180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                             ^
+ ffff880063be1200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff880063be1280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================
