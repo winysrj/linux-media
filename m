@@ -1,235 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46951
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752081AbdIANY7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:24:59 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH v2 18/27] media: ca.h: get rid of CA_SET_PID
-Date: Fri,  1 Sep 2017 10:24:40 -0300
-Message-Id: <3ff9265e5a991b3c68a4eacc42ffd6c31574b0c4.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
+Received: from mail.kernel.org ([198.145.29.99]:34146 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750790AbdIUP64 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 11:58:56 -0400
+MIME-Version: 1.0
+In-Reply-To: <20170921092516.yzjelpxka4firnwx@paasikivi.fi.intel.com>
+References: <1505723105-16238-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1505723105-16238-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20170920142438.wva4a5gz7ikfnlyh@rob-hp-laptop> <20170921092516.yzjelpxka4firnwx@paasikivi.fi.intel.com>
+From: Rob Herring <robh@kernel.org>
+Date: Thu, 21 Sep 2017 10:58:34 -0500
+Message-ID: <CAL_JsqLX_cZv3_hwYjzFTcSkF+3bMoOeQw5qpFzT0W4agiXj1g@mail.gmail.com>
+Subject: Re: [PATCH 1/2] dt: bindings: media: Document port and endpoint numbering
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This ioctl seems to be some attempt to support a feature
-at the bt8xx dst_ca driver. Yet, as said there, it
-"needs more work". Right now, the code there is just
-a boilerplate.
+On Thu, Sep 21, 2017 at 4:25 AM, Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+> Hi Rob,
+>
+> Thanks for the reply.
+>
+> On Wed, Sep 20, 2017 at 03:53:13PM -0500, Rob Herring wrote:
+>> On Mon, Sep 18, 2017 at 11:25:04AM +0300, Sakari Ailus wrote:
+>> > A lot of devices do not need and do not document port or endpoint
+>> > numbering at all, e.g. in case where there's just a single port and a
+>> > single endpoint. Whereas this is just common sense, document it to make it
+>> > explicit.
+>> >
+>> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> > ---
+>> >  Documentation/devicetree/bindings/media/video-interfaces.txt | 12 ++++++++++++
+>> >  1 file changed, 12 insertions(+)
+>>
+>> This is fine, but bindings should still be explicit. Otherwise, I'm
+>> wondering if it's a single port/endpoint or they just forgot to document
+>> it. And I shouldn't have to look at the example to infer that.
+>>
+>> Acked-by: Rob Herring <robh@kernel.org>
+>
+> The purpose of the patch was to actually document port and endpoint
+> numbering for devices for which it is not documented, not to suggest that
+> this would be omitted in in binding documentation. The fact is that I
+> couldn't find documentation for endpoint numbering for a single device
+> under Documentation/devicetree/bindings/media/ . Yet I haven't come across
+> DT source where other than zero would have been used. And the drivers
+> (mostly?) have ignored endpoint numbers so far.
 
-At the end of the day, no driver uses this ioctl, nor it is
-documented anywhere (except for "needs more work").
+That's surprising. I know there are some for display controllers and
+it's a common review comment I give.
 
-So, get rid of it.
+>
+> Some bindings have been omitted on the grounds that they're documented in
+> video-interfaces.txt.
+>
+> What would you think of the following? I'm not sure it'd really belong
+> there, but it'd be a small piece of documentation one can easily refer to.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/ca.h.rst.exceptions            |  1 -
- Documentation/media/dvb-drivers/ci.rst             |  1 -
- Documentation/media/uapi/dvb/ca-set-pid.rst        | 60 ----------------------
- Documentation/media/uapi/dvb/ca_data_types.rst     | 14 -----
- Documentation/media/uapi/dvb/ca_function_calls.rst |  1 -
- drivers/media/pci/bt8xx/dst_ca.c                   | 16 ------
- include/uapi/linux/dvb/ca.h                        |  7 ---
- 7 files changed, 100 deletions(-)
- delete mode 100644 Documentation/media/uapi/dvb/ca-set-pid.rst
+Looks good.
 
-diff --git a/Documentation/media/ca.h.rst.exceptions b/Documentation/media/ca.h.rst.exceptions
-index d7c9fed8c004..553559cc6ad7 100644
---- a/Documentation/media/ca.h.rst.exceptions
-+++ b/Documentation/media/ca.h.rst.exceptions
-@@ -16,7 +16,6 @@ replace define CA_NDS :c:type:`ca_descr_info`
- replace define CA_DSS :c:type:`ca_descr_info`
- 
- # some typedefs should point to struct/enums
--replace typedef ca_pid_t :c:type:`ca_pid`
- replace typedef ca_slot_info_t :c:type:`ca_slot_info`
- replace typedef ca_descr_info_t :c:type:`ca_descr_info`
- replace typedef ca_caps_t :c:type:`ca_caps`
-diff --git a/Documentation/media/dvb-drivers/ci.rst b/Documentation/media/dvb-drivers/ci.rst
-index 69b07e9d1816..87f3748c49b9 100644
---- a/Documentation/media/dvb-drivers/ci.rst
-+++ b/Documentation/media/dvb-drivers/ci.rst
-@@ -143,7 +143,6 @@ All these ioctls are also valid for the High level CI interface
- #define CA_GET_MSG        _IOR('o', 132, ca_msg_t)
- #define CA_SEND_MSG       _IOW('o', 133, ca_msg_t)
- #define CA_SET_DESCR      _IOW('o', 134, ca_descr_t)
--#define CA_SET_PID        _IOW('o', 135, ca_pid_t)
- 
- 
- On querying the device, the device yields information thus:
-diff --git a/Documentation/media/uapi/dvb/ca-set-pid.rst b/Documentation/media/uapi/dvb/ca-set-pid.rst
-deleted file mode 100644
-index 891c1c72ef24..000000000000
---- a/Documentation/media/uapi/dvb/ca-set-pid.rst
-+++ /dev/null
-@@ -1,60 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--.. _CA_SET_PID:
--
--==========
--CA_SET_PID
--==========
--
--Name
------
--
--CA_SET_PID
--
--
--Synopsis
----------
--
--.. c:function:: int ioctl(fd, CA_SET_PID, struct ca_pid *pid)
--    :name: CA_SET_PID
--
--
--Arguments
-----------
--
--``fd``
--  File descriptor returned by a previous call to :c:func:`open() <dvb-ca-open>`.
--
--``pid``
--  Pointer to struct :c:type:`ca_pid`.
--
--.. c:type:: ca_pid
--
--.. flat-table:: struct ca_pid
--    :header-rows:  1
--    :stub-columns: 0
--
--    -
--       - unsigned int
--       - pid
--       - Program ID
--
--    -
--       - int
--       - index
--       - PID index. Use -1 to disable.
--
--
--
--Description
-------------
--
--.. note:: This ioctl is undocumented. Documentation is welcome.
--
--
--Return Value
--------------
--
--On success 0 is returned, on error -1 and the ``errno`` variable is set
--appropriately. The generic error codes are described at the
--:ref:`Generic Error Codes <gen-errors>` chapter.
-diff --git a/Documentation/media/uapi/dvb/ca_data_types.rst b/Documentation/media/uapi/dvb/ca_data_types.rst
-index d9e27c77426c..555b5137936b 100644
---- a/Documentation/media/uapi/dvb/ca_data_types.rst
-+++ b/Documentation/media/uapi/dvb/ca_data_types.rst
-@@ -94,17 +94,3 @@ ca_descr_t
- 	unsigned int parity;
- 	unsigned char cw[8];
-     } ca_descr_t;
--
--
--.. c:type:: ca_pid
--
--ca-pid
--======
--
--
--.. code-block:: c
--
--    typedef struct ca_pid {
--	unsigned int pid;
--	int index;      /* -1 == disable*/
--    } ca_pid_t;
-diff --git a/Documentation/media/uapi/dvb/ca_function_calls.rst b/Documentation/media/uapi/dvb/ca_function_calls.rst
-index c085a0ebbc05..87d697851e82 100644
---- a/Documentation/media/uapi/dvb/ca_function_calls.rst
-+++ b/Documentation/media/uapi/dvb/ca_function_calls.rst
-@@ -18,4 +18,3 @@ CA Function Calls
-     ca-get-msg
-     ca-send-msg
-     ca-set-descr
--    ca-set-pid
-diff --git a/drivers/media/pci/bt8xx/dst_ca.c b/drivers/media/pci/bt8xx/dst_ca.c
-index 90f4263452d3..7db47d8bbe15 100644
---- a/drivers/media/pci/bt8xx/dst_ca.c
-+++ b/drivers/media/pci/bt8xx/dst_ca.c
-@@ -64,13 +64,6 @@ static int ca_set_slot_descr(void)
- 	return -EOPNOTSUPP;
- }
- 
--/*	Need some more work	*/
--static int ca_set_pid(void)
--{
--	/*	We could make this more graceful ?	*/
--	return -EOPNOTSUPP;
--}
--
- static void put_command_and_length(u8 *data, int command, int length)
- {
- 	data[0] = (command >> 16) & 0xff;
-@@ -629,15 +622,6 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
- 		}
- 		dprintk(verbose, DST_CA_INFO, 1, " -->CA_SET_DESCR Success !");
- 		break;
--	case CA_SET_PID:
--		dprintk(verbose, DST_CA_INFO, 1, " Setting PID");
--		if ((ca_set_pid()) < 0) {
--			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_SET_PID Failed !");
--			result = -1;
--			goto free_mem_and_exit;
--		}
--		dprintk(verbose, DST_CA_INFO, 1, " -->CA_SET_PID Success !");
--		break;
- 	default:
- 		result = -EOPNOTSUPP;
- 	}
-diff --git a/include/uapi/linux/dvb/ca.h b/include/uapi/linux/dvb/ca.h
-index 00cf24587bea..859f6c0c4751 100644
---- a/include/uapi/linux/dvb/ca.h
-+++ b/include/uapi/linux/dvb/ca.h
-@@ -73,11 +73,6 @@ struct ca_descr {
- 	unsigned char cw[8];
- };
- 
--struct ca_pid {
--	unsigned int pid;
--	int index;		/* -1 == disable*/
--};
--
- #define CA_RESET          _IO('o', 128)
- #define CA_GET_CAP        _IOR('o', 129, struct ca_caps)
- #define CA_GET_SLOT_INFO  _IOR('o', 130, struct ca_slot_info)
-@@ -85,7 +80,6 @@ struct ca_pid {
- #define CA_GET_MSG        _IOR('o', 132, struct ca_msg)
- #define CA_SEND_MSG       _IOW('o', 133, struct ca_msg)
- #define CA_SET_DESCR      _IOW('o', 134, struct ca_descr)
--#define CA_SET_PID        _IOW('o', 135, struct ca_pid)
- 
- #if !defined (__KERNEL__)
- 
-@@ -95,7 +89,6 @@ typedef struct ca_descr_info  ca_descr_info_t;
- typedef struct ca_caps  ca_caps_t;
- typedef struct ca_msg ca_msg_t;
- typedef struct ca_descr ca_descr_t;
--typedef struct ca_pid ca_pid_t;
- 
- #endif
- 
--- 
-2.13.5
+>
+>
+> From e735979005244eb10597fe5333130b93e41d5a38 Mon Sep 17 00:00:00 2001
+> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Date: Mon, 18 Sep 2017 11:15:53 +0300
+> Subject: [PATCH 1/1] dt: bindings: media: Document practices for DT bindings,
+>  ports, endpoints
+>
+> Port and endpoint numbering has been omitted in DT binding documentation
+> for a large number of devices. Also common properties the device uses have
+> been missed in binding documentation. Make it explicit that these things
+> need to be documented.
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  .../devicetree/bindings/media/video-interfaces.txt        | 15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
+>
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index 852041a..3c5382f 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -55,6 +55,21 @@ divided into two separate ITU-R BT.656 8-bit busses.  In such case bus-width
+>  and data-shift properties can be used to assign physical data lines to each
+>  endpoint node (logical bus).
+>
+> +Documenting bindings for devices
+> +--------------------------------
+> +
+> +All required and optional bindings the device supports shall be explicitly
+> +documented in device DT binding documentation. This also includes port and
+> +endpoint numbering for the device.
+> +
+> +Port and endpoint numbering
+> +---------------------------
+> +
+> +Old binding documentation may have omitted explicitly specifying port and
+> +endpoint numbers. This often applies to devices that have a single port and a
+> +single endpoint in that port. In this case, the only valid port number for such
+> +a device is zero. The same applies for devices for which bindings do not
+> +document endpoint numbering: only zero is a valid endpoint.
+>
+>  Required properties
+>  -------------------
+> --
+> 2.7.4
+>
+> --
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
