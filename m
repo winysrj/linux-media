@@ -1,46 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45498 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751434AbdIOOSA (ORCPT
+Received: from us-smtp-delivery-107.mimecast.com ([63.128.21.107]:59503 "EHLO
+        us-smtp-delivery-107.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750790AbdIUQJc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 10:18:00 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v13 08/25] omap3isp: Fix check for our own sub-devices
-Date: Fri, 15 Sep 2017 17:17:07 +0300
-Message-Id: <20170915141724.23124-9-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+        Thu, 21 Sep 2017 12:09:32 -0400
+Subject: Re: [PATCH v3 2/2] media: rc: Add driver for tango HW IR decoder
+To: Mans Rullgard <mans@mansr.com>
+CC: Sean Young <sean@mess.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Mason <slash.tmp@free.fr>
+References: <0e433f1b-ec16-5fce-ab21-085f69e266ce@free.fr>
+ <4fe2e398-ba7d-3670-f29b-fe3c5e079b39@free.fr> <yw1xbmm4xdfr.fsf@mansr.com>
+From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+Message-ID: <f510d7a6-0b6a-002b-3aad-7dd634392d07@sigmadesigns.com>
+Date: Thu, 21 Sep 2017 18:09:24 +0200
+MIME-Version: 1.0
+In-Reply-To: <yw1xbmm4xdfr.fsf@mansr.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We only want to link sub-devices that were bound to the async notifier the
-isp driver registered but there may be other sub-devices in the
-v4l2_device as well. Check for the correct async notifier.
+On 21/09/2017 17:46, Måns Rullgård wrote:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
----
- drivers/media/platform/omap3isp/isp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> Marc Gonzalez writes:
+> 
+>> From: Mans Rullgard <mans@mansr.com>
+>>
+>> The tango HW IR decoder supports NEC, RC-5, RC-6 protocols.
+>>
+>> Signed-off-by: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+> 
+> Have you been able to test all the protocols?  Universal remotes usually
+> support something or other with each of them.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index a546cf774d40..3b1a9cd0e591 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2155,7 +2155,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- 		return ret;
- 
- 	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
--		if (!sd->asd)
-+		if (sd->notifier != &isp->notifier)
- 			continue;
- 
- 		ret = isp_link_entity(isp, &sd->entity,
--- 
-2.11.0
+I found the Great Pile of Remotes locked away in a drawer.
+Played "What kind of batteries do you eat?" for about an hour.
+And found several NEC remotes, one RC-5, and one RC-6.
+Repeats seem to be handled differently than for NEC.
+I'll take a closer look.
+
+>> +	err = devm_request_irq(dev, irq, tango_ir_irq, IRQF_SHARED, dev_name(dev), ir);
+>> +	if (err)
+>> +		return err;
+> 
+> You shouldn't enable the irq until after you've configured the device.
+> Otherwise you have no idea what state it's in, and it might start firing
+> unexpectedly.
+> 
+> My original code did this properly.  Why did you move it?
+
+I got caught up in the great devm rewrite.
+Will take another swipe at it on Monday.
+
+>> +	writel_relaxed(0x110, ir->rc5_base + IR_CTRL);
+> 
+> Since you've defined DISABLE_NEC above, I think you should use it here too.
+
+OK.
+
+Regards.
