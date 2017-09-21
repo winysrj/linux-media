@@ -1,54 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49452 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754266AbdIYWZv (ORCPT
+Received: from mail-lf0-f52.google.com ([209.85.215.52]:44370 "EHLO
+        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751521AbdIUIhn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 18:25:51 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v14 12/28] v4l: async: Register sub-devices before calling bound callback
-Date: Tue, 26 Sep 2017 01:25:23 +0300
-Message-Id: <20170925222540.371-13-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170925222540.371-1-sakari.ailus@linux.intel.com>
-References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+        Thu, 21 Sep 2017 04:37:43 -0400
+Date: Thu, 21 Sep 2017 10:37:39 +0200
+From: Johan Hovold <johan@kernel.org>
+To: Andrey Konovalov <andreyknvl@google.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Oleh Kravchenko <oleg@kaa.org.ua>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Johan Hovold <johan@kernel.org>, linux-media@vger.kernel.org,
+        LKML <linux-kernel@vger.kernel.org>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        syzkaller <syzkaller@googlegroups.com>
+Subject: Re: usb/media/cx231xx: null-ptr-deref in cx231xx_usb_probe
+Message-ID: <20170921083739.GI3198@localhost>
+References: <CAAeHK+zQm2DJT-1POrnB+1OFGVdTCOg+rpZODW=UPyLM1Ysr=g@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAeHK+zQm2DJT-1POrnB+1OFGVdTCOg+rpZODW=UPyLM1Ysr=g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Register the sub-device before calling the notifier's bound callback.
-Doing this the other way around is problematic as the struct v4l2_device
-has not assigned for the sub-device yet and may be required by the bound
-callback.
+On Wed, Sep 20, 2017 at 08:54:08PM +0200, Andrey Konovalov wrote:
+> Hi!
+> 
+> I've got the following report while fuzzing the kernel with syzkaller.
+> 
+> On commit ebb2c2437d8008d46796902ff390653822af6cc4 (Sep 18).
+> 
+> The null-ptr-deref happens on assoc_desc->bFirstInterface, where
+> assoc_desc = udev->actconfig->intf_assoc[0]. There seems to be no
+> check that the device actually contains an Interface Association
+> Descriptor.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+That is indeed a bug; I'll respond to this mail with a fix.
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 8eed6676f15c..933ad9ec4ba7 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -130,13 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- {
- 	int ret;
- 
--	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
-+	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
- 	if (ret < 0)
- 		return ret;
- 
--	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
-+	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
- 	if (ret < 0) {
--		v4l2_async_notifier_call_unbind(notifier, sd, asd);
-+		v4l2_device_unregister_subdev(sd);
- 		return ret;
- 	}
- 
--- 
-2.11.0
+Thanks,
+Johan
