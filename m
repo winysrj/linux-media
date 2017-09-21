@@ -1,100 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38289 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750972AbdISMnn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 08:43:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
-        sre@kernel.org
-Subject: Re: [PATCH v13 11/25] v4l: async: Introduce helpers for calling async ops callbacks
-Date: Tue, 19 Sep 2017 15:43:48 +0300
-Message-ID: <2693952.YdpSRMO0xE@avalon>
-In-Reply-To: <20170919121311.n2fvoo7tebywsc5d@paasikivi.fi.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com> <1751597.tWjkEME5YS@avalon> <20170919121311.n2fvoo7tebywsc5d@paasikivi.fi.intel.com>
+Received: from mout.web.de ([212.227.17.11]:50961 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751636AbdIUT03 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 15:26:29 -0400
+Subject: [PATCH 3/3] [media] uvcvideo: Add some spaces for better code
+ readability
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <20a8d1a5-45f1-2f98-e4b3-cfc24e9c04b0@users.sourceforge.net>
+Message-ID: <74183bb1-f78e-9ca1-06ab-9de5c00a5fe5@users.sourceforge.net>
+Date: Thu, 21 Sep 2017 21:26:23 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20a8d1a5-45f1-2f98-e4b3-cfc24e9c04b0@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 21 Sep 2017 21:12:29 +0200
 
-On Tuesday, 19 September 2017 15:13:11 EEST Sakari Ailus wrote:
-> On Tue, Sep 19, 2017 at 03:01:14PM +0300, Laurent Pinchart wrote:
-> > On Friday, 15 September 2017 17:17:10 EEST Sakari Ailus wrote:
-> >> Add three helper functions to call async operations callbacks. Besides
-> >> simplifying callbacks, this allows async notifiers to have no ops set,
-> >> i.e. it can be left NULL.
-> >> 
-> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >> 
-> >>  drivers/media/v4l2-core/v4l2-async.c | 49 +++++++++++++++++++++--------
-> >>  include/media/v4l2-async.h           |  1 +
-> >>  2 files changed, 37 insertions(+), 13 deletions(-)
-> >> 
-> >> diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> >> b/drivers/media/v4l2-core/v4l2-async.c index 7b2125b3d62f..c35d04b9122f
-> >> 100644
-> >> --- a/drivers/media/v4l2-core/v4l2-async.c
-> >> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> >> @@ -25,6 +25,34 @@
-> >> 
-> >>  #include <media/v4l2-fwnode.h>
-> >>  #include <media/v4l2-subdev.h>
-> >> 
-> >> +static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier
-> >> *n,
-> >> +					  struct v4l2_subdev *subdev,
-> >> +					  struct v4l2_async_subdev *asd)
-> >> +{
-> >> +	if (!n->ops || !n->ops->bound)
-> >> +		return 0;
-> >> +
-> >> +	return n->ops->bound(n, subdev, asd);
-> >> +}
-> >> +
-> >> +static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier
-> >> *n,
-> >> +					    struct v4l2_subdev *subdev,
-> >> +					    struct v4l2_async_subdev *asd)
-> >> +{
-> >> +	if (!n->ops || !n->ops->unbind)
-> >> +		return;
-> >> +
-> >> +	n->ops->unbind(n, subdev, asd);
-> >> +}
-> >> +
-> >> +static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier
-> >> *n)
-> >> +{
-> >> +	if (!n->ops || !n->ops->complete)
-> >> +		return 0;
-> >> +
-> >> +	return n->ops->complete(n);
-> >> +}
-> >> +
-> > 
-> > Wouldn't it be enough to add a single v4l2_async_notifier_call() macro ?
-> > 
-> > #define v4l2_async_notifier_call(n, op, args...) \
-> > 
-> > 	((n)->ops && (n)->ops->op ? (n)->ops->op(n, ##args) : 0)
-> 
-> I actually had that in an earlier version but I changed it based on review
-> comments from Hans. A single macro isn't enough: some functions have int
-> return type. I think the way it is now is nicer.
+Use space characters at some source code places according to
+the Linux coding style convention.
 
-What bothers me there is the overhead of a function call.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/uvc/uvc_v4l2.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-By the way, what's the use case for ops being NULL ?
-
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 184edf8a0885..cebaba5c4e86 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -123,13 +123,13 @@ static __u32 uvc_try_frame_interval(struct uvc_frame *frame, __u32 interval)
+ 			best = dist;
+ 		}
+ 
+-		interval = frame->dwFrameInterval[i-1];
++		interval = frame->dwFrameInterval[i - 1];
+ 	} else {
+ 		const __u32 min = frame->dwFrameInterval[0];
+ 		const __u32 max = frame->dwFrameInterval[1];
+ 		const __u32 step = frame->dwFrameInterval[2];
+ 
+-		interval = min + (interval - min + step/2) / step * step;
++		interval = min + (interval - min + step / 2) / step * step;
+ 		if (interval > max)
+ 			interval = max;
+ 	}
+@@ -201,7 +201,7 @@ static int uvc_v4l2_try_format(struct uvc_streaming *stream,
+ 		__u16 h = format->frame[i].wHeight;
+ 
+ 		d = min(w, rw) * min(h, rh);
+-		d = w*h + rw*rh - 2*d;
++		d = w * h + rw * rh - 2 * d;
+ 		if (d < maxd) {
+ 			maxd = d;
+ 			frame = &format->frame[i];
+@@ -219,9 +219,10 @@ static int uvc_v4l2_try_format(struct uvc_streaming *stream,
+ 
+ 	/* Use the default frame interval. */
+ 	interval = frame->dwDefaultFrameInterval;
+-	uvc_trace(UVC_TRACE_FORMAT, "Using default frame interval %u.%u us "
+-		"(%u.%u fps).\n", interval/10, interval%10, 10000000/interval,
+-		(100000000/interval)%10);
++	uvc_trace(UVC_TRACE_FORMAT,
++		  "Using default frame interval %u.%u us (%u.%u fps).\n",
++		  interval / 10, interval % 10,
++		  10000000 / interval, (100000000 / interval) % 10);
+ 
+ 	/* Set the format index, frame index and frame interval. */
+ 	memset(probe, 0, sizeof *probe);
 -- 
-Regards,
-
-Laurent Pinchart
+2.14.1
