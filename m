@@ -1,136 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41202 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751795AbdIVHmM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 03:42:12 -0400
-Date: Fri, 22 Sep 2017 10:42:10 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Rob Herring <robh@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: Re: [PATCH 1/2] dt: bindings: media: Document port and endpoint
- numbering
-Message-ID: <20170922074209.2vk4ph6uvlzdbgqq@valkosipuli.retiisi.org.uk>
-References: <1505723105-16238-1-git-send-email-sakari.ailus@linux.intel.com>
- <1505723105-16238-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170920142438.wva4a5gz7ikfnlyh@rob-hp-laptop>
- <20170921092516.yzjelpxka4firnwx@paasikivi.fi.intel.com>
- <CAL_JsqLX_cZv3_hwYjzFTcSkF+3bMoOeQw5qpFzT0W4agiXj1g@mail.gmail.com>
+Received: from pide.tip.net.au ([203.10.76.2]:54752 "EHLO pide.tip.net.au"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751521AbdIUH60 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 03:58:26 -0400
+Received: from pide.tip.net.au (pide.tip.net.au [203.10.76.2])
+        by mailhost.tip.net.au (Postfix) with ESMTP id 3xyTN20RcmzFt0L
+        for <linux-media@vger.kernel.org>; Thu, 21 Sep 2017 17:52:02 +1000 (AEST)
+Received: from e4.eyal.emu.id.au (124-171-202-151.dyn.iinet.net.au [124.171.202.151])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by pide.tip.net.au (Postfix) with ESMTPSA id 3xyTN16hp0z97R4
+        for <linux-media@vger.kernel.org>; Thu, 21 Sep 2017 17:52:01 +1000 (AEST)
+From: Eyal Lebedinsky <eyal@eyal.emu.id.au>
+Subject: Hauppauge Nova-TD Stick fails on f26
+To: list linux-media <linux-media@vger.kernel.org>
+Message-ID: <112b92fe-5842-5aed-93db-3c2679c3d50f@eyal.emu.id.au>
+Date: Thu, 21 Sep 2017 17:52:01 +1000
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAL_JsqLX_cZv3_hwYjzFTcSkF+3bMoOeQw5qpFzT0W4agiXj1g@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-AU
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 21, 2017 at 10:58:34AM -0500, Rob Herring wrote:
-> On Thu, Sep 21, 2017 at 4:25 AM, Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> > Hi Rob,
-> >
-> > Thanks for the reply.
-> >
-> > On Wed, Sep 20, 2017 at 03:53:13PM -0500, Rob Herring wrote:
-> >> On Mon, Sep 18, 2017 at 11:25:04AM +0300, Sakari Ailus wrote:
-> >> > A lot of devices do not need and do not document port or endpoint
-> >> > numbering at all, e.g. in case where there's just a single port and a
-> >> > single endpoint. Whereas this is just common sense, document it to make it
-> >> > explicit.
-> >> >
-> >> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> > ---
-> >> >  Documentation/devicetree/bindings/media/video-interfaces.txt | 12 ++++++++++++
-> >> >  1 file changed, 12 insertions(+)
-> >>
-> >> This is fine, but bindings should still be explicit. Otherwise, I'm
-> >> wondering if it's a single port/endpoint or they just forgot to document
-> >> it. And I shouldn't have to look at the example to infer that.
-> >>
-> >> Acked-by: Rob Herring <robh@kernel.org>
-> >
-> > The purpose of the patch was to actually document port and endpoint
-> > numbering for devices for which it is not documented, not to suggest that
-> > this would be omitted in in binding documentation. The fact is that I
-> > couldn't find documentation for endpoint numbering for a single device
-> > under Documentation/devicetree/bindings/media/ . Yet I haven't come across
-> > DT source where other than zero would have been used. And the drivers
-> > (mostly?) have ignored endpoint numbers so far.
-> 
-> That's surprising. I know there are some for display controllers and
-> it's a common review comment I give.
+I have an unusual problem with this tuner. On my workstation (f26) it works fine and I can watch
+TV using vlc or tune with tzap.
 
-On V4L2 side we only have started paying attention recently. See e.g.
+On my mythtv server (which was recently upgraded to f26) the card does not work. An adapter is not created
+in /dev/dvb.
 
-	Documentation/devicetree/bindings/media/atmel-isc.txt
-	Documentation/devicetree/bindings/media/ti,omap3isp.txt
-	Documentation/devicetree/bindings/media/qcom,camss.txt
+The server has a few other tuners and it may be some interference causing the failure, but the reason
+is beyond me.
 
-> 
-> >
-> > Some bindings have been omitted on the grounds that they're documented in
-> > video-interfaces.txt.
-> >
-> > What would you think of the following? I'm not sure it'd really belong
-> > there, but it'd be a small piece of documentation one can easily refer to.
-> 
-> Looks good.
+This is what is loaded after the tuner is plugged in:
 
-I'll resend the set, replacing the original patch.
+$ sudo lsmod|grep dvb
+dvb_usb_dib0700       151552  0
+dib7000m               24576  1 dvb_usb_dib0700
+dib0090                40960  1 dvb_usb_dib0700
+dib0070                20480  1 dvb_usb_dib0700
+dib3000mc              20480  1 dvb_usb_dib0700
+dibx000_common         16384  4 dib7000p,dvb_usb_dib0700,dib7000m,dib3000mc
+dvb_usb                24576  1 dvb_usb_dib0700
+dvb_usb_af9035         40960  0
+dvb_usb_rtl28xxu       40960  0
+dvb_usb_v2             40960  2 dvb_usb_af9035,dvb_usb_rtl28xxu
+dvb_core              126976  5 dib7000p,dvb_usb,dvb_usb_v2,rtl2832,af9033
+rc_core                36864  16 dvb_usb_af9035,ir_nec_decoder,dvb_usb_dib0700,ir_lirc_codec,dvb_usb,lirc_dev,dvb_usb_v2,nuvoton_cir,dvb_usb_rtl28xxu,rc_leadtek_y04g0051
 
-> 
-> >
-> >
-> > From e735979005244eb10597fe5333130b93e41d5a38 Mon Sep 17 00:00:00 2001
-> > From: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Date: Mon, 18 Sep 2017 11:15:53 +0300
-> > Subject: [PATCH 1/1] dt: bindings: media: Document practices for DT bindings,
-> >  ports, endpoints
-> >
-> > Port and endpoint numbering has been omitted in DT binding documentation
-> > for a large number of devices. Also common properties the device uses have
-> > been missed in binding documentation. Make it explicit that these things
-> > need to be documented.
-> >
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  .../devicetree/bindings/media/video-interfaces.txt        | 15 +++++++++++++++
-> >  1 file changed, 15 insertions(+)
-> >
-> > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > index 852041a..3c5382f 100644
-> > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > @@ -55,6 +55,21 @@ divided into two separate ITU-R BT.656 8-bit busses.  In such case bus-width
-> >  and data-shift properties can be used to assign physical data lines to each
-> >  endpoint node (logical bus).
-> >
-> > +Documenting bindings for devices
-> > +--------------------------------
-> > +
-> > +All required and optional bindings the device supports shall be explicitly
-> > +documented in device DT binding documentation. This also includes port and
-> > +endpoint numbering for the device.
-> > +
-> > +Port and endpoint numbering
-> > +---------------------------
-> > +
-> > +Old binding documentation may have omitted explicitly specifying port and
-> > +endpoint numbers. This often applies to devices that have a single port and a
-> > +single endpoint in that port. In this case, the only valid port number for such
-> > +a device is zero. The same applies for devices for which bindings do not
-> > +document endpoint numbering: only zero is a valid endpoint.
-> >
-> >  Required properties
-> >  -------------------
-> > --
-> > 2.7.4
-> >
-> > --
-> > Sakari Ailus
-> > sakari.ailus@linux.intel.com
+This is the failure on the server:
+
+kernel: usb 8-2: new high-speed USB device number 3 using xhci_hcd
+kernel: usb 8-2: New USB device found, idVendor=2040, idProduct=9580
+kernel: usb 8-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+kernel: usb 8-2: Product: NovaT 500Stick
+kernel: usb 8-2: Manufacturer: Hauppauge
+kernel: usb 8-2: SerialNumber: 4027868935
+mtp-probe[19770]: checking bus 8, device 3: "/sys/devices/pci0000:00/0000:00:14.0/usb8/8-2"
+mtp-probe[19770]: bus: 8, device: 3 was not an MTP device
+kernel: dvb-usb: found a 'Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity' in cold state, will try to load a firmware
+kernel: dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+kernel: dib0700: firmware started successfully.
+kernel: dvb-usb: found a 'Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity' in warm state.
+kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+kernel: dvbdev: DVB: registering new adapter (Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity)
+baloo_file[2975]: QObject::connect: invalid null parameter
+baloo_file[2975]: QObject::connect: invalid null parameter
+baloo_file[2975]: QObject::connect: invalid null parameter
+kernel: usb 8-2: DVB: registering adapter 7 frontend 0 (DiBcom 7000PC)...
+	### note: /dev/dvb/adapter7 was present for about 1 second and then disappeared
+baloo_file[2975]: QObject::connect: invalid null parameter
+kernel: MT2266: successfully identified
+kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+kernel: dvb-usb: Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity error while loading driver (-23)
+kernel: usbcore: registered new interface driver dvb_usb_dib0700
+
+For comparo, here is a successful result on the workstation:
+
+kernel: usb 2-3: new high-speed USB device number 3 using ehci-pci
+kernel: usb 2-3: New USB device found, idVendor=2040, idProduct=9580
+kernel: usb 2-3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+kernel: usb 2-3: Product: NovaT 500Stick
+kernel: usb 2-3: Manufacturer: Hauppauge
+kernel: usb 2-3: SerialNumber: 4027868935
+mtp-probe[17719]: checking bus 2, device 3: "/sys/devices/pci0000:00/0000:00:1d.7/usb2/2-3"
+mtp-probe[17719]: bus: 2, device: 3 was not an MTP device
+kernel: dvb-usb: found a 'Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity' in cold state, will try to load a firmware
+kernel: dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+kernel: dib0700: firmware started successfully.
+kernel: dvb-usb: found a 'Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity' in warm state.
+kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+kernel: dvbdev: DVB: registering new adapter (Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity)
+baloo_file[2874]: QObject::connect: invalid null parameter
+baloo_file[2874]: QObject::connect: invalid null parameter
+baloo_file[2874]: QObject::connect: invalid null parameter
+kernel: usb 2-3: DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+baloo_file[2874]: QObject::connect: invalid null parameter
+kernel: MT2266: successfully identified
+kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+kernel: dvbdev: DVB: registering new adapter (Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity)
+baloo_file[2874]: QObject::connect: invalid null parameter
+baloo_file[2874]: QObject::connect: invalid null parameter
+baloo_file[2874]: QObject::connect: invalid null parameter
+kernel: usb 2-3: DVB: registering adapter 1 frontend 0 (DiBcom 7000PC)...
+baloo_file[2874]: QObject::connect: invalid null parameter
+kernel: MT2266: successfully identified
+kernel: rc rc0: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb2/2-3/rc/rc0
+kernel: Registered IR keymap rc-dib0700-rc5
+kernel: input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb2/2-3/rc/rc0/input21
+kernel: dvb-usb: schedule remote query interval to 50 msecs.
+kernel: dvb-usb: Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity successfully initialized and connected.
+kernel: usbcore: registered new interface driver dvb_usb_dib0700
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Eyal Lebedinsky (eyal@eyal.emu.id.au)
