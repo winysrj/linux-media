@@ -1,77 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:56805 "EHLO gofer.mess.org"
+Received: from mga09.intel.com ([134.134.136.24]:6585 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751387AbdIULTI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 07:19:08 -0400
-Date: Thu, 21 Sep 2017 12:19:06 +0100
-From: Sean Young <sean@mess.org>
-To: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
-Cc: Mans Rullgard <mans@mansr.com>, Rob Herring <robh@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>,
-        Mason <slash.tmp@free.fr>
-Subject: Re: [PATCH v1] media: rc: Add driver for tango IR decoder
-Message-ID: <20170921111905.bk2msst462eycrpr@gofer.mess.org>
-References: <e05783d3-012d-0798-9a54-ff42039e728d@sigmadesigns.com>
- <yw1xd16oyqas.fsf@mansr.com>
- <569e41a9-57c9-3d6f-4157-dffb23f997c6@sigmadesigns.com>
- <yw1xwp4uyj3n.fsf@mansr.com>
- <f4478664-be7f-5193-372c-54b972776fbb@sigmadesigns.com>
+        id S1751826AbdIUH3R (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 03:29:17 -0400
+Subject: Re: [PATCH] dma-fence: fix dma_fence_get_rcu_safe
+To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
+        Daniel Vetter <daniel@ffwll.ch>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
+References: <1504531653-13779-1-git-send-email-deathsimple@vodafone.de>
+ <150453243791.23157.6907537389223890207@mail.alporthouse.com>
+ <67fe7e05-7743-40c8-558b-41b08eb986e9@amd.com>
+ <150512037119.16759.472484663447331384@mail.alporthouse.com>
+ <3c412ee3-854a-292a-e036-7c5fd7888979@amd.com>
+ <150512178199.16759.73667469529688@mail.alporthouse.com>
+ <5ff4b100-b580-a93d-aa5e-c66173ac091d@amd.com>
+ <150512410278.16759.10537429613477592631@mail.alporthouse.com>
+ <79e447f8-f2e3-57e3-b5fe-503e5feb2f82@amd.com>
+ <CAKMK7uGkEFzbrhAS1qWs-g3dC20jubXitR5ALkTg4PhMwoQ-Rg@mail.gmail.com>
+ <7f14fc7c-2d56-598b-5049-0155df8327e4@amd.com>
+From: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Message-ID: <2040482c-b0b7-a527-6fe6-5e37f238ec90@linux.intel.com>
+Date: Thu, 21 Sep 2017 09:29:13 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <7f14fc7c-2d56-598b-5049-0155df8327e4@amd.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <f4478664-be7f-5193-372c-54b972776fbb@sigmadesigns.com>
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 19, 2017 at 02:43:17PM +0200, Marc Gonzalez wrote:
-> + Rob & Mark for the DT bindings question.
-> 
-> On 19/09/2017 14:21, Måns Rullgård wrote:
-> 
-> > Marc Gonzalez writes:
-> > 
-> >> On 18/09/2017 17:33, Måns Rullgård wrote:
-> >>
-> >>> What have you changed compared to my original code?
-> >>
-> >> I forgot to mention one change you may not approve of, so we should
-> >> probably discuss it.
-> >>
-> >> Your driver supported an optional DT property "linux,rc-map-name"
-> >> to override the RC_MAP_EMPTY map. Since the IR decoder supports
-> >> multiple protocols, I found it odd to specify a scancode map in
-> >> something as low-level as the device tree.
-> >>
-> >> I saw only one board using that property:
-> >> $ git grep "linux,rc-map-name" arch/
-> >> arch/arm64/boot/dts/amlogic/meson-gxl-s905x-khadas-vim.dts:     linux,rc-map-name = "rc-geekbox";
-> >>
-> >> So I removed support for "linux,rc-map-name" and used ir-keytable
-> >> to load a given map from user-space, depending on which RC I use.
-> >>
-> >> Mans, Sean, what do you think?
-> > 
-> > The property is documented as common for IR receivers although only a
-> > few drivers seem to actually implement the feature.  Since driver
-> > support is trivial, I see no reason to skip it.  Presumably someone
-> > had a use for it, or it wouldn't have been added.
-> 
-> I do not dispute the usefulness of the "linux,rc-map-name" property
-> in general, e.g. for boards that support a single remote control.
-> 
-> I am arguing that the person writing the device tree has no way of
-> knowing which rc-map a given user will be using, because it depends
-> on the actual remote control being used.
-> 
-> Maybe I'm missing something.
-
-The device tree for a board can be for a specific product, which ships
-with a specific remote. It makes sense to support it, so that any
-product that uses the tango-ir can select the remote it ships with.
-
-
-Sean
+Op 21-09-17 om 09:00 schreef Christian KÃ¶nig:
+> Am 20.09.2017 um 20:20 schrieb Daniel Vetter:
+>> On Mon, Sep 11, 2017 at 01:06:32PM +0200, Christian KÃ¶nig wrote:
+>>> Am 11.09.2017 um 12:01 schrieb Chris Wilson:
+>>>> [SNIP]
+>>>>> Yeah, but that is illegal with a fence objects.
+>>>>>
+>>>>> When anybody allocates fences this way it breaks at least
+>>>>> reservation_object_get_fences_rcu(),
+>>>>> reservation_object_wait_timeout_rcu() and
+>>>>> reservation_object_test_signaled_single().
+>>>> Many, many months ago I sent patches to fix them all.
+>>> Found those after a bit a searching. Yeah, those patches where proposed more
+>>> than a year ago, but never pushed upstream.
+>>>
+>>> Not sure if we really should go this way. dma_fence objects are shared
+>>> between drivers and since we can't judge if it's the correct fence based on
+>>> a criteria in the object (only the read counter which is outside) all
+>>> drivers need to be correct for this.
+>>>
+>>> I would rather go the way and change dma_fence_release() to wrap
+>>> fence->ops->release into call_rcu() to keep the whole RCU handling outside
+>>> of the individual drivers.
+>> Hm, I entirely dropped the ball on this, I kinda assumed that we managed
+>> to get some agreement on this between i915 and dma_fence. Adding a pile
+>> more people.
+>
+> For the meantime I've send a v2 of this patch to fix at least the buggy return of NULL when we fail to grab the RCU reference but keeping the extra checking for now.
+>
+> Can I get an rb on this please so that we fix at least the bug at hand?
+>
+> Thanks,
+> Christian. 
+Done.
