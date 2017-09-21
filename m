@@ -1,62 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33506 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751505AbdILImq (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:38346 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751554AbdIULEe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 04:42:46 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v11 13/24] v4l: async: Allow async notifier register call succeed with no subdevs
-Date: Tue, 12 Sep 2017 11:42:25 +0300
-Message-Id: <20170912084236.1154-14-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
-References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+        Thu, 21 Sep 2017 07:04:34 -0400
+Received: by mail-wm0-f68.google.com with SMTP id x17so4870053wmd.5
+        for <linux-media@vger.kernel.org>; Thu, 21 Sep 2017 04:04:34 -0700 (PDT)
+Subject: Re: [PATCH] tc358743: fix connected/active CSI-2 lane reporting
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mats Randgaard <matrandg@cisco.com>
+References: <20170921102428.30709-1-p.zabel@pengutronix.de>
+From: Ian Arkver <ian.arkver.dev@gmail.com>
+Message-ID: <f3d4ce20-d3aa-f76f-0d07-e8153e3558a9@gmail.com>
+Date: Thu, 21 Sep 2017 12:04:31 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170921102428.30709-1-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The information on how many async sub-devices would be bindable to a
-notifier is typically dependent on information from platform firmware and
-it's not driver's business to be aware of that.
+Hi Philipp
 
-Many V4L2 main drivers are perfectly usable (and useful) without async
-sub-devices and so if there aren't any around, just proceed call the
-notifier's complete callback immediately without registering the notifier
-itself.
+On 21/09/17 11:24, Philipp Zabel wrote:
+> g_mbus_config was supposed to indicate all supported lane numbers, not
+> only the number of those currently in active use. Since the tc358743
+> can dynamically reduce the number of active lanes if the required
+> bandwidth allows for it, report all lane numbers up to the connected
+> number of lanes as supported.
+> To allow communicating the number of currently active lanes, add a new
+> bitfield to the v4l2_mbus_config flags. This is a temporary fix, until
+> a better solution is found.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>   drivers/media/i2c/tc358743.c  | 22 ++++++++++++----------
+>   include/media/v4l2-mediabus.h |  8 ++++++++
+>   2 files changed, 20 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+> index e6f5c363ccab5..e2a9e6a18a49d 100644
+> --- a/drivers/media/i2c/tc358743.c
+> +++ b/drivers/media/i2c/tc358743.c
+> @@ -1464,21 +1464,22 @@ static int tc358743_g_mbus_config(struct v4l2_subdev *sd,
+>   	/* Support for non-continuous CSI-2 clock is missing in the driver */
+>   	cfg->flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
+>   
+> -	switch (state->csi_lanes_in_use) {
+> -	case 1:
+> +	if (state->bus.num_data_lanes > 0)
+>   		cfg->flags |= V4L2_MBUS_CSI2_1_LANE;
+> -		break;
+> -	case 2:
+> +	if (state->bus.num_data_lanes > 1)
+>   		cfg->flags |= V4L2_MBUS_CSI2_2_LANE;
+> -		break;
+> -	case 3:
+> +	if (state->bus.num_data_lanes > 2)
+>   		cfg->flags |= V4L2_MBUS_CSI2_3_LANE;
+> -		break;
+> -	case 4:
+> +	if (state->bus.num_data_lanes > 3)
+>   		cfg->flags |= V4L2_MBUS_CSI2_4_LANE;
+> -		break;
+> -	default:
+> +
+> +	if (state->csi_lanes_in_use > 4)
+>   		return -EINVAL;
+> +
 
-If a driver needs to check whether there are async sub-devices available,
-it can be done by inspecting the notifier's num_subdevs field which tells
-the number of async sub-devices.
+My understanding of Hans' comment:
+"I'd also add a comment that all other flags must be 0 if the device 
+tree is used. This to avoid mixing the two."
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+is that all the above should only happen if (!!state->pdata).
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 7b396ff4302b..4525b03d59c1 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -170,14 +170,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 	struct v4l2_async_subdev *asd;
- 	int i;
- 
--	if (!v4l2_dev || !notifier->num_subdevs ||
--	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-+	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
- 		return -EINVAL;
- 
- 	notifier->v4l2_dev = v4l2_dev;
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
- 
-+	if (!notifier->num_subdevs)
-+		return v4l2_async_notifier_call_complete(notifier);
-+
- 	for (i = 0; i < notifier->num_subdevs; i++) {
- 		asd = notifier->subdevs[i];
- 
--- 
-2.11.0
+I don't know if this would break any existing DT-using bridge drivers.
+
+Regards,
+Ian
+
+> +	if (state->csi_lanes_in_use < state->bus.num_data_lanes) {
+> +		const u32 mask = V4L2_MBUS_CSI2_LANE_MASK;
+> +
+> +		cfg->flags |= (state->csi_lanes_in_use << __ffs(mask)) & mask;
+>   	}
+>   
+>   	return 0;
+> @@ -1885,6 +1886,7 @@ static int tc358743_probe(struct i2c_client *client,
+>   	if (pdata) {
+>   		state->pdata = *pdata;
+>   		state->bus.flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
+> +		state->bus.num_data_lanes = 4;
+>   	} else {
+>   		err = tc358743_probe_of(state);
+>   		if (err == -ENODEV)
+> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+> index 93f8afcb7a220..3467d97be5f5b 100644
+> --- a/include/media/v4l2-mediabus.h
+> +++ b/include/media/v4l2-mediabus.h
+> @@ -63,6 +63,14 @@
+>   					 V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
+>   #define V4L2_MBUS_CSI2_CHANNELS		(V4L2_MBUS_CSI2_CHANNEL_0 | V4L2_MBUS_CSI2_CHANNEL_1 | \
+>   					 V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
+> +/*
+> + * Number of lanes in use, 0 == use all available lanes (default)
+> + *
+> + * This is a temporary fix for devices that need to reduce the number of active
+> + * lanes for certain modes, until g_mbus_config() can be replaced with a better
+> + * solution.
+> + */
+> +#define V4L2_MBUS_CSI2_LANE_MASK                (3 << 10)
+>   
+>   /**
+>    * enum v4l2_mbus_type - media bus type
+> 
