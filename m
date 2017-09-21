@@ -1,159 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39457 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750957AbdIKVQz (ORCPT
+Received: from us-smtp-delivery-107.mimecast.com ([63.128.21.107]:50792 "EHLO
+        us-smtp-delivery-107.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751387AbdIUNcH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 17:16:55 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v2 5/8] v4l: vsp1: Refactor display list configure
- operations
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
- <8063f125293346adfdcc66b5d6768d250895f612.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
- <9223590.WNj3Hrfh0H@avalon>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <70512969-8fca-3056-1a0e-d294549b827d@ideasonboard.com>
-Date: Mon, 11 Sep 2017 22:16:50 +0100
+        Thu, 21 Sep 2017 09:32:07 -0400
+Subject: Re: [PATCH v2] media: rc: Add driver for tango IR decoder
+To: Sean Young <sean@mess.org>, Mans Rullgard <mans@mansr.com>
+CC: Rob Herring <robh+dt@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>,
+        Mason <slash.tmp@free.fr>
+References: <38397d63-f0db-6d8e-60cf-e8535447de63@free.fr>
+ <20170921112540.vgsaj7lfz7q66alb@gofer.mess.org>
+From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+Message-ID: <408143ff-9ea4-6cd4-8f17-4e67e359a97c@sigmadesigns.com>
+Date: Thu, 21 Sep 2017 15:32:01 +0200
 MIME-Version: 1.0
-In-Reply-To: <9223590.WNj3Hrfh0H@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170921112540.vgsaj7lfz7q66alb@gofer.mess.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On 21/09/2017 13:25, Sean Young wrote:
 
-On 17/08/17 19:13, Laurent Pinchart wrote:
-> Hi Kieran,
+> On Wed, Sep 20, 2017 at 10:39:11AM +0200, Marc Gonzalez wrote:
 > 
-> Thank you for the patch.
-> 
-> On Monday 14 Aug 2017 16:13:28 Kieran Bingham wrote:
->> The entities provide a single .configure operation which configures the
->> object into the target display list, based on the vsp1_entity_params
->> selection.
+>> From: Mans Rullgard <mans@mansr.com>
 >>
->> This restricts us to a single function prototype for both static
->> configuration (the pre-stream INIT stage) and the dynamic runtime stages
->> for both each frame - and each partition therein.
+>> The tango IR decoder supports NEC, RC-5, RC-6 protocols.
 >>
->> Split the configure function into two parts, '.prepare()' and
->> '.configure()', merging both the VSP1_ENTITY_PARAMS_RUNTIME and
->> VSP1_ENTITY_PARAMS_PARTITION stages into a single call through the
->> .configure(). The configuration for individual partitions is handled by
->> passing the partition number to the configure call, and processing any
->> runtime stage actions on the first partition only.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->> ---
->>  drivers/media/platform/vsp1/vsp1_bru.c    |  12 +-
->>  drivers/media/platform/vsp1/vsp1_clu.c    |  43 +--
->>  drivers/media/platform/vsp1/vsp1_drm.c    |  11 +-
->>  drivers/media/platform/vsp1/vsp1_entity.c |  15 +-
->>  drivers/media/platform/vsp1/vsp1_entity.h |  27 +--
->>  drivers/media/platform/vsp1/vsp1_hgo.c    |  12 +-
->>  drivers/media/platform/vsp1/vsp1_hgt.c    |  12 +-
->>  drivers/media/platform/vsp1/vsp1_hsit.c   |  12 +-
->>  drivers/media/platform/vsp1/vsp1_lif.c    |  12 +-
->>  drivers/media/platform/vsp1/vsp1_lut.c    |  24 +-
->>  drivers/media/platform/vsp1/vsp1_rpf.c    | 162 ++++++-------
->>  drivers/media/platform/vsp1/vsp1_sru.c    |  12 +-
->>  drivers/media/platform/vsp1/vsp1_uds.c    |  55 ++--
->>  drivers/media/platform/vsp1/vsp1_video.c  |  24 +--
->>  drivers/media/platform/vsp1/vsp1_wpf.c    | 297 ++++++++++++-----------
->>  15 files changed, 359 insertions(+), 371 deletions(-)
+>> Signed-off-by: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
 > 
-> [snip]
+> This needs a signed-off-by from all the authors.
+
+Mans, the ball is in your court :-)
+
+In the mean time, I might work on the universal IR receiver,
+or the IR blaster.
+
+>>  .../devicetree/bindings/media/tango-ir.txt         |  21 ++
+>>  drivers/media/rc/Kconfig                           |   5 +
+>>  drivers/media/rc/Makefile                          |   1 +
+>>  drivers/media/rc/tango-ir.c                        | 265 +++++++++++++++++++++
+>>  4 files changed, 292 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/tango-ir.txt
+>>  create mode 100644 drivers/media/rc/tango-ir.c
 > 
->> diff --git a/drivers/media/platform/vsp1/vsp1_clu.c
->> b/drivers/media/platform/vsp1/vsp1_clu.c index 175717018e11..5f65ce3ad97f
->> 100644
->> --- a/drivers/media/platform/vsp1/vsp1_clu.c
->> +++ b/drivers/media/platform/vsp1/vsp1_clu.c
->> @@ -213,37 +213,37 @@ static const struct v4l2_subdev_ops clu_ops = {
->>  /* ------------------------------------------------------------------------
->>   * VSP1 Entity Operations
->>   */
->> +static void clu_prepare(struct vsp1_entity *entity,
->> +			struct vsp1_pipeline *pipe,
->> +			struct vsp1_dl_list *dl)
->> +{
->> +	struct vsp1_clu *clu = to_clu(&entity->subdev);
+> You should add an entry to the MAINTAINERS file.
+
+It's already taken care of, with a file regex pattern for
+ARM/TANGO ARCHITECTURE (N: tango)
+
+>> diff --git a/Documentation/devicetree/bindings/media/tango-ir.txt b/Documentation/devicetree/bindings/media/tango-ir.txt
+>> new file mode 100644
+>> index 000000000000..a9f00c2bf897
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/tango-ir.txt
+>> @@ -0,0 +1,21 @@
+>> +Sigma Designs Tango IR NEC/RC-5/RC-6 decoder (SMP86xx and SMP87xx)
 >> +
->> +	/*
->> +	 * The format can't be changed during streaming, only verify it
->> +	 * at setup time and store the information internally for future
->> +	 * runtime configuration calls.
->> +	 */
-> 
-> I know you're just moving the comment around, but let's fix it at the same 
-> time. There's no verification here (and no "setup time" either). I'd write it 
-> as
-> 
-> 	/*
-> 	 * The format can't be changed during streaming. Cache it internally
-> 	 * for future runtime configuration calls.
-> 	 */
-
-I think I'm ok with that and I've updated the patch - but I'm not sure we are
-really caching the 'format' here, as much as the yuv_mode ...
-
-I'll ponder ...
-
-> 
->> +	struct v4l2_mbus_framefmt *format;
+>> +Required properties:
 >> +
->> +	format = vsp1_entity_get_pad_format(&clu->entity,
->> +					    clu->entity.config,
->> +					    CLU_PAD_SINK);
->> +	clu->yuv_mode = format->code == MEDIA_BUS_FMT_AYUV8_1X32;
->> +}
+>> +- compatible: "sigma,smp8642-ir"
+>> +- reg: address/size of NEC+RC5 area, address/size of RC6 area
+>> +- interrupts: spec for IR IRQ
+>> +- clocks: spec for IR clock (typically the crystal oscillator)
+>> +
+>> +Optional properties:
+>> +
+>> +- linux,rc-map-name: see Documentation/devicetree/bindings/media/rc.txt
+>> +
+>> +Example:
+>> +
+>> +	ir@10518 {
+>> +		compatible = "sigma,smp8642-ir";
+>> +		reg = <0x10518 0x18>, <0x105e0 0x1c>;
+>> +		interrupts = <21 IRQ_TYPE_EDGE_RISING>;
+>> +		clocks = <&xtal>;
+>> +	};
 > 
-> [snip]
-> 
->> diff --git a/drivers/media/platform/vsp1/vsp1_entity.h
->> b/drivers/media/platform/vsp1/vsp1_entity.h index
->> 408602ebeb97..2f33e343ccc6 100644
->> --- a/drivers/media/platform/vsp1/vsp1_entity.h
->> +++ b/drivers/media/platform/vsp1/vsp1_entity.h
-> 
-> [snip]
-> 
->> @@ -80,8 +68,10 @@ struct vsp1_route {
->>  /**
->>   * struct vsp1_entity_operations - Entity operations
->>   * @destroy:	Destroy the entity.
->> - * @configure:	Setup the hardware based on the entity state
->> (pipeline, formats,
->> - *		selection rectangles, ...)
->> + * @prepare:	Setup the initial hardware parameters for the stream
->> (pipeline,
->> + *		formats)
->> + * @configure:	Configure the runtime parameters for each partition
->> (rectangles,
->> + *		buffer addresses, ...)
-> 
-> Now moving to the bikeshedding territory, I'm not sure if prepare and 
-> configure are the best names for those operations. I'd like to also point out 
-> that we could go one step further by caching the partition-related parameters 
-> too, in which case we would need a third operation (or possibly passing the 
-> partition number to the prepare operation). While I won't mind if you 
-> implement this now, the issue could also be addressed later, but I'd like the 
-> operations to already support that use case to avoid yet another painful 
-> rename patch.
+> This needs to be a separate commit/patch.
 
-Ok, understood - but I think I'll have to defer to a v4 for now ... I'm running
-out of time.
+OK, I will send a v3 series. Could you explain the rationale behind
+having separate patches? (I don't think Rob minds having a binding
+description pushed through a different tree.)
 
->>   * @max_width:	Return the max supported width of data that the entity
->> can
->>   *		process in a single operation.
->>   * @partition:	Process the partition construction based on this
->> entity's
+>> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+>> index d9ce8ff55d0c..f84923289964 100644
+>> --- a/drivers/media/rc/Kconfig
+>> +++ b/drivers/media/rc/Kconfig
+>> @@ -469,6 +469,11 @@ config IR_SIR
+>>  	   To compile this driver as a module, choose M here: the module will
+>>  	   be called sir-ir.
+>>  
+>> +config IR_TANGO
+>> +	tristate "Sigma Designs SMP86xx IR decoder"
+>> +	depends on RC_CORE
+>> +	depends on ARCH_TANGO || COMPILE_TEST
 > 
-> [snip]
+> This needs --help-- a section, even if it is mostly boilerplate.
 > 
-> The rest of the patch looks good to me.
-> 
+> This will be catched by ./scripts/checkpatch.pl, please run this script
+> on your patches.
+
+OK.
+
+Regards.
