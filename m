@@ -1,97 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:34747 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754506AbdIZVK4 (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:37086 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751635AbdIUIkn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 17:10:56 -0400
-Received: by mail-wr0-f193.google.com with SMTP id z1so309586wre.1
-        for <linux-media@vger.kernel.org>; Tue, 26 Sep 2017 14:10:55 -0700 (PDT)
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Andrey Konovalov <andreyknvl@google.com>,
-        Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [PATCH 1/2] media: dvb-usb-v2: lmedm04: Improve logic checking of warm start.
-Date: Tue, 26 Sep 2017 22:10:20 +0100
-Message-Id: <20170926211021.11036-1-tvboxspy@gmail.com>
+        Thu, 21 Sep 2017 04:40:43 -0400
+From: Johan Hovold <johan@kernel.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Andrey Konovalov <andreyknvl@google.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Oleh Kravchenko <oleg@kaa.org.ua>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>, syzkaller@googlegroups.com,
+        Johan Hovold <johan@kernel.org>,
+        stable <stable@vger.kernel.org>,
+        Sri Deevi <Srinivasa.Deevi@conexant.com>
+Subject: [PATCH] [media] cx231xx-cards: fix NULL-deref on missing association descriptor
+Date: Thu, 21 Sep 2017 10:40:18 +0200
+Message-Id: <20170921084018.30510-1-johan@kernel.org>
+In-Reply-To: <20170921083739.GI3198@localhost>
+References: <20170921083739.GI3198@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Warm start has no check as whether a genuine device has
-connected and proceeds to next execution path.
+Make sure to check that we actually have an Interface Association
+Descriptor before dereferencing it during probe to avoid dereferencing a
+NULL-pointer.
 
-Check device should read 0x47 at offset of 2 on USB descriptor read
-and it is the amount requested of 6 bytes.
-
-Fix for
-kasan: CONFIG_KASAN_INLINE enabled
-kasan: GPF could be caused by NULL-ptr deref or user memory access as
-
+Fixes: e0d3bafd0258 ("V4L/DVB (10954): Add cx231xx USB driver")
+Cc: stable <stable@vger.kernel.org>     # 2.6.30
+Cc: Sri Deevi <Srinivasa.Deevi@conexant.com>
 Reported-by: Andrey Konovalov <andreyknvl@google.com>
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Johan Hovold <johan@kernel.org>
 ---
- drivers/media/usb/dvb-usb-v2/lmedm04.c | 26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-index 5e320fa4a795..992f2011a6ba 100644
---- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
-+++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-@@ -494,18 +494,23 @@ static int lme2510_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid,
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index e0daa9b6c2a0..9b742d569fb5 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -1684,7 +1684,7 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	nr = dev->devno;
  
- static int lme2510_return_status(struct dvb_usb_device *d)
- {
--	int ret = 0;
-+	int ret;
- 	u8 *data;
- 
--	data = kzalloc(10, GFP_KERNEL);
-+	data = kzalloc(6, GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
- 
--	ret |= usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0),
--			0x06, 0x80, 0x0302, 0x00, data, 0x0006, 200);
--	info("Firmware Status: %x (%x)", ret , data[2]);
-+	ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0),
-+			      0x06, 0x80, 0x0302, 0x00,
-+			      data, 0x6, 200);
-+	if (ret != 6)
-+		ret = -EINVAL;
-+	else
-+		ret = data[2];
-+
-+	info("Firmware Status: %6ph", data);
- 
--	ret = (ret < 0) ? -ENODEV : data[2];
- 	kfree(data);
- 	return ret;
- }
-@@ -1189,6 +1194,7 @@ static int lme2510_get_adapter_count(struct dvb_usb_device *d)
- static int lme2510_identify_state(struct dvb_usb_device *d, const char **name)
- {
- 	struct lme2510_state *st = d->priv;
-+	int status;
- 
- 	usb_reset_configuration(d->udev);
- 
-@@ -1197,12 +1203,16 @@ static int lme2510_identify_state(struct dvb_usb_device *d, const char **name)
- 
- 	st->dvb_usb_lme2510_firmware = dvb_usb_lme2510_firmware;
- 
--	if (lme2510_return_status(d) == 0x44) {
-+	status = lme2510_return_status(d);
-+	if (status == 0x44) {
- 		*name = lme_firmware_switch(d, 0);
- 		return COLD;
- 	}
- 
--	return 0;
-+	if (status != 0x47)
-+		return -EINVAL;
-+
-+	return WARM;
- }
- 
- static int lme2510_get_stream_config(struct dvb_frontend *fe, u8 *ts_type,
+ 	assoc_desc = udev->actconfig->intf_assoc[0];
+-	if (assoc_desc->bFirstInterface != ifnum) {
++	if (!assoc_desc || assoc_desc->bFirstInterface != ifnum) {
+ 		dev_err(d, "Not found matching IAD interface\n");
+ 		retval = -ENODEV;
+ 		goto err_if;
 -- 
 2.14.1
