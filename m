@@ -1,56 +1,335 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:53568 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751030AbdIWTqy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Sep 2017 15:46:54 -0400
-Subject: [PATCH 3/3] [media] camss-csid: Adjust a null pointer check in two
- functions
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Todor Tomov <todor.tomov@linaro.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <168ff884-7ace-c548-7f90-d4f2910bb337@users.sourceforge.net>
-Message-ID: <c9925c93-f3b3-6def-3fe0-83f1531387ad@users.sourceforge.net>
-Date: Sat, 23 Sep 2017 21:46:43 +0200
+Received: from mailout.easymail.ca ([64.68.200.34]:35574 "EHLO
+        mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751787AbdIUOch (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 10:32:37 -0400
+Reply-To: shuah@kernel.org
+Subject: Re: [PATCH 17/25] media: dvb_frontend: dtv_property_process_set()
+ cleanups
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Satendra Singh Thakur <satendra.t@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Shuah Khan <shuah@kernel.org>
+References: <cover.1505933919.git.mchehab@s-opensource.com>
+ <112cb6a6a7b72e74b88d98beac10b7d91d3a4e37.1505933919.git.mchehab@s-opensource.com>
+From: Shuah Khan <shuah@kernel.org>
+Message-ID: <ed877265-0e2f-7c6d-b8f5-d547b3986b7a@kernel.org>
+Date: Thu, 21 Sep 2017 08:32:25 -0600
 MIME-Version: 1.0
-In-Reply-To: <168ff884-7ace-c548-7f90-d4f2910bb337@users.sourceforge.net>
+In-Reply-To: <112cb6a6a7b72e74b88d98beac10b7d91d3a4e37.1505933919.git.mchehab@s-opensource.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 23 Sep 2017 21:10:02 +0200
+On 09/20/2017 01:11 PM, Mauro Carvalho Chehab wrote:
+> From: Satendra Singh Thakur <satendra.t@samsung.com>
+> 
+> Since all properties in the func dtv_property_process_set() use
+> at most 4 bytes arguments, change the code to pass
+> u32 cmd and u32 data as function arguments, instead of passing a
+> pointer to the entire struct dtv_property *tvp.
+> 
+> Instead of having a generic dtv_property_dump(), added its own
+> properties debug logic at dtv_property_process_set().
 
-The script "checkpatch.pl" pointed information out like the following.
+Nit: in the dtv_property_process_set()
 
-Comparison to NULL could be written "!format"
+> 
+> Signed-off-by: Satendra Singh Thakur <satendra.t@samsung.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/dvb-core/dvb_frontend.c | 125 ++++++++++++++++++++--------------
+>  1 file changed, 72 insertions(+), 53 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+> index bd60a490ce0f..b7094c7a405f 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> @@ -1107,22 +1107,19 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+>  	_DTV_CMD(DTV_STAT_TOTAL_BLOCK_COUNT, 0, 0),
+>  };
+>  
+> -static void dtv_property_dump(struct dvb_frontend *fe,
+> -			      bool is_set,
+> +static void dtv_get_property_dump(struct dvb_frontend *fe,
+>  			      struct dtv_property *tvp)
+>  {
+>  	int i;
+>  
+>  	if (tvp->cmd <= 0 || tvp->cmd > DTV_MAX_COMMAND) {
+> -		dev_warn(fe->dvb->device, "%s: %s tvp.cmd = 0x%08x undefined\n",
+> -				__func__,
+> -				is_set ? "SET" : "GET",
+> +		dev_warn(fe->dvb->device, "%s: GET tvp.cmd = 0x%08x undefined\n"
+> +				, __func__,
+>  				tvp->cmd);
+>  		return;
+>  	}
+>  
+> -	dev_dbg(fe->dvb->device, "%s: %s tvp.cmd    = 0x%08x (%s)\n", __func__,
+> -		is_set ? "SET" : "GET",
+> +	dev_dbg(fe->dvb->device, "%s: GET tvp.cmd    = 0x%08x (%s)\n", __func__,
+>  		tvp->cmd,
+>  		dtv_cmds[tvp->cmd].name);
+>  
+> @@ -1532,7 +1529,7 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+>  		return -EINVAL;
+>  	}
+>  
+> -	dtv_property_dump(fe, false, tvp);
+> +	dtv_get_property_dump(fe, tvp);
+>  
+>  	return 0;
+>  }
+> @@ -1755,16 +1752,36 @@ static int dvbv3_set_delivery_system(struct dvb_frontend *fe)
+>  	return emulate_delivery_system(fe, delsys);
+>  }
+>  
+> +/**
+> + * dtv_property_process_set -  Sets a single DTV property
+> + * @fe:		Pointer to &struct dvb_frontend
 
-Thus fix the affected source code places.
+Nit: extra tab looks like:
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/qcom/camss-8x16/camss-csid.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> + * @file:	Pointer to &struct file
+> + * @cmd:	Digital TV command
+> + * @data:	An unsigned 32-bits number
+> + *
+> + * This routine assigns the property
+> + * value to the corresponding member of
+> + * &struct dtv_frontend_properties
+> + *
+> + * Returns:
+> + * Zero on success, negative errno on failure.
+> + */
+>  static int dtv_property_process_set(struct dvb_frontend *fe,
+> -				    struct dtv_property *tvp,
+> -				    struct file *file)
+> +					struct file *file,
+> +					u32 cmd, u32 data)
+>  {
+>  	int r = 0;
+>  	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>  
+> -	dtv_property_dump(fe, true, tvp);
 
-diff --git a/drivers/media/platform/qcom/camss-8x16/camss-csid.c b/drivers/media/platform/qcom/camss-8x16/camss-csid.c
-index ffda0fbfe4d8..e546f97fa68c 100644
---- a/drivers/media/platform/qcom/camss-8x16/camss-csid.c
-+++ b/drivers/media/platform/qcom/camss-8x16/camss-csid.c
-@@ -653,4 +653,4 @@ static int csid_get_format(struct v4l2_subdev *sd,
--	if (format == NULL)
-+	if (!format)
- 		return -EINVAL;
- 
- 	fmt->format = *format;
-@@ -677,4 +677,4 @@ static int csid_set_format(struct v4l2_subdev *sd,
--	if (format == NULL)
-+	if (!format)
- 		return -EINVAL;
- 
- 	csid_try_format(csid, cfg, fmt->pad, &fmt->format, fmt->which);
--- 
-2.14.1
+Why not keep dtv_property_dump() the way it is? I am not seeing the
+value of this change.
+
+> -
+> -	switch(tvp->cmd) {
+> +	/** Dump DTV command name and value*/
+> +	if (!cmd || cmd > DTV_MAX_COMMAND)
+> +		dev_warn(fe->dvb->device, "%s: SET cmd 0x%08x undefined\n",
+> +				 __func__, cmd);
+> +	else
+> +		dev_dbg(fe->dvb->device,
+> +				"%s: SET cmd 0x%08x (%s) to 0x%08x\n",
+> +				__func__, cmd, dtv_cmds[cmd].name, data);
+
+The code looked simpler before this change? Why add almost identical duplicate
+code here?
+
+> +	switch (cmd) {
+>  	case DTV_CLEAR:
+>  		/*
+>  		 * Reset a cache of data specific to the frontend here. This does
+> @@ -1784,133 +1801,133 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+>  		r = dtv_set_frontend(fe);
+>  		break;
+>  	case DTV_FREQUENCY:
+> -		c->frequency = tvp->u.data;
+> +		c->frequency = data;
+>  		break;
+>  	case DTV_MODULATION:
+> -		c->modulation = tvp->u.data;
+> +		c->modulation = data;
+>  		break;
+>  	case DTV_BANDWIDTH_HZ:
+> -		c->bandwidth_hz = tvp->u.data;
+> +		c->bandwidth_hz = data;
+>  		break;
+>  	case DTV_INVERSION:
+> -		c->inversion = tvp->u.data;
+> +		c->inversion = data;
+>  		break;
+>  	case DTV_SYMBOL_RATE:
+> -		c->symbol_rate = tvp->u.data;
+> +		c->symbol_rate = data;
+>  		break;
+>  	case DTV_INNER_FEC:
+> -		c->fec_inner = tvp->u.data;
+> +		c->fec_inner = data;
+>  		break;
+>  	case DTV_PILOT:
+> -		c->pilot = tvp->u.data;
+> +		c->pilot = data;
+>  		break;
+>  	case DTV_ROLLOFF:
+> -		c->rolloff = tvp->u.data;
+> +		c->rolloff = data;
+>  		break;
+>  	case DTV_DELIVERY_SYSTEM:
+> -		r = dvbv5_set_delivery_system(fe, tvp->u.data);
+> +		r = dvbv5_set_delivery_system(fe, data);
+>  		break;
+>  	case DTV_VOLTAGE:
+> -		c->voltage = tvp->u.data;
+> +		c->voltage = data;
+>  		r = dvb_frontend_handle_ioctl(file, FE_SET_VOLTAGE,
+>  			(void *)c->voltage);
+>  		break;
+>  	case DTV_TONE:
+> -		c->sectone = tvp->u.data;
+> +		c->sectone = data;
+>  		r = dvb_frontend_handle_ioctl(file, FE_SET_TONE,
+>  			(void *)c->sectone);
+>  		break;
+>  	case DTV_CODE_RATE_HP:
+> -		c->code_rate_HP = tvp->u.data;
+> +		c->code_rate_HP = data;
+>  		break;
+>  	case DTV_CODE_RATE_LP:
+> -		c->code_rate_LP = tvp->u.data;
+> +		c->code_rate_LP = data;
+>  		break;
+>  	case DTV_GUARD_INTERVAL:
+> -		c->guard_interval = tvp->u.data;
+> +		c->guard_interval = data;
+>  		break;
+>  	case DTV_TRANSMISSION_MODE:
+> -		c->transmission_mode = tvp->u.data;
+> +		c->transmission_mode = data;
+>  		break;
+>  	case DTV_HIERARCHY:
+> -		c->hierarchy = tvp->u.data;
+> +		c->hierarchy = data;
+>  		break;
+>  	case DTV_INTERLEAVING:
+> -		c->interleaving = tvp->u.data;
+> +		c->interleaving = data;
+>  		break;
+>  
+>  	/* ISDB-T Support here */
+>  	case DTV_ISDBT_PARTIAL_RECEPTION:
+> -		c->isdbt_partial_reception = tvp->u.data;
+> +		c->isdbt_partial_reception = data;
+>  		break;
+>  	case DTV_ISDBT_SOUND_BROADCASTING:
+> -		c->isdbt_sb_mode = tvp->u.data;
+> +		c->isdbt_sb_mode = data;
+>  		break;
+>  	case DTV_ISDBT_SB_SUBCHANNEL_ID:
+> -		c->isdbt_sb_subchannel = tvp->u.data;
+> +		c->isdbt_sb_subchannel = data;
+>  		break;
+>  	case DTV_ISDBT_SB_SEGMENT_IDX:
+> -		c->isdbt_sb_segment_idx = tvp->u.data;
+> +		c->isdbt_sb_segment_idx = data;
+>  		break;
+>  	case DTV_ISDBT_SB_SEGMENT_COUNT:
+> -		c->isdbt_sb_segment_count = tvp->u.data;
+> +		c->isdbt_sb_segment_count = data;
+>  		break;
+>  	case DTV_ISDBT_LAYER_ENABLED:
+> -		c->isdbt_layer_enabled = tvp->u.data;
+> +		c->isdbt_layer_enabled = data;
+>  		break;
+>  	case DTV_ISDBT_LAYERA_FEC:
+> -		c->layer[0].fec = tvp->u.data;
+> +		c->layer[0].fec = data;
+>  		break;
+>  	case DTV_ISDBT_LAYERA_MODULATION:
+> -		c->layer[0].modulation = tvp->u.data;
+> +		c->layer[0].modulation = data;
+>  		break;
+>  	case DTV_ISDBT_LAYERA_SEGMENT_COUNT:
+> -		c->layer[0].segment_count = tvp->u.data;
+> +		c->layer[0].segment_count = data;
+>  		break;
+>  	case DTV_ISDBT_LAYERA_TIME_INTERLEAVING:
+> -		c->layer[0].interleaving = tvp->u.data;
+> +		c->layer[0].interleaving = data;
+>  		break;
+>  	case DTV_ISDBT_LAYERB_FEC:
+> -		c->layer[1].fec = tvp->u.data;
+> +		c->layer[1].fec = data;
+>  		break;
+>  	case DTV_ISDBT_LAYERB_MODULATION:
+> -		c->layer[1].modulation = tvp->u.data;
+> +		c->layer[1].modulation = data;
+>  		break;
+>  	case DTV_ISDBT_LAYERB_SEGMENT_COUNT:
+> -		c->layer[1].segment_count = tvp->u.data;
+> +		c->layer[1].segment_count = data;
+>  		break;
+>  	case DTV_ISDBT_LAYERB_TIME_INTERLEAVING:
+> -		c->layer[1].interleaving = tvp->u.data;
+> +		c->layer[1].interleaving = data;
+>  		break;
+>  	case DTV_ISDBT_LAYERC_FEC:
+> -		c->layer[2].fec = tvp->u.data;
+> +		c->layer[2].fec = data;
+>  		break;
+>  	case DTV_ISDBT_LAYERC_MODULATION:
+> -		c->layer[2].modulation = tvp->u.data;
+> +		c->layer[2].modulation = data;
+>  		break;
+>  	case DTV_ISDBT_LAYERC_SEGMENT_COUNT:
+> -		c->layer[2].segment_count = tvp->u.data;
+> +		c->layer[2].segment_count = data;
+>  		break;
+>  	case DTV_ISDBT_LAYERC_TIME_INTERLEAVING:
+> -		c->layer[2].interleaving = tvp->u.data;
+> +		c->layer[2].interleaving = data;
+>  		break;
+>  
+>  	/* Multistream support */
+>  	case DTV_STREAM_ID:
+>  	case DTV_DVBT2_PLP_ID_LEGACY:
+> -		c->stream_id = tvp->u.data;
+> +		c->stream_id = data;
+>  		break;
+>  
+>  	/* ATSC-MH */
+>  	case DTV_ATSCMH_PARADE_ID:
+> -		fe->dtv_property_cache.atscmh_parade_id = tvp->u.data;
+> +		fe->dtv_property_cache.atscmh_parade_id = data;
+>  		break;
+>  	case DTV_ATSCMH_RS_FRAME_ENSEMBLE:
+> -		fe->dtv_property_cache.atscmh_rs_frame_ensemble = tvp->u.data;
+> +		fe->dtv_property_cache.atscmh_rs_frame_ensemble = data;
+>  		break;
+>  
+>  	case DTV_LNA:
+> -		c->lna = tvp->u.data;
+> +		c->lna = data;
+>  		if (fe->ops.set_lna)
+>  			r = fe->ops.set_lna(fe);
+>  		if (r < 0)
+> @@ -2137,7 +2154,9 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+>  			return PTR_ERR(tvp);
+>  
+>  		for (i = 0; i < tvps->num; i++) {
+> -			err = dtv_property_process_set(fe, tvp + i, file);
+> +			err = dtv_property_process_set(fe, file,
+> +							(tvp + i)->cmd,
+> +							(tvp + i)->u.data);
+>  			if (err < 0) {
+>  				kfree(tvp);
+>  				return err;
+> 
+
+The rest looks good. Once the other comments are addressed and/or explained.
+
+Reviewed-by: Shuah Khan <shuahkh@osg.samsung.com>
+
+thanks,
+-- Shuah
