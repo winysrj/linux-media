@@ -1,83 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:61813 "EHLO mout.web.de"
+Received: from unicorn.mansr.com ([81.2.72.234]:34708 "EHLO unicorn.mansr.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751030AbdIWToV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Sep 2017 15:44:21 -0400
-Subject: [PATCH 1/3] [media] camss-csid: Use common error handling code in
- csid_set_power()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Todor Tomov <todor.tomov@linaro.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <168ff884-7ace-c548-7f90-d4f2910bb337@users.sourceforge.net>
-Message-ID: <0fe4e31f-02e2-8b48-c8a8-811ecd8a482f@users.sourceforge.net>
-Date: Sat, 23 Sep 2017 21:44:15 +0200
+        id S1751718AbdIURLs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 13:11:48 -0400
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+To: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+Cc: Sean Young <sean@mess.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Mason <slash.tmp@free.fr>
+Subject: Re: [PATCH v3 2/2] media: rc: Add driver for tango HW IR decoder
+References: <0e433f1b-ec16-5fce-ab21-085f69e266ce@free.fr>
+        <4fe2e398-ba7d-3670-f29b-fe3c5e079b39@free.fr>
+        <yw1xbmm4xdfr.fsf@mansr.com>
+        <f510d7a6-0b6a-002b-3aad-7dd634392d07@sigmadesigns.com>
+Date: Thu, 21 Sep 2017 18:11:46 +0100
+In-Reply-To: <f510d7a6-0b6a-002b-3aad-7dd634392d07@sigmadesigns.com> (Marc
+        Gonzalez's message of "Thu, 21 Sep 2017 18:09:24 +0200")
+Message-ID: <yw1xd16kf031.fsf@mansr.com>
 MIME-Version: 1.0
-In-Reply-To: <168ff884-7ace-c548-7f90-d4f2910bb337@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 23 Sep 2017 20:48:33 +0200
+Marc Gonzalez <marc_gonzalez@sigmadesigns.com> writes:
 
-Add jump targets so that a bit of exception handling can be better reused
-at the end of this function.
+> On 21/09/2017 17:46, Måns Rullgård wrote:
+>
+>> Marc Gonzalez writes:
+>> 
+>>> From: Mans Rullgard <mans@mansr.com>
+>>>
+>>> The tango HW IR decoder supports NEC, RC-5, RC-6 protocols.
+>>>
+>>> Signed-off-by: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+>> 
+>> Have you been able to test all the protocols?  Universal remotes usually
+>> support something or other with each of them.
+>
+> I found the Great Pile of Remotes locked away in a drawer.
+> Played "What kind of batteries do you eat?" for about an hour.
+> And found several NEC remotes, one RC-5, and one RC-6.
+> Repeats seem to be handled differently than for NEC.
+> I'll take a closer look.
 
-This issue was detected by using the Coccinelle software.
+That's not surprising, seeing as the way repeats are transmitted differs
+between protocols.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/qcom/camss-8x16/camss-csid.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+If you're new to IR remote controls, this site has some good
+information:
+http://www.sbprojects.com/knowledge/ir/index.php
 
-diff --git a/drivers/media/platform/qcom/camss-8x16/camss-csid.c b/drivers/media/platform/qcom/camss-8x16/camss-csid.c
-index 64df82817de3..92d4dc6b4a66 100644
---- a/drivers/media/platform/qcom/camss-8x16/camss-csid.c
-+++ b/drivers/media/platform/qcom/camss-8x16/camss-csid.c
-@@ -330,13 +330,9 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
- 		ret = csid_set_clock_rates(csid);
--		if (ret < 0) {
--			regulator_disable(csid->vdda);
--			return ret;
--		}
-+		if (ret < 0)
-+			goto disable_regulator;
- 
- 		ret = camss_enable_clocks(csid->nclocks, csid->clock, dev);
--		if (ret < 0) {
--			regulator_disable(csid->vdda);
--			return ret;
--		}
-+		if (ret < 0)
-+			goto disable_regulator;
- 
- 		enable_irq(csid->irq);
-@@ -345,8 +341,7 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
- 		if (ret < 0) {
- 			disable_irq(csid->irq);
- 			camss_disable_clocks(csid->nclocks, csid->clock);
--			regulator_disable(csid->vdda);
--			return ret;
-+			goto disable_regulator;
- 		}
- 
- 		hw_version = readl_relaxed(csid->base + CAMSS_CSID_HW_VERSION);
-@@ -357,6 +352,11 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
- 		ret = regulator_disable(csid->vdda);
- 	}
- 
-+	goto exit;
-+
-+disable_regulator:
-+	regulator_disable(csid->vdda);
-+exit:
- 	return ret;
- }
- 
 -- 
-2.14.1
+Måns Rullgård
