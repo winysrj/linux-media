@@ -1,60 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50963
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752860AbdICCfM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Sep 2017 22:35:12 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:38491 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751679AbdIUKYc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 06:24:32 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        Hans Verkuil <hansverk@cisco.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 02/12] media: vidioc-querycap: use a more realistic value for KERNEL_VERSION
-Date: Sat,  2 Sep 2017 23:34:54 -0300
-Message-Id: <c8277bfa629487d9df553bbe2e11af5496bd4b44.1504405125.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504405124.git.mchehab@s-opensource.com>
-References: <cover.1504405124.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504405124.git.mchehab@s-opensource.com>
-References: <cover.1504405124.git.mchehab@s-opensource.com>
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mats Randgaard <matrandg@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH] tc358743: fix connected/active CSI-2 lane reporting
+Date: Thu, 21 Sep 2017 12:24:28 +0200
+Message-Id: <20170921102428.30709-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the past, V4L2 versions were 0.x.y, but that changed years
-ago. Since Kernel 3.1, however, the numbering schema was changed
-to match the Kernel version.
+g_mbus_config was supposed to indicate all supported lane numbers, not
+only the number of those currently in active use. Since the tc358743
+can dynamically reduce the number of active lanes if the required
+bandwidth allows for it, report all lane numbers up to the connected
+number of lanes as supported.
+To allow communicating the number of currently active lanes, add a new
+bitfield to the v4l2_mbus_config flags. This is a temporary fix, until
+a better solution is found.
 
-However, the presented example still uses the old numerating
-schema, with is a misleading information.
-
-So, update it to the new schema.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- Documentation/media/uapi/v4l/vidioc-querycap.rst | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/media/i2c/tc358743.c  | 22 ++++++++++++----------
+ include/media/v4l2-mediabus.h |  8 ++++++++
+ 2 files changed, 20 insertions(+), 10 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-index 9494af96bae7..7553b44692b4 100644
---- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-@@ -92,12 +92,13 @@ specification the ioctl returns an ``EINVAL`` error code.
- 	stack from a newer kernel.
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index e6f5c363ccab5..e2a9e6a18a49d 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -1464,21 +1464,22 @@ static int tc358743_g_mbus_config(struct v4l2_subdev *sd,
+ 	/* Support for non-continuous CSI-2 clock is missing in the driver */
+ 	cfg->flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
  
- 	The version number is formatted using the ``KERNEL_VERSION()``
--	macro:
-+	macro. For example if the media stack corresponds to the V4L2
-+	version shipped with Kernel 4.14, it would be equivalent to:
-     * - :cspan:`2`
+-	switch (state->csi_lanes_in_use) {
+-	case 1:
++	if (state->bus.num_data_lanes > 0)
+ 		cfg->flags |= V4L2_MBUS_CSI2_1_LANE;
+-		break;
+-	case 2:
++	if (state->bus.num_data_lanes > 1)
+ 		cfg->flags |= V4L2_MBUS_CSI2_2_LANE;
+-		break;
+-	case 3:
++	if (state->bus.num_data_lanes > 2)
+ 		cfg->flags |= V4L2_MBUS_CSI2_3_LANE;
+-		break;
+-	case 4:
++	if (state->bus.num_data_lanes > 3)
+ 		cfg->flags |= V4L2_MBUS_CSI2_4_LANE;
+-		break;
+-	default:
++
++	if (state->csi_lanes_in_use > 4)
+ 		return -EINVAL;
++
++	if (state->csi_lanes_in_use < state->bus.num_data_lanes) {
++		const u32 mask = V4L2_MBUS_CSI2_LANE_MASK;
++
++		cfg->flags |= (state->csi_lanes_in_use << __ffs(mask)) & mask;
+ 	}
  
- 	``#define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))``
+ 	return 0;
+@@ -1885,6 +1886,7 @@ static int tc358743_probe(struct i2c_client *client,
+ 	if (pdata) {
+ 		state->pdata = *pdata;
+ 		state->bus.flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
++		state->bus.num_data_lanes = 4;
+ 	} else {
+ 		err = tc358743_probe_of(state);
+ 		if (err == -ENODEV)
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 93f8afcb7a220..3467d97be5f5b 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -63,6 +63,14 @@
+ 					 V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
+ #define V4L2_MBUS_CSI2_CHANNELS		(V4L2_MBUS_CSI2_CHANNEL_0 | V4L2_MBUS_CSI2_CHANNEL_1 | \
+ 					 V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
++/*
++ * Number of lanes in use, 0 == use all available lanes (default)
++ *
++ * This is a temporary fix for devices that need to reduce the number of active
++ * lanes for certain modes, until g_mbus_config() can be replaced with a better
++ * solution.
++ */
++#define V4L2_MBUS_CSI2_LANE_MASK                (3 << 10)
  
--	``__u32 version = KERNEL_VERSION(0, 8, 1);``
-+	``__u32 version = KERNEL_VERSION(4, 14, 0);``
- 
- 	``printf ("Version: %u.%u.%u\\n",``
- 
+ /**
+  * enum v4l2_mbus_type - media bus type
 -- 
-2.13.5
+2.11.0
