@@ -1,131 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:47224 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750733AbdITD6y (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 23:58:54 -0400
-Message-ID: <ea1b58ca69ab50264be139dbaf728e17@smtp-cloud9.xs4all.net>
-Date: Wed, 20 Sep 2017 05:58:52 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from mail-sn1nam02on0079.outbound.protection.outlook.com ([104.47.36.79]:36672
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751531AbdIUHAy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 03:00:54 -0400
+Subject: Re: [PATCH] dma-fence: fix dma_fence_get_rcu_safe
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
+References: <1504531653-13779-1-git-send-email-deathsimple@vodafone.de>
+ <150453243791.23157.6907537389223890207@mail.alporthouse.com>
+ <67fe7e05-7743-40c8-558b-41b08eb986e9@amd.com>
+ <150512037119.16759.472484663447331384@mail.alporthouse.com>
+ <3c412ee3-854a-292a-e036-7c5fd7888979@amd.com>
+ <150512178199.16759.73667469529688@mail.alporthouse.com>
+ <5ff4b100-b580-a93d-aa5e-c66173ac091d@amd.com>
+ <150512410278.16759.10537429613477592631@mail.alporthouse.com>
+ <79e447f8-f2e3-57e3-b5fe-503e5feb2f82@amd.com>
+ <CAKMK7uGkEFzbrhAS1qWs-g3dC20jubXitR5ALkTg4PhMwoQ-Rg@mail.gmail.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <7f14fc7c-2d56-598b-5049-0155df8327e4@amd.com>
+Date: Thu, 21 Sep 2017 09:00:34 +0200
+MIME-Version: 1.0
+In-Reply-To: <CAKMK7uGkEFzbrhAS1qWs-g3dC20jubXitR5ALkTg4PhMwoQ-Rg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Am 20.09.2017 um 20:20 schrieb Daniel Vetter:
+> On Mon, Sep 11, 2017 at 01:06:32PM +0200, Christian König wrote:
+>> Am 11.09.2017 um 12:01 schrieb Chris Wilson:
+>>> [SNIP]
+>>>> Yeah, but that is illegal with a fence objects.
+>>>>
+>>>> When anybody allocates fences this way it breaks at least
+>>>> reservation_object_get_fences_rcu(),
+>>>> reservation_object_wait_timeout_rcu() and
+>>>> reservation_object_test_signaled_single().
+>>> Many, many months ago I sent patches to fix them all.
+>> Found those after a bit a searching. Yeah, those patches where proposed more
+>> than a year ago, but never pushed upstream.
+>>
+>> Not sure if we really should go this way. dma_fence objects are shared
+>> between drivers and since we can't judge if it's the correct fence based on
+>> a criteria in the object (only the read counter which is outside) all
+>> drivers need to be correct for this.
+>>
+>> I would rather go the way and change dma_fence_release() to wrap
+>> fence->ops->release into call_rcu() to keep the whole RCU handling outside
+>> of the individual drivers.
+> Hm, I entirely dropped the ball on this, I kinda assumed that we managed
+> to get some agreement on this between i915 and dma_fence. Adding a pile
+> more people.
 
-Results of the daily build of media_tree:
+For the meantime I've send a v2 of this patch to fix at least the buggy 
+return of NULL when we fail to grab the RCU reference but keeping the 
+extra checking for now.
 
-date:			Wed Sep 20 05:00:18 CEST 2017
-media-tree git hash:	1efdf1776e2253b77413c997bed862410e4b6aaf
-media_build git hash:	19087750b61fc0c5528e798c47ff845f9234bbbb
-v4l-utils git hash:	9ee29df352dad950784f0f6f4a1bb96c0aefacc4
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+Can I get an rb on this please so that we fix at least the bug at hand?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: OK
-spec-git: OK
+Thanks,
+Christian.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+>
+> Joonas, Tvrtko, I guess we need to fix this one way or the other.
+> -Daniel
