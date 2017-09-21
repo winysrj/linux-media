@@ -1,70 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33118
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751960AbdI0Vkr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:47 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Ingo Molnar <mingo@kernel.org>
-Subject: [PATCH v2 22/37] media: dvb_demux: mark a boolean field as such
-Date: Wed, 27 Sep 2017 18:40:23 -0300
-Message-Id: <66b3c151da1ec6e51a7576c0633e455df013f588.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+Received: from mout.web.de ([212.227.17.12]:65334 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751387AbdIUPGb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 11:06:31 -0400
+Subject: [PATCH 1/4] [media] usbvision-core: Use common error handling code in
+ usbvision_set_input()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Davidlohr Bueso <dave@stgolabs.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <c0e6e8e7-e47d-dc88-3317-2e46eaa51dc6@users.sourceforge.net>
+Message-ID: <bc54a99d-74af-a4bb-5823-70b075403624@users.sourceforge.net>
+Date: Thu, 21 Sep 2017 17:06:02 +0200
+MIME-Version: 1.0
+In-Reply-To: <c0e6e8e7-e47d-dc88-3317-2e46eaa51dc6@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The struct dvb_demux_filter.doneq is a boolean.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 21 Sep 2017 11:50:54 +0200
 
-Mark it as such, as it helps to understand what it does.
+* Add a jump target so that a bit of exception handling can be better
+  reused at the end of this function.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+  This issue was detected by using the Coccinelle software.
+
+* Replace the local variable "proc" by the identifier "__func__".
+
+* Use the interface "dev_err" instead of "printk".
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/dvb-core/dvb_demux.c | 4 ++--
- drivers/media/dvb-core/dvb_demux.h | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/usb/usbvision/usbvision-core.c | 23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
-index 6628f80d184f..68e93362c081 100644
---- a/drivers/media/dvb-core/dvb_demux.c
-+++ b/drivers/media/dvb-core/dvb_demux.c
-@@ -898,14 +898,14 @@ static void prepare_secfilters(struct dvb_demux_feed *dvbdmxfeed)
- 		return;
- 	do {
- 		sf = &f->filter;
--		doneq = 0;
-+		doneq = false;
- 		for (i = 0; i < DVB_DEMUX_MASK_MAX; i++) {
- 			mode = sf->filter_mode[i];
- 			mask = sf->filter_mask[i];
- 			f->maskandmode[i] = mask & mode;
- 			doneq |= f->maskandnotmode[i] = mask & ~mode;
- 		}
--		f->doneq = doneq ? 1 : 0;
-+		f->doneq = doneq ? true : false;
- 	} while ((f = f->next));
+diff --git a/drivers/media/usb/usbvision/usbvision-core.c b/drivers/media/usb/usbvision/usbvision-core.c
+index 3f87fbc80be2..16b76c85eeec 100644
+--- a/drivers/media/usb/usbvision/usbvision-core.c
++++ b/drivers/media/usb/usbvision/usbvision-core.c
+@@ -1931,7 +1931,6 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
+  */
+ int usbvision_set_input(struct usb_usbvision *usbvision)
+ {
+-	static const char proc[] = "usbvision_set_input: ";
+ 	int rc;
+ 	unsigned char *value = usbvision->ctrl_urb_buffer;
+ 	unsigned char dvi_yuv_value;
+@@ -1953,12 +1952,8 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
+ 	}
+ 
+ 	rc = usbvision_write_reg(usbvision, USBVISION_VIN_REG1, value[0]);
+-	if (rc < 0) {
+-		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
+-		       proc, rc);
+-		return rc;
+-	}
+-
++	if (rc < 0)
++		goto report_failure;
+ 
+ 	if (usbvision->tvnorm_id & V4L2_STD_PAL) {
+ 		value[0] = 0xC0;
+@@ -2019,12 +2014,8 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
+ 			     USBVISION_OP_CODE,	/* USBVISION specific code */
+ 			     USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_ENDPOINT, 0,
+ 			     (__u16) USBVISION_LXSIZE_I, value, 8, HZ);
+-	if (rc < 0) {
+-		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
+-		       proc, rc);
+-		return rc;
+-	}
+-
++	if (rc < 0)
++		goto report_failure;
+ 
+ 	dvi_yuv_value = 0x00;	/* U comes after V, Ya comes after U/V, Yb comes after Yb */
+ 
+@@ -2036,6 +2027,12 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
+ 	}
+ 
+ 	return usbvision_write_reg(usbvision, USBVISION_DVI_YUV, dvi_yuv_value);
++
++report_failure:
++	dev_err(&usbvision->dev->dev,
++		"%s: ERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
++		__func__, rc);
++	return rc;
  }
  
-diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
-index 045f7fd1a8b1..700887938145 100644
---- a/drivers/media/dvb-core/dvb_demux.h
-+++ b/drivers/media/dvb-core/dvb_demux.h
-@@ -64,7 +64,7 @@ struct dvb_demux_filter {
- 	struct dmx_section_filter filter;
- 	u8 maskandmode[DMX_MAX_FILTER_SIZE];
- 	u8 maskandnotmode[DMX_MAX_FILTER_SIZE];
--	int doneq;
-+	bool doneq;
  
- 	struct dvb_demux_filter *next;
- 	struct dvb_demux_feed *feed;
 -- 
-2.13.5
+2.14.1
