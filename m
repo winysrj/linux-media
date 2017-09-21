@@ -1,176 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-he1eur01on0126.outbound.protection.outlook.com ([104.47.0.126]:6416
-        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751906AbdI1NG5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Sep 2017 09:06:57 -0400
-Subject: Re: [PATCH v4 4/9] em28xx: fix em28xx_dvb_init for KASAN
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: David Laight <David.Laight@aculab.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jiri Pirko <jiri@resnulli.us>,
-        Arend van Spriel <arend.vanspriel@broadcom.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Michal Marek <mmarek@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Kees Cook <keescook@chromium.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>,
-        "brcm80211-dev-list.pdl@broadcom.com"
-        <brcm80211-dev-list.pdl@broadcom.com>,
-        "brcm80211-dev-list@cypress.com" <brcm80211-dev-list@cypress.com>,
-        "kasan-dev@googlegroups.com" <kasan-dev@googlegroups.com>,
-        "linux-kbuild@vger.kernel.org" <linux-kbuild@vger.kernel.org>,
-        Jakub Jelinek <jakub@gcc.gnu.org>,
-        =?UTF-8?Q?Martin_Li=c5=a1ka?= <marxin@gcc.gnu.org>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>
-References: <20170922212930.620249-1-arnd@arndb.de>
- <20170922212930.620249-5-arnd@arndb.de>
- <063D6719AE5E284EB5DD2968C1650D6DD007F521@AcuExch.aculab.com>
- <CAK8P3a1zxjMsQTBPijCo8FJjEU5aRVTr7n_NZ1YM2UnDPKoRLw@mail.gmail.com>
- <CAK8P3a37Ts5q7BvA2JWse87huyAp+=e18CUXEt8731RrBnB+Ow@mail.gmail.com>
- <e7e6418e-4340-5057-aa17-800082aca5fb@virtuozzo.com>
- <CAK8P3a2C7DBTfQZvRi-QQfrfm1GXktFcXQRmXmzpF4SCa+BADA@mail.gmail.com>
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Message-ID: <2631e8a6-03f2-69ea-d889-afd9a345e7ef@virtuozzo.com>
-Date: Thu, 28 Sep 2017 16:09:46 +0300
+Received: from szxga04-in.huawei.com ([45.249.212.190]:6969 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751387AbdIUOGK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 10:06:10 -0400
+Date: Thu, 21 Sep 2017 15:05:54 +0100
+From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>
+CC: <linux-i2c@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-renesas-soc@vger.kernel.org>, <linux-iio@vger.kernel.org>,
+        <linux-input@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <dri-devel@lists.freedesktop.org>
+Subject: Re: [RFC PATCH v5 2/6] i2c: add helpers to ease DMA handling
+Message-ID: <20170921150554.0000273b@huawei.com>
+In-Reply-To: <20170921145922.000017b5@huawei.com>
+References: <20170920185956.13874-1-wsa+renesas@sang-engineering.com>
+        <20170920185956.13874-3-wsa+renesas@sang-engineering.com>
+        <20170921145922.000017b5@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <CAK8P3a2C7DBTfQZvRi-QQfrfm1GXktFcXQRmXmzpF4SCa+BADA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/27/2017 04:26 PM, Arnd Bergmann wrote:
-> On Tue, Sep 26, 2017 at 9:49 AM, Andrey Ryabinin
-> <aryabinin@virtuozzo.com> wrote:
->>
->>
->> On 09/26/2017 09:47 AM, Arnd Bergmann wrote:
->>> On Mon, Sep 25, 2017 at 11:32 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+On Thu, 21 Sep 2017 14:59:22 +0100
+Jonathan Cameron <Jonathan.Cameron@huawei.com> wrote:
+
+> On Wed, 20 Sep 2017 20:59:52 +0200
+> Wolfram Sang <wsa+renesas@sang-engineering.com> wrote:
 > 
->>> +       ret = __builtin_strlen(q);
->>
->>
->> I think this is not correct. Fortified strlen called here on purpose. If sizeof q is known at compile time
->> and 'q' contains not-null fortified strlen() will panic.
+> > One helper checks if DMA is suitable and optionally creates a bounce
+> > buffer, if not. The other function returns the bounce buffer and makes
+> > sure the data is properly copied back to the message.
+> > 
+> > Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>  
 > 
-> Ok, got it.
+> One minor suggestion for wording. Otherwise looks good to me.
 > 
->>>         if (size) {
->>>                 size_t len = (ret >= size) ? size - 1 : ret;
->>>                 if (__builtin_constant_p(len) && len >= p_size)
->>>
->>> The problem is apparently that the fortified strlcpy calls the fortified strlen,
->>> which in turn calls strnlen and that ends up calling the extern '__real_strnlen'
->>> that gcc cannot reduce to a constant expression for a constant input.
->>
->>
->> Per my observation, it's the code like this:
->>         if ()
->>                 fortify_panic(__func__);
->>
->>
->> somehow prevent gcc to merge several "struct i2c_board_info info;" into one stack slot.
->> With the hack bellow, stack usage reduced to ~1,6K:
+> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+>
+
+Need more coffee. See below.
+ 
+> > ---
+> >  drivers/i2c/i2c-core-base.c | 45 +++++++++++++++++++++++++++++++++++++++++++++
+> >  include/linux/i2c.h         |  3 +++
+> >  2 files changed, 48 insertions(+)
+> > 
+> > diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
+> > index 56e46581b84bdb..925a22794d3ced 100644
+> > --- a/drivers/i2c/i2c-core-base.c
+> > +++ b/drivers/i2c/i2c-core-base.c
+> > @@ -2241,6 +2241,51 @@ void i2c_put_adapter(struct i2c_adapter *adap)
+> >  }
+> >  EXPORT_SYMBOL(i2c_put_adapter);
+> >  
+> > +/**
+> > + * i2c_get_dma_safe_msg_buf() - get a DMA safe buffer for the given i2c_msg
+> > + * @msg: the message to be checked
+> > + * @threshold: the amount of byte from which using DMA makes sense  
 > 
-> 1.6k is also what I see with my patch, or any other approach I tried
-> that changes
-> string.h. With the split up em28xx_dvb_init() function (and without
-> changes to string.h),
-> I got down to a few hundred bytes for the largest handler.
+> the minimum number of bytes for which using DMA makes sense.
 > 
->> ---
->>  include/linux/string.h | 4 ----
->>  1 file changed, 4 deletions(-)
->>
->> diff --git a/include/linux/string.h b/include/linux/string.h
->> index 54d21783e18d..9a96ff3ebf94 100644
->> --- a/include/linux/string.h
->> +++ b/include/linux/string.h
->> @@ -261,8 +261,6 @@ __FORTIFY_INLINE __kernel_size_t strlen(const char *p)
->>         if (p_size == (size_t)-1)
->>                 return __builtin_strlen(p);
->>         ret = strnlen(p, p_size);
->> -       if (p_size <= ret)
->> -               fortify_panic(__func__);
->>         return ret;
->>  }
->>
->> @@ -271,8 +269,6 @@ __FORTIFY_INLINE __kernel_size_t strnlen(const char *p, __kernel_size_t maxlen)
->>  {
->>         size_t p_size = __builtin_object_size(p, 0);
->>         __kernel_size_t ret = __real_strnlen(p, maxlen < p_size ? maxlen : p_size);
->> -       if (p_size <= ret && maxlen != ret)
->> -               fortify_panic(__func__);
->>         return ret;
-> 
-> I've reduced it further to this change:
-> 
-> --- a/include/linux/string.h
-> +++ b/include/linux/string.h
-> @@ -227,7 +227,7 @@ static inline const char *kbasename(const char *path)
->  #define __FORTIFY_INLINE extern __always_inline __attribute__((gnu_inline))
->  #define __RENAME(x) __asm__(#x)
-> 
-> -void fortify_panic(const char *name) __noreturn __cold;
-> +void fortify_panic(const char *name) __cold;
->  void __read_overflow(void) __compiletime_error("detected read beyond
-> size of object passed as 1st parameter");
->  void __read_overflow2(void) __compiletime_error("detected read beyond
-> size of object passed as 2nd parameter");
->  void __read_overflow3(void) __compiletime_error("detected read beyond
-> size of object passed as 3rd parameter");
-> 
-> I don't immediately see why the __noreturn changes the behavior here, any idea?
-> 
+> > + *
+> > + * Return: NULL if a DMA safe buffer was not obtained. Use msg->buf with PIO.
+> > + *
+> > + *	   Or a valid pointer to be used with DMA. Note that it can either be
+> > + *	   msg->buf or a bounce buffer. After use, release it by calling
+> > + *	   i2c_release_dma_safe_msg_buf().
+> > + *
+> > + * This function must only be called from process context!
+> > + */
+> > +u8 *i2c_get_dma_safe_msg_buf(struct i2c_msg *msg, unsigned int threshold)
+> > +{
+> > +	if (msg->len < threshold)
+> > +		return NULL;
+> > +
+> > +	if (msg->flags & I2C_M_DMA_SAFE)
+> > +		return msg->buf;
+> > +
+> > +	if (msg->flags & I2C_M_RD)
+> > +		return kzalloc(msg->len, GFP_KERNEL);
+> > +	else
+> > +		return kmemdup(msg->buf, msg->len, GFP_KERNEL);
+> > +}
+> > +EXPORT_SYMBOL_GPL(i2c_get_dma_safe_msg_buf);
+> > +
+> > +/**
+> > + * i2c_release_dma_safe_msg_buf - release DMA safe buffer and sync with i2c_msg
+> > + * @msg: the message to be synced with
+> > + * @buf: the buffer obtained from i2c_get_dma_safe_msg_buf(). May be NULL.
+> > + */
+> > +void i2c_release_dma_safe_msg_buf(struct i2c_msg *msg, u8 *buf)
+> > +{
+> > +	if (!buf || buf == msg->buf)
+> > +		return;
+> > +
+> > +	if (msg->flags & I2C_M_RD)
+> > +		memcpy(msg->buf, buf, msg->len);
+> > +
+> > +	kfree(buf);
+
+Only free when you actually allocated it.  Seems to me like you need
+to check if (!(msg->flags & I2C_M_DMA_SAFE)) before kfree.
+
+Otherwise the logic to do this will be needed in every driver
+which will get irritating fast.
 
 
-At first I thought that this somehow might be related to __asan_handle_no_return(). GCC calls it
-before noreturn function. So I made patch to remove generation of these calls (we don't need them in the kernel anyway)
-but it didn't help. It must be something else than.
-
-
->>> Not sure if that change is the best fix, but it seems to address the problem in
->>> this driver and probably leads to better code in other places as well.
->>>
->>
->> Probably it would be better to solve this on the strlcpy side, but I haven't found the way to do this right.
->> Alternative solutions:
->>
->>  - use memcpy() instead of strlcpy(). All source strings are smaller than I2C_NAME_SIZE, so we could
->>    do something like this - memcpy(info.type, "si2168", sizeof("si2168"));
->>    Also this should be faster.
+> > +}
+> > +EXPORT_SYMBOL_GPL(i2c_release_dma_safe_msg_buf);
+> > +
+> >  MODULE_AUTHOR("Simon G. Vogl <simon@tk.uni-linz.ac.at>");
+> >  MODULE_DESCRIPTION("I2C-Bus main module");
+> >  MODULE_LICENSE("GPL");
+> > diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+> > index d501d3956f13f0..1e99342f180f45 100644
+> > --- a/include/linux/i2c.h
+> > +++ b/include/linux/i2c.h
+> > @@ -767,6 +767,9 @@ static inline u8 i2c_8bit_addr_from_msg(const struct i2c_msg *msg)
+> >  	return (msg->addr << 1) | (msg->flags & I2C_M_RD ? 1 : 0);
+> >  }
+> >  
+> > +u8 *i2c_get_dma_safe_msg_buf(struct i2c_msg *msg, unsigned int threshold);
+> > +void i2c_release_dma_safe_msg_buf(struct i2c_msg *msg, u8 *buf);
+> > +
+> >  int i2c_handle_smbus_host_notify(struct i2c_adapter *adap, unsigned short addr);
+> >  /**
+> >   * module_i2c_driver() - Helper macro for registering a modular I2C driver  
 > 
-> This would be very similar to the patch I posted at the start of this
-> thread to use strncpy(), right?
-
-Sure.
-
-> I was hoping that changing strlcpy() here could also improve other
-> users that might run into
-> the same situation, but stay below the 2048-byte stack frame limit.
-> 
->>  - Move code under different "case:" in the switch(dev->model) to the separate function should help as well.
->>    But it might be harder to backport into stables.
-> 
-> Agreed, I posted this in earlier versions of the patch series, see
-> https://patchwork.kernel.org/patch/9601025/
-> 
-> The new patch was a result of me trying to come up with a less
-> invasive version to
-> make it easier to backport, since I would like to backport the last
-> patch in the series
-> that depends on all the earlier ones.
-> 
->          Arnd
-> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
