@@ -1,278 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45468 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751434AbdIOORw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 10:17:52 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v13 06/25] omap3isp: Use generic parser for parsing fwnode endpoints
-Date: Fri, 15 Sep 2017 17:17:05 +0300
-Message-Id: <20170915141724.23124-7-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+Received: from mout.web.de ([212.227.17.12]:57418 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751678AbdIUPHc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 11:07:32 -0400
+Subject: [PATCH 2/4] [media] usbvision-core: Use common error handling code in
+ usbvision_set_compress_params()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Davidlohr Bueso <dave@stgolabs.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <c0e6e8e7-e47d-dc88-3317-2e46eaa51dc6@users.sourceforge.net>
+Message-ID: <52c09836-83d7-c509-6e85-c7af16160302@users.sourceforge.net>
+Date: Thu, 21 Sep 2017 17:07:06 +0200
+MIME-Version: 1.0
+In-Reply-To: <c0e6e8e7-e47d-dc88-3317-2e46eaa51dc6@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using driver implementation, use
-v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
-of the device.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 21 Sep 2017 12:45:49 +0200
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+* Add a jump target so that a bit of exception handling can be better
+  reused at the end of this function.
+
+* Replace the local variable "proc" by the identifier "__func__".
+
+* Use the interface "dev_err" instead of "printk".
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/platform/omap3isp/isp.c | 115 +++++++++++-----------------------
- drivers/media/platform/omap3isp/isp.h |   5 +-
- 2 files changed, 37 insertions(+), 83 deletions(-)
+ drivers/media/usb/usbvision/usbvision-core.c | 18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 1a428fe9f070..a546cf774d40 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2001,6 +2001,7 @@ static int isp_remove(struct platform_device *pdev)
- 	__omap3isp_put(isp, false);
+diff --git a/drivers/media/usb/usbvision/usbvision-core.c b/drivers/media/usb/usbvision/usbvision-core.c
+index 16b76c85eeec..bb6f4f69165f 100644
+--- a/drivers/media/usb/usbvision/usbvision-core.c
++++ b/drivers/media/usb/usbvision/usbvision-core.c
+@@ -1857,7 +1857,6 @@ int usbvision_stream_interrupt(struct usb_usbvision *usbvision)
  
- 	media_entity_enum_cleanup(&isp->crashed);
-+	v4l2_async_notifier_release(&isp->notifier);
- 
- 	return 0;
- }
-@@ -2011,44 +2012,41 @@ enum isp_of_phy {
- 	ISP_OF_PHY_CSIPHY2,
- };
- 
--static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
--			    struct isp_async_subdev *isd)
-+static int isp_fwnode_parse(struct device *dev,
-+			    struct v4l2_fwnode_endpoint *vep,
-+			    struct v4l2_async_subdev *asd)
+ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
  {
-+	struct isp_async_subdev *isd =
-+		container_of(asd, struct isp_async_subdev, asd);
- 	struct isp_bus_cfg *buscfg = &isd->bus;
--	struct v4l2_fwnode_endpoint vep;
--	unsigned int i;
--	int ret;
- 	bool csi1 = false;
+-	static const char proc[] = "usbvision_set_compresion_params: ";
+ 	int rc;
+ 	unsigned char *value = usbvision->ctrl_urb_buffer;
+ 
+@@ -1882,12 +1881,8 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
+ 			     USB_DIR_OUT | USB_TYPE_VENDOR |
+ 			     USB_RECIP_ENDPOINT, 0,
+ 			     (__u16) USBVISION_INTRA_CYC, value, 5, HZ);
 -
--	ret = v4l2_fwnode_endpoint_parse(fwnode, &vep);
--	if (ret)
--		return ret;
-+	unsigned int i;
- 
- 	dev_dbg(dev, "parsing endpoint %pOF, interface %u\n",
--		to_of_node(fwnode), vep.base.port);
-+		to_of_node(vep->base.local_fwnode), vep->base.port);
- 
--	switch (vep.base.port) {
-+	switch (vep->base.port) {
- 	case ISP_OF_PHY_PARALLEL:
- 		buscfg->interface = ISP_INTERFACE_PARALLEL;
- 		buscfg->bus.parallel.data_lane_shift =
--			vep.bus.parallel.data_shift;
-+			vep->bus.parallel.data_shift;
- 		buscfg->bus.parallel.clk_pol =
--			!!(vep.bus.parallel.flags
-+			!!(vep->bus.parallel.flags
- 			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
- 		buscfg->bus.parallel.hs_pol =
--			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
-+			!!(vep->bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
- 		buscfg->bus.parallel.vs_pol =
--			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
-+			!!(vep->bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
- 		buscfg->bus.parallel.fld_pol =
--			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
-+			!!(vep->bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
- 		buscfg->bus.parallel.data_pol =
--			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
--		buscfg->bus.parallel.bt656 = vep.bus_type == V4L2_MBUS_BT656;
-+			!!(vep->bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
-+		buscfg->bus.parallel.bt656 = vep->bus_type == V4L2_MBUS_BT656;
- 		break;
- 
- 	case ISP_OF_PHY_CSIPHY1:
- 	case ISP_OF_PHY_CSIPHY2:
--		switch (vep.bus_type) {
-+		switch (vep->bus_type) {
- 		case V4L2_MBUS_CCP2:
- 		case V4L2_MBUS_CSI1:
- 			dev_dbg(dev, "CSI-1/CCP-2 configuration\n");
-@@ -2060,11 +2058,11 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
- 			break;
- 		default:
- 			dev_err(dev, "unsupported bus type %u\n",
--				vep.bus_type);
-+				vep->bus_type);
- 			return -EINVAL;
- 		}
- 
--		switch (vep.base.port) {
-+		switch (vep->base.port) {
- 		case ISP_OF_PHY_CSIPHY1:
- 			if (csi1)
- 				buscfg->interface = ISP_INTERFACE_CCP2B_PHY1;
-@@ -2080,47 +2078,47 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
- 		}
- 		if (csi1) {
- 			buscfg->bus.ccp2.lanecfg.clk.pos =
--				vep.bus.mipi_csi1.clock_lane;
-+				vep->bus.mipi_csi1.clock_lane;
- 			buscfg->bus.ccp2.lanecfg.clk.pol =
--				vep.bus.mipi_csi1.lane_polarity[0];
-+				vep->bus.mipi_csi1.lane_polarity[0];
- 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
- 				buscfg->bus.ccp2.lanecfg.clk.pol,
- 				buscfg->bus.ccp2.lanecfg.clk.pos);
- 
- 			buscfg->bus.ccp2.lanecfg.data[0].pos =
--				vep.bus.mipi_csi1.data_lane;
-+				vep->bus.mipi_csi1.data_lane;
- 			buscfg->bus.ccp2.lanecfg.data[0].pol =
--				vep.bus.mipi_csi1.lane_polarity[1];
-+				vep->bus.mipi_csi1.lane_polarity[1];
- 
- 			dev_dbg(dev, "data lane polarity %u, pos %u\n",
- 				buscfg->bus.ccp2.lanecfg.data[0].pol,
- 				buscfg->bus.ccp2.lanecfg.data[0].pos);
- 
- 			buscfg->bus.ccp2.strobe_clk_pol =
--				vep.bus.mipi_csi1.clock_inv;
--			buscfg->bus.ccp2.phy_layer = vep.bus.mipi_csi1.strobe;
-+				vep->bus.mipi_csi1.clock_inv;
-+			buscfg->bus.ccp2.phy_layer = vep->bus.mipi_csi1.strobe;
- 			buscfg->bus.ccp2.ccp2_mode =
--				vep.bus_type == V4L2_MBUS_CCP2;
-+				vep->bus_type == V4L2_MBUS_CCP2;
- 			buscfg->bus.ccp2.vp_clk_pol = 1;
- 
- 			buscfg->bus.ccp2.crc = 1;
- 		} else {
- 			buscfg->bus.csi2.lanecfg.clk.pos =
--				vep.bus.mipi_csi2.clock_lane;
-+				vep->bus.mipi_csi2.clock_lane;
- 			buscfg->bus.csi2.lanecfg.clk.pol =
--				vep.bus.mipi_csi2.lane_polarities[0];
-+				vep->bus.mipi_csi2.lane_polarities[0];
- 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
- 				buscfg->bus.csi2.lanecfg.clk.pol,
- 				buscfg->bus.csi2.lanecfg.clk.pos);
- 
- 			buscfg->bus.csi2.num_data_lanes =
--				vep.bus.mipi_csi2.num_data_lanes;
-+				vep->bus.mipi_csi2.num_data_lanes;
- 
- 			for (i = 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
- 				buscfg->bus.csi2.lanecfg.data[i].pos =
--					vep.bus.mipi_csi2.data_lanes[i];
-+					vep->bus.mipi_csi2.data_lanes[i];
- 				buscfg->bus.csi2.lanecfg.data[i].pol =
--					vep.bus.mipi_csi2.lane_polarities[i + 1];
-+					vep->bus.mipi_csi2.lane_polarities[i + 1];
- 				dev_dbg(dev,
- 					"data lane %u polarity %u, pos %u\n", i,
- 					buscfg->bus.csi2.lanecfg.data[i].pol,
-@@ -2137,57 +2135,13 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
- 
- 	default:
- 		dev_warn(dev, "%pOF: invalid interface %u\n",
--			 to_of_node(fwnode), vep.base.port);
-+			 to_of_node(vep->base.local_fwnode), vep->base.port);
- 		return -EINVAL;
- 	}
- 
- 	return 0;
- }
- 
--static int isp_fwnodes_parse(struct device *dev,
--			     struct v4l2_async_notifier *notifier)
--{
--	struct fwnode_handle *fwnode = NULL;
--
--	notifier->subdevs = devm_kcalloc(
--		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
--	if (!notifier->subdevs)
--		return -ENOMEM;
--
--	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
--	       (fwnode = fwnode_graph_get_next_endpoint(
--			of_fwnode_handle(dev->of_node), fwnode))) {
--		struct isp_async_subdev *isd;
--
--		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
--		if (!isd)
--			goto error;
--
--		if (isp_fwnode_parse(dev, fwnode, isd)) {
--			devm_kfree(dev, isd);
--			continue;
--		}
--
--		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
--
--		isd->asd.match.fwnode.fwnode =
--			fwnode_graph_get_remote_port_parent(fwnode);
--		if (!isd->asd.match.fwnode.fwnode) {
--			dev_warn(dev, "bad remote port parent\n");
--			goto error;
--		}
--
--		isd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
--		notifier->num_subdevs++;
+-	if (rc < 0) {
+-		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
+-		       proc, rc);
+-		return rc;
 -	}
--
--	return notifier->num_subdevs;
--
--error:
--	fwnode_handle_put(fwnode);
--	return -EINVAL;
--}
--
- static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- {
- 	struct isp_device *isp = container_of(async, struct isp_device,
-@@ -2256,7 +2210,9 @@ static int isp_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
++	if (rc < 0)
++		goto report_failure;
  
--	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
-+	ret = v4l2_async_notifier_parse_fwnode_endpoints(
-+		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
-+		isp_fwnode_parse);
- 	if (ret < 0)
- 		return ret;
+ 	if (usbvision->bridge_type == BRIDGE_NT1004) {
+ 		value[0] =  20; /* PCM Threshold 1 */
+@@ -1913,11 +1908,12 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
+ 			     USB_DIR_OUT | USB_TYPE_VENDOR |
+ 			     USB_RECIP_ENDPOINT, 0,
+ 			     (__u16) USBVISION_PCM_THR1, value, 6, HZ);
++	if (rc < 0)
++report_failure:
++		dev_err(&usbvision->dev->dev,
++			"%s: ERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
++			__func__, rc);
  
-@@ -2407,6 +2363,7 @@ static int isp_probe(struct platform_device *pdev)
- 	__omap3isp_put(isp, false);
- error:
- 	mutex_destroy(&isp->isp_mutex);
-+	v4l2_async_notifier_release(&isp->notifier);
- 
- 	return ret;
+-	if (rc < 0) {
+-		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
+-		       proc, rc);
+-	}
+ 	return rc;
  }
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index e528df6efc09..8b9043db94b3 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -220,14 +220,11 @@ struct isp_device {
  
- 	unsigned int sbl_resources;
- 	unsigned int subclk_resources;
--
--#define ISP_MAX_SUBDEVS		8
--	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
- };
- 
- struct isp_async_subdev {
--	struct isp_bus_cfg bus;
- 	struct v4l2_async_subdev asd;
-+	struct isp_bus_cfg bus;
- };
- 
- #define v4l2_subdev_to_bus_cfg(sd) \
 -- 
-2.11.0
+2.14.1
