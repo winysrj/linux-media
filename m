@@ -1,92 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45404 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751259AbdIOORk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 10:17:40 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v13 03/25] v4l: async: Use more intuitive names for internal functions
-Date: Fri, 15 Sep 2017 17:17:02 +0300
-Message-Id: <20170915141724.23124-4-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+Received: from mout.web.de ([212.227.17.11]:59833 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751621AbdIUTXP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 15:23:15 -0400
+To: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/3] [media] uvcvideo: Fine-tuning for some function
+ implementations
+Message-ID: <20a8d1a5-45f1-2f98-e4b3-cfc24e9c04b0@users.sourceforge.net>
+Date: Thu, 21 Sep 2017 21:23:07 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename internal functions to make the names of the functions better
-describe what they do.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 21 Sep 2017 21:20:12 +0200
 
-	Old name			New name
-	v4l2_async_test_notify	v4l2_async_match_notify
-	v4l2_async_belongs	v4l2_async_find_match
+Three update suggestions were taken into account
+from static source code analysis.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+Markus Elfring (3):
+  Use common error handling code in uvc_ioctl_g_ext_ctrls()
+  Adjust 14 checks for null pointers
+  Add some spaces for better code readability
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index e109d9da4653..831f185ecd47 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -60,8 +60,8 @@ static LIST_HEAD(subdev_list);
- static LIST_HEAD(notifier_list);
- static DEFINE_MUTEX(list_lock);
- 
--static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
--						    struct v4l2_subdev *sd)
-+static struct v4l2_async_subdev *v4l2_async_find_match(
-+	struct v4l2_async_notifier *notifier, struct v4l2_subdev *sd)
- {
- 	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
- 	struct v4l2_async_subdev *asd;
-@@ -95,9 +95,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
- 	return NULL;
- }
- 
--static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
--				  struct v4l2_subdev *sd,
--				  struct v4l2_async_subdev *asd)
-+static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-+				   struct v4l2_subdev *sd,
-+				   struct v4l2_async_subdev *asd)
- {
- 	int ret;
- 
-@@ -175,11 +175,11 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
- 		int ret;
- 
--		asd = v4l2_async_belongs(notifier, sd);
-+		asd = v4l2_async_find_match(notifier, sd);
- 		if (!asd)
- 			continue;
- 
--		ret = v4l2_async_test_notify(notifier, sd, asd);
-+		ret = v4l2_async_match_notify(notifier, sd, asd);
- 		if (ret < 0) {
- 			mutex_unlock(&list_lock);
- 			return ret;
-@@ -236,9 +236,10 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 	INIT_LIST_HEAD(&sd->async_list);
- 
- 	list_for_each_entry(notifier, &notifier_list, list) {
--		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
-+		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
-+								      sd);
- 		if (asd) {
--			int ret = v4l2_async_test_notify(notifier, sd, asd);
-+			int ret = v4l2_async_match_notify(notifier, sd, asd);
- 			mutex_unlock(&list_lock);
- 			return ret;
- 		}
+ drivers/media/usb/uvc/uvc_v4l2.c | 53 ++++++++++++++++++++--------------------
+ 1 file changed, 27 insertions(+), 26 deletions(-)
+
 -- 
-2.11.0
+2.14.1
