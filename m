@@ -1,57 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:46447 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750952AbdISItd (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33374 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751675AbdIUPED (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 04:49:33 -0400
-Date: Tue, 19 Sep 2017 11:49:11 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 5/6] [media] go7007: Use common error handling code in
- go7007_snd_init()
-Message-ID: <20170919084911.zknru7vuhafljuxb@mwanda>
-References: <b36ece3f-0f31-9bb6-14ae-c4abf7cd23ee@users.sourceforge.net>
- <05efac78-3a14-803c-5b4a-68670728628b@users.sourceforge.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <05efac78-3a14-803c-5b4a-68670728628b@users.sourceforge.net>
+        Thu, 21 Sep 2017 11:04:03 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: chiranjeevi.rapolu@intel.com
+Subject: [PATCH 1/1] ov13858: Use do_div() for dividing a 64-bit number
+Date: Thu, 21 Sep 2017 18:04:01 +0300
+Message-Id: <20170921150401.27933-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 18, 2017 at 03:58:37PM +0200, SF Markus Elfring wrote:
-> diff --git a/drivers/media/usb/go7007/snd-go7007.c b/drivers/media/usb/go7007/snd-go7007.c
-> index 68e421bf38e1..7ae4d03ed3f7 100644
-> --- a/drivers/media/usb/go7007/snd-go7007.c
-> +++ b/drivers/media/usb/go7007/snd-go7007.c
-> @@ -243,22 +243,18 @@ int go7007_snd_init(struct go7007 *go)
->  	gosnd->capturing = 0;
->  	ret = snd_card_new(go->dev, index[dev], id[dev], THIS_MODULE, 0,
->  			   &gosnd->card);
-> -	if (ret < 0) {
-> -		kfree(gosnd);
-> -		return ret;
-> -	}
-> +	if (ret < 0)
-> +		goto free_snd;
-> +
->  	ret = snd_device_new(gosnd->card, SNDRV_DEV_LOWLEVEL, go,
->  			&go7007_snd_device_ops);
-> -	if (ret < 0) {
-> -		kfree(gosnd);
-> -		return ret;
-> -	}
-> +	if (ret < 0)
-> +		goto free_snd;
-> +
+ov13858 contained a 64-bit division. Use do_div() for calculating it.
 
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/ov13858.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-I think the original code is buggy.  It should probably call
-snd_card_free() if snd_device_new() fails.
-
-regards,
-dan carpenter
+diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+index 2bd659976c30..5030f4ebe056 100644
+--- a/drivers/media/i2c/ov13858.c
++++ b/drivers/media/i2c/ov13858.c
+@@ -951,7 +951,12 @@ static const char * const ov13858_test_pattern_menu[] = {
+  * pixel_rate = link_freq * data-rate * nr_of_lanes / bits_per_sample
+  * data rate => double data rate; number of lanes => 4; bits per pixel => 10
+  */
+-#define LINK_FREQ_TO_PIXEL_RATE(f)	(((f) * 2 * 4) / 10)
++#define LINK_FREQ_TO_PIXEL_RATE(f)					\
++	({								\
++		u64 __link_freq_to_pixel_rate_tmp = (f) * 2 * 4;	\
++		do_div(__link_freq_to_pixel_rate_tmp, 10);		\
++		__link_freq_to_pixel_rate_tmp;				\
++	})
+ 
+ /* Menu items for LINK_FREQ V4L2 control */
+ static const s64 link_freq_menu_items[OV13858_NUM_OF_LINK_FREQS] = {
+-- 
+2.11.0
