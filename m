@@ -1,128 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45760 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751661AbdIOOSu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 10:18:50 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v13 23/25] ov5670: Add support for flash and lens devices
-Date: Fri, 15 Sep 2017 17:17:22 +0300
-Message-Id: <20170915141724.23124-24-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+Received: from sauhun.de ([88.99.104.3]:41902 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751596AbdIUOPa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 10:15:30 -0400
+Date: Thu, 21 Sep 2017 16:15:28 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+Subject: Re: [RFC PATCH v5 2/6] i2c: add helpers to ease DMA handling
+Message-ID: <20170921141528.xre53zpxwk355uih@ninjato>
+References: <20170920185956.13874-1-wsa+renesas@sang-engineering.com>
+ <20170920185956.13874-3-wsa+renesas@sang-engineering.com>
+ <20170921145922.000017b5@huawei.com>
+ <20170921150554.0000273b@huawei.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="w6ftkolbg5vznbjm"
+Content-Disposition: inline
+In-Reply-To: <20170921150554.0000273b@huawei.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse async sub-devices by using
-v4l2_subdev_fwnode_reference_parse_sensor_common().
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/ov5670.c | 33 +++++++++++++++++++++++++--------
- 1 file changed, 25 insertions(+), 8 deletions(-)
+--w6ftkolbg5vznbjm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
-index 6f7a1d6d2200..a791701fa2b9 100644
---- a/drivers/media/i2c/ov5670.c
-+++ b/drivers/media/i2c/ov5670.c
-@@ -18,6 +18,7 @@
- #include <linux/pm_runtime.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
- 
- #define OV5670_REG_CHIP_ID		0x300a
- #define OV5670_CHIP_ID			0x005670
-@@ -1807,6 +1808,7 @@ static const struct ov5670_mode supported_modes[] = {
- struct ov5670 {
- 	struct v4l2_subdev sd;
- 	struct media_pad pad;
-+	struct v4l2_async_notifier notifier;
- 
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	/* V4L2 Controls */
-@@ -2473,11 +2475,13 @@ static int ov5670_probe(struct i2c_client *client)
- 		return -EINVAL;
- 
- 	ov5670 = devm_kzalloc(&client->dev, sizeof(*ov5670), GFP_KERNEL);
--	if (!ov5670) {
--		ret = -ENOMEM;
--		err_msg = "devm_kzalloc() error";
--		goto error_print;
--	}
-+	if (!ov5670)
-+		return -ENOMEM;
-+
-+	ret = v4l2_async_notifier_parse_fwnode_sensor_common(
-+		&client->dev, &ov5670->notifier);
-+	if (ret < 0)
-+		return ret;
- 
- 	/* Initialize subdev */
- 	v4l2_i2c_subdev_init(&ov5670->sd, client, &ov5670_subdev_ops);
-@@ -2486,7 +2490,7 @@ static int ov5670_probe(struct i2c_client *client)
- 	ret = ov5670_identify_module(ov5670);
- 	if (ret) {
- 		err_msg = "ov5670_identify_module() error";
--		goto error_print;
-+		goto error_release_notifier;
- 	}
- 
- 	mutex_init(&ov5670->mutex);
-@@ -2513,11 +2517,18 @@ static int ov5670_probe(struct i2c_client *client)
- 		goto error_handler_free;
- 	}
- 
-+	ret = v4l2_async_subdev_notifier_register(&ov5670->sd,
-+						  &ov5670->notifier);
-+	if (ret) {
-+		err_msg = "can't register async notifier";
-+		goto error_entity_cleanup;
-+	}
-+
- 	/* Async register for subdev */
- 	ret = v4l2_async_register_subdev(&ov5670->sd);
- 	if (ret < 0) {
- 		err_msg = "v4l2_async_register_subdev() error";
--		goto error_entity_cleanup;
-+		goto error_unregister_notifier;
- 	}
- 
- 	ov5670->streaming = false;
-@@ -2533,6 +2544,9 @@ static int ov5670_probe(struct i2c_client *client)
- 
- 	return 0;
- 
-+error_unregister_notifier:
-+	v4l2_async_notifier_unregister(&ov5670->notifier);
-+
- error_entity_cleanup:
- 	media_entity_cleanup(&ov5670->sd.entity);
- 
-@@ -2542,7 +2556,8 @@ static int ov5670_probe(struct i2c_client *client)
- error_mutex_destroy:
- 	mutex_destroy(&ov5670->mutex);
- 
--error_print:
-+error_release_notifier:
-+	v4l2_async_notifier_release(&ov5670->notifier);
- 	dev_err(&client->dev, "%s: %s %d\n", __func__, err_msg, ret);
- 
- 	return ret;
-@@ -2554,6 +2569,8 @@ static int ov5670_remove(struct i2c_client *client)
- 	struct ov5670 *ov5670 = to_ov5670(sd);
- 
- 	v4l2_async_unregister_subdev(sd);
-+	v4l2_async_notifier_unregister(&ov5670->notifier);
-+	v4l2_async_notifier_release(&ov5670->notifier);
- 	media_entity_cleanup(&sd->entity);
- 	v4l2_ctrl_handler_free(sd->ctrl_handler);
- 	mutex_destroy(&ov5670->mutex);
--- 
-2.11.0
+
+> > > +/**
+> > > + * i2c_release_dma_safe_msg_buf - release DMA safe buffer and sync w=
+ith i2c_msg
+> > > + * @msg: the message to be synced with
+> > > + * @buf: the buffer obtained from i2c_get_dma_safe_msg_buf(). May be=
+ NULL.
+> > > + */
+> > > +void i2c_release_dma_safe_msg_buf(struct i2c_msg *msg, u8 *buf)
+> > > +{
+> > > +	if (!buf || buf =3D=3D msg->buf)
+> > > +		return;
+> > > +
+> > > +	if (msg->flags & I2C_M_RD)
+> > > +		memcpy(msg->buf, buf, msg->len);
+> > > +
+> > > +	kfree(buf);
+>=20
+> Only free when you actually allocated it.  Seems to me like you need
+> to check if (!(msg->flags & I2C_M_DMA_SAFE)) before kfree.
+>=20
+> Otherwise the logic to do this will be needed in every driver
+> which will get irritating fast.
+
+Well, I return early if (buf =3D=3D msg->buf) which is only true for
+I2C_M_DMA_SAFE. If not, I allocated the buffer. Am I missing something?
+It would be very strange to call this function if the caller allocated
+the buffer manually.
+
+Thanks for the review!
+
+
+--w6ftkolbg5vznbjm
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlnDyX8ACgkQFA3kzBSg
+KbZ6vQ/8DVnICg6Y7oVJJjW+2tRs1msMuxWdFFhK8lX4eN2JvlcOadjG3mXdj0y9
+np+aAoD48LRnuQkdxXrwwtm4VE526CRrYYgB7VUs3G6utB5JbiU+vOXIbEzwRhcm
+ZKCvUZ03c5C2nJN+t53xoa7s31OfpwqvrznbatrnSzm1o9G1jVuE+JGYNico0rsB
+8JhDZdomU8qBpTh/BgvnUrFh6IipiNR089wuk5zxzXRYoz0YTcDSigcCFs8AAzoR
+247o80FDa76SdYIPaz4lyuRNvNJLjtmk4n3VB5AyTYDkNfVjMoeJhAiccuJUeo4C
+5tPNGGy1m8PW8YGc6Mo3BtKHvcxhaDqYUg1JXbCVbTVVZ8f8OfaA+hvtJl23yBko
+6DxippV4Z0XPAboW6vc7J9DKBrxw91wgKCBIyeErFpFku63MPfJBaKwGZvMIO0lQ
+txYtXYIsT3utP0IDOiv8+OWeDk4MwxNlExSf7YaZD1hWkFxwa2egrZVrNBzeoJJJ
+D1CxYugt3JBfs7mFHwjoBEOdebKklMH1dgAuRqwv8qrI+CnV4oHeXG0dCC3IWaEi
+78rs/WfgasuwW5NJrhzu16JiXfA5C799P/CLPgmbeeblIQF3reF5CjsHPfgHCy45
+ZKzbQcKBRWlurSzOKiAOB9bZ/f5cxI1zit/ZVev6Qv32hKK/EW0=
+=MaaV
+-----END PGP SIGNATURE-----
+
+--w6ftkolbg5vznbjm--
