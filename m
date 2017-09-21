@@ -1,77 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44303
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751701AbdINLo1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Sep 2017 07:44:27 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>
-Subject: [RFC 4/5] media: friio-fe: get rid of set_property()
-Date: Thu, 14 Sep 2017 08:44:21 -0300
-Message-Id: <b12d57885ed3c93ccc553c2f59207e8f5b857cc9.1505389446.git.mchehab@s-opensource.com>
-In-Reply-To: <129c5ae599d0502a3fe8c3f09a174ef33879a021.1505389446.git.mchehab@s-opensource.com>
-References: <129c5ae599d0502a3fe8c3f09a174ef33879a021.1505389446.git.mchehab@s-opensource.com>
-In-Reply-To: <129c5ae599d0502a3fe8c3f09a174ef33879a021.1505389446.git.mchehab@s-opensource.com>
-References: <129c5ae599d0502a3fe8c3f09a174ef33879a021.1505389446.git.mchehab@s-opensource.com>
+Received: from mout.web.de ([212.227.17.11]:58787 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751896AbdIULXq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 07:23:46 -0400
+Subject: Re: [media] s2255drv: Adjust 13 checks for null pointers
+To: Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org
+Cc: Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mike Isely <isely@pobox.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <55718a41-d76f-36bf-7197-db92014dcd3c@users.sourceforge.net>
+ <66f0b95e-e717-7a50-39d2-05fcbf7b77bd@users.sourceforge.net>
+ <20170920230729.b2jujsdcjtvjrjun@mwanda>
+ <f5fde857-e0d2-1189-7764-dd82ca5df84a@users.sourceforge.net>
+ <20170921092235.s4w56ohow2qmeyus@mwanda>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <ea01c235-f570-a286-b549-d8df9844b526@users.sourceforge.net>
+Date: Thu, 21 Sep 2017 13:23:24 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170921092235.s4w56ohow2qmeyus@mwanda>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This callback is not actually doing anything but making it to
-return an error depending on the DTV frontend command. Well,
-that could break userspace for no good reason, and, if needed,
-should be implemented, instead, at set_frontend() callback.
+>> Would you like to clarify corresponding concerns any more?
+>>
+> 
+> Look at the `git log`
 
-So, get rid of it.
+I did this also for a moment.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb/friio-fe.c | 24 ------------------------
- 1 file changed, 24 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/friio-fe.c b/drivers/media/usb/dvb-usb/friio-fe.c
-index 0251a4e91d47..41261317bd5c 100644
---- a/drivers/media/usb/dvb-usb/friio-fe.c
-+++ b/drivers/media/usb/dvb-usb/friio-fe.c
-@@ -261,28 +261,6 @@ static int jdvbt90502_read_signal_strength(struct dvb_frontend *fe,
- 	return 0;
- }
- 
--
--/* filter out un-supported properties to notify users */
--static int jdvbt90502_set_property(struct dvb_frontend *fe,
--				   struct dtv_property *tvp)
--{
--	int r = 0;
--
--	switch (tvp->cmd) {
--	case DTV_DELIVERY_SYSTEM:
--		if (tvp->u.data != SYS_ISDBT)
--			r = -EINVAL;
--		break;
--	case DTV_CLEAR:
--	case DTV_TUNE:
--	case DTV_FREQUENCY:
--		break;
--	default:
--		r = -EINVAL;
--	}
--	return r;
--}
--
- static int jdvbt90502_set_frontend(struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-@@ -457,8 +435,6 @@ static const struct dvb_frontend_ops jdvbt90502_ops = {
- 	.init = jdvbt90502_init,
- 	.write = _jdvbt90502_write,
- 
--	.set_property = jdvbt90502_set_property,
--
- 	.set_frontend = jdvbt90502_set_frontend,
- 
- 	.read_status = jdvbt90502_read_status,
--- 
-2.13.5
+> and it just copies those lines:
+
+The Git software preserves these three message fields
+(when special characters were used in the commit message).
+
+Can you accept such software functionality?
+
+Regards,
+Markus
