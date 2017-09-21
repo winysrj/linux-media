@@ -1,41 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:33682 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752148AbdIATny (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 15:43:54 -0400
-Received: by mail-wr0-f194.google.com with SMTP id k94so539395wrc.0
-        for <linux-media@vger.kernel.org>; Fri, 01 Sep 2017 12:43:54 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH] [media] dvb-frontends/mxl5xx: declare LIST_HEAD(mxllist) static
-Date: Fri,  1 Sep 2017 21:43:45 +0200
-Message-Id: <20170901194345.18707-1-d.scheller.oss@gmail.com>
+Received: from mout.web.de ([217.72.192.78]:58710 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751706AbdIUTYW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 15:24:22 -0400
+Subject: [PATCH 1/3] [media] uvcvideo: Use common error handling code in
+ uvc_ioctl_g_ext_ctrls()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <20a8d1a5-45f1-2f98-e4b3-cfc24e9c04b0@users.sourceforge.net>
+Message-ID: <76eb5628-7f9b-c5b7-9341-0904cd719abd@users.sourceforge.net>
+Date: Thu, 21 Sep 2017 21:24:16 +0200
+MIME-Version: 1.0
+In-Reply-To: <20a8d1a5-45f1-2f98-e4b3-cfc24e9c04b0@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 21 Sep 2017 20:47:02 +0200
 
-Fixes one sparse warning:
-  mxl5xx.c:46:1: warning: symbol 'mxllist' was not declared. Should it be static?
+Add a jump target so that a bit of exception handling can be better reused
+at the end of this function.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/dvb-frontends/mxl5xx.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/uvc/uvc_v4l2.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/mxl5xx.c b/drivers/media/dvb-frontends/mxl5xx.c
-index 676c96c216c3..53064e11f5f1 100644
---- a/drivers/media/dvb-frontends/mxl5xx.c
-+++ b/drivers/media/dvb-frontends/mxl5xx.c
-@@ -43,7 +43,7 @@
- #define BYTE2(v) ((v >> 16) & 0xff)
- #define BYTE3(v) ((v >> 24) & 0xff)
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 3e7e283a44a8..6ec2b255c44a 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -998,10 +998,8 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file, void *fh,
+ 			struct v4l2_queryctrl qc = { .id = ctrl->id };
  
--LIST_HEAD(mxllist);
-+static LIST_HEAD(mxllist);
+ 			ret = uvc_query_v4l2_ctrl(chain, &qc);
+-			if (ret < 0) {
+-				ctrls->error_idx = i;
+-				return ret;
+-			}
++			if (ret < 0)
++				goto set_index;
  
- struct mxl_base {
- 	struct list_head     mxllist;
+ 			ctrl->value = qc.default_value;
+ 		}
+@@ -1017,14 +1015,17 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file, void *fh,
+ 		ret = uvc_ctrl_get(chain, ctrl);
+ 		if (ret < 0) {
+ 			uvc_ctrl_rollback(handle);
+-			ctrls->error_idx = i;
+-			return ret;
++			goto set_index;
+ 		}
+ 	}
+ 
+ 	ctrls->error_idx = 0;
+ 
+ 	return uvc_ctrl_rollback(handle);
++
++set_index:
++	ctrls->error_idx = i;
++	return ret;
+ }
+ 
+ static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh *handle,
 -- 
-2.13.5
+2.14.1
