@@ -1,72 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:56697 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752828AbdICOCf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 3 Sep 2017 10:02:35 -0400
-Subject: [PATCH 1/2] [media] meye: Delete three error messages for a failed
- memory allocation in meye_probe()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
+Received: from aserp1040.oracle.com ([141.146.126.69]:23881 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751734AbdIUJXI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 05:23:08 -0400
+Date: Thu, 21 Sep 2017 12:22:35 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pan Bian <bianpan2016@163.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
+        Mike Isely <isely@pobox.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        LKML <linux-kernel@vger.kernel.org>,
         kernel-janitors@vger.kernel.org
-References: <4370c644-e440-1268-089b-8a8686bbcd5c@users.sourceforge.net>
-Message-ID: <ba90af37-ef8d-ed7f-f331-c15694064672@users.sourceforge.net>
-Date: Sun, 3 Sep 2017 16:02:17 +0200
+Subject: Re: [media] s2255drv: Adjust 13 checks for null pointers
+Message-ID: <20170921092235.s4w56ohow2qmeyus@mwanda>
+References: <55718a41-d76f-36bf-7197-db92014dcd3c@users.sourceforge.net>
+ <66f0b95e-e717-7a50-39d2-05fcbf7b77bd@users.sourceforge.net>
+ <20170920230729.b2jujsdcjtvjrjun@mwanda>
+ <f5fde857-e0d2-1189-7764-dd82ca5df84a@users.sourceforge.net>
 MIME-Version: 1.0
-In-Reply-To: <4370c644-e440-1268-089b-8a8686bbcd5c@users.sourceforge.net>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <f5fde857-e0d2-1189-7764-dd82ca5df84a@users.sourceforge.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 3 Sep 2017 15:30:04 +0200
+On Thu, Sep 21, 2017 at 10:12:56AM +0200, SF Markus Elfring wrote:
+> >> MIME-Version: 1.0
+> >> Content-Type: text/plain; charset=UTF-8
+> >> Content-Transfer-Encoding: 8bit
+> >>
+> > 
+> > You've been told several times that this stuff doesn't work.
+> 
+> This functionality might not exactly work in the way that you expect so far.
+> 
+> 
+> > Try applying this patch with `git am` and you'll see why.
+> 
+> I find that these extra message fields work in the way that was designed
+> by the Git software developers.
+> 
+> elfring@Sonne:~/Projekte/Linux/next-patched> LANG=C git checkout -b next_deletion_of_oom_messages_in_s2255drv_test_20170921 next_deletion_of_oom_messages-20170905 && LANG=C git am '../[PATCH 2_5] [media] s2255drv: Adjust 13 checks for null pointers.eml'
+> Switched to a new branch 'next_deletion_of_oom_messages_in_s2255drv_test_20170921'
+> Applying: s2255drv: Adjust 13 checks for null pointers
+> 
+> 
+> Would you like to clarify corresponding concerns any more?
+> 
 
-Omit extra messages for a memory allocation failure in this function.
+Look at the `git log` and it just copies those lines:
 
-This issue was detected by using the Coccinelle software.
+commit 2a47170a824697783d8c2d28355a806f075c76e4 (HEAD)
+Author: Markus Elfring <elfring@users.sourceforge.net>
+Date:   Wed Sep 20 16:46:19 2017 +0200
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/pci/meye/meye.c | 13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+    s2255drv: Adjust 13 checks for null pointers
 
-diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
-index 9c4a024745de..db36040770a6 100644
---- a/drivers/media/pci/meye/meye.c
-+++ b/drivers/media/pci/meye/meye.c
-@@ -1626,23 +1626,18 @@ static int meye_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
- 	meye.mchip_dev = pcidev;
- 
- 	meye.grab_temp = vmalloc(MCHIP_NB_PAGES_MJPEG * PAGE_SIZE);
--	if (!meye.grab_temp) {
--		v4l2_err(v4l2_dev, "grab buffer allocation failed\n");
-+	if (!meye.grab_temp)
- 		goto outvmalloc;
--	}
- 
- 	spin_lock_init(&meye.grabq_lock);
- 	if (kfifo_alloc(&meye.grabq, sizeof(int) * MEYE_MAX_BUFNBRS,
--				GFP_KERNEL)) {
--		v4l2_err(v4l2_dev, "fifo allocation failed\n");
-+			GFP_KERNEL))
- 		goto outkfifoalloc1;
--	}
-+
- 	spin_lock_init(&meye.doneq_lock);
- 	if (kfifo_alloc(&meye.doneq, sizeof(int) * MEYE_MAX_BUFNBRS,
--				GFP_KERNEL)) {
--		v4l2_err(v4l2_dev, "fifo allocation failed\n");
-+			GFP_KERNEL))
- 		goto outkfifoalloc2;
--	}
- 
- 	meye.vdev = meye_template;
- 	meye.vdev.v4l2_dev = &meye.v4l2_dev;
--- 
-2.14.1
+    MIME-Version: 1.0
+    Content-Type: text/plain; charset=UTF-8
+    Content-Transfer-Encoding: 8bit
+
+    The script “checkpatch.pl” pointed information out like the following.
+
+    Comparison to NULL could be written !…
+
+    Thus fix the affected source code places.
+
+
+regards,
+dan carpenter
