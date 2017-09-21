@@ -1,42 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:40991 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751663AbdITXH6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 19:07:58 -0400
-Date: Thu, 21 Sep 2017 02:07:30 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-media@vger.kernel.org,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from mout.web.de ([212.227.17.11]:50796 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751629AbdIUPKf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Sep 2017 11:10:35 -0400
+Subject: [PATCH 4/4] [media] usbvision-core: Replace four printk() calls by
+ dev_err()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Davidlohr Bueso <dave@stgolabs.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mike Isely <isely@pobox.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        LKML <linux-kernel@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
         kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 2/5] [media] s2255drv: Adjust 13 checks for null pointers
-Message-ID: <20170920230729.b2jujsdcjtvjrjun@mwanda>
-References: <55718a41-d76f-36bf-7197-db92014dcd3c@users.sourceforge.net>
- <66f0b95e-e717-7a50-39d2-05fcbf7b77bd@users.sourceforge.net>
+References: <c0e6e8e7-e47d-dc88-3317-2e46eaa51dc6@users.sourceforge.net>
+Message-ID: <0c53a18c-eba1-524b-8825-7454bb8e58a4@users.sourceforge.net>
+Date: Thu, 21 Sep 2017 17:09:40 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <66f0b95e-e717-7a50-39d2-05fcbf7b77bd@users.sourceforge.net>
+In-Reply-To: <c0e6e8e7-e47d-dc88-3317-2e46eaa51dc6@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 20, 2017 at 06:58:56PM +0200, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Wed, 20 Sep 2017 16:46:19 +0200
-> MIME-Version: 1.0
-> Content-Type: text/plain; charset=UTF-8
-> Content-Transfer-Encoding: 8bit
-> 
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 21 Sep 2017 16:47:28 +0200
 
-You've been told several times that this stuff doesn't work.  Try
-applying this patch with `git am` and you'll see why.
+* Replace the local variable "proc" by the identifier "__func__".
 
-regards,
-dan carpenter
+* Use the interface "dev_err" instead of "printk" in these functions.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/usbvision/usbvision-core.c | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/usb/usbvision/usbvision-core.c b/drivers/media/usb/usbvision/usbvision-core.c
+index 54db35b03106..2c98805244df 100644
+--- a/drivers/media/usb/usbvision/usbvision-core.c
++++ b/drivers/media/usb/usbvision/usbvision-core.c
+@@ -1619,7 +1619,6 @@ static int usbvision_init_webcam(struct usb_usbvision *usbvision)
+  */
+ static int usbvision_set_video_format(struct usb_usbvision *usbvision, int format)
+ {
+-	static const char proc[] = "usbvision_set_video_format";
+ 	unsigned char *value = usbvision->ctrl_urb_buffer;
+ 	int rc;
+ 
+@@ -1631,8 +1630,9 @@ static int usbvision_set_video_format(struct usb_usbvision *usbvision, int forma
+ 	if ((format != ISOC_MODE_YUV422)
+ 	    && (format != ISOC_MODE_YUV420)
+ 	    && (format != ISOC_MODE_COMPRESS)) {
+-		printk(KERN_ERR "usbvision: unknown video format %02x, using default YUV420",
+-		       format);
++		dev_err(&usbvision->dev->dev,
++			"%s: unknown video format %02x, using default YUV420\n",
++			__func__, format);
+ 		format = ISOC_MODE_YUV420;
+ 	}
+ 	value[0] = 0x0A;  /* TODO: See the effect of the filter */
+@@ -1643,8 +1643,9 @@ static int usbvision_set_video_format(struct usb_usbvision *usbvision, int forma
+ 			     USB_RECIP_ENDPOINT, 0,
+ 			     (__u16) USBVISION_FILT_CONT, value, 2, HZ);
+ 	if (rc < 0)
+-		printk(KERN_ERR "%s: ERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
+-		       proc, rc);
++		dev_err(&usbvision->dev->dev,
++			"%s: ERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
++			__func__, rc);
+ 
+ 	usbvision->isoc_mode = format;
+ 	return rc;
+@@ -2180,7 +2181,8 @@ int usbvision_restart_isoc(struct usb_usbvision *usbvision)
+ int usbvision_audio_off(struct usb_usbvision *usbvision)
+ {
+ 	if (usbvision_write_reg(usbvision, USBVISION_IOPIN_REG, USBVISION_AUDIO_MUTE) < 0) {
+-		printk(KERN_ERR "usbvision_audio_off: can't write reg\n");
++		dev_err(&usbvision->dev->dev,
++			"%s: can't write reg\n", __func__);
+ 		return -1;
+ 	}
+ 	usbvision->audio_mute = 0;
+@@ -2192,7 +2194,9 @@ int usbvision_set_audio(struct usb_usbvision *usbvision, int audio_channel)
+ {
+ 	if (!usbvision->audio_mute) {
+ 		if (usbvision_write_reg(usbvision, USBVISION_IOPIN_REG, audio_channel) < 0) {
+-			printk(KERN_ERR "usbvision_set_audio: can't write iopin register for audio switching\n");
++			dev_err(&usbvision->dev->dev,
++				"%s: can't write iopin register for audio switching\n",
++				__func__);
+ 			return -1;
+ 		}
+ 	}
+-- 
+2.14.1
