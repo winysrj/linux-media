@@ -1,54 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us-smtp-delivery-107.mimecast.com ([216.205.24.107]:56724 "EHLO
-        us-smtp-delivery-107.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S965032AbdIYPA1 (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.131]:62236 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752554AbdIVVbH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 11:00:27 -0400
-Subject: Re: [PATCH v4 2/2] media: rc: Add driver for tango HW IR decoder
-To: Mans Rullgard <mans@mansr.com>
-CC: Sean Young <sean@mess.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Mason <slash.tmp@free.fr>
-References: <308711ef-0ba8-d533-26fd-51e5b8f32cc8@free.fr>
- <e3d91250-e6bd-bb8c-5497-689c351ac55f@free.fr> <yw1xzi9ieuqe.fsf@mansr.com>
-From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
-Message-ID: <d4bf7e00-12f0-58a1-a209-247a3dde5094@sigmadesigns.com>
-Date: Mon, 25 Sep 2017 17:00:22 +0200
-MIME-Version: 1.0
-In-Reply-To: <yw1xzi9ieuqe.fsf@mansr.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+        Fri, 22 Sep 2017 17:31:07 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Jiri Pirko <jiri@resnulli.us>,
+        Arend van Spriel <arend.vanspriel@broadcom.com>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Michal Marek <mmarek@suse.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+        brcm80211-dev-list.pdl@broadcom.com,
+        brcm80211-dev-list@cypress.com, kasan-dev@googlegroups.com,
+        linux-kbuild@vger.kernel.org, Jakub Jelinek <jakub@gcc.gnu.org>,
+        =?UTF-8?q?Martin=20Li=C5=A1ka?= <marxin@gcc.gnu.org>
+Subject: [PATCH v4 5/9] r820t: fix r820t_write_reg for KASAN
+Date: Fri, 22 Sep 2017 23:29:16 +0200
+Message-Id: <20170922212930.620249-6-arnd@arndb.de>
+In-Reply-To: <20170922212930.620249-1-arnd@arndb.de>
+References: <20170922212930.620249-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25/09/2017 16:08, Måns Rullgård wrote:
+With CONFIG_KASAN, we get an overly long stack frame due to inlining
+the register access functions:
 
-> Marc Gonzalez writes:
-> 
-> Why did you put this way early now?  Registering the device should be
-> the last thing you do (LIKE I DID IT, DAMMIT).  Otherwise something might
-> try to use it before it is fully configured.
-> 
->> +	err = clk_prepare_enable(ir->clk);
->> +	if (err)
->> +		return err;
-> 
-> Why did you move this call later?  Seriously, why do you constantly move
-> things around seemingly at random?
+drivers/media/tuners/r820t.c: In function 'generic_set_freq.isra.7':
+drivers/media/tuners/r820t.c:1334:1: error: the frame size of 2880 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]
 
-This mistake was present in v1, v2, v3.
+This is caused by a gcc bug that has now been fixed in gcc-8.
+To work around the problem, we can pass the register data
+through a local variable that older gcc versions can optimize
+out as well.
 
-I got into this mess because I (incorrectly) tried to do all the
-devm inits before clk_prepare_enable().
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81715
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/tuners/r820t.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-Why do we need clk_prepare_enable() and why would that function
-fail? The clock is a crystal oscillator which cannot be disabled
-or powered down, and which is the input for every system PLL.
-
->> +	writel_relaxed(0xc0000000, ir->rc6_base + RC6_CTRL);
-> 
-> Since you've added somewhat descriptive macros for some things, why did
-> you skip this magic number?
-
-This write is supposed to clear interrupts, but there are none
-to clear at this point. I'll remove it.
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index ba80376a3b86..d097eb04a0e9 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -396,9 +396,11 @@ static int r820t_write(struct r820t_priv *priv, u8 reg, const u8 *val,
+ 	return 0;
+ }
+ 
+-static int r820t_write_reg(struct r820t_priv *priv, u8 reg, u8 val)
++static inline int r820t_write_reg(struct r820t_priv *priv, u8 reg, u8 val)
+ {
+-	return r820t_write(priv, reg, &val, 1);
++	u8 tmp = val; /* work around GCC PR81715 with asan-stack=1 */
++
++	return r820t_write(priv, reg, &tmp, 1);
+ }
+ 
+ static int r820t_read_cache_reg(struct r820t_priv *priv, int reg)
+@@ -411,17 +413,18 @@ static int r820t_read_cache_reg(struct r820t_priv *priv, int reg)
+ 		return -EINVAL;
+ }
+ 
+-static int r820t_write_reg_mask(struct r820t_priv *priv, u8 reg, u8 val,
++static inline int r820t_write_reg_mask(struct r820t_priv *priv, u8 reg, u8 val,
+ 				u8 bit_mask)
+ {
++	u8 tmp = val;
+ 	int rc = r820t_read_cache_reg(priv, reg);
+ 
+ 	if (rc < 0)
+ 		return rc;
+ 
+-	val = (rc & ~bit_mask) | (val & bit_mask);
++	tmp = (rc & ~bit_mask) | (tmp & bit_mask);
+ 
+-	return r820t_write(priv, reg, &val, 1);
++	return r820t_write(priv, reg, &tmp, 1);
+ }
+ 
+ static int r820t_read(struct r820t_priv *priv, u8 reg, u8 *val, int len)
+-- 
+2.9.0
