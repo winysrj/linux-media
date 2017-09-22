@@ -1,125 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54386
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751833AbdIWTnm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Sep 2017 15:43:42 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 2/2] media: rc-core.rst: add an introduction for RC core
-Date: Sat, 23 Sep 2017 16:43:34 -0300
-Message-Id: <30ff1c93d77ab1fd6e8a3403f86feba5358204aa.1506195810.git.mchehab@s-opensource.com>
-In-Reply-To: <b9e7680dfaec02a007ccfc883be1d95712051d1f.1506195810.git.mchehab@s-opensource.com>
-References: <b9e7680dfaec02a007ccfc883be1d95712051d1f.1506195810.git.mchehab@s-opensource.com>
+Received: from anholt.net ([50.246.234.109]:51150 "EHLO anholt.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752504AbdIVSEu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Sep 2017 14:04:50 -0400
+From: Eric Anholt <eric@anholt.net>
+To: Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        Stefan Wahren <stefan.wahren@i2se.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-rpi-kernel@lists.infradead.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH v3 2/4] [media] dt-bindings: Document BCM283x CSI2/CCP2 receiver
+In-Reply-To: <CAAoAYcMFm82vo5k-iCCpARbndyrLDt1UMV_kRUDHiHA0iMzhMg@mail.gmail.com>
+References: <cover.1505916622.git.dave.stevenson@raspberrypi.org> <fae3d29bba67825030c0077dd9c79534b6888512.1505916622.git.dave.stevenson@raspberrypi.org> <1814950930.414004.1506062733728@email.1und1.de> <CAAoAYcMFm82vo5k-iCCpARbndyrLDt1UMV_kRUDHiHA0iMzhMg@mail.gmail.com>
+Date: Fri, 22 Sep 2017 11:04:46 -0700
+Message-ID: <877ewqd2yp.fsf@anholt.net>
 MIME-Version: 1.0
-In-Reply-To: <b9e7680dfaec02a007ccfc883be1d95712051d1f.1506195810.git.mchehab@s-opensource.com>
-References: <b9e7680dfaec02a007ccfc883be1d95712051d1f.1506195810.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha512; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The RC core does several assumptions, but those aren't documented
-anywhere, with could make harder for ones that want to understand
-what's there.
+--=-=-=
+Content-Type: text/plain
 
-So, add an introduction explaining the basic concepts of RC and
-how they're related to the RC core implementation.
+Dave Stevenson <dave.stevenson@raspberrypi.org> writes:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/kapi/rc-core.rst | 77 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 77 insertions(+)
+> Hi Stefan
+>
+> On 22 September 2017 at 07:45, Stefan Wahren <stefan.wahren@i2se.com> wrote:
+>> Hi Dave,
+>>
+>>> Dave Stevenson <dave.stevenson@raspberrypi.org> hat am 20. September 2017 um 18:07 geschrieben:
+>>>
+>>>
+>>> Document the DT bindings for the CSI2/CCP2 receiver peripheral
+>>> (known as Unicam) on BCM283x SoCs.
+>>>
+>>> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+>>> ---
+>>>
+>>> Changes since v2
+>>> - Removed all references to Linux drivers.
+>>> - Reworded section about disabling the firmware driver.
+>>> - Renamed clock from "lp_clock" to "lp" in description and example.
+>>> - Referred to video-interfaces.txt and stated requirements on remote-endpoint
+>>>   and data-lanes.
+>>> - Corrected typo in example from csi to csi1.
+>>> - Removed unnecessary #address-cells and #size-cells in example.
+>>> - Removed setting of status from the example.
+>>>
+>>>  .../devicetree/bindings/media/bcm2835-unicam.txt   | 85 ++++++++++++++++++++++
+>>>  1 file changed, 85 insertions(+)
+>>>  create mode 100644 Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/media/bcm2835-unicam.txt b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+>>> new file mode 100644
+>>> index 0000000..7714fb3
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+>>> @@ -0,0 +1,85 @@
+>>> +Broadcom BCM283x Camera Interface (Unicam)
+>>> +------------------------------------------
+>>> +
+>>> +The Unicam block on BCM283x SoCs is the receiver for either
+>>> +CSI-2 or CCP2 data from image sensors or similar devices.
+>>> +
+>>> +The main platform using this SoC is the Raspberry Pi family of boards.
+>>> +On the Pi the VideoCore firmware can also control this hardware block,
+>>> +and driving it from two different processors will cause issues.
+>>> +To avoid this, the firmware checks the device tree configuration
+>>> +during boot. If it finds device tree nodes called csi0 or csi1 then
+>>> +it will stop the firmware accessing the block, and it can then
+>>> +safely be used via the device tree binding.
+>>> +
+>>> +Required properties:
+>>> +===================
+>>> +- compatible : must be "brcm,bcm2835-unicam".
+>>> +- reg                : physical base address and length of the register sets for the
+>>> +               device.
+>>> +- interrupts : should contain the IRQ line for this Unicam instance.
+>>> +- clocks     : list of clock specifiers, corresponding to entries in
+>>> +               clock-names property.
+>>> +- clock-names        : must contain an "lp" entry, matching entries in the
+>>> +               clocks property.
+>>> +
+>>> +Unicam supports a single port node. It should contain one 'port' child node
+>>> +with child 'endpoint' node. Please refer to the bindings defined in
+>>> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+>>> +
+>>> +Within the endpoint node the "remote-endpoint" and "data-lanes" properties
+>>> +are mandatory.
+>>> +Data lane reordering is not supported so the data lanes must be in order,
+>>> +starting at 1. The number of data lanes should represent the number of
+>>> +usable lanes for the hardware block. That may be limited by either the SoC or
+>>> +how the platform presents the interface, and the lower value must be used.
+>>> +
+>>> +Lane reordering is not supported on the clock lane either, so the optional
+>>> +property "clock-lane" will implicitly be <0>.
+>>> +Similarly lane inversion is not supported, therefore "lane-polarities" will
+>>> +implicitly be <0 0 0 0 0>.
+>>> +Neither of these values will be checked.
+>>> +
+>>> +Example:
+>>> +     csi1: csi1@7e801000 {
+>>> +             compatible = "brcm,bcm2835-unicam";
+>>> +             reg = <0x7e801000 0x800>,
+>>> +                   <0x7e802004 0x4>;
+>>
+>> sorry, i didn't noticed this before. I'm afraid this is using a small range of the CMI. Are there possible other users of this range? Does it make sense to handle this by a separate clock driver?
+>
+> CMI (Clock Manager Image) consists of a total of 4 registers.
+> 0x7e802000 is CMI_CAM0, with only bits 0-5 used for gating and
+> inversion of the clock and data lanes (2 data lanes available on
+> CAM0).
+> 0x7e802004 is CMI_CAM1, with only bits 0-9 used for gating and
+> inversion of the clock and data lanes (4 data lanes available on
+> CAM1).
+> 0x7e802008 is CMI_CAMTEST which I have no documentation or drivers for.
+> 0x7e802010 is CMI_USBCTL. Only bit 6 is documented and is a reset. The
+> default value is the required value. Nothing touches it that I can
+> find.
 
-diff --git a/Documentation/media/kapi/rc-core.rst b/Documentation/media/kapi/rc-core.rst
-index a45895886257..355c8ea3ad9f 100644
---- a/Documentation/media/kapi/rc-core.rst
-+++ b/Documentation/media/kapi/rc-core.rst
-@@ -4,6 +4,83 @@ Remote Controller devices
- Remote Controller core
- ~~~~~~~~~~~~~~~~~~~~~~
- 
-+The remote controller core implements infrastructure to receive and send
-+remote controller keyboard keystrokes and mouse events.
-+
-+Every time a key is pressed on a remote controller, a scan code is produced.
-+Also, on most hardware, keeping a key pressed for more than a few dozens of
-+milliseconds produce a repeat key event. That's somewhat similar to what
-+a normal keyboard or mouse is handled internally on Linux\ [#f1]_. So, the
-+remote controller core is implemented on the top of the linux input/evdev
-+interface.
-+
-+.. [#f1]
-+
-+   The main difference is that, on keyboard events, the keyboard controller
-+   produces one event for a key press and another one for key release. On
-+   infrared-based remote controllers, there's no key release event. Instead,
-+   an extra code is produced to indicate key repeats.
-+
-+However, most of the remote controllers use infrared (IR) to transmit signals.
-+As there are several protocols used to modulate infrared signals, one
-+important part of the core is dedicated to adjust the driver and the core
-+system to support the infrared protocol used by the emitter.
-+
-+The infrared transmission is done by blinking a infrared emitter using a
-+carrier. The carrier can be switched on or off by the IR transmitter
-+hardware. When the carrier is switched on, it is called *PULSE*.
-+When the carrier is switched off, it is called *SPACE*.
-+
-+In other words, a typical IR transmission can be thinking on a sequence of
-+*PULSE* and *SPACE* events, each with a given duration.
-+
-+The carrier parameters (frequency, duty cycle) and the intervals for
-+*PULSE* and *SPACE* events depend on the protocol.
-+For example, the NEC protocol uses a carrier of 38kHz, and transmissions
-+start with a 9ms *PULSE* and a 4.5ms SPACE. It then transmits 16 bits of
-+scan code, being 8 bits for address (usually it is a fixed number for a
-+given remote controller), followed by 8 bits of code. A bit "1" is modulated
-+with 560µs *PULSE* followed by 1690µs *SPACE* and a bit "0"  is modulated
-+with 560µs *PULSE* followed by 560µs *SPACE*.
-+
-+At receiver, a simple low-pass filter can be used to convert the received
-+signal in a sequence of *PULSE/SPACE* events, filtering out the carrier
-+frequency. Due to that, the receiver doesn't care about the carrier's
-+actual frequency parameters: all it has to do is to measure the amount
-+of time it receives *PULSE/SPACE* events.
-+So, a simple IR receiver hardware will just provide a sequence of timings
-+for those events to the Kernel. The drivers for hardware with such kind of
-+receivers are identified by  ``RC_DRIVER_IR_RAW``, as defined by
-+:c:type:`rc_driver_type`\ [#f2]_. Other hardware come with a
-+microcontroller that decode the *PULSE/SPACE* sequence and return scan
-+codes to the Kernel. Such kind of receivers are identified
-+by ``RC_DRIVER_SCANCODE``.
-+
-+.. [#f2]
-+
-+   The RC core also supports devices that have just IR emitters,
-+   without any receivers. Right now, all such devices work only in
-+   raw TX mode. Such kind of hardware is identified as
-+   ``RC_DRIVER_IR_RAW_TX``.
-+
-+When the RC core receives events produced by ``RC_DRIVER_IR_RAW`` IR
-+receivers, it needs to decode the IR protocol, in order to obtain the
-+corresponding scan code. The protocols supported by the RC core are
-+defined at enum :c:type:`rc_proto`.
-+
-+When the RC code receives a scan code (either directly, by a driver
-+of the type ``RC_DRIVER_SCANCODE``, or via its IR decoders), it needs
-+to convert into a Linux input event code. This is done via a mapping
-+table.
-+
-+The Kernel has support for mapping tables available on most media
-+devices. It also supports loading a table in runtime, via some
-+sysfs nodes. See the :ref:`RC userspace API <Remote_controllers_Intro>`
-+for more details.
-+
-+Remote controller data structures and functions
-+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-+
- .. kernel-doc:: include/media/rc-core.h
- 
- .. kernel-doc:: include/media/rc-map.h
--- 
-2.13.5
+Yeah, my conclusion previously was that it's appropriate to consider
+this register as part of the unicam instance.  No other HW block could
+want to talk to it.
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE/JuuFDWp9/ZkuCBXtdYpNtH8nugFAlnFUL8ACgkQtdYpNtH8
+nujHug//cIvAfg5NGU41AGlwItA8yaj1GTwOqiQn4LE7g6u/N8yVG7AVoCmoWLLe
+2c6sbCD/aLGGlOJ6AfhpG9v4ZW8Mi38SGLC5z/q1UR0Sa5J+UtjLqppLUdy6Dh+g
+EW8DnP1MqZuVd1FGnx+hFc0bycwdgD9ihngZfeHJz1MEjjUvDjEXgagvE7SEiqKb
+nTbtKijtbVQFsj2Gv5HvUrOxrlmYMEG7eDIyKEE/cuAKA1cm9qipCOyRXKngvGi8
+1hMRbUanBq+H2uoYDTsVy16DZrQJHadkPgbaeZsTmN0RoOA2XA5kroL6Z8iH47Ba
+J5VyaX3VYVkUMd9AS6PHs5N4FsG/3X/G8s0uIBqNj4L0k6UkBwE9zwDbT3H/StGt
+1S34WTvbEm+vpUHmsxLLE7EAxAvmNnRioHUqXtxHgfOHekegwGcSSnhwYz6fJwmN
+zLT2+Z8Uhlm5GBBbW2ZIdA3XvEWU5ODMJfl56nMbmulhT7srTj9LLS4JuoBkkqe/
+xYntIxkneNSITt3Ku2ZvMsuPnNnD5wZ9yOTFUUOpMu8KLbqHYm6u4Ul8t0hLT/dl
+mZZcJEgtADZ1Tnrt0WlW7eRWJcL1f/EaqCmG7bPI1MSU/cHdhaZjxozmSDZuFtVD
+LI6m13Qo7i1vhBsRWPdeeXbYeQqSH9nYgJvtYGx2845yrBBYlyM=
+=uk2T
+-----END PGP SIGNATURE-----
+--=-=-=--
