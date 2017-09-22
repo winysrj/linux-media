@@ -1,55 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:27210 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:1473 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751548AbdIRV43 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 17:56:29 -0400
-Subject: Re: [PATCH v10 20/24] dt: bindings: smiapp: Document lens-focus and
- flash properties
-To: Rob Herring <robh@kernel.org>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        linux-acpi@vger.kernel.org, mika.westerberg@intel.com,
-        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-21-sakari.ailus@linux.intel.com>
- <20170918210028.67sbpuetdh5j7wpf@rob-hp-laptop>
+        id S1751809AbdIVHpe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Sep 2017 03:45:34 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <ef8edab3-5b55-c298-2a40-72b5e22586ea@linux.intel.com>
-Date: Tue, 19 Sep 2017 00:56:22 +0300
-MIME-Version: 1.0
-In-Reply-To: <20170918210028.67sbpuetdh5j7wpf@rob-hp-laptop>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, robh@kernel.org
+Subject: [PATCH v2 2/2] dt: bindings: media: Document data lane numbering without lane reordering
+Date: Fri, 22 Sep 2017 10:42:14 +0300
+Message-Id: <1506066134-25997-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1506066134-25997-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1506066134-25997-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+Most devices do not support lane reordering and in many cases the
+documentation of the data-lanes property is incomplete for such devices.
+Document that in case the lane reordering isn't supported, monotonically
+incremented values from 0 or 1 shall be used.
 
-Rob Herring wrote:
-> On Mon, Sep 11, 2017 at 11:00:04AM +0300, Sakari Ailus wrote:
->> Document optional lens-focus and flash properties for the smiapp driver.
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->> ---
->>  Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
->>  1 file changed, 2 insertions(+)
->
-> Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Rob Herring <robh@kernel.org>
+---
+ Documentation/devicetree/bindings/media/video-interfaces.txt | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Thanks for the ack. There have been since a few iterations of the set, 
-and the corresponding patch in v13 has minor changes to this:
-
-<URL:http://www.spinics.net/lists/linux-media/msg121929.html>
-
-Essentially "flash" was renamed to "flash-leds" as the current flash 
-devices we have are all LEDs and the referencing assumes LED framework's 
-ways to describe LEDs. The same change is present in the patch adding 
-the property to video-interfaces.txt:
-
-<URL:http://www.spinics.net/lists/linux-media/msg121924.html>
-
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index 3c5382f..4b09a34 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -114,7 +114,10 @@ Optional endpoint properties
+   determines the logical lane number, while the value of an entry indicates
+   physical lane, e.g. for 2-lane MIPI CSI-2 bus we could have
+   "data-lanes = <1 2>;", assuming the clock lane is on hardware lane 0.
+-  This property is valid for serial busses only (e.g. MIPI CSI-2).
++  If the hardware does not support lane reordering, monotonically
++  incremented values shall be used from 0 or 1 onwards, depending on
++  whether or not there is also a clock lane. This property is valid for
++  serial busses only (e.g. MIPI CSI-2).
+ - clock-lanes: an array of physical clock lane indexes. Position of an entry
+   determines the logical lane number, while the value of an entry indicates
+   physical lane, e.g. for a MIPI CSI-2 bus we could have "clock-lanes = <0>;",
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.7.4
