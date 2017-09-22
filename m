@@ -1,73 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33171
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46536
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752156AbdI0Vku (ORCPT
+        with ESMTP id S1752171AbdIVVrN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:50 -0400
+        Fri, 22 Sep 2017 17:47:13 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: [PATCH v2 18/37] media: dtv-demux.rst: minor markup improvements
-Date: Wed, 27 Sep 2017 18:40:19 -0300
-Message-Id: <6c7ddb12751994fa5f827e3e8bc273abf2789b66.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 3/8] media: v4l2-common: get rid of struct v4l2_discrete_probe
+Date: Fri, 22 Sep 2017 18:47:01 -0300
+Message-Id: <8a2157bc67ed496de1a2cda0a3a0d38c31d0f392.1506116720.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
+References: <cover.1506116720.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
+References: <cover.1506116720.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a cross-reference to a mentioned structure and split
-the kernel-doc stuff on a separate chapter.
+This struct is there just two store two arguments of
+v4l2_find_nearest_format(). The other two arguments are passed
+as parameter.
+
+IMHO, there isn't much sense on doing that, and that will just
+add one more struct to document ;)
+
+So, let's get rid of the struct, passing the parameters directly.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/media/kapi/dtv-demux.rst | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/media/platform/vivid/vivid-vid-cap.c |  9 +++------
+ drivers/media/v4l2-core/v4l2-common.c        | 13 +++++++------
+ include/media/v4l2-common.h                  | 12 ++++--------
+ 3 files changed, 14 insertions(+), 20 deletions(-)
 
-diff --git a/Documentation/media/kapi/dtv-demux.rst b/Documentation/media/kapi/dtv-demux.rst
-index 8169c479156e..3ee69266e206 100644
---- a/Documentation/media/kapi/dtv-demux.rst
-+++ b/Documentation/media/kapi/dtv-demux.rst
-@@ -7,8 +7,8 @@ Digital TV Demux
- The Kernel Digital TV Demux kABI defines a driver-internal interface for
- registering low-level, hardware specific driver to a hardware independent
- demux layer. It is only of interest for Digital TV device driver writers.
--The header file for this kABI is named demux.h and located in
--drivers/media/dvb-core.
-+The header file for this kABI is named ``demux.h`` and located in
-+``drivers/media/dvb-core``.
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index 01419455e545..0fbbcde19f0d 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -93,11 +93,6 @@ static const struct v4l2_fract webcam_intervals[VIVID_WEBCAM_IVALS] = {
+ 	{  1, 60 },
+ };
  
- The demux kABI should be implemented for each demux in the system. It is
- used to select the TS source of a demux and to manage the demux resources.
-@@ -27,7 +27,7 @@ tuning, are devined via the Digital TV Frontend kABI.
- The functions that implement the abstract interface demux should be defined
- static or module private and registered to the Demux core for external
- access. It is not necessary to implement every function in the struct
--&dmx_demux. For example, a demux interface might support Section filtering,
-+:c:type:`dmx_demux`. For example, a demux interface might support Section filtering,
- but not PES filtering. The kABI client is expected to check the value of any
- function pointer before calling the function: the value of ``NULL`` means
- that the function is not available.
-@@ -43,8 +43,6 @@ Linux Kernel calls the functions of a network device interface from a
- bottom half context. Thus, if a demux kABI function is called from network
- device code, the function must not sleep.
- 
+-static const struct v4l2_discrete_probe webcam_probe = {
+-	webcam_sizes,
+-	VIVID_WEBCAM_SIZES
+-};
 -
+ static int vid_cap_queue_setup(struct vb2_queue *vq,
+ 		       unsigned *nbuffers, unsigned *nplanes,
+ 		       unsigned sizes[], struct device *alloc_devs[])
+@@ -578,7 +573,9 @@ int vivid_try_fmt_vid_cap(struct file *file, void *priv,
+ 	mp->field = vivid_field_cap(dev, mp->field);
+ 	if (vivid_is_webcam(dev)) {
+ 		const struct v4l2_frmsize_discrete *sz =
+-			v4l2_find_nearest_format(&webcam_probe, mp->width, mp->height);
++			v4l2_find_nearest_format(webcam_sizes,
++						 VIVID_WEBCAM_SIZES,
++						 mp->width, mp->height);
+ 
+ 		w = sz->width;
+ 		h = sz->height;
+diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+index a5ea1f517291..fb9a2a3c1072 100644
+--- a/drivers/media/v4l2-core/v4l2-common.c
++++ b/drivers/media/v4l2-core/v4l2-common.c
+@@ -371,18 +371,19 @@ void v4l_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
+ }
+ EXPORT_SYMBOL_GPL(v4l_bound_align_image);
+ 
+-const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
+-		const struct v4l2_discrete_probe *probe,
+-		s32 width, s32 height)
++const struct v4l2_frmsize_discrete
++*v4l2_find_nearest_format(const struct v4l2_frmsize_discrete *sizes,
++			  const size_t num_sizes,
++			  s32 width, s32 height)
+ {
+ 	int i;
+ 	u32 error, min_error = UINT_MAX;
+ 	const struct v4l2_frmsize_discrete *size, *best = NULL;
+ 
+-	if (!probe)
+-		return best;
++	if (!sizes)
++		return NULL;
+ 
+-	for (i = 0, size = probe->sizes; i < probe->num_sizes; i++, size++) {
++	for (i = 0, size = sizes; i < num_sizes; i++, size++) {
+ 		error = abs(size->width - width) + abs(size->height - height);
+ 		if (error < min_error) {
+ 			min_error = error;
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 7dbecbe3009c..7ae7840df068 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -249,14 +249,10 @@ void v4l_bound_align_image(unsigned int *w, unsigned int wmin,
+ 			   unsigned int hmax, unsigned int halign,
+ 			   unsigned int salign);
+ 
+-struct v4l2_discrete_probe {
+-	const struct v4l2_frmsize_discrete	*sizes;
+-	int					num_sizes;
+-};
 -
- Demux Callback API
- ~~~~~~~~~~~~~~~~~~
+-const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
+-		const struct v4l2_discrete_probe *probe,
+-		s32 width, s32 height);
++const struct v4l2_frmsize_discrete
++*v4l2_find_nearest_format(const struct v4l2_frmsize_discrete *sizes,
++			  const size_t num_sizes,
++			  s32 width, s32 height);
  
-@@ -68,4 +66,7 @@ function call directly from a hardware interrupt.
- This mechanism is implemented by :c:func:`dmx_ts_cb()` and :c:func:`dmx_section_cb()`
- callbacks.
+ void v4l2_get_timestamp(struct timeval *tv);
  
-+Digital TV Demux functions and types
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
- .. kernel-doc:: drivers/media/dvb-core/demux.h
 -- 
 2.13.5
