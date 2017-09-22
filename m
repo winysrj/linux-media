@@ -1,50 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:42387 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751783AbdITIaR (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42402 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751878AbdIVJe4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 04:30:17 -0400
-Message-ID: <1505896209.7865.1.camel@pengutronix.de>
-Subject: Re: [PATCH 1/2] [media] coda: Handle return value of kasprintf
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>, mchehab@kernel.org,
-        hans.verkuil@cisco.com, sean@mess.org, andi.shyti@samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Wed, 20 Sep 2017 10:30:09 +0200
-In-Reply-To: <1505893033-7491-2-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1505893033-7491-1-git-send-email-arvind.yadav.cs@gmail.com>
-         <1505893033-7491-2-git-send-email-arvind.yadav.cs@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Fri, 22 Sep 2017 05:34:56 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: [RESEND PATCH v3 2/4] dt: bindings: as3645a: Use LED number to refer to LEDs
+Date: Fri, 22 Sep 2017 12:34:51 +0300
+Message-Id: <20170922093453.13250-3-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170922093453.13250-1-sakari.ailus@linux.intel.com>
+References: <20170922093453.13250-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arvind,
+Use integers (reg property) to tell the number of the LED to the driver
+instead of the node name. While both of these approaches are currently
+used by the LED bindings, using integers will require less driver changes
+for ACPI support. Additionally, it will make possible LED naming using
+chip and LED node names, effectively making the label property most useful
+for human-readable names only.
 
-On Wed, 2017-09-20 at 13:07 +0530, Arvind Yadav wrote:
-> kasprintf() can fail here and we must check its return value.
-> 
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
-> ---
->  drivers/media/platform/coda/coda-bit.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-> index 291c409..8d78183 100644
-> --- a/drivers/media/platform/coda/coda-bit.c
-> +++ b/drivers/media/platform/coda/coda-bit.c
-> @@ -417,6 +417,9 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx,
-> >  		    dev->devtype->product != CODA_DX6)
-> >  			size += ysize / 4;
-> >  		name = kasprintf(GFP_KERNEL, "fb%d", i);
-> +		if (!name)
-> +			return -ENOMEM;
-> +
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Acked-by: Rob Herring <robh@kernel.org>
+---
+ .../devicetree/bindings/leds/ams,as3645a.txt       | 28 ++++++++++++++--------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
-Thank you for the patch. Instead of just returning here, this should
-also call coda_free_framebuffers to release already allocated buffers in
-earlier iterations of the loop.
-
-regards
-Philipp
+diff --git a/Documentation/devicetree/bindings/leds/ams,as3645a.txt b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
+index 12c5ef26ec73..fdc40e354a64 100644
+--- a/Documentation/devicetree/bindings/leds/ams,as3645a.txt
++++ b/Documentation/devicetree/bindings/leds/ams,as3645a.txt
+@@ -15,11 +15,14 @@ Required properties
+ 
+ compatible	: Must be "ams,as3645a".
+ reg		: The I2C address of the device. Typically 0x30.
++#address-cells	: 1
++#size-cells	: 0
+ 
+ 
+-Required properties of the "flash" child node
+-=============================================
++Required properties of the flash child node (0)
++===============================================
+ 
++reg: 0
+ flash-timeout-us: Flash timeout in microseconds. The value must be in
+ 		  the range [100000, 850000] and divisible by 50000.
+ flash-max-microamp: Maximum flash current in microamperes. Has to be
+@@ -33,20 +36,21 @@ ams,input-max-microamp: Maximum flash controller input current. The
+ 			and divisible by 50000.
+ 
+ 
+-Optional properties of the "flash" child node
+-=============================================
++Optional properties of the flash child node
++===========================================
+ 
+ label		: The label of the flash LED.
+ 
+ 
+-Required properties of the "indicator" child node
+-=================================================
++Required properties of the indicator child node (1)
++===================================================
+ 
++reg: 1
+ led-max-microamp: Maximum indicator current. The allowed values are
+ 		  2500, 5000, 7500 and 10000.
+ 
+-Optional properties of the "indicator" child node
+-=================================================
++Optional properties of the indicator child node
++===============================================
+ 
+ label		: The label of the indicator LED.
+ 
+@@ -55,16 +59,20 @@ Example
+ =======
+ 
+ 	as3645a@30 {
++		#address-cells: 1
++		#size-cells: 0
+ 		reg = <0x30>;
+ 		compatible = "ams,as3645a";
+-		flash {
++		flash@0 {
++			reg = <0x0>;
+ 			flash-timeout-us = <150000>;
+ 			flash-max-microamp = <320000>;
+ 			led-max-microamp = <60000>;
+ 			ams,input-max-microamp = <1750000>;
+ 			label = "as3645a:flash";
+ 		};
+-		indicator {
++		indicator@1 {
++			reg = <0x1>;
+ 			led-max-microamp = <10000>;
+ 			label = "as3645a:indicator";
+ 		};
+-- 
+2.11.0
