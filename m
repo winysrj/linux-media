@@ -1,253 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45376 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751259AbdIOORf (ORCPT
+Received: from mail-wr0-f177.google.com ([209.85.128.177]:49230 "EHLO
+        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752188AbdIVVIt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 10:17:35 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v13 01/25] v4l: fwnode: Move KernelDoc documentation to the header
-Date: Fri, 15 Sep 2017 17:17:00 +0300
-Message-Id: <20170915141724.23124-2-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+        Fri, 22 Sep 2017 17:08:49 -0400
+Subject: Re: [RESEND PATCH v2 4/6] dt: bindings: as3645a: Improve label
+ documentation, DT example
+To: Rob Herring <robh@kernel.org>
+References: <20170918102349.8935-1-sakari.ailus@linux.intel.com>
+ <20170918102349.8935-5-sakari.ailus@linux.intel.com>
+ <20170918105655.GA14591@amd>
+ <20170918144923.dnhrxkirle3fvdfo@valkosipuli.retiisi.org.uk>
+ <20170918205407.GA1849@amd> <809f7590-7641-e8bc-c009-4fed05d5827c@gmail.com>
+ <20170920205327.qmgz65kn45aavomx@rob-hp-laptop>
+Cc: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Message-ID: <6a6651f9-b5fb-0ec7-1f40-f72b1a630e70@gmail.com>
+Date: Fri, 22 Sep 2017 23:07:53 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20170920205327.qmgz65kn45aavomx@rob-hp-laptop>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In V4L2 the practice is to have the KernelDoc documentation in the header
-and not in .c source code files. This consequently makes the V4L2 fwnode
-function documentation part of the Media documentation build.
+On 09/20/2017 10:53 PM, Rob Herring wrote:
+> On Tue, Sep 19, 2017 at 11:01:02PM +0200, Jacek Anaszewski wrote:
+>> Hi Pavel,
+>>
+>> On 09/18/2017 10:54 PM, Pavel Machek wrote:
+>>> On Mon 2017-09-18 17:49:23, Sakari Ailus wrote:
+>>>> Hi Pavel,
+>>>>
+>>>> On Mon, Sep 18, 2017 at 12:56:55PM +0200, Pavel Machek wrote:
+>>>>> Hi!
+>>>>>
+>>>>>> Specify the exact label used if the label property is omitted in DT, as
+>>>>>> well as use label in the example that conforms to LED device naming.
+>>>>>>
+>>>>>> @@ -69,11 +73,11 @@ Example
+>>>>>>  			flash-max-microamp = <320000>;
+>>>>>>  			led-max-microamp = <60000>;
+>>>>>>  			ams,input-max-microamp = <1750000>;
+>>>>>> -			label = "as3645a:flash";
+>>>>>> +			label = "as3645a:white:flash";
+>>>>>>  		};
+>>>>>>  		indicator@1 {
+>>>>>>  			reg = <0x1>;
+>>>>>>  			led-max-microamp = <10000>;
+>>>>>> -			label = "as3645a:indicator";
+>>>>>> +			label = "as3645a:red:indicator";
+>>>>>>  		};
+>>>>>>  	};
+>>>>>
+>>>>> Ok, but userspace still has no chance to determine if this is flash
+>>>>> from main camera or flash for front camera; todays smartphones have
+>>>>> flashes on both cameras.
+>>>>>
+>>>>> So.. Can I suggset as3645a:white:main_camera_flash or main_flash or
+>>>>> ....?
+>>>>
+>>>> If there's just a single one in the device, could you use that?
+>>>>
+>>>> Even if we name this so for N9 (and N900), the application still would only
+>>>> work with the two devices.
+>>>
+>>> Well, I'd plan to name it on other devices, too.
+>>>
+>>>> My suggestion would be to look for a flash LED, and perhaps the maximum
+>>>> current as well. That should generally work better than assumptions on the
+>>>> label.
+>>>
+>>> If you just look for flash LED, you don't know if it is front one or
+>>> back one. Its true that if you have just one flash it is usually on
+>>> the back camera, but you can't know if maybe driver is not available
+>>> for the main flash.
+>>>
+>>> Lets get this right, please "main_camera_flash" is 12 bytes more than
+>>> "flash", and it saves application logic.. more than 12 bytes, I'm sure. 
+>>
+>> What you are trying to introduce is yet another level of LED class
+>> device naming standard, one level below devicename:colour:function.
+>> It seems you want also to come up with the set of standarized LED
+>> function names. This would certainly have to be covered for consistency.
+> 
+> I really dislike how this naming convention is used for label. label is 
+> supposed to be the phyically identifiable name. Having the devicename 
+> defeats that. Perhaps color, too. We'd be better off with a color 
+> property. It seems we're overloading the naming with too many things. 
+> Now we're adding device association.
 
-Also correct the link related function and argument naming in
-documentation.
+Regarding devicename - there is indeed inconsistency in the way how LED
+DT bindings use label, as some of them use it for defining full LED
+class device name, and the rest fill only colour and function, leaving
+addition of a devicename to the driver.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
----
- drivers/media/v4l2-core/v4l2-fwnode.c | 75 --------------------------------
- include/media/v4l2-fwnode.h           | 81 ++++++++++++++++++++++++++++++++++-
- 2 files changed, 80 insertions(+), 76 deletions(-)
+The problem is also in current definition of label in LED common
+bindings documentation, which says:
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 40b2fbfe8865..706f9e7b90f1 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -181,25 +181,6 @@ v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
- 		vep->bus_type = V4L2_MBUS_CSI1;
- }
- 
--/**
-- * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
-- * @fwnode: pointer to the endpoint's fwnode handle
-- * @vep: pointer to the V4L2 fwnode data structure
-- *
-- * All properties are optional. If none are found, we don't set any flags. This
-- * means the port has a static configuration and no properties have to be
-- * specified explicitly. If any properties that identify the bus as parallel
-- * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-- * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-- * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-- * reference to @fwnode.
-- *
-- * NOTE: This function does not parse properties the size of which is variable
-- * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in
-- * new drivers instead.
-- *
-- * Return: 0 on success or a negative error code on failure.
-- */
- int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 			       struct v4l2_fwnode_endpoint *vep)
- {
-@@ -239,14 +220,6 @@ int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_parse);
- 
--/*
-- * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-- * v4l2_fwnode_endpoint_alloc_parse()
-- * @vep - the V4L2 fwnode the resources of which are to be released
-- *
-- * It is safe to call this function with NULL argument or on a V4L2 fwnode the
-- * parsing of which failed.
-- */
- void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
- {
- 	if (IS_ERR_OR_NULL(vep))
-@@ -257,29 +230,6 @@ void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_free);
- 
--/**
-- * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
-- * @fwnode: pointer to the endpoint's fwnode handle
-- *
-- * All properties are optional. If none are found, we don't set any flags. This
-- * means the port has a static configuration and no properties have to be
-- * specified explicitly. If any properties that identify the bus as parallel
-- * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-- * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-- * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-- * reference to @fwnode.
-- *
-- * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
-- * v4l2_fwnode_endpoint_parse():
-- *
-- * 1. It also parses variable size data.
-- *
-- * 2. The memory it has allocated to store the variable size data must be freed
-- *    using v4l2_fwnode_endpoint_free() when no longer needed.
-- *
-- * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error pointer
-- * on error.
-- */
- struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
- 	struct fwnode_handle *fwnode)
- {
-@@ -322,24 +272,6 @@ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_alloc_parse);
- 
--/**
-- * v4l2_fwnode_endpoint_parse_link() - parse a link between two endpoints
-- * @__fwnode: pointer to the endpoint's fwnode at the local end of the link
-- * @link: pointer to the V4L2 fwnode link data structure
-- *
-- * Fill the link structure with the local and remote nodes and port numbers.
-- * The local_node and remote_node fields are set to point to the local and
-- * remote port's parent nodes respectively (the port parent node being the
-- * parent node of the port node if that node isn't a 'ports' node, or the
-- * grand-parent node of the port node otherwise).
-- *
-- * A reference is taken to both the local and remote nodes, the caller must use
-- * v4l2_fwnode_endpoint_put_link() to drop the references when done with the
-- * link.
-- *
-- * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't be
-- * found.
-- */
- int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
- 			   struct v4l2_fwnode_link *link)
- {
-@@ -374,13 +306,6 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_parse_link);
- 
--/**
-- * v4l2_fwnode_put_link() - drop references to nodes in a link
-- * @link: pointer to the V4L2 fwnode link data structure
-- *
-- * Drop references to the local and remote nodes in the link. This function
-- * must be called on every link parsed with v4l2_fwnode_parse_link().
-- */
- void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
- {
- 	fwnode_handle_put(link->local_node);
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index 7adec9851d9e..68eb22ba571b 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -113,13 +113,92 @@ struct v4l2_fwnode_link {
- 	unsigned int remote_port;
- };
- 
-+/**
-+ * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
-+ * @fwnode: pointer to the endpoint's fwnode handle
-+ * @vep: pointer to the V4L2 fwnode data structure
-+ *
-+ * All properties are optional. If none are found, we don't set any flags. This
-+ * means the port has a static configuration and no properties have to be
-+ * specified explicitly. If any properties that identify the bus as parallel
-+ * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-+ * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-+ * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-+ * reference to @fwnode.
-+ *
-+ * NOTE: This function does not parse properties the size of which is variable
-+ * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in
-+ * new drivers instead.
-+ *
-+ * Return: 0 on success or a negative error code on failure.
-+ */
- int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 			       struct v4l2_fwnode_endpoint *vep);
-+
-+/*
-+ * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-+ * v4l2_fwnode_endpoint_alloc_parse()
-+ * @vep - the V4L2 fwnode the resources of which are to be released
-+ *
-+ * It is safe to call this function with NULL argument or on a V4L2 fwnode the
-+ * parsing of which failed.
-+ */
-+void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
-+
-+/**
-+ * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
-+ * @fwnode: pointer to the endpoint's fwnode handle
-+ *
-+ * All properties are optional. If none are found, we don't set any flags. This
-+ * means the port has a static configuration and no properties have to be
-+ * specified explicitly. If any properties that identify the bus as parallel
-+ * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-+ * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-+ * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-+ * reference to @fwnode.
-+ *
-+ * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
-+ * v4l2_fwnode_endpoint_parse():
-+ *
-+ * 1. It also parses variable size data.
-+ *
-+ * 2. The memory it has allocated to store the variable size data must be freed
-+ *    using v4l2_fwnode_endpoint_free() when no longer needed.
-+ *
-+ * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error pointer
-+ * on error.
-+ */
- struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
- 	struct fwnode_handle *fwnode);
--void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
-+
-+/**
-+ * v4l2_fwnode_parse_link() - parse a link between two endpoints
-+ * @fwnode: pointer to the endpoint's fwnode at the local end of the link
-+ * @link: pointer to the V4L2 fwnode link data structure
-+ *
-+ * Fill the link structure with the local and remote nodes and port numbers.
-+ * The local_node and remote_node fields are set to point to the local and
-+ * remote port's parent nodes respectively (the port parent node being the
-+ * parent node of the port node if that node isn't a 'ports' node, or the
-+ * grand-parent node of the port node otherwise).
-+ *
-+ * A reference is taken to both the local and remote nodes, the caller must use
-+ * v4l2_fwnode_put_link() to drop the references when done with the
-+ * link.
-+ *
-+ * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't be
-+ * found.
-+ */
- int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
- 			   struct v4l2_fwnode_link *link);
-+
-+/**
-+ * v4l2_fwnode_put_link() - drop references to nodes in a link
-+ * @link: pointer to the V4L2 fwnode link data structure
-+ *
-+ * Drop references to the local and remote nodes in the link. This function
-+ * must be called on every link parsed with v4l2_fwnode_parse_link().
-+ */
- void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
- 
- #endif /* _V4L2_FWNODE_H */
+"It has to uniquely identify a device, i.e. no other LED class device
+can be assigned the same label."
+
+In view of your above words this is not true, and we probably should
+remove this sentence (it doesn't have DT maintainer ack btw).
+
+> I do want to see standard names though. On 96boards for example, there 
+> are defined LEDs and locations. The function on some are defined (e.g. 
+> WiFi/BT) and somewhat undefined on others (user{1-4}). I'd like to see 
+> the same label across all boards.
+
+Currently we have following LED functions (obtained with
+grep label Documentation/devicetree/bindings/leds/* | sed
+s'/^.*label/label/g' | awk -F"=" '{print $2}' | sed '/^$/d' | sed
+s'/.*:\(.*\)";/\1/' | sed '/^\s\{1,\}/d' | sort -u)
+
+0
+1
+2
+2g
+3
+4
+5
+6
+7
+adsl
+alarm
+alive
+aux
+broadband
+chrg
+dsl
+flash
+green
+indicator
+inet
+keypad
+phone
+power
+red
+sata
+sata0
+sata1
+tel
+tv
+upgrading
+usb
+usr0
+usr1
+usr35
+wan
+white
+wireless
+wps
+yellow
+
+By extracting numerical pattern names and replacing numbers with N
+we're getting something like this:
+
+N
+Ng
+colour
+adsl
+alarm
+alive
+aux
+broadband
+chrg
+dsl
+flash
+indicator
+inet
+keypad
+phone
+power
+sataN
+tel
+tv
+upgrading
+usb
+usrN
+wan
+wireless
+wps
+
+Is this list something you'd like to see as a base of standard LED
+functions? It seems that this list would have to be continuously
+supplemented with new positions.
+
 -- 
-2.11.0
+Best regards,
+Jacek Anaszewski
