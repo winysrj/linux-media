@@ -1,126 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:32275 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751751AbdITJqI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 05:46:08 -0400
-Date: Wed, 20 Sep 2017 12:42:28 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-        niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v13 14/25] v4l: async: Allow binding notifiers to
- sub-devices
-Message-ID: <20170920094228.2sqweboecndi4z3u@paasikivi.fi.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
- <3338675.o4HGi8X83V@avalon>
- <20170919151732.4yafxfcxrreizd7r@valkosipuli.retiisi.org.uk>
- <2127988.4UKDZnTvMM@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2127988.4UKDZnTvMM@avalon>
+Received: from mail-pg0-f47.google.com ([74.125.83.47]:44253 "EHLO
+        mail-pg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752694AbdIVWVc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Sep 2017 18:21:32 -0400
+Received: by mail-pg0-f47.google.com with SMTP id j16so1280465pga.1
+        for <linux-media@vger.kernel.org>; Fri, 22 Sep 2017 15:21:32 -0700 (PDT)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 4/4] ARM: DTS: imx: ventana: add TDA19971 HDMI Receiver to GW54xx
+Date: Fri, 22 Sep 2017 15:24:13 -0700
+Message-Id: <1506119053-21828-5-git-send-email-tharvey@gateworks.com>
+In-Reply-To: <1506119053-21828-1-git-send-email-tharvey@gateworks.com>
+References: <1506119053-21828-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+The GW54xx has a front-panel microHDMI connector routed to a TDA19971
+which is connected the the IPU CSI when using IMX6Q.
 
-On Tue, Sep 19, 2017 at 08:52:56PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Tuesday, 19 September 2017 18:17:32 EEST Sakari Ailus wrote:
-> > On Tue, Sep 19, 2017 at 04:52:29PM +0300, Laurent Pinchart wrote:
-> > > On Friday, 15 September 2017 17:17:13 EEST Sakari Ailus wrote:
-> > > > Registering a notifier has required the knowledge of struct v4l2_device
-> > >> for the reason that sub-devices generally are registered to the
-> > >> v4l2_device (as well as the media device, also available through
-> > >> v4l2_device).
-> > >> 
-> > >> This information is not available for sub-device drivers at probe time.
-> > >> 
-> > >> What this patch does is that it allows registering notifiers without
-> > >> having v4l2_device around. Instead the sub-device pointer is stored in
-> > >> the notifier. Once the sub-device of the driver that registered the
-> > >> notifier is registered, the notifier will gain the knowledge of the
-> > >> v4l2_device, and the binding of async sub-devices from the sub-device
-> > >> driver's notifier may proceed.
-> > >> 
-> > >> The root notifier's complete callback is only called when all sub-device
-> > >> notifiers are completed.
-> > > 
-> > > This is a bit hard to review, shouldn't it be split in two patches, one
-> > > that refactors the functions, and another one that allows binding
-> > > notifiers to subdevs ?
-> > > 
-> > >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > >> ---
-> > >> 
-> > >>  drivers/media/v4l2-core/v4l2-async.c | 218 ++++++++++++++++++++++++-----
-> > >>  include/media/v4l2-async.h           |  16 ++-
-> > >>  2 files changed, 203 insertions(+), 31 deletions(-)
-> > >> 
-> > >> diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> > >> b/drivers/media/v4l2-core/v4l2-async.c index 4be2f16af051..52fe22b9b6b4
-> > >> 100644
-> > >> --- a/drivers/media/v4l2-core/v4l2-async.c
-> > >> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> 
-> [snip]
-> 
-> > >> +/* Unbind all sub-devices in the notifier tree. */
-> > >> +static void v4l2_async_notifier_unbind_all_subdevs(
-> > >> +	struct v4l2_async_notifier *notifier)
-> > >> +{
-> > >> +	struct v4l2_subdev *sd, *tmp;
-> > >> 
-> > >>  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> > >> 
-> > >> +		struct v4l2_async_notifier *subdev_notifier =
-> > >> +			v4l2_async_find_subdev_notifier(sd);
-> > >> +
-> > >> +		if (subdev_notifier)
-> > >> +			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
-> > >> +
-> > >>  		v4l2_async_cleanup(sd);
-> > >>  		
-> > >>  		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
-> > >> -	}
-> > >> 
-> > >> -	mutex_unlock(&list_lock);
-> > >> +		list_del(&sd->async_list);
-> > >> +		list_add(&sd->async_list, &subdev_list);
-> > > 
-> > > How about list_move() ?
-> > 
-> > Yeah.
-> > 
-> > > This seems to be new code, and by the look of it, I wonder whether it
-> > > doesn't belong in the reprobing removal patch.
-> > 
-> > This is not related to re-probing. Here we're moving an async sub-device
-> > back to the global sub-device list when its notifier is going away.
-> 
-> In order to make the subdev bindable again when the notifier will be re-
-> registered. This wasn't needed before, as reprobing took care of that.
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ arch/arm/boot/dts/imx6q-gw54xx.dts | 85 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 85 insertions(+)
 
-Ah, I see what you mean now. That the async sub-device is returned to the
-global list?
-
-I also noticed the sd shouldn't be set NULL except to the notifier this is
-directly called on. I'll fix that as well.
-
-> 
-> > >> +	}
-> > >> 
-> > >> +	notifier->parent = NULL;
-> > >> +	notifier->sd = NULL;
-> > >>  	notifier->v4l2_dev = NULL;
-> > >>  }
-> 
-
+diff --git a/arch/arm/boot/dts/imx6q-gw54xx.dts b/arch/arm/boot/dts/imx6q-gw54xx.dts
+index 56e5b50..efb7dd3 100644
+--- a/arch/arm/boot/dts/imx6q-gw54xx.dts
++++ b/arch/arm/boot/dts/imx6q-gw54xx.dts
+@@ -12,6 +12,7 @@
+ /dts-v1/;
+ #include "imx6q.dtsi"
+ #include "imx6qdl-gw54xx.dtsi"
++#include <dt-bindings/media/tda1997x.h>
+ 
+ / {
+ 	model = "Gateworks Ventana i.MX6 Dual/Quad GW54XX";
+@@ -35,6 +36,60 @@
+ 			};
+ 		};
+ 	};
++
++	tda1997x: tda1997x@48 {
++		compatible = "nxp,tda19971";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_tda1997x>;
++		reg = <0x48>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		DOVDD-supply = <&reg_3p3v>;
++		AVDD-supply = <&sw4_reg>;
++		DVDD-supply = <&sw4_reg>;
++		audio-port = < TDA1997X_I2S16
++		               TDA1997X_LAYOUT0
++			       TDA1997X_ACLK_128FS >;
++		/*
++		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
++		 * and Y[11:4] across 16bits in the same cycle
++		 * which we map to VP[15:08]<->CSI_DATA[19:12]
++		 */
++		vidout_portcfg =
++			/*G_Y_11_8<->VP[15:12]<->CSI_DATA[19:16]*/
++			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
++			/*G_Y_7_4<->VP[11:08]<->CSI_DATA[15:12]*/
++			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
++			/*R_CR_CBCR_11_8<->VP[07:04]<->CSI_DATA[11:08]*/
++			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
++			/*R_CR_CBCR_7_4<->VP[03:00]<->CSI_DATA[07:04]*/
++			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
++		max-pixel-rate = <180>; /* IMX6 CSI max pixel rate 180MP/sec */
++
++		port {
++			tda1997x_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <16>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++				data-active = <1>;
++			};
++		};
++	};
++};
++
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <16>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&tda1997x_to_ipu1_csi0_mux>;
++	bus-width = <16>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
+ };
+ 
+ &ipu2_csi1_from_ipu2_csi1_mux {
+@@ -63,6 +118,30 @@
+ 		>;
+ 	};
+ 
++	pinctrl_ipu1_csi0: ipu1_csi0grp {
++		fsl,pins = <
++			MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT8__IPU1_CSI0_DATA08		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT9__IPU1_CSI0_DATA09		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT10__IPU1_CSI0_DATA10		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT11__IPU1_CSI0_DATA11		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19		0x1b0b0
++			MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC		0x1b0b0
++			MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK	0x1b0b0
++			MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC		0x1b0b0
++		>;
++	};
++
+ 	pinctrl_ipu2_csi1: ipu2_csi1grp {
+ 		fsl,pins = <
+ 			MX6QDL_PAD_EIM_EB2__IPU2_CSI1_DATA19    0x1b0b0
+@@ -78,4 +157,10 @@
+ 			MX6QDL_PAD_EIM_A16__IPU2_CSI1_PIXCLK    0x1b0b0
+ 		>;
+ 	};
++
++	pinctrl_tda1997x: tda1997xgrp {
++		fsl,pins = <
++			MX6QDL_PAD_GPIO_7__GPIO1_IO07	0x1b0b0
++		>;
++	};
+ };
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.7.4
