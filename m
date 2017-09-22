@@ -1,87 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52295
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751568AbdICTEA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Sep 2017 15:04:00 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+Received: from mail.free-electrons.com ([62.4.15.54]:38442 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752453AbdIVOwQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Sep 2017 10:52:16 -0400
+Date: Fri, 22 Sep 2017 16:52:14 +0200
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Aviv Greenberg <aviv.d.greenberg@intel.com>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Cyprian Wronka <cwronka@cadence.com>,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Vincent ABRIOU <vincent.abriou@st.com>
-Subject: [PATCH 0/7] Another set of fixes for PDF output
-Date: Sun,  3 Sep 2017 16:03:46 -0300
-Message-Id: <cover.1504464984.git.mchehab@s-opensource.com>
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com
+Subject: Re: [PATCH 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 TX Device
+ Tree bindings
+Message-ID: <20170922145214.u245ka35az5ewthm@flea.lan>
+References: <20170922114703.30511-1-maxime.ripard@free-electrons.com>
+ <20170922114703.30511-2-maxime.ripard@free-electrons.com>
+ <20170922120106.mfxoh34anazqakvz@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="yvg77p54kzhem33d"
+Content-Disposition: inline
+In-Reply-To: <20170922120106.mfxoh34anazqakvz@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are other things that are needed for a proper PDF output,
-and a fix for yet another Sphinx 1.6 breakage.
 
-After this patch series, PDF output now looks OK on Sphinx 1.4 to 1.6.
+--yvg77p54kzhem33d
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-There's, however, one step back on Sphinx 1.6: I couldn't find any
-way to use a background color for notifications (note, attention,
-important, etc).
+Hi Sakari,
 
-In thesis, on Sphinx 1.6, this is natively supported. However, in
-practice, support for it is broken: if a note is inserted inside a table,
-it sometimes put at the wrong cell and with the wrong size.
+On Fri, Sep 22, 2017 at 12:01:06PM +0000, Sakari Ailus wrote:
+> On Fri, Sep 22, 2017 at 01:47:02PM +0200, Maxime Ripard wrote:
+> > The Cadence MIPI-CSI2 RX controller is a CSI2 bridge that supports up t=
+o 4
+>=20
+> Should this be TX?
+>=20
+> I was just thinking what does this chip do, and saw both. RX it at least
+> less common. :-)
 
-I was not able to fix it there. Yet, it fails gracefully, as it will just
-display those boxes on boring black on white. While, IMHO, it
-fails to the idea of giving a highlight to the text, it is readable.
+Yes, definitely :)
 
-That is a shame, as, except for this, Sphinx 1.6 seems to produce
-a better table output than previous versions, when cell span is
-used. Also, less hacks at the latex_preamble are now required
-on newer versions. Well, maybe some day we may be able to
-remove all hacks on newer versions of it...
+This one's a transceiver, the other one a receiver.
 
+Maxime
 
-Mauro Carvalho Chehab (7):
-  media: format.rst: use the right markup for important notes
-  media: v4l2 uapi book: get rid of driver programming's chapter
-  media: vivid.rst: add a blank line to correct ReST format
-  media: vidioc-g-fmt.rst: adjust table format
-  media: fix build breakage with Sphinx 1.6
-  media: pixfmt*.rst: replace a two dots by a comma
-  media: index.rst: don't write "Contents:" on PDF output
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
 
- Documentation/media/index.rst                    |  6 +++++-
- Documentation/media/uapi/v4l/driver.rst          |  9 ---------
- Documentation/media/uapi/v4l/format.rst          |  2 +-
- Documentation/media/uapi/v4l/pixfmt-m420.rst     |  2 +-
- Documentation/media/uapi/v4l/pixfmt-nv12.rst     |  2 +-
- Documentation/media/uapi/v4l/pixfmt-nv12m.rst    |  2 +-
- Documentation/media/uapi/v4l/pixfmt-nv16.rst     |  2 +-
- Documentation/media/uapi/v4l/pixfmt-nv16m.rst    |  2 +-
- Documentation/media/uapi/v4l/pixfmt-srggb10p.rst | 16 ++++++++++++++--
- Documentation/media/uapi/v4l/pixfmt-uyvy.rst     |  2 +-
- Documentation/media/uapi/v4l/pixfmt-vyuy.rst     |  2 +-
- Documentation/media/uapi/v4l/pixfmt-y41p.rst     |  2 +-
- Documentation/media/uapi/v4l/pixfmt-yuv410.rst   |  2 +-
- Documentation/media/uapi/v4l/pixfmt-yuv411p.rst  |  2 +-
- Documentation/media/uapi/v4l/pixfmt-yuv420.rst   |  2 +-
- Documentation/media/uapi/v4l/pixfmt-yuv420m.rst  |  2 +-
- Documentation/media/uapi/v4l/pixfmt-yuv422m.rst  |  2 +-
- Documentation/media/uapi/v4l/pixfmt-yuv422p.rst  |  2 +-
- Documentation/media/uapi/v4l/pixfmt-yuv444m.rst  |  2 +-
- Documentation/media/uapi/v4l/pixfmt-yuyv.rst     |  2 +-
- Documentation/media/uapi/v4l/pixfmt-yvyu.rst     |  2 +-
- Documentation/media/uapi/v4l/v4l2.rst            |  1 -
- Documentation/media/uapi/v4l/vidioc-g-fmt.rst    |  2 +-
- Documentation/media/v4l-drivers/vivid.rst        |  1 +
- 24 files changed, 39 insertions(+), 32 deletions(-)
- delete mode 100644 Documentation/media/uapi/v4l/driver.rst
+--yvg77p54kzhem33d
+Content-Type: application/pgp-signature; name="signature.asc"
 
--- 
-2.13.5
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJZxSOeAAoJEBx+YmzsjxAgFNoP/jAnAZoXrmACWmp81/g53dlT
+AM5W8Z3qH9+imHq8ubnGpWXKY34D0gMQTcNzHofaxK/aZNvAAcWlq0I2BaD93RzO
+GsCOss2jbRUBHHAdoQY2wJf/uMK4caFjBI0HiQILcihhwUgH4kY6CLjOrGE5dvW3
+uewqSE7DIxiSNOggIplH5tXvi3SXBS1L4PjYFUvU2lwNWl6Ip7I3d8mDUafJrlOM
+X3lak8A7afwS/9aejF26j9G8GJNOuSW2mM2u6xv0mqeCU+KfrAWRDkEGRVkgB0ad
+OQEjmxU/S8Mav/yDCIXt4+Gyi6yVRsDCNF2A3UVjalT73AmsRGtvKFUJfZdXvjJf
+0d0qs0CGXNizTUuA6clBrwOwEicmPza9w5D3FNFzNX3sEc78ITwB2OTytTMpyDjT
+nDEUO6WyiJjmOx+y/ghzoSyRSeWkoO83VDWLTzb4SZnZC3pqhBYiGHNfzpy79xdQ
+uDNDK4pjYauzLvMS9G5iO0BVNN6EUuPSZFMoW9Ck45ULFu72cFSjCgY6gF3s+g1t
+4LQr9821WdoaVIoq0kgfuxP9Ucst06FczDIt7gwZxy7AUGtc9u0LolUJNyNsQhHI
+iymx9pjeiK0nu1rcUlZSOoP0zM94+ZXyGOK6SD9HjY6jnrpW31dFAsLG6NzT1yqo
+wvRQXd/+ZC79enutDgJw
+=uB1p
+-----END PGP SIGNATURE-----
+
+--yvg77p54kzhem33d--
