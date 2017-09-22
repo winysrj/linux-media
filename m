@@ -1,60 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:49560 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751253AbdIPOch (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Sep 2017 10:32:37 -0400
-To: linux-media@vger.kernel.org, Bhumika Goyal <bhumirks@gmail.com>,
-        Eduardo Valentin <edubezval@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] [media] Si4713: Delete an error message for a failed memory
- allocation in two functions
-Message-ID: <807ef494-8995-59dc-ee51-c7fbad3e01fa@users.sourceforge.net>
-Date: Sat, 16 Sep 2017 16:32:06 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42412 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751938AbdIVJe4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Sep 2017 05:34:56 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: [RESEND PATCH v3 4/4] as3645a: Unregister indicator LED on device unbind
+Date: Fri, 22 Sep 2017 12:34:53 +0300
+Message-Id: <20170922093453.13250-5-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170922093453.13250-1-sakari.ailus@linux.intel.com>
+References: <20170922093453.13250-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 16 Sep 2017 16:15:44 +0200
+The indicator LED was registered in probe but was not removed in driver
+remove callback. Fix this.
 
-Omit an extra message for a memory allocation failure in these functions.
-
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/radio/si4713/radio-platform-si4713.c | 1 -
- drivers/media/radio/si4713/si4713.c                | 1 -
- 2 files changed, 2 deletions(-)
+ drivers/leds/leds-as3645a.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/radio/si4713/radio-platform-si4713.c b/drivers/media/radio/si4713/radio-platform-si4713.c
-index 27339ec495f6..4b7943e385a0 100644
---- a/drivers/media/radio/si4713/radio-platform-si4713.c
-+++ b/drivers/media/radio/si4713/radio-platform-si4713.c
-@@ -162,5 +162,4 @@ static int radio_si4713_pdriver_probe(struct platform_device *pdev)
- 	if (!rsdev) {
--		dev_err(&pdev->dev, "Failed to alloc video device.\n");
- 		rval = -ENOMEM;
- 		goto exit;
- 	}
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index f4a53f1e856e..46b1fe36f713 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -1451,5 +1451,4 @@ static int si4713_probe(struct i2c_client *client,
- 	if (!sdev) {
--		dev_err(&client->dev, "Failed to alloc video device.\n");
- 		rval = -ENOMEM;
- 		goto exit;
- 	}
+diff --git a/drivers/leds/leds-as3645a.c b/drivers/leds/leds-as3645a.c
+index 605e0c64e974..9a257f969300 100644
+--- a/drivers/leds/leds-as3645a.c
++++ b/drivers/leds/leds-as3645a.c
+@@ -743,6 +743,7 @@ static int as3645a_remove(struct i2c_client *client)
+ 	as3645a_set_control(flash, AS_MODE_EXT_TORCH, false);
+ 
+ 	v4l2_flash_release(flash->vf);
++	v4l2_flash_release(flash->vfind);
+ 
+ 	led_classdev_flash_unregister(&flash->fled);
+ 	led_classdev_unregister(&flash->iled_cdev);
 -- 
-2.14.1
+2.11.0
