@@ -1,289 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:53399 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751795AbdIVIoQ (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.131]:60649 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752071AbdIVVaa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 04:44:16 -0400
-Date: Fri, 22 Sep 2017 10:44:13 +0200
-From: Mylene JOSSERAND <mylene.josserand@free-electrons.com>
-To: Yong Deng <yong.deng@magewell.com>
-Cc: maxime.ripard@free-electrons.com,
+        Fri, 22 Sep 2017 17:30:30 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+Cc: Arnd Bergmann <arnd@arndb.de>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Pirko <jiri@resnulli.us>,
+        Arend van Spriel <arend.vanspriel@broadcom.com>,
+        Kalle Valo <kvalo@codeaurora.org>,
         "David S. Miller" <davem@davemloft.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
-Message-ID: <20170922104413.5d7d64e7@dell-desktop.home>
-In-Reply-To: <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
-        <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Michal Marek <mmarek@suse.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+        brcm80211-dev-list.pdl@broadcom.com,
+        brcm80211-dev-list@cypress.com, kasan-dev@googlegroups.com,
+        linux-kbuild@vger.kernel.org, Jakub Jelinek <jakub@gcc.gnu.org>,
+        =?UTF-8?q?Martin=20Li=C5=A1ka?= <marxin@gcc.gnu.org>
+Subject: [PATCH v4 0/9] bring back stack frame warning with KASAN
+Date: Fri, 22 Sep 2017 23:29:11 +0200
+Message-Id: <20170922212930.620249-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Yong,
+This is a new version of patches I originally submitted back in March
+[1], and last time in June [2]. This time I have basically rewritten
+the entire patch series based on a new approach that came out of GCC
+PR81715 that I opened[3]. The upcoming gcc-8 release is now much better
+at consolidating stack slots for inline function arguments and would
+obsolete most of my workaround patches here, but we still need the
+workarounds for gcc-5, gcc-6 and gcc-7. Many thanks to Jakub Jelinek
+for the analysis and the gcc-8 patch!
 
-Thank you for these drivers!
+This minimal set of patches only makes sure that we do get frame size
+warnings in allmodconfig for x86_64 and arm64 again with a 2048 byte
+limit, even with KASAN enabled, but without the new KASAN_EXTRA option.
 
-I tested it with an OV5640 camera on an Nanopi M1 plus (Allwinner H3)
-and I noticed that I got a frame correctly displayed only on a half of
-the frame's size.
+I set the warning limit with KASAN_EXTRA to 3072, limiting the
+allmodconfig+KASAN_EXTRA build output to around 50 legitimate warnings.
+These are for stack frames up to 31KB that will cause an immediate stack
+overflow, and fixing them would require bringing back my older patches
+and more. We can debate whether we want to apply those as a follow-up,
+or instead remove the option entirely.
 
-It is related to your "sun6i_csi_set_window" function (see
-below).
+Another follow-up series I have reduces the warning limit with
+KASAN to 1536, and without KASAN to 1280 for 64-bit architectures.
 
-> Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI interface
-> and CSI1 is used for parallel interface. This is not documented in
-> datasheet but by testing and guess.
-> 
-> This patch implement a v4l2 framework driver for it.
-> 
-> Currently, the driver only support the parallel interface. MIPI-CSI2,
-> ISP's support are not included in this patch.
-> 
-> Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> ---
->  drivers/media/platform/Kconfig                   |   1 +
->  drivers/media/platform/Makefile                  |   2 +
->  drivers/media/platform/sun6i-csi/Kconfig         |   9 +
->  drivers/media/platform/sun6i-csi/Makefile        |   3 +
->  drivers/media/platform/sun6i-csi/sun6i_csi.c     | 545
-> +++++++++++++++ drivers/media/platform/sun6i-csi/sun6i_csi.h     |
-> 203 ++++++ drivers/media/platform/sun6i-csi/sun6i_csi_v3s.c | 827
-> +++++++++++++++++++++++
-> drivers/media/platform/sun6i-csi/sun6i_csi_v3s.h | 206 ++++++
-> drivers/media/platform/sun6i-csi/sun6i_video.c   | 663
-> ++++++++++++++++++ drivers/media/platform/sun6i-csi/sun6i_video.h
-> |  61 ++ 10 files changed, 2520 insertions(+) create mode 100644
-> drivers/media/platform/sun6i-csi/Kconfig create mode 100644
-> drivers/media/platform/sun6i-csi/Makefile create mode 100644
-> drivers/media/platform/sun6i-csi/sun6i_csi.c create mode 100644
-> drivers/media/platform/sun6i-csi/sun6i_csi.h create mode 100644
-> drivers/media/platform/sun6i-csi/sun6i_csi_v3s.c create mode 100644
-> drivers/media/platform/sun6i-csi/sun6i_csi_v3s.h create mode 100644
-> drivers/media/platform/sun6i-csi/sun6i_video.c create mode 100644
-> drivers/media/platform/sun6i-csi/sun6i_video.h
-> 
-> diff --git a/drivers/media/platform/Kconfig
-> b/drivers/media/platform/Kconfig index 0c741d1..8371a87 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -143,6 +143,7 @@ source "drivers/media/platform/am437x/Kconfig"
->  source "drivers/media/platform/xilinx/Kconfig"
->  source "drivers/media/platform/rcar-vin/Kconfig"
->  source "drivers/media/platform/atmel/Kconfig"
-> +source "drivers/media/platform/sun6i-csi/Kconfig"
->  
+I hope we can get all patches merged for v4.14 and most of them
+backported into stable kernels. Since we no longer have a dependency
+on a preparation patch, my preference would be for the respective
+subsystem maintainers to pick up the individual patches.
+The last patch introduces a couple of "allmodconfig" build warnings
+on x86 and arm64 unless the other patches get merged first, I'll
+send that again separately once everything else has been taken
+care of.
 
-<snip>
+The remaining contents are:
+- -fsanitize-address-use-after-scope is moved to a separate
+  CONFIG_KASAN_EXTRA option that increases the warning limit
+- CONFIG_KASAN_EXTRA is disabled with CONFIG_COMPILE_TEST,
+  improving compile speed and disabling code that leads to
+  valid warnings on gcc-7.0.1
+- KMEMCHECK conflicts with CONFIG_KASAN
+- my inline function workaround is applied to netlink, one
+  ethernet driver and a few media drivers.
+- The rework for the brcmsmac driver from previous versions is
+  still there.
 
-> +static void sun6i_csi_set_format(struct sun6i_csi_dev *sdev)
-> +{
-> +	struct sun6i_csi *csi = &sdev->csi;
-> +	u32 cfg;
-> +	u32 val;
-> +
-> +	regmap_read(sdev->regmap, CSI_CH_CFG_REG, &cfg);
-> +
-> +	cfg &= ~(CSI_CH_CFG_INPUT_FMT_MASK |
-> +		 CSI_CH_CFG_OUTPUT_FMT_MASK | CSI_CH_CFG_VFLIP_EN |
-> +		 CSI_CH_CFG_HFLIP_EN | CSI_CH_CFG_FIELD_SEL_MASK |
-> +		 CSI_CH_CFG_INPUT_SEQ_MASK);
-> +
-> +	val = get_csi_input_format(csi->config.code,
-> csi->config.pixelformat);
-> +	cfg |= CSI_CH_CFG_INPUT_FMT(val);
-> +
-> +	val = get_csi_output_format(csi->config.code,
-> csi->config.field);
-> +	cfg |= CSI_CH_CFG_OUTPUT_FMT(val);
-> +
-> +	val = get_csi_input_seq(csi->config.code,
-> csi->config.pixelformat);
-> +	cfg |= CSI_CH_CFG_INPUT_SEQ(val);
-> +
-> +	if (csi->config.field == V4L2_FIELD_TOP)
-> +		cfg |= CSI_CH_CFG_FIELD_SEL_FIELD0;
-> +	else if (csi->config.field == V4L2_FIELD_BOTTOM)
-> +		cfg |= CSI_CH_CFG_FIELD_SEL_FIELD1;
-> +	else
-> +		cfg |= CSI_CH_CFG_FIELD_SEL_BOTH;
-> +
-> +	regmap_write(sdev->regmap, CSI_CH_CFG_REG, cfg);
-> +}
-> +
-> +static void sun6i_csi_set_window(struct sun6i_csi_dev *sdev)
-> +{
-> +	struct sun6i_csi_config *config = &sdev->csi.config;
-> +	u32 bytesperline_y;
-> +	u32 bytesperline_c;
-> +	int *planar_offset = sdev->planar_offset;
-> +
-> +	regmap_write(sdev->regmap, CSI_CH_HSIZE_REG,
-> +		     CSI_CH_HSIZE_HOR_LEN(config->width) |
-> +		     CSI_CH_HSIZE_HOR_START(0));
-> +	regmap_write(sdev->regmap, CSI_CH_VSIZE_REG,
-> +		     CSI_CH_VSIZE_VER_LEN(config->height) |
-> +		     CSI_CH_VSIZE_VER_START(0));
+Changes since v3:
+- I dropped all "noinline_if_stackbloat" annotations and used
+  a workaround that introduces additional local variables in the inline
+  functions to copy the function arguments, resulting in much better
+  object code at the expense of having rather odd-looking functions.
+- The v4 patches now don't help with KASAN_EXTRA any more at all,
+  CONFIG_KASAN_EXTRA now depends on CONFIG_DEBUG_KERNEL, as it
+  is more dangerous in production systems than it was before
+- Rewrote the "em28xx" patch to be small enough for a stable backport.
+- The rewritten vt-keyboard patches got merged and are now in
+  stable kernels as well.
 
-In my case, the HOR_LEN and VER_LEN were not correctly configured.
+Changes since v2:
+- rewrote the vt-keyboard patch based on feedback
+- and made KMEMCHECK mutually exclusive with KASAN
+  (rather than KASAN_EXTRA)
 
-They were configured to width and height (640 * 480) but as I was
-using a YUYV format, the pixel's size is 2 bytes so the
-horizontal/vertical lines' lengths were divided by 2.
+Changes since v1:
+- dropped patches to fix all the CONFIG_KASAN_EXTRA warnings:
+ - READ_ONCE/WRITE_ONCE cause problems in lots of code
+ - typecheck() causes huge problems in a few places
+ - many more uses of noinline_if_stackbloat
 
-Currently, I fixed that by getting the number of bytes per pixel with
-"v4l2_pixformat_get_bpp()":
+     Arnd
 
-+       int bytes_pixel;
-+
-+       bytes_pixel = v4l2_pixformat_get_bpp(config->pixelformat) / 8;
- 
-        regmap_write(sdev->regmap, CSI_CH_HSIZE_REG,
--                    CSI_CH_HSIZE_HOR_LEN(config->width) |
-+                    CSI_CH_HSIZE_HOR_LEN(config->width * bytes_pixel) |
-                     CSI_CH_HSIZE_HOR_START(0));
-        regmap_write(sdev->regmap, CSI_CH_VSIZE_REG,
--                    CSI_CH_VSIZE_VER_LEN(config->height) |
-+                    CSI_CH_VSIZE_VER_LEN(config->height * bytes_pixel)
-  | CSI_CH_VSIZE_VER_START(0));
+[1] https://www.spinics.net/lists/linux-wireless/msg159819.html
+[2] https://www.spinics.net/lists/netdev/msg441918.html
+[3] https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81715
 
-There is certainly a nicer way to handle that.
+Arnd Bergmann (9):
+  brcmsmac: make some local variables 'static const' to reduce stack
+    size
+  brcmsmac: split up wlc_phy_workarounds_nphy
+  brcmsmac: reindent split functions
+  em28xx: fix em28xx_dvb_init for KASAN
+  r820t: fix r820t_write_reg for KASAN
+  dvb-frontends: fix i2c access helpers for KASAN
+  rocker: fix rocker_tlv_put_* functions for KASAN
+  netlink: fix nla_put_{u8,u16,u32} for KASAN
+  kasan: rework Kconfig settings
 
-> +
-> +	planar_offset[0] = 0;
-> +	switch(config->pixelformat) {
-> +	case V4L2_PIX_FMT_HM12:
-> +	case V4L2_PIX_FMT_NV12:
-> +	case V4L2_PIX_FMT_NV21:
-> +	case V4L2_PIX_FMT_NV16:
-> +	case V4L2_PIX_FMT_NV61:
-> +		bytesperline_y = config->width;
-> +		bytesperline_c = config->width;
-> +		planar_offset[1] = bytesperline_y * config->height;
-> +		planar_offset[2] = -1;
-> +		break;
-> +	case V4L2_PIX_FMT_YUV420:
-> +	case V4L2_PIX_FMT_YVU420:
-> +		bytesperline_y = config->width;
-> +		bytesperline_c = config->width / 2;
-> +		planar_offset[1] = bytesperline_y * config->height;
-> +		planar_offset[2] = planar_offset[1] +
-> +				bytesperline_c * config->height / 2;
-> +		break;
-> +	case V4L2_PIX_FMT_YUV422P:
-> +		bytesperline_y = config->width;
-> +		bytesperline_c = config->width / 2;
-> +		planar_offset[1] = bytesperline_y * config->height;
-> +		planar_offset[2] = planar_offset[1] +
-> +				bytesperline_c * config->height;
-> +		break;
-> +	default: /* raw */
-> +		bytesperline_y =
-> (v4l2_pixformat_get_bpp(config->pixelformat) *
-> +				  config->width) / 8;
-> +		bytesperline_c = 0;
-> +		planar_offset[1] = -1;
-> +		planar_offset[2] = -1;
-> +		break;
-> +	}
-> +
-> +	regmap_write(sdev->regmap, CSI_CH_BUF_LEN_REG,
-> +		     CSI_CH_BUF_LEN_BUF_LEN_C(bytesperline_c) |
-> +		     CSI_CH_BUF_LEN_BUF_LEN_Y(bytesperline_y));
-> +}
-> +
-> +static int get_supported_pixformats(struct sun6i_csi *csi,
-> +				    const u32 **pixformats)
-> +{
-> +	if (pixformats != NULL)
-> +		*pixformats = supported_pixformats;
-> +
-> +	return ARRAY_SIZE(supported_pixformats);
-> +}
-> +
-> +static bool is_format_support(struct sun6i_csi *csi, u32 pixformat,
-> +			      u32 mbus_code)
-> +{
-> +	struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
-> +
-> +	return __is_format_support(sdev, pixformat, mbus_code);
-> +}
-> +
-> +static int set_power(struct sun6i_csi *csi, bool enable)
-> +{
-> +	struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
-> +	struct regmap *regmap = sdev->regmap;
-> +	int ret;
-> +
-> +	if (!enable) {
-> +		regmap_update_bits(regmap, CSI_EN_REG,
-> CSI_EN_CSI_EN, 0); +
-> +		clk_disable_unprepare(sdev->clk_ram);
-> +		clk_disable_unprepare(sdev->clk_mod);
-> +		clk_disable_unprepare(sdev->clk_ahb);
-> +		reset_control_assert(sdev->rstc_ahb);
-> +		return 0;
-> +	}
-> +
-> +	ret = clk_prepare_enable(sdev->clk_ahb);
-> +	if (ret) {
-> +		dev_err(sdev->dev, "Enable ahb clk err %d\n", ret);
-> +		return ret;
-> +	}
-> +
-> +	ret = clk_prepare_enable(sdev->clk_mod);
-> +	if (ret) {
-> +		dev_err(sdev->dev, "Enable csi clk err %d\n", ret);
-> +		return ret;
-> +	}
-> +
-> +	ret = clk_prepare_enable(sdev->clk_ram);
-> +	if (ret) {
-> +		dev_err(sdev->dev, "Enable clk_dram_csi clk err
-> %d\n", ret);
-> +		return ret;
-> +	}
-> +
-> +	if (!IS_ERR_OR_NULL(sdev->rstc_ahb)) {
-> +		ret = reset_control_deassert(sdev->rstc_ahb);
-> +		if (ret) {
-> +			dev_err(sdev->dev, "reset err %d\n", ret);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN,
-> CSI_EN_CSI_EN); +
-> +	return 0;
-> +}
-
-<snip>
-
-Thank you in advance!
-
-Best regards,
+ drivers/media/dvb-frontends/ascot2e.c              |    4 +-
+ drivers/media/dvb-frontends/cxd2841er.c            |    4 +-
+ drivers/media/dvb-frontends/helene.c               |    4 +-
+ drivers/media/dvb-frontends/horus3a.c              |    4 +-
+ drivers/media/dvb-frontends/itd1000.c              |    5 +-
+ drivers/media/dvb-frontends/mt312.c                |    4 +-
+ drivers/media/dvb-frontends/stb0899_drv.c          |    3 +-
+ drivers/media/dvb-frontends/stb6100.c              |    6 +-
+ drivers/media/dvb-frontends/stv0367.c              |    4 +-
+ drivers/media/dvb-frontends/stv090x.c              |    4 +-
+ drivers/media/dvb-frontends/stv6110x.c             |    4 +-
+ drivers/media/dvb-frontends/zl10039.c              |    4 +-
+ drivers/media/tuners/r820t.c                       |   13 +-
+ drivers/media/usb/em28xx/em28xx-dvb.c              |   30 +-
+ drivers/net/ethernet/rocker/rocker_tlv.h           |   48 +-
+ .../broadcom/brcm80211/brcmsmac/phy/phy_n.c        | 1856 ++++++++++----------
+ include/net/netlink.h                              |   73 +-
+ lib/Kconfig.debug                                  |    4 +-
+ lib/Kconfig.kasan                                  |   13 +-
+ lib/Kconfig.kmemcheck                              |    1 +
+ scripts/Makefile.kasan                             |    3 +
+ 21 files changed, 1047 insertions(+), 1044 deletions(-)
 
 -- 
-Mylène Josserand, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+2.9.0
+
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Jiri Pirko <jiri@resnulli.us>
+Cc: Arend van Spriel <arend.vanspriel@broadcom.com>
+Cc: Kalle Valo <kvalo@codeaurora.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Michal Marek <mmarek@suse.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Cc: linux-wireless@vger.kernel.org
+Cc: brcm80211-dev-list.pdl@broadcom.com
+Cc: brcm80211-dev-list@cypress.com
+Cc: kasan-dev@googlegroups.com
+Cc: linux-kbuild@vger.kernel.org
+Cc: Jakub Jelinek <jakub@gcc.gnu.org>
+Cc: Martin Liška <marxin@gcc.gnu.org>
