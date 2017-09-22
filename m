@@ -1,145 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:38437 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751040AbdISNFa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 09:05:30 -0400
-Date: Tue, 19 Sep 2017 16:04:53 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
-        sre@kernel.org
-Subject: Re: [PATCH v13 17/25] v4l: fwnode: Add a helper function for parsing
- generic references
-Message-ID: <20170919130453.ii5kz54qxlot4of2@paasikivi.fi.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
- <20170915141724.23124-18-sakari.ailus@linux.intel.com>
- <2639286.bLnehYdF9o@avalon>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:38245 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752140AbdIVUA4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Sep 2017 16:00:56 -0400
+Received: by mail-pf0-f194.google.com with SMTP id a7so851624pfj.5
+        for <linux-media@vger.kernel.org>; Fri, 22 Sep 2017 13:00:56 -0700 (PDT)
+Subject: Re: [PATCH v2 2/2] [media] imx: ask source subdevice for number of
+ active data lanes
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mats Randgaard <matrandg@cisco.com>
+References: <20170921153055.16206-2-p.zabel@pengutronix.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <1e29bdb1-380d-858d-7da8-c791667002bd@gmail.com>
+Date: Fri, 22 Sep 2017 13:00:53 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2639286.bLnehYdF9o@avalon>
+In-Reply-To: <20170921153055.16206-2-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
 
-On Tue, Sep 19, 2017 at 03:19:59PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> On Friday, 15 September 2017 17:17:16 EEST Sakari Ailus wrote:
-> > Add function v4l2_fwnode_reference_parse() for parsing them as async
-> > sub-devices. This can be done on e.g. flash or lens async sub-devices that
-> > are not part of but are associated with a sensor.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-fwnode.c | 69 ++++++++++++++++++++++++++++++++
-> >  1 file changed, 69 insertions(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c
-> > b/drivers/media/v4l2-core/v4l2-fwnode.c index 44ee35f6aad5..65e84ea1cc35
-> > 100644
-> > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > @@ -498,6 +498,75 @@ int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
-> > }
-> >  EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints_by_port);
-> > 
-> > +/*
-> > + * v4l2_fwnode_reference_parse - parse references for async sub-devices
-> > + * @dev: the device node the properties of which are parsed for references
-> > + * @notifier: the async notifier where the async subdevs will be added
-> > + * @prop: the name of the property
-> > + *
-> > + * Return: 0 on success
-> > + *	   -ENOENT if no entries were found
-> > + *	   -ENOMEM if memory allocation failed
-> > + *	   -EINVAL if property parsing failed
-> > + */
-> > +static int v4l2_fwnode_reference_parse(
-> > +	struct device *dev, struct v4l2_async_notifier *notifier,
-> > +	const char *prop)
-> > +{
-> > +	struct fwnode_reference_args args;
-> > +	unsigned int index;
-> > +	int ret;
-> > +
-> > +	for (index = 0;
-> > +	     !(ret = fwnode_property_get_reference_args(
-> > +		       dev_fwnode(dev), prop, NULL, 0, index, &args));
-> > +	     index++)
-> > +		fwnode_handle_put(args.fwnode);
-> 
-> This seems to indicate that the fwnode API is missing a function to count the 
-> number of references in a property. Should that be fixed ?
 
-I can send a patch adding that.
+On 09/21/2017 08:30 AM, Philipp Zabel wrote:
+> Temporarily use g_mbus_config() to determine the number of active data
+> lanes used by the transmitter. If g_mbus_config is not supported or
+> does not return the number of active lines, default to using all
+> connected data lines.
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-OF has one available but it's only for cases where the number of integer
-arguments isn't fixed.
+Acked-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 
-> 
-> The rest looks OK to me.
-> 
-> > +	if (!index)
-> > +		return -ENOENT;
-> > +
-> > +	/*
-> > +	 * Note that right now both -ENODATA and -ENOENT may signal
-> > +	 * out-of-bounds access. Return the error in cases other than that.
-> > +	 */
-> > +	if (ret != -ENOENT && ret != -ENODATA)
-> > +		return ret;
-> > +
-> > +	ret = v4l2_async_notifier_realloc(notifier,
-> > +					  notifier->num_subdevs + index);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	for (index = 0; !fwnode_property_get_reference_args(
-> > +		     dev_fwnode(dev), prop, NULL, 0, index, &args);
-> > +	     index++) {
-> > +		struct v4l2_async_subdev *asd;
-> > +
-> > +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-> > +			ret = -EINVAL;
-> > +			goto error;
-> > +		}
-> > +
-> > +		asd = kzalloc(sizeof(*asd), GFP_KERNEL);
-> > +		if (!asd) {
-> > +			ret = -ENOMEM;
-> > +			goto error;
-> > +		}
-> > +
-> > +		notifier->subdevs[notifier->num_subdevs] = asd;
-> > +		asd->match.fwnode.fwnode = args.fwnode;
-> > +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-> > +		notifier->num_subdevs++;
-> > +	}
-> > +
-> > +	return 0;
-> > +
-> > +error:
-> > +	fwnode_handle_put(args.fwnode);
-> > +	return ret;
-> > +}
-> > +
-> >  MODULE_LICENSE("GPL");
-> >  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
-> >  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-> 
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+> ---
+> New in v2:
+>   - Use the active lanes reported via g_mbus_config(), if available, to
+>     configure the CSI2_N_LANES register correctly.
+> ---
+>   drivers/staging/media/imx/imx6-mipi-csi2.c | 12 ++++++++----
+>   1 file changed, 8 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/staging/media/imx/imx6-mipi-csi2.c b/drivers/staging/media/imx/imx6-mipi-csi2.c
+> index 5061f3f524fd5..cd19730d0159c 100644
+> --- a/drivers/staging/media/imx/imx6-mipi-csi2.c
+> +++ b/drivers/staging/media/imx/imx6-mipi-csi2.c
+> @@ -135,10 +135,8 @@ static void csi2_enable(struct csi2_dev *csi2, bool enable)
+>   	}
+>   }
+>   
+> -static void csi2_set_lanes(struct csi2_dev *csi2)
+> +static void csi2_set_lanes(struct csi2_dev *csi2, int lanes)
+>   {
+> -	int lanes = csi2->bus.num_data_lanes;
+> -
+>   	writel(lanes - 1, csi2->base + CSI2_N_LANES);
+>   }
+>   
+> @@ -301,6 +299,9 @@ static void csi2ipu_gasket_init(struct csi2_dev *csi2)
+>   
+>   static int csi2_start(struct csi2_dev *csi2)
+>   {
+> +	const u32 mask = V4L2_MBUS_CSI2_LANE_MASK;
+> +	struct v4l2_mbus_config cfg;
+> +	int lanes = 0;
+>   	int ret;
+>   
+>   	ret = clk_prepare_enable(csi2->pix_clk);
+> @@ -316,7 +317,10 @@ static int csi2_start(struct csi2_dev *csi2)
+>   		goto err_disable_clk;
+>   
+>   	/* Step 4 */
+> -	csi2_set_lanes(csi2);
+> +	ret = v4l2_subdev_call(csi2->src_sd, video, g_mbus_config, &cfg);
+> +	if (ret == 0)
+> +		lanes = (cfg.flags & mask) >> __ffs(mask);
+> +	csi2_set_lanes(csi2, lanes ?: csi2->bus.num_data_lanes);
+>   	csi2_enable(csi2, true);
+>   
+>   	/* Step 5 */
