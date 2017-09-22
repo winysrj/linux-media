@@ -1,80 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:64150 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750866AbdIOH7r (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 03:59:47 -0400
-Subject: [PATCH 8/9] [media] tm6000: Use common error handling code in
- tm6000_start_stream()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
-        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Santosh Kumar Singh <kumar.san1093@gmail.com>,
-        Sean Young <sean@mess.org>,
-        Wei Yongjun <weiyongjun1@huawei.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <2aade468-5dfd-76ee-f59f-c25864930f61@users.sourceforge.net>
-Message-ID: <0aac22c7-bac1-190c-d5b8-9129d309ca3f@users.sourceforge.net>
-Date: Fri, 15 Sep 2017 09:59:19 +0200
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41202 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751795AbdIVHmM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Sep 2017 03:42:12 -0400
+Date: Fri, 22 Sep 2017 10:42:10 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Rob Herring <robh@kernel.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH 1/2] dt: bindings: media: Document port and endpoint
+ numbering
+Message-ID: <20170922074209.2vk4ph6uvlzdbgqq@valkosipuli.retiisi.org.uk>
+References: <1505723105-16238-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1505723105-16238-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20170920142438.wva4a5gz7ikfnlyh@rob-hp-laptop>
+ <20170921092516.yzjelpxka4firnwx@paasikivi.fi.intel.com>
+ <CAL_JsqLX_cZv3_hwYjzFTcSkF+3bMoOeQw5qpFzT0W4agiXj1g@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <2aade468-5dfd-76ee-f59f-c25864930f61@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAL_JsqLX_cZv3_hwYjzFTcSkF+3bMoOeQw5qpFzT0W4agiXj1g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 15 Sep 2017 07:47:41 +0200
+On Thu, Sep 21, 2017 at 10:58:34AM -0500, Rob Herring wrote:
+> On Thu, Sep 21, 2017 at 4:25 AM, Sakari Ailus
+> <sakari.ailus@linux.intel.com> wrote:
+> > Hi Rob,
+> >
+> > Thanks for the reply.
+> >
+> > On Wed, Sep 20, 2017 at 03:53:13PM -0500, Rob Herring wrote:
+> >> On Mon, Sep 18, 2017 at 11:25:04AM +0300, Sakari Ailus wrote:
+> >> > A lot of devices do not need and do not document port or endpoint
+> >> > numbering at all, e.g. in case where there's just a single port and a
+> >> > single endpoint. Whereas this is just common sense, document it to make it
+> >> > explicit.
+> >> >
+> >> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> > ---
+> >> >  Documentation/devicetree/bindings/media/video-interfaces.txt | 12 ++++++++++++
+> >> >  1 file changed, 12 insertions(+)
+> >>
+> >> This is fine, but bindings should still be explicit. Otherwise, I'm
+> >> wondering if it's a single port/endpoint or they just forgot to document
+> >> it. And I shouldn't have to look at the example to infer that.
+> >>
+> >> Acked-by: Rob Herring <robh@kernel.org>
+> >
+> > The purpose of the patch was to actually document port and endpoint
+> > numbering for devices for which it is not documented, not to suggest that
+> > this would be omitted in in binding documentation. The fact is that I
+> > couldn't find documentation for endpoint numbering for a single device
+> > under Documentation/devicetree/bindings/media/ . Yet I haven't come across
+> > DT source where other than zero would have been used. And the drivers
+> > (mostly?) have ignored endpoint numbers so far.
+> 
+> That's surprising. I know there are some for display controllers and
+> it's a common review comment I give.
 
-Add a jump target so that a bit of exception handling can be better reused
-at the end of this function.
+On V4L2 side we only have started paying attention recently. See e.g.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/tm6000/tm6000-dvb.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+	Documentation/devicetree/bindings/media/atmel-isc.txt
+	Documentation/devicetree/bindings/media/ti,omap3isp.txt
+	Documentation/devicetree/bindings/media/qcom,camss.txt
 
-diff --git a/drivers/media/usb/tm6000/tm6000-dvb.c b/drivers/media/usb/tm6000/tm6000-dvb.c
-index 855874134fcf..b45e54d5cab9 100644
---- a/drivers/media/usb/tm6000/tm6000-dvb.c
-+++ b/drivers/media/usb/tm6000/tm6000-dvb.c
-@@ -134,8 +134,8 @@ static int tm6000_start_stream(struct tm6000_core *dev)
- 
- 	dvb->bulk_urb->transfer_buffer = kzalloc(size, GFP_KERNEL);
- 	if (!dvb->bulk_urb->transfer_buffer) {
--		usb_free_urb(dvb->bulk_urb);
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto free_urb;
- 	}
- 
- 	usb_fill_bulk_urb(dvb->bulk_urb, dev->udev, pipe,
-@@ -160,11 +160,14 @@ static int tm6000_start_stream(struct tm6000_core *dev)
- 									ret);
- 
- 		kfree(dvb->bulk_urb->transfer_buffer);
--		usb_free_urb(dvb->bulk_urb);
--		return ret;
-+		goto free_urb;
- 	}
- 
- 	return 0;
-+
-+free_urb:
-+	usb_free_urb(dvb->bulk_urb);
-+	return ret;
- }
- 
- static void tm6000_stop_stream(struct tm6000_core *dev)
+> 
+> >
+> > Some bindings have been omitted on the grounds that they're documented in
+> > video-interfaces.txt.
+> >
+> > What would you think of the following? I'm not sure it'd really belong
+> > there, but it'd be a small piece of documentation one can easily refer to.
+> 
+> Looks good.
+
+I'll resend the set, replacing the original patch.
+
+> 
+> >
+> >
+> > From e735979005244eb10597fe5333130b93e41d5a38 Mon Sep 17 00:00:00 2001
+> > From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Date: Mon, 18 Sep 2017 11:15:53 +0300
+> > Subject: [PATCH 1/1] dt: bindings: media: Document practices for DT bindings,
+> >  ports, endpoints
+> >
+> > Port and endpoint numbering has been omitted in DT binding documentation
+> > for a large number of devices. Also common properties the device uses have
+> > been missed in binding documentation. Make it explicit that these things
+> > need to be documented.
+> >
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  .../devicetree/bindings/media/video-interfaces.txt        | 15 +++++++++++++++
+> >  1 file changed, 15 insertions(+)
+> >
+> > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > index 852041a..3c5382f 100644
+> > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > @@ -55,6 +55,21 @@ divided into two separate ITU-R BT.656 8-bit busses.  In such case bus-width
+> >  and data-shift properties can be used to assign physical data lines to each
+> >  endpoint node (logical bus).
+> >
+> > +Documenting bindings for devices
+> > +--------------------------------
+> > +
+> > +All required and optional bindings the device supports shall be explicitly
+> > +documented in device DT binding documentation. This also includes port and
+> > +endpoint numbering for the device.
+> > +
+> > +Port and endpoint numbering
+> > +---------------------------
+> > +
+> > +Old binding documentation may have omitted explicitly specifying port and
+> > +endpoint numbers. This often applies to devices that have a single port and a
+> > +single endpoint in that port. In this case, the only valid port number for such
+> > +a device is zero. The same applies for devices for which bindings do not
+> > +document endpoint numbering: only zero is a valid endpoint.
+> >
+> >  Required properties
+> >  -------------------
+> > --
+> > 2.7.4
+> >
+> > --
+> > Sakari Ailus
+> > sakari.ailus@linux.intel.com
+
 -- 
-2.14.1
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
