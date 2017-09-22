@@ -1,63 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52697 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750909AbdIPHNG (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:58800 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751977AbdIVLKv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Sep 2017 03:13:06 -0400
-Date: Sat, 16 Sep 2017 09:13:02 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        devicetree@vger.kernel.org, sre@kernel.org
-Subject: Re: [PATCH v13 11/25] v4l: async: Introduce helpers for calling
- async ops callbacks
-Message-ID: <20170916071302.GB8257@amd>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
- <20170915141724.23124-12-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="3uo+9/B/ebqu+fSQ"
-Content-Disposition: inline
-In-Reply-To: <20170915141724.23124-12-sakari.ailus@linux.intel.com>
+        Fri, 22 Sep 2017 07:10:51 -0400
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Cyprian Wronka <cwronka@cadence.com>,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: [PATCH v4 0/2] media: v4l: Add support for the Cadence MIPI-CSI2 RX
+Date: Fri, 22 Sep 2017 12:08:21 +0200
+Message-Id: <20170922100823.18184-1-maxime.ripard@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
---3uo+9/B/ebqu+fSQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Here is the fourth attempt at supporting the MIPI-CSI2 RX block from
+Cadence.
 
-On Fri 2017-09-15 17:17:10, Sakari Ailus wrote:
-> Add three helper functions to call async operations callbacks. Besides
-> simplifying callbacks, this allows async notifiers to have no ops set,
-> i.e. it can be left NULL.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+This IP block is able to receive CSI data over up to 4 lanes, and
+split it to over 4 streams. Those streams are basically the interfaces
+to the video grabbers that will perform the capture.
 
-I'd remove "_call" from these names; they are long enough already and
-do not add much. But either way is okay.
+It is able to map streams to both CSI datatypes and virtual channels,
+dynamically. This is unclear at this point what the right way to
+support it would be, so the driver only uses a static mapping between
+the virtual channels and streams, and ignores the data types.
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+This serie depends on the version 14 of the serie "Unified fwnode
+endpoint parser, async sub-device notifier support, N9 flash DTS" by
+Sakari Ailus
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Let me know what you think!
+Maxime
 
---3uo+9/B/ebqu+fSQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Changes from v3:
+  - Removed stale printk
+  - Propagate start/stop functions error code to s_stream
+  - Renamed the DT bindings files
+  - Clarified the output ports wording in the DT binding doc
+  - Added a define for the maximum number of lanes
+  - Rebased on top of Sakari's serie
+  - Gathered tags based on the reviews
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Changes from v2:
+  - Added reference counting for the controller initialisation
+  - Fixed checkpatch warnings
+  - Moved the sensor initialisation after the DPHY configuration
+  - Renamed the sensor fields to source for consistency
+  - Defined some variables
+  - Renamed a few structures variables
+  - Added internal and external phy errors messages
+  - Reworked the binding slighty by making the external D-PHY optional
+  - Moved the notifier registration in the probe function
+  - Removed some clocks that are not system clocks
+  - Added clocks enabling where needed
+  - Added the code to remap the data lanes
+  - Changed the memory allocator for the non-devm function, and a
+    comment explaining why
+  - Reworked the binding wording
 
-iEYEARECAAYFAlm8zv4ACgkQMOfwapXb+vL9UACfQRnKrLsypfTcEhx6BMMrVJ0x
-OxQAoLzneLVZgt0k/2o41SSR39M/PmPA
-=5VKf
------END PGP SIGNATURE-----
+Changes from v1:
+  - Amended the DT bindings as suggested by Rob
+  - Rebase on top of 4.13-rc1 and latest Niklas' serie iteration
 
---3uo+9/B/ebqu+fSQ--
+Maxime Ripard (2):
+  dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
+  v4l: cadence: Add Cadence MIPI-CSI2 RX driver
+
+ .../devicetree/bindings/media/cdns,csi2rx.txt      |  97 ++++
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/cadence/Kconfig             |  12 +
+ drivers/media/platform/cadence/Makefile            |   1 +
+ drivers/media/platform/cadence/cdns-csi2rx.c       | 486 +++++++++++++++++++++
+ 6 files changed, 599 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2rx.txt
+ create mode 100644 drivers/media/platform/cadence/Kconfig
+ create mode 100644 drivers/media/platform/cadence/Makefile
+ create mode 100644 drivers/media/platform/cadence/cdns-csi2rx.c
+
+-- 
+2.13.5
