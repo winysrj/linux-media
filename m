@@ -1,71 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:20914 "EHLO
-        aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751053AbdISJ3g (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46539
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752168AbdIVVrN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 05:29:36 -0400
-Subject: Re: [PATCHv2 1/2] dt-bindings: adi,adv7511.txt: document cec clock
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
-        Archit Taneja <architt@codeaurora.org>,
-        linux-renesas-soc@vger.kernel.org,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20170919073331.29007-1-hverkuil@xs4all.nl>
- <20170919073331.29007-2-hverkuil@xs4all.nl>
- <505bc74f-6563-ab1d-9aab-7893410aef7e@cogentembedded.com>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <74b252c8-c1eb-8498-7b9b-54604fe2806a@cisco.com>
-Date: Tue, 19 Sep 2017 11:29:34 +0200
-MIME-Version: 1.0
-In-Reply-To: <505bc74f-6563-ab1d-9aab-7893410aef7e@cogentembedded.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Fri, 22 Sep 2017 17:47:13 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 0/8] Document more parts of V4L2 kAPI part 1
+Date: Fri, 22 Sep 2017 18:46:58 -0300
+Message-Id: <cover.1506116720.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/19/17 11:20, Sergei Shtylyov wrote:
-> Hello!
-> 
-> On 9/19/2017 10:33 AM, Hans Verkuil wrote:
-> 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Document the cec clock binding.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Acked-by: Rob Herring <robh@kernel.org>
->> ---
->>   Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt | 4 ++++
->>   1 file changed, 4 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->> index 06668bca7ffc..4497ae054d49 100644
->> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->> @@ -68,6 +68,8 @@ Optional properties:
->>   - adi,disable-timing-generator: Only for ADV7533. Disables the internal timing
->>     generator. The chip will rely on the sync signals in the DSI data lanes,
->>     rather than generate its own timings for HDMI output.
->> +- clocks: from common clock binding: handle to CEC clock.
-> 
->     It's called "phandle" in the DT speak. :-)
->     Are you sure the clock specifier would always be absent?
+There are several  functions and structs at V4L2 that aren't documented.
 
-Sorry? I don't understand the question. Did you mean: "can be absent?"?
+This is an effort to document some of those. My plan is to work on other
+similar patch series until we have the kAPI in sync with the current
+implementation.
 
-Regards,
+Mauro Carvalho Chehab (8):
+  media: tuner-types: add kernel-doc markups for struct tunertype
+  media: v4l2-common: get rid of v4l2_routing dead struct
+  media: v4l2-common: get rid of struct v4l2_discrete_probe
+  media: v4l2-common.h: document ancillary functions
+  media: v4l2-device.h: document ancillary macros
+  media: v4l2-dv-timings.h: convert comment into kernel-doc markup
+  media: v4l2-event.rst: improve events description
+  media: v4l2-ioctl.h: convert debug macros into enum and document
 
-        Hans
+ Documentation/media/kapi/v4l2-event.rst      |  64 +++++--
+ drivers/media/platform/vivid/vivid-vid-cap.c |   9 +-
+ drivers/media/v4l2-core/v4l2-common.c        |  27 +--
+ include/media/tuner-types.h                  |  15 ++
+ include/media/v4l2-common.h                  | 130 ++++++++++++---
+ include/media/v4l2-device.h                  | 238 +++++++++++++++++++++++----
+ include/media/v4l2-dv-timings.h              |  14 +-
+ include/media/v4l2-event.h                   |  34 ----
+ include/media/v4l2-ioctl.h                   |  33 ++--
+ 9 files changed, 411 insertions(+), 153 deletions(-)
 
-> 
->> +- clock-names: from common clock binding: must be "cec".
->>   
->>   Required nodes:
->>   
-> [...]
-> 
-> MBR, Sergei
-> 
+-- 
+2.13.5
