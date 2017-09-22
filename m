@@ -1,62 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33440
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752370AbdI0VrI (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.187]:51623 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752395AbdIVVcB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:47:08 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: [PATCH v2 15/17] media: v4l2-ctrls: document nested members of structs
-Date: Wed, 27 Sep 2017 18:46:58 -0300
-Message-Id: <1e306b8be3c23175bc7d1c77208ce66094ff4549.1506548682.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
-References: <cover.1506548682.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
-References: <cover.1506548682.git.mchehab@s-opensource.com>
+        Fri, 22 Sep 2017 17:32:01 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Jiri Pirko <jiri@resnulli.us>,
+        Arend van Spriel <arend.vanspriel@broadcom.com>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Michal Marek <mmarek@suse.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+        brcm80211-dev-list.pdl@broadcom.com,
+        brcm80211-dev-list@cypress.com, kasan-dev@googlegroups.com,
+        linux-kbuild@vger.kernel.org, Jakub Jelinek <jakub@gcc.gnu.org>,
+        =?UTF-8?q?Martin=20Li=C5=A1ka?= <marxin@gcc.gnu.org>,
+        stable@vger.kernel.org
+Subject: [PATCH v4 4/9] em28xx: fix em28xx_dvb_init for KASAN
+Date: Fri, 22 Sep 2017 23:29:15 +0200
+Message-Id: <20170922212930.620249-5-arnd@arndb.de>
+In-Reply-To: <20170922212930.620249-1-arnd@arndb.de>
+References: <20170922212930.620249-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are a few nested members at v4l2-ctrls.h. Now that
-kernel-doc supports, document them.
+With CONFIG_KASAN, the init function uses a large amount of kernel stack:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+drivers/media/usb/em28xx/em28xx-dvb.c: In function 'em28xx_dvb_init.part.4':
+drivers/media/usb/em28xx/em28xx-dvb.c:2061:1: error: the frame size of 3232 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]
+
+It seems that this is triggered in part by using strlcpy(), which the
+compiler doesn't recognize as copying at most 'len' bytes, since strlcpy
+is not part of the C standard.
+
+It does however recognize the standard strncpy() and optimizes away
+the extra checks for that, using only 1688 bytes in the end.
+I have another larger patch that we could use in addition to this one,
+in order to shrink the stack for -fsanitize-address-use-after-scope
+(with gcc-7.1.1) as well, but that would not be appropriate for
+stable backports, so let's focus on this one first.
+
+Cc: stable@vger.kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- include/media/v4l2-ctrls.h | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/media/usb/em28xx/em28xx-dvb.c | 30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index dacfe54057f8..ca05f0f49bc5 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -147,7 +147,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
-  * @type_ops:	The control type ops.
-  * @id:	The control ID.
-  * @name:	The control name.
-- * @type:	The control type.
-+ * @type:	The control type, as defined by &enum v4l2_ctrl_type.
-  * @minimum:	The control's minimum value.
-  * @maximum:	The control's maximum value.
-  * @default_value: The control's default value.
-@@ -166,8 +166,15 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
-  *		empty strings ("") correspond to non-existing menu items (this
-  *		is in addition to the menu_skip_mask above). The last entry
-  *		must be NULL.
-+ *		Used only if the @type is %V4L2_CTRL_TYPE_MENU.
-+ * @qmenu_int:	A 64-bit integer array for with integer menu items.
-+ *		The size of array must be equal to the menu size, e. g.:
-+ *		:math:`ceil(\frac{maximum - minimum}{step}) + 1`.
-+ *		Used only if the @type is %V4L2_CTRL_TYPE_INTEGER_MENU.
-  * @flags:	The control's flags.
-- * @cur:	The control's current value.
-+ * @cur:	Struct to store data about the current value.
-+ * @cur.val:	The control's current value, if the @type is represented via
-+ *		a u32 integer (see &enum v4l2_ctrl_type).
-  * @val:	The control's new s32 value.
-  * @priv:	The control's private pointer. For use by the driver. It is
-  *		untouched by the control framework. Note that this pointer is
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 4a7db623fe29..06c363dc55ed 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1440,7 +1440,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 		tda10071_pdata.pll_multiplier = 20,
+ 		tda10071_pdata.tuner_i2c_addr = 0x14,
+ 		memset(&board_info, 0, sizeof(board_info));
+-		strlcpy(board_info.type, "tda10071_cx24118", I2C_NAME_SIZE);
++		strncpy(board_info.type, "tda10071_cx24118", I2C_NAME_SIZE - 1);
+ 		board_info.addr = 0x55;
+ 		board_info.platform_data = &tda10071_pdata;
+ 		request_module("tda10071");
+@@ -1460,7 +1460,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 		/* attach SEC */
+ 		a8293_pdata.dvb_frontend = dvb->fe[0];
+ 		memset(&board_info, 0, sizeof(board_info));
+-		strlcpy(board_info.type, "a8293", I2C_NAME_SIZE);
++		strncpy(board_info.type, "a8293", I2C_NAME_SIZE - 1);
+ 		board_info.addr = 0x08;
+ 		board_info.platform_data = &a8293_pdata;
+ 		request_module("a8293");
+@@ -1643,7 +1643,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 		m88ds3103_pdata.ts_clk_pol = 1;
+ 		m88ds3103_pdata.agc = 0x99;
+ 		memset(&board_info, 0, sizeof(board_info));
+-		strlcpy(board_info.type, "m88ds3103", I2C_NAME_SIZE);
++		strncpy(board_info.type, "m88ds3103", I2C_NAME_SIZE - 1);
+ 		board_info.addr = 0x68;
+ 		board_info.platform_data = &m88ds3103_pdata;
+ 		request_module("m88ds3103");
+@@ -1664,7 +1664,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 		/* attach tuner */
+ 		ts2020_config.fe = dvb->fe[0];
+ 		memset(&board_info, 0, sizeof(board_info));
+-		strlcpy(board_info.type, "ts2022", I2C_NAME_SIZE);
++		strncpy(board_info.type, "ts2022", I2C_NAME_SIZE - 1);
+ 		board_info.addr = 0x60;
+ 		board_info.platform_data = &ts2020_config;
+ 		request_module("ts2020");
+@@ -1690,7 +1690,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 		/* attach SEC */
+ 		a8293_pdata.dvb_frontend = dvb->fe[0];
+ 		memset(&board_info, 0, sizeof(board_info));
+-		strlcpy(board_info.type, "a8293", I2C_NAME_SIZE);
++		strncpy(board_info.type, "a8293", I2C_NAME_SIZE - 1);
+ 		board_info.addr = 0x08;
+ 		board_info.platform_data = &a8293_pdata;
+ 		request_module("a8293");
+@@ -1729,7 +1729,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			si2168_config.fe = &dvb->fe[0];
+ 			si2168_config.ts_mode = SI2168_TS_PARALLEL;
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+-			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
++			strncpy(info.type, "si2168", I2C_NAME_SIZE - 1);
+ 			info.addr = 0x64;
+ 			info.platform_data = &si2168_config;
+ 			request_module(info.type);
+@@ -1755,7 +1755,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			si2157_config.mdev = dev->media_dev;
+ #endif
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+-			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
++			strncpy(info.type, "si2157", I2C_NAME_SIZE - 1);
+ 			info.addr = 0x60;
+ 			info.platform_data = &si2157_config;
+ 			request_module(info.type);
+@@ -1793,7 +1793,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			si2168_config.fe = &dvb->fe[0];
+ 			si2168_config.ts_mode = SI2168_TS_PARALLEL;
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+-			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
++			strncpy(info.type, "si2168", I2C_NAME_SIZE - 1);
+ 			info.addr = 0x64;
+ 			info.platform_data = &si2168_config;
+ 			request_module(info.type);
+@@ -1819,7 +1819,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			si2157_config.mdev = dev->media_dev;
+ #endif
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+-			strlcpy(info.type, "si2146", I2C_NAME_SIZE);
++			strncpy(info.type, "si2146", I2C_NAME_SIZE - 1);
+ 			info.addr = 0x60;
+ 			info.platform_data = &si2157_config;
+ 			request_module("si2157");
+@@ -1853,7 +1853,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			/* attach demod */
+ 			memset(&tc90522_config, 0, sizeof(tc90522_config));
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+-			strlcpy(info.type, "tc90522sat", I2C_NAME_SIZE);
++			strncpy(info.type, "tc90522sat", I2C_NAME_SIZE - 1);
+ 			info.addr = 0x15;
+ 			info.platform_data = &tc90522_config;
+ 			request_module("tc90522");
+@@ -1875,7 +1875,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			qm1d1c0042_config.fe = tc90522_config.fe;
+ 			qm1d1c0042_config.lpf = 1;
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+-			strlcpy(info.type, "qm1d1c0042", I2C_NAME_SIZE);
++			strncpy(info.type, "qm1d1c0042", I2C_NAME_SIZE - 1);
+ 			info.addr = 0x61;
+ 			info.platform_data = &qm1d1c0042_config;
+ 			request_module(info.type);
+@@ -1913,7 +1913,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			si2168_config.fe = &dvb->fe[0];
+ 			si2168_config.ts_mode = SI2168_TS_SERIAL;
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+-			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
++			strncpy(info.type, "si2168", I2C_NAME_SIZE - 1);
+ 			info.addr = 0x64;
+ 			info.platform_data = &si2168_config;
+ 			request_module(info.type);
+@@ -1939,7 +1939,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			si2157_config.mdev = dev->media_dev;
+ #endif
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+-			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
++			strncpy(info.type, "si2157", I2C_NAME_SIZE - 1);
+ 			info.addr = 0x60;
+ 			info.platform_data = &si2157_config;
+ 			request_module(info.type);
+@@ -1975,7 +1975,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			lgdt3306a_config = hauppauge_01595_lgdt3306a_config;
+ 			lgdt3306a_config.fe = &dvb->fe[0];
+ 			lgdt3306a_config.i2c_adapter = &adapter;
+-			strlcpy(info.type, "lgdt3306a", sizeof(info.type));
++			strncpy(info.type, "lgdt3306a", sizeof(info.type) - 1);
+ 			info.addr = 0x59;
+ 			info.platform_data = &lgdt3306a_config;
+ 			request_module(info.type);
+@@ -2002,7 +2002,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			si2157_config.mdev = dev->media_dev;
+ #endif
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+-			strlcpy(info.type, "si2157", sizeof(info.type));
++			strncpy(info.type, "si2157", sizeof(info.type) - 1);
+ 			info.addr = 0x60;
+ 			info.platform_data = &si2157_config;
+ 			request_module(info.type);
 -- 
-2.13.5
+2.9.0
