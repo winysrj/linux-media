@@ -1,52 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47001
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752127AbdIANZF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:25:05 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v2 04/27] media: dvb/intro: update references for TV standards
-Date: Fri,  1 Sep 2017 10:24:26 -0300
-Message-Id: <4e4f27a925612df7cf96d896ad12d04b86c64b29.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
+Received: from mail-pf0-f175.google.com ([209.85.192.175]:46010 "EHLO
+        mail-pf0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752619AbdIVWV0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Sep 2017 18:21:26 -0400
+Received: by mail-pf0-f175.google.com with SMTP id z84so1186945pfi.2
+        for <linux-media@vger.kernel.org>; Fri, 22 Sep 2017 15:21:26 -0700 (PDT)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 1/4] MAINTAINERS: add entry for NXP TDA1997x driver
+Date: Fri, 22 Sep 2017 15:24:10 -0700
+Message-Id: <1506119053-21828-2-git-send-email-tharvey@gateworks.com>
+In-Reply-To: <1506119053-21828-1-git-send-email-tharvey@gateworks.com>
+References: <1506119053-21828-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The references there are only for DVB. Add missing references for
-ATSC and ISDB standards.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
 ---
- Documentation/media/uapi/dvb/intro.rst | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/Documentation/media/uapi/dvb/intro.rst b/Documentation/media/uapi/dvb/intro.rst
-index de432ffcba50..991643d3b461 100644
---- a/Documentation/media/uapi/dvb/intro.rst
-+++ b/Documentation/media/uapi/dvb/intro.rst
-@@ -18,10 +18,13 @@ part I of the MPEG2 specification ISO/IEC 13818 (aka ITU-T H.222), i.e
- you should know what a program/transport stream (PS/TS) is and what is
- meant by a packetized elementary stream (PES) or an I-frame.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 2093060..de7124e 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -13019,6 +13019,14 @@ T:	git git://linuxtv.org/mkrufky/tuners.git
+ S:	Maintained
+ F:	drivers/media/tuners/tda18271*
  
--Various DVB standards documents are available from http://www.dvb.org
--and/or http://www.etsi.org.
-+Various Digital TV standards documents are available for download at:
- 
--It is also necessary to know how to access unix/linux devices and how to
-+- European standards (DVB): http://www.dvb.org and/or http://www.etsi.org.
-+- American standards (ATSC): https://www.atsc.org/standards/
-+- Japanese standards (ISDB): http://www.dibeg.org/
++TDA1997x MEDIA DRIVER
++M:	Tim Harvey <tharvey@gateworks.com>
++L:	linux-media@vger.kernel.org
++W:	https://linuxtv.org
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++S:	Maintained
++F:	drivers/media/i2c/tda1997x.*
 +
-+It is also necessary to know how to access Linux devices and how to
- use ioctl calls. This also includes the knowledge of C or C++.
- 
- 
+ TDA827x MEDIA DRIVER
+ M:	Michael Krufky <mkrufky@linuxtv.org>
+ L:	linux-media@vger.kernel.org
 -- 
-2.13.5
+2.7.4
