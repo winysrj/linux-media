@@ -1,227 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:58169 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750952AbdISKKX (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.134]:60659 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752325AbdIVVdR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 06:10:23 -0400
-Subject: Re: [PATCH v13 05/25] v4l: fwnode: Support generic parsing of graph
- endpoints in a device
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
- <20170915141724.23124-6-sakari.ailus@linux.intel.com>
- <a17ab793-b859-f04a-2dff-d8f6a314e9bf@xs4all.nl>
- <20170919082015.vt6olgirnvmpcrpa@paasikivi.fi.intel.com>
- <af99e12c-6fb8-a633-eec2-c1eb9d82226a@xs4all.nl>
- <20170919100048.7jut3benh2vbb32q@paasikivi.fi.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0e18e159-51cc-1473-86c9-ffb9ee4212a8@xs4all.nl>
-Date: Tue, 19 Sep 2017 12:10:18 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170919100048.7jut3benh2vbb32q@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Fri, 22 Sep 2017 17:33:17 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Michal Marek <mmarek@suse.com>,
+        Andrew Morton <akpm@linux-foundation.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jiri Pirko <jiri@resnulli.us>,
+        Arend van Spriel <arend.vanspriel@broadcom.com>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Kees Cook <keescook@chromium.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+        brcm80211-dev-list.pdl@broadcom.com,
+        brcm80211-dev-list@cypress.com, kasan-dev@googlegroups.com,
+        linux-kbuild@vger.kernel.org, Jakub Jelinek <jakub@gcc.gnu.org>,
+        =?UTF-8?q?Martin=20Li=C5=A1ka?= <marxin@gcc.gnu.org>
+Subject: [PATCH v4 9/9] kasan: rework Kconfig settings
+Date: Fri, 22 Sep 2017 23:29:20 +0200
+Message-Id: <20170922212930.620249-10-arnd@arndb.de>
+In-Reply-To: <20170922212930.620249-1-arnd@arndb.de>
+References: <20170922212930.620249-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/19/17 12:00, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Tue, Sep 19, 2017 at 10:40:14AM +0200, Hans Verkuil wrote:
->> On 09/19/2017 10:20 AM, Sakari Ailus wrote:
->>> Hi Hans,
->>>
->>> Thank you for the review.
->>>
->>> On Tue, Sep 19, 2017 at 10:03:27AM +0200, Hans Verkuil wrote:
->>>> On 09/15/2017 04:17 PM, Sakari Ailus wrote:
-> ...
->>>>> +static int __v4l2_async_notifier_parse_fwnode_endpoints(
->>>>> +	struct device *dev, struct v4l2_async_notifier *notifier,
->>>>> +	size_t asd_struct_size, unsigned int port, bool has_port,
->>>>> +	int (*parse_endpoint)(struct device *dev,
->>>>> +			    struct v4l2_fwnode_endpoint *vep,
->>>>> +			    struct v4l2_async_subdev *asd))
->>>>> +{
->>>>> +	struct fwnode_handle *fwnode = NULL;
->>>>> +	unsigned int max_subdevs = notifier->max_subdevs;
->>>>> +	int ret;
->>>>> +
->>>>> +	if (WARN_ON(asd_struct_size < sizeof(struct v4l2_async_subdev)))
->>>>> +		return -EINVAL;
->>>>> +
->>>>> +	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
->>>>> +				     dev_fwnode(dev), fwnode)); ) {
->>>>
->>>> You can replace this by:
->>>>
->>>> 	while ((fwnode = fwnode_graph_get_next_endpoint(dev_fwnode(dev), fwnode))) {
->>>>
->>>>> +		if (!fwnode_device_is_available(
->>>>> +			    fwnode_graph_get_port_parent(fwnode)))
->>>>> +			continue;
->>>>> +
->>>>> +		if (has_port) {
->>>>> +			struct fwnode_endpoint ep;
->>>>> +
->>>>> +			ret = fwnode_graph_parse_endpoint(fwnode, &ep);
->>>>> +			if (ret) {
->>>>> +				fwnode_handle_put(fwnode);
->>>>> +				return ret;
->>>>> +			}
->>>>> +
->>>>> +			if (ep.port != port)
->>>>> +				continue;
->>>>> +		}
->>>>> +		max_subdevs++;
->>>>> +	}
->>>>> +
->>>>> +	/* No subdevs to add? Return here. */
->>>>> +	if (max_subdevs == notifier->max_subdevs)
->>>>> +		return 0;
->>>>> +
->>>>> +	ret = v4l2_async_notifier_realloc(notifier, max_subdevs);
->>>>> +	if (ret)
->>>>> +		return ret;
->>>>> +
->>>>> +	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
->>>>> +				     dev_fwnode(dev), fwnode)); ) {
->>>>
->>>> Same here: this can be a 'while'.
->>>
->>> The fwnode = NULL assignment still needs to be done. A for loop has a
->>> natural initialiser for the loop, I think it's cleaner than using while
->>> here.
->>
->> After the previous while fwnode is NULL again (since that's when the while
->> stops).
->>
->>>
->>> The macro would be implemented this way as well.
->>>
->>> For the loop above this one, I'd use for for consistency: it's the same
->>> loop after all.
->>>
->>> This reminds me --- I'll send the patch for the macro.
->>
->> If this is going to be replaced by a macro, then disregard my comment.
-> 
-> Yes. I just sent that to linux-acpi (as well as devicetree and to you).
-> 
-> ...
-> 
->>>>> +/**
->>>>> + * v4l2_async_notifier_parse_fwnode_endpoints - Parse V4L2 fwnode endpoints in a
->>>>> + *						device node
->>>>> + * @dev: the device the endpoints of which are to be parsed
->>>>> + * @notifier: notifier for @dev
->>>>> + * @asd_struct_size: size of the driver's async sub-device struct, including
->>>>> + *		     sizeof(struct v4l2_async_subdev). The &struct
->>>>> + *		     v4l2_async_subdev shall be the first member of
->>>>> + *		     the driver's async sub-device struct, i.e. both
->>>>> + *		     begin at the same memory address.
->>>>> + * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
->>>>> + *		    endpoint. Optional.
->>>>> + *		    Return: %0 on success
->>>>> + *			    %-ENOTCONN if the endpoint is to be skipped but this
->>>>> + *				       should not be considered as an error
->>>>> + *			    %-EINVAL if the endpoint configuration is invalid
->>>>> + *
->>>>> + * Parse the fwnode endpoints of the @dev device and populate the async sub-
->>>>> + * devices array of the notifier. The @parse_endpoint callback function is
->>>>> + * called for each endpoint with the corresponding async sub-device pointer to
->>>>> + * let the caller initialize the driver-specific part of the async sub-device
->>>>> + * structure.
->>>>> + *
->>>>> + * The notifier memory shall be zeroed before this function is called on the
->>>>> + * notifier.
->>>>> + *
->>>>> + * This function may not be called on a registered notifier and may be called on
->>>>> + * a notifier only once.
->>>>> + *
->>>>> + * Do not change the notifier's subdevs array, take references to the subdevs
->>>>> + * array itself or change the notifier's num_subdevs field. This is because this
->>>>> + * function allocates and reallocates the subdevs array based on parsing
->>>>> + * endpoints.
->>>>> + *
->>>>> + * The @struct v4l2_fwnode_endpoint passed to the callback function
->>>>> + * @parse_endpoint is released once the function is finished. If there is a need
->>>>> + * to retain that configuration, the user needs to allocate memory for it.
->>>>> + *
->>>>> + * Any notifier populated using this function must be released with a call to
->>>>> + * v4l2_async_notifier_release() after it has been unregistered and the async
->>>>> + * sub-devices are no longer in use, even if the function returned an error.
->>>>> + *
->>>>> + * Return: %0 on success, including when no async sub-devices are found
->>>>> + *	   %-ENOMEM if memory allocation failed
->>>>> + *	   %-EINVAL if graph or endpoint parsing failed
->>>>> + *	   Other error codes as returned by @parse_endpoint
->>>>> + */
->>>>> +int v4l2_async_notifier_parse_fwnode_endpoints(
->>>>> +	struct device *dev, struct v4l2_async_notifier *notifier,
->>>>> +	size_t asd_struct_size,
->>>>> +	int (*parse_endpoint)(struct device *dev,
->>>>> +			      struct v4l2_fwnode_endpoint *vep,
->>>>> +			      struct v4l2_async_subdev *asd));
->>>>> +
->>>>> +/**
->>>>> + * v4l2_async_notifier_parse_fwnode_endpoints_by_port - Parse V4L2 fwnode
->>>>> + *							endpoints of a port in a
->>>>> + *							device node
->>>>> + * @dev: the device the endpoints of which are to be parsed
->>>>> + * @notifier: notifier for @dev
->>>>> + * @asd_struct_size: size of the driver's async sub-device struct, including
->>>>> + *		     sizeof(struct v4l2_async_subdev). The &struct
->>>>> + *		     v4l2_async_subdev shall be the first member of
->>>>> + *		     the driver's async sub-device struct, i.e. both
->>>>> + *		     begin at the same memory address.
->>>>> + * @port: port number where endpoints are to be parsed
->>>>> + * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
->>>>> + *		    endpoint. Optional.
->>>>> + *		    Return: %0 on success
->>>>> + *			    %-ENOTCONN if the endpoint is to be skipped but this
->>>>> + *				       should not be considered as an error
->>>>> + *			    %-EINVAL if the endpoint configuration is invalid
->>>>> + *
->>>>> + * This function is just like @v4l2_async_notifier_parse_fwnode_endpoints with
->>>>> + * the exception that it only parses endpoints in a given port. This is useful
->>>>> + * on devices that have both sinks and sources: the async sub-devices connected
->>>>
->>>> on -> for
->>>>
->>>>> + * to sources have already been set up by another driver (on capture devices).
->>>>
->>>> on -> for
->>>
->>> Agreed on both.
->>>
->>>>
->>>> So if I understand this correctly for devices with both sinks and sources you use
->>>> this function to just parse the sink ports. And you have to give explicit port
->>>> numbers since you can't tell from parsing the device tree if a port is a sink or
->>>> source port, right? Only the driver knows this.
->>>
->>> Correct. The graph data structure in DT isn't directed, so this is only
->>> known by the driver.
->>
->> I think this should be clarified.
->>
->> I wonder if there is any way around it. I don't have time to dig into this, but
->> isn't it possible to tell that the source ports are already configured?
-> 
-> Well, this is essentially what the documentation is attempting to convey.
-> :-)
-> 
-> I can add this / change the existing wording, if you think it could help.
+We get a lot of very large stack frames using gcc-7.0.1 with the default
+-fsanitize-address-use-after-scope --param asan-stack=1 options, which
+can easily cause an overflow of the kernel stack, e.g.
 
-Yes please. The documentation is just missing the little fact that the DT can't
-tell the difference between a sink and source port, hence the driver has to be
-explicit about which ports to parse in a case like this.
+drivers/gpu/drm/i915/gvt/handlers.c:2407:1: error: the frame size of 31216 bytes is larger than 2048 bytes
+drivers/net/wireless/ralink/rt2x00/rt2800lib.c:5650:1: error: the frame size of 23632 bytes is larger than 2048 bytes
+drivers/scsi/fnic/fnic_trace.c:451:1: error: the frame size of 5152 bytes is larger than 2048 bytes
+fs/btrfs/relocation.c:1202:1: error: the frame size of 4256 bytes is larger than 2048 bytes
+fs/fscache/stats.c:287:1: error: the frame size of 6552 bytes is larger than 2048 bytes
+lib/atomic64_test.c:250:1: error: the frame size of 12616 bytes is larger than 2048 bytes
+mm/vmscan.c:1367:1: error: the frame size of 5080 bytes is larger than 2048 bytes
+net/wireless/nl80211.c:1905:1: error: the frame size of 4232 bytes is larger than 2048 bytes
 
-Regards,
+To reduce this risk, -fsanitize-address-use-after-scope is now split
+out into a separate CONFIG_KASAN_EXTRA Kconfig option, leading to stack
+frames that are smaller than 2 kilobytes most of the time on x86_64. An
+earlier version of this patch also prevented combining KASAN_EXTRA with
+KASAN_INLINE, but that is no longer necessary with gcc-7.0.1.
 
-	Hans
+A lot of warnings with KASAN_EXTRA go away if we disable KMEMCHECK,
+as -fsanitize-address-use-after-scope seems to understand the builtin
+memcpy, but adds checking code around an extern memcpy call. I had to work
+around a circular dependency, as DEBUG_SLAB/SLUB depended on !KMEMCHECK,
+while KASAN did it the other way round. Now we handle both the same way
+and make KASAN and KMEMCHECK mutually exclusive.
+
+All patches to get the frame size below 2048 bytes with CONFIG_KASAN=y
+and CONFIG_KASAN_EXTRA=n have been submitted along with this patch, so
+we can bring back that default now. KASAN_EXTRA=y still causes lots of
+warnings but now defaults to !COMPILE_TEST to disable it in allmodconfig,
+and it remains disabled in all other defconfigs since it is a new option.
+I arbitrarily raise the warning limit for KASAN_EXTRA to 3072 to reduce
+the noise, but an allmodconfig kernel still has around 50 warnings
+on gcc-7.
+
+I experimented a bit more with smaller stack frames and have another
+follow-up series that reduces the warning limit for 64-bit architectures
+to 1280 bytes (without CONFIG_KASAN).
+
+With earlier versions of this patch series, I also had patches to
+address the warnings we get with KASAN and/or KASAN_EXTRA, using a
+"noinline_if_stackbloat" annotation. That annotation now got replaced with
+a gcc-8 bugfix (see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81715)
+and a workaround for older compilers, which means that KASAN_EXTRA is
+now just as bad as before and will lead to an instant stack overflow in
+a few extreme cases.
+
+This reverts parts of commit commit 3f181b4 ("lib/Kconfig.debug: disable
+-Wframe-larger-than warnings with KASAN=y").
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ lib/Kconfig.debug      |  4 ++--
+ lib/Kconfig.kasan      | 13 ++++++++++++-
+ lib/Kconfig.kmemcheck  |  1 +
+ scripts/Makefile.kasan |  3 +++
+ 4 files changed, 18 insertions(+), 3 deletions(-)
+
+diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+index b19c491cbc4e..5755875d4a80 100644
+--- a/lib/Kconfig.debug
++++ b/lib/Kconfig.debug
+@@ -217,7 +217,7 @@ config ENABLE_MUST_CHECK
+ config FRAME_WARN
+ 	int "Warn for stack frames larger than (needs gcc 4.4)"
+ 	range 0 8192
+-	default 0 if KASAN
++	default 3072 if KASAN_EXTRA
+ 	default 2048 if GCC_PLUGIN_LATENT_ENTROPY
+ 	default 1024 if !64BIT
+ 	default 2048 if 64BIT
+@@ -503,7 +503,7 @@ config DEBUG_OBJECTS_ENABLE_DEFAULT
+ 
+ config DEBUG_SLAB
+ 	bool "Debug slab memory allocations"
+-	depends on DEBUG_KERNEL && SLAB && !KMEMCHECK
++	depends on DEBUG_KERNEL && SLAB && !KMEMCHECK && !KASAN
+ 	help
+ 	  Say Y here to have the kernel do limited verification on memory
+ 	  allocation as well as poisoning memory on free to catch use of freed
+diff --git a/lib/Kconfig.kasan b/lib/Kconfig.kasan
+index bd38aab05929..db799e6e9dba 100644
+--- a/lib/Kconfig.kasan
++++ b/lib/Kconfig.kasan
+@@ -5,7 +5,7 @@ if HAVE_ARCH_KASAN
+ 
+ config KASAN
+ 	bool "KASan: runtime memory debugger"
+-	depends on SLUB || (SLAB && !DEBUG_SLAB)
++	depends on SLUB || SLAB
+ 	select CONSTRUCTORS
+ 	select STACKDEPOT
+ 	help
+@@ -20,6 +20,17 @@ config KASAN
+ 	  Currently CONFIG_KASAN doesn't work with CONFIG_DEBUG_SLAB
+ 	  (the resulting kernel does not boot).
+ 
++config KASAN_EXTRA
++	bool "KAsan: extra checks"
++	depends on KASAN && DEBUG_KERNEL && !COMPILE_TEST
++	help
++	  This enables further checks in the kernel address sanitizer, for now
++	  it only includes the address-use-after-scope check that can lead
++	  to excessive kernel stack usage, frame size warnings and longer
++	  compile time.
++	  https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81715 has more
++
++
+ choice
+ 	prompt "Instrumentation type"
+ 	depends on KASAN
+diff --git a/lib/Kconfig.kmemcheck b/lib/Kconfig.kmemcheck
+index 846e039a86b4..1a534e638635 100644
+--- a/lib/Kconfig.kmemcheck
++++ b/lib/Kconfig.kmemcheck
+@@ -7,6 +7,7 @@ menuconfig KMEMCHECK
+ 	bool "kmemcheck: trap use of uninitialized memory"
+ 	depends on DEBUG_KERNEL
+ 	depends on !X86_USE_3DNOW
++	depends on !KASAN
+ 	depends on SLUB || SLAB
+ 	depends on !CC_OPTIMIZE_FOR_SIZE
+ 	depends on !FUNCTION_TRACER
+diff --git a/scripts/Makefile.kasan b/scripts/Makefile.kasan
+index 9576775a86f6..3b3148faf866 100644
+--- a/scripts/Makefile.kasan
++++ b/scripts/Makefile.kasan
+@@ -29,5 +29,8 @@ else
+     endif
+ endif
+ 
++ifdef CONFIG_KASAN_EXTRA
+ CFLAGS_KASAN += $(call cc-option, -fsanitize-address-use-after-scope)
+ endif
++
++endif
+-- 
+2.9.0
