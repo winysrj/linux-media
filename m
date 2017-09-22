@@ -1,62 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:61121 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751166AbdIHOKk (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:59895 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752313AbdIVLrW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 10:10:40 -0400
-Date: Fri, 8 Sep 2017 16:10:09 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Srishti Sharma <srishtishar@gmail.com>
-cc: gregkh@linuxfoundation.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com
-Subject: Re: [Outreachy kernel] [PATCH] Staging: media: omap4iss: Use WARN_ON()
- instead of BUG_ON().
-In-Reply-To: <1504879698-5855-1-git-send-email-srishtishar@gmail.com>
-Message-ID: <alpine.DEB.2.20.1709081609440.3165@hadrien>
-References: <1504879698-5855-1-git-send-email-srishtishar@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        Fri, 22 Sep 2017 07:47:22 -0400
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Cyprian Wronka <cwronka@cadence.com>,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: [PATCH 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
+Date: Fri, 22 Sep 2017 13:47:02 +0200
+Message-Id: <20170922114703.30511-2-maxime.ripard@free-electrons.com>
+In-Reply-To: <20170922114703.30511-1-maxime.ripard@free-electrons.com>
+References: <20170922114703.30511-1-maxime.ripard@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The Cadence MIPI-CSI2 RX controller is a CSI2 bridge that supports up to 4
+video streams and can output on up to 4 CSI-2 lanes, depending on the
+hardware implementation.
 
+It can operate with an external D-PHY, an internal one or no D-PHY at all
+in some configurations.
 
-On Fri, 8 Sep 2017, Srishti Sharma wrote:
+Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+---
+ .../devicetree/bindings/media/cdns,csi2tx.txt      | 97 ++++++++++++++++++++++
+ 1 file changed, 97 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
 
-> Use WARN_ON() instead of BUG_ON() to avoid crashing the kernel.
->
-> Signed-off-by: Srishti Sharma <srishtishar@gmail.com>
-> ---
->  drivers/staging/media/omap4iss/iss.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-> index c26c99fd..b1036ba 100644
-> --- a/drivers/staging/media/omap4iss/iss.c
-> +++ b/drivers/staging/media/omap4iss/iss.c
-> @@ -893,7 +893,7 @@ void omap4iss_put(struct iss_device *iss)
->  		return;
->
->  	mutex_lock(&iss->iss_mutex);
-> -	BUG_ON(iss->ref_count == 0);
-> +	WARN_ON(iss->ref_count == 0);
->  	if (--iss->ref_count == 0) {
-
-Won't this then infinite loop?
-
-julia
-
->  		iss_disable_interrupts(iss);
->  		/* Reset the ISS if an entity has failed to stop. This is the
-> --
-> 2.7.4
->
-> --
-> You received this message because you are subscribed to the Google Groups "outreachy-kernel" group.
-> To unsubscribe from this group and stop receiving emails from it, send an email to outreachy-kernel+unsubscribe@googlegroups.com.
-> To post to this group, send email to outreachy-kernel@googlegroups.com.
-> To view this discussion on the web visit https://groups.google.com/d/msgid/outreachy-kernel/1504879698-5855-1-git-send-email-srishtishar%40gmail.com.
-> For more options, visit https://groups.google.com/d/optout.
->
+diff --git a/Documentation/devicetree/bindings/media/cdns,csi2tx.txt b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+new file mode 100644
+index 000000000000..5fb70bba910e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+@@ -0,0 +1,97 @@
++Cadence MIPI-CSI2 TX controller
++===============================
++
++The Cadence MIPI-CSI2 TX controller is a CSI-2 bridge supporting up to
++4 CSI lanes in output, and up to 4 different pixel streams in input.
++
++Required properties:
++  - compatible: must be set to "cdns,csi2tx"
++  - reg: base address and size of the memory mapped region
++  - clocks: phandles to the clocks driving the controller
++  - clock-names: must contain:
++    * esc_clk: escape mode clock
++    * p_clk: register bank clock
++    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
++                         implemented in hardware, between 0 and 3
++
++Optional properties
++  - phys: phandle to the D-PHY. If it is set, phy-names need to be set
++  - phy-names: must contain dphy
++
++Required subnodes:
++  - ports: A ports node with one port child node per device input and output
++           port, in accordance with the video interface bindings defined in
++           Documentation/devicetree/bindings/media/video-interfaces.txt. The
++           port nodes numbered as follows.
++
++           Port Description
++           -----------------------------
++           0    CSI-2 output
++           1    Stream 0 input
++           2    Stream 1 input
++           3    Stream 2 input
++           4    Stream 3 input
++
++           The stream input port nodes are optional if they are not
++           connected to anything at the hardware level or implemented
++           in the design.
++
++Example:
++
++csi2tx: csi-bridge@0d0e1000 {
++	compatible = "cdns,csi2tx";
++	reg = <0x0d0e1000 0x1000>;
++	clocks = <&byteclock>, <&byteclock>,
++		 <&coreclock>, <&coreclock>,
++		 <&coreclock>, <&coreclock>;
++	clock-names = "p_clk", "esc_clk",
++		      "pixel_if0_clk", "pixel_if1_clk",
++		      "pixel_if2_clk", "pixel_if3_clk";
++
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			csi2tx_out: endpoint {
++				remote-endpoint = <&remote_in>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			csi2tx_in_stream0: endpoint {
++				remote-endpoint = <&stream0_out>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			csi2tx_in_stream1: endpoint {
++				remote-endpoint = <&stream1_out>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			csi2tx_in_stream2: endpoint {
++				remote-endpoint = <&stream2_out>;
++			};
++		};
++
++		port@4 {
++			reg = <4>;
++
++			csi2tx_in_stream3: endpoint {
++				remote-endpoint = <&stream3_out>;
++			};
++		};
++	};
++};
+-- 
+2.13.5
