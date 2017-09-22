@@ -1,50 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:57930 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752441AbdIBNK2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 2 Sep 2017 09:10:28 -0400
-Subject: [PATCH 4/4] [media] adv7842: Improve a size determination in
- adv7842_probe()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <0e67e095-4931-b78f-a925-7335326ab69c@users.sourceforge.net>
-Message-ID: <0ffbe17f-7de1-a456-a066-227f25642fa1@users.sourceforge.net>
-Date: Sat, 2 Sep 2017 15:10:13 +0200
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:38020 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751852AbdIVTiA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Sep 2017 15:38:00 -0400
+Subject: Re: [PATCH v3 0/4] AS3645A fixes
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-leds@vger.kernel.org
+References: <20170922093238.13070-1-sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@kernel.org
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Message-ID: <650b7cb3-f7dd-5959-3147-df7284415521@gmail.com>
+Date: Fri, 22 Sep 2017 21:37:06 +0200
 MIME-Version: 1.0
-In-Reply-To: <0e67e095-4931-b78f-a925-7335326ab69c@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+In-Reply-To: <20170922093238.13070-1-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 2 Sep 2017 12:53:15 +0200
+Hi Sakari,
 
-Replace the specification of a data structure by a pointer dereference
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+On 09/22/2017 11:32 AM, Sakari Ailus wrote:
+> Hi Jacek and others,
+> 
+> Here are a few fixes for the as3645a DTS as well as changes in bindings.
+> The driver is not in a release yet.
+> 
+> Jacek: Could you take these to your fixes branch so we don't get faulty DT
+> bindings to a release? I've dropped the patches related to LED naming and
+> label property as the discusion appears to continue on that.
 
-This issue was detected by using the Coccinelle software.
+No problem. One question - isn't patch 3/4 missing?
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/i2c/adv7842.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Best regards,
+Jacek Anaszewski
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 366a294edd7b..aa8b3bcdd750 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -3467,5 +3467,5 @@ static int adv7842_probe(struct i2c_client *client,
- 		return -ENODEV;
- 	}
- 
--	state = devm_kzalloc(&client->dev, sizeof(struct adv7842_state), GFP_KERNEL);
-+	state = devm_kzalloc(&client->dev, sizeof(*state), GFP_KERNEL);
- 	if (!state)
--- 
-2.14.1
+> Thanks.
+> 
+> 
+> since v2:
+> 
+> - Drop patches related to LED naming.
+> 
+> - No other changes.
+> 
+> since v1:
+> 
+> - Add LED colour to the name of the LED, this adds two patches to the set.
+> 
+> - Add a patch to unregister the indicator LED in driver remove function.
+> 
+> - No changes to v1 patches.
+> 
+> Sakari Ailus (4):
+>   as3645a: Use ams,input-max-microamp as documented in DT bindings
+>   dt: bindings: as3645a: Use LED number to refer to LEDs
+>   as3645a: Use integer numbers for parsing LEDs
+>   as3645a: Unregister indicator LED on device unbind
+> 
+>  .../devicetree/bindings/leds/ams,as3645a.txt       | 28 +++++++++++++--------
+>  arch/arm/boot/dts/omap3-n950-n9.dtsi               | 10 +++++---
+>  drivers/leds/leds-as3645a.c                        | 29 +++++++++++++++++++---
+>  3 files changed, 51 insertions(+), 16 deletions(-)
+> 
