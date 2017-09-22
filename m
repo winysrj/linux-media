@@ -1,124 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:34421 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751901AbdIAMuf (ORCPT
+Received: from mail-pf0-f177.google.com ([209.85.192.177]:50708 "EHLO
+        mail-pf0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752631AbdIVWV3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Sep 2017 08:50:35 -0400
-Subject: Re: [PATCH v2 14/14] [media] v4l: Document explicit synchronization
- behaviour
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-References: <20170901015041.7757-1-gustavo@padovan.org>
- <20170901015041.7757-15-gustavo@padovan.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b75d6534-9b05-a317-8a29-9f51687cb136@xs4all.nl>
-Date: Fri, 1 Sep 2017 14:50:31 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170901015041.7757-15-gustavo@padovan.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Fri, 22 Sep 2017 18:21:29 -0400
+Received: by mail-pf0-f177.google.com with SMTP id m63so1181346pfk.7
+        for <linux-media@vger.kernel.org>; Fri, 22 Sep 2017 15:21:28 -0700 (PDT)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 2/4] media: dt-bindings: Add bindings for TDA1997X
+Date: Fri, 22 Sep 2017 15:24:11 -0700
+Message-Id: <1506119053-21828-3-git-send-email-tharvey@gateworks.com>
+In-Reply-To: <1506119053-21828-1-git-send-email-tharvey@gateworks.com>
+References: <1506119053-21828-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gustavo,
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ .../devicetree/bindings/media/i2c/tda1997x.txt     | 159 +++++++++++++++++++++
+ 1 file changed, 159 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
 
-I think I concentrate on this last patch first. Once I fully understand this
-I can review the code. Remember, it's been a while for me since I last looked
-at fences, so forgive me if I ask stupid questions. On the other hand, others
-with a similar lack of understanding of fences probably have similar questions,
-so it is a good indication where the documentation needs improvement :-)
-
-On 01/09/17 03:50, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> Add section to VIDIOC_QBUF about it
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  Documentation/media/uapi/v4l/vidioc-qbuf.rst | 30 ++++++++++++++++++++++++++++
->  1 file changed, 30 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> index 1f3612637200..6bd960d3972b 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> @@ -117,6 +117,36 @@ immediately with an ``EAGAIN`` error code when no buffer is available.
->  The struct :c:type:`v4l2_buffer` structure is specified in
->  :ref:`buffer`.
->  
-> +Explicit Synchronization
-> +------------------------
-> +
-> +Explicit Synchronization allows us to control the synchronization of
-> +shared buffers from userspace by passing fences to the kernel and/or
-> +receiving them from it. Fences passed to the kernel are named in-fences and
-> +the kernel should wait them to signal before using the buffer, i.e., queueing
-> +it to the driver. On the other side, the kernel can create out-fences for the
-> +buffers it queues to the drivers, out-fences signal when the driver is
-> +finished with buffer, that is the buffer is ready.
-
-This should add a line explaining that fences are represented by file descriptors.
-
-> +
-> +The in-fences and out-fences are communicated at the ``VIDIOC_QBUF`` ioctl
-> +using the ``V4L2_BUF_FLAG_IN_FENCE`` and ``V4L2_BUF_FLAG_OUT_FENCE`` buffer
-> +flags and the `fence_fd` field. If an in-fence needs to be passed to the kernel,
-> +`fence_fd` should be set to the fence file descriptor number and the
-> +``V4L2_BUF_FLAG_IN_FENCE`` should be set as well.
-
-Is it possible to have both flags at the same time? Or are they mutually exclusive?
-
-If only V4L2_BUF_FLAG_IN_FENCE is set, then what is the value of fence_fd after
-the QBUF call? -1?
-
-> +
-> +To get a out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE`` flag should
-> +be set and the `fence_fd` field will be returned with the out-fence file
-> +descriptor related to the next buffer to be queued internally to the V4L2
-> +driver. That means the out-fence may not be associated with the buffer in the
-> +current ``VIDIOC_QBUF`` ioctl call because the ordering in which videobuf2 core
-> +queues the buffers to the drivers can't be guaranteed. To become aware of the
-> +buffer with which the out-fence will be attached the ``V4L2_EVENT_BUF_QUEUED``
-> +should be used. It will trigger an event for every buffer queued to the V4L2
-> +driver.
-
-General question: does it even make sense to use an out-fence if you don't know with
-what buffer is it associated? I mean, QBUF returns an out fence, but only some
-time later are you informed about a buffer being queued. It also looks like userspace
-has to keep track of the issued out-fences and the queued buffers and map them
-accordingly.
-
-If the out-fence cannot be used until you know the buffer as well, then wouldn't
-it make more sense if the out-fence and the buffer index are both sent by the
-event? Of course, in that case the event can only be sent to the owner file handle
-of the streaming device node, but that's OK, we have that.
-
-Setting the OUT_FENCE flag will just cause this event to be sent whenever that
-buffer is queued internally.
-
-Sorry if this just shows a complete lack of understanding of fences on my side,
-that's perfectly possible.
-
-It could be that when the out-fence triggers the listener is informed about the
-associated buffer information, and in that case it makes a bit more sense.
-Although in that case I don't see the reason for the event. Regardless, this
-should be documented better.
-
-This documentation should also clarify what happens with fences if the streaming
-stops, either by a STREAMOFF, closing the filehandle or a crash or whatever.
-Do they signal? What about out-fences not yet associated with a buffer?
-
-> +
-> +Note that the `fence_fd` field is both an input and output argument here with
-> +different meaning on each direction. As input argument it carries an in-fence
-> +and as output argument it carries an out-fence.
->  
->  Return Value
->  ============
-> 
-
-Regards,
-
-	Hans
+diff --git a/Documentation/devicetree/bindings/media/i2c/tda1997x.txt b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+new file mode 100644
+index 0000000..8330733
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+@@ -0,0 +1,159 @@
++Device-Tree bindings for the NXP TDA1997x HDMI receiver
++
++The TDA19971/73 are HDMI video receivers.
++
++The TDA19971 Video port output pins can be used as follows:
++ - RGB 8bit per color (24 bits total): R[11:4] B[11:4] G[11:4]
++ - YUV444 8bit per color (24 bits total): Y[11:4] Cr[11:4] Cb[11:4]
++ - YUV422 semi-planar 8bit per component (16 bits total): Y[11:4] CbCr[11:4]
++ - YUV422 semi-planar 10bit per component (20 bits total): Y[11:2] CbCr[11:2]
++ - YUV422 semi-planar 12bit per component (24 bits total): - Y[11:0] CbCr[11:0]
++ - YUV422 BT656 8bit per component (8 bits total): YCbCr[11:4] (2-cycles)
++ - YUV422 BT656 10bit per component (10 bits total): YCbCr[11:2] (2-cycles)
++ - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
++
++The TDA19973 Video port output pins can be used as follows:
++ - RGB 12bit per color (36 bits total): R[11:0] B[11:0] G[11:0]
++ - YUV444 12bit per color (36 bits total): Y[11:0] Cb[11:0] Cr[11:0]
++ - YUV422 semi-planar 12bit per component (24 bits total): Y[11:0] CbCr[11:0]
++ - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
++
++The Video port output pins are mapped via 4-bit 'pin groups' allowing
++for a variety fo connection possibilities including swapping pin order within
++pin groups. The video_portcfg device-tree property consists of register mapping
++pairs which map a chip-specific VP output register to a 4-bit pin group. If
++the pin group needs to be bit-swapped you can use the *_S pin-group defines.
++
++Required Properties:
++ - compatible      :
++  - "nxp,tda19971" for the TDA19971
++  - "nxp,tda19973" for the TDA19973
++ - reg             : I2C slave address
++ - interrupts      : The interrupt number
++ - DOVDD-supply    : Digital I/O supply
++ - DVDD-supply     : Digital Core supply
++ - AVDD-supply     : Analog supply
++ - vidout_portcfg  : array of pairs mapping VP output pins to pin groups
++
++Optional Properties:
++ - max-pixel-rate  : Maximum pixel rate supported by the SoC (MP/sec)
++ - audio-port      : parameters defining audio output port connection
++
++Optional Endpoint Properties:
++  The following three properties are defined in video-interfaces.txt and
++  are valid for source endpoints only:
++  - hsync-active: Horizontal synchronization polarity. Defaults to active high.
++  - vsync-active: Vertical synchronization polarity. Defaults to active high.
++  - data-active: Data polarity. Defaults to active high.
++
++The Audio output port consists of A_CLK, A_WS, AP0, AP1, AP2, and AP3 pins
++and can support up to 8-chanenl audio using the following audio bus DAI formats:
++ - I2S16
++ - I2S32
++ - SPDIF
++ - OBA (One-Bit-Audio)
++ - I2S16_HBR_STRAIGHT (High Bitrate straight through)
++ - I2S16_HBR_DEMUX (High Bitrate demuxed)
++ - I2S32_HBR_DEMUX (High Bitrate demuxed)
++ - DST (Direct Stream Transfer)
++
++Audio samples can be output in either SPDIF or I2S bus formats.
++In I2S mode, the TDF1997X is the master with 16bit or 32bit words.
++The audio port output is configured by three parameters: DAI format, layout
++and clock scaler.
++
++Each DAI format has two pin layouts shown by the following table:
++       |  SPDIF  |  SPDIF  |   I2S   |   I2S   |         HBR demux
++       | Layout0 | Layout1 | Layout0 | Layout1 | SPDIF      | I2S
++ ------+---------+---------+---------+---------+------------+------------
++ A_WS  | WS      | WS      | WS      | WS      | WS         | WS
++ AP3   |         | SPDIF3  |         | SD3     | SPDIF[x+3] | SD[x+3]
++ AP2   |         | SPDIF2  |         | SD2     | SPDIF[x+2] | SD[x+2]
++ AP1   |         | SPDIF1  |         | SD1     | SPDIF[x+1] | SD[x+1]
++ AP0   | SPDIF   | SPDIF0  | SD      | SD0     | SPDIF[x]   | SD[x]
++ A_CLK | (32*Fs) | (32*Fs) |(32*Fs)  | (32*Fs) | (32*Fs)    | (32*Fs)
++       | (64*Fs) | (64*Fs) |(64*Fs)  | (64*Fs) | (64*Fs)    | (64*Fs)
++
++Freq(Sysclk) = 2*freq(Aclk)
++
++Examples:
++ - VP[15:0] connected to IMX6 CSI_DATA[19:4] for 16bit YUV422
++   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
++	hdmi_receiver@48 {
++		compatible = "nxp,tda19971";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_tda1997x>;
++		reg = <0x48>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		DOVDD-supply = <&reg_3p3v>;
++		AVDD-supply = <&reg_1p8v>;
++		DVDD-supply = <&reg_1p8v>;
++		/* audio output format */
++		audio-port = < TDA1997X_I2S16
++			       TDA1997X_LAYOUT0
++			       TDA1997X_ACLK_128FS >;
++		/*
++		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
++		 * and Y[11:4] across 16bits in the same pixclk cycle.
++		 */
++		vidout_portcfg =
++			/* Y[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
++			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
++			/* Y[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
++			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
++			/* CbCc[11:8]<->VP[07:04]<->CSI_DATA[11:8] */
++			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
++			/* CbCr[7:4]<->VP[03:00]<->CSI_DATA[7:4] */
++			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
++		max-pixel-rate = <180>; /* IMX6 CSI max pixel rate 180MP/sec */
++
++		port@0 {
++			reg = <0>;
++		};
++		port@1 {
++			reg = <1>;
++			hdmi_in: endpoint {
++				remote-endpoint = <&ccdc_in>;
++			};
++		};
++	};
++ - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
++   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
++	hdmi_receiver@48 {
++		compatible = "nxp,tda19971";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_tda1997x>;
++		reg = <0x48>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		DOVDD-supply = <&reg_3p3v>;
++		AVDD-supply = <&reg_1p8v>;
++		DVDD-supply = <&reg_1p8v>;
++		/* audio output format */
++		#sound-dai-cells = <0>;
++		audio-port = < TDA1997X_I2S16
++			       TDA1997X_LAYOUT0
++			       TDA1997X_ACLK_128FS >;
++		/*
++		 * The 8bpp BT656 mode outputs YCbCr[11:4] across 8bits over
++		 * 2 pixclk cycles.
++		 */
++		vidout_portcfg =
++			/* YCbCr[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
++			< TDA1997X_VP24_V15_12 TDA1997X_R_CR_CBCR_11_8 >,
++			/* YCbCr[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
++			< TDA1997X_VP24_V11_08 TDA1997X_R_CR_CBCR_7_4 >,
++		max-pixel-rate = <180>; /* IMX6 CSI max pixel rate 180MP/sec */
++
++		port@0 {
++			reg = <0>;
++		};
++		port@1 {
++			reg = <1>;
++			hdmi_in: endpoint {
++				remote-endpoint = <&ccdc_in>;
++			};
++		};
++	};
++
+-- 
+2.7.4
