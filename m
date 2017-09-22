@@ -1,153 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49372 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S934287AbdIYWZw (ORCPT
+Received: from mail-pg0-f50.google.com ([74.125.83.50]:55266 "EHLO
+        mail-pg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752179AbdIVWVY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 18:25:52 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+        Fri, 22 Sep 2017 18:21:24 -0400
+Received: by mail-pg0-f50.google.com with SMTP id c137so1269332pga.11
+        for <linux-media@vger.kernel.org>; Fri, 22 Sep 2017 15:21:24 -0700 (PDT)
+From: Tim Harvey <tharvey@gateworks.com>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v14 14/28] v4l: async: Prepare for async sub-device notifiers
-Date: Tue, 26 Sep 2017 01:25:25 +0300
-Message-Id: <20170925222540.371-15-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170925222540.371-1-sakari.ailus@linux.intel.com>
-References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 0/4] RFC: TDA1997x HDMI video receiver
+Date: Fri, 22 Sep 2017 15:24:09 -0700
+Message-Id: <1506119053-21828-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Refactor the V4L2 async framework a little in preparation for async
-sub-device notifiers.
+This is an RFC for a driver supporting the TDA1997x HDMI video receiver.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 66 +++++++++++++++++++++++++-----------
- 1 file changed, 47 insertions(+), 19 deletions(-)
+I've tested this on a Gateworks GW54xx with an IMX6Q which uses the TDA19971
+with 16bits connected to the IMX6 CSI. For this configuration I've tested
+both 16bit YUV422 and 8bit BT656 mode. While the driver should support the
+TDA1993 I do not have one for testing.
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 77b9f851bfa9..1d4132305243 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -125,12 +125,13 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
- }
- 
- static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-+				   struct v4l2_device *v4l2_dev,
- 				   struct v4l2_subdev *sd,
- 				   struct v4l2_async_subdev *asd)
- {
- 	int ret;
- 
--	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
-+	ret = v4l2_device_register_subdev(v4l2_dev, sd);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -154,6 +155,31 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 	return 0;
- }
- 
-+/* Test all async sub-devices in a notifier for a match. */
-+static int v4l2_async_notifier_try_all_subdevs(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
-+	struct v4l2_subdev *sd, *tmp;
-+
-+	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-+		struct v4l2_async_subdev *asd;
-+		int ret;
-+
-+		asd = v4l2_async_find_match(notifier, sd);
-+		if (!asd)
-+			continue;
-+
-+		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
-+		if (ret < 0) {
-+			mutex_unlock(&list_lock);
-+			return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static void v4l2_async_cleanup(struct v4l2_subdev *sd)
- {
- 	v4l2_device_unregister_subdev(sd);
-@@ -163,17 +189,15 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
- 	sd->dev = NULL;
- }
- 
--int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
--				 struct v4l2_async_notifier *notifier)
-+static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- {
--	struct v4l2_subdev *sd, *tmp;
- 	struct v4l2_async_subdev *asd;
-+	int ret;
- 	int i;
- 
--	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-+	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
- 		return -EINVAL;
- 
--	notifier->v4l2_dev = v4l2_dev;
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
- 
-@@ -206,18 +230,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 
- 	mutex_lock(&list_lock);
- 
--	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
--		int ret;
--
--		asd = v4l2_async_find_match(notifier, sd);
--		if (!asd)
--			continue;
--
--		ret = v4l2_async_match_notify(notifier, sd, asd);
--		if (ret < 0) {
--			mutex_unlock(&list_lock);
--			return ret;
--		}
-+	ret = v4l2_async_notifier_try_all_subdevs(notifier);
-+	if (ret) {
-+		mutex_unlock(&list_lock);
-+		return ret;
- 	}
- 
- 	/* Keep also completed notifiers on the list */
-@@ -227,6 +243,17 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 
- 	return 0;
- }
-+
-+int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-+				 struct v4l2_async_notifier *notifier)
-+{
-+	if (WARN_ON(!v4l2_dev))
-+		return -EINVAL;
-+
-+	notifier->v4l2_dev = v4l2_dev;
-+
-+	return __v4l2_async_notifier_register(notifier);
-+}
- EXPORT_SYMBOL(v4l2_async_notifier_register);
- 
- void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-@@ -303,7 +330,8 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
- 								      sd);
- 		if (asd) {
--			int ret = v4l2_async_match_notify(notifier, sd, asd);
-+			int ret = v4l2_async_match_notify(
-+				notifier, notifier->v4l2_dev, sd, asd);
- 			mutex_unlock(&list_lock);
- 			return ret;
- 		}
+Further potential development efforts include:
+ - AUDIO codec support (working on this next)
+ - EDID read/write support
+ - CEC support
+ - HDCP support
+ - mbus format selection support for bus widths that support multiple formats
+ - TDA19972 support (2 inputs)
+
+Tim Harvey (4):
+  MAINTAINERS: add entry for NXP TDA1997x driver
+  media: dt-bindings: Add bindings for TDA1997X
+  media: i2c: Add TDA1997x HDMI receiver driver
+  ARM: DTS: imx: ventana: add TDA19971 HDMI Receiver to GW54xx
+
+ .../devicetree/bindings/media/i2c/tda1997x.txt     |  159 +
+ MAINTAINERS                                        |    8 +
+ arch/arm/boot/dts/imx6q-gw54xx.dts                 |   85 +
+ drivers/media/i2c/Kconfig                          |    9 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/tda1997x.c                       | 3065 ++++++++++++++++++++
+ include/dt-bindings/media/tda1997x.h               |   78 +
+ include/media/i2c/tda1997x.h                       |   53 +
+ 8 files changed, 3458 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+ create mode 100644 drivers/media/i2c/tda1997x.c
+ create mode 100644 include/dt-bindings/media/tda1997x.h
+ create mode 100644 include/media/i2c/tda1997x.h
+
 -- 
-2.11.0
+2.7.4
