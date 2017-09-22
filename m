@@ -1,208 +1,297 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47019
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752159AbdIANZI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:25:08 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 01/27] media: ca.h: split typedefs from structs
-Date: Fri,  1 Sep 2017 10:24:23 -0300
-Message-Id: <d6e55961dd31efb29e38f2a7846f11ca378e9b27.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
+Received: from mout.kundenserver.de ([212.227.126.131]:53016 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752421AbdIVVal (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Sep 2017 17:30:41 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Arend van Spriel <arend.vanspriel@broadcom.com>,
+        Franky Lin <franky.lin@broadcom.com>,
+        Hante Meuleman <hante.meuleman@broadcom.com>,
+        Chi-Hsien Lin <chi-hsien.lin@cypress.com>,
+        Wright Feng <wright.feng@cypress.com>,
+        Kalle Valo <kvalo@codeaurora.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jiri Pirko <jiri@resnulli.us>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Michal Marek <mmarek@suse.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+        brcm80211-dev-list.pdl@broadcom.com,
+        brcm80211-dev-list@cypress.com, kasan-dev@googlegroups.com,
+        linux-kbuild@vger.kernel.org, Jakub Jelinek <jakub@gcc.gnu.org>,
+        =?UTF-8?q?Martin=20Li=C5=A1ka?= <marxin@gcc.gnu.org>
+Subject: [PATCH v4 2/9] brcmsmac: split up wlc_phy_workarounds_nphy
+Date: Fri, 22 Sep 2017 23:29:13 +0200
+Message-Id: <20170922212930.620249-3-arnd@arndb.de>
+In-Reply-To: <20170922212930.620249-1-arnd@arndb.de>
+References: <20170922212930.620249-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using typedefs inside the Kernel is against CodingStyle, and
-there's no good usage here.
+The stack consumption in this driver is still relatively high, with one
+remaining warning if the warning level is lowered to 1536 bytes:
 
-Just like we did at frontend.h, at changeset 0df289a209e0
-("[media] dvb: Get rid of typedev usage for enums"), let's keep
-those typedefs only to provide userspace backward compatibility.
+drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c:17135:1: error: the frame size of 1880 bytes is larger than 1536 bytes [-Werror=frame-larger-than=]
 
-No functional changes.
+The affected function is actually a collection of three separate implementations,
+and each of them is fairly large by itself. Splitting them up is done easily
+and improves readability at the same time.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+I'm leaving the original indentation to make the review easier.
+
+Acked-by: Arend van Spriel <arend.vanspriel@broadcom.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/pci/ttpci/av7110.h    |  2 +-
- drivers/media/pci/ttpci/av7110_ca.c | 12 ++++-----
- include/uapi/linux/dvb/ca.h         | 51 +++++++++++++++++++++++--------------
- 3 files changed, 39 insertions(+), 26 deletions(-)
+ .../broadcom/brcm80211/brcmsmac/phy/phy_n.c        | 178 ++++++++++++---------
+ 1 file changed, 104 insertions(+), 74 deletions(-)
 
-diff --git a/drivers/media/pci/ttpci/av7110.h b/drivers/media/pci/ttpci/av7110.h
-index 824c1e262fbb..347827925c14 100644
---- a/drivers/media/pci/ttpci/av7110.h
-+++ b/drivers/media/pci/ttpci/av7110.h
-@@ -177,7 +177,7 @@ struct av7110 {
- 
- 	/* CA */
- 
--	ca_slot_info_t		ci_slot[2];
-+	struct ca_slot_info	ci_slot[2];
- 
- 	enum av7110_video_mode	vidmode;
- 	struct dmxdev		dmxdev;
-diff --git a/drivers/media/pci/ttpci/av7110_ca.c b/drivers/media/pci/ttpci/av7110_ca.c
-index f64723aea56b..1fe49171d823 100644
---- a/drivers/media/pci/ttpci/av7110_ca.c
-+++ b/drivers/media/pci/ttpci/av7110_ca.c
-@@ -119,7 +119,7 @@ static void ci_ll_release(struct dvb_ringbuffer *cirbuf, struct dvb_ringbuffer *
+This one and the following patch could be merged for either v4.14 or
+v4.15 at this point, whichever the maintainers prefer. No need to
+backport them to stable kernels.
+
+diff --git a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c
+index ef685465f80a..ed409a80f3d2 100644
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c
+@@ -16061,52 +16061,8 @@ static void wlc_phy_workarounds_nphy_gainctrl(struct brcms_phy *pi)
+ 	}
  }
  
- static int ci_ll_reset(struct dvb_ringbuffer *cibuf, struct file *file,
--		       int slots, ca_slot_info_t *slot)
-+		       int slots, struct ca_slot_info *slot)
+-static void wlc_phy_workarounds_nphy(struct brcms_phy *pi)
++static void wlc_phy_workarounds_nphy_rev7(struct brcms_phy *pi)
  {
- 	int i;
- 	int len = 0;
-@@ -264,7 +264,7 @@ static int dvb_ca_ioctl(struct file *file, unsigned int cmd, void *parg)
- 		break;
- 	case CA_GET_CAP:
- 	{
--		ca_caps_t cap;
-+		struct ca_caps cap;
+-	static const u8 rfseq_rx2tx_events[] = {
+-		NPHY_RFSEQ_CMD_NOP,
+-		NPHY_RFSEQ_CMD_RXG_FBW,
+-		NPHY_RFSEQ_CMD_TR_SWITCH,
+-		NPHY_RFSEQ_CMD_CLR_HIQ_DIS,
+-		NPHY_RFSEQ_CMD_RXPD_TXPD,
+-		NPHY_RFSEQ_CMD_TX_GAIN,
+-		NPHY_RFSEQ_CMD_EXT_PA
+-	};
+-	u8 rfseq_rx2tx_dlys[] = { 8, 6, 6, 2, 4, 60, 1 };
+-	static const u8 rfseq_tx2rx_events[] = {
+-		NPHY_RFSEQ_CMD_NOP,
+-		NPHY_RFSEQ_CMD_EXT_PA,
+-		NPHY_RFSEQ_CMD_TX_GAIN,
+-		NPHY_RFSEQ_CMD_RXPD_TXPD,
+-		NPHY_RFSEQ_CMD_TR_SWITCH,
+-		NPHY_RFSEQ_CMD_RXG_FBW,
+-		NPHY_RFSEQ_CMD_CLR_HIQ_DIS
+-	};
+-	static const u8 rfseq_tx2rx_dlys[] = { 8, 6, 2, 4, 4, 6, 1 };
+-	static const u8 rfseq_tx2rx_events_rev3[] = {
+-		NPHY_REV3_RFSEQ_CMD_EXT_PA,
+-		NPHY_REV3_RFSEQ_CMD_INT_PA_PU,
+-		NPHY_REV3_RFSEQ_CMD_TX_GAIN,
+-		NPHY_REV3_RFSEQ_CMD_RXPD_TXPD,
+-		NPHY_REV3_RFSEQ_CMD_TR_SWITCH,
+-		NPHY_REV3_RFSEQ_CMD_RXG_FBW,
+-		NPHY_REV3_RFSEQ_CMD_CLR_HIQ_DIS,
+-		NPHY_REV3_RFSEQ_CMD_END
+-	};
+-	static const u8 rfseq_tx2rx_dlys_rev3[] = { 8, 4, 2, 2, 4, 4, 6, 1 };
+-	u8 rfseq_rx2tx_events_rev3[] = {
+-		NPHY_REV3_RFSEQ_CMD_NOP,
+-		NPHY_REV3_RFSEQ_CMD_RXG_FBW,
+-		NPHY_REV3_RFSEQ_CMD_TR_SWITCH,
+-		NPHY_REV3_RFSEQ_CMD_CLR_HIQ_DIS,
+-		NPHY_REV3_RFSEQ_CMD_RXPD_TXPD,
+-		NPHY_REV3_RFSEQ_CMD_TX_GAIN,
+-		NPHY_REV3_RFSEQ_CMD_INT_PA_PU,
+-		NPHY_REV3_RFSEQ_CMD_EXT_PA,
+-		NPHY_REV3_RFSEQ_CMD_END
+-	};
+-	u8 rfseq_rx2tx_dlys_rev3[] = { 8, 6, 6, 4, 4, 18, 42, 1, 1 };
+-
+ 	static const u8 rfseq_rx2tx_events_rev3_ipa[] = {
+ 		NPHY_REV3_RFSEQ_CMD_NOP,
+ 		NPHY_REV3_RFSEQ_CMD_RXG_FBW,
+@@ -16120,29 +16076,15 @@ static void wlc_phy_workarounds_nphy(struct brcms_phy *pi)
+ 	};
+ 	static const u8 rfseq_rx2tx_dlys_rev3_ipa[] = { 8, 6, 6, 4, 4, 16, 43, 1, 1 };
+ 	static const u16 rfseq_rx2tx_dacbufpu_rev7[] = { 0x10f, 0x10f };
+-
+-	s16 alpha0, alpha1, alpha2;
+-	s16 beta0, beta1, beta2;
+-	u32 leg_data_weights, ht_data_weights, nss1_data_weights,
+-	    stbc_data_weights;
++	u32 leg_data_weights;
+ 	u8 chan_freq_range = 0;
+ 	static const u16 dac_control = 0x0002;
+ 	u16 aux_adc_vmid_rev7_core0[] = { 0x8e, 0x96, 0x96, 0x96 };
+ 	u16 aux_adc_vmid_rev7_core1[] = { 0x8f, 0x9f, 0x9f, 0x96 };
+-	u16 aux_adc_vmid_rev4[] = { 0xa2, 0xb4, 0xb4, 0x89 };
+-	u16 aux_adc_vmid_rev3[] = { 0xa2, 0xb4, 0xb4, 0x89 };
+-	u16 *aux_adc_vmid;
+ 	u16 aux_adc_gain_rev7[] = { 0x02, 0x02, 0x02, 0x02 };
+-	u16 aux_adc_gain_rev4[] = { 0x02, 0x02, 0x02, 0x00 };
+-	u16 aux_adc_gain_rev3[] = { 0x02, 0x02, 0x02, 0x00 };
+-	u16 *aux_adc_gain;
+-	static const u16 sk_adc_vmid[] = { 0xb4, 0xb4, 0xb4, 0x24 };
+-	static const u16 sk_adc_gain[] = { 0x02, 0x02, 0x02, 0x02 };
+ 	s32 min_nvar_val = 0x18d;
+ 	s32 min_nvar_offset_6mbps = 20;
+ 	u8 pdetrange;
+-	u8 triso;
+-	u16 regval;
+ 	u16 afectrl_adc_ctrl1_rev7 = 0x20;
+ 	u16 afectrl_adc_ctrl2_rev7 = 0x0;
+ 	u16 rfseq_rx2tx_lpf_h_hpc_rev7 = 0x77;
+@@ -16171,17 +16113,6 @@ static void wlc_phy_workarounds_nphy(struct brcms_phy *pi)
+ 	u16 freq;
+ 	int coreNum;
  
- 		cap.slot_num = 2;
- 		cap.slot_type = (FW_CI_LL_SUPPORT(av7110->arm_app) ?
-@@ -277,7 +277,7 @@ static int dvb_ca_ioctl(struct file *file, unsigned int cmd, void *parg)
+-	if (CHSPEC_IS5G(pi->radio_chanspec))
+-		wlc_phy_classifier_nphy(pi, NPHY_ClassifierCtrl_cck_en, 0);
+-	else
+-		wlc_phy_classifier_nphy(pi, NPHY_ClassifierCtrl_cck_en, 1);
+-
+-	if (pi->phyhang_avoid)
+-		wlc_phy_stay_in_carriersearch_nphy(pi, true);
+-
+-	or_phy_reg(pi, 0xb1, NPHY_IQFlip_ADC1 | NPHY_IQFlip_ADC2);
+-
+-	if (NREV_GE(pi->pubpi.phy_rev, 7)) {
  
- 	case CA_GET_SLOT_INFO:
- 	{
--		ca_slot_info_t *info=(ca_slot_info_t *)parg;
-+		struct ca_slot_info *info=(struct ca_slot_info *)parg;
+ 		if (NREV_IS(pi->pubpi.phy_rev, 7)) {
+ 			mod_phy_reg(pi, 0x221, (0x1 << 4), (1 << 4));
+@@ -16703,8 +16634,62 @@ static void wlc_phy_workarounds_nphy(struct brcms_phy *pi)
+ 					 &aux_adc_gain_rev7);
+ 		wlc_phy_table_write_nphy(pi, NPHY_TBL_ID_AFECTRL, 4, 0x1c, 16,
+ 					 &aux_adc_gain_rev7);
++}
  
- 		if (info->num < 0 || info->num > 1) {
- 			mutex_unlock(&av7110->ioctl_mutex);
-@@ -286,7 +286,7 @@ static int dvb_ca_ioctl(struct file *file, unsigned int cmd, void *parg)
- 		av7110->ci_slot[info->num].num = info->num;
- 		av7110->ci_slot[info->num].type = FW_CI_LL_SUPPORT(av7110->arm_app) ?
- 							CA_CI_LINK : CA_CI;
--		memcpy(info, &av7110->ci_slot[info->num], sizeof(ca_slot_info_t));
-+		memcpy(info, &av7110->ci_slot[info->num], sizeof(struct ca_slot_info));
- 		break;
- 	}
+-	} else if (NREV_GE(pi->pubpi.phy_rev, 3)) {
++static void wlc_phy_workarounds_nphy_rev3(struct brcms_phy *pi)
++{
++	static const u8 rfseq_tx2rx_events_rev3[] = {
++		NPHY_REV3_RFSEQ_CMD_EXT_PA,
++		NPHY_REV3_RFSEQ_CMD_INT_PA_PU,
++		NPHY_REV3_RFSEQ_CMD_TX_GAIN,
++		NPHY_REV3_RFSEQ_CMD_RXPD_TXPD,
++		NPHY_REV3_RFSEQ_CMD_TR_SWITCH,
++		NPHY_REV3_RFSEQ_CMD_RXG_FBW,
++		NPHY_REV3_RFSEQ_CMD_CLR_HIQ_DIS,
++		NPHY_REV3_RFSEQ_CMD_END
++	};
++	static const u8 rfseq_tx2rx_dlys_rev3[] = { 8, 4, 2, 2, 4, 4, 6, 1 };
++	u8 rfseq_rx2tx_events_rev3[] = {
++		NPHY_REV3_RFSEQ_CMD_NOP,
++		NPHY_REV3_RFSEQ_CMD_RXG_FBW,
++		NPHY_REV3_RFSEQ_CMD_TR_SWITCH,
++		NPHY_REV3_RFSEQ_CMD_CLR_HIQ_DIS,
++		NPHY_REV3_RFSEQ_CMD_RXPD_TXPD,
++		NPHY_REV3_RFSEQ_CMD_TX_GAIN,
++		NPHY_REV3_RFSEQ_CMD_INT_PA_PU,
++		NPHY_REV3_RFSEQ_CMD_EXT_PA,
++		NPHY_REV3_RFSEQ_CMD_END
++	};
++	u8 rfseq_rx2tx_dlys_rev3[] = { 8, 6, 6, 4, 4, 18, 42, 1, 1 };
++	static const u8 rfseq_rx2tx_events_rev3_ipa[] = {
++		NPHY_REV3_RFSEQ_CMD_NOP,
++		NPHY_REV3_RFSEQ_CMD_RXG_FBW,
++		NPHY_REV3_RFSEQ_CMD_TR_SWITCH,
++		NPHY_REV3_RFSEQ_CMD_CLR_HIQ_DIS,
++		NPHY_REV3_RFSEQ_CMD_RXPD_TXPD,
++		NPHY_REV3_RFSEQ_CMD_TX_GAIN,
++		NPHY_REV3_RFSEQ_CMD_CLR_RXRX_BIAS,
++		NPHY_REV3_RFSEQ_CMD_INT_PA_PU,
++		NPHY_REV3_RFSEQ_CMD_END
++	};
++	static const u8 rfseq_rx2tx_dlys_rev3_ipa[] = { 8, 6, 6, 4, 4, 16, 43, 1, 1 };
++	s16 alpha0, alpha1, alpha2;
++	s16 beta0, beta1, beta2;
++	u32 leg_data_weights, ht_data_weights, nss1_data_weights,
++	    stbc_data_weights;
++	u8 chan_freq_range = 0;
++	static const u16 dac_control = 0x0002;
++	u16 aux_adc_vmid_rev4[] = { 0xa2, 0xb4, 0xb4, 0x89 };
++	u16 aux_adc_vmid_rev3[] = { 0xa2, 0xb4, 0xb4, 0x89 };
++	u16 *aux_adc_vmid;
++	u16 aux_adc_gain_rev4[] = { 0x02, 0x02, 0x02, 0x00 };
++	u16 aux_adc_gain_rev3[] = { 0x02, 0x02, 0x02, 0x00 };
++	u16 *aux_adc_gain;
++	static const u16 sk_adc_vmid[] = { 0xb4, 0xb4, 0xb4, 0x24 };
++	static const u16 sk_adc_gain[] = { 0x02, 0x02, 0x02, 0x02 };
++	s32 min_nvar_val = 0x18d;
++	u8 pdetrange;
++	u8 triso;
  
-@@ -298,7 +298,7 @@ static int dvb_ca_ioctl(struct file *file, unsigned int cmd, void *parg)
- 
- 	case CA_GET_DESCR_INFO:
- 	{
--		ca_descr_info_t info;
-+		struct ca_descr_info info;
- 
- 		info.num = 16;
- 		info.type = CA_ECD;
-@@ -308,7 +308,7 @@ static int dvb_ca_ioctl(struct file *file, unsigned int cmd, void *parg)
- 
- 	case CA_SET_DESCR:
- 	{
--		ca_descr_t *descr = (ca_descr_t*) parg;
-+		struct ca_descr *descr = (struct ca_descr*) parg;
- 
- 		if (descr->index >= 16 || descr->parity > 1) {
- 			mutex_unlock(&av7110->ioctl_mutex);
-diff --git a/include/uapi/linux/dvb/ca.h b/include/uapi/linux/dvb/ca.h
-index c18537f3e449..00cf24587bea 100644
---- a/include/uapi/linux/dvb/ca.h
-+++ b/include/uapi/linux/dvb/ca.h
-@@ -26,7 +26,7 @@
- 
- /* slot interface types and info */
- 
--typedef struct ca_slot_info {
-+struct ca_slot_info {
- 	int num;               /* slot number */
- 
- 	int type;              /* CA interface this slot supports */
-@@ -39,52 +39,65 @@ typedef struct ca_slot_info {
- 	unsigned int flags;
- #define CA_CI_MODULE_PRESENT 1 /* module (or card) inserted */
- #define CA_CI_MODULE_READY   2
--} ca_slot_info_t;
-+};
- 
- 
- /* descrambler types and info */
- 
--typedef struct ca_descr_info {
-+struct ca_descr_info {
- 	unsigned int num;          /* number of available descramblers (keys) */
- 	unsigned int type;         /* type of supported scrambling system */
- #define CA_ECD           1
- #define CA_NDS           2
- #define CA_DSS           4
--} ca_descr_info_t;
-+};
- 
--typedef struct ca_caps {
-+struct ca_caps {
- 	unsigned int slot_num;     /* total number of CA card and module slots */
- 	unsigned int slot_type;    /* OR of all supported types */
- 	unsigned int descr_num;    /* total number of descrambler slots (keys) */
- 	unsigned int descr_type;   /* OR of all supported types */
--} ca_caps_t;
-+};
- 
- /* a message to/from a CI-CAM */
--typedef struct ca_msg {
-+struct ca_msg {
- 	unsigned int index;
- 	unsigned int type;
- 	unsigned int length;
- 	unsigned char msg[256];
--} ca_msg_t;
-+};
- 
--typedef struct ca_descr {
-+struct ca_descr {
- 	unsigned int index;
- 	unsigned int parity;	/* 0 == even, 1 == odd */
- 	unsigned char cw[8];
--} ca_descr_t;
-+};
- 
--typedef struct ca_pid {
-+struct ca_pid {
- 	unsigned int pid;
- 	int index;		/* -1 == disable*/
--} ca_pid_t;
-+};
- 
- #define CA_RESET          _IO('o', 128)
--#define CA_GET_CAP        _IOR('o', 129, ca_caps_t)
--#define CA_GET_SLOT_INFO  _IOR('o', 130, ca_slot_info_t)
--#define CA_GET_DESCR_INFO _IOR('o', 131, ca_descr_info_t)
--#define CA_GET_MSG        _IOR('o', 132, ca_msg_t)
--#define CA_SEND_MSG       _IOW('o', 133, ca_msg_t)
--#define CA_SET_DESCR      _IOW('o', 134, ca_descr_t)
--#define CA_SET_PID        _IOW('o', 135, ca_pid_t)
-+#define CA_GET_CAP        _IOR('o', 129, struct ca_caps)
-+#define CA_GET_SLOT_INFO  _IOR('o', 130, struct ca_slot_info)
-+#define CA_GET_DESCR_INFO _IOR('o', 131, struct ca_descr_info)
-+#define CA_GET_MSG        _IOR('o', 132, struct ca_msg)
-+#define CA_SEND_MSG       _IOW('o', 133, struct ca_msg)
-+#define CA_SET_DESCR      _IOW('o', 134, struct ca_descr)
-+#define CA_SET_PID        _IOW('o', 135, struct ca_pid)
+ 		write_phy_reg(pi, 0x23f, 0x1f8);
+ 		write_phy_reg(pi, 0x240, 0x1f8);
+@@ -17030,7 +17015,33 @@ static void wlc_phy_workarounds_nphy(struct brcms_phy *pi)
+ 					      MHF4_BPHY_TXCORE0,
+ 					      MHF4_BPHY_TXCORE0, BRCM_BAND_ALL);
+ 		}
+-	} else {
++}
 +
-+#if !defined (__KERNEL__)
-+
-+/* This is needed for legacy userspace support */
-+typedef struct ca_slot_info ca_slot_info_t;
-+typedef struct ca_descr_info  ca_descr_info_t;
-+typedef struct ca_caps  ca_caps_t;
-+typedef struct ca_msg ca_msg_t;
-+typedef struct ca_descr ca_descr_t;
-+typedef struct ca_pid ca_pid_t;
-+
-+#endif
-+
++void wlc_phy_workarounds_nphy_rev1(struct brcms_phy *pi)
++{
++	static const u8 rfseq_rx2tx_events[] = {
++		NPHY_RFSEQ_CMD_NOP,
++		NPHY_RFSEQ_CMD_RXG_FBW,
++		NPHY_RFSEQ_CMD_TR_SWITCH,
++		NPHY_RFSEQ_CMD_CLR_HIQ_DIS,
++		NPHY_RFSEQ_CMD_RXPD_TXPD,
++		NPHY_RFSEQ_CMD_TX_GAIN,
++		NPHY_RFSEQ_CMD_EXT_PA
++	};
++	u8 rfseq_rx2tx_dlys[] = { 8, 6, 6, 2, 4, 60, 1 };
++	static const u8 rfseq_tx2rx_events[] = {
++		NPHY_RFSEQ_CMD_NOP,
++		NPHY_RFSEQ_CMD_EXT_PA,
++		NPHY_RFSEQ_CMD_TX_GAIN,
++		NPHY_RFSEQ_CMD_RXPD_TXPD,
++		NPHY_RFSEQ_CMD_TR_SWITCH,
++		NPHY_RFSEQ_CMD_RXG_FBW,
++		NPHY_RFSEQ_CMD_CLR_HIQ_DIS
++	};
++	static const u8 rfseq_tx2rx_dlys[] = { 8, 6, 2, 4, 4, 6, 1 };
++	s16 alpha0, alpha1, alpha2;
++	s16 beta0, beta1, beta2;
++	u16 regval;
  
- #endif
+ 		if (pi->sh->boardflags2 & BFL2_SKWRKFEM_BRD ||
+ 		    (pi->sh->boardtype == 0x8b)) {
+@@ -17128,7 +17139,26 @@ static void wlc_phy_workarounds_nphy(struct brcms_phy *pi)
+ 			mod_phy_reg(pi, 0x221,
+ 				    NPHY_FORCESIG_DECODEGATEDCLKS,
+ 				    NPHY_FORCESIG_DECODEGATEDCLKS);
+-	}
++}
++
++static void wlc_phy_workarounds_nphy(struct brcms_phy *pi)
++{
++	if (CHSPEC_IS5G(pi->radio_chanspec))
++		wlc_phy_classifier_nphy(pi, NPHY_ClassifierCtrl_cck_en, 0);
++	else
++		wlc_phy_classifier_nphy(pi, NPHY_ClassifierCtrl_cck_en, 1);
++
++	if (pi->phyhang_avoid)
++		wlc_phy_stay_in_carriersearch_nphy(pi, true);
++
++	or_phy_reg(pi, 0xb1, NPHY_IQFlip_ADC1 | NPHY_IQFlip_ADC2);
++
++	if (NREV_GE(pi->pubpi.phy_rev, 7))
++		wlc_phy_workarounds_nphy_rev7(pi);
++	else if (NREV_GE(pi->pubpi.phy_rev, 3))
++		wlc_phy_workarounds_nphy_rev3(pi);
++	else
++		wlc_phy_workarounds_nphy_rev1(pi);
+ 
+ 	if (pi->phyhang_avoid)
+ 		wlc_phy_stay_in_carriersearch_nphy(pi, false);
 -- 
-2.13.5
+2.9.0
