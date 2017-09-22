@@ -1,39 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42412 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751938AbdIVJe4 (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:34717 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751873AbdIVNIH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 05:34:56 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: [RESEND PATCH v3 4/4] as3645a: Unregister indicator LED on device unbind
-Date: Fri, 22 Sep 2017 12:34:53 +0300
-Message-Id: <20170922093453.13250-5-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170922093453.13250-1-sakari.ailus@linux.intel.com>
-References: <20170922093453.13250-1-sakari.ailus@linux.intel.com>
+        Fri, 22 Sep 2017 09:08:07 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: andreyknvl@google.com, hverkuil@xs4all.nl, mchehab@kernel.org,
+        laurent.pinchart@ideasonboard.com, dvyukov@google.com,
+        kcc@google.com, syzkaller@googlegroups.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] hdpvr: Fix an error handling path in hdpvr_probe()
+Date: Fri, 22 Sep 2017 18:37:06 +0530
+Message-Id: <b5c06a8e071d38fc4b4df20b7f9c8fb25d5408fe.1506085151.git.arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The indicator LED was registered in probe but was not removed in driver
-remove callback. Fix this.
+Here, hdpvr_register_videodev() is responsible for setup and
+register a video device. Also defining and initializing a worker.
+hdpvr_register_videodev() is calling by hdpvr_probe at last.
+So No need to flash any work here.
+Unregister v4l2, free buffers and memory. If hdpvr_probe() will fail.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- drivers/leds/leds-as3645a.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/usb/hdpvr/hdpvr-core.c | 26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/leds/leds-as3645a.c b/drivers/leds/leds-as3645a.c
-index 605e0c64e974..9a257f969300 100644
---- a/drivers/leds/leds-as3645a.c
-+++ b/drivers/leds/leds-as3645a.c
-@@ -743,6 +743,7 @@ static int as3645a_remove(struct i2c_client *client)
- 	as3645a_set_control(flash, AS_MODE_EXT_TORCH, false);
+diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
+index dbe29c6..1e8cbaf 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-core.c
++++ b/drivers/media/usb/hdpvr/hdpvr-core.c
+@@ -292,7 +292,7 @@ static int hdpvr_probe(struct usb_interface *interface,
+ 	/* register v4l2_device early so it can be used for printks */
+ 	if (v4l2_device_register(&interface->dev, &dev->v4l2_dev)) {
+ 		dev_err(&interface->dev, "v4l2_device_register failed\n");
+-		goto error;
++		goto error_free_dev;
+ 	}
  
- 	v4l2_flash_release(flash->vf);
-+	v4l2_flash_release(flash->vfind);
+ 	mutex_init(&dev->io_mutex);
+@@ -301,7 +301,7 @@ static int hdpvr_probe(struct usb_interface *interface,
+ 	dev->usbc_buf = kmalloc(64, GFP_KERNEL);
+ 	if (!dev->usbc_buf) {
+ 		v4l2_err(&dev->v4l2_dev, "Out of memory\n");
+-		goto error;
++		goto error_v4l2_unregister;
+ 	}
  
- 	led_classdev_flash_unregister(&flash->fled);
- 	led_classdev_unregister(&flash->iled_cdev);
+ 	init_waitqueue_head(&dev->wait_buffer);
+@@ -339,13 +339,13 @@ static int hdpvr_probe(struct usb_interface *interface,
+ 	}
+ 	if (!dev->bulk_in_endpointAddr) {
+ 		v4l2_err(&dev->v4l2_dev, "Could not find bulk-in endpoint\n");
+-		goto error;
++		goto error_put_usb;
+ 	}
+ 
+ 	/* init the device */
+ 	if (hdpvr_device_init(dev)) {
+ 		v4l2_err(&dev->v4l2_dev, "device init failed\n");
+-		goto error;
++		goto error_put_usb;
+ 	}
+ 
+ 	mutex_lock(&dev->io_mutex);
+@@ -353,7 +353,7 @@ static int hdpvr_probe(struct usb_interface *interface,
+ 		mutex_unlock(&dev->io_mutex);
+ 		v4l2_err(&dev->v4l2_dev,
+ 			 "allocating transfer buffers failed\n");
+-		goto error;
++		goto error_put_usb;
+ 	}
+ 	mutex_unlock(&dev->io_mutex);
+ 
+@@ -361,7 +361,7 @@ static int hdpvr_probe(struct usb_interface *interface,
+ 	retval = hdpvr_register_i2c_adapter(dev);
+ 	if (retval < 0) {
+ 		v4l2_err(&dev->v4l2_dev, "i2c adapter register failed\n");
+-		goto error;
++		goto error_free_buffers;
+ 	}
+ 
+ 	client = hdpvr_register_ir_rx_i2c(dev);
+@@ -394,13 +394,17 @@ static int hdpvr_probe(struct usb_interface *interface,
+ reg_fail:
+ #if IS_ENABLED(CONFIG_I2C)
+ 	i2c_del_adapter(&dev->i2c_adapter);
++error_free_buffers:
+ #endif
++	hdpvr_free_buffers(dev);
++error_put_usb:
++	usb_put_dev(dev->udev);
++	kfree(dev->usbc_buf);
++error_v4l2_unregister:
++	v4l2_device_unregister(&dev->v4l2_dev);
++error_free_dev:
++	kfree(dev);
+ error:
+-	if (dev) {
+-		flush_work(&dev->worker);
+-		/* this frees allocated memory */
+-		hdpvr_delete(dev);
+-	}
+ 	return retval;
+ }
+ 
 -- 
-2.11.0
+1.9.1
