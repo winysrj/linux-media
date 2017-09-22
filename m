@@ -1,66 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:43159 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751550AbdIUH2o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 03:28:44 -0400
-Subject: Re: [PATCH] dma-fence: fix dma_fence_get_rcu_safe v2
-To: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>,
-        chris@chris-wilson.co.uk, daniel.vetter@ffwll.ch,
-        sumit.semwal@linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org
-References: <1505469187-3565-1-git-send-email-deathsimple@vodafone.de>
-From: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Message-ID: <0297e4f4-e3fa-8a50-09c2-acfeedc7d834@linux.intel.com>
-Date: Thu, 21 Sep 2017 09:28:41 +0200
-MIME-Version: 1.0
-In-Reply-To: <1505469187-3565-1-git-send-email-deathsimple@vodafone.de>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46529
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752134AbdIVVrM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Sep 2017 17:47:12 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 8/8] media: v4l2-ioctl.h: convert debug macros into enum and document
+Date: Fri, 22 Sep 2017 18:47:06 -0300
+Message-Id: <28dfd60cbe16605062003e895532bfeddfcc6ebc.1506116720.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
+References: <cover.1506116720.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
+References: <cover.1506116720.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 15-09-17 om 11:53 schreef Christian König:
-> From: Christian König <christian.koenig@amd.com>
->
-> When dma_fence_get_rcu() fails to acquire a reference it doesn't necessary
-> mean that there is no fence at all.
->
-> It usually mean that the fence was replaced by a new one and in this situation
-> we certainly want to have the new one as result and *NOT* NULL.
->
-> v2: Keep extra check after dma_fence_get_rcu().
->
-> Signed-off-by: Christian König <christian.koenig@amd.com>
-> Cc: Chris Wilson <chris@chris-wilson.co.uk>
-> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-> Cc: Sumit Semwal <sumit.semwal@linaro.org>
-> Cc: linux-media@vger.kernel.org
-> Cc: dri-devel@lists.freedesktop.org
-> Cc: linaro-mm-sig@lists.linaro.org
-> ---
->  include/linux/dma-fence.h | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
->
-> diff --git a/include/linux/dma-fence.h b/include/linux/dma-fence.h
-> index 0a186c4..f4f23cb 100644
-> --- a/include/linux/dma-fence.h
-> +++ b/include/linux/dma-fence.h
-> @@ -248,9 +248,12 @@ dma_fence_get_rcu_safe(struct dma_fence * __rcu *fencep)
->  		struct dma_fence *fence;
->  
->  		fence = rcu_dereference(*fencep);
-> -		if (!fence || !dma_fence_get_rcu(fence))
-> +		if (!fence)
->  			return NULL;
->  
-> +		if (!dma_fence_get_rcu(fence))
-> +			continue;
-> +
->  		/* The atomic_inc_not_zero() inside dma_fence_get_rcu()
->  		 * provides a full memory barrier upon success (such as now).
->  		 * This is paired with the write barrier from assigning
+Currently, there's no way to document #define foo <value>
+with kernel-doc. So, convert it to an enum, and document.
 
-Should be safe from an infinite loop since the old fence is only unreffed after the new pointer is written, so we'll always make progress. :)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ include/media/v4l2-ioctl.h | 33 +++++++++++++++++++--------------
+ 1 file changed, 19 insertions(+), 14 deletions(-)
 
-Reviewed-by: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index bd5312118013..136e2cffcf9e 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -588,20 +588,25 @@ struct v4l2_ioctl_ops {
+ };
+ 
+ 
+-/* v4l debugging and diagnostics */
+-
+-/* Device debug flags to be used with the video device debug attribute */
+-
+-/* Just log the ioctl name + error code */
+-#define V4L2_DEV_DEBUG_IOCTL		0x01
+-/* Log the ioctl name arguments + error code */
+-#define V4L2_DEV_DEBUG_IOCTL_ARG	0x02
+-/* Log the file operations open, release, mmap and get_unmapped_area */
+-#define V4L2_DEV_DEBUG_FOP		0x04
+-/* Log the read and write file operations and the VIDIOC_(D)QBUF ioctls */
+-#define V4L2_DEV_DEBUG_STREAMING	0x08
+-/* Log poll() */
+-#define V4L2_DEV_DEBUG_POLL		0x10
++/**
++ * enum v4l2_debug_flags - Device debug flags to be used with the video
++ *	device debug attribute
++ *
++ * @V4L2_DEV_DEBUG_IOCTL:	Just log the ioctl name + error code.
++ * @V4L2_DEV_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
++ * @V4L2_DEV_DEBUG_FOP:		Log the file operations and open, release,
++ *				mmap and get_unmapped_area syscalls.
++ * @V4L2_DEV_DEBUG_STREAMING:	Log the read and write syscalls and
++ *				:c:ref:`VIDIOC_[Q|DQ]BUFF <VIDIOC_QBUF>` ioctls.
++ * @V4L2_DEV_DEBUG_POLL:	Log poll syscalls.
++ */
++enum v4l2_debug_flags {
++	V4L2_DEV_DEBUG_IOCTL		= 0x01,
++	V4L2_DEV_DEBUG_IOCTL_ARG	= 0x02,
++	V4L2_DEV_DEBUG_FOP		= 0x04,
++	V4L2_DEV_DEBUG_STREAMING	= 0x08,
++	V4L2_DEV_DEBUG_POLL		= 0x10,
++};
+ 
+ /*  Video standard functions  */
+ 
+-- 
+2.13.5
