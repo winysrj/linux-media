@@ -1,318 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f45.google.com ([209.85.218.45]:52462 "EHLO
-        mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751287AbdI0MA2 (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:38525 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751873AbdIVOyG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 08:00:28 -0400
-Received: by mail-oi0-f45.google.com with SMTP id p126so16299471oih.9
-        for <linux-media@vger.kernel.org>; Wed, 27 Sep 2017 05:00:28 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <eba212d6d5b631365c5881b0ef4e16a9a8ea8cf6.1506502997.git.arvind.yadav.cs@gmail.com>
-References: <eba212d6d5b631365c5881b0ef4e16a9a8ea8cf6.1506502997.git.arvind.yadav.cs@gmail.com>
-From: Andrey Konovalov <andreyknvl@google.com>
-Date: Wed, 27 Sep 2017 14:00:26 +0200
-Message-ID: <CAAeHK+xFAYXxSnR1hbJRJ=qsPFR5NdwKJx5=CO0Arx5tuNXL0g@mail.gmail.com>
-Subject: Re: [RFT] [media] siano: FIX use-after-free in worker_thread
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>
+        Fri, 22 Sep 2017 10:54:06 -0400
+Date: Fri, 22 Sep 2017 16:54:04 +0200
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kostya Serebryany <kcc@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>, mchehab@s-opensource.com,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        syzkaller <syzkaller@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Cyprian Wronka <cwronka@cadence.com>,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com
+Subject: Re: [PATCH v4 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 RX
+ Device Tree bindings
+Message-ID: <20170922145404.444dqynmqz34jm7c@flea.lan>
+References: <20170922100823.18184-1-maxime.ripard@free-electrons.com>
+ <20170922100823.18184-2-maxime.ripard@free-electrons.com>
+ <20170922113522.4nbls3bb3sglsu55@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="vbujyc7vulhtlheg"
+Content-Disposition: inline
+In-Reply-To: <20170922113522.4nbls3bb3sglsu55@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 27, 2017 at 11:21 AM, Arvind Yadav
-<arvind.yadav.cs@gmail.com> wrote:
-> If CONFIG_MEDIA_CONTROLLER_DVB is enable, We are not releasing
-> media device and memory on any failure or disconnect a device.
->
-> Adding structure media_device 'mdev' as part of 'smsusb_device_t'
-> structure to make proper handle for media device.
-> Now releasing a media device and memory on failure. It's allocate
-> first in siano_media_device_register() and it should be freed last
-> in smsusb_disconnect().
->
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 
-Hi Arvind,
+--vbujyc7vulhtlheg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I've tried your patch and still see a crash.
+Hi Sakari,
+
+On Fri, Sep 22, 2017 at 11:35:23AM +0000, Sakari Ailus wrote:
+> Hi Maxime,
+>=20
+> On Fri, Sep 22, 2017 at 12:08:22PM +0200, Maxime Ripard wrote:
+> > The Cadence MIPI-CSI2 RX controller is a CSI2RX bridge that supports up=
+ to
+> > 4 CSI-2 lanes, and can route the frames to up to 4 streams, depending on
+> > the hardware implementation.
+> >=20
+> > It can operate with an external D-PHY, an internal one or no D-PHY at a=
+ll
+> > in some configurations.
+> >=20
+> > Acked-by: Rob Herring <robh@kernel.org>
+> > Acked-by: Benoit Parrot <bparrot@ti.com>
+> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+> > ---
+> >  .../devicetree/bindings/media/cdns,csi2rx.txt      | 97 ++++++++++++++=
+++++++++
+> >  1 file changed, 97 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2rx=
+=2Etxt
+> >=20
+> > diff --git a/Documentation/devicetree/bindings/media/cdns,csi2rx.txt b/=
+Documentation/devicetree/bindings/media/cdns,csi2rx.txt
+> > new file mode 100644
+> > index 000000000000..e9c30f964a96
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/cdns,csi2rx.txt
+> > @@ -0,0 +1,97 @@
+> > +Cadence MIPI-CSI2 RX controller
+> > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D
+> > +
+> > +The Cadence MIPI-CSI2 RX controller is a CSI-2 bridge supporting up to=
+ 4 CSI
+> > +lanes in input, and 4 different pixel streams in output.
+> > +
+> > +Required properties:
+> > +  - compatible: must be set to "cdns,csi2rx" and an SoC-specific compa=
+tible
+> > +  - reg: base address and size of the memory mapped region
+> > +  - clocks: phandles to the clocks driving the controller
+> > +  - clock-names: must contain:
+> > +    * sys_clk: main clock
+> > +    * p_clk: register bank clock
+> > +    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
+> > +                         implemented in hardware, between 0 and 3
+> > +
+> > +Optional properties:
+> > +  - phys: phandle to the external D-PHY, phy-names must be provided
+> > +  - phy-names: must contain dphy, if the implementation uses an
+> > +               external D-PHY
+> > +
+> > +Required subnodes:
+> > +  - ports: A ports node with one port child node per device input and =
+output
+> > +           port, in accordance with the video interface bindings defin=
+ed in
+> > +           Documentation/devicetree/bindings/media/video-interfaces.tx=
+t. The
+> > +           port nodes numbered as follows.
+> > +
+> > +           Port Description
+> > +           -----------------------------
+> > +           0    CSI-2 input
+> > +           1    Stream 0 output
+> > +           2    Stream 1 output
+> > +           3    Stream 2 output
+> > +           4    Stream 3 output
+> > +
+> > +           The stream output port nodes are optional if they are not c=
+onnected
+> > +           to anything at the hardware level or implemented in the des=
+ign.
+>=20
+> Could you add supported endpoint numbers, please?
+>=20
+> <URL:https://patchwork.linuxtv.org/patch/44409/>
+
+So in the case where you have a single endpoint, usually you don't
+provide an endpoint number at all. Should I document it as zero, or as
+"no number"?
 
 Thanks!
+Maxime
 
-gadgetfs: bound to dummy_udc driver
-usb 1-1: new full-speed USB device number 2 using dummy_hcd
-gadgetfs: connected
-gadgetfs: disconnected
-gadgetfs: connected
-usb 1-1: config 189 interface 0 altsetting 0 endpoint 0x9 has an
-invalid bInterval 0, changing to 4
-usb 1-1: New USB device found, idVendor=187f, idProduct=0100
-usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
-gadgetfs: configuration #189
-smsusb:smsusb_probe: board id=1, interface number 0
-smsusb:siano_media_device_register: media controller created
-smsusb:smsusb1_detectmode: product string not found
-smsmdtv:smscore_set_device_mode: return error code -22.
-smsmdtv:smscore_start_device: set device mode failed , rc -22
-smsusb:smsusb_init_device: smscore_start_device(...) failed
-smsusb:smsusb_onresponse: error, urb status -2, 0 bytes
-smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-smsusb:smsusb_probe: Device initialized with return code -22
-==================================================================
-BUG: KASAN: use-after-free in worker_thread+0x1468/0x1850
-Read of size 8 at addr ffff88006a2b80f0 by task kworker/0:1/24
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
 
-CPU: 0 PID: 24 Comm: kworker/0:1 Not tainted
-4.14.0-rc2-42660-g24b7bd59eec0-dirty #273
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-Call Trace:
- __dump_stack lib/dump_stack.c:16
- dump_stack+0x292/0x395 lib/dump_stack.c:52
- print_address_description+0x78/0x280 mm/kasan/report.c:252
- kasan_report_error mm/kasan/report.c:351
- kasan_report+0x23d/0x350 mm/kasan/report.c:409
- __asan_report_load8_noabort+0x19/0x20 mm/kasan/report.c:430
- worker_thread+0x1468/0x1850 kernel/workqueue.c:2251
- kthread+0x3a1/0x470 kernel/kthread.c:231
- ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+--vbujyc7vulhtlheg
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Allocated by task 1846:
- save_stack_trace+0x1b/0x20 arch/x86/kernel/stacktrace.c:59
- save_stack+0x43/0xd0 mm/kasan/kasan.c:447
- set_track mm/kasan/kasan.c:459
- kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
- kmem_cache_alloc_trace+0x11e/0x2d0 mm/slub.c:2772
- kmalloc ./include/linux/slab.h:493
- kzalloc ./include/linux/slab.h:666
- smsusb_init_device+0xd5/0xe40 drivers/media/usb/siano/smsusb.c:418
- smsusb_probe+0x4f5/0xdc0 drivers/media/usb/siano/smsusb.c:580
- usb_probe_interface+0x35d/0x8e0 drivers/usb/core/driver.c:361
- really_probe drivers/base/dd.c:413
- driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
- __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
- bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
- __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
- device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
- bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
- device_add+0xd0b/0x1660 drivers/base/core.c:1835
- usb_set_configuration+0x104e/0x1870 drivers/usb/core/message.c:1932
- generic_probe+0x73/0xe0 drivers/usb/core/generic.c:174
- usb_probe_device+0xaf/0xe0 drivers/usb/core/driver.c:266
- really_probe drivers/base/dd.c:413
- driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
- __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
- bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
- __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
- device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
- bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
- device_add+0xd0b/0x1660 drivers/base/core.c:1835
- usb_new_device+0x7b8/0x1020 drivers/usb/core/hub.c:2457
- hub_port_connect drivers/usb/core/hub.c:4903
- hub_port_connect_change drivers/usb/core/hub.c:5009
- port_event drivers/usb/core/hub.c:5115
- hub_event+0x194d/0x3740 drivers/usb/core/hub.c:5195
- process_one_work+0xc7f/0x1db0 kernel/workqueue.c:2119
- worker_thread+0x221/0x1850 kernel/workqueue.c:2253
- kthread+0x3a1/0x470 kernel/kthread.c:231
- ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+-----BEGIN PGP SIGNATURE-----
 
-Freed by task 1846:
- save_stack_trace+0x1b/0x20 arch/x86/kernel/stacktrace.c:59
- save_stack+0x43/0xd0 mm/kasan/kasan.c:447
- set_track mm/kasan/kasan.c:459
- kasan_slab_free+0x72/0xc0 mm/kasan/kasan.c:524
- slab_free_hook mm/slub.c:1390
- slab_free_freelist_hook mm/slub.c:1412
- slab_free mm/slub.c:2988
- kfree+0xf6/0x2f0 mm/slub.c:3919
- smsusb_term_device+0x166/0x1f0 drivers/media/usb/siano/smsusb.c:373
- smsusb_init_device+0xcaa/0xe40 drivers/media/usb/siano/smsusb.c:505
- smsusb_probe+0x4f5/0xdc0 drivers/media/usb/siano/smsusb.c:580
- usb_probe_interface+0x35d/0x8e0 drivers/usb/core/driver.c:361
- really_probe drivers/base/dd.c:413
- driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
- __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
- bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
- __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
- device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
- bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
- device_add+0xd0b/0x1660 drivers/base/core.c:1835
- usb_set_configuration+0x104e/0x1870 drivers/usb/core/message.c:1932
- generic_probe+0x73/0xe0 drivers/usb/core/generic.c:174
- usb_probe_device+0xaf/0xe0 drivers/usb/core/driver.c:266
- really_probe drivers/base/dd.c:413
- driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
- __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
- bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
- __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
- device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
- bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
- device_add+0xd0b/0x1660 drivers/base/core.c:1835
- usb_new_device+0x7b8/0x1020 drivers/usb/core/hub.c:2457
- hub_port_connect drivers/usb/core/hub.c:4903
- hub_port_connect_change drivers/usb/core/hub.c:5009
- port_event drivers/usb/core/hub.c:5115
- hub_event+0x194d/0x3740 drivers/usb/core/hub.c:5195
- process_one_work+0xc7f/0x1db0 kernel/workqueue.c:2119
- worker_thread+0x221/0x1850 kernel/workqueue.c:2253
- kthread+0x3a1/0x470 kernel/kthread.c:231
- ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+iQIcBAEBAgAGBQJZxSQMAAoJEBx+YmzsjxAgp98P/iJlzB29PSyNmxlyawkyHn4B
+wdvu2loL2MYSYLUkfENHczLlM/f1OrOt2n/59FJ3MLl/Vdgbc1hB4yebBIPc1OY0
+voj9VWa5ystbkcswmwa3rLPU+FvOkU6Lo4ynJ/vFpJQFeWEjn9SSfVTiwH75K4E9
+jsNeaZPldRNRlSmjzbKJB327NeFfeQZvx7giHDh3g5g7OudEeZnP2BSt00bPXx20
+LM4kb0tH7w1ivnNBeBxg1w5OeRwydWpWyKLYmQPwWQ4xETdYiqIXz9wcyz1fnH1t
+hDjkCLp8EOOusLxFWNawb6Ua6spMjhgRi0xd3Ke3nH1iAtUDYJK1FXINPEEJMhxB
+WqjU8ecDdONIkGbMQFkmG1sUlU2l88WaBF7f+VSn6KM2I/F5ypRoFrLcBUDOLKh2
+KCDpX+CRJBulPBqdqUh0fMQyf5TzB4leKNzTspHFTpd6dAlyMxfIZ3zvZE4/c1xn
+/OzMZdtHsr61RW0t8TDJ1V4ltTuTqzRbdLh650Y5w5jXGx6L3Yf8cx4GvqYhlBvM
+Mc19J9W3AFTE4AV0YoOdCx+MPDJJ2sH8oIGO1ycufcrU9qW6gbztTrCfYMDPRiWK
+Z29ZjvG23GFFeQuhrvYXKA1pzwZDsusNqSze+H9Q8rCAnhGLwVabI4Pght3yqbY8
+YvABAgHprmF45NKbaPZc
+=Xw0U
+-----END PGP SIGNATURE-----
 
-The buggy address belongs to the object at ffff88006a2b8000
- which belongs to the cache kmalloc-4096 of size 4096
-The buggy address is located 240 bytes inside of
- 4096-byte region [ffff88006a2b8000, ffff88006a2b9000)
-The buggy address belongs to the page:
-page:ffffea0001a8ae00 count:1 mapcount:0 mapping:          (null)
-index:0x0 compound_mapcount: 0
-flags: 0x100000000008100(slab|head)
-raw: 0100000000008100 0000000000000000 0000000000000000 0000000180070007
-raw: dead000000000100 dead000000000200 ffff88006c402c00 0000000000000000
-page dumped because: kasan: bad access detected
-
-Memory state around the buggy address:
- ffff88006a2b7f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
- ffff88006a2b8000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->ffff88006a2b8080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-                                                             ^
- ffff88006a2b8100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
- ffff88006a2b8180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-==================================================================
-
-> ---
-> This bug report by Andrey Konovalov "usb/media/smsusb: use-after-free in
-> worker_thread".
->
->  drivers/media/usb/siano/smsusb.c | 45 ++++++++++++++++++++++++----------------
->  1 file changed, 27 insertions(+), 18 deletions(-)
->
-> diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
-> index 8c1f926..66936b3 100644
-> --- a/drivers/media/usb/siano/smsusb.c
-> +++ b/drivers/media/usb/siano/smsusb.c
-> @@ -69,6 +69,9 @@ struct smsusb_device_t {
->         unsigned char in_ep;
->         unsigned char out_ep;
->         enum smsusb_state state;
-> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> +       struct media_device *mdev;
-> +#endif
->  };
->
->  static int smsusb_submit_urb(struct smsusb_device_t *dev,
-> @@ -359,6 +362,13 @@ static void smsusb_term_device(struct usb_interface *intf)
->                 if (dev->coredev)
->                         smscore_unregister_device(dev->coredev);
->
-> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> +               if (dev->mdev) {
-> +                       media_device_unregister(dev->mdev);
-> +                       media_device_cleanup(dev->mdev);
-> +                       kfree(dev->mdev);
-> +               }
-> +#endif
->                 pr_debug("device 0x%p destroyed\n", dev);
->                 kfree(dev);
->         }
-> @@ -370,27 +380,28 @@ static void *siano_media_device_register(struct smsusb_device_t *dev,
->                                         int board_id)
->  {
->  #ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -       struct media_device *mdev;
->         struct usb_device *udev = dev->udev;
->         struct sms_board *board = sms_get_board(board_id);
->         int ret;
->
-> -       mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
-> -       if (!mdev)
-> +       dev->mdev = kzalloc(sizeof(*dev->mdev), GFP_KERNEL);
-> +       if (!dev->mdev)
->                 return NULL;
->
-> -       media_device_usb_init(mdev, udev, board->name);
->
-> -       ret = media_device_register(mdev);
-> +       media_device_usb_init(dev->mdev, udev, board->name);
-> +
-> +       ret = media_device_register(dev->mdev);
->         if (ret) {
-> -               media_device_cleanup(mdev);
-> -               kfree(mdev);
-> +               media_device_cleanup(dev->mdev);
-> +               kfree(dev->mdev);
-> +               dev->mdev = NULL;
->                 return NULL;
->         }
->
->         pr_info("media controller created\n");
->
-> -       return mdev;
-> +       return dev->mdev;
->  #else
->         return NULL;
->  #endif
-> @@ -458,12 +469,7 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
->         rc = smscore_register_device(&params, &dev->coredev, mdev);
->         if (rc < 0) {
->                 pr_err("smscore_register_device(...) failed, rc %d\n", rc);
-> -               smsusb_term_device(intf);
-> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -               media_device_unregister(mdev);
-> -#endif
-> -               kfree(mdev);
-> -               return rc;
-> +               goto err_smsusb_init;
->         }
->
->         smscore_set_board_id(dev->coredev, board_id);
-> @@ -480,8 +486,7 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
->         rc = smsusb_start_streaming(dev);
->         if (rc < 0) {
->                 pr_err("smsusb_start_streaming(...) failed\n");
-> -               smsusb_term_device(intf);
-> -               return rc;
-> +               goto err_smsusb_init;
->         }
->
->         dev->state = SMSUSB_ACTIVE;
-> @@ -489,13 +494,17 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
->         rc = smscore_start_device(dev->coredev);
->         if (rc < 0) {
->                 pr_err("smscore_start_device(...) failed\n");
-> -               smsusb_term_device(intf);
-> -               return rc;
-> +               goto err_smsusb_init;
->         }
->
->         pr_debug("device 0x%p created\n", dev);
->
->         return rc;
-> +
-> +err_smsusb_init:
-> +       smsusb_term_device(intf);
-> +
-> +       return rc;
->  }
->
->  static int smsusb_probe(struct usb_interface *intf,
-> --
-> 1.9.1
->
-> --
-> You received this message because you are subscribed to the Google Groups "syzkaller" group.
-> To unsubscribe from this group and stop receiving emails from it, send an email to syzkaller+unsubscribe@googlegroups.com.
-> For more options, visit https://groups.google.com/d/optout.
+--vbujyc7vulhtlheg--
