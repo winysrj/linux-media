@@ -1,93 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:19948 "EHLO
-        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750952AbdISImg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 04:42:36 -0400
-Date: Tue, 19 Sep 2017 11:42:16 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from mout.web.de ([212.227.17.12]:60814 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751873AbdIVOvH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Sep 2017 10:51:07 -0400
+Subject: Re: [PATCH 2/4] [media] usbvision-core: Use common error handling
+ code in usbvision_set_compress_params()
+To: Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org
+Cc: Davidlohr Bueso <dave@stgolabs.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         LKML <linux-kernel@vger.kernel.org>,
         kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 4/6] [media] go7007: Use common error handling code in
- s2250_probe()
-Message-ID: <20170919084216.ctvwpmswr3ckhwzc@mwanda>
-References: <b36ece3f-0f31-9bb6-14ae-c4abf7cd23ee@users.sourceforge.net>
- <c4d2e584-39ca-6e30-43ee-56088905149e@users.sourceforge.net>
+References: <c0e6e8e7-e47d-dc88-3317-2e46eaa51dc6@users.sourceforge.net>
+ <52c09836-83d7-c509-6e85-c7af16160302@users.sourceforge.net>
+ <20170922114432.x4e2ao22spbyek7n@mwanda>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <d4ab8049-0be4-6183-3cbd-5bc03968c2a4@users.sourceforge.net>
+Date: Fri, 22 Sep 2017 16:50:07 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <c4d2e584-39ca-6e30-43ee-56088905149e@users.sourceforge.net>
+In-Reply-To: <20170922114432.x4e2ao22spbyek7n@mwanda>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 18, 2017 at 03:57:21PM +0200, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Mon, 18 Sep 2017 13:50:45 +0200
+>> @@ -1913,11 +1908,12 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
+>>  			     USB_DIR_OUT | USB_TYPE_VENDOR |
+>>  			     USB_RECIP_ENDPOINT, 0,
+>>  			     (__u16) USBVISION_PCM_THR1, value, 6, HZ);
+>> +	if (rc < 0)
+>> +report_failure:
+>> +		dev_err(&usbvision->dev->dev,
+>> +			"%s: ERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
+>> +			__func__, rc);
 > 
-> Adjust jump targets so that a bit of exception handling can be better
-> reused at the end of this function.
-> 
-> This refactoring might fix also an error situation where the
-> function "i2c_unregister_device" was not called after a software failure
-> was noticed by the data member "hdl.error".
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/media/usb/go7007/s2250-board.c | 37 +++++++++++++++++-----------------
->  1 file changed, 18 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/usb/go7007/s2250-board.c b/drivers/media/usb/go7007/s2250-board.c
-> index 1fd4c09dd516..1bd9a7f2e7a3 100644
-> --- a/drivers/media/usb/go7007/s2250-board.c
-> +++ b/drivers/media/usb/go7007/s2250-board.c
-> @@ -510,6 +510,7 @@ static int s2250_probe(struct i2c_client *client,
->  	u8 *data;
->  	struct go7007 *go = i2c_get_adapdata(adapter);
->  	struct go7007_usb *usb = go->hpi_context;
-> +	int code;
+> You've been asked several times not to write code like this.
 
-It should be called "int rc" to match the rest of the driver.  "ret" or
-"err" would also have been acceptable.
+This suggestion occurred a few times.
 
->  
->  	audio = i2c_new_dummy(adapter, TLV320_ADDRESS >> 1);
->  	if (!audio)
-> @@ -517,8 +518,8 @@ static int s2250_probe(struct i2c_client *client,
->  
->  	state = kzalloc(sizeof(*state), GFP_KERNEL);
->  	if (!state) {
-> -		i2c_unregister_device(audio);
-> -		return -ENOMEM;
-> +		code = -ENOMEM;
-> +		goto unregister_device;
->  	}
->  
->  	sd = &state->sd;
-> @@ -538,11 +539,8 @@ static int s2250_probe(struct i2c_client *client,
->  		V4L2_CID_HUE, -512, 511, 1, 0);
->  	sd->ctrl_handler = &state->hdl;
->  	if (state->hdl.error) {
-> -		int err = state->hdl.error;
-> -
-> -		v4l2_ctrl_handler_free(&state->hdl);
-> -		kfree(state);
-> -		return err;
-> +		code = state->hdl.error;
-> +		goto free_handler;
->  	}
->  
->  	state->std = V4L2_STD_NTSC;
-> @@ -555,17 +553,13 @@ static int s2250_probe(struct i2c_client *client,
->  	/* initialize the audio */
->  	if (write_regs(audio, aud_regs) < 0) {
->  		dev_err(&client->dev, "error initializing audio\n");
-> -		goto fail;
-> +		goto e_io;
+Do you prefer to move this place to the end together with a duplicated statement “return rc;”?
 
-Preserve the error code.
 
-regards,
-dan carpenter
+> You do it later in the patch series as well.
+
+To which update step do you refer here?
+
+Regards,
+Markus
