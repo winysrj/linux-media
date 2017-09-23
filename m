@@ -1,98 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33634
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752050AbdI0WXz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 18:23:55 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: [PATCH v7 0/7] document types of hardware control for V4L2
-Date: Wed, 27 Sep 2017 19:23:42 -0300
-Message-Id: <cover.1506550930.git.mchehab@s-opensource.com>
+Received: from mout.web.de ([212.227.17.12]:62416 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750778AbdIWP1t (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 23 Sep 2017 11:27:49 -0400
+Subject: Re: [media] v4l2-core: Fine-tuning for some function implementations
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Jan Kara <jack@suse.cz>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michal Hocko <mhocko@suse.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
+ <20161227115111.GN16630@valkosipuli.retiisi.org.uk>
+ <b804f4dd-392e-ae8e-41de-a02260fef550@xs4all.nl>
+ <8241c145-03f4-6dd2-401e-7d251cd5d251@users.sourceforge.net>
+ <f48e9219-3092-1b1f-4458-f9437746bf14@xs4all.nl>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <85cf0892-68d4-560e-58df-874148d82143@users.sourceforge.net>
+Date: Sat, 23 Sep 2017 17:27:10 +0200
+MIME-Version: 1.0
+In-Reply-To: <f48e9219-3092-1b1f-4458-f9437746bf14@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Kernel 2.6.39, the omap3 driver was introduced together with a new way
-to control complex V4L2 devices used on embedded systems, but this was
-never documented, as the original idea were to have "soon" support for
-standard apps to use it as well, via libv4l, but that didn't happen so far.
+>> Will the software evolution be continued for related source files?
+>> Are there any update candidates left over in the directory “v4l2-core”?
+> 
+> Sorry, I don't understand the question.
 
-Also, it is not possible for an userspace applicatin to detect the kind of
-control a device supports.
+I try to explain my view again.
 
-This series fill the gap, by documenting the new type of hardware
-control and adding a way for userspace to detect if the device can be
-used or not by an standard V4L2 application.
 
-Notes:
-====
+> We don't want to touch the videobuf-* files unless there is a very good reason.
 
-1) For the sake of better review, this series start with the addition of a
-glossary, as requested by Laurent. Please notice, however, that
-the glossary there references some new captions that will only be added
-by subsequent patches. So, when this series get applied, the glossary
-patch should actually be merged after the patches that introduce those
-new captions, in order to avoid warnings for non-existing references.
+I hoped that my update suggestions could be good enough once more for this area.
 
-2) This series doesn't contain patches that actually use the new flag.
-This will be added after such patch gets reviewed.
 
-v7:
-- Altered some nomenclature at the glossary as suggested by Hans
-  and used git-filter to change it on all patches.
+> That old videobuf framework is deprecated and the code is quite fragile
+> (i.e. easy to break things).
 
-v6:
-- Some editorial changes based on comments from Hans and Sakari.
+How do you think about to move this stuff into a separate subdirectory
+so that it might become a bit easier to distinguish these software components?
 
-v5:
-- Added more terms to the glossary
-- Adjusted some wording as proposed by Hans on a few patches
-  and added his ack on others
 
-v4:
+> Everything else in that directory is under continuous development.
 
-- Addressed Hans comments for v2;
-- Fixed broken references at the glossary.rst
+I am curious if there are still update candidates left over
+(also from my selection of change possibilities).
 
-v3:
-
-- Add a glossary to be used by the new documentation about hardware control;
-- Add a patch removing minor number range
-- Use glossary terms at open.rst
-- Split the notice about subdev-API on vdev-centric, as this change
-   will require further discussions.
-
-v2:
-
-- added a patch at the beginning of the series better defining the
-  device node naming rules;
-- better defined the differenes between device hardware and V4L2 device node
-  as suggested by Laurent and with changes proposed by Hans and Sakari
-- changed the caps flag to indicate MC-centric devices
-- removed the final patch that would use the new caps flag. I'll write it
-  once we agree on the new caps flag.
-
-Mauro Carvalho Chehab (7):
-  media: add glossary.rst with a glossary of terms used at V4L2 spec
-  media: open.rst: better document device node naming
-  media: open.rst: remove the minor number range
-  media: open.rst: document devnode-centric and mc-centric types
-  media: open.rst: Adjust some terms to match the glossary
-  media: videodev2: add a flag for MC-centric devices
-  media: open.rst: add a notice about subdev-API on vdev-centric
-
- Documentation/media/uapi/v4l/glossary.rst        | 136 +++++++++++++++++++++++
- Documentation/media/uapi/v4l/open.rst            | 119 +++++++++++++++++---
- Documentation/media/uapi/v4l/v4l2.rst            |   1 +
- Documentation/media/uapi/v4l/vidioc-querycap.rst |   5 +
- Documentation/media/videodev2.h.rst.exceptions   |   1 +
- include/uapi/linux/videodev2.h                   |   2 +
- 6 files changed, 250 insertions(+), 14 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/glossary.rst
-
--- 
-2.13.5
+Regards,
+Markus
