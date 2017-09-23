@@ -1,73 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:33407 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751123AbdIMPyw (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51870
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750912AbdIWMiK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 11:54:52 -0400
-Subject: Re: [PATCH] [media] s3c-camif: fix out-of-bounds array access
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Sylwester Nawrocki <snawrocki@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sat, 23 Sep 2017 08:38:10 -0400
+Date: Sat, 23 Sep 2017 09:38:02 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "moderated list:ARM/SAMSUNG EXYNOS ARM ARCHITECTURES"
-        <linux-samsung-soc@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <ce741db2-dc57-7d23-90bc-319411006861@samsung.com>
-Date: Wed, 13 Sep 2017 17:54:45 +0200
-MIME-version: 1.0
-In-reply-to: <CAK8P3a2CDqgaqZiopJJOB6WsTgQEB49sz7=7izmFfaBOgG5_xA@mail.gmail.com>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <CGME20170913092551epcas1p4f84e118f364f605cb5cc6b8b669ac095@epcas1p4.samsung.com>
-        <20170912200932.3634089-1-arnd@arndb.de>
-        <4355b20a-504c-4e83-92c8-049e6c6d6a5f@samsung.com>
-        <CAK8P3a2CDqgaqZiopJJOB6WsTgQEB49sz7=7izmFfaBOgG5_xA@mail.gmail.com>
+        Markus Elfring <elfring@users.sourceforge.net>
+Subject: Re: [GIT PULL FOR v4.15] Cleanup fixes
+Message-ID: <20170923093802.34b31c98@vento.lan>
+In-Reply-To: <7f18a823-3827-5a9c-053d-61f113a2d36f@xs4all.nl>
+References: <7f18a823-3827-5a9c-053d-61f113a2d36f@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/13/2017 04:03 PM, Arnd Bergmann wrote:
-> On Wed, Sep 13, 2017 at 11:25 AM, Sylwester Nawrocki
-> <s.nawrocki@samsung.com>  wrote:
->> On 09/12/2017 10:09 PM, Arnd Bergmann wrote:
->>>    {
->>>        const struct s3c_camif_variant *variant = camif->variant;
->>>        const struct vp_pix_limits *pix_lim;
->>> -     int i = ARRAY_SIZE(camif_mbus_formats);
->>>
->>>        /* FIXME: constraints against codec or preview path ? */
->>>        pix_lim = &variant->vp_pix_limits[VP_CODEC];
->>>
->>> -     while (i-- >= 0)
->>> -             if (camif_mbus_formats[i] == mf->code)
->>> -                     break;
->>> -
->>> -     mf->code = camif_mbus_formats[i];
->>
->> Interesting finding... the function needs to ensure mf->code is set
->> to one of supported values by the driver, so instead of removing
->> how about changing the above line to:
->>
->>          if (i < 0)
->>                  mf->code = camif_mbus_formats[0];
->>
->> ?
-> That would still have one of the two out-of-bounds accesses;-)
+Em Fri, 8 Sep 2017 16:34:56 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Ah, indeed :/
-
-> maybe this
+> coccinelle, checkpatch, coverity, etc. etc.
 > 
-> for (i = 0; i < ARRAY_SIZE(camif_mbus_formats); i++)
->          if (camif_mbus_formats[i] == mf->code)
->                 break;
+> Regards,
 > 
-> if (i == ARRAY_SIZE(camif_mbus_formats))
->         mf->code = camif_mbus_formats[0];
+> 	Hans
+> 
+> The following changes since commit 1efdf1776e2253b77413c997bed862410e4b6aaf:
+> 
+>   media: leds: as3645a: add V4L2_FLASH_LED_CLASS dependency (2017-09-05 16:32:45 -0400)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git for-v4.15a
+> 
+> for you to fetch changes up to d50cd4ba25f6a9b5cfd7012cbe0d8c146212cda1:
+> 
+>   media: cx23885: make const array buf static, reduces object code size (2017-09-08 16:13:36 +0200)
+> 
+> ----------------------------------------------------------------
+> Bhumika Goyal (2):
+>       usb: make i2c_client const
+>       pci: make i2c_client const
+> 
+> Colin Ian King (5):
+>       rtl28xxu: make array rc_nec_tab static const
+>       cx25840: make array stds static const, reduces object code size
+>       cobalt: remove redundant zero check on retval
+>       ov9640: make const arrays res_x/y static const, reduces object code size
+>       media: cx23885: make const array buf static, reduces object code size
+> 
+> Daniel Scheller (1):
+>       dvb-frontends/mxl5xx: declare LIST_HEAD(mxllist) static
+> 
+> Markus Elfring (62):
+>       Cypress: Delete an error message for a failed memory allocation in cypress_load_firmware()
+>       Cypress: Improve a size determination in cypress_load_firmware()
+>       Siano: Delete an error message for a failed memory allocation in three functions
+>       Siano: Improve a size determination in six functions
+>       Siano: Adjust five checks for null pointers
+>       zr364xx: Delete an error message for a failed memory allocation in two functions
+>       zr364xx: Improve a size determination in zr364xx_probe()
+>       zr364xx: Adjust ten checks for null pointers
+>       as102_fe: Delete an error message for a failed memory allocation in as102_attach()
+>       as102_fe: Improve a size determination in as102_attach()
+>       cx24113: Delete an error message for a failed memory allocation in cx24113_attach()
+>       cx24113: Return directly after a failed kzalloc() in cx24113_attach()
+>       cx24113: Improve a size determination in cx24113_attach()
+>       cx24116: Delete an error message for a failed memory allocation in cx24116_writeregN()
+>       cx24116: Return directly after a failed kmalloc() in cx24116_writeregN()
+>       cx24116: Delete an unnecessary variable initialisation in cx24116_writeregN()
+>       cx24116: Improve a size determination in cx24116_attach()
+>       cx24116: Delete an unnecessary variable initialisation in cx24116_attach()
+>       cx24116: Delete jump targets in cx24116_attach()
+>       drxd: Delete an error message for a failed memory allocation in load_firmware()
+>       drxd: Adjust a null pointer check in three functions
+>       ds3000: Delete an error message for a failed memory allocation in two functions
+>       ds3000: Improve a size determination in ds3000_attach()
+>       ds3000: Delete an unnecessary variable initialisation in ds3000_attach()
+>       ds3000: Delete jump targets in ds3000_attach()
+>       mb86a20s: Delete an error message for a failed memory allocation in mb86a20s_attach()
+>       mb86a20s: Improve a size determination in mb86a20s_attach()
+>       mb86a20s: Delete a jump target in mb86a20s_attach()
+>       si2168: Delete an error message for a failed memory allocation in si2168_probe()
+>       sp2: Delete an error message for a failed memory allocation in sp2_probe()
+>       sp2: Improve a size determination in sp2_probe()
+>       sp2: Adjust three null pointer checks in sp2_exit()
+>       adv7604: Delete an error message for a failed memory allocation in adv76xx_probe()
+>       adv7604: Adjust a null pointer check in three functions
+>       adv7842: Delete an error message for a failed memory allocation in adv7842_probe()
+>       adv7842: Improve a size determination in adv7842_probe()
+>       cx18: Delete an error message for a failed memory allocation in cx18_probe()
+>       cx18: Improve a size determination in cx18_probe()
+>       cx18: Adjust ten checks for null pointers
+>       Hopper: Delete an error message for a failed memory allocation in hopper_pci_probe()
+>       Hopper: Improve a size determination in hopper_pci_probe()
+>       Hopper: Adjust a null pointer check in two functions
+>       Hopper: Delete an unnecessary variable initialisation in hopper_pci_probe()
+>       Mantis: Delete an error message for a failed memory allocation in mantis_pci_probe()
+>       Mantis: Improve a size determination in mantis_pci_probe()
+>       Mantis: Delete an unnecessary variable initialisation in mantis_pci_probe()
+>       meye: Delete three error messages for a failed memory allocation in meye_probe()
+>       meye: Adjust two function calls together with a variable assignment
+>       saa7164: Delete an error message for a failed memory allocation in saa7164_buffer_alloc()
+>       saa7164: Improve a size determination in two functions
+>       Hexium Gemini: Delete an error message for a failed memory allocation in hexium_attach()
+>       Hexium Gemini: Improve a size determination in hexium_attach()
+>       Hexium Orion: Delete an error message for a failed memory allocation in hexium_probe()
+>       Hexium Orion: Improve a size determination in hexium_probe()
+>       Hexium Orion: Adjust one function call together with a variable assignment
+>       atmel-isc: Delete an error message for a failed memory allocation in isc_formats_init()
+>       atmel-isc: Improve a size determination in isc_formats_init()
+>       atmel-isc: Adjust three checks for null pointers
+>       atmel-isi: Delete an error message for a failed memory allocation in two functions
+>       atmel-isi: Improve three size determinations
+>       atmel-isi: Adjust a null pointer check in three functions
+>       blackfin: Delete an error message for a failed memory allocation in ppi_create_instance()
 
-Yes, it should work that way.
+It **really** doesn't makes any sense to send patch bombs like that!
+That pisses me off, as it requires a considerable amount of time from
+my side that could be used handling important stuff...
 
--- 
-Thanks,
-Sylwester
+You're even doing the same logical change on the same driver several times,
+like this one:
+	atmel-isc: Delete an error message for a failed memory allocation in isc_formats_init()
+	atmel-isi: Delete an error message for a failed memory allocation in two functions
+
+Please, never do this again. Instead, group patches that do the same
+thing per subsystem.
+
+This time, I was nice and I took some time doing:
+
+	$ quilt fold < `quilt next` && quilt delete `quilt next`
+
+In order to merge the same logic change altogether, applied to all
+drivers at the subsystem.
+
+Next time, I'll just ignore the hole crap.
+
+Regards,
+Mauro
