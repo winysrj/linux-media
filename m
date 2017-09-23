@@ -1,94 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42670 "EHLO mail.kernel.org"
+Received: from mout.web.de ([212.227.15.3]:61813 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751184AbdIOQmP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 12:42:15 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com,
-        linux-renesas-soc@vger.kernel.org
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v1 2/3] drm: rcar-du: Add suspend resume helpers
-Date: Fri, 15 Sep 2017 17:42:06 +0100
-Message-Id: <199d29db89a7953f59e1eb4e91a3421336e3ed2a.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
+        id S1751030AbdIWToV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 23 Sep 2017 15:44:21 -0400
+Subject: [PATCH 1/3] [media] camss-csid: Use common error handling code in
+ csid_set_power()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Todor Tomov <todor.tomov@linaro.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <168ff884-7ace-c548-7f90-d4f2910bb337@users.sourceforge.net>
+Message-ID: <0fe4e31f-02e2-8b48-c8a8-811ecd8a482f@users.sourceforge.net>
+Date: Sat, 23 Sep 2017 21:44:15 +0200
+MIME-Version: 1.0
+In-Reply-To: <168ff884-7ace-c548-7f90-d4f2910bb337@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pipeline needs to ensure that the hardware is idle for suspend and
-resume operations.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 23 Sep 2017 20:48:33 +0200
 
-Implement suspend and resume functions using the DRM atomic helper
-functions.
+Add jump targets so that a bit of exception handling can be better reused
+at the end of this function.
 
-CC: dri-devel@lists.freedesktop.org
+This issue was detected by using the Coccinelle software.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/gpu/drm/rcar-du/rcar_du_drv.c | 18 +++++++++++++++---
- drivers/gpu/drm/rcar-du/rcar_du_drv.h |  1 +
- 2 files changed, 16 insertions(+), 3 deletions(-)
+ drivers/media/platform/qcom/camss-8x16/camss-csid.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.c b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
-index 09fbceade6b1..01b91d0c169c 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_drv.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
-@@ -22,6 +22,7 @@
- #include <linux/wait.h>
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss-csid.c b/drivers/media/platform/qcom/camss-8x16/camss-csid.c
+index 64df82817de3..92d4dc6b4a66 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss-csid.c
++++ b/drivers/media/platform/qcom/camss-8x16/camss-csid.c
+@@ -330,13 +330,9 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
+ 		ret = csid_set_clock_rates(csid);
+-		if (ret < 0) {
+-			regulator_disable(csid->vdda);
+-			return ret;
+-		}
++		if (ret < 0)
++			goto disable_regulator;
  
- #include <drm/drmP.h>
-+#include <drm/drm_atomic_helper.h>
- #include <drm/drm_crtc_helper.h>
- #include <drm/drm_fb_cma_helper.h>
- #include <drm/drm_gem_cma_helper.h>
-@@ -267,9 +268,19 @@ static struct drm_driver rcar_du_driver = {
- static int rcar_du_pm_suspend(struct device *dev)
- {
- 	struct rcar_du_device *rcdu = dev_get_drvdata(dev);
-+	struct drm_atomic_state *state;
+ 		ret = camss_enable_clocks(csid->nclocks, csid->clock, dev);
+-		if (ret < 0) {
+-			regulator_disable(csid->vdda);
+-			return ret;
+-		}
++		if (ret < 0)
++			goto disable_regulator;
  
- 	drm_kms_helper_poll_disable(rcdu->ddev);
--	/* TODO Suspend the CRTC */
-+	drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, true);
+ 		enable_irq(csid->irq);
+@@ -345,8 +341,7 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
+ 		if (ret < 0) {
+ 			disable_irq(csid->irq);
+ 			camss_disable_clocks(csid->nclocks, csid->clock);
+-			regulator_disable(csid->vdda);
+-			return ret;
++			goto disable_regulator;
+ 		}
+ 
+ 		hw_version = readl_relaxed(csid->base + CAMSS_CSID_HW_VERSION);
+@@ -357,6 +352,11 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
+ 		ret = regulator_disable(csid->vdda);
+ 	}
+ 
++	goto exit;
 +
-+	state = drm_atomic_helper_suspend(rcdu->ddev);
-+	if (IS_ERR(state)) {
-+		drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, false);
-+		drm_kms_helper_poll_enable(rcdu->ddev);
-+		return PTR_ERR(state);
-+	}
-+
-+	rcdu->suspend_state = state;
- 
- 	return 0;
++disable_regulator:
++	regulator_disable(csid->vdda);
++exit:
+ 	return ret;
  }
-@@ -278,9 +289,10 @@ static int rcar_du_pm_resume(struct device *dev)
- {
- 	struct rcar_du_device *rcdu = dev_get_drvdata(dev);
  
--	/* TODO Resume the CRTC */
--
-+	drm_atomic_helper_resume(rcdu->ddev, rcdu->suspend_state);
-+	drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, false);
- 	drm_kms_helper_poll_enable(rcdu->ddev);
-+
- 	return 0;
- }
- #endif
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.h b/drivers/gpu/drm/rcar-du/rcar_du_drv.h
-index f8cd79488ece..f400fde65a0c 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_drv.h
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.h
-@@ -81,6 +81,7 @@ struct rcar_du_device {
- 
- 	struct drm_device *ddev;
- 	struct drm_fbdev_cma *fbdev;
-+	struct drm_atomic_state *suspend_state;
- 
- 	struct rcar_du_crtc crtcs[RCAR_DU_MAX_CRTCS];
- 	unsigned int num_crtcs;
 -- 
-git-series 0.9.1
+2.14.1
