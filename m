@@ -1,102 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:63293 "EHLO mout.web.de"
+Received: from gofer.mess.org ([88.97.38.141]:41275 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751334AbdIQUTH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Sep 2017 16:19:07 -0400
-Subject: [PATCH 3/8] [media] cx231xx: Improve six size determinations
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Bhumika Goyal <bhumirks@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Johan Hovold <johan@kernel.org>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Matthias Schwarzott <zzam@gentoo.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Oleh Kravchenko <oleg@kaa.org.ua>,
-        Peter Rosin <peda@axentia.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <f2c1ca56-ecdc-318c-f18f-9bef6c670ffb@users.sourceforge.net>
-Message-ID: <c3e10d21-3047-4e5a-861c-7c5efce1a5ca@users.sourceforge.net>
-Date: Sun, 17 Sep 2017 22:18:40 +0200
+        id S1750814AbdIWKd6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 23 Sep 2017 06:33:58 -0400
+Date: Sat, 23 Sep 2017 11:33:56 +0100
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.15] RC cleanup fixes
+Message-ID: <20170923103356.hl5zrqekfjbsy7gt@gofer.mess.org>
 MIME-Version: 1.0
-In-Reply-To: <f2c1ca56-ecdc-318c-f18f-9bef6c670ffb@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 17 Sep 2017 18:38:50 +0200
+Hi Mauro,
 
-Replace the specification of data structures by variable references
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+Just cleanups this round. Line count does go down, though.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/cx231xx/cx231xx-dvb.c   | 10 +++++-----
- drivers/media/usb/cx231xx/cx231xx-video.c |  2 +-
- 2 files changed, 6 insertions(+), 6 deletions(-)
+Thanks,
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 0813f368fb3c..35d98ec948b2 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -611,5 +611,5 @@ static int dvb_init(struct cx231xx *dev)
- 		return 0;
- 	}
- 
--	dvb = kzalloc(sizeof(struct cx231xx_dvb), GFP_KERNEL);
-+	dvb = kzalloc(sizeof(*dvb), GFP_KERNEL);
- 	if (!dvb)
-@@ -754,7 +754,7 @@ static int dvb_init(struct cx231xx *dev)
- 		si2165_pdata.chip_mode = SI2165_MODE_PLL_XTAL,
- 		si2165_pdata.ref_freq_Hz = 16000000,
- 
--		memset(&info, 0, sizeof(struct i2c_board_info));
-+		memset(&info, 0, sizeof(info));
- 		strlcpy(info.type, "si2165", I2C_NAME_SIZE);
- 		info.addr = 0x64;
- 		info.platform_data = &si2165_pdata;
-@@ -801,7 +801,7 @@ static int dvb_init(struct cx231xx *dev)
- 		si2165_pdata.chip_mode = SI2165_MODE_PLL_EXT,
- 		si2165_pdata.ref_freq_Hz = 24000000,
- 
--		memset(&info, 0, sizeof(struct i2c_board_info));
-+		memset(&info, 0, sizeof(info));
- 		strlcpy(info.type, "si2165", I2C_NAME_SIZE);
- 		info.addr = 0x64;
- 		info.platform_data = &si2165_pdata;
-@@ -822,7 +822,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dvb->i2c_client_demod = client;
- 
--		memset(&info, 0, sizeof(struct i2c_board_info));
-+		memset(&info, 0, sizeof(info));
- 
- 		dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
- 
-@@ -869,7 +869,7 @@ static int dvb_init(struct cx231xx *dev)
- 		struct i2c_board_info info;
- 		struct si2157_config si2157_config;
- 
--		memset(&info, 0, sizeof(struct i2c_board_info));
-+		memset(&info, 0, sizeof(info));
- 
- 		dev->dvb->frontend = dvb_attach(lgdt3306a_attach,
- 			&hauppauge_955q_lgdt3306a_config,
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 956f8cbcb454..a12ec3567684 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -1771,5 +1771,5 @@ static int cx231xx_v4l2_open(struct file *filp)
- 	}
- #endif
- 
--	fh = kzalloc(sizeof(struct cx231xx_fh), GFP_KERNEL);
-+	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
- 	if (!fh)
--- 
-2.14.1
+Sean
+
+
+The following changes since commit 1efdf1776e2253b77413c997bed862410e4b6aaf:
+
+  media: leds: as3645a: add V4L2_FLASH_LED_CLASS dependency (2017-09-05 16:32:45 -0400)
+
+are available in the git repository at:
+
+  git://linuxtv.org/syoung/media_tree.git for-v4.15a
+
+for you to fetch changes up to fe96866c81291a2887559fdfcc58ddf8fe54111d:
+
+  imon: Improve a size determination in two functions (2017-09-23 11:20:12 +0100)
+
+----------------------------------------------------------------
+Arvind Yadav (1):
+      media: rc: constify usb_device_id
+
+Bhumika Goyal (1):
+      media: rc: make device_type const
+
+Colin Ian King (1):
+      media: imon: make two const arrays static, reduces object code size
+
+David Härdeman (15):
+      media: lirc_dev: clarify error handling
+      media: lirc_dev: remove support for manually specifying minor number
+      media: lirc_dev: remove min_timeout and max_timeout
+      media: lirc_dev: use cdev_device_add() helper function
+      media: lirc_dev: make better use of file->private_data
+      media: lirc_dev: make chunk_size and buffer_size mandatory
+      media: lirc_dev: remove kmalloc in lirc_dev_fop_read()
+      media: lirc_dev: change irctl->attached to be a boolean
+      media: lirc_dev: sanitize locking
+      media: lirc_dev: use an IDA instead of an array to keep track of registered devices
+      media: rename struct lirc_driver to struct lirc_dev
+      media: lirc_dev: introduce lirc_allocate_device and lirc_free_device
+      media: lirc_zilog: add a pointer to the parent device to struct IR
+      media: lirc_zilog: use a dynamically allocated lirc_dev
+      media: lirc_dev: merge struct irctl into struct lirc_dev
+
+Ladislav Michl (10):
+      media: rc: gpio-ir-recv: use helper variable to access device info
+      media: rc: gpio-ir-recv: use devm_kzalloc
+      media: rc: gpio-ir-recv: use devm_rc_allocate_device
+      media: rc: gpio-ir-recv: use devm_gpio_request_one
+      media: rc: gpio-ir-recv: use devm_rc_register_device
+      media: rc: gpio-ir-recv: do not allow threaded interrupt handler
+      media: rc: gpio-ir-recv: use devm_request_irq
+      media: rc: gpio-ir-recv: use KBUILD_MODNAME
+      media: rc: gpio-ir-recv: remove gpio_ir_recv_platform_data
+      media: rc: gpio-ir-recv: use gpiolib API
+
+Marc Gonzalez (1):
+      media: rc: Delete duplicate debug message
+
+Markus Elfring (3):
+      media: imon: delete an error message for a failed memory allocation
+      media: img-ir: delete an error message for a failed memory allocation
+      imon: Improve a size determination in two functions
+
+Sean Young (7):
+      media: dvb: a800: port to rc-core
+      media: rc: avermedia keymap for a800
+      media: rc: ensure that protocols are enabled for scancode drivers
+      media: rc: dvb: use dvb device name for rc device
+      media: rc: if protocols can't be changed, don't be writable
+      media: rc: include device name in rc udev event
+      media: vp7045: port TwinhanDTV Alpha to rc-core
+
+Stephen Hemminger (1):
+      media: default for RC_CORE should be n
+
+Thomas Meyer (1):
+      media: rc: Use bsearch library function
+
+ drivers/media/cec/cec-core.c                     |   1 -
+ drivers/media/i2c/ir-kbd-i2c.c                   |   1 -
+ drivers/media/rc/Kconfig                         |   1 -
+ drivers/media/rc/ati_remote.c                    |   2 +-
+ drivers/media/rc/gpio-ir-recv.c                  | 190 +++------
+ drivers/media/rc/igorplugusb.c                   |   2 +-
+ drivers/media/rc/img-ir/img-ir-core.c            |   5 +-
+ drivers/media/rc/imon.c                          |  18 +-
+ drivers/media/rc/ir-lirc-codec.c                 |  56 ++-
+ drivers/media/rc/keymaps/rc-avermedia-m135a.c    |   3 +-
+ drivers/media/rc/keymaps/rc-twinhan1027.c        |   2 +-
+ drivers/media/rc/lirc_dev.c                      | 517 +++++++++--------------
+ drivers/media/rc/mceusb.c                        |   2 +-
+ drivers/media/rc/rc-core-priv.h                  |   2 +-
+ drivers/media/rc/rc-main.c                       |  72 ++--
+ drivers/media/rc/redrat3.c                       |   2 +-
+ drivers/media/rc/streamzap.c                     |   2 +-
+ drivers/media/usb/dvb-usb/a800.c                 |  65 +--
+ drivers/media/usb/dvb-usb/dvb-usb-remote.c       |   3 +-
+ drivers/media/usb/dvb-usb/dvb-usb.h              |   1 +
+ drivers/media/usb/dvb-usb/vp7045.c               |  88 +---
+ drivers/staging/media/lirc/lirc_zilog.c          | 231 +++++-----
+ include/linux/platform_data/media/gpio-ir-recv.h |  23 -
+ include/media/lirc_dev.h                         | 100 ++---
+ 24 files changed, 521 insertions(+), 868 deletions(-)
+ delete mode 100644 include/linux/platform_data/media/gpio-ir-recv.h
