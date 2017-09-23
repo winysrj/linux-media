@@ -1,117 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:35688
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54260
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750972AbdISNmp (ORCPT
+        with ESMTP id S1751030AbdIWTZ6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 09:42:45 -0400
+        Sat, 23 Sep 2017 15:25:58 -0400
+Date: Sat, 23 Sep 2017 16:25:50 -0300
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Colin Ian King <colin.king@canonical.com>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 3/6] media: dvb_frontend: get rid of proprierty cache's state
-Date: Tue, 19 Sep 2017 10:42:35 -0300
-Message-Id: <c820984659f4930306921bf0cae09a646477611e.1505827883.git.mchehab@s-opensource.com>
-In-Reply-To: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
-References: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
-In-Reply-To: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
-References: <19abade3ce5fe5e57ace5a974bdfd43d64892b67.1505827883.git.mchehab@s-opensource.com>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v4.15] Cleanup fixes
+Message-ID: <20170923162550.503c9cf2@vento.lan>
+In-Reply-To: <b33aac55-6749-3dc9-1258-c6518b05a94e@users.sourceforge.net>
+References: <7f18a823-3827-5a9c-053d-61f113a2d36f@xs4all.nl>
+        <20170923093802.34b31c98@vento.lan>
+        <b33aac55-6749-3dc9-1258-c6518b05a94e@users.sourceforge.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the past, I guess the idea was to use state in order to
-allow an autofush logic. However, in the current code, it is
-used only for debug messages, on a poor man's solution, as
-there's already a debug message to indicate when the properties
-got flushed.
+Em Sat, 23 Sep 2017 16:43:53 +0200
+SF Markus Elfring <elfring@users.sourceforge.net> escreveu:
 
-So, just get rid of it for good.
+> >> coccinelle, checkpatch, coverity, etc.  
+> …
+> > It **really** doesn't makes any sense to send patch bombs like that!  
+> 
+> I got an other impression for this software development aspect.
+> 
+> 
+> > That pisses me off, as it requires a considerable amount of time from
+> > my side that could be used handling important stuff...  
+> 
+> I can partly understand this view.
+> 
+> 
+> > You're even doing the same logical change on the same driver several times,
+> > like this one:
+> > 	atmel-isc: Delete an error message for a failed memory allocation in isc_formats_init()
+> > 	atmel-isi: Delete an error message for a failed memory allocation in two functions  
+> 
+> Such a change approach can occasionally occur because of my selection
+> for a specific patch granularity.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_frontend.c | 20 ++++++--------------
- drivers/media/dvb-core/dvb_frontend.h |  5 -----
- 2 files changed, 6 insertions(+), 19 deletions(-)
+Then change patch granularity: one patch per subsystem or per
+directory (e. g. pci, usb, platform, others).
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index cbe697a094d2..d0a17d67ab1b 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -951,8 +951,6 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
- 	memset(c, 0, offsetof(struct dtv_frontend_properties, strength));
- 	c->delivery_system = delsys;
- 
--	c->state = DTV_CLEAR;
--
- 	dev_dbg(fe->dvb->device, "%s: Clearing cache for delivery system %d\n",
- 			__func__, c->delivery_system);
- 
-@@ -1775,13 +1773,13 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 		dvb_frontend_clear_cache(fe);
- 		break;
- 	case DTV_TUNE:
--		/* interpret the cache of data, build either a traditional frontend
--		 * tunerequest so we can pass validation in the FE_SET_FRONTEND
--		 * ioctl.
-+		/*
-+		 * Use the cached Digital TV properties to tune the
-+		 * frontend
- 		 */
--		c->state = tvp->cmd;
--		dev_dbg(fe->dvb->device, "%s: Finalised property cache\n",
--				__func__);
-+		dev_dbg(fe->dvb->device,
-+			"%s: Setting the frontend from property cache\n",
-+			__func__);
- 
- 		r = dtv_set_frontend(fe);
- 		break;
-@@ -1930,7 +1928,6 @@ static int dvb_frontend_ioctl(struct file *file, unsigned int cmd, void *parg)
- {
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct dvb_frontend *fe = dvbdev->priv;
--	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	int err;
- 
-@@ -1950,7 +1947,6 @@ static int dvb_frontend_ioctl(struct file *file, unsigned int cmd, void *parg)
- 		return -EPERM;
- 	}
- 
--	c->state = DTV_UNDEFINED;
- 	err = dvb_frontend_handle_ioctl(file, cmd, parg);
- 
- 	up(&fepriv->sem);
-@@ -2134,10 +2130,6 @@ static int dvb_frontend_handle_ioctl(struct file *file,
- 			}
- 			(tvp + i)->result = err;
- 		}
--
--		if (c->state == DTV_TUNE)
--			dev_dbg(fe->dvb->device, "%s: Property cache is full, tuning\n", __func__);
--
- 		kfree(tvp);
- 		break;
- 	}
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 852b91ba49d2..1bdeb10f0d78 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -620,11 +620,6 @@ struct dtv_frontend_properties {
- 	struct dtv_fe_stats	post_bit_count;
- 	struct dtv_fe_stats	block_error;
- 	struct dtv_fe_stats	block_count;
--
--	/* private: */
--	/* Cache State */
--	u32			state;
--
- };
- 
- #define DVB_FE_NO_EXIT  0
--- 
-2.13.5
+> 
+> > Instead, group patches that do the same thing per subsystem.  
+> 
+> I was also uncertain about the acceptance for the suggested
+> change patterns.
+
+That's the usual criteria most maintainers use for cleanups.
+
+> Do you want a “development pause” from my queue of change possibilities?
+
+Those patches are mainly source code "polishing". I really don't
+want to take much time handling such kind of patches, as they
+usually doesn't fix any real bug, nor add functionality.
+
+So, if you really want to contribute, the best is to buy yourself
+some media devices, test them and send patches fixing real bugs
+and improving the functionality of them.
+
+Regards,
+Mauro
