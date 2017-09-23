@@ -1,69 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:58242 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751851AbdITTM6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 15:12:58 -0400
-Subject: [PATCH 2/3] [media] dvb-ttusb-budget: Improve two size determinations
- in ttusb_probe()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <1ad3c3ce-3738-fee1-2ee5-37142fa1bc70@users.sourceforge.net>
-Message-ID: <404d5faa-432b-9649-4b9e-f0cdf1c18338@users.sourceforge.net>
-Date: Wed, 20 Sep 2017 21:12:39 +0200
-MIME-Version: 1.0
-In-Reply-To: <1ad3c3ce-3738-fee1-2ee5-37142fa1bc70@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:34248 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751873AbdIWTpj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 23 Sep 2017 15:45:39 -0400
+Received: by mail-pg0-f68.google.com with SMTP id u18so2597144pgo.1
+        for <linux-media@vger.kernel.org>; Sat, 23 Sep 2017 12:45:39 -0700 (PDT)
+From: Muhammad Falak R Wani <falakreyaz@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: [PATCH] staging/atomisp: make six local functions static to appease sparse
+Date: Sun, 24 Sep 2017 01:15:34 +0530
+Message-Id: <20170923194534.27020-1-falakreyaz@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 20 Sep 2017 20:46:11 +0200
+The functions __bo_alloc, __bo_search_and_remove_from_free_rbtree,
+__bo_search_by_addr, __bo_search_by_addr_in_range, __bo_break_up and
+__bo_merge  are local to the source and do not need to be in the global
+scope, so make them static.
 
-* The script "checkpatch.pl" pointed information out like the following.
+Cleans up sparse warnings:
 
-  ERROR: do not use assignment in if condition
-
-  Thus fix an affected source code place.
-
-* Replace the specification of data structures by variable references
-  as the parameter for the operator "sizeof" to make the corresponding size
-  determination a bit safer according to the Linux coding style convention.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+warning: symbol '__bo_alloc' was not declared. Should it be static?
+warning: symbol '__bo_search_and_remove_from_free_rbtree' was not declared. Should it be static?
+warning: symbol '__bo_search_by_addr' was not declared. Should it be static?
+warning: symbol '__bo_search_by_addr_in_range' was not declared. Should it be static?
+warning: symbol '__bo_break_up' was not declared. Should it be static?
+warning: symbol '__bo_merge' was not declared. Should it be static?
+Signed-off-by: Muhammad Falak R Wani <falakreyaz@gmail.com>
 ---
- drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-index 38394c9ecc67..fef3c8554e91 100644
---- a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-+++ b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-@@ -1657,7 +1657,8 @@ static int ttusb_probe(struct usb_interface *intf, const struct usb_device_id *i
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+index 11162f595fc7..59905969df23 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+@@ -58,7 +58,7 @@ static unsigned int nr_to_order_bottom(unsigned int nr)
+ 	return fls(nr) - 1;
+ }
  
- 	if (intf->altsetting->desc.bInterfaceNumber != 1) return -ENODEV;
+-struct hmm_buffer_object *__bo_alloc(struct kmem_cache *bo_cache)
++static struct hmm_buffer_object *__bo_alloc(struct kmem_cache *bo_cache)
+ {
+ 	struct hmm_buffer_object *bo;
  
--	if (!(ttusb = kzalloc(sizeof(struct ttusb), GFP_KERNEL)))
-+	ttusb = kzalloc(sizeof(*ttusb), GFP_KERNEL);
-+	if (!ttusb)
- 		return -ENOMEM;
+@@ -99,7 +99,7 @@ static int __bo_init(struct hmm_bo_device *bdev, struct hmm_buffer_object *bo,
+ 	return 0;
+ }
  
- 	ttusb->dev = udev;
-@@ -1692,7 +1693,7 @@ static int ttusb_probe(struct usb_interface *intf, const struct usb_device_id *i
- 	ttusb->adapter.priv = ttusb;
+-struct hmm_buffer_object *__bo_search_and_remove_from_free_rbtree(
++static struct hmm_buffer_object *__bo_search_and_remove_from_free_rbtree(
+ 				struct rb_node *node, unsigned int pgnr)
+ {
+ 	struct hmm_buffer_object *this, *ret_bo, *temp_bo;
+@@ -150,7 +150,7 @@ struct hmm_buffer_object *__bo_search_and_remove_from_free_rbtree(
+ 	return temp_bo;
+ }
  
- 	/* i2c */
--	memset(&ttusb->i2c_adap, 0, sizeof(struct i2c_adapter));
-+	memset(&ttusb->i2c_adap, 0, sizeof(ttusb->i2c_adap));
- 	strcpy(ttusb->i2c_adap.name, "TTUSB DEC");
+-struct hmm_buffer_object *__bo_search_by_addr(struct rb_root *root,
++static struct hmm_buffer_object *__bo_search_by_addr(struct rb_root *root,
+ 							ia_css_ptr start)
+ {
+ 	struct rb_node *n = root->rb_node;
+@@ -175,8 +175,8 @@ struct hmm_buffer_object *__bo_search_by_addr(struct rb_root *root,
+ 	return NULL;
+ }
  
- 	i2c_set_adapdata(&ttusb->i2c_adap, ttusb);
+-struct hmm_buffer_object *__bo_search_by_addr_in_range(struct rb_root *root,
+-					unsigned int start)
++static struct hmm_buffer_object *__bo_search_by_addr_in_range(
++		struct rb_root *root, unsigned int start)
+ {
+ 	struct rb_node *n = root->rb_node;
+ 	struct hmm_buffer_object *bo;
+@@ -258,7 +258,7 @@ static void __bo_insert_to_alloc_rbtree(struct rb_root *root,
+ 	rb_insert_color(&bo->node, root);
+ }
+ 
+-struct hmm_buffer_object *__bo_break_up(struct hmm_bo_device *bdev,
++static struct hmm_buffer_object *__bo_break_up(struct hmm_bo_device *bdev,
+ 					struct hmm_buffer_object *bo,
+ 					unsigned int pgnr)
+ {
+@@ -331,7 +331,7 @@ static void __bo_take_off_handling(struct hmm_buffer_object *bo)
+ 	}
+ }
+ 
+-struct hmm_buffer_object *__bo_merge(struct hmm_buffer_object *bo,
++static struct hmm_buffer_object *__bo_merge(struct hmm_buffer_object *bo,
+ 					struct hmm_buffer_object *next_bo)
+ {
+ 	struct hmm_bo_device *bdev;
 -- 
-2.14.1
+2.12.1
