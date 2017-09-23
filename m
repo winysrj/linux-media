@@ -1,100 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:39029 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750879AbdIOKez (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:37415 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750762AbdIWHad (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 06:34:55 -0400
-Subject: Re: [PATCH] [media] cec: GIVE_PHYSICAL_ADDR should respond to
- unregistered device
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Jose Abreu <Jose.Abreu@synopsys.com>,
-        <linux-media@vger.kernel.org>
-References: <73019b13e5e8d727c37ec1b99f2e746aad0a7153.1505388690.git.joabreu@synopsys.com>
- <dfaad7d7-883f-38b4-d685-610ee0ce88b9@cisco.com>
- <ba11c0f5-e9b3-bf24-9a8e-004a7dd5ad88@synopsys.com>
- <a5966cfe-395f-63e5-83d9-4d02fe3c7225@xs4all.nl>
- <3cbebb68-84d5-c1cc-df84-a0ccb8862cce@synopsys.com>
- <c77ce39b-a3f0-3eea-6db2-1af99e9e1d7e@xs4all.nl>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-        Joao Pinto <Joao.Pinto@synopsys.com>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <80045a4a-db2f-d805-0142-9418d012ded6@synopsys.com>
-Date: Fri, 15 Sep 2017 11:34:15 +0100
+        Sat, 23 Sep 2017 03:30:33 -0400
+Subject: Re: [PATCH 3/4] media: i2c: Add TDA1997x HDMI receiver driver
+To: Tim Harvey <tharvey@gateworks.com>, linux-media@vger.kernel.org
+References: <1506119053-21828-1-git-send-email-tharvey@gateworks.com>
+ <1506119053-21828-4-git-send-email-tharvey@gateworks.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <58433b8c-5e72-feb1-4515-9396d075e350@xs4all.nl>
+Date: Sat, 23 Sep 2017 09:30:29 +0200
 MIME-Version: 1.0
-In-Reply-To: <c77ce39b-a3f0-3eea-6db2-1af99e9e1d7e@xs4all.nl>
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <1506119053-21828-4-git-send-email-tharvey@gateworks.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Tim,
 
-On 14-09-2017 16:46, Hans Verkuil wrote:
-> On 09/14/2017 05:30 PM, Jose Abreu wrote:
->>
->> On 14-09-2017 16:09, Hans Verkuil wrote:
->>> On 09/14/17 15:28, Jose Abreu wrote:
->>>
->>>> Actually, I have at least one more fix which I don't know if it's
->>>> valid and I didn't manage to actually write it in a nice way.
->>>> This one is for CEC 2.0. My test equipment (which is certified)
->>>> in some tests sends msgs only with the opcode. As the received
->>>> msg length does not match the expected one CEC core is rejecting
->>>> the message and my compliance test is failling (test is 4.2.3).
->>> In the HDMI 1.4 spec in CEC 7.3 (Frame Validation) it says that a follower
->>> should ignore frames that are too small.
->>>
->>> At the same time unsupported opcodes should result in a Feature Abort.
->>>
->>> If you don't send a properly formed message, then it's not clear to me
->>> what should happen. Which opcode failed?
->> Hmm, yeah, the spec confirms. The failing opcodes are the ones
->> that have arguments, the test equipment is just sending the
->> header plus opcode. Anyway, for this failing test the MOI for
->> this equipment is not approved so I will probably carry this fix
->> only locally and send it upstream only if the MOI gets approved.
-> So is this test just running through all opcodes from 1-255 and see
-> what happens? Or is it only doing this for a subset of opcodes?
-> And if so, which?
+On 23/09/17 00:24, Tim Harvey wrote:
+> Add support for the TDA1997x HDMI receivers.
 
-Its running through the opcodes that the sink does not support
-and sending only the opcode. By spec sink should respond with
-Feature Abort. But, as you said, only sending opcode is out of
-spec (for opcodes that have arguments).
+I did a very quick high-level scan and found a few blockers:
 
->
-> I'm just curious to see how this is done.
->
-> Which test equipment do you use?
+1) You *must* implement the get/set_edid ops. I won't accept
+   the driver without that. You can use v4l2-ctl to set/get the
+   EDID (see v4l2-ctl --help-edid).
 
-Its a QD980.
+2) The dv_timings_cap and enum_dv_timings ops are missing: those
+   must be implemented as well.
 
-Best regards,
-Jose Miguel Abreu
+3) Drop the deprecated g_mbus_config op.
 
->
-> We don't actually have any certified CEC 2.0 test equipment, only 1.4,
-> so I'm grateful that you did it for me :-)
->
-> Regards,
->
-> 	Hans
->
->>>> Have you run this test? Did it pass?
->>> No, we haven't. Never got around to that.
->> Ok. I can say that CEC 1.4 + CEC 2.0 all pass compliance with
->> this patch and with my local fix + my test app!
->>
->> Best regards,
->> Jose Miguel Abreu
->>
->>> Regards,
->>>
->>> 	Hans
->>>
->>>> Best regards,
->>>> Jose Miguel Abreu
->>>>
->>>>> Regards,
->>>>>
->>>>> 	Hans
+4) Do a proper implementation of query_dv_timings. It appears you
+   change the timings in the irq function: that's wrong. The sequence
+   should be the following:
+
+   a) the irq handler detects that timings have changed and sends
+      a V4L2_EVENT_SOURCE_CHANGE event to userspace.
+   b) when userspace receives that event it will stop streaming,
+      call VIDIOC_QUERY_DV_TIMINGS and if new valid timings are
+      detected it will call VIDIOC_S_DV_TIMINGS, allocate the new
+      buffers and start streaming again.
+
+   The driver shall never switch timings on its own, this must be
+   directed from userspace. Different timings will require different
+   configuration through the whole stack (other HW in the video pipeline,
+   DMA engines, userspace memory allocations, etc, etc). Only userspace
+   can do the reconfiguration.
+
+General note: if you want to implement CEC and/or HDCP, contact me first.
+I can give pointers on how to do that.
+
+This is just a quick scan. I won't have time to do an in-depth review
+for the next two weeks. Ideally you'll have a v2 ready by then with the
+issues mentioned above fixed.
+
+Did you run the v4l2-compliance utility to test this driver? For a v2
+please run it and add the output to the cover letter of the patch series.
+
+You say "TDA19972 support (2 inputs)": I assume that that means that there
+are 2 inputs, but only one is active at a time. Right?
+
+Regards,
+
+	Hans
+
+> 
+> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+> ---
+>  drivers/media/i2c/Kconfig            |    9 +
+>  drivers/media/i2c/Makefile           |    1 +
+>  drivers/media/i2c/tda1997x.c         | 3065 ++++++++++++++++++++++++++++++++++
+>  include/dt-bindings/media/tda1997x.h |   78 +
+>  include/media/i2c/tda1997x.h         |   53 +
+>  5 files changed, 3206 insertions(+)
+>  create mode 100644 drivers/media/i2c/tda1997x.c
+>  create mode 100644 include/dt-bindings/media/tda1997x.h
+>  create mode 100644 include/media/i2c/tda1997x.h
