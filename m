@@ -1,127 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33436
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752365AbdI0VrI (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:52019 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750762AbdIWHfk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:47:08 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: [PATCH v2 10/17] media: rc-core.rst: add an introduction for RC core
-Date: Wed, 27 Sep 2017 18:46:53 -0300
-Message-Id: <f05c65f6dfd63a42cf2b44f569f584e97a272463.1506548682.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
-References: <cover.1506548682.git.mchehab@s-opensource.com>
+        Sat, 23 Sep 2017 03:35:40 -0400
+Subject: Re: [PATCH 0/8] [media] v4l2-core: Fine-tuning for some function
+ implementations
+To: SF Markus Elfring <elfring@users.sourceforge.net>,
+        linux-media@vger.kernel.org
+References: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
+ <20161227115111.GN16630@valkosipuli.retiisi.org.uk>
+ <b804f4dd-392e-ae8e-41de-a02260fef550@xs4all.nl>
+ <8241c145-03f4-6dd2-401e-7d251cd5d251@users.sourceforge.net>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Jan Kara <jack@suse.cz>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michal Hocko <mhocko@suse.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f48e9219-3092-1b1f-4458-f9437746bf14@xs4all.nl>
+Date: Sat, 23 Sep 2017 09:35:31 +0200
 MIME-Version: 1.0
-In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
-References: <cover.1506548682.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <8241c145-03f4-6dd2-401e-7d251cd5d251@users.sourceforge.net>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The RC core does several assumptions, but those aren't documented
-anywhere, with could make harder for ones that want to understand
-what's there.
+On 22/09/17 22:08, SF Markus Elfring wrote:
+>> Sorry Markus, just stay away from the videobuf-* sources.
+> 
+> Will the software evolution be continued for related source files?
+> Are there any update candidates left over in the directory �v4l2-core�?
 
-So, add an introduction explaining the basic concepts of RC and
-how they're related to the RC core implementation.
+Sorry, I don't understand the question. We don't want to touch the
+videobuf-* files unless there is a very good reason. That old videobuf
+framework is deprecated and the code is quite fragile (i.e. easy to break
+things).
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/kapi/rc-core.rst | 77 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 77 insertions(+)
+Everything else in that directory is under continuous development.
 
-diff --git a/Documentation/media/kapi/rc-core.rst b/Documentation/media/kapi/rc-core.rst
-index a45895886257..355c8ea3ad9f 100644
---- a/Documentation/media/kapi/rc-core.rst
-+++ b/Documentation/media/kapi/rc-core.rst
-@@ -4,6 +4,83 @@ Remote Controller devices
- Remote Controller core
- ~~~~~~~~~~~~~~~~~~~~~~
- 
-+The remote controller core implements infrastructure to receive and send
-+remote controller keyboard keystrokes and mouse events.
-+
-+Every time a key is pressed on a remote controller, a scan code is produced.
-+Also, on most hardware, keeping a key pressed for more than a few dozens of
-+milliseconds produce a repeat key event. That's somewhat similar to what
-+a normal keyboard or mouse is handled internally on Linux\ [#f1]_. So, the
-+remote controller core is implemented on the top of the linux input/evdev
-+interface.
-+
-+.. [#f1]
-+
-+   The main difference is that, on keyboard events, the keyboard controller
-+   produces one event for a key press and another one for key release. On
-+   infrared-based remote controllers, there's no key release event. Instead,
-+   an extra code is produced to indicate key repeats.
-+
-+However, most of the remote controllers use infrared (IR) to transmit signals.
-+As there are several protocols used to modulate infrared signals, one
-+important part of the core is dedicated to adjust the driver and the core
-+system to support the infrared protocol used by the emitter.
-+
-+The infrared transmission is done by blinking a infrared emitter using a
-+carrier. The carrier can be switched on or off by the IR transmitter
-+hardware. When the carrier is switched on, it is called *PULSE*.
-+When the carrier is switched off, it is called *SPACE*.
-+
-+In other words, a typical IR transmission can be thinking on a sequence of
-+*PULSE* and *SPACE* events, each with a given duration.
-+
-+The carrier parameters (frequency, duty cycle) and the intervals for
-+*PULSE* and *SPACE* events depend on the protocol.
-+For example, the NEC protocol uses a carrier of 38kHz, and transmissions
-+start with a 9ms *PULSE* and a 4.5ms SPACE. It then transmits 16 bits of
-+scan code, being 8 bits for address (usually it is a fixed number for a
-+given remote controller), followed by 8 bits of code. A bit "1" is modulated
-+with 560µs *PULSE* followed by 1690µs *SPACE* and a bit "0"  is modulated
-+with 560µs *PULSE* followed by 560µs *SPACE*.
-+
-+At receiver, a simple low-pass filter can be used to convert the received
-+signal in a sequence of *PULSE/SPACE* events, filtering out the carrier
-+frequency. Due to that, the receiver doesn't care about the carrier's
-+actual frequency parameters: all it has to do is to measure the amount
-+of time it receives *PULSE/SPACE* events.
-+So, a simple IR receiver hardware will just provide a sequence of timings
-+for those events to the Kernel. The drivers for hardware with such kind of
-+receivers are identified by  ``RC_DRIVER_IR_RAW``, as defined by
-+:c:type:`rc_driver_type`\ [#f2]_. Other hardware come with a
-+microcontroller that decode the *PULSE/SPACE* sequence and return scan
-+codes to the Kernel. Such kind of receivers are identified
-+by ``RC_DRIVER_SCANCODE``.
-+
-+.. [#f2]
-+
-+   The RC core also supports devices that have just IR emitters,
-+   without any receivers. Right now, all such devices work only in
-+   raw TX mode. Such kind of hardware is identified as
-+   ``RC_DRIVER_IR_RAW_TX``.
-+
-+When the RC core receives events produced by ``RC_DRIVER_IR_RAW`` IR
-+receivers, it needs to decode the IR protocol, in order to obtain the
-+corresponding scan code. The protocols supported by the RC core are
-+defined at enum :c:type:`rc_proto`.
-+
-+When the RC code receives a scan code (either directly, by a driver
-+of the type ``RC_DRIVER_SCANCODE``, or via its IR decoders), it needs
-+to convert into a Linux input event code. This is done via a mapping
-+table.
-+
-+The Kernel has support for mapping tables available on most media
-+devices. It also supports loading a table in runtime, via some
-+sysfs nodes. See the :ref:`RC userspace API <Remote_controllers_Intro>`
-+for more details.
-+
-+Remote controller data structures and functions
-+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-+
- .. kernel-doc:: include/media/rc-core.h
- 
- .. kernel-doc:: include/media/rc-map.h
--- 
-2.13.5
+It's core code though, so it gets a much more in-depth code review than
+patches for e.g. a driver.
+
+Regards,
+
+	Hans
