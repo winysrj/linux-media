@@ -1,61 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59718 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753847AbdIDQ1I (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Sep 2017 12:27:08 -0400
-Date: Mon, 4 Sep 2017 19:27:05 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, laurent.pinchart@ideasonboard.com,
-        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v7 13/18] dt: bindings: Add a binding for flash devices
- associated to a sensor
-Message-ID: <20170904162705.thujzc7xw6hgjau3@valkosipuli.retiisi.org.uk>
-References: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
- <20170903174958.27058-14-sakari.ailus@linux.intel.com>
- <9a68a9a6-0949-f1c2-f029-8045d7d688b0@xs4all.nl>
+Received: from mout.web.de ([212.227.15.4]:63125 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751382AbdIWTp0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 23 Sep 2017 15:45:26 -0400
+Subject: [PATCH 2/3] [media] camss-csid: Reduce the scope for a variable in
+ csid_set_power()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Todor Tomov <todor.tomov@linaro.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <168ff884-7ace-c548-7f90-d4f2910bb337@users.sourceforge.net>
+Message-ID: <8c356ba6-62a3-033d-f3d6-75e1bab1814f@users.sourceforge.net>
+Date: Sat, 23 Sep 2017 21:45:20 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9a68a9a6-0949-f1c2-f029-8045d7d688b0@xs4all.nl>
+In-Reply-To: <168ff884-7ace-c548-7f90-d4f2910bb337@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 04, 2017 at 04:31:51PM +0200, Hans Verkuil wrote:
-> On 09/03/2017 07:49 PM, Sakari Ailus wrote:
-> > Camera flash drivers (and LEDs) are separate from the sensor devices in
-> > DT. In order to make an association between the two, provide the
-> > association information to the software.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Acked-by: Rob Herring <robh@kernel.org>
-> > ---
-> >  Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
-> >  1 file changed, 8 insertions(+)
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > index 852041a7480c..fee73cf2a714 100644
-> > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > @@ -67,6 +67,14 @@ are required in a relevant parent node:
-> >  		    identifier, should be 1.
-> >   - #size-cells    : should be zero.
-> >  
-> > +
-> > +Optional properties
-> > +-------------------
-> > +
-> > +- flash: An array of phandles referring to the flash LED, a sub-node
-> > +  of the LED driver device node.
-> 
-> If it is an array, then I guess it should say: "An array of phandles, each referring to
-> a flash LED,"
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 23 Sep 2017 21:00:30 +0200
 
-Sounds good, I'll use that in v8.
+Move the definition for the local variable "dev" into an if branch
+so that the corresponding setting will only be performed if it was
+selected by the parameter "on" of this function.
 
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/platform/qcom/camss-8x16/camss-csid.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss-csid.c b/drivers/media/platform/qcom/camss-8x16/camss-csid.c
+index 92d4dc6b4a66..ffda0fbfe4d8 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss-csid.c
++++ b/drivers/media/platform/qcom/camss-8x16/camss-csid.c
+@@ -317,10 +317,10 @@ static int csid_reset(struct csid_device *csid)
+ static int csid_set_power(struct v4l2_subdev *sd, int on)
+ {
+ 	struct csid_device *csid = v4l2_get_subdevdata(sd);
+-	struct device *dev = to_device_index(csid, csid->id);
+ 	int ret;
+ 
+ 	if (on) {
++		struct device *dev = to_device_index(csid, csid->id);
+ 		u32 hw_version;
+ 
+ 		ret = regulator_enable(csid->vdda);
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.1
