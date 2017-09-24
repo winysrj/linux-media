@@ -1,77 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49892
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751226AbdIOJLJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 05:11:09 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>
-Subject: [PATCH 3/5] media: friio-fe: get rid of set_property()
-Date: Fri, 15 Sep 2017 06:10:59 -0300
-Message-Id: <d063508c81458bcdfa252c6436eb8553b076975e.1505466580.git.mchehab@s-opensource.com>
-In-Reply-To: <1f1452d2f07a107e152754559a88166af50a3cbf.1505466580.git.mchehab@s-opensource.com>
-References: <1f1452d2f07a107e152754559a88166af50a3cbf.1505466580.git.mchehab@s-opensource.com>
-In-Reply-To: <1f1452d2f07a107e152754559a88166af50a3cbf.1505466580.git.mchehab@s-opensource.com>
-References: <1f1452d2f07a107e152754559a88166af50a3cbf.1505466580.git.mchehab@s-opensource.com>
+Received: from mout.web.de ([212.227.15.14]:55568 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752624AbdIXSHh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 24 Sep 2017 14:07:37 -0400
+Subject: [PATCH 3/4] [media] omap3isp: Use common error handling code in
+ isp_video_open()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <692bab24-7990-c971-b577-b2dea4176e64@users.sourceforge.net>
+Message-ID: <a3bcee14-f5d2-8648-a925-3dfd393e8f55@users.sourceforge.net>
+Date: Sun, 24 Sep 2017 20:07:31 +0200
+MIME-Version: 1.0
+In-Reply-To: <692bab24-7990-c971-b577-b2dea4176e64@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This callback is not actually doing anything but making it to
-return an error depending on the DTV frontend command. Well,
-that could break userspace for no good reason, and, if needed,
-should be implemented, instead, at set_frontend() callback.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 24 Sep 2017 19:30:52 +0200
 
-So, get rid of it.
+* Adjust jump targets so that a bit of exception handling can be better
+  reused at the end of this function.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+  This issue was detected by using the Coccinelle software.
+
+* Delete a repeated check (for the variable "ret") which became unnecessary
+  with this refactoring.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/usb/dvb-usb/friio-fe.c | 24 ------------------------
- 1 file changed, 24 deletions(-)
+ drivers/media/platform/omap3isp/ispvideo.c | 29 +++++++++++++----------------
+ 1 file changed, 13 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/friio-fe.c b/drivers/media/usb/dvb-usb/friio-fe.c
-index 0251a4e91d47..41261317bd5c 100644
---- a/drivers/media/usb/dvb-usb/friio-fe.c
-+++ b/drivers/media/usb/dvb-usb/friio-fe.c
-@@ -261,28 +261,6 @@ static int jdvbt90502_read_signal_strength(struct dvb_frontend *fe,
- 	return 0;
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 7b9bd684337a..d4118466fc8a 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -1315,14 +1315,12 @@ static int isp_video_open(struct file *file)
+ 	/* If this is the first user, initialise the pipeline. */
+ 	if (omap3isp_get(video->isp) == NULL) {
+ 		ret = -EBUSY;
+-		goto done;
++		goto delete_fh;
+ 	}
+ 
+ 	ret = v4l2_pipeline_pm_use(&video->video.entity, 1);
+-	if (ret < 0) {
+-		omap3isp_put(video->isp);
+-		goto done;
+-	}
++	if (ret < 0)
++		goto put_isp;
+ 
+ 	queue = &handle->queue;
+ 	queue->type = video->type;
+@@ -1335,10 +1333,8 @@ static int isp_video_open(struct file *file)
+ 	queue->dev = video->isp->dev;
+ 
+ 	ret = vb2_queue_init(&handle->queue);
+-	if (ret < 0) {
+-		omap3isp_put(video->isp);
+-		goto done;
+-	}
++	if (ret < 0)
++		goto put_isp;
+ 
+ 	memset(&handle->format, 0, sizeof(handle->format));
+ 	handle->format.type = video->type;
+@@ -1346,14 +1342,15 @@ static int isp_video_open(struct file *file)
+ 
+ 	handle->video = video;
+ 	file->private_data = &handle->vfh;
++	goto exit;
+ 
+-done:
+-	if (ret < 0) {
+-		v4l2_fh_del(&handle->vfh);
+-		v4l2_fh_exit(&handle->vfh);
+-		kfree(handle);
+-	}
+-
++put_isp:
++	omap3isp_put(video->isp);
++delete_fh:
++	v4l2_fh_del(&handle->vfh);
++	v4l2_fh_exit(&handle->vfh);
++	kfree(handle);
++exit:
+ 	return ret;
  }
  
--
--/* filter out un-supported properties to notify users */
--static int jdvbt90502_set_property(struct dvb_frontend *fe,
--				   struct dtv_property *tvp)
--{
--	int r = 0;
--
--	switch (tvp->cmd) {
--	case DTV_DELIVERY_SYSTEM:
--		if (tvp->u.data != SYS_ISDBT)
--			r = -EINVAL;
--		break;
--	case DTV_CLEAR:
--	case DTV_TUNE:
--	case DTV_FREQUENCY:
--		break;
--	default:
--		r = -EINVAL;
--	}
--	return r;
--}
--
- static int jdvbt90502_set_frontend(struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-@@ -457,8 +435,6 @@ static const struct dvb_frontend_ops jdvbt90502_ops = {
- 	.init = jdvbt90502_init,
- 	.write = _jdvbt90502_write,
- 
--	.set_property = jdvbt90502_set_property,
--
- 	.set_frontend = jdvbt90502_set_frontend,
- 
- 	.read_status = jdvbt90502_read_status,
 -- 
-2.13.5
+2.14.1
