@@ -1,61 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailoutvs1.siol.net ([213.250.19.134]:55827 "EHLO mail.siol.net"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751698AbdITUIn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 16:08:43 -0400
-From: Jernej Skrabec <jernej.skrabec@siol.net>
-To: maxime.ripard@free-electrons.com, wens@csie.org
-Cc: Laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-        narmstrong@baylibre.com, dri-devel@lists.freedesktop.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org,
-        icenowy@aosc.io, linux-sunxi@googlegroups.com,
-        linux-media@vger.kernel.org
-Subject: [RESEND RFC PATCH 2/7] drm: bridge: Enable workaround in dw_hdmi for v1.32a
-Date: Wed, 20 Sep 2017 22:01:19 +0200
-Message-Id: <20170920200124.20457-3-jernej.skrabec@siol.net>
-In-Reply-To: <20170920200124.20457-1-jernej.skrabec@siol.net>
-References: <20170920200124.20457-1-jernej.skrabec@siol.net>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:37724 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751726AbdIXDj6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 23 Sep 2017 23:39:58 -0400
+Message-ID: <0bb6f79847aeba87aa4b413cd6b7453a@smtp-cloud9.xs4all.net>
+Date: Sun, 24 Sep 2017 05:39:55 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allwinner SoCs have dw hdmi controller v1.32a which exhibits same
-magenta line issue as i.MX6Q and i.MX6DL. Enable workaround for it.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Allwinner never released any kind of dw hdmi or errata documentation,
-so it is not clear how many iterations need to be executed. One
-iteration seems to be enough.
+Results of the daily build of media_tree:
 
-Signed-off-by: Jernej Skrabec <jernej.skrabec@siol.net>
----
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+date:			Sun Sep 24 05:00:17 CEST 2017
+media-tree git hash:	d5426f4c2ebac8cf05de43988c3fccddbee13d28
+media_build git hash:	19087750b61fc0c5528e798c47ff845f9234bbbb
+v4l-utils git hash:	9ee29df352dad950784f0f6f4a1bb96c0aefacc4
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-index 09cb5a3e4c71..72969240a9d4 100644
---- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-+++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-@@ -1631,9 +1631,10 @@ static void dw_hdmi_clear_overflow(struct dw_hdmi *hdmi)
- 	 * then write one of the FC registers several times.
- 	 *
- 	 * The number of iterations matters and depends on the HDMI TX revision
--	 * (and possibly on the platform). So far only i.MX6Q (v1.30a) and
--	 * i.MX6DL (v1.31a) have been identified as needing the workaround, with
--	 * 4 and 1 iterations respectively.
-+	 * (and possibly on the platform). So far i.MX6Q (v1.30a), i.MX6DL
-+	 * (v1.31a) and multiple Allwinner SoCs (v1.32a) have been identified
-+	 * as needing the workaround, with 4 iterations for v1.30a and 1
-+	 * iteration for others.
- 	 */
- 
- 	switch (hdmi->version) {
-@@ -1641,6 +1642,7 @@ static void dw_hdmi_clear_overflow(struct dw_hdmi *hdmi)
- 		count = 4;
- 		break;
- 	case 0x131a:
-+	case 0x132a:
- 		count = 1;
- 		break;
- 	default:
--- 
-2.14.1
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: ERRORS
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: OK
+spec-git: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
