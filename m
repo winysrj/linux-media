@@ -1,82 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:33991 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751424AbdIOW0q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 18:26:46 -0400
-Received: by mail-pg0-f65.google.com with SMTP id v82so1963067pgb.1
-        for <linux-media@vger.kernel.org>; Fri, 15 Sep 2017 15:26:45 -0700 (PDT)
-Subject: Re: IMX6 ADV7180 no /dev/media
-To: Tim Harvey <tharvey@gateworks.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Stephan Bauroth <der_steffi@gmx.de>
-References: <CAJ+vNU3DPFEc6YnEfcYAv1=beJ96W5PSt=eBfoxCXqKnbNqfMg@mail.gmail.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <67ab090e-955d-9399-e182-cca049a66f1a@gmail.com>
-Date: Fri, 15 Sep 2017 15:26:43 -0700
+Received: from gofer.mess.org ([88.97.38.141]:39495 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751163AbdIXKkW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 24 Sep 2017 06:40:22 -0400
+Date: Sun, 24 Sep 2017 11:40:20 +0100
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v4.15] RC cleanup fixes
+Message-ID: <20170924104020.ni55zs5gtm7sklgw@gofer.mess.org>
+References: <20170923103356.hl5zrqekfjbsy7gt@gofer.mess.org>
+ <20170923163531.3c1b1f06@vento.lan>
+ <20170923203859.5msycu25qoqzy7iv@gofer.mess.org>
+ <20170924060932.6e0962f1@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <CAJ+vNU3DPFEc6YnEfcYAv1=beJ96W5PSt=eBfoxCXqKnbNqfMg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+In-Reply-To: <20170924060932.6e0962f1@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tim,
+On Sun, Sep 24, 2017 at 06:09:32AM -0300, Mauro Carvalho Chehab wrote:
+> Em Sat, 23 Sep 2017 21:38:59 +0100
+> Sean Young <sean@mess.org> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > On Sat, Sep 23, 2017 at 04:35:31PM -0300, Mauro Carvalho Chehab wrote:
+> > > Hi Sean,
+> > > 
+> > > Em Sat, 23 Sep 2017 11:33:56 +0100
+> > > Sean Young <sean@mess.org> escreveu:
+> > >   
+> > > > Hi Mauro,
+> > > > 
+> > > > Just cleanups this round. Line count does go down, though.
+> > > > 
+> > > > Thanks,
+> > > > 
+> > > > Sean
+> > > > 
+> > > > 
+> > > > The following changes since commit 1efdf1776e2253b77413c997bed862410e4b6aaf:
+> > > > 
+> > > >   media: leds: as3645a: add V4L2_FLASH_LED_CLASS dependency (2017-09-05 16:32:45 -0400)
+> > > > 
+> > > > are available in the git repository at:
+> > > > 
+> > > >   git://linuxtv.org/syoung/media_tree.git for-v4.15a
+> > > > 
+> > > > for you to fetch changes up to fe96866c81291a2887559fdfcc58ddf8fe54111d:
+> > > > 
+> > > >   imon: Improve a size determination in two functions (2017-09-23 11:20:12 +0100)
+> > > > 
+> > > > ----------------------------------------------------------------
+> > > > Arvind Yadav (1):
+> > > >       media: rc: constify usb_device_id
+> > > > 
+> > > > Bhumika Goyal (1):
+> > > >       media: rc: make device_type const
+> > > > 
+> > > > Colin Ian King (1):
+> > > >       media: imon: make two const arrays static, reduces object code size
+> > > > 
+> > > > David H�rdeman (15):
+> > > >       media: lirc_dev: clarify error handling
+> > > >       media: lirc_dev: remove support for manually specifying minor number
+> > > >       media: lirc_dev: remove min_timeout and max_timeout  
+> > > 
+> > > This patch doesn't get rid of the corresponding documentation bits:
+> > > 
+> > > $ git grep MIN_TIMEOUT Documentation/
+> > > Documentation/media/uapi/rc/lirc-get-timeout.rst:ioctls LIRC_GET_MIN_TIMEOUT and LIRC_GET_MAX_TIMEOUT
+> > > Documentation/media/uapi/rc/lirc-get-timeout.rst:LIRC_GET_MIN_TIMEOUT / LIRC_GET_MAX_TIMEOUT - Obtain the possible timeout
+> > > Documentation/media/uapi/rc/lirc-get-timeout.rst:.. c:function:: int ioctl( int fd, LIRC_GET_MIN_TIMEOUT, __u32 *timeout)
+> > > Documentation/media/uapi/rc/lirc-get-timeout.rst:    :name: LIRC_GET_MIN_TIMEOUT
+> > > Documentation/media/uapi/rc/lirc-set-rec-timeout.rst:   The range of supported timeout is given by :ref:`LIRC_GET_MIN_TIMEOUT`.  
+> > 
+> > So this patch isn't removing those ioctls, it's just removing it from
+> > the lirc kernel api (so for lirc_zilog.c and out out of tree lirc drivers,
+> > like lirc_rpi). None of those use min/max timeout. It's probably better
+> > to drop this.
+> 
+> Ah, I see. Well, if none of the in-kernel drivers use it, we can
+> drop it.
 
-On 09/15/2017 02:26 PM, Tim Harvey wrote:
-> Greetings,
->
-> I'm testing Linux master built with imx_v6_v7_defconfig on a GW51xx 
-> which has an ADV7180 analog video decoder and am not seeing the imx6 
-> /dev/media node get created:
->
-> [    0.000000] OF: fdt: Machine model: Gateworks Ventana i.MX6 
-> Dual/Quad GW51XX
-> ...
-> [    6.089039] imx-media: Registered subdev ipu1_vdic
-> [    6.094505] imx-media: Registered subdev ipu2_vdic
-> [    6.099851] imx-media: Registered subdev ipu1_ic_prp
-> [    6.105074] imx-media: Registered subdev ipu1_ic_prpenc
-> [    6.111346] ipu1_ic_prpenc: Registered ipu1_ic_prpenc capture as 
-> /dev/video0
-> [    6.119007] imx-media: Registered subdev ipu1_ic_prpvf
-> [    6.124733] ipu1_ic_prpvf: Registered ipu1_ic_prpvf capture as 
-> /dev/video1
-> [    6.131867] imx-media: Registered subdev ipu2_ic_prp
-> [    6.137125] imx-media: Registered subdev ipu2_ic_prpenc
-> [    6.142921] ipu2_ic_prpenc: Registered ipu2_ic_prpenc capture as 
-> /dev/video2
-> [    6.150226] imx-media: Registered subdev ipu2_ic_prpvf
-> [    6.155934] ipu2_ic_prpvf: Registered ipu2_ic_prpvf capture as 
-> /dev/video3
-> [    6.164011] imx-media: Registered subdev ipu1_csi0
-> [    6.169768] ipu1_csi0: Registered ipu1_csi0 capture as /dev/video4
-> [    6.176281] imx-media: Registered subdev ipu1_csi1
-> [    6.181681] ipu1_csi1: Registered ipu1_csi1 capture as /dev/video5
-> [    6.188189] imx-media: Registered subdev ipu2_csi0
-> [    6.193680] ipu2_csi0: Registered ipu2_csi0 capture as /dev/video6
-> [    6.200108] imx-media: Registered subdev ipu2_csi1
-> [    6.205577] ipu2_csi1: Registered ipu2_csi1 capture as /dev/video7
-> ...
-> [   96.981117] adv7180 2-0020: chip found @ 0x20 (21a8000.i2c)
-> [   97.019674] imx-media: Registered subdev adv7180 2-0020
-> [   97.019712] imx-media capture-subsystem: Entity type for entity 
-> adv7180 2-0020 was not initialized!
->
-> I suspect the failure of the adv7180 is causing the issue. Steve 
-> mentioned some time ago that this was an error that needed to be fixed 
-> upstream but I'm not clear if that is still the case.
->
+Looks like our emails crossed each other -- I have already pushed out
+another PR without it.
 
-That does need fixing but is not the cause.
+> Btw, as it seems that now only lirc_zilog uses the Linux kernel
+> API, we could just move it to staging, under drivers/staging/media/lirc/,
+> remove all EXPORT_SYMBOL_* from it, and add it to the lirc_zilog
+> Makefile.
 
-> I haven't looked at IMX media drivers since they were accepted to 
-> mainline a few months back. Perhaps I'm simply forgetting to enable 
-> something in the kernel that imx_v6_v7_defconfig doesn't turn on?
+So ir-lirc-codec.c (our rc-core lirc interface) uses lirc_dev.c (lirc
+kernel api), so it would be very difficult to move to staging.
 
-Yes, it looks like you are missing the video-mux. Enable CONFIG_VIDEO_MUX
-and CONFIG_MUX_MMIO.
+> That probably meets the goal of avoiding people to write new
+> drivers based on it. Any other out of tree driver that might
+> be still using it could do the same, while such driver is not
+> converted to rc-core.
 
-Steve
+Actually I've made good progress on a new lirc_zilog driver, based on a
+re-rolled ir database (firmware file) file for rc-core. With that in
+place, the linux kernel api can be removed completely and that will
+make the lirc code much cleaner.
+
+I'm hoping to have this finished soon, well in time for v4.15.
+
+
+Thanks,
+
+Sean
