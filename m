@@ -1,196 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:59470 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753746AbdIDOox (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58946
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751797AbdIXJJq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Sep 2017 10:44:53 -0400
-Subject: Re: [PATCH v7 15/18] v4l2-fwnode: Add convenience function for
- parsing generic references
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-References: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
- <20170903174958.27058-16-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0bb75f81-cc81-a4bf-f2af-41862c1d777a@xs4all.nl>
-Date: Mon, 4 Sep 2017 16:44:48 +0200
+        Sun, 24 Sep 2017 05:09:46 -0400
+Date: Sun, 24 Sep 2017 06:09:32 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v4.15] RC cleanup fixes
+Message-ID: <20170924060932.6e0962f1@vento.lan>
+In-Reply-To: <20170923203859.5msycu25qoqzy7iv@gofer.mess.org>
+References: <20170923103356.hl5zrqekfjbsy7gt@gofer.mess.org>
+        <20170923163531.3c1b1f06@vento.lan>
+        <20170923203859.5msycu25qoqzy7iv@gofer.mess.org>
 MIME-Version: 1.0
-In-Reply-To: <20170903174958.27058-16-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/03/2017 07:49 PM, Sakari Ailus wrote:
-> Add function v4l2_fwnode_reference_count() for counting external
-> references and v4l2_fwnode_reference_parse() for parsing them as async
-> sub-devices.
+Em Sat, 23 Sep 2017 21:38:59 +0100
+Sean Young <sean@mess.org> escreveu:
+
+> Hi Mauro,
 > 
-> This can be done on e.g. flash or lens async sub-devices that are not part
-> of but are associated with a sensor.
+> On Sat, Sep 23, 2017 at 04:35:31PM -0300, Mauro Carvalho Chehab wrote:
+> > Hi Sean,
+> > 
+> > Em Sat, 23 Sep 2017 11:33:56 +0100
+> > Sean Young <sean@mess.org> escreveu:
+> >   
+> > > Hi Mauro,
+> > > 
+> > > Just cleanups this round. Line count does go down, though.
+> > > 
+> > > Thanks,
+> > > 
+> > > Sean
+> > > 
+> > > 
+> > > The following changes since commit 1efdf1776e2253b77413c997bed862410e4b6aaf:
+> > > 
+> > >   media: leds: as3645a: add V4L2_FLASH_LED_CLASS dependency (2017-09-05 16:32:45 -0400)
+> > > 
+> > > are available in the git repository at:
+> > > 
+> > >   git://linuxtv.org/syoung/media_tree.git for-v4.15a
+> > > 
+> > > for you to fetch changes up to fe96866c81291a2887559fdfcc58ddf8fe54111d:
+> > > 
+> > >   imon: Improve a size determination in two functions (2017-09-23 11:20:12 +0100)
+> > > 
+> > > ----------------------------------------------------------------
+> > > Arvind Yadav (1):
+> > >       media: rc: constify usb_device_id
+> > > 
+> > > Bhumika Goyal (1):
+> > >       media: rc: make device_type const
+> > > 
+> > > Colin Ian King (1):
+> > >       media: imon: make two const arrays static, reduces object code size
+> > > 
+> > > David Härdeman (15):
+> > >       media: lirc_dev: clarify error handling
+> > >       media: lirc_dev: remove support for manually specifying minor number
+> > >       media: lirc_dev: remove min_timeout and max_timeout  
+> > 
+> > This patch doesn't get rid of the corresponding documentation bits:
+> > 
+> > $ git grep MIN_TIMEOUT Documentation/
+> > Documentation/media/uapi/rc/lirc-get-timeout.rst:ioctls LIRC_GET_MIN_TIMEOUT and LIRC_GET_MAX_TIMEOUT
+> > Documentation/media/uapi/rc/lirc-get-timeout.rst:LIRC_GET_MIN_TIMEOUT / LIRC_GET_MAX_TIMEOUT - Obtain the possible timeout
+> > Documentation/media/uapi/rc/lirc-get-timeout.rst:.. c:function:: int ioctl( int fd, LIRC_GET_MIN_TIMEOUT, __u32 *timeout)
+> > Documentation/media/uapi/rc/lirc-get-timeout.rst:    :name: LIRC_GET_MIN_TIMEOUT
+> > Documentation/media/uapi/rc/lirc-set-rec-timeout.rst:   The range of supported timeout is given by :ref:`LIRC_GET_MIN_TIMEOUT`.  
 > 
-> struct v4l2_async_notifier.max_subdevs field is added to contain the
-> maximum number of sub-devices in a notifier to reflect the memory
-> allocated for the subdevs array.
+> So this patch isn't removing those ioctls, it's just removing it from
+> the lirc kernel api (so for lirc_zilog.c and out out of tree lirc drivers,
+> like lirc_rpi). None of those use min/max timeout. It's probably better
+> to drop this.
+
+Ah, I see. Well, if none of the in-kernel drivers use it, we can
+drop it.
+
+Btw, as it seems that now only lirc_zilog uses the Linux kernel
+API, we could just move it to staging, under drivers/staging/media/lirc/,
+remove all EXPORT_SYMBOL_* from it, and add it to the lirc_zilog
+Makefile.
+
+That probably meets the goal of avoiding people to write new
+drivers based on it. Any other out of tree driver that might
+be still using it could do the same, while such driver is not
+converted to rc-core.
+
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/v4l2-core/v4l2-fwnode.c | 81 +++++++++++++++++++++++++++++++++++
->  include/media/v4l2-fwnode.h           | 28 ++++++++++++
->  2 files changed, 109 insertions(+)
+> > I didn't see any other patches in this series getting rid of them
+> > either.
+> >   
+> > >       media: lirc_dev: use cdev_device_add() helper function
+> > >       media: lirc_dev: make better use of file->private_data  
+> > 
+> > I suspect that this patch will likely break the imon driver:
+> > 
+> > $ git grep private_data drivers/media/rc/
+> > drivers/media/rc/imon.c:                file->private_data = ictx;
+> > drivers/media/rc/imon.c:        ictx = file->private_data;
+> > drivers/media/rc/imon.c:        ictx = file->private_data;
+> > drivers/media/rc/imon.c:        ictx = file->private_data;  
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> index f8c7a9bc6a58..24f8020caf28 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -449,6 +449,87 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
->  }
->  EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints);
->  
-> +static void v4l2_fwnode_print_args(struct fwnode_reference_args *args)
-> +{
-> +	unsigned int i;
-> +
-> +	for (i = 0; i < args->nargs; i++) {
-> +		pr_cont(" %u", args->args[i]);
-> +		if (i + 1 < args->nargs)
-> +			pr_cont(",");
-> +	}
-> +}
-> +
-> +int v4l2_fwnode_reference_parse(
-> +	struct device *dev, struct v4l2_async_notifier *notifier,
-> +	const char *prop, const char *nargs_prop, unsigned int nargs,
-> +	size_t asd_struct_size,
-> +	int (*parse_single)(struct device *dev,
-> +			    struct fwnode_reference_args *args,
-> +			    struct v4l2_async_subdev *asd))
-> +{
-> +	struct fwnode_reference_args args;
-> +	unsigned int index = 0;
-> +	int ret = -ENOENT;
-> +
-> +	if (asd_struct_size < sizeof(struct v4l2_async_subdev))
-> +		return -EINVAL;
-> +
-> +	for (; !fwnode_property_get_reference_args(
-> +		     dev_fwnode(dev), prop, nargs_prop, nargs,
-> +		     index, &args); index++)
-> +		fwnode_handle_put(args.fwnode);
-> +
-> +	ret = v4l2_async_notifier_realloc(notifier,
-> +					  notifier->num_subdevs + index);
-> +	if (ret)
-> +		return -ENOMEM;
-> +
-> +	for (ret = -ENOENT, index = 0; !fwnode_property_get_reference_args(
-> +		     dev_fwnode(dev), prop, nargs_prop, nargs,
-> +		     index, &args); index++) {
-> +		struct v4l2_async_subdev *asd;
-> +
-> +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs))
-> +			break;
+> That's for lcd chardev, nothing to do with lirc.
 
-As mentioned elsewhere: I think this should return an error.
+Ah, OK!
 
-> +
-> +		asd = kzalloc(asd_struct_size, GFP_KERNEL);
-> +		if (!asd) {
-> +			ret = -ENOMEM;
-> +			goto error;
-> +		}
-> +
-> +		ret = parse_single ? parse_single(dev, &args, asd) : 0;
-> +		if (ret == -ENOTCONN) {
-> +			dev_dbg(dev,
-> +				"ignoring reference prop \"%s\", nargs_prop \"%s\", nargs %u, index %u",
-> +				prop, nargs_prop, nargs, index);
-> +			v4l2_fwnode_print_args(&args);
-> +			pr_cont("\n");
-
-asd isn't freed.
-
-> +			continue;
-> +		} else if (ret < 0) {
-> +			dev_warn(dev,
-> +				 "driver could not parse reference prop \"%s\", nargs_prop \"%s\", nargs %u, index %u",
-> +				 prop, nargs_prop, nargs, index);
-> +			v4l2_fwnode_print_args(&args);
-> +			pr_cont("\n");
-
-Ditto.
-
-> +			goto error;
-> +		}
-> +
-> +		notifier->subdevs[notifier->num_subdevs] = asd;
-> +		asd->match.fwnode.fwnode = args.fwnode;
-> +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-> +		notifier->num_subdevs++;
-> +	}
-> +
-> +	return 0;
-> +
-> +error:
-> +	fwnode_handle_put(args.fwnode);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse);
-> +
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
->  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-> index 6d125f26ec84..52f528162818 100644
-> --- a/include/media/v4l2-fwnode.h
-> +++ b/include/media/v4l2-fwnode.h
-> @@ -254,4 +254,32 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
->  			      struct v4l2_fwnode_endpoint *vep,
->  			      struct v4l2_async_subdev *asd));
->  
-> +/**
-> + * v4l2_fwnode_reference_parse - parse references for async sub-devices
-> + * @dev: the device node the properties of which are parsed for references
-
-the device node whose properties are...
-
-> + * @notifier: the async notifier where the async subdevs will be added
-> + * @prop: the name of the property
-> + * @nargs_prop: the name of the property in the remote node that specifies the
-> + *		number of integer arguments (may be NULL, in that case nargs
-> + *		will be used).
-> + * @nargs: the number of integer arguments after the reference
-> + * @asd_struct_size: the size of the driver's async sub-device struct, including
-> + *		     @struct v4l2_async_subdev
-> + * @parse_single: Driver's callback function for parsing a reference. Optional.
-
-Driver's -> driver's
-
-> + *		  Return: 0 on success
-> + *			  %-ENOTCONN if the reference is to be skipped but this
-> + *				     should not be considered as an error
-
-skipped but this -> skipped. This
-
-> + *
-> + * Return: 0 on success
-> + *	   -ENOMEM if memory allocation failed
-> + *	   -EINVAL if property parsing failed
-> + */
-> +int v4l2_fwnode_reference_parse(
-> +	struct device *dev, struct v4l2_async_notifier *notifier,
-> +	const char *prop, const char *nargs_prop, unsigned int nargs,
-> +	size_t asd_struct_size,
-> +	int (*parse_single)(struct device *dev,
-> +			    struct fwnode_reference_args *args,
-> +			    struct v4l2_async_subdev *asd));
-> +
->  #endif /* _V4L2_FWNODE_H */
 > 
+> > Please double-check if the remaining patches won't risk causing
+> > regressions, as there are several patches there touching the RC
+> > core ;-)  
+> 
+> Agreed, there are some painful patches. I've tested nearly all the IR
+> hardware I have.
+
+If they don't cause regressions, better to apply then ;)
+As we're early at -rc, merging it now is a good idea, as people
+will have more time to review.
+
+> 
+> > For now, I'll mark the pull request with "Changes requested".  
+> 
+> I'll re-roll and double-check.
 
 Regards,
-
-	Hans
+Mauro
