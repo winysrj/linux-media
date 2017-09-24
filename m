@@ -1,210 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46370
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751676AbdIAJhJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 05:37:09 -0400
-Date: Fri, 1 Sep 2017 06:37:03 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Honza =?UTF-8?B?UGV0cm91xaE=?= <jpetrous@gmail.com>
-Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH 12/15] media: dmx.h: get rid of DMX_SET_SOURCE
-Message-ID: <20170901063703.673d2d37@vento.lan>
-In-Reply-To: <CAJbz7-1PijPZm1Sa87cHQmwMDURtW4PVUZZT9OvHPTfeFQafHg@mail.gmail.com>
-References: <cover.1504222628.git.mchehab@s-opensource.com>
-        <cf4b97ba0e68bf92cf899d04a3862cad1b3a7874.1504222628.git.mchehab@s-opensource.com>
-        <CAJbz7-1PijPZm1Sa87cHQmwMDURtW4PVUZZT9OvHPTfeFQafHg@mail.gmail.com>
+Received: from mout.web.de ([212.227.15.4]:64898 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751267AbdIXKY4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 24 Sep 2017 06:24:56 -0400
+Subject: [PATCH 2/6] [media] omap_vout: Improve a size determination in two
+ functions
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Jan Kara <jack@suse.cz>, Lorenzo Stoakes <lstoakes@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michal Hocko <mhocko@suse.com>,
+        Muralidharan Karicheri <mkaricheri@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
+Message-ID: <7edbd298-6d56-3ac7-08c1-b25527181994@users.sourceforge.net>
+Date: Sun, 24 Sep 2017 12:24:45 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 1 Sep 2017 08:28:20 +0200
-Honza Petrouš <jpetrous@gmail.com> escreveu:
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 24 Sep 2017 10:18:26 +0200
 
-> 2017-09-01 1:46 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-> > No driver uses this ioctl, nor it is documented anywhere.
-> >
-> > So, get rid of it.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> >  Documentation/media/dmx.h.rst.exceptions        | 13 --------
-> >  Documentation/media/uapi/dvb/dmx-set-source.rst | 44 -------------------------
-> >  Documentation/media/uapi/dvb/dmx_fcalls.rst     |  1 -
-> >  Documentation/media/uapi/dvb/dmx_types.rst      | 20 -----------
-> >  include/uapi/linux/dvb/dmx.h                    | 12 -------
-> >  5 files changed, 90 deletions(-)
-> >  delete mode 100644 Documentation/media/uapi/dvb/dmx-set-source.rst
-> >
-> > diff --git a/Documentation/media/dmx.h.rst.exceptions b/Documentation/media/dmx.h.rst.exceptions
-> > index 5572d2dc9d0e..d2dac35bb84b 100644
-> > --- a/Documentation/media/dmx.h.rst.exceptions
-> > +++ b/Documentation/media/dmx.h.rst.exceptions
-> > @@ -40,18 +40,6 @@ replace enum dmx_input :c:type:`dmx_input`
-> >  replace symbol DMX_IN_FRONTEND :c:type:`dmx_input`
-> >  replace symbol DMX_IN_DVR :c:type:`dmx_input`
-> >
-> > -# dmx_source_t symbols
-> > -replace enum dmx_source :c:type:`dmx_source`
-> > -replace symbol DMX_SOURCE_FRONT0 :c:type:`dmx_source`
-> > -replace symbol DMX_SOURCE_FRONT1 :c:type:`dmx_source`
-> > -replace symbol DMX_SOURCE_FRONT2 :c:type:`dmx_source`
-> > -replace symbol DMX_SOURCE_FRONT3 :c:type:`dmx_source`
-> > -replace symbol DMX_SOURCE_DVR0 :c:type:`dmx_source`
-> > -replace symbol DMX_SOURCE_DVR1 :c:type:`dmx_source`
-> > -replace symbol DMX_SOURCE_DVR2 :c:type:`dmx_source`
-> > -replace symbol DMX_SOURCE_DVR3 :c:type:`dmx_source`
-> > -
-> > -
-> >  # Flags for struct dmx_sct_filter_params
-> >  replace define DMX_CHECK_CRC :c:type:`dmx_sct_filter_params`
-> >  replace define DMX_ONESHOT :c:type:`dmx_sct_filter_params`
-> > @@ -61,4 +49,3 @@ replace define DMX_IMMEDIATE_START :c:type:`dmx_sct_filter_params`
-> >  replace typedef dmx_filter_t :c:type:`dmx_filter`
-> >  replace typedef dmx_pes_type_t :c:type:`dmx_pes_type`
-> >  replace typedef dmx_input_t :c:type:`dmx_input`
-> > -replace typedef dmx_source_t :c:type:`dmx_source`
-> > diff --git a/Documentation/media/uapi/dvb/dmx-set-source.rst b/Documentation/media/uapi/dvb/dmx-set-source.rst
-> > deleted file mode 100644
-> > index ac7f77b25e06..000000000000
-> > --- a/Documentation/media/uapi/dvb/dmx-set-source.rst
-> > +++ /dev/null
-> > @@ -1,44 +0,0 @@
-> > -.. -*- coding: utf-8; mode: rst -*-
-> > -
-> > -.. _DMX_SET_SOURCE:
-> > -
-> > -==============
-> > -DMX_SET_SOURCE
-> > -==============
-> > -
-> > -Name
-> > -----
-> > -
-> > -DMX_SET_SOURCE
-> > -
-> > -
-> > -Synopsis
-> > ---------
-> > -
-> > -.. c:function:: int ioctl(fd, DMX_SET_SOURCE, struct dmx_source *src)
-> > -    :name: DMX_SET_SOURCE
-> > -
-> > -
-> > -Arguments
-> > ----------
-> > -
-> > -
-> > -``fd``
-> > -    File descriptor returned by :c:func:`open() <dvb-dmx-open>`.
-> > -
-> > -``src``
-> > -   Undocumented.
-> > -
-> > -
-> > -Description
-> > ------------
-> > -
-> > -.. note:: This ioctl is undocumented. Documentation is welcome.
-> > -
-> > -
-> > -Return Value
-> > -------------
-> > -
-> > -On success 0 is returned, on error -1 and the ``errno`` variable is set
-> > -appropriately. The generic error codes are described at the
-> > -:ref:`Generic Error Codes <gen-errors>` chapter.
-> > diff --git a/Documentation/media/uapi/dvb/dmx_fcalls.rst b/Documentation/media/uapi/dvb/dmx_fcalls.rst
-> > index 49e013d4540f..be98d60877f2 100644
-> > --- a/Documentation/media/uapi/dvb/dmx_fcalls.rst
-> > +++ b/Documentation/media/uapi/dvb/dmx_fcalls.rst
-> > @@ -21,6 +21,5 @@ Demux Function Calls
-> >      dmx-get-event
-> >      dmx-get-stc
-> >      dmx-get-pes-pids
-> > -    dmx-set-source
-> >      dmx-add-pid
-> >      dmx-remove-pid
-> > diff --git a/Documentation/media/uapi/dvb/dmx_types.rst b/Documentation/media/uapi/dvb/dmx_types.rst
-> > index 9e907b85cf16..a205c02ccdc1 100644
-> > --- a/Documentation/media/uapi/dvb/dmx_types.rst
-> > +++ b/Documentation/media/uapi/dvb/dmx_types.rst
-> > @@ -197,23 +197,3 @@ struct dmx_stc
-> >         unsigned int base;  /* output: divisor for stc to get 90 kHz clock */
-> >         __u64 stc;      /* output: stc in 'base'*90 kHz units */
-> >      };
-> > -
-> > -
-> > -
-> > -enum dmx_source
-> > -===============
-> > -
-> > -.. c:type:: dmx_source
-> > -
-> > -.. code-block:: c
-> > -
-> > -    typedef enum dmx_source {
-> > -       DMX_SOURCE_FRONT0 = 0,
-> > -       DMX_SOURCE_FRONT1,
-> > -       DMX_SOURCE_FRONT2,
-> > -       DMX_SOURCE_FRONT3,
-> > -       DMX_SOURCE_DVR0   = 16,
-> > -       DMX_SOURCE_DVR1,
-> > -       DMX_SOURCE_DVR2,
-> > -       DMX_SOURCE_DVR3
-> > -    } dmx_source_t;
-> > diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
-> > index c0ee44fbdb13..dd2b832c02ce 100644
-> > --- a/include/uapi/linux/dvb/dmx.h
-> > +++ b/include/uapi/linux/dvb/dmx.h
-> > @@ -117,17 +117,6 @@ struct dmx_pes_filter_params
-> >         __u32          flags;
-> >  };
-> >
-> > -typedef enum dmx_source {
-> > -       DMX_SOURCE_FRONT0 = 0,
-> > -       DMX_SOURCE_FRONT1,
-> > -       DMX_SOURCE_FRONT2,
-> > -       DMX_SOURCE_FRONT3,
-> > -       DMX_SOURCE_DVR0   = 16,
-> > -       DMX_SOURCE_DVR1,
-> > -       DMX_SOURCE_DVR2,
-> > -       DMX_SOURCE_DVR3
-> > -} dmx_source_t;
-> > -
-> >  struct dmx_stc {
-> >         unsigned int num;       /* input : which STC? 0..N */
-> >         unsigned int base;      /* output: divisor for stc to get 90 kHz clock */
-> > @@ -140,7 +129,6 @@ struct dmx_stc {
-> >  #define DMX_SET_PES_FILTER       _IOW('o', 44, struct dmx_pes_filter_params)
-> >  #define DMX_SET_BUFFER_SIZE      _IO('o', 45)
-> >  #define DMX_GET_PES_PIDS         _IOR('o', 47, __u16[5])
-> > -#define DMX_SET_SOURCE           _IOW('o', 49, dmx_source_t)
-> >  #define DMX_GET_STC              _IOWR('o', 50, struct dmx_stc)
-> >  #define DMX_ADD_PID              _IOW('o', 51, __u16)
-> >  #define DMX_REMOVE_PID           _IOW('o', 52, __u16)
-> > --
-> > 2.13.5
-> >  
-> 
-> Hi Mauro.
-> 
-> May be I missed something, but how it should be managed the demux
-> source without that?
-> Do we have some other way how to set the demux input?
+Replace the specification of data structures by variable references
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer according to the Linux coding style convention.
 
-Yes: via the media controller.
+This issue was detected by using the Coccinelle software.
 
-> Even in one-frontend configuration we should have to have option
-> to switch between DMX_SOURCE_FRONT0 & DMX_SOURCE_DVR0.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/platform/omap/omap_vout.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-Actually, the sources are configured when a filter is set. I've
-no idea what was the original purpose of this API, as there's no
-documentation about it anywhere and no drivers use it kernelwide.
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index aebc1e628ac5..4a4d171ca573 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -1943,8 +1943,7 @@ static int __init omap_vout_create_video_devices(struct platform_device *pdev)
+ 			struct omap2video_device, v4l2_dev);
+ 
+ 	for (k = 0; k < pdev->num_resources; k++) {
+-
+-		vout = kzalloc(sizeof(struct omap_vout_device), GFP_KERNEL);
++		vout = kzalloc(sizeof(*vout), GFP_KERNEL);
+ 		if (!vout)
+ 			return -ENOMEM;
+ 
+@@ -2095,7 +2094,7 @@ static int __init omap_vout_probe(struct platform_device *pdev)
+ 		goto err_dss_init;
+ 	}
+ 
+-	vid_dev = kzalloc(sizeof(struct omap2video_device), GFP_KERNEL);
++	vid_dev = kzalloc(sizeof(*vid_dev), GFP_KERNEL);
+ 	if (vid_dev == NULL) {
+ 		ret = -ENOMEM;
+ 		goto err_dss_init;
+-- 
+2.14.1
