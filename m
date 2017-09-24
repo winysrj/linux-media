@@ -1,81 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42682 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750865AbdIOQmR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 12:42:17 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com,
-        linux-renesas-soc@vger.kernel.org
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v1 3/3] drm: rcar-du: Remove unused CRTC suspend/resume functions
-Date: Fri, 15 Sep 2017 17:42:07 +0100
-Message-Id: <588e2797c3b8c0b966afb549e658e3cd0652a734.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from p3plsmtpa06-03.prod.phx3.secureserver.net ([173.201.192.104]:45629
+        "EHLO p3plsmtpa06-03.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751149AbdIXHyH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 24 Sep 2017 03:54:07 -0400
+From: Leon Luo <leonl@leopardimaging.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, leonl@leopardimaging.com,
+        soren.brinkmann@xilinx.com
+Subject: [PATCH v6 1/2] media:imx274 device tree binding file
+Date: Sun, 24 Sep 2017 00:53:28 -0700
+Message-Id: <20170924075329.9927-1-leonl@leopardimaging.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-An early implementation of suspend-resume helpers are available in the
-CRTC module, however they are unused and no longer needed.
+The binding file for imx274 CMOS sensor V4l2 driver
 
-With suspend and resume handled by the core DRM atomic helpers, we can
-remove the unused functions.
-
-CC: dri-devel@lists.freedesktop.org
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Leon Luo <leonl@leopardimaging.com>
 ---
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 35 +---------------------------
- 1 file changed, 35 deletions(-)
+v6:
+ - no changes
+v5:
+ - add 'port' and 'endpoint' information
+v4:
+ - no changes
+v3:
+ - remove redundant properties and references
+ - document 'reg' property
+v2:
+ - no changes
+---
+ .../devicetree/bindings/media/i2c/imx274.txt       | 33 ++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/imx274.txt
 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-index 301ea1a8018e..b492063a6e1f 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-@@ -557,41 +557,6 @@ static void rcar_du_crtc_stop(struct rcar_du_crtc *rcrtc)
- 	rcar_du_group_start_stop(rcrtc->group, false);
- }
- 
--void rcar_du_crtc_suspend(struct rcar_du_crtc *rcrtc)
--{
--	if (rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_VSP1_SOURCE))
--		rcar_du_vsp_disable(rcrtc);
--
--	rcar_du_crtc_stop(rcrtc);
--	rcar_du_crtc_put(rcrtc);
--}
--
--void rcar_du_crtc_resume(struct rcar_du_crtc *rcrtc)
--{
--	unsigned int i;
--
--	if (!rcrtc->crtc.state->active)
--		return;
--
--	rcar_du_crtc_get(rcrtc);
--	rcar_du_crtc_setup(rcrtc);
--
--	/* Commit the planes state. */
--	if (!rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_VSP1_SOURCE)) {
--		for (i = 0; i < rcrtc->group->num_planes; ++i) {
--			struct rcar_du_plane *plane = &rcrtc->group->planes[i];
--
--			if (plane->plane.state->crtc != &rcrtc->crtc)
--				continue;
--
--			rcar_du_plane_setup(plane);
--		}
--	}
--
--	rcar_du_crtc_update_planes(rcrtc);
--	rcar_du_crtc_start(rcrtc);
--}
--
- /* -----------------------------------------------------------------------------
-  * CRTC Functions
-  */
+diff --git a/Documentation/devicetree/bindings/media/i2c/imx274.txt b/Documentation/devicetree/bindings/media/i2c/imx274.txt
+new file mode 100644
+index 000000000000..80f2e89568e1
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/imx274.txt
+@@ -0,0 +1,33 @@
++* Sony 1/2.5-Inch 8.51Mp CMOS Digital Image Sensor
++
++The Sony imx274 is a 1/2.5-inch CMOS active pixel digital image sensor with
++an active array size of 3864H x 2202V. It is programmable through I2C
++interface. The I2C address is fixed to 0x1a as per sensor data sheet.
++Image data is sent through MIPI CSI-2, which is configured as 4 lanes
++at 1440 Mbps.
++
++
++Required Properties:
++- compatible: value should be "sony,imx274" for imx274 sensor
++- reg: I2C bus address of the device
++
++Optional Properties:
++- reset-gpios: Sensor reset GPIO
++
++The imx274 device node should contain one 'port' child node with
++an 'endpoint' subnode. For further reading on port node refer to
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++	sensor@1a {
++		compatible = "sony,imx274";
++		reg = <0x1a>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reset-gpios = <&gpio_sensor 0 0>;
++		port {
++			sensor_out: endpoint {
++				remote-endpoint = <&csiss_in>;
++			};
++		};
++	};
 -- 
-git-series 0.9.1
+2.14.0.rc1
