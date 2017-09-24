@@ -1,92 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:38831 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751361AbdITTAD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 15:00:03 -0400
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-To: linux-i2c@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: [RFC PATCH v5 0/6] i2c: document DMA handling and add helpers for it
-Date: Wed, 20 Sep 2017 20:59:50 +0200
-Message-Id: <20170920185956.13874-1-wsa+renesas@sang-engineering.com>
+Received: from mail-vk0-f65.google.com ([209.85.213.65]:38330 "EHLO
+        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751813AbdIXA2q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 23 Sep 2017 20:28:46 -0400
+Received: by mail-vk0-f65.google.com with SMTP id d12so1111311vkf.5
+        for <linux-media@vger.kernel.org>; Sat, 23 Sep 2017 17:28:46 -0700 (PDT)
+MIME-Version: 1.0
+Reply-To: soumailasorgho@yandex.com
+From: Mr Soumaila Sorgho <nicolemarois7410@gmail.com>
+Date: Sun, 24 Sep 2017 00:28:45 +0000
+Message-ID: <CAEPXuGP_S1nzOuCb92T8n+CdQLo_m87=bkNTKma0apv7oMyY3w@mail.gmail.com>
+Subject: Greetings From Mr. Soumaila Sorgho
+To: undisclosed-recipients:;
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-So, after revisiting old mail threads, taking part in a similar discussion on
-the USB list, and implementing a not-convincing solution before, here is what I
-cooked up to document and ease DMA handling for I2C within Linux. Please have a
-look at the documentation introduced in patch 3 for details. And to make it
-clear again: The stuff below is opt-in. If host drivers are not updated, they
-will continue to work like before.
-
-While the previous versions tried to magically apply bounce buffers when
-needed, it became clear that detecting DMA safe buffers is too fragile. This
-approach is now opt-in, a DMA_SAFE flag needs to be set on an i2c_msg. The
-outcome so far is very convincing IMO. The core additions are simple and easy
-to understand (makes me even think of inlining them again?). The driver changes
-for the Renesas IP cores became easier to understand, too. While only a tad for
-the i2c-sh_mobile driver, the situation became a LOT better for the i2c-rcar
-driver. No more DMA disabling for the whole transfer in case of unsafe buffers,
-we are back to per-msg handling. And the code fix is now an easy to understand
-one line change. Yay!
-
-Of course, we must now whitelist DMA safe buffers. An example for I2C_RDWR case
-is in this series. It makes the i2ctransfer utility have DMA_SAFE buffers,
-which is nice for testing as i2cdump will (currently) not use DMA_SAFE buffers.
-My plan is to add two new calls: i2c_master_{send|receive}_dma_safe which can
-be used if DMA_SAFE buffers are provided. So, drivers can simply switch to
-them. Also, the buffers used within i2c_smbus_xfer_emulated() need to be
-converted to be DMA_SAFE which will cover a huge bunch of use cases. The rest
-is then updating drivers which can be done when needed.
-
-As these conversions are not done yet, this patch series has RFC status. But I
-already would like to get opinions on this approach, so I'll cc mailing lists
-of the heavier I2C users. Please let me know what you think.
-
-All patches have been tested with a Renesas Salvator-X board (r8a7796/M3-W).
-
-The branch can be found here:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git renesas/topic/i2c-core-dma-rfc-v5
-
-And big kudos to Renesas Electronics for funding this work, thank you very much!
-
-Regards,
-
-   Wolfram
-
-Changes since v4:
-	* rebased to v4.14-rc1
-	* (hopefully) improved the docs to be more clear
-	* added basic RST syntax to the docs
-
-This is mainly an update to agree on the docs. Missing code is still missing
-and will be added in v6.
-
-Changes since v3:
-	* completely redesigned
-
-
-Wolfram Sang (6):
-  i2c: add a message flag for DMA safe buffers
-  i2c: add helpers to ease DMA handling
-  i2c: add docs to clarify DMA handling
-  i2c: sh_mobile: use helper to decide if DMA is useful
-  i2c: rcar: skip DMA if buffer is not safe
-  i2c: dev: mark RDWR buffers as DMA_SAFE
-
- Documentation/i2c/DMA-considerations | 58 ++++++++++++++++++++++++++++++++++++
- drivers/i2c/busses/i2c-rcar.c        |  2 +-
- drivers/i2c/busses/i2c-sh_mobile.c   |  8 +++--
- drivers/i2c/i2c-core-base.c          | 45 ++++++++++++++++++++++++++++
- drivers/i2c/i2c-dev.c                |  2 ++
- include/linux/i2c.h                  |  3 ++
- include/uapi/linux/i2c.h             |  3 ++
- 7 files changed, 118 insertions(+), 3 deletions(-)
- create mode 100644 Documentation/i2c/DMA-considerations
-
 -- 
-2.11.0
+Greetings From Mr. Soumaila Sorgho
+
+	I have a Mutual/Beneficial Business Project that would be beneficial
+to you. I only have two questions to ask of you, if you are
+interested.
+
+1. Can you handle this project?
+2. Can I give you this trust?
+
+Please note that the deal requires high level of maturity, honesty and
+secrecy. This will involve moving some money from my office, on trust
+to your hands or bank account. Also note that i will do everything to
+make sure that the money is moved as a purely legitimate fund, so you
+will not be exposed to any risk.
+
+I request for your full co-operation. I will give you details and
+procedure when I receive your reply, to commence this transaction, I
+require you to immediately indicate your interest by a return reply. I
+will be waiting for your response in a timely manner.
+
+Contact  Email: soumailasorgho@yandex.com
+Best Regard,
+Mr. Soumaila Sorgho
