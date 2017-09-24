@@ -1,65 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:50194 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752005AbdIAKqH (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59393
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751267AbdIXKXv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Sep 2017 06:46:07 -0400
-Subject: Re: [PATCH v6 2/5] v4l: async: Add V4L2 async documentation to the
- documentation build
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <20170830114946.17743-1-sakari.ailus@linux.intel.com>
- <20170830114946.17743-3-sakari.ailus@linux.intel.com>
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <19202cd6-c2fd-36c9-ae04-7cdee541c5f7@xs4all.nl>
-Date: Fri, 1 Sep 2017 12:46:05 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170830114946.17743-3-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+        Sun, 24 Sep 2017 06:23:51 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-doc@vger.kernel.org
+Subject: [PATCH v2] scripts: kernel-doc: fix nexted handling
+Date: Sun, 24 Sep 2017 07:23:43 -0300
+Message-Id: <3d54014d786733715a94fa783a479a498aaca1ea.1506248420.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30/08/17 13:49, Sakari Ailus wrote:
-> The V4L2 async wasn't part of the documentation build. Fix this.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+At DVB, we have, at some structs, things like (see
+struct dvb_demux_feed, at dvb_demux.h):
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+	union {
+		struct dmx_ts_feed ts;
+		struct dmx_section_feed sec;
+	} feed;
 
-Regards,
+	union {
+		dmx_ts_cb ts;
+		dmx_section_cb sec;
+	} cb;
 
-	Hans
+Fix the nested parser to avoid it to eat the first union.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
 
-> ---
->  Documentation/media/kapi/v4l2-async.rst | 3 +++
->  Documentation/media/kapi/v4l2-core.rst  | 1 +
->  2 files changed, 4 insertions(+)
->  create mode 100644 Documentation/media/kapi/v4l2-async.rst
-> 
-> diff --git a/Documentation/media/kapi/v4l2-async.rst b/Documentation/media/kapi/v4l2-async.rst
-> new file mode 100644
-> index 000000000000..523ff9eb09a0
-> --- /dev/null
-> +++ b/Documentation/media/kapi/v4l2-async.rst
-> @@ -0,0 +1,3 @@
-> +V4L2 async kAPI
-> +^^^^^^^^^^^^^^^
-> +.. kernel-doc:: include/media/v4l2-async.h
-> diff --git a/Documentation/media/kapi/v4l2-core.rst b/Documentation/media/kapi/v4l2-core.rst
-> index c7434f38fd9c..5cf292037a48 100644
-> --- a/Documentation/media/kapi/v4l2-core.rst
-> +++ b/Documentation/media/kapi/v4l2-core.rst
-> @@ -19,6 +19,7 @@ Video4Linux devices
->      v4l2-mc
->      v4l2-mediabus
->      v4l2-mem2mem
-> +    v4l2-async
->      v4l2-fwnode
->      v4l2-rect
->      v4l2-tuner
-> 
+v2:  handle embedded structs/unions from inner to outer
+
+When we have multiple levels of embedded structs, like
+(see v4l2-async.h):
+
+struct v4l2_async_subdev {
+	enum v4l2_async_match_type match_type;
+	union {
+		struct {
+			struct fwnode_handle *fwnode;
+		} fwnode;
+		struct {
+			const char *name;
+		} device_name;
+		struct {
+			int adapter_id;
+			unsigned short address;
+		} i2c;
+		struct {
+			bool (*match)(struct device *,
+				      struct v4l2_async_subdev *);
+			void *priv;
+		} custom;
+	} match;
+...
+}
+
+we need a smarter rule that will be removing nested structs
+from the inner to the outer ones. So, changed the parsing rule to
+remove nested structs/unions from the inner ones to the outer
+ones, while it matches.
+
+ scripts/kernel-doc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index 9d3eafea58f0..443e1bcc78db 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -2173,7 +2173,7 @@ sub dump_struct($$) {
+ 	my $members = $3;
+ 
+ 	# ignore embedded structs or unions
+-	$members =~ s/({.*})//g;
++	while ($members =~ s/({[^\{\}]*})//g) {};
+ 	$nested = $1;
+ 
+ 	# ignore members marked private:
+-- 
+2.13.5
