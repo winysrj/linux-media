@@ -1,86 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60385 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753422AbdIDKFy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Sep 2017 06:05:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v6 5/5] v4l: fwnode: Support generic parsing of graph endpoints in a single port
-Date: Mon, 04 Sep 2017 13:05:52 +0300
-Message-ID: <41798047.7Eux7kmorh@avalon>
-In-Reply-To: <20170903074339.vswbczv2lfxykssq@valkosipuli.retiisi.org.uk>
-References: <20170830114946.17743-1-sakari.ailus@linux.intel.com> <1981884.TcuAFemERJ@avalon> <20170903074339.vswbczv2lfxykssq@valkosipuli.retiisi.org.uk>
+Received: from mout.web.de ([212.227.15.3]:63992 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752624AbdIXSE5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 24 Sep 2017 14:04:57 -0400
+Subject: [PATCH 1/4] [media] omap3isp: Delete an error message for a failed
+ memory allocation in three functions
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <692bab24-7990-c971-b577-b2dea4176e64@users.sourceforge.net>
+Message-ID: <f99181c5-b31e-1727-a6ac-9ee7acdd0a90@users.sourceforge.net>
+Date: Sun, 24 Sep 2017 20:04:51 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <692bab24-7990-c971-b577-b2dea4176e64@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 24 Sep 2017 18:25:44 +0200
 
-On Sunday, 3 September 2017 10:43:39 EEST Sakari Ailus wrote:
-> On Sat, Sep 02, 2017 at 12:52:47PM +0300, Laurent Pinchart wrote:
-> > On Saturday, 2 September 2017 01:57:48 EEST Sakari Ailus wrote:
-> >> On Fri, Sep 01, 2017 at 01:28:40PM +0200, Hans Verkuil wrote:
+Omit an extra message for a memory allocation failure in these functions.
 
-[sinp]
+This issue was detected by using the Coccinelle software.
 
-> >>> I'm lost. What's the relationship between
-> >>> v4l2_async_notifier_parse_fwnode_endpoints and this function? When do
-> >>> you use which? When you should zero the notifier?
-> >> 
-> >> I thought there would be advantages in this approach as it lets you to
-> >> choose which endpoints specifically you want to parse. That said, the
-> >> expectation is that the device has no endpoints that aren't supported in
-> >> hardware either.
-> >> 
-> >> Some drivers currently iterate over all the endpoints and then validate
-> >> them whereas others poke for some endpoints only (port 0, endpoint 0,
-> >> for the rcar-vin driver, for instance). In DT binding documentation the
-> >> endpoint numbers are currently not specified nor drivers have checked
-> >> them. Common sense tells to use zero if there's no reason to do
-> >> otherwise, but still this hasn't been documented nor validated in the
-> >> past. So if we add that now, there could be a chance of breaking
-> >> something.
-> >> 
-> >> Additionally, specifying the endpoints to parse explicitly has been seen
-> >> beneficial (or even necessary) in parsing endpoints for devices that
-> >> have both input and output interfaces. Perhaps Niklas can comment on
-> >> that.
-> >> 
-> >> What I though was to introduce a specific error code (EPERM, better
-> >> suggestions are taken)
-> > 
-> > Maybe ENOTCONN ?
-> 
-> Sounds good to me.
-> 
-> >> for the driver callback function (parse_endpoint) to silently skip
-> >> endpoints the driver doesn't like for reason or another. This lets
-> >> drivers to use the endpoint parser function added by the previous patch
-> >> and still maintain the old behaviour, i.e. ignore endpoints that aren't
-> >> explicitly recognised by the driver.
-> >> 
-> >> I'll drop this patch from the next version.
-> > 
-> > Parsing a specific endpoint of a specific port is probably indeed a bit
-> > too fine-grained, but I think there are use cases for parsing at the port
-> > level instead of parsing all ports.
-> 
-> Could you elaborate?
-> 
-> If a driver would be interested in skipping endpoints in a subset of ports,
-> in which case only a single port would be excluded from this?
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/platform/omap3isp/isp.c         | 4 +---
+ drivers/media/platform/omap3isp/isph3a_aewb.c | 5 +----
+ drivers/media/platform/omap3isp/isph3a_af.c   | 5 +----
+ 3 files changed, 3 insertions(+), 11 deletions(-)
 
-I meant that I see use cases for parsing specific ports only (for instance in 
-the R-Car case parsing only the sink ports in a CSI-2 receiver DT node), but 
-not really for parsing specific endpoints only.
-
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 1a428fe9f070..874b883ac83a 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2236,10 +2236,8 @@ static int isp_probe(struct platform_device *pdev)
+ 	int i, m;
+ 
+ 	isp = devm_kzalloc(&pdev->dev, sizeof(*isp), GFP_KERNEL);
+-	if (!isp) {
+-		dev_err(&pdev->dev, "could not allocate memory\n");
++	if (!isp)
+ 		return -ENOMEM;
+-	}
+ 
+ 	ret = fwnode_property_read_u32(of_fwnode_handle(pdev->dev.of_node),
+ 				       "ti,phy-type", &isp->phy_type);
+diff --git a/drivers/media/platform/omap3isp/isph3a_aewb.c b/drivers/media/platform/omap3isp/isph3a_aewb.c
+index d44626f20ac6..9844b9d06634 100644
+--- a/drivers/media/platform/omap3isp/isph3a_aewb.c
++++ b/drivers/media/platform/omap3isp/isph3a_aewb.c
+@@ -303,11 +303,8 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
+ 	/* Set recover state configuration */
+ 	aewb_recover_cfg = devm_kzalloc(isp->dev, sizeof(*aewb_recover_cfg),
+ 					GFP_KERNEL);
+-	if (!aewb_recover_cfg) {
+-		dev_err(aewb->isp->dev,
+-			"AEWB: cannot allocate memory for recover configuration.\n");
++	if (!aewb_recover_cfg)
+ 		return -ENOMEM;
+-	}
+ 
+ 	aewb_recover_cfg->saturation_limit = OMAP3ISP_AEWB_MAX_SATURATION_LIM;
+ 	aewb_recover_cfg->win_height = OMAP3ISP_AEWB_MIN_WIN_H;
+diff --git a/drivers/media/platform/omap3isp/isph3a_af.c b/drivers/media/platform/omap3isp/isph3a_af.c
+index 99bd6cc21d86..b81e869ade8c 100644
+--- a/drivers/media/platform/omap3isp/isph3a_af.c
++++ b/drivers/media/platform/omap3isp/isph3a_af.c
+@@ -366,11 +366,8 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
+ 	/* Set recover state configuration */
+ 	af_recover_cfg = devm_kzalloc(isp->dev, sizeof(*af_recover_cfg),
+ 				      GFP_KERNEL);
+-	if (!af_recover_cfg) {
+-		dev_err(af->isp->dev,
+-			"AF: cannot allocate memory for recover configuration.\n");
++	if (!af_recover_cfg)
+ 		return -ENOMEM;
+-	}
+ 
+ 	af_recover_cfg->paxel.h_start = OMAP3ISP_AF_PAXEL_HZSTART_MIN;
+ 	af_recover_cfg->paxel.width = OMAP3ISP_AF_PAXEL_WIDTH_MIN;
 -- 
-Regards,
-
-Laurent Pinchart
+2.14.1
