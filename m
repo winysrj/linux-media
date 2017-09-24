@@ -1,47 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37644 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751852AbdI2KkI (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:33024 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752753AbdIXTjw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Sep 2017 06:40:08 -0400
-Received: from lanttu.localdomain (unknown [IPv6:2001:1bc8:1a6:d3d5::e1:1002])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id B2060600DF
-        for <linux-media@vger.kernel.org>; Fri, 29 Sep 2017 13:40:06 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/2] smiapp: Don't rely on s_power()
-Date: Fri, 29 Sep 2017 13:40:04 +0300
-Message-Id: <20170929104006.29892-1-sakari.ailus@linux.intel.com>
+        Sun, 24 Sep 2017 15:39:52 -0400
+Date: Sun, 24 Sep 2017 14:39:49 -0500
+From: Rob Herring <robh@kernel.org>
+To: Leon Luo <leonl@leopardimaging.com>
+Cc: mchehab@kernel.org, mark.rutland@arm.com, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        soren.brinkmann@xilinx.com
+Subject: Re: [PATCH v6 1/2] media:imx274 device tree binding file
+Message-ID: <20170924193949.el6gtsbxx5c3gd3v@rob-hp-laptop>
+References: <20170924075329.9927-1-leonl@leopardimaging.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170924075329.9927-1-leonl@leopardimaging.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+On Sun, Sep 24, 2017 at 12:53:28AM -0700, Leon Luo wrote:
+> The binding file for imx274 CMOS sensor V4l2 driver
+> 
+> Signed-off-by: Leon Luo <leonl@leopardimaging.com>
+> ---
+> v6:
+>  - no changes
+> v5:
+>  - add 'port' and 'endpoint' information
+> v4:
+>  - no changes
+> v3:
+>  - remove redundant properties and references
+>  - document 'reg' property
+> v2:
+>  - no changes
+> ---
+>  .../devicetree/bindings/media/i2c/imx274.txt       | 33 ++++++++++++++++++++++
+>  1 file changed, 33 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/imx274.txt
 
-These two patches make the smiapp driver independent of the s_power() core
-sub-device callback, and instead use runtime PM to control the device's
-power state.
+Please add acks when posting new versions.
 
-This should be the model for future sensor drivers: the s_power() callback
-is really something we want to get rid of.
-
-A cleaner implementation would naturally be nicer. The underlying problem
-is that the set_ctrl() callback is called through the control handler so
-there's no way to figure out in the set_ctrl() callback itself where the
-call came from: via the device's power_on() callback or from the user
-calling VIDIOC_S_CTRL.
-
-Another option would be to postpone writing control values until
-s_stream() callback but that introduces an additional delay for streaming
-which is always better to avoid.
-
-Sakari Ailus (2):
-  smiapp: Use __v4l2_ctrl_handler_setup()
-  smiapp: Rely on runtime PM
-
- drivers/media/i2c/smiapp/smiapp-core.c | 97 +++++++++++++---------------------
- drivers/media/i2c/smiapp/smiapp-regs.c |  3 ++
- drivers/media/i2c/smiapp/smiapp.h      |  1 +
- 3 files changed, 40 insertions(+), 61 deletions(-)
-
--- 
-2.11.0
+Rob
