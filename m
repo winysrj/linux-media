@@ -1,157 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56210
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S933917AbdIZS6c (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 14:58:32 -0400
-Date: Tue, 26 Sep 2017 15:58:23 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH v2] scripts: kernel-doc: fix nexted handling
-Message-ID: <20170926155823.7d322cf3@recife.lan>
-In-Reply-To: <0BDD5AC2-EECB-4748-9DDE-DDD7AC0062D3@darmarit.de>
-References: <3d54014d786733715a94fa783a479a498aaca1ea.1506248420.git.mchehab@s-opensource.com>
-        <4F0B529A-AF0A-48F9-808A-594BF07D035B@darmarit.de>
-        <20170924143833.63e9b3cd@vento.lan>
-        <A9911D58-7C66-4543-B3AA-AEBA930CDB79@darmarit.de>
-        <20170925154144.055e3ee7@vento.lan>
-        <0BDD5AC2-EECB-4748-9DDE-DDD7AC0062D3@darmarit.de>
+Received: from mout.web.de ([212.227.15.14]:61905 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750947AbdIXK3V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 24 Sep 2017 06:29:21 -0400
+Subject: [PATCH 4/6] [media] omap_vout: Fix a possible null pointer
+ dereference in omap_vout_open()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Jan Kara <jack@suse.cz>, Lorenzo Stoakes <lstoakes@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michal Hocko <mhocko@suse.com>,
+        Muralidharan Karicheri <mkaricheri@gmail.com>,
+        Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
+Message-ID: <15332564-0c8d-a197-b987-f54e29768e56@users.sourceforge.net>
+Date: Sun, 24 Sep 2017 12:28:54 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 26 Sep 2017 14:45:08 +0200
-Markus Heiser <markus.heiser@darmarit.de> escreveu:
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 24 Sep 2017 11:00:57 +0200
 
-> > Am 25.09.2017 um 20:41 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:  
-> 
-> >>> +			$cont = 1;
-> >>> +		};
-> >>> +	};
-> >>> +	# Ignore other nested elements, like enums
-> >>> +	$members =~ s/({[^\{\}]*})//g;
-> >>> +	$nested = $decl_type;    
-> >> 
-> >> What is the latter good for? I guess the 'nested' trick to suppress
-> >> such 'excess' warnings from nested types is no longer needed .. right?  
-> > 
-> > For things like:
-> > 
-> > 	enum { foo, bar } type;
-> > 
-> > Granted, a good documentation should also describe "foo" and "bar",
-> > but that could be easily done by moving enums out of the struct, or
-> > by add descriptions for "foo" and "bar" at @type: markup.  
-> 
-> 
-> Hm .. I suppose you are misunderstanding me. I didn't asked about 
-> $members, I asked about $nested. There is only one place where
-> $nested is used, and this is in the check_sections function ...
-> 
-> @@ -2531,9 +2527,7 @@ sub check_sections($$$$$$) {
->  			} else {
-> -				if ($nested !~ m/\Q$sects[$sx]\E/) {
-> -				    print STDERR "${file}:$.: warning: " .
-> -					"Excess struct/union/enum/typedef member " .
-> -					"'$sects[$sx]' " .
-> -					"description in '$decl_name'\n";
-> -				    ++$warnings;
-> -				}
-> +                            print STDERR "${file}:$.: warning: " .
-> +                                "Excess struct/union/enum/typedef member " .
-> +                                "'$sects[$sx]' " .
-> +                                "description in '$decl_name'\n";
-> +                            ++$warnings;
->  			}
-> 
-> Since this is the only place where $nested is use, we can drop all
-> the occurrence of $nested in the kernel-doc script .. or I'am
-> totally wrong?
+Move a debug message so that a null pointer access can not happen
+for the variable "vout" in this function.
 
-Ah, now I understood you! Yeah, this can be removed. I'll put it into
-a separate cleanup patch.
+Fixes: 5c7ab6348e7b3fcca2b8ee548306c774472971e2 ("V4L/DVB: V4L2: Add support for OMAP2/3 V4L2 display driver on top of DSS2")
 
-See below.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/platform/omap/omap_vout.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Regards,
-Mauro
-
-
-[PATCH] scripts: kernel-doc: get rid of $nested parameter
-
-The check_sections() function has a $nested parameter, meant
-to identify when a nested struct is present. As we now have
-a logic that handles it, get rid of such parameter.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index 880a196c7dc7..cff66ee91f2c 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -979,7 +979,6 @@ sub dump_union($$) {
- sub dump_struct($$) {
-     my $x = shift;
-     my $file = shift;
--    my $nested;
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index 2b55a8ebd1ad..71b77426271e 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -1004,11 +1004,11 @@ static int omap_vout_open(struct file *file)
+ 	struct omap_vout_device *vout = NULL;
  
-     if ($x =~ /(struct|union)\s+(\w+)\s*{(.*)}/) {
- 	my $decl_type = $1;
-@@ -1034,11 +1033,9 @@ sub dump_struct($$) {
+ 	vout = video_drvdata(file);
+-	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev, "Entering %s\n", __func__);
+-
+ 	if (!vout)
+ 		return -ENODEV;
  
- 	# Ignore other nested elements, like enums
- 	$members =~ s/({[^\{\}]*})//g;
--	$nested = $decl_type;
--	$nested =~ s/\/\*.*?\*\///gos;
- 
- 	create_parameterlist($members, ';', $file);
--	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual, $nested);
-+	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual);
- 
- 	# Adjust declaration for better display
- 	$declaration =~ s/([{;])/$1\n/g;
-@@ -1334,8 +1331,8 @@ sub push_parameter($$$) {
- 	$parametertypes{$param} = $type;
- }
- 
--sub check_sections($$$$$$) {
--	my ($file, $decl_name, $decl_type, $sectcheck, $prmscheck, $nested) = @_;
-+sub check_sections($$$$$) {
-+	my ($file, $decl_name, $decl_type, $sectcheck, $prmscheck) = @_;
- 	my @sects = split ' ', $sectcheck;
- 	my @prms = split ' ', $prmscheck;
- 	my $err;
-@@ -1369,14 +1366,6 @@ sub check_sections($$$$$$) {
- 					"'$sects[$sx]' " .
- 					"description in '$decl_name'\n";
- 				++$warnings;
--			} else {
--				if ($nested !~ m/\Q$sects[$sx]\E/) {
--				    print STDERR "${file}:$.: warning: " .
--					"Excess struct/union/enum/typedef member " .
--					"'$sects[$sx]' " .
--					"description in '$decl_name'\n";
--				    ++$warnings;
--				}
- 			}
- 		}
- 	}
-@@ -1487,7 +1476,7 @@ sub dump_function($$) {
-     }
- 
- 	my $prms = join " ", @parameterlist;
--	check_sections($file, $declaration_name, "function", $sectcheck, $prms, "");
-+	check_sections($file, $declaration_name, "function", $sectcheck, $prms);
- 
-         # This check emits a lot of warnings at the moment, because many
-         # functions don't have a 'Return' doc section. So until the number
-
-
-Thanks,
-Mauro
++	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev, "Entering %s\n", __func__);
++
+ 	/* for now, we only support single open */
+ 	if (vout->opened)
+ 		return -EBUSY;
+-- 
+2.14.1
