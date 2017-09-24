@@ -1,52 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:41726 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751499AbdITWUE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 18:20:04 -0400
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jasmin Jessich <jasmin@anw.at>,
-        Ralph Metzler <rjkm@metzlerbros.de>,
-        linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: dvb_ca_en50221: sanity check slot number from userspace
-Date: Wed, 20 Sep 2017 23:19:59 +0100
-Message-Id: <20170920221959.5979-1-colin.king@canonical.com>
+Received: from mout.web.de ([212.227.15.3]:50311 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751495AbdIXKas (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 24 Sep 2017 06:30:48 -0400
+Subject: [PATCH 5/6] [media] omap_vout: Delete an unnecessary variable
+ initialisation in omap_vout_open()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Jan Kara <jack@suse.cz>, Lorenzo Stoakes <lstoakes@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michal Hocko <mhocko@suse.com>,
+        Muralidharan Karicheri <mkaricheri@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
+Message-ID: <63bf382e-733f-2060-a4c8-e9863a38f3b7@users.sourceforge.net>
+Date: Sun, 24 Sep 2017 12:30:36 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 24 Sep 2017 11:20:11 +0200
 
-Currently a user can pass in an unsanitized slot number which
-will lead to and out of range index into ca->slot_info. Fix this
-by checking that the slot number is no more than the allowed
-maximum number of slots. Seems that this bug has been in the driver
-forever.
+The local variable "vout" is reassigned by a statement at the beginning.
+Thus omit the explicit initialisation.
 
-Detected by CoverityScan, CID#139381 ("Untrusted pointer read")
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/dvb-core/dvb_ca_en50221.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/platform/omap/omap_vout.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-index 95b3723282f4..e3a92b529dba 100644
---- a/drivers/media/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-@@ -1474,6 +1474,9 @@ static ssize_t dvb_ca_en50221_io_write(struct file *file,
- 		return -EFAULT;
- 	buf += 2;
- 	count -= 2;
-+
-+	if (slot >= ca->slot_count)
-+		return -EINVAL;
- 	sl = &ca->slot_info[slot];
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index 71b77426271e..f446a37064f4 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -1001,7 +1001,7 @@ static int omap_vout_release(struct file *file)
+ static int omap_vout_open(struct file *file)
+ {
+ 	struct videobuf_queue *q;
+-	struct omap_vout_device *vout = NULL;
++	struct omap_vout_device *vout;
  
- 	/* check if the slot is actually running */
+ 	vout = video_drvdata(file);
+ 	if (!vout)
 -- 
 2.14.1
