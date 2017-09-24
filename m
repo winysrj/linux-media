@@ -1,127 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48904 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751242AbdIKIAV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 04:00:21 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from gofer.mess.org ([88.97.38.141]:33733 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751495AbdIXKWQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 24 Sep 2017 06:22:16 -0400
+Date: Sun, 24 Sep 2017 11:22:15 +0100
+From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v10 22/24] ov5670: Add support for flash and lens devices
-Date: Mon, 11 Sep 2017 11:00:06 +0300
-Message-Id: <20170911080008.21208-23-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+Subject: [GIT PULL v2 FOR v4.15] RC cleanup fixes
+Message-ID: <20170924102215.b72emfkjofsv7q7d@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse async sub-devices by using
-v4l2_subdev_fwnode_reference_parse_sensor_common().
+Hi Mauro,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/ov5670.c | 33 +++++++++++++++++++++++++--------
- 1 file changed, 25 insertions(+), 8 deletions(-)
+Thank you for your comments on the first PR. You are right, removing the
+LIRC_GET_{MIN,MAX}_TIMEOUT ioctls from the non-rc-core lirc drivers had
+no reason to be merged.
 
-diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
-index 6f7a1d6d2200..25970307dd75 100644
---- a/drivers/media/i2c/ov5670.c
-+++ b/drivers/media/i2c/ov5670.c
-@@ -18,6 +18,7 @@
- #include <linux/pm_runtime.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
- 
- #define OV5670_REG_CHIP_ID		0x300a
- #define OV5670_CHIP_ID			0x005670
-@@ -1807,6 +1808,7 @@ static const struct ov5670_mode supported_modes[] = {
- struct ov5670 {
- 	struct v4l2_subdev sd;
- 	struct media_pad pad;
-+	struct v4l2_async_notifier notifier;
- 
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	/* V4L2 Controls */
-@@ -2473,11 +2475,13 @@ static int ov5670_probe(struct i2c_client *client)
- 		return -EINVAL;
- 
- 	ov5670 = devm_kzalloc(&client->dev, sizeof(*ov5670), GFP_KERNEL);
--	if (!ov5670) {
--		ret = -ENOMEM;
--		err_msg = "devm_kzalloc() error";
--		goto error_print;
--	}
-+	if (!ov5670)
-+		return -ENOMEM;
-+
-+	ret = v4l2_fwnode_reference_parse_sensor_common(
-+		&client->dev, &ov5670->notifier);
-+	if (ret < 0)
-+		return ret;
- 
- 	/* Initialize subdev */
- 	v4l2_i2c_subdev_init(&ov5670->sd, client, &ov5670_subdev_ops);
-@@ -2486,7 +2490,7 @@ static int ov5670_probe(struct i2c_client *client)
- 	ret = ov5670_identify_module(ov5670);
- 	if (ret) {
- 		err_msg = "ov5670_identify_module() error";
--		goto error_print;
-+		goto error_release_notifier;
- 	}
- 
- 	mutex_init(&ov5670->mutex);
-@@ -2513,11 +2517,18 @@ static int ov5670_probe(struct i2c_client *client)
- 		goto error_handler_free;
- 	}
- 
-+	ret = v4l2_async_subdev_notifier_register(&ov5670->sd,
-+						  &ov5670->notifier);
-+	if (ret) {
-+		err_msg = "can't register async notifier";
-+		goto error_entity_cleanup;
-+	}
-+
- 	/* Async register for subdev */
- 	ret = v4l2_async_register_subdev(&ov5670->sd);
- 	if (ret < 0) {
- 		err_msg = "v4l2_async_register_subdev() error";
--		goto error_entity_cleanup;
-+		goto error_unregister_notifier;
- 	}
- 
- 	ov5670->streaming = false;
-@@ -2533,6 +2544,9 @@ static int ov5670_probe(struct i2c_client *client)
- 
- 	return 0;
- 
-+error_unregister_notifier:
-+	v4l2_async_notifier_unregister(&ov5670->notifier);
-+
- error_entity_cleanup:
- 	media_entity_cleanup(&ov5670->sd.entity);
- 
-@@ -2542,7 +2556,8 @@ static int ov5670_probe(struct i2c_client *client)
- error_mutex_destroy:
- 	mutex_destroy(&ov5670->mutex);
- 
--error_print:
-+error_release_notifier:
-+	v4l2_async_notifier_release(&ov5670->notifier);
- 	dev_err(&client->dev, "%s: %s %d\n", __func__, err_msg, ret);
- 
- 	return ret;
-@@ -2554,6 +2569,8 @@ static int ov5670_remove(struct i2c_client *client)
- 	struct ov5670 *ov5670 = to_ov5670(sd);
- 
- 	v4l2_async_unregister_subdev(sd);
-+	v4l2_async_notifier_unregister(&ov5670->notifier);
-+	v4l2_async_notifier_release(&ov5670->notifier);
- 	media_entity_cleanup(&sd->entity);
- 	v4l2_ctrl_handler_free(sd->ctrl_handler);
- 	mutex_destroy(&ov5670->mutex);
--- 
-2.11.0
+The changes to use file->private_data should not break imon since the imon
+driver uses it for the lcd chardev, not lirc. The patch is needed to move
+to lirc ida minor allocation, rather that the self-coded one.
+
+The patches have been tested in varous ways with lots of IR hardware
+plugged in, unfortunately I don't have an imon device to test.
+
+Thanks,
+
+Sean
+
+
+The following changes since commit d5426f4c2ebac8cf05de43988c3fccddbee13d28:
+
+  media: staging: atomisp: use clock framework for camera clocks (2017-09-23 15:09:37 -0400)
+
+are available in the git repository at:
+
+  git://linuxtv.org/syoung/media_tree.git for-v4.15a
+
+for you to fetch changes up to 025911a68db868dff7d383fac11d804744d9e79f:
+
+  imon: Improve a size determination in two functions (2017-09-24 10:42:44 +0100)
+
+----------------------------------------------------------------
+Arvind Yadav (1):
+      media: rc: constify usb_device_id
+
+Bhumika Goyal (1):
+      media: rc: make device_type const
+
+Colin Ian King (1):
+      media: imon: make two const arrays static, reduces object code size
+
+David Härdeman (14):
+      media: lirc_dev: clarify error handling
+      media: lirc_dev: remove support for manually specifying minor number
+      media: lirc_dev: use cdev_device_add() helper function
+      media: lirc_dev: make better use of file->private_data
+      media: lirc_dev: make chunk_size and buffer_size mandatory
+      media: lirc_dev: remove kmalloc in lirc_dev_fop_read()
+      media: lirc_dev: change irctl->attached to be a boolean
+      media: lirc_dev: sanitize locking
+      media: lirc_dev: use an IDA instead of an array to keep track of registered devices
+      media: rename struct lirc_driver to struct lirc_dev
+      media: lirc_dev: introduce lirc_allocate_device and lirc_free_device
+      media: lirc_zilog: add a pointer to the parent device to struct IR
+      media: lirc_zilog: use a dynamically allocated lirc_dev
+      media: lirc_dev: merge struct irctl into struct lirc_dev
+
+Ladislav Michl (10):
+      media: rc: gpio-ir-recv: use helper variable to access device info
+      media: rc: gpio-ir-recv: use devm_kzalloc
+      media: rc: gpio-ir-recv: use devm_rc_allocate_device
+      media: rc: gpio-ir-recv: use devm_gpio_request_one
+      media: rc: gpio-ir-recv: use devm_rc_register_device
+      media: rc: gpio-ir-recv: do not allow threaded interrupt handler
+      media: rc: gpio-ir-recv: use devm_request_irq
+      media: rc: gpio-ir-recv: use KBUILD_MODNAME
+      media: rc: gpio-ir-recv: remove gpio_ir_recv_platform_data
+      media: rc: gpio-ir-recv: use gpiolib API
+
+Marc Gonzalez (1):
+      media: rc: Delete duplicate debug message
+
+Markus Elfring (3):
+      media: imon: delete an error message for a failed memory allocation
+      media: img-ir: delete an error message for a failed memory allocation
+      imon: Improve a size determination in two functions
+
+Sean Young (7):
+      media: dvb: a800: port to rc-core
+      media: rc: avermedia keymap for a800
+      media: rc: ensure that protocols are enabled for scancode drivers
+      media: rc: dvb: use dvb device name for rc device
+      media: rc: if protocols can't be changed, don't be writable
+      media: rc: include device name in rc udev event
+      media: vp7045: port TwinhanDTV Alpha to rc-core
+
+Stephen Hemminger (1):
+      media: default for RC_CORE should be n
+
+Thomas Meyer (1):
+      media: rc: Use bsearch library function
+
+ drivers/media/cec/cec-core.c                     |   1 -
+ drivers/media/i2c/ir-kbd-i2c.c                   |   1 -
+ drivers/media/rc/Kconfig                         |   1 -
+ drivers/media/rc/ati_remote.c                    |   2 +-
+ drivers/media/rc/gpio-ir-recv.c                  | 190 +++------
+ drivers/media/rc/igorplugusb.c                   |   2 +-
+ drivers/media/rc/img-ir/img-ir-core.c            |   5 +-
+ drivers/media/rc/imon.c                          |  18 +-
+ drivers/media/rc/ir-lirc-codec.c                 |  56 ++-
+ drivers/media/rc/keymaps/rc-avermedia-m135a.c    |   3 +-
+ drivers/media/rc/keymaps/rc-twinhan1027.c        |   2 +-
+ drivers/media/rc/lirc_dev.c                      | 511 +++++++++--------------
+ drivers/media/rc/mceusb.c                        |   2 +-
+ drivers/media/rc/rc-core-priv.h                  |   2 +-
+ drivers/media/rc/rc-main.c                       |  72 ++--
+ drivers/media/rc/redrat3.c                       |   2 +-
+ drivers/media/rc/streamzap.c                     |   2 +-
+ drivers/media/usb/dvb-usb/a800.c                 |  65 +--
+ drivers/media/usb/dvb-usb/dvb-usb-remote.c       |   3 +-
+ drivers/media/usb/dvb-usb/dvb-usb.h              |   1 +
+ drivers/media/usb/dvb-usb/vp7045.c               |  88 +---
+ drivers/staging/media/lirc/lirc_zilog.c          | 231 +++++-----
+ include/linux/platform_data/media/gpio-ir-recv.h |  23 -
+ include/media/lirc_dev.h                         |  94 ++---
+ 24 files changed, 527 insertions(+), 850 deletions(-)
+ delete mode 100644 include/linux/platform_data/media/gpio-ir-recv.h
