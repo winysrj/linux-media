@@ -1,141 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:39892 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751311AbdILLIR (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:53571 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933315AbdIYJor (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 07:08:17 -0400
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mon, 25 Sep 2017 05:44:47 -0400
+Subject: Re: [PATCH v6 03/25] rcar-vin: move chip information to own struct
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170822232640.26147-4-niklas.soderlund+renesas@ragnatech.se>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] gspca: make arrays static, reduces object code size
-Date: Tue, 12 Sep 2017 12:08:13 +0100
-Message-Id: <20170912110813.883-1-colin.king@canonical.com>
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2fe2125c-0fa9-3113-dd49-05a4dd5f17d8@xs4all.nl>
+Date: Mon, 25 Sep 2017 11:44:41 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <20170822232640.26147-4-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+On 23/08/17 01:26, Niklas Söderlund wrote:
+> When Gen3 support is added to the driver more then chip id will be
 
-Don't populate const arrays on the stack, instead make them
-static.  Makes the object code smaller by over 5200 bytes:
+then -> than
 
-Before:
-   text	   data	    bss	    dec	    hex	filename
-  58259	   8880	    128	  67267	  106c3	ov519.o
+> different for the different Soc. To avoid a lot of if statements in the
+> code create a struct chip_info to contain this information.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-After:
-   text	   data	    bss	    dec	    hex	filename
-  52155	   9776	    128	  62059	   f26b	ov519.o
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/media/usb/gspca/ov519.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+Regards,
 
-diff --git a/drivers/media/usb/gspca/ov519.c b/drivers/media/usb/gspca/ov519.c
-index cdb79c5f0c38..f1537daf4e2e 100644
---- a/drivers/media/usb/gspca/ov519.c
-+++ b/drivers/media/usb/gspca/ov519.c
-@@ -2865,7 +2865,7 @@ static void sd_reset_snapshot(struct gspca_dev *gspca_dev)
- 
- static void ov51x_upload_quan_tables(struct sd *sd)
- {
--	const unsigned char yQuanTable511[] = {
-+	static const unsigned char yQuanTable511[] = {
- 		0, 1, 1, 2, 2, 3, 3, 4,
- 		1, 1, 1, 2, 2, 3, 4, 4,
- 		1, 1, 2, 2, 3, 4, 4, 4,
-@@ -2876,7 +2876,7 @@ static void ov51x_upload_quan_tables(struct sd *sd)
- 		4, 4, 4, 4, 5, 5, 5, 5
- 	};
- 
--	const unsigned char uvQuanTable511[] = {
-+	static const unsigned char uvQuanTable511[] = {
- 		0, 2, 2, 3, 4, 4, 4, 4,
- 		2, 2, 2, 4, 4, 4, 4, 4,
- 		2, 2, 3, 4, 4, 4, 4, 4,
-@@ -2888,13 +2888,13 @@ static void ov51x_upload_quan_tables(struct sd *sd)
- 	};
- 
- 	/* OV518 quantization tables are 8x4 (instead of 8x8) */
--	const unsigned char yQuanTable518[] = {
-+	static const unsigned char yQuanTable518[] = {
- 		5, 4, 5, 6, 6, 7, 7, 7,
- 		5, 5, 5, 5, 6, 7, 7, 7,
- 		6, 6, 6, 6, 7, 7, 7, 8,
- 		7, 7, 6, 7, 7, 7, 8, 8
- 	};
--	const unsigned char uvQuanTable518[] = {
-+	static const unsigned char uvQuanTable518[] = {
- 		6, 6, 6, 7, 7, 7, 7, 7,
- 		6, 6, 6, 7, 7, 7, 7, 7,
- 		6, 6, 6, 7, 7, 7, 7, 8,
-@@ -2943,7 +2943,7 @@ static void ov511_configure(struct gspca_dev *gspca_dev)
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
- 	/* For 511 and 511+ */
--	const struct ov_regvals init_511[] = {
-+	static const struct ov_regvals init_511[] = {
- 		{ R51x_SYS_RESET,	0x7f },
- 		{ R51x_SYS_INIT,	0x01 },
- 		{ R51x_SYS_RESET,	0x7f },
-@@ -2953,7 +2953,7 @@ static void ov511_configure(struct gspca_dev *gspca_dev)
- 		{ R51x_SYS_RESET,	0x3d },
- 	};
- 
--	const struct ov_regvals norm_511[] = {
-+	static const struct ov_regvals norm_511[] = {
- 		{ R511_DRAM_FLOW_CTL,	0x01 },
- 		{ R51x_SYS_SNAP,	0x00 },
- 		{ R51x_SYS_SNAP,	0x02 },
-@@ -2963,7 +2963,7 @@ static void ov511_configure(struct gspca_dev *gspca_dev)
- 		{ R511_COMP_LUT_EN,	0x03 },
- 	};
- 
--	const struct ov_regvals norm_511_p[] = {
-+	static const struct ov_regvals norm_511_p[] = {
- 		{ R511_DRAM_FLOW_CTL,	0xff },
- 		{ R51x_SYS_SNAP,	0x00 },
- 		{ R51x_SYS_SNAP,	0x02 },
-@@ -2973,7 +2973,7 @@ static void ov511_configure(struct gspca_dev *gspca_dev)
- 		{ R511_COMP_LUT_EN,	0x03 },
- 	};
- 
--	const struct ov_regvals compress_511[] = {
-+	static const struct ov_regvals compress_511[] = {
- 		{ 0x70, 0x1f },
- 		{ 0x71, 0x05 },
- 		{ 0x72, 0x06 },
-@@ -3009,7 +3009,7 @@ static void ov518_configure(struct gspca_dev *gspca_dev)
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
- 	/* For 518 and 518+ */
--	const struct ov_regvals init_518[] = {
-+	static const struct ov_regvals init_518[] = {
- 		{ R51x_SYS_RESET,	0x40 },
- 		{ R51x_SYS_INIT,	0xe1 },
- 		{ R51x_SYS_RESET,	0x3e },
-@@ -3020,7 +3020,7 @@ static void ov518_configure(struct gspca_dev *gspca_dev)
- 		{ 0x5d,			0x03 },
- 	};
- 
--	const struct ov_regvals norm_518[] = {
-+	static const struct ov_regvals norm_518[] = {
- 		{ R51x_SYS_SNAP,	0x02 }, /* Reset */
- 		{ R51x_SYS_SNAP,	0x01 }, /* Enable */
- 		{ 0x31,			0x0f },
-@@ -3033,7 +3033,7 @@ static void ov518_configure(struct gspca_dev *gspca_dev)
- 		{ 0x2f,			0x80 },
- 	};
- 
--	const struct ov_regvals norm_518_p[] = {
-+	static const struct ov_regvals norm_518_p[] = {
- 		{ R51x_SYS_SNAP,	0x02 }, /* Reset */
- 		{ R51x_SYS_SNAP,	0x01 }, /* Enable */
- 		{ 0x31,			0x0f },
--- 
-2.14.1
+	Hans
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 49 ++++++++++++++++++++++++-----
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c |  3 +-
+>  drivers/media/platform/rcar-vin/rcar-vin.h  | 12 +++++--
+>  3 files changed, 53 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index aefbe8e3ccddb3e4..dae38de706b66b64 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -277,14 +277,47 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+>   * Platform Device Driver
+>   */
+>  
+> +static const struct rvin_info rcar_info_h1 = {
+> +	.chip = RCAR_H1,
+> +};
+> +
+> +static const struct rvin_info rcar_info_m1 = {
+> +	.chip = RCAR_M1,
+> +};
+> +
+> +static const struct rvin_info rcar_info_gen2 = {
+> +	.chip = RCAR_GEN2,
+> +};
+> +
+>  static const struct of_device_id rvin_of_id_table[] = {
+> -	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
+> -	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
+> -	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
+> -	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+> -	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
+> -	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
+> -	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
+> +	{
+> +		.compatible = "renesas,vin-r8a7794",
+> +		.data = &rcar_info_gen2,
+> +	},
+> +	{
+> +		.compatible = "renesas,vin-r8a7793",
+> +		.data = &rcar_info_gen2,
+> +	},
+> +	{
+> +		.compatible = "renesas,vin-r8a7791",
+> +		.data = &rcar_info_gen2,
+> +	},
+> +	{
+> +		.compatible = "renesas,vin-r8a7790",
+> +		.data = &rcar_info_gen2,
+> +	},
+> +	{
+> +		.compatible = "renesas,vin-r8a7779",
+> +		.data = &rcar_info_h1,
+> +	},
+> +	{
+> +		.compatible = "renesas,vin-r8a7778",
+> +		.data = &rcar_info_m1,
+> +	},
+> +	{
+> +		.compatible = "renesas,rcar-gen2-vin",
+> +		.data = &rcar_info_gen2,
+> +	},
+>  	{ },
+>  };
+>  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+> @@ -305,7 +338,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
+>  		return -ENODEV;
+>  
+>  	vin->dev = &pdev->dev;
+> -	vin->chip = (enum chip_id)match->data;
+> +	vin->info = match->data;
+>  
+>  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	if (mem == NULL)
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> index 81ff59c3b4744075..02a08cf5acfce1ce 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -266,7 +266,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  	pix->sizeimage = max_t(u32, pix->sizeimage,
+>  			       rvin_format_sizeimage(pix));
+>  
+> -	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+> +	if (vin->info->chip == RCAR_M1 &&
+> +	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+>  		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
+>  		return -EINVAL;
+>  	}
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index 9d0d4a5001b6ccd8..13466dfd72292fc0 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -88,11 +88,19 @@ struct rvin_graph_entity {
+>  	unsigned int sink_pad;
+>  };
+>  
+> +/**
+> + * struct rvin_info - Information about the particular VIN implementation
+> + * @chip:		type of VIN chip
+> + */
+> +struct rvin_info {
+> +	enum chip_id chip;
+> +};
+> +
+>  /**
+>   * struct rvin_dev - Renesas VIN device structure
+>   * @dev:		(OF) device
+>   * @base:		device I/O register space remapped to virtual memory
+> - * @chip:		type of VIN chip
+> + * @info:		info about VIN instance
+>   *
+>   * @vdev:		V4L2 video device associated with VIN
+>   * @v4l2_dev:		V4L2 device
+> @@ -120,7 +128,7 @@ struct rvin_graph_entity {
+>  struct rvin_dev {
+>  	struct device *dev;
+>  	void __iomem *base;
+> -	enum chip_id chip;
+> +	const struct rvin_info *info;
+>  
+>  	struct video_device vdev;
+>  	struct v4l2_device v4l2_dev;
+> 
