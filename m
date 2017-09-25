@@ -1,193 +1,363 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33646
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752132AbdI0WX4 (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:58564 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932716AbdIYKWQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 18:23:56 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v7 1/7] media: add glossary.rst with a glossary of terms used at V4L2 spec
-Date: Wed, 27 Sep 2017 19:23:43 -0300
-Message-Id: <047245414a82a6553361b1dd3497f796855a657d.1506550930.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506550930.git.mchehab@s-opensource.com>
-References: <cover.1506550930.git.mchehab@s-opensource.com>
+        Mon, 25 Sep 2017 06:22:16 -0400
+Subject: Re: [PATCH v6 19/25] rcar-vin: add group allocator functions
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170822232640.26147-20-niklas.soderlund+renesas@ragnatech.se>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d73b507e-b894-ac99-a0df-697e4ca8ab75@xs4all.nl>
+Date: Mon, 25 Sep 2017 12:22:13 +0200
 MIME-Version: 1.0
-In-Reply-To: <cover.1506550930.git.mchehab@s-opensource.com>
-References: <cover.1506550930.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20170822232640.26147-20-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a glossary of terms for V4L2, as several concepts are complex
-enough to cause misunderstandings.
+On 23/08/17 01:26, Niklas Söderlund wrote:
+> In media controller mode all VIN instances needs to be part of the same
+> media graph. There is also a need to each VIN instance to know and in
+> some cases be able to communicate with other VIN instances.
+> 
+> Add a allocator framework where the first VIN instance to be probed
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/glossary.rst | 136 ++++++++++++++++++++++++++++++
- Documentation/media/uapi/v4l/v4l2.rst     |   1 +
- 2 files changed, 137 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/glossary.rst
+Add a -> Add an
 
-diff --git a/Documentation/media/uapi/v4l/glossary.rst b/Documentation/media/uapi/v4l/glossary.rst
-new file mode 100644
-index 000000000000..b6767da1a46e
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/glossary.rst
-@@ -0,0 +1,136 @@
-+========
-+Glossary
-+========
-+
-+.. note::
-+
-+   This goal of section is to standardize the terms used within the V4L2
-+   documentation. It is written incrementally as they are standardized in
-+   the V4L2 documentation. So, it is a Work In Progress.
-+
-+.. Please keep the glossary entries in alphabetical order
-+
-+.. glossary::
-+
-+    Bridge driver
-+	The same as V4L2 main driver.
-+
-+    Device Node
-+	A character device node in the file system used to control and do
-+	input/output data transfers from/to a Kernel driver.
-+
-+    Digital Signal Processor - DSP
-+	A specialized microprocessor, with its architecture optimized for
-+	the operational needs of digital signal processing.
-+
-+    Driver
-+	The part of the Linux Kernel that implements support
-+	for a hardware component.
-+
-+    Field-programmable Gate Array - FPGA
-+	A field-programmable gate array (FPGA) is an integrated circuit
-+	designed to be configured by a customer or a designer after
-+	manufacturing.
-+
-+	See https://en.wikipedia.org/wiki/Field-programmable_gate_array.
-+
-+    Hardware component
-+	A subset of the media hardware. For example an I²C or SPI device,
-+	or an IP block inside an SoC or FPGA.
-+
-+    Image Signal Processor - ISP
-+	A specialised processor that implements a set of algorithms for
-+	processing image data. ISPs may implement algorithms for lens
-+	shading correction, demosaic, scaling and pixel format conversion
-+	as well as produce statistics for the use of the control
-+	algorithms (e.g. automatic exposure, white balance and focus).
-+
-+    Inter-Integrated Circuit - I²C
-+	A  multi-master, multi-slave, packet switched, single-ended,
-+	serial computer bus used to control V4L2 sub-devices.
-+
-+	See http://www.nxp.com/docs/en/user-guide/UM10204.pdf.
-+
-+    Integrated circuit - IC
-+	A set of electronic circuits on one small flat piece of
-+	semiconductor material, normally silicon.
-+
-+	Also known as chip.
-+
-+    Intellectual property core - IP core
-+	In electronic design a semiconductor intellectual property core,
-+	is a reusable unit of logic, cell, or integrated circuit layout
-+	design that is the intellectual property of one party.
-+	IP cores may be licensed to another party or can be owned
-+	and used by a single party alone.
-+
-+	See https://en.wikipedia.org/wiki/Semiconductor_intellectual_property_core).
-+
-+    IP block
-+	The same as IP core.
-+
-+    MC-centric
-+	V4L2 hardware that requires a Media controller.
-+
-+	See :ref:`v4l2_hardware_control`.
-+
-+    Media Controller
-+	An API designed to expose and control devices and sub-devices
-+	relationships to applications.
-+
-+	See :ref:`media_controller`.
-+
-+    Media hardware
-+	A group of hardware components that together make a larger
-+	user-facing functional media hardware. For instance the SoC ISP IP
-+	cores and external camera sensors together make a
-+	camera media hardware.
-+
-+    Media hardware control
-+	Type of control for a media hardware supported by V4L2 drivers.
-+
-+	See :ref:`v4l2_hardware_control`.
-+
-+    Microprocessor
-+	An electronic circuitry that carries out the instructions
-+	of a computer program by performing the basic arithmetic, logical,
-+	control and input/output (I/O) operations specified by the
-+	instructions on a single integrated circuit.
-+
-+    SMBus
-+	A subset of I²C, with defines a stricter usage of the bus.
-+
-+    Serial Peripheral Interface Bus - SPI
-+	Synchronous serial communication interface specification used for
-+	short distance communication, primarily in embedded systems.
-+
-+    System on a Chip - SoC
-+	An integrated circuit that integrates all components of a computer
-+	or other electronic systems.
-+
-+    V4L2 device node
-+	A device node that is associated to a V4L2 main driver,
-+	as specified in :ref:`v4l2_device_naming`.
-+
-+    V4L2 hardware
-+	A hardware used to on a media device supported by the V4L2
-+	subsystem.
-+
-+    V4L2 main driver
-+	The V4L2 device driver that implements the main logic to talk with
-+	the V4L2 hardware.
-+
-+	Also known as bridge driver.
-+
-+	See :ref:`v4l2_hardware_control`.
-+
-+    V4L2 sub-device
-+	Part of the media hardware that is implemented via a
-+	V4L2 sub-device driver.
-+
-+	See :ref:`subdev`.
-+
-+    Vdevnode-centric
-+	V4L2 hardware that it is controlled via V4L2 device nodes.
-+
-+	See :ref:`v4l2_hardware_control`.
-diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
-index 2128717299b3..698c060939f0 100644
---- a/Documentation/media/uapi/v4l/v4l2.rst
-+++ b/Documentation/media/uapi/v4l/v4l2.rst
-@@ -32,6 +32,7 @@ This part describes the Video for Linux API version 2 (V4L2 API) specification.
-     videodev
-     capture-example
-     v4l2grab-example
-+    glossary
-     biblio
- 
- 
--- 
-2.13.5
+> creates a shared data structure and creates a media device.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Note the small typo below.
+
+Regards,
+
+	Hans
+
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 179 +++++++++++++++++++++++++++-
+>  drivers/media/platform/rcar-vin/rcar-vin.h  |  38 ++++++
+>  2 files changed, 216 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index dd0525f2ba336bc2..4218a73eb6885486 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -20,11 +20,170 @@
+>  #include <linux/of_graph.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/slab.h>
+>  
+>  #include <media/v4l2-fwnode.h>
+>  
+>  #include "rcar-vin.h"
+>  
+> +/* -----------------------------------------------------------------------------
+> + * Gen3 CSI2 Group Allocator
+> + */
+> +
+> +static int rvin_group_read_id(struct rvin_dev *vin, struct device_node *np)
+> +{
+> +	u32 val;
+> +	int ret;
+> +
+> +	ret = of_property_read_u32(np, "renesas,id", &val);
+> +	if (ret) {
+> +		vin_err(vin, "%s: No renesas,id property found\n",
+> +			of_node_full_name(np));
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (val >= RCAR_VIN_NUM) {
+> +		vin_err(vin, "%s: Invalid renesas,id '%u'\n",
+> +			of_node_full_name(np), val);
+> +		return -EINVAL;
+> +	}
+> +
+> +	return val;
+> +}
+> +
+> +static DEFINE_MUTEX(rvin_group_lock);
+> +static struct rvin_group *rvin_group_data;
+> +
+> +static void rvin_group_release(struct kref *kref)
+> +{
+> +	struct rvin_group *group =
+> +		container_of(kref, struct rvin_group, refcount);
+> +
+> +	mutex_lock(&rvin_group_lock);
+> +
+> +	media_device_unregister(&group->mdev);
+> +	media_device_cleanup(&group->mdev);
+> +
+> +	rvin_group_data = NULL;
+> +
+> +	mutex_unlock(&rvin_group_lock);
+> +
+> +	kfree(group);
+> +}
+> +
+> +static struct rvin_group *__rvin_group_allocate(struct rvin_dev *vin)
+> +{
+> +	struct rvin_group *group;
+> +
+> +	if (rvin_group_data) {
+> +		group = rvin_group_data;
+> +		kref_get(&group->refcount);
+> +		vin_dbg(vin, "%s: get group=%p\n", __func__, group);
+> +		return group;
+> +	}
+> +
+> +	group = kzalloc(sizeof(*group), GFP_KERNEL);
+> +	if (!group)
+> +		return NULL;
+> +
+> +	kref_init(&group->refcount);
+> +	rvin_group_data = group;
+> +
+> +	vin_dbg(vin, "%s: alloc group=%p\n", __func__, group);
+> +	return group;
+> +}
+> +
+> +static int rvin_group_add_vin(struct rvin_dev *vin)
+> +{
+> +	int ret;
+> +
+> +	ret = rvin_group_read_id(vin, vin->dev->of_node);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	mutex_lock(&vin->group->lock);
+> +
+> +	if (vin->group->vin[ret]) {
+> +		mutex_unlock(&vin->group->lock);
+> +		vin_err(vin, "VIN number %d already occupied\n", ret);
+> +		return -EINVAL;
+> +	}
+> +
+> +	vin->group->vin[ret] = vin;
+> +
+> +	mutex_unlock(&vin->group->lock);
+> +
+> +	vin_dbg(vin, "I'm VIN number %d", ret);
+> +
+> +	return 0;
+> +}
+> +
+> +static int rvin_group_allocate(struct rvin_dev *vin)
+> +{
+> +	struct rvin_group *group;
+> +	struct media_device *mdev;
+> +	int ret;
+> +
+> +	mutex_lock(&rvin_group_lock);
+> +
+> +	group = __rvin_group_allocate(vin);
+> +	if (!group) {
+> +		mutex_unlock(&rvin_group_lock);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	/* Init group data if its not already initialized */
+
+its -> it is
+
+> +	mdev = &group->mdev;
+> +	if (!mdev->dev) {
+> +		mutex_init(&group->lock);
+> +		mdev->dev = vin->dev;
+> +
+> +		strlcpy(mdev->driver_name, "Renesas VIN",
+> +			sizeof(mdev->driver_name));
+> +		strlcpy(mdev->model, vin->dev->of_node->name,
+> +			sizeof(mdev->model));
+> +		strlcpy(mdev->bus_info, of_node_full_name(vin->dev->of_node),
+> +			sizeof(mdev->bus_info));
+> +		media_device_init(mdev);
+> +
+> +		ret = media_device_register(mdev);
+> +		if (ret) {
+> +			vin_err(vin, "Failed to register media device\n");
+> +			kref_put(&group->refcount, rvin_group_release);
+> +			mutex_unlock(&rvin_group_lock);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	vin->group = group;
+> +	vin->v4l2_dev.mdev = mdev;
+> +
+> +	ret = rvin_group_add_vin(vin);
+> +	if (ret) {
+> +		kref_put(&group->refcount, rvin_group_release);
+> +		mutex_unlock(&rvin_group_lock);
+> +		return ret;
+> +	}
+> +
+> +	mutex_unlock(&rvin_group_lock);
+> +
+> +	return 0;
+> +}
+> +
+> +static void rvin_group_delete(struct rvin_dev *vin)
+> +{
+> +	unsigned int i;
+> +
+> +	mutex_lock(&vin->group->lock);
+> +	for (i = 0; i < RCAR_VIN_NUM; i++)
+> +		if (vin->group->vin[i] == vin)
+> +			vin->group->vin[i] = NULL;
+> +	mutex_unlock(&vin->group->lock);
+> +
+> +	vin_dbg(vin, "%s: group=%p\n", __func__, &vin->group);
+> +	kref_put(&vin->group->refcount, rvin_group_release);
+> +}
+> +
+>  /* -----------------------------------------------------------------------------
+>   * Async notifier
+>   */
+> @@ -283,12 +442,27 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+>  
+>  static int rvin_group_init(struct rvin_dev *vin)
+>  {
+> +	int ret;
+> +
+> +	ret = rvin_group_allocate(vin);
+> +	if (ret)
+> +		return ret;
+> +
+>  	/* All our sources are CSI-2 */
+>  	vin->mbus_cfg.type = V4L2_MBUS_CSI2;
+>  	vin->mbus_cfg.flags = 0;
+>  
+>  	vin->pad.flags = MEDIA_PAD_FL_SINK;
+> -	return media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
+> +	ret = media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
+> +	if (ret)
+> +		goto error_group;
+> +
+> +	return 0;
+> +
+> +error_group:
+> +	rvin_group_delete(vin);
+> +
+> +	return ret;
+>  }
+>  
+>  /* -----------------------------------------------------------------------------
+> @@ -416,6 +590,9 @@ static int rcar_vin_remove(struct platform_device *pdev)
+>  
+>  	rvin_v4l2_remove(vin);
+>  
+> +	if (vin->info->use_mc)
+> +		rvin_group_delete(vin);
+> +
+>  	rvin_dma_remove(vin);
+>  
+>  	return 0;
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index 9c47669669c0469c..88683aaee3b6acd5 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -17,6 +17,8 @@
+>  #ifndef __RCAR_VIN__
+>  #define __RCAR_VIN__
+>  
+> +#include <linux/kref.h>
+> +
+>  #include <media/v4l2-async.h>
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-dev.h>
+> @@ -30,6 +32,9 @@
+>  /* Address alignment mask for HW buffers */
+>  #define HW_BUFFER_MASK 0x7f
+>  
+> +/* Max number on VIN instances that can be in a system */
+> +#define RCAR_VIN_NUM 8
+> +
+>  enum chip_id {
+>  	RCAR_H1,
+>  	RCAR_M1,
+> @@ -37,6 +42,15 @@ enum chip_id {
+>  	RCAR_GEN3,
+>  };
+>  
+> +enum rvin_csi_id {
+> +	RVIN_CSI20,
+> +	RVIN_CSI21,
+> +	RVIN_CSI40,
+> +	RVIN_CSI41,
+> +	RVIN_CSI_MAX,
+> +	RVIN_NC, /* Not Connected */
+> +};
+> +
+>  /**
+>   * STOPPED  - No operation in progress
+>   * RUNNING  - Operation in progress have buffers
+> @@ -75,6 +89,8 @@ struct rvin_graph_entity {
+>  	unsigned int sink_pad;
+>  };
+>  
+> +struct rvin_group;
+> +
+>  /**
+>   * struct rvin_info - Information about the particular VIN implementation
+>   * @chip:		type of VIN chip
+> @@ -103,6 +119,7 @@ struct rvin_info {
+>   * @notifier:		V4L2 asynchronous subdevs notifier
+>   * @digital:		entity in the DT for local digital subdevice
+>   *
+> + * @group:		Gen3 CSI group
+>   * @pad:		pad for media controller
+>   *
+>   * @lock:		protects @queue
+> @@ -134,6 +151,7 @@ struct rvin_dev {
+>  	struct v4l2_async_notifier notifier;
+>  	struct rvin_graph_entity digital;
+>  
+> +	struct rvin_group *group;
+>  	struct media_pad pad;
+>  
+>  	struct mutex lock;
+> @@ -162,6 +180,26 @@ struct rvin_dev {
+>  #define vin_warn(d, fmt, arg...)	dev_warn(d->dev, fmt, ##arg)
+>  #define vin_err(d, fmt, arg...)		dev_err(d->dev, fmt, ##arg)
+>  
+> +/**
+> + * struct rvin_group - VIN CSI2 group information
+> + * @refcount:		number of VIN instances using the group
+> + *
+> + * @mdev:		media device which represents the group
+> + *
+> + * @lock:		protects the vin and csi members
+> + * @vin:		VIN instances which are part of the group
+> + * @csi:		CSI-2 entities that are part of the group
+> + */
+> +struct rvin_group {
+> +	struct kref refcount;
+> +
+> +	struct media_device mdev;
+> +
+> +	struct mutex lock;
+> +	struct rvin_dev *vin[RCAR_VIN_NUM];
+> +	struct rvin_graph_entity csi[RVIN_CSI_MAX];
+> +};
+> +
+>  int rvin_dma_probe(struct rvin_dev *vin, int irq);
+>  void rvin_dma_remove(struct rvin_dev *vin);
+>  
+> 
