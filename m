@@ -1,153 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55746
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S969487AbdIZR72 (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:44942 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932879AbdIYJuj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 13:59:28 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        linux-kernel@vger.kernel.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: [PATCH 04/10] docs: kernel-doc.rst: improve function documentation section
-Date: Tue, 26 Sep 2017 14:59:14 -0300
-Message-Id: <be40878f652aeaec5c2b66a6a9198d7305c70894.1506448061.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
-References: <cover.1506448061.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
-References: <cover.1506448061.git.mchehab@s-opensource.com>
+        Mon, 25 Sep 2017 05:50:39 -0400
+Subject: Re: [PATCH v6 09/25] rcar-vin: do not allow changing scaling and
+ composing while streaming
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170822232640.26147-10-niklas.soderlund+renesas@ragnatech.se>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <458b7c1c-493e-cce7-a204-d7a9d5043428@xs4all.nl>
+Date: Mon, 25 Sep 2017 11:50:36 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170822232640.26147-10-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move its contents to happen earlier and improve the description
-of return values, adding a subsection to it. Most of the contents
-there came from kernel-doc-nano-HOWTO.txt.
+On 23/08/17 01:26, Niklas Söderlund wrote:
+> It is possible on Gen2 to change the registers controlling composing and
+> scaling while the stream is running. Is however not a good idea to do so
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/doc-guide/kernel-doc.rst | 100 ++++++++++++++++++++-------------
- 1 file changed, 61 insertions(+), 39 deletions(-)
+Is -> It
 
-diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
-index f1eb00899084..9b69dfe928d8 100644
---- a/Documentation/doc-guide/kernel-doc.rst
-+++ b/Documentation/doc-guide/kernel-doc.rst
-@@ -197,6 +197,67 @@ Example::
-       int d;
-   };
- 
-+Function documentation
-+----------------------
-+
-+The general format of a function and function-like macro kernel-doc comment is::
-+
-+  /**
-+   * function_name() - Brief description of function.
-+   * @arg1: Describe the first argument.
-+   * @arg2: Describe the second argument.
-+   *        One can provide multiple line descriptions
-+   *        for arguments.
-+   *
-+   * A longer description, with more discussion of the function function_name()
-+   * that might be useful to those using or modifying it. Begins with an
-+   * empty comment line, and may include additional embedded empty
-+   * comment lines.
-+   *
-+   * The longer description may have multiple paragraphs.
-+   *
-+   * Return: Describe the return value of foobar.
-+   *
-+   * The return value description can also have multiple paragraphs, and should
-+   * be placed at the end of the comment block.
-+   */
-+
-+The brief description following the function name may span multiple lines, and
-+ends with an argument description, a blank comment line, or the end of the
-+comment block.
-+
-+Return values
-+~~~~~~~~~~~~~
-+
-+The return value, if any, should be described in a dedicated section
-+named ``Return``.
-+
-+.. note::
-+
-+  #) The multi-line descriptive text you provide does *not* recognize
-+     line breaks, so if you try to format some text nicely, as in::
-+
-+	* Return:
-+	* 0 - OK
-+	* -EINVAL - invalid argument
-+	* -ENOMEM - out of memory
-+
-+     this will all run together and produce::
-+
-+	Return: 0 - OK -EINVAL - invalid argument -ENOMEM - out of memory
-+
-+     So, in order to produce the desired line breaks, you need to use a
-+     ReST list, e. g.::
-+
-+      * Return:
-+      * * 0		- OK to runtime suspend the device
-+      * * -EBUSY	- Device should not be runtime suspended
-+
-+  #) If the descriptive text you provide has lines that begin with
-+     some phrase followed by a colon, each of those phrases will be taken
-+     as a new section heading, with probably won't produce the desired
-+     effect.
-+
- 
- Highlights and cross-references
- -------------------------------
-@@ -269,45 +330,6 @@ cross-references.
- 
- For further details, please refer to the `Sphinx C Domain`_ documentation.
- 
--Function documentation
------------------------
--
--The general format of a function and function-like macro kernel-doc comment is::
--
--  /**
--   * function_name() - Brief description of function.
--   * @arg1: Describe the first argument.
--   * @arg2: Describe the second argument.
--   *        One can provide multiple line descriptions
--   *        for arguments.
--   *
--   * A longer description, with more discussion of the function function_name()
--   * that might be useful to those using or modifying it. Begins with an
--   * empty comment line, and may include additional embedded empty
--   * comment lines.
--   *
--   * The longer description may have multiple paragraphs.
--   *
--   * Return: Describe the return value of foobar.
--   *
--   * The return value description can also have multiple paragraphs, and should
--   * be placed at the end of the comment block.
--   */
--
--The brief description following the function name may span multiple lines, and
--ends with an ``@argument:`` description, a blank comment line, or the end of the
--comment block.
--
--The kernel-doc function comments describe each parameter to the function, in
--order, with the ``@argument:`` descriptions. The ``@argument:`` descriptions
--must begin on the very next line following the opening brief function
--description line, with no intervening blank comment lines. The ``@argument:``
--descriptions may span multiple lines. The continuation lines may contain
--indentation. If a function parameter is ``...`` (varargs), it should be listed
--in kernel-doc notation as: ``@...:``.
--
--The return value, if any, should be described in a dedicated section at the end
--of the comment starting with "Return:".
- 
- Structure, union, and enumeration documentation
- -----------------------------------------------
--- 
-2.13.5
+> and could result in trouble. There are also no good reason to allow
+
+reason -> reasons
+
+> this, remove immediate reflection in hardware registers from
+> vidioc_s_selection and only configure scaling and composing when the
+> stream starts.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c  | 2 +-
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ---
+>  drivers/media/platform/rcar-vin/rcar-vin.h  | 3 ---
+>  3 files changed, 1 insertion(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index 5f9674dc898305ba..6cc880e5ef7e0718 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -514,7 +514,7 @@ static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
+>  	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
+>  }
+>  
+> -void rvin_crop_scale_comp(struct rvin_dev *vin)
+> +static void rvin_crop_scale_comp(struct rvin_dev *vin)
+>  {
+>  	u32 xs, ys;
+>  
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> index 421820caf275b066..305a74d033b2d9c5 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -436,9 +436,6 @@ static int rvin_s_selection(struct file *file, void *fh,
+>  		return -EINVAL;
+>  	}
+>  
+> -	/* HW supports modifying configuration while running */
+> -	rvin_crop_scale_comp(vin);
+> -
+>  	return 0;
+>  }
+>  
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index b2bac06c0a3cfcb7..fc70ded462ed3244 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -176,7 +176,4 @@ int rvin_reset_format(struct rvin_dev *vin);
+>  
+>  const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+>  
+> -/* Cropping, composing and scaling */
+> -void rvin_crop_scale_comp(struct rvin_dev *vin);
+> -
+>  #endif
+> 
