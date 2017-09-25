@@ -1,74 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from p3plsmtpa09-04.prod.phx3.secureserver.net ([173.201.193.233]:54548
-        "EHLO p3plsmtpa09-04.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752423AbdIAUkr (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:37260 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S936221AbdIYPoW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Sep 2017 16:40:47 -0400
-From: Leon Luo <leonl@leopardimaging.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, leonl@leopardimaging.com,
-        soren.brinkmann@xilinx.com
-Subject: [PATCH v4 1/2] media:imx274 device tree binding file
-Date: Fri,  1 Sep 2017 13:32:42 -0700
-Message-Id: <20170901203243.25694-1-leonl@leopardimaging.com>
+        Mon, 25 Sep 2017 11:44:22 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.15] Fixes, cleanups
+Message-ID: <49f88e8e-3093-7428-727d-7b5b3518783f@xs4all.nl>
+Date: Mon, 25 Sep 2017 17:44:20 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The binding file for imx274 CMOS sensor V4l2 driver
+The following changes since commit d5426f4c2ebac8cf05de43988c3fccddbee13d28:
 
-Signed-off-by: Leon Luo <leonl@leopardimaging.com>
----
-v4:
- - no changes
-v3:
- - remove redundant properties and references
- - document 'reg' property
-v2:
- - no changes
----
- .../devicetree/bindings/media/i2c/imx274.txt       | 32 ++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/imx274.txt
+  media: staging: atomisp: use clock framework for camera clocks (2017-09-23 15:09:37 -0400)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/imx274.txt b/Documentation/devicetree/bindings/media/i2c/imx274.txt
-new file mode 100644
-index 000000000000..1f03256b35db
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/imx274.txt
-@@ -0,0 +1,32 @@
-+* Sony 1/2.5-Inch 8.51Mp CMOS Digital Image Sensor
-+
-+The Sony imx274 is a 1/2.5-inch CMOS active pixel digital image sensor with
-+an active array size of 3864H x 2202V. It is programmable through I2C
-+interface. The I2C address is fixed to 0x1a as per sensor data sheet.
-+Image data is sent through MIPI CSI-2, which is configured as 4 lanes
-+at 1440 Mbps.
-+
-+
-+Required Properties:
-+- compatible: value should be "sony,imx274" for imx274 sensor
-+- reg: I2C bus address of the device
-+
-+Optional Properties:
-+- reset-gpios: Sensor reset GPIO
-+
-+For further reading on port node refer to
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+	sensor@1a {
-+		compatible = "sony,imx274";
-+		reg = <0x1a>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		reset-gpios = <&gpio_sensor 0 0>;
-+		port {
-+			sensor_out: endpoint {
-+				remote-endpoint = <&csiss_in>;
-+			};
-+		};
-+	};
--- 
-2.14.1.145.gb3622a4
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.15c
+
+for you to fetch changes up to 8abdfc1cc7b288aeb50ade41d42d16338682be97:
+
+  v4l2-ctrls.c: allow empty control handlers (2017-09-25 15:07:56 +0200)
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      rcar_drif: fix potential uninitialized variable use
+
+Bhumika Goyal (1):
+      saa7146: make saa7146_use_ops const
+
+Christophe JAILLET (1):
+      media: v4l2-pci-skeleton: Fix error handling path in 'skeleton_probe()'
+
+Colin Ian King (1):
+      gspca: make arrays static, reduces object code size
+
+Hans Verkuil (4):
+      v4l2-tpg: add Y10 and Y12 support
+      vivid: add support for Y10 and Y12
+      cec-gpio: don't generate spurious HPD events
+      v4l2-ctrls.c: allow empty control handlers
+
+Johan Hovold (1):
+      cx231xx-cards: fix NULL-deref on missing association descriptor
+
+Kees Cook (1):
+      media/i2c/tc358743: Initialize timer
+
+Simon Yuan (1):
+      media: i2c: adv748x: Map v4l2_std_id to the internal reg value
+
+ drivers/media/common/saa7146/saa7146_vbi.c      |  2 +-
+ drivers/media/common/saa7146/saa7146_video.c    |  2 +-
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c   | 12 ++++++++++++
+ drivers/media/i2c/adv748x/adv748x-afe.c         |  7 ++++++-
+ drivers/media/i2c/tc358743.c                    |  4 ++--
+ drivers/media/platform/cec-gpio/cec-gpio.c      |  5 ++++-
+ drivers/media/platform/rcar_drif.c              |  2 +-
+ drivers/media/platform/vivid/vivid-vid-common.c | 16 ++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx-cards.c       |  2 +-
+ drivers/media/usb/gspca/ov519.c                 | 22 +++++++++++-----------
+ drivers/media/v4l2-core/v4l2-ctrls.c            |  2 +-
+ include/media/drv-intf/saa7146_vv.h             |  4 ++--
+ samples/v4l/v4l2-pci-skeleton.c                 |  6 ++++--
+ 13 files changed, 62 insertions(+), 24 deletions(-)
