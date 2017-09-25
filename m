@@ -1,261 +1,320 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:8677 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750938AbdITRBT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 13:01:19 -0400
-Subject: Re: [PATCH] [media] staging: atomisp: use clock framework for camera
- clocks
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>,
-        =?UTF-8?Q?J=c3=a9r=c3=a9my_Lefaure?= <jeremy.lefaure@lse.epita.fr>,
-        Avraham Shukron <avraham.shukron@gmail.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Varsha Rao <rvarsha016@gmail.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-References: <20170919204549.27468-1-pierre-louis.bossart@linux.intel.com>
- <1505898738.16112.3.camel@linux.intel.com>
-From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Message-ID: <a547a897-37e9-1509-889e-d83ff055b3e4@linux.intel.com>
-Date: Wed, 20 Sep 2017 12:01:14 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:60437 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934698AbdIYKoA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Sep 2017 06:44:00 -0400
+Subject: Re: [PATCH v6 22/25] rcar-vin: add link notify for Gen3
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170822232640.26147-23-niklas.soderlund+renesas@ragnatech.se>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1b88f38b-33e5-2582-f07e-90831af73589@xs4all.nl>
+Date: Mon, 25 Sep 2017 12:43:57 +0200
 MIME-Version: 1.0
-In-Reply-To: <1505898738.16112.3.camel@linux.intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+In-Reply-To: <20170822232640.26147-23-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 23/08/17 01:26, Niklas Söderlund wrote:
+> Add the ability to process media device link change request. Link
+> enablement are a bit complicated on Gen3, if it's possible to enable a
 
+enablement are -> enabling is
 
-On 09/20/2017 04:12 AM, Andy Shevchenko wrote:
-> On Tue, 2017-09-19 at 15:45 -0500, Pierre-Louis Bossart wrote:
->> The Atom ISP driver initializes and configures PMC clocks which are
->> already handled by the clock framework.
->>
->> Remove all legacy vlv2_platform_clock stuff and move to the clk API to
->> avoid conflicts, e.g. with audio machine drivers enabling the MCLK for
->> external codecs
->>
-> I think it might have a Fixes: tag as well (though I dunno which commit
-> could be considered as anchor).
-The initial integration of the atomisp driver already had this problem, 
-i'll add a reference to
-'a49d25364dfb9 ("staging/atomisp: Add support for the Intel IPU v2")'
->
-> (I doubt Git is so clever to remove files based on information out of
-> the diff, can you check it and if needed to resend without -D implied?)
-Gee, I thought -C -M -D were the standard options to checkpatch, never 
-realized it'd prevent patches from applying. Thanks for the tip.
+if -> whether or not
 
->
-> Other than that - nice clean up!
->
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-I'll add your Reviewed-by in the v2. Thanks for the review.
->
->
->> Tested-by: Carlo Caione <carlo@endlessm.com>
->> Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.
->> com>
->> ---
->>   drivers/staging/media/atomisp/Kconfig              |   1 +
->>   drivers/staging/media/atomisp/platform/Makefile    |   1 -
->>   .../staging/media/atomisp/platform/clock/Makefile  |   6 -
->>   .../platform/clock/platform_vlv2_plat_clk.c        |  40 ----
->>   .../platform/clock/platform_vlv2_plat_clk.h        |  27 ---
->>   .../media/atomisp/platform/clock/vlv2_plat_clock.c | 247 ------------
->> ---------
->>   .../platform/intel-mid/atomisp_gmin_platform.c     |  63 +++++-
->>   7 files changed, 52 insertions(+), 333 deletions(-)
->>   delete mode 100644
->> drivers/staging/media/atomisp/platform/clock/Makefile
->>   delete mode 100644
->> drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.c
->>   delete mode 100644
->> drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.h
->>   delete mode 100644
->> drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
->>
->> diff --git a/drivers/staging/media/atomisp/Kconfig
->> b/drivers/staging/media/atomisp/Kconfig
->> index 8eb13c3ba29c..7cdebea35ccf 100644
->> --- a/drivers/staging/media/atomisp/Kconfig
->> +++ b/drivers/staging/media/atomisp/Kconfig
->> @@ -1,6 +1,7 @@
->>   menuconfig INTEL_ATOMISP
->>           bool "Enable support to Intel MIPI camera drivers"
->>           depends on X86 && EFI && MEDIA_CONTROLLER && PCI && ACPI
->> +	select COMMON_CLK
->>           help
->>             Enable support for the Intel ISP2 camera interfaces and
->> MIPI
->>             sensor drivers.
->> diff --git a/drivers/staging/media/atomisp/platform/Makefile
->> b/drivers/staging/media/atomisp/platform/Makefile
->> index df157630bda9..0e3b7e1c81c6 100644
->> --- a/drivers/staging/media/atomisp/platform/Makefile
->> +++ b/drivers/staging/media/atomisp/platform/Makefile
->> @@ -2,5 +2,4 @@
->>   # Makefile for camera drivers.
->>   #
->>   
->> -obj-$(CONFIG_INTEL_ATOMISP) += clock/
->>   obj-$(CONFIG_INTEL_ATOMISP) += intel-mid/
->> diff --git a/drivers/staging/media/atomisp/platform/clock/Makefile
->> b/drivers/staging/media/atomisp/platform/clock/Makefile
->> deleted file mode 100644
->> index 82fbe8b6968a..000000000000
->> diff --git
->> a/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.
->> c
->> b/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.
->> c
->> deleted file mode 100644
->> index 0aae9b0283bb..000000000000
->> diff --git
->> a/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.
->> h
->> b/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.
->> h
->> deleted file mode 100644
->> index b730ab0e8223..000000000000
->> diff --git
->> a/drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
->> b/drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
->> deleted file mode 100644
->> index f96789a31819..000000000000
->> diff --git a/drivers/staging/media/atomisp/platform/intel-
->> mid/atomisp_gmin_platform.c
->> b/drivers/staging/media/atomisp/platform/intel-
->> mid/atomisp_gmin_platform.c
->> index edaae93af8f9..17b4cfae5abf 100644
->> --- a/drivers/staging/media/atomisp/platform/intel-
->> mid/atomisp_gmin_platform.c
->> +++ b/drivers/staging/media/atomisp/platform/intel-
->> mid/atomisp_gmin_platform.c
->> @@ -4,10 +4,10 @@
->>   #include <linux/efi.h>
->>   #include <linux/pci.h>
->>   #include <linux/acpi.h>
->> +#include <linux/clk.h>
->>   #include <linux/delay.h>
->>   #include <media/v4l2-subdev.h>
->>   #include <linux/mfd/intel_soc_pmic.h>
->> -#include "../../include/linux/vlv2_plat_clock.h"
->>   #include <linux/regulator/consumer.h>
->>   #include <linux/gpio/consumer.h>
->>   #include <linux/gpio.h>
->> @@ -17,11 +17,7 @@
->>   
->>   #define MAX_SUBDEVS 8
->>   
->> -/* Should be defined in vlv2_plat_clock API, isn't: */
->> -#define VLV2_CLK_PLL_19P2MHZ 1
->> -#define VLV2_CLK_XTAL_19P2MHZ 0
->> -#define VLV2_CLK_ON      1
->> -#define VLV2_CLK_OFF     2
->> +#define VLV2_CLK_PLL_19P2MHZ 1 /* XTAL on CHT */
->>   #define ELDO1_SEL_REG	0x19
->>   #define ELDO1_1P8V	0x16
->>   #define ELDO1_CTRL_SHIFT 0x00
->> @@ -33,6 +29,7 @@ struct gmin_subdev {
->>   	struct v4l2_subdev *subdev;
->>   	int clock_num;
->>   	int clock_src;
->> +	struct clk *pmc_clk;
->>   	struct gpio_desc *gpio0;
->>   	struct gpio_desc *gpio1;
->>   	struct regulator *v1p8_reg;
->> @@ -344,6 +341,9 @@ static int gmin_platform_deinit(void)
->>   	return 0;
->>   }
->>   
->> +#define GMIN_PMC_CLK_NAME 14 /* "pmc_plt_clk_[0..5]" */
->> +static char gmin_pmc_clk_name[GMIN_PMC_CLK_NAME];
->> +
->>   static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev
->> *subdev)
->>   {
->>   	int i, ret;
->> @@ -377,6 +377,37 @@ static struct gmin_subdev *gmin_subdev_add(struct
->> v4l2_subdev *subdev)
->>   	gmin_subdevs[i].gpio0 = gpiod_get_index(dev, NULL, 0,
->> GPIOD_OUT_LOW);
->>   	gmin_subdevs[i].gpio1 = gpiod_get_index(dev, NULL, 1,
->> GPIOD_OUT_LOW);
->>   
->> +	/* get PMC clock with clock framework */
->> +	snprintf(gmin_pmc_clk_name,
->> +		 sizeof(gmin_pmc_clk_name),
->> +		 "%s_%d", "pmc_plt_clk", gmin_subdevs[i].clock_num);
->> +
->> +	gmin_subdevs[i].pmc_clk = devm_clk_get(dev,
->> gmin_pmc_clk_name);
->> +	if (IS_ERR(gmin_subdevs[i].pmc_clk)) {
->> +		ret = PTR_ERR(gmin_subdevs[i].pmc_clk);
->> +
->> +		dev_err(dev,
->> +			"Failed to get clk from %s : %d\n",
->> +			gmin_pmc_clk_name,
->> +			ret);
->> +
->> +		return NULL;
->> +	}
->> +
->> +	/*
->> +	 * The firmware might enable the clock at
->> +	 * boot (this information may or may not
->> +	 * be reflected in the enable clock register).
->> +	 * To change the rate we must disable the clock
->> +	 * first to cover these cases. Due to common
->> +	 * clock framework restrictions that do not allow
->> +	 * to disable a clock that has not been enabled,
->> +	 * we need to enable the clock first.
->> +	 */
->> +	ret = clk_prepare_enable(gmin_subdevs[i].pmc_clk);
->> +	if (!ret)
->> +		clk_disable_unprepare(gmin_subdevs[i].pmc_clk);
->> +
->>   	if (!IS_ERR(gmin_subdevs[i].gpio0)) {
->>   		ret = gpiod_direction_output(gmin_subdevs[i].gpio0,
->> 0);
->>   		if (ret)
->> @@ -539,13 +570,21 @@ static int gmin_flisclk_ctrl(struct v4l2_subdev
->> *subdev, int on)
->>   {
->>   	int ret = 0;
->>   	struct gmin_subdev *gs = find_gmin_subdev(subdev);
->> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
->> +
->> +	if (on) {
->> +		ret = clk_set_rate(gs->pmc_clk, gs->clock_src);
->> +
->> +		if (ret)
->> +			dev_err(&client->dev, "unable to set PMC rate
->> %d\n",
->> +				gs->clock_src);
->>   
->> -	if (on)
->> -		ret = vlv2_plat_set_clock_freq(gs->clock_num, gs-
->>> clock_src);
->> -	if (ret)
->> -		return ret;
->> -	return vlv2_plat_configure_clock(gs->clock_num,
->> -					 on ? VLV2_CLK_ON :
->> VLV2_CLK_OFF);
->> +		ret = clk_prepare_enable(gs->pmc_clk);
->> +	} else {
->> +		clk_disable_unprepare(gs->pmc_clk);
->> +	}
->> +
->> +	return ret;
->>   }
->>   
->>   static int gmin_csi_cfg(struct v4l2_subdev *sd, int flag)
+> link depends on what other links already are enabled. On Gen3 the 8 VIN
+
+VIN -> VINs
+
+> are split into two subgroups (VIN0-3 and VIN4-7) and from a routing
+> perspective these two groups are independent of each other. Each
+> subgroups routing is controlled by the subgroup VIN master instance
+
+subgroups -> subgroup's
+
+> (VIN0 and VIN4).
+> 
+> There are a limited number of possible route setups available for each
+> subgroup and the configuration of each setup is dictated by the
+> hardware. On H3 for example there are 6 possible route setups for each
+> subgroup to choose from.
+> 
+> This leads to the media device link notification code being rather large
+> since it will find the best routing configuration to try and accommodate
+> as many links as possible. When it's not possible to enable a new link
+> due to hardware constrains the link_notifier callback will return
+> -EMLINK.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+See various comments below.
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 203 ++++++++++++++++++++++++++++
+>  1 file changed, 203 insertions(+)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index 2aba442a0750e91a..dec91e2f3ccdbd93 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -26,6 +26,207 @@
+>  
+>  #include "rcar-vin.h"
+>  
+> +/* -----------------------------------------------------------------------------
+> + * Media Controller link notification
+> + */
+> +
+> +static unsigned int rvin_group_csi_pad_to_chan(unsigned int pad)
+> +{
+> +	/*
+> +	 * The CSI2 driver is rcar-csi2 and we know it's pad layout are
+
+it's -> its
+
+> +	 * 0: Source 1-4: Sinks so if we remove one from the pad we
+
+I don't follow. '0: Source 1-4: Sinks' is too cryptic for me.
+
+> +	 * get the rcar-vin internal CSI2 channel number
+> +	 */
+> +	return pad - 1;
+> +}
+> +
+> +/* group lock should be held when calling this function */
+> +static int rvin_group_entity_to_vin_num(struct rvin_group *group,
+> +					struct media_entity *entity)
+> +{
+> +	struct video_device *vdev;
+> +	int i;
+> +
+> +	if (!is_media_entity_v4l2_video_device(entity))
+> +		return -ENODEV;
+> +
+> +	vdev = media_entity_to_video_device(entity);
+> +
+> +	for (i = 0; i < RCAR_VIN_NUM; i++) {
+> +		if (!group->vin[i])
+> +			continue;
+> +
+> +		if (&group->vin[i]->vdev == vdev)
+> +			return i;
+> +	}
+> +
+> +	return -ENODEV;
+> +}
+> +
+> +/* group lock should be held when calling this function */
+> +static int rvin_group_entity_to_csi_num(struct rvin_group *group,
+> +					struct media_entity *entity)
+> +{
+> +	struct v4l2_subdev *sd;
+> +	int i;
+> +
+> +	if (!is_media_entity_v4l2_subdev(entity))
+> +		return -ENODEV;
+> +
+> +	sd = media_entity_to_v4l2_subdev(entity);
+> +
+> +	for (i = 0; i < RVIN_CSI_MAX; i++)
+> +		if (group->csi[i].subdev == sd)
+> +			return i;
+> +
+> +	return -ENODEV;
+> +}
+> +
+> +/* group lock should be held when calling this function */
+> +static void __rvin_group_build_link_list(struct rvin_group *group,
+> +					 struct rvin_group_chsel *map,
+> +					 int start, int len)
+> +{
+> +	struct media_pad *vin_pad, *remote_pad;
+> +	unsigned int n;
+> +
+> +	for (n = 0; n < len; n++) {
+> +		map[n].csi = -1;
+> +		map[n].chan = -1;
+> +
+> +		if (!group->vin[start + n])
+> +			continue;
+> +
+> +		vin_pad = &group->vin[start + n]->vdev.entity.pads[0];
+> +
+> +		remote_pad = media_entity_remote_pad(vin_pad);
+> +		if (!remote_pad)
+> +			continue;
+> +
+> +		map[n].csi =
+> +			rvin_group_entity_to_csi_num(group, remote_pad->entity);
+> +		map[n].chan = rvin_group_csi_pad_to_chan(remote_pad->index);
+> +	}
+> +}
+> +
+> +/* group lock should be held when calling this function */
+> +static int __rvin_group_try_get_chsel(struct rvin_group *group,
+> +				      struct rvin_group_chsel *map,
+> +				      int start, int len)
+> +{
+> +	const struct rvin_group_chsel *sel;
+> +	unsigned int i, n;
+> +	int chsel;
+> +
+> +	for (i = 0; i < group->vin[start]->info->num_chsels; i++) {
+> +		chsel = i;
+> +		for (n = 0; n < len; n++) {
+> +
+> +			/* If the link is not active it's OK */
+> +			if (map[n].csi == -1)
+> +				continue;
+> +
+> +			/* Check if chsel match requested link */
+
+match -> matches
+
+> +			sel = &group->vin[start]->info->chsels[start + n][i];
+> +			if (map[n].csi != sel->csi ||
+> +			    map[n].chan != sel->chan) {
+> +				chsel = -1;
+> +				break;
+> +			}
+> +		}
+> +
+> +		/* A chsel which satisfy the links have been found */
+
+satisfy -> satifies
+have -> has
+
+> +		if (chsel != -1)
+> +			return chsel;
+> +	}
+> +
+> +	/* No chsel can satisfy the requested links */
+> +	return -1;
+> +}
+> +
+> +/* group lock should be held when calling this function */
+> +static bool rvin_group_in_use(struct rvin_group *group)
+> +{
+> +	struct media_entity *entity;
+> +
+> +	media_device_for_each_entity(entity, &group->mdev)
+> +		if (entity->use_count)
+> +			return true;
+> +
+> +	return false;
+> +}
+> +
+> +static int rvin_group_link_notify(struct media_link *link, u32 flags,
+> +				  unsigned int notification)
+> +{
+> +	struct rvin_group *group = container_of(link->graph_obj.mdev,
+> +						struct rvin_group, mdev);
+> +	struct rvin_group_chsel chsel_map[4];
+> +	int vin_num, vin_master, csi_num, csi_chan;
+> +	unsigned int chsel;
+> +
+> +	mutex_lock(&group->lock);
+> +
+> +	vin_num = rvin_group_entity_to_vin_num(group, link->sink->entity);
+> +	csi_num = rvin_group_entity_to_csi_num(group, link->source->entity);
+> +	csi_chan = rvin_group_csi_pad_to_chan(link->source->index);
+> +
+> +	/*
+> +	 * Figure out which VIN node is the subgroup master.
+> +	 *
+> +	 * VIN0-3 are controlled by VIN0
+> +	 * VIN4-7 are controlled by VIN4
+> +	 */
+> +	vin_master = vin_num < 4 ? 0 : 4;
+> +
+> +	/* If not all devices exists something is horribly wrong */
+
+exists -> exist
+
+> +	if (vin_num < 0 || csi_num < 0 || !group->vin[vin_master])
+> +		goto error;
+> +
+> +	/* Special checking only needed for links which are to be enabled */
+> +	if (notification != MEDIA_DEV_NOTIFY_PRE_LINK_CH ||
+> +	    !(flags & MEDIA_LNK_FL_ENABLED))
+> +		goto out;
+> +
+> +	/* If any link in the group are in use, no new link can be enabled */
+
+are -> is
+
+> +	if (rvin_group_in_use(group))
+> +		goto error;
+> +
+> +	/* If the VIN already have a active link it's busy */
+
+have -> has
+a -> an
+
+> +	if (media_entity_remote_pad(&link->sink->entity->pads[0]))
+> +		goto error;
+> +
+> +	/* Build list of active links */
+> +	__rvin_group_build_link_list(group, chsel_map, vin_master, 4);
+> +
+> +	/* Add the new proposed link */
+> +	chsel_map[vin_num - vin_master].csi = csi_num;
+> +	chsel_map[vin_num - vin_master].chan = csi_chan;
+> +
+> +	/* See if there is a chsel value which match our link selection */
+
+match -> matches
+
+> +	chsel = __rvin_group_try_get_chsel(group, chsel_map, vin_master, 4);
+> +
+> +	/* No chsel can provide the request links */
+
+request -> requested
+
+> +	if (chsel == -1)
+> +		goto error;
+> +
+> +	/* Update chsel value at group master */
+> +	rvin_set_chsel(group->vin[vin_master], chsel);
+> +
+> +out:
+> +	mutex_unlock(&group->lock);
+> +
+> +	return v4l2_pipeline_link_notify(link, flags, notification);
+> +error:
+> +	mutex_unlock(&group->lock);
+> +
+> +	return -EMLINK;
+> +}
+> +
+> +static const struct media_device_ops rvin_media_ops = {
+> +	.link_notify = rvin_group_link_notify,
+> +};
+> +
+>  /* -----------------------------------------------------------------------------
+>   * Gen3 CSI2 Group Allocator
+>   */
+> @@ -146,6 +347,8 @@ static int rvin_group_allocate(struct rvin_dev *vin)
+>  			sizeof(mdev->bus_info));
+>  		media_device_init(mdev);
+>  
+> +		mdev->ops = &rvin_media_ops;
+> +
+>  		ret = media_device_register(mdev);
+>  		if (ret) {
+>  			vin_err(vin, "Failed to register media device\n");
+> 
+
+Regards,
+
+	Hans
