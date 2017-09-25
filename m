@@ -1,251 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40692 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751325AbdIENF4 (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:52692 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753650AbdIYEeA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Sep 2017 09:05:56 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v8 01/21] v4l: fwnode: Move KernelDoc documentation to the header
-Date: Tue,  5 Sep 2017 16:05:33 +0300
-Message-Id: <20170905130553.1332-2-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
-References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+        Mon, 25 Sep 2017 00:34:00 -0400
+From: Kalle Valo <kvalo@codeaurora.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Arend van Spriel <arend.vanspriel@broadcom.com>,
+        Franky Lin <franky.lin@broadcom.com>,
+        Hante Meuleman <hante.meuleman@broadcom.com>,
+        Chi-Hsien Lin <chi-hsien.lin@cypress.com>,
+        Wright Feng <wright.feng@cypress.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jiri Pirko <jiri@resnulli.us>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Michal Marek <mmarek@suse.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+        brcm80211-dev-list.pdl@broadcom.com,
+        brcm80211-dev-list@cypress.com, kasan-dev@googlegroups.com,
+        linux-kbuild@vger.kernel.org, Jakub Jelinek <jakub@gcc.gnu.org>,
+        Martin =?utf-8?Q?Li=C5=A1ka?= <marxin@gcc.gnu.org>
+Subject: Re: [PATCH v4 1/9] brcmsmac: make some local variables 'static const' to reduce stack size
+References: <20170922212930.620249-1-arnd@arndb.de>
+        <20170922212930.620249-2-arnd@arndb.de>
+Date: Mon, 25 Sep 2017 07:33:50 +0300
+In-Reply-To: <20170922212930.620249-2-arnd@arndb.de> (Arnd Bergmann's message
+        of "Fri, 22 Sep 2017 23:29:12 +0200")
+Message-ID: <87h8vr75xt.fsf@kamboji.qca.qualcomm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In V4L2 the practice is to have the KernelDoc documentation in the header
-and not in .c source code files. This consequientally makes the V4L2
-fwnode function documentation part of the Media documentation build.
+Arnd Bergmann <arnd@arndb.de> writes:
 
-Also correct the link related function and argument naming in
-documentation.
+> With KASAN and a couple of other patches applied, this driver is one
+> of the few remaining ones that actually use more than 2048 bytes of
+> kernel stack:
+>
+> broadcom/brcm80211/brcmsmac/phy/phy_n.c: In function 'wlc_phy_workarounds_nphy_gainctrl':
+> broadcom/brcm80211/brcmsmac/phy/phy_n.c:16065:1: warning: the frame size of 3264 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+> broadcom/brcm80211/brcmsmac/phy/phy_n.c: In function 'wlc_phy_workarounds_nphy':
+> broadcom/brcm80211/brcmsmac/phy/phy_n.c:17138:1: warning: the frame size of 2864 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+>
+> Here, I'm reducing the stack size by marking as many local variables as
+> 'static const' as I can without changing the actual code.
+>
+> This is the first of three patches to improve the stack usage in this
+> driver. It would be good to have this backported to stabl kernels
+> to get all drivers in 'allmodconfig' below the 2048 byte limit so
+> we can turn on the frame warning again globally, but I realize that
+> the patch is larger than the normal limit for stable backports.
+>
+> The other two patches do not need to be backported.
+>
+> Acked-by: Arend van Spriel <arend.vanspriel@broadcom.com>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-fwnode.c | 75 --------------------------------
- include/media/v4l2-fwnode.h           | 81 ++++++++++++++++++++++++++++++++++-
- 2 files changed, 80 insertions(+), 76 deletions(-)
+I'll queue this and the two following brcmsmac patches for 4.14.
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 40b2fbfe8865..706f9e7b90f1 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -181,25 +181,6 @@ v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
- 		vep->bus_type = V4L2_MBUS_CSI1;
- }
- 
--/**
-- * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
-- * @fwnode: pointer to the endpoint's fwnode handle
-- * @vep: pointer to the V4L2 fwnode data structure
-- *
-- * All properties are optional. If none are found, we don't set any flags. This
-- * means the port has a static configuration and no properties have to be
-- * specified explicitly. If any properties that identify the bus as parallel
-- * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-- * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-- * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-- * reference to @fwnode.
-- *
-- * NOTE: This function does not parse properties the size of which is variable
-- * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in
-- * new drivers instead.
-- *
-- * Return: 0 on success or a negative error code on failure.
-- */
- int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 			       struct v4l2_fwnode_endpoint *vep)
- {
-@@ -239,14 +220,6 @@ int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_parse);
- 
--/*
-- * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-- * v4l2_fwnode_endpoint_alloc_parse()
-- * @vep - the V4L2 fwnode the resources of which are to be released
-- *
-- * It is safe to call this function with NULL argument or on a V4L2 fwnode the
-- * parsing of which failed.
-- */
- void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
- {
- 	if (IS_ERR_OR_NULL(vep))
-@@ -257,29 +230,6 @@ void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_free);
- 
--/**
-- * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
-- * @fwnode: pointer to the endpoint's fwnode handle
-- *
-- * All properties are optional. If none are found, we don't set any flags. This
-- * means the port has a static configuration and no properties have to be
-- * specified explicitly. If any properties that identify the bus as parallel
-- * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-- * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-- * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-- * reference to @fwnode.
-- *
-- * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
-- * v4l2_fwnode_endpoint_parse():
-- *
-- * 1. It also parses variable size data.
-- *
-- * 2. The memory it has allocated to store the variable size data must be freed
-- *    using v4l2_fwnode_endpoint_free() when no longer needed.
-- *
-- * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error pointer
-- * on error.
-- */
- struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
- 	struct fwnode_handle *fwnode)
- {
-@@ -322,24 +272,6 @@ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_alloc_parse);
- 
--/**
-- * v4l2_fwnode_endpoint_parse_link() - parse a link between two endpoints
-- * @__fwnode: pointer to the endpoint's fwnode at the local end of the link
-- * @link: pointer to the V4L2 fwnode link data structure
-- *
-- * Fill the link structure with the local and remote nodes and port numbers.
-- * The local_node and remote_node fields are set to point to the local and
-- * remote port's parent nodes respectively (the port parent node being the
-- * parent node of the port node if that node isn't a 'ports' node, or the
-- * grand-parent node of the port node otherwise).
-- *
-- * A reference is taken to both the local and remote nodes, the caller must use
-- * v4l2_fwnode_endpoint_put_link() to drop the references when done with the
-- * link.
-- *
-- * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't be
-- * found.
-- */
- int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
- 			   struct v4l2_fwnode_link *link)
- {
-@@ -374,13 +306,6 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_parse_link);
- 
--/**
-- * v4l2_fwnode_put_link() - drop references to nodes in a link
-- * @link: pointer to the V4L2 fwnode link data structure
-- *
-- * Drop references to the local and remote nodes in the link. This function
-- * must be called on every link parsed with v4l2_fwnode_parse_link().
-- */
- void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
- {
- 	fwnode_handle_put(link->local_node);
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index 7adec9851d9e..68eb22ba571b 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -113,13 +113,92 @@ struct v4l2_fwnode_link {
- 	unsigned int remote_port;
- };
- 
-+/**
-+ * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
-+ * @fwnode: pointer to the endpoint's fwnode handle
-+ * @vep: pointer to the V4L2 fwnode data structure
-+ *
-+ * All properties are optional. If none are found, we don't set any flags. This
-+ * means the port has a static configuration and no properties have to be
-+ * specified explicitly. If any properties that identify the bus as parallel
-+ * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-+ * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-+ * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-+ * reference to @fwnode.
-+ *
-+ * NOTE: This function does not parse properties the size of which is variable
-+ * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in
-+ * new drivers instead.
-+ *
-+ * Return: 0 on success or a negative error code on failure.
-+ */
- int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 			       struct v4l2_fwnode_endpoint *vep);
-+
-+/*
-+ * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-+ * v4l2_fwnode_endpoint_alloc_parse()
-+ * @vep - the V4L2 fwnode the resources of which are to be released
-+ *
-+ * It is safe to call this function with NULL argument or on a V4L2 fwnode the
-+ * parsing of which failed.
-+ */
-+void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
-+
-+/**
-+ * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
-+ * @fwnode: pointer to the endpoint's fwnode handle
-+ *
-+ * All properties are optional. If none are found, we don't set any flags. This
-+ * means the port has a static configuration and no properties have to be
-+ * specified explicitly. If any properties that identify the bus as parallel
-+ * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
-+ * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
-+ * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-+ * reference to @fwnode.
-+ *
-+ * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
-+ * v4l2_fwnode_endpoint_parse():
-+ *
-+ * 1. It also parses variable size data.
-+ *
-+ * 2. The memory it has allocated to store the variable size data must be freed
-+ *    using v4l2_fwnode_endpoint_free() when no longer needed.
-+ *
-+ * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error pointer
-+ * on error.
-+ */
- struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
- 	struct fwnode_handle *fwnode);
--void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
-+
-+/**
-+ * v4l2_fwnode_parse_link() - parse a link between two endpoints
-+ * @fwnode: pointer to the endpoint's fwnode at the local end of the link
-+ * @link: pointer to the V4L2 fwnode link data structure
-+ *
-+ * Fill the link structure with the local and remote nodes and port numbers.
-+ * The local_node and remote_node fields are set to point to the local and
-+ * remote port's parent nodes respectively (the port parent node being the
-+ * parent node of the port node if that node isn't a 'ports' node, or the
-+ * grand-parent node of the port node otherwise).
-+ *
-+ * A reference is taken to both the local and remote nodes, the caller must use
-+ * v4l2_fwnode_put_link() to drop the references when done with the
-+ * link.
-+ *
-+ * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't be
-+ * found.
-+ */
- int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
- 			   struct v4l2_fwnode_link *link);
-+
-+/**
-+ * v4l2_fwnode_put_link() - drop references to nodes in a link
-+ * @link: pointer to the V4L2 fwnode link data structure
-+ *
-+ * Drop references to the local and remote nodes in the link. This function
-+ * must be called on every link parsed with v4l2_fwnode_parse_link().
-+ */
- void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
- 
- #endif /* _V4L2_FWNODE_H */
+Also I'll add (only for this patch):
+
+Cc: <stable@vger.kernel.org>
+
 -- 
-2.11.0
+Kalle Valo
