@@ -1,254 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:63373 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751509AbdITJMw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 05:12:52 -0400
-Message-ID: <1505898738.16112.3.camel@linux.intel.com>
-Subject: Re: [PATCH] [media] staging: atomisp: use clock framework for
- camera clocks
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>,
-        =?ISO-8859-1?Q?J=E9r=E9my?= Lefaure <jeremy.lefaure@lse.epita.fr>,
-        Avraham Shukron <avraham.shukron@gmail.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Varsha Rao <rvarsha016@gmail.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Date: Wed, 20 Sep 2017 12:12:18 +0300
-In-Reply-To: <20170919204549.27468-1-pierre-louis.bossart@linux.intel.com>
-References: <20170919204549.27468-1-pierre-louis.bossart@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:43497 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934432AbdIYKLO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Sep 2017 06:11:14 -0400
+Subject: Re: [PATCH v6 17/25] rcar-vin: use different v4l2 operations in media
+ controller mode
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170822232640.26147-18-niklas.soderlund+renesas@ragnatech.se>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <b0ef1ac1-d036-787c-c6ee-e83ddcb1e6c5@xs4all.nl>
+Date: Mon, 25 Sep 2017 12:11:11 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170822232640.26147-18-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-09-19 at 15:45 -0500, Pierre-Louis Bossart wrote:
-> The Atom ISP driver initializes and configures PMC clocks which are
-> already handled by the clock framework.
+On 23/08/17 01:26, Niklas Söderlund wrote:
+> When the driver runs in media controller mode it should not directly
+> control the subdevice instead userspace will be responsible for
+> configuring the pipeline. To be able to run in this mode a different set
+> of v4l2 operations needs to be used.
 > 
-> Remove all legacy vlv2_platform_clock stuff and move to the clk API to
-> avoid conflicts, e.g. with audio machine drivers enabling the MCLK for
-> external codecs
+> Add a new set of v4l2 operations to support the running without directly
+> interacting with the source subdevice.
 > 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-I think it might have a Fixes: tag as well (though I dunno which commit
-could be considered as anchor).
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-(I doubt Git is so clever to remove files based on information out of
-the diff, can you check it and if needed to resend without -D implied?)
+Regards,
 
-Other than that - nice clean up!
+	Hans
 
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-
-
-> Tested-by: Carlo Caione <carlo@endlessm.com>
-> Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.
-> com>
 > ---
->  drivers/staging/media/atomisp/Kconfig              |   1 +
->  drivers/staging/media/atomisp/platform/Makefile    |   1 -
->  .../staging/media/atomisp/platform/clock/Makefile  |   6 -
->  .../platform/clock/platform_vlv2_plat_clk.c        |  40 ----
->  .../platform/clock/platform_vlv2_plat_clk.h        |  27 ---
->  .../media/atomisp/platform/clock/vlv2_plat_clock.c | 247 ------------
-> ---------
->  .../platform/intel-mid/atomisp_gmin_platform.c     |  63 +++++-
->  7 files changed, 52 insertions(+), 333 deletions(-)
->  delete mode 100644
-> drivers/staging/media/atomisp/platform/clock/Makefile
->  delete mode 100644
-> drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.c
->  delete mode 100644
-> drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.h
->  delete mode 100644
-> drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
+>  drivers/media/platform/rcar-vin/rcar-dma.c  |   3 +-
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 155 +++++++++++++++++++++++++++-
+>  drivers/media/platform/rcar-vin/rcar-vin.h  |   1 +
+>  3 files changed, 155 insertions(+), 4 deletions(-)
 > 
-> diff --git a/drivers/staging/media/atomisp/Kconfig
-> b/drivers/staging/media/atomisp/Kconfig
-> index 8eb13c3ba29c..7cdebea35ccf 100644
-> --- a/drivers/staging/media/atomisp/Kconfig
-> +++ b/drivers/staging/media/atomisp/Kconfig
-> @@ -1,6 +1,7 @@
->  menuconfig INTEL_ATOMISP
->          bool "Enable support to Intel MIPI camera drivers"
->          depends on X86 && EFI && MEDIA_CONTROLLER && PCI && ACPI
-> +	select COMMON_CLK
->          help
->            Enable support for the Intel ISP2 camera interfaces and
-> MIPI
->            sensor drivers.
-> diff --git a/drivers/staging/media/atomisp/platform/Makefile
-> b/drivers/staging/media/atomisp/platform/Makefile
-> index df157630bda9..0e3b7e1c81c6 100644
-> --- a/drivers/staging/media/atomisp/platform/Makefile
-> +++ b/drivers/staging/media/atomisp/platform/Makefile
-> @@ -2,5 +2,4 @@
->  # Makefile for camera drivers.
->  #
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index 6206fab7b6cdc55a..de1486ee2786b499 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -628,7 +628,8 @@ static int rvin_setup(struct rvin_dev *vin)
+>  		/* Default to TB */
+>  		vnmc = VNMC_IM_FULL;
+>  		/* Use BT if video standard can be read and is 60 Hz format */
+> -		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+> +		if (!vin->info->use_mc &&
+> +		    !v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+>  			if (std & V4L2_STD_525_60)
+>  				vnmc = VNMC_IM_FULL | VNMC_FOC;
+>  		}
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> index f71dea8d5d40323a..9d540644bbe446f6 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -23,6 +23,9 @@
+>  #include "rcar-vin.h"
 >  
-> -obj-$(CONFIG_INTEL_ATOMISP) += clock/
->  obj-$(CONFIG_INTEL_ATOMISP) += intel-mid/
-> diff --git a/drivers/staging/media/atomisp/platform/clock/Makefile
-> b/drivers/staging/media/atomisp/platform/clock/Makefile
-> deleted file mode 100644
-> index 82fbe8b6968a..000000000000
-> diff --git
-> a/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.
-> c
-> b/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.
-> c
-> deleted file mode 100644
-> index 0aae9b0283bb..000000000000
-> diff --git
-> a/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.
-> h
-> b/drivers/staging/media/atomisp/platform/clock/platform_vlv2_plat_clk.
-> h
-> deleted file mode 100644
-> index b730ab0e8223..000000000000
-> diff --git
-> a/drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
-> b/drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
-> deleted file mode 100644
-> index f96789a31819..000000000000
-> diff --git a/drivers/staging/media/atomisp/platform/intel-
-> mid/atomisp_gmin_platform.c
-> b/drivers/staging/media/atomisp/platform/intel-
-> mid/atomisp_gmin_platform.c
-> index edaae93af8f9..17b4cfae5abf 100644
-> --- a/drivers/staging/media/atomisp/platform/intel-
-> mid/atomisp_gmin_platform.c
-> +++ b/drivers/staging/media/atomisp/platform/intel-
-> mid/atomisp_gmin_platform.c
-> @@ -4,10 +4,10 @@
->  #include <linux/efi.h>
->  #include <linux/pci.h>
->  #include <linux/acpi.h>
-> +#include <linux/clk.h>
->  #include <linux/delay.h>
->  #include <media/v4l2-subdev.h>
->  #include <linux/mfd/intel_soc_pmic.h>
-> -#include "../../include/linux/vlv2_plat_clock.h"
->  #include <linux/regulator/consumer.h>
->  #include <linux/gpio/consumer.h>
->  #include <linux/gpio.h>
-> @@ -17,11 +17,7 @@
+>  #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
+> +#define RVIN_DEFAULT_WIDTH	800
+> +#define RVIN_DEFAULT_HEIGHT	600
+> +#define RVIN_DEFAULT_COLORSPACE	V4L2_COLORSPACE_SRGB
 >  
->  #define MAX_SUBDEVS 8
+>  /* -----------------------------------------------------------------------------
+>   * Format Conversions
+> @@ -671,6 +674,84 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+>  	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+>  };
 >  
-> -/* Should be defined in vlv2_plat_clock API, isn't: */
-> -#define VLV2_CLK_PLL_19P2MHZ 1
-> -#define VLV2_CLK_XTAL_19P2MHZ 0
-> -#define VLV2_CLK_ON      1
-> -#define VLV2_CLK_OFF     2
-> +#define VLV2_CLK_PLL_19P2MHZ 1 /* XTAL on CHT */
->  #define ELDO1_SEL_REG	0x19
->  #define ELDO1_1P8V	0x16
->  #define ELDO1_CTRL_SHIFT 0x00
-> @@ -33,6 +29,7 @@ struct gmin_subdev {
->  	struct v4l2_subdev *subdev;
->  	int clock_num;
->  	int clock_src;
-> +	struct clk *pmc_clk;
->  	struct gpio_desc *gpio0;
->  	struct gpio_desc *gpio1;
->  	struct regulator *v1p8_reg;
-> @@ -344,6 +341,9 @@ static int gmin_platform_deinit(void)
->  	return 0;
->  }
+> +/* -----------------------------------------------------------------------------
+> + * V4L2 Media Controller
+> + */
+> +
+> +static int __rvin_mc_try_format(struct rvin_dev *vin,
+> +				struct v4l2_pix_format *pix)
+> +{
+> +	/* Keep current field if no specific one is asked for */
+> +	if (pix->field == V4L2_FIELD_ANY)
+> +		pix->field = vin->format.field;
+> +
+> +	return rvin_format_align(vin, pix);
+> +}
+> +
+> +static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
+> +				   struct v4l2_format *f)
+> +{
+> +	struct rvin_dev *vin = video_drvdata(file);
+> +
+> +	return __rvin_mc_try_format(vin, &f->fmt.pix);
+> +}
+> +
+> +static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
+> +				 struct v4l2_format *f)
+> +{
+> +	struct rvin_dev *vin = video_drvdata(file);
+> +	int ret;
+> +
+> +	if (vb2_is_busy(&vin->queue))
+> +		return -EBUSY;
+> +
+> +	ret = __rvin_mc_try_format(vin, &f->fmt.pix);
+> +	if (ret)
+> +		return ret;
+> +
+> +	vin->format = f->fmt.pix;
+> +
+> +	return 0;
+> +}
+> +
+> +static int rvin_mc_enum_input(struct file *file, void *priv,
+> +			      struct v4l2_input *i)
+> +{
+> +	if (i->index != 0)
+> +		return -EINVAL;
+> +
+> +	i->type = V4L2_INPUT_TYPE_CAMERA;
+> +	strlcpy(i->name, "Camera", sizeof(i->name));
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_ioctl_ops rvin_mc_ioctl_ops = {
+> +	.vidioc_querycap		= rvin_querycap,
+> +	.vidioc_try_fmt_vid_cap		= rvin_mc_try_fmt_vid_cap,
+> +	.vidioc_g_fmt_vid_cap		= rvin_g_fmt_vid_cap,
+> +	.vidioc_s_fmt_vid_cap		= rvin_mc_s_fmt_vid_cap,
+> +	.vidioc_enum_fmt_vid_cap	= rvin_enum_fmt_vid_cap,
+> +
+> +	.vidioc_enum_input		= rvin_mc_enum_input,
+> +	.vidioc_g_input			= rvin_g_input,
+> +	.vidioc_s_input			= rvin_s_input,
+> +
+> +	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
+> +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
+> +	.vidioc_querybuf		= vb2_ioctl_querybuf,
+> +	.vidioc_qbuf			= vb2_ioctl_qbuf,
+> +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
+> +	.vidioc_expbuf			= vb2_ioctl_expbuf,
+> +	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
+> +	.vidioc_streamon		= vb2_ioctl_streamon,
+> +	.vidioc_streamoff		= vb2_ioctl_streamoff,
+> +
+> +	.vidioc_log_status		= v4l2_ctrl_log_status,
+> +	.vidioc_subscribe_event		= rvin_subscribe_event,
+> +	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+> +};
+> +
+>  /* -----------------------------------------------------------------------------
+>   * File Operations
+>   */
+> @@ -819,6 +900,60 @@ static const struct v4l2_file_operations rvin_fops = {
+>  	.read		= vb2_fop_read,
+>  };
 >  
-> +#define GMIN_PMC_CLK_NAME 14 /* "pmc_plt_clk_[0..5]" */
-> +static char gmin_pmc_clk_name[GMIN_PMC_CLK_NAME];
+> +/* -----------------------------------------------------------------------------
+> + * Media controller file Operations
+> + */
 > +
->  static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev
-> *subdev)
->  {
->  	int i, ret;
-> @@ -377,6 +377,37 @@ static struct gmin_subdev *gmin_subdev_add(struct
-> v4l2_subdev *subdev)
->  	gmin_subdevs[i].gpio0 = gpiod_get_index(dev, NULL, 0,
-> GPIOD_OUT_LOW);
->  	gmin_subdevs[i].gpio1 = gpiod_get_index(dev, NULL, 1,
-> GPIOD_OUT_LOW);
->  
-> +	/* get PMC clock with clock framework */
-> +	snprintf(gmin_pmc_clk_name,
-> +		 sizeof(gmin_pmc_clk_name),
-> +		 "%s_%d", "pmc_plt_clk", gmin_subdevs[i].clock_num);
+> +static int rvin_mc_open(struct file *file)
+> +{
+> +	struct rvin_dev *vin = video_drvdata(file);
+> +	int ret;
 > +
-> +	gmin_subdevs[i].pmc_clk = devm_clk_get(dev,
-> gmin_pmc_clk_name);
-> +	if (IS_ERR(gmin_subdevs[i].pmc_clk)) {
-> +		ret = PTR_ERR(gmin_subdevs[i].pmc_clk);
+> +	mutex_lock(&vin->lock);
 > +
-> +		dev_err(dev,
-> +			"Failed to get clk from %s : %d\n",
-> +			gmin_pmc_clk_name,
-> +			ret);
+> +	file->private_data = vin;
 > +
-> +		return NULL;
-> +	}
+> +	ret = v4l2_fh_open(file);
+> +	if (ret)
+> +		goto unlock;
 > +
-> +	/*
-> +	 * The firmware might enable the clock at
-> +	 * boot (this information may or may not
-> +	 * be reflected in the enable clock register).
-> +	 * To change the rate we must disable the clock
-> +	 * first to cover these cases. Due to common
-> +	 * clock framework restrictions that do not allow
-> +	 * to disable a clock that has not been enabled,
-> +	 * we need to enable the clock first.
-> +	 */
-> +	ret = clk_prepare_enable(gmin_subdevs[i].pmc_clk);
-> +	if (!ret)
-> +		clk_disable_unprepare(gmin_subdevs[i].pmc_clk);
+> +	pm_runtime_get_sync(vin->dev);
+> +	v4l2_pipeline_pm_use(&vin->vdev.entity, 1);
 > +
->  	if (!IS_ERR(gmin_subdevs[i].gpio0)) {
->  		ret = gpiod_direction_output(gmin_subdevs[i].gpio0,
-> 0);
->  		if (ret)
-> @@ -539,13 +570,21 @@ static int gmin_flisclk_ctrl(struct v4l2_subdev
-> *subdev, int on)
->  {
->  	int ret = 0;
->  	struct gmin_subdev *gs = find_gmin_subdev(subdev);
-> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
-> +
-> +	if (on) {
-> +		ret = clk_set_rate(gs->pmc_clk, gs->clock_src);
-> +
-> +		if (ret)
-> +			dev_err(&client->dev, "unable to set PMC rate
-> %d\n",
-> +				gs->clock_src);
->  
-> -	if (on)
-> -		ret = vlv2_plat_set_clock_freq(gs->clock_num, gs-
-> >clock_src);
-> -	if (ret)
-> -		return ret;
-> -	return vlv2_plat_configure_clock(gs->clock_num,
-> -					 on ? VLV2_CLK_ON :
-> VLV2_CLK_OFF);
-> +		ret = clk_prepare_enable(gs->pmc_clk);
-> +	} else {
-> +		clk_disable_unprepare(gs->pmc_clk);
-> +	}
+> +unlock:
+> +	mutex_unlock(&vin->lock);
 > +
 > +	return ret;
->  }
+> +}
+> +
+> +static int rvin_mc_release(struct file *file)
+> +{
+> +	struct rvin_dev *vin = video_drvdata(file);
+> +	int ret;
+> +
+> +	mutex_lock(&vin->lock);
+> +
+> +	/* the release helper will cleanup any on-going streaming */
+> +	ret = _vb2_fop_release(file, NULL);
+> +
+> +	v4l2_pipeline_pm_use(&vin->vdev.entity, 0);
+> +	pm_runtime_put(vin->dev);
+> +
+> +	mutex_unlock(&vin->lock);
+> +
+> +	return ret;
+> +}
+> +
+> +static const struct v4l2_file_operations rvin_mc_fops = {
+> +	.owner		= THIS_MODULE,
+> +	.unlocked_ioctl	= video_ioctl2,
+> +	.open		= rvin_mc_open,
+> +	.release	= rvin_mc_release,
+> +	.poll		= vb2_fop_poll,
+> +	.mmap		= vb2_fop_mmap,
+> +	.read		= vb2_fop_read,
+> +};
+> +
+>  void rvin_v4l2_remove(struct rvin_dev *vin)
+>  {
+>  	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
+> @@ -851,19 +986,33 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+>  	vin->v4l2_dev.notify = rvin_notify;
 >  
->  static int gmin_csi_cfg(struct v4l2_subdev *sd, int flag)
-
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+>  	/* video node */
+> -	vdev->fops = &rvin_fops;
+>  	vdev->v4l2_dev = &vin->v4l2_dev;
+>  	vdev->queue = &vin->queue;
+>  	snprintf(vdev->name, sizeof(vdev->name), "%s %s", KBUILD_MODNAME,
+>  		 dev_name(vin->dev));
+>  	vdev->release = video_device_release_empty;
+> -	vdev->ioctl_ops = &rvin_ioctl_ops;
+>  	vdev->lock = &vin->lock;
+> -	vdev->ctrl_handler = &vin->ctrl_handler;
+>  	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+>  		V4L2_CAP_READWRITE;
+>  
+> +	/* Set some form of default format */
+>  	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
+> +	vin->format.width = RVIN_DEFAULT_WIDTH;
+> +	vin->format.height = RVIN_DEFAULT_HEIGHT;
+> +	vin->format.colorspace = RVIN_DEFAULT_COLORSPACE;
+> +
+> +	ret = rvin_format_align(vin, &vin->format);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (vin->info->use_mc) {
+> +		vdev->fops = &rvin_mc_fops;
+> +		vdev->ioctl_ops = &rvin_mc_ioctl_ops;
+> +	} else {
+> +		vdev->fops = &rvin_fops;
+> +		vdev->ioctl_ops = &rvin_ioctl_ops;
+> +		vdev->ctrl_handler = &vin->ctrl_handler;
+> +	}
+>  
+>  	ret = video_register_device(&vin->vdev, VFL_TYPE_GRABBER, -1);
+>  	if (ret) {
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index 819d9c04ed8ffb36..12daff804bb6f77f 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -21,6 +21,7 @@
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-dev.h>
+>  #include <media/v4l2-device.h>
+> +#include <media/v4l2-mc.h>
+>  #include <media/videobuf2-v4l2.h>
+>  
+>  /* Number of HW buffers */
+> 
