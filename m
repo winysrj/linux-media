@@ -1,57 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:36732 "EHLO smtp5-g21.free.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932656AbdIYMQP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 08:16:15 -0400
-From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
-Subject: [PATCH v4 1/2] media: dt: bindings: Add binding for tango HW IR
- decoder
-To: Sean Young <sean@mess.org>, Mans Rullgard <mans@mansr.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        DT <devicetree@vger.kernel.org>
-Message-ID: <308711ef-0ba8-d533-26fd-51e5b8f32cc8@free.fr>
-Date: Mon, 25 Sep 2017 14:02:29 +0200
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:58827 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933162AbdIYKre (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Sep 2017 06:47:34 -0400
+Subject: Re: [PATCH v6 24/25] rcar-vin: enable support for r8a7795
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170822232640.26147-25-niklas.soderlund+renesas@ragnatech.se>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c69e22ea-f407-a34f-01db-0fe88c69c8c3@xs4all.nl>
+Date: Mon, 25 Sep 2017 12:47:31 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170822232640.26147-25-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT binding for the HW IR decoder embedded in SMP86xx/SMP87xx.
+On 23/08/17 01:26, Niklas Söderlund wrote:
+> Add the SoC specific information for Renesas r8a7795.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Signed-off-by: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
----
- .../devicetree/bindings/media/tango-ir.txt          | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/tango-ir.txt
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/Documentation/devicetree/bindings/media/tango-ir.txt b/Documentation/devicetree/bindings/media/tango-ir.txt
-new file mode 100644
-index 000000000000..a9f00c2bf897
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/tango-ir.txt
-@@ -0,0 +1,21 @@
-+Sigma Designs Tango IR NEC/RC-5/RC-6 decoder (SMP86xx and SMP87xx)
-+
-+Required properties:
-+
-+- compatible: "sigma,smp8642-ir"
-+- reg: address/size of NEC+RC5 area, address/size of RC6 area
-+- interrupts: spec for IR IRQ
-+- clocks: spec for IR clock (typically the crystal oscillator)
-+
-+Optional properties:
-+
-+- linux,rc-map-name: see Documentation/devicetree/bindings/media/rc.txt
-+
-+Example:
-+
-+	ir@10518 {
-+		compatible = "sigma,smp8642-ir";
-+		reg = <0x10518 0x18>, <0x105e0 0x1c>;
-+		interrupts = <21 IRQ_TYPE_EDGE_RISING>;
-+		clocks = <&xtal>;
-+	};
--- 
-2.11.0
+Regards,
+
+	Hans
+
+> ---
+>  drivers/media/platform/rcar-vin/Kconfig     |   2 +-
+>  drivers/media/platform/rcar-vin/rcar-core.c | 145 ++++++++++++++++++++++++++++
+>  2 files changed, 146 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
+> index af4c98b44d2e22cb..8fa7ee468c63afb9 100644
+> --- a/drivers/media/platform/rcar-vin/Kconfig
+> +++ b/drivers/media/platform/rcar-vin/Kconfig
+> @@ -6,7 +6,7 @@ config VIDEO_RCAR_VIN
+>  	select V4L2_FWNODE
+>  	---help---
+>  	  Support for Renesas R-Car Video Input (VIN) driver.
+> -	  Supports R-Car Gen2 SoCs.
+> +	  Supports R-Car Gen2 and Gen3 SoCs.
+>  
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called rcar-vin.
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index dec91e2f3ccdbd93..58d903ab9fb83faf 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/pm_runtime.h>
+>  #include <linux/slab.h>
+> +#include <linux/sys_soc.h>
+>  
+>  #include <media/v4l2-fwnode.h>
+>  
+> @@ -987,7 +988,139 @@ static const struct rvin_info rcar_info_gen2 = {
+>  	.max_height = 2048,
+>  };
+>  
+> +static const struct rvin_info rcar_info_r8a7795 = {
+> +	.chip = RCAR_GEN3,
+> +	.use_mc = true,
+> +	.max_width = 4096,
+> +	.max_height = 4096,
+> +
+> +	.num_chsels = 5,
+> +	.chsels = {
+> +		{
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 1 },
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +		}, {
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 1 },
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 1 },
+> +			{ .csi = RVIN_CSI20, .chan = 1 },
+> +		}, {
+> +			{ .csi = RVIN_CSI20, .chan = 1 },
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 2 },
+> +			{ .csi = RVIN_CSI20, .chan = 2 },
+> +		}, {
+> +			{ .csi = RVIN_CSI40, .chan = 1 },
+> +			{ .csi = RVIN_CSI20, .chan = 1 },
+> +			{ .csi = RVIN_CSI20, .chan = 1 },
+> +			{ .csi = RVIN_CSI40, .chan = 3 },
+> +			{ .csi = RVIN_CSI20, .chan = 3 },
+> +		}, {
+> +			{ .csi = RVIN_CSI41, .chan = 0 },
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +			{ .csi = RVIN_CSI41, .chan = 1 },
+> +			{ .csi = RVIN_CSI41, .chan = 0 },
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +		}, {
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +			{ .csi = RVIN_CSI41, .chan = 1 },
+> +			{ .csi = RVIN_CSI41, .chan = 0 },
+> +			{ .csi = RVIN_CSI41, .chan = 1 },
+> +			{ .csi = RVIN_CSI20, .chan = 1 },
+> +		}, {
+> +			{ .csi = RVIN_CSI20, .chan = 1 },
+> +			{ .csi = RVIN_CSI41, .chan = 0 },
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +			{ .csi = RVIN_CSI41, .chan = 2 },
+> +			{ .csi = RVIN_CSI20, .chan = 2 },
+> +		}, {
+> +			{ .csi = RVIN_CSI41, .chan = 1 },
+> +			{ .csi = RVIN_CSI20, .chan = 1 },
+> +			{ .csi = RVIN_CSI20, .chan = 1 },
+> +			{ .csi = RVIN_CSI41, .chan = 3 },
+> +			{ .csi = RVIN_CSI20, .chan = 3 },
+> +		},
+> +	},
+> +};
+> +
+> +static const struct rvin_info rcar_info_r8a7795es1 = {
+> +	.chip = RCAR_GEN3,
+> +	.use_mc = true,
+> +	.max_width = 4096,
+> +	.max_height = 4096,
+> +
+> +	.num_chsels = 6,
+> +	.chsels = {
+> +		{
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +			{ .csi = RVIN_CSI21, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +			{ .csi = RVIN_CSI21, .chan = 0 },
+> +		}, {
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +			{ .csi = RVIN_CSI21, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 1 },
+> +			{ .csi = RVIN_CSI20, .chan = 1 },
+> +			{ .csi = RVIN_CSI21, .chan = 1 },
+> +		}, {
+> +			{ .csi = RVIN_CSI21, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 2 },
+> +			{ .csi = RVIN_CSI20, .chan = 2 },
+> +			{ .csi = RVIN_CSI21, .chan = 2 },
+> +		}, {
+> +			{ .csi = RVIN_CSI40, .chan = 1 },
+> +			{ .csi = RVIN_CSI20, .chan = 1 },
+> +			{ .csi = RVIN_CSI21, .chan = 1 },
+> +			{ .csi = RVIN_CSI40, .chan = 3 },
+> +			{ .csi = RVIN_CSI20, .chan = 3 },
+> +			{ .csi = RVIN_CSI21, .chan = 3 },
+> +		}, {
+> +			{ .csi = RVIN_CSI41, .chan = 0 },
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +			{ .csi = RVIN_CSI21, .chan = 0 },
+> +			{ .csi = RVIN_CSI41, .chan = 0 },
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +			{ .csi = RVIN_CSI21, .chan = 0 },
+> +		}, {
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +			{ .csi = RVIN_CSI21, .chan = 0 },
+> +			{ .csi = RVIN_CSI41, .chan = 0 },
+> +			{ .csi = RVIN_CSI41, .chan = 1 },
+> +			{ .csi = RVIN_CSI20, .chan = 1 },
+> +			{ .csi = RVIN_CSI21, .chan = 1 },
+> +		}, {
+> +			{ .csi = RVIN_CSI21, .chan = 0 },
+> +			{ .csi = RVIN_CSI41, .chan = 0 },
+> +			{ .csi = RVIN_CSI20, .chan = 0 },
+> +			{ .csi = RVIN_CSI41, .chan = 2 },
+> +			{ .csi = RVIN_CSI20, .chan = 2 },
+> +			{ .csi = RVIN_CSI21, .chan = 2 },
+> +		}, {
+> +			{ .csi = RVIN_CSI41, .chan = 1 },
+> +			{ .csi = RVIN_CSI20, .chan = 1 },
+> +			{ .csi = RVIN_CSI21, .chan = 1 },
+> +			{ .csi = RVIN_CSI41, .chan = 3 },
+> +			{ .csi = RVIN_CSI20, .chan = 3 },
+> +			{ .csi = RVIN_CSI21, .chan = 3 },
+> +		},
+> +	},
+> +};
+> +
+>  static const struct of_device_id rvin_of_id_table[] = {
+> +	{
+> +		.compatible = "renesas,vin-r8a7795",
+> +		.data = &rcar_info_r8a7795,
+> +	},
+>  	{
+>  		.compatible = "renesas,vin-r8a7794",
+>  		.data = &rcar_info_gen2,
+> @@ -1020,6 +1153,11 @@ static const struct of_device_id rvin_of_id_table[] = {
+>  };
+>  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+>  
+> +static const struct soc_device_attribute r8a7795es1[] = {
+> +	{ .soc_id = "r8a7795", .revision = "ES1.*" },
+> +	{ /* sentinel */ }
+> +};
+> +
+>  static int rcar_vin_probe(struct platform_device *pdev)
+>  {
+>  	const struct of_device_id *match;
+> @@ -1038,6 +1176,13 @@ static int rcar_vin_probe(struct platform_device *pdev)
+>  	vin->dev = &pdev->dev;
+>  	vin->info = match->data;
+>  
+> +	/*
+> +	 * Special care is needed on r8a7795 ES1.x since it
+> +	 * uses different routing then r8a7795 ES2.0.
+> +	 */
+> +	if (vin->info == &rcar_info_r8a7795 && soc_device_match(r8a7795es1))
+> +		vin->info = &rcar_info_r8a7795es1;
+> +
+>  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	if (mem == NULL)
+>  		return -EINVAL;
+> 
