@@ -1,86 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:41567 "EHLO gofer.mess.org"
+Received: from mout.web.de ([212.227.17.12]:58360 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752297AbdIBLmw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 2 Sep 2017 07:42:52 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 6/7] media: rc: if protocols can't be changed, don't be writable
-Date: Sat,  2 Sep 2017 12:42:47 +0100
-Message-Id: <8c17aeb5970460028478bf25aadf2cf892b01684.1504352252.git.sean@mess.org>
-In-Reply-To: <cover.1504352252.git.sean@mess.org>
-References: <cover.1504352252.git.sean@mess.org>
-In-Reply-To: <cover.1504352252.git.sean@mess.org>
-References: <cover.1504352252.git.sean@mess.org>
+        id S934555AbdIYTPh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Sep 2017 15:15:37 -0400
+To: linux-media@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
+        Andrey Utkin <andrey_utkin@fastmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>,
+        Thomas Gleixner <tglx@linutronix.de>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] [media] cx88: Use common error handling code in
+ get_key_pvr2000()
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Message-ID: <962b8373-ca02-b27a-cc25-eb9b4ac16e05@users.sourceforge.net>
+Date: Mon, 25 Sep 2017 21:15:06 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the protocols of an rc device cannot be changed, ensure the sysfs
-file is not writable.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 25 Sep 2017 21:03:57 +0200
 
-This makes it possible to detect this from userspace, so ir-keytable
-can deal with case without giving an error.
+Add a jump target so that a bit of exception handling can be better reused
+at the end of this function.
 
-Signed-off-by: Sean Young <sean@mess.org>
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/rc/rc-main.c | 28 +++++++++++++++++++++-------
- 1 file changed, 21 insertions(+), 7 deletions(-)
+ drivers/media/pci/cx88/cx88-input.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 8781055ee058..cf0c407d8f5b 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1487,7 +1487,10 @@ static int rc_dev_uevent(struct device *device, struct kobj_uevent_env *env)
- /*
-  * Static device attribute struct with the sysfs attributes for IR's
-  */
--static DEVICE_ATTR(protocols, 0644, show_protocols, store_protocols);
-+static struct device_attribute dev_attr_ro_protocols =
-+__ATTR(protocols, 0444, show_protocols, store_protocols);
-+static struct device_attribute dev_attr_rw_protocols =
-+__ATTR(protocols, 0644, show_protocols, NULL);
- static DEVICE_ATTR(wakeup_protocols, 0644, show_wakeup_protocols,
- 		   store_wakeup_protocols);
- static RC_FILTER_ATTR(filter, S_IRUGO|S_IWUSR,
-@@ -1499,13 +1502,22 @@ static RC_FILTER_ATTR(wakeup_filter, S_IRUGO|S_IWUSR,
- static RC_FILTER_ATTR(wakeup_filter_mask, S_IRUGO|S_IWUSR,
- 		      show_filter, store_filter, RC_FILTER_WAKEUP, true);
+diff --git a/drivers/media/pci/cx88/cx88-input.c b/drivers/media/pci/cx88/cx88-input.c
+index e02449bf2041..001fbb97bcdf 100644
+--- a/drivers/media/pci/cx88/cx88-input.c
++++ b/drivers/media/pci/cx88/cx88-input.c
+@@ -566,20 +566,17 @@ static int get_key_pvr2000(struct IR_i2c *ir, enum rc_proto *protocol,
  
--static struct attribute *rc_dev_protocol_attrs[] = {
--	&dev_attr_protocols.attr,
-+static struct attribute *rc_dev_rw_protocol_attrs[] = {
-+	&dev_attr_rw_protocols.attr,
- 	NULL,
- };
- 
--static const struct attribute_group rc_dev_protocol_attr_grp = {
--	.attrs	= rc_dev_protocol_attrs,
-+static const struct attribute_group rc_dev_rw_protocol_attr_grp = {
-+	.attrs	= rc_dev_rw_protocol_attrs,
-+};
+ 	/* poll IR chip */
+ 	flags = i2c_smbus_read_byte_data(ir->c, 0x10);
+-	if (flags < 0) {
+-		dprintk("read error\n");
+-		return 0;
+-	}
++	if (flags < 0)
++		goto report_read_failure;
 +
-+static struct attribute *rc_dev_ro_protocol_attrs[] = {
-+	&dev_attr_ro_protocols.attr,
-+	NULL,
-+};
+ 	/* key pressed ? */
+ 	if (0 == (flags & 0x80))
+ 		return 0;
+ 
+ 	/* read actual key code */
+ 	code = i2c_smbus_read_byte_data(ir->c, 0x00);
+-	if (code < 0) {
+-		dprintk("read error\n");
+-		return 0;
+-	}
++	if (code < 0)
++		goto report_read_failure;
+ 
+ 	dprintk("IR Key/Flags: (0x%02x/0x%02x)\n",
+ 		code & 0xff, flags & 0xff);
+@@ -588,6 +585,10 @@ static int get_key_pvr2000(struct IR_i2c *ir, enum rc_proto *protocol,
+ 	*scancode = code & 0xff;
+ 	*toggle = 0;
+ 	return 1;
 +
-+static const struct attribute_group rc_dev_ro_protocol_attr_grp = {
-+	.attrs	= rc_dev_ro_protocol_attrs,
- };
++report_read_failure:
++	dprintk("read error\n");
++	return 0;
+ }
  
- static struct attribute *rc_dev_filter_attrs[] = {
-@@ -1732,8 +1744,10 @@ int rc_register_device(struct rc_dev *dev)
- 	dev_set_drvdata(&dev->dev, dev);
- 
- 	dev->dev.groups = dev->sysfs_groups;
--	if (dev->driver_type != RC_DRIVER_IR_RAW_TX)
--		dev->sysfs_groups[attr++] = &rc_dev_protocol_attr_grp;
-+	if (dev->driver_type == RC_DRIVER_SCANCODE && !dev->change_protocol)
-+		dev->sysfs_groups[attr++] = &rc_dev_ro_protocol_attr_grp;
-+	else if (dev->driver_type != RC_DRIVER_IR_RAW_TX)
-+		dev->sysfs_groups[attr++] = &rc_dev_rw_protocol_attr_grp;
- 	if (dev->s_filter)
- 		dev->sysfs_groups[attr++] = &rc_dev_filter_attr_grp;
- 	if (dev->s_wakeup_filter)
+ void cx88_i2c_init_ir(struct cx88_core *core)
 -- 
-2.13.5
+2.14.1
