@@ -1,120 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33171
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752131AbdI0Vkt (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52459 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964851AbdIYRZT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:49 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Ingo Molnar <mingo@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: [PATCH v2 23/37] media: dvb_demux: dvb_demux_feed.pusi_seen is boolean
-Date: Wed, 27 Sep 2017 18:40:24 -0300
-Message-Id: <e9cc0692d55e91e389c9ed4445a99a71f33d697c.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+        Mon, 25 Sep 2017 13:25:19 -0400
+Subject: Re: [PATCH] v4l: vsp1: Start and stop DRM pipeline independently of
+ planes
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+References: <20170815225744.14730-1-laurent.pinchart+renesas@ideasonboard.com>
+Reply-To: kieran.bingham@ideasonboard.com
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <5b2b812b-f0ba-257b-ac71-13f21d0635ec@ideasonboard.com>
+Date: Mon, 25 Sep 2017 18:25:14 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170815225744.14730-1-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using an integer to represent it, use boolean,
-as this better describes what this field really means.
+Hi Laurent,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_demux.c    | 12 ++++++------
- drivers/media/dvb-core/dvb_demux.h    |  2 +-
- drivers/media/pci/ttpci/av7110.c      |  2 +-
- drivers/media/pci/ttpci/budget-core.c |  2 +-
- 4 files changed, 9 insertions(+), 9 deletions(-)
+Thankyou for the patch.
 
-diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
-index 68e93362c081..b9360cbc3519 100644
---- a/drivers/media/dvb-core/dvb_demux.c
-+++ b/drivers/media/dvb-core/dvb_demux.c
-@@ -223,10 +223,10 @@ static void dvb_dmx_swfilter_section_new(struct dvb_demux_feed *feed)
-  *  when the second packet arrives.
-  *
-  * Fix:
-- * when demux is started, let feed->pusi_seen = 0 to
-+ * when demux is started, let feed->pusi_seen = false to
-  * prevent initial feeding of garbage from the end of
-  * previous section. When you for the first time see PUSI=1
-- * then set feed->pusi_seen = 1
-+ * then set feed->pusi_seen = true
-  */
- static int dvb_dmx_swfilter_section_copy_dump(struct dvb_demux_feed *feed,
- 					      const u8 *buf, u8 len)
-@@ -318,10 +318,10 @@ static int dvb_dmx_swfilter_section_packet(struct dvb_demux_feed *feed,
- 		 */
- #endif
- 		/*
--		 * Discontinuity detected. Reset pusi_seen = 0 to
-+		 * Discontinuity detected. Reset pusi_seen to
- 		 * stop feeding of suspicious data until next PUSI=1 arrives
- 		 */
--		feed->pusi_seen = 0;
-+		feed->pusi_seen = false;
- 		dvb_dmx_swfilter_section_new(feed);
- 	}
- 
-@@ -335,8 +335,8 @@ static int dvb_dmx_swfilter_section_packet(struct dvb_demux_feed *feed,
- 
- 			dvb_dmx_swfilter_section_copy_dump(feed, before,
- 							   before_len);
--			/* before start of new section, set pusi_seen = 1 */
--			feed->pusi_seen = 1;
-+			/* before start of new section, set pusi_seen */
-+			feed->pusi_seen = true;
- 			dvb_dmx_swfilter_section_new(feed);
- 			dvb_dmx_swfilter_section_copy_dump(feed, after,
- 							   after_len);
-diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
-index 700887938145..9db3c2b7c64e 100644
---- a/drivers/media/dvb-core/dvb_demux.h
-+++ b/drivers/media/dvb-core/dvb_demux.h
-@@ -101,7 +101,7 @@ struct dvb_demux_feed {
- 	enum dmx_ts_pes pes_type;
- 
- 	int cc;
--	int pusi_seen;		/* prevents feeding of garbage from previous section */
-+	bool pusi_seen;		/* prevents feeding of garbage from previous section */
- 
- 	u16 peslen;
- 
-diff --git a/drivers/media/pci/ttpci/av7110.c b/drivers/media/pci/ttpci/av7110.c
-index f46947d8adf8..f89fb23f6c57 100644
---- a/drivers/media/pci/ttpci/av7110.c
-+++ b/drivers/media/pci/ttpci/av7110.c
-@@ -1224,7 +1224,7 @@ static int budget_start_feed(struct dvb_demux_feed *feed)
- 	dprintk(2, "av7110: %p\n", budget);
- 
- 	spin_lock(&budget->feedlock1);
--	feed->pusi_seen = 0; /* have a clean section start */
-+	feed->pusi_seen = false; /* have a clean section start */
- 	status = start_ts_capture(budget);
- 	spin_unlock(&budget->feedlock1);
- 	return status;
-diff --git a/drivers/media/pci/ttpci/budget-core.c b/drivers/media/pci/ttpci/budget-core.c
-index 97499b2af714..b3dc45b91101 100644
---- a/drivers/media/pci/ttpci/budget-core.c
-+++ b/drivers/media/pci/ttpci/budget-core.c
-@@ -330,7 +330,7 @@ static int budget_start_feed(struct dvb_demux_feed *feed)
- 		return -EINVAL;
- 
- 	spin_lock(&budget->feedlock);
--	feed->pusi_seen = 0; /* have a clean section start */
-+	feed->pusi_seen = false; /* have a clean section start */
- 	if (budget->feeding++ == 0)
- 		status = start_ts_capture(budget);
- 	spin_unlock(&budget->feedlock);
--- 
-2.13.5
+On 15/08/17 23:57, Laurent Pinchart wrote:
+> The KMS API supports enabling a CRTC without any plane. To enable that
+> use case, we need to start the pipeline when configuring the LIF,
+> instead of when enabling the first plane.
+
+Tested and verified on Salvator-X ES1.0 using the KMS Test suite, including
+suspend/resume, in combination with the "[PATCH 0/3] R-Car DU: Clip planes to
+screen boundaries" series.
+
+Tested-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/vsp1/vsp1_drm.c | 37 +++++++++++++++++++++++++---------
+>  1 file changed, 27 insertions(+), 10 deletions(-)
+> 
+> This patch is based on top of the VSP+DU large patch series queued through
+> Dave's DRM tree for v4.14-rc1. It doesn't can't be merged independently
+> through the linux-media tree for the same kernel version. As the change is not
+> urgent, it can be delayed until v4.15-rc1.
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+> index 4dfbeac8f42c..7ce69f23f50a 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -84,8 +84,12 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+>  	struct vsp1_drm_pipeline *drm_pipe;
+>  	struct vsp1_pipeline *pipe;
+>  	struct vsp1_bru *bru;
+> +	struct vsp1_entity *entity;
+> +	struct vsp1_entity *next;
+> +	struct vsp1_dl_list *dl;
+>  	struct v4l2_subdev_format format;
+>  	const char *bru_name;
+> +	unsigned long flags;
+>  	unsigned int i;
+>  	int ret;
+>  
+> @@ -250,6 +254,29 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+>  	vsp1_write(vsp1, VI6_DISP_IRQ_STA, 0);
+>  	vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
+>  
+> +	/* Configure all entities in the pipeline. */
+> +	dl = vsp1_dl_list_get(pipe->output->dlm);
+> +
+> +	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
+> +		vsp1_entity_route_setup(entity, pipe, dl);
+> +
+> +		if (entity->ops->configure) {
+> +			entity->ops->configure(entity, pipe, dl,
+> +					       VSP1_ENTITY_PARAMS_INIT);
+> +			entity->ops->configure(entity, pipe, dl,
+> +					       VSP1_ENTITY_PARAMS_RUNTIME);
+> +			entity->ops->configure(entity, pipe, dl,
+> +					       VSP1_ENTITY_PARAMS_PARTITION);
+> +		}
+
+Hrm ... this configure section now has quite a lot duplicated from the
+vsp1_du_atomic_flush(). Perhaps we could abstract that part out to a common
+function - but I don't think that's essential.
+
+
+> +	}
+> +
+> +	vsp1_dl_list_commit(dl);
+> +
+> +	/* Start the pipeline. */
+> +	spin_lock_irqsave(&pipe->irqlock, flags);
+> +	vsp1_pipeline_run(pipe);
+> +	spin_unlock_irqrestore(&pipe->irqlock, flags);
+> +
+>  	dev_dbg(vsp1->dev, "%s: pipeline enabled\n", __func__);
+>  
+>  	return 0;
+> @@ -488,7 +515,6 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+>  	struct vsp1_entity *next;
+>  	struct vsp1_dl_list *dl;
+>  	const char *bru_name;
+> -	unsigned long flags;
+>  	unsigned int i;
+>  	int ret;
+>  
+> @@ -570,15 +596,6 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+>  	}
+>  
+>  	vsp1_dl_list_commit(dl);
+> -
+> -	/* Start or stop the pipeline if needed. */
+> -	if (!drm_pipe->enabled && pipe->num_inputs) {
+> -		spin_lock_irqsave(&pipe->irqlock, flags);
+> -		vsp1_pipeline_run(pipe);
+> -		spin_unlock_irqrestore(&pipe->irqlock, flags);
+> -	} else if (drm_pipe->enabled && !pipe->num_inputs) {
+> -		vsp1_pipeline_stop(pipe);
+> -	}
+>  }
+>  EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
+>  
+> 
