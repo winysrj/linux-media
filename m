@@ -1,54 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42310 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751809AbdIVJck (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:51230 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752884AbdIYD5A (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 05:32:40 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-leds@vger.kernel.org, jacek.anaszewski@gmail.com
-Cc: linux-media@vger.kernel.org, devicetree@kernel.org
-Subject: [PATCH v3 0/4] AS3645A fixes
-Date: Fri, 22 Sep 2017 12:32:34 +0300
-Message-Id: <20170922093238.13070-1-sakari.ailus@linux.intel.com>
+        Sun, 24 Sep 2017 23:57:00 -0400
+Message-ID: <13fd94355c991f661780c82cb59e72d9@smtp-cloud8.xs4all.net>
+Date: Mon, 25 Sep 2017 05:56:57 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek and others,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Here are a few fixes for the as3645a DTS as well as changes in bindings.
-The driver is not in a release yet.
+Results of the daily build of media_tree:
 
-Jacek: Could you take these to your fixes branch so we don't get faulty DT
-bindings to a release? I've dropped the patches related to LED naming and
-label property as the discusion appears to continue on that.
+date:			Mon Sep 25 05:00:16 CEST 2017
+media-tree git hash:	d5426f4c2ebac8cf05de43988c3fccddbee13d28
+media_build git hash:	b829b621b4c2e6c5cbedbd1ce62b4e958f7d13a4
+v4l-utils git hash:	e44cb0520fca23d950066bf7d1660ed054afca26
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-Thanks.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: OK
+spec-git: OK
 
+Detailed results are available here:
 
-since v2:
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-- Drop patches related to LED naming.
+Full logs are available here:
 
-- No other changes.
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-since v1:
+The Media Infrastructure API from this daily build is here:
 
-- Add LED colour to the name of the LED, this adds two patches to the set.
-
-- Add a patch to unregister the indicator LED in driver remove function.
-
-- No changes to v1 patches.
-
-Sakari Ailus (4):
-  as3645a: Use ams,input-max-microamp as documented in DT bindings
-  dt: bindings: as3645a: Use LED number to refer to LEDs
-  as3645a: Use integer numbers for parsing LEDs
-  as3645a: Unregister indicator LED on device unbind
-
- .../devicetree/bindings/leds/ams,as3645a.txt       | 28 +++++++++++++--------
- arch/arm/boot/dts/omap3-n950-n9.dtsi               | 10 +++++---
- drivers/leds/leds-as3645a.c                        | 29 +++++++++++++++++++---
- 3 files changed, 51 insertions(+), 16 deletions(-)
-
--- 
-2.11.0
+http://www.xs4all.nl/~hverkuil/spec/index.html
