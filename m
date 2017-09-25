@@ -1,58 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:57298 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S936633AbdIZI0w (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49518 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S934287AbdIYWZz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 04:26:52 -0400
-Subject: Re: [PATCH v14 24/28] smiapp: Add support for flash and lens devices
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
- <20170925222540.371-26-sakari.ailus@linux.intel.com>
+        Mon, 25 Sep 2017 18:25:55 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
 Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, laurent.pinchart@ideasonboard.com,
-        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <9c1d4bc0-63b1-65be-2444-0c5c8e74c7b0@xs4all.nl>
-Date: Tue, 26 Sep 2017 10:26:49 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170925222540.371-26-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v14 17/28] dt: bindings: Add a binding for flash LED devices associated to a sensor
+Date: Tue, 26 Sep 2017 01:25:28 +0300
+Message-Id: <20170925222540.371-18-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/09/17 00:25, Sakari Ailus wrote:
-> Parse async sub-devices related to the sensor by switching the async
-> sub-device registration function.
-> 
-> These types devices aren't directly related to the sensor, but are
-> nevertheless handled by the smiapp driver due to the relationship of these
-> component to the main part of the camera module --- the sensor.
-> 
-> This does not yet address providing the user space with information on how
-> to associate the sensor or lens devices but the kernel now has the
-> necessary information to do that.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Camera flash drivers (and LEDs) are separate from the sensor devices in
+DT. In order to make an association between the two, provide the
+association information to the software.
 
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Rob Herring <robh@kernel.org>
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+---
+ Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-> ---
->  drivers/media/i2c/smiapp/smiapp-core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-> index 700f433261d0..3d9a251ca825 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> @@ -3092,7 +3092,7 @@ static int smiapp_probe(struct i2c_client *client,
->  	if (rval < 0)
->  		goto out_media_entity_cleanup;
->  
-> -	rval = v4l2_async_register_subdev(&sensor->src->sd);
-> +	rval = v4l2_async_register_subdev_sensor_common(&sensor->src->sd);
->  	if (rval < 0)
->  		goto out_media_entity_cleanup;
->  
-> 
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index 852041a7480c..fdba30479b47 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -67,6 +67,14 @@ are required in a relevant parent node:
+ 		    identifier, should be 1.
+  - #size-cells    : should be zero.
+ 
++
++Optional properties
++-------------------
++
++- flash-leds: An array of phandles, each referring to a flash LED, a sub-node
++  of the LED driver device node.
++
++
+ Optional endpoint properties
+ ----------------------------
+ 
+-- 
+2.11.0
