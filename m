@@ -1,274 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:43497 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934432AbdIYKLO (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49588 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S964993AbdIYWZ6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 06:11:14 -0400
-Subject: Re: [PATCH v6 17/25] rcar-vin: use different v4l2 operations in media
- controller mode
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
- <20170822232640.26147-18-niklas.soderlund+renesas@ragnatech.se>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b0ef1ac1-d036-787c-c6ee-e83ddcb1e6c5@xs4all.nl>
-Date: Mon, 25 Sep 2017 12:11:11 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170822232640.26147-18-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+        Mon, 25 Sep 2017 18:25:58 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v14 22/28] v4l: async: Add a convenience function for registering sensors
+Date: Tue, 26 Sep 2017 01:25:33 +0300
+Message-Id: <20170925222540.371-23-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23/08/17 01:26, Niklas Söderlund wrote:
-> When the driver runs in media controller mode it should not directly
-> control the subdevice instead userspace will be responsible for
-> configuring the pipeline. To be able to run in this mode a different set
-> of v4l2 operations needs to be used.
-> 
-> Add a new set of v4l2 operations to support the running without directly
-> interacting with the source subdevice.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Add a convenience function for parsing firmware for information on related
+devices using v4l2_async_notifier_parse_fwnode_sensor_common() registering
+the notifier and finally the async sub-device itself.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+This should be useful for sensor drivers that do not have device specific
+requirements related to firmware information parsing or the async
+framework.
 
-Regards,
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c  |  5 +++++
+ drivers/media/v4l2-core/v4l2-fwnode.c | 41 +++++++++++++++++++++++++++++++++++
+ include/media/v4l2-async.h            | 22 +++++++++++++++++++
+ include/media/v4l2-subdev.h           |  3 +++
+ 4 files changed, 71 insertions(+)
 
-	Hans
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-dma.c  |   3 +-
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 155 +++++++++++++++++++++++++++-
->  drivers/media/platform/rcar-vin/rcar-vin.h  |   1 +
->  3 files changed, 155 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> index 6206fab7b6cdc55a..de1486ee2786b499 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -628,7 +628,8 @@ static int rvin_setup(struct rvin_dev *vin)
->  		/* Default to TB */
->  		vnmc = VNMC_IM_FULL;
->  		/* Use BT if video standard can be read and is 60 Hz format */
-> -		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
-> +		if (!vin->info->use_mc &&
-> +		    !v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
->  			if (std & V4L2_STD_525_60)
->  				vnmc = VNMC_IM_FULL | VNMC_FOC;
->  		}
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index f71dea8d5d40323a..9d540644bbe446f6 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -23,6 +23,9 @@
->  #include "rcar-vin.h"
->  
->  #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
-> +#define RVIN_DEFAULT_WIDTH	800
-> +#define RVIN_DEFAULT_HEIGHT	600
-> +#define RVIN_DEFAULT_COLORSPACE	V4L2_COLORSPACE_SRGB
->  
->  /* -----------------------------------------------------------------------------
->   * Format Conversions
-> @@ -671,6 +674,84 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
->  	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
->  };
->  
-> +/* -----------------------------------------------------------------------------
-> + * V4L2 Media Controller
-> + */
-> +
-> +static int __rvin_mc_try_format(struct rvin_dev *vin,
-> +				struct v4l2_pix_format *pix)
-> +{
-> +	/* Keep current field if no specific one is asked for */
-> +	if (pix->field == V4L2_FIELD_ANY)
-> +		pix->field = vin->format.field;
-> +
-> +	return rvin_format_align(vin, pix);
-> +}
-> +
-> +static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
-> +				   struct v4l2_format *f)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +
-> +	return __rvin_mc_try_format(vin, &f->fmt.pix);
-> +}
-> +
-> +static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
-> +				 struct v4l2_format *f)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	int ret;
-> +
-> +	if (vb2_is_busy(&vin->queue))
-> +		return -EBUSY;
-> +
-> +	ret = __rvin_mc_try_format(vin, &f->fmt.pix);
-> +	if (ret)
-> +		return ret;
-> +
-> +	vin->format = f->fmt.pix;
-> +
-> +	return 0;
-> +}
-> +
-> +static int rvin_mc_enum_input(struct file *file, void *priv,
-> +			      struct v4l2_input *i)
-> +{
-> +	if (i->index != 0)
-> +		return -EINVAL;
-> +
-> +	i->type = V4L2_INPUT_TYPE_CAMERA;
-> +	strlcpy(i->name, "Camera", sizeof(i->name));
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_ioctl_ops rvin_mc_ioctl_ops = {
-> +	.vidioc_querycap		= rvin_querycap,
-> +	.vidioc_try_fmt_vid_cap		= rvin_mc_try_fmt_vid_cap,
-> +	.vidioc_g_fmt_vid_cap		= rvin_g_fmt_vid_cap,
-> +	.vidioc_s_fmt_vid_cap		= rvin_mc_s_fmt_vid_cap,
-> +	.vidioc_enum_fmt_vid_cap	= rvin_enum_fmt_vid_cap,
-> +
-> +	.vidioc_enum_input		= rvin_mc_enum_input,
-> +	.vidioc_g_input			= rvin_g_input,
-> +	.vidioc_s_input			= rvin_s_input,
-> +
-> +	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
-> +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
-> +	.vidioc_querybuf		= vb2_ioctl_querybuf,
-> +	.vidioc_qbuf			= vb2_ioctl_qbuf,
-> +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-> +	.vidioc_expbuf			= vb2_ioctl_expbuf,
-> +	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
-> +	.vidioc_streamon		= vb2_ioctl_streamon,
-> +	.vidioc_streamoff		= vb2_ioctl_streamoff,
-> +
-> +	.vidioc_log_status		= v4l2_ctrl_log_status,
-> +	.vidioc_subscribe_event		= rvin_subscribe_event,
-> +	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
-> +};
-> +
->  /* -----------------------------------------------------------------------------
->   * File Operations
->   */
-> @@ -819,6 +900,60 @@ static const struct v4l2_file_operations rvin_fops = {
->  	.read		= vb2_fop_read,
->  };
->  
-> +/* -----------------------------------------------------------------------------
-> + * Media controller file Operations
-> + */
-> +
-> +static int rvin_mc_open(struct file *file)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	int ret;
-> +
-> +	mutex_lock(&vin->lock);
-> +
-> +	file->private_data = vin;
-> +
-> +	ret = v4l2_fh_open(file);
-> +	if (ret)
-> +		goto unlock;
-> +
-> +	pm_runtime_get_sync(vin->dev);
-> +	v4l2_pipeline_pm_use(&vin->vdev.entity, 1);
-> +
-> +unlock:
-> +	mutex_unlock(&vin->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static int rvin_mc_release(struct file *file)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	int ret;
-> +
-> +	mutex_lock(&vin->lock);
-> +
-> +	/* the release helper will cleanup any on-going streaming */
-> +	ret = _vb2_fop_release(file, NULL);
-> +
-> +	v4l2_pipeline_pm_use(&vin->vdev.entity, 0);
-> +	pm_runtime_put(vin->dev);
-> +
-> +	mutex_unlock(&vin->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static const struct v4l2_file_operations rvin_mc_fops = {
-> +	.owner		= THIS_MODULE,
-> +	.unlocked_ioctl	= video_ioctl2,
-> +	.open		= rvin_mc_open,
-> +	.release	= rvin_mc_release,
-> +	.poll		= vb2_fop_poll,
-> +	.mmap		= vb2_fop_mmap,
-> +	.read		= vb2_fop_read,
-> +};
-> +
->  void rvin_v4l2_remove(struct rvin_dev *vin)
->  {
->  	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
-> @@ -851,19 +986,33 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
->  	vin->v4l2_dev.notify = rvin_notify;
->  
->  	/* video node */
-> -	vdev->fops = &rvin_fops;
->  	vdev->v4l2_dev = &vin->v4l2_dev;
->  	vdev->queue = &vin->queue;
->  	snprintf(vdev->name, sizeof(vdev->name), "%s %s", KBUILD_MODNAME,
->  		 dev_name(vin->dev));
->  	vdev->release = video_device_release_empty;
-> -	vdev->ioctl_ops = &rvin_ioctl_ops;
->  	vdev->lock = &vin->lock;
-> -	vdev->ctrl_handler = &vin->ctrl_handler;
->  	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
->  		V4L2_CAP_READWRITE;
->  
-> +	/* Set some form of default format */
->  	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
-> +	vin->format.width = RVIN_DEFAULT_WIDTH;
-> +	vin->format.height = RVIN_DEFAULT_HEIGHT;
-> +	vin->format.colorspace = RVIN_DEFAULT_COLORSPACE;
-> +
-> +	ret = rvin_format_align(vin, &vin->format);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (vin->info->use_mc) {
-> +		vdev->fops = &rvin_mc_fops;
-> +		vdev->ioctl_ops = &rvin_mc_ioctl_ops;
-> +	} else {
-> +		vdev->fops = &rvin_fops;
-> +		vdev->ioctl_ops = &rvin_ioctl_ops;
-> +		vdev->ctrl_handler = &vin->ctrl_handler;
-> +	}
->  
->  	ret = video_register_device(&vin->vdev, VFL_TYPE_GRABBER, -1);
->  	if (ret) {
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-> index 819d9c04ed8ffb36..12daff804bb6f77f 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -21,6 +21,7 @@
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-dev.h>
->  #include <media/v4l2-device.h>
-> +#include <media/v4l2-mc.h>
->  #include <media/videobuf2-v4l2.h>
->  
->  /* Number of HW buffers */
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index fe383c5d1215..f2c82f5a9747 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -580,6 +580,11 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+ {
+ 	struct v4l2_async_notifier *notifier = sd->notifier;
+ 
++	if (sd->subdev_notifier)
++		v4l2_async_notifier_unregister(sd->subdev_notifier);
++	v4l2_async_notifier_cleanup(sd->subdev_notifier);
++	kfree(sd->subdev_notifier);
++
+ 	if (!sd->asd) {
+ 		if (!list_empty(&sd->async_list))
+ 			v4l2_async_cleanup(sd);
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 4976096a1d83..622bdcc2df2d 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -29,6 +29,7 @@
+ 
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
++#include <media/v4l2-subdev.h>
+ 
+ enum v4l2_fwnode_bus_type {
+ 	V4L2_FWNODE_BUS_TYPE_GUESS = 0,
+@@ -814,6 +815,46 @@ int v4l2_async_notifier_parse_fwnode_sensor_common(
+ }
+ EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_sensor_common);
+ 
++int v4l2_async_register_subdev_sensor_common(struct v4l2_subdev *sd)
++{
++	struct v4l2_async_notifier *notifier;
++	int ret;
++
++	if (WARN_ON(!sd->dev))
++		return -ENODEV;
++
++	notifier = kzalloc(sizeof(*notifier), GFP_KERNEL);
++	if (!notifier)
++		return -ENOMEM;
++
++	ret = v4l2_async_notifier_parse_fwnode_sensor_common(sd->dev,
++							     notifier);
++	if (ret < 0)
++		goto out_cleanup;
++
++	ret = v4l2_async_subdev_notifier_register(sd, notifier);
++	if (ret < 0)
++		goto out_cleanup;
++
++	ret = v4l2_async_register_subdev(sd);
++	if (ret < 0)
++		goto out_unregister;
++
++	sd->subdev_notifier = notifier;
++
++	return 0;
++
++out_unregister:
++	v4l2_async_notifier_unregister(notifier);
++
++out_cleanup:
++	v4l2_async_notifier_cleanup(notifier);
++	kfree(notifier);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_async_register_subdev_sensor_common);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 479c317fab2f..74f2ea27d117 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -173,6 +173,28 @@ void v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier);
+ int v4l2_async_register_subdev(struct v4l2_subdev *sd);
+ 
+ /**
++ * v4l2_async_register_subdev_sensor_common - registers a sensor sub-device to
++ *					      the asynchronous sub-device
++ *					      framework and parse set up common
++ *					      sensor related devices
++ *
++ * @sd: pointer to struct &v4l2_subdev
++ *
++ * This function is just like v4l2_async_register_subdev() with the exception
++ * that calling it will also parse firmware interfaces for remote references
++ * using v4l2_async_notifier_parse_fwnode_sensor_common() and registers the
++ * async sub-devices. The sub-device is similarly unregistered by calling
++ * v4l2_async_unregister_subdev().
++ *
++ * While registered, the subdev module is marked as in-use.
++ *
++ * An error is returned if the module is no longer loaded on any attempts
++ * to register it.
++ */
++int __must_check v4l2_async_register_subdev_sensor_common(
++	struct v4l2_subdev *sd);
++
++/**
+  * v4l2_async_unregister_subdev - unregisters a sub-device to the asynchronous
+  * 	subdevice framework
+  *
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index e83872078376..ec399c770301 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -793,6 +793,8 @@ struct v4l2_subdev_platform_data {
+  *	list.
+  * @asd: Pointer to respective &struct v4l2_async_subdev.
+  * @notifier: Pointer to the managing notifier.
++ * @subdev_notifier: A sub-device notifier implicitly registered for the sub-
++ *		     device using v4l2_device_register_sensor_subdev().
+  * @pdata: common part of subdevice platform data
+  *
+  * Each instance of a subdev driver should create this struct, either
+@@ -823,6 +825,7 @@ struct v4l2_subdev {
+ 	struct list_head async_list;
+ 	struct v4l2_async_subdev *asd;
+ 	struct v4l2_async_notifier *notifier;
++	struct v4l2_async_notifier *subdev_notifier;
+ 	struct v4l2_subdev_platform_data *pdata;
+ };
+ 
+-- 
+2.11.0
