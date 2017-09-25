@@ -1,210 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:44096 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751253AbdIPO2d (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Sep 2017 10:28:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Rob Herring <robh@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv5 1/5] cec: add CEC_EVENT_PIN_HPD_LOW/HIGH events
-Date: Sat, 16 Sep 2017 16:28:23 +0200
-Message-Id: <20170916142827.5878-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170916142827.5878-1-hverkuil@xs4all.nl>
-References: <20170916142827.5878-1-hverkuil@xs4all.nl>
+Received: from pide.tip.net.au ([203.10.76.2]:51895 "EHLO pide.tip.net.au"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934413AbdIYOhq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Sep 2017 10:37:46 -0400
+Subject: Re: f26: dvb_usb_rtl28xxu not tuning "Leadtek Winfast DTV2000 DS PLUS
+ TV"
+To: Vincent McIntyre <vincent.mcintyre@gmail.com>
+Cc: list linux-media <linux-media@vger.kernel.org>
+References: <00ad85dd-2fe3-5f15-6c0c-47fcf580f541@eyal.emu.id.au>
+ <3f0c2037-4a84-68a9-228f-015034e27900@eyal.emu.id.au>
+ <20170924090417.GA24153@ubuntu.windy>
+ <47886ad7-ae90-0667-d6e3-d32d99fa85de@eyal.emu.id.au>
+ <20170925132433.GB8969@ubuntu.windy>
+From: Eyal Lebedinsky <eyal@eyal.emu.id.au>
+Message-ID: <a654a076-a34d-2cac-e668-a816ab8f3832@eyal.emu.id.au>
+Date: Tue, 26 Sep 2017 00:37:44 +1000
+MIME-Version: 1.0
+In-Reply-To: <20170925132433.GB8969@ubuntu.windy>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-AU
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Thanks Vincent,
 
-Add support for two new low-level events: PIN_HPD_LOW and PIN_HPD_HIGH.
+On 25/09/17 23:24, Vincent McIntyre wrote:
+> On Mon, Sep 25, 2017 at 10:16:23AM +1000, Eyal Lebedinsky wrote:
+> 
+>>> Turn on debug printing for the modules of interest
+>>> # echo 'module rtl2832 +p' > /sys/kernel/debug/dynamic_debug/control
+>>> # echo 'module dvb_usb_rtl28xxu +p' > /sys/kernel/debug/dynamic_debug/control
+>>
+>> Have done this. Attached are the messages from a (failed) scandvb that fails for all multiplexes.
+>>
+>> The messages at the end continued at a high rate after the test finished (until I disabled debug
+>> with '-p') and there was no user of the tuners. Maybe IR RC is active?
+>   
+> This looks like progress, now we can see more of the rather odd behaviour.
+> 
+> The tuned frequency does not progress monotonically,
+> but wanders up and down the band.
+>   Frequency      Delta
+>   219166666
+>   184833334  -34333332
+>   191833334    7000000
+>   191166666    -666668
+>   177833334  -13333332
+>   184166666    6333332
+>   177166666   -7000000
+>   191500000   14333334
+>   184500000   -7000000
+>   191833334    7333334
+>   191166666    -666668
+>   177500000  -13666666
+>   219500000   42000000
+>   184833334  -34666666
+>   191500000    6666666
+>   177833334  -13666666
+>   184166666    6333332
+>   191833334    7666668
+>   191166666    -666668
+>   177166666  -14000000
+>   191500000   14333334
+>   184500000   -7000000
+>   177500000   -7000000
+>   177833334     333334
+>   177166666    -666668
+> 
+> The bandwidth and inversion type seem to be set correctly, at least.
+> 
+> Also:
+>   - every instance of if_frequency=0 pset_iffreq=00000000
+>     shows the same numbers - zero. Surely that can't be right.
+>   - there seems to be no correlation at all between the AGC level
+>     (automatic gain control, I assume) and the 'cnr raw' which I'm
+>     guessing is some measure of the signal level.
+> 
+> I don't know where to start with decoding the rtl28xxu_ctrl_msg
+> I'm afraid. It's quite possible the remote control is active.
+> You can run
+>     ir-keytable -v
+> to show which remotes the system knows about.
+> 
+> We might get more clues to rub together from looking at where
+> scandvb falls over, if you run it under 'strace'
+>    strace -t -s 2048 -o ./scandvb.strace scandvb <arguments here>
+> This will show the system calls being made. The -t will add timestamps
+> to the output that could be correlated with the dmesg output.
+> 
+> I'm curious - did you try scandvb with one of your other tuners?
 
-This is specifically meant for use with the upcoming cec-gpio driver
-and makes it possible to trace when the HPD pin changes. Some HDMI
-sinks do strange things with the HPD and this makes it easy to debug
-this.
+The other 3 tuner on the "Leadtek Winfast DTV2000 DS PLUS TV" are failing in the same way.
 
-Note that this also moves the initialization of a devnode mutex and
-list to the allocate_adapter function: if the HPD is high, then as
-soon as the HPD interrupt is created an interrupt occurs and
-cec_queue_pin_hpd_event() is called which requires that the devnode
-mutex and list are initialized.
+> I'm actually not familiar with scandvb, I can't find a program
+> with that name in the ubuntu repositories.
+> What I've used before is dvbv5-scan, which is part of:
+>   git://linuxtv.org/v4l-utils.git
+> 
+> That repo also includes the v4l2-compliance tool,
+> which might be useful here. Something like:
+>   ./v4l2-compliance -d /dev/dvb/adapter3 -a -T -v
+> What I am not sure about is whether the tuner needs to be
+> 'zapped' to a nice strong TV channel before you can use this.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/cec/cec-adap.c | 18 +++++++++++++++++-
- drivers/media/cec/cec-api.c  | 18 ++++++++++++++----
- drivers/media/cec/cec-core.c |  8 ++++----
- include/media/cec-pin.h      |  4 ++++
- include/media/cec.h          | 12 +++++++++++-
- include/uapi/linux/cec.h     |  2 ++
- 6 files changed, 52 insertions(+), 10 deletions(-)
+I will look at these tools.
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index dd769e40416f..eb904a71609a 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -86,7 +86,7 @@ void cec_queue_event_fh(struct cec_fh *fh,
- 			const struct cec_event *new_ev, u64 ts)
- {
- 	static const u8 max_events[CEC_NUM_EVENTS] = {
--		1, 1, 64, 64,
-+		1, 1, 64, 64, 8, 8,
- 	};
- 	struct cec_event_entry *entry;
- 	unsigned int ev_idx = new_ev->event - 1;
-@@ -170,6 +170,22 @@ void cec_queue_pin_cec_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
- }
- EXPORT_SYMBOL_GPL(cec_queue_pin_cec_event);
- 
-+/* Notify userspace that the HPD pin changed state at the given time. */
-+void cec_queue_pin_hpd_event(struct cec_adapter *adap, bool is_high, ktime_t ts)
-+{
-+	struct cec_event ev = {
-+		.event = is_high ? CEC_EVENT_PIN_HPD_HIGH :
-+				   CEC_EVENT_PIN_HPD_LOW,
-+	};
-+	struct cec_fh *fh;
-+
-+	mutex_lock(&adap->devnode.lock);
-+	list_for_each_entry(fh, &adap->devnode.fhs, list)
-+		cec_queue_event_fh(fh, &ev, ktime_to_ns(ts));
-+	mutex_unlock(&adap->devnode.lock);
-+}
-+EXPORT_SYMBOL_GPL(cec_queue_pin_hpd_event);
-+
- /*
-  * Queue a new message for this filehandle.
-  *
-diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
-index a079f7fe018c..465bb3ec21f6 100644
---- a/drivers/media/cec/cec-api.c
-+++ b/drivers/media/cec/cec-api.c
-@@ -529,7 +529,7 @@ static int cec_open(struct inode *inode, struct file *filp)
- 	 * Initial events that are automatically sent when the cec device is
- 	 * opened.
- 	 */
--	struct cec_event ev_state = {
-+	struct cec_event ev = {
- 		.event = CEC_EVENT_STATE_CHANGE,
- 		.flags = CEC_EVENT_FL_INITIAL_STATE,
- 	};
-@@ -569,9 +569,19 @@ static int cec_open(struct inode *inode, struct file *filp)
- 	filp->private_data = fh;
- 
- 	/* Queue up initial state events */
--	ev_state.state_change.phys_addr = adap->phys_addr;
--	ev_state.state_change.log_addr_mask = adap->log_addrs.log_addr_mask;
--	cec_queue_event_fh(fh, &ev_state, 0);
-+	ev.state_change.phys_addr = adap->phys_addr;
-+	ev.state_change.log_addr_mask = adap->log_addrs.log_addr_mask;
-+	cec_queue_event_fh(fh, &ev, 0);
-+#ifdef CONFIG_CEC_PIN
-+	if (adap->pin && adap->pin->ops->read_hpd) {
-+		err = adap->pin->ops->read_hpd(adap);
-+		if (err >= 0) {
-+			ev.event = err ? CEC_EVENT_PIN_HPD_HIGH :
-+					 CEC_EVENT_PIN_HPD_LOW;
-+			cec_queue_event_fh(fh, &ev, 0);
-+		}
-+	}
-+#endif
- 
- 	list_add(&fh->list, &devnode->fhs);
- 	mutex_unlock(&devnode->lock);
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index 648136e552d5..e3a1fb6d6690 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -112,10 +112,6 @@ static int __must_check cec_devnode_register(struct cec_devnode *devnode,
- 	int minor;
- 	int ret;
- 
--	/* Initialization */
--	INIT_LIST_HEAD(&devnode->fhs);
--	mutex_init(&devnode->lock);
--
- 	/* Part 1: Find a free minor number */
- 	mutex_lock(&cec_devnode_lock);
- 	minor = find_next_zero_bit(cec_devnode_nums, CEC_NUM_DEVICES, 0);
-@@ -242,6 +238,10 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 	INIT_LIST_HEAD(&adap->wait_queue);
- 	init_waitqueue_head(&adap->kthread_waitq);
- 
-+	/* adap->devnode initialization */
-+	INIT_LIST_HEAD(&adap->devnode.fhs);
-+	mutex_init(&adap->devnode.lock);
-+
- 	adap->kthread = kthread_run(cec_thread_func, adap, "cec-%s", name);
- 	if (IS_ERR(adap->kthread)) {
- 		pr_err("cec-%s: kernel_thread() failed\n", name);
-diff --git a/include/media/cec-pin.h b/include/media/cec-pin.h
-index f09cc9579d53..ea84b9c9e0c3 100644
---- a/include/media/cec-pin.h
-+++ b/include/media/cec-pin.h
-@@ -97,6 +97,9 @@ enum cec_pin_state {
-  * @free:	optional. Free any allocated resources. Called when the
-  *		adapter is deleted.
-  * @status:	optional, log status information.
-+ * @read_hpd:	read the HPD pin. Return true if high, false if low or
-+ *		an error if negative. If NULL or -ENOTTY is returned,
-+ *		then this is not supported.
-  *
-  * These operations are used by the cec pin framework to manipulate
-  * the CEC pin.
-@@ -109,6 +112,7 @@ struct cec_pin_ops {
- 	void (*disable_irq)(struct cec_adapter *adap);
- 	void (*free)(struct cec_adapter *adap);
- 	void (*status)(struct cec_adapter *adap, struct seq_file *file);
-+	int  (*read_hpd)(struct cec_adapter *adap);
- };
- 
- #define CEC_NUM_PIN_EVENTS 128
-diff --git a/include/media/cec.h b/include/media/cec.h
-index df6b3bd31284..9d0f983faea9 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -91,7 +91,7 @@ struct cec_event_entry {
- };
- 
- #define CEC_NUM_CORE_EVENTS 2
--#define CEC_NUM_EVENTS CEC_EVENT_PIN_CEC_HIGH
-+#define CEC_NUM_EVENTS CEC_EVENT_PIN_HPD_HIGH
- 
- struct cec_fh {
- 	struct list_head	list;
-@@ -296,6 +296,16 @@ static inline void cec_received_msg(struct cec_adapter *adap,
- void cec_queue_pin_cec_event(struct cec_adapter *adap,
- 			     bool is_high, ktime_t ts);
- 
-+/**
-+ * cec_queue_pin_hpd_event() - queue a pin event with a given timestamp.
-+ *
-+ * @adap:	pointer to the cec adapter
-+ * @is_high:	when true the HPD pin is high, otherwise it is low
-+ * @ts:		the timestamp for this event
-+ *
-+ */
-+void cec_queue_pin_hpd_event(struct cec_adapter *adap, bool is_high, ktime_t ts);
-+
- /**
-  * cec_get_edid_phys_addr() - find and return the physical address
-  *
-diff --git a/include/uapi/linux/cec.h b/include/uapi/linux/cec.h
-index 4351c3481aea..b9f8df3a0477 100644
---- a/include/uapi/linux/cec.h
-+++ b/include/uapi/linux/cec.h
-@@ -410,6 +410,8 @@ struct cec_log_addrs {
- #define CEC_EVENT_LOST_MSGS		2
- #define CEC_EVENT_PIN_CEC_LOW		3
- #define CEC_EVENT_PIN_CEC_HIGH		4
-+#define CEC_EVENT_PIN_HPD_LOW		5
-+#define CEC_EVENT_PIN_HPD_HIGH		6
- 
- #define CEC_EVENT_FL_INITIAL_STATE	(1 << 0)
- #define CEC_EVENT_FL_DROPPED_EVENTS	(1 << 1)
+> Anyway, hope some of these ideas are helpful.
+
+Another data point that may help:
+
+While playing with the tuners, I tried to change the signal strength
+(there is an active 4-way splitter feeding the cards) and it made no
+difference.
+
+However, at one point I powered off the splitter and the cards started
+tuning. However, the USB tuners (now attached as a temporary solution)
+had difficulty tuning (naturally). I think that I need the amplifier
+but this driver cannot handle the strong signal.
+
+So this made me think: is it possible that something in the dvb_usb_rtl28xxu
+setup for the DTV2000 sets some internal gain that makes the  signal too
+strong for the tuner? I did not see an option to turn off an LNA or such.
+
+I know that the off kernel driver I was using successfully earlier
+	https://github.com/jaredquinn/DVB-Realtek-RTL2832U
+had no such issue. It does not build on recent kernels. Looking at
+the source I see that at least usb_control_msg() changed.
+
+BTW, If I get the "Hauppauge Nova-TD Stick" working then I can give up
+on the DTV2000, they are PCI and will not suit the next mobo upgrade
+that is long overdue. I started another thread for the Hauppauge a
+few days ago (did not get a response yet).
+
+> Cheers
+> Vince
+
+cheers
+
 -- 
-2.14.1
+Eyal Lebedinsky (eyal@eyal.emu.id.au)
