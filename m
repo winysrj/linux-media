@@ -1,75 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:38255 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751332AbdILOMg (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49638 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S936136AbdIYWZ6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 10:12:36 -0400
-From: Srishti Sharma <srishtishar@gmail.com>
-To: mchehab@kernel.org
-Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com,
-        Srishti Sharma <srishtishar@gmail.com>
-Subject: [PATCH] Staging: media: atomisp: Merge assignment with return
-Date: Tue, 12 Sep 2017 19:42:29 +0530
-Message-Id: <1505225549-4432-1-git-send-email-srishtishar@gmail.com>
+        Mon, 25 Sep 2017 18:25:58 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v14 24/28] smiapp: Add support for flash and lens devices
+Date: Tue, 26 Sep 2017 01:25:36 +0300
+Message-Id: <20170925222540.371-26-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Merge the assignment and the return statements to return the value
-directly. Done using the following semantic patch by coccinelle.
+Parse async sub-devices related to the sensor by switching the async
+sub-device registration function.
 
-@@
-local idexpression ret;
-expression e;
-@@
+These types devices aren't directly related to the sensor, but are
+nevertheless handled by the smiapp driver due to the relationship of these
+component to the main part of the camera module --- the sensor.
 
--ret =
-+return
-     e;
--return ret;
+This does not yet address providing the user space with information on how
+to associate the sensor or lens devices but the kernel now has the
+necessary information to do that.
 
-Signed-off-by: Srishti Sharma <srishtishar@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/staging/media/atomisp/i2c/ov5693/ov5693.c | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ drivers/media/i2c/smiapp/smiapp-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-index 1236425..2195011 100644
---- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-+++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-@@ -945,12 +945,8 @@ static int ad5823_t_focus_vcm(struct v4l2_subdev *sd, u16 val)
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 700f433261d0..3d9a251ca825 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -3092,7 +3092,7 @@ static int smiapp_probe(struct i2c_client *client,
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
  
- int ad5823_t_focus_abs(struct v4l2_subdev *sd, s32 value)
- {
--	int ret;
--
- 	value = min(value, AD5823_MAX_FOCUS_POS);
--	ret = ad5823_t_focus_vcm(sd, value);
--
--	return ret;
-+	return ad5823_t_focus_vcm(sd, value);
- }
+-	rval = v4l2_async_register_subdev(&sensor->src->sd);
++	rval = v4l2_async_register_subdev_sensor_common(&sensor->src->sd);
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
  
- static int ov5693_t_focus_abs(struct v4l2_subdev *sd, s32 value)
-@@ -1332,7 +1328,6 @@ static int power_ctrl(struct v4l2_subdev *sd, bool flag)
- 
- static int gpio_ctrl(struct v4l2_subdev *sd, bool flag)
- {
--	int ret;
- 	struct ov5693_device *dev = to_ov5693_sensor(sd);
- 
- 	if (!dev || !dev->platform_data)
-@@ -1342,9 +1337,7 @@ static int gpio_ctrl(struct v4l2_subdev *sd, bool flag)
- 	if (dev->platform_data->gpio_ctrl)
- 		return dev->platform_data->gpio_ctrl(sd, flag);
- 
--	ret = dev->platform_data->gpio0_ctrl(sd, flag);
--
--	return ret;
-+	return dev->platform_data->gpio0_ctrl(sd, flag);
- }
- 
- static int __power_up(struct v4l2_subdev *sd)
 -- 
-2.7.4
+2.11.0
