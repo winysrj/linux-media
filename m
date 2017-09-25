@@ -1,188 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:3082 "EHLO
-        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751706AbdIRGr3 (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:50501 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933057AbdIYJsF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 02:47:29 -0400
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Jonathan Corbet <corbet@lwn.net>
-CC: Nicolas Ferre <nicolas.ferre@microchip.com>,
-        <linux-kernel@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH v4 2/3] media: ov7670: Add the get_fmt callback
-Date: Mon, 18 Sep 2017 14:45:13 +0800
-Message-ID: <20170918064514.6841-3-wenyou.yang@microchip.com>
-In-Reply-To: <20170918064514.6841-1-wenyou.yang@microchip.com>
-References: <20170918064514.6841-1-wenyou.yang@microchip.com>
+        Mon, 25 Sep 2017 05:48:05 -0400
+Subject: Re: [PATCH v6 07/25] rcar-vin: all Gen2 boards can scale simplify
+ logic
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170822232640.26147-8-niklas.soderlund+renesas@ragnatech.se>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <a71b5569-fd20-1bec-a872-86f4cfd19aca@xs4all.nl>
+Date: Mon, 25 Sep 2017 11:48:03 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20170822232640.26147-8-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the get_fmt callback, also enable V4L2_SUBDEV_FL_HAS_DEVNODE flag
-to make this subdev has device node.
+On 23/08/17 01:26, Niklas Söderlund wrote:
+> The logic to preserve the requested format width and height are too
+> complex and come from a premature optimization for Gen3. All Gen2 SoC
+> can scale and the Gen3 implementation will not use these functions at
+> all so simply preserve the width and hight when interacting with the
 
-Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
----
+hight -> height
 
-Changes in v4:
- - Fix the build error when not enabling V4L2 sub-device userspace API option.
+> subdevice much like the field is preserved simplifies the logic quiet a
 
-Changes in v3:
- - Keep tried format info in the try_fmt member of
-   v4l2_subdev__pad_config struct.
- - Add the internal_ops callback to set default format.
+quiet -> quite
 
-Changes in v2: None
+> bit.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
- drivers/media/i2c/ov7670.c | 75 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 74 insertions(+), 1 deletion(-)
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index 553945d4ca28..456f48057605 100644
---- a/drivers/media/i2c/ov7670.c
-+++ b/drivers/media/i2c/ov7670.c
-@@ -232,6 +232,7 @@ struct ov7670_info {
- 		struct v4l2_ctrl *saturation;
- 		struct v4l2_ctrl *hue;
- 	};
-+	struct v4l2_mbus_framefmt format;
- 	struct ov7670_format_struct *fmt;  /* Current format */
- 	struct clk *clk;
- 	struct gpio_desc *resetb_gpio;
-@@ -975,6 +976,9 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev *sd,
- 	fmt->width = wsize->width;
- 	fmt->height = wsize->height;
- 	fmt->colorspace = ov7670_formats[index].colorspace;
-+
-+	info->format = *fmt;
-+
- 	return 0;
- }
- 
-@@ -998,8 +1002,15 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
- 		ret = ov7670_try_fmt_internal(sd, &format->format, NULL, NULL);
- 		if (ret)
- 			return ret;
--		cfg->try_fmt = format->format;
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+		struct v4l2_mbus_framefmt *mbus_fmt;
-+
-+		mbus_fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
-+		*mbus_fmt = format->format;
- 		return 0;
-+#else
-+		return -ENOTTY;
-+#endif
- 	}
- 
- 	ret = ov7670_try_fmt_internal(sd, &format->format, &ovfmt, &wsize);
-@@ -1041,6 +1052,29 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static int ov7670_get_fmt(struct v4l2_subdev *sd,
-+			  struct v4l2_subdev_pad_config *cfg,
-+			  struct v4l2_subdev_format *format)
-+{
-+	struct ov7670_info *info = to_state(sd);
-+
-+	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+		struct v4l2_mbus_framefmt *mbus_fmt;
-+
-+		mbus_fmt = v4l2_subdev_get_try_format(sd, cfg, 0);
-+		format->format = *mbus_fmt;
-+		return 0;
-+#else
-+		return -ENOTTY;
-+#endif
-+	} else {
-+		format->format = info->format;
-+	}
-+
-+	return 0;
-+}
-+
- /*
-  * Implement G/S_PARM.  There is a "high quality" mode we could try
-  * to do someday; for now, we just do the frame rate tweak.
-@@ -1508,6 +1542,30 @@ static int ov7670_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_regis
- }
- #endif
- 
-+static void ov7670_get_default_format(struct v4l2_subdev *sd,
-+				      struct v4l2_mbus_framefmt *format)
-+{
-+	struct ov7670_info *info = to_state(sd);
-+
-+	format->width = info->devtype->win_sizes[0].width;
-+	format->height = info->devtype->win_sizes[0].height;
-+	format->colorspace = info->fmt->colorspace;
-+	format->code = info->fmt->mbus_code;
-+	format->field = V4L2_FIELD_NONE;
-+}
-+
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+static int ov7670_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct v4l2_mbus_framefmt *format =
-+				v4l2_subdev_get_try_format(sd, fh->pad, 0);
-+
-+	ov7670_get_default_format(sd, format);
-+
-+	return 0;
-+}
-+#endif
-+
- /* ----------------------------------------------------------------------- */
- 
- static const struct v4l2_subdev_core_ops ov7670_core_ops = {
-@@ -1528,6 +1586,7 @@ static const struct v4l2_subdev_pad_ops ov7670_pad_ops = {
- 	.enum_frame_interval = ov7670_enum_frame_interval,
- 	.enum_frame_size = ov7670_enum_frame_size,
- 	.enum_mbus_code = ov7670_enum_mbus_code,
-+	.get_fmt = ov7670_get_fmt,
- 	.set_fmt = ov7670_set_fmt,
- };
- 
-@@ -1537,6 +1596,12 @@ static const struct v4l2_subdev_ops ov7670_ops = {
- 	.pad = &ov7670_pad_ops,
- };
- 
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+static const struct v4l2_subdev_internal_ops ov7670_subdev_internal_ops = {
-+	.open = ov7670_open,
-+};
-+#endif
-+
- /* ----------------------------------------------------------------------- */
- 
- static const struct ov7670_devtype ov7670_devdata[] = {
-@@ -1589,6 +1654,11 @@ static int ov7670_probe(struct i2c_client *client,
- 	sd = &info->sd;
- 	v4l2_i2c_subdev_init(sd, client, &ov7670_ops);
- 
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+	sd->internal_ops = &ov7670_subdev_internal_ops;
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+#endif
-+
- 	info->clock_speed = 30; /* default: a guess */
- 	if (client->dev.platform_data) {
- 		struct ov7670_config *config = client->dev.platform_data;
-@@ -1645,6 +1715,9 @@ static int ov7670_probe(struct i2c_client *client,
- 
- 	info->devtype = &ov7670_devdata[id->driver_data];
- 	info->fmt = &ov7670_formats[0];
-+
-+	ov7670_get_default_format(sd, &info->format);
-+
- 	info->clkrc = 0;
- 
- 	/* Set default frame rate to 30 fps */
--- 
-2.13.0
+Regards,
+
+	Hans
+
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c  |  8 --------
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 22 ++++++++++------------
+>  drivers/media/platform/rcar-vin/rcar-vin.h  |  2 --
+>  3 files changed, 10 insertions(+), 22 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index 03a79de197d19e43..5f9674dc898305ba 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -585,14 +585,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+>  		0, 0);
+>  }
+>  
+> -void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+> -		    u32 width, u32 height)
+> -{
+> -	/* All VIN channels on Gen2 have scalers */
+> -	pix->width = width;
+> -	pix->height = height;
+> -}
+> -
+>  /* -----------------------------------------------------------------------------
+>   * Hardware setup
+>   */
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> index ba88774bd5379a98..affdc128a75e502e 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -166,6 +166,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+>  		.which = which,
+>  	};
+>  	enum v4l2_field field;
+> +	u32 width, height;
+>  	int ret;
+>  
+>  	sd = vin_to_source(vin);
+> @@ -178,7 +179,10 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+>  
+>  	format.pad = vin->digital.source_pad;
+>  
+> +	/* Allow the video device to override field and to scale */
+>  	field = pix->field;
+> +	width = pix->width;
+> +	height = pix->height;
+>  
+>  	ret = v4l2_subdev_call(sd, pad, set_fmt, pad_cfg, &format);
+>  	if (ret < 0 && ret != -ENOIOCTLCMD)
+> @@ -191,6 +195,9 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+>  	source->width = pix->width;
+>  	source->height = pix->height;
+>  
+> +	pix->width = width;
+> +	pix->height = height;
+> +
+>  	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
+>  		source->height);
+>  
+> @@ -204,13 +211,9 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  			     struct v4l2_pix_format *pix,
+>  			     struct rvin_source_fmt *source)
+>  {
+> -	u32 rwidth, rheight, walign;
+> +	u32 walign;
+>  	int ret;
+>  
+> -	/* Requested */
+> -	rwidth = pix->width;
+> -	rheight = pix->height;
+> -
+>  	/* Keep current field if no specific one is asked for */
+>  	if (pix->field == V4L2_FIELD_ANY)
+>  		pix->field = vin->format.field;
+> @@ -248,10 +251,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  		break;
+>  	}
+>  
+> -	/* If source can't match format try if VIN can scale */
+> -	if (source->width != rwidth || source->height != rheight)
+> -		rvin_scale_try(vin, pix, rwidth, rheight);
+> -
+>  	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
+>  	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
+>  
+> @@ -270,9 +269,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  		return -EINVAL;
+>  	}
+>  
+> -	vin_dbg(vin, "Requested %ux%u Got %ux%u bpl: %d size: %d\n",
+> -		rwidth, rheight, pix->width, pix->height,
+> -		pix->bytesperline, pix->sizeimage);
+> +	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
+> +		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+>  
+>  	return 0;
+>  }
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index 2d8b362012ea46a3..b2bac06c0a3cfcb7 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -177,8 +177,6 @@ int rvin_reset_format(struct rvin_dev *vin);
+>  const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+>  
+>  /* Cropping, composing and scaling */
+> -void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+> -		    u32 width, u32 height);
+>  void rvin_crop_scale_comp(struct rvin_dev *vin);
+>  
+>  #endif
+> 
