@@ -1,77 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33502 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751523AbdILImx (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:44209 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933162AbdIYKqh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 04:42:53 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v11 24/24] arm: dts: omap3: N9/N950: Add flash references to the camera
-Date: Tue, 12 Sep 2017 11:42:36 +0300
-Message-Id: <20170912084236.1154-25-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
-References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
+        Mon, 25 Sep 2017 06:46:37 -0400
+Subject: Re: [PATCH v6 23/25] rcar-vin: extend {start,stop}_streaming to work
+ with media controller
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170822232640.26147-24-niklas.soderlund+renesas@ragnatech.se>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5c18e228-ac44-8b18-4ae5-0c6939b83201@xs4all.nl>
+Date: Mon, 25 Sep 2017 12:46:34 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170822232640.26147-24-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add flash and indicator LED phandles to the sensor node.
+On 23/08/17 01:26, Niklas Söderlund wrote:
+> The procedure to start or stop streaming using the none MC single
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
----
- arch/arm/boot/dts/omap3-n9.dts       | 1 +
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 4 ++--
- arch/arm/boot/dts/omap3-n950.dts     | 1 +
- 3 files changed, 4 insertions(+), 2 deletions(-)
+none MC -> non-MC
 
-diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
-index b9e58c536afd..39e35f8b8206 100644
---- a/arch/arm/boot/dts/omap3-n9.dts
-+++ b/arch/arm/boot/dts/omap3-n9.dts
-@@ -26,6 +26,7 @@
- 		clocks = <&isp 0>;
- 		clock-frequency = <9600000>;
- 		nokia,nvm-size = <(16 * 64)>;
-+		flash-leds = <&as3645a_flash &as3645a_indicator>;
- 		port {
- 			smia_1_1: endpoint {
- 				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index 1b0bd72945f2..12fbb3da5fce 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -271,14 +271,14 @@
- 		#size-cells = <0>;
- 		reg = <0x30>;
- 		compatible = "ams,as3645a";
--		flash@0 {
-+		as3645a_flash: flash@0 {
- 			reg = <0x0>;
- 			flash-timeout-us = <150000>;
- 			flash-max-microamp = <320000>;
- 			led-max-microamp = <60000>;
- 			ams,input-max-microamp = <1750000>;
- 		};
--		indicator@1 {
-+		as3645a_indicator: indicator@1 {
- 			reg = <0x1>;
- 			led-max-microamp = <10000>;
- 		};
-diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-index 646601a3ebd8..c354a1ed1e70 100644
---- a/arch/arm/boot/dts/omap3-n950.dts
-+++ b/arch/arm/boot/dts/omap3-n950.dts
-@@ -60,6 +60,7 @@
- 		clocks = <&isp 0>;
- 		clock-frequency = <9600000>;
- 		nokia,nvm-size = <(16 * 64)>;
-+		flash-leds = <&as3645a_flash &as3645a_indicator>;
- 		port {
- 			smia_1_1: endpoint {
- 				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
--- 
-2.11.0
+> subdevice and the MC graph and multiple subdevices are quiet different.
+
+quiet -> quite
+
+> Create a new function to abstract which method is used based on which
+> mode the driver is running in and add logic to start the MC graph.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 112 +++++++++++++++++++++++++++--
+>  1 file changed, 105 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index de1486ee2786b499..499253f94390f43e 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -1087,15 +1087,115 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
+>  	spin_unlock_irqrestore(&vin->qlock, flags);
+>  }
+>  
+> +static int rvin_set_stream(struct rvin_dev *vin, int on)
+> +{
+> +	struct v4l2_subdev_format fmt = {
+> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+> +	};
+> +	struct media_pipeline *pipe;
+> +	struct  v4l2_subdev *sd;
+> +	struct media_pad *pad;
+> +	int ret;
+> +
+> +	/* Not media controller used, simply pass operation to subdevice */
+> +	if (!vin->info->use_mc) {
+> +		ret = v4l2_subdev_call(vin->digital.subdev, video, s_stream,
+> +				       on);
+> +
+> +		return ret == -ENOIOCTLCMD ? 0 : ret;
+> +	}
+> +
+> +	pad = media_entity_remote_pad(&vin->pad);
+> +	if (!pad)
+> +		return -EPIPE;
+> +
+> +	sd = media_entity_to_v4l2_subdev(pad->entity);
+> +	if (!sd)
+> +		return -EPIPE;
+> +
+> +	if (on) {
+
+Handle !on first and return.
+
+The remaining code then has one indent level less.
+
+> +		fmt.pad = pad->index;
+> +		if (v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt))
+> +			return -EPIPE;
+> +
+> +		switch (fmt.format.code) {
+> +		case MEDIA_BUS_FMT_YUYV8_1X16:
+> +		case MEDIA_BUS_FMT_UYVY8_2X8:
+> +		case MEDIA_BUS_FMT_UYVY10_2X10:
+> +		case MEDIA_BUS_FMT_RGB888_1X24:
+> +			vin->code = fmt.format.code;
+> +			break;
+> +		default:
+> +			return -EPIPE;
+> +		}
+> +
+> +		switch (fmt.format.field) {
+> +		case V4L2_FIELD_TOP:
+> +		case V4L2_FIELD_BOTTOM:
+> +		case V4L2_FIELD_NONE:
+> +		case V4L2_FIELD_INTERLACED_TB:
+> +		case V4L2_FIELD_INTERLACED_BT:
+> +		case V4L2_FIELD_INTERLACED:
+> +		case V4L2_FIELD_SEQ_TB:
+> +		case V4L2_FIELD_SEQ_BT:
+> +			/* Supported nativly */
+> +			break;
+> +		case V4L2_FIELD_ALTERNATE:
+> +			switch (vin->format.field) {
+> +			case V4L2_FIELD_TOP:
+> +			case V4L2_FIELD_BOTTOM:
+> +			case V4L2_FIELD_NONE:
+> +				break;
+> +			case V4L2_FIELD_INTERLACED_TB:
+> +			case V4L2_FIELD_INTERLACED_BT:
+> +			case V4L2_FIELD_INTERLACED:
+> +			case V4L2_FIELD_SEQ_TB:
+> +			case V4L2_FIELD_SEQ_BT:
+> +				/* Use VIN hardware to combine the two fields */
+> +				fmt.format.height *= 2;
+> +				break;
+> +			default:
+> +				return -EPIPE;
+> +			}
+> +			break;
+> +		default:
+> +			return -EPIPE;
+> +		}
+> +
+> +		if (fmt.format.width != vin->format.width ||
+> +		    fmt.format.height != vin->format.height)
+> +			return -EPIPE;
+> +
+> +		pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev.pipe;
+> +		if (media_pipeline_start(&vin->vdev.entity, pipe))
+> +			return -EPIPE;
+> +
+> +		ret = v4l2_subdev_call(sd, video, s_stream, 1);
+> +		if (ret == -ENOIOCTLCMD)
+> +			ret = 0;
+> +		if (ret)
+> +			media_pipeline_stop(&vin->vdev.entity);
+> +	} else {
+> +		media_pipeline_stop(&vin->vdev.entity);
+> +		ret = v4l2_subdev_call(sd, video, s_stream, 0);
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+>  static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  {
+>  	struct rvin_dev *vin = vb2_get_drv_priv(vq);
+> -	struct v4l2_subdev *sd;
+>  	unsigned long flags;
+>  	int ret;
+>  
+> -	sd = vin_to_source(vin);
+> -	v4l2_subdev_call(sd, video, s_stream, 1);
+> +	ret = rvin_set_stream(vin, 1);
+> +	if (ret) {
+> +		spin_lock_irqsave(&vin->qlock, flags);
+> +		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
+> +		spin_unlock_irqrestore(&vin->qlock, flags);
+> +		return ret;
+> +	}
+>  
+>  	spin_lock_irqsave(&vin->qlock, flags);
+>  
+> @@ -1104,7 +1204,7 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  	ret = rvin_capture_start(vin);
+>  	if (ret) {
+>  		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
+> -		v4l2_subdev_call(sd, video, s_stream, 0);
+> +		rvin_set_stream(vin, 0);
+>  	}
+>  
+>  	spin_unlock_irqrestore(&vin->qlock, flags);
+> @@ -1115,7 +1215,6 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  static void rvin_stop_streaming(struct vb2_queue *vq)
+>  {
+>  	struct rvin_dev *vin = vb2_get_drv_priv(vq);
+> -	struct v4l2_subdev *sd;
+>  	unsigned long flags;
+>  	int retries = 0;
+>  
+> @@ -1154,8 +1253,7 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
+>  
+>  	spin_unlock_irqrestore(&vin->qlock, flags);
+>  
+> -	sd = vin_to_source(vin);
+> -	v4l2_subdev_call(sd, video, s_stream, 0);
+> +	rvin_set_stream(vin, 0);
+>  
+>  	/* disable interrupts */
+>  	rvin_disable_interrupts(vin);
+> 
+
+Regards,
+
+	Hans
