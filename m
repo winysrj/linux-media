@@ -1,45 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47412 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49580 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755851AbdIHNS0 (ORCPT
+        by vger.kernel.org with ESMTP id S965094AbdIYWZ7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 09:18:26 -0400
+        Mon, 25 Sep 2017 18:25:59 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
         pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v9 08/24] omap3isp: Fix check for our own sub-devices
-Date: Fri,  8 Sep 2017 16:18:06 +0300
-Message-Id: <20170908131822.31020-4-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+Subject: [PATCH v14 25/28] et8ek8: Add support for flash and lens devices
+Date: Tue, 26 Sep 2017 01:25:37 +0300
+Message-Id: <20170925222540.371-27-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We only want to link sub-devices that were bound to the async notifier the
-isp driver registered but there may be other sub-devices in the
-v4l2_device as well. Check for the correct async notifier.
+Parse async sub-devices related to the sensor by switching the async
+sub-device registration function.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/omap3isp/isp.c | 2 +-
+ drivers/media/i2c/et8ek8/et8ek8_driver.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index a546cf774d40..3b1a9cd0e591 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2155,7 +2155,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- 		return ret;
+diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+index c14f0fd6ded3..e9eff9039ef5 100644
+--- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
++++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+@@ -1453,7 +1453,7 @@ static int et8ek8_probe(struct i2c_client *client,
+ 		goto err_mutex;
+ 	}
  
- 	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
--		if (!sd->asd)
-+		if (sd->notifier != &isp->notifier)
- 			continue;
+-	ret = v4l2_async_register_subdev(&sensor->subdev);
++	ret = v4l2_async_register_subdev_sensor_common(&sensor->subdev);
+ 	if (ret < 0)
+ 		goto err_entity;
  
- 		ret = isp_link_entity(isp, &sd->entity,
 -- 
 2.11.0
