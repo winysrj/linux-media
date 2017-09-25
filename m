@@ -1,56 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:54249 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751413AbdINLHq (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49326 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754151AbdIYWZq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Sep 2017 07:07:46 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Hans Verkuil <hansverk@cisco.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] rcar_drif: fix potential uninitialized variable use
-Date: Thu, 14 Sep 2017 13:07:27 +0200
-Message-Id: <20170914110733.3592437-1-arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Mon, 25 Sep 2017 18:25:46 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v14 02/28] v4l: async: Remove re-probing support
+Date: Tue, 26 Sep 2017 01:25:13 +0300
+Message-Id: <20170925222540.371-3-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Older compilers like gcc-4.6 may run into a case that returns
-an uninitialized variable from rcar_drif_enable_rx() if that
-function was ever called with an empty cur_ch_mask:
+Remove V4L2 async re-probing support. The re-probing support has been
+there to support cases where the sub-devices require resources provided by
+the main driver's hardware to function, such as clocks.
 
-drivers/media/platform/rcar_drif.c:658:2: error: ‘ret’ may be used uninitialized in this function [-Werror=uninitialized]
+Reprobing has allowed unbinding and again binding the main driver without
+explicilty unbinding the sub-device drivers. This is certainly not a
+common need, and the responsibility will be the user's going forward.
 
-Newer compilers don't have that problem as they optimize the
-'ret' variable away and just return zero in that case.
+An alternative could have been to introduce notifier specific locks.
+Considering the complexity of the re-probing and that it isn't really a
+solution to a problem but a workaround, remove re-probing instead.
 
-This changes the function to return -EINVAL for this particular
-failure, to make it consistent across all compiler versions.
-In case gcc gets changed to report a warning for it in the
-future, it's also a good idea to shut it up now.
-
-Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82203
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/rcar_drif.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-async.c | 54 +-----------------------------------
+ 1 file changed, 1 insertion(+), 53 deletions(-)
 
-diff --git a/drivers/media/platform/rcar_drif.c b/drivers/media/platform/rcar_drif.c
-index 522364ff0d5d..2c6afd38b78a 100644
---- a/drivers/media/platform/rcar_drif.c
-+++ b/drivers/media/platform/rcar_drif.c
-@@ -630,7 +630,7 @@ static int rcar_drif_enable_rx(struct rcar_drif_sdr *sdr)
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index d741a8e0fdac..60a1a50b9537 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -198,78 +198,26 @@ EXPORT_SYMBOL(v4l2_async_notifier_register);
+ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
  {
- 	unsigned int i;
- 	u32 ctr;
--	int ret;
-+	int ret = -EINVAL;
+ 	struct v4l2_subdev *sd, *tmp;
+-	unsigned int notif_n_subdev = notifier->num_subdevs;
+-	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+-	struct device **dev;
+-	int i = 0;
  
- 	/*
- 	 * When both internal channels are enabled, they can be synchronized
+ 	if (!notifier->v4l2_dev)
+ 		return;
+ 
+-	dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(notifier->v4l2_dev->dev,
+-			"Failed to allocate device cache!\n");
+-	}
+-
+ 	mutex_lock(&list_lock);
+ 
+ 	list_del(&notifier->list);
+ 
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+-		struct device *d;
+-
+-		d = get_device(sd->dev);
+-
+ 		v4l2_async_cleanup(sd);
+ 
+-		/* If we handled USB devices, we'd have to lock the parent too */
+-		device_release_driver(d);
+-
+ 		if (notifier->unbind)
+ 			notifier->unbind(notifier, sd, sd->asd);
+ 
+-		/*
+-		 * Store device at the device cache, in order to call
+-		 * put_device() on the final step
+-		 */
+-		if (dev)
+-			dev[i++] = d;
+-		else
+-			put_device(d);
++		list_move(&sd->async_list, &subdev_list);
+ 	}
+ 
+ 	mutex_unlock(&list_lock);
+ 
+-	/*
+-	 * Call device_attach() to reprobe devices
+-	 *
+-	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
+-	 * executed.
+-	 */
+-	while (i--) {
+-		struct device *d = dev[i];
+-
+-		if (d && device_attach(d) < 0) {
+-			const char *name = "(none)";
+-			int lock = device_trylock(d);
+-
+-			if (lock && d->driver)
+-				name = d->driver->name;
+-			dev_err(d, "Failed to re-probe to %s\n", name);
+-			if (lock)
+-				device_unlock(d);
+-		}
+-		put_device(d);
+-	}
+-	kvfree(dev);
+-
+ 	notifier->v4l2_dev = NULL;
+-
+-	/*
+-	 * Don't care about the waiting list, it is initialised and populated
+-	 * upon notifier registration.
+-	 */
+ }
+ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+ 
 -- 
-2.9.0
+2.11.0
