@@ -1,132 +1,352 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa3.microchip.iphmx.com ([68.232.153.233]:61483 "EHLO
-        esa3.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750762AbdIADVY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 23:21:24 -0400
-Subject: Re: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
-To: Hans Verkuil <hverkuil@xs4all.nl>, <mchehab@s-opensource.com>
-CC: <Nicolas.Ferre@microchip.com>, <linux-kernel@vger.kernel.org>,
-        <sakari.ailus@iki.fi>, <corbet@lwn.net>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>
-References: <20170817071614.12767-1-wenyou.yang@microchip.com>
- <20170817071614.12767-2-wenyou.yang@microchip.com>
- <61cb51fa-8d05-6707-00cc-429c761fa6f5@xs4all.nl>
- <14941b74-8931-4d00-0664-0735fad9b5d1@Microchip.com>
- <ce6d074b-1c13-d3ea-5dfa-89cca2f26feb@xs4all.nl>
- <F9F4555C4E01D7469D37975B62D0EFBB6B695B@CHN-SV-EXMX07.mchp-main.com>
- <bbeb178a-d284-7b4c-701e-050bacba83bf@xs4all.nl>
- <4556e520-a57a-6f26-4188-9b32f1701515@Microchip.com>
- <cc8f9d8b-4ad6-f023-a667-16eb575e2c82@xs4all.nl>
-From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
-Message-ID: <7687e258-bca1-d7f5-c678-f7d1a4412d09@Microchip.com>
-Date: Fri, 1 Sep 2017 11:20:31 +0800
+Received: from smtp5-g21.free.fr ([212.27.42.5]:37724 "EHLO smtp5-g21.free.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932656AbdIYMQW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Sep 2017 08:16:22 -0400
+Subject: [PATCH v4 2/2] media: rc: Add driver for tango HW IR decoder
+To: Sean Young <sean@mess.org>, Mans Rullgard <mans@mansr.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        Mason <slash.tmp@free.fr>
+References: <308711ef-0ba8-d533-26fd-51e5b8f32cc8@free.fr>
+From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+Message-ID: <e3d91250-e6bd-bb8c-5497-689c351ac55f@free.fr>
+Date: Mon, 25 Sep 2017 14:14:12 +0200
 MIME-Version: 1.0
-In-Reply-To: <cc8f9d8b-4ad6-f023-a667-16eb575e2c82@xs4all.nl>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+In-Reply-To: <308711ef-0ba8-d533-26fd-51e5b8f32cc8@free.fr>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Mans Rullgard <mans@mansr.com>
 
+The tango HW IR decoder supports NEC, RC-5, RC-6 protocols.
 
-On 2017/8/24 14:41, Hans Verkuil wrote:
-> On 08/24/2017 08:25 AM, Yang, Wenyou wrote:
->>
->> On 2017/8/23 18:37, Hans Verkuil wrote:
->>> On 08/22/17 09:30, Wenyou.Yang@microchip.com wrote:
->>>> Hi Hans,
->>>>
->>>>> -----Original Message-----
->>>>> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->>>>> Sent: 2017年8月22日 15:00
->>>>> To: Wenyou Yang - A41535 <Wenyou.Yang@microchip.com>; Mauro Carvalho
->>>>> Chehab <mchehab@s-opensource.com>
->>>>> Cc: Nicolas Ferre - M43238 <Nicolas.Ferre@microchip.com>; linux-
->>>>> kernel@vger.kernel.org; Sakari Ailus <sakari.ailus@iki.fi>; Jonathan Corbet
->>>>> <corbet@lwn.net>; linux-arm-kernel@lists.infradead.org; Linux Media Mailing List
->>>>> <linux-media@vger.kernel.org>
->>>>> Subject: Re: [PATCH 1/3] media: atmel-isc: Not support RBG format from sensor.
->>>>>
->>>>> On 08/22/2017 03:18 AM, Yang, Wenyou wrote:
->>>>>> Hi Hans,
->>>>>>
->>>>>> On 2017/8/21 22:07, Hans Verkuil wrote:
->>>>>>> On 08/17/2017 09:16 AM, Wenyou Yang wrote:
->>>>>>>> The 12-bit parallel interface supports the Raw Bayer, YCbCr,
->>>>>>>> Monochrome and JPEG Compressed pixel formats from the external
->>>>>>>> sensor, not support RBG pixel format.
->>>>>>>>
->>>>>>>> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
->>>>>>>> ---
->>>>>>>>
->>>>>>>>     drivers/media/platform/atmel/atmel-isc.c | 5 +++++
->>>>>>>>     1 file changed, 5 insertions(+)
->>>>>>>>
->>>>>>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c
->>>>>>>> b/drivers/media/platform/atmel/atmel-isc.c
->>>>>>>> index d4df3d4ccd85..535bb03783fe 100644
->>>>>>>> --- a/drivers/media/platform/atmel/atmel-isc.c
->>>>>>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
->>>>>>>> @@ -1478,6 +1478,11 @@ static int isc_formats_init(struct isc_device *isc)
->>>>>>>>     	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code,
->>>>>>>>     	       NULL, &mbus_code)) {
->>>>>>>>     		mbus_code.index++;
->>>>>>>> +
->>>>>>>> +		/* Not support the RGB pixel formats from sensor */
->>>>>>>> +		if ((mbus_code.code & 0xf000) == 0x1000)
->>>>>>>> +			continue;
->>>>>>> Am I missing something? Here you skip any RGB mediabus formats, but
->>>>>>> in patch 3/3 you add RGB mediabus formats. But this patch prevents
->>>>>>> those new formats from being selected, right?
->>>>>> This patch prevents getting the RGB format from the sensor directly.
->>>>>> The RGB format can be produced by ISC controller by itself.
->>>>> OK, I think I see what is going on here. The isc_formats array really is two arrays
->>>>> in one: up to RAW_FMT_IND_END it describes what it can receive from the
->>>>> source, and after that it describes what it can convert it to.
->>>> Not exactly.
->>>>
->>>> Yes, up to RAW_FMT_IND_END, these formats must be got from the senor, they are RAW formats.
->>>>   From ISC_FMT_IND_START to ISC_FMT_IND_END, they can be generated by the ISC controller.
->>>> It is possible they can be got from the sensor too, the driver will check it.
->>>> If it can be got from both the sensor and the ISC controller, the user can use the "sensor_preferred" parameter to decide from which one to get.
->>>> The RBG formats are the exception.
->>>>
->>>>> But if you can't handle RGB formats from the sensor, then why not make sure
->>>>> none of the mbus codes in isc_formats uses RGB? That makes much more sense.
->>>>>
->>>>> E.g.:
->>>>>
->>>>>           { V4L2_PIX_FMT_RGB565, MEDIA_BUS_FMT_RGB565_2X8_LE, 16,
->>>>>             ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG,
->>>>> ISC_RLP_CFG_MODE_RGB565,
->>>>>             ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x7b,
->>>>>             false, false },
->>>>>
->>>>> Why use MEDIA_BUS_FMT_RGB565_2X8_LE if this apparently is not supported?
->>>> This array is also the lists of all formats supported by the ISC(including got from the sensor).
->>>> The RGB formats are only generated by the ISC controller, not from the sensor.
->>> You're adding code that skips any entries of the table where mbus_code is an
->>> RGB code. But this can also be done by not having RGB mbus codes in the table
->>> in the first place since they make no sense if the HW cannot handle that!
->>> Set the mbus_code to e.g. 0 for such entries, that makes more sense.
->>>
->>> I also strongly suggest changing how the table is organized since those
->>> _FMT_IND_ indices are all to easy to get wrong (and frankly hard to understand).
->> Yes, you are right, I will change it. Do you have some advice?
-> Two options spring to mind: split into two tables or add a bool that tells whether
-> the format can be created by the isc or not.
-I reworked the format table, 
-http://lists.infradead.org/pipermail/linux-arm-kernel/2017-August/529683.html
-Please give your comments.
+Signed-off-by: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+---
+Changes between v3 and v4
+* Add one line to Kconfig help message
+* Add DRIVER_NAME macro
+* Move devm_request_irq() call to the end of probe
+* Add CAPTURE_N_BITS and GPIO_SELECT macros
+* Use DISABLE_NEC macro
+---
+ drivers/media/rc/Kconfig    |  10 ++
+ drivers/media/rc/Makefile   |   1 +
+ drivers/media/rc/tango-ir.c | 275 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 286 insertions(+)
+ create mode 100644 drivers/media/rc/tango-ir.c
 
->
-> Regards,
->
-> 	Hans
-
-Best Regards,
-Wenyou Yang
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index d9ce8ff55d0c..e80d4362e769 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -469,6 +469,16 @@ config IR_SIR
+ 	   To compile this driver as a module, choose M here: the module will
+ 	   be called sir-ir.
+ 
++config IR_TANGO
++	tristate "Sigma Designs SMP86xx IR decoder"
++	depends on RC_CORE
++	depends on ARCH_TANGO || COMPILE_TEST
++	---help---
++	   Adds support for the HW IR decoder embedded on Sigma Designs
++	   Tango-based systems (SMP86xx, SMP87xx).
++	   The HW decoder supports NEC, RC-5, RC-6 IR protocols.
++	   When compiled as a module, look for tango-ir.
++
+ config IR_ZX
+ 	tristate "ZTE ZX IR remote control"
+ 	depends on RC_CORE
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 9bc6a3980ed0..643797dc971b 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -44,3 +44,4 @@ obj-$(CONFIG_IR_SERIAL) += serial_ir.o
+ obj-$(CONFIG_IR_SIR) += sir_ir.o
+ obj-$(CONFIG_IR_MTK) += mtk-cir.o
+ obj-$(CONFIG_IR_ZX) += zx-irdec.o
++obj-$(CONFIG_IR_TANGO) += tango-ir.o
+diff --git a/drivers/media/rc/tango-ir.c b/drivers/media/rc/tango-ir.c
+new file mode 100644
+index 000000000000..06b4b7337ffd
+--- /dev/null
++++ b/drivers/media/rc/tango-ir.c
+@@ -0,0 +1,275 @@
++/*
++ * Copyright (C) 2015 Mans Rullgard <mans@mansr.com>
++ *
++ * This program is free software; you can redistribute  it and/or modify it
++ * under  the terms of  the GNU General  Public License as published by the
++ * Free Software Foundation;  either version 2 of the  License, or (at your
++ * option) any later version.
++ */
++
++#include <linux/input.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/clk.h>
++#include <linux/of.h>
++#include <media/rc-core.h>
++
++#define DRIVER_NAME "tango-ir"
++
++#define IR_NEC_CTRL	0x00
++#define IR_NEC_DATA	0x04
++#define IR_CTRL		0x08
++#define IR_RC5_CLK_DIV	0x0c
++#define IR_RC5_DATA	0x10
++#define IR_INT		0x14
++
++#define NEC_TIME_BASE	560
++#define RC5_TIME_BASE	1778
++
++#define RC6_CTRL	0x00
++#define RC6_CLKDIV	0x04
++#define RC6_DATA0	0x08
++#define RC6_DATA1	0x0c
++#define RC6_DATA2	0x10
++#define RC6_DATA3	0x14
++#define RC6_DATA4	0x18
++
++#define RC6_CARRIER	36000
++#define RC6_TIME_BASE	16
++
++struct tango_ir {
++	void __iomem *rc5_base;
++	void __iomem *rc6_base;
++	struct rc_dev *rc;
++	struct clk *clk;
++};
++
++static void tango_ir_handle_nec(struct tango_ir *ir)
++{
++	u32 v, code;
++	enum rc_proto proto;
++
++	v = readl_relaxed(ir->rc5_base + IR_NEC_DATA);
++	if (!v) {
++		rc_repeat(ir->rc);
++		return;
++	}
++
++	code = ir_nec_bytes_to_scancode(v, v >> 8, v >> 16, v >> 24, &proto);
++	rc_keydown(ir->rc, proto, code, 0);
++}
++
++static void tango_ir_handle_rc5(struct tango_ir *ir)
++{
++	u32 data, field, toggle, addr, cmd, code;
++
++	data = readl_relaxed(ir->rc5_base + IR_RC5_DATA);
++	if (data & BIT(31))
++		return;
++
++	field = data >> 12 & 1;
++	toggle = data >> 11 & 1;
++	addr = data >> 6 & 0x1f;
++	cmd = (data & 0x3f) | (field ^ 1) << 6;
++
++	code = RC_SCANCODE_RC5(addr, cmd);
++	rc_keydown(ir->rc, RC_PROTO_RC5, code, toggle);
++}
++
++static void tango_ir_handle_rc6(struct tango_ir *ir)
++{
++	u32 data0, data1, toggle, mode, addr, cmd, code;
++
++	data0 = readl_relaxed(ir->rc6_base + RC6_DATA0);
++	data1 = readl_relaxed(ir->rc6_base + RC6_DATA1);
++
++	mode = data0 >> 1 & 7;
++	if (mode != 0)
++		return;
++
++	toggle = data0 & 1;
++	addr = data0 >> 16;
++	cmd = data1;
++
++	code = RC_SCANCODE_RC6_0(addr, cmd);
++	rc_keydown(ir->rc, RC_PROTO_RC6_0, code, toggle);
++}
++
++static irqreturn_t tango_ir_irq(int irq, void *dev_id)
++{
++	struct tango_ir *ir = dev_id;
++	unsigned int rc5_stat;
++	unsigned int rc6_stat;
++
++	rc5_stat = readl_relaxed(ir->rc5_base + IR_INT);
++	writel_relaxed(rc5_stat, ir->rc5_base + IR_INT);
++
++	rc6_stat = readl_relaxed(ir->rc6_base + RC6_CTRL);
++	writel_relaxed(rc6_stat, ir->rc6_base + RC6_CTRL);
++
++	if (!(rc5_stat & 3) && !(rc6_stat & BIT(31)))
++		return IRQ_NONE;
++
++	if (rc5_stat & BIT(0))
++		tango_ir_handle_rc5(ir);
++
++	if (rc5_stat & BIT(1))
++		tango_ir_handle_nec(ir);
++
++	if (rc6_stat & BIT(31))
++		tango_ir_handle_rc6(ir);
++
++	return IRQ_HANDLED;
++}
++
++#define DISABLE_NEC	(BIT(4) | BIT(8))
++#define ENABLE_RC5	(BIT(0) | BIT(9))
++#define ENABLE_RC6	(BIT(0) | BIT(7))
++
++static int tango_change_protocol(struct rc_dev *dev, u64 *rc_type)
++{
++	struct tango_ir *ir = dev->priv;
++	u32 rc5_ctrl = DISABLE_NEC;
++	u32 rc6_ctrl = 0;
++
++	if (*rc_type & RC_PROTO_BIT_NEC)
++		rc5_ctrl = 0;
++
++	if (*rc_type & RC_PROTO_BIT_RC5)
++		rc5_ctrl |= ENABLE_RC5;
++
++	if (*rc_type & RC_PROTO_BIT_RC6_0)
++		rc6_ctrl = ENABLE_RC6;
++
++	writel_relaxed(rc5_ctrl, ir->rc5_base + IR_CTRL);
++	writel_relaxed(rc6_ctrl, ir->rc6_base + RC6_CTRL);
++
++	return 0;
++}
++
++#define CAPTURE_N_BITS(n) (n << 24)
++#define GPIO_SELECT(n) (n << 16)
++
++static int tango_ir_probe(struct platform_device *pdev)
++{
++	const char *name, *map_name = RC_MAP_EMPTY;
++	struct device *dev = &pdev->dev;
++	struct rc_dev *rc;
++	struct tango_ir *ir;
++	struct resource *rc5_res;
++	struct resource *rc6_res;
++	u64 clkrate, clkdiv;
++	int irq, err;
++	u32 val;
++
++	rc5_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!rc5_res)
++		return -EINVAL;
++
++	rc6_res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	if (!rc6_res)
++		return -EINVAL;
++
++	irq = platform_get_irq(pdev, 0);
++	if (irq <= 0)
++		return -EINVAL;
++
++	ir = devm_kzalloc(dev, sizeof(*ir), GFP_KERNEL);
++	if (!ir)
++		return -ENOMEM;
++
++	ir->rc5_base = devm_ioremap_resource(dev, rc5_res);
++	if (IS_ERR(ir->rc5_base))
++		return PTR_ERR(ir->rc5_base);
++
++	ir->rc6_base = devm_ioremap_resource(dev, rc6_res);
++	if (IS_ERR(ir->rc6_base))
++		return PTR_ERR(ir->rc6_base);
++
++	ir->clk = devm_clk_get(dev, NULL);
++	if (IS_ERR(ir->clk))
++		return PTR_ERR(ir->clk);
++
++	rc = devm_rc_allocate_device(dev, RC_DRIVER_SCANCODE);
++	if (!rc)
++		return -ENOMEM;
++
++	of_property_read_string(dev->of_node, "linux,rc-map-name", &map_name);
++
++	rc->device_name = DRIVER_NAME;
++	rc->driver_name = DRIVER_NAME;
++	rc->input_phys = DRIVER_NAME "/input0";
++	rc->map_name = map_name;
++	rc->allowed_protocols = RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC6_0 |
++		RC_PROTO_BIT_NEC | RC_PROTO_BIT_NECX | RC_PROTO_BIT_NEC32;
++	rc->change_protocol = tango_change_protocol;
++	rc->priv = ir;
++	ir->rc = rc;
++
++	err = devm_rc_register_device(dev, rc);
++	if (err)
++		return err;
++
++	err = clk_prepare_enable(ir->clk);
++	if (err)
++		return err;
++
++	clkrate = clk_get_rate(ir->clk);
++
++	clkdiv = clkrate * NEC_TIME_BASE;
++	do_div(clkdiv, 1000000);
++
++	val = CAPTURE_N_BITS(31) | GPIO_SELECT(12) | clkdiv;
++	writel_relaxed(val, ir->rc5_base + IR_NEC_CTRL);
++
++	clkdiv = clkrate * RC5_TIME_BASE;
++	do_div(clkdiv, 1000000);
++
++	writel_relaxed(DISABLE_NEC, ir->rc5_base + IR_CTRL);
++	writel_relaxed(clkdiv, ir->rc5_base + IR_RC5_CLK_DIV);
++	writel_relaxed(0x3, ir->rc5_base + IR_INT);
++
++	clkdiv = clkrate * RC6_TIME_BASE;
++	do_div(clkdiv, RC6_CARRIER);
++
++	writel_relaxed(0xc0000000, ir->rc6_base + RC6_CTRL);
++	writel_relaxed((clkdiv >> 2) << 18 | clkdiv, ir->rc6_base + RC6_CLKDIV);
++
++	platform_set_drvdata(pdev, ir);
++
++	name = dev_name(dev);
++	err = devm_request_irq(dev, irq, tango_ir_irq, IRQF_SHARED, name, ir);
++	if (err)
++		clk_disable_unprepare(ir->clk);
++
++	return err;
++}
++
++static int tango_ir_remove(struct platform_device *pdev)
++{
++	struct tango_ir *ir = platform_get_drvdata(pdev);
++	clk_disable_unprepare(ir->clk);
++	return 0;
++}
++
++static const struct of_device_id tango_ir_dt_ids[] = {
++	{ .compatible = "sigma,smp8642-ir" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, tango_ir_dt_ids);
++
++static struct platform_driver tango_ir_driver = {
++	.probe	= tango_ir_probe,
++	.remove	= tango_ir_remove,
++	.driver	= {
++		.name		= DRIVER_NAME,
++		.of_match_table	= tango_ir_dt_ids,
++	},
++};
++module_platform_driver(tango_ir_driver);
++
++MODULE_DESCRIPTION("SMP86xx IR decoder driver");
++MODULE_AUTHOR("Mans Rullgard <mans@mansr.com>");
++MODULE_LICENSE("GPL");
+-- 
+2.11.0
