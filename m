@@ -1,49 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eddie.linux-mips.org ([148.251.95.138]:37710 "EHLO
-        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751938AbdIFIIB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 04:08:01 -0400
-Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S23990506AbdIFIH62l2v4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Sep 2017 10:07:58 +0200
-Date: Wed, 6 Sep 2017 10:07:48 +0200
-From: Ladislav Michl <ladis@linux-mips.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49532 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S936041AbdIYWZ4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Sep 2017 18:25:56 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>, Andi Shyti <andi.shyti@samsung.com>
-Subject: [PATCH 00/10] media: rc: gpio-ir-recv: driver update
-Message-ID: <20170906080748.wgxbmunfsu33bd6x@lenoch>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v14 18/28] dt: bindings: Add lens-focus binding for image sensors
+Date: Tue, 26 Sep 2017 01:25:29 +0300
+Message-Id: <20170925222540.371-19-sakari.ailus@linux.intel.com>
+In-Reply-To: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch serie brings driver closer to recently used APIs
-and removes no longer used gpio_ir_recv_platform_data
-support.
+The lens-focus property contains a phandle to the lens voice coil driver
+that is associated to the sensor; typically both are contained in the same
+camera module.
 
-It was done as an excercise before writing similar driver using
-FIQ and hw timers as this one gives too imprecise timing.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Ladislav Michl (10):
-  media: rc: gpio-ir-recv: use helper vaiable to acess device info
-  media: rc: gpio-ir-recv: use devm_kzalloc
-  media: rc: gpio-ir-recv: use devm_rc_allocate_device
-  media: rc: gpio-ir-recv: use devm_gpio_request_one
-  media: rc: gpio-ir-recv: use devm_rc_register_device
-  media: rc: gpio-ir-recv: do not allow threaded interrupt handler
-  media: rc: gpio-ir-recv: use devm_request_irq
-  media: rc: gpio-ir-recv: use KBUILD_MODNAME
-  media: rc: gpio-ir-recv: remove gpio_ir_recv_platform_data
-  media: rc: gpio-ir-recv: use gpiolib API
-
- drivers/media/rc/Kconfig                         |   1 +
- drivers/media/rc/gpio-ir-recv.c                  | 191 +++++++----------------
- include/linux/platform_data/media/gpio-ir-recv.h |  23 ---
- 3 files changed, 58 insertions(+), 157 deletions(-)
- delete mode 100644 include/linux/platform_data/media/gpio-ir-recv.h
-
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index fdba30479b47..b535bdde861c 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -74,6 +74,8 @@ Optional properties
+ - flash-leds: An array of phandles, each referring to a flash LED, a sub-node
+   of the LED driver device node.
+ 
++- lens-focus: A phandle to the node of the focus lens controller.
++
+ 
+ Optional endpoint properties
+ ----------------------------
 -- 
 2.11.0
