@@ -1,113 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48523 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750866AbdIORCn (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:42336 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934055AbdIYKIH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 13:02:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH v1 2/3] drm: rcar-du: Add suspend resume helpers
-Date: Fri, 15 Sep 2017 20:02:46 +0300
-Message-ID: <1607973.DTifMlLdNl@avalon>
-In-Reply-To: <199d29db89a7953f59e1eb4e91a3421336e3ed2a.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com> <199d29db89a7953f59e1eb4e91a3421336e3ed2a.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Mon, 25 Sep 2017 06:08:07 -0400
+Subject: Re: [PATCH v6 16/25] rcar-vin: break out format alignment and
+ checking
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
+ <20170822232640.26147-17-niklas.soderlund+renesas@ragnatech.se>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <34d03f81-ff25-3fe0-8dee-33496ff9b46e@xs4all.nl>
+Date: Mon, 25 Sep 2017 12:08:04 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20170822232640.26147-17-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+On 23/08/17 01:26, Niklas Söderlund wrote:
+> Part of the format aliment and checking can be shared with the Gen3
 
-Thank you for the patch.
+aliment -> alignment
 
-On Friday, 15 September 2017 19:42:06 EEST Kieran Bingham wrote:
-> The pipeline needs to ensure that the hardware is idle for suspend and
-> resume operations.
+> format handling. Break that part out to it's own function. While doing
 
-I'm not sure to really understand this sentence.
+it's -> its
 
-> Implement suspend and resume functions using the DRM atomic helper
-> functions.
+> this clean up the checking and add more checks.
 > 
-> CC: dri-devel@lists.freedesktop.org
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-The rest of the patch looks good to me. With the commit message clarified,
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Please note the small typo in a comment below.
 
-> ---
->  drivers/gpu/drm/rcar-du/rcar_du_drv.c | 18 +++++++++++++++---
->  drivers/gpu/drm/rcar-du/rcar_du_drv.h |  1 +
->  2 files changed, 16 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.c
-> b/drivers/gpu/drm/rcar-du/rcar_du_drv.c index 09fbceade6b1..01b91d0c169c
-> 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_drv.c
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
-> @@ -22,6 +22,7 @@
->  #include <linux/wait.h>
-> 
->  #include <drm/drmP.h>
-> +#include <drm/drm_atomic_helper.h>
->  #include <drm/drm_crtc_helper.h>
->  #include <drm/drm_fb_cma_helper.h>
->  #include <drm/drm_gem_cma_helper.h>
-> @@ -267,9 +268,19 @@ static struct drm_driver rcar_du_driver = {
->  static int rcar_du_pm_suspend(struct device *dev)
->  {
->  	struct rcar_du_device *rcdu = dev_get_drvdata(dev);
-> +	struct drm_atomic_state *state;
-> 
->  	drm_kms_helper_poll_disable(rcdu->ddev);
-> -	/* TODO Suspend the CRTC */
-> +	drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, true);
-> +
-> +	state = drm_atomic_helper_suspend(rcdu->ddev);
-> +	if (IS_ERR(state)) {
-> +		drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, false);
-> +		drm_kms_helper_poll_enable(rcdu->ddev);
-> +		return PTR_ERR(state);
-> +	}
-> +
-> +	rcdu->suspend_state = state;
-> 
->  	return 0;
->  }
-> @@ -278,9 +289,10 @@ static int rcar_du_pm_resume(struct device *dev)
->  {
->  	struct rcar_du_device *rcdu = dev_get_drvdata(dev);
-> 
-> -	/* TODO Resume the CRTC */
-> -
-> +	drm_atomic_helper_resume(rcdu->ddev, rcdu->suspend_state);
-> +	drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, false);
->  	drm_kms_helper_poll_enable(rcdu->ddev);
-> +
->  	return 0;
->  }
->  #endif
-> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.h
-> b/drivers/gpu/drm/rcar-du/rcar_du_drv.h index f8cd79488ece..f400fde65a0c
-> 100644
-> --- a/drivers/gpu/drm/rcar-du/rcar_du_drv.h
-> +++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.h
-> @@ -81,6 +81,7 @@ struct rcar_du_device {
-> 
->  	struct drm_device *ddev;
->  	struct drm_fbdev_cma *fbdev;
-> +	struct drm_atomic_state *suspend_state;
-> 
->  	struct rcar_du_crtc crtcs[RCAR_DU_MAX_CRTCS];
->  	unsigned int num_crtcs;
-
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 98 +++++++++++++++--------------
+>  1 file changed, 51 insertions(+), 47 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> index fb9f802e553e9b80..f71dea8d5d40323a 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -86,6 +86,56 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
+>  	return pix->bytesperline * pix->height;
+>  }
+>  
+> +static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
+> +{
+> +	u32 walign;
+> +
+> +	/* If requested format is not supported fallback to the default */
+> +	if (!rvin_format_from_pixel(pix->pixelformat)) {
+> +		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
+> +			pix->pixelformat, RVIN_DEFAULT_FORMAT);
+> +		pix->pixelformat = RVIN_DEFAULT_FORMAT;
+> +	}
+> +
+> +	switch (pix->field) {
+> +	case V4L2_FIELD_TOP:
+> +	case V4L2_FIELD_BOTTOM:
+> +	case V4L2_FIELD_NONE:
+> +	case V4L2_FIELD_INTERLACED_TB:
+> +	case V4L2_FIELD_INTERLACED_BT:
+> +	case V4L2_FIELD_INTERLACED:
+> +		break;
+> +	default:
+> +		pix->field = V4L2_FIELD_NONE;
+> +		break;
+> +	}
+> +
+> +	/* Check that colorspace is resonable, if not keep current */
+
+resonable -> reasonable
+
+> +	if (!pix->colorspace || pix->colorspace >= 0xff)
+> +		pix->colorspace = vin->format.colorspace;
+> +
+> +	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
+> +	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
+> +
+> +	/* Limit to VIN capabilities */
+> +	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
+> +			      &pix->height, 4, vin->info->max_height, 2, 0);
+> +
+> +	pix->bytesperline = rvin_format_bytesperline(pix);
+> +	pix->sizeimage = rvin_format_sizeimage(pix);
+> +
+> +	if (vin->info->chip == RCAR_M1 &&
+> +	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+> +		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
+> +		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+> +
+> +	return 0;
+> +}
+> +
+>  /* -----------------------------------------------------------------------------
+>   * V4L2
+>   */
+> @@ -191,64 +241,18 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+>  static int __rvin_try_format(struct rvin_dev *vin,
+>  			     u32 which, struct v4l2_pix_format *pix)
+>  {
+> -	u32 walign;
+>  	int ret;
+>  
+>  	/* Keep current field if no specific one is asked for */
+>  	if (pix->field == V4L2_FIELD_ANY)
+>  		pix->field = vin->format.field;
+>  
+> -	/* If requested format is not supported fallback to the default */
+> -	if (!rvin_format_from_pixel(pix->pixelformat)) {
+> -		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
+> -			pix->pixelformat, RVIN_DEFAULT_FORMAT);
+> -		pix->pixelformat = RVIN_DEFAULT_FORMAT;
+> -	}
+> -
+> -	/* Always recalculate */
+> -	pix->bytesperline = 0;
+> -	pix->sizeimage = 0;
+> -
+>  	/* Limit to source capabilities */
+>  	ret = __rvin_try_format_source(vin, which, pix);
+>  	if (ret)
+>  		return ret;
+>  
+> -	switch (pix->field) {
+> -	case V4L2_FIELD_TOP:
+> -	case V4L2_FIELD_BOTTOM:
+> -	case V4L2_FIELD_NONE:
+> -	case V4L2_FIELD_INTERLACED_TB:
+> -	case V4L2_FIELD_INTERLACED_BT:
+> -	case V4L2_FIELD_INTERLACED:
+> -		break;
+> -	default:
+> -		pix->field = V4L2_FIELD_NONE;
+> -		break;
+> -	}
+> -
+> -	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
+> -	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
+> -
+> -	/* Limit to VIN capabilities */
+> -	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
+> -			      &pix->height, 4, vin->info->max_height, 2, 0);
+> -
+> -	pix->bytesperline = max_t(u32, pix->bytesperline,
+> -				  rvin_format_bytesperline(pix));
+> -	pix->sizeimage = max_t(u32, pix->sizeimage,
+> -			       rvin_format_sizeimage(pix));
+> -
+> -	if (vin->info->chip == RCAR_M1 &&
+> -	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+> -		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
+> -		return -EINVAL;
+> -	}
+> -
+> -	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
+> -		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+> -
+> -	return 0;
+> +	return rvin_format_align(vin, pix);
+>  }
+>  
+>  static int rvin_querycap(struct file *file, void *priv,
+> 
