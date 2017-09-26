@@ -1,125 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:35304 "EHLO
-        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750868AbdIADOu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Aug 2017 23:14:50 -0400
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: <linux-kernel@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        "Jonathan Corbet" <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH 3/4] media: atmel-isc: Enable the clocks during probe
-Date: Fri, 1 Sep 2017 11:09:34 +0800
-Message-ID: <20170901030935.29717-4-wenyou.yang@microchip.com>
-In-Reply-To: <20170901030935.29717-1-wenyou.yang@microchip.com>
-References: <20170901030935.29717-1-wenyou.yang@microchip.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from gofer.mess.org ([88.97.38.141]:39121 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S968189AbdIZUXy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 16:23:54 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 3/5] ir-ctl: use lirc scancode sending
+Date: Tue, 26 Sep 2017 21:23:50 +0100
+Message-Id: <20170926202352.10276-3-sean@mess.org>
+In-Reply-To: <20170926202352.10276-1-sean@mess.org>
+References: <20170926202352.10276-1-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To meet the relationship, enable the HCLOCK and ispck during the
-device probe, "isc_pck frequency is less than or equal to isc_ispck,
-and isc_ispck is greater than or equal to HCLOCK."
-Meanwhile, call the pm_runtime_enable() in the right place.
-
-Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
+ utils/ir-ctl/ir-ctl.c | 79 +++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 52 insertions(+), 27 deletions(-)
 
- drivers/media/platform/atmel/atmel-isc.c | 31 +++++++++++++++++++++++++------
- 1 file changed, 25 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-index 80968f7d79f2..bc3098982d12 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -1595,6 +1595,7 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
- 	struct isc_subdev_entity *sd_entity;
- 	struct video_device *vdev = &isc->video_dev;
- 	struct vb2_queue *q = &isc->vb2_vidq;
-+	struct device *dev = isc->dev;
- 	int ret;
+diff --git a/utils/ir-ctl/ir-ctl.c b/utils/ir-ctl/ir-ctl.c
+index 32d7162f..f0dcd2a3 100644
+--- a/utils/ir-ctl/ir-ctl.c
++++ b/utils/ir-ctl/ir-ctl.c
+@@ -66,9 +66,18 @@ const char *argp_program_bug_address = "Sean Young <sean@mess.org>";
+ struct file {
+ 	struct file *next;
+ 	const char *fname;
+-	unsigned carrier;
+-	unsigned len;
+-	unsigned buf[LIRCBUF_SIZE];
++	bool is_scancode;
++	union {
++		struct {
++			unsigned carrier;
++			unsigned len;
++			unsigned buf[LIRCBUF_SIZE];
++		};
++		struct {
++			unsigned scancode;
++			unsigned protocol;
++		};
++	};
+ };
  
- 	ret = v4l2_device_register_subdev_nodes(&isc->v4l2_dev);
-@@ -1678,6 +1679,10 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
- 		return ret;
+ struct arguments {
+@@ -187,7 +196,7 @@ static unsigned parse_emitters(char *p)
+ 
+ static struct file *read_file(const char *fname)
+ {
+-	bool expect_pulse = true, seen_scancode = false;
++	bool expect_pulse = true;
+ 	int lineno = 0, lastspace = 0;
+ 	char line[1024];
+ 	int len = 0;
+@@ -206,6 +215,7 @@ static struct file *read_file(const char *fname)
+ 		fprintf(stderr, _("Failed to allocate memory\n"));
+ 		return NULL;
  	}
++	f->is_scancode = false;
+ 	f->carrier = 0;
+ 	f->fname = fname;
  
-+	pm_runtime_set_active(dev);
-+	pm_runtime_enable(dev);
-+	pm_request_idle(dev);
-+
- 	return 0;
- }
+@@ -226,7 +236,7 @@ static struct file *read_file(const char *fname)
  
-@@ -1857,25 +1862,37 @@ static int atmel_isc_probe(struct platform_device *pdev)
- 		return ret;
- 	}
+ 		if (strcmp(keyword, "scancode") == 0) {
+ 			enum rc_proto proto;
+-			unsigned scancode, carrier;
++			unsigned scancode;
+ 			char *scancodestr;
  
-+	ret = clk_prepare_enable(isc->hclock);
-+	if (ret) {
-+		dev_err(dev, "failed to enable hclock: %d\n", ret);
-+		return ret;
-+	}
-+
- 	ret = isc_clk_init(isc);
- 	if (ret) {
- 		dev_err(dev, "failed to init isc clock: %d\n", ret);
--		goto clean_isc_clk;
-+		goto unprepare_hclk;
- 	}
+ 			if (len) {
+@@ -257,19 +267,9 @@ static struct file *read_file(const char *fname)
+ 				return NULL;
+ 			}
  
- 	isc->ispck = isc->isc_clks[ISC_ISPCK].clk;
- 
-+	ret = clk_prepare_enable(isc->ispck);
-+	if (ret) {
-+		dev_err(dev, "failed to enable ispck: %d\n", ret);
-+		goto unprepare_hclk;
-+	}
-+
- 	/* ispck should be greater or equal to hclock */
- 	ret = clk_set_rate(isc->ispck, clk_get_rate(isc->hclock));
- 	if (ret) {
- 		dev_err(dev, "failed to set ispck rate: %d\n", ret);
--		goto clean_isc_clk;
-+		goto unprepare_clk;
- 	}
- 
- 	ret = v4l2_device_register(dev, &isc->v4l2_dev);
- 	if (ret) {
- 		dev_err(dev, "unable to register v4l2 device.\n");
--		goto clean_isc_clk;
-+		goto unprepare_clk;
- 	}
- 
- 	ret = isc_parse_dt(dev, isc);
-@@ -1908,8 +1925,6 @@ static int atmel_isc_probe(struct platform_device *pdev)
- 			break;
- 	}
- 
--	pm_runtime_enable(dev);
+-			if (len + protocol_max_size(proto) >= LIRCBUF_SIZE) {
+-				fprintf(stderr, _("error: %s:%d: too much IR for one transmit\n"), fname, lineno);
+-				return NULL;
+-			}
 -
- 	return 0;
+-			carrier = protocol_carrier(proto);
+-			if (f->carrier && f->carrier != carrier)
+-				fprintf(stderr, _("error: %s:%d: carrier already specified\n"), fname, lineno);
+-			else
+-				f->carrier = carrier;
+-
+-			len += protocol_encode(proto, scancode, f->buf);
+-			seen_scancode = true;
++			f->is_scancode = true;
++			f->scancode = scancode;
++			f->protocol = proto;
+ 			continue;
+ 		}
  
- cleanup_subdev:
-@@ -1918,7 +1933,11 @@ static int atmel_isc_probe(struct platform_device *pdev)
- unregister_v4l2_device:
- 	v4l2_device_unregister(&isc->v4l2_dev);
+@@ -285,7 +285,7 @@ static struct file *read_file(const char *fname)
+ 			continue;
+ 		}
  
--clean_isc_clk:
-+unprepare_clk:
-+	clk_disable_unprepare(isc->ispck);
-+unprepare_hclk:
-+	clk_disable_unprepare(isc->hclock);
+-		if (seen_scancode) {
++		if (f->is_scancode) {
+ 			fprintf(stderr, _("error: %s:%d: scancode must be appear in file by itself\n"), fname, lineno);
+ 			return NULL;
+ 		}
+@@ -383,9 +383,9 @@ static struct file *read_scancode(const char *name)
+ 		return NULL;
+ 	}
+ 
+-	f->carrier = protocol_carrier(proto);
+-	f->fname = name;
+-	f->len = protocol_encode(proto, scancode, f->buf);
++	f->is_scancode = true;
++	f->scancode = scancode;
++	f->protocol = proto;
+ 
+ 	return f;
+ }
+@@ -772,16 +772,41 @@ static void lirc_features(struct arguments *args, int fd, unsigned features)
+ static int lirc_send(struct arguments *args, int fd, unsigned features, struct file *f)
+ {
+ 	const char *dev = args->device;
+-	int mode = LIRC_MODE_PULSE;
++	int rc, mode;
++	ssize_t ret;
 +
- 	isc_clk_cleanup(isc);
++	if (f->is_scancode && (features & LIRC_CAN_SEND_SCANCODE)) {
++		mode = LIRC_MODE_SCANCODE;
++		rc = ioctl(fd, LIRC_SET_SEND_MODE, &mode);
++		if (rc == 0) {
++			struct lirc_scancode sc = {
++				.scancode = f->scancode,
++				.rc_proto = f->protocol,
++				.flags = 0
++			};
++			ret = TEMP_FAILURE_RETRY(write(fd, &sc, sizeof sc));
++			if (ret > 0)
++				return 0;
++		}
++	}
  
- 	return ret;
+ 	if (!(features & LIRC_CAN_SEND_PULSE)) {
+ 		fprintf(stderr, _("%s: device cannot send raw ir\n"), dev);
+ 		return EX_UNAVAILABLE;
+ 	}
+ 
+-	if (ioctl(fd, LIRC_SET_SEND_MODE, &mode)) {
+-		fprintf(stderr, _("%s: failed to set send mode: %m\n"), dev);
+-		return EX_IOERR;
++	mode = LIRC_MODE_PULSE;
++	rc = ioctl(fd, LIRC_SET_SEND_MODE, &mode);
++	if (rc) {
++		fprintf(stderr, _("%s: cannot set send mode\n"), dev);
++		return EX_UNAVAILABLE;
++	}
++
++	if (f->is_scancode) {
++		// encode scancode
++		enum rc_proto proto = f->protocol;
++		f->len = protocol_encode(f->protocol, f->scancode, f->buf);
++		f->carrier = protocol_carrier(proto);
+ 	}
+ 
+ 	if (args->carrier && f->carrier)
+@@ -796,7 +821,7 @@ static int lirc_send(struct arguments *args, int fd, unsigned features, struct f
+ 		for (i=0; i<f->len; i++)
+ 			printf("%s %u\n", i & 1 ? "space" : "pulse", f->buf[i]);
+ 	}
+-	ssize_t ret = TEMP_FAILURE_RETRY(write(fd, f->buf, size));
++	ret = TEMP_FAILURE_RETRY(write(fd, f->buf, size));
+ 	if (ret < 0) {
+ 		fprintf(stderr, _("%s: failed to send: %m\n"), dev);
+ 		return EX_IOERR;
 -- 
-2.13.0
+2.13.5
