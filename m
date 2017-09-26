@@ -1,77 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:38252 "EHLO
-        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755868AbdIGSmh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 14:42:37 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
+Received: from gofer.mess.org ([88.97.38.141]:46121 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S936898AbdIZUOD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 16:14:03 -0400
+From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH v3 01/15] [media] v4l: Document explicit synchronization behaviour
-Date: Thu,  7 Sep 2017 15:42:12 -0300
-Message-Id: <20170907184226.27482-2-gustavo@padovan.org>
-In-Reply-To: <20170907184226.27482-1-gustavo@padovan.org>
-References: <20170907184226.27482-1-gustavo@padovan.org>
+Subject: [PATCH 07/20] media: promote lirc_zilog out of staging
+Date: Tue, 26 Sep 2017 21:13:46 +0100
+Message-Id: <9962850dcba076bf1477fdb041d51480fc2ee18e.1506455086.git.sean@mess.org>
+In-Reply-To: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
+References: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
+In-Reply-To: <cover.1506455086.git.sean@mess.org>
+References: <cover.1506455086.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Rename to zilog_ir in the process.
 
-Add section to VIDIOC_QBUF about it
-
-v2:
-	- mention that fences are files (Hans)
-	- rework for the new API
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- Documentation/media/uapi/v4l/vidioc-qbuf.rst | 31 ++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ drivers/media/rc/Kconfig                           | 12 ++++++++
+ drivers/media/rc/Makefile                          |  1 +
+ .../lirc/lirc_zilog.c => media/rc/zilog_ir.c}      |  0
+ drivers/staging/media/Kconfig                      |  3 --
+ drivers/staging/media/Makefile                     |  1 -
+ drivers/staging/media/lirc/Kconfig                 | 21 -------------
+ drivers/staging/media/lirc/Makefile                |  6 ----
+ drivers/staging/media/lirc/TODO                    | 36 ----------------------
+ 8 files changed, 13 insertions(+), 67 deletions(-)
+ rename drivers/{staging/media/lirc/lirc_zilog.c => media/rc/zilog_ir.c} (100%)
+ delete mode 100644 drivers/staging/media/lirc/Kconfig
+ delete mode 100644 drivers/staging/media/lirc/Makefile
+ delete mode 100644 drivers/staging/media/lirc/TODO
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-index 1f3612637200..fae0b1431672 100644
---- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-@@ -117,6 +117,37 @@ immediately with an ``EAGAIN`` error code when no buffer is available.
- The struct :c:type:`v4l2_buffer` structure is specified in
- :ref:`buffer`.
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 467cf2bdbd42..e8f7570fc501 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -468,6 +468,18 @@ config IR_SIR
+ 	   To compile this driver as a module, choose M here: the module will
+ 	   be called sir-ir.
  
-+Explicit Synchronization
-+------------------------
++config IR_ZILOG
++	tristate "Zilog/Hauppauge IR Transmitter"
++	depends on RC_CORE
++	depends on LIRC
++	depends on I2C
++	---help---
++	   Driver for the Zilog/Hauppauge IR Transmitter, found on
++	   PVR-150/500, HVR-1200/1250/1700/1800, HD-PVR and other cards
 +
-+Explicit Synchronization allows us to control the synchronization of
-+shared buffers from userspace by passing fences to the kernel and/or
-+receiving them from it. Fences passed to the kernel are named in-fences and
-+the kernel should wait them to signal before using the buffer, i.e., queueing
-+it to the driver. On the other side, the kernel can create out-fences for the
-+buffers it queues to the drivers, out-fences signal when the driver is
-+finished with buffer, that is the buffer is ready. The fence are represented
-+by file and passed as file descriptor to userspace.
++	   To compile this driver as a module, choose M here: the
++	   module will be called zilog_ir.
 +
-+The in-fences are communicated to the kernel at the ``VIDIOC_QBUF`` ioctl
-+using the ``V4L2_BUF_FLAG_IN_FENCE`` buffer
-+flags and the `fence_fd` field. If an in-fence needs to be passed to the kernel,
-+`fence_fd` should be set to the fence file descriptor number and the
-+``V4L2_BUF_FLAG_IN_FENCE`` should be set as well. Failure to set both will
-+cause ``VIDIOC_QBUF`` to return with error.
-+
-+To get a out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE`` flag should
-+be set to notify it that the next queued buffer should have a fence attached to
-+it. That means the out-fence may not be associated with the buffer in the
-+current ``VIDIOC_QBUF`` ioctl call because the ordering in which videobuf2 core
-+queues the buffers to the drivers can't be guaranteed. To become aware of the
-+of the next queued buffer and the out-fence attached to it the
-+``V4L2_EVENT_BUF_QUEUED`` event should be used. It will trigger an event
-+for every buffer queued to the V4L2 driver.
-+
-+At streamoff the out-fences will either signal normally if the drivers wait
-+for the operations on the buffers to finish or signal with error if the
-+driver cancel the pending operations.
+ config IR_ZX
+ 	tristate "ZTE ZX IR remote control"
+ 	depends on RC_CORE
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 9bc6a3980ed0..efdcf2318448 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -43,4 +43,5 @@ obj-$(CONFIG_IR_IMG) += img-ir/
+ obj-$(CONFIG_IR_SERIAL) += serial_ir.o
+ obj-$(CONFIG_IR_SIR) += sir_ir.o
+ obj-$(CONFIG_IR_MTK) += mtk-cir.o
++obj-$(CONFIG_IR_ZILOG) += zilog_ir.o
+ obj-$(CONFIG_IR_ZX) += zx-irdec.o
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/media/rc/zilog_ir.c
+similarity index 100%
+rename from drivers/staging/media/lirc/lirc_zilog.c
+rename to drivers/media/rc/zilog_ir.c
+diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+index f8c25ee082ef..3a09140700e6 100644
+--- a/drivers/staging/media/Kconfig
++++ b/drivers/staging/media/Kconfig
+@@ -31,7 +31,4 @@ source "drivers/staging/media/imx/Kconfig"
  
- Return Value
- ============
+ source "drivers/staging/media/omap4iss/Kconfig"
+ 
+-# Keep LIRC at the end, as it has sub-menus
+-source "drivers/staging/media/lirc/Kconfig"
+-
+ endif
+diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+index ac090c5fce30..9c057126d61f 100644
+--- a/drivers/staging/media/Makefile
++++ b/drivers/staging/media/Makefile
+@@ -1,7 +1,6 @@
+ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
+ obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
+ obj-$(CONFIG_VIDEO_IMX_MEDIA)	+= imx/
+-obj-$(CONFIG_LIRC_STAGING)	+= lirc/
+ obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
+ obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
+ obj-$(CONFIG_INTEL_ATOMISP)     += atomisp/
+diff --git a/drivers/staging/media/lirc/Kconfig b/drivers/staging/media/lirc/Kconfig
+deleted file mode 100644
+index 3e350a9922de..000000000000
+--- a/drivers/staging/media/lirc/Kconfig
++++ /dev/null
+@@ -1,21 +0,0 @@
+-#
+-# LIRC driver(s) configuration
+-#
+-menuconfig LIRC_STAGING
+-	bool "Linux Infrared Remote Control IR receiver/transmitter drivers"
+-	depends on LIRC
+-	help
+-	  Say Y here, and all supported Linux Infrared Remote Control IR and
+-	  RF receiver and transmitter drivers will be displayed. When paired
+-	  with a remote control and the lirc daemon, the receiver drivers
+-	  allow control of your Linux system via remote control.
+-
+-if LIRC_STAGING
+-
+-config LIRC_ZILOG
+-	tristate "Zilog/Hauppauge IR Transmitter"
+-	depends on LIRC && I2C
+-	help
+-	  Driver for the Zilog/Hauppauge IR Transmitter, found on
+-	  PVR-150/500, HVR-1200/1250/1700/1800, HD-PVR and other cards
+-endif
+diff --git a/drivers/staging/media/lirc/Makefile b/drivers/staging/media/lirc/Makefile
+deleted file mode 100644
+index 665562436e30..000000000000
+--- a/drivers/staging/media/lirc/Makefile
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# Makefile for the lirc drivers.
+-#
+-
+-# Each configuration option enables a list of files.
+-
+-obj-$(CONFIG_LIRC_ZILOG)	+= lirc_zilog.o
+diff --git a/drivers/staging/media/lirc/TODO b/drivers/staging/media/lirc/TODO
+deleted file mode 100644
+index a97800a8e127..000000000000
+--- a/drivers/staging/media/lirc/TODO
++++ /dev/null
+@@ -1,36 +0,0 @@
+-1. Both ir-kbd-i2c and lirc_zilog provide support for RX events for
+-the chips supported by lirc_zilog.  Before moving lirc_zilog out of staging:
+-
+-a. ir-kbd-i2c needs a module parameter added to allow the user to tell
+-   ir-kbd-i2c to ignore Z8 IR units.
+-
+-b. lirc_zilog should provide Rx key presses to the rc core like ir-kbd-i2c
+-   does.
+-
+-
+-2. lirc_zilog module ref-counting need examination.  It has not been
+-verified that cdev and lirc_dev will take the proper module references on
+-lirc_zilog to prevent removal of lirc_zilog when the /dev/lircN device node
+-is open.
+-
+-(The good news is ref-counting of lirc_zilog internal structures appears to be
+-complete.  Testing has shown the cx18 module can be unloaded out from under
+-irw + lircd + lirc_dev, with the /dev/lirc0 device node open, with no adverse
+-effects.  The cx18 module could then be reloaded and irw properly began
+-receiving button presses again and ir_send worked without error.)
+-
+-
+-3. Bridge drivers, if able, should provide a chip reset() callback
+-to lirc_zilog via struct IR_i2c_init_data.  cx18 and ivtv already have routines
+-to perform Z8 chip resets via GPIO manipulations.  This would allow lirc_zilog
+-to bring the chip back to normal when it hangs, in the same places the
+-original lirc_pvr150 driver code does.  This is not strictly needed, so it
+-is not required to move lirc_zilog out of staging.
+-
+-Note: Both lirc_zilog and ir-kbd-i2c support the Zilog Z8 for IR, as programmed
+-and installed on Hauppauge products.  When working on either module, developers
+-must consider at least the following bridge drivers which mention an IR Rx unit
+-at address 0x71 (indicative of a Z8):
+-
+-	ivtv cx18 hdpvr pvrusb2 bt8xx cx88 saa7134
+-
 -- 
 2.13.5
