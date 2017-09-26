@@ -1,65 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:35811 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751019AbdIMODd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 10:03:33 -0400
+Received: from pide.tip.net.au ([203.10.76.2]:49454 "EHLO pide.tip.net.au"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934836AbdIZMNM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 08:13:12 -0400
+Received: from pide.tip.net.au (pide.tip.net.au [IPv6:2401:fc00:0:107::2])
+        by mailhost.tip.net.au (Postfix) with ESMTP id 3y1fx26GKnzFsy2
+        for <linux-media@vger.kernel.org>; Tue, 26 Sep 2017 22:13:10 +1000 (AEST)
+Received: from e4.eyal.emu.id.au (124-171-194-215.dyn.iinet.net.au [124.171.194.215])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by pide.tip.net.au (Postfix) with ESMTPSA id 3y1fx25lkmz95QN
+        for <linux-media@vger.kernel.org>; Tue, 26 Sep 2017 22:13:10 +1000 (AEST)
+Subject: Re: [progress]: dvb_usb_rtl28xxu not tuning "Leadtek Winfast DTV2000
+ DS PLUS TV"
+To: list linux-media <linux-media@vger.kernel.org>
+References: <00ad85dd-2fe3-5f15-6c0c-47fcf580f541@eyal.emu.id.au>
+ <678bf4fa-5849-1fb2-adf1-a07458767d9e@eyal.emu.id.au>
+From: Eyal Lebedinsky <eyal@eyal.emu.id.au>
+Message-ID: <1fb0dcc0-9202-75a7-c5e3-a744c8242a78@eyal.emu.id.au>
+Date: Tue, 26 Sep 2017 22:13:09 +1000
 MIME-Version: 1.0
-In-Reply-To: <4355b20a-504c-4e83-92c8-049e6c6d6a5f@samsung.com>
-References: <CGME20170913092551epcas1p4f84e118f364f605cb5cc6b8b669ac095@epcas1p4.samsung.com>
- <20170912200932.3634089-1-arnd@arndb.de> <4355b20a-504c-4e83-92c8-049e6c6d6a5f@samsung.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Wed, 13 Sep 2017 16:03:31 +0200
-Message-ID: <CAK8P3a2CDqgaqZiopJJOB6WsTgQEB49sz7=7izmFfaBOgG5_xA@mail.gmail.com>
-Subject: Re: [PATCH] [media] s3c-camif: fix out-of-bounds array access
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sylwester Nawrocki <snawrocki@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "moderated list:ARM/SAMSUNG EXYNOS ARM ARCHITECTURES"
-        <linux-samsung-soc@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <678bf4fa-5849-1fb2-adf1-a07458767d9e@eyal.emu.id.au>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-AU
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 13, 2017 at 11:25 AM, Sylwester Nawrocki
-<s.nawrocki@samsung.com> wrote:
-> On 09/12/2017 10:09 PM, Arnd Bergmann wrote:
-
->>   {
->>       const struct s3c_camif_variant *variant = camif->variant;
->>       const struct vp_pix_limits *pix_lim;
->> -     int i = ARRAY_SIZE(camif_mbus_formats);
+On 26/09/17 14:32, Eyal Lebedinsky wrote:
+> On 18/09/17 14:26, Eyal Lebedinsky wrote:
+>> I have just upgraded to f24. I am now using the standard dvb_usb_rtl28xxu fe
+>> which logs messages suggesting all is well (I get the /dev/dvb/adapter? etc.)
+>> but I get no channels tuned when I run mythfrontend or scandvb.
 >>
->>       /* FIXME: constraints against codec or preview path ? */
->>       pix_lim = &variant->vp_pix_limits[VP_CODEC];
+>> Is anyone using this combination?
+>> Is this the correct way to use this tuner?
 >>
->> -     while (i-- >= 0)
->> -             if (camif_mbus_formats[i] == mf->code)
->> -                     break;
->> -
->> -     mf->code = camif_mbus_formats[i];
->
->
-> Interesting finding... the function needs to ensure mf->code is set
-> to one of supported values by the driver, so instead of removing
-> how about changing the above line to:
->
->         if (i < 0)
->                 mf->code = camif_mbus_formats[0];
->
-> ?
+>> BTW:
+>>
+>> Until f22 I was using the out of kernel driver from
+>>      https://github.com/jaredquinn/DVB-Realtek-RTL2832U.git
+>> but I now get a compile error.
+>>
+>> TIA
+> 
+> This is an FYI in case anyone else stumbles on this thread.
+> 
+> While the problem persists, I managed to find a way around it for now.
+> 
+> I changed the antenna input.
+> 
+> Originally I used a powered splitter to feed all the tuners, and it worked
+> well with the out-of-kernel driver. This driver does not build or work with
+> a more modern kernel so I shifted to using dvb_usb_rtl28xxu which fails to
+> tune.
+> 
+> The new wiring splits (passive) the antenna in two, feeds one side directly
+> to the two "Leadtek Winfast DTV2000 DS PLUS TV" cards (through another passive
+> 2-way) and the other side goes to the old powered splitter that feeds a few
+> USB tuners.
+> 
+> Now all tuners are happy. It seems that the "Leadtek Winfast DTV2000 DS PLUS TV"
+> cannot handle the amplified input while the USB tuners require it.
+> 
+> I hope that there is a way to set a profile in dvb_usb_rtl28xxu to attenuate
+> the input to an acceptable level thus unravelling the antenna cables rat-nest.
 
-That would still have one of the two out-of-bounds accesses ;-)
+Looking further, I think that it is the fc0013 tuner that should manage the lna
+but does not. Compare it to the module in here
+	https://github.com/jaredquinn/DVB-Realtek-RTL2832U/blob/master/src/tuner_fc0013.c
+which I was using successfully (unfortunately this repo does not build or work
+with current linux kernels).
 
-maybe this
+Is this possible? If so, can it be fixed?
 
-for (i = 0; i < ARRAY_SIZE(camif_mbus_formats); i++)
-        if (camif_mbus_formats[i] == mf->code)
-               break;
+cheers
 
-if (i == ARRAY_SIZE(camif_mbus_formats))
-       mf->code = camif_mbus_formats[0];
+> cheers
 
-      Arnd
+-- 
+Eyal Lebedinsky (eyal@eyal.emu.id.au)
