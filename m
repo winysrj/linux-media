@@ -1,74 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33143
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752189AbdI0Vky (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:54 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 35/37] media: dmxdev: use the newly nested kernel-doc support
-Date: Wed, 27 Sep 2017 18:40:36 -0300
-Message-Id: <6f04cb4231eecec3b8f0672c5d3151b70e18302f.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+Received: from unicorn.mansr.com ([81.2.72.234]:56068 "EHLO unicorn.mansr.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S966076AbdIZOta (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 10:49:30 -0400
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+To: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+Cc: Sean Young <sean@mess.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Mason <slash.tmp@free.fr>
+Subject: Re: [PATCH v6 2/2] media: rc: Add driver for tango HW IR decoder
+References: <308711ef-0ba8-d533-26fd-51e5b8f32cc8@free.fr>
+        <e3d91250-e6bd-bb8c-5497-689c351ac55f@free.fr>
+        <yw1xzi9ieuqe.fsf@mansr.com>
+        <893874ee-a6e0-e4be-5b4f-a49e60197e92@free.fr>
+        <yw1xr2uuenhv.fsf@mansr.com>
+        <0690fbbb-a13f-63af-bc43-b1f9d4771bc4@free.fr>
+        <yw1xmv5hehp0.fsf@mansr.com>
+        <ee434b81-3406-7ea0-3a54-b5dc1d6720c9@sigmadesigns.com>
+Date: Tue, 26 Sep 2017 15:49:27 +0100
+In-Reply-To: <ee434b81-3406-7ea0-3a54-b5dc1d6720c9@sigmadesigns.com> (Marc
+        Gonzalez's message of "Tue, 26 Sep 2017 16:14:21 +0200")
+Message-ID: <yw1xing5ecqw.fsf@mansr.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that kernel-doc supports nested structs/unions, use it.
+Marc Gonzalez <marc_gonzalez@sigmadesigns.com> writes:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dmxdev.h | 31 ++++++++++++++++++-------------
- 1 file changed, 18 insertions(+), 13 deletions(-)
+> On 26/09/2017 15:02, Måns Rullgård wrote:
+>
+>> I could continue nit-picking, but I think this is good enough.
+>> Thanks for being patient.
+>> 
+>> Signed-off-by: Mans Rullgard <mans@mansr.com>
+>
+> Smirk.
+>
+> If you feel like making a final round of changes on top of this patch,
+> then go for it. It's your code, after all.
+>
+> (Too bad there is no devm variant of clk_prepare_enable.)
+>
+> Does it make sense to submit a keymap for the Sigma remote control
+> used with Vantage boards? And define that as the default keymap?
 
-diff --git a/drivers/media/dvb-core/dmxdev.h b/drivers/media/dvb-core/dmxdev.h
-index 9aa3ce3fc407..2ef0a3b54de6 100644
---- a/drivers/media/dvb-core/dmxdev.h
-+++ b/drivers/media/dvb-core/dmxdev.h
-@@ -89,19 +89,24 @@ struct dmxdev_feed {
- /**
-  * struct dmxdev_filter - digital TV dmxdev filter
-  *
-- * @filter:	a dmxdev filter. Currently used only for section filter:
-- *		if the filter is Section, it contains a
-- *		&struct dmx_section_filter @sec pointer.
-- * @feed:	a dmxdev feed. Depending on the feed type, it can be:
-- *		for TS feed: a &struct list_head @ts list of TS and PES
-- *		feeds;
-- *		for section feed: a &struct dmx_section_feed @sec pointer.
-- * @params:	dmxdev filter parameters. Depending on the feed type, it
-- *		can be:
-- *		for section filter: a &struct dmx_sct_filter_params @sec
-- *		embedded struct;
-- *		for a TS filter: a &struct dmx_pes_filter_params @pes
-- *		embedded struct.
-+ * @filter:	a union describing a dmxdev filter.
-+ * 		Currently used only for section filters.
-+ * @filter.sec: a &struct dmx_section_filter pointer.
-+ *		For section filter only.
-+ * @feed:	an union describing a dmxdev feed.
-+ *		Depending on the filter type, it can be either
-+ *		@feed.ts or @feed.sec.
-+ * @feed.ts:	a &struct list_head list.
-+ *		For TS and PES feeds.
-+ * @feed.sec:	a &struct dmx_section_feed pointer.
-+ *		For section feed only.
-+ * @params:	a union describing dmxdev filter parameters.
-+ * 		Depending on the filter type, it can be either
-+ *		@params.sec or @params.pes.
-+ * @params.sec:	a &struct dmx_sct_filter_params embedded struct.
-+ *		For section filter only.
-+ * @params.pes:	a &struct dmx_pes_filter_params embedded struct.
-+ *		For PES filter only.
-  * @type:	type of the dmxdev filter, as defined by &enum dmxdev_type.
-  * @state:	state of the dmxdev filter, as defined by &enum dmxdev_state.
-  * @dev:	pointer to &struct dmxdev.
+Maybe.  The real product I have with a tango3 chip uses a remote control
+that is quite similar the Sigma one.  Having something that works out of
+the box with the dev board is also nice.
+
 -- 
-2.13.5
+Måns Rullgård
