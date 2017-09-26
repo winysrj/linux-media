@@ -1,170 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46550
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752165AbdIVVrO (ORCPT
+Received: from mail-oi0-f43.google.com ([209.85.218.43]:56349 "EHLO
+        mail-oi0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933472AbdIZL4p (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 17:47:14 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 7/8] media: v4l2-event.rst: improve events description
-Date: Fri, 22 Sep 2017 18:47:05 -0300
-Message-Id: <403379980206e0dab0b9e9cd900d2768d72c451a.1506116720.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
-References: <cover.1506116720.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506116720.git.mchehab@s-opensource.com>
-References: <cover.1506116720.git.mchehab@s-opensource.com>
+        Tue, 26 Sep 2017 07:56:45 -0400
+Received: by mail-oi0-f43.google.com with SMTP id b184so11485772oii.13
+        for <linux-media@vger.kernel.org>; Tue, 26 Sep 2017 04:56:45 -0700 (PDT)
+MIME-Version: 1.0
+From: Andrey Konovalov <andreyknvl@google.com>
+Date: Tue, 26 Sep 2017 13:56:44 +0200
+Message-ID: <CAAeHK+wgiCLmhaSWi8LkG2pBo_A_xQJhAS13c-eEdDstWhWLiQ@mail.gmail.com>
+Subject: usb/media/b2c2: GPF in flexcop_usb_transfer_init
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        syzkaller <syzkaller@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Both v4l2-event.rst and v4l2-event.h have an overview of
-events, but there are some inconsistencies there:
+Hi!
 
-- at v4l2-event, the event's ringbuffer is called kevent. Its
-  name is, instead, v4l2_kevent;
+I've got the following report while fuzzing the kernel with syzkaller.
 
-- Some things are mentioned on both places (with different words),
-  others are either on one of the files.
+On commit e19b205be43d11bff638cad4487008c48d21c103 (4.14-rc2).
 
-In order to cleanup this mess, put everything at v4l2-event.rst
-and improve it to be a little more coherent and to have cross
-references.
+It seems that there's no check on the actual number of endpoints.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/kapi/v4l2-event.rst | 64 ++++++++++++++++++++++++++-------
- include/media/v4l2-event.h              | 34 ------------------
- 2 files changed, 52 insertions(+), 46 deletions(-)
+usb 1-1: New USB device strings: Mfr=212, Product=0, SerialNumber=6
+usb 1-1: Manufacturer: a
+usb 1-1: SerialNumber: a
+gadgetfs: configuration #3
+flexcop_usb: running at FULL speed.
+gadgetfs: disconnected
+flexcop_usb: error while reading dword from 161 (516).
+flexcop_usb: error while writing dword from 33 (516).
+flexcop_usb: error while writing dword from 33 (516).
+flexcop_usb: error while reading dword from 161 (516).
+flexcop_usb: error while reading dword from 247 (1820).
+flexcop_usb: error while writing dword from 119 (1820).
+flexcop_usb: error while reading dword from 176 (768).
+flexcop_usb: error while reading dword from 162 (520).
+flexcop_usb: error while writing dword from 48 (768).
+flexcop_usb: error while writing dword from 34 (520).
+flexcop_usb: error while reading dword from 176 (768).
+flexcop_usb: error while reading dword from 162 (520).
+flexcop_usb: error while writing dword from 48 (768).
+flexcop_usb: error while writing dword from 34 (520).
+flexcop_usb: error while reading dword from 177 (772).
+flexcop_usb: error while reading dword from 162 (520).
+flexcop_usb: error while writing dword from 49 (772).
+flexcop_usb: error while writing dword from 34 (520).
+flexcop_usb: error while reading dword from 177 (772).
+flexcop_usb: error while reading dword from 162 (520).
+flexcop_usb: error while writing dword from 49 (772).
+flexcop_usb: error while writing dword from 34 (520).
+flexcop_usb: error while reading dword from 178 (776).
+flexcop_usb: error while reading dword from 162 (520).
+flexcop_usb: error while writing dword from 50 (776).
+flexcop_usb: error while writing dword from 34 (520).
+flexcop_usb: error while reading dword from 178 (776).
+flexcop_usb: error while reading dword from 162 (520).
+flexcop_usb: error while writing dword from 50 (776).
+flexcop_usb: error while writing dword from 34 (520).
+flexcop_usb: error while writing dword from 51 (780).
+flexcop_usb: error while reading dword from 162 (520).
+flexcop_usb: error while writing dword from 34 (520).
+flexcop_usb: error while reading dword from 178 (776).
+flexcop_usb: error while writing dword from 50 (776).
+flexcop_usb: error while reading dword from 162 (520).
+flexcop_usb: error while writing dword from 34 (520).
+flexcop_usb: error while reading dword from 162 (520).
+flexcop_usb: error while writing dword from 34 (520).
+dvbdev: DVB: registering new adapter (FlexCop Digital TV device)
+b2c2-flexcop: reading of MAC address failed.
 
-diff --git a/Documentation/media/kapi/v4l2-event.rst b/Documentation/media/kapi/v4l2-event.rst
-index 9938d21ef4d1..7831a503e2aa 100644
---- a/Documentation/media/kapi/v4l2-event.rst
-+++ b/Documentation/media/kapi/v4l2-event.rst
-@@ -5,27 +5,67 @@ V4L2 events
- The V4L2 events provide a generic way to pass events to user space.
- The driver must use :c:type:`v4l2_fh` to be able to support V4L2 events.
- 
--Events are defined by a type and an optional ID. The ID may refer to a V4L2
--object such as a control ID. If unused, then the ID is 0.
-+Events are subscribed per-filehandle. An event specification consists of a
-+``type`` and is optionally associated with an object identified through the
-+``id`` field. If unused, then the ``id`` is 0. So an event is uniquely
-+identified by the ``(type, id)`` tuple.
- 
--When the user subscribes to an event the driver will allocate a number of
--kevent structs for that event. So every (type, ID) event tuple will have
--its own set of kevent structs. This guarantees that if a driver is generating
--lots of events of one type in a short time, then that will not overwrite
--events of another type.
-+The :c:type:`v4l2_fh` struct has a list of subscribed events on its
-+``subscribed`` field.
- 
--But if you get more events of one type than the number of kevents that were
--reserved, then the oldest event will be dropped and the new one added.
-+When the user subscribes to an event, a :c:type:`v4l2_subscribed_event`
-+struct is added to :c:type:`v4l2_fh`\ ``.subscribed``, one for every
-+subscribed event.
-+
-+Each :c:type:`v4l2_subscribed_event` struct ends with a
-+:c:type:`v4l2_kevent` ringbuffer, with the size given by the caller
-+of :c:func:`v4l2_event_subscribe`. Such ringbuffer is used to store any events
-+raised by the driver.
-+
-+So every ``(type, ID)`` event tuple will have its own set of
-+:c:type:`v4l2_kevent` ringbuffer. This guarantees that if a driver is
-+generating lots of events of one type in a short time, then that will
-+not overwrite events of another type.
-+
-+But if you get more events of one type than the size of the
-+:c:type:`v4l2_kevent` ringbuffer, then the oldest event will be dropped
-+and the new one added.
-+
-+The :c:type:`v4l2_kevent` struct links into the ``available``
-+list of the :c:type:`v4l2_fh` struct so :ref:`VIDIOC_DQEVENT` will
-+know which event to dequeue first.
-+
-+Finally, if the event subscription is associated with a particular object
-+such as a V4L2 control, then that object needs to know about that as well
-+so that an event can be raised by that object. So the ``node`` field can
-+be used to link the :c:type:`v4l2_subscribed_event` struct into a list of
-+such object.
-+
-+So to summarize:
-+
-+- struct :c:type:`v4l2_fh` has two lists: one of the ``subscribed`` events,
-+  and one of the ``available`` events.
-+
-+- struct :c:type:`v4l2_subscribed_event` has a ringbuffer of raised
-+  (pending) events of that particular type.
-+
-+- If struct :c:type:`v4l2_subscribed_event` is associated with a specific
-+  object, then that object will have an internal list of
-+  struct :c:type:`v4l2_subscribed_event` so it knows who subscribed an
-+  event to that object.
- 
- Furthermore, the internal struct :c:type:`v4l2_subscribed_event` has
- ``merge()`` and ``replace()`` callbacks which drivers can set. These
- callbacks are called when a new event is raised and there is no more room.
-+
- The ``replace()`` callback allows you to replace the payload of the old event
- with that of the new event, merging any relevant data from the old payload
- into the new payload that replaces it. It is called when this event type has
--only one kevent struct allocated. The ``merge()`` callback allows you to merge
--the oldest event payload into that of the second-oldest event payload. It is
--called when there are two or more kevent structs allocated.
-+only one :c:type:`v4l2_kevent` struct allocated.
-+
-+The ``merge()`` callback allows you to merge the oldest event payload into
-+that of the second-oldest event payload. It is called when there are two
-+or more :c:type:`v4l2_kevent` structs allocated.
- 
- This way no status information is lost, just the intermediate steps leading
- up to that state.
-diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-index 6741910c3a18..4e83529117f7 100644
---- a/include/media/v4l2-event.h
-+++ b/include/media/v4l2-event.h
-@@ -24,40 +24,6 @@
- #include <linux/videodev2.h>
- #include <linux/wait.h>
- 
--/*
-- * Overview:
-- *
-- * Events are subscribed per-filehandle. An event specification consists of a
-- * type and is optionally associated with an object identified through the
-- * 'id' field. So an event is uniquely identified by the (type, id) tuple.
-- *
-- * The v4l2-fh struct has a list of subscribed events. The v4l2_subscribed_event
-- * struct is added to that list, one for every subscribed event.
-- *
-- * Each v4l2_subscribed_event struct ends with an array of v4l2_kevent structs.
-- * This array (ringbuffer, really) is used to store any events raised by the
-- * driver. The v4l2_kevent struct links into the 'available' list of the
-- * v4l2_fh struct so VIDIOC_DQEVENT will know which event to dequeue first.
-- *
-- * Finally, if the event subscription is associated with a particular object
-- * such as a V4L2 control, then that object needs to know about that as well
-- * so that an event can be raised by that object. So the 'node' field can
-- * be used to link the v4l2_subscribed_event struct into a list of that
-- * object.
-- *
-- * So to summarize:
-- *
-- * struct v4l2_fh has two lists: one of the subscribed events, and one of the
-- * pending events.
-- *
-- * struct v4l2_subscribed_event has a ringbuffer of raised (pending) events of
-- * that particular type.
-- *
-- * If struct v4l2_subscribed_event is associated with a specific object, then
-- * that object will have an internal list of struct v4l2_subscribed_event so
-- * it knows who subscribed an event to that object.
-- */
--
- struct v4l2_fh;
- struct v4l2_subdev;
- struct v4l2_subscribed_event;
--- 
-2.13.5
+CX24123: wrong demod revision: 0
+nxt200x: Unknown/Unsupported NXT chip: 00 00 00 00 00
+tuner-simple 0-0061: creating new instance
+tuner-simple 0-0061: type set to 64 (LG TDVS-H06xF)
+b2c2-flexcop: found 'LG Electronics LGDT3303 VSB/QAM Frontend' .
+usb 1-1: DVB: registering adapter 0 frontend 0 (LG Electronics
+LGDT3303 VSB/QAM Frontend)...
+b2c2-flexcop: initialization of 'Air2PC/AirStar 2 ATSC 3rd generation
+(HD5000)' at the 'USB' bus controlled by a 'FlexCopIII' complete
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+Modules linked in:
+CPU: 0 PID: 24 Comm: kworker/0:1 Not tainted 4.14.0-rc2-42613-g1488251d1a98 #254
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Workqueue: usb_hub_wq hub_event
+task: ffff88006befe300 task.stack: ffff88006bf78000
+RIP: 0010:flexcop_usb_transfer_init drivers/media/usb/b2c2/flexcop-usb.c:429
+RIP: 0010:flexcop_usb_probe+0x4c9/0xc00 drivers/media/usb/b2c2/flexcop-usb.c:574
+RSP: 0018:ffff88006bf7e570 EFLAGS: 00010247
+RAX: dffffc0000000000 RBX: ffff880069440000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffff88006befeca8 RDI: 0000000000000004
+RBP: ffff88006bf7e5e8 R08: 1ffff1000d7efb34 R09: 0000000000000000
+R10: ffff88006bf7e4d0 R11: 0000000000000000 R12: ffff88006bafa200
+R13: 0000000000000000 R14: 0000000000000000 R15: ffff880062b51198
+FS:  0000000000000000(0000) GS:ffff88006c800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000fb4 CR3: 00000000674bb000 CR4: 00000000000006f0
+Call Trace:
+ usb_probe_interface+0x35d/0x8e0 drivers/usb/core/driver.c:361
+ really_probe drivers/base/dd.c:413
+ driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
+ __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
+ bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
+ __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
+ device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
+ bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
+ device_add+0xd0b/0x1660 drivers/base/core.c:1835
+ usb_set_configuration+0x104e/0x1870 drivers/usb/core/message.c:1932
+ generic_probe+0x73/0xe0 drivers/usb/core/generic.c:174
+ usb_probe_device+0xaf/0xe0 drivers/usb/core/driver.c:266
+ really_probe drivers/base/dd.c:413
+ driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
+ __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
+ bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
+ __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
+ device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
+ bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
+ device_add+0xd0b/0x1660 drivers/base/core.c:1835
+ usb_new_device+0x7b8/0x1020 drivers/usb/core/hub.c:2457
+ hub_port_connect drivers/usb/core/hub.c:4903
+ hub_port_connect_change drivers/usb/core/hub.c:5009
+ port_event drivers/usb/core/hub.c:5115
+ hub_event+0x194d/0x3740 drivers/usb/core/hub.c:5195
+ process_one_work+0xc7f/0x1db0 kernel/workqueue.c:2119
+ worker_thread+0x221/0x1850 kernel/workqueue.c:2253
+ kthread+0x3a1/0x470 kernel/kthread.c:231
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+Code: 18 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 fa 05 00 00 48 b8 00
+00 00 00 00 fc ff df 4d 8b 6d 18 49 8d 7d 04 48 89 fa 48 c1 ea 03 <0f>
+b6 14 02 48 89 f8 83 e0 07 83 c0 01 38 d0 7c 08 84 d2 0f 85
+RIP: flexcop_usb_probe+0x4c9/0xc00 RSP: ffff88006bf7e570
+---[ end trace 71daccc5f58e2db2 ]---
