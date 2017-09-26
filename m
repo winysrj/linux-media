@@ -1,62 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:61922 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750759AbdIITO4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 9 Sep 2017 15:14:56 -0400
-Subject: [PATCH 2/2] [media] xc4000: Adjust two null pointer checks in
- xc4000_fwupload()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <61016489-eb01-2977-b094-343aa70686b0@users.sourceforge.net>
-Message-ID: <68444473-5d87-3213-4640-6069c88db1a9@users.sourceforge.net>
-Date: Sat, 9 Sep 2017 21:14:47 +0200
+Received: from guitar.tcltek.co.il ([192.115.133.116]:50082 "EHLO
+        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S968951AbdIZQf4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 12:35:56 -0400
+From: Baruch Siach <baruch@tkos.co.il>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Adam Jackson <ajax@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Baruch Siach <baruch@tkos.co.il>
+Subject: [PATCH 3/3] edid-decode: parse_extension: fix maybe uninitialized warning
+Date: Tue, 26 Sep 2017 19:33:40 +0300
+Message-Id: <93ffb19c3563c5f7fdd0bdb134de1c9e0c1956ba.1506443620.git.baruch@tkos.co.il>
+In-Reply-To: <07a4901aea4f30db053028fd3a84806b7777ef64.1506443620.git.baruch@tkos.co.il>
+References: <07a4901aea4f30db053028fd3a84806b7777ef64.1506443620.git.baruch@tkos.co.il>
 MIME-Version: 1.0
-In-Reply-To: <61016489-eb01-2977-b094-343aa70686b0@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 9 Sep 2017 20:55:14 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Fix the following warning:
 
-The script “checkpatch.pl” pointed information out like the following.
+edid-decode.c: In function ‘main’:
+edid-decode.c:2962:26: warning: ‘conformant_extension’ may be used uninitialized in this function [-Wmaybe-uninitialized]
 
-Comparison to NULL could be written !…
-
-Thus fix the affected source code places.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Baruch Siach <baruch@tkos.co.il>
 ---
- drivers/media/tuners/xc4000.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ edid-decode.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/tuners/xc4000.c b/drivers/media/tuners/xc4000.c
-index bbf386127fc4..bd53e44b3cc8 100644
---- a/drivers/media/tuners/xc4000.c
-+++ b/drivers/media/tuners/xc4000.c
-@@ -775,5 +775,5 @@ static int xc4000_fwupload(struct dvb_frontend *fe)
- 		priv->firm_version >> 8, priv->firm_version & 0xff);
+diff --git a/edid-decode.c b/edid-decode.c
+index 4abd79333d61..d3aafa926900 100644
+--- a/edid-decode.c
++++ b/edid-decode.c
+@@ -2397,7 +2397,7 @@ extension_version(unsigned char *x)
+ static int
+ parse_extension(unsigned char *x)
+ {
+-    int conformant_extension;
++    int conformant_extension = 0;
+     printf("\n");
  
- 	priv->firm = kcalloc(n_array, sizeof(*priv->firm), GFP_KERNEL);
--	if (priv->firm == NULL) {
-+	if (!priv->firm) {
- 		rc = -ENOMEM;
-@@ -821,5 +821,5 @@ static int xc4000_fwupload(struct dvb_frontend *fe)
- 		}
- 
- 		priv->firm[n].ptr = kzalloc(size, GFP_KERNEL);
--		if (priv->firm[n].ptr == NULL) {
-+		if (!priv->firm[n].ptr) {
- 			rc = -ENOMEM;
+     switch(x[0]) {
 -- 
 2.14.1
