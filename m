@@ -1,62 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f179.google.com ([209.85.220.179]:35424 "EHLO
-        mail-qk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751456AbdIGVWw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 17:22:52 -0400
-Date: Thu, 7 Sep 2017 18:22:45 -0300
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55740
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S969483AbdIZR72 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 13:59:28 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
         linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        linux-fsdevel@vger.kernel.org,
-        Riley Andrews <riandrews@android.com>
-Subject: Re: [PATCH v3 14/15] fs/files: export close_fd() symbol
-Message-ID: <20170907212245.GA19307@jade>
-References: <20170907184226.27482-1-gustavo@padovan.org>
- <20170907184226.27482-15-gustavo@padovan.org>
- <20170907203610.GX5426@ZenIV.linux.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170907203610.GX5426@ZenIV.linux.org.uk>
+        Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: [PATCH 07/10] docs: kernel-doc.rst: add documentation about man pages
+Date: Tue, 26 Sep 2017 14:59:17 -0300
+Message-Id: <f5f708ba091ff23cad849779d66b1e3a7badb5c6.1506448061.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
+References: <cover.1506448061.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
+References: <cover.1506448061.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-09-07 Al Viro <viro@ZenIV.linux.org.uk>:
+kernel-doc-nano-HOWTO.txt has a chapter about man pages
+production. While we don't have a working  "make manpages"
+target, add it.
 
-> On Thu, Sep 07, 2017 at 03:42:25PM -0300, Gustavo Padovan wrote:
-> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > 
-> > Rename __close_fd() to close_fd() and export it to be able close files
-> > in modules using file descriptors.
-> > 
-> > The usecase that motivates this change happens in V4L2 where we send
-> > events to userspace with a fd that has file installed in it. But if for
-> > some reason we have to cancel the video stream we need to close the files
-> > that haven't been shared with userspace yet. Thus the export of
-> > close_fd() becomes necessary.
-> > 
-> > fd_install() happens when we call an ioctl to queue a buffer, but we only
-> > share the fd with userspace later, and that may happen in a kernel thread
-> > instead.
-> 
-> NAK.  As soon as the reference is in descriptor table, you *can't* do anything
-> to it.  This "sharing" part is complete BS - being _told_ that descriptor is
-> there does not matter at all.  That descriptor might be hit with dup2() as
-> soon as fd_install() has happened.  Or be closed, or any number of other things.
-> 
-> You can not take it back.  Once fd_install() is done, it's fucking done, period.
-> If V4L2 requires removing it from descriptor table, it's a shitty API and needs
-> to be fixed.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/doc-guide/kernel-doc.rst | 61 ++++++++++++++++++++++++++--------
+ 1 file changed, 47 insertions(+), 14 deletions(-)
 
-Sorry for my lack of knowledge here and thank you for the explanation,
-things are a lot clear to me. For some reasons I were trying to delay
-the sharing of the fd to a event later. I can delay the install of it
-but that my require __fd_install() to be available and exportedi as it
-may happen in a thread, but I believe you wouldn't be okay with that either,
-is that so?
-
-Gustavo
+diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
+index 9777aa53e3dd..50473f0db345 100644
+--- a/Documentation/doc-guide/kernel-doc.rst
++++ b/Documentation/doc-guide/kernel-doc.rst
+@@ -377,7 +377,6 @@ cross-references.
+ For further details, please refer to the `Sphinx C Domain`_ documentation.
+ 
+ 
+-
+ In-line member documentation comments
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
+@@ -391,19 +390,19 @@ on a line of their own, like all other kernel-doc comments::
+    * @foo: The Foo member.
+    */
+   struct foo {
+-        int foo;
+-        /**
+-         * @bar: The Bar member.
+-         */
+-        int bar;
+-        /**
+-         * @baz: The Baz member.
+-         *
+-         * Here, the member description may contain several paragraphs.
+-         */
+-        int baz;
+-        /** @foobar: Single line description. */
+-        int foobar;
++	int foo;
++	/**
++	 * @bar: The Bar member.
++	 */
++	int bar;
++	/**
++	 * @baz: The Baz member.
++	 *
++	 * Here, the member description may contain several paragraphs.
++	 */
++	int baz;
++	/** @foobar: Single line description. */
++	int foobar;
+   }
+ 
+ 
+@@ -452,3 +451,37 @@ file.
+ 
+ Data structures visible in kernel include files should also be documented using
+ kernel-doc formatted comments.
++
++How to use kernel-doc to generate man pages
++-------------------------------------------
++
++If you just want to use kernel-doc to generate man pages you can do this
++from the Kernel git tree::
++
++  $ scripts/kernel-doc -man $(git grep -l '/\*\*' |grep -v Documentation/) | ./split-man.pl /tmp/man
++
++Using the small ``split-man.pl`` script below::
++
++
++  #!/usr/bin/perl
++
++  if ($#ARGV < 0) {
++     die "where do I put the results?\n";
++  }
++
++  mkdir $ARGV[0],0777;
++  $state = 0;
++  while (<STDIN>) {
++      if (/^\.TH \"[^\"]*\" 9 \"([^\"]*)\"/) {
++	if ($state == 1) { close OUT }
++	$state = 1;
++	$fn = "$ARGV[0]/$1.9";
++	print STDERR "Creating $fn\n";
++	open OUT, ">$fn" or die "can't open $fn: $!\n";
++	print OUT $_;
++      } elsif ($state != 0) {
++	print OUT $_;
++      }
++  }
++
++  close OUT;
+-- 
+2.13.5
