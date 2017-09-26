@@ -1,279 +1,537 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:51023 "EHLO mout.web.de"
+Received: from mga14.intel.com ([192.55.52.115]:30214 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753122AbdIXWRz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Sep 2017 18:17:55 -0400
-From: Soeren Moch <smoch@web.de>
-Subject: Re: [GIT PULL] SAA716x DVB driver
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andreas Regel <andreas.regel@gmx.de>,
-        Manu Abraham <manu@linuxtv.org>,
-        Oliver Endriss <o.endriss@gmx.de>, linux-media@vger.kernel.org,
-        Eugene Syromiatnikov <esyr@redhat.com>,
-        Arnd Bergmann <arnd@arndb.de>
-References: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de>
- <d693cf1b-de3d-5994-5ef0-eeb0e37065a3@web.de>
- <20170827073040.6e96d79a@vento.lan>
- <e9d87f55-18fc-e57b-f9aa-a41c7f983b34@web.de>
- <20170909181123.392cfbb0@vento.lan>
- <a44b8eb0-cdd5-aa28-ad30-68db0126b6f6@web.de>
- <20170916125042.78c4abad@recife.lan>
-Message-ID: <fab215f8-29f3-1857-6f33-c45e78bb5e3c@web.de>
-Date: Mon, 25 Sep 2017 00:17:00 +0200
+        id S965970AbdIZILT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 04:11:19 -0400
+Date: Tue, 26 Sep 2017 11:11:11 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: Re: [PATCH v14 05/28] v4l: fwnode: Support generic parsing of graph
+ endpoints in a device
+Message-ID: <20170926081111.lu6efij4uagjepwh@paasikivi.fi.intel.com>
+References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+ <20170925222540.371-6-sakari.ailus@linux.intel.com>
+ <0afab3ba-23fc-556e-1db6-f168fdea3be6@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20170916125042.78c4abad@recife.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Content-Language: en-GB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <0afab3ba-23fc-556e-1db6-f168fdea3be6@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16.09.2017 19:49, Mauro Carvalho Chehab wrote:
-> Em Sat, 16 Sep 2017 14:54:15 +0200
-> Soeren Moch <smoch@web.de> escreveu:
->
->> On 09.09.2017 23:20, Mauro Carvalho Chehab wrote:
->>> Em Sat, 9 Sep 2017 14:52:18 +0200
->>> Soeren Moch <smoch@web.de> escreveu:
->>>  
->>>> You explicitly
->>>> want to discourage new driver and application implementations.   
->>> Me? It is just the opposite: sticking with a poorly documented API
->>> that almost nobody knows seems to be what discouraged new drivers
->>> and applications.  
->> OK, then you are fine to keep the audio/video/osd API in this driver, great!
-> My current understanding is that keeping audio/video API doesn't make
-> any sense, for a couple of reasons:
-For me, keeping this interface makes a lot of sense.
-> 1. it was never fully documented;
-Nothing what prevents existing drivers to work, and new drivers
-to be written, as can be seen from this pull request.
-> 2. the only upstream hardware that supports them was developed on
->    about 17 years ago;
-But was sold for several years in lots of different versions,
-even hardware modifications were developed and applied
-by lots of users to improve the performance of these cards,
-and most important, these cards are still in use.
-> 3. the API is broken with regards to compat32 and Y2038 (see more
->    below);
-Not unique for this driver and, since this API has no business
-with wall clock time, not too complicated to fix.
-> 4. almost all (if not all) features they support are also supported
->    by V4L2 and ALSA;
-Here we come to the point. The DVB audio/video API just
-works, there are working drivers, working applications (vdr)
-and happy users.
-The audio/video/osd device nodes are nicely grouped below
-1 adapter, so it is immediately clear, which devices belong
-together. It is very easy to implement the classic multimedia
-set-top box use case (audio and video decoding with menu
-overlays). For this use case it is the ideal interface.
+On Tue, Sep 26, 2017 at 10:06:52AM +0200, Hans Verkuil wrote:
+> On 26/09/17 00:25, Sakari Ailus wrote:
+> > Add two functions for parsing devices graph endpoints:
+> > v4l2_async_notifier_parse_fwnode_endpoints and
+> > v4l2_async_notifier_parse_fwnode_endpoints_by_port. The former iterates
+> > over all endpoints whereas the latter only iterates over the endpoints in
+> > a given port.
+> > 
+> > The former is mostly useful for existing drivers that currently implement
+> > the iteration over all the endpoints themselves whereas the latter is
+> > especially intended for devices with both sinks and sources: async
+> > sub-devices for external devices connected to the device's sources will
+> > have already been set up, or they are part of the master device.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> I have two small comments below. After fixing that you can add my:
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-You propose V4L2/ALSA instead, what has "almost all features".
-May be, but "almost all" is not all, and a collection of features
-does not give us a working system. /dev/videoX device names
-are not stable across boots, it is even more complicated to
-find matching devices for different hardware with otherwise
-similar capabilities. With V4L2/ALSA there is no real A/V
-synchronisation, selected ALSA devices are reassigned during
-suspend or even HDMI hotplug. So audio gets lost when
-switching the monitor off and on again.
+Thanks; fixed the issues below.
 
-So while audio/video/osd is an integrated multimedia
-interface with working drivers and happy users, for me
-V4L2/ALSA is not ready to immediately replace it.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > ---
+> >  drivers/media/v4l2-core/v4l2-async.c  |  30 ++++++
+> >  drivers/media/v4l2-core/v4l2-fwnode.c | 196 ++++++++++++++++++++++++++++++++++
+> >  include/media/v4l2-async.h            |  24 ++++-
+> >  include/media/v4l2-fwnode.h           | 118 ++++++++++++++++++++
+> >  4 files changed, 366 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> > index 60ac2f4fc69e..dd2559316ccd 100644
+> > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > @@ -22,6 +22,7 @@
+> >  
+> >  #include <media/v4l2-async.h>
+> >  #include <media/v4l2-device.h>
+> > +#include <media/v4l2-fwnode.h>
+> >  #include <media/v4l2-subdev.h>
+> >  
+> >  static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+> > @@ -221,6 +222,35 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> >  }
+> >  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+> >  
+> > +void v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier)
+> > +{
+> > +	unsigned int i;
+> > +
+> > +	if (!notifier->max_subdevs)
+> > +		return;
+> > +
+> > +	for (i = 0; i < notifier->num_subdevs; i++) {
+> > +		struct v4l2_async_subdev *asd = notifier->subdevs[i];
+> > +
+> > +		switch (asd->match_type) {
+> > +		case V4L2_ASYNC_MATCH_FWNODE:
+> > +			fwnode_handle_put(asd->match.fwnode.fwnode);
+> > +			break;
+> > +		default:
+> > +			WARN_ON_ONCE(true);
+> 
+> Missing break.
+> 
+> > +		}
+> > +
+> > +		kfree(asd);
+> > +	}
+> > +
+> > +	notifier->max_subdevs = 0;
+> > +	notifier->num_subdevs = 0;
+> > +
+> > +	kvfree(notifier->subdevs);
+> > +	notifier->subdevs = NULL;
+> > +}
+> > +EXPORT_SYMBOL_GPL(v4l2_async_notifier_cleanup);
+> > +
+> >  int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+> >  {
+> >  	struct v4l2_async_notifier *notifier;
+> > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> > index 706f9e7b90f1..ea67d673c4a8 100644
+> > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> > @@ -19,6 +19,7 @@
+> >   */
+> >  #include <linux/acpi.h>
+> >  #include <linux/kernel.h>
+> > +#include <linux/mm.h>
+> >  #include <linux/module.h>
+> >  #include <linux/of.h>
+> >  #include <linux/property.h>
+> > @@ -26,6 +27,7 @@
+> >  #include <linux/string.h>
+> >  #include <linux/types.h>
+> >  
+> > +#include <media/v4l2-async.h>
+> >  #include <media/v4l2-fwnode.h>
+> >  
+> >  enum v4l2_fwnode_bus_type {
+> > @@ -313,6 +315,200 @@ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
+> >  }
+> >  EXPORT_SYMBOL_GPL(v4l2_fwnode_put_link);
+> >  
+> > +static int v4l2_async_notifier_realloc(struct v4l2_async_notifier *notifier,
+> > +				       unsigned int max_subdevs)
+> > +{
+> > +	struct v4l2_async_subdev **subdevs;
+> > +
+> > +	if (max_subdevs <= notifier->max_subdevs)
+> > +		return 0;
+> > +
+> > +	subdevs = kvmalloc_array(
+> > +		max_subdevs, sizeof(*notifier->subdevs),
+> > +		GFP_KERNEL | __GFP_ZERO);
+> > +	if (!subdevs)
+> > +		return -ENOMEM;
+> > +
+> > +	if (notifier->subdevs) {
+> > +		memcpy(subdevs, notifier->subdevs,
+> > +		       sizeof(*subdevs) * notifier->num_subdevs);
+> > +
+> > +		kvfree(notifier->subdevs);
+> > +	}
+> > +
+> > +	notifier->subdevs = subdevs;
+> > +	notifier->max_subdevs = max_subdevs;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int v4l2_async_notifier_fwnode_parse_endpoint(
+> > +	struct device *dev, struct v4l2_async_notifier *notifier,
+> > +	struct fwnode_handle *endpoint, unsigned int asd_struct_size,
+> > +	int (*parse_endpoint)(struct device *dev,
+> > +			    struct v4l2_fwnode_endpoint *vep,
+> > +			    struct v4l2_async_subdev *asd))
+> > +{
+> > +	struct v4l2_async_subdev *asd;
+> > +	struct v4l2_fwnode_endpoint *vep;
+> > +	int ret = 0;
+> > +
+> > +	asd = kzalloc(asd_struct_size, GFP_KERNEL);
+> > +	if (!asd)
+> > +		return -ENOMEM;
+> > +
+> > +	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> > +	asd->match.fwnode.fwnode =
+> > +		fwnode_graph_get_remote_port_parent(endpoint);
+> > +	if (!asd->match.fwnode.fwnode) {
+> > +		dev_warn(dev, "bad remote port parent\n");
+> > +		ret = -EINVAL;
+> > +		goto out_err;
+> > +	}
+> > +
+> > +	vep = v4l2_fwnode_endpoint_alloc_parse(endpoint);
+> > +	if (IS_ERR(vep)) {
+> > +		ret = PTR_ERR(vep);
+> > +		dev_warn(dev, "unable to parse V4L2 fwnode endpoint (%d)\n",
+> > +			 ret);
+> > +		goto out_err;
+> > +	}
+> > +
+> > +	ret = parse_endpoint ? parse_endpoint(dev, vep, asd) : 0;
+> > +	if (ret == -ENOTCONN)
+> > +		dev_dbg(dev, "ignoring port@%u/endpoint@%u\n", vep->base.port,
+> > +			vep->base.id);
+> > +	else if (ret < 0)
+> > +		dev_warn(dev,
+> > +			 "driver could not parse port@%u/endpoint@%u (%d)\n",
+> > +			 vep->base.port, vep->base.id, ret);
+> > +	v4l2_fwnode_endpoint_free(vep);
+> > +	if (ret < 0)
+> > +		goto out_err;
+> > +
+> > +	notifier->subdevs[notifier->num_subdevs] = asd;
+> > +	notifier->num_subdevs++;
+> > +
+> > +	return 0;
+> > +
+> > +out_err:
+> > +	fwnode_handle_put(asd->match.fwnode.fwnode);
+> > +	kfree(asd);
+> > +
+> > +	return ret == -ENOTCONN ? 0 : ret;
+> > +}
+> > +
+> > +static int __v4l2_async_notifier_parse_fwnode_endpoints(
+> > +	struct device *dev, struct v4l2_async_notifier *notifier,
+> > +	size_t asd_struct_size, unsigned int port, bool has_port,
+> > +	int (*parse_endpoint)(struct device *dev,
+> > +			    struct v4l2_fwnode_endpoint *vep,
+> > +			    struct v4l2_async_subdev *asd))
+> > +{
+> > +	struct fwnode_handle *fwnode = NULL;
+> 
+> You can drop the = NULL since the for-loop initializes it anyway.
+> 
+> > +	unsigned int max_subdevs = notifier->max_subdevs;
+> > +	int ret;
+> > +
+> > +	if (WARN_ON(asd_struct_size < sizeof(struct v4l2_async_subdev)))
+> > +		return -EINVAL;
+> > +
+> > +	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
+> > +				     dev_fwnode(dev), fwnode)); ) {
+> > +		struct fwnode_handle *dev_fwnode;
+> > +		bool is_available;
+> > +
+> > +		dev_fwnode = fwnode_graph_get_port_parent(fwnode);
+> > +		is_available = fwnode_device_is_available(dev_fwnode);
+> > +		fwnode_handle_put(dev_fwnode);
+> > +		if (!is_available)
+> > +			continue;
+> > +
+> > +		if (has_port) {
+> > +			struct fwnode_endpoint ep;
+> > +
+> > +			ret = fwnode_graph_parse_endpoint(fwnode, &ep);
+> > +			if (ret) {
+> > +				fwnode_handle_put(fwnode);
+> > +				return ret;
+> > +			}
+> > +
+> > +			if (ep.port != port)
+> > +				continue;
+> > +		}
+> > +		max_subdevs++;
+> > +	}
+> > +
+> > +	/* No subdevs to add? Return here. */
+> > +	if (max_subdevs == notifier->max_subdevs)
+> > +		return 0;
+> > +
+> > +	ret = v4l2_async_notifier_realloc(notifier, max_subdevs);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
+> > +				     dev_fwnode(dev), fwnode)); ) {
+> > +		struct fwnode_handle *dev_fwnode;
+> > +		bool is_available;
+> > +
+> > +		dev_fwnode = fwnode_graph_get_port_parent(fwnode);
+> > +		is_available = fwnode_device_is_available(dev_fwnode);
+> > +		fwnode_handle_put(dev_fwnode);
+> > +
+> > +		if (!fwnode_device_is_available(dev_fwnode))
+> > +			continue;
+> > +
+> > +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
+> > +			ret = -EINVAL;
+> > +			break;
+> > +		}
+> > +
+> > +		if (has_port) {
+> > +			struct fwnode_endpoint ep;
+> > +
+> > +			ret = fwnode_graph_parse_endpoint(fwnode, &ep);
+> > +			if (ret)
+> > +				break;
+> > +
+> > +			if (ep.port != port)
+> > +				continue;
+> > +		}
+> > +
+> > +		ret = v4l2_async_notifier_fwnode_parse_endpoint(
+> > +			dev, notifier, fwnode, asd_struct_size, parse_endpoint);
+> > +		if (ret < 0)
+> > +			break;
+> > +	}
+> > +
+> > +	fwnode_handle_put(fwnode);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +int v4l2_async_notifier_parse_fwnode_endpoints(
+> > +	struct device *dev, struct v4l2_async_notifier *notifier,
+> > +	size_t asd_struct_size,
+> > +	int (*parse_endpoint)(struct device *dev,
+> > +			    struct v4l2_fwnode_endpoint *vep,
+> > +			    struct v4l2_async_subdev *asd))
+> > +{
+> > +	return __v4l2_async_notifier_parse_fwnode_endpoints(
+> > +		dev, notifier, asd_struct_size, 0, false, parse_endpoint);
+> > +}
+> > +EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints);
+> > +
+> > +int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+> > +	struct device *dev, struct v4l2_async_notifier *notifier,
+> > +	size_t asd_struct_size, unsigned int port,
+> > +	int (*parse_endpoint)(struct device *dev,
+> > +			    struct v4l2_fwnode_endpoint *vep,
+> > +			    struct v4l2_async_subdev *asd))
+> > +{
+> > +	return __v4l2_async_notifier_parse_fwnode_endpoints(
+> > +		dev, notifier, asd_struct_size, port, true, parse_endpoint);
+> > +}
+> > +EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints_by_port);
+> > +
+> >  MODULE_LICENSE("GPL");
+> >  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+> >  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+> > diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> > index c69d8c8a66d0..329aeebd1a80 100644
+> > --- a/include/media/v4l2-async.h
+> > +++ b/include/media/v4l2-async.h
+> > @@ -18,7 +18,6 @@ struct device;
+> >  struct device_node;
+> >  struct v4l2_device;
+> >  struct v4l2_subdev;
+> > -struct v4l2_async_notifier;
+> >  
+> >  /* A random max subdevice number, used to allocate an array on stack */
+> >  #define V4L2_MAX_SUBDEVS 128U
+> > @@ -50,6 +49,10 @@ enum v4l2_async_match_type {
+> >   * @match:	union of per-bus type matching data sets
+> >   * @list:	used to link struct v4l2_async_subdev objects, waiting to be
+> >   *		probed, to a notifier->waiting list
+> > + *
+> > + * When this struct is used as a member in a driver specific struct,
+> > + * the driver specific struct shall contain the &struct
+> > + * v4l2_async_subdev as its first member.
+> >   */
+> >  struct v4l2_async_subdev {
+> >  	enum v4l2_async_match_type match_type;
+> > @@ -78,7 +81,8 @@ struct v4l2_async_subdev {
+> >  /**
+> >   * struct v4l2_async_notifier - v4l2_device notifier data
+> >   *
+> > - * @num_subdevs: number of subdevices
+> > + * @num_subdevs: number of subdevices used in the subdevs array
+> > + * @max_subdevs: number of subdevices allocated in the subdevs array
+> >   * @subdevs:	array of pointers to subdevice descriptors
+> >   * @v4l2_dev:	pointer to struct v4l2_device
+> >   * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+> > @@ -90,6 +94,7 @@ struct v4l2_async_subdev {
+> >   */
+> >  struct v4l2_async_notifier {
+> >  	unsigned int num_subdevs;
+> > +	unsigned int max_subdevs;
+> >  	struct v4l2_async_subdev **subdevs;
+> >  	struct v4l2_device *v4l2_dev;
+> >  	struct list_head waiting;
+> > @@ -121,6 +126,21 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> >  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
+> >  
+> >  /**
+> > + * v4l2_async_notifier_cleanup - clean up notifier resources
+> > + * @notifier: the notifier the resources of which are to be cleaned up
+> > + *
+> > + * Release memory resources related to a notifier, including the async
+> > + * sub-devices allocated for the purposes of the notifier but not the notifier
+> > + * itself. The user is responsible for calling this function to clean up the
+> > + * notifier after calling @v4l2_async_notifier_parse_fwnode_endpoints.
+> > + *
+> > + * There is no harm from calling v4l2_async_notifier_cleanup in other
+> > + * cases as long as its memory has been zeroed after it has been
+> > + * allocated.
+> > + */
+> > +void v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier);
+> > +
+> > +/**
+> >   * v4l2_async_register_subdev - registers a sub-device to the asynchronous
+> >   * 	subdevice framework
+> >   *
+> > diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+> > index 68eb22ba571b..add721695fbd 100644
+> > --- a/include/media/v4l2-fwnode.h
+> > +++ b/include/media/v4l2-fwnode.h
+> > @@ -25,6 +25,8 @@
+> >  #include <media/v4l2-mediabus.h>
+> >  
+> >  struct fwnode_handle;
+> > +struct v4l2_async_notifier;
+> > +struct v4l2_async_subdev;
+> >  
+> >  #define V4L2_FWNODE_CSI2_MAX_DATA_LANES	4
+> >  
+> > @@ -201,4 +203,120 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
+> >   */
+> >  void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
+> >  
+> > +/**
+> > + * v4l2_async_notifier_parse_fwnode_endpoints - Parse V4L2 fwnode endpoints in a
+> > + *						device node
+> > + * @dev: the device the endpoints of which are to be parsed
+> > + * @notifier: notifier for @dev
+> > + * @asd_struct_size: size of the driver's async sub-device struct, including
+> > + *		     sizeof(struct v4l2_async_subdev). The &struct
+> > + *		     v4l2_async_subdev shall be the first member of
+> > + *		     the driver's async sub-device struct, i.e. both
+> > + *		     begin at the same memory address.
+> > + * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
+> > + *		    endpoint. Optional.
+> > + *		    Return: %0 on success
+> > + *			    %-ENOTCONN if the endpoint is to be skipped but this
+> > + *				       should not be considered as an error
+> > + *			    %-EINVAL if the endpoint configuration is invalid
+> > + *
+> > + * Parse the fwnode endpoints of the @dev device and populate the async sub-
+> > + * devices array of the notifier. The @parse_endpoint callback function is
+> > + * called for each endpoint with the corresponding async sub-device pointer to
+> > + * let the caller initialize the driver-specific part of the async sub-device
+> > + * structure.
+> > + *
+> > + * The notifier memory shall be zeroed before this function is called on the
+> > + * notifier.
+> > + *
+> > + * This function may not be called on a registered notifier and may be called on
+> > + * a notifier only once.
+> > + *
+> > + * Do not change the notifier's subdevs array, take references to the subdevs
+> > + * array itself or change the notifier's num_subdevs field. This is because this
+> > + * function allocates and reallocates the subdevs array based on parsing
+> > + * endpoints.
+> > + *
+> > + * The &struct v4l2_fwnode_endpoint passed to the callback function
+> > + * @parse_endpoint is released once the function is finished. If there is a need
+> > + * to retain that configuration, the user needs to allocate memory for it.
+> > + *
+> > + * Any notifier populated using this function must be released with a call to
+> > + * v4l2_async_notifier_cleanup() after it has been unregistered and the async
+> > + * sub-devices are no longer in use, even if the function returned an error.
+> > + *
+> > + * Return: %0 on success, including when no async sub-devices are found
+> > + *	   %-ENOMEM if memory allocation failed
+> > + *	   %-EINVAL if graph or endpoint parsing failed
+> > + *	   Other error codes as returned by @parse_endpoint
+> > + */
+> > +int v4l2_async_notifier_parse_fwnode_endpoints(
+> > +	struct device *dev, struct v4l2_async_notifier *notifier,
+> > +	size_t asd_struct_size,
+> > +	int (*parse_endpoint)(struct device *dev,
+> > +			      struct v4l2_fwnode_endpoint *vep,
+> > +			      struct v4l2_async_subdev *asd));
+> > +
+> > +/**
+> > + * v4l2_async_notifier_parse_fwnode_endpoints_by_port - Parse V4L2 fwnode
+> > + *							endpoints of a port in a
+> > + *							device node
+> > + * @dev: the device the endpoints of which are to be parsed
+> > + * @notifier: notifier for @dev
+> > + * @asd_struct_size: size of the driver's async sub-device struct, including
+> > + *		     sizeof(struct v4l2_async_subdev). The &struct
+> > + *		     v4l2_async_subdev shall be the first member of
+> > + *		     the driver's async sub-device struct, i.e. both
+> > + *		     begin at the same memory address.
+> > + * @port: port number where endpoints are to be parsed
+> > + * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
+> > + *		    endpoint. Optional.
+> > + *		    Return: %0 on success
+> > + *			    %-ENOTCONN if the endpoint is to be skipped but this
+> > + *				       should not be considered as an error
+> > + *			    %-EINVAL if the endpoint configuration is invalid
+> > + *
+> > + * This function is just like v4l2_async_notifier_parse_fwnode_endpoints() with
+> > + * the exception that it only parses endpoints in a given port. This is useful
+> > + * on devices that have both sinks and sources: the async sub-devices connected
+> > + * to sources have already been configured by another driver (on capture
+> > + * devices). In this case the driver must know which ports to parse.
+> > + *
+> > + * Parse the fwnode endpoints of the @dev device on a given @port and populate
+> > + * the async sub-devices array of the notifier. The @parse_endpoint callback
+> > + * function is called for each endpoint with the corresponding async sub-device
+> > + * pointer to let the caller initialize the driver-specific part of the async
+> > + * sub-device structure.
+> > + *
+> > + * The notifier memory shall be zeroed before this function is called on the
+> > + * notifier the first time.
+> > + *
+> > + * This function may not be called on a registered notifier and may be called on
+> > + * a notifier only once per port.
+> > + *
+> > + * Do not change the notifier's subdevs array, take references to the subdevs
+> > + * array itself or change the notifier's num_subdevs field. This is because this
+> > + * function allocates and reallocates the subdevs array based on parsing
+> > + * endpoints.
+> > + *
+> > + * The &struct v4l2_fwnode_endpoint passed to the callback function
+> > + * @parse_endpoint is released once the function is finished. If there is a need
+> > + * to retain that configuration, the user needs to allocate memory for it.
+> > + *
+> > + * Any notifier populated using this function must be released with a call to
+> > + * v4l2_async_notifier_cleanup() after it has been unregistered and the async
+> > + * sub-devices are no longer in use, even if the function returned an error.
+> > + *
+> > + * Return: %0 on success, including when no async sub-devices are found
+> > + *	   %-ENOMEM if memory allocation failed
+> > + *	   %-EINVAL if graph or endpoint parsing failed
+> > + *	   Other error codes as returned by @parse_endpoint
+> > + */
+> > +int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+> > +	struct device *dev, struct v4l2_async_notifier *notifier,
+> > +	size_t asd_struct_size, unsigned int port,
+> > +	int (*parse_endpoint)(struct device *dev,
+> > +			      struct v4l2_fwnode_endpoint *vep,
+> > +			      struct v4l2_async_subdev *asd));
+> > +
+> >  #endif /* _V4L2_FWNODE_H */
+> > 
+> 
 
-> 5. V4L2 supports a lot more features that video decoders support
->    than video API, like H.264 and other newer video standards, plus
->    HDMI setup features.
-The S2-6400 card also decodes H.264, and the API is not
-limited to any set of video coding standards. This card
-decodes frame synchronous audio and video and correctly
-signals audio/video formats in HDMI AVI frames  (e.g.
-AC3 / PCM audio, video aspect ratios,...). You did not explain
-how this should work with V4L2/ALSA.
-
-For other use cases other types of v4l2 devices could be
-more appropriate. The two APIs coexist for years in
-mainline linux without problems.
-> In the past, we tried a lot to get documentation for those
-> DVB APIs, but, unfortunately, nobody that worked on its development
-> sent us patches addressing the API documentation.
-You probably know why the ttpci developers stopped
-sending patches to linux-media.
-> With regards to OSD, as no other documented API emerged to
-> fulfill what it does, it could make sense to keep it, if
-> someone properly documents it.
->
->>>> With linux core APIs for FF you probably mean some new
->>>> API combination as successor of the audio/video/osd API.
->>>> The S2-6400 unfortunately directly implements the old API
->>>> in hardware and is therefore the worst possible match for
->>>> such new driver generation.  
->>> It sounds weird that the API is directly implemented in hardware.
->>> I can't tell much, though, as I didn't see the code yet.  
->> All the available code is in this pull request.
-> I know. I'll look on it if we reach an agreement.
->
->> I really don't understand your Kaffeine use case. Kaffeine is a media
->> player, which displays the decoded video on a KDE/Gnome desktop.
->> With the S2-6400 it is not possible to read the decoded video back,
->> so it is not possible to display something in a desktop window.
->> I cannot image what you want to do with this hardware and Kaffeine.
-> I see.
->
->>>>> One alternative we could do would be to add the proper APIs for the
->>>>> driver and keep for a couple of Kernel versions, in staging, a module
->>>>> that would provide backward compatibility to the legacy APIs. This way,
->>>>> applications will have some time to add support for the new API.
->>>>>
->>>>> If you're willing to do that, I can merge the patches.    
->>>> Here I do not understand what you expect me to do. The audio/video/osd
->>>> devices are closely tied together (as frontend/demux/dvr are for the
->>>> input side). The S2-6400 card expects an transport stream with audio and
->>>> video packets to be written to that video device (the audio device is
->>>> not used) and commands  for overlay text/graphics over the osd device.  
->>> There are two options here:
->>>
->>> 1) if the hardware itself allows to direct a filtered MPEG-TS to the demod,
->>>    by hardware, instead of reading it from /dev/dvb/.../dvr and writing it
->>>    to /dev/dvb.../video, you could use the Media Controller to
->>>    direct the video PID to the video decoder hardware directly;  
->> This is what you want me to implement: this shortcut from
->> /dev/dvb/.../dvr to /dev/dvb.../video ? Since you said above that this
->> is already implemented in the dvb core, this should be easy and.
->> can of course be implemented in this driver.
->>>    The V4L2 driver device node (let's say, /dev/video0) will just
->>>    implement the HDMI output.  
->> There is no separate decoder / HDMI hardware, from the driver's
->> point of view. The decoded video directly goes to the HDMI output.
-> If there's nothing that can be controlled at the HDMI output, why do
-> you need a /dev/dvb.../video devnode? If it can be controlled, a 
-> V4L2 output will do the job.
-As I wrote several times, the TS stream, which will be decoded,
-is written to /dev/dvb/adapterX/video.
->>> 2) if there's no hardware pipelines between the demux and the decoders,
->>>    userspace will read video from .../dvr and write it to a /dev/video
->>>    capture device node, implemented by a mem2mem V4L2 driver.  
->> There cannot be a separate capture device node for the decoded
->> video. You probably refer to the video_cature:one-shot feature,
->> which is switched off by default.
->> This is a debug feature, which vdr supports. It is intended to
->> take a snapshot of the output image, something for debugging
->> vdr-skins, the graphical user interface of vdr.
-> Ah, so it can't play an arbitrary MPEG-TS stream from other
-> sources, right?
-The card will decode the TS stream written to the video device
-and display the decoded audio and video over HDMI.
->
->> From the msleep(100); in the read path you can easily see, that
->> this is meant for still images, not for video. Due to bandwidth
->> limitations on the hardware this should normally not be used
->> during normal decoding.
->>>    The mem2mem output device node (let's say, /dev/video1) will control
->>>    the HDMI output.  
->> As mentioned several times, it is only possible to write a transport
->> stream to the video device, and osd commands to the osd device.
-> Hmm... now, I'm confused. Can it play a MPEG-TS video stored at the
-> computer or not?
-The TS stream, written to the video device for decoding,
-can come from the same adapter's  dvr device, from any
-other adapter's dvr device, from harddisk or where-ever.
->
->> There is no hardware interface to directly access the HDMI output.
->> So it is not possible to create a separate v4l2 HDMI output device.
->>>> The osd part you considered to keep as-is. There is no general video
->>>> output possible as over a DRM device, there is no GPU processing
->>>> possible, and there is no API for video decoding as in a general v4l2
->>>> decoder device. This card's decoder only implements exactly the DVB
->>>> video and osd devices in hardware (well, card firmware I guess, as
->>>> hobbyist programmer I have no access to that), with this somewhat
->>>> strange mix of audio and video (for the card it is not strange, as audio
->>>> and video are always mux'ed in DVB streams).
->>>>  
->>>>>> I agree that new drivers should use modern APIs in the general case. But
->>>>>> for this driver the legacy DVB decoder API is a hard requirement for me,
->>>>>> as described. So I hope you will dispense with the v4l2 conversion for
->>>>>> this special case. I'm pretty sure that there will be no new hardware
->>>>>> and therefore no new driver with this legacy API, this saa716x_ff driver
->>>>>> also has a 7-year development history, in this sense it is not really new
->>>>>> and one could also think of it as some sort of legacy code.    
->>>>> FF hardware is still common on embedded devices. Sooner or later support
->>>>> for them will be added upstream, and applications that support it
->>>>> will appear.    
->>>> Yes, I would really like to get the same functionality as with S2-6400
->>>> on modern SoCs (i.MX6Q, Allwinner H5, meson-gxbb Amlogic S905,...)
->>>> with modern APIs, in an uniform way, see the other thread.  
->>> They likely need a lot more, as modern SoC may have lots of IP
->>> blocks to control (multiple inputs, scalers, mpeg encoding, etc). By
->>> adding MC support, the gaps can be fulfilled.  
->> Maybe this is a misunderstanding here. I do not plan to support
->> other hardware with this saa716x_ff driver. The other thread [1]
->> about documentation of modern APIs for modern SoCs is somewhat
->> related, but independent from this driver for the S2-6400.
->> This driver as successor of ttpci must implement the same DVB API
->> to support existing users.
->>
->> Drivers for modern hardware may use other APIs, please answer
->> about this in the other thread (or maybe in a new one, if this is more
->> appropriate).
-> Yeah, perhaps there's a misunderstanding here. What we currently have
-> upstream is a single driver (av7110) that supports a hardware, developed
-> about 17 years ago, and that it is out of production for a long time.
-As already mentioned, this hardware was sold over a very long
-period of time in different versions, it was hardware-modded for
-better performance and is still in use.
-> We should remove this driver some day, but, as there isn't any strong
-> reason to remove, it is staying (and so the API header files to talk
-> with it).
-And now we have another driver with the same already in-tree
-interface, with happy users for several years, which can as well
-stay there. And, as I already offered to maintain both drivers, you
-would get a maintainer for the DVB decoding API.
->
-> Actually, a couple of weeks before your saa716x pull request, there was
-> a report that the current DVB video API is broken with regards to 
-> compat32 and fix would break kABI [1]. It is also incompatible with
-> Y2038 fixes that are happening system wide. So, perhaps is time to
-> get rid of it for good.
-As the fixes are happening tree-wide, this driver should be fixed
-in the same way. There are happy users of this driver, and a
-maintainer for it if you agree, no need to remove this driver.
->
-> [1] see https://patchwork.kernel.org/patch/7187851/ and related
->     e-mails.
->
-> If/when we add another full-featured DVB hardware (outside staging),
-> as the API defined on audio/video is too old (from the time that all
-> video decoders were MPEG 2), and it didn't receive any updates to
-> support modern hardware, it is unlikely that it would work for such
-> hardware.
-Here you just received a driver for more modern H.264 full-featured
-DVB hardware, it is working great with this API.
->  I bet that using V4L2/ALSA (perhaps with a few minor additions)
-> would work a way better, as those APIs always got updatates as new audio
-> and video codecs got added. The V4L2 also supports the needed bits to
-> detect HDMI monitors and adjust parameters like resolution, 3D mode
-> and fps rate there.
-As described above, V4L2/ALSA has a lot of problems for this
-use-case. All the advantages you describe for V4L2/ALSA
-"with a few minor additions" are already working great
-without additions in this available driver.
-> Now, on this thread you're proposing to add another driver using
-> DVB video obsolete (and Y2028 broken) API.
-This API is used in a popular application from happy users,
-so it is not obsolete.
->  What I'm saying is that,
-> if we're adding it on staging, we need to have a plan to reimplement
-> it to whatever API replaces the DVB video API, as this API likely
-> won't stay upstream much longer.
-AFAIK it is not usual linux policy to remove existing drivers
-with happy users and even someone who volunteered to
-maintain this.
-
-Regards,
-Soeren
-> Thanks,
-> Mauro
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
