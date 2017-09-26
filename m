@@ -1,79 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from p3plsmtpa06-03.prod.phx3.secureserver.net ([173.201.192.104]:45629
-        "EHLO p3plsmtpa06-03.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751149AbdIXHyH (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55735
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S969482AbdIZR71 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Sep 2017 03:54:07 -0400
-From: Leon Luo <leonl@leopardimaging.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, leonl@leopardimaging.com,
-        soren.brinkmann@xilinx.com
-Subject: [PATCH v6 1/2] media:imx274 device tree binding file
-Date: Sun, 24 Sep 2017 00:53:28 -0700
-Message-Id: <20170924075329.9927-1-leonl@leopardimaging.com>
+        Tue, 26 Sep 2017 13:59:27 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        linux-kernel@vger.kernel.org, Evgeniy Polyakov <zbr@ioremap.net>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: [PATCH 00/10] kernel-doc: add supported to document nested structs/unions
+Date: Tue, 26 Sep 2017 14:59:10 -0300
+Message-Id: <cover.1506448061.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The binding file for imx274 CMOS sensor V4l2 driver
+Right now, it is not possible to document nested struct and nested unions.
+kernel-doc simply ignore them.
 
-Signed-off-by: Leon Luo <leonl@leopardimaging.com>
----
-v6:
- - no changes
-v5:
- - add 'port' and 'endpoint' information
-v4:
- - no changes
-v3:
- - remove redundant properties and references
- - document 'reg' property
-v2:
- - no changes
----
- .../devicetree/bindings/media/i2c/imx274.txt       | 33 ++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/imx274.txt
+Add support to document them.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/imx274.txt b/Documentation/devicetree/bindings/media/i2c/imx274.txt
-new file mode 100644
-index 000000000000..80f2e89568e1
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/imx274.txt
-@@ -0,0 +1,33 @@
-+* Sony 1/2.5-Inch 8.51Mp CMOS Digital Image Sensor
-+
-+The Sony imx274 is a 1/2.5-inch CMOS active pixel digital image sensor with
-+an active array size of 3864H x 2202V. It is programmable through I2C
-+interface. The I2C address is fixed to 0x1a as per sensor data sheet.
-+Image data is sent through MIPI CSI-2, which is configured as 4 lanes
-+at 1440 Mbps.
-+
-+
-+Required Properties:
-+- compatible: value should be "sony,imx274" for imx274 sensor
-+- reg: I2C bus address of the device
-+
-+Optional Properties:
-+- reset-gpios: Sensor reset GPIO
-+
-+The imx274 device node should contain one 'port' child node with
-+an 'endpoint' subnode. For further reading on port node refer to
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+	sensor@1a {
-+		compatible = "sony,imx274";
-+		reg = <0x1a>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		reset-gpios = <&gpio_sensor 0 0>;
-+		port {
-+			sensor_out: endpoint {
-+				remote-endpoint = <&csiss_in>;
-+			};
-+		};
-+	};
+This series starts with a patch getting rid of the now unused output formats
+for kernel-doc: since we got rid of all DocBook stuff, we should not need
+them anymore. The reason for dropping it (despite cleaning up), is that
+it doesn't make sense to invest time on adding new features for formats
+that aren't used anymore.
+
+The next 8 patches on this series improve kernel-doc documentation and
+finally get rid of its old documentation (kernel-doc-nano-HOWTO.txt).
+
+Patch 9/10 is the most interesting one in this series: it adds support for
+nested structures and unions.
+
+Patch 10/10 is just an example from a random header with kernel-doc
+markups. There's no special reason for selecting this file, and the
+comments there are likely wrong. So, please use it only as a way to test
+the new parser logic from patch 9/10.
+
+Mauro Carvalho Chehab (10):
+  scripts: kernel-doc: get rid of unused output formats
+  docs: kernel-doc.rst: better describe kernel-doc arguments
+  docs: kernel-doc.rst: improve private members description
+  docs: kernel-doc.rst: improve function documentation section
+  docs: kernel-doc.rst: improve structs chapter
+  docs: kernel-doc: improve typedef documentation
+  docs: kernel-doc.rst: add documentation about man pages
+  docs: get rid of kernel-doc-nano-HOWTO.txt
+  scripts: kernel-doc: parse next structs/unions
+  [RFC] w1_netlink.h: add support for nested structs
+
+---
+
+Before this series, I send a few PoC patches. They were all
+replaced by patch 9/10.
+
+ Documentation/00-INDEX                  |    2 -
+ Documentation/doc-guide/kernel-doc.rst  |  387 ++++++---
+ Documentation/kernel-doc-nano-HOWTO.txt |  322 --------
+ drivers/w1/w1_netlink.h                 |    4 +
+ scripts/kernel-doc                      | 1304 ++-----------------------------
+ 5 files changed, 346 insertions(+), 1673 deletions(-)
+ delete mode 100644 Documentation/kernel-doc-nano-HOWTO.txt
+
 -- 
-2.14.0.rc1
+2.13.5
