@@ -1,73 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:40525 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751205AbdISKHm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 06:07:42 -0400
-Subject: Re: [PATCHv2 1/2] dt-bindings: adi,adv7511.txt: document cec clock
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
-        Archit Taneja <architt@codeaurora.org>,
-        linux-renesas-soc@vger.kernel.org,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        devicetree@vger.kernel.org
-References: <20170919073331.29007-1-hverkuil@xs4all.nl>
- <20170919073331.29007-2-hverkuil@xs4all.nl>
- <505bc74f-6563-ab1d-9aab-7893410aef7e@cogentembedded.com>
- <74b252c8-c1eb-8498-7b9b-54604fe2806a@cisco.com>
- <e68cffb1-346c-2018-9048-3f8523903809@cogentembedded.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7bfcd125-db23-61e3-2bc9-67e5c11f27fa@xs4all.nl>
-Date: Tue, 19 Sep 2017 12:07:37 +0200
+Received: from mout.web.de ([217.72.192.78]:53976 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965748AbdIZLab (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 07:30:31 -0400
+Subject: [PATCH 3/6] [media] tda8261: Return directly after a failed kzalloc()
+ in tda8261_attach()
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <15d74bee-7467-4687-24e1-3501c22f6d75@users.sourceforge.net>
+Message-ID: <6613af47-7855-2633-e4dd-40b259cb4dc4@users.sourceforge.net>
+Date: Tue, 26 Sep 2017 13:30:21 +0200
 MIME-Version: 1.0
-In-Reply-To: <e68cffb1-346c-2018-9048-3f8523903809@cogentembedded.com>
+In-Reply-To: <15d74bee-7467-4687-24e1-3501c22f6d75@users.sourceforge.net>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/19/17 11:35, Sergei Shtylyov wrote:
-> On 9/19/2017 12:29 PM, Hans Verkuil wrote:
-> 
->>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>
->>>> Document the cec clock binding.
->>>>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>> Acked-by: Rob Herring <robh@kernel.org>
->>>> ---
->>>>    Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt | 4 ++++
->>>>    1 file changed, 4 insertions(+)
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->>>> index 06668bca7ffc..4497ae054d49 100644
->>>> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->>>> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->>>> @@ -68,6 +68,8 @@ Optional properties:
->>>>    - adi,disable-timing-generator: Only for ADV7533. Disables the internal timing
->>>>      generator. The chip will rely on the sync signals in the DSI data lanes,
->>>>      rather than generate its own timings for HDMI output.
->>>> +- clocks: from common clock binding: handle to CEC clock.
->>>
->>>      It's called "phandle" in the DT speak. :-)
->>>      Are you sure the clock specifier would always be absent?
->>
->> Sorry? I don't understand the question. Did you mean: "can be absent?"?
-> 
->     No, you only say that there'll be the clock phandle only. The clock 
-> specifier may follow the phandle for the clock devices that have 
-> "#clock-cells" prop != 0.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 26 Sep 2017 12:20:33 +0200
 
-I have to say that I just copy-and-pasted this from other bindings. Would
-this be better?
+* Return directly after a call of the function "kzalloc" failed
+  at the beginning.
 
-- clocks: list of clock specifiers, corresponding to entries in
-  the clock-names property;
-- clock-names: from common clock binding: must be "cec".
+* Delete a call of the function "kfree" and the jump target "exit"
+  which became unnecessary with this refactoring.
 
-Regards,
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/dvb-frontends/tda8261.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-	Hans
+diff --git a/drivers/media/dvb-frontends/tda8261.c b/drivers/media/dvb-frontends/tda8261.c
+index 5269a170c84e..e3b4183d00c2 100644
+--- a/drivers/media/dvb-frontends/tda8261.c
++++ b/drivers/media/dvb-frontends/tda8261.c
+@@ -187,7 +187,7 @@ struct dvb_frontend *tda8261_attach(struct dvb_frontend *fe,
+ 
+ 	state = kzalloc(sizeof(*state), GFP_KERNEL);
+ 	if (!state)
+-		goto exit;
++		return NULL;
+ 
+ 	state->config		= config;
+ 	state->i2c		= i2c;
+@@ -200,10 +200,6 @@ struct dvb_frontend *tda8261_attach(struct dvb_frontend *fe,
+ 	pr_info("%s: Attaching TDA8261 8PSK/QPSK tuner\n", __func__);
+ 
+ 	return fe;
+-
+-exit:
+-	kfree(state);
+-	return NULL;
+ }
+ 
+ EXPORT_SYMBOL(tda8261_attach);
+-- 
+2.14.1
