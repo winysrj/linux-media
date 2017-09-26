@@ -1,52 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:60814 "EHLO mout.web.de"
+Received: from mga14.intel.com ([192.55.52.115]:38899 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751873AbdIVOvH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 10:51:07 -0400
-Subject: Re: [PATCH 2/4] [media] usbvision-core: Use common error handling
- code in usbvision_set_compress_params()
-To: Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org
-Cc: Davidlohr Bueso <dave@stgolabs.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <c0e6e8e7-e47d-dc88-3317-2e46eaa51dc6@users.sourceforge.net>
- <52c09836-83d7-c509-6e85-c7af16160302@users.sourceforge.net>
- <20170922114432.x4e2ao22spbyek7n@mwanda>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <d4ab8049-0be4-6183-3cbd-5bc03968c2a4@users.sourceforge.net>
-Date: Fri, 22 Sep 2017 16:50:07 +0200
+        id S936633AbdIZI3v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 04:29:51 -0400
+Date: Tue, 26 Sep 2017 11:29:47 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: Re: [PATCH v14 22/28] v4l: fwnode: Add a convenience function for
+ registering sensors
+Message-ID: <20170926082947.xwwhn6k2v5dktviz@paasikivi.fi.intel.com>
+References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+ <20170925222540.371-24-sakari.ailus@linux.intel.com>
+ <ac50fc71-c528-a703-04bb-6abc1fc7c19a@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20170922114432.x4e2ao22spbyek7n@mwanda>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ac50fc71-c528-a703-04bb-6abc1fc7c19a@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> @@ -1913,11 +1908,12 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
->>  			     USB_DIR_OUT | USB_TYPE_VENDOR |
->>  			     USB_RECIP_ENDPOINT, 0,
->>  			     (__u16) USBVISION_PCM_THR1, value, 6, HZ);
->> +	if (rc < 0)
->> +report_failure:
->> +		dev_err(&usbvision->dev->dev,
->> +			"%s: ERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
->> +			__func__, rc);
+On Tue, Sep 26, 2017 at 10:26:35AM +0200, Hans Verkuil wrote:
+> On 26/09/17 00:25, Sakari Ailus wrote:
+> > Add a convenience function for parsing firmware for information on related
+> > devices using v4l2_async_notifier_parse_fwnode_sensor_common() registering
+> > the notifier and finally the async sub-device itself.
+> > 
+> > This should be useful for sensor drivers that do not have device specific
+> > requirements related to firmware information parsing or the async
+> > framework.
 > 
-> You've been asked several times not to write code like this.
+> I'm confused. This is a second patch 22/28 that appears to be identical to the
+> previous one.
+> 
+> I'm ignoring this one, I assume something went wrong when you mailed this series.
 
-This suggestion occurred a few times.
+Yes. I changed the subject but accidentally used the same directory for the
+patches. The patch is the same.
 
-Do you prefer to move this place to the end together with a duplicated statement “return rc;”?
+The intended subject prefix is "v4l: fwnode".
 
-
-> You do it later in the patch series as well.
-
-To which update step do you refer here?
-
-Regards,
-Markus
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
