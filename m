@@ -1,235 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:46552 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751548AbdIRP0t (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55318 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S967292AbdIZIUu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 11:26:49 -0400
-Subject: Re: [PATCHv4 3/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
- support
-To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Sean Paul <seanpaul@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20170916141726.4921-1-hverkuil@xs4all.nl>
- <20170916141726.4921-4-hverkuil@xs4all.nl> <20170918130531.GW4914@intel.com>
- <24562161-6303-501b-fb28-25ee741e4bf5@xs4all.nl>
- <20170918143646.GB4914@intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <d3cd40cc-1f91-29f5-fafa-f2bf0982916a@xs4all.nl>
-Date: Mon, 18 Sep 2017 17:26:43 +0200
+        Tue, 26 Sep 2017 04:20:50 -0400
+Date: Tue, 26 Sep 2017 11:20:46 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+Subject: Re: [PATCH v14 15/28] v4l: async: Allow binding notifiers to
+ sub-devices
+Message-ID: <20170926082046.sfmhyf7xmkutzjbe@valkosipuli.retiisi.org.uk>
+References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+ <20170925222540.371-16-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20170918143646.GB4914@intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170925222540.371-16-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/18/2017 04:36 PM, Ville Syrjälä wrote:
-> On Mon, Sep 18, 2017 at 04:07:41PM +0200, Hans Verkuil wrote:
->> Hi Ville,
->>
->> On 09/18/2017 03:05 PM, Ville Syrjälä wrote:
->>> On Sat, Sep 16, 2017 at 04:17:26PM +0200, Hans Verkuil wrote:
->>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>
->>>> Implement support for this DisplayPort feature.
->>>>
->>>> The cec device is created whenever it detects an adapter that
->>>> has this feature. It is only removed when a new adapter is connected
->>>> that does not support this. If a new adapter is connected that has
->>>> different properties than the previous one, then the old cec device is
->>>> unregistered and a new one is registered to replace the old one.
->>>>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>> Tested-by: Carlos Santa <carlos.santa@intel.com>
->>>> ---
->>>>  drivers/gpu/drm/i915/intel_dp.c | 18 ++++++++++++++----
->>>>  1 file changed, 14 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
->>>> index 64fa774c855b..fdb853d2c458 100644
->>>> --- a/drivers/gpu/drm/i915/intel_dp.c
->>>> +++ b/drivers/gpu/drm/i915/intel_dp.c
->>>> @@ -32,6 +32,7 @@
->>>>  #include <linux/notifier.h>
->>>>  #include <linux/reboot.h>
->>>>  #include <asm/byteorder.h>
->>>> +#include <media/cec.h>
->>>>  #include <drm/drmP.h>
->>>>  #include <drm/drm_atomic_helper.h>
->>>>  #include <drm/drm_crtc.h>
->>>> @@ -1449,6 +1450,7 @@ static void intel_aux_reg_init(struct intel_dp *intel_dp)
->>>>  static void
->>>>  intel_dp_aux_fini(struct intel_dp *intel_dp)
->>>>  {
->>>> +	cec_unregister_adapter(intel_dp->aux.cec_adap);
->>>>  	kfree(intel_dp->aux.name);
->>>>  }
->>>>  
->>>> @@ -4587,6 +4589,7 @@ intel_dp_set_edid(struct intel_dp *intel_dp)
->>>>  	intel_connector->detect_edid = edid;
->>>>  
->>>>  	intel_dp->has_audio = drm_detect_monitor_audio(edid);
->>>> +	cec_s_phys_addr_from_edid(intel_dp->aux.cec_adap, edid);
->>>>  }
->>>>  
->>>>  static void
->>>> @@ -4596,6 +4599,7 @@ intel_dp_unset_edid(struct intel_dp *intel_dp)
->>>>  
->>>>  	kfree(intel_connector->detect_edid);
->>>>  	intel_connector->detect_edid = NULL;
->>>> +	cec_phys_addr_invalidate(intel_dp->aux.cec_adap);
->>>>  
->>>>  	intel_dp->has_audio = false;
->>>>  }
->>>> @@ -4616,13 +4620,17 @@ intel_dp_long_pulse(struct intel_connector *intel_connector)
->>>>  	intel_display_power_get(to_i915(dev), intel_dp->aux_power_domain);
->>>>  
->>>>  	/* Can't disconnect eDP, but you can close the lid... */
->>>> -	if (is_edp(intel_dp))
->>>> +	if (is_edp(intel_dp)) {
->>>>  		status = edp_detect(intel_dp);
->>>> -	else if (intel_digital_port_connected(to_i915(dev),
->>>> -					      dp_to_dig_port(intel_dp)))
->>>> +	} else if (intel_digital_port_connected(to_i915(dev),
->>>> +						dp_to_dig_port(intel_dp))) {
->>>>  		status = intel_dp_detect_dpcd(intel_dp);
->>>> -	else
->>>> +		if (status == connector_status_connected)
->>>> +			drm_dp_cec_configure_adapter(&intel_dp->aux,
->>>> +				     intel_dp->aux.name, dev->dev);
->>>
->>> This is cluttering up the code a bit. Maybe do this call somewhere
->>> around the intel_dp_configure_mst() call instead since that seems to be
->>> the place where we start to do changes to externally visible state.
->>>
->>> Actually, do we want to register cec adapters for MST devices?
->>>
->>> And shouldn't we call this regardless of the connector state so that
->>> the cec adapter gets unregistered when the device is disconnected?
->>
->> This hasn't (AFAIK) anything to do with MST. This is in a branch device (i.e.
->> a DP to HDMI adapter).
+On Tue, Sep 26, 2017 at 01:25:26AM +0300, Sakari Ailus wrote:
+> Registering a notifier has required the knowledge of struct v4l2_device
+> for the reason that sub-devices generally are registered to the
+> v4l2_device (as well as the media device, also available through
+> v4l2_device).
 > 
-> You are now potentiall registering the CEC adapter to the immediately
-> upstream MST device (ie. the one that we talk to over the normal AUX stuff),
-> but kms will consider that paticular connector as disconnected, and
-> instead only sinks downstream of that device may have connected connectors
-> associated with them. Presumably the CEC towards that device goes
-> nowhere, and instead we'd have to talk to the remote branch devices
-> somewhere downstream.
+> This information is not available for sub-device drivers at probe time.
 > 
-> Thus my question whether we want to potentially register the CEC adapter
-> to the immediately upstream MST device or not. I would imagine not, and
-> thus the call should perhaps be moved past the 'is_mst? -> disconnected'
-> checks.
-
-Ah, now I see what you mean. Sorry, I misunderstood you earlier. I can
-certainly move it down. But an MST device would never set the CEC capability
-in the DPCD, would it? That makes no sense. So it would never register a
-CEC device in practice. Although I do need to test what happens when you
-first connect a USB-C to HDMI adapter that supports CEC, then disconnect it,
-then connect an MST hub. The CEC device should be unregistered in that case,
-but I'm not sure if that actually happens. I'll have to test that tomorrow.
-
+> What this patch does is that it allows registering notifiers without
+> having v4l2_device around. Instead the sub-device pointer is stored in the
+> notifier. Once the sub-device of the driver that registered the notifier
+> is registered, the notifier will gain the knowledge of the v4l2_device,
+> and the binding of async sub-devices from the sub-device driver's notifier
+> may proceed.
 > 
->>
->> The CEC adapter should ideally be associated with the branch device (since that
->> is what implements the CEC tunneling): i.e. when you connect the adapter, then
->> the CEC device is created, when you disconnect the adapter, then the CEC device
->> should be unregistered. This is not the same as connecting/disconnecting the
->> HDMI cable to/from the adapter: that just sets or invalidates the CEC physical
->> address (which is read from the EDID).
->>
->> However, I have not seen any code that tells me when the adapter is plugged in
->> or is unplugged. So all I have to go on is when the HDMI cable is connected.
->>
->> Note that the 'late_register' you mentioned in your 1/3 review isn't called when
->> connecting the adapter. So that too cannot be used as a trigger to detect if
->> this protocol is supported.
-> 
-> Like I said, you should do the registration directly if the connector
-> has already been registered, otherwise defer to .late_register().
+> The root notifier's complete callback is only called when all sub-device
+> notifiers are completed.
 
-So intel_dp_long_pulse() can be called even if the connector hasn't been fully
-registered yet? Just making sure I really understand this.
+This paragraph is actually no longer true. I changed it to:
 
-> 
->>
->> I know doing this here is not ideal, but I have not found another way and I am
->> not even certain if it is possible at all, it might be intrinsic to how DP works.
->> I do not consider myself a DP expert, though.
->>
->> So this is how it works now, e.g. on my Intel NUC and a USB-C to HDMI adapter:
->>
->> 1) I connect the adapter (no HDMI connected yet): nothing happens.
->> 2) I connect the HDMI cable to the adapter: drm_dp_cec_configure_adapter is called and
->>    it detects the CEC capability in the DPCD. It now creates the CEC device.
->> 3) I disconnect the HDMI cable: the physical address of the CEC device is invalidated,
->>    but the CEC device is not removed.
->> 4) I disconnect the adapter: nothing happens.
->> 5) I reconnect the adapter: nothing happens.
->> 6) I reconnect the HDMI cable: drm_dp_cec_configure_adapter is called and it checks the
->>    DPCD. If the capabilities are unchanged, then it will continue to use the registered
->>    CEC device. If the capabilities have changed (i.e. the adapter is apparently a
->>    different one), then the CEC device is unregistered and a new one is created, provided
->>    that the new adapter supports CEC, of course.
->>
->> The bottom-line is that I cannot tell the difference between disconnecting the adapter
->> and disconnecting the HDMI cable to the adapter.
->>
->> Another consideration is that CEC applications (i.e. HTPCs) do not expect the CEC device
->> to disappear when you disconnect either the HDMI cable or the adapter. Even though the
->> CEC device is strictly speaking associated with the adapter, from the point of view of
->> the user there is no difference between disconnecting an HDMI cable from an adapter, or
->> disconnecting the adapter itself. So there is a good argument to be made to only unregister
->> the CEC device when a different (or no) adapter is detected the next time the HPD goes high.
-> 
-> Should we just register a CEC adapter always then? Seems rather
-> inconsistent to do it only when a CEC capable device gets plugged in but
-> then leave it lingering around when the device gets disconnected.
+	The complete callbacks will be called only when the v4l2_device is
+	available and no notifier has pending sub-devices to bind.
 
-I thought about that, but that would clutter /dev with lots of non-functioning CEC
-device nodes. CEC only becomes available if you have an HDMI adapter that actually
-supports this. Most do not. And of course if you connect to a display using a DP
-cable (i.e. without an HDMI adapter), then it is obviously not supported either.
-
-Another problem is that if you switch between adapters with different CEC capabilities,
-then there is no way to signal that to userspace in the CEC API, and I don't think
-that would be a good idea at all anyway.
-
-Having experimented with this for some time now I found that this is a good compromise
-that fits how this is used in practice.
-
-Regards,
-
-	Hans
-
-> 
->>
->> Regards,
->>
->> 	Hans
->>
->>>
->>>> +	} else {
->>>>  		status = connector_status_disconnected;
->>>> +	}
->>>>  
->>>>  	if (status == connector_status_disconnected) {
->>>>  		memset(&intel_dp->compliance, 0, sizeof(intel_dp->compliance));
->>>> @@ -5011,6 +5019,8 @@ intel_dp_hpd_pulse(struct intel_digital_port *intel_dig_port, bool long_hpd)
->>>>  
->>>>  	intel_display_power_get(dev_priv, intel_dp->aux_power_domain);
->>>>  
->>>> +	drm_dp_cec_irq(&intel_dp->aux);
->>>> +
->>>>  	if (intel_dp->is_mst) {
->>>>  		if (intel_dp_check_mst_status(intel_dp) == -EINVAL) {
->>>>  			/*
->>>> -- 
->>>> 2.14.1
->>>
-> 
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
