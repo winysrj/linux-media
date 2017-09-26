@@ -1,68 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34920 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751381AbdILKrY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 06:47:24 -0400
-Date: Tue, 12 Sep 2017 13:47:20 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        jacek.anaszewski@gmail.com, linux-leds@vger.kernel.org,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        sre@kernel.org
-Subject: Re: as3645a flash userland interface
-Message-ID: <20170912104720.ifyouc5pa5et6gzk@valkosipuli.retiisi.org.uk>
-References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
- <20170912084236.1154-25-sakari.ailus@linux.intel.com>
- <20170912103628.GB27117@amd>
+Received: from ms.lwn.net ([45.79.88.28]:48510 "EHLO ms.lwn.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751855AbdI1PWY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Sep 2017 11:22:24 -0400
+Date: Tue, 26 Sep 2017 14:41:04 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: Re: [PATCH 09/10] scripts: kernel-doc: parse next structs/unions
+Message-ID: <20170926144104.4e8d2db7@lwn.net>
+In-Reply-To: <20170926172947.54b88bf5@recife.lan>
+References: <cover.1506448061.git.mchehab@s-opensource.com>
+        <e0ee97325e570a7f783122c88e152d89c755c254.1506448061.git.mchehab@s-opensource.com>
+        <20170926172947.54b88bf5@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170912103628.GB27117@amd>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+On Tue, 26 Sep 2017 17:29:47 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
 
-On Tue, Sep 12, 2017 at 12:36:28PM +0200, Pavel Machek wrote:
-> Hi!
-> 
-> There were some changes to as3645a flash controller. Before we have
-> stable interface we have to keep forever I want to ask:
-> 
-> What directory are the flash controls in?
-> 
-> /sys/class/leds/led-controller:flash ?
-> 
-> Could we arrange for something less generic, like
-> 
-> /sys/class/leds/main-camera:flash ?
-> 
-> Thanks,
+> This patch actually need a fixup, in order to handle pointer,
+> array and bitmask IDs.
 
-The LEDs are called as3645a:flash and as3645a:indicator currently, based on
-the name of the LED controller's device node. There are no patches related
-to this set though; these have already been merged.
+Can you send a new series with the fixed patch?
 
-The label should be a "human readable string describing the device" (from
-ePAPR, please excuse me for not having a newer spec), and the led common
-bindings define it as:
+I sure do like the shrinking of kernel-doc that comes with this series!  
 
-- label : The label for this LED. If omitted, the label is taken from the node
-          name (excluding the unit address). It has to uniquely identify
-          a device, i.e. no other LED class device can be assigned the same
-          label.
+Thanks,
 
-I don't think that you should be looking to use this to associate it with
-the camera as such. The association information with the sensor is
-available to the kernel but there's no interface that could meaningfully
-expose it to the user right now.
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+jon
