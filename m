@@ -1,285 +1,404 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3.goneo.de ([85.220.129.37]:37958 "EHLO smtp3.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934461AbdIYQ6W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 12:58:22 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
-Subject: Re: [PATCH v2] scripts: kernel-doc: fix nexted handling
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <20170924143833.63e9b3cd@vento.lan>
-Date: Mon, 25 Sep 2017 18:58:14 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <A9911D58-7C66-4543-B3AA-AEBA930CDB79@darmarit.de>
-References: <3d54014d786733715a94fa783a479a498aaca1ea.1506248420.git.mchehab@s-opensource.com>
- <4F0B529A-AF0A-48F9-808A-594BF07D035B@darmarit.de>
- <20170924143833.63e9b3cd@vento.lan>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:58486 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967968AbdIZIQj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 04:16:39 -0400
+Subject: Re: [PATCH v14 15/28] v4l: async: Allow binding notifiers to
+ sub-devices
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+ <20170925222540.371-16-sakari.ailus@linux.intel.com>
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, laurent.pinchart@ideasonboard.com,
+        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <7438d5da-699c-9369-7a50-2176ce799268@xs4all.nl>
+Date: Tue, 26 Sep 2017 10:16:36 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170925222540.371-16-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 26/09/17 00:25, Sakari Ailus wrote:
+> Registering a notifier has required the knowledge of struct v4l2_device
+> for the reason that sub-devices generally are registered to the
+> v4l2_device (as well as the media device, also available through
+> v4l2_device).
+> 
+> This information is not available for sub-device drivers at probe time.
+> 
+> What this patch does is that it allows registering notifiers without
+> having v4l2_device around. Instead the sub-device pointer is stored in the
+> notifier. Once the sub-device of the driver that registered the notifier
+> is registered, the notifier will gain the knowledge of the v4l2_device,
+> and the binding of async sub-devices from the sub-device driver's notifier
+> may proceed.
+> 
+> The root notifier's complete callback is only called when all sub-device
+> notifiers are completed.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-> Am 24.09.2017 um 19:38 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-> 
-> Em Sun, 24 Sep 2017 17:13:13 +0200
-> Markus Heiser <markus.heiser@darmarit.de> escreveu:
-> 
->>> Am 24.09.2017 um 12:23 schrieb Mauro Carvalho Che
->>> 
->>> v2:  handle embedded structs/unions from inner to outer
->>> 
->>> When we have multiple levels of embedded structs,
->>> 
->>> we need a smarter rule that will be removing nested structs
->>> from the inner to the outer ones. So, changed the parsing rule to
->>> remove nested structs/unions from the inner ones to the outer
->>> ones, while it matches.  
->> 
->> argh, sub-nested I forgot.
->> 
->>> scripts/kernel-doc | 2 +-
->>> 1 file changed, 1 insertion(+), 1 deletion(-)
->>> 
->>> diff --git a/scripts/kernel-doc b/scripts/kernel-doc
->>> index 9d3eafea58f0..443e1bcc78db 100755
->>> --- a/scripts/kernel-doc
->>> +++ b/scripts/kernel-doc
->>> @@ -2173,7 +2173,7 @@ sub dump_struct($$) {
->>> 	my $members = $3;
->>> 
->>> 	# ignore embedded structs or unions
->>> -	$members =~ s/({.*})//g;
->>> +	while ($members =~ s/({[^\{\}]*})//g) {};
->>> 	$nested = $1;  
->> 
->> I haven't tested this patch, but I guess with you might get
->> some "excess struct member" warnings, since the value of
->> 'nested' is just the content of the last match.
->> 
->> Here is what I have done in the python version:
->> 
->> https://github.com/return42/linuxdoc/commit/8d9394
->> 
->> and here is the impact:
->> 
->> https://github.com/return42/sphkerneldoc/commit/2ff22cf82de3236c1ec7616bd4b65ce2aedd2a90
->> 
->> As you can see in my linked patch above, I implemented it by
->> hand and collected all the 'nested' stuff. I guess this
->> is impossible with regexpr.
->> 
->> I recommend to do something similar with the perl script.
->> 
->> Since your perl is better than my; could you please prepare such a v3 patch?
->> 
->> Thanks!
-> 
-> Hmm... after looking at the "impact" URL, I guess we should, instead,
-> *not* ignore nested arguments, but also parse them, as this would allow
-> adding documentation for them
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-good point, Thanks! ... I will give it a try ...
-
-> , e. g. something like the (incomplete)
-> patch.
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 218 +++++++++++++++++++++++++++++------
+>  include/media/v4l2-async.h           |  16 ++-
+>  2 files changed, 199 insertions(+), 35 deletions(-)
 > 
-> As reference, I'm testing it with:
-> 
-> 	$ scripts/kernel-doc -rst ./drivers/clk/ingenic/cgu.h 
-> 
-> PS.: I'm pretty sure it can be improved. Also, only the ReST output
-> is working properly on this current version.
-
-But other outputs are also benefit from. Anyway, my question is; do
-we really need to support other output formats any longer? .. since
-we can reach other outputs from the reST base.
-
-
-> Regards,
-> Mauro
-> 
-> [PATCH RFC] scripts: kernel-doc: parse nexted structs/unions
-> 
-> At DVB, we have, at some structs, things like (see
-> struct dvb_demux_feed, at dvb_demux.h):
-> 
->            union {
->                    struct dmx_ts_feed ts;
->                    struct dmx_section_feed sec;
->            } feed;
-> 
->            union {
->                    dmx_ts_cb ts;
->                    dmx_section_cb sec;
->            } cb;
-> 
-> Fix the nested parser to avoid it to eat the first union.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> 
-> diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-> index 9d3eafea58f0..102d5ec200a4 100755
-> --- a/scripts/kernel-doc
-> +++ b/scripts/kernel-doc
-> @@ -2036,26 +2036,18 @@ sub output_struct_rst(%) {
->     print "**Definition**\n\n";
->     print "::\n\n";
->     print "  " . $args{'type'} . " " . $args{'struct'} . " {\n";
-> -    foreach $parameter (@{$args{'parameterlist'}}) {
-> -	if ($parameter =~ /^#/) {
-> -	    print "  " . "$parameter\n";
-> -	    next;
-> -	}
-> 
-> -	my $parameter_name = $parameter;
-> -	$parameter_name =~ s/\[.*//;
-> -
-> -	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
-> -	$type = $args{'parametertypes'}{$parameter};
-> -	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
-> -	    # pointer-to-function
-> -	    print "    $1 $parameter) ($2);\n";
-> -	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
-> -	    # bitfield
-> -	    print "    $1 $parameter$2;\n";
-> -	} else {
-> -	    print "    " . $type . " " . $parameter . ";\n";
-> -	}
-> +    my $def = $args{'definition'};
-> +    $def =~ s/([{,;])/$1\n/g;
-
-Do we need to split at comma (',') ? If we do so, we also split lines like:
-
-     void   (*find_idlest)(struct clk *, void __iomem **, u8 *, u8 *);                           
-
-
-> +    $def =~ s/}\s+;/};/g;
-> +    my @def_args = split /\n/, $def;
-> +    my $level = 1;
-> +    foreach my $clause (@def_args) {
-> +	$clause =~ s/^\s+//;
-> +	$clause =~ s/\s+$//;
-> +	$level-- if ($clause =~ m/}/ && $level > 1);
-> +	print "  " . "  " x $level. "$clause\n" if ($clause);
-> +	$level++ if ($clause =~ m/{/);
->     }
->     print "  };\n\n";
-> 
-> @@ -2168,13 +2160,22 @@ sub dump_struct($$) {
->     my $nested;
-> 
->     if ($x =~ /(struct|union)\s+(\w+)\s*{(.*)}/) {
-> -	#my $decl_type = $1;
-> +	my $decl_type = $1;
-> 	$declaration_name = $2;
-> 	my $members = $3;
-> -
-> -	# ignore embedded structs or unions
-> -	$members =~ s/({.*})//g;
-> -	$nested = $1;
-> +	my $clause = $3;
-
-IMO 'definition' would be a better name.
-
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 1d4132305243..735f72f81740 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -124,11 +124,109 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
+>  	return NULL;
+>  }
+>  
+> +/* Find the sub-device notifier registered by a sub-device driver. */
+> +static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
+> +	struct v4l2_subdev *sd)
+> +{
+> +	struct v4l2_async_notifier *n;
 > +
-> +	# Split nested struct/union elements as newer ones
-> +	my $cont = 1;
-> +	while ($cont) {
-> +		$cont = 0;
-> +		while ($members =~ s/(struct|union)\s+{([^{}]*)}(\s*\S+\s*)\;?/$1 $3; $2 /g) {
-
-Very tricky, it took me awhile to understand, but I guess there 
-is a mistake with the semicolon at the end: substitution is *leftmost*
-so \;? at the end will never match (replaced) and the replacement $3;
-inserts one additional semicolon. Try:
-
-  s/(struct|union)\s+{([^{}]*)}(\s*\S+\s*)/$1 $3 $2 /g
-
-I also replaced \S with [^\s;] since \S will also match:
-
-"union { const char *name; u32 rate; }  sys_clk;int (*scale)"
------------------------------------------------^------------- 
-
-here is the expression I ended with:
-
-  s/(struct|union)\s+{([^{}]*)}(\s*[^\s;]\s*)/$1 $3 $2 /g
-
-> +			$cont = 1;
-> +		};
-> +	};
-> +	# Ignore other nested elements, like enums
-> +	$members =~ s/({[^\{\}]*})//g;
-> +	$nested = $decl_type;
-
-What is the latter good for? I guess the 'nested' trick to suppress
-such 'excess' warnings from nested types is no longer needed .. right?
-
-I mean the if-not-in-nested-statement in check_sections():
-
-				if ($nested !~ m/\Q$sects[$sx]\E/) {
-				    print STDERR "${file}:$.: warning: " .
-					"Excess struct/union/enum/typedef member " .
-					"'$sects[$sx]' " .
-					"description in '$decl_name'\n";
-				    ++$warnings;
-
-So, should we drop this 'nested' stuff also?
-
-I also recommend to first apply all substitutions and after parse
-the nested stuff (see my linked patch below).
-
-OK, I spend a day and here is what I have done with the kernel-doc.py:
-
-patch:   https://github.com/return42/linuxdoc/commit/518b4ef65707b4a
-impact:  https://github.com/return42/sphkerneldoc/commit/ef5bf69
-
-ATM documentation of nested data types is rare, the most diffs
-you will find in the *impact* link are coming from the change of
-the prototype, but there are also some good examples e.g.:
-
-  linux_src_doc/include/uapi/linux/videodev2_h.rst
-
-And here is how it is rendered in HTML (e.g. struct-v4l2-plane):
-
-new:  https://h2626237.stratoserver.net/kernel/linux_src_doc/include/uapi/linux/videodev2_h.html#struct-v4l2-plane
-old:  https://h2626237.stratoserver.net/kernel_old/linux_src_doc/include/uapi/linux/videodev2_h.html#struct-v4l2-plane
-
-After all I would say that it was a bit hard to implement & test,
-but at the end I think, this is really a improvement.
-
-What do you think, can you implement similar in perl (I like
-to pass the ball back to you since your perl is much better
-than my) .. or should we consider to replace the kernel-doc
-parser with the python one [1] ;)
-
--- Markus --
-
-[1] https://return42.github.io/linuxdoc/linux.html
-
-
-
-
-
-> 	# ignore members marked private:
-> 	$members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gosi;
-> @@ -2200,6 +2201,7 @@ sub dump_struct($$) {
-> 			   'struct',
-> 			   {'struct' => $declaration_name,
-> 			    'module' => $modulename,
-> +			    'definition' => $clause,
-> 			    'parameterlist' => \@parameterlist,
-> 			    'parameterdescs' => \%parameterdescs,
-> 			    'parametertypes' => \%parametertypes,
+> +	list_for_each_entry(n, &notifier_list, list)
+> +		if (n->sd == sd)
+> +			return n;
+> +
+> +	return NULL;
+> +}
+> +
+> +/* Get v4l2_device related to the notifier if one can be found. */
+> +static struct v4l2_device *v4l2_async_notifier_find_v4l2_dev(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	while (notifier->parent)
+> +		notifier = notifier->parent;
+> +
+> +	return notifier->v4l2_dev;
+> +}
+> +
+> +/*
+> + * Return true if all child sub-device notifiers are complete, false otherwise.
+> + */
+> +static bool v4l2_async_notifier_can_complete(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	struct v4l2_subdev *sd;
+> +
+> +	if (!list_empty(&notifier->waiting))
+> +		return false;
+> +
+> +	list_for_each_entry(sd, &notifier->done, async_list) {
+> +		struct v4l2_async_notifier *subdev_notifier =
+> +			v4l2_async_find_subdev_notifier(sd);
+> +
+> +		if (subdev_notifier &&
+> +		    !v4l2_async_notifier_can_complete(subdev_notifier))
+> +			return false;
+> +	}
+> +
+> +	return true;
+> +}
+> +
+> +/* Complete all notifiers. Call on the root notifier. */
+> +static int v4l2_async_notifier_complete(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	struct v4l2_subdev *sd;
+> +
+> +	list_for_each_entry(sd, &notifier->done, async_list) {
+> +		struct v4l2_async_notifier *subdev_notifier =
+> +			v4l2_async_find_subdev_notifier(sd);
+> +		int ret;
+> +
+> +		if (!subdev_notifier)
+> +			continue;
+> +
+> +		ret = v4l2_async_notifier_complete(subdev_notifier);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	return v4l2_async_notifier_call_complete(notifier);
+> +}
+> +
+> +/*
+> + * Complete notifiers if possible. This is done when all async sub-devices have
+> + * been bound; v4l2_device is also available then.
+> + */
+> +static int v4l2_async_notifier_try_complete(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	/* Quick check whether there are still more sub-devices here. */
+> +	if (!list_empty(&notifier->waiting))
+> +		return 0;
+> +
+> +	/* Check the entire notifier tree; find the root notifier first. */
+> +	while (notifier->parent)
+> +		notifier = notifier->parent;
+> +
+> +	/* This is root if it has v4l2_dev. */
+> +	if (!notifier->v4l2_dev)
+> +		return 0;
+> +
+> +	/* Is everything ready? */
+> +	if (!v4l2_async_notifier_can_complete(notifier))
+> +		return 0;
+> +
+> +	return v4l2_async_notifier_complete(notifier);
+> +}
+> +
+> +static int v4l2_async_notifier_try_all_subdevs(
+> +	struct v4l2_async_notifier *notifier);
+> +
+>  static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+>  				   struct v4l2_device *v4l2_dev,
+>  				   struct v4l2_subdev *sd,
+>  				   struct v4l2_async_subdev *asd)
+>  {
+> +	struct v4l2_async_notifier *subdev_notifier;
+>  	int ret;
+>  
+>  	ret = v4l2_device_register_subdev(v4l2_dev, sd);
+> @@ -149,8 +247,17 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+>  	/* Move from the global subdevice list to notifier's done */
+>  	list_move(&sd->async_list, &notifier->done);
+>  
+> -	if (list_empty(&notifier->waiting))
+> -		return v4l2_async_notifier_call_complete(notifier);
+> +	/*
+> +	 * See if the sub-device has a notifier. If it does, proceed
+> +	 * with checking for its async sub-devices.
+> +	 */
+> +	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
+> +	if (subdev_notifier && !subdev_notifier->parent) {
+> +		subdev_notifier->parent = notifier;
+> +		ret = v4l2_async_notifier_try_all_subdevs(subdev_notifier);
+> +		if (ret)
+> +			return ret;
+> +	}
+>  
+>  	return 0;
+>  }
+> @@ -159,10 +266,15 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+>  static int v4l2_async_notifier_try_all_subdevs(
+>  	struct v4l2_async_notifier *notifier)
+>  {
+> -	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
+> -	struct v4l2_subdev *sd, *tmp;
+> +	struct v4l2_device *v4l2_dev =
+> +		v4l2_async_notifier_find_v4l2_dev(notifier);
+> +	struct v4l2_subdev *sd;
+>  
+> -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+> +	if (!v4l2_dev)
+> +		return 0;
+> +
+> +again:
+> +	list_for_each_entry(sd, &subdev_list, async_list) {
+>  		struct v4l2_async_subdev *asd;
+>  		int ret;
+>  
+> @@ -171,10 +283,16 @@ static int v4l2_async_notifier_try_all_subdevs(
+>  			continue;
+>  
+>  		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
+> -		if (ret < 0) {
+> -			mutex_unlock(&list_lock);
+> +		if (ret < 0)
+>  			return ret;
+> -		}
+> +
+> +		/*
+> +		 * v4l2_async_match_notify() may lead to registering a
+> +		 * new notifier and thus changing the async subdevs
+> +		 * list. In order to proceed safely from here, restart
+> +		 * parsing the list from the beginning.
+> +		 */
+> +		goto again;
+>  	}
+>  
+>  	return 0;
+> @@ -201,15 +319,6 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  	INIT_LIST_HEAD(&notifier->waiting);
+>  	INIT_LIST_HEAD(&notifier->done);
+>  
+> -	if (!notifier->num_subdevs) {
+> -		int ret;
+> -
+> -		ret = v4l2_async_notifier_call_complete(notifier);
+> -		notifier->v4l2_dev = NULL;
+> -
+> -		return ret;
+> -	}
+> -
+>  	for (i = 0; i < notifier->num_subdevs; i++) {
+>  		asd = notifier->subdevs[i];
+>  
+> @@ -236,18 +345,20 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  		return ret;
+>  	}
+>  
+> +	ret = v4l2_async_notifier_try_complete(notifier);
+> +
+>  	/* Keep also completed notifiers on the list */
+>  	list_add(&notifier->list, &notifier_list);
+>  
+>  	mutex_unlock(&list_lock);
+>  
+> -	return 0;
+> +	return ret;
+>  }
+>  
+>  int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  				 struct v4l2_async_notifier *notifier)
+>  {
+> -	if (WARN_ON(!v4l2_dev))
+> +	if (WARN_ON(!v4l2_dev || notifier->sd))
+>  		return -EINVAL;
+>  
+>  	notifier->v4l2_dev = v4l2_dev;
+> @@ -256,18 +367,31 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  }
+>  EXPORT_SYMBOL(v4l2_async_notifier_register);
+>  
+> -void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> +int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
+> +					struct v4l2_async_notifier *notifier)
+>  {
+> -	struct v4l2_subdev *sd, *tmp;
+> +	if (WARN_ON(!sd || notifier->v4l2_dev))
+> +		return -EINVAL;
+>  
+> -	if (!notifier->v4l2_dev)
+> -		return;
+> +	notifier->sd = sd;
+>  
+> -	mutex_lock(&list_lock);
+> +	return __v4l2_async_notifier_register(notifier);
+> +}
+> +EXPORT_SYMBOL(v4l2_async_subdev_notifier_register);
+>  
+> -	list_del(&notifier->list);
+> +/* Unbind all sub-devices in the notifier tree. */
+> +static void v4l2_async_notifier_unbind_all_subdevs(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	struct v4l2_subdev *sd, *tmp;
+>  
+>  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+> +		struct v4l2_async_notifier *subdev_notifier =
+> +			v4l2_async_find_subdev_notifier(sd);
+> +
+> +		if (subdev_notifier)
+> +			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
+> +
+>  		v4l2_async_cleanup(sd);
+>  
+>  		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+> @@ -275,9 +399,24 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>  		list_move(&sd->async_list, &subdev_list);
+>  	}
+>  
+> -	mutex_unlock(&list_lock);
+> +	notifier->parent = NULL;
+> +}
+>  
+> +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> +{
+> +	if (!notifier->v4l2_dev && !notifier->sd)
+> +		return;
+> +
+> +	mutex_lock(&list_lock);
+> +
+> +	v4l2_async_notifier_unbind_all_subdevs(notifier);
+> +
+> +	notifier->sd = NULL;
+>  	notifier->v4l2_dev = NULL;
+> +
+> +	list_del(&notifier->list);
+> +
+> +	mutex_unlock(&list_lock);
+>  }
+>  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+>  
+> @@ -327,14 +466,25 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  	INIT_LIST_HEAD(&sd->async_list);
+>  
+>  	list_for_each_entry(notifier, &notifier_list, list) {
+> -		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
+> -								      sd);
+> -		if (asd) {
+> -			int ret = v4l2_async_match_notify(
+> -				notifier, notifier->v4l2_dev, sd, asd);
+> -			mutex_unlock(&list_lock);
+> -			return ret;
+> -		}
+> +		struct v4l2_device *v4l2_dev =
+> +			v4l2_async_notifier_find_v4l2_dev(notifier);
+> +		struct v4l2_async_subdev *asd;
+> +		int ret;
+> +
+> +		if (!v4l2_dev)
+> +			continue;
+> +
+> +		asd = v4l2_async_find_match(notifier, sd);
+> +		if (!asd)
+> +			continue;
+> +
+> +		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
+> +
+> +		if (!ret)
+> +			ret = v4l2_async_notifier_try_complete(notifier);
+> +
+> +		mutex_unlock(&list_lock);
+> +		return ret;
+>  	}
+>  
+>  	/* None matched, wait for hot-plugging */
+> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> index 7d56c355138b..0b30a631ad19 100644
+> --- a/include/media/v4l2-async.h
+> +++ b/include/media/v4l2-async.h
+> @@ -102,7 +102,9 @@ struct v4l2_async_notifier_operations {
+>   * @num_subdevs: number of subdevices used in the subdevs array
+>   * @max_subdevs: number of subdevices allocated in the subdevs array
+>   * @subdevs:	array of pointers to subdevice descriptors
+> - * @v4l2_dev:	pointer to struct v4l2_device
+> + * @v4l2_dev:	v4l2_device of the root notifier, NULL otherwise
+> + * @sd:		sub-device that registered the notifier, NULL otherwise
+> + * @parent:	parent notifier
+>   * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+>   * @done:	list of struct v4l2_subdev, already probed
+>   * @list:	member in a global list of notifiers
+> @@ -113,6 +115,8 @@ struct v4l2_async_notifier {
+>  	unsigned int max_subdevs;
+>  	struct v4l2_async_subdev **subdevs;
+>  	struct v4l2_device *v4l2_dev;
+> +	struct v4l2_subdev *sd;
+> +	struct v4l2_async_notifier *parent;
+>  	struct list_head waiting;
+>  	struct list_head done;
+>  	struct list_head list;
+> @@ -128,6 +132,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  				 struct v4l2_async_notifier *notifier);
+>  
+>  /**
+> + * v4l2_async_subdev_notifier_register - registers a subdevice asynchronous
+> + *					 notifier for a sub-device
+> + *
+> + * @sd: pointer to &struct v4l2_subdev
+> + * @notifier: pointer to &struct v4l2_async_notifier
+> + */
+> +int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
+> +					struct v4l2_async_notifier *notifier);
+> +
+> +/**
+>   * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
+>   *
+>   * @notifier: pointer to &struct v4l2_async_notifier
 > 
-> 
-> 
-> Thanks,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-doc" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
