@@ -1,84 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:63007 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751544AbdIOHvI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 03:51:08 -0400
-Subject: [PATCH 3/9] [media] tm6000: Use common error handling code in
- tm6000_usb_probe()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
-        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Santosh Kumar Singh <kumar.san1093@gmail.com>,
-        Sean Young <sean@mess.org>,
-        Wei Yongjun <weiyongjun1@huawei.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <2aade468-5dfd-76ee-f59f-c25864930f61@users.sourceforge.net>
-Message-ID: <8d2722c0-98cf-4447-51ae-039d04dae185@users.sourceforge.net>
-Date: Fri, 15 Sep 2017 09:50:43 +0200
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:57298 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S968016AbdIZI1U (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 04:27:20 -0400
+Subject: Re: [PATCH v14 27/28] ov13858: Add support for flash and lens devices
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+ <20170925222540.371-29-sakari.ailus@linux.intel.com>
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, laurent.pinchart@ideasonboard.com,
+        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <483250c9-ba06-a778-b88f-0e4734a36834@xs4all.nl>
+Date: Tue, 26 Sep 2017 10:27:19 +0200
 MIME-Version: 1.0
-In-Reply-To: <2aade468-5dfd-76ee-f59f-c25864930f61@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170925222540.371-29-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 14 Sep 2017 16:00:47 +0200
+On 26/09/17 00:25, Sakari Ailus wrote:
+> Parse async sub-devices related to the sensor by switching the async
+> sub-device registration function.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Add a jump target so that a bit of exception handling can be better reused
-at the end of this function.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/tm6000/tm6000-cards.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/usb/tm6000/tm6000-cards.c b/drivers/media/usb/tm6000/tm6000-cards.c
-index ef37fb1f05e4..e18632056976 100644
---- a/drivers/media/usb/tm6000/tm6000-cards.c
-+++ b/drivers/media/usb/tm6000/tm6000-cards.c
-@@ -1200,15 +1200,15 @@ static int tm6000_usb_probe(struct usb_interface *interface,
- 	nr = find_first_zero_bit(&tm6000_devused, TM6000_MAXBOARDS);
- 	if (nr >= TM6000_MAXBOARDS) {
- 		printk(KERN_ERR "tm6000: Supports only %i tm60xx boards.\n", TM6000_MAXBOARDS);
--		usb_put_dev(usbdev);
--		return -ENOMEM;
-+		rc = -ENOMEM;
-+		goto put_device;
- 	}
- 
- 	/* Create and initialize dev struct */
- 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
- 	if (!dev) {
--		usb_put_dev(usbdev);
--		return -ENOMEM;
-+		rc = -ENOMEM;
-+		goto put_device;
- 	}
- 	spin_lock_init(&dev->slock);
- 	mutex_init(&dev->usb_lock);
-@@ -1331,9 +1331,10 @@ static int tm6000_usb_probe(struct usb_interface *interface,
- 	printk(KERN_ERR "tm6000: Error %d while registering\n", rc);
- 
- 	clear_bit(nr, &tm6000_devused);
--	usb_put_dev(usbdev);
- 
- 	kfree(dev);
-+put_device:
-+	usb_put_dev(usbdev);
- 	return rc;
- }
- 
--- 
-2.14.1
+> ---
+>  drivers/media/i2c/ov13858.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+> index af7af0d14c69..c86525982e17 100644
+> --- a/drivers/media/i2c/ov13858.c
+> +++ b/drivers/media/i2c/ov13858.c
+> @@ -1746,7 +1746,7 @@ static int ov13858_probe(struct i2c_client *client,
+>  		goto error_handler_free;
+>  	}
+>  
+> -	ret = v4l2_async_register_subdev(&ov13858->sd);
+> +	ret = v4l2_async_register_subdev_sensor_common(&ov13858->sd);
+>  	if (ret < 0)
+>  		goto error_media_entity;
+>  
+> 
