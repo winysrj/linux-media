@@ -1,85 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40760 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751732AbdIENGC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Sep 2017 09:06:02 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v8 18/21] v4l: fwnode: Add convenience function for parsing common external refs
-Date: Tue,  5 Sep 2017 16:05:50 +0300
-Message-Id: <20170905130553.1332-19-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
-References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
+Received: from pide.tip.net.au ([203.10.76.2]:35119 "EHLO pide.tip.net.au"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965948AbdIZNR6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 09:17:58 -0400
+Subject: Re: [progress]: dvb_usb_rtl28xxu not tuning "Leadtek Winfast DTV2000
+ DS PLUS TV"
+To: Vincent McIntyre <vincent.mcintyre@gmail.com>
+Cc: list linux-media <linux-media@vger.kernel.org>
+References: <00ad85dd-2fe3-5f15-6c0c-47fcf580f541@eyal.emu.id.au>
+ <678bf4fa-5849-1fb2-adf1-a07458767d9e@eyal.emu.id.au>
+ <20170926124508.GA17883@ubuntu.windy>
+From: Eyal Lebedinsky <eyal@eyal.emu.id.au>
+Message-ID: <6b2b09a1-07f6-c4c3-df49-c9b8327b6517@eyal.emu.id.au>
+Date: Tue, 26 Sep 2017 23:17:56 +1000
+MIME-Version: 1.0
+In-Reply-To: <20170926124508.GA17883@ubuntu.windy>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-AU
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add v4l2_fwnode_parse_reference_sensor_common for parsing common
-sensor properties that refer to adjacent devices such as flash or lens
-driver chips.
+On 26/09/17 22:45, Vincent McIntyre wrote:
+> On Tue, Sep 26, 2017 at 02:32:26PM +1000, Eyal Lebedinsky wrote:
+>>
+>> While the problem persists, I managed to find a way around it for now.
+>>
+>> I changed the antenna input.
+>>
+>> Originally I used a powered splitter to feed all the tuners, and it worked
+>> well with the out-of-kernel driver. This driver does not build or work with
+>> a more modern kernel so I shifted to using dvb_usb_rtl28xxu which fails to
+>> tune.
+>>
+>> The new wiring splits (passive) the antenna in two, feeds one side directly
+>> to the two "Leadtek Winfast DTV2000 DS PLUS TV" cards (through another passive
+>> 2-way) and the other side goes to the old powered splitter that feeds a few
+>> USB tuners.
+>>
+>> Now all tuners are happy. It seems that the "Leadtek Winfast DTV2000 DS PLUS TV"
+>> cannot handle the amplified input while the USB tuners require it.
+>>
+>> I hope that there is a way to set a profile in dvb_usb_rtl28xxu to attenuate
+>> the input to an acceptable level thus unravelling the antenna cables rat-nest.
+> 
+> Glad you had some success.
+> 
+> I did some more rummaging in v4l-utils. It may help you to know about
+> dvb-fe-tool, which gives information about the frontend device
+> (eg /dev/dvb/adapter0/frontend0). In particular you can monitor the
+> s/n as you make changes:
+> 
+>   # dvb-fe-tool --femon -a 0  #here doing adapter0/frontend0
+> 
+> It displays info about the signal quality and the carrier/noise (C/N) ratio,
+> which might help any investigation of where the driver fails to cope as
+> you change what you are feeding it.
+> 
+> I noticed your dvbv5-scan showed C/N around 20dB but the manpage shows
+> 'good signal' with C/N of 36dB which suggests the device should be
+> expected to deal with higher signal levels.
+> 
+> Once you figured out the signal level, did a dvbv5-scan work with no
+> errors? In the example you showed I saw the channels getting 'lock'
+> but then some kind of error occurred.
 
-As this is an association only, there's little a regular driver needs to
-know about these devices as such.
+I had very good reception and scandvb tuned to all channels. I did not test
+dvbv5-scan again but I expect it would work too (will try in the morning).
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-fwnode.c | 27 +++++++++++++++++++++++++++
- include/media/v4l2-fwnode.h           |  3 +++
- 2 files changed, 30 insertions(+)
+> Regards
+> Vince
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 8c059a4217b4..3c86229629b2 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -538,6 +538,33 @@ int v4l2_fwnode_reference_parse(
- }
- EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse);
- 
-+int v4l2_fwnode_reference_parse_sensor_common(
-+	struct device *dev, struct v4l2_async_notifier *notifier)
-+{
-+	static const struct {
-+		char *name;
-+		char *cells;
-+		unsigned int nr_cells;
-+	} props[] = {
-+		{ "flash", NULL, 0 },
-+		{ "lens-focus", NULL, 0 },
-+	};
-+	unsigned int i;
-+	int rval;
-+
-+	for (i = 0; i < ARRAY_SIZE(props); i++) {
-+		rval = v4l2_fwnode_reference_parse(
-+			dev, notifier, props[i].name, props[i].cells,
-+			props[i].nr_cells, sizeof(struct v4l2_async_subdev),
-+			NULL);
-+		if (rval < 0 && rval != -ENOENT)
-+			return rval;
-+	}
-+
-+	return rval;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse_sensor_common);
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
- MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index 3ad71241cb20..36b6514dd6ef 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -282,4 +282,7 @@ int v4l2_fwnode_reference_parse(
- 			    struct fwnode_reference_args *args,
- 			    struct v4l2_async_subdev *asd));
- 
-+int v4l2_fwnode_reference_parse_sensor_common(
-+	struct device *dev, struct v4l2_async_notifier *notifier);
-+
- #endif /* _V4L2_FWNODE_H */
 -- 
-2.11.0
+Eyal Lebedinsky (eyal@eyal.emu.id.au)
