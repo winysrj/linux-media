@@ -1,38 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:35673 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752227AbdITUxP (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55749
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S969536AbdIZR7a (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 16:53:15 -0400
-Date: Wed, 20 Sep 2017 15:53:13 -0500
-From: Rob Herring <robh@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH 1/2] dt: bindings: media: Document port and endpoint
- numbering
-Message-ID: <20170920142438.wva4a5gz7ikfnlyh@rob-hp-laptop>
-References: <1505723105-16238-1-git-send-email-sakari.ailus@linux.intel.com>
- <1505723105-16238-2-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1505723105-16238-2-git-send-email-sakari.ailus@linux.intel.com>
+        Tue, 26 Sep 2017 13:59:30 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: [PATCH 02/10] docs: kernel-doc.rst: better describe kernel-doc arguments
+Date: Tue, 26 Sep 2017 14:59:12 -0300
+Message-Id: <66135bb9d76913c9f1515d33e731b94becbc98da.1506448061.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
+References: <cover.1506448061.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
+References: <cover.1506448061.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 18, 2017 at 11:25:04AM +0300, Sakari Ailus wrote:
-> A lot of devices do not need and do not document port or endpoint
-> numbering at all, e.g. in case where there's just a single port and a
-> single endpoint. Whereas this is just common sense, document it to make it
-> explicit.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  Documentation/devicetree/bindings/media/video-interfaces.txt | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
+Add a new section to describe kernel-doc arguments,
+adding examples about how identation should happen, as failing
+to do that causes Sphinx to do the wrong thing.
 
-This is fine, but bindings should still be explicit. Otherwise, I'm 
-wondering if it's a single port/endpoint or they just forgot to document 
-it. And I shouldn't have to look at the example to infer that.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/doc-guide/kernel-doc.rst | 44 +++++++++++++++++++++++++++++++---
+ 1 file changed, 41 insertions(+), 3 deletions(-)
 
-Acked-by: Rob Herring <robh@kernel.org>
+diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
+index b24854b5d6be..7a3f5c710c0b 100644
+--- a/Documentation/doc-guide/kernel-doc.rst
++++ b/Documentation/doc-guide/kernel-doc.rst
+@@ -112,16 +112,17 @@ Example kernel-doc function comment::
+ 
+   /**
+    * foobar() - Brief description of foobar.
+-   * @arg: Description of argument of foobar.
++   * @argument1: Description of parameter argument1 of foobar.
++   * @argument1: Description of parameter argument2 of foobar.
+    *
+    * Longer description of foobar.
+    *
+    * Return: Description of return value of foobar.
+    */
+-  int foobar(int arg)
++  int foobar(int argument1, char *argument2)
+ 
+ The format is similar for documentation for structures, enums, paragraphs,
+-etc. See the sections below for details.
++etc. See the sections below for specific details of each type.
+ 
+ The kernel-doc structure is extracted from the comments, and proper `Sphinx C
+ Domain`_ function and type descriptions with anchors are generated for them. The
+@@ -130,6 +131,43 @@ cross-references. See below for details.
+ 
+ .. _Sphinx C Domain: http://www.sphinx-doc.org/en/stable/domains.html
+ 
++
++Parameters and member arguments
++-------------------------------
++
++The kernel-doc function comments describe each parameter to the function and
++function typedefs or each member of struct/union, in order, with the
++``@argument:`` descriptions. For each non-private member argument, one
++``@argument`` definition is needed.
++
++The ``@argument:`` descriptions begin on the very next line following
++the opening brief function description line, with no intervening blank
++comment lines.
++
++The ``@argument:`` descriptions may span multiple lines.
++
++.. note::
++
++   If the ``@argument`` description has multiple lines, the continuation
++   of the description should be starting exactly at the same column as
++   the previous line, e. g.::
++
++      * @argument: some long description
++      *       that continues on next lines
++
++   or::
++
++      * @argument:
++      *		some long description
++      *		that continues on next lines
++
++If a function or typedef parameter argument is ``...`` (e. g. a variable
++number of arguments), its description should be listed in kernel-doc
++notation as::
++
++      * @...: description
++
++
+ Highlights and cross-references
+ -------------------------------
+ 
+-- 
+2.13.5
