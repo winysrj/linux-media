@@ -1,51 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:64854 "EHLO mout.web.de"
+Received: from mga14.intel.com ([192.55.52.115]:42667 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751060AbdIIUbT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 9 Sep 2017 16:31:19 -0400
-Subject: [PATCH 1/3] [media] xc2028: Delete two error messages for a failed
- memory allocation in load_all_firmwares()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <c2317603-f640-b0a6-ab86-7fda8040b6ba@users.sourceforge.net>
-Message-ID: <8c68a1b2-5e6b-ab26-290b-3f9ab46f7a42@users.sourceforge.net>
-Date: Sat, 9 Sep 2017 22:31:13 +0200
+        id S934968AbdIZISE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 04:18:04 -0400
+Date: Tue, 26 Sep 2017 11:17:00 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: Re: [PATCH v14 14/28] v4l: async: Prepare for async sub-device
+ notifiers
+Message-ID: <20170926081700.hqm6b4abpqvszrro@paasikivi.fi.intel.com>
+References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+ <20170925222540.371-15-sakari.ailus@linux.intel.com>
+ <ba80e242-a3c2-39af-01cd-6aa54649fb93@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <c2317603-f640-b0a6-ab86-7fda8040b6ba@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ba80e242-a3c2-39af-01cd-6aa54649fb93@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 9 Sep 2017 21:30:11 +0200
+Hi Hans,
 
-Omit extra messages for a memory allocation failure in this function.
+On Tue, Sep 26, 2017 at 10:12:50AM +0200, Hans Verkuil wrote:
+> On 26/09/17 00:25, Sakari Ailus wrote:
+> > Refactor the V4L2 async framework a little in preparation for async
+> > sub-device notifiers.
+> 
+> Perhaps extend this a bit to also state the reason for these changes?
 
-This issue was detected by using the Coccinelle software.
+Well, the true reason is that Laurent felt the following patch was doing
+too much, but most of the changes in it are actually tightly
+interconnected.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/tuners/tuner-xc2028.c | 2 --
- 1 file changed, 2 deletions(-)
+How about adding:
 
-diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
-index b5b62b08159e..7353f25f9e7d 100644
---- a/drivers/media/tuners/tuner-xc2028.c
-+++ b/drivers/media/tuners/tuner-xc2028.c
-@@ -339,4 +339,3 @@ static int load_all_firmwares(struct dvb_frontend *fe,
--		tuner_err("Not enough memory to load firmware file.\n");
- 		rc = -ENOMEM;
- 		goto err;
- 	}
-@@ -389,4 +388,3 @@ static int load_all_firmwares(struct dvb_frontend *fe,
--			tuner_err("Not enough memory to load firmware file.\n");
- 			rc = -ENOMEM;
- 			goto err;
- 		}
+This avoids making some structural changes in the patch actually
+implementing sub-device notifiers, making that patch easier to review.
+
+> 
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> Anyway,
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Thanks!
+
+> 
+> > ---
+> >  drivers/media/v4l2-core/v4l2-async.c | 66 +++++++++++++++++++++++++-----------
+> >  1 file changed, 47 insertions(+), 19 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> > index 77b9f851bfa9..1d4132305243 100644
+> > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > @@ -125,12 +125,13 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
+> >  }
+> >  
+> >  static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+> > +				   struct v4l2_device *v4l2_dev,
+> >  				   struct v4l2_subdev *sd,
+> >  				   struct v4l2_async_subdev *asd)
+> >  {
+> >  	int ret;
+> >  
+> > -	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+> > +	ret = v4l2_device_register_subdev(v4l2_dev, sd);
+> >  	if (ret < 0)
+> >  		return ret;
+> >  
+> > @@ -154,6 +155,31 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+> >  	return 0;
+> >  }
+> >  
+> > +/* Test all async sub-devices in a notifier for a match. */
+> > +static int v4l2_async_notifier_try_all_subdevs(
+> > +	struct v4l2_async_notifier *notifier)
+> > +{
+> > +	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
+> > +	struct v4l2_subdev *sd, *tmp;
+> > +
+> > +	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+> > +		struct v4l2_async_subdev *asd;
+> > +		int ret;
+> > +
+> > +		asd = v4l2_async_find_match(notifier, sd);
+> > +		if (!asd)
+> > +			continue;
+> > +
+> > +		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
+> > +		if (ret < 0) {
+> > +			mutex_unlock(&list_lock);
+> > +			return ret;
+> > +		}
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> >  static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+> >  {
+> >  	v4l2_device_unregister_subdev(sd);
+> > @@ -163,17 +189,15 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+> >  	sd->dev = NULL;
+> >  }
+> >  
+> > -int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> > -				 struct v4l2_async_notifier *notifier)
+> > +static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+> >  {
+> > -	struct v4l2_subdev *sd, *tmp;
+> >  	struct v4l2_async_subdev *asd;
+> > +	int ret;
+> >  	int i;
+> >  
+> > -	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+> > +	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+> >  		return -EINVAL;
+> >  
+> > -	notifier->v4l2_dev = v4l2_dev;
+> >  	INIT_LIST_HEAD(&notifier->waiting);
+> >  	INIT_LIST_HEAD(&notifier->done);
+> >  
+> > @@ -206,18 +230,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> >  
+> >  	mutex_lock(&list_lock);
+> >  
+> > -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+> > -		int ret;
+> > -
+> > -		asd = v4l2_async_find_match(notifier, sd);
+> > -		if (!asd)
+> > -			continue;
+> > -
+> > -		ret = v4l2_async_match_notify(notifier, sd, asd);
+> > -		if (ret < 0) {
+> > -			mutex_unlock(&list_lock);
+> > -			return ret;
+> > -		}
+> > +	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+> > +	if (ret) {
+> > +		mutex_unlock(&list_lock);
+> > +		return ret;
+> >  	}
+> >  
+> >  	/* Keep also completed notifiers on the list */
+> > @@ -227,6 +243,17 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> >  
+> >  	return 0;
+> >  }
+> > +
+> > +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> > +				 struct v4l2_async_notifier *notifier)
+> > +{
+> > +	if (WARN_ON(!v4l2_dev))
+> > +		return -EINVAL;
+> > +
+> > +	notifier->v4l2_dev = v4l2_dev;
+> > +
+> > +	return __v4l2_async_notifier_register(notifier);
+> > +}
+> >  EXPORT_SYMBOL(v4l2_async_notifier_register);
+> >  
+> >  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> > @@ -303,7 +330,8 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+> >  		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
+> >  								      sd);
+> >  		if (asd) {
+> > -			int ret = v4l2_async_match_notify(notifier, sd, asd);
+> > +			int ret = v4l2_async_match_notify(
+> > +				notifier, notifier->v4l2_dev, sd, asd);
+> >  			mutex_unlock(&list_lock);
+> >  			return ret;
+> >  		}
+> > 
+> 
+
 -- 
-2.14.1
+Sakari Ailus
+sakari.ailus@linux.intel.com
