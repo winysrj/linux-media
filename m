@@ -1,1337 +1,368 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55771
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S969609AbdIZR7c (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 13:59:32 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 01/10] scripts: kernel-doc: get rid of unused output formats
-Date: Tue, 26 Sep 2017 14:59:11 -0300
-Message-Id: <de8b9f4b394ca349889bfdc467ae33e0ce7939b1.1506448061.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
-References: <cover.1506448061.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
-References: <cover.1506448061.git.mchehab@s-opensource.com>
+Received: from gofer.mess.org ([88.97.38.141]:40713 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965925AbdIZUOH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 16:14:07 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 17/20] media: lirc: implement reading scancode
+Date: Tue, 26 Sep 2017 21:13:56 +0100
+Message-Id: <7c3a08bfc80c32abdfa9f6ee067c4310082e7156.1506455086.git.sean@mess.org>
+In-Reply-To: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
+References: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
+In-Reply-To: <cover.1506455086.git.sean@mess.org>
+References: <cover.1506455086.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since there isn't any docbook code anymore upstream,
-we can get rid of several output formats:
+This implements LIRC_MODE_SCANCODE reading from the lirc device. The
+scancode can be read from the input device too, but with this interface
+you get the rc protocol, toggle and repeat status in addition too just
+the scancode.
 
-- docbook/xml, html, html5 and list formats were used by
-  the old build system;
-- As ReST is text, there's not much sense on outputting
-  on a different text format.
+int main()
+{
+	int fd, mode, rc;
+	fd = open("/dev/lirc0", O_RDWR);
 
-After this patch, only man and rst output formats are
-supported.
+	mode = LIRC_MODE_SCANCODE;
+	if (ioctl(fd, LIRC_SET_REC_MODE, &mode)) {
+		// kernel too old or lirc does not support transmit
+	}
+	struct lirc_scancode scancode;
+	while (read(fd, &scancode, sizeof(scancode)) == sizeof(scancode)) {
+		printf("protocol:%d scancode:0x%x toggle:%d repeat:%d\n",
+			scancode.rc_proto, scancode.scancode,
+			!!(scancode.flags & LIRC_SCANCODE_FLAG_TOGGLE),
+			!!(scancode.flags & LIRC_SCANCODE_FLAG_REPEAT));
+	}
+	close(fd);
+}
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Note that the translated KEY_* is not included, that information is
+published to the input device.
+
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- scripts/kernel-doc | 1182 +---------------------------------------------------
- 1 file changed, 4 insertions(+), 1178 deletions(-)
+ drivers/media/rc/ir-lirc-codec.c      | 87 ++++++++++++++++++++++++++++++-----
+ drivers/media/rc/ir-mce_kbd-decoder.c |  6 +++
+ drivers/media/rc/lirc_dev.c           | 12 +++++
+ drivers/media/rc/rc-core-priv.h       |  3 ++
+ drivers/media/rc/rc-main.c            | 14 ++++++
+ include/media/rc-core.h               |  5 ++
+ 6 files changed, 116 insertions(+), 11 deletions(-)
 
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index 9d3eafea58f0..69757ee9db4c 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -51,13 +51,8 @@ The documentation comments are identified by "/**" opening comment mark. See
- Documentation/kernel-doc-nano-HOWTO.txt for the documentation comment syntax.
- 
- Output format selection (mutually exclusive):
--  -docbook		Output DocBook format.
--  -html			Output HTML format.
--  -html5		Output HTML5 format.
--  -list			Output symbol list format. This is for use by docproc.
-   -man			Output troff manual page format. This is the default.
-   -rst			Output reStructuredText format.
--  -text			Output plain text format.
- 
- Output selection (mutually exclusive):
-   -export		Only output documentation for symbols that have been
-@@ -224,84 +219,11 @@ my $type_typedef = '\&(typedef\s*([_\w]+))';
- my $type_union = '\&(union\s*([_\w]+))';
- my $type_member = '\&([_\w]+)(\.|->)([_\w]+)';
- my $type_fallback = '\&([_\w]+)';
--my $type_enum_xml = '\&amp;(enum\s*([_\w]+))';
--my $type_struct_xml = '\&amp;(struct\s*([_\w]+))';
--my $type_typedef_xml = '\&amp;(typedef\s*([_\w]+))';
--my $type_union_xml = '\&amp;(union\s*([_\w]+))';
--my $type_member_xml = '\&amp;([_\w]+)(\.|-\&gt;)([_\w]+)';
--my $type_fallback_xml = '\&amp([_\w]+)';
- my $type_member_func = $type_member . '\(\)';
- 
- # Output conversion substitutions.
- #  One for each output format
- 
--# these work fairly well
--my @highlights_html = (
--                       [$type_constant, "<i>\$1</i>"],
--                       [$type_constant2, "<i>\$1</i>"],
--                       [$type_func, "<b>\$1</b>"],
--                       [$type_enum_xml, "<i>\$1</i>"],
--                       [$type_struct_xml, "<i>\$1</i>"],
--                       [$type_typedef_xml, "<i>\$1</i>"],
--                       [$type_union_xml, "<i>\$1</i>"],
--                       [$type_env, "<b><i>\$1</i></b>"],
--                       [$type_param, "<tt><b>\$1</b></tt>"],
--                       [$type_member_xml, "<tt><i>\$1</i>\$2\$3</tt>"],
--                       [$type_fallback_xml, "<i>\$1</i>"]
--                      );
--my $local_lt = "\\\\\\\\lt:";
--my $local_gt = "\\\\\\\\gt:";
--my $blankline_html = $local_lt . "p" . $local_gt;	# was "<p>"
--
--# html version 5
--my @highlights_html5 = (
--                        [$type_constant, "<span class=\"const\">\$1</span>"],
--                        [$type_constant2, "<span class=\"const\">\$1</span>"],
--                        [$type_func, "<span class=\"func\">\$1</span>"],
--                        [$type_enum_xml, "<span class=\"enum\">\$1</span>"],
--                        [$type_struct_xml, "<span class=\"struct\">\$1</span>"],
--                        [$type_typedef_xml, "<span class=\"typedef\">\$1</span>"],
--                        [$type_union_xml, "<span class=\"union\">\$1</span>"],
--                        [$type_env, "<span class=\"env\">\$1</span>"],
--                        [$type_param, "<span class=\"param\">\$1</span>]"],
--                        [$type_member_xml, "<span class=\"literal\"><span class=\"struct\">\$1</span>\$2<span class=\"member\">\$3</span></span>"],
--                        [$type_fallback_xml, "<span class=\"struct\">\$1</span>"]
--		       );
--my $blankline_html5 = $local_lt . "br /" . $local_gt;
--
--# XML, docbook format
--my @highlights_xml = (
--                      ["([^=])\\\"([^\\\"<]+)\\\"", "\$1<quote>\$2</quote>"],
--                      [$type_constant, "<constant>\$1</constant>"],
--                      [$type_constant2, "<constant>\$1</constant>"],
--                      [$type_enum_xml, "<type>\$1</type>"],
--                      [$type_struct_xml, "<structname>\$1</structname>"],
--                      [$type_typedef_xml, "<type>\$1</type>"],
--                      [$type_union_xml, "<structname>\$1</structname>"],
--                      [$type_param, "<parameter>\$1</parameter>"],
--                      [$type_func, "<function>\$1</function>"],
--                      [$type_env, "<envar>\$1</envar>"],
--                      [$type_member_xml, "<literal><structname>\$1</structname>\$2<structfield>\$3</structfield></literal>"],
--                      [$type_fallback_xml, "<structname>\$1</structname>"]
--		     );
--my $blankline_xml = $local_lt . "/para" . $local_gt . $local_lt . "para" . $local_gt . "\n";
--
--# gnome, docbook format
--my @highlights_gnome = (
--                        [$type_constant, "<replaceable class=\"option\">\$1</replaceable>"],
--                        [$type_constant2, "<replaceable class=\"option\">\$1</replaceable>"],
--                        [$type_func, "<function>\$1</function>"],
--                        [$type_enum, "<type>\$1</type>"],
--                        [$type_struct, "<structname>\$1</structname>"],
--                        [$type_typedef, "<type>\$1</type>"],
--                        [$type_union, "<structname>\$1</structname>"],
--                        [$type_env, "<envar>\$1</envar>"],
--                        [$type_param, "<parameter>\$1</parameter>" ],
--                        [$type_member, "<literal><structname>\$1</structname>\$2<structfield>\$3</structfield></literal>"],
--                        [$type_fallback, "<structname>\$1</structname>"]
--		       );
--my $blankline_gnome = "</para><para>\n";
--
- # these are pretty rough
- my @highlights_man = (
-                       [$type_constant, "\$1"],
-@@ -317,21 +239,6 @@ my @highlights_man = (
- 		     );
- my $blankline_man = "";
- 
--# text-mode
--my @highlights_text = (
--                       [$type_constant, "\$1"],
--                       [$type_constant2, "\$1"],
--                       [$type_func, "\$1"],
--                       [$type_enum, "\$1"],
--                       [$type_struct, "\$1"],
--                       [$type_typedef, "\$1"],
--                       [$type_union, "\$1"],
--                       [$type_param, "\$1"],
--                       [$type_member, "\$1\$2\$3"],
--                       [$type_fallback, "\$1"]
--		      );
--my $blankline_text = "";
--
- # rst-mode
- my @highlights_rst = (
-                        [$type_constant, "``\$1``"],
-@@ -351,21 +258,6 @@ my @highlights_rst = (
- 		      );
- my $blankline_rst = "\n";
- 
--# list mode
--my @highlights_list = (
--                       [$type_constant, "\$1"],
--                       [$type_constant2, "\$1"],
--                       [$type_func, "\$1"],
--                       [$type_enum, "\$1"],
--                       [$type_struct, "\$1"],
--                       [$type_typedef, "\$1"],
--                       [$type_union, "\$1"],
--                       [$type_param, "\$1"],
--                       [$type_member, "\$1"],
--                       [$type_fallback, "\$1"]
--		      );
--my $blankline_list = "";
--
- # read arguments
- if ($#ARGV == -1) {
-     usage();
-@@ -500,38 +392,14 @@ reset_state();
- 
- while ($ARGV[0] =~ m/^-(.*)/) {
-     my $cmd = shift @ARGV;
--    if ($cmd eq "-html") {
--	$output_mode = "html";
--	@highlights = @highlights_html;
--	$blankline = $blankline_html;
--    } elsif ($cmd eq "-html5") {
--	$output_mode = "html5";
--	@highlights = @highlights_html5;
--	$blankline = $blankline_html5;
--    } elsif ($cmd eq "-man") {
-+    if ($cmd eq "-man") {
- 	$output_mode = "man";
- 	@highlights = @highlights_man;
- 	$blankline = $blankline_man;
--    } elsif ($cmd eq "-text") {
--	$output_mode = "text";
--	@highlights = @highlights_text;
--	$blankline = $blankline_text;
-     } elsif ($cmd eq "-rst") {
- 	$output_mode = "rst";
- 	@highlights = @highlights_rst;
- 	$blankline = $blankline_rst;
--    } elsif ($cmd eq "-docbook") {
--	$output_mode = "xml";
--	@highlights = @highlights_xml;
--	$blankline = $blankline_xml;
--    } elsif ($cmd eq "-list") {
--	$output_mode = "list";
--	@highlights = @highlights_list;
--	$blankline = $blankline_list;
--    } elsif ($cmd eq "-gnome") {
--	$output_mode = "gnome";
--	@highlights = @highlights_gnome;
--	$blankline = $blankline_gnome;
-     } elsif ($cmd eq "-module") { # not needed for XML, inherits from calling document
- 	$modulename = shift @ARGV;
-     } elsif ($cmd eq "-function") { # to only output specific functions
-@@ -667,22 +535,11 @@ sub output_highlight {
- #	confess "output_highlight got called with no args?\n";
- #   }
- 
--    if ($output_mode eq "html" || $output_mode eq "html5" ||
--	$output_mode eq "xml") {
--	$contents = local_unescape($contents);
--	# convert data read & converted thru xml_escape() into &xyz; format:
--	$contents =~ s/\\\\\\/\&/g;
--    }
- #   print STDERR "contents b4:$contents\n";
-     eval $dohighlight;
-     die $@ if $@;
- #   print STDERR "contents af:$contents\n";
- 
--#   strip whitespaces when generating html5
--    if ($output_mode eq "html5") {
--	$contents =~ s/^\s+//;
--	$contents =~ s/\s+$//;
--    }
-     foreach $line (split "\n", $contents) {
- 	if (! $output_preformatted) {
- 	    $line =~ s/^\s*//;
-@@ -703,817 +560,6 @@ sub output_highlight {
-     }
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index fb5df6c8208f..43936128e303 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -88,6 +88,15 @@ void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
+ 	wake_up_poll(&dev->wait_poll, POLLIN | POLLRDNORM);
  }
  
--# output sections in html
--sub output_section_html(%) {
--    my %args = %{$_[0]};
--    my $section;
--
--    foreach $section (@{$args{'sectionlist'}}) {
--	print "<h3>$section</h3>\n";
--	print "<blockquote>\n";
--	output_highlight($args{'sections'}{$section});
--	print "</blockquote>\n";
--    }
--}
--
--# output enum in html
--sub output_enum_html(%) {
--    my %args = %{$_[0]};
--    my ($parameter);
--    my $count;
--    print "<h2>enum " . $args{'enum'} . "</h2>\n";
--
--    print "<b>enum " . $args{'enum'} . "</b> {<br>\n";
--    $count = 0;
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	print " <b>" . $parameter . "</b>";
--	if ($count != $#{$args{'parameterlist'}}) {
--	    $count++;
--	    print ",\n";
--	}
--	print "<br>";
--    }
--    print "};<br>\n";
--
--    print "<h3>Constants</h3>\n";
--    print "<dl>\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	print "<dt><b>" . $parameter . "</b>\n";
--	print "<dd>";
--	output_highlight($args{'parameterdescs'}{$parameter});
--    }
--    print "</dl>\n";
--    output_section_html(@_);
--    print "<hr>\n";
--}
--
--# output typedef in html
--sub output_typedef_html(%) {
--    my %args = %{$_[0]};
--    my ($parameter);
--    my $count;
--    print "<h2>typedef " . $args{'typedef'} . "</h2>\n";
--
--    print "<b>typedef " . $args{'typedef'} . "</b>\n";
--    output_section_html(@_);
--    print "<hr>\n";
--}
--
--# output struct in html
--sub output_struct_html(%) {
--    my %args = %{$_[0]};
--    my ($parameter);
--
--    print "<h2>" . $args{'type'} . " " . $args{'struct'} . " - " . $args{'purpose'} . "</h2>\n";
--    print "<b>" . $args{'type'} . " " . $args{'struct'} . "</b> {<br>\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	if ($parameter =~ /^#/) {
--		print "$parameter<br>\n";
--		next;
--	}
--	my $parameter_name = $parameter;
--	$parameter_name =~ s/\[.*//;
--
--	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
--	$type = $args{'parametertypes'}{$parameter};
--	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
--	    # pointer-to-function
--	    print "&nbsp; &nbsp; <i>$1</i><b>$parameter</b>) <i>($2)</i>;<br>\n";
--	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
--	    # bitfield
--	    print "&nbsp; &nbsp; <i>$1</i> <b>$parameter</b>$2;<br>\n";
--	} else {
--	    print "&nbsp; &nbsp; <i>$type</i> <b>$parameter</b>;<br>\n";
--	}
--    }
--    print "};<br>\n";
--
--    print "<h3>Members</h3>\n";
--    print "<dl>\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	($parameter =~ /^#/) && next;
--
--	my $parameter_name = $parameter;
--	$parameter_name =~ s/\[.*//;
--
--	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
--	print "<dt><b>" . $parameter . "</b>\n";
--	print "<dd>";
--	output_highlight($args{'parameterdescs'}{$parameter_name});
--    }
--    print "</dl>\n";
--    output_section_html(@_);
--    print "<hr>\n";
--}
--
--# output function in html
--sub output_function_html(%) {
--    my %args = %{$_[0]};
--    my ($parameter, $section);
--    my $count;
--
--    print "<h2>" . $args{'function'} . " - " . $args{'purpose'} . "</h2>\n";
--    print "<i>" . $args{'functiontype'} . "</i>\n";
--    print "<b>" . $args{'function'} . "</b>\n";
--    print "(";
--    $count = 0;
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	$type = $args{'parametertypes'}{$parameter};
--	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
--	    # pointer-to-function
--	    print "<i>$1</i><b>$parameter</b>) <i>($2)</i>";
--	} else {
--	    print "<i>" . $type . "</i> <b>" . $parameter . "</b>";
--	}
--	if ($count != $#{$args{'parameterlist'}}) {
--	    $count++;
--	    print ",\n";
--	}
--    }
--    print ")\n";
--
--    print "<h3>Arguments</h3>\n";
--    print "<dl>\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	my $parameter_name = $parameter;
--	$parameter_name =~ s/\[.*//;
--
--	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
--	print "<dt><b>" . $parameter . "</b>\n";
--	print "<dd>";
--	output_highlight($args{'parameterdescs'}{$parameter_name});
--    }
--    print "</dl>\n";
--    output_section_html(@_);
--    print "<hr>\n";
--}
--
--# output DOC: block header in html
--sub output_blockhead_html(%) {
--    my %args = %{$_[0]};
--    my ($parameter, $section);
--    my $count;
--
--    foreach $section (@{$args{'sectionlist'}}) {
--	print "<h3>$section</h3>\n";
--	print "<ul>\n";
--	output_highlight($args{'sections'}{$section});
--	print "</ul>\n";
--    }
--    print "<hr>\n";
--}
--
--# output sections in html5
--sub output_section_html5(%) {
--    my %args = %{$_[0]};
--    my $section;
--
--    foreach $section (@{$args{'sectionlist'}}) {
--	print "<section>\n";
--	print "<h1>$section</h1>\n";
--	print "<p>\n";
--	output_highlight($args{'sections'}{$section});
--	print "</p>\n";
--	print "</section>\n";
--    }
--}
--
--# output enum in html5
--sub output_enum_html5(%) {
--    my %args = %{$_[0]};
--    my ($parameter);
--    my $count;
--    my $html5id;
--
--    $html5id = $args{'enum'};
--    $html5id =~ s/[^a-zA-Z0-9\-]+/_/g;
--    print "<article class=\"enum\" id=\"enum:". $html5id . "\">";
--    print "<h1>enum " . $args{'enum'} . "</h1>\n";
--    print "<ol class=\"code\">\n";
--    print "<li>";
--    print "<span class=\"keyword\">enum</span> ";
--    print "<span class=\"identifier\">" . $args{'enum'} . "</span> {";
--    print "</li>\n";
--    $count = 0;
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	print "<li class=\"indent\">";
--	print "<span class=\"param\">" . $parameter . "</span>";
--	if ($count != $#{$args{'parameterlist'}}) {
--	    $count++;
--	    print ",";
--	}
--	print "</li>\n";
--    }
--    print "<li>};</li>\n";
--    print "</ol>\n";
--
--    print "<section>\n";
--    print "<h1>Constants</h1>\n";
--    print "<dl>\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	print "<dt>" . $parameter . "</dt>\n";
--	print "<dd>";
--	output_highlight($args{'parameterdescs'}{$parameter});
--	print "</dd>\n";
--    }
--    print "</dl>\n";
--    print "</section>\n";
--    output_section_html5(@_);
--    print "</article>\n";
--}
--
--# output typedef in html5
--sub output_typedef_html5(%) {
--    my %args = %{$_[0]};
--    my ($parameter);
--    my $count;
--    my $html5id;
--
--    $html5id = $args{'typedef'};
--    $html5id =~ s/[^a-zA-Z0-9\-]+/_/g;
--    print "<article class=\"typedef\" id=\"typedef:" . $html5id . "\">\n";
--    print "<h1>typedef " . $args{'typedef'} . "</h1>\n";
--
--    print "<ol class=\"code\">\n";
--    print "<li>";
--    print "<span class=\"keyword\">typedef</span> ";
--    print "<span class=\"identifier\">" . $args{'typedef'} . "</span>";
--    print "</li>\n";
--    print "</ol>\n";
--    output_section_html5(@_);
--    print "</article>\n";
--}
--
--# output struct in html5
--sub output_struct_html5(%) {
--    my %args = %{$_[0]};
--    my ($parameter);
--    my $html5id;
--
--    $html5id = $args{'struct'};
--    $html5id =~ s/[^a-zA-Z0-9\-]+/_/g;
--    print "<article class=\"struct\" id=\"struct:" . $html5id . "\">\n";
--    print "<hgroup>\n";
--    print "<h1>" . $args{'type'} . " " . $args{'struct'} . "</h1>";
--    print "<h2>". $args{'purpose'} . "</h2>\n";
--    print "</hgroup>\n";
--    print "<ol class=\"code\">\n";
--    print "<li>";
--    print "<span class=\"type\">" . $args{'type'} . "</span> ";
--    print "<span class=\"identifier\">" . $args{'struct'} . "</span> {";
--    print "</li>\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	print "<li class=\"indent\">";
--	if ($parameter =~ /^#/) {
--		print "<span class=\"param\">" . $parameter ."</span>\n";
--		print "</li>\n";
--		next;
--	}
--	my $parameter_name = $parameter;
--	$parameter_name =~ s/\[.*//;
--
--	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
--	$type = $args{'parametertypes'}{$parameter};
--	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
--	    # pointer-to-function
--	    print "<span class=\"type\">$1</span> ";
--	    print "<span class=\"param\">$parameter</span>";
--	    print "<span class=\"type\">)</span> ";
--	    print "(<span class=\"args\">$2</span>);";
--	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
--	    # bitfield
--	    print "<span class=\"type\">$1</span> ";
--	    print "<span class=\"param\">$parameter</span>";
--	    print "<span class=\"bits\">$2</span>;";
--	} else {
--	    print "<span class=\"type\">$type</span> ";
--	    print "<span class=\"param\">$parameter</span>;";
--	}
--	print "</li>\n";
--    }
--    print "<li>};</li>\n";
--    print "</ol>\n";
--
--    print "<section>\n";
--    print "<h1>Members</h1>\n";
--    print "<dl>\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	($parameter =~ /^#/) && next;
--
--	my $parameter_name = $parameter;
--	$parameter_name =~ s/\[.*//;
--
--	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
--	print "<dt>" . $parameter . "</dt>\n";
--	print "<dd>";
--	output_highlight($args{'parameterdescs'}{$parameter_name});
--	print "</dd>\n";
--    }
--    print "</dl>\n";
--    print "</section>\n";
--    output_section_html5(@_);
--    print "</article>\n";
--}
--
--# output function in html5
--sub output_function_html5(%) {
--    my %args = %{$_[0]};
--    my ($parameter, $section);
--    my $count;
--    my $html5id;
--
--    $html5id = $args{'function'};
--    $html5id =~ s/[^a-zA-Z0-9\-]+/_/g;
--    print "<article class=\"function\" id=\"func:". $html5id . "\">\n";
--    print "<hgroup>\n";
--    print "<h1>" . $args{'function'} . "</h1>";
--    print "<h2>" . $args{'purpose'} . "</h2>\n";
--    print "</hgroup>\n";
--    print "<ol class=\"code\">\n";
--    print "<li>";
--    print "<span class=\"type\">" . $args{'functiontype'} . "</span> ";
--    print "<span class=\"identifier\">" . $args{'function'} . "</span> (";
--    print "</li>";
--    $count = 0;
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	print "<li class=\"indent\">";
--	$type = $args{'parametertypes'}{$parameter};
--	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
--	    # pointer-to-function
--	    print "<span class=\"type\">$1</span> ";
--	    print "<span class=\"param\">$parameter</span>";
--	    print "<span class=\"type\">)</span> ";
--	    print "(<span class=\"args\">$2</span>)";
--	} else {
--	    print "<span class=\"type\">$type</span> ";
--	    print "<span class=\"param\">$parameter</span>";
--	}
--	if ($count != $#{$args{'parameterlist'}}) {
--	    $count++;
--	    print ",";
--	}
--	print "</li>\n";
--    }
--    print "<li>)</li>\n";
--    print "</ol>\n";
--
--    print "<section>\n";
--    print "<h1>Arguments</h1>\n";
--    print "<p>\n";
--    print "<dl>\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	my $parameter_name = $parameter;
--	$parameter_name =~ s/\[.*//;
--
--	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
--	print "<dt>" . $parameter . "</dt>\n";
--	print "<dd>";
--	output_highlight($args{'parameterdescs'}{$parameter_name});
--	print "</dd>\n";
--    }
--    print "</dl>\n";
--    print "</section>\n";
--    output_section_html5(@_);
--    print "</article>\n";
--}
--
--# output DOC: block header in html5
--sub output_blockhead_html5(%) {
--    my %args = %{$_[0]};
--    my ($parameter, $section);
--    my $count;
--    my $html5id;
--
--    foreach $section (@{$args{'sectionlist'}}) {
--	$html5id = $section;
--	$html5id =~ s/[^a-zA-Z0-9\-]+/_/g;
--	print "<article class=\"doc\" id=\"doc:". $html5id . "\">\n";
--	print "<h1>$section</h1>\n";
--	print "<p>\n";
--	output_highlight($args{'sections'}{$section});
--	print "</p>\n";
--    }
--    print "</article>\n";
--}
--
--sub output_section_xml(%) {
--    my %args = %{$_[0]};
--    my $section;
--    # print out each section
--    $lineprefix="   ";
--    foreach $section (@{$args{'sectionlist'}}) {
--	print "<refsect1>\n";
--	print "<title>$section</title>\n";
--	if ($section =~ m/EXAMPLE/i) {
--	    print "<informalexample><programlisting>\n";
--	    $output_preformatted = 1;
--	} else {
--	    print "<para>\n";
--	}
--	output_highlight($args{'sections'}{$section});
--	$output_preformatted = 0;
--	if ($section =~ m/EXAMPLE/i) {
--	    print "</programlisting></informalexample>\n";
--	} else {
--	    print "</para>\n";
--	}
--	print "</refsect1>\n";
--    }
--}
--
--# output function in XML DocBook
--sub output_function_xml(%) {
--    my %args = %{$_[0]};
--    my ($parameter, $section);
--    my $count;
--    my $id;
--
--    $id = "API-" . $args{'function'};
--    $id =~ s/[^A-Za-z0-9]/-/g;
--
--    print "<refentry id=\"$id\">\n";
--    print "<refentryinfo>\n";
--    print " <title>LINUX</title>\n";
--    print " <productname>Kernel Hackers Manual</productname>\n";
--    print " <date>$man_date</date>\n";
--    print "</refentryinfo>\n";
--    print "<refmeta>\n";
--    print " <refentrytitle><phrase>" . $args{'function'} . "</phrase></refentrytitle>\n";
--    print " <manvolnum>9</manvolnum>\n";
--    print " <refmiscinfo class=\"version\">" . $kernelversion . "</refmiscinfo>\n";
--    print "</refmeta>\n";
--    print "<refnamediv>\n";
--    print " <refname>" . $args{'function'} . "</refname>\n";
--    print " <refpurpose>\n";
--    print "  ";
--    output_highlight ($args{'purpose'});
--    print " </refpurpose>\n";
--    print "</refnamediv>\n";
--
--    print "<refsynopsisdiv>\n";
--    print " <title>Synopsis</title>\n";
--    print "  <funcsynopsis><funcprototype>\n";
--    print "   <funcdef>" . $args{'functiontype'} . " ";
--    print "<function>" . $args{'function'} . " </function></funcdef>\n";
--
--    $count = 0;
--    if ($#{$args{'parameterlist'}} >= 0) {
--	foreach $parameter (@{$args{'parameterlist'}}) {
--	    $type = $args{'parametertypes'}{$parameter};
--	    if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
--		# pointer-to-function
--		print "   <paramdef>$1<parameter>$parameter</parameter>)\n";
--		print "     <funcparams>$2</funcparams></paramdef>\n";
--	    } else {
--		print "   <paramdef>" . $type;
--		print " <parameter>$parameter</parameter></paramdef>\n";
--	    }
--	}
--    } else {
--	print "  <void/>\n";
--    }
--    print "  </funcprototype></funcsynopsis>\n";
--    print "</refsynopsisdiv>\n";
--
--    # print parameters
--    print "<refsect1>\n <title>Arguments</title>\n";
--    if ($#{$args{'parameterlist'}} >= 0) {
--	print " <variablelist>\n";
--	foreach $parameter (@{$args{'parameterlist'}}) {
--	    my $parameter_name = $parameter;
--	    $parameter_name =~ s/\[.*//;
--	    $type = $args{'parametertypes'}{$parameter};
--
--	    print "  <varlistentry>\n   <term><parameter>$type $parameter</parameter></term>\n";
--	    print "   <listitem>\n    <para>\n";
--	    $lineprefix="     ";
--	    output_highlight($args{'parameterdescs'}{$parameter_name});
--	    print "    </para>\n   </listitem>\n  </varlistentry>\n";
--	}
--	print " </variablelist>\n";
--    } else {
--	print " <para>\n  None\n </para>\n";
--    }
--    print "</refsect1>\n";
--
--    output_section_xml(@_);
--    print "</refentry>\n\n";
--}
--
--# output struct in XML DocBook
--sub output_struct_xml(%) {
--    my %args = %{$_[0]};
--    my ($parameter, $section);
--    my $id;
--
--    $id = "API-struct-" . $args{'struct'};
--    $id =~ s/[^A-Za-z0-9]/-/g;
--
--    print "<refentry id=\"$id\">\n";
--    print "<refentryinfo>\n";
--    print " <title>LINUX</title>\n";
--    print " <productname>Kernel Hackers Manual</productname>\n";
--    print " <date>$man_date</date>\n";
--    print "</refentryinfo>\n";
--    print "<refmeta>\n";
--    print " <refentrytitle><phrase>" . $args{'type'} . " " . $args{'struct'} . "</phrase></refentrytitle>\n";
--    print " <manvolnum>9</manvolnum>\n";
--    print " <refmiscinfo class=\"version\">" . $kernelversion . "</refmiscinfo>\n";
--    print "</refmeta>\n";
--    print "<refnamediv>\n";
--    print " <refname>" . $args{'type'} . " " . $args{'struct'} . "</refname>\n";
--    print " <refpurpose>\n";
--    print "  ";
--    output_highlight ($args{'purpose'});
--    print " </refpurpose>\n";
--    print "</refnamediv>\n";
--
--    print "<refsynopsisdiv>\n";
--    print " <title>Synopsis</title>\n";
--    print "  <programlisting>\n";
--    print $args{'type'} . " " . $args{'struct'} . " {\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	if ($parameter =~ /^#/) {
--	    my $prm = $parameter;
--	    # convert data read & converted thru xml_escape() into &xyz; format:
--	    # This allows us to have #define macros interspersed in a struct.
--	    $prm =~ s/\\\\\\/\&/g;
--	    print "$prm\n";
--	    next;
--	}
--
--	my $parameter_name = $parameter;
--	$parameter_name =~ s/\[.*//;
--
--	defined($args{'parameterdescs'}{$parameter_name}) || next;
--	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
--	$type = $args{'parametertypes'}{$parameter};
--	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
--	    # pointer-to-function
--	    print "  $1 $parameter) ($2);\n";
--	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
--	    # bitfield
--	    print "  $1 $parameter$2;\n";
--	} else {
--	    print "  " . $type . " " . $parameter . ";\n";
--	}
--    }
--    print "};";
--    print "  </programlisting>\n";
--    print "</refsynopsisdiv>\n";
--
--    print " <refsect1>\n";
--    print "  <title>Members</title>\n";
--
--    if ($#{$args{'parameterlist'}} >= 0) {
--    print "  <variablelist>\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--      ($parameter =~ /^#/) && next;
--
--      my $parameter_name = $parameter;
--      $parameter_name =~ s/\[.*//;
--
--      defined($args{'parameterdescs'}{$parameter_name}) || next;
--      ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
--      $type = $args{'parametertypes'}{$parameter};
--      print "    <varlistentry>";
--      print "      <term><literal>$type $parameter</literal></term>\n";
--      print "      <listitem><para>\n";
--      output_highlight($args{'parameterdescs'}{$parameter_name});
--      print "      </para></listitem>\n";
--      print "    </varlistentry>\n";
--    }
--    print "  </variablelist>\n";
--    } else {
--	print " <para>\n  None\n </para>\n";
--    }
--    print " </refsect1>\n";
--
--    output_section_xml(@_);
--
--    print "</refentry>\n\n";
--}
--
--# output enum in XML DocBook
--sub output_enum_xml(%) {
--    my %args = %{$_[0]};
--    my ($parameter, $section);
--    my $count;
--    my $id;
--
--    $id = "API-enum-" . $args{'enum'};
--    $id =~ s/[^A-Za-z0-9]/-/g;
--
--    print "<refentry id=\"$id\">\n";
--    print "<refentryinfo>\n";
--    print " <title>LINUX</title>\n";
--    print " <productname>Kernel Hackers Manual</productname>\n";
--    print " <date>$man_date</date>\n";
--    print "</refentryinfo>\n";
--    print "<refmeta>\n";
--    print " <refentrytitle><phrase>enum " . $args{'enum'} . "</phrase></refentrytitle>\n";
--    print " <manvolnum>9</manvolnum>\n";
--    print " <refmiscinfo class=\"version\">" . $kernelversion . "</refmiscinfo>\n";
--    print "</refmeta>\n";
--    print "<refnamediv>\n";
--    print " <refname>enum " . $args{'enum'} . "</refname>\n";
--    print " <refpurpose>\n";
--    print "  ";
--    output_highlight ($args{'purpose'});
--    print " </refpurpose>\n";
--    print "</refnamediv>\n";
--
--    print "<refsynopsisdiv>\n";
--    print " <title>Synopsis</title>\n";
--    print "  <programlisting>\n";
--    print "enum " . $args{'enum'} . " {\n";
--    $count = 0;
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	print "  $parameter";
--	if ($count != $#{$args{'parameterlist'}}) {
--	    $count++;
--	    print ",";
--	}
--	print "\n";
--    }
--    print "};";
--    print "  </programlisting>\n";
--    print "</refsynopsisdiv>\n";
--
--    print "<refsect1>\n";
--    print " <title>Constants</title>\n";
--    print "  <variablelist>\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--      my $parameter_name = $parameter;
--      $parameter_name =~ s/\[.*//;
--
--      print "    <varlistentry>";
--      print "      <term>$parameter</term>\n";
--      print "      <listitem><para>\n";
--      output_highlight($args{'parameterdescs'}{$parameter_name});
--      print "      </para></listitem>\n";
--      print "    </varlistentry>\n";
--    }
--    print "  </variablelist>\n";
--    print "</refsect1>\n";
--
--    output_section_xml(@_);
--
--    print "</refentry>\n\n";
--}
--
--# output typedef in XML DocBook
--sub output_typedef_xml(%) {
--    my %args = %{$_[0]};
--    my ($parameter, $section);
--    my $id;
--
--    $id = "API-typedef-" . $args{'typedef'};
--    $id =~ s/[^A-Za-z0-9]/-/g;
--
--    print "<refentry id=\"$id\">\n";
--    print "<refentryinfo>\n";
--    print " <title>LINUX</title>\n";
--    print " <productname>Kernel Hackers Manual</productname>\n";
--    print " <date>$man_date</date>\n";
--    print "</refentryinfo>\n";
--    print "<refmeta>\n";
--    print " <refentrytitle><phrase>typedef " . $args{'typedef'} . "</phrase></refentrytitle>\n";
--    print " <manvolnum>9</manvolnum>\n";
--    print "</refmeta>\n";
--    print "<refnamediv>\n";
--    print " <refname>typedef " . $args{'typedef'} . "</refname>\n";
--    print " <refpurpose>\n";
--    print "  ";
--    output_highlight ($args{'purpose'});
--    print " </refpurpose>\n";
--    print "</refnamediv>\n";
--
--    print "<refsynopsisdiv>\n";
--    print " <title>Synopsis</title>\n";
--    print "  <synopsis>typedef " . $args{'typedef'} . ";</synopsis>\n";
--    print "</refsynopsisdiv>\n";
--
--    output_section_xml(@_);
--
--    print "</refentry>\n\n";
--}
--
--# output in XML DocBook
--sub output_blockhead_xml(%) {
--    my %args = %{$_[0]};
--    my ($parameter, $section);
--    my $count;
--
--    my $id = $args{'module'};
--    $id =~ s/[^A-Za-z0-9]/-/g;
--
--    # print out each section
--    $lineprefix="   ";
--    foreach $section (@{$args{'sectionlist'}}) {
--	if (!$args{'content-only'}) {
--		print "<refsect1>\n <title>$section</title>\n";
--	}
--	if ($section =~ m/EXAMPLE/i) {
--	    print "<example><para>\n";
--	    $output_preformatted = 1;
--	} else {
--	    print "<para>\n";
--	}
--	output_highlight($args{'sections'}{$section});
--	$output_preformatted = 0;
--	if ($section =~ m/EXAMPLE/i) {
--	    print "</para></example>\n";
--	} else {
--	    print "</para>";
--	}
--	if (!$args{'content-only'}) {
--		print "\n</refsect1>\n";
--	}
--    }
--
--    print "\n\n";
--}
--
--# output in XML DocBook
--sub output_function_gnome {
--    my %args = %{$_[0]};
--    my ($parameter, $section);
--    my $count;
--    my $id;
--
--    $id = $args{'module'} . "-" . $args{'function'};
--    $id =~ s/[^A-Za-z0-9]/-/g;
--
--    print "<sect2>\n";
--    print " <title id=\"$id\">" . $args{'function'} . "</title>\n";
--
--    print "  <funcsynopsis>\n";
--    print "   <funcdef>" . $args{'functiontype'} . " ";
--    print "<function>" . $args{'function'} . " ";
--    print "</function></funcdef>\n";
--
--    $count = 0;
--    if ($#{$args{'parameterlist'}} >= 0) {
--	foreach $parameter (@{$args{'parameterlist'}}) {
--	    $type = $args{'parametertypes'}{$parameter};
--	    if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
--		# pointer-to-function
--		print "   <paramdef>$1 <parameter>$parameter</parameter>)\n";
--		print "     <funcparams>$2</funcparams></paramdef>\n";
--	    } else {
--		print "   <paramdef>" . $type;
--		print " <parameter>$parameter</parameter></paramdef>\n";
--	    }
--	}
--    } else {
--	print "  <void>\n";
--    }
--    print "  </funcsynopsis>\n";
--    if ($#{$args{'parameterlist'}} >= 0) {
--	print " <informaltable pgwide=\"1\" frame=\"none\" role=\"params\">\n";
--	print "<tgroup cols=\"2\">\n";
--	print "<colspec colwidth=\"2*\">\n";
--	print "<colspec colwidth=\"8*\">\n";
--	print "<tbody>\n";
--	foreach $parameter (@{$args{'parameterlist'}}) {
--	    my $parameter_name = $parameter;
--	    $parameter_name =~ s/\[.*//;
--
--	    print "  <row><entry align=\"right\"><parameter>$parameter</parameter></entry>\n";
--	    print "   <entry>\n";
--	    $lineprefix="     ";
--	    output_highlight($args{'parameterdescs'}{$parameter_name});
--	    print "    </entry></row>\n";
--	}
--	print " </tbody></tgroup></informaltable>\n";
--    } else {
--	print " <para>\n  None\n </para>\n";
--    }
--
--    # print out each section
--    $lineprefix="   ";
--    foreach $section (@{$args{'sectionlist'}}) {
--	print "<simplesect>\n <title>$section</title>\n";
--	if ($section =~ m/EXAMPLE/i) {
--	    print "<example><programlisting>\n";
--	    $output_preformatted = 1;
--	} else {
--	}
--	print "<para>\n";
--	output_highlight($args{'sections'}{$section});
--	$output_preformatted = 0;
--	print "</para>\n";
--	if ($section =~ m/EXAMPLE/i) {
--	    print "</programlisting></example>\n";
--	} else {
--	}
--	print " </simplesect>\n";
--    }
--
--    print "</sect2>\n\n";
--}
--
- ##
- # output function in man
- sub output_function_man(%) {
-@@ -1692,161 +738,6 @@ sub output_blockhead_man(%) {
++void ir_lirc_scancode_event(struct rc_dev *dev, struct lirc_scancode *lsc)
++{
++	lsc->timestamp = ktime_get_ns();
++
++	if (kfifo_put(&dev->scancodes, *lsc))
++		wake_up_poll(&dev->wait_poll, POLLIN | POLLRDNORM);
++}
++EXPORT_SYMBOL_GPL(ir_lirc_scancode_event);
++
+ static int ir_lirc_open(struct inode *inode, struct file *file)
+ {
+ 	struct rc_dev *dev = container_of(inode->i_cdev, struct rc_dev,
+@@ -114,6 +123,8 @@ static int ir_lirc_open(struct inode *inode, struct file *file)
+ 
+ 	if (dev->driver_type == RC_DRIVER_IR_RAW)
+ 		kfifo_reset_out(&dev->rawir);
++	if (dev->driver_type != RC_DRIVER_IR_RAW_TX)
++		kfifo_reset_out(&dev->scancodes);
+ 
+ 	dev->lirc_open++;
+ 	file->private_data = dev;
+@@ -282,7 +293,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 	switch (cmd) {
+ 	case LIRC_GET_FEATURES:
+ 		if (dev->driver_type == RC_DRIVER_IR_RAW) {
+-			val |= LIRC_CAN_REC_MODE2;
++			val |= LIRC_CAN_REC_MODE2 | LIRC_CAN_REC_SCANCODE;
+ 			if (dev->rx_resolution)
+ 				val |= LIRC_CAN_GET_REC_RESOLUTION;
+ 		}
+@@ -320,15 +331,17 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
+ 			return -ENOTTY;
+ 
+-		val = LIRC_MODE_MODE2;
++		val = dev->rec_mode;
+ 		break;
+ 
+ 	case LIRC_SET_REC_MODE:
+ 		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
+ 			return -ENOTTY;
+ 
+-		if (val != LIRC_MODE_MODE2)
++		if (!(val == LIRC_MODE_MODE2 || val == LIRC_MODE_SCANCODE))
+ 			return -EINVAL;
++
++		dev->rec_mode = val;
+ 		return 0;
+ 
+ 	case LIRC_GET_SEND_MODE:
+@@ -465,16 +478,21 @@ static unsigned int ir_lirc_poll(struct file *file,
+ 
+ 	poll_wait(file, &rcdev->wait_poll, wait);
+ 
+-	if (!rcdev->registered)
++	if (!rcdev->registered) {
+ 		events = POLLHUP | POLLERR;
+-	else if (!kfifo_is_empty(&rcdev->rawir))
+-		events = POLLIN | POLLRDNORM;
++	} else if (rcdev->rec_mode == LIRC_MODE_SCANCODE) {
++		if (!kfifo_is_empty(&rcdev->scancodes))
++			events = POLLIN | POLLRDNORM;
++	} else if (rcdev->rec_mode == LIRC_MODE_MODE2) {
++		if (!kfifo_is_empty(&rcdev->rawir))
++			events = POLLIN | POLLRDNORM;
++	}
+ 
+ 	return events;
  }
  
- ##
--# output in text
--sub output_function_text(%) {
--    my %args = %{$_[0]};
--    my ($parameter, $section);
--    my $start;
--
--    print "Name:\n\n";
--    print $args{'function'} . " - " . $args{'purpose'} . "\n";
--
--    print "\nSynopsis:\n\n";
--    if ($args{'functiontype'} ne "") {
--	$start = $args{'functiontype'} . " " . $args{'function'} . " (";
--    } else {
--	$start = $args{'function'} . " (";
--    }
--    print $start;
--
--    my $count = 0;
--    foreach my $parameter (@{$args{'parameterlist'}}) {
--	$type = $args{'parametertypes'}{$parameter};
--	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
--	    # pointer-to-function
--	    print $1 . $parameter . ") (" . $2;
--	} else {
--	    print $type . " " . $parameter;
--	}
--	if ($count != $#{$args{'parameterlist'}}) {
--	    $count++;
--	    print ",\n";
--	    print " " x length($start);
--	} else {
--	    print ");\n\n";
--	}
--    }
--
--    print "Arguments:\n\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	my $parameter_name = $parameter;
--	$parameter_name =~ s/\[.*//;
--
--	print $parameter . "\n\t" . $args{'parameterdescs'}{$parameter_name} . "\n";
--    }
--    output_section_text(@_);
--}
--
--#output sections in text
--sub output_section_text(%) {
--    my %args = %{$_[0]};
--    my $section;
--
--    print "\n";
--    foreach $section (@{$args{'sectionlist'}}) {
--	print "$section:\n\n";
--	output_highlight($args{'sections'}{$section});
--    }
--    print "\n\n";
--}
--
--# output enum in text
--sub output_enum_text(%) {
--    my %args = %{$_[0]};
--    my ($parameter);
--    my $count;
--    print "Enum:\n\n";
--
--    print "enum " . $args{'enum'} . " - " . $args{'purpose'} . "\n\n";
--    print "enum " . $args{'enum'} . " {\n";
--    $count = 0;
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	print "\t$parameter";
--	if ($count != $#{$args{'parameterlist'}}) {
--	    $count++;
--	    print ",";
--	}
--	print "\n";
--    }
--    print "};\n\n";
--
--    print "Constants:\n\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	print "$parameter\n\t";
--	print $args{'parameterdescs'}{$parameter} . "\n";
--    }
--
--    output_section_text(@_);
--}
--
--# output typedef in text
--sub output_typedef_text(%) {
--    my %args = %{$_[0]};
--    my ($parameter);
--    my $count;
--    print "Typedef:\n\n";
--
--    print "typedef " . $args{'typedef'} . " - " . $args{'purpose'} . "\n";
--    output_section_text(@_);
--}
--
--# output struct as text
--sub output_struct_text(%) {
--    my %args = %{$_[0]};
--    my ($parameter);
--
--    print $args{'type'} . " " . $args{'struct'} . " - " . $args{'purpose'} . "\n\n";
--    print $args{'type'} . " " . $args{'struct'} . " {\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	if ($parameter =~ /^#/) {
--	    print "$parameter\n";
--	    next;
--	}
--
--	my $parameter_name = $parameter;
--	$parameter_name =~ s/\[.*//;
--
--	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
--	$type = $args{'parametertypes'}{$parameter};
--	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
--	    # pointer-to-function
--	    print "\t$1 $parameter) ($2);\n";
--	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
--	    # bitfield
--	    print "\t$1 $parameter$2;\n";
--	} else {
--	    print "\t" . $type . " " . $parameter . ";\n";
--	}
--    }
--    print "};\n\n";
--
--    print "Members:\n\n";
--    foreach $parameter (@{$args{'parameterlist'}}) {
--	($parameter =~ /^#/) && next;
--
--	my $parameter_name = $parameter;
--	$parameter_name =~ s/\[.*//;
--
--	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
--	print "$parameter\n\t";
--	print $args{'parameterdescs'}{$parameter_name} . "\n";
--    }
--    print "\n";
--    output_section_text(@_);
--}
--
--sub output_blockhead_text(%) {
--    my %args = %{$_[0]};
--    my ($parameter, $section);
--
--    foreach $section (@{$args{'sectionlist'}}) {
--	print " $section:\n";
--	print "    -> ";
--	output_highlight($args{'sections'}{$section});
--    }
--}
--
--##
- # output in restructured text
- #
+-static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
+-			    size_t length, loff_t *ppos)
++static ssize_t ir_lirc_read_mode2(struct file *file, char __user *buffer,
++				  size_t length)
+ {
+ 	struct rc_dev *rcdev = file->private_data;
+ 	unsigned int copied;
+@@ -483,9 +501,6 @@ static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
+ 	if (length < sizeof(unsigned int) || length % sizeof(unsigned int))
+ 		return -EINVAL;
  
-@@ -2080,43 +971,6 @@ sub output_struct_rst(%) {
-     output_section_rst(@_);
+-	if (!rcdev->registered)
+-		return -ENODEV;
+-
+ 	do {
+ 		if (kfifo_is_empty(&rcdev->rawir)) {
+ 			if (file->f_flags & O_NONBLOCK)
+@@ -511,6 +526,56 @@ static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
+ 	return copied;
  }
  
--
--## list mode output functions
--
--sub output_function_list(%) {
--    my %args = %{$_[0]};
--
--    print $args{'function'} . "\n";
--}
--
--# output enum in list
--sub output_enum_list(%) {
--    my %args = %{$_[0]};
--    print $args{'enum'} . "\n";
--}
--
--# output typedef in list
--sub output_typedef_list(%) {
--    my %args = %{$_[0]};
--    print $args{'typedef'} . "\n";
--}
--
--# output struct as list
--sub output_struct_list(%) {
--    my %args = %{$_[0]};
--
--    print $args{'struct'} . "\n";
--}
--
--sub output_blockhead_list(%) {
--    my %args = %{$_[0]};
--    my ($parameter, $section);
--
--    foreach $section (@{$args{'sectionlist'}}) {
--	print "DOC: $section\n";
--    }
--}
--
- ##
- # generic output function for all types (function, struct/union, typedef, enum);
- # calls the generated, variable output_ function name based on
-@@ -2795,7 +1649,7 @@ sub process_proto_type($$) {
- # just before actual output; (this is done by local_unescape())
- sub xml_escape($) {
- 	my $text = shift;
--	if (($output_mode eq "text") || ($output_mode eq "man")) {
-+	if ($output_mode eq "man") {
- 		return $text;
++static ssize_t ir_lirc_read_scancode(struct file *file, char __user *buffer,
++				     size_t length)
++{
++	struct rc_dev *rcdev = file->private_data;
++	unsigned int copied;
++	int ret;
++
++	if (length < sizeof(struct lirc_scancode) ||
++	    length % sizeof(struct lirc_scancode))
++		return -EINVAL;
++
++	do {
++		if (kfifo_is_empty(&rcdev->scancodes)) {
++			if (file->f_flags & O_NONBLOCK)
++				return -EAGAIN;
++
++			ret = wait_event_interruptible(rcdev->wait_poll,
++					!kfifo_is_empty(&rcdev->scancodes) ||
++					!rcdev->registered);
++			if (ret)
++				return ret;
++		}
++
++		if (!rcdev->registered)
++			return -ENODEV;
++
++		mutex_lock(&rcdev->lock);
++		ret = kfifo_to_user(&rcdev->scancodes, buffer, length, &copied);
++		mutex_unlock(&rcdev->lock);
++		if (ret)
++			return ret;
++	} while (copied == 0);
++
++	return copied;
++}
++
++static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
++			    size_t length, loff_t *ppos)
++{
++	struct rc_dev *rcdev = file->private_data;
++
++	if (!rcdev->registered)
++		return -ENODEV;
++
++	if (rcdev->rec_mode == LIRC_MODE_MODE2)
++		return ir_lirc_read_mode2(file, buffer, length);
++	else /* LIRC_MODE_SCANCODE */
++		return ir_lirc_read_scancode(file, buffer, length);
++}
++
+ const struct file_operations lirc_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.write		= ir_lirc_transmit_ir,
+diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
+index efa3b735dcc4..24daaa4f746f 100644
+--- a/drivers/media/rc/ir-mce_kbd-decoder.c
++++ b/drivers/media/rc/ir-mce_kbd-decoder.c
+@@ -215,6 +215,7 @@ static int ir_mce_kbd_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 	struct mce_kbd_dec *data = &dev->raw->mce_kbd;
+ 	u32 scancode;
+ 	unsigned long delay;
++	struct lirc_scancode lsc;
+ 
+ 	if (!is_timing_event(ev)) {
+ 		if (ev.reset)
+@@ -326,18 +327,23 @@ static int ir_mce_kbd_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 			mod_timer(&data->rx_timeout, jiffies + delay);
+ 			/* Pass data to keyboard buffer parser */
+ 			ir_mce_kbd_process_keyboard_data(data->idev, scancode);
++			lsc.rc_proto = RC_PROTO_MCIR2_KBD;
+ 			break;
+ 		case MCIR2_MOUSE_NBITS:
+ 			scancode = data->body & 0x1fffff;
+ 			IR_dprintk(1, "mouse data 0x%06x\n", scancode);
+ 			/* Pass data to mouse buffer parser */
+ 			ir_mce_kbd_process_mouse_data(data->idev, scancode);
++			lsc.rc_proto = RC_PROTO_MCIR2_MSE;
+ 			break;
+ 		default:
+ 			IR_dprintk(1, "not keyboard or mouse data\n");
+ 			goto out;
+ 		}
+ 
++		lsc.scancode = scancode;
++		lsc.flags = 0;
++		ir_lirc_scancode_event(dev, &lsc);
+ 		data->state = STATE_INACTIVE;
+ 		input_event(data->idev, EV_MSC, MSC_SCAN, scancode);
+ 		input_sync(data->idev);
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 155a4de249a0..e5672b0a6dc4 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -42,6 +42,8 @@ static void lirc_release_device(struct device *ld)
+ 
+ 	if (rcdev->driver_type == RC_DRIVER_IR_RAW)
+ 		kfifo_free(&rcdev->rawir);
++	if (rcdev->driver_type != RC_DRIVER_IR_RAW_TX)
++		kfifo_free(&rcdev->scancodes);
+ 
+ 	put_device(&rcdev->dev);
+ }
+@@ -54,12 +56,20 @@ int ir_lirc_register(struct rc_dev *dev)
+ 	dev->lirc_dev.class = lirc_class;
+ 	dev->lirc_dev.release = lirc_release_device;
+ 	dev->send_mode = LIRC_MODE_PULSE;
++	dev->rec_mode = LIRC_MODE_MODE2;
+ 
+ 	if (dev->driver_type == RC_DRIVER_IR_RAW) {
+ 		if (kfifo_alloc(&dev->rawir, MAX_IR_EVENT_SIZE, GFP_KERNEL))
+ 			return -ENOMEM;
  	}
- 	$text =~ s/\&/\\\\\\amp;/g;
-@@ -2807,7 +1661,7 @@ sub xml_escape($) {
- # xml_unescape: reverse the effects of xml_escape
- sub xml_unescape($) {
- 	my $text = shift;
--	if (($output_mode eq "text") || ($output_mode eq "man")) {
-+	if ($output_mode eq "man") {
- 		return $text;
- 	}
- 	$text =~ s/\\\\\\amp;/\&/g;
-@@ -2820,7 +1674,7 @@ sub xml_unescape($) {
- # local escape strings look like:  '\\\\menmonic:' (that's 4 backslashes)
- sub local_unescape($) {
- 	my $text = shift;
--	if (($output_mode eq "text") || ($output_mode eq "man")) {
-+	if ($output_mode eq "man") {
- 		return $text;
- 	}
- 	$text =~ s/\\\\\\\\lt:/</g;
-@@ -3140,34 +1994,6 @@ sub process_file($) {
- 	if (($output_selection == OUTPUT_INCLUDE) && ($show_not_found == 1)) {
- 	    print STDERR "    Was looking for '$_'.\n" for keys %function_table;
- 	}
--	if ($output_mode eq "xml") {
--	    # The template wants at least one RefEntry here; make one.
--	    print "<refentry>\n";
--	    print " <refnamediv>\n";
--	    print "  <refname>\n";
--	    print "   ${orig_file}\n";
--	    print "  </refname>\n";
--	    print "  <refpurpose>\n";
--	    print "   Document generation inconsistency\n";
--	    print "  </refpurpose>\n";
--	    print " </refnamediv>\n";
--	    print " <refsect1>\n";
--	    print "  <title>\n";
--	    print "   Oops\n";
--	    print "  </title>\n";
--	    print "  <warning>\n";
--	    print "   <para>\n";
--	    print "    The template for this document tried to insert\n";
--	    print "    the structured comment from the file\n";
--	    print "    <filename>${orig_file}</filename> at this point,\n";
--	    print "    but none was found.\n";
--	    print "    This dummy section is inserted to allow\n";
--	    print "    generation to continue.\n";
--	    print "   </para>\n";
--	    print "  </warning>\n";
--	    print " </refsect1>\n";
--	    print "</refentry>\n";
--	}
-     }
+ 
++	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
++		if (kfifo_alloc(&dev->scancodes, 32, GFP_KERNEL)) {
++			kfifo_free(&dev->rawir);
++			return -ENOMEM;
++		}
++	}
++
+ 	init_waitqueue_head(&dev->wait_poll);
+ 
+ 	minor = ida_simple_get(&lirc_ida, 0, RC_DEV_MAX, GFP_KERNEL);
+@@ -90,6 +100,8 @@ int ir_lirc_register(struct rc_dev *dev)
+ out_kfifo:
+ 	if (dev->driver_type == RC_DRIVER_IR_RAW)
+ 		kfifo_free(&dev->rawir);
++	if (dev->driver_type != RC_DRIVER_IR_RAW_TX)
++		kfifo_free(&dev->scancodes);
+ 	return err;
  }
  
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 10fce47c255d..9630dd52700d 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -285,6 +285,7 @@ void ir_raw_init(void);
+ int lirc_dev_init(void);
+ void lirc_dev_exit(void);
+ void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev);
++void ir_lirc_scancode_event(struct rc_dev *dev, struct lirc_scancode *lsc);
+ int ir_lirc_register(struct rc_dev *dev);
+ void ir_lirc_unregister(struct rc_dev *dev);
+ 
+@@ -294,6 +295,8 @@ static inline int lirc_dev_init(void) { return 0; }
+ static inline void lirc_dev_exit(void) {}
+ static inline void ir_lirc_raw_event(struct rc_dev *dev,
+ 				     struct ir_raw_event ev) { }
++static inline void ir_lirc_scancode_event(struct rc_dev *dev,
++					  struct lirc_scancode *lsc) { }
+ static inline int ir_lirc_register(struct rc_dev *dev) { return 0; }
+ static inline void ir_lirc_unregister(struct rc_dev *dev) { }
+ #endif
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 1103930a3a0a..b58ddc8c1abf 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -615,6 +615,14 @@ static void ir_do_keyup(struct rc_dev *dev, bool sync)
+ void rc_keyup(struct rc_dev *dev)
+ {
+ 	unsigned long flags;
++	struct lirc_scancode sc = {
++		.scancode = dev->last_scancode,
++		.rc_proto = dev->last_protocol,
++		.flags = LIRC_SCANCODE_FLAG_REPEAT |
++			(dev->last_toggle ? LIRC_SCANCODE_FLAG_TOGGLE : 0),
++	};
++
++	ir_lirc_scancode_event(dev, &sc);
+ 
+ 	spin_lock_irqsave(&dev->keylock, flags);
+ 	ir_do_keyup(dev, true);
+@@ -697,6 +705,12 @@ static void ir_do_keydown(struct rc_dev *dev, enum rc_proto protocol,
+ 			  dev->last_protocol != protocol ||
+ 			  dev->last_scancode != scancode ||
+ 			  dev->last_toggle   != toggle);
++	struct lirc_scancode sc = {
++		.scancode = scancode, .rc_proto = protocol,
++		.flags = toggle ? LIRC_SCANCODE_FLAG_TOGGLE : 0
++	};
++
++	ir_lirc_scancode_event(dev, &sc);
+ 
+ 	if (new_event && dev->keypressed)
+ 		ir_do_keyup(dev, false);
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index e3db561a9bd7..86f62e75dcab 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -126,9 +126,12 @@ enum rc_filter_type {
+  * @gap: true if we're in a gap
+  * @send_timeout_reports: report timeouts in lirc raw IR.
+  * @rawir: queue for incoming raw IR
++ * @scancodes: queue for incoming decoded scancodes
+  * @wait_poll: poll struct for lirc device
+  * @send_mode: lirc mode for sending, either LIRC_MODE_SCANCODE or
+  *	LIRC_MODE_PULSE
++ * @rec_mode: lirc mode for recording, either LIRC_MODE_SCANCODE or
++ *	LIRC_MODE_MODE2
+  * @registered: set to true by rc_register_device(), false by
+  *	rc_unregister_device
+  * @change_protocol: allow changing the protocol used on hardware decoders
+@@ -201,8 +204,10 @@ struct rc_dev {
+ 	bool				gap;
+ 	bool				send_timeout_reports;
+ 	DECLARE_KFIFO_PTR(rawir, unsigned int);
++	DECLARE_KFIFO_PTR(scancodes, struct lirc_scancode);
+ 	wait_queue_head_t		wait_poll;
+ 	u8				send_mode;
++	u8				rec_mode;
+ #endif
+ 	bool				registered;
+ 	int				(*change_protocol)(struct rc_dev *dev, u64 *rc_proto);
 -- 
 2.13.5
