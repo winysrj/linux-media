@@ -1,60 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:28471 "EHLO
-        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750972AbdISNJc (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:46870 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967292AbdIZIWb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 09:09:32 -0400
-Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
-        by mx07-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v8JD9UD7006048
-        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 14:09:30 +0100
-Received: from mail-wm0-f72.google.com (mail-wm0-f72.google.com [74.125.82.72])
-        by mx07-00252a01.pphosted.com with ESMTP id 2d0sc01jc8-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 14:09:30 +0100
-Received: by mail-wm0-f72.google.com with SMTP id u138so3873605wmu.2
-        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 06:09:30 -0700 (PDT)
-From: Dave Stevenson <dave.stevenson@raspberrypi.org>
-To: Mats Randgaard <matrandg@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
+        Tue, 26 Sep 2017 04:22:31 -0400
+Subject: Re: [PATCH v14 16/28] v4l: async: Ensure only unique fwnodes are
+ registered to notifiers
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
         linux-media@vger.kernel.org
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Subject: [PATCH 1/3] [media] tc358743: Correct clock mode reported in g_mbus_config
-Date: Tue, 19 Sep 2017 14:08:51 +0100
-Message-Id: <f6e576dde2640bcf6a79d157f83c96ca13c453a3.1505826082.git.dave.stevenson@raspberrypi.org>
-In-Reply-To: <cover.1505826082.git.dave.stevenson@raspberrypi.org>
-References: <cover.1505826082.git.dave.stevenson@raspberrypi.org>
-In-Reply-To: <cover.1505826082.git.dave.stevenson@raspberrypi.org>
-References: <cover.1505826082.git.dave.stevenson@raspberrypi.org>
+References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+ <20170925222540.371-17-sakari.ailus@linux.intel.com>
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        robh@kernel.org, laurent.pinchart@ideasonboard.com,
+        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e5dbe28c-6afc-2dcf-3b85-07e044522258@xs4all.nl>
+Date: Tue, 26 Sep 2017 10:22:29 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170925222540.371-17-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Support for non-continuous clock had previously been added via
-device tree, but a comment and the value reported by g_mbus_config
-still stated that it wasn't supported.
-Remove the comment, and return the correct value in g_mbus_config.
+On 26/09/17 00:25, Sakari Ailus wrote:
+> While registering a notifier, check that each newly added fwnode is
+> unique, and return an error if it is not. Also check that a newly added
+> notifier does not have the same fwnodes twice.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
----
- drivers/media/i2c/tc358743.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index e6f5c36..6b0fd07 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -1461,8 +1461,9 @@ static int tc358743_g_mbus_config(struct v4l2_subdev *sd,
- 
- 	cfg->type = V4L2_MBUS_CSI2;
- 
--	/* Support for non-continuous CSI-2 clock is missing in the driver */
--	cfg->flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-+	cfg->flags = state->bus.flags &
-+			(V4L2_MBUS_CSI2_CONTINUOUS_CLOCK |
-+			 V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK);
- 
- 	switch (state->csi_lanes_in_use) {
- 	case 1:
--- 
-2.7.4
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 88 ++++++++++++++++++++++++++++++++----
+>  1 file changed, 79 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 735f72f81740..470607da96b2 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -307,8 +307,71 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+>  	sd->dev = NULL;
+>  }
+>  
+> +/* See if an fwnode can be found in a notifier's lists. */
+> +static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+> +	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
+> +{
+> +	struct v4l2_async_subdev *asd;
+> +	struct v4l2_subdev *sd;
+> +
+> +	list_for_each_entry(asd, &notifier->waiting, list) {
+> +		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+> +			continue;
+> +
+> +		if (asd->match.fwnode.fwnode == fwnode)
+> +			return true;
+> +	}
+> +
+> +	list_for_each_entry(sd, &notifier->done, async_list) {
+> +		if (WARN_ON(!sd->asd))
+> +			continue;
+> +
+> +		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+> +			continue;
+> +
+> +		if (sd->asd->match.fwnode.fwnode == fwnode)
+> +			return true;
+> +	}
+> +
+> +	return false;
+> +}
+> +
+> +/*
+> + * Find out whether an async sub-device was set up for an fwnode already or
+> + * whether it exists in a given notifier before @this_index.
+> + */
+> +static bool v4l2_async_notifier_fwnode_has_async_subdev(
+> +	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
+> +	unsigned int this_index)
+> +{
+> +	unsigned int j;
+> +
+> +	lockdep_assert_held(&list_lock);
+> +
+> +	/* Check that an fwnode is not being added more than once. */
+> +	for (j = 0; j < this_index; j++) {
+> +		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
+> +		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
+> +
+> +		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
+> +		    asd->match.fwnode.fwnode ==
+> +		    other_asd->match.fwnode.fwnode)
+> +			return true;
+> +	}
+> +
+> +	/* Check than an fwnode did not exist in other notifiers. */
+> +	list_for_each_entry(notifier, &notifier_list, list)
+> +		if (__v4l2_async_notifier_fwnode_has_async_subdev(
+> +			    notifier, fwnode))
+> +			return true;
+> +
+> +	return false;
+> +}
+> +
+>  static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  {
+> +	struct device *dev =
+> +		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
+>  	struct v4l2_async_subdev *asd;
+>  	int ret;
+>  	int i;
+> @@ -319,6 +382,8 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  	INIT_LIST_HEAD(&notifier->waiting);
+>  	INIT_LIST_HEAD(&notifier->done);
+>  
+> +	mutex_lock(&list_lock);
+> +
+>  	for (i = 0; i < notifier->num_subdevs; i++) {
+>  		asd = notifier->subdevs[i];
+>  
+> @@ -326,30 +391,35 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  		case V4L2_ASYNC_MATCH_CUSTOM:
+>  		case V4L2_ASYNC_MATCH_DEVNAME:
+>  		case V4L2_ASYNC_MATCH_I2C:
+> +			break;
+>  		case V4L2_ASYNC_MATCH_FWNODE:
+> +			if (v4l2_async_notifier_fwnode_has_async_subdev(
+> +				    notifier, asd->match.fwnode.fwnode, i)) {
+> +				dev_err(dev,
+> +					"fwnode has already been registered or in notifier's subdev list\n");
+> +				ret = -EEXIST;
+> +				goto out_unlock;
+> +			}
+>  			break;
+>  		default:
+> -			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+> -				"Invalid match type %u on %p\n",
+> +			dev_err(dev, "Invalid match type %u on %p\n",
+>  				asd->match_type, asd);
+> -			return -EINVAL;
+> +			ret = -EINVAL;
+> +			goto out_unlock;
+>  		}
+>  		list_add_tail(&asd->list, &notifier->waiting);
+>  	}
+>  
+> -	mutex_lock(&list_lock);
+> -
+>  	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+> -	if (ret) {
+> -		mutex_unlock(&list_lock);
+> -		return ret;
+> -	}
+> +	if (ret)
+> +		goto out_unlock;
+>  
+>  	ret = v4l2_async_notifier_try_complete(notifier);
+>  
+>  	/* Keep also completed notifiers on the list */
+>  	list_add(&notifier->list, &notifier_list);
+>  
+> +out_unlock:
+>  	mutex_unlock(&list_lock);
+>  
+>  	return ret;
+> 
