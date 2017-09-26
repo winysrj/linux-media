@@ -1,133 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48878 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751022AbdIKIAQ (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55731
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S969481AbdIZR71 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 04:00:16 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v10 11/24] v4l: async: Introduce helpers for calling async ops callbacks
-Date: Mon, 11 Sep 2017 10:59:55 +0300
-Message-Id: <20170911080008.21208-12-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+        Tue, 26 Sep 2017 13:59:27 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: [PATCH 05/10] docs: kernel-doc.rst: improve structs chapter
+Date: Tue, 26 Sep 2017 14:59:15 -0300
+Message-Id: <f802564efce655a2c5b46fb71bb3886c6f95d615.1506448061.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
+References: <cover.1506448061.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
+References: <cover.1506448061.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add three helper functions to call async operations callbacks. Besides
-simplifying callbacks, this allows async notifiers to have no ops set,
-i.e. it can be left NULL.
+There is a mess on this chapter: it suggests that even
+enums and unions should be documented with "struct". That's
+not the way it should be ;-)
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Fix it and move it to happen earlier.
+
+
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 49 ++++++++++++++++++++++++++----------
- include/media/v4l2-async.h           |  1 +
- 2 files changed, 37 insertions(+), 13 deletions(-)
+ Documentation/doc-guide/kernel-doc.rst | 48 +++++++++++++++++-----------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index a2df85ea00f4..c34f93593b41 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -25,6 +25,34 @@
- #include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
+diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
+index 9b69dfe928d8..68cb1b496c73 100644
+--- a/Documentation/doc-guide/kernel-doc.rst
++++ b/Documentation/doc-guide/kernel-doc.rst
+@@ -258,6 +258,30 @@ named ``Return``.
+      as a new section heading, with probably won't produce the desired
+      effect.
  
-+static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
-+					  struct v4l2_subdev *subdev,
-+					  struct v4l2_async_subdev *asd)
-+{
-+	if (!n->ops || !n->ops->bound)
-+		return 0;
++Structure, union, and enumeration documentation
++-----------------------------------------------
 +
-+	return n->ops->bound(n, subdev, asd);
-+}
++The general format of a struct, union, and enum kernel-doc comment is::
 +
-+static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier *n,
-+					    struct v4l2_subdev *subdev,
-+					    struct v4l2_async_subdev *asd)
-+{
-+	if (!n->ops || !n->ops->unbind)
-+		return;
++  /**
++   * struct struct_name - Brief description.
++   * @argument: Description of member member_name.
++   *
++   * Description of the structure.
++   */
 +
-+	n->ops->unbind(n, subdev, asd);
-+}
++On the above, ``struct`` is used to mean structs. You can also use ``union``
++and ``enum``  to describe unions and enums. ``argument`` is used
++to mean struct and union member names as well as enumerations in an enum.
 +
-+static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
-+{
-+	if (!n->ops || !n->ops->complete)
-+		return 0;
++The brief description following the structure name may span multiple lines, and
++ends with a member description, a blank comment line, or the end of the
++comment block.
 +
-+	return n->ops->complete(n);
-+}
++The kernel-doc data structure comments describe each member of the structure,
++in order, with the member descriptions.
 +
- static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
- #if IS_ENABLED(CONFIG_I2C)
-@@ -102,16 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- {
- 	int ret;
- 
--	if (notifier->ops->bound) {
--		ret = notifier->ops->bound(notifier, sd, asd);
--		if (ret < 0)
--			return ret;
--	}
-+	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
-+	if (ret < 0)
-+		return ret;
- 
- 	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
- 	if (ret < 0) {
--		if (notifier->ops->unbind)
--			notifier->ops->unbind(notifier, sd, asd);
-+		v4l2_async_notifier_call_unbind(notifier, sd, asd);
- 		return ret;
- 	}
- 
-@@ -123,8 +148,8 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 	/* Move from the global subdevice list to notifier's done */
- 	list_move(&sd->async_list, &notifier->done);
- 
--	if (list_empty(&notifier->waiting) && notifier->ops->complete)
--		return notifier->ops->complete(notifier);
-+	if (list_empty(&notifier->waiting))
-+		return v4l2_async_notifier_call_complete(notifier);
- 
- 	return 0;
- }
-@@ -210,8 +235,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
- 		v4l2_async_cleanup(sd);
- 
--		if (notifier->ops->unbind)
--			notifier->ops->unbind(notifier, sd, sd->asd);
-+		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
- 	}
- 
- 	mutex_unlock(&list_lock);
-@@ -300,8 +324,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
- 
- 	v4l2_async_cleanup(sd);
- 
--	if (notifier->ops->unbind)
--		notifier->ops->unbind(notifier, sd, sd->asd);
-+	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
- 
- 	mutex_unlock(&list_lock);
- }
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 3c48f8b66d12..3bc8a7c0d83f 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -164,4 +164,5 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd);
-  * @sd: pointer to &struct v4l2_subdev
-  */
- void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
 +
- #endif
+ 
+ Highlights and cross-references
+ -------------------------------
+@@ -331,30 +355,6 @@ cross-references.
+ For further details, please refer to the `Sphinx C Domain`_ documentation.
+ 
+ 
+-Structure, union, and enumeration documentation
+------------------------------------------------
+-
+-The general format of a struct, union, and enum kernel-doc comment is::
+-
+-  /**
+-   * struct struct_name - Brief description.
+-   * @member_name: Description of member member_name.
+-   *
+-   * Description of the structure.
+-   */
+-
+-Below, "struct" is used to mean structs, unions and enums, and "member" is used
+-to mean struct and union members as well as enumerations in an enum.
+-
+-The brief description following the structure name may span multiple lines, and
+-ends with a ``@member:`` description, a blank comment line, or the end of the
+-comment block.
+-
+-The kernel-doc data structure comments describe each member of the structure, in
+-order, with the ``@member:`` descriptions. The ``@member:`` descriptions must
+-begin on the very next line following the opening brief function description
+-line, with no intervening blank comment lines. The ``@member:`` descriptions may
+-span multiple lines. The continuation lines may contain indentation.
+ 
+ In-line member documentation comments
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- 
-2.11.0
+2.13.5
