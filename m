@@ -1,236 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00252a01.pphosted.com ([91.207.212.211]:38152 "EHLO
-        mx08-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751845AbdISPNC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 11:13:02 -0400
-Received: from pps.filterd (m0102629.ppops.net [127.0.0.1])
-        by mx08-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v8JF8wUq027500
-        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 16:13:00 +0100
-Received: from mail-pg0-f71.google.com (mail-pg0-f71.google.com [74.125.83.71])
-        by mx08-00252a01.pphosted.com with ESMTP id 2d0reg1mee-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 16:13:00 +0100
-Received: by mail-pg0-f71.google.com with SMTP id p5so6967479pgn.7
-        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 08:13:00 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20170919143248.c65slho3l5vnvzku@rob-hp-laptop>
-References: <cover.1505314390.git.dave.stevenson@raspberrypi.org>
- <9ad8b23d5c394b64ed02f9a5ebc49209696a5ace.1505314390.git.dave.stevenson@raspberrypi.org>
- <20170919143248.c65slho3l5vnvzku@rob-hp-laptop>
-From: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Date: Tue, 19 Sep 2017 16:12:57 +0100
-Message-ID: <CAAoAYcMVYRgzVUt4j9gMNmL7jYtS1Mmt5mhQw_Xca=Sq=eTU2A@mail.gmail.com>
-Subject: Re: [PATCH v2 2/4] [media] dt-bindings: Document BCM283x CSI2/CCP2 receiver
-To: Rob Herring <robh@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Eric Anholt <eric@anholt.net>,
-        Stefan Wahren <stefan.wahren@i2se.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Received: from gofer.mess.org ([88.97.38.141]:51275 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S936940AbdIZUOF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 16:14:05 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 10/20] media: lirc: merge lirc_dev_fop_ioctl and ir_lirc_ioctl
+Date: Tue, 26 Sep 2017 21:13:49 +0100
+Message-Id: <c179693af1381a1ae3f7debf1fff7344d46fb13e.1506455086.git.sean@mess.org>
+In-Reply-To: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
+References: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
+In-Reply-To: <cover.1506455086.git.sean@mess.org>
+References: <cover.1506455086.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob.
+Calculate lirc features when necessary, and add LIRC_{S,G}ET_REC_MODE
+cases to ir_lirc_ioctl.
 
-Thanks for the review.
+This makes lirc_dev_fop_ioctl() unnecessary since all cases are
+already handled by ir_lirc_ioctl().
 
-On 19 September 2017 at 15:32, Rob Herring <robh@kernel.org> wrote:
-> On Wed, Sep 13, 2017 at 04:07:47PM +0100, Dave Stevenson wrote:
->> Document the DT bindings for the CSI2/CCP2 receiver peripheral
->> (known as Unicam) on BCM283x SoCs.
->>
->> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
->> ---
->>  .../devicetree/bindings/media/bcm2835-unicam.txt   | 107 +++++++++++++++++++++
->>  1 file changed, 107 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/bcm2835-unicam.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/bcm2835-unicam.txt b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
->> new file mode 100644
->> index 0000000..2ee5af7
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
->> @@ -0,0 +1,107 @@
->> +Broadcom BCM283x Camera Interface (Unicam)
->> +------------------------------------------
->> +
->> +The Unicam block on BCM283x SoCs is the receiver for either
->> +CSI-2 or CCP2 data from image sensors or similar devices.
->> +
->> +There are two camera drivers in the kernel for BCM283x - this one
->> +and bcm2835-camera (currently in staging).
->
-> Linux detail that is n/a for bindings.
->
->> +
->> +This driver is purely the kernel controlling the Unicam peripheral - there
->
-> Bindings describe h/w blocks, not drivers.
->
->> +is no involvement with the VideoCore firmware. Unicam receives CSI-2
->> +(or CCP2) data and writes it into SDRAM. There is no additional processing
->> +performed.
->> +It should be possible to connect it to any sensor with a
->> +suitable output interface and V4L2 subdevice driver.
->> +
->> +bcm2835-camera uses the VideoCore firmware to control the sensor,
->> +Unicam, ISP, and various tuner control loops. Fully processed frames are
->> +delivered to the driver by the firmware. It only has sensor drivers
->> +for Omnivision OV5647, and Sony IMX219 sensors, and is closed source.
->> +
->> +The two drivers are mutually exclusive for the same Unicam instance.
->> +The firmware checks the device tree configuration during boot. If
->> +it finds device tree nodes called csi0 or csi1 then it will block the
->> +firmware from accessing the peripheral, and bcm2835-camera will
->> +not be able to stream data.
->
-> All interesting, but irrelavent to the binding other than the part about
-> node name. Reword to just state the requirements to get the firmware to
-> ignore things.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-lirc-codec.c | 85 +++++++++++++++++++++++-----------------
+ drivers/media/rc/lirc_dev.c      | 62 ++---------------------------
+ include/media/lirc_dev.h         |  4 --
+ 3 files changed, 53 insertions(+), 98 deletions(-)
 
-Hans had suggested it was potentially appropriate for DT bindings too
-on last review [1] (which I apologise for missing off devicetree folk
-from), but I'll remove all mention of Linux/driver detail for v3.
-That will leave only a reworded version of the bit about making the
-firmware ignore the blocks.
-
-[1] http://www.spinics.net/lists/linux-media/msg117047.html
-
->> +It should be possible to use bcm2835-camera on one camera interface
->> +and bcm2835-unicam on the other interface if there is a need to.
->
-> For upstream, I don't think we care to support that. We don't need 2
-> bindings.
-
-I'll remove as irrelevant, but in that case wouldn't you have 2
-bindings - one to bcm2835-camera which references the vchi node to the
-GPU, and one to bcm2835-unicam that gives the full block config as
-being discussed in this doc.
-(Currently bcm2835-camera is a platform device so has no binding doc).
-This probably isn't the place for such a discussion.
-
->> +
->> +Required properties:
->> +===================
->> +- compatible : must be "brcm,bcm2835-unicam".
->> +- reg                : physical base address and length of the register sets for the
->> +               device.
->> +- interrupts : should contain the IRQ line for this Unicam instance.
->> +- clocks     : list of clock specifiers, corresponding to entries in
->> +               clock-names property.
->> +- clock-names        : must contain an "lp_clock" entry, matching entries
->> +               in the clocks property.
->
-> _clock is redundant.
-
-So just "lp" as the clock name? Will assume so.
-
->> +
->> +Unicam supports a single port node. It should contain one 'port' child node
->> +with child 'endpoint' node. Please refer to the bindings defined in
->> +Documentation/devicetree/bindings/media/video-interfaces.txt.
->> +
->> +Within the endpoint node, the following properties are mandatory:
->> +- remote-endpoint    : links to the source device endpoint.
->> +- data-lanes         : An array denoting how many data lanes are physically
->> +                       present for this CSI-2 receiver instance. This can
->> +                       be limited by either the SoC itself, or by the
->> +                       breakout on the platform.
->> +                       Lane reordering is not supported, so lanes must be
->> +                       in order, starting at 1.
->
-> Just refer to docs for standard properties. Just add any info on limits
-> of values like number of cells.
-
-So again from v1 Sakari had asked for a statement of mandatory
-properties for the endpoint [1].
-Would you be happy with something like:
-"Within the endpoint node the "remote-endpoint" and "data-lanes"
-properties are mandatory. Lane reordering is not supported so the
-lanes must be in order, starting at 1. The number of data lanes should
-represent the number of lanes usable on the platform, which may be
-limited by the SoC or the platform breakout."
-
-[1] http://www.spinics.net/lists/linux-media/msg117080.html
-
->> +
->> +Lane reordering is not supported on the clock lane, so the optional property
->> +"clock-lane" will implicitly be <0>.
->> +Similarly lane inversion is not supported, therefore "lane-polarities" will
->> +implicitly be <0 0 0 0 0>.
->> +Neither of these values will be checked.
->> +
->> +Example:
->> +     csi1: csi@7e801000 {
->
-> I thought the node had to be called csi0 or csi1. The label (csi1) will
-> be gone from the compiled dtb.
-
-Yes, typo :-(
-
->> +             compatible = "brcm,bcm2835-unicam";
->> +             reg = <0x7e801000 0x800>,
->> +                   <0x7e802004 0x4>;
->> +             interrupts = <2 7>;
->> +             clocks = <&clocks BCM2835_CLOCK_CAM1>;
->> +             clock-names = "lp_clock";
->> +
->> +             port {
->> +                     #address-cells = <1>;
->> +                     #size-cells = <0>;
->
-> Don't need these with a single endpoint.
-
-OK.
-
->> +
->> +                     csi1_ep: endpoint {
->> +                             remote-endpoint = <&tc358743_0>;
->> +                             data-lanes = <1 2>;
->> +                     };
->> +             };
->> +     };
->> +
->> +     i2c0: i2c@7e205000 {
->> +
->> +             tc358743: csi-hdmi-bridge@0f {
->> +                     compatible = "toshiba,tc358743";
->> +                     reg = <0x0f>;
->> +                     status = "okay";
->
-> Don't show status in examples.
-
-OK.
-
->> +
->> +                     clocks = <&tc358743_clk>;
->> +                     clock-names = "refclk";
->> +
->> +                     tc358743_clk: bridge-clk {
->> +                             compatible = "fixed-clock";
->> +                             #clock-cells = <0>;
->> +                             clock-frequency = <27000000>;
->> +                     };
->> +
->> +                     port {
->> +                             tc358743_0: endpoint {
->> +                                     remote-endpoint = <&csi1_ep>;
->> +                                     clock-lanes = <0>;
->> +                                     data-lanes = <1 2>;
->> +                                     clock-noncontinuous;
->> +                                     link-frequencies =
->> +                                             /bits/ 64 <297000000>;
->> +                             };
->> +                     };
->> +             };
->> +     };
->> --
->> 2.7.4
->>
-
-Thanks.
-  Dave
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index 0b977c22b9cf..f96f2a2c4eb1 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -225,8 +225,57 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 	}
+ 
+ 	switch (cmd) {
++	case LIRC_GET_FEATURES:
++		if (dev->driver_type == RC_DRIVER_IR_RAW) {
++			val |= LIRC_CAN_REC_MODE2;
++			if (dev->rx_resolution)
++				val |= LIRC_CAN_GET_REC_RESOLUTION;
++		}
++
++		if (dev->tx_scancode)
++			val |= LIRC_CAN_SEND_SCANCODE;
++
++		if (dev->tx_ir) {
++			val |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
++			if (dev->s_tx_mask)
++				val |= LIRC_CAN_SET_TRANSMITTER_MASK;
++			if (dev->s_tx_carrier)
++				val |= LIRC_CAN_SET_SEND_CARRIER;
++			if (dev->s_tx_duty_cycle)
++				val |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
++		}
++
++		if (dev->s_rx_carrier_range)
++			val |= LIRC_CAN_SET_REC_CARRIER |
++				LIRC_CAN_SET_REC_CARRIER_RANGE;
++
++		if (dev->s_learning_mode)
++			val |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
++
++		if (dev->s_carrier_report)
++			val |= LIRC_CAN_MEASURE_CARRIER;
++
++		if (dev->max_timeout)
++			val |= LIRC_CAN_SET_REC_TIMEOUT;
++
++		break;
+ 
+ 	/* mode support */
++	case LIRC_GET_REC_MODE:
++		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
++			return -ENOTTY;
++
++		val = LIRC_MODE_MODE2;
++		break;
++
++	case LIRC_SET_REC_MODE:
++		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
++			return -ENOTTY;
++
++		if (val != LIRC_MODE_MODE2)
++			return -EINVAL;
++		return 0;
++
+ 	case LIRC_GET_SEND_MODE:
+ 		if (!dev->tx_ir)
+ 			return -ENOTTY;
+@@ -344,7 +393,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 		break;
+ 
+ 	default:
+-		return lirc_dev_fop_ioctl(filep, cmd, arg);
++		return -ENOTTY;
+ 	}
+ 
+ 	if (_IOC_DIR(cmd) & _IOC_READ)
+@@ -371,47 +420,13 @@ int ir_lirc_register(struct rc_dev *dev)
+ {
+ 	struct lirc_dev *ldev;
+ 	int rc = -ENOMEM;
+-	unsigned long features = 0;
+ 
+ 	ldev = lirc_allocate_device();
+ 	if (!ldev)
+ 		return rc;
+ 
+-	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
+-		features |= LIRC_CAN_REC_MODE2;
+-		if (dev->rx_resolution)
+-			features |= LIRC_CAN_GET_REC_RESOLUTION;
+-	}
+-
+-	if (dev->tx_scancode)
+-		features |= LIRC_CAN_SEND_SCANCODE;
+-
+-	if (dev->tx_ir) {
+-		features |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
+-		if (dev->s_tx_mask)
+-			features |= LIRC_CAN_SET_TRANSMITTER_MASK;
+-		if (dev->s_tx_carrier)
+-			features |= LIRC_CAN_SET_SEND_CARRIER;
+-		if (dev->s_tx_duty_cycle)
+-			features |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
+-	}
+-
+-	if (dev->s_rx_carrier_range)
+-		features |= LIRC_CAN_SET_REC_CARRIER |
+-			LIRC_CAN_SET_REC_CARRIER_RANGE;
+-
+-	if (dev->s_learning_mode)
+-		features |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
+-
+-	if (dev->s_carrier_report)
+-		features |= LIRC_CAN_MEASURE_CARRIER;
+-
+-	if (dev->max_timeout)
+-		features |= LIRC_CAN_SET_REC_TIMEOUT;
+-
+ 	snprintf(ldev->name, sizeof(ldev->name), "ir-lirc-codec (%s)",
+ 		 dev->driver_name);
+-	ldev->features = features;
+ 	ldev->buf = NULL;
+ 	ldev->chunk_size = sizeof(int);
+ 	ldev->buffer_size = LIRCBUF_SIZE;
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 884923cbee9d..f149fbf382ca 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -109,6 +109,7 @@ EXPORT_SYMBOL(lirc_free_device);
+ 
+ int lirc_register_device(struct lirc_dev *d)
+ {
++	struct rc_dev *rcdev = d->rdev;
+ 	int minor;
+ 	int err;
+ 
+@@ -146,7 +147,7 @@ int lirc_register_device(struct lirc_dev *d)
+ 	/* some safety check 8-) */
+ 	d->name[sizeof(d->name) - 1] = '\0';
+ 
+-	if (LIRC_CAN_REC(d->features)) {
++	if (rcdev->driver_type == RC_DRIVER_IR_RAW) {
+ 		err = lirc_allocate_buffer(d);
+ 		if (err)
+ 			return err;
+@@ -290,63 +291,6 @@ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait)
+ }
+ EXPORT_SYMBOL(lirc_dev_fop_poll);
+ 
+-long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+-{
+-	struct rc_dev *rcdev = file->private_data;
+-	struct lirc_dev *d = rcdev->lirc_dev;
+-	__u32 mode;
+-	int result;
+-
+-	dev_dbg(&d->dev, LOGHEAD "ioctl called (0x%x)\n",
+-		d->name, d->minor, cmd);
+-
+-	result = mutex_lock_interruptible(&d->mutex);
+-	if (result)
+-		return result;
+-
+-	if (!d->attached) {
+-		result = -ENODEV;
+-		goto out;
+-	}
+-
+-	switch (cmd) {
+-	case LIRC_GET_FEATURES:
+-		result = put_user(d->features, (__u32 __user *)arg);
+-		break;
+-	case LIRC_GET_REC_MODE:
+-		if (!LIRC_CAN_REC(d->features)) {
+-			result = -ENOTTY;
+-			break;
+-		}
+-
+-		result = put_user(LIRC_REC2MODE
+-				  (d->features & LIRC_CAN_REC_MASK),
+-				  (__u32 __user *)arg);
+-		break;
+-	case LIRC_SET_REC_MODE:
+-		if (!LIRC_CAN_REC(d->features)) {
+-			result = -ENOTTY;
+-			break;
+-		}
+-
+-		result = get_user(mode, (__u32 __user *)arg);
+-		if (!result && !(LIRC_MODE2REC(mode) & d->features))
+-			result = -EINVAL;
+-		/*
+-		 * FIXME: We should actually set the mode somehow but
+-		 * for now, lirc_serial doesn't support mode changing either
+-		 */
+-		break;
+-	default:
+-		result = -ENOTTY;
+-	}
+-
+-out:
+-	mutex_unlock(&d->mutex);
+-	return result;
+-}
+-EXPORT_SYMBOL(lirc_dev_fop_ioctl);
+-
+ ssize_t lirc_dev_fop_read(struct file *file,
+ 			  char __user *buffer,
+ 			  size_t length,
+@@ -369,7 +313,7 @@ ssize_t lirc_dev_fop_read(struct file *file,
+ 		goto out_locked;
+ 	}
+ 
+-	if (!LIRC_CAN_REC(d->features)) {
++	if (rcdev->driver_type != RC_DRIVER_IR_RAW) {
+ 		ret = -EINVAL;
+ 		goto out_locked;
+ 	}
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index dd0c078796e8..86a3cf798775 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -115,8 +115,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+  *
+  * @name:		used for logging
+  * @minor:		the minor device (/dev/lircX) number for the device
+- * @features:		lirc compatible hardware features, like LIRC_MODE_RAW,
+- *			LIRC_CAN\_\*, as defined at include/media/lirc.h.
+  * @buffer_size:	Number of FIFO buffers with @chunk_size size.
+  *			Only used if @rbuf is NULL.
+  * @chunk_size:		Size of each FIFO buffer.
+@@ -138,7 +136,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+ struct lirc_dev {
+ 	char name[40];
+ 	unsigned int minor;
+-	__u32 features;
+ 
+ 	unsigned int buffer_size; /* in chunks holding one code each */
+ 	unsigned int chunk_size;
+@@ -172,7 +169,6 @@ void lirc_unregister_device(struct lirc_dev *d);
+ int lirc_dev_fop_open(struct inode *inode, struct file *file);
+ int lirc_dev_fop_close(struct inode *inode, struct file *file);
+ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait);
+-long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+ ssize_t lirc_dev_fop_read(struct file *file, char __user *buffer, size_t length,
+ 			  loff_t *ppos);
+ #endif
+-- 
+2.13.5
