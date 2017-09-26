@@ -1,114 +1,350 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50308
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56885
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751700AbdITTL7 (ORCPT
+        with ESMTP id S967769AbdIZU34 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 15:11:59 -0400
+        Tue, 26 Sep 2017 16:29:56 -0400
+Date: Tue, 26 Sep 2017 17:29:47 -0300
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Ingo Molnar <mingo@kernel.org>,
-        Colin Ian King <colin.king@canonical.com>,
-        knightrider@are.ma, Max Kellermann <max.kellermann@gmail.com>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        linux-doc@vger.kernel.org,
-        Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: [PATCH 00/25] DVB cleanups and documentation improvements
-Date: Wed, 20 Sep 2017 16:11:25 -0300
-Message-Id: <cover.1505933919.git.mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: Re: [PATCH 09/10] scripts: kernel-doc: parse next structs/unions
+Message-ID: <20170926172947.54b88bf5@recife.lan>
+In-Reply-To: <e0ee97325e570a7f783122c88e152d89c755c254.1506448061.git.mchehab@s-opensource.com>
+References: <cover.1506448061.git.mchehab@s-opensource.com>
+        <e0ee97325e570a7f783122c88e152d89c755c254.1506448061.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series comes after a previous patchset with DVB fixes.
-both series are there at:
+Em Tue, 26 Sep 2017 14:59:19 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-   https://git.linuxtv.org/mchehab/experimental.git/log/?h=dvb-fixes-v3
+> There are several places within the Kernel tree with nested
+> structs/unions, like this one:
+> 
+>   struct ingenic_cgu_clk_info {
+>     const char *name;
+>     enum {
+>       CGU_CLK_NONE = 0,
+>       CGU_CLK_EXT = BIT(0),
+>       CGU_CLK_PLL = BIT(1),
+>       CGU_CLK_GATE = BIT(2),
+>       CGU_CLK_MUX = BIT(3),
+>       CGU_CLK_MUX_GLITCHFREE = BIT(4),
+>       CGU_CLK_DIV = BIT(5),
+>       CGU_CLK_FIXDIV = BIT(6),
+>       CGU_CLK_CUSTOM = BIT(7),
+>     } type;
+>     int parents[4];
+>     union {
+>       struct ingenic_cgu_pll_info pll;
+>       struct {
+>         struct ingenic_cgu_gate_info gate;
+>         struct ingenic_cgu_mux_info mux;
+>         struct ingenic_cgu_div_info div;
+>         struct ingenic_cgu_fixdiv_info fixdiv;
+>       };
+>       struct ingenic_cgu_custom_info custom;
+>     };
+>   };
+> 
+> Currently, such struct is documented as:
+> 
+> 	**Definition**
+> 
+> 	::
+> 	struct ingenic_cgu_clk_info {
+> 	    const char * name;
+> 	};
+> 
+> 	**Members**
+> 
+> 	``name``
+> 	  name of the clock
+> 
+> With is obvioulsy wrong. It also generates an error:
+> 	drivers/clk/ingenic/cgu.h:169: warning: No description found for parameter 'enum'
+> 
+> However, there's nothing wrong with this kernel-doc markup: everything
+> is documented there.
+> 
+> It makes sense to document all fields there. So, add a
+> way for the core to parse those structs.
+> 
+> With this patch, all documented fields will properly generate
+> documentation.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  Documentation/doc-guide/kernel-doc.rst |  46 +++++++++++++
+>  scripts/kernel-doc                     | 120 ++++++++++++++++++---------------
+>  2 files changed, 112 insertions(+), 54 deletions(-)
+> 
+> diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
+> index 50473f0db345..3916a28b82b7 100644
+> --- a/Documentation/doc-guide/kernel-doc.rst
+> +++ b/Documentation/doc-guide/kernel-doc.rst
+> @@ -281,6 +281,52 @@ comment block.
+>  The kernel-doc data structure comments describe each member of the structure,
+>  in order, with the member descriptions.
+>  
+> +Nested structs/unions
+> +~~~~~~~~~~~~~~~~~~~~~
+> +
+> +It is possible to document nested structs unions, like::
+> +
+> +      /**
+> +       * struct nested_foobar - a struct with nested unions and structs
+> +       * @arg1: - first argument of anonymous union/anonymous struct
+> +       * @arg2: - second argument of anonymous union/anonymous struct
+> +       * @arg3: - third argument of anonymous union/anonymous struct
+> +       * @arg4: - fourth argument of anonymous union/anonymous struct
+> +       * @bar.st1.arg1 - first argument of struct st1 on union bar
+> +       * @bar.st1.arg2 - second argument of struct st1 on union bar
+> +       * @bar.st2.arg1 - first argument of struct st2 on union bar
+> +       * @bar.st2.arg2 - second argument of struct st2 on union bar
+> +      struct nested_foobar {
+> +        /* Anonymous union/struct*/
+> +        union {
+> +          struct {
+> +            int arg1;
+> +            int arg2;
+> +	  }
+> +          struct {
+> +            void *arg3;
+> +            int arg4;
+> +	  }
+> +	}
+> +	union {
+> +          struct {
+> +            int arg1;
+> +            int arg2;
+> +	  } st1;
+> +          struct {
+> +            void *arg1;
+> +            int arg2;
+> +	  } st2;
+> +	} bar;
+> +      };
+> +
+> +.. note::
+> +
+> +   #) When documenting nested structs or unions, if the struct/union ``foo``
+> +      is named, the argument ``bar`` inside it should be documented as
+> +      ``@foo.bar:``
+> +   #) When the nested struct/union is anonymous, the argument ``bar`` on it
+> +      should be documented as ``@bar:``
+>  
+>  Typedef documentation
+>  ---------------------
+> diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+> index b6f3f6962897..880a196c7dc7 100755
+> --- a/scripts/kernel-doc
+> +++ b/scripts/kernel-doc
+> @@ -210,7 +210,7 @@ my $anon_struct_union = 0;
+>  my $type_constant = '\b``([^\`]+)``\b';
+>  my $type_constant2 = '\%([-_\w]+)';
+>  my $type_func = '(\w+)\(\)';
+> -my $type_param = '\@(\w+(\.\.\.)?)';
+> +my $type_param = '\@(\w[\.\w]*(\.\.\.)?)';
+>  my $type_fp_param = '\@(\w+)\(\)';  # Special RST handling for func ptr params
+>  my $type_env = '(\$\w+)';
+>  my $type_enum = '\&(enum\s*([_\w]+))';
+> @@ -663,32 +663,12 @@ sub output_struct_man(%) {
+>      print ".SH NAME\n";
+>      print $args{'type'} . " " . $args{'struct'} . " \\- " . $args{'purpose'} . "\n";
+>  
+> +    my $declaration = $args{'definition'};
+> +    $declaration =~ s/\t/  /g;
+> +    $declaration =~ s/\n/"\n.br\n.BI \"/g;
+>      print ".SH SYNOPSIS\n";
+>      print $args{'type'} . " " . $args{'struct'} . " {\n.br\n";
+> -
+> -    foreach my $parameter (@{$args{'parameterlist'}}) {
+> -	if ($parameter =~ /^#/) {
+> -	    print ".BI \"$parameter\"\n.br\n";
+> -	    next;
+> -	}
+> -	my $parameter_name = $parameter;
+> -	$parameter_name =~ s/\[.*//;
+> -
+> -	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+> -	$type = $args{'parametertypes'}{$parameter};
+> -	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+> -	    # pointer-to-function
+> -	    print ".BI \"    " . $1 . "\" " . $parameter . " \") (" . $2 . ")" . "\"\n;\n";
+> -	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
+> -	    # bitfield
+> -	    print ".BI \"    " . $1 . "\ \" " . $parameter . $2 . " \"" . "\"\n;\n";
+> -	} else {
+> -	    $type =~ s/([^\*])$/$1 /;
+> -	    print ".BI \"    " . $type . "\" " . $parameter . " \"" . "\"\n;\n";
+> -	}
+> -	print "\n.br\n";
+> -    }
+> -    print "};\n.br\n";
+> +    print ".BI \"$declaration\n};\n.br\n\n";
+>  
+>      print ".SH Members\n";
+>      foreach $parameter (@{$args{'parameterlist'}}) {
+> @@ -926,29 +906,9 @@ sub output_struct_rst(%) {
+>  
+>      print "**Definition**\n\n";
+>      print "::\n\n";
+> -    print "  " . $args{'type'} . " " . $args{'struct'} . " {\n";
+> -    foreach $parameter (@{$args{'parameterlist'}}) {
+> -	if ($parameter =~ /^#/) {
+> -	    print "  " . "$parameter\n";
+> -	    next;
+> -	}
+> -
+> -	my $parameter_name = $parameter;
+> -	$parameter_name =~ s/\[.*//;
+> -
+> -	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+> -	$type = $args{'parametertypes'}{$parameter};
+> -	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+> -	    # pointer-to-function
+> -	    print "    $1 $parameter) ($2);\n";
+> -	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
+> -	    # bitfield
+> -	    print "    $1 $parameter$2;\n";
+> -	} else {
+> -	    print "    " . $type . " " . $parameter . ";\n";
+> -	}
+> -    }
+> -    print "  };\n\n";
+> +    my $declaration = $args{'definition'};
+> +    $declaration =~ s/\t/  /g;
+> +    print "  " . $args{'type'} . " " . $args{'struct'} . " {\n$declaration  };\n\n";
+>  
+>      print "**Members**\n\n";
+>      $lineprefix = "  ";
+> @@ -1022,20 +982,15 @@ sub dump_struct($$) {
+>      my $nested;
+>  
+>      if ($x =~ /(struct|union)\s+(\w+)\s*{(.*)}/) {
+> -	#my $decl_type = $1;
+> +	my $decl_type = $1;
+>  	$declaration_name = $2;
+>  	my $members = $3;
+>  
+> -	# ignore embedded structs or unions
+> -	$members =~ s/({.*})//g;
+> -	$nested = $1;
+> -
+>  	# ignore members marked private:
+>  	$members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gosi;
+>  	$members =~ s/\/\*\s*private:.*//gosi;
+>  	# strip comments:
+>  	$members =~ s/\/\*.*?\*\///gos;
+> -	$nested =~ s/\/\*.*?\*\///gos;
+>  	# strip kmemcheck_bitfield_{begin,end}.*;
+>  	$members =~ s/kmemcheck_bitfield_.*?;//gos;
+>  	# strip attributes
+> @@ -1047,13 +1002,70 @@ sub dump_struct($$) {
+>  	# replace DECLARE_HASHTABLE
+>  	$members =~ s/DECLARE_HASHTABLE\s*\(([^,)]+), ([^,)]+)\)/unsigned long $1\[1 << (($2) - 1)\]/gos;
+>  
+> +	my $declaration = $members;
+> +
+> +	# Split nested struct/union elements as newer ones
+> +	my $cont = 1;
+> +	while ($cont) {
+> +		$cont = 0;
+> +		while ($members =~ m/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/) {
+> +			my $newmember = "$1 $4;";
+> +			my $id = $4;
+> +			my $content = $3;
+> +			$id =~ s/[:\[].*//;
+> +			foreach my $arg (split /;/, $content) {
+> +				next if ($arg =~ m/^\s*$/);
+> +				my $type = $arg;
+> +				my $name = $arg;
+> +				$type =~ s/\s\S+$//;
+> +				$name =~ s/.*\s//;
+> +				next if (($name =~ m/^\s*$/));
+> +				if ($id =~ m/^\s*$/) {
+> +					# anonymous struct/union
+> +					$newmember .= "$type $name;";
+> +				} else {
+> +					$newmember .= "$type $id.$name;";
+> +				}
+> +			}
+> +			$members =~ s/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/$newmember/;
+> +			$cont = 1;
+> +		};
+> +	};
+> +
+> +	# Ignore other nested elements, like enums
+> +	$members =~ s/({[^\{\}]*})//g;
+> +	$nested = $decl_type;
+> +	$nested =~ s/\/\*.*?\*\///gos;
+> +
+>  	create_parameterlist($members, ';', $file);
+>  	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual, $nested);
+>  
+> +	# Adjust declaration for better display
+> +	$declaration =~ s/([{;])/$1\n/g;
+> +	$declaration =~ s/}\s+;/};/g;
+> +	# Better handle inlined enums
+> +	do {} while ($declaration =~ s/(enum\s+{[^}]+),([^\n])/$1,\n$2/);
+> +
+> +	my @def_args = split /\n/, $declaration;
+> +	my $level = 1;
+> +	$declaration = "";
+> +	foreach my $clause (@def_args) {
+> +		$clause =~ s/^\s+//;
+> +		$clause =~ s/\s+$//;
+> +		$clause =~ s/\s+/ /;
+> +		next if (!$clause);
+> +		$level-- if ($clause =~ m/(})/ && $level > 1);
+> +		if (!($clause =~ m/^\s*#/)) {
+> +			$declaration .= "\t" x $level;
+> +		}
+> +		$declaration .= "\t" . $clause . "\n";
+> +		$level++ if ($clause =~ m/({)/ && !($clause =~m/}/));
+> +	}
+>  	output_declaration($declaration_name,
+>  			   'struct',
+>  			   {'struct' => $declaration_name,
+>  			    'module' => $modulename,
+> +			    'definition' => $declaration,
+>  			    'parameterlist' => \@parameterlist,
+>  			    'parameterdescs' => \%parameterdescs,
+>  			    'parametertypes' => \%parametertypes,
 
-It is mainly focused on improving the DVB kAPI documentation, making
-it (finally!) in sync with the current implementation. It also contains
-a patch getting rid of the legacy (non-working) uAPI examples.
+This patch actually need a fixup, in order to handle pointer,
+array and bitmask IDs.
 
-While reviewing the code implementation, I noticed some struct fields
-that aren't used at all by any DVB driver or core. So, the series gets
-rid of them. Others are used only on av7110, and are documented as
-such.
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index cff66ee91f2c..1aebeda444fa 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -1012,12 +1012,15 @@ sub dump_struct($$) {
+ 			my $id = $4;
+ 			my $content = $3;
+ 			$id =~ s/[:\[].*//;
++			$id =~ s/^\*+//;
+ 			foreach my $arg (split /;/, $content) {
+ 				next if ($arg =~ m/^\s*$/);
+ 				my $type = $arg;
+ 				my $name = $arg;
+ 				$type =~ s/\s\S+$//;
+ 				$name =~ s/.*\s//;
++				$name =~ s/[:\[].*//;
++				$name =~ s/^\*+//;
+ 				next if (($name =~ m/^\s*$/));
+ 				if ($id =~ m/^\s*$/) {
+ 					# anonymous struct/union
 
-After this patch series, both DVB uAPI and kAPI are fully documented
-(except for the legacy video/audio/osd uAPI, that doesn't have any
-kAPI associated to them).
 
-Granted, some things could be improved at the documentation, but at
-least it doesn't carry anymore any big gap or conflict!
-
-Please review and test.
-
-PS.: there is one patch in this series that really belongs to kernel-doc
-tree. I sent it already in separate, but, as without it several kernel-doc
-markups are ignored, I'm adding it here for consistency.
-
-Mauro Carvalho Chehab (24):
-  media: dvb_frontend: better document the -EPERM condition
-  media: dvb_frontend: fix return values for FE_SET_PROPERTY
-  media: dvbdev: convert DVB device types into an enum
-  media: dvbdev: fully document its functions
-  media: dvb_frontend.h: improve kernel-doc markups
-  media: dtv-core.rst: add chapters and introductory tests for common
-    parts
-  media: dtv-core.rst: split into multiple files
-  media: dtv-demux.rst: minor markup improvements
-  media: dvb_demux.h: add an enum for DMX_TYPE_* and document
-  media: dvb_demux.h: add an enum for DMX_STATE_* and document
-  media: dvb_demux.h: get rid of unused timer at struct dvb_demux_filter
-  media: dvb_demux: mark a boolean field as such
-  media: dvb_demux: dvb_demux_feed.pusi_seen is boolean
-  media: dvb_demux.h: get rid of DMX_FEED_ENTRY() macro
-  media: dvb_demux: fix type of dvb_demux_feed.ts_type
-  media: dvb_demux: document dvb_demux_filter and dvb_demux_feed
-  media: dvb_frontend: get rid of dtv_get_property_dump()
-  media: dvb_demux.h: document structs defined on it
-  media: dvb_demux.h: document functions
-  scripts: kernel-doc: fix nexted handling
-  media: dmxdev.h: add kernel-doc markups for data types and functions
-  media: dtv-demux.rst: parse other demux headers with kernel-doc
-  media: dvb-net.rst: document DVB network kAPI interface
-  media: dvb uAPI docs: get rid of examples section
-
-Satendra Singh Thakur (1):
-  media: dvb_frontend: dtv_property_process_set() cleanups
-
- Documentation/media/kapi/dtv-ca.rst              |   4 +
- Documentation/media/kapi/dtv-common.rst          |  55 +++
- Documentation/media/kapi/dtv-core.rst            | 574 +----------------------
- Documentation/media/kapi/dtv-demux.rst           |  82 ++++
- Documentation/media/kapi/dtv-frontend.rst        | 443 +++++++++++++++++
- Documentation/media/kapi/dtv-net.rst             |   4 +
- Documentation/media/uapi/dvb/examples.rst        | 378 +--------------
- Documentation/media/uapi/dvb/fe-get-property.rst |   7 +-
- drivers/media/dvb-core/dmxdev.h                  |  90 +++-
- drivers/media/dvb-core/dvb_demux.c               |  17 +-
- drivers/media/dvb-core/dvb_demux.h               | 248 +++++++++-
- drivers/media/dvb-core/dvb_frontend.c            | 180 +++----
- drivers/media/dvb-core/dvb_frontend.h            |  94 ++--
- drivers/media/dvb-core/dvb_net.h                 |  34 +-
- drivers/media/dvb-core/dvbdev.c                  |  34 +-
- drivers/media/dvb-core/dvbdev.h                  | 137 +++++-
- drivers/media/pci/ttpci/av7110.c                 |   2 +-
- drivers/media/pci/ttpci/budget-core.c            |   2 +-
- include/uapi/linux/dvb/frontend.h                |   2 +-
- scripts/kernel-doc                               |   2 +-
- 20 files changed, 1248 insertions(+), 1141 deletions(-)
- create mode 100644 Documentation/media/kapi/dtv-ca.rst
- create mode 100644 Documentation/media/kapi/dtv-common.rst
- create mode 100644 Documentation/media/kapi/dtv-demux.rst
- create mode 100644 Documentation/media/kapi/dtv-frontend.rst
- create mode 100644 Documentation/media/kapi/dtv-net.rst
-
--- 
-2.13.5
+Thanks,
+Mauro
