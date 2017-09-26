@@ -1,100 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:38139 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751826AbdITUx3 (ORCPT
+Received: from mail-pf0-f182.google.com ([209.85.192.182]:53812 "EHLO
+        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S968771AbdIZMpX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 16:53:29 -0400
-Date: Wed, 20 Sep 2017 15:53:27 -0500
-From: Rob Herring <robh@kernel.org>
-To: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [RESEND PATCH v2 4/6] dt: bindings: as3645a: Improve label
- documentation, DT example
-Message-ID: <20170920205327.qmgz65kn45aavomx@rob-hp-laptop>
-References: <20170918102349.8935-1-sakari.ailus@linux.intel.com>
- <20170918102349.8935-5-sakari.ailus@linux.intel.com>
- <20170918105655.GA14591@amd>
- <20170918144923.dnhrxkirle3fvdfo@valkosipuli.retiisi.org.uk>
- <20170918205407.GA1849@amd>
- <809f7590-7641-e8bc-c009-4fed05d5827c@gmail.com>
+        Tue, 26 Sep 2017 08:45:23 -0400
+Received: by mail-pf0-f182.google.com with SMTP id x78so5475062pff.10
+        for <linux-media@vger.kernel.org>; Tue, 26 Sep 2017 05:45:23 -0700 (PDT)
+Date: Tue, 26 Sep 2017 22:45:11 +1000
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: Eyal Lebedinsky <eyal@eyal.emu.id.au>
+Cc: list linux-media <linux-media@vger.kernel.org>
+Subject: Re: [progress]: dvb_usb_rtl28xxu not tuning "Leadtek Winfast DTV2000
+ DS PLUS TV"
+Message-ID: <20170926124508.GA17883@ubuntu.windy>
+References: <00ad85dd-2fe3-5f15-6c0c-47fcf580f541@eyal.emu.id.au>
+ <678bf4fa-5849-1fb2-adf1-a07458767d9e@eyal.emu.id.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <809f7590-7641-e8bc-c009-4fed05d5827c@gmail.com>
+In-Reply-To: <678bf4fa-5849-1fb2-adf1-a07458767d9e@eyal.emu.id.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 19, 2017 at 11:01:02PM +0200, Jacek Anaszewski wrote:
-> Hi Pavel,
+On Tue, Sep 26, 2017 at 02:32:26PM +1000, Eyal Lebedinsky wrote:
 > 
-> On 09/18/2017 10:54 PM, Pavel Machek wrote:
-> > On Mon 2017-09-18 17:49:23, Sakari Ailus wrote:
-> >> Hi Pavel,
-> >>
-> >> On Mon, Sep 18, 2017 at 12:56:55PM +0200, Pavel Machek wrote:
-> >>> Hi!
-> >>>
-> >>>> Specify the exact label used if the label property is omitted in DT, as
-> >>>> well as use label in the example that conforms to LED device naming.
-> >>>>
-> >>>> @@ -69,11 +73,11 @@ Example
-> >>>>  			flash-max-microamp = <320000>;
-> >>>>  			led-max-microamp = <60000>;
-> >>>>  			ams,input-max-microamp = <1750000>;
-> >>>> -			label = "as3645a:flash";
-> >>>> +			label = "as3645a:white:flash";
-> >>>>  		};
-> >>>>  		indicator@1 {
-> >>>>  			reg = <0x1>;
-> >>>>  			led-max-microamp = <10000>;
-> >>>> -			label = "as3645a:indicator";
-> >>>> +			label = "as3645a:red:indicator";
-> >>>>  		};
-> >>>>  	};
-> >>>
-> >>> Ok, but userspace still has no chance to determine if this is flash
-> >>> from main camera or flash for front camera; todays smartphones have
-> >>> flashes on both cameras.
-> >>>
-> >>> So.. Can I suggset as3645a:white:main_camera_flash or main_flash or
-> >>> ....?
-> >>
-> >> If there's just a single one in the device, could you use that?
-> >>
-> >> Even if we name this so for N9 (and N900), the application still would only
-> >> work with the two devices.
-> > 
-> > Well, I'd plan to name it on other devices, too.
-> > 
-> >> My suggestion would be to look for a flash LED, and perhaps the maximum
-> >> current as well. That should generally work better than assumptions on the
-> >> label.
-> > 
-> > If you just look for flash LED, you don't know if it is front one or
-> > back one. Its true that if you have just one flash it is usually on
-> > the back camera, but you can't know if maybe driver is not available
-> > for the main flash.
-> > 
-> > Lets get this right, please "main_camera_flash" is 12 bytes more than
-> > "flash", and it saves application logic.. more than 12 bytes, I'm sure. 
+> While the problem persists, I managed to find a way around it for now.
 > 
-> What you are trying to introduce is yet another level of LED class
-> device naming standard, one level below devicename:colour:function.
-> It seems you want also to come up with the set of standarized LED
-> function names. This would certainly have to be covered for consistency.
+> I changed the antenna input.
+> 
+> Originally I used a powered splitter to feed all the tuners, and it worked
+> well with the out-of-kernel driver. This driver does not build or work with
+> a more modern kernel so I shifted to using dvb_usb_rtl28xxu which fails to
+> tune.
+> 
+> The new wiring splits (passive) the antenna in two, feeds one side directly
+> to the two "Leadtek Winfast DTV2000 DS PLUS TV" cards (through another passive
+> 2-way) and the other side goes to the old powered splitter that feeds a few
+> USB tuners.
+> 
+> Now all tuners are happy. It seems that the "Leadtek Winfast DTV2000 DS PLUS TV"
+> cannot handle the amplified input while the USB tuners require it.
+> 
+> I hope that there is a way to set a profile in dvb_usb_rtl28xxu to attenuate
+> the input to an acceptable level thus unravelling the antenna cables rat-nest.
 
-I really dislike how this naming convention is used for label. label is 
-supposed to be the phyically identifiable name. Having the devicename 
-defeats that. Perhaps color, too. We'd be better off with a color 
-property. It seems we're overloading the naming with too many things. 
-Now we're adding device association.
+Glad you had some success.
 
-I do want to see standard names though. On 96boards for example, there 
-are defined LEDs and locations. The function on some are defined (e.g. 
-WiFi/BT) and somewhat undefined on others (user{1-4}). I'd like to see 
-the same label across all boards.
+I did some more rummaging in v4l-utils. It may help you to know about
+dvb-fe-tool, which gives information about the frontend device
+(eg /dev/dvb/adapter0/frontend0). In particular you can monitor the
+s/n as you make changes:
 
-Rob
+ # dvb-fe-tool --femon -a 0  #here doing adapter0/frontend0
+
+It displays info about the signal quality and the carrier/noise (C/N) ratio,
+which might help any investigation of where the driver fails to cope as
+you change what you are feeding it.
+
+I noticed your dvbv5-scan showed C/N around 20dB but the manpage shows
+'good signal' with C/N of 36dB which suggests the device should be
+expected to deal with higher signal levels.
+
+Once you figured out the signal level, did a dvbv5-scan work with no
+errors? In the example you showed I saw the channels getting 'lock'
+but then some kind of error occurred.
+
+Regards
+Vince
