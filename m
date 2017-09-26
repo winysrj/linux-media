@@ -1,154 +1,320 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50364
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55758
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751693AbdITTMB (ORCPT
+        with ESMTP id S969500AbdIZR73 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 15:12:01 -0400
+        Tue, 26 Sep 2017 13:59:29 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 20/25] media: dvb_demux.h: document functions
-Date: Wed, 20 Sep 2017 16:11:45 -0300
-Message-Id: <45c0bfe2e8e4f3d953b39d92ceb5d1a01a8fbc68.1505933919.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
-References: <cover.1505933919.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1505933919.git.mchehab@s-opensource.com>
-References: <cover.1505933919.git.mchehab@s-opensource.com>
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: [PATCH 09/10] scripts: kernel-doc: parse next structs/unions
+Date: Tue, 26 Sep 2017 14:59:19 -0300
+Message-Id: <e0ee97325e570a7f783122c88e152d89c755c254.1506448061.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
+References: <cover.1506448061.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
+References: <cover.1506448061.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The functions used on dvb_demux.h are largely used on DVB drivers.
-Yet, none of them are documented.
+There are several places within the Kernel tree with nested
+structs/unions, like this one:
 
-No functional changes.
+  struct ingenic_cgu_clk_info {
+    const char *name;
+    enum {
+      CGU_CLK_NONE = 0,
+      CGU_CLK_EXT = BIT(0),
+      CGU_CLK_PLL = BIT(1),
+      CGU_CLK_GATE = BIT(2),
+      CGU_CLK_MUX = BIT(3),
+      CGU_CLK_MUX_GLITCHFREE = BIT(4),
+      CGU_CLK_DIV = BIT(5),
+      CGU_CLK_FIXDIV = BIT(6),
+      CGU_CLK_CUSTOM = BIT(7),
+    } type;
+    int parents[4];
+    union {
+      struct ingenic_cgu_pll_info pll;
+      struct {
+        struct ingenic_cgu_gate_info gate;
+        struct ingenic_cgu_mux_info mux;
+        struct ingenic_cgu_div_info div;
+        struct ingenic_cgu_fixdiv_info fixdiv;
+      };
+      struct ingenic_cgu_custom_info custom;
+    };
+  };
+
+Currently, such struct is documented as:
+
+	**Definition**
+
+	::
+	struct ingenic_cgu_clk_info {
+	    const char * name;
+	};
+
+	**Members**
+
+	``name``
+	  name of the clock
+
+With is obvioulsy wrong. It also generates an error:
+	drivers/clk/ingenic/cgu.h:169: warning: No description found for parameter 'enum'
+
+However, there's nothing wrong with this kernel-doc markup: everything
+is documented there.
+
+It makes sense to document all fields there. So, add a
+way for the core to parse those structs.
+
+With this patch, all documented fields will properly generate
+documentation.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/dvb-core/dvb_demux.h | 106 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 103 insertions(+), 3 deletions(-)
+ Documentation/doc-guide/kernel-doc.rst |  46 +++++++++++++
+ scripts/kernel-doc                     | 120 ++++++++++++++++++---------------
+ 2 files changed, 112 insertions(+), 54 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
-index 43b0cab2e932..15ee2ea23efe 100644
---- a/drivers/media/dvb-core/dvb_demux.h
-+++ b/drivers/media/dvb-core/dvb_demux.h
-@@ -232,13 +232,113 @@ struct dvb_demux {
- 	int recording;
- };
+diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
+index 50473f0db345..3916a28b82b7 100644
+--- a/Documentation/doc-guide/kernel-doc.rst
++++ b/Documentation/doc-guide/kernel-doc.rst
+@@ -281,6 +281,52 @@ comment block.
+ The kernel-doc data structure comments describe each member of the structure,
+ in order, with the member descriptions.
  
--int dvb_dmx_init(struct dvb_demux *dvbdemux);
--void dvb_dmx_release(struct dvb_demux *dvbdemux);
--void dvb_dmx_swfilter_packets(struct dvb_demux *dvbdmx, const u8 *buf,
-+/**
-+ * dvb_dmx_init - initialize a digital TV demux struct.
-+ *
-+ * @demux: &struct dvb_demux to be initialized.
-+ *
-+ * Before being able to register a digital TV demux struct, drivers
-+ * should call this routine. On its typical usage, some fields should
-+ * be initialized at the driver before calling it.
-+ *
-+ * A typical usecase is::
-+ *
-+ *	dvb->demux.dmx.capabilities =
-+ *		DMX_TS_FILTERING | DMX_SECTION_FILTERING |
-+ *		DMX_MEMORY_BASED_FILTERING;
-+ *	dvb->demux.priv       = dvb;
-+ *	dvb->demux.filternum  = 256;
-+ *	dvb->demux.feednum    = 256;
-+ *	dvb->demux.start_feed = driver_start_feed;
-+ *	dvb->demux.stop_feed  = driver_stop_feed;
-+ *	ret = dvb_dmx_init(&dvb->demux);
-+ *	if (ret < 0)
-+ *		return ret;
-+ */
-+int dvb_dmx_init(struct dvb_demux *demux);
++Nested structs/unions
++~~~~~~~~~~~~~~~~~~~~~
 +
-+/**
-+ * dvb_dmx_release - releases a digital TV demux internal buffers.
-+ *
-+ * @demux: &struct dvb_demux to be released.
-+ *
-+ * The DVB core internally allocates data at @demux. This routine
-+ * releases those data. Please notice that the struct itelf is not
-+ * released, as it can be embedded on other structs.
-+ */
-+void dvb_dmx_release(struct dvb_demux *demux);
++It is possible to document nested structs unions, like::
 +
-+/**
-+ * dvb_dmx_swfilter_packets - use dvb software filter for a buffer with
-+ *	multiple MPEG-TS packets with 188 bytes each.
-+ *
-+ * @demux: pointer to &struct dvb_demux
-+ * @buf: buffer with data to be filtered
-+ * @count: number of MPEG-TS packets with size of 188.
-+ *
-+ * The routine will discard a DVB packet that don't start with 0x47.
-+ *
-+ * Use this routine if the DVB demux fills MPEG-TS buffers that are
-+ * already aligned.
-+ *
-+ * NOTE: The @buf size should have size equal to ``count * 188``.
-+ */
-+void dvb_dmx_swfilter_packets(struct dvb_demux *demux, const u8 *buf,
- 			      size_t count);
++      /**
++       * struct nested_foobar - a struct with nested unions and structs
++       * @arg1: - first argument of anonymous union/anonymous struct
++       * @arg2: - second argument of anonymous union/anonymous struct
++       * @arg3: - third argument of anonymous union/anonymous struct
++       * @arg4: - fourth argument of anonymous union/anonymous struct
++       * @bar.st1.arg1 - first argument of struct st1 on union bar
++       * @bar.st1.arg2 - second argument of struct st1 on union bar
++       * @bar.st2.arg1 - first argument of struct st2 on union bar
++       * @bar.st2.arg2 - second argument of struct st2 on union bar
++      struct nested_foobar {
++        /* Anonymous union/struct*/
++        union {
++          struct {
++            int arg1;
++            int arg2;
++	  }
++          struct {
++            void *arg3;
++            int arg4;
++	  }
++	}
++	union {
++          struct {
++            int arg1;
++            int arg2;
++	  } st1;
++          struct {
++            void *arg1;
++            int arg2;
++	  } st2;
++	} bar;
++      };
 +
-+/**
-+ * dvb_dmx_swfilter -  use dvb software filter for a buffer with
-+ *	multiple MPEG-TS packets with 188 bytes each.
-+ *
-+ * @demux: pointer to &struct dvb_demux
-+ * @buf: buffer with data to be filtered
-+ * @count: number of MPEG-TS packets with size of 188.
-+ *
-+ * If a DVB packet doesn't start with 0x47, it will seek for the first
-+ * byte that starts with 0x47.
-+ *
-+ * Use this routine if the DVB demux fill buffers that may not start with
-+ * a packet start mark (0x47).
-+ *
-+ * NOTE: The @buf size should have size equal to ``count * 188``.
-+ */
- void dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf, size_t count);
++.. note::
 +
-+/**
-+ * dvb_dmx_swfilter_204 -  use dvb software filter for a buffer with
-+ *	multiple MPEG-TS packets with 204 bytes each.
-+ *
-+ * @demux: pointer to &struct dvb_demux
-+ * @buf: buffer with data to be filtered
-+ * @count: number of MPEG-TS packets with size of 204.
-+ *
-+ * If a DVB packet doesn't start with 0x47, it will seek for the first
-+ * byte that starts with 0x47.
-+ *
-+ * Use this routine if the DVB demux fill buffers that may not start with
-+ * a packet start mark (0x47).
-+ *
-+ * NOTE: The @buf size should have size equal to ``count * 204``.
-+ */
- void dvb_dmx_swfilter_204(struct dvb_demux *demux, const u8 *buf,
- 			  size_t count);
-+
-+/**
-+ * dvb_dmx_swfilter_raw -  make the raw data available to userspace without
-+ * 	filtering
-+ *
-+ * @demux: pointer to &struct dvb_demux
-+ * @buf: buffer with data
-+ * @count: number of packets to be passed. The actual size of each packet
-+ *	depends on the &dvb_demux->feed->cb.ts logic.
-+ *
-+ * Use it if the driver needs to deliver the raw payload to userspace without
-+ * passing through the kernel demux. That is meant to support some
-+ * delivery systems that aren't based on MPEG-TS.
-+ *
-+ * This function relies on &dvb_demux->feed->cb.ts to actually handle the
-+ * buffer.
-+ */
- void dvb_dmx_swfilter_raw(struct dvb_demux *demux, const u8 *buf,
- 			  size_t count);
++   #) When documenting nested structs or unions, if the struct/union ``foo``
++      is named, the argument ``bar`` inside it should be documented as
++      ``@foo.bar:``
++   #) When the nested struct/union is anonymous, the argument ``bar`` on it
++      should be documented as ``@bar:``
  
+ Typedef documentation
+ ---------------------
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index b6f3f6962897..880a196c7dc7 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -210,7 +210,7 @@ my $anon_struct_union = 0;
+ my $type_constant = '\b``([^\`]+)``\b';
+ my $type_constant2 = '\%([-_\w]+)';
+ my $type_func = '(\w+)\(\)';
+-my $type_param = '\@(\w+(\.\.\.)?)';
++my $type_param = '\@(\w[\.\w]*(\.\.\.)?)';
+ my $type_fp_param = '\@(\w+)\(\)';  # Special RST handling for func ptr params
+ my $type_env = '(\$\w+)';
+ my $type_enum = '\&(enum\s*([_\w]+))';
+@@ -663,32 +663,12 @@ sub output_struct_man(%) {
+     print ".SH NAME\n";
+     print $args{'type'} . " " . $args{'struct'} . " \\- " . $args{'purpose'} . "\n";
+ 
++    my $declaration = $args{'definition'};
++    $declaration =~ s/\t/  /g;
++    $declaration =~ s/\n/"\n.br\n.BI \"/g;
+     print ".SH SYNOPSIS\n";
+     print $args{'type'} . " " . $args{'struct'} . " {\n.br\n";
+-
+-    foreach my $parameter (@{$args{'parameterlist'}}) {
+-	if ($parameter =~ /^#/) {
+-	    print ".BI \"$parameter\"\n.br\n";
+-	    next;
+-	}
+-	my $parameter_name = $parameter;
+-	$parameter_name =~ s/\[.*//;
+-
+-	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+-	$type = $args{'parametertypes'}{$parameter};
+-	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+-	    # pointer-to-function
+-	    print ".BI \"    " . $1 . "\" " . $parameter . " \") (" . $2 . ")" . "\"\n;\n";
+-	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
+-	    # bitfield
+-	    print ".BI \"    " . $1 . "\ \" " . $parameter . $2 . " \"" . "\"\n;\n";
+-	} else {
+-	    $type =~ s/([^\*])$/$1 /;
+-	    print ".BI \"    " . $type . "\" " . $parameter . " \"" . "\"\n;\n";
+-	}
+-	print "\n.br\n";
+-    }
+-    print "};\n.br\n";
++    print ".BI \"$declaration\n};\n.br\n\n";
+ 
+     print ".SH Members\n";
+     foreach $parameter (@{$args{'parameterlist'}}) {
+@@ -926,29 +906,9 @@ sub output_struct_rst(%) {
+ 
+     print "**Definition**\n\n";
+     print "::\n\n";
+-    print "  " . $args{'type'} . " " . $args{'struct'} . " {\n";
+-    foreach $parameter (@{$args{'parameterlist'}}) {
+-	if ($parameter =~ /^#/) {
+-	    print "  " . "$parameter\n";
+-	    next;
+-	}
+-
+-	my $parameter_name = $parameter;
+-	$parameter_name =~ s/\[.*//;
+-
+-	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+-	$type = $args{'parametertypes'}{$parameter};
+-	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+-	    # pointer-to-function
+-	    print "    $1 $parameter) ($2);\n";
+-	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
+-	    # bitfield
+-	    print "    $1 $parameter$2;\n";
+-	} else {
+-	    print "    " . $type . " " . $parameter . ";\n";
+-	}
+-    }
+-    print "  };\n\n";
++    my $declaration = $args{'definition'};
++    $declaration =~ s/\t/  /g;
++    print "  " . $args{'type'} . " " . $args{'struct'} . " {\n$declaration  };\n\n";
+ 
+     print "**Members**\n\n";
+     $lineprefix = "  ";
+@@ -1022,20 +982,15 @@ sub dump_struct($$) {
+     my $nested;
+ 
+     if ($x =~ /(struct|union)\s+(\w+)\s*{(.*)}/) {
+-	#my $decl_type = $1;
++	my $decl_type = $1;
+ 	$declaration_name = $2;
+ 	my $members = $3;
+ 
+-	# ignore embedded structs or unions
+-	$members =~ s/({.*})//g;
+-	$nested = $1;
+-
+ 	# ignore members marked private:
+ 	$members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gosi;
+ 	$members =~ s/\/\*\s*private:.*//gosi;
+ 	# strip comments:
+ 	$members =~ s/\/\*.*?\*\///gos;
+-	$nested =~ s/\/\*.*?\*\///gos;
+ 	# strip kmemcheck_bitfield_{begin,end}.*;
+ 	$members =~ s/kmemcheck_bitfield_.*?;//gos;
+ 	# strip attributes
+@@ -1047,13 +1002,70 @@ sub dump_struct($$) {
+ 	# replace DECLARE_HASHTABLE
+ 	$members =~ s/DECLARE_HASHTABLE\s*\(([^,)]+), ([^,)]+)\)/unsigned long $1\[1 << (($2) - 1)\]/gos;
+ 
++	my $declaration = $members;
++
++	# Split nested struct/union elements as newer ones
++	my $cont = 1;
++	while ($cont) {
++		$cont = 0;
++		while ($members =~ m/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/) {
++			my $newmember = "$1 $4;";
++			my $id = $4;
++			my $content = $3;
++			$id =~ s/[:\[].*//;
++			foreach my $arg (split /;/, $content) {
++				next if ($arg =~ m/^\s*$/);
++				my $type = $arg;
++				my $name = $arg;
++				$type =~ s/\s\S+$//;
++				$name =~ s/.*\s//;
++				next if (($name =~ m/^\s*$/));
++				if ($id =~ m/^\s*$/) {
++					# anonymous struct/union
++					$newmember .= "$type $name;";
++				} else {
++					$newmember .= "$type $id.$name;";
++				}
++			}
++			$members =~ s/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/$newmember/;
++			$cont = 1;
++		};
++	};
++
++	# Ignore other nested elements, like enums
++	$members =~ s/({[^\{\}]*})//g;
++	$nested = $decl_type;
++	$nested =~ s/\/\*.*?\*\///gos;
++
+ 	create_parameterlist($members, ';', $file);
+ 	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual, $nested);
+ 
++	# Adjust declaration for better display
++	$declaration =~ s/([{;])/$1\n/g;
++	$declaration =~ s/}\s+;/};/g;
++	# Better handle inlined enums
++	do {} while ($declaration =~ s/(enum\s+{[^}]+),([^\n])/$1,\n$2/);
++
++	my @def_args = split /\n/, $declaration;
++	my $level = 1;
++	$declaration = "";
++	foreach my $clause (@def_args) {
++		$clause =~ s/^\s+//;
++		$clause =~ s/\s+$//;
++		$clause =~ s/\s+/ /;
++		next if (!$clause);
++		$level-- if ($clause =~ m/(})/ && $level > 1);
++		if (!($clause =~ m/^\s*#/)) {
++			$declaration .= "\t" x $level;
++		}
++		$declaration .= "\t" . $clause . "\n";
++		$level++ if ($clause =~ m/({)/ && !($clause =~m/}/));
++	}
+ 	output_declaration($declaration_name,
+ 			   'struct',
+ 			   {'struct' => $declaration_name,
+ 			    'module' => $modulename,
++			    'definition' => $declaration,
+ 			    'parameterlist' => \@parameterlist,
+ 			    'parameterdescs' => \%parameterdescs,
+ 			    'parametertypes' => \%parametertypes,
 -- 
 2.13.5
