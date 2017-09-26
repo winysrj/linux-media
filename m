@@ -1,56 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42656 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750865AbdIOQmO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 12:42:14 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com,
-        linux-renesas-soc@vger.kernel.org
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v1 1/3] media: vsp1: Prevent resuming DRM pipelines
-Date: Fri, 15 Sep 2017 17:42:05 +0100
-Message-Id: <f15075b98a75895d65132ebf5ffb7a6b55d76ac8.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from shards.monkeyblade.net ([184.105.139.130]:40262 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964958AbdIZDTx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Sep 2017 23:19:53 -0400
+Date: Mon, 25 Sep 2017 20:19:51 -0700 (PDT)
+Message-Id: <20170925.201951.1512252559012166718.davem@davemloft.net>
+To: arnd@arndb.de
+Cc: mchehab@kernel.org, jiri@resnulli.us, arend.vanspriel@broadcom.com,
+        kvalo@codeaurora.org, aryabinin@virtuozzo.com, glider@google.com,
+        dvyukov@google.com, yamada.masahiro@socionext.com, mmarek@suse.com,
+        akpm@linux-foundation.org, keescook@chromium.org,
+        geert@linux-m68k.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+        brcm80211-dev-list.pdl@broadcom.com,
+        brcm80211-dev-list@cypress.com, kasan-dev@googlegroups.com,
+        linux-kbuild@vger.kernel.org, jakub@gcc.gnu.org,
+        marxin@gcc.gnu.org, stable@vger.kernel.org
+Subject: Re: [PATCH v4 8/9] netlink: fix nla_put_{u8,u16,u32} for KASAN
+From: David Miller <davem@davemloft.net>
+In-Reply-To: <20170922212930.620249-9-arnd@arndb.de>
+References: <20170922212930.620249-1-arnd@arndb.de>
+        <20170922212930.620249-9-arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DRM pipelines utilising the VSP must stop all frame processing as part
-of the suspend operation to ensure the hardware is idle. Upon resume,
-the pipeline must not be started until the DU performs an atomic flush
-to restore the hardware configuration and state.
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 22 Sep 2017 23:29:19 +0200
 
-Therefore the vsp1_pipeline_resume() call is not needed for DRM
-pipelines, and we can disable it in this instance.
+> When CONFIG_KASAN is enabled, the "--param asan-stack=1" causes rather large
+> stack frames in some functions. This goes unnoticed normally because
+> CONFIG_FRAME_WARN is disabled with CONFIG_KASAN by default as of commit
+> 3f181b4d8652 ("lib/Kconfig.debug: disable -Wframe-larger-than warnings with
+> KASAN=y").
+> 
+> The kernelci.org build bot however has the warning enabled and that led
+> me to investigate it a little further, as every build produces these warnings:
+> 
+> net/wireless/nl80211.c:4389:1: warning: the frame size of 2240 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+> net/wireless/nl80211.c:1895:1: warning: the frame size of 3776 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+> net/wireless/nl80211.c:1410:1: warning: the frame size of 2208 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+> net/bridge/br_netlink.c:1282:1: warning: the frame size of 2544 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+> 
+> Most of this problem is now solved in gcc-8, which can consolidate
+> the stack slots for the inline function arguments. On older compilers
+> we can add a workaround by declaring a local variable in each function
+> to pass the inline function argument.
+> 
+> Cc: stable@vger.kernel.org
+> Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81715
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-CC: linux-media@vger.kernel.org
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drv.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 962e4c304076..7604c7994c74 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -582,7 +582,13 @@ static int __maybe_unused vsp1_pm_resume(struct device *dev)
- 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
- 
- 	pm_runtime_force_resume(vsp1->dev);
--	vsp1_pipelines_resume(vsp1);
-+
-+	/*
-+	 * DRM pipelines are stopped before suspend, and will be resumed after
-+	 * the DRM subsystem has reconfigured its pipeline with an atomic flush
-+	 */
-+	if (!vsp1->drm)
-+		vsp1_pipelines_resume(vsp1);
- 
- 	return 0;
- }
--- 
-git-series 0.9.1
+Applied.
