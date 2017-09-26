@@ -1,453 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33396 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754073AbdIGIcN (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55761
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S969509AbdIZR73 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Sep 2017 04:32:13 -0400
-Date: Thu, 7 Sep 2017 11:32:10 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, laurent.pinchart@ideasonboard.com,
-        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v8 14/21] v4l: async: Allow binding notifiers to
- sub-devices
-Message-ID: <20170907083209.3xtaxwhrfmgrtpfz@valkosipuli.retiisi.org.uk>
-References: <20170905130553.1332-1-sakari.ailus@linux.intel.com>
- <20170905130553.1332-15-sakari.ailus@linux.intel.com>
- <910b3d01-a8a4-2363-4b24-ed0edd1e1f4d@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <910b3d01-a8a4-2363-4b24-ed0edd1e1f4d@xs4all.nl>
+        Tue, 26 Sep 2017 13:59:29 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        linux-kernel@vger.kernel.org, Evgeniy Polyakov <zbr@ioremap.net>
+Subject: [PATCH 10/10] [RFC] w1_netlink.h: add support for nested structs
+Date: Tue, 26 Sep 2017 14:59:20 -0300
+Message-Id: <6e7255bf2c5c1908716cfdf2b894a6f4682fe964.1506448061.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
+References: <cover.1506448061.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
+References: <cover.1506448061.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Describe nested struct/union fields
 
-On Wed, Sep 06, 2017 at 10:46:31AM +0200, Hans Verkuil wrote:
-> On 09/05/2017 03:05 PM, Sakari Ailus wrote:
-> > Registering a notifier has required the knowledge of struct v4l2_device
-> > for the reason that sub-devices generally are registered to the
-> > v4l2_device (as well as the media device, also available through
-> > v4l2_device).
-> > 
-> > This information is not available for sub-device drivers at probe time.
-> > 
-> > What this patch does is that it allows registering notifiers without
-> > having v4l2_device around. Instead the sub-device pointer is stored to the
-> 
-> to -> in
+NOTE: This is a pure test patch, meant to validate if the
+parsing logic for nested structs is working properly.
 
-Fixed.
+I've no idea if the random text I added there is correct!
 
-> 
-> > notifier. Once the sub-device of the driver that registered the notifier
-> > is registered, the notifier will gain the knowledge of the v4l2_device,
-> > and the binding of async sub-devices from the sub-device driver's notifier
-> > may proceed.
-> > 
-> > The master notifier's complete callback is only called when all sub-device
-> > notifiers are completed.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-async.c | 209 ++++++++++++++++++++++++++++++-----
-> >  include/media/v4l2-async.h           |  16 ++-
-> >  2 files changed, 194 insertions(+), 31 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> > index 79f216723a3f..620b2cd29fc3 100644
-> > --- a/drivers/media/v4l2-core/v4l2-async.c
-> > +++ b/drivers/media/v4l2-core/v4l2-async.c
-> > @@ -53,6 +53,10 @@ static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
-> >  	return n->ops->complete(n);
-> >  }
-> >  
-> > +static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-> > +				   struct v4l2_subdev *sd,
-> > +				   struct v4l2_async_subdev *asd);
-> > +
-> >  static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
-> >  {
-> >  #if IS_ENABLED(CONFIG_I2C)
-> > @@ -129,14 +133,119 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
-> >  	return NULL;
-> >  }
-> >  
-> > +/* Get the sub-device notifier registered by a sub-device driver. */
-> > +static struct v4l2_async_notifier *v4l2_async_get_subdev_notifier(
-> > +	struct v4l2_subdev *sd)
-> > +{
-> > +	struct v4l2_async_notifier *n;
-> > +
-> > +	list_for_each_entry(n, &notifier_list, list)
-> > +		if (n->sd == sd)
-> > +			return n;
-> > +
-> > +	return NULL;
-> > +}
-> > +
-> > +/* Return true if all sub-device notifiers are complete, false otherwise. */
-> > +static bool v4l2_async_subdev_notifiers_complete(
-> > +	struct v4l2_async_notifier *notifier)
-> > +{
-> > +	struct v4l2_subdev *sd;
-> > +
-> > +	if (!list_empty(&notifier->waiting))
-> > +		return false;
-> > +
-> > +	list_for_each_entry(sd, &notifier->done, async_list) {
-> > +		struct v4l2_async_notifier *subdev_notifier =
-> > +			v4l2_async_get_subdev_notifier(sd);
-> > +
-> > +		if (!subdev_notifier)
-> > +			continue;
-> > +
-> > +		if (!v4l2_async_subdev_notifiers_complete(subdev_notifier))
-> > +			return false;
-> > +	}
-> > +
-> > +	return true;
-> > +}
-> > +
-> > +/* Get v4l2_device related to the notifier if one can be found. */
-> > +static struct v4l2_device *v4l2_async_notifier_get_v4l2_dev(
-> > +	struct v4l2_async_notifier *notifier)
-> > +{
-> > +	while (notifier->master)
-> > +		notifier = notifier->master;
-> > +
-> > +	return notifier->v4l2_dev;
-> > +}
-> > +
-> > +/* Test all async sub-devices in a notifier for a match. */
-> > +static int v4l2_async_notifier_try_all_subdevs(
-> > +	struct v4l2_async_notifier *notifier)
-> > +{
-> > +	struct v4l2_subdev *sd, *tmp;
-> > +
-> > +	if (!v4l2_async_notifier_get_v4l2_dev(notifier))
-> > +		return 0;
-> > +
-> > +	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> > +		struct v4l2_async_subdev *asd;
-> > +		int ret;
-> > +
-> > +		asd = v4l2_async_find_match(notifier, sd);
-> > +		if (!asd)
-> > +			continue;
-> > +
-> > +		ret = v4l2_async_match_notify(notifier, sd, asd);
-> > +		if (ret < 0)
-> > +			return ret;
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +/* Try completing a notifier. */
-> > +static int v4l2_async_notifier_try_complete(
-> > +	struct v4l2_async_notifier *notifier)
-> > +{
-> > +	do {
-> > +		int ret;
-> > +
-> > +		/* Any local async sub-devices left? */
-> > +		if (!list_empty(&notifier->waiting))
-> > +			return 0;
-> > +
-> > +		/*
-> > +		 * Any sub-device notifiers waiting for async subdevs
-> > +		 * to be bound?
-> > +		 */
-> > +		if (!v4l2_async_subdev_notifiers_complete(notifier))
-> > +			return 0;
-> > +
-> > +		/* Proceed completing the notifier */
-> > +		ret = v4l2_async_notifier_call_complete(notifier);
-> > +		if (ret < 0)
-> > +			return ret;
-> > +
-> > +		/*
-> > +		 * Obtain notifier's master. If there is one, repeat
-> > +		 * the process, otherwise we're done here.
-> > +		 */
-> > +	} while ((notifier = notifier->master));
-> 
-> I'd change this to:
-> 
-> 		notifier = notifier->master;
-> 	} while (notifier);
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/w1/w1_netlink.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-I prefer the original for the same reason as in related case: the loop
-condition as well as obtaining the next entry is better separated from
-where the real work on the entries takes place.
-
-> 
-> > +
-> > +	return 0;
-> > +}
-> > +
-> >  static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-> >  				   struct v4l2_subdev *sd,
-> >  				   struct v4l2_async_subdev *asd)
-> >  {
-> > +	struct v4l2_async_notifier *subdev_notifier;
-> >  	int ret;
-> >  
-> > -	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
-> > -	if (ret < 0)
-> > +	ret = v4l2_device_register_subdev(
-> > +		v4l2_async_notifier_get_v4l2_dev(notifier), sd);
-> > +	if (ret)
-> >  		return ret;
-> >  
-> >  	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
-> > @@ -153,10 +262,20 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-> >  	/* Move from the global subdevice list to notifier's done */
-> >  	list_move(&sd->async_list, &notifier->done);
-> >  
-> > -	if (list_empty(&notifier->waiting))
-> > -		return v4l2_async_notifier_call_complete(notifier);
-> > +	/*
-> > +	 * See if the sub-device has a notifier. If it does, proceed
-> > +	 * with checking for its async sub-devices.
-> > +	 */
-> > +	subdev_notifier = v4l2_async_get_subdev_notifier(sd);
-> > +	if (subdev_notifier && !subdev_notifier->master) {
-> > +		subdev_notifier->master = notifier;
-> > +		ret = v4l2_async_notifier_try_all_subdevs(subdev_notifier);
-> > +		if (ret)
-> > +			return ret;
-> > +	}
-> >  
-> > -	return 0;
-> > +	/* Try completing the notifier and its master(s). */
-> > +	return v4l2_async_notifier_try_complete(notifier);
-> >  }
-> >  
-> >  static void v4l2_async_cleanup(struct v4l2_subdev *sd)
-> > @@ -168,18 +287,17 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
-> >  	sd->dev = NULL;
-> >  }
-> >  
-> > -int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> > -				 struct v4l2_async_notifier *notifier)
-> > +static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
-> >  {
-> > -	struct v4l2_subdev *sd, *tmp;
-> >  	struct v4l2_async_subdev *asd;
-> > +	int ret;
-> >  	int i;
-> >  
-> > -	if (!v4l2_dev || !notifier->num_subdevs ||
-> > +	if (!notifier->v4l2_dev == !notifier->sd || !notifier->num_subdevs ||
-> 
-> With the changes suggested below this can be changed to:
-> 
-> 	if (!notifier->num_subdevs ||
-> 
-> However, I have a question about that: why would it be wrong to call this with
-> no subdevs in the list?
-> 
-> It's perfectly valid to have no subdevs at all. There may be a fixed incoming video
-> stream that is not controlled by a subdev. We have a case like that in fact.
-
-I added a separate patch for that earlier in the set.
-
-> 
-> >  	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-> >  		return -EINVAL;
-> >  
-> > -	notifier->v4l2_dev = v4l2_dev;
-> > +	INIT_LIST_HEAD(&notifier->list);
-> >  	INIT_LIST_HEAD(&notifier->waiting);
-> >  	INIT_LIST_HEAD(&notifier->done);
-> >  
-> > @@ -203,18 +321,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> >  
-> >  	mutex_lock(&list_lock);
-> >  
-> > -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> > -		int ret;
-> > -
-> > -		asd = v4l2_async_find_match(notifier, sd);
-> > -		if (!asd)
-> > -			continue;
-> > -
-> > -		ret = v4l2_async_match_notify(notifier, sd, asd);
-> > -		if (ret < 0) {
-> > -			mutex_unlock(&list_lock);
-> > -			return ret;
-> > -		}
-> > +	ret = v4l2_async_notifier_try_all_subdevs(notifier);
-> > +	if (ret) {
-> > +		mutex_unlock(&list_lock);
-> > +		return ret;
-> >  	}
-> >  
-> >  	/* Keep also completed notifiers on the list */
-> > @@ -224,28 +334,67 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> >  
-> >  	return 0;
-> >  }
-> > +
-> > +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> > +				 struct v4l2_async_notifier *notifier)
-> > +{
-> > +	if (!v4l2_dev)
-> 
-> I'd change this to:
-> 
-> 	if (!v4l2_dev || notifier->sd)
-
-Done.
-
-> 
-> > +		return -EINVAL;
-> > +
-> > +	notifier->v4l2_dev = v4l2_dev;
-> > +
-> > +	return __v4l2_async_notifier_register(notifier);
-> > +}
-> >  EXPORT_SYMBOL(v4l2_async_notifier_register);
-> >  
-> > -void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> > +int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
-> > +					struct v4l2_async_notifier *notifier)
-> >  {
-> > -	struct v4l2_subdev *sd, *tmp;
-> > +	if (!sd)
-> 
-> and this to:
-> 
-> 	if (!sd || notifier->v4l2_dev)
-
-Done as well. And removed the interesting-looking check from
-__v4l2_async_subdev_notifier_register(). :-)
-
-> 
-> > +		return -EINVAL;
-> >  
-> > -	if (!notifier->v4l2_dev)
-> > -		return;
-> > +	notifier->sd = sd;
-> >  
-> > -	mutex_lock(&list_lock);
-> > +	return __v4l2_async_notifier_register(notifier);
-> > +}
-> > +EXPORT_SYMBOL(v4l2_async_subdev_notifier_register);
-> >  
-> > -	list_del(&notifier->list);
-> > +/* Unbind all sub-devices in the notifier tree. */
-> > +static void v4l2_async_notifier_unbind_all_subdevs(
-> > +	struct v4l2_async_notifier *notifier)
-> > +{
-> > +	struct v4l2_subdev *sd, *tmp;
-> >  
-> >  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> > +		struct v4l2_async_notifier *subdev_notifier =
-> > +			v4l2_async_get_subdev_notifier(sd);
-> > +
-> > +		if (subdev_notifier)
-> > +			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
-> > +
-> >  		v4l2_async_cleanup(sd);
-> >  
-> >  		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
-> > +
-> > +		list_del(&sd->async_list);
-> > +		list_add(&sd->async_list, &subdev_list);
-> >  	}
-> >  
-> > -	mutex_unlock(&list_lock);
-> > +	notifier->master = NULL;
-> > +}
-> > +
-> > +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> > +{
-> > +	if (!notifier->v4l2_dev && !notifier->sd)
-> > +		return;
-> >  
-> > -	notifier->v4l2_dev = NULL;
-> > +	mutex_lock(&list_lock);
-> > +
-> > +	v4l2_async_notifier_unbind_all_subdevs(notifier);
-> > +
-> > +	list_del(&notifier->list);
-> > +
-> > +	mutex_unlock(&list_lock);
-> >  }
-> >  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
-> >  
-> > diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> > index 3bc8a7c0d83f..12739be44bd1 100644
-> > --- a/include/media/v4l2-async.h
-> > +++ b/include/media/v4l2-async.h
-> > @@ -102,7 +102,9 @@ struct v4l2_async_notifier_operations {
-> >   * @num_subdevs: number of subdevices used in the subdevs array
-> >   * @max_subdevs: number of subdevices allocated in the subdevs array
-> >   * @subdevs:	array of pointers to subdevice descriptors
-> > - * @v4l2_dev:	pointer to struct v4l2_device
-> > + * @v4l2_dev:	v4l2_device of the master, for subdev notifiers NULL
-> > + * @sd:		sub-device that registered the notifier, NULL otherwise
-> > + * @master:	master notifier carrying @v4l2_dev
-> 
-> I think this description is out of date. It is really the parent notifier,
-> right? Should 'master' be renamed to 'parent'?
-
-You could view it as one, yes. What is known is that the notifier is
-related, and through which the v4l2_dev can be found. I'll rename it as
-"parent".
-
-I'll use root in the commit message as well.
-
-> 
-> Same problem with the description of @v4l2_dev: it's the v4l2_device of the
-> root/top-level notifier.
-
-"v4l2_device of the root notifier, NULL otherwise"?
-
-> 
-> >   * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
-> >   * @done:	list of struct v4l2_subdev, already probed
-> >   * @list:	member in a global list of notifiers
-> > @@ -113,6 +115,8 @@ struct v4l2_async_notifier {
-> >  	unsigned int max_subdevs;
-> >  	struct v4l2_async_subdev **subdevs;
-> >  	struct v4l2_device *v4l2_dev;
-> > +	struct v4l2_subdev *sd;
-> > +	struct v4l2_async_notifier *master;
-> >  	struct list_head waiting;
-> >  	struct list_head done;
-> >  	struct list_head list;
-> > @@ -128,6 +132,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> >  				 struct v4l2_async_notifier *notifier);
-> >  
-> >  /**
-> > + * v4l2_async_subdev_notifier_register - registers a subdevice asynchronous
-> > + *					 notifier for a sub-device
-> > + *
-> > + * @sd: pointer to &struct v4l2_subdev
-> > + * @notifier: pointer to &struct v4l2_async_notifier
-> > + */
-> > +int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
-> > +					struct v4l2_async_notifier *notifier);
-> > +
-> > +/**
-> >   * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
-> >   *
-> >   * @notifier: pointer to &struct v4l2_async_notifier
-> > 
-> 
-> This v8 is much better and is getting close.
-
-Thanks!
-
+diff --git a/drivers/w1/w1_netlink.h b/drivers/w1/w1_netlink.h
+index a36661cd1f05..e781d1109cd7 100644
+--- a/drivers/w1/w1_netlink.h
++++ b/drivers/w1/w1_netlink.h
+@@ -60,6 +60,10 @@ enum w1_netlink_message_types {
+  * @status: kernel feedback for success 0 or errno failure value
+  * @len: length of data following w1_netlink_msg
+  * @id: union holding master bus id (msg.id) and slave device id (id[8]).
++ * @id.id: Slave ID (8 bytes)
++ * @id.mst: master bus identification
++ * @id.mst.id: master bus ID
++ * @id.mst.res: master bus reserved
+  * @data: start address of any following data
+  *
+  * The base message structure for w1 messages over netlink.
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.5
