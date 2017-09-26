@@ -1,359 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f51.google.com ([209.85.218.51]:47467 "EHLO
-        mail-oi0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752472AbdI0Ssu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 14:48:50 -0400
-Received: by mail-oi0-f51.google.com with SMTP id p187so4596008oif.4
-        for <linux-media@vger.kernel.org>; Wed, 27 Sep 2017 11:48:50 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <59CBF02C.9090901@gmail.com>
-References: <eba212d6d5b631365c5881b0ef4e16a9a8ea8cf6.1506502997.git.arvind.yadav.cs@gmail.com>
- <CAAeHK+xFAYXxSnR1hbJRJ=qsPFR5NdwKJx5=CO0Arx5tuNXL0g@mail.gmail.com>
- <CAAeHK+yxQc-_trtKP7TSU1jmSgSDeHFnmjpODwGimODCsRi63g@mail.gmail.com> <59CBF02C.9090901@gmail.com>
-From: Andrey Konovalov <andreyknvl@google.com>
-Date: Wed, 27 Sep 2017 20:48:48 +0200
-Message-ID: <CAAeHK+xBmQ+oAgGtxxhQOtXxjZi8SyGJZv+s-KOErEBV6wCVCw@mail.gmail.com>
-Subject: Re: [RFT] [media] siano: FIX use-after-free in worker_thread
-To: arvind <arvind.yadav.cs@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kostya Serebryany <kcc@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>, mchehab@s-opensource.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        syzkaller <syzkaller@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from gofer.mess.org ([88.97.38.141]:33763 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S935367AbdIZUM0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 16:12:26 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: [PATCH 00/20] lirc scancode interface, and more
+Date: Tue, 26 Sep 2017 21:12:23 +0100
+Message-Id: <cover.1506455086.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 27, 2017 at 8:38 PM, arvind <arvind.yadav.cs@gmail.com> wrote:
->
->
-> On Wednesday 27 September 2017 05:47 PM, Andrey Konovalov wrote:
->
-> On Wed, Sep 27, 2017 at 2:00 PM, Andrey Konovalov <andreyknvl@google.com>
-> wrote:
->
-> On Wed, Sep 27, 2017 at 11:21 AM, Arvind Yadav
-> <arvind.yadav.cs@gmail.com> wrote:
->
-> If CONFIG_MEDIA_CONTROLLER_DVB is enable, We are not releasing
-> media device and memory on any failure or disconnect a device.
->
-> Adding structure media_device 'mdev' as part of 'smsusb_device_t'
-> structure to make proper handle for media device.
-> Now releasing a media device and memory on failure. It's allocate
-> first in siano_media_device_register() and it should be freed last
-> in smsusb_disconnect().
->
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
->
-> Hi Arvind,
->
-> I've tried your patch and still see a crash.
->
-> My guess is that here the issue is similar to the one in lan78xx,
-> surb->wq work isn't shutdown properly.
->
-> Hi Andrey,
->
-> Yes, You are right. We have not flush work which is initialized in
-> smsusb_onresponse(). I have send one more patch to you. I hope this will fix
-> this issue. Thanks for your suggestion. :)
+Introduce lirc scancode mode, use that to port lirc_zilog to rc-core
+using that interface, and then remove the lirc kernel api.
 
-Hi Arvind,
+In summary:
+ - This removes the lirc staging directory.
+ - lirc IR TX can use in-kernel encoders for scancode encoding
+ - lirc_zilog uses the same interface
+ - lirc kapi (not uapi!) is gone
+ - The reading lirc scancode gives more information (e.g. protocol,
+   toggle, repeat). So you can determine what protocol variant a remotes uses
+ - Line count is actually down and code cleaner (imo)
+ - The scancode interface can be used for cec keycode transmit.
 
-Replied in the patch thread.
+On the cec keycode transmit I am hoping for feedback. Also I am ensure what
+to do with the new firmware file for the zilog_ir.
 
-Thanks!
+Sean Young (20):
+  media: lirc: implement scancode sending
+  media: lirc: use the correct carrier for scancode transmit
+  media: rc: auto load encoder if necessary
+  media: lirc_zilog: remove receiver
+  media: lirc_zilog: fix variable types and other ugliness
+  media: lirc_zilog: port to rc-core using scancode tx interface
+  media: promote lirc_zilog out of staging
+  media: lirc: remove LIRCCODE and LIRC_GET_LENGTH
+  media: lirc: lirc interface should not be a raw decoder
+  media: lirc: merge lirc_dev_fop_ioctl and ir_lirc_ioctl
+  media: lirc: use kfifo rather than lirc_buffer for raw IR
+  media: lirc: move lirc_dev->attached to rc_dev->registered
+  media: lirc: do not call rc_close() on unregistered devices
+  media: lirc: create rc-core open and close lirc functions
+  media: lirc: remove name from lirc_dev
+  media: lirc: be gone, lirc kernel api!
+  media: lirc: implement reading scancode
+  media: lirc: introduce LIRC_SET_POLL_MODE
+  media: lirc: scancode rc devices should have a lirc device too
+  media: lirc: document LIRC_MODE_SCANCODE
 
->
-> ~arvind
->
-> Thanks!
->
-> gadgetfs: bound to dummy_udc driver
-> usb 1-1: new full-speed USB device number 2 using dummy_hcd
-> gadgetfs: connected
-> gadgetfs: disconnected
-> gadgetfs: connected
-> usb 1-1: config 189 interface 0 altsetting 0 endpoint 0x9 has an
-> invalid bInterval 0, changing to 4
-> usb 1-1: New USB device found, idVendor=187f, idProduct=0100
-> usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
-> gadgetfs: configuration #189
-> smsusb:smsusb_probe: board id=1, interface number 0
-> smsusb:siano_media_device_register: media controller created
-> smsusb:smsusb1_detectmode: product string not found
-> smsmdtv:smscore_set_device_mode: return error code -22.
-> smsmdtv:smscore_start_device: set device mode failed , rc -22
-> smsusb:smsusb_init_device: smscore_start_device(...) failed
-> smsusb:smsusb_onresponse: error, urb status -2, 0 bytes
-> smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-> smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-> smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-> smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-> smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-> smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-> smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-> smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-> smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
-> smsusb:smsusb_probe: Device initialized with return code -22
-> ==================================================================
-> BUG: KASAN: use-after-free in worker_thread+0x1468/0x1850
-> Read of size 8 at addr ffff88006a2b80f0 by task kworker/0:1/24
->
-> CPU: 0 PID: 24 Comm: kworker/0:1 Not tainted
-> 4.14.0-rc2-42660-g24b7bd59eec0-dirty #273
-> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-> Call Trace:
->  __dump_stack lib/dump_stack.c:16
->  dump_stack+0x292/0x395 lib/dump_stack.c:52
->  print_address_description+0x78/0x280 mm/kasan/report.c:252
->  kasan_report_error mm/kasan/report.c:351
->  kasan_report+0x23d/0x350 mm/kasan/report.c:409
->  __asan_report_load8_noabort+0x19/0x20 mm/kasan/report.c:430
->  worker_thread+0x1468/0x1850 kernel/workqueue.c:2251
->  kthread+0x3a1/0x470 kernel/kthread.c:231
->  ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
->
-> Allocated by task 1846:
->  save_stack_trace+0x1b/0x20 arch/x86/kernel/stacktrace.c:59
->  save_stack+0x43/0xd0 mm/kasan/kasan.c:447
->  set_track mm/kasan/kasan.c:459
->  kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
->  kmem_cache_alloc_trace+0x11e/0x2d0 mm/slub.c:2772
->  kmalloc ./include/linux/slab.h:493
->  kzalloc ./include/linux/slab.h:666
->  smsusb_init_device+0xd5/0xe40 drivers/media/usb/siano/smsusb.c:418
->  smsusb_probe+0x4f5/0xdc0 drivers/media/usb/siano/smsusb.c:580
->  usb_probe_interface+0x35d/0x8e0 drivers/usb/core/driver.c:361
->  really_probe drivers/base/dd.c:413
->  driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
->  __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
->  bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
->  __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
->  device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
->  bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
->  device_add+0xd0b/0x1660 drivers/base/core.c:1835
->  usb_set_configuration+0x104e/0x1870 drivers/usb/core/message.c:1932
->  generic_probe+0x73/0xe0 drivers/usb/core/generic.c:174
->  usb_probe_device+0xaf/0xe0 drivers/usb/core/driver.c:266
->  really_probe drivers/base/dd.c:413
->  driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
->  __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
->  bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
->  __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
->  device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
->  bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
->  device_add+0xd0b/0x1660 drivers/base/core.c:1835
->  usb_new_device+0x7b8/0x1020 drivers/usb/core/hub.c:2457
->  hub_port_connect drivers/usb/core/hub.c:4903
->  hub_port_connect_change drivers/usb/core/hub.c:5009
->  port_event drivers/usb/core/hub.c:5115
->  hub_event+0x194d/0x3740 drivers/usb/core/hub.c:5195
->  process_one_work+0xc7f/0x1db0 kernel/workqueue.c:2119
->  worker_thread+0x221/0x1850 kernel/workqueue.c:2253
->  kthread+0x3a1/0x470 kernel/kthread.c:231
->  ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
->
-> Freed by task 1846:
->  save_stack_trace+0x1b/0x20 arch/x86/kernel/stacktrace.c:59
->  save_stack+0x43/0xd0 mm/kasan/kasan.c:447
->  set_track mm/kasan/kasan.c:459
->  kasan_slab_free+0x72/0xc0 mm/kasan/kasan.c:524
->  slab_free_hook mm/slub.c:1390
->  slab_free_freelist_hook mm/slub.c:1412
->  slab_free mm/slub.c:2988
->  kfree+0xf6/0x2f0 mm/slub.c:3919
->  smsusb_term_device+0x166/0x1f0 drivers/media/usb/siano/smsusb.c:373
->  smsusb_init_device+0xcaa/0xe40 drivers/media/usb/siano/smsusb.c:505
->  smsusb_probe+0x4f5/0xdc0 drivers/media/usb/siano/smsusb.c:580
->  usb_probe_interface+0x35d/0x8e0 drivers/usb/core/driver.c:361
->  really_probe drivers/base/dd.c:413
->  driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
->  __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
->  bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
->  __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
->  device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
->  bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
->  device_add+0xd0b/0x1660 drivers/base/core.c:1835
->  usb_set_configuration+0x104e/0x1870 drivers/usb/core/message.c:1932
->  generic_probe+0x73/0xe0 drivers/usb/core/generic.c:174
->  usb_probe_device+0xaf/0xe0 drivers/usb/core/driver.c:266
->  really_probe drivers/base/dd.c:413
->  driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
->  __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
->  bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
->  __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
->  device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
->  bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
->  device_add+0xd0b/0x1660 drivers/base/core.c:1835
->  usb_new_device+0x7b8/0x1020 drivers/usb/core/hub.c:2457
->  hub_port_connect drivers/usb/core/hub.c:4903
->  hub_port_connect_change drivers/usb/core/hub.c:5009
->  port_event drivers/usb/core/hub.c:5115
->  hub_event+0x194d/0x3740 drivers/usb/core/hub.c:5195
->  process_one_work+0xc7f/0x1db0 kernel/workqueue.c:2119
->  worker_thread+0x221/0x1850 kernel/workqueue.c:2253
->  kthread+0x3a1/0x470 kernel/kthread.c:231
->  ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
->
-> The buggy address belongs to the object at ffff88006a2b8000
->  which belongs to the cache kmalloc-4096 of size 4096
-> The buggy address is located 240 bytes inside of
->  4096-byte region [ffff88006a2b8000, ffff88006a2b9000)
-> The buggy address belongs to the page:
-> page:ffffea0001a8ae00 count:1 mapcount:0 mapping:          (null)
-> index:0x0 compound_mapcount: 0
-> flags: 0x100000000008100(slab|head)
-> raw: 0100000000008100 0000000000000000 0000000000000000 0000000180070007
-> raw: dead000000000100 dead000000000200 ffff88006c402c00 0000000000000000
-> page dumped because: kasan: bad access detected
->
-> Memory state around the buggy address:
->  ffff88006a2b7f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
->  ffff88006a2b8000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->
-> ffff88006a2b8080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->
->                                                              ^
->  ffff88006a2b8100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->  ffff88006a2b8180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-> ==================================================================
->
-> ---
-> This bug report by Andrey Konovalov "usb/media/smsusb: use-after-free in
-> worker_thread".
->
->  drivers/media/usb/siano/smsusb.c | 45
-> ++++++++++++++++++++++++----------------
->  1 file changed, 27 insertions(+), 18 deletions(-)
->
-> diff --git a/drivers/media/usb/siano/smsusb.c
-> b/drivers/media/usb/siano/smsusb.c
-> index 8c1f926..66936b3 100644
-> --- a/drivers/media/usb/siano/smsusb.c
-> +++ b/drivers/media/usb/siano/smsusb.c
-> @@ -69,6 +69,9 @@ struct smsusb_device_t {
->         unsigned char in_ep;
->         unsigned char out_ep;
->         enum smsusb_state state;
-> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> +       struct media_device *mdev;
-> +#endif
->  };
->
->  static int smsusb_submit_urb(struct smsusb_device_t *dev,
-> @@ -359,6 +362,13 @@ static void smsusb_term_device(struct usb_interface
-> *intf)
->                 if (dev->coredev)
->                         smscore_unregister_device(dev->coredev);
->
-> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> +               if (dev->mdev) {
-> +                       media_device_unregister(dev->mdev);
-> +                       media_device_cleanup(dev->mdev);
-> +                       kfree(dev->mdev);
-> +               }
-> +#endif
->                 pr_debug("device 0x%p destroyed\n", dev);
->                 kfree(dev);
->         }
-> @@ -370,27 +380,28 @@ static void *siano_media_device_register(struct
-> smsusb_device_t *dev,
->                                         int board_id)
->  {
->  #ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -       struct media_device *mdev;
->         struct usb_device *udev = dev->udev;
->         struct sms_board *board = sms_get_board(board_id);
->         int ret;
->
-> -       mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
-> -       if (!mdev)
-> +       dev->mdev = kzalloc(sizeof(*dev->mdev), GFP_KERNEL);
-> +       if (!dev->mdev)
->                 return NULL;
->
-> -       media_device_usb_init(mdev, udev, board->name);
->
-> -       ret = media_device_register(mdev);
-> +       media_device_usb_init(dev->mdev, udev, board->name);
-> +
-> +       ret = media_device_register(dev->mdev);
->         if (ret) {
-> -               media_device_cleanup(mdev);
-> -               kfree(mdev);
-> +               media_device_cleanup(dev->mdev);
-> +               kfree(dev->mdev);
-> +               dev->mdev = NULL;
->                 return NULL;
->         }
->
->         pr_info("media controller created\n");
->
-> -       return mdev;
-> +       return dev->mdev;
->  #else
->         return NULL;
->  #endif
-> @@ -458,12 +469,7 @@ static int smsusb_init_device(struct usb_interface
-> *intf, int board_id)
->         rc = smscore_register_device(&params, &dev->coredev, mdev);
->         if (rc < 0) {
->                 pr_err("smscore_register_device(...) failed, rc %d\n", rc);
-> -               smsusb_term_device(intf);
-> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -               media_device_unregister(mdev);
-> -#endif
-> -               kfree(mdev);
-> -               return rc;
-> +               goto err_smsusb_init;
->         }
->
->         smscore_set_board_id(dev->coredev, board_id);
-> @@ -480,8 +486,7 @@ static int smsusb_init_device(struct usb_interface
-> *intf, int board_id)
->         rc = smsusb_start_streaming(dev);
->         if (rc < 0) {
->                 pr_err("smsusb_start_streaming(...) failed\n");
-> -               smsusb_term_device(intf);
-> -               return rc;
-> +               goto err_smsusb_init;
->         }
->
->         dev->state = SMSUSB_ACTIVE;
-> @@ -489,13 +494,17 @@ static int smsusb_init_device(struct usb_interface
-> *intf, int board_id)
->         rc = smscore_start_device(dev->coredev);
->         if (rc < 0) {
->                 pr_err("smscore_start_device(...) failed\n");
-> -               smsusb_term_device(intf);
-> -               return rc;
-> +               goto err_smsusb_init;
->         }
->
->         pr_debug("device 0x%p created\n", dev);
->
->         return rc;
-> +
-> +err_smsusb_init:
-> +       smsusb_term_device(intf);
-> +
-> +       return rc;
->  }
->
->  static int smsusb_probe(struct usb_interface *intf,
-> --
-> 1.9.1
->
-> --
-> You received this message because you are subscribed to the Google Groups
-> "syzkaller" group.
-> To unsubscribe from this group and stop receiving emails from it, send an
-> email to syzkaller+unsubscribe@googlegroups.com.
-> For more options, visit https://groups.google.com/d/optout.
->
->
+ Documentation/media/kapi/rc-core.rst               |    5 -
+ Documentation/media/lirc.h.rst.exceptions          |   49 +
+ Documentation/media/uapi/rc/lirc-dev-intro.rst     |   42 +-
+ Documentation/media/uapi/rc/lirc-func.rst          |    2 +-
+ Documentation/media/uapi/rc/lirc-get-features.rst  |   17 +-
+ Documentation/media/uapi/rc/lirc-get-length.rst    |   44 -
+ Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |    8 +-
+ Documentation/media/uapi/rc/lirc-get-send-mode.rst |    5 +-
+ Documentation/media/uapi/rc/lirc-read.rst          |    6 +
+ Documentation/media/uapi/rc/lirc-set-poll-mode.rst |   44 +
+ Documentation/media/uapi/rc/lirc-write.rst         |    8 +
+ drivers/media/rc/Kconfig                           |   41 +-
+ drivers/media/rc/Makefile                          |    5 +-
+ drivers/media/rc/ir-jvc-decoder.c                  |    1 +
+ drivers/media/rc/ir-lirc-codec.c                   |  513 ++++--
+ drivers/media/rc/ir-mce_kbd-decoder.c              |    7 +
+ drivers/media/rc/ir-nec-decoder.c                  |    1 +
+ drivers/media/rc/ir-rc5-decoder.c                  |    1 +
+ drivers/media/rc/ir-rc6-decoder.c                  |    1 +
+ drivers/media/rc/ir-sanyo-decoder.c                |    1 +
+ drivers/media/rc/ir-sharp-decoder.c                |    1 +
+ drivers/media/rc/ir-sony-decoder.c                 |    1 +
+ drivers/media/rc/lirc_dev.c                        |  480 +-----
+ drivers/media/rc/rc-core-priv.h                    |   53 +-
+ drivers/media/rc/rc-ir-raw.c                       |   56 +-
+ drivers/media/rc/rc-main.c                         |   72 +-
+ drivers/media/rc/zilog_ir.c                        |  739 +++++++++
+ drivers/staging/media/Kconfig                      |    3 -
+ drivers/staging/media/Makefile                     |    1 -
+ drivers/staging/media/lirc/Kconfig                 |   21 -
+ drivers/staging/media/lirc/Makefile                |    6 -
+ drivers/staging/media/lirc/TODO                    |   36 -
+ drivers/staging/media/lirc/lirc_zilog.c            | 1653 --------------------
+ include/media/lirc_dev.h                           |  192 ---
+ include/media/rc-core.h                            |   55 +-
+ include/media/rc-map.h                             |   54 +-
+ include/uapi/linux/lirc.h                          |   93 ++
+ 37 files changed, 1605 insertions(+), 2712 deletions(-)
+ delete mode 100644 Documentation/media/uapi/rc/lirc-get-length.rst
+ create mode 100644 Documentation/media/uapi/rc/lirc-set-poll-mode.rst
+ create mode 100644 drivers/media/rc/zilog_ir.c
+ delete mode 100644 drivers/staging/media/lirc/Kconfig
+ delete mode 100644 drivers/staging/media/lirc/Makefile
+ delete mode 100644 drivers/staging/media/lirc/TODO
+ delete mode 100644 drivers/staging/media/lirc/lirc_zilog.c
+ delete mode 100644 include/media/lirc_dev.h
+
+-- 
+2.13.5
