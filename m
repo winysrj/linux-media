@@ -1,216 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59824 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752687AbdIDQeD (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55746
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S969487AbdIZR72 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Sep 2017 12:34:03 -0400
-Date: Mon, 4 Sep 2017 19:34:00 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, laurent.pinchart@ideasonboard.com,
-        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v7 15/18] v4l2-fwnode: Add convenience function for
- parsing generic references
-Message-ID: <20170904163400.z26qmxuejhgdcmrw@valkosipuli.retiisi.org.uk>
-References: <20170903174958.27058-1-sakari.ailus@linux.intel.com>
- <20170903174958.27058-16-sakari.ailus@linux.intel.com>
- <0bb75f81-cc81-a4bf-f2af-41862c1d777a@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0bb75f81-cc81-a4bf-f2af-41862c1d777a@xs4all.nl>
+        Tue, 26 Sep 2017 13:59:28 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: [PATCH 04/10] docs: kernel-doc.rst: improve function documentation section
+Date: Tue, 26 Sep 2017 14:59:14 -0300
+Message-Id: <be40878f652aeaec5c2b66a6a9198d7305c70894.1506448061.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
+References: <cover.1506448061.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506448061.git.mchehab@s-opensource.com>
+References: <cover.1506448061.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Move its contents to happen earlier and improve the description
+of return values, adding a subsection to it. Most of the contents
+there came from kernel-doc-nano-HOWTO.txt.
 
-On Mon, Sep 04, 2017 at 04:44:48PM +0200, Hans Verkuil wrote:
-> On 09/03/2017 07:49 PM, Sakari Ailus wrote:
-> > Add function v4l2_fwnode_reference_count() for counting external
-> > references and v4l2_fwnode_reference_parse() for parsing them as async
-> > sub-devices.
-> > 
-> > This can be done on e.g. flash or lens async sub-devices that are not part
-> > of but are associated with a sensor.
-> > 
-> > struct v4l2_async_notifier.max_subdevs field is added to contain the
-> > maximum number of sub-devices in a notifier to reflect the memory
-> > allocated for the subdevs array.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-fwnode.c | 81 +++++++++++++++++++++++++++++++++++
-> >  include/media/v4l2-fwnode.h           | 28 ++++++++++++
-> >  2 files changed, 109 insertions(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > index f8c7a9bc6a58..24f8020caf28 100644
-> > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > @@ -449,6 +449,87 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
-> >  }
-> >  EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints);
-> >  
-> > +static void v4l2_fwnode_print_args(struct fwnode_reference_args *args)
-> > +{
-> > +	unsigned int i;
-> > +
-> > +	for (i = 0; i < args->nargs; i++) {
-> > +		pr_cont(" %u", args->args[i]);
-> > +		if (i + 1 < args->nargs)
-> > +			pr_cont(",");
-> > +	}
-> > +}
-> > +
-> > +int v4l2_fwnode_reference_parse(
-> > +	struct device *dev, struct v4l2_async_notifier *notifier,
-> > +	const char *prop, const char *nargs_prop, unsigned int nargs,
-> > +	size_t asd_struct_size,
-> > +	int (*parse_single)(struct device *dev,
-> > +			    struct fwnode_reference_args *args,
-> > +			    struct v4l2_async_subdev *asd))
-> > +{
-> > +	struct fwnode_reference_args args;
-> > +	unsigned int index = 0;
-> > +	int ret = -ENOENT;
-> > +
-> > +	if (asd_struct_size < sizeof(struct v4l2_async_subdev))
-> > +		return -EINVAL;
-> > +
-> > +	for (; !fwnode_property_get_reference_args(
-> > +		     dev_fwnode(dev), prop, nargs_prop, nargs,
-> > +		     index, &args); index++)
-> > +		fwnode_handle_put(args.fwnode);
-> > +
-> > +	ret = v4l2_async_notifier_realloc(notifier,
-> > +					  notifier->num_subdevs + index);
-> > +	if (ret)
-> > +		return -ENOMEM;
-> > +
-> > +	for (ret = -ENOENT, index = 0; !fwnode_property_get_reference_args(
-> > +		     dev_fwnode(dev), prop, nargs_prop, nargs,
-> > +		     index, &args); index++) {
-> > +		struct v4l2_async_subdev *asd;
-> > +
-> > +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs))
-> > +			break;
-> 
-> As mentioned elsewhere: I think this should return an error.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/doc-guide/kernel-doc.rst | 100 ++++++++++++++++++++-------------
+ 1 file changed, 61 insertions(+), 39 deletions(-)
 
-I'll use -EINVAL and put the fwnode as well, i.e. goto error.
-
-> 
-> > +
-> > +		asd = kzalloc(asd_struct_size, GFP_KERNEL);
-> > +		if (!asd) {
-> > +			ret = -ENOMEM;
-> > +			goto error;
-> > +		}
-> > +
-> > +		ret = parse_single ? parse_single(dev, &args, asd) : 0;
-> > +		if (ret == -ENOTCONN) {
-> > +			dev_dbg(dev,
-> > +				"ignoring reference prop \"%s\", nargs_prop \"%s\", nargs %u, index %u",
-> > +				prop, nargs_prop, nargs, index);
-> > +			v4l2_fwnode_print_args(&args);
-> > +			pr_cont("\n");
-> 
-> asd isn't freed.
-
-Will fix both.
-
-> 
-> > +			continue;
-> > +		} else if (ret < 0) {
-> > +			dev_warn(dev,
-> > +				 "driver could not parse reference prop \"%s\", nargs_prop \"%s\", nargs %u, index %u",
-> > +				 prop, nargs_prop, nargs, index);
-> > +			v4l2_fwnode_print_args(&args);
-> > +			pr_cont("\n");
-> 
-> Ditto.
-> 
-> > +			goto error;
-> > +		}
-> > +
-> > +		notifier->subdevs[notifier->num_subdevs] = asd;
-> > +		asd->match.fwnode.fwnode = args.fwnode;
-> > +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-> > +		notifier->num_subdevs++;
-> > +	}
-> > +
-> > +	return 0;
-> > +
-> > +error:
-> > +	fwnode_handle_put(args.fwnode);
-> > +	return ret;
-> > +}
-> > +EXPORT_SYMBOL_GPL(v4l2_fwnode_reference_parse);
-> > +
-> >  MODULE_LICENSE("GPL");
-> >  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
-> >  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-> > diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-> > index 6d125f26ec84..52f528162818 100644
-> > --- a/include/media/v4l2-fwnode.h
-> > +++ b/include/media/v4l2-fwnode.h
-> > @@ -254,4 +254,32 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
-> >  			      struct v4l2_fwnode_endpoint *vep,
-> >  			      struct v4l2_async_subdev *asd));
-> >  
-> > +/**
-> > + * v4l2_fwnode_reference_parse - parse references for async sub-devices
-> > + * @dev: the device node the properties of which are parsed for references
-> 
-> the device node whose properties are...
-
-Both mean the same thing.
-
-> 
-> > + * @notifier: the async notifier where the async subdevs will be added
-> > + * @prop: the name of the property
-> > + * @nargs_prop: the name of the property in the remote node that specifies the
-> > + *		number of integer arguments (may be NULL, in that case nargs
-> > + *		will be used).
-> > + * @nargs: the number of integer arguments after the reference
-> > + * @asd_struct_size: the size of the driver's async sub-device struct, including
-> > + *		     @struct v4l2_async_subdev
-> > + * @parse_single: Driver's callback function for parsing a reference. Optional.
-> 
-> Driver's -> driver's
-
-Fixed.
-
-> 
-> > + *		  Return: 0 on success
-> > + *			  %-ENOTCONN if the reference is to be skipped but this
-> > + *				     should not be considered as an error
-> 
-> skipped but this -> skipped. This
-
-Also should -> will.
-
-> 
-> > + *
-> > + * Return: 0 on success
-> > + *	   -ENOMEM if memory allocation failed
-> > + *	   -EINVAL if property parsing failed
-> > + */
-> > +int v4l2_fwnode_reference_parse(
-> > +	struct device *dev, struct v4l2_async_notifier *notifier,
-> > +	const char *prop, const char *nargs_prop, unsigned int nargs,
-> > +	size_t asd_struct_size,
-> > +	int (*parse_single)(struct device *dev,
-> > +			    struct fwnode_reference_args *args,
-> > +			    struct v4l2_async_subdev *asd));
-> > +
-> >  #endif /* _V4L2_FWNODE_H */
-> > 
-
+diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
+index f1eb00899084..9b69dfe928d8 100644
+--- a/Documentation/doc-guide/kernel-doc.rst
++++ b/Documentation/doc-guide/kernel-doc.rst
+@@ -197,6 +197,67 @@ Example::
+       int d;
+   };
+ 
++Function documentation
++----------------------
++
++The general format of a function and function-like macro kernel-doc comment is::
++
++  /**
++   * function_name() - Brief description of function.
++   * @arg1: Describe the first argument.
++   * @arg2: Describe the second argument.
++   *        One can provide multiple line descriptions
++   *        for arguments.
++   *
++   * A longer description, with more discussion of the function function_name()
++   * that might be useful to those using or modifying it. Begins with an
++   * empty comment line, and may include additional embedded empty
++   * comment lines.
++   *
++   * The longer description may have multiple paragraphs.
++   *
++   * Return: Describe the return value of foobar.
++   *
++   * The return value description can also have multiple paragraphs, and should
++   * be placed at the end of the comment block.
++   */
++
++The brief description following the function name may span multiple lines, and
++ends with an argument description, a blank comment line, or the end of the
++comment block.
++
++Return values
++~~~~~~~~~~~~~
++
++The return value, if any, should be described in a dedicated section
++named ``Return``.
++
++.. note::
++
++  #) The multi-line descriptive text you provide does *not* recognize
++     line breaks, so if you try to format some text nicely, as in::
++
++	* Return:
++	* 0 - OK
++	* -EINVAL - invalid argument
++	* -ENOMEM - out of memory
++
++     this will all run together and produce::
++
++	Return: 0 - OK -EINVAL - invalid argument -ENOMEM - out of memory
++
++     So, in order to produce the desired line breaks, you need to use a
++     ReST list, e. g.::
++
++      * Return:
++      * * 0		- OK to runtime suspend the device
++      * * -EBUSY	- Device should not be runtime suspended
++
++  #) If the descriptive text you provide has lines that begin with
++     some phrase followed by a colon, each of those phrases will be taken
++     as a new section heading, with probably won't produce the desired
++     effect.
++
+ 
+ Highlights and cross-references
+ -------------------------------
+@@ -269,45 +330,6 @@ cross-references.
+ 
+ For further details, please refer to the `Sphinx C Domain`_ documentation.
+ 
+-Function documentation
+-----------------------
+-
+-The general format of a function and function-like macro kernel-doc comment is::
+-
+-  /**
+-   * function_name() - Brief description of function.
+-   * @arg1: Describe the first argument.
+-   * @arg2: Describe the second argument.
+-   *        One can provide multiple line descriptions
+-   *        for arguments.
+-   *
+-   * A longer description, with more discussion of the function function_name()
+-   * that might be useful to those using or modifying it. Begins with an
+-   * empty comment line, and may include additional embedded empty
+-   * comment lines.
+-   *
+-   * The longer description may have multiple paragraphs.
+-   *
+-   * Return: Describe the return value of foobar.
+-   *
+-   * The return value description can also have multiple paragraphs, and should
+-   * be placed at the end of the comment block.
+-   */
+-
+-The brief description following the function name may span multiple lines, and
+-ends with an ``@argument:`` description, a blank comment line, or the end of the
+-comment block.
+-
+-The kernel-doc function comments describe each parameter to the function, in
+-order, with the ``@argument:`` descriptions. The ``@argument:`` descriptions
+-must begin on the very next line following the opening brief function
+-description line, with no intervening blank comment lines. The ``@argument:``
+-descriptions may span multiple lines. The continuation lines may contain
+-indentation. If a function parameter is ``...`` (varargs), it should be listed
+-in kernel-doc notation as: ``@...:``.
+-
+-The return value, if any, should be described in a dedicated section at the end
+-of the comment starting with "Return:".
+ 
+ Structure, union, and enumeration documentation
+ -----------------------------------------------
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.5
