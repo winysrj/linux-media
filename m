@@ -1,235 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51962 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751317AbdIKM2Y (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57495
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S968553AbdIZXOK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 08:28:24 -0400
-Date: Mon, 11 Sep 2017 15:28:20 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, laurent.pinchart@ideasonboard.com,
-        linux-acpi@vger.kernel.org, mika.westerberg@intel.com,
-        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v10 18/24] v4l: fwnode: Add a helper function to obtain
- device / interger references
-Message-ID: <20170911122820.fkbd2rnaddiestab@valkosipuli.retiisi.org.uk>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-19-sakari.ailus@linux.intel.com>
- <11c951eb-0315-0149-829e-ed73d748e783@xs4all.nl>
+        Tue, 26 Sep 2017 19:14:10 -0400
+Subject: Re: s5p-mfc - WARNING: possible circular locking dependency
+ detected,[ 4.14.0-rc2
+To: Kyungmin Park <kyungmin.park@samsung.com>, kamil@wypas.org,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>
+Cc: "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>
+References: <1cecc4d2-58e7-8876-1492-6ce97fe8082a@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <377c04ab-26c8-4930-8368-01530e8e9b14@osg.samsung.com>
+Date: Tue, 26 Sep 2017 17:14:07 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <11c951eb-0315-0149-829e-ed73d748e783@xs4all.nl>
+In-Reply-To: <1cecc4d2-58e7-8876-1492-6ce97fe8082a@osg.samsung.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 09/26/2017 02:10 PM, Shuah Khan wrote:
+> When running gstreamer pipeline with s5p-mfc → exynos-gsc→ exynos-drm,
+> I am seeing circular locking dependency detected warning in 4.14-rc2.
+> This is a regression from 4.13. The pipeline does run to completion
+> video streaming works. Are you aware of this problem, or would you
+> like it to be bisected.
 
-Thanks for the review.
-
-On Mon, Sep 11, 2017 at 11:38:58AM +0200, Hans Verkuil wrote:
-> Typo in subject: interger -> integer
-> 
-> On 09/11/2017 10:00 AM, Sakari Ailus wrote:
-> > v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
-> > the device's own fwnode, 
-> 
-> Sorry, you lost me here. Which device are we talking about?
-
-The fwnode related a struct device, in other words what dev_fwnode(dev)
-gives you. This is either struct device.fwnode or struct
-device.of_node.fwnode, depending on which firmware interface was used to
-create the device.
-
-I'll add a note of this.
+Okay more on this. It is not a regression from 4.13. CONFIG_PROVE_LOCKING
+is enabled in exynos_defconfig in 4.14 and not on 4.13. It is an existing
+problem that is now being reported with CONFIG_PROVE_LOCKING enabled.
 
 > 
-> > it will follow child fwnodes with the given
-> > property -- value pair and return the resulting fwnode.
+> gst-launch-1.0 filesrc location=/media/shuah_arm/GH3_MOV_HD.mp4 ! qtdemux ! h264parse ! v4l2video4dec capture-io-mode=dmabuf ! v4l2video7convert output-io-mode=dmabuf-import ! kmssink force-modesetting=true
 > 
-> property-value pair (easier readable that way).
+> [ 2134.994539] ======================================================
+> [ 2135.000661] WARNING: possible circular locking dependency detected
+> [ 2135.006815] 4.14.0-rc2 #1 Not tainted
+> [ 2135.010452] ------------------------------------------------------
+> [ 2135.016606] qtdemux0:sink/2700 is trying to acquire lock:
+> [ 2135.021978]  (&dev->mfc_mutex){+.+.}, at: [<bf109540>] s5p_mfc_mmap+0x28/0xd4 [s5p_mfc]
+> [ 2135.029950]
+>                but task is already holding lock:
+> [ 2135.035755]  (&mm->mmap_sem){++++}, at: [<c01df2e4>] vm_mmap_pgoff+0x44/0xb8
+> [ 2135.042774]
+>                which lock already depends on the new lock.
 > 
-> You only describe v4l2_fwnode_reference_parse_int_prop(), not
-> v4l2_fwnode_reference_parse_int_props().
-
-Yes, I think I changed the naming but forgot to update the commit. I'll do
-that now.
-
+> [ 2135.050920]
+>                the existing dependency chain (in reverse order) is:
+> [ 2135.058372]
+>                -> #2 (&mm->mmap_sem){++++}:
+> [ 2135.063751]        __might_fault+0x80/0xb0
+> [ 2135.067822]        filldir64+0xc0/0x2f8
+> [ 2135.071635]        call_filldir+0xb0/0x14c
+> [ 2135.075705]        ext4_readdir+0x768/0x90c
+> [ 2135.079864]        iterate_dir+0x74/0x168
+> [ 2135.083851]        SyS_getdents64+0x7c/0x1a0
+> [ 2135.088099]        ret_fast_syscall+0x0/0x28
+> [ 2135.092340]
+>                -> #1 (&type->i_mutex_dir_key#2){++++}:
+> [ 2135.098671]        down_read+0x48/0x90
+> [ 2135.102395]        lookup_slow+0x74/0x178
+> [ 2135.106380]        walk_component+0x1a4/0x2e4
+> [ 2135.110713]        link_path_walk+0x174/0x4a0
+> [ 2135.115045]        path_openat+0x68/0x944
+> [ 2135.119031]        do_filp_open+0x60/0xc4
+> [ 2135.123019]        file_open_name+0xe4/0x114
+> [ 2135.127263]        filp_open+0x28/0x48
+> [ 2135.130990]        kernel_read_file_from_path+0x30/0x78
+> [ 2135.136193]        _request_firmware+0x3ec/0x78c
+> [ 2135.140782]        request_firmware+0x3c/0x54
+> [ 2135.145133]        s5p_mfc_load_firmware+0x44/0x140 [s5p_mfc]
+> [ 2135.150848]        s5p_mfc_open+0x2d4/0x4e0 [s5p_mfc]
+> [ 2135.155892]        v4l2_open+0xa0/0x104 [videodev]
+> [ 2135.160627]        chrdev_open+0xa4/0x18c
+> [ 2135.164612]        do_dentry_open+0x208/0x310
+> [ 2135.168945]        path_openat+0x28c/0x944
+> [ 2135.173017]        do_filp_open+0x60/0xc4
+> [ 2135.177002]        do_sys_open+0x118/0x1c8
+> [ 2135.181076]        ret_fast_syscall+0x0/0x28
+> [ 2135.185320]
+>                -> #0 (&dev->mfc_mutex){+.+.}:
+> [ 2135.190871]        lock_acquire+0x6c/0x88
+> [ 2135.194855]        __mutex_lock+0x68/0xa34
+> [ 2135.198927]        mutex_lock_interruptible_nested+0x1c/0x24
+> [ 2135.204575]        s5p_mfc_mmap+0x28/0xd4 [s5p_mfc]
+> [ 2135.209430]        v4l2_mmap+0x54/0x88 [videodev]
+> [ 2135.214093]        mmap_region+0x3a8/0x638
+> [ 2135.218163]        do_mmap+0x330/0x3a4
+> [ 2135.221890]        vm_mmap_pgoff+0x90/0xb8
+> [ 2135.225962]        SyS_mmap_pgoff+0x90/0xc0
+> [ 2135.230122]        ret_fast_syscall+0x0/0x28
+> [ 2135.234366]
+>                other info that might help us debug this:
 > 
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-fwnode.c | 93 +++++++++++++++++++++++++++++++++++
-> >  1 file changed, 93 insertions(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > index 4821c4989119..56eee5bbd3b5 100644
-> > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > @@ -496,6 +496,99 @@ static int v4l2_fwnode_reference_parse(
-> >  	return ret;
-> >  }
-> >  
-> > +static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
-> > +	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
-> > +	const char **props, unsigned int nprops)
+> [ 2135.242339] Chain exists of:
+>                  &dev->mfc_mutex --> &type->i_mutex_dir_key#2 --> &mm->mmap_sem
 > 
-> Need comments describing what this does.
-
-Yes. I'll also rename it (get -> read) for consistency with the async
-changes.
-
+> [ 2135.253690]  Possible unsafe locking scenario:
 > 
-> > +{
-> > +	struct fwnode_reference_args fwnode_args;
-> > +	unsigned int *args = fwnode_args.args;
-> > +	struct fwnode_handle *child;
-> > +	int ret;
-> > +
-> > +	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
-> > +						 index, &fwnode_args);
-> > +	if (ret)
-> > +		return ERR_PTR(ret == -EINVAL ? -ENOENT : ret);
+> [ 2135.259583]        CPU0                    CPU1
+> [ 2135.264089]        ----                    ----
+> [ 2135.268594]   lock(&mm->mmap_sem);
+> [ 2135.271974]                                lock(&type->i_mutex_dir_key#2);
+> [ 2135.278820]                                lock(&mm->mmap_sem);
+> [ 2135.284712]   lock(&dev->mfc_mutex);
+> [ 2135.288265]
+>                 *** DEADLOCK ***
 > 
-> Why map EINVAL to ENOENT? Needs a comment, either here or in the function description.
-
-fwnode_property_get_reference_args() returns currently a little bit
-different error codes in ACPI / DT. This is worth documenting there and
-fixing as well.
-
+> [ 2135.294159] 1 lock held by qtdemux0:sink/2700:
+> [ 2135.298577]  #0:  (&mm->mmap_sem){++++}, at: [<c01df2e4>] vm_mmap_pgoff+0x44/0xb8
+> [ 2135.306029]
+>                stack backtrace:
+> [ 2135.310365] CPU: 7 PID: 2700 Comm: qtdemux0:sink Not tainted 4.14.0-rc2 #1
+> [ 2135.317208] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
+> [ 2135.323282] [<c01102c8>] (unwind_backtrace) from [<c010cabc>] (show_stack+0x10/0x14)
+> [ 2135.330992] [<c010cabc>] (show_stack) from [<c08543a4>] (dump_stack+0x98/0xc4)
+> [ 2135.338184] [<c08543a4>] (dump_stack) from [<c016b2fc>] (print_circular_bug+0x254/0x410)
+> [ 2135.346241] [<c016b2fc>] (print_circular_bug) from [<c016c580>] (check_prev_add+0x468/0x938)
+> [ 2135.354647] [<c016c580>] (check_prev_add) from [<c016f4dc>] (__lock_acquire+0x1314/0x14fc)
+> [ 2135.362878] [<c016f4dc>] (__lock_acquire) from [<c016fefc>] (lock_acquire+0x6c/0x88)
+> [ 2135.370591] [<c016fefc>] (lock_acquire) from [<c0869fb4>] (__mutex_lock+0x68/0xa34)
+> [ 2135.378217] [<c0869fb4>] (__mutex_lock) from [<c086aa08>] (mutex_lock_interruptible_nested+0x1c/0x24)
+> [ 2135.387419] [<c086aa08>] (mutex_lock_interruptible_nested) from [<bf109540>] (s5p_mfc_mmap+0x28/0xd4 [s5p_mfc])
+> [ 2135.397489] [<bf109540>] (s5p_mfc_mmap [s5p_mfc]) from [<bf019120>] (v4l2_mmap+0x54/0x88 [videodev])
+> [ 2135.406571] [<bf019120>] (v4l2_mmap [videodev]) from [<c01f4798>] (mmap_region+0x3a8/0x638)
+> [ 2135.414870] [<c01f4798>] (mmap_region) from [<c01f4d58>] (do_mmap+0x330/0x3a4)
+> [ 2135.422063] [<c01f4d58>] (do_mmap) from [<c01df330>] (vm_mmap_pgoff+0x90/0xb8)
+> [ 2135.429255] [<c01df330>] (vm_mmap_pgoff) from [<c01f28cc>] (SyS_mmap_pgoff+0x90/0xc0)
+> [ 2135.437054] [<c01f28cc>] (SyS_mmap_pgoff) from [<c0108820>] (ret_fast_syscall+0x0/0x28)
 > 
-> > +
-> > +	for (fwnode = fwnode_args.fwnode;
-> > +	     nprops; nprops--, fwnode = child, props++, args++) {
 > 
-> I think you cram too much in this for-loop: fwnode, nprops, fwnode, props, args...
-> It's hard to parse.
-
-Hmm. I'm not sure if that really helps; the function is just handling each
-entry in the array and related array pointers are changed accordingly. The
-fwnode = child assignment is there to move to the child node. I.e. what you
-need for handling the loop itself.
-
-I can change this though if you think it really makes a difference for
-better.
-
+> thanks,
+> -- Shuah
 > 
-> I would make this a 'while (nprops)' and write out all the other assignments,
-> increments and decrements.
-> 
-> > +		u32 val;
-> > +
-> > +		fwnode_for_each_child_node(fwnode, child) {
-> > +			if (fwnode_property_read_u32(child, *props, &val))
-> > +				continue;
-> > +
-> > +			if (val == *args)
-> > +				break;
-> 
-> I'm lost. This really needs comments and perhaps even an DT or ACPI example
-> so you can see what exactly it is we're doing here.
 
-I'll add comments to the code. A good example will be ACPI documentation
-for LEDs, see 17th patch in v9. That will go through the linux-pm tree so
-it won't be available in the same tree for a while.
-
-> 
-> > +		}
-> > +
-> > +		fwnode_handle_put(fwnode);
-> > +
-> > +		if (!child) {
-> > +			fwnode = ERR_PTR(-ENOENT);
-> > +			break;
-> > +		}
-> > +	}
-> > +
-> > +	return fwnode;
-> > +}
-> > +
-> > +static int v4l2_fwnode_reference_parse_int_props(
-> > +	struct device *dev, struct v4l2_async_notifier *notifier,
-> > +	const char *prop, const char **props, unsigned int nprops)
-> 
-> Needs comments describing what this does.
-
-Will add.
-
-> 
-> > +{
-> > +	struct fwnode_handle *fwnode;
-> > +	unsigned int index = 0;
-> > +	int ret;
-> > +
-> > +	while (!IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-> > +				dev_fwnode(dev), prop, index, props,
-> > +				nprops)))) {
-> > +		fwnode_handle_put(fwnode);
-> > +		index++;
-> > +	}
-> > +
-> > +	if (PTR_ERR(fwnode) != -ENOENT)
-> > +		return PTR_ERR(fwnode);
-> 
-> Missing 'if (index == 0)'?
-
-Yes, will add.
-
-> 
-> > +
-> > +	ret = v4l2_async_notifier_realloc(notifier,
-> > +					  notifier->num_subdevs + index);
-> > +	if (ret)
-> > +		return -ENOMEM;
-> > +
-> > +	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-> > +					 dev_fwnode(dev), prop, index, props,
-> > +					 nprops))); ) {
-> 
-> I'd add 'index++' in this for-loop. It's weird that it is missing.
-
-Agreed, I'll move it there.
-
-> 
-> > +		struct v4l2_async_subdev *asd;
-> > +
-> > +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-> > +			ret = -EINVAL;
-> > +			goto error;
-> > +		}
-> > +
-> > +		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
-> > +		if (!asd) {
-> > +			ret = -ENOMEM;
-> > +			goto error;
-> > +		}
-> > +
-> > +		notifier->subdevs[notifier->num_subdevs] = asd;
-> > +		asd->match.fwnode.fwnode = fwnode;
-> > +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-> > +		notifier->num_subdevs++;
-> > +
-> > +		fwnode_handle_put(fwnode);
-> > +
-> > +		index++;
-> > +	}
-> > +
-> > +	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
-> > +
-> > +error:
-> > +	fwnode_handle_put(fwnode);
-> > +	return ret;
-> > +}
-> > +
-> >  MODULE_LICENSE("GPL");
-> >  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
-> >  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-> > 
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+thanks,
+-- Shuah
