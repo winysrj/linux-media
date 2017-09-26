@@ -1,195 +1,387 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f177.google.com ([209.85.128.177]:49230 "EHLO
-        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752188AbdIVVIt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 17:08:49 -0400
-Subject: Re: [RESEND PATCH v2 4/6] dt: bindings: as3645a: Improve label
- documentation, DT example
-To: Rob Herring <robh@kernel.org>
-References: <20170918102349.8935-1-sakari.ailus@linux.intel.com>
- <20170918102349.8935-5-sakari.ailus@linux.intel.com>
- <20170918105655.GA14591@amd>
- <20170918144923.dnhrxkirle3fvdfo@valkosipuli.retiisi.org.uk>
- <20170918205407.GA1849@amd> <809f7590-7641-e8bc-c009-4fed05d5827c@gmail.com>
- <20170920205327.qmgz65kn45aavomx@rob-hp-laptop>
-Cc: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org
-From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Message-ID: <6a6651f9-b5fb-0ec7-1f40-f72b1a630e70@gmail.com>
-Date: Fri, 22 Sep 2017 23:07:53 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170920205327.qmgz65kn45aavomx@rob-hp-laptop>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from gofer.mess.org ([88.97.38.141]:52107 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S970471AbdIZUYM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 16:24:12 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 01/20] media: lirc: implement scancode sending
+Date: Tue, 26 Sep 2017 21:13:40 +0100
+Message-Id: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
+In-Reply-To: <cover.1506455086.git.sean@mess.org>
+References: <cover.1506455086.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/20/2017 10:53 PM, Rob Herring wrote:
-> On Tue, Sep 19, 2017 at 11:01:02PM +0200, Jacek Anaszewski wrote:
->> Hi Pavel,
->>
->> On 09/18/2017 10:54 PM, Pavel Machek wrote:
->>> On Mon 2017-09-18 17:49:23, Sakari Ailus wrote:
->>>> Hi Pavel,
->>>>
->>>> On Mon, Sep 18, 2017 at 12:56:55PM +0200, Pavel Machek wrote:
->>>>> Hi!
->>>>>
->>>>>> Specify the exact label used if the label property is omitted in DT, as
->>>>>> well as use label in the example that conforms to LED device naming.
->>>>>>
->>>>>> @@ -69,11 +73,11 @@ Example
->>>>>>  			flash-max-microamp = <320000>;
->>>>>>  			led-max-microamp = <60000>;
->>>>>>  			ams,input-max-microamp = <1750000>;
->>>>>> -			label = "as3645a:flash";
->>>>>> +			label = "as3645a:white:flash";
->>>>>>  		};
->>>>>>  		indicator@1 {
->>>>>>  			reg = <0x1>;
->>>>>>  			led-max-microamp = <10000>;
->>>>>> -			label = "as3645a:indicator";
->>>>>> +			label = "as3645a:red:indicator";
->>>>>>  		};
->>>>>>  	};
->>>>>
->>>>> Ok, but userspace still has no chance to determine if this is flash
->>>>> from main camera or flash for front camera; todays smartphones have
->>>>> flashes on both cameras.
->>>>>
->>>>> So.. Can I suggset as3645a:white:main_camera_flash or main_flash or
->>>>> ....?
->>>>
->>>> If there's just a single one in the device, could you use that?
->>>>
->>>> Even if we name this so for N9 (and N900), the application still would only
->>>> work with the two devices.
->>>
->>> Well, I'd plan to name it on other devices, too.
->>>
->>>> My suggestion would be to look for a flash LED, and perhaps the maximum
->>>> current as well. That should generally work better than assumptions on the
->>>> label.
->>>
->>> If you just look for flash LED, you don't know if it is front one or
->>> back one. Its true that if you have just one flash it is usually on
->>> the back camera, but you can't know if maybe driver is not available
->>> for the main flash.
->>>
->>> Lets get this right, please "main_camera_flash" is 12 bytes more than
->>> "flash", and it saves application logic.. more than 12 bytes, I'm sure. 
->>
->> What you are trying to introduce is yet another level of LED class
->> device naming standard, one level below devicename:colour:function.
->> It seems you want also to come up with the set of standarized LED
->> function names. This would certainly have to be covered for consistency.
-> 
-> I really dislike how this naming convention is used for label. label is 
-> supposed to be the phyically identifiable name. Having the devicename 
-> defeats that. Perhaps color, too. We'd be better off with a color 
-> property. It seems we're overloading the naming with too many things. 
-> Now we're adding device association.
+This introduces a new lirc mode: scancode. Any device which can send raw IR
+can now also send scancodes.
 
-Regarding devicename - there is indeed inconsistency in the way how LED
-DT bindings use label, as some of them use it for defining full LED
-class device name, and the rest fill only colour and function, leaving
-addition of a devicename to the driver.
+int main()
+{
+	int mode, fd = open("/dev/lirc0", O_RDWR);
 
-The problem is also in current definition of label in LED common
-bindings documentation, which says:
+        mode = LIRC_MODE_SCANCODE;
+	if (ioctl(fd, LIRC_SET_SEND_MODE, &mode)) {
+		// kernel too old or lirc does not support transmit
+	}
+	struct lirc_scancode scancode = {
+		.scancode = 0x1e3d,
+		.rc_proto = RC_TYPE_RC5,
+	};
+	write(fd, &scancode, sizeof(scancode));
+	close(fd);
+}
 
-"It has to uniquely identify a device, i.e. no other LED class device
-can be assigned the same label."
+The other fields of lirc_scancode must be set to 0.
 
-In view of your above words this is not true, and we probably should
-remove this sentence (it doesn't have DT maintainer ack btw).
+Note that toggle (rc5, rc6) and repeats (nec) are not implemented. Nor is
+there a method for holding down a key for a period.
 
-> I do want to see standard names though. On 96boards for example, there 
-> are defined LEDs and locations. The function on some are defined (e.g. 
-> WiFi/BT) and somewhat undefined on others (user{1-4}). I'd like to see 
-> the same label across all boards.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-lirc-codec.c | 72 +++++++++++++++++++++++++------
+ drivers/media/rc/rc-core-priv.h  |  2 +-
+ include/media/rc-map.h           | 54 +----------------------
+ include/uapi/linux/lirc.h        | 93 ++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 153 insertions(+), 68 deletions(-)
 
-Currently we have following LED functions (obtained with
-grep label Documentation/devicetree/bindings/leds/* | sed
-s'/^.*label/label/g' | awk -F"=" '{print $2}' | sed '/^$/d' | sed
-s'/.*:\(.*\)";/\1/' | sed '/^\s\{1,\}/d' | sort -u)
-
-0
-1
-2
-2g
-3
-4
-5
-6
-7
-adsl
-alarm
-alive
-aux
-broadband
-chrg
-dsl
-flash
-green
-indicator
-inet
-keypad
-phone
-power
-red
-sata
-sata0
-sata1
-tel
-tv
-upgrading
-usb
-usr0
-usr1
-usr35
-wan
-white
-wireless
-wps
-yellow
-
-By extracting numerical pattern names and replacing numbers with N
-we're getting something like this:
-
-N
-Ng
-colour
-adsl
-alarm
-alive
-aux
-broadband
-chrg
-dsl
-flash
-indicator
-inet
-keypad
-phone
-power
-sataN
-tel
-tv
-upgrading
-usb
-usrN
-wan
-wireless
-wps
-
-Is this list something you'd like to see as a base of standard LED
-functions? It seems that this list would have to be continuously
-supplemented with new positions.
-
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index bd046c41a53a..770d768824f4 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -107,7 +107,8 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ {
+ 	struct lirc_codec *lirc;
+ 	struct rc_dev *dev;
+-	unsigned int *txbuf; /* buffer with values to transmit */
++	unsigned int *txbuf = NULL;
++	struct ir_raw_event *raw = NULL;
+ 	ssize_t ret = -EINVAL;
+ 	size_t count;
+ 	ktime_t start;
+@@ -121,16 +122,51 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 	if (!lirc)
+ 		return -EFAULT;
+ 
+-	if (n < sizeof(unsigned) || n % sizeof(unsigned))
+-		return -EINVAL;
++	if (lirc->send_mode == LIRC_MODE_SCANCODE) {
++		struct lirc_scancode scan;
+ 
+-	count = n / sizeof(unsigned);
+-	if (count > LIRCBUF_SIZE || count % 2 == 0)
+-		return -EINVAL;
++		if (n != sizeof(scan))
++			return -EINVAL;
++
++		if (copy_from_user(&scan, buf, sizeof(scan)))
++			return -EFAULT;
++
++		if (scan.flags || scan.source || scan.target || scan.unused ||
++		    scan.timestamp)
++			return -EINVAL;
+ 
+-	txbuf = memdup_user(buf, n);
+-	if (IS_ERR(txbuf))
+-		return PTR_ERR(txbuf);
++		raw = kmalloc_array(LIRCBUF_SIZE, sizeof(*raw), GFP_KERNEL);
++		if (!raw)
++			return -ENOMEM;
++
++		ret = ir_raw_encode_scancode(scan.rc_proto, scan.scancode,
++					     raw, LIRCBUF_SIZE);
++		if (ret < 0)
++			goto out;
++
++		count = ret;
++
++		txbuf = kmalloc_array(count, sizeof(unsigned int), GFP_KERNEL);
++		if (!txbuf) {
++			ret = -ENOMEM;
++			goto out;
++		}
++
++		for (i = 0; i < count; i++)
++			/* Convert from NS to US */
++			txbuf[i] = DIV_ROUND_UP(raw[i].duration, 1000);
++	} else {
++		if (n < sizeof(unsigned int) || n % sizeof(unsigned int))
++			return -EINVAL;
++
++		count = n / sizeof(unsigned int);
++		if (count > LIRCBUF_SIZE || count % 2 == 0)
++			return -EINVAL;
++
++		txbuf = memdup_user(buf, n);
++		if (IS_ERR(txbuf))
++			return PTR_ERR(txbuf);
++	}
+ 
+ 	dev = lirc->dev;
+ 	if (!dev) {
+@@ -159,7 +195,10 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 	for (duration = i = 0; i < ret; i++)
+ 		duration += txbuf[i];
+ 
+-	ret *= sizeof(unsigned int);
++	if (lirc->send_mode == LIRC_MODE_SCANCODE)
++		ret = n;
++	else
++		ret *= sizeof(unsigned int);
+ 
+ 	/*
+ 	 * The lircd gap calculation expects the write function to
+@@ -174,6 +213,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 
+ out:
+ 	kfree(txbuf);
++	kfree(raw);
+ 	return ret;
+ }
+ 
+@@ -202,20 +242,22 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 
+ 	switch (cmd) {
+ 
+-	/* legacy support */
++	/* mode support */
+ 	case LIRC_GET_SEND_MODE:
+ 		if (!dev->tx_ir)
+ 			return -ENOTTY;
+ 
+-		val = LIRC_MODE_PULSE;
++		val = lirc->send_mode;
+ 		break;
+ 
+ 	case LIRC_SET_SEND_MODE:
+ 		if (!dev->tx_ir)
+ 			return -ENOTTY;
+ 
+-		if (val != LIRC_MODE_PULSE)
++		if (!(val == LIRC_MODE_PULSE || val == LIRC_MODE_SCANCODE))
+ 			return -EINVAL;
++
++		lirc->send_mode = val;
+ 		return 0;
+ 
+ 	/* TX settings */
+@@ -358,7 +400,7 @@ static int ir_lirc_register(struct rc_dev *dev)
+ 	}
+ 
+ 	if (dev->tx_ir) {
+-		features |= LIRC_CAN_SEND_PULSE;
++		features |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
+ 		if (dev->s_tx_mask)
+ 			features |= LIRC_CAN_SET_TRANSMITTER_MASK;
+ 		if (dev->s_tx_carrier)
+@@ -397,6 +439,8 @@ static int ir_lirc_register(struct rc_dev *dev)
+ 	if (rc < 0)
+ 		goto out;
+ 
++	dev->raw->lirc.send_mode = LIRC_MODE_PULSE;
++
+ 	dev->raw->lirc.ldev = ldev;
+ 	dev->raw->lirc.dev = dev;
+ 	return 0;
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index ae4dd0c27731..43eabea9f152 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -113,7 +113,7 @@ struct ir_raw_event_ctrl {
+ 		u64 gap_duration;
+ 		bool gap;
+ 		bool send_timeout_reports;
+-
++		u8 send_mode;
+ 	} lirc;
+ 	struct xmp_dec {
+ 		int state;
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 2a160e6e823c..00e033975eed 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -10,59 +10,7 @@
+  */
+ 
+ #include <linux/input.h>
+-
+-/**
+- * enum rc_proto - the Remote Controller protocol
+- *
+- * @RC_PROTO_UNKNOWN: Protocol not known
+- * @RC_PROTO_OTHER: Protocol known but proprietary
+- * @RC_PROTO_RC5: Philips RC5 protocol
+- * @RC_PROTO_RC5X_20: Philips RC5x 20 bit protocol
+- * @RC_PROTO_RC5_SZ: StreamZap variant of RC5
+- * @RC_PROTO_JVC: JVC protocol
+- * @RC_PROTO_SONY12: Sony 12 bit protocol
+- * @RC_PROTO_SONY15: Sony 15 bit protocol
+- * @RC_PROTO_SONY20: Sony 20 bit protocol
+- * @RC_PROTO_NEC: NEC protocol
+- * @RC_PROTO_NECX: Extended NEC protocol
+- * @RC_PROTO_NEC32: NEC 32 bit protocol
+- * @RC_PROTO_SANYO: Sanyo protocol
+- * @RC_PROTO_MCIR2_KBD: RC6-ish MCE keyboard
+- * @RC_PROTO_MCIR2_MSE: RC6-ish MCE mouse
+- * @RC_PROTO_RC6_0: Philips RC6-0-16 protocol
+- * @RC_PROTO_RC6_6A_20: Philips RC6-6A-20 protocol
+- * @RC_PROTO_RC6_6A_24: Philips RC6-6A-24 protocol
+- * @RC_PROTO_RC6_6A_32: Philips RC6-6A-32 protocol
+- * @RC_PROTO_RC6_MCE: MCE (Philips RC6-6A-32 subtype) protocol
+- * @RC_PROTO_SHARP: Sharp protocol
+- * @RC_PROTO_XMP: XMP protocol
+- * @RC_PROTO_CEC: CEC protocol
+- */
+-enum rc_proto {
+-	RC_PROTO_UNKNOWN	= 0,
+-	RC_PROTO_OTHER		= 1,
+-	RC_PROTO_RC5		= 2,
+-	RC_PROTO_RC5X_20	= 3,
+-	RC_PROTO_RC5_SZ		= 4,
+-	RC_PROTO_JVC		= 5,
+-	RC_PROTO_SONY12		= 6,
+-	RC_PROTO_SONY15		= 7,
+-	RC_PROTO_SONY20		= 8,
+-	RC_PROTO_NEC		= 9,
+-	RC_PROTO_NECX		= 10,
+-	RC_PROTO_NEC32		= 11,
+-	RC_PROTO_SANYO		= 12,
+-	RC_PROTO_MCIR2_KBD	= 13,
+-	RC_PROTO_MCIR2_MSE	= 14,
+-	RC_PROTO_RC6_0		= 15,
+-	RC_PROTO_RC6_6A_20	= 16,
+-	RC_PROTO_RC6_6A_24	= 17,
+-	RC_PROTO_RC6_6A_32	= 18,
+-	RC_PROTO_RC6_MCE	= 19,
+-	RC_PROTO_SHARP		= 20,
+-	RC_PROTO_XMP		= 21,
+-	RC_PROTO_CEC		= 22,
+-};
++#include <uapi/linux/lirc.h>
+ 
+ #define RC_PROTO_BIT_NONE		0ULL
+ #define RC_PROTO_BIT_UNKNOWN		BIT_ULL(RC_PROTO_UNKNOWN)
+diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
+index 991ab4570b8e..312e37812783 100644
+--- a/include/uapi/linux/lirc.h
++++ b/include/uapi/linux/lirc.h
+@@ -46,12 +46,14 @@
+ #define LIRC_MODE_RAW                  0x00000001
+ #define LIRC_MODE_PULSE                0x00000002
+ #define LIRC_MODE_MODE2                0x00000004
++#define LIRC_MODE_SCANCODE             0x00000008
+ #define LIRC_MODE_LIRCCODE             0x00000010
+ 
+ 
+ #define LIRC_CAN_SEND_RAW              LIRC_MODE2SEND(LIRC_MODE_RAW)
+ #define LIRC_CAN_SEND_PULSE            LIRC_MODE2SEND(LIRC_MODE_PULSE)
+ #define LIRC_CAN_SEND_MODE2            LIRC_MODE2SEND(LIRC_MODE_MODE2)
++#define LIRC_CAN_SEND_SCANCODE         LIRC_MODE2SEND(LIRC_MODE_SCANCODE)
+ #define LIRC_CAN_SEND_LIRCCODE         LIRC_MODE2SEND(LIRC_MODE_LIRCCODE)
+ 
+ #define LIRC_CAN_SEND_MASK             0x0000003f
+@@ -63,6 +65,7 @@
+ #define LIRC_CAN_REC_RAW               LIRC_MODE2REC(LIRC_MODE_RAW)
+ #define LIRC_CAN_REC_PULSE             LIRC_MODE2REC(LIRC_MODE_PULSE)
+ #define LIRC_CAN_REC_MODE2             LIRC_MODE2REC(LIRC_MODE_MODE2)
++#define LIRC_CAN_REC_SCANCODE          LIRC_MODE2REC(LIRC_MODE_SCANCODE)
+ #define LIRC_CAN_REC_LIRCCODE          LIRC_MODE2REC(LIRC_MODE_LIRCCODE)
+ 
+ #define LIRC_CAN_REC_MASK              LIRC_MODE2REC(LIRC_CAN_SEND_MASK)
+@@ -130,4 +133,94 @@
+ 
+ #define LIRC_SET_WIDEBAND_RECEIVER     _IOW('i', 0x00000023, __u32)
+ 
++/*
++ * For raw IR devices, both raw IR (LIRC_MODE_MODE2) and decodes scancodes
++ * (LIRC_MODE_SCANCODE) can be read. By default, poll will show read
++ * ready for the last mode set by LIRC_SET_REC_MODE. Use LIRC_SET_POLL_MODE
++ * LIRC_MODE_SCANCODE | LIRC_MODE_MODE2 to show read ready for both
++ * modes.
++ */
++#define LIRC_SET_POLL_MODE	       _IOW('i', 0x00000024, __u32)
++
++/*
++ * struct lirc_scancode - decoded scancode with protocol for use with
++ *	LIRC_MODE_SCANCODE
++ *
++ * @timestamp: Timestamp in nanoseconds using CLOCK_MONOTONIC when IR
++ *	was decoded.
++ * @flags: should be 0 for transmit. When receiving scancodes,
++ *	LIRC_SCANCODE_FLAG_TOGGLE or LIRC_SCANCODE_FLAG_REPEAT can be set
++ *	depending on the protocol
++ * @target: target for transmit. Unused, set to 0.
++ * @source: source for receive. Unused, set to 0.
++ * @unused: set to 0.
++ * @rc_proto: see enum rc_proto
++ * @scancode: the scancode received or to be sent
++ */
++struct lirc_scancode {
++	__u64	timestamp;
++	__u32	flags;
++	__u8	target;
++	__u8	source;
++	__u8	unused;
++	__u8	rc_proto;
++	__u64	scancode;
++};
++
++#define LIRC_SCANCODE_FLAG_TOGGLE	1
++#define LIRC_SCANCODE_FLAG_REPEAT	2
++
++/**
++ * enum rc_proto - the Remote Controller protocol
++ *
++ * @RC_PROTO_UNKNOWN: Protocol not known
++ * @RC_PROTO_OTHER: Protocol known but proprietary
++ * @RC_PROTO_RC5: Philips RC5 protocol
++ * @RC_PROTO_RC5X_20: Philips RC5x 20 bit protocol
++ * @RC_PROTO_RC5_SZ: StreamZap variant of RC5
++ * @RC_PROTO_JVC: JVC protocol
++ * @RC_PROTO_SONY12: Sony 12 bit protocol
++ * @RC_PROTO_SONY15: Sony 15 bit protocol
++ * @RC_PROTO_SONY20: Sony 20 bit protocol
++ * @RC_PROTO_NEC: NEC protocol
++ * @RC_PROTO_NECX: Extended NEC protocol
++ * @RC_PROTO_NEC32: NEC 32 bit protocol
++ * @RC_PROTO_SANYO: Sanyo protocol
++ * @RC_PROTO_MCIR2_KBD: RC6-ish MCE keyboard
++ * @RC_PROTO_MCIR2_MSE: RC6-ish MCE mouse
++ * @RC_PROTO_RC6_0: Philips RC6-0-16 protocol
++ * @RC_PROTO_RC6_6A_20: Philips RC6-6A-20 protocol
++ * @RC_PROTO_RC6_6A_24: Philips RC6-6A-24 protocol
++ * @RC_PROTO_RC6_6A_32: Philips RC6-6A-32 protocol
++ * @RC_PROTO_RC6_MCE: MCE (Philips RC6-6A-32 subtype) protocol
++ * @RC_PROTO_SHARP: Sharp protocol
++ * @RC_PROTO_XMP: XMP protocol
++ * @RC_PROTO_CEC: CEC protocol
++ */
++enum rc_proto {
++	RC_PROTO_UNKNOWN	= 0,
++	RC_PROTO_OTHER		= 1,
++	RC_PROTO_RC5		= 2,
++	RC_PROTO_RC5X_20	= 3,
++	RC_PROTO_RC5_SZ		= 4,
++	RC_PROTO_JVC		= 5,
++	RC_PROTO_SONY12		= 6,
++	RC_PROTO_SONY15		= 7,
++	RC_PROTO_SONY20		= 8,
++	RC_PROTO_NEC		= 9,
++	RC_PROTO_NECX		= 10,
++	RC_PROTO_NEC32		= 11,
++	RC_PROTO_SANYO		= 12,
++	RC_PROTO_MCIR2_KBD	= 13,
++	RC_PROTO_MCIR2_MSE	= 14,
++	RC_PROTO_RC6_0		= 15,
++	RC_PROTO_RC6_6A_20	= 16,
++	RC_PROTO_RC6_6A_24	= 17,
++	RC_PROTO_RC6_6A_32	= 18,
++	RC_PROTO_RC6_MCE	= 19,
++	RC_PROTO_SHARP		= 20,
++	RC_PROTO_XMP		= 21,
++	RC_PROTO_CEC		= 22,
++};
++
+ #endif
 -- 
-Best regards,
-Jacek Anaszewski
+2.13.5
