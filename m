@@ -1,142 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pide.tip.net.au ([203.10.76.2]:51895 "EHLO pide.tip.net.au"
+Received: from gofer.mess.org ([88.97.38.141]:33009 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934413AbdIYOhq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 10:37:46 -0400
-Subject: Re: f26: dvb_usb_rtl28xxu not tuning "Leadtek Winfast DTV2000 DS PLUS
- TV"
-To: Vincent McIntyre <vincent.mcintyre@gmail.com>
-Cc: list linux-media <linux-media@vger.kernel.org>
-References: <00ad85dd-2fe3-5f15-6c0c-47fcf580f541@eyal.emu.id.au>
- <3f0c2037-4a84-68a9-228f-015034e27900@eyal.emu.id.au>
- <20170924090417.GA24153@ubuntu.windy>
- <47886ad7-ae90-0667-d6e3-d32d99fa85de@eyal.emu.id.au>
- <20170925132433.GB8969@ubuntu.windy>
-From: Eyal Lebedinsky <eyal@eyal.emu.id.au>
-Message-ID: <a654a076-a34d-2cac-e668-a816ab8f3832@eyal.emu.id.au>
-Date: Tue, 26 Sep 2017 00:37:44 +1000
-MIME-Version: 1.0
-In-Reply-To: <20170925132433.GB8969@ubuntu.windy>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-AU
-Content-Transfer-Encoding: 7bit
+        id S935367AbdIZUOA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 16:14:00 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 02/20] media: lirc: use the correct carrier for scancode transmit
+Date: Tue, 26 Sep 2017 21:13:41 +0100
+Message-Id: <383e58a099c4733147db070f9fa10ece60eebeef.1506455086.git.sean@mess.org>
+In-Reply-To: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
+References: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
+In-Reply-To: <cover.1506455086.git.sean@mess.org>
+References: <cover.1506455086.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks Vincent,
+If the lirc device supports it, set the carrier for the protocol.
 
-On 25/09/17 23:24, Vincent McIntyre wrote:
-> On Mon, Sep 25, 2017 at 10:16:23AM +1000, Eyal Lebedinsky wrote:
-> 
->>> Turn on debug printing for the modules of interest
->>> # echo 'module rtl2832 +p' > /sys/kernel/debug/dynamic_debug/control
->>> # echo 'module dvb_usb_rtl28xxu +p' > /sys/kernel/debug/dynamic_debug/control
->>
->> Have done this. Attached are the messages from a (failed) scandvb that fails for all multiplexes.
->>
->> The messages at the end continued at a high rate after the test finished (until I disabled debug
->> with '-p') and there was no user of the tuners. Maybe IR RC is active?
->   
-> This looks like progress, now we can see more of the rather odd behaviour.
-> 
-> The tuned frequency does not progress monotonically,
-> but wanders up and down the band.
->   Frequency      Delta
->   219166666
->   184833334  -34333332
->   191833334    7000000
->   191166666    -666668
->   177833334  -13333332
->   184166666    6333332
->   177166666   -7000000
->   191500000   14333334
->   184500000   -7000000
->   191833334    7333334
->   191166666    -666668
->   177500000  -13666666
->   219500000   42000000
->   184833334  -34666666
->   191500000    6666666
->   177833334  -13666666
->   184166666    6333332
->   191833334    7666668
->   191166666    -666668
->   177166666  -14000000
->   191500000   14333334
->   184500000   -7000000
->   177500000   -7000000
->   177833334     333334
->   177166666    -666668
-> 
-> The bandwidth and inversion type seem to be set correctly, at least.
-> 
-> Also:
->   - every instance of if_frequency=0 pset_iffreq=00000000
->     shows the same numbers - zero. Surely that can't be right.
->   - there seems to be no correlation at all between the AGC level
->     (automatic gain control, I assume) and the 'cnr raw' which I'm
->     guessing is some measure of the signal level.
-> 
-> I don't know where to start with decoding the rtl28xxu_ctrl_msg
-> I'm afraid. It's quite possible the remote control is active.
-> You can run
->     ir-keytable -v
-> to show which remotes the system knows about.
-> 
-> We might get more clues to rub together from looking at where
-> scandvb falls over, if you run it under 'strace'
->    strace -t -s 2048 -o ./scandvb.strace scandvb <arguments here>
-> This will show the system calls being made. The -t will add timestamps
-> to the output that could be correlated with the dmesg output.
-> 
-> I'm curious - did you try scandvb with one of your other tuners?
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-jvc-decoder.c     |  1 +
+ drivers/media/rc/ir-lirc-codec.c      |  7 +++++++
+ drivers/media/rc/ir-mce_kbd-decoder.c |  1 +
+ drivers/media/rc/ir-nec-decoder.c     |  1 +
+ drivers/media/rc/ir-rc5-decoder.c     |  1 +
+ drivers/media/rc/ir-rc6-decoder.c     |  1 +
+ drivers/media/rc/ir-sanyo-decoder.c   |  1 +
+ drivers/media/rc/ir-sharp-decoder.c   |  1 +
+ drivers/media/rc/ir-sony-decoder.c    |  1 +
+ drivers/media/rc/rc-core-priv.h       |  1 +
+ drivers/media/rc/rc-ir-raw.c          | 30 ++++++++++++++++++++++++++++++
+ include/media/rc-core.h               |  1 +
+ 12 files changed, 47 insertions(+)
 
-The other 3 tuner on the "Leadtek Winfast DTV2000 DS PLUS TV" are failing in the same way.
-
-> I'm actually not familiar with scandvb, I can't find a program
-> with that name in the ubuntu repositories.
-> What I've used before is dvbv5-scan, which is part of:
->   git://linuxtv.org/v4l-utils.git
-> 
-> That repo also includes the v4l2-compliance tool,
-> which might be useful here. Something like:
->   ./v4l2-compliance -d /dev/dvb/adapter3 -a -T -v
-> What I am not sure about is whether the tuner needs to be
-> 'zapped' to a nice strong TV channel before you can use this.
-
-I will look at these tools.
-
-> Anyway, hope some of these ideas are helpful.
-
-Another data point that may help:
-
-While playing with the tuners, I tried to change the signal strength
-(there is an active 4-way splitter feeding the cards) and it made no
-difference.
-
-However, at one point I powered off the splitter and the cards started
-tuning. However, the USB tuners (now attached as a temporary solution)
-had difficulty tuning (naturally). I think that I need the amplifier
-but this driver cannot handle the strong signal.
-
-So this made me think: is it possible that something in the dvb_usb_rtl28xxu
-setup for the DTV2000 sets some internal gain that makes the  signal too
-strong for the tuner? I did not see an option to turn off an LNA or such.
-
-I know that the off kernel driver I was using successfully earlier
-	https://github.com/jaredquinn/DVB-Realtek-RTL2832U
-had no such issue. It does not build on recent kernels. Looking at
-the source I see that at least usb_control_msg() changed.
-
-BTW, If I get the "Hauppauge Nova-TD Stick" working then I can give up
-on the DTV2000, they are PCI and will not suit the next mobo upgrade
-that is long overdue. I started another thread for the Hauppauge a
-few days ago (did not get a response yet).
-
-> Cheers
-> Vince
-
-cheers
-
+diff --git a/drivers/media/rc/ir-jvc-decoder.c b/drivers/media/rc/ir-jvc-decoder.c
+index e2bd68c42edf..2ae20dfc0e61 100644
+--- a/drivers/media/rc/ir-jvc-decoder.c
++++ b/drivers/media/rc/ir-jvc-decoder.c
+@@ -212,6 +212,7 @@ static struct ir_raw_handler jvc_handler = {
+ 	.protocols	= RC_PROTO_BIT_JVC,
+ 	.decode		= ir_jvc_decode,
+ 	.encode		= ir_jvc_encode,
++	.carrier	= 38000,
+ };
+ 
+ static int __init ir_jvc_decode_init(void)
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index 770d768824f4..ff7c46cc201c 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -155,6 +155,13 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 		for (i = 0; i < count; i++)
+ 			/* Convert from NS to US */
+ 			txbuf[i] = DIV_ROUND_UP(raw[i].duration, 1000);
++
++		if (dev->s_tx_carrier) {
++			int carrier = ir_raw_encode_carrier(scan.rc_proto);
++
++			if (carrier > 0)
++				dev->s_tx_carrier(dev, carrier);
++		}
+ 	} else {
+ 		if (n < sizeof(unsigned int) || n % sizeof(unsigned int))
+ 			return -EINVAL;
+diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
+index 7c572a643656..efa3b735dcc4 100644
+--- a/drivers/media/rc/ir-mce_kbd-decoder.c
++++ b/drivers/media/rc/ir-mce_kbd-decoder.c
+@@ -474,6 +474,7 @@ static struct ir_raw_handler mce_kbd_handler = {
+ 	.encode		= ir_mce_kbd_encode,
+ 	.raw_register	= ir_mce_kbd_register,
+ 	.raw_unregister	= ir_mce_kbd_unregister,
++	.carrier	= 36000,
+ };
+ 
+ static int __init ir_mce_kbd_decode_init(void)
+diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
+index 817c18f2ddd1..5380a9b23c07 100644
+--- a/drivers/media/rc/ir-nec-decoder.c
++++ b/drivers/media/rc/ir-nec-decoder.c
+@@ -259,6 +259,7 @@ static struct ir_raw_handler nec_handler = {
+ 							RC_PROTO_BIT_NEC32,
+ 	.decode		= ir_nec_decode,
+ 	.encode		= ir_nec_encode,
++	.carrier	= 38000,
+ };
+ 
+ static int __init ir_nec_decode_init(void)
+diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
+index 1292f534de43..cd1c4ee5fcd4 100644
+--- a/drivers/media/rc/ir-rc5-decoder.c
++++ b/drivers/media/rc/ir-rc5-decoder.c
+@@ -282,6 +282,7 @@ static struct ir_raw_handler rc5_handler = {
+ 							RC_PROTO_BIT_RC5_SZ,
+ 	.decode		= ir_rc5_decode,
+ 	.encode		= ir_rc5_encode,
++	.carrier	= 36000,
+ };
+ 
+ static int __init ir_rc5_decode_init(void)
+diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
+index 5d0d2fe3b7a7..665025303c28 100644
+--- a/drivers/media/rc/ir-rc6-decoder.c
++++ b/drivers/media/rc/ir-rc6-decoder.c
+@@ -408,6 +408,7 @@ static struct ir_raw_handler rc6_handler = {
+ 			  RC_PROTO_BIT_RC6_MCE,
+ 	.decode		= ir_rc6_decode,
+ 	.encode		= ir_rc6_encode,
++	.carrier	= 36000,
+ };
+ 
+ static int __init ir_rc6_decode_init(void)
+diff --git a/drivers/media/rc/ir-sanyo-decoder.c b/drivers/media/rc/ir-sanyo-decoder.c
+index 758c60956850..723e7d75a593 100644
+--- a/drivers/media/rc/ir-sanyo-decoder.c
++++ b/drivers/media/rc/ir-sanyo-decoder.c
+@@ -218,6 +218,7 @@ static struct ir_raw_handler sanyo_handler = {
+ 	.protocols	= RC_PROTO_BIT_SANYO,
+ 	.decode		= ir_sanyo_decode,
+ 	.encode		= ir_sanyo_encode,
++	.carrier	= 38000,
+ };
+ 
+ static int __init ir_sanyo_decode_init(void)
+diff --git a/drivers/media/rc/ir-sharp-decoder.c b/drivers/media/rc/ir-sharp-decoder.c
+index ed43a4212479..73174081e843 100644
+--- a/drivers/media/rc/ir-sharp-decoder.c
++++ b/drivers/media/rc/ir-sharp-decoder.c
+@@ -226,6 +226,7 @@ static struct ir_raw_handler sharp_handler = {
+ 	.protocols	= RC_PROTO_BIT_SHARP,
+ 	.decode		= ir_sharp_decode,
+ 	.encode		= ir_sharp_encode,
++	.carrier	= 38000,
+ };
+ 
+ static int __init ir_sharp_decode_init(void)
+diff --git a/drivers/media/rc/ir-sony-decoder.c b/drivers/media/rc/ir-sony-decoder.c
+index a47ced763031..e4bcff21c025 100644
+--- a/drivers/media/rc/ir-sony-decoder.c
++++ b/drivers/media/rc/ir-sony-decoder.c
+@@ -221,6 +221,7 @@ static struct ir_raw_handler sony_handler = {
+ 							RC_PROTO_BIT_SONY20,
+ 	.decode		= ir_sony_decode,
+ 	.encode		= ir_sony_encode,
++	.carrier	= 40000,
+ };
+ 
+ static int __init ir_sony_decode_init(void)
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 43eabea9f152..3cf09408df6c 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -29,6 +29,7 @@ struct ir_raw_handler {
+ 	int (*decode)(struct rc_dev *dev, struct ir_raw_event event);
+ 	int (*encode)(enum rc_proto protocol, u32 scancode,
+ 		      struct ir_raw_event *events, unsigned int max);
++	u32 carrier;
+ 
+ 	/* These two should only be used by the lirc decoder */
+ 	int (*raw_register)(struct rc_dev *dev);
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 503bc425a187..0814e08a280b 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -492,6 +492,36 @@ static void edge_handle(unsigned long arg)
+ 	ir_raw_event_handle(dev);
+ }
+ 
++/**
++ * ir_raw_encode_carrier() - Get carrier used for protocol
++ *
++ * @protocol:		protocol
++ *
++ * Attempts to find the carrier for the specified protocol
++ *
++ * Returns:	The carrier in Hz
++ *		-EINVAL if the protocol is invalid, or if no
++ *		compatible encoder was found.
++ */
++int ir_raw_encode_carrier(enum rc_proto protocol)
++{
++	struct ir_raw_handler *handler;
++	int ret = -EINVAL;
++	u64 mask = BIT_ULL(protocol);
++
++	mutex_lock(&ir_raw_handler_lock);
++	list_for_each_entry(handler, &ir_raw_handler_list, list) {
++		if (handler->protocols & mask && handler->encode) {
++			ret = handler->carrier;
++			break;
++		}
++	}
++	mutex_unlock(&ir_raw_handler_lock);
++
++	return ret;
++}
++EXPORT_SYMBOL(ir_raw_encode_carrier);
++
+ /*
+  * Used to (un)register raw event clients
+  */
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 314a1edb6189..ca48632ec8e2 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -309,6 +309,7 @@ int ir_raw_event_store_with_filter(struct rc_dev *dev,
+ void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
+ int ir_raw_encode_scancode(enum rc_proto protocol, u32 scancode,
+ 			   struct ir_raw_event *events, unsigned int max);
++int ir_raw_encode_carrier(enum rc_proto protocol);
+ 
+ static inline void ir_raw_event_reset(struct rc_dev *dev)
+ {
 -- 
-Eyal Lebedinsky (eyal@eyal.emu.id.au)
+2.13.5
