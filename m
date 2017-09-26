@@ -1,52 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44318
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751906AbdINLo1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Sep 2017 07:44:27 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>
-Subject: [RFC 1/5] media: stv0288: get rid of set_property boilerplate
-Date: Thu, 14 Sep 2017 08:44:18 -0300
-Message-Id: <129c5ae599d0502a3fe8c3f09a174ef33879a021.1505389446.git.mchehab@s-opensource.com>
+Received: from gofer.mess.org ([88.97.38.141]:60839 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S970460AbdIZUYM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 16:24:12 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 03/20] media: rc: auto load encoder if necessary
+Date: Tue, 26 Sep 2017 21:13:42 +0100
+Message-Id: <12818ea3b3931cffa631d25a1e7f761b6d17d1dd.1506455086.git.sean@mess.org>
+In-Reply-To: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
+References: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
+In-Reply-To: <cover.1506455086.git.sean@mess.org>
+References: <cover.1506455086.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver doesn't implement support for set_property(). Yet,
-it implements a boilerplate for it. Get rid of it.
+When sending scancodes, load the encoder if we need it.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/dvb-frontends/stv0288.c | 7 -------
- 1 file changed, 7 deletions(-)
+ drivers/media/rc/rc-core-priv.h | 1 +
+ drivers/media/rc/rc-ir-raw.c    | 2 ++
+ drivers/media/rc/rc-main.c      | 2 +-
+ 3 files changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/stv0288.c b/drivers/media/dvb-frontends/stv0288.c
-index 45cbc898ad25..67f91814b9f7 100644
---- a/drivers/media/dvb-frontends/stv0288.c
-+++ b/drivers/media/dvb-frontends/stv0288.c
-@@ -447,12 +447,6 @@ static int stv0288_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- 	return 0;
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 3cf09408df6c..d29b1b1ef4b7 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -271,6 +271,7 @@ void ir_raw_event_free(struct rc_dev *dev);
+ void ir_raw_event_unregister(struct rc_dev *dev);
+ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
+ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
++void ir_raw_load_modules(u64 *protocols);
+ void ir_raw_init(void);
+ 
+ /*
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 0814e08a280b..b84201cb012a 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -457,6 +457,8 @@ int ir_raw_encode_scancode(enum rc_proto protocol, u32 scancode,
+ 	int ret = -EINVAL;
+ 	u64 mask = 1ULL << protocol;
+ 
++	ir_raw_load_modules(&mask);
++
+ 	mutex_lock(&ir_raw_handler_lock);
+ 	list_for_each_entry(handler, &ir_raw_handler_list, list) {
+ 		if (handler->protocols & mask && handler->encode) {
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index cb78e5702bef..62102b3ef5aa 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1081,7 +1081,7 @@ static int parse_protocol_change(u64 *protocols, const char *buf)
+ 	return count;
  }
  
--static int stv0288_set_property(struct dvb_frontend *fe, struct dtv_property *p)
--{
--	dprintk("%s(..)\n", __func__);
--	return 0;
--}
--
- static int stv0288_set_frontend(struct dvb_frontend *fe)
+-static void ir_raw_load_modules(u64 *protocols)
++void ir_raw_load_modules(u64 *protocols)
  {
- 	struct stv0288_state *state = fe->demodulator_priv;
-@@ -567,7 +561,6 @@ static const struct dvb_frontend_ops stv0288_ops = {
- 	.set_tone = stv0288_set_tone,
- 	.set_voltage = stv0288_set_voltage,
- 
--	.set_property = stv0288_set_property,
- 	.set_frontend = stv0288_set_frontend,
- };
- 
+ 	u64 available;
+ 	int i, ret;
 -- 
 2.13.5
