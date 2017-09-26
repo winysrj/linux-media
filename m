@@ -1,159 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:43685 "EHLO
-        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751970AbdIMPIt (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56210
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933917AbdIZS6c (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 11:08:49 -0400
-Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
-        by mx07-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v8DF58Bu023539
-        for <linux-media@vger.kernel.org>; Wed, 13 Sep 2017 16:08:48 +0100
-Received: from mail-wm0-f71.google.com (mail-wm0-f71.google.com [74.125.82.71])
-        by mx07-00252a01.pphosted.com with ESMTP id 2cv5pysxky-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-        for <linux-media@vger.kernel.org>; Wed, 13 Sep 2017 16:08:47 +0100
-Received: by mail-wm0-f71.google.com with SMTP id i192so1049126wme.5
-        for <linux-media@vger.kernel.org>; Wed, 13 Sep 2017 08:08:47 -0700 (PDT)
-From: Dave Stevenson <dave.stevenson@raspberrypi.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Eric Anholt <eric@anholt.net>,
-        Stefan Wahren <stefan.wahren@i2se.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Subject: [PATCH v2 2/4] [media] dt-bindings: Document BCM283x CSI2/CCP2 receiver
-Date: Wed, 13 Sep 2017 16:07:47 +0100
-Message-Id: <9ad8b23d5c394b64ed02f9a5ebc49209696a5ace.1505314390.git.dave.stevenson@raspberrypi.org>
-In-Reply-To: <cover.1505140980.git.dave.stevenson@raspberrypi.org>
-References: <cover.1505140980.git.dave.stevenson@raspberrypi.org>
-In-Reply-To: <cover.1505314390.git.dave.stevenson@raspberrypi.org>
-References: <cover.1505314390.git.dave.stevenson@raspberrypi.org>
+        Tue, 26 Sep 2017 14:58:32 -0400
+Date: Tue, 26 Sep 2017 15:58:23 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: Re: [PATCH v2] scripts: kernel-doc: fix nexted handling
+Message-ID: <20170926155823.7d322cf3@recife.lan>
+In-Reply-To: <0BDD5AC2-EECB-4748-9DDE-DDD7AC0062D3@darmarit.de>
+References: <3d54014d786733715a94fa783a479a498aaca1ea.1506248420.git.mchehab@s-opensource.com>
+        <4F0B529A-AF0A-48F9-808A-594BF07D035B@darmarit.de>
+        <20170924143833.63e9b3cd@vento.lan>
+        <A9911D58-7C66-4543-B3AA-AEBA930CDB79@darmarit.de>
+        <20170925154144.055e3ee7@vento.lan>
+        <0BDD5AC2-EECB-4748-9DDE-DDD7AC0062D3@darmarit.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the DT bindings for the CSI2/CCP2 receiver peripheral
-(known as Unicam) on BCM283x SoCs.
+Em Tue, 26 Sep 2017 14:45:08 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
----
- .../devicetree/bindings/media/bcm2835-unicam.txt   | 107 +++++++++++++++++++++
- 1 file changed, 107 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+> > Am 25.09.2017 um 20:41 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:  
+> 
+> >>> +			$cont = 1;
+> >>> +		};
+> >>> +	};
+> >>> +	# Ignore other nested elements, like enums
+> >>> +	$members =~ s/({[^\{\}]*})//g;
+> >>> +	$nested = $decl_type;    
+> >> 
+> >> What is the latter good for? I guess the 'nested' trick to suppress
+> >> such 'excess' warnings from nested types is no longer needed .. right?  
+> > 
+> > For things like:
+> > 
+> > 	enum { foo, bar } type;
+> > 
+> > Granted, a good documentation should also describe "foo" and "bar",
+> > but that could be easily done by moving enums out of the struct, or
+> > by add descriptions for "foo" and "bar" at @type: markup.  
+> 
+> 
+> Hm .. I suppose you are misunderstanding me. I didn't asked about 
+> $members, I asked about $nested. There is only one place where
+> $nested is used, and this is in the check_sections function ...
+> 
+> @@ -2531,9 +2527,7 @@ sub check_sections($$$$$$) {
+>  			} else {
+> -				if ($nested !~ m/\Q$sects[$sx]\E/) {
+> -				    print STDERR "${file}:$.: warning: " .
+> -					"Excess struct/union/enum/typedef member " .
+> -					"'$sects[$sx]' " .
+> -					"description in '$decl_name'\n";
+> -				    ++$warnings;
+> -				}
+> +                            print STDERR "${file}:$.: warning: " .
+> +                                "Excess struct/union/enum/typedef member " .
+> +                                "'$sects[$sx]' " .
+> +                                "description in '$decl_name'\n";
+> +                            ++$warnings;
+>  			}
+> 
+> Since this is the only place where $nested is use, we can drop all
+> the occurrence of $nested in the kernel-doc script .. or I'am
+> totally wrong?
 
-diff --git a/Documentation/devicetree/bindings/media/bcm2835-unicam.txt b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
-new file mode 100644
-index 0000000..2ee5af7
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
-@@ -0,0 +1,107 @@
-+Broadcom BCM283x Camera Interface (Unicam)
-+------------------------------------------
-+
-+The Unicam block on BCM283x SoCs is the receiver for either
-+CSI-2 or CCP2 data from image sensors or similar devices.
-+
-+There are two camera drivers in the kernel for BCM283x - this one
-+and bcm2835-camera (currently in staging).
-+
-+This driver is purely the kernel controlling the Unicam peripheral - there
-+is no involvement with the VideoCore firmware. Unicam receives CSI-2
-+(or CCP2) data and writes it into SDRAM. There is no additional processing
-+performed.
-+It should be possible to connect it to any sensor with a
-+suitable output interface and V4L2 subdevice driver.
-+
-+bcm2835-camera uses the VideoCore firmware to control the sensor,
-+Unicam, ISP, and various tuner control loops. Fully processed frames are
-+delivered to the driver by the firmware. It only has sensor drivers
-+for Omnivision OV5647, and Sony IMX219 sensors, and is closed source.
-+
-+The two drivers are mutually exclusive for the same Unicam instance.
-+The firmware checks the device tree configuration during boot. If
-+it finds device tree nodes called csi0 or csi1 then it will block the
-+firmware from accessing the peripheral, and bcm2835-camera will
-+not be able to stream data.
-+It should be possible to use bcm2835-camera on one camera interface
-+and bcm2835-unicam on the other interface if there is a need to.
-+
-+Required properties:
-+===================
-+- compatible	: must be "brcm,bcm2835-unicam".
-+- reg		: physical base address and length of the register sets for the
-+		  device.
-+- interrupts	: should contain the IRQ line for this Unicam instance.
-+- clocks	: list of clock specifiers, corresponding to entries in
-+		  clock-names property.
-+- clock-names	: must contain an "lp_clock" entry, matching entries
-+		  in the clocks property.
-+
-+Unicam supports a single port node. It should contain one 'port' child node
-+with child 'endpoint' node. Please refer to the bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Within the endpoint node, the following properties are mandatory:
-+- remote-endpoint	: links to the source device endpoint.
-+- data-lanes		: An array denoting how many data lanes are physically
-+			  present for this CSI-2 receiver instance. This can
-+			  be limited by either the SoC itself, or by the
-+			  breakout on the platform.
-+			  Lane reordering is not supported, so lanes must be
-+			  in order, starting at 1.
-+
-+Lane reordering is not supported on the clock lane, so the optional property
-+"clock-lane" will implicitly be <0>.
-+Similarly lane inversion is not supported, therefore "lane-polarities" will
-+implicitly be <0 0 0 0 0>.
-+Neither of these values will be checked.
-+
-+Example:
-+	csi1: csi@7e801000 {
-+		compatible = "brcm,bcm2835-unicam";
-+		reg = <0x7e801000 0x800>,
-+		      <0x7e802004 0x4>;
-+		interrupts = <2 7>;
-+		clocks = <&clocks BCM2835_CLOCK_CAM1>;
-+		clock-names = "lp_clock";
-+
-+		port {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			csi1_ep: endpoint {
-+				remote-endpoint = <&tc358743_0>;
-+				data-lanes = <1 2>;
-+			};
-+		};
-+	};
-+
-+	i2c0: i2c@7e205000 {
-+
-+		tc358743: csi-hdmi-bridge@0f {
-+			compatible = "toshiba,tc358743";
-+			reg = <0x0f>;
-+			status = "okay";
-+
-+			clocks = <&tc358743_clk>;
-+			clock-names = "refclk";
-+
-+			tc358743_clk: bridge-clk {
-+				compatible = "fixed-clock";
-+				#clock-cells = <0>;
-+				clock-frequency = <27000000>;
-+			};
-+
-+			port {
-+				tc358743_0: endpoint {
-+					remote-endpoint = <&csi1_ep>;
-+					clock-lanes = <0>;
-+					data-lanes = <1 2>;
-+					clock-noncontinuous;
-+					link-frequencies =
-+						/bits/ 64 <297000000>;
-+				};
-+			};
-+		};
-+	};
--- 
-2.7.4
+Ah, now I understood you! Yeah, this can be removed. I'll put it into
+a separate cleanup patch.
+
+See below.
+
+Regards,
+Mauro
+
+
+[PATCH] scripts: kernel-doc: get rid of $nested parameter
+
+The check_sections() function has a $nested parameter, meant
+to identify when a nested struct is present. As we now have
+a logic that handles it, get rid of such parameter.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index 880a196c7dc7..cff66ee91f2c 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -979,7 +979,6 @@ sub dump_union($$) {
+ sub dump_struct($$) {
+     my $x = shift;
+     my $file = shift;
+-    my $nested;
+ 
+     if ($x =~ /(struct|union)\s+(\w+)\s*{(.*)}/) {
+ 	my $decl_type = $1;
+@@ -1034,11 +1033,9 @@ sub dump_struct($$) {
+ 
+ 	# Ignore other nested elements, like enums
+ 	$members =~ s/({[^\{\}]*})//g;
+-	$nested = $decl_type;
+-	$nested =~ s/\/\*.*?\*\///gos;
+ 
+ 	create_parameterlist($members, ';', $file);
+-	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual, $nested);
++	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual);
+ 
+ 	# Adjust declaration for better display
+ 	$declaration =~ s/([{;])/$1\n/g;
+@@ -1334,8 +1331,8 @@ sub push_parameter($$$) {
+ 	$parametertypes{$param} = $type;
+ }
+ 
+-sub check_sections($$$$$$) {
+-	my ($file, $decl_name, $decl_type, $sectcheck, $prmscheck, $nested) = @_;
++sub check_sections($$$$$) {
++	my ($file, $decl_name, $decl_type, $sectcheck, $prmscheck) = @_;
+ 	my @sects = split ' ', $sectcheck;
+ 	my @prms = split ' ', $prmscheck;
+ 	my $err;
+@@ -1369,14 +1366,6 @@ sub check_sections($$$$$$) {
+ 					"'$sects[$sx]' " .
+ 					"description in '$decl_name'\n";
+ 				++$warnings;
+-			} else {
+-				if ($nested !~ m/\Q$sects[$sx]\E/) {
+-				    print STDERR "${file}:$.: warning: " .
+-					"Excess struct/union/enum/typedef member " .
+-					"'$sects[$sx]' " .
+-					"description in '$decl_name'\n";
+-				    ++$warnings;
+-				}
+ 			}
+ 		}
+ 	}
+@@ -1487,7 +1476,7 @@ sub dump_function($$) {
+     }
+ 
+ 	my $prms = join " ", @parameterlist;
+-	check_sections($file, $declaration_name, "function", $sectcheck, $prms, "");
++	check_sections($file, $declaration_name, "function", $sectcheck, $prms);
+ 
+         # This check emits a lot of warnings at the moment, because many
+         # functions don't have a 'Return' doc section. So until the number
+
+
+Thanks,
+Mauro
