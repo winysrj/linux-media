@@ -1,116 +1,356 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:52035 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934239AbdIYJpS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 05:45:18 -0400
-Subject: Re: [PATCH v6 04/25] rcar-vin: move max width and height information
- to chip information
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
- <20170822232640.26147-5-niklas.soderlund+renesas@ragnatech.se>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8e232436-607f-ca8e-896c-d35705cfc35a@xs4all.nl>
-Date: Mon, 25 Sep 2017 11:45:15 +0200
+Received: from smtp5-g21.free.fr ([212.27.42.5]:32144 "EHLO smtp5-g21.free.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965430AbdIZIxH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 04:53:07 -0400
+Subject: [PATCH v6 2/2] media: rc: Add driver for tango HW IR decoder
+To: Mans Rullgard <mans@mansr.com>
+Cc: Sean Young <sean@mess.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Mason <slash.tmp@free.fr>
+References: <308711ef-0ba8-d533-26fd-51e5b8f32cc8@free.fr>
+ <e3d91250-e6bd-bb8c-5497-689c351ac55f@free.fr> <yw1xzi9ieuqe.fsf@mansr.com>
+ <893874ee-a6e0-e4be-5b4f-a49e60197e92@free.fr> <yw1xr2uuenhv.fsf@mansr.com>
+From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+Message-ID: <0690fbbb-a13f-63af-bc43-b1f9d4771bc4@free.fr>
+Date: Tue, 26 Sep 2017 10:51:55 +0200
 MIME-Version: 1.0
-In-Reply-To: <20170822232640.26147-5-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <yw1xr2uuenhv.fsf@mansr.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23/08/17 01:26, Niklas Söderlund wrote:
-> On Gen3 the max supported width and height will be different from Gen2.
-> Move the limits to the struct rvin_info to prepare for Gen3 support.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+From: Mans Rullgard <mans@mansr.com>
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+The tango HW IR decoder supports NEC, RC-5, RC-6 protocols.
 
-Regards,
+Signed-off-by: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+---
+Changes between v5 and v6
+* Move "register fields" macros to top of file
+* Restore IRQ pending writes
+---
+ drivers/media/rc/Kconfig    |  10 ++
+ drivers/media/rc/Makefile   |   1 +
+ drivers/media/rc/tango-ir.c | 279 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 290 insertions(+)
+ create mode 100644 drivers/media/rc/tango-ir.c
 
-	Hans
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 6 ++++++
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 6 ++----
->  drivers/media/platform/rcar-vin/rcar-vin.h  | 6 ++++++
->  3 files changed, 14 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index dae38de706b66b64..4dc148e7835439ab 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -279,14 +279,20 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
->  
->  static const struct rvin_info rcar_info_h1 = {
->  	.chip = RCAR_H1,
-> +	.max_width = 2048,
-> +	.max_height = 2048,
->  };
->  
->  static const struct rvin_info rcar_info_m1 = {
->  	.chip = RCAR_M1,
-> +	.max_width = 2048,
-> +	.max_height = 2048,
->  };
->  
->  static const struct rvin_info rcar_info_gen2 = {
->  	.chip = RCAR_GEN2,
-> +	.max_width = 2048,
-> +	.max_height = 2048,
->  };
->  
->  static const struct of_device_id rvin_of_id_table[] = {
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index 02a08cf5acfce1ce..3c4dd08261a0d3f5 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -23,8 +23,6 @@
->  #include "rcar-vin.h"
->  
->  #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
-> -#define RVIN_MAX_WIDTH		2048
-> -#define RVIN_MAX_HEIGHT		2048
->  
->  /* -----------------------------------------------------------------------------
->   * Format Conversions
-> @@ -258,8 +256,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
->  	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
->  
->  	/* Limit to VIN capabilities */
-> -	v4l_bound_align_image(&pix->width, 2, RVIN_MAX_WIDTH, walign,
-> -			      &pix->height, 4, RVIN_MAX_HEIGHT, 2, 0);
-> +	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-> +			      &pix->height, 4, vin->info->max_height, 2, 0);
->  
->  	pix->bytesperline = max_t(u32, pix->bytesperline,
->  				  rvin_format_bytesperline(pix));
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-> index 13466dfd72292fc0..2d8b362012ea46a3 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -91,9 +91,15 @@ struct rvin_graph_entity {
->  /**
->   * struct rvin_info - Information about the particular VIN implementation
->   * @chip:		type of VIN chip
-> + *
-> + * max_width:		max input width the VIN supports
-> + * max_height:		max input height the VIN supports
->   */
->  struct rvin_info {
->  	enum chip_id chip;
-> +
-> +	unsigned int max_width;
-> +	unsigned int max_height;
->  };
->  
->  /**
-> 
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index d9ce8ff55d0c..e80d4362e769 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -469,6 +469,16 @@ config IR_SIR
+ 	   To compile this driver as a module, choose M here: the module will
+ 	   be called sir-ir.
+ 
++config IR_TANGO
++	tristate "Sigma Designs SMP86xx IR decoder"
++	depends on RC_CORE
++	depends on ARCH_TANGO || COMPILE_TEST
++	---help---
++	   Adds support for the HW IR decoder embedded on Sigma Designs
++	   Tango-based systems (SMP86xx, SMP87xx).
++	   The HW decoder supports NEC, RC-5, RC-6 IR protocols.
++	   When compiled as a module, look for tango-ir.
++
+ config IR_ZX
+ 	tristate "ZTE ZX IR remote control"
+ 	depends on RC_CORE
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 9bc6a3980ed0..643797dc971b 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -44,3 +44,4 @@ obj-$(CONFIG_IR_SERIAL) += serial_ir.o
+ obj-$(CONFIG_IR_SIR) += sir_ir.o
+ obj-$(CONFIG_IR_MTK) += mtk-cir.o
+ obj-$(CONFIG_IR_ZX) += zx-irdec.o
++obj-$(CONFIG_IR_TANGO) += tango-ir.o
+diff --git a/drivers/media/rc/tango-ir.c b/drivers/media/rc/tango-ir.c
+new file mode 100644
+index 000000000000..1bd4e3412a29
+--- /dev/null
++++ b/drivers/media/rc/tango-ir.c
+@@ -0,0 +1,279 @@
++/*
++ * Copyright (C) 2015 Mans Rullgard <mans@mansr.com>
++ *
++ * This program is free software; you can redistribute  it and/or modify it
++ * under  the terms of  the GNU General  Public License as published by the
++ * Free Software Foundation;  either version 2 of the  License, or (at your
++ * option) any later version.
++ */
++
++#include <linux/input.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/clk.h>
++#include <linux/of.h>
++#include <media/rc-core.h>
++
++#define DRIVER_NAME "tango-ir"
++
++#define IR_NEC_CTRL	0x00
++#define IR_NEC_DATA	0x04
++#define IR_CTRL		0x08
++#define IR_RC5_CLK_DIV	0x0c
++#define IR_RC5_DATA	0x10
++#define IR_INT		0x14
++
++#define NEC_TIME_BASE	560
++#define RC5_TIME_BASE	1778
++
++#define RC6_CTRL	0x00
++#define RC6_CLKDIV	0x04
++#define RC6_DATA0	0x08
++#define RC6_DATA1	0x0c
++#define RC6_DATA2	0x10
++#define RC6_DATA3	0x14
++#define RC6_DATA4	0x18
++
++#define RC6_CARRIER	36000
++#define RC6_TIME_BASE	16
++
++#define NEC_CAP(n)	((n) << 24)
++#define GPIO_SEL(n)	((n) << 16)
++#define DISABLE_NEC	(BIT(4) | BIT(8))
++#define ENABLE_RC5	(BIT(0) | BIT(9))
++#define ENABLE_RC6	(BIT(0) | BIT(7))
++#define ACK_IR_INT	(BIT(0) | BIT(1))
++#define ACK_RC6_INT	(BIT(31))
++
++struct tango_ir {
++	void __iomem *rc5_base;
++	void __iomem *rc6_base;
++	struct rc_dev *rc;
++	struct clk *clk;
++};
++
++static void tango_ir_handle_nec(struct tango_ir *ir)
++{
++	u32 v, code;
++	enum rc_proto proto;
++
++	v = readl_relaxed(ir->rc5_base + IR_NEC_DATA);
++	if (!v) {
++		rc_repeat(ir->rc);
++		return;
++	}
++
++	code = ir_nec_bytes_to_scancode(v, v >> 8, v >> 16, v >> 24, &proto);
++	rc_keydown(ir->rc, proto, code, 0);
++}
++
++static void tango_ir_handle_rc5(struct tango_ir *ir)
++{
++	u32 data, field, toggle, addr, cmd, code;
++
++	data = readl_relaxed(ir->rc5_base + IR_RC5_DATA);
++	if (data & BIT(31))
++		return;
++
++	field = data >> 12 & 1;
++	toggle = data >> 11 & 1;
++	addr = data >> 6 & 0x1f;
++	cmd = (data & 0x3f) | (field ^ 1) << 6;
++
++	code = RC_SCANCODE_RC5(addr, cmd);
++	rc_keydown(ir->rc, RC_PROTO_RC5, code, toggle);
++}
++
++static void tango_ir_handle_rc6(struct tango_ir *ir)
++{
++	u32 data0, data1, toggle, mode, addr, cmd, code;
++
++	data0 = readl_relaxed(ir->rc6_base + RC6_DATA0);
++	data1 = readl_relaxed(ir->rc6_base + RC6_DATA1);
++
++	mode = data0 >> 1 & 7;
++	if (mode != 0)
++		return;
++
++	toggle = data0 & 1;
++	addr = data0 >> 16;
++	cmd = data1;
++
++	code = RC_SCANCODE_RC6_0(addr, cmd);
++	rc_keydown(ir->rc, RC_PROTO_RC6_0, code, toggle);
++}
++
++static irqreturn_t tango_ir_irq(int irq, void *dev_id)
++{
++	struct tango_ir *ir = dev_id;
++	unsigned int rc5_stat;
++	unsigned int rc6_stat;
++
++	rc5_stat = readl_relaxed(ir->rc5_base + IR_INT);
++	writel_relaxed(rc5_stat, ir->rc5_base + IR_INT);
++
++	rc6_stat = readl_relaxed(ir->rc6_base + RC6_CTRL);
++	writel_relaxed(rc6_stat, ir->rc6_base + RC6_CTRL);
++
++	if (!(rc5_stat & 3) && !(rc6_stat & BIT(31)))
++		return IRQ_NONE;
++
++	if (rc5_stat & BIT(0))
++		tango_ir_handle_rc5(ir);
++
++	if (rc5_stat & BIT(1))
++		tango_ir_handle_nec(ir);
++
++	if (rc6_stat & BIT(31))
++		tango_ir_handle_rc6(ir);
++
++	return IRQ_HANDLED;
++}
++
++static int tango_change_protocol(struct rc_dev *dev, u64 *rc_type)
++{
++	struct tango_ir *ir = dev->priv;
++	u32 rc5_ctrl = DISABLE_NEC;
++	u32 rc6_ctrl = 0;
++
++	if (*rc_type & RC_PROTO_BIT_NEC)
++		rc5_ctrl = 0;
++
++	if (*rc_type & RC_PROTO_BIT_RC5)
++		rc5_ctrl |= ENABLE_RC5;
++
++	if (*rc_type & RC_PROTO_BIT_RC6_0)
++		rc6_ctrl = ENABLE_RC6;
++
++	writel_relaxed(rc5_ctrl, ir->rc5_base + IR_CTRL);
++	writel_relaxed(rc6_ctrl, ir->rc6_base + RC6_CTRL);
++
++	return 0;
++}
++
++static int tango_ir_probe(struct platform_device *pdev)
++{
++	const char *map_name = RC_MAP_EMPTY;
++	struct device *dev = &pdev->dev;
++	struct rc_dev *rc;
++	struct tango_ir *ir;
++	struct resource *rc5_res;
++	struct resource *rc6_res;
++	u64 clkrate, clkdiv;
++	int irq, err;
++	u32 val;
++
++	rc5_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!rc5_res)
++		return -EINVAL;
++
++	rc6_res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	if (!rc6_res)
++		return -EINVAL;
++
++	irq = platform_get_irq(pdev, 0);
++	if (irq <= 0)
++		return -EINVAL;
++
++	ir = devm_kzalloc(dev, sizeof(*ir), GFP_KERNEL);
++	if (!ir)
++		return -ENOMEM;
++
++	ir->rc5_base = devm_ioremap_resource(dev, rc5_res);
++	if (IS_ERR(ir->rc5_base))
++		return PTR_ERR(ir->rc5_base);
++
++	ir->rc6_base = devm_ioremap_resource(dev, rc6_res);
++	if (IS_ERR(ir->rc6_base))
++		return PTR_ERR(ir->rc6_base);
++
++	ir->clk = devm_clk_get(dev, NULL);
++	if (IS_ERR(ir->clk))
++		return PTR_ERR(ir->clk);
++
++	rc = devm_rc_allocate_device(dev, RC_DRIVER_SCANCODE);
++	if (!rc)
++		return -ENOMEM;
++
++	of_property_read_string(dev->of_node, "linux,rc-map-name", &map_name);
++
++	rc->device_name = DRIVER_NAME;
++	rc->driver_name = DRIVER_NAME;
++	rc->input_phys = DRIVER_NAME "/input0";
++	rc->map_name = map_name;
++	rc->allowed_protocols = RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC6_0 |
++		RC_PROTO_BIT_NEC | RC_PROTO_BIT_NECX | RC_PROTO_BIT_NEC32;
++	rc->change_protocol = tango_change_protocol;
++	rc->priv = ir;
++	ir->rc = rc;
++
++	err = clk_prepare_enable(ir->clk);
++	if (err)
++		return err;
++
++	clkrate = clk_get_rate(ir->clk);
++
++	clkdiv = clkrate * NEC_TIME_BASE;
++	do_div(clkdiv, 1000000);
++
++	val = NEC_CAP(31) | GPIO_SEL(12) | clkdiv;
++	writel_relaxed(val, ir->rc5_base + IR_NEC_CTRL);
++
++	clkdiv = clkrate * RC5_TIME_BASE;
++	do_div(clkdiv, 1000000);
++
++	writel_relaxed(DISABLE_NEC, ir->rc5_base + IR_CTRL);
++	writel_relaxed(clkdiv, ir->rc5_base + IR_RC5_CLK_DIV);
++	writel_relaxed(ACK_IR_INT, ir->rc5_base + IR_INT);
++
++	clkdiv = clkrate * RC6_TIME_BASE;
++	do_div(clkdiv, RC6_CARRIER);
++
++	writel_relaxed(ACK_RC6_INT, ir->rc6_base + RC6_CTRL);
++	writel_relaxed((clkdiv >> 2) << 18 | clkdiv, ir->rc6_base + RC6_CLKDIV);
++
++	err = devm_request_irq(dev, irq, tango_ir_irq, IRQF_SHARED,
++			       dev_name(dev), ir);
++	if (err)
++		goto err_clk;
++
++	err = devm_rc_register_device(dev, rc);
++	if (err)
++		goto err_clk;
++
++	platform_set_drvdata(pdev, ir);
++	return 0;
++
++err_clk:
++	clk_disable_unprepare(ir->clk);
++	return err;
++}
++
++static int tango_ir_remove(struct platform_device *pdev)
++{
++	struct tango_ir *ir = platform_get_drvdata(pdev);
++	clk_disable_unprepare(ir->clk);
++	return 0;
++}
++
++static const struct of_device_id tango_ir_dt_ids[] = {
++	{ .compatible = "sigma,smp8642-ir" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, tango_ir_dt_ids);
++
++static struct platform_driver tango_ir_driver = {
++	.probe	= tango_ir_probe,
++	.remove	= tango_ir_remove,
++	.driver	= {
++		.name		= DRIVER_NAME,
++		.of_match_table	= tango_ir_dt_ids,
++	},
++};
++module_platform_driver(tango_ir_driver);
++
++MODULE_DESCRIPTION("SMP86xx IR decoder driver");
++MODULE_AUTHOR("Mans Rullgard <mans@mansr.com>");
++MODULE_LICENSE("GPL");
+-- 
+2.11.0
