@@ -1,48 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33415
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752359AbdI0VrH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:47:07 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: [PATCH v2 11/17] media: rc-core.h: minor adjustments at rc_driver_type doc
-Date: Wed, 27 Sep 2017 18:46:54 -0300
-Message-Id: <22ecc271a5accdef5b746c0749f9f1b7cba5121d.1506548682.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
-References: <cover.1506548682.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
-References: <cover.1506548682.git.mchehab@s-opensource.com>
+Received: from gofer.mess.org ([88.97.38.141]:40239 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S936928AbdIZUOE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Sep 2017 16:14:04 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 08/20] media: lirc: remove LIRCCODE and LIRC_GET_LENGTH
+Date: Tue, 26 Sep 2017 21:13:47 +0100
+Message-Id: <5f68df0996c3bbbcae870271cd596d758be3e3b2.1506455086.git.sean@mess.org>
+In-Reply-To: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
+References: <2d8072bb3a5e80de4a6dd175a358cb2034c12d3e.1506455086.git.sean@mess.org>
+In-Reply-To: <cover.1506455086.git.sean@mess.org>
+References: <cover.1506455086.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The description of this enum doesn't match what it
-actually represents. Adjust it.
+LIRCCODE is a lirc mode where a driver produces driver-dependent
+codes for record and transmit. No driver use this any more. The
+LIRC_GET_LENGTH ioctl was used for this mode only.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- include/media/rc-core.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/media/uapi/rc/lirc-dev-intro.rst     | 15 --------
+ Documentation/media/uapi/rc/lirc-func.rst          |  1 -
+ Documentation/media/uapi/rc/lirc-get-features.rst  |  7 +---
+ Documentation/media/uapi/rc/lirc-get-length.rst    | 44 ----------------------
+ Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |  4 +-
+ Documentation/media/uapi/rc/lirc-get-send-mode.rst |  3 +-
+ drivers/media/rc/ir-lirc-codec.c                   |  1 -
+ drivers/media/rc/lirc_dev.c                        | 12 ------
+ include/media/lirc_dev.h                           |  4 --
+ 9 files changed, 4 insertions(+), 87 deletions(-)
+ delete mode 100644 Documentation/media/uapi/rc/lirc-get-length.rst
 
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 314a1edb6189..a381abe9186e 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -30,9 +30,9 @@ do {								\
- } while (0)
+diff --git a/Documentation/media/uapi/rc/lirc-dev-intro.rst b/Documentation/media/uapi/rc/lirc-dev-intro.rst
+index d1936eeb9ce0..3cacf9aeac40 100644
+--- a/Documentation/media/uapi/rc/lirc-dev-intro.rst
++++ b/Documentation/media/uapi/rc/lirc-dev-intro.rst
+@@ -72,21 +72,6 @@ on the following table.
+         this packet will be sent, with the number of microseconds with
+         no IR.
  
- /**
-- * enum rc_driver_type - type of the RC output
-+ * enum rc_driver_type - type of the RC driver.
+-.. _lirc-mode-lirccode:
+-
+-``LIRC_MODE_LIRCCODE``
+-
+-    This mode can be used for IR receive and send.
+-
+-    The IR signal is decoded internally by the receiver, or encoded by the
+-    transmitter. The LIRC interface represents the scancode as byte string,
+-    which might not be a u32, it can be any length. The value is entirely
+-    driver dependent. This mode is used by some older lirc drivers.
+-
+-    The length of each code depends on the driver, which can be retrieved
+-    with :ref:`lirc_get_length`. This length is used both
+-    for transmitting and receiving IR.
+-
+ .. _lirc-mode-pulse:
+ 
+ ``LIRC_MODE_PULSE``
+diff --git a/Documentation/media/uapi/rc/lirc-func.rst b/Documentation/media/uapi/rc/lirc-func.rst
+index 9b5a772ec96c..ddb4620de294 100644
+--- a/Documentation/media/uapi/rc/lirc-func.rst
++++ b/Documentation/media/uapi/rc/lirc-func.rst
+@@ -18,7 +18,6 @@ LIRC Function Reference
+     lirc-set-send-duty-cycle
+     lirc-get-timeout
+     lirc-set-rec-timeout
+-    lirc-get-length
+     lirc-set-rec-carrier
+     lirc-set-rec-carrier-range
+     lirc-set-send-carrier
+diff --git a/Documentation/media/uapi/rc/lirc-get-features.rst b/Documentation/media/uapi/rc/lirc-get-features.rst
+index 64f89a4f9d9c..50c2c26d8e89 100644
+--- a/Documentation/media/uapi/rc/lirc-get-features.rst
++++ b/Documentation/media/uapi/rc/lirc-get-features.rst
+@@ -62,8 +62,7 @@ LIRC features
+ 
+ ``LIRC_CAN_REC_LIRCCODE``
+ 
+-    The driver is capable of receiving using
+-    :ref:`LIRC_MODE_LIRCCODE <lirc-mode-LIRCCODE>`.
++    Unused. Kept just to avoid breaking uAPI.
+ 
+ .. _LIRC-CAN-SET-SEND-CARRIER:
+ 
+@@ -170,9 +169,7 @@ LIRC features
+ 
+ ``LIRC_CAN_SEND_LIRCCODE``
+ 
+-    The driver supports sending (also called as IR blasting or IR TX) using
+-    :ref:`LIRC_MODE_LIRCCODE <lirc-mode-LIRCCODE>`.
+-
++    Unused. Kept just to avoid breaking uAPI.
+ 
+ Return Value
+ ============
+diff --git a/Documentation/media/uapi/rc/lirc-get-length.rst b/Documentation/media/uapi/rc/lirc-get-length.rst
+deleted file mode 100644
+index 3990af5de0e9..000000000000
+--- a/Documentation/media/uapi/rc/lirc-get-length.rst
++++ /dev/null
+@@ -1,44 +0,0 @@
+-.. -*- coding: utf-8; mode: rst -*-
+-
+-.. _lirc_get_length:
+-
+-*********************
+-ioctl LIRC_GET_LENGTH
+-*********************
+-
+-Name
+-====
+-
+-LIRC_GET_LENGTH - Retrieves the code length in bits.
+-
+-Synopsis
+-========
+-
+-.. c:function:: int ioctl( int fd, LIRC_GET_LENGTH, __u32 *length )
+-    :name: LIRC_GET_LENGTH
+-
+-Arguments
+-=========
+-
+-``fd``
+-    File descriptor returned by open().
+-
+-``length``
+-    length, in bits
+-
+-
+-Description
+-===========
+-
+-Retrieves the code length in bits (only for
+-:ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>`).
+-Reads on the device must be done in blocks matching the bit count.
+-The bit could should be rounded up so that it matches full bytes.
+-
+-
+-Return Value
+-============
+-
+-On success 0 is returned, on error -1 and the ``errno`` variable is set
+-appropriately. The generic error codes are described at the
+-:ref:`Generic Error Codes <gen-errors>` chapter.
+diff --git a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
+index a4eb6c0a26e9..b89de9add921 100644
+--- a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
++++ b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
+@@ -34,9 +34,7 @@ Description
+ ===========
+ 
+ Get/set supported receive modes. Only :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`
+-and :ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>` are supported for IR
+-receive. Use :ref:`lirc_get_features` to find out which modes the driver
+-supports.
++is supported for IR receive.
+ 
+ Return Value
+ ============
+diff --git a/Documentation/media/uapi/rc/lirc-get-send-mode.rst b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
+index a169b234290e..e686b21689a0 100644
+--- a/Documentation/media/uapi/rc/lirc-get-send-mode.rst
++++ b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
+@@ -36,8 +36,7 @@ Description
+ 
+ Get/set current transmit mode.
+ 
+-Only :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>` and
+-:ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>` is supported by for IR send,
++Only :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>` is supported by for IR send,
+ depending on the driver. Use :ref:`lirc_get_features` to find out which
+ modes the driver supports.
+ 
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index 6fd19b816d92..79bf178bbaac 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -440,7 +440,6 @@ static int ir_lirc_register(struct rc_dev *dev)
+ 	ldev->features = features;
+ 	ldev->data = &dev->raw->lirc;
+ 	ldev->buf = NULL;
+-	ldev->code_length = sizeof(struct ir_raw_event) * 8;
+ 	ldev->chunk_size = sizeof(int);
+ 	ldev->buffer_size = LIRCBUF_SIZE;
+ 	ldev->fops = &lirc_fops;
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 544796d5b64f..7ef2d8c61df0 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -137,12 +137,6 @@ int lirc_register_device(struct lirc_dev *d)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (d->code_length < 1 || d->code_length > (BUFLEN * 8)) {
+-		dev_err(&d->dev, "code length must be less than %d bits\n",
+-			BUFLEN * 8);
+-		return -EBADRQC;
+-	}
+-
+ 	if (!d->buf && !(d->fops && d->fops->read &&
+ 			 d->fops->poll && d->fops->unlocked_ioctl)) {
+ 		dev_err(&d->dev, "undefined read, poll, ioctl\n");
+@@ -152,9 +146,6 @@ int lirc_register_device(struct lirc_dev *d)
+ 	/* some safety check 8-) */
+ 	d->name[sizeof(d->name) - 1] = '\0';
+ 
+-	if (d->features == 0)
+-		d->features = LIRC_CAN_REC_LIRCCODE;
+-
+ 	if (LIRC_CAN_REC(d->features)) {
+ 		err = lirc_allocate_buffer(d);
+ 		if (err)
+@@ -343,9 +334,6 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 		 * for now, lirc_serial doesn't support mode changing either
+ 		 */
+ 		break;
+-	case LIRC_GET_LENGTH:
+-		result = put_user(d->code_length, (__u32 __user *)arg);
+-		break;
+ 	default:
+ 		result = -ENOTTY;
+ 	}
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index 857da67bd931..0a03dd9e5a68 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -9,8 +9,6 @@
+ #ifndef _LINUX_LIRC_DEV_H
+ #define _LINUX_LIRC_DEV_H
+ 
+-#define BUFLEN            16
+-
+ #include <linux/slab.h>
+ #include <linux/fs.h>
+ #include <linux/ioctl.h>
+@@ -117,7 +115,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
   *
-- * @RC_DRIVER_SCANCODE:	 Driver or hardware generates a scancode
-+ * @RC_DRIVER_SCANCODE:	 Driver or hardware generates a scancode.
-  * @RC_DRIVER_IR_RAW:	 Driver or hardware generates pulse/space sequences.
-  *			 It needs a Infra-Red pulse/space decoder
-  * @RC_DRIVER_IR_RAW_TX: Device transmitter only,
+  * @name:		used for logging
+  * @minor:		the minor device (/dev/lircX) number for the device
+- * @code_length:	length of a remote control key code expressed in bits
+  * @features:		lirc compatible hardware features, like LIRC_MODE_RAW,
+  *			LIRC_CAN\_\*, as defined at include/media/lirc.h.
+  * @buffer_size:	Number of FIFO buffers with @chunk_size size.
+@@ -142,7 +139,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+ struct lirc_dev {
+ 	char name[40];
+ 	unsigned int minor;
+-	__u32 code_length;
+ 	__u32 features;
+ 
+ 	unsigned int buffer_size; /* in chunks holding one code each */
 -- 
 2.13.5
