@@ -1,64 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51118 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750926AbdIKW06 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 18:26:58 -0400
-From: Kieran Bingham <kbingham@kernel.org>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        mchehab@kernel.org
-Cc: niklas.soderlund@ragnatech.se, Simon Yuan <simon.yuan@navico.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH] media: i2c: adv748x: Map v4l2_std_id to the internal reg value
-Date: Mon, 11 Sep 2017 23:26:53 +0100
-Message-Id: <1505168813-13529-1-git-send-email-kbingham@kernel.org>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33160
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751960AbdI0Vkt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 17:40:49 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        Michael Ira Krufky <mkrufky@linuxtv.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 09/37] media: dvb_frontend: get rid of property cache's state
+Date: Wed, 27 Sep 2017 18:40:10 -0300
+Message-Id: <16be8178e61da36b8631f682dc2c2cc6d355f7ba.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Simon Yuan <simon.yuan@navico.com>
+In the past, I guess the idea was to use state in order to
+allow an autofush logic. However, in the current code, it is
+used only for debug messages, on a poor man's solution, as
+there's already a debug message to indicate when the properties
+got flushed.
 
-The video standard was not mapped to the corresponding value of the
-internal video standard in adv748x_afe_querystd, causing the wrong
-video standard to be selected.
+So, just get rid of it for good.
 
-Fixes: 3e89586a64df ("media: i2c: adv748x: add adv748x driver")
-Signed-off-by: Simon Yuan <simon.yuan@navico.com>
-[Kieran: Obtain the std from the afe->curr_norm]
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
+Reviewed-by: Shuah Khan <shuahkg@osg.samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
-Simon,
+ drivers/media/dvb-core/dvb_frontend.c | 20 ++++++--------------
+ drivers/media/dvb-core/dvb_frontend.h |  5 -----
+ 2 files changed, 6 insertions(+), 19 deletions(-)
 
-I've added your implicit Signed-off-by tag as part of resubmitting this
-patch. Please confirm your agreement to this!
-
- drivers/media/i2c/adv748x/adv748x-afe.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
-index 134d981d69d3..5188178588c9 100644
---- a/drivers/media/i2c/adv748x/adv748x-afe.c
-+++ b/drivers/media/i2c/adv748x/adv748x-afe.c
-@@ -217,6 +217,7 @@ static int adv748x_afe_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 9e6ee9df233b..01bd19fd4c57 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -951,8 +951,6 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+ 	memset(c, 0, offsetof(struct dtv_frontend_properties, strength));
+ 	c->delivery_system = delsys;
+ 
+-	c->state = DTV_CLEAR;
+-
+ 	dev_dbg(fe->dvb->device, "%s: Clearing cache for delivery system %d\n",
+ 			__func__, c->delivery_system);
+ 
+@@ -1775,13 +1773,13 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+ 		dvb_frontend_clear_cache(fe);
+ 		break;
+ 	case DTV_TUNE:
+-		/* interpret the cache of data, build either a traditional frontend
+-		 * tunerequest so we can pass validation in the FE_SET_FRONTEND
+-		 * ioctl.
++		/*
++		 * Use the cached Digital TV properties to tune the
++		 * frontend
+ 		 */
+-		c->state = tvp->cmd;
+-		dev_dbg(fe->dvb->device, "%s: Finalised property cache\n",
+-				__func__);
++		dev_dbg(fe->dvb->device,
++			"%s: Setting the frontend from property cache\n",
++			__func__);
+ 
+ 		r = dtv_set_frontend(fe);
+ 		break;
+@@ -1930,7 +1928,6 @@ static int dvb_frontend_ioctl(struct file *file, unsigned int cmd, void *parg)
  {
- 	struct adv748x_afe *afe = adv748x_sd_to_afe(sd);
- 	struct adv748x_state *state = adv748x_afe_to_state(afe);
-+	int afe_std;
- 	int ret;
+ 	struct dvb_device *dvbdev = file->private_data;
+ 	struct dvb_frontend *fe = dvbdev->priv;
+-	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+ 	int err;
  
- 	mutex_lock(&state->mutex);
-@@ -235,8 +236,12 @@ static int adv748x_afe_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
- 	/* Read detected standard */
- 	ret = adv748x_afe_status(afe, NULL, std);
+@@ -1950,7 +1947,6 @@ static int dvb_frontend_ioctl(struct file *file, unsigned int cmd, void *parg)
+ 		return -EPERM;
+ 	}
  
-+	afe_std = adv748x_afe_std(afe->curr_norm);
-+	if (afe_std < 0)
-+		goto unlock;
-+
- 	/* Restore original state */
--	adv748x_afe_set_video_standard(state, afe->curr_norm);
-+	adv748x_afe_set_video_standard(state, afe_std);
+-	c->state = DTV_UNDEFINED;
+ 	err = dvb_frontend_handle_ioctl(file, cmd, parg);
  
- unlock:
- 	mutex_unlock(&state->mutex);
+ 	up(&fepriv->sem);
+@@ -2134,10 +2130,6 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+ 			}
+ 			(tvp + i)->result = err;
+ 		}
+-
+-		if (c->state == DTV_TUNE)
+-			dev_dbg(fe->dvb->device, "%s: Property cache is full, tuning\n", __func__);
+-
+ 		kfree(tvp);
+ 		break;
+ 	}
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 852b91ba49d2..1bdeb10f0d78 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -620,11 +620,6 @@ struct dtv_frontend_properties {
+ 	struct dtv_fe_stats	post_bit_count;
+ 	struct dtv_fe_stats	block_error;
+ 	struct dtv_fe_stats	block_count;
+-
+-	/* private: */
+-	/* Cache State */
+-	u32			state;
+-
+ };
+ 
+ #define DVB_FE_NO_EXIT  0
 -- 
-2.7.4
+2.13.5
