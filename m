@@ -1,41 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:14629 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751133AbdIMMUT (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33395
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752352AbdI0VrG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 08:20:19 -0400
-Subject: Re: [PATCH v4 0/4] Exynos-gsc: Support the hardware rotation limits
-To: Hoegeun Kwon <hoegeun.kwon@samsung.com>
-Cc: inki.dae@samsung.com, airlied@linux.ie, kgene@kernel.org,
-        krzk@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        catalin.marinas@arm.com, will.deacon@arm.com, mchehab@kernel.org,
-        m.szyprowski@samsung.com, robin.murphy@arm.com,
-        devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <899da01a-5e53-c9ef-1d26-11c1e64423a4@samsung.com>
-Date: Wed, 13 Sep 2017 14:20:08 +0200
-MIME-version: 1.0
-In-reply-to: <1505302915-15699-1-git-send-email-hoegeun.kwon@samsung.com>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <CGME20170913114214epcas2p11a7b99e0c69236a87506e3c5db4858fa@epcas2p1.samsung.com>
-        <1505302915-15699-1-git-send-email-hoegeun.kwon@samsung.com>
+        Wed, 27 Sep 2017 17:47:06 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: [PATCH v2 00/17] V4L cleanups and documentation improvements
+Date: Wed, 27 Sep 2017 18:46:43 -0300
+Message-Id: <cover.1506548682.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/13/2017 01:41 PM, Hoegeun Kwon wrote:
-> Hoegeun Kwon (4):
->    [media] exynos-gsc: Add compatible for Exynos 5250 and 5420 specific
->      version
->    ARM: dts: exynos: Add clean name of compatible.
->    drm/exynos/gsc: Add hardware rotation limits
->    [media] exynos-gsc: Add hardware rotation limits
+This patch series is meant to improve V4L documentation. It touches
+some files at the tree doing some cleanup, in order to simplify
+the source code.
 
-Thanks Hoegeung, I have applied patches 1 nad 4 from this series.
+Mauro Carvalho Chehab (17):
+  media: tuner-types: add kernel-doc markups for struct tunertype
+  media: v4l2-common: get rid of v4l2_routing dead struct
+  media: v4l2-common: get rid of struct v4l2_discrete_probe
+  media: v4l2-common.h: document ancillary functions
+  media: v4l2-device.h: document ancillary macros
+  media: v4l2-dv-timings.h: convert comment into kernel-doc markup
+  media: v4l2-event.rst: improve events description
+  media: v4l2-ioctl.h: convert debug macros into enum and document
+  media: cec-pin.h: convert comments for cec_pin_state into kernel-doc
+  media: rc-core.rst: add an introduction for RC core
+  media: rc-core.h: minor adjustments at rc_driver_type doc
+  media: v4l2-fwnode.h: better describe bus union at fwnode endpoint
+    struct
+  media: v4l2-async: simplify v4l2_async_subdev structure
+  media: v4l2-async: better describe match union at async match struct
+  media: v4l2-ctrls: document nested members of structs
+  media: videobuf2-core: improve kernel-doc markups
+  media: media-entity.h: add kernel-doc markups for nested structs
+
+ Documentation/media/kapi/rc-core.rst           |  77 ++++++++
+ Documentation/media/kapi/v4l2-event.rst        |  64 +++++--
+ drivers/media/platform/am437x/am437x-vpfe.c    |   6 +-
+ drivers/media/platform/atmel/atmel-isc.c       |   2 +-
+ drivers/media/platform/atmel/atmel-isi.c       |   2 +-
+ drivers/media/platform/davinci/vpif_capture.c  |   4 +-
+ drivers/media/platform/exynos4-is/media-dev.c  |   4 +-
+ drivers/media/platform/omap3isp/isp.c          |   4 +-
+ drivers/media/platform/pxa_camera.c            |   2 +-
+ drivers/media/platform/qcom/camss-8x16/camss.c |   2 +-
+ drivers/media/platform/rcar-vin/rcar-core.c    |   8 +-
+ drivers/media/platform/rcar_drif.c             |   4 +-
+ drivers/media/platform/soc_camera/soc_camera.c |   2 +-
+ drivers/media/platform/stm32/stm32-dcmi.c      |   2 +-
+ drivers/media/platform/ti-vpe/cal.c            |   2 +-
+ drivers/media/platform/vivid/vivid-vid-cap.c   |   9 +-
+ drivers/media/platform/xilinx/xilinx-vipp.c    |   2 +-
+ drivers/media/v4l2-core/v4l2-async.c           |   4 +-
+ drivers/media/v4l2-core/v4l2-common.c          |  27 +--
+ drivers/staging/media/imx/imx-media-dev.c      |   8 +-
+ include/media/cec-pin.h                        |  81 ++++++---
+ include/media/media-entity.h                   |   5 +
+ include/media/rc-core.h                        |   4 +-
+ include/media/tuner-types.h                    |  15 ++
+ include/media/v4l2-async.h                     |  43 ++++-
+ include/media/v4l2-common.h                    | 130 +++++++++++---
+ include/media/v4l2-ctrls.h                     |  11 +-
+ include/media/v4l2-device.h                    | 238 +++++++++++++++++++++----
+ include/media/v4l2-dv-timings.h                |  14 +-
+ include/media/v4l2-event.h                     |  34 ----
+ include/media/v4l2-fwnode.h                    |  13 +-
+ include/media/v4l2-ioctl.h                     |  33 ++--
+ include/media/videobuf2-core.h                 |  59 +++---
+ 33 files changed, 660 insertions(+), 255 deletions(-)
 
 -- 
-Regards,
-Sylwester
+2.13.5
