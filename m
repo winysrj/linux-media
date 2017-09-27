@@ -1,144 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:62827 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751001AbdITQ7H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Sep 2017 12:59:07 -0400
-Subject: [PATCH 2/5] [media] s2255drv: Adjust 13 checks for null pointers
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mike Isely <isely@pobox.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <55718a41-d76f-36bf-7197-db92014dcd3c@users.sourceforge.net>
-Message-ID: <66f0b95e-e717-7a50-39d2-05fcbf7b77bd@users.sourceforge.net>
-Date: Wed, 20 Sep 2017 18:58:56 +0200
-MIME-Version: 1.0
-In-Reply-To: <55718a41-d76f-36bf-7197-db92014dcd3c@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33634
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752050AbdI0WXz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 18:23:55 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: [PATCH v7 0/7] document types of hardware control for V4L2
+Date: Wed, 27 Sep 2017 19:23:42 -0300
+Message-Id: <cover.1506550930.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 20 Sep 2017 16:46:19 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+On Kernel 2.6.39, the omap3 driver was introduced together with a new way
+to control complex V4L2 devices used on embedded systems, but this was
+never documented, as the original idea were to have "soon" support for
+standard apps to use it as well, via libv4l, but that didn't happen so far.
 
-The script “checkpatch.pl” pointed information out like the following.
+Also, it is not possible for an userspace applicatin to detect the kind of
+control a device supports.
 
-Comparison to NULL could be written !…
+This series fill the gap, by documenting the new type of hardware
+control and adding a way for userspace to detect if the device can be
+used or not by an standard V4L2 application.
 
-Thus fix the affected source code places.
+Notes:
+====
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/s2255/s2255drv.c | 29 +++++++++++++----------------
- 1 file changed, 13 insertions(+), 16 deletions(-)
+1) For the sake of better review, this series start with the addition of a
+glossary, as requested by Laurent. Please notice, however, that
+the glossary there references some new captions that will only be added
+by subsequent patches. So, when this series get applied, the glossary
+patch should actually be merged after the patches that introduce those
+new captions, in order to avoid warnings for non-existing references.
 
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index 29285e8cd742..aee83bf6fa94 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -516,6 +516,6 @@ static void s2255_fwchunk_complete(struct urb *urb)
- 		wake_up(&data->wait_fw);
- 		return;
- 	}
--	if (data->fw_urb == NULL) {
-+	if (!data->fw_urb) {
- 		s2255_dev_err(&udev->dev, "disconnected\n");
- 		atomic_set(&data->fw_state, S2255_FW_FAILED);
-@@ -680,5 +680,5 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 	dprintk(vc->dev, 4, "%s\n", __func__);
--	if (vc->fmt == NULL)
-+	if (!vc->fmt)
- 		return -EINVAL;
- 
- 	if ((w < norm_minw(vc)) ||
-@@ -785,6 +785,5 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 	fmt = format_by_fourcc(f->fmt.pix.pixelformat);
--
--	if (fmt == NULL)
-+	if (!fmt)
- 		return -EINVAL;
- 
- 	field = f->fmt.pix.field;
-@@ -853,6 +852,5 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	fmt = format_by_fourcc(f->fmt.pix.pixelformat);
--
--	if (fmt == NULL)
-+	if (!fmt)
- 		return -EINVAL;
- 
- 	if (vb2_is_busy(q)) {
-@@ -936,6 +934,6 @@ static u32 get_transfer_size(struct s2255_mode *mode)
- 	unsigned int mask_mult;
- 
--	if (mode == NULL)
-+	if (!mode)
- 		return 0;
- 
- 	if (mode->format == FORMAT_NTSC) {
-@@ -1390,4 +1388,4 @@ static int vidioc_enum_framesizes(struct file *file, void *priv,
- 	fmt = format_by_fourcc(fe->pixel_format);
--	if (fmt == NULL)
-+	if (!fmt)
- 		return -EINVAL;
- 	fe->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-@@ -1412,5 +1410,5 @@ static int vidioc_enum_frameintervals(struct file *file, void *priv,
- 	fmt = format_by_fourcc(fe->pixel_format);
--	if (fmt == NULL)
-+	if (!fmt)
- 		return -EINVAL;
- 
- 	sizes = is_ntsc ? ntsc_sizes : pal_sizes;
-@@ -1834,6 +1832,5 @@ static int save_frame(struct s2255_dev *dev, struct s2255_pipeinfo *pipe_info)
- 	psrc = (u8 *)pipe_info->transfer_buffer + offset;
- 
--
--	if (frm->lpvbits == NULL) {
-+	if (!frm->lpvbits) {
- 		dprintk(dev, 1, "s2255 frame buffer == NULL.%p %p %d %d",
- 			frm, dev, dev->cc, idx);
-@@ -1965,6 +1962,6 @@ static int s2255_create_sys_buffers(struct s2255_vc *vc)
- 		vc->buffer.frame[i].lpvbits = vmalloc(reqsize);
- 		vc->buffer.frame[i].size = reqsize;
--		if (vc->buffer.frame[i].lpvbits == NULL) {
-+		if (!vc->buffer.frame[i].lpvbits) {
- 			pr_info("out of memory.  using less frames\n");
- 			vc->buffer.dwFrames = i;
- 			break;
-@@ -2007,6 +2004,6 @@ static int s2255_board_init(struct s2255_dev *dev)
- 	pipe->transfer_buffer = kzalloc(pipe->max_transfer_size,
- 					GFP_KERNEL);
--	if (pipe->transfer_buffer == NULL) {
-+	if (!pipe->transfer_buffer) {
- 		dprintk(dev, 1, "out of memory!\n");
- 		return -ENOMEM;
- 	}
-@@ -2068,8 +2065,8 @@ static void read_pipe_completion(struct urb *purb)
- 	pipe_info = purb->context;
--	if (pipe_info == NULL) {
-+	if (!pipe_info) {
- 		dev_err(&purb->dev->dev, "no context!\n");
- 		return;
- 	}
- 	dev = pipe_info->dev;
--	if (dev == NULL) {
-+	if (!dev) {
- 		dev_err(&purb->dev->dev, "no context!\n");
-@@ -2257,5 +2254,5 @@ static int s2255_probe(struct usb_interface *interface,
- 	dev->udev = usb_get_dev(interface_to_usbdev(interface));
--	if (dev->udev == NULL) {
-+	if (!dev->udev) {
- 		dev_err(&interface->dev, "null usb device\n");
- 		retval = -ENODEV;
- 		goto errorUDEV;
+2) This series doesn't contain patches that actually use the new flag.
+This will be added after such patch gets reviewed.
+
+v7:
+- Altered some nomenclature at the glossary as suggested by Hans
+  and used git-filter to change it on all patches.
+
+v6:
+- Some editorial changes based on comments from Hans and Sakari.
+
+v5:
+- Added more terms to the glossary
+- Adjusted some wording as proposed by Hans on a few patches
+  and added his ack on others
+
+v4:
+
+- Addressed Hans comments for v2;
+- Fixed broken references at the glossary.rst
+
+v3:
+
+- Add a glossary to be used by the new documentation about hardware control;
+- Add a patch removing minor number range
+- Use glossary terms at open.rst
+- Split the notice about subdev-API on vdev-centric, as this change
+   will require further discussions.
+
+v2:
+
+- added a patch at the beginning of the series better defining the
+  device node naming rules;
+- better defined the differenes between device hardware and V4L2 device node
+  as suggested by Laurent and with changes proposed by Hans and Sakari
+- changed the caps flag to indicate MC-centric devices
+- removed the final patch that would use the new caps flag. I'll write it
+  once we agree on the new caps flag.
+
+Mauro Carvalho Chehab (7):
+  media: add glossary.rst with a glossary of terms used at V4L2 spec
+  media: open.rst: better document device node naming
+  media: open.rst: remove the minor number range
+  media: open.rst: document devnode-centric and mc-centric types
+  media: open.rst: Adjust some terms to match the glossary
+  media: videodev2: add a flag for MC-centric devices
+  media: open.rst: add a notice about subdev-API on vdev-centric
+
+ Documentation/media/uapi/v4l/glossary.rst        | 136 +++++++++++++++++++++++
+ Documentation/media/uapi/v4l/open.rst            | 119 +++++++++++++++++---
+ Documentation/media/uapi/v4l/v4l2.rst            |   1 +
+ Documentation/media/uapi/v4l/vidioc-querycap.rst |   5 +
+ Documentation/media/videodev2.h.rst.exceptions   |   1 +
+ include/uapi/linux/videodev2.h                   |   2 +
+ 6 files changed, 250 insertions(+), 14 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/glossary.rst
+
 -- 
-2.14.1
+2.13.5
