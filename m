@@ -1,90 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:42576 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753543AbdIDNDj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Sep 2017 09:03:39 -0400
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Cyprian Wronka <cwronka@cadence.com>,
-        Neil Webb <neilw@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33674
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752220AbdI0WX5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 18:23:57 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: [PATCH v3 0/2] media: v4l: Add support for the Cadence MIPI-CSI2 RX
-Date: Mon,  4 Sep 2017 15:03:33 +0200
-Message-Id: <20170904130335.23280-1-maxime.ripard@free-electrons.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH v7 6/7] media: videodev2: add a flag for MC-centric devices
+Date: Wed, 27 Sep 2017 19:23:48 -0300
+Message-Id: <5a3872ab652ba0633e4ec1e1c5149f3022552cb4.1506550930.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506550930.git.mchehab@s-opensource.com>
+References: <cover.1506550930.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506550930.git.mchehab@s-opensource.com>
+References: <cover.1506550930.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+As both vdev-centric and MC-centric devices may implement the
+same APIs, we need a flag to allow userspace to distinguish
+between them.
 
-Here is an attempt at supporting the MIPI-CSI2 RX block from Cadence.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/v4l/open.rst            | 7 +++++++
+ Documentation/media/uapi/v4l/vidioc-querycap.rst | 5 +++++
+ Documentation/media/videodev2.h.rst.exceptions   | 1 +
+ include/uapi/linux/videodev2.h                   | 2 ++
+ 4 files changed, 15 insertions(+)
 
-This IP block is able to receive CSI data over up to 4 lanes, and
-split it to over 4 streams. Those streams are basically the interfaces
-to the video grabbers that will perform the capture.
-
-It is able to map streams to both CSI datatypes and virtual channels,
-dynamically. This is unclear at this point what the right way to
-support it would be, so the driver only uses a static mapping between
-the virtual channels and streams, and ignores the data types.
-
-This serie depends on the version 5 of the serie "v4l2-async: add subnotifier
-registration for subdevices" from Niklas Söderlund.
-
-Let me know what you think!
-Maxime
-
-Changes from v2:
-  - Added reference counting for the controller initialisation
-  - Fixed checkpatch warnings
-  - Moved the sensor initialisation after the DPHY configuration
-  - Renamed the sensor fields to source for consistency
-  - Defined some variables
-  - Renamed a few structures variables
-  - Added internal and external phy errors messages
-  - Reworked the binding slighty by making the external D-PHY optional
-  - Moved the notifier registration in the probe function
-  - Removed some clocks that are not system clocks
-  - Added clocks enabling where needed
-  - Added the code to remap the data lanes
-  - Changed the memory allocator for the non-devm function, and a
-    comment explaining why
-  - Reworked the binding wording
-
-Changes from v1:
-  - Amended the DT bindings as suggested by Rob
-  - Rebase on top of 4.13-rc1 and latest Niklas' serie iteration
-
-Maxime Ripard (2):
-  dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
-  v4l: cadence: Add Cadence MIPI-CSI2 RX driver
-
- .../devicetree/bindings/media/cdns-csi2rx.txt      |  98 ++++
- drivers/media/platform/Kconfig                     |   1 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/cadence/Kconfig             |  12 +
- drivers/media/platform/cadence/Makefile            |   1 +
- drivers/media/platform/cadence/cdns-csi2rx.c       | 494 +++++++++++++++++++++
- 6 files changed, 608 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cdns-csi2rx.txt
- create mode 100644 drivers/media/platform/cadence/Kconfig
- create mode 100644 drivers/media/platform/cadence/Makefile
- create mode 100644 drivers/media/platform/cadence/cdns-csi2rx.c
-
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index 0daf0c122c19..75ccc9d6614d 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -47,6 +47,13 @@ the periferal can be used. For such devices, the sub-devices' configuration
+ can be controlled via the :ref:`sub-device API <subdev>`, which creates one
+ device node per sub-device.
+ 
++.. attention::
++
++   Devices that require **MC-centric** media hardware control should
++   report a ``V4L2_MC_CENTRIC`` :c:type:`v4l2_capability` flag
++   (see :ref:`VIDIOC_QUERYCAP`).
++
++
+ .. _v4l2_device_naming:
+ 
+ V4L2 Device Node Naming
+diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+index 66fb1b3d6e6e..944bc5ba484f 100644
+--- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
++++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+@@ -254,6 +254,11 @@ specification the ioctl returns an ``EINVAL`` error code.
+     * - ``V4L2_CAP_TOUCH``
+       - 0x10000000
+       - This is a touch device.
++    * - ``V4L2_MC_CENTRIC``
++      - 0x20000000
++      - Indicates that the device require **MC-centric** hardware
++        control, and thus can't be used by **vdevnode-centric** applications.
++        See :ref:`v4l2_hardware_control` for more details.
+     * - ``V4L2_CAP_DEVICE_CAPS``
+       - 0x80000000
+       - The driver fills the ``device_caps`` field. This capability can
+diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+index a5cb0a8686ac..b51a575f9f75 100644
+--- a/Documentation/media/videodev2.h.rst.exceptions
++++ b/Documentation/media/videodev2.h.rst.exceptions
+@@ -157,6 +157,7 @@ replace define V4L2_CAP_META_CAPTURE device-capabilities
+ replace define V4L2_CAP_READWRITE device-capabilities
+ replace define V4L2_CAP_ASYNCIO device-capabilities
+ replace define V4L2_CAP_STREAMING device-capabilities
++replace define V4L2_CAP_MC_CENTRIC device-capabilities
+ replace define V4L2_CAP_DEVICE_CAPS device-capabilities
+ replace define V4L2_CAP_TOUCH device-capabilities
+ 
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 185d6a0acc06..4ff1224719a7 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -460,6 +460,8 @@ struct v4l2_capability {
+ 
+ #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
+ 
++#define V4L2_CAP_MC_CENTRIC             0x20000000  /* Device require MC-centric hardware control */
++
+ #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
+ 
+ /*
 -- 
 2.13.5
