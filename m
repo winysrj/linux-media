@@ -1,249 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:45167 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751658AbdIKMid (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33148
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752204AbdI0Vk4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 08:38:33 -0400
-Subject: Re: [PATCH v10 18/24] v4l: fwnode: Add a helper function to obtain
- device / interger references
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        robh@kernel.org, laurent.pinchart@ideasonboard.com,
-        linux-acpi@vger.kernel.org, mika.westerberg@intel.com,
-        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-19-sakari.ailus@linux.intel.com>
- <11c951eb-0315-0149-829e-ed73d748e783@xs4all.nl>
- <20170911122820.fkbd2rnaddiestab@valkosipuli.retiisi.org.uk>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2e2eba02-39bc-11e1-d9f1-b83a6f580667@xs4all.nl>
-Date: Mon, 11 Sep 2017 14:38:23 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170911122820.fkbd2rnaddiestab@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 27 Sep 2017 17:40:56 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: [PATCH v2 16/37] media: dtv-core.rst: add chapters and introductory tests for common parts
+Date: Wed, 27 Sep 2017 18:40:17 -0300
+Message-Id: <210e51a8301b63f5f1224c9d462ffc6360e5a109.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/11/2017 02:28 PM, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> Thanks for the review.
-> 
-> On Mon, Sep 11, 2017 at 11:38:58AM +0200, Hans Verkuil wrote:
->> Typo in subject: interger -> integer
->>
->> On 09/11/2017 10:00 AM, Sakari Ailus wrote:
->>> v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
->>> the device's own fwnode, 
->>
->> Sorry, you lost me here. Which device are we talking about?
-> 
-> The fwnode related a struct device, in other words what dev_fwnode(dev)
-> gives you. This is either struct device.fwnode or struct
-> device.of_node.fwnode, depending on which firmware interface was used to
-> create the device.
-> 
-> I'll add a note of this.
-> 
->>
->>> it will follow child fwnodes with the given
->>> property -- value pair and return the resulting fwnode.
->>
->> property-value pair (easier readable that way).
->>
->> You only describe v4l2_fwnode_reference_parse_int_prop(), not
->> v4l2_fwnode_reference_parse_int_props().
-> 
-> Yes, I think I changed the naming but forgot to update the commit. I'll do
-> that now.
-> 
->>
->>>
->>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>> ---
->>>  drivers/media/v4l2-core/v4l2-fwnode.c | 93 +++++++++++++++++++++++++++++++++++
->>>  1 file changed, 93 insertions(+)
->>>
->>> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
->>> index 4821c4989119..56eee5bbd3b5 100644
->>> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
->>> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
->>> @@ -496,6 +496,99 @@ static int v4l2_fwnode_reference_parse(
->>>  	return ret;
->>>  }
->>>  
->>> +static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
->>> +	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
->>> +	const char **props, unsigned int nprops)
->>
->> Need comments describing what this does.
-> 
-> Yes. I'll also rename it (get -> read) for consistency with the async
-> changes.
+Better document the DVB common parts by adding two sections
+and an introductory text for each.
 
-Which async changes? Since the fwnode_handle that's returned is refcounted
-I wonder if 'get' isn't the right name in this case.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/kapi/dtv-core.rst | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-> 
->>
->>> +{
->>> +	struct fwnode_reference_args fwnode_args;
->>> +	unsigned int *args = fwnode_args.args;
->>> +	struct fwnode_handle *child;
->>> +	int ret;
->>> +
->>> +	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
->>> +						 index, &fwnode_args);
->>> +	if (ret)
->>> +		return ERR_PTR(ret == -EINVAL ? -ENOENT : ret);
->>
->> Why map EINVAL to ENOENT? Needs a comment, either here or in the function description.
-> 
-> fwnode_property_get_reference_args() returns currently a little bit
-> different error codes in ACPI / DT. This is worth documenting there and
-> fixing as well.
-> 
->>
->>> +
->>> +	for (fwnode = fwnode_args.fwnode;
->>> +	     nprops; nprops--, fwnode = child, props++, args++) {
->>
->> I think you cram too much in this for-loop: fwnode, nprops, fwnode, props, args...
->> It's hard to parse.
-> 
-> Hmm. I'm not sure if that really helps; the function is just handling each
-> entry in the array and related array pointers are changed accordingly. The
-> fwnode = child assignment is there to move to the child node. I.e. what you
-> need for handling the loop itself.
-> 
-> I can change this though if you think it really makes a difference for
-> better.
-
-I think so, yes. I noticed you like complex for-loops :-)
-
-> 
->>
->> I would make this a 'while (nprops)' and write out all the other assignments,
->> increments and decrements.
->>
->>> +		u32 val;
->>> +
->>> +		fwnode_for_each_child_node(fwnode, child) {
->>> +			if (fwnode_property_read_u32(child, *props, &val))
->>> +				continue;
->>> +
->>> +			if (val == *args)
->>> +				break;
->>
->> I'm lost. This really needs comments and perhaps even an DT or ACPI example
->> so you can see what exactly it is we're doing here.
-> 
-> I'll add comments to the code. A good example will be ACPI documentation
-> for LEDs, see 17th patch in v9. That will go through the linux-pm tree so
-> it won't be available in the same tree for a while.
-
-Ideally an ACPI and an equivalent DT example would be nice to have, but I might
-be asking too much. I'm not that familiar with ACPI, so for me a DT example
-is easier.
-
-> 
->>
->>> +		}
->>> +
->>> +		fwnode_handle_put(fwnode);
->>> +
->>> +		if (!child) {
->>> +			fwnode = ERR_PTR(-ENOENT);
->>> +			break;
->>> +		}
->>> +	}
->>> +
->>> +	return fwnode;
->>> +}
->>> +
->>> +static int v4l2_fwnode_reference_parse_int_props(
->>> +	struct device *dev, struct v4l2_async_notifier *notifier,
->>> +	const char *prop, const char **props, unsigned int nprops)
->>
->> Needs comments describing what this does.
-> 
-> Will add.
-> 
->>
->>> +{
->>> +	struct fwnode_handle *fwnode;
->>> +	unsigned int index = 0;
->>> +	int ret;
->>> +
->>> +	while (!IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
->>> +				dev_fwnode(dev), prop, index, props,
->>> +				nprops)))) {
->>> +		fwnode_handle_put(fwnode);
->>> +		index++;
->>> +	}
->>> +
->>> +	if (PTR_ERR(fwnode) != -ENOENT)
->>> +		return PTR_ERR(fwnode);
->>
->> Missing 'if (index == 0)'?
-> 
-> Yes, will add.
-> 
->>
->>> +
->>> +	ret = v4l2_async_notifier_realloc(notifier,
->>> +					  notifier->num_subdevs + index);
->>> +	if (ret)
->>> +		return -ENOMEM;
->>> +
->>> +	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
->>> +					 dev_fwnode(dev), prop, index, props,
->>> +					 nprops))); ) {
->>
->> I'd add 'index++' in this for-loop. It's weird that it is missing.
-> 
-> Agreed, I'll move it there.
-> 
->>
->>> +		struct v4l2_async_subdev *asd;
->>> +
->>> +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
->>> +			ret = -EINVAL;
->>> +			goto error;
->>> +		}
->>> +
->>> +		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
->>> +		if (!asd) {
->>> +			ret = -ENOMEM;
->>> +			goto error;
->>> +		}
->>> +
->>> +		notifier->subdevs[notifier->num_subdevs] = asd;
->>> +		asd->match.fwnode.fwnode = fwnode;
->>> +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
->>> +		notifier->num_subdevs++;
->>> +
->>> +		fwnode_handle_put(fwnode);
->>> +
->>> +		index++;
->>> +	}
->>> +
->>> +	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
->>> +
->>> +error:
->>> +	fwnode_handle_put(fwnode);
->>> +	return ret;
->>> +}
->>> +
->>>  MODULE_LICENSE("GPL");
->>>  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
->>>  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
->>>
-> 
-
-Regards,
-
-	Hans
+diff --git a/Documentation/media/kapi/dtv-core.rst b/Documentation/media/kapi/dtv-core.rst
+index de9a228aca8a..4cf9cf63bafd 100644
+--- a/Documentation/media/kapi/dtv-core.rst
++++ b/Documentation/media/kapi/dtv-core.rst
+@@ -29,8 +29,20 @@ I2C bus.
+ Digital TV Common functions
+ ---------------------------
+ 
++Math functions
++~~~~~~~~~~~~~~
++
++Provide some commonly-used math functions, usually required in order to
++estimate signal strength and signal to noise measurements in dB.
++
+ .. kernel-doc:: drivers/media/dvb-core/dvb_math.h
+ 
++
++DVB devices
++~~~~~~~~~~~
++
++Those functions are responsible for handling the DVB device nodes.
++
+ .. kernel-doc:: drivers/media/dvb-core/dvbdev.h
+ 
+ Digital TV Ring buffer
+-- 
+2.13.5
