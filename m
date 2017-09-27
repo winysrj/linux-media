@@ -1,115 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:39495 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751163AbdIXKkW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Sep 2017 06:40:22 -0400
-Date: Sun, 24 Sep 2017 11:40:20 +0100
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v4.15] RC cleanup fixes
-Message-ID: <20170924104020.ni55zs5gtm7sklgw@gofer.mess.org>
-References: <20170923103356.hl5zrqekfjbsy7gt@gofer.mess.org>
- <20170923163531.3c1b1f06@vento.lan>
- <20170923203859.5msycu25qoqzy7iv@gofer.mess.org>
- <20170924060932.6e0962f1@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170924060932.6e0962f1@vento.lan>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33174
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752206AbdI0Vk4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 17:40:56 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>
+Subject: [PATCH v2 02/37] media: stv0288: get rid of set_property boilerplate
+Date: Wed, 27 Sep 2017 18:40:03 -0300
+Message-Id: <08d84c16e5a240cc8c0dc5c2df19c00b6ff07357.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Sep 24, 2017 at 06:09:32AM -0300, Mauro Carvalho Chehab wrote:
-> Em Sat, 23 Sep 2017 21:38:59 +0100
-> Sean Young <sean@mess.org> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > On Sat, Sep 23, 2017 at 04:35:31PM -0300, Mauro Carvalho Chehab wrote:
-> > > Hi Sean,
-> > > 
-> > > Em Sat, 23 Sep 2017 11:33:56 +0100
-> > > Sean Young <sean@mess.org> escreveu:
-> > >   
-> > > > Hi Mauro,
-> > > > 
-> > > > Just cleanups this round. Line count does go down, though.
-> > > > 
-> > > > Thanks,
-> > > > 
-> > > > Sean
-> > > > 
-> > > > 
-> > > > The following changes since commit 1efdf1776e2253b77413c997bed862410e4b6aaf:
-> > > > 
-> > > >   media: leds: as3645a: add V4L2_FLASH_LED_CLASS dependency (2017-09-05 16:32:45 -0400)
-> > > > 
-> > > > are available in the git repository at:
-> > > > 
-> > > >   git://linuxtv.org/syoung/media_tree.git for-v4.15a
-> > > > 
-> > > > for you to fetch changes up to fe96866c81291a2887559fdfcc58ddf8fe54111d:
-> > > > 
-> > > >   imon: Improve a size determination in two functions (2017-09-23 11:20:12 +0100)
-> > > > 
-> > > > ----------------------------------------------------------------
-> > > > Arvind Yadav (1):
-> > > >       media: rc: constify usb_device_id
-> > > > 
-> > > > Bhumika Goyal (1):
-> > > >       media: rc: make device_type const
-> > > > 
-> > > > Colin Ian King (1):
-> > > >       media: imon: make two const arrays static, reduces object code size
-> > > > 
-> > > > David Härdeman (15):
-> > > >       media: lirc_dev: clarify error handling
-> > > >       media: lirc_dev: remove support for manually specifying minor number
-> > > >       media: lirc_dev: remove min_timeout and max_timeout  
-> > > 
-> > > This patch doesn't get rid of the corresponding documentation bits:
-> > > 
-> > > $ git grep MIN_TIMEOUT Documentation/
-> > > Documentation/media/uapi/rc/lirc-get-timeout.rst:ioctls LIRC_GET_MIN_TIMEOUT and LIRC_GET_MAX_TIMEOUT
-> > > Documentation/media/uapi/rc/lirc-get-timeout.rst:LIRC_GET_MIN_TIMEOUT / LIRC_GET_MAX_TIMEOUT - Obtain the possible timeout
-> > > Documentation/media/uapi/rc/lirc-get-timeout.rst:.. c:function:: int ioctl( int fd, LIRC_GET_MIN_TIMEOUT, __u32 *timeout)
-> > > Documentation/media/uapi/rc/lirc-get-timeout.rst:    :name: LIRC_GET_MIN_TIMEOUT
-> > > Documentation/media/uapi/rc/lirc-set-rec-timeout.rst:   The range of supported timeout is given by :ref:`LIRC_GET_MIN_TIMEOUT`.  
-> > 
-> > So this patch isn't removing those ioctls, it's just removing it from
-> > the lirc kernel api (so for lirc_zilog.c and out out of tree lirc drivers,
-> > like lirc_rpi). None of those use min/max timeout. It's probably better
-> > to drop this.
-> 
-> Ah, I see. Well, if none of the in-kernel drivers use it, we can
-> drop it.
+This driver doesn't implement support for set_property(). Yet,
+it implements a boilerplate for it. Get rid of it.
 
-Looks like our emails crossed each other -- I have already pushed out
-another PR without it.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-frontends/stv0288.c | 7 -------
+ 1 file changed, 7 deletions(-)
 
-> Btw, as it seems that now only lirc_zilog uses the Linux kernel
-> API, we could just move it to staging, under drivers/staging/media/lirc/,
-> remove all EXPORT_SYMBOL_* from it, and add it to the lirc_zilog
-> Makefile.
-
-So ir-lirc-codec.c (our rc-core lirc interface) uses lirc_dev.c (lirc
-kernel api), so it would be very difficult to move to staging.
-
-> That probably meets the goal of avoiding people to write new
-> drivers based on it. Any other out of tree driver that might
-> be still using it could do the same, while such driver is not
-> converted to rc-core.
-
-Actually I've made good progress on a new lirc_zilog driver, based on a
-re-rolled ir database (firmware file) file for rc-core. With that in
-place, the linux kernel api can be removed completely and that will
-make the lirc code much cleaner.
-
-I'm hoping to have this finished soon, well in time for v4.15.
-
-
-Thanks,
-
-Sean
+diff --git a/drivers/media/dvb-frontends/stv0288.c b/drivers/media/dvb-frontends/stv0288.c
+index 45cbc898ad25..67f91814b9f7 100644
+--- a/drivers/media/dvb-frontends/stv0288.c
++++ b/drivers/media/dvb-frontends/stv0288.c
+@@ -447,12 +447,6 @@ static int stv0288_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ 	return 0;
+ }
+ 
+-static int stv0288_set_property(struct dvb_frontend *fe, struct dtv_property *p)
+-{
+-	dprintk("%s(..)\n", __func__);
+-	return 0;
+-}
+-
+ static int stv0288_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct stv0288_state *state = fe->demodulator_priv;
+@@ -567,7 +561,6 @@ static const struct dvb_frontend_ops stv0288_ops = {
+ 	.set_tone = stv0288_set_tone,
+ 	.set_voltage = stv0288_set_voltage,
+ 
+-	.set_property = stv0288_set_property,
+ 	.set_frontend = stv0288_set_frontend,
+ };
+ 
+-- 
+2.13.5
