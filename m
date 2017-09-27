@@ -1,54 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59948
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:32951
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932529AbdIHVwH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 17:52:07 -0400
-Date: Fri, 8 Sep 2017 18:51:58 -0300
+        with ESMTP id S1751628AbdI0VKb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 17:10:31 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Stephen Hemminger <stephen@networkplumber.org>,
-        Sean Young <sean@mess.org>, linux-media@vger.kernel.org
-Cc: mchehab@kernel.org, linux-kernel@vger.kernel.org,
-        Stephen Hemminger <sthemmin@microsoft.com>
-Subject: Re: [PATCH] media: default for RC_CORE should be n
-Message-ID: <20170908185158.2b7a79d9@vento.lan>
-In-Reply-To: <20170908120648.291b2c02@xeon-e3>
-References: <20170908163929.9277-1-sthemmin@microsoft.com>
-        <20170908185247.un3c7bjnety6uja3@gofer.mess.org>
-        <20170908120648.291b2c02@xeon-e3>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: [PATCH v2 07/13] docs: kernel-doc.rst: add documentation about man pages
+Date: Wed, 27 Sep 2017 18:10:18 -0300
+Message-Id: <d728e50a675aad84310e1418c2d4ec9495322982.1506546492.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506546492.git.mchehab@s-opensource.com>
+References: <cover.1506546492.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506546492.git.mchehab@s-opensource.com>
+References: <cover.1506546492.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 8 Sep 2017 12:06:48 -0700
-Stephen Hemminger <stephen@networkplumber.org> escreveu:
+kernel-doc-nano-HOWTO.txt has a chapter about man pages
+production. While we don't have a working  "make manpages"
+target, add it.
 
-> On Fri, 8 Sep 2017 19:52:47 +0100
-> Sean Young <sean@mess.org> wrote:
-> 
-> > On Fri, Sep 08, 2017 at 09:39:29AM -0700, Stephen Hemminger wrote:  
-> > > The Linus policy on Kconfig is that the default should be no
-> > > for all new devices. I.e the user rebuild a new kernel from an
-> > > old config should not by default get a larger kernel.    
-> > 
-> > That might make sense for new config, but RC_CORE has been present for
-> > 7 years; I don't see how changing defaults for existing config makes
-> > sense.
-> >   
-> 
-> I took existing config for 4.13 and did 'make oldconfig' and just
-> hitting return caused it to turned on.
-> 
-> The problem is that in my config media is disabled, and now your new
-> reconfiguration makes RC_CORE not dependent on media.
-> 
-> It is a common problem, developers never test with their subsystem disabled.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/doc-guide/kernel-doc.rst | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-Hi Sean,
-
-Yes, it makes sense to default 'n' for RC_CORE now that this is an
-independent menu option and it builds the RC core when enabled.
-
-Regards,
-Mauro
+diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
+index 0923c8bd5769..96012f9e314d 100644
+--- a/Documentation/doc-guide/kernel-doc.rst
++++ b/Documentation/doc-guide/kernel-doc.rst
+@@ -452,3 +452,37 @@ file.
+ 
+ Data structures visible in kernel include files should also be documented using
+ kernel-doc formatted comments.
++
++How to use kernel-doc to generate man pages
++-------------------------------------------
++
++If you just want to use kernel-doc to generate man pages you can do this
++from the Kernel git tree::
++
++  $ scripts/kernel-doc -man $(git grep -l '/\*\*' |grep -v Documentation/) | ./split-man.pl /tmp/man
++
++Using the small ``split-man.pl`` script below::
++
++
++  #!/usr/bin/perl
++
++  if ($#ARGV < 0) {
++     die "where do I put the results?\n";
++  }
++
++  mkdir $ARGV[0],0777;
++  $state = 0;
++  while (<STDIN>) {
++      if (/^\.TH \"[^\"]*\" 9 \"([^\"]*)\"/) {
++	if ($state == 1) { close OUT }
++	$state = 1;
++	$fn = "$ARGV[0]/$1.9";
++	print STDERR "Creating $fn\n";
++	open OUT, ">$fn" or die "can't open $fn: $!\n";
++	print OUT $_;
++      } elsif ($state != 0) {
++	print OUT $_;
++      }
++  }
++
++  close OUT;
+-- 
+2.13.5
