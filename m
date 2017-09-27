@@ -1,87 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:57585 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934463AbdIZL1x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 07:27:53 -0400
-Subject: [PATCH 1/6] [media] tda8261: Use common error handling code in
- tda8261_set_params()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <15d74bee-7467-4687-24e1-3501c22f6d75@users.sourceforge.net>
-Message-ID: <28425caf-2736-96ae-00a7-3fb273b1f9d5@users.sourceforge.net>
-Date: Tue, 26 Sep 2017 13:27:47 +0200
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33436
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752365AbdI0VrI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 17:47:08 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: [PATCH v2 10/17] media: rc-core.rst: add an introduction for RC core
+Date: Wed, 27 Sep 2017 18:46:53 -0300
+Message-Id: <f05c65f6dfd63a42cf2b44f569f584e97a272463.1506548682.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
+References: <cover.1506548682.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-In-Reply-To: <15d74bee-7467-4687-24e1-3501c22f6d75@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
+References: <cover.1506548682.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 26 Sep 2017 11:01:44 +0200
+The RC core does several assumptions, but those aren't documented
+anywhere, with could make harder for ones that want to understand
+what's there.
 
-* Add a jump target so that a bit of exception handling can be better
-  reused at the end of this function.
+So, add an introduction explaining the basic concepts of RC and
+how they're related to the RC core implementation.
 
-  This issue was detected by using the Coccinelle software.
-
-* The script "checkpatch.pl" pointed information out like the following.
-
-  ERROR: do not use assignment in if condition
-
-  Thus fix an affected source code place.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/dvb-frontends/tda8261.c | 20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ Documentation/media/kapi/rc-core.rst | 77 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 77 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/tda8261.c b/drivers/media/dvb-frontends/tda8261.c
-index 4eb294f330bc..5a8a9b6b8107 100644
---- a/drivers/media/dvb-frontends/tda8261.c
-+++ b/drivers/media/dvb-frontends/tda8261.c
-@@ -129,18 +129,18 @@ static int tda8261_set_params(struct dvb_frontend *fe)
+diff --git a/Documentation/media/kapi/rc-core.rst b/Documentation/media/kapi/rc-core.rst
+index a45895886257..355c8ea3ad9f 100644
+--- a/Documentation/media/kapi/rc-core.rst
++++ b/Documentation/media/kapi/rc-core.rst
+@@ -4,6 +4,83 @@ Remote Controller devices
+ Remote Controller core
+ ~~~~~~~~~~~~~~~~~~~~~~
  
- 	/* Set params */
- 	err = tda8261_write(state, buf);
--	if (err < 0) {
--		pr_err("%s: I/O Error\n", __func__);
--		return err;
--	}
-+	err = tda8261_get_status(fe, &status);
-+	if (err < 0)
-+		goto report_failure;
++The remote controller core implements infrastructure to receive and send
++remote controller keyboard keystrokes and mouse events.
 +
- 	/* sleep for some time */
- 	pr_debug("%s: Waiting to Phase LOCK\n", __func__);
- 	msleep(20);
- 	/* check status */
--	if ((err = tda8261_get_status(fe, &status)) < 0) {
--		pr_err("%s: I/O Error\n", __func__);
--		return err;
--	}
-+	err = tda8261_get_status(fe, &status);
-+	if (err < 0)
-+		goto report_failure;
++Every time a key is pressed on a remote controller, a scan code is produced.
++Also, on most hardware, keeping a key pressed for more than a few dozens of
++milliseconds produce a repeat key event. That's somewhat similar to what
++a normal keyboard or mouse is handled internally on Linux\ [#f1]_. So, the
++remote controller core is implemented on the top of the linux input/evdev
++interface.
 +
- 	if (status == 1) {
- 		pr_debug("%s: Tuner Phase locked: status=%d\n", __func__,
- 			 status);
-@@ -150,6 +150,10 @@ static int tda8261_set_params(struct dvb_frontend *fe)
- 	}
++.. [#f1]
++
++   The main difference is that, on keyboard events, the keyboard controller
++   produces one event for a key press and another one for key release. On
++   infrared-based remote controllers, there's no key release event. Instead,
++   an extra code is produced to indicate key repeats.
++
++However, most of the remote controllers use infrared (IR) to transmit signals.
++As there are several protocols used to modulate infrared signals, one
++important part of the core is dedicated to adjust the driver and the core
++system to support the infrared protocol used by the emitter.
++
++The infrared transmission is done by blinking a infrared emitter using a
++carrier. The carrier can be switched on or off by the IR transmitter
++hardware. When the carrier is switched on, it is called *PULSE*.
++When the carrier is switched off, it is called *SPACE*.
++
++In other words, a typical IR transmission can be thinking on a sequence of
++*PULSE* and *SPACE* events, each with a given duration.
++
++The carrier parameters (frequency, duty cycle) and the intervals for
++*PULSE* and *SPACE* events depend on the protocol.
++For example, the NEC protocol uses a carrier of 38kHz, and transmissions
++start with a 9ms *PULSE* and a 4.5ms SPACE. It then transmits 16 bits of
++scan code, being 8 bits for address (usually it is a fixed number for a
++given remote controller), followed by 8 bits of code. A bit "1" is modulated
++with 560µs *PULSE* followed by 1690µs *SPACE* and a bit "0"  is modulated
++with 560µs *PULSE* followed by 560µs *SPACE*.
++
++At receiver, a simple low-pass filter can be used to convert the received
++signal in a sequence of *PULSE/SPACE* events, filtering out the carrier
++frequency. Due to that, the receiver doesn't care about the carrier's
++actual frequency parameters: all it has to do is to measure the amount
++of time it receives *PULSE/SPACE* events.
++So, a simple IR receiver hardware will just provide a sequence of timings
++for those events to the Kernel. The drivers for hardware with such kind of
++receivers are identified by  ``RC_DRIVER_IR_RAW``, as defined by
++:c:type:`rc_driver_type`\ [#f2]_. Other hardware come with a
++microcontroller that decode the *PULSE/SPACE* sequence and return scan
++codes to the Kernel. Such kind of receivers are identified
++by ``RC_DRIVER_SCANCODE``.
++
++.. [#f2]
++
++   The RC core also supports devices that have just IR emitters,
++   without any receivers. Right now, all such devices work only in
++   raw TX mode. Such kind of hardware is identified as
++   ``RC_DRIVER_IR_RAW_TX``.
++
++When the RC core receives events produced by ``RC_DRIVER_IR_RAW`` IR
++receivers, it needs to decode the IR protocol, in order to obtain the
++corresponding scan code. The protocols supported by the RC core are
++defined at enum :c:type:`rc_proto`.
++
++When the RC code receives a scan code (either directly, by a driver
++of the type ``RC_DRIVER_SCANCODE``, or via its IR decoders), it needs
++to convert into a Linux input event code. This is done via a mapping
++table.
++
++The Kernel has support for mapping tables available on most media
++devices. It also supports loading a table in runtime, via some
++sysfs nodes. See the :ref:`RC userspace API <Remote_controllers_Intro>`
++for more details.
++
++Remote controller data structures and functions
++^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++
+ .. kernel-doc:: include/media/rc-core.h
  
- 	return 0;
-+
-+report_failure:
-+	pr_err("%s: I/O Error\n", __func__);
-+	return err;
- }
- 
- static void tda8261_release(struct dvb_frontend *fe)
+ .. kernel-doc:: include/media/rc-map.h
 -- 
-2.14.1
+2.13.5
