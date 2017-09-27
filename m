@@ -1,112 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.200.34]:54997 "EHLO
-        mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751606AbdIUOw6 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33143
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752139AbdI0Vkt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 10:52:58 -0400
-Reply-To: shuah@kernel.org
-Subject: Re: [PATCH 18/25] media: dvb_frontend: get rid of
- dtv_get_property_dump()
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Shuah Khan <shuah@kernel.org>
-References: <cover.1505933919.git.mchehab@s-opensource.com>
- <770f2fb8fba1930ca728ae6e713de86e2c6b95c8.1505933919.git.mchehab@s-opensource.com>
-From: Shuah Khan <shuah@kernel.org>
-Message-ID: <56186eeb-252d-ce8d-5a82-6fbc30981a3d@kernel.org>
-Date: Thu, 21 Sep 2017 08:52:45 -0600
-MIME-Version: 1.0
-In-Reply-To: <770f2fb8fba1930ca728ae6e713de86e2c6b95c8.1505933919.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        Wed, 27 Sep 2017 17:40:49 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?=
+        <knightrider@are.ma>, Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Max Kellermann <max.kellermann@gmail.com>
+Subject: [PATCH v2 14/37] media: dvbdev: fully document its functions
+Date: Wed, 27 Sep 2017 18:40:15 -0300
+Message-Id: <75eefecacae93310decbb2d377884378040a0025.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/20/2017 01:11 PM, Mauro Carvalho Chehab wrote:
-> Simplify the get property handling and move it to the existing
-> code at dtv_property_process_get() directly.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/dvb-core/dvb_frontend.c | 43 ++++++++++-------------------------
->  1 file changed, 12 insertions(+), 31 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-> index b7094c7a405f..607eaf3db052 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb-core/dvb_frontend.c
-> @@ -1107,36 +1107,6 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
->  	_DTV_CMD(DTV_STAT_TOTAL_BLOCK_COUNT, 0, 0),
->  };
->  
-> -static void dtv_get_property_dump(struct dvb_frontend *fe,
-> -			      struct dtv_property *tvp)
-> -{
-> -	int i;
-> -
-> -	if (tvp->cmd <= 0 || tvp->cmd > DTV_MAX_COMMAND) {
-> -		dev_warn(fe->dvb->device, "%s: GET tvp.cmd = 0x%08x undefined\n"
-> -				, __func__,
-> -				tvp->cmd);
-> -		return;
-> -	}
-> -
-> -	dev_dbg(fe->dvb->device, "%s: GET tvp.cmd    = 0x%08x (%s)\n", __func__,
-> -		tvp->cmd,
-> -		dtv_cmds[tvp->cmd].name);
-> -
-> -	if (dtv_cmds[tvp->cmd].buffer) {
-> -		dev_dbg(fe->dvb->device, "%s: tvp.u.buffer.len = 0x%02x\n",
-> -			__func__, tvp->u.buffer.len);
-> -
-> -		for(i = 0; i < tvp->u.buffer.len; i++)
-> -			dev_dbg(fe->dvb->device,
-> -					"%s: tvp.u.buffer.data[0x%02x] = 0x%02x\n",
-> -					__func__, i, tvp->u.buffer.data[i]);
-> -	} else {
-> -		dev_dbg(fe->dvb->device, "%s: tvp.u.data = 0x%08x\n", __func__,
-> -				tvp->u.data);
-> -	}
-> -}
-> -
->  /* Synchronise the legacy tuning parameters into the cache, so that demodulator
->   * drivers can use a single set_frontend tuning function, regardless of whether
->   * it's being used for the legacy or new API, reducing code and complexity.
-> @@ -1529,7 +1499,18 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
->  		return -EINVAL;
->  	}
->  
-> -	dtv_get_property_dump(fe, tvp);
-> +	if (!dtv_cmds[tvp->cmd].buffer)
-> +		dev_dbg(fe->dvb->device,
-> +			"%s: GET cmd 0x%08x (%s) = 0x%08x\n",
-> +			__func__, tvp->cmd, dtv_cmds[tvp->cmd].name,
-> +			tvp->u.data);
-> +	else
-> +		dev_dbg(fe->dvb->device,
-> +			"%s: GET cmd 0x%08x (%s) len %d: %*ph\n",
-> +			__func__,
-> +			tvp->cmd, dtv_cmds[tvp->cmd].name,
-> +			tvp->u.buffer.len,
-> +			tvp->u.buffer.len, tvp->u.buffer.data);
->  
->  	return 0;
->  }
-> 
+There are several functions at the dvbdev that are common to all
+digital TV device nodes with aren't documented.
 
-Why not keep common dtv_property_dum(0 and make these enhancements to add
-more information to the dump in a common routine so both get and set are
-covered.
+Add documentation for them. No functional changes.
 
-I think this change coupled with the change in 17/25 is moving away from
-common simpler code to embedded debug code. I am not clear on the value
-it adds.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/dvbdev.h | 86 +++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 78 insertions(+), 8 deletions(-)
 
-thanks,
--- Shuah 
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index 53058da83873..bbc1c20c0529 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -261,7 +261,7 @@ void dvb_unregister_device(struct dvb_device *dvbdev);
+  * dvb_create_media_graph - Creates media graph for the Digital TV part of the
+  * 				device.
+  *
+- * @adap:			pointer to struct dvb_adapter
++ * @adap:			pointer to &struct dvb_adapter
+  * @create_rf_connector:	if true, it creates the RF connector too
+  *
+  * This function checks all DVB-related functions at the media controller
+@@ -274,12 +274,23 @@ void dvb_unregister_device(struct dvb_device *dvbdev);
+ __must_check int dvb_create_media_graph(struct dvb_adapter *adap,
+ 					bool create_rf_connector);
+ 
++/**
++ * dvb_register_media_controller - registers a media controller at DVB adapter
++ *
++ * @adap:			pointer to &struct dvb_adapter
++ * @mdev:			pointer to &struct media_device
++ */
+ static inline void dvb_register_media_controller(struct dvb_adapter *adap,
+ 						 struct media_device *mdev)
+ {
+ 	adap->mdev = mdev;
+ }
+ 
++/**
++ * dvb_get_media_controller - gets the associated media controller
++ *
++ * @adap:			pointer to &struct dvb_adapter
++ */
+ static inline struct media_device
+ *dvb_get_media_controller(struct dvb_adapter *adap)
+ {
+@@ -296,20 +307,71 @@ int dvb_create_media_graph(struct dvb_adapter *adap,
+ #define dvb_get_media_controller(a) NULL
+ #endif
+ 
+-int dvb_generic_open (struct inode *inode, struct file *file);
+-int dvb_generic_release (struct inode *inode, struct file *file);
+-long dvb_generic_ioctl (struct file *file,
+-			      unsigned int cmd, unsigned long arg);
++/**
++ * dvb_generic_open - Digital TV open function, used by DVB devices
++ *
++ * @inode: pointer to &struct inode.
++ * @file: pointer to &struct file.
++ *
++ * Checks if a DVB devnode is still valid, and if the permissions are
++ * OK and increment negative use count.
++ */
++int dvb_generic_open(struct inode *inode, struct file *file);
+ 
+-/* we don't mess with video_usercopy() any more,
+-we simply define out own dvb_usercopy(), which will hopefully become
+-generic_usercopy()  someday... */
++/**
++ * dvb_generic_close - Digital TV close function, used by DVB devices
++ *
++ * @inode: pointer to &struct inode.
++ * @file: pointer to &struct file.
++ *
++ * Checks if a DVB devnode is still valid, and if the permissions are
++ * OK and decrement negative use count.
++ */
++int dvb_generic_release(struct inode *inode, struct file *file);
+ 
++/**
++ * dvb_generic_ioctl - Digital TV close function, used by DVB devices
++ *
++ * @file: pointer to &struct file.
++ * @cmd: Ioctl name.
++ * @arg: Ioctl argument.
++ *
++ * Checks if a DVB devnode and struct dvbdev.kernel_ioctl is still valid.
++ * If so, calls dvb_usercopy().
++ */
++long dvb_generic_ioctl(struct file *file,
++		       unsigned int cmd, unsigned long arg);
++
++/**
++ * dvb_usercopy - copies data from/to userspace memory when an ioctl is
++ *      issued.
++ *
++ * @file: Pointer to struct &file.
++ * @cmd: Ioctl name.
++ * @arg: Ioctl argument.
++ * @func: function that will actually handle the ioctl
++ *
++ * Ancillary function that uses ioctl direction and size to copy from
++ * userspace. Then, it calls @func, and, if needed, data is copied back
++ * to userspace.
++ */
+ int dvb_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 		 int (*func)(struct file *file, unsigned int cmd, void *arg));
+ 
+ /** generic DVB attach function. */
+ #ifdef CONFIG_MEDIA_ATTACH
++
++/**
++ * dvb_attach - attaches a DVB frontend into the DVB core.
++ *
++ * @FUNCTION:	function on a frontend module to be called.
++ * @ARGS...:	@FUNCTION arguments.
++ *
++ * This ancillary function loads a frontend module in runtime and runs
++ * the @FUNCTION function there, with @ARGS.
++ * As it increments symbol usage cont, at unregister, dvb_detach()
++ * should be called.
++ */
+ #define dvb_attach(FUNCTION, ARGS...) ({ \
+ 	void *__r = NULL; \
+ 	typeof(&FUNCTION) __a = symbol_request(FUNCTION); \
+@@ -323,6 +385,14 @@ int dvb_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 	__r; \
+ })
+ 
++/**
++ * dvb_detach - detaches a DVB frontend loaded via dvb_attach()
++ *
++ * @FUNC:	attach function
++ *
++ * Decrements usage count for a function previously called via dvb_attach().
++ */
++
+ #define dvb_detach(FUNC)	symbol_put_addr(FUNC)
+ 
+ #else
+-- 
+2.13.5
