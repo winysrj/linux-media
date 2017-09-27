@@ -1,129 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38117 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751519AbdISMTz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 08:19:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, robh@kernel.org,
-        hverkuil@xs4all.nl, devicetree@vger.kernel.org, pavel@ucw.cz,
-        sre@kernel.org
-Subject: Re: [PATCH v13 17/25] v4l: fwnode: Add a helper function for parsing generic references
-Date: Tue, 19 Sep 2017 15:19:59 +0300
-Message-ID: <2639286.bLnehYdF9o@avalon>
-In-Reply-To: <20170915141724.23124-18-sakari.ailus@linux.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com> <20170915141724.23124-18-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mga11.intel.com ([192.55.52.93]:44138 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752206AbdI0SZq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 14:25:46 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 08/13] staging: atomisp: Remove ->power_ctrl() callback
+Date: Wed, 27 Sep 2017 21:25:03 +0300
+Message-Id: <20170927182508.52119-9-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20170927182508.52119-1-andriy.shevchenko@linux.intel.com>
+References: <20170927182508.52119-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+There is redundant callback which does nothing in upstreamed version of
+the driver.
 
-Thank you for the patch.
+Remove it along with user call places.
 
-On Friday, 15 September 2017 17:17:16 EEST Sakari Ailus wrote:
-> Add function v4l2_fwnode_reference_parse() for parsing them as async
-> sub-devices. This can be done on e.g. flash or lens async sub-devices that
-> are not part of but are associated with a sensor.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/v4l2-core/v4l2-fwnode.c | 69 ++++++++++++++++++++++++++++++++
->  1 file changed, 69 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c
-> b/drivers/media/v4l2-core/v4l2-fwnode.c index 44ee35f6aad5..65e84ea1cc35
-> 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -498,6 +498,75 @@ int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
-> }
->  EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints_by_port);
-> 
-> +/*
-> + * v4l2_fwnode_reference_parse - parse references for async sub-devices
-> + * @dev: the device node the properties of which are parsed for references
-> + * @notifier: the async notifier where the async subdevs will be added
-> + * @prop: the name of the property
-> + *
-> + * Return: 0 on success
-> + *	   -ENOENT if no entries were found
-> + *	   -ENOMEM if memory allocation failed
-> + *	   -EINVAL if property parsing failed
-> + */
-> +static int v4l2_fwnode_reference_parse(
-> +	struct device *dev, struct v4l2_async_notifier *notifier,
-> +	const char *prop)
-> +{
-> +	struct fwnode_reference_args args;
-> +	unsigned int index;
-> +	int ret;
-> +
-> +	for (index = 0;
-> +	     !(ret = fwnode_property_get_reference_args(
-> +		       dev_fwnode(dev), prop, NULL, 0, index, &args));
-> +	     index++)
-> +		fwnode_handle_put(args.fwnode);
+Mostly done with help of coccinelle.
 
-This seems to indicate that the fwnode API is missing a function to count the 
-number of references in a property. Should that be fixed ?
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/staging/media/atomisp/i2c/gc0310.c                     | 4 ----
+ drivers/staging/media/atomisp/i2c/gc2235.c                     | 4 ----
+ drivers/staging/media/atomisp/i2c/mt9m114.c                    | 4 ----
+ drivers/staging/media/atomisp/i2c/ov2680.c                     | 4 ----
+ drivers/staging/media/atomisp/i2c/ov2722.c                     | 4 ----
+ drivers/staging/media/atomisp/i2c/ov5693/ov5693.c              | 4 ----
+ drivers/staging/media/atomisp/i2c/ov8858.c                     | 4 ----
+ drivers/staging/media/atomisp/include/linux/atomisp_platform.h | 8 ++++----
+ 8 files changed, 4 insertions(+), 32 deletions(-)
 
-The rest looks OK to me.
-
-> +	if (!index)
-> +		return -ENOENT;
-> +
-> +	/*
-> +	 * Note that right now both -ENODATA and -ENOENT may signal
-> +	 * out-of-bounds access. Return the error in cases other than that.
-> +	 */
-> +	if (ret != -ENOENT && ret != -ENODATA)
-> +		return ret;
-> +
-> +	ret = v4l2_async_notifier_realloc(notifier,
-> +					  notifier->num_subdevs + index);
-> +	if (ret)
-> +		return ret;
-> +
-> +	for (index = 0; !fwnode_property_get_reference_args(
-> +		     dev_fwnode(dev), prop, NULL, 0, index, &args);
-> +	     index++) {
-> +		struct v4l2_async_subdev *asd;
-> +
-> +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-> +			ret = -EINVAL;
-> +			goto error;
-> +		}
-> +
-> +		asd = kzalloc(sizeof(*asd), GFP_KERNEL);
-> +		if (!asd) {
-> +			ret = -ENOMEM;
-> +			goto error;
-> +		}
-> +
-> +		notifier->subdevs[notifier->num_subdevs] = asd;
-> +		asd->match.fwnode.fwnode = args.fwnode;
-> +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-> +		notifier->num_subdevs++;
-> +	}
-> +
-> +	return 0;
-> +
-> +error:
-> +	fwnode_handle_put(args.fwnode);
-> +	return ret;
-> +}
-> +
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
->  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-
-
+diff --git a/drivers/staging/media/atomisp/i2c/gc0310.c b/drivers/staging/media/atomisp/i2c/gc0310.c
+index 672a28c060f6..b6b1956293c0 100644
+--- a/drivers/staging/media/atomisp/i2c/gc0310.c
++++ b/drivers/staging/media/atomisp/i2c/gc0310.c
+@@ -737,10 +737,6 @@ static int power_ctrl(struct v4l2_subdev *sd, bool flag)
+ 	if (!dev || !dev->platform_data)
+ 		return -ENODEV;
+ 
+-	/* Non-gmin platforms use the legacy callback */
+-	if (dev->platform_data->power_ctrl)
+-		return dev->platform_data->power_ctrl(sd, flag);
+-
+ 	if (flag) {
+ 		/* The upstream module driver (written to Crystal
+ 		 * Cove) had this logic to pulse the rails low first.
+diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
+index 81b23b55f73a..46e063dcdc19 100644
+--- a/drivers/staging/media/atomisp/i2c/gc2235.c
++++ b/drivers/staging/media/atomisp/i2c/gc2235.c
+@@ -547,10 +547,6 @@ static int power_ctrl(struct v4l2_subdev *sd, bool flag)
+ 	if (!dev || !dev->platform_data)
+ 		return -ENODEV;
+ 
+-	/* Non-gmin platforms use the legacy callback */
+-	if (dev->platform_data->power_ctrl)
+-		return dev->platform_data->power_ctrl(sd, flag);
+-
+ 	if (flag) {
+ 		ret = dev->platform_data->v1p8_ctrl(sd, 1);
+ 		usleep_range(60, 90);
+diff --git a/drivers/staging/media/atomisp/i2c/mt9m114.c b/drivers/staging/media/atomisp/i2c/mt9m114.c
+index 4968deae2525..950627efa977 100644
+--- a/drivers/staging/media/atomisp/i2c/mt9m114.c
++++ b/drivers/staging/media/atomisp/i2c/mt9m114.c
+@@ -454,10 +454,6 @@ static int power_ctrl(struct v4l2_subdev *sd, bool flag)
+ 	if (!dev || !dev->platform_data)
+ 		return -ENODEV;
+ 
+-	/* Non-gmin platforms use the legacy callback */
+-	if (dev->platform_data->power_ctrl)
+-		return dev->platform_data->power_ctrl(sd, flag);
+-
+ 	if (flag) {
+ 		ret = dev->platform_data->v2p8_ctrl(sd, 1);
+ 		if (ret == 0) {
+diff --git a/drivers/staging/media/atomisp/i2c/ov2680.c b/drivers/staging/media/atomisp/i2c/ov2680.c
+index 162150055770..9279246cf0b1 100644
+--- a/drivers/staging/media/atomisp/i2c/ov2680.c
++++ b/drivers/staging/media/atomisp/i2c/ov2680.c
+@@ -846,10 +846,6 @@ static int power_ctrl(struct v4l2_subdev *sd, bool flag)
+ 	if (!dev || !dev->platform_data)
+ 		return -ENODEV;
+ 
+-	/* Non-gmin platforms use the legacy callback */
+-	if (dev->platform_data->power_ctrl)
+-		return dev->platform_data->power_ctrl(sd, flag);
+-
+ 	if (flag) {
+ 		ret |= dev->platform_data->v1p8_ctrl(sd, 1);
+ 		ret |= dev->platform_data->v2p8_ctrl(sd, 1);
+diff --git a/drivers/staging/media/atomisp/i2c/ov2722.c b/drivers/staging/media/atomisp/i2c/ov2722.c
+index 6c1057542aea..39296a784162 100644
+--- a/drivers/staging/media/atomisp/i2c/ov2722.c
++++ b/drivers/staging/media/atomisp/i2c/ov2722.c
+@@ -650,10 +650,6 @@ static int power_ctrl(struct v4l2_subdev *sd, bool flag)
+ 	if (!dev || !dev->platform_data)
+ 		return -ENODEV;
+ 
+-	/* Non-gmin platforms use the legacy callback */
+-	if (dev->platform_data->power_ctrl)
+-		return dev->platform_data->power_ctrl(sd, flag);
+-
+ 	if (flag) {
+ 		ret = dev->platform_data->v1p8_ctrl(sd, 1);
+ 		if (ret == 0) {
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
+index 8d5b4c3ea55d..33651ec0218f 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
++++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
+@@ -1297,10 +1297,6 @@ static int power_ctrl(struct v4l2_subdev *sd, bool flag)
+ 	if (!dev || !dev->platform_data)
+ 		return -ENODEV;
+ 
+-	/* Non-gmin platforms use the legacy callback */
+-	if (dev->platform_data->power_ctrl)
+-		return dev->platform_data->power_ctrl(sd, flag);
+-
+ 	/* This driver assumes "internal DVDD, PWDNB tied to DOVDD".
+ 	 * In this set up only gpio0 (XSHUTDN) should be available
+ 	 * but in some products (for example ECS) gpio1 (PWDNB) is
+diff --git a/drivers/staging/media/atomisp/i2c/ov8858.c b/drivers/staging/media/atomisp/i2c/ov8858.c
+index c00e5b37139f..a13bbfb44652 100644
+--- a/drivers/staging/media/atomisp/i2c/ov8858.c
++++ b/drivers/staging/media/atomisp/i2c/ov8858.c
+@@ -714,10 +714,6 @@ static int __power_ctrl(struct v4l2_subdev *sd, bool flag)
+ 	if (!dev || !dev->platform_data)
+ 		return -ENODEV;
+ 
+-	/* Non-gmin platforms use the legacy callback */
+-	if (dev->platform_data->power_ctrl)
+-		return dev->platform_data->power_ctrl(sd, flag);
+-
+ 	if (dev->platform_data->v1p2_ctrl) {
+ 		ret = dev->platform_data->v1p2_ctrl(sd, flag);
+ 		if (ret) {
+diff --git a/drivers/staging/media/atomisp/include/linux/atomisp_platform.h b/drivers/staging/media/atomisp/include/linux/atomisp_platform.h
+index 94ddb46d415b..5ce8678dacf3 100644
+--- a/drivers/staging/media/atomisp/include/linux/atomisp_platform.h
++++ b/drivers/staging/media/atomisp/include/linux/atomisp_platform.h
+@@ -206,7 +206,6 @@ struct camera_vcm_control {
+ 
+ struct camera_sensor_platform_data {
+ 	int (*flisclk_ctrl)(struct v4l2_subdev *subdev, int flag);
+-	int (*power_ctrl)(struct v4l2_subdev *subdev, int flag);
+ 	int (*csi_cfg)(struct v4l2_subdev *subdev, int flag);
+ 	bool (*low_fps)(void);
+ 	int (*platform_init)(struct i2c_client *);
+@@ -214,9 +213,10 @@ struct camera_sensor_platform_data {
+ 	char *(*msr_file_name)(void);
+ 	struct atomisp_camera_caps *(*get_camera_caps)(void);
+ 
+-	/* New G-Min power and GPIO interface, replaces
+-	 * power/gpio_ctrl with methods to control individual
+-	 * lines as implemented on all known camera modules. */
++	/*
++	 * New G-Min power and GPIO interface to control individual
++	 * lines as implemented on all known camera modules.
++	 */
+ 	int (*gpio0_ctrl)(struct v4l2_subdev *subdev, int on);
+ 	int (*gpio1_ctrl)(struct v4l2_subdev *subdev, int on);
+ 	int (*v1p8_ctrl)(struct v4l2_subdev *subdev, int on);
 -- 
-Regards,
-
-Laurent Pinchart
+2.14.1
