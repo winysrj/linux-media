@@ -1,97 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40310 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751323AbdINLxZ (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33171
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752131AbdI0Vkt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Sep 2017 07:53:25 -0400
-Date: Thu, 14 Sep 2017 13:53:23 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Wed, 27 Sep 2017 17:40:49 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-        niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        sre@kernel.org
-Subject: Re: as3645a flash userland interface
-Message-ID: <20170914115323.GA1850@amd>
-References: <20170912084236.1154-1-sakari.ailus@linux.intel.com>
- <20170912084236.1154-25-sakari.ailus@linux.intel.com>
- <20170912103628.GB27117@amd>
- <7b679cb3-ce58-e1d1-60bf-995896bf46eb@gmail.com>
- <20170912215529.GA17218@amd>
- <21824758-28a1-7007-6db5-86a900025d14@gmail.com>
- <CGME20170914092415epcas2p26c049a698851778673034c16afb290b9@epcas2p2.samsung.com>
- <4bf12e8e-beff-0199-cdee-4a52ebe7cdaf@samsung.com>
- <20170914100718.GA3843@amd>
- <1f34a891-edb1-251c-86a8-ba4a90c485d3@samsung.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="+HP7ph2BbKc20aGI"
-Content-Disposition: inline
-In-Reply-To: <1f34a891-edb1-251c-86a8-ba4a90c485d3@samsung.com>
+        Ingo Molnar <mingo@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: [PATCH v2 23/37] media: dvb_demux: dvb_demux_feed.pusi_seen is boolean
+Date: Wed, 27 Sep 2017 18:40:24 -0300
+Message-Id: <e9cc0692d55e91e389c9ed4445a99a71f33d697c.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Instead of using an integer to represent it, use boolean,
+as this better describes what this field really means.
 
---+HP7ph2BbKc20aGI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/dvb_demux.c    | 12 ++++++------
+ drivers/media/dvb-core/dvb_demux.h    |  2 +-
+ drivers/media/pci/ttpci/av7110.c      |  2 +-
+ drivers/media/pci/ttpci/budget-core.c |  2 +-
+ 4 files changed, 9 insertions(+), 9 deletions(-)
 
-On Thu 2017-09-14 13:01:19, Sylwester Nawrocki wrote:
-> On 09/14/2017 12:07 PM, Pavel Machek wrote:
-> >>Isn't the V4L2 subdev/Media Controller API supposed to provide means
-> >>for associating flash LEDs with camera sensors? You seem to be insisting
-> >>on using the sysfs leds interface for that, which is not a primary
-> >>interface for camera flash AFAICT.
-> >
-> >a) subdev/media controller API currently does not provide such means.
->=20
-> Yes, but it should, that's what it was designed for AFAIK.
->=20
-> >b) if we have /sys/class/leds interface to userland, it should be
-> >useful.
->=20
-> At the same time we shouldn't overcomplicate it with the camera
-> functionality.
-
-I'm advocating adding label =3D "main_camera" into the .dts. That's all.
-
-> >c) having flashlight application going through media controller API is
-> >a bad joke.
->=20
-> It doesn't have to, maybe I misunderstood what you exactly ask for.
-> Nevertheless what's missing is some user visible name/label for each
-> flash LED, right? Currently enumerating flash LEDs can be done by looking
-> at the function part of /sys/class/leds/<led-controller>:<colour>:
-> <function> path.
->=20
-> Could additional information be appended to the <function> part, so
-> user can identify which LED is which? E.g. "flash(rear)", "flash(front)",
-> etc. This could be achieved by simply adding label property in DT.
-> Or is the list of supported <function> strings already standardized?
-
-label =3D "flash_main_camera" would work for me, yes. And yes, I'd
-prefer to do this before 4.14 release, so that userland-visible
-interface does not change.
-
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---+HP7ph2BbKc20aGI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlm6bbMACgkQMOfwapXb+vLs5ACfSHGpLyqkbp6oPuWYh9pfwq6S
-9RkAmwabXDg4cqAZMqZP9Si2IOvyxCDb
-=yM0y
------END PGP SIGNATURE-----
-
---+HP7ph2BbKc20aGI--
+diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
+index 68e93362c081..b9360cbc3519 100644
+--- a/drivers/media/dvb-core/dvb_demux.c
++++ b/drivers/media/dvb-core/dvb_demux.c
+@@ -223,10 +223,10 @@ static void dvb_dmx_swfilter_section_new(struct dvb_demux_feed *feed)
+  *  when the second packet arrives.
+  *
+  * Fix:
+- * when demux is started, let feed->pusi_seen = 0 to
++ * when demux is started, let feed->pusi_seen = false to
+  * prevent initial feeding of garbage from the end of
+  * previous section. When you for the first time see PUSI=1
+- * then set feed->pusi_seen = 1
++ * then set feed->pusi_seen = true
+  */
+ static int dvb_dmx_swfilter_section_copy_dump(struct dvb_demux_feed *feed,
+ 					      const u8 *buf, u8 len)
+@@ -318,10 +318,10 @@ static int dvb_dmx_swfilter_section_packet(struct dvb_demux_feed *feed,
+ 		 */
+ #endif
+ 		/*
+-		 * Discontinuity detected. Reset pusi_seen = 0 to
++		 * Discontinuity detected. Reset pusi_seen to
+ 		 * stop feeding of suspicious data until next PUSI=1 arrives
+ 		 */
+-		feed->pusi_seen = 0;
++		feed->pusi_seen = false;
+ 		dvb_dmx_swfilter_section_new(feed);
+ 	}
+ 
+@@ -335,8 +335,8 @@ static int dvb_dmx_swfilter_section_packet(struct dvb_demux_feed *feed,
+ 
+ 			dvb_dmx_swfilter_section_copy_dump(feed, before,
+ 							   before_len);
+-			/* before start of new section, set pusi_seen = 1 */
+-			feed->pusi_seen = 1;
++			/* before start of new section, set pusi_seen */
++			feed->pusi_seen = true;
+ 			dvb_dmx_swfilter_section_new(feed);
+ 			dvb_dmx_swfilter_section_copy_dump(feed, after,
+ 							   after_len);
+diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
+index 700887938145..9db3c2b7c64e 100644
+--- a/drivers/media/dvb-core/dvb_demux.h
++++ b/drivers/media/dvb-core/dvb_demux.h
+@@ -101,7 +101,7 @@ struct dvb_demux_feed {
+ 	enum dmx_ts_pes pes_type;
+ 
+ 	int cc;
+-	int pusi_seen;		/* prevents feeding of garbage from previous section */
++	bool pusi_seen;		/* prevents feeding of garbage from previous section */
+ 
+ 	u16 peslen;
+ 
+diff --git a/drivers/media/pci/ttpci/av7110.c b/drivers/media/pci/ttpci/av7110.c
+index f46947d8adf8..f89fb23f6c57 100644
+--- a/drivers/media/pci/ttpci/av7110.c
++++ b/drivers/media/pci/ttpci/av7110.c
+@@ -1224,7 +1224,7 @@ static int budget_start_feed(struct dvb_demux_feed *feed)
+ 	dprintk(2, "av7110: %p\n", budget);
+ 
+ 	spin_lock(&budget->feedlock1);
+-	feed->pusi_seen = 0; /* have a clean section start */
++	feed->pusi_seen = false; /* have a clean section start */
+ 	status = start_ts_capture(budget);
+ 	spin_unlock(&budget->feedlock1);
+ 	return status;
+diff --git a/drivers/media/pci/ttpci/budget-core.c b/drivers/media/pci/ttpci/budget-core.c
+index 97499b2af714..b3dc45b91101 100644
+--- a/drivers/media/pci/ttpci/budget-core.c
++++ b/drivers/media/pci/ttpci/budget-core.c
+@@ -330,7 +330,7 @@ static int budget_start_feed(struct dvb_demux_feed *feed)
+ 		return -EINVAL;
+ 
+ 	spin_lock(&budget->feedlock);
+-	feed->pusi_seen = 0; /* have a clean section start */
++	feed->pusi_seen = false; /* have a clean section start */
+ 	if (budget->feeding++ == 0)
+ 		status = start_ts_capture(budget);
+ 	spin_unlock(&budget->feedlock);
+-- 
+2.13.5
