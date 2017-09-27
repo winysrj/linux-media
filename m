@@ -1,62 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:44428 "EHLO
-        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751034AbdISJU6 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33171
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752156AbdI0Vku (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 05:20:58 -0400
-Received: by mail-lf0-f52.google.com with SMTP id l196so3059592lfl.1
-        for <linux-media@vger.kernel.org>; Tue, 19 Sep 2017 02:20:58 -0700 (PDT)
-Subject: Re: [PATCHv2 1/2] dt-bindings: adi,adv7511.txt: document cec clock
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
-        Archit Taneja <architt@codeaurora.org>,
-        linux-renesas-soc@vger.kernel.org,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20170919073331.29007-1-hverkuil@xs4all.nl>
- <20170919073331.29007-2-hverkuil@xs4all.nl>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <505bc74f-6563-ab1d-9aab-7893410aef7e@cogentembedded.com>
-Date: Tue, 19 Sep 2017 12:20:56 +0300
-MIME-Version: 1.0
-In-Reply-To: <20170919073331.29007-2-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 27 Sep 2017 17:40:50 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: [PATCH v2 18/37] media: dtv-demux.rst: minor markup improvements
+Date: Wed, 27 Sep 2017 18:40:19 -0300
+Message-Id: <6c7ddb12751994fa5f827e3e8bc273abf2789b66.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+Add a cross-reference to a mentioned structure and split
+the kernel-doc stuff on a separate chapter.
 
-On 9/19/2017 10:33 AM, Hans Verkuil wrote:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/kapi/dtv-demux.rst | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Document the cec clock binding.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Rob Herring <robh@kernel.org>
-> ---
->   Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt | 4 ++++
->   1 file changed, 4 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-> index 06668bca7ffc..4497ae054d49 100644
-> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-> @@ -68,6 +68,8 @@ Optional properties:
->   - adi,disable-timing-generator: Only for ADV7533. Disables the internal timing
->     generator. The chip will rely on the sync signals in the DSI data lanes,
->     rather than generate its own timings for HDMI output.
-> +- clocks: from common clock binding: handle to CEC clock.
-
-    It's called "phandle" in the DT speak. :-)
-    Are you sure the clock specifier would always be absent?
-
-> +- clock-names: from common clock binding: must be "cec".
->   
->   Required nodes:
->   
-[...]
-
-MBR, Sergei
+diff --git a/Documentation/media/kapi/dtv-demux.rst b/Documentation/media/kapi/dtv-demux.rst
+index 8169c479156e..3ee69266e206 100644
+--- a/Documentation/media/kapi/dtv-demux.rst
++++ b/Documentation/media/kapi/dtv-demux.rst
+@@ -7,8 +7,8 @@ Digital TV Demux
+ The Kernel Digital TV Demux kABI defines a driver-internal interface for
+ registering low-level, hardware specific driver to a hardware independent
+ demux layer. It is only of interest for Digital TV device driver writers.
+-The header file for this kABI is named demux.h and located in
+-drivers/media/dvb-core.
++The header file for this kABI is named ``demux.h`` and located in
++``drivers/media/dvb-core``.
+ 
+ The demux kABI should be implemented for each demux in the system. It is
+ used to select the TS source of a demux and to manage the demux resources.
+@@ -27,7 +27,7 @@ tuning, are devined via the Digital TV Frontend kABI.
+ The functions that implement the abstract interface demux should be defined
+ static or module private and registered to the Demux core for external
+ access. It is not necessary to implement every function in the struct
+-&dmx_demux. For example, a demux interface might support Section filtering,
++:c:type:`dmx_demux`. For example, a demux interface might support Section filtering,
+ but not PES filtering. The kABI client is expected to check the value of any
+ function pointer before calling the function: the value of ``NULL`` means
+ that the function is not available.
+@@ -43,8 +43,6 @@ Linux Kernel calls the functions of a network device interface from a
+ bottom half context. Thus, if a demux kABI function is called from network
+ device code, the function must not sleep.
+ 
+-
+-
+ Demux Callback API
+ ~~~~~~~~~~~~~~~~~~
+ 
+@@ -68,4 +66,7 @@ function call directly from a hardware interrupt.
+ This mechanism is implemented by :c:func:`dmx_ts_cb()` and :c:func:`dmx_section_cb()`
+ callbacks.
+ 
++Digital TV Demux functions and types
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
+ .. kernel-doc:: drivers/media/dvb-core/demux.h
+-- 
+2.13.5
