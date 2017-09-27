@@ -1,379 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36470 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751422AbdILNmG (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:33135 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S968951AbdI0Dwi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 09:42:06 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+        Tue, 26 Sep 2017 23:52:38 -0400
+Message-ID: <03a481c09a71bb58f68d39a796c8ba46@smtp-cloud7.xs4all.net>
+Date: Wed, 27 Sep 2017 05:52:35 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v12 08/26] rcar-vin: Use generic parser for parsing fwnode endpoints
-Date: Tue, 12 Sep 2017 16:41:42 +0300
-Message-Id: <20170912134200.19556-9-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
-References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using driver implementation, use
-v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
-of the device.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 112 +++++++++-------------------
- drivers/media/platform/rcar-vin/rcar-dma.c  |  10 +--
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  14 ++--
- drivers/media/platform/rcar-vin/rcar-vin.h  |   4 +-
- 4 files changed, 48 insertions(+), 92 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 142de447aaaa..62b4a94f9a39 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -21,6 +21,7 @@
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- 
-+#include <media/v4l2-async.h>
- #include <media/v4l2-fwnode.h>
- 
- #include "rcar-vin.h"
-@@ -77,14 +78,14 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- 	int ret;
- 
- 	/* Verify subdevices mbus format */
--	if (!rvin_mbus_supported(&vin->digital)) {
-+	if (!rvin_mbus_supported(vin->digital)) {
- 		vin_err(vin, "Unsupported media bus format for %s\n",
--			vin->digital.subdev->name);
-+			vin->digital->subdev->name);
- 		return -EINVAL;
- 	}
- 
- 	vin_dbg(vin, "Found media bus format for %s: %d\n",
--		vin->digital.subdev->name, vin->digital.code);
-+		vin->digital->subdev->name, vin->digital->code);
- 
- 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
- 	if (ret < 0) {
-@@ -103,7 +104,7 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
- 
- 	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
- 	rvin_v4l2_remove(vin);
--	vin->digital.subdev = NULL;
-+	vin->digital->subdev = NULL;
- }
- 
- static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
-@@ -120,117 +121,70 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
- 	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
- 	if (ret < 0)
- 		return ret;
--	vin->digital.source_pad = ret;
-+	vin->digital->source_pad = ret;
- 
- 	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
--	vin->digital.sink_pad = ret < 0 ? 0 : ret;
-+	vin->digital->sink_pad = ret < 0 ? 0 : ret;
- 
--	vin->digital.subdev = subdev;
-+	vin->digital->subdev = subdev;
- 
- 	vin_dbg(vin, "bound subdev %s source pad: %u sink pad: %u\n",
--		subdev->name, vin->digital.source_pad,
--		vin->digital.sink_pad);
-+		subdev->name, vin->digital->source_pad,
-+		vin->digital->sink_pad);
- 
- 	return 0;
- }
- 
--static int rvin_digitial_parse_v4l2(struct rvin_dev *vin,
--				    struct device_node *ep,
--				    struct v4l2_mbus_config *mbus_cfg)
-+static int rvin_digital_parse_v4l2(struct device *dev,
-+				   struct v4l2_fwnode_endpoint *vep,
-+				   struct v4l2_async_subdev *asd)
- {
--	struct v4l2_fwnode_endpoint v4l2_ep;
--	int ret;
-+	struct rvin_dev *vin = dev_get_drvdata(dev);
-+	struct rvin_graph_entity *rvge =
-+		container_of(asd, struct rvin_graph_entity, asd);
- 
--	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
--	if (ret) {
--		vin_err(vin, "Could not parse v4l2 endpoint\n");
--		return -EINVAL;
--	}
-+	if (vep->base.port || vep->base.id)
-+		return -ENOTCONN;
- 
--	mbus_cfg->type = v4l2_ep.bus_type;
-+	rvge->mbus_cfg.type = vep->bus_type;
- 
--	switch (mbus_cfg->type) {
-+	switch (rvge->mbus_cfg.type) {
- 	case V4L2_MBUS_PARALLEL:
- 		vin_dbg(vin, "Found PARALLEL media bus\n");
--		mbus_cfg->flags = v4l2_ep.bus.parallel.flags;
-+		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
- 		break;
- 	case V4L2_MBUS_BT656:
- 		vin_dbg(vin, "Found BT656 media bus\n");
--		mbus_cfg->flags = 0;
-+		rvge->mbus_cfg.flags = 0;
- 		break;
- 	default:
- 		vin_err(vin, "Unknown media bus type\n");
- 		return -EINVAL;
- 	}
- 
--	return 0;
--}
--
--static int rvin_digital_graph_parse(struct rvin_dev *vin)
--{
--	struct device_node *ep, *np;
--	int ret;
--
--	vin->digital.asd.match.fwnode.fwnode = NULL;
--	vin->digital.subdev = NULL;
--
--	/*
--	 * Port 0 id 0 is local digital input, try to get it.
--	 * Not all instances can or will have this, that is OK
--	 */
--	ep = of_graph_get_endpoint_by_regs(vin->dev->of_node, 0, 0);
--	if (!ep)
--		return 0;
--
--	np = of_graph_get_remote_port_parent(ep);
--	if (!np) {
--		vin_err(vin, "No remote parent for digital input\n");
--		of_node_put(ep);
--		return -EINVAL;
--	}
--	of_node_put(np);
--
--	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->digital.mbus_cfg);
--	of_node_put(ep);
--	if (ret)
--		return ret;
--
--	vin->digital.asd.match.fwnode.fwnode = of_fwnode_handle(np);
--	vin->digital.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-+	vin->digital = rvge;
- 
- 	return 0;
- }
- 
- static int rvin_digital_graph_init(struct rvin_dev *vin)
- {
--	struct v4l2_async_subdev **subdevs = NULL;
- 	int ret;
- 
--	ret = rvin_digital_graph_parse(vin);
-+	ret = v4l2_async_notifier_parse_fwnode_endpoints(
-+		vin->dev, &vin->notifier,
-+		sizeof(struct rvin_graph_entity), rvin_digital_parse_v4l2);
- 	if (ret)
- 		return ret;
- 
--	if (!vin->digital.asd.match.fwnode.fwnode) {
--		vin_dbg(vin, "No digital subdevice found\n");
--		return -ENODEV;
--	}
--
--	/* Register the subdevices notifier. */
--	subdevs = devm_kzalloc(vin->dev, sizeof(*subdevs), GFP_KERNEL);
--	if (subdevs == NULL)
--		return -ENOMEM;
--
--	subdevs[0] = &vin->digital.asd;
--
--	vin_dbg(vin, "Found digital subdevice %pOF\n",
--		to_of_node(subdevs[0]->match.fwnode.fwnode));
-+	if (vin->digital)
-+		vin_dbg(vin, "Found digital subdevice %pOF\n",
-+			to_of_node(
-+				vin->digital->asd.match.fwnode.fwnode));
- 
--	vin->notifier.num_subdevs = 1;
--	vin->notifier.subdevs = subdevs;
- 	vin->notifier.bound = rvin_digital_notify_bound;
- 	vin->notifier.unbind = rvin_digital_notify_unbind;
- 	vin->notifier.complete = rvin_digital_notify_complete;
--
- 	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
- 	if (ret < 0) {
- 		vin_err(vin, "Notifier registration failed\n");
-@@ -290,6 +244,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
-+	platform_set_drvdata(pdev, vin);
-+
- 	ret = rvin_digital_graph_init(vin);
- 	if (ret < 0)
- 		goto error;
-@@ -297,11 +253,10 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	pm_suspend_ignore_children(&pdev->dev, true);
- 	pm_runtime_enable(&pdev->dev);
- 
--	platform_set_drvdata(pdev, vin);
--
- 	return 0;
- error:
- 	rvin_dma_remove(vin);
-+	v4l2_async_notifier_release(&vin->notifier);
- 
- 	return ret;
- }
-@@ -313,6 +268,7 @@ static int rcar_vin_remove(struct platform_device *pdev)
- 	pm_runtime_disable(&pdev->dev);
- 
- 	v4l2_async_notifier_unregister(&vin->notifier);
-+	v4l2_async_notifier_release(&vin->notifier);
- 
- 	rvin_dma_remove(vin);
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index b136844499f6..23fdff7a7370 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -183,7 +183,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 	/*
- 	 * Input interface
- 	 */
--	switch (vin->digital.code) {
-+	switch (vin->digital->code) {
- 	case MEDIA_BUS_FMT_YUYV8_1X16:
- 		/* BT.601/BT.1358 16bit YCbCr422 */
- 		vnmc |= VNMC_INF_YUV16;
-@@ -191,7 +191,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	case MEDIA_BUS_FMT_UYVY8_2X8:
- 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
--		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
-+		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
- 		input_is_yuv = true;
- 		break;
-@@ -200,7 +200,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	case MEDIA_BUS_FMT_UYVY10_2X10:
- 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
--		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
-+		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
- 		input_is_yuv = true;
- 		break;
-@@ -212,11 +212,11 @@ static int rvin_setup(struct rvin_dev *vin)
- 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
- 
- 	/* Hsync Signal Polarity Select */
--	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-+	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
- 		dmr2 |= VNDMR2_HPS;
- 
- 	/* Vsync Signal Polarity Select */
--	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
-+	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
- 		dmr2 |= VNDMR2_VPS;
- 
- 	/*
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index dd37ea811680..b479b882da12 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -111,7 +111,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
- 	struct v4l2_mbus_framefmt *mf = &fmt.format;
- 	int ret;
- 
--	fmt.pad = vin->digital.source_pad;
-+	fmt.pad = vin->digital->source_pad;
- 
- 	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
- 	if (ret)
-@@ -172,13 +172,13 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 
- 	sd = vin_to_source(vin);
- 
--	v4l2_fill_mbus_format(&format.format, pix, vin->digital.code);
-+	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
- 
- 	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
- 	if (pad_cfg == NULL)
- 		return -ENOMEM;
- 
--	format.pad = vin->digital.source_pad;
-+	format.pad = vin->digital->source_pad;
- 
- 	field = pix->field;
- 
-@@ -555,7 +555,7 @@ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
- 	if (timings->pad)
- 		return -EINVAL;
- 
--	timings->pad = vin->digital.sink_pad;
-+	timings->pad = vin->digital->sink_pad;
- 
- 	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
- 
-@@ -607,7 +607,7 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
- 	if (cap->pad)
- 		return -EINVAL;
- 
--	cap->pad = vin->digital.sink_pad;
-+	cap->pad = vin->digital->sink_pad;
- 
- 	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
- 
-@@ -625,7 +625,7 @@ static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
- 	if (edid->pad)
- 		return -EINVAL;
- 
--	edid->pad = vin->digital.sink_pad;
-+	edid->pad = vin->digital->sink_pad;
- 
- 	ret = v4l2_subdev_call(sd, pad, get_edid, edid);
- 
-@@ -643,7 +643,7 @@ static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
- 	if (edid->pad)
- 		return -EINVAL;
- 
--	edid->pad = vin->digital.sink_pad;
-+	edid->pad = vin->digital->sink_pad;
- 
- 	ret = v4l2_subdev_call(sd, pad, set_edid, edid);
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 9bfb5a7c4dc4..5382078143fb 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -126,7 +126,7 @@ struct rvin_dev {
- 	struct v4l2_device v4l2_dev;
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	struct v4l2_async_notifier notifier;
--	struct rvin_graph_entity digital;
-+	struct rvin_graph_entity *digital;
- 
- 	struct mutex lock;
- 	struct vb2_queue queue;
-@@ -145,7 +145,7 @@ struct rvin_dev {
- 	struct v4l2_rect compose;
- };
- 
--#define vin_to_source(vin)		vin->digital.subdev
-+#define vin_to_source(vin)		((vin)->digital->subdev)
- 
- /* Debug */
- #define vin_dbg(d, fmt, arg...)		dev_dbg(d->dev, fmt, ##arg)
--- 
-2.11.0
+date:			Wed Sep 27 05:00:15 CEST 2017
+media-tree git hash:	d5426f4c2ebac8cf05de43988c3fccddbee13d28
+media_build git hash:	b829b621b4c2e6c5cbedbd1ce62b4e958f7d13a4
+v4l-utils git hash:	8be65674f9a57e4bc35858f86bb5489f0afd22c1
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: OK
+spec-git: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
