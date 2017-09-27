@@ -1,45 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0020.hostedemail.com ([216.40.44.20]:38291 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751740AbdIXKf2 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33148
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752192AbdI0Vky (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Sep 2017 06:35:28 -0400
-Message-ID: <1506249323.11186.3.camel@perches.com>
-Subject: Re: [PATCH 1/6] [media] omap_vout: Delete an error message for a
- failed memory allocation in omap_vout_create_video_devices()
-From: Joe Perches <joe@perches.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Jan Kara <jack@suse.cz>, Lorenzo Stoakes <lstoakes@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Muralidharan Karicheri <mkaricheri@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Date: Sun, 24 Sep 2017 03:35:23 -0700
-In-Reply-To: <c949fbd6-0a01-d6e7-d6f9-d55dbf5dce5e@users.sourceforge.net>
-References: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
-         <c949fbd6-0a01-d6e7-d6f9-d55dbf5dce5e@users.sourceforge.net>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Wed, 27 Sep 2017 17:40:54 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 36/37] media: dvb_demux: use the newly nested kernel-doc support
+Date: Wed, 27 Sep 2017 18:40:37 -0300
+Message-Id: <6632a2f1dff21ff9d2f8570322d46344cbb89e6b.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2017-09-24 at 12:22 +0200, SF Markus Elfring wrote:
-> Omit an extra message for a memory allocation failure in this function.
-[]
-> diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-[]
-> @@ -1948,7 +1948,5 @@ static int __init omap_vout_create_video_devices(struct platform_device *pdev)
-> -		if (!vout) {
-> -			dev_err(&pdev->dev, ": could not allocate memory\n");
-> +		if (!vout)
->  			return -ENOMEM;
-> -		}
->  
->  		vout->vid = k;
->  		vid_dev->vouts[k] = vout;
+Now that kernel-doc supports nested structs/unions, use it.
 
-Use normal patch styles.
-Fix your tools before you send any more patches.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/dvb_demux.h | 23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
+index 15ee2ea23efe..97bf5ee7ef57 100644
+--- a/drivers/media/dvb-core/dvb_demux.h
++++ b/drivers/media/dvb-core/dvb_demux.h
+@@ -94,15 +94,20 @@ struct dvb_demux_filter {
+ /**
+  * struct dvb_demux_feed - describes a DVB field
+  *
+- * @feed:	a digital TV feed. It can either be a TS or a section feed:
+- *		if the feed is TS, it contains &struct dvb_ts_feed @ts;
+- *		if the feed is section, it contains
+- *		&struct dmx_section_feed @sec.
+- * @cb:		digital TV callbacks. depending on the feed type, it can be:
+- *		if the feed is TS, it contains a dmx_ts_cb() @ts callback;
+- *		if the feed is section, it contains a dmx_section_cb() @sec
+- * 		callback.
+- *
++ * @feed:	a union describing a digital TV feed.
++ *		Depending on the feed type, it can be either
++ *		@feed.ts or @feed.sec.
++ * @feed.ts:	a &struct dmx_ts_feed pointer.
++ *		For TS feed only.
++ * @feed.sec:	a &struct dmx_section_feed pointer.
++ *		For section feed only.
++ * @cb:		a union describing digital TV callbacks.
++ *		Depending on the feed type, it can be either
++ *		@cb.ts or @cb.sec.
++ * @cb.ts:	a dmx_ts_cb() calback function pointer.
++ *		For TS feed only.
++ * @cb.sec:	a dmx_section_cb() callback function pointer.
++ *		For section feed only.
+  * @demux:	pointer to &struct dvb_demux.
+  * @priv:	private data that can optionally be used by a DVB driver.
+  * @type:	type of the filter, as defined by &enum dvb_dmx_filter_type.
+-- 
+2.13.5
