@@ -1,48 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45640 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751589AbdIOOS1 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33408
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752356AbdI0VrH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 10:18:27 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v13 16/25] dt: bindings: Add lens-focus binding for image sensors
-Date: Fri, 15 Sep 2017 17:17:15 +0300
-Message-Id: <20170915141724.23124-17-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
-References: <20170915141724.23124-1-sakari.ailus@linux.intel.com>
+        Wed, 27 Sep 2017 17:47:07 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: [PATCH v2 02/17] media: v4l2-common: get rid of v4l2_routing dead struct
+Date: Wed, 27 Sep 2017 18:46:45 -0300
+Message-Id: <a47fda6dbbdf84a9bdc607acfc769d00e8cb22f6.1506548682.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
+References: <cover.1506548682.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
+References: <cover.1506548682.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The lens-focus property contains a phandle to the lens voice coil driver
-that is associated to the sensor; typically both are contained in the same
-camera module.
+This struct is not used anymore. Get rid of it and update
+the documentation about what should still be converted.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
- 1 file changed, 2 insertions(+)
+ include/media/v4l2-common.h | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index fdba30479b47..b535bdde861c 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -74,6 +74,8 @@ Optional properties
- - flash-leds: An array of phandles, each referring to a flash LED, a sub-node
-   of the LED driver device node.
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index aac8b7b6e691..7dbecbe3009c 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -224,10 +224,11 @@ void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
  
-+- lens-focus: A phandle to the node of the focus lens controller.
-+
+ /* ------------------------------------------------------------------------- */
  
- Optional endpoint properties
- ----------------------------
+-/* Note: these remaining ioctls/structs should be removed as well, but they are
+-   still used in tuner-simple.c (TUNER_SET_CONFIG), cx18/ivtv (RESET) and
+-   v4l2-int-device.h (v4l2_routing). To remove these ioctls some more cleanup
+-   is needed in those modules. */
++/*
++ * FIXME: these remaining ioctls/structs should be removed as well, but they
++ * are still used in tuner-simple.c (TUNER_SET_CONFIG) and cx18/ivtv (RESET).
++ * To remove these ioctls some more cleanup is needed in those modules.
++ */
+ 
+ /* s_config */
+ struct v4l2_priv_tun_config {
+@@ -238,11 +239,6 @@ struct v4l2_priv_tun_config {
+ 
+ #define VIDIOC_INT_RESET            	_IOW ('d', 102, u32)
+ 
+-struct v4l2_routing {
+-	u32 input;
+-	u32 output;
+-};
+-
+ /* ------------------------------------------------------------------------- */
+ 
+ /* Miscellaneous helper functions */
 -- 
-2.11.0
+2.13.5
