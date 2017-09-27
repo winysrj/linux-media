@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33148
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33160
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752192AbdI0Vky (ORCPT
+        with ESMTP id S1752152AbdI0Vku (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:54 -0400
+        Wed, 27 Sep 2017 17:40:50 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Jonathan Corbet <corbet@lwn.net>
@@ -11,9 +11,9 @@ Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
         Linux Doc Mailing List <linux-doc@vger.kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 36/37] media: dvb_demux: use the newly nested kernel-doc support
-Date: Wed, 27 Sep 2017 18:40:37 -0300
-Message-Id: <6632a2f1dff21ff9d2f8570322d46344cbb89e6b.1506547906.git.mchehab@s-opensource.com>
+Subject: [PATCH v2 20/37] media: dvb_demux.h: add an enum for DMX_STATE_* and document
+Date: Wed, 27 Sep 2017 18:40:21 -0300
+Message-Id: <8dc15c61a73bd5a54c2501722f45f63ff4a9f442.1506547906.git.mchehab@s-opensource.com>
 In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
 References: <cover.1506547906.git.mchehab@s-opensource.com>
 In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
@@ -21,46 +21,67 @@ References: <cover.1506547906.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that kernel-doc supports nested structs/unions, use it.
+kernel-doc allows documenting enums. Also, it makes clearer
+about the meaning of each field on structures.
+
+So, convert DMX_STATE_* to an enum.
+
+While here, get rid of the unused DMX_STATE_SET.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/dvb-core/dvb_demux.h | 23 ++++++++++++++---------
- 1 file changed, 14 insertions(+), 9 deletions(-)
+ drivers/media/dvb-core/dvb_demux.h | 25 ++++++++++++++++++-------
+ 1 file changed, 18 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
-index 15ee2ea23efe..97bf5ee7ef57 100644
+index 6bc4b27dbff3..b24d69b5a20f 100644
 --- a/drivers/media/dvb-core/dvb_demux.h
 +++ b/drivers/media/dvb-core/dvb_demux.h
-@@ -94,15 +94,20 @@ struct dvb_demux_filter {
- /**
-  * struct dvb_demux_feed - describes a DVB field
-  *
-- * @feed:	a digital TV feed. It can either be a TS or a section feed:
-- *		if the feed is TS, it contains &struct dvb_ts_feed @ts;
-- *		if the feed is section, it contains
-- *		&struct dmx_section_feed @sec.
-- * @cb:		digital TV callbacks. depending on the feed type, it can be:
-- *		if the feed is TS, it contains a dmx_ts_cb() @ts callback;
-- *		if the feed is section, it contains a dmx_section_cb() @sec
-- * 		callback.
-- *
-+ * @feed:	a union describing a digital TV feed.
-+ *		Depending on the feed type, it can be either
-+ *		@feed.ts or @feed.sec.
-+ * @feed.ts:	a &struct dmx_ts_feed pointer.
-+ *		For TS feed only.
-+ * @feed.sec:	a &struct dmx_section_feed pointer.
-+ *		For section feed only.
-+ * @cb:		a union describing digital TV callbacks.
-+ *		Depending on the feed type, it can be either
-+ *		@cb.ts or @cb.sec.
-+ * @cb.ts:	a dmx_ts_cb() calback function pointer.
-+ *		For TS feed only.
-+ * @cb.sec:	a dmx_section_cb() callback function pointer.
-+ *		For section feed only.
-  * @demux:	pointer to &struct dvb_demux.
-  * @priv:	private data that can optionally be used by a DVB driver.
-  * @type:	type of the filter, as defined by &enum dvb_dmx_filter_type.
+@@ -37,11 +37,22 @@ enum dvb_dmx_filter_type {
+ 	DMX_TYPE_SEC,
+ };
+ 
+-#define DMX_STATE_FREE      0
+-#define DMX_STATE_ALLOCATED 1
+-#define DMX_STATE_SET       2
+-#define DMX_STATE_READY     3
+-#define DMX_STATE_GO        4
++/**
++ * enum dvb_dmx_state - state machine for a demux filter.
++ *
++ * @DMX_STATE_FREE:		indicates that the filter is freed.
++ * @DMX_STATE_ALLOCATED:	indicates that the filter was allocated
++ *				to be used.
++ * @DMX_STATE_READY:		indicates that the filter is ready
++ *				to be used.
++ * @DMX_STATE_GO:		indicates that the filter is running.
++ */
++enum dvb_dmx_state {
++	DMX_STATE_FREE,
++	DMX_STATE_ALLOCATED,
++	DMX_STATE_READY,
++	DMX_STATE_GO,
++};
+ 
+ #define DVB_DEMUX_MASK_MAX 18
+ 
+@@ -58,7 +69,7 @@ struct dvb_demux_filter {
+ 	struct dvb_demux_filter *next;
+ 	struct dvb_demux_feed *feed;
+ 	int index;
+-	int state;
++	enum dvb_dmx_state state;
+ 	enum dvb_dmx_filter_type type;
+ 
+ 	u16 hw_handle;
+@@ -81,7 +92,7 @@ struct dvb_demux_feed {
+ 	struct dvb_demux *demux;
+ 	void *priv;
+ 	enum dvb_dmx_filter_type type;
+-	int state;
++	enum dvb_dmx_state state;
+ 	u16 pid;
+ 
+ 	ktime_t timeout;
 -- 
 2.13.5
