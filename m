@@ -1,184 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:40535 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751459AbdIKJjD (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33148
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752149AbdI0Vku (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 05:39:03 -0400
-Subject: Re: [PATCH v10 18/24] v4l: fwnode: Add a helper function to obtain
- device / interger references
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
- <20170911080008.21208-19-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <11c951eb-0315-0149-829e-ed73d748e783@xs4all.nl>
-Date: Mon, 11 Sep 2017 11:38:58 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170911080008.21208-19-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 27 Sep 2017 17:40:50 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>
+Subject: [PATCH v2 01/37] media: dvb_frontend: only use kref after initialized
+Date: Wed, 27 Sep 2017 18:40:02 -0300
+Message-Id: <70ccb0c4b0f5d6678437226042c81f60d12667df.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Typo in subject: interger -> integer
+As reported by Laurent, when a DVB frontend need to register
+two drivers (e. g. a tuner and a demod), if the second driver
+fails to register (for example because it was not compiled),
+the error handling logic frees the frontend by calling
+dvb_frontend_detach(). That used to work fine, but changeset
+1f862a68df24 ("[media] dvb_frontend: move kref to struct dvb_frontend")
+added a kref at struct dvb_frontend. So, now, instead of just
+freeing the data, the error handling do a kref_put().
 
-On 09/11/2017 10:00 AM, Sakari Ailus wrote:
-> v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
-> the device's own fwnode, 
+That works fine only after dvb_register_frontend() succeeds.
 
-Sorry, you lost me here. Which device are we talking about?
+While it would be possible to add a helper function that
+would be initializing earlier the kref, that would require
+changing every single DVB frontend on non-trivial ways, and
+would make frontends different than other drivers.
 
-> it will follow child fwnodes with the given
-> property -- value pair and return the resulting fwnode.
+So, instead of doing that, let's focus on the real issue:
+only call kref_put() after kref_init(). That's easy to
+check, as, when the dvb frontend is successfuly registered,
+it will allocate its own private struct. So, if such
+struct is allocated, it means that it is safe to use
+kref_put(). If not, then nobody is using yet the frontend,
+and it is safe to just deallocate it.
 
-property-value pair (easier readable that way).
+Fixes: 1f862a68df24 ("[media] dvb_frontend: move kref to struct dvb_frontend")
+Reported-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/dvb_frontend.c | 25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
 
-You only describe v4l2_fwnode_reference_parse_int_prop(), not
-v4l2_fwnode_reference_parse_int_props().
-
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/v4l2-core/v4l2-fwnode.c | 93 +++++++++++++++++++++++++++++++++++
->  1 file changed, 93 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> index 4821c4989119..56eee5bbd3b5 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -496,6 +496,99 @@ static int v4l2_fwnode_reference_parse(
->  	return ret;
->  }
->  
-> +static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
-> +	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
-> +	const char **props, unsigned int nprops)
-
-Need comments describing what this does.
-
-> +{
-> +	struct fwnode_reference_args fwnode_args;
-> +	unsigned int *args = fwnode_args.args;
-> +	struct fwnode_handle *child;
-> +	int ret;
-> +
-> +	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
-> +						 index, &fwnode_args);
-> +	if (ret)
-> +		return ERR_PTR(ret == -EINVAL ? -ENOENT : ret);
-
-Why map EINVAL to ENOENT? Needs a comment, either here or in the function description.
-
-> +
-> +	for (fwnode = fwnode_args.fwnode;
-> +	     nprops; nprops--, fwnode = child, props++, args++) {
-
-I think you cram too much in this for-loop: fwnode, nprops, fwnode, props, args...
-It's hard to parse.
-
-I would make this a 'while (nprops)' and write out all the other assignments,
-increments and decrements.
-
-> +		u32 val;
-> +
-> +		fwnode_for_each_child_node(fwnode, child) {
-> +			if (fwnode_property_read_u32(child, *props, &val))
-> +				continue;
-> +
-> +			if (val == *args)
-> +				break;
-
-I'm lost. This really needs comments and perhaps even an DT or ACPI example
-so you can see what exactly it is we're doing here.
-
-> +		}
-> +
-> +		fwnode_handle_put(fwnode);
-> +
-> +		if (!child) {
-> +			fwnode = ERR_PTR(-ENOENT);
-> +			break;
-> +		}
-> +	}
-> +
-> +	return fwnode;
-> +}
-> +
-> +static int v4l2_fwnode_reference_parse_int_props(
-> +	struct device *dev, struct v4l2_async_notifier *notifier,
-> +	const char *prop, const char **props, unsigned int nprops)
-
-Needs comments describing what this does.
-
-> +{
-> +	struct fwnode_handle *fwnode;
-> +	unsigned int index = 0;
-> +	int ret;
-> +
-> +	while (!IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-> +				dev_fwnode(dev), prop, index, props,
-> +				nprops)))) {
-> +		fwnode_handle_put(fwnode);
-> +		index++;
-> +	}
-> +
-> +	if (PTR_ERR(fwnode) != -ENOENT)
-> +		return PTR_ERR(fwnode);
-
-Missing 'if (index == 0)'?
-
-> +
-> +	ret = v4l2_async_notifier_realloc(notifier,
-> +					  notifier->num_subdevs + index);
-> +	if (ret)
-> +		return -ENOMEM;
-> +
-> +	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-> +					 dev_fwnode(dev), prop, index, props,
-> +					 nprops))); ) {
-
-I'd add 'index++' in this for-loop. It's weird that it is missing.
-
-> +		struct v4l2_async_subdev *asd;
-> +
-> +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-> +			ret = -EINVAL;
-> +			goto error;
-> +		}
-> +
-> +		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
-> +		if (!asd) {
-> +			ret = -ENOMEM;
-> +			goto error;
-> +		}
-> +
-> +		notifier->subdevs[notifier->num_subdevs] = asd;
-> +		asd->match.fwnode.fwnode = fwnode;
-> +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-> +		notifier->num_subdevs++;
-> +
-> +		fwnode_handle_put(fwnode);
-> +
-> +		index++;
-> +	}
-> +
-> +	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
-> +
-> +error:
-> +	fwnode_handle_put(fwnode);
-> +	return ret;
-> +}
-> +
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
->  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-> 
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 2fcba1616168..9139d01ba7ed 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -141,22 +141,39 @@ struct dvb_frontend_private {
+ static void dvb_frontend_invoke_release(struct dvb_frontend *fe,
+ 					void (*release)(struct dvb_frontend *fe));
+ 
+-static void dvb_frontend_free(struct kref *ref)
++static void __dvb_frontend_free(struct dvb_frontend *fe)
+ {
+-	struct dvb_frontend *fe =
+-		container_of(ref, struct dvb_frontend, refcount);
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+ 
++	if (!fepriv)
++		return;
++
+ 	dvb_free_device(fepriv->dvbdev);
+ 
+ 	dvb_frontend_invoke_release(fe, fe->ops.release);
+ 
+ 	kfree(fepriv);
++	fe->frontend_priv = NULL;
++}
++
++static void dvb_frontend_free(struct kref *ref)
++{
++	struct dvb_frontend *fe =
++		container_of(ref, struct dvb_frontend, refcount);
++
++	__dvb_frontend_free(fe);
+ }
+ 
+ static void dvb_frontend_put(struct dvb_frontend *fe)
+ {
+-	kref_put(&fe->refcount, dvb_frontend_free);
++	/*
++	 * Check if the frontend was registered, as otherwise
++	 * kref was not initialized yet.
++	 */
++	if (fe->frontend_priv)
++		kref_put(&fe->refcount, dvb_frontend_free);
++	else
++		__dvb_frontend_free(fe);
+ }
+ 
+ static void dvb_frontend_get(struct dvb_frontend *fe)
+-- 
+2.13.5
