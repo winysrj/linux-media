@@ -1,181 +1,318 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:38755 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751408AbdIYJ6V (ORCPT
+Received: from mail-oi0-f45.google.com ([209.85.218.45]:52462 "EHLO
+        mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751287AbdI0MA2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 05:58:21 -0400
-Subject: Re: [PATCH v6 11/25] rcar-vin: fix handling of single field frames
- (top, bottom and alternate fields)
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se>
- <20170822232640.26147-12-niklas.soderlund+renesas@ragnatech.se>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        tomoharu.fukawa.eb@renesas.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <bb277c99-b662-31df-4b4b-83b9e437a374@xs4all.nl>
-Date: Mon, 25 Sep 2017 11:58:19 +0200
+        Wed, 27 Sep 2017 08:00:28 -0400
+Received: by mail-oi0-f45.google.com with SMTP id p126so16299471oih.9
+        for <linux-media@vger.kernel.org>; Wed, 27 Sep 2017 05:00:28 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20170822232640.26147-12-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <eba212d6d5b631365c5881b0ef4e16a9a8ea8cf6.1506502997.git.arvind.yadav.cs@gmail.com>
+References: <eba212d6d5b631365c5881b0ef4e16a9a8ea8cf6.1506502997.git.arvind.yadav.cs@gmail.com>
+From: Andrey Konovalov <andreyknvl@google.com>
+Date: Wed, 27 Sep 2017 14:00:26 +0200
+Message-ID: <CAAeHK+xFAYXxSnR1hbJRJ=qsPFR5NdwKJx5=CO0Arx5tuNXL0g@mail.gmail.com>
+Subject: Re: [RFT] [media] siano: FIX use-after-free in worker_thread
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kostya Serebryany <kcc@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>, mchehab@s-opensource.com,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        syzkaller <syzkaller@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23/08/17 01:26, Niklas Söderlund wrote:
-> It was never proper support in the VIN driver to deliver ALTERNATING
+On Wed, Sep 27, 2017 at 11:21 AM, Arvind Yadav
+<arvind.yadav.cs@gmail.com> wrote:
+> If CONFIG_MEDIA_CONTROLLER_DVB is enable, We are not releasing
+> media device and memory on any failure or disconnect a device.
+>
+> Adding structure media_device 'mdev' as part of 'smsusb_device_t'
+> structure to make proper handle for media device.
+> Now releasing a media device and memory on failure. It's allocate
+> first in siano_media_device_register() and it should be freed last
+> in smsusb_disconnect().
+>
+> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 
-It -> There
+Hi Arvind,
 
-> field format to user-space, remove this field option. For sources using
-> this field format instead use the VIN hardware feature of combining the
-> fields to an interlaced format. This mode of operation was previously
-> the default behavior and ALTERNATING was only delivered to user-space if
-> explicitly requested. Allowing this to be explicitly requested was a
-> mistake and was never properly tested and never worked due to the
-> constrains put on the field format when it comes to sequence numbers and
+I've tried your patch and still see a crash.
 
-contrains -> constraints
+Thanks!
 
-> timestamps etc.
-> 
-> The height should not be cut in half for the format for TOP or BOTTOM
-> fields settings. This was a mistake and it was made visible by the
-> scaling refactoring. Correct behavior is that the user should request a
-> frame size that fits the half height frame reflected in the field
-> setting. If not the VIN will do it's best to scale the top or bottom to
+gadgetfs: bound to dummy_udc driver
+usb 1-1: new full-speed USB device number 2 using dummy_hcd
+gadgetfs: connected
+gadgetfs: disconnected
+gadgetfs: connected
+usb 1-1: config 189 interface 0 altsetting 0 endpoint 0x9 has an
+invalid bInterval 0, changing to 4
+usb 1-1: New USB device found, idVendor=187f, idProduct=0100
+usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+gadgetfs: configuration #189
+smsusb:smsusb_probe: board id=1, interface number 0
+smsusb:siano_media_device_register: media controller created
+smsusb:smsusb1_detectmode: product string not found
+smsmdtv:smscore_set_device_mode: return error code -22.
+smsmdtv:smscore_start_device: set device mode failed , rc -22
+smsusb:smsusb_init_device: smscore_start_device(...) failed
+smsusb:smsusb_onresponse: error, urb status -2, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_onresponse: error, urb status -71, 0 bytes
+smsusb:smsusb_probe: Device initialized with return code -22
+==================================================================
+BUG: KASAN: use-after-free in worker_thread+0x1468/0x1850
+Read of size 8 at addr ffff88006a2b80f0 by task kworker/0:1/24
 
-it's -> its
+CPU: 0 PID: 24 Comm: kworker/0:1 Not tainted
+4.14.0-rc2-42660-g24b7bd59eec0-dirty #273
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16
+ dump_stack+0x292/0x395 lib/dump_stack.c:52
+ print_address_description+0x78/0x280 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351
+ kasan_report+0x23d/0x350 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x19/0x20 mm/kasan/report.c:430
+ worker_thread+0x1468/0x1850 kernel/workqueue.c:2251
+ kthread+0x3a1/0x470 kernel/kthread.c:231
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
 
-> the requested format and cropping and scaling do not work as expected.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Allocated by task 1846:
+ save_stack_trace+0x1b/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x11e/0x2d0 mm/slub.c:2772
+ kmalloc ./include/linux/slab.h:493
+ kzalloc ./include/linux/slab.h:666
+ smsusb_init_device+0xd5/0xe40 drivers/media/usb/siano/smsusb.c:418
+ smsusb_probe+0x4f5/0xdc0 drivers/media/usb/siano/smsusb.c:580
+ usb_probe_interface+0x35d/0x8e0 drivers/usb/core/driver.c:361
+ really_probe drivers/base/dd.c:413
+ driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
+ __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
+ bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
+ __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
+ device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
+ bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
+ device_add+0xd0b/0x1660 drivers/base/core.c:1835
+ usb_set_configuration+0x104e/0x1870 drivers/usb/core/message.c:1932
+ generic_probe+0x73/0xe0 drivers/usb/core/generic.c:174
+ usb_probe_device+0xaf/0xe0 drivers/usb/core/driver.c:266
+ really_probe drivers/base/dd.c:413
+ driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
+ __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
+ bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
+ __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
+ device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
+ bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
+ device_add+0xd0b/0x1660 drivers/base/core.c:1835
+ usb_new_device+0x7b8/0x1020 drivers/usb/core/hub.c:2457
+ hub_port_connect drivers/usb/core/hub.c:4903
+ hub_port_connect_change drivers/usb/core/hub.c:5009
+ port_event drivers/usb/core/hub.c:5115
+ hub_event+0x194d/0x3740 drivers/usb/core/hub.c:5195
+ process_one_work+0xc7f/0x1db0 kernel/workqueue.c:2119
+ worker_thread+0x221/0x1850 kernel/workqueue.c:2253
+ kthread+0x3a1/0x470 kernel/kthread.c:231
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Freed by task 1846:
+ save_stack_trace+0x1b/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459
+ kasan_slab_free+0x72/0xc0 mm/kasan/kasan.c:524
+ slab_free_hook mm/slub.c:1390
+ slab_free_freelist_hook mm/slub.c:1412
+ slab_free mm/slub.c:2988
+ kfree+0xf6/0x2f0 mm/slub.c:3919
+ smsusb_term_device+0x166/0x1f0 drivers/media/usb/siano/smsusb.c:373
+ smsusb_init_device+0xcaa/0xe40 drivers/media/usb/siano/smsusb.c:505
+ smsusb_probe+0x4f5/0xdc0 drivers/media/usb/siano/smsusb.c:580
+ usb_probe_interface+0x35d/0x8e0 drivers/usb/core/driver.c:361
+ really_probe drivers/base/dd.c:413
+ driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
+ __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
+ bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
+ __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
+ device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
+ bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
+ device_add+0xd0b/0x1660 drivers/base/core.c:1835
+ usb_set_configuration+0x104e/0x1870 drivers/usb/core/message.c:1932
+ generic_probe+0x73/0xe0 drivers/usb/core/generic.c:174
+ usb_probe_device+0xaf/0xe0 drivers/usb/core/driver.c:266
+ really_probe drivers/base/dd.c:413
+ driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
+ __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
+ bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
+ __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
+ device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
+ bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
+ device_add+0xd0b/0x1660 drivers/base/core.c:1835
+ usb_new_device+0x7b8/0x1020 drivers/usb/core/hub.c:2457
+ hub_port_connect drivers/usb/core/hub.c:4903
+ hub_port_connect_change drivers/usb/core/hub.c:5009
+ port_event drivers/usb/core/hub.c:5115
+ hub_event+0x194d/0x3740 drivers/usb/core/hub.c:5195
+ process_one_work+0xc7f/0x1db0 kernel/workqueue.c:2119
+ worker_thread+0x221/0x1850 kernel/workqueue.c:2253
+ kthread+0x3a1/0x470 kernel/kthread.c:231
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
 
-Regards,
+The buggy address belongs to the object at ffff88006a2b8000
+ which belongs to the cache kmalloc-4096 of size 4096
+The buggy address is located 240 bytes inside of
+ 4096-byte region [ffff88006a2b8000, ffff88006a2b9000)
+The buggy address belongs to the page:
+page:ffffea0001a8ae00 count:1 mapcount:0 mapping:          (null)
+index:0x0 compound_mapcount: 0
+flags: 0x100000000008100(slab|head)
+raw: 0100000000008100 0000000000000000 0000000000000000 0000000180070007
+raw: dead000000000100 dead000000000200 ffff88006c402c00 0000000000000000
+page dumped because: kasan: bad access detected
 
-	Hans
+Memory state around the buggy address:
+ ffff88006a2b7f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88006a2b8000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88006a2b8080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                             ^
+ ffff88006a2b8100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88006a2b8180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================
 
 > ---
->  drivers/media/platform/rcar-vin/rcar-dma.c  | 15 +--------
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 48 +++++++++++------------------
->  2 files changed, 19 insertions(+), 44 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> index 6cc880e5ef7e0718..f22bec062db31772 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -617,7 +617,6 @@ static int rvin_setup(struct rvin_dev *vin)
->  	case V4L2_FIELD_INTERLACED_BT:
->  		vnmc = VNMC_IM_FULL | VNMC_FOC;
->  		break;
-> -	case V4L2_FIELD_ALTERNATE:
->  	case V4L2_FIELD_NONE:
->  		if (vin->continuous) {
->  			vnmc = VNMC_IM_ODD_EVEN;
-> @@ -757,18 +756,6 @@ static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
->  	return 0;
->  }
->  
-> -static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
-> -{
-> -	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
-> -		/* If FS is set it's a Even field */
-> -		if (vnms & VNMS_FS)
-> -			return V4L2_FIELD_BOTTOM;
-> -		return V4L2_FIELD_TOP;
-> -	}
-> -
-> -	return vin->format.field;
-> -}
-> -
->  static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
+> This bug report by Andrey Konovalov "usb/media/smsusb: use-after-free in
+> worker_thread".
+>
+>  drivers/media/usb/siano/smsusb.c | 45 ++++++++++++++++++++++++----------------
+>  1 file changed, 27 insertions(+), 18 deletions(-)
+>
+> diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
+> index 8c1f926..66936b3 100644
+> --- a/drivers/media/usb/siano/smsusb.c
+> +++ b/drivers/media/usb/siano/smsusb.c
+> @@ -69,6 +69,9 @@ struct smsusb_device_t {
+>         unsigned char in_ep;
+>         unsigned char out_ep;
+>         enum smsusb_state state;
+> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> +       struct media_device *mdev;
+> +#endif
+>  };
+>
+>  static int smsusb_submit_urb(struct smsusb_device_t *dev,
+> @@ -359,6 +362,13 @@ static void smsusb_term_device(struct usb_interface *intf)
+>                 if (dev->coredev)
+>                         smscore_unregister_device(dev->coredev);
+>
+> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> +               if (dev->mdev) {
+> +                       media_device_unregister(dev->mdev);
+> +                       media_device_cleanup(dev->mdev);
+> +                       kfree(dev->mdev);
+> +               }
+> +#endif
+>                 pr_debug("device 0x%p destroyed\n", dev);
+>                 kfree(dev);
+>         }
+> @@ -370,27 +380,28 @@ static void *siano_media_device_register(struct smsusb_device_t *dev,
+>                                         int board_id)
 >  {
->  	const struct rvin_video_format *fmt;
-> @@ -941,7 +928,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
->  		goto done;
->  
->  	/* Capture frame */
-> -	vin->queue_buf[slot]->field = rvin_get_active_field(vin, vnms);
-> +	vin->queue_buf[slot]->field = vin->format.field;
->  	vin->queue_buf[slot]->sequence = sequence;
->  	vin->queue_buf[slot]->vb2_buf.timestamp = ktime_get_ns();
->  	vb2_buffer_done(&vin->queue_buf[slot]->vb2_buf, VB2_BUF_STATE_DONE);
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index c8c764188b85a926..9f0aac9c3398d613 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -102,6 +102,24 @@ static int rvin_get_sd_format(struct rvin_dev *vin, struct v4l2_pix_format *pix)
->  	if (ret)
->  		return ret;
->  
-> +	switch (fmt.format.field) {
-> +	case V4L2_FIELD_TOP:
-> +	case V4L2_FIELD_BOTTOM:
-> +	case V4L2_FIELD_NONE:
-> +	case V4L2_FIELD_INTERLACED_TB:
-> +	case V4L2_FIELD_INTERLACED_BT:
-> +	case V4L2_FIELD_INTERLACED:
-> +		break;
-> +	case V4L2_FIELD_ALTERNATE:
-> +		/* Use VIN hardware to combine the two fields */
-> +		fmt.format.field = V4L2_FIELD_INTERLACED;
-> +		fmt.format.height *= 2;
-> +		break;
-> +	default:
-> +		vin->format.field = V4L2_FIELD_NONE;
-> +		break;
-> +	}
+>  #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> -       struct media_device *mdev;
+>         struct usb_device *udev = dev->udev;
+>         struct sms_board *board = sms_get_board(board_id);
+>         int ret;
+>
+> -       mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
+> -       if (!mdev)
+> +       dev->mdev = kzalloc(sizeof(*dev->mdev), GFP_KERNEL);
+> +       if (!dev->mdev)
+>                 return NULL;
+>
+> -       media_device_usb_init(mdev, udev, board->name);
+>
+> -       ret = media_device_register(mdev);
+> +       media_device_usb_init(dev->mdev, udev, board->name);
 > +
->  	v4l2_fill_pix_format(pix, &fmt.format);
->  
->  	return 0;
-> @@ -115,33 +133,6 @@ int rvin_reset_format(struct rvin_dev *vin)
->  	if (ret)
->  		return ret;
->  
-> -	/*
-> -	 * If the subdevice uses ALTERNATE field mode and G_STD is
-> -	 * implemented use the VIN HW to combine the two fields to
-> -	 * one INTERLACED frame. The ALTERNATE field mode can still
-> -	 * be requested in S_FMT and be respected, this is just the
-> -	 * default which is applied at probing or when S_STD is called.
-> -	 */
-> -	if (vin->format.field == V4L2_FIELD_ALTERNATE &&
-> -	    v4l2_subdev_has_op(vin_to_source(vin), video, g_std))
-> -		vin->format.field = V4L2_FIELD_INTERLACED;
-> -
-> -	switch (vin->format.field) {
-> -	case V4L2_FIELD_TOP:
-> -	case V4L2_FIELD_BOTTOM:
-> -	case V4L2_FIELD_ALTERNATE:
-> -		vin->format.height /= 2;
-> -		break;
-> -	case V4L2_FIELD_NONE:
-> -	case V4L2_FIELD_INTERLACED_TB:
-> -	case V4L2_FIELD_INTERLACED_BT:
-> -	case V4L2_FIELD_INTERLACED:
-> -		break;
-> -	default:
-> -		vin->format.field = V4L2_FIELD_NONE;
-> -		break;
-> -	}
-> -
->  	vin->crop.top = vin->crop.left = 0;
->  	vin->crop.width = vin->format.width;
->  	vin->crop.height = vin->format.height;
-> @@ -226,9 +217,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
->  	switch (pix->field) {
->  	case V4L2_FIELD_TOP:
->  	case V4L2_FIELD_BOTTOM:
-> -	case V4L2_FIELD_ALTERNATE:
-> -		pix->height /= 2;
-> -		break;
->  	case V4L2_FIELD_NONE:
->  	case V4L2_FIELD_INTERLACED_TB:
->  	case V4L2_FIELD_INTERLACED_BT:
-> 
+> +       ret = media_device_register(dev->mdev);
+>         if (ret) {
+> -               media_device_cleanup(mdev);
+> -               kfree(mdev);
+> +               media_device_cleanup(dev->mdev);
+> +               kfree(dev->mdev);
+> +               dev->mdev = NULL;
+>                 return NULL;
+>         }
+>
+>         pr_info("media controller created\n");
+>
+> -       return mdev;
+> +       return dev->mdev;
+>  #else
+>         return NULL;
+>  #endif
+> @@ -458,12 +469,7 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
+>         rc = smscore_register_device(&params, &dev->coredev, mdev);
+>         if (rc < 0) {
+>                 pr_err("smscore_register_device(...) failed, rc %d\n", rc);
+> -               smsusb_term_device(intf);
+> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> -               media_device_unregister(mdev);
+> -#endif
+> -               kfree(mdev);
+> -               return rc;
+> +               goto err_smsusb_init;
+>         }
+>
+>         smscore_set_board_id(dev->coredev, board_id);
+> @@ -480,8 +486,7 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
+>         rc = smsusb_start_streaming(dev);
+>         if (rc < 0) {
+>                 pr_err("smsusb_start_streaming(...) failed\n");
+> -               smsusb_term_device(intf);
+> -               return rc;
+> +               goto err_smsusb_init;
+>         }
+>
+>         dev->state = SMSUSB_ACTIVE;
+> @@ -489,13 +494,17 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
+>         rc = smscore_start_device(dev->coredev);
+>         if (rc < 0) {
+>                 pr_err("smscore_start_device(...) failed\n");
+> -               smsusb_term_device(intf);
+> -               return rc;
+> +               goto err_smsusb_init;
+>         }
+>
+>         pr_debug("device 0x%p created\n", dev);
+>
+>         return rc;
+> +
+> +err_smsusb_init:
+> +       smsusb_term_device(intf);
+> +
+> +       return rc;
+>  }
+>
+>  static int smsusb_probe(struct usb_interface *intf,
+> --
+> 1.9.1
+>
+> --
+> You received this message because you are subscribed to the Google Groups "syzkaller" group.
+> To unsubscribe from this group and stop receiving emails from it, send an email to syzkaller+unsubscribe@googlegroups.com.
+> For more options, visit https://groups.google.com/d/optout.
