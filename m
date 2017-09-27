@@ -1,145 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37456 "EHLO mail.kernel.org"
+Received: from mga05.intel.com ([192.55.52.43]:37265 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752406AbdIMLTA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Sep 2017 07:19:00 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com,
-        linux-renesas-soc@vger.kernel.org
-Cc: linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v3 5/9] v4l: vsp1: Use reference counting for bodies
-Date: Wed, 13 Sep 2017 12:18:44 +0100
-Message-Id: <f68bdb3874dc29972948541fbb3d4cc2ca734391.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.fd1ad59f0229dc110549eecc18b11ad441997b3a.1505299165.git-series.kieran.bingham+renesas@ideasonboard.com>
+        id S1751263AbdI0SZR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 14:25:17 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 09/13] staging: atomisp: Remove unused members of camera_sensor_platform_data
+Date: Wed, 27 Sep 2017 21:25:04 +0300
+Message-Id: <20170927182508.52119-10-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20170927182508.52119-1-andriy.shevchenko@linux.intel.com>
+References: <20170927182508.52119-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extend the display list body with a reference count, allowing bodies to
-be kept as long as a reference is maintained. This provides the ability
-to keep a cached copy of bodies which will not change, so that they can
-be re-applied to multiple display lists.
+Remove unused members along with dead code.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Mostly done with help of coccinelle.
 
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
-This could be squashed into the body update code, but it's not a
-straightforward squash as the refcounts will affect both:
-  v4l: vsp1: Provide a body pool
-and
-  v4l: vsp1: Convert display lists to use new body pool
-therefore, I have kept this separate to prevent breaking bisectability
-of the vsp-tests.
+ drivers/staging/media/atomisp/i2c/gc0310.c                  | 13 -------------
+ drivers/staging/media/atomisp/i2c/gc2235.c                  | 13 -------------
+ drivers/staging/media/atomisp/i2c/mt9m114.c                 |  9 ---------
+ drivers/staging/media/atomisp/i2c/ov2722.c                  | 13 -------------
+ drivers/staging/media/atomisp/i2c/ov8858.c                  | 13 -------------
+ .../staging/media/atomisp/include/linux/atomisp_platform.h  |  5 -----
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c   |  9 +--------
+ .../atomisp/platform/intel-mid/atomisp_gmin_platform.c      | 12 ------------
+ 8 files changed, 1 insertion(+), 86 deletions(-)
 
-v3:
- - 's/fragment/body/'
----
- drivers/media/platform/vsp1/vsp1_clu.c |  7 ++++++-
- drivers/media/platform/vsp1/vsp1_dl.c  | 15 ++++++++++++++-
- drivers/media/platform/vsp1/vsp1_lut.c |  7 ++++++-
- 3 files changed, 26 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
-index 2018144470c5..b2a39a6ef7e4 100644
---- a/drivers/media/platform/vsp1/vsp1_clu.c
-+++ b/drivers/media/platform/vsp1/vsp1_clu.c
-@@ -257,8 +257,13 @@ static void clu_configure(struct vsp1_entity *entity,
- 		clu->clu = NULL;
- 		spin_unlock_irqrestore(&clu->lock, flags);
+diff --git a/drivers/staging/media/atomisp/i2c/gc0310.c b/drivers/staging/media/atomisp/i2c/gc0310.c
+index b6b1956293c0..0b32c8a94e5c 100644
+--- a/drivers/staging/media/atomisp/i2c/gc0310.c
++++ b/drivers/staging/media/atomisp/i2c/gc0310.c
+@@ -1156,13 +1156,6 @@ static int gc0310_s_config(struct v4l2_subdev *sd,
+ 		(struct camera_sensor_platform_data *)platform_data;
  
--		if (dlb)
-+		if (dlb) {
- 			vsp1_dl_list_add_body(dl, dlb);
-+
-+			/* release our local reference */
-+			vsp1_dl_body_put(dlb);
-+		}
-+
- 		break;
- 	}
+ 	mutex_lock(&dev->input_lock);
+-	if (dev->platform_data->platform_init) {
+-		ret = dev->platform_data->platform_init(client);
+-		if (ret) {
+-			dev_err(&client->dev, "platform init err\n");
+-			goto platform_init_failed;
+-		}
+-	}
+ 	/* power off the module, then power on it in future
+ 	 * as first power on by board may not fulfill the
+ 	 * power on sequqence needed by the module
+@@ -1207,9 +1200,6 @@ static int gc0310_s_config(struct v4l2_subdev *sd,
+ 	power_down(sd);
+ 	dev_err(&client->dev, "sensor power-gating failed\n");
+ fail_power_off:
+-	if (dev->platform_data->platform_deinit)
+-		dev->platform_data->platform_deinit();
+-platform_init_failed:
+ 	mutex_unlock(&dev->input_lock);
+ 	return ret;
  }
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 671aef30d090..0ee12d3338dd 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -14,6 +14,7 @@
- #include <linux/device.h>
- #include <linux/dma-mapping.h>
- #include <linux/gfp.h>
-+#include <linux/refcount.h>
- #include <linux/slab.h>
- #include <linux/workqueue.h>
+@@ -1353,9 +1343,6 @@ static int gc0310_remove(struct i2c_client *client)
+ 	struct gc0310_device *dev = to_gc0310_sensor(sd);
+ 	dev_dbg(&client->dev, "gc0310_remove...\n");
  
-@@ -58,6 +59,8 @@ struct vsp1_dl_body {
- 	struct list_head list;
- 	struct list_head free;
+-	if (dev->platform_data->platform_deinit)
+-		dev->platform_data->platform_deinit();
+-
+ 	dev->platform_data->csi_cfg(sd, 0);
  
-+	refcount_t refcnt;
-+
- 	struct vsp1_dl_body_pool *pool;
- 	struct vsp1_device *vsp1;
+ 	v4l2_device_unregister_subdev(sd);
+diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
+index 46e063dcdc19..bcfcdc220803 100644
+--- a/drivers/staging/media/atomisp/i2c/gc2235.c
++++ b/drivers/staging/media/atomisp/i2c/gc2235.c
+@@ -897,13 +897,6 @@ static int gc2235_s_config(struct v4l2_subdev *sd,
+ 		(struct camera_sensor_platform_data *)platform_data;
  
-@@ -252,6 +255,7 @@ struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool)
- 	if (!list_empty(&pool->free)) {
- 		dlb = list_first_entry(&pool->free, struct vsp1_dl_body, free);
- 		list_del(&dlb->free);
-+		refcount_set(&dlb->refcnt, 1);
- 	}
- 
- 	spin_unlock_irqrestore(&pool->lock, flags);
-@@ -272,6 +276,9 @@ void vsp1_dl_body_put(struct vsp1_dl_body *dlb)
- 	if (!dlb)
- 		return;
- 
-+	if (!refcount_dec_and_test(&dlb->refcnt))
-+		return;
-+
- 	dlb->num_entries = 0;
- 
- 	spin_lock_irqsave(&dlb->pool->lock, flags);
-@@ -458,7 +465,11 @@ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
-  * in the order in which bodies are added.
-  *
-  * Adding a body to a display list passes ownership of the body to the list. The
-- * caller must not touch the body after this call.
-+ * caller must not modify the body after this call, but can retain a reference
-+ * to it for future use if necessary, to add to subsequent lists.
-+ *
-+ * The reference count of the body is incremented by this attachment, and thus
-+ * the caller should release it's reference if does not want to cache the body.
-  *
-  * Additional bodies are only usable for display lists in header mode.
-  * Attempting to add a body to a header-less display list will return an error.
-@@ -470,6 +481,8 @@ int vsp1_dl_list_add_body(struct vsp1_dl_list *dl,
- 	if (dl->dlm->mode != VSP1_DL_MODE_HEADER)
- 		return -EINVAL;
- 
-+	refcount_inc(&dlb->refcnt);
-+
- 	list_add_tail(&dlb->list, &dl->bodies);
- 	return 0;
+ 	mutex_lock(&dev->input_lock);
+-	if (dev->platform_data->platform_init) {
+-		ret = dev->platform_data->platform_init(client);
+-		if (ret) {
+-			dev_err(&client->dev, "platform init err\n");
+-			goto platform_init_failed;
+-		}
+-	}
+ 	/* power off the module, then power on it in future
+ 	 * as first power on by board may not fulfill the
+ 	 * power on sequqence needed by the module
+@@ -947,9 +940,6 @@ static int gc2235_s_config(struct v4l2_subdev *sd,
+ 	power_down(sd);
+ 	dev_err(&client->dev, "sensor power-gating failed\n");
+ fail_power_off:
+-	if (dev->platform_data->platform_deinit)
+-		dev->platform_data->platform_deinit();
+-platform_init_failed:
+ 	mutex_unlock(&dev->input_lock);
+ 	return ret;
  }
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index 262cb72139d6..77cf7137a0f2 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -213,8 +213,13 @@ static void lut_configure(struct vsp1_entity *entity,
- 		lut->lut = NULL;
- 		spin_unlock_irqrestore(&lut->lock, flags);
+@@ -1092,9 +1082,6 @@ static int gc2235_remove(struct i2c_client *client)
+ 	struct gc2235_device *dev = to_gc2235_sensor(sd);
+ 	dev_dbg(&client->dev, "gc2235_remove...\n");
  
--		if (dlb)
-+		if (dlb) {
- 			vsp1_dl_list_add_body(dl, dlb);
-+
-+			/* release our local reference */
-+			vsp1_dl_body_put(dlb);
-+		}
-+
- 		break;
- 	}
+-	if (dev->platform_data->platform_deinit)
+-		dev->platform_data->platform_deinit();
+-
+ 	dev->platform_data->csi_cfg(sd, 0);
+ 
+ 	v4l2_device_unregister_subdev(sd);
+diff --git a/drivers/staging/media/atomisp/i2c/mt9m114.c b/drivers/staging/media/atomisp/i2c/mt9m114.c
+index 950627efa977..09018d5ccaf2 100644
+--- a/drivers/staging/media/atomisp/i2c/mt9m114.c
++++ b/drivers/staging/media/atomisp/i2c/mt9m114.c
+@@ -1575,13 +1575,6 @@ mt9m114_s_config(struct v4l2_subdev *sd, int irq, void *platform_data)
+ 	dev->platform_data =
+ 	    (struct camera_sensor_platform_data *)platform_data;
+ 
+-	if (dev->platform_data->platform_init) {
+-		ret = dev->platform_data->platform_init(client);
+-		if (ret) {
+-			v4l2_err(client, "mt9m114 platform init err\n");
+-			return ret;
+-		}
+-	}
+ 	ret = power_up(sd);
+ 	if (ret) {
+ 		v4l2_err(client, "mt9m114 power-up err");
+@@ -1835,8 +1828,6 @@ static int mt9m114_remove(struct i2c_client *client)
+ 
+ 	dev = container_of(sd, struct mt9m114_device, sd);
+ 	dev->platform_data->csi_cfg(sd, 0);
+-	if (dev->platform_data->platform_deinit)
+-		dev->platform_data->platform_deinit();
+ 	v4l2_device_unregister_subdev(sd);
+ 	media_entity_cleanup(&dev->sd.entity);
+ 	v4l2_ctrl_handler_free(&dev->ctrl_handler);
+diff --git a/drivers/staging/media/atomisp/i2c/ov2722.c b/drivers/staging/media/atomisp/i2c/ov2722.c
+index 39296a784162..c348a93c4100 100644
+--- a/drivers/staging/media/atomisp/i2c/ov2722.c
++++ b/drivers/staging/media/atomisp/i2c/ov2722.c
+@@ -1035,13 +1035,6 @@ static int ov2722_s_config(struct v4l2_subdev *sd,
+ 		(struct camera_sensor_platform_data *)platform_data;
+ 
+ 	mutex_lock(&dev->input_lock);
+-	if (dev->platform_data->platform_init) {
+-		ret = dev->platform_data->platform_init(client);
+-		if (ret) {
+-			dev_err(&client->dev, "platform init err\n");
+-			goto platform_init_failed;
+-		}
+-	}
+ 
+ 	/* power off the module, then power on it in future
+ 	 * as first power on by board may not fulfill the
+@@ -1086,9 +1079,6 @@ static int ov2722_s_config(struct v4l2_subdev *sd,
+ 	power_down(sd);
+ 	dev_err(&client->dev, "sensor power-gating failed\n");
+ fail_power_off:
+-	if (dev->platform_data->platform_deinit)
+-		dev->platform_data->platform_deinit();
+-platform_init_failed:
+ 	mutex_unlock(&dev->input_lock);
+ 	return ret;
  }
+@@ -1232,9 +1222,6 @@ static int ov2722_remove(struct i2c_client *client)
+ 	struct ov2722_device *dev = to_ov2722_sensor(sd);
+ 	dev_dbg(&client->dev, "ov2722_remove...\n");
+ 
+-	if (dev->platform_data->platform_deinit)
+-		dev->platform_data->platform_deinit();
+-
+ 	dev->platform_data->csi_cfg(sd, 0);
+ 	v4l2_ctrl_handler_free(&dev->ctrl_handler);
+ 	v4l2_device_unregister_subdev(sd);
+diff --git a/drivers/staging/media/atomisp/i2c/ov8858.c b/drivers/staging/media/atomisp/i2c/ov8858.c
+index a13bbfb44652..51bda5c73128 100644
+--- a/drivers/staging/media/atomisp/i2c/ov8858.c
++++ b/drivers/staging/media/atomisp/i2c/ov8858.c
+@@ -1567,15 +1567,6 @@ static int ov8858_s_config(struct v4l2_subdev *sd,
+ 
+ 	mutex_lock(&dev->input_lock);
+ 
+-	if (dev->platform_data->platform_init) {
+-		ret = dev->platform_data->platform_init(client);
+-		if (ret) {
+-			mutex_unlock(&dev->input_lock);
+-			dev_err(&client->dev, "platform init error %d!\n", ret);
+-			return ret;
+-		}
+-	}
+-
+ 	ret = __ov8858_s_power(sd, 1);
+ 	if (ret) {
+ 		dev_err(&client->dev, "power-up error %d!\n", ret);
+@@ -1620,8 +1611,6 @@ static int ov8858_s_config(struct v4l2_subdev *sd,
+ fail_csi_cfg:
+ 	__ov8858_s_power(sd, 0);
+ fail_update:
+-	if (dev->platform_data->platform_deinit)
+-		dev->platform_data->platform_deinit();
+ 	mutex_unlock(&dev->input_lock);
+ 	dev_err(&client->dev, "sensor power-gating failed\n");
+ 	return ret;
+@@ -1922,8 +1911,6 @@ static int ov8858_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 	struct ov8858_device *dev = to_ov8858_sensor(sd);
+-	if (dev->platform_data->platform_deinit)
+-		dev->platform_data->platform_deinit();
+ 
+ 	media_entity_cleanup(&dev->sd.entity);
+ 	v4l2_ctrl_handler_free(&dev->ctrl_handler);
+diff --git a/drivers/staging/media/atomisp/include/linux/atomisp_platform.h b/drivers/staging/media/atomisp/include/linux/atomisp_platform.h
+index 5ce8678dacf3..a8c1825e1d0d 100644
+--- a/drivers/staging/media/atomisp/include/linux/atomisp_platform.h
++++ b/drivers/staging/media/atomisp/include/linux/atomisp_platform.h
+@@ -207,11 +207,6 @@ struct camera_vcm_control {
+ struct camera_sensor_platform_data {
+ 	int (*flisclk_ctrl)(struct v4l2_subdev *subdev, int flag);
+ 	int (*csi_cfg)(struct v4l2_subdev *subdev, int flag);
+-	bool (*low_fps)(void);
+-	int (*platform_init)(struct i2c_client *);
+-	int (*platform_deinit)(void);
+-	char *(*msr_file_name)(void);
+-	struct atomisp_camera_caps *(*get_camera_caps)(void);
+ 
+ 	/*
+ 	 * New G-Min power and GPIO interface to control individual
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+index e85b3819bffa..5a6dd3789acd 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+@@ -750,7 +750,6 @@ static int atomisp_subdev_probe(struct atomisp_device *isp)
+ 			&subdevs->v4l2_subdev.board_info;
+ 		struct i2c_adapter *adapter =
+ 			i2c_get_adapter(subdevs->v4l2_subdev.i2c_adapter_id);
+-		struct camera_sensor_platform_data *sensor_pdata;
+ 		int sensor_num, i;
+ 
+ 		if (adapter == NULL) {
+@@ -802,13 +801,7 @@ static int atomisp_subdev_probe(struct atomisp_device *isp)
+ 			 * pixel_format.
+ 			 */
+ 			isp->inputs[isp->input_cnt].frame_size.pixel_format = 0;
+-			sensor_pdata = (struct camera_sensor_platform_data *)
+-					board_info->platform_data;
+-			if (sensor_pdata->get_camera_caps)
+-				isp->inputs[isp->input_cnt].camera_caps =
+-					sensor_pdata->get_camera_caps();
+-			else
+-				isp->inputs[isp->input_cnt].camera_caps =
++			isp->inputs[isp->input_cnt].camera_caps =
+ 					atomisp_get_default_camera_caps();
+ 			sensor_num = isp->inputs[isp->input_cnt]
+ 				.camera_caps->sensor_num;
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+index 0c5d09bdb93a..3f7814a3a5a4 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+@@ -331,16 +331,6 @@ static const struct {
+ 
+ #define CFG_VAR_NAME_MAX 64
+ 
+-static int gmin_platform_init(struct i2c_client *client)
+-{
+-	return 0;
+-}
+-
+-static int gmin_platform_deinit(void)
+-{
+-	return 0;
+-}
+-
+ #define GMIN_PMC_CLK_NAME 14 /* "pmc_plt_clk_[0..5]" */
+ static char gmin_pmc_clk_name[GMIN_PMC_CLK_NAME];
+ 
+@@ -621,8 +611,6 @@ static struct camera_sensor_platform_data gmin_plat = {
+ 	.v2p8_ctrl = gmin_v2p8_ctrl,
+ 	.v1p2_ctrl = gmin_v1p2_ctrl,
+ 	.flisclk_ctrl = gmin_flisclk_ctrl,
+-	.platform_init = gmin_platform_init,
+-	.platform_deinit = gmin_platform_deinit,
+ 	.csi_cfg = gmin_csi_cfg,
+ 	.get_vcm_ctrl = gmin_get_vcm_ctrl,
+ };
 -- 
-git-series 0.9.1
+2.14.1
