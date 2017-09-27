@@ -1,51 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:49394 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752219AbdICUbb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 3 Sep 2017 16:31:31 -0400
-Subject: [PATCH 1/7] [media] saa7164: Delete an error message for a failed
- memory allocation in saa7164_buffer_alloc()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <170abf7f-3b62-a37c-966a-8b574acae230@users.sourceforge.net>
-Message-ID: <6946d617-7c6d-aff8-5267-d260b64b2085@users.sourceforge.net>
-Date: Sun, 3 Sep 2017 22:31:10 +0200
-MIME-Version: 1.0
-In-Reply-To: <170abf7f-3b62-a37c-966a-8b574acae230@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:32967
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751960AbdI0VKd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 17:10:33 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: [PATCH v2 12/13] scripts: kernel-doc: handle nested struct function arguments
+Date: Wed, 27 Sep 2017 18:10:23 -0300
+Message-Id: <8cab7bd29fa6fbf8e54d1478a5be2a709cf35ea4.1506546492.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506546492.git.mchehab@s-opensource.com>
+References: <cover.1506546492.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506546492.git.mchehab@s-opensource.com>
+References: <cover.1506546492.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 3 Sep 2017 17:47:41 +0200
+Function arguments are different than usual ones. So, an
+special logic is needed in order to handle such arguments
+on nested structs.
 
-Omit an extra message for a memory allocation failure in this function.
-
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/pci/saa7164/saa7164-buffer.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ scripts/kernel-doc | 38 ++++++++++++++++++++++++++------------
+ 1 file changed, 26 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/pci/saa7164/saa7164-buffer.c b/drivers/media/pci/saa7164/saa7164-buffer.c
-index a0d2129c6ca9..6bd665ea190d 100644
---- a/drivers/media/pci/saa7164/saa7164-buffer.c
-+++ b/drivers/media/pci/saa7164/saa7164-buffer.c
-@@ -102,7 +102,5 @@ struct saa7164_buffer *saa7164_buffer_alloc(struct saa7164_port *port,
--	if (!buf) {
--		log_warn("%s() SAA_ERR_NO_RESOURCES\n", __func__);
-+	if (!buf)
- 		goto ret;
--	}
- 
- 	buf->idx = -1;
- 	buf->port = port;
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index 713608046d3a..376365d41718 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -1015,18 +1015,32 @@ sub dump_struct($$) {
+ 			$id =~ s/^\*+//;
+ 			foreach my $arg (split /;/, $content) {
+ 				next if ($arg =~ m/^\s*$/);
+-				my $type = $arg;
+-				my $name = $arg;
+-				$type =~ s/\s\S+$//;
+-				$name =~ s/.*\s//;
+-				$name =~ s/[:\[].*//;
+-				$name =~ s/^\*+//;
+-				next if (($name =~ m/^\s*$/));
+-				if ($id =~ m/^\s*$/) {
+-					# anonymous struct/union
+-					$newmember .= "$type $name;";
++				if ($arg =~ m/^([^\(]+\(\*?\s*)([\w\.]*)(\s*\).*)/) {
++					# pointer-to-function
++					my $type = $1;
++					my $name = $2;
++					my $extra = $3;
++					next if (!$name);
++					if ($id =~ m/^\s*$/) {
++						# anonymous struct/union
++						$newmember .= "$type$name$extra;";
++					} else {
++						$newmember .= "$type$id.$name$extra;";
++					}
+ 				} else {
+-					$newmember .= "$type $id.$name;";
++					my $type = $arg;
++					my $name = $arg;
++					$type =~ s/\s\S+$//;
++					$name =~ s/.*\s+//;
++					$name =~ s/[:\[].*//;
++					$name =~ s/^\*+//;
++					next if (($name =~ m/^\s*$/));
++					if ($id =~ m/^\s*$/) {
++						# anonymous struct/union
++						$newmember .= "$type $name;";
++					} else {
++						$newmember .= "$type $id.$name;";
++					}
+ 				}
+ 			}
+ 			$members =~ s/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/$newmember/;
+@@ -1215,7 +1229,7 @@ sub create_parameterlist($$$$) {
+ 	} elsif ($arg =~ m/\(.+\)\s*\(/) {
+ 	    # pointer-to-function
+ 	    $arg =~ tr/#/,/;
+-	    $arg =~ m/[^\(]+\(\*?\s*(\w*)\s*\)/;
++	    $arg =~ m/[^\(]+\(\*?\s*([\w\.]*)\s*\)/;
+ 	    $param = $1;
+ 	    $type = $arg;
+ 	    $type =~ s/([^\(]+\(\*?)\s*$param/$1/;
 -- 
-2.14.1
+2.13.5
