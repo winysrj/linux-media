@@ -1,44 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:49791 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751370AbdISPYw (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33637
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752111AbdI0WX4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 11:24:52 -0400
-Message-ID: <1505834685.10076.5.camel@pengutronix.de>
-Subject: Re: [PATCH 2/3] [media] tc358743: Increase FIFO level to 300.
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Mats Randgaard <matrandg@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Wed, 27 Sep 2017 18:23:56 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-Date: Tue, 19 Sep 2017 17:24:45 +0200
-In-Reply-To: <3e638375aff788b24f988e452214649d6100a596.1505826082.git.dave.stevenson@raspberrypi.org>
-References: <cover.1505826082.git.dave.stevenson@raspberrypi.org>
-         <3e638375aff788b24f988e452214649d6100a596.1505826082.git.dave.stevenson@raspberrypi.org>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v7 7/7] media: open.rst: add a notice about subdev-API on vdev-centric
+Date: Wed, 27 Sep 2017 19:23:49 -0300
+Message-Id: <628a25e694c33ab6dd1ea061bc4d766ec4fe30ef.1506550930.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506550930.git.mchehab@s-opensource.com>
+References: <cover.1506550930.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506550930.git.mchehab@s-opensource.com>
+References: <cover.1506550930.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dave,
+The documentation doesn't mention if vdev-centric hardware
+control would have subdev API or not.
 
-On Tue, 2017-09-19 at 14:08 +0100, Dave Stevenson wrote:
-> The existing fixed value of 16 worked for UYVY 720P60 over
-> 2 lanes at 594MHz, or UYVY 1080P60 over 4 lanes. (RGB888
-> 1080P60 needs 6 lanes at 594MHz).
-> It doesn't allow for lower resolutions to work as the FIFO
-> underflows.
-> 
-> Using a value of 300 works for all resolutions down to VGA60,
-> and the increase in frame delay is <4usecs for 1080P60 UYVY
-> (2.55usecs for RGB888).
-> 
-> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Add a notice about that, reflecting the current status, where
+three drivers use it, in order to support some subdev-specific
+controls.
 
-Can we increase this to 320? This would also allow
-720p60 at 594 Mbps / 4 lanes, according to the xls.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/v4l/open.rst | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-regards
-Philipp
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index 75ccc9d6614d..ed011ed123cc 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -47,6 +47,13 @@ the periferal can be used. For such devices, the sub-devices' configuration
+ can be controlled via the :ref:`sub-device API <subdev>`, which creates one
+ device node per sub-device.
+ 
++.. note::
++
++   A **vdevnode-centric** may also optionally expose V4L2 sub-devices via
++   :ref:`sub-device API <subdev>`. In that case, it has to implement
++   the :ref:`media controller API <media_controller>` as well.
++
++
+ .. attention::
+ 
+    Devices that require **MC-centric** media hardware control should
+-- 
+2.13.5
