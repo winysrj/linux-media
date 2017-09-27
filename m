@@ -1,82 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pide.tip.net.au ([203.10.76.2]:49454 "EHLO pide.tip.net.au"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934836AbdIZMNM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 08:13:12 -0400
-Received: from pide.tip.net.au (pide.tip.net.au [IPv6:2401:fc00:0:107::2])
-        by mailhost.tip.net.au (Postfix) with ESMTP id 3y1fx26GKnzFsy2
-        for <linux-media@vger.kernel.org>; Tue, 26 Sep 2017 22:13:10 +1000 (AEST)
-Received: from e4.eyal.emu.id.au (124-171-194-215.dyn.iinet.net.au [124.171.194.215])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by pide.tip.net.au (Postfix) with ESMTPSA id 3y1fx25lkmz95QN
-        for <linux-media@vger.kernel.org>; Tue, 26 Sep 2017 22:13:10 +1000 (AEST)
-Subject: Re: [progress]: dvb_usb_rtl28xxu not tuning "Leadtek Winfast DTV2000
- DS PLUS TV"
-To: list linux-media <linux-media@vger.kernel.org>
-References: <00ad85dd-2fe3-5f15-6c0c-47fcf580f541@eyal.emu.id.au>
- <678bf4fa-5849-1fb2-adf1-a07458767d9e@eyal.emu.id.au>
-From: Eyal Lebedinsky <eyal@eyal.emu.id.au>
-Message-ID: <1fb0dcc0-9202-75a7-c5e3-a744c8242a78@eyal.emu.id.au>
-Date: Tue, 26 Sep 2017 22:13:09 +1000
+Received: from mail-oi0-f41.google.com ([209.85.218.41]:53014 "EHLO
+        mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751985AbdI0LwC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 07:52:02 -0400
+Received: by mail-oi0-f41.google.com with SMTP id p126so16271070oih.9
+        for <linux-media@vger.kernel.org>; Wed, 27 Sep 2017 04:52:02 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <678bf4fa-5849-1fb2-adf1-a07458767d9e@eyal.emu.id.au>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-AU
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170926211021.11036-2-tvboxspy@gmail.com>
+References: <20170926211021.11036-1-tvboxspy@gmail.com> <20170926211021.11036-2-tvboxspy@gmail.com>
+From: Andrey Konovalov <andreyknvl@google.com>
+Date: Wed, 27 Sep 2017 13:52:01 +0200
+Message-ID: <CAAeHK+xTS5EE_DG0LBWsxu5PPxsjYHMXiEKe7MdF_TVyJCFJOg@mail.gmail.com>
+Subject: Re: [PATCH 2/2] media: dvb-usb-v2: lmedm04: move ts2020 attach to dm04_lme2510_tuner
+To: Malcolm Priestley <tvboxspy@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/09/17 14:32, Eyal Lebedinsky wrote:
-> On 18/09/17 14:26, Eyal Lebedinsky wrote:
->> I have just upgraded to f24. I am now using the standard dvb_usb_rtl28xxu fe
->> which logs messages suggesting all is well (I get the /dev/dvb/adapter? etc.)
->> but I get no channels tuned when I run mythfrontend or scandvb.
->>
->> Is anyone using this combination?
->> Is this the correct way to use this tuner?
->>
->> BTW:
->>
->> Until f22 I was using the out of kernel driver from
->>      https://github.com/jaredquinn/DVB-Realtek-RTL2832U.git
->> but I now get a compile error.
->>
->> TIA
-> 
-> This is an FYI in case anyone else stumbles on this thread.
-> 
-> While the problem persists, I managed to find a way around it for now.
-> 
-> I changed the antenna input.
-> 
-> Originally I used a powered splitter to feed all the tuners, and it worked
-> well with the out-of-kernel driver. This driver does not build or work with
-> a more modern kernel so I shifted to using dvb_usb_rtl28xxu which fails to
-> tune.
-> 
-> The new wiring splits (passive) the antenna in two, feeds one side directly
-> to the two "Leadtek Winfast DTV2000 DS PLUS TV" cards (through another passive
-> 2-way) and the other side goes to the old powered splitter that feeds a few
-> USB tuners.
-> 
-> Now all tuners are happy. It seems that the "Leadtek Winfast DTV2000 DS PLUS TV"
-> cannot handle the amplified input while the USB tuners require it.
-> 
-> I hope that there is a way to set a profile in dvb_usb_rtl28xxu to attenuate
-> the input to an acceptable level thus unravelling the antenna cables rat-nest.
+On Tue, Sep 26, 2017 at 11:10 PM, Malcolm Priestley <tvboxspy@gmail.com> wrote:
+> When the tuner was split from m88rs2000 the attach function is in wrong
+> place.
+>
+> Move to dm04_lme2510_tuner to trap errors on failure and removing
+> a call to lme_coldreset.
+>
+> Prevents driver starting up without any tuner connected.
+>
+> Fixes to trap for ts2020 fail.
+> LME2510(C): FE Found M88RS2000
+> ts2020: probe of 0-0060 failed with error -11
+> ...
+> LME2510(C): TUN Found RS2000 tuner
+> kasan: CONFIG_KASAN_INLINE enabled
+> kasan: GPF could be caused by NULL-ptr deref or user memory access
+> general protection fault: 0000 [#1] PREEMPT SMP KASAN
+>
+> Reported-by: Andrey Konovalov <andreyknvl@google.com>
+> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
 
-Looking further, I think that it is the fc0013 tuner that should manage the lna
-but does not. Compare it to the module in here
-	https://github.com/jaredquinn/DVB-Realtek-RTL2832U/blob/master/src/tuner_fc0013.c
-which I was using successfully (unfortunately this repo does not build or work
-with current linux kernels).
+Tested-by: Andrey Konovalov <andreyknvl@google.com>
 
-Is this possible? If so, can it be fixed?
+These 2 patches fix the crash with the reproducer that I have.
 
-cheers
+Thanks!
 
-> cheers
-
--- 
-Eyal Lebedinsky (eyal@eyal.emu.id.au)
+> ---
+>  drivers/media/usb/dvb-usb-v2/lmedm04.c | 13 ++++++-------
+>  1 file changed, 6 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+> index 992f2011a6ba..be26c029546b 100644
+> --- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
+> +++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+> @@ -1076,8 +1076,6 @@ static int dm04_lme2510_frontend_attach(struct dvb_usb_adapter *adap)
+>
+>                 if (adap->fe[0]) {
+>                         info("FE Found M88RS2000");
+> -                       dvb_attach(ts2020_attach, adap->fe[0], &ts2020_config,
+> -                                       &d->i2c_adap);
+>                         st->i2c_tuner_gate_w = 5;
+>                         st->i2c_tuner_gate_r = 5;
+>                         st->i2c_tuner_addr = 0x60;
+> @@ -1143,17 +1141,18 @@ static int dm04_lme2510_tuner(struct dvb_usb_adapter *adap)
+>                         ret = st->tuner_config;
+>                 break;
+>         case TUNER_RS2000:
+> -               ret = st->tuner_config;
+> +               if (dvb_attach(ts2020_attach, adap->fe[0],
+> +                              &ts2020_config, &d->i2c_adap))
+> +                       ret = st->tuner_config;
+>                 break;
+>         default:
+>                 break;
+>         }
+>
+> -       if (ret)
+> +       if (ret) {
+>                 info("TUN Found %s tuner", tun_msg[ret]);
+> -       else {
+> -               info("TUN No tuner found --- resetting device");
+> -               lme_coldreset(d);
+> +       } else {
+> +               info("TUN No tuner found");
+>                 return -ENODEV;
+>         }
+>
+> --
+> 2.14.1
+>
