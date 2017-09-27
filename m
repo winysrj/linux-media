@@ -1,152 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zimbra.linuxprofi.at ([93.83.54.199]:50554 "EHLO
-        zimbra.linuxprofi.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932287AbdIZLwK (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33174
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752196AbdI0Vkz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 07:52:10 -0400
-Subject: Re: [PATCH 1/6] [media] tda8261: Use common error handling code in
- tda8261_set_params()
-To: SF Markus Elfring <elfring@users.sourceforge.net>,
-        linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <15d74bee-7467-4687-24e1-3501c22f6d75@users.sourceforge.net>
- <28425caf-2736-96ae-00a7-3fb273b1f9d5@users.sourceforge.net>
-From: =?UTF-8?Q?Christoph_B=c3=b6hmwalder?= <christoph@boehmwalder.at>
-Message-ID: <bcf8d922-fde7-59a0-f3d9-3f16a2a62d9b@boehmwalder.at>
-Date: Tue, 26 Sep 2017 13:45:56 +0200
-MIME-Version: 1.0
-In-Reply-To: <28425caf-2736-96ae-00a7-3fb273b1f9d5@users.sourceforge.net>
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="JaoT8kduORioKQdmr1dsl7S7WCjAiT5FH"
+        Wed, 27 Sep 2017 17:40:55 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 30/37] media: dvb_demux.h: document functions
+Date: Wed, 27 Sep 2017 18:40:31 -0300
+Message-Id: <7b4377dc26b9ef3e54042c979184c24286b4060e.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---JaoT8kduORioKQdmr1dsl7S7WCjAiT5FH
-Content-Type: multipart/mixed; boundary="uiW3LkmKBnrDbk7ev8H7FV2Xa7uE5l2CD";
- protected-headers="v1"
-From: =?UTF-8?Q?Christoph_B=c3=b6hmwalder?= <christoph@boehmwalder.at>
-To: SF Markus Elfring <elfring@users.sourceforge.net>,
- linux-media@vger.kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
- Max Kellermann <max.kellermann@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
-Message-ID: <bcf8d922-fde7-59a0-f3d9-3f16a2a62d9b@boehmwalder.at>
-Subject: Re: [PATCH 1/6] [media] tda8261: Use common error handling code in
- tda8261_set_params()
-References: <15d74bee-7467-4687-24e1-3501c22f6d75@users.sourceforge.net>
- <28425caf-2736-96ae-00a7-3fb273b1f9d5@users.sourceforge.net>
-In-Reply-To: <28425caf-2736-96ae-00a7-3fb273b1f9d5@users.sourceforge.net>
+The functions used on dvb_demux.h are largely used on DVB drivers.
+Yet, none of them are documented.
 
---uiW3LkmKBnrDbk7ev8H7FV2Xa7uE5l2CD
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
+No functional changes.
 
-On 26.09.2017 13:27, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Tue, 26 Sep 2017 11:01:44 +0200
->=20
-> * Add a jump target so that a bit of exception handling can be better
->   reused at the end of this function.
->=20
->   This issue was detected by using the Coccinelle software.
->=20
-> * The script "checkpatch.pl" pointed information out like the following=
-=2E
->=20
->   ERROR: do not use assignment in if condition
->=20
->   Thus fix an affected source code place.
->=20
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/media/dvb-frontends/tda8261.c | 20 ++++++++++++--------
->  1 file changed, 12 insertions(+), 8 deletions(-)
->=20
-> diff --git a/drivers/media/dvb-frontends/tda8261.c b/drivers/media/dvb-=
-frontends/tda8261.c
-> index 4eb294f330bc..5a8a9b6b8107 100644
-> --- a/drivers/media/dvb-frontends/tda8261.c
-> +++ b/drivers/media/dvb-frontends/tda8261.c
-> @@ -129,18 +129,18 @@ static int tda8261_set_params(struct dvb_frontend=
- *fe)
-> =20
->  	/* Set params */
->  	err =3D tda8261_write(state, buf);
-> -	if (err < 0) {
-> -		pr_err("%s: I/O Error\n", __func__);
-> -		return err;
-> -	}
-> +	err =3D tda8261_get_status(fe, &status);
-> +	if (err < 0)
-> +		goto report_failure;
-> +
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/dvb_demux.h | 106 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 103 insertions(+), 3 deletions(-)
 
-Is this change really correct? Doesn't it query the status once more
-often than before?
-
->  	/* sleep for some time */
->  	pr_debug("%s: Waiting to Phase LOCK\n", __func__);
->  	msleep(20);
->  	/* check status */
-> -	if ((err =3D tda8261_get_status(fe, &status)) < 0) {
-> -		pr_err("%s: I/O Error\n", __func__);
-> -		return err;
-> -	}
-> +	err =3D tda8261_get_status(fe, &status);
-> +	if (err < 0)
-> +		goto report_failure;
-> +
->  	if (status =3D=3D 1) {
->  		pr_debug("%s: Tuner Phase locked: status=3D%d\n", __func__,
->  			 status);
-> @@ -150,6 +150,10 @@ static int tda8261_set_params(struct dvb_frontend =
-*fe)
->  	}
-> =20
->  	return 0;
-> +
-> +report_failure:
-> +	pr_err("%s: I/O Error\n", __func__);
-> +	return err;
->  }
-> =20
->  static void tda8261_release(struct dvb_frontend *fe)
->=20
-
-
---=20
-Regards,
-Christoph
-
-
---uiW3LkmKBnrDbk7ev8H7FV2Xa7uE5l2CD--
-
---JaoT8kduORioKQdmr1dsl7S7WCjAiT5FH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJZyj35AAoJEM3PQE6B9NDDLOoQAIASDkKFxdJe++DBDJjW1gsy
-tCpzHxC9VrZ0FGnZN/Wj3BlocOeUOkPTrwFHA8WIdxpmnAzu3rNvB7wCWCS5Dltm
-NVwGpcbyXBuXg56zjZKx64i0bZKBzimgOxe1jTq+TFVk/1IOqo74KebZsm7yiJKC
-AinkBAV+xH0ZFqE8WUJTl58vWg8s7XJD5IEj4GfOVebt4V8KATLlCTx4o+P3y2s6
-tl28Miak5HIHrf9HxIkRm6RpdMM7hHe0W9p5cWQEast79Y1VFp4Sd2AGsNtL+K30
-6irtRLAXuaD3oEI8AsrX1ZPb7zvSOae4DuievQBmeA864oHZC+nxMgbhE8JMWBAX
-4+ZTxmQ0uLl3tfDxwdgGBSDErXJwnNbowToZXcHzxlN9Co5kfUykuklxLnh7L4B+
-OH0s0oF/1RhAGK9/MEmmFa29v+ABeoecM2lh1LQCaprMzGHthtal/ozpfQsBd5o+
-lr946t7PIl3M6/vXMkbUhP4Rq4JKsjHjAiG6YlCAnN3elwqMj/ZzV3bfxM24wQMg
-hXBoAR7BgWEG4kLl0b3w7dGsz26RsCB5CZPQ1DBg3bqVzAsXXsVRsM0vrD//579i
-2C6s41mnsd0LSt6kXGyIL0ZMtpSnSOE+ALPcvwAVGh4+AqfCduqydDVlvNm3DWsp
-VLHqYKafKNOKEitoSBIY
-=Ykl6
------END PGP SIGNATURE-----
-
---JaoT8kduORioKQdmr1dsl7S7WCjAiT5FH--
+diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
+index 43b0cab2e932..15ee2ea23efe 100644
+--- a/drivers/media/dvb-core/dvb_demux.h
++++ b/drivers/media/dvb-core/dvb_demux.h
+@@ -232,13 +232,113 @@ struct dvb_demux {
+ 	int recording;
+ };
+ 
+-int dvb_dmx_init(struct dvb_demux *dvbdemux);
+-void dvb_dmx_release(struct dvb_demux *dvbdemux);
+-void dvb_dmx_swfilter_packets(struct dvb_demux *dvbdmx, const u8 *buf,
++/**
++ * dvb_dmx_init - initialize a digital TV demux struct.
++ *
++ * @demux: &struct dvb_demux to be initialized.
++ *
++ * Before being able to register a digital TV demux struct, drivers
++ * should call this routine. On its typical usage, some fields should
++ * be initialized at the driver before calling it.
++ *
++ * A typical usecase is::
++ *
++ *	dvb->demux.dmx.capabilities =
++ *		DMX_TS_FILTERING | DMX_SECTION_FILTERING |
++ *		DMX_MEMORY_BASED_FILTERING;
++ *	dvb->demux.priv       = dvb;
++ *	dvb->demux.filternum  = 256;
++ *	dvb->demux.feednum    = 256;
++ *	dvb->demux.start_feed = driver_start_feed;
++ *	dvb->demux.stop_feed  = driver_stop_feed;
++ *	ret = dvb_dmx_init(&dvb->demux);
++ *	if (ret < 0)
++ *		return ret;
++ */
++int dvb_dmx_init(struct dvb_demux *demux);
++
++/**
++ * dvb_dmx_release - releases a digital TV demux internal buffers.
++ *
++ * @demux: &struct dvb_demux to be released.
++ *
++ * The DVB core internally allocates data at @demux. This routine
++ * releases those data. Please notice that the struct itelf is not
++ * released, as it can be embedded on other structs.
++ */
++void dvb_dmx_release(struct dvb_demux *demux);
++
++/**
++ * dvb_dmx_swfilter_packets - use dvb software filter for a buffer with
++ *	multiple MPEG-TS packets with 188 bytes each.
++ *
++ * @demux: pointer to &struct dvb_demux
++ * @buf: buffer with data to be filtered
++ * @count: number of MPEG-TS packets with size of 188.
++ *
++ * The routine will discard a DVB packet that don't start with 0x47.
++ *
++ * Use this routine if the DVB demux fills MPEG-TS buffers that are
++ * already aligned.
++ *
++ * NOTE: The @buf size should have size equal to ``count * 188``.
++ */
++void dvb_dmx_swfilter_packets(struct dvb_demux *demux, const u8 *buf,
+ 			      size_t count);
++
++/**
++ * dvb_dmx_swfilter -  use dvb software filter for a buffer with
++ *	multiple MPEG-TS packets with 188 bytes each.
++ *
++ * @demux: pointer to &struct dvb_demux
++ * @buf: buffer with data to be filtered
++ * @count: number of MPEG-TS packets with size of 188.
++ *
++ * If a DVB packet doesn't start with 0x47, it will seek for the first
++ * byte that starts with 0x47.
++ *
++ * Use this routine if the DVB demux fill buffers that may not start with
++ * a packet start mark (0x47).
++ *
++ * NOTE: The @buf size should have size equal to ``count * 188``.
++ */
+ void dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf, size_t count);
++
++/**
++ * dvb_dmx_swfilter_204 -  use dvb software filter for a buffer with
++ *	multiple MPEG-TS packets with 204 bytes each.
++ *
++ * @demux: pointer to &struct dvb_demux
++ * @buf: buffer with data to be filtered
++ * @count: number of MPEG-TS packets with size of 204.
++ *
++ * If a DVB packet doesn't start with 0x47, it will seek for the first
++ * byte that starts with 0x47.
++ *
++ * Use this routine if the DVB demux fill buffers that may not start with
++ * a packet start mark (0x47).
++ *
++ * NOTE: The @buf size should have size equal to ``count * 204``.
++ */
+ void dvb_dmx_swfilter_204(struct dvb_demux *demux, const u8 *buf,
+ 			  size_t count);
++
++/**
++ * dvb_dmx_swfilter_raw -  make the raw data available to userspace without
++ * 	filtering
++ *
++ * @demux: pointer to &struct dvb_demux
++ * @buf: buffer with data
++ * @count: number of packets to be passed. The actual size of each packet
++ *	depends on the &dvb_demux->feed->cb.ts logic.
++ *
++ * Use it if the driver needs to deliver the raw payload to userspace without
++ * passing through the kernel demux. That is meant to support some
++ * delivery systems that aren't based on MPEG-TS.
++ *
++ * This function relies on &dvb_demux->feed->cb.ts to actually handle the
++ * buffer.
++ */
+ void dvb_dmx_swfilter_raw(struct dvb_demux *demux, const u8 *buf,
+ 			  size_t count);
+ 
+-- 
+2.13.5
