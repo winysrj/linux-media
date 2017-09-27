@@ -1,58 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iodev.co.uk ([82.211.30.53]:52610 "EHLO iodev.co.uk"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751785AbdIOXgN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Sep 2017 19:36:13 -0400
-Date: Fri, 15 Sep 2017 20:36:04 -0300
-From: Ismael Luceno <ismael@iodev.co.uk>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        Anton Sviridenko <anton@corp.bluecherry.net>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] solo6x10: hide unused variable
-Message-ID: <20170915233603.GA13472@pirotess.bf.iodev.co.uk>
-References: <20170915195225.1394284-1-arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170915195225.1394284-1-arnd@arndb.de>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33131
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751969AbdI0Vkr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 17:40:47 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>
+Subject: [PATCH v2 04/37] media: friio-fe: get rid of set_property()
+Date: Wed, 27 Sep 2017 18:40:05 -0300
+Message-Id: <0a14a3b9462395059ee2fe112534f727b6c81ac4.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
+References: <cover.1506547906.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15/Sep/2017 21:52, Arnd Bergmann wrote:
-> When building without CONFIG_GPIOLIB, we get a harmless
-> warning about an unused variable:
-> 
-> drivers/media/pci/solo6x10/solo6x10-gpio.c: In function 'solo_gpio_init':
-> drivers/media/pci/solo6x10/solo6x10-gpio.c:165:6: error: unused variable 'ret' [-Werror=unused-variable]
-> 
-> This adds another #ifdef around the declaration.
-> 
-> Fixes: d3202d1981dc ("media: solo6x10: export hardware GPIO pins 8:31 to gpiolib interface")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  drivers/media/pci/solo6x10/solo6x10-gpio.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/pci/solo6x10/solo6x10-gpio.c b/drivers/media/pci/solo6x10/solo6x10-gpio.c
-> index 3d0d1aa2f6a8..7b4641a2cb84 100644
-> --- a/drivers/media/pci/solo6x10/solo6x10-gpio.c
-> +++ b/drivers/media/pci/solo6x10/solo6x10-gpio.c
-> @@ -162,7 +162,9 @@ static void solo_gpiochip_set(struct gpio_chip *chip,
->  
->  int solo_gpio_init(struct solo_dev *solo_dev)
->  {
-> +#ifdef CONFIG_GPIOLIB
->  	int ret;
-> +#endif
->  
->  	solo_gpio_config(solo_dev);
->  #ifdef CONFIG_GPIOLIB
-> -- 
-> 2.9.0
-> 
+This callback is not actually doing anything but making it to
+return an error depending on the DTV frontend command. Well,
+that could break userspace for no good reason, and, if needed,
+should be implemented, instead, at set_frontend() callback.
 
-Signed-off-by: Ismael Luceno <ismael@iodev.co.uk>
+So, get rid of it.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/dvb-usb/friio-fe.c | 24 ------------------------
+ 1 file changed, 24 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb/friio-fe.c b/drivers/media/usb/dvb-usb/friio-fe.c
+index 0251a4e91d47..41261317bd5c 100644
+--- a/drivers/media/usb/dvb-usb/friio-fe.c
++++ b/drivers/media/usb/dvb-usb/friio-fe.c
+@@ -261,28 +261,6 @@ static int jdvbt90502_read_signal_strength(struct dvb_frontend *fe,
+ 	return 0;
+ }
+ 
+-
+-/* filter out un-supported properties to notify users */
+-static int jdvbt90502_set_property(struct dvb_frontend *fe,
+-				   struct dtv_property *tvp)
+-{
+-	int r = 0;
+-
+-	switch (tvp->cmd) {
+-	case DTV_DELIVERY_SYSTEM:
+-		if (tvp->u.data != SYS_ISDBT)
+-			r = -EINVAL;
+-		break;
+-	case DTV_CLEAR:
+-	case DTV_TUNE:
+-	case DTV_FREQUENCY:
+-		break;
+-	default:
+-		r = -EINVAL;
+-	}
+-	return r;
+-}
+-
+ static int jdvbt90502_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+@@ -457,8 +435,6 @@ static const struct dvb_frontend_ops jdvbt90502_ops = {
+ 	.init = jdvbt90502_init,
+ 	.write = _jdvbt90502_write,
+ 
+-	.set_property = jdvbt90502_set_property,
+-
+ 	.set_frontend = jdvbt90502_set_frontend,
+ 
+ 	.read_status = jdvbt90502_read_status,
+-- 
+2.13.5
