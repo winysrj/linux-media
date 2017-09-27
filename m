@@ -1,67 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:62852 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750793AbdIQIVH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Sep 2017 04:21:07 -0400
-Subject: [PATCH 2/2] [media] tda18212: Improve three size determinations
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <eb35c033-46b3-4fd6-8398-f1e3869a67a8@users.sourceforge.net>
-Message-ID: <e3688a0e-1970-c7ff-fdf8-d943bf4bb8e2@users.sourceforge.net>
-Date: Sun, 17 Sep 2017 10:20:55 +0200
-MIME-Version: 1.0
-In-Reply-To: <eb35c033-46b3-4fd6-8398-f1e3869a67a8@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33833 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750703AbdI0JWQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 05:22:16 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: andreyknvl@google.com, mchehab@kernel.org, kcc@google.com,
+        dvyukov@google.com, mchehab@s-opensource.com,
+        javier@osg.samsung.com, sakari.ailus@linux.intel.com,
+        laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        syzkaller@googlegroups.com
+Subject: [RFT] [media] siano: FIX use-after-free in worker_thread
+Date: Wed, 27 Sep 2017 14:51:05 +0530
+Message-Id: <eba212d6d5b631365c5881b0ef4e16a9a8ea8cf6.1506502997.git.arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 17 Sep 2017 09:42:17 +0200
+If CONFIG_MEDIA_CONTROLLER_DVB is enable, We are not releasing
+media device and memory on any failure or disconnect a device.
 
-Replace the specification of data structures by variable references
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+Adding structure media_device 'mdev' as part of 'smsusb_device_t'
+structure to make proper handle for media device.
+Now releasing a media device and memory on failure. It's allocate
+first in siano_media_device_register() and it should be freed last
+in smsusb_disconnect().
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- drivers/media/tuners/tda18212.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+This bug report by Andrey Konovalov "usb/media/smsusb: use-after-free in
+worker_thread".
 
-diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
-index 8f89d52cd39c..16a90d75f7d4 100644
---- a/drivers/media/tuners/tda18212.c
-+++ b/drivers/media/tuners/tda18212.c
-@@ -207,6 +207,6 @@ static int tda18212_probe(struct i2c_client *client,
+ drivers/media/usb/siano/smsusb.c | 45 ++++++++++++++++++++++++----------------
+ 1 file changed, 27 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
+index 8c1f926..66936b3 100644
+--- a/drivers/media/usb/siano/smsusb.c
++++ b/drivers/media/usb/siano/smsusb.c
+@@ -69,6 +69,9 @@ struct smsusb_device_t {
+ 	unsigned char in_ep;
+ 	unsigned char out_ep;
+ 	enum smsusb_state state;
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++	struct media_device *mdev;
++#endif
+ };
+ 
+ static int smsusb_submit_urb(struct smsusb_device_t *dev,
+@@ -359,6 +362,13 @@ static void smsusb_term_device(struct usb_interface *intf)
+ 		if (dev->coredev)
+ 			smscore_unregister_device(dev->coredev);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++		if (dev->mdev) {
++			media_device_unregister(dev->mdev);
++			media_device_cleanup(dev->mdev);
++			kfree(dev->mdev);
++		}
++#endif
+ 		pr_debug("device 0x%p destroyed\n", dev);
+ 		kfree(dev);
+ 	}
+@@ -370,27 +380,28 @@ static void *siano_media_device_register(struct smsusb_device_t *dev,
+ 					int board_id)
+ {
+ #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+-	struct media_device *mdev;
+ 	struct usb_device *udev = dev->udev;
+ 	struct sms_board *board = sms_get_board(board_id);
+ 	int ret;
+ 
+-	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
+-	if (!mdev)
++	dev->mdev = kzalloc(sizeof(*dev->mdev), GFP_KERNEL);
++	if (!dev->mdev)
+ 		return NULL;
+ 
+-	media_device_usb_init(mdev, udev, board->name);
+ 
+-	ret = media_device_register(mdev);
++	media_device_usb_init(dev->mdev, udev, board->name);
++
++	ret = media_device_register(dev->mdev);
+ 	if (ret) {
+-		media_device_cleanup(mdev);
+-		kfree(mdev);
++		media_device_cleanup(dev->mdev);
++		kfree(dev->mdev);
++		dev->mdev = NULL;
+ 		return NULL;
  	}
  
--	memcpy(&dev->cfg, cfg, sizeof(struct tda18212_config));
-+	memcpy(&dev->cfg, cfg, sizeof(*cfg));
- 	dev->client = client;
- 	dev->regmap = devm_regmap_init_i2c(client, &regmap_config);
- 	if (IS_ERR(dev->regmap)) {
-@@ -244,7 +244,7 @@ static int tda18212_probe(struct i2c_client *client,
+ 	pr_info("media controller created\n");
  
- 	fe->tuner_priv = dev;
- 	memcpy(&fe->ops.tuner_ops, &tda18212_tuner_ops,
--			sizeof(struct dvb_tuner_ops));
-+	       sizeof(fe->ops.tuner_ops));
- 	i2c_set_clientdata(client, dev);
+-	return mdev;
++	return dev->mdev;
+ #else
+ 	return NULL;
+ #endif
+@@ -458,12 +469,7 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
+ 	rc = smscore_register_device(&params, &dev->coredev, mdev);
+ 	if (rc < 0) {
+ 		pr_err("smscore_register_device(...) failed, rc %d\n", rc);
+-		smsusb_term_device(intf);
+-#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+-		media_device_unregister(mdev);
+-#endif
+-		kfree(mdev);
+-		return rc;
++		goto err_smsusb_init;
+ 	}
  
- 	return 0;
-@@ -261,8 +261,7 @@ static int tda18212_remove(struct i2c_client *client)
- 	struct dvb_frontend *fe = dev->cfg.fe;
+ 	smscore_set_board_id(dev->coredev, board_id);
+@@ -480,8 +486,7 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
+ 	rc = smsusb_start_streaming(dev);
+ 	if (rc < 0) {
+ 		pr_err("smsusb_start_streaming(...) failed\n");
+-		smsusb_term_device(intf);
+-		return rc;
++		goto err_smsusb_init;
+ 	}
  
- 	dev_dbg(&client->dev, "\n");
--
--	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
-+	memset(&fe->ops.tuner_ops, 0, sizeof(fe->ops.tuner_ops));
- 	fe->tuner_priv = NULL;
- 	kfree(dev);
+ 	dev->state = SMSUSB_ACTIVE;
+@@ -489,13 +494,17 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
+ 	rc = smscore_start_device(dev->coredev);
+ 	if (rc < 0) {
+ 		pr_err("smscore_start_device(...) failed\n");
+-		smsusb_term_device(intf);
+-		return rc;
++		goto err_smsusb_init;
+ 	}
  
+ 	pr_debug("device 0x%p created\n", dev);
+ 
+ 	return rc;
++
++err_smsusb_init:
++	smsusb_term_device(intf);
++
++	return rc;
+ }
+ 
+ static int smsusb_probe(struct usb_interface *intf,
 -- 
-2.14.1
+1.9.1
