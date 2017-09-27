@@ -1,245 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:48816 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754427AbdIHGDM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 02:03:12 -0400
-From: Hoegeun Kwon <hoegeun.kwon@samsung.com>
-To: inki.dae@samsung.com, airlied@linux.ie, kgene@kernel.org,
-        krzk@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        catalin.marinas@arm.com, will.deacon@arm.com, mchehab@kernel.org,
-        s.nawrocki@samsung.com, m.szyprowski@samsung.com
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org, a.hajda@samsung.com,
-        Hoegeun Kwon <hoegeun.kwon@samsung.com>
-Subject: [PATCH v3 3/6] drm/exynos/gsc: Add hardware rotation limits
-Date: Fri, 08 Sep 2017 15:02:37 +0900
-Message-id: <1504850560-27950-4-git-send-email-hoegeun.kwon@samsung.com>
-In-reply-to: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
-References: <1504850560-27950-1-git-send-email-hoegeun.kwon@samsung.com>
-        <CGME20170908060308epcas1p3016314e10d2ba9fb5129cd2b398086f4@epcas1p3.samsung.com>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:32937 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753090AbdI0N0W (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 09:26:22 -0400
+MIME-Version: 1.0
+In-Reply-To: <e7e6418e-4340-5057-aa17-800082aca5fb@virtuozzo.com>
+References: <20170922212930.620249-1-arnd@arndb.de> <20170922212930.620249-5-arnd@arndb.de>
+ <063D6719AE5E284EB5DD2968C1650D6DD007F521@AcuExch.aculab.com>
+ <CAK8P3a1zxjMsQTBPijCo8FJjEU5aRVTr7n_NZ1YM2UnDPKoRLw@mail.gmail.com>
+ <CAK8P3a37Ts5q7BvA2JWse87huyAp+=e18CUXEt8731RrBnB+Ow@mail.gmail.com> <e7e6418e-4340-5057-aa17-800082aca5fb@virtuozzo.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 27 Sep 2017 06:26:21 -0700
+Message-ID: <CAK8P3a2C7DBTfQZvRi-QQfrfm1GXktFcXQRmXmzpF4SCa+BADA@mail.gmail.com>
+Subject: Re: [PATCH v4 4/9] em28xx: fix em28xx_dvb_init for KASAN
+To: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: David Laight <David.Laight@aculab.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jiri Pirko <jiri@resnulli.us>,
+        Arend van Spriel <arend.vanspriel@broadcom.com>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Michal Marek <mmarek@suse.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>,
+        "brcm80211-dev-list.pdl@broadcom.com"
+        <brcm80211-dev-list.pdl@broadcom.com>,
+        "brcm80211-dev-list@cypress.com" <brcm80211-dev-list@cypress.com>,
+        "kasan-dev@googlegroups.com" <kasan-dev@googlegroups.com>,
+        "linux-kbuild@vger.kernel.org" <linux-kbuild@vger.kernel.org>,
+        Jakub Jelinek <jakub@gcc.gnu.org>,
+        =?UTF-8?Q?Martin_Li=C5=A1ka?= <marxin@gcc.gnu.org>,
+        "stable@vger.kernel.org" <stable@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The gscaler has hardware rotation limits that need to be hardcoded
-into driver. Distinguish them and add them to the property list.
+On Tue, Sep 26, 2017 at 9:49 AM, Andrey Ryabinin
+<aryabinin@virtuozzo.com> wrote:
+>
+>
+> On 09/26/2017 09:47 AM, Arnd Bergmann wrote:
+>> On Mon, Sep 25, 2017 at 11:32 PM, Arnd Bergmann <arnd@arndb.de> wrote:
 
-The hardware rotation limits are related to the cropped source size.
-When swap occurs, use rot_max size instead of crop_max size.
+>> +       ret = __builtin_strlen(q);
+>
+>
+> I think this is not correct. Fortified strlen called here on purpose. If sizeof q is known at compile time
+> and 'q' contains not-null fortified strlen() will panic.
 
-Also the scaling limits are related to pos size, use pos size to check
-the limits.
+Ok, got it.
 
-Signed-off-by: Hoegeun Kwon <hoegeun.kwon@samsung.com>
----
- drivers/gpu/drm/exynos/exynos_drm_gsc.c | 93 +++++++++++++++++++++++----------
- include/uapi/drm/exynos_drm.h           |  2 +
- 2 files changed, 66 insertions(+), 29 deletions(-)
+>>         if (size) {
+>>                 size_t len = (ret >= size) ? size - 1 : ret;
+>>                 if (__builtin_constant_p(len) && len >= p_size)
+>>
+>> The problem is apparently that the fortified strlcpy calls the fortified strlen,
+>> which in turn calls strnlen and that ends up calling the extern '__real_strnlen'
+>> that gcc cannot reduce to a constant expression for a constant input.
+>
+>
+> Per my observation, it's the code like this:
+>         if ()
+>                 fortify_panic(__func__);
+>
+>
+> somehow prevent gcc to merge several "struct i2c_board_info info;" into one stack slot.
+> With the hack bellow, stack usage reduced to ~1,6K:
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_gsc.c b/drivers/gpu/drm/exynos/exynos_drm_gsc.c
-index 0506b2b..a4fb347 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_gsc.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_gsc.c
-@@ -17,6 +17,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/mfd/syscon.h>
- #include <linux/regmap.h>
-+#include <linux/of_device.h>
- 
- #include <drm/drmP.h>
- #include <drm/exynos_drm.h>
-@@ -150,6 +151,15 @@ struct gsc_context {
- 	bool	suspended;
- };
- 
-+/*
-+ * struct gsc_driverdata - per device type driver data for init time.
-+ *
-+ * @rot_max: rotation max resolution.
-+ */
-+struct gsc_driverdata {
-+	struct drm_exynos_sz rot_max;
-+};
-+
- /* 8-tap Filter Coefficient */
- static const int h_coef_8t[GSC_COEF_RATIO][GSC_COEF_ATTR][GSC_COEF_H_8T] = {
- 	{	/* Ratio <= 65536 (~8:8) */
-@@ -1401,6 +1411,23 @@ static int gsc_ippdrv_check_property(struct device *dev,
- 	bool swap;
- 	int i;
- 
-+	config = &property->config[EXYNOS_DRM_OPS_DST];
-+
-+	/* check for degree */
-+	switch (config->degree) {
-+	case EXYNOS_DRM_DEGREE_90:
-+	case EXYNOS_DRM_DEGREE_270:
-+		swap = true;
-+		break;
-+	case EXYNOS_DRM_DEGREE_0:
-+	case EXYNOS_DRM_DEGREE_180:
-+		swap = false;
-+		break;
-+	default:
-+		DRM_ERROR("invalid degree.\n");
-+		goto err_property;
-+	}
-+
- 	for_each_ipp_ops(i) {
- 		if ((i == EXYNOS_DRM_OPS_SRC) &&
- 			(property->cmd == IPP_CMD_WB))
-@@ -1416,21 +1443,6 @@ static int gsc_ippdrv_check_property(struct device *dev,
- 			goto err_property;
- 		}
- 
--		/* check for degree */
--		switch (config->degree) {
--		case EXYNOS_DRM_DEGREE_90:
--		case EXYNOS_DRM_DEGREE_270:
--			swap = true;
--			break;
--		case EXYNOS_DRM_DEGREE_0:
--		case EXYNOS_DRM_DEGREE_180:
--			swap = false;
--			break;
--		default:
--			DRM_ERROR("invalid degree.\n");
--			goto err_property;
--		}
--
- 		/* check for buffer bound */
- 		if ((pos->x + pos->w > sz->hsize) ||
- 			(pos->y + pos->h > sz->vsize)) {
-@@ -1438,21 +1450,27 @@ static int gsc_ippdrv_check_property(struct device *dev,
- 			goto err_property;
- 		}
- 
-+		/*
-+		 * The rotation hardware limits are related to the cropped
-+		 * source size. So use rot_max size to check the limits when
-+		 * swap happens. And also the scaling limits are related to pos
-+		 * size, use pos size to check the limits.
-+		 */
- 		/* check for crop */
- 		if ((i == EXYNOS_DRM_OPS_SRC) && (pp->crop)) {
- 			if (swap) {
- 				if ((pos->h < pp->crop_min.hsize) ||
--					(sz->vsize > pp->crop_max.hsize) ||
-+					(pos->h > pp->rot_max.hsize) ||
- 					(pos->w < pp->crop_min.vsize) ||
--					(sz->hsize > pp->crop_max.vsize)) {
-+					(pos->w > pp->rot_max.vsize)) {
- 					DRM_ERROR("out of crop size.\n");
- 					goto err_property;
- 				}
- 			} else {
- 				if ((pos->w < pp->crop_min.hsize) ||
--					(sz->hsize > pp->crop_max.hsize) ||
-+					(pos->w > pp->crop_max.hsize) ||
- 					(pos->h < pp->crop_min.vsize) ||
--					(sz->vsize > pp->crop_max.vsize)) {
-+					(pos->h > pp->crop_max.vsize)) {
- 					DRM_ERROR("out of crop size.\n");
- 					goto err_property;
- 				}
-@@ -1463,17 +1481,17 @@ static int gsc_ippdrv_check_property(struct device *dev,
- 		if ((i == EXYNOS_DRM_OPS_DST) && (pp->scale)) {
- 			if (swap) {
- 				if ((pos->h < pp->scale_min.hsize) ||
--					(sz->vsize > pp->scale_max.hsize) ||
-+					(pos->h > pp->scale_max.hsize) ||
- 					(pos->w < pp->scale_min.vsize) ||
--					(sz->hsize > pp->scale_max.vsize)) {
-+					(pos->w > pp->scale_max.vsize)) {
- 					DRM_ERROR("out of scale size.\n");
- 					goto err_property;
- 				}
- 			} else {
- 				if ((pos->w < pp->scale_min.hsize) ||
--					(sz->hsize > pp->scale_max.hsize) ||
-+					(pos->w > pp->scale_max.hsize) ||
- 					(pos->h < pp->scale_min.vsize) ||
--					(sz->vsize > pp->scale_max.vsize)) {
-+					(pos->h > pp->scale_max.vsize)) {
- 					DRM_ERROR("out of scale size.\n");
- 					goto err_property;
- 				}
-@@ -1657,12 +1675,34 @@ static void gsc_ippdrv_stop(struct device *dev, enum drm_exynos_ipp_cmd cmd)
- 	gsc_write(cfg, GSC_ENABLE);
- }
- 
-+static struct gsc_driverdata gsc_exynos5250_drvdata = {
-+	.rot_max = { 2048, 2048 },
-+};
-+
-+static struct gsc_driverdata gsc_exynos5420_drvdata = {
-+	.rot_max = { 2016, 2016 },
-+};
-+
-+static const struct of_device_id exynos_drm_gsc_of_match[] = {
-+	{
-+		.compatible = "samsung,exynos5250-gsc",
-+		.data = &gsc_exynos5250_drvdata,
-+	},
-+	{
-+		.compatible = "samsung,exynos5420-gsc",
-+		.data = &gsc_exynos5420_drvdata,
-+	},
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, exynos_drm_gsc_of_match);
-+
- static int gsc_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
- 	struct gsc_context *ctx;
- 	struct resource *res;
- 	struct exynos_drm_ippdrv *ippdrv;
-+	const struct gsc_driverdata *drv_data = of_device_get_match_data(dev);
- 	int ret;
- 
- 	ctx = devm_kzalloc(dev, sizeof(*ctx), GFP_KERNEL);
-@@ -1722,6 +1762,7 @@ static int gsc_probe(struct platform_device *pdev)
- 		dev_err(dev, "failed to init property list.\n");
- 		return ret;
- 	}
-+	ctx->ippdrv.prop_list.rot_max = drv_data->rot_max;
- 
- 	DRM_DEBUG_KMS("id[%d]ippdrv[%pK]\n", ctx->id, ippdrv);
- 
-@@ -1784,12 +1825,6 @@ static int __maybe_unused gsc_runtime_resume(struct device *dev)
- 	SET_RUNTIME_PM_OPS(gsc_runtime_suspend, gsc_runtime_resume, NULL)
- };
- 
--static const struct of_device_id exynos_drm_gsc_of_match[] = {
--	{ .compatible = "samsung,exynos5-gsc" },
--	{ },
--};
--MODULE_DEVICE_TABLE(of, exynos_drm_gsc_of_match);
--
- struct platform_driver gsc_driver = {
- 	.probe		= gsc_probe,
- 	.remove		= gsc_remove,
-diff --git a/include/uapi/drm/exynos_drm.h b/include/uapi/drm/exynos_drm.h
-index cb3e9f9..d5d5518 100644
---- a/include/uapi/drm/exynos_drm.h
-+++ b/include/uapi/drm/exynos_drm.h
-@@ -192,6 +192,7 @@ enum drm_exynos_planer {
-  * @crop_max: crop max resolution.
-  * @scale_min: scale min resolution.
-  * @scale_max: scale max resolution.
-+ * @rot_max: rotation max resolution.
-  */
- struct drm_exynos_ipp_prop_list {
- 	__u32	version;
-@@ -210,6 +211,7 @@ struct drm_exynos_ipp_prop_list {
- 	struct drm_exynos_sz	crop_max;
- 	struct drm_exynos_sz	scale_min;
- 	struct drm_exynos_sz	scale_max;
-+	struct drm_exynos_sz	rot_max;
- };
- 
- /**
--- 
-1.9.1
+1.6k is also what I see with my patch, or any other approach I tried
+that changes
+string.h. With the split up em28xx_dvb_init() function (and without
+changes to string.h),
+I got down to a few hundred bytes for the largest handler.
+
+> ---
+>  include/linux/string.h | 4 ----
+>  1 file changed, 4 deletions(-)
+>
+> diff --git a/include/linux/string.h b/include/linux/string.h
+> index 54d21783e18d..9a96ff3ebf94 100644
+> --- a/include/linux/string.h
+> +++ b/include/linux/string.h
+> @@ -261,8 +261,6 @@ __FORTIFY_INLINE __kernel_size_t strlen(const char *p)
+>         if (p_size == (size_t)-1)
+>                 return __builtin_strlen(p);
+>         ret = strnlen(p, p_size);
+> -       if (p_size <= ret)
+> -               fortify_panic(__func__);
+>         return ret;
+>  }
+>
+> @@ -271,8 +269,6 @@ __FORTIFY_INLINE __kernel_size_t strnlen(const char *p, __kernel_size_t maxlen)
+>  {
+>         size_t p_size = __builtin_object_size(p, 0);
+>         __kernel_size_t ret = __real_strnlen(p, maxlen < p_size ? maxlen : p_size);
+> -       if (p_size <= ret && maxlen != ret)
+> -               fortify_panic(__func__);
+>         return ret;
+
+I've reduced it further to this change:
+
+--- a/include/linux/string.h
++++ b/include/linux/string.h
+@@ -227,7 +227,7 @@ static inline const char *kbasename(const char *path)
+ #define __FORTIFY_INLINE extern __always_inline __attribute__((gnu_inline))
+ #define __RENAME(x) __asm__(#x)
+
+-void fortify_panic(const char *name) __noreturn __cold;
++void fortify_panic(const char *name) __cold;
+ void __read_overflow(void) __compiletime_error("detected read beyond
+size of object passed as 1st parameter");
+ void __read_overflow2(void) __compiletime_error("detected read beyond
+size of object passed as 2nd parameter");
+ void __read_overflow3(void) __compiletime_error("detected read beyond
+size of object passed as 3rd parameter");
+
+I don't immediately see why the __noreturn changes the behavior here, any idea?
+
+>> Not sure if that change is the best fix, but it seems to address the problem in
+>> this driver and probably leads to better code in other places as well.
+>>
+>
+> Probably it would be better to solve this on the strlcpy side, but I haven't found the way to do this right.
+> Alternative solutions:
+>
+>  - use memcpy() instead of strlcpy(). All source strings are smaller than I2C_NAME_SIZE, so we could
+>    do something like this - memcpy(info.type, "si2168", sizeof("si2168"));
+>    Also this should be faster.
+
+This would be very similar to the patch I posted at the start of this
+thread to use strncpy(), right?
+I was hoping that changing strlcpy() here could also improve other
+users that might run into
+the same situation, but stay below the 2048-byte stack frame limit.
+
+>  - Move code under different "case:" in the switch(dev->model) to the separate function should help as well.
+>    But it might be harder to backport into stables.
+
+Agreed, I posted this in earlier versions of the patch series, see
+https://patchwork.kernel.org/patch/9601025/
+
+The new patch was a result of me trying to come up with a less
+invasive version to
+make it easier to backport, since I would like to backport the last
+patch in the series
+that depends on all the earlier ones.
+
+         Arnd
