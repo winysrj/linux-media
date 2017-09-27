@@ -1,46 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36484 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751423AbdILNmG (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:33199 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752018AbdI0OLe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Sep 2017 09:42:06 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v12 09/26] omap3isp: Fix check for our own sub-devices
-Date: Tue, 12 Sep 2017 16:41:43 +0300
-Message-Id: <20170912134200.19556-10-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
-References: <20170912134200.19556-1-sakari.ailus@linux.intel.com>
+        Wed, 27 Sep 2017 10:11:34 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, mchehab@kernel.org,
+        mjpeg-users@lists.sourceforge.net, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] [media] zoran: make zoran_template const
+Date: Wed, 27 Sep 2017 19:41:19 +0530
+Message-Id: <1506521479-18217-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We only want to link sub-devices that were bound to the async notifier the
-isp driver registered but there may be other sub-devices in the
-v4l2_device as well. Check for the correct async notifier.
+Make this constas it is only used in a copy operation in the file
+referencing it. Make the declaration const too.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Done using Coccinelle.
+
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- drivers/media/platform/omap3isp/isp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/pci/zoran/zoran_card.h   | 2 +-
+ drivers/media/pci/zoran/zoran_driver.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index a546cf774d40..3b1a9cd0e591 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2155,7 +2155,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- 		return ret;
+diff --git a/drivers/media/pci/zoran/zoran_card.h b/drivers/media/pci/zoran/zoran_card.h
+index 81cba17..0cdb7d3 100644
+--- a/drivers/media/pci/zoran/zoran_card.h
++++ b/drivers/media/pci/zoran/zoran_card.h
+@@ -37,7 +37,7 @@
+ /* Anybody who uses more than four? */
+ #define BUZ_MAX 4
  
- 	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
--		if (!sd->asd)
-+		if (sd->notifier != &isp->notifier)
- 			continue;
+-extern struct video_device zoran_template;
++extern const struct video_device zoran_template;
  
- 		ret = isp_link_entity(isp, &sd->entity,
+ extern int zoran_check_jpg_settings(struct zoran *zr,
+ 				    struct zoran_jpg_settings *settings,
+diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
+index a11cb50..d078400 100644
+--- a/drivers/media/pci/zoran/zoran_driver.c
++++ b/drivers/media/pci/zoran/zoran_driver.c
+@@ -2839,7 +2839,7 @@ static int zoran_s_jpegcomp(struct file *file, void *__fh,
+ 	.poll = zoran_poll,
+ };
+ 
+-struct video_device zoran_template = {
++const struct video_device zoran_template = {
+ 	.name = ZORAN_NAME,
+ 	.fops = &zoran_fops,
+ 	.ioctl_ops = &zoran_ioctl_ops,
 -- 
-2.11.0
+1.9.1
