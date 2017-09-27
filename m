@@ -1,39 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f45.google.com ([74.125.82.45]:45470 "EHLO
-        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750842AbdIKNVO (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:32949
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751436AbdI0VKb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 09:21:14 -0400
-MIME-Version: 1.0
-In-Reply-To: <9be97d7f-57bc-1c7e-fd86-187a38e0f994@users.sourceforge.net>
-References: <e980c48c-9525-4942-a58e-20af8a96e531@users.sourceforge.net> <9be97d7f-57bc-1c7e-fd86-187a38e0f994@users.sourceforge.net>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Mon, 11 Sep 2017 14:20:42 +0100
-Message-ID: <CA+V-a8u0_RD7k8Db=x6UUPyAaXADa3ouFk7v1N9hXDndf0zk8Q@mail.gmail.com>
-Subject: Re: [PATCH 1/3] [media] DaVinci-VPBE-Display: Delete an error message
- for a failed memory allocation in init_vpbe_layer()
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        Wed, 27 Sep 2017 17:10:31 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: [PATCH v2 06/13] docs: kernel-doc.rst: improve typedef documentation
+Date: Wed, 27 Sep 2017 18:10:17 -0300
+Message-Id: <a3eb2c2d0667763860da6dfaf933fe9fba2e8869.1506546492.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506546492.git.mchehab@s-opensource.com>
+References: <cover.1506546492.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506546492.git.mchehab@s-opensource.com>
+References: <cover.1506546492.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 8, 2017 at 1:31 PM, SF Markus Elfring
-<elfring@users.sourceforge.net> wrote:
->
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Thu, 7 Sep 2017 22:37:16 +0200
->
-> Omit an extra message for a memory allocation failure in this function.
->
-> This issue was detected by using the Coccinelle software.
->
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Add documentation about typedefs for function prototypes and
+move it to happen earlier.
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/doc-guide/kernel-doc.rst | 32 ++++++++++++++++++++++----------
+ 1 file changed, 22 insertions(+), 10 deletions(-)
 
-Cheers,
---Prabhakar Lad
+diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
+index b330234a3601..0923c8bd5769 100644
+--- a/Documentation/doc-guide/kernel-doc.rst
++++ b/Documentation/doc-guide/kernel-doc.rst
+@@ -282,6 +282,28 @@ The kernel-doc data structure comments describe each member of the structure,
+ in order, with the member descriptions.
+ 
+ 
++Typedef documentation
++---------------------
++
++The general format of a typedef kernel-doc comment is::
++
++  /**
++   * typedef type_name - Brief description.
++   *
++   * Description of the type.
++   */
++
++Typedefs with function prototypes can also be documented::
++
++  /**
++   * typedef type_name - Brief description.
++   * @arg1: description of arg1
++   * @arg2: description of arg2
++   *
++   * Description of the type.
++   */
++   typedef void (*type_name)(struct v4l2_ctrl *arg1, void *arg2);
++
+ 
+ Highlights and cross-references
+ -------------------------------
+@@ -384,16 +406,6 @@ on a line of their own, like all other kernel-doc comments::
+         int foobar;
+   }
+ 
+-Typedef documentation
+----------------------
+-
+-The general format of a typedef kernel-doc comment is::
+-
+-  /**
+-   * typedef type_name - Brief description.
+-   *
+-   * Description of the type.
+-   */
+ 
+ Overview documentation comments
+ -------------------------------
+-- 
+2.13.5
