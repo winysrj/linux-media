@@ -1,50 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45514 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753447AbdIRKXx (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:32967
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751951AbdI0VKc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 06:23:53 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-leds@vger.kernel.org
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        pavel@ucw.cz
-Subject: [RESEND PATCH v2 5/6] as3645a: Add colour to LED name
-Date: Mon, 18 Sep 2017 13:23:48 +0300
-Message-Id: <20170918102349.8935-6-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170918102349.8935-1-sakari.ailus@linux.intel.com>
-References: <20170918102349.8935-1-sakari.ailus@linux.intel.com>
+        Wed, 27 Sep 2017 17:10:32 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: [PATCH v2 02/13] docs: kernel-doc.rst: better describe kernel-doc arguments
+Date: Wed, 27 Sep 2017 18:10:13 -0300
+Message-Id: <2ede8f1ea10681056e90d1ff7af8f4898a660ff3.1506546492.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506546492.git.mchehab@s-opensource.com>
+References: <cover.1506546492.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506546492.git.mchehab@s-opensource.com>
+References: <cover.1506546492.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the colour of the LED to the LED name, as specified in
-Documentation/leds/leds-class.txt.
+Add a new section to describe kernel-doc arguments,
+adding examples about how identation should happen, as failing
+to do that causes Sphinx to do the wrong thing.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/leds/leds-as3645a.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/doc-guide/kernel-doc.rst | 44 +++++++++++++++++++++++++++++++---
+ 1 file changed, 41 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/leds/leds-as3645a.c b/drivers/leds/leds-as3645a.c
-index 605e0c64e974..edeb0a499f6c 100644
---- a/drivers/leds/leds-as3645a.c
-+++ b/drivers/leds/leds-as3645a.c
-@@ -528,7 +528,7 @@ static int as3645a_parse_node(struct as3645a *flash,
- 		strlcpy(names->flash, name, sizeof(names->flash));
- 	else
- 		snprintf(names->flash, sizeof(names->flash),
--			 "%s:flash", node->name);
-+			 "%s:white:flash", node->name);
+diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
+index b24854b5d6be..662755f830d5 100644
+--- a/Documentation/doc-guide/kernel-doc.rst
++++ b/Documentation/doc-guide/kernel-doc.rst
+@@ -112,16 +112,17 @@ Example kernel-doc function comment::
  
- 	rval = of_property_read_u32(flash->flash_node, "flash-timeout-us",
- 				    &cfg->flash_timeout_us);
-@@ -572,7 +572,7 @@ static int as3645a_parse_node(struct as3645a *flash,
- 		strlcpy(names->indicator, name, sizeof(names->indicator));
- 	else
- 		snprintf(names->indicator, sizeof(names->indicator),
--			 "%s:indicator", node->name);
-+			 "%s:red:indicator", node->name);
+   /**
+    * foobar() - Brief description of foobar.
+-   * @arg: Description of argument of foobar.
++   * @argument1: Description of parameter argument1 of foobar.
++   * @argument2: Description of parameter argument2 of foobar.
+    *
+    * Longer description of foobar.
+    *
+    * Return: Description of return value of foobar.
+    */
+-  int foobar(int arg)
++  int foobar(int argument1, char *argument2)
  
- 	rval = of_property_read_u32(flash->indicator_node, "led-max-microamp",
- 				    &cfg->indicator_max_ua);
+ The format is similar for documentation for structures, enums, paragraphs,
+-etc. See the sections below for details.
++etc. See the sections below for specific details of each type.
+ 
+ The kernel-doc structure is extracted from the comments, and proper `Sphinx C
+ Domain`_ function and type descriptions with anchors are generated for them. The
+@@ -130,6 +131,43 @@ cross-references. See below for details.
+ 
+ .. _Sphinx C Domain: http://www.sphinx-doc.org/en/stable/domains.html
+ 
++
++Parameters and member arguments
++-------------------------------
++
++The kernel-doc function comments describe each parameter to the function and
++function typedefs or each member of struct/union, in order, with the
++``@argument:`` descriptions. For each non-private member argument, one
++``@argument`` definition is needed.
++
++The ``@argument:`` descriptions begin on the very next line following
++the opening brief function description line, with no intervening blank
++comment lines.
++
++The ``@argument:`` descriptions may span multiple lines.
++
++.. note::
++
++   If the ``@argument`` description has multiple lines, the continuation
++   of the description should be starting exactly at the same column as
++   the previous line, e. g.::
++
++      * @argument: some long description
++      *       that continues on next lines
++
++   or::
++
++      * @argument:
++      *		some long description
++      *		that continues on next lines
++
++If a function or typedef parameter argument is ``...`` (e. g. a variable
++number of arguments), its description should be listed in kernel-doc
++notation as::
++
++      * @...: description
++
++
+ Highlights and cross-references
+ -------------------------------
+ 
 -- 
-2.11.0
+2.13.5
