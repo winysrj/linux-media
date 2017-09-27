@@ -1,124 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:32909 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932287AbdIGSn2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 14:43:28 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        linux-fsdevel@vger.kernel.org,
-        Riley Andrews <riandrews@android.com>
-Subject: [PATCH v3 14/15] fs/files: export close_fd() symbol
-Date: Thu,  7 Sep 2017 15:42:25 -0300
-Message-Id: <20170907184226.27482-15-gustavo@padovan.org>
-In-Reply-To: <20170907184226.27482-1-gustavo@padovan.org>
-References: <20170907184226.27482-1-gustavo@padovan.org>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:32960
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751436AbdI0VKc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 17:10:32 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: [PATCH v2 00/13] kernel-doc: add supported to document nested structs/$
+Date: Wed, 27 Sep 2017 18:10:11 -0300
+Message-Id: <cover.1506546492.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Right now, it is not possible to document nested struct and nested unions.
+kernel-doc simply ignore them.
 
-Rename __close_fd() to close_fd() and export it to be able close files
-in modules using file descriptors.
+Add support to document them.
 
-The usecase that motivates this change happens in V4L2 where we send
-events to userspace with a fd that has file installed in it. But if for
-some reason we have to cancel the video stream we need to close the files
-that haven't been shared with userspace yet. Thus the export of
-close_fd() becomes necessary.
+Patch 1 gets rid of the now unused output formats for kernel-doc: since 
+we got rid of all DocBook stuff, we should not need them anymore. The
+reason for dropping it (despite cleaning up), is that it doesn't make 
+sense to invest time on adding new features for formats that aren't
+used anymore.
 
-fd_install() happens when we call an ioctl to queue a buffer, but we only
-share the fd with userspace later, and that may happen in a kernel thread
-instead.
+Patches 2 to 7 improve kernel-doc documentation to reflect what
+kernel-doc currently supports and import some stuff from the
+old kernel-doc-nano-HOWTO.txt.
 
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: linux-fsdevel@vger.kernel.org
-Cc: Riley Andrews <riandrews@android.com>
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
-This is more like a question, I don't know how unhappy people will be with
-this proposal to expose close_fd(). I'm all ears for more interesting
-ways of doing it!
----
- drivers/android/binder.c | 2 +-
- fs/file.c                | 5 +++--
- fs/open.c                | 2 +-
- include/linux/fdtable.h  | 2 +-
- 4 files changed, 6 insertions(+), 5 deletions(-)
+Patch 8 gets rid of the old documentation (kernel-doc-nano-HOWTO.txt).
 
-diff --git a/drivers/android/binder.c b/drivers/android/binder.c
-index f7665c31feca..5a9bc73012df 100644
---- a/drivers/android/binder.c
-+++ b/drivers/android/binder.c
-@@ -440,7 +440,7 @@ static long task_close_fd(struct binder_proc *proc, unsigned int fd)
- 	if (proc->files == NULL)
- 		return -ESRCH;
- 
--	retval = __close_fd(proc->files, fd);
-+	retval = close_fd(proc->files, fd);
- 	/* can't restart close syscall because file table entry was cleared */
- 	if (unlikely(retval == -ERESTARTSYS ||
- 		     retval == -ERESTARTNOINTR ||
-diff --git a/fs/file.c b/fs/file.c
-index 1fc7fbbb4510..111d387ac190 100644
---- a/fs/file.c
-+++ b/fs/file.c
-@@ -618,7 +618,7 @@ EXPORT_SYMBOL(fd_install);
- /*
-  * The same warnings as for __alloc_fd()/__fd_install() apply here...
-  */
--int __close_fd(struct files_struct *files, unsigned fd)
-+int close_fd(struct files_struct *files, unsigned fd)
- {
- 	struct file *file;
- 	struct fdtable *fdt;
-@@ -640,6 +640,7 @@ int __close_fd(struct files_struct *files, unsigned fd)
- 	spin_unlock(&files->file_lock);
- 	return -EBADF;
- }
-+EXPORT_SYMBOL(close_fd);
- 
- void do_close_on_exec(struct files_struct *files)
- {
-@@ -856,7 +857,7 @@ int replace_fd(unsigned fd, struct file *file, unsigned flags)
- 	struct files_struct *files = current->files;
- 
- 	if (!file)
--		return __close_fd(files, fd);
-+		return close_fd(files, fd);
- 
- 	if (fd >= rlimit(RLIMIT_NOFILE))
- 		return -EBADF;
-diff --git a/fs/open.c b/fs/open.c
-index 35bb784763a4..30907d967443 100644
---- a/fs/open.c
-+++ b/fs/open.c
-@@ -1152,7 +1152,7 @@ EXPORT_SYMBOL(filp_close);
-  */
- SYSCALL_DEFINE1(close, unsigned int, fd)
- {
--	int retval = __close_fd(current->files, fd);
-+	int retval = close_fd(current->files, fd);
- 
- 	/* can't restart close syscall because file table entry was cleared */
- 	if (unlikely(retval == -ERESTARTSYS ||
-diff --git a/include/linux/fdtable.h b/include/linux/fdtable.h
-index 6e84b2cae6ad..511fd38d5e4b 100644
---- a/include/linux/fdtable.h
-+++ b/include/linux/fdtable.h
-@@ -115,7 +115,7 @@ extern int __alloc_fd(struct files_struct *files,
- 		      unsigned start, unsigned end, unsigned flags);
- extern void __fd_install(struct files_struct *files,
- 		      unsigned int fd, struct file *file);
--extern int __close_fd(struct files_struct *files,
-+extern int close_fd(struct files_struct *files,
- 		      unsigned int fd);
- 
- extern struct kmem_cache *files_cachep;
+Patch 9 is the most interesting one in this series: it adds support for
+nested structures and unions.
+
+Patch 10 does a cleanup, removing $nexted parameter at the
+routines that handle structs.
+
+Patch 11 Improves warning output by printing the identifier where
+the warning occurred.
+
+Patch 12 complements patch 9, by adding support for function
+definitions inside nested structures. It is needed by some media
+docs with use such kind of things.
+
+Patch 13 is just an example from a random header with kernel-doc
+markups. There's no special reason for selecting this file, and the
+comments there are likely wrong. So, please use it only as a way to test
+the new parser logic from patch 9. The real usage (for me, will
+be at the media patches, but this is on a 30+ patch series, together
+with a bunch of other stuff.
+
+--
+
+v2:
+  - solved some issues that Randy pointed;
+  - added patch 10 as suggested by Markus;
+  - Fixed some bugs on patch 9, after parsing nested structs
+   on media subsystem;
+  - added patch 11 with a warning improvement fixup;
+  - added patch 12 in order to handle function parameters
+   on nested structures, due to DVB demux kAPI.
+
+Mauro Carvalho Chehab (13):
+  scripts: kernel-doc: get rid of unused output formats
+  docs: kernel-doc.rst: better describe kernel-doc arguments
+  docs: kernel-doc.rst: improve private members description
+  docs: kernel-doc.rst: improve function documentation section
+  docs: kernel-doc.rst: improve structs chapter
+  docs: kernel-doc.rst: improve typedef documentation
+  docs: kernel-doc.rst: add documentation about man pages
+  docs: get rid of kernel-doc-nano-HOWTO.txt
+  scripts: kernel-doc: parse next structs/unions
+  scripts: kernel-doc: get rid of $nested parameter
+  scripts: kernel-doc: print the declaration name on warnings
+  scripts: kernel-doc: handle nested struct function arguments
+  [RFC] w1_netlink.h: add support for nested structs
+
+ Documentation/00-INDEX                  |    2 -
+ Documentation/doc-guide/kernel-doc.rst  |  360 +++++---
+ Documentation/kernel-doc-nano-HOWTO.txt |  322 --------
+ drivers/w1/w1_netlink.h                 |    4 +
+ scripts/kernel-doc                      | 1376 +++----------------------------
+ 5 files changed, 369 insertions(+), 1695 deletions(-)
+ delete mode 100644 Documentation/kernel-doc-nano-HOWTO.txt
+
 -- 
 2.13.5
