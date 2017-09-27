@@ -1,46 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48924 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751018AbdIKIAP (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33415
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752374AbdI0VrJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 04:00:15 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v10 09/24] omap3isp: Print the name of the entity where no source pads could be found
-Date: Mon, 11 Sep 2017 10:59:53 +0300
-Message-Id: <20170911080008.21208-10-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+        Wed, 27 Sep 2017 17:47:09 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: [PATCH v2 14/17] media: v4l2-async: better describe match union at async match struct
+Date: Wed, 27 Sep 2017 18:46:57 -0300
+Message-Id: <d7534d804eedd7bd6bc46b65a810679bda81b3cc.1506548682.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
+References: <cover.1506548682.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
+References: <cover.1506548682.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If no source pads are found in an entity, print the name of the entity.
+Now that kernel-doc handles nested unions, better document the
+match union at struct v4l2_async_subdev.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/omap3isp/isp.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/media/v4l2-async.h | 35 ++++++++++++++++++++++++++++++++---
+ 1 file changed, 32 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 3b1a9cd0e591..9a694924e46e 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1669,8 +1669,8 @@ static int isp_link_entity(
- 			break;
- 	}
- 	if (i == entity->num_pads) {
--		dev_err(isp->dev, "%s: no source pad in external entity\n",
--			__func__);
-+		dev_err(isp->dev, "%s: no source pad in external entity %s\n",
-+			__func__, entity->name);
- 		return -EINVAL;
- 	}
- 
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index e66a3521596f..62c2d572ec23 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -46,10 +46,39 @@ enum v4l2_async_match_type {
+ /**
+  * struct v4l2_async_subdev - sub-device descriptor, as known to a bridge
+  *
+- * @match_type:	type of match that will be used
+- * @match:	union of per-bus type matching data sets
++ * @match_type:
++ *	type of match that will be used
++ * @match:
++ *	union of per-bus type matching data sets
++ * @match.fwnode:
++ *		pointer to &struct fwnode_handle to be matched.
++ *		Used if @match_type is %V4L2_ASYNC_MATCH_FWNODE.
++ * @match.device_name:
++ *		string containing the device name to be matched.
++ *		Used if @match_type is %V4L2_ASYNC_MATCH_DEVNAME.
++ * @match.i2c:
++ *		embedded struct with I2C parameters to be matched.
++ * 		Both @match.i2c.adapter_id and @match.i2c.address
++ *		should be matched.
++ *		Used if @match_type is %V4L2_ASYNC_MATCH_I2C.
++ * @match.i2c.adapter_id:
++ *		I2C adapter ID to be matched.
++ *		Used if @match_type is %V4L2_ASYNC_MATCH_I2C.
++ * @match.i2c.address:
++ *		I2C address to be matched.
++ *		Used if @match_type is %V4L2_ASYNC_MATCH_I2C.
++ * @match.custom:
++ *		Driver-specific match criteria.
++ *		Used if @match_type is %V4L2_ASYNC_MATCH_CUSTOM.
++ * @match.custom.match:
++ *		Driver-specific match function to be used if
++ *		%V4L2_ASYNC_MATCH_CUSTOM.
++ * @match.custom.priv:
++ *		Driver-specific private struct with match parameters
++ *		to be used if %V4L2_ASYNC_MATCH_CUSTOM.
+  * @list:	used to link struct v4l2_async_subdev objects, waiting to be
+- *		probed, to a notifier->waiting list
++ *		probed, to a notifier->waiting list.
++ *		Not to be used by drivers.
+  */
+ struct v4l2_async_subdev {
+ 	enum v4l2_async_match_type match_type;
 -- 
-2.11.0
+2.13.5
