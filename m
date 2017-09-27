@@ -1,89 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:43818 "EHLO
-        DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752160AbdIRGlZ (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:46332 "EHLO
+        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751355AbdI0WcU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 02:41:25 -0400
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: <linux-kernel@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        "Jonathan Corbet" <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-arm-kernel@lists.infradead.org>,
+        Wed, 27 Sep 2017 18:32:20 -0400
+Subject: Re: [PATCH v7 4/7] media: open.rst: document devnode-centric and
+ mc-centric types
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH v2 1/5] media: atmel_isc: Add spin lock for clock enable ops
-Date: Mon, 18 Sep 2017 14:39:21 +0800
-Message-ID: <20170918063925.6372-2-wenyou.yang@microchip.com>
-In-Reply-To: <20170918063925.6372-1-wenyou.yang@microchip.com>
-References: <20170918063925.6372-1-wenyou.yang@microchip.com>
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <cover.1506550930.git.mchehab@s-opensource.com>
+ <f3435f2eb6417a4b16e036a492fc5044915892d1.1506550930.git.mchehab@s-opensource.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <d940932c-17ef-0c5f-dcbe-6fac81eae3ae@infradead.org>
+Date: Wed, 27 Sep 2017 15:32:12 -0700
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <f3435f2eb6417a4b16e036a492fc5044915892d1.1506550930.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the spin lock for the clock enable and disable operations.
+On 09/27/17 15:23, Mauro Carvalho Chehab wrote:
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  Documentation/media/uapi/v4l/open.rst | 40 +++++++++++++++++++++++++++++++++++
+>  1 file changed, 40 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+> index 18030131ef77..f603bc9b49a0 100644
+> --- a/Documentation/media/uapi/v4l/open.rst
+> +++ b/Documentation/media/uapi/v4l/open.rst
+> @@ -7,6 +7,46 @@ Opening and Closing Devices
+>  ***************************
+>  
+>  
+> +.. _v4l2_hardware_control:
+> +
+> +
+> +Types of V4L2 media hardware control
+> +====================================
+> +
+> +V4L2 hardware periferal is usually complex: support for it is
 
-Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
----
+                 peripheral (in several places...)
 
-Changes in v2: None
+> +implemented via a V4L2 main driver and often by several additional drivers.
+> +The main driver always exposes one or more **V4L2 device nodes**
+> +(see :ref:`v4l2_device_naming`) with are responsible for implementing
+> +data streaming, if applicable.
+> +
+> +The other drivers are called **V4L2 sub-devices** and provide control to
+> +other hardware components usually connected via a serial bus (like
+> +I²C, SMBus or SPI). Depending on the main driver, they can be implicitly
+> +controlled directly by the main driver or explicitly via
+> +the **V4L2 sub-device API** (see :ref:`subdev`).
+> +
+> +When V4L2 was originally designed, there was only one type of
+> +media hardware control: via the **V4L2 device nodes**. We refer to this kind
+> +of control as **V4L2 device node centric** (or, simply, "**vdevnode-centric**").
+> +
+> +Later (kernel 2.6.39), a new type of periferal control was
+> +added in order to support complex media hardware that are common for embedded
+> +systems. This type of periferal is controlled mainly via the media
+> +controller and V4L2 sub-devices. So, it is called
+> +**Media controller centric** (or, simply, "**MC-centric**") control.
+> +
+> +For **vdevnode-centric** media hardware control, the media hardware is
+> +controlled via the **V4L2 device nodes**. They may optionally support the
+> +:ref:`media controller API <media_controller>` as well,
+> +in order to inform the application which device nodes are available
+> +(see :ref:`related`).
+> +
+> +For **MC-centric** media hardware control it is required to configure
+> +the pipelines via the :ref:`media controller API <media_controller>` before
+> +the periferal can be used. For such devices, the sub-devices' configuration
+> +can be controlled via the :ref:`sub-device API <subdev>`, which creates one
+> +device node per sub-device.
+> +
+>  .. _v4l2_device_naming:
+>  
+>  V4L2 Device Node Naming
+> 
 
- drivers/media/platform/atmel/atmel-isc.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-index 2f8e345d297e..78114193af4c 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -65,6 +65,7 @@ struct isc_clk {
- 	struct clk_hw   hw;
- 	struct clk      *clk;
- 	struct regmap   *regmap;
-+	spinlock_t	*lock;
- 	u8		id;
- 	u8		parent_id;
- 	u32		div;
-@@ -312,26 +313,37 @@ static int isc_clk_enable(struct clk_hw *hw)
- 	struct isc_clk *isc_clk = to_isc_clk(hw);
- 	u32 id = isc_clk->id;
- 	struct regmap *regmap = isc_clk->regmap;
-+	unsigned long flags;
-+	unsigned int status;
- 
- 	dev_dbg(isc_clk->dev, "ISC CLK: %s, div = %d, parent id = %d\n",
- 		__func__, isc_clk->div, isc_clk->parent_id);
- 
-+	spin_lock_irqsave(isc_clk->lock, flags);
- 	regmap_update_bits(regmap, ISC_CLKCFG,
- 			   ISC_CLKCFG_DIV_MASK(id) | ISC_CLKCFG_SEL_MASK(id),
- 			   (isc_clk->div << ISC_CLKCFG_DIV_SHIFT(id)) |
- 			   (isc_clk->parent_id << ISC_CLKCFG_SEL_SHIFT(id)));
- 
- 	regmap_write(regmap, ISC_CLKEN, ISC_CLK(id));
-+	spin_unlock_irqrestore(isc_clk->lock, flags);
- 
--	return 0;
-+	regmap_read(regmap, ISC_CLKSR, &status);
-+	if (status & ISC_CLK(id))
-+		return 0;
-+	else
-+		return -EINVAL;
- }
- 
- static void isc_clk_disable(struct clk_hw *hw)
- {
- 	struct isc_clk *isc_clk = to_isc_clk(hw);
- 	u32 id = isc_clk->id;
-+	unsigned long flags;
- 
-+	spin_lock_irqsave(isc_clk->lock, flags);
- 	regmap_write(isc_clk->regmap, ISC_CLKDIS, ISC_CLK(id));
-+	spin_unlock_irqrestore(isc_clk->lock, flags);
- }
- 
- static int isc_clk_is_enabled(struct clk_hw *hw)
 -- 
-2.13.0
+~Randy
