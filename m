@@ -1,156 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:35232 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751972AbdI2Pof (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Sep 2017 11:44:35 -0400
-Date: Fri, 29 Sep 2017 12:44:25 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39056 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752149AbdI0HQa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 03:16:30 -0400
+Date: Wed, 27 Sep 2017 10:16:26 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Wenyou Yang <wenyou.yang@microchip.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-kernel@vger.kernel.org,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
         Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: Re: [PATCH v2 09/13] scripts: kernel-doc: parse next structs/unions
-Message-ID: <20170929124425.6a8b5595@recife.lan>
-In-Reply-To: <20170929122931.2d9781ea@recife.lan>
-References: <cover.1506546492.git.mchehab@s-opensource.com>
-        <cover.1506546492.git.mchehab@s-opensource.com>
-        <b2528c4f1d2e76b7dacde8c5660e94de32e2eb71.1506546492.git.mchehab@s-opensource.com>
-        <68968C67-7CD6-4264-A46D-1EE195CBC58D@darmarit.de>
-        <20170929122931.2d9781ea@recife.lan>
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-arm-kernel@lists.infradead.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 1/5] media: atmel_isc: Add spin lock for clock enable
+ ops
+Message-ID: <20170927071626.mok5h3ckisyipy53@valkosipuli.retiisi.org.uk>
+References: <20170918063925.6372-1-wenyou.yang@microchip.com>
+ <20170918063925.6372-2-wenyou.yang@microchip.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170918063925.6372-2-wenyou.yang@microchip.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 29 Sep 2017 12:29:31 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+Hi Wenyou,
 
-> Em Thu, 28 Sep 2017 18:28:32 +0200
-> Markus Heiser <markus.heiser@darmarit.de> escreveu:
-> 
-> > Hi Mauro,
-> >   
-> > > Am 27.09.2017 um 23:10 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:  
-> 
-> > > +It is possible to document nested structs unions, like::
-> > > +
-> > > +      /**
-> > > +       * struct nested_foobar - a struct with nested unions and structs
-> > > +       * @arg1: - first argument of anonymous union/anonymous struct
-> > > +       * @arg2: - second argument of anonymous union/anonymous struct
-> > > +       * @arg3: - third argument of anonymous union/anonymous struct
-> > > +       * @arg4: - fourth argument of anonymous union/anonymous struct
-> > > +       * @bar.st1.arg1 - first argument of struct st1 on union bar
-> > > +       * @bar.st1.arg2 - second argument of struct st1 on union bar
-> > > +       * @bar.st2.arg1 - first argument of struct st2 on union bar
-> > > +       * @bar.st2.arg2 - second argument of struct st2 on union bar    
-> > 
-> > Sorry, this example is totally broken --> below I attached a more
-> > elaborate example. 
-> > 
-> > /* parse-SNIP: my_struct */
-> > /**
-> > * struct my_struct - a struct with nested unions and structs
-> > * @arg1: first argument of anonymous union/anonymous struct
-> > * @arg2: second argument of anonymous union/anonymous struct
-> > * @arg3: third argument of anonymous union/anonymous struct
-> > * @arg4: fourth argument of anonymous union/anonymous struct
-> > * @bar.st1.arg1: first argument of struct st1 on union bar
-> > * @bar.st1.arg2: second argument of struct st1 on union bar
-> > * @bar.st2.arg1: first argument of struct st2 on union bar
-> > * @bar.st2.arg2: second argument of struct st2 on union bar
-> > * @bar.st3.arg2: second argument of struct st3 on union bar
-> > */
-> > struct my_struct {
-> >    /* Anonymous union/struct*/
-> >    union {
-> > 	struct {
-> > 	    __u8 arg1 : 1;
-> > 	    __u8 arg2 : 3;
-> > 	};
-> >        struct {
-> >            int arg1;
-> >            int arg2;
-> >        };  
-> 
-> I added a:
-> 
-> 	#define __u8 char
-> 
-> In order to compile the above. As reported by gcc 7, this is broken:
-> 
-> test2.h:22:16: error: duplicate member ‘arg1’
->             int arg1;
->                 ^~~~
-> test2.h:23:16: error: duplicate member ‘arg2’
->             int arg2;
->                 ^~~~
-> 
-> You can't have two symbols with the same name on different anonymous
-> structs.
+On subject:
 
-I guess the enclosed nested struct covers all weirdness that we want
-to be covered, and it does compile without errors/warnings.
+s/_/-/
 
+On Mon, Sep 18, 2017 at 02:39:21PM +0800, Wenyou Yang wrote:
+> Add the spin lock for the clock enable and disable operations.
+> 
+> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+> ---
+> 
+> Changes in v2: None
+> 
+>  drivers/media/platform/atmel/atmel-isc.c | 14 +++++++++++++-
+>  1 file changed, 13 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+> index 2f8e345d297e..78114193af4c 100644
+> --- a/drivers/media/platform/atmel/atmel-isc.c
+> +++ b/drivers/media/platform/atmel/atmel-isc.c
+> @@ -65,6 +65,7 @@ struct isc_clk {
+>  	struct clk_hw   hw;
+>  	struct clk      *clk;
+>  	struct regmap   *regmap;
+> +	spinlock_t	*lock;
+
+Can this work? I don't see lock being assigned anywhere. Did you mean
+
+	spinlock_t	lock;
+
+?
+
+>  	u8		id;
+>  	u8		parent_id;
+>  	u32		div;
+> @@ -312,26 +313,37 @@ static int isc_clk_enable(struct clk_hw *hw)
+>  	struct isc_clk *isc_clk = to_isc_clk(hw);
+>  	u32 id = isc_clk->id;
+>  	struct regmap *regmap = isc_clk->regmap;
+> +	unsigned long flags;
+> +	unsigned int status;
+>  
+>  	dev_dbg(isc_clk->dev, "ISC CLK: %s, div = %d, parent id = %d\n",
+>  		__func__, isc_clk->div, isc_clk->parent_id);
+>  
+> +	spin_lock_irqsave(isc_clk->lock, flags);
+>  	regmap_update_bits(regmap, ISC_CLKCFG,
+>  			   ISC_CLKCFG_DIV_MASK(id) | ISC_CLKCFG_SEL_MASK(id),
+>  			   (isc_clk->div << ISC_CLKCFG_DIV_SHIFT(id)) |
+>  			   (isc_clk->parent_id << ISC_CLKCFG_SEL_SHIFT(id)));
+>  
+>  	regmap_write(regmap, ISC_CLKEN, ISC_CLK(id));
+> +	spin_unlock_irqrestore(isc_clk->lock, flags);
+>  
+> -	return 0;
+> +	regmap_read(regmap, ISC_CLKSR, &status);
+> +	if (status & ISC_CLK(id))
+> +		return 0;
+> +	else
+> +		return -EINVAL;
+>  }
+>  
+>  static void isc_clk_disable(struct clk_hw *hw)
+>  {
+>  	struct isc_clk *isc_clk = to_isc_clk(hw);
+>  	u32 id = isc_clk->id;
+> +	unsigned long flags;
+>  
+> +	spin_lock_irqsave(isc_clk->lock, flags);
+>  	regmap_write(isc_clk->regmap, ISC_CLKDIS, ISC_CLK(id));
+> +	spin_unlock_irqrestore(isc_clk->lock, flags);
+>  }
+>  
+>  static int isc_clk_is_enabled(struct clk_hw *hw)
+
+-- 
 Regards,
-Mauro
 
-- 
-
-/* Test code to test nested structs */
-
-/**
- * struct my_struct - a struct with nested unions and structs
- * @arg1: first argument of anonymous union/anonymous struct
- * @arg2: second argument of anonymous union/anonymous struct
- * @arg1b: first argument of anonymous union/anonymous struct
- * @arg2b: second argument of anonymous union/anonymous struct
- * @arg3: third argument of anonymous union/anonymous struct
- * @arg4: fourth argument of anonymous union/anonymous struct
- * @bar.st1.arg1: first argument of struct st1 on union bar
- * @bar.st1.arg2: second argument of struct st1 on union bar
- * @bar.st2.arg1: first argument of struct st2 on union bar
- * @bar.st2.arg2: second argument of struct st2 on union bar
- * @bar.st3.arg2: second argument of struct st3 on union bar
- * @f1: nested function on anonimous union/struct
- * @bar.st2.f2: nested function on named union/struct
- */
-struct my_struct {
-   /* Anonymous union/struct*/
-   union {
-	struct {
-	    char arg1 : 1;
-	    char arg2 : 3;
-	};
-       struct {
-           int arg1b;
-           int arg2b;
-       };
-       struct {
-           void *arg3;
-           int arg4;
-           int (*f1)(char foo, int bar);
-       };
-   };
-   union {
-       struct {
-           int arg1;
-           int arg2;
-       } st1;           /* bar.st1 is undocumented, cause a warning */
-       struct {
-           void *arg1;  /* bar.st3.arg1 is undocumented, cause a warning */
-	    int arg2;
-          int (*f2)(char foo, int bar); /* bar.st3.fn2 is undocumented, cause a warning */
-       } st2, st3;
-       int (*f3)(char foo, int bar); /* f3 is undocumented, cause a warning */
-   } bar;               /* bar is undocumented, cause a warning */
-
-   /* private: */
-   int undoc_privat;    /* is undocumented but private, no warning */
-
-   /* public: */
-   int undoc_public;    /* is undocumented, cause a warning */
-};
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
