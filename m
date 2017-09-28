@@ -1,61 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:57961 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753645AbdIHMcg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 08:32:36 -0400
-Subject: [PATCH 2/3] [media] DaVinci-VPBE-Display: Improve a size
- determination in two functions
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <e980c48c-9525-4942-a58e-20af8a96e531@users.sourceforge.net>
-Message-ID: <d4fc91b4-4850-b756-d297-fcebdc8d7131@users.sourceforge.net>
-Date: Fri, 8 Sep 2017 14:32:29 +0200
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55030 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752755AbdI1MyB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Sep 2017 08:54:01 -0400
+Date: Thu, 28 Sep 2017 15:53:58 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [RESEND PATCH v2 13/17] media: v4l2-async: simplify
+ v4l2_async_subdev structure
+Message-ID: <20170928125358.pkolmjxc4hdqcrud@valkosipuli.retiisi.org.uk>
+References: <cover.1506548682.git.mchehab@s-opensource.com>
+ <cd089c6dac22c8ea2194c47c48386e52bb6e561f.1506548682.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-In-Reply-To: <e980c48c-9525-4942-a58e-20af8a96e531@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cd089c6dac22c8ea2194c47c48386e52bb6e561f.1506548682.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 8 Sep 2017 10:50:32 +0200
+Hi Mauro,
 
-Replace the specification of data structures by pointer dereferences
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+On Wed, Sep 27, 2017 at 06:46:56PM -0300, Mauro Carvalho Chehab wrote:
+> The V4L2_ASYNC_MATCH_FWNODE match criteria requires just one
+> struct to be filled (struct fwnode_handle). The V4L2_ASYNC_MATCH_DEVNAME
+> match criteria requires just a device name.
+> 
+> So, it doesn't make sense to enclose those into structs,
+> as the criteria can go directly into the union.
+> 
+> That makes easier to document it, as we don't need to document
+> weird senseless structs.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/davinci/vpbe_display.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+The idea is that in the union, there's a struct which is specific to the
+match_type field. I wouldn't call it senseless.
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 5b6fc550736b..afe31900f5de 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -1305,9 +1305,5 @@ static int init_vpbe_layer(int i, struct vpbe_display *disp_dev,
- 	struct video_device *vbd = NULL;
- 
- 	/* Allocate memory for four plane display objects */
--
--	disp_dev->dev[i] =
--		kzalloc(sizeof(struct vpbe_layer), GFP_KERNEL);
--
--	/* If memory allocation fails, return error */
-+	disp_dev->dev[i] = kzalloc(sizeof(*disp_dev->dev[i]), GFP_KERNEL);
- 	if (!disp_dev->dev[i])
-@@ -1396,6 +1392,5 @@ static int vpbe_display_probe(struct platform_device *pdev)
- 
- 	printk(KERN_DEBUG "vpbe_display_probe\n");
- 	/* Allocate memory for vpbe_display */
--	disp_dev = devm_kzalloc(&pdev->dev, sizeof(struct vpbe_display),
--				GFP_KERNEL);
-+	disp_dev = devm_kzalloc(&pdev->dev, sizeof(*disp_dev), GFP_KERNEL);
- 	if (!disp_dev)
+In the two cases there's just a single field in the containing struct. You
+could remove the struct in that case as you do in this patch, and just use
+the field. But I think the result is less clean and so I wouldn't make this
+change.
+
+The confusion comes possibly from the fact that the struct is named the
+same as the field in the struct. These used to be called of and node, but
+with the fwnode property framework the references to the fwnode are, well,
+typically similarly called "fwnode". There's no underlying firmware
+interface with that name, fwnode property API is just an API.
+
 -- 
-2.14.1
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
