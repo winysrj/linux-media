@@ -1,515 +1,383 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:37356 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751862AbdIAL2m (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55010 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752963AbdI1MxU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Sep 2017 07:28:42 -0400
-Subject: Re: [PATCH v6 5/5] v4l: fwnode: Support generic parsing of graph
- endpoints in a single port
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <20170830114946.17743-1-sakari.ailus@linux.intel.com>
- <20170830114946.17743-6-sakari.ailus@linux.intel.com>
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <95945222-3562-a330-609f-ad1a64034dd3@xs4all.nl>
-Date: Fri, 1 Sep 2017 13:28:40 +0200
+        Thu, 28 Sep 2017 08:53:20 -0400
+Date: Thu, 28 Sep 2017 15:53:17 +0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: [RESEND PATCH v2 13/17] media: v4l2-async: simplify
+ v4l2_async_subdev structure
+Message-ID: <20170928125316.texy2qrzpvzekp7a@valkosipuli.retiisi.org.uk>
+References: <cover.1506548682.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-In-Reply-To: <20170830114946.17743-6-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1506548682.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30/08/17 13:49, Sakari Ailus wrote:
-> This is the preferred way to parse the endpoints.
-> 
-> Comment rcar-vin as an example.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 111 ++++++++--------------------
->  drivers/media/platform/rcar-vin/rcar-dma.c  |  10 +--
->  drivers/media/platform/rcar-vin/rcar-v4l2.c |  14 ++--
->  drivers/media/platform/rcar-vin/rcar-vin.h  |   4 +-
->  drivers/media/v4l2-core/v4l2-fwnode.c       |  47 ++++++++++++
->  include/media/v4l2-fwnode.h                 |  49 ++++++++++++
->  6 files changed, 142 insertions(+), 93 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index 142de447aaaa..4378806be1d4 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -21,6 +21,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/pm_runtime.h>
->  
-> +#include <media/v4l2-async.h>
->  #include <media/v4l2-fwnode.h>
->  
->  #include "rcar-vin.h"
-> @@ -77,14 +78,14 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
->  	int ret;
->  
->  	/* Verify subdevices mbus format */
-> -	if (!rvin_mbus_supported(&vin->digital)) {
-> +	if (!rvin_mbus_supported(vin->digital)) {
->  		vin_err(vin, "Unsupported media bus format for %s\n",
-> -			vin->digital.subdev->name);
-> +			vin->digital->subdev->name);
->  		return -EINVAL;
->  	}
->  
->  	vin_dbg(vin, "Found media bus format for %s: %d\n",
-> -		vin->digital.subdev->name, vin->digital.code);
-> +		vin->digital->subdev->name, vin->digital->code);
->  
->  	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
->  	if (ret < 0) {
-> @@ -103,7 +104,7 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
->  
->  	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
->  	rvin_v4l2_remove(vin);
-> -	vin->digital.subdev = NULL;
-> +	vin->digital->subdev = NULL;
->  }
->  
->  static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
-> @@ -120,117 +121,67 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
->  	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
->  	if (ret < 0)
->  		return ret;
-> -	vin->digital.source_pad = ret;
-> +	vin->digital->source_pad = ret;
->  
->  	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
-> -	vin->digital.sink_pad = ret < 0 ? 0 : ret;
-> +	vin->digital->sink_pad = ret < 0 ? 0 : ret;
->  
-> -	vin->digital.subdev = subdev;
-> +	vin->digital->subdev = subdev;
->  
->  	vin_dbg(vin, "bound subdev %s source pad: %u sink pad: %u\n",
-> -		subdev->name, vin->digital.source_pad,
-> -		vin->digital.sink_pad);
-> +		subdev->name, vin->digital->source_pad,
-> +		vin->digital->sink_pad);
->  
->  	return 0;
->  }
->  
-> -static int rvin_digitial_parse_v4l2(struct rvin_dev *vin,
-> -				    struct device_node *ep,
-> -				    struct v4l2_mbus_config *mbus_cfg)
-> +static int rvin_digital_parse_v4l2(struct device *dev,
-> +				   struct v4l2_fwnode_endpoint *vep,
-> +				   struct v4l2_async_subdev *asd)
->  {
-> -	struct v4l2_fwnode_endpoint v4l2_ep;
-> -	int ret;
-> -
-> -	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
-> -	if (ret) {
-> -		vin_err(vin, "Could not parse v4l2 endpoint\n");
-> -		return -EINVAL;
-> -	}
-> +	struct rvin_dev *vin = dev_get_drvdata(dev);
-> +	struct rvin_graph_entity *rvge =
-> +		container_of(asd, struct rvin_graph_entity, asd);
->  
-> -	mbus_cfg->type = v4l2_ep.bus_type;
-> +	rvge->mbus_cfg.type = vep->bus_type;
->  
-> -	switch (mbus_cfg->type) {
-> +	switch (rvge->mbus_cfg.type) {
->  	case V4L2_MBUS_PARALLEL:
->  		vin_dbg(vin, "Found PARALLEL media bus\n");
-> -		mbus_cfg->flags = v4l2_ep.bus.parallel.flags;
-> +		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
->  		break;
->  	case V4L2_MBUS_BT656:
->  		vin_dbg(vin, "Found BT656 media bus\n");
-> -		mbus_cfg->flags = 0;
-> +		rvge->mbus_cfg.flags = 0;
->  		break;
->  	default:
->  		vin_err(vin, "Unknown media bus type\n");
->  		return -EINVAL;
->  	}
->  
-> -	return 0;
-> -}
-> -
-> -static int rvin_digital_graph_parse(struct rvin_dev *vin)
-> -{
-> -	struct device_node *ep, *np;
-> -	int ret;
-> -
-> -	vin->digital.asd.match.fwnode.fwnode = NULL;
-> -	vin->digital.subdev = NULL;
-> -
-> -	/*
-> -	 * Port 0 id 0 is local digital input, try to get it.
-> -	 * Not all instances can or will have this, that is OK
-> -	 */
-> -	ep = of_graph_get_endpoint_by_regs(vin->dev->of_node, 0, 0);
-> -	if (!ep)
-> -		return 0;
-> -
-> -	np = of_graph_get_remote_port_parent(ep);
-> -	if (!np) {
-> -		vin_err(vin, "No remote parent for digital input\n");
-> -		of_node_put(ep);
-> -		return -EINVAL;
-> -	}
-> -	of_node_put(np);
-> -
-> -	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->digital.mbus_cfg);
-> -	of_node_put(ep);
-> -	if (ret)
-> -		return ret;
-> -
-> -	vin->digital.asd.match.fwnode.fwnode = of_fwnode_handle(np);
-> -	vin->digital.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-> +	vin->digital = rvge;
->  
->  	return 0;
->  }
->  
->  static int rvin_digital_graph_init(struct rvin_dev *vin)
->  {
-> -	struct v4l2_async_subdev **subdevs = NULL;
->  	int ret;
->  
-> -	ret = rvin_digital_graph_parse(vin);
-> +	ret = v4l2_async_notifier_parse_fwnode_endpoint(
-> +		vin->dev, &vin->notifier, 0, 0,
-> +		sizeof(struct rvin_graph_entity), rvin_digital_parse_v4l2);
->  	if (ret)
->  		return ret;
->  
-> -	if (!vin->digital.asd.match.fwnode.fwnode) {
-> -		vin_dbg(vin, "No digital subdevice found\n");
-> -		return -ENODEV;
-> -	}
-> -
-> -	/* Register the subdevices notifier. */
-> -	subdevs = devm_kzalloc(vin->dev, sizeof(*subdevs), GFP_KERNEL);
-> -	if (subdevs == NULL)
-> -		return -ENOMEM;
-> +	if (vin->notifier.num_subdevs > 0)
-> +		vin_dbg(vin, "Found digital subdevice %pOF\n",
-> +			to_of_node(
-> +				vin->notifier.subdevs[0]->match.fwnode.fwnode));
->  
-> -	subdevs[0] = &vin->digital.asd;
-> -
-> -	vin_dbg(vin, "Found digital subdevice %pOF\n",
-> -		to_of_node(subdevs[0]->match.fwnode.fwnode));
-> -
-> -	vin->notifier.num_subdevs = 1;
-> -	vin->notifier.subdevs = subdevs;
->  	vin->notifier.bound = rvin_digital_notify_bound;
->  	vin->notifier.unbind = rvin_digital_notify_unbind;
->  	vin->notifier.complete = rvin_digital_notify_complete;
-> -
->  	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
->  	if (ret < 0) {
->  		vin_err(vin, "Notifier registration failed\n");
-> @@ -290,6 +241,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
->  	if (ret)
->  		return ret;
->  
-> +	platform_set_drvdata(pdev, vin);
-> +
->  	ret = rvin_digital_graph_init(vin);
->  	if (ret < 0)
->  		goto error;
-> @@ -297,11 +250,10 @@ static int rcar_vin_probe(struct platform_device *pdev)
->  	pm_suspend_ignore_children(&pdev->dev, true);
->  	pm_runtime_enable(&pdev->dev);
->  
-> -	platform_set_drvdata(pdev, vin);
-> -
->  	return 0;
->  error:
->  	rvin_dma_remove(vin);
-> +	v4l2_async_notifier_release(&vin->notifier);
->  
->  	return ret;
->  }
-> @@ -313,6 +265,7 @@ static int rcar_vin_remove(struct platform_device *pdev)
->  	pm_runtime_disable(&pdev->dev);
->  
->  	v4l2_async_notifier_unregister(&vin->notifier);
-> +	v4l2_async_notifier_release(&vin->notifier);
->  
->  	rvin_dma_remove(vin);
->  
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> index b136844499f6..23fdff7a7370 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -183,7 +183,7 @@ static int rvin_setup(struct rvin_dev *vin)
->  	/*
->  	 * Input interface
->  	 */
-> -	switch (vin->digital.code) {
-> +	switch (vin->digital->code) {
->  	case MEDIA_BUS_FMT_YUYV8_1X16:
->  		/* BT.601/BT.1358 16bit YCbCr422 */
->  		vnmc |= VNMC_INF_YUV16;
-> @@ -191,7 +191,7 @@ static int rvin_setup(struct rvin_dev *vin)
->  		break;
->  	case MEDIA_BUS_FMT_UYVY8_2X8:
->  		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
-> -		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
-> +		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
->  			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
->  		input_is_yuv = true;
->  		break;
-> @@ -200,7 +200,7 @@ static int rvin_setup(struct rvin_dev *vin)
->  		break;
->  	case MEDIA_BUS_FMT_UYVY10_2X10:
->  		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
-> -		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
-> +		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
->  			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
->  		input_is_yuv = true;
->  		break;
-> @@ -212,11 +212,11 @@ static int rvin_setup(struct rvin_dev *vin)
->  	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
->  
->  	/* Hsync Signal Polarity Select */
-> -	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-> +	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
->  		dmr2 |= VNDMR2_HPS;
->  
->  	/* Vsync Signal Polarity Select */
-> -	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
-> +	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
->  		dmr2 |= VNDMR2_VPS;
->  
->  	/*
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index dd37ea811680..b479b882da12 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -111,7 +111,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
->  	struct v4l2_mbus_framefmt *mf = &fmt.format;
->  	int ret;
->  
-> -	fmt.pad = vin->digital.source_pad;
-> +	fmt.pad = vin->digital->source_pad;
->  
->  	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
->  	if (ret)
-> @@ -172,13 +172,13 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
->  
->  	sd = vin_to_source(vin);
->  
-> -	v4l2_fill_mbus_format(&format.format, pix, vin->digital.code);
-> +	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
->  
->  	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
->  	if (pad_cfg == NULL)
->  		return -ENOMEM;
->  
-> -	format.pad = vin->digital.source_pad;
-> +	format.pad = vin->digital->source_pad;
->  
->  	field = pix->field;
->  
-> @@ -555,7 +555,7 @@ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
->  	if (timings->pad)
->  		return -EINVAL;
->  
-> -	timings->pad = vin->digital.sink_pad;
-> +	timings->pad = vin->digital->sink_pad;
->  
->  	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
->  
-> @@ -607,7 +607,7 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
->  	if (cap->pad)
->  		return -EINVAL;
->  
-> -	cap->pad = vin->digital.sink_pad;
-> +	cap->pad = vin->digital->sink_pad;
->  
->  	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
->  
-> @@ -625,7 +625,7 @@ static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
->  	if (edid->pad)
->  		return -EINVAL;
->  
-> -	edid->pad = vin->digital.sink_pad;
-> +	edid->pad = vin->digital->sink_pad;
->  
->  	ret = v4l2_subdev_call(sd, pad, get_edid, edid);
->  
-> @@ -643,7 +643,7 @@ static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
->  	if (edid->pad)
->  		return -EINVAL;
->  
-> -	edid->pad = vin->digital.sink_pad;
-> +	edid->pad = vin->digital->sink_pad;
->  
->  	ret = v4l2_subdev_call(sd, pad, set_edid, edid);
->  
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-> index 9bfb5a7c4dc4..5382078143fb 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -126,7 +126,7 @@ struct rvin_dev {
->  	struct v4l2_device v4l2_dev;
->  	struct v4l2_ctrl_handler ctrl_handler;
->  	struct v4l2_async_notifier notifier;
-> -	struct rvin_graph_entity digital;
-> +	struct rvin_graph_entity *digital;
->  
->  	struct mutex lock;
->  	struct vb2_queue queue;
-> @@ -145,7 +145,7 @@ struct rvin_dev {
->  	struct v4l2_rect compose;
->  };
->  
-> -#define vin_to_source(vin)		vin->digital.subdev
-> +#define vin_to_source(vin)		((vin)->digital->subdev)
->  
->  /* Debug */
->  #define vin_dbg(d, fmt, arg...)		dev_dbg(d->dev, fmt, ##arg)
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> index 2496d76eef4b..4720e8a043cf 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -444,6 +444,53 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
->  }
->  EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints);
->  
-> +int v4l2_async_notifier_parse_fwnode_endpoint(
-> +	struct device *dev, struct v4l2_async_notifier *notifier,
-> +	unsigned int port_id, unsigned int endpoint_id, size_t asd_struct_size,
-> +	int (*parse_single)(struct device *dev,
-> +			    struct v4l2_fwnode_endpoint *vep,
-> +			    struct v4l2_async_subdev *asd))
-> +{
-> +	struct fwnode_handle *fwnode = NULL;
-> +	int ret;
-> +
-> +	while ((fwnode = fwnode_graph_get_next_endpoint(
-> +			dev_fwnode(dev), fwnode))) {
-> +		struct fwnode_endpoint ep;
-> +
-> +		ret = fwnode_graph_parse_endpoint(fwnode, &ep);
-> +		if (ret < 0)
-> +			continue;
-> +
-> +		if (!fwnode_device_is_available(
-> +			    fwnode_graph_get_port_parent(fwnode)))
-> +			continue;
-> +
-> +		if (ep.port == port_id && ep.id == endpoint_id)
-> +			break;
-> +	}
-> +
-> +	if (!fwnode)
-> +		return -ENOENT;
-> +
-> +	ret = v4l2_async_notifier_realloc(notifier, notifier->num_subdevs + 1);
-> +	if (ret)
-> +		goto out_err;
-> +
-> +	ret = v4l2_async_notifier_fwnode_parse_endpoint(
-> +		dev, notifier, fwnode, asd_struct_size, parse_single);
-> +	if (ret)
-> +		goto out_err;
-> +
-> +	return 0;
-> +
-> +out_err:
-> +	fwnode_handle_put(fwnode);
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoint);
-> +
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
->  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-> index d063ab4ff67b..dd13604178b4 100644
-> --- a/include/media/v4l2-fwnode.h
-> +++ b/include/media/v4l2-fwnode.h
-> @@ -249,4 +249,53 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
->  			    struct v4l2_fwnode_endpoint *vep,
->  			    struct v4l2_async_subdev *asd));
->  
-> +/**
-> + * v4l2_async_notifier_parse_fwnode_endpoint - Set up async notifier for an
-> + *					       fwnode based sub-device
-> + * @dev: @struct device pointer
-> + * @notifier: pointer to &struct v4l2_async_notifier
-> + * @port_id: port number
-> + * @endpoint_id: endpoint number
-> + * @asd_struct_size: size of the driver's async sub-device struct, including
-> + *		     sizeof(struct v4l2_async_subdev). The &struct
-> + *		     v4l2_async_subdev shall be the first member of
-> + *		     the driver's async sub-device struct, i.e. both
-> + *		     begin at the same memory address.
-> + * @parse_single: driver's callback function called on each V4L2 fwnode endpoint
-> + *
-> + * Parse the fwnode endpoint of the @dev device corresponding to the given port
-> + * and endpoint numbres and populate the async sub- devices array of the
+(Resending for Mauro, while dropping the non-list recipients. The original
+likely had too many recipients.)
 
-numbers
-no space after sub-
+The V4L2_ASYNC_MATCH_FWNODE match criteria requires just one
+struct to be filled (struct fwnode_handle). The V4L2_ASYNC_MATCH_DEVNAME
+match criteria requires just a device name.
 
-> + * notifier. The @parse_endpoint callback function is called for the endpoint
+So, it doesn't make sense to enclose those into structs,
+as the criteria can go directly into the union.
 
-parse_single, but (as in the previous patch) I actually prefer parse_endpoint.
+That makes easier to document it, as we don't need to document
+weird senseless structs.
 
-> + * with the corresponding async sub-device pointer to let the caller initialize
-> + * the driver-specific part of the async sub-device structure.
-> + *
-> + * The notifier memory shall be zeroed before this function is called on the
-> + * notifier.
+At drivers, this makes even clearer about the match criteria.
 
-Should it? Doesn't this add additional subdevs?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/am437x/am437x-vpfe.c    | 6 +++---
+ drivers/media/platform/atmel/atmel-isc.c       | 2 +-
+ drivers/media/platform/atmel/atmel-isi.c       | 2 +-
+ drivers/media/platform/davinci/vpif_capture.c  | 4 ++--
+ drivers/media/platform/exynos4-is/media-dev.c  | 4 ++--
+ drivers/media/platform/omap3isp/isp.c          | 4 ++--
+ drivers/media/platform/pxa_camera.c            | 2 +-
+ drivers/media/platform/qcom/camss-8x16/camss.c | 2 +-
+ drivers/media/platform/rcar-vin/rcar-core.c    | 8 ++++----
+ drivers/media/platform/rcar_drif.c             | 4 ++--
+ drivers/media/platform/soc_camera/soc_camera.c | 2 +-
+ drivers/media/platform/stm32/stm32-dcmi.c      | 2 +-
+ drivers/media/platform/ti-vpe/cal.c            | 2 +-
+ drivers/media/platform/xilinx/xilinx-vipp.c    | 2 +-
+ drivers/media/v4l2-core/v4l2-async.c           | 4 ++--
+ drivers/staging/media/imx/imx-media-dev.c      | 8 ++++----
+ include/media/v4l2-async.h                     | 8 ++------
+ 17 files changed, 31 insertions(+), 35 deletions(-)
 
-I'm lost. What's the relationship between v4l2_async_notifier_parse_fwnode_endpoints
-and this function? When do you use which? When you should zero the notifier?
-
-Regards,
-
-	Hans
-
-> + *
-> + * This function may not be called on a registered notifier and may be called on
-> + * a notifier once or more times, but may not be called more than once on a
-> + * given port / endpoint pair. When using this function, the user may not access
-> + * the notifier's subdevs array nor change notifier's num_subdevs field, these
-> + * are reserved for the framework's internal use only.
-> + *
-> + * The @struct v4l2_fwnode_endpoint passed to the callback function
-> + * @parse_single is released once the function is finished. If there is a need
-> + * to retain that configuration, the user needs to allocate memory for it.
-> + *
-> + * Any notifier populated using this function must be released with a call to
-> + * v4l2_async_notifier_release() after it has been unregistered and the async
-> + * sub-devices are no longer in use.
-> + *
-> + * Return: %0 on success, including when no async sub-devices are found
-> + *	   %-ENOMEM if memory allocation failed
-> + *	   %-EINVAL if graph or endpoint parsing failed
-> + *	   Other error codes as returned by @parse_single
-> + */
-> +int v4l2_async_notifier_parse_fwnode_endpoint(
-> +	struct device *dev, struct v4l2_async_notifier *notifier,
-> +	unsigned int port_id, unsigned int endpoint_id, size_t asd_struct_size,
-> +	int (*parse_single)(struct device *dev,
-> +			    struct v4l2_fwnode_endpoint *vep,
-> +			    struct v4l2_async_subdev *asd));
-> +
->  #endif /* _V4L2_FWNODE_H */
-> 
+diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
+index dfcc484cab89..f87e8f9467e9 100644
+--- a/drivers/media/platform/am437x/am437x-vpfe.c
++++ b/drivers/media/platform/am437x/am437x-vpfe.c
+@@ -2304,8 +2304,8 @@ vpfe_async_bound(struct v4l2_async_notifier *notifier,
+ 	vpfe_dbg(1, vpfe, "vpfe_async_bound\n");
+ 
+ 	for (i = 0; i < ARRAY_SIZE(vpfe->cfg->asd); i++) {
+-		if (vpfe->cfg->asd[i]->match.fwnode.fwnode ==
+-		    asd[i].match.fwnode.fwnode) {
++		if (vpfe->cfg->asd[i]->match.fwnode ==
++		    asd[i].match.fwnode) {
+ 			sdinfo = &vpfe->cfg->sub_devs[i];
+ 			vpfe->sd[i] = subdev;
+ 			vpfe->sd[i]->grp_id = sdinfo->grp_id;
+@@ -2505,7 +2505,7 @@ vpfe_get_pdata(struct platform_device *pdev)
+ 		}
+ 
+ 		pdata->asd[i]->match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		pdata->asd[i]->match.fwnode.fwnode = of_fwnode_handle(rem);
++		pdata->asd[i]->match.fwnode = of_fwnode_handle(rem);
+ 		of_node_put(rem);
+ 	}
+ 
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index d7103c5f92c3..c04d9a4dbfac 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -1742,7 +1742,7 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
+ 			subdev_entity->pfe_cfg0 |= ISC_PFE_CFG0_PPOL_LOW;
+ 
+ 		subdev_entity->asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		subdev_entity->asd->match.fwnode.fwnode =
++		subdev_entity->asd->match.fwnode =
+ 			of_fwnode_handle(rem);
+ 		list_add_tail(&subdev_entity->list, &isc->subdev_entities);
+ 	}
+diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
+index 891fa2505efa..8c52f9f5f2db 100644
+--- a/drivers/media/platform/atmel/atmel-isi.c
++++ b/drivers/media/platform/atmel/atmel-isi.c
+@@ -1124,7 +1124,7 @@ static int isi_graph_parse(struct atmel_isi *isi, struct device_node *node)
+ 		/* Remote node to connect */
+ 		isi->entity.node = remote;
+ 		isi->entity.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		isi->entity.asd.match.fwnode.fwnode = of_fwnode_handle(remote);
++		isi->entity.asd.match.fwnode = of_fwnode_handle(remote);
+ 		return 0;
+ 	}
+ }
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 0ef36cec21d1..0cf141635cbc 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -1390,7 +1390,7 @@ static int vpif_async_bound(struct v4l2_async_notifier *notifier,
+ 
+ 	for (i = 0; i < vpif_obj.config->asd_sizes[0]; i++) {
+ 		struct v4l2_async_subdev *_asd = vpif_obj.config->asd[i];
+-		const struct fwnode_handle *fwnode = _asd->match.fwnode.fwnode;
++		const struct fwnode_handle *fwnode = _asd->match.fwnode;
+ 
+ 		if (fwnode == subdev->fwnode) {
+ 			vpif_obj.sd[i] = subdev;
+@@ -1588,7 +1588,7 @@ vpif_capture_get_pdata(struct platform_device *pdev)
+ 		}
+ 
+ 		pdata->asd[i]->match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		pdata->asd[i]->match.fwnode.fwnode = of_fwnode_handle(rem);
++		pdata->asd[i]->match.fwnode = of_fwnode_handle(rem);
+ 		of_node_put(rem);
+ 	}
+ 
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index d4656d5175d7..d4d97d7e9684 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -454,7 +454,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+ 	}
+ 
+ 	fmd->sensor[index].asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+-	fmd->sensor[index].asd.match.fwnode.fwnode = of_fwnode_handle(rem);
++	fmd->sensor[index].asd.match.fwnode = of_fwnode_handle(rem);
+ 	fmd->async_subdevs[index] = &fmd->sensor[index].asd;
+ 
+ 	fmd->num_sensors++;
+@@ -1361,7 +1361,7 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
+ 
+ 	/* Find platform data for this sensor subdev */
+ 	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++)
+-		if (fmd->sensor[i].asd.match.fwnode.fwnode ==
++		if (fmd->sensor[i].asd.match.fwnode ==
+ 		    of_fwnode_handle(subdev->dev->of_node))
+ 			si = &fmd->sensor[i];
+ 
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 1a428fe9f070..bbb402a5fcf0 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2170,9 +2170,9 @@ static int isp_fwnodes_parse(struct device *dev,
+ 
+ 		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+ 
+-		isd->asd.match.fwnode.fwnode =
++		isd->asd.match.fwnode =
+ 			fwnode_graph_get_remote_port_parent(fwnode);
+-		if (!isd->asd.match.fwnode.fwnode) {
++		if (!isd->asd.match.fwnode) {
+ 			dev_warn(dev, "bad remote port parent\n");
+ 			goto error;
+ 		}
+diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+index edca993c2b1f..4a23a60f3418 100644
+--- a/drivers/media/platform/pxa_camera.c
++++ b/drivers/media/platform/pxa_camera.c
+@@ -2328,7 +2328,7 @@ static int pxa_camera_pdata_from_dt(struct device *dev,
+ 	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+ 	remote = of_graph_get_remote_port(np);
+ 	if (remote) {
+-		asd->match.fwnode.fwnode = of_fwnode_handle(remote);
++		asd->match.fwnode = of_fwnode_handle(remote);
+ 		of_node_put(remote);
+ 	} else {
+ 		dev_notice(dev, "no remote for %pOF\n", np);
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss.c b/drivers/media/platform/qcom/camss-8x16/camss.c
+index a3760b5dd1d1..7d7bca09473a 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss.c
++++ b/drivers/media/platform/qcom/camss-8x16/camss.c
+@@ -341,7 +341,7 @@ static int camss_of_parse_ports(struct device *dev,
+ 		}
+ 
+ 		csd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		csd->asd.match.fwnode.fwnode = of_fwnode_handle(remote);
++		csd->asd.match.fwnode = of_fwnode_handle(remote);
+ 	}
+ 
+ 	return notifier->num_subdevs;
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 142de447aaaa..3835a2fa0cb7 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -171,7 +171,7 @@ static int rvin_digital_graph_parse(struct rvin_dev *vin)
+ 	struct device_node *ep, *np;
+ 	int ret;
+ 
+-	vin->digital.asd.match.fwnode.fwnode = NULL;
++	vin->digital.asd.match.fwnode = NULL;
+ 	vin->digital.subdev = NULL;
+ 
+ 	/*
+@@ -195,7 +195,7 @@ static int rvin_digital_graph_parse(struct rvin_dev *vin)
+ 	if (ret)
+ 		return ret;
+ 
+-	vin->digital.asd.match.fwnode.fwnode = of_fwnode_handle(np);
++	vin->digital.asd.match.fwnode = of_fwnode_handle(np);
+ 	vin->digital.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+ 
+ 	return 0;
+@@ -210,7 +210,7 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+ 	if (ret)
+ 		return ret;
+ 
+-	if (!vin->digital.asd.match.fwnode.fwnode) {
++	if (!vin->digital.asd.match.fwnode) {
+ 		vin_dbg(vin, "No digital subdevice found\n");
+ 		return -ENODEV;
+ 	}
+@@ -223,7 +223,7 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+ 	subdevs[0] = &vin->digital.asd;
+ 
+ 	vin_dbg(vin, "Found digital subdevice %pOF\n",
+-		to_of_node(subdevs[0]->match.fwnode.fwnode));
++		to_of_node(subdevs[0]->match.fwnode));
+ 
+ 	vin->notifier.num_subdevs = 1;
+ 	vin->notifier.subdevs = subdevs;
+diff --git a/drivers/media/platform/rcar_drif.c b/drivers/media/platform/rcar_drif.c
+index 522364ff0d5d..ae7927305231 100644
+--- a/drivers/media/platform/rcar_drif.c
++++ b/drivers/media/platform/rcar_drif.c
+@@ -1107,7 +1107,7 @@ static int rcar_drif_notify_bound(struct v4l2_async_notifier *notifier,
+ 	struct rcar_drif_sdr *sdr =
+ 		container_of(notifier, struct rcar_drif_sdr, notifier);
+ 
+-	if (sdr->ep.asd.match.fwnode.fwnode !=
++	if (sdr->ep.asd.match.fwnode !=
+ 	    of_fwnode_handle(subdev->dev->of_node)) {
+ 		rdrif_err(sdr, "subdev %s cannot bind\n", subdev->name);
+ 		return -EINVAL;
+@@ -1229,7 +1229,7 @@ static int rcar_drif_parse_subdevs(struct rcar_drif_sdr *sdr)
+ 		return -EINVAL;
+ 	}
+ 
+-	sdr->ep.asd.match.fwnode.fwnode = fwnode;
++	sdr->ep.asd.match.fwnode = fwnode;
+ 	sdr->ep.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+ 	notifier->num_subdevs++;
+ 
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 1f3c450c7a69..1bef3ebb49ee 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1513,7 +1513,7 @@ static int soc_of_bind(struct soc_camera_host *ici,
+ 	if (!info)
+ 		return -ENOMEM;
+ 
+-	info->sasd.asd.match.fwnode.fwnode = of_fwnode_handle(remote);
++	info->sasd.asd.match.fwnode = of_fwnode_handle(remote);
+ 	info->sasd.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+ 	info->subdev = &info->sasd.asd;
+ 
+diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+index 35ba6f211b79..4c8bd77842f6 100644
+--- a/drivers/media/platform/stm32/stm32-dcmi.c
++++ b/drivers/media/platform/stm32/stm32-dcmi.c
+@@ -1514,7 +1514,7 @@ static int dcmi_graph_parse(struct stm32_dcmi *dcmi, struct device_node *node)
+ 		/* Remote node to connect */
+ 		dcmi->entity.node = remote;
+ 		dcmi->entity.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		dcmi->entity.asd.match.fwnode.fwnode = of_fwnode_handle(remote);
++		dcmi->entity.asd.match.fwnode = of_fwnode_handle(remote);
+ 		return 0;
+ 	}
+ }
+diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
+index 42e383a48ffe..7491425eed77 100644
+--- a/drivers/media/platform/ti-vpe/cal.c
++++ b/drivers/media/platform/ti-vpe/cal.c
+@@ -1700,7 +1700,7 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
+ 		goto cleanup_exit;
+ 	}
+ 	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+-	asd->match.fwnode.fwnode = of_fwnode_handle(sensor_node);
++	asd->match.fwnode = of_fwnode_handle(sensor_node);
+ 
+ 	remote_ep = of_graph_get_remote_endpoint(ep_node);
+ 	if (!remote_ep) {
+diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
+index ebfdf334d99c..3fdb0f365538 100644
+--- a/drivers/media/platform/xilinx/xilinx-vipp.c
++++ b/drivers/media/platform/xilinx/xilinx-vipp.c
+@@ -390,7 +390,7 @@ static int xvip_graph_parse_one(struct xvip_composite_device *xdev,
+ 
+ 		entity->node = remote;
+ 		entity->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		entity->asd.match.fwnode.fwnode = of_fwnode_handle(remote);
++		entity->asd.match.fwnode = of_fwnode_handle(remote);
+ 		list_add_tail(&entity->list, &xdev->entities);
+ 		xdev->num_subdevs++;
+ 	}
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index d741a8e0fdac..e087857d02d6 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -39,12 +39,12 @@ static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ static bool match_devname(struct v4l2_subdev *sd,
+ 			  struct v4l2_async_subdev *asd)
+ {
+-	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
++	return !strcmp(asd->match.device_name, dev_name(sd->dev));
+ }
+ 
+ static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+-	return sd->fwnode == asd->match.fwnode.fwnode;
++	return sd->fwnode == asd->match.fwnode;
+ }
+ 
+ static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index d96f4512224f..858088570684 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -48,12 +48,12 @@ imx_media_find_async_subdev(struct imx_media_dev *imxmd,
+ 		imxsd = &imxmd->subdev[i];
+ 		switch (imxsd->asd.match_type) {
+ 		case V4L2_ASYNC_MATCH_FWNODE:
+-			if (fwnode && imxsd->asd.match.fwnode.fwnode == fwnode)
++			if (fwnode && imxsd->asd.match.fwnode == fwnode)
+ 				return imxsd;
+ 			break;
+ 		case V4L2_ASYNC_MATCH_DEVNAME:
+ 			if (devname &&
+-			    !strcmp(imxsd->asd.match.device_name.name, devname))
++			    !strcmp(imxsd->asd.match.device_name, devname))
+ 				return imxsd;
+ 			break;
+ 		default:
+@@ -108,11 +108,11 @@ imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+ 	asd = &imxsd->asd;
+ 	if (np) {
+ 		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		asd->match.fwnode.fwnode = of_fwnode_handle(np);
++		asd->match.fwnode = of_fwnode_handle(np);
+ 	} else {
+ 		asd->match_type = V4L2_ASYNC_MATCH_DEVNAME;
+ 		strncpy(imxsd->devname, devname, sizeof(imxsd->devname));
+-		asd->match.device_name.name = imxsd->devname;
++		asd->match.device_name = imxsd->devname;
+ 		imxsd->pdev = pdev;
+ 	}
+ 
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index c69d8c8a66d0..e66a3521596f 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -54,12 +54,8 @@ enum v4l2_async_match_type {
+ struct v4l2_async_subdev {
+ 	enum v4l2_async_match_type match_type;
+ 	union {
+-		struct {
+-			struct fwnode_handle *fwnode;
+-		} fwnode;
+-		struct {
+-			const char *name;
+-		} device_name;
++		struct fwnode_handle *fwnode;
++		const char *device_name;
+ 		struct {
+ 			int adapter_id;
+ 			unsigned short address;
+-- 
+2.13.5
