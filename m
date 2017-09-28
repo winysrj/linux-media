@@ -1,36 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:60623 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751568AbdIRIMi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 04:12:38 -0400
-To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 0/2] [media] dvb_usb_core: Adjustments for two function
- implementations
-Message-ID: <38627457-f64f-7356-bf5e-fc41296a26e4@users.sourceforge.net>
-Date: Mon, 18 Sep 2017 10:12:18 +0200
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34321
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752520AbdI1BJk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Sep 2017 21:09:40 -0400
+Date: Wed, 27 Sep 2017 22:09:29 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v7 4/7] media: open.rst: document devnode-centric and
+ mc-centric types
+Message-ID: <20170927220929.4e335455@vento.lan>
+In-Reply-To: <d940932c-17ef-0c5f-dcbe-6fac81eae3ae@infradead.org>
+References: <cover.1506550930.git.mchehab@s-opensource.com>
+        <f3435f2eb6417a4b16e036a492fc5044915892d1.1506550930.git.mchehab@s-opensource.com>
+        <d940932c-17ef-0c5f-dcbe-6fac81eae3ae@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 18 Sep 2017 09:51:23 +0200
+Hi Randy,
 
-Two update suggestions were taken into account
-from static source code analysis.
+Em Wed, 27 Sep 2017 15:32:12 -0700
+Randy Dunlap <rdunlap@infradead.org> escreveu:
 
-Markus Elfring (2):
-  Delete two error messages for a failed memory allocation in dvb_usbv2_probe()
-  Improve a size determination in two functions
+> > +Types of V4L2 media hardware control
+> > +====================================
+> > +
+> > +V4L2 hardware periferal is usually complex: support for it is  
+> 
+>                  peripheral (in several places...)
 
- drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+Thanks for noticing! My brain is hardwired to automatically replace
+ph -> f, as "ph" only exists on archaic Brazilian Portuguese ;-)
 
--- 
-2.14.1
+Just fixed everything with:
+
+	$ git filter-branch -f --tree-filter 'for i in $(git grep -l periferal Documentation/media); do sed s,periferal,peripheral,g -i $i; done' v4.14-rc1..
+
+And pushed to my development's tree:
+	https://git.linuxtv.org/mchehab/experimental.git/log/?h=mc-centric-flag-v7
+
+Thanks,
+Mauro
