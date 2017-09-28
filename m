@@ -1,59 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zed.grinta.net ([109.74.203.128]:47236 "EHLO zed.grinta.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751833AbdIVSgE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Sep 2017 14:36:04 -0400
-Subject: Re: [media] spca500: Use common error handling code in
- spca500_synch310()
-To: SF Markus Elfring <elfring@users.sourceforge.net>,
-        Julia Lawall <julia.lawall@lip6.fr>,
-        linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <d496ca24-1725-768b-5e55-4e45097cb77d@users.sourceforge.net>
- <alpine.DEB.2.20.1709221908230.3170@hadrien>
- <4921ea61-49cd-4071-e636-c199daddec8e@users.sourceforge.net>
- <alpine.DEB.2.20.1709221941020.3170@hadrien>
- <0baa322a-6019-70dc-0245-caae824ccb49@users.sourceforge.net>
-From: Daniele Nicolodi <daniele@grinta.net>
-Message-ID: <25a82438-8760-66fd-23d3-24569078f906@grinta.net>
-Date: Fri, 22 Sep 2017 12:27:09 -0600
+Received: from esa5.microchip.iphmx.com ([216.71.150.166]:4456 "EHLO
+        esa5.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750914AbdI1GLt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Sep 2017 02:11:49 -0400
+Subject: Re: [PATCH v2 1/5] media: atmel_isc: Add spin lock for clock enable
+ ops
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <20170918063925.6372-1-wenyou.yang@microchip.com>
+ <20170918063925.6372-2-wenyou.yang@microchip.com>
+ <20170927071626.mok5h3ckisyipy53@valkosipuli.retiisi.org.uk>
+From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
+Message-ID: <ab5896f3-8631-4ce4-b996-5b679f66909b@Microchip.com>
+Date: Thu, 28 Sep 2017 14:11:41 +0800
 MIME-Version: 1.0
-In-Reply-To: <0baa322a-6019-70dc-0245-caae824ccb49@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <20170927071626.mok5h3ckisyipy53@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 9/22/17 11:46 AM, SF Markus Elfring wrote:
->>>> They are both equally uninformative.
->>>
->>> Which identifier would you find appropriate there?
+Hi Sakari,
+
+
+On 2017/9/27 15:16, Sakari Ailus wrote:
+> Hi Wenyou,
+>
+> On subject:
+>
+> s/_/-/
+>
+> On Mon, Sep 18, 2017 at 02:39:21PM +0800, Wenyou Yang wrote:
+>> Add the spin lock for the clock enable and disable operations.
 >>
->> error was fine.
-> 
-> How do the different views fit together?
+>> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+>> ---
+>>
+>> Changes in v2: None
+>>
+>>   drivers/media/platform/atmel/atmel-isc.c | 14 +++++++++++++-
+>>   1 file changed, 13 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+>> index 2f8e345d297e..78114193af4c 100644
+>> --- a/drivers/media/platform/atmel/atmel-isc.c
+>> +++ b/drivers/media/platform/atmel/atmel-isc.c
+>> @@ -65,6 +65,7 @@ struct isc_clk {
+>>   	struct clk_hw   hw;
+>>   	struct clk      *clk;
+>>   	struct regmap   *regmap;
+>> +	spinlock_t	*lock;
+> Can this work? I don't see lock being assigned anywhere. Did you mean
+>
+> 	spinlock_t	lock;
+>
+> ?
+Ooh. I made a mistake.
 
-You want to change something.  Changing something requires to spend
-energy.  You need to to justify why spending that energy is a good
-thing.  No one needs to argue about keeping it the way it is.
-
-What about stopping changing code for the sake of having one more patch
-accepted in the kernel?  I don't see any improvement brought by the
-proposed change, other than making the code harder to read.  I find goto
-statements hard to read, because they inherently make some information
-non local.  They are justified in error path handling, if the error path
-only unwinds what the function did early on.  That's not the case here.
-
-The same applies to dozens of patches you proposed recently.
-
-By the way, there may be some useful absent minded code churn of the
-king you like in that driver: I don't think the PERR macro is the
-idiomatic way of doing logging.
-
-Cheers,
-Daniele
+Thank you very much.
+>
+>>   	u8		id;
+>>   	u8		parent_id;
+>>   	u32		div;
+>> @@ -312,26 +313,37 @@ static int isc_clk_enable(struct clk_hw *hw)
+>>   	struct isc_clk *isc_clk = to_isc_clk(hw);
+>>   	u32 id = isc_clk->id;
+>>   	struct regmap *regmap = isc_clk->regmap;
+>> +	unsigned long flags;
+>> +	unsigned int status;
+>>   
+>>   	dev_dbg(isc_clk->dev, "ISC CLK: %s, div = %d, parent id = %d\n",
+>>   		__func__, isc_clk->div, isc_clk->parent_id);
+>>   
+>> +	spin_lock_irqsave(isc_clk->lock, flags);
+>>   	regmap_update_bits(regmap, ISC_CLKCFG,
+>>   			   ISC_CLKCFG_DIV_MASK(id) | ISC_CLKCFG_SEL_MASK(id),
+>>   			   (isc_clk->div << ISC_CLKCFG_DIV_SHIFT(id)) |
+>>   			   (isc_clk->parent_id << ISC_CLKCFG_SEL_SHIFT(id)));
+>>   
+>>   	regmap_write(regmap, ISC_CLKEN, ISC_CLK(id));
+>> +	spin_unlock_irqrestore(isc_clk->lock, flags);
+>>   
+>> -	return 0;
+>> +	regmap_read(regmap, ISC_CLKSR, &status);
+>> +	if (status & ISC_CLK(id))
+>> +		return 0;
+>> +	else
+>> +		return -EINVAL;
+>>   }
+>>   
+>>   static void isc_clk_disable(struct clk_hw *hw)
+>>   {
+>>   	struct isc_clk *isc_clk = to_isc_clk(hw);
+>>   	u32 id = isc_clk->id;
+>> +	unsigned long flags;
+>>   
+>> +	spin_lock_irqsave(isc_clk->lock, flags);
+>>   	regmap_write(isc_clk->regmap, ISC_CLKDIS, ISC_CLK(id));
+>> +	spin_unlock_irqrestore(isc_clk->lock, flags);
+>>   }
+>>   
+>>   static int isc_clk_is_enabled(struct clk_hw *hw)
+Best Regards,
+Wenyou Yang
