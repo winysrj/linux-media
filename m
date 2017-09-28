@@ -1,105 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46930
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752096AbdIANY7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Sep 2017 09:24:59 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v2 06/27] media: dvb/intro: adjust the notices about optional hardware
-Date: Fri,  1 Sep 2017 10:24:28 -0300
-Message-Id: <1dcf27f4891893df94bcc7bc20f94b64ac368bc1.1504272067.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52034 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751350AbdI1IKp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Sep 2017 04:10:45 -0400
+Date: Thu, 28 Sep 2017 11:10:41 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Leon Luo <leonl@leopardimaging.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        =?iso-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>
+Subject: Re: [PATCH v6 2/2] media:imx274 V4l2 driver for Sony imx274 CMOS
+ sensor
+Message-ID: <20170928081041.vygfd5l2igz5ewhe@valkosipuli.retiisi.org.uk>
+References: <20170924075329.9927-1-leonl@leopardimaging.com>
+ <20170924075329.9927-2-leonl@leopardimaging.com>
+ <20170927214005.adcj4jrw74abt2j6@valkosipuli.retiisi.org.uk>
+ <CADu3m9zgmdP+hP_Es5gEbNyais-aBS+i-_EZdaZ-B1FKEGY92Q@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <cover.1504272067.git.mchehab@s-opensource.com>
-References: <cover.1504272067.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CADu3m9zgmdP+hP_Es5gEbNyais-aBS+i-_EZdaZ-B1FKEGY92Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Both CA and decoders are optional. Also, the presence or
-absence has nothing to do on being a PCI card or not.
+Hi Leon,
 
-Nowadays, most hardware leaves the decoders to either the
-GPU or to some ISP inside the SoC, instead of implementing
-it inside the Digital TV part of the device.
+On Wed, Sep 27, 2017 at 11:48:21PM -0700, Leon Luo wrote:
+> Hi Sakari,
+> 
+> Thanks for your comments.
+> 
+> Regarding imx274_tp_regs[], the first value is the test pattern mode, which
+> will be updated according to the input value before writing the register.
+> So it can't be a const.
 
-So, change the wording to reflect the hardware changes.
+In that case you'll need to explicitly write that register; this is
+specific to a device whereas the static variable is the same for all
+devices.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/dvb/intro.rst | 29 +++++++++++++++++------------
- 1 file changed, 17 insertions(+), 12 deletions(-)
+> 
+> I will use __v4l2_ctrl_s_ctrl instead of v4l2_ctrl_s_ctrl to keep the
+> lock/unlock mutex clean. I am traveling right now, will test it and send a
+> new patch this weekend.
 
-diff --git a/Documentation/media/uapi/dvb/intro.rst b/Documentation/media/uapi/dvb/intro.rst
-index 4e1594816ef4..aeafc9ab96c1 100644
---- a/Documentation/media/uapi/dvb/intro.rst
-+++ b/Documentation/media/uapi/dvb/intro.rst
-@@ -71,8 +71,7 @@ Overview
- A Digital TV card or set-top-box (STB) usually consists of the
- following main hardware components:
- 
---  Frontend consisting of tuner and digital TV demodulator
--
-+Frontend consisting of tuner and digital TV demodulator
-    Here the raw signal reaches the digital TV hardware from a satellite dish or
-    antenna or directly from cable. The frontend down-converts and
-    demodulates this signal into an MPEG transport stream (TS). In case
-@@ -80,34 +79,40 @@ following main hardware components:
-    equipment control (SEC), which allows control of LNB polarization,
-    multi feed switches or dish rotors.
- 
---  Conditional Access (CA) hardware like CI adapters and smartcard slots
--
-+Conditional Access (CA) hardware like CI adapters and smartcard slots
-    The complete TS is passed through the CA hardware. Programs to which
-    the user has access (controlled by the smart card) are decoded in
-    real time and re-inserted into the TS.
- 
---  Demultiplexer which filters the incoming DVB stream
-+   .. note::
- 
-+      Not every digital TV hardware provides conditional access hardware.
-+
-+Demultiplexer which filters the incoming DVB stream
-    The demultiplexer splits the TS into its components like audio and
-    video streams. Besides usually several of such audio and video
-    streams it also contains data streams with information about the
-    programs offered in this or other streams of the same provider.
- 
---  MPEG2 audio and video decoder
--
-+MPEG2 audio and video decoder
-    The main targets of the demultiplexer are the MPEG2 audio and video
-    decoders. After decoding they pass on the uncompressed audio and
-    video to the computer screen or (through a PAL/NTSC encoder) to a TV
-    set.
- 
-+   .. note::
-+
-+      Modern hardware usually doesn't have a separate decoder hardware, as
-+      such functionality can be provided by the main CPU, by the graphics
-+      adapter of the system or by a signal processing hardware embedded on
-+      a Systems on a Chip (SoC) integrated circuit.
-+
-+      It may also not be needed for certain usages (e.g. for data-only
-+      uses like “internet over satellite”).
-+
- :ref:`stb_components` shows a crude schematic of the control and data
- flow between those components.
- 
--On a DVB PCI card not all of these have to be present since some
--functionality can be provided by the main CPU of the PC (e.g. MPEG
--picture and sound decoding) or is not needed (e.g. for data-only uses
--like “internet over satellite”). Also not every card or STB provides
--conditional access hardware.
- 
- 
- .. _dvb_devices:
+Ack.
+
 -- 
-2.13.5
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
