@@ -1,89 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:33686 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933842AbdIZGrr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 02:47:47 -0400
-MIME-Version: 1.0
-In-Reply-To: <CAK8P3a1zxjMsQTBPijCo8FJjEU5aRVTr7n_NZ1YM2UnDPKoRLw@mail.gmail.com>
-References: <20170922212930.620249-1-arnd@arndb.de> <20170922212930.620249-5-arnd@arndb.de>
- <063D6719AE5E284EB5DD2968C1650D6DD007F521@AcuExch.aculab.com> <CAK8P3a1zxjMsQTBPijCo8FJjEU5aRVTr7n_NZ1YM2UnDPKoRLw@mail.gmail.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Mon, 25 Sep 2017 23:47:45 -0700
-Message-ID: <CAK8P3a37Ts5q7BvA2JWse87huyAp+=e18CUXEt8731RrBnB+Ow@mail.gmail.com>
-Subject: Re: [PATCH v4 4/9] em28xx: fix em28xx_dvb_init for KASAN
-To: David Laight <David.Laight@aculab.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jiri Pirko <jiri@resnulli.us>,
-        Arend van Spriel <arend.vanspriel@broadcom.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Michal Marek <mmarek@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Kees Cook <keescook@chromium.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>,
-        "brcm80211-dev-list.pdl@broadcom.com"
-        <brcm80211-dev-list.pdl@broadcom.com>,
-        "brcm80211-dev-list@cypress.com" <brcm80211-dev-list@cypress.com>,
-        "kasan-dev@googlegroups.com" <kasan-dev@googlegroups.com>,
-        "linux-kbuild@vger.kernel.org" <linux-kbuild@vger.kernel.org>,
-        Jakub Jelinek <jakub@gcc.gnu.org>,
-        =?UTF-8?Q?Martin_Li=C5=A1ka?= <marxin@gcc.gnu.org>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mga07.intel.com ([134.134.136.100]:36469 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932103AbdI1P1k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Sep 2017 11:27:40 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-api@vger.kernel.org, tfiga@chromium.org, yong.zhi@intel.com
+Subject: [PATCH v2 0/2] Add V4L2_BUF_TYPE_META_OUTPUT buffer type
+Date: Thu, 28 Sep 2017 18:24:12 +0300
+Message-Id: <1506612254-3946-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 25, 2017 at 11:32 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Mon, Sep 25, 2017 at 7:41 AM, David Laight <David.Laight@aculab.com> wrote:
->> From: Arnd Bergmann
->>> Sent: 22 September 2017 22:29
->> ...
->>> It seems that this is triggered in part by using strlcpy(), which the
->>> compiler doesn't recognize as copying at most 'len' bytes, since strlcpy
->>> is not part of the C standard.
->>
->> Neither is strncpy().
->>
->> It'll almost certainly be a marker in a header file somewhere,
->> so it should be possibly to teach it about other functions.
->
-> I'm currently travelling and haven't investigated in detail, but from
-> taking a closer look here, I found that the hardened 'strlcpy()'
-> in include/linux/string.h triggers it. There is also a hardened
-> (much shorted) 'strncpy()' that doesn't trigger it in the same file,
-> and having only the extern declaration of strncpy also doesn't.
+Hi folks,
 
-And a little more experimenting leads to this simple patch that fixes
-the problem:
+Here's a second non-RFC version of the META_OUTPUT buffer type patches.
 
---- a/include/linux/string.h
-+++ b/include/linux/string.h
-@@ -254,7 +254,7 @@ __FORTIFY_INLINE size_t strlcpy(char *p, const
-char *q, size_t size)
-        size_t q_size = __builtin_object_size(q, 0);
-        if (p_size == (size_t)-1 && q_size == (size_t)-1)
-                return __real_strlcpy(p, q, size);
--       ret = strlen(q);
-+       ret = __builtin_strlen(q);
-        if (size) {
-                size_t len = (ret >= size) ? size - 1 : ret;
-                if (__builtin_constant_p(len) && len >= p_size)
+The V4L2_BUF_TYPE_META_OUTPUT buffer type complements the metadata buffer
+types support for OUTPUT buffers, capture being already supported. This is
+intended for similar cases than V4L2_BUF_TYPE_META_CAPTURE but for output
+buffers, e.g. device parameters that may be complex and highly
+hierarchical data structure. Statistics are a current use case for
+metadata capture buffers.
 
-The problem is apparently that the fortified strlcpy calls the fortified strlen,
-which in turn calls strnlen and that ends up calling the extern '__real_strnlen'
-that gcc cannot reduce to a constant expression for a constant input.
+Yong: could you take these to your IPU3 ImgU patchset, please? As that
+would be the first user, the patches would be merged with the driver
+itself.
 
-Not sure if that change is the best fix, but it seems to address the problem in
-this driver and probably leads to better code in other places as well.
+since v1:
 
-          Arnd
+- Correctly determine valid IOCTLs for META_OUTPUT type in
+  determine_valid_ioctls().
+
+since RFC:
+
+- Fix make htmldocs build.
+
+- Fix CAPTURE -> OUTPUT in buffer.rst.
+
+- Added " for specifying how the device processes images" in the
+  documentation.
+
+Sakari Ailus (2):
+  v4l: Add support for V4L2_BUF_TYPE_META_OUTPUT
+  docs-rst: v4l: Document V4L2_BUF_TYPE_META_OUTPUT interface
+
+ Documentation/media/uapi/v4l/buffer.rst          |  3 +++
+ Documentation/media/uapi/v4l/dev-meta.rst        | 33 ++++++++++++++----------
+ Documentation/media/uapi/v4l/vidioc-querycap.rst |  3 +++
+ Documentation/media/videodev2.h.rst.exceptions   |  2 ++
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c    |  2 ++
+ drivers/media/v4l2-core/v4l2-dev.c               | 12 ++++++---
+ drivers/media/v4l2-core/v4l2-ioctl.c             | 25 ++++++++++++++++++
+ drivers/media/v4l2-core/videobuf2-v4l2.c         |  1 +
+ include/media/v4l2-ioctl.h                       | 17 ++++++++++++
+ include/uapi/linux/videodev2.h                   |  2 ++
+ 10 files changed, 83 insertions(+), 17 deletions(-)
+
+-- 
+2.7.4
