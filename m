@@ -1,119 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33160
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752194AbdI0Vkz (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:14291 "EHLO
+        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752044AbdI1IUw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Sep 2017 17:40:55 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 33/37] media: dvb-net.rst: document DVB network kAPI interface
-Date: Wed, 27 Sep 2017 18:40:34 -0300
-Message-Id: <f90229f8ae9ab349905c8eeda8bec075b41e175b.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1506547906.git.mchehab@s-opensource.com>
-References: <cover.1506547906.git.mchehab@s-opensource.com>
+        Thu, 28 Sep 2017 04:20:52 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        "Jonathan Corbet" <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v3 1/5] media: atmel-isc: Add spin lock for clock enable ops
+Date: Thu, 28 Sep 2017 16:18:24 +0800
+Message-ID: <20170928081828.20335-2-wenyou.yang@microchip.com>
+In-Reply-To: <20170928081828.20335-1-wenyou.yang@microchip.com>
+References: <20170928081828.20335-1-wenyou.yang@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That's the last DVB kAPI that misses documentation.
+Add the spin lock for the clock enable and disable operations.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
 ---
- Documentation/media/kapi/dtv-core.rst      |  1 +
- Documentation/media/kapi/dtv-net.rst       |  4 ++++
- Documentation/media/uapi/dvb/net-types.rst |  2 +-
- drivers/media/dvb-core/dvb_net.h           | 34 ++++++++++++++++++++++++++++--
- 4 files changed, 38 insertions(+), 3 deletions(-)
- create mode 100644 Documentation/media/kapi/dtv-net.rst
 
-diff --git a/Documentation/media/kapi/dtv-core.rst b/Documentation/media/kapi/dtv-core.rst
-index 8ee384f61fa0..bca743dc6b43 100644
---- a/Documentation/media/kapi/dtv-core.rst
-+++ b/Documentation/media/kapi/dtv-core.rst
-@@ -34,3 +34,4 @@ I2C bus.
-     dtv-frontend
-     dtv-demux
-     dtv-ca
-+    dtv-net
-diff --git a/Documentation/media/kapi/dtv-net.rst b/Documentation/media/kapi/dtv-net.rst
-new file mode 100644
-index 000000000000..ced991b73d69
---- /dev/null
-+++ b/Documentation/media/kapi/dtv-net.rst
-@@ -0,0 +1,4 @@
-+Digital TV Network kABI
-+-----------------------
-+
-+.. kernel-doc:: drivers/media/dvb-core/dvb_net.h
-diff --git a/Documentation/media/uapi/dvb/net-types.rst b/Documentation/media/uapi/dvb/net-types.rst
-index e1177bdcd623..8fa3292eaa42 100644
---- a/Documentation/media/uapi/dvb/net-types.rst
-+++ b/Documentation/media/uapi/dvb/net-types.rst
-@@ -1,6 +1,6 @@
- .. -*- coding: utf-8; mode: rst -*-
+Changes in v3:
+ - Fix the wrong used spinlock.
+ - s/_/- on the subject.
+
+Changes in v2: None
+
+ drivers/media/platform/atmel/atmel-isc.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index 2f8e345d297e..991f962b7023 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -65,6 +65,7 @@ struct isc_clk {
+ 	struct clk_hw   hw;
+ 	struct clk      *clk;
+ 	struct regmap   *regmap;
++	spinlock_t	lock;
+ 	u8		id;
+ 	u8		parent_id;
+ 	u32		div;
+@@ -312,26 +313,37 @@ static int isc_clk_enable(struct clk_hw *hw)
+ 	struct isc_clk *isc_clk = to_isc_clk(hw);
+ 	u32 id = isc_clk->id;
+ 	struct regmap *regmap = isc_clk->regmap;
++	unsigned long flags;
++	unsigned int status;
  
--.. _dmx_types:
-+.. _net_types:
+ 	dev_dbg(isc_clk->dev, "ISC CLK: %s, div = %d, parent id = %d\n",
+ 		__func__, isc_clk->div, isc_clk->parent_id);
  
- **************
- Net Data Types
-diff --git a/drivers/media/dvb-core/dvb_net.h b/drivers/media/dvb-core/dvb_net.h
-index e9b18aa03e02..1eae8bad7cc1 100644
---- a/drivers/media/dvb-core/dvb_net.h
-+++ b/drivers/media/dvb-core/dvb_net.h
-@@ -30,6 +30,22 @@
++	spin_lock_irqsave(&isc_clk->lock, flags);
+ 	regmap_update_bits(regmap, ISC_CLKCFG,
+ 			   ISC_CLKCFG_DIV_MASK(id) | ISC_CLKCFG_SEL_MASK(id),
+ 			   (isc_clk->div << ISC_CLKCFG_DIV_SHIFT(id)) |
+ 			   (isc_clk->parent_id << ISC_CLKCFG_SEL_SHIFT(id)));
  
- #ifdef CONFIG_DVB_NET
+ 	regmap_write(regmap, ISC_CLKEN, ISC_CLK(id));
++	spin_unlock_irqrestore(&isc_clk->lock, flags);
  
-+/**
-+ * struct dvb_net - describes a DVB network interface
-+ *
-+ * @dvbdev:		pointer to &struct dvb_device.
-+ * @device:		array of pointers to &struct net_device.
-+ * @state:		array of integers to each net device. A value
-+ *			different than zero means that the interface is
-+ *			in usage.
-+ * @exit:		flag to indicate when the device is being removed.
-+ * @demux:		pointer to &struct dmx_demux.
-+ * @ioctl_mutex:	protect access to this struct.
-+ *
-+ * Currently, the core supports up to %DVB_NET_DEVICES_MAX (10) network
-+ * devices.
-+ */
-+
- struct dvb_net {
- 	struct dvb_device *dvbdev;
- 	struct net_device *device[DVB_NET_DEVICES_MAX];
-@@ -39,8 +55,22 @@ struct dvb_net {
- 	struct mutex ioctl_mutex;
- };
+-	return 0;
++	regmap_read(regmap, ISC_CLKSR, &status);
++	if (status & ISC_CLK(id))
++		return 0;
++	else
++		return -EINVAL;
+ }
  
--void dvb_net_release(struct dvb_net *);
--int  dvb_net_init(struct dvb_adapter *, struct dvb_net *, struct dmx_demux *);
-+/**
-+ * dvb_net_init - nitializes a digital TV network device and registers it.
-+ *
-+ * @adap:	pointer to &struct dvb_adapter.
-+ * @dvbnet:	pointer to &struct dvb_net.
-+ * @dmxdemux:	pointer to &struct dmx_demux.
-+ */
-+int dvb_net_init(struct dvb_adapter *adap, struct dvb_net *dvbnet,
-+		  struct dmx_demux *dmxdemux);
-+
-+/**
-+ * dvb_net_release - releases a digital TV network device and unregisters it.
-+ *
-+ * @dvbnet:	pointer to &struct dvb_net.
-+ */
-+void dvb_net_release(struct dvb_net *dvbnet);
+ static void isc_clk_disable(struct clk_hw *hw)
+ {
+ 	struct isc_clk *isc_clk = to_isc_clk(hw);
+ 	u32 id = isc_clk->id;
++	unsigned long flags;
  
- #else
++	spin_lock_irqsave(&isc_clk->lock, flags);
+ 	regmap_write(isc_clk->regmap, ISC_CLKDIS, ISC_CLK(id));
++	spin_unlock_irqrestore(&isc_clk->lock, flags);
+ }
  
+ static int isc_clk_is_enabled(struct clk_hw *hw)
+@@ -492,6 +504,7 @@ static int isc_clk_register(struct isc_device *isc, unsigned int id)
+ 	isc_clk->regmap		= regmap;
+ 	isc_clk->id		= id;
+ 	isc_clk->dev		= isc->dev;
++	spin_lock_init(&isc_clk->lock);
+ 
+ 	isc_clk->clk = clk_register(isc->dev, &isc_clk->hw);
+ 	if (IS_ERR(isc_clk->clk)) {
 -- 
-2.13.5
+2.13.0
