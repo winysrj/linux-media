@@ -1,262 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:47493 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S937098AbdIZIro (ORCPT
+Received: from nasmtp01.atmel.com ([192.199.1.246]:3996 "EHLO
+        DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752017AbdI1IVu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Sep 2017 04:47:44 -0400
-Subject: Re: [PATCH v14 20/28] v4l: fwnode: Add a helper function to obtain
- device / integer references
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
- <20170925222540.371-21-sakari.ailus@linux.intel.com>
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        robh@kernel.org, laurent.pinchart@ideasonboard.com,
-        devicetree@vger.kernel.org, pavel@ucw.cz, sre@kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <fbd2f71d-aa6d-08ef-1723-132864bde27b@xs4all.nl>
-Date: Tue, 26 Sep 2017 10:47:40 +0200
+        Thu, 28 Sep 2017 04:21:50 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        "Jonathan Corbet" <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v3 3/5] media: atmel-isc: Enable the clocks during probe
+Date: Thu, 28 Sep 2017 16:18:26 +0800
+Message-ID: <20170928081828.20335-4-wenyou.yang@microchip.com>
+In-Reply-To: <20170928081828.20335-1-wenyou.yang@microchip.com>
+References: <20170928081828.20335-1-wenyou.yang@microchip.com>
 MIME-Version: 1.0
-In-Reply-To: <20170925222540.371-21-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/09/17 00:25, Sakari Ailus wrote:
-> v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
-> the device's own fwnode, it will follow child fwnodes with the given
-> property-value pair and return the resulting fwnode.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/v4l2-core/v4l2-fwnode.c | 201 ++++++++++++++++++++++++++++++++++
->  1 file changed, 201 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> index f739dfd16cf7..f93049c361e4 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -578,6 +578,207 @@ static int v4l2_fwnode_reference_parse(
->  	return ret;
->  }
->  
-> +/*
-> + * v4l2_fwnode_reference_get_int_prop - parse a reference with integer
-> + *					arguments
-> + * @dev: struct device pointer
-> + * @notifier: notifier for @dev
-> + * @prop: the name of the property
-> + * @index: the index of the reference to get
-> + * @props: the array of integer property names
-> + * @nprops: the number of integer property names in @nprops
-> + *
-> + * Find fwnodes referred to by a property @prop, then under that
-> + * iteratively, @nprops times, follow each child node which has a
-> + * property in @props array at a given child index the value of which
-> + * matches the integer argument at an index.
+To meet the relationship, enable the HCLOCK and ispck during the
+device probe, "isc_pck frequency is less than or equal to isc_ispck,
+and isc_ispck is greater than or equal to HCLOCK."
+Meanwhile, call the pm_runtime_enable() in the right place.
 
-"at an index". Still makes no sense to me. Which index?
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+---
 
-> + *
-> + * For example, if this function was called with arguments and values
-> + * @dev corresponding to device "SEN", @prop == "flash-leds", @index
-> + * == 1, @props == { "led" }, @nprops == 1, with the ASL snippet below
-> + * it would return the node marked with THISONE. The @dev argument in
-> + * the ASL below.
+Changes in v3: None
+Changes in v2: None
 
-I know I asked for this before, but can you change the example to one where
-nprops = 2? I think that will help understanding this.
+ drivers/media/platform/atmel/atmel-isc.c | 31 +++++++++++++++++++++++++------
+ 1 file changed, 25 insertions(+), 6 deletions(-)
 
-> + *
-> + *	Device (LED)
-> + *	{
-> + *		Name (_DSD, Package () {
-> + *			ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-> + *			Package () {
-> + *				Package () { "led0", "LED0" },
-> + *				Package () { "led1", "LED1" },
-> + *			}
-> + *		})
-> + *		Name (LED0, Package () {
-> + *			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> + *			Package () {
-> + *				Package () { "led", 0 },
-> + *			}
-> + *		})
-> + *		Name (LED1, Package () {
-> + *			// THISONE
-> + *			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> + *			Package () {
-> + *				Package () { "led", 1 },
-> + *			}
-> + *		})
-> + *	}
-> + *
-> + *	Device (SEN)
-> + *	{
-> + *		Name (_DSD, Package () {
-> + *			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> + *			Package () {
-> + *				Package () {
-> + *					"flash-leds",
-> + *					Package () { ^LED, 0, ^LED, 1 },
-> + *				}
-> + *			}
-> + *		})
-> + *	}
-> + *
-> + * where
-> + *
-> + *	LED	LED driver device
-> + *	LED0	First LED
-> + *	LED1	Second LED
-> + *	SEN	Camera sensor device (or another device the LED is
-> + *		related to)
-> + *
-> + * Return: 0 on success
-> + *	   -ENOENT if no entries (or the property itself) were found
-> + *	   -EINVAL if property parsing otherwise failed
-> + *	   -ENOMEM if memory allocation failed
-> + */
-> +static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
-> +	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
-> +	const char **props, unsigned int nprops)
-> +{
-> +	struct fwnode_reference_args fwnode_args;
-> +	unsigned int *args = fwnode_args.args;
-> +	struct fwnode_handle *child;
-> +	int ret;
-> +
-> +	/*
-> +	 * Obtain remote fwnode as well as the integer arguments.
-> +	 *
-> +	 * Note that right now both -ENODATA and -ENOENT may signal
-> +	 * out-of-bounds access. Return -ENOENT in that case.
-> +	 */
-> +	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
-> +						 index, &fwnode_args);
-> +	if (ret)
-> +		return ERR_PTR(ret == -ENODATA ? -ENOENT : ret);
-> +
-> +	/*
-> +	 * Find a node in the tree under the referred fwnode corresponding the
-
-corresponding -> corresponding to
-
-> +	 * integer arguments.
-> +	 */
-> +	fwnode = fwnode_args.fwnode;
-> +	while (nprops--) {
-> +		u32 val;
-> +
-> +		/* Loop over all child nodes under fwnode. */
-> +		fwnode_for_each_child_node(fwnode, child) {
-> +			if (fwnode_property_read_u32(child, *props, &val))
-> +				continue;
-> +
-> +			/* Found property, see if its value matches. */
-> +			if (val == *args)
-> +				break;
-> +		}
-> +
-> +		fwnode_handle_put(fwnode);
-> +
-> +		/* No property found; return an error here. */
-> +		if (!child) {
-> +			fwnode = ERR_PTR(-ENOENT);
-> +			break;
-> +		}
-> +
-> +		props++;
-> +		args++;
-> +		fwnode = child;
-> +	}
-> +
-> +	return fwnode;
-> +}
-> +
-> +/*
-> + * v4l2_fwnode_reference_parse_int_props - parse references for async sub-devices
-> + * @dev: struct device pointer
-> + * @notifier: notifier for @dev
-> + * @prop: the name of the property
-> + * @props: the array of integer property names
-> + * @nprops: the number of integer properties
-> + *
-> + * Use v4l2_fwnode_reference_get_int_prop to find fwnodes through reference in
-> + * property @prop with integer arguments with child nodes matching in properties
-> + * @props. Then, set up V4L2 async sub-devices for those fwnodes in the notifier
-> + * accordingly.
-> + *
-> + * While it is technically possible to use this function on DT, it is only
-> + * meaningful on ACPI. On Device tree you can refer to any node in the tree but
-> + * on ACPI the references are limited to devices.
-> + *
-> + * Return: 0 on success
-> + *	   -ENOENT if no entries (or the property itself) were found
-> + *	   -EINVAL if property parsing otherwisefailed
-> + *	   -ENOMEM if memory allocation failed
-> + */
-> +static int v4l2_fwnode_reference_parse_int_props(
-> +	struct device *dev, struct v4l2_async_notifier *notifier,
-> +	const char *prop, const char **props, unsigned int nprops)
-> +{
-> +	struct fwnode_handle *fwnode;
-> +	unsigned int index;
-> +	int ret;
-> +
-> +	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-> +					 dev_fwnode(dev), prop, index, props,
-> +					 nprops))); index++)
-> +		fwnode_handle_put(fwnode);
-> +
-> +	/*
-> +	 * Note that right now both -ENODATA and -ENOENT may signal
-> +	 * out-of-bounds access. Return the error in cases other than that.
-> +	 */
-> +	if (PTR_ERR(fwnode) != -ENOENT && PTR_ERR(fwnode) != -ENODATA)
-> +		return PTR_ERR(fwnode);
-> +
-> +	ret = v4l2_async_notifier_realloc(notifier,
-> +					  notifier->num_subdevs + index);
-> +	if (ret)
-> +		return -ENOMEM;
-> +
-> +	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-> +					 dev_fwnode(dev), prop, index, props,
-> +					 nprops))); index++) {
-> +		struct v4l2_async_subdev *asd;
-> +
-> +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-> +			ret = -EINVAL;
-> +			goto error;
-> +		}
-> +
-> +		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
-> +		if (!asd) {
-> +			ret = -ENOMEM;
-> +			goto error;
-> +		}
-> +
-> +		notifier->subdevs[notifier->num_subdevs] = asd;
-> +		asd->match.fwnode.fwnode = fwnode;
-> +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-> +		notifier->num_subdevs++;
-> +	}
-> +
-> +	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
-> +
-> +error:
-> +	fwnode_handle_put(fwnode);
-> +	return ret;
-> +}
-> +
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
->  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-> 
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index 0b15dc1a3a0b..f092c95587c1 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -1594,6 +1594,7 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
+ 	struct isc_subdev_entity *sd_entity;
+ 	struct video_device *vdev = &isc->video_dev;
+ 	struct vb2_queue *q = &isc->vb2_vidq;
++	struct device *dev = isc->dev;
+ 	int ret;
+ 
+ 	ret = v4l2_device_register_subdev_nodes(&isc->v4l2_dev);
+@@ -1677,6 +1678,10 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
+ 		return ret;
+ 	}
+ 
++	pm_runtime_set_active(dev);
++	pm_runtime_enable(dev);
++	pm_request_idle(dev);
++
+ 	return 0;
+ }
+ 
+@@ -1856,25 +1861,37 @@ static int atmel_isc_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	ret = clk_prepare_enable(isc->hclock);
++	if (ret) {
++		dev_err(dev, "failed to enable hclock: %d\n", ret);
++		return ret;
++	}
++
+ 	ret = isc_clk_init(isc);
+ 	if (ret) {
+ 		dev_err(dev, "failed to init isc clock: %d\n", ret);
+-		goto clean_isc_clk;
++		goto unprepare_hclk;
+ 	}
+ 
+ 	isc->ispck = isc->isc_clks[ISC_ISPCK].clk;
+ 
++	ret = clk_prepare_enable(isc->ispck);
++	if (ret) {
++		dev_err(dev, "failed to enable ispck: %d\n", ret);
++		goto unprepare_hclk;
++	}
++
+ 	/* ispck should be greater or equal to hclock */
+ 	ret = clk_set_rate(isc->ispck, clk_get_rate(isc->hclock));
+ 	if (ret) {
+ 		dev_err(dev, "failed to set ispck rate: %d\n", ret);
+-		goto clean_isc_clk;
++		goto unprepare_clk;
+ 	}
+ 
+ 	ret = v4l2_device_register(dev, &isc->v4l2_dev);
+ 	if (ret) {
+ 		dev_err(dev, "unable to register v4l2 device.\n");
+-		goto clean_isc_clk;
++		goto unprepare_clk;
+ 	}
+ 
+ 	ret = isc_parse_dt(dev, isc);
+@@ -1907,8 +1924,6 @@ static int atmel_isc_probe(struct platform_device *pdev)
+ 			break;
+ 	}
+ 
+-	pm_runtime_enable(dev);
+-
+ 	return 0;
+ 
+ cleanup_subdev:
+@@ -1917,7 +1932,11 @@ static int atmel_isc_probe(struct platform_device *pdev)
+ unregister_v4l2_device:
+ 	v4l2_device_unregister(&isc->v4l2_dev);
+ 
+-clean_isc_clk:
++unprepare_clk:
++	clk_disable_unprepare(isc->ispck);
++unprepare_hclk:
++	clk_disable_unprepare(isc->hclock);
++
+ 	isc_clk_cleanup(isc);
+ 
+ 	return ret;
+-- 
+2.13.0
