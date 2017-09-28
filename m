@@ -1,138 +1,744 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:26109 "EHLO
-        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752558AbdIYQVu (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:14432 "EHLO
+        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752048AbdI1IWm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Sep 2017 12:21:50 -0400
-Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
-        by mx07-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v8PGHs7V000752
-        for <linux-media@vger.kernel.org>; Mon, 25 Sep 2017 17:21:49 +0100
-Received: from mail-pf0-f197.google.com (mail-pf0-f197.google.com [209.85.192.197])
-        by mx07-00252a01.pphosted.com with ESMTP id 2d5d1016f7-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-        for <linux-media@vger.kernel.org>; Mon, 25 Sep 2017 17:21:48 +0100
-Received: by mail-pf0-f197.google.com with SMTP id a7so14098615pfj.3
-        for <linux-media@vger.kernel.org>; Mon, 25 Sep 2017 09:21:48 -0700 (PDT)
+        Thu, 28 Sep 2017 04:22:42 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        "Jonathan Corbet" <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v3 5/5] media: atmel-isc: Rework the format list
+Date: Thu, 28 Sep 2017 16:18:28 +0800
+Message-ID: <20170928081828.20335-6-wenyou.yang@microchip.com>
+In-Reply-To: <20170928081828.20335-1-wenyou.yang@microchip.com>
+References: <20170928081828.20335-1-wenyou.yang@microchip.com>
 MIME-Version: 1.0
-In-Reply-To: <20170921153024.15788-1-p.zabel@pengutronix.de>
-References: <20170921153024.15788-1-p.zabel@pengutronix.de>
-From: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Date: Mon, 25 Sep 2017 17:21:45 +0100
-Message-ID: <CAAoAYcPvV7jTBPyvdpOXsf9aSaMYG=iJx9TkgTCofSEUCvCJiQ@mail.gmail.com>
-Subject: Re: [PATCH v2 1/2] [media] tc358743: fix connected/active CSI-2 lane reporting
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mats Randgaard <matrandg@cisco.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21 September 2017 at 16:30, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> g_mbus_config was supposed to indicate all supported lane numbers, not
-> only the number of those currently in active use. Since the TC358743
-> can dynamically reduce the number of active lanes if the required
-> bandwidth allows for it, report all lane numbers up to the connected
-> number of lanes as supported in pdata mode.
-> In device tree mode, do not report lane count and clock mode at all, as
-> the receiver driver can determine these from the device tree.
->
-> To allow communicating the number of currently active lanes, add a new
-> bitfield to the v4l2_mbus_config flags. This is a temporary fix, to be
-> used only until a better solution is found.
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+To improve the readability of code, split the format array into two,
+one for the format description, other for the register configuration.
+Meanwhile, add the flag member to indicate the format can be achieved
+from the sensor or be produced by the controller, and rename members
+related to the register configuration.
 
-Tested-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Also add more formats support: GREY, ARGB444, ARGB555 and ARGB32.
 
-> ---
-> Changes since v1:
->  - Check csi_lanes_in_use <= num_data_lanes before writing to cfg.
->  - Increase size of lane mask to 4 bits and always explicitly report
->    number of lanes in use.
->  - Clear clock and connected lane flags in DT mode.
-> ---
->  drivers/media/i2c/tc358743.c  | 30 ++++++++++++++++--------------
->  include/media/v4l2-mediabus.h |  8 ++++++++
->  2 files changed, 24 insertions(+), 14 deletions(-)
->
-> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-> index e6f5c363ccab5..a35043cefe128 100644
-> --- a/drivers/media/i2c/tc358743.c
-> +++ b/drivers/media/i2c/tc358743.c
-> @@ -1458,28 +1458,29 @@ static int tc358743_g_mbus_config(struct v4l2_subdev *sd,
->                              struct v4l2_mbus_config *cfg)
->  {
->         struct tc358743_state *state = to_state(sd);
-> +       const u32 mask = V4L2_MBUS_CSI2_LANE_MASK;
-> +
-> +       if (state->csi_lanes_in_use > state->bus.num_data_lanes)
-> +               return -EINVAL;
->
->         cfg->type = V4L2_MBUS_CSI2;
-> +       cfg->flags = (state->csi_lanes_in_use << __ffs(mask)) & mask;
->
-> -       /* Support for non-continuous CSI-2 clock is missing in the driver */
-> -       cfg->flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-> +       /* In DT mode, only report the number of active lanes */
-> +       if (sd->dev->of_node)
-> +               return 0;
->
-> -       switch (state->csi_lanes_in_use) {
-> -       case 1:
-> +       /* Support for non-continuous CSI-2 clock is missing in pdata mode */
-> +       cfg->flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-> +
-> +       if (state->bus.num_data_lanes > 0)
->                 cfg->flags |= V4L2_MBUS_CSI2_1_LANE;
-> -               break;
-> -       case 2:
-> +       if (state->bus.num_data_lanes > 1)
->                 cfg->flags |= V4L2_MBUS_CSI2_2_LANE;
-> -               break;
-> -       case 3:
-> +       if (state->bus.num_data_lanes > 2)
->                 cfg->flags |= V4L2_MBUS_CSI2_3_LANE;
-> -               break;
-> -       case 4:
-> +       if (state->bus.num_data_lanes > 3)
->                 cfg->flags |= V4L2_MBUS_CSI2_4_LANE;
-> -               break;
-> -       default:
-> -               return -EINVAL;
-> -       }
->
->         return 0;
->  }
-> @@ -1885,6 +1886,7 @@ static int tc358743_probe(struct i2c_client *client,
->         if (pdata) {
->                 state->pdata = *pdata;
->                 state->bus.flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-> +               state->bus.num_data_lanes = 4;
->         } else {
->                 err = tc358743_probe_of(state);
->                 if (err == -ENODEV)
-> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> index 93f8afcb7a220..fc106c902bf47 100644
-> --- a/include/media/v4l2-mediabus.h
-> +++ b/include/media/v4l2-mediabus.h
-> @@ -63,6 +63,14 @@
->                                          V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
->  #define V4L2_MBUS_CSI2_CHANNELS                (V4L2_MBUS_CSI2_CHANNEL_0 | V4L2_MBUS_CSI2_CHANNEL_1 | \
->                                          V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
-> +/*
-> + * Number of lanes in use, 0 == use all available lanes (default)
-> + *
-> + * This is a temporary fix for devices that need to reduce the number of active
-> + * lanes for certain modes, until g_mbus_config() can be replaced with a better
-> + * solution.
-> + */
-> +#define V4L2_MBUS_CSI2_LANE_MASK                (0xf << 10)
->
->  /**
->   * enum v4l2_mbus_type - media bus type
-> --
-> 2.11.0
->
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+---
+
+Changes in v3:
+ - Add a new flag for Raw Bayer format to remove MAX_RAW_FMT_INDEX define.
+ - Add the comments for define of the format flag.
+ - Rebase media_tree/master.
+
+Changes in v2:
+ - Add the new patch to remove the unnecessary member from
+   isc_subdev_entity struct.
+ - Rebase on the patch set,
+        [PATCH 0/6] [media] Atmel: Adjustments for seven function implementations
+        https://www.mail-archive.com/linux-media@vger.kernel.org/msg118342.html
+
+ drivers/media/platform/atmel/atmel-isc.c | 530 ++++++++++++++++++++++++-------
+ 1 file changed, 411 insertions(+), 119 deletions(-)
+
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index 0ff9dfbfff70..d2f8c05ad0ce 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -89,34 +89,63 @@ struct isc_subdev_entity {
+ 	struct list_head list;
+ };
+ 
++/* Indicate the format is generated by the sensor */
++#define FMT_FLAG_FROM_SENSOR		BIT(0)
++/* Indicate the format is produced by ISC itself */
++#define FMT_FLAG_FROM_CONTROLLER	BIT(1)
++/* Indicate a Raw Bayer format */
++#define FMT_FLAG_RAW_FORMAT		BIT(2)
++
++#define FMT_FLAG_RAW_FROM_SENSOR	(FMT_FLAG_FROM_SENSOR | \
++					 FMT_FLAG_RAW_FORMAT)
++
+ /*
+  * struct isc_format - ISC media bus format information
+  * @fourcc:		Fourcc code for this format
+  * @mbus_code:		V4L2 media bus format code.
++ * flags:		Indicate format from sensor or converted by controller
+  * @bpp:		Bits per pixel (when stored in memory)
+- * @reg_bps:		reg value for bits per sample
+  *			(when transferred over a bus)
+- * @pipeline:		pipeline switch
+  * @sd_support:		Subdev supports this format
+  * @isc_support:	ISC can convert raw format to this format
+  */
++
+ struct isc_format {
+ 	u32	fourcc;
+ 	u32	mbus_code;
++	u32	flags;
+ 	u8	bpp;
+ 
+-	u32	reg_bps;
+-	u32	reg_bay_cfg;
+-	u32	reg_rlp_mode;
+-	u32	reg_dcfg_imode;
+-	u32	reg_dctrl_dview;
+-
+-	u32	pipeline;
+-
+ 	bool	sd_support;
+ 	bool	isc_support;
+ };
+ 
++/* Pipeline bitmap */
++#define WB_ENABLE	BIT(0)
++#define CFA_ENABLE	BIT(1)
++#define CC_ENABLE	BIT(2)
++#define GAM_ENABLE	BIT(3)
++#define GAM_BENABLE	BIT(4)
++#define GAM_GENABLE	BIT(5)
++#define GAM_RENABLE	BIT(6)
++#define CSC_ENABLE	BIT(7)
++#define CBC_ENABLE	BIT(8)
++#define SUB422_ENABLE	BIT(9)
++#define SUB420_ENABLE	BIT(10)
++
++#define GAM_ENABLES	(GAM_RENABLE | GAM_GENABLE | GAM_BENABLE | GAM_ENABLE)
++
++struct fmt_config {
++	u32	fourcc;
++
++	u32	pfe_cfg0_bps;
++	u32	cfa_baycfg;
++	u32	rlp_cfg_mode;
++	u32	dcfg_imode;
++	u32	dctrl_dview;
++
++	u32	bits_pipeline;
++};
+ 
+ #define HIST_ENTRIES		512
+ #define HIST_BAYER		(ISC_HIS_CFG_MODE_B + 1)
+@@ -181,80 +210,320 @@ struct isc_device {
+ 	struct list_head		subdev_entities;
+ };
+ 
+-#define RAW_FMT_IND_START    0
+-#define RAW_FMT_IND_END      11
+-#define ISC_FMT_IND_START    12
+-#define ISC_FMT_IND_END      14
+-
+-static struct isc_format isc_formats[] = {
+-	{ V4L2_PIX_FMT_SBGGR8, MEDIA_BUS_FMT_SBGGR8_1X8, 8,
+-	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT8,
+-	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
+-	  false, false },
+-	{ V4L2_PIX_FMT_SGBRG8, MEDIA_BUS_FMT_SGBRG8_1X8, 8,
+-	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_GBGB, ISC_RLP_CFG_MODE_DAT8,
+-	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
+-	  false, false },
+-	{ V4L2_PIX_FMT_SGRBG8, MEDIA_BUS_FMT_SGRBG8_1X8, 8,
+-	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_GRGR, ISC_RLP_CFG_MODE_DAT8,
+-	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
+-	  false, false },
+-	{ V4L2_PIX_FMT_SRGGB8, MEDIA_BUS_FMT_SRGGB8_1X8, 8,
+-	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_RGRG, ISC_RLP_CFG_MODE_DAT8,
+-	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
+-	  false, false },
+-
+-	{ V4L2_PIX_FMT_SBGGR10, MEDIA_BUS_FMT_SBGGR10_1X10, 16,
+-	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT10,
+-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
+-	  false, false },
+-	{ V4L2_PIX_FMT_SGBRG10, MEDIA_BUS_FMT_SGBRG10_1X10, 16,
+-	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_GBGB, ISC_RLP_CFG_MODE_DAT10,
+-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
+-	  false, false },
+-	{ V4L2_PIX_FMT_SGRBG10, MEDIA_BUS_FMT_SGRBG10_1X10, 16,
+-	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_GRGR, ISC_RLP_CFG_MODE_DAT10,
+-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
+-	  false, false },
+-	{ V4L2_PIX_FMT_SRGGB10, MEDIA_BUS_FMT_SRGGB10_1X10, 16,
+-	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_RGRG, ISC_RLP_CFG_MODE_DAT10,
+-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
+-	  false, false },
+-
+-	{ V4L2_PIX_FMT_SBGGR12, MEDIA_BUS_FMT_SBGGR12_1X12, 16,
+-	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT12,
+-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
+-	  false, false },
+-	{ V4L2_PIX_FMT_SGBRG12, MEDIA_BUS_FMT_SGBRG12_1X12, 16,
+-	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_GBGB, ISC_RLP_CFG_MODE_DAT12,
+-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
+-	  false, false },
+-	{ V4L2_PIX_FMT_SGRBG12, MEDIA_BUS_FMT_SGRBG12_1X12, 16,
+-	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_GRGR, ISC_RLP_CFG_MODE_DAT12,
+-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
+-	  false, false },
+-	{ V4L2_PIX_FMT_SRGGB12, MEDIA_BUS_FMT_SRGGB12_1X12, 16,
+-	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_RGRG, ISC_RLP_CFG_MODE_DAT12,
+-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
+-	  false, false },
+-
+-	{ V4L2_PIX_FMT_YUV420, 0x0, 12,
+-	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_YYCC,
+-	  ISC_DCFG_IMODE_YC420P, ISC_DCTRL_DVIEW_PLANAR, 0x7fb,
+-	  false, false },
+-	{ V4L2_PIX_FMT_YUV422P, 0x0, 16,
+-	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_YYCC,
+-	  ISC_DCFG_IMODE_YC422P, ISC_DCTRL_DVIEW_PLANAR, 0x3fb,
+-	  false, false },
+-	{ V4L2_PIX_FMT_RGB565, MEDIA_BUS_FMT_RGB565_2X8_LE, 16,
+-	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_RGB565,
+-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x7b,
+-	  false, false },
+-
+-	{ V4L2_PIX_FMT_YUYV, MEDIA_BUS_FMT_YUYV8_2X8, 16,
+-	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT8,
+-	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
+-	  false, false },
++static struct isc_format formats_list[] = {
++	{
++		.fourcc		= V4L2_PIX_FMT_SBGGR8,
++		.mbus_code	= MEDIA_BUS_FMT_SBGGR8_1X8,
++		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
++		.bpp		= 8,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SGBRG8,
++		.mbus_code	= MEDIA_BUS_FMT_SGBRG8_1X8,
++		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
++		.bpp		= 8,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SGRBG8,
++		.mbus_code	= MEDIA_BUS_FMT_SGRBG8_1X8,
++		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
++		.bpp		= 8,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SRGGB8,
++		.mbus_code	= MEDIA_BUS_FMT_SRGGB8_1X8,
++		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
++		.bpp		= 8,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SBGGR10,
++		.mbus_code	= MEDIA_BUS_FMT_SBGGR10_1X10,
++		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
++		.bpp		= 16,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SGBRG10,
++		.mbus_code	= MEDIA_BUS_FMT_SGBRG10_1X10,
++		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
++		.bpp		= 16,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SGRBG10,
++		.mbus_code	= MEDIA_BUS_FMT_SGRBG10_1X10,
++		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
++		.bpp		= 16,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SRGGB10,
++		.mbus_code	= MEDIA_BUS_FMT_SRGGB10_1X10,
++		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
++		.bpp		= 16,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SBGGR12,
++		.mbus_code	= MEDIA_BUS_FMT_SBGGR12_1X12,
++		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
++		.bpp		= 16,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SGBRG12,
++		.mbus_code	= MEDIA_BUS_FMT_SGBRG12_1X12,
++		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
++		.bpp		= 16,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SGRBG12,
++		.mbus_code	= MEDIA_BUS_FMT_SGRBG12_1X12,
++		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
++		.bpp		= 16,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SRGGB12,
++		.mbus_code	= MEDIA_BUS_FMT_SRGGB12_1X12,
++		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
++		.bpp		= 16,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_YUV420,
++		.mbus_code	= 0x0,
++		.flags		= FMT_FLAG_FROM_CONTROLLER,
++		.bpp		= 12,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_YUV422P,
++		.mbus_code	= 0x0,
++		.flags		= FMT_FLAG_FROM_CONTROLLER,
++		.bpp		= 16,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_GREY,
++		.mbus_code	= MEDIA_BUS_FMT_Y8_1X8,
++		.flags		= FMT_FLAG_FROM_CONTROLLER |
++				  FMT_FLAG_FROM_SENSOR,
++		.bpp		= 8,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_ARGB444,
++		.mbus_code	= MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE,
++		.flags		= FMT_FLAG_FROM_CONTROLLER,
++		.bpp		= 16,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_ARGB555,
++		.mbus_code	= MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE,
++		.flags		= FMT_FLAG_FROM_CONTROLLER,
++		.bpp		= 16,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_RGB565,
++		.mbus_code	= MEDIA_BUS_FMT_RGB565_2X8_LE,
++		.flags		= FMT_FLAG_FROM_CONTROLLER,
++		.bpp		= 16,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_ARGB32,
++		.mbus_code	= MEDIA_BUS_FMT_ARGB8888_1X32,
++		.flags		= FMT_FLAG_FROM_CONTROLLER,
++		.bpp		= 32,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_YUYV,
++		.mbus_code	= MEDIA_BUS_FMT_YUYV8_2X8,
++		.flags		= FMT_FLAG_FROM_CONTROLLER |
++				  FMT_FLAG_FROM_SENSOR,
++		.bpp		= 16,
++	},
++};
++
++struct fmt_config fmt_configs_list[] = {
++	{
++		.fourcc		= V4L2_PIX_FMT_SBGGR8,
++		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
++		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT8,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED8,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= 0x0,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SGBRG8,
++		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
++		.cfa_baycfg	= ISC_BAY_CFG_GBGB,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT8,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED8,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= 0x0,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SGRBG8,
++		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
++		.cfa_baycfg	= ISC_BAY_CFG_GRGR,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT8,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED8,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= 0x0,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SRGGB8,
++		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
++		.cfa_baycfg	= ISC_BAY_CFG_RGRG,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT8,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED8,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= 0x0,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SBGGR10,
++		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TEN,
++		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT10,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= 0x0,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SGBRG10,
++		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TEN,
++		.cfa_baycfg	= ISC_BAY_CFG_GBGB,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT10,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= 0x0,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SGRBG10,
++		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TEN,
++		.cfa_baycfg	= ISC_BAY_CFG_GRGR,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT10,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= 0x0,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SRGGB10,
++		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TEN,
++		.cfa_baycfg	= ISC_BAY_CFG_RGRG,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT10,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= 0x0,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SBGGR12,
++		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TWELVE,
++		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT12,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= 0x0,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SGBRG12,
++		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TWELVE,
++		.cfa_baycfg	= ISC_BAY_CFG_GBGB,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT12,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= 0x0
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SGRBG12,
++		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TWELVE,
++		.cfa_baycfg	= ISC_BAY_CFG_GRGR,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT12,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= 0x0,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_SRGGB12,
++		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TWELVE,
++		.cfa_baycfg	= ISC_BAY_CFG_RGRG,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT12,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= 0x0,
++	},
++	{
++		.fourcc = V4L2_PIX_FMT_YUV420,
++		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
++		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_YYCC,
++		.dcfg_imode	= ISC_DCFG_IMODE_YC420P,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PLANAR,
++		.bits_pipeline	= SUB420_ENABLE | SUB422_ENABLE |
++				  CBC_ENABLE | CSC_ENABLE |
++				  GAM_ENABLES |
++				  CFA_ENABLE | WB_ENABLE,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_YUV422P,
++		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
++		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_YYCC,
++		.dcfg_imode	= ISC_DCFG_IMODE_YC422P,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PLANAR,
++		.bits_pipeline	= SUB422_ENABLE |
++				  CBC_ENABLE | CSC_ENABLE |
++				  GAM_ENABLES |
++				  CFA_ENABLE | WB_ENABLE,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_GREY,
++		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
++		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DATY8,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED8,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= CBC_ENABLE | CSC_ENABLE |
++				  GAM_ENABLES |
++				  CFA_ENABLE | WB_ENABLE,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_ARGB444,
++		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
++		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_ARGB444,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= GAM_ENABLES | CFA_ENABLE | WB_ENABLE,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_ARGB555,
++		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
++		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_ARGB555,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= GAM_ENABLES | CFA_ENABLE | WB_ENABLE,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_RGB565,
++		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
++		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_RGB565,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= GAM_ENABLES | CFA_ENABLE | WB_ENABLE,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_ARGB32,
++		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
++		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_ARGB32,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED32,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= GAM_ENABLES | CFA_ENABLE | WB_ENABLE,
++	},
++	{
++		.fourcc		= V4L2_PIX_FMT_YUYV,
++		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
++		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
++		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT8,
++		.dcfg_imode	= ISC_DCFG_IMODE_PACKED8,
++		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
++		.bits_pipeline	= 0x0
++	},
+ };
+ 
+ #define GAMMA_MAX	2
+@@ -617,11 +886,27 @@ static inline bool sensor_is_preferred(const struct isc_format *isc_fmt)
+ 		!isc_fmt->isc_support;
+ }
+ 
++static struct fmt_config *get_fmt_config(u32 fourcc)
++{
++	struct fmt_config *config;
++	int i;
++
++	config = &fmt_configs_list[0];
++	for (i = 0; i < ARRAY_SIZE(fmt_configs_list); i++) {
++		if (config->fourcc == fourcc)
++			return config;
++
++		config++;
++	}
++	return NULL;
++}
++
+ static void isc_start_dma(struct isc_device *isc)
+ {
+ 	struct regmap *regmap = isc->regmap;
+ 	struct v4l2_pix_format *pixfmt = &isc->fmt.fmt.pix;
+ 	u32 sizeimage = pixfmt->sizeimage;
++	struct fmt_config *config = get_fmt_config(isc->current_fmt->fourcc);
+ 	u32 dctrl_dview;
+ 	dma_addr_t addr0;
+ 
+@@ -644,7 +929,7 @@ static void isc_start_dma(struct isc_device *isc)
+ 	if (sensor_is_preferred(isc->current_fmt))
+ 		dctrl_dview = ISC_DCTRL_DVIEW_PACKED;
+ 	else
+-		dctrl_dview = isc->current_fmt->reg_dctrl_dview;
++		dctrl_dview = config->dctrl_dview;
+ 
+ 	regmap_write(regmap, ISC_DCTRL, dctrl_dview | ISC_DCTRL_IE_IS);
+ 	regmap_write(regmap, ISC_CTRLEN, ISC_CTRL_CAPTURE);
+@@ -654,6 +939,7 @@ static void isc_set_pipeline(struct isc_device *isc, u32 pipeline)
+ {
+ 	struct regmap *regmap = isc->regmap;
+ 	struct isc_ctrls *ctrls = &isc->ctrls;
++	struct fmt_config *config = get_fmt_config(isc->raw_fmt->fourcc);
+ 	u32 val, bay_cfg;
+ 	const u32 *gamma;
+ 	unsigned int i;
+@@ -667,7 +953,7 @@ static void isc_set_pipeline(struct isc_device *isc, u32 pipeline)
+ 	if (!pipeline)
+ 		return;
+ 
+-	bay_cfg = isc->raw_fmt->reg_bay_cfg;
++	bay_cfg = config->cfa_baycfg;
+ 
+ 	regmap_write(regmap, ISC_WB_CFG, bay_cfg);
+ 	regmap_write(regmap, ISC_WB_O_RGR, 0x0);
+@@ -720,11 +1006,13 @@ static void isc_set_histogram(struct isc_device *isc)
+ {
+ 	struct regmap *regmap = isc->regmap;
+ 	struct isc_ctrls *ctrls = &isc->ctrls;
++	struct fmt_config *config = get_fmt_config(isc->raw_fmt->fourcc);
+ 
+ 	if (ctrls->awb && (ctrls->hist_stat != HIST_ENABLED)) {
+-		regmap_write(regmap, ISC_HIS_CFG, ISC_HIS_CFG_MODE_R |
+-		      (isc->raw_fmt->reg_bay_cfg << ISC_HIS_CFG_BAYSEL_SHIFT) |
+-		      ISC_HIS_CFG_RAR);
++		regmap_write(regmap, ISC_HIS_CFG,
++			     ISC_HIS_CFG_MODE_R |
++			     (config->cfa_baycfg << ISC_HIS_CFG_BAYSEL_SHIFT) |
++			     ISC_HIS_CFG_RAR);
+ 		regmap_write(regmap, ISC_HIS_CTRL, ISC_HIS_CTRL_EN);
+ 		regmap_write(regmap, ISC_INTEN, ISC_INT_HISDONE);
+ 		ctrls->hist_id = ISC_HIS_CFG_MODE_R;
+@@ -741,8 +1029,10 @@ static void isc_set_histogram(struct isc_device *isc)
+ }
+ 
+ static inline void isc_get_param(const struct isc_format *fmt,
+-				  u32 *rlp_mode, u32 *dcfg)
++				 u32 *rlp_mode, u32 *dcfg)
+ {
++	struct fmt_config *config = get_fmt_config(fmt->fourcc);
++
+ 	*dcfg = ISC_DCFG_YMBSIZE_BEATS8;
+ 
+ 	switch (fmt->fourcc) {
+@@ -754,8 +1044,8 @@ static inline void isc_get_param(const struct isc_format *fmt,
+ 	case V4L2_PIX_FMT_SGBRG12:
+ 	case V4L2_PIX_FMT_SGRBG12:
+ 	case V4L2_PIX_FMT_SRGGB12:
+-		*rlp_mode = fmt->reg_rlp_mode;
+-		*dcfg |= fmt->reg_dcfg_imode;
++		*rlp_mode = config->rlp_cfg_mode;
++		*dcfg |= config->dcfg_imode;
+ 		break;
+ 	default:
+ 		*rlp_mode = ISC_RLP_CFG_MODE_DAT8;
+@@ -768,20 +1058,22 @@ static int isc_configure(struct isc_device *isc)
+ {
+ 	struct regmap *regmap = isc->regmap;
+ 	const struct isc_format *current_fmt = isc->current_fmt;
++	struct fmt_config *curfmt_config = get_fmt_config(current_fmt->fourcc);
++	struct fmt_config *rawfmt_config = get_fmt_config(isc->raw_fmt->fourcc);
+ 	struct isc_subdev_entity *subdev = isc->current_subdev;
+ 	u32 pfe_cfg0, rlp_mode, dcfg, mask, pipeline;
+ 
+ 	if (sensor_is_preferred(current_fmt)) {
+-		pfe_cfg0 = current_fmt->reg_bps;
++		pfe_cfg0 = curfmt_config->pfe_cfg0_bps;
+ 		pipeline = 0x0;
+ 		isc_get_param(current_fmt, &rlp_mode, &dcfg);
+ 		isc->ctrls.hist_stat = HIST_INIT;
+ 	} else {
+-		pfe_cfg0  = isc->raw_fmt->reg_bps;
+-		pipeline = current_fmt->pipeline;
+-		rlp_mode = current_fmt->reg_rlp_mode;
+-		dcfg = current_fmt->reg_dcfg_imode | ISC_DCFG_YMBSIZE_BEATS8 |
+-		       ISC_DCFG_CMBSIZE_BEATS8;
++		pfe_cfg0 = rawfmt_config->pfe_cfg0_bps;
++		pipeline = curfmt_config->bits_pipeline;
++		rlp_mode = curfmt_config->rlp_cfg_mode;
++		dcfg = curfmt_config->dcfg_imode |
++		       ISC_DCFG_YMBSIZE_BEATS8 | ISC_DCFG_CMBSIZE_BEATS8;
+ 	}
+ 
+ 	pfe_cfg0  |= subdev->pfe_cfg0 | ISC_PFE_CFG0_MODE_PROGRESSIVE;
+@@ -1366,6 +1658,7 @@ static void isc_awb_work(struct work_struct *w)
+ 	struct isc_device *isc =
+ 		container_of(w, struct isc_device, awb_work);
+ 	struct regmap *regmap = isc->regmap;
++	struct fmt_config *config = get_fmt_config(isc->raw_fmt->fourcc);
+ 	struct isc_ctrls *ctrls = &isc->ctrls;
+ 	u32 hist_id = ctrls->hist_id;
+ 	u32 baysel;
+@@ -1383,7 +1676,7 @@ static void isc_awb_work(struct work_struct *w)
+ 	}
+ 
+ 	ctrls->hist_id = hist_id;
+-	baysel = isc->raw_fmt->reg_bay_cfg << ISC_HIS_CFG_BAYSEL_SHIFT;
++	baysel = config->cfa_baycfg << ISC_HIS_CFG_BAYSEL_SHIFT;
+ 
+ 	pm_runtime_get_sync(isc->dev);
+ 
+@@ -1484,10 +1777,10 @@ static void isc_async_unbind(struct v4l2_async_notifier *notifier,
+ 
+ static struct isc_format *find_format_by_code(unsigned int code, int *index)
+ {
+-	struct isc_format *fmt = &isc_formats[0];
++	struct isc_format *fmt = &formats_list[0];
+ 	unsigned int i;
+ 
+-	for (i = 0; i < ARRAY_SIZE(isc_formats); i++) {
++	for (i = 0; i < ARRAY_SIZE(formats_list); i++) {
+ 		if (fmt->mbus_code == code) {
+ 			*index = i;
+ 			return fmt;
+@@ -1504,37 +1797,36 @@ static int isc_formats_init(struct isc_device *isc)
+ 	struct isc_format *fmt;
+ 	struct v4l2_subdev *subdev = isc->current_subdev->sd;
+ 	unsigned int num_fmts, i, j;
++	u32 list_size = ARRAY_SIZE(formats_list);
+ 	struct v4l2_subdev_mbus_code_enum mbus_code = {
+ 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+ 	};
+ 
+-	fmt = &isc_formats[0];
+-	for (i = 0; i < ARRAY_SIZE(isc_formats); i++) {
+-		fmt->isc_support = false;
+-		fmt->sd_support = false;
+-
+-		fmt++;
+-	}
+-
+ 	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code,
+ 	       NULL, &mbus_code)) {
+ 		mbus_code.index++;
++
+ 		fmt = find_format_by_code(mbus_code.code, &i);
+-		if (!fmt)
++		if ((!fmt) || (!(fmt->flags & FMT_FLAG_FROM_SENSOR)))
+ 			continue;
+ 
+ 		fmt->sd_support = true;
+ 
+-		if (i <= RAW_FMT_IND_END) {
+-			for (j = ISC_FMT_IND_START; j <= ISC_FMT_IND_END; j++)
+-				isc_formats[j].isc_support = true;
+-
++		if (fmt->flags & FMT_FLAG_RAW_FORMAT)
+ 			isc->raw_fmt = fmt;
+-		}
+ 	}
+ 
+-	fmt = &isc_formats[0];
+-	for (i = 0, num_fmts = 0; i < ARRAY_SIZE(isc_formats); i++) {
++	fmt = &formats_list[0];
++	for (i = 0; i < list_size; i++) {
++		if (fmt->flags & FMT_FLAG_FROM_CONTROLLER)
++			fmt->isc_support = true;
++
++		fmt++;
++	}
++
++	fmt = &formats_list[0];
++	num_fmts = 0;
++	for (i = 0; i < list_size; i++) {
+ 		if (fmt->isc_support || fmt->sd_support)
+ 			num_fmts++;
+ 
+@@ -1551,8 +1843,8 @@ static int isc_formats_init(struct isc_device *isc)
+ 	if (!isc->user_formats)
+ 		return -ENOMEM;
+ 
+-	fmt = &isc_formats[0];
+-	for (i = 0, j = 0; i < ARRAY_SIZE(isc_formats); i++) {
++	fmt = &formats_list[0];
++	for (i = 0, j = 0; i < list_size; i++) {
+ 		if (fmt->isc_support || fmt->sd_support)
+ 			isc->user_formats[j++] = fmt;
+ 
+-- 
+2.13.0
