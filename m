@@ -1,76 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43499 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752039AbdIUJEw (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:60831 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750788AbdI1Dwy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Sep 2017 05:04:52 -0400
-Message-ID: <1505984680.10081.2.camel@pengutronix.de>
-Subject: Re: [PATCH 2/3] [media] tc358743: Increase FIFO level to 300.
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mats Randgaard <matrandg@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Date: Thu, 21 Sep 2017 11:04:40 +0200
-In-Reply-To: <df9bd5db-6d89-6dfa-3754-5de14470c92a@cisco.com>
-References: <cover.1505826082.git.dave.stevenson@raspberrypi.org>
-         <3e638375aff788b24f988e452214649d6100a596.1505826082.git.dave.stevenson@raspberrypi.org>
-         <1505834685.10076.5.camel@pengutronix.de>
-         <20170919134930.6fa28562@recife.lan>
-         <CAAoAYcNCPrpZWvxTTsCtGd4vobsQKDw-ckLhXyRst0dS++h_Ag@mail.gmail.com>
-         <1505903026.7865.6.camel@pengutronix.de>
-         <CAAoAYcN+KGSNNvF2SZVg=HnS5DC8pR26S+=ofwbaeJim5tsQaA@mail.gmail.com>
-         <f4824a16-13ce-7d49-c7dd-19a11f3c01ec@cisco.com>
-         <20170920125023.p4u3fi3itsgx456v@valkosipuli.retiisi.org.uk>
-         <df9bd5db-6d89-6dfa-3754-5de14470c92a@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Wed, 27 Sep 2017 23:52:54 -0400
+Message-ID: <10ac6dd079d57308712d83f13660c442@smtp-cloud9.xs4all.net>
+Date: Thu, 28 Sep 2017 05:52:52 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Wed, 2017-09-20 at 15:12 +0200, Hans Verkuil wrote:
-[...]
-> I don't like it :-)
-> 
-> Currently g_mbus_config returns (and I quote from v4l2-mediabus.h): "How
-> many lanes the client can use". I.e. the capabilities of the HW.
-> 
-> If we are going to use this to communicate how many lines are currently
-> in use, then I would propose that we add a lane mask, i.e. something like
-> this:
-> 
-> /* Number of lanes in use, 0 == use all available lanes (default) */
-> #define V4L2_MBUS_CSI2_LANE_MASK                (3 << 10)
-> 
-> And add comments along the lines that this is a temporary fix.
-> 
-> I would feel a lot happier (or a lot less unhappy) if we'd do it this way.
-> Rather than re-interpreting bits that are not quite what they should be.
-> 
-> I'd also add a comment that all other flags must be 0 if the device tree is
-> used. This to avoid mixing the two.
+Results of the daily build of media_tree:
 
-I would like to try this.
+date:			Thu Sep 28 05:00:15 CEST 2017
+media-tree git hash:	d5426f4c2ebac8cf05de43988c3fccddbee13d28
+media_build git hash:	b829b621b4c2e6c5cbedbd1ce62b4e958f7d13a4
+v4l-utils git hash:	8be65674f9a57e4bc35858f86bb5489f0afd22c1
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-Currently the driver sets the V4L2_MBUS_CSI2_[1-4]_LANE bits according
-to csi_lanes_in_use, which is wrong as you say.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: OK
+spec-git: OK
 
-After moving the csi_lanes_in_use info into a new
-V4L2_MBUS_CSI2_LANE_MASK bitfield, the V4L2_MBUS_CSI2_[1-4]_LANE bits
-could be either set to zero or to the really connected lanes as
-configured in the device tree (csi->bus.num_data_lanes) in the DT case.
+Detailed results are available here:
 
-What would the bits be set to in the pdata case, though? Should a lane
-count setting be added to tc358743_platform_data with, defaulting to all
-bits set?
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-regards
-Philipp
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
