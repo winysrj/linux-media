@@ -1,52 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:50311 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751495AbdIXKas (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Sep 2017 06:30:48 -0400
-Subject: [PATCH 5/6] [media] omap_vout: Delete an unnecessary variable
- initialisation in omap_vout_open()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Jan Kara <jack@suse.cz>, Lorenzo Stoakes <lstoakes@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Muralidharan Karicheri <mkaricheri@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
-Message-ID: <63bf382e-733f-2060-a4c8-e9863a38f3b7@users.sourceforge.net>
-Date: Sun, 24 Sep 2017 12:30:36 +0200
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55632 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752987AbdI1N1t (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Sep 2017 09:27:49 -0400
+Date: Thu, 28 Sep 2017 16:27:45 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [RESEND PATCH v2 13/17] media: v4l2-async: simplify
+ v4l2_async_subdev structure
+Message-ID: <20170928132745.6pojquwpzcccu6g5@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170928125316.texy2qrzpvzekp7a@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 24 Sep 2017 11:20:11 +0200
+Hi Mauro,
 
-The local variable "vout" is reassigned by a statement at the beginning.
-Thus omit the explicit initialisation.
+On Wed, Sep 27, 2017 at 06:46:56PM -0300, Mauro Carvalho Chehab wrote:
+> The V4L2_ASYNC_MATCH_FWNODE match criteria requires just one
+> struct to be filled (struct fwnode_handle). The V4L2_ASYNC_MATCH_DEVNAME
+> match criteria requires just a device name.
+> 
+> So, it doesn't make sense to enclose those into structs,
+> as the criteria can go directly into the union.
+> 
+> That makes easier to document it, as we don't need to document
+> weird senseless structs.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/omap/omap_vout.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The idea is that in the union, there's a struct which is specific to the
+match_type field. I wouldn't call it senseless.
 
-diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-index 71b77426271e..f446a37064f4 100644
---- a/drivers/media/platform/omap/omap_vout.c
-+++ b/drivers/media/platform/omap/omap_vout.c
-@@ -1001,7 +1001,7 @@ static int omap_vout_release(struct file *file)
- static int omap_vout_open(struct file *file)
- {
- 	struct videobuf_queue *q;
--	struct omap_vout_device *vout = NULL;
-+	struct omap_vout_device *vout;
- 
- 	vout = video_drvdata(file);
- 	if (!vout)
+In the two cases there's just a single field in the containing struct. You
+could remove the struct in that case as you do in this patch, and just use
+the field. But I think the result is less clean and so I wouldn't make this
+change.
+
+The confusion comes possibly from the fact that the struct is named the
+same as the field in the struct. These used to be called of and node, but
+with the fwnode property framework the references to the fwnode are, well,
+typically similarly called "fwnode". There's no underlying firmware
+interface with that name, fwnode property API is just an API.
+
 -- 
-2.14.1
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
