@@ -1,55 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:52157 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751936AbdIRH0e (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Sep 2017 03:26:34 -0400
-Message-ID: <1505719582.25945.271.camel@linux.intel.com>
-Subject: Re: [PATCH] staging: atomisp: add a driver for ov5648 camera sensor
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Devid Antonio Filoni <d.filoni@ubuntu.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>,
-        =?ISO-8859-1?Q?J=E9r=E9my?= Lefaure <jeremy.lefaure@lse.epita.fr>,
-        linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org
-Date: Mon, 18 Sep 2017 10:26:22 +0300
-In-Reply-To: <20170911180303.GA14304@dfiloni-N82JQ>
-References: <1505046221-14358-1-git-send-email-d.filoni@ubuntu.com>
-         <20170911145529.xelwo2ip67k4jfwb@valkosipuli.retiisi.org.uk>
-         <20170911180303.GA14304@dfiloni-N82JQ>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-pg0-f45.google.com ([74.125.83.45]:49933 "EHLO
+        mail-pg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752749AbdI1JvW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Sep 2017 05:51:22 -0400
+Received: by mail-pg0-f45.google.com with SMTP id v13so93978pgq.6
+        for <linux-media@vger.kernel.org>; Thu, 28 Sep 2017 02:51:22 -0700 (PDT)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFC PATCH 7/9] [media] vim2m: add jobs API support
+Date: Thu, 28 Sep 2017 18:50:25 +0900
+Message-Id: <20170928095027.127173-8-acourbot@chromium.org>
+In-Reply-To: <20170928095027.127173-1-acourbot@chromium.org>
+References: <20170928095027.127173-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2017-09-11 at 20:03 +0200, Devid Antonio Filoni wrote:
-> On Mon, Sep 11, 2017 at 05:55:29PM +0300, Sakari Ailus wrote:
-> > Hi Devid,
-> > 
-> > Please see my comments below.
-> > 
-> > Andy: please look for "INT5648".
-> 
-> Hi Sakari,
-> I'm replying below to your comments. I'll work on a v2 patch as soon
-> as we get
-> more comments.
-> 
-> About "INT5648", I extracted it from the DSDT of my Lenovo Miix 310,
-> take a look
-> at https://pastebin.com/ExHWYr8g .
+Add support for jobs in vim2m, using the generic state handler.
 
-First of all, thank you, Sakari, to raise a flag here.
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ drivers/media/platform/vim2m.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-Second, Devid, please answer to the following:
-is it an official BIOS which is available in the wild?
-
-If it's so, please, add a paragraph to the commit message explaining how do you get this and point to the DSDT excerpt.
-Put an answer to above question to the commit message as well.
-
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index 970b9b6dab25..aff21d53d898 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -31,6 +31,8 @@
+ #include <media/v4l2-event.h>
+ #include <media/videobuf2-vmalloc.h>
+ 
++#include <media/v4l2-job-generic.h>
++
+ MODULE_DESCRIPTION("Virtual device for mem2mem framework testing");
+ MODULE_AUTHOR("Pawel Osciak, <pawel@osciak.com>");
+ MODULE_LICENSE("GPL");
+@@ -155,6 +157,7 @@ struct vim2m_ctx {
+ 	struct vim2m_dev	*dev;
+ 
+ 	struct v4l2_ctrl_handler hdl;
++	struct v4l2_generic_state_handler state;
+ 
+ 	/* Processed buffers in this transaction */
+ 	u8			num_processed;
+@@ -877,6 +880,15 @@ static const struct v4l2_ctrl_config vim2m_ctrl_trans_num_bufs = {
+ 	.step = 1,
+ };
+ 
++static void vim2m_process_active_job(struct v4l2_job_state_handler *hdl)
++{
++	struct vim2m_ctx *ctx = container_of(hdl, struct vim2m_ctx, state.base);
++
++	vb2_queue_active_job_buffers(&ctx->fh.m2m_ctx->cap_q_ctx.q);
++	vb2_queue_active_job_buffers(&ctx->fh.m2m_ctx->out_q_ctx.q);
++	v4l2_m2m_try_schedule(ctx->fh.m2m_ctx);
++}
++
+ /*
+  * File operations
+  */
+@@ -886,6 +898,7 @@ static int vim2m_open(struct file *file)
+ 	struct vim2m_ctx *ctx = NULL;
+ 	struct v4l2_ctrl_handler *hdl;
+ 	int rc = 0;
++	int ret;
+ 
+ 	if (mutex_lock_interruptible(&dev->dev_mutex))
+ 		return -ERESTARTSYS;
+@@ -913,6 +926,15 @@ static int vim2m_open(struct file *file)
+ 	ctx->fh.ctrl_handler = hdl;
+ 	v4l2_ctrl_handler_setup(hdl);
+ 
++	ret = v4l2_job_generic_init(&ctx->state, vim2m_process_active_job,
++				    &ctx->fh, NULL);
++	if (ret) {
++		v4l2_ctrl_handler_free(hdl);
++		v4l2_fh_exit(&ctx->fh);
++		kfree(ctx);
++		goto open_unlock;
++	}
++
+ 	ctx->q_data[V4L2_M2M_SRC].fmt = &formats[0];
+ 	ctx->q_data[V4L2_M2M_SRC].width = 640;
+ 	ctx->q_data[V4L2_M2M_SRC].height = 480;
+@@ -934,6 +956,8 @@ static int vim2m_open(struct file *file)
+ 		goto open_unlock;
+ 	}
+ 
++	v4l2_mem_ctx_job_init(ctx->fh.m2m_ctx, &ctx->state.base);
++
+ 	v4l2_fh_add(&ctx->fh);
+ 	atomic_inc(&dev->num_inst);
+ 
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+2.14.2.822.g60be5d43e6-goog
