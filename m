@@ -1,75 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.60.111]:40544 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751131AbdINPXv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Sep 2017 11:23:51 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Joao Pinto <Joao.Pinto@synopsys.com>
-Subject: [PATCH v2] [media] cec: Respond to unregisterd initiators, when applicable
-Date: Thu, 14 Sep 2017 16:23:38 +0100
-Message-Id: <db05c77c50d32358847dc724fc8627809580d677.1505402443.git.joabreu@synopsys.com>
+Received: from mga04.intel.com ([192.55.52.120]:56177 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750715AbdI2MeY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 29 Sep 2017 08:34:24 -0400
+Message-ID: <1506688459.4729.88.camel@linux.intel.com>
+Subject: Re: [PATCH] dma-fence: fix dma_fence_get_rcu_safe
+From: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+To: Daniel Vetter <daniel@ffwll.ch>,
+        Christian =?ISO-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
+        Chris Wilson <chris@chris-wilson.co.uk>
+Date: Fri, 29 Sep 2017 15:34:19 +0300
+In-Reply-To: <CAKMK7uGkEFzbrhAS1qWs-g3dC20jubXitR5ALkTg4PhMwoQ-Rg@mail.gmail.com>
+References: <1504531653-13779-1-git-send-email-deathsimple@vodafone.de>
+         <150453243791.23157.6907537389223890207@mail.alporthouse.com>
+         <67fe7e05-7743-40c8-558b-41b08eb986e9@amd.com>
+         <150512037119.16759.472484663447331384@mail.alporthouse.com>
+         <3c412ee3-854a-292a-e036-7c5fd7888979@amd.com>
+         <150512178199.16759.73667469529688@mail.alporthouse.com>
+         <5ff4b100-b580-a93d-aa5e-c66173ac091d@amd.com>
+         <150512410278.16759.10537429613477592631@mail.alporthouse.com>
+         <79e447f8-f2e3-57e3-b5fe-503e5feb2f82@amd.com>
+         <CAKMK7uGkEFzbrhAS1qWs-g3dC20jubXitR5ALkTg4PhMwoQ-Rg@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Running CEC 1.4 compliance test we get the following error on test
-11.1.6.2: "ERROR: The DUT did not broadcast a
-<Report Physical Address> message to the unregistered device."
+On Wed, 2017-09-20 at 20:20 +0200, Daniel Vetter wrote:
+> On Mon, Sep 11, 2017 at 01:06:32PM +0200, Christian König wrote:
+> > Am 11.09.2017 um 12:01 schrieb Chris Wilson:
+> > > [SNIP]
+> > > > Yeah, but that is illegal with a fence objects.
+> > > > 
+> > > > When anybody allocates fences this way it breaks at least
+> > > > reservation_object_get_fences_rcu(),
+> > > > reservation_object_wait_timeout_rcu() and
+> > > > reservation_object_test_signaled_single().
+> > > 
+> > > Many, many months ago I sent patches to fix them all.
+> > 
+> > Found those after a bit a searching. Yeah, those patches where proposed more
+> > than a year ago, but never pushed upstream.
+> > 
+> > Not sure if we really should go this way. dma_fence objects are shared
+> > between drivers and since we can't judge if it's the correct fence based on
+> > a criteria in the object (only the read counter which is outside) all
+> > drivers need to be correct for this.
+> > 
+> > I would rather go the way and change dma_fence_release() to wrap
+> > fence->ops->release into call_rcu() to keep the whole RCU handling outside
+> > of the individual drivers.
+> 
+> Hm, I entirely dropped the ball on this, I kinda assumed that we managed
+> to get some agreement on this between i915 and dma_fence. Adding a pile
+> more people.
+> 
+> Joonas, Tvrtko, I guess we need to fix this one way or the other.
 
-Fix this by letting GIVE_PHYSICAL_ADDR message respond to unregistered
-device. Also, GIVE_DEVICE_VENDOR_ID and GIVE_FEATURES fall in the
-same category so, respond also to these messages.
+I definitely didn't get the memo or notice this before. Tvrtko/Chris?
 
-With this fix we pass CEC 1.4 official compliance.
-
-Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Joao Pinto <jpinto@synopsys.com>
----
-Changes from v1:
-	- Also respond to GIVE_DEVICE_VENDOR_ID and GIVE_FEATURES (Hans)
-	- Change commit message
----
- drivers/media/cec/cec-adap.c | 13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index dd769e4..84d1b67 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -1794,12 +1794,19 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 	 */
- 	switch (msg->msg[1]) {
- 	case CEC_MSG_GET_CEC_VERSION:
--	case CEC_MSG_GIVE_DEVICE_VENDOR_ID:
- 	case CEC_MSG_ABORT:
- 	case CEC_MSG_GIVE_DEVICE_POWER_STATUS:
--	case CEC_MSG_GIVE_PHYSICAL_ADDR:
- 	case CEC_MSG_GIVE_OSD_NAME:
-+		/*
-+		 * These messages reply with a directed message, so ignore if
-+		 * the initiator is Unregistered.
-+		 */
-+		if (!adap->passthrough && from_unregistered)
-+			return 0;
-+		/* Fall through */
-+	case CEC_MSG_GIVE_DEVICE_VENDOR_ID:
- 	case CEC_MSG_GIVE_FEATURES:
-+	case CEC_MSG_GIVE_PHYSICAL_ADDR:
- 		/*
- 		 * Skip processing these messages if the passthrough mode
- 		 * is on.
-@@ -1807,7 +1814,7 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 		if (adap->passthrough)
- 			goto skip_processing;
- 		/* Ignore if addressing is wrong */
--		if (is_broadcast || from_unregistered)
-+		if (is_broadcast)
- 			return 0;
- 		break;
- 
+Regars, Joonas
 -- 
-1.9.1
+Joonas Lahtinen
+Open Source Technology Center
+Intel Corporation
