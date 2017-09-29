@@ -1,81 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42467 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755563AbdIHNin (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Sep 2017 09:38:43 -0400
-Date: Fri, 8 Sep 2017 15:38:41 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH 3/3] as3645a: Use integer numbers for parsing LEDs
-Message-ID: <20170908133841.GS18365@amd>
-References: <20170908124213.18904-1-sakari.ailus@linux.intel.com>
- <20170908124213.18904-4-sakari.ailus@linux.intel.com>
- <20170908131758.GQ18365@amd>
- <20170908132333.rlhurlwrzq43ss2k@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="3sseE1tnmEs+TkKq"
-Content-Disposition: inline
-In-Reply-To: <20170908132333.rlhurlwrzq43ss2k@valkosipuli.retiisi.org.uk>
+Received: from smtp3.goneo.de ([85.220.129.37]:38560 "EHLO smtp3.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751349AbdI2NHT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 29 Sep 2017 09:07:19 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
+Subject: Re: [PATCH v2 09/13] scripts: kernel-doc: parse next structs/unions
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <20170929090853.469ea73b@recife.lan>
+Date: Fri, 29 Sep 2017 15:07:05 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <768B7EAA-53EB-4D43-95C3-D4710E6DCB41@darmarit.de>
+References: <cover.1506546492.git.mchehab@s-opensource.com>
+ <cover.1506546492.git.mchehab@s-opensource.com>
+ <b2528c4f1d2e76b7dacde8c5660e94de32e2eb71.1506546492.git.mchehab@s-opensource.com>
+ <68968C67-7CD6-4264-A46D-1EE195CBC58D@darmarit.de>
+ <20170929090853.469ea73b@recife.lan>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---3sseE1tnmEs+TkKq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Am 29.09.2017 um 14:08 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> 
+> Em Thu, 28 Sep 2017 18:28:32 +0200
+> Markus Heiser <markus.heiser@darmarit.de> escreveu:
+> 
+>> Hi Mauro,
+>> 
+>>> Am 27.09.2017 um 23:10 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+>>> 
+>> I also untabified the example since tabs in reST are
+>> a nightmare, especially in code blocks ... tabulators are the source
+>> of all evil [1] ...
+>> 
+>>  Please, never use tabs in markups or programming languages
+>>  where indentation is a part of the markup respectively the 
+>>  language!!
+> 
+> Tabs will exist at the sources, as Kernel coding style recommends its
+> usage. There's nothing that can be done to avoid. So, whatever scripts
+> we use, it should handle it.
 
-On Fri 2017-09-08 16:23:34, Sakari Ailus wrote:
-> Hi Pavel,
->=20
-> Thanks for the review.
->=20
-> On Fri, Sep 08, 2017 at 03:17:58PM +0200, Pavel Machek wrote:
-> > On Fri 2017-09-08 15:42:13, Sakari Ailus wrote:
-> > > Use integer numbers for LEDs, 0 is the flash and 1 is the indicator.
-> > >=20
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >=20
-> > Dunno. Old code is shorter, old device tree is shorter, ... IMO both
-> > versions are fine, because the LEDs are really different. Do we have
-> > documentation somewhere saying that reg=3D should be used for this? Are
-> > you doing this for consistency?
->=20
-> Well, actually for ACPI support. :-) It requires less driver changes this
-> way. See 17th and 18th patches in "[PATCH v9 00/23] Unified fwnode endpoi=
-nt
-> parser, async sub-device notifier support, N9 flash DTS".
+Sorry if I was unclear. I mean we should not use tabs in reST or in py.
+In python the indentation is a part of the language syntax, same in
+reST; the indentation is the markup. It's not only me who recommend to
+avoid tabs:
 
-ACPI, I hate ACPI.
+- reST: http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#whitespace
+- python: https://www.python.org/dev/peps/pep-0008/#tabs-or-spaces
 
-> A number of chips have LED binding that is aligned, see e.g.
-> Documentation/devicetree/bindings/leds/leds-bcm6328.txt .
+both can handle tabs well (with the cost of confusing when I look at a diff), but
+in python 3 it gets worse ...
 
-Ok, yes, that's common way LED controllers are handled. Usually all
-the LEDs are "same", but...
+  """Python 3 disallows mixing the use of tabs and spaces for indentation."""
+ 
+If we are looking at C sources, there are no such problems since the
+indentation is not a part of the syntax, so what the Kernel coding style
+recommends is also correct.
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+  """Outside of comments, documentation and except in Kconfig, spaces are
+     never used for indentation"""
 
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Anyway, as long as it works with tabs I can't stop you ;)
 
---3sseE1tnmEs+TkKq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> 
+> Thankfully, solving this issue is a one line perl patch, as explained at:
+> 	http://perldoc.perl.org/perlfaq4.html#How-do-I-expand-tabs-in-a-string?
+> 
+> Something like the enclosed (untested) patch.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Hm, as far as I see, this will make no sense, since the kernel-doc
+parser flats prototypes to a one-liner and the reST output is independent
+(e.g. output_struct_rst) from the origin source code.
 
-iEYEARECAAYFAlmynWEACgkQMOfwapXb+vJvGgCeN2aFZ7VFkP4zwan+XVr7SQNy
-xH4AnAv/X6P9KegVI000ek5O0pc//Alo
-=YBVY
------END PGP SIGNATURE-----
+-- Markus --
 
---3sseE1tnmEs+TkKq--
+> 
+> Thanks,
+> Mauro
+> 
+> [PATCH] kernel-doc: replace tabs by spaces
+
+As I said, you misunderstood me, do not apply this
+patch. Replacing tabs when reading source-code is
+not needed / even since we flatten  
+
+> 
+> Sphinx has a hard time dealing with tabs, causing it to
+> misinterpret paragraph continuation.
+> 
+> As we're now mainly focused on supporting ReST output,
+> replace tabs by spaces, in order to avoid troubles when
+> the output is parsed by Sphinx.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> 
+> diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+> index 69757ee9db4c..7bc139184177 100755
+> --- a/scripts/kernel-doc
+> +++ b/scripts/kernel-doc
+> @@ -1544,7 +1544,7 @@ sub tracepoint_munge($) {
+> sub syscall_munge() {
+> 	my $void = 0;
+> 
+> -	$prototype =~ s@[\r\n\t]+@ @gos; # strip newlines/CR's/tabs
+> +	$prototype =~ s@[\r\n]+@ @gos; # strip newlines/CR's
+> ##	if ($prototype =~ m/SYSCALL_DEFINE0\s*\(\s*(a-zA-Z0-9_)*\s*\)/) {
+> 	if ($prototype =~ m/SYSCALL_DEFINE0/) {
+> 		$void = 1;
+> @@ -1743,6 +1743,8 @@ sub process_file($) {
+> 	while (s/\\\s*$//) {
+> 	    $_ .= <IN>;
+> 	}
+> +	# Replace tabs by spaces
+> +        while ($_ =~ s/\t+/' ' x (length($&) * 8 - length($`) % 8)/e) {};
+> 	if ($state == STATE_NORMAL) {
+> 	    if (/$doc_start/o) {
+> 		$state = STATE_NAME;	# next line is always the function name
+> @@ -1842,8 +1844,7 @@ sub process_file($) {
+> 		$in_purpose = 0;
+> 		$contents = $newcontents;
+>                 $new_start_line = $.;
+> -		while ((substr($contents, 0, 1) eq " ") ||
+> -		       substr($contents, 0, 1) eq "\t") {
+> +		while (substr($contents, 0, 1) eq " ") {
+> 		    $contents = substr($contents, 1);
+> 		}
+> 		if ($contents ne "") {
+> @@ -1912,8 +1913,7 @@ sub process_file($) {
+> 		$contents = $2;
+>                 $new_start_line = $.;
+> 		if ($contents ne "") {
+> -		    while ((substr($contents, 0, 1) eq " ") ||
+> -		           substr($contents, 0, 1) eq "\t") {
+> +		    while (substr($contents, 0, 1) eq " ") {
+> 			$contents = substr($contents, 1);
+> 		    }
+> 		    $contents .= "\n";
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-doc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
