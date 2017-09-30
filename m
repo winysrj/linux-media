@@ -1,123 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48880 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751127AbdIKIAV (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:34558 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752764AbdI3L6M (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Sep 2017 04:00:21 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v10 23/24] ov13858: Add support for flash and lens devices
-Date: Mon, 11 Sep 2017 11:00:07 +0300
-Message-Id: <20170911080008.21208-24-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
-References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+        Sat, 30 Sep 2017 07:58:12 -0400
+Received: by mail-pf0-f196.google.com with SMTP id g65so1432718pfe.1
+        for <linux-media@vger.kernel.org>; Sat, 30 Sep 2017 04:58:12 -0700 (PDT)
+Subject: Re: [RESEND RFC PATCH 0/7] sun8i H3 HDMI glue driver for DW HDMI
+To: Jernej Skrabec <jernej.skrabec@siol.net>,
+        maxime.ripard@free-electrons.com, wens@csie.org
+Cc: Laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+        narmstrong@baylibre.com, dri-devel@lists.freedesktop.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org,
+        icenowy@aosc.io, linux-sunxi@googlegroups.com,
+        linux-media@vger.kernel.org
+References: <20170920200124.20457-1-jernej.skrabec@siol.net>
+From: Alexey Kardashevskiy <aik@ozlabs.ru>
+Message-ID: <51c50157-6794-852b-f89d-647b9cf06ef2@ozlabs.ru>
+Date: Sat, 30 Sep 2017 21:58:03 +1000
+MIME-Version: 1.0
+In-Reply-To: <20170920200124.20457-1-jernej.skrabec@siol.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-AU
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse async sub-devices by using
-v4l2_subdev_fwnode_reference_parse_sensor_common().
+On 21/09/17 06:01, Jernej Skrabec wrote:
+> [added media mailing list due to CEC question]
+> 
+> This patch series adds a HDMI glue driver for Allwinner H3 SoC. For now, only
+> video and CEC functionality is supported. Audio needs more tweaks.
+> 
+> Series is based on the H3 DE2 patch series available on mailing list:
+> http://lists.infradead.org/pipermail/linux-arm-kernel/2017-August/522697.html
+> (ignore patches marked with [NOT FOR REVIEW NOW] tag)
+> 
+> Patch 1 adds support for polling plug detection since custom PHY used here
+> doesn't support HPD interrupt.
+> 
+> Patch 2 enables overflow workaround for v1.32a. This HDMI controller exhibits
+> same issues as HDMI controller used in iMX6 SoCs.
+> 
+> Patch 3 adds CLK_SET_RATE_PARENT to hdmi clock.
+> 
+> Patch 4 adds dt bindings documentation.
+> 
+> Patch 5 adds actual H3 HDMI glue driver.
+> 
+> Patch 6 and 7 add HDMI node to DT and enable it where needed.
+> 
+> Allwinner used DW HDMI controller in a non standard way:
+> - register offsets obfuscation layer, which can fortunately be turned off
+> - register read lock, which has to be disabled by magic number
+> - custom PHY, which have to be initialized before DW HDMI controller
+> - non standard clocks
+> - no HPD interrupt
+> 
+> Because of that, I have two questions:
+> - Since HPD have to be polled, is it enough just to enable poll mode? I'm
+>   mainly concerned about invalidating CEC address here.
+> - PHY has to be initialized before DW HDMI controller to disable offset
+>   obfuscation and read lock among other things. This means that all clocks have
+>   to be enabled in glue driver. This poses a problem, since when using
+>   component model, dw-hdmi bridge uses drvdata for it's own private data and
+>   prevents glue layer to pass a pointer to unbind function, where clocks should
+>   be disabled. I noticed same issue in meson DW HDMI glue driver, where clocks
+>   are also not disabled when unbind callback is called. I noticed that when H3
+>   SoC is shutdown, HDMI output is still enabled and lastest image is shown on
+>   monitor until it is unplugged from power supply. Is there any simple solution
+>   to this?
+> 
+> Chen-Yu,
+> TL Lim was unable to obtain any answer from Allwinner about HDMI clocks. I think
+> it is safe to assume that divider in HDMI clock doesn't have any effect.
+> 
+> Branch based on linux-next from 1. September with integrated patches is
+> available here:
+> https://github.com/jernejsk/linux-1/tree/h3_hdmi_rfc
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/ov13858.c | 26 +++++++++++++++++++++++---
- 1 file changed, 23 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
-index af7af0d14c69..0d60defc7492 100644
---- a/drivers/media/i2c/ov13858.c
-+++ b/drivers/media/i2c/ov13858.c
-@@ -18,6 +18,7 @@
- #include <linux/pm_runtime.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
- 
- #define OV13858_REG_VALUE_08BIT		1
- #define OV13858_REG_VALUE_16BIT		2
-@@ -1028,6 +1029,7 @@ static const struct ov13858_mode supported_modes[] = {
- struct ov13858 {
- 	struct v4l2_subdev sd;
- 	struct media_pad pad;
-+	struct v4l2_async_notifier notifier;
- 
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	/* V4L2 Controls */
-@@ -1715,6 +1717,11 @@ static int ov13858_probe(struct i2c_client *client,
- 	if (!ov13858)
- 		return -ENOMEM;
- 
-+	ret = v4l2_fwnode_reference_parse_sensor_common(
-+		&client->dev, &ov13858->notifier);
-+	if (ret < 0)
-+		return ret;
-+
- 	/* Initialize subdev */
- 	v4l2_i2c_subdev_init(&ov13858->sd, client, &ov13858_subdev_ops);
- 
-@@ -1722,7 +1729,7 @@ static int ov13858_probe(struct i2c_client *client,
- 	ret = ov13858_identify_module(ov13858);
- 	if (ret) {
- 		dev_err(&client->dev, "failed to find sensor: %d\n", ret);
--		return ret;
-+		goto error_notifier_release;
- 	}
- 
- 	/* Set default mode to max resolution */
-@@ -1730,7 +1737,7 @@ static int ov13858_probe(struct i2c_client *client,
- 
- 	ret = ov13858_init_controls(ov13858);
- 	if (ret)
--		return ret;
-+		goto error_notifier_release;
- 
- 	/* Initialize subdev */
- 	ov13858->sd.internal_ops = &ov13858_internal_ops;
-@@ -1746,9 +1753,14 @@ static int ov13858_probe(struct i2c_client *client,
- 		goto error_handler_free;
- 	}
- 
-+	ret = v4l2_async_subdev_notifier_register(&ov13858->sd,
-+						  &ov13858->notifier);
-+	if (ret)
-+		goto error_media_entity;
-+
- 	ret = v4l2_async_register_subdev(&ov13858->sd);
- 	if (ret < 0)
--		goto error_media_entity;
-+		goto error_notifier_unregister;
- 
- 	/*
- 	 * Device is already turned on by i2c-core with ACPI domain PM.
-@@ -1761,11 +1773,17 @@ static int ov13858_probe(struct i2c_client *client,
- 
- 	return 0;
- 
-+error_notifier_unregister:
-+	v4l2_async_notifier_unregister(&ov13858->notifier);
-+
- error_media_entity:
- 	media_entity_cleanup(&ov13858->sd.entity);
- 
- error_handler_free:
- 	ov13858_free_controls(ov13858);
-+
-+error_notifier_release:
-+	v4l2_async_notifier_release(&ov13858->notifier);
- 	dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
- 
- 	return ret;
-@@ -1777,6 +1795,8 @@ static int ov13858_remove(struct i2c_client *client)
- 	struct ov13858 *ov13858 = to_ov13858(sd);
- 
- 	v4l2_async_unregister_subdev(sd);
-+	v4l2_async_notifier_unregister(&ov13858->notifier);
-+	v4l2_async_notifier_release(&ov13858->notifier);
- 	media_entity_cleanup(&sd->entity);
- 	ov13858_free_controls(ov13858);
- 
+Out of curiosity I tried this one and got:
+
+
+
+[    0.071711] sun4i-usb-phy 1c19400.phy: Couldn't request ID GPIO
+[    0.074809] sun8i-h3-pinctrl 1c20800.pinctrl: initialized sunXi PIO driver
+[    0.076167] sun8i-h3-r-pinctrl 1f02c00.pinctrl: initialized sunXi PIO driver
+[    0.148009] ------------[ cut here ]------------
+[    0.148035] WARNING: CPU: 0 PID: 1 at
+drivers/clk/sunxi-ng/ccu_common.c:41 ccu_nm_set_rate+0x1d0/0x274
+[    0.148046] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
+4.13.0-rc6-next-20170825-aik-aik #24
+[    0.148051] Hardware name: Allwinner sun8i Family
+[    0.148082] [<c010de6c>] (unwind_backtrace) from [<c010b260>]
+(show_stack+0x10/0x14)
+[    0.148101] [<c010b260>] (show_stack) from [<c077a464>]
+(dump_stack+0x84/0x98)
+[    0.148117] [<c077a464>] (dump_stack) from [<c011abe0>] (__warn+0xe0/0xfc)
+[    0.148132] [<c011abe0>] (__warn) from [<c011acac>]
+(warn_slowpath_null+0x20/0x28)
+[    0.148145] [<c011acac>] (warn_slowpath_null) from [<c03d1888>]
+(ccu_nm_set_rate+0x1d0/0x274)
+[    0.148161] [<c03d1888>] (ccu_nm_set_rate) from [<c03c78b4>]
+(clk_change_rate+0x19c/0x250)
+[    0.148175] [<c03c78b4>] (clk_change_rate) from [<c03c7b7c>]
+(clk_core_set_rate_nolock+0x68/0xb0)
+[    0.148187] [<c03c7b7c>] (clk_core_set_rate_nolock) from [<c03c8134>]
+(clk_set_rate+0x20/0x30)
+[    0.148202] [<c03c8134>] (clk_set_rate) from [<c03cc560>]
+(of_clk_set_defaults+0x200/0x364)
+[    0.148219] [<c03cc560>] (of_clk_set_defaults) from [<c045427c>]
+(platform_drv_probe+0x18/0xb0)
+[    0.148233] [<c045427c>] (platform_drv_probe) from [<c0452efc>]
+(driver_probe_device+0x234/0x2e8)
+[    0.148246] [<c0452efc>] (driver_probe_device) from [<c0453068>]
+(__driver_attach+0xb8/0xbc)
+[    0.148258] [<c0453068>] (__driver_attach) from [<c0451414[    1.336154]
+Unable to handle kernel NULL pointer dereference at virtual address 00000008
+
+and a bit later:
+
+[    1.995572] Rebooting in 10 seconds..
+
+Orange PI PC, script.bin.OPI-PC_1080p60_hdmi.
+
+What do I miss? Thanks.
+
+
+
 -- 
-2.11.0
+Alexey
