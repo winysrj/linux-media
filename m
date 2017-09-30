@@ -1,53 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:60667 "EHLO mout.web.de"
+Received: from osg.samsung.com ([64.30.133.232]:53204 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750947AbdIXKXm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Sep 2017 06:23:42 -0400
-Subject: [PATCH 1/6] [media] omap_vout: Delete an error message for a failed
- memory allocation in omap_vout_create_video_devices()
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Jan Kara <jack@suse.cz>, Lorenzo Stoakes <lstoakes@gmail.com>,
+        id S1751577AbdI3J3M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 30 Sep 2017 05:29:12 -0400
+Date: Sat, 30 Sep 2017 06:28:47 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Russell King <rmk+kernel@armlinux.org.uk>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Muralidharan Karicheri <mkaricheri@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
-Message-ID: <c949fbd6-0a01-d6e7-d6f9-d55dbf5dce5e@users.sourceforge.net>
-Date: Sun, 24 Sep 2017 12:22:55 +0200
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [PATCH RFC] media: staging/imx: fix complete handler
+Message-ID: <20170930062847.74110364@vento.lan>
+In-Reply-To: <E1dy2zX-0003NB-5J@rmk-PC.armlinux.org.uk>
+References: <E1dy2zX-0003NB-5J@rmk-PC.armlinux.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 24 Sep 2017 10:08:22 +0200
+Em Fri, 29 Sep 2017 22:38:39 +0100
+Russell King <rmk+kernel@armlinux.org.uk> escreveu:
 
-Omit an extra message for a memory allocation failure in this function.
+> The complete handler walks all entities, expecting to find an imx
+> subdevice for each and every entity.
+> 
+> However, camera drivers such as smiapp can themselves contain multiple
+> entities, for which there will not be an imx subdevice.  This causes
+> imx_media_find_subdev_by_sd() to fail, making the imx capture system
+> unusable with such cameras.
+> 
+> Work around this by killing the error entirely, thereby allowing
+> the imx capture to be used with such cameras.
+> 
+> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> ---
+> Not the best solution, but the only one I can think of to fix the
+> regression that happened sometime between a previous revision of
+> Steve's patch set and the version that got merged.
 
-This issue was detected by using the Coccinelle software.
+Yeah, ideally, the complete handling should somehow be aware
+about smiapp entities and do the right thing, instead of
+just ignoring the errors.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/omap/omap_vout.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+Sakari,
 
-diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-index 4d29860d27b4..aebc1e628ac5 100644
---- a/drivers/media/platform/omap/omap_vout.c
-+++ b/drivers/media/platform/omap/omap_vout.c
-@@ -1948,7 +1948,5 @@ static int __init omap_vout_create_video_devices(struct platform_device *pdev)
--		if (!vout) {
--			dev_err(&pdev->dev, ": could not allocate memory\n");
-+		if (!vout)
- 			return -ENOMEM;
--		}
- 
- 		vout->vid = k;
- 		vid_dev->vouts[k] = vout;
--- 
-2.14.1
+What do you think?
+
+Regards,
+Mauro
+
+
+> 
+>  drivers/staging/media/imx/imx-media-dev.c | 7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+> index d96f4512224f..6ba59939dd7a 100644
+> --- a/drivers/staging/media/imx/imx-media-dev.c
+> +++ b/drivers/staging/media/imx/imx-media-dev.c
+> @@ -345,8 +345,11 @@ static int imx_media_add_vdev_to_pad(struct imx_media_dev *imxmd,
+>  
+>  	sd = media_entity_to_v4l2_subdev(entity);
+>  	imxsd = imx_media_find_subdev_by_sd(imxmd, sd);
+> -	if (IS_ERR(imxsd))
+> -		return PTR_ERR(imxsd);
+> +	if (IS_ERR(imxsd)) {
+> +		v4l2_err(&imxmd->v4l2_dev, "failed to find subdev for entity %s, sd %p err %ld\n",
+> +			 entity->name, sd, PTR_ERR(imxsd));
+> +		return 0;
+> +	}
+>  
+>  	imxpad = &imxsd->pad[srcpad->index];
+>  	vdev_idx = imxpad->num_vdevs;
+
+
+
+Thanks,
+Mauro
