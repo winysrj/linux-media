@@ -1,126 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:33683 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755921AbdIGSm6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Sep 2017 14:42:58 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH v3 07/15] [media] v4l: add V4L2_EVENT_BUF_QUEUED event
-Date: Thu,  7 Sep 2017 15:42:18 -0300
-Message-Id: <20170907184226.27482-8-gustavo@padovan.org>
-In-Reply-To: <20170907184226.27482-1-gustavo@padovan.org>
-References: <20170907184226.27482-1-gustavo@padovan.org>
+Received: from osg.samsung.com ([64.30.133.232]:61626 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751439AbdI3JVM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 30 Sep 2017 05:21:12 -0400
+Date: Sat, 30 Sep 2017 06:20:49 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH RFC] [media] v4l: async: don't bomb out on ->complete
+ failure
+Message-ID: <20170930062049.7029ec42@vento.lan>
+In-Reply-To: <E1dy2ue-0003JB-FG@rmk-PC.armlinux.org.uk>
+References: <E1dy2ue-0003JB-FG@rmk-PC.armlinux.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Em Fri, 29 Sep 2017 22:33:36 +0100
+Russell King <rmk+kernel@armlinux.org.uk> escreveu:
 
-Add a new event the userspace can subscribe to receive notifications
-when a buffer is queued onto the driver. The event provides the index of
-the queued buffer.
+> When a subdev is being registered via v4l2_async_register_subdev(), we
+> test to see if we have all the components, and if so, we call the
+> ->complete() handler.  
+> 
+> However, the error handling is broken - if notifier->complete() returns
+> an error, we propagate the error out of v4l2_async_register_subdev(),
+> but leaving the subdev bound and on the notifier's "done" list.
+> 
+> Drivers calling v4l2_async_register_subdev() assume that this means
+> that v4l2_async_register_subdev() failed, which causes probe failure
+> and the memory backing the subdev to be freed.
+> 
+> At this point, we now have a subdev on the notifier's done list which
+> has been freed.  If we then try to remove the notifier via
+> v4l2_async_notifier_unregister(), we walk the notifier's done list,
+> cleaning up the subdevs - and hit the freed subdev, causing a kernel
+> oops such as:
+> 
+> Unable to handle kernel paging request at virtual address 6e6f6994
+> pgd = d039c000
+> [6e6f6994] *pgd=00000000
+> Internal error: Oops: 5 [#1] SMP ARM
+> Modules linked in: mux_mmio caam_jr snd_soc_imx_sgtl5000 snd_soc_fsl_asoc_card
+>  snd_soc_imx_spdif imx_media_csi(C) ci_hdrc_imx snd_soc_imx_audmux
+>  imx6_mipi_csi2(C) imx219 snd_soc_sgtl5000 ci_hdrc usbmisc_imx udc_core
+>  caam video_mux mux_core imx_media_ic(C) imx_sdma imx_media_vdic(C)
+>  imx_media_capture(C) imx2_wdt snd_soc_fsl_ssi snd_soc_fsl_spdif
+>  imx_pcm_dma coda v4l2_mem2mem videobuf2_v4l2 imx_vdoa videobuf2_dma_contig
+>  videobuf2_core imx_thermal videobuf2_vmalloc videobuf2_memops imx_media(C-)
+>  imx_media_common(C) v4l2_fwnode nfsd rc_pinnacle_pctv_hd dw_hdmi_ahb_audio
+>  dw_hdmi_cec etnaviv
+> CPU: 1 PID: 8039 Comm: rmmod Tainted: G         C      4.14.0-rc1+ #2194
+> Hardware name: Freescale i.MX6 Quad/DualLite (Device Tree)
+> task: ee522700 task.stack: e5f68000
+> PC is at __lock_acquire+0x98/0x13f4
+> LR is at lock_acquire+0xd8/0x250
+> pc : [<c008cb00>]    lr : [<c008e828>]    psr: 200e0093
+> sp : e5f69d28  ip : e5f68000  fp : e5f69da4
+> r10: 00000000  r9 : 00000000  r8 : 6e6f6994
+> r7 : 00000000  r6 : c0aa4f64  r5 : ee522700  r4 : c13f4abc
+> r3 : 00000000  r2 : 00000001  r1 : 00000000  r0 : 6e6f6994
+> Flags: nzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment none
+> Control: 10c5387d  Table: 2039c04a  DAC: 00000051
+> Process rmmod (pid: 8039, stack limit = 0xe5f68210)
+> Backtrace:
+> [<c008ca68>] (__lock_acquire) from [<c008e828>] (lock_acquire+0xd8/0x250)
+> [<c008e750>] (lock_acquire) from [<c0749734>] (_raw_spin_lock+0x34/0x44)
+> [<c0749700>] (_raw_spin_lock) from [<c05155b4>] (v4l2_device_unregister_subdev+0x2c/0xb0)
+> [<c0515588>] (v4l2_device_unregister_subdev) from [<c051f4d0>] (v4l2_async_cleanup+0x14/0x40)
+> [<c051f4bc>] (v4l2_async_cleanup) from [<c051f6dc>] (v4l2_async_notifier_unregister+0xa8/0x1ec)
+> [<c051f634>] (v4l2_async_notifier_unregister) from [<bf05802c>] (imx_media_remove+0x2c/0x54 [imx_media])
+> [<bf058000>] (imx_media_remove [imx_media]) from [<c043d3a8>] (platform_drv_remove+0x2c/0x44)
+> [<c043d37c>] (platform_drv_remove) from [<c043b8d8>] (device_release_driver_internal+0x158/0x1f8)
+> [<c043b780>] (device_release_driver_internal) from [<c043b9d4>] (driver_detach+0x40/0x74)
+> [<c043b994>] (driver_detach) from [<c043aadc>] (bus_remove_driver+0x54/0x98)
+> [<c043aa88>] (bus_remove_driver) from [<c043c5c8>] (driver_unregister+0x30/0x50)
+> [<c043c598>] (driver_unregister) from [<c043d274>] (platform_driver_unregister+0x14/0x18)
+> [<c043d260>] (platform_driver_unregister) from [<bf059508>] (imx_media_pdrv_exit+0x14/0x1c [imx_media])
+> [<bf0594f4>] (imx_media_pdrv_exit [imx_media]) from [<c00d9218>] (SyS_delete_module+0x170/0x1c0)
+> [<c00d90a8>] (SyS_delete_module) from [<c00103c0>] (ret_fast_syscall+0x0/0x1c)
+> Code: 1a00000e e3a00000 e24bd028 e89daff0 (e5980000)
+> ---[ end trace 97732329ac63e5ae ]---
+> 
+> Avoid this by reporting an error to the kernel message log about the
+> failure, rather than silently propagating the error from ->complete()
+> and causing this latent use-after-free oops.
 
-v2: - Add missing Documentation (Mauro)
+Thanks for tracking this issue!
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- Documentation/media/uapi/v4l/vidioc-dqevent.rst | 23 +++++++++++++++++++++++
- Documentation/media/videodev2.h.rst.exceptions  |  1 +
- include/uapi/linux/videodev2.h                  | 11 +++++++++++
- 3 files changed, 35 insertions(+)
+> 
+> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index d741a8e0fdac..8d221f4a8a8d 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -122,8 +122,12 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
+>  	/* Move from the global subdevice list to notifier's done */
+>  	list_move(&sd->async_list, &notifier->done);
+>  
+> -	if (list_empty(&notifier->waiting) && notifier->complete)
+> -		return notifier->complete(notifier);
+> +	if (list_empty(&notifier->waiting) && notifier->complete) {
+> +		int ret = notifier->complete(notifier);
+> +		if (ret)
+> +			dev_err(notifier->v4l2_dev->dev,
+> +				"complete notifier failed: %d\n", ret);
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-dqevent.rst b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-index fcd9c933870d..55f9dbdca6ec 100644
---- a/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-@@ -78,6 +78,10 @@ call.
-       - ``src_change``
-       - Event data for event V4L2_EVENT_SOURCE_CHANGE.
-     * -
-+      - struct :c:type:`v4l2_event_buf_queued`
-+      - ``buf_queued``
-+      - Event data for event V4L2_EVENT_BUF_QUEUED.
-+    * -
-       - __u8
-       - ``data``\ [64]
-       - Event data. Defined by the event type. The union should be used to
-@@ -337,6 +341,25 @@ call.
- 	each cell in the motion detection grid, then that all cells are
- 	automatically assigned to the default region 0.
- 
-+.. c:type:: v4l2_event_buf_queued
-+
-+.. flat-table:: struct v4l2_event_buf_queued
-+    :header-rows:  0
-+    :stub-columns: 0
-+    :widths:       1 1 2
-+
-+    * - __u32
-+      - ``index``
-+      - The index of the buffer that was queued to the driver.
-+    * - __s32
-+      - ``out_fence_fd``
-+      - The out-fence file descriptor of the buffer that was queued to
-+	the driver. It will signal when the buffer is ready, or if an
-+	error happens.
-+
-+
-+
-+.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{8.7cm}|
- 
- 
- .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
-diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-index a5cb0a8686ac..4e014b1d0317 100644
---- a/Documentation/media/videodev2.h.rst.exceptions
-+++ b/Documentation/media/videodev2.h.rst.exceptions
-@@ -462,6 +462,7 @@ replace define V4L2_EVENT_CTRL event-type
- replace define V4L2_EVENT_FRAME_SYNC event-type
- replace define V4L2_EVENT_SOURCE_CHANGE event-type
- replace define V4L2_EVENT_MOTION_DET event-type
-+replace define V4L2_EVENT_BUF_QUEUED event-type
- replace define V4L2_EVENT_PRIVATE_START event-type
- 
- replace define V4L2_EVENT_CTRL_CH_VALUE ctrl-changes-flags
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index e5abab9a908c..e2ec0b66f490 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -2158,6 +2158,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_FRAME_SYNC			4
- #define V4L2_EVENT_SOURCE_CHANGE		5
- #define V4L2_EVENT_MOTION_DET			6
-+#define V4L2_EVENT_BUF_QUEUED			7
- #define V4L2_EVENT_PRIVATE_START		0x08000000
- 
- /* Payload for V4L2_EVENT_VSYNC */
-@@ -2210,6 +2211,15 @@ struct v4l2_event_motion_det {
- 	__u32 region_mask;
- };
- 
-+/**
-+ * struct v4l2_event_buf_queued - buffer queued in the driver event
-+ * @index:		index of the buffer queued in the driver
-+ */
-+struct v4l2_event_buf_queued {
-+	__u32 index;
-+	__s32 out_fence_fd;
-+};
-+
- struct v4l2_event {
- 	__u32				type;
- 	union {
-@@ -2218,6 +2228,7 @@ struct v4l2_event {
- 		struct v4l2_event_frame_sync	frame_sync;
- 		struct v4l2_event_src_change	src_change;
- 		struct v4l2_event_motion_det	motion_det;
-+		struct v4l2_event_buf_queued	buf_queued;
- 		__u8				data[64];
- 	} u;
- 	__u32				pending;
--- 
-2.13.5
+Printing the error here is OK...
+
+Yet, v4l2_async_test_notify() should be cleaning up the house and
+return the error, instead of returning 0, e. g. something like
+(untested):
+
+	if (list_empty(&notifier->waiting) && notifier->complete) {
+		int ret = notifier->complete(notifier);
+		if (ret) {
+			dev_err(notifier->v4l2_dev->dev,
+				"complete notifier failed: %d\n", ret);
+			v4l2_async_cleanup(sd);
+			return (ret);
+		}
+	}
+
+
+Thanks,
+Mauro
