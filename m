@@ -1,182 +1,296 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:54381 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751158AbdJ0Jwb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Oct 2017 05:52:31 -0400
-Received: by mail-lf0-f67.google.com with SMTP id a2so6738608lfh.11
-        for <linux-media@vger.kernel.org>; Fri, 27 Oct 2017 02:52:30 -0700 (PDT)
-Date: Fri, 27 Oct 2017 11:52:27 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v16 19/32] v4l: async: Ensure only unique fwnodes are
- registered to notifiers
-Message-ID: <20171027095227.GA8854@bigcity.dyn.berto.se>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-20-sakari.ailus@linux.intel.com>
+Received: from osg.samsung.com ([64.30.133.232]:46399 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751021AbdJALDB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 1 Oct 2017 07:03:01 -0400
+Date: Sun, 1 Oct 2017 08:02:27 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: Re: [PATCH v2 09/13] scripts: kernel-doc: parse next structs/unions
+Message-ID: <20171001080146.282dad4b@vento.lan>
+In-Reply-To: <68968C67-7CD6-4264-A46D-1EE195CBC58D@darmarit.de>
+References: <cover.1506546492.git.mchehab@s-opensource.com>
+        <cover.1506546492.git.mchehab@s-opensource.com>
+        <b2528c4f1d2e76b7dacde8c5660e94de32e2eb71.1506546492.git.mchehab@s-opensource.com>
+        <68968C67-7CD6-4264-A46D-1EE195CBC58D@darmarit.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171026075342.5760-20-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Em Thu, 28 Sep 2017 18:28:32 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-Thanks for your patch.
-
-On 2017-10-26 10:53:29 +0300, Sakari Ailus wrote:
-> While registering a notifier, check that each newly added fwnode is
-> unique, and return an error if it is not. Also check that a newly added
-> notifier does not have the same fwnodes twice.
+> Hi Mauro,
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 82 +++++++++++++++++++++++++++++++++---
->  1 file changed, 77 insertions(+), 5 deletions(-)
+> > Am 27.09.2017 um 23:10 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+
+> > +	# Split nested struct/union elements as newer ones
+> > +	my $cont = 1;
+> > +	while ($cont) {
+> > +		$cont = 0;  
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index ed539c4fd5dc..b4e88eef195f 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -308,8 +308,71 @@ static void v4l2_async_notifier_unbind_all_subdevs(
->  	notifier->parent = NULL;
->  }
->  
-> +/* See if an fwnode can be found in a notifier's lists. */
-> +static bool __v4l2_async_notifier_fwnode_has_async_subdev(
-> +	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
-> +{
-> +	struct v4l2_async_subdev *asd;
-> +	struct v4l2_subdev *sd;
-> +
-> +	list_for_each_entry(asd, &notifier->waiting, list) {
-> +		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
-> +			continue;
-> +
-> +		if (asd->match.fwnode.fwnode == fwnode)
-> +			return true;
-> +	}
-> +
-> +	list_for_each_entry(sd, &notifier->done, async_list) {
-> +		if (WARN_ON(!sd->asd))
-> +			continue;
-> +
-> +		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
-> +			continue;
-> +
-> +		if (sd->asd->match.fwnode.fwnode == fwnode)
-> +			return true;
-> +	}
-> +
-> +	return false;
-> +}
-> +
-> +/*
-> + * Find out whether an async sub-device was set up for an fwnode already or
-> + * whether it exists in a given notifier before @this_index.
-> + */
-> +static bool v4l2_async_notifier_fwnode_has_async_subdev(
-> +	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
-> +	unsigned int this_index)
-> +{
-> +	unsigned int j;
-> +
-> +	lockdep_assert_held(&list_lock);
-> +
-> +	/* Check that an fwnode is not being added more than once. */
-> +	for (j = 0; j < this_index; j++) {
-> +		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
-> +		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
-> +
-> +		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
-> +		    asd->match.fwnode.fwnode ==
-> +		    other_asd->match.fwnode.fwnode)
-> +			return true;
-> +	}
-> +
-> +	/* Check than an fwnode did not exist in other notifiers. */
-> +	list_for_each_entry(notifier, &notifier_list, list)
-> +		if (__v4l2_async_notifier_fwnode_has_async_subdev(
-> +			    notifier, fwnode))
-> +			return true;
-> +
-> +	return false;
-> +}
-> +
->  static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
->  {
-> +	struct device *dev =
-> +		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
->  	struct v4l2_async_subdev *asd;
->  	int ret;
->  	int i;
-> @@ -320,6 +383,8 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
->  	INIT_LIST_HEAD(&notifier->waiting);
->  	INIT_LIST_HEAD(&notifier->done);
->  
-> +	mutex_lock(&list_lock);
-> +
->  	for (i = 0; i < notifier->num_subdevs; i++) {
->  		asd = notifier->subdevs[i];
->  
-> @@ -327,19 +392,25 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
->  		case V4L2_ASYNC_MATCH_CUSTOM:
->  		case V4L2_ASYNC_MATCH_DEVNAME:
->  		case V4L2_ASYNC_MATCH_I2C:
-> +			break;
->  		case V4L2_ASYNC_MATCH_FWNODE:
-> +			if (v4l2_async_notifier_fwnode_has_async_subdev(
-> +				    notifier, asd->match.fwnode.fwnode, i)) {
-> +				dev_err(dev,
-> +					"fwnode has already been registered or in notifier's subdev list\n");
-> +				ret = -EEXIST;
-> +				goto out_unlock;
-
-You store the error code in ret before the jump, but in the out_unlock 
-path ret is not considered and 0 is always returned.
-
-> +			}
->  			break;
->  		default:
-> -			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
-> -				"Invalid match type %u on %p\n",
-> +			dev_err(dev, "Invalid match type %u on %p\n",
->  				asd->match_type, asd);
-> -			return -EINVAL;
-> +			ret = -EINVAL;
-> +			goto out_unlock;
-
-Same here.
-
->  		}
->  		list_add_tail(&asd->list, &notifier->waiting);
->  	}
->  
-> -	mutex_lock(&list_lock);
-> -
->  	ret = v4l2_async_notifier_try_all_subdevs(notifier);
->  	if (ret)
->  		goto err_unbind;
-> @@ -351,6 +422,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
->  	/* Keep also completed notifiers on the list */
->  	list_add(&notifier->list, &notifier_list);
->  
-> +out_unlock:
->  	mutex_unlock(&list_lock);
->  
->  	return 0;
-> -- 
-> 2.11.0
 > 
+> You ignored the remarks I made to v1: 
+> 
+>  this outer loop is not needed!
+> 
+> 
+> > +		while ($members =~ m/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/) {  
+> 
+> 
+> The inner loop is enough.
+> 
+> > +			my $newmember = "$1 $4;";
+> > +			my $id = $4;  
+> 
+> 
+> > Am 26.09.2017 um 21:16 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> >   
+> >> This won't work if  you have e.g.
+> >> 
+> >>  union car {int foo;} bar1, bar2, *bbar3;
+> >> 
+> >> where $id will be "bar1, bar2, *bbar3", you need to split
+> >> this string and iterate over the id's.  
+> > 
+> > That's true, if we have cases like that. I hope not!  
+> 
+> We have! I can't remember where, but I hit such constructs while
+> parsing the whole sources.
+> 
+> > 
+> > Seriously, in the above case, the developer should very likely declare
+> > the union outside the main struct and have its own kernel-doc markup.
+> > 
+> > My personal taste would be to not explicitly support the above. If it
+> > hits some code, try to argue with the developer first, before patching
+> > kernel-doc to such weird stuff.  
+> 
+> Why is it wired? Anyway we have it and this kernel-doc fails with.
+> 
+> It also fails with bit types e.g.
+> 
+>        struct {
+> 	    __u8 arg1 : 1;
+> 	    __u8 arg2 : 3;
+>        };
+> 
+> 
+> May it help, if you inspect the py-version of this loop:
+> 
+>    https://github.com/return42/linuxdoc/blob/master/linuxdoc/kernel_doc.py#L2499
 
--- 
-Regards,
-Niklas Söderlund
+I addressed the things you pointed above.
+
+I decided to add the new logic on a separate patch, as handling
+those special cases seemed complex enough to justify placing it
+in separate.
+
+I also added the test for nested structs at the commit log, as it may
+help if someone would further need to improve it to handle other
+cases.
+
+The entire patch series is at:
+	https://git.linuxtv.org/mchehab/experimental.git/log/?h=nested-fix-v4
+
+
+Thanks,
+Mauro
+
+[PATCH] scripts: kernel-doc: improve nested logic to handle multiple
+ identifiers
+
+It is possible to use nested structs like:
+
+struct {
+	struct {
+		void *arg1;
+	} st1, st2, *st3, st4;
+}
+
+Handling it requires to split each parameter. Change the logic
+to allow such definitions.
+
+In order to test the new nested logic, the following file
+was used to test
+
+<code>
+struct foo { int a; }; /* Just to avoid errors if compiled */
+
+/**
+ * struct my_struct - a struct with nested unions and structs
+ * @arg1: first argument of anonymous union/anonymous struct
+ * @arg2: second argument of anonymous union/anonymous struct
+ * @arg1b: first argument of anonymous union/anonymous struct
+ * @arg2b: second argument of anonymous union/anonymous struct
+ * @arg3: third argument of anonymous union/anonymous struct
+ * @arg4: fourth argument of anonymous union/anonymous struct
+ * @bar.st1.arg1: first argument of struct st1 on union bar
+ * @bar.st1.arg2: second argument of struct st1 on union bar
+ * @bar.st1.bar1: bar1 at st1
+ * @bar.st1.bar2: bar2 at st1
+ * @bar.st2.arg1: first argument of struct st2 on union bar
+ * @bar.st2.arg2: second argument of struct st2 on union bar
+ * @bar.st3.arg2: second argument of struct st3 on union bar
+ * @f1: nested function on anonimous union/struct
+ * @bar.st2.f2: nested function on named union/struct
+ */
+struct my_struct {
+   /* Anonymous union/struct*/
+   union {
+	struct {
+	    char arg1 : 1;
+	    char arg2 : 3;
+	};
+       struct {
+           int arg1b;
+           int arg2b;
+       };
+       struct {
+           void *arg3;
+           int arg4;
+           int (*f1)(char foo, int bar);
+       };
+   };
+   union {
+       struct {
+           int arg1;
+           int arg2;
+	   struct foo bar1, *bar2;
+       } st1;           /* bar.st1 is undocumented, cause a warning */
+       struct {
+           void *arg1;  /* bar.st3.arg1 is undocumented, cause a warning */
+	    int arg2;
+          int (*f2)(char foo, int bar); /* bar.st3.fn2 is undocumented, cause a warning */
+       } st2, st3, *st4;
+       int (*f3)(char foo, int bar); /* f3 is undocumented, cause a warning */
+   } bar;               /* bar is undocumented, cause a warning */
+
+   /* private: */
+   int undoc_privat;    /* is undocumented but private, no warning */
+
+   /* public: */
+   int undoc_public;    /* is undocumented, cause a warning */
+};
+</code>
+
+It produces the following warnings, as expected:
+
+test2.h:57: warning: Function parameter or member 'bar' not described in 'my_struct'
+test2.h:57: warning: Function parameter or member 'bar.st1' not described in 'my_struct'
+test2.h:57: warning: Function parameter or member 'bar.st2' not described in 'my_struct'
+test2.h:57: warning: Function parameter or member 'bar.st3' not described in 'my_struct'
+test2.h:57: warning: Function parameter or member 'bar.st3.arg1' not described in 'my_struct'
+test2.h:57: warning: Function parameter or member 'bar.st3.f2' not described in 'my_struct'
+test2.h:57: warning: Function parameter or member 'bar.st4' not described in 'my_struct'
+test2.h:57: warning: Function parameter or member 'bar.st4.arg1' not described in 'my_struct'
+test2.h:57: warning: Function parameter or member 'bar.st4.arg2' not described in 'my_struct'
+test2.h:57: warning: Function parameter or member 'bar.st4.f2' not described in 'my_struct'
+test2.h:57: warning: Function parameter or member 'bar.f3' not described in 'my_struct'
+test2.h:57: warning: Function parameter or member 'undoc_public' not described in 'my_struct'
+
+Suggested-by: Markus Heiser <markus.heiser@darmarit.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index 2dd36c2256fa..0037be99d44d 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -1004,15 +1004,16 @@ sub dump_struct($$) {
+ 	my $declaration = $members;
+ 
+ 	# Split nested struct/union elements as newer ones
+-	my $cont = 1;
+-	while ($cont) {
+-		$cont = 0;
+-		while ($members =~ m/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/) {
+-			my $newmember = "$1 $4;";
+-			my $id = $4;
+-			my $content = $3;
++	while ($members =~ m/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/) {
++		my $newmember;
++		my $maintype = $1;
++		my $ids = $4;
++		my $content = $3;
++		foreach my $id(split /,/, $ids) {
++			$newmember .= "$maintype $id; ";
++
+ 			$id =~ s/[:\[].*//;
+-			$id =~ s/^\*+//;
++			$id =~ s/^\s*\**(\S+)\s*/$1/;
+ 			foreach my $arg (split /;/, $content) {
+ 				next if ($arg =~ m/^\s*$/);
+ 				if ($arg =~ m/^([^\(]+\(\*?\s*)([\w\.]*)(\s*\).*)/) {
+@@ -1023,30 +1024,48 @@ sub dump_struct($$) {
+ 					next if (!$name);
+ 					if ($id =~ m/^\s*$/) {
+ 						# anonymous struct/union
+-						$newmember .= "$type$name$extra;";
++						$newmember .= "$type$name$extra; ";
+ 					} else {
+-						$newmember .= "$type$id.$name$extra;";
++						$newmember .= "$type$id.$name$extra; ";
+ 					}
+ 				} else {
+-					my $type = $arg;
+-					my $name = $arg;
+-					$type =~ s/\s\S+$//;
+-					$name =~ s/.*\s+//;
+-					$name =~ s/[:\[].*//;
+-					$name =~ s/^\*+//;
+-					next if (($name =~ m/^\s*$/));
+-					if ($id =~ m/^\s*$/) {
+-						# anonymous struct/union
+-						$newmember .= "$type $name;";
++					my $type;
++					my $names;
++					$arg =~ s/^\s+//;
++					$arg =~ s/\s+$//;
++					# Handle bitmaps
++					$arg =~ s/:\s*\d+\s*//g;
++					# Handle arrays
++					$arg =~ s/\[\S+\]//g;
++					# The type may have multiple words,
++					# and multiple IDs can be defined, like:
++					#	const struct foo, *bar, foobar
++					# So, we remove spaces when parsing the
++					# names, in order to match just names
++					# and commas for the names
++					$arg =~ s/\s*,\s*/,/g;
++					if ($arg =~ m/(.*)\s+([\S+,]+)/) {
++						$type = $1;
++						$names = $2;
+ 					} else {
+-						$newmember .= "$type $id.$name;";
++						$newmember .= "$arg; ";
++						next;
++					}
++					foreach my $name (split /,/, $names) {
++						$name =~ s/^\s*\**(\S+)\s*/$1/;
++						next if (($name =~ m/^\s*$/));
++						if ($id =~ m/^\s*$/) {
++							# anonymous struct/union
++							$newmember .= "$type $name; ";
++						} else {
++							$newmember .= "$type $id.$name; ";
++						}
+ 					}
+ 				}
+ 			}
+-			$members =~ s/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/$newmember/;
+-			$cont = 1;
+-		};
+-	};
++		}
++		$members =~ s/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/$newmember/;
++	}
+ 
+ 	# Ignore other nested elements, like enums
+ 	$members =~ s/({[^\{\}]*})//g;
