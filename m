@@ -1,157 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:52030 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751827AbdJ1UlK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 28 Oct 2017 16:41:10 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 5/9] media: staging/imx: pass fwnode handle to find/add async subdev
-Date: Sat, 28 Oct 2017 13:36:45 -0700
-Message-Id: <1509223009-6392-6-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1509223009-6392-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1509223009-6392-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from osg.samsung.com ([64.30.133.232]:42024 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751004AbdJALTY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 1 Oct 2017 07:19:24 -0400
+Date: Sun, 1 Oct 2017 08:18:57 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: Re: [PATCH v2 12/13] scripts: kernel-doc: handle nested struct
+ function arguments
+Message-ID: <20171001081857.7c5fadc3@vento.lan>
+In-Reply-To: <F4774F51-B099-46E2-BE6F-8293642494DD@darmarit.de>
+References: <cover.1506546492.git.mchehab@s-opensource.com>
+        <cover.1506546492.git.mchehab@s-opensource.com>
+        <8cab7bd29fa6fbf8e54d1478a5be2a709cf35ea4.1506546492.git.mchehab@s-opensource.com>
+        <F4774F51-B099-46E2-BE6F-8293642494DD@darmarit.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pass the subdev's fwnode_handle to imx_media_find_async_subdev() and
-imx_media_add_async_subdev(), instead of a device_node.
+Em Thu, 28 Sep 2017 18:32:30 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-media-dev.c | 20 ++++++++++----------
- drivers/staging/media/imx/imx-media-of.c  |  7 +++----
- drivers/staging/media/imx/imx-media.h     |  4 ++--
- 3 files changed, 15 insertions(+), 16 deletions(-)
+> Hi Mauro,
+> 
+> this 'else' addition seems a bit spooky to me. As I commented in patch 09/13
+> may it helps when you look at 
+> 
+>   https://github.com/return42/linuxdoc/blob/master/linuxdoc/kernel_doc.py#L2499
+> 
+> which is IMO a bit more clear.
 
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index b948ce8..eba8560 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -33,15 +33,14 @@ static inline struct imx_media_dev *notifier2dev(struct v4l2_async_notifier *n)
- }
- 
- /*
-- * Find a subdev by device node or device name. This is called during
-+ * Find a subdev by fwnode or device name. This is called during
-  * driver load to form the async subdev list and bind them.
-  */
- struct imx_media_subdev *
- imx_media_find_async_subdev(struct imx_media_dev *imxmd,
--			    struct device_node *np,
-+			    struct fwnode_handle *fwnode,
- 			    const char *devname)
- {
--	struct fwnode_handle *fwnode = np ? of_fwnode_handle(np) : NULL;
- 	struct imx_media_subdev *imxsd;
- 	int i;
- 
-@@ -67,7 +66,7 @@ imx_media_find_async_subdev(struct imx_media_dev *imxmd,
- 
- 
- /*
-- * Adds a subdev to the async subdev list. If np is non-NULL, adds
-+ * Adds a subdev to the async subdev list. If fwnode is non-NULL, adds
-  * the async as a V4L2_ASYNC_MATCH_FWNODE match type, otherwise as
-  * a V4L2_ASYNC_MATCH_DEVNAME match type using the dev_name of the
-  * given platform_device. This is called during driver load when
-@@ -75,9 +74,10 @@ imx_media_find_async_subdev(struct imx_media_dev *imxmd,
-  */
- struct imx_media_subdev *
- imx_media_add_async_subdev(struct imx_media_dev *imxmd,
--			   struct device_node *np,
-+			   struct fwnode_handle *fwnode,
- 			   struct platform_device *pdev)
- {
-+	struct device_node *np = to_of_node(fwnode);
- 	struct imx_media_subdev *imxsd;
- 	struct v4l2_async_subdev *asd;
- 	const char *devname = NULL;
-@@ -89,7 +89,7 @@ imx_media_add_async_subdev(struct imx_media_dev *imxmd,
- 		devname = dev_name(&pdev->dev);
- 
- 	/* return -EEXIST if this subdev already added */
--	if (imx_media_find_async_subdev(imxmd, np, devname)) {
-+	if (imx_media_find_async_subdev(imxmd, fwnode, devname)) {
- 		dev_dbg(imxmd->md.dev, "%s: already added %s\n",
- 			__func__, np ? np->name : devname);
- 		imxsd = ERR_PTR(-EEXIST);
-@@ -107,9 +107,9 @@ imx_media_add_async_subdev(struct imx_media_dev *imxmd,
- 	imxsd = &imxmd->subdev[sd_idx];
- 
- 	asd = &imxsd->asd;
--	if (np) {
-+	if (fwnode) {
- 		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
--		asd->match.fwnode.fwnode = of_fwnode_handle(np);
-+		asd->match.fwnode.fwnode = fwnode;
- 	} else {
- 		asd->match_type = V4L2_ASYNC_MATCH_DEVNAME;
- 		asd->match.device_name.name = devname;
-@@ -162,13 +162,13 @@ static int imx_media_subdev_bound(struct v4l2_async_notifier *notifier,
- 				  struct v4l2_async_subdev *asd)
- {
- 	struct imx_media_dev *imxmd = notifier2dev(notifier);
--	struct device_node *np = to_of_node(sd->fwnode);
- 	struct imx_media_subdev *imxsd;
- 	int ret = 0;
- 
- 	mutex_lock(&imxmd->mutex);
- 
--	imxsd = imx_media_find_async_subdev(imxmd, np, dev_name(sd->dev));
-+	imxsd = imx_media_find_async_subdev(imxmd, sd->fwnode,
-+					    dev_name(sd->dev));
- 	if (!imxsd) {
- 		ret = -EINVAL;
- 		goto out;
-diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
-index a085e52..eb7a7f2 100644
---- a/drivers/staging/media/imx/imx-media-of.c
-+++ b/drivers/staging/media/imx/imx-media-of.c
-@@ -87,7 +87,8 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
- 	}
- 
- 	/* register this subdev with async notifier */
--	imxsd = imx_media_add_async_subdev(imxmd, sd_np, NULL);
-+	imxsd = imx_media_add_async_subdev(imxmd, of_fwnode_handle(sd_np),
-+					   NULL);
- 	ret = PTR_ERR_OR_ZERO(imxsd);
- 	if (ret) {
- 		if (ret == -EEXIST) {
-@@ -176,9 +177,7 @@ static int create_of_link(struct imx_media_dev *imxmd,
- 	if (link->local_port >= sd->entity.num_pads)
- 		return -EINVAL;
- 
--	remote = imx_media_find_async_subdev(imxmd,
--					     to_of_node(link->remote_node),
--					     NULL);
-+	remote = imx_media_find_async_subdev(imxmd, link->remote_node, NULL);
- 	if (!remote)
- 		return 0;
- 
-diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
-index 299d4df..b208af41 100644
---- a/drivers/staging/media/imx/imx-media.h
-+++ b/drivers/staging/media/imx/imx-media.h
-@@ -189,11 +189,11 @@ int imx_media_ipu_image_to_mbus_fmt(struct v4l2_mbus_framefmt *mbus,
- 
- struct imx_media_subdev *
- imx_media_find_async_subdev(struct imx_media_dev *imxmd,
--			    struct device_node *np,
-+			    struct fwnode_handle *fwnode,
- 			    const char *devname);
- struct imx_media_subdev *
- imx_media_add_async_subdev(struct imx_media_dev *imxmd,
--			   struct device_node *np,
-+			   struct fwnode_handle *fwnode,
- 			   struct platform_device *pdev);
- 
- void imx_media_grp_id_to_sd_name(char *sd_name, int sz,
--- 
-2.7.4
+Please don't top post. It makes really hard to understand what you meant.
+
+Anyway, as I answered to patc 9/13, I opted to add a separate patch in
+order to solve the remaining issues.
+
+If Jon prefers, I can just fold the three patches into one, although
+IMHO it is better to keep them in separate.
+
+Regards,
+Mauro
