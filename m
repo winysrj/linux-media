@@ -1,379 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47502 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1756041AbdIHNSa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Sep 2017 09:18:30 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        mika.westerberg@intel.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v9 14/24] v4l: async: Allow binding notifiers to sub-devices
-Date: Fri,  8 Sep 2017 16:18:12 +0300
-Message-Id: <20170908131822.31020-10-sakari.ailus@linux.intel.com>
-In-Reply-To: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
-References: <20170908131235.30294-1-sakari.ailus@linux.intel.com>
+Received: from mail-os2jpn01hn0222.outbound.protection.outlook.com ([104.47.92.222]:42736
+        "EHLO JPN01-OS2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751560AbdJABUQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 30 Sep 2017 21:20:16 -0400
+Received: from [199.168.141.253] (unknown [199.168.141.253])
+        by smtp.isc.chubu.ac.jp (Postfix) with ESMTP id 41F41E8008E
+        for <linux-media@vger.kernel.org>; Sun,  1 Oct 2017 10:20:13 +0900 (JST)
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: Investment & Business Capital
+To: <linux-media@vger.kernel.org>
+From: "Ohio Homestead Inc. Realtors" <noreply@ohrealtors.com>
+Date: Sat, 30 Sep 2017 18:20:12 -0700
+Reply-To: <highlandsitesfunding@gmail.com>
+Message-ID: <20171001012013.41F41E8008E@smtp.isc.chubu.ac.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Registering a notifier has required the knowledge of struct v4l2_device
-for the reason that sub-devices generally are registered to the
-v4l2_device (as well as the media device, also available through
-v4l2_device).
+Dear Sir / Madam,
 
-This information is not available for sub-device drivers at probe time.
+Are you looking for an investor or a private money lender for your project/business financial needs?
 
-What this patch does is that it allows registering notifiers without
-having v4l2_device around. Instead the sub-device pointer is stored in the
-notifier. Once the sub-device of the driver that registered the notifier
-is registered, the notifier will gain the knowledge of the v4l2_device,
-and the binding of async sub-devices from the sub-device driver's notifier
-may proceed.
+Join The 76,583+ People We've Helped Apply For a Loan.
 
-The root notifier's complete callback is only called when all sub-device
-notifiers are completed.
+Fast Funds For Approved Applicants.
+All Credit Types Considered.
+Form Processes in 3 Hours.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 217 ++++++++++++++++++++++++++++++-----
- include/media/v4l2-async.h           |  16 ++-
- 2 files changed, 202 insertions(+), 31 deletions(-)
+Submit your loan request to us today with this processing code OHIR000283 and a broker and trusted lender will be assigned to consider your application asap.
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 9ebc2e079d03..6f788b2e922a 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -53,6 +53,10 @@ static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
- 	return n->ops->complete(n);
- }
- 
-+static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-+				   struct v4l2_subdev *sd,
-+				   struct v4l2_async_subdev *asd);
-+
- static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
- #if IS_ENABLED(CONFIG_I2C)
-@@ -124,14 +128,128 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
- 	return NULL;
- }
- 
-+/* Get the sub-device notifier registered by a sub-device driver. */
-+static struct v4l2_async_notifier *v4l2_async_get_subdev_notifier(
-+	struct v4l2_subdev *sd)
-+{
-+	struct v4l2_async_notifier *n;
-+
-+	list_for_each_entry(n, &notifier_list, list)
-+		if (n->sd == sd)
-+			return n;
-+
-+	return NULL;
-+}
-+
-+/* Return true if all sub-device notifiers are complete, false otherwise. */
-+static bool v4l2_async_subdev_notifiers_complete(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_subdev *sd;
-+
-+	if (!list_empty(&notifier->waiting))
-+		return false;
-+
-+	list_for_each_entry(sd, &notifier->done, async_list) {
-+		struct v4l2_async_notifier *subdev_notifier =
-+			v4l2_async_get_subdev_notifier(sd);
-+
-+		if (!subdev_notifier)
-+			continue;
-+
-+		if (!v4l2_async_subdev_notifiers_complete(subdev_notifier))
-+			return false;
-+	}
-+
-+	return true;
-+}
-+
-+/* Get v4l2_device related to the notifier if one can be found. */
-+static struct v4l2_device *v4l2_async_notifier_get_v4l2_dev(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	while (notifier->parent)
-+		notifier = notifier->parent;
-+
-+	return notifier->v4l2_dev;
-+}
-+
-+/* Test all async sub-devices in a notifier for a match. */
-+static int v4l2_async_notifier_try_all_subdevs(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_subdev *sd;
-+
-+	if (!v4l2_async_notifier_get_v4l2_dev(notifier))
-+		return 0;
-+
-+again:
-+	list_for_each_entry(sd, &subdev_list, async_list) {
-+		struct v4l2_async_subdev *asd;
-+		int ret;
-+
-+		asd = v4l2_async_find_match(notifier, sd);
-+		if (!asd)
-+			continue;
-+
-+		ret = v4l2_async_match_notify(notifier, sd, asd);
-+		if (ret < 0)
-+			return ret;
-+
-+		/*
-+		 * v4l2_async_match_notify() may lead to registering a
-+		 * new notifier and thus changing the async subdevs
-+		 * list. In order to proceed safely from here, restart
-+		 * parsing the list from the beginning.
-+		 */
-+		goto again;
-+	}
-+
-+	return 0;
-+}
-+
-+/* Try completing a notifier. */
-+static int v4l2_async_notifier_try_complete(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	do {
-+		int ret;
-+
-+		/* Any local async sub-devices left? */
-+		if (!list_empty(&notifier->waiting))
-+			return 0;
-+
-+		/*
-+		 * Any sub-device notifiers waiting for async subdevs
-+		 * to be bound?
-+		 */
-+		if (!v4l2_async_subdev_notifiers_complete(notifier))
-+			return 0;
-+
-+		/* Proceed completing the notifier */
-+		ret = v4l2_async_notifier_call_complete(notifier);
-+		if (ret < 0)
-+			return ret;
-+
-+		/*
-+		 * Obtain notifier's parent. If there is one, repeat
-+		 * the process, otherwise we're done here.
-+		 */
-+	} while ((notifier = notifier->parent));
-+
-+	return 0;
-+}
-+
- static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 				   struct v4l2_subdev *sd,
- 				   struct v4l2_async_subdev *asd)
- {
-+	struct v4l2_async_notifier *subdev_notifier;
- 	int ret;
- 
--	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
--	if (ret < 0)
-+	ret = v4l2_device_register_subdev(
-+		v4l2_async_notifier_get_v4l2_dev(notifier), sd);
-+	if (ret)
- 		return ret;
- 
- 	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
-@@ -148,10 +266,20 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 	/* Move from the global subdevice list to notifier's done */
- 	list_move(&sd->async_list, &notifier->done);
- 
--	if (list_empty(&notifier->waiting))
--		return v4l2_async_notifier_call_complete(notifier);
-+	/*
-+	 * See if the sub-device has a notifier. If it does, proceed
-+	 * with checking for its async sub-devices.
-+	 */
-+	subdev_notifier = v4l2_async_get_subdev_notifier(sd);
-+	if (subdev_notifier && !subdev_notifier->parent) {
-+		subdev_notifier->parent = notifier;
-+		ret = v4l2_async_notifier_try_all_subdevs(subdev_notifier);
-+		if (ret)
-+			return ret;
-+	}
- 
--	return 0;
-+	/* Try completing the notifier and its parent(s). */
-+	return v4l2_async_notifier_try_complete(notifier);
- }
- 
- static void v4l2_async_cleanup(struct v4l2_subdev *sd)
-@@ -163,20 +291,18 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
- 	sd->dev = NULL;
- }
- 
--int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
--				 struct v4l2_async_notifier *notifier)
-+static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- {
--	struct v4l2_subdev *sd, *tmp;
- 	struct v4l2_async_subdev *asd;
-+	int ret;
- 	int i;
- 
--	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-+	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
- 		return -EINVAL;
- 
- 	if (!notifier->num_subdevs)
- 		return v4l2_async_notifier_call_complete(notifier);
- 
--	notifier->v4l2_dev = v4l2_dev;
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
- 
-@@ -200,18 +326,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 
- 	mutex_lock(&list_lock);
- 
--	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
--		int ret;
--
--		asd = v4l2_async_find_match(notifier, sd);
--		if (!asd)
--			continue;
--
--		ret = v4l2_async_match_notify(notifier, sd, asd);
--		if (ret < 0) {
--			mutex_unlock(&list_lock);
--			return ret;
--		}
-+	ret = v4l2_async_notifier_try_all_subdevs(notifier);
-+	if (ret) {
-+		mutex_unlock(&list_lock);
-+		return ret;
- 	}
- 
- 	/* Keep also completed notifiers on the list */
-@@ -221,28 +339,67 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 
- 	return 0;
- }
-+
-+int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-+				 struct v4l2_async_notifier *notifier)
-+{
-+	if (!v4l2_dev || notifier->sd)
-+		return -EINVAL;
-+
-+	notifier->v4l2_dev = v4l2_dev;
-+
-+	return __v4l2_async_notifier_register(notifier);
-+}
- EXPORT_SYMBOL(v4l2_async_notifier_register);
- 
--void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-+int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
-+					struct v4l2_async_notifier *notifier)
- {
--	struct v4l2_subdev *sd, *tmp;
-+	if (!sd || notifier->v4l2_dev)
-+		return -EINVAL;
- 
--	if (!notifier->v4l2_dev)
--		return;
-+	notifier->sd = sd;
- 
--	mutex_lock(&list_lock);
-+	return __v4l2_async_notifier_register(notifier);
-+}
-+EXPORT_SYMBOL(v4l2_async_subdev_notifier_register);
- 
--	list_del(&notifier->list);
-+/* Unbind all sub-devices in the notifier tree. */
-+static void v4l2_async_notifier_unbind_all_subdevs(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_subdev *sd, *tmp;
- 
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-+		struct v4l2_async_notifier *subdev_notifier =
-+			v4l2_async_get_subdev_notifier(sd);
-+
-+		if (subdev_notifier)
-+			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
-+
- 		v4l2_async_cleanup(sd);
- 
- 		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
-+
-+		list_del(&sd->async_list);
-+		list_add(&sd->async_list, &subdev_list);
- 	}
- 
--	mutex_unlock(&list_lock);
-+	notifier->parent = NULL;
-+}
-+
-+void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-+{
-+	if (!notifier->v4l2_dev && !notifier->sd)
-+		return;
- 
--	notifier->v4l2_dev = NULL;
-+	mutex_lock(&list_lock);
-+
-+	v4l2_async_notifier_unbind_all_subdevs(notifier);
-+
-+	list_del(&notifier->list);
-+
-+	mutex_unlock(&list_lock);
- }
- EXPORT_SYMBOL(v4l2_async_notifier_unregister);
- 
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 3bc8a7c0d83f..cf409d45208c 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -102,7 +102,9 @@ struct v4l2_async_notifier_operations {
-  * @num_subdevs: number of subdevices used in the subdevs array
-  * @max_subdevs: number of subdevices allocated in the subdevs array
-  * @subdevs:	array of pointers to subdevice descriptors
-- * @v4l2_dev:	pointer to struct v4l2_device
-+ * @v4l2_dev:	v4l2_device of the root notifier, NULL otherwise
-+ * @sd:		sub-device that registered the notifier, NULL otherwise
-+ * @parent:	parent notifier carrying @v4l2_dev
-  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
-  * @done:	list of struct v4l2_subdev, already probed
-  * @list:	member in a global list of notifiers
-@@ -113,6 +115,8 @@ struct v4l2_async_notifier {
- 	unsigned int max_subdevs;
- 	struct v4l2_async_subdev **subdevs;
- 	struct v4l2_device *v4l2_dev;
-+	struct v4l2_subdev *sd;
-+	struct v4l2_async_notifier *parent;
- 	struct list_head waiting;
- 	struct list_head done;
- 	struct list_head list;
-@@ -128,6 +132,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 				 struct v4l2_async_notifier *notifier);
- 
- /**
-+ * v4l2_async_subdev_notifier_register - registers a subdevice asynchronous
-+ *					 notifier for a sub-device
-+ *
-+ * @sd: pointer to &struct v4l2_subdev
-+ * @notifier: pointer to &struct v4l2_async_notifier
-+ */
-+int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
-+					struct v4l2_async_notifier *notifier);
-+
-+/**
-  * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
-  *
-  * @notifier: pointer to &struct v4l2_async_notifier
--- 
-2.11.0
+Thanks for letting us help with your loan needs.
+
+Brokers & Underwriters Team
+Ohio Homestead Inc. Realtors
+601 South High Street, Suite 255
+Columbus, OH 43215
+consult@ohrealtorsinc.com
+
+
+
+Important: Ohio Homestead Inc. Realtors only broker loans and does not make loan, APR, or credit decisions. Loan amounts will vary depending on Lender. Funding is conditional upon approval.
+
+We respects your privacy and the personal nature of e-mail communication. If you do not wish to receive marketing e-mail from Ohio Homestead Inc. Realtors in the future, please reply back unsubscribe my e-mail in your subject. This email and any files transmitted with are classified as Ohio Homestead Inc. Realtors confidential unless otherwise specified. This e-mail is intended solely for the use of the individual or entity to whom this e-mail is addressed. If you have received this email by mistake, please notify the sender and delete this e-mail immediately and permanently. Although measures were taken to free this e-mail and its attachments from any malicious code infection, it is the responsibility of the recipient to check this email and any attachments for the presence of such infections.
+
+Please don't print this e-mail unless you really need to.
