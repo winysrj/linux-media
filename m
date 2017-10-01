@@ -1,131 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:40525 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753187AbdJHD3P (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 7 Oct 2017 23:29:15 -0400
-Message-ID: <8cbdd5a1b316ba3de88c6ab0e6f355b3@smtp-cloud7.xs4all.net>
-Date: Sun, 08 Oct 2017 05:29:11 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:36357 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750849AbdJAKWy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 1 Oct 2017 06:22:54 -0400
+From: Jacob Chen <jacob-chen@iotwrt.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Cc: linux-kernel@vger.kernel.org, mchehab@kernel.org,
+        vladimir_zapolskiy@mentor.com, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com, lolivei@synopsys.com,
+        p.zabel@pengutronix.de, Jacob Chen <jacob-chen@iotwrt.com>
+Subject: [PATCH v3 1/2] media: i2c: OV5647: ensure clock lane in LP-11 state before streaming on
+Date: Sun,  1 Oct 2017 18:22:37 +0800
+Message-Id: <20171001102238.21585-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+When I was supporting Rpi Camera Module on the ASUS Tinker board,
+I found this driver have some issues with rockchip's mipi-csi driver.
+It didn't place clock lane in LP-11 state before performing
+D-PHY initialisation.
 
-Results of the daily build of media_tree:
+>From our experience, on some OV sensors,
+LP-11 state is not achieved while BIT(5)-0x4800 is cleared.
 
-date:			Sun Oct  8 05:00:06 CEST 2017
-media-tree git hash:	c1301077213d4dca34f01fc372b64d3c4a49a437
-media_build git hash:	b829b621b4c2e6c5cbedbd1ce62b4e958f7d13a4
-v4l-utils git hash:	01c04f7c8ad1a91af33e20621eba9200f447737e
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+So let's set BIT(5) and BIT(0) both while not streaming, in order to
+coax the clock lane into LP-11 state.
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-arm-stm32: ERRORS
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12.1-i686: ERRORS
-linux-4.13-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12.1-x86_64: ERRORS
-linux-4.13-x86_64: ERRORS
-apps: OK
-spec-git: OK
+0x4800 : MIPI CTRL 00
+	BIT(5) : clock lane gate enable
+		0: continuous
+		1: none-continuous
+	BIT(0) : manually set clock lane
+		0: Not used
+		1: used
 
-Detailed results are available here:
+Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+---
+ drivers/media/i2c/ov5647.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
+index 95ce90fdb876..247302d01f53 100644
+--- a/drivers/media/i2c/ov5647.c
++++ b/drivers/media/i2c/ov5647.c
+@@ -253,6 +253,10 @@ static int ov5647_stream_on(struct v4l2_subdev *sd)
+ {
+ 	int ret;
+ 
++	ret = ov5647_write(sd, 0x4800, 0x04);
++	if (ret < 0)
++		return ret;
++
+ 	ret = ov5647_write(sd, 0x4202, 0x00);
+ 	if (ret < 0)
+ 		return ret;
+@@ -264,6 +268,10 @@ static int ov5647_stream_off(struct v4l2_subdev *sd)
+ {
+ 	int ret;
+ 
++	ret = ov5647_write(sd, 0x4800, 0x25);
++	if (ret < 0)
++		return ret;
++
+ 	ret = ov5647_write(sd, 0x4202, 0x0f);
+ 	if (ret < 0)
+ 		return ret;
+@@ -320,7 +328,10 @@ static int __sensor_init(struct v4l2_subdev *sd)
+ 			return ret;
+ 	}
+ 
+-	return ov5647_write(sd, 0x4800, 0x04);
++	/*
++	 * stream off to make the clock lane into LP-11 state.
++	 */
++	return ov5647_stream_off(sd);
+ }
+ 
+ static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
+-- 
+2.14.1
