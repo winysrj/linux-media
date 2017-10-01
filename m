@@ -1,78 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58778 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751257AbdJILOR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 07:14:17 -0400
-Date: Mon, 9 Oct 2017 14:14:14 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH 01/24] media: v4l2-dev.h: add kernel-doc to two macros
-Message-ID: <20171009111414.xkisr2lqvexpmabo@valkosipuli.retiisi.org.uk>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
- <2169c19a54e142dcdba99d7c9011552944c74c84.1507544011.git.mchehab@s-opensource.com>
+Received: from butterbrot.org ([176.9.106.16]:46841 "EHLO butterbrot.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750869AbdJASZC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 1 Oct 2017 14:25:02 -0400
+Received: from localhost (localhost [127.0.0.1])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by butterbrot.org (Postfix) with ESMTPS id 129B04AE030A
+        for <linux-media@vger.kernel.org>; Sun,  1 Oct 2017 20:15:05 +0200 (CEST)
+Date: Sun, 1 Oct 2017 20:15:04 +0200 (CEST)
+From: Florian Echtler <floe@butterbrot.org>
+To: linux-media@vger.kernel.org
+Subject: Regression on 4.10 with Logitech Quickcam Sphere
+Message-ID: <alpine.DEB.2.10.1710012003100.18874@butterbrot>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2169c19a54e142dcdba99d7c9011552944c74c84.1507544011.git.mchehab@s-opensource.com>
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hello everyone,
 
-On Mon, Oct 09, 2017 at 07:19:07AM -0300, Mauro Carvalho Chehab wrote:
-> There are two macros at v4l2-dev.h that aren't documented.
-> 
-> Document them, for completeness.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  include/media/v4l2-dev.h | 18 +++++++++++++++---
->  1 file changed, 15 insertions(+), 3 deletions(-)
-> 
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index e657614521e3..de1a1453cfd9 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -260,9 +260,21 @@ struct video_device
->  	struct mutex *lock;
->  };
->  
-> -#define media_entity_to_video_device(__e) \
-> -	container_of(__e, struct video_device, entity)
-> -/* dev to video-device */
-> +/**
-> + * media_entity_to_video_device - Returns a &struct video_device from
-> + * 	the &struct media_entity embedded on it.
-> + *
-> + * @entity: pointer to &struct media_entity
-> + */
-> +#define media_entity_to_video_device(entity) \
-> +	container_of(entity, struct video_device, entity)
-> +
-> +/**
-> + * media_entity_to_video_device - Returns a &struct video_device from
+I recently upgraded from a 4.4 kernel to 4.10, and found that my Logitech 
+Quickcam Sphere now behaves differently.
 
--> to_video_device
+More specifically, the pan/tilt controls do not work anymore - in fact, 
+they are completely gone from "v4l2-ctl -L".
 
-With that,
+In dmesg, I'm getting these messages:
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+[   10.129984] uvcvideo: Found UVC 1.00 device <unnamed> (046d:0994)
+[   10.162212] uvcvideo 1-5:1.0: Entity type for entity Extension 4 was 
+not initialized!
+[   10.162215] uvcvideo 1-5:1.0: Entity type for entity Extension 10 was 
+not initialized!
+[   10.162216] uvcvideo 1-5:1.0: Entity type for entity Extension 12 was 
+not initialized!
+[   10.162217] uvcvideo 1-5:1.0: Entity type for entity Extension 8 was 
+not initialized!
+[   10.162218] uvcvideo 1-5:1.0: Entity type for entity Extension 11 was 
+not initialized!
+[   10.162220] uvcvideo 1-5:1.0: Entity type for entity Extension 9 was 
+not initialized!
+[   10.162221] uvcvideo 1-5:1.0: Entity type for entity Processing 2 was 
+not initialized!
+[   10.162222] uvcvideo 1-5:1.0: Entity type for entity Extension 13 was 
+not initialized!
+[   10.162223] uvcvideo 1-5:1.0: Entity type for entity Camera 1 was not 
+initialized!
+[   10.162360] usbcore: registered new interface driver uvcvideo
 
-> + * 	the &struct device embedded on it.
-> + *
-> + * @cd: pointer to &struct device
-> + */
->  #define to_video_device(cd) container_of(cd, struct video_device, dev)
->  
->  /**
+I suspect that https://bugzilla.kernel.org/show_bug.cgi?id=111291#c10 may 
+be related, and the new extension handling causes the pan/tilt controls to 
+disappear.
 
+Question now is, how to get them back?
+
+Best, Florian
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+"_Nothing_ brightens up my morning. Coffee simply provides a shade of
+grey just above the pitch-black of the infinite depths of the _abyss_."
