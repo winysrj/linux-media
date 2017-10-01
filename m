@@ -1,100 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:8181 "EHLO
-        aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751771AbdISK7Q (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:37208 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751659AbdJABqq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Sep 2017 06:59:16 -0400
-Subject: Re: [PATCHv2 1/2] dt-bindings: adi,adv7511.txt: document cec clock
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
-        Archit Taneja <architt@codeaurora.org>,
-        linux-renesas-soc@vger.kernel.org,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        devicetree@vger.kernel.org
-References: <20170919073331.29007-1-hverkuil@xs4all.nl>
- <20170919073331.29007-2-hverkuil@xs4all.nl>
- <505bc74f-6563-ab1d-9aab-7893410aef7e@cogentembedded.com>
- <74b252c8-c1eb-8498-7b9b-54604fe2806a@cisco.com>
- <e68cffb1-346c-2018-9048-3f8523903809@cogentembedded.com>
- <7bfcd125-db23-61e3-2bc9-67e5c11f27fa@xs4all.nl>
- <ce0588ed-eb3f-0008-0608-b54aefeee704@cogentembedded.com>
- <82f72432-51fa-722b-b1c7-d6f7ea6ae758@xs4all.nl>
- <5c8f3625-26f3-8c6e-d42a-def8251a9ac6@cogentembedded.com>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <aa9c5c0e-c2c8-7913-0e6c-4b150ff09a9b@cisco.com>
-Date: Tue, 19 Sep 2017 12:59:13 +0200
+        Sat, 30 Sep 2017 21:46:46 -0400
+Received: by mail-pg0-f65.google.com with SMTP id o1so976145pga.4
+        for <linux-media@vger.kernel.org>; Sat, 30 Sep 2017 18:46:46 -0700 (PDT)
+Subject: Re: [RESEND RFC PATCH 0/7] sun8i H3 HDMI glue driver for DW HDMI
+To: =?UTF-8?Q?Jernej_=c5=a0krabec?= <jernej.skrabec@siol.net>
+Cc: maxime.ripard@free-electrons.com, wens@csie.org,
+        Laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+        narmstrong@baylibre.com, dri-devel@lists.freedesktop.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org,
+        icenowy@aosc.io, linux-sunxi@googlegroups.com,
+        linux-media@vger.kernel.org
+References: <20170920200124.20457-1-jernej.skrabec@siol.net>
+ <51c50157-6794-852b-f89d-647b9cf06ef2@ozlabs.ru>
+ <34246001.lKHNgTVc0h@jernej-laptop>
+From: Alexey Kardashevskiy <aik@ozlabs.ru>
+Message-ID: <ccaebb62-ad28-4905-5ebf-bcdc1e7ebf54@ozlabs.ru>
+Date: Sun, 1 Oct 2017 12:46:38 +1100
 MIME-Version: 1.0
-In-Reply-To: <5c8f3625-26f3-8c6e-d42a-def8251a9ac6@cogentembedded.com>
+In-Reply-To: <34246001.lKHNgTVc0h@jernej-laptop>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Language: en-AU
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/19/17 12:42, Sergei Shtylyov wrote:
-> On 9/19/2017 1:35 PM, Hans Verkuil wrote:
+On 01/10/17 04:56, Jernej Škrabec wrote:
+> Hi,
 > 
->>>>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>>>>>
->>>>>>>> Document the cec clock binding.
->>>>>>>>
->>>>>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>>>>>> Acked-by: Rob Herring <robh@kernel.org>
->>>>>>>> ---
->>>>>>>>      Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt | 4 ++++
->>>>>>>>      1 file changed, 4 insertions(+)
->>>>>>>>
->>>>>>>> diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->>>>>>>> index 06668bca7ffc..4497ae054d49 100644
->>>>>>>> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->>>>>>>> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->>>>>>>> @@ -68,6 +68,8 @@ Optional properties:
->>>>>>>>      - adi,disable-timing-generator: Only for ADV7533. Disables the internal timing
->>>>>>>>        generator. The chip will rely on the sync signals in the DSI data lanes,
->>>>>>>>        rather than generate its own timings for HDMI output.
->>>>>>>> +- clocks: from common clock binding: handle to CEC clock.
->>>>>>>
->>>>>>>        It's called "phandle" in the DT speak. :-)
->>>>>>>        Are you sure the clock specifier would always be absent?
->>>>>>
->>>>>> Sorry? I don't understand the question. Did you mean: "can be absent?"?
->>>>>
->>>>>       No, you only say that there'll be the clock phandle only. The clock
->>>>> specifier may follow the phandle for the clock devices that have
->>>>> "#clock-cells" prop != 0.
->>>>
->>>> I have to say that I just copy-and-pasted this from other bindings.
+> Dne sobota, 30. september 2017 ob 13:58:03 CEST je Alexey Kardashevskiy 
+> napisal(a):
+>> On 21/09/17 06:01, Jernej Skrabec wrote:
+>>> [added media mailing list due to CEC question]
 >>>
->>>      :-)
+>>> This patch series adds a HDMI glue driver for Allwinner H3 SoC. For now,
+>>> only video and CEC functionality is supported. Audio needs more tweaks.
 >>>
->>>> Would this be better?
->>>>
->>>> - clocks: list of clock specifiers, corresponding to entries in
->>>>     the clock-names property;
+>>> Series is based on the H3 DE2 patch series available on mailing list:
+>>> http://lists.infradead.org/pipermail/linux-arm-kernel/2017-August/522697.h
+>>> tml (ignore patches marked with [NOT FOR REVIEW NOW] tag)
 >>>
->>>      Didn't you say that there'll be only one clock, "cec"? If so, there's
->>> gonna  be a single clock phandle+specifier pair. They always go in pairs. :-)
+>>> Patch 1 adds support for polling plug detection since custom PHY used here
+>>> doesn't support HPD interrupt.
 >>>
->>>> - clock-names: from common clock binding: must be "cec".
+>>> Patch 2 enables overflow workaround for v1.32a. This HDMI controller
+>>> exhibits same issues as HDMI controller used in iMX6 SoCs.
+>>>
+>>> Patch 3 adds CLK_SET_RATE_PARENT to hdmi clock.
+>>>
+>>> Patch 4 adds dt bindings documentation.
+>>>
+>>> Patch 5 adds actual H3 HDMI glue driver.
+>>>
+>>> Patch 6 and 7 add HDMI node to DT and enable it where needed.
+>>>
+>>> Allwinner used DW HDMI controller in a non standard way:
+>>> - register offsets obfuscation layer, which can fortunately be turned off
+>>> - register read lock, which has to be disabled by magic number
+>>> - custom PHY, which have to be initialized before DW HDMI controller
+>>> - non standard clocks
+>>> - no HPD interrupt
+>>>
+>>> Because of that, I have two questions:
+>>> - Since HPD have to be polled, is it enough just to enable poll mode? I'm
+>>>
+>>>   mainly concerned about invalidating CEC address here.
+>>>
+>>> - PHY has to be initialized before DW HDMI controller to disable offset
+>>>
+>>>   obfuscation and read lock among other things. This means that all clocks
+>>>   have to be enabled in glue driver. This poses a problem, since when
+>>>   using component model, dw-hdmi bridge uses drvdata for it's own private
+>>>   data and prevents glue layer to pass a pointer to unbind function,
+>>>   where clocks should be disabled. I noticed same issue in meson DW HDMI
+>>>   glue driver, where clocks are also not disabled when unbind callback is
+>>>   called. I noticed that when H3 SoC is shutdown, HDMI output is still
+>>>   enabled and lastest image is shown on monitor until it is unplugged
+>>>   from power supply. Is there any simple solution to this?
+>>>
+>>> Chen-Yu,
+>>> TL Lim was unable to obtain any answer from Allwinner about HDMI clocks. I
+>>> think it is safe to assume that divider in HDMI clock doesn't have any
+>>> effect.
+>>>
+>>> Branch based on linux-next from 1. September with integrated patches is
+>>> available here:
+>>> https://github.com/jernejsk/linux-1/tree/h3_hdmi_rfc
 >>
->> - clocks: cec clock phandle, corresponding to the clock-names entry.
-> 
->     The clock phandle and specifier.
-> 
->> - clock-names: from common clock binding: must be "cec".
+>> Out of curiosity I tried this one and got:
 >>
->> This OK?
+>>
+>>
+>> [    0.071711] sun4i-usb-phy 1c19400.phy: Couldn't request ID GPIO
+>> [    0.074809] sun8i-h3-pinctrl 1c20800.pinctrl: initialized sunXi PIO
+>> driver [    0.076167] sun8i-h3-r-pinctrl 1f02c00.pinctrl: initialized sunXi
+>> PIO driver [    0.148009] ------------[ cut here ]------------
+>> [    0.148035] WARNING: CPU: 0 PID: 1 at
+>> drivers/clk/sunxi-ng/ccu_common.c:41 ccu_nm_set_rate+0x1d0/0x274
+>> [    0.148046] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
+>> 4.13.0-rc6-next-20170825-aik-aik #24
+>> [    0.148051] Hardware name: Allwinner sun8i Family
+>> [    0.148082] [<c010de6c>] (unwind_backtrace) from [<c010b260>]
+>> (show_stack+0x10/0x14)
+>> [    0.148101] [<c010b260>] (show_stack) from [<c077a464>]
+>> (dump_stack+0x84/0x98)
+>> [    0.148117] [<c077a464>] (dump_stack) from [<c011abe0>]
+>> (__warn+0xe0/0xfc) [    0.148132] [<c011abe0>] (__warn) from [<c011acac>]
+>> (warn_slowpath_null+0x20/0x28)
+>> [    0.148145] [<c011acac>] (warn_slowpath_null) from [<c03d1888>]
+>> (ccu_nm_set_rate+0x1d0/0x274)
+>> [    0.148161] [<c03d1888>] (ccu_nm_set_rate) from [<c03c78b4>]
+>> (clk_change_rate+0x19c/0x250)
+>> [    0.148175] [<c03c78b4>] (clk_change_rate) from [<c03c7b7c>]
+>> (clk_core_set_rate_nolock+0x68/0xb0)
+>> [    0.148187] [<c03c7b7c>] (clk_core_set_rate_nolock) from [<c03c8134>]
+>> (clk_set_rate+0x20/0x30)
+>> [    0.148202] [<c03c8134>] (clk_set_rate) from [<c03cc560>]
+>> (of_clk_set_defaults+0x200/0x364)
+>> [    0.148219] [<c03cc560>] (of_clk_set_defaults) from [<c045427c>]
+>> (platform_drv_probe+0x18/0xb0)
+>> [    0.148233] [<c045427c>] (platform_drv_probe) from [<c0452efc>]
+>> (driver_probe_device+0x234/0x2e8)
+>> [    0.148246] [<c0452efc>] (driver_probe_device) from [<c0453068>]
+>> (__driver_attach+0xb8/0xbc)
+>> [    0.148258] [<c0453068>] (__driver_attach) from [<c0451414[    1.336154]
+>> Unable to handle kernel NULL pointer dereference at virtual address 00000008
+>>
 > 
->     Well, you seem to be going in circles, the above was almost the same as 
-> the original prop description...
+> Patch for that is already merged upstream and can be found here:
+> https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/commit/
+> drivers/clk/sunxi-ng?id=62d212bdb022deeb875f92f6e376c799e3f35eca
 
-- clocks: from common clock binding: reference to the CEC clock.
-- clock-names: from common clock binding: must be "cec".
+Lovely, it works, thanks!
 
-This avoids the whole issue of having just a phandle or a phandle + specifier.
 
-Regards,
+>> and a bit later:
+>>
+>> [    1.995572] Rebooting in 10 seconds..
+> 
+> I'm not sure about that one. Kernel config issue?
 
-	Hans
+
+
+Yup, I did not have CMA enabled.
+
+
+
+
+-- 
+Alexey
