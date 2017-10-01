@@ -1,50 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:47352 "EHLO
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:47907 "EHLO
         lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751213AbdJVHkz (ORCPT
+        by vger.kernel.org with ESMTP id S1750899AbdJAD3R (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Oct 2017 03:40:55 -0400
-Subject: Re: [PATCH 0/4] arm: dts: rockchip: enable HDMI+CEC on Firefly Reload
+        Sat, 30 Sep 2017 23:29:17 -0400
+Message-ID: <488a76f60934e190fa54a58c8c075051@smtp-cloud7.xs4all.net>
+Date: Sun, 01 Oct 2017 05:29:15 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-References: <20171020100734.17064-1-hverkuil@xs4all.nl>
-Cc: linux-rockchip@lists.infradead.org,
-        Heiko Stuebner <heiko@sntech.de>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2d624a0f-ff2c-7d18-3e13-ff5f766bf5c8@xs4all.nl>
-Date: Sun, 22 Oct 2017 09:40:53 +0200
-MIME-Version: 1.0
-In-Reply-To: <20171020100734.17064-1-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Heiko,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 20/10/17 12:07, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This patch series sits on top of these two patch series:
-> 
-> https://lkml.org/lkml/2017/10/13/971
-> https://lkml.org/lkml/2017/10/14/161
-> 
-> The first adds support for the cec clk in dw-hdmi, the second adds an
-> iomux-route for the CEC pin on the rk3288.
-> 
-> This patch series defines the cec clk for the rk3288, enables the
-> first HDMI output on the Firefly Reload. The second output isn't working,
-> I don't have enough knowledge to enable it. But I can test any patches
-> adding support for it!
-> 
-> The third patch defines the two possible CEC pins and the last selects
-> the correct pin for the Firefly Reload.
-> 
-> Likely the same thing can be done for the 'regular' Firefly, but I don't
-> have the hardware to test.
+Results of the daily build of media_tree:
 
-My Firefly Reload thanks you for merging this series! :-)
+date:			Sun Oct  1 05:00:05 CEST 2017
+media-tree git hash:	cf09e3c904bf424f8b6a8203958e09bf7d9bcbc0
+media_build git hash:	b829b621b4c2e6c5cbedbd1ce62b4e958f7d13a4
+v4l-utils git hash:	997ed5a4abba619282d9ffb8bb173e8589176d73
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-Regards,
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-arm-stm32: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+apps: OK
+spec-git: OK
 
-	Hans
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
