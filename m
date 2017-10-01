@@ -1,68 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fieldses.org ([173.255.197.46]:52398 "EHLO fieldses.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751132AbdJBTWZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Oct 2017 15:22:25 -0400
-Date: Mon, 2 Oct 2017 15:22:24 -0400
-To: Greg KH <greg@kroah.com>
-Cc: =?utf-8?B?SsOpcsOpbXk=?= Lefaure <jeremy.lefaure@lse.epita.fr>,
-        "Tobin C. Harding" <me@tobin.cc>, alsa-devel@alsa-project.org,
-        nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        dm-devel@redhat.com, brcm80211-dev-list@cypress.com,
-        devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org,
-        linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        linux-acpi@vger.kernel.org, linux-video@atrey.karlin.mff.cuni.cz,
-        intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, ecryptfs@vger.kernel.org,
-        linux-nfs@vger.kernel.org, linux-raid@vger.kernel.org,
-        openipmi-developer@lists.sourceforge.net,
-        intel-gvt-dev@lists.freedesktop.org, devel@acpica.org,
-        brcm80211-dev-list.pdl@broadcom.com, netdev@vger.kernel.org,
-        linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-integrity@vger.kernel.org
-Subject: Re: [PATCH 00/18] use ARRAY_SIZE macro
-Message-ID: <20171002192224.GD1903@fieldses.org>
-References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
- <20171001220131.GA11812@eros>
- <20171001205220.10b78086@blatinox-laptop.localdomain>
- <20171002053554.GA28743@kroah.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171002053554.GA28743@kroah.com>
-From: bfields@fieldses.org (J. Bruce Fields)
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:35202 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751043AbdJAKXA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 1 Oct 2017 06:23:00 -0400
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, mchehab@kernel.org,
+        vladimir_zapolskiy@mentor.com, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com, lolivei@synopsys.com,
+        p.zabel@pengutronix.de, Jacob Chen <jacob-chen@iotwrt.com>
+Subject: [PATCH v3 2/2] media: i2c: OV5647: change to use macro for the registers
+Date: Sun,  1 Oct 2017 18:22:38 +0800
+Message-Id: <20171001102238.21585-2-jacob-chen@iotwrt.com>
+In-Reply-To: <20171001102238.21585-1-jacob-chen@iotwrt.com>
+References: <20171001102238.21585-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 02, 2017 at 07:35:54AM +0200, Greg KH wrote:
-> On Sun, Oct 01, 2017 at 08:52:20PM -0400, Jérémy Lefaure wrote:
-> > On Mon, 2 Oct 2017 09:01:31 +1100
-> > "Tobin C. Harding" <me@tobin.cc> wrote:
-> > 
-> > > > In order to reduce the size of the To: and Cc: lines, each patch of the
-> > > > series is sent only to the maintainers and lists concerned by the patch.
-> > > > This cover letter is sent to every list concerned by this series.  
-> > > 
-> > > Why don't you just send individual patches for each subsystem? I'm not a maintainer but I don't see
-> > > how any one person is going to be able to apply this whole series, it is making it hard for
-> > > maintainers if they have to pick patches out from among the series (if indeed any will bother
-> > > doing that).
-> > Yeah, maybe it would have been better to send individual patches.
-> > 
-> > From my point of view it's a series because the patches are related (I
-> > did a git format-patch from my local branch). But for the maintainers
-> > point of view, they are individual patches.
-> 
-> And the maintainers view is what matters here, if you wish to get your
-> patches reviewed and accepted...
+ref docuemnt:
+  ov5647-datasheet-v1.00-2009
 
-Mainly I'd just like to know which you're asking for.  Do you want me to
-apply this, or to ACK it so someone else can?  If it's sent as a series
-I tend to assume the latter.
+Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+---
+ drivers/media/i2c/ov5647.c | 42 ++++++++++++++++++++++++++----------------
+ 1 file changed, 26 insertions(+), 16 deletions(-)
 
-But in this case I'm assuming it's the former, so I'll pick up the nfsd
-one....
-
---b.
+diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
+index 247302d01f53..34179d232a35 100644
+--- a/drivers/media/i2c/ov5647.c
++++ b/drivers/media/i2c/ov5647.c
+@@ -35,9 +35,18 @@
+ 
+ #define SENSOR_NAME "ov5647"
+ 
+-#define OV5647_SW_RESET		0x0103
+-#define OV5647_REG_CHIPID_H	0x300A
+-#define OV5647_REG_CHIPID_L	0x300B
++#define MIPI_CTRL00_CLOCK_LANE_GATE		BIT(5)
++#define MIPI_CTRL00_BUS_IDLE			BIT(2)
++#define MIPI_CTRL00_CLOCK_LANE_DISABLE		BIT(0)
++
++#define OV5647_SW_STANDBY		0x0100
++#define OV5647_SW_RESET			0x0103
++#define OV5647_REG_CHIPID_H		0x300A
++#define OV5647_REG_CHIPID_L		0x300B
++#define OV5640_REG_PAD_OUT		0x300D
++#define OV5647_REG_FRAME_OFF_NUMBER	0x4202
++#define OV5647_REG_MIPI_CTRL00		0x4800
++#define OV5647_REG_MIPI_CTRL14		0x4814
+ 
+ #define REG_TERM 0xfffe
+ #define VAL_TERM 0xfe
+@@ -241,42 +250,43 @@ static int ov5647_set_virtual_channel(struct v4l2_subdev *sd, int channel)
+ 	u8 channel_id;
+ 	int ret;
+ 
+-	ret = ov5647_read(sd, 0x4814, &channel_id);
++	ret = ov5647_read(sd, OV5647_REG_MIPI_CTRL14, &channel_id);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	channel_id &= ~(3 << 6);
+-	return ov5647_write(sd, 0x4814, channel_id | (channel << 6));
++	return ov5647_write(sd, OV5647_REG_MIPI_CTRL14, channel_id | (channel << 6));
+ }
+ 
+ static int ov5647_stream_on(struct v4l2_subdev *sd)
+ {
+ 	int ret;
+ 
+-	ret = ov5647_write(sd, 0x4800, 0x04);
++	ret = ov5647_write(sd, OV5647_REG_MIPI_CTRL00, MIPI_CTRL00_BUS_IDLE);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = ov5647_write(sd, 0x4202, 0x00);
++	ret = ov5647_write(sd, OV5647_REG_FRAME_OFF_NUMBER, 0x00);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	return ov5647_write(sd, 0x300D, 0x00);
++	return ov5647_write(sd, OV5640_REG_PAD_OUT, 0x00);
+ }
+ 
+ static int ov5647_stream_off(struct v4l2_subdev *sd)
+ {
+ 	int ret;
+ 
+-	ret = ov5647_write(sd, 0x4800, 0x25);
++	ret = ov5647_write(sd, OV5647_REG_MIPI_CTRL00, MIPI_CTRL00_CLOCK_LANE_GATE
++			   | MIPI_CTRL00_BUS_IDLE | MIPI_CTRL00_CLOCK_LANE_DISABLE);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = ov5647_write(sd, 0x4202, 0x0f);
++	ret = ov5647_write(sd, OV5647_REG_FRAME_OFF_NUMBER, 0x0f);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	return ov5647_write(sd, 0x300D, 0x01);
++	return ov5647_write(sd, OV5640_REG_PAD_OUT, 0x01);
+ }
+ 
+ static int set_sw_standby(struct v4l2_subdev *sd, bool standby)
+@@ -284,7 +294,7 @@ static int set_sw_standby(struct v4l2_subdev *sd, bool standby)
+ 	int ret;
+ 	u8 rdval;
+ 
+-	ret = ov5647_read(sd, 0x0100, &rdval);
++	ret = ov5647_read(sd, OV5647_SW_STANDBY, &rdval);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -293,7 +303,7 @@ static int set_sw_standby(struct v4l2_subdev *sd, bool standby)
+ 	else
+ 		rdval |= 0x01;
+ 
+-	return ov5647_write(sd, 0x0100, rdval);
++	return ov5647_write(sd, OV5647_SW_STANDBY, rdval);
+ }
+ 
+ static int __sensor_init(struct v4l2_subdev *sd)
+@@ -302,7 +312,7 @@ static int __sensor_init(struct v4l2_subdev *sd)
+ 	u8 resetval, rdval;
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 
+-	ret = ov5647_read(sd, 0x0100, &rdval);
++	ret = ov5647_read(sd, OV5647_SW_STANDBY, &rdval);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -317,13 +327,13 @@ static int __sensor_init(struct v4l2_subdev *sd)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = ov5647_read(sd, 0x0100, &resetval);
++	ret = ov5647_read(sd, OV5647_SW_STANDBY, &resetval);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	if (!(resetval & 0x01)) {
+ 		dev_err(&client->dev, "Device was in SW standby");
+-		ret = ov5647_write(sd, 0x0100, 0x01);
++		ret = ov5647_write(sd, OV5647_SW_STANDBY, 0x01);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+-- 
+2.14.1
