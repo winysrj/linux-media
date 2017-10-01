@@ -1,72 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:47846 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751894AbdJIKTj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 06:19:39 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: [PATCH 12/24] media: v4l2-subdev: fix description of tuner.s_radio ops
-Date: Mon,  9 Oct 2017 07:19:18 -0300
-Message-Id: <352f6cfb16d6ac6b7d2e13e379a5b11fafd0d868.1507544011.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507544011.git.mchehab@s-opensource.com>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507544011.git.mchehab@s-opensource.com>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:58255 "EHLO
+        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750981AbdJAWBg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 1 Oct 2017 18:01:36 -0400
+Date: Mon, 2 Oct 2017 09:01:31 +1100
+From: "Tobin C. Harding" <me@tobin.cc>
+To: =?iso-8859-1?B?Suly6W15?= Lefaure <jeremy.lefaure@lse.epita.fr>
+Cc: alsa-devel@alsa-project.org, nouveau@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org, dm-devel@redhat.com,
+        brcm80211-dev-list@cypress.com, devel@driverdev.osuosl.org,
+        linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org,
+        amd-gfx@lists.freedesktop.org,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        linux-acpi@vger.kernel.org, linux-video@atrey.karlin.mff.cuni.cz,
+        intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, ecryptfs@vger.kernel.org,
+        linux-nfs@vger.kernel.org, linux-raid@vger.kernel.org,
+        openipmi-developer@lists.sourceforge.net,
+        intel-gvt-dev@lists.freedesktop.org, devel@acpica.org,
+        brcm80211-dev-list.pdl@broadcom.com, netdev@vger.kernel.org,
+        linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-integrity@vger.kernel.org
+Subject: Re: [PATCH 00/18] use ARRAY_SIZE macro
+Message-ID: <20171001220131.GA11812@eros>
+References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The description there is completely broken and it mentions
-an ioctl that doesn't exist.
+On Sun, Oct 01, 2017 at 03:30:38PM -0400, Jérémy Lefaure wrote:
+> Hi everyone,
+> Using ARRAY_SIZE improves the code readability. I used coccinelle (I
+> made a change to the array_size.cocci file [1]) to find several places
+> where ARRAY_SIZE could be used instead of other macros or sizeof
+> division.
+> 
+> I tried to divide the changes into a patch per subsystem (excepted for
+> staging). If one of the patch should be split into several patches, let
+> me know.
+> 
+> In order to reduce the size of the To: and Cc: lines, each patch of the
+> series is sent only to the maintainers and lists concerned by the patch.
+> This cover letter is sent to every list concerned by this series.
 
-Fix it.
+Why don't you just send individual patches for each subsystem? I'm not a maintainer but I don't see
+how any one person is going to be able to apply this whole series, it is making it hard for
+maintainers if they have to pick patches out from among the series (if indeed any will bother
+doing that).
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- include/media/v4l2-subdev.h | 21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+I get that this will be more work for you but AFAIK we are optimizing for maintainers.
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index b299cf63972b..c43e3d650fe6 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -216,7 +216,10 @@ struct v4l2_subdev_core_ops {
-  * struct v4l2_subdev_tuner_ops - Callbacks used when v4l device was opened
-  *	in radio mode.
-  *
-- * @s_radio: callback for VIDIOC_S_RADIO() ioctl handler code.
-+ * @s_radio: callback that switches the tuner to radio mode.
-+ *	     drivers should explicitly call it when a tuner ops should
-+ *	     operate on radio mode, before being able to handle it.
-+ *	     Used on devices that have both AM/FM radio receiver and TV.
-  *
-  * @s_frequency: callback for VIDIOC_S_FREQUENCY() ioctl handler code.
-  *
-@@ -239,6 +242,22 @@ struct v4l2_subdev_core_ops {
-  * @s_type_addr: sets tuner type and its I2C addr.
-  *
-  * @s_config: sets tda9887 specific stuff, like port1, port2 and qss
-+ *
-+ * .. note::
-+ *
-+ * 	On devices that have both AM/FM and TV, it is up to the driver
-+ *	to explicitly call s_radio when the tuner should be switched to
-+ *	radio mode, before handling other &struct v4l2_subdev_tuner_ops
-+ *	that would require it. An example of such usage is::
-+ *
-+ *	  static void s_frequency(void *priv, const struct v4l2_frequency *f)
-+ *	  {
-+ * 		...
-+ *		if (f.type == V4L2_TUNER_RADIO)
-+ *			v4l2_device_call_all(v4l2_dev, 0, tuner, s_radio);
-+ *		...
-+ *		v4l2_device_call_all(v4l2_dev, 0, tuner, s_frequency);
-+ *	  }
-  */
- struct v4l2_subdev_tuner_ops {
- 	int (*s_radio)(struct v4l2_subdev *sd);
--- 
-2.13.6
+Good luck,
+Tobin.
