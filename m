@@ -1,82 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:35417 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751677AbdJDL6h (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 07:58:37 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: [PATCH v3 05/17] docs: kernel-doc.rst: improve typedef documentation
-Date: Wed,  4 Oct 2017 08:48:43 -0300
-Message-Id: <412e58f3646edd61bcf7be4df7696e8f1201339d.1507116877.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
-References: <cover.1507116877.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
-References: <cover.1507116877.git.mchehab@s-opensource.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36258 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750788AbdJBL2s (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Oct 2017 07:28:48 -0400
+Date: Mon, 2 Oct 2017 14:28:46 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: [PATCH 1/1] v4l: async: Fix notifier complete callback error
+ handling
+Message-ID: <20171002112846.ymr4ubrg6nlos6hh@valkosipuli.retiisi.org.uk>
+References: <20171002105954.29474-1-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171002105954.29474-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation about typedefs for function prototypes and
-move it to happen earlier.
+On Mon, Oct 02, 2017 at 01:59:54PM +0300, Sakari Ailus wrote:
+> The notifier complete callback may return an error. This error code was
+> simply returned to the caller but never handled properly.
+> 
+> Move calling the complete callback function to the caller from
+> v4l2_async_test_notify and undo the work that was done either in async
+> sub-device or async notifier registration.
+> 
+> Reported-by: Russell King <rmk+kernel@armlinux.org.uk>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/doc-guide/kernel-doc.rst | 32 ++++++++++++++++++++++----------
- 1 file changed, 22 insertions(+), 10 deletions(-)
+Oh, I forgot to metion this patch depends on another patch here, part of
+the fwnode parsing patchset:
 
-diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
-index b330234a3601..0923c8bd5769 100644
---- a/Documentation/doc-guide/kernel-doc.rst
-+++ b/Documentation/doc-guide/kernel-doc.rst
-@@ -282,6 +282,28 @@ The kernel-doc data structure comments describe each member of the structure,
- in order, with the member descriptions.
- 
- 
-+Typedef documentation
-+---------------------
-+
-+The general format of a typedef kernel-doc comment is::
-+
-+  /**
-+   * typedef type_name - Brief description.
-+   *
-+   * Description of the type.
-+   */
-+
-+Typedefs with function prototypes can also be documented::
-+
-+  /**
-+   * typedef type_name - Brief description.
-+   * @arg1: description of arg1
-+   * @arg2: description of arg2
-+   *
-+   * Description of the type.
-+   */
-+   typedef void (*type_name)(struct v4l2_ctrl *arg1, void *arg2);
-+
- 
- Highlights and cross-references
- -------------------------------
-@@ -384,16 +406,6 @@ on a line of their own, like all other kernel-doc comments::
-         int foobar;
-   }
- 
--Typedef documentation
-----------------------
--
--The general format of a typedef kernel-doc comment is::
--
--  /**
--   * typedef type_name - Brief description.
--   *
--   * Description of the type.
--   */
- 
- Overview documentation comments
- -------------------------------
+<URL:http://www.spinics.net/lists/linux-media/msg122689.html>
+
 -- 
-2.13.6
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
