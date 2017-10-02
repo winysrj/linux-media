@@ -1,46 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:57091 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751524AbdJaQpy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Oct 2017 12:45:54 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 1/2] media: exynos-gsc: drop obsolete capabilities
-Date: Tue, 31 Oct 2017 17:45:43 +0100
-Message-id: <20171031164544.2401-1-m.szyprowski@samsung.com>
-References: <CGME20171031164549eucas1p2322d11106997b38122e5d2be47eb7808@eucas1p2.samsung.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:48782 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751357AbdJBNxt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Oct 2017 09:53:49 -0400
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: Re: [v4,
+ 1/9] brcmsmac: make some local variables 'static const' to reduce
+ stack size
+From: Kalle Valo <kvalo@codeaurora.org>
+In-Reply-To: <20170922212930.620249-2-arnd@arndb.de>
+References: <20170922212930.620249-2-arnd@arndb.de>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Arend van Spriel <arend.vanspriel@broadcom.com>,
+        Franky Lin <franky.lin@broadcom.com>,
+        Hante Meuleman <hante.meuleman@broadcom.com>,
+        Chi-Hsien Lin <chi-hsien.lin@cypress.com>,
+        Wright Feng <wright.feng@cypress.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jiri Pirko <jiri@resnulli.us>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Michal Marek <mmarek@suse.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+        brcm80211-dev-list.pdl@broadcom.com,
+        brcm80211-dev-list@cypress.com, kasan-dev@googlegroups.com,
+        linux-kbuild@vger.kernel.org, Jakub Jelinek <jakub@gcc.gnu.org>,
+        =?UTF-8?q?Martin=20Li=C5=A1ka?= <marxin@gcc.gnu.org>
+Message-Id: <20171002135348.7AFA560AFB@smtp.codeaurora.org>
+Date: Mon,  2 Oct 2017 13:53:48 +0000 (UTC)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Setting both V4L2_CAP_VIDEO_CAPTURE_MPLANE and V4L2_CAP_VIDEO_OUTPUT_MPLANE
-for mem2mem video nodes is obsolete since commit f0476a83d61a ("[media]
-V4L: Add capability flags for memory-to-memory devices"). It was enough
-time to adapt all users to the new flags, so drop the legacy caps for now
-to match other mem2mem drivers.
+Arnd Bergmann <arnd@arndb.de> wrote:
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-m2m.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+> With KASAN and a couple of other patches applied, this driver is one
+> of the few remaining ones that actually use more than 2048 bytes of
+> kernel stack:
+> 
+> broadcom/brcm80211/brcmsmac/phy/phy_n.c: In function 'wlc_phy_workarounds_nphy_gainctrl':
+> broadcom/brcm80211/brcmsmac/phy/phy_n.c:16065:1: warning: the frame size of 3264 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+> broadcom/brcm80211/brcmsmac/phy/phy_n.c: In function 'wlc_phy_workarounds_nphy':
+> broadcom/brcm80211/brcmsmac/phy/phy_n.c:17138:1: warning: the frame size of 2864 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+> 
+> Here, I'm reducing the stack size by marking as many local variables as
+> 'static const' as I can without changing the actual code.
+> 
+> This is the first of three patches to improve the stack usage in this
+> driver. It would be good to have this backported to stabl kernels
+> to get all drivers in 'allmodconfig' below the 2048 byte limit so
+> we can turn on the frame warning again globally, but I realize that
+> the patch is larger than the normal limit for stable backports.
+> 
+> The other two patches do not need to be backported.
+> 
+> Cc: <stable@vger.kernel.org>
+> Acked-by: Arend van Spriel <arend.vanspriel@broadcom.com>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index 722d7c45bf9e..785e67752194 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -298,9 +298,7 @@ static int gsc_m2m_querycap(struct file *file, void *fh,
- 	strlcpy(cap->card, GSC_MODULE_NAME " gscaler", sizeof(cap->card));
- 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
- 		 dev_name(&gsc->pdev->dev));
--	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE |
--		V4L2_CAP_VIDEO_CAPTURE_MPLANE |	V4L2_CAP_VIDEO_OUTPUT_MPLANE;
--
-+	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
+Patch applied to wireless-drivers.git, thanks.
+
+c503dd38f850 brcmsmac: make some local variables 'static const' to reduce stack size
+
 -- 
-2.14.2
+https://patchwork.kernel.org/patch/9967145/
+
+https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
