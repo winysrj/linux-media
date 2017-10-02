@@ -1,522 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:43973 "EHLO
-        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753388AbdJTVvG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 17:51:06 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC v4 13/17] [media] vb2: add in-fence support to QBUF
-Date: Fri, 20 Oct 2017 19:50:08 -0200
-Message-Id: <20171020215012.20646-14-gustavo@padovan.org>
-In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
-References: <20171020215012.20646-1-gustavo@padovan.org>
+Received: from 251.67.150.200.static.copel.net ([200.150.67.251]:47784 "HELO
+        copel.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1750940AbdJBVus (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Oct 2017 17:50:48 -0400
+Content-Type: application/zip; name="047974.zip"
+Content-Transfer-Encoding: base64
+Date: Mon, 02 Oct 2017 21:50:41 -0000
+Content-Disposition: attachment
+MIME-Version: 1.0
+To: <linux-media@vger.kernel.org>
+Message-ID: <150698104135.32756.3573970736614862547@copel.net>
+Subject: 
+From: <brett@sou.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
-
-Receive in-fence from userspace and add support for waiting on them
-before queueing the buffer to the driver. Buffers are only queued
-to the driver once they are ready. A buffer is ready when its
-in-fence signals.
-
-For queues that require vb2 to queue buffers to the v4l2 driver in same
-order they are received from userspace we use fence_array to keep that
-ordering. Basically we create a fence_array that contains both the current
-fence and the fence from the previous buffer (which might be a fence array
-as well). The base fence class for the fence_array becomes the new buffer
-fence, waiting on that one guarantees that it won't be queued out of
-order.
-
-v5:	- use fence_array to keep buffers ordered in vb2 core when
-	needed (Brian Stark)
-	- keep backward compatibility on the reserved2 field (Brian Stark)
-	- protect fence callback removal with lock (Brian Stark)
-
-v4:
-	- Add a comment about dma_fence_add_callback() not returning a
-	error (Hans)
-	- Call dma_fence_put(vb->in_fence) if fence signaled (Hans)
-	- select SYNC_FILE under config VIDEOBUF2_CORE (Hans)
-	- Move dma_fence_is_signaled() check to __enqueue_in_driver() (Hans)
-	- Remove list_for_each_entry() in __vb2_core_qbuf() (Hans)
-	-  Remove if (vb->state != VB2_BUF_STATE_QUEUED) from
-	vb2_start_streaming() (Hans)
-	- set IN_FENCE flags on __fill_v4l2_buffer (Hans)
-	- Queue buffers to the driver as soon as they are ready (Hans)
-	- call fill_user_buffer() after queuing the buffer (Hans)
-	- add err: label to clean up fence
-	- add dma_fence_wait() before calling vb2_start_streaming()
-
-v3:	- document fence parameter
-	- remove ternary if at vb2_qbuf() return (Mauro)
-	- do not change if conditions behaviour (Mauro)
-
-v2:
-	- fix vb2_queue_or_prepare_buf() ret check
-	- remove check for VB2_MEMORY_DMABUF only (Javier)
-	- check num of ready buffers to start streaming
-	- when queueing, start from the first ready buffer
-	- handle queue cancel
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- drivers/media/v4l2-core/Kconfig          |   1 +
- drivers/media/v4l2-core/videobuf2-core.c | 179 ++++++++++++++++++++++++++++---
- drivers/media/v4l2-core/videobuf2-v4l2.c |  29 ++++-
- include/media/videobuf2-core.h           |  17 ++-
- 4 files changed, 208 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-index a35c33686abf..3f988c407c80 100644
---- a/drivers/media/v4l2-core/Kconfig
-+++ b/drivers/media/v4l2-core/Kconfig
-@@ -83,6 +83,7 @@ config VIDEOBUF_DVB
- # Used by drivers that need Videobuf2 modules
- config VIDEOBUF2_CORE
- 	select DMA_SHARED_BUFFER
-+	select SYNC_FILE
- 	tristate
- 
- config VIDEOBUF2_MEMOPS
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 60f8b582396a..78f369dba3e3 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -346,6 +346,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
- 		vb->index = q->num_buffers + buffer;
- 		vb->type = q->type;
- 		vb->memory = memory;
-+		spin_lock_init(&vb->fence_cb_lock);
- 		for (plane = 0; plane < num_planes; ++plane) {
- 			vb->planes[plane].length = plane_sizes[plane];
- 			vb->planes[plane].min_length = plane_sizes[plane];
-@@ -1222,6 +1223,9 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
- 
-+	if (vb->in_fence && !dma_fence_is_signaled(vb->in_fence))
-+		return;
-+
- 	vb->state = VB2_BUF_STATE_ACTIVE;
- 	atomic_inc(&q->owned_by_drv_count);
- 
-@@ -1273,6 +1277,20 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
- 	return 0;
- }
- 
-+static int __get_num_ready_buffers(struct vb2_queue *q)
-+{
-+	struct vb2_buffer *vb;
-+	int ready_count = 0;
-+
-+	/* count num of buffers ready in front of the queued_list */
-+	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-+		if (!vb->in_fence || dma_fence_is_signaled(vb->in_fence))
-+			ready_count++;
-+	}
-+
-+	return ready_count;
-+}
-+
- int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
- {
- 	struct vb2_buffer *vb;
-@@ -1361,7 +1379,74 @@ static int vb2_start_streaming(struct vb2_queue *q)
- 	return ret;
- }
- 
--int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
-+static struct dma_fence *__set_in_fence(struct vb2_queue *q,
-+					struct vb2_buffer *vb,
-+					struct dma_fence *fence)
-+{
-+	if (q->last_fence && dma_fence_is_signaled(q->last_fence)) {
-+		dma_fence_put(q->last_fence);
-+		q->last_fence = NULL;
-+	}
-+
-+	/* For drivers that require the ordering of buffers queued from
-+	 * userspace to be the same it is queued to the driver - output
-+	 * some m2m devices - we create a fence array with the fence from
-+	 * the last queued buffer and this one, that way the fence for this
-+	 * buffer can't signal before the last one.
-+	 */
-+	if (q->is_output || q->ordered_in_vb2) {
-+		if (fence && q->last_fence) {
-+			struct dma_fence **fences;
-+			struct dma_fence_array *arr;
-+
-+			fences = kcalloc(2, sizeof(*fences), GFP_KERNEL);
-+			if (!fences)
-+				return ERR_PTR(-ENOMEM);
-+
-+			fences[0] = fence;
-+			fences[1] = q->last_fence;
-+
-+			arr = dma_fence_array_create(2, fences,
-+						     dma_fence_context_alloc(1),
-+						     1, false);
-+			if (!arr) {
-+				kfree(fences);
-+				return ERR_PTR(-ENOMEM);
-+			}
-+
-+			fence = &arr->base;
-+		} else if (!fence && q->last_fence) {
-+			fence = dma_fence_get(q->last_fence);
-+		}
-+
-+		q->last_fence = dma_fence_get(fence);
-+	}
-+
-+	return fence;
-+}
-+
-+static void vb2_qbuf_fence_cb(struct dma_fence *f, struct dma_fence_cb *cb)
-+{
-+	struct vb2_buffer *vb = container_of(cb, struct vb2_buffer, fence_cb);
-+	struct vb2_queue *q = vb->vb2_queue;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&vb->fence_cb_lock, flags);
-+	if (!vb->in_fence) {
-+		spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-+		return;
-+	}
-+
-+	dma_fence_put(vb->in_fence);
-+	vb->in_fence = NULL;
-+	spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-+
-+	if (q->start_streaming_called)
-+		__enqueue_in_driver(vb);
-+}
-+
-+int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-+		  struct dma_fence *fence)
- {
- 	struct vb2_buffer *vb;
- 	int ret;
-@@ -1372,16 +1457,18 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 	case VB2_BUF_STATE_DEQUEUED:
- 		ret = __buf_prepare(vb, pb);
- 		if (ret)
--			return ret;
-+			goto err;
- 		break;
- 	case VB2_BUF_STATE_PREPARED:
- 		break;
- 	case VB2_BUF_STATE_PREPARING:
- 		dprintk(1, "buffer still being prepared\n");
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto err;
- 	default:
- 		dprintk(1, "invalid buffer state %d\n", vb->state);
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto err;
- 	}
- 
- 	/*
-@@ -1398,30 +1485,75 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 
- 	trace_vb2_qbuf(q, vb);
- 
-+	vb->in_fence = __set_in_fence(q, vb, fence);
-+	if (IS_ERR(vb->in_fence)) {
-+		ret = PTR_ERR(vb->in_fence);
-+		goto err;
-+	}
-+
-+	/*
-+	 * If it is time to call vb2_start_streaming() wait for the fence
-+	 * to signal first. Of course, this happens only once per streaming.
-+	 * We want to run any step that might fail before we set the callback
-+	 * to queue the fence when it signals.
-+	 */
-+	if (fence && !q->start_streaming_called &&
-+	    __get_num_ready_buffers(q) == q->min_buffers_needed - 1)
-+		dma_fence_wait(fence, true);
-+
- 	/*
- 	 * If streamon has been called, and we haven't yet called
- 	 * start_streaming() since not enough buffers were queued, and
- 	 * we now have reached the minimum number of queued buffers,
- 	 * then we can finally call start_streaming().
--	 *
--	 * If already streaming, give the buffer to driver for processing.
--	 * If not, the buffer will be given to driver on next streamon.
- 	 */
- 	if (q->streaming && !q->start_streaming_called &&
--	    q->queued_count >= q->min_buffers_needed) {
-+	    __get_num_ready_buffers(q) >= q->min_buffers_needed) {
- 		ret = vb2_start_streaming(q);
- 		if (ret)
--			return ret;
--	} else if (q->start_streaming_called) {
--		__enqueue_in_driver(vb);
-+			goto err;
-+	}
-+
-+	/*
-+	 * For explicit synchronization: If the fence didn't signal
-+	 * yet we setup a callback to queue the buffer once the fence
-+	 * signals, and then, return successfully. But if the fence
-+	 * already signaled we lose the reference we held and queue the
-+	 * buffer to the driver.
-+	 */
-+	if (fence) {
-+		ret = dma_fence_add_callback(fence, &vb->fence_cb,
-+					     vb2_qbuf_fence_cb);
-+		if (!ret)
-+			goto fill;
-+
-+		dma_fence_put(fence);
-+		vb->in_fence = NULL;
- 	}
- 
-+fill:
-+	/*
-+	 * If already streaming and there is no fence to wait on
-+	 * give the buffer to driver for processing.
-+	 */
-+	if (q->start_streaming_called && !vb->in_fence)
-+		__enqueue_in_driver(vb);
-+
- 	/* Fill buffer information for the userspace */
- 	if (pb)
- 		call_void_bufop(q, fill_user_buffer, vb, pb);
- 
- 	dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
- 	return 0;
-+
-+err:
-+	if (vb->in_fence) {
-+		dma_fence_put(vb->in_fence);
-+		vb->in_fence = NULL;
-+	}
-+
-+	return ret;
-+
- }
- EXPORT_SYMBOL_GPL(vb2_core_qbuf);
- 
-@@ -1632,6 +1764,8 @@ EXPORT_SYMBOL_GPL(vb2_core_dqbuf);
- static void __vb2_queue_cancel(struct vb2_queue *q)
- {
- 	unsigned int i;
-+	struct vb2_buffer *vb;
-+	unsigned long flags;
- 
- 	/*
- 	 * Tell driver to stop all transactions and release all queued
-@@ -1659,6 +1793,21 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	q->queued_count = 0;
- 	q->error = 0;
- 
-+	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-+		spin_lock_irqsave(&vb->fence_cb_lock, flags);
-+		if (vb->in_fence) {
-+			dma_fence_remove_callback(vb->in_fence, &vb->fence_cb);
-+			dma_fence_put(vb->in_fence);
-+			vb->in_fence = NULL;
-+		}
-+		spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-+	}
-+
-+	if (q->last_fence) {
-+		dma_fence_put(q->last_fence);
-+		q->last_fence = NULL;
-+	}
-+
- 	/*
- 	 * Remove all buffers from videobuf's list...
- 	 */
-@@ -1720,7 +1869,7 @@ int vb2_core_streamon(struct vb2_queue *q, unsigned int type)
- 	 * Tell driver to start streaming provided sufficient buffers
- 	 * are available.
- 	 */
--	if (q->queued_count >= q->min_buffers_needed) {
-+	if (__get_num_ready_buffers(q) >= q->min_buffers_needed) {
- 		ret = v4l_vb2q_enable_media_source(q);
- 		if (ret)
- 			return ret;
-@@ -2240,7 +2389,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 		 * Queue all buffers.
- 		 */
- 		for (i = 0; i < q->num_buffers; i++) {
--			ret = vb2_core_qbuf(q, i, NULL);
-+			ret = vb2_core_qbuf(q, i, NULL, NULL);
- 			if (ret)
- 				goto err_reqbufs;
- 			fileio->bufs[i].queued = 1;
-@@ -2419,7 +2568,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 
- 		if (copy_timestamp)
- 			b->timestamp = ktime_get_ns();
--		ret = vb2_core_qbuf(q, index, NULL);
-+		ret = vb2_core_qbuf(q, index, NULL, NULL);
- 		dprintk(5, "vb2_dbuf result: %d\n", ret);
- 		if (ret)
- 			return ret;
-@@ -2522,7 +2671,7 @@ static int vb2_thread(void *data)
- 		if (copy_timestamp)
- 			vb->timestamp = ktime_get_ns();;
- 		if (!threadio->stop)
--			ret = vb2_core_qbuf(q, vb->index, NULL);
-+			ret = vb2_core_qbuf(q, vb->index, NULL, NULL);
- 		call_void_qop(q, wait_prepare, q);
- 		if (ret || threadio->stop)
- 			break;
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 110fb45fef6f..4c09ea007d90 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -23,6 +23,7 @@
- #include <linux/sched.h>
- #include <linux/freezer.h>
- #include <linux/kthread.h>
-+#include <linux/sync_file.h>
- 
- #include <media/v4l2-dev.h>
- #include <media/v4l2-fh.h>
-@@ -178,6 +179,12 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
- 		return -EINVAL;
- 	}
- 
-+	if ((b->fence_fd != 0 && b->fence_fd != -1) &&
-+	    !(b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
-+		dprintk(1, "%s: fence_fd set without IN_FENCE flag\n", opname);
-+		return -EINVAL;
-+	}
-+
- 	return __verify_planes_array(q->bufs[b->index], b);
- }
- 
-@@ -203,9 +210,14 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	b->timestamp = ns_to_timeval(vb->timestamp);
- 	b->timecode = vbuf->timecode;
- 	b->sequence = vbuf->sequence;
--	b->fence_fd = -1;
- 	b->reserved = 0;
- 
-+	b->fence_fd = -1;
-+	if (vb->in_fence)
-+		b->flags |= V4L2_BUF_FLAG_IN_FENCE;
-+	else
-+		b->flags &= ~V4L2_BUF_FLAG_IN_FENCE;
-+
- 	if (q->is_multiplanar) {
- 		/*
- 		 * Fill in plane-related data if userspace provided an array
-@@ -560,6 +572,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
- 
- int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- {
-+	struct dma_fence *fence = NULL;
- 	int ret;
- 
- 	if (vb2_fileio_is_active(q)) {
-@@ -568,7 +581,19 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	}
- 
- 	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
--	return ret ? ret : vb2_core_qbuf(q, b->index, b);
-+	if (ret)
-+		return ret;
-+
-+	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
-+		fence = sync_file_get_fence(b->fence_fd);
-+		if (!fence) {
-+			dprintk(1, "failed to get in-fence from fd %d\n",
-+				b->fence_fd);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return vb2_core_qbuf(q, b->index, b, fence);
- }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index fc333e10e7d8..624ca2dce9ea 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -16,6 +16,7 @@
- #include <linux/mutex.h>
- #include <linux/poll.h>
- #include <linux/dma-buf.h>
-+#include <linux/dma-fence.h>
- 
- #define VB2_MAX_FRAME	(32)
- #define VB2_MAX_PLANES	(8)
-@@ -254,11 +255,20 @@ struct vb2_buffer {
- 	 *			all buffers queued from userspace
- 	 * done_entry:		entry on the list that stores all buffers ready
- 	 *			to be dequeued to userspace
-+	 * in_fence:		fence receive from vb2 client to wait on before
-+	 *			using the buffer (queueing to the driver)
-+	 * fence_cb:		fence callback information
-+	 * fence_cb_lock:	protect callback signal/remove
- 	 */
- 	enum vb2_buffer_state	state;
- 
- 	struct list_head	queued_entry;
- 	struct list_head	done_entry;
-+
-+	struct dma_fence	*in_fence;
-+	struct dma_fence_cb	fence_cb;
-+	spinlock_t              fence_cb_lock;
-+
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	/*
- 	 * Counters for how often these buffer-related ops are
-@@ -508,6 +518,7 @@ struct vb2_buf_ops {
-  * @ordered_in_vb2: set by the driver to tell vb2 te guarantee the order
-  *		of buffer queue from userspace with QBUF() until they are
-  *		queued to the driver.
-+ * @last_fence:	last in-fence received. Used to keep ordering.
-  * @fileio:	file io emulator internal data, used only if emulator is active
-  * @threadio:	thread io internal data, used only if thread is active
-  */
-@@ -563,6 +574,8 @@ struct vb2_queue {
- 	unsigned int			ordered_in_driver:1;
- 	unsigned int			ordered_in_vb2:1;
- 
-+	struct dma_fence		*last_fence;
-+
- 	struct vb2_fileio_data		*fileio;
- 	struct vb2_threadio_data	*threadio;
- 
-@@ -738,6 +751,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-  * @index:	id number of the buffer
-  * @pb:		buffer structure passed from userspace to vidioc_qbuf handler
-  *		in driver
-+ * @fence:	in-fence to wait on before queueing the buffer
-  *
-  * Should be called from vidioc_qbuf ioctl handler of a driver.
-  * The passed buffer should have been verified.
-@@ -752,7 +766,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-  * The return values from this function are intended to be directly returned
-  * from vidioc_qbuf handler in driver.
-  */
--int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
-+int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-+		  struct dma_fence *fence);
- 
- /**
-  * vb2_core_dqbuf() - Dequeue a buffer to the userspace
--- 
-2.13.6
+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
