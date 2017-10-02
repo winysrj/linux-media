@@ -1,115 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:46654 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753513AbdJNMIg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Oct 2017 08:08:36 -0400
-Subject: Re: [PATCHv4 0/4] tegra-cec: add Tegra HDMI CEC support
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-tegra@vger.kernel.org, devicetree@vger.kernel.org,
-        thierry.reding@gmail.com, dri-devel@lists.freedesktop.org
-References: <20170911122952.33980-1-hverkuil@xs4all.nl>
-Message-ID: <9314614a-446d-b76d-640b-033cc74e3879@xs4all.nl>
-Date: Sat, 14 Oct 2017 14:08:31 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170911122952.33980-1-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mout.kundenserver.de ([212.227.17.24]:53058 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751065AbdJBIl6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Oct 2017 04:41:58 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: David Laight <David.Laight@aculab.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "linux-media @ vger . kernel . org" <linux-media@vger.kernel.org>,
+        "linux-kernel @ vger . kernel . org" <linux-kernel@vger.kernel.org>,
+        "kasan-dev @ googlegroups . com" <kasan-dev@googlegroups.com>,
+        "linux-kbuild @ vger . kernel . org" <linux-kbuild@vger.kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] string.h: work around for increased stack usage
+Date: Mon,  2 Oct 2017 10:40:55 +0200
+Message-Id: <20171002084119.3504771-1-arnd@arndb.de>
+In-Reply-To: <CAK8P3a0WtHjvo6tOp79U4gKjLSRmVCAmjYU_xTVJfBL1Qe-hdQ@mail.gmail.com>
+References: <CAK8P3a0WtHjvo6tOp79U4gKjLSRmVCAmjYU_xTVJfBL1Qe-hdQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thierry,
+The hardened strlen() function causes rather large stack usage
+in at least one file in the kernel when CONFIG_KASAN is enabled:
 
-On 09/11/2017 02:29 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This patch series adds support for the Tegra CEC functionality.
-> 
-> This v4 has been rebased to the latest 4.14 pre-rc1 mainline.
-> 
-> Please review! Other than for the bindings that are now Acked I have not
-> received any feedback.
+drivers/media/usb/em28xx/em28xx-dvb.c: In function 'em28xx_dvb_init':
+drivers/media/usb/em28xx/em28xx-dvb.c:2062:1: error: the frame size of 3256 bytes is larger than 204 bytes [-Werror=frame-larger-than=]
 
-Can you or someone else from the Tegra maintainers review this?
+Analyzing this problem led to the discovery that gcc fails to
+merge the stack slots for the i2c_board_info[] structures after
+we strlcpy() into them, due to the 'noreturn' attribute on the
+source string length check.
 
-I have not heard anything about this patch series, nor of the previous
-versions of this series. What's the hold-up?
+The compiler behavior should get fixed in gcc-8, but for users
+of existing gcc versions, we can work around it using an empty
+inline assembly statement before the call to fortify_panic().
 
-Regards,
+The workaround is unfortunately very ugly, and I tried my best
+to limit it being applied to affected versions of gcc when
+KASAN is used. Alternative suggestions welcome.
 
-	Hans
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82365
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ include/linux/string.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-> 
-> The first patch documents the CEC bindings, the second adds support
-> for this to tegra124.dtsi and enables it for the Jetson TK1.
-> 
-> The third patch adds the CEC driver itself and the final patch adds
-> the cec notifier support to the drm/tegra driver in order to notify
-> the CEC driver whenever the physical address changes.
-> 
-> I expect that the dts changes apply as well to the Tegra X1/X2 and possibly
-> other Tegra SoCs, but I can only test this with my Jetson TK1 board.
-> 
-> The dt-bindings and the tegra-cec driver would go in through the media
-> subsystem, the drm/tegra part through the drm subsystem and the dts
-> changes through (I guess) the linux-tegra developers. Luckily they are
-> all independent of one another.
-> 
-> To test this you need the CEC utilities from git://linuxtv.org/v4l-utils.git.
-> 
-> To build this:
-> 
-> git clone git://linuxtv.org/v4l-utils.git
-> cd v4l-utils
-> ./bootstrap.sh; ./configure
-> make
-> sudo make install # optional, you really only need utils/cec*
-> 
-> To test:
-> 
-> cec-ctl --playback # configure as playback device
-> cec-ctl -S # detect all connected CEC devices
-> 
-> See here for the public CEC API:
-> 
-> https://hverkuil.home.xs4all.nl/spec/uapi/cec/cec-api.html
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> Changes since v3:
-> 
-> - Use the new CEC_CAP_DEFAULTS define
-> - Use IS_ERR(cec->adap) instead of IS_ERR_OR_NULL(cec->adap)
->   (cec_allocate_adapter never returns a NULL pointer)
-> - Drop the device_init_wakeup: wakeup is not (yet) supported by
->   the CEC framework and I have never tested it.
-> 
-> Hans Verkuil (4):
->   dt-bindings: document the tegra CEC bindings
->   ARM: tegra: add CEC support to tegra124.dtsi
->   tegra-cec: add Tegra HDMI CEC driver
->   drm/tegra: add cec-notifier support
-> 
->  .../devicetree/bindings/media/tegra-cec.txt        |  27 ++
->  MAINTAINERS                                        |   8 +
->  arch/arm/boot/dts/tegra124-jetson-tk1.dts          |   4 +
->  arch/arm/boot/dts/tegra124.dtsi                    |  12 +-
->  drivers/gpu/drm/tegra/Kconfig                      |   1 +
->  drivers/gpu/drm/tegra/drm.h                        |   3 +
->  drivers/gpu/drm/tegra/hdmi.c                       |   9 +
->  drivers/gpu/drm/tegra/output.c                     |   6 +
->  drivers/media/platform/Kconfig                     |  11 +
->  drivers/media/platform/Makefile                    |   2 +
->  drivers/media/platform/tegra-cec/Makefile          |   1 +
->  drivers/media/platform/tegra-cec/tegra_cec.c       | 501 +++++++++++++++++++++
->  drivers/media/platform/tegra-cec/tegra_cec.h       | 127 ++++++
->  13 files changed, 711 insertions(+), 1 deletion(-)
->  create mode 100644 Documentation/devicetree/bindings/media/tegra-cec.txt
->  create mode 100644 drivers/media/platform/tegra-cec/Makefile
->  create mode 100644 drivers/media/platform/tegra-cec/tegra_cec.c
->  create mode 100644 drivers/media/platform/tegra-cec/tegra_cec.h
-> 
+diff --git a/include/linux/string.h b/include/linux/string.h
+index c7a1132cdc93..1bf5ecdf8e01 100644
+--- a/include/linux/string.h
++++ b/include/linux/string.h
+@@ -228,6 +228,16 @@ static inline const char *kbasename(const char *path)
+ #define __RENAME(x) __asm__(#x)
+ 
+ void fortify_panic(const char *name) __noreturn __cold;
++
++/* work around GCC PR82365 */
++#if defined(CONFIG_KASAN) && !defined(__clang__) && GCC_VERSION <= 80000
++#define fortify_panic(x) \
++	do { \
++		asm volatile(""); \
++		fortify_panic(x); \
++	} while (0)
++#endif
++
+ void __read_overflow(void) __compiletime_error("detected read beyond size of object passed as 1st parameter");
+ void __read_overflow2(void) __compiletime_error("detected read beyond size of object passed as 2nd parameter");
+ void __read_overflow3(void) __compiletime_error("detected read beyond size of object passed as 3rd parameter");
+-- 
+2.9.0
