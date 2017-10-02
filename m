@@ -1,84 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:51056 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751693AbdJILCa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 07:02:30 -0400
-Subject: Re: [PATCH 09/24] media: v4l2-dev: document video_device flags
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
- <e639d4ff59747c9b300ea0328ffa82fb5bca9679.1507544011.git.mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4e6c380f-6513-88e0-afab-364f79586c93@xs4all.nl>
-Date: Mon, 9 Oct 2017 13:02:28 +0200
+Received: from foss.arm.com ([217.140.101.70]:37174 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751281AbdJBNmQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Oct 2017 09:42:16 -0400
+Date: Mon, 2 Oct 2017 14:42:12 +0100
+From: Brian Starkey <brian.starkey@arm.com>
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Jonathan.Chai@arm.com
+Subject: Re: [PATCH v3 02/15] [media] vb2: add explicit fence user API
+Message-ID: <20171002134212.GC22538@e107564-lin.cambridge.arm.com>
+References: <20170907184226.27482-1-gustavo@padovan.org>
+ <20170907184226.27482-3-gustavo@padovan.org>
 MIME-Version: 1.0
-In-Reply-To: <e639d4ff59747c9b300ea0328ffa82fb5bca9679.1507544011.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <20170907184226.27482-3-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/10/17 12:19, Mauro Carvalho Chehab wrote:
-> Convert #defines to enums and add kernel-doc markups for V4L2
-> video_device flags.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Hi,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, Sep 07, 2017 at 03:42:13PM -0300, Gustavo Padovan wrote:
+>From: Gustavo Padovan <gustavo.padovan@collabora.com>
+>
+>Turn the reserved2 field into fence_fd that we will use to send
+>an in-fence to the kernel and return an out-fence from the kernel to
+>userspace.
+>
+>Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+>when sending a fence to the kernel to be waited on, and
+>V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
 
-Regards,
+It seems a bit off to me to add this to the uapi, and document it,
+before any of the implementation is present in the kernel.
 
-	Hans
+Wouldn't it be better to move this patch to be the last one, after all
+of the implementation is done?
 
-> ---
->  include/media/v4l2-dev.h | 25 ++++++++++++++++++-------
->  1 file changed, 18 insertions(+), 7 deletions(-)
-> 
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index 87dac58c7799..33a5256232f8 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -61,12 +61,22 @@ struct video_device;
->  struct v4l2_device;
->  struct v4l2_ctrl_handler;
->  
-> -/* Flag to mark the video_device struct as registered.
-> -   Drivers can clear this flag if they want to block all future
-> -   device access. It is cleared by video_unregister_device. */
-> -#define V4L2_FL_REGISTERED	(0)
-> -/* file->private_data points to struct v4l2_fh */
-> -#define V4L2_FL_USES_V4L2_FH	(1)
-> +/**
-> + * enum v4l2_video_device_flags - Flags used by &struct video_device
-> + *
-> + * @V4L2_FL_REGISTERED:
-> + * 	indicates that a &struct video_device is registered.
-> + *	Drivers can clear this flag if they want to block all future
-> + *	device access. It is cleared by video_unregister_device.
-> + * @V4L2_FL_USES_V4L2_FH:
-> + *	indicates that file->private_data points to &struct v4l2_fh.
-> + *	This flag is set by the core when v4l2_fh_init() is called.
-> + *	All new drivers should use it.
-> + */
-> +enum v4l2_video_device_flags {
-> +	V4L2_FL_REGISTERED	= 0,
-> +	V4L2_FL_USES_V4L2_FH	= 1,
-> +};
->  
->  /* Priority helper functions */
->  
-> @@ -214,7 +224,8 @@ struct v4l2_file_operations {
->   * @vfl_dir: V4L receiver, transmitter or m2m
->   * @minor: device node 'minor'. It is set to -1 if the registration failed
->   * @num: number of the video device node
-> - * @flags: video device flags. Use bitops to set/clear/test flags
-> + * @flags: video device flags. Use bitops to set/clear/test flags.
-> + *	   Contains a set of &enum v4l2_video_device_flags.
->   * @index: attribute to differentiate multiple indices on one physical device
->   * @fh_lock: Lock for all v4l2_fhs
->   * @fh_list: List of &struct v4l2_fh
-> 
+Cheers,
+-Brian
+
+>
+>v2: add documentation
+>
+>Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+>---
+> Documentation/media/uapi/v4l/buffer.rst       | 19 +++++++++++++++++++
+> drivers/media/usb/cpia2/cpia2_v4l.c           |  2 +-
+> drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  4 ++--
+> drivers/media/v4l2-core/videobuf2-v4l2.c      |  2 +-
+> include/uapi/linux/videodev2.h                |  4 +++-
+> 5 files changed, 26 insertions(+), 5 deletions(-)
+>
+>diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+>index ae6ee73f151c..664507ad06c6 100644
+>--- a/Documentation/media/uapi/v4l/buffer.rst
+>+++ b/Documentation/media/uapi/v4l/buffer.rst
+>@@ -648,6 +648,25 @@ Buffer Flags
+>       - Start Of Exposure. The buffer timestamp has been taken when the
+> 	exposure of the frame has begun. This is only valid for the
+> 	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
+>+    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
+>+
+>+      - ``V4L2_BUF_FLAG_IN_FENCE``
+>+      - 0x00200000
+>+      - Ask V4L2 to wait on fence passed in ``fence_fd`` field. The buffer
+>+	won't be queued to the driver until the fence signals.
+>+
+>+    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
+>+
+>+      - ``V4L2_BUF_FLAG_OUT_FENCE``
+>+      - 0x00400000
+>+      - Request a fence for the next buffer to be queued to V4L2 driver.
+>+	The fence received back through the ``fence_fd`` field  doesn't
+>+	necessarily relate to the current buffer in the
+>+	:ref:`VIDIOC_QBUF <VIDIOC_QBUF>` ioctl. Although, most of the time
+>+	the fence will relate to the current buffer it can't be guaranteed.
+>+	So to tell userspace which buffer is associated to the out_fence,
+>+	one should listen for the ``V4L2_EVENT_BUF_QUEUED`` event that
+>+	provide the id of the buffer when it is queued to the V4L2 driver.
+>
+>
+>
+>diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+>index 3dedd83f0b19..6cde686bf44c 100644
+>--- a/drivers/media/usb/cpia2/cpia2_v4l.c
+>+++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+>@@ -948,7 +948,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+> 	buf->sequence = cam->buffers[buf->index].seq;
+> 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+> 	buf->length = cam->frame_size;
+>-	buf->reserved2 = 0;
+>+	buf->fence_fd = -1;
+> 	buf->reserved = 0;
+> 	memset(&buf->timecode, 0, sizeof(buf->timecode));
+>
+>diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>index 821f2aa299ae..d624fb5df130 100644
+>--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>@@ -370,7 +370,7 @@ struct v4l2_buffer32 {
+> 		__s32		fd;
+> 	} m;
+> 	__u32			length;
+>-	__u32			reserved2;
+>+	__s32			fence_fd;
+> 	__u32			reserved;
+> };
+>
+>@@ -533,8 +533,8 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+> 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+> 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+> 		put_user(kp->sequence, &up->sequence) ||
+>-		put_user(kp->reserved2, &up->reserved2) ||
+> 		put_user(kp->reserved, &up->reserved) ||
+>+		put_user(kp->fence_fd, &up->fence_fd) ||
+> 		put_user(kp->length, &up->length))
+> 			return -EFAULT;
+>
+>diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+>index 0c0669976bdc..110fb45fef6f 100644
+>--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+>+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+>@@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+> 	b->timestamp = ns_to_timeval(vb->timestamp);
+> 	b->timecode = vbuf->timecode;
+> 	b->sequence = vbuf->sequence;
+>-	b->reserved2 = 0;
+>+	b->fence_fd = -1;
+> 	b->reserved = 0;
+>
+> 	if (q->is_multiplanar) {
+>diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>index 185d6a0acc06..e5abab9a908c 100644
+>--- a/include/uapi/linux/videodev2.h
+>+++ b/include/uapi/linux/videodev2.h
+>@@ -924,7 +924,7 @@ struct v4l2_buffer {
+> 		__s32		fd;
+> 	} m;
+> 	__u32			length;
+>-	__u32			reserved2;
+>+	__s32			fence_fd;
+> 	__u32			reserved;
+> };
+>
+>@@ -961,6 +961,8 @@ struct v4l2_buffer {
+> #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+> /* mem2mem encoder/decoder */
+> #define V4L2_BUF_FLAG_LAST			0x00100000
+>+#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
+>+#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
+>
+> /**
+>  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+>-- 
+>2.13.5
+>
