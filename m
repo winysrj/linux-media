@@ -1,332 +1,536 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f43.google.com ([209.85.214.43]:48703 "EHLO
-        mail-it0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750861AbdJWIpZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Oct 2017 04:45:25 -0400
-Received: by mail-it0-f43.google.com with SMTP id c3so5022634itc.3
-        for <linux-media@vger.kernel.org>; Mon, 23 Oct 2017 01:45:24 -0700 (PDT)
-Received: from mail-it0-f45.google.com (mail-it0-f45.google.com. [209.85.214.45])
-        by smtp.gmail.com with ESMTPSA id 23sm2209489itj.15.2017.10.23.01.45.23
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 23 Oct 2017 01:45:23 -0700 (PDT)
-Received: by mail-it0-f45.google.com with SMTP id n195so5037888itg.0
-        for <linux-media@vger.kernel.org>; Mon, 23 Oct 2017 01:45:23 -0700 (PDT)
+Received: from mail-lf0-f46.google.com ([209.85.215.46]:50160 "EHLO
+        mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751084AbdJBMO0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Oct 2017 08:14:26 -0400
+Received: by mail-lf0-f46.google.com with SMTP id c82so1956841lfc.6
+        for <linux-media@vger.kernel.org>; Mon, 02 Oct 2017 05:14:25 -0700 (PDT)
+Date: Mon, 2 Oct 2017 14:14:22 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, maxime.ripard@free-electrons.com,
+        robh@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
+Subject: Re: [PATCH v14 07/28] rcar-vin: Use generic parser for parsing
+ fwnode endpoints
+Message-ID: <20171002121422.GQ17182@bigcity.dyn.berto.se>
+References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+ <20170925222540.371-8-sakari.ailus@linux.intel.com>
+ <20170930131709.GP17182@bigcity.dyn.berto.se>
+ <3f940721-f190-4662-cfda-d99a0d97bf08@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20171019144343.2j34twk6dvodan2o@valkosipuli.retiisi.org.uk>
-References: <20170928095027.127173-1-acourbot@chromium.org> <20171019144343.2j34twk6dvodan2o@valkosipuli.retiisi.org.uk>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Mon, 23 Oct 2017 17:45:01 +0900
-Message-ID: <CAPBb6MV01ir0bGut06P9qR84MTx6Zj9cB6yz42HRtRrw0v8e-g@mail.gmail.com>
-Subject: Re: [RFC PATCH 0/9] V4L2 Jobs API WIP
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <3f940721-f190-4662-cfda-d99a0d97bf08@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari, thanks for the feedback!
+Hi Sakari,
 
-On Thu, Oct 19, 2017 at 11:43 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Alexandre,
+On 2017-10-02 14:58:10 +0300, Sakari Ailus wrote:
+> Hi Niklas,
+> 
+> On 09/30/17 16:17, Niklas Söderlund wrote:
+> > Hi Sakari,
+> > 
+> > Thanks for your patch, I like it. Unfortunately it causes issues :-(
+> > 
+> > I picked the first 7 patches of this series on top of media-next and it 
+> > produce problems when tested on Koelsch with CONFIG_OF_DYNAMIC=y.
+> > 
+> > 1. It print's 'OF: ERROR: Bad of_node_put() on /video@e6ef0000/port' 
+> >    messages during boot.
+> 
+> Do you have your own patch to fix fwnode_graph_get_port_parent()
+> applied? I noticed it doesn't seem to be in Rob's tree; let's continue
+> in the other thread.
+> 
+> <URL:https://www.mail-archive.com/linux-media@vger.kernel.org/msg117450.html>
+
+To produce this issue the fix is not applied. But as I try to describe 
+at the end of my email applying it fixes both issues. So I think this 
+patch is correct (and that is why I Acked it) but my concern is that if 
+it's picked up before the fwnode_graph_get_port_parent() issue is sorted 
+out there will be problems for rcar-vin, and if possible I would like to 
+avoid that.
+
+> 
+> > 
+> >    OF: ERROR: Bad of_node_put() on /video@e6ef0000/port
+> >    CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.13.0-rc4-00632-gfae12f9c98a8c567 #7
+> >    Hardware name: Generic R8A7791 (Flattened Device Tree)
+
+[snip]
+
+> 
+> Could fixing the other issue fix this one as well?
 >
-> On Thu, Sep 28, 2017 at 06:50:18PM +0900, Alexandre Courbot wrote:
->> Hi everyone,
->>
->> Here is a new attempt at the "request" (which I propose to rename "jobs") API
->> for V4L2, hopefully in a manner that can converge to something that will be
->> merged. The core ideas should be easy to grasp for those familiar with the
->> previous attemps, yet there are a few important differences.
->>
->> Most notably, user-space does not need to explicitly allocate and manage
->> requests/jobs (but still can if this makes sense). We noticed that only specific
->> use-cases require such an explicit management, and opted for a jobs queue that
->> controls the flow of work over a set of opened devices. This should simplify
->> user-space code quite a bit, while still retaining the ability to manage states
->> explicitly like the previous request API proposals allowed to do.
->>
->> The jobs API defines a few new concepts that user-space can use to control the
->> workflow on a set of opened V4L2 devices:
->>
->> A JOB QUEUE can be created from a set of opened FDs that are part of a pipeline
->> and need to cooperate (be it capture, m2m, or media controller devices).
->>
->> A JOB can then be set up with regular (if slightly modified) V4L2 ioctls, and
->> then submitted to the job queue. Once the job queue schedules the job, its
->> parameters (controls, etc) are applied to the devices of the queue, and itsd
->> buffers are processed. Immediately after a job is submitted, the next job is
->> ready to be set up without further user action.
->>
->> Once a job completes, it must be dequeued and user-space can then read back its
->> properties (notably controls) at completion time.
->>
->> Internally, the state of jobs is managed through STATE HANDLERS. Each driver
->> supporting the jobs API needs to specify an implementation of a state handler.
->> Fortunately, most drivers can rely on the generic state handler implementation
->> that simply records and replays a job's parameter using standard V4L2 functions.
->> Thanks to this, adding jobs API support to a driver relying on the control
->> framework and vb2 only requires a dozen lines of codes.
->>
->> Drivers with specific needs or opportunities for optimization can however
->> provide their own implementation of a state handler. This may in particular be
->> beneficial for hardware that supports configuration or command buffers (thinking
->> about VSP1 here).
->>
->> This is still very early work, and focus has been on the following points:
->>
->> * Provide something that anybody can test (currently using vim2m and vivid),
->> * Reuse the current V4L2 APIs as much as possible,
->> * Remain flexible enough to accomodate the inevitable changes that will be
->>   requested,
->> * Keep line count low, even if functionality is missing at the moment.
->>
->> Please keep this in mind while going through the patches. In particular, at the
->> moment the parameters of a job are limited to integer controls. I know that much
->> more is expected, but V4L2 has quite a learning curve and I preferred to focus
->> on the general concepts for now. More is coming though! :)
->>
->> I have written two small example programs that demonstrate the use of this API:
->>
->> - With a codec device (vim2m): https://gist.github.com/Gnurou/34c35f1f8e278dad454b51578d239a42
->>
->> - With a capture device (vivid): https://gist.github.com/Gnurou/5052e6ab41e7c55164b75d2970bc5a04
->>
->> Considering the history with the request API, I don't expect everything proposed
->> here to be welcome or understood immediately. In particular I apologize for not
->> reusing any of the previous attempts - I was just more comfortable laying down
->> my ideas from scratch.
->>
->> If this proposal is not dismissed as complete garbage I will also be happy to
->> discuss it in-person at the mini-summit in Prague. :)
->
-> Thank you for the initiative and the patchset.
->
-> While reviewing this patchset, I'm concentrating primarily on the approach
-> taken and the design, not so much in the actual implementation which I
-> don't think matters much at this moment.
+> I'll see how the rest works at my end with CONFIG_OF_DYNAMIC enabled.
 
-Thanks, that is exactly how I hoped things would go for the moment.
+Yes, as I try to describe bellow, applying the fix for 
+fwnode_graph_get_port_parent() solves both issues :-)
 
->
-> It's difficult to avoid seeing many similarities with the Request API
-> patches posted earlier on. And not only that, rather you have to start
-> looking for the differences in what I could call details, while important
-> design decisions could sometimes be only visible in what appear details at
-> this point.
+What is troublesome for me is that I don't understand why cdev_alloc() 
+would change/corrupt the subdevice pointer if CONFIG_OF_DYNAMIC=y or the 
+fix is _not_ applied.
 
-I was not quite sure whether I should base this work on one of the
-existing patchsets (and in this case, which one) or start from
-scratch. This being my first contribution to a new area of the kernel
-for me, I decided to start from scratch as it would yield more
-educative value.
+> 
+> >    [<c052507c>] (v4l2_async_match_notify) from [<c0525288>] (v4l2_async_notifier_register+0x11c/0x150)
+> >     r7:eb3cda50 r6:ea9e2868 r5:c0a5ff18 r4:eaa56bd8
+> >    [<c052516c>] (v4l2_async_notifier_register) from [<c05433f0>] (rcar_vin_probe+0x104/0x178)
+> >     r9:eaa56bd8 r8:00000000 r7:eb251a10 r6:eb251a00 r5:00000000 r4:eaa56810
+> >    [<c05432ec>] (rcar_vin_probe) from [<c0420a3c>] 
+> >    (platform_drv_probe+0x58/0xa4)
+> >     r9:00000000 r8:c0a6c504 r7:00000000 r6:c0a6c504 r5:eb251a10 r4:c05432ec
+> >    [<c04209e4>] (platform_drv_probe) from [<c041f320>] (driver_probe_device+0x210/0x2d8)
+> >     r7:00000000 r6:c0ac72d4 r5:c0ac72c8 r4:eb251a10
+> >    [<c041f110>] (driver_probe_device) from [<c041f46c>] (__driver_attach+0x84/0xb0)
+> >     r10:00000000 r9:c096d224 r8:00000000 r7:c0a50cf0 r6:c0a6c504 r5:eb251a44
+> >     r4:eb251a10 r3:00000000
+> >    [<c041f3e8>] (__driver_attach) from [<c041da08>] (bus_for_each_dev+0x88/0x98)
+> >     r7:c0a50cf0 r6:c041f3e8 r5:c0a6c504 r4:00000000
+> >    [<c041d980>] (bus_for_each_dev) from [<c041f5bc>] (driver_attach+0x20/0x28)
+> >     r6:00000000 r5:eaa55f80 r4:c0a6c504
+> >    [<c041f59c>] (driver_attach) from [<c041e190>] (bus_add_driver+0x170/0x1e0)
+> >    [<c041e020>] (bus_add_driver) from [<c0420068>] (driver_register+0xa8/0xe8)
+> >     r7:c095883c r6:000000cb r5:ffffe000 r4:c0a6c504
+> >    [<c041ffc0>] (driver_register) from [<c04214b0>] (__platform_driver_register+0x38/0x4c)
+> >     r5:ffffe000 r4:c0935328
+> >    [<c0421478>] (__platform_driver_register) from [<c0935340>] (rcar_vin_driver_init+0x18/0x20)
+> >    [<c0935328>] (rcar_vin_driver_init) from [<c0900ecc>] (do_one_initcall+0x12c/0x154)
+> >    [<c0900da0>] (do_one_initcall) from [<c0901080>] (kernel_init_freeable+0x18c/0x1d0)
+> >     r8:c0a8a700 r7:c095883c r6:000000cb r5:c0a8a700 r4:00000007
+> >    [<c0900ef4>] (kernel_init_freeable) from [<c06eac64>] (kernel_init+0x10/0x110)
+> >     r9:00000000 r8:00000000 r7:00000000 r6:00000000 r5:c06eac54 r4:00000000
+> >    [<c06eac54>] (kernel_init) from [<c0106db8>] (ret_from_fork+0x14/0x3c)
+> >     r5:c06eac54 r4:00000000
+> >    Code: 03e05012 e5803368 0a00000a e5963068 (e593300c) 
+> >    ---[ end trace 82aa2a1c6173a5f6 ]---
+> > 
+> > 
+> > Oddly enough setting CONFIG_OF_DYNAMIC=n or applying the patch
+> > '[PATCH v2] device property: preserve usecount for node passed to 
+> > of_fwnode_graph_get_port_parent()' fixes _both_ issues. It obviously 
+> > would fix the 'Bad of_node_put() on ...' messages that it also fixes the 
+> > OOPS is strange, so I did some digging.
+> > 
+> > The problem is introduced when rcar-vin in its complete callback calls 
+> > v4l2_device_register_subdev_nodes(). Before the call 
+> > vin->digital->subdev pointer is correct but after the call the 
+> > vin->digital->subdev pointer is changed to a for me random value. And 
+> > this is what is causing the OOPS in rvin_v4l2_probe() once it tries to 
+> > operate on the subdevice using v4l2_subdev_call() using this bad 
+> > pointer.
+> > 
+> > I tried to track down the issue but I can't understand what is causing 
+> > it, but I managed to narrow it down. The callchain is:
+> > 
+> > - rvin_digital_notify_complete
+> >   - pr_dbg("sd: %p\n", vin->digital->subdev); # prints good pointer
+> >   - v4l2_device_register_subdev_nodes()
+> >     - __video_register_device()
+> >       - cdev_alloc()         # Here the pointer gets corrupted
+> >   - pr_dbg("sd: %p\n", vin->digital->subdev); # prints bad pointer
+> > 
+> > I can't figure out why cdev_alloc() would corrupt it. I can even corrupt 
+> > the pointer by calling cdev_alloc() directly from the rcar-vin driver 
+> > itself. I added to following to the top  of the complete callback before 
+> > v4l2_device_register_subdev_nodes() is called.
+> > 
+> >   pr_err("digital: %p sd: %p\n", vin->digital, vin->digital->subdev);
+> >   cdev_alloc();
+> >   pr_err("digital: %p sd: %p\n", vin->digital, vin->digital->subdev);
+> > 
+> > And the result is:
+> > 
+> > [    2.865306] digital: eb1284c0 sd: ea953068
+> > [    2.869414] digital: eb1284c0 sd: c0a1e6dc
+> > 
+> > If I set CONFIG_OF_DYNAMIC=n or apply the patch above the result is OK, 
+> > 
+> > [    1.961142] digital: ea8f8cc0 sd: ea8bac50
+> > [    1.965240] digital: ea8f8cc0 sd: ea8bac50
+> > 
+> > I can capture without issues so this patch in it self is good I think.  
+> > So please add
+> > 
+> > Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se> 
+> > 
+> > However I would like the issue that is revealed by this patch to be 
+> > sorted out before this patch is picked up as it causes problems with 
+> > CONFIG_OF_DYNAMIC=y which is enabled by using the shmobile_defconfig.
+> > 
+> > On 2017-09-26 01:25:18 +0300, Sakari Ailus wrote:
+> >> Instead of using a custom driver implementation, use
+> >> v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
+> >> of the device.
+> >>
+> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >>  drivers/media/platform/rcar-vin/rcar-core.c | 107 +++++++++-------------------
+> >>  drivers/media/platform/rcar-vin/rcar-dma.c  |  10 +--
+> >>  drivers/media/platform/rcar-vin/rcar-v4l2.c |  14 ++--
+> >>  drivers/media/platform/rcar-vin/rcar-vin.h  |   4 +-
+> >>  4 files changed, 46 insertions(+), 89 deletions(-)
+> >>
+> >> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> >> index 142de447aaaa..380288658601 100644
+> >> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> >> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> >> @@ -21,6 +21,7 @@
+> >>  #include <linux/platform_device.h>
+> >>  #include <linux/pm_runtime.h>
+> >>  
+> >> +#include <media/v4l2-async.h>
+> >>  #include <media/v4l2-fwnode.h>
+> >>  
+> >>  #include "rcar-vin.h"
+> >> @@ -77,14 +78,14 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+> >>  	int ret;
+> >>  
+> >>  	/* Verify subdevices mbus format */
+> >> -	if (!rvin_mbus_supported(&vin->digital)) {
+> >> +	if (!rvin_mbus_supported(vin->digital)) {
+> >>  		vin_err(vin, "Unsupported media bus format for %s\n",
+> >> -			vin->digital.subdev->name);
+> >> +			vin->digital->subdev->name);
+> >>  		return -EINVAL;
+> >>  	}
+> >>  
+> >>  	vin_dbg(vin, "Found media bus format for %s: %d\n",
+> >> -		vin->digital.subdev->name, vin->digital.code);
+> >> +		vin->digital->subdev->name, vin->digital->code);
+> >>  
+> >>  	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
+> >>  	if (ret < 0) {
+> >> @@ -103,7 +104,7 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
+> >>  
+> >>  	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
+> >>  	rvin_v4l2_remove(vin);
+> >> -	vin->digital.subdev = NULL;
+> >> +	vin->digital->subdev = NULL;
+> >>  }
+> >>  
+> >>  static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+> >> @@ -120,117 +121,71 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+> >>  	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
+> >>  	if (ret < 0)
+> >>  		return ret;
+> >> -	vin->digital.source_pad = ret;
+> >> +	vin->digital->source_pad = ret;
+> >>  
+> >>  	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
+> >> -	vin->digital.sink_pad = ret < 0 ? 0 : ret;
+> >> +	vin->digital->sink_pad = ret < 0 ? 0 : ret;
+> >>  
+> >> -	vin->digital.subdev = subdev;
+> >> +	vin->digital->subdev = subdev;
+> >>  
+> >>  	vin_dbg(vin, "bound subdev %s source pad: %u sink pad: %u\n",
+> >> -		subdev->name, vin->digital.source_pad,
+> >> -		vin->digital.sink_pad);
+> >> +		subdev->name, vin->digital->source_pad,
+> >> +		vin->digital->sink_pad);
+> >>  
+> >>  	return 0;
+> >>  }
+> >>  
+> >> -static int rvin_digitial_parse_v4l2(struct rvin_dev *vin,
+> >> -				    struct device_node *ep,
+> >> -				    struct v4l2_mbus_config *mbus_cfg)
+> >> +static int rvin_digital_parse_v4l2(struct device *dev,
+> >> +				   struct v4l2_fwnode_endpoint *vep,
+> >> +				   struct v4l2_async_subdev *asd)
+> >>  {
+> >> -	struct v4l2_fwnode_endpoint v4l2_ep;
+> >> -	int ret;
+> >> +	struct rvin_dev *vin = dev_get_drvdata(dev);
+> >> +	struct rvin_graph_entity *rvge =
+> >> +		container_of(asd, struct rvin_graph_entity, asd);
+> >>  
+> >> -	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
+> >> -	if (ret) {
+> >> -		vin_err(vin, "Could not parse v4l2 endpoint\n");
+> >> -		return -EINVAL;
+> >> -	}
+> >> +	if (vep->base.port || vep->base.id)
+> >> +		return -ENOTCONN;
+> >>  
+> >> -	mbus_cfg->type = v4l2_ep.bus_type;
+> >> +	rvge->mbus_cfg.type = vep->bus_type;
+> >>  
+> >> -	switch (mbus_cfg->type) {
+> >> +	switch (rvge->mbus_cfg.type) {
+> >>  	case V4L2_MBUS_PARALLEL:
+> >>  		vin_dbg(vin, "Found PARALLEL media bus\n");
+> >> -		mbus_cfg->flags = v4l2_ep.bus.parallel.flags;
+> >> +		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
+> >>  		break;
+> >>  	case V4L2_MBUS_BT656:
+> >>  		vin_dbg(vin, "Found BT656 media bus\n");
+> >> -		mbus_cfg->flags = 0;
+> >> +		rvge->mbus_cfg.flags = 0;
+> >>  		break;
+> >>  	default:
+> >>  		vin_err(vin, "Unknown media bus type\n");
+> >>  		return -EINVAL;
+> >>  	}
+> >>  
+> >> -	return 0;
+> >> -}
+> >> -
+> >> -static int rvin_digital_graph_parse(struct rvin_dev *vin)
+> >> -{
+> >> -	struct device_node *ep, *np;
+> >> -	int ret;
+> >> -
+> >> -	vin->digital.asd.match.fwnode.fwnode = NULL;
+> >> -	vin->digital.subdev = NULL;
+> >> -
+> >> -	/*
+> >> -	 * Port 0 id 0 is local digital input, try to get it.
+> >> -	 * Not all instances can or will have this, that is OK
+> >> -	 */
+> >> -	ep = of_graph_get_endpoint_by_regs(vin->dev->of_node, 0, 0);
+> >> -	if (!ep)
+> >> -		return 0;
+> >> -
+> >> -	np = of_graph_get_remote_port_parent(ep);
+> >> -	if (!np) {
+> >> -		vin_err(vin, "No remote parent for digital input\n");
+> >> -		of_node_put(ep);
+> >> -		return -EINVAL;
+> >> -	}
+> >> -	of_node_put(np);
+> >> -
+> >> -	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->digital.mbus_cfg);
+> >> -	of_node_put(ep);
+> >> -	if (ret)
+> >> -		return ret;
+> >> -
+> >> -	vin->digital.asd.match.fwnode.fwnode = of_fwnode_handle(np);
+> >> -	vin->digital.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> >> +	vin->digital = rvge;
+> >>  
+> >>  	return 0;
+> >>  }
+> >>  
+> >>  static int rvin_digital_graph_init(struct rvin_dev *vin)
+> >>  {
+> >> -	struct v4l2_async_subdev **subdevs = NULL;
+> >>  	int ret;
+> >>  
+> >> -	ret = rvin_digital_graph_parse(vin);
+> >> +	ret = v4l2_async_notifier_parse_fwnode_endpoints(
+> >> +		vin->dev, &vin->notifier,
+> >> +		sizeof(struct rvin_graph_entity), rvin_digital_parse_v4l2);
+> >>  	if (ret)
+> >>  		return ret;
+> >>  
+> >> -	if (!vin->digital.asd.match.fwnode.fwnode) {
+> >> -		vin_dbg(vin, "No digital subdevice found\n");
+> >> +	if (!vin->digital)
+> >>  		return -ENODEV;
+> >> -	}
+> >> -
+> >> -	/* Register the subdevices notifier. */
+> >> -	subdevs = devm_kzalloc(vin->dev, sizeof(*subdevs), GFP_KERNEL);
+> >> -	if (subdevs == NULL)
+> >> -		return -ENOMEM;
+> >> -
+> >> -	subdevs[0] = &vin->digital.asd;
+> >>  
+> >>  	vin_dbg(vin, "Found digital subdevice %pOF\n",
+> >> -		to_of_node(subdevs[0]->match.fwnode.fwnode));
+> >> +		to_of_node(vin->digital->asd.match.fwnode.fwnode));
+> >>  
+> >> -	vin->notifier.num_subdevs = 1;
+> >> -	vin->notifier.subdevs = subdevs;
+> >>  	vin->notifier.bound = rvin_digital_notify_bound;
+> >>  	vin->notifier.unbind = rvin_digital_notify_unbind;
+> >>  	vin->notifier.complete = rvin_digital_notify_complete;
+> >> -
+> >>  	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
+> >>  	if (ret < 0) {
+> >>  		vin_err(vin, "Notifier registration failed\n");
+> >> @@ -290,6 +245,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
+> >>  	if (ret)
+> >>  		return ret;
+> >>  
+> >> +	platform_set_drvdata(pdev, vin);
+> >> +
+> >>  	ret = rvin_digital_graph_init(vin);
+> >>  	if (ret < 0)
+> >>  		goto error;
+> >> @@ -297,11 +254,10 @@ static int rcar_vin_probe(struct platform_device *pdev)
+> >>  	pm_suspend_ignore_children(&pdev->dev, true);
+> >>  	pm_runtime_enable(&pdev->dev);
+> >>  
+> >> -	platform_set_drvdata(pdev, vin);
+> >> -
+> >>  	return 0;
+> >>  error:
+> >>  	rvin_dma_remove(vin);
+> >> +	v4l2_async_notifier_cleanup(&vin->notifier);
+> >>  
+> >>  	return ret;
+> >>  }
+> >> @@ -313,6 +269,7 @@ static int rcar_vin_remove(struct platform_device *pdev)
+> >>  	pm_runtime_disable(&pdev->dev);
+> >>  
+> >>  	v4l2_async_notifier_unregister(&vin->notifier);
+> >> +	v4l2_async_notifier_cleanup(&vin->notifier);
+> >>  
+> >>  	rvin_dma_remove(vin);
+> >>  
+> >> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> >> index b136844499f6..23fdff7a7370 100644
+> >> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> >> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> >> @@ -183,7 +183,7 @@ static int rvin_setup(struct rvin_dev *vin)
+> >>  	/*
+> >>  	 * Input interface
+> >>  	 */
+> >> -	switch (vin->digital.code) {
+> >> +	switch (vin->digital->code) {
+> >>  	case MEDIA_BUS_FMT_YUYV8_1X16:
+> >>  		/* BT.601/BT.1358 16bit YCbCr422 */
+> >>  		vnmc |= VNMC_INF_YUV16;
+> >> @@ -191,7 +191,7 @@ static int rvin_setup(struct rvin_dev *vin)
+> >>  		break;
+> >>  	case MEDIA_BUS_FMT_UYVY8_2X8:
+> >>  		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+> >> -		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
+> >> +		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
+> >>  			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+> >>  		input_is_yuv = true;
+> >>  		break;
+> >> @@ -200,7 +200,7 @@ static int rvin_setup(struct rvin_dev *vin)
+> >>  		break;
+> >>  	case MEDIA_BUS_FMT_UYVY10_2X10:
+> >>  		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+> >> -		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
+> >> +		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
+> >>  			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+> >>  		input_is_yuv = true;
+> >>  		break;
+> >> @@ -212,11 +212,11 @@ static int rvin_setup(struct rvin_dev *vin)
+> >>  	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+> >>  
+> >>  	/* Hsync Signal Polarity Select */
+> >> -	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+> >> +	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+> >>  		dmr2 |= VNDMR2_HPS;
+> >>  
+> >>  	/* Vsync Signal Polarity Select */
+> >> -	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+> >> +	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+> >>  		dmr2 |= VNDMR2_VPS;
+> >>  
+> >>  	/*
+> >> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> >> index dd37ea811680..b479b882da12 100644
+> >> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> >> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> >> @@ -111,7 +111,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
+> >>  	struct v4l2_mbus_framefmt *mf = &fmt.format;
+> >>  	int ret;
+> >>  
+> >> -	fmt.pad = vin->digital.source_pad;
+> >> +	fmt.pad = vin->digital->source_pad;
+> >>  
+> >>  	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
+> >>  	if (ret)
+> >> @@ -172,13 +172,13 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+> >>  
+> >>  	sd = vin_to_source(vin);
+> >>  
+> >> -	v4l2_fill_mbus_format(&format.format, pix, vin->digital.code);
+> >> +	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
+> >>  
+> >>  	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
+> >>  	if (pad_cfg == NULL)
+> >>  		return -ENOMEM;
+> >>  
+> >> -	format.pad = vin->digital.source_pad;
+> >> +	format.pad = vin->digital->source_pad;
+> >>  
+> >>  	field = pix->field;
+> >>  
+> >> @@ -555,7 +555,7 @@ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
+> >>  	if (timings->pad)
+> >>  		return -EINVAL;
+> >>  
+> >> -	timings->pad = vin->digital.sink_pad;
+> >> +	timings->pad = vin->digital->sink_pad;
+> >>  
+> >>  	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
+> >>  
+> >> @@ -607,7 +607,7 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
+> >>  	if (cap->pad)
+> >>  		return -EINVAL;
+> >>  
+> >> -	cap->pad = vin->digital.sink_pad;
+> >> +	cap->pad = vin->digital->sink_pad;
+> >>  
+> >>  	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
+> >>  
+> >> @@ -625,7 +625,7 @@ static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+> >>  	if (edid->pad)
+> >>  		return -EINVAL;
+> >>  
+> >> -	edid->pad = vin->digital.sink_pad;
+> >> +	edid->pad = vin->digital->sink_pad;
+> >>  
+> >>  	ret = v4l2_subdev_call(sd, pad, get_edid, edid);
+> >>  
+> >> @@ -643,7 +643,7 @@ static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+> >>  	if (edid->pad)
+> >>  		return -EINVAL;
+> >>  
+> >> -	edid->pad = vin->digital.sink_pad;
+> >> +	edid->pad = vin->digital->sink_pad;
+> >>  
+> >>  	ret = v4l2_subdev_call(sd, pad, set_edid, edid);
+> >>  
+> >> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> >> index 9bfb5a7c4dc4..5382078143fb 100644
+> >> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> >> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> >> @@ -126,7 +126,7 @@ struct rvin_dev {
+> >>  	struct v4l2_device v4l2_dev;
+> >>  	struct v4l2_ctrl_handler ctrl_handler;
+> >>  	struct v4l2_async_notifier notifier;
+> >> -	struct rvin_graph_entity digital;
+> >> +	struct rvin_graph_entity *digital;
+> >>  
+> >>  	struct mutex lock;
+> >>  	struct vb2_queue queue;
+> >> @@ -145,7 +145,7 @@ struct rvin_dev {
+> >>  	struct v4l2_rect compose;
+> >>  };
+> >>  
+> >> -#define vin_to_source(vin)		vin->digital.subdev
+> >> +#define vin_to_source(vin)		((vin)->digital->subdev)
+> >>  
+> >>  /* Debug */
+> >>  #define vin_dbg(d, fmt, arg...)		dev_dbg(d->dev, fmt, ##arg)
+> >> -- 
+> >> 2.11.0
+> >>
+> > 
+> 
+> 
+> -- 
+> Regards,
+> 
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
 
->
-> Both request and jobs APIs have the concept of a request, or a job, which
-> is created by the user and then different buffers or controls can be bound
-> to that request. (Other configuration isn't really excluded but it's
-> non-trivial to implement in practice.) This is common for both.
-
-Yes, the main difference being that the current proposal manages the
-jobs flow implicitly by default, to ease the most common uses of this
-API (codecs & camera). It still maintains the ability to control them
-more finely similarly to the previous request API proposals.
-
->
-> The differences begin however how the functionality within the scope is
-> actieved, in particular:
->
-> - A new user space interface (character device) is created for the jobs API
->   whereas requests use existing Media controller interface. Therefore the
->   jobs API is specific to V4L2. Consequently, the V4L2 jobs API may not
->   support Media controller link state changes through requests.
-
-It is not clear to me why that is the case - could you elaborate on that a bit?
-
->
->   I don't see a reason why it should be this way, and I also see no reason
->   why there should be yet another user space interface for this purpose
->   alone: this is a clear drawback compared to handling this through the
->   Media device.
-
-Yeah, as I discussed in my reply to Hans, this node is mostly here for
-convenience reasons and I don't feel too strongly about it.
-
->
-> - Controls and buffers are always bound to requests explicitly whereas for
->   jobs, this seems to be implicit based on associating the file handle
->   related to the relevant video device with the request.
->
->   There are advantages in the approach, but currently I'd see that they're
->   primarily related to not having to change the existing IOCTL argument
->   structs.
-
-For controls, this is definitely not the case (see the newly
-introduced V4L2_CTRL_WHICH_CURJOB_VAL flag for instance). Even when
-using the jobs API, you can change controls on-the-fly without waiting
-for the current job to be processed.
-
-For other parameters, we need to decide whether it can make sense to
-decouple them from jobs. In particular, allowing buffers to be
-processed both from and out of the jobs queue seems difficult to
-achieve in a consistent way, and may not make any sense semantically
-speaking. This is why the meaning of QBUF/QDBUF depends on whether the
-jobs API is in use for a particular opened node.
-
->
->   There lie problems, too, because of this: with requests (or jobs) it is
->   vitally important that the user will always have the information if a
->   buffer, control event etc. was related to a request (or not), and in
->   particular which request it was.
->
->   You could say that the user must keep track of this information but I'd
->   suppose it won't make it easier for the user no having an important piece
->   of information. Having this information as part of the IOCTL argument
->   struct is mandatory for e.g. events that the user doesn't have an ID to
->   compare with in order to find the related request.
-
-When queuing buffers, it is quite obvious which job they will be
-linked too, as it is the current one. We can return a job ID as an
-output argument of the QJOB ioctl to make this easier to handle.
-
-I need to look at the ioctl structures too see what is possible, but I
-also see no drawbacks to associating a job ID to dequeued buffers if
-there is space remaining.
-
->
->   Also --- when an association with a video devnode file descriptor and a
->   job with a request is made, when does it cease to exist? When the job is
->   released? When the job is done?
-
-Association is made between a job queue (to which an undefined number
-of jobs can be queued) and a set of device nodes. A job queue remains
-active as long as its file descriptor is not closed. So the short
-answer to your question is that the devnode remains part of the queue
-until the file descriptor obtained by opening /dev/v4l2_jobqueue (and
-initialized using VIDIOC_JOBQUEUE_INIT) is opened. This is of course
-subject to change if /dev/v4l2_jobqueue disappears, but I would like
-to retain the idea of managing the jobs queue via its own file
-descriptor.
-
->
-> There are smaller differences, not very important IMO:
->
-> - Requests are removed once complete. This was done to simplify the
->   implementation and it could be added if it is seen reasonable to
->   implement and useful, neither of which is known.
->
-> These are differences, I'd say, in the parts that are somewhat manageable
-> in any way they're designed, and with rather easily understandable
-> consequences from these design decisions. I still prefer the design choices
-> made for the Request API (regarding device nodes and request association
-> especially).
-
-I suppose this is something we need to discuss thoroughly in Prague to
-make sure we understand why we made different design decisions. I am
-rather fond of the idea of associating a set of opened devices into a
-jobs queue and think that this is necessary for some advanced cases
-(MIPI camera notably).
-
->
-> The hard stuff, e.g. how do you implement including non-buffer and
-> non-control configuration into the request in a meaningful way in an actual
-> driver I haven't seen yet. We'd need one driver to implement that, and in
-> general case it likely requires locking scheme changes in MC, for instance.
-> There are still use cases where this all isn't needed so there is a
-> motivation to have less than full implementation in the mainline kernel.
-
-You're right - I wanted to give a go at the easiest part first and
-receive feedback on this. Also it is easiest for us (Google) to
-evaluate this first step as it allows us to replace the config store
-currently used in Chrome OS.
-
->
-> Another matter is making videobuf2 helpful here: we should have, if not in
-> the videobuf2 framework itself, then around it helper function(s) to manage
-> the submission of buffers to a driver. You can get things working pretty
-> easily but the error handling is very painful: what do you do, for
-> instance, with buffers queued with a request if queueing the request itself
-> fails, possibly because the user hasn't provided enough buffers with the
-> request? Mark the buffers errorneous and return them to the user? Probably
-> so, but that requires the user to dequeue the buffers and gather the
-> request again. I presume this would only happen in special circumstances
-> though, and not typically in an application using requests. This, and many
-> other special cases still must be handled by the kernel.
-
-Error handling is still pretty weak in that version. I would like to
-get an overall agreement on the general direction before looking at
-this more closely though, as I suppose getting things right will take
-some time.
-
->
-> Finally, I want to say that I like some aspects of the patchset, such as
-> moving more things to the V4L2 framework from the driver. This would be
-> very useful in helping driver implementation: V4L2 is very stream-centric
-> and the configurations and buffers across device nodes have been
-> essentially independent from API point of view. Associating the pieces of
-> information together in requests would be painful to do in drivers. What
-> the framework can do, still controlled by drivers, could help a lot here.
-> This aspect wasn't much considered where the Request API work was left.
-
-I am not sure whether this is obvious in this patchset, but the idea
-is that while there is a default implementation that can easily be
-used as-is by most drivers (which allows to keep the lines count in
-vivid and vim2m low), a driver with more specific needs could still
-write its own state handler, tailored to its needs. I am especially
-thinking of VSP1 here, Laurent's implementation was designed with the
-perspective of writing and reusing command buffers, and the same
-result should be attainable with a custom state handler (while still
-benefiting from some of the framework code).
-
-But whether you write a custom state handler or use the generic one,
-the current implementation still depends on VB2/control framework,
-which means that older drivers (and notably uvc) could not make use of
-the jobs API. I am not sure whether this would be considered a
-problem.
-
->
-> Still it shouldn't be forgotten that if the framework is geared towards
-> helping drivers "running one job at a time" the scope will be limited to
-> memory-to-memory devices; streaming devices, e.g. all kinds of cameras have
-> multiple requests being processed simultaneously (or frames are bound to be
-> lost, something we can't allow to happen due to framework design). And I
-> believe the memory-to-memory devices are generally the easy case. That
-> could be one option to start with, but at the same time we have to make it
-> absolutely certain we will not paint ourselves to the corner: the V4L2 UAPI
-> (or even KAPI) paint will take much longer to dry than the regular one.
-
-There are several reasons why the current patchset is focused on m2m
-devices (although vivid can be considered a regular camera case):
-- As you said, it is the easiest use-case to implement,
-- It is also the use-case we are the most interested in for Chrome OS,
-so I am clearly biased towards it, :)
-- My exposure to V4L2 is still limited, so I may not be able to see
-the whole picture yet.
-
-It is important though, that we consider all the cases that need to be
-supported by the jobs API and I want to make it very clear that I am
-not attempting to direct it towards our specific use. It is not clear
-to me why some cameras would need multiple requests to be processed
-simultaneously (neither is it clear how I could implement that using
-the current design), so we definitely need to discuss this in Prague.
-The current patchset is just to try and validate the general
-direction, and get confidence that this scheme can support all that
-needs to be supported.
-
-Oh, I have also updated it to complete controls support, and now all
-kinds of controls should work. Besides that the other changes are
-minor improvements on things that were very clumsy, so not resending
-another patchset here, but in case someone wants to have a look it is
-on https://github.com/Gnurou/linux/commits/v4l2_jobs.
-
-Thanks and see you all in Prague! I should be there from Thursday.
-
-Alex.
+-- 
+Regards,
+Niklas Söderlund
