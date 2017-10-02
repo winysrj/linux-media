@@ -1,101 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:47727 "EHLO
-        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752629AbdJQGS5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 02:18:57 -0400
-Received: by mail-wm0-f47.google.com with SMTP id t69so1481080wmt.2
-        for <linux-media@vger.kernel.org>; Mon, 16 Oct 2017 23:18:57 -0700 (PDT)
-Received: from [147.251.55.20] (comp55-20.vpn.muni.cz. [147.251.55.20])
-        by smtp.googlemail.com with ESMTPSA id m16sm7332768edc.7.2017.10.16.23.18.55
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 16 Oct 2017 23:18:55 -0700 (PDT)
+Received: from mga02.intel.com ([134.134.136.20]:59197 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750890AbdJBIUv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Oct 2017 04:20:51 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-From: deim31 <deim31@gmail.com>
-Subject: get Pinnacle Systems MovieBox (510-USB) to work
-Message-ID: <ba548614-360a-0091-797d-5aad3b7d745f@gmail.com>
-Date: Tue, 17 Oct 2017 08:18:55 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Language: cs-CZ
-Content-Transfer-Encoding: 8bit
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Alan Cox <alan@linux.intel.com>
+Subject: [PATCH v2 1/1] staging: atomisp: Update TODO regarding sensors
+Date: Mon,  2 Oct 2017 11:17:23 +0300
+Message-Id: <1506932243-9999-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+There was no specific item regarding what should be done to sensor, lens
+and flash drivers. Add one, to replace the vague item denoting support
+only to particular sensor, lens and flash devices.
 
-I'm trying to run Pinnacle Systems MovieBox (510-USB) on linux.
-
-lsusb gives me:
-ID 2304:0223 Pinnacle Systems, Inc. DazzleTV Sat BDA Device
-
-tried modify kernel like:
-https://www.linuxtv.org/pipermail/linux-dvb/2007-February/015779.html
-
-(there is note about 0223)
-
-My changes:
-$ diff /usr/src/linux/drivers/media/dvb-core/dvb-usb-ids.h dvb-usb-ids.h
-307d306
-< #define USB_PID_PCTV_510            0x0223
-
-$ diff /usr/src/linux/drivers/media/usb/dvb-usb/ttusb2.c ttusb2.c
-638d637
-<    { USB_DEVICE(USB_VID_PINNACLE, USB_PID_PCTV_510) },
-691c690
-<    .num_device_descs = 3,
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
->    .num_device_descs = 2,
-701,704d699
-<                 {   "Pinnacle 510 DVB-S USB2.0",
-<                         { &ttusb2_table[2], NULL },
-<                         { NULL },
-<                 },
+since v1:
 
-full dmesg:
-https://paste.pound-python.org/show/dLUwdNRT04k61TDPM6QP/
+- Mention LED flash API for flash LED drivers plus LM3554 status.
 
-relevant parts of dmesg:
-[    0.777732] usb 3-2: new high-speed USB device number 2 using xhci_hcd
-[    0.954800] usb 3-2: New USB device found, idVendor=2304, idProduct=0223
-[    0.954803] usb 3-2: New USB device strings: Mfr=1, Product=2,
-SerialNumber=0
-[    0.954804] usb 3-2: Product: Pinnacle High Speed USB Device
-[    0.954805] usb 3-2: Manufacturer: Pinnacle Systems, Inc.
-[    4.320028] dvb-usb: recv bulk message failed: -110
-[    4.320030] ttusb2: there might have been an error during control
-message transfer. (rlen = 0, was 0)
-[    6.368006] dvb-usb: recv bulk message failed: -110
-[    6.368008] ttusb2: there might have been an error during control
-message transfer. (rlen = 0, was 0)
-[    6.368051] dvb-usb: will pass the complete MPEG2 transport stream to
-the software demuxer.
-[    6.368123] dvbdev: DVB: registering new adapter (Pinnacle 510 DVB-S
-USB2.0)
-[    8.416049] dvb-usb: recv bulk message failed: -110
-[    8.416054] ttusb2: there might have been an error during control
-message transfer. (rlen = 4, was 0)
-[    8.416056] ttusb2: i2c transfer failed.
-[    8.416066] dvb-usb: no frontend was attached by 'Pinnacle 510 DVB-S
-USB2.0'
-[   10.464023] dvb-usb: recv bulk message failed: -110
-[   10.464027] ttusb2: there might have been an error during control
-message transfer. (rlen = 0, was 0)
-[   12.512017] dvb-usb: recv bulk message failed: -110
-[   12.512021] ttusb2: there might have been an error during control
-message transfer. (rlen = 0, was 0)
-[   12.512026] dvb-usb: Pinnacle 510 DVB-S USB2.0 successfully
-initialized and connected.
-[   12.512082] usbcore: registered new interface driver dvb_usb_ttusb2
+ drivers/staging/media/atomisp/TODO | 22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
-# ls -l /dev/dvb/adapter0/
-celkem 0
-crw-rw----+ 1 root video 212, 4 16. øíj 10.52 demux0
-crw-rw----+ 1 root video 212, 5 16. øíj 10.52 dvr0
-crw-rw----+ 1 root video 212, 7 16. øíj 10.52 net0
-
-I don't know why module doesn't ask for firmware.
-Is there a chance to get it to run?
-
-Thanks deim
+diff --git a/drivers/staging/media/atomisp/TODO b/drivers/staging/media/atomisp/TODO
+index 737452c..447cb59 100644
+--- a/drivers/staging/media/atomisp/TODO
++++ b/drivers/staging/media/atomisp/TODO
+@@ -36,13 +36,21 @@
+    there are any specific things that can be done to fold in support for
+    multiple firmware versions.
+ 
++8. Switch to V4L2 async API to set up sensor, lens and flash devices.
++   Control those devices using V4L2 sub-device API without custom
++   extensions.
+ 
+-Limitations:
++9. Switch to standard V4L2 sub-device API for sensor and lens. In
++   particular, the user space API needs to support V4L2 controls as
++   defined in the V4L2 spec and references to atomisp must be removed from
++   these drivers.
++
++10. Use LED flash API for flash LED drivers such as LM3554 (which already
++    has a LED class driver).
+ 
+-1. Currently the patch only support some camera sensors
+-   gc2235/gc0310/0v2680/ov2722/ov5693/mt9m114...
++Limitations:
+ 
+-2. To test the patches, you also need the ISP firmware
++1. To test the patches, you also need the ISP firmware
+ 
+    for BYT:/lib/firmware/shisp_2400b0_v21.bin
+    for CHT:/lib/firmware/shisp_2401a0_v21.bin
+@@ -51,14 +59,14 @@ Limitations:
+    device but can also be extracted from the upgrade kit if you've managed
+    to lose them somehow.
+ 
+-3. Without a 3A libary the capture behaviour is not very good. To take a good
++2. Without a 3A libary the capture behaviour is not very good. To take a good
+    picture, you need tune ISP parameters by IOCTL functions or use a 3A libary
+    such as libxcam.
+ 
+-4. The driver is intended to drive the PCI exposed versions of the device.
++3. The driver is intended to drive the PCI exposed versions of the device.
+    It will not detect those devices enumerated via ACPI as a field of the
+    i915 GPU driver.
+ 
+-5. The driver supports only v2 of the IPU/Camera. It will not work with the
++4. The driver supports only v2 of the IPU/Camera. It will not work with the
+    versions of the hardware in other SoCs.
+ 
+-- 
+2.7.4
