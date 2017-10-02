@@ -1,46 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gloria.sntech.de ([95.129.55.99]:60924 "EHLO gloria.sntech.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753252AbdJTQ7F (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 12:59:05 -0400
-From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Pierre-Hugues Husson <phh@phh.me>,
-        linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] pinctrl: rockchip: Add iomux-route switching support for rk3288
-Date: Fri, 20 Oct 2017 18:58:58 +0200
-Message-ID: <40786265.ZDfztTY44U@diego>
-In-Reply-To: <68b8765d-3d55-3fdd-e23e-776e978c38bd@xs4all.nl>
-References: <20171013225337.5196-1-phh@phh.me> <2040825.vRYCsv903Y@diego> <68b8765d-3d55-3fdd-e23e-776e978c38bd@xs4all.nl>
+Received: from p3plsmtpa11-08.prod.phx3.secureserver.net ([68.178.252.109]:60825
+        "EHLO p3plsmtpa11-08.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751204AbdJBUeN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Oct 2017 16:34:13 -0400
+From: Leon Luo <leonl@leopardimaging.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, leonl@leopardimaging.com,
+        soren.brinkmann@xilinx.com
+Subject: [PATCH v7 1/2] media:imx274 device tree binding file
+Date: Mon,  2 Oct 2017 13:26:48 -0700
+Message-Id: <20171002202649.10897-1-leonl@leopardimaging.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag, 20. Oktober 2017, 09:44:55 CEST schrieb Hans Verkuil:
-> On 20/10/17 09:38, Heiko Stübner wrote:
-> > Hi Hans,
-> > 
-> > Am Freitag, 20. Oktober 2017, 09:28:58 CEST schrieb Hans Verkuil:
-> >> On 14/10/17 17:39, Heiko Stuebner wrote:
-> >>> So far only the hdmi cec supports using one of two different pins
-> >>> as source, so add the route switching for it.
-> >>> 
-> >>> Signed-off-by: Heiko Stuebner <heiko@sntech.de>
-> >> 
-> >> Just tested this on my firefly reload and it works great!
-> >> 
-> >> Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > oh cool. I really only wrote this based on the soc manual,
-> > so it actually surprises me, that it works on the first try :-)
-> 
-> One note though: I've only tested it on my Firefly Reload. I don't have a
-> regular Firefly, so I can't be certain it works there. Just covering my ass
-> here :-)
+The binding file for imx274 CMOS sensor V4l2 driver
 
-Haha ... I guess the only thing I could have messed up would be the
-ordering (valu0 -> gpio0, value1 -> gpio7 ... and reverse), so if it were
-really wrong, you shouldn've have seen any results at all.
+Signed-off-by: Leon Luo <leonl@leopardimaging.com>
+Acked-by: SÃ¶ren Brinkmann <soren.brinkmann@xilinx.com>
+Acked-by: Rob Herring <robh@kernel.org>
+---
+v7:
+ - no changes
+v6:
+ - no changes
+v5:
+ - add 'port' and 'endpoint' information
+v4:
+ - no changes
+v3:
+ - remove redundant properties and references
+ - document 'reg' property
+v2:
+ - no changes
+---
+ .../devicetree/bindings/media/i2c/imx274.txt       | 33 ++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/imx274.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/imx274.txt b/Documentation/devicetree/bindings/media/i2c/imx274.txt
+new file mode 100644
+index 000000000000..80f2e89568e1
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/imx274.txt
+@@ -0,0 +1,33 @@
++* Sony 1/2.5-Inch 8.51Mp CMOS Digital Image Sensor
++
++The Sony imx274 is a 1/2.5-inch CMOS active pixel digital image sensor with
++an active array size of 3864H x 2202V. It is programmable through I2C
++interface. The I2C address is fixed to 0x1a as per sensor data sheet.
++Image data is sent through MIPI CSI-2, which is configured as 4 lanes
++at 1440 Mbps.
++
++
++Required Properties:
++- compatible: value should be "sony,imx274" for imx274 sensor
++- reg: I2C bus address of the device
++
++Optional Properties:
++- reset-gpios: Sensor reset GPIO
++
++The imx274 device node should contain one 'port' child node with
++an 'endpoint' subnode. For further reading on port node refer to
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++	sensor@1a {
++		compatible = "sony,imx274";
++		reg = <0x1a>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reset-gpios = <&gpio_sensor 0 0>;
++		port {
++			sensor_out: endpoint {
++				remote-endpoint = <&csiss_in>;
++			};
++		};
++	};
+-- 
+2.14.0.rc1
