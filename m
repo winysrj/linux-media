@@ -1,96 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35878 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751391AbdJMXI2 (ORCPT
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:37367 "EHLO
+        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750890AbdJBFfr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 19:08:28 -0400
-Date: Sat, 14 Oct 2017 02:08:25 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Tuukka Toivonen <tuukka.toivonen@intel.com>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zhi, Yong" <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: Re: [PATCH v2 08/12] intel-ipu3: params: compute and program ccs
-Message-ID: <20171013230824.mihk6ztq4vctvoqf@valkosipuli.retiisi.org.uk>
-References: <1497478767-10270-1-git-send-email-yong.zhi@intel.com>
- <1497478767-10270-9-git-send-email-yong.zhi@intel.com>
- <CAHp75Vff3tQE4NdsLJDO=7b7_5O3XW360qxOw4nbeE3i+usvhQ@mail.gmail.com>
- <C193D76D23A22742993887E6D207B54D1AE287D3@ORSMSX106.amr.corp.intel.com>
- <20171011072925.twuc22cqnv5pymed@paasikivi.fi.intel.com>
- <CAHp75VfTZ5GhNCgSbD2_d99Yq-32hDy06ZyRpNJTwo3PFKG=Uw@mail.gmail.com>
- <1507730484.18241.17.camel@intel.com>
- <CAHp75VcE11_AZ0UCFxBdMRVnmj+FMUhaBFzEFLxqbK7_0_p9pg@mail.gmail.com>
+        Mon, 2 Oct 2017 01:35:47 -0400
+Date: Mon, 2 Oct 2017 07:35:54 +0200
+From: Greg KH <greg@kroah.com>
+To: =?iso-8859-1?B?Suly6W15?= Lefaure <jeremy.lefaure@lse.epita.fr>
+Cc: "Tobin C. Harding" <me@tobin.cc>, alsa-devel@alsa-project.org,
+        nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        dm-devel@redhat.com, brcm80211-dev-list@cypress.com,
+        devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org,
+        linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        linux-acpi@vger.kernel.org, linux-video@atrey.karlin.mff.cuni.cz,
+        intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, ecryptfs@vger.kernel.org,
+        linux-nfs@vger.kernel.org, linux-raid@vger.kernel.org,
+        openipmi-developer@lists.sourceforge.net,
+        intel-gvt-dev@lists.freedesktop.org, devel@acpica.org,
+        brcm80211-dev-list.pdl@broadcom.com, netdev@vger.kernel.org,
+        linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-integrity@vger.kernel.org
+Subject: Re: [PATCH 00/18] use ARRAY_SIZE macro
+Message-ID: <20171002053554.GA28743@kroah.com>
+References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
+ <20171001220131.GA11812@eros>
+ <20171001205220.10b78086@blatinox-laptop.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <CAHp75VcE11_AZ0UCFxBdMRVnmj+FMUhaBFzEFLxqbK7_0_p9pg@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171001205220.10b78086@blatinox-laptop.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tuukka, Andy, others,
+On Sun, Oct 01, 2017 at 08:52:20PM -0400, Jérémy Lefaure wrote:
+> On Mon, 2 Oct 2017 09:01:31 +1100
+> "Tobin C. Harding" <me@tobin.cc> wrote:
+> 
+> > > In order to reduce the size of the To: and Cc: lines, each patch of the
+> > > series is sent only to the maintainers and lists concerned by the patch.
+> > > This cover letter is sent to every list concerned by this series.  
+> > 
+> > Why don't you just send individual patches for each subsystem? I'm not a maintainer but I don't see
+> > how any one person is going to be able to apply this whole series, it is making it hard for
+> > maintainers if they have to pick patches out from among the series (if indeed any will bother
+> > doing that).
+> Yeah, maybe it would have been better to send individual patches.
+> 
+> From my point of view it's a series because the patches are related (I
+> did a git format-patch from my local branch). But for the maintainers
+> point of view, they are individual patches.
 
-On Wed, Oct 11, 2017 at 05:27:27PM +0300, Andy Shevchenko wrote:
-> On Wed, Oct 11, 2017 at 5:01 PM, Tuukka Toivonen
-> <tuukka.toivonen@intel.com> wrote:
-> > On Wed, 2017-10-11 at 16:31 +0300, Andy Shevchenko wrote:
-> >> On Wed, Oct 11, 2017 at 10:29 AM, sakari.ailus@linux.intel.com
-> >> <sakari.ailus@linux.intel.com> wrote:
-> >> > On Wed, Oct 11, 2017 at 04:14:37AM +0000, Zhi, Yong wrote:
-> 
-> >> > > > > +static unsigned int ipu3_css_scaler_get_exp(unsigned int
-> >> > > > > counter,
-> >> > > > > +                                           unsigned int
-> >> > > > > divider) {
-> >> > > > > +       unsigned int i = 0;
-> >> > > > > +
-> >> > > > > +       while (counter <= divider / 2) {
-> >> > > > > +               divider /= 2;
-> >> > > > > +               i++;
-> >> > > > > +       }
-> >> > > > > +
-> >> > > > > +       return i;
-> 
-> >> Roughly like
-> >>
-> >> if (!counter || divider < counter)
-> >>  return 0;
-> >> return order_base_2(divider) - order_base_2(counter);
-> >
-> > The original loop is typical ran just couple of times, so I think
-> > that fls or division are probably slower than the original loop.
-> > Furthermore, these "optimizations" are also harder to read, so in
-> > my opinion there's no advantage in using them.
-> 
-> Honestly I'm opposing that.
-> It took me about minute to be clear what is going on on that loop
-> while fls() / ffs() / ilog2() like stuff can be read fast.
-> 
-> Like
-> 
-> int shift = order_base_2(divider) - order_base_2(counter);
-> 
-> return shift > 0 ? shift : 0;
-> 
-> And frankly I don't care about under the hoods of order_base_2(). I
-> care about this certain piece of code to be simpler.
-> 
-> One may put a comment line:
-> 
-> # Get log2 of how divider bigger than counter
-> 
-> And thinking more while writing this message the use of order_base_2()
-> actually explains what's going on here.
+And the maintainers view is what matters here, if you wish to get your
+patches reviewed and accepted...
 
-I guess this isn't really worth spending much time on; either way, please
-at least fix the current implementation so it won't end up in an infinite
-loop. This happens now if counter is zero.
+thanks,
 
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+greg k-h
