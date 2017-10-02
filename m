@@ -1,271 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56060 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752853AbdJTJ6D (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 05:58:03 -0400
-Date: Fri, 20 Oct 2017 12:58:00 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
-        hyungwoo.yang@intel.com, jerry.w.hu@intel.com
-Subject: Re: [PATCH v3 08/12] intel-ipu3: params: compute and program ccs
-Message-ID: <20171020095800.iapx2v3uukeohq2f@valkosipuli.retiisi.org.uk>
-References: <1500434023-2411-1-git-send-email-yong.zhi@intel.com>
- <1500434023-2411-6-git-send-email-yong.zhi@intel.com>
+Received: from mail-oi0-f54.google.com ([209.85.218.54]:43870 "EHLO
+        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751308AbdJBLt5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Oct 2017 07:49:57 -0400
+Received: by mail-oi0-f54.google.com with SMTP id c77so6510681oig.0
+        for <linux-media@vger.kernel.org>; Mon, 02 Oct 2017 04:49:57 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1500434023-2411-6-git-send-email-yong.zhi@intel.com>
+From: Andrey Konovalov <andreyknvl@google.com>
+Date: Mon, 2 Oct 2017 13:49:55 +0200
+Message-ID: <CAAeHK+waG3b5CYxxMwnXAJKPhx4TE_CppzS-kECMur3j7NTBGg@mail.gmail.com>
+Subject: usb/media/uvc: BUG in uvc_mc_create_links/media_create_pad_link
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        syzkaller <syzkaller@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+Hi!
 
-On Tue, Jul 18, 2017 at 10:13:40PM -0500, Yong Zhi wrote:
-> A collection of routines that are mainly responsible
-> to calculate the acc parameters.
-> 
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> ---
->  drivers/media/pci/intel/ipu3/ipu3-css-params.c | 3114 ++++++++++++++++++++++++
->  drivers/media/pci/intel/ipu3/ipu3-css-params.h |  105 +
->  drivers/media/pci/intel/ipu3/ipu3-css.h        |   92 +
->  3 files changed, 3311 insertions(+)
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-params.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-params.h
-> 
-> diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-params.c b/drivers/media/pci/intel/ipu3/ipu3-css-params.c
-> new file mode 100644
-> index 0000000..4b600bc
-> --- /dev/null
-> +++ b/drivers/media/pci/intel/ipu3/ipu3-css-params.c
-> @@ -0,0 +1,3114 @@
-> +/*
-> + * Copyright (c) 2017 Intel Corporation.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License version
-> + * 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/device.h>
-> +#include <linux/dma-mapping.h>
-> +
-> +#include "ipu3-abi.h"
-> +#include "ipu3-css.h"
-> +#include "ipu3-css-fw.h"
-> +#include "ipu3-css-params.h"
-> +#include "ipu3-tables.h"
-> +
-> +static unsigned int ipu3_css_scaler_get_exp(unsigned int counter,
-> +					    unsigned int divider)
-> +{
-> +	int i = fls(divider) - fls(counter);
-> +
-> +	if (i <= 0)
-> +		return 0;
-> +
-> +	if (divider >> i < counter)
-> +		i = i - 1;
+I've got the following report while fuzzing the kernel with syzkaller.
 
-i--;
+On commit 9e66317d3c92ddaab330c125dfe9d06eee268aff (4.14-rc3).
 
-> +
-> +	return i;
-> +}
-> +
-> +/* Set up the CSS scaler look up table */
-> +static void ipu3_css_scaler_setup_lut(unsigned int taps,
-> +				      unsigned int input_width,
-> +				      unsigned int output_width,
-> +				      int phase_step_correction,
-> +				      const int *coeffs,
-> +				      unsigned int coeffs_size,
-> +				      s8 coeff_lut[IMGU_SCALER_PHASES *
-> +						   IMGU_SCALER_FILTER_TAPS],
-> +				      struct ipu3_css_scaler_info *info)
-> +{
-> +	int tap;
-> +	int phase;
-> +	int exponent = ipu3_css_scaler_get_exp(output_width, input_width);
-> +	int mantissa = (1 << exponent) * output_width;
-> +	unsigned int phase_step = 0;
-> +	int phase_sum_left = 0;
-> +	int phase_sum_right = 0;
-> +
-> +	for (phase = 0; phase < IMGU_SCALER_PHASES; phase++) {
-> +		for (tap = 0; tap < taps; tap++) {
-> +			/* flip table to for convolution reverse indexing */
-> +			s64 coeff =  coeffs[coeffs_size -
-> +						((tap * (coeffs_size / taps)) +
-> +						phase) - 1];
-> +			coeff *= mantissa;
-> +			coeff /= input_width;
-
-Please use do_div() so this will compile on 32-bit machines.
-
-> +
-> +			/* Add +"0.5" */
-> +			coeff += 1 << (IMGU_SCALER_COEFF_BITS - 1);
-> +			coeff >>= IMGU_SCALER_COEFF_BITS;
-> +
-> +			coeff_lut[phase * IMGU_SCALER_FILTER_TAPS + tap] =
-> +				coeff;
-> +		}
-> +	}
-> +
-> +	phase_step = IMGU_SCALER_PHASES *
-> +			(1 << IMGU_SCALER_PHASE_COUNTER_PREC_REF)
-> +			* output_width / input_width;
-> +	phase_step += phase_step_correction;
-> +	phase_sum_left = (taps / 2 * IMGU_SCALER_PHASES *
-> +			(1 << IMGU_SCALER_PHASE_COUNTER_PREC_REF))
-> +			- (1 << (IMGU_SCALER_PHASE_COUNTER_PREC_REF - 1));
-> +	phase_sum_right = (taps / 2 * IMGU_SCALER_PHASES *
-> +			(1 << IMGU_SCALER_PHASE_COUNTER_PREC_REF))
-> +			+ (1 << (IMGU_SCALER_PHASE_COUNTER_PREC_REF - 1));
-> +
-> +	info->exp_shift = IMGU_SCALER_MAX_EXPONENT_SHIFT - exponent;
-> +	info->pad_left = (phase_sum_left % phase_step == 0) ?
-> +		phase_sum_left / phase_step - 1 : phase_sum_left / phase_step;
-> +	info->pad_right = (phase_sum_right % phase_step == 0) ?
-> +		phase_sum_right / phase_step - 1 : phase_sum_right / phase_step;
-> +	info->phase_init = phase_sum_left - phase_step * info->pad_left;
-> +	info->phase_step = phase_step;
-> +	info->crop_left = taps - 1;
-> +	info->crop_top = taps - 1;
-> +}
-> +
-> +/*
-> + * Calculates the exact output image width/height, based on phase_step setting
-> + * (must be perfectly aligned with hardware).
-> + */
-> +static unsigned int ipu3_css_scaler_calc_scaled_output(unsigned int input,
-> +					struct ipu3_css_scaler_info *info)
-> +{
-> +	unsigned int arg1 = input * info->phase_step +
-> +		(1 - IMGU_SCALER_TAPS_Y / 2) *
-> +		IMGU_SCALER_FIR_PHASES - IMGU_SCALER_FIR_PHASES
-> +		/ (2 * IMGU_SCALER_PHASES);
-> +	unsigned int arg2 = ((IMGU_SCALER_TAPS_Y / 2) * IMGU_SCALER_FIR_PHASES
-> +		+ IMGU_SCALER_FIR_PHASES / (2 * IMGU_SCALER_PHASES))
-> +		* IMGU_SCALER_FIR_PHASES + info->phase_step / 2;
-> +
-> +	return ((arg1 + (arg2 - IMGU_SCALER_FIR_PHASES * info->phase_step)
-> +		/ IMGU_SCALER_FIR_PHASES) / (2 * IMGU_SCALER_FIR_PHASES)) * 2;
-> +}
-> +
-> +/*
-> + * Calculate the output width and height, given the luma
-> + * and chroma details of a scaler
-> + */
-> +static int ipu3_css_scaler_calc(u32 input_width, u32 input_height,
-> +				u32 target_width, u32 target_height,
-> +				struct ipu3_uapi_osys_config *cfg,
-> +				struct ipu3_css_scaler_info *info_luma,
-> +				struct ipu3_css_scaler_info *info_chroma,
-> +				unsigned int *output_width,
-> +				unsigned int *output_height)
-> +{
-> +	u32 out_width = target_width;
-> +	u32 out_height = target_height;
-> +	unsigned int height_alignment = 2;
-> +	int phase_step_correction = -1;
-> +
-> +	/*
-> +	 * Calculate scaled output width. If the horizontal and vertical scaling
-> +	 * factor is different, then choose the biggest and crop off excess
-> +	 * lines or columns after formatting.
-> +	 */
-> +	if (target_height * input_width > target_width * input_height)
-> +		target_width = DIV_ROUND_UP(target_height * input_width,
-> +			input_height);
-> +
-> +	memset(&cfg->scaler_coeffs_chroma, 0,
-> +		sizeof(cfg->scaler_coeffs_chroma));
-> +	memset(&cfg->scaler_coeffs_luma, 0, sizeof(*cfg->scaler_coeffs_luma));
-> +	do {
-> +		phase_step_correction++;
-> +
-> +		ipu3_css_scaler_setup_lut(IMGU_SCALER_TAPS_Y,
-> +					  input_width, target_width,
-> +					  phase_step_correction,
-> +					  ipu3_css_downscale_4taps,
-> +					  IMGU_SCALER_DOWNSCALE_4TAPS_LEN,
-> +					  cfg->scaler_coeffs_luma, info_luma);
-> +
-> +		ipu3_css_scaler_setup_lut(IMGU_SCALER_TAPS_UV,
-> +					  input_width, target_width,
-> +					  phase_step_correction,
-> +					  ipu3_css_downscale_2taps,
-> +					  IMGU_SCALER_DOWNSCALE_2TAPS_LEN,
-> +					  cfg->scaler_coeffs_chroma,
-> +					  info_chroma);
-> +
-> +		out_width = ipu3_css_scaler_calc_scaled_output(input_width,
-> +							       info_luma);
-> +		out_height = ipu3_css_scaler_calc_scaled_output(input_height,
-> +								info_luma);
-> +	} while ((out_width < target_width || out_height < target_height
-> +		  || !IS_ALIGNED(out_height, height_alignment))
-> +		 && phase_step_correction <= 5);
-> +
-> +	*output_width = out_width;
-> +	*output_height = out_height;
-> +
-> +	return 0;
-> +}
-> +
-> +/********************** Osys routines for scaler*****************************/
-> +
-> +/* FIXME:
-> + * The OSYS formats could be added nicely into table
-> + * "ipu3_css_formats", avoiding the "switch...case" here.
-> + */
-
-I think the switch below is entirely reasonable, no need for such a
-comment.
-
-> +static void ipu3_css_osys_set_format(enum imgu_abi_frame_format host_format,
-> +				     unsigned int *osys_format,
-> +				     unsigned int *osys_tiling)
-> +{
-> +	*osys_format = IMGU_ABI_OSYS_FORMAT_YUV420;
-> +	*osys_tiling = IMGU_ABI_OSYS_TILING_NONE;
-> +
-> +	switch (host_format) {
-> +	case IMGU_ABI_FRAME_FORMAT_YUV420:
-> +		*osys_format = IMGU_ABI_OSYS_FORMAT_YUV420;
-> +		break;
-> +	case IMGU_ABI_FRAME_FORMAT_YV12:
-> +		*osys_format = IMGU_ABI_OSYS_FORMAT_YV12;
-> +		break;
-> +	case IMGU_ABI_FRAME_FORMAT_NV12:
-> +		*osys_format = IMGU_ABI_OSYS_FORMAT_NV12;
-> +		break;
-> +	case IMGU_ABI_FRAME_FORMAT_NV16:
-> +		*osys_format = IMGU_ABI_OSYS_FORMAT_NV16;
-> +		break;
-> +	case IMGU_ABI_FRAME_FORMAT_NV21:
-> +		*osys_format = IMGU_ABI_OSYS_FORMAT_NV21;
-> +		break;
-> +	case IMGU_ABI_FRAME_FORMAT_NV12_TILEY:
-> +		*osys_format = IMGU_ABI_OSYS_FORMAT_NV12;
-> +		*osys_tiling = IMGU_ABI_OSYS_TILING_Y;
-> +		break;
-> +	default:
-> +		/* For now, assume use default values */
-> +		break;
-> +	}
-> +}
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+uvcvideo: Found UVC 0.00 device a (2833:0201)
+uvcvideo 1-1:3.92: Entity type for entity Output 2 was not initialized!
+------------[ cut here ]------------
+kernel BUG at drivers/media/media-entity.c:686!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+Modules linked in:
+CPU: 1 PID: 40 Comm: kworker/1:1 Not tainted 4.14.0-rc3-42944-g2de0634c9ea5 #347
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Workqueue: usb_hub_wq hub_event
+task: ffff88006b8698c0 task.stack: ffff88006b810000
+RIP: 0010:media_create_pad_link+0x427/0x5b0 drivers/media/media-entity.c:686
+RSP: 0018:ffff88006b815e40 EFLAGS: 00010297
+RAX: ffff88006b8698c0 RBX: ffff8800699b56f0 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff88006a1676a8
+RBP: ffff88006b815e88 R08: 0000000000000003 R09: 1ffff1000d702b6a
+R10: ffff88006b8698c0 R11: 0000000000000005 R12: ffff88006a167670
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000003
+FS:  0000000000000000(0000) GS:ffff88006c900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020003000 CR3: 000000006765b000 CR4: 00000000000006e0
+Call Trace:
+ uvc_mc_create_links drivers/media/usb/uvc/uvc_entity.c:55
+ uvc_mc_register_entities+0x3df/0x770 drivers/media/usb/uvc/uvc_entity.c:119
+ uvc_register_chains drivers/media/usb/uvc/uvc_driver.c:1989
+ uvc_probe+0x848f/0x8f00 drivers/media/usb/uvc/uvc_driver.c:2108
+ usb_probe_interface+0x35d/0x8e0 drivers/usb/core/driver.c:361
+ really_probe drivers/base/dd.c:413
+ driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
+ __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
+ bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
+ __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
+ device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
+ bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
+ device_add+0xd0b/0x1660 drivers/base/core.c:1835
+ usb_set_configuration+0x104e/0x1870 drivers/usb/core/message.c:1932
+ generic_probe+0x73/0xe0 drivers/usb/core/generic.c:174
+ usb_probe_device+0xaf/0xe0 drivers/usb/core/driver.c:266
+ really_probe drivers/base/dd.c:413
+ driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
+ __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
+ bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
+ __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
+ device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
+ bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
+ device_add+0xd0b/0x1660 drivers/base/core.c:1835
+ usb_new_device+0x7b8/0x1020 drivers/usb/core/hub.c:2457
+ hub_port_connect drivers/usb/core/hub.c:4903
+ hub_port_connect_change drivers/usb/core/hub.c:5009
+ port_event drivers/usb/core/hub.c:5115
+ hub_event+0x194d/0x3740 drivers/usb/core/hub.c:5195
+ process_one_work+0xc7f/0x1db0 kernel/workqueue.c:2119
+ worker_thread+0x221/0x1850 kernel/workqueue.c:2253
+ kthread+0x3a1/0x470 kernel/kthread.c:231
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+Code: 66 41 83 44 24 3a 01 31 db e8 d6 73 6b fd 89 d8 48 83 c4 20 5b
+41 5c 41 5d 41 5e 41 5f 5d c3 e8 c0 73 6b fd 0f 0b e8 b9 73 6b fd <0f>
+0b e8 b2 73 6b fd 0f 0b e8 5b 9e 9d fd e9 35 fc ff ff e8 51
+RIP: media_create_pad_link+0x427/0x5b0 RSP: ffff88006b815e40
+---[ end trace 803624f49c213c15 ]---
