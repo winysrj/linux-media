@@ -1,71 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:33800 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754204AbdJIOIy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 10:08:54 -0400
-Subject: Re: [PATCH v15 01/32] v4l: async: Remove re-probing support
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
- <20171004215051.13385-2-sakari.ailus@linux.intel.com>
- <20171009082239.189b4475@vento.lan>
- <20171009140646.vqftgwkttgn33m2t@valkosipuli.retiisi.org.uk>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <67bcf879-f8dd-094e-47ba-3be977da02b2@xs4all.nl>
-Date: Mon, 9 Oct 2017 16:08:47 +0200
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:38378 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751059AbdJCIaK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 04:30:10 -0400
 MIME-Version: 1.0
-In-Reply-To: <20171009140646.vqftgwkttgn33m2t@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170822232640.26147-25-niklas.soderlund+renesas@ragnatech.se>
+References: <20170822232640.26147-1-niklas.soderlund+renesas@ragnatech.se> <20170822232640.26147-25-niklas.soderlund+renesas@ragnatech.se>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 3 Oct 2017 10:30:08 +0200
+Message-ID: <CAMuHMdUih6ymX+Hv0C0AH3o5pTGWaEQq4kXXxoKYv-grNkcsgw@mail.gmail.com>
+Subject: Re: [PATCH v6 24/25] rcar-vin: enable support for r8a7795
+To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Fukawa <tomoharu.fukawa.eb@renesas.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/10/17 16:06, Sakari Ailus wrote:
-> Hi Mauro,
-> 
-> On Mon, Oct 09, 2017 at 08:22:39AM -0300, Mauro Carvalho Chehab wrote:
->> Em Thu,  5 Oct 2017 00:50:20 +0300
->> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
->>
->>> Remove V4L2 async re-probing support. The re-probing support has been
->>> there to support cases where the sub-devices require resources provided by
->>> the main driver's hardware to function, such as clocks.
->>>
->>> Reprobing has allowed unbinding and again binding the main driver without
->>> explicilty unbinding the sub-device drivers. This is certainly not a
->>> common need, and the responsibility will be the user's going forward.
->>>
->>> An alternative could have been to introduce notifier specific locks.
->>> Considering the complexity of the re-probing and that it isn't really a
->>> solution to a problem but a workaround, remove re-probing instead.
->>
->> If the re-probing isn't using anywhere, that sounds a nice cleanup.
->> Did you check if this won't break any driver (like soc_camera)?
-> 
-> That was discussed earlier in the review; Laurent asked the same question.
-> 
-> Re-probing never was a proper solution to any problem; it was just a hack
-> to avoid unbinding the sensor if the bridge driver was unbound, no more: it
-> can't be generalised to support more complex use cases. Mind you, this is
-> on devices that aren't actually removable.
-> 
-> I've briefly discussed this with Laurent; the proper solution would need to
-> be implemented in the clock framework instead. There, the existing clocks
-> obtained by drivers could be re-activated when the driver for them comes
-> back.
-> 
-> My proposal is that if there's real a need to address this, then it could
-> be solved in the clock framework.
+On Wed, Aug 23, 2017 at 1:26 AM, Niklas S=C3=B6derlund
+<niklas.soderlund+renesas@ragnatech.se> wrote:
+> Add the SoC specific information for Renesas r8a7795.
+>
+> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
+se>
 
-Can you add this information to the commit log?
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
 
-I think that would be very helpful in the future.
+> @@ -1038,6 +1176,13 @@ static int rcar_vin_probe(struct platform_device *=
+pdev)
+>         vin->dev =3D &pdev->dev;
+>         vin->info =3D match->data;
+>
+> +       /*
+> +        * Special care is needed on r8a7795 ES1.x since it
+> +        * uses different routing then r8a7795 ES2.0.
 
-Regards,
+than
 
-	Hans
+> +        */
+> +       if (vin->info =3D=3D &rcar_info_r8a7795 && soc_device_match(r8a77=
+95es1))
+> +               vin->info =3D &rcar_info_r8a7795es1;
+> +
+>         mem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>         if (mem =3D=3D NULL)
+>                 return -EINVAL;
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
+
+In personal conversations with technical people, I call myself a hacker. Bu=
+t
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
