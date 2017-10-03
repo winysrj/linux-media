@@ -1,61 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:60453 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752298AbdJPMs7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Oct 2017 08:48:59 -0400
-Subject: Re: [PATCH 0/2] fix lockdep warnings in s5p_mfc and exynos-gsc vb2
- drivers
-To: Shuah Khan <shuahkh@osg.samsung.com>, mchehab@kernel.org,
-        hansverk@cisco.com, kgene@kernel.org, krzk@kernel.org,
-        s.nawrocki@samsung.com, shailendra.v@samsung.com, shuah@kernel.org,
-        Julia.Lawall@lip6.fr, kyungmin.park@samsung.com, kamil@wypas.org,
-        jtp.park@samsung.com, a.hajda@samsung.com
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <c2dae5ff-a35c-bdd1-910b-75db6c9c16b2@samsung.com>
-Date: Mon, 16 Oct 2017 14:48:54 +0200
-MIME-version: 1.0
-In-reply-to: <cover.1507935819.git.shuahkh@osg.samsung.com>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-transfer-encoding: 7bit
-Content-language: en-US
-References: <CGME20171013231531epcas5p2f009317ed58f5177e7a0768b69a62b6c@epcas5p2.samsung.com>
-        <cover.1507935819.git.shuahkh@osg.samsung.com>
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:58220 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751194AbdJCJG0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 05:06:26 -0400
+Date: Tue, 3 Oct 2017 10:06:05 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [PATCH RFC] media: staging/imx: fix complete handler
+Message-ID: <20171003090604.GI20805@n2100.armlinux.org.uk>
+References: <E1dy2zX-0003NB-5J@rmk-PC.armlinux.org.uk>
+ <9fccea49-c708-325f-bbce-269eecc6f350@gmail.com>
+ <20171001233604.GF20805@n2100.armlinux.org.uk>
+ <eef28fbb-5145-e934-3c6c-ba777813c34c@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <eef28fbb-5145-e934-3c6c-ba777813c34c@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
+On Mon, Oct 02, 2017 at 05:59:30PM -0700, Steve Longerbeam wrote:
+> 
+> 
+> On 10/01/2017 04:36 PM, Russell King - ARM Linux wrote:
+> >On Sun, Oct 01, 2017 at 01:16:53PM -0700, Steve Longerbeam wrote:
+> >>Right, imx_media_add_vdev_to_pa() has followed a link to an
+> >>entity that imx is not aware of.
+> >>
+> >>The only effect of this patch (besides allowing the driver to load
+> >>with smiapp cameras), is that no controls from the unknown entity
+> >>will be inherited to the capture device nodes. That's not a big deal
+> >>since the controls presumably can still be accessed from the subdev
+> >>node.
+> >smiapp is just one example I used to illustrate the problem.  The imx
+> >media implementation must not claim subdevs exclusively for itself if
+> >it's going to be useful, it has to cater for subdevs existing for
+> >other hardware attached to it.
+> >
+> >As you know, the camera that interests me is my IMX219 camera, and it's
+> >regressed with your driver because of your insistence that you have sole
+> >ownership over subdevs in the imx media stack
+> 
+> If by "sole ownership", you mean expecting async registration of subdevs
+> and setting up the media graph between them, imx-media will only do that
+> if those devices and the connections between them are described in the
+> device tree. If they are not, i.e. the subdevs and media pads and links are
+> created internally by the driver, then imx-media doesn't interfere with
+> that.
 
-On 2017-10-14 01:13, Shuah Khan wrote:
-> Driver mmap functions shouldn't hold lock when calling vb2_mmap(). The
-> vb2_mmap() function has its own lock that it uses to protect the critical
-> section.
->
-> Reference: commit log for f035eb4e976ef5a059e30bc91cfd310ff030a7d3
+By "sole ownership" I mean that _at the moment_ imx-media believes
+that it has sole right to make use of all subdevs with the exception
+of one external subdev, and expects every subdev to have an imx media
+subdev structure associated with it.
 
-It would make sense to add the information about the reference commit to 
-each
-commit message and also point to commit 
-e752577ed7bf55c81e10343fced8b378cda2b63b,
-as it is exactly the same case here. Anyway:
+That's clearly true, because as soon as a multi-subdev device is
+attempted to be connected to imx-media, imx-media falls apart because
+it's unable to find its private imx media subdev structure for the
+additional subdevs.
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> >  - I'm having to carry more
+> >and more hacks to workaround things that end up broken.  The imx-media
+> >stack needs to start playing better with the needs of others, which it
+> >can only do by allowing subdevs to be used by others.
+> 
+> Well, for example imx-media will chain s_stream until reaches your
+> IMX219 driver. It's then up to your driver to pass s_stream to the
+> subdevs that it owns.
 
-I wonder if makes sense to send those patches also to stable@vget.kernel.org
-(maybe v4.3+, like the mentioned above commit, if they really apply?).
+Of course it is.  It's your responsibility to pass appropriate stuff
+down the chain as far as you know how to, which is basically up to
+the first external subdev facing imx-media.  What happens beyond there
+is up to the external drivers.
 
-> Shuah Khan (2):
->    media: exynos-gsc: fix lockdep warning
->    media: s5p-mfc: fix lockdep warning
->
->   drivers/media/platform/exynos-gsc/gsc-m2m.c | 5 -----
->   drivers/media/platform/s5p-mfc/s5p_mfc.c    | 3 ---
->   2 files changed, 8 deletions(-)
->
+> >   One way to
+> >achieve that change that results in something that works is the patch
+> >that I've posted - and tested.
+> 
+>  Can you change the error message to be more descriptive, something
+> like "any controls for unknown subdev %s will not be inherited\n" and maybe
+> convert to a warn. After that I will ack it.
 
-Best regards
+No, that's plainly untrue as I said below:
+
+> >It also results in all controls (which are spread over the IMX219's two
+> >subdevs) to be visible via the v4l2 video interface - I have all the
+> >controls attached to the pixel array subdev as well as the controls
+> >attached to the scaling subdev.
+
+Given that I said this, and I can prove that it does happen, I've no
+idea why your reply seemed to totally ignore this paragraph.
+
+So I refuse to add a warning message that is incorrect.
+
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
