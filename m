@@ -1,76 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:38021 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751581AbdJIK4x (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 06:56:53 -0400
-Subject: Re: [PATCH 04/24] media: v4l2-mediabus: convert flags to enums and
- document them
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
- <8d351f92fb18148b4d53acdc7f7c8fb0e9f537d9.1507544011.git.mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Mats Randgaard <matrandg@cisco.com>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:37214 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750841AbdJCWBz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 18:01:55 -0400
+Date: Tue, 3 Oct 2017 17:01:53 -0500
+From: Rob Herring <robh@kernel.org>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Cyprian Wronka <cwronka@cadence.com>,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Benoit Parrot <bparrot@ti.com>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Petr Cvek <petr.cvek@tul.cz>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Rob Herring <robh@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Sebastian Reichel <sre@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>, linux-renesas-soc@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6c1bdfed-9d23-1cd0-eb71-0b35206e5521@xs4all.nl>
-Date: Mon, 9 Oct 2017 12:56:48 +0200
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com
+Subject: Re: [PATCH 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 TX Device
+ Tree bindings
+Message-ID: <20171003220153.mxjwzmcejwojevlg@rob-hp-laptop>
+References: <20170922114703.30511-1-maxime.ripard@free-electrons.com>
+ <20170922114703.30511-2-maxime.ripard@free-electrons.com>
 MIME-Version: 1.0
-In-Reply-To: <8d351f92fb18148b4d53acdc7f7c8fb0e9f537d9.1507544011.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170922114703.30511-2-maxime.ripard@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/10/17 12:19, Mauro Carvalho Chehab wrote:
-> There is a mess with media bus flags: there are two sets of
-> flags, one used by parallel and ITU-R BT.656 outputs,
-> and another one for CSI2.
+On Fri, Sep 22, 2017 at 01:47:02PM +0200, Maxime Ripard wrote:
+> The Cadence MIPI-CSI2 RX controller is a CSI2 bridge that supports up to 4
+> video streams and can output on up to 4 CSI-2 lanes, depending on the
+> hardware implementation.
 > 
-> Depending on the type, the same bit has different meanings.
+> It can operate with an external D-PHY, an internal one or no D-PHY at all
+> in some configurations.
 > 
-> That's very confusing, and counter-intuitive. So, split them
-> into two sets of flags, inside an enum.
-> 
-> This way, it becomes clearer that there are two separate sets
-> of flags. It also makes easier if CSI1, CSP, CSI3, etc. would
-> need a different set of flags.
-> 
-> As a side effect, enums can be documented via kernel-docs,
-> so there will be an improvement at flags documentation.
-> 
-> Unfortunately, soc_camera and pxa_camera do a mess with
-> the flags, using either one set of flags without proper
-> checks about the type. That could be fixed, but, as both drivers
-> are obsolete and in the process of cleanings, I opted to just
-> keep the behavior, using an unsigned int inside those two
-> drivers.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+> ---
+>  .../devicetree/bindings/media/cdns,csi2tx.txt      | 97 ++++++++++++++++++++++
+>  1 file changed, 97 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Other than the one issue pointed out,
 
-Nice cleanup.
-
-Regards,
-
-	Hans
+Acked-by: Rob Herring <robh@kernel.org>
