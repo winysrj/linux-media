@@ -1,112 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:37605 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932115AbdJ2U7d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Oct 2017 16:59:33 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 21/28] media: lirc: remove name from lirc_dev
-Date: Sun, 29 Oct 2017 20:59:32 +0000
-Message-Id: <8f0f6cdec3d49d9f3e4b7e59085cbefe62c14373.1509309834.git.sean@mess.org>
-In-Reply-To: <cover.1509309834.git.sean@mess.org>
-References: <cover.1509309834.git.sean@mess.org>
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:37788 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751697AbdJCJ26 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 05:28:58 -0400
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        s.nawrocki@samsung.com, Jacob Chen <jacob-chen@iotwrt.com>,
+        Yakir Yang <ykk@rock-chips.com>
+Subject: [PATCH v10 2/4] ARM: dts: rockchip: add RGA device node for RK3288
+Date: Tue,  3 Oct 2017 17:28:37 +0800
+Message-Id: <20171003092839.26236-3-jacob-chen@iotwrt.com>
+In-Reply-To: <20171003092839.26236-1-jacob-chen@iotwrt.com>
+References: <20171003092839.26236-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a duplicate of rcdev->driver_name.
+This patch add the RGA dt config of rk3288 SoC.
 
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+Signed-off-by: Yakir Yang <ykk@rock-chips.com>
 ---
- Documentation/media/uapi/rc/lirc-dev-intro.rst | 2 +-
- drivers/media/rc/ir-lirc-codec.c               | 2 --
- drivers/media/rc/lirc_dev.c                    | 9 +++------
- include/media/lirc_dev.h                       | 2 --
- 4 files changed, 4 insertions(+), 11 deletions(-)
+ arch/arm/boot/dts/rk3288.dtsi | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/Documentation/media/uapi/rc/lirc-dev-intro.rst b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-index 3cacf9aeac40..a3fa3c1ef169 100644
---- a/Documentation/media/uapi/rc/lirc-dev-intro.rst
-+++ b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-@@ -18,7 +18,7 @@ Example dmesg output upon a driver registering w/LIRC:
+diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
+index a0a0b08bff74..8c6dfc0abc42 100644
+--- a/arch/arm/boot/dts/rk3288.dtsi
++++ b/arch/arm/boot/dts/rk3288.dtsi
+@@ -972,6 +972,17 @@
+ 		status = "disabled";
+ 	};
  
-     $ dmesg |grep lirc_dev
-     lirc_dev: IR Remote Control driver registered, major 248
--    rc rc0: lirc_dev: driver ir-lirc-codec (mceusb) registered at minor = 0
-+    rc rc0: lirc_dev: driver mceusb registered at minor = 0
- 
- What you should see for a chardev:
- 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 94e7b309383b..b3976263457a 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -544,8 +544,6 @@ int ir_lirc_register(struct rc_dev *dev)
- 	if (!ldev)
- 		return rc;
- 
--	snprintf(ldev->name, sizeof(ldev->name), "ir-lirc-codec (%s)",
--		 dev->driver_name);
- 	ldev->fops = &lirc_fops;
- 	ldev->dev.parent = &dev->dev;
- 	ldev->rdev = dev;
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 32124fb5c88e..4ac74fd86fd4 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -101,9 +101,6 @@ int lirc_register_device(struct lirc_dev *d)
- 		return -EINVAL;
- 	}
- 
--	/* some safety check 8-) */
--	d->name[sizeof(d->name) - 1] = '\0';
--
- 	if (rcdev->driver_type == RC_DRIVER_IR_RAW) {
- 		if (kfifo_alloc(&rcdev->rawir, MAX_IR_EVENT_SIZE, GFP_KERNEL))
- 			return -ENOMEM;
-@@ -131,7 +128,7 @@ int lirc_register_device(struct lirc_dev *d)
- 	get_device(d->dev.parent);
- 
- 	dev_info(&d->dev, "lirc_dev: driver %s registered at minor = %d\n",
--		 d->name, d->minor);
-+		 rcdev->driver_name, d->minor);
- 
- 	return 0;
- }
-@@ -147,13 +144,13 @@ void lirc_unregister_device(struct lirc_dev *d)
- 	rcdev = d->rdev;
- 
- 	dev_dbg(&d->dev, "lirc_dev: driver %s unregistered from minor = %d\n",
--		d->name, d->minor);
-+		rcdev->driver_name, d->minor);
- 
- 	mutex_lock(&rcdev->lock);
- 
- 	if (rcdev->lirc_open) {
- 		dev_dbg(&d->dev, LOGHEAD "releasing opened driver\n",
--			d->name, d->minor);
-+			rcdev->driver_name, d->minor);
- 		wake_up_poll(&rcdev->wait_poll, POLLHUP);
- 	}
- 
-diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
-index b45af81b4633..d12e1d1c3d67 100644
---- a/include/media/lirc_dev.h
-+++ b/include/media/lirc_dev.h
-@@ -21,7 +21,6 @@
- /**
-  * struct lirc_dev - represents a LIRC device
-  *
-- * @name:		used for logging
-  * @minor:		the minor device (/dev/lircX) number for the device
-  * @rdev:		&struct rc_dev associated with the device
-  * @fops:		&struct file_operations for the device
-@@ -30,7 +29,6 @@
-  * @cdev:		&struct cdev assigned to the device
-  */
- struct lirc_dev {
--	char name[40];
- 	unsigned int minor;
- 
- 	struct rc_dev *rdev;
++	rga: rga@ff920000 {
++		compatible = "rockchip,rk3288-rga";
++		reg = <0x0 0xff920000 0x0 0x180>;
++		interrupts = <GIC_SPI 18 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA>;
++		clock-names = "aclk", "hclk", "sclk";
++		power-domains = <&power RK3288_PD_VIO>;
++		resets = <&cru SRST_RGA_CORE>, <&cru SRST_RGA_AXI>, <&cru SRST_RGA_AHB>;
++		reset-names = "core", "axi", "ahb";
++	};
++
+ 	vopb: vop@ff930000 {
+ 		compatible = "rockchip,rk3288-vop";
+ 		reg = <0x0 0xff930000 0x0 0x19c>;
 -- 
-2.13.6
+2.14.1
