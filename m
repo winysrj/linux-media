@@ -1,56 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:24949 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755298AbdJIQpA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Oct 2017 12:45:00 -0400
-Subject: Re: [PATCH v15 01/32] v4l: async: Remove re-probing support
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <d24f3e73-0eb5-f523-45a2-6d8b037b3a4d@samsung.com>
-Date: Mon, 09 Oct 2017 18:44:52 +0200
-MIME-version: 1.0
-In-reply-to: <20171009141823.zu6m6ir2z7id7px3@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset="utf-8"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
-        <20171004215051.13385-2-sakari.ailus@linux.intel.com>
-        <20171009082239.189b4475@vento.lan>
-        <20171009140646.vqftgwkttgn33m2t@valkosipuli.retiisi.org.uk>
-        <67bcf879-f8dd-094e-47ba-3be977da02b2@xs4all.nl>
-        <20171009141823.zu6m6ir2z7id7px3@valkosipuli.retiisi.org.uk>
-        <CGME20171009164457epcas1p3c5e134e4bb5d85498fe8d4f00332f2fc@epcas1p3.samsung.com>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:38254 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751902AbdJCLov (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 07:44:51 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: gregkh@linuxfoundation.org, jacobvonchorus@cwphoto.ca,
+        mchehab@kernel.org, eric@anholt.net, stefan.wahren@i2se.com,
+        f.fainelli@gmail.com, rjui@broadcom.com, Larry.Finger@lwfinger.net,
+        pkshih@realtek.com
+Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: [PATCH 2/4] staging: media: davinci_vpfe: pr_err() strings should end with newlines
+Date: Tue,  3 Oct 2017 17:13:24 +0530
+Message-Id: <1507031006-16543-3-git-send-email-arvind.yadav.cs@gmail.com>
+In-Reply-To: <1507031006-16543-1-git-send-email-arvind.yadav.cs@gmail.com>
+References: <1507031006-16543-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+pr_err() messages should end with a new-line to avoid other messages
+being concatenated.
 
-On 10/09/2017 04:18 PM, Sakari Ailus wrote:
-> Sure, how about this at the end of the current commit message:
-> 
-> If there is a need to support removing the clock provider in the future,
-> this should be implemented in the clock framework instead, not in V4L2.
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I find it a little bit misleading, there is already support for removing
-the clock provider, only any clock references for consumers became then
-stale.  Perhaps:
-
-"If there is a need to support the clock provider unregister/register 
-cycle while keeping the clock references in the consumers in the future, 
-this should be implemented in the clock framework instead, not in V4L2."
-
-? That said, I doubt this issue is going to be entirely solved solely 
-in the clock framework, as it is a more general problem of resource 
-dependencies.  It could be related to other resources, like regulator
-or GPIO.  It has been discussed for a long time now and it will likely 
-take time until a general solution is available.
-
---
-Thanks, 
-Sylwester
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+index a893072..8cfe873 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+@@ -268,7 +268,7 @@ int config_ipipe_hw(struct vpfe_ipipe_device *ipipe)
+ 
+ 	ipipe_mode = get_ipipe_mode(ipipe);
+ 	if (ipipe_mode < 0) {
+-		pr_err("Failed to get ipipe mode");
++		pr_err("Failed to get ipipe mode\n");
+ 		return -EINVAL;
+ 	}
+ 	regw_ip(ipipe_base, ipipe_mode, IPIPE_SRC_MODE);
+-- 
+1.9.1
