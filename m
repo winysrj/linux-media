@@ -1,221 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:45413 "EHLO mga01.intel.com"
+Received: from blatinox.fr ([51.254.120.209]:41844 "EHLO vps202351.ovh.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753070AbdJFXjS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Oct 2017 19:39:18 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: hans.verkuil@cisco.com, jian.xu.zheng@intel.com,
-        tfiga@chromium.org, rajmohan.mani@intel.com,
-        tuukka.toivonen@intel.com, hyungwoo.yang@intel.com,
-        ramya.vijaykumar@intel.com, chiranjeevi.rapolu@intel.com,
-        Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v5 2/3] doc-rst: add IPU3 raw10 bayer pixel format definitions
-Date: Fri,  6 Oct 2017 18:39:00 -0500
-Message-Id: <1507333141-28242-3-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1507333141-28242-1-git-send-email-yong.zhi@intel.com>
-References: <1507333141-28242-1-git-send-email-yong.zhi@intel.com>
+        id S1751421AbdJCBis (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Oct 2017 21:38:48 -0400
+Date: Mon, 2 Oct 2017 21:33:12 -0400
+From: =?UTF-8?B?SsOpcsOpbXk=?= Lefaure <jeremy.lefaure@lse.epita.fr>
+To: bfields@fieldses.org (J. Bruce Fields)
+Cc: Greg KH <greg@kroah.com>, "Tobin C. Harding" <me@tobin.cc>,
+        alsa-devel@alsa-project.org, nouveau@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org, dm-devel@redhat.com,
+        brcm80211-dev-list@cypress.com, devel@driverdev.osuosl.org,
+        linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org,
+        amd-gfx@lists.freedesktop.org,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        linux-acpi@vger.kernel.org, linux-video@atrey.karlin.mff.cuni.cz,
+        intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, ecryptfs@vger.kernel.org,
+        linux-nfs@vger.kernel.org, linux-raid@vger.kernel.org,
+        openipmi-developer@lists.sourceforge.net,
+        intel-gvt-dev@lists.freedesktop.org, devel@acpica.org,
+        brcm80211-dev-list.pdl@broadcom.com, netdev@vger.kernel.org,
+        linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-integrity@vger.kernel.org,
+        jlayton@redhat.com
+Subject: Re: [PATCH 00/18] use ARRAY_SIZE macro
+Message-ID: <20171002213312.3f904290@blatinox-laptop.localdomain>
+In-Reply-To: <20171002192224.GD1903@fieldses.org>
+References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
+        <20171001220131.GA11812@eros>
+        <20171001205220.10b78086@blatinox-laptop.localdomain>
+        <20171002053554.GA28743@kroah.com>
+        <20171002192224.GD1903@fieldses.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The formats added by this patch are:
+On Mon, 2 Oct 2017 15:22:24 -0400
+bfields@fieldses.org (J. Bruce Fields) wrote:
 
-    V4L2_PIX_FMT_IPU3_SBGGR10
-    V4L2_PIX_FMT_IPU3_SGBRG10
-    V4L2_PIX_FMT_IPU3_SGRBG10
-    V4L2_PIX_FMT_IPU3_SRGGB10
+> Mainly I'd just like to know which you're asking for.  Do you want me to
+> apply this, or to ACK it so someone else can?  If it's sent as a series
+> I tend to assume the latter.
+> 
+> But in this case I'm assuming it's the former, so I'll pick up the nfsd
+> one....
+Could you to apply the NFSD patch ("nfsd: use ARRAY_SIZE") with the
+Reviewed-by: Jeff Layton <jlayton@redhat.com>) tag please ?
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-Signed-off-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
----
- Documentation/media/uapi/v4l/pixfmt-rgb.rst        |   1 +
- .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         | 166 +++++++++++++++++++++
- 2 files changed, 167 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+This patch is an individual patch and it should not have been sent in a
+series (sorry about that).
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-index 4cc27195dc79..cf2ef7df9616 100644
---- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-@@ -16,6 +16,7 @@ RGB Formats
-     pixfmt-srggb10p
-     pixfmt-srggb10alaw8
-     pixfmt-srggb10dpcm8
-+    pixfmt-srggb10-ipu3
-     pixfmt-srggb12
-     pixfmt-srggb12p
-     pixfmt-srggb16
-diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
-new file mode 100644
-index 000000000000..50292186a8b4
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
-@@ -0,0 +1,166 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2_PIX_FMT_IPU3_SBGGR10:
-+.. _V4L2_PIX_FMT_IPU3_SGBRG10:
-+.. _V4L2_PIX_FMT_IPU3_SGRBG10:
-+.. _V4L2_PIX_FMT_IPU3_SRGGB10:
-+
-+**********************************************************************************************************************************************
-+V4L2_PIX_FMT_IPU3_SBGGR10 ('ip3b'), V4L2_PIX_FMT_IPU3_SGBRG10 ('ip3g'), V4L2_PIX_FMT_IPU3_SGRBG10 ('ip3G'), V4L2_PIX_FMT_IPU3_SRGGB10 ('ip3r')
-+**********************************************************************************************************************************************
-+
-+10-bit Bayer formats
-+
-+Description
-+===========
-+
-+These four pixel formats are used by Intel IPU3 driver, they are raw
-+sRGB / Bayer formats with 10 bits per sample with every 25 pixels packed
-+to 32 bytes leaving 6 most significant bits padding in the last byte.
-+The format is little endian.
-+
-+In other respects this format is similar to :ref:`V4L2-PIX-FMT-SRGGB10`.
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+.. raw:: latex
-+
-+    \newline\newline\begin{adjustbox}{width=\columnwidth}
-+
-+.. tabularcolumns:: |p{1.3cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|
-+
-+.. flat-table::
-+
-+    * - start + 0:
-+      - B\ :sub:`0000low`
-+      - G\ :sub:`0001low` \ (bits 7--2) B\ :sub:`0000high`\ (bits 1--0)
-+      - B\ :sub:`0002low` \ (bits 7--4) G\ :sub:`0001high`\ (bits 3--0)
-+      - G\ :sub:`0003low` \ (bits 7--6) B\ :sub:`0002high`\ (bits 5--0)
-+      - G\ :sub:`0003high`
-+      - B\ :sub:`0004low`
-+      - G\ :sub:`0005low` \ (bits 7--2) B\ :sub:`0004high`\ (bits 1--0)
-+      - B\ :sub:`0006low` \ (bits 7--4) G\ :sub:`0005high`\ (bits 3--0)
-+      - G\ :sub:`0007low` \ (bits 7--6) B\ :sub:`0006high`\ (bits 5--0)
-+      - G\ :sub:`0007high`
-+      - B\ :sub:`0008low`
-+      - G\ :sub:`0009low` \ (bits 7--2) B\ :sub:`0008high`\ (bits 1--0)
-+      - B\ :sub:`0010low` \ (bits 7--4) G\ :sub:`0009high`\ (bits 3--0)
-+      - G\ :sub:`0011low` \ (bits 7--6) B\ :sub:`0010high`\ (bits 5--0)
-+      - G\ :sub:`0011high`
-+      - B\ :sub:`0012low`
-+      - G\ :sub:`0013low` \ (bits 7--2) B\ :sub:`0012high`\ (bits 1--0)
-+      - B\ :sub:`0014low` \ (bits 7--4) G\ :sub:`0013high`\ (bits 3--0)
-+      - G\ :sub:`0015low` \ (bits 7--6) B\ :sub:`0014high`\ (bits 5--0)
-+      - G\ :sub:`0015high`
-+      - B\ :sub:`0016low`
-+      - G\ :sub:`0017low` \ (bits 7--2) B\ :sub:`0016high`\ (bits 1--0)
-+      - B\ :sub:`0018low` \ (bits 7--4) G\ :sub:`0017high`\ (bits 3--0)
-+      - G\ :sub:`0019low` \ (bits 7--6) B\ :sub:`0018high`\ (bits 5--0)
-+      - G\ :sub:`0019high`
-+      - B\ :sub:`0020low`
-+      - G\ :sub:`0021low` \ (bits 7--2) B\ :sub:`0020high`\ (bits 1--0)
-+      - B\ :sub:`0022low` \ (bits 7--4) G\ :sub:`0021high`\ (bits 3--0)
-+      - G\ :sub:`0023low` \ (bits 7--6) B\ :sub:`0022high`\ (bits 5--0)
-+      - G\ :sub:`0023high`
-+      - B\ :sub:`0024low`
-+      - B\ :sub:`0024high`\ (bits 1--0)
-+    * - start + 32:
-+      - G\ :sub:`0100low`
-+      - R\ :sub:`0101low` \ (bits 7--2) G\ :sub:`0100high`\ (bits 1--0)
-+      - G\ :sub:`0102low` \ (bits 7--4) R\ :sub:`0101high`\ (bits 3--0)
-+      - R\ :sub:`0103low` \ (bits 7--6) G\ :sub:`0102high`\ (bits 5--0)
-+      - R\ :sub:`0103high`
-+      - G\ :sub:`0104low`
-+      - R\ :sub:`0105low` \ (bits 7--2) G\ :sub:`0104high`\ (bits 1--0)
-+      - G\ :sub:`0106low` \ (bits 7--4) R\ :sub:`0105high`\ (bits 3--0)
-+      - R\ :sub:`0107low` \ (bits 7--6) G\ :sub:`0106high`\ (bits 5--0)
-+      - R\ :sub:`0107high`
-+      - G\ :sub:`0108low`
-+      - R\ :sub:`0109low` \ (bits 7--2) G\ :sub:`0108high`\ (bits 1--0)
-+      - G\ :sub:`0110low` \ (bits 7--4) R\ :sub:`0109high`\ (bits 3--0)
-+      - R\ :sub:`0111low` \ (bits 7--6) G\ :sub:`0110high`\ (bits 5--0)
-+      - R\ :sub:`0111high`
-+      - G\ :sub:`0112low`
-+      - R\ :sub:`0113low` \ (bits 7--2) G\ :sub:`0112high`\ (bits 1--0)
-+      - G\ :sub:`0114low` \ (bits 7--4) R\ :sub:`0113high`\ (bits 3--0)
-+      - R\ :sub:`0115low` \ (bits 7--6) G\ :sub:`0114high`\ (bits 5--0)
-+      - R\ :sub:`0115high`
-+      - G\ :sub:`0116low`
-+      - R\ :sub:`0117low` \ (bits 7--2) G\ :sub:`0116high`\ (bits 1--0)
-+      - G\ :sub:`0118low` \ (bits 7--4) R\ :sub:`0117high`\ (bits 3--0)
-+      - R\ :sub:`0119low` \ (bits 7--6) G\ :sub:`0118high`\ (bits 5--0)
-+      - R\ :sub:`0119high`
-+      - G\ :sub:`0120low`
-+      - R\ :sub:`0121low` \ (bits 7--2) G\ :sub:`0120high`\ (bits 1--0)
-+      - G\ :sub:`0122low` \ (bits 7--4) R\ :sub:`0121high`\ (bits 3--0)
-+      - R\ :sub:`0123low` \ (bits 7--6) G\ :sub:`0122high`\ (bits 5--0)
-+      - R\ :sub:`0123high`
-+      - G\ :sub:`0124low`
-+      - G\ :sub:`0124high`\ (bits 1--0)
-+    * - start + 64:
-+      - B\ :sub:`0200low`
-+      - G\ :sub:`0201low` \ (bits 7--2) B\ :sub:`0200high`\ (bits 1--0)
-+      - B\ :sub:`0202low` \ (bits 7--4) G\ :sub:`0201high`\ (bits 3--0)
-+      - G\ :sub:`0203low` \ (bits 7--6) B\ :sub:`0202high`\ (bits 5--0)
-+      - G\ :sub:`0203high`
-+      - B\ :sub:`0204low`
-+      - G\ :sub:`0205low` \ (bits 7--2) B\ :sub:`0204high`\ (bits 1--0)
-+      - B\ :sub:`0206low` \ (bits 7--4) G\ :sub:`0205high`\ (bits 3--0)
-+      - G\ :sub:`0207low` \ (bits 7--6) B\ :sub:`0206high`\ (bits 5--0)
-+      - G\ :sub:`0207high`
-+      - B\ :sub:`0208low`
-+      - G\ :sub:`0209low` \ (bits 7--2) B\ :sub:`0208high`\ (bits 1--0)
-+      - B\ :sub:`0210low` \ (bits 7--4) G\ :sub:`0209high`\ (bits 3--0)
-+      - G\ :sub:`0211low` \ (bits 7--6) B\ :sub:`0210high`\ (bits 5--0)
-+      - G\ :sub:`0211high`
-+      - B\ :sub:`0212low`
-+      - G\ :sub:`0213low` \ (bits 7--2) B\ :sub:`0212high`\ (bits 1--0)
-+      - B\ :sub:`0214low` \ (bits 7--4) G\ :sub:`0213high`\ (bits 3--0)
-+      - G\ :sub:`0215low` \ (bits 7--6) B\ :sub:`0214high`\ (bits 5--0)
-+      - G\ :sub:`0215high`
-+      - B\ :sub:`0216low`
-+      - G\ :sub:`0217low` \ (bits 7--2) B\ :sub:`0216high`\ (bits 1--0)
-+      - B\ :sub:`0218low` \ (bits 7--4) G\ :sub:`0217high`\ (bits 3--0)
-+      - G\ :sub:`0219low` \ (bits 7--6) B\ :sub:`0218high`\ (bits 5--0)
-+      - G\ :sub:`0219high`
-+      - B\ :sub:`0220low`
-+      - G\ :sub:`0221low` \ (bits 7--2) B\ :sub:`0220high`\ (bits 1--0)
-+      - B\ :sub:`0222low` \ (bits 7--4) G\ :sub:`0221high`\ (bits 3--0)
-+      - G\ :sub:`0223low` \ (bits 7--6) B\ :sub:`0222high`\ (bits 5--0)
-+      - G\ :sub:`0223high`
-+      - B\ :sub:`0224low`
-+      - B\ :sub:`0224high`\ (bits 1--0)
-+    * - start + 96:
-+      - G\ :sub:`0300low`
-+      - R\ :sub:`0301low` \ (bits 7--2) G\ :sub:`0300high`\ (bits 1--0)
-+      - G\ :sub:`0302low` \ (bits 7--4) R\ :sub:`0301high`\ (bits 3--0)
-+      - R\ :sub:`0303low` \ (bits 7--6) G\ :sub:`0302high`\ (bits 5--0)
-+      - R\ :sub:`0303high`
-+      - G\ :sub:`0304low`
-+      - R\ :sub:`0305low` \ (bits 7--2) G\ :sub:`0304high`\ (bits 1--0)
-+      - G\ :sub:`0306low` \ (bits 7--4) R\ :sub:`0305high`\ (bits 3--0)
-+      - R\ :sub:`0307low` \ (bits 7--6) G\ :sub:`0306high`\ (bits 5--0)
-+      - R\ :sub:`0307high`
-+      - G\ :sub:`0308low`
-+      - R\ :sub:`0309low` \ (bits 7--2) G\ :sub:`0308high`\ (bits 1--0)
-+      - G\ :sub:`0310low` \ (bits 7--4) R\ :sub:`0309high`\ (bits 3--0)
-+      - R\ :sub:`0311low` \ (bits 7--6) G\ :sub:`0310high`\ (bits 5--0)
-+      - R\ :sub:`0311high`
-+      - G\ :sub:`0312low`
-+      - R\ :sub:`0313low` \ (bits 7--2) G\ :sub:`0312high`\ (bits 1--0)
-+      - G\ :sub:`0314low` \ (bits 7--4) R\ :sub:`0313high`\ (bits 3--0)
-+      - R\ :sub:`0315low` \ (bits 7--6) G\ :sub:`0314high`\ (bits 5--0)
-+      - R\ :sub:`0315high`
-+      - G\ :sub:`0316low`
-+      - R\ :sub:`0317low` \ (bits 7--2) G\ :sub:`0316high`\ (bits 1--0)
-+      - G\ :sub:`0318low` \ (bits 7--4) R\ :sub:`0317high`\ (bits 3--0)
-+      - R\ :sub:`0319low` \ (bits 7--6) G\ :sub:`0318high`\ (bits 5--0)
-+      - R\ :sub:`0319high`
-+      - G\ :sub:`0320low`
-+      - R\ :sub:`0321low` \ (bits 7--2) G\ :sub:`0320high`\ (bits 1--0)
-+      - G\ :sub:`0322low` \ (bits 7--4) R\ :sub:`0321high`\ (bits 3--0)
-+      - R\ :sub:`0323low` \ (bits 7--6) G\ :sub:`0322high`\ (bits 5--0)
-+      - R\ :sub:`0323high`
-+      - G\ :sub:`0324low`
-+      - G\ :sub:`0324high`\ (bits 1--0)
--- 
-2.7.4
+Thank you,
+Jérémy
