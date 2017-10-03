@@ -1,56 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:49837 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751934AbdJFLVV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Oct 2017 07:21:21 -0400
-Date: Fri, 6 Oct 2017 13:21:20 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, sre@kernel.org
-Subject: Re: [PATCH v15 29/32] et8ek8: Add support for flash and lens devices
-Message-ID: <20171006112118.GD9497@amd>
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
- <20171004215051.13385-30-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="sXc4Kmr5FA7axrvy"
-Content-Disposition: inline
-In-Reply-To: <20171004215051.13385-30-sakari.ailus@linux.intel.com>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:35843 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751255AbdJCJ2u (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 05:28:50 -0400
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        s.nawrocki@samsung.com, Jacob Chen <jacob-chen@iotwrt.com>
+Subject: [PATCH v10 0/4] Add Rockchip RGA V4l2 support
+Date: Tue,  3 Oct 2017 17:28:35 +0800
+Message-Id: <20171003092839.26236-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch series add a v4l2 m2m drvier for rockchip RGA direct rendering based 2d graphics acceleration module.
 
---sXc4Kmr5FA7axrvy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+change in V10:
+- move to rockchip/rga
+- changes according to comments
+- some style changes
 
-On Thu 2017-10-05 00:50:48, Sakari Ailus wrote:
-> Parse async sub-devices related to the sensor by switching the async
-> sub-device registration function.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+change in V9:
+- remove protduff things
+- test with the latest v4l2-compliance
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+change in V8:
+- remove protduff things
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+change in V6,V7:
+- correct warning in checkpatch.pl
 
---sXc4Kmr5FA7axrvy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+change in V5:
+- v4l2-compliance: handle invalid pxielformat
+- v4l2-compliance: add subscribe_event
+- add colorspace support
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+change in V4:
+- document the controls.
+- change according to Hans's comments
 
-iEYEARECAAYFAlnXZy4ACgkQMOfwapXb+vKrIgCfZiJiqS4LeRrTlF1DBZCylZGj
-o0IAoIte+9OBP5t10YKD9WuJQUv5VWWJ
-=/VCQ
------END PGP SIGNATURE-----
+change in V3:
+- rename the controls.
+- add pm_runtime support.
+- enable node by default.
+- correct spelling in documents.
 
---sXc4Kmr5FA7axrvy--
+change in V2:
+- generalize the controls.
+- map buffers (10-50 us) in every cmd-run rather than in buffer-import to avoid get_free_pages failed on
+actively used systems.
+- remove status in dt-bindings examples.
+
+Jacob Chen (4):
+  rockchip/rga: v4l2 m2m support
+  ARM: dts: rockchip: add RGA device node for RK3288
+  arm64: dts: rockchip: add RGA device node for RK3399
+  dt-bindings: Document the Rockchip RGA bindings
+
+ .../devicetree/bindings/media/rockchip-rga.txt     |   33 +
+ arch/arm/boot/dts/rk3288.dtsi                      |   11 +
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   11 +
+ drivers/media/platform/Kconfig                     |   15 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/rockchip/rga/Makefile       |    3 +
+ drivers/media/platform/rockchip/rga/rga-buf.c      |  154 +++
+ drivers/media/platform/rockchip/rga/rga-hw.c       |  421 ++++++++
+ drivers/media/platform/rockchip/rga/rga-hw.h       |  437 +++++++++
+ drivers/media/platform/rockchip/rga/rga.c          | 1012 ++++++++++++++++++++
+ drivers/media/platform/rockchip/rga/rga.h          |  123 +++
+ 11 files changed, 2222 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
+ create mode 100644 drivers/media/platform/rockchip/rga/Makefile
+ create mode 100644 drivers/media/platform/rockchip/rga/rga-buf.c
+ create mode 100644 drivers/media/platform/rockchip/rga/rga-hw.c
+ create mode 100644 drivers/media/platform/rockchip/rga/rga-hw.h
+ create mode 100644 drivers/media/platform/rockchip/rga/rga.c
+ create mode 100644 drivers/media/platform/rockchip/rga/rga.h
+
+-- 
+2.14.1
