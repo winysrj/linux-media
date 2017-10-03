@@ -1,79 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:57389 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755272AbdJJLpd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 07:45:33 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v8 5/7] media: open.rst: Adjust some terms to match the glossary
-Date: Tue, 10 Oct 2017 08:45:21 -0300
-Message-Id: <57ad7d66ae6c9de96cae48cecc77137a0970bab6.1507635716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507635716.git.mchehab@s-opensource.com>
-References: <cover.1507635716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507635716.git.mchehab@s-opensource.com>
-References: <cover.1507635716.git.mchehab@s-opensource.com>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:33713 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750869AbdJCA7d (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Oct 2017 20:59:33 -0400
+Received: by mail-pg0-f65.google.com with SMTP id u136so7780411pgc.0
+        for <linux-media@vger.kernel.org>; Mon, 02 Oct 2017 17:59:33 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Subject: Re: [PATCH RFC] media: staging/imx: fix complete handler
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+References: <E1dy2zX-0003NB-5J@rmk-PC.armlinux.org.uk>
+ <9fccea49-c708-325f-bbce-269eecc6f350@gmail.com>
+ <20171001233604.GF20805@n2100.armlinux.org.uk>
+Message-ID: <eef28fbb-5145-e934-3c6c-ba777813c34c@gmail.com>
+Date: Mon, 2 Oct 2017 17:59:30 -0700
+MIME-Version: 1.0
+In-Reply-To: <20171001233604.GF20805@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we now have a glossary, some terms used on open.rst
-require adjustments.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/open.rst | 25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index 1a8a9e1d0e84..c9e6bc9280a6 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -159,27 +159,28 @@ Related Devices
- Devices can support several functions. For example video capturing, VBI
- capturing and radio support.
- 
--The V4L2 API creates different nodes for each of these functions.
-+The V4L2 API creates different :term:`V4L2 device nodes <v4l2 device node>`
-+types for each of these functions.
- 
--The V4L2 API was designed with the idea that one device node could
-+The V4L2 API was designed with the idea that one :term:`device node` could
- support all functions. However, in practice this never worked: this
--'feature' was never used by applications and many drivers did not
--support it and if they did it was certainly never tested. In addition,
-+'feature' was never used by applications and many :term:`drivers <driver>`
-+did not support it and if they did it was certainly never tested. In addition,
- switching a device node between different functions only works when
- using the streaming I/O API, not with the
- :ref:`read() <func-read>`/\ :ref:`write() <func-write>` API.
- 
--Today each device node supports just one function.
-+Today each V4L2 device node supports just one function.
- 
--Besides video input or output the hardware may also support audio
--sampling or playback. If so, these functions are implemented as ALSA PCM
--devices with optional ALSA audio mixer devices.
-+Besides video input or output, the :term:`media hardware` may also support
-+audio sampling or playback. If so, these functions are implemented as ALSA
-+PCM devices with optional ALSA audio mixer devices.
- 
- One problem with all these devices is that the V4L2 API makes no
--provisions to find these related devices. Some really complex devices
--use the Media Controller (see :ref:`media_controller`) which can be
--used for this purpose. But most drivers do not use it, and while some
--code exists that uses sysfs to discover related devices (see
-+provisions to find these related V4L2 device nodes. Some really complex
-+hardware use the :term:`media controller` (see :ref:`media_controller`) which
-+can be used for this purpose. But several drivers do not use it, and while
-+some code exists that uses sysfs to discover related V4L2 device nodes (see
- libmedia_dev in the
- `v4l-utils <http://git.linuxtv.org/cgit.cgi/v4l-utils.git/>`__ git
- repository), there is no library yet that can provide a single API
--- 
-2.13.6
+On 10/01/2017 04:36 PM, Russell King - ARM Linux wrote:
+> On Sun, Oct 01, 2017 at 01:16:53PM -0700, Steve Longerbeam wrote:
+>> Right, imx_media_add_vdev_to_pa() has followed a link to an
+>> entity that imx is not aware of.
+>>
+>> The only effect of this patch (besides allowing the driver to load
+>> with smiapp cameras), is that no controls from the unknown entity
+>> will be inherited to the capture device nodes. That's not a big deal
+>> since the controls presumably can still be accessed from the subdev
+>> node.
+> smiapp is just one example I used to illustrate the problem.  The imx
+> media implementation must not claim subdevs exclusively for itself if
+> it's going to be useful, it has to cater for subdevs existing for
+> other hardware attached to it.
+>
+> As you know, the camera that interests me is my IMX219 camera, and it's
+> regressed with your driver because of your insistence that you have sole
+> ownership over subdevs in the imx media stack
+
+If by "sole ownership", you mean expecting async registration of subdevs
+and setting up the media graph between them, imx-media will only do that
+if those devices and the connections between them are described in the
+device tree. If they are not, i.e. the subdevs and media pads and links are
+created internally by the driver, then imx-media doesn't interfere with 
+that.
+
+But I agree your patch is a fix for a regression. It was created during some
+final tweaks to the control inheritance code.
+
+
+>   - I'm having to carry more
+> and more hacks to workaround things that end up broken.  The imx-media
+> stack needs to start playing better with the needs of others, which it
+> can only do by allowing subdevs to be used by others.
+
+Well, for example imx-media will chain s_stream until reaches your
+IMX219 driver. It's then up to your driver to pass s_stream to the
+subdevs that it owns.
+
+>    One way to
+> achieve that change that results in something that works is the patch
+> that I've posted - and tested.
+
+  Can you change the error message to be more descriptive, something
+like "any controls for unknown subdev %s will not be inherited\n" and maybe
+convert to a warn. After that I will ack it.
+
+> The reason that the IMX219 driver users subdevs is because it's capable
+> of image cropping and binning on the camera module - which helps greatly
+> if you want to achieve higher FPS for high speed capture [*].
+>
+> It also results in all controls (which are spread over the IMX219's two
+> subdevs) to be visible via the v4l2 video interface - I have all the
+> controls attached to the pixel array subdev as well as the controls
+> attached to the scaling subdev.
+>
+>> However, I still have some concerns about supporting smiapp cameras
+>> in imx-media driver, and that is regarding pad indexes. The smiapp device
+>> that exposes a source pad to the "outside world", which is either the binner
+>> or the scaler entity, has a pad index of 1. But unless the device tree port
+>> for the smiapp device is given a reg value of 1 for that port, imx-media
+>> will assume it is pad 0, not 1.
+> For IMX219, the source pad on the scaler (which is connected to the CSI
+> input pad) is pad 0 - always has been.  So I guess this problem is hidden
+> because of that choice.  Maybe that's a problem for someone who has a
+> SMIAPP camera to address.
+
+I'm working on a patch for smiapp.
+
+Steve
+
+>
+> Right now, my patch stack to get the imx219 on v4.14-rc1 working is:
+>
+> media: staging/imx: fix complete handler
+> [media] v4l: async: don't bomb out on ->complete failure
+> media: imx-csi: fix burst size
+> media: imx: debug power on
+> ARM: dts: imx6qdl-hummingboard: add IMX219 camera
+> media: i2c: imx219 camera driver
+> media: imx: add frame intervals back in
+> fix lp-11 timeout
+>
+> The frame interval patch is there because I just don't agree with the
+> position of the v4l2 folk, and keeping it means I don't have to screw
+> up my camera configuration scripts with special handling.  The
+> "fix lp-11 timeout" changes the LP-11 timeout to be a warning rather
+> than a failure - and contary to what FSL/NXP say, it works every time
+> on the iMX6 devices without needing to go through their workaround.
+>
+>
+> * - This is the whole reason I bought the IMX219, and have written the
+> IMX219 driver.  I want to use it for high speed capture of an arrow
+> leaving a recurve bow.  Why?  Everyone archer shoots subtly differently,
+> and I want to see what's happening to the arrows that are leaving my
+> bow.  However, for that to be achievable, I (a) need a working capture
+> implementation for imx6, and (b) I need to be able to quickly convert
+> bayer to an image, and (c) I need to either encode it on the fly, or
+> write the raw images to SSD.
+>
+> (a) is thwarted by the breakage I keep stumbling over with the capture
+> code.
+>
+> (b) I have using the GC320 GPU and a gstreamer plugin, trivially
+> converting the bayer data to grayscale.
+>
+> (c) I've yet to achieve - encoding may be supported by the CODA v4l
+> driver, but nothing in userspace appears to support it, there's no
+> gstreamer v4l plugin for encoding, only one for decoding.  I also
+> suspect at either the 16G I have free on the SSD will get eaten up
+> rapidly without encoding, or the SSD may not keep up with the data
+> rate.
+>
+> Right now, all my testing is around displaying on X:
+>
+> DISPLAY=:0 gst-launch-1.0 -v v4l2src device=/dev/video9 io-mode=4 ! bayer2rgbgc ! clockoverlay halignment=2 valignment=1 ! xvimagesink
+>
