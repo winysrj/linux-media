@@ -1,226 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:58367 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754940AbdJISbh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 14:31:37 -0400
-Date: Mon, 9 Oct 2017 19:31:36 +0100
-From: Sean Young <sean@mess.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 21/25] media: lirc: introduce LIRC_SET_POLL_MODE
-Message-ID: <20171009183135.xlfufoxpraofhz76@gofer.mess.org>
-References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
- <7c4c335377433fc96f38e9ce42e221169cac23cb.1507192752.git.sean@mess.org>
- <6c08f1a9-2cce-8f39-2842-8eb9dfa4a2d1@xs4all.nl>
+Received: from mail-qk0-f171.google.com ([209.85.220.171]:51480 "EHLO
+        mail-qk0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750787AbdJDTeO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Oct 2017 15:34:14 -0400
+Received: by mail-qk0-f171.google.com with SMTP id 17so12572457qkq.8
+        for <linux-media@vger.kernel.org>; Wed, 04 Oct 2017 12:34:14 -0700 (PDT)
+Received: from mail-qt0-f171.google.com (mail-qt0-f171.google.com. [209.85.216.171])
+        by smtp.gmail.com with ESMTPSA id g9sm10855158qti.10.2017.10.04.12.34.12
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 04 Oct 2017 12:34:12 -0700 (PDT)
+Received: by mail-qt0-f171.google.com with SMTP id k1so10353968qti.2
+        for <linux-media@vger.kernel.org>; Wed, 04 Oct 2017 12:34:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6c08f1a9-2cce-8f39-2842-8eb9dfa4a2d1@xs4all.nl>
+In-Reply-To: <4c24c976-2ae3-b0f3-d16a-ec31a9b2ea50@xs4all.nl>
+References: <4c24c976-2ae3-b0f3-d16a-ec31a9b2ea50@xs4all.nl>
+From: Gustavo Padovan <gustavo@padovan.org>
+Date: Wed, 4 Oct 2017 16:34:11 -0300
+Message-ID: <CAFsbExLdADpSK84b4--z5PZ8kUA7R4+Ppmt2NqzO4y-WfdZ7Fg@mail.gmail.com>
+Subject: Re: [ANN] Call for topics for the media mini-summit on Friday Oct 27
+ in Prague
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 09, 2017 at 12:50:19PM +0200, Hans Verkuil wrote:
-> On 05/10/17 10:45, Sean Young wrote:
-> > If you want to poll for both decoded scancodes and raw IR, then this
-> > ioctl will help you.
-> 
-> I don't get the point of this. You can be in one mode at a time anyway,
-> so why not just poll for the current mode?
+Hi Hans,
 
-Well, you might want to poll for the current mode and another mode. Actually,
-I think the ioctl should be called LIRC_SET_POLL_MODES to clarify that.
 
-So say if I want to poll for raw IR (LIRC_MODE_MODE2) and decoded scancodes
-(LIRC_MODE_SCANCODES), then without this ioctl, I would have to poll one
-for a period, then switch modes, poll for the other, switch modes, ad
-infinitum.
 
-> 
-> > 
-> > int fd = open("/dev/lirc0", O_RDONLY | O_NONBLOCK);
-> > 
-> > for (;;) {
-> > 	unsigned mode = LIRC_MODE_SCANCODE | LIRC_MODE_MODE2;
-> > 	ioctl(fd, LIRC_SET_POLL_MODE, &mode);
-> > 	poll(&((struct pollfd){ .fd = fd, .events = POLLIN }), 1, -1);
-> > 	mode = LIRC_MODE_SCANCODE;
-> > 	ioctl(fd, LIRC_SET_REC_MODE, &mode);
-> 
-> Hold on, in a comment below I read that rec_mode stands for 'recording mode'.
-> Is that right, or should it be 'receive mode'?
+On Fri, Sep 1, 2017 at 6:46 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi all,
+>
+> We are organizing a media mini-summit on Friday October 27 in Prague, co-located
+> with the ELCE conference:
+>
+> http://events.linuxfoundation.org/events/embedded-linux-conference-europe
+>
+> This is a call for topics to discuss during that mini-summit.
+>
+> Also, if you plan to attend, please let me know. It is open for all, but it is
+> nice if we know beforehand who we can expect.
+>
+> So if you have a topic that you want to discuss there, then just reply to this
+> post. If possible, please add a rough idea of how much time you think you will
+> need.
+>
+> I plan to make the agenda based on the received topics around mid-October.
+>
 
-You're right, I've confused myself! Lirc calls it record and sometimes
-receive.
+I"m attending and I want to propose a discussion:
 
-> > 	struct lirc_scancode sc;
-> > 	if (read(fd, &sc, sizeof(sc)) == sizeof(sc)) {
-> > 		printf("scancode protocol:%d scancode:%llx\n",
-> > 			sc.rc_proto, sc.scancode);
-> > 	}
-> > 	mode = LIRC_MODE_MODE2;
-> > 	ioctl(fd, LIRC_SET_REC_MODE, &mode);
-> > 	unsigned sample;
-> > 	if (read(fd, &sample, sizeof(sample)) == sizeof(sample)) {
-> > 		if (LIRC_IS_SPACE(sample))
-> > 			printf("space %u\n", LIRC_VAL(sample)));
-> > 		if (LIRC_IS_PULSE(sample))
-> > 			printf("pulse %u\n", LIRC_VAL(sample)));
-> > 	}
-> > }
-> > 
-> > Note that LIRC_SET_REC_MODE will also affect the poll mode, so you
-> > must set it again before calling poll.
-> > 
-> > Signed-off-by: Sean Young <sean@mess.org>
-> > ---
-> >  Documentation/media/uapi/rc/lirc-func.rst          |  1 +
-> >  Documentation/media/uapi/rc/lirc-set-poll-mode.rst | 45 ++++++++++++++++++++++
-> >  drivers/media/rc/ir-lirc-codec.c                   | 19 +++++++--
-> >  drivers/media/rc/lirc_dev.c                        |  1 +
-> >  include/media/rc-core.h                            |  3 ++
-> >  5 files changed, 65 insertions(+), 4 deletions(-)
-> >  create mode 100644 Documentation/media/uapi/rc/lirc-set-poll-mode.rst
-> > 
-> > diff --git a/Documentation/media/uapi/rc/lirc-func.rst b/Documentation/media/uapi/rc/lirc-func.rst
-> > index ddb4620de294..a09fb03f6722 100644
-> > --- a/Documentation/media/uapi/rc/lirc-func.rst
-> > +++ b/Documentation/media/uapi/rc/lirc-func.rst
-> > @@ -25,3 +25,4 @@ LIRC Function Reference
-> >      lirc-set-rec-timeout-reports
-> >      lirc-set-measure-carrier-mode
-> >      lirc-set-wideband-receiver
-> > +    lirc-set-poll-mode
-> > diff --git a/Documentation/media/uapi/rc/lirc-set-poll-mode.rst b/Documentation/media/uapi/rc/lirc-set-poll-mode.rst
-> > new file mode 100644
-> > index 000000000000..ce5043e8acba
-> > --- /dev/null
-> > +++ b/Documentation/media/uapi/rc/lirc-set-poll-mode.rst
-> > @@ -0,0 +1,45 @@
-> > +.. -*- coding: utf-8; mode: rst -*-
-> > +
-> > +.. _lirc_set_poll_mode:
-> > +
-> > +**********************************************
-> > +ioctls LIRC_SET_POLL_MODE
-> > +**********************************************
-> > +
-> > +Name
-> > +====
-> > +
-> > +LIRC_SET_POLL_MODE - Set LIRC modes to use for poll
-> > +
-> > +Synopsis
-> > +========
-> > +
-> > +.. c:function:: int ioctl( int fd, LIRC_SET_POLL_MODE, __u32 modes)
-> > +	:name: LIRC_SET_POLL_MODE
-> > +
-> > +Arguments
-> > +=========
-> > +
-> > +``fd``
-> > +    File descriptor returned by open().
-> > +
-> > +``modes``
-> > +    Bitmask with enabled poll lirc modes
-> > +
-> > +Description
-> > +===========
-> > +
-> > +Set lirc modes for which read readiness is reported by poll. Only
-> > +:ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>` and
-> > +:ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` are supported. Poll
-> > +can report read readiness for both modes if you bitwise or them together.
-> > +Use :ref:`lirc_get_features` to find out which modes the driver supports.
-> > +
-> > +Note that using :ref:`lirc_set_rec_mode` resets the poll mode.
-> > +
-> > +Return Value
-> > +============
-> > +
-> > +On success 0 is returned, on error -1 and the ``errno`` variable is set
-> > +appropriately. The generic error codes are described at the
-> > +:ref:`Generic Error Codes <gen-errors>` chapter.
-> > diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-> > index 2544ddc078ca..1f1811c080af 100644
-> > --- a/drivers/media/rc/ir-lirc-codec.c
-> > +++ b/drivers/media/rc/ir-lirc-codec.c
-> > @@ -353,6 +353,17 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
-> >  			return -EINVAL;
-> >  
-> >  		dev->rec_mode = val;
-> > +		dev->poll_mode = val;
-> > +		return 0;
-> > +
-> > +	case LIRC_SET_POLL_MODE:
-> > +		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
-> > +			return -ENOTTY;
-> > +
-> > +		if (val & ~(LIRC_MODE_MODE2 | LIRC_MODE_SCANCODE))
-> > +			return -EINVAL;
-> > +
-> > +		dev->poll_mode = val;
-> >  		return 0;
-> >  
-> >  	case LIRC_GET_SEND_MODE:
-> > @@ -495,13 +506,13 @@ static unsigned int ir_lirc_poll(struct file *file,
-> >  	if (!rcdev->registered) {
-> >  		events = POLLHUP | POLLERR;
-> >  	} else if (rcdev->driver_type != RC_DRIVER_IR_RAW_TX) {
-> > -		if (rcdev->rec_mode == LIRC_MODE_SCANCODE &&
-> > +		if ((rcdev->poll_mode & LIRC_MODE_SCANCODE) &&
-> >  		    !kfifo_is_empty(&rcdev->scancodes))
-> > -			events = POLLIN | POLLRDNORM;
-> > +			events |= POLLIN | POLLRDNORM;
-> >  
-> > -		if (rcdev->rec_mode == LIRC_MODE_MODE2 &&
-> > +		if ((rcdev->poll_mode & LIRC_MODE_MODE2) &&
-> >  		    !kfifo_is_empty(&rcdev->rawir))
-> > -			events = POLLIN | POLLRDNORM;
-> > +			events |= POLLIN | POLLRDNORM;
-> >  	}
-> >  
-> >  	return events;
-> > diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-> > index 35d6072b12b2..aee7cbb04439 100644
-> > --- a/drivers/media/rc/lirc_dev.c
-> > +++ b/drivers/media/rc/lirc_dev.c
-> > @@ -62,6 +62,7 @@ int ir_lirc_register(struct rc_dev *dev)
-> >  		dev->send_mode = LIRC_MODE_PULSE;
-> >  
-> >  	dev->rec_mode = LIRC_MODE_MODE2;
-> > +	dev->poll_mode = LIRC_MODE_MODE2;
-> >  
-> >  	if (dev->driver_type == RC_DRIVER_IR_RAW) {
-> >  		if (kfifo_alloc(&dev->rawir, MAX_IR_EVENT_SIZE, GFP_KERNEL))
-> > diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-> > index 86f62e75dcab..da9624b2cc1a 100644
-> > --- a/include/media/rc-core.h
-> > +++ b/include/media/rc-core.h
-> > @@ -132,6 +132,8 @@ enum rc_filter_type {
-> >   *	LIRC_MODE_PULSE
-> >   * @rec_mode: lirc mode for recording, either LIRC_MODE_SCANCODE or
-> 
-> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ here is the 'recording' comment.
+Topic: V4L2 Explicit Syncronization
+Purpose: quick overview and discuss of the API/direction we are going
+with fences
+Duration: 20-30min
 
-Thanks for spotting that! That should be receive of course.
+Regards,
 
-> >   *	LIRC_MODE_MODE2
-> > + * @poll_mode: lirc mode used for polling, can poll for both LIRC_MODE_SCANCODE
-> > + *	and LIRC_MODE_MODE2
-> >   * @registered: set to true by rc_register_device(), false by
-> >   *	rc_unregister_device
-> >   * @change_protocol: allow changing the protocol used on hardware decoders
-> > @@ -208,6 +210,7 @@ struct rc_dev {
-> >  	wait_queue_head_t		wait_poll;
-> >  	u8				send_mode;
-> >  	u8				rec_mode;
-> > +	u8				poll_mode;
-> >  #endif
-> >  	bool				registered;
-> >  	int				(*change_protocol)(struct rc_dev *dev, u64 *rc_proto);
-> > 
-> 
-> Regards,
-> 
-> 	Hans
+Gustavo
