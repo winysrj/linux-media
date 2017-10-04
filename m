@@ -1,125 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:35434 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751571AbdJMXNq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 19:13:46 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@kernel.org, hansverk@cisco.com, kgene@kernel.org,
-        krzk@kernel.org, s.nawrocki@samsung.com, shailendra.v@samsung.com,
-        shuah@kernel.org, Julia.Lawall@lip6.fr, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 2/2] media: s5p-mfc: fix lockdep warning
-Date: Fri, 13 Oct 2017 17:13:37 -0600
-Message-Id: <4887afc17a24fbd103e8616b463269cef8482bf3.1507935819.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1507935819.git.shuahkh@osg.samsung.com>
-References: <cover.1507935819.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1507935819.git.shuahkh@osg.samsung.com>
-References: <cover.1507935819.git.shuahkh@osg.samsung.com>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:37334 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751169AbdJDVON (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Oct 2017 17:14:13 -0400
+Date: Wed, 4 Oct 2017 16:14:11 -0500
+From: Rob Herring <robh@kernel.org>
+To: Tim Harvey <tharvey@gateworks.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, shawnguo@kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH 2/4] media: dt-bindings: Add bindings for TDA1997X
+Message-ID: <20171004211411.27gxy5wnaymdcm3z@rob-hp-laptop>
+References: <1506119053-21828-1-git-send-email-tharvey@gateworks.com>
+ <1506119053-21828-3-git-send-email-tharvey@gateworks.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1506119053-21828-3-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver mmap functions shouldn't take lock when calling vb2_mmap().
-Fix it to not take the lock. The following lockdep warning is fixed
-with this change.
+On Fri, Sep 22, 2017 at 03:24:11PM -0700, Tim Harvey wrote:
+> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
 
-[ 2106.181412] ======================================================
-[ 2106.187563] WARNING: possible circular locking dependency detected
-[ 2106.193718] 4.14.0-rc2-00002-gfab205f-dirty #4 Not tainted
-[ 2106.199175] ------------------------------------------------------
-[ 2106.205328] qtdemux0:sink/2614 is trying to acquire lock:
-[ 2106.210701]  (&dev->mfc_mutex){+.+.}, at: [<bf175544>] s5p_mfc_mmap+0x28/0xd4 [s5p_mfc]
-[ 2106.218672]
-[ 2106.218672] but task is already holding lock:
-[ 2106.224477]  (&mm->mmap_sem){++++}, at: [<c01df2e4>] vm_mmap_pgoff+0x44/0xb8
-[ 2106.231497]
-[ 2106.231497] which lock already depends on the new lock.
-[ 2106.231497]
-[ 2106.239642]
-[ 2106.239642] the existing dependency chain (in reverse order) is:
-[ 2106.247095]
-[ 2106.247095] -> #1 (&mm->mmap_sem){++++}:
-[ 2106.252473]        __might_fault+0x80/0xb0
-[ 2106.256567]        video_usercopy+0x1cc/0x510 [videodev]
-[ 2106.261845]        v4l2_ioctl+0xa4/0xdc [videodev]
-[ 2106.266596]        do_vfs_ioctl+0xa0/0xa18
-[ 2106.270667]        SyS_ioctl+0x34/0x5c
-[ 2106.274395]        ret_fast_syscall+0x0/0x28
-[ 2106.278637]
-[ 2106.278637] -> #0 (&dev->mfc_mutex){+.+.}:
-[ 2106.284186]        lock_acquire+0x6c/0x88
-[ 2106.288173]        __mutex_lock+0x68/0xa34
-[ 2106.292244]        mutex_lock_interruptible_nested+0x1c/0x24
-[ 2106.297893]        s5p_mfc_mmap+0x28/0xd4 [s5p_mfc]
-[ 2106.302747]        v4l2_mmap+0x54/0x88 [videodev]
-[ 2106.307409]        mmap_region+0x3a8/0x638
-[ 2106.311480]        do_mmap+0x330/0x3a4
-[ 2106.315207]        vm_mmap_pgoff+0x90/0xb8
-[ 2106.319279]        SyS_mmap_pgoff+0x90/0xc0
-[ 2106.323439]        ret_fast_syscall+0x0/0x28
-[ 2106.327683]
-[ 2106.327683] other info that might help us debug this:
-[ 2106.327683]
-[ 2106.335656]  Possible unsafe locking scenario:
-[ 2106.335656]
-[ 2106.341548]        CPU0                    CPU1
-[ 2106.346053]        ----                    ----
-[ 2106.350559]   lock(&mm->mmap_sem);
-[ 2106.353939]                                lock(&dev->mfc_mutex);
-[ 2106.353939]                                lock(&dev->mfc_mutex);
-[ 2106.365897]   lock(&dev->mfc_mutex);
-[ 2106.369450]
-[ 2106.369450]  *** DEADLOCK ***
-[ 2106.369450]
-[ 2106.375344] 1 lock held by qtdemux0:sink/2614:
-[ 2106.379762]  #0:  (&mm->mmap_sem){++++}, at: [<c01df2e4>] vm_mmap_pgoff+0x44/0xb8
-[ 2106.387214]
-[ 2106.387214] stack backtrace:
-[ 2106.391550] CPU: 7 PID: 2614 Comm: qtdemux0:sink Not tainted 4.14.0-rc2-00002-gfab205f-dirty #4
-[ 2106.400213] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
-[ 2106.406285] [<c01102c8>] (unwind_backtrace) from [<c010cabc>] (show_stack+0x10/0x14)
-[ 2106.413995] [<c010cabc>] (show_stack) from [<c08543a4>] (dump_stack+0x98/0xc4)
-[ 2106.421187] [<c08543a4>] (dump_stack) from [<c016b2fc>] (print_circular_bug+0x254/0x410)
-[ 2106.429245] [<c016b2fc>] (print_circular_bug) from [<c016c580>] (check_prev_add+0x468/0x938)
-[ 2106.437651] [<c016c580>] (check_prev_add) from [<c016f4dc>] (__lock_acquire+0x1314/0x14fc)
-[ 2106.445883] [<c016f4dc>] (__lock_acquire) from [<c016fefc>] (lock_acquire+0x6c/0x88)
-[ 2106.453596] [<c016fefc>] (lock_acquire) from [<c0869fb4>] (__mutex_lock+0x68/0xa34)
-[ 2106.461221] [<c0869fb4>] (__mutex_lock) from [<c086aa08>] (mutex_lock_interruptible_nested+0x1c/0x24)
-[ 2106.470425] [<c086aa08>] (mutex_lock_interruptible_nested) from [<bf175544>] (s5p_mfc_mmap+0x28/0xd4 [s5p_mfc])
-[ 2106.480494] [<bf175544>] (s5p_mfc_mmap [s5p_mfc]) from [<bf037120>] (v4l2_mmap+0x54/0x88 [videodev])
-[ 2106.489575] [<bf037120>] (v4l2_mmap [videodev]) from [<c01f4798>] (mmap_region+0x3a8/0x638)
-[ 2106.497875] [<c01f4798>] (mmap_region) from [<c01f4d58>] (do_mmap+0x330/0x3a4)
-[ 2106.505068] [<c01f4d58>] (do_mmap) from [<c01df330>] (vm_mmap_pgoff+0x90/0xb8)
-[ 2106.512260] [<c01df330>] (vm_mmap_pgoff) from [<c01f28cc>] (SyS_mmap_pgoff+0x90/0xc0)
-[ 2106.520059] [<c01f28cc>] (SyS_mmap_pgoff) from [<c0108820>] (ret_fast_syscall+0x0/0x28)
+You need a commit msg. Otherwise, maintainers get publicly shamed.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-Suggested-by: Hans Verkuil <hansverk@cisco.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 3 ---
- 1 file changed, 3 deletions(-)
+> ---
+>  .../devicetree/bindings/media/i2c/tda1997x.txt     | 159 +++++++++++++++++++++
+>  1 file changed, 159 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/tda1997x.txt b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+> new file mode 100644
+> index 0000000..8330733
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+> @@ -0,0 +1,159 @@
+> +Device-Tree bindings for the NXP TDA1997x HDMI receiver
+> +
+> +The TDA19971/73 are HDMI video receivers.
+> +
+> +The TDA19971 Video port output pins can be used as follows:
+> + - RGB 8bit per color (24 bits total): R[11:4] B[11:4] G[11:4]
+> + - YUV444 8bit per color (24 bits total): Y[11:4] Cr[11:4] Cb[11:4]
+> + - YUV422 semi-planar 8bit per component (16 bits total): Y[11:4] CbCr[11:4]
+> + - YUV422 semi-planar 10bit per component (20 bits total): Y[11:2] CbCr[11:2]
+> + - YUV422 semi-planar 12bit per component (24 bits total): - Y[11:0] CbCr[11:0]
+> + - YUV422 BT656 8bit per component (8 bits total): YCbCr[11:4] (2-cycles)
+> + - YUV422 BT656 10bit per component (10 bits total): YCbCr[11:2] (2-cycles)
+> + - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
+> +
+> +The TDA19973 Video port output pins can be used as follows:
+> + - RGB 12bit per color (36 bits total): R[11:0] B[11:0] G[11:0]
+> + - YUV444 12bit per color (36 bits total): Y[11:0] Cb[11:0] Cr[11:0]
+> + - YUV422 semi-planar 12bit per component (24 bits total): Y[11:0] CbCr[11:0]
+> + - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
+> +
+> +The Video port output pins are mapped via 4-bit 'pin groups' allowing
+> +for a variety fo connection possibilities including swapping pin order within
+> +pin groups. The video_portcfg device-tree property consists of register mapping
+> +pairs which map a chip-specific VP output register to a 4-bit pin group. If
+> +the pin group needs to be bit-swapped you can use the *_S pin-group defines.
+> +
+> +Required Properties:
+> + - compatible      :
+> +  - "nxp,tda19971" for the TDA19971
+> +  - "nxp,tda19973" for the TDA19973
+> + - reg             : I2C slave address
+> + - interrupts      : The interrupt number
+> + - DOVDD-supply    : Digital I/O supply
+> + - DVDD-supply     : Digital Core supply
+> + - AVDD-supply     : Analog supply
+> + - vidout_portcfg  : array of pairs mapping VP output pins to pin groups
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 4c253fb..40c18b4 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1047,8 +1047,6 @@ static int s5p_mfc_mmap(struct file *file, struct vm_area_struct *vma)
- 	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
- 	int ret;
- 
--	if (mutex_lock_interruptible(&dev->mfc_mutex))
--		return -ERESTARTSYS;
- 	if (offset < DST_QUEUE_OFF_BASE) {
- 		mfc_debug(2, "mmaping source\n");
- 		ret = vb2_mmap(&ctx->vq_src, vma);
-@@ -1057,7 +1055,6 @@ static int s5p_mfc_mmap(struct file *file, struct vm_area_struct *vma)
- 		vma->vm_pgoff -= (DST_QUEUE_OFF_BASE >> PAGE_SHIFT);
- 		ret = vb2_mmap(&ctx->vq_dst, vma);
- 	}
--	mutex_unlock(&dev->mfc_mutex);
- 	return ret;
- }
- 
--- 
-2.7.4
+Needs a vendor prefix and don't use '_'.
+
+> +
+> +Optional Properties:
+> + - max-pixel-rate  : Maximum pixel rate supported by the SoC (MP/sec)
+> + - audio-port      : parameters defining audio output port connection
+
+That description is meaningless to me.
+
+> +
+> +Optional Endpoint Properties:
+> +  The following three properties are defined in video-interfaces.txt and
+> +  are valid for source endpoints only:
+> +  - hsync-active: Horizontal synchronization polarity. Defaults to active high.
+> +  - vsync-active: Vertical synchronization polarity. Defaults to active high.
+> +  - data-active: Data polarity. Defaults to active high.
+> +
+> +The Audio output port consists of A_CLK, A_WS, AP0, AP1, AP2, and AP3 pins
+> +and can support up to 8-chanenl audio using the following audio bus DAI formats:
+> + - I2S16
+> + - I2S32
+> + - SPDIF
+> + - OBA (One-Bit-Audio)
+> + - I2S16_HBR_STRAIGHT (High Bitrate straight through)
+> + - I2S16_HBR_DEMUX (High Bitrate demuxed)
+> + - I2S32_HBR_DEMUX (High Bitrate demuxed)
+> + - DST (Direct Stream Transfer)
+
+This either should be a standard, common property or not be in DT. 
+Practically every system is going to have at least one end of the 
+connection that is configurable. The kernel should be able to get lists 
+of supported modes and pick one.
+
+> +
+> +Audio samples can be output in either SPDIF or I2S bus formats.
+> +In I2S mode, the TDF1997X is the master with 16bit or 32bit words.
+> +The audio port output is configured by three parameters: DAI format, layout
+> +and clock scaler.
+> +
+> +Each DAI format has two pin layouts shown by the following table:
+> +       |  SPDIF  |  SPDIF  |   I2S   |   I2S   |         HBR demux
+> +       | Layout0 | Layout1 | Layout0 | Layout1 | SPDIF      | I2S
+> + ------+---------+---------+---------+---------+------------+------------
+> + A_WS  | WS      | WS      | WS      | WS      | WS         | WS
+> + AP3   |         | SPDIF3  |         | SD3     | SPDIF[x+3] | SD[x+3]
+> + AP2   |         | SPDIF2  |         | SD2     | SPDIF[x+2] | SD[x+2]
+> + AP1   |         | SPDIF1  |         | SD1     | SPDIF[x+1] | SD[x+1]
+> + AP0   | SPDIF   | SPDIF0  | SD      | SD0     | SPDIF[x]   | SD[x]
+> + A_CLK | (32*Fs) | (32*Fs) |(32*Fs)  | (32*Fs) | (32*Fs)    | (32*Fs)
+> +       | (64*Fs) | (64*Fs) |(64*Fs)  | (64*Fs) | (64*Fs)    | (64*Fs)
+> +
+> +Freq(Sysclk) = 2*freq(Aclk)
+> +
+> +Examples:
+> + - VP[15:0] connected to IMX6 CSI_DATA[19:4] for 16bit YUV422
+> +   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
+> +	hdmi_receiver@48 {
+
+s/_/-/
+
+> +		compatible = "nxp,tda19971";
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&pinctrl_tda1997x>;
+> +		reg = <0x48>;
+> +		interrupt-parent = <&gpio1>;
+> +		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+> +		DOVDD-supply = <&reg_3p3v>;
+> +		AVDD-supply = <&reg_1p8v>;
+> +		DVDD-supply = <&reg_1p8v>;
+> +		/* audio output format */
+> +		audio-port = < TDA1997X_I2S16
+> +			       TDA1997X_LAYOUT0
+> +			       TDA1997X_ACLK_128FS >;
+> +		/*
+> +		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
+> +		 * and Y[11:4] across 16bits in the same pixclk cycle.
+> +		 */
+> +		vidout_portcfg =
+> +			/* Y[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
+> +			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
+> +			/* Y[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
+> +			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
+> +			/* CbCc[11:8]<->VP[07:04]<->CSI_DATA[11:8] */
+> +			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
+> +			/* CbCr[7:4]<->VP[03:00]<->CSI_DATA[7:4] */
+> +			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
+> +		max-pixel-rate = <180>; /* IMX6 CSI max pixel rate 180MP/sec */
+
+That's a constraint that belongs in the i.MX CSI node or driver.
+
+> +
+> +		port@0 {
+> +			reg = <0>;
+> +		};
+> +		port@1 {
+
+You need to describe how many ports and what they are.
+
+> +			reg = <1>;
+> +			hdmi_in: endpoint {
+> +				remote-endpoint = <&ccdc_in>;
+> +			};
+> +		};
+> +	};
+> + - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
+> +   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
+
+Do you really need 2 examples? It should be possible to figure out other 
+configurations with better descriptions above.
+
+> +	hdmi_receiver@48 {
+> +		compatible = "nxp,tda19971";
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&pinctrl_tda1997x>;
+> +		reg = <0x48>;
+> +		interrupt-parent = <&gpio1>;
+> +		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+> +		DOVDD-supply = <&reg_3p3v>;
+> +		AVDD-supply = <&reg_1p8v>;
+> +		DVDD-supply = <&reg_1p8v>;
+> +		/* audio output format */
+> +		#sound-dai-cells = <0>;
+> +		audio-port = < TDA1997X_I2S16
+> +			       TDA1997X_LAYOUT0
+> +			       TDA1997X_ACLK_128FS >;
+> +		/*
+> +		 * The 8bpp BT656 mode outputs YCbCr[11:4] across 8bits over
+> +		 * 2 pixclk cycles.
+> +		 */
+> +		vidout_portcfg =
+> +			/* YCbCr[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
+> +			< TDA1997X_VP24_V15_12 TDA1997X_R_CR_CBCR_11_8 >,
+> +			/* YCbCr[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
+> +			< TDA1997X_VP24_V11_08 TDA1997X_R_CR_CBCR_7_4 >,
+> +		max-pixel-rate = <180>; /* IMX6 CSI max pixel rate 180MP/sec */
+> +
+> +		port@0 {
+> +			reg = <0>;
+> +		};
+> +		port@1 {
+> +			reg = <1>;
+> +			hdmi_in: endpoint {
+> +				remote-endpoint = <&ccdc_in>;
+> +			};
+> +		};
+> +	};
+> +
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
