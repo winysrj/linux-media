@@ -1,54 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:54313 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752781AbdJSQbo (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40292 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751326AbdJDVu5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Oct 2017 12:31:44 -0400
-Received: by mail-pg0-f66.google.com with SMTP id l24so7612754pgu.11
-        for <linux-media@vger.kernel.org>; Thu, 19 Oct 2017 09:31:44 -0700 (PDT)
-From: Akinobu Mita <akinobu.mita@gmail.com>
+        Wed, 4 Oct 2017 17:50:57 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 4/4] media: ov5640: don't clear V4L2_SUBDEV_FL_IS_I2C
-Date: Fri, 20 Oct 2017 01:31:23 +0900
-Message-Id: <1508430683-8674-5-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1508430683-8674-1-git-send-email-akinobu.mita@gmail.com>
-References: <1508430683-8674-1-git-send-email-akinobu.mita@gmail.com>
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v15 15/32] v4l: async: Register sub-devices before calling bound callback
+Date: Thu,  5 Oct 2017 00:50:34 +0300
+Message-Id: <20171004215051.13385-16-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_i2c_subdev_init() sets V4L2_SUBDEV_FL_IS_I2C flag in the
-subdev->flags.  But this driver overwrites subdev->flags immediately after
-calling v4l2_i2c_subdev_init().  So V4L2_SUBDEV_FL_IS_I2C is not set after
-all.
+Register the sub-device before calling the notifier's bound callback.
+Doing this the other way around is problematic as the struct v4l2_device
+has not assigned for the sub-device yet and may be required by the bound
+callback.
 
-This stops breaking subdev->flags and preserves V4L2_SUBDEV_FL_IS_I2C.
-
-Side note: According to the comment in v4l2_device_unregister(), this is
-problematic only if the device is platform bus device.  Device tree or
-ACPI based devices are not affected.
-
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/ov5640.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-async.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 39a2269..c89ed66 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -2271,7 +2271,7 @@ static int ov5640_probe(struct i2c_client *client,
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index e170682dae78..46db85685894 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -130,13 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ {
+ 	int ret;
  
- 	v4l2_i2c_subdev_init(&sensor->sd, client, &ov5640_subdev_ops);
+-	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
++	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+ 	if (ret < 0)
+ 		return ret;
  
--	sensor->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	sensor->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	sensor->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
- 	ret = media_entity_pads_init(&sensor->sd.entity, 1, &sensor->pad);
+-	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
++	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
+ 	if (ret < 0) {
+-		v4l2_async_notifier_call_unbind(notifier, sd, asd);
++		v4l2_device_unregister_subdev(sd);
+ 		return ret;
+ 	}
+ 
 -- 
-2.7.4
+2.11.0
