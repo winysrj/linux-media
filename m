@@ -1,58 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35290 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40394 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752468AbdJMVxi (ORCPT
+        by vger.kernel.org with ESMTP id S1751250AbdJDVu7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 17:53:38 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id D3C43600EE
-        for <linux-media@vger.kernel.org>; Sat, 14 Oct 2017 00:53:36 +0300 (EEST)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1e37tg-000318-8I
-        for linux-media@vger.kernel.org; Sat, 14 Oct 2017 00:53:36 +0300
-Date: Sat, 14 Oct 2017 00:53:36 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+        Wed, 4 Oct 2017 17:50:59 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.15] Improve video-interfaces.txt DT property
- documentation
-Message-ID: <20171013215335.ginbwd5l6fkfss4d@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v15 14/32] v4l: async: Introduce helpers for calling async ops callbacks
+Date: Thu,  5 Oct 2017 00:50:33 +0300
+Message-Id: <20171004215051.13385-15-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Add three helper functions to call async operations callbacks. Besides
+simplifying callbacks, this allows async notifiers to have no ops set,
+i.e. it can be left NULL.
 
-The two patches improve documentation of lane numbering and  documentation
-practices themselves.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 56 +++++++++++++++++++++++++-----------
+ 1 file changed, 39 insertions(+), 17 deletions(-)
 
-Please pull.
-
-
-The following changes since commit a8c779eb056e9874c6278151ade857c3ac227db9:
-
-  [media] imon: Improve a size determination in two functions (2017-10-04 16:19:40 -0300)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git video-dt-doc
-
-for you to fetch changes up to 8c2ff7f03105454400b6e40da5fbd9e29eba0357:
-
-  dt: bindings: media: Document data lane numbering without lane reordering (2017-10-14 00:43:30 +0300)
-
-----------------------------------------------------------------
-Sakari Ailus (2):
-      dt: bindings: media: Document practices for DT bindings, ports, endpoints
-      dt: bindings: media: Document data lane numbering without lane reordering
-
- .../devicetree/bindings/media/video-interfaces.txt         | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
-
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 9d6fc5f25619..e170682dae78 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -25,6 +25,34 @@
+ #include <media/v4l2-fwnode.h>
+ #include <media/v4l2-subdev.h>
+ 
++static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
++					  struct v4l2_subdev *subdev,
++					  struct v4l2_async_subdev *asd)
++{
++	if (!n->ops || !n->ops->bound)
++		return 0;
++
++	return n->ops->bound(n, subdev, asd);
++}
++
++static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier *n,
++					    struct v4l2_subdev *subdev,
++					    struct v4l2_async_subdev *asd)
++{
++	if (!n->ops || !n->ops->unbind)
++		return;
++
++	n->ops->unbind(n, subdev, asd);
++}
++
++static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
++{
++	if (!n->ops || !n->ops->complete)
++		return 0;
++
++	return n->ops->complete(n);
++}
++
+ static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+ #if IS_ENABLED(CONFIG_I2C)
+@@ -102,16 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ {
+ 	int ret;
+ 
+-	if (notifier->ops->bound) {
+-		ret = notifier->ops->bound(notifier, sd, asd);
+-		if (ret < 0)
+-			return ret;
+-	}
++	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
++	if (ret < 0)
++		return ret;
+ 
+ 	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+ 	if (ret < 0) {
+-		if (notifier->ops->unbind)
+-			notifier->ops->unbind(notifier, sd, asd);
++		v4l2_async_notifier_call_unbind(notifier, sd, asd);
+ 		return ret;
+ 	}
+ 
+@@ -140,8 +165,7 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+ 	struct v4l2_subdev *sd, *tmp;
+ 
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+-		if (notifier->ops->unbind)
+-			notifier->ops->unbind(notifier, sd, sd->asd);
++		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+ 		v4l2_async_cleanup(sd);
+ 
+ 		list_move(&sd->async_list, &subdev_list);
+@@ -198,8 +222,8 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 		}
+ 	}
+ 
+-	if (list_empty(&notifier->waiting) && notifier->ops->complete) {
+-		ret = notifier->ops->complete(notifier);
++	if (list_empty(&notifier->waiting)) {
++		ret = v4l2_async_notifier_call_complete(notifier);
+ 		if (ret)
+ 			goto err_complete;
+ 	}
+@@ -296,10 +320,10 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 		if (ret)
+ 			goto err_unlock;
+ 
+-		if (!list_empty(&notifier->waiting) || !notifier->ops->complete)
++		if (!list_empty(&notifier->waiting))
+ 			goto out_unlock;
+ 
+-		ret = notifier->ops->complete(notifier);
++		ret = v4l2_async_notifier_call_complete(notifier);
+ 		if (ret)
+ 			goto err_cleanup;
+ 
+@@ -315,8 +339,7 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 	return 0;
+ 
+ err_cleanup:
+-	if (notifier->ops->unbind)
+-		notifier->ops->unbind(notifier, sd, sd->asd);
++	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+ 	v4l2_async_cleanup(sd);
+ 
+ err_unlock:
+@@ -335,8 +358,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+ 
+ 		list_add(&sd->asd->list, &notifier->waiting);
+ 
+-		if (notifier->ops->unbind)
+-			notifier->ops->unbind(notifier, sd, sd->asd);
++		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+ 	}
+ 
+ 	v4l2_async_cleanup(sd);
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.11.0
