@@ -1,91 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f43.google.com ([209.85.218.43]:43948 "EHLO
-        mail-oi0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932076AbdJIRuP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Oct 2017 13:50:15 -0400
-Received: by mail-oi0-f43.google.com with SMTP id c77so39069213oig.0
-        for <linux-media@vger.kernel.org>; Mon, 09 Oct 2017 10:50:14 -0700 (PDT)
-MIME-Version: 1.0
-From: Andrey Konovalov <andreyknvl@google.com>
-Date: Mon, 9 Oct 2017 19:50:13 +0200
-Message-ID: <CAAeHK+yoqszqq2Vo+sv4TWDnj9HJgPxeLBhEw6Qe3Cu-v81uOQ@mail.gmail.com>
-Subject: usb/media/imon: null-ptr-deref in imon_probe
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Daniel Wagner <daniel.wagner@bmw-carit.de>,
-        Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        syzkaller <syzkaller@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40376 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751413AbdJDVvA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Oct 2017 17:51:00 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v15 24/32] v4l: fwnode: Add a helper function to obtain device / integer references
+Date: Thu,  5 Oct 2017 00:50:43 +0300
+Message-Id: <20171004215051.13385-25-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
+the device's own fwnode, it will follow child fwnodes with the given
+property-value pair and return the resulting fwnode.
 
-I've got the following report while fuzzing the kernel with syzkaller.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 207 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 207 insertions(+)
 
-On commit 8a5776a5f49812d29fe4b2d0a2d71675c3facf3f (4.14-rc4).
-
-It seems that the return value of usb_ifnum_to_if() can be NULL and
-needs to be checked.
-
-kasan: CONFIG_KASAN_INLINE enabled
-kasan: GPF could be caused by NULL-ptr deref or user memory access
-general protection fault: 0000 [#1] PREEMPT SMP KASAN
-Modules linked in:
-CPU: 1 PID: 1497 Comm: kworker/1:1 Not tainted
-4.14.0-rc4-43418-g43a3f84d2109-dirty #380
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-Workqueue: usb_hub_wq hub_event
-task: ffff88006a5618c0 task.stack: ffff880068bc8000
-RIP: 0010:imon_probe+0x231/0x3f10 drivers/media/rc/imon.c:2519
-RSP: 0018:ffff880068bce2d8 EFLAGS: 00010206
-RAX: 0000000000000000 RBX: ffff8800627dd500 RCX: 0000000000000027
-RDX: dffffc0000000000 RSI: 0000000000000000 RDI: 0000000000000138
-RBP: ffff880068bce5e8 R08: ffff88006a5618c0 R09: ffffffff84b380fc
-R10: ffff880068bce2c8 R11: 1ffff1000d4ac5b3 R12: ffff880061830000
-R13: ffff880061830008 R14: ffffffff883fa200 R15: ffffffff883fa080
-FS:  0000000000000000(0000) GS:ffff88006c500000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00000000206cbffc CR3: 0000000061085000 CR4: 00000000000006e0
-Call Trace:
- usb_probe_interface+0x35d/0x8e0 drivers/usb/core/driver.c:361
- really_probe drivers/base/dd.c:413
- driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
- __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
- bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
- __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
- device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
- bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
- device_add+0xd0b/0x1660 drivers/base/core.c:1835
- usb_set_configuration+0x104e/0x1870 drivers/usb/core/message.c:1932
- generic_probe+0x73/0xe0 drivers/usb/core/generic.c:174
- usb_probe_device+0xaf/0xe0 drivers/usb/core/driver.c:266
- really_probe drivers/base/dd.c:413
- driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
- __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
- bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
- __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
- device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
- bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
- device_add+0xd0b/0x1660 drivers/base/core.c:1835
- usb_new_device+0x7b8/0x1020 drivers/usb/core/hub.c:2457
- hub_port_connect drivers/usb/core/hub.c:4903
- hub_port_connect_change drivers/usb/core/hub.c:5009
- port_event drivers/usb/core/hub.c:5115
- hub_event+0x194d/0x3740 drivers/usb/core/hub.c:5195
- process_one_work+0xc7f/0x1db0 kernel/workqueue.c:2119
- worker_thread+0x221/0x1850 kernel/workqueue.c:2253
- kthread+0x3a1/0x470 kernel/kthread.c:231
- ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
-Code: ff e8 a4 81 cb 01 31 f6 48 89 df e8 2a cc 65 ff 0f ae f0 48 8d
-b8 38 01 00 00 48 ba 00 00 00 00 00 fc ff df 48 89 f9 48 c1 e9 03 <80>
-3c 11 00 0f 85 e8 31 00 00 48 8b 98 38 01 00 00 0f ae f0 44
-RIP: imon_probe+0x231/0x3f10 RSP: ffff880068bce2d8
----[ end trace 07febd2eebe02f84 ]---
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index edd2e8d983a1..c8acf5bf9916 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -578,6 +578,213 @@ static int v4l2_fwnode_reference_parse(
+ 	return ret;
+ }
+ 
++/*
++ * v4l2_fwnode_reference_get_int_prop - parse a reference with integer
++ *					arguments
++ * @dev: struct device pointer
++ * @notifier: notifier for @dev
++ * @prop: the name of the property
++ * @index: the index of the reference to get
++ * @props: the array of integer property names
++ * @nprops: the number of integer property names in @nprops
++ *
++ * First find an fwnode referred to by the reference at @index in @prop.
++ *
++ * Then under that fwnode, @nprops times, for each property in @props,
++ * iteratively follow child nodes starting from fwnode such that they have the
++ * property in @props array at the index of the child node distance from the
++ * root node and the value of that property matching with the integer argument
++ * of the reference, at the same index.
++ *
++ * The child fwnode reched at the end of the iteration is then returned to the
++ * caller.
++ *
++ * For example, if this function was called with arguments and values
++ * @dev corresponding to device "SEN", @prop == "flash-leds", @index
++ * == 1, @props == { "led" }, @nprops == 1, with the ASL snippet below
++ * it would return the node marked with THISONE. The @dev argument in
++ * the ASL below.
++ *
++ *	Device (LED)
++ *	{
++ *		Name (_DSD, Package () {
++ *			ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++ *			Package () {
++ *				Package () { "led0", "LED0" },
++ *				Package () { "led1", "LED1" },
++ *			}
++ *		})
++ *		Name (LED0, Package () {
++ *			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++ *			Package () {
++ *				Package () { "led", 0 },
++ *			}
++ *		})
++ *		Name (LED1, Package () {
++ *			// THISONE
++ *			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++ *			Package () {
++ *				Package () { "led", 1 },
++ *			}
++ *		})
++ *	}
++ *
++ *	Device (SEN)
++ *	{
++ *		Name (_DSD, Package () {
++ *			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++ *			Package () {
++ *				Package () {
++ *					"flash-leds",
++ *					Package () { ^LED, 0, ^LED, 1 },
++ *				}
++ *			}
++ *		})
++ *	}
++ *
++ * where
++ *
++ *	LED	LED driver device
++ *	LED0	First LED
++ *	LED1	Second LED
++ *	SEN	Camera sensor device (or another device the LED is
++ *		related to)
++ *
++ * Return: 0 on success
++ *	   -ENOENT if no entries (or the property itself) were found
++ *	   -EINVAL if property parsing otherwise failed
++ *	   -ENOMEM if memory allocation failed
++ */
++static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
++	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
++	const char **props, unsigned int nprops)
++{
++	struct fwnode_reference_args fwnode_args;
++	unsigned int *args = fwnode_args.args;
++	struct fwnode_handle *child;
++	int ret;
++
++	/*
++	 * Obtain remote fwnode as well as the integer arguments.
++	 *
++	 * Note that right now both -ENODATA and -ENOENT may signal
++	 * out-of-bounds access. Return -ENOENT in that case.
++	 */
++	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
++						 index, &fwnode_args);
++	if (ret)
++		return ERR_PTR(ret == -ENODATA ? -ENOENT : ret);
++
++	/*
++	 * Find a node in the tree under the referred fwnode corresponding to
++	 * the integer arguments.
++	 */
++	fwnode = fwnode_args.fwnode;
++	while (nprops--) {
++		u32 val;
++
++		/* Loop over all child nodes under fwnode. */
++		fwnode_for_each_child_node(fwnode, child) {
++			if (fwnode_property_read_u32(child, *props, &val))
++				continue;
++
++			/* Found property, see if its value matches. */
++			if (val == *args)
++				break;
++		}
++
++		fwnode_handle_put(fwnode);
++
++		/* No property found; return an error here. */
++		if (!child) {
++			fwnode = ERR_PTR(-ENOENT);
++			break;
++		}
++
++		props++;
++		args++;
++		fwnode = child;
++	}
++
++	return fwnode;
++}
++
++/*
++ * v4l2_fwnode_reference_parse_int_props - parse references for async sub-devices
++ * @dev: struct device pointer
++ * @notifier: notifier for @dev
++ * @prop: the name of the property
++ * @props: the array of integer property names
++ * @nprops: the number of integer properties
++ *
++ * Use v4l2_fwnode_reference_get_int_prop to find fwnodes through reference in
++ * property @prop with integer arguments with child nodes matching in properties
++ * @props. Then, set up V4L2 async sub-devices for those fwnodes in the notifier
++ * accordingly.
++ *
++ * While it is technically possible to use this function on DT, it is only
++ * meaningful on ACPI. On Device tree you can refer to any node in the tree but
++ * on ACPI the references are limited to devices.
++ *
++ * Return: 0 on success
++ *	   -ENOENT if no entries (or the property itself) were found
++ *	   -EINVAL if property parsing otherwisefailed
++ *	   -ENOMEM if memory allocation failed
++ */
++static int v4l2_fwnode_reference_parse_int_props(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	const char *prop, const char **props, unsigned int nprops)
++{
++	struct fwnode_handle *fwnode;
++	unsigned int index;
++	int ret;
++
++	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
++					 dev_fwnode(dev), prop, index, props,
++					 nprops))); index++)
++		fwnode_handle_put(fwnode);
++
++	/*
++	 * Note that right now both -ENODATA and -ENOENT may signal
++	 * out-of-bounds access. Return the error in cases other than that.
++	 */
++	if (PTR_ERR(fwnode) != -ENOENT && PTR_ERR(fwnode) != -ENODATA)
++		return PTR_ERR(fwnode);
++
++	ret = v4l2_async_notifier_realloc(notifier,
++					  notifier->num_subdevs + index);
++	if (ret)
++		return -ENOMEM;
++
++	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
++					 dev_fwnode(dev), prop, index, props,
++					 nprops))); index++) {
++		struct v4l2_async_subdev *asd;
++
++		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
++			ret = -EINVAL;
++			goto error;
++		}
++
++		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
++		if (!asd) {
++			ret = -ENOMEM;
++			goto error;
++		}
++
++		notifier->subdevs[notifier->num_subdevs] = asd;
++		asd->match.fwnode.fwnode = fwnode;
++		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
++		notifier->num_subdevs++;
++	}
++
++	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
++
++error:
++	fwnode_handle_put(fwnode);
++	return ret;
++}
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+-- 
+2.11.0
