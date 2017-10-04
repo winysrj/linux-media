@@ -1,475 +1,380 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:3258 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751129AbdJRDrD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 23:47:03 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
-        tuukka.toivonen@intel.com, jerry.w.hu@intel.com, arnd@arndb.de,
-        hch@lst.de, robin.murphy@arm.com, iommu@lists.linux-foundation.org,
-        Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v4 00/12] Intel IPU3 ImgU patchset
-Date: Tue, 17 Oct 2017 22:46:48 -0500
-Message-Id: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40340 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751347AbdJDVu6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Oct 2017 17:50:58 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v15 10/32] rcar-vin: Use generic parser for parsing fwnode endpoints
+Date: Thu,  5 Oct 2017 00:50:29 +0300
+Message-Id: <20171004215051.13385-11-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset adds support for the Intel IPU3 (Image Processing Unit)
-ImgU which is essentially a modern memory-to-memory ISP. It implements
-raw Bayer to YUV image format conversion as well as a large number of
-other pixel processing algorithms for improving the image quality.
-
-Meta data formats are defined for image statistics (3A, i.e. automatic
-white balance, exposure and focus, histogram and local area contrast
-enhancement) as well as for the pixel processing algorithm parameters.
-The documentation for these formats is currently not included in the
-patchset but will be added in a future version of this set.
-
-The algorithm parameters need to be considered specific to a given frame
-and typically a large number of these parameters change on frame to frame
-basis. Additionally, the parameters are highly structured (and not a flat
-space of independent configuration primitives). They also reflect the
-data structures used by the firmware and the hardware. On top of that,
-the algorithms require highly specialized user space to make meaningful
-use of them. For these reasons it has been chosen video buffers to pass
-the parameters to the device.
-
-On individual patches:
-
-The heart of ImgU is the CSS, or Camera Subsystem, which contains the
-image processors and HW accelerators.
-
-The 3A statistics and other firmware parameter computation related
-functions are implemented in patch 8.
-
-All h/w programming related code can be found in patch 9.
-
-To access DDR via ImgU's own memory space, IPU3 is also equipped with
-its own MMU unit, the driver is implemented in patch 2.
-
-Currently, the MMU driver has dependency on two exported symbols
-(iommu_group_ref_get and iommu_group_get_for_dev))to build as ko.
-
-Patch 3 uses above IOMMU driver for DMA mem related functions.
-
-Patch 5-10 are basically IPU3 CSS specific implementations:
-
-6 and 7 provide some utility functions and manage IPU3 fw download and
-install.
-
-The firmware which is called ipu3-fw.bin can be downloaded from:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
-(commit 2c27b0cb02f18c022d8378e0e1abaf8b7ae8188f)
-
-Patch 9 and 10 are of the same file, the latter implements interface
-functions for access fw & hw capabilities defined in patch 8.
-
-Patch 11 has a dependency on Sakari's V4L2_BUF_TYPE_META_OUTPUT work:
-
-<URL:https://patchwork.kernel.org/patch/9976293/>
-<URL:https://patchwork.kernel.org/patch/9976295/>
-
-Patch 12 uses Kconfig and Makefile created by IPU3 cio2 patch series.
-
-Link to user space implementation:
-
-<URL:https://chromium.googlesource.com/chromiumos/platform/arc-camera/+/master>
-
-Device topology:
-
-./media-ctl -d /dev/media0 -p                                                   
-Media controller API version 4.14.0
-
-Media device information
-------------------------
-driver          ipu3-imgu
-model           ipu3-imgu
-serial          
-bus info        0000:00:05.0
-hw revision     0x0
-driver version  4.14.0
-
-Device topology
-- entity 1: ipu3-imgu:0 (8 pads, 8 links)
-            type V4L2 subdev subtype Unknown flags 0
-            device node name /dev/v4l-subdev0
-	pad0: Sink
-		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-		<- "input":0 [ENABLED,IMMUTABLE]
-	pad1: Sink
-		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-		<- "parameters":0 []
-	pad2: Source
-		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-		-> "output":0 []
-	pad3: Source
-		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-		-> "viewfinder":0 []
-	pad4: Source
-		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-		-> "postview":0 []
-	pad5: Source
-		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-		-> "3a stat":0 []
-	pad6: Source
-		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-		-> "dvs stat":0 []
-	pad7: Source
-		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-		-> "lace stat":0 []
-
-- entity 12: input (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video0
-	pad0: Source
-		-> "ipu3-imgu:0":0 [ENABLED,IMMUTABLE]
-
-- entity 18: parameters (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video1
-	pad0: Source
-		-> "ipu3-imgu:0":1 []
-
-- entity 24: output (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video2
-	pad0: Sink
-		<- "ipu3-imgu:0":2 []
-
-- entity 30: viewfinder (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video3
-	pad0: Sink
-		<- "ipu3-imgu:0":3 []
-
-- entity 36: postview (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video4
-	pad0: Sink
-		<- "ipu3-imgu:0":4 []
-
-- entity 42: 3a stat (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video5
-	pad0: Sink
-		<- "ipu3-imgu:0":5 []
-
-- entity 48: dvs stat (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video6
-	pad0: Sink
-		<- "ipu3-imgu:0":6 []
-
-- entity 54: lace stat (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video7
-	pad0: Sink
-		<- "ipu3-imgu:0":7 []
-
-
-Sample test results on input and 3A video nodes:
-
-localhost # ./v4l2-compliance -d /dev/video0                                    
-v4l2-compliance SHA   : f71ba5a1779ddb6a5a59562504dcf4fabf5c1de1
-
-Driver Info:
-	Driver name   : ipu3-imgu:0
-	Card type     : ipu3-imgu
-	Bus info      : PCI:input
-	Driver version: 4.14.0
-	Capabilities  : 0x84202000
-		Video Output Multiplanar
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04202000
-		Video Output Multiplanar
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 1 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test output 0:
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-		test VIDIOC_QUERYCTRL: OK (Not Supported)
-		test VIDIOC_G/S_CTRL: OK (Not Supported)
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 0 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK (Not Supported)
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		test VIDIOC_TRY_FMT: OK
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		test Composing: OK (Not Supported)
-		test Scaling: OK
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test output 0:
-
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-
-localhost # ./v4l2-compliance -d /dev/video5                                    
-v4l2-compliance SHA   : f71ba5a1779ddb6a5a59562504dcf4fabf5c1de1
-
-Driver Info:
-	Driver name   : ipu3-imgu:0
-	Card type     : ipu3-imgu
-	Bus info      : PCI:3a stat
-	Driver version: 4.14.0
-	Capabilities  : 0x84A00000
-		Metadata Capture
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04A00000
-		Metadata Capture
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/video5 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-		test VIDIOC_QUERYCTRL: OK (Not Supported)
-		test VIDIOC_G/S_CTRL: OK (Not Supported)
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 0 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK (Not Supported)
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		test VIDIOC_TRY_FMT: OK
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		test Composing: OK (Not Supported)
-		test Scaling: OK (Not Supported)
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-
-Note: stream test with -f fails as pre-configuration of sub-devs is required.
-
-===========
-= history =
-===========
-
-version 4:
-- Used V4L2_BUF_TYPE_META_OUTPUT for:
-    - V4L2_META_FMT_IPU3_STAT_PARAMS
-- Used V4L2_BUF_TYPE_META_CAPTURE for:
-    - V4L2_META_FMT_IPU3_STAT_3A
-    - V4L2_META_FMT_IPU3_STAT_DVS
-    - V4L2_META_FMT_IPU3_STAT_LACE
-- Supported v4l2 MPLANE format on video nodes.
-- ipu3-dmamap.c: Removed dma ops and dependencies on IOMMU_DMA lib.
-- ipu3-mmu.c: Re-structured the driver:
-  Removed dependencies on linux/dma-iommu.h
-  Add dev and dma_dev to struct ipu3_mmu to faciliate the dma_map_ops-less way of
-  binding between mmu, dmamap and ipu3 driver.
-  Addressed MMU review comments of v3.
-  Removed cache flush via setting page table as un-cache for improved performance.
-- intel-ipu3.h: Added __padding qualifier for uapi definitions.
-- Internal fix: power and performance related issues.
-- Fixed v4l2-compliance test failures on video and meta nodes.
-- Fixed build failure for x86 with 32bit config.
-- Fixed checkpatch.pl errors/warnings/checks.
-
-version 3:
-- ipu3-mmu.c and ipu3-dmamap.c:
-  Tomasz Figa reworked both drivers and updated related files.
-- ipu2-abi.h:
-  update imgu_abi_binary_info ABI to support latest ipu3-fw.bin.
-  use __packed qualifier on structs suggested by Sakari Ailus.
-- ipu3-css-fw.c/ipu3-css-fw.h: following fix were suggested by Tomasz Figa:
-  remove pointer type in firmware blob structs.
-  fix binary_header array in struct imgu_fw_header.
-  fix calling ipu3_css_fw_show_binary() before proper checking.
-  fix logic error for valid length checking of blob name.
-- ipu3-css-params.c/ipu3_css_scaler_get_exp():
-  use lib helper suggested by Andy Shevchenko.
-- ipu3-v4l2.c/ipu3_videoc_querycap():
-  fill device_caps fix suggested by Hans Verkuil.
-  add VB2_DMABUF suggested by Tomasz Figa.
-- ipu3-css.c: increase IMGU freq from 300MHZ to 450MHZ (internal fix)
-- ipu3.c: use vb2_dma_sg_memop for the time being(internal fix).
-
-version 2:
-This version cherry-picked firmware ABI change and other
-fix in order to bring the code up-to-date with our internal release.
-
-I will go over the review comments in v1 and address them in v3 and
-future update.
-
-version 1:
-- Initial submission
-
-Tomasz Figa (2):
-  intel-ipu3: Add mmu driver
-  intel-ipu3: Add IOMMU based dmamap support
-
-Yong Zhi (10):
-  videodev2.h, v4l2-ioctl: add IPU3 meta buffer format
-  intel-ipu3: Add user space ABI definitions
-  intel-ipu3: css: tables
-  intel-ipu3: css: imgu dma buff pool
-  intel-ipu3: css: firmware management
-  intel-ipu3: params: compute and program ccs
-  intel-ipu3: css hardware setup
-  intel-ipu3: css pipeline
-  intel-ipu3: Add imgu v4l2 driver
-  intel-ipu3: imgu top level pci device
-
- drivers/media/pci/intel/ipu3/Kconfig           |   33 +
- drivers/media/pci/intel/ipu3/Makefile          |   21 +
- drivers/media/pci/intel/ipu3/ipu3-abi.h        | 1579 ++++
- drivers/media/pci/intel/ipu3/ipu3-css-fw.c     |  270 +
- drivers/media/pci/intel/ipu3/ipu3-css-fw.h     |  206 +
- drivers/media/pci/intel/ipu3/ipu3-css-params.c | 3161 ++++++++
- drivers/media/pci/intel/ipu3/ipu3-css-params.h |  105 +
- drivers/media/pci/intel/ipu3/ipu3-css-pool.c   |  132 +
- drivers/media/pci/intel/ipu3/ipu3-css-pool.h   |   54 +
- drivers/media/pci/intel/ipu3/ipu3-css.c        | 2278 ++++++
- drivers/media/pci/intel/ipu3/ipu3-css.h        |  225 +
- drivers/media/pci/intel/ipu3/ipu3-dmamap.c     |  342 +
- drivers/media/pci/intel/ipu3/ipu3-dmamap.h     |   33 +
- drivers/media/pci/intel/ipu3/ipu3-mmu.c        |  580 ++
- drivers/media/pci/intel/ipu3/ipu3-mmu.h        |   26 +
- drivers/media/pci/intel/ipu3/ipu3-tables.c     | 9621 ++++++++++++++++++++++++
- drivers/media/pci/intel/ipu3/ipu3-tables.h     |   82 +
- drivers/media/pci/intel/ipu3/ipu3-v4l2.c       | 1150 +++
- drivers/media/pci/intel/ipu3/ipu3.c            |  882 +++
- drivers/media/pci/intel/ipu3/ipu3.h            |  186 +
- drivers/media/v4l2-core/v4l2-ioctl.c           |    4 +
- include/uapi/linux/intel-ipu3.h                | 2199 ++++++
- include/uapi/linux/videodev2.h                 |    6 +
- 23 files changed, 23175 insertions(+)
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-abi.h
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.h
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-params.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-params.h
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.h
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css.h
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.h
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.h
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-tables.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-tables.h
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-v4l2.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3.h
- create mode 100644 include/uapi/linux/intel-ipu3.h
-
+Instead of using a custom driver implementation, use
+v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
+of the device.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 107 +++++++++-------------------
+ drivers/media/platform/rcar-vin/rcar-dma.c  |  10 +--
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  14 ++--
+ drivers/media/platform/rcar-vin/rcar-vin.h  |   4 +-
+ 4 files changed, 46 insertions(+), 89 deletions(-)
+
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 142de447aaaa..380288658601 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -21,6 +21,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ 
++#include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+ 
+ #include "rcar-vin.h"
+@@ -77,14 +78,14 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+ 	int ret;
+ 
+ 	/* Verify subdevices mbus format */
+-	if (!rvin_mbus_supported(&vin->digital)) {
++	if (!rvin_mbus_supported(vin->digital)) {
+ 		vin_err(vin, "Unsupported media bus format for %s\n",
+-			vin->digital.subdev->name);
++			vin->digital->subdev->name);
+ 		return -EINVAL;
+ 	}
+ 
+ 	vin_dbg(vin, "Found media bus format for %s: %d\n",
+-		vin->digital.subdev->name, vin->digital.code);
++		vin->digital->subdev->name, vin->digital->code);
+ 
+ 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
+ 	if (ret < 0) {
+@@ -103,7 +104,7 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
+ 
+ 	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
+ 	rvin_v4l2_remove(vin);
+-	vin->digital.subdev = NULL;
++	vin->digital->subdev = NULL;
+ }
+ 
+ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+@@ -120,117 +121,71 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+ 	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
+ 	if (ret < 0)
+ 		return ret;
+-	vin->digital.source_pad = ret;
++	vin->digital->source_pad = ret;
+ 
+ 	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
+-	vin->digital.sink_pad = ret < 0 ? 0 : ret;
++	vin->digital->sink_pad = ret < 0 ? 0 : ret;
+ 
+-	vin->digital.subdev = subdev;
++	vin->digital->subdev = subdev;
+ 
+ 	vin_dbg(vin, "bound subdev %s source pad: %u sink pad: %u\n",
+-		subdev->name, vin->digital.source_pad,
+-		vin->digital.sink_pad);
++		subdev->name, vin->digital->source_pad,
++		vin->digital->sink_pad);
+ 
+ 	return 0;
+ }
+ 
+-static int rvin_digitial_parse_v4l2(struct rvin_dev *vin,
+-				    struct device_node *ep,
+-				    struct v4l2_mbus_config *mbus_cfg)
++static int rvin_digital_parse_v4l2(struct device *dev,
++				   struct v4l2_fwnode_endpoint *vep,
++				   struct v4l2_async_subdev *asd)
+ {
+-	struct v4l2_fwnode_endpoint v4l2_ep;
+-	int ret;
++	struct rvin_dev *vin = dev_get_drvdata(dev);
++	struct rvin_graph_entity *rvge =
++		container_of(asd, struct rvin_graph_entity, asd);
+ 
+-	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
+-	if (ret) {
+-		vin_err(vin, "Could not parse v4l2 endpoint\n");
+-		return -EINVAL;
+-	}
++	if (vep->base.port || vep->base.id)
++		return -ENOTCONN;
+ 
+-	mbus_cfg->type = v4l2_ep.bus_type;
++	rvge->mbus_cfg.type = vep->bus_type;
+ 
+-	switch (mbus_cfg->type) {
++	switch (rvge->mbus_cfg.type) {
+ 	case V4L2_MBUS_PARALLEL:
+ 		vin_dbg(vin, "Found PARALLEL media bus\n");
+-		mbus_cfg->flags = v4l2_ep.bus.parallel.flags;
++		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
+ 		break;
+ 	case V4L2_MBUS_BT656:
+ 		vin_dbg(vin, "Found BT656 media bus\n");
+-		mbus_cfg->flags = 0;
++		rvge->mbus_cfg.flags = 0;
+ 		break;
+ 	default:
+ 		vin_err(vin, "Unknown media bus type\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	return 0;
+-}
+-
+-static int rvin_digital_graph_parse(struct rvin_dev *vin)
+-{
+-	struct device_node *ep, *np;
+-	int ret;
+-
+-	vin->digital.asd.match.fwnode.fwnode = NULL;
+-	vin->digital.subdev = NULL;
+-
+-	/*
+-	 * Port 0 id 0 is local digital input, try to get it.
+-	 * Not all instances can or will have this, that is OK
+-	 */
+-	ep = of_graph_get_endpoint_by_regs(vin->dev->of_node, 0, 0);
+-	if (!ep)
+-		return 0;
+-
+-	np = of_graph_get_remote_port_parent(ep);
+-	if (!np) {
+-		vin_err(vin, "No remote parent for digital input\n");
+-		of_node_put(ep);
+-		return -EINVAL;
+-	}
+-	of_node_put(np);
+-
+-	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->digital.mbus_cfg);
+-	of_node_put(ep);
+-	if (ret)
+-		return ret;
+-
+-	vin->digital.asd.match.fwnode.fwnode = of_fwnode_handle(np);
+-	vin->digital.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
++	vin->digital = rvge;
+ 
+ 	return 0;
+ }
+ 
+ static int rvin_digital_graph_init(struct rvin_dev *vin)
+ {
+-	struct v4l2_async_subdev **subdevs = NULL;
+ 	int ret;
+ 
+-	ret = rvin_digital_graph_parse(vin);
++	ret = v4l2_async_notifier_parse_fwnode_endpoints(
++		vin->dev, &vin->notifier,
++		sizeof(struct rvin_graph_entity), rvin_digital_parse_v4l2);
+ 	if (ret)
+ 		return ret;
+ 
+-	if (!vin->digital.asd.match.fwnode.fwnode) {
+-		vin_dbg(vin, "No digital subdevice found\n");
++	if (!vin->digital)
+ 		return -ENODEV;
+-	}
+-
+-	/* Register the subdevices notifier. */
+-	subdevs = devm_kzalloc(vin->dev, sizeof(*subdevs), GFP_KERNEL);
+-	if (subdevs == NULL)
+-		return -ENOMEM;
+-
+-	subdevs[0] = &vin->digital.asd;
+ 
+ 	vin_dbg(vin, "Found digital subdevice %pOF\n",
+-		to_of_node(subdevs[0]->match.fwnode.fwnode));
++		to_of_node(vin->digital->asd.match.fwnode.fwnode));
+ 
+-	vin->notifier.num_subdevs = 1;
+-	vin->notifier.subdevs = subdevs;
+ 	vin->notifier.bound = rvin_digital_notify_bound;
+ 	vin->notifier.unbind = rvin_digital_notify_unbind;
+ 	vin->notifier.complete = rvin_digital_notify_complete;
+-
+ 	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
+ 	if (ret < 0) {
+ 		vin_err(vin, "Notifier registration failed\n");
+@@ -290,6 +245,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
++	platform_set_drvdata(pdev, vin);
++
+ 	ret = rvin_digital_graph_init(vin);
+ 	if (ret < 0)
+ 		goto error;
+@@ -297,11 +254,10 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	pm_suspend_ignore_children(&pdev->dev, true);
+ 	pm_runtime_enable(&pdev->dev);
+ 
+-	platform_set_drvdata(pdev, vin);
+-
+ 	return 0;
+ error:
+ 	rvin_dma_remove(vin);
++	v4l2_async_notifier_cleanup(&vin->notifier);
+ 
+ 	return ret;
+ }
+@@ -313,6 +269,7 @@ static int rcar_vin_remove(struct platform_device *pdev)
+ 	pm_runtime_disable(&pdev->dev);
+ 
+ 	v4l2_async_notifier_unregister(&vin->notifier);
++	v4l2_async_notifier_cleanup(&vin->notifier);
+ 
+ 	rvin_dma_remove(vin);
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index b136844499f6..23fdff7a7370 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -183,7 +183,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	/*
+ 	 * Input interface
+ 	 */
+-	switch (vin->digital.code) {
++	switch (vin->digital->code) {
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 		/* BT.601/BT.1358 16bit YCbCr422 */
+ 		vnmc |= VNMC_INF_YUV16;
+@@ -191,7 +191,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+-		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -200,7 +200,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+-		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -212,11 +212,11 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+ 
+ 	/* Hsync Signal Polarity Select */
+-	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
++	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_HPS;
+ 
+ 	/* Vsync Signal Polarity Select */
+-	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
++	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_VPS;
+ 
+ 	/*
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index dd37ea811680..b479b882da12 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -111,7 +111,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
+ 	struct v4l2_mbus_framefmt *mf = &fmt.format;
+ 	int ret;
+ 
+-	fmt.pad = vin->digital.source_pad;
++	fmt.pad = vin->digital->source_pad;
+ 
+ 	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
+ 	if (ret)
+@@ -172,13 +172,13 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 
+ 	sd = vin_to_source(vin);
+ 
+-	v4l2_fill_mbus_format(&format.format, pix, vin->digital.code);
++	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
+ 
+ 	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
+ 	if (pad_cfg == NULL)
+ 		return -ENOMEM;
+ 
+-	format.pad = vin->digital.source_pad;
++	format.pad = vin->digital->source_pad;
+ 
+ 	field = pix->field;
+ 
+@@ -555,7 +555,7 @@ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
+ 	if (timings->pad)
+ 		return -EINVAL;
+ 
+-	timings->pad = vin->digital.sink_pad;
++	timings->pad = vin->digital->sink_pad;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
+ 
+@@ -607,7 +607,7 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
+ 	if (cap->pad)
+ 		return -EINVAL;
+ 
+-	cap->pad = vin->digital.sink_pad;
++	cap->pad = vin->digital->sink_pad;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
+ 
+@@ -625,7 +625,7 @@ static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+ 	if (edid->pad)
+ 		return -EINVAL;
+ 
+-	edid->pad = vin->digital.sink_pad;
++	edid->pad = vin->digital->sink_pad;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, get_edid, edid);
+ 
+@@ -643,7 +643,7 @@ static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+ 	if (edid->pad)
+ 		return -EINVAL;
+ 
+-	edid->pad = vin->digital.sink_pad;
++	edid->pad = vin->digital->sink_pad;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, set_edid, edid);
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 9bfb5a7c4dc4..5382078143fb 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -126,7 +126,7 @@ struct rvin_dev {
+ 	struct v4l2_device v4l2_dev;
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	struct v4l2_async_notifier notifier;
+-	struct rvin_graph_entity digital;
++	struct rvin_graph_entity *digital;
+ 
+ 	struct mutex lock;
+ 	struct vb2_queue queue;
+@@ -145,7 +145,7 @@ struct rvin_dev {
+ 	struct v4l2_rect compose;
+ };
+ 
+-#define vin_to_source(vin)		vin->digital.subdev
++#define vin_to_source(vin)		((vin)->digital->subdev)
+ 
+ /* Debug */
+ #define vin_dbg(d, fmt, arg...)		dev_dbg(d->dev, fmt, ##arg)
 -- 
-2.7.4
+2.11.0
