@@ -1,62 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:35168 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757193AbdJKNZQ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40348 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751357AbdJDVu5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Oct 2017 09:25:16 -0400
-Subject: Re: [PATCH] [media] vimc: Fix return value check in
- vimc_add_subdevs()
-To: Wei Yongjun <weiyongjun1@huawei.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org
-References: <1507720603-128932-1-git-send-email-weiyongjun1@huawei.com>
-From: Helen Koike <helen.koike@collabora.com>
-Message-ID: <8a810b75-c0d3-5bb9-9712-bf72f5daa200@collabora.com>
-Date: Wed, 11 Oct 2017 10:25:09 -0300
-MIME-Version: 1.0
-In-Reply-To: <1507720603-128932-1-git-send-email-weiyongjun1@huawei.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 4 Oct 2017 17:50:57 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v15 11/32] omap3isp: Fix check for our own sub-devices
+Date: Thu,  5 Oct 2017 00:50:30 +0300
+Message-Id: <20171004215051.13385-12-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+We only want to link sub-devices that were bound to the async notifier the
+isp driver registered but there may be other sub-devices in the
+v4l2_device as well. Check for the correct async notifier.
 
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+---
+ drivers/media/platform/omap3isp/isp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On 2017-10-11 08:16 AM, Wei Yongjun wrote:
-> In case of error, the function platform_device_register_data() returns
-> ERR_PTR() and never returns NULL. The NULL test in the return value check
-> should be replaced with IS_ERR().
-> 
-> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-> ---
->  drivers/media/platform/vimc/vimc-core.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
-> index 51c0eee..fe088a9 100644
-> --- a/drivers/media/platform/vimc/vimc-core.c
-> +++ b/drivers/media/platform/vimc/vimc-core.c
-> @@ -267,11 +267,12 @@ static struct component_match *vimc_add_subdevs(struct vimc_device *vimc)
->  						PLATFORM_DEVID_AUTO,
->  						&pdata,
->  						sizeof(pdata));
-> -		if (!vimc->subdevs[i]) {
-> +		if (IS_ERR(vimc->subdevs[i])) {
-> +			match = ERR_CAST(vimc->subdevs[i]);
->  			while (--i >= 0)
->  				platform_device_unregister(vimc->subdevs[i]);
->  
-> -			return ERR_PTR(-ENOMEM);
-> +			return match;
->  		}
->  
->  		component_match_add(&vimc->pdev.dev, &match, vimc_comp_compare,
-> 
-> 
-> 
-
-Nice catch, thanks, looks good to me
-
-Acked-by: Helen Koike <helen.koike@collabora.com>
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 97a5206b6ddc..4afd7ba4fad6 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2155,7 +2155,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+ 		return ret;
+ 
+ 	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
+-		if (!sd->asd)
++		if (sd->notifier != &isp->notifier)
+ 			continue;
+ 
+ 		ret = isp_link_entity(isp, &sd->entity,
+-- 
+2.11.0
