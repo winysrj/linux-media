@@ -1,134 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54122 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751532AbdJ3Nac (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Oct 2017 09:30:32 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id ED5DE600F3
-        for <linux-media@vger.kernel.org>; Mon, 30 Oct 2017 15:30:30 +0200 (EET)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1e9A98-0003uY-Fi
-        for linux-media@vger.kernel.org; Mon, 30 Oct 2017 15:30:30 +0200
-Date: Mon, 30 Oct 2017 15:30:30 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.15] V4L2 async and fwnode improvements; DT and ACPI
- lens and flash support
-Message-ID: <20171030133030.nr4bhu7ylreanro2@valkosipuli.retiisi.org.uk>
+Received: from mga09.intel.com ([134.134.136.24]:7372 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751278AbdJDMpK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Oct 2017 08:45:10 -0400
+Date: Wed, 4 Oct 2017 15:45:01 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        Rob Herring <robh@kernel.org>, hverkuil@xs4all.nl,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+        Mika Westerberg <mika.westerberg@intel.com>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH v10 00/24] Unified fwnode endpoint parser, async
+ sub-device notifier support, N9 flash DTS
+Message-ID: <20171004124500.bm2rt3abfem63svi@kekkonen.localdomain>
+References: <20170911080008.21208-1-sakari.ailus@linux.intel.com>
+ <CAJZ5v0g4MUx8xaZjBwfVtYnad2+-ftkjk6Y51VRxS86YZar3oQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJZ5v0g4MUx8xaZjBwfVtYnad2+-ftkjk6Y51VRxS86YZar3oQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Rafael,
 
-This patchset improves async and fwnode frameworks and moves a lot of the
-job of parsing away from drivers to the framework. Also, DT and ACPI
-receive lens and flash support plus a few drivers using them.
+On Tue, Oct 03, 2017 at 02:04:50AM +0200, Rafael J. Wysocki wrote:
+> Hi,
+> 
+> On Mon, Sep 11, 2017 at 9:59 AM, Sakari Ailus
+> <sakari.ailus@linux.intel.com> wrote:
+> > Hi folks,
+> >
+> > We have a large influx of new, unmerged, drivers that are now parsing
+> > fwnode endpoints and each one of them is doing this a little bit
+> > differently. The needs are still exactly the same for the graph data
+> > structure is device independent. This is still a non-trivial task and the
+> > majority of the driver implementations are buggy, just buggy in different
+> > ways.
+> >
+> > Facilitate parsing endpoints by adding a convenience function for parsing
+> > the endpoints, and make the omap3isp and rcar-vin drivers use them as an
+> > example.
+> >
+> > To show where we're getting with this, I've added support for async
+> > sub-device notifier support that is notifiers that can be registered by
+> > sub-device drivers as well as V4L2 fwnode improvements to make use of them
+> > and the DTS changes for the Nokia N9. Some of these patches I've posted
+> > previously in this set here:
+> >
+> > <URL:http://www.spinics.net/lists/linux-media/msg118764.html>
+> >
+> > Since that, the complete callback of the master notifier registering the
+> > V4L2 device is only called once all sub-notifiers have been completed as
+> > well. This way the device node creation can be postponed until all devices
+> > have been successfully initialised.
+> >
+> > With this, the as3645a driver successfully registers a sub-device to the
+> > media device created by the omap3isp driver. The kernel also has the
+> > information it's related to the sensor driven by the smiapp driver but we
+> > don't have a way to expose that information yet.
+> 
+> I don't see core changes in this set, so I'm assuming it to be
+> targeted at the users of endpoints etc.
 
-Some documentation and V4L2 async error handling fixes are included as
-well in the beginning of the set.
-
-Please pull.
-
-The following changes since commit bbae615636155fa43a9b0fe0ea31c678984be864:
-
-  media: staging: atomisp2: cleanup null check on memory allocation (2017-10-27 17:33:39 +0200)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git fwnode-parse
-
-for you to fetch changes up to 1768f93a54133949145c615a80eb9ae004f426be:
-
-  arm: dts: omap3: N9/N950: Add flash references to the camera (2017-10-30 15:07:38 +0200)
-
-----------------------------------------------------------------
-Laurent Pinchart (1):
-      v4l: async: Move async subdev notifier operations to a separate structure
-
-Niklas Söderlund (1):
-      v4l: async: fix unbind error in v4l2_async_notifier_unregister()
-
-Sakari Ailus (30):
-      v4l: async: Remove re-probing support
-      v4l: async: Don't set sd->dev NULL in v4l2_async_cleanup
-      v4l: async: Fix notifier complete callback error handling
-      v4l: async: Correctly serialise async sub-device unregistration
-      v4l: async: Use more intuitive names for internal functions
-      v4l: async: Add V4L2 async documentation to the documentation build
-      v4l: fwnode: Support generic parsing of graph endpoints in a device
-      omap3isp: Use generic parser for parsing fwnode endpoints
-      rcar-vin: Use generic parser for parsing fwnode endpoints
-      omap3isp: Fix check for our own sub-devices
-      omap3isp: Print the name of the entity where no source pads could be found
-      v4l: async: Introduce helpers for calling async ops callbacks
-      v4l: async: Register sub-devices before calling bound callback
-      v4l: async: Allow async notifier register call succeed with no subdevs
-      v4l: async: Prepare for async sub-device notifiers
-      v4l: async: Allow binding notifiers to sub-devices
-      v4l: async: Ensure only unique fwnodes are registered to notifiers
-      dt: bindings: Add a binding for flash LED devices associated to a sensor
-      dt: bindings: Add lens-focus binding for image sensors
-      v4l: fwnode: Move KernelDoc documentation to the header
-      v4l: fwnode: Add a helper function for parsing generic references
-      v4l: fwnode: Add a helper function to obtain device / integer references
-      v4l: fwnode: Add convenience function for parsing common external refs
-      v4l: fwnode: Add a convenience function for registering sensors
-      dt: bindings: smiapp: Document lens-focus and flash-leds properties
-      smiapp: Add support for flash and lens devices
-      et8ek8: Add support for flash and lens devices
-      ov5670: Add support for flash and lens devices
-      ov13858: Add support for flash and lens devices
-      arm: dts: omap3: N9/N950: Add flash references to the camera
-
- .../devicetree/bindings/media/i2c/nokia,smia.txt   |   2 +
- .../devicetree/bindings/media/video-interfaces.txt |  10 +
- Documentation/media/kapi/v4l2-async.rst            |   3 +
- Documentation/media/kapi/v4l2-core.rst             |   1 +
- arch/arm/boot/dts/omap3-n9.dts                     |   1 +
- arch/arm/boot/dts/omap3-n950-n9.dtsi               |   4 +-
- arch/arm/boot/dts/omap3-n950.dts                   |   1 +
- drivers/media/i2c/et8ek8/et8ek8_driver.c           |   2 +-
- drivers/media/i2c/ov13858.c                        |   2 +-
- drivers/media/i2c/ov5670.c                         |   2 +-
- drivers/media/i2c/smiapp/smiapp-core.c             |   2 +-
- drivers/media/platform/am437x/am437x-vpfe.c        |   8 +-
- drivers/media/platform/atmel/atmel-isc.c           |  10 +-
- drivers/media/platform/atmel/atmel-isi.c           |  10 +-
- drivers/media/platform/davinci/vpif_capture.c      |   8 +-
- drivers/media/platform/davinci/vpif_display.c      |   8 +-
- drivers/media/platform/exynos4-is/media-dev.c      |   8 +-
- drivers/media/platform/omap3isp/isp.c              | 133 ++--
- drivers/media/platform/omap3isp/isp.h              |   5 +-
- drivers/media/platform/pxa_camera.c                |   8 +-
- drivers/media/platform/qcom/camss-8x16/camss.c     |   8 +-
- drivers/media/platform/rcar-vin/rcar-core.c        | 117 ++--
- drivers/media/platform/rcar-vin/rcar-dma.c         |  10 +-
- drivers/media/platform/rcar-vin/rcar-v4l2.c        |  14 +-
- drivers/media/platform/rcar-vin/rcar-vin.h         |   4 +-
- drivers/media/platform/rcar_drif.c                 |  10 +-
- drivers/media/platform/soc_camera/soc_camera.c     |  14 +-
- drivers/media/platform/stm32/stm32-dcmi.c          |  10 +-
- drivers/media/platform/ti-vpe/cal.c                |   8 +-
- drivers/media/platform/xilinx/xilinx-vipp.c        |   8 +-
- drivers/media/v4l2-core/v4l2-async.c               | 517 +++++++++++----
- drivers/media/v4l2-core/v4l2-fwnode.c              | 703 ++++++++++++++++++---
- drivers/staging/media/imx/imx-media-dev.c          |   8 +-
- include/media/v4l2-async.h                         |  91 ++-
- include/media/v4l2-fwnode.h                        | 220 ++++++-
- include/media/v4l2-subdev.h                        |   3 +
- 36 files changed, 1548 insertions(+), 425 deletions(-)
- create mode 100644 Documentation/media/kapi/v4l2-async.rst
+Yes, this is dealing with V4L2 and how information from firmware is used
+mainly but there is also DT binding documentation.
 
 -- 
 Kind regards,
 
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+sakari.ailus@linux.intel.com
