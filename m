@@ -1,42 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:54430 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751399AbdJ0BBo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Oct 2017 21:01:44 -0400
-Date: Thu, 26 Oct 2017 20:01:42 -0500
-From: Rob Herring <robh@kernel.org>
-To: Dmitry Osipenko <digetx@gmail.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Warren <swarren@wwwdotorg.org>,
-        Vladimir Zapolskiy <vz@mleia.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4 2/5] media: dt: bindings: Add binding for NVIDIA Tegra
- Video Decoder Engine
-Message-ID: <20171027010142.2glhx2djupxesnjp@rob-hp-laptop>
-References: <cover.1508448293.git.digetx@gmail.com>
- <bf5b91666229f9e46ed8c73d6ca2e4b65f86b5ab.1508448293.git.digetx@gmail.com>
+Received: from mail.kernel.org ([198.145.29.99]:51456 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751120AbdJDIQZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Oct 2017 04:16:25 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <bf5b91666229f9e46ed8c73d6ca2e4b65f86b5ab.1508448293.git.digetx@gmail.com>
+In-Reply-To: <20171004063828.22068-5-m.szyprowski@samsung.com>
+References: <CGME20171004063836eucas1p1c45902d81f8520b4bfc6b06ded50cc2b@eucas1p1.samsung.com>
+ <20171004063828.22068-1-m.szyprowski@samsung.com> <20171004063828.22068-5-m.szyprowski@samsung.com>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Date: Wed, 4 Oct 2017 10:16:22 +0200
+Message-ID: <CAJKOXPfP_QdCTQjHduCyh0ruWQF-c81Ld-F=Mw+mcqtKbhtT7A@mail.gmail.com>
+Subject: Re: [PATCH 4/7] media: exynos4-is: Remove dependency on obsolete SoC support
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 20, 2017 at 12:34:22AM +0300, Dmitry Osipenko wrote:
-> Add binding documentation for the Video Decoder Engine which is found
-> on NVIDIA Tegra20/30/114/124/132 SoC's.
-> 
-> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+On Wed, Oct 4, 2017 at 8:38 AM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> Support for Exynos4212 SoCs has been removed by commit bca9085e0ae9 ("ARM:
+> dts: exynos: remove Exynos4212 support (dead code)"), so there is no need
+> to keep remaining dead code related to this SoC version.
+>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 > ---
->  .../devicetree/bindings/media/nvidia,tegra-vde.txt | 55 ++++++++++++++++++++++
->  1 file changed, 55 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
+>  drivers/media/platform/exynos4-is/Kconfig     | 2 +-
+>  drivers/media/platform/exynos4-is/fimc-core.c | 2 +-
+>  drivers/media/platform/exynos4-is/fimc-lite.c | 2 +-
+>  3 files changed, 3 insertions(+), 3 deletions(-)
 
-Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
+
+Best regards,
+Krzysztof
