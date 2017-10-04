@@ -1,152 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f44.google.com ([209.85.218.44]:47582 "EHLO
-        mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932408AbdJXLTU (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40394 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751423AbdJDVvB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Oct 2017 07:19:20 -0400
-Received: by mail-oi0-f44.google.com with SMTP id h200so36125771oib.4
-        for <linux-media@vger.kernel.org>; Tue, 24 Oct 2017 04:19:20 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <c4ad7f4e-c838-aa44-5f0d-f8072ed41904@gentoo.org>
-References: <CAAeHK+zRfmghESqdKBqFw1CQnrkEkCxCLNgDQKzPqzZS=onEpg@mail.gmail.com>
- <c4ad7f4e-c838-aa44-5f0d-f8072ed41904@gentoo.org>
-From: Andrey Konovalov <andreyknvl@google.com>
-Date: Tue, 24 Oct 2017 13:19:18 +0200
-Message-ID: <CAAeHK+xM8B3+3k0c7+r2YDu+8Mx-WX5KcxLGJr8aM0+Xbaw--Q@mail.gmail.com>
-Subject: Re: usb/media/dtt200u: use-after-free in __dvb_frontend_free
-To: Matthias Schwarzott <zzam@gentoo.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        syzkaller <syzkaller@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+        Wed, 4 Oct 2017 17:51:01 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v15 26/32] v4l: fwnode: Add a convenience function for registering sensors
+Date: Thu,  5 Oct 2017 00:50:45 +0300
+Message-Id: <20171004215051.13385-27-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 23, 2017 at 8:58 PM, Matthias Schwarzott <zzam@gentoo.org> wrote:
-> Am 23.10.2017 um 16:41 schrieb Andrey Konovalov:
->> Hi!
->>
->> I've got the following report while fuzzing the kernel with syzkaller.
->>
->> On commit 3e0cc09a3a2c40ec1ffb6b4e12da86e98feccb11 (4.14-rc5+).
->>
->> dvb-usb: found a 'WideView WT-220U PenType Receiver (based on ZL353)'
->> in warm state.
->> dvb-usb: bulk message failed: -22 (2/1102416563)
->> dvb-usb: will use the device's hardware PID filter (table count: 15).
->> dvbdev: DVB: registering new adapter (WideView WT-220U PenType
->> Receiver (based on ZL353))
->> usb 1-1: media controller created
->> dvbdev: dvb_create_media_entity: media entity 'dvb-demux' registered.
->> usb 1-1: DVB: registering adapter 0 frontend 0 (WideView USB DVB-T)...
->> dvbdev: dvb_create_media_entity: media entity 'WideView USB DVB-T' registered.
->> Registered IR keymap rc-dtt200u
->> rc rc1: IR-receiver inside an USB DVB receiver as
->> /devices/platform/dummy_hcd.0/usb1/1-1/rc/rc1
->> input: IR-receiver inside an USB DVB receiver as
->> /devices/platform/dummy_hcd.0/usb1/1-1/rc/rc1/input9
->> dvb-usb: schedule remote query interval to 300 msecs.
->> dvb-usb: WideView WT-220U PenType Receiver (based on ZL353)
->> successfully initialized and connected.
->> dvb-usb: bulk message failed: -22 (1/1807119384)
->> dvb-usb: error -22 while querying for an remote control event.
->> dvb-usb: bulk message failed: -22 (1/1807119384)
->> dvb-usb: error -22 while querying for an remote control event.
->> dvb-usb: bulk message failed: -22 (1/1807119384)
->> dvb-usb: error -22 while querying for an remote control event.
->> dvb-usb: bulk message failed: -22 (1/1807119384)
->> dvb-usb: error -22 while querying for an remote control event.
->> dvb-usb: bulk message failed: -22 (1/1807119384)
->> dvb-usb: error -22 while querying for an remote control event.
->> dvb-usb: bulk message failed: -22 (1/1807119384)
->> dvb-usb: error -22 while querying for an remote control event.
->> usb 1-1: USB disconnect, device number 2
->> ==================================================================
->> BUG: KASAN: use-after-free in __dvb_frontend_free+0x113/0x120
->> Write of size 8 at addr ffff880067d45a00 by task kworker/0:1/24
->>
->> CPU: 0 PID: 24 Comm: kworker/0:1 Not tainted 4.14.0-rc5-43687-g06ab8a23e0e6 #545
->> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
->> Workqueue: usb_hub_wq hub_event
->> Call Trace:
->>  __dump_stack lib/dump_stack.c:16
->>  dump_stack+0x292/0x395 lib/dump_stack.c:52
->>  print_address_description+0x78/0x280 mm/kasan/report.c:252
->>  kasan_report_error mm/kasan/report.c:351
->>  kasan_report+0x23d/0x350 mm/kasan/report.c:409
->>  __asan_report_store8_noabort+0x1c/0x20 mm/kasan/report.c:435
->>  __dvb_frontend_free+0x113/0x120 drivers/media/dvb-core/dvb_frontend.c:156
->>  dvb_frontend_put+0x59/0x70 drivers/media/dvb-core/dvb_frontend.c:176
->>  dvb_frontend_detach+0x120/0x150 drivers/media/dvb-core/dvb_frontend.c:2803
->>  dvb_usb_adapter_frontend_exit+0xd6/0x160
->> drivers/media/usb/dvb-usb/dvb-usb-dvb.c:340
->>  dvb_usb_adapter_exit drivers/media/usb/dvb-usb/dvb-usb-init.c:116
->>  dvb_usb_exit+0x9b/0x200 drivers/media/usb/dvb-usb/dvb-usb-init.c:132
->>  dvb_usb_device_exit+0xa5/0xf0 drivers/media/usb/dvb-usb/dvb-usb-init.c:295
->>  usb_unbind_interface+0x21c/0xa90 drivers/usb/core/driver.c:423
->>  __device_release_driver drivers/base/dd.c:861
->>  device_release_driver_internal+0x4f1/0x5c0 drivers/base/dd.c:893
->>  device_release_driver+0x1e/0x30 drivers/base/dd.c:918
->>  bus_remove_device+0x2f4/0x4b0 drivers/base/bus.c:565
->>  device_del+0x5c4/0xab0 drivers/base/core.c:1985
->>  usb_disable_device+0x1e9/0x680 drivers/usb/core/message.c:1170
->>  usb_disconnect+0x260/0x7a0 drivers/usb/core/hub.c:2124
->>  hub_port_connect drivers/usb/core/hub.c:4754
->>  hub_port_connect_change drivers/usb/core/hub.c:5009
->>  port_event drivers/usb/core/hub.c:5115
->>  hub_event+0x1318/0x3740 drivers/usb/core/hub.c:5195
->>  process_one_work+0xc73/0x1d90 kernel/workqueue.c:2119
->>  worker_thread+0x221/0x1850 kernel/workqueue.c:2253
->>  kthread+0x363/0x440 kernel/kthread.c:231
->>  ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
->>
-> It looks like this is caused by commit
-> ead666000a5fe34bdc82d61838e4df2d416ea15e ("media: dvb_frontend: only use
-> kref after initialized").
->
-> The writing to "fe->frontend_priv" in dvb_frontend.c:156 is a
-> use-after-free in case the object dvb_frontend *fe is already freed by
-> the release callback called in line 153.
-> Only if the demod driver is based on new style i2c_client the memory is
-> still accessible.
->
-> There are two possible solutions:
-> 1. Clear fe->frontend_priv earlier (before line 153).
-> 2. Do not clear fe->frontend_priv
->
-> Can you try if the following patch (solution 1) fixes the issue?
+Add a convenience function for parsing firmware for information on related
+devices using v4l2_async_notifier_parse_fwnode_sensor_common() registering
+the notifier and finally the async sub-device itself.
 
-Hi Matthias,
+This should be useful for sensor drivers that do not have device specific
+requirements related to firmware information parsing or the async
+framework.
 
-Your patch fixes the issue.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c  | 19 ++++++++++++----
+ drivers/media/v4l2-core/v4l2-fwnode.c | 41 +++++++++++++++++++++++++++++++++++
+ include/media/v4l2-async.h            | 22 +++++++++++++++++++
+ include/media/v4l2-subdev.h           |  3 +++
+ 4 files changed, 81 insertions(+), 4 deletions(-)
 
-Thanks!
-
-Tested-by: Andrey Konovalov <andreyknvl@google.com>
-
->
-> Regards
-> Matthias
->
-> diff --git a/drivers/media/dvb-core/dvb_frontend.c
-> b/drivers/media/dvb-core/dvb_frontend.c
-> index daaf969719e4..f552acdb7d8c 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb-core/dvb_frontend.c
-> @@ -150,10 +150,11 @@ static void __dvb_frontend_free(struct
-> dvb_frontend *fe)
->
->         dvb_free_device(fepriv->dvbdev);
->
-> +       fe->frontend_priv = NULL;
-> +
->         dvb_frontend_invoke_release(fe, fe->ops.release);
->
->         kfree(fepriv);
-> -       fe->frontend_priv = NULL;
->  }
->
->  static void dvb_frontend_free(struct kref *ref)
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index e1fe3567127a..ae026eee3d03 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -496,19 +496,25 @@ int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
+ }
+ EXPORT_SYMBOL(v4l2_async_subdev_notifier_register);
+ 
+-void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
++static void __v4l2_async_notifier_unregister(
++	struct v4l2_async_notifier *notifier)
+ {
+-	if (!notifier->v4l2_dev && !notifier->sd)
++	if (!notifier || (!notifier->v4l2_dev && !notifier->sd))
+ 		return;
+ 
+-	mutex_lock(&list_lock);
+-
+ 	v4l2_async_notifier_unbind_all_subdevs(notifier);
+ 
+ 	notifier->sd = NULL;
+ 	notifier->v4l2_dev = NULL;
+ 
+ 	list_del(&notifier->list);
++}
++
++void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
++{
++	mutex_lock(&list_lock);
++
++	__v4l2_async_notifier_unregister(notifier);
+ 
+ 	mutex_unlock(&list_lock);
+ }
+@@ -618,6 +624,11 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+ {
+ 	mutex_lock(&list_lock);
+ 
++	__v4l2_async_notifier_unregister(sd->subdev_notifier);
++	v4l2_async_notifier_cleanup(sd->subdev_notifier);
++	kfree(sd->subdev_notifier);
++	sd->subdev_notifier = NULL;
++
+ 	if (sd->asd) {
+ 		struct v4l2_async_notifier *notifier = sd->notifier;
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 18ea7cd34f21..e5856f1e39b9 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -29,6 +29,7 @@
+ 
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
++#include <media/v4l2-subdev.h>
+ 
+ enum v4l2_fwnode_bus_type {
+ 	V4L2_FWNODE_BUS_TYPE_GUESS = 0,
+@@ -820,6 +821,46 @@ int v4l2_async_notifier_parse_fwnode_sensor_common(
+ }
+ EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_sensor_common);
+ 
++int v4l2_async_register_subdev_sensor_common(struct v4l2_subdev *sd)
++{
++	struct v4l2_async_notifier *notifier;
++	int ret;
++
++	if (WARN_ON(!sd->dev))
++		return -ENODEV;
++
++	notifier = kzalloc(sizeof(*notifier), GFP_KERNEL);
++	if (!notifier)
++		return -ENOMEM;
++
++	ret = v4l2_async_notifier_parse_fwnode_sensor_common(sd->dev,
++							     notifier);
++	if (ret < 0)
++		goto out_cleanup;
++
++	ret = v4l2_async_subdev_notifier_register(sd, notifier);
++	if (ret < 0)
++		goto out_cleanup;
++
++	ret = v4l2_async_register_subdev(sd);
++	if (ret < 0)
++		goto out_unregister;
++
++	sd->subdev_notifier = notifier;
++
++	return 0;
++
++out_unregister:
++	v4l2_async_notifier_unregister(notifier);
++
++out_cleanup:
++	v4l2_async_notifier_cleanup(notifier);
++	kfree(notifier);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_async_register_subdev_sensor_common);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 1e5e3f186b38..65f87e80081a 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -173,6 +173,28 @@ void v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier);
+ int v4l2_async_register_subdev(struct v4l2_subdev *sd);
+ 
+ /**
++ * v4l2_async_register_subdev_sensor_common - registers a sensor sub-device to
++ *					      the asynchronous sub-device
++ *					      framework and parse set up common
++ *					      sensor related devices
++ *
++ * @sd: pointer to struct &v4l2_subdev
++ *
++ * This function is just like v4l2_async_register_subdev() with the exception
++ * that calling it will also parse firmware interfaces for remote references
++ * using v4l2_async_notifier_parse_fwnode_sensor_common() and registers the
++ * async sub-devices. The sub-device is similarly unregistered by calling
++ * v4l2_async_unregister_subdev().
++ *
++ * While registered, the subdev module is marked as in-use.
++ *
++ * An error is returned if the module is no longer loaded on any attempts
++ * to register it.
++ */
++int __must_check v4l2_async_register_subdev_sensor_common(
++	struct v4l2_subdev *sd);
++
++/**
+  * v4l2_async_unregister_subdev - unregisters a sub-device to the asynchronous
+  * 	subdevice framework
+  *
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index e83872078376..ec399c770301 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -793,6 +793,8 @@ struct v4l2_subdev_platform_data {
+  *	list.
+  * @asd: Pointer to respective &struct v4l2_async_subdev.
+  * @notifier: Pointer to the managing notifier.
++ * @subdev_notifier: A sub-device notifier implicitly registered for the sub-
++ *		     device using v4l2_device_register_sensor_subdev().
+  * @pdata: common part of subdevice platform data
+  *
+  * Each instance of a subdev driver should create this struct, either
+@@ -823,6 +825,7 @@ struct v4l2_subdev {
+ 	struct list_head async_list;
+ 	struct v4l2_async_subdev *asd;
+ 	struct v4l2_async_notifier *notifier;
++	struct v4l2_async_notifier *subdev_notifier;
+ 	struct v4l2_subdev_platform_data *pdata;
+ };
+ 
+-- 
+2.11.0
