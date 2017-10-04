@@ -1,42 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:59219 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751366AbdJEIpg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Oct 2017 04:45:36 -0400
-From: Sean Young <sean@mess.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40268 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751326AbdJDVuz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Oct 2017 17:50:55 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH v2 14/25] media: lirc: do not call rc_close() on unregistered devices
-Date: Thu,  5 Oct 2017 09:45:16 +0100
-Message-Id: <0ee960d18bcaca9947b94a8c29df1007cf4ebb48.1507192752.git.sean@mess.org>
-In-Reply-To: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-In-Reply-To: <cover.1507192751.git.sean@mess.org>
-References: <cover.1507192751.git.sean@mess.org>
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v15 03/32] v4l: async: fix unbind error in v4l2_async_notifier_unregister()
+Date: Thu,  5 Oct 2017 00:50:22 +0300
+Message-Id: <20171004215051.13385-4-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If a lirc chardev is held open after a device is unplugged, rc_close()
-will be called after rc_unregister_device(). The driver is not expecting
-any calls at this point, and the iguanair driver causes an oops in
-this scenario.
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Signed-off-by: Sean Young <sean@mess.org>
+The call to v4l2_async_cleanup() will set sd->asd to NULL so passing it to
+notifier->unbind() have no effect and leaves the notifier confused. Call
+the unbind() callback prior to cleaning up the subdevice to avoid this.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/rc/rc-main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-async.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 9ae60a5fa6d2..c0904fe1a6d4 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -871,7 +871,7 @@ void rc_close(struct rc_dev *rdev)
- 	if (rdev) {
- 		mutex_lock(&rdev->lock);
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 21c748bf3a7b..ca281438a0ae 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -206,11 +206,11 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 	list_del(&notifier->list);
  
--		if (!--rdev->users && rdev->close != NULL)
-+		if (!--rdev->users && rdev->close && rdev->registered)
- 			rdev->close(rdev);
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+-		v4l2_async_cleanup(sd);
+-
+ 		if (notifier->unbind)
+ 			notifier->unbind(notifier, sd, sd->asd);
  
- 		mutex_unlock(&rdev->lock);
++		v4l2_async_cleanup(sd);
++
+ 		list_move(&sd->async_list, &subdev_list);
+ 	}
+ 
+@@ -268,11 +268,11 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+ 
+ 	list_add(&sd->asd->list, &notifier->waiting);
+ 
+-	v4l2_async_cleanup(sd);
+-
+ 	if (notifier->unbind)
+ 		notifier->unbind(notifier, sd, sd->asd);
+ 
++	v4l2_async_cleanup(sd);
++
+ 	mutex_unlock(&list_lock);
+ }
+ EXPORT_SYMBOL(v4l2_async_unregister_subdev);
 -- 
-2.13.6
+2.11.0
