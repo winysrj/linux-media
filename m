@@ -1,159 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51476 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750790AbdJ0I0f (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Oct 2017 04:26:35 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v16.1 17/32] v4l: async: Prepare for async sub-device notifiers
-Date: Fri, 27 Oct 2017 11:26:29 +0300
-Message-Id: <20171027082629.27648-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171026075342.5760-18-sakari.ailus@linux.intel.com>
-References: <20171026075342.5760-18-sakari.ailus@linux.intel.com>
+Received: from osg.samsung.com ([64.30.133.232]:60173 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751948AbdJDL6e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Oct 2017 07:58:34 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v3 15/17] scripts: kernel-doc: handle nested struct function arguments
+Date: Wed,  4 Oct 2017 08:48:53 -0300
+Message-Id: <08859f1abe9432275866a7836db49c1a6d88b698.1507116877.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
+References: <cover.1507116877.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
+References: <cover.1507116877.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Refactor the V4L2 async framework a little in preparation for async
-sub-device notifiers. This avoids making some structural changes in the
-patch actually implementing sub-device notifiers, making that patch easier
-to review.
+Function arguments are different than usual ones. So, an
+special logic is needed in order to handle such arguments
+on nested structs.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 69 ++++++++++++++++++++++++++----------
- 1 file changed, 50 insertions(+), 19 deletions(-)
+ scripts/kernel-doc | 38 ++++++++++++++++++++++++++------------
+ 1 file changed, 26 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 1b536d68cedf..6265717769d2 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -125,12 +125,13 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
- }
- 
- static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-+				   struct v4l2_device *v4l2_dev,
- 				   struct v4l2_subdev *sd,
- 				   struct v4l2_async_subdev *asd)
- {
- 	int ret;
- 
--	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
-+	ret = v4l2_device_register_subdev(v4l2_dev, sd);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -151,6 +152,29 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 	return 0;
- }
- 
-+/* Test all async sub-devices in a notifier for a match. */
-+static int v4l2_async_notifier_try_all_subdevs(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
-+	struct v4l2_subdev *sd, *tmp;
-+
-+	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-+		struct v4l2_async_subdev *asd;
-+		int ret;
-+
-+		asd = v4l2_async_find_match(notifier, sd);
-+		if (!asd)
-+			continue;
-+
-+		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
- static void v4l2_async_cleanup(struct v4l2_subdev *sd)
- {
- 	v4l2_device_unregister_subdev(sd);
-@@ -172,18 +196,15 @@ static void v4l2_async_notifier_unbind_all_subdevs(
- 	}
- }
- 
--int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
--				 struct v4l2_async_notifier *notifier)
-+static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- {
--	struct v4l2_subdev *sd, *tmp;
- 	struct v4l2_async_subdev *asd;
- 	int ret;
- 	int i;
- 
--	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-+	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
- 		return -EINVAL;
- 
--	notifier->v4l2_dev = v4l2_dev;
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
- 
-@@ -216,18 +237,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 
- 	mutex_lock(&list_lock);
- 
--	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
--		int ret;
--
--		asd = v4l2_async_find_match(notifier, sd);
--		if (!asd)
--			continue;
--
--		ret = v4l2_async_match_notify(notifier, sd, asd);
--		if (ret < 0) {
--			mutex_unlock(&list_lock);
--			return ret;
--		}
-+	ret = v4l2_async_notifier_try_all_subdevs(notifier);
-+	if (ret) {
-+		mutex_unlock(&list_lock);
-+		return ret;
- 	}
- 
- 	if (list_empty(&notifier->waiting)) {
-@@ -250,6 +263,23 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 
- 	return ret;
- }
-+
-+int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-+				 struct v4l2_async_notifier *notifier)
-+{
-+	int ret;
-+
-+	if (WARN_ON(!v4l2_dev))
-+		return -EINVAL;
-+
-+	notifier->v4l2_dev = v4l2_dev;
-+
-+	ret = __v4l2_async_notifier_register(notifier);
-+	if (ret)
-+		notifier->v4l2_dev = NULL;
-+
-+	return ret;
-+}
- EXPORT_SYMBOL(v4l2_async_notifier_register);
- 
- void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-@@ -324,7 +354,8 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 		if (!asd)
- 			continue;
- 
--		ret = v4l2_async_match_notify(notifier, sd, asd);
-+		ret = v4l2_async_match_notify(notifier, notifier->v4l2_dev, sd,
-+					      asd);
- 		if (ret)
- 			goto err_unlock;
- 
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index 61e52c2b604e..67e8712aa324 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -1019,18 +1019,32 @@ sub dump_struct($$) {
+ 			$id =~ s/^\*+//;
+ 			foreach my $arg (split /;/, $content) {
+ 				next if ($arg =~ m/^\s*$/);
+-				my $type = $arg;
+-				my $name = $arg;
+-				$type =~ s/\s\S+$//;
+-				$name =~ s/.*\s//;
+-				$name =~ s/[:\[].*//;
+-				$name =~ s/^\*+//;
+-				next if (($name =~ m/^\s*$/));
+-				if ($id =~ m/^\s*$/) {
+-					# anonymous struct/union
+-					$newmember .= "$type $name;";
++				if ($arg =~ m/^([^\(]+\(\*?\s*)([\w\.]*)(\s*\).*)/) {
++					# pointer-to-function
++					my $type = $1;
++					my $name = $2;
++					my $extra = $3;
++					next if (!$name);
++					if ($id =~ m/^\s*$/) {
++						# anonymous struct/union
++						$newmember .= "$type$name$extra;";
++					} else {
++						$newmember .= "$type$id.$name$extra;";
++					}
+ 				} else {
+-					$newmember .= "$type $id.$name;";
++					my $type = $arg;
++					my $name = $arg;
++					$type =~ s/\s\S+$//;
++					$name =~ s/.*\s+//;
++					$name =~ s/[:\[].*//;
++					$name =~ s/^\*+//;
++					next if (($name =~ m/^\s*$/));
++					if ($id =~ m/^\s*$/) {
++						# anonymous struct/union
++						$newmember .= "$type $name;";
++					} else {
++						$newmember .= "$type $id.$name;";
++					}
+ 				}
+ 			}
+ 			$members =~ s/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/$newmember/;
+@@ -1228,7 +1242,7 @@ sub create_parameterlist($$$$) {
+ 	} elsif ($arg =~ m/\(.+\)\s*\(/) {
+ 	    # pointer-to-function
+ 	    $arg =~ tr/#/,/;
+-	    $arg =~ m/[^\(]+\(\*?\s*(\w*)\s*\)/;
++	    $arg =~ m/[^\(]+\(\*?\s*([\w\.]*)\s*\)/;
+ 	    $param = $1;
+ 	    $type = $arg;
+ 	    $type =~ s/([^\(]+\(\*?)\s*$param/$1/;
 -- 
-2.11.0
+2.13.6
