@@ -1,207 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f177.google.com ([209.85.216.177]:43945 "EHLO
-        mail-qt0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751583AbdJMUxt (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40324 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751344AbdJDVu5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 16:53:49 -0400
-Received: by mail-qt0-f177.google.com with SMTP id j58so10821782qtj.0
-        for <linux-media@vger.kernel.org>; Fri, 13 Oct 2017 13:53:49 -0700 (PDT)
-Message-ID: <1507928021.6538.38.camel@ndufresne.ca>
-Subject: Re: [PATCH] venus: reimplement decoder stop command
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Date: Fri, 13 Oct 2017 16:53:41 -0400
-In-Reply-To: <20171013141317.23211-1-stanimir.varbanov@linaro.org>
-References: <20171013141317.23211-1-stanimir.varbanov@linaro.org>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-2dXfSdo0snf/iYA47ukl"
-Mime-Version: 1.0
+        Wed, 4 Oct 2017 17:50:57 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v15 09/32] omap3isp: Use generic parser for parsing fwnode endpoints
+Date: Thu,  5 Oct 2017 00:50:28 +0300
+Message-Id: <20171004215051.13385-10-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Instead of using a custom driver implementation, use
+v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
+of the device.
 
---=-2dXfSdo0snf/iYA47ukl
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/isp.c | 121 +++++++++++-----------------------
+ drivers/media/platform/omap3isp/isp.h |   5 +-
+ 2 files changed, 40 insertions(+), 86 deletions(-)
 
-Thanks, is the encoder stop command going to be implemented too ?
-
-Le vendredi 13 octobre 2017 =C3=A0 17:13 +0300, Stanimir Varbanov a =C3=A9c=
-rit :
-> This addresses the wrong behavior of decoder stop command by
-> rewriting it. These new implementation enqueue an empty buffer
-> on the decoder input buffer queue to signal end-of-stream. The
-> client should stop queuing buffers on the V4L2 Output queue
-> and continue queuing/dequeuing buffers on Capture queue. This
-> process will continue until the client receives a buffer with
-> V4L2_BUF_FLAG_LAST flag raised, which means that this is last
-> decoded buffer with data.
->=20
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-
-Tested-By: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-
-> ---
->  drivers/media/platform/qcom/venus/core.h    |  2 --
->  drivers/media/platform/qcom/venus/helpers.c |  7 ------
->  drivers/media/platform/qcom/venus/hfi.c     |  1 +
->  drivers/media/platform/qcom/venus/vdec.c    | 34
-> +++++++++++++++++++----------
->  4 files changed, 24 insertions(+), 20 deletions(-)
->=20
-> diff --git a/drivers/media/platform/qcom/venus/core.h
-> b/drivers/media/platform/qcom/venus/core.h
-> index cba092bcb76d..a0fe80df0cbd 100644
-> --- a/drivers/media/platform/qcom/venus/core.h
-> +++ b/drivers/media/platform/qcom/venus/core.h
-> @@ -194,7 +194,6 @@ struct venus_buffer {
->   * @fh:	 a holder of v4l file handle structure
->   * @streamon_cap: stream on flag for capture queue
->   * @streamon_out: stream on flag for output queue
-> - * @cmd_stop:	a flag to signal encoder/decoder commands
->   * @width:	current capture width
->   * @height:	current capture height
->   * @out_width:	current output width
-> @@ -258,7 +257,6 @@ struct venus_inst {
->  	} controls;
->  	struct v4l2_fh fh;
->  	unsigned int streamon_cap, streamon_out;
-> -	bool cmd_stop;
->  	u32 width;
->  	u32 height;
->  	u32 out_width;
-> diff --git a/drivers/media/platform/qcom/venus/helpers.c
-> b/drivers/media/platform/qcom/venus/helpers.c
-> index cac429be5609..6a85dd10ecd4 100644
-> --- a/drivers/media/platform/qcom/venus/helpers.c
-> +++ b/drivers/media/platform/qcom/venus/helpers.c
-> @@ -626,13 +626,6 @@ void venus_helper_vb2_buf_queue(struct
-> vb2_buffer *vb)
-> =20
->  	mutex_lock(&inst->lock);
-> =20
-> -	if (inst->cmd_stop) {
-> -		vbuf->flags |=3D V4L2_BUF_FLAG_LAST;
-> -		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_DONE);
-> -		inst->cmd_stop =3D false;
-> -		goto unlock;
-> -	}
-> -
->  	v4l2_m2m_buf_queue(m2m_ctx, vbuf);
-> =20
->  	if (!(inst->streamon_out & inst->streamon_cap))
-> diff --git a/drivers/media/platform/qcom/venus/hfi.c
-> b/drivers/media/platform/qcom/venus/hfi.c
-> index c09490876516..ba29fd4d4984 100644
-> --- a/drivers/media/platform/qcom/venus/hfi.c
-> +++ b/drivers/media/platform/qcom/venus/hfi.c
-> @@ -484,6 +484,7 @@ int hfi_session_process_buf(struct venus_inst
-> *inst, struct hfi_frame_data *fd)
-> =20
->  	return -EINVAL;
->  }
-> +EXPORT_SYMBOL_GPL(hfi_session_process_buf);
-> =20
->  irqreturn_t hfi_isr_thread(int irq, void *dev_id)
->  {
-> diff --git a/drivers/media/platform/qcom/venus/vdec.c
-> b/drivers/media/platform/qcom/venus/vdec.c
-> index da611a5eb670..c9e9576bb08a 100644
-> --- a/drivers/media/platform/qcom/venus/vdec.c
-> +++ b/drivers/media/platform/qcom/venus/vdec.c
-> @@ -469,8 +469,14 @@ static int vdec_subscribe_event(struct v4l2_fh
-> *fh,
->  static int
->  vdec_try_decoder_cmd(struct file *file, void *fh, struct
-> v4l2_decoder_cmd *cmd)
->  {
-> -	if (cmd->cmd !=3D V4L2_DEC_CMD_STOP)
-> +	switch (cmd->cmd) {
-> +	case V4L2_DEC_CMD_STOP:
-> +		if (cmd->flags & V4L2_DEC_CMD_STOP_TO_BLACK)
-> +			return -EINVAL;
-> +		break;
-> +	default:
->  		return -EINVAL;
-> +	}
-> =20
->  	return 0;
->  }
-> @@ -479,6 +485,7 @@ static int
->  vdec_decoder_cmd(struct file *file, void *fh, struct
-> v4l2_decoder_cmd *cmd)
->  {
->  	struct venus_inst *inst =3D to_inst(file);
-> +	struct hfi_frame_data fdata =3D {0};
->  	int ret;
-> =20
->  	ret =3D vdec_try_decoder_cmd(file, fh, cmd);
-> @@ -486,12 +493,23 @@ vdec_decoder_cmd(struct file *file, void *fh,
-> struct v4l2_decoder_cmd *cmd)
->  		return ret;
-> =20
->  	mutex_lock(&inst->lock);
-> -	inst->cmd_stop =3D true;
-> -	mutex_unlock(&inst->lock);
-> =20
-> -	hfi_session_flush(inst);
-> +	/*
-> +	 * Implement V4L2_DEC_CMD_STOP by enqueue an empty buffer on
-> decoder
-> +	 * input to signal EOS.
-> +	 */
-> +	if (!(inst->streamon_out & inst->streamon_cap))
-> +		goto unlock;
-> +
-> +	fdata.buffer_type =3D HFI_BUFFER_INPUT;
-> +	fdata.flags |=3D HFI_BUFFERFLAG_EOS;
-> +	fdata.device_addr =3D 0xdeadbeef;
-> =20
-> -	return 0;
-> +	ret =3D hfi_session_process_buf(inst, &fdata);
-> +
-> +unlock:
-> +	mutex_unlock(&inst->lock);
-> +	return ret;
->  }
-> =20
->  static const struct v4l2_ioctl_ops vdec_ioctl_ops =3D {
-> @@ -718,7 +736,6 @@ static int vdec_start_streaming(struct vb2_queue
-> *q, unsigned int count)
->  	inst->reconfig =3D false;
->  	inst->sequence_cap =3D 0;
->  	inst->sequence_out =3D 0;
-> -	inst->cmd_stop =3D false;
-> =20
->  	ret =3D vdec_init_session(inst);
->  	if (ret)
-> @@ -807,11 +824,6 @@ static void vdec_buf_done(struct venus_inst
-> *inst, unsigned int buf_type,
->  		vb->timestamp =3D timestamp_us * NSEC_PER_USEC;
->  		vbuf->sequence =3D inst->sequence_cap++;
-> =20
-> -		if (inst->cmd_stop) {
-> -			vbuf->flags |=3D V4L2_BUF_FLAG_LAST;
-> -			inst->cmd_stop =3D false;
-> -		}
-> -
->  		if (vbuf->flags & V4L2_BUF_FLAG_LAST) {
->  			const struct v4l2_event ev =3D { .type =3D
-> V4L2_EVENT_EOS };
-> =20
---=-2dXfSdo0snf/iYA47ukl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCWeEn1QAKCRBxUwItrAao
-HArWAJ0VdcxQcvQRDLo5sjG3NP30DmFb5ACcDuATODrcjkpbMRlfxaStO6DBuHY=
-=3mwI
------END PGP SIGNATURE-----
-
---=-2dXfSdo0snf/iYA47ukl--
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 1a428fe9f070..97a5206b6ddc 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2001,6 +2001,7 @@ static int isp_remove(struct platform_device *pdev)
+ 	__omap3isp_put(isp, false);
+ 
+ 	media_entity_enum_cleanup(&isp->crashed);
++	v4l2_async_notifier_cleanup(&isp->notifier);
+ 
+ 	return 0;
+ }
+@@ -2011,44 +2012,41 @@ enum isp_of_phy {
+ 	ISP_OF_PHY_CSIPHY2,
+ };
+ 
+-static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+-			    struct isp_async_subdev *isd)
++static int isp_fwnode_parse(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd)
+ {
++	struct isp_async_subdev *isd =
++		container_of(asd, struct isp_async_subdev, asd);
+ 	struct isp_bus_cfg *buscfg = &isd->bus;
+-	struct v4l2_fwnode_endpoint vep;
+-	unsigned int i;
+-	int ret;
+ 	bool csi1 = false;
+-
+-	ret = v4l2_fwnode_endpoint_parse(fwnode, &vep);
+-	if (ret)
+-		return ret;
++	unsigned int i;
+ 
+ 	dev_dbg(dev, "parsing endpoint %pOF, interface %u\n",
+-		to_of_node(fwnode), vep.base.port);
++		to_of_node(vep->base.local_fwnode), vep->base.port);
+ 
+-	switch (vep.base.port) {
++	switch (vep->base.port) {
+ 	case ISP_OF_PHY_PARALLEL:
+ 		buscfg->interface = ISP_INTERFACE_PARALLEL;
+ 		buscfg->bus.parallel.data_lane_shift =
+-			vep.bus.parallel.data_shift;
++			vep->bus.parallel.data_shift;
+ 		buscfg->bus.parallel.clk_pol =
+-			!!(vep.bus.parallel.flags
++			!!(vep->bus.parallel.flags
+ 			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
+ 		buscfg->bus.parallel.hs_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
+ 		buscfg->bus.parallel.vs_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
+ 		buscfg->bus.parallel.fld_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
++			!!(vep->bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
+ 		buscfg->bus.parallel.data_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
+-		buscfg->bus.parallel.bt656 = vep.bus_type == V4L2_MBUS_BT656;
++			!!(vep->bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
++		buscfg->bus.parallel.bt656 = vep->bus_type == V4L2_MBUS_BT656;
+ 		break;
+ 
+ 	case ISP_OF_PHY_CSIPHY1:
+ 	case ISP_OF_PHY_CSIPHY2:
+-		switch (vep.bus_type) {
++		switch (vep->bus_type) {
+ 		case V4L2_MBUS_CCP2:
+ 		case V4L2_MBUS_CSI1:
+ 			dev_dbg(dev, "CSI-1/CCP-2 configuration\n");
+@@ -2060,11 +2058,11 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 			break;
+ 		default:
+ 			dev_err(dev, "unsupported bus type %u\n",
+-				vep.bus_type);
++				vep->bus_type);
+ 			return -EINVAL;
+ 		}
+ 
+-		switch (vep.base.port) {
++		switch (vep->base.port) {
+ 		case ISP_OF_PHY_CSIPHY1:
+ 			if (csi1)
+ 				buscfg->interface = ISP_INTERFACE_CCP2B_PHY1;
+@@ -2080,47 +2078,47 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 		}
+ 		if (csi1) {
+ 			buscfg->bus.ccp2.lanecfg.clk.pos =
+-				vep.bus.mipi_csi1.clock_lane;
++				vep->bus.mipi_csi1.clock_lane;
+ 			buscfg->bus.ccp2.lanecfg.clk.pol =
+-				vep.bus.mipi_csi1.lane_polarity[0];
++				vep->bus.mipi_csi1.lane_polarity[0];
+ 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+ 				buscfg->bus.ccp2.lanecfg.clk.pol,
+ 				buscfg->bus.ccp2.lanecfg.clk.pos);
+ 
+ 			buscfg->bus.ccp2.lanecfg.data[0].pos =
+-				vep.bus.mipi_csi1.data_lane;
++				vep->bus.mipi_csi1.data_lane;
+ 			buscfg->bus.ccp2.lanecfg.data[0].pol =
+-				vep.bus.mipi_csi1.lane_polarity[1];
++				vep->bus.mipi_csi1.lane_polarity[1];
+ 
+ 			dev_dbg(dev, "data lane polarity %u, pos %u\n",
+ 				buscfg->bus.ccp2.lanecfg.data[0].pol,
+ 				buscfg->bus.ccp2.lanecfg.data[0].pos);
+ 
+ 			buscfg->bus.ccp2.strobe_clk_pol =
+-				vep.bus.mipi_csi1.clock_inv;
+-			buscfg->bus.ccp2.phy_layer = vep.bus.mipi_csi1.strobe;
++				vep->bus.mipi_csi1.clock_inv;
++			buscfg->bus.ccp2.phy_layer = vep->bus.mipi_csi1.strobe;
+ 			buscfg->bus.ccp2.ccp2_mode =
+-				vep.bus_type == V4L2_MBUS_CCP2;
++				vep->bus_type == V4L2_MBUS_CCP2;
+ 			buscfg->bus.ccp2.vp_clk_pol = 1;
+ 
+ 			buscfg->bus.ccp2.crc = 1;
+ 		} else {
+ 			buscfg->bus.csi2.lanecfg.clk.pos =
+-				vep.bus.mipi_csi2.clock_lane;
++				vep->bus.mipi_csi2.clock_lane;
+ 			buscfg->bus.csi2.lanecfg.clk.pol =
+-				vep.bus.mipi_csi2.lane_polarities[0];
++				vep->bus.mipi_csi2.lane_polarities[0];
+ 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+ 				buscfg->bus.csi2.lanecfg.clk.pol,
+ 				buscfg->bus.csi2.lanecfg.clk.pos);
+ 
+ 			buscfg->bus.csi2.num_data_lanes =
+-				vep.bus.mipi_csi2.num_data_lanes;
++				vep->bus.mipi_csi2.num_data_lanes;
+ 
+ 			for (i = 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
+ 				buscfg->bus.csi2.lanecfg.data[i].pos =
+-					vep.bus.mipi_csi2.data_lanes[i];
++					vep->bus.mipi_csi2.data_lanes[i];
+ 				buscfg->bus.csi2.lanecfg.data[i].pol =
+-					vep.bus.mipi_csi2.lane_polarities[i + 1];
++					vep->bus.mipi_csi2.lane_polarities[i + 1];
+ 				dev_dbg(dev,
+ 					"data lane %u polarity %u, pos %u\n", i,
+ 					buscfg->bus.csi2.lanecfg.data[i].pol,
+@@ -2137,57 +2135,13 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
+ 
+ 	default:
+ 		dev_warn(dev, "%pOF: invalid interface %u\n",
+-			 to_of_node(fwnode), vep.base.port);
++			 to_of_node(vep->base.local_fwnode), vep->base.port);
+ 		return -EINVAL;
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-static int isp_fwnodes_parse(struct device *dev,
+-			     struct v4l2_async_notifier *notifier)
+-{
+-	struct fwnode_handle *fwnode = NULL;
+-
+-	notifier->subdevs = devm_kcalloc(
+-		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+-	if (!notifier->subdevs)
+-		return -ENOMEM;
+-
+-	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
+-	       (fwnode = fwnode_graph_get_next_endpoint(
+-			of_fwnode_handle(dev->of_node), fwnode))) {
+-		struct isp_async_subdev *isd;
+-
+-		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+-		if (!isd)
+-			goto error;
+-
+-		if (isp_fwnode_parse(dev, fwnode, isd)) {
+-			devm_kfree(dev, isd);
+-			continue;
+-		}
+-
+-		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+-
+-		isd->asd.match.fwnode.fwnode =
+-			fwnode_graph_get_remote_port_parent(fwnode);
+-		if (!isd->asd.match.fwnode.fwnode) {
+-			dev_warn(dev, "bad remote port parent\n");
+-			goto error;
+-		}
+-
+-		isd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		notifier->num_subdevs++;
+-	}
+-
+-	return notifier->num_subdevs;
+-
+-error:
+-	fwnode_handle_put(fwnode);
+-	return -EINVAL;
+-}
+-
+ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+ {
+ 	struct isp_device *isp = container_of(async, struct isp_device,
+@@ -2256,15 +2210,17 @@ static int isp_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
+-	if (ret < 0)
+-		return ret;
+-
+ 	isp->autoidle = autoidle;
+ 
+ 	mutex_init(&isp->isp_mutex);
+ 	spin_lock_init(&isp->stat_lock);
+ 
++	ret = v4l2_async_notifier_parse_fwnode_endpoints(
++		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
++		isp_fwnode_parse);
++	if (ret < 0)
++		goto error;
++
+ 	isp->dev = &pdev->dev;
+ 	isp->ref_count = 0;
+ 
+@@ -2406,6 +2362,7 @@ static int isp_probe(struct platform_device *pdev)
+ 	isp_xclk_cleanup(isp);
+ 	__omap3isp_put(isp, false);
+ error:
++	v4l2_async_notifier_cleanup(&isp->notifier);
+ 	mutex_destroy(&isp->isp_mutex);
+ 
+ 	return ret;
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index e528df6efc09..8b9043db94b3 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -220,14 +220,11 @@ struct isp_device {
+ 
+ 	unsigned int sbl_resources;
+ 	unsigned int subclk_resources;
+-
+-#define ISP_MAX_SUBDEVS		8
+-	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
+ };
+ 
+ struct isp_async_subdev {
+-	struct isp_bus_cfg bus;
+ 	struct v4l2_async_subdev asd;
++	struct isp_bus_cfg bus;
+ };
+ 
+ #define v4l2_subdev_to_bus_cfg(sd) \
+-- 
+2.11.0
