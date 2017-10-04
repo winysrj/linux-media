@@ -1,140 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:15915 "EHLO
-        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755846AbdJJCur (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Oct 2017 22:50:47 -0400
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: <linux-kernel@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        "Jonathan Corbet" <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH v4 3/5] media: atmel-isc: Enable the clocks during probe
-Date: Tue, 10 Oct 2017 10:46:38 +0800
-Message-ID: <20171010024640.5733-4-wenyou.yang@microchip.com>
-In-Reply-To: <20171010024640.5733-1-wenyou.yang@microchip.com>
-References: <20171010024640.5733-1-wenyou.yang@microchip.com>
+Received: from mail-wm0-f48.google.com ([74.125.82.48]:53551 "EHLO
+        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751318AbdJDKRo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Oct 2017 06:17:44 -0400
+Received: by mail-wm0-f48.google.com with SMTP id q132so22107483wmd.2
+        for <linux-media@vger.kernel.org>; Wed, 04 Oct 2017 03:17:43 -0700 (PDT)
+Subject: Re: [PATCH] [media] ov5645: I2C address change (fwd)
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hansverk@cisco.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <alpine.DEB.2.20.1710041103510.3139@hadrien>
+From: Todor Tomov <todor.tomov@linaro.org>
+Message-ID: <30d57dfd-f348-8a9b-2985-22f1ebd5acd9@linaro.org>
+Date: Wed, 4 Oct 2017 13:17:39 +0300
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <alpine.DEB.2.20.1710041103510.3139@hadrien>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To meet the relationship, enable the HCLOCK and ispck during the
-device probe, "isc_pck frequency is less than or equal to isc_ispck,
-and isc_ispck is greater than or equal to HCLOCK."
-Meanwhile, call the pm_runtime_enable() in the right place.
+Hello,
 
-Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
----
+On  4.10.2017 12:06, Julia Lawall wrote:
+> Hello,
+> 
+> It seems that an unlock is missing on line 764.
 
-Changes in v4:
- - Move pm_runtime_enable() call from the complete callback to the
-   end of probe.
- - Call pm_runtime_get_sync() and pm_runtime_put_sync() in
-   ->is_enabled() callbacks.
- - Call clk_disable_unprepare() in ->remove callback.
+Yes, this is true. I'll add an unlock there. Thank you for noticing this.
 
-Changes in v3: None
-Changes in v2: None
+Best regards,
+Todor
 
- drivers/media/platform/atmel/atmel-isc.c | 34 ++++++++++++++++++++++++++++----
- 1 file changed, 30 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-index 5f8228fc9c8d..a44a66ad2c02 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -389,8 +389,14 @@ static int isc_clk_is_enabled(struct clk_hw *hw)
- 	struct isc_clk *isc_clk = to_isc_clk(hw);
- 	u32 status;
- 
-+	if (isc_clk->id == ISC_MCK)
-+		pm_runtime_get_sync(isc_clk->dev);
-+
- 	regmap_read(isc_clk->regmap, ISC_CLKSR, &status);
- 
-+	if (isc_clk->id == ISC_MCK)
-+		pm_runtime_put_sync(isc_clk->dev);
-+
- 	return status & ISC_CLK(isc_clk->id) ? 1 : 0;
- }
- 
-@@ -1866,25 +1872,37 @@ static int atmel_isc_probe(struct platform_device *pdev)
- 		return ret;
- 	}
- 
-+	ret = clk_prepare_enable(isc->hclock);
-+	if (ret) {
-+		dev_err(dev, "failed to enable hclock: %d\n", ret);
-+		return ret;
-+	}
-+
- 	ret = isc_clk_init(isc);
- 	if (ret) {
- 		dev_err(dev, "failed to init isc clock: %d\n", ret);
--		goto clean_isc_clk;
-+		goto unprepare_hclk;
- 	}
- 
- 	isc->ispck = isc->isc_clks[ISC_ISPCK].clk;
- 
-+	ret = clk_prepare_enable(isc->ispck);
-+	if (ret) {
-+		dev_err(dev, "failed to enable ispck: %d\n", ret);
-+		goto unprepare_hclk;
-+	}
-+
- 	/* ispck should be greater or equal to hclock */
- 	ret = clk_set_rate(isc->ispck, clk_get_rate(isc->hclock));
- 	if (ret) {
- 		dev_err(dev, "failed to set ispck rate: %d\n", ret);
--		goto clean_isc_clk;
-+		goto unprepare_clk;
- 	}
- 
- 	ret = v4l2_device_register(dev, &isc->v4l2_dev);
- 	if (ret) {
- 		dev_err(dev, "unable to register v4l2 device.\n");
--		goto clean_isc_clk;
-+		goto unprepare_clk;
- 	}
- 
- 	ret = isc_parse_dt(dev, isc);
-@@ -1917,7 +1935,9 @@ static int atmel_isc_probe(struct platform_device *pdev)
- 			break;
- 	}
- 
-+	pm_runtime_set_active(dev);
- 	pm_runtime_enable(dev);
-+	pm_request_idle(dev);
- 
- 	return 0;
- 
-@@ -1927,7 +1947,11 @@ static int atmel_isc_probe(struct platform_device *pdev)
- unregister_v4l2_device:
- 	v4l2_device_unregister(&isc->v4l2_dev);
- 
--clean_isc_clk:
-+unprepare_clk:
-+	clk_disable_unprepare(isc->ispck);
-+unprepare_hclk:
-+	clk_disable_unprepare(isc->hclock);
-+
- 	isc_clk_cleanup(isc);
- 
- 	return ret;
-@@ -1938,6 +1962,8 @@ static int atmel_isc_remove(struct platform_device *pdev)
- 	struct isc_device *isc = platform_get_drvdata(pdev);
- 
- 	pm_runtime_disable(&pdev->dev);
-+	clk_disable_unprepare(isc->ispck);
-+	clk_disable_unprepare(isc->hclock);
- 
- 	isc_subdev_cleanup(isc);
- 
--- 
-2.13.0
+> 
+> julia
+> 
+> ---------- Forwarded message ----------
+> Date: Wed, 4 Oct 2017 05:59:09 +0800
+> From: kbuild test robot <fengguang.wu@intel.com>
+> To: kbuild@01.org
+> Cc: Julia Lawall <julia.lawall@lip6.fr>
+> Subject: Re: [PATCH] [media] ov5645: I2C address change
+> 
+> CC: kbuild-all@01.org
+> In-Reply-To: <1506950925-13924-1-git-send-email-todor.tomov@linaro.org>
+> TO: Todor Tomov <todor.tomov@linaro.org>
+> CC: mchehab@kernel.org, sakari.ailus@linux.intel.com, hansverk@cisco.com, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
+> CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
+> 
+> Hi Todor,
+> 
+> [auto build test WARNING on linuxtv-media/master]
+> [also build test WARNING on v4.14-rc3 next-20170929]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> 
+> url:    https://github.com/0day-ci/linux/commits/Todor-Tomov/ov5645-I2C-address-change/20171003-234231
+> base:   git://linuxtv.org/media_tree.git master
+> :::::: branch date: 6 hours ago
+> :::::: commit date: 6 hours ago
+> 
+>>> drivers/media/i2c/ov5645.c:806:1-7: preceding lock on line 760
+> 
+> # https://github.com/0day-ci/linux/commit/c222075023642217170e2ef95f48efef079f9bcd
+> git remote add linux-review https://github.com/0day-ci/linux
+> git remote update linux-review
+> git checkout c222075023642217170e2ef95f48efef079f9bcd
+> vim +806 drivers/media/i2c/ov5645.c
+> 
+> 9cae9722 Todor Tomov 2017-04-11  747
+> 9cae9722 Todor Tomov 2017-04-11  748  static int ov5645_s_power(struct v4l2_subdev *sd, int on)
+> 9cae9722 Todor Tomov 2017-04-11  749  {
+> 9cae9722 Todor Tomov 2017-04-11  750  	struct ov5645 *ov5645 = to_ov5645(sd);
+> 9cae9722 Todor Tomov 2017-04-11  751  	int ret = 0;
+> 9cae9722 Todor Tomov 2017-04-11  752
+> 9cae9722 Todor Tomov 2017-04-11  753  	mutex_lock(&ov5645->power_lock);
+> 9cae9722 Todor Tomov 2017-04-11  754
+> 9cae9722 Todor Tomov 2017-04-11  755  	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
+> 9cae9722 Todor Tomov 2017-04-11  756  	 * update the power state.
+> 9cae9722 Todor Tomov 2017-04-11  757  	 */
+> 9cae9722 Todor Tomov 2017-04-11  758  	if (ov5645->power_count == !on) {
+> 9cae9722 Todor Tomov 2017-04-11  759  		if (on) {
+> c2220750 Todor Tomov 2017-10-02 @760  			mutex_lock(&ov5645_lock);
+> c2220750 Todor Tomov 2017-10-02  761
+> 9cae9722 Todor Tomov 2017-04-11  762  			ret = ov5645_set_power_on(ov5645);
+> 9cae9722 Todor Tomov 2017-04-11  763  			if (ret < 0)
+> 9cae9722 Todor Tomov 2017-04-11  764  				goto exit;
+> 9cae9722 Todor Tomov 2017-04-11  765
+> c2220750 Todor Tomov 2017-10-02  766  			ret = ov5645_write_reg_to(ov5645, 0x3100,
+> c2220750 Todor Tomov 2017-10-02  767  						ov5645->i2c_client->addr, 0x78);
+> c2220750 Todor Tomov 2017-10-02  768  			if (ret < 0) {
+> c2220750 Todor Tomov 2017-10-02  769  				dev_err(ov5645->dev,
+> c2220750 Todor Tomov 2017-10-02  770  					"could not change i2c address\n");
+> c2220750 Todor Tomov 2017-10-02  771  				ov5645_set_power_off(ov5645);
+> c2220750 Todor Tomov 2017-10-02  772  				mutex_unlock(&ov5645_lock);
+> c2220750 Todor Tomov 2017-10-02  773  				goto exit;
+> c2220750 Todor Tomov 2017-10-02  774  			}
+> c2220750 Todor Tomov 2017-10-02  775
+> c2220750 Todor Tomov 2017-10-02  776  			mutex_unlock(&ov5645_lock);
+> c2220750 Todor Tomov 2017-10-02  777
+> 9cae9722 Todor Tomov 2017-04-11  778  			ret = ov5645_set_register_array(ov5645,
+> 9cae9722 Todor Tomov 2017-04-11  779  					ov5645_global_init_setting,
+> 9cae9722 Todor Tomov 2017-04-11  780  					ARRAY_SIZE(ov5645_global_init_setting));
+> 9cae9722 Todor Tomov 2017-04-11  781  			if (ret < 0) {
+> 9cae9722 Todor Tomov 2017-04-11  782  				dev_err(ov5645->dev,
+> 9cae9722 Todor Tomov 2017-04-11  783  					"could not set init registers\n");
+> 9cae9722 Todor Tomov 2017-04-11  784  				ov5645_set_power_off(ov5645);
+> 9cae9722 Todor Tomov 2017-04-11  785  				goto exit;
+> 9cae9722 Todor Tomov 2017-04-11  786  			}
+> 9cae9722 Todor Tomov 2017-04-11  787
+> 9cae9722 Todor Tomov 2017-04-11  788  			ret = ov5645_write_reg(ov5645, OV5645_SYSTEM_CTRL0,
+> 9cae9722 Todor Tomov 2017-04-11  789  					       OV5645_SYSTEM_CTRL0_STOP);
+> 9cae9722 Todor Tomov 2017-04-11  790  			if (ret < 0) {
+> 9cae9722 Todor Tomov 2017-04-11  791  				ov5645_set_power_off(ov5645);
+> 9cae9722 Todor Tomov 2017-04-11  792  				goto exit;
+> 9cae9722 Todor Tomov 2017-04-11  793  			}
+> 9cae9722 Todor Tomov 2017-04-11  794  		} else {
+> 9cae9722 Todor Tomov 2017-04-11  795  			ov5645_set_power_off(ov5645);
+> 9cae9722 Todor Tomov 2017-04-11  796  		}
+> 9cae9722 Todor Tomov 2017-04-11  797  	}
+> 9cae9722 Todor Tomov 2017-04-11  798
+> 9cae9722 Todor Tomov 2017-04-11  799  	/* Update the power count. */
+> 9cae9722 Todor Tomov 2017-04-11  800  	ov5645->power_count += on ? 1 : -1;
+> 9cae9722 Todor Tomov 2017-04-11  801  	WARN_ON(ov5645->power_count < 0);
+> 9cae9722 Todor Tomov 2017-04-11  802
+> 9cae9722 Todor Tomov 2017-04-11  803  exit:
+> 9cae9722 Todor Tomov 2017-04-11  804  	mutex_unlock(&ov5645->power_lock);
+> 9cae9722 Todor Tomov 2017-04-11  805
+> 9cae9722 Todor Tomov 2017-04-11 @806  	return ret;
+> 9cae9722 Todor Tomov 2017-04-11  807  }
+> 9cae9722 Todor Tomov 2017-04-11  808
+> 
+> :::::: The code at line 806 was first introduced by commit
+> :::::: 9cae97221aabfb3ca5daaa424a66c9d8eee1ff59 [media] media: Add a driver for the ov5645 camera sensor
+> 
+> :::::: TO: Todor Tomov <todor.tomov@linaro.org>
+> :::::: CC: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> 
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology Center
+> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+> 
