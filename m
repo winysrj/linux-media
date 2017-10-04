@@ -1,201 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:50770 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752075AbdJPLGf (ORCPT
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:4740 "EHLO
+        mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751891AbdJDJGW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Oct 2017 07:06:35 -0400
-Subject: Re: [RFC PATCH 0/9] V4L2 Jobs API WIP
-To: Alexandre Courbot <acourbot@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20170928095027.127173-1-acourbot@chromium.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0442082f-f176-2be7-89c0-ccf6f563917a@xs4all.nl>
-Date: Mon, 16 Oct 2017 13:06:30 +0200
+        Wed, 4 Oct 2017 05:06:22 -0400
+Date: Wed, 4 Oct 2017 11:06:18 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Todor Tomov <todor.tomov@linaro.org>
+cc: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hansverk@cisco.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] ov5645: I2C address change (fwd)
+Message-ID: <alpine.DEB.2.20.1710041103510.3139@hadrien>
 MIME-Version: 1.0
-In-Reply-To: <20170928095027.127173-1-acourbot@chromium.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alexandre,
+Hello,
 
-Thank you very much for working on this. Much appreciated!
+It seems that an unlock is missing on line 764.
 
-I only did a very high-level review of the patch series: there is not much
-point IMHO of doing a detailed review given the upcoming discussions in
-Prague. It's better to wait until we agree with the high-level API.
+julia
 
-Regarding the public API: the ioctls seem sane. It's all very similar to the
-other implementations we've seen.
+---------- Forwarded message ----------
+Date: Wed, 4 Oct 2017 05:59:09 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: kbuild@01.org
+Cc: Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH] [media] ov5645: I2C address change
 
-I'm still not sure about the name 'job', but this is 'just' a naming issue.
+CC: kbuild-all@01.org
+In-Reply-To: <1506950925-13924-1-git-send-email-todor.tomov@linaro.org>
+TO: Todor Tomov <todor.tomov@linaro.org>
+CC: mchehab@kernel.org, sakari.ailus@linux.intel.com, hansverk@cisco.com, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
 
-The part where I have more doubts is the need to create a new device node.
+Hi Todor,
 
-For the upcoming meeting I would like to discuss whether this cannot be added
-to the media API.
+[auto build test WARNING on linuxtv-media/master]
+[also build test WARNING on v4.14-rc3 next-20170929]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-Originally the plan was that the media API would be subsystem-agnostic and could
-also be used by ALSA/DRM/etc. This never happened and I also am not aware of any
-movement in that area.
+url:    https://github.com/0day-ci/linux/commits/Todor-Tomov/ov5645-I2C-address-change/20171003-234231
+base:   git://linuxtv.org/media_tree.git master
+:::::: branch date: 6 hours ago
+:::::: commit date: 6 hours ago
 
-I am wondering whether we should just be realistic and abandon the 'subsystem
-agnostic' part and be willing to add e.g. the job support to the media API.
+>> drivers/media/i2c/ov5645.c:806:1-7: preceding lock on line 760
 
-We can also consider controlling sub-devices via the media device node instead
-of creating separate v4l-subdev device nodes.
+# https://github.com/0day-ci/linux/commit/c222075023642217170e2ef95f48efef079f9bcd
+git remote add linux-review https://github.com/0day-ci/linux
+git remote update linux-review
+git checkout c222075023642217170e2ef95f48efef079f9bcd
+vim +806 drivers/media/i2c/ov5645.c
 
-This does not necessarily preclude the use of the media device by other
-subsystems, but it certainly ties it much closer to the media subsystem. On the
-other hand, it does make life easier for us (and I like easy!).
+9cae9722 Todor Tomov 2017-04-11  747
+9cae9722 Todor Tomov 2017-04-11  748  static int ov5645_s_power(struct v4l2_subdev *sd, int on)
+9cae9722 Todor Tomov 2017-04-11  749  {
+9cae9722 Todor Tomov 2017-04-11  750  	struct ov5645 *ov5645 = to_ov5645(sd);
+9cae9722 Todor Tomov 2017-04-11  751  	int ret = 0;
+9cae9722 Todor Tomov 2017-04-11  752
+9cae9722 Todor Tomov 2017-04-11  753  	mutex_lock(&ov5645->power_lock);
+9cae9722 Todor Tomov 2017-04-11  754
+9cae9722 Todor Tomov 2017-04-11  755  	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
+9cae9722 Todor Tomov 2017-04-11  756  	 * update the power state.
+9cae9722 Todor Tomov 2017-04-11  757  	 */
+9cae9722 Todor Tomov 2017-04-11  758  	if (ov5645->power_count == !on) {
+9cae9722 Todor Tomov 2017-04-11  759  		if (on) {
+c2220750 Todor Tomov 2017-10-02 @760  			mutex_lock(&ov5645_lock);
+c2220750 Todor Tomov 2017-10-02  761
+9cae9722 Todor Tomov 2017-04-11  762  			ret = ov5645_set_power_on(ov5645);
+9cae9722 Todor Tomov 2017-04-11  763  			if (ret < 0)
+9cae9722 Todor Tomov 2017-04-11  764  				goto exit;
+9cae9722 Todor Tomov 2017-04-11  765
+c2220750 Todor Tomov 2017-10-02  766  			ret = ov5645_write_reg_to(ov5645, 0x3100,
+c2220750 Todor Tomov 2017-10-02  767  						ov5645->i2c_client->addr, 0x78);
+c2220750 Todor Tomov 2017-10-02  768  			if (ret < 0) {
+c2220750 Todor Tomov 2017-10-02  769  				dev_err(ov5645->dev,
+c2220750 Todor Tomov 2017-10-02  770  					"could not change i2c address\n");
+c2220750 Todor Tomov 2017-10-02  771  				ov5645_set_power_off(ov5645);
+c2220750 Todor Tomov 2017-10-02  772  				mutex_unlock(&ov5645_lock);
+c2220750 Todor Tomov 2017-10-02  773  				goto exit;
+c2220750 Todor Tomov 2017-10-02  774  			}
+c2220750 Todor Tomov 2017-10-02  775
+c2220750 Todor Tomov 2017-10-02  776  			mutex_unlock(&ov5645_lock);
+c2220750 Todor Tomov 2017-10-02  777
+9cae9722 Todor Tomov 2017-04-11  778  			ret = ov5645_set_register_array(ov5645,
+9cae9722 Todor Tomov 2017-04-11  779  					ov5645_global_init_setting,
+9cae9722 Todor Tomov 2017-04-11  780  					ARRAY_SIZE(ov5645_global_init_setting));
+9cae9722 Todor Tomov 2017-04-11  781  			if (ret < 0) {
+9cae9722 Todor Tomov 2017-04-11  782  				dev_err(ov5645->dev,
+9cae9722 Todor Tomov 2017-04-11  783  					"could not set init registers\n");
+9cae9722 Todor Tomov 2017-04-11  784  				ov5645_set_power_off(ov5645);
+9cae9722 Todor Tomov 2017-04-11  785  				goto exit;
+9cae9722 Todor Tomov 2017-04-11  786  			}
+9cae9722 Todor Tomov 2017-04-11  787
+9cae9722 Todor Tomov 2017-04-11  788  			ret = ov5645_write_reg(ov5645, OV5645_SYSTEM_CTRL0,
+9cae9722 Todor Tomov 2017-04-11  789  					       OV5645_SYSTEM_CTRL0_STOP);
+9cae9722 Todor Tomov 2017-04-11  790  			if (ret < 0) {
+9cae9722 Todor Tomov 2017-04-11  791  				ov5645_set_power_off(ov5645);
+9cae9722 Todor Tomov 2017-04-11  792  				goto exit;
+9cae9722 Todor Tomov 2017-04-11  793  			}
+9cae9722 Todor Tomov 2017-04-11  794  		} else {
+9cae9722 Todor Tomov 2017-04-11  795  			ov5645_set_power_off(ov5645);
+9cae9722 Todor Tomov 2017-04-11  796  		}
+9cae9722 Todor Tomov 2017-04-11  797  	}
+9cae9722 Todor Tomov 2017-04-11  798
+9cae9722 Todor Tomov 2017-04-11  799  	/* Update the power count. */
+9cae9722 Todor Tomov 2017-04-11  800  	ov5645->power_count += on ? 1 : -1;
+9cae9722 Todor Tomov 2017-04-11  801  	WARN_ON(ov5645->power_count < 0);
+9cae9722 Todor Tomov 2017-04-11  802
+9cae9722 Todor Tomov 2017-04-11  803  exit:
+9cae9722 Todor Tomov 2017-04-11  804  	mutex_unlock(&ov5645->power_lock);
+9cae9722 Todor Tomov 2017-04-11  805
+9cae9722 Todor Tomov 2017-04-11 @806  	return ret;
+9cae9722 Todor Tomov 2017-04-11  807  }
+9cae9722 Todor Tomov 2017-04-11  808
 
-This is just a brainstorm at the moment, but I am interested what others think
-of making /dev/mediaX specific to the media subsystem (at least we chose the
-right name for that device node!).
+:::::: The code at line 806 was first introduced by commit
+:::::: 9cae97221aabfb3ca5daaa424a66c9d8eee1ff59 [media] media: Add a driver for the ov5645 camera sensor
 
-Obviously, if we go into that direction, then that will have an obvious impact
-on the jobs API, especially if we want to be able to control subdevs through the
-media device instead of through the v4l-subdev devices.
+:::::: TO: Todor Tomov <todor.tomov@linaro.org>
+:::::: CC: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Regards,
-
-	Hans
-
-On 09/28/2017 11:50 AM, Alexandre Courbot wrote:
-> Hi everyone,
-> 
-> Here is a new attempt at the "request" (which I propose to rename "jobs") API
-> for V4L2, hopefully in a manner that can converge to something that will be
-> merged. The core ideas should be easy to grasp for those familiar with the
-> previous attemps, yet there are a few important differences.
-> 
-> Most notably, user-space does not need to explicitly allocate and manage
-> requests/jobs (but still can if this makes sense). We noticed that only specific
-> use-cases require such an explicit management, and opted for a jobs queue that
-> controls the flow of work over a set of opened devices. This should simplify
-> user-space code quite a bit, while still retaining the ability to manage states
-> explicitly like the previous request API proposals allowed to do.
-> 
-> The jobs API defines a few new concepts that user-space can use to control the
-> workflow on a set of opened V4L2 devices:
-> 
-> A JOB QUEUE can be created from a set of opened FDs that are part of a pipeline
-> and need to cooperate (be it capture, m2m, or media controller devices).
-> 
-> A JOB can then be set up with regular (if slightly modified) V4L2 ioctls, and
-> then submitted to the job queue. Once the job queue schedules the job, its
-> parameters (controls, etc) are applied to the devices of the queue, and itsd
-> buffers are processed. Immediately after a job is submitted, the next job is
-> ready to be set up without further user action.
-> 
-> Once a job completes, it must be dequeued and user-space can then read back its
-> properties (notably controls) at completion time.
-> 
-> Internally, the state of jobs is managed through STATE HANDLERS. Each driver
-> supporting the jobs API needs to specify an implementation of a state handler.
-> Fortunately, most drivers can rely on the generic state handler implementation
-> that simply records and replays a job's parameter using standard V4L2 functions.
-> Thanks to this, adding jobs API support to a driver relying on the control
-> framework and vb2 only requires a dozen lines of codes.
-> 
-> Drivers with specific needs or opportunities for optimization can however
-> provide their own implementation of a state handler. This may in particular be
-> beneficial for hardware that supports configuration or command buffers (thinking
-> about VSP1 here).
-> 
-> This is still very early work, and focus has been on the following points:
-> 
-> * Provide something that anybody can test (currently using vim2m and vivid),
-> * Reuse the current V4L2 APIs as much as possible,
-> * Remain flexible enough to accomodate the inevitable changes that will be
->   requested,
-> * Keep line count low, even if functionality is missing at the moment.
-> 
-> Please keep this in mind while going through the patches. In particular, at the
-> moment the parameters of a job are limited to integer controls. I know that much
-> more is expected, but V4L2 has quite a learning curve and I preferred to focus
-> on the general concepts for now. More is coming though! :)
-> 
-> I have written two small example programs that demonstrate the use of this API:
-> 
-> - With a codec device (vim2m): https://gist.github.com/Gnurou/34c35f1f8e278dad454b51578d239a42
-> 
-> - With a capture device (vivid): https://gist.github.com/Gnurou/5052e6ab41e7c55164b75d2970bc5a04
-> 
-> Considering the history with the request API, I don't expect everything proposed
-> here to be welcome or understood immediately. In particular I apologize for not
-> reusing any of the previous attempts - I was just more comfortable laying down
-> my ideas from scratch.
-> 
-> If this proposal is not dismissed as complete garbage I will also be happy to
-> discuss it in-person at the mini-summit in Prague. :)
-> 
-> Cheers,
-> Alex.
-> 
-> Alexandre Courbot (9):
->   [media] v4l2-core: add v4l2_is_v4l2_file function
->   [media] v4l2-core: add core jobs API support
->   [media] videobuf2: add support for jobs API
->   [media] v4l2-ctrls: add support for jobs API
->   [media] v4l2-job: add generic jobs ops
->   [media] m2m: add generic support for jobs API
->   [media] vim2m: add jobs API support
->   [media] vivid: add jobs API support for capture device
->   [media] document jobs API
-> 
->  Documentation/media/intro.rst                      |   2 +
->  Documentation/media/media_uapi.rst                 |   1 +
->  Documentation/media/uapi/jobs/jobs-api.rst         |  23 +
->  Documentation/media/uapi/jobs/jobs-example.rst     |  69 ++
->  Documentation/media/uapi/jobs/jobs-intro.rst       |  61 ++
->  Documentation/media/uapi/jobs/jobs-queue.rst       |  73 ++
->  Documentation/media/uapi/jobs/jobs-queue.svg       | 192 ++++++
->  .../media/uapi/v4l/vidioc-g-ext-ctrls.rst          |   6 +
->  drivers/media/platform/vim2m.c                     |  24 +
->  drivers/media/platform/vivid/vivid-core.c          |  16 +
->  drivers/media/platform/vivid/vivid-core.h          |   2 +
->  drivers/media/platform/vivid/vivid-kthread-cap.c   |   5 +
->  drivers/media/v4l2-core/Makefile                   |   4 +-
->  drivers/media/v4l2-core/v4l2-ctrls.c               |  50 +-
->  drivers/media/v4l2-core/v4l2-dev.c                 |  12 +
->  drivers/media/v4l2-core/v4l2-job-generic.c         | 394 +++++++++++
->  drivers/media/v4l2-core/v4l2-jobqueue-dev.c        | 173 +++++
->  drivers/media/v4l2-core/v4l2-jobqueue.c            | 764 +++++++++++++++++++++
->  drivers/media/v4l2-core/v4l2-mem2mem.c             |  19 +
->  drivers/media/v4l2-core/videobuf2-core.c           |  33 +-
->  include/media/v4l2-ctrls.h                         |   6 +
->  include/media/v4l2-dev.h                           |  13 +
->  include/media/v4l2-fh.h                            |   4 +
->  include/media/v4l2-job-generic.h                   |  47 ++
->  include/media/v4l2-job-state.h                     |  75 ++
->  include/media/v4l2-jobqueue-dev.h                  |  24 +
->  include/media/v4l2-jobqueue.h                      |  54 ++
->  include/media/v4l2-mem2mem.h                       |  11 +
->  include/media/videobuf2-core.h                     |  16 +
->  include/uapi/linux/v4l2-jobs.h                     |  40 ++
->  include/uapi/linux/videodev2.h                     |   2 +
->  31 files changed, 2205 insertions(+), 10 deletions(-)
->  create mode 100644 Documentation/media/uapi/jobs/jobs-api.rst
->  create mode 100644 Documentation/media/uapi/jobs/jobs-example.rst
->  create mode 100644 Documentation/media/uapi/jobs/jobs-intro.rst
->  create mode 100644 Documentation/media/uapi/jobs/jobs-queue.rst
->  create mode 100644 Documentation/media/uapi/jobs/jobs-queue.svg
->  create mode 100644 drivers/media/v4l2-core/v4l2-job-generic.c
->  create mode 100644 drivers/media/v4l2-core/v4l2-jobqueue-dev.c
->  create mode 100644 drivers/media/v4l2-core/v4l2-jobqueue.c
->  create mode 100644 include/media/v4l2-job-generic.h
->  create mode 100644 include/media/v4l2-job-state.h
->  create mode 100644 include/media/v4l2-jobqueue-dev.h
->  create mode 100644 include/media/v4l2-jobqueue.h
->  create mode 100644 include/uapi/linux/v4l2-jobs.h
-> 
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
