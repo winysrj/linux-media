@@ -1,88 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from p3plsmtpa12-09.prod.phx3.secureserver.net ([68.178.252.238]:57575
-        "EHLO p3plsmtpa12-09.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750951AbdJEAG3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 20:06:29 -0400
-From: Leon Luo <leonl@leopardimaging.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, leonl@leopardimaging.com,
-        soren.brinkmann@xilinx.com
-Subject: [PATCH v8 1/2] media:imx274 device tree binding file
-Date: Wed,  4 Oct 2017 17:06:20 -0700
-Message-Id: <20171005000621.27841-1-leonl@leopardimaging.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from osg.samsung.com ([64.30.133.232]:61934 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752011AbdJDL6h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Oct 2017 07:58:37 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: [PATCH v3 02/17] docs: kernel-doc.rst: improve private members description
+Date: Wed,  4 Oct 2017 08:48:40 -0300
+Message-Id: <c2e38a7b7824b2a58c9f5dbff79869aee7dea89e.1507116877.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
+References: <cover.1507116877.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
+References: <cover.1507116877.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The binding file for imx274 CMOS sensor V4l2 driver
+The private members section can now be moved to be together
+with the arguments section. Move it there and add an example
+about the usage of public:
 
-Signed-off-by: Leon Luo <leonl@leopardimaging.com>
-Acked-by: Sören Brinkmann <soren.brinkmann@xilinx.com>
-Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
-v8:
- - no changes
-v7:
- - no changes
-v6:
- - no changes
-v5:
- - add 'port' and 'endpoint' information
-v4:
- - no changes
-v3:
- - remove redundant properties and references
- - document 'reg' property
-v2:
- - no changes
----
- .../devicetree/bindings/media/i2c/imx274.txt       | 33 ++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/imx274.txt
+ Documentation/doc-guide/kernel-doc.rst | 56 ++++++++++++++++++----------------
+ 1 file changed, 30 insertions(+), 26 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/imx274.txt b/Documentation/devicetree/bindings/media/i2c/imx274.txt
-new file mode 100644
-index 000000000000..80f2e89568e1
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/imx274.txt
-@@ -0,0 +1,33 @@
-+* Sony 1/2.5-Inch 8.51Mp CMOS Digital Image Sensor
+diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
+index 662755f830d5..146041fc494a 100644
+--- a/Documentation/doc-guide/kernel-doc.rst
++++ b/Documentation/doc-guide/kernel-doc.rst
+@@ -167,6 +167,36 @@ notation as::
+ 
+       * @...: description
+ 
++Private members
++~~~~~~~~~~~~~~~
 +
-+The Sony imx274 is a 1/2.5-inch CMOS active pixel digital image sensor with
-+an active array size of 3864H x 2202V. It is programmable through I2C
-+interface. The I2C address is fixed to 0x1a as per sensor data sheet.
-+Image data is sent through MIPI CSI-2, which is configured as 4 lanes
-+at 1440 Mbps.
++Inside a struct or union description, you can use the ``private:`` and
++``public:`` comment tags. Structure fields that are inside a ``private:``
++area are not listed in the generated output documentation.
 +
++The ``private:`` and ``public:`` tags must begin immediately following a
++``/*`` comment marker.  They may optionally include comments between the
++``:`` and the ending ``*/`` marker.
 +
-+Required Properties:
-+- compatible: value should be "sony,imx274" for imx274 sensor
-+- reg: I2C bus address of the device
++Example::
 +
-+Optional Properties:
-+- reset-gpios: Sensor reset GPIO
++  /**
++   * struct my_struct - short description
++   * @a: first member
++   * @b: second member
++   * @d: fourth member
++   *
++   * Longer description
++   */
++  struct my_struct {
++      int a;
++      int b;
++  /* private: internal use only */
++      int c;
++  /* public: the next one is public */
++      int d;
++  };
 +
-+The imx274 device node should contain one 'port' child node with
-+an 'endpoint' subnode. For further reading on port node refer to
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+	sensor@1a {
-+		compatible = "sony,imx274";
-+		reg = <0x1a>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		reset-gpios = <&gpio_sensor 0 0>;
-+		port {
-+			sensor_out: endpoint {
-+				remote-endpoint = <&csiss_in>;
-+			};
-+		};
-+	};
+ 
+ Highlights and cross-references
+ -------------------------------
+@@ -332,32 +362,6 @@ on a line of their own, like all other kernel-doc comments::
+         int foobar;
+   }
+ 
+-Private members
+-~~~~~~~~~~~~~~~
+-
+-Inside a struct description, you can use the "private:" and "public:" comment
+-tags. Structure fields that are inside a "private:" area are not listed in the
+-generated output documentation.  The "private:" and "public:" tags must begin
+-immediately following a ``/*`` comment marker.  They may optionally include
+-comments between the ``:`` and the ending ``*/`` marker.
+-
+-Example::
+-
+-  /**
+-   * struct my_struct - short description
+-   * @a: first member
+-   * @b: second member
+-   *
+-   * Longer description
+-   */
+-  struct my_struct {
+-      int a;
+-      int b;
+-  /* private: internal use only */
+-      int c;
+-  };
+-
+-
+ Typedef documentation
+ ---------------------
+ 
 -- 
-2.14.0.rc1
+2.13.6
