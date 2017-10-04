@@ -1,63 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:56195 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757453AbdJKNbG (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40278 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751194AbdJDVu4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Oct 2017 09:31:06 -0400
-Received: by mail-qt0-f195.google.com with SMTP id x54so5058296qth.12
-        for <linux-media@vger.kernel.org>; Wed, 11 Oct 2017 06:31:06 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20171011072925.twuc22cqnv5pymed@paasikivi.fi.intel.com>
-References: <1497478767-10270-1-git-send-email-yong.zhi@intel.com>
- <1497478767-10270-9-git-send-email-yong.zhi@intel.com> <CAHp75Vff3tQE4NdsLJDO=7b7_5O3XW360qxOw4nbeE3i+usvhQ@mail.gmail.com>
- <C193D76D23A22742993887E6D207B54D1AE287D3@ORSMSX106.amr.corp.intel.com> <20171011072925.twuc22cqnv5pymed@paasikivi.fi.intel.com>
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Wed, 11 Oct 2017 16:31:05 +0300
-Message-ID: <CAHp75VfTZ5GhNCgSbD2_d99Yq-32hDy06ZyRpNJTwo3PFKG=Uw@mail.gmail.com>
-Subject: Re: [PATCH v2 08/12] intel-ipu3: params: compute and program ccs
-To: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
-Cc: "Zhi, Yong" <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+        Wed, 4 Oct 2017 17:50:56 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v15 04/32] v4l: async: Fix notifier complete callback error handling
+Date: Thu,  5 Oct 2017 00:50:23 +0300
+Message-Id: <20171004215051.13385-5-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 11, 2017 at 10:29 AM, sakari.ailus@linux.intel.com
-<sakari.ailus@linux.intel.com> wrote:
-> On Wed, Oct 11, 2017 at 04:14:37AM +0000, Zhi, Yong wrote:
+The notifier complete callback may return an error. This error code was
+simply returned to the caller but never handled properly.
 
->> > > +static unsigned int ipu3_css_scaler_get_exp(unsigned int counter,
->> > > +                                           unsigned int divider) {
->> > > +       unsigned int i = 0;
->> > > +
->> > > +       while (counter <= divider / 2) {
->> > > +               divider /= 2;
->> > > +               i++;
->> > > +       }
->> > > +
->> > > +       return i;
+Move calling the complete callback function to the caller from
+v4l2_async_test_notify and undo the work that was done either in async
+sub-device or async notifier registration.
 
->         return (!counter || divider < counter) ?
->                0 : fls(divider / counter) - 1;
+Reported-by: Russell King <rmk+kernel@armlinux.org.uk>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 78 +++++++++++++++++++++++++++---------
+ 1 file changed, 60 insertions(+), 18 deletions(-)
 
-Extra division is here (I dunno if counter is always power of 2 but it
-doesn't matter for compiler).
-
-Basically above calculates how much bits we need to shift divider to
-get it less than counter.
-
-I would consider to use something from log2.h.
-
-Roughly like
-
-if (!counter || divider < counter)
- return 0;
-return order_base_2(divider) - order_base_2(counter);
-
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index ca281438a0ae..4924481451ca 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -122,9 +122,6 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
+ 	/* Move from the global subdevice list to notifier's done */
+ 	list_move(&sd->async_list, &notifier->done);
+ 
+-	if (list_empty(&notifier->waiting) && notifier->complete)
+-		return notifier->complete(notifier);
+-
+ 	return 0;
+ }
+ 
+@@ -136,11 +133,27 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+ 	sd->asd = NULL;
+ }
+ 
++static void v4l2_async_notifier_unbind_all_subdevs(
++	struct v4l2_async_notifier *notifier)
++{
++	struct v4l2_subdev *sd, *tmp;
++
++	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
++		if (notifier->unbind)
++			notifier->unbind(notifier, sd, sd->asd);
++
++		v4l2_async_cleanup(sd);
++
++		list_move(&sd->async_list, &subdev_list);
++	}
++}
++
+ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 				 struct v4l2_async_notifier *notifier)
+ {
+ 	struct v4l2_subdev *sd, *tmp;
+ 	struct v4l2_async_subdev *asd;
++	int ret;
+ 	int i;
+ 
+ 	if (!v4l2_dev || !notifier->num_subdevs ||
+@@ -185,19 +198,30 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 		}
+ 	}
+ 
++	if (list_empty(&notifier->waiting) && notifier->complete) {
++		ret = notifier->complete(notifier);
++		if (ret)
++			goto err_complete;
++	}
++
+ 	/* Keep also completed notifiers on the list */
+ 	list_add(&notifier->list, &notifier_list);
+ 
+ 	mutex_unlock(&list_lock);
+ 
+ 	return 0;
++
++err_complete:
++	v4l2_async_notifier_unbind_all_subdevs(notifier);
++
++	mutex_unlock(&list_lock);
++
++	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_async_notifier_register);
+ 
+ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ {
+-	struct v4l2_subdev *sd, *tmp;
+-
+ 	if (!notifier->v4l2_dev)
+ 		return;
+ 
+@@ -205,14 +229,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 
+ 	list_del(&notifier->list);
+ 
+-	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+-		if (notifier->unbind)
+-			notifier->unbind(notifier, sd, sd->asd);
+-
+-		v4l2_async_cleanup(sd);
+-
+-		list_move(&sd->async_list, &subdev_list);
+-	}
++	v4l2_async_notifier_unbind_all_subdevs(notifier);
+ 
+ 	mutex_unlock(&list_lock);
+ 
+@@ -223,6 +240,7 @@ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ {
+ 	struct v4l2_async_notifier *notifier;
++	int ret;
+ 
+ 	/*
+ 	 * No reference taken. The reference is held by the device
+@@ -238,19 +256,43 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 
+ 	list_for_each_entry(notifier, &notifier_list, list) {
+ 		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
+-		if (asd) {
+-			int ret = v4l2_async_test_notify(notifier, sd, asd);
+-			mutex_unlock(&list_lock);
+-			return ret;
+-		}
++		int ret;
++
++		if (!asd)
++			continue;
++
++		ret = v4l2_async_test_notify(notifier, sd, asd);
++		if (ret)
++			goto err_unlock;
++
++		if (!list_empty(&notifier->waiting) || !notifier->complete)
++			goto out_unlock;
++
++		ret = notifier->complete(notifier);
++		if (ret)
++			goto err_cleanup;
++
++		goto out_unlock;
+ 	}
+ 
+ 	/* None matched, wait for hot-plugging */
+ 	list_add(&sd->async_list, &subdev_list);
+ 
++out_unlock:
+ 	mutex_unlock(&list_lock);
+ 
+ 	return 0;
++
++err_cleanup:
++	if (notifier->unbind)
++		notifier->unbind(notifier, sd, sd->asd);
++
++	v4l2_async_cleanup(sd);
++
++err_unlock:
++	mutex_unlock(&list_lock);
++
++	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_async_register_subdev);
+ 
 -- 
-With Best Regards,
-Andy Shevchenko
+2.11.0
