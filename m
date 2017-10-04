@@ -1,139 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:48469 "EHLO
-        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751178AbdJERGI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Oct 2017 13:06:08 -0400
-Received: by mail-wm0-f52.google.com with SMTP id i124so3320235wmf.3
-        for <linux-media@vger.kernel.org>; Thu, 05 Oct 2017 10:06:08 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20171004211411.27gxy5wnaymdcm3z@rob-hp-laptop>
-References: <1506119053-21828-1-git-send-email-tharvey@gateworks.com>
- <1506119053-21828-3-git-send-email-tharvey@gateworks.com> <20171004211411.27gxy5wnaymdcm3z@rob-hp-laptop>
-From: Tim Harvey <tharvey@gateworks.com>
-Date: Thu, 5 Oct 2017 10:06:06 -0700
-Message-ID: <CAJ+vNU2+7FWqPjBrKBcuKo8y4BKNnRNGhp8NkA3rJOGApaOdoQ@mail.gmail.com>
-Subject: Re: [PATCH 2/4] media: dt-bindings: Add bindings for TDA1997X
-To: Rob Herring <robh@kernel.org>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:54536 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751253AbdJDGij (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Oct 2017 02:38:39 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: [PATCH 4/7] media: exynos4-is: Remove dependency on obsolete SoC
+ support
+Date: Wed, 04 Oct 2017 08:38:25 +0200
+Message-id: <20171004063828.22068-5-m.szyprowski@samsung.com>
+In-reply-to: <20171004063828.22068-1-m.szyprowski@samsung.com>
+References: <20171004063828.22068-1-m.szyprowski@samsung.com>
+        <CGME20171004063836eucas1p1c45902d81f8520b4bfc6b06ded50cc2b@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 4, 2017 at 2:14 PM, Rob Herring <robh@kernel.org> wrote:
-> On Fri, Sep 22, 2017 at 03:24:11PM -0700, Tim Harvey wrote:
->> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
->
+Support for Exynos4212 SoCs has been removed by commit bca9085e0ae9 ("ARM:
+dts: exynos: remove Exynos4212 support (dead code)"), so there is no need
+to keep remaining dead code related to this SoC version.
 
-Hi Rob, thanks for the review!
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/platform/exynos4-is/Kconfig     | 2 +-
+ drivers/media/platform/exynos4-is/fimc-core.c | 2 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-I will add a commit message, vendor prefix to non-standard props, and
-remove '_' in the next revision.
-
->
->> +
->> +Optional Properties:
->> + - max-pixel-rate  : Maximum pixel rate supported by the SoC (MP/sec)
->> + - audio-port      : parameters defining audio output port connection
->
-> That description is meaningless to me.
->
-<snip>>
->> +The Audio output port consists of A_CLK, A_WS, AP0, AP1, AP2, and AP3 pins
->> +and can support up to 8-chanenl audio using the following audio bus DAI formats:
->> + - I2S16
->> + - I2S32
->> + - SPDIF
->> + - OBA (One-Bit-Audio)
->> + - I2S16_HBR_STRAIGHT (High Bitrate straight through)
->> + - I2S16_HBR_DEMUX (High Bitrate demuxed)
->> + - I2S32_HBR_DEMUX (High Bitrate demuxed)
->> + - DST (Direct Stream Transfer)
->
-> This either should be a standard, common property or not be in DT.
-> Practically every system is going to have at least one end of the
-> connection that is configurable. The kernel should be able to get lists
-> of supported modes and pick one.
->
-
-I struggled with 'audio-port' property quite a bit.
-
-Looking at the datasheet a bit closer
-(http://dev.gateworks.com/datasheets/TDA19971-datasheet-rev3.pdf) I
-see that the audio output port consisting of WS, AP[0:3], CLK really
-only supports I2S and S/PDIF output modes. The AP[0:3] provide support
-for up to 8 audio channels. The way these pins are used is defined in
-Table 5/6/7 in the datasheet but I think that the dt perhaps only
-needs to number of data lines (1-4) (which could also be represented
-as channels (1-8)), and a clock multiplier which could be described as
-a 'mclk-fs' multiplication factor like simple-audio bindings does.
-
-What would your recommendation be here?
-
->> +
-<snip>
->> +             max-pixel-rate = <180>; /* IMX6 CSI max pixel rate 180MP/sec */
->
-> That's a constraint that belongs in the i.MX CSI node or driver.
-
-right - that makes sense. I'll talk to the maintainer of the i.MX CSI
-driver to see what they think.
-
->
->> +
->> +             port@0 {
->> +                     reg = <0>;
->> +             };
->> +             port@1 {
->
-> You need to describe how many ports and what they are.
-
-ok. My example was a mistake anyway and I propose a single output port such as:
-
-The device node must contain one 'port' child node for its digital output
-video port, in accordance with the video interface bindings defined in
-Documentation/devicetree/bindings/media/video-interfaces.txt.
-
-Example:
-                port {
-                        tda1997x_to_ipu1_csi0_mux: endpoint {
-                                remote-endpoint =
-<&ipu1_csi0_mux_from_parallel_sensor>;
-                                bus-width = <16>;
-                                hsync-active = <1>;
-                                vsync-active = <1>;
-                                data-active = <1>;
-                        };
-                };
-
->
->> +                     reg = <1>;
->> +                     hdmi_in: endpoint {
->> +                             remote-endpoint = <&ccdc_in>;
->> +                     };
->> +             };
->> +     };
->> + - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
->> +   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
->
-> Do you really need 2 examples? It should be possible to figure out other
-> configurations with better descriptions above.
->
-
-Perhaps, but I feel like the vidout-portcfg is pretty confusing and
-wanted to provide some different mappings as examples. The
-vidout-portcfg property allows you to shift the bits around on the
-output pins per 4-bit groups as well as reverse their order and
-different defines are used depending on RGB444/YUV444/YUV422/BT656. I
-could provide just portcfg examples above the full dts example though
-under the short description of 'nxp,vidout-portcfg'.
-
-Regards,
-
-Tim
+diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
+index 46a7d242a1a5..7b2c49e5a592 100644
+--- a/drivers/media/platform/exynos4-is/Kconfig
++++ b/drivers/media/platform/exynos4-is/Kconfig
+@@ -41,7 +41,7 @@ config VIDEO_S5P_MIPI_CSIS
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called s5p-csis.
+ 
+-if SOC_EXYNOS4212 || SOC_EXYNOS4412 || SOC_EXYNOS5250
++if SOC_EXYNOS4412 || SOC_EXYNOS5250
+ 
+ config VIDEO_EXYNOS_FIMC_LITE
+ 	tristate "EXYNOS FIMC-LITE camera interface driver"
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
+index 099c735a39b7..7ae239f2b0fd 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.c
++++ b/drivers/media/platform/exynos4-is/fimc-core.c
+@@ -1211,7 +1211,7 @@ static const struct fimc_drvdata fimc_drvdata_exynos4210 = {
+ 	.out_buf_count	= 32,
+ };
+ 
+-/* EXYNOS4212, EXYNOS4412 */
++/* EXYNOS4412 */
+ static const struct fimc_drvdata fimc_drvdata_exynos4x12 = {
+ 	.num_entities	= 4,
+ 	.lclk_frequency	= 166000000UL,
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index 4a3c9948ca54..3805a6daa3f4 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -1646,7 +1646,7 @@ static const struct dev_pm_ops fimc_lite_pm_ops = {
+ 			   NULL)
+ };
+ 
+-/* EXYNOS4212, EXYNOS4412 */
++/* EXYNOS4412 */
+ static struct flite_drvdata fimc_lite_drvdata_exynos4 = {
+ 	.max_width		= 8192,
+ 	.max_height		= 8192,
+-- 
+2.14.2
