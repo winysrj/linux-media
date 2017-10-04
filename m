@@ -1,99 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51788 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750829AbdJPMXe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Oct 2017 08:23:34 -0400
-Date: Mon, 16 Oct 2017 15:23:32 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacob Chen <jacob-chen@iotwrt.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        mchehab@kernel.org, vladimir_zapolskiy@mentor.com,
-        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
-        lolivei@synopsys.com, p.zabel@pengutronix.de,
-        Luis.Oliveira@synopsys.com
-Subject: Re: [PATCH v3 1/2] media: i2c: OV5647: ensure clock lane in LP-11
- state before streaming on
-Message-ID: <20171016122331.p6pwvb6nkdkq57py@valkosipuli.retiisi.org.uk>
-References: <20171001102238.21585-1-jacob-chen@iotwrt.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171001102238.21585-1-jacob-chen@iotwrt.com>
+Received: from osg.samsung.com ([64.30.133.232]:63191 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751918AbdJDL6c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Oct 2017 07:58:32 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: [PATCH v3 06/17] docs: kernel-doc.rst: add documentation about man pages
+Date: Wed,  4 Oct 2017 08:48:44 -0300
+Message-Id: <ee5069e449c701e8b19ef6d30d0bab4aa757089e.1507116877.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
+References: <cover.1507116877.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
+References: <cover.1507116877.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Luis,
+kernel-doc-nano-HOWTO.txt has a chapter about man pages
+production. While we don't have a working  "make manpages"
+target, add it.
 
-Any comment on these?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/doc-guide/kernel-doc.rst | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-On Sun, Oct 01, 2017 at 06:22:37PM +0800, Jacob Chen wrote:
-> When I was supporting Rpi Camera Module on the ASUS Tinker board,
-> I found this driver have some issues with rockchip's mipi-csi driver.
-> It didn't place clock lane in LP-11 state before performing
-> D-PHY initialisation.
-> 
-> From our experience, on some OV sensors,
-> LP-11 state is not achieved while BIT(5)-0x4800 is cleared.
-> 
-> So let's set BIT(5) and BIT(0) both while not streaming, in order to
-> coax the clock lane into LP-11 state.
-> 
-> 0x4800 : MIPI CTRL 00
-> 	BIT(5) : clock lane gate enable
-> 		0: continuous
-> 		1: none-continuous
-> 	BIT(0) : manually set clock lane
-> 		0: Not used
-> 		1: used
-> 
-> Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-> ---
->  drivers/media/i2c/ov5647.c | 13 ++++++++++++-
->  1 file changed, 12 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
-> index 95ce90fdb876..247302d01f53 100644
-> --- a/drivers/media/i2c/ov5647.c
-> +++ b/drivers/media/i2c/ov5647.c
-> @@ -253,6 +253,10 @@ static int ov5647_stream_on(struct v4l2_subdev *sd)
->  {
->  	int ret;
->  
-> +	ret = ov5647_write(sd, 0x4800, 0x04);
-> +	if (ret < 0)
-> +		return ret;
-> +
->  	ret = ov5647_write(sd, 0x4202, 0x00);
->  	if (ret < 0)
->  		return ret;
-> @@ -264,6 +268,10 @@ static int ov5647_stream_off(struct v4l2_subdev *sd)
->  {
->  	int ret;
->  
-> +	ret = ov5647_write(sd, 0x4800, 0x25);
-> +	if (ret < 0)
-> +		return ret;
-> +
->  	ret = ov5647_write(sd, 0x4202, 0x0f);
->  	if (ret < 0)
->  		return ret;
-> @@ -320,7 +328,10 @@ static int __sensor_init(struct v4l2_subdev *sd)
->  			return ret;
->  	}
->  
-> -	return ov5647_write(sd, 0x4800, 0x04);
-> +	/*
-> +	 * stream off to make the clock lane into LP-11 state.
-> +	 */
-> +	return ov5647_stream_off(sd);
->  }
->  
->  static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
-> -- 
-> 2.14.1
-> 
-
+diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
+index 0923c8bd5769..96012f9e314d 100644
+--- a/Documentation/doc-guide/kernel-doc.rst
++++ b/Documentation/doc-guide/kernel-doc.rst
+@@ -452,3 +452,37 @@ file.
+ 
+ Data structures visible in kernel include files should also be documented using
+ kernel-doc formatted comments.
++
++How to use kernel-doc to generate man pages
++-------------------------------------------
++
++If you just want to use kernel-doc to generate man pages you can do this
++from the Kernel git tree::
++
++  $ scripts/kernel-doc -man $(git grep -l '/\*\*' |grep -v Documentation/) | ./split-man.pl /tmp/man
++
++Using the small ``split-man.pl`` script below::
++
++
++  #!/usr/bin/perl
++
++  if ($#ARGV < 0) {
++     die "where do I put the results?\n";
++  }
++
++  mkdir $ARGV[0],0777;
++  $state = 0;
++  while (<STDIN>) {
++      if (/^\.TH \"[^\"]*\" 9 \"([^\"]*)\"/) {
++	if ($state == 1) { close OUT }
++	$state = 1;
++	$fn = "$ARGV[0]/$1.9";
++	print STDERR "Creating $fn\n";
++	open OUT, ">$fn" or die "can't open $fn: $!\n";
++	print OUT $_;
++      } elsif ($state != 0) {
++	print OUT $_;
++      }
++  }
++
++  close OUT;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.6
