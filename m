@@ -1,39 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us-smtp-delivery-107.mimecast.com ([63.128.21.107]:49546 "EHLO
-        us-smtp-delivery-107.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751672AbdJFKzK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Oct 2017 06:55:10 -0400
-Subject: Re: [PATCH v7 3/3] media: rc: Add tango keymap
-To: Mans Rullgard <mans@mansr.com>, Sean Young <sean@mess.org>
-CC: linux-media <linux-media@vger.kernel.org>,
-        Mason <slash.tmp@free.fr>
-References: <a98feda2-fd9e-004b-a139-789193ca4995@sigmadesigns.com>
- <13b59e8a-d276-d19a-7f07-70a2423526ab@sigmadesigns.com>
- <20171005215246.q7m4ewyfytnbs46a@gofer.mess.org> <yw1xmv54pn8a.fsf@mansr.com>
-From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
-Message-ID: <e237ec40-d143-2996-6000-805c98d22256@sigmadesigns.com>
-Date: Fri, 6 Oct 2017 12:55:05 +0200
-MIME-Version: 1.0
-In-Reply-To: <yw1xmv54pn8a.fsf@mansr.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from osg.samsung.com ([64.30.133.232]:57151 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751996AbdJDL6f (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Oct 2017 07:58:35 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v3 11/17] scripts: kernel-doc: replace tabs by spaces
+Date: Wed,  4 Oct 2017 08:48:49 -0300
+Message-Id: <128c478afdd0211fabd0dd4bb098831f8b32d31f.1507116877.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
+References: <cover.1507116877.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
+References: <cover.1507116877.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/10/2017 12:47, Måns Rullgård wrote:
+Sphinx has a hard time dealing with tabs, causing it to
+misinterpret paragraph continuation.
 
-> Sean Young writes:
-> 
->> Looks great, just some minor nitpicks.
->>
->> I think you need a header with copyright statement and GPL version(s).
-> 
-> Is this even copyrightable?
+As we're now mainly focused on supporting ReST output,
+replace tabs by spaces, in order to avoid troubles when
+the output is parsed by Sphinx.
 
-My thoughts, exactly.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ scripts/kernel-doc | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-I don't mind *not* providing a copyright statement and GPL boiler plate.
-But if Sean requires one to submit, I'll include the proper legalese.
-
-Regards.
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index 2d3d5e9bf7de..d8c98e45b1ce 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -1557,7 +1557,7 @@ sub tracepoint_munge($) {
+ sub syscall_munge() {
+ 	my $void = 0;
+ 
+-	$prototype =~ s@[\r\n\t]+@ @gos; # strip newlines/CR's/tabs
++	$prototype =~ s@[\r\n]+@ @gos; # strip newlines/CR's
+ ##	if ($prototype =~ m/SYSCALL_DEFINE0\s*\(\s*(a-zA-Z0-9_)*\s*\)/) {
+ 	if ($prototype =~ m/SYSCALL_DEFINE0/) {
+ 		$void = 1;
+@@ -1756,6 +1756,8 @@ sub process_file($) {
+ 	while (s/\\\s*$//) {
+ 	    $_ .= <IN>;
+ 	}
++	# Replace tabs by spaces
++        while ($_ =~ s/\t+/' ' x (length($&) * 8 - length($`) % 8)/e) {};
+ 	if ($state == STATE_NORMAL) {
+ 	    if (/$doc_start/o) {
+ 		$state = STATE_NAME;	# next line is always the function name
+@@ -1855,8 +1857,7 @@ sub process_file($) {
+ 		$in_purpose = 0;
+ 		$contents = $newcontents;
+                 $new_start_line = $.;
+-		while ((substr($contents, 0, 1) eq " ") ||
+-		       substr($contents, 0, 1) eq "\t") {
++		while (substr($contents, 0, 1) eq " ") {
+ 		    $contents = substr($contents, 1);
+ 		}
+ 		if ($contents ne "") {
+@@ -1925,8 +1926,7 @@ sub process_file($) {
+ 		$contents = $2;
+                 $new_start_line = $.;
+ 		if ($contents ne "") {
+-		    while ((substr($contents, 0, 1) eq " ") ||
+-		           substr($contents, 0, 1) eq "\t") {
++		    while (substr($contents, 0, 1) eq " ") {
+ 			$contents = substr($contents, 1);
+ 		    }
+ 		    $contents .= "\n";
+-- 
+2.13.6
