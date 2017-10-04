@@ -1,112 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout02.posteo.de ([185.67.36.66]:42219 "EHLO mout02.posteo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751275AbdJELy1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Oct 2017 07:54:27 -0400
-Received: from submission (posteo.de [89.146.220.130])
-        by mout02.posteo.de (Postfix) with ESMTPS id AA7D220BF9
-        for <linux-media@vger.kernel.org>; Thu,  5 Oct 2017 13:54:25 +0200 (CEST)
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57374 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751440AbdJDKrU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Oct 2017 06:47:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Todor Tomov <todor.tomov@linaro.org>, mchehab@kernel.org,
+        hansverk@cisco.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org,
+        Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH] [media] ov5645: I2C address change
+Date: Wed, 04 Oct 2017 13:47:22 +0300
+Message-ID: <3073637.dhNDna4gKQ@avalon>
+In-Reply-To: <20171004103008.g7azpn4a3hfj4fs2@valkosipuli.retiisi.org.uk>
+References: <1506950925-13924-1-git-send-email-todor.tomov@linaro.org> <20171004103008.g7azpn4a3hfj4fs2@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8BIT
-Date: Thu, 05 Oct 2017 13:54:24 +0200
-From: Martin Kepplinger <martink@posteo.de>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org
-Subject: Re: platform: coda: how to use firmware-imx binary
- =?UTF-8?Q?releases=3F=20/=20how=20to=20use=20VDOA=20on=20imx=36=3F?=
-In-Reply-To: <1507191578.8473.1.camel@pengutronix.de>
-References: <ef7cc5b91829f383842a1e4692af5b07@posteo.de>
- <1507108964.11691.6.camel@pengutronix.de>
- <7dd05afd338e81d293d0424e0b8e6b6a@posteo.de>
- <1507191578.8473.1.camel@pengutronix.de>
-Message-ID: <e0335e29f79b719c6f315473b3db74ad@posteo.de>
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 05.10.2017 10:19 schrieb Philipp Zabel:
-> Hi Martin,
-> 
-> On Thu, 2017-10-05 at 09:43 +0200, Martin Kepplinger wrote:
->> I'm running a little off-topic here, but with the newest firmware 
->> too, 
->> my
->> coda driver says "Video Data Order Adapter: Disabled" when started
->> by video playback via v4l2.
-> 
-> This message is most likely just a result of the VDOA not supporting 
-> the
-> selected capture format. In vdoa_context_configure, you can see that 
-> the
-> VDOA only writes YUYV or NV12.
+CC'ing the I2C mainling list and the I2C maintainer.
 
-ok. I'll have to look into it, and just in case you see a problem on 
-first sight:
-this is what coda says with debug level 1, when doing
+On Wednesday, 4 October 2017 13:30:08 EEST Sakari Ailus wrote:
+> Hi Todor,
+>=20
+> On Mon, Oct 02, 2017 at 04:28:45PM +0300, Todor Tomov wrote:
+> > As soon as the sensor is powered on, change the I2C address to the one
+> > specified in DT. This allows to use multiple physical sensors connected
+> > to the same I2C bus.
+> >=20
+> > Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+>=20
+> The smiapp driver does something similar and I understand Laurent might be
+> interested in such functionality as well.
+>=20
+> It'd be nice to handle this through the I=B2C framework instead and to de=
+fine
+> how the information is specified through DT. That way it could be made
+> generic, to work with more devices than just this one.
+>=20
+> What do you think?
+>=20
+> Cc Laurent.
+>=20
+> > ---
+> >=20
+> >  drivers/media/i2c/ov5645.c | 42 ++++++++++++++++++++++++++++++++++++++=
+++
+> >  1 file changed, 42 insertions(+)
+> >=20
+> > diff --git a/drivers/media/i2c/ov5645.c b/drivers/media/i2c/ov5645.c
+> > index d28845f..8541109 100644
+> > --- a/drivers/media/i2c/ov5645.c
+> > +++ b/drivers/media/i2c/ov5645.c
+> > @@ -33,6 +33,7 @@
+> >  #include <linux/i2c.h>
+> >  #include <linux/init.h>
+> >  #include <linux/module.h>
+> > +#include <linux/mutex.h>
+> >  #include <linux/of.h>
+> >  #include <linux/of_graph.h>
+> >  #include <linux/regulator/consumer.h>
+> > @@ -42,6 +43,8 @@
+> >  #include <media/v4l2-fwnode.h>
+> >  #include <media/v4l2-subdev.h>
+> >=20
+> > +static DEFINE_MUTEX(ov5645_lock);
+> > +
+> >  #define OV5645_VOLTAGE_ANALOG               2800000
+> >  #define OV5645_VOLTAGE_DIGITAL_CORE         1500000
+> >  #define OV5645_VOLTAGE_DIGITAL_IO           1800000
+> > @@ -590,6 +593,31 @@ static void ov5645_regulators_disable(struct ov5645
+> > *ov5645)
+> >  		dev_err(ov5645->dev, "io regulator disable failed\n");
+> >  }
+> >=20
+> > +static int ov5645_write_reg_to(struct ov5645 *ov5645, u16 reg, u8 val,
+> > +			       u16 i2c_addr)
+> > +{
+> > +	u8 regbuf[3] =3D {
+> > +		reg >> 8,
+> > +		reg & 0xff,
+> > +		val
+> > +	};
+> > +	struct i2c_msg msgs =3D {
+> > +		.addr =3D i2c_addr,
+> > +		.flags =3D 0,
+> > +		.len =3D 3,
+> > +		.buf =3D regbuf
+> > +	};
+> > +	int ret;
+> > +
+> > +	ret =3D i2c_transfer(ov5645->i2c_client->adapter, &msgs, 1);
+> > +	if (ret < 0)
+> > +		dev_err(ov5645->dev,
+> > +			"%s: write reg error %d on addr 0x%x: reg=3D0x%x, val=3D0x%x\n",
+> > +			__func__, ret, i2c_addr, reg, val);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> >  static int ov5645_write_reg(struct ov5645 *ov5645, u16 reg, u8 val)
+> >  {
+> >  	u8 regbuf[3];
+> > @@ -729,10 +757,24 @@ static int ov5645_s_power(struct v4l2_subdev *sd,
+> > int on)
+> >  	 */
+> >  	if (ov5645->power_count =3D=3D !on) {
+> >  		if (on) {
+> > +			mutex_lock(&ov5645_lock);
+> > +
+> >  			ret =3D ov5645_set_power_on(ov5645);
+> >  			if (ret < 0)
+> >  				goto exit;
+> >=20
+> > +			ret =3D ov5645_write_reg_to(ov5645, 0x3100,
+> > +						ov5645->i2c_client->addr, 0x78);
+> > +			if (ret < 0) {
+> > +				dev_err(ov5645->dev,
+> > +					"could not change i2c address\n");
+> > +				ov5645_set_power_off(ov5645);
+> > +				mutex_unlock(&ov5645_lock);
+> > +				goto exit;
+> > +			}
+> > +
+> > +			mutex_unlock(&ov5645_lock);
+> > +
+> >  			ret =3D ov5645_set_register_array(ov5645,
+> >  					ov5645_global_init_setting,
+> >  					ARRAY_SIZE(ov5645_global_init_setting));
 
-gst-launch-1.0 playbin uri=file:///data/test2_hd480.h264 
-video-sink=fbdevsink
+=2D-=20
+Regards,
 
-with the video file being (ffprobe)
-
-Input #0, h264, from 'test2_hd480.h264':
-   Duration: N/A, bitrate: N/A
-     Stream #0:0: Video: h264 (High), yuv420p(progressive), 852x480, 24 
-fps, 24 tbr, 1200k tbn, 48 tbc
-
-
-after some s_ctrl: id/val printings:
-
-[   98.833023] coda 2040000.vpu: Created instance 0 (cefc5000)
-[   98.837550] coda 2040000.vpu: Releasing instance cefc5000
-[   98.839080] coda 2040000.vpu: s_ctrl: id = 9963796, val = 0
-[   98.839091] coda 2040000.vpu: s_ctrl: id = 9963797, val = 0
-[   98.839100] coda 2040000.vpu: Created instance 0 (ceeb2000)
-[   98.842867] coda 2040000.vpu: Releasing instance ceeb2000
-[   98.845435] coda 2040000.vpu: s_ctrl: id = 9963796, val = 0
-[   98.845447] coda 2040000.vpu: s_ctrl: id = 9963797, val = 0
-[   98.845458] coda 2040000.vpu: Created instance 0 (cefc5000)
-[   98.851652] coda 2040000.vpu: Setting format for type 2, wxh: 
-852x480, fmt: H264 L
-[   98.851670] coda 2040000.vpu: Setting format for type 1, wxh: 
-852x480, fmt: NV12 T
-[   98.854800] coda 2040000.vpu: get 2 buffer(s) of size 819200 each.
-[   99.022191] coda 2040000.vpu: get 2 buffer(s) of size 622080 each.
-[   99.025904] coda 2040000.vpu: Video Data Order Adapter: Disabled
-[   99.025922] coda 2040000.vpu: H264 Profile/Level: High L3
-[   99.026214] coda 2040000.vpu: __coda_start_decoding instance 0 now: 
-864x480
-[   99.036277] coda 2040000.vpu: 0: not ready: need 2 buffers available 
-(1, 0)
-[   99.063157] coda 2040000.vpu: job ready
-
-
-so while the video is shown, the VDOA is "disabled".
-
-                           thanks a lot for your help
-
-
-(it's shown far from fluent yet, almost frame by frame, but that's ok 
-for now... I'll still need to
-took into the v4l2 interface for the imx6 IPU)
-
-
-> 
->> (imx6, running linux 4.14-rc3, imx-vdoa is probed and never removed,
->> a dev_info "probed" would maybe be useful for others too?)
->> 
->> It supsequently fails with
->> 
->> cma: cma_alloc: alloc failed, req-size: 178 pages, ret: -12
-> 
-> That is -ENOMEM. Is CMA enabled and sufficiently large? For example,
-> 
-> CONFIG_CMA=y
-> CONFIG_CMA_DEBUGFS=y
-> CONFIG_DMA_CMA=y
-> CONFIG_CMA_SIZE_MBYTES=256
-> CONFIG_CMA_SIZE_SEL_MBYTES=y
-> 
-
-My cma buffer size was indeed just too small.
+Laurent Pinchart
