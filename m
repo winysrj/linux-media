@@ -1,73 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:50915 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752709AbdJPOvp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Oct 2017 10:51:45 -0400
-Subject: Re: [PATCH 0/2] fix lockdep warnings in s5p_mfc and exynos-gsc vb2
- drivers
-To: Marek Szyprowski <m.szyprowski@samsung.com>, mchehab@kernel.org,
-        hansverk@cisco.com, kgene@kernel.org, krzk@kernel.org,
-        s.nawrocki@samsung.com, shailendra.v@samsung.com, shuah@kernel.org,
-        Julia.Lawall@lip6.fr, kyungmin.park@samsung.com, kamil@wypas.org,
-        jtp.park@samsung.com, a.hajda@samsung.com
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
-References: <CGME20171013231531epcas5p2f009317ed58f5177e7a0768b69a62b6c@epcas5p2.samsung.com>
- <cover.1507935819.git.shuahkh@osg.samsung.com>
- <c2dae5ff-a35c-bdd1-910b-75db6c9c16b2@samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <649e7ce7-6d2a-55da-7ca4-214400dc1708@osg.samsung.com>
-Date: Mon, 16 Oct 2017 08:51:20 -0600
-MIME-Version: 1.0
-In-Reply-To: <c2dae5ff-a35c-bdd1-910b-75db6c9c16b2@samsung.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40292 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751393AbdJDVu7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Oct 2017 17:50:59 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v15 19/32] v4l: async: Ensure only unique fwnodes are registered to notifiers
+Date: Thu,  5 Oct 2017 00:50:38 +0300
+Message-Id: <20171004215051.13385-20-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
+While registering a notifier, check that each newly added fwnode is
+unique, and return an error if it is not. Also check that a newly added
+notifier does not have the same fwnodes twice.
 
-On 10/16/2017 06:48 AM, Marek Szyprowski wrote:
-> Hi Shuah,
-> 
-> On 2017-10-14 01:13, Shuah Khan wrote:
->> Driver mmap functions shouldn't hold lock when calling vb2_mmap(). The
->> vb2_mmap() function has its own lock that it uses to protect the critical
->> section.
->>
->> Reference: commit log for f035eb4e976ef5a059e30bc91cfd310ff030a7d3
-> 
-> It would make sense to add the information about the reference commit to each
-> commit message and also point to commit e752577ed7bf55c81e10343fced8b378cda2b63b,
-> as it is exactly the same case here. Anyway:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 82 +++++++++++++++++++++++++++++++++---
+ 1 file changed, 77 insertions(+), 5 deletions(-)
 
-I think It does make sense to add the commit information to each commit message.
-I can do that send v2.
-
-> 
-> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
-Thanks.
-
-> 
-> I wonder if makes sense to send those patches also to stable@vget.kernel.org
-> (maybe v4.3+, like the mentioned above commit, if they really apply?).
-
-I don't believe they will apply as is. I can work back-porting once these get into
-the mainline.
-
-> 
->> Shuah Khan (2):
->>    media: exynos-gsc: fix lockdep warning
->>    media: s5p-mfc: fix lockdep warning
->>
->>   drivers/media/platform/exynos-gsc/gsc-m2m.c | 5 -----
->>   drivers/media/platform/s5p-mfc/s5p_mfc.c    | 3 ---
->>   2 files changed, 8 deletions(-)
->>
-> 
-> Best regards
-
-thanks,
--- Shuah
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 3621ed6e6e3c..e1fe3567127a 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -330,8 +330,71 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+ 	notifier->parent = NULL;
+ }
+ 
++/* See if an fwnode can be found in a notifier's lists. */
++static bool __v4l2_async_notifier_fwnode_has_async_subdev(
++	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
++{
++	struct v4l2_async_subdev *asd;
++	struct v4l2_subdev *sd;
++
++	list_for_each_entry(asd, &notifier->waiting, list) {
++		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
++			continue;
++
++		if (asd->match.fwnode.fwnode == fwnode)
++			return true;
++	}
++
++	list_for_each_entry(sd, &notifier->done, async_list) {
++		if (WARN_ON(!sd->asd))
++			continue;
++
++		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
++			continue;
++
++		if (sd->asd->match.fwnode.fwnode == fwnode)
++			return true;
++	}
++
++	return false;
++}
++
++/*
++ * Find out whether an async sub-device was set up for an fwnode already or
++ * whether it exists in a given notifier before @this_index.
++ */
++static bool v4l2_async_notifier_fwnode_has_async_subdev(
++	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
++	unsigned int this_index)
++{
++	unsigned int j;
++
++	lockdep_assert_held(&list_lock);
++
++	/* Check that an fwnode is not being added more than once. */
++	for (j = 0; j < this_index; j++) {
++		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
++		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
++
++		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
++		    asd->match.fwnode.fwnode ==
++		    other_asd->match.fwnode.fwnode)
++			return true;
++	}
++
++	/* Check than an fwnode did not exist in other notifiers. */
++	list_for_each_entry(notifier, &notifier_list, list)
++		if (__v4l2_async_notifier_fwnode_has_async_subdev(
++			    notifier, fwnode))
++			return true;
++
++	return false;
++}
++
+ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ {
++	struct device *dev =
++		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
+ 	struct v4l2_async_subdev *asd;
+ 	int ret;
+ 	int i;
+@@ -342,6 +405,8 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 	INIT_LIST_HEAD(&notifier->waiting);
+ 	INIT_LIST_HEAD(&notifier->done);
+ 
++	mutex_lock(&list_lock);
++
+ 	for (i = 0; i < notifier->num_subdevs; i++) {
+ 		asd = notifier->subdevs[i];
+ 
+@@ -349,19 +414,25 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 		case V4L2_ASYNC_MATCH_CUSTOM:
+ 		case V4L2_ASYNC_MATCH_DEVNAME:
+ 		case V4L2_ASYNC_MATCH_I2C:
++			break;
+ 		case V4L2_ASYNC_MATCH_FWNODE:
++			if (v4l2_async_notifier_fwnode_has_async_subdev(
++				    notifier, asd->match.fwnode.fwnode, i)) {
++				dev_err(dev,
++					"fwnode has already been registered or in notifier's subdev list\n");
++				ret = -EEXIST;
++				goto out_unlock;
++			}
+ 			break;
+ 		default:
+-			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+-				"Invalid match type %u on %p\n",
++			dev_err(dev, "Invalid match type %u on %p\n",
+ 				asd->match_type, asd);
+-			return -EINVAL;
++			ret = -EINVAL;
++			goto out_unlock;
+ 		}
+ 		list_add_tail(&asd->list, &notifier->waiting);
+ 	}
+ 
+-	mutex_lock(&list_lock);
+-
+ 	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+ 	if (ret)
+ 		goto err_unbind;
+@@ -373,6 +444,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 	/* Keep also completed notifiers on the list */
+ 	list_add(&notifier->list, &notifier_list);
+ 
++out_unlock:
+ 	mutex_unlock(&list_lock);
+ 
+ 	return 0;
+-- 
+2.11.0
