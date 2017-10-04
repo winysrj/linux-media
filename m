@@ -1,71 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:33769 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754009AbdJIKTg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 06:19:36 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: [PATCH 08/24] media: v4l2-dev: document VFL_DIR_* direction defines
-Date: Mon,  9 Oct 2017 07:19:14 -0300
-Message-Id: <150e771ce68cc38453ddc77f55d5ff9f9142e34a.1507544011.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507544011.git.mchehab@s-opensource.com>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507544011.git.mchehab@s-opensource.com>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:44427 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750787AbdJDD3N (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 3 Oct 2017 23:29:13 -0400
+Message-ID: <b77ecbab3fbafd41c46f0869fb1474b0@smtp-cloud7.xs4all.net>
+Date: Wed, 04 Oct 2017 05:29:11 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L_DIR_* direction flags document the direction for a
-V4L2 device node. Convert them to enum and document.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- include/media/v4l2-dev.h | 22 ++++++++++++++++------
- 1 file changed, 16 insertions(+), 6 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index f182b47dfd71..87dac58c7799 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -40,11 +40,21 @@ enum vfl_devnode_type {
- };
- #define VFL_TYPE_MAX VFL_TYPE_TOUCH
- 
--/* Is this a receiver, transmitter or mem-to-mem? */
--/* Ignored for VFL_TYPE_SUBDEV. */
--#define VFL_DIR_RX		0
--#define VFL_DIR_TX		1
--#define VFL_DIR_M2M		2
-+/**
-+ * enum  vfl_direction - Identifies if a &struct video_device corresponds
-+ *	to a receiver, a transmitter or a mem-to-mem device.
-+ *
-+ * @VFL_DIR_RX:		device is a receiver.
-+ * @VFL_DIR_TX:		device is a transmitter.
-+ * @VFL_DIR_M2M:	device is a memory to memory device.
-+ *
-+ * Note: Ignored if &enum vfl_devnode_type is %VFL_TYPE_SUBDEV.
-+ */
-+enum vfl_devnode_direction {
-+	VFL_DIR_RX,
-+	VFL_DIR_TX,
-+	VFL_DIR_M2M,
-+};
- 
- struct v4l2_ioctl_callbacks;
- struct video_device;
-@@ -249,7 +259,7 @@ struct video_device
- 	/* device info */
- 	char name[32];
- 	enum vfl_devnode_type vfl_type;
--	int vfl_dir;
-+	enum vfl_devnode_direction vfl_dir;
- 	int minor;
- 	u16 num;
- 	unsigned long flags;
--- 
-2.13.6
+date:			Wed Oct  4 05:00:06 CEST 2017
+media-tree git hash:	cf09e3c904bf424f8b6a8203958e09bf7d9bcbc0
+media_build git hash:	b829b621b4c2e6c5cbedbd1ce62b4e958f7d13a4
+v4l-utils git hash:	997ed5a4abba619282d9ffb8bb173e8589176d73
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
+
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-arm-stm32: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+apps: OK
+spec-git: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
