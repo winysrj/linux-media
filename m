@@ -1,74 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f54.google.com ([74.125.83.54]:47588 "EHLO
-        mail-pg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932794AbdJPXKu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Oct 2017 19:10:50 -0400
-Received: by mail-pg0-f54.google.com with SMTP id r25so8021852pgn.4
-        for <linux-media@vger.kernel.org>; Mon, 16 Oct 2017 16:10:50 -0700 (PDT)
-Date: Mon, 16 Oct 2017 16:10:47 -0700
-From: Kees Cook <keescook@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: devendra sharma <devendra.sharma9091@gmail.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: dvb-core: Convert timers to use timer_setup()
-Message-ID: <20171016231047.GA99788@beast>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:56474 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751047AbdJDUJ0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Oct 2017 16:09:26 -0400
+Message-ID: <1507147735.2981.54.camel@collabora.com>
+Subject: Re: [PATCH v3 00/15] V4L2 Explicit Synchronization support
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
+To: Brian Starkey <brian.starkey@arm.com>,
+        Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org, Jonathan.Chai@arm.com
+Date: Wed, 04 Oct 2017 17:08:55 -0300
+In-Reply-To: <20171002134116.GB22538@e107564-lin.cambridge.arm.com>
+References: <20170907184226.27482-1-gustavo@padovan.org>
+         <20171002134116.GB22538@e107564-lin.cambridge.arm.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In preparation for unconditionally passing the struct timer_list pointer to
-all timer callbacks, switch to using the new timer_setup() and from_timer()
-to pass the timer pointer explicitly.
+Hi Brian,
 
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: devendra sharma <devendra.sharma9091@gmail.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
- drivers/media/dvb-core/dmxdev.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+On Mon, 2017-10-02 at 14:41 +0100, Brian Starkey wrote:
+> Hi Gustavo,
+> 
+> On Thu, Sep 07, 2017 at 03:42:11PM -0300, Gustavo Padovan wrote:
+> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > 
+> > Hi,
+> > 
+> > Refer to the documentation on the first patch for the details. The
+> > previous
+> > iteration is here: https://www.mail-archive.com/linux-media@vger.ke
+> > rnel.org/msg118077.html
+> > 
+> > The 2nd patch proposes an userspace API for fences, then on patch 3
+> > we
+> > prepare to the addition of in-fences in patch 4, by introducing the
+> > infrastructure on vb2 to wait on an in-fence signal before queueing
+> > the
+> > buffer in the driver.
+> > 
+> > Patch 5 fix uvc v4l2 event handling and patch 6 configure q->dev
+> > for
+> > vivid drivers to enable to subscribe and dequeue events on it.
+> > 
+> > Patches 7-9 enables support to notify BUF_QUEUED events, the event
+> > send
+> > to userspace the out-fence fd and the index of the buffer that was
+> > queued.
+> > 
+> > Patches 10-11 add support to mark queues as ordered. Finally
+> > patches 12
+> > and 13 add more fence infrastructure to support out-fences, patch
+> > 13 exposes
+> > close_fd() and patch 14 adds support to out-fences.
+> > 
+> > It only works for ordered queues for now, see open question at the
+> > end
+> > of the letter.
+> > 
+> > Test tool can be found at:
+> > https://git.collabora.com/cgit/user/padovan/v4l2-test.git/
+> > 
+> > Main Changes
+> > ------------
+> > 
+> > * out-fences: change in behavior: the out-fence fd now comes out of
+> > the
+> > BUF_QUEUED event along with the buffer id.
+> 
+> The more I think about this, the more unfortunate it seems.
+> Especially
+> for our use-case (m2m engine which sits in front of the display
+> processor to convert the format of some buffers), having to wait for
+> the in-fence to signal before we can get an out-fence removes a lot
+> of
+> the advantages of having fences at all.
 
-diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-index 18e4230865be..3ddd44e1ee77 100644
---- a/drivers/media/dvb-core/dmxdev.c
-+++ b/drivers/media/dvb-core/dmxdev.c
-@@ -329,9 +329,9 @@ static int dvb_dmxdev_set_buffer_size(struct dmxdev_filter *dmxdevfilter,
- 	return 0;
- }
- 
--static void dvb_dmxdev_filter_timeout(unsigned long data)
-+static void dvb_dmxdev_filter_timeout(struct timer_list *t)
- {
--	struct dmxdev_filter *dmxdevfilter = (struct dmxdev_filter *)data;
-+	struct dmxdev_filter *dmxdevfilter = from_timer(dmxdevfilter, t, timer);
- 
- 	dmxdevfilter->buffer.error = -ETIMEDOUT;
- 	spin_lock_irq(&dmxdevfilter->dev->lock);
-@@ -346,8 +346,6 @@ static void dvb_dmxdev_filter_timer(struct dmxdev_filter *dmxdevfilter)
- 
- 	del_timer(&dmxdevfilter->timer);
- 	if (para->timeout) {
--		dmxdevfilter->timer.function = dvb_dmxdev_filter_timeout;
--		dmxdevfilter->timer.data = (unsigned long)dmxdevfilter;
- 		dmxdevfilter->timer.expires =
- 		    jiffies + 1 + (HZ / 2 + HZ * para->timeout) / 1000;
- 		add_timer(&dmxdevfilter->timer);
-@@ -754,7 +752,7 @@ static int dvb_demux_open(struct inode *inode, struct file *file)
- 	dvb_ringbuffer_init(&dmxdevfilter->buffer, NULL, 8192);
- 	dmxdevfilter->type = DMXDEV_TYPE_NONE;
- 	dvb_dmxdev_filter_state_set(dmxdevfilter, DMXDEV_STATE_ALLOCATED);
--	init_timer(&dmxdevfilter->timer);
-+	timer_setup(&dmxdevfilter->timer, dvb_dmxdev_filter_timeout, 0);
- 
- 	dvbdev->users++;
- 
+Does your m2m driver ensures ordering between the buffer queued to it?
+
+> 
+> Ideally, we'd like to queue up our m2m work (while the GPU is still
+> rendering that buffer, holding the in-fence), immediately get the
+> out-fence for the m2m work, and pass that to DRM as the in-fence for
+> display. With the current behaviour we need to wait in userspace
+> before we can pass the buffer to display.
+> 
+> Wouldn't it be possible to enforce that the buffers aren't queued
+> out-of-order in VB2? An easy way might be to (in qbuf) set a buffer's
+> ->in_fence to be a fence_array of all the ->in_fences from the
+> buffers
+> before it in the queue (and its own). That would then naturally order
+> the enqueue-ing in the driver, and allow you to return the out-fence
+> immediately.
+> 
+> This would also solve your output devices question from below - a
+> buffer can never get queued in the driver until all of the buffers
+> which were QBUF'd before it are queued in the driver.
+
+What you say makes sense, what this proposal lacks the most now is
+feedback regarding its usecases. We can create a control setting to
+enforce ordering in the queue, if it's set we create the fence arrays.
+For output devices this should be set by default.
+
+Gustavo
+
 -- 
-2.7.4
-
-
--- 
-Kees Cook
-Pixel Security
+Gustavo Padovan
+Principal Software Engineer
+Collabora Ltd.
