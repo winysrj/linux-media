@@ -1,67 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:34882 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751598AbdJIK72 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 06:59:28 -0400
-Subject: Re: [PATCH 06/24] media: i2c-addr.h: get rid of now unused defines
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
- <e380c6c6a38157c8339755f348404040ee642f63.1507544011.git.mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2e741cc0-34ef-c7c9-74d6-7e0332fba749@xs4all.nl>
-Date: Mon, 9 Oct 2017 12:59:25 +0200
-MIME-Version: 1.0
-In-Reply-To: <e380c6c6a38157c8339755f348404040ee642f63.1507544011.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=windows-1252
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:56490 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751047AbdJDUMx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Oct 2017 16:12:53 -0400
+Message-ID: <1507147945.2981.56.camel@collabora.com>
+Subject: Re: [PATCH v3 02/15] [media] vb2: add explicit fence user API
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
+To: Brian Starkey <brian.starkey@arm.com>,
+        Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-kernel@vger.kernel.org, Jonathan.Chai@arm.com
+Date: Wed, 04 Oct 2017 17:12:25 -0300
+In-Reply-To: <20171002134212.GC22538@e107564-lin.cambridge.arm.com>
+References: <20170907184226.27482-1-gustavo@padovan.org>
+         <20170907184226.27482-3-gustavo@padovan.org>
+         <20171002134212.GC22538@e107564-lin.cambridge.arm.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/10/17 12:19, Mauro Carvalho Chehab wrote:
-> Some of the previously used I2C addresses there aren't used
-> anymore. So, get rid of them.
+On Mon, 2017-10-02 at 14:42 +0100, Brian Starkey wrote:
+> Hi,
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-> ---
->  include/media/i2c-addr.h | 7 -------
->  1 file changed, 7 deletions(-)
+> On Thu, Sep 07, 2017 at 03:42:13PM -0300, Gustavo Padovan wrote:
+> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > 
+> > Turn the reserved2 field into fence_fd that we will use to send
+> > an in-fence to the kernel and return an out-fence from the kernel
+> > to
+> > userspace.
+> > 
+> > Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be
+> > used
+> > when sending a fence to the kernel to be waited on, and
+> > V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-
+> > fence.
 > 
-> diff --git a/include/media/i2c-addr.h b/include/media/i2c-addr.h
-> index 5d0f56054d26..fba0457b74c4 100644
-> --- a/include/media/i2c-addr.h
-> +++ b/include/media/i2c-addr.h
-> @@ -10,21 +10,14 @@
->   */
->  
->  /* bttv address list */
-> -#define I2C_ADDR_TSA5522	0xc2
->  #define I2C_ADDR_TDA7432	0x8a
->  #define I2C_ADDR_TDA8425	0x82
->  #define I2C_ADDR_TDA9840	0x84
-> -#define I2C_ADDR_TDA9850	0xb6 /* also used by 9855,9873 */
->  #define I2C_ADDR_TDA9874	0xb0 /* also used by 9875 */
->  #define I2C_ADDR_TDA9875	0xb0
-> -#define I2C_ADDR_HAUPEE		0xa0
-> -#define I2C_ADDR_STBEE		0xae
-> -#define I2C_ADDR_VHX		0xc0
->  #define I2C_ADDR_MSP3400	0x80
->  #define I2C_ADDR_MSP3400_ALT	0x88
->  #define I2C_ADDR_TEA6300	0x80 /* also used by 6320 */
-> -#define I2C_ADDR_DPL3518	0x84
-> -#define I2C_ADDR_TDA9887	0x86
->  
->  /*
->   * i2c bus addresses for the chips supported by tvaudio.c
+> It seems a bit off to me to add this to the uapi, and document it,
+> before any of the implementation is present in the kernel.
 > 
+> Wouldn't it be better to move this patch to be the last one, after
+> all
+> of the implementation is done?
+
+Yes, that seems a better idea.
+
+Gustavo
