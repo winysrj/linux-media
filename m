@@ -1,117 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f173.google.com ([209.85.216.173]:51512 "EHLO
-        mail-qt0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932513AbdJ3U7f (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Oct 2017 16:59:35 -0400
-Received: by mail-qt0-f173.google.com with SMTP id h4so18204619qtk.8
-        for <linux-media@vger.kernel.org>; Mon, 30 Oct 2017 13:59:35 -0700 (PDT)
+Received: from gofer.mess.org ([88.97.38.141]:50949 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751195AbdJDVSR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Oct 2017 17:18:17 -0400
+Date: Wed, 4 Oct 2017 22:18:15 +0100
+From: Sean Young <sean@mess.org>
+To: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+Cc: Mans Rullgard <mans@mansr.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        Mason <slash.tmp@free.fr>
+Subject: Re: [PATCH v6 2/2] media: rc: Add driver for tango HW IR decoder
+Message-ID: <20171004211815.qnu6yy24ow3dmjmz@gofer.mess.org>
+References: <308711ef-0ba8-d533-26fd-51e5b8f32cc8@free.fr>
+ <e3d91250-e6bd-bb8c-5497-689c351ac55f@free.fr>
+ <yw1xzi9ieuqe.fsf@mansr.com>
+ <893874ee-a6e0-e4be-5b4f-a49e60197e92@free.fr>
+ <yw1xr2uuenhv.fsf@mansr.com>
+ <0690fbbb-a13f-63af-bc43-b1f9d4771bc4@free.fr>
+ <3dc97914-048f-e932-c05d-211b5111eb84@sigmadesigns.com>
 MIME-Version: 1.0
-In-Reply-To: <20171029193121.p2q6dxxz376cpx5y@gofer.mess.org>
-References: <CACG2urxXyivORcKhgZf=acwA8ajz5UspHf8YTHEQJG=VauqHpg@mail.gmail.com>
- <20171023094305.nxrxsqjrrwtygupc@gofer.mess.org> <CACG2urzPV2q63-bLP98cHDDqzP3a-oydDScPqG=tVKSCzxREBg@mail.gmail.com>
- <20171023185750.5m5qo575myogzbhz@gofer.mess.org> <CACG2urzH5dAtnasGfjiK1Y8owGcsn0VtRSEWX75A6mb0pyuSRw@mail.gmail.com>
- <20171029193121.p2q6dxxz376cpx5y@gofer.mess.org>
-From: Laurent Caumont <lcaumont2@gmail.com>
-Date: Mon, 30 Oct 2017 21:59:34 +0100
-Message-ID: <CACG2urwdnXs2v8hv24R3+sNW6qOifh6Gtt+semez_c8QC58-gA@mail.gmail.com>
-Subject: Re: 'LITE-ON USB2.0 DVB-T Tune' driver crash with kernel 4.13 /
- ubuntu 17.10
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3dc97914-048f-e932-c05d-211b5111eb84@sigmadesigns.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+On Wed, Oct 04, 2017 at 06:00:47PM +0200, Marc Gonzalez wrote:
+> On 26/09/2017 10:51, Marc Gonzalez wrote:
+> 
+> > From: Mans Rullgard <mans@mansr.com>
+> > 
+> > The tango HW IR decoder supports NEC, RC-5, RC-6 protocols.
+> > 
+> > Signed-off-by: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+> > ---
+> > Changes between v5 and v6
+> > * Move "register fields" macros to top of file
+> > * Restore IRQ pending writes
+> > ---
+> >  drivers/media/rc/Kconfig    |  10 ++
+> >  drivers/media/rc/Makefile   |   1 +
+> >  drivers/media/rc/tango-ir.c | 279 ++++++++++++++++++++++++++++++++++++++++++++
+> >  3 files changed, 290 insertions(+)
+> >  create mode 100644 drivers/media/rc/tango-ir.c
+> 
+> Hello Sean,
+> 
+> Are there issues remaining before this series can be accepted upstream?
+> 
+> Are you waiting for the DT folks to review the DT binding?
 
-I found the problem. The read buffer needs to be allocated with kmalloc too.
+I am waiting for that review. 
 
-int dibusb_read_eeprom_byte(struct dvb_usb_device *d, u8 offs, u8 *val)
-{
-          u8 *wbuf;
-          u8 *rbuf;
-          int rc;
+> Can I submit a keymap patch on top of the series?
 
-          rbuf = kmalloc(1, GFP_KERNEL);
-          if (!rbuf)
-            return -ENOMEM;
+Of course. Or you could post v7 with a keymap.
 
-          wbuf = kmalloc(1, GFP_KERNEL);
-          if (!wbuf)
-            return -ENOMEM;
-
-         *wbuf = offs;
-
-         rc = dibusb_i2c_msg(d, 0x50, wbuf, 1, rbuf, 1);
-         kfree(wbuf);
-         *val = *rbuf;
-         kfree(rbuf);
-
-        return rc;
-}
-
-It works now.
-Please update the code in the main branch for futur versions.
-Thanks.
-Regards,
-Laurent
-
-2017-10-29 20:31 GMT+01:00 Sean Young <sean@mess.org>:
-> On Sun, Oct 29, 2017 at 06:54:28PM +0100, Laurent Caumont wrote:
->> Hi Sean,
->>
->> I recompiled the modules by following the
->> https://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
->> page and applied the patch.
->> But I still have problems (see below). It doesn't seem to be the same callstack.
->> Is it the right way to get the fix ?
->
-> Yes, it's the right way to get the fix. However, you've hit a new problem
-> of a similar making. Please can you try with this patch as well:
->
-> Thanks
-> Sean
-> ---
-> From 84efb0bf72ae5d9183f25d69d95fb9ad9b9bc644 Mon Sep 17 00:00:00 2001
-> From: Sean Young <sean@mess.org>
-> Date: Sun, 29 Oct 2017 19:28:32 +0000
-> Subject: [PATCH] media: dibusb: don't do DMA on stack
->
-> The USB control messages require DMA to work. We cannot pass
-> a stack-allocated buffer, as it is not warranted that the
-> stack would be into a DMA enabled area.
->
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  drivers/media/usb/dvb-usb/dibusb-common.c | 14 ++++++++++++--
->  1 file changed, 12 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/usb/dvb-usb/dibusb-common.c b/drivers/media/usb/dvb-usb/dibusb-common.c
-> index 8207e6900656..18c6e454b1b7 100644
-> --- a/drivers/media/usb/dvb-usb/dibusb-common.c
-> +++ b/drivers/media/usb/dvb-usb/dibusb-common.c
-> @@ -223,8 +223,18 @@ EXPORT_SYMBOL(dibusb_i2c_algo);
->
->  int dibusb_read_eeprom_byte(struct dvb_usb_device *d, u8 offs, u8 *val)
->  {
-> -       u8 wbuf[1] = { offs };
-> -       return dibusb_i2c_msg(d, 0x50, wbuf, 1, val, 1);
-> +       u8 *wbuf;
-> +       int rc;
-> +
-> +       wbuf = kmalloc(1, GFP_KERNEL);
-> +       if (!wbuf)
-> +               return -ENOMEM;
-> +
-> +       *wbuf = offs;
-> +       rc = dibusb_i2c_msg(d, 0x50, wbuf, 1, val, 1);
-> +       kfree(wbuf);
-> +
-> +       return rc;
->  }
->  EXPORT_SYMBOL(dibusb_read_eeprom_byte);
->
-> --
-> 2.13.6
->
+Thanks
+Sean
