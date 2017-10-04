@@ -1,91 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blatinox.fr ([51.254.120.209]:33832 "EHLO vps202351.ovh.net"
+Received: from osg.samsung.com ([64.30.133.232]:64928 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751604AbdJATlN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 1 Oct 2017 15:41:13 -0400
-From: =?UTF-8?q?J=C3=A9r=C3=A9my=20Lefaure?=
-        <jeremy.lefaure@lse.epita.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: =?UTF-8?q?J=C3=A9r=C3=A9my=20Lefaure?=
-        <jeremy.lefaure@lse.epita.fr>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 16/18] media: staging: atomisp: use ARRAY_SIZE
-Date: Sun,  1 Oct 2017 15:30:54 -0400
-Message-Id: <20171001193101.8898-17-jeremy.lefaure@lse.epita.fr>
-In-Reply-To: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
-References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        id S1752044AbdJDL6h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Oct 2017 07:58:37 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v3 13/17] scripts: kernel-doc: get rid of $nested parameter
+Date: Wed,  4 Oct 2017 08:48:51 -0300
+Message-Id: <55fca19c79979bb1392ed245cf19c8fa7696bfd4.1507116877.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
+References: <cover.1507116877.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
+References: <cover.1507116877.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using the ARRAY_SIZE macro improves the readability of the code. Also,
-it is useless to use a variable to store this constant calculated at
-compile time.
+The check_sections() function has a $nested parameter, meant
+to identify when a nested struct is present. As we now have
+a logic that handles it, get rid of such parameter.
 
-Found with Coccinelle with the following semantic patch:
-@r depends on (org || report)@
-type T;
-T[] E;
-position p;
-@@
-(
- (sizeof(E)@p /sizeof(*E))
-|
- (sizeof(E)@p /sizeof(E[...]))
-|
- (sizeof(E)@p /sizeof(T))
-)
-
-Signed-off-by: Jérémy Lefaure <jeremy.lefaure@lse.epita.fr>
+Suggested-by: Markus Heiser <markus.heiser@darmarit.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- .../pci/atomisp2/css2400/camera/pipe/src/pipe_binarydesc.c       | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ scripts/kernel-doc | 19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/camera/pipe/src/pipe_binarydesc.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/camera/pipe/src/pipe_binarydesc.c
-index 17d3b7de93ba..98a2a3e9b3e6 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/camera/pipe/src/pipe_binarydesc.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/camera/pipe/src/pipe_binarydesc.c
-@@ -22,6 +22,7 @@
- #include <assert_support.h>
- /* HRT_GDC_N */
- #include "gdc_device.h"
-+#include <linux/kernel.h>
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index 1b4a096a409b..8fe62b2dbc2d 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -983,7 +983,6 @@ sub dump_union($$) {
+ sub dump_struct($$) {
+     my $x = shift;
+     my $file = shift;
+-    my $nested;
  
- /* This module provides a binary descriptions to used to find a binary. Since,
-  * every stage is associated with a binary, it implicity helps stage
-@@ -147,11 +148,9 @@ enum ia_css_err sh_css_bds_factor_get_numerator_denominator(
- 	unsigned int *bds_factor_denominator)
- {
- 	unsigned int i;
--	unsigned int bds_list_size = sizeof(bds_factors_list) /
--				sizeof(struct sh_css_bds_factor);
+     if ($x =~ /(struct|union)\s+(\w+)\s*{(.*)}/) {
+ 	my $decl_type = $1;
+@@ -1041,11 +1040,9 @@ sub dump_struct($$) {
  
- 	/* Loop over all bds factors until a match is found */
--	for (i = 0; i < bds_list_size; i++) {
-+	for (i = 0; i < ARRAY_SIZE(bds_factors_list); i++) {
- 		if (bds_factors_list[i].bds_factor == bds_factor) {
- 			*bds_factor_numerator = bds_factors_list[i].numerator;
- 			*bds_factor_denominator = bds_factors_list[i].denominator;
-@@ -170,8 +169,6 @@ enum ia_css_err binarydesc_calculate_bds_factor(
- 	unsigned int *bds_factor)
- {
- 	unsigned int i;
--	unsigned int bds_list_size = sizeof(bds_factors_list) /
--	    sizeof(struct sh_css_bds_factor);
- 	unsigned int in_w = input_res.width,
- 	    in_h = input_res.height,
- 	    out_w = output_res.width, out_h = output_res.height;
-@@ -186,7 +183,7 @@ enum ia_css_err binarydesc_calculate_bds_factor(
- 	assert(out_w != 0 && out_h != 0);
+ 	# Ignore other nested elements, like enums
+ 	$members =~ s/({[^\{\}]*})//g;
+-	$nested = $decl_type;
+-	$nested =~ s/\/\*.*?\*\///gos;
  
- 	/* Loop over all bds factors until a match is found */
--	for (i = 0; i < bds_list_size; i++) {
-+	for (i = 0; i < ARRAY_SIZE(bds_factors_list); i++) {
- 		unsigned num = bds_factors_list[i].numerator;
- 		unsigned den = bds_factors_list[i].denominator;
+ 	create_parameterlist($members, ';', $file);
+-	check_sections($file, $declaration_name, $decl_type, $sectcheck, $struct_actual, $nested);
++	check_sections($file, $declaration_name, $decl_type, $sectcheck, $struct_actual);
  
+ 	# Adjust declaration for better display
+ 	$declaration =~ s/([{;])/$1\n/g;
+@@ -1350,8 +1347,8 @@ sub push_parameter($$$) {
+ 	$parametertypes{$param} = $type;
+ }
+ 
+-sub check_sections($$$$$$) {
+-	my ($file, $decl_name, $decl_type, $sectcheck, $prmscheck, $nested) = @_;
++sub check_sections($$$$$) {
++	my ($file, $decl_name, $decl_type, $sectcheck, $prmscheck) = @_;
+ 	my @sects = split ' ', $sectcheck;
+ 	my @prms = split ' ', $prmscheck;
+ 	my $err;
+@@ -1385,14 +1382,6 @@ sub check_sections($$$$$$) {
+ 					"'$sects[$sx]' " .
+ 					"description in '$decl_name'\n";
+ 				++$warnings;
+-			} else {
+-				if ($nested !~ m/\Q$sects[$sx]\E/) {
+-				    print STDERR "${file}:$.: warning: " .
+-					"Excess $decl_type member " .
+-					"'$sects[$sx]' " .
+-					"description in '$decl_name'\n";
+-				    ++$warnings;
+-				}
+ 			}
+ 		}
+ 	}
+@@ -1503,7 +1492,7 @@ sub dump_function($$) {
+     }
+ 
+ 	my $prms = join " ", @parameterlist;
+-	check_sections($file, $declaration_name, "function", $sectcheck, $prms, "");
++	check_sections($file, $declaration_name, "function", $sectcheck, $prms);
+ 
+         # This check emits a lot of warnings at the moment, because many
+         # functions don't have a 'Return' doc section. So until the number
 -- 
-2.14.1
+2.13.6
