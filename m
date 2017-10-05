@@ -1,108 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:34525 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751574AbdJJLpe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 07:45:34 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v8 4/7] media: open.rst: document vdevnode-centric and mc-centric types
-Date: Tue, 10 Oct 2017 08:45:20 -0300
-Message-Id: <ff134d19fc163e16710c81f4f90f885a9003e383.1507635716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507635716.git.mchehab@s-opensource.com>
-References: <cover.1507635716.git.mchehab@s-opensource.com>
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:48469 "EHLO
+        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751178AbdJERGI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Oct 2017 13:06:08 -0400
+Received: by mail-wm0-f52.google.com with SMTP id i124so3320235wmf.3
+        for <linux-media@vger.kernel.org>; Thu, 05 Oct 2017 10:06:08 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <cover.1507635716.git.mchehab@s-opensource.com>
-References: <cover.1507635716.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171004211411.27gxy5wnaymdcm3z@rob-hp-laptop>
+References: <1506119053-21828-1-git-send-email-tharvey@gateworks.com>
+ <1506119053-21828-3-git-send-email-tharvey@gateworks.com> <20171004211411.27gxy5wnaymdcm3z@rob-hp-laptop>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Thu, 5 Oct 2017 10:06:06 -0700
+Message-ID: <CAJ+vNU2+7FWqPjBrKBcuKo8y4BKNnRNGhp8NkA3rJOGApaOdoQ@mail.gmail.com>
+Subject: Re: [PATCH 2/4] media: dt-bindings: Add bindings for TDA1997X
+To: Rob Herring <robh@kernel.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When we added support for omap3, back in 2010, we added a new
-type of V4L2 devices that aren't fully controlled via the V4L2
-device node.
+On Wed, Oct 4, 2017 at 2:14 PM, Rob Herring <robh@kernel.org> wrote:
+> On Fri, Sep 22, 2017 at 03:24:11PM -0700, Tim Harvey wrote:
+>> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+>
 
-Yet, we have never clearly documented in the V4L2 specification
-the differences between the two types.
+Hi Rob, thanks for the review!
 
-Let's document them based on the the current implementation.
+I will add a commit message, vendor prefix to non-standard props, and
+remove '_' in the next revision.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/open.rst | 55 +++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+>
+>> +
+>> +Optional Properties:
+>> + - max-pixel-rate  : Maximum pixel rate supported by the SoC (MP/sec)
+>> + - audio-port      : parameters defining audio output port connection
+>
+> That description is meaningless to me.
+>
+<snip>>
+>> +The Audio output port consists of A_CLK, A_WS, AP0, AP1, AP2, and AP3 pins
+>> +and can support up to 8-chanenl audio using the following audio bus DAI formats:
+>> + - I2S16
+>> + - I2S32
+>> + - SPDIF
+>> + - OBA (One-Bit-Audio)
+>> + - I2S16_HBR_STRAIGHT (High Bitrate straight through)
+>> + - I2S16_HBR_DEMUX (High Bitrate demuxed)
+>> + - I2S32_HBR_DEMUX (High Bitrate demuxed)
+>> + - DST (Direct Stream Transfer)
+>
+> This either should be a standard, common property or not be in DT.
+> Practically every system is going to have at least one end of the
+> connection that is configurable. The kernel should be able to get lists
+> of supported modes and pick one.
+>
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index 46ef63e05696..1a8a9e1d0e84 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -7,6 +7,61 @@ Opening and Closing Devices
- ***************************
- 
- 
-+.. _v4l2_hardware_control:
-+
-+
-+Types of V4L2 media hardware control
-+====================================
-+
-+A :term:`V4L2 hardware` is usually complex: support for it is
-+implemented via a :term:`V4L2 main driver` and often by several
-+additional :term:`drivers <driver>`.
-+The main driver always exposes one or more
-+:term:`V4L2 device nodes <v4l2 device node>`
-+(see :ref:`v4l2_device_naming`) with are responsible for implementing
-+data streaming, if applicable.
-+
-+The other drivers are called :term:`V4L2 sub-devices <v4l2 sub-device>`
-+and provide control to other
-+:term:`hardware components <hardware component>` are usually connected
-+via a serial bus (like :term:`I²C`, :term:`SMBus` or :term:`SPI`).
-+Depending on the main driver, they can be implicitly
-+controlled directly by the main driver or explicitly via
-+the V4L2 sub-device API (see :ref:`subdev`).
-+
-+When **V4L2** was originally designed, the
-+:term:`V4L2 device nodes <v4l2 device node>` served the purpose of both
-+control and data interfaces and there was no separation
-+between the two interface-wise. V4L2 controls, setting inputs and outputs,
-+format configuration and buffer related operations were all performed
-+through the same **V4L2 device nodes**. Devices offering such interface are
-+called **V4L2 device node centric**.
-+
-+Later on, support for the :term:`media controller` interface was added
-+to V4L2 in order to better support complex :term:`V4L2 hardware` where the
-+**V4L2** interface alone could no longer meaningfully serve as both a
-+control and a data interface. On such V4L2 hardware, **V4L2** interface
-+remains a data interface whereas control takes place through the
-+:term:`media controller` and :term:`V4L2 sub-device` interfaces. Stream
-+control is an exception to this: streaming is enabled and disabled
-+through the **V4L2** interface. These devices are called
-+**Media controller centric**.
-+
-+**MC-centric** V4L2 hardware provide more versatile control of the
-+hardware than **V4L2 device node centric** devices at the expense of
-+requiring device-specific userspace settings.
-+
-+On **MC-centric** V4L2 hardware, the **V4L2 sub-device nodes**
-+represent specific parts of the V4L2 hardware, to which they enable
-+control.
-+
-+Also, the additional versatility of **MC-centric** V4L2 hardware comes
-+with additional responsibilities, the main one of which is the requirements
-+of the user configuring the device pipeline before starting streaming. This
-+typically involves configuring the links using the **Media controller**
-+interface and the media bus formats on pads (at both ends of the links)
-+using the **V4L2 sub-device** interface.
-+
- .. _v4l2_device_naming:
- 
- V4L2 Device Node Naming
--- 
-2.13.6
+I struggled with 'audio-port' property quite a bit.
+
+Looking at the datasheet a bit closer
+(http://dev.gateworks.com/datasheets/TDA19971-datasheet-rev3.pdf) I
+see that the audio output port consisting of WS, AP[0:3], CLK really
+only supports I2S and S/PDIF output modes. The AP[0:3] provide support
+for up to 8 audio channels. The way these pins are used is defined in
+Table 5/6/7 in the datasheet but I think that the dt perhaps only
+needs to number of data lines (1-4) (which could also be represented
+as channels (1-8)), and a clock multiplier which could be described as
+a 'mclk-fs' multiplication factor like simple-audio bindings does.
+
+What would your recommendation be here?
+
+>> +
+<snip>
+>> +             max-pixel-rate = <180>; /* IMX6 CSI max pixel rate 180MP/sec */
+>
+> That's a constraint that belongs in the i.MX CSI node or driver.
+
+right - that makes sense. I'll talk to the maintainer of the i.MX CSI
+driver to see what they think.
+
+>
+>> +
+>> +             port@0 {
+>> +                     reg = <0>;
+>> +             };
+>> +             port@1 {
+>
+> You need to describe how many ports and what they are.
+
+ok. My example was a mistake anyway and I propose a single output port such as:
+
+The device node must contain one 'port' child node for its digital output
+video port, in accordance with the video interface bindings defined in
+Documentation/devicetree/bindings/media/video-interfaces.txt.
+
+Example:
+                port {
+                        tda1997x_to_ipu1_csi0_mux: endpoint {
+                                remote-endpoint =
+<&ipu1_csi0_mux_from_parallel_sensor>;
+                                bus-width = <16>;
+                                hsync-active = <1>;
+                                vsync-active = <1>;
+                                data-active = <1>;
+                        };
+                };
+
+>
+>> +                     reg = <1>;
+>> +                     hdmi_in: endpoint {
+>> +                             remote-endpoint = <&ccdc_in>;
+>> +                     };
+>> +             };
+>> +     };
+>> + - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
+>> +   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
+>
+> Do you really need 2 examples? It should be possible to figure out other
+> configurations with better descriptions above.
+>
+
+Perhaps, but I feel like the vidout-portcfg is pretty confusing and
+wanted to provide some different mappings as examples. The
+vidout-portcfg property allows you to shift the bits around on the
+output pins per 4-bit groups as well as reverse their order and
+different defines are used depending on RGB444/YUV444/YUV422/BT656. I
+could provide just portcfg examples above the full dts example though
+under the short description of 'nxp,vidout-portcfg'.
+
+Regards,
+
+Tim
