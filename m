@@ -1,46 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:60361 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750924AbdJONLB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Oct 2017 09:11:01 -0400
-Subject: Re: [PATCH] build: Fixed patches partly for Kernel 2.6.32
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: d.scheller@gmx.net
-References: <1507938731-23816-1-git-send-email-jasmin@anw.at>
- <fd99fe5a-81a8-8c6b-20c7-7c4b277432fa@anw.at>
- <8435b63d-bded-2a5b-ab94-c8d4369973c1@xs4all.nl>
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <97fd54e7-6c74-f825-7451-91a176004d03@anw.at>
-Date: Sun, 15 Oct 2017 15:10:57 +0200
-MIME-Version: 1.0
-In-Reply-To: <8435b63d-bded-2a5b-ab94-c8d4369973c1@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:35407 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751319AbdJEITk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Oct 2017 04:19:40 -0400
+Message-ID: <1507191578.8473.1.camel@pengutronix.de>
+Subject: Re: platform: coda: how to use firmware-imx binary releases?
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Martin Kepplinger <martink@posteo.de>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org
+Date: Thu, 05 Oct 2017 10:19:38 +0200
+In-Reply-To: <7dd05afd338e81d293d0424e0b8e6b6a@posteo.de>
+References: <ef7cc5b91829f383842a1e4692af5b07@posteo.de>
+         <1507108964.11691.6.camel@pengutronix.de>
+         <7dd05afd338e81d293d0424e0b8e6b6a@posteo.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans!
+Hi Martin,
 
-> Do you need build support for kernels < 2.6.36?
-I don't, but I have the headers laying around on my disk and I simply tried to
-fix the build ;)
+On Thu, 2017-10-05 at 09:43 +0200, Martin Kepplinger wrote:
+> I'm running a little off-topic here, but with the newest firmware too, 
+> my
+> coda driver says "Video Data Order Adapter: Disabled" when started
+> by video playback via v4l2.
 
-> I gave up supporting such old kernels 2 or 3 years ago.
-It seems so. I just learned, that RHEL 6.x does still use 2.6.32.
-But there is RHEL 7 out since 3 years now and they use 3.10, so there is no
-real need to support this Kernel version.
-But I personally want to support back to 2.6.36, because this is also the last
-Version which is supported by Digitial Devices with their drivers. And my
-media-build DKMS should compile back to the same version.
+This message is most likely just a result of the VDOA not supporting the
+selected capture format. In vdoa_context_configure, you can see that the
+VDOA only writes YUYV or NV12.
 
-> I'm holding off on merging this patch and the 2.6.35 patch until I
-> have a better idea of why you want to support those kernels.
-The patch for 2.6.35 could be applied without any problems and should also
-work. It is not much effort to merge it, I guess.
+> (imx6, running linux 4.14-rc3, imx-vdoa is probed and never removed,
+> a dev_info "probed" would maybe be useful for others too?)
+> 
+> It supsequently fails with
+> 
+> cma: cma_alloc: alloc failed, req-size: 178 pages, ret: -12
 
-> The other patches I just merged.
-THX!
+That is -ENOMEM. Is CMA enabled and sufficiently large? For example,
 
-BR,
-   Jasmin
+CONFIG_CMA=y
+CONFIG_CMA_DEBUGFS=y
+CONFIG_DMA_CMA=y
+CONFIG_CMA_SIZE_MBYTES=256
+CONFIG_CMA_SIZE_SEL_MBYTES=y
+
+> which may or may not be related to having the vdoa (is it?), but 
+> shouldn't the VDOA module be active by default?
+> 
+> # cat /sys/module/coda/parameters/disable_vdoa
+> 0
+
+I think it is not related to VDOA at all. Yes, by default the VDOA
+should be activated automatically for any supported format.
+
+regards
+Philipp
