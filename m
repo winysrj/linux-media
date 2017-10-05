@@ -1,1373 +1,573 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:38870 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752786AbdJKUJx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Oct 2017 16:09:53 -0400
-From: Dmitry Osipenko <digetx@gmail.com>
-To: Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Warren <swarren@wwwdotorg.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v3 1/2] staging: Introduce NVIDIA Tegra20 video decoder driver
-Date: Wed, 11 Oct 2017 23:08:11 +0300
-Message-Id: <3d432aa2617977a2b0a8621a1fc2f36f751133e1.1507752381.git.digetx@gmail.com>
-In-Reply-To: <cover.1507752381.git.digetx@gmail.com>
-References: <cover.1507752381.git.digetx@gmail.com>
-In-Reply-To: <cover.1507752381.git.digetx@gmail.com>
-References: <cover.1507752381.git.digetx@gmail.com>
+Received: from gofer.mess.org ([88.97.38.141]:52885 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751385AbdJEIpc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Oct 2017 04:45:32 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 12/25] media: lirc: use kfifo rather than lirc_buffer for raw IR
+Date: Thu,  5 Oct 2017 09:45:14 +0100
+Message-Id: <abdd2400292893df129a2e7e679606936549f8f0.1507192752.git.sean@mess.org>
+In-Reply-To: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
+References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
+In-Reply-To: <cover.1507192751.git.sean@mess.org>
+References: <cover.1507192751.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Video decoder, found on NVIDIA Tegra20 SoC, supports a standard set of
-video formats like H.264 / MPEG-4 / WMV / VC1. Currently driver supports
-decoding of CAVLC H.264 only.
+Since the only mode lirc devices can handle is raw IR, handle this
+in a plain kfifo.
 
-Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+Remove lirc_buffer since this is no longer needed.
+
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- .../bindings/arm/tegra/nvidia,tegra20-vde.txt      |   44 +
- drivers/staging/Kconfig                            |    2 +
- drivers/staging/Makefile                           |    1 +
- drivers/staging/tegra-vde/Kconfig                  |    6 +
- drivers/staging/tegra-vde/Makefile                 |    1 +
- drivers/staging/tegra-vde/TODO                     |    5 +
- drivers/staging/tegra-vde/uapi.h                   |  101 ++
- drivers/staging/tegra-vde/vde.c                    | 1109 ++++++++++++++++++++
- 8 files changed, 1269 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20-vde.txt
- create mode 100644 drivers/staging/tegra-vde/Kconfig
- create mode 100644 drivers/staging/tegra-vde/Makefile
- create mode 100644 drivers/staging/tegra-vde/TODO
- create mode 100644 drivers/staging/tegra-vde/uapi.h
- create mode 100644 drivers/staging/tegra-vde/vde.c
+ drivers/media/rc/ir-lirc-codec.c |  79 +++++++++++++---
+ drivers/media/rc/lirc_dev.c      | 191 ++++-----------------------------------
+ include/media/lirc_dev.h         | 109 ----------------------
+ include/media/rc-core.h          |   4 +
+ 4 files changed, 85 insertions(+), 298 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20-vde.txt b/Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20-vde.txt
-new file mode 100644
-index 000000000000..c3f847db8167
---- /dev/null
-+++ b/Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20-vde.txt
-@@ -0,0 +1,44 @@
-+NVIDIA Tegra Video Decoder Engine
-+
-+Required properties:
-+- compatible : "nvidia,tegra20-vde"
-+- reg : Must contain 2 register ranges: registers and IRAM region that
-+        VDE uses for its internal needs and for passing some of decoding
-+        parameters.
-+- reg-names : Must include the following entries:
-+  - regs
-+  - iram
-+- interrupts : Must contain an entry for each entry in interrupt-names.
-+- interrupt-names : Must include the following entries:
-+  - ucq-error
-+  - sync-token
-+  - bsev
-+  - bsea
-+  - sxe
-+- clocks : Must contain an entry for each entry in clock-names.
-+  See ../clocks/clock-bindings.txt for details.
-+- clock-names : Must include the following entries:
-+  - vde
-+- resets : Must contain an entry for each entry in reset-names.
-+  See ../reset/reset.txt for details.
-+- reset-names : Must include the following entries:
-+  - vde
-+
-+Example:
-+
-+vde@6001a000 {
-+	compatible = "nvidia,tegra20-vde";
-+	reg = <0x6001a000 0x3D00    /* VDE registers */
-+		0x40000400 0x3FC00>; /* IRAM region */
-+	reg-names = "regs", "iram";
-+	interrupts = <GIC_SPI  8 IRQ_TYPE_LEVEL_HIGH>, /* UCQ error interrupt */
-+			<GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
-+			<GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
-+			<GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>, /* BSE-A interrupt */
-+			<GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
-+	interrupt-names = "ucq-error", "sync-token", "bsev", "bsea", "sxe";
-+	clocks = <&tegra_car TEGRA20_CLK_VDE>;
-+	clock-names = "vde";
-+	resets = <&tegra_car 61>;
-+	reset-names = "vde";
-+};
-diff --git a/drivers/staging/Kconfig b/drivers/staging/Kconfig
-index 554683912cff..10c982811093 100644
---- a/drivers/staging/Kconfig
-+++ b/drivers/staging/Kconfig
-@@ -118,4 +118,6 @@ source "drivers/staging/vboxvideo/Kconfig"
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index 60badd9b453d..801d5d174b04 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -66,8 +66,6 @@ void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
+ 	} else {
  
- source "drivers/staging/pi433/Kconfig"
+ 		if (dev->gap) {
+-			int gap_sample;
+-
+ 			dev->gap_duration += ktime_to_ns(ktime_sub(ktime_get(),
+ 							 dev->gap_start));
  
-+source "drivers/staging/tegra-vde/Kconfig"
-+
- endif # STAGING
-diff --git a/drivers/staging/Makefile b/drivers/staging/Makefile
-index 8951c37d8d80..c5ef39767f22 100644
---- a/drivers/staging/Makefile
-+++ b/drivers/staging/Makefile
-@@ -49,3 +49,4 @@ obj-$(CONFIG_BCM2835_VCHIQ)	+= vc04_services/
- obj-$(CONFIG_CRYPTO_DEV_CCREE)	+= ccree/
- obj-$(CONFIG_DRM_VBOXVIDEO)	+= vboxvideo/
- obj-$(CONFIG_PI433)		+= pi433/
-+obj-$(CONFIG_TEGRA_VDE)		+= tegra-vde/
-diff --git a/drivers/staging/tegra-vde/Kconfig b/drivers/staging/tegra-vde/Kconfig
-new file mode 100644
-index 000000000000..730ee006de66
---- /dev/null
-+++ b/drivers/staging/tegra-vde/Kconfig
-@@ -0,0 +1,6 @@
-+config TEGRA_VDE
-+	tristate "NVIDIA Tegra Video Decoder Engine driver"
-+	depends on ARCH_TEGRA_2x_SOC || COMPILE_TEST
-+	help
-+	    Say Y here to enable support for the NVIDIA Tegra video decoder
-+	    driver.
-diff --git a/drivers/staging/tegra-vde/Makefile b/drivers/staging/tegra-vde/Makefile
-new file mode 100644
-index 000000000000..e7c0df1174bf
---- /dev/null
-+++ b/drivers/staging/tegra-vde/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_TEGRA_VDE)	+= vde.o
-diff --git a/drivers/staging/tegra-vde/TODO b/drivers/staging/tegra-vde/TODO
-new file mode 100644
-index 000000000000..e98bbc7b3c19
---- /dev/null
-+++ b/drivers/staging/tegra-vde/TODO
-@@ -0,0 +1,5 @@
-+TODO:
-+	- Figure out how generic V4L2 API could be utilized by this driver,
-+	  implement it.
-+
-+Contact: Dmitry Osipenko <digetx@gmail.com>
-diff --git a/drivers/staging/tegra-vde/uapi.h b/drivers/staging/tegra-vde/uapi.h
-new file mode 100644
-index 000000000000..36d76278d27c
---- /dev/null
-+++ b/drivers/staging/tegra-vde/uapi.h
-@@ -0,0 +1,101 @@
-+/*
-+ * Copyright (C) 2016-2017 Dmitry Osipenko <digetx@gmail.com>
-+ * All Rights Reserved.
-+ *
-+ * Permission is hereby granted, free of charge, to any person obtaining a
-+ * copy of this software and associated documentation files (the "Software"),
-+ * to deal in the Software without restriction, including without limitation
-+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
-+ * and/or sell copies of the Software, and to permit persons to whom the
-+ * Software is furnished to do so, subject to the following conditions:
-+ *
-+ * The above copyright notice and this permission notice (including the next
-+ * paragraph) shall be included in all copies or substantial portions of the
-+ * Software.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
-+ * VA LINUX SYSTEMS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-+ * OTHER DEALINGS IN THE SOFTWARE.
-+ */
-+
-+#ifndef _UAPI_TEGRA_VDE_H_
-+#define _UAPI_TEGRA_VDE_H_
-+
-+#include <linux/types.h>
-+#include <asm/ioctl.h>
-+
-+#if defined(__cplusplus)
-+extern "C" {
-+#endif
-+
-+#define FLAG_B_FRAME		(1 << 0)
-+#define FLAG_REFERENCE		(1 << 1)
-+
-+struct tegra_vde_h264_frame {
-+	__s32 y_fd;
-+	__s32 cb_fd;
-+	__s32 cr_fd;
-+	__s32 aux_fd;
-+	__u32 y_offset;
-+	__u32 cb_offset;
-+	__u32 cr_offset;
-+	__u32 aux_offset;
-+	__u32 frame_num;
-+	__u32 flags;
-+
-+	__u32 reserved;
-+} __attribute__((packed));
-+
-+struct tegra_vde_h264_decoder_ctx {
-+	__s32 bitstream_data_fd;
-+	__u32 bitstream_data_offset;
-+
-+	__u32 dpb_frames_ptr;
-+	__u8  dpb_frames_nb;
-+	__u8  dpb_ref_frames_with_earlier_poc_nb;
-+
-+	// SPS
-+	__u8  baseline_profile;
-+	__u8  level_idc;
-+	__u8  log2_max_pic_order_cnt_lsb;
-+	__u8  log2_max_frame_num;
-+	__u8  pic_order_cnt_type;
-+	__u8  direct_8x8_inference_flag;
-+	__u8  pic_width_in_mbs;
-+	__u8  pic_height_in_mbs;
-+
-+	// PPS
-+	__u8  pic_init_qp;
-+	__u8  deblocking_filter_control_present_flag;
-+	__u8  constrained_intra_pred_flag;
-+	__u8  chroma_qp_index_offset;
-+	__u8  pic_order_present_flag;
-+
-+	// Slice header
-+	__u8  num_ref_idx_l0_active_minus1;
-+	__u8  num_ref_idx_l1_active_minus1;
-+
-+	__u32 reserved;
-+} __attribute__((packed));
-+
-+#define VDE_IOCTL_BASE			('v' + 0x20)
-+
-+#define VDE_IO(nr)			_IO(VDE_IOCTL_BASE, nr)
-+#define VDE_IOR(nr, type)		_IOR(VDE_IOCTL_BASE, nr, type)
-+#define VDE_IOW(nr, type)		_IOW(VDE_IOCTL_BASE, nr, type)
-+#define VDE_IOWR(nr, type)		_IOWR(VDE_IOCTL_BASE, nr, type)
-+
-+#define TEGRA_VDE_DECODE_H264		0x00
-+
-+#define TEGRA_VDE_IOCTL_DECODE_H264	\
-+	VDE_IOW(TEGRA_VDE_DECODE_H264, struct tegra_vde_h264_decoder_ctx)
-+
-+#if defined(__cplusplus)
-+}
-+#endif
-+
-+#endif // _UAPI_TEGRA_VDE_H_
-diff --git a/drivers/staging/tegra-vde/vde.c b/drivers/staging/tegra-vde/vde.c
-new file mode 100644
-index 000000000000..3ef0d5f2295b
---- /dev/null
-+++ b/drivers/staging/tegra-vde/vde.c
-@@ -0,0 +1,1109 @@
-+/*
-+ * NVIDIA Tegra20 Video decoder driver
-+ *
-+ * Copyright (C) 2016-2017 Dmitry Osipenko <digetx@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/dma-buf.h>
-+#include <linux/interrupt.h>
-+#include <linux/iopoll.h>
-+#include <linux/miscdevice.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/reset.h>
-+#include <linux/slab.h>
-+#include <linux/uaccess.h>
-+
-+#include <soc/tegra/pmc.h>
-+
-+#include "uapi.h"
-+
-+#define SXE(offt)		(0x0000 + (offt)) /* Syntax Engine */
-+#define BSEV(offt)		(0x1000 + (offt)) /* Video Bitstream Engine */
-+#define MBE(offt)		(0x2000 + (offt)) /* Macroblock Engine */
-+#define PPE(offt)		(0x2200 + (offt)) /* Post-processing Engine */
-+#define MCE(offt)		(0x2400 + (offt)) /* Motion Compensation Eng. */
-+#define TFE(offt)		(0x2600 + (offt)) /* Transform Engine */
-+#define VDMA(offt)		(0x2A00 + (offt)) /* Video DMA */
-+#define FRAMEID(offt)		(0x3800 + (offt))
-+
-+#define ICMDQUE_WR		0x00
-+#define CMDQUE_CONTROL		0x08
-+#define INTR_STATUS		0x18
-+#define BSE_INT_ENB		0x40
-+#define BSE_CONFIG		0x44
-+
-+#define BSE_ICMDQUE_EMPTY	BIT(3)
-+#define BSE_DMA_BUSY		BIT(23)
-+
-+#define TEGRA_VDE_TIMEOUT	msecs_to_jiffies(1000)
-+
-+#define VDE_WR(__data, __addr)				\
-+do {							\
-+	pr_debug("%s: %d: 0x%08X => " #__addr ")\n",	\
-+		  __func__, __LINE__, (u32)(__data));	\
-+	writel_relaxed(__data, __addr);			\
-+} while (0)
-+
-+struct video_frame {
-+	struct dma_buf_attachment *y_dmabuf_attachment;
-+	struct dma_buf_attachment *cb_dmabuf_attachment;
-+	struct dma_buf_attachment *cr_dmabuf_attachment;
-+	struct dma_buf_attachment *aux_dmabuf_attachment;
-+	struct sg_table *y_sgt;
-+	struct sg_table *cb_sgt;
-+	struct sg_table *cr_sgt;
-+	struct sg_table *aux_sgt;
-+	dma_addr_t y_paddr;
-+	dma_addr_t cb_paddr;
-+	dma_addr_t cr_paddr;
-+	dma_addr_t aux_paddr;
-+	u32 frame_num;
-+	u32 flags;
-+};
-+
-+struct tegra_vde {
-+	phys_addr_t iram_lists_paddr;
-+	void __iomem *regs;
-+	void __iomem *iram;
-+	struct mutex lock;
-+	struct miscdevice miscdev;
-+	struct reset_control *rst;
-+	struct completion decode_completion;
-+	struct clk *clk;
-+};
-+
-+static void tegra_vde_set_bits(void __iomem *regs, u32 mask, u32 offset)
+@@ -76,9 +74,7 @@ void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
+ 			dev->gap_duration = min_t(u64, dev->gap_duration,
+ 						  LIRC_VALUE_MASK);
+ 
+-			gap_sample = LIRC_SPACE(dev->gap_duration);
+-			lirc_buffer_write(dev->lirc_dev->buf,
+-					  (unsigned char *)&gap_sample);
++			kfifo_put(&dev->rawir, LIRC_SPACE(dev->gap_duration));
+ 			dev->gap = false;
+ 		}
+ 
+@@ -88,10 +84,8 @@ void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
+ 			   TO_US(ev.duration), TO_STR(ev.pulse));
+ 	}
+ 
+-	lirc_buffer_write(dev->lirc_dev->buf,
+-			  (unsigned char *) &sample);
+-
+-	wake_up(&dev->lirc_dev->buf->wait_poll);
++	kfifo_put(&dev->rawir, sample);
++	wake_up_poll(&dev->wait_poll, POLLIN | POLLRDNORM);
+ }
+ 
+ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+@@ -410,6 +404,66 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 	return ret;
+ }
+ 
++static unsigned int ir_lirc_poll(struct file *file,
++				 struct poll_table_struct *wait)
 +{
-+	u32 value = readl_relaxed(regs + offset);
++	struct rc_dev *rcdev = file->private_data;
++	struct lirc_dev *d = rcdev->lirc_dev;
++	unsigned int events = 0;
 +
-+	VDE_WR(value | mask, regs + offset);
++	poll_wait(file, &rcdev->wait_poll, wait);
++
++	if (!d->attached)
++		events = POLLHUP | POLLERR;
++	else if (rcdev->driver_type == RC_DRIVER_IR_RAW &&
++		 !kfifo_is_empty(&rcdev->rawir))
++		events = POLLIN | POLLRDNORM;
++
++	return events;
 +}
 +
-+static int tegra_vde_wait_mbe(void __iomem *regs)
++static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
++			    size_t length, loff_t *ppos)
 +{
-+	u32 tmp;
-+
-+	return readl_relaxed_poll_timeout(regs + MBE(0x8C), tmp,
-+					  (tmp >= 0x10), 1, 100);
-+}
-+
-+static int tegra_vde_setup_mbe_frame_idx(void __iomem *regs,
-+					 unsigned int refs_nb,
-+					 bool setup_refs)
-+{
-+	u32 frame_idx_enb_mask = 0;
-+	u32 value;
-+	unsigned int frame_idx;
-+	unsigned int idx;
-+	int err;
-+
-+	VDE_WR(0xD0000000 | (0 << 23), regs + MBE(0x80));
-+	VDE_WR(0xD0200000 | (0 << 23), regs + MBE(0x80));
-+
-+	err = tegra_vde_wait_mbe(regs);
-+	if (err)
-+		return err;
-+
-+	if (!setup_refs)
-+		return 0;
-+
-+	for (idx = 0, frame_idx = 1; idx < refs_nb; idx++, frame_idx++) {
-+		VDE_WR(0xD0000000 | (frame_idx << 23), regs + MBE(0x80));
-+		VDE_WR(0xD0200000 | (frame_idx << 23), regs + MBE(0x80));
-+
-+		frame_idx_enb_mask |= frame_idx << (6 * (idx % 4));
-+
-+		if (idx % 4 == 3 || idx == refs_nb - 1) {
-+			value = 0xC0000000;
-+			value |= (idx >> 2) << 24;
-+			value |= frame_idx_enb_mask;
-+
-+			VDE_WR(value, regs + MBE(0x80));
-+
-+			err = tegra_vde_wait_mbe(regs);
-+			if (err)
-+				return err;
-+
-+			frame_idx_enb_mask = 0;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static void tegra_vde_mbe_set_0xa_reg(void __iomem *regs, int reg, u32 val)
-+{
-+	VDE_WR(0xA0000000 | (reg << 24) | (val & 0xFFFF), regs + MBE(0x80));
-+	VDE_WR(0xA0000000 | ((reg + 1) << 24) | (val >> 16), regs + MBE(0x80));
-+}
-+
-+static int tegra_vde_wait_bsev(struct tegra_vde *vde, bool wait_dma)
-+{
-+	struct device *dev = vde->miscdev.parent;
-+	u32 value;
-+	int err;
-+
-+	err = readl_relaxed_poll_timeout(vde->regs + BSEV(INTR_STATUS), value,
-+					 !(value & BIT(2)), 1, 100);
-+	if (err) {
-+		dev_err(dev, "BSEV unknown bit timeout\n");
-+		return err;
-+	}
-+
-+	err = readl_relaxed_poll_timeout(vde->regs + BSEV(INTR_STATUS), value,
-+					 (value & BSE_ICMDQUE_EMPTY), 1, 100);
-+	if (err) {
-+		dev_err(dev, "BSEV ICMDQUE flush timeout\n");
-+		return err;
-+	}
-+
-+	if (!wait_dma)
-+		return 0;
-+
-+	err = readl_relaxed_poll_timeout(vde->regs + BSEV(INTR_STATUS), value,
-+					 !(value & BSE_DMA_BUSY), 1, 100);
-+	if (err) {
-+		dev_err(dev, "BSEV DMA timeout\n");
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+
-+static int tegra_vde_push_to_bsev_icmdqueue(struct tegra_vde *vde,
-+					    u32 value, bool wait_dma)
-+{
-+	VDE_WR(value, vde->regs + BSEV(ICMDQUE_WR));
-+
-+	return tegra_vde_wait_bsev(vde, wait_dma);
-+}
-+
-+static void tegra_vde_setup_frameid(void __iomem *regs,
-+				    struct video_frame *frame,
-+				    unsigned int frameid,
-+				    u32 mbs_width, u32 mbs_height)
-+{
-+	u32 y_paddr  = frame ? frame->y_paddr  : 0xFCDEAD00;
-+	u32 cb_paddr = frame ? frame->cb_paddr : 0xFCDEAD00;
-+	u32 cr_paddr = frame ? frame->cr_paddr : 0xFCDEAD00;
-+	u32 value1 = frame ? ((mbs_width << 16) | mbs_height) : 0;
-+	u32 value2 = frame ? ((((mbs_width + 1) >> 1) << 6) | 1) : 0;
-+
-+	VDE_WR( y_paddr >> 8, regs + FRAMEID(0x000 + frameid * 4));
-+	VDE_WR(cb_paddr >> 8, regs + FRAMEID(0x100 + frameid * 4));
-+	VDE_WR(cr_paddr >> 8, regs + FRAMEID(0x180 + frameid * 4));
-+	VDE_WR(value1,        regs + FRAMEID(0x080 + frameid * 4));
-+	VDE_WR(value2,        regs + FRAMEID(0x280 + frameid * 4));
-+}
-+
-+static void tegra_setup_frameidx(void __iomem *regs,
-+				 struct video_frame *frames,
-+				 unsigned int frames_nb,
-+				 u32 mbs_width, u32 mbs_height)
-+{
-+	unsigned int idx;
-+
-+	for (idx = 0; idx < frames_nb; idx++)
-+		tegra_vde_setup_frameid(regs, &frames[idx], idx,
-+					mbs_width, mbs_height);
-+	for (; idx < 17; idx++)
-+		tegra_vde_setup_frameid(regs, NULL, idx, 0, 0);
-+}
-+
-+static void tegra_vde_setup_iram_entry(void __iomem *iram_tables,
-+				       unsigned int table,
-+				       unsigned int row,
-+				       u32 value1, u32 value2)
-+{
-+	VDE_WR(value1, iram_tables + 0x80 * table + row * 8);
-+	VDE_WR(value2, iram_tables + 0x80 * table + row * 8 + 4);
-+}
-+
-+static void tegra_vde_setup_iram_tables(void __iomem *iram_tables,
-+					struct video_frame *dpb_frames,
-+					unsigned int ref_frames_nb,
-+					unsigned int with_earlier_poc_nb)
-+{
-+	struct video_frame *frame;
-+	u32 value, aux_paddr;
-+	int with_later_poc_nb;
-+	unsigned int i, k;
-+
-+	pr_debug("DPB: Frame 0: frame_num = %d\n", dpb_frames[0].frame_num);
-+
-+	pr_debug("REF L0:\n");
-+
-+	for (i = 0; i < 16; i++) {
-+		if (i < ref_frames_nb) {
-+			frame = &dpb_frames[i + 1];
-+
-+			aux_paddr = frame->aux_paddr;
-+
-+			value  = (i + 1) << 26;
-+			value |= !(frame->flags & FLAG_B_FRAME) << 25;
-+			value |= 1 << 24;
-+			value |= frame->frame_num;
-+
-+			pr_debug("\tFrame %d: frame_num = %d B_frame = %d\n",
-+				 i + 1, frame->frame_num,
-+				 (frame->flags & FLAG_B_FRAME));
-+		} else {
-+			aux_paddr = 0xFADEAD00;
-+			value = 0;
-+		}
-+
-+		tegra_vde_setup_iram_entry(iram_tables, 0, i, value, aux_paddr);
-+		tegra_vde_setup_iram_entry(iram_tables, 1, i, value, aux_paddr);
-+		tegra_vde_setup_iram_entry(iram_tables, 2, i, value, aux_paddr);
-+		tegra_vde_setup_iram_entry(iram_tables, 3, i, value, aux_paddr);
-+	}
-+
-+	if (!(dpb_frames[0].flags & FLAG_B_FRAME))
-+		return;
-+
-+	if (with_earlier_poc_nb >= ref_frames_nb)
-+		return;
-+
-+	with_later_poc_nb = ref_frames_nb - with_earlier_poc_nb;
-+
-+	pr_debug("REF L1: with_later_poc_nb %d with_earlier_poc_nb %d\n",
-+		 with_later_poc_nb, with_earlier_poc_nb);
-+
-+	for (i = 0, k = with_earlier_poc_nb; i < with_later_poc_nb; i++, k++) {
-+		frame = &dpb_frames[k + 1];
-+
-+		aux_paddr = frame->aux_paddr;
-+
-+		value  = (k + 1) << 26;
-+		value |= !(frame->flags & FLAG_B_FRAME) << 25;
-+		value |= 1 << 24;
-+		value |= frame->frame_num;
-+
-+		pr_debug("\tFrame %d: frame_num = %d\n",
-+			 k + 1, frame->frame_num);
-+
-+		tegra_vde_setup_iram_entry(iram_tables, 2, i, value, aux_paddr);
-+	}
-+
-+	for (k = 0; i < ref_frames_nb; i++, k++) {
-+		frame = &dpb_frames[k + 1];
-+
-+		aux_paddr = frame->aux_paddr;
-+
-+		value  = (k + 1) << 26;
-+		value |= !(frame->flags & FLAG_B_FRAME) << 25;
-+		value |= 1 << 24;
-+		value |= frame->frame_num;
-+
-+		pr_debug("\tFrame %d: frame_num = %d\n",
-+			 k + 1, frame->frame_num);
-+
-+		tegra_vde_setup_iram_entry(iram_tables, 2, i, value, aux_paddr);
-+	}
-+}
-+
-+static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
-+				      struct tegra_vde_h264_decoder_ctx *ctx,
-+				      struct video_frame *dpb_frames,
-+				      phys_addr_t bitstream_data_paddr,
-+				      size_t bitstream_data_size,
-+				      unsigned int macroblocks_nb)
-+{
-+	struct device *dev = vde->miscdev.parent;
-+	u32 value;
-+	int err;
-+
-+	tegra_vde_set_bits(vde->regs,    0xA, SXE(0xF0));
-+	tegra_vde_set_bits(vde->regs,    0xB, BSEV(CMDQUE_CONTROL));
-+	tegra_vde_set_bits(vde->regs, 0x8002, MBE(0x50));
-+	tegra_vde_set_bits(vde->regs,    0xA, MBE(0xA0));
-+	tegra_vde_set_bits(vde->regs,    0xA, PPE(0x14));
-+	tegra_vde_set_bits(vde->regs,    0xA, PPE(0x28));
-+	tegra_vde_set_bits(vde->regs,  0xA00, MCE(0x08));
-+	tegra_vde_set_bits(vde->regs,    0xA, TFE(0x00));
-+	tegra_vde_set_bits(vde->regs,    0x5, VDMA(0x04));
-+
-+	VDE_WR(0x00000000, vde->regs + VDMA(0x1C));
-+	VDE_WR(0x00000000, vde->regs + VDMA(0x00));
-+	VDE_WR(0x00000007, vde->regs + VDMA(0x04));
-+	VDE_WR(0x00000007, vde->regs + FRAMEID(0x200));
-+	VDE_WR(0x00000005, vde->regs + TFE(0x04));
-+	VDE_WR(0x00000000, vde->regs + MBE(0x84));
-+	VDE_WR(0x00000010, vde->regs + SXE(0x08));
-+	VDE_WR(0x00000150, vde->regs + SXE(0x54));
-+	VDE_WR(0x0000054C, vde->regs + SXE(0x58));
-+	VDE_WR(0x00000E34, vde->regs + SXE(0x5C));
-+	VDE_WR(0x063C063C, vde->regs + MCE(0x10));
-+	VDE_WR(0x0003FC00, vde->regs + BSEV(INTR_STATUS));
-+	VDE_WR(0x0000150D, vde->regs + BSEV(BSE_CONFIG));
-+	VDE_WR(0x00000100, vde->regs + BSEV(BSE_INT_ENB));
-+	VDE_WR(0x00000000, vde->regs + BSEV(0x98));
-+	VDE_WR(0x00000060, vde->regs + BSEV(0x9C));
-+
-+	memset_io(vde->iram + 512, 0, macroblocks_nb / 2);
-+
-+	tegra_setup_frameidx(vde->regs, dpb_frames, ctx->dpb_frames_nb,
-+			     ctx->pic_width_in_mbs, ctx->pic_height_in_mbs);
-+
-+	tegra_vde_setup_iram_tables(vde->iram, dpb_frames,
-+				    ctx->dpb_frames_nb - 1,
-+				    ctx->dpb_ref_frames_with_earlier_poc_nb);
-+
-+	VDE_WR(0x00000000, vde->regs + BSEV(0x8C));
-+	VDE_WR(bitstream_data_paddr + bitstream_data_size,
-+	       vde->regs + BSEV(0x54));
-+
-+	value = ctx->pic_width_in_mbs << 11 | ctx->pic_height_in_mbs << 3;
-+
-+	VDE_WR(value, vde->regs + BSEV(0x88));
-+
-+	err = tegra_vde_wait_bsev(vde, false);
-+	if (err)
-+		return err;
-+
-+	err = tegra_vde_push_to_bsev_icmdqueue(vde, 0x800003FC, false);
-+	if (err)
-+		return err;
-+
-+	value = 0x01500000;
-+	value |= ((vde->iram_lists_paddr + 512) >> 2) & 0xFFFF;
-+
-+	err = tegra_vde_push_to_bsev_icmdqueue(vde, value, true);
-+	if (err)
-+		return err;
-+
-+	err = tegra_vde_push_to_bsev_icmdqueue(vde, 0x840F054C, false);
-+	if (err)
-+		return err;
-+
-+	err = tegra_vde_push_to_bsev_icmdqueue(vde, 0x80000080, false);
-+	if (err)
-+		return err;
-+
-+	value = 0x0E340000 | ((vde->iram_lists_paddr >> 2) & 0xFFFF);
-+
-+	err = tegra_vde_push_to_bsev_icmdqueue(vde, value, true);
-+	if (err)
-+		return err;
-+
-+	value = 0x00800005;
-+	value |= ctx->pic_width_in_mbs << 11;
-+	value |= ctx->pic_height_in_mbs << 3;
-+
-+	VDE_WR(value, vde->regs + SXE(0x10));
-+
-+	value = !ctx->baseline_profile << 17;
-+	value |= ctx->level_idc << 13;
-+	value |= ctx->log2_max_pic_order_cnt_lsb << 7;
-+	value |= ctx->pic_order_cnt_type << 5;
-+	value |= ctx->log2_max_frame_num;
-+
-+	VDE_WR(value, vde->regs + SXE(0x40));
-+
-+	value = ctx->pic_init_qp << 25;
-+	value |= !!(ctx->deblocking_filter_control_present_flag) << 2;
-+	value |= !!ctx->pic_order_present_flag;
-+
-+	VDE_WR(value, vde->regs + SXE(0x44));
-+
-+	value = ctx->chroma_qp_index_offset;
-+	value |= ctx->num_ref_idx_l0_active_minus1 << 5;
-+	value |= ctx->num_ref_idx_l1_active_minus1 << 10;
-+	value |= !!ctx->constrained_intra_pred_flag << 15;
-+
-+	VDE_WR(value, vde->regs + SXE(0x48));
-+
-+	value = 0x0C000000;
-+	value |= !!(dpb_frames[0].flags & FLAG_B_FRAME) << 24;
-+
-+	VDE_WR(value, vde->regs + SXE(0x4C));
-+
-+	value = 0x03800000;
-+	value |= min_t(size_t, bitstream_data_size, SZ_1M);
-+
-+	VDE_WR(value, vde->regs + SXE(0x68));
-+
-+	VDE_WR(bitstream_data_paddr, vde->regs + SXE(0x6C));
-+
-+	value = (1 << 28) | 5;
-+	value |= ctx->pic_width_in_mbs << 11;
-+	value |= ctx->pic_height_in_mbs << 3;
-+
-+	VDE_WR(value, vde->regs + MBE(0x80));
-+
-+	value = 0x26800000;
-+	value |= ctx->level_idc << 4;
-+	value |= !ctx->baseline_profile << 1;
-+	value |= !!ctx->direct_8x8_inference_flag;
-+
-+	VDE_WR(value, vde->regs + MBE(0x80));
-+
-+	VDE_WR(0xF4000001, vde->regs + MBE(0x80));
-+	VDE_WR(0x20000000, vde->regs + MBE(0x80));
-+	VDE_WR(0xF4000101, vde->regs + MBE(0x80));
-+
-+	value = 0x20000000;
-+	value |= ctx->chroma_qp_index_offset << 8;
-+
-+	VDE_WR(value, vde->regs + MBE(0x80));
-+
-+	err = tegra_vde_setup_mbe_frame_idx(vde->regs,
-+					    ctx->dpb_frames_nb - 1,
-+					    ctx->pic_order_cnt_type == 0);
-+	if (err) {
-+		dev_err(dev, "MBE frames setup failed\n");
-+		return err;
-+	}
-+
-+	tegra_vde_mbe_set_0xa_reg(vde->regs, 0, 0x000009FC);
-+	tegra_vde_mbe_set_0xa_reg(vde->regs, 2, 0xF1DEAD00);
-+	tegra_vde_mbe_set_0xa_reg(vde->regs, 4, 0xF2DEAD00);
-+	tegra_vde_mbe_set_0xa_reg(vde->regs, 6, 0xF3DEAD00);
-+	tegra_vde_mbe_set_0xa_reg(vde->regs, 8, dpb_frames[0].aux_paddr);
-+
-+	value = 0xFC000000;
-+	value |= !!(dpb_frames[0].flags & FLAG_B_FRAME) << 2;
-+
-+	if (!ctx->baseline_profile)
-+		value |= !!(dpb_frames[0].flags & FLAG_REFERENCE) << 1;
-+
-+	VDE_WR(value, vde->regs + MBE(0x80));
-+
-+	err = tegra_vde_wait_mbe(vde->regs);
-+	if (err) {
-+		dev_err(dev, "MBE programming failed\n");
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+
-+static void tegra_vde_decode_frame(struct tegra_vde *vde, int macroblocks_nb)
-+{
-+	reinit_completion(&vde->decode_completion);
-+
-+	VDE_WR(0x00000001, vde->regs + BSEV(0x8C));
-+	VDE_WR(0x20000000 | (macroblocks_nb - 1), vde->regs + SXE(0x00));
-+}
-+
-+static void tegra_vde_detach_and_put_dmabuf(struct dma_buf_attachment *a,
-+					    struct sg_table *sgt,
-+					    enum dma_data_direction dma_dir)
-+{
-+	struct dma_buf *dmabuf = a->dmabuf;
-+
-+	dma_buf_unmap_attachment(a, sgt, dma_dir);
-+	dma_buf_detach(dmabuf, a);
-+	dma_buf_put(dmabuf);
-+}
-+
-+static int tegra_vde_attach_dmabuf(struct device *dev,
-+				   int fd,
-+				   unsigned long offset,
-+				   unsigned int min_size,
-+				   struct dma_buf_attachment **a,
-+				   phys_addr_t *paddr,
-+				   struct sg_table **s,
-+				   size_t *size,
-+				   enum dma_data_direction dma_dir)
-+{
-+	struct dma_buf_attachment *attachment;
-+	struct dma_buf *dmabuf;
-+	struct sg_table *sgt;
-+	int err;
-+
-+	dmabuf = dma_buf_get(fd);
-+	if (IS_ERR(dmabuf)) {
-+		dev_err(dev, "Invalid dmabuf FD\n");
-+		return PTR_ERR(dmabuf);
-+	}
-+
-+	if ((u64)offset + min_size > dmabuf->size) {
-+		dev_err(dev, "Too small dmabuf size %zu @0x%lX, "
-+			     "should be at least %d\n",
-+			dmabuf->size, offset, min_size);
-+		return -EINVAL;
-+	}
-+
-+	attachment = dma_buf_attach(dmabuf, dev);
-+	if (IS_ERR(attachment)) {
-+		dev_err(dev, "Failed to attach dmabuf\n");
-+		err = PTR_ERR(attachment);
-+		goto err_put;
-+	}
-+
-+	sgt = dma_buf_map_attachment(attachment, dma_dir);
-+	if (IS_ERR(sgt)) {
-+		dev_err(dev, "Failed to get dmabufs sg_table\n");
-+		err = PTR_ERR(sgt);
-+		goto err_detach;
-+	}
-+
-+	if (sgt->nents != 1) {
-+		dev_err(dev, "Sparse DMA region is unsupported\n");
-+		err = -EINVAL;
-+		goto err_unmap;
-+	}
-+
-+	*paddr = sg_dma_address(sgt->sgl) + offset;
-+	*a = attachment;
-+	*s = sgt;
-+
-+	if (size)
-+		*size = dmabuf->size - offset;
-+
-+	return 0;
-+
-+err_unmap:
-+	dma_buf_unmap_attachment(attachment, sgt, dma_dir);
-+err_detach:
-+	dma_buf_detach(dmabuf, attachment);
-+err_put:
-+	dma_buf_put(dmabuf);
-+
-+	return err;
-+}
-+
-+static int tegra_vde_attach_dmabufs_to_frame(struct device *dev,
-+					struct video_frame *frame,
-+					struct tegra_vde_h264_frame *source,
-+					enum dma_data_direction dma_dir,
-+					bool baseline_profile,
-+					size_t csize)
-+{
-+	int err;
-+
-+	err = tegra_vde_attach_dmabuf(dev, source->y_fd,
-+				      source->y_offset, csize * 4,
-+				      &frame->y_dmabuf_attachment,
-+				      &frame->y_paddr,
-+				      &frame->y_sgt,
-+				      NULL, dma_dir);
-+	if (err)
-+		return err;
-+
-+	err = tegra_vde_attach_dmabuf(dev, source->cb_fd,
-+				      source->cb_offset, csize,
-+				      &frame->cb_dmabuf_attachment,
-+				      &frame->cb_paddr,
-+				      &frame->cb_sgt,
-+				      NULL, dma_dir);
-+	if (err)
-+		goto err_release_y;
-+
-+	err = tegra_vde_attach_dmabuf(dev, source->cr_fd,
-+				      source->cr_offset, csize,
-+				      &frame->cr_dmabuf_attachment,
-+				      &frame->cr_paddr,
-+				      &frame->cr_sgt,
-+				      NULL, dma_dir);
-+	if (err)
-+		goto err_release_cb;
-+
-+	if (baseline_profile) {
-+		frame->aux_paddr = 0xF4DEAD00;
-+	} else {
-+		err = tegra_vde_attach_dmabuf(dev, source->aux_fd,
-+					      source->aux_offset, csize,
-+					      &frame->aux_dmabuf_attachment,
-+					      &frame->aux_paddr,
-+					      &frame->aux_sgt,
-+					      NULL, dma_dir);
-+		if (err)
-+			goto err_release_cr;
-+	}
-+
-+	return 0;
-+
-+err_release_cr:
-+	tegra_vde_detach_and_put_dmabuf(frame->cr_dmabuf_attachment,
-+					frame->cr_sgt, dma_dir);
-+err_release_cb:
-+	tegra_vde_detach_and_put_dmabuf(frame->cb_dmabuf_attachment,
-+					frame->cb_sgt, dma_dir);
-+err_release_y:
-+	tegra_vde_detach_and_put_dmabuf(frame->y_dmabuf_attachment,
-+					frame->y_sgt, dma_dir);
-+
-+	return err;
-+}
-+
-+static void tegra_vde_deattach_frame_dmabufs(struct video_frame *frame,
-+					     enum dma_data_direction dma_dir,
-+					     bool baseline_profile)
-+{
-+	if (!baseline_profile)
-+		tegra_vde_detach_and_put_dmabuf(frame->aux_dmabuf_attachment,
-+						frame->aux_sgt, dma_dir);
-+
-+	tegra_vde_detach_and_put_dmabuf(frame->cr_dmabuf_attachment,
-+					frame->cr_sgt, dma_dir);
-+
-+	tegra_vde_detach_and_put_dmabuf(frame->cb_dmabuf_attachment,
-+					frame->cb_sgt, dma_dir);
-+
-+	tegra_vde_detach_and_put_dmabuf(frame->y_dmabuf_attachment,
-+					frame->y_sgt, dma_dir);
-+}
-+
-+static int tegra_vde_copy_and_validate_frame(struct device *dev,
-+					     struct tegra_vde_h264_frame *frame,
-+					     unsigned long vaddr)
-+{
-+	if (copy_from_user(frame, (void __user *)vaddr, sizeof(*frame)))
-+		return -EFAULT;
-+
-+	if (frame->frame_num > 0x7FFFFF) {
-+		dev_err(dev, "Bad frame_num %u\n", frame->frame_num);
-+		return -EINVAL;
-+	}
-+
-+	if (frame->y_offset & 0xFF) {
-+		dev_err(dev, "Bad y_offset 0x%X\n", frame->y_offset);
-+		return -EINVAL;
-+	}
-+
-+	if (frame->cb_offset & 0xFF) {
-+		dev_err(dev, "Bad cb_offset 0x%X\n", frame->cb_offset);
-+		return -EINVAL;
-+	}
-+
-+	if (frame->cr_offset & 0xFF) {
-+		dev_err(dev, "Bad cr_offset 0x%X\n", frame->cr_offset);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int tegra_vde_validate_h264_ctx(struct device *dev,
-+				       struct tegra_vde_h264_decoder_ctx *ctx)
-+{
-+	if (ctx->dpb_frames_nb == 0 || ctx->dpb_frames_nb > 17) {
-+		dev_err(dev, "Bad DPB size %u\n", ctx->dpb_frames_nb);
-+		return -EINVAL;
-+	}
-+
-+	if (ctx->level_idc > 15) {
-+		dev_err(dev, "Bad level value %u\n", ctx->level_idc);
-+		return -EINVAL;
-+	}
-+
-+	if (ctx->pic_init_qp > 52) {
-+		dev_err(dev, "Bad pic_init_qp value %u\n", ctx->pic_init_qp);
-+		return -EINVAL;
-+	}
-+
-+	if (ctx->log2_max_pic_order_cnt_lsb > 16) {
-+		dev_err(dev, "Bad log2_max_pic_order_cnt_lsb value %u\n",
-+			ctx->log2_max_pic_order_cnt_lsb);
-+		return -EINVAL;
-+	}
-+
-+	if (ctx->log2_max_frame_num > 16) {
-+		dev_err(dev, "Bad log2_max_frame_num value %u\n",
-+			ctx->log2_max_frame_num);
-+		return -EINVAL;
-+	}
-+
-+	if (ctx->chroma_qp_index_offset > 31) {
-+		dev_err(dev, "Bad chroma_qp_index_offset value %u\n",
-+			ctx->chroma_qp_index_offset);
-+		return -EINVAL;
-+	}
-+
-+	if (ctx->pic_order_cnt_type > 2) {
-+		dev_err(dev, "Bad pic_order_cnt_type value %u\n",
-+			ctx->pic_order_cnt_type);
-+		return -EINVAL;
-+	}
-+
-+	if (ctx->num_ref_idx_l0_active_minus1 > 15) {
-+		dev_err(dev, "Bad num_ref_idx_l0_active_minus1 value %u\n",
-+			ctx->num_ref_idx_l0_active_minus1);
-+		return -EINVAL;
-+	}
-+
-+	if (ctx->num_ref_idx_l1_active_minus1 > 15) {
-+		dev_err(dev, "Bad num_ref_idx_l1_active_minus1 value %u\n",
-+			ctx->num_ref_idx_l1_active_minus1);
-+		return -EINVAL;
-+	}
-+
-+	if (!ctx->pic_width_in_mbs || ctx->pic_width_in_mbs > 127) {
-+		dev_err(dev, "Bad pic_width_in_mbs value %u\n",
-+			ctx->pic_width_in_mbs);
-+		return -EINVAL;
-+	}
-+
-+	if (!ctx->pic_height_in_mbs || ctx->pic_height_in_mbs > 127) {
-+		dev_err(dev, "Bad pic_height_in_mbs value %u\n",
-+			ctx->pic_height_in_mbs);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
-+				       unsigned long vaddr)
-+{
-+	struct device *dev = vde->miscdev.parent;
-+	struct tegra_vde_h264_decoder_ctx ctx;
-+	struct tegra_vde_h264_frame frame;
-+	struct video_frame *dpb_frames;
-+	struct dma_buf_attachment *bitstream_data_dmabuf_attachment;
-+	struct sg_table *bitstream_sgt;
-+	enum dma_data_direction dma_dir;
-+	phys_addr_t bitstream_data_paddr;
-+	phys_addr_t bsev_paddr;
-+	size_t bitstream_data_size;
-+	unsigned int macroblocks_nb;
-+	unsigned int read_bytes;
-+	unsigned int i;
-+	bool timeout;
++	struct rc_dev *rcdev = file->private_data;
++	struct lirc_dev *d = rcdev->lirc_dev;
++	unsigned int copied;
 +	int ret;
 +
-+	if (copy_from_user(&ctx, (void __user *)vaddr, sizeof(ctx)))
-+		return -EFAULT;
-+
-+	ret = tegra_vde_validate_h264_ctx(dev, &ctx);
-+	if (ret)
++	if (rcdev->driver_type == RC_DRIVER_IR_RAW_TX)
 +		return -EINVAL;
 +
-+	ret = tegra_vde_attach_dmabuf(dev, ctx.bitstream_data_fd,
-+				      ctx.bitstream_data_offset, 0,
-+				      &bitstream_data_dmabuf_attachment,
-+				      &bitstream_data_paddr,
-+				      &bitstream_sgt,
-+				      &bitstream_data_size,
-+				      DMA_TO_DEVICE);
-+	if (ret)
-+		return ret;
++	if (length < sizeof(unsigned int) || length % sizeof(unsigned int))
++		return -EINVAL;
 +
-+	dpb_frames = kcalloc(ctx.dpb_frames_nb, sizeof(*dpb_frames),
-+			     GFP_KERNEL);
-+	if (!dpb_frames) {
-+		ret = -ENOMEM;
-+		goto err_release_bitstream_dmabuf;
-+	}
-+
-+	macroblocks_nb = ctx.pic_width_in_mbs * ctx.pic_height_in_mbs;
-+	vaddr = ctx.dpb_frames_ptr;
-+
-+	for (i = 0; i < ctx.dpb_frames_nb; i++) {
-+		ret = tegra_vde_copy_and_validate_frame(dev, &frame, vaddr);
-+		if (ret)
-+			goto err_release_dpb_frames;
-+
-+		dpb_frames[i].flags = frame.flags;
-+		dpb_frames[i].frame_num = frame.frame_num;
-+
-+		dma_dir = (i == 0) ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+
-+		ret = tegra_vde_attach_dmabufs_to_frame(dev, &dpb_frames[i],
-+							&frame, dma_dir,
-+							ctx.baseline_profile,
-+							macroblocks_nb * 64);
-+		if (ret)
-+			goto err_release_dpb_frames;
-+
-+		vaddr += sizeof(frame);
-+	}
-+
-+	ret = mutex_lock_interruptible(&vde->lock);
-+	if (ret)
-+		goto err_release_dpb_frames;
-+
-+	ret = pm_runtime_get_sync(dev);
-+	if (ret < 0)
-+		goto err_unlock;
-+
-+	/*
-+	 * We rely on the VDE registers reset value, otherwise VDE
-+	 * causes bus lockup.
-+	 */
-+	ret = reset_control_reset(vde->rst);
-+	if (ret) {
-+		dev_err(dev, "Failed to reset HW: %d\n", ret);
-+		goto err_put_runtime_pm;
-+	}
-+
-+	ret = tegra_vde_setup_hw_context(vde, &ctx, dpb_frames,
-+					 bitstream_data_paddr,
-+					 bitstream_data_size,
-+					 macroblocks_nb);
-+	if (ret)
-+		goto err_put_runtime_pm;
-+
-+	tegra_vde_decode_frame(vde, macroblocks_nb);
-+
-+	timeout = !wait_for_completion_killable_timeout(&vde->decode_completion,
-+							TEGRA_VDE_TIMEOUT);
-+	if (timeout) {
-+		bsev_paddr = readl_relaxed(vde->regs + BSEV(0x10));
-+		macroblocks_nb = readl_relaxed(vde->regs + SXE(0xC8)) & 0x1FFF;
-+		read_bytes = bsev_paddr ? bsev_paddr - bitstream_data_paddr : 0;
-+
-+		dev_err(dev, "Decoding failed, "
-+				"read 0x%X bytes : %u macroblocks parsed\n",
-+			read_bytes, macroblocks_nb);
-+
-+		ret = -EIO;
-+	}
-+
-+err_put_runtime_pm:
-+	pm_runtime_mark_last_busy(dev);
-+	pm_runtime_put_autosuspend(dev);
-+
-+err_unlock:
-+	mutex_unlock(&vde->lock);
-+
-+err_release_dpb_frames:
-+	while (i--) {
-+		dma_dir = (i == 0) ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+
-+		tegra_vde_deattach_frame_dmabufs(&dpb_frames[i], dma_dir,
-+						 ctx.baseline_profile);
-+	}
-+
-+	kfree(dpb_frames);
-+
-+err_release_bitstream_dmabuf:
-+	tegra_vde_detach_and_put_dmabuf(bitstream_data_dmabuf_attachment,
-+					bitstream_sgt, DMA_TO_DEVICE);
-+
-+	return ret;
-+}
-+
-+static long tegra_vde_unlocked_ioctl(struct file *filp,
-+				     unsigned int cmd, unsigned long arg)
-+{
-+	struct miscdevice *miscdev = filp->private_data;
-+	struct tegra_vde *vde = container_of(miscdev, struct tegra_vde,
-+					     miscdev);
-+
-+	switch (cmd) {
-+	case TEGRA_VDE_IOCTL_DECODE_H264:
-+		return tegra_vde_ioctl_decode_h264(vde, arg);
-+	}
-+
-+	dev_err(miscdev->parent, "Invalid IOCTL command %u\n", cmd);
-+
-+	return -ENOTTY;
-+}
-+
-+static const struct file_operations tegra_vde_fops = {
-+	.owner		= THIS_MODULE,
-+	.unlocked_ioctl	= tegra_vde_unlocked_ioctl,
-+};
-+
-+static irqreturn_t tegra_vde_isr(int irq, void *data)
-+{
-+	struct tegra_vde *vde = data;
-+
-+	tegra_vde_set_bits(vde->regs, 0, FRAMEID(0x208));
-+	complete(&vde->decode_completion);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int tegra_vde_runtime_suspend(struct device *dev)
-+{
-+	struct tegra_vde *vde = dev_get_drvdata(dev);
-+	int err;
-+
-+	err = tegra_powergate_power_off(TEGRA_POWERGATE_VDEC);
-+	if (err) {
-+		dev_err(dev, "Failed to power down HW: %d\n", err);
-+		return err;
-+	}
-+
-+	clk_disable_unprepare(vde->clk);
-+
-+	return 0;
-+}
-+
-+static int tegra_vde_runtime_resume(struct device *dev)
-+{
-+	struct tegra_vde *vde = dev_get_drvdata(dev);
-+	int err;
-+
-+	err = tegra_powergate_sequence_power_up(TEGRA_POWERGATE_VDEC,
-+						vde->clk, vde->rst);
-+	if (err) {
-+		dev_err(dev, "Failed to power up HW : %d\n", err);
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+
-+static int tegra_vde_probe(struct platform_device *pdev)
-+{
-+	struct resource *res_regs, *res_iram;
-+	struct device *dev = &pdev->dev;
-+	struct tegra_vde *vde;
-+	int irq, err;
-+
-+	vde = devm_kzalloc(&pdev->dev, sizeof(*vde), GFP_KERNEL);
-+	if (!vde)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, vde);
-+
-+	res_regs = platform_get_resource_byname(pdev, IORESOURCE_MEM, "regs");
-+	if (!res_regs)
++	if (!d->attached)
 +		return -ENODEV;
 +
-+	res_iram = platform_get_resource_byname(pdev, IORESOURCE_MEM, "iram");
-+	if (!res_iram)
-+		return -ENODEV;
++	do {
++		if (kfifo_is_empty(&rcdev->rawir)) {
++			if (file->f_flags & O_NONBLOCK)
++				return -EAGAIN;
 +
-+	irq = platform_get_irq_byname(pdev, "sync-token");
-+	if (irq < 0)
-+		return irq;
++			ret = wait_event_interruptible(rcdev->wait_poll,
++					!kfifo_is_empty(&rcdev->rawir) ||
++					!d->attached);
++			if (ret)
++				return ret;
++		}
 +
-+	vde->regs = devm_ioremap_resource(dev, res_regs);
-+	if (IS_ERR(vde->regs))
-+		return PTR_ERR(vde->regs);
++		if (!d->attached)
++			return -ENODEV;
 +
-+	vde->iram = devm_ioremap_resource(dev, res_iram);
-+	if (IS_ERR(vde->iram))
-+		return PTR_ERR(vde->iram);
++		mutex_lock(&rcdev->lock);
++		ret = kfifo_to_user(&rcdev->rawir, buffer, length, &copied);
++		mutex_unlock(&rcdev->lock);
++		if (ret)
++			return ret;
++	} while (copied == 0);
 +
-+	vde->clk = devm_clk_get(dev, "vde");
-+	if (IS_ERR(vde->clk)) {
-+		err = PTR_ERR(vde->clk);
-+		dev_err(dev, "Could not get VDE clk %d\n", err);
-+		return err;
-+	}
-+
-+	vde->rst = devm_reset_control_get(dev, "vde");
-+	if (IS_ERR(vde->rst)) {
-+		err = PTR_ERR(vde->rst);
-+		dev_err(dev, "Could not get VDE reset %d\n", err);
-+		return err;
-+	}
-+
-+	err = devm_request_irq(dev, irq, tegra_vde_isr, 0,
-+			       dev_name(dev), vde);
-+	if (err) {
-+		dev_err(&pdev->dev, "Failed to request IRQ %d\n", err);
-+		return err;
-+	}
-+
-+	mutex_init(&vde->lock);
-+	init_completion(&vde->decode_completion);
-+
-+	vde->iram_lists_paddr = res_iram->start;
-+	vde->miscdev.minor = MISC_DYNAMIC_MINOR;
-+	vde->miscdev.name = "tegra_vde";
-+	vde->miscdev.fops = &tegra_vde_fops;
-+	vde->miscdev.parent = dev;
-+
-+	err = misc_register(&vde->miscdev);
-+	if (err) {
-+		dev_err(dev, "Failed to register misc device: %d\n", err);
-+		return err;
-+	}
-+
-+	pm_runtime_enable(dev);
-+	pm_runtime_use_autosuspend(dev);
-+	pm_runtime_set_autosuspend_delay(dev, 300);
-+
-+	if (!pm_runtime_enabled(dev)) {
-+		err = tegra_vde_runtime_resume(dev);
-+		if (err)
-+			return err;
-+	}
-+
-+	return 0;
++	return copied;
 +}
 +
-+static int tegra_vde_remove(struct platform_device *pdev)
-+{
-+	struct tegra_vde *vde = platform_get_drvdata(pdev);
-+	struct device *dev = &pdev->dev;
-+	int err;
+ static const struct file_operations lirc_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.write		= ir_lirc_transmit_ir,
+@@ -417,8 +471,8 @@ static const struct file_operations lirc_fops = {
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl	= ir_lirc_ioctl,
+ #endif
+-	.read		= lirc_dev_fop_read,
+-	.poll		= lirc_dev_fop_poll,
++	.read		= ir_lirc_read,
++	.poll		= ir_lirc_poll,
+ 	.open		= lirc_dev_fop_open,
+ 	.release	= lirc_dev_fop_close,
+ 	.llseek		= no_llseek,
+@@ -435,9 +489,6 @@ int ir_lirc_register(struct rc_dev *dev)
+ 
+ 	snprintf(ldev->name, sizeof(ldev->name), "ir-lirc-codec (%s)",
+ 		 dev->driver_name);
+-	ldev->buf = NULL;
+-	ldev->chunk_size = sizeof(int);
+-	ldev->buffer_size = LIRCBUF_SIZE;
+ 	ldev->fops = &lirc_fops;
+ 	ldev->dev.parent = &dev->dev;
+ 	ldev->rdev = dev;
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index f149fbf382ca..9a0ad8d9a0cb 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -44,40 +44,14 @@ static struct class *lirc_class;
+ static void lirc_release_device(struct device *ld)
+ {
+ 	struct lirc_dev *d = container_of(ld, struct lirc_dev, dev);
++	struct rc_dev *rcdev = d->rdev;
+ 
+-	put_device(d->dev.parent);
++	if (rcdev->driver_type == RC_DRIVER_IR_RAW)
++		kfifo_free(&rcdev->rawir);
+ 
+-	if (d->buf_internal) {
+-		lirc_buffer_free(d->buf);
+-		kfree(d->buf);
+-		d->buf = NULL;
+-	}
+ 	kfree(d);
+ 	module_put(THIS_MODULE);
+-}
+-
+-static int lirc_allocate_buffer(struct lirc_dev *d)
+-{
+-	int err;
+-
+-	if (d->buf) {
+-		d->buf_internal = false;
+-		return 0;
+-	}
+-
+-	d->buf = kmalloc(sizeof(*d->buf), GFP_KERNEL);
+-	if (!d->buf)
+-		return -ENOMEM;
+-
+-	err = lirc_buffer_init(d->buf, d->chunk_size, d->buffer_size);
+-	if (err) {
+-		kfree(d->buf);
+-		d->buf = NULL;
+-		return err;
+-	}
+-
+-	d->buf_internal = true;
+-	return 0;
++	put_device(d->dev.parent);
+ }
+ 
+ struct lirc_dev *
+@@ -128,31 +102,16 @@ int lirc_register_device(struct lirc_dev *d)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (!d->buf && d->chunk_size < 1) {
+-		pr_err("chunk_size must be set!\n");
+-		return -EINVAL;
+-	}
+-
+-	if (!d->buf && d->buffer_size < 1) {
+-		pr_err("buffer_size must be set!\n");
+-		return -EINVAL;
+-	}
+-
+-	if (!d->buf && !(d->fops && d->fops->read &&
+-			 d->fops->poll && d->fops->unlocked_ioctl)) {
+-		dev_err(&d->dev, "undefined read, poll, ioctl\n");
+-		return -EBADRQC;
+-	}
+-
+ 	/* some safety check 8-) */
+ 	d->name[sizeof(d->name) - 1] = '\0';
+ 
+ 	if (rcdev->driver_type == RC_DRIVER_IR_RAW) {
+-		err = lirc_allocate_buffer(d);
+-		if (err)
+-			return err;
++		if (kfifo_alloc(&rcdev->rawir, MAX_IR_EVENT_SIZE, GFP_KERNEL))
++			return -ENOMEM;
+ 	}
+ 
++	init_waitqueue_head(&rcdev->wait_poll);
 +
-+	if (!pm_runtime_enabled(dev)) {
-+		err = tegra_vde_runtime_suspend(dev);
-+		if (err)
-+			return err;
-+	}
+ 	minor = ida_simple_get(&lirc_ida, 0, LIRC_MAX_DEVICES, GFP_KERNEL);
+ 	if (minor < 0)
+ 		return minor;
+@@ -182,9 +141,13 @@ EXPORT_SYMBOL(lirc_register_device);
+ 
+ void lirc_unregister_device(struct lirc_dev *d)
+ {
++	struct rc_dev *rcdev;
 +
-+	pm_runtime_dont_use_autosuspend(dev);
-+	pm_runtime_disable(dev);
+ 	if (!d)
+ 		return;
+ 
++	rcdev = d->rdev;
 +
-+	misc_deregister(&vde->miscdev);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM_SLEEP
-+static int tegra_vde_pm_suspend(struct device *dev)
-+{
-+	struct tegra_vde *vde = dev_get_drvdata(dev);
-+	int err;
-+
-+	mutex_lock(&vde->lock);
-+
-+	err = pm_runtime_force_suspend(dev);
-+	if (err < 0)
-+		return err;
-+
-+	return 0;
-+}
-+
-+static int tegra_vde_pm_resume(struct device *dev)
-+{
-+	struct tegra_vde *vde = dev_get_drvdata(dev);
-+	int err;
-+
-+	err = pm_runtime_force_resume(dev);
-+	if (err < 0)
-+		return err;
-+
-+	mutex_unlock(&vde->lock);
-+
-+	return 0;
-+}
-+#endif
-+
-+static const struct dev_pm_ops tegra_vde_pm_ops = {
-+	SET_RUNTIME_PM_OPS(tegra_vde_runtime_suspend,
-+			   tegra_vde_runtime_resume,
-+			   NULL)
-+	SET_SYSTEM_SLEEP_PM_OPS(tegra_vde_pm_suspend,
-+				tegra_vde_pm_resume)
-+};
-+
-+static const struct of_device_id tegra_vde_of_match[] = {
-+	{ .compatible = "nvidia,tegra20-vde", },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, tegra_vde_of_match);
-+
-+static struct platform_driver tegra_vde_driver = {
-+	.probe		= tegra_vde_probe,
-+	.remove		= tegra_vde_remove,
-+	.driver		= {
-+		.name		= "tegra-vde",
-+		.of_match_table = tegra_vde_of_match,
-+		.pm		= &tegra_vde_pm_ops,
-+	},
-+};
-+module_platform_driver(tegra_vde_driver);
-+
-+MODULE_DESCRIPTION("NVIDIA Tegra20 Video Decoder driver");
-+MODULE_AUTHOR("Dmitry Osipenko");
-+MODULE_LICENSE("GPL");
+ 	dev_dbg(&d->dev, "lirc_dev: driver %s unregistered from minor = %d\n",
+ 		d->name, d->minor);
+ 
+@@ -194,7 +157,7 @@ void lirc_unregister_device(struct lirc_dev *d)
+ 	if (d->open) {
+ 		dev_dbg(&d->dev, LOGHEAD "releasing opened driver\n",
+ 			d->name, d->minor);
+-		wake_up_interruptible(&d->buf->wait_poll);
++		wake_up_poll(&rcdev->wait_poll, POLLHUP);
+ 	}
+ 
+ 	mutex_unlock(&d->mutex);
+@@ -208,6 +171,7 @@ EXPORT_SYMBOL(lirc_unregister_device);
+ int lirc_dev_fop_open(struct inode *inode, struct file *file)
+ {
+ 	struct lirc_dev *d = container_of(inode->i_cdev, struct lirc_dev, cdev);
++	struct rc_dev *rcdev = d->rdev;
+ 	int retval;
+ 
+ 	dev_dbg(&d->dev, LOGHEAD "open called\n", d->name, d->minor);
+@@ -232,8 +196,8 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
+ 			goto out;
+ 	}
+ 
+-	if (d->buf)
+-		lirc_buffer_clear(d->buf);
++	if (rcdev->driver_type == RC_DRIVER_IR_RAW)
++		kfifo_reset_out(&rcdev->rawir);
+ 
+ 	d->open++;
+ 
+@@ -265,129 +229,6 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
+ }
+ EXPORT_SYMBOL(lirc_dev_fop_close);
+ 
+-unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait)
+-{
+-	struct rc_dev *rcdev = file->private_data;
+-	struct lirc_dev *d = rcdev->lirc_dev;
+-	unsigned int ret;
+-
+-	if (!d->attached)
+-		return POLLHUP | POLLERR;
+-
+-	if (d->buf) {
+-		poll_wait(file, &d->buf->wait_poll, wait);
+-
+-		if (lirc_buffer_empty(d->buf))
+-			ret = 0;
+-		else
+-			ret = POLLIN | POLLRDNORM;
+-	} else {
+-		ret = POLLERR;
+-	}
+-
+-	dev_dbg(&d->dev, LOGHEAD "poll result = %d\n", d->name, d->minor, ret);
+-
+-	return ret;
+-}
+-EXPORT_SYMBOL(lirc_dev_fop_poll);
+-
+-ssize_t lirc_dev_fop_read(struct file *file,
+-			  char __user *buffer,
+-			  size_t length,
+-			  loff_t *ppos)
+-{
+-	struct rc_dev *rcdev = file->private_data;
+-	struct lirc_dev *d = rcdev->lirc_dev;
+-	unsigned char buf[d->buf->chunk_size];
+-	int ret, written = 0;
+-	DECLARE_WAITQUEUE(wait, current);
+-
+-	dev_dbg(&d->dev, LOGHEAD "read called\n", d->name, d->minor);
+-
+-	ret = mutex_lock_interruptible(&d->mutex);
+-	if (ret)
+-		return ret;
+-
+-	if (!d->attached) {
+-		ret = -ENODEV;
+-		goto out_locked;
+-	}
+-
+-	if (rcdev->driver_type != RC_DRIVER_IR_RAW) {
+-		ret = -EINVAL;
+-		goto out_locked;
+-	}
+-
+-	if (length % d->buf->chunk_size) {
+-		ret = -EINVAL;
+-		goto out_locked;
+-	}
+-
+-	/*
+-	 * we add ourselves to the task queue before buffer check
+-	 * to avoid losing scan code (in case when queue is awaken somewhere
+-	 * between while condition checking and scheduling)
+-	 */
+-	add_wait_queue(&d->buf->wait_poll, &wait);
+-
+-	/*
+-	 * while we didn't provide 'length' bytes, device is opened in blocking
+-	 * mode and 'copy_to_user' is happy, wait for data.
+-	 */
+-	while (written < length && ret == 0) {
+-		if (lirc_buffer_empty(d->buf)) {
+-			/* According to the read(2) man page, 'written' can be
+-			 * returned as less than 'length', instead of blocking
+-			 * again, returning -EWOULDBLOCK, or returning
+-			 * -ERESTARTSYS
+-			 */
+-			if (written)
+-				break;
+-			if (file->f_flags & O_NONBLOCK) {
+-				ret = -EWOULDBLOCK;
+-				break;
+-			}
+-			if (signal_pending(current)) {
+-				ret = -ERESTARTSYS;
+-				break;
+-			}
+-
+-			mutex_unlock(&d->mutex);
+-			set_current_state(TASK_INTERRUPTIBLE);
+-			schedule();
+-			set_current_state(TASK_RUNNING);
+-
+-			ret = mutex_lock_interruptible(&d->mutex);
+-			if (ret) {
+-				remove_wait_queue(&d->buf->wait_poll, &wait);
+-				goto out_unlocked;
+-			}
+-
+-			if (!d->attached) {
+-				ret = -ENODEV;
+-				goto out_locked;
+-			}
+-		} else {
+-			lirc_buffer_read(d->buf, buf);
+-			ret = copy_to_user((void __user *)buffer+written, buf,
+-					   d->buf->chunk_size);
+-			if (!ret)
+-				written += d->buf->chunk_size;
+-			else
+-				ret = -EFAULT;
+-		}
+-	}
+-
+-	remove_wait_queue(&d->buf->wait_poll, &wait);
+-
+-out_locked:
+-	mutex_unlock(&d->mutex);
+-
+-out_unlocked:
+-	return ret ? ret : written;
+-}
+-EXPORT_SYMBOL(lirc_dev_fop_read);
+-
+ int __init lirc_dev_init(void)
+ {
+ 	int retval;
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index 86a3cf798775..14d3eb36672e 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -18,112 +18,11 @@
+ #include <linux/device.h>
+ #include <linux/cdev.h>
+ 
+-struct lirc_buffer {
+-	wait_queue_head_t wait_poll;
+-	spinlock_t fifo_lock;
+-	unsigned int chunk_size;
+-	unsigned int size; /* in chunks */
+-	/* Using chunks instead of bytes pretends to simplify boundary checking
+-	 * And should allow for some performance fine tunning later */
+-	struct kfifo fifo;
+-};
+-
+-static inline void lirc_buffer_clear(struct lirc_buffer *buf)
+-{
+-	unsigned long flags;
+-
+-	if (kfifo_initialized(&buf->fifo)) {
+-		spin_lock_irqsave(&buf->fifo_lock, flags);
+-		kfifo_reset(&buf->fifo);
+-		spin_unlock_irqrestore(&buf->fifo_lock, flags);
+-	} else
+-		WARN(1, "calling %s on an uninitialized lirc_buffer\n",
+-		     __func__);
+-}
+-
+-static inline int lirc_buffer_init(struct lirc_buffer *buf,
+-				    unsigned int chunk_size,
+-				    unsigned int size)
+-{
+-	int ret;
+-
+-	init_waitqueue_head(&buf->wait_poll);
+-	spin_lock_init(&buf->fifo_lock);
+-	buf->chunk_size = chunk_size;
+-	buf->size = size;
+-	ret = kfifo_alloc(&buf->fifo, size * chunk_size, GFP_KERNEL);
+-
+-	return ret;
+-}
+-
+-static inline void lirc_buffer_free(struct lirc_buffer *buf)
+-{
+-	if (kfifo_initialized(&buf->fifo)) {
+-		kfifo_free(&buf->fifo);
+-	} else
+-		WARN(1, "calling %s on an uninitialized lirc_buffer\n",
+-		     __func__);
+-}
+-
+-static inline int lirc_buffer_len(struct lirc_buffer *buf)
+-{
+-	int len;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&buf->fifo_lock, flags);
+-	len = kfifo_len(&buf->fifo);
+-	spin_unlock_irqrestore(&buf->fifo_lock, flags);
+-
+-	return len;
+-}
+-
+-static inline int lirc_buffer_full(struct lirc_buffer *buf)
+-{
+-	return lirc_buffer_len(buf) == buf->size * buf->chunk_size;
+-}
+-
+-static inline int lirc_buffer_empty(struct lirc_buffer *buf)
+-{
+-	return !lirc_buffer_len(buf);
+-}
+-
+-static inline unsigned int lirc_buffer_read(struct lirc_buffer *buf,
+-					    unsigned char *dest)
+-{
+-	unsigned int ret = 0;
+-
+-	if (lirc_buffer_len(buf) >= buf->chunk_size)
+-		ret = kfifo_out_locked(&buf->fifo, dest, buf->chunk_size,
+-				       &buf->fifo_lock);
+-	return ret;
+-
+-}
+-
+-static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+-					     unsigned char *orig)
+-{
+-	unsigned int ret;
+-
+-	ret = kfifo_in_locked(&buf->fifo, orig, buf->chunk_size,
+-			      &buf->fifo_lock);
+-
+-	return ret;
+-}
+-
+ /**
+  * struct lirc_dev - represents a LIRC device
+  *
+  * @name:		used for logging
+  * @minor:		the minor device (/dev/lircX) number for the device
+- * @buffer_size:	Number of FIFO buffers with @chunk_size size.
+- *			Only used if @rbuf is NULL.
+- * @chunk_size:		Size of each FIFO buffer.
+- *			Only used if @rbuf is NULL.
+- * @buf:		if %NULL, lirc_dev will allocate and manage the buffer,
+- *			otherwise allocated by the caller which will
+- *			have to write to the buffer by other means, like irq's
+- *			(see also lirc_serial.c).
+- * @buf_internal:	whether lirc_dev has allocated the read buffer or not
+  * @rdev:		&struct rc_dev associated with the device
+  * @fops:		&struct file_operations for the device
+  * @owner:		the module owning this struct
+@@ -137,11 +36,6 @@ struct lirc_dev {
+ 	char name[40];
+ 	unsigned int minor;
+ 
+-	unsigned int buffer_size; /* in chunks holding one code each */
+-	unsigned int chunk_size;
+-	struct lirc_buffer *buf;
+-	bool buf_internal;
+-
+ 	struct rc_dev *rdev;
+ 	const struct file_operations *fops;
+ 	struct module *owner;
+@@ -168,7 +62,4 @@ void lirc_unregister_device(struct lirc_dev *d);
+  */
+ int lirc_dev_fop_open(struct inode *inode, struct file *file);
+ int lirc_dev_fop_close(struct inode *inode, struct file *file);
+-unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait);
+-ssize_t lirc_dev_fop_read(struct file *file, char __user *buffer, size_t length,
+-			  loff_t *ppos);
+ #endif
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 83aa5e423a13..d886ac56015b 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -123,6 +123,8 @@ enum rc_filter_type {
+  * @gap_duration: duration of initial gap
+  * @gap: true if we're in a gap
+  * @send_timeout_reports: report timeouts in lirc raw IR.
++ * @rawir: queue for incoming raw IR
++ * @wait_poll: poll struct for lirc device
+  * @send_mode: lirc mode for sending, either LIRC_MODE_SCANCODE or
+  *	LIRC_MODE_PULSE
+  * @change_protocol: allow changing the protocol used on hardware decoders
+@@ -192,6 +194,8 @@ struct rc_dev {
+ 	u64				gap_duration;
+ 	bool				gap;
+ 	bool				send_timeout_reports;
++	DECLARE_KFIFO_PTR(rawir, unsigned int);
++	wait_queue_head_t		wait_poll;
+ 	u8				send_mode;
+ #endif
+ 	int				(*change_protocol)(struct rc_dev *dev, u64 *rc_proto);
 -- 
-2.14.2
+2.13.6
