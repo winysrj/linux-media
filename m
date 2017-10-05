@@ -1,205 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:60215 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932354AbdJ3Jsi (ORCPT
+Received: from us-smtp-delivery-107.mimecast.com ([216.205.24.107]:21281 "EHLO
+        us-smtp-delivery-107.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751330AbdJEOzj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Oct 2017 05:48:38 -0400
-Subject: Re: [PATCH] media: pvrusb2: Convert timers to use timer_setup()
-To: Kees Cook <keescook@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Mike Isely <isely@pobox.com>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <20171024152251.GA104927@beast>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <c4a47ce6-faa0-a066-b7fe-c047aa632fc1@xs4all.nl>
-Date: Mon, 30 Oct 2017 10:48:33 +0100
+        Thu, 5 Oct 2017 10:55:39 -0400
+Subject: [PATCH v7 3/3] media: rc: Add tango keymap
+From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+To: Sean Young <sean@mess.org>
+CC: linux-media <linux-media@vger.kernel.org>,
+        Mans Rullgard <mans@mansr.com>, Mason <slash.tmp@free.fr>
+References: <a98feda2-fd9e-004b-a139-789193ca4995@sigmadesigns.com>
+Message-ID: <13b59e8a-d276-d19a-7f07-70a2423526ab@sigmadesigns.com>
+Date: Thu, 5 Oct 2017 16:54:11 +0200
 MIME-Version: 1.0
-In-Reply-To: <20171024152251.GA104927@beast>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <a98feda2-fd9e-004b-a139-789193ca4995@sigmadesigns.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/24/2017 05:22 PM, Kees Cook wrote:
-> In preparation for unconditionally passing the struct timer_list pointer to
-> all timer callbacks, switch to using the new timer_setup() and from_timer()
-> to pass the timer pointer explicitly.
-> 
-> Cc: Mike Isely <isely@pobox.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Kees Cook <keescook@chromium.org>
+Add a keymap for the Sigma Designs Vantage (dev board) remote control.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+---
+ drivers/media/rc/keymaps/Makefile   |  1 +
+ drivers/media/rc/keymaps/rc-tango.c | 84 +++++++++++++++++++++++++++++++++++++
+ drivers/media/rc/tango-ir.c         |  2 +-
+ include/media/rc-map.h              |  1 +
+ 4 files changed, 87 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/rc/keymaps/rc-tango.c
 
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/usb/pvrusb2/pvrusb2-hdw.c | 64 ++++++++++++++++++---------------
->  1 file changed, 36 insertions(+), 28 deletions(-)
-> 
-> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-> index ad5b25b89699..8289ee482f49 100644
-> --- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-> +++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-> @@ -330,10 +330,10 @@ static void pvr2_hdw_state_log_state(struct pvr2_hdw *);
->  static int pvr2_hdw_cmd_usbstream(struct pvr2_hdw *hdw,int runFl);
->  static int pvr2_hdw_commit_setup(struct pvr2_hdw *hdw);
->  static int pvr2_hdw_get_eeprom_addr(struct pvr2_hdw *hdw);
-> -static void pvr2_hdw_quiescent_timeout(unsigned long);
-> -static void pvr2_hdw_decoder_stabilization_timeout(unsigned long);
-> -static void pvr2_hdw_encoder_wait_timeout(unsigned long);
-> -static void pvr2_hdw_encoder_run_timeout(unsigned long);
-> +static void pvr2_hdw_quiescent_timeout(struct timer_list *);
-> +static void pvr2_hdw_decoder_stabilization_timeout(struct timer_list *);
-> +static void pvr2_hdw_encoder_wait_timeout(struct timer_list *);
-> +static void pvr2_hdw_encoder_run_timeout(struct timer_list *);
->  static int pvr2_issue_simple_cmd(struct pvr2_hdw *,u32);
->  static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
->  				unsigned int timeout,int probe_fl,
-> @@ -2373,18 +2373,15 @@ struct pvr2_hdw *pvr2_hdw_create(struct usb_interface *intf,
->  	}
->  	if (!hdw) goto fail;
->  
-> -	setup_timer(&hdw->quiescent_timer, pvr2_hdw_quiescent_timeout,
-> -		    (unsigned long)hdw);
-> +	timer_setup(&hdw->quiescent_timer, pvr2_hdw_quiescent_timeout, 0);
->  
-> -	setup_timer(&hdw->decoder_stabilization_timer,
-> -		    pvr2_hdw_decoder_stabilization_timeout,
-> -		    (unsigned long)hdw);
-> +	timer_setup(&hdw->decoder_stabilization_timer,
-> +		    pvr2_hdw_decoder_stabilization_timeout, 0);
->  
-> -	setup_timer(&hdw->encoder_wait_timer, pvr2_hdw_encoder_wait_timeout,
-> -		    (unsigned long)hdw);
-> +	timer_setup(&hdw->encoder_wait_timer, pvr2_hdw_encoder_wait_timeout,
-> +		    0);
->  
-> -	setup_timer(&hdw->encoder_run_timer, pvr2_hdw_encoder_run_timeout,
-> -		    (unsigned long)hdw);
-> +	timer_setup(&hdw->encoder_run_timer, pvr2_hdw_encoder_run_timeout, 0);
->  
->  	hdw->master_state = PVR2_STATE_DEAD;
->  
-> @@ -3539,10 +3536,16 @@ static void pvr2_ctl_read_complete(struct urb *urb)
->  	complete(&hdw->ctl_done);
->  }
->  
-> +struct hdw_timer {
-> +	struct timer_list timer;
-> +	struct pvr2_hdw *hdw;
-> +};
->  
-> -static void pvr2_ctl_timeout(unsigned long data)
-> +static void pvr2_ctl_timeout(struct timer_list *t)
->  {
-> -	struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
-> +	struct hdw_timer *timer = from_timer(timer, t, timer);
-> +	struct pvr2_hdw *hdw = timer->hdw;
-> +
->  	if (hdw->ctl_write_pend_flag || hdw->ctl_read_pend_flag) {
->  		hdw->ctl_timeout_flag = !0;
->  		if (hdw->ctl_write_pend_flag)
-> @@ -3564,7 +3567,10 @@ static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
->  {
->  	unsigned int idx;
->  	int status = 0;
-> -	struct timer_list timer;
-> +	struct hdw_timer timer = {
-> +		.hdw = hdw,
-> +	};
-> +
->  	if (!hdw->ctl_lock_held) {
->  		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
->  			   "Attempted to execute control transfer without lock!!");
-> @@ -3621,8 +3627,8 @@ static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
->  	hdw->ctl_timeout_flag = 0;
->  	hdw->ctl_write_pend_flag = 0;
->  	hdw->ctl_read_pend_flag = 0;
-> -	setup_timer(&timer, pvr2_ctl_timeout, (unsigned long)hdw);
-> -	timer.expires = jiffies + timeout;
-> +	timer_setup_on_stack(&timer.timer, pvr2_ctl_timeout, 0);
-> +	timer.timer.expires = jiffies + timeout;
->  
->  	if (write_len && write_data) {
->  		hdw->cmd_debug_state = 2;
-> @@ -3677,7 +3683,7 @@ status);
->  	}
->  
->  	/* Start timer */
-> -	add_timer(&timer);
-> +	add_timer(&timer.timer);
->  
->  	/* Now wait for all I/O to complete */
->  	hdw->cmd_debug_state = 4;
-> @@ -3687,7 +3693,7 @@ status);
->  	hdw->cmd_debug_state = 5;
->  
->  	/* Stop timer */
-> -	del_timer_sync(&timer);
-> +	del_timer_sync(&timer.timer);
->  
->  	hdw->cmd_debug_state = 6;
->  	status = 0;
-> @@ -3769,6 +3775,8 @@ status);
->  	if ((status < 0) && (!probe_fl)) {
->  		pvr2_hdw_render_useless(hdw);
->  	}
-> +	destroy_timer_on_stack(&timer.timer);
-> +
->  	return status;
->  }
->  
-> @@ -4366,9 +4374,9 @@ static int state_eval_encoder_run(struct pvr2_hdw *hdw)
->  
->  
->  /* Timeout function for quiescent timer. */
-> -static void pvr2_hdw_quiescent_timeout(unsigned long data)
-> +static void pvr2_hdw_quiescent_timeout(struct timer_list *t)
->  {
-> -	struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
-> +	struct pvr2_hdw *hdw = from_timer(hdw, t, quiescent_timer);
->  	hdw->state_decoder_quiescent = !0;
->  	trace_stbit("state_decoder_quiescent",hdw->state_decoder_quiescent);
->  	hdw->state_stale = !0;
-> @@ -4377,9 +4385,9 @@ static void pvr2_hdw_quiescent_timeout(unsigned long data)
->  
->  
->  /* Timeout function for decoder stabilization timer. */
-> -static void pvr2_hdw_decoder_stabilization_timeout(unsigned long data)
-> +static void pvr2_hdw_decoder_stabilization_timeout(struct timer_list *t)
->  {
-> -	struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
-> +	struct pvr2_hdw *hdw = from_timer(hdw, t, decoder_stabilization_timer);
->  	hdw->state_decoder_ready = !0;
->  	trace_stbit("state_decoder_ready", hdw->state_decoder_ready);
->  	hdw->state_stale = !0;
-> @@ -4388,9 +4396,9 @@ static void pvr2_hdw_decoder_stabilization_timeout(unsigned long data)
->  
->  
->  /* Timeout function for encoder wait timer. */
-> -static void pvr2_hdw_encoder_wait_timeout(unsigned long data)
-> +static void pvr2_hdw_encoder_wait_timeout(struct timer_list *t)
->  {
-> -	struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
-> +	struct pvr2_hdw *hdw = from_timer(hdw, t, encoder_wait_timer);
->  	hdw->state_encoder_waitok = !0;
->  	trace_stbit("state_encoder_waitok",hdw->state_encoder_waitok);
->  	hdw->state_stale = !0;
-> @@ -4399,9 +4407,9 @@ static void pvr2_hdw_encoder_wait_timeout(unsigned long data)
->  
->  
->  /* Timeout function for encoder run timer. */
-> -static void pvr2_hdw_encoder_run_timeout(unsigned long data)
-> +static void pvr2_hdw_encoder_run_timeout(struct timer_list *t)
->  {
-> -	struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
-> +	struct pvr2_hdw *hdw = from_timer(hdw, t, encoder_run_timer);
->  	if (!hdw->state_encoder_runok) {
->  		hdw->state_encoder_runok = !0;
->  		trace_stbit("state_encoder_runok",hdw->state_encoder_runok);
-> 
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index af6496d709fb..3c1e31321e21 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -88,6 +88,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-reddo.o \
+ 			rc-snapstream-firefly.o \
+ 			rc-streamzap.o \
++			rc-tango.o \
+ 			rc-tbs-nec.o \
+ 			rc-technisat-ts35.o \
+ 			rc-technisat-usb2.o \
+diff --git a/drivers/media/rc/keymaps/rc-tango.c b/drivers/media/rc/keymaps/rc-tango.c
+new file mode 100644
+index 000000000000..c76651695959
+--- /dev/null
++++ b/drivers/media/rc/keymaps/rc-tango.c
+@@ -0,0 +1,84 @@
++#include <linux/module.h>
++#include <media/rc-map.h>
++
++static struct rc_map_table tango_table[] = {
++	{ 0x4cb4a, KEY_POWER },
++	{ 0x4cb48, KEY_FILE },
++	{ 0x4cb0f, KEY_SETUP },
++	{ 0x4cb4d, KEY_SUSPEND },
++	{ 0x4cb4e, KEY_VOLUMEUP },
++	{ 0x4cb44, KEY_EJECTCD },
++	{ 0x4cb13, KEY_TV },
++	{ 0x4cb51, KEY_MUTE },
++	{ 0x4cb52, KEY_VOLUMEDOWN },
++
++	{ 0x4cb41, KEY_1 },
++	{ 0x4cb03, KEY_2 },
++	{ 0x4cb42, KEY_3 },
++	{ 0x4cb45, KEY_4 },
++	{ 0x4cb07, KEY_5 },
++	{ 0x4cb46, KEY_6 },
++	{ 0x4cb55, KEY_7 },
++	{ 0x4cb17, KEY_8 },
++	{ 0x4cb56, KEY_9 },
++	{ 0x4cb1b, KEY_0 },
++	{ 0x4cb59, KEY_DELETE },
++	{ 0x4cb5a, KEY_CAPSLOCK },
++
++	{ 0x4cb47, KEY_BACK },
++	{ 0x4cb05, KEY_SWITCHVIDEOMODE },
++	{ 0x4cb06, KEY_UP },
++	{ 0x4cb43, KEY_LEFT },
++	{ 0x4cb01, KEY_RIGHT },
++	{ 0x4cb0a, KEY_DOWN },
++	{ 0x4cb02, KEY_ENTER },
++	{ 0x4cb4b, KEY_INFO },
++	{ 0x4cb09, KEY_HOME },
++
++	{ 0x4cb53, KEY_MENU },
++	{ 0x4cb12, KEY_PREVIOUS },
++	{ 0x4cb50, KEY_PLAY },
++	{ 0x4cb11, KEY_NEXT },
++	{ 0x4cb4f, KEY_TITLE },
++	{ 0x4cb0e, KEY_REWIND },
++	{ 0x4cb4c, KEY_STOP },
++	{ 0x4cb0d, KEY_FORWARD },
++	{ 0x4cb57, KEY_MEDIA_REPEAT },
++	{ 0x4cb16, KEY_ANGLE },
++	{ 0x4cb54, KEY_PAUSE },
++	{ 0x4cb15, KEY_SLOW },
++	{ 0x4cb5b, KEY_TIME },
++	{ 0x4cb1a, KEY_AUDIO },
++	{ 0x4cb58, KEY_SUBTITLE },
++	{ 0x4cb19, KEY_ZOOM },
++
++	{ 0x4cb5f, KEY_RED },
++	{ 0x4cb1e, KEY_GREEN },
++	{ 0x4cb5c, KEY_YELLOW },
++	{ 0x4cb1d, KEY_BLUE },
++};
++
++static struct rc_map_list tango_map = {
++	.map = {
++		.scan = tango_table,
++		.size = ARRAY_SIZE(tango_table),
++		.rc_proto = RC_PROTO_NEC,
++		.name = RC_MAP_TANGO,
++	}
++};
++
++static int __init init_rc_map_tango(void)
++{
++	return rc_map_register(&tango_map);
++}
++
++static void __exit exit_rc_map_tango(void)
++{
++	rc_map_unregister(&tango_map);
++}
++
++module_init(init_rc_map_tango)
++module_exit(exit_rc_map_tango)
++
++MODULE_AUTHOR("Sigma Designs");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/media/rc/tango-ir.c b/drivers/media/rc/tango-ir.c
+index 1bd4e3412a29..d5a1eb6fa855 100644
+--- a/drivers/media/rc/tango-ir.c
++++ b/drivers/media/rc/tango-ir.c
+@@ -155,7 +155,7 @@ static int tango_change_protocol(struct rc_dev *dev, u64 *rc_type)
+ 
+ static int tango_ir_probe(struct platform_device *pdev)
+ {
+-	const char *map_name = RC_MAP_EMPTY;
++	const char *map_name = RC_MAP_TANGO;
+ 	struct device *dev = &pdev->dev;
+ 	struct rc_dev *rc;
+ 	struct tango_ir *ir;
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 2a160e6e823c..1d8e6bdb9b35 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -323,6 +323,7 @@ struct rc_map *rc_map_get(const char *name);
+ #define RC_MAP_WINFAST_USBII_DELUXE      "rc-winfast-usbii-deluxe"
+ #define RC_MAP_SU3000                    "rc-su3000"
+ #define RC_MAP_ZX_IRDEC                  "rc-zx-irdec"
++#define RC_MAP_TANGO                     "rc-tango"
+ 
+ /*
+  * Please, do not just append newer Remote Controller names at the end.
+-- 
+2.14.2
