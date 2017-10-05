@@ -1,197 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35044 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751969AbdJDMaT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 08:30:19 -0400
-Date: Wed, 4 Oct 2017 15:30:15 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Rob Herring <robh@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
-        <linux-renesas-soc@vger.kernel.org>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v2] device property: preserve usecount for node passed to
- of_fwnode_graph_get_port_parent()
-Message-ID: <20171004123015.r42bc6f4pznypefc@valkosipuli.retiisi.org.uk>
-References: <20170822001912.27638-1-niklas.soderlund+renesas@ragnatech.se>
- <CAL_Jsq+ABipq+YCpSwu_vhjk0rkZQimCD2vG1x5GL91wi6dzKw@mail.gmail.com>
- <20170822150050.GD14873@bigcity.dyn.berto.se>
- <CAL_JsqJOZPrOwy1Hi7zdHb-+X69rV2M5ZZd=X8aoWjvjqt+NNg@mail.gmail.com>
- <20170827224033.2ubrkzp33g5supab@kekkonen.localdomain>
- <CAL_JsqLoROoJYB38Hx76yFrPd8J=6+KOr6EgzMd-g5yLYi8Okw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAL_JsqLoROoJYB38Hx76yFrPd8J=6+KOr6EgzMd-g5yLYi8Okw@mail.gmail.com>
+Received: from gofer.mess.org ([88.97.38.141]:46465 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751384AbdJEIpc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Oct 2017 04:45:32 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 11/25] media: lirc: merge lirc_dev_fop_ioctl and ir_lirc_ioctl
+Date: Thu,  5 Oct 2017 09:45:13 +0100
+Message-Id: <70692132a1075930b9d14dc346dd73c9d8e841ac.1507192752.git.sean@mess.org>
+In-Reply-To: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
+References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
+In-Reply-To: <cover.1507192751.git.sean@mess.org>
+References: <cover.1507192751.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+Calculate lirc features when necessary, and add LIRC_{S,G}ET_REC_MODE
+cases to ir_lirc_ioctl.
 
-On Tue, Oct 03, 2017 at 08:40:10AM -0500, Rob Herring wrote:
-> On Sun, Aug 27, 2017 at 5:40 PM, Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> > Hi Rob,
-> >
-> > On Tue, Aug 22, 2017 at 02:42:10PM -0500, Rob Herring wrote:
-> >> On Tue, Aug 22, 2017 at 10:00 AM, Niklas Söderlund
-> >> <niklas.soderlund@ragnatech.se> wrote:
-> >> > Hi Rob,
-> >> >
-> >> > On 2017-08-22 09:49:35 -0500, Rob Herring wrote:
-> >> >> On Mon, Aug 21, 2017 at 7:19 PM, Niklas Söderlund
-> >> >> <niklas.soderlund+renesas@ragnatech.se> wrote:
-> >> >> > Using CONFIG_OF_DYNAMIC=y uncovered an imbalance in the usecount of the
-> >> >> > node being passed to of_fwnode_graph_get_port_parent(). Preserve the
-> >> >> > usecount by using of_get_parent() instead of of_get_next_parent() which
-> >> >> > don't decrement the usecount of the node passed to it.
-> >> >> >
-> >> >> > Fixes: 3b27d00e7b6d7c88 ("device property: Move fwnode graph ops to firmware specific locations")
-> >> >> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> >> >> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> >> > ---
-> >> >> >  drivers/of/property.c | 2 +-
-> >> >> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >> >>
-> >> >> Isn't this already fixed with this fix:
-> >> >>
-> >> >> commit c0a480d1acf7dc184f9f3e7cf724483b0d28dc2e
-> >> >> Author: Tony Lindgren <tony@atomide.com>
-> >> >> Date:   Fri Jul 28 01:23:15 2017 -0700
-> >> >>
-> >> >> device property: Fix usecount for of_graph_get_port_parent()
-> >> >
-> >> > No, that commit fixes it for of_graph_get_port_parent() while this
-> >> > commit fixes it for of_fwnode_graph_get_port_parent(). But in essence it
-> >> > is the same issue but needs two separate fixes.
-> >>
-> >> Ah, because one takes the port node and one takes the endpoint node.
-> >> That won't confuse anyone.
-> >
-> > Yes, I think we've had this for some time in naming of a few graph
-> > functions and increasingly so lately. It began with
-> > of_graph_get_remote_port_parent(), which likely was named so to avoid the
-> > name getting really long. The function itself gets a remove of the endpoint
-> > given as an argument, then the port related to the entpoint and finally the
-> > parent node of the port node (which is not the "ports" node). That's a lot
-> > of work for a single interface function.
-> 
-> That's because returning the "ports" node would be pointless. The
-> remote device could have:
-> 
-> ports {
->     port {
->         endpoint {
->         };
->     };
-> };
-> 
-> Or no ports node. Both are valid and should be treated equivalently.
+This makes lirc_dev_fop_ioctl() unnecessary since all cases are
+already handled by ir_lirc_ioctl().
 
-Indeed --- otherwise you could simply use of_get_parent()...
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-lirc-codec.c | 85 +++++++++++++++++++++++-----------------
+ drivers/media/rc/lirc_dev.c      | 62 ++---------------------------
+ include/media/lirc_dev.h         |  4 --
+ 3 files changed, 53 insertions(+), 98 deletions(-)
 
-> 
-> >
-> > What comes to of_fwnode_graph_get_port_parent() --- it's the OF callback
-> > function for the fwnode graph API that, as the name suggests, gets the
-> > parent of the port node, no more, no less. The function is used in the
-> > fwnode graph API implementation and is not available in the API as such.
-> 
-> If this operates on the local node, then you should already have the
-> relevant parent. If you are walking the remote node, then the exact
-> port structure should be opaque. If you need the remote endpoint and
-> its properties, that's fine. Otherwise, you should really only need
-> the remote parent device because the remote's graph structure is
-> specific to the remote device and any parsing should be done within
-> the remote's driver.
-
-This function is used to implement fwnode_graph_get_remote_port_parent() as
-well as fwnode_graph_get_port_parent(). These are used by V4L2 to match
-remote devices currently. That said, we've thought about using endpoints
-for matching: the connection is made between two hardware interfaces, not
-devices.
-
-> 
-> > The fwnode graph API itself only implements functionality already available
-> > in the OF graph API under the corresponding name.
-> 
-> There are graph APIs I want to get rid of, but since there are still
-> users I haven't. Adding those APIs to the fwnode API will just make it
-> harder.
-
-I remember we've discussed that but I'm not sure we arrived to a conclusion
-back then. And that explicitly parsing a port / endpoint pair was
-preferred.
-
-In V4L2 the endpoints are currently iterated over. The endpoint numbers are
-also not verified in drivers (apart from perhaps one or two exceptions),
-they're currently simply ignored. Only port numbers are actually used.
-
-I think it boils down to whether (or not) there's a material chance of
-breaking something by effectively adding the endpoint number checks. Should
-we assume it will not?
-
-> 
-> >> Can we please align this mess. I've tried to make the graph parsing
-> >> not a free for all, open coded mess. There's no reason to have the
-> >> port node handle and then need the parent device. Either you started
-> >> with the parent device to parse local ports and endpoints or you got
-> >> the remote endpoint with .graph_get_remote_endpoint(). Most of the
-> >> time you don't even need the endpoint node handles. You really just
-> >> need to know what is the remote device connected to port X, endpoint Y
-> >> of my local device.
-> >
-> > Perhaps most of the time, yes. V4L2 devices store bus (e.g. MIPI CSI-2)
-> > specific information in the endpoint nodes.
-> >
-> > The current OF graph API is geared towards providing convenience functions
-> > to the extent that a single function performs actions a driver would
-> > typically need. More recently functions implementing a single operation has
-> > been added; the primitives that just perform a single operation would
-> > likely be easier to manage.
-> 
-> Then we have each driver open coding walking the graph.
-> 
-> > The convenience functions have been, well, convenient as getting and
-> > putting nodes could have been somewhat ignored in drivers. If the OF graph
-> > API usage can be moved out of the drivers we'll likely have way fewer users
-> > and thus there's no real need for convenience functions. That has other
-> > benefits, too, such as parsing the graph correctly: most V4L2 drivers have
-> > issues in this area.
-> >
-> > The OF graph API (or the fwnode equivalent) is used effectively in all V4L2
-> > drivers that support OF (there are about 20 of them); we're moving these to
-> > the V4L2 framework but it'll take some time. That should make it easier for
-> > cleaning things up. Based on a quick look V4L2 and V4L2 drivers together
-> > represent a large proportion of all users in the kernel.
-> 
-> I certainly will care less when there's only subsystems using the API
-> versus each driver.
-> 
-> I'd guess it is more equal because most of the DRM drivers are
-> converted to not use the graph API directly.
-
-Ack.
-
-> 
-> >
-> > What do you think?
-> 
-> I'll apply this fix, but please keep the above in mind when reworking
-> the V4L2 drivers.
-
-Thanks!
-
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index 863d975d40fb..60badd9b453d 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -230,8 +230,57 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 	}
+ 
+ 	switch (cmd) {
++	case LIRC_GET_FEATURES:
++		if (dev->driver_type == RC_DRIVER_IR_RAW) {
++			val |= LIRC_CAN_REC_MODE2;
++			if (dev->rx_resolution)
++				val |= LIRC_CAN_GET_REC_RESOLUTION;
++		}
++
++		if (dev->tx_scancode)
++			val |= LIRC_CAN_SEND_SCANCODE;
++
++		if (dev->tx_ir) {
++			val |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
++			if (dev->s_tx_mask)
++				val |= LIRC_CAN_SET_TRANSMITTER_MASK;
++			if (dev->s_tx_carrier)
++				val |= LIRC_CAN_SET_SEND_CARRIER;
++			if (dev->s_tx_duty_cycle)
++				val |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
++		}
++
++		if (dev->s_rx_carrier_range)
++			val |= LIRC_CAN_SET_REC_CARRIER |
++				LIRC_CAN_SET_REC_CARRIER_RANGE;
++
++		if (dev->s_learning_mode)
++			val |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
++
++		if (dev->s_carrier_report)
++			val |= LIRC_CAN_MEASURE_CARRIER;
++
++		if (dev->max_timeout)
++			val |= LIRC_CAN_SET_REC_TIMEOUT;
++
++		break;
+ 
+ 	/* mode support */
++	case LIRC_GET_REC_MODE:
++		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
++			return -ENOTTY;
++
++		val = LIRC_MODE_MODE2;
++		break;
++
++	case LIRC_SET_REC_MODE:
++		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
++			return -ENOTTY;
++
++		if (val != LIRC_MODE_MODE2)
++			return -EINVAL;
++		return 0;
++
+ 	case LIRC_GET_SEND_MODE:
+ 		if (!dev->tx_ir && !dev->tx_scancode)
+ 			return -ENOTTY;
+@@ -352,7 +401,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 		break;
+ 
+ 	default:
+-		return lirc_dev_fop_ioctl(filep, cmd, arg);
++		return -ENOTTY;
+ 	}
+ 
+ 	if (_IOC_DIR(cmd) & _IOC_READ)
+@@ -379,47 +428,13 @@ int ir_lirc_register(struct rc_dev *dev)
+ {
+ 	struct lirc_dev *ldev;
+ 	int rc = -ENOMEM;
+-	unsigned long features = 0;
+ 
+ 	ldev = lirc_allocate_device();
+ 	if (!ldev)
+ 		return rc;
+ 
+-	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
+-		features |= LIRC_CAN_REC_MODE2;
+-		if (dev->rx_resolution)
+-			features |= LIRC_CAN_GET_REC_RESOLUTION;
+-	}
+-
+-	if (dev->tx_scancode)
+-		features |= LIRC_CAN_SEND_SCANCODE;
+-
+-	if (dev->tx_ir) {
+-		features |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
+-		if (dev->s_tx_mask)
+-			features |= LIRC_CAN_SET_TRANSMITTER_MASK;
+-		if (dev->s_tx_carrier)
+-			features |= LIRC_CAN_SET_SEND_CARRIER;
+-		if (dev->s_tx_duty_cycle)
+-			features |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
+-	}
+-
+-	if (dev->s_rx_carrier_range)
+-		features |= LIRC_CAN_SET_REC_CARRIER |
+-			LIRC_CAN_SET_REC_CARRIER_RANGE;
+-
+-	if (dev->s_learning_mode)
+-		features |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
+-
+-	if (dev->s_carrier_report)
+-		features |= LIRC_CAN_MEASURE_CARRIER;
+-
+-	if (dev->max_timeout)
+-		features |= LIRC_CAN_SET_REC_TIMEOUT;
+-
+ 	snprintf(ldev->name, sizeof(ldev->name), "ir-lirc-codec (%s)",
+ 		 dev->driver_name);
+-	ldev->features = features;
+ 	ldev->buf = NULL;
+ 	ldev->chunk_size = sizeof(int);
+ 	ldev->buffer_size = LIRCBUF_SIZE;
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 884923cbee9d..f149fbf382ca 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -109,6 +109,7 @@ EXPORT_SYMBOL(lirc_free_device);
+ 
+ int lirc_register_device(struct lirc_dev *d)
+ {
++	struct rc_dev *rcdev = d->rdev;
+ 	int minor;
+ 	int err;
+ 
+@@ -146,7 +147,7 @@ int lirc_register_device(struct lirc_dev *d)
+ 	/* some safety check 8-) */
+ 	d->name[sizeof(d->name) - 1] = '\0';
+ 
+-	if (LIRC_CAN_REC(d->features)) {
++	if (rcdev->driver_type == RC_DRIVER_IR_RAW) {
+ 		err = lirc_allocate_buffer(d);
+ 		if (err)
+ 			return err;
+@@ -290,63 +291,6 @@ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait)
+ }
+ EXPORT_SYMBOL(lirc_dev_fop_poll);
+ 
+-long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+-{
+-	struct rc_dev *rcdev = file->private_data;
+-	struct lirc_dev *d = rcdev->lirc_dev;
+-	__u32 mode;
+-	int result;
+-
+-	dev_dbg(&d->dev, LOGHEAD "ioctl called (0x%x)\n",
+-		d->name, d->minor, cmd);
+-
+-	result = mutex_lock_interruptible(&d->mutex);
+-	if (result)
+-		return result;
+-
+-	if (!d->attached) {
+-		result = -ENODEV;
+-		goto out;
+-	}
+-
+-	switch (cmd) {
+-	case LIRC_GET_FEATURES:
+-		result = put_user(d->features, (__u32 __user *)arg);
+-		break;
+-	case LIRC_GET_REC_MODE:
+-		if (!LIRC_CAN_REC(d->features)) {
+-			result = -ENOTTY;
+-			break;
+-		}
+-
+-		result = put_user(LIRC_REC2MODE
+-				  (d->features & LIRC_CAN_REC_MASK),
+-				  (__u32 __user *)arg);
+-		break;
+-	case LIRC_SET_REC_MODE:
+-		if (!LIRC_CAN_REC(d->features)) {
+-			result = -ENOTTY;
+-			break;
+-		}
+-
+-		result = get_user(mode, (__u32 __user *)arg);
+-		if (!result && !(LIRC_MODE2REC(mode) & d->features))
+-			result = -EINVAL;
+-		/*
+-		 * FIXME: We should actually set the mode somehow but
+-		 * for now, lirc_serial doesn't support mode changing either
+-		 */
+-		break;
+-	default:
+-		result = -ENOTTY;
+-	}
+-
+-out:
+-	mutex_unlock(&d->mutex);
+-	return result;
+-}
+-EXPORT_SYMBOL(lirc_dev_fop_ioctl);
+-
+ ssize_t lirc_dev_fop_read(struct file *file,
+ 			  char __user *buffer,
+ 			  size_t length,
+@@ -369,7 +313,7 @@ ssize_t lirc_dev_fop_read(struct file *file,
+ 		goto out_locked;
+ 	}
+ 
+-	if (!LIRC_CAN_REC(d->features)) {
++	if (rcdev->driver_type != RC_DRIVER_IR_RAW) {
+ 		ret = -EINVAL;
+ 		goto out_locked;
+ 	}
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index dd0c078796e8..86a3cf798775 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -115,8 +115,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+  *
+  * @name:		used for logging
+  * @minor:		the minor device (/dev/lircX) number for the device
+- * @features:		lirc compatible hardware features, like LIRC_MODE_RAW,
+- *			LIRC_CAN\_\*, as defined at include/media/lirc.h.
+  * @buffer_size:	Number of FIFO buffers with @chunk_size size.
+  *			Only used if @rbuf is NULL.
+  * @chunk_size:		Size of each FIFO buffer.
+@@ -138,7 +136,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+ struct lirc_dev {
+ 	char name[40];
+ 	unsigned int minor;
+-	__u32 features;
+ 
+ 	unsigned int buffer_size; /* in chunks holding one code each */
+ 	unsigned int chunk_size;
+@@ -172,7 +169,6 @@ void lirc_unregister_device(struct lirc_dev *d);
+ int lirc_dev_fop_open(struct inode *inode, struct file *file);
+ int lirc_dev_fop_close(struct inode *inode, struct file *file);
+ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait);
+-long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+ ssize_t lirc_dev_fop_read(struct file *file, char __user *buffer, size_t length,
+ 			  loff_t *ppos);
+ #endif
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.6
