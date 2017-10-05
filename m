@@ -1,323 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:39120 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750716AbdJMQBw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 12:01:52 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from gofer.mess.org ([88.97.38.141]:59219 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751366AbdJEIpg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Oct 2017 04:45:36 -0400
+From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH] cec-pin.h: move non-kAPI parts into cec-pin-priv.h
-Date: Fri, 13 Oct 2017 18:01:32 +0200
-Message-Id: <20171013160132.35698-1-hverkuil@xs4all.nl>
+Subject: [PATCH v2 14/25] media: lirc: do not call rc_close() on unregistered devices
+Date: Thu,  5 Oct 2017 09:45:16 +0100
+Message-Id: <0ee960d18bcaca9947b94a8c29df1007cf4ebb48.1507192752.git.sean@mess.org>
+In-Reply-To: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
+References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
+In-Reply-To: <cover.1507192751.git.sean@mess.org>
+References: <cover.1507192751.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+If a lirc chardev is held open after a device is unplugged, rc_close()
+will be called after rc_unregister_device(). The driver is not expecting
+any calls at this point, and the iguanair driver causes an oops in
+this scenario.
 
-The kAPI cec-pin.h header also defined data structures that did
-not belong here but were private to the CEC core code.
-
-Split that part off into a cec-pin-priv.h header.
-
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/cec/cec-api.c      |   1 +
- drivers/media/cec/cec-pin-priv.h | 133 +++++++++++++++++++++++++++++++++++++++
- drivers/media/cec/cec-pin.c      |   1 +
- include/media/cec-pin.h          | 107 -------------------------------
- 4 files changed, 135 insertions(+), 107 deletions(-)
- create mode 100644 drivers/media/cec/cec-pin-priv.h
+ drivers/media/rc/rc-main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
-index 465bb3ec21f6..3dba3aa34a43 100644
---- a/drivers/media/cec/cec-api.c
-+++ b/drivers/media/cec/cec-api.c
-@@ -32,6 +32,7 @@
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 9ae60a5fa6d2..c0904fe1a6d4 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -871,7 +871,7 @@ void rc_close(struct rc_dev *rdev)
+ 	if (rdev) {
+ 		mutex_lock(&rdev->lock);
  
- #include <media/cec-pin.h>
- #include "cec-priv.h"
-+#include "cec-pin-priv.h"
+-		if (!--rdev->users && rdev->close != NULL)
++		if (!--rdev->users && rdev->close && rdev->registered)
+ 			rdev->close(rdev);
  
- static inline struct cec_devnode *cec_devnode_data(struct file *filp)
- {
-diff --git a/drivers/media/cec/cec-pin-priv.h b/drivers/media/cec/cec-pin-priv.h
-new file mode 100644
-index 000000000000..7d0def199762
---- /dev/null
-+++ b/drivers/media/cec/cec-pin-priv.h
-@@ -0,0 +1,133 @@
-+/*
-+ * cec-pin-priv.h - internal cec-pin header
-+ *
-+ * Copyright 2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you may redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef LINUX_CEC_PIN_PRIV_H
-+#define LINUX_CEC_PIN_PRIV_H
-+
-+#include <linux/types.h>
-+#include <linux/atomic.h>
-+#include <media/cec-pin.h>
-+
-+enum cec_pin_state {
-+	/* CEC is off */
-+	CEC_ST_OFF,
-+	/* CEC is idle, waiting for Rx or Tx */
-+	CEC_ST_IDLE,
-+
-+	/* Tx states */
-+
-+	/* Pending Tx, waiting for Signal Free Time to expire */
-+	CEC_ST_TX_WAIT,
-+	/* Low-drive was detected, wait for bus to go high */
-+	CEC_ST_TX_WAIT_FOR_HIGH,
-+	/* Drive CEC low for the start bit */
-+	CEC_ST_TX_START_BIT_LOW,
-+	/* Drive CEC high for the start bit */
-+	CEC_ST_TX_START_BIT_HIGH,
-+	/* Drive CEC low for the 0 bit */
-+	CEC_ST_TX_DATA_BIT_0_LOW,
-+	/* Drive CEC high for the 0 bit */
-+	CEC_ST_TX_DATA_BIT_0_HIGH,
-+	/* Drive CEC low for the 1 bit */
-+	CEC_ST_TX_DATA_BIT_1_LOW,
-+	/* Drive CEC high for the 1 bit */
-+	CEC_ST_TX_DATA_BIT_1_HIGH,
-+	/*
-+	 * Wait for start of sample time to check for Ack bit or first
-+	 * four initiator bits to check for Arbitration Lost.
-+	 */
-+	CEC_ST_TX_DATA_BIT_1_HIGH_PRE_SAMPLE,
-+	/* Wait for end of bit period after sampling */
-+	CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE,
-+
-+	/* Rx states */
-+
-+	/* Start bit low detected */
-+	CEC_ST_RX_START_BIT_LOW,
-+	/* Start bit high detected */
-+	CEC_ST_RX_START_BIT_HIGH,
-+	/* Wait for bit sample time */
-+	CEC_ST_RX_DATA_SAMPLE,
-+	/* Wait for earliest end of bit period after sampling */
-+	CEC_ST_RX_DATA_POST_SAMPLE,
-+	/* Wait for CEC to go high (i.e. end of bit period */
-+	CEC_ST_RX_DATA_HIGH,
-+	/* Drive CEC low to send 0 Ack bit */
-+	CEC_ST_RX_ACK_LOW,
-+	/* End of 0 Ack time, wait for earliest end of bit period */
-+	CEC_ST_RX_ACK_LOW_POST,
-+	/* Wait for CEC to go high (i.e. end of bit period */
-+	CEC_ST_RX_ACK_HIGH_POST,
-+	/* Wait for earliest end of bit period and end of message */
-+	CEC_ST_RX_ACK_FINISH,
-+
-+	/* Start low drive */
-+	CEC_ST_LOW_DRIVE,
-+	/* Monitor pin using interrupts */
-+	CEC_ST_RX_IRQ,
-+
-+	/* Total number of pin states */
-+	CEC_PIN_STATES
-+};
-+
-+#define CEC_NUM_PIN_EVENTS 128
-+
-+#define CEC_PIN_IRQ_UNCHANGED	0
-+#define CEC_PIN_IRQ_DISABLE	1
-+#define CEC_PIN_IRQ_ENABLE	2
-+
-+struct cec_pin {
-+	struct cec_adapter		*adap;
-+	const struct cec_pin_ops	*ops;
-+	struct task_struct		*kthread;
-+	wait_queue_head_t		kthread_waitq;
-+	struct hrtimer			timer;
-+	ktime_t				ts;
-+	unsigned int			wait_usecs;
-+	u16				la_mask;
-+	bool				enabled;
-+	bool				monitor_all;
-+	bool				rx_eom;
-+	bool				enable_irq_failed;
-+	enum cec_pin_state		state;
-+	struct cec_msg			tx_msg;
-+	u32				tx_bit;
-+	bool				tx_nacked;
-+	u32				tx_signal_free_time;
-+	struct cec_msg			rx_msg;
-+	u32				rx_bit;
-+
-+	struct cec_msg			work_rx_msg;
-+	u8				work_tx_status;
-+	ktime_t				work_tx_ts;
-+	atomic_t			work_irq_change;
-+	atomic_t			work_pin_events;
-+	unsigned int			work_pin_events_wr;
-+	unsigned int			work_pin_events_rd;
-+	ktime_t				work_pin_ts[CEC_NUM_PIN_EVENTS];
-+	bool				work_pin_is_high[CEC_NUM_PIN_EVENTS];
-+	ktime_t				timer_ts;
-+	u32				timer_cnt;
-+	u32				timer_100ms_overruns;
-+	u32				timer_300ms_overruns;
-+	u32				timer_max_overrun;
-+	u32				timer_sum_overrun;
-+};
-+
-+#endif
-diff --git a/drivers/media/cec/cec-pin.c b/drivers/media/cec/cec-pin.c
-index e2aa5d6e619d..a4c881dc81c4 100644
---- a/drivers/media/cec/cec-pin.c
-+++ b/drivers/media/cec/cec-pin.c
-@@ -20,6 +20,7 @@
- #include <linux/sched/types.h>
- 
- #include <media/cec-pin.h>
-+#include "cec-pin-priv.h"
- 
- /* All timings are in microseconds */
- 
-diff --git a/include/media/cec-pin.h b/include/media/cec-pin.h
-index ea84b9c9e0c3..83b3e17e0a07 100644
---- a/include/media/cec-pin.h
-+++ b/include/media/cec-pin.h
-@@ -21,71 +21,8 @@
- #define LINUX_CEC_PIN_H
- 
- #include <linux/types.h>
--#include <linux/atomic.h>
- #include <media/cec.h>
- 
--enum cec_pin_state {
--	/* CEC is off */
--	CEC_ST_OFF,
--	/* CEC is idle, waiting for Rx or Tx */
--	CEC_ST_IDLE,
--
--	/* Tx states */
--
--	/* Pending Tx, waiting for Signal Free Time to expire */
--	CEC_ST_TX_WAIT,
--	/* Low-drive was detected, wait for bus to go high */
--	CEC_ST_TX_WAIT_FOR_HIGH,
--	/* Drive CEC low for the start bit */
--	CEC_ST_TX_START_BIT_LOW,
--	/* Drive CEC high for the start bit */
--	CEC_ST_TX_START_BIT_HIGH,
--	/* Drive CEC low for the 0 bit */
--	CEC_ST_TX_DATA_BIT_0_LOW,
--	/* Drive CEC high for the 0 bit */
--	CEC_ST_TX_DATA_BIT_0_HIGH,
--	/* Drive CEC low for the 1 bit */
--	CEC_ST_TX_DATA_BIT_1_LOW,
--	/* Drive CEC high for the 1 bit */
--	CEC_ST_TX_DATA_BIT_1_HIGH,
--	/*
--	 * Wait for start of sample time to check for Ack bit or first
--	 * four initiator bits to check for Arbitration Lost.
--	 */
--	CEC_ST_TX_DATA_BIT_1_HIGH_PRE_SAMPLE,
--	/* Wait for end of bit period after sampling */
--	CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE,
--
--	/* Rx states */
--
--	/* Start bit low detected */
--	CEC_ST_RX_START_BIT_LOW,
--	/* Start bit high detected */
--	CEC_ST_RX_START_BIT_HIGH,
--	/* Wait for bit sample time */
--	CEC_ST_RX_DATA_SAMPLE,
--	/* Wait for earliest end of bit period after sampling */
--	CEC_ST_RX_DATA_POST_SAMPLE,
--	/* Wait for CEC to go high (i.e. end of bit period */
--	CEC_ST_RX_DATA_HIGH,
--	/* Drive CEC low to send 0 Ack bit */
--	CEC_ST_RX_ACK_LOW,
--	/* End of 0 Ack time, wait for earliest end of bit period */
--	CEC_ST_RX_ACK_LOW_POST,
--	/* Wait for CEC to go high (i.e. end of bit period */
--	CEC_ST_RX_ACK_HIGH_POST,
--	/* Wait for earliest end of bit period and end of message */
--	CEC_ST_RX_ACK_FINISH,
--
--	/* Start low drive */
--	CEC_ST_LOW_DRIVE,
--	/* Monitor pin using interrupts */
--	CEC_ST_RX_IRQ,
--
--	/* Total number of pin states */
--	CEC_PIN_STATES
--};
--
- /**
-  * struct cec_pin_ops - low-level CEC pin operations
-  * @read:	read the CEC pin. Return true if high, false if low.
-@@ -115,50 +52,6 @@ struct cec_pin_ops {
- 	int  (*read_hpd)(struct cec_adapter *adap);
- };
- 
--#define CEC_NUM_PIN_EVENTS 128
--
--#define CEC_PIN_IRQ_UNCHANGED	0
--#define CEC_PIN_IRQ_DISABLE	1
--#define CEC_PIN_IRQ_ENABLE	2
--
--struct cec_pin {
--	struct cec_adapter		*adap;
--	const struct cec_pin_ops	*ops;
--	struct task_struct		*kthread;
--	wait_queue_head_t		kthread_waitq;
--	struct hrtimer			timer;
--	ktime_t				ts;
--	unsigned int			wait_usecs;
--	u16				la_mask;
--	bool				enabled;
--	bool				monitor_all;
--	bool				rx_eom;
--	bool				enable_irq_failed;
--	enum cec_pin_state		state;
--	struct cec_msg			tx_msg;
--	u32				tx_bit;
--	bool				tx_nacked;
--	u32				tx_signal_free_time;
--	struct cec_msg			rx_msg;
--	u32				rx_bit;
--
--	struct cec_msg			work_rx_msg;
--	u8				work_tx_status;
--	ktime_t				work_tx_ts;
--	atomic_t			work_irq_change;
--	atomic_t			work_pin_events;
--	unsigned int			work_pin_events_wr;
--	unsigned int			work_pin_events_rd;
--	ktime_t				work_pin_ts[CEC_NUM_PIN_EVENTS];
--	bool				work_pin_is_high[CEC_NUM_PIN_EVENTS];
--	ktime_t				timer_ts;
--	u32				timer_cnt;
--	u32				timer_100ms_overruns;
--	u32				timer_300ms_overruns;
--	u32				timer_max_overrun;
--	u32				timer_sum_overrun;
--};
--
- /**
-  * cec_pin_changed() - update pin state from interrupt
-  *
+ 		mutex_unlock(&rdev->lock);
 -- 
-2.14.1
+2.13.6
