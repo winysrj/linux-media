@@ -1,56 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42140 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S934122AbdJQPjE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 11:39:04 -0400
-Date: Tue, 17 Oct 2017 18:39:00 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Kees Cook <keescook@chromium.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Alan Cox <alan@linux.intel.com>,
-        Daeseok Youn <daeseok.youn@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] staging/atomisp: Convert timers to use timer_setup()
-Message-ID: <20171017153900.ggh4pyaufyj5kz2l@valkosipuli.retiisi.org.uk>
-References: <20171016232456.GA100862@beast>
- <20171017082307.qsupictqciku73jj@valkosipuli.retiisi.org.uk>
- <CAGXu5j+TN6rfM1t8qSO7b_5n+65MHAXsf8kZYRMyiq+2Orz+SQ@mail.gmail.com>
+Received: from fieldses.org ([173.255.197.46]:58368 "EHLO fieldses.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751286AbdJER5P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Oct 2017 13:57:15 -0400
+Date: Thu, 5 Oct 2017 13:57:15 -0400
+From: "J. Bruce Fields" <bfields@fieldses.org>
+To: =?utf-8?B?SsOpcsOpbXk=?= Lefaure <jeremy.lefaure@lse.epita.fr>
+Cc: Greg KH <greg@kroah.com>, "Tobin C. Harding" <me@tobin.cc>,
+        alsa-devel@alsa-project.org, nouveau@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org, dm-devel@redhat.com,
+        brcm80211-dev-list@cypress.com, devel@driverdev.osuosl.org,
+        linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org,
+        amd-gfx@lists.freedesktop.org,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        linux-acpi@vger.kernel.org, linux-video@atrey.karlin.mff.cuni.cz,
+        intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, ecryptfs@vger.kernel.org,
+        linux-nfs@vger.kernel.org, linux-raid@vger.kernel.org,
+        openipmi-developer@lists.sourceforge.net,
+        intel-gvt-dev@lists.freedesktop.org, devel@acpica.org,
+        brcm80211-dev-list.pdl@broadcom.com, netdev@vger.kernel.org,
+        linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-integrity@vger.kernel.org,
+        jlayton@redhat.com
+Subject: Re: [PATCH 00/18] use ARRAY_SIZE macro
+Message-ID: <20171005175715.GA19093@fieldses.org>
+References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
+ <20171001220131.GA11812@eros>
+ <20171001205220.10b78086@blatinox-laptop.localdomain>
+ <20171002053554.GA28743@kroah.com>
+ <20171002192224.GD1903@fieldses.org>
+ <20171002213312.3f904290@blatinox-laptop.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAGXu5j+TN6rfM1t8qSO7b_5n+65MHAXsf8kZYRMyiq+2Orz+SQ@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171002213312.3f904290@blatinox-laptop.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 17, 2017 at 08:16:03AM -0700, Kees Cook wrote:
-> On Tue, Oct 17, 2017 at 1:23 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > On Mon, Oct 16, 2017 at 04:24:56PM -0700, Kees Cook wrote:
-> >> In preparation for unconditionally passing the struct timer_list pointer to
-> >> all timer callbacks, switch to using the new timer_setup() and from_timer()
-> >> to pass the timer pointer explicitly.
-> >>
-> >> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> >> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> >> Cc: Alan Cox <alan@linux.intel.com>
-> >> Cc: Daeseok Youn <daeseok.youn@gmail.com>
-> >> Cc: Arnd Bergmann <arnd@arndb.de>
-> >> Cc: linux-media@vger.kernel.org
-> >> Cc: devel@driverdev.osuosl.org
-> >> Signed-off-by: Kees Cook <keescook@chromium.org>
-> >
-> > This appears to be the same as the patch I've applied previously.
+On Mon, Oct 02, 2017 at 09:33:12PM -0400, Jérémy Lefaure wrote:
+> On Mon, 2 Oct 2017 15:22:24 -0400
+> bfields@fieldses.org (J. Bruce Fields) wrote:
 > 
-> Okay, sorry for the noise. I didn't see it in -next when I did my
-> rebase this week.
+> > Mainly I'd just like to know which you're asking for.  Do you want me to
+> > apply this, or to ACK it so someone else can?  If it's sent as a series
+> > I tend to assume the latter.
+> > 
+> > But in this case I'm assuming it's the former, so I'll pick up the nfsd
+> > one....
+> Could you to apply the NFSD patch ("nfsd: use ARRAY_SIZE") with the
+> Reviewed-by: Jeff Layton <jlayton@redhat.com>) tag please ?
+> 
+> This patch is an individual patch and it should not have been sent in a
+> series (sorry about that).
 
-No worries, it'll get there through mediatree... but it'll still take some
-time (rc3 not there yet).
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Applying for 4.15, thanks.--b.
