@@ -1,97 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:54569 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751668AbdJUIgq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 21 Oct 2017 04:36:46 -0400
-Received: by mail-wm0-f66.google.com with SMTP id r68so1590556wmr.3
-        for <linux-media@vger.kernel.org>; Sat, 21 Oct 2017 01:36:45 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, rjkm@metzlerbros.de
-Subject: [PATCH] [media] dvb-frontends/stv0910: prevent consecutive mutex_unlock()'s
-Date: Sat, 21 Oct 2017 10:36:41 +0200
-Message-Id: <20171021083641.7226-1-d.scheller.oss@gmail.com>
+Received: from mail-pf0-f182.google.com ([209.85.192.182]:54615 "EHLO
+        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752959AbdJEAxQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Oct 2017 20:53:16 -0400
+Received: by mail-pf0-f182.google.com with SMTP id m28so2192284pfi.11
+        for <linux-media@vger.kernel.org>; Wed, 04 Oct 2017 17:53:16 -0700 (PDT)
+Date: Wed, 4 Oct 2017 17:53:14 -0700
+From: Kees Cook <keescook@chromium.org>
+To: linux-kernel@vger.kernel.org
+Cc: Sean Young <sean@mess.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
+Subject: [PATCH] media: serial_ir: Convert timers to use timer_setup()
+Message-ID: <20171005005314.GA23724@beast>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+In preparation for unconditionally passing the struct timer_list pointer to
+all timer callbacks, switch to using the new timer_setup() and from_timer()
+to pass the timer pointer explicitly.
 
-When calling gate_ctrl() with enable=0 if previously the mutex wasn't
-locked (ie. on enable=1 failure and subdrivers not handling this properly,
-or by otherwise badly behaving drivers), the i2c_lock could be unlocked
-consecutively which isn't allowed. Prevent this by keeping track of the
-lock state, and actually call mutex_unlock() only when certain the lock
-is held.
-
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Tested-by: Jasmin Jessich <jasmin@anw.at>
+Cc: Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Kees Cook <keescook@chromium.org>
 ---
- drivers/media/dvb-frontends/stv0910.c | 23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+This requires commit 686fef928bba ("timer: Prepare to change timer
+callback argument type") in v4.14-rc3, but should be otherwise
+stand-alone.
+---
+ drivers/media/rc/serial_ir.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-index 73f6df0abbfe..36ef96ec64c1 100644
---- a/drivers/media/dvb-frontends/stv0910.c
-+++ b/drivers/media/dvb-frontends/stv0910.c
-@@ -80,6 +80,7 @@ struct stv_base {
- 	u8                   adr;
- 	struct i2c_adapter  *i2c;
- 	struct mutex         i2c_lock; /* shared I2C access protect */
-+	u8                   i2c_islocked; /* I2C lock state */
- 	struct mutex         reg_lock; /* shared register write protect */
- 	int                  count;
- 
-@@ -1233,6 +1234,7 @@ static int gate_ctrl(struct dvb_frontend *fe, int enable)
- 
- 	if (enable) {
- 		mutex_lock(&state->base->i2c_lock);
-+		state->base->i2c_islocked = 1;
- 		i2crpt |= 0x80;
- 	} else {
- 		i2crpt |= 0x02;
-@@ -1240,8 +1242,15 @@ static int gate_ctrl(struct dvb_frontend *fe, int enable)
- 
- 	if (write_reg(state, state->nr ? RSTV0910_P2_I2CRPT :
- 		      RSTV0910_P1_I2CRPT, i2crpt) < 0) {
--		/* don't hold the I2C bus lock on failure */
--		mutex_unlock(&state->base->i2c_lock);
-+		/*
-+		 * don't hold the I2C bus lock on failure while preventing
-+		 * consecutive and disallowed calls to mutex_unlock()
-+		 */
-+		if (state->base->i2c_islocked) {
-+			state->base->i2c_islocked = 0;
-+			mutex_unlock(&state->base->i2c_lock);
-+		}
-+
- 		dev_err(&state->base->i2c->dev,
- 			"%s() write_reg failure (enable=%d)\n",
- 			__func__, enable);
-@@ -1250,8 +1259,13 @@ static int gate_ctrl(struct dvb_frontend *fe, int enable)
- 
- 	state->i2crpt = i2crpt;
- 
--	if (!enable)
--		mutex_unlock(&state->base->i2c_lock);
-+	if (!enable) {
-+		if (state->base->i2c_islocked) {
-+			state->base->i2c_islocked = 0;
-+			mutex_unlock(&state->base->i2c_lock);
-+		}
-+	}
-+
+diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
+index 8b66926bc16a..8bf5637b3a69 100644
+--- a/drivers/media/rc/serial_ir.c
++++ b/drivers/media/rc/serial_ir.c
+@@ -470,7 +470,7 @@ static int hardware_init_port(void)
  	return 0;
  }
  
-@@ -1795,6 +1809,7 @@ struct dvb_frontend *stv0910_attach(struct i2c_adapter *i2c,
+-static void serial_ir_timeout(unsigned long arg)
++static void serial_ir_timeout(struct timer_list *unused)
+ {
+ 	DEFINE_IR_RAW_EVENT(ev);
  
- 		mutex_init(&base->i2c_lock);
- 		mutex_init(&base->reg_lock);
-+		base->i2c_islocked = 0;
- 		state->base = base;
- 		if (probe(state) < 0) {
- 			dev_info(&i2c->dev, "No demod found at adr %02X on %s\n",
+@@ -540,8 +540,7 @@ static int serial_ir_probe(struct platform_device *dev)
+ 
+ 	serial_ir.rcdev = rcdev;
+ 
+-	setup_timer(&serial_ir.timeout_timer, serial_ir_timeout,
+-		    (unsigned long)&serial_ir);
++	timer_setup(&serial_ir.timeout_timer, serial_ir_timeout, 0);
+ 
+ 	result = devm_request_irq(&dev->dev, irq, serial_ir_irq_handler,
+ 				  share_irq ? IRQF_SHARED : 0,
 -- 
-2.13.6
+2.7.4
+
+
+-- 
+Kees Cook
+Pixel Security
