@@ -1,301 +1,260 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:39267 "EHLO gofer.mess.org"
+Received: from gofer.mess.org ([88.97.38.141]:39675 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755194AbdJIQrm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 12:47:42 -0400
-Date: Mon, 9 Oct 2017 17:47:40 +0100
+        id S1751272AbdJEIph (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Oct 2017 04:45:37 -0400
 From: Sean Young <sean@mess.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 20/25] media: lirc: document LIRC_MODE_SCANCODE
-Message-ID: <20171009164740.jvanqcmqloeo46jp@gofer.mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 15/25] media: lirc: create rc-core open and close lirc functions
+Date: Thu,  5 Oct 2017 09:45:17 +0100
+Message-Id: <cb0d1c5c44152caf0ac917568ff5ac827a878bd8.1507192752.git.sean@mess.org>
+In-Reply-To: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
 References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
- <7fbf36ca8c052b1eae866859127e65038f223023.1507192752.git.sean@mess.org>
- <b6564f56-c3a9-cdb4-6600-50a2e4efc7b5@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <b6564f56-c3a9-cdb4-6600-50a2e4efc7b5@xs4all.nl>
+In-Reply-To: <cover.1507192751.git.sean@mess.org>
+References: <cover.1507192751.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 09, 2017 at 12:27:16PM +0200, Hans Verkuil wrote:
-> On 05/10/17 10:45, Sean Young wrote:
-> > Lirc supports a new mode which requires documentation.
-> > 
-> > Signed-off-by: Sean Young <sean@mess.org>
-> > ---
-> >  Documentation/media/lirc.h.rst.exceptions          | 26 ++++++++++++++++++++++
-> >  Documentation/media/uapi/rc/lirc-dev-intro.rst     | 26 ++++++++++++++++++++++
-> >  Documentation/media/uapi/rc/lirc-get-features.rst  | 16 +++++++++++++
-> >  Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |  5 +++--
-> >  Documentation/media/uapi/rc/lirc-get-send-mode.rst |  3 ++-
-> >  Documentation/media/uapi/rc/lirc-read.rst          | 14 ++++++++----
-> >  Documentation/media/uapi/rc/lirc-write.rst         | 16 ++++++++++---
-> >  7 files changed, 96 insertions(+), 10 deletions(-)
-> > 
-> > diff --git a/Documentation/media/lirc.h.rst.exceptions b/Documentation/media/lirc.h.rst.exceptions
-> > index 63ba1d341905..c6e3a35d2c4e 100644
-> > --- a/Documentation/media/lirc.h.rst.exceptions
-> > +++ b/Documentation/media/lirc.h.rst.exceptions
-> > @@ -32,6 +32,32 @@ ignore define LIRC_CAN_SET_REC_DUTY_CYCLE
-> >  
-> >  ignore ioctl LIRC_GET_LENGTH
-> >  
-> > +# rc protocols
-> > +
-> > +ignore symbol RC_PROTO_UNKNOWN
-> > +ignore symbol RC_PROTO_OTHER
-> > +ignore symbol RC_PROTO_RC5
-> > +ignore symbol RC_PROTO_RC5X_20
-> > +ignore symbol RC_PROTO_RC5_SZ
-> > +ignore symbol RC_PROTO_JVC
-> > +ignore symbol RC_PROTO_SONY12
-> > +ignore symbol RC_PROTO_SONY15
-> > +ignore symbol RC_PROTO_SONY20
-> > +ignore symbol RC_PROTO_NEC
-> > +ignore symbol RC_PROTO_NECX
-> > +ignore symbol RC_PROTO_NEC32
-> > +ignore symbol RC_PROTO_SANYO
-> > +ignore symbol RC_PROTO_MCIR2_KBD
-> > +ignore symbol RC_PROTO_MCIR2_MSE
-> > +ignore symbol RC_PROTO_RC6_0
-> > +ignore symbol RC_PROTO_RC6_6A_20
-> > +ignore symbol RC_PROTO_RC6_6A_24
-> > +ignore symbol RC_PROTO_RC6_6A_32
-> > +ignore symbol RC_PROTO_RC6_MCE
-> > +ignore symbol RC_PROTO_SHARP
-> > +ignore symbol RC_PROTO_XMP
-> > +ignore symbol RC_PROTO_CEC
-> > +
-> >  # Undocumented macros
-> >  
-> >  ignore define PULSE_BIT
-> > diff --git a/Documentation/media/uapi/rc/lirc-dev-intro.rst b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-> > index a3fa3c1ef169..70c82b2879ff 100644
-> > --- a/Documentation/media/uapi/rc/lirc-dev-intro.rst
-> > +++ b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-> > @@ -36,6 +36,32 @@ LIRC modes
-> >  LIRC supports some modes of receiving and sending IR codes, as shown
-> >  on the following table.
-> 
-> A general note: I don't think it is defined anywhere in the documentation what
-> 'LIRC' stands for. Might be useful to add :-)
+Replace the generic kernel lirc api with ones which use rc-core, further
+reducing the lirc_dev members.
 
-Good point, will do.
-> 
-> >  
-> > +.. _lirc-mode-scancode:
-> > +.. _lirc-scancode-flag-toggle:
-> > +.. _lirc-scancode-flag-repeat:
-> > +
-> > +``LIRC_MODE_SCANCODE``
-> > +
-> > +    This mode is for both sending and receiving IR.
-> > +
-> > +    For transmitting (aka sending), create a ``struct lirc_scancode`` with
-> > +    the desired scancode set in the ``scancode`` member, ``rc_proto`` set
-> > +    the IR protocol, and all other members set to 0. Write this struct to
-> > +    the lirc device.
-> > +
-> > +    For receiving, you read ``struct lirc_scancode`` from the lirc device,
-> > +    with ``scancode`` set to the received scancode in the IR protocol
-> > +    ``rc_proto``. The ``flags`` can have ``LIRC_SCANCODE_FLAG_TOGGLE`` set
-> > +    if the toggle bit is set in protocols that support it (e.g. rc-5 and rc-6),
-> 
-> Is the meaning of 'toggle' defined anywhere? I'm not sure what it means myself.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-lirc-codec.c | 59 ++++++++++++++++++++++++++++++++--
+ drivers/media/rc/lirc_dev.c      | 68 ++--------------------------------------
+ include/media/lirc_dev.h         | 11 -------
+ include/media/rc-core.h          |  2 ++
+ 4 files changed, 62 insertions(+), 78 deletions(-)
 
-The nec protocol just sends the scancode, no key up/key down event. So it not
-possible to tell whether the user is pressing a button or press-release-press
-button. The rc-5 and rc-6 protocols therefore include a toggle-bit, which
-flips if the user press-release-press the button. Note that keyup event is
-simply absence of any IR.
-
-Anyway, good point, I'll add it.
-
-> 
-> > +    or ``LIRC_SCANCODE_FLAG_REPEAT`` for when a repeat is received for protocols
-> > +    that support it (e.g. nec).
-> > +
-> > +    The ``timestamp`` field is filled with the time nanoseconds
-> > +    (in ``CLOCK_MONOTONIC``) when the scancode was decoded.
-> > +
-> > +    An ``enum rc_proto`` in the :ref:`lirc_header` lists all the supported
-> > +    IR protocols.
-> > +
-> >  .. _lirc-mode-mode2:
-> >  
-> >  ``LIRC_MODE_MODE2``
-> > diff --git a/Documentation/media/uapi/rc/lirc-get-features.rst b/Documentation/media/uapi/rc/lirc-get-features.rst
-> > index 50c2c26d8e89..3ee44067de63 100644
-> > --- a/Documentation/media/uapi/rc/lirc-get-features.rst
-> > +++ b/Documentation/media/uapi/rc/lirc-get-features.rst
-> > @@ -64,6 +64,14 @@ LIRC features
-> >  
-> >      Unused. Kept just to avoid breaking uAPI.
-> >  
-> > +.. _LIRC-CAN-REC-SCANCODE:
-> > +
-> > +``LIRC_CAN_REC_SCANCODE``
-> 
-> Wouldn't LIRC_CAN_RECEIVE_SCANCODE be better?
-> 
-> I misread 'REC' as 'record' :-)
-
-Unfortunately some lirc parts itself refers to record as well.
-
-> I thought about using RCV as the abbreviation, but REC is used elsewhere
-> already (rec_mode).
-
-There are many other LIRC_CAN_REC_* features already.
-> 
-> > +
-> > +    The driver is capable of receiving using
-> > +    :ref:`LIRC_MODE_SCANCODE <lirc-mode-SCANCODE>`.
-> > +
-> > +
-> >  .. _LIRC-CAN-SET-SEND-CARRIER:
-> >  
-> >  ``LIRC_CAN_SET_SEND_CARRIER``
-> > @@ -171,6 +179,14 @@ LIRC features
-> >  
-> >      Unused. Kept just to avoid breaking uAPI.
-> >  
-> > +.. _LIRC-CAN-SEND-SCANCODE:
-> > +
-> > +``LIRC_CAN_SEND_SCANCODE``
-> > +
-> > +    The driver supports sending (also called as IR blasting or IR TX) using
-> > +    :ref:`LIRC_MODE_SCANCODE <lirc-mode-SCANCODE>`.
-> > +
-> > +
-> >  Return Value
-> >  ============
-> >  
-> > diff --git a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-> > index b89de9add921..92c543e1815e 100644
-> > --- a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-> > +++ b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-> > @@ -33,8 +33,9 @@ Arguments
-> >  Description
-> >  ===========
-> >  
-> > -Get/set supported receive modes. Only :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`
-> > -is supported for IR receive.
-> > +Get/set supported receive modes. Only :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`,
-> 
-> , -> and
-> 
-> > +:ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` are supported.
-> > +Use :ref:`lirc_get_features` to find out which modes the driver supports.
-> >  
-> >  Return Value
-> >  ============
-> > diff --git a/Documentation/media/uapi/rc/lirc-get-send-mode.rst b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-> > index e686b21689a0..c3c830f9b08e 100644
-> > --- a/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-> > +++ b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-> > @@ -36,7 +36,8 @@ Description
-> >  
-> >  Get/set current transmit mode.
-> >  
-> > -Only :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>` is supported by for IR send,
-> > +Only :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>`,
-> 
-> , -> and
-> 
-> > +:ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` is supported by for IR send,
-> 
-> is -> are
-> 
-> >  depending on the driver. Use :ref:`lirc_get_features` to find out which
-> >  modes the driver supports.
-> >  
-> > diff --git a/Documentation/media/uapi/rc/lirc-read.rst b/Documentation/media/uapi/rc/lirc-read.rst
-> > index ff14a69104e5..cb868ac9fa95 100644
-> > --- a/Documentation/media/uapi/rc/lirc-read.rst
-> > +++ b/Documentation/media/uapi/rc/lirc-read.rst
-> > @@ -45,13 +45,19 @@ descriptor ``fd`` into the buffer starting at ``buf``.  If ``count`` is zero,
-> >  is greater than ``SSIZE_MAX``, the result is unspecified.
-> >  
-> >  The exact format of the data depends on what :ref:`lirc_modes` a driver
-> > -uses. Use :ref:`lirc_get_features` to get the supported mode.
-> > +uses. Use :ref:`lirc_get_features` to get the supported mode, and use
-> > +:ref:`lirc_set_rec_mode` set the current active mode.
-> >  
-> > -The generally preferred mode for receive is
-> > -:ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`,
-> > -in which packets containing an int value describing an IR signal are
-> > +The mode :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>` is for raw IR,
-> > +in which packets containing an unsigned int value describing an IR signal are
-> >  read from the chardev.
-> >  
-> > +Alternatively, :ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` can be available,
-> > +in this mode scancodes which are either decoded by software decoders, or
-> > +my hardware decoders are available. The ``rc_proto`` member is set to the
-> 
-> my -> by
-> 
-> > +protocol used for transmission, and ``scancode`` to the decoded scancode.
-> > +
-> > +
-> >  Return Value
-> >  ============
-> >  
-> > diff --git a/Documentation/media/uapi/rc/lirc-write.rst b/Documentation/media/uapi/rc/lirc-write.rst
-> > index 2aad0fef4a5b..b28c268739bb 100644
-> > --- a/Documentation/media/uapi/rc/lirc-write.rst
-> > +++ b/Documentation/media/uapi/rc/lirc-write.rst
-> > @@ -42,17 +42,27 @@ Description
-> >  referenced by the file descriptor ``fd`` from the buffer starting at
-> >  ``buf``.
-> >  
-> > -The exact format of the data depends on what mode a driver uses, use
-> > -:ref:`lirc_get_features` to get the supported mode.
-> > +The exact format of the data depends on what mode a driver is in, use
-> > +:ref:`lirc_get_features` to get the supported modes and use
-> > +:ref:`lirc_set_send_mode` set to the mode.
-> 
-> set to -> set
-> 
-> >  
-> >  When in :ref:`LIRC_MODE_PULSE <lirc-mode-PULSE>` mode, the data written to
-> >  the chardev is a pulse/space sequence of integer values. Pulses and spaces
-> >  are only marked implicitly by their position. The data must start and end
-> >  with a pulse, therefore, the data must always include an uneven number of
-> > -samples. The write function must block until the data has been transmitted
-> > +samples. The write function blocks until the data has been transmitted
-> >  by the hardware. If more data is provided than the hardware can send, the
-> >  driver returns ``EINVAL``.
-> >  
-> > +When in :ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` mode, one
-> > +``struct lirc_scancode`` must be written to the chardev.  Set the desired
-> 
-> I would suggest: "must be written to the chardev at a time."
-> 
-> What happens when only a partial struct or multiple structs are written? Is an
-> error returned?
-
-Good point, I'll document this.
-> 
-> > +scancode in the ``scancode`` member, and the protocol in the ``rc_proto``
-> > +member. All other members must be set to 0. If there is no protocol encoder
-> 
-> Is there a check that the other members are 0? Would such a check make sense?
-
-There is. I'll add something about an error will be returned.
-
-> > +for the protocol or the scancode is not valid for the specified protocol,
-> > +``EINVAL`` is returned. The write function may not wait until the scancode
-> > +is transmitted.
-> > +
-> > +
-> >  Return Value
-> >  ============
-> >  
-> > 
-> 
-
-Thanks for your review
-
-Sean
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index ca3a2556e836..b7b4344237ba 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -88,6 +88,61 @@ void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
+ 	wake_up_poll(&dev->wait_poll, POLLIN | POLLRDNORM);
+ }
+ 
++static int ir_lirc_open(struct inode *inode, struct file *file)
++{
++	struct lirc_dev *d = container_of(inode->i_cdev, struct lirc_dev, cdev);
++	struct rc_dev *dev = d->rdev;
++	int retval;
++
++	retval = rc_open(dev);
++	if (retval)
++		return retval;
++
++	retval = mutex_lock_interruptible(&dev->lock);
++	if (retval)
++		goto out_rc;
++
++	if (!dev->registered) {
++		retval = -ENODEV;
++		goto out_unlock;
++	}
++
++	if (dev->lirc_open) {
++		retval = -EBUSY;
++		goto out_unlock;
++	}
++
++	if (dev->driver_type == RC_DRIVER_IR_RAW)
++		kfifo_reset_out(&dev->rawir);
++
++	dev->lirc_open++;
++	file->private_data = dev;
++
++	nonseekable_open(inode, file);
++	mutex_unlock(&dev->lock);
++
++	return 0;
++
++out_unlock:
++	mutex_unlock(&dev->lock);
++out_rc:
++	rc_close(dev);
++	return retval;
++}
++
++static int ir_lirc_close(struct inode *inode, struct file *file)
++{
++	struct rc_dev *dev = file->private_data;
++
++	mutex_lock(&dev->lock);
++	dev->lirc_open--;
++	mutex_unlock(&dev->lock);
++
++	rc_close(dev);
++
++	return 0;
++}
++
+ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 				   size_t n, loff_t *ppos)
+ {
+@@ -477,8 +532,8 @@ static const struct file_operations lirc_fops = {
+ #endif
+ 	.read		= ir_lirc_read,
+ 	.poll		= ir_lirc_poll,
+-	.open		= lirc_dev_fop_open,
+-	.release	= lirc_dev_fop_close,
++	.open		= ir_lirc_open,
++	.release	= ir_lirc_close,
+ 	.llseek		= no_llseek,
+ };
+ 
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 22171267aa90..32124fb5c88e 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -61,7 +61,6 @@ lirc_allocate_device(void)
+ 
+ 	d = kzalloc(sizeof(*d), GFP_KERNEL);
+ 	if (d) {
+-		mutex_init(&d->mutex);
+ 		device_initialize(&d->dev);
+ 		d->dev.class = lirc_class;
+ 		d->dev.release = lirc_release_device;
+@@ -150,15 +149,15 @@ void lirc_unregister_device(struct lirc_dev *d)
+ 	dev_dbg(&d->dev, "lirc_dev: driver %s unregistered from minor = %d\n",
+ 		d->name, d->minor);
+ 
+-	mutex_lock(&d->mutex);
++	mutex_lock(&rcdev->lock);
+ 
+-	if (d->open) {
++	if (rcdev->lirc_open) {
+ 		dev_dbg(&d->dev, LOGHEAD "releasing opened driver\n",
+ 			d->name, d->minor);
+ 		wake_up_poll(&rcdev->wait_poll, POLLHUP);
+ 	}
+ 
+-	mutex_unlock(&d->mutex);
++	mutex_unlock(&rcdev->lock);
+ 
+ 	cdev_device_del(&d->cdev, &d->dev);
+ 	ida_simple_remove(&lirc_ida, d->minor);
+@@ -166,67 +165,6 @@ void lirc_unregister_device(struct lirc_dev *d)
+ }
+ EXPORT_SYMBOL(lirc_unregister_device);
+ 
+-int lirc_dev_fop_open(struct inode *inode, struct file *file)
+-{
+-	struct lirc_dev *d = container_of(inode->i_cdev, struct lirc_dev, cdev);
+-	struct rc_dev *rcdev = d->rdev;
+-	int retval;
+-
+-	dev_dbg(&d->dev, LOGHEAD "open called\n", d->name, d->minor);
+-
+-	retval = mutex_lock_interruptible(&d->mutex);
+-	if (retval)
+-		return retval;
+-
+-	if (!rcdev->registered) {
+-		retval = -ENODEV;
+-		goto out;
+-	}
+-
+-	if (d->open) {
+-		retval = -EBUSY;
+-		goto out;
+-	}
+-
+-	if (d->rdev) {
+-		retval = rc_open(d->rdev);
+-		if (retval)
+-			goto out;
+-	}
+-
+-	if (rcdev->driver_type == RC_DRIVER_IR_RAW)
+-		kfifo_reset_out(&rcdev->rawir);
+-
+-	d->open++;
+-
+-	file->private_data = d->rdev;
+-	nonseekable_open(inode, file);
+-	mutex_unlock(&d->mutex);
+-
+-	return 0;
+-
+-out:
+-	mutex_unlock(&d->mutex);
+-	return retval;
+-}
+-EXPORT_SYMBOL(lirc_dev_fop_open);
+-
+-int lirc_dev_fop_close(struct inode *inode, struct file *file)
+-{
+-	struct rc_dev *rcdev = file->private_data;
+-	struct lirc_dev *d = rcdev->lirc_dev;
+-
+-	mutex_lock(&d->mutex);
+-
+-	rc_close(rcdev);
+-	d->open--;
+-
+-	mutex_unlock(&d->mutex);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(lirc_dev_fop_close);
+-
+ int __init lirc_dev_init(void)
+ {
+ 	int retval;
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index 5782add67edd..b45af81b4633 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -26,8 +26,6 @@
+  * @rdev:		&struct rc_dev associated with the device
+  * @fops:		&struct file_operations for the device
+  * @owner:		the module owning this struct
+- * @open:		open count for the device's chardev
+- * @mutex:		serialises file_operations calls
+  * @dev:		&struct device assigned to the device
+  * @cdev:		&struct cdev assigned to the device
+  */
+@@ -39,10 +37,6 @@ struct lirc_dev {
+ 	const struct file_operations *fops;
+ 	struct module *owner;
+ 
+-	int open;
+-
+-	struct mutex mutex; /* protect from simultaneous accesses */
+-
+ 	struct device dev;
+ 	struct cdev cdev;
+ };
+@@ -55,9 +49,4 @@ int lirc_register_device(struct lirc_dev *d);
+ 
+ void lirc_unregister_device(struct lirc_dev *d);
+ 
+-/* default file operations
+- * used by drivers if they override only some operations
+- */
+-int lirc_dev_fop_open(struct inode *inode, struct file *file);
+-int lirc_dev_fop_close(struct inode *inode, struct file *file);
+ #endif
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 17131762fb75..f0ee1ba01a47 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -117,6 +117,7 @@ enum rc_filter_type {
+  * @rx_resolution : resolution (in ns) of input sampler
+  * @tx_resolution: resolution (in ns) of output sampler
+  * @lirc_dev: lirc char device
++ * @lirc_open: count of the number of times the device has been opened
+  * @carrier_low: when setting the carrier range, first the low end must be
+  *	set with an ioctl and then the high end with another ioctl
+  * @gap_start: time when gap starts
+@@ -191,6 +192,7 @@ struct rc_dev {
+ 	u32				tx_resolution;
+ #ifdef CONFIG_LIRC
+ 	struct lirc_dev			*lirc_dev;
++	int				lirc_open;
+ 	int				carrier_low;
+ 	ktime_t				gap_start;
+ 	u64				gap_duration;
+-- 
+2.13.6
