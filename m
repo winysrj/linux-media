@@ -1,35 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gloria.sntech.de ([95.129.55.99]:40910 "EHLO gloria.sntech.de"
+Received: from osg.samsung.com ([64.30.133.232]:59146 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754205AbdJQSbh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 14:31:37 -0400
-From: Heiko Stuebner <heiko@sntech.de>
-To: Jacob Chen <jacob-chen@iotwrt.com>
-Cc: linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        robh+dt@kernel.org, mchehab@kernel.org,
-        linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        Yakir Yang <ykk@rock-chips.com>
-Subject: Re: [PATCH v12 5/5] arm64: dts: rockchip: add RGA device node for RK3399
-Date: Tue, 17 Oct 2017 20:31:23 +0200
-Message-ID: <2638783.szBAEUNl8E@phil>
-In-Reply-To: <20171011072938.383-6-jacob-chen@iotwrt.com>
-References: <20171011072938.383-1-jacob-chen@iotwrt.com> <20171011072938.383-6-jacob-chen@iotwrt.com>
+        id S1751271AbdJEMsa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Oct 2017 08:48:30 -0400
+Date: Thu, 5 Oct 2017 09:48:23 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [ANN] Call for topics for the media mini-summit on Friday Oct
+ 27 in Prague
+Message-ID: <20171005094817.36b940a8@recife.lan>
+In-Reply-To: <4c24c976-2ae3-b0f3-d16a-ec31a9b2ea50@xs4all.nl>
+References: <4c24c976-2ae3-b0f3-d16a-ec31a9b2ea50@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, 11. Oktober 2017, 15:29:38 CEST schrieb Jacob Chen:
-> This patch add the RGA dt config of RK3399 SoC.
+Em Fri, 1 Sep 2017 11:46:59 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+
+> Hi all,
 > 
-> Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-> Signed-off-by: Yakir Yang <ykk@rock-chips.com>
+> We are organizing a media mini-summit on Friday October 27 in Prague, co-located
+> with the ELCE conference:
+> 
+> http://events.linuxfoundation.org/events/embedded-linux-conference-europe
+> 
+> This is a call for topics to discuss during that mini-summit.
+> 
+> Also, if you plan to attend, please let me know. It is open for all, but it is
+> nice if we know beforehand who we can expect.
+> 
+> So if you have a topic that you want to discuss there, then just reply to this
+> post. If possible, please add a rough idea of how much time you think you will
+> need.
+> 
+> I plan to make the agenda based on the received topics around mid-October.
+> 
+> Let me kick this off:
+> 
+> Topic: Media development process: what works, what doesn't.
+> Purpose: In the past 6 months or so we tried to improve the media development
+> 	 process. This is an overview of what we did and why we did it, what
+> 	 works and what doesn't. Feedback is very much appreciated. It is even
+> 	 more appreciated if people/companies would be willing to assign
+> 	 new developers to help improve the media subsystem!
+> Duration: 30-60 minutes
+> 
+> Topic: status of the HDMI CEC kernel support.
+> Purpose: give a quick overview of the status: what has been merged, what is still
+> 	 pending, what is under development.
+> Duration: 10-15 minutes
 
-applied for 4.15
+
+Topic: Media kAPI and uAPI documentation
+Purpose: to give the current status of media API and identify possible
+	 gaps and how to improve it.
+
+Duration: 45-60 minutes.
 
 
-Thanks
-Heiko
+Thanks,
+Mauro
