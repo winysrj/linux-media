@@ -1,99 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56116 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751610AbdJ0OtE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Oct 2017 10:49:04 -0400
-Date: Fri, 27 Oct 2017 16:49:01 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz,
-        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v16 15/32] v4l: async: Register sub-devices before
- calling bound callback
-Message-ID: <20171027144901.ac45mvnhtvvn4mgg@earth>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-16-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="ua6a5kw7zdmowy4i"
-Content-Disposition: inline
-In-Reply-To: <20171026075342.5760-16-sakari.ailus@linux.intel.com>
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:48503 "EHLO
+        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751317AbdJEOKu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Oct 2017 10:10:50 -0400
+Received: by mail-qk0-f174.google.com with SMTP id d67so11410152qkg.5
+        for <linux-media@vger.kernel.org>; Thu, 05 Oct 2017 07:10:50 -0700 (PDT)
+Message-ID: <1507212647.27175.25.camel@ndufresne.ca>
+Subject: Re: platform: coda: how to use firmware-imx binary releases? / how
+ to use VDOA on imx6?
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Martin Kepplinger <martink@posteo.de>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org
+Date: Thu, 05 Oct 2017 10:10:47 -0400
+In-Reply-To: <e0335e29f79b719c6f315473b3db74ad@posteo.de>
+References: <ef7cc5b91829f383842a1e4692af5b07@posteo.de>
+         <1507108964.11691.6.camel@pengutronix.de>
+         <7dd05afd338e81d293d0424e0b8e6b6a@posteo.de>
+         <1507191578.8473.1.camel@pengutronix.de>
+         <e0335e29f79b719c6f315473b3db74ad@posteo.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Le jeudi 05 octobre 2017 à 13:54 +0200, Martin Kepplinger a écrit :
+> > This message is most likely just a result of the VDOA not supporting 
+> > the
+> > selected capture format. In vdoa_context_configure, you can see that 
+> > the
+> > VDOA only writes YUYV or NV12.
+> 
+> ok. I'll have to look into it, and just in case you see a problem on 
+> first sight:
+> this is what coda says with debug level 1, when doing
+> 
+> gst-launch-1.0 playbin uri=file:///data/test2_hd480.h264 
+> video-sink=fbdevsink
 
---ua6a5kw7zdmowy4i
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+A bit unrelated, but kmssink remains a better choice here.
 
-Hi,
-
-On Thu, Oct 26, 2017 at 10:53:25AM +0300, Sakari Ailus wrote:
-> Register the sub-device before calling the notifier's bound callback.
-> Doing this the other way around is problematic as the struct v4l2_device
-> has not assigned for the sub-device yet and may be required by the bound
-> callback.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> ---
-
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-
--- Sebastian
-
->  drivers/media/v4l2-core/v4l2-async.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-co=
-re/v4l2-async.c
-> index e170682dae78..46db85685894 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -130,13 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_asyn=
-c_notifier *notifier,
->  {
->  	int ret;
-> =20
-> -	ret =3D v4l2_async_notifier_call_bound(notifier, sd, asd);
-> +	ret =3D v4l2_device_register_subdev(notifier->v4l2_dev, sd);
->  	if (ret < 0)
->  		return ret;
-> =20
-> -	ret =3D v4l2_device_register_subdev(notifier->v4l2_dev, sd);
-> +	ret =3D v4l2_async_notifier_call_bound(notifier, sd, asd);
->  	if (ret < 0) {
-> -		v4l2_async_notifier_call_unbind(notifier, sd, asd);
-> +		v4l2_device_unregister_subdev(sd);
->  		return ret;
->  	}
-> =20
-> --=20
-> 2.11.0
->=20
-
---ua6a5kw7zdmowy4i
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnzR1wACgkQ2O7X88g7
-+prdnw/+N3KA+1wakuE51jx3r7XxC127Ig5gq8FEsJO4n9sbYqvraIKOQv88yxfE
-8DReASbNOAdZjjv6JF2uzZrzXuk6BaFJufknDE29M0s6CyPlO5jvwFgRv0rZq7fY
-LZi7GeYe7QSJU+bSanC80Q5YQQbd/677F59BXQANBUHcqP4gOe3UFlN4KUJ2fY/6
-95NieR77iD12CtP/TkoFxxjPy/6ykf4DyxgpUFoH4Z5UWRRpp83dvgRu0WIXA/vp
-v50f9SMSJ50OJF2RAFnn9vGluWx7tGGKRWGdvJjaslq88K1pX4vB/HG4C9Y6mtN9
-AqN9U4HNJlZoQ3m6ejoIaAaKp3d5qx7af0Y+UyWQ173f6cX9Ci4OOi0KqBaBNzJD
-q7cO5XNyiBTJrw+8NpTQmMSySI2renmbjRtmz7WP+nle9KAwnVm44fYlGqdL4hEg
-6XTlzc709n0CcUZ+5NEOj1TKmuRJ6sYwV/7BB2w1nMtRq85nQisHEOkDURQ8eMEM
-SiOnZLkfUNx50jUKeK0+Yhrq2uCmhJhOEBx9VbeOd3QugIFPk4H+R9WwNpwMFIZH
-a0MGOZ42SU3q+QNMYW9SOXU0KIqx/6bdbN9A0Lha69pcCFFslykhlgWt3gbx8H/6
-KQD5trPNmXbqGG/+K/z7PdsThfFSBAqUS3/4jCkJU9JWV1W0SDs=
-=akMn
------END PGP SIGNATURE-----
-
---ua6a5kw7zdmowy4i--
+Nicolas
