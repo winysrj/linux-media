@@ -1,61 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58314 "EHLO mail.kernel.org"
+Received: from gofer.mess.org ([88.97.38.141]:43957 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751217AbdJSUxE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Oct 2017 16:53:04 -0400
-MIME-Version: 1.0
-In-Reply-To: <ca4fa045-17f0-9142-6bca-bbf472c1f3bb@gmail.com>
-References: <cover.1507752381.git.digetx@gmail.com> <3d432aa2617977a2b0a8621a1fc2f36f751133e1.1507752381.git.digetx@gmail.com>
- <20171017201354.efgjrwvakkseyvr7@rob-hp-laptop> <20171017202407.GA10482@ulmo>
- <CAL_JsqKtFD9OgO2privwfBAZeCn3zg1JienmefPk=X2W-+ahJQ@mail.gmail.com> <ca4fa045-17f0-9142-6bca-bbf472c1f3bb@gmail.com>
-From: Rob Herring <robh@kernel.org>
-Date: Thu, 19 Oct 2017 15:52:42 -0500
-Message-ID: <CAL_Jsq+0MwXdmQyxQKG7ZFBbRUnw6xN5=edCSV-YYtRs=oU_dA@mail.gmail.com>
-Subject: Re: [PATCH v3 1/2] staging: Introduce NVIDIA Tegra20 video decoder driver
-To: Dmitry Osipenko <digetx@gmail.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Warren <swarren@wwwdotorg.org>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>,
-        devel@driverdev.osuosl.org,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        id S1751315AbdJEIpm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Oct 2017 04:45:42 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 25/25] media: rc: nec decoder should not send both repeat and keycode
+Date: Thu,  5 Oct 2017 09:45:27 +0100
+Message-Id: <6d33ad5b3ff8ce55b07e8c3689e62c2aa791b10f.1507192752.git.sean@mess.org>
+In-Reply-To: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
+References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
+In-Reply-To: <cover.1507192751.git.sean@mess.org>
+References: <cover.1507192751.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 17, 2017 at 4:26 PM, Dmitry Osipenko <digetx@gmail.com> wrote:
-> On 18.10.2017 00:13, Rob Herring wrote:
->> On Tue, Oct 17, 2017 at 3:24 PM, Thierry Reding
->> <thierry.reding@gmail.com> wrote:
->>> On Tue, Oct 17, 2017 at 03:13:54PM -0500, Rob Herring wrote:
->>> [...]
->>>>> diff --git a/Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20-vde.txt b/Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20-vde.txt
->>> [...]
->>>>> +- resets : Must contain an entry for each entry in reset-names.
->>>>> +  See ../reset/reset.txt for details.
->>>>> +- reset-names : Must include the following entries:
->>>>> +  - vde
->>>>
->>>> -names is pointless when there is only one.
->>>
->>> I'd prefer to keep it. In the past we occasionally had to add clocks or
->>> resets to a device tree node where only one had been present (and hence
->>> no -names property) and that caused some awkwardness because verbiage
->>> had to be added to the bindings that clarified that one particular entry
->>> (the original one) always had to come first.
->>
->> The order should be specified regardless of -names and the original
->> one has to come first if you add any. That's not awkwardness, but how
->> bindings work.
->
-> Probably it would be okay to remove '-names' from the binding doc, but keep them
-> in the actual DT, wouldn't it?
+When receiving an nec repeat, rc_repeat() is called and then rc_keydown()
+with the last decoded scancode. That last call is redundant.
 
-No. Then where are the names documented?
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-nec-decoder.c | 29 +++++++++++++++++------------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
 
-Rob
+diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
+index 5380a9b23c07..4ace5648866d 100644
+--- a/drivers/media/rc/ir-nec-decoder.c
++++ b/drivers/media/rc/ir-nec-decoder.c
+@@ -87,8 +87,6 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 			data->state = STATE_BIT_PULSE;
+ 			return 0;
+ 		} else if (eq_margin(ev.duration, NEC_REPEAT_SPACE, NEC_UNIT / 2)) {
+-			rc_repeat(dev);
+-			IR_dprintk(1, "Repeat last key\n");
+ 			data->state = STATE_TRAILER_PULSE;
+ 			return 0;
+ 		}
+@@ -151,19 +149,26 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 		if (!geq_margin(ev.duration, NEC_TRAILER_SPACE, NEC_UNIT / 2))
+ 			break;
+ 
+-		address     = bitrev8((data->bits >> 24) & 0xff);
+-		not_address = bitrev8((data->bits >> 16) & 0xff);
+-		command	    = bitrev8((data->bits >>  8) & 0xff);
+-		not_command = bitrev8((data->bits >>  0) & 0xff);
++		if (data->count == NEC_NBITS) {
++			address     = bitrev8((data->bits >> 24) & 0xff);
++			not_address = bitrev8((data->bits >> 16) & 0xff);
++			command	    = bitrev8((data->bits >>  8) & 0xff);
++			not_command = bitrev8((data->bits >>  0) & 0xff);
++
++			scancode = ir_nec_bytes_to_scancode(address,
++							    not_address,
++							    command,
++							    not_command,
++							    &rc_proto);
+ 
+-		scancode = ir_nec_bytes_to_scancode(address, not_address,
+-						    command, not_command,
+-						    &rc_proto);
++			if (data->is_nec_x)
++				data->necx_repeat = true;
+ 
+-		if (data->is_nec_x)
+-			data->necx_repeat = true;
++			rc_keydown(dev, rc_proto, scancode, 0);
++		} else {
++			rc_repeat(dev);
++		}
+ 
+-		rc_keydown(dev, rc_proto, scancode, 0);
+ 		data->state = STATE_INACTIVE;
+ 		return 0;
+ 	}
+-- 
+2.13.6
