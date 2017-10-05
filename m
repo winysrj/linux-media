@@ -1,408 +1,337 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:10610 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751216AbdJWWmA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Oct 2017 18:42:00 -0400
-From: "Zhi, Yong" <yong.zhi@intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Vijaykumar, Ramya" <ramya.vijaykumar@intel.com>
-Subject: RE: [PATCH v4 11/12] intel-ipu3: Add imgu v4l2 driver
-Date: Mon, 23 Oct 2017 22:41:57 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D1AE2BFC9@ORSMSX106.amr.corp.intel.com>
-References: <1508298896-26096-1-git-send-email-yong.zhi@intel.com>
- <1508298896-26096-8-git-send-email-yong.zhi@intel.com>
- <20171020112940.2ptehi2ejl5mhjez@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20171020112940.2ptehi2ejl5mhjez@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44778 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750824AbdJEGLn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Oct 2017 02:11:43 -0400
+Date: Thu, 5 Oct 2017 09:11:39 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org,
+        devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
+        marc.herbert@intel.com, hyungwoo.yang@intel.com,
+        rajmohan.mani@intel.com, yong.zhi@intel.com
+Subject: Re: [PATCH v15 00/32] Unified fwnode endpoint parser, async
+ sub-device notifier support, N9 flash DTS
+Message-ID: <20171005061139.cqrauwjjhy4pwvy6@valkosipuli.retiisi.org.uk>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Sakari,
+On Thu, Oct 05, 2017 at 12:50:19AM +0300, Sakari Ailus wrote:
+> Hi folks,
+> 
+> 	I've dropped the full set from devicetree and linux-acpi lists;
+> 	let me know if you want it back. The entire set is posted to
+> 	linux-media list.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Sakari Ailus
-> Sent: Friday, October 20, 2017 4:30 AM
-> To: Zhi, Yong <yong.zhi@intel.com>
-> Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; Zheng, Jian
-> Xu <jian.xu.zheng@intel.com>; Mani, Rajmohan
-> <rajmohan.mani@intel.com>; Toivonen, Tuukka
-> <tuukka.toivonen@intel.com>; Hu, Jerry W <jerry.w.hu@intel.com>;
-> Vijaykumar, Ramya <ramya.vijaykumar@intel.com>
-> Subject: Re: [PATCH v4 11/12] intel-ipu3: Add imgu v4l2 driver
-> 
-> Hi Yong,
-> 
-> On Tue, Oct 17, 2017 at 10:54:56PM -0500, Yong Zhi wrote:
-> > ipu3 imgu video device based on v4l2, vb2 and media controller
-> > framework.
-> >
-> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> > Signed-off-by: Ramya Vijaykumar <ramya.vijaykumar@intel.com>
-> > ---
-> >  drivers/media/pci/intel/ipu3/ipu3-v4l2.c | 1150
-> > ++++++++++++++++++++++++++++++
-> >  1 file changed, 1150 insertions(+)
-> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-v4l2.c
-> >
-> > diff --git a/drivers/media/pci/intel/ipu3/ipu3-v4l2.c
-> > b/drivers/media/pci/intel/ipu3/ipu3-v4l2.c
-> > new file mode 100644
-> > index 000000000000..4618880b8675
-> > --- /dev/null
-> > +++ b/drivers/media/pci/intel/ipu3/ipu3-v4l2.c
-> > @@ -0,0 +1,1150 @@
-(snip)
-> > +static int mem2mem2_g_selection(struct ipu3_mem2mem2_device
-> *m2m2_dev,
-> > +				int node, struct v4l2_selection *s) {
-> > +	struct imgu_device *const imgu =
-> > +		container_of(m2m2_dev, struct imgu_device, mem2mem2);
-> > +
-> > +	if (node != IPU3_CSS_QUEUE_IN)
-> > +		return -ENOIOCTLCMD;
-> > +
-> > +	switch (s->target) {
-> > +	case V4L2_SEL_TGT_CROP:
-> > +		s->r = imgu->rect.eff;
-> > +		break;
-> > +	case V4L2_SEL_TGT_CROP_BOUNDS:
-> > +		break;
-> > +	case V4L2_SEL_TGT_CROP_DEFAULT:
-> > +		break;
-> > +	case V4L2_SEL_TGT_COMPOSE_PADDED:
-> > +		break;
-> > +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-> > +		break;
-> > +	case V4L2_SEL_TGT_COMPOSE:
-> > +		s->r = imgu->rect.bds;
-> > +		break;
-> > +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-> > +		break;
-> > +
-> 
-> As the driver uses the V4L2 sub-device interface, the selection API belongsis
-> implemented in the sub-device node, not the video nodes.
-> 
+Here's the diff between v14 and v15. The patches can be found here, with
+the dependencies:
 
-Ok, will study how to make necessary changes to use sub-dev interface for above.
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=fwnode-parse>
 
-> > +	default:
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int ipu3_try_fmt(struct file *file, void *fh, struct
-> > +v4l2_format *f) {
-> > +	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
-> > +	const struct ipu3_fmt *fmt;
-> > +
-> > +	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-> > +		fmt = find_format(f, M2M_CAPTURE);
-> > +	else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-> > +		fmt = find_format(f, M2M_OUTPUT);
-> > +	else
-> > +		return -EINVAL;
-> > +
-> > +	pixm->pixelformat = fmt->fourcc;
-> > +
-> > +	memset(pixm->plane_fmt[0].reserved, 0,
-> > +	       sizeof(pixm->plane_fmt[0].reserved));
-> 
-> No need for the memset here, the framework handles this.
-> 
-> Are there limits on the image size?
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 5aae5cb38b81..ae026eee3d03 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -248,18 +248,20 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ 	list_move(&sd->async_list, &notifier->done);
+ 
+ 	/*
+-	 * See if the sub-device has a notifier. If it does, proceed
+-	 * with checking for its async sub-devices.
++	 * See if the sub-device has a notifier. If not, return here.
+ 	 */
+ 	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
+-	if (subdev_notifier && !subdev_notifier->parent) {
+-		subdev_notifier->parent = notifier;
+-		ret = v4l2_async_notifier_try_all_subdevs(subdev_notifier);
+-		if (ret)
+-			return ret;
+-	}
++	if (!subdev_notifier || subdev_notifier->parent)
++		return 0;
+ 
+-	return 0;
++	/*
++	 * Proceed with checking for the sub-device notifier's async
++	 * sub-devices, and return the result. The error will be handled by the
++	 * caller.
++	 */
++	subdev_notifier->parent = notifier;
++
++	return v4l2_async_notifier_try_all_subdevs(subdev_notifier);
+ }
+ 
+ /* Test all async sub-devices in a notifier for a match. */
+@@ -304,7 +306,28 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+ 	/* Subdevice driver will reprobe and put the subdev back onto the list */
+ 	list_del_init(&sd->async_list);
+ 	sd->asd = NULL;
+-	sd->dev = NULL;
++}
++
++/* Unbind all sub-devices in the notifier tree. */
++static void v4l2_async_notifier_unbind_all_subdevs(
++	struct v4l2_async_notifier *notifier)
++{
++	struct v4l2_subdev *sd, *tmp;
++
++	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
++		struct v4l2_async_notifier *subdev_notifier =
++			v4l2_async_find_subdev_notifier(sd);
++
++		if (subdev_notifier)
++			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
++
++		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
++		v4l2_async_cleanup(sd);
++
++		list_move(&sd->async_list, &subdev_list);
++	}
++
++	notifier->parent = NULL;
+ }
+ 
+ /* See if an fwnode can be found in a notifier's lists. */
+@@ -412,9 +435,11 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 
+ 	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+ 	if (ret)
+-		goto out_unlock;
++		goto err_unbind;
+ 
+ 	ret = v4l2_async_notifier_try_complete(notifier);
++	if (ret)
++		goto err_unbind;
+ 
+ 	/* Keep also completed notifiers on the list */
+ 	list_add(&notifier->list, &notifier_list);
+@@ -422,69 +447,74 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ out_unlock:
+ 	mutex_unlock(&list_lock);
+ 
++	return 0;
++
++err_unbind:
++	/*
++	 * On failure, unbind all sub-devices registered through this notifier.
++	 */
++	v4l2_async_notifier_unbind_all_subdevs(notifier);
++
++	mutex_unlock(&list_lock);
++
+ 	return ret;
+ }
+ 
+ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 				 struct v4l2_async_notifier *notifier)
+ {
++	int ret;
++
+ 	if (WARN_ON(!v4l2_dev || notifier->sd))
+ 		return -EINVAL;
+ 
+ 	notifier->v4l2_dev = v4l2_dev;
+ 
+-	return __v4l2_async_notifier_register(notifier);
++	ret = __v4l2_async_notifier_register(notifier);
++	if (ret)
++		notifier->v4l2_dev = NULL;
++
++	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_async_notifier_register);
+ 
+ int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
+ 					struct v4l2_async_notifier *notifier)
+ {
++	int ret;
++
+ 	if (WARN_ON(!sd || notifier->v4l2_dev))
+ 		return -EINVAL;
+ 
+ 	notifier->sd = sd;
+ 
+-	return __v4l2_async_notifier_register(notifier);
++	ret = __v4l2_async_notifier_register(notifier);
++	if (ret)
++		notifier->sd = NULL;
++
++	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_async_subdev_notifier_register);
+ 
+-/* Unbind all sub-devices in the notifier tree. */
+-static void v4l2_async_notifier_unbind_all_subdevs(
++static void __v4l2_async_notifier_unregister(
+ 	struct v4l2_async_notifier *notifier)
+ {
+-	struct v4l2_subdev *sd, *tmp;
+-
+-	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+-		struct v4l2_async_notifier *subdev_notifier =
+-			v4l2_async_find_subdev_notifier(sd);
+-
+-		if (subdev_notifier)
+-			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
+-
+-		v4l2_async_cleanup(sd);
++	if (!notifier || (!notifier->v4l2_dev && !notifier->sd))
++		return;
+ 
+-		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
++	v4l2_async_notifier_unbind_all_subdevs(notifier);
+ 
+-		list_move(&sd->async_list, &subdev_list);
+-	}
++	notifier->sd = NULL;
++	notifier->v4l2_dev = NULL;
+ 
+-	notifier->parent = NULL;
++	list_del(&notifier->list);
+ }
+ 
+ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ {
+-	if (!notifier->v4l2_dev && !notifier->sd)
+-		return;
+-
+ 	mutex_lock(&list_lock);
+ 
+-	v4l2_async_notifier_unbind_all_subdevs(notifier);
+-
+-	notifier->sd = NULL;
+-	notifier->v4l2_dev = NULL;
+-
+-	list_del(&notifier->list);
++	__v4l2_async_notifier_unregister(notifier);
+ 
+ 	mutex_unlock(&list_lock);
+ }
+@@ -522,7 +552,9 @@ EXPORT_SYMBOL_GPL(v4l2_async_notifier_cleanup);
+ 
+ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ {
++	struct v4l2_async_notifier *subdev_notifier;
+ 	struct v4l2_async_notifier *notifier;
++	int ret;
+ 
+ 	/*
+ 	 * No reference taken. The reference is held by the device
+@@ -549,47 +581,64 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 		if (!asd)
+ 			continue;
+ 
+-		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
++		ret = v4l2_async_match_notify(notifier, notifier->v4l2_dev, sd,
++					      asd);
++		if (ret)
++			goto err_unbind;
+ 
+-		if (!ret)
+-			ret = v4l2_async_notifier_try_complete(notifier);
++		ret = v4l2_async_notifier_try_complete(notifier);
++		if (ret)
++			goto err_unbind;
+ 
+-		mutex_unlock(&list_lock);
+-		return ret;
++		goto out_unlock;
+ 	}
+ 
+ 	/* None matched, wait for hot-plugging */
+ 	list_add(&sd->async_list, &subdev_list);
+ 
++out_unlock:
+ 	mutex_unlock(&list_lock);
+ 
+ 	return 0;
++
++err_unbind:
++	/*
++	 * Complete failed. Unbind the sub-devices bound through registering
++	 * this async sub-device.
++	 */
++	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
++	if (subdev_notifier)
++		v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
++
++	if (sd->asd)
++		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
++	v4l2_async_cleanup(sd);
++
++	mutex_unlock(&list_lock);
++
++	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_async_register_subdev);
+ 
+ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+ {
+-	struct v4l2_async_notifier *notifier = sd->notifier;
++	mutex_lock(&list_lock);
+ 
+-	if (sd->subdev_notifier)
+-		v4l2_async_notifier_unregister(sd->subdev_notifier);
++	__v4l2_async_notifier_unregister(sd->subdev_notifier);
+ 	v4l2_async_notifier_cleanup(sd->subdev_notifier);
+ 	kfree(sd->subdev_notifier);
++	sd->subdev_notifier = NULL;
+ 
+-	if (!sd->asd) {
+-		if (!list_empty(&sd->async_list))
+-			v4l2_async_cleanup(sd);
+-		return;
+-	}
++	if (sd->asd) {
++		struct v4l2_async_notifier *notifier = sd->notifier;
+ 
+-	mutex_lock(&list_lock);
++		list_add(&sd->asd->list, &notifier->waiting);
+ 
+-	list_add(&sd->asd->list, &notifier->waiting);
++		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
++	}
+ 
+ 	v4l2_async_cleanup(sd);
+ 
+-	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+-
+ 	mutex_unlock(&list_lock);
+ }
+ EXPORT_SYMBOL(v4l2_async_unregister_subdev);
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 74f2ea27d117..65f87e80081a 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -201,5 +201,4 @@ int __must_check v4l2_async_register_subdev_sensor_common(
+  * @sd: pointer to &struct v4l2_subdev
+  */
+ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
+-
+ #endif
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index 834e74246412..43fd1a278bcc 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -137,7 +137,7 @@ struct v4l2_fwnode_link {
+ int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+ 			       struct v4l2_fwnode_endpoint *vep);
+ 
+-/*
++/**
+  * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
+  * v4l2_fwnode_endpoint_alloc_parse()
+  * @vep - the V4L2 fwnode the resources of which are to be released
 
-The memset is added to fix v4l2-compliance failure here.
 
-The image size limit is checked in ipu3-css.c/ipu3_css_queue_init().
-
-(snip)
-> > +int ipu3_v4l2_register(struct imgu_device *dev) {
-> > +	struct ipu3_mem2mem2_device *m2m2 = &dev->mem2mem2;
-> > +	struct v4l2_mbus_framefmt def_bus_fmt;
-> > +	struct v4l2_pix_format_mplane def_pix_fmt;
-> > +
-> > +	int i, r;
-> > +
-> > +	/* Initialize miscellaneous variables */
-> > +	m2m2->streaming = false;
-> > +	m2m2->v4l2_file_ops = ipu3_v4l2_fops;
-> > +
-> > +	/* Set up media device */
-> > +	m2m2->media_dev.dev = m2m2->dev;
-> > +	strlcpy(m2m2->media_dev.model, m2m2->model,
-> > +		sizeof(m2m2->media_dev.model));
-> > +	snprintf(m2m2->media_dev.bus_info, sizeof(m2m2-
-> >media_dev.bus_info),
-> > +		 "%s", dev_name(m2m2->dev));
-> > +	m2m2->media_dev.hw_revision = 0;
-> > +	media_device_init(&m2m2->media_dev);
-> > +	r = media_device_register(&m2m2->media_dev);
-> > +	if (r) {
-> > +		dev_err(m2m2->dev, "failed to register media device (%d)\n",
-> r);
-> > +		goto fail_media_dev;
-> 
-> If there's nothing to clean up you can simply return the error here.
-
-Ack, quite obvious indeed.
-
-> 
-> > +	}
-> > +
-> > +	/* Set up v4l2 device */
-> > +	m2m2->v4l2_dev.mdev = &m2m2->media_dev;
-> > +	m2m2->v4l2_dev.ctrl_handler = m2m2->ctrl_handler;
-> > +	r = v4l2_device_register(m2m2->dev, &m2m2->v4l2_dev);
-> > +	if (r) {
-> > +		dev_err(m2m2->dev, "failed to register V4L2 device (%d)\n",
-> r);
-> > +		goto fail_v4l2_dev;
-> > +	}
-> > +
-> > +	/* Initialize subdev media entity */
-> > +	m2m2->subdev_pads = kzalloc(sizeof(*m2m2->subdev_pads) *
-> > +					m2m2->num_nodes, GFP_KERNEL);
-> > +	if (!m2m2->subdev_pads) {
-> > +		r = -ENOMEM;
-> > +		goto fail_subdev_pads;
-> > +	}
-> > +
-> > +	r = media_entity_pads_init(&m2m2->subdev.entity, m2m2-
-> >num_nodes,
-> > +				   m2m2->subdev_pads);
-> > +	if (r) {
-> > +		dev_err(m2m2->dev,
-> > +			"failed initialize subdev media entity (%d)\n", r);
-> > +		goto fail_media_entity;
-> > +	}
-> > +	m2m2->subdev.entity.ops = &ipu3_media_ops;
-> > +	for (i = 0; i < m2m2->num_nodes; i++) {
-> > +		m2m2->subdev_pads[i].flags = m2m2->nodes[i].output ?
-> > +			MEDIA_PAD_FL_SINK : MEDIA_PAD_FL_SOURCE;
-> > +	}
-> > +
-> > +	/* Initialize subdev */
-> > +	v4l2_subdev_init(&m2m2->subdev, &ipu3_subdev_ops);
-> > +	m2m2->subdev.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
-> > +	snprintf(m2m2->subdev.name, sizeof(m2m2->subdev.name),
-> > +		 "%s", m2m2->name);
-> > +	v4l2_set_subdevdata(&m2m2->subdev, m2m2);
-> > +	m2m2->subdev.ctrl_handler = m2m2->ctrl_handler;
-> > +	r = v4l2_device_register_subdev(&m2m2->v4l2_dev, &m2m2-
-> >subdev);
-> > +	if (r) {
-> > +		dev_err(m2m2->dev, "failed initialize subdev (%d)\n", r);
-> > +		goto fail_subdev;
-> > +	}
-> > +	r = v4l2_device_register_subdev_nodes(&m2m2->v4l2_dev);
-> > +	if (r) {
-> > +		dev_err(m2m2->dev, "failed to register subdevs (%d)\n", r);
-> > +		goto fail_subdevs;
-> > +	}
-> > +
-> > +	/* Initialize formats to default values */
-> > +	def_bus_fmt.width = 1920;
-> > +	def_bus_fmt.height = 1080;
-> > +	def_bus_fmt.code = MEDIA_BUS_FMT_UYVY8_2X8;
-> > +	def_bus_fmt.field = V4L2_FIELD_NONE;
-> > +	def_bus_fmt.colorspace = V4L2_COLORSPACE_RAW;
-> > +	def_bus_fmt.ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
-> > +	def_bus_fmt.quantization = V4L2_QUANTIZATION_DEFAULT;
-> > +	def_bus_fmt.xfer_func = V4L2_XFER_FUNC_DEFAULT;
-> > +
-> > +	def_pix_fmt.width = def_bus_fmt.width;
-> > +	def_pix_fmt.height = def_bus_fmt.height;
-> > +	def_pix_fmt.field = def_bus_fmt.field;
-> > +	def_pix_fmt.num_planes = 1;
-> > +	def_pix_fmt.plane_fmt[0].bytesperline = def_pix_fmt.width * 2;
-> > +	def_pix_fmt.plane_fmt[0].sizeimage =
-> > +		def_pix_fmt.height * def_pix_fmt.plane_fmt[0].bytesperline;
-> > +	def_pix_fmt.flags = 0;
-> > +	def_pix_fmt.colorspace = def_bus_fmt.colorspace;
-> > +	def_pix_fmt.ycbcr_enc = def_bus_fmt.ycbcr_enc;
-> > +	def_pix_fmt.quantization = def_bus_fmt.quantization;
-> > +	def_pix_fmt.xfer_func = def_bus_fmt.xfer_func;
-> > +
-> > +	/* Create video nodes and links */
-> > +	for (i = 0; i < m2m2->num_nodes; i++) {
-> > +		struct imgu_video_device *node = &m2m2->nodes[i];
-> > +		struct video_device *vdev = &node->vdev;
-> > +		struct vb2_queue *vbq = &node->vbq;
-> > +		u32 flags;
-> > +
-> > +		/* Initialize miscellaneous variables */
-> > +		mutex_init(&node->lock);
-> > +		INIT_LIST_HEAD(&node->buffers);
-> > +
-> > +		/* Initialize formats to default values */
-> > +		node->pad_fmt = def_bus_fmt;
-> > +		ipu3_node_to_v4l2(i, vdev, &node->vdev_fmt);
-> > +		if (node->vdev_fmt.type ==
-> V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE ||
-> > +		    node->vdev_fmt.type ==
-> V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-> > +			def_pix_fmt.pixelformat = node->output ?
-> > +
-> 	V4L2_PIX_FMT_IPU3_SGRBG10 :
-> > +						V4L2_PIX_FMT_NV12;
-> > +			node->vdev_fmt.fmt.pix_mp = def_pix_fmt;
-> > +		}
-> > +
-> > +		/* Initialize media entities */
-> > +		r = media_entity_pads_init(&vdev->entity, 1, &node-
-> >vdev_pad);
-> > +		if (r) {
-> > +			dev_err(m2m2->dev,
-> > +				"failed initialize media entity (%d)\n", r);
-> > +			goto fail_vdev_media_entity;
-> > +		}
-> > +		node->vdev_pad.flags = node->output ?
-> > +			MEDIA_PAD_FL_SOURCE : MEDIA_PAD_FL_SINK;
-> > +		vdev->entity.ops = NULL;
-> > +
-> > +		/* Initialize vbq */
-> > +		vbq->type = node->vdev_fmt.type;
-> > +		vbq->io_modes = VB2_USERPTR | VB2_MMAP |
-> VB2_DMABUF;
-> > +		vbq->ops = &ipu3_vb2_ops;
-> > +		vbq->mem_ops = m2m2->vb2_mem_ops;
-> 
-> dma_sg is the right one for all except the parameters; they are only accessed
-> by the driver, aren't they?
-> 
-
-Agree, will set to &vb2_dma_sg_memops directly instead.
-
-> > +		if (m2m2->buf_struct_size <= 0)
-> > +			m2m2->buf_struct_size =
-> > +				sizeof(struct ipu3_mem2mem2_buffer);
-> > +		vbq->buf_struct_size = m2m2->buf_struct_size;
-> > +		vbq->timestamp_flags =
-> V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> > +		vbq->min_buffers_needed = 0;	/* Can streamon w/o buffers
-> */
-> > +		vbq->drv_priv = m2m2;
-> > +		vbq->lock = &node->lock;
-> > +		r = vb2_queue_init(vbq);
-> > +		if (r) {
-> > +			dev_err(m2m2->dev,
-> > +				"failed to initialize video queue (%d)\n", r);
-> > +			goto fail_vdev;
-> > +		}
-> > +
-> > +		/* Initialize vdev */
-> > +		strlcpy(vdev->name, node->name, sizeof(vdev->name));
-> > +		vdev->release = video_device_release_empty;
-> > +		vdev->fops = &m2m2->v4l2_file_ops;
-> > +		vdev->lock = &node->lock;
-> > +		vdev->v4l2_dev = &m2m2->v4l2_dev;
-> > +		vdev->queue = &node->vbq;
-> > +		vdev->vfl_dir = node->output ? VFL_DIR_TX : VFL_DIR_RX;
-> > +		video_set_drvdata(vdev, m2m2);
-> > +		r = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
-> > +		if (r) {
-> > +			dev_err(m2m2->dev,
-> > +				"failed to register video device (%d)\n", r);
-> > +			goto fail_vdev;
-> > +		}
-> > +
-> > +		/* Create link between video node and the subdev pad */
-> > +		flags = 0;
-> > +		if (node->enabled)
-> > +			flags |= MEDIA_LNK_FL_ENABLED;
-> > +		if (node->immutable)
-> > +			flags |= MEDIA_LNK_FL_IMMUTABLE;
-> > +		if (node->output) {
-> > +			r = media_create_pad_link(
-> > +						 &vdev->entity, 0,
-> > +						 &m2m2->subdev.entity,
-> > +						 i, flags);
-> > +		} else {
-> > +			r = media_create_pad_link(
-> > +						 &m2m2->subdev.entity,
-> > +						 i, &vdev->entity, 0,
-> > +						 flags);
-> > +		}
-> > +		if (r)
-> > +			goto fail_link;
-> > +	}
-> > +
-> > +	return 0;
-> > +
-> > +	for (; i >= 0; i--) {
-> > +fail_link:
-> > +		video_unregister_device(&m2m2->nodes[i].vdev);
-> > +fail_vdev:
-> > +		media_entity_cleanup(&m2m2->nodes[i].vdev.entity);
-> > +fail_vdev_media_entity:
-> > +		mutex_destroy(&m2m2->nodes[i].lock);
-> > +	}
-> > +fail_subdevs:
-> > +	v4l2_device_unregister_subdev(&m2m2->subdev);
-> > +fail_subdev:
-> > +	media_entity_cleanup(&m2m2->subdev.entity);
-> > +fail_media_entity:
-> > +	kfree(m2m2->subdev_pads);
-> > +fail_subdev_pads:
-> > +	v4l2_device_unregister(&m2m2->v4l2_dev);
-> > +fail_v4l2_dev:
-> > +	media_device_unregister(&m2m2->media_dev);
-> > +	media_device_cleanup(&m2m2->media_dev);
-> > +fail_media_dev:
-> > +
-> > +	return r;
-> > +}
-> > +EXPORT_SYMBOL_GPL(ipu3_v4l2_register);
-> > +
-> > +int ipu3_v4l2_unregister(struct imgu_device *dev) {
-> > +	struct ipu3_mem2mem2_device *m2m2 = &dev->mem2mem2;
-> > +	unsigned int i;
-> > +
-> > +	for (i = 0; i < m2m2->num_nodes; i++) {
-> > +		video_unregister_device(&m2m2->nodes[i].vdev);
-> > +		media_entity_cleanup(&m2m2->nodes[i].vdev.entity);
-> > +		mutex_destroy(&m2m2->nodes[i].lock);
-> > +	}
-> > +
-> > +	v4l2_device_unregister_subdev(&m2m2->subdev);
-> > +	media_entity_cleanup(&m2m2->subdev.entity);
-> > +	kfree(m2m2->subdev_pads);
-> > +	v4l2_device_unregister(&m2m2->v4l2_dev);
-> > +	media_device_unregister(&m2m2->media_dev);
-> > +	media_device_cleanup(&m2m2->media_dev);
-> > +
-> > +	return 0;
-> > +}
-> > +EXPORT_SYMBOL_GPL(ipu3_v4l2_unregister);
-> > +
-> > +void ipu3_v4l2_buffer_done(struct vb2_buffer *vb,
-> > +			   enum vb2_buffer_state state)
-> > +{
-> > +	struct ipu3_mem2mem2_buffer *b =
-> > +		container_of(vb, struct ipu3_mem2mem2_buffer,
-> vbb.vb2_buf);
-> > +
-> > +	list_del(&b->list);
-> > +	vb2_buffer_done(&b->vbb.vb2_buf, state); }
-> > +EXPORT_SYMBOL_GPL(ipu3_v4l2_buffer_done);
-> > --
-> > 2.7.4
-> >
-> 
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
