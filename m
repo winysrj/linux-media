@@ -1,151 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:32362 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756519AbdJJRh4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 13:37:56 -0400
-Date: Tue, 10 Oct 2017 12:36:37 -0500
-From: Tom Saeger <tom.saeger@oracle.com>
-To: Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Cc: Tom Saeger <tom.saeger@oracle.com>, linux-doc@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 5/8] Documentation: fix media related doc refs
-Message-ID: <c687ab26caad079174767ea2f4650678b00d70ba.1507653970.git.tom.saeger@oracle.com>
-References: <cover.1507653969.git.tom.saeger@oracle.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1507653969.git.tom.saeger@oracle.com>
+Received: from gofer.mess.org ([88.97.38.141]:40119 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751330AbdJEIpf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Oct 2017 04:45:35 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 13/25] media: lirc: move lirc_dev->attached to rc_dev->registered
+Date: Thu,  5 Oct 2017 09:45:15 +0100
+Message-Id: <a651aac654962a70c1b665dc1b651ac35e0237e2.1507192752.git.sean@mess.org>
+In-Reply-To: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
+References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
+In-Reply-To: <cover.1507192751.git.sean@mess.org>
+References: <cover.1507192751.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make media doc refs valid.
+This is done to further remove the lirc kernel api. Ensure that every
+fops checks for this.
 
-Signed-off-by: Tom Saeger <tom.saeger@oracle.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- Documentation/admin-guide/kernel-parameters.txt    | 4 ++--
- Documentation/media/dvb-drivers/bt8xx.rst          | 8 ++++----
- Documentation/media/uapi/v4l/dev-sliced-vbi.rst    | 2 +-
- Documentation/media/uapi/v4l/extended-controls.rst | 2 +-
- Documentation/media/uapi/v4l/pixfmt-reserved.rst   | 2 +-
- Documentation/media/v4l-drivers/max2175.rst        | 2 +-
- 6 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/media/rc/ir-lirc-codec.c | 16 ++++++++++------
+ drivers/media/rc/lirc_dev.c      |  4 +---
+ drivers/media/rc/rc-main.c       |  8 ++++++++
+ include/media/lirc_dev.h         |  2 --
+ include/media/rc-core.h          |  3 +++
+ 5 files changed, 22 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 411b41127eee..cbfae6b1c644 100644
---- a/Documentation/admin-guide/kernel-parameters.txt
-+++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -439,7 +439,7 @@
- 	bttv.card=	[HW,V4L] bttv (bt848 + bt878 based grabber cards)
- 	bttv.radio=	Most important insmod options are available as
- 			kernel args too.
--	bttv.pll=	See Documentation/video4linux/bttv/Insmod-options
-+	bttv.pll=	See Documentation/media/v4l-drivers/bttv.rst
- 	bttv.tuner=
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index 801d5d174b04..ca3a2556e836 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -101,6 +101,9 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 	unsigned int duration = 0; /* signal duration in us */
+ 	int i;
  
- 	bulk_remove=off	[PPC]  This parameter disables the use of the pSeries
-@@ -2251,7 +2251,7 @@
- 			See Documentation/admin-guide/pm/sleep-states.rst.
++	if (!dev->registered)
++		return -ENODEV;
++
+ 	start = ktime_get();
  
- 	meye.*=		[HW] Set MotionEye Camera parameters
--			See Documentation/video4linux/meye.txt.
-+			See Documentation/media/v4l-drivers/meye.rst.
+ 	if (dev->send_mode == LIRC_MODE_SCANCODE) {
+@@ -223,6 +226,9 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 			return ret;
+ 	}
  
- 	mfgpt_irq=	[IA-32] Specify the IRQ to use for the
- 			Multi-Function General Purpose Timers on AMD Geode
-diff --git a/Documentation/media/dvb-drivers/bt8xx.rst b/Documentation/media/dvb-drivers/bt8xx.rst
-index b43958b7340c..e3e387bdf498 100644
---- a/Documentation/media/dvb-drivers/bt8xx.rst
-+++ b/Documentation/media/dvb-drivers/bt8xx.rst
-@@ -18,7 +18,7 @@ General information
++	if (!dev->registered)
++		return -ENODEV;
++
+ 	switch (cmd) {
+ 	case LIRC_GET_FEATURES:
+ 		if (dev->driver_type == RC_DRIVER_IR_RAW) {
+@@ -408,12 +414,11 @@ static unsigned int ir_lirc_poll(struct file *file,
+ 				 struct poll_table_struct *wait)
+ {
+ 	struct rc_dev *rcdev = file->private_data;
+-	struct lirc_dev *d = rcdev->lirc_dev;
+ 	unsigned int events = 0;
  
- This class of cards has a bt878a as the PCI interface, and require the bttv driver
- for accessing the i2c bus and the gpio pins of the bt8xx chipset.
--Please see Documentation/dvb/cards.txt => o Cards based on the Conexant Bt8xx PCI bridge:
-+Please see Documentation/media/dvb-drivers/cards.rst => o Cards based on the Conexant Bt8xx PCI bridge:
+ 	poll_wait(file, &rcdev->wait_poll, wait);
  
- Compiling kernel please enable:
+-	if (!d->attached)
++	if (!rcdev->registered)
+ 		events = POLLHUP | POLLERR;
+ 	else if (rcdev->driver_type == RC_DRIVER_IR_RAW &&
+ 		 !kfifo_is_empty(&rcdev->rawir))
+@@ -426,7 +431,6 @@ static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
+ 			    size_t length, loff_t *ppos)
+ {
+ 	struct rc_dev *rcdev = file->private_data;
+-	struct lirc_dev *d = rcdev->lirc_dev;
+ 	unsigned int copied;
+ 	int ret;
  
-@@ -45,7 +45,7 @@ Loading Modules
- Regular case: If the bttv driver detects a bt8xx-based DVB card, all frontend and backend modules will be loaded automatically.
- Exceptions are:
- - Old TwinHan DST cards or clones with or without CA slot and not containing an Eeprom.
--People running udev please see Documentation/dvb/udev.txt.
-+People running udev please see Documentation/media/dvb-drivers/udev.rst.
+@@ -436,7 +440,7 @@ static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
+ 	if (length < sizeof(unsigned int) || length % sizeof(unsigned int))
+ 		return -EINVAL;
  
- In the following cases overriding the PCI type detection for dvb-bt8xx might be necessary:
+-	if (!d->attached)
++	if (!rcdev->registered)
+ 		return -ENODEV;
  
-@@ -72,7 +72,7 @@ Useful parameters for verbosity level and debugging the dst module:
- The autodetected values are determined by the cards' "response string".
- In your logs see f. ex.: dst_get_device_id: Recognize [DSTMCI].
- For bug reports please send in a complete log with verbose=4 activated.
--Please also see Documentation/dvb/ci.txt.
-+Please also see Documentation/media/dvb-drivers/ci.rst.
+ 	do {
+@@ -446,12 +450,12 @@ static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
  
- Running multiple cards
- ~~~~~~~~~~~~~~~~~~~~~~
-@@ -100,7 +100,7 @@ Examples of card ID's:
+ 			ret = wait_event_interruptible(rcdev->wait_poll,
+ 					!kfifo_is_empty(&rcdev->rawir) ||
+-					!d->attached);
++					!rcdev->registered);
+ 			if (ret)
+ 				return ret;
+ 		}
  
- 	$ modprobe bttv card=113 card=135
+-		if (!d->attached)
++		if (!rcdev->registered)
+ 			return -ENODEV;
  
--For a full list of card ID's please see Documentation/video4linux/CARDLIST.bttv.
-+For a full list of card ID's please see Documentation/media/v4l-drivers/bttv-cardlist.rst.
- In case of further problems please subscribe and send questions to the mailing list: linux-dvb@linuxtv.org.
+ 		mutex_lock(&rcdev->lock);
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 9a0ad8d9a0cb..22171267aa90 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -122,7 +122,6 @@ int lirc_register_device(struct lirc_dev *d)
  
- Probing the cards with broken PCI subsystem ID
-diff --git a/Documentation/media/uapi/v4l/dev-sliced-vbi.rst b/Documentation/media/uapi/v4l/dev-sliced-vbi.rst
-index 9d6c860271cb..d311a6866b3b 100644
---- a/Documentation/media/uapi/v4l/dev-sliced-vbi.rst
-+++ b/Documentation/media/uapi/v4l/dev-sliced-vbi.rst
-@@ -431,7 +431,7 @@ MPEG stream.
- *Historical context*: This format specification originates from a
- custom, embedded, sliced VBI data format used by the ``ivtv`` driver.
- This format has already been informally specified in the kernel sources
--in the file ``Documentation/video4linux/cx2341x/README.vbi`` . The
-+in the file ``Documentation/media/v4l-drivers/cx2341x.rst`` . The
- maximum size of the payload and other aspects of this format are driven
- by the CX23415 MPEG decoder's capabilities and limitations with respect
- to extracting, decoding, and displaying sliced VBI data embedded within
-diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-index a3e81c1d276b..dfe49ae57e78 100644
---- a/Documentation/media/uapi/v4l/extended-controls.rst
-+++ b/Documentation/media/uapi/v4l/extended-controls.rst
-@@ -284,7 +284,7 @@ enum v4l2_mpeg_stream_vbi_fmt -
-     * - ``V4L2_MPEG_STREAM_VBI_FMT_IVTV``
-       - VBI in private packets, IVTV format (documented in the kernel
- 	sources in the file
--	``Documentation/video4linux/cx2341x/README.vbi``)
-+	``Documentation/media/v4l-drivers/cx2341x.rst``)
+ 	cdev_init(&d->cdev, d->fops);
+ 	d->cdev.owner = d->owner;
+-	d->attached = true;
  
+ 	err = cdev_device_add(&d->cdev, &d->dev);
+ 	if (err) {
+@@ -153,7 +152,6 @@ void lirc_unregister_device(struct lirc_dev *d)
  
+ 	mutex_lock(&d->mutex);
  
-diff --git a/Documentation/media/uapi/v4l/pixfmt-reserved.rst b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-index 521adb795535..38af1472a4b4 100644
---- a/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-@@ -52,7 +52,7 @@ please make a proposal on the linux-media mailing list.
- 	`http://www.ivtvdriver.org/ <http://www.ivtvdriver.org/>`__
+-	d->attached = false;
+ 	if (d->open) {
+ 		dev_dbg(&d->dev, LOGHEAD "releasing opened driver\n",
+ 			d->name, d->minor);
+@@ -180,7 +178,7 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
+ 	if (retval)
+ 		return retval;
  
- 	The format is documented in the kernel sources in the file
--	``Documentation/video4linux/cx2341x/README.hm12``
-+	``Documentation/media/v4l-drivers/cx2341x.rst``
-     * .. _V4L2-PIX-FMT-CPIA1:
+-	if (!d->attached) {
++	if (!rcdev->registered) {
+ 		retval = -ENODEV;
+ 		goto out;
+ 	}
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 38393f13822f..9ae60a5fa6d2 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1795,6 +1795,8 @@ int rc_register_device(struct rc_dev *dev)
+ 			goto out_lirc;
+ 	}
  
-       - ``V4L2_PIX_FMT_CPIA1``
-diff --git a/Documentation/media/v4l-drivers/max2175.rst b/Documentation/media/v4l-drivers/max2175.rst
-index 04478c25d57a..b1a4c89fd869 100644
---- a/Documentation/media/v4l-drivers/max2175.rst
-+++ b/Documentation/media/v4l-drivers/max2175.rst
-@@ -7,7 +7,7 @@ The MAX2175 driver implements the following driver-specific controls:
- -------------------------------
-     Enable/Disable I2S output of the tuner. This is a private control
-     that can be accessed only using the subdev interface.
--    Refer to Documentation/media/kapi/v4l2-controls for more details.
-+    Refer to Documentation/media/kapi/v4l2-controls.rst for more details.
++	dev->registered = true;
++
+ 	IR_dprintk(1, "Registered rc%u (driver: %s)\n",
+ 		   dev->minor,
+ 		   dev->driver_name ? dev->driver_name : "unknown");
+@@ -1857,6 +1859,12 @@ void rc_unregister_device(struct rc_dev *dev)
  
- .. flat-table::
-     :header-rows:  0
+ 	rc_free_rx_device(dev);
+ 
++	dev->registered = false;
++
++	/*
++	 * lirc device should be freed with dev->registered = false, so
++	 * that userspace polling will get notified.
++	 */
+ 	if (dev->driver_type != RC_DRIVER_SCANCODE)
+ 		ir_lirc_unregister(dev);
+ 
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index 14d3eb36672e..5782add67edd 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -26,7 +26,6 @@
+  * @rdev:		&struct rc_dev associated with the device
+  * @fops:		&struct file_operations for the device
+  * @owner:		the module owning this struct
+- * @attached:		if the device is still live
+  * @open:		open count for the device's chardev
+  * @mutex:		serialises file_operations calls
+  * @dev:		&struct device assigned to the device
+@@ -40,7 +39,6 @@ struct lirc_dev {
+ 	const struct file_operations *fops;
+ 	struct module *owner;
+ 
+-	bool attached;
+ 	int open;
+ 
+ 	struct mutex mutex; /* protect from simultaneous accesses */
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index d886ac56015b..17131762fb75 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -127,6 +127,8 @@ enum rc_filter_type {
+  * @wait_poll: poll struct for lirc device
+  * @send_mode: lirc mode for sending, either LIRC_MODE_SCANCODE or
+  *	LIRC_MODE_PULSE
++ * @registered: set to true by rc_register_device(), false by
++ *	rc_unregister_device
+  * @change_protocol: allow changing the protocol used on hardware decoders
+  * @open: callback to allow drivers to enable polling/irq when IR input device
+  *	is opened.
+@@ -198,6 +200,7 @@ struct rc_dev {
+ 	wait_queue_head_t		wait_poll;
+ 	u8				send_mode;
+ #endif
++	bool				registered;
+ 	int				(*change_protocol)(struct rc_dev *dev, u64 *rc_proto);
+ 	int				(*open)(struct rc_dev *dev);
+ 	void				(*close)(struct rc_dev *dev);
 -- 
-2.14.2
+2.13.6
