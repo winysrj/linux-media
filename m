@@ -1,132 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33526 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751511AbdJDKaL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 06:30:11 -0400
-Date: Wed, 4 Oct 2017 13:30:08 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
-        hansverk@cisco.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] ov5645: I2C address change
-Message-ID: <20171004103008.g7azpn4a3hfj4fs2@valkosipuli.retiisi.org.uk>
-References: <1506950925-13924-1-git-send-email-todor.tomov@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1506950925-13924-1-git-send-email-todor.tomov@linaro.org>
+Received: from gofer.mess.org ([88.97.38.141]:43083 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751271AbdJEIp0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Oct 2017 04:45:26 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Walls <awalls.cx18@gmail.com>, linux-media@vger.kernel.org
+Subject: [PATCH v2 00/25] lirc scancode interface, and more
+Date: Thu,  5 Oct 2017 09:45:24 +0100
+Message-Id: <cover.1507192751.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Todor,
+Introduce lirc scancode mode, use that to port lirc_zilog to rc-core
+using that interface, and then remove the lirc kernel api.
 
-On Mon, Oct 02, 2017 at 04:28:45PM +0300, Todor Tomov wrote:
-> As soon as the sensor is powered on, change the I2C address to the one
-> specified in DT. This allows to use multiple physical sensors connected
-> to the same I2C bus.
-> 
-> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+In summary:
+ - This removes the lirc staging directory.
+ - lirc IR TX can use in-kernel encoders for scancode encoding
+ - lirc_zilog uses the same interface
+ - lirc kapi (not uapi!) is gone
+ - The reading lirc scancode gives more information (e.g. protocol,
+   toggle, repeat). So you can determine what protocol variant a remotes uses
+ - Line count is actually down and code cleaner (imo)
+ - The scancode interface can be used for cec keycode transmit.
 
-The smiapp driver does something similar and I understand Laurent might be
-interested in such functionality as well.
+On the cec keycode transmit I am hoping for feedback. Also I am ensure what
+to do with the new firmware file for the zilog_ir.
 
-It'd be nice to handle this through the I²C framework instead and to define
-how the information is specified through DT. That way it could be made
-generic, to work with more devices than just this one.
+v2:
+ - Add MAINTAINERS entries
+ - Fixes for nec repeat
+ - Validate scancode for tx
+ - Minor bugfixes
 
-What do you think?
+Sean Young (25):
+  media: lirc: implement scancode sending
+  media: lirc: use the correct carrier for scancode transmit
+  media: rc: auto load encoder if necessary
+  media: lirc_zilog: remove receiver
+  media: lirc_zilog: fix variable types and other ugliness
+  media: lirc_zilog: port to rc-core using scancode tx interface
+  media: promote lirc_zilog out of staging
+  media: lirc: remove LIRCCODE and LIRC_GET_LENGTH
+  media: lirc: lirc interface should not be a raw decoder
+  media: lirc: validate scancode for transmit
+  media: lirc: merge lirc_dev_fop_ioctl and ir_lirc_ioctl
+  media: lirc: use kfifo rather than lirc_buffer for raw IR
+  media: lirc: move lirc_dev->attached to rc_dev->registered
+  media: lirc: do not call rc_close() on unregistered devices
+  media: lirc: create rc-core open and close lirc functions
+  media: lirc: remove name from lirc_dev
+  media: lirc: remove last remnants of lirc kapi
+  media: lirc: implement reading scancode
+  media: rc: ensure lirc device receives nec repeats
+  media: lirc: document LIRC_MODE_SCANCODE
+  media: lirc: introduce LIRC_SET_POLL_MODE
+  media: lirc: scancode rc devices should have a lirc device too
+  media: MAINTAINERS: remove lirc staging area
+  media: MAINTAINERS: add entry for zilog_ir
+  media: rc: nec decoder should not send both repeat and keycode
 
-Cc Laurent.
-
-> ---
->  drivers/media/i2c/ov5645.c | 42 ++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 42 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/ov5645.c b/drivers/media/i2c/ov5645.c
-> index d28845f..8541109 100644
-> --- a/drivers/media/i2c/ov5645.c
-> +++ b/drivers/media/i2c/ov5645.c
-> @@ -33,6 +33,7 @@
->  #include <linux/i2c.h>
->  #include <linux/init.h>
->  #include <linux/module.h>
-> +#include <linux/mutex.h>
->  #include <linux/of.h>
->  #include <linux/of_graph.h>
->  #include <linux/regulator/consumer.h>
-> @@ -42,6 +43,8 @@
->  #include <media/v4l2-fwnode.h>
->  #include <media/v4l2-subdev.h>
->  
-> +static DEFINE_MUTEX(ov5645_lock);
-> +
->  #define OV5645_VOLTAGE_ANALOG               2800000
->  #define OV5645_VOLTAGE_DIGITAL_CORE         1500000
->  #define OV5645_VOLTAGE_DIGITAL_IO           1800000
-> @@ -590,6 +593,31 @@ static void ov5645_regulators_disable(struct ov5645 *ov5645)
->  		dev_err(ov5645->dev, "io regulator disable failed\n");
->  }
->  
-> +static int ov5645_write_reg_to(struct ov5645 *ov5645, u16 reg, u8 val,
-> +			       u16 i2c_addr)
-> +{
-> +	u8 regbuf[3] = {
-> +		reg >> 8,
-> +		reg & 0xff,
-> +		val
-> +	};
-> +	struct i2c_msg msgs = {
-> +		.addr = i2c_addr,
-> +		.flags = 0,
-> +		.len = 3,
-> +		.buf = regbuf
-> +	};
-> +	int ret;
-> +
-> +	ret = i2c_transfer(ov5645->i2c_client->adapter, &msgs, 1);
-> +	if (ret < 0)
-> +		dev_err(ov5645->dev,
-> +			"%s: write reg error %d on addr 0x%x: reg=0x%x, val=0x%x\n",
-> +			__func__, ret, i2c_addr, reg, val);
-> +
-> +	return ret;
-> +}
-> +
->  static int ov5645_write_reg(struct ov5645 *ov5645, u16 reg, u8 val)
->  {
->  	u8 regbuf[3];
-> @@ -729,10 +757,24 @@ static int ov5645_s_power(struct v4l2_subdev *sd, int on)
->  	 */
->  	if (ov5645->power_count == !on) {
->  		if (on) {
-> +			mutex_lock(&ov5645_lock);
-> +
->  			ret = ov5645_set_power_on(ov5645);
->  			if (ret < 0)
->  				goto exit;
->  
-> +			ret = ov5645_write_reg_to(ov5645, 0x3100,
-> +						ov5645->i2c_client->addr, 0x78);
-> +			if (ret < 0) {
-> +				dev_err(ov5645->dev,
-> +					"could not change i2c address\n");
-> +				ov5645_set_power_off(ov5645);
-> +				mutex_unlock(&ov5645_lock);
-> +				goto exit;
-> +			}
-> +
-> +			mutex_unlock(&ov5645_lock);
-> +
->  			ret = ov5645_set_register_array(ov5645,
->  					ov5645_global_init_setting,
->  					ARRAY_SIZE(ov5645_global_init_setting));
-> -- 
-> 2.7.4
-> 
+ Documentation/media/kapi/rc-core.rst               |    5 -
+ Documentation/media/lirc.h.rst.exceptions          |   31 +
+ Documentation/media/uapi/rc/lirc-dev-intro.rst     |   43 +-
+ Documentation/media/uapi/rc/lirc-func.rst          |    2 +-
+ Documentation/media/uapi/rc/lirc-get-features.rst  |   17 +-
+ Documentation/media/uapi/rc/lirc-get-length.rst    |   44 -
+ Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |    7 +-
+ Documentation/media/uapi/rc/lirc-get-send-mode.rst |    4 +-
+ Documentation/media/uapi/rc/lirc-read.rst          |   14 +-
+ Documentation/media/uapi/rc/lirc-set-poll-mode.rst |   45 +
+ Documentation/media/uapi/rc/lirc-write.rst         |   16 +-
+ MAINTAINERS                                        |   12 +-
+ drivers/media/rc/Kconfig                           |   41 +-
+ drivers/media/rc/Makefile                          |    6 +-
+ drivers/media/rc/ir-jvc-decoder.c                  |    1 +
+ drivers/media/rc/ir-lirc-codec.c                   |  560 ++++---
+ drivers/media/rc/ir-mce_kbd-decoder.c              |   12 +-
+ drivers/media/rc/ir-nec-decoder.c                  |   30 +-
+ drivers/media/rc/ir-rc5-decoder.c                  |    1 +
+ drivers/media/rc/ir-rc6-decoder.c                  |    1 +
+ drivers/media/rc/ir-sanyo-decoder.c                |    1 +
+ drivers/media/rc/ir-sharp-decoder.c                |    1 +
+ drivers/media/rc/ir-sony-decoder.c                 |    1 +
+ drivers/media/rc/lirc_dev.c                        |  481 +-----
+ drivers/media/rc/rc-core-priv.h                    |   54 +-
+ drivers/media/rc/rc-ir-raw.c                       |   56 +-
+ drivers/media/rc/rc-main.c                         |  150 +-
+ drivers/media/rc/zilog_ir.c                        |  742 +++++++++
+ drivers/staging/media/Kconfig                      |    3 -
+ drivers/staging/media/Makefile                     |    1 -
+ drivers/staging/media/lirc/Kconfig                 |   21 -
+ drivers/staging/media/lirc/Makefile                |    6 -
+ drivers/staging/media/lirc/TODO                    |   36 -
+ drivers/staging/media/lirc/lirc_zilog.c            | 1653 --------------------
+ include/media/lirc_dev.h                           |  192 ---
+ include/media/rc-core.h                            |   55 +-
+ include/media/rc-map.h                             |   54 +-
+ include/uapi/linux/lirc.h                          |   93 ++
+ 38 files changed, 1701 insertions(+), 2791 deletions(-)
+ delete mode 100644 Documentation/media/uapi/rc/lirc-get-length.rst
+ create mode 100644 Documentation/media/uapi/rc/lirc-set-poll-mode.rst
+ create mode 100644 drivers/media/rc/zilog_ir.c
+ delete mode 100644 drivers/staging/media/lirc/Kconfig
+ delete mode 100644 drivers/staging/media/lirc/Makefile
+ delete mode 100644 drivers/staging/media/lirc/TODO
+ delete mode 100644 drivers/staging/media/lirc/lirc_zilog.c
+ delete mode 100644 include/media/lirc_dev.h
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.6
