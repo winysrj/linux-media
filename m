@@ -1,72 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fllnx210.ext.ti.com ([198.47.19.17]:34474 "EHLO
-        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752744AbdJLT1k (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Oct 2017 15:27:40 -0400
-From: Benoit Parrot <bparrot@ti.com>
-To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>,
-        Rob Herring <robh+dt@kernel.org>
-CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-omap@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benoit Parrot <bparrot@ti.com>
-Subject: [Patch 6/6] ARM: dts: dra7: Add VPE dtsi node
-Date: Thu, 12 Oct 2017 14:27:19 -0500
-Message-ID: <20171012192719.15193-7-bparrot@ti.com>
-In-Reply-To: <20171012192719.15193-1-bparrot@ti.com>
-References: <20171012192719.15193-1-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from gofer.mess.org ([88.97.38.141]:60679 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751380AbdJEIpb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Oct 2017 04:45:31 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 10/25] media: lirc: validate scancode for transmit
+Date: Thu,  5 Oct 2017 09:45:12 +0100
+Message-Id: <46af0b140d94a0e4f192120e4e9c68e5bc18ff23.1507192752.git.sean@mess.org>
+In-Reply-To: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
+References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
+In-Reply-To: <cover.1507192751.git.sean@mess.org>
+References: <cover.1507192751.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the necessary node and configuration data for the VPE (Video
-Processing Engine) hardware block on DRA7x.
+Ensure we reject an attempt to transmit invalid scancodes.
 
-The corresponding driver for this entry is in
-drivers/media/platform/ti-vpe/vpe.c.
-
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- arch/arm/boot/dts/dra7.dtsi | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ drivers/media/rc/ir-lirc-codec.c |  3 +++
+ drivers/media/rc/rc-core-priv.h  |  1 +
+ drivers/media/rc/rc-main.c       | 53 +++++++++++++++++++++++++---------------
+ 3 files changed, 37 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 02a136a4661a..f302d2e5eede 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -2018,6 +2018,32 @@
- 			clocks = <&l3_iclk_div>;
- 			clock-names = "fck";
- 		};
-+
-+		vpe {
-+			compatible = "ti,vpe";
-+			ti,hwmods = "vpe";
-+			clocks = <&dpll_core_h23x2_ck>;
-+			clock-names = "fck";
-+			reg = <0x489d0000 0x120>,
-+			      <0x489d0300 0x20>,
-+			      <0x489d0400 0x20>,
-+			      <0x489d0500 0x20>,
-+			      <0x489d0600 0x3c>,
-+			      <0x489d0700 0x80>,
-+			      <0x489d5700 0x18>,
-+			      <0x489dd000 0x400>;
-+			reg-names = "vpe_top",
-+				    "vpe_chr_us0",
-+				    "vpe_chr_us1",
-+				    "vpe_chr_us2",
-+				    "vpe_dei",
-+				    "sc",
-+				    "csc",
-+				    "vpdma";
-+			interrupts = <GIC_SPI 354 IRQ_TYPE_LEVEL_HIGH>;
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+		};
- 	};
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index 94561d8b0c0b..863d975d40fb 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -122,6 +122,9 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 		    scan.timestamp)
+ 			return -EINVAL;
  
- 	thermal_zones: thermal-zones {
++		if (!rc_validate_scancode(scan.rc_proto, scan.scancode))
++			return -EINVAL;
++
+ 		if (dev->tx_scancode) {
+ 			ret = dev->tx_scancode(dev, &scan);
+ 			return ret < 0 ? ret : n;
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 21e515d34f64..a064c401fa38 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -160,6 +160,7 @@ static inline bool is_timing_event(struct ir_raw_event ev)
+ #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
+ 
+ /* functions for IR encoders */
++bool rc_validate_scancode(enum rc_proto proto, u32 scancode);
+ 
+ static inline void init_ir_raw_event_duration(struct ir_raw_event *ev,
+ 					      unsigned int pulse,
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 758c14b90a87..38393f13822f 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -776,6 +776,37 @@ void rc_keydown_notimeout(struct rc_dev *dev, enum rc_proto protocol,
+ EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
+ 
+ /**
++ * rc_validate_scancode() - checks that a scancode is valid for a protocol
++ * @proto:	protocol
++ * @scancode:	scancode
++ */
++bool rc_validate_scancode(enum rc_proto proto, u32 scancode)
++{
++	switch (proto) {
++	case RC_PROTO_NECX:
++		if ((((scancode >> 16) ^ ~(scancode >> 8)) & 0xff) == 0)
++			return false;
++		break;
++	case RC_PROTO_NEC32:
++		if ((((scancode >> 24) ^ ~(scancode >> 16)) & 0xff) == 0)
++			return false;
++		break;
++	case RC_PROTO_RC6_MCE:
++		if ((scancode & 0xffff0000) != 0x800f0000)
++			return false;
++		break;
++	case RC_PROTO_RC6_6A_32:
++		if ((scancode & 0xffff0000) == 0x800f0000)
++			return false;
++		break;
++	default:
++		break;
++	}
++
++	return true;
++}
++
++/**
+  * rc_validate_filter() - checks that the scancode and mask are valid and
+  *			  provides sensible defaults
+  * @dev:	the struct rc_dev descriptor of the device
+@@ -793,26 +824,8 @@ static int rc_validate_filter(struct rc_dev *dev,
+ 
+ 	mask = protocols[protocol].scancode_bits;
+ 
+-	switch (protocol) {
+-	case RC_PROTO_NECX:
+-		if ((((s >> 16) ^ ~(s >> 8)) & 0xff) == 0)
+-			return -EINVAL;
+-		break;
+-	case RC_PROTO_NEC32:
+-		if ((((s >> 24) ^ ~(s >> 16)) & 0xff) == 0)
+-			return -EINVAL;
+-		break;
+-	case RC_PROTO_RC6_MCE:
+-		if ((s & 0xffff0000) != 0x800f0000)
+-			return -EINVAL;
+-		break;
+-	case RC_PROTO_RC6_6A_32:
+-		if ((s & 0xffff0000) == 0x800f0000)
+-			return -EINVAL;
+-		break;
+-	default:
+-		break;
+-	}
++	if (!rc_validate_scancode(protocol, s))
++		return -EINVAL;
+ 
+ 	filter->data &= mask;
+ 	filter->mask &= mask;
 -- 
-2.9.0
+2.13.6
