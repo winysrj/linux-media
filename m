@@ -1,114 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:56192 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751933AbdJSJjO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Oct 2017 05:39:14 -0400
-Date: Thu, 19 Oct 2017 11:39:10 +0200
-From: Thierry Reding <thierry.reding@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org
-Subject: Re: [PATCHv4 0/4] tegra-cec: add Tegra HDMI CEC support
-Message-ID: <20171019093910.GH9005@ulmo>
-References: <20170911122952.33980-1-hverkuil@xs4all.nl>
- <20171019092054.GC9005@ulmo>
- <0f43276f-0a89-8caa-6522-253458e3ad08@xs4all.nl>
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:37755 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751310AbdJENxe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Oct 2017 09:53:34 -0400
+Received: by mail-wr0-f193.google.com with SMTP id v38so6655311wrc.4
+        for <linux-media@vger.kernel.org>; Thu, 05 Oct 2017 06:53:33 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="9jHkwA2TBA/ec6v+"
-Content-Disposition: inline
-In-Reply-To: <0f43276f-0a89-8caa-6522-253458e3ad08@xs4all.nl>
+In-Reply-To: <CAFsbExLdADpSK84b4--z5PZ8kUA7R4+Ppmt2NqzO4y-WfdZ7Fg@mail.gmail.com>
+References: <4c24c976-2ae3-b0f3-d16a-ec31a9b2ea50@xs4all.nl> <CAFsbExLdADpSK84b4--z5PZ8kUA7R4+Ppmt2NqzO4y-WfdZ7Fg@mail.gmail.com>
+From: Shuah Khan <shuahkhan@gmail.com>
+Date: Thu, 5 Oct 2017 07:53:32 -0600
+Message-ID: <CAKocOOO5SaLD2FqyXusHaEds+sT-YrvRuqJrEmBaJ-dPYBR1wQ@mail.gmail.com>
+Subject: Re: [ANN] Call for topics for the media mini-summit on Friday Oct 27
+ in Prague
+To: Gustavo Padovan <gustavo@padovan.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        shuahkh@osg.samsung.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans/Gustavo.
 
---9jHkwA2TBA/ec6v+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wed, Oct 4, 2017 at 1:34 PM, Gustavo Padovan <gustavo@padovan.org> wrote:
+> Hi Hans,
+>
+>
+>
+> On Fri, Sep 1, 2017 at 6:46 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi all,
+>>
+>> We are organizing a media mini-summit on Friday October 27 in Prague, co-located
+>> with the ELCE conference:
+>>
+>> http://events.linuxfoundation.org/events/embedded-linux-conference-europe
+>>
+>> This is a call for topics to discuss during that mini-summit.
+>>
+>> Also, if you plan to attend, please let me know. It is open for all, but it is
+>> nice if we know beforehand who we can expect.
+>>
+>> So if you have a topic that you want to discuss there, then just reply to this
+>> post. If possible, please add a rough idea of how much time you think you will
+>> need.
+>>
+>> I plan to make the agenda based on the received topics around mid-October.
+>>
+>
+> I"m attending and I want to propose a discussion:
+>
+> Topic: V4L2 Explicit Syncronization
+> Purpose: quick overview and discuss of the API/direction we are going
+> with fences
+> Duration: 20-30min
 
-On Thu, Oct 19, 2017 at 11:36:14AM +0200, Hans Verkuil wrote:
-> On 10/19/17 11:20, Thierry Reding wrote:
-> > On Mon, Sep 11, 2017 at 02:29:48PM +0200, Hans Verkuil wrote:
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >> This patch series adds support for the Tegra CEC functionality.
-> >>
-> >> This v4 has been rebased to the latest 4.14 pre-rc1 mainline.
-> >>
-> >> Please review! Other than for the bindings that are now Acked I have n=
-ot
-> >> received any feedback.
-> >>
-> >> The first patch documents the CEC bindings, the second adds support
-> >> for this to tegra124.dtsi and enables it for the Jetson TK1.
-> >>
-> >> The third patch adds the CEC driver itself and the final patch adds
-> >> the cec notifier support to the drm/tegra driver in order to notify
-> >> the CEC driver whenever the physical address changes.
-> >>
-> >> I expect that the dts changes apply as well to the Tegra X1/X2 and pos=
-sibly
-> >> other Tegra SoCs, but I can only test this with my Jetson TK1 board.
-> >>
-> >> The dt-bindings and the tegra-cec driver would go in through the media
-> >> subsystem, the drm/tegra part through the drm subsystem and the dts
-> >> changes through (I guess) the linux-tegra developers. Luckily they are
-> >> all independent of one another.
-> >>
-> >> To test this you need the CEC utilities from git://linuxtv.org/v4l-uti=
-ls.git.
-> >>
-> >> To build this:
-> >>
-> >> git clone git://linuxtv.org/v4l-utils.git
-> >> cd v4l-utils
-> >> ./bootstrap.sh; ./configure
-> >> make
-> >> sudo make install # optional, you really only need utils/cec*
-> >>
-> >> To test:
-> >>
-> >> cec-ctl --playback # configure as playback device
-> >> cec-ctl -S # detect all connected CEC devices
-> >=20
-> > I finally got around to test this. Unfortunately I wasn't able to
-> > properly show connected CEC devices, but I think that may just be
-> > because the monitor I was testing against doesn't support CEC. I
-> > will have to check against a different device eventually to check
-> > that it properly enumerates, though I suspect you've already done
-> > quite extensive testing yourself.
->=20
-> Yes, you need a TV with CEC. Most (all?) PC monitors do not support this.
-> I never understood why not.
->=20
-> So just to confirm: you've merged this driver for 4.15?
+I would have loved to attend the Media mini-summit. Unfortunately I
+already made plans to leave Friday. In addition participating in the
+V4L2 Explicit Syncronization discussion, it would have been good to
+discuss:
 
-I've applied the drm/tegra bits to drm/tegra/for-next and pulled the ARM
-DT changes into the Tegra tree for v4.15. I think we had agreed that you
-would take the DT bindings and CEC driver through your tree?
+the my pending Media/Audio resource sharing patch series that is
+dependent on Sakari's lifetime managemnet patch series.
 
-Thierry
+I have been unable to get any discussion going on this topic on the
+mailing list.
 
---9jHkwA2TBA/ec6v+
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlnocr4ACgkQ3SOs138+
-s6F4jRAAqhFfIv/KiO7VYFtGDT7Vl2LkY6hgkIdEFFa39GEVT+VzKg5ttI8ge1bC
-SLsfq41XZurW1TxZzJSec27Jm2ZnpSt0wLhD39BA5SzwQiRFyaOOumVFCfZEHskr
-xIuCT3rbzCwgLpbgSGAYY1A0I3isDQ40hh2S6wi1wce8aJcrE7xPAvTS+B/7017b
-daZ9M7bs4GMViMrVA6AQSyt6m2AOIlAv8/PZ07OceqP3C9egKACzrWebnHhN1PI5
-giQAA9L6h0NzFUgju97DH71RH4xyBTXm2Ph0BMfwgBhYXwGD8967EmMqXa16Jb/I
-7cLjfsNwt2v8vfQD5rAsteyZ1O2BInOHZh2jEQmYztYqKnBL63+hs6+JjgFAA+nC
-gGNhqTVYlNiGDYfV4BffjYTPf/ruBC8gx9XDzzFsw1PDX3tLp6mEV+HdPYJ+t6wD
-ifNGfYQ4l1Qwx2t18xNvpTpNGmRtUv5pF0nZ9X6EVILkBU2YmJXJYNRiwceDW6Yq
-zTIKoE3aF5DrrVGqtWFp4JnFb0aXyVid+z0hczxElMqdsL4rxtdSHmylom4Nk2kn
-SGXtJ7UhJc4tMwcY4Pml8LyonHjNICSqE2C/RjYNsFNevhxIkrXRECPVQCMBKVxb
-42EaF34iWfHrPdg3To84wIYTPp4EFzgCmPePnVOWwQCLguHEL7g=
-=MqOJ
------END PGP SIGNATURE-----
-
---9jHkwA2TBA/ec6v+--
+thanks,
+-- Shuah
