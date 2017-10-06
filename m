@@ -1,208 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56370 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750781AbdJ0OuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Oct 2017 10:50:25 -0400
-Date: Fri, 27 Oct 2017 16:50:19 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz
-Subject: Re: [PATCH v16.1 17/32] v4l: async: Prepare for async sub-device
- notifiers
-Message-ID: <20171027145019.wl2nqmh6pzcx2bej@earth>
-References: <20171026075342.5760-18-sakari.ailus@linux.intel.com>
- <20171027082629.27648-1-sakari.ailus@linux.intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60868 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751495AbdJFKWd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Oct 2017 06:22:33 -0400
+Date: Fri, 6 Oct 2017 13:22:29 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v7 1/7] media: add glossary.rst with a glossary of terms
+ used at V4L2 spec
+Message-ID: <20171006102229.evjyn77udfcc76gs@valkosipuli.retiisi.org.uk>
+References: <cover.1506550930.git.mchehab@s-opensource.com>
+ <047245414a82a6553361b1dd3497f796855a657d.1506550930.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="e5zaz3623q6ibkrr"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20171027082629.27648-1-sakari.ailus@linux.intel.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <047245414a82a6553361b1dd3497f796855a657d.1506550930.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
---e5zaz3623q6ibkrr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks for continuing the work on this!
 
-Hi,
-
-On Fri, Oct 27, 2017 at 11:26:29AM +0300, Sakari Ailus wrote:
-> Refactor the V4L2 async framework a little in preparation for async
-> sub-device notifiers. This avoids making some structural changes in the
-> patch actually implementing sub-device notifiers, making that patch easier
-> to review.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Sep 27, 2017 at 07:23:43PM -0300, Mauro Carvalho Chehab wrote:
+> Add a glossary of terms for V4L2, as several concepts are complex
+> enough to cause misunderstandings.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 > ---
+>  Documentation/media/uapi/v4l/glossary.rst | 136 ++++++++++++++++++++++++++++++
+>  Documentation/media/uapi/v4l/v4l2.rst     |   1 +
+>  2 files changed, 137 insertions(+)
+>  create mode 100644 Documentation/media/uapi/v4l/glossary.rst
+> 
+> diff --git a/Documentation/media/uapi/v4l/glossary.rst b/Documentation/media/uapi/v4l/glossary.rst
+> new file mode 100644
+> index 000000000000..b6767da1a46e
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/glossary.rst
+> @@ -0,0 +1,136 @@
+> +========
+> +Glossary
+> +========
+> +
+> +.. note::
+> +
+> +   This goal of section is to standardize the terms used within the V4L2
+> +   documentation. It is written incrementally as they are standardized in
+> +   the V4L2 documentation. So, it is a Work In Progress.
+> +
+> +.. Please keep the glossary entries in alphabetical order
+> +
+> +.. glossary::
+> +
+> +    Bridge driver
+> +	The same as V4L2 main driver.
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Not all V4L2 main drivers can be bridge drivers. Mem-to-mem devices, for
+instance. How about:
 
--- Sebastian
+A driver for a device receiving image data from another device (or
+transmitting it to a sub-device) controlled by a sub-device driver. Bridge
+drivers typically act as V4L2 main drivers.
 
->  drivers/media/v4l2-core/v4l2-async.c | 69 ++++++++++++++++++++++++++----=
-------
->  1 file changed, 50 insertions(+), 19 deletions(-)
->=20
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-co=
-re/v4l2-async.c
-> index 1b536d68cedf..6265717769d2 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -125,12 +125,13 @@ static struct v4l2_async_subdev *v4l2_async_find_ma=
-tch(
->  }
-> =20
->  static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-> +				   struct v4l2_device *v4l2_dev,
->  				   struct v4l2_subdev *sd,
->  				   struct v4l2_async_subdev *asd)
->  {
->  	int ret;
-> =20
-> -	ret =3D v4l2_device_register_subdev(notifier->v4l2_dev, sd);
-> +	ret =3D v4l2_device_register_subdev(v4l2_dev, sd);
->  	if (ret < 0)
->  		return ret;
-> =20
-> @@ -151,6 +152,29 @@ static int v4l2_async_match_notify(struct v4l2_async=
-_notifier *notifier,
->  	return 0;
->  }
-> =20
-> +/* Test all async sub-devices in a notifier for a match. */
-> +static int v4l2_async_notifier_try_all_subdevs(
-> +	struct v4l2_async_notifier *notifier)
-> +{
-> +	struct v4l2_device *v4l2_dev =3D notifier->v4l2_dev;
-> +	struct v4l2_subdev *sd, *tmp;
 > +
-> +	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> +		struct v4l2_async_subdev *asd;
-> +		int ret;
+> +    Device Node
+> +	A character device node in the file system used to control and do
+> +	input/output data transfers from/to a Kernel driver.
 > +
-> +		asd =3D v4l2_async_find_match(notifier, sd);
-> +		if (!asd)
-> +			continue;
+> +    Digital Signal Processor - DSP
+> +	A specialized microprocessor, with its architecture optimized for
+> +	the operational needs of digital signal processing.
 > +
-> +		ret =3D v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
-> +		if (ret < 0)
-> +			return ret;
-> +	}
+> +    Driver
+> +	The part of the Linux Kernel that implements support
+> +	for a hardware component.
 > +
-> +	return 0;
-> +}
+> +    Field-programmable Gate Array - FPGA
+> +	A field-programmable gate array (FPGA) is an integrated circuit
+> +	designed to be configured by a customer or a designer after
+> +	manufacturing.
 > +
->  static void v4l2_async_cleanup(struct v4l2_subdev *sd)
->  {
->  	v4l2_device_unregister_subdev(sd);
-> @@ -172,18 +196,15 @@ static void v4l2_async_notifier_unbind_all_subdevs(
->  	}
->  }
-> =20
-> -int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> -				 struct v4l2_async_notifier *notifier)
-> +static int __v4l2_async_notifier_register(struct v4l2_async_notifier *no=
-tifier)
->  {
-> -	struct v4l2_subdev *sd, *tmp;
->  	struct v4l2_async_subdev *asd;
->  	int ret;
->  	int i;
-> =20
-> -	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-> +	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
->  		return -EINVAL;
-> =20
-> -	notifier->v4l2_dev =3D v4l2_dev;
->  	INIT_LIST_HEAD(&notifier->waiting);
->  	INIT_LIST_HEAD(&notifier->done);
-> =20
-> @@ -216,18 +237,10 @@ int v4l2_async_notifier_register(struct v4l2_device=
- *v4l2_dev,
-> =20
->  	mutex_lock(&list_lock);
-> =20
-> -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> -		int ret;
-> -
-> -		asd =3D v4l2_async_find_match(notifier, sd);
-> -		if (!asd)
-> -			continue;
-> -
-> -		ret =3D v4l2_async_match_notify(notifier, sd, asd);
-> -		if (ret < 0) {
-> -			mutex_unlock(&list_lock);
-> -			return ret;
-> -		}
-> +	ret =3D v4l2_async_notifier_try_all_subdevs(notifier);
-> +	if (ret) {
-> +		mutex_unlock(&list_lock);
-> +		return ret;
->  	}
-> =20
->  	if (list_empty(&notifier->waiting)) {
-> @@ -250,6 +263,23 @@ int v4l2_async_notifier_register(struct v4l2_device =
-*v4l2_dev,
-> =20
->  	return ret;
->  }
+> +	See https://en.wikipedia.org/wiki/Field-programmable_gate_array.
 > +
-> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> +				 struct v4l2_async_notifier *notifier)
-> +{
-> +	int ret;
+> +    Hardware component
+> +	A subset of the media hardware. For example an I²C or SPI device,
+> +	or an IP block inside an SoC or FPGA.
 > +
-> +	if (WARN_ON(!v4l2_dev))
-> +		return -EINVAL;
-> +
-> +	notifier->v4l2_dev =3D v4l2_dev;
-> +
-> +	ret =3D __v4l2_async_notifier_register(notifier);
-> +	if (ret)
-> +		notifier->v4l2_dev =3D NULL;
-> +
-> +	return ret;
-> +}
->  EXPORT_SYMBOL(v4l2_async_notifier_register);
-> =20
->  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> @@ -324,7 +354,8 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  		if (!asd)
->  			continue;
-> =20
-> -		ret =3D v4l2_async_match_notify(notifier, sd, asd);
-> +		ret =3D v4l2_async_match_notify(notifier, notifier->v4l2_dev, sd,
-> +					      asd);
->  		if (ret)
->  			goto err_unlock;
-> =20
-> --=20
-> 2.11.0
->=20
+> +    Image Signal Processor - ISP
+> +	A specialised processor that implements a set of algorithms for
+> +	processing image data. ISPs may implement algorithms for lens
+> +	shading correction, demosaic, scaling and pixel format conversion
+> +	as well as produce statistics for the use of the control
+> +	algorithms (e.g. automatic exposure, white balance and focus).
 
---e5zaz3623q6ibkrr
-Content-Type: application/pgp-signature; name="signature.asc"
+And perhaps add:
 
------BEGIN PGP SIGNATURE-----
+ISP drivers often contain a receiver for image data from external source
+such as a sensor and act as V4L2 main driver.
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnzR6sACgkQ2O7X88g7
-+poL7hAAiNf4PNyyl7pTa39p93wDb5KGifIz809w+XuaWB+8ZGd7Tsjt6jQESWJB
-bvKh51tkQ4lifMXFcbMFcm7d8Ygfw1w838nMsml9EwELjAjqyLLQ5KbzCSRu5dgr
-N6jvYXh/mHWSq15ZzQ25TBB1pHpgVwCK1tgKlx/XxNxW5llsPRrugWYPdISH227K
-UizcGJ0elufaZaXIYlyJRx0uAjMksGL6DWzJivp/ddKk8rZMQSD3Xx1at5h+04LQ
-jR1ih5BhPVYJT0eZjB7KqP2OwucP+5h6/Lf6gke0c0T7D7NlyzEDS80iiBBaIS2F
-WyrmM8dLsH+FlYuIqT7RpkPAaMPsyKOe2AYzQZqZcH2DR57M3iEH5lOW6LQkodvH
-io8dlLgeQArMY/8b4p47Qv684qhVdAcP56n3lHTCWeaTu76olyaXRi7XRLMKVpe0
-BvDbJDnENUunChKeMcyJ4iqqEHsxG4AY0G6WzLk07aH/NPGa4U3bGoyE93/Htu0Q
-lR4vpNeBcoTg1hYV5ELjOi7pCLDVYOLxNe6yIi6ofLmgdi2YNL1fOigoYYoMAGKu
-RmVTQViiELauG1gD8beLkPLdv1uJcJAaC8b4dnU1yiLQTS1HwZNhsGZ1bSakCnex
-vNe1YDAMw9QvVJMqvoO0DgeDMGNpE8AhORl6XNOJqjpw3aB+mVQ=
-=jORW
------END PGP SIGNATURE-----
+> +
+> +    Inter-Integrated Circuit - I²C
+> +	A  multi-master, multi-slave, packet switched, single-ended,
+> +	serial computer bus used to control V4L2 sub-devices.
+> +
+> +	See http://www.nxp.com/docs/en/user-guide/UM10204.pdf.
+> +
+> +    Integrated circuit - IC
+> +	A set of electronic circuits on one small flat piece of
+> +	semiconductor material, normally silicon.
+> +
+> +	Also known as chip.
+> +
+> +    Intellectual property core - IP core
+> +	In electronic design a semiconductor intellectual property core,
+> +	is a reusable unit of logic, cell, or integrated circuit layout
+> +	design that is the intellectual property of one party.
+> +	IP cores may be licensed to another party or can be owned
+> +	and used by a single party alone.
+> +
+> +	See https://en.wikipedia.org/wiki/Semiconductor_intellectual_property_core).
+> +
+> +    IP block
+> +	The same as IP core.
+> +
+> +    MC-centric
+> +	V4L2 hardware that requires a Media controller.
+> +
+> +	See :ref:`v4l2_hardware_control`.
+> +
+> +    Media Controller
+> +	An API designed to expose and control devices and sub-devices
+> +	relationships to applications.
+> +
+> +	See :ref:`media_controller`.
+> +
+> +    Media hardware
+> +	A group of hardware components that together make a larger
+> +	user-facing functional media hardware. For instance the SoC ISP IP
+> +	cores and external camera sensors together make a
+> +	camera media hardware.
+> +
+> +    Media hardware control
+> +	Type of control for a media hardware supported by V4L2 drivers.
+> +
+> +	See :ref:`v4l2_hardware_control`.
+> +
+> +    Microprocessor
+> +	An electronic circuitry that carries out the instructions
+> +	of a computer program by performing the basic arithmetic, logical,
+> +	control and input/output (I/O) operations specified by the
+> +	instructions on a single integrated circuit.
+> +
+> +    SMBus
+> +	A subset of I²C, with defines a stricter usage of the bus.
+> +
+> +    Serial Peripheral Interface Bus - SPI
+> +	Synchronous serial communication interface specification used for
+> +	short distance communication, primarily in embedded systems.
+> +
+> +    System on a Chip - SoC
+> +	An integrated circuit that integrates all components of a computer
+> +	or other electronic systems.
+> +
+> +    V4L2 device node
+> +	A device node that is associated to a V4L2 main driver,
+> +	as specified in :ref:`v4l2_device_naming`.
+> +
+> +    V4L2 hardware
+> +	A hardware used to on a media device supported by the V4L2
+> +	subsystem.
 
---e5zaz3623q6ibkrr--
+I'm not sure what this means. Nor I think the proposed term is good for the
+reasons elaborated earlier. "Media hardware" above has similar issues.
+
+What we would need a name for is a device that consists of other devices
+that are not usable individually, but instead as an ensemble.
+
+I think "aggregate device", for instance, would be good as it catches the
+essence of the nature of the system. We'd have "Media aggregate device" and
+"V4L2 aggregate device".
+
+An alternative would be simply to leave this out for now, but then we'll
+have issues elsewhere. I'm certainly open for better options if someone can
+come up with a better name.
+
+> +
+> +    V4L2 main driver
+> +	The V4L2 device driver that implements the main logic to talk with
+> +	the V4L2 hardware.
+> +
+> +	Also known as bridge driver.
+> +
+> +	See :ref:`v4l2_hardware_control`.
+> +
+> +    V4L2 sub-device
+> +	Part of the media hardware that is implemented via a
+> +	V4L2 sub-device driver.
+> +
+> +	See :ref:`subdev`.
+> +
+> +    Vdevnode-centric
+
+I think this looks quite awkward. How about "Video device node centric" or
+"Video node centric"? I don't think it'd be too long.
+
+> +	V4L2 hardware that it is controlled via V4L2 device nodes.
+> +
+> +	See :ref:`v4l2_hardware_control`.
+> diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
+> index 2128717299b3..698c060939f0 100644
+> --- a/Documentation/media/uapi/v4l/v4l2.rst
+> +++ b/Documentation/media/uapi/v4l/v4l2.rst
+> @@ -32,6 +32,7 @@ This part describes the Video for Linux API version 2 (V4L2 API) specification.
+>      videodev
+>      capture-example
+>      v4l2grab-example
+> +    glossary
+>      biblio
+>  
+>  
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
