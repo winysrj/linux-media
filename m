@@ -1,134 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:46077 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932990AbdJRJbT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Oct 2017 05:31:19 -0400
-Date: Wed, 18 Oct 2017 10:31:16 +0100
-From: Sean Young <sean@mess.org>
-To: Jiancheng Xue <xuejiancheng@hisilicon.com>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, shawn.guo@linaro.org,
-        hermit.wangheming@hisilicon.com,
-        Younian Wang <wangyounian@hisilicon.com>
-Subject: Re: [PATCH 1/2] [media] rc/keymaps: add support for RC of hisilicon
- TV demo boards
-Message-ID: <20171018093116.aktxjryzfhslnqwr@gofer.mess.org>
-References: <1508324097-5514-1-git-send-email-xuejiancheng@hisilicon.com>
- <1508324097-5514-2-git-send-email-xuejiancheng@hisilicon.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34020 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751807AbdJFMsZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Oct 2017 08:48:25 -0400
+Date: Fri, 6 Oct 2017 15:48:22 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v7 5/7] media: open.rst: Adjust some terms to match the
+ glossary
+Message-ID: <20171006124822.xjppck3ks4as3zqf@valkosipuli.retiisi.org.uk>
+References: <cover.1506550930.git.mchehab@s-opensource.com>
+ <9a2db3c52a3d894728d6ed29681f49e8745f98a9.1506550930.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1508324097-5514-2-git-send-email-xuejiancheng@hisilicon.com>
+In-Reply-To: <9a2db3c52a3d894728d6ed29681f49e8745f98a9.1506550930.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 18, 2017 at 06:54:56AM -0400, Jiancheng Xue wrote:
-> From: Younian Wang <wangyounian@hisilicon.com>
+Hi Mauro,
+
+On Wed, Sep 27, 2017 at 07:23:47PM -0300, Mauro Carvalho Chehab wrote:
+> As we now have a glossary, some terms used on open.rst
+> require adjustments.
 > 
-> This is a NEC protocol type remote controller distributed with
-> hisilicon TV demo boards.
-> 
-> Signed-off-by: Younian Wang <wangyounian@hisilicon.com>
-> Signed-off-by: Jiancheng Xue <xuejiancheng@hisilicon.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 > ---
->  drivers/media/rc/keymaps/Makefile          |  1 +
->  drivers/media/rc/keymaps/rc-hisi-tv-demo.c | 70 ++++++++++++++++++++++++++++++
->  2 files changed, 71 insertions(+)
->  create mode 100644 drivers/media/rc/keymaps/rc-hisi-tv-demo.c
+>  Documentation/media/uapi/v4l/open.rst | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
 > 
-> diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
-> index af6496d..83ec9c3 100644
-> --- a/drivers/media/rc/keymaps/Makefile
-> +++ b/drivers/media/rc/keymaps/Makefile
-> @@ -47,6 +47,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
->  			rc-geekbox.o \
->  			rc-genius-tvgo-a11mce.o \
->  			rc-gotview7135.o \
-> +			rc-hisi-tv-demo.o \
->  			rc-imon-mce.o \
->  			rc-imon-pad.o \
->  			rc-iodata-bctv7e.o \
-> diff --git a/drivers/media/rc/keymaps/rc-hisi-tv-demo.c b/drivers/media/rc/keymaps/rc-hisi-tv-demo.c
-> new file mode 100644
-> index 0000000..410b17d
-> --- /dev/null
-> +++ b/drivers/media/rc/keymaps/rc-hisi-tv-demo.c
-> @@ -0,0 +1,70 @@
-> +#include <linux/module.h>
-> +#include <media/rc-map.h>
+> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+> index f603bc9b49a0..0daf0c122c19 100644
+> --- a/Documentation/media/uapi/v4l/open.rst
+> +++ b/Documentation/media/uapi/v4l/open.rst
+> @@ -143,7 +143,7 @@ Related Devices
+>  Devices can support several functions. For example video capturing, VBI
+>  capturing and radio support.
+>  
+> -The V4L2 API creates different nodes for each of these functions.
+> +The V4L2 API creates different V4L2 device nodes for each of these functions.
 
-Both keymaps are missing a copyright statement at the top of the c files.
+A V4L2 device node is an instance of the V4L2 API. At the very least we
+should call them "V4L2 device node types", not device nodes only. This
+simply would suggests they're separate.
 
-Thanks
-Sean
+s/creates/defines/ ?
 
-> +
-> +static struct rc_map_table hisi_tv_demo_keymap[] = {
-> +	{ 0x00000092, KEY_1},
-> +	{ 0x00000093, KEY_2},
-> +	{ 0x000000cc, KEY_3},
-> +	{ 0x0000009f, KEY_4},
-> +	{ 0x0000008e, KEY_5},
-> +	{ 0x0000008f, KEY_6},
-> +	{ 0x000000c8, KEY_7},
-> +	{ 0x00000094, KEY_8},
-> +	{ 0x0000008a, KEY_9},
-> +	{ 0x0000008b, KEY_0},
-> +	{ 0x000000ce, KEY_ENTER},
-> +	{ 0x000000ca, KEY_UP},
-> +	{ 0x00000099, KEY_LEFT},
-> +	{ 0x00000084, KEY_PAGEUP},
-> +	{ 0x000000c1, KEY_RIGHT},
-> +	{ 0x000000d2, KEY_DOWN},
-> +	{ 0x00000089, KEY_PAGEDOWN},
-> +	{ 0x000000d1, KEY_MUTE},
-> +	{ 0x00000098, KEY_VOLUMEDOWN},
-> +	{ 0x00000090, KEY_VOLUMEUP},
-> +	{ 0x0000009c, KEY_POWER},
-> +	{ 0x000000d6, KEY_STOP},
-> +	{ 0x00000097, KEY_MENU},
-> +	{ 0x000000cb, KEY_BACK},
-> +	{ 0x000000da, KEY_PLAYPAUSE},
-> +	{ 0x00000080, KEY_INFO},
-> +	{ 0x000000c3, KEY_REWIND},
-> +	{ 0x00000087, KEY_HOMEPAGE},
-> +	{ 0x000000d0, KEY_FASTFORWARD},
-> +	{ 0x000000c4, KEY_SOUND},
-> +	{ 0x00000082, BTN_1},
-> +	{ 0x000000c7, BTN_2},
-> +	{ 0x00000086, KEY_PROGRAM},
-> +	{ 0x000000d9, KEY_SUBTITLE},
-> +	{ 0x00000085, KEY_ZOOM},
-> +	{ 0x0000009b, KEY_RED},
-> +	{ 0x0000009a, KEY_GREEN},
-> +	{ 0x000000c0, KEY_YELLOW},
-> +	{ 0x000000c2, KEY_BLUE},
-> +	{ 0x0000009d, KEY_CHANNELDOWN},
-> +	{ 0x000000cf, KEY_CHANNELUP},
-> +};
-> +
-> +static struct rc_map_list hisi_tv_demo_map = {
-> +	.map = {
-> +		.scan	  = hisi_tv_demo_keymap,
-> +		.size	  = ARRAY_SIZE(hisi_tv_demo_keymap),
-> +		.rc_proto = RC_PROTO_NEC,
-> +		.name	  = "rc-hisi-demo",
-> +	}
-> +};
-> +
-> +static int __init init_rc_map_hisi_tv_demo(void)
-> +{
-> +	return rc_map_register(&hisi_tv_demo_map);
-> +}
-> +
-> +static void __exit exit_rc_map_hisi_tv_demo(void)
-> +{
-> +	rc_map_unregister(&hisi_tv_demo_map);
-> +}
-> +
-> +module_init(init_rc_map_hisi_tv_demo)
-> +module_exit(exit_rc_map_hisi_tv_demo)
-> +
-> +MODULE_LICENSE("GPL v2");
-> -- 
-> 2.7.4
+>  
+>  The V4L2 API was designed with the idea that one device node could
+>  support all functions. However, in practice this never worked: this
+> @@ -153,17 +153,17 @@ switching a device node between different functions only works when
+>  using the streaming I/O API, not with the
+>  :ref:`read() <func-read>`/\ :ref:`write() <func-write>` API.
+>  
+> -Today each device node supports just one function.
+> +Today each V4L2 device node supports just one function.
+>  
+>  Besides video input or output the hardware may also support audio
+>  sampling or playback. If so, these functions are implemented as ALSA PCM
+>  devices with optional ALSA audio mixer devices.
+>  
+>  One problem with all these devices is that the V4L2 API makes no
+> -provisions to find these related devices. Some really complex devices
+> -use the Media Controller (see :ref:`media_controller`) which can be
+> -used for this purpose. But most drivers do not use it, and while some
+> -code exists that uses sysfs to discover related devices (see
+> +provisions to find these related V4L2 device nodes. Some really complex
+> +hardware use the Media Controller (see :ref:`media_controller`) which can
+> +be used for this purpose. But several drivers do not use it, and while some
+> +code exists that uses sysfs to discover related V4L2 device nodes (see
+>  libmedia_dev in the
+>  `v4l-utils <http://git.linuxtv.org/cgit.cgi/v4l-utils.git/>`__ git
+>  repository), there is no library yet that can provide a single API
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
