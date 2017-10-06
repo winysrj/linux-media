@@ -1,60 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:45203 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753296AbdJTVux (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 17:50:53 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC v4 09/17] [media] vb2: add 'ordered_in_vb2' property to queues
-Date: Fri, 20 Oct 2017 19:50:04 -0200
-Message-Id: <20171020215012.20646-10-gustavo@padovan.org>
-In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
-References: <20171020215012.20646-1-gustavo@padovan.org>
+Received: from osg.samsung.com ([64.30.133.232]:60088 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752880AbdJFVid (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Oct 2017 17:38:33 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 1/2] media: s5p-mfc: check for firmware allocation before requesting firmware
+Date: Fri,  6 Oct 2017 15:30:07 -0600
+Message-Id: <e7c1ad0167ca363cc783be11871a04957127a3fa.1507325072.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1507325072.git.shuahkh@osg.samsung.com>
+References: <cover.1507325072.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1507325072.git.shuahkh@osg.samsung.com>
+References: <cover.1507325072.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Check if firmware is allocated before requesting firmware instead of
+requesting firmware only to release it if firmware is not allocated.
 
-By setting this member on vb2_queue the driver tell vb2 core that
-it requires the buffers queued in QBUF to be queued with same order to the
-driver.
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- include/media/videobuf2-core.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 6dd3f0181107..fc333e10e7d8 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -505,6 +505,9 @@ struct vb2_buf_ops {
-  *		the same order they are dequeued from the driver. The default
-  *		is not ordered unless the driver sets this flag. As of now it
-  *		is mandatory for using explicit fences.
-+ * @ordered_in_vb2: set by the driver to tell vb2 te guarantee the order
-+ *		of buffer queue from userspace with QBUF() until they are
-+ *		queued to the driver.
-  * @fileio:	file io emulator internal data, used only if emulator is active
-  * @threadio:	thread io internal data, used only if thread is active
-  */
-@@ -558,6 +561,7 @@ struct vb2_queue {
- 	unsigned int			copy_timestamp:1;
- 	unsigned int			last_buffer_dequeued:1;
- 	unsigned int			ordered_in_driver:1;
-+	unsigned int			ordered_in_vb2:1;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index 69ef9c2..f064a0d1 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -55,6 +55,11 @@ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev)
+ 	 * into kernel. */
+ 	mfc_debug_enter();
  
- 	struct vb2_fileio_data		*fileio;
- 	struct vb2_threadio_data	*threadio;
++	if (!dev->fw_buf.virt) {
++		mfc_err("MFC firmware is not allocated\n");
++		return -EINVAL;
++	}
++
+ 	for (i = MFC_FW_MAX_VERSIONS - 1; i >= 0; i--) {
+ 		if (!dev->variant->fw_name[i])
+ 			continue;
+@@ -75,11 +80,6 @@ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev)
+ 		release_firmware(fw_blob);
+ 		return -ENOMEM;
+ 	}
+-	if (!dev->fw_buf.virt) {
+-		mfc_err("MFC firmware is not allocated\n");
+-		release_firmware(fw_blob);
+-		return -EINVAL;
+-	}
+ 	memcpy(dev->fw_buf.virt, fw_blob->data, fw_blob->size);
+ 	wmb();
+ 	release_firmware(fw_blob);
 -- 
-2.13.6
+2.7.4
