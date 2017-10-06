@@ -1,63 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:52532 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751188AbdJCVxw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 17:53:52 -0400
-From: Dmitry Osipenko <digetx@gmail.com>
-To: Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Warren <swarren@wwwdotorg.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v2 2/2] ARM: dts: tegra20: Add video decoder node
-Date: Wed,  4 Oct 2017 00:51:54 +0300
-Message-Id: <5221e5ea893321d6655cdb136dea3e9294ff8a5d.1507063619.git.digetx@gmail.com>
-In-Reply-To: <cover.1507063619.git.digetx@gmail.com>
-References: <cover.1507063619.git.digetx@gmail.com>
-In-Reply-To: <cover.1507063619.git.digetx@gmail.com>
-References: <cover.1507063619.git.digetx@gmail.com>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:34163 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751663AbdJFKOF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Oct 2017 06:14:05 -0400
+Message-ID: <1507284841.8440.4.camel@pengutronix.de>
+Subject: Re: IMX CSI max pixel rate
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Tim Harvey <tharvey@gateworks.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Date: Fri, 06 Oct 2017 12:14:01 +0200
+In-Reply-To: <20171006074909.gy24vp2xvsnrtmzl@valkosipuli.retiisi.org.uk>
+References: <CAJ+vNU1kx-mwBZZj=DrOX=Lq5+WuJS9gDj+N6rAaV+4XOW1zcA@mail.gmail.com>
+         <20171006074909.gy24vp2xvsnrtmzl@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a device node for the video decoder engine found on Tegra20.
+On Fri, 2017-10-06 at 10:49 +0300, Sakari Ailus wrote:
+> On Thu, Oct 05, 2017 at 10:21:16AM -0700, Tim Harvey wrote:
+> > Greetings,
+> > 
+> > I'm working on a HDMI receiver driver for the TDA1997x
+> > (https://lwn.net/Articles/734692/) and wanted to throw an error if
+> > the
+> > detected input resolution/vidout-output-bus-format exceeded the max
+> > pixel rate of the SoC capture bus the chip connects to (in my case
+> > is
+> > the IMX6 CSI which has a limit of 180MP/sec).
 
-Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
----
- arch/arm/boot/dts/tegra20.dtsi | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+Where does this number come from? I see there are 180 MP/s advertised
+for burst mode still image capture (with up to 35% blanking overhead) in
+the i.MX6Q reference manual. For continuous still image capture, only
+160 MP/s are advertised. The CSI really supports up to about 240 MHz
+pixel clock (assuming the IPU is clocked at 264 MHz), so MP/s for video
+really depends a lot on the blanking.
 
-diff --git a/arch/arm/boot/dts/tegra20.dtsi b/arch/arm/boot/dts/tegra20.dtsi
-index 7c85f97f72ea..1b5d54b6c0cb 100644
---- a/arch/arm/boot/dts/tegra20.dtsi
-+++ b/arch/arm/boot/dts/tegra20.dtsi
-@@ -249,6 +249,23 @@
- 		*/
- 	};
- 
-+	vde@6001a000 {
-+		compatible = "nvidia,tegra20-vde";
-+		reg = <0x6001a000 0x3D00    /* VDE registers */
-+		       0x40000400 0x3FC00>; /* IRAM region */
-+		reg-names = "regs", "iram";
-+		interrupts = <GIC_SPI  8 IRQ_TYPE_LEVEL_HIGH>, /* UCQ error interrupt */
-+			     <GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
-+			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
-+			     <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>, /* BSE-A interrupt */
-+			     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
-+		interrupt-names = "ucq-error", "sync-token", "bsev", "bsea", "sxe";
-+		clocks = <&tegra_car TEGRA20_CLK_VDE>;
-+		clock-names = "vde";
-+		resets = <&tegra_car 61>;
-+		reset-names = "vde";
-+	};
-+
- 	apbmisc@70000800 {
- 		compatible = "nvidia,tegra20-apbmisc";
- 		reg = <0x70000800 0x64   /* Chip revision */
--- 
-2.14.1
+In the IPU display ports chapter, two different numbers are given for
+CSI-2 input, though: 200 MHz for 4 data lanes, and 250 MHz 2 data lanes.
+For 1-3 data lanes, the limiting factor is the maximum CSI-2 link
+frequency, at up to 500 MHz (1000 Mbps/lane).
+
+> > Any recommendations on where a dt property should live, its naming,
+> > and location/naming and functions to validate the pixel rate or is
+> > there even any interest in this sort of check?
+> 
+> Why a DT property?
+> 
+> We do have V4L2_CID_PIXEL_RATE, would that be applicable for this?
+
+Isn't this is meant to return the currently set pixel rate at the input
+of a single subdevice, not the total maximum pixel rate supported by its
+input?
+
+regards
+Philipp
