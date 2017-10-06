@@ -1,51 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37016 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754195AbdJIU0K (ORCPT
+Received: from us-smtp-delivery-107.mimecast.com ([63.128.21.107]:46789 "EHLO
+        us-smtp-delivery-107.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752187AbdJFMio (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 16:26:10 -0400
-Date: Mon, 9 Oct 2017 23:26:08 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH 17/24] media: v4l2-subdev: fix a typo
-Message-ID: <20171009202607.v42vczyt2fkm6oie@valkosipuli.retiisi.org.uk>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
- <8c66d4a7c2afddc52be7f42c5bc2cef218a0ecc6.1507544011.git.mchehab@s-opensource.com>
+        Fri, 6 Oct 2017 08:38:44 -0400
+To: Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>
+CC: DT <devicetree@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Mans Rullgard <mans@mansr.com>,
+        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>,
+        Mason <slash.tmp@free.fr>
+From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+Subject: [PATCH v8 1/3] media: dt: bindings: Add binding for tango HW IR
+ decoder
+Message-ID: <3d911a4a-1945-08a7-ae19-0cd0dc6aaacd@sigmadesigns.com>
+Date: Fri, 6 Oct 2017 14:23:37 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8c66d4a7c2afddc52be7f42c5bc2cef218a0ecc6.1507544011.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 09, 2017 at 07:19:23AM -0300, Mauro Carvalho Chehab wrote:
-> ownner -> owner
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  include/media/v4l2-subdev.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index e215732eed45..345da052618c 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -814,7 +814,7 @@ struct v4l2_subdev_platform_data {
->   * @list: List of sub-devices
->   * @owner: The owner is the same as the driver's &struct device owner.
->   * @owner_v4l2_dev: true if the &sd->owner matches the owner of @v4l2_dev->dev
-> - *	ownner. Initialized by v4l2_device_register_subdev().
-> + *	owner. Initialized by v4l2_device_register_subdev().
->   * @flags: subdev flags, as defined by &enum v4l2_subdev_flags.
->   *
->   * @v4l2_dev: pointer to struct &v4l2_device
+Add DT binding for the HW IR decoder embedded in SMP86xx/SMP87xx.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+---
+ .../devicetree/bindings/media/tango-ir.txt          | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/tango-ir.txt
 
+diff --git a/Documentation/devicetree/bindings/media/tango-ir.txt b/Documentation/devicetree/bindings/media/tango-ir.txt
+new file mode 100644
+index 000000000000..a9f00c2bf897
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/tango-ir.txt
+@@ -0,0 +1,21 @@
++Sigma Designs Tango IR NEC/RC-5/RC-6 decoder (SMP86xx and SMP87xx)
++
++Required properties:
++
++- compatible: "sigma,smp8642-ir"
++- reg: address/size of NEC+RC5 area, address/size of RC6 area
++- interrupts: spec for IR IRQ
++- clocks: spec for IR clock (typically the crystal oscillator)
++
++Optional properties:
++
++- linux,rc-map-name: see Documentation/devicetree/bindings/media/rc.txt
++
++Example:
++
++	ir@10518 {
++		compatible = "sigma,smp8642-ir";
++		reg = <0x10518 0x18>, <0x105e0 0x1c>;
++		interrupts = <21 IRQ_TYPE_EDGE_RISING>;
++		clocks = <&xtal>;
++	};
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.2
