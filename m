@@ -1,54 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44960 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34208 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751405AbdJEG3F (ORCPT
+        by vger.kernel.org with ESMTP id S1751925AbdJFNCz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Oct 2017 02:29:05 -0400
-Date: Thu, 5 Oct 2017 09:29:02 +0300
+        Fri, 6 Oct 2017 09:02:55 -0400
+Date: Fri, 6 Oct 2017 16:02:52 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Leon Luo <leonl@leopardimaging.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, soren.brinkmann@xilinx.com
-Subject: Re: [PATCH v8 2/2] media:imx274 V4l2 driver for Sony imx274 CMOS
- sensor
-Message-ID: <20171005062901.ofexwxfnun45linq@valkosipuli.retiisi.org.uk>
-References: <20171005000621.27841-1-leonl@leopardimaging.com>
- <20171005000621.27841-2-leonl@leopardimaging.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Tim Harvey <tharvey@gateworks.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Subject: Re: IMX CSI max pixel rate
+Message-ID: <20171006130252.hhptwrddu36bmhvq@valkosipuli.retiisi.org.uk>
+References: <CAJ+vNU1kx-mwBZZj=DrOX=Lq5+WuJS9gDj+N6rAaV+4XOW1zcA@mail.gmail.com>
+ <20171006074909.gy24vp2xvsnrtmzl@valkosipuli.retiisi.org.uk>
+ <1507284841.8440.4.camel@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171005000621.27841-2-leonl@leopardimaging.com>
+In-Reply-To: <1507284841.8440.4.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 04, 2017 at 05:06:21PM -0700, Leon Luo wrote:
-> The imx274 is a Sony CMOS image sensor that has 1/2.5 image size.
-> It supports up to 3840x2160 (4K) 60fps, 1080p 120fps. The interface
-> is 4-lane MIPI CSI-2 running at 1.44Gbps each.
+On Fri, Oct 06, 2017 at 12:14:01PM +0200, Philipp Zabel wrote:
+> On Fri, 2017-10-06 at 10:49 +0300, Sakari Ailus wrote:
+> > On Thu, Oct 05, 2017 at 10:21:16AM -0700, Tim Harvey wrote:
+> > > Greetings,
+> > > 
+> > > I'm working on a HDMI receiver driver for the TDA1997x
+> > > (https://lwn.net/Articles/734692/) and wanted to throw an error if
+> > > the
+> > > detected input resolution/vidout-output-bus-format exceeded the max
+> > > pixel rate of the SoC capture bus the chip connects to (in my case
+> > > is
+> > > the IMX6 CSI which has a limit of 180MP/sec).
 > 
-> This driver has been tested on Xilinx ZCU102 platform with a Leopard
-> LI-IMX274MIPI-FMC camera board.
+> Where does this number come from? I see there are 180 MP/s advertised
+> for burst mode still image capture (with up to 35% blanking overhead) in
+> the i.MX6Q reference manual. For continuous still image capture, only
+> 160 MP/s are advertised. The CSI really supports up to about 240 MHz
+> pixel clock (assuming the IPU is clocked at 264 MHz), so MP/s for video
+> really depends a lot on the blanking.
 > 
-> Support for the following features:
-> -Resolutions: 3840x2160, 1920x1080, 1280x720
-> -Frame rate: 3840x2160 : 5 – 60fps
->             1920x1080 : 5 – 120fps
->             1280x720 : 5 – 120fps
-> -Exposure time: 16 – (frame interval) micro-seconds
-> -Gain: 1x - 180x
-> -VFLIP: enable/disabledrivers/media/i2c/imx274.c
-> -Test pattern: 12 test patterns
+> In the IPU display ports chapter, two different numbers are given for
+> CSI-2 input, though: 200 MHz for 4 data lanes, and 250 MHz 2 data lanes.
+> For 1-3 data lanes, the limiting factor is the maximum CSI-2 link
+> frequency, at up to 500 MHz (1000 Mbps/lane).
 > 
-> Signed-off-by: Leon Luo <leonl@leopardimaging.com>
-> Tested-by: Sören Brinkmann <soren.brinkmann@xilinx.com>
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > Any recommendations on where a dt property should live, its naming,
+> > > and location/naming and functions to validate the pixel rate or is
+> > > there even any interest in this sort of check?
+> > 
+> > Why a DT property?
+> > 
+> > We do have V4L2_CID_PIXEL_RATE, would that be applicable for this?
+> 
+> Isn't this is meant to return the currently set pixel rate at the input
+> of a single subdevice, not the total maximum pixel rate supported by its
+> input?
 
-Thanks!
+Yes. Couldn't it be used for the purpose?
 
-Applied with MEDIA_CAMERA_SUPPORT dependency to Kconfig.
+If the maximum rate supported is specific to a hardware component, it'd be
+much better to handle that in drivers than put it to board file.
 
 -- 
 Sakari Ailus
