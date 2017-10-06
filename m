@@ -1,61 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:46841 "EHLO butterbrot.org"
+Received: from mga01.intel.com ([192.55.52.88]:51160 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750869AbdJASZC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 1 Oct 2017 14:25:02 -0400
-Received: from localhost (localhost [127.0.0.1])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by butterbrot.org (Postfix) with ESMTPS id 129B04AE030A
-        for <linux-media@vger.kernel.org>; Sun,  1 Oct 2017 20:15:05 +0200 (CEST)
-Date: Sun, 1 Oct 2017 20:15:04 +0200 (CEST)
-From: Florian Echtler <floe@butterbrot.org>
-To: linux-media@vger.kernel.org
-Subject: Regression on 4.10 with Logitech Quickcam Sphere
-Message-ID: <alpine.DEB.2.10.1710012003100.18874@butterbrot>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+        id S1753059AbdJFXjR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Oct 2017 19:39:17 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: hans.verkuil@cisco.com, jian.xu.zheng@intel.com,
+        tfiga@chromium.org, rajmohan.mani@intel.com,
+        tuukka.toivonen@intel.com, hyungwoo.yang@intel.com,
+        ramya.vijaykumar@intel.com, chiranjeevi.rapolu@intel.com,
+        Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH v5 1/3] videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
+Date: Fri,  6 Oct 2017 18:38:59 -0500
+Message-Id: <1507333141-28242-2-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1507333141-28242-1-git-send-email-yong.zhi@intel.com>
+References: <1507333141-28242-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everyone,
+Add IPU3 specific formats:
 
-I recently upgraded from a 4.4 kernel to 4.10, and found that my Logitech 
-Quickcam Sphere now behaves differently.
+	V4L2_PIX_FMT_IPU3_SBGGR10
+	V4L2_PIX_FMT_IPU3_SGBRG10
+	V4L2_PIX_FMT_IPU3_SGRBG10
+	V4L2_PIX_FMT_IPU3_SRGGB10
 
-More specifically, the pan/tilt controls do not work anymore - in fact, 
-they are completely gone from "v4l2-ctl -L".
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
+ include/uapi/linux/videodev2.h       | 6 ++++++
+ 2 files changed, 10 insertions(+)
 
-In dmesg, I'm getting these messages:
-
-[   10.129984] uvcvideo: Found UVC 1.00 device <unnamed> (046d:0994)
-[   10.162212] uvcvideo 1-5:1.0: Entity type for entity Extension 4 was 
-not initialized!
-[   10.162215] uvcvideo 1-5:1.0: Entity type for entity Extension 10 was 
-not initialized!
-[   10.162216] uvcvideo 1-5:1.0: Entity type for entity Extension 12 was 
-not initialized!
-[   10.162217] uvcvideo 1-5:1.0: Entity type for entity Extension 8 was 
-not initialized!
-[   10.162218] uvcvideo 1-5:1.0: Entity type for entity Extension 11 was 
-not initialized!
-[   10.162220] uvcvideo 1-5:1.0: Entity type for entity Extension 9 was 
-not initialized!
-[   10.162221] uvcvideo 1-5:1.0: Entity type for entity Processing 2 was 
-not initialized!
-[   10.162222] uvcvideo 1-5:1.0: Entity type for entity Extension 13 was 
-not initialized!
-[   10.162223] uvcvideo 1-5:1.0: Entity type for entity Camera 1 was not 
-initialized!
-[   10.162360] usbcore: registered new interface driver uvcvideo
-
-I suspect that https://bugzilla.kernel.org/show_bug.cgi?id=111291#c10 may 
-be related, and the new extension handling causes the pan/tilt controls to 
-disappear.
-
-Question now is, how to get them back?
-
-Best, Florian
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 79614992ee21..3937945b12dc 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1202,6 +1202,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_SGBRG10P:	descr = "10-bit Bayer GBGB/RGRG Packed"; break;
+ 	case V4L2_PIX_FMT_SGRBG10P:	descr = "10-bit Bayer GRGR/BGBG Packed"; break;
+ 	case V4L2_PIX_FMT_SRGGB10P:	descr = "10-bit Bayer RGRG/GBGB Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SBGGR10: descr = "10-bit bayer BGGR IPU3 Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SGBRG10: descr = "10-bit bayer GBRG IPU3 Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SGRBG10: descr = "10-bit bayer GRBG IPU3 Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SRGGB10: descr = "10-bit bayer RGGB IPU3 Packed"; break;
+ 	case V4L2_PIX_FMT_SBGGR10ALAW8:	descr = "8-bit Bayer BGBG/GRGR (A-law)"; break;
+ 	case V4L2_PIX_FMT_SGBRG10ALAW8:	descr = "8-bit Bayer GBGB/RGRG (A-law)"; break;
+ 	case V4L2_PIX_FMT_SGRBG10ALAW8:	descr = "8-bit Bayer GRGR/BGBG (A-law)"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 185d6a0acc06..bcf6a50f6aac 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -668,6 +668,12 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
+ #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
+ 
++/* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
++#define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
++#define V4L2_PIX_FMT_IPU3_SGBRG10	v4l2_fourcc('i', 'p', '3', 'g') /* IPU3 packed 10-bit GBRG bayer */
++#define V4L2_PIX_FMT_IPU3_SGRBG10	v4l2_fourcc('i', 'p', '3', 'G') /* IPU3 packed 10-bit GRBG bayer */
++#define V4L2_PIX_FMT_IPU3_SRGGB10	v4l2_fourcc('i', 'p', '3', 'r') /* IPU3 packed 10-bit RGGB bayer */
++
+ /* SDR formats - used only for Software Defined Radio devices */
+ #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+ #define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
 -- 
-"_Nothing_ brightens up my morning. Coffee simply provides a shade of
-grey just above the pitch-black of the infinite depths of the _abyss_."
+2.7.4
