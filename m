@@ -1,470 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:53041 "EHLO gofer.mess.org"
+Received: from mga01.intel.com ([192.55.52.88]:45413 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932069AbdJJHS3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 03:18:29 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v3 18/26] media: lirc: remove last remnants of lirc kapi
-Date: Tue, 10 Oct 2017 08:18:28 +0100
-Message-Id: <b00325775576351fa5a6b6e72e0d30079c60438f.1507618841.git.sean@mess.org>
-In-Reply-To: <cover.1507618840.git.sean@mess.org>
-References: <cover.1507618840.git.sean@mess.org>
+        id S1753070AbdJFXjS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Oct 2017 19:39:18 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: hans.verkuil@cisco.com, jian.xu.zheng@intel.com,
+        tfiga@chromium.org, rajmohan.mani@intel.com,
+        tuukka.toivonen@intel.com, hyungwoo.yang@intel.com,
+        ramya.vijaykumar@intel.com, chiranjeevi.rapolu@intel.com,
+        Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH v5 2/3] doc-rst: add IPU3 raw10 bayer pixel format definitions
+Date: Fri,  6 Oct 2017 18:39:00 -0500
+Message-Id: <1507333141-28242-3-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1507333141-28242-1-git-send-email-yong.zhi@intel.com>
+References: <1507333141-28242-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-rc-core has replaced the lirc kapi many years ago, and now with the last
-driver ported to rc-core, we can finally remove it.
+The formats added by this patch are:
 
-Note this has no effect on userspace.
+    V4L2_PIX_FMT_IPU3_SBGGR10
+    V4L2_PIX_FMT_IPU3_SGBRG10
+    V4L2_PIX_FMT_IPU3_SGRBG10
+    V4L2_PIX_FMT_IPU3_SRGGB10
 
-All future IR drivers should use the rc-core api.
-
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+Signed-off-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
 ---
- Documentation/media/kapi/rc-core.rst |   5 --
- drivers/media/rc/ir-lirc-codec.c     |  45 +----------
- drivers/media/rc/lirc_dev.c          | 147 ++++++++++++-----------------------
- drivers/media/rc/rc-core-priv.h      |   3 +
- drivers/media/rc/rc-main.c           |   1 -
- include/media/lirc_dev.h             |  50 ------------
- include/media/rc-core.h              |   8 +-
- 7 files changed, 63 insertions(+), 196 deletions(-)
- delete mode 100644 include/media/lirc_dev.h
+ Documentation/media/uapi/v4l/pixfmt-rgb.rst        |   1 +
+ .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         | 166 +++++++++++++++++++++
+ 2 files changed, 167 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
 
-diff --git a/Documentation/media/kapi/rc-core.rst b/Documentation/media/kapi/rc-core.rst
-index a45895886257..41c2256dbf6a 100644
---- a/Documentation/media/kapi/rc-core.rst
-+++ b/Documentation/media/kapi/rc-core.rst
-@@ -7,8 +7,3 @@ Remote Controller core
- .. kernel-doc:: include/media/rc-core.h
- 
- .. kernel-doc:: include/media/rc-map.h
--
--LIRC
--~~~~
--
--.. kernel-doc:: include/media/lirc_dev.h
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 4411a3d0a778..9127544883ed 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -12,10 +12,10 @@
-  *  GNU General Public License for more details.
-  */
- 
-+#include <linux/poll.h>
- #include <linux/sched.h>
- #include <linux/wait.h>
- #include <media/lirc.h>
--#include <media/lirc_dev.h>
- #include <media/rc-core.h>
- #include "rc-core-priv.h"
- 
-@@ -90,8 +90,8 @@ void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
- 
- static int ir_lirc_open(struct inode *inode, struct file *file)
- {
--	struct lirc_dev *d = container_of(inode->i_cdev, struct lirc_dev, cdev);
--	struct rc_dev *dev = d->rdev;
-+	struct rc_dev *dev = container_of(inode->i_cdev, struct rc_dev,
-+					  lirc_cdev);
- 	int retval;
- 
- 	retval = rc_open(dev);
-@@ -532,7 +532,7 @@ static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
- 	return copied;
- }
- 
--static const struct file_operations lirc_fops = {
-+const struct file_operations lirc_fops = {
- 	.owner		= THIS_MODULE,
- 	.write		= ir_lirc_transmit_ir,
- 	.unlocked_ioctl	= ir_lirc_ioctl,
-@@ -545,40 +545,3 @@ static const struct file_operations lirc_fops = {
- 	.release	= ir_lirc_close,
- 	.llseek		= no_llseek,
- };
--
--int ir_lirc_register(struct rc_dev *dev)
--{
--	struct lirc_dev *ldev;
--	int rc = -ENOMEM;
--
--	ldev = lirc_allocate_device();
--	if (!ldev)
--		return rc;
--
--	ldev->fops = &lirc_fops;
--	ldev->dev.parent = &dev->dev;
--	ldev->rdev = dev;
--	ldev->owner = THIS_MODULE;
--
--	rc = lirc_register_device(ldev);
--	if (rc < 0)
--		goto out;
--
--	if (dev->tx_scancode)
--		dev->send_mode = LIRC_MODE_SCANCODE;
--	else
--		dev->send_mode = LIRC_MODE_PULSE;
--
--	dev->lirc_dev = ldev;
--	return 0;
--
--out:
--	lirc_free_device(ldev);
--	return rc;
--}
--
--void ir_lirc_unregister(struct rc_dev *dev)
--{
--	lirc_unregister_device(dev->lirc_dev);
--	dev->lirc_dev = NULL;
--}
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 4ac74fd86fd4..217c1203c87b 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -18,24 +18,19 @@
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
- #include <linux/module.h>
--#include <linux/sched/signal.h>
--#include <linux/ioctl.h>
--#include <linux/poll.h>
- #include <linux/mutex.h>
- #include <linux/device.h>
--#include <linux/cdev.h>
- #include <linux/idr.h>
-+#include <linux/poll.h>
- 
- #include "rc-core-priv.h"
- #include <media/lirc.h>
--#include <media/lirc_dev.h>
- 
- #define LOGHEAD		"lirc_dev (%s[%d]): "
- 
- static dev_t lirc_base_dev;
- 
- /* Used to keep track of allocated lirc devices */
--#define LIRC_MAX_DEVICES 256
- static DEFINE_IDA(lirc_ida);
- 
- /* Only used for sysfs but defined to void otherwise */
-@@ -43,124 +38,84 @@ static struct class *lirc_class;
- 
- static void lirc_release_device(struct device *ld)
- {
--	struct lirc_dev *d = container_of(ld, struct lirc_dev, dev);
--	struct rc_dev *rcdev = d->rdev;
-+	struct rc_dev *rcdev = container_of(ld, struct rc_dev, lirc_dev);
- 
- 	if (rcdev->driver_type == RC_DRIVER_IR_RAW)
- 		kfifo_free(&rcdev->rawir);
- 
--	kfree(d);
--	module_put(THIS_MODULE);
--	put_device(d->dev.parent);
-+	put_device(&rcdev->dev);
- }
- 
--struct lirc_dev *
--lirc_allocate_device(void)
-+int ir_lirc_register(struct rc_dev *dev)
- {
--	struct lirc_dev *d;
--
--	d = kzalloc(sizeof(*d), GFP_KERNEL);
--	if (d) {
--		device_initialize(&d->dev);
--		d->dev.class = lirc_class;
--		d->dev.release = lirc_release_device;
--		__module_get(THIS_MODULE);
--	}
-+	int err, minor;
- 
--	return d;
--}
--EXPORT_SYMBOL(lirc_allocate_device);
--
--void lirc_free_device(struct lirc_dev *d)
--{
--	if (!d)
--		return;
-+	device_initialize(&dev->lirc_dev);
-+	dev->lirc_dev.class = lirc_class;
-+	dev->lirc_dev.release = lirc_release_device;
- 
--	put_device(&d->dev);
--}
--EXPORT_SYMBOL(lirc_free_device);
--
--int lirc_register_device(struct lirc_dev *d)
--{
--	struct rc_dev *rcdev = d->rdev;
--	int minor;
--	int err;
--
--	if (!d) {
--		pr_err("driver pointer must be not NULL!\n");
--		return -EBADRQC;
--	}
-+	if (dev->tx_scancode)
-+		dev->send_mode = LIRC_MODE_SCANCODE;
-+	else
-+		dev->send_mode = LIRC_MODE_PULSE;
- 
--	if (!d->dev.parent) {
--		pr_err("dev parent pointer not filled in!\n");
--		return -EINVAL;
--	}
--
--	if (!d->fops) {
--		pr_err("fops pointer not filled in!\n");
--		return -EINVAL;
--	}
--
--	if (rcdev->driver_type == RC_DRIVER_IR_RAW) {
--		if (kfifo_alloc(&rcdev->rawir, MAX_IR_EVENT_SIZE, GFP_KERNEL))
-+	if (dev->driver_type == RC_DRIVER_IR_RAW) {
-+		if (kfifo_alloc(&dev->rawir, MAX_IR_EVENT_SIZE, GFP_KERNEL))
- 			return -ENOMEM;
- 	}
- 
--	init_waitqueue_head(&rcdev->wait_poll);
-+	init_waitqueue_head(&dev->wait_poll);
- 
--	minor = ida_simple_get(&lirc_ida, 0, LIRC_MAX_DEVICES, GFP_KERNEL);
--	if (minor < 0)
--		return minor;
-+	minor = ida_simple_get(&lirc_ida, 0, RC_DEV_MAX, GFP_KERNEL);
-+	if (minor < 0) {
-+		err = minor;
-+		goto out_kfifo;
-+	}
- 
--	d->minor = minor;
--	d->dev.devt = MKDEV(MAJOR(lirc_base_dev), d->minor);
--	dev_set_name(&d->dev, "lirc%d", d->minor);
-+	dev->lirc_dev.parent = &dev->dev;
-+	dev->lirc_dev.devt = MKDEV(MAJOR(lirc_base_dev), minor);
-+	dev_set_name(&dev->lirc_dev, "lirc%d", minor);
- 
--	cdev_init(&d->cdev, d->fops);
--	d->cdev.owner = d->owner;
-+	cdev_init(&dev->lirc_cdev, &lirc_fops);
- 
--	err = cdev_device_add(&d->cdev, &d->dev);
--	if (err) {
--		ida_simple_remove(&lirc_ida, minor);
--		return err;
--	}
-+	err = cdev_device_add(&dev->lirc_cdev, &dev->lirc_dev);
-+	if (err)
-+		goto out_ida;
- 
--	get_device(d->dev.parent);
-+	get_device(&dev->dev);
- 
--	dev_info(&d->dev, "lirc_dev: driver %s registered at minor = %d\n",
--		 rcdev->driver_name, d->minor);
-+	dev_info(&dev->dev, "lirc_dev: driver %s registered at minor = %d",
-+		 dev->driver_name, minor);
- 
- 	return 0;
+diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+index 4cc27195dc79..cf2ef7df9616 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+@@ -16,6 +16,7 @@ RGB Formats
+     pixfmt-srggb10p
+     pixfmt-srggb10alaw8
+     pixfmt-srggb10dpcm8
++    pixfmt-srggb10-ipu3
+     pixfmt-srggb12
+     pixfmt-srggb12p
+     pixfmt-srggb16
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+new file mode 100644
+index 000000000000..50292186a8b4
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+@@ -0,0 +1,166 @@
++.. -*- coding: utf-8; mode: rst -*-
 +
-+out_ida:
-+	ida_simple_remove(&lirc_ida, minor);
-+out_kfifo:
-+	if (dev->driver_type == RC_DRIVER_IR_RAW)
-+		kfifo_free(&dev->rawir);
-+	return err;
- }
--EXPORT_SYMBOL(lirc_register_device);
- 
--void lirc_unregister_device(struct lirc_dev *d)
-+void ir_lirc_unregister(struct rc_dev *dev)
- {
--	struct rc_dev *rcdev;
--
--	if (!d)
--		return;
--
--	rcdev = d->rdev;
--
--	dev_dbg(&d->dev, "lirc_dev: driver %s unregistered from minor = %d\n",
--		rcdev->driver_name, d->minor);
-+	dev_dbg(&dev->dev, "lirc_dev: driver %s unregistered from minor = %d\n",
-+		dev->driver_name, MINOR(dev->lirc_dev.devt));
- 
--	mutex_lock(&rcdev->lock);
-+	mutex_lock(&dev->lock);
- 
--	if (rcdev->lirc_open) {
--		dev_dbg(&d->dev, LOGHEAD "releasing opened driver\n",
--			rcdev->driver_name, d->minor);
--		wake_up_poll(&rcdev->wait_poll, POLLHUP);
-+	if (dev->lirc_open) {
-+		dev_dbg(&dev->dev, LOGHEAD "releasing opened driver\n",
-+			dev->driver_name, MINOR(dev->lirc_dev.devt));
-+		wake_up_poll(&dev->wait_poll, POLLHUP);
- 	}
- 
--	mutex_unlock(&rcdev->lock);
-+	mutex_unlock(&dev->lock);
- 
--	cdev_device_del(&d->cdev, &d->dev);
--	ida_simple_remove(&lirc_ida, d->minor);
--	put_device(&d->dev);
-+	cdev_device_del(&dev->lirc_cdev, &dev->lirc_dev);
-+	ida_simple_remove(&lirc_ida, MINOR(dev->lirc_dev.devt));
-+	put_device(&dev->lirc_dev);
- }
--EXPORT_SYMBOL(lirc_unregister_device);
- 
- int __init lirc_dev_init(void)
- {
-@@ -172,7 +127,7 @@ int __init lirc_dev_init(void)
- 		return PTR_ERR(lirc_class);
- 	}
- 
--	retval = alloc_chrdev_region(&lirc_base_dev, 0, LIRC_MAX_DEVICES,
-+	retval = alloc_chrdev_region(&lirc_base_dev, 0, RC_DEV_MAX,
- 				     "BaseRemoteCtl");
- 	if (retval) {
- 		class_destroy(lirc_class);
-@@ -189,5 +144,5 @@ int __init lirc_dev_init(void)
- void __exit lirc_dev_exit(void)
- {
- 	class_destroy(lirc_class);
--	unregister_chrdev_region(lirc_base_dev, LIRC_MAX_DEVICES);
-+	unregister_chrdev_region(lirc_base_dev, RC_DEV_MAX);
- }
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index a064c401fa38..a8ca6d7ff551 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -16,6 +16,7 @@
- #ifndef _RC_CORE_PRIV
- #define _RC_CORE_PRIV
- 
-+#define	RC_DEV_MAX		256
- /* Define the max number of pulse/space transitions to buffer */
- #define	MAX_IR_EVENT_SIZE	512
- 
-@@ -287,6 +288,8 @@ void lirc_dev_exit(void);
- void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev);
- int ir_lirc_register(struct rc_dev *dev);
- void ir_lirc_unregister(struct rc_dev *dev);
++.. _V4L2_PIX_FMT_IPU3_SBGGR10:
++.. _V4L2_PIX_FMT_IPU3_SGBRG10:
++.. _V4L2_PIX_FMT_IPU3_SGRBG10:
++.. _V4L2_PIX_FMT_IPU3_SRGGB10:
 +
-+extern const struct file_operations lirc_fops;
- #else
- static inline int lirc_dev_init(void) { return 0; }
- static inline void lirc_dev_exit(void) {}
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 9a8fc86b0835..e5027ac3c8fb 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -29,7 +29,6 @@
- /* Sizes are in bytes, 256 bytes allows for 32 entries on x64 */
- #define IR_TAB_MIN_SIZE	256
- #define IR_TAB_MAX_SIZE	8192
--#define RC_DEV_MAX	256
- 
- static const struct {
- 	const char *name;
-diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
-deleted file mode 100644
-index d12e1d1c3d67..000000000000
---- a/include/media/lirc_dev.h
-+++ /dev/null
-@@ -1,50 +0,0 @@
--/*
-- * LIRC base driver
-- *
-- * by Artur Lipowski <alipowski@interia.pl>
-- *        This code is licensed under GNU GPL
-- *
-- */
--
--#ifndef _LINUX_LIRC_DEV_H
--#define _LINUX_LIRC_DEV_H
--
--#include <linux/slab.h>
--#include <linux/fs.h>
--#include <linux/ioctl.h>
--#include <linux/poll.h>
--#include <linux/kfifo.h>
--#include <media/lirc.h>
--#include <linux/device.h>
--#include <linux/cdev.h>
--
--/**
-- * struct lirc_dev - represents a LIRC device
-- *
-- * @minor:		the minor device (/dev/lircX) number for the device
-- * @rdev:		&struct rc_dev associated with the device
-- * @fops:		&struct file_operations for the device
-- * @owner:		the module owning this struct
-- * @dev:		&struct device assigned to the device
-- * @cdev:		&struct cdev assigned to the device
-- */
--struct lirc_dev {
--	unsigned int minor;
--
--	struct rc_dev *rdev;
--	const struct file_operations *fops;
--	struct module *owner;
--
--	struct device dev;
--	struct cdev cdev;
--};
--
--struct lirc_dev *lirc_allocate_device(void);
--
--void lirc_free_device(struct lirc_dev *d);
--
--int lirc_register_device(struct lirc_dev *d);
--
--void lirc_unregister_device(struct lirc_dev *d);
--
--#endif
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index f0ee1ba01a47..e3db561a9bd7 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -17,10 +17,10 @@
- #define _RC_CORE
- 
- #include <linux/spinlock.h>
-+#include <linux/cdev.h>
- #include <linux/kfifo.h>
- #include <linux/time.h>
- #include <linux/timer.h>
--#include <media/lirc_dev.h>
- #include <media/rc-map.h>
- 
- extern int rc_core_debug;
-@@ -116,7 +116,8 @@ enum rc_filter_type {
-  * @max_timeout: maximum timeout supported by device
-  * @rx_resolution : resolution (in ns) of input sampler
-  * @tx_resolution: resolution (in ns) of output sampler
-- * @lirc_dev: lirc char device
-+ * @lirc_dev: lirc device
-+ * @lirc_cdev: lirc char cdev
-  * @lirc_open: count of the number of times the device has been opened
-  * @carrier_low: when setting the carrier range, first the low end must be
-  *	set with an ioctl and then the high end with another ioctl
-@@ -191,7 +192,8 @@ struct rc_dev {
- 	u32				rx_resolution;
- 	u32				tx_resolution;
- #ifdef CONFIG_LIRC
--	struct lirc_dev			*lirc_dev;
-+	struct device			lirc_dev;
-+	struct cdev			lirc_cdev;
- 	int				lirc_open;
- 	int				carrier_low;
- 	ktime_t				gap_start;
++**********************************************************************************************************************************************
++V4L2_PIX_FMT_IPU3_SBGGR10 ('ip3b'), V4L2_PIX_FMT_IPU3_SGBRG10 ('ip3g'), V4L2_PIX_FMT_IPU3_SGRBG10 ('ip3G'), V4L2_PIX_FMT_IPU3_SRGGB10 ('ip3r')
++**********************************************************************************************************************************************
++
++10-bit Bayer formats
++
++Description
++===========
++
++These four pixel formats are used by Intel IPU3 driver, they are raw
++sRGB / Bayer formats with 10 bits per sample with every 25 pixels packed
++to 32 bytes leaving 6 most significant bits padding in the last byte.
++The format is little endian.
++
++In other respects this format is similar to :ref:`V4L2-PIX-FMT-SRGGB10`.
++
++**Byte Order.**
++Each cell is one byte.
++
++.. raw:: latex
++
++    \newline\newline\begin{adjustbox}{width=\columnwidth}
++
++.. tabularcolumns:: |p{1.3cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|
++
++.. flat-table::
++
++    * - start + 0:
++      - B\ :sub:`0000low`
++      - G\ :sub:`0001low` \ (bits 7--2) B\ :sub:`0000high`\ (bits 1--0)
++      - B\ :sub:`0002low` \ (bits 7--4) G\ :sub:`0001high`\ (bits 3--0)
++      - G\ :sub:`0003low` \ (bits 7--6) B\ :sub:`0002high`\ (bits 5--0)
++      - G\ :sub:`0003high`
++      - B\ :sub:`0004low`
++      - G\ :sub:`0005low` \ (bits 7--2) B\ :sub:`0004high`\ (bits 1--0)
++      - B\ :sub:`0006low` \ (bits 7--4) G\ :sub:`0005high`\ (bits 3--0)
++      - G\ :sub:`0007low` \ (bits 7--6) B\ :sub:`0006high`\ (bits 5--0)
++      - G\ :sub:`0007high`
++      - B\ :sub:`0008low`
++      - G\ :sub:`0009low` \ (bits 7--2) B\ :sub:`0008high`\ (bits 1--0)
++      - B\ :sub:`0010low` \ (bits 7--4) G\ :sub:`0009high`\ (bits 3--0)
++      - G\ :sub:`0011low` \ (bits 7--6) B\ :sub:`0010high`\ (bits 5--0)
++      - G\ :sub:`0011high`
++      - B\ :sub:`0012low`
++      - G\ :sub:`0013low` \ (bits 7--2) B\ :sub:`0012high`\ (bits 1--0)
++      - B\ :sub:`0014low` \ (bits 7--4) G\ :sub:`0013high`\ (bits 3--0)
++      - G\ :sub:`0015low` \ (bits 7--6) B\ :sub:`0014high`\ (bits 5--0)
++      - G\ :sub:`0015high`
++      - B\ :sub:`0016low`
++      - G\ :sub:`0017low` \ (bits 7--2) B\ :sub:`0016high`\ (bits 1--0)
++      - B\ :sub:`0018low` \ (bits 7--4) G\ :sub:`0017high`\ (bits 3--0)
++      - G\ :sub:`0019low` \ (bits 7--6) B\ :sub:`0018high`\ (bits 5--0)
++      - G\ :sub:`0019high`
++      - B\ :sub:`0020low`
++      - G\ :sub:`0021low` \ (bits 7--2) B\ :sub:`0020high`\ (bits 1--0)
++      - B\ :sub:`0022low` \ (bits 7--4) G\ :sub:`0021high`\ (bits 3--0)
++      - G\ :sub:`0023low` \ (bits 7--6) B\ :sub:`0022high`\ (bits 5--0)
++      - G\ :sub:`0023high`
++      - B\ :sub:`0024low`
++      - B\ :sub:`0024high`\ (bits 1--0)
++    * - start + 32:
++      - G\ :sub:`0100low`
++      - R\ :sub:`0101low` \ (bits 7--2) G\ :sub:`0100high`\ (bits 1--0)
++      - G\ :sub:`0102low` \ (bits 7--4) R\ :sub:`0101high`\ (bits 3--0)
++      - R\ :sub:`0103low` \ (bits 7--6) G\ :sub:`0102high`\ (bits 5--0)
++      - R\ :sub:`0103high`
++      - G\ :sub:`0104low`
++      - R\ :sub:`0105low` \ (bits 7--2) G\ :sub:`0104high`\ (bits 1--0)
++      - G\ :sub:`0106low` \ (bits 7--4) R\ :sub:`0105high`\ (bits 3--0)
++      - R\ :sub:`0107low` \ (bits 7--6) G\ :sub:`0106high`\ (bits 5--0)
++      - R\ :sub:`0107high`
++      - G\ :sub:`0108low`
++      - R\ :sub:`0109low` \ (bits 7--2) G\ :sub:`0108high`\ (bits 1--0)
++      - G\ :sub:`0110low` \ (bits 7--4) R\ :sub:`0109high`\ (bits 3--0)
++      - R\ :sub:`0111low` \ (bits 7--6) G\ :sub:`0110high`\ (bits 5--0)
++      - R\ :sub:`0111high`
++      - G\ :sub:`0112low`
++      - R\ :sub:`0113low` \ (bits 7--2) G\ :sub:`0112high`\ (bits 1--0)
++      - G\ :sub:`0114low` \ (bits 7--4) R\ :sub:`0113high`\ (bits 3--0)
++      - R\ :sub:`0115low` \ (bits 7--6) G\ :sub:`0114high`\ (bits 5--0)
++      - R\ :sub:`0115high`
++      - G\ :sub:`0116low`
++      - R\ :sub:`0117low` \ (bits 7--2) G\ :sub:`0116high`\ (bits 1--0)
++      - G\ :sub:`0118low` \ (bits 7--4) R\ :sub:`0117high`\ (bits 3--0)
++      - R\ :sub:`0119low` \ (bits 7--6) G\ :sub:`0118high`\ (bits 5--0)
++      - R\ :sub:`0119high`
++      - G\ :sub:`0120low`
++      - R\ :sub:`0121low` \ (bits 7--2) G\ :sub:`0120high`\ (bits 1--0)
++      - G\ :sub:`0122low` \ (bits 7--4) R\ :sub:`0121high`\ (bits 3--0)
++      - R\ :sub:`0123low` \ (bits 7--6) G\ :sub:`0122high`\ (bits 5--0)
++      - R\ :sub:`0123high`
++      - G\ :sub:`0124low`
++      - G\ :sub:`0124high`\ (bits 1--0)
++    * - start + 64:
++      - B\ :sub:`0200low`
++      - G\ :sub:`0201low` \ (bits 7--2) B\ :sub:`0200high`\ (bits 1--0)
++      - B\ :sub:`0202low` \ (bits 7--4) G\ :sub:`0201high`\ (bits 3--0)
++      - G\ :sub:`0203low` \ (bits 7--6) B\ :sub:`0202high`\ (bits 5--0)
++      - G\ :sub:`0203high`
++      - B\ :sub:`0204low`
++      - G\ :sub:`0205low` \ (bits 7--2) B\ :sub:`0204high`\ (bits 1--0)
++      - B\ :sub:`0206low` \ (bits 7--4) G\ :sub:`0205high`\ (bits 3--0)
++      - G\ :sub:`0207low` \ (bits 7--6) B\ :sub:`0206high`\ (bits 5--0)
++      - G\ :sub:`0207high`
++      - B\ :sub:`0208low`
++      - G\ :sub:`0209low` \ (bits 7--2) B\ :sub:`0208high`\ (bits 1--0)
++      - B\ :sub:`0210low` \ (bits 7--4) G\ :sub:`0209high`\ (bits 3--0)
++      - G\ :sub:`0211low` \ (bits 7--6) B\ :sub:`0210high`\ (bits 5--0)
++      - G\ :sub:`0211high`
++      - B\ :sub:`0212low`
++      - G\ :sub:`0213low` \ (bits 7--2) B\ :sub:`0212high`\ (bits 1--0)
++      - B\ :sub:`0214low` \ (bits 7--4) G\ :sub:`0213high`\ (bits 3--0)
++      - G\ :sub:`0215low` \ (bits 7--6) B\ :sub:`0214high`\ (bits 5--0)
++      - G\ :sub:`0215high`
++      - B\ :sub:`0216low`
++      - G\ :sub:`0217low` \ (bits 7--2) B\ :sub:`0216high`\ (bits 1--0)
++      - B\ :sub:`0218low` \ (bits 7--4) G\ :sub:`0217high`\ (bits 3--0)
++      - G\ :sub:`0219low` \ (bits 7--6) B\ :sub:`0218high`\ (bits 5--0)
++      - G\ :sub:`0219high`
++      - B\ :sub:`0220low`
++      - G\ :sub:`0221low` \ (bits 7--2) B\ :sub:`0220high`\ (bits 1--0)
++      - B\ :sub:`0222low` \ (bits 7--4) G\ :sub:`0221high`\ (bits 3--0)
++      - G\ :sub:`0223low` \ (bits 7--6) B\ :sub:`0222high`\ (bits 5--0)
++      - G\ :sub:`0223high`
++      - B\ :sub:`0224low`
++      - B\ :sub:`0224high`\ (bits 1--0)
++    * - start + 96:
++      - G\ :sub:`0300low`
++      - R\ :sub:`0301low` \ (bits 7--2) G\ :sub:`0300high`\ (bits 1--0)
++      - G\ :sub:`0302low` \ (bits 7--4) R\ :sub:`0301high`\ (bits 3--0)
++      - R\ :sub:`0303low` \ (bits 7--6) G\ :sub:`0302high`\ (bits 5--0)
++      - R\ :sub:`0303high`
++      - G\ :sub:`0304low`
++      - R\ :sub:`0305low` \ (bits 7--2) G\ :sub:`0304high`\ (bits 1--0)
++      - G\ :sub:`0306low` \ (bits 7--4) R\ :sub:`0305high`\ (bits 3--0)
++      - R\ :sub:`0307low` \ (bits 7--6) G\ :sub:`0306high`\ (bits 5--0)
++      - R\ :sub:`0307high`
++      - G\ :sub:`0308low`
++      - R\ :sub:`0309low` \ (bits 7--2) G\ :sub:`0308high`\ (bits 1--0)
++      - G\ :sub:`0310low` \ (bits 7--4) R\ :sub:`0309high`\ (bits 3--0)
++      - R\ :sub:`0311low` \ (bits 7--6) G\ :sub:`0310high`\ (bits 5--0)
++      - R\ :sub:`0311high`
++      - G\ :sub:`0312low`
++      - R\ :sub:`0313low` \ (bits 7--2) G\ :sub:`0312high`\ (bits 1--0)
++      - G\ :sub:`0314low` \ (bits 7--4) R\ :sub:`0313high`\ (bits 3--0)
++      - R\ :sub:`0315low` \ (bits 7--6) G\ :sub:`0314high`\ (bits 5--0)
++      - R\ :sub:`0315high`
++      - G\ :sub:`0316low`
++      - R\ :sub:`0317low` \ (bits 7--2) G\ :sub:`0316high`\ (bits 1--0)
++      - G\ :sub:`0318low` \ (bits 7--4) R\ :sub:`0317high`\ (bits 3--0)
++      - R\ :sub:`0319low` \ (bits 7--6) G\ :sub:`0318high`\ (bits 5--0)
++      - R\ :sub:`0319high`
++      - G\ :sub:`0320low`
++      - R\ :sub:`0321low` \ (bits 7--2) G\ :sub:`0320high`\ (bits 1--0)
++      - G\ :sub:`0322low` \ (bits 7--4) R\ :sub:`0321high`\ (bits 3--0)
++      - R\ :sub:`0323low` \ (bits 7--6) G\ :sub:`0322high`\ (bits 5--0)
++      - R\ :sub:`0323high`
++      - G\ :sub:`0324low`
++      - G\ :sub:`0324high`\ (bits 1--0)
 -- 
-2.13.6
+2.7.4
