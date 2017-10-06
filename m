@@ -1,125 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:8491 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752543AbdJRCue (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:52286 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750815AbdJFII6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 22:50:34 -0400
-From: Jiancheng Xue <xuejiancheng@hisilicon.com>
-To: <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <shawn.guo@linaro.org>, <hermit.wangheming@hisilicon.com>,
-        Younian Wang <wangyounian@hisilicon.com>,
-        Jiancheng Xue <xuejiancheng@hisilicon.com>
-Subject: [PATCH 1/2] [media] rc/keymaps: add support for RC of hisilicon TV demo boards
-Date: Wed, 18 Oct 2017 06:54:56 -0400
-Message-ID: <1508324097-5514-2-git-send-email-xuejiancheng@hisilicon.com>
-In-Reply-To: <1508324097-5514-1-git-send-email-xuejiancheng@hisilicon.com>
-References: <1508324097-5514-1-git-send-email-xuejiancheng@hisilicon.com>
+        Fri, 6 Oct 2017 04:08:58 -0400
+Subject: Re: [PATCHv2 2/2] drm: adv7511/33: add HDMI CEC support
+To: Archit Taneja <architt@codeaurora.org>
+References: <20170919073331.29007-1-hverkuil@xs4all.nl>
+ <20170919073331.29007-3-hverkuil@xs4all.nl>
+ <ee566874-ab76-0719-c924-dda32b296d57@codeaurora.org>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1866171f-6413-33db-de63-252c92c4885c@xs4all.nl>
+Date: Fri, 6 Oct 2017 10:08:55 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <ee566874-ab76-0719-c924-dda32b296d57@codeaurora.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Younian Wang <wangyounian@hisilicon.com>
+On 06/10/17 06:26, Archit Taneja wrote:
+> Hi Hans,
+> 
+> On 09/19/2017 01:03 PM, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Add support for HDMI CEC to the drm adv7511/adv7533 drivers.
+>>
+>> The CEC registers that we need to use are identical for both drivers,
+>> but they appear at different offsets in the register map.
+> 
+> The patch looks good to me. I can go ahead an queue it to drm-misc-next.
+> 
+> There were some minor comments on the DT bindings patch. Are you planning
+> to send a new patch for that?
 
-This is a NEC protocol type remote controller distributed with
-hisilicon TV demo boards.
+Yes. Now that this patch has been reviewed I'll post a v3 for the first
+fixing those comments. Expect to see it Monday at the latest.
 
-Signed-off-by: Younian Wang <wangyounian@hisilicon.com>
-Signed-off-by: Jiancheng Xue <xuejiancheng@hisilicon.com>
----
- drivers/media/rc/keymaps/Makefile          |  1 +
- drivers/media/rc/keymaps/rc-hisi-tv-demo.c | 70 ++++++++++++++++++++++++++++++
- 2 files changed, 71 insertions(+)
- create mode 100644 drivers/media/rc/keymaps/rc-hisi-tv-demo.c
+Regards,
 
-diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
-index af6496d..83ec9c3 100644
---- a/drivers/media/rc/keymaps/Makefile
-+++ b/drivers/media/rc/keymaps/Makefile
-@@ -47,6 +47,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-geekbox.o \
- 			rc-genius-tvgo-a11mce.o \
- 			rc-gotview7135.o \
-+			rc-hisi-tv-demo.o \
- 			rc-imon-mce.o \
- 			rc-imon-pad.o \
- 			rc-iodata-bctv7e.o \
-diff --git a/drivers/media/rc/keymaps/rc-hisi-tv-demo.c b/drivers/media/rc/keymaps/rc-hisi-tv-demo.c
-new file mode 100644
-index 0000000..410b17d
---- /dev/null
-+++ b/drivers/media/rc/keymaps/rc-hisi-tv-demo.c
-@@ -0,0 +1,70 @@
-+#include <linux/module.h>
-+#include <media/rc-map.h>
-+
-+static struct rc_map_table hisi_tv_demo_keymap[] = {
-+	{ 0x00000092, KEY_1},
-+	{ 0x00000093, KEY_2},
-+	{ 0x000000cc, KEY_3},
-+	{ 0x0000009f, KEY_4},
-+	{ 0x0000008e, KEY_5},
-+	{ 0x0000008f, KEY_6},
-+	{ 0x000000c8, KEY_7},
-+	{ 0x00000094, KEY_8},
-+	{ 0x0000008a, KEY_9},
-+	{ 0x0000008b, KEY_0},
-+	{ 0x000000ce, KEY_ENTER},
-+	{ 0x000000ca, KEY_UP},
-+	{ 0x00000099, KEY_LEFT},
-+	{ 0x00000084, KEY_PAGEUP},
-+	{ 0x000000c1, KEY_RIGHT},
-+	{ 0x000000d2, KEY_DOWN},
-+	{ 0x00000089, KEY_PAGEDOWN},
-+	{ 0x000000d1, KEY_MUTE},
-+	{ 0x00000098, KEY_VOLUMEDOWN},
-+	{ 0x00000090, KEY_VOLUMEUP},
-+	{ 0x0000009c, KEY_POWER},
-+	{ 0x000000d6, KEY_STOP},
-+	{ 0x00000097, KEY_MENU},
-+	{ 0x000000cb, KEY_BACK},
-+	{ 0x000000da, KEY_PLAYPAUSE},
-+	{ 0x00000080, KEY_INFO},
-+	{ 0x000000c3, KEY_REWIND},
-+	{ 0x00000087, KEY_HOMEPAGE},
-+	{ 0x000000d0, KEY_FASTFORWARD},
-+	{ 0x000000c4, KEY_SOUND},
-+	{ 0x00000082, BTN_1},
-+	{ 0x000000c7, BTN_2},
-+	{ 0x00000086, KEY_PROGRAM},
-+	{ 0x000000d9, KEY_SUBTITLE},
-+	{ 0x00000085, KEY_ZOOM},
-+	{ 0x0000009b, KEY_RED},
-+	{ 0x0000009a, KEY_GREEN},
-+	{ 0x000000c0, KEY_YELLOW},
-+	{ 0x000000c2, KEY_BLUE},
-+	{ 0x0000009d, KEY_CHANNELDOWN},
-+	{ 0x000000cf, KEY_CHANNELUP},
-+};
-+
-+static struct rc_map_list hisi_tv_demo_map = {
-+	.map = {
-+		.scan	  = hisi_tv_demo_keymap,
-+		.size	  = ARRAY_SIZE(hisi_tv_demo_keymap),
-+		.rc_proto = RC_PROTO_NEC,
-+		.name	  = "rc-hisi-demo",
-+	}
-+};
-+
-+static int __init init_rc_map_hisi_tv_demo(void)
-+{
-+	return rc_map_register(&hisi_tv_demo_map);
-+}
-+
-+static void __exit exit_rc_map_hisi_tv_demo(void)
-+{
-+	rc_map_unregister(&hisi_tv_demo_map);
-+}
-+
-+module_init(init_rc_map_hisi_tv_demo)
-+module_exit(exit_rc_map_hisi_tv_demo)
-+
-+MODULE_LICENSE("GPL v2");
--- 
-2.7.4
+	Hans
