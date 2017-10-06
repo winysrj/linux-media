@@ -1,156 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39260 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932320AbdJZHyl (ORCPT
+Received: from us-smtp-delivery-107.mimecast.com ([216.205.24.107]:36721 "EHLO
+        us-smtp-delivery-107.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752154AbdJFMit (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Oct 2017 03:54:41 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH v16 19/32] v4l: async: Ensure only unique fwnodes are registered to notifiers
-Date: Thu, 26 Oct 2017 10:53:29 +0300
-Message-Id: <20171026075342.5760-20-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+        Fri, 6 Oct 2017 08:38:49 -0400
+Subject: [PATCH v8 2/3] media: rc: Add tango keymap
+From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+To: Sean Young <sean@mess.org>
+CC: linux-media <linux-media@vger.kernel.org>,
+        Mans Rullgard <mans@mansr.com>,
+        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>,
+        Mason <slash.tmp@free.fr>
+References: <3d911a4a-1945-08a7-ae19-0cd0dc6aaacd@sigmadesigns.com>
+Message-ID: <bb8c72bf-90a4-d995-0ad5-85e2480ae6ec@sigmadesigns.com>
+Date: Fri, 6 Oct 2017 14:33:41 +0200
+MIME-Version: 1.0
+In-Reply-To: <3d911a4a-1945-08a7-ae19-0cd0dc6aaacd@sigmadesigns.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While registering a notifier, check that each newly added fwnode is
-unique, and return an error if it is not. Also check that a newly added
-notifier does not have the same fwnodes twice.
+Add a keymap for the Sigma Designs Vantage (dev board) remote control.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 82 +++++++++++++++++++++++++++++++++---
- 1 file changed, 77 insertions(+), 5 deletions(-)
+Changes between v7 and v8
+* Add legalese boiler plate
+* Define RC_PROTO_NECX
+* Move RC_MAP_TANGO to alphabetical order
+---
+ drivers/media/rc/keymaps/Makefile   |  1 +
+ drivers/media/rc/keymaps/rc-tango.c | 92 +++++++++++++++++++++++++++++++++++++
+ include/media/rc-map.h              |  1 +
+ 3 files changed, 94 insertions(+)
+ create mode 100644 drivers/media/rc/keymaps/rc-tango.c
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index ed539c4fd5dc..b4e88eef195f 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -308,8 +308,71 @@ static void v4l2_async_notifier_unbind_all_subdevs(
- 	notifier->parent = NULL;
- }
- 
-+/* See if an fwnode can be found in a notifier's lists. */
-+static bool __v4l2_async_notifier_fwnode_has_async_subdev(
-+	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
-+{
-+	struct v4l2_async_subdev *asd;
-+	struct v4l2_subdev *sd;
-+
-+	list_for_each_entry(asd, &notifier->waiting, list) {
-+		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
-+			continue;
-+
-+		if (asd->match.fwnode.fwnode == fwnode)
-+			return true;
-+	}
-+
-+	list_for_each_entry(sd, &notifier->done, async_list) {
-+		if (WARN_ON(!sd->asd))
-+			continue;
-+
-+		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
-+			continue;
-+
-+		if (sd->asd->match.fwnode.fwnode == fwnode)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index af6496d709fb..3c1e31321e21 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -88,6 +88,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-reddo.o \
+ 			rc-snapstream-firefly.o \
+ 			rc-streamzap.o \
++			rc-tango.o \
+ 			rc-tbs-nec.o \
+ 			rc-technisat-ts35.o \
+ 			rc-technisat-usb2.o \
+diff --git a/drivers/media/rc/keymaps/rc-tango.c b/drivers/media/rc/keymaps/rc-tango.c
+new file mode 100644
+index 000000000000..1c6e8875d46f
+--- /dev/null
++++ b/drivers/media/rc/keymaps/rc-tango.c
+@@ -0,0 +1,92 @@
 +/*
-+ * Find out whether an async sub-device was set up for an fwnode already or
-+ * whether it exists in a given notifier before @this_index.
++ * Copyright (C) 2017 Sigma Designs
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
 + */
-+static bool v4l2_async_notifier_fwnode_has_async_subdev(
-+	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
-+	unsigned int this_index)
-+{
-+	unsigned int j;
 +
-+	lockdep_assert_held(&list_lock);
++#include <linux/module.h>
++#include <media/rc-map.h>
 +
-+	/* Check that an fwnode is not being added more than once. */
-+	for (j = 0; j < this_index; j++) {
-+		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
-+		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
++static struct rc_map_table tango_table[] = {
++	{ 0x4cb4a, KEY_POWER },
++	{ 0x4cb48, KEY_FILE },
++	{ 0x4cb0f, KEY_SETUP },
++	{ 0x4cb4d, KEY_SUSPEND },
++	{ 0x4cb4e, KEY_VOLUMEUP },
++	{ 0x4cb44, KEY_EJECTCD },
++	{ 0x4cb13, KEY_TV },
++	{ 0x4cb51, KEY_MUTE },
++	{ 0x4cb52, KEY_VOLUMEDOWN },
 +
-+		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
-+		    asd->match.fwnode.fwnode ==
-+		    other_asd->match.fwnode.fwnode)
-+			return true;
++	{ 0x4cb41, KEY_1 },
++	{ 0x4cb03, KEY_2 },
++	{ 0x4cb42, KEY_3 },
++	{ 0x4cb45, KEY_4 },
++	{ 0x4cb07, KEY_5 },
++	{ 0x4cb46, KEY_6 },
++	{ 0x4cb55, KEY_7 },
++	{ 0x4cb17, KEY_8 },
++	{ 0x4cb56, KEY_9 },
++	{ 0x4cb1b, KEY_0 },
++	{ 0x4cb59, KEY_DELETE },
++	{ 0x4cb5a, KEY_CAPSLOCK },
++
++	{ 0x4cb47, KEY_BACK },
++	{ 0x4cb05, KEY_SWITCHVIDEOMODE },
++	{ 0x4cb06, KEY_UP },
++	{ 0x4cb43, KEY_LEFT },
++	{ 0x4cb01, KEY_RIGHT },
++	{ 0x4cb0a, KEY_DOWN },
++	{ 0x4cb02, KEY_ENTER },
++	{ 0x4cb4b, KEY_INFO },
++	{ 0x4cb09, KEY_HOME },
++
++	{ 0x4cb53, KEY_MENU },
++	{ 0x4cb12, KEY_PREVIOUS },
++	{ 0x4cb50, KEY_PLAY },
++	{ 0x4cb11, KEY_NEXT },
++	{ 0x4cb4f, KEY_TITLE },
++	{ 0x4cb0e, KEY_REWIND },
++	{ 0x4cb4c, KEY_STOP },
++	{ 0x4cb0d, KEY_FORWARD },
++	{ 0x4cb57, KEY_MEDIA_REPEAT },
++	{ 0x4cb16, KEY_ANGLE },
++	{ 0x4cb54, KEY_PAUSE },
++	{ 0x4cb15, KEY_SLOW },
++	{ 0x4cb5b, KEY_TIME },
++	{ 0x4cb1a, KEY_AUDIO },
++	{ 0x4cb58, KEY_SUBTITLE },
++	{ 0x4cb19, KEY_ZOOM },
++
++	{ 0x4cb5f, KEY_RED },
++	{ 0x4cb1e, KEY_GREEN },
++	{ 0x4cb5c, KEY_YELLOW },
++	{ 0x4cb1d, KEY_BLUE },
++};
++
++static struct rc_map_list tango_map = {
++	.map = {
++		.scan = tango_table,
++		.size = ARRAY_SIZE(tango_table),
++		.rc_proto = RC_PROTO_NECX,
++		.name = RC_MAP_TANGO,
 +	}
++};
 +
-+	/* Check than an fwnode did not exist in other notifiers. */
-+	list_for_each_entry(notifier, &notifier_list, list)
-+		if (__v4l2_async_notifier_fwnode_has_async_subdev(
-+			    notifier, fwnode))
-+			return true;
-+
-+	return false;
++static int __init init_rc_map_tango(void)
++{
++	return rc_map_register(&tango_map);
 +}
 +
- static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- {
-+	struct device *dev =
-+		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
- 	struct v4l2_async_subdev *asd;
- 	int ret;
- 	int i;
-@@ -320,6 +383,8 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
- 
-+	mutex_lock(&list_lock);
++static void __exit exit_rc_map_tango(void)
++{
++	rc_map_unregister(&tango_map);
++}
 +
- 	for (i = 0; i < notifier->num_subdevs; i++) {
- 		asd = notifier->subdevs[i];
- 
-@@ -327,19 +392,25 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- 		case V4L2_ASYNC_MATCH_CUSTOM:
- 		case V4L2_ASYNC_MATCH_DEVNAME:
- 		case V4L2_ASYNC_MATCH_I2C:
-+			break;
- 		case V4L2_ASYNC_MATCH_FWNODE:
-+			if (v4l2_async_notifier_fwnode_has_async_subdev(
-+				    notifier, asd->match.fwnode.fwnode, i)) {
-+				dev_err(dev,
-+					"fwnode has already been registered or in notifier's subdev list\n");
-+				ret = -EEXIST;
-+				goto out_unlock;
-+			}
- 			break;
- 		default:
--			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
--				"Invalid match type %u on %p\n",
-+			dev_err(dev, "Invalid match type %u on %p\n",
- 				asd->match_type, asd);
--			return -EINVAL;
-+			ret = -EINVAL;
-+			goto out_unlock;
- 		}
- 		list_add_tail(&asd->list, &notifier->waiting);
- 	}
- 
--	mutex_lock(&list_lock);
--
- 	ret = v4l2_async_notifier_try_all_subdevs(notifier);
- 	if (ret)
- 		goto err_unbind;
-@@ -351,6 +422,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- 	/* Keep also completed notifiers on the list */
- 	list_add(&notifier->list, &notifier_list);
- 
-+out_unlock:
- 	mutex_unlock(&list_lock);
- 
- 	return 0;
++module_init(init_rc_map_tango)
++module_exit(exit_rc_map_tango)
++
++MODULE_AUTHOR("Sigma Designs");
++MODULE_LICENSE("GPL");
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 2a160e6e823c..b4ddcb62c993 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -300,6 +300,7 @@ struct rc_map *rc_map_get(const char *name);
+ #define RC_MAP_REDDO                     "rc-reddo"
+ #define RC_MAP_SNAPSTREAM_FIREFLY        "rc-snapstream-firefly"
+ #define RC_MAP_STREAMZAP                 "rc-streamzap"
++#define RC_MAP_TANGO                     "rc-tango"
+ #define RC_MAP_TBS_NEC                   "rc-tbs-nec"
+ #define RC_MAP_TECHNISAT_TS35            "rc-technisat-ts35"
+ #define RC_MAP_TECHNISAT_USB2            "rc-technisat-usb2"
 -- 
-2.11.0
+2.14.2
