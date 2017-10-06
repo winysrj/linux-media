@@ -1,147 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:48255 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751469AbdJ3KcE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Oct 2017 06:32:04 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Kees Cook <keescook@chromium.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.15] More fixes/cleanups
-Message-ID: <e8409a3e-6f14-aaf2-9c25-594ed3a10658@xs4all.nl>
-Date: Mon, 30 Oct 2017 11:31:59 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from osg.samsung.com ([64.30.133.232]:54482 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752879AbdJFVid (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Oct 2017 17:38:33 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 2/2] media: s5p-mfc: fix lock confection - request_firmware() once and keep state
+Date: Fri,  6 Oct 2017 15:30:08 -0600
+Message-Id: <fab205fc9ba1bc00e5dda4db6d426fde69116c37.1507325072.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1507325072.git.shuahkh@osg.samsung.com>
+References: <cover.1507325072.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1507325072.git.shuahkh@osg.samsung.com>
+References: <cover.1507325072.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Driver calls request_firmware() whenever the device is opened for the
+first time. As the device gets opened and closed, dev->num_inst == 1
+is true several times. This is not necessary since the firmware is saved
+in the fw_buf. s5p_mfc_load_firmware() copies the buffer returned by
+the request_firmware() to dev->fw_buf.
 
-A lot of timer_setup conversions. The other patches are all over the place.
+fw_buf sticks around until it gets released from s5p_mfc_remove(), hence
+there is no need to keep requesting firmware and copying it to fw_buf.
 
-Please note the CC to stable for 3.17 and up for the v4l2-ctrl patch from Ricardo:
-I verified that it applies to that kernel.
+This might have been overlooked when changes are made to free fw_buf from
+the device release interface s5p_mfc_release().
 
-It's a little bug that's been there from the beginning until Ricardo noticed it
-and fixed it. Thanks Ricardo!
+Fix s5p_mfc_load_firmware() to call request_firmware() once and keep state.
+Change _probe() to load firmware once fw_buf has been allocated.
 
-Regards,
+s5p_mfc_open() and it continues to call s5p_mfc_load_firmware() and init
+hardware which is the step where firmware is written to the device.
 
-	Hans
+This addresses the mfc_mutex contention due to repeated request_firmware()
+calls from open() in the following circular locking warning:
 
-The following changes since commit bbae615636155fa43a9b0fe0ea31c678984be864:
+[  552.194115] qtdemux0:sink/2710 is trying to acquire lock:
+[  552.199488]  (&dev->mfc_mutex){+.+.}, at: [<bf145544>] s5p_mfc_mmap+0x28/0xd4 [s5p_mfc]
+[  552.207459]
+               but task is already holding lock:
+[  552.213264]  (&mm->mmap_sem){++++}, at: [<c01df2e4>] vm_mmap_pgoff+0x44/0xb8
+[  552.220284]
+               which lock already depends on the new lock.
 
-  media: staging: atomisp2: cleanup null check on memory allocation (2017-10-27 17:33:39 +0200)
+[  552.228429]
+               the existing dependency chain (in reverse order) is:
+[  552.235881]
+               -> #2 (&mm->mmap_sem){++++}:
+[  552.241259]        __might_fault+0x80/0xb0
+[  552.245331]        filldir64+0xc0/0x2f8
+[  552.249144]        call_filldir+0xb0/0x14c
+[  552.253214]        ext4_readdir+0x768/0x90c
+[  552.257374]        iterate_dir+0x74/0x168
+[  552.261360]        SyS_getdents64+0x7c/0x1a0
+[  552.265608]        ret_fast_syscall+0x0/0x28
+[  552.269850]
+               -> #1 (&type->i_mutex_dir_key#2){++++}:
+[  552.276180]        down_read+0x48/0x90
+[  552.279904]        lookup_slow+0x74/0x178
+[  552.283889]        walk_component+0x1a4/0x2e4
+[  552.288222]        link_path_walk+0x174/0x4a0
+[  552.292555]        path_openat+0x68/0x944
+[  552.296541]        do_filp_open+0x60/0xc4
+[  552.300528]        file_open_name+0xe4/0x114
+[  552.304772]        filp_open+0x28/0x48
+[  552.308499]        kernel_read_file_from_path+0x30/0x78
+[  552.313700]        _request_firmware+0x3ec/0x78c
+[  552.318291]        request_firmware+0x3c/0x54
+[  552.322642]        s5p_mfc_load_firmware+0x54/0x150 [s5p_mfc]
+[  552.328358]        s5p_mfc_open+0x4e4/0x550 [s5p_mfc]
+[  552.333394]        v4l2_open+0xa0/0x104 [videodev]
+[  552.338137]        chrdev_open+0xa4/0x18c
+[  552.342121]        do_dentry_open+0x208/0x310
+[  552.346454]        path_openat+0x28c/0x944
+[  552.350526]        do_filp_open+0x60/0xc4
+[  552.354512]        do_sys_open+0x118/0x1c8
+[  552.358586]        ret_fast_syscall+0x0/0x28
+[  552.362830]
+               -> #0 (&dev->mfc_mutex){+.+.}:
+               -> #0 (&dev->mfc_mutex){+.+.}:
+[  552.368379]        lock_acquire+0x6c/0x88
+[  552.372364]        __mutex_lock+0x68/0xa34
+[  552.376437]        mutex_lock_interruptible_nested+0x1c/0x24
+[  552.382086]        s5p_mfc_mmap+0x28/0xd4 [s5p_mfc]
+[  552.386939]        v4l2_mmap+0x54/0x88 [videodev]
+[  552.391601]        mmap_region+0x3a8/0x638
+[  552.395673]        do_mmap+0x330/0x3a4
+[  552.399400]        vm_mmap_pgoff+0x90/0xb8
+[  552.403472]        SyS_mmap_pgoff+0x90/0xc0
+[  552.407632]        ret_fast_syscall+0x0/0x28
+[  552.411876]
+               other info that might help us debug this:
 
-are available in the git repository at:
+[  552.419848] Chain exists of:
+                 &dev->mfc_mutex --> &type->i_mutex_dir_key#2 --> &mm->mmap_sem
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.15e
+[  552.431200]  Possible unsafe locking scenario:
 
-for you to fetch changes up to 6509fc8c8841033017358a001616c43edfb6693d:
+[  552.437092]        CPU0                    CPU1
+[  552.441598]        ----                    ----
+[  552.446104]   lock(&mm->mmap_sem);
+[  552.449484]                                lock(&type->i_mutex_dir_key#2);
+[  552.456329]                                lock(&mm->mmap_sem);
+[  552.462222]   lock(&dev->mfc_mutex);
+[  552.465775]
+                *** DEADLOCK ***
 
-  st-hva: hva-h264: use swap macro in hva_h264_encode (2017-10-30 11:18:48 +0100)
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        | 4 ++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 3 +++
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   | 5 +++++
+ 3 files changed, 12 insertions(+)
 
-----------------------------------------------------------------
-Adam Sampson (1):
-      media: usbtv: fix brightness and contrast controls
-
-Arnd Bergmann (1):
-      rockchip/rga: annotate PM functions as __maybe_unused
-
-Bhumika Goyal (4):
-      cx231xx: make cx231xx_vbi_qops const
-      radio-si470x: make si470x_viddev_template const
-      davinci: make function arguments const
-      davinci: make ccdc_hw_device structures const
-
-Colin Ian King (4):
-      radio-raremono: remove redundant initialization of freq
-      mxl111sf: remove redundant assignment to index
-      gspca: remove redundant assignment to variable j
-      bdisp: remove redundant assignment to pix
-
-Gustavo A. R. Silva (1):
-      st-hva: hva-h264: use swap macro in hva_h264_encode
-
-Hans Verkuil (3):
-      cec-pin: use IS_ERR instead of PTR_ERR_OR_ZERO
-      tegra-cec: fix messy probe() cleanup
-      camss-video.c: drop unused header
-
-Jaejoong Kim (1):
-      media: usb: usbtv: remove duplicate & operation
-
-Kees Cook (9):
-      media/saa7146: Convert timers to use timer_setup()
-      media: tc358743: Convert timers to use timer_setup()
-      media: saa7146: Convert timers to use timer_setup()
-      media: dvb-core: Convert timers to use timer_setup()
-      media: tvaudio: Convert timers to use timer_setup()
-      media: saa7134: Convert timers to use timer_setup()
-      media: pci: Convert timers to use timer_setup()
-      media: radio: Convert timers to use timer_setup()
-      media: s2255: Convert timers to use timer_setup()
-
-Markus Elfring (1):
-      omap_vout: Fix a possible null pointer dereference in omap_vout_open()
-
-Ricardo Ribalda Delgado (1):
-      media: v4l2-ctrl: Fix flags field on Control events
-
-Wenyou Yang (1):
-      media: atmel-isc: Fix clock ID for clk_prepare/unprepare
-
- drivers/media/cec/cec-pin.c                          |  2 +-
- drivers/media/common/saa7146/saa7146_fops.c          |  6 +++---
- drivers/media/common/saa7146/saa7146_vbi.c           | 12 ++++++------
- drivers/media/common/saa7146/saa7146_video.c         |  3 +--
- drivers/media/dvb-core/dmxdev.c                      |  8 +++-----
- drivers/media/i2c/tc358743.c                         |  7 +++----
- drivers/media/i2c/tvaudio.c                          |  8 +++-----
- drivers/media/pci/bt8xx/bttv-driver.c                |  6 +++---
- drivers/media/pci/bt8xx/bttv-input.c                 | 19 ++++++++++---------
- drivers/media/pci/bt8xx/bttvp.h                      |  1 +
- drivers/media/pci/cx18/cx18-fileops.c                |  4 ++--
- drivers/media/pci/cx18/cx18-fileops.h                |  2 +-
- drivers/media/pci/cx18/cx18-streams.c                |  2 +-
- drivers/media/pci/ivtv/ivtv-driver.c                 |  3 +--
- drivers/media/pci/ivtv/ivtv-irq.c                    |  4 ++--
- drivers/media/pci/ivtv/ivtv-irq.h                    |  2 +-
- drivers/media/pci/netup_unidvb/netup_unidvb_core.c   |  7 +++----
- drivers/media/pci/saa7134/saa7134-core.c             |  6 +++---
- drivers/media/pci/saa7134/saa7134-input.c            |  9 ++++-----
- drivers/media/pci/saa7134/saa7134-ts.c               |  3 +--
- drivers/media/pci/saa7134/saa7134-vbi.c              |  3 +--
- drivers/media/pci/saa7134/saa7134-video.c            |  3 +--
- drivers/media/pci/saa7134/saa7134.h                  |  2 +-
- drivers/media/pci/tw686x/tw686x-core.c               |  7 +++----
- drivers/media/platform/atmel/atmel-isc.c             |  8 ++++----
- drivers/media/platform/davinci/ccdc_hw_device.h      |  4 ++--
- drivers/media/platform/davinci/dm355_ccdc.c          |  2 +-
- drivers/media/platform/davinci/dm644x_ccdc.c         |  2 +-
- drivers/media/platform/davinci/isif.c                |  2 +-
- drivers/media/platform/davinci/vpfe_capture.c        |  6 +++---
- drivers/media/platform/omap/omap_vout.c              |  3 ++-
- drivers/media/platform/qcom/camss-8x16/camss-video.c |  1 -
- drivers/media/platform/rockchip/rga/rga.c            |  6 ++----
- drivers/media/platform/sti/bdisp/bdisp-v4l2.c        |  2 +-
- drivers/media/platform/sti/hva/hva-h264.c            |  5 +----
- drivers/media/platform/tegra-cec/tegra_cec.c         | 26 ++++++++++----------------
- drivers/media/radio/radio-cadet.c                    |  7 +++----
- drivers/media/radio/radio-raremono.c                 |  2 +-
- drivers/media/radio/si470x/radio-si470x-common.c     |  2 +-
- drivers/media/radio/si470x/radio-si470x.h            |  2 +-
- drivers/media/radio/wl128x/fmdrv_common.c            |  7 +++----
- drivers/media/usb/cx231xx/cx231xx-vbi.c              |  2 +-
- drivers/media/usb/cx231xx/cx231xx-vbi.h              |  2 +-
- drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c          |  1 -
- drivers/media/usb/gspca/gspca.c                      |  1 -
- drivers/media/usb/s2255/s2255drv.c                   |  7 ++++---
- drivers/media/usb/usbtv/usbtv-core.c                 |  2 +-
- drivers/media/usb/usbtv/usbtv-video.c                |  4 ++--
- drivers/media/v4l2-core/v4l2-ctrls.c                 | 16 ++++++++++++----
- include/media/drv-intf/saa7146_vv.h                  |  3 ++-
- 50 files changed, 119 insertions(+), 135 deletions(-)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 1afde50..4c253fb 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1315,6 +1315,10 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 		goto err_dma;
+ 	}
+ 
++	ret = s5p_mfc_load_firmware(dev);
++	if (ret)
++		mfc_err("Failed to load FW - try loading from open()\n");
++
+ 	mutex_init(&dev->mfc_mutex);
+ 	init_waitqueue_head(&dev->queue);
+ 	dev->hw_lock = 0;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 4220914..76119a8 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -290,6 +290,8 @@ struct s5p_mfc_priv_buf {
+  * @mfc_cmds:		cmd structure holding HW commands function pointers
+  * @mfc_regs:		structure holding MFC registers
+  * @fw_ver:		loaded firmware sub-version
++ * @fw_get_done		flag set when request_firmware() is complete and
++ *			copied into fw_buf
+  * risc_on:		flag indicates RISC is on or off
+  *
+  */
+@@ -336,6 +338,7 @@ struct s5p_mfc_dev {
+ 	struct s5p_mfc_hw_cmds *mfc_cmds;
+ 	const struct s5p_mfc_regs *mfc_regs;
+ 	enum s5p_mfc_fw_ver fw_ver;
++	bool fw_get_done;
+ 	bool risc_on; /* indicates if RISC is on or off */
+ };
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index f064a0d1..ca57936 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -55,6 +55,9 @@ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev)
+ 	 * into kernel. */
+ 	mfc_debug_enter();
+ 
++	if (dev->fw_get_done)
++		return 0;
++
+ 	if (!dev->fw_buf.virt) {
+ 		mfc_err("MFC firmware is not allocated\n");
+ 		return -EINVAL;
+@@ -82,6 +85,7 @@ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev)
+ 	}
+ 	memcpy(dev->fw_buf.virt, fw_blob->data, fw_blob->size);
+ 	wmb();
++	dev->fw_get_done = true;
+ 	release_firmware(fw_blob);
+ 	mfc_debug_leave();
+ 	return 0;
+@@ -93,6 +97,7 @@ int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev)
+ 	/* Before calling this function one has to make sure
+ 	 * that MFC is no longer processing */
+ 	s5p_mfc_release_priv_buf(dev, &dev->fw_buf);
++	dev->fw_get_done = false;
+ 	return 0;
+ }
+ 
+-- 
+2.7.4
