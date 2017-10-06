@@ -1,95 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40300 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751336AbdJDVu4 (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:40670 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751083AbdJFD3V (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 17:50:56 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+        Thu, 5 Oct 2017 23:29:21 -0400
+Message-ID: <fdcb0e3db56f093b88d5f707242eae7a@smtp-cloud8.xs4all.net>
+Date: Fri, 06 Oct 2017 05:29:19 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v15 06/32] v4l: async: Use more intuitive names for internal functions
-Date: Thu,  5 Oct 2017 00:50:25 +0300
-Message-Id: <20171004215051.13385-7-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename internal functions to make the names of the functions better
-describe what they do.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-	Old name			New name
-	v4l2_async_test_notify	v4l2_async_match_notify
-	v4l2_async_belongs	v4l2_async_find_match
+Results of the daily build of media_tree:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+date:			Fri Oct  6 05:00:07 CEST 2017
+media-tree git hash:	c1301077213d4dca34f01fc372b64d3c4a49a437
+media_build git hash:	b829b621b4c2e6c5cbedbd1ce62b4e958f7d13a4
+v4l-utils git hash:	997ed5a4abba619282d9ffb8bb173e8589176d73
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index cde2cf2ab4b0..8b84fea50c2a 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -60,8 +60,8 @@ static LIST_HEAD(subdev_list);
- static LIST_HEAD(notifier_list);
- static DEFINE_MUTEX(list_lock);
- 
--static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
--						    struct v4l2_subdev *sd)
-+static struct v4l2_async_subdev *v4l2_async_find_match(
-+	struct v4l2_async_notifier *notifier, struct v4l2_subdev *sd)
- {
- 	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
- 	struct v4l2_async_subdev *asd;
-@@ -95,9 +95,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
- 	return NULL;
- }
- 
--static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
--				  struct v4l2_subdev *sd,
--				  struct v4l2_async_subdev *asd)
-+static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-+				   struct v4l2_subdev *sd,
-+				   struct v4l2_async_subdev *asd)
- {
- 	int ret;
- 
-@@ -187,11 +187,11 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
- 		int ret;
- 
--		asd = v4l2_async_belongs(notifier, sd);
-+		asd = v4l2_async_find_match(notifier, sd);
- 		if (!asd)
- 			continue;
- 
--		ret = v4l2_async_test_notify(notifier, sd, asd);
-+		ret = v4l2_async_match_notify(notifier, sd, asd);
- 		if (ret < 0) {
- 			mutex_unlock(&list_lock);
- 			return ret;
-@@ -255,13 +255,14 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 	INIT_LIST_HEAD(&sd->async_list);
- 
- 	list_for_each_entry(notifier, &notifier_list, list) {
--		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
-+		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
-+								      sd);
- 		int ret;
- 
- 		if (!asd)
- 			continue;
- 
--		ret = v4l2_async_test_notify(notifier, sd, asd);
-+		ret = v4l2_async_match_notify(notifier, sd, asd);
- 		if (ret)
- 			goto err_unlock;
- 
--- 
-2.11.0
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-arm-stm32: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+apps: OK
+spec-git: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
