@@ -1,84 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35843 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751255AbdJCJ2u (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 05:28:50 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        s.nawrocki@samsung.com, Jacob Chen <jacob-chen@iotwrt.com>
-Subject: [PATCH v10 0/4] Add Rockchip RGA V4l2 support
-Date: Tue,  3 Oct 2017 17:28:35 +0800
-Message-Id: <20171003092839.26236-1-jacob-chen@iotwrt.com>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:35066 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752278AbdJGD3E (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Oct 2017 23:29:04 -0400
+Message-ID: <425a048d3e6b1a12a85c9d0a24eceb3f@smtp-cloud9.xs4all.net>
+Date: Sat, 07 Oct 2017 05:29:02 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series add a v4l2 m2m drvier for rockchip RGA direct rendering based 2d graphics acceleration module.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-change in V10:
-- move to rockchip/rga
-- changes according to comments
-- some style changes
+Results of the daily build of media_tree:
 
-change in V9:
-- remove protduff things
-- test with the latest v4l2-compliance
+date:			Sat Oct  7 05:00:07 CEST 2017
+media-tree git hash:	c1301077213d4dca34f01fc372b64d3c4a49a437
+media_build git hash:	b829b621b4c2e6c5cbedbd1ce62b4e958f7d13a4
+v4l-utils git hash:	997ed5a4abba619282d9ffb8bb173e8589176d73
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-change in V8:
-- remove protduff things
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-arm-stm32: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+apps: OK
+spec-git: OK
 
-change in V6,V7:
-- correct warning in checkpatch.pl
+Detailed results are available here:
 
-change in V5:
-- v4l2-compliance: handle invalid pxielformat
-- v4l2-compliance: add subscribe_event
-- add colorspace support
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-change in V4:
-- document the controls.
-- change according to Hans's comments
+Full logs are available here:
 
-change in V3:
-- rename the controls.
-- add pm_runtime support.
-- enable node by default.
-- correct spelling in documents.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-change in V2:
-- generalize the controls.
-- map buffers (10-50 us) in every cmd-run rather than in buffer-import to avoid get_free_pages failed on
-actively used systems.
-- remove status in dt-bindings examples.
+The Media Infrastructure API from this daily build is here:
 
-Jacob Chen (4):
-  rockchip/rga: v4l2 m2m support
-  ARM: dts: rockchip: add RGA device node for RK3288
-  arm64: dts: rockchip: add RGA device node for RK3399
-  dt-bindings: Document the Rockchip RGA bindings
-
- .../devicetree/bindings/media/rockchip-rga.txt     |   33 +
- arch/arm/boot/dts/rk3288.dtsi                      |   11 +
- arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   11 +
- drivers/media/platform/Kconfig                     |   15 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/rockchip/rga/Makefile       |    3 +
- drivers/media/platform/rockchip/rga/rga-buf.c      |  154 +++
- drivers/media/platform/rockchip/rga/rga-hw.c       |  421 ++++++++
- drivers/media/platform/rockchip/rga/rga-hw.h       |  437 +++++++++
- drivers/media/platform/rockchip/rga/rga.c          | 1012 ++++++++++++++++++++
- drivers/media/platform/rockchip/rga/rga.h          |  123 +++
- 11 files changed, 2222 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
- create mode 100644 drivers/media/platform/rockchip/rga/Makefile
- create mode 100644 drivers/media/platform/rockchip/rga/rga-buf.c
- create mode 100644 drivers/media/platform/rockchip/rga/rga-hw.c
- create mode 100644 drivers/media/platform/rockchip/rga/rga-hw.h
- create mode 100644 drivers/media/platform/rockchip/rga/rga.c
- create mode 100644 drivers/media/platform/rockchip/rga/rga.h
-
--- 
-2.14.1
+http://www.xs4all.nl/~hverkuil/spec/index.html
