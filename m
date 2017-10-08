@@ -1,208 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([75.149.91.89]:43971 "EHLO cnc.isely.net"
+Received: from mail.kernel.org ([198.145.29.99]:58178 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751513AbdJYQVa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Oct 2017 12:21:30 -0400
-Date: Wed, 25 Oct 2017 11:21:29 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-Reply-To: Mike Isely at pobox <isely@pobox.com>
-To: Kees Cook <keescook@chromium.org>
-cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mike Isely at pobox <isely@pobox.com>
-Subject: Re: [PATCH] media: pvrusb2: Convert timers to use timer_setup()
-In-Reply-To: <20171024152251.GA104927@beast>
-Message-ID: <alpine.DEB.2.11.1710251120560.7174@cnc.isely.net>
-References: <20171024152251.GA104927@beast>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+        id S1751365AbdJHVu7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 8 Oct 2017 17:50:59 -0400
+Date: Sun, 8 Oct 2017 23:50:54 +0200
+From: Sebastian Reichel <sre@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, pavel@ucw.cz,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: Re: [PATCH v15 03/32] v4l: async: fix unbind error in
+ v4l2_async_notifier_unregister()
+Message-ID: <20171008215053.x6hpt5snpnuisfvg@earth>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+ <20171004215051.13385-4-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="oqounlxpfbcpvowj"
+Content-Disposition: inline
+In-Reply-To: <20171004215051.13385-4-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-Acked-By: Mike Isely <isely@pobox.com>
+--oqounlxpfbcpvowj
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, 24 Oct 2017, Kees Cook wrote:
+Hi,
 
-> In preparation for unconditionally passing the struct timer_list pointer to
-> all timer callbacks, switch to using the new timer_setup() and from_timer()
-> to pass the timer pointer explicitly.
-> 
-> Cc: Mike Isely <isely@pobox.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Kees Cook <keescook@chromium.org>
+On Thu, Oct 05, 2017 at 12:50:22AM +0300, Sakari Ailus wrote:
+> From: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+>=20
+> The call to v4l2_async_cleanup() will set sd->asd to NULL so passing it to
+> notifier->unbind() have no effect and leaves the notifier confused. Call
+> the unbind() callback prior to cleaning up the subdevice to avoid this.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+
+-- Sebastian
+
 > ---
->  drivers/media/usb/pvrusb2/pvrusb2-hdw.c | 64 ++++++++++++++++++---------------
->  1 file changed, 36 insertions(+), 28 deletions(-)
-> 
-> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-> index ad5b25b89699..8289ee482f49 100644
-> --- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-> +++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-> @@ -330,10 +330,10 @@ static void pvr2_hdw_state_log_state(struct pvr2_hdw *);
->  static int pvr2_hdw_cmd_usbstream(struct pvr2_hdw *hdw,int runFl);
->  static int pvr2_hdw_commit_setup(struct pvr2_hdw *hdw);
->  static int pvr2_hdw_get_eeprom_addr(struct pvr2_hdw *hdw);
-> -static void pvr2_hdw_quiescent_timeout(unsigned long);
-> -static void pvr2_hdw_decoder_stabilization_timeout(unsigned long);
-> -static void pvr2_hdw_encoder_wait_timeout(unsigned long);
-> -static void pvr2_hdw_encoder_run_timeout(unsigned long);
-> +static void pvr2_hdw_quiescent_timeout(struct timer_list *);
-> +static void pvr2_hdw_decoder_stabilization_timeout(struct timer_list *);
-> +static void pvr2_hdw_encoder_wait_timeout(struct timer_list *);
-> +static void pvr2_hdw_encoder_run_timeout(struct timer_list *);
->  static int pvr2_issue_simple_cmd(struct pvr2_hdw *,u32);
->  static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
->  				unsigned int timeout,int probe_fl,
-> @@ -2373,18 +2373,15 @@ struct pvr2_hdw *pvr2_hdw_create(struct usb_interface *intf,
+>  drivers/media/v4l2-core/v4l2-async.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-co=
+re/v4l2-async.c
+> index 21c748bf3a7b..ca281438a0ae 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -206,11 +206,11 @@ void v4l2_async_notifier_unregister(struct v4l2_asy=
+nc_notifier *notifier)
+>  	list_del(&notifier->list);
+> =20
+>  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+> -		v4l2_async_cleanup(sd);
+> -
+>  		if (notifier->unbind)
+>  			notifier->unbind(notifier, sd, sd->asd);
+> =20
+> +		v4l2_async_cleanup(sd);
+> +
+>  		list_move(&sd->async_list, &subdev_list);
 >  	}
->  	if (!hdw) goto fail;
->  
-> -	setup_timer(&hdw->quiescent_timer, pvr2_hdw_quiescent_timeout,
-> -		    (unsigned long)hdw);
-> +	timer_setup(&hdw->quiescent_timer, pvr2_hdw_quiescent_timeout, 0);
->  
-> -	setup_timer(&hdw->decoder_stabilization_timer,
-> -		    pvr2_hdw_decoder_stabilization_timeout,
-> -		    (unsigned long)hdw);
-> +	timer_setup(&hdw->decoder_stabilization_timer,
-> +		    pvr2_hdw_decoder_stabilization_timeout, 0);
->  
-> -	setup_timer(&hdw->encoder_wait_timer, pvr2_hdw_encoder_wait_timeout,
-> -		    (unsigned long)hdw);
-> +	timer_setup(&hdw->encoder_wait_timer, pvr2_hdw_encoder_wait_timeout,
-> +		    0);
->  
-> -	setup_timer(&hdw->encoder_run_timer, pvr2_hdw_encoder_run_timeout,
-> -		    (unsigned long)hdw);
-> +	timer_setup(&hdw->encoder_run_timer, pvr2_hdw_encoder_run_timeout, 0);
->  
->  	hdw->master_state = PVR2_STATE_DEAD;
->  
-> @@ -3539,10 +3536,16 @@ static void pvr2_ctl_read_complete(struct urb *urb)
->  	complete(&hdw->ctl_done);
+> =20
+> @@ -268,11 +268,11 @@ void v4l2_async_unregister_subdev(struct v4l2_subde=
+v *sd)
+> =20
+>  	list_add(&sd->asd->list, &notifier->waiting);
+> =20
+> -	v4l2_async_cleanup(sd);
+> -
+>  	if (notifier->unbind)
+>  		notifier->unbind(notifier, sd, sd->asd);
+> =20
+> +	v4l2_async_cleanup(sd);
+> +
+>  	mutex_unlock(&list_lock);
 >  }
->  
-> +struct hdw_timer {
-> +	struct timer_list timer;
-> +	struct pvr2_hdw *hdw;
-> +};
->  
-> -static void pvr2_ctl_timeout(unsigned long data)
-> +static void pvr2_ctl_timeout(struct timer_list *t)
->  {
-> -	struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
-> +	struct hdw_timer *timer = from_timer(timer, t, timer);
-> +	struct pvr2_hdw *hdw = timer->hdw;
-> +
->  	if (hdw->ctl_write_pend_flag || hdw->ctl_read_pend_flag) {
->  		hdw->ctl_timeout_flag = !0;
->  		if (hdw->ctl_write_pend_flag)
-> @@ -3564,7 +3567,10 @@ static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
->  {
->  	unsigned int idx;
->  	int status = 0;
-> -	struct timer_list timer;
-> +	struct hdw_timer timer = {
-> +		.hdw = hdw,
-> +	};
-> +
->  	if (!hdw->ctl_lock_held) {
->  		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
->  			   "Attempted to execute control transfer without lock!!");
-> @@ -3621,8 +3627,8 @@ static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
->  	hdw->ctl_timeout_flag = 0;
->  	hdw->ctl_write_pend_flag = 0;
->  	hdw->ctl_read_pend_flag = 0;
-> -	setup_timer(&timer, pvr2_ctl_timeout, (unsigned long)hdw);
-> -	timer.expires = jiffies + timeout;
-> +	timer_setup_on_stack(&timer.timer, pvr2_ctl_timeout, 0);
-> +	timer.timer.expires = jiffies + timeout;
->  
->  	if (write_len && write_data) {
->  		hdw->cmd_debug_state = 2;
-> @@ -3677,7 +3683,7 @@ status);
->  	}
->  
->  	/* Start timer */
-> -	add_timer(&timer);
-> +	add_timer(&timer.timer);
->  
->  	/* Now wait for all I/O to complete */
->  	hdw->cmd_debug_state = 4;
-> @@ -3687,7 +3693,7 @@ status);
->  	hdw->cmd_debug_state = 5;
->  
->  	/* Stop timer */
-> -	del_timer_sync(&timer);
-> +	del_timer_sync(&timer.timer);
->  
->  	hdw->cmd_debug_state = 6;
->  	status = 0;
-> @@ -3769,6 +3775,8 @@ status);
->  	if ((status < 0) && (!probe_fl)) {
->  		pvr2_hdw_render_useless(hdw);
->  	}
-> +	destroy_timer_on_stack(&timer.timer);
-> +
->  	return status;
->  }
->  
-> @@ -4366,9 +4374,9 @@ static int state_eval_encoder_run(struct pvr2_hdw *hdw)
->  
->  
->  /* Timeout function for quiescent timer. */
-> -static void pvr2_hdw_quiescent_timeout(unsigned long data)
-> +static void pvr2_hdw_quiescent_timeout(struct timer_list *t)
->  {
-> -	struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
-> +	struct pvr2_hdw *hdw = from_timer(hdw, t, quiescent_timer);
->  	hdw->state_decoder_quiescent = !0;
->  	trace_stbit("state_decoder_quiescent",hdw->state_decoder_quiescent);
->  	hdw->state_stale = !0;
-> @@ -4377,9 +4385,9 @@ static void pvr2_hdw_quiescent_timeout(unsigned long data)
->  
->  
->  /* Timeout function for decoder stabilization timer. */
-> -static void pvr2_hdw_decoder_stabilization_timeout(unsigned long data)
-> +static void pvr2_hdw_decoder_stabilization_timeout(struct timer_list *t)
->  {
-> -	struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
-> +	struct pvr2_hdw *hdw = from_timer(hdw, t, decoder_stabilization_timer);
->  	hdw->state_decoder_ready = !0;
->  	trace_stbit("state_decoder_ready", hdw->state_decoder_ready);
->  	hdw->state_stale = !0;
-> @@ -4388,9 +4396,9 @@ static void pvr2_hdw_decoder_stabilization_timeout(unsigned long data)
->  
->  
->  /* Timeout function for encoder wait timer. */
-> -static void pvr2_hdw_encoder_wait_timeout(unsigned long data)
-> +static void pvr2_hdw_encoder_wait_timeout(struct timer_list *t)
->  {
-> -	struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
-> +	struct pvr2_hdw *hdw = from_timer(hdw, t, encoder_wait_timer);
->  	hdw->state_encoder_waitok = !0;
->  	trace_stbit("state_encoder_waitok",hdw->state_encoder_waitok);
->  	hdw->state_stale = !0;
-> @@ -4399,9 +4407,9 @@ static void pvr2_hdw_encoder_wait_timeout(unsigned long data)
->  
->  
->  /* Timeout function for encoder run timer. */
-> -static void pvr2_hdw_encoder_run_timeout(unsigned long data)
-> +static void pvr2_hdw_encoder_run_timeout(struct timer_list *t)
->  {
-> -	struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
-> +	struct pvr2_hdw *hdw = from_timer(hdw, t, encoder_run_timer);
->  	if (!hdw->state_encoder_runok) {
->  		hdw->state_encoder_runok = !0;
->  		trace_stbit("state_encoder_runok",hdw->state_encoder_runok);
-> 
+>  EXPORT_SYMBOL(v4l2_async_unregister_subdev);
+> --=20
+> 2.11.0
+>=20
 
--- 
+--oqounlxpfbcpvowj
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnanb0ACgkQ2O7X88g7
++priwA//Y0r/6gWVUnIaO7nxBVUhgyLouWxGuwEXJV7J6nqzEptNBeSuhFVRcgmy
+W+T7tcwTL4xIWBSHq+npsNtBg2/Hw9Vn7hJWuP7DEHO0ryDk5d1+70OM5Ez/30c9
+WfkRFmWO8JIp5MSG3Qnq1xAxQHgQxxvUVkiGa6+ie34vwPCFGad5OrgWylQVDKKr
+tHMW+Lqp/UIT2jNwN28LxQUU5CVUh+CHtCSBTE4mPD+hMOw1plZEwj/dV/0iGq8L
+DhtpIaK1xKOjGjXvIquVDJW8cE4cWzREqzoQ9AxsCcLZv4YjTTofz/Azqk2Sx9/E
+xWC951LrqBsMf2So0XofnLqUNXt3ZnuoUaAvp7fJc1bg3hMJxbEhHoMVqWqLTBCL
+3c+eQy2L0UHKhdtD8sV/BSUP05eX5HcjhQZZjrhI4PwXL9kYSzZYDpBeI7XH9t1e
+u8BflQw1Gubj3OCEyvoFp61bfNUKIh1xzUxg1AVmmQ5bjCtET5IDSyHBTcvJyeMy
+sIWMHrXxYppD8t7KKS0JwlN7Ni6qPbCvBIxsmHvEQybjuxU2vV9E7M6GpbOFC3vT
+Tws8rKPGEUaYDR2UY1chEF5jShfoRyMUukuMKGaZTwfMA/rPRo2QCJ5wXyQnmQAK
+3d0aRESW3YgLT67ilfa/zgD0vMXelUzywIkJjYzWdigD/kuI4VY=
+=FGqn
+-----END PGP SIGNATURE-----
+
+--oqounlxpfbcpvowj--
