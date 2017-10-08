@@ -1,69 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:46070 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751343AbdJOUwA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Oct 2017 16:52:00 -0400
-Received: by mail-wm0-f65.google.com with SMTP id q124so30332529wmb.0
-        for <linux-media@vger.kernel.org>; Sun, 15 Oct 2017 13:52:00 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, rjkm@metzlerbros.de
-Subject: [PATCH for 4.15] ddbridge update to 0.9.32
-Date: Sun, 15 Oct 2017 22:51:49 +0200
-Message-Id: <20171015205157.14342-1-d.scheller.oss@gmail.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:45848 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751214AbdJHVxo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Oct 2017 17:53:44 -0400
+Date: Sun, 8 Oct 2017 23:53:39 +0200
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, pavel@ucw.cz
+Subject: Re: [PATCH v15 06/32] v4l: async: Use more intuitive names for
+ internal functions
+Message-ID: <20171008215338.bo3sw4a35zty4usc@earth>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+ <20171004215051.13385-7-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="q7metamltqphlxij"
+Content-Disposition: inline
+In-Reply-To: <20171004215051.13385-7-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
 
-For the 4.15 merge window. These patches update the mainline ddbridge
-driver to version 0.9.32, which was released ~3 weeks ago by upstream.
+--q7metamltqphlxij
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Nothing really fancy in this series, in fact upstream applied many of
-the changes that went into the mainline driver, which was released as
-0.9.32. A few more changes were applied though, namely the CI DuoFlex/
-PCIe Bridge support has been split from -core (like ie. the MaxS8 card
-support), upstream named the files with the MaxS8 support code
-"-max.[c|h]" (thus the rename), and everything was made checkpatch-
-strict clean.
+Hi,
 
-One condition in stv0910.c:read_status() was missing in mainline and is
-being added in 7/8.
+On Thu, Oct 05, 2017 at 12:50:25AM +0300, Sakari Ailus wrote:
+> Rename internal functions to make the names of the functions better
+> describe what they do.
+>=20
+> 	Old name			New name
+> 	v4l2_async_test_notify	v4l2_async_match_notify
+> 	v4l2_async_belongs	v4l2_async_find_match
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-The series was tested for bisect safety and checked with smatch.
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
-Please pull for 4.15.
+-- Sebastian
 
-Daniel Scheller (8):
-  [media] ddbridge: remove unneeded *fe vars from attach functions
-  [media] ddbridge: fixup checkpatch-strict issues
-  [media] ddbridge: split off CI (common interface) from ddbridge-core
-  [media] ddbridge/ci: change debug printing to debug severity
-  [media] ddbridge/max: rename ddbridge-maxs8.[c|h] to
-    ddbridge-max.[c|h]
-  [media] ddbridge/max: prefix lnb_init_fmode() and fe_attach_mxl5xx()
-  [media] stv0910: read and update mod_cod in read_status()
-  [media] ddbridge: update driver version number
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 19 ++++++++++---------
+>  1 file changed, 10 insertions(+), 9 deletions(-)
+>=20
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-co=
+re/v4l2-async.c
+> index cde2cf2ab4b0..8b84fea50c2a 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -60,8 +60,8 @@ static LIST_HEAD(subdev_list);
+>  static LIST_HEAD(notifier_list);
+>  static DEFINE_MUTEX(list_lock);
+> =20
+> -static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_no=
+tifier *notifier,
+> -						    struct v4l2_subdev *sd)
+> +static struct v4l2_async_subdev *v4l2_async_find_match(
+> +	struct v4l2_async_notifier *notifier, struct v4l2_subdev *sd)
+>  {
+>  	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
+>  	struct v4l2_async_subdev *asd;
+> @@ -95,9 +95,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(str=
+uct v4l2_async_notifier *
+>  	return NULL;
+>  }
+> =20
+> -static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
+> -				  struct v4l2_subdev *sd,
+> -				  struct v4l2_async_subdev *asd)
+> +static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+> +				   struct v4l2_subdev *sd,
+> +				   struct v4l2_async_subdev *asd)
+>  {
+>  	int ret;
+> =20
+> @@ -187,11 +187,11 @@ int v4l2_async_notifier_register(struct v4l2_device=
+ *v4l2_dev,
+>  	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+>  		int ret;
+> =20
+> -		asd =3D v4l2_async_belongs(notifier, sd);
+> +		asd =3D v4l2_async_find_match(notifier, sd);
+>  		if (!asd)
+>  			continue;
+> =20
+> -		ret =3D v4l2_async_test_notify(notifier, sd, asd);
+> +		ret =3D v4l2_async_match_notify(notifier, sd, asd);
+>  		if (ret < 0) {
+>  			mutex_unlock(&list_lock);
+>  			return ret;
+> @@ -255,13 +255,14 @@ int v4l2_async_register_subdev(struct v4l2_subdev *=
+sd)
+>  	INIT_LIST_HEAD(&sd->async_list);
+> =20
+>  	list_for_each_entry(notifier, &notifier_list, list) {
+> -		struct v4l2_async_subdev *asd =3D v4l2_async_belongs(notifier, sd);
+> +		struct v4l2_async_subdev *asd =3D v4l2_async_find_match(notifier,
+> +								      sd);
+>  		int ret;
+> =20
+>  		if (!asd)
+>  			continue;
+> =20
+> -		ret =3D v4l2_async_test_notify(notifier, sd, asd);
+> +		ret =3D v4l2_async_match_notify(notifier, sd, asd);
+>  		if (ret)
+>  			goto err_unlock;
+> =20
+> --=20
+> 2.11.0
+>=20
 
- drivers/media/dvb-frontends/stv0910.c              |  13 +
- drivers/media/pci/ddbridge/Makefile                |   4 +-
- drivers/media/pci/ddbridge/ddbridge-ci.c           | 349 +++++++++++++++
- drivers/media/pci/ddbridge/ddbridge-ci.h           |  30 ++
- drivers/media/pci/ddbridge/ddbridge-core.c         | 494 ++++-----------------
- drivers/media/pci/ddbridge/ddbridge-hw.c           |   8 +-
- drivers/media/pci/ddbridge/ddbridge-i2c.c          |  16 +-
- drivers/media/pci/ddbridge/ddbridge-main.c         |  23 +-
- .../ddbridge/{ddbridge-maxs8.c => ddbridge-max.c}  |  54 ++-
- .../ddbridge/{ddbridge-maxs8.h => ddbridge-max.h}  |  12 +-
- drivers/media/pci/ddbridge/ddbridge-regs.h         |  32 +-
- drivers/media/pci/ddbridge/ddbridge.h              |  91 ++--
- 12 files changed, 602 insertions(+), 524 deletions(-)
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-ci.c
- create mode 100644 drivers/media/pci/ddbridge/ddbridge-ci.h
- rename drivers/media/pci/ddbridge/{ddbridge-maxs8.c => ddbridge-max.c} (92%)
- rename drivers/media/pci/ddbridge/{ddbridge-maxs8.h => ddbridge-max.h} (73%)
+--q7metamltqphlxij
+Content-Type: application/pgp-signature; name="signature.asc"
 
--- 
-2.13.6
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnanmIACgkQ2O7X88g7
++pqy6w/8CkXI1Hcr1gzKNqvQfacs4rmogwIQLcDFEPvmXc1vMSlh31n1zgx+mlsv
+4jlwgSPSHtrCdaGhypmhRBFBMDN+IgdFMuekmgz+MwsF7vB/xlF+95KgciqaVkEo
+IKjXcqIsOwYUPalHCxQ8ky7ep2DE17lIYuoQ5JH/P5nIzoDqiH7/yp1KJVHw+bJF
+cVtWB9RBGt0xUBvJzmikEAQDKYzusfGvAVGWevVOiKJtzL+Jv/eQPHHiq30PUeWy
+PbNI7AhIFz7OmDa8DJWtmQKmwOPSi2tPZ+I5DRzKQvO+2LX87xz+v3wRoc0/P1ap
+0C2IJwvB0DLJhx/cw7WXr2Dh/YV7v2ID3ff4AUUWoPWgoSxQisIAlykXHAU23TZt
++SWvwedBK4wrF1Hc9WSgy6AFjyrt2jPY/456ax6+RL1S9VnQGRaz4GAKCDq5ZDit
+h0N1cqCu9LCb9uVh/JqtexyGCWm7fMyDyGO5axgbcrX21c0U2fPgtS+vWmjLGgqM
+tRw2hKh0aL8S5nfFQQqYn130qcHfCwgWzYnd9CvnxFa/D1orDjoN5iFrUtz1xdya
+uEdWKHVb+HYlditfyneLce9LvdXG2vMidEpi7yYem8LWTwvbBJt0o9/7U6e8WFgq
+zJJhXtWAn7fwV+xWwzztoY+U/8W1nkbkRQOzT0E/Vt9s4x/HQkc=
+=DQDw
+-----END PGP SIGNATURE-----
+
+--q7metamltqphlxij--
