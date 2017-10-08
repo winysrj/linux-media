@@ -1,96 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57436 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753231AbdJMMh6 (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:40525 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753187AbdJHD3P (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 08:37:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH v2 08/17] media: v4l2-ioctl.h: convert debug macros into enum and document
-Date: Fri, 13 Oct 2017 15:38:11 +0300
-Message-ID: <75398545.O2kI4imJ1e@avalon>
-In-Reply-To: <2f79939abf6bfba034fcf46e0d92624df2ea5308.1506548682.git.mchehab@s-opensource.com>
-References: <cover.1506548682.git.mchehab@s-opensource.com> <2f79939abf6bfba034fcf46e0d92624df2ea5308.1506548682.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Sat, 7 Oct 2017 23:29:15 -0400
+Message-ID: <8cbdd5a1b316ba3de88c6ab0e6f355b3@smtp-cloud7.xs4all.net>
+Date: Sun, 08 Oct 2017 05:29:11 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thank you for the patch.
+Results of the daily build of media_tree:
 
-On Thursday, 28 September 2017 00:46:51 EEST Mauro Carvalho Chehab wrote:
-> Currently, there's no way to document #define foo <value>
-> with kernel-doc. So, convert it to an enum, and document.
+date:			Sun Oct  8 05:00:06 CEST 2017
+media-tree git hash:	c1301077213d4dca34f01fc372b64d3c4a49a437
+media_build git hash:	b829b621b4c2e6c5cbedbd1ce62b4e958f7d13a4
+v4l-utils git hash:	01c04f7c8ad1a91af33e20621eba9200f447737e
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-The documentation seems fine to me (except for one comment below). However, 
-converting macros to an enum just to work around a defect of the documentation 
-system doesn't seem like a good idea to me. I'd rather find a way to document 
-macros.
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-arm-stm32: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+apps: OK
+spec-git: OK
 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  include/media/v4l2-ioctl.h | 33 +++++++++++++++++++--------------
->  1 file changed, 19 insertions(+), 14 deletions(-)
-> 
-> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> index bd5312118013..136e2cffcf9e 100644
-> --- a/include/media/v4l2-ioctl.h
-> +++ b/include/media/v4l2-ioctl.h
-> @@ -588,20 +588,25 @@ struct v4l2_ioctl_ops {
->  };
-> 
-> 
-> -/* v4l debugging and diagnostics */
-> -
-> -/* Device debug flags to be used with the video device debug attribute */
-> -
-> -/* Just log the ioctl name + error code */
-> -#define V4L2_DEV_DEBUG_IOCTL		0x01
-> -/* Log the ioctl name arguments + error code */
-> -#define V4L2_DEV_DEBUG_IOCTL_ARG	0x02
-> -/* Log the file operations open, release, mmap and get_unmapped_area */
-> -#define V4L2_DEV_DEBUG_FOP		0x04
-> -/* Log the read and write file operations and the VIDIOC_(D)QBUF ioctls */
-> -#define V4L2_DEV_DEBUG_STREAMING	0x08
-> -/* Log poll() */
-> -#define V4L2_DEV_DEBUG_POLL		0x10
-> +/**
-> + * enum v4l2_debug_flags - Device debug flags to be used with the video
-> + *	device debug attribute
-> + *
-> + * @V4L2_DEV_DEBUG_IOCTL:	Just log the ioctl name + error code.
-> + * @V4L2_DEV_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
-> + * @V4L2_DEV_DEBUG_FOP:		Log the file operations and open, release,
-> + *				mmap and get_unmapped_area syscalls.
-> + * @V4L2_DEV_DEBUG_STREAMING:	Log the read and write syscalls and
-> + *				:c:ref:`VIDIOC_[Q|DQ]BUFF <VIDIOC_QBUF>` ioctls.
+Detailed results are available here:
 
-s/BUFF/BUF.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-A regexp would use VIDIOC_(Q|DQ)BUF. You can also write VIDIOC_{QBUF,DQBUF} 
-which seems clearer to me.
+Full logs are available here:
 
-> + * @V4L2_DEV_DEBUG_POLL:	Log poll syscalls.
-> + */
-> +enum v4l2_debug_flags {
-> +	V4L2_DEV_DEBUG_IOCTL		= 0x01,
-> +	V4L2_DEV_DEBUG_IOCTL_ARG	= 0x02,
-> +	V4L2_DEV_DEBUG_FOP		= 0x04,
-> +	V4L2_DEV_DEBUG_STREAMING	= 0x08,
-> +	V4L2_DEV_DEBUG_POLL		= 0x10,
-> +};
-> 
->  /*  Video standard functions  */
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
 
--- 
-Regards,
-
-Laurent Pinchart
+http://www.xs4all.nl/~hverkuil/spec/index.html
