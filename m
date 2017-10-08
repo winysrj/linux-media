@@ -1,146 +1,450 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-outbound.smandes.com.ar ([201.220.160.56]:54998 "EHLO
-        smtp-outbound.smandes.com.ar" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751083AbdJFDTS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Oct 2017 23:19:18 -0400
-Received: from smandes.com.ar (host-cotesma-128-232.smandes.com.ar [181.114.128.232]) by smtp-outbound.smandes.com.ar with SMTP id ZyctDSmtacubPhgG for <linux-media@vger.kernel.org>; Fri, 06 Oct 2017 00:03:49 -0300 (ART)
-Message-ID: <150725902733.28563.9714757760010548441@smandes.com.ar>
-Date: Fri, 06 Oct 2017 03:03:47 -0000
-Content-Transfer-Encoding: base64
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:38002 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753231AbdJHJYL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Oct 2017 05:24:11 -0400
+Date: Sun, 8 Oct 2017 14:54:03 +0530
+From: Aishwarya Pant <aishpant@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Cc: outreachy-kernel@googlegroups.com
+Subject: [PATCH 2/2] staging: atomisp: cleanup out of memory messages
+Message-ID: <644e80397e30cfa2085c7dd0548ae7e74f0ea4a0.1507454423.git.aishpant@gmail.com>
+References: <cover.1507454423.git.aishpant@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: attachment
-Subject: 
-To: <linux-media@vger.kernel.org>
-Content-Type: application/zip; name="ONLINE-6600942802818linux-media.zip"
-From: <amy@kloke.com.au>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1507454423.git.aishpant@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-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
-NvQuKzJqG2Y1ECdsP0LwIsZfnhhE8NBGCWi+gNmnDr7/7ODDrDUZ1Bqt/dtWp7Ce7GPw9UVir7N3
-4P9/z+fbFla4V371ptVW97K2KpwP6k/5Kx8ntrWsDfb3tn+u7Dkff7RX6s5Wz+fXb+Wzpdeo31z9
-+JmPWnv39qTVGI+a88++T2x/bd96+zcxrl8Xem/F3Prtn5O7/Nu/z7OLRbs29wZ+T6PWKuEjULX2
-D36q/NnLnx28Vf153x9m9c6Hip28/fY+3A1arbfiZD/19ddf/zmLyvi061XL7fO3P9XvGsP7qz9b
-f3sidvH2l6AfnyIff9RrJ/b3/27tz4a+/GMuubU/Axj8j4lU+rtU5qu3/x/8+uu+UMt/d6e17Xvp
-b1OH6W+/+u7w228PfMi0tymcZyePJ9Ve9+5+Wl/4sNljf/xhzGcfT++tdqn7YvKDWjlbuF49eM1K
-PXf/F99CDW3n1R7PEvv9u/KofjvuPs5u8oVao7T2nvyXvv4+If3hh0RxPc4/1Co+Ethp1kf9urqY
-Dz8MWqOO1xXfcJztVE5fi1ujsWpPrvu3ZjCvbNkw3px13zRs+mw6T7l9oeUvpCYPfPJlMt+mvvX/
-3RLr8+dqfWtLppe+tXg4vRmefZVOu5nM1wnnj3p/cXALbekDWg7q3S1k5dJX1bONv5LwMb5ffTW6
-ONgywZstWgeJZDKxHx7zJz8mvskcHh4dST1+nfku9c0/vekefXeUFt78JnXoZo7e3gyNMFT7bYzt
-2mDeehORkb+ayxZOpufPtfypv/oqJZwfE3/GhdW3yM/3G+fCiA58kflDZmrL7EP1ZvB6e7VpXdZN
-7y+BCTW9FZivvtq+UlxOS7fzm8r1S8M8X1XL/iufdRSccTUaD5tIC4U8KN4qKOQyKvKPUZCTg3IU
-DGUObC23hyb2DuaggFd/CMq1cnkge+YatK8guHLE8aDoY49biOO3/zm6uAJpvQNkDZN9L9i7+FrD
-Z8KKIVnPxCNjE9+riIJXkNnnOwqcYSwc2f8YXXzG46GWBu8eAXc/Jqa4rAWNGfC8XAEWjDofxHMW
-vUFrvmHYtgVxATDGERdkbeWI8SqUsoZYGxTjL3V2g38F5RtG14iG8j2JgDCt4nhDfyqYspLS4Ujd
-bYaC7WN2iwClsxzH7BafchxvmaLirF5jIajLiNkRsL05oD1MSsH7loX06VIc9WYs3g2LgAsu2lUL
-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
+Logging of explicit out of memory messages is redundant since memory allocation
+failures produce a backtrace.
+
+Done with the help of the following cocci script:
+
+@@
+expression ex, ret;
+statement s;
+constant char[] c;
+constant err;
+identifier f, l;
+@@
+
+ex =
+\(kmalloc\|kmalloc_array\|kzalloc\|kcalloc\|kmem_cache_alloc\|kmem_cache_zalloc\|
+kmem_cache_alloc_node\|kmalloc_node\|kzalloc_node\|devm_kzalloc\)(...)
+... when != ex
+
+if (
+(
+!ex
+|
+unlikely(!ex)
+)
+)
+- {
+- f(..., c, ...);
+(
+return ret;
+|
+return;
+|
+return err;
+|
+goto l;
+)
+- }
+else s
+
+Another case where if branch has multiple statements was handled with the
+following condition:
+
+{
+...
+- f(..., c, ...);
+...
+}
+
+Signed-off-by: Aishwarya Pant <aishpant@gmail.com>
+---
+ drivers/staging/media/atomisp/i2c/ap1302.c                     |  4 +---
+ drivers/staging/media/atomisp/i2c/gc0310.c                     |  4 +---
+ drivers/staging/media/atomisp/i2c/gc2235.c                     |  4 +---
+ drivers/staging/media/atomisp/i2c/imx/imx.c                    |  4 +---
+ drivers/staging/media/atomisp/i2c/lm3554.c                     |  4 +---
+ drivers/staging/media/atomisp/i2c/mt9m114.c                    |  4 +---
+ drivers/staging/media/atomisp/i2c/ov2680.c                     |  4 +---
+ drivers/staging/media/atomisp/i2c/ov2722.c                     |  4 +---
+ drivers/staging/media/atomisp/i2c/ov5693/ov5693.c              |  4 +---
+ drivers/staging/media/atomisp/i2c/ov8858.c                     |  6 +-----
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c      |  4 +---
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c     |  9 ++-------
+ .../media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c  |  4 +---
+ drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c        | 10 ++--------
+ .../staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c  |  6 +-----
+ .../staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c |  5 +----
+ drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_vm.c        |  4 +---
+ .../media/atomisp/platform/intel-mid/atomisp_gmin_platform.c   |  4 +---
+ 18 files changed, 20 insertions(+), 68 deletions(-)
+
+diff --git a/drivers/staging/media/atomisp/i2c/ap1302.c b/drivers/staging/media/atomisp/i2c/ap1302.c
+index 2f772a020c8b..bfbf85122c3b 100644
+--- a/drivers/staging/media/atomisp/i2c/ap1302.c
++++ b/drivers/staging/media/atomisp/i2c/ap1302.c
+@@ -1153,10 +1153,8 @@ static int ap1302_probe(struct i2c_client *client,
+ 
+ 	/* allocate device & init sub device */
+ 	dev = devm_kzalloc(&client->dev, sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "%s: out of memory\n", __func__);
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/gc0310.c b/drivers/staging/media/atomisp/i2c/gc0310.c
+index 35ed51ffe944..291565451bfe 100644
+--- a/drivers/staging/media/atomisp/i2c/gc0310.c
++++ b/drivers/staging/media/atomisp/i2c/gc0310.c
+@@ -1385,10 +1385,8 @@ static int gc0310_probe(struct i2c_client *client,
+ 
+ 	pr_info("%s S\n", __func__);
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
+index e43d31ea9676..f51535eee091 100644
+--- a/drivers/staging/media/atomisp/i2c/gc2235.c
++++ b/drivers/staging/media/atomisp/i2c/gc2235.c
+@@ -1123,10 +1123,8 @@ static int gc2235_probe(struct i2c_client *client,
+ 	unsigned int i;
+ 
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/imx/imx.c b/drivers/staging/media/atomisp/i2c/imx/imx.c
+index 49ab0af87096..957fb1863b40 100644
+--- a/drivers/staging/media/atomisp/i2c/imx/imx.c
++++ b/drivers/staging/media/atomisp/i2c/imx/imx.c
+@@ -2365,10 +2365,8 @@ static int imx_probe(struct i2c_client *client,
+ 
+ 	/* allocate sensor device & init sub device */
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		v4l2_err(client, "%s: out of memory\n", __func__);
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/lm3554.c b/drivers/staging/media/atomisp/i2c/lm3554.c
+index 679176f7c542..37876d245a02 100644
+--- a/drivers/staging/media/atomisp/i2c/lm3554.c
++++ b/drivers/staging/media/atomisp/i2c/lm3554.c
+@@ -871,10 +871,8 @@ static int lm3554_probe(struct i2c_client *client,
+ 	int ret;
+ 
+ 	flash = kzalloc(sizeof(*flash), GFP_KERNEL);
+-	if (!flash) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!flash)
+ 		return -ENOMEM;
+-	}
+ 
+ 	flash->pdata = client->dev.platform_data;
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/mt9m114.c b/drivers/staging/media/atomisp/i2c/mt9m114.c
+index 3c837cb8859c..e204238ae06b 100644
+--- a/drivers/staging/media/atomisp/i2c/mt9m114.c
++++ b/drivers/staging/media/atomisp/i2c/mt9m114.c
+@@ -1863,10 +1863,8 @@ static int mt9m114_probe(struct i2c_client *client,
+ 
+ 	/* Setup sensor configuration structure */
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	v4l2_i2c_subdev_init(&dev->sd, client, &mt9m114_ops);
+ 	pdata = client->dev.platform_data;
+diff --git a/drivers/staging/media/atomisp/i2c/ov2680.c b/drivers/staging/media/atomisp/i2c/ov2680.c
+index 51b7d61df0f5..c81e80e7bdea 100644
+--- a/drivers/staging/media/atomisp/i2c/ov2680.c
++++ b/drivers/staging/media/atomisp/i2c/ov2680.c
+@@ -1447,10 +1447,8 @@ static int ov2680_probe(struct i2c_client *client,
+ 	unsigned int i;
+ 
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/ov2722.c b/drivers/staging/media/atomisp/i2c/ov2722.c
+index 10094ac56561..5f2e8a2798ef 100644
+--- a/drivers/staging/media/atomisp/i2c/ov2722.c
++++ b/drivers/staging/media/atomisp/i2c/ov2722.c
+@@ -1285,10 +1285,8 @@ static int ov2722_probe(struct i2c_client *client,
+ 	struct acpi_device *adev;
+ 
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
+index 123642557aa8..3560f3cd25e8 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
++++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
+@@ -1965,10 +1965,8 @@ static int ov5693_probe(struct i2c_client *client,
+ 	}
+ 
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/ov8858.c b/drivers/staging/media/atomisp/i2c/ov8858.c
+index 43e1638fd674..918139d3d3c0 100644
+--- a/drivers/staging/media/atomisp/i2c/ov8858.c
++++ b/drivers/staging/media/atomisp/i2c/ov8858.c
+@@ -480,8 +480,6 @@ static int ov8858_priv_int_data_init(struct v4l2_subdev *sd)
+ 	if (!dev->otp_data) {
+ 		dev->otp_data = devm_kzalloc(&client->dev, size, GFP_KERNEL);
+ 		if (!dev->otp_data) {
+-			dev_err(&client->dev, "%s: can't allocate memory",
+-				__func__);
+ 			r = -ENOMEM;
+ 			goto error3;
+ 		}
+@@ -2094,10 +2092,8 @@ static int ov8858_probe(struct i2c_client *client,
+ 
+ 	/* allocate sensor device & init sub device */
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "%s: out of memory\n", __func__);
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
+index d8cfed358d55..d64c98944d49 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
+@@ -1137,10 +1137,8 @@ static int remove_pad_from_frame(struct atomisp_device *isp,
+ 	ia_css_ptr store = load;
+ 
+ 	buffer = kmalloc(width*sizeof(load), GFP_KERNEL);
+-	if (!buffer) {
+-		dev_err(isp->dev, "out of memory.\n");
++	if (!buffer)
+ 		return -ENOMEM;
+-	}
+ 
+ 	load += ISP_LEFT_PAD;
+ 	for (i = 0; i < height; i++) {
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
+index 717647951fb6..889cc73be800 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
+@@ -943,10 +943,8 @@ int atomisp_alloc_css_stat_bufs(struct atomisp_sub_device *asd,
+ 		dev_dbg(isp->dev, "allocating %d 3a buffers\n", count);
+ 		while (count--) {
+ 			s3a_buf = kzalloc(sizeof(struct atomisp_s3a_buf), GFP_KERNEL);
+-			if (!s3a_buf) {
+-				dev_err(isp->dev, "s3a stat buf alloc failed\n");
++			if (!s3a_buf)
+ 				goto error;
+-			}
+ 
+ 			if (atomisp_css_allocate_stat_buffers(
+ 					asd, stream_id, s3a_buf, NULL, NULL)) {
+@@ -965,7 +963,6 @@ int atomisp_alloc_css_stat_bufs(struct atomisp_sub_device *asd,
+ 		while (count--) {
+ 			dis_buf = kzalloc(sizeof(struct atomisp_dis_buf), GFP_KERNEL);
+ 			if (!dis_buf) {
+-				dev_err(isp->dev, "dis stat buf alloc failed\n");
+ 				kfree(s3a_buf);
+ 				goto error;
+ 			}
+@@ -990,10 +987,8 @@ int atomisp_alloc_css_stat_bufs(struct atomisp_sub_device *asd,
+ 			while (count--) {
+ 				md_buf = kzalloc(sizeof(struct atomisp_metadata_buf),
+ 						 GFP_KERNEL);
+-				if (!md_buf) {
+-					dev_err(isp->dev, "metadata buf alloc failed\n");
++				if (!md_buf)
+ 					goto error;
+-				}
+ 
+ 				if (atomisp_css_allocate_stat_buffers(
+ 						asd, stream_id, NULL, NULL, md_buf)) {
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c
+index 48e2e63c2336..e6ebd1b08f0d 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c
+@@ -365,10 +365,8 @@ ia_css_shading_table_alloc(
+ 	IA_CSS_ENTER("");
+ 
+ 	me = kmalloc(sizeof(*me), GFP_KERNEL);
+-	if (!me) {
+-		IA_CSS_ERROR("out of memory");
++	if (!me)
+ 		return me;
+-	}
+ 
+ 	me->width         = width;
+ 	me->height        = height;
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+index 5232327f5d9c..ca90b22020cc 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+@@ -727,10 +727,8 @@ static int alloc_private_pages(struct hmm_buffer_object *bo,
+ 
+ 	bo->page_obj = kmalloc_array(pgnr, sizeof(struct hmm_page_object),
+ 				GFP_KERNEL);
+-	if (unlikely(!bo->page_obj)) {
+-		dev_err(atomisp_dev, "out of memory for bo->page_obj\n");
++	if (unlikely(!bo->page_obj))
+ 		return -ENOMEM;
+-	}
+ 
+ 	i = 0;
+ 	alloc_pgnr = 0;
+@@ -991,15 +989,12 @@ static int alloc_user_pages(struct hmm_buffer_object *bo,
+ 	struct page **pages;
+ 
+ 	pages = kmalloc_array(bo->pgnr, sizeof(struct page *), GFP_KERNEL);
+-	if (unlikely(!pages)) {
+-		dev_err(atomisp_dev, "out of memory for pages...\n");
++	if (unlikely(!pages))
+ 		return -ENOMEM;
+-	}
+ 
+ 	bo->page_obj = kmalloc_array(bo->pgnr, sizeof(struct hmm_page_object),
+ 		GFP_KERNEL);
+ 	if (unlikely(!bo->page_obj)) {
+-		dev_err(atomisp_dev, "out of memory for bo->page_obj...\n");
+ 		kfree(pages);
+ 		return -ENOMEM;
+ 	}
+@@ -1366,7 +1361,6 @@ void *hmm_bo_vmap(struct hmm_buffer_object *bo, bool cached)
+ 	pages = kmalloc_array(bo->pgnr, sizeof(*pages), GFP_KERNEL);
+ 	if (unlikely(!pages)) {
+ 		mutex_unlock(&bo->mutex);
+-		dev_err(atomisp_dev, "out of memory for pages...\n");
+ 		return NULL;
+ 	}
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c
+index 19e0e9ee37de..eb82c3e4c776 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c
+@@ -116,8 +116,6 @@ static void free_pages_to_dynamic_pool(void *pool,
+ 	hmm_page = kmem_cache_zalloc(dypool_info->pgptr_cache,
+ 						GFP_KERNEL);
+ 	if (!hmm_page) {
+-		dev_err(atomisp_dev, "out of memory for hmm_page.\n");
+-
+ 		/* free page directly */
+ 		ret = set_pages_wb(page_obj->page, 1);
+ 		if (ret)
+@@ -151,10 +149,8 @@ static int hmm_dynamic_pool_init(void **pool, unsigned int pool_size)
+ 
+ 	dypool_info = kmalloc(sizeof(struct hmm_dynamic_pool_info),
+ 		GFP_KERNEL);
+-	if (unlikely(!dypool_info)) {
+-		dev_err(atomisp_dev, "out of memory for repool_info.\n");
++	if (unlikely(!dypool_info))
+ 		return -ENOMEM;
+-	}
+ 
+ 	dypool_info->pgptr_cache = kmem_cache_create("pgptr_cache",
+ 						sizeof(struct hmm_page), 0,
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c
+index bf6586805f7f..177bc354f1d7 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c
+@@ -92,15 +92,12 @@ static int hmm_reserved_pool_setup(struct hmm_reserved_pool_info **repool_info,
+ 
+ 	pool_info = kmalloc(sizeof(struct hmm_reserved_pool_info),
+ 				GFP_KERNEL);
+-	if (unlikely(!pool_info)) {
+-		dev_err(atomisp_dev, "out of memory for repool_info.\n");
++	if (unlikely(!pool_info))
+ 		return -ENOMEM;
+-	}
+ 
+ 	pool_info->pages = kmalloc(sizeof(struct page *) * pool_size,
+ 			GFP_KERNEL);
+ 	if (unlikely(!pool_info->pages)) {
+-		dev_err(atomisp_dev, "out of memory for repool_info->pages.\n");
+ 		kfree(pool_info);
+ 		return -ENOMEM;
+ 	}
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_vm.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_vm.c
+index 0722a68a49e7..402ffd9cb480 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_vm.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_vm.c
+@@ -89,10 +89,8 @@ static struct hmm_vm_node *alloc_hmm_vm_node(unsigned int pgnr,
+ 	struct hmm_vm_node *node;
+ 
+ 	node = kmem_cache_alloc(vm->cache, GFP_KERNEL);
+-	if (!node) {
+-		dev_err(atomisp_dev, "out of memory.\n");
++	if (!node)
+ 		return NULL;
+-	}
+ 
+ 	INIT_LIST_HEAD(&node->list);
+ 	node->pgnr = pgnr;
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+index edaae93af8f9..0304801fcbe5 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+@@ -739,10 +739,8 @@ int camera_sensor_csi(struct v4l2_subdev *sd, u32 port,
+ 
+ 	if (flag) {
+ 		csi = kzalloc(sizeof(*csi), GFP_KERNEL);
+-		if (!csi) {
+-			dev_err(&client->dev, "out of memory\n");
++		if (!csi)
+ 			return -ENOMEM;
+-		}
+ 		csi->port = port;
+ 		csi->num_lanes = lanes;
+ 		csi->input_format = format;
+-- 
+2.11.0
