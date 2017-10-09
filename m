@@ -1,99 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:65493 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751001AbdJ0OZT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Oct 2017 10:25:19 -0400
-Date: Fri, 27 Oct 2017 16:25:08 +0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL for 4.15 v2] Atomisp cleanups, fixes
-Message-ID: <20171027162508.131723b2@vela.lan>
-In-Reply-To: <20171019152120.j44duddzs665d7vj@valkosipuli.retiisi.org.uk>
-References: <20171019152120.j44duddzs665d7vj@valkosipuli.retiisi.org.uk>
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:47551 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751257AbdJIMn0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Oct 2017 08:43:26 -0400
+Subject: Re: [PATCH v11 0/4] Add Rockchip RGA V4l2 support
+To: Jacob Chen <jacob-chen@iotwrt.com>,
+        linux-rockchip@lists.infradead.org
+References: <20171009090424.15292-1-jacob-chen@iotwrt.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2b5c0479-0836-9e03-dfd7-75ed77f39512@xs4all.nl>
+Date: Mon, 9 Oct 2017 14:43:23 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20171009090424.15292-1-jacob-chen@iotwrt.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 19 Oct 2017 18:21:20 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Hi Jacob,
 
-> Hi Mauro,
+A patch adding an entry to MAINTAINERS is still missing.
+
+Just post a separate patch for that.
+
+Regards,
+
+	Hans
+
+On 09/10/17 11:04, Jacob Chen wrote:
+> change in V11:
+> - fix compile warning
 > 
-> Here's the second version of the atomisp pull request. Since v1, I've added
-> more patches, including an oops fix from Hans de Goede and move to
-> timer_setup from Kees Cook. Also Andy's patches to clean up the driver are
-> in, as well as my patches to rename the atomisp specific drivers (modules
-> as well as Kconfig options).
+> change in V10:
+> - move to rockchip/rga
+> - changes according to comments
+> - some style changes
 > 
-> Please pull.
-
-Could you please rebase it on the top of the master branch? This series
-conflicts with another series you sent renaming atomisp files.
-
-Thanks!
-Mauro
-
----
-
-diff --cc drivers/staging/media/atomisp/i2c/Kconfig
-index 09b1a97ce560,db054d3c7ed6..000000000000
---- a/drivers/staging/media/atomisp/i2c/Kconfig
-+++ b/drivers/staging/media/atomisp/i2c/Kconfig
-@@@ -59,20 -62,9 +62,24 @@@ config VIDEO_ATOMISP_MT9M11
-  
-  	 It currently only works with the atomisp driver.
-  
-++<<<<<<< HEAD
- +config VIDEO_ATOMISP_AP1302
- +       tristate "AP1302 external ISP support"
- +       depends on I2C && VIDEO_V4L2
- +       select REGMAP_I2C
- +       ---help---
- +	 This is a Video4Linux2 sensor-level driver for the external
- +	 ISP AP1302.
- +
- +	 AP1302 is an exteral ISP.
- +
- +	 It currently only works with the atomisp driver.
- +
-++=======
-++>>>>>>> 5cde6c6d85b7d9fbf05bb34cebb094ab9e4954a0
-  config VIDEO_ATOMISP_GC0310
-  	tristate "GC0310 sensor support"
-+ 	depends on ACPI
-  	depends on I2C && VIDEO_V4L2
-  	---help---
-  	  This is a Video4Linux2 sensor-level driver for the Galaxycore
-diff --cc drivers/staging/media/atomisp/i2c/Makefile
-index 3d27c75f5fc5,ae43dc84c229..000000000000
---- a/drivers/staging/media/atomisp/i2c/Makefile
-+++ b/drivers/staging/media/atomisp/i2c/Makefile
-@@@ -2,7 -2,6 +2,10 @@@
-  # Makefile for sensor drivers
-  #
-  
-++<<<<<<< HEAD
- +obj-$(CONFIG_VIDEO_ATOMISP_IMX)        += imx/
-++=======
-++>>>>>>> 5cde6c6d85b7d9fbf05bb34cebb094ab9e4954a0
-  obj-$(CONFIG_VIDEO_ATOMISP_OV5693)     += ov5693/
-  obj-$(CONFIG_VIDEO_ATOMISP_MT9M114)    += atomisp-mt9m114.o
-  obj-$(CONFIG_VIDEO_ATOMISP_GC2235)     += atomisp-gc2235.o
-@@@ -11,8 -10,6 +14,11 @@@ obj-$(CONFIG_VIDEO_ATOMISP_OV2680)     
-  obj-$(CONFIG_VIDEO_ATOMISP_GC0310)     += atomisp-gc0310.o
-  
-  obj-$(CONFIG_VIDEO_ATOMISP_MSRLIST_HELPER) += atomisp-libmsrlisthelper.o
-++<<<<<<< HEAD
- +
- +obj-$(CONFIG_VIDEO_ATOMISP_AP1302)     += atomisp-ap1302.o
-++=======
-++>>>>>>> 5cde6c6d85b7d9fbf05bb34cebb094ab9e4954a0
-  
-  # Makefile for flash drivers
-  #
-* Unmerged path drivers/staging/media/atomisp/i2c/atomisp-ap1302.c
-* Unmerged path drivers/staging/media/atomisp/i2c/imx/Kconfig
-* Unmerged path drivers/staging/media/atomisp/i2c/imx/Makefile
+> change in V9:
+> - remove protduff things
+> - test with the latest v4l2-compliance
+> 
+> change in V8:
+> - remove protduff things
+> 
+> change in V6,V7:
+> - correct warning in checkpatch.pl
+> 
+> change in V5:
+> - v4l2-compliance: handle invalid pxielformat
+> - v4l2-compliance: add subscribe_event
+> - add colorspace support
+> 
+> change in V4:
+> - document the controls.
+> - change according to Hans's comments
+> 
+> change in V3:
+> - rename the controls.
+> - add pm_runtime support.
+> - enable node by default.
+> - correct spelling in documents.
+> 
+> change in V2:
+> - generalize the controls.
+> - map buffers (10-50 us) in every cmd-run rather than in buffer-import to avoid get_free_pages failed on
+> actively used systems.
+> - remove status in dt-bindings examples.
+> 
+> Jacob Chen (4):
+>   rockchip/rga: v4l2 m2m support
+>   ARM: dts: rockchip: add RGA device node for RK3288
+>   arm64: dts: rockchip: add RGA device node for RK3399
+>   dt-bindings: Document the Rockchip RGA bindings
+> 
+>  .../devicetree/bindings/media/rockchip-rga.txt     |   33 +
+>  arch/arm/boot/dts/rk3288.dtsi                      |   11 +
+>  arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   11 +
+>  drivers/media/platform/Kconfig                     |   15 +
+>  drivers/media/platform/Makefile                    |    2 +
+>  drivers/media/platform/rockchip/rga/Makefile       |    3 +
+>  drivers/media/platform/rockchip/rga/rga-buf.c      |  154 +++
+>  drivers/media/platform/rockchip/rga/rga-hw.c       |  421 ++++++++
+>  drivers/media/platform/rockchip/rga/rga-hw.h       |  437 +++++++++
+>  drivers/media/platform/rockchip/rga/rga.c          | 1012 ++++++++++++++++++++
+>  drivers/media/platform/rockchip/rga/rga.h          |  123 +++
+>  11 files changed, 2222 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
+>  create mode 100644 drivers/media/platform/rockchip/rga/Makefile
+>  create mode 100644 drivers/media/platform/rockchip/rga/rga-buf.c
+>  create mode 100644 drivers/media/platform/rockchip/rga/rga-hw.c
+>  create mode 100644 drivers/media/platform/rockchip/rga/rga-hw.h
+>  create mode 100644 drivers/media/platform/rockchip/rga/rga.c
+>  create mode 100644 drivers/media/platform/rockchip/rga/rga.h
+> 
