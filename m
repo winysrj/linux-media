@@ -1,54 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway30.websitewelcome.com ([192.185.148.2]:38391 "EHLO
-        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755291AbdJQSEx (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33204 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754068AbdJIOGu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 14:04:53 -0400
-Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
-        by gateway30.websitewelcome.com (Postfix) with ESMTP id EF4F61860D
-        for <linux-media@vger.kernel.org>; Tue, 17 Oct 2017 12:19:08 -0500 (CDT)
-Date: Tue, 17 Oct 2017 12:19:07 -0500
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] staging: media: imx: fix inconsistent IS_ERR and PTR_ERR
-Message-ID: <20171017171907.GA3957@embeddedor.com>
+        Mon, 9 Oct 2017 10:06:50 -0400
+Date: Mon, 9 Oct 2017 17:06:46 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org
+Subject: Re: [PATCH v15 01/32] v4l: async: Remove re-probing support
+Message-ID: <20171009140646.vqftgwkttgn33m2t@valkosipuli.retiisi.org.uk>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+ <20171004215051.13385-2-sakari.ailus@linux.intel.com>
+ <20171009082239.189b4475@vento.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20171009082239.189b4475@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix inconsistent IS_ERR and PTR_ERR in csi_link_validate.
-The proper pointer to be passed as argument is sensor.
+Hi Mauro,
 
-This issue was detected with the help of Coccinelle.
+On Mon, Oct 09, 2017 at 08:22:39AM -0300, Mauro Carvalho Chehab wrote:
+> Em Thu,  5 Oct 2017 00:50:20 +0300
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> 
+> > Remove V4L2 async re-probing support. The re-probing support has been
+> > there to support cases where the sub-devices require resources provided by
+> > the main driver's hardware to function, such as clocks.
+> > 
+> > Reprobing has allowed unbinding and again binding the main driver without
+> > explicilty unbinding the sub-device drivers. This is certainly not a
+> > common need, and the responsibility will be the user's going forward.
+> > 
+> > An alternative could have been to introduce notifier specific locks.
+> > Considering the complexity of the re-probing and that it isn't really a
+> > solution to a problem but a workaround, remove re-probing instead.
+> 
+> If the re-probing isn't using anywhere, that sounds a nice cleanup.
+> Did you check if this won't break any driver (like soc_camera)?
 
-Reported-by: Julia Lawall <julia.lawall@lip6.fr>
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
----
-This code was tested by compilation only.
+That was discussed earlier in the review; Laurent asked the same question.
 
- drivers/staging/media/imx/imx-media-csi.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Re-probing never was a proper solution to any problem; it was just a hack
+to avoid unbinding the sensor if the bridge driver was unbound, no more: it
+can't be generalised to support more complex use cases. Mind you, this is
+on devices that aren't actually removable.
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 6d85611..2fa72c1 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -989,7 +989,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
- 	sensor = __imx_media_find_sensor(priv->md, &priv->sd.entity);
- 	if (IS_ERR(sensor)) {
- 		v4l2_err(&priv->sd, "no sensor attached\n");
--		return PTR_ERR(priv->sensor);
-+		return PTR_ERR(sensor);
- 	}
- 
- 	mutex_lock(&priv->lock);
+I've briefly discussed this with Laurent; the proper solution would need to
+be implemented in the clock framework instead. There, the existing clocks
+obtained by drivers could be re-activated when the driver for them comes
+back.
+
+My proposal is that if there's real a need to address this, then it could
+be solved in the clock framework.
+
 -- 
-2.7.4
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
