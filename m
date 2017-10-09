@@ -1,161 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:58183 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752014AbdJaULq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Oct 2017 16:11:46 -0400
-Date: Tue, 31 Oct 2017 20:11:43 +0000
-From: Sean Young <sean@mess.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v2] media: ttpci: remove autorepeat handling and use
- timer_setup
-Message-ID: <20171031201143.ziwohlwpdvc4barr@gofer.mess.org>
-References: <20171025004005.hyb43h3yvovp4is2@dtor-ws>
- <20171031172758.ugfo6br344iso4ni@gofer.mess.org>
- <20171031174558.vsdpdudcwjneq2nu@gofer.mess.org>
- <20171031182236.cxrasbayon7h52mm@dtor-ws>
- <20171031200758.avdowtmcem5fnlb5@gofer.mess.org>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:44768 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751401AbdJIK2V (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Oct 2017 06:28:21 -0400
+Subject: Re: [PATCH 23/24] media: v4l2-tpg*.h: move headers to
+ include/media/tpg and merge them
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+References: <cover.1507544011.git.mchehab@s-opensource.com>
+ <2dfa08c0c3f289cdde6ea4f751f44ff18c212cf5.1507544011.git.mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Helen Koike <helen.koike@collabora.com>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d3c84b61-703c-6ed5-bac7-57e517b2a76d@xs4all.nl>
+Date: Mon, 9 Oct 2017 12:28:16 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171031200758.avdowtmcem5fnlb5@gofer.mess.org>
+In-Reply-To: <2dfa08c0c3f289cdde6ea4f751f44ff18c212cf5.1507544011.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Leave the autorepeat handling up to the input layer, and move
-to the new timer API.
+On 09/10/17 12:19, Mauro Carvalho Chehab wrote:
+> The v4l2-tpg*.h headers are meant to be used only internally by
+> vivid and vimc. There's no sense keeping them together with the
+> V4L2 kAPI headers. Also, one header includes the other as they're
+> meant to be used together. So, merge them.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Compile tested only.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sean Young <sean@mess.org>
----
-v2:
- - fixes and improvements from Dmitry Torokhov
+Thanks!
 
- drivers/media/pci/ttpci/av7110.h    |  2 +-
- drivers/media/pci/ttpci/av7110_ir.c | 56 +++++++++++++------------------------
- 2 files changed, 21 insertions(+), 37 deletions(-)
+	Hans
 
-diff --git a/drivers/media/pci/ttpci/av7110.h b/drivers/media/pci/ttpci/av7110.h
-index 347827925c14..bcb72ecbedc0 100644
---- a/drivers/media/pci/ttpci/av7110.h
-+++ b/drivers/media/pci/ttpci/av7110.h
-@@ -93,7 +93,7 @@ struct infrared {
- 	u8			inversion;
- 	u16			last_key;
- 	u16			last_toggle;
--	u8			delay_timer_finished;
-+	bool			keypressed;
- };
- 
- 
-diff --git a/drivers/media/pci/ttpci/av7110_ir.c b/drivers/media/pci/ttpci/av7110_ir.c
-index ca05198de2c2..ee414803e6b5 100644
---- a/drivers/media/pci/ttpci/av7110_ir.c
-+++ b/drivers/media/pci/ttpci/av7110_ir.c
-@@ -84,15 +84,16 @@ static u16 default_key_map [256] = {
- 
- 
- /* key-up timer */
--static void av7110_emit_keyup(unsigned long parm)
-+static void av7110_emit_keyup(struct timer_list *t)
- {
--	struct infrared *ir = (struct infrared *) parm;
-+	struct infrared *ir = from_timer(ir, t, keyup_timer);
- 
--	if (!ir || !test_bit(ir->last_key, ir->input_dev->key))
-+	if (!ir || !ir->keypressed)
- 		return;
- 
- 	input_report_key(ir->input_dev, ir->last_key, 0);
- 	input_sync(ir->input_dev);
-+	ir->keypressed = false;
- }
- 
- 
-@@ -152,29 +153,18 @@ static void av7110_emit_key(unsigned long parm)
- 		return;
- 	}
- 
--	if (timer_pending(&ir->keyup_timer)) {
--		del_timer(&ir->keyup_timer);
--		if (ir->last_key != keycode || toggle != ir->last_toggle) {
--			ir->delay_timer_finished = 0;
--			input_event(ir->input_dev, EV_KEY, ir->last_key, 0);
--			input_event(ir->input_dev, EV_KEY, keycode, 1);
--			input_sync(ir->input_dev);
--		} else if (ir->delay_timer_finished) {
--			input_event(ir->input_dev, EV_KEY, keycode, 2);
--			input_sync(ir->input_dev);
--		}
--	} else {
--		ir->delay_timer_finished = 0;
--		input_event(ir->input_dev, EV_KEY, keycode, 1);
--		input_sync(ir->input_dev);
--	}
-+	if (ir->keypressed &&
-+	    (ir->last_key != keycode || toggle != ir->last_toggle))
-+		input_event(ir->input_dev, EV_KEY, ir->last_key, 0);
- 
-+	input_event(ir->input_dev, EV_KEY, keycode, 1);
-+	input_sync(ir->input_dev);
-+
-+	ir->keypressed = true;
- 	ir->last_key = keycode;
- 	ir->last_toggle = toggle;
- 
--	ir->keyup_timer.expires = jiffies + UP_TIMEOUT;
--	add_timer(&ir->keyup_timer);
--
-+	mod_timer(&ir->keyup_timer, jiffies + UP_TIMEOUT);
- }
- 
- 
-@@ -204,16 +194,6 @@ static void input_register_keys(struct infrared *ir)
- 	ir->input_dev->keycodemax = ARRAY_SIZE(ir->key_map);
- }
- 
--
--/* called by the input driver after rep[REP_DELAY] ms */
--static void input_repeat_key(unsigned long parm)
--{
--	struct infrared *ir = (struct infrared *) parm;
--
--	ir->delay_timer_finished = 1;
--}
--
--
- /* check for configuration changes */
- int av7110_check_ir_config(struct av7110 *av7110, int force)
- {
-@@ -333,8 +313,7 @@ int av7110_ir_init(struct av7110 *av7110)
- 	av_list[av_cnt++] = av7110;
- 	av7110_check_ir_config(av7110, true);
- 
--	setup_timer(&av7110->ir.keyup_timer, av7110_emit_keyup,
--		    (unsigned long)&av7110->ir);
-+	timer_setup(&av7110->ir.keyup_timer, av7110_emit_keyup, 0);
- 
- 	input_dev = input_allocate_device();
- 	if (!input_dev)
-@@ -365,8 +344,13 @@ int av7110_ir_init(struct av7110 *av7110)
- 		input_free_device(input_dev);
- 		return err;
- 	}
--	input_dev->timer.function = input_repeat_key;
--	input_dev->timer.data = (unsigned long) &av7110->ir;
-+
-+	/*
-+	 * Input core's default autorepeat is 33 cps with 250 msec
-+	 * delay, let's adjust to numbers more suitable for remote
-+	 * control.
-+	 */
-+	input_enable_softrepeat(input_dev, 250, 125);
- 
- 	if (av_cnt == 1) {
- 		e = proc_create("av7110_ir", S_IWUSR, NULL, &av7110_ir_proc_fops);
--- 
-2.13.6
+> ---
+>  drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c |  2 +-
+>  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c   |  2 +-
+>  drivers/media/platform/vimc/vimc-sensor.c       |  2 +-
+>  drivers/media/platform/vivid/vivid-core.h       |  2 +-
+>  include/media/{ => tpg}/v4l2-tpg.h              | 45 +++++++++++++++-
+>  include/media/v4l2-tpg-colors.h                 | 68 -------------------------
+>  6 files changed, 48 insertions(+), 73 deletions(-)
+>  rename include/media/{ => tpg}/v4l2-tpg.h (93%)
+>  delete mode 100644 include/media/v4l2-tpg-colors.h
+> 
+> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c
+> index 5b5f95c38fe1..95b26f6a0d54 100644
+> --- a/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c
+> +++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c
+> @@ -36,7 +36,7 @@
+>   */
+>  
+>  #include <linux/videodev2.h>
+> -#include <media/v4l2-tpg-colors.h>
+> +#include <media/tpg/v4l2-tpg.h>
+>  
+>  /* sRGB colors with range [0-255] */
+>  const struct color tpg_colors[TPG_COLOR_MAX] = {
+> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+> index a772976cfe26..f218b336a3ac 100644
+> --- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+> +++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+> @@ -21,7 +21,7 @@
+>   */
+>  
+>  #include <linux/module.h>
+> -#include <media/v4l2-tpg.h>
+> +#include <media/tpg/v4l2-tpg.h>
+>  
+>  /* Must remain in sync with enum tpg_pattern */
+>  const char * const tpg_pattern_strings[] = {
+> diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+> index 02e68c8fc02b..8d2691817aa5 100644
+> --- a/drivers/media/platform/vimc/vimc-sensor.c
+> +++ b/drivers/media/platform/vimc/vimc-sensor.c
+> @@ -23,7 +23,7 @@
+>  #include <linux/v4l2-mediabus.h>
+>  #include <linux/vmalloc.h>
+>  #include <media/v4l2-subdev.h>
+> -#include <media/v4l2-tpg.h>
+> +#include <media/tpg/v4l2-tpg.h>
+>  
+>  #include "vimc-common.h"
+>  
+> diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+> index 5cdf95bdc4d1..36802947a4b0 100644
+> --- a/drivers/media/platform/vivid/vivid-core.h
+> +++ b/drivers/media/platform/vivid/vivid-core.h
+> @@ -27,7 +27,7 @@
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-dev.h>
+>  #include <media/v4l2-ctrls.h>
+> -#include <media/v4l2-tpg.h>
+> +#include <media/tpg/v4l2-tpg.h>
+>  #include "vivid-rds-gen.h"
+>  #include "vivid-vbi-gen.h"
+>  
+> diff --git a/include/media/v4l2-tpg.h b/include/media/tpg/v4l2-tpg.h
+> similarity index 93%
+> rename from include/media/v4l2-tpg.h
+> rename to include/media/tpg/v4l2-tpg.h
+> index 13e49d85cae3..028d81182011 100644
+> --- a/include/media/v4l2-tpg.h
+> +++ b/include/media/tpg/v4l2-tpg.h
+> @@ -26,8 +26,51 @@
+>  #include <linux/slab.h>
+>  #include <linux/vmalloc.h>
+>  #include <linux/videodev2.h>
+> -#include <media/v4l2-tpg-colors.h>
+>  
+> +struct color {
+> +	unsigned char r, g, b;
+> +};
+> +
+> +struct color16 {
+> +	int r, g, b;
+> +};
+> +
+> +enum tpg_color {
+> +	TPG_COLOR_CSC_WHITE,
+> +	TPG_COLOR_CSC_YELLOW,
+> +	TPG_COLOR_CSC_CYAN,
+> +	TPG_COLOR_CSC_GREEN,
+> +	TPG_COLOR_CSC_MAGENTA,
+> +	TPG_COLOR_CSC_RED,
+> +	TPG_COLOR_CSC_BLUE,
+> +	TPG_COLOR_CSC_BLACK,
+> +	TPG_COLOR_75_YELLOW,
+> +	TPG_COLOR_75_CYAN,
+> +	TPG_COLOR_75_GREEN,
+> +	TPG_COLOR_75_MAGENTA,
+> +	TPG_COLOR_75_RED,
+> +	TPG_COLOR_75_BLUE,
+> +	TPG_COLOR_100_WHITE,
+> +	TPG_COLOR_100_YELLOW,
+> +	TPG_COLOR_100_CYAN,
+> +	TPG_COLOR_100_GREEN,
+> +	TPG_COLOR_100_MAGENTA,
+> +	TPG_COLOR_100_RED,
+> +	TPG_COLOR_100_BLUE,
+> +	TPG_COLOR_100_BLACK,
+> +	TPG_COLOR_TEXTFG,
+> +	TPG_COLOR_TEXTBG,
+> +	TPG_COLOR_RANDOM,
+> +	TPG_COLOR_RAMP,
+> +	TPG_COLOR_MAX = TPG_COLOR_RAMP + 256
+> +};
+> +
+> +extern const struct color tpg_colors[TPG_COLOR_MAX];
+> +extern const unsigned short tpg_rec709_to_linear[255 * 16 + 1];
+> +extern const unsigned short tpg_linear_to_rec709[255 * 16 + 1];
+> +extern const struct color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1]
+> +					  [V4L2_XFER_FUNC_SMPTE2084 + 1]
+> +					  [TPG_COLOR_CSC_BLACK + 1];
+>  enum tpg_pattern {
+>  	TPG_PAT_75_COLORBAR,
+>  	TPG_PAT_100_COLORBAR,
+> diff --git a/include/media/v4l2-tpg-colors.h b/include/media/v4l2-tpg-colors.h
+> deleted file mode 100644
+> index 2a88d1fae0cd..000000000000
+> --- a/include/media/v4l2-tpg-colors.h
+> +++ /dev/null
+> @@ -1,68 +0,0 @@
+> -/*
+> - * v4l2-tpg-colors.h - Color definitions for the test pattern generator
+> - *
+> - * Copyright 2014 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+> - *
+> - * This program is free software; you may redistribute it and/or modify
+> - * it under the terms of the GNU General Public License as published by
+> - * the Free Software Foundation; version 2 of the License.
+> - *
+> - * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> - * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> - * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> - * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> - * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> - * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> - * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> - * SOFTWARE.
+> - */
+> -
+> -#ifndef _V4L2_TPG_COLORS_H_
+> -#define _V4L2_TPG_COLORS_H_
+> -
+> -struct color {
+> -	unsigned char r, g, b;
+> -};
+> -
+> -struct color16 {
+> -	int r, g, b;
+> -};
+> -
+> -enum tpg_color {
+> -	TPG_COLOR_CSC_WHITE,
+> -	TPG_COLOR_CSC_YELLOW,
+> -	TPG_COLOR_CSC_CYAN,
+> -	TPG_COLOR_CSC_GREEN,
+> -	TPG_COLOR_CSC_MAGENTA,
+> -	TPG_COLOR_CSC_RED,
+> -	TPG_COLOR_CSC_BLUE,
+> -	TPG_COLOR_CSC_BLACK,
+> -	TPG_COLOR_75_YELLOW,
+> -	TPG_COLOR_75_CYAN,
+> -	TPG_COLOR_75_GREEN,
+> -	TPG_COLOR_75_MAGENTA,
+> -	TPG_COLOR_75_RED,
+> -	TPG_COLOR_75_BLUE,
+> -	TPG_COLOR_100_WHITE,
+> -	TPG_COLOR_100_YELLOW,
+> -	TPG_COLOR_100_CYAN,
+> -	TPG_COLOR_100_GREEN,
+> -	TPG_COLOR_100_MAGENTA,
+> -	TPG_COLOR_100_RED,
+> -	TPG_COLOR_100_BLUE,
+> -	TPG_COLOR_100_BLACK,
+> -	TPG_COLOR_TEXTFG,
+> -	TPG_COLOR_TEXTBG,
+> -	TPG_COLOR_RANDOM,
+> -	TPG_COLOR_RAMP,
+> -	TPG_COLOR_MAX = TPG_COLOR_RAMP + 256
+> -};
+> -
+> -extern const struct color tpg_colors[TPG_COLOR_MAX];
+> -extern const unsigned short tpg_rec709_to_linear[255 * 16 + 1];
+> -extern const unsigned short tpg_linear_to_rec709[255 * 16 + 1];
+> -extern const struct color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1]
+> -					  [V4L2_XFER_FUNC_SMPTE2084 + 1]
+> -					  [TPG_COLOR_CSC_BLACK + 1];
+> -
+> -#endif
+> 
