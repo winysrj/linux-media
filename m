@@ -1,81 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f174.google.com ([209.85.216.174]:57333 "EHLO
-        mail-qt0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751005AbdJAKcz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 1 Oct 2017 06:32:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37964 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753235AbdJIB1q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 8 Oct 2017 21:27:46 -0400
 MIME-Version: 1.0
-In-Reply-To: <1506265198-13384-1-git-send-email-d.filoni@ubuntu.com>
-References: <1506265198-13384-1-git-send-email-d.filoni@ubuntu.com>
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Sun, 1 Oct 2017 13:32:53 +0300
-Message-ID: <CAHp75VeqFjTz-V9F3U==J5cpTFCSWq5iG_EG8Ti0nStzZJ36Rw@mail.gmail.com>
-Subject: Re: [PATCH v2] staging: atomisp: add a driver for ov5648 camera sensor
-To: Devid Antonio Floni <d.filoni@ubuntu.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        =?UTF-8?B?SsOpcsOpbXkgTGVmYXVyZQ==?= <jeremy.lefaure@lse.epita.fr>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devel@driverdev.osuosl.org
+In-Reply-To: <3d911a4a-1945-08a7-ae19-0cd0dc6aaacd@sigmadesigns.com>
+References: <3d911a4a-1945-08a7-ae19-0cd0dc6aaacd@sigmadesigns.com>
+From: Rob Herring <robh+dt@kernel.org>
+Date: Sun, 8 Oct 2017 20:27:24 -0500
+Message-ID: <CAL_JsqJTiVFY+ewiTAu1H51tZnnOUgXq4WezLbPNkn62Vwm+fQ@mail.gmail.com>
+Subject: Re: [PATCH v8 1/3] media: dt: bindings: Add binding for tango HW IR decoder
+To: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+Cc: Sean Young <sean@mess.org>, DT <devicetree@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Mans Rullgard <mans@mansr.com>,
+        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>,
+        Mason <slash.tmp@free.fr>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Sep 24, 2017 at 5:59 PM, Devid Antonio Floni
-<d.filoni@ubuntu.com> wrote:
-> The ov5648 5-megapixel camera sensor from OmniVision supports up to 2592x1944
-> resolution and MIPI CSI-2 interface. Output format is raw sRGB/Bayer with
-> 10 bits per colour (SGRBG10_1X10).
+On Fri, Oct 6, 2017 at 7:23 AM, Marc Gonzalez
+<marc_gonzalez@sigmadesigns.com> wrote:
+> Add DT binding for the HW IR decoder embedded in SMP86xx/SMP87xx.
 >
-> This patch is a port of ov5648 driver after applying following
-> 01org/ProductionKernelQuilts patches:
->  - 0004-ov2680-ov5648-Fork-lift-source-from-CTS.patch
->  - 0005-ov2680-ov5648-gminification.patch
->  - 0006-ov5648-Focus-support.patch
->  - 0007-Fix-resolution-issues-on-rear-camera.patch
->  - 0008-ov2680-ov5648-Enabled-the-set_exposure-functions.patch
->  - 0010-IRDA-cameras-mode-list-cleanup-unification.patch
->  - 0012-ov5648-Add-1296x972-binned-mode.patch
->  - 0014-ov5648-Adapt-to-Atomisp2-Gmin-VCM-framework.patch
->  - 0015-dw9714-Gmin-Atomisp-specific-VCM-driver.patch
->  - 0017-ov5648-Fix-deadlock-on-I2C-error.patch
->  - 0018-gc2155-Fix-deadlock-on-error.patch
->  - 0019-ov5648-Add-1280x960-binned-mode.patch
->  - 0020-ov5648-Make-1280x960-as-default-video-resolution.patch
->  - 0021-MALATA-Fix-testCameraToSurfaceTextureMetadata-CTS.patch
->  - 0023-OV5648-Added-5MP-video-resolution.patch
->
-> New changes introduced during the port:
->  - Rename entity types to entity functions
->  - Replace v4l2_subdev_fh by v4l2_subdev_pad_config
->  - Make use of media_bus_format enum
->  - Rename media_entity_init function to media_entity_pads_init
->  - Replace try_mbus_fmt by set_fmt
->  - Replace s_mbus_fmt by set_fmt
->  - Replace g_mbus_fmt by get_fmt
->  - Use s_ctrl/g_volatile_ctrl instead of ctrl core ops
->  - Update gmin platform API path
->  - Constify acpi_device_id
->  - Add "INT5648" value to acpi_device_id
->  - Fix some checkpatch errors and warnings
->  - Remove FSF's mailing address from the sample GPL notice
->
-> Changes in v2:
->  - Fix indentation
->  - Add atomisp prefix to Kconfig option
+> Signed-off-by: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+> ---
+>  .../devicetree/bindings/media/tango-ir.txt          | 21 +++++++++++++++++++++
+>  1 file changed, 21 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/tango-ir.txt
 
-I discussed with Sakari about my review and we agreed that two things
-that I have mentioned (converting to smbus calls and regulator
-framework) would be a material for future changes.
-Other than that, please, address the rest of comments and we will be fine.
-
-You may also refer to my last patch series WRT atomisp driver where I
-tried to address my own comments to the rest of the code.
-
--- 
-With Best Regards,
-Andy Shevchenko
+Acked-by: Rob Herring <robh@kernel.org>
