@@ -1,94 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:45416 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932275AbdJZSUF (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:43872 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751184AbdJILXN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Oct 2017 14:20:05 -0400
-From: Pierre-Hugues Husson <phh@phh.me>
-To: linux-rockchip@lists.infradead.org
-Cc: heiko@sntech.de, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux@armlinux.org.uk, Archit Taneja <architt@codeaurora.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        dri-devel@lists.freedesktop.org, Pierre-Hugues Husson <phh@phh.me>
-Subject: [PATCH v3] drm: bridge: synopsys/dw-hdmi: Enable cec clock
-Date: Thu, 26 Oct 2017 20:19:42 +0200
-Message-Id: <20171026181942.9516-1-phh@phh.me>
+        Mon, 9 Oct 2017 07:23:13 -0400
+Subject: Re: [PATCH v15 03/32] v4l: async: fix unbind error in
+ v4l2_async_notifier_unregister()
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+ <20171004215051.13385-4-sakari.ailus@linux.intel.com>
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f5d777c8-4007-5ae8-6c05-76c0245dd99e@xs4all.nl>
+Date: Mon, 9 Oct 2017 13:23:11 +0200
+MIME-Version: 1.0
+In-Reply-To: <20171004215051.13385-4-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The documentation already mentions "cec" optional clock, but
-currently the driver doesn't enable it.
+On 04/10/17 23:50, Sakari Ailus wrote:
+> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> 
+> The call to v4l2_async_cleanup() will set sd->asd to NULL so passing it to
+> notifier->unbind() have no effect and leaves the notifier confused. Call
 
-Changes:
-v3:
-- Drop useless braces
+have -> has
 
-v2:
-- Separate ENOENT errors from others
-- Propagate other errors (especially -EPROBE_DEFER)
+> the unbind() callback prior to cleaning up the subdevice to avoid this.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Pierre-Hugues Husson <phh@phh.me>
----
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+After fixing this small typo:
 
-diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-index bf14214fa464..d82b9747a979 100644
---- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-+++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-@@ -138,6 +138,7 @@ struct dw_hdmi {
- 	struct device *dev;
- 	struct clk *isfr_clk;
- 	struct clk *iahb_clk;
-+	struct clk *cec_clk;
- 	struct dw_hdmi_i2c *i2c;
- 
- 	struct hdmi_data_info hdmi_data;
-@@ -2382,6 +2383,26 @@ __dw_hdmi_probe(struct platform_device *pdev,
- 		goto err_isfr;
- 	}
- 
-+	hdmi->cec_clk = devm_clk_get(hdmi->dev, "cec");
-+	if (PTR_ERR(hdmi->cec_clk) == -ENOENT) {
-+		hdmi->cec_clk = NULL;
-+	} else if (IS_ERR(hdmi->cec_clk)) {
-+		ret = PTR_ERR(hdmi->cec_clk);
-+		if (ret != -EPROBE_DEFER)
-+			dev_err(hdmi->dev, "Cannot get HDMI cec clock: %d\n",
-+					ret);
-+
-+		hdmi->cec_clk = NULL;
-+		goto err_iahb;
-+	} else {
-+		ret = clk_prepare_enable(hdmi->cec_clk);
-+		if (ret) {
-+			dev_err(hdmi->dev, "Cannot enable HDMI cec clock: %d\n",
-+					ret);
-+			goto err_iahb;
-+		}
-+	}
-+
- 	/* Product and revision IDs */
- 	hdmi->version = (hdmi_readb(hdmi, HDMI_DESIGN_ID) << 8)
- 		      | (hdmi_readb(hdmi, HDMI_REVISION_ID) << 0);
-@@ -2518,6 +2539,8 @@ __dw_hdmi_probe(struct platform_device *pdev,
- 		cec_notifier_put(hdmi->cec_notifier);
- 
- 	clk_disable_unprepare(hdmi->iahb_clk);
-+	if (hdmi->cec_clk)
-+		clk_disable_unprepare(hdmi->cec_clk);
- err_isfr:
- 	clk_disable_unprepare(hdmi->isfr_clk);
- err_res:
-@@ -2541,6 +2564,8 @@ static void __dw_hdmi_remove(struct dw_hdmi *hdmi)
- 
- 	clk_disable_unprepare(hdmi->iahb_clk);
- 	clk_disable_unprepare(hdmi->isfr_clk);
-+	if (hdmi->cec_clk)
-+		clk_disable_unprepare(hdmi->cec_clk);
- 
- 	if (hdmi->i2c)
- 		i2c_del_adapter(&hdmi->i2c->adap);
--- 
-2.14.2
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 21c748bf3a7b..ca281438a0ae 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -206,11 +206,11 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>  	list_del(&notifier->list);
+>  
+>  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+> -		v4l2_async_cleanup(sd);
+> -
+>  		if (notifier->unbind)
+>  			notifier->unbind(notifier, sd, sd->asd);
+>  
+> +		v4l2_async_cleanup(sd);
+> +
+>  		list_move(&sd->async_list, &subdev_list);
+>  	}
+>  
+> @@ -268,11 +268,11 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+>  
+>  	list_add(&sd->asd->list, &notifier->waiting);
+>  
+> -	v4l2_async_cleanup(sd);
+> -
+>  	if (notifier->unbind)
+>  		notifier->unbind(notifier, sd, sd->asd);
+>  
+> +	v4l2_async_cleanup(sd);
+> +
+>  	mutex_unlock(&list_lock);
+>  }
+>  EXPORT_SYMBOL(v4l2_async_unregister_subdev);
+> 
