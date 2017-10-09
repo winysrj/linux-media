@@ -1,279 +1,317 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:48947 "EHLO
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:54412 "EHLO
         lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751550AbdJIK1S (ORCPT
+        by vger.kernel.org with ESMTP id S1751621AbdJIMG6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 06:27:18 -0400
-Subject: Re: [PATCH v2 20/25] media: lirc: document LIRC_MODE_SCANCODE
-To: Sean Young <sean@mess.org>, linux-media@vger.kernel.org
-References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
- <7fbf36ca8c052b1eae866859127e65038f223023.1507192752.git.sean@mess.org>
+        Mon, 9 Oct 2017 08:06:58 -0400
+Subject: Re: [PATCH v14 20/28] v4l: fwnode: Add a helper function to obtain
+ device / integer references
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
+ <20170925222540.371-21-sakari.ailus@linux.intel.com>
+ <fbd2f71d-aa6d-08ef-1723-132864bde27b@xs4all.nl>
+ <20170926113029.eh5i4sp6we6lvgow@paasikivi.fi.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, robh@kernel.org,
+        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
+        pavel@ucw.cz, sre@kernel.org
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b6564f56-c3a9-cdb4-6600-50a2e4efc7b5@xs4all.nl>
-Date: Mon, 9 Oct 2017 12:27:16 +0200
+Message-ID: <4363f544-d1ec-68e4-1edf-9a16b3cdb1ea@xs4all.nl>
+Date: Mon, 9 Oct 2017 14:06:55 +0200
 MIME-Version: 1.0
-In-Reply-To: <7fbf36ca8c052b1eae866859127e65038f223023.1507192752.git.sean@mess.org>
+In-Reply-To: <20170926113029.eh5i4sp6we6lvgow@paasikivi.fi.intel.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/10/17 10:45, Sean Young wrote:
-> Lirc supports a new mode which requires documentation.
+Hi Sakari,
+
+My reply here is also valid for v15.
+
+On 26/09/17 13:30, Sakari Ailus wrote:
+> Hi Hans,
 > 
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  Documentation/media/lirc.h.rst.exceptions          | 26 ++++++++++++++++++++++
->  Documentation/media/uapi/rc/lirc-dev-intro.rst     | 26 ++++++++++++++++++++++
->  Documentation/media/uapi/rc/lirc-get-features.rst  | 16 +++++++++++++
->  Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |  5 +++--
->  Documentation/media/uapi/rc/lirc-get-send-mode.rst |  3 ++-
->  Documentation/media/uapi/rc/lirc-read.rst          | 14 ++++++++----
->  Documentation/media/uapi/rc/lirc-write.rst         | 16 ++++++++++---
->  7 files changed, 96 insertions(+), 10 deletions(-)
+> Thanks for the review.
 > 
-> diff --git a/Documentation/media/lirc.h.rst.exceptions b/Documentation/media/lirc.h.rst.exceptions
-> index 63ba1d341905..c6e3a35d2c4e 100644
-> --- a/Documentation/media/lirc.h.rst.exceptions
-> +++ b/Documentation/media/lirc.h.rst.exceptions
-> @@ -32,6 +32,32 @@ ignore define LIRC_CAN_SET_REC_DUTY_CYCLE
->  
->  ignore ioctl LIRC_GET_LENGTH
->  
-> +# rc protocols
-> +
-> +ignore symbol RC_PROTO_UNKNOWN
-> +ignore symbol RC_PROTO_OTHER
-> +ignore symbol RC_PROTO_RC5
-> +ignore symbol RC_PROTO_RC5X_20
-> +ignore symbol RC_PROTO_RC5_SZ
-> +ignore symbol RC_PROTO_JVC
-> +ignore symbol RC_PROTO_SONY12
-> +ignore symbol RC_PROTO_SONY15
-> +ignore symbol RC_PROTO_SONY20
-> +ignore symbol RC_PROTO_NEC
-> +ignore symbol RC_PROTO_NECX
-> +ignore symbol RC_PROTO_NEC32
-> +ignore symbol RC_PROTO_SANYO
-> +ignore symbol RC_PROTO_MCIR2_KBD
-> +ignore symbol RC_PROTO_MCIR2_MSE
-> +ignore symbol RC_PROTO_RC6_0
-> +ignore symbol RC_PROTO_RC6_6A_20
-> +ignore symbol RC_PROTO_RC6_6A_24
-> +ignore symbol RC_PROTO_RC6_6A_32
-> +ignore symbol RC_PROTO_RC6_MCE
-> +ignore symbol RC_PROTO_SHARP
-> +ignore symbol RC_PROTO_XMP
-> +ignore symbol RC_PROTO_CEC
-> +
->  # Undocumented macros
->  
->  ignore define PULSE_BIT
-> diff --git a/Documentation/media/uapi/rc/lirc-dev-intro.rst b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-> index a3fa3c1ef169..70c82b2879ff 100644
-> --- a/Documentation/media/uapi/rc/lirc-dev-intro.rst
-> +++ b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-> @@ -36,6 +36,32 @@ LIRC modes
->  LIRC supports some modes of receiving and sending IR codes, as shown
->  on the following table.
-
-A general note: I don't think it is defined anywhere in the documentation what
-'LIRC' stands for. Might be useful to add :-)
-
->  
-> +.. _lirc-mode-scancode:
-> +.. _lirc-scancode-flag-toggle:
-> +.. _lirc-scancode-flag-repeat:
-> +
-> +``LIRC_MODE_SCANCODE``
-> +
-> +    This mode is for both sending and receiving IR.
-> +
-> +    For transmitting (aka sending), create a ``struct lirc_scancode`` with
-> +    the desired scancode set in the ``scancode`` member, ``rc_proto`` set
-> +    the IR protocol, and all other members set to 0. Write this struct to
-> +    the lirc device.
-> +
-> +    For receiving, you read ``struct lirc_scancode`` from the lirc device,
-> +    with ``scancode`` set to the received scancode in the IR protocol
-> +    ``rc_proto``. The ``flags`` can have ``LIRC_SCANCODE_FLAG_TOGGLE`` set
-> +    if the toggle bit is set in protocols that support it (e.g. rc-5 and rc-6),
-
-Is the meaning of 'toggle' defined anywhere? I'm not sure what it means myself.
-
-> +    or ``LIRC_SCANCODE_FLAG_REPEAT`` for when a repeat is received for protocols
-> +    that support it (e.g. nec).
-> +
-> +    The ``timestamp`` field is filled with the time nanoseconds
-> +    (in ``CLOCK_MONOTONIC``) when the scancode was decoded.
-> +
-> +    An ``enum rc_proto`` in the :ref:`lirc_header` lists all the supported
-> +    IR protocols.
-> +
->  .. _lirc-mode-mode2:
->  
->  ``LIRC_MODE_MODE2``
-> diff --git a/Documentation/media/uapi/rc/lirc-get-features.rst b/Documentation/media/uapi/rc/lirc-get-features.rst
-> index 50c2c26d8e89..3ee44067de63 100644
-> --- a/Documentation/media/uapi/rc/lirc-get-features.rst
-> +++ b/Documentation/media/uapi/rc/lirc-get-features.rst
-> @@ -64,6 +64,14 @@ LIRC features
->  
->      Unused. Kept just to avoid breaking uAPI.
->  
-> +.. _LIRC-CAN-REC-SCANCODE:
-> +
-> +``LIRC_CAN_REC_SCANCODE``
-
-Wouldn't LIRC_CAN_RECEIVE_SCANCODE be better?
-
-I misread 'REC' as 'record' :-)
-
-I thought about using RCV as the abbreviation, but REC is used elsewhere
-already (rec_mode).
-
-> +
-> +    The driver is capable of receiving using
-> +    :ref:`LIRC_MODE_SCANCODE <lirc-mode-SCANCODE>`.
-> +
-> +
->  .. _LIRC-CAN-SET-SEND-CARRIER:
->  
->  ``LIRC_CAN_SET_SEND_CARRIER``
-> @@ -171,6 +179,14 @@ LIRC features
->  
->      Unused. Kept just to avoid breaking uAPI.
->  
-> +.. _LIRC-CAN-SEND-SCANCODE:
-> +
-> +``LIRC_CAN_SEND_SCANCODE``
-> +
-> +    The driver supports sending (also called as IR blasting or IR TX) using
-> +    :ref:`LIRC_MODE_SCANCODE <lirc-mode-SCANCODE>`.
-> +
-> +
->  Return Value
->  ============
->  
-> diff --git a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-> index b89de9add921..92c543e1815e 100644
-> --- a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-> +++ b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-> @@ -33,8 +33,9 @@ Arguments
->  Description
->  ===========
->  
-> -Get/set supported receive modes. Only :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`
-> -is supported for IR receive.
-> +Get/set supported receive modes. Only :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`,
-
-, -> and
-
-> +:ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` are supported.
-> +Use :ref:`lirc_get_features` to find out which modes the driver supports.
->  
->  Return Value
->  ============
-> diff --git a/Documentation/media/uapi/rc/lirc-get-send-mode.rst b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-> index e686b21689a0..c3c830f9b08e 100644
-> --- a/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-> +++ b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-> @@ -36,7 +36,8 @@ Description
->  
->  Get/set current transmit mode.
->  
-> -Only :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>` is supported by for IR send,
-> +Only :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>`,
-
-, -> and
-
-> +:ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` is supported by for IR send,
-
-is -> are
-
->  depending on the driver. Use :ref:`lirc_get_features` to find out which
->  modes the driver supports.
->  
-> diff --git a/Documentation/media/uapi/rc/lirc-read.rst b/Documentation/media/uapi/rc/lirc-read.rst
-> index ff14a69104e5..cb868ac9fa95 100644
-> --- a/Documentation/media/uapi/rc/lirc-read.rst
-> +++ b/Documentation/media/uapi/rc/lirc-read.rst
-> @@ -45,13 +45,19 @@ descriptor ``fd`` into the buffer starting at ``buf``.  If ``count`` is zero,
->  is greater than ``SSIZE_MAX``, the result is unspecified.
->  
->  The exact format of the data depends on what :ref:`lirc_modes` a driver
-> -uses. Use :ref:`lirc_get_features` to get the supported mode.
-> +uses. Use :ref:`lirc_get_features` to get the supported mode, and use
-> +:ref:`lirc_set_rec_mode` set the current active mode.
->  
-> -The generally preferred mode for receive is
-> -:ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`,
-> -in which packets containing an int value describing an IR signal are
-> +The mode :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>` is for raw IR,
-> +in which packets containing an unsigned int value describing an IR signal are
->  read from the chardev.
->  
-> +Alternatively, :ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` can be available,
-> +in this mode scancodes which are either decoded by software decoders, or
-> +my hardware decoders are available. The ``rc_proto`` member is set to the
-
-my -> by
-
-> +protocol used for transmission, and ``scancode`` to the decoded scancode.
-> +
-> +
->  Return Value
->  ============
->  
-> diff --git a/Documentation/media/uapi/rc/lirc-write.rst b/Documentation/media/uapi/rc/lirc-write.rst
-> index 2aad0fef4a5b..b28c268739bb 100644
-> --- a/Documentation/media/uapi/rc/lirc-write.rst
-> +++ b/Documentation/media/uapi/rc/lirc-write.rst
-> @@ -42,17 +42,27 @@ Description
->  referenced by the file descriptor ``fd`` from the buffer starting at
->  ``buf``.
->  
-> -The exact format of the data depends on what mode a driver uses, use
-> -:ref:`lirc_get_features` to get the supported mode.
-> +The exact format of the data depends on what mode a driver is in, use
-> +:ref:`lirc_get_features` to get the supported modes and use
-> +:ref:`lirc_set_send_mode` set to the mode.
-
-set to -> set
-
->  
->  When in :ref:`LIRC_MODE_PULSE <lirc-mode-PULSE>` mode, the data written to
->  the chardev is a pulse/space sequence of integer values. Pulses and spaces
->  are only marked implicitly by their position. The data must start and end
->  with a pulse, therefore, the data must always include an uneven number of
-> -samples. The write function must block until the data has been transmitted
-> +samples. The write function blocks until the data has been transmitted
->  by the hardware. If more data is provided than the hardware can send, the
->  driver returns ``EINVAL``.
->  
-> +When in :ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` mode, one
-> +``struct lirc_scancode`` must be written to the chardev.  Set the desired
-
-I would suggest: "must be written to the chardev at a time."
-
-What happens when only a partial struct or multiple structs are written? Is an
-error returned?
-
-> +scancode in the ``scancode`` member, and the protocol in the ``rc_proto``
-> +member. All other members must be set to 0. If there is no protocol encoder
-
-Is there a check that the other members are 0? Would such a check make sense?
-
-> +for the protocol or the scancode is not valid for the specified protocol,
-> +``EINVAL`` is returned. The write function may not wait until the scancode
-> +is transmitted.
-> +
-> +
->  Return Value
->  ============
->  
+> On Tue, Sep 26, 2017 at 10:47:40AM +0200, Hans Verkuil wrote:
+>> On 26/09/17 00:25, Sakari Ailus wrote:
+>>> v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
+>>> the device's own fwnode, it will follow child fwnodes with the given
+>>> property-value pair and return the resulting fwnode.
+>>>
+>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>> ---
+>>>  drivers/media/v4l2-core/v4l2-fwnode.c | 201 ++++++++++++++++++++++++++++++++++
+>>>  1 file changed, 201 insertions(+)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+>>> index f739dfd16cf7..f93049c361e4 100644
+>>> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+>>> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+>>> @@ -578,6 +578,207 @@ static int v4l2_fwnode_reference_parse(
+>>>  	return ret;
+>>>  }
+>>>  
+>>> +/*
+>>> + * v4l2_fwnode_reference_get_int_prop - parse a reference with integer
+>>> + *					arguments
+>>> + * @dev: struct device pointer
+>>> + * @notifier: notifier for @dev
+>>> + * @prop: the name of the property
+>>> + * @index: the index of the reference to get
+>>> + * @props: the array of integer property names
+>>> + * @nprops: the number of integer property names in @nprops
+>>> + *
+>>> + * Find fwnodes referred to by a property @prop, then under that
+>>> + * iteratively, @nprops times, follow each child node which has a
+>>> + * property in @props array at a given child index the value of which
+>>> + * matches the integer argument at an index.
+>>
+>> "at an index". Still makes no sense to me. Which index?
 > 
+> How about this:
+> 
+> First find an fwnode referred to by the reference at @index in @prop.
+> 
+> Then under that fwnode, @nprops times, for each property in @props,
+> iteratively follow child nodes starting from fwnode such that they have the
+> property in @props array at the index of the child node distance from the
+
+distance? You mean 'instance'?
+
+> root node and the value of that property matching with the integer argument of
+> the reference, at the same index.
+
+You've completely lost me. About halfway through this sentence my brain crashed :-)
+
+> 
+>>
+>>> + *
+>>> + * For example, if this function was called with arguments and values
+>>> + * @dev corresponding to device "SEN", @prop == "flash-leds", @index
+>>> + * == 1, @props == { "led" }, @nprops == 1, with the ASL snippet below
+>>> + * it would return the node marked with THISONE. The @dev argument in
+>>> + * the ASL below.
+>>
+>> I know I asked for this before, but can you change the example to one where
+>> nprops = 2? I think that will help understanding this.
+> 
+> I could do that but then the example no longer corresponds to any actual
+> case that exists at the moment. LED nodes will use a single integer
+> argument and lens-focus nodes none.
+
+So? The example is here to understand the code and it doesn't have to be
+related to actual hardware for a mainlined driver.
+
+If you really don't want to do this here, then put the example in the commit
+log. I don't see any reason why you can't put it here, though.
+
+I think that once I see an 'nprops = 2' example I can rephrase that
+brain-crash sentence for you...
+
+BTW, where are the ACPI 'bindings' defined anyway? For DT they are in the
+bindings directory, but where does ACPI define such things? Just curious.
 
 Regards,
 
 	Hans
+
+> 
+>>
+>>> + *
+>>> + *	Device (LED)
+>>> + *	{
+>>> + *		Name (_DSD, Package () {
+>>> + *			ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+>>> + *			Package () {
+>>> + *				Package () { "led0", "LED0" },
+>>> + *				Package () { "led1", "LED1" },
+>>> + *			}
+>>> + *		})
+>>> + *		Name (LED0, Package () {
+>>> + *			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>>> + *			Package () {
+>>> + *				Package () { "led", 0 },
+>>> + *			}
+>>> + *		})
+>>> + *		Name (LED1, Package () {
+>>> + *			// THISONE
+>>> + *			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>>> + *			Package () {
+>>> + *				Package () { "led", 1 },
+>>> + *			}
+>>> + *		})
+>>> + *	}
+>>> + *
+>>> + *	Device (SEN)
+>>> + *	{
+>>> + *		Name (_DSD, Package () {
+>>> + *			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>>> + *			Package () {
+>>> + *				Package () {
+>>> + *					"flash-leds",
+>>> + *					Package () { ^LED, 0, ^LED, 1 },
+>>> + *				}
+>>> + *			}
+>>> + *		})
+>>> + *	}
+>>> + *
+>>> + * where
+>>> + *
+>>> + *	LED	LED driver device
+>>> + *	LED0	First LED
+>>> + *	LED1	Second LED
+>>> + *	SEN	Camera sensor device (or another device the LED is
+>>> + *		related to)
+>>> + *
+>>> + * Return: 0 on success
+>>> + *	   -ENOENT if no entries (or the property itself) were found
+>>> + *	   -EINVAL if property parsing otherwise failed
+>>> + *	   -ENOMEM if memory allocation failed
+>>> + */
+>>> +static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
+>>> +	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
+>>> +	const char **props, unsigned int nprops)
+>>> +{
+>>> +	struct fwnode_reference_args fwnode_args;
+>>> +	unsigned int *args = fwnode_args.args;
+>>> +	struct fwnode_handle *child;
+>>> +	int ret;
+>>> +
+>>> +	/*
+>>> +	 * Obtain remote fwnode as well as the integer arguments.
+>>> +	 *
+>>> +	 * Note that right now both -ENODATA and -ENOENT may signal
+>>> +	 * out-of-bounds access. Return -ENOENT in that case.
+>>> +	 */
+>>> +	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
+>>> +						 index, &fwnode_args);
+>>> +	if (ret)
+>>> +		return ERR_PTR(ret == -ENODATA ? -ENOENT : ret);
+>>> +
+>>> +	/*
+>>> +	 * Find a node in the tree under the referred fwnode corresponding the
+>>
+>> corresponding -> corresponding to
+> 
+> Fixed.
+> 
+>>
+>>> +	 * integer arguments.
+>>> +	 */
+>>> +	fwnode = fwnode_args.fwnode;
+>>> +	while (nprops--) {
+>>> +		u32 val;
+>>> +
+>>> +		/* Loop over all child nodes under fwnode. */
+>>> +		fwnode_for_each_child_node(fwnode, child) {
+>>> +			if (fwnode_property_read_u32(child, *props, &val))
+>>> +				continue;
+>>> +
+>>> +			/* Found property, see if its value matches. */
+>>> +			if (val == *args)
+>>> +				break;
+>>> +		}
+>>> +
+>>> +		fwnode_handle_put(fwnode);
+>>> +
+>>> +		/* No property found; return an error here. */
+>>> +		if (!child) {
+>>> +			fwnode = ERR_PTR(-ENOENT);
+>>> +			break;
+>>> +		}
+>>> +
+>>> +		props++;
+>>> +		args++;
+>>> +		fwnode = child;
+>>> +	}
+>>> +
+>>> +	return fwnode;
+>>> +}
+>>> +
+>>> +/*
+>>> + * v4l2_fwnode_reference_parse_int_props - parse references for async sub-devices
+>>> + * @dev: struct device pointer
+>>> + * @notifier: notifier for @dev
+>>> + * @prop: the name of the property
+>>> + * @props: the array of integer property names
+>>> + * @nprops: the number of integer properties
+>>> + *
+>>> + * Use v4l2_fwnode_reference_get_int_prop to find fwnodes through reference in
+>>> + * property @prop with integer arguments with child nodes matching in properties
+>>> + * @props. Then, set up V4L2 async sub-devices for those fwnodes in the notifier
+>>> + * accordingly.
+>>> + *
+>>> + * While it is technically possible to use this function on DT, it is only
+>>> + * meaningful on ACPI. On Device tree you can refer to any node in the tree but
+>>> + * on ACPI the references are limited to devices.
+>>> + *
+>>> + * Return: 0 on success
+>>> + *	   -ENOENT if no entries (or the property itself) were found
+>>> + *	   -EINVAL if property parsing otherwisefailed
+>>> + *	   -ENOMEM if memory allocation failed
+>>> + */
+>>> +static int v4l2_fwnode_reference_parse_int_props(
+>>> +	struct device *dev, struct v4l2_async_notifier *notifier,
+>>> +	const char *prop, const char **props, unsigned int nprops)
+>>> +{
+>>> +	struct fwnode_handle *fwnode;
+>>> +	unsigned int index;
+>>> +	int ret;
+>>> +
+>>> +	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
+>>> +					 dev_fwnode(dev), prop, index, props,
+>>> +					 nprops))); index++)
+>>> +		fwnode_handle_put(fwnode);
+>>> +
+>>> +	/*
+>>> +	 * Note that right now both -ENODATA and -ENOENT may signal
+>>> +	 * out-of-bounds access. Return the error in cases other than that.
+>>> +	 */
+>>> +	if (PTR_ERR(fwnode) != -ENOENT && PTR_ERR(fwnode) != -ENODATA)
+>>> +		return PTR_ERR(fwnode);
+>>> +
+>>> +	ret = v4l2_async_notifier_realloc(notifier,
+>>> +					  notifier->num_subdevs + index);
+>>> +	if (ret)
+>>> +		return -ENOMEM;
+>>> +
+>>> +	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
+>>> +					 dev_fwnode(dev), prop, index, props,
+>>> +					 nprops))); index++) {
+>>> +		struct v4l2_async_subdev *asd;
+>>> +
+>>> +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
+>>> +			ret = -EINVAL;
+>>> +			goto error;
+>>> +		}
+>>> +
+>>> +		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
+>>> +		if (!asd) {
+>>> +			ret = -ENOMEM;
+>>> +			goto error;
+>>> +		}
+>>> +
+>>> +		notifier->subdevs[notifier->num_subdevs] = asd;
+>>> +		asd->match.fwnode.fwnode = fwnode;
+>>> +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+>>> +		notifier->num_subdevs++;
+>>> +	}
+>>> +
+>>> +	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
+>>> +
+>>> +error:
+>>> +	fwnode_handle_put(fwnode);
+>>> +	return ret;
+>>> +}
+>>> +
+>>>  MODULE_LICENSE("GPL");
+>>>  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+>>>  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+>>>
+>>
+>> Regards,
+>>
+>> 	Hans
+> 
