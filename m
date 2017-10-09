@@ -1,425 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45376 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750974AbdJYPsQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Oct 2017 11:48:16 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from osg.samsung.com ([64.30.133.232]:48164 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751834AbdJIKTl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Oct 2017 06:19:41 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Mats Randgaard <matrandg@cisco.com>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
         Hans Verkuil <hverkuil@xs4all.nl>,
-        Pawel Osciak <pawel@osciak.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Geliang Tang <geliangtang@gmail.com>,
+        Benoit Parrot <bparrot@ti.com>, Arnd Bergmann <arnd@arndb.de>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
         Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-kernel@vger.kernel.org
-Subject: Re: [RFC PATCH 0/9] V4L2 Jobs API WIP
-Date: Wed, 25 Oct 2017 18:48:04 +0300
-Message-ID: <1554579.1lm2f1VjhL@avalon>
-In-Reply-To: <CAPBb6MV01ir0bGut06P9qR84MTx6Zj9cB6yz42HRtRrw0v8e-g@mail.gmail.com>
-References: <20170928095027.127173-1-acourbot@chromium.org> <20171019144343.2j34twk6dvodan2o@valkosipuli.retiisi.org.uk> <CAPBb6MV01ir0bGut06P9qR84MTx6Zj9cB6yz42HRtRrw0v8e-g@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Santosh Kumar Singh <kumar.san1093@gmail.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Andrey Utkin <andrey_utkin@fastmail.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Petr Cvek <petr.cvek@tul.cz>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Pawel Osciak <pawel@osciak.com>, Pavel Machek <pavel@ucw.cz>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        Helen Koike <helen.koike@collabora.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        Rob Herring <robh@kernel.org>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        linux-renesas-soc@vger.kernel.org,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Mike Isely <isely@pobox.com>,
+        Hans Liljestrand <ishkamiel@gmail.com>
+Subject: [PATCH 00/24] V4L2 kAPI cleanups and documentation improvements part 2
+Date: Mon,  9 Oct 2017 07:19:06 -0300
+Message-Id: <cover.1507544011.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+That's the second part of my V4L2 kAPI documentation improvements.
+It is meant to reduce the gap between the kAPI media headers
+and documentation, at least with regards to kernel-doc markups.
 
-On Monday, 23 October 2017 11:45:01 EEST Alexandre Courbot wrote:
-> On Thu, Oct 19, 2017 at 11:43 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > On Thu, Sep 28, 2017 at 06:50:18PM +0900, Alexandre Courbot wrote:
-> >> Hi everyone,
-> >> 
-> >> Here is a new attempt at the "request" (which I propose to rename "jobs")
-> >> API for V4L2, hopefully in a manner that can converge to something that
-> >> will be merged. The core ideas should be easy to grasp for those
-> >> familiar with the previous attemps, yet there are a few important
-> >> differences.
-> >> 
-> >> Most notably, user-space does not need to explicitly allocate and manage
-> >> requests/jobs (but still can if this makes sense). We noticed that only
-> >> specific use-cases require such an explicit management, and opted for a
-> >> jobs queue that controls the flow of work over a set of opened devices.
-> >> This should simplify user-space code quite a bit, while still retaining
-> >> the ability to manage states explicitly like the previous request API
-> >> proposals allowed to do.
-> >> 
-> >> The jobs API defines a few new concepts that user-space can use to
-> >> control the workflow on a set of opened V4L2 devices:
-> >> 
-> >> A JOB QUEUE can be created from a set of opened FDs that are part of a
-> >> pipeline and need to cooperate (be it capture, m2m, or media controller
-> >> devices).
-> >> 
-> >> A JOB can then be set up with regular (if slightly modified) V4L2 ioctls,
-> >> and then submitted to the job queue. Once the job queue schedules the
-> >> job, its parameters (controls, etc) are applied to the devices of the
-> >> queue, and itsd buffers are processed. Immediately after a job is
-> >> submitted, the next job is ready to be set up without further user
-> >> action.
-> >> 
-> >> Once a job completes, it must be dequeued and user-space can then read
-> >> back its properties (notably controls) at completion time.
-> >> 
-> >> Internally, the state of jobs is managed through STATE HANDLERS. Each
-> >> driver supporting the jobs API needs to specify an implementation of a
-> >> state handler. Fortunately, most drivers can rely on the generic state
-> >> handler implementation that simply records and replays a job's parameter
-> >> using standard V4L2 functions. Thanks to this, adding jobs API support
-> >> to a driver relying on the control framework and vb2 only requires a
-> >> dozen lines of codes.
-> >> 
-> >> Drivers with specific needs or opportunities for optimization can however
-> >> provide their own implementation of a state handler. This may in
-> >> particular be beneficial for hardware that supports configuration or
-> >> command buffers (thinking about VSP1 here).
-> >> 
-> >> This is still very early work, and focus has been on the following
-> >> points:
-> >> 
-> >> * Provide something that anybody can test (currently using vim2m and
-> >> vivid),
-> >> * Reuse the current V4L2 APIs as much as possible,
-> >> * Remain flexible enough to accomodate the inevitable changes that will
-> >> be requested,
-> >> * Keep line count low, even if functionality is missing at the moment.
-> >> 
-> >> Please keep this in mind while going through the patches. In particular,
-> >> at the moment the parameters of a job are limited to integer controls. I
-> >> know that much more is expected, but V4L2 has quite a learning curve and
-> >> I preferred to focus on the general concepts for now. More is coming
-> >> though! :)
-> >> 
-> >> I have written two small example programs that demonstrate the use of
-> >> this API:
-> >> 
-> >> - With a codec device (vim2m):
-> >> https://gist.github.com/Gnurou/34c35f1f8e278dad454b51578d239a42
-> >> 
-> >> - With a capture device (vivid):
-> >> https://gist.github.com/Gnurou/5052e6ab41e7c55164b75d2970bc5a04
-> >> 
-> >> Considering the history with the request API, I don't expect everything
-> >> proposed here to be welcome or understood immediately. In particular I
-> >> apologize for not reusing any of the previous attempts - I was just more
-> >> comfortable laying down my ideas from scratch.
-> >> 
-> >> If this proposal is not dismissed as complete garbage I will also be
-> >> happy to discuss it in-person at the mini-summit in Prague. :)
-> > 
-> > Thank you for the initiative and the patchset.
-> > 
-> > While reviewing this patchset, I'm concentrating primarily on the approach
-> > taken and the design, not so much in the actual implementation which I
-> > don't think matters much at this moment.
-> 
-> Thanks, that is exactly how I hoped things would go for the moment.
-> 
-> > It's difficult to avoid seeing many similarities with the Request API
-> > patches posted earlier on. And not only that, rather you have to start
-> > looking for the differences in what I could call details, while important
-> > design decisions could sometimes be only visible in what appear details at
-> > this point.
-> 
-> I was not quite sure whether I should base this work on one of the
-> existing patchsets (and in this case, which one) or start from
-> scratch. This being my first contribution to a new area of the kernel
-> for me, I decided to start from scratch as it would yield more
-> educative value.
+We should likely write more things at the ReST files under Documentation/
+to better describe some of those APIs (VB2 being likely the first candidate),
+but at least let's be sure that all V4L2 bits have kernel-doc markups.
 
-What bothers me here is that we had a full day face to face meeting in Tokyo 
-back in June about this, where you presented this idea of how the userspace 
-API could look like. We went through the proposal point by point to discuss 
-potential issues, and for most points I recall agreeing that the changes 
-proposed compared to the previous request API RFC were introducing problems 
-that couldn't be easily solved. I walked out of the meeting understanding we 
-had an agreement to go back to an API quite similar to the previous RFC, in 
-particular with explicit request object management from userspace, and I now 
-see several months later an RFC that ignores all the conclusions of our 
-meeting.
+Mauro Carvalho Chehab (24):
+  media: v4l2-dev.h: add kernel-doc to two macros
+  media: v4l2-flash-led-class.h: add kernel-doc to two ancillary funcs
+  media: v4l2-mediabus: use BIT() macro for flags
+  media: v4l2-mediabus: convert flags to enums and document them
+  media: v4l2-dev: convert VFL_TYPE_* into an enum
+  media: i2c-addr.h: get rid of now unused defines
+  media: get rid of i2c-addr.h
+  media: v4l2-dev: document VFL_DIR_* direction defines
+  media: v4l2-dev: document video_device flags
+  media: v4l2-subdev: use kernel-doc markups to document subdev flags
+  media: v4l2-subdev: create cross-references for ioctls
+  media: v4l2-subdev: fix description of tuner.s_radio ops
+  media: v4l2-subdev: better document IO pin configuration flags
+  media: v4l2-subdev: convert frame description to enum
+  media: v4l2-subdev: get rid of __V4L2_SUBDEV_MK_GET_TRY() macro
+  media: v4l2-subdev: document remaining undocumented functions
+  media: v4l2-subdev: fix a typo
+  media: vb2-core: use bitops for bits
+  media: vb2-core: Improve kernel-doc markups
+  media: vb2-core: document remaining functions
+  media: vb2-core: fix descriptions for VB2-only functions
+  media: vb2: add cross references at memops and v4l2 kernel-doc markups
+  media: v4l2-tpg*.h: move headers to include/media/tpg and merge them
+  media: v4l2-tpg.h: rename color structs
 
-> > Both request and jobs APIs have the concept of a request, or a job, which
-> > is created by the user and then different buffers or controls can be bound
-> > to that request. (Other configuration isn't really excluded but it's
-> > non-trivial to implement in practice.) This is common for both.
-> 
-> Yes, the main difference being that the current proposal manages the
-> jobs flow implicitly by default, to ease the most common uses of this
-> API (codecs & camera). It still maintains the ability to control them
-> more finely similarly to the previous request API proposals.
-
-Implicit job handling might make your codec use-cases simpler, but it does 
-*not* ease camera support.
-
-> > The differences begin however how the functionality within the scope is
-> > actieved, in particular:
-> > 
-> > - A new user space interface (character device) is created for the jobs
-> >   API whereas requests use existing Media controller interface. Therefore
-> >   the jobs API is specific to V4L2. Consequently, the V4L2 jobs API may
-> >   not support Media controller link state changes through requests.
-> 
-> It is not clear to me why that is the case - could you elaborate on that a
-> bit?
-
-I suppose it would be possible to support changing link state in a request if 
-we add the MC fd to the job queue, at the price of more implicit state 
-handling and I believe a complex implementation on the kernel side. 
-Regardless, I see no reason at all to create a new device node for this when 
-all operations can be performed on the media device node.
-
-> >   I don't see a reason why it should be this way, and I also see no reason
-> >   why there should be yet another user space interface for this purpose
-> >   alone: this is a clear drawback compared to handling this through the
-> >   Media device.
-> 
-> Yeah, as I discussed in my reply to Hans, this node is mostly here for
-> convenience reasons and I don't feel too strongly about it.
-
-To be honest I don't really understand how this device node increases 
-convenience compared to using the media controller device node.
-
-> > - Controls and buffers are always bound to requests explicitly whereas for
-> >   jobs, this seems to be implicit based on associating the file handle
-> >   related to the relevant video device with the request.
-> >   
-> >   There are advantages in the approach, but currently I'd see that they're
-> >   primarily related to not having to change the existing IOCTL argument
-> >   structs.
-> 
-> For controls, this is definitely not the case (see the newly
-> introduced V4L2_CTRL_WHICH_CURJOB_VAL flag for instance). Even when
-> using the jobs API, you can change controls on-the-fly without waiting
-> for the current job to be processed.
-
-Good, if we're not reluctant to add arguments to existing ioctls, then we can 
-certainly pass a request ID :-)
-
-> For other parameters, we need to decide whether it can make sense to
-> decouple them from jobs. In particular, allowing buffers to be
-> processed both from and out of the jobs queue seems difficult to
-> achieve in a consistent way, and may not make any sense semantically
-> speaking. This is why the meaning of QBUF/QDBUF depends on whether the
-> jobs API is in use for a particular opened node.
-
-I'll have to go through an in-depth analysis of the problem again to come up 
-with useful examples (unfortunately we don't have notes of the Tokyo meeting), 
-but I remember having discussed cases where buffers are queued as part of a 
-request but dequeued separately. This doesn't seem to be supported with the 
-proposed implicit API.
-
-> >   There lie problems, too, because of this: with requests (or jobs) it is
-> >   vitally important that the user will always have the information if a
-> >   buffer, control event etc. was related to a request (or not), and in
-> >   particular which request it was.
-> >   
-> >   You could say that the user must keep track of this information but I'd
-> >   suppose it won't make it easier for the user no having an important
-> >   piece of information.
-
-I very much agree here. Userspace needs to maintain relationships between 
-requests/jobs and parameters in any case. With an explicit API more hints will 
-be give to userspace, easing the implementation and reducing the risk of 
-getting it wrong.
-
-> >   Having this information as part of the IOCTL argument struct is
-> >   mandatory for e.g. events that the user doesn't have an ID to compare
-> >   with in order to find the related request.
-> 
-> When queuing buffers, it is quite obvious which job they will be
-> linked too, as it is the current one. We can return a job ID as an
-> output argument of the QJOB ioctl to make this easier to handle.
-
-I strongly believe we should expose job IDs to userspace, yes. And if we do, I 
-see little reason to use an implicit API.
-
-> I need to look at the ioctl structures too see what is possible, but I
-> also see no drawbacks to associating a job ID to dequeued buffers if
-> there is space remaining.
-
-I believe there's space in most structures, as this is what my previous RFC 
-was doing. We can also extend existing structures, for example v4l2_buffer 
-will soon run out of reserved fields and needs to be reworked to support Y2038 
-anyway.
-
-> >   Also --- when an association with a video devnode file descriptor and a
-> >   job with a request is made, when does it cease to exist? When the job is
-> >   released? When the job is done?
-> 
-> Association is made between a job queue (to which an undefined number
-> of jobs can be queued) and a set of device nodes. A job queue remains
-> active as long as its file descriptor is not closed. So the short
-> answer to your question is that the devnode remains part of the queue
-> until the file descriptor obtained by opening /dev/v4l2_jobqueue (and
-> initialized using VIDIOC_JOBQUEUE_INIT) is opened. This is of course
-> subject to change if /dev/v4l2_jobqueue disappears, but I would like
-> to retain the idea of managing the jobs queue via its own file
-> descriptor.
-
-This makes it quite inconvenient to change controls both through a request and 
-directly, a userspace application would need to open subdevs and video nodes 
-twice, keeping one "direct" fd and associating the other one with the queue. 
-That's a complexity increase for userspace without any advantage in my 
-opinion.
-
-> > There are smaller differences, not very important IMO:
-> > 
-> > - Requests are removed once complete. This was done to simplify the
-> >   implementation and it could be added if it is seen reasonable to
-> >   implement and useful, neither of which is known.
-> > 
-> > These are differences, I'd say, in the parts that are somewhat manageable
-> > in any way they're designed, and with rather easily understandable
-> > consequences from these design decisions. I still prefer the design
-> > choices made for the Request API (regarding device nodes and request
-> > association especially).
-> 
-> I suppose this is something we need to discuss thoroughly in Prague to
-> make sure we understand why we made different design decisions. I am
-> rather fond of the idea of associating a set of opened devices into a
-> jobs queue and think that this is necessary for some advanced cases
-> (MIPI camera notably).
-
-And I think it hinders that use case, for the reasons I've explained in Tokyo 
-(if you manage to extract them from your meeting notes I'd be grateful ;-)). I 
-don't see any advantage in an implicit API for requests/jobs. I would rather 
-like to go fully the other way around and pass *all* configuration parameters 
-(controls, formats, links, ...) through a single ioctl call when queueing (or 
-possibly preparing, if we end up needed to split the preparation from queuing 
-for a performance reason, but I don't think at the moment that there's a need 
-for it) the request. Configuring a pipeline through subdev nodes is painful, 
-regardless of whether we use requests/jobs or not, and some operations are 
-just not possible (such a propagating the test configuration of multiplexed 
-streams for instance, which would in my opinion require a device-wide test 
-context to be implemented properly, but that's not upstream yet).
-
-> > The hard stuff, e.g. how do you implement including non-buffer and
-> > non-control configuration into the request in a meaningful way in an
-> > actual driver I haven't seen yet. We'd need one driver to implement that,
-> > and in general case it likely requires locking scheme changes in MC, for
-> > instance. There are still use cases where this all isn't needed so there
-> > is a motivation to have less than full implementation in the mainline
-> > kernel.
-> 
-> You're right - I wanted to give a go at the easiest part first and
-> receive feedback on this. Also it is easiest for us (Google) to
-> evaluate this first step as it allows us to replace the config store
-> currently used in Chrome OS.
-
-I'm not completely opposed to getting a partial implementation upstream as a 
-first step, but only if we can guarantee it won't hinder the full 
-implementation. I haven't seen any such guarantee at the moment, quite the 
-contrary.
-
-> > Another matter is making videobuf2 helpful here: we should have, if not in
-> > the videobuf2 framework itself, then around it helper function(s) to
-> > manage the submission of buffers to a driver. You can get things working
-> > pretty easily but the error handling is very painful: what do you do, for
-> > instance, with buffers queued with a request if queueing the request
-> > itself fails, possibly because the user hasn't provided enough buffers
-> > with the request? Mark the buffers errorneous and return them to the user?
-> > Probably so, but that requires the user to dequeue the buffers and gather
-> > the request again. I presume this would only happen in special
-> > circumstances though, and not typically in an application using requests.
-> > This, and many other special cases still must be handled by the kernel.
-> 
-> Error handling is still pretty weak in that version. I would like to
-> get an overall agreement on the general direction before looking at
-> this more closely though, as I suppose getting things right will take
-> some time.
-
-I believe error handling would be much simpler if we passed all request 
-parameters through a single ioctl, as we would have one clear point where to 
-perform validation with all required information available.
-
-> > Finally, I want to say that I like some aspects of the patchset, such as
-> > moving more things to the V4L2 framework from the driver. This would be
-> > very useful in helping driver implementation: V4L2 is very stream-centric
-> > and the configurations and buffers across device nodes have been
-> > essentially independent from API point of view. Associating the pieces of
-> > information together in requests would be painful to do in drivers. What
-> > the framework can do, still controlled by drivers, could help a lot here.
-> > This aspect wasn't much considered where the Request API work was left.
-> 
-> I am not sure whether this is obvious in this patchset, but the idea
-> is that while there is a default implementation that can easily be
-> used as-is by most drivers (which allows to keep the lines count in
-> vivid and vim2m low), a driver with more specific needs could still
-> write its own state handler, tailored to its needs. I am especially
-> thinking of VSP1 here, Laurent's implementation was designed with the
-> perspective of writing and reusing command buffers, and the same
-> result should be attainable with a custom state handler (while still
-> benefiting from some of the framework code).
-
-To make my opinion as clear as possible, I would like to see the main entry 
-point for the request API being implemented by all drivers. We could implement 
-helper functions that translate a request to individual ioctl calls, but I'm 
-more and more convinced that we shouldn't. Instead we should do it the other 
-way around, make the request API a first class citizen, and provide helper 
-functions to translate the V4L2 API to requests (how complicated that will be 
-remains to be seen). Implementing legacy APIs on top of new ones is akin to 
-V4L1 support on top of V4L2 driver that we have implemented in libv4l, and 
-userspace is where I believe such a compatibility layer belongs (assuming we 
-need one at all).
-
-> But whether you write a custom state handler or use the generic one,
-> the current implementation still depends on VB2/control framework,
-> which means that older drivers (and notably uvc) could not make use of
-> the jobs API. I am not sure whether this would be considered a
-> problem.
-
-UVC isn't the main target of this API, as the UVC protocol doesn't provide a 
-way to apply changes atomically.
-
-As for dependencies on the control framework, I believe I've already exposed 
-my opinion that the control framework should be refactored to split control 
-values from control static data. The former would be used as part of the 
-device state, and the latter could be used as part of control validation 
-(possibly with some parts written specifically for requests).
-
-> > Still it shouldn't be forgotten that if the framework is geared towards
-> > helping drivers "running one job at a time" the scope will be limited to
-> > memory-to-memory devices; streaming devices, e.g. all kinds of cameras
-> > have multiple requests being processed simultaneously (or frames are bound
-> > to be lost, something we can't allow to happen due to framework design).
-> > And I believe the memory-to-memory devices are generally the easy case.
-> > That could be one option to start with, but at the same time we have to
-> > make it absolutely certain we will not paint ourselves to the corner: the
-> > V4L2 UAPI (or even KAPI) paint will take much longer to dry than the
-> > regular one.
-> 
-> There are several reasons why the current patchset is focused on m2m
-> devices (although vivid can be considered a regular camera case):
-> - As you said, it is the easiest use-case to implement,
-> - It is also the use-case we are the most interested in for Chrome OS,
-> so I am clearly biased towards it, :)
-> - My exposure to V4L2 is still limited, so I may not be able to see
-> the whole picture yet.
-
-It's good we'll meet to discuss this then :-)
-
-> It is important though, that we consider all the cases that need to be
-> supported by the jobs API and I want to make it very clear that I am
-> not attempting to direct it towards our specific use. It is not clear
-> to me why some cameras would need multiple requests to be processed
-> simultaneously (neither is it clear how I could implement that using
-> the current design), so we definitely need to discuss this in Prague.
-> The current patchset is just to try and validate the general
-> direction, and get confidence that this scheme can support all that
-> needs to be supported.
-> 
-> Oh, I have also updated it to complete controls support, and now all
-> kinds of controls should work. Besides that the other changes are
-> minor improvements on things that were very clumsy, so not resending
-> another patchset here, but in case someone wants to have a look it is
-> on https://github.com/Gnurou/linux/commits/v4l2_jobs.
-> 
-> Thanks and see you all in Prague! I should be there from Thursday.
+ Documentation/media/kapi/v4l2-dev.rst              |  17 +-
+ drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c    |   8 +-
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c      |   2 +-
+ drivers/media/i2c/adv7180.c                        |  10 +-
+ drivers/media/i2c/ml86v7667.c                      |   5 +-
+ drivers/media/i2c/mt9m111.c                        |   8 +-
+ drivers/media/i2c/ov6650.c                         |  19 +-
+ drivers/media/i2c/soc_camera/imx074.c              |   6 +-
+ drivers/media/i2c/soc_camera/mt9m001.c             |  10 +-
+ drivers/media/i2c/soc_camera/mt9t031.c             |  11 +-
+ drivers/media/i2c/soc_camera/mt9t112.c             |  11 +-
+ drivers/media/i2c/soc_camera/mt9v022.c             |  16 +-
+ drivers/media/i2c/soc_camera/ov5642.c              |   5 +-
+ drivers/media/i2c/soc_camera/ov772x.c              |  10 +-
+ drivers/media/i2c/soc_camera/ov9640.c              |  10 +-
+ drivers/media/i2c/soc_camera/ov9740.c              |  10 +-
+ drivers/media/i2c/soc_camera/rj54n1cb0c.c          |  12 +-
+ drivers/media/i2c/soc_camera/tw9910.c              |  13 +-
+ drivers/media/i2c/tc358743.c                       |  10 +-
+ drivers/media/i2c/tda7432.c                        |   1 -
+ drivers/media/i2c/tvaudio.c                        |   2 -
+ drivers/media/i2c/tvp5150.c                        |   6 +-
+ drivers/media/pci/bt8xx/bttv-cards.c               |   7 +
+ drivers/media/pci/bt8xx/bttv.h                     |   1 -
+ drivers/media/pci/cx88/cx88-blackbird.c            |   3 +-
+ drivers/media/pci/cx88/cx88-video.c                |  10 +-
+ drivers/media/pci/cx88/cx88.h                      |   4 +-
+ drivers/media/pci/saa7134/saa7134-video.c          |   2 +
+ drivers/media/platform/pxa_camera.c                |   8 +-
+ drivers/media/platform/rcar-vin/rcar-core.c        |   4 +-
+ drivers/media/platform/rcar-vin/rcar-dma.c         |   4 +-
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |   2 +-
+ drivers/media/platform/soc_camera/soc_camera.c     |   3 +-
+ .../platform/soc_camera/soc_camera_platform.c      |   2 +-
+ drivers/media/platform/soc_camera/soc_mediabus.c   |   2 +-
+ drivers/media/platform/vimc/vimc-sensor.c          |   2 +-
+ drivers/media/platform/vivid/vivid-core.h          |   2 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c          |   2 +
+ drivers/media/usb/em28xx/em28xx-cards.c            |   1 -
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c           |   2 +
+ drivers/media/usb/tm6000/tm6000-cards.c            |   1 -
+ drivers/media/usb/tm6000/tm6000-video.c            |   2 +
+ drivers/media/v4l2-core/v4l2-dev.c                 |  10 +-
+ drivers/media/v4l2-core/v4l2-fwnode.c              |   5 +-
+ include/media/i2c-addr.h                           |  42 --
+ include/media/i2c/tvaudio.h                        |  17 +-
+ include/media/{ => tpg}/v4l2-tpg.h                 |  45 +-
+ include/media/v4l2-dev.h                           | 124 ++++--
+ include/media/v4l2-flash-led-class.h               |  12 +
+ include/media/v4l2-fwnode.h                        |   4 +-
+ include/media/v4l2-mediabus.h                      | 176 ++++++--
+ include/media/v4l2-subdev.h                        | 293 +++++++++----
+ include/media/v4l2-tpg-colors.h                    |  68 ---
+ include/media/videobuf2-core.h                     | 483 ++++++++++++---------
+ include/media/videobuf2-memops.h                   |   8 +-
+ include/media/videobuf2-v4l2.h                     | 112 ++---
+ 56 files changed, 1006 insertions(+), 659 deletions(-)
+ delete mode 100644 include/media/i2c-addr.h
+ rename include/media/{ => tpg}/v4l2-tpg.h (93%)
+ delete mode 100644 include/media/v4l2-tpg-colors.h
 
 -- 
-Regards,
-
-Laurent Pinchart
+2.13.6
