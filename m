@@ -1,94 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa5.microchip.iphmx.com ([216.71.150.166]:55739 "EHLO
-        esa5.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751184AbdJIKB1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Oct 2017 06:01:27 -0400
-Subject: Re: [PATCH v3 3/5] media: atmel-isc: Enable the clocks during probe
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-        Jonathan Corbet <corbet@lwn.net>,
-        <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20170928081828.20335-1-wenyou.yang@microchip.com>
- <20170928081828.20335-4-wenyou.yang@microchip.com>
- <20170928212543.sltvd4rgswfowtcd@valkosipuli.retiisi.org.uk>
- <7d5bd4ff-f18e-5f0d-9ce1-3f5169be4c14@Microchip.com>
- <20171009075804.2qr3pbunqzhdz5go@valkosipuli.retiisi.org.uk>
-From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
-Message-ID: <82829609-5c87-538c-2c5d-e99d6c516c60@Microchip.com>
-Date: Mon, 9 Oct 2017 18:01:05 +0800
+Received: from mail-oi0-f43.google.com ([209.85.218.43]:43948 "EHLO
+        mail-oi0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932076AbdJIRuP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Oct 2017 13:50:15 -0400
+Received: by mail-oi0-f43.google.com with SMTP id c77so39069213oig.0
+        for <linux-media@vger.kernel.org>; Mon, 09 Oct 2017 10:50:14 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20171009075804.2qr3pbunqzhdz5go@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+From: Andrey Konovalov <andreyknvl@google.com>
+Date: Mon, 9 Oct 2017 19:50:13 +0200
+Message-ID: <CAAeHK+yoqszqq2Vo+sv4TWDnj9HJgPxeLBhEw6Qe3Cu-v81uOQ@mail.gmail.com>
+Subject: usb/media/imon: null-ptr-deref in imon_probe
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Daniel Wagner <daniel.wagner@bmw-carit.de>,
+        Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
+        LKML <linux-kernel@vger.kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        syzkaller <syzkaller@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi!
 
-On 2017/10/9 15:58, Sakari Ailus wrote:
-> Hi
-> Wenyou,
->
-> On Mon, Oct 09, 2017 at 01:49:44PM +0800, Yang, Wenyou wrote:
->> Hi Sakari,
->>
->> Sorry for late answer, because I was in vacation last week.
->>
->> On 2017/9/29 5:25, Sakari Ailus wrote:
->>> Hi Wenyou,
->>>
->>> On Thu, Sep 28, 2017 at 04:18:26PM +0800, Wenyou Yang wrote:
->>>> To meet the relationship, enable the HCLOCK and ispck during the
->>>> device probe, "isc_pck frequency is less than or equal to isc_ispck,
->>>> and isc_ispck is greater than or equal to HCLOCK."
->>>> Meanwhile, call the pm_runtime_enable() in the right place.
->>>>
->>>> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
->>>> ---
->>>>
->>>> Changes in v3: None
->>>> Changes in v2: None
->>>>
->>>>    drivers/media/platform/atmel/atmel-isc.c | 31 +++++++++++++++++++++++++------
->>>>    1 file changed, 25 insertions(+), 6 deletions(-)
->>>>
->>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
->>>> index 0b15dc1a3a0b..f092c95587c1 100644
->>>> --- a/drivers/media/platform/atmel/atmel-isc.c
->>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
->>>> @@ -1594,6 +1594,7 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
->>>>    	struct isc_subdev_entity *sd_entity;
->>>>    	struct video_device *vdev = &isc->video_dev;
->>>>    	struct vb2_queue *q = &isc->vb2_vidq;
->>>> +	struct device *dev = isc->dev;
->>>>    	int ret;
->>>>    	ret = v4l2_device_register_subdev_nodes(&isc->v4l2_dev);
->>>> @@ -1677,6 +1678,10 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
->>>>    		return ret;
->>>>    	}
->>>> +	pm_runtime_set_active(dev);
->>>> +	pm_runtime_enable(dev);
->>>> +	pm_request_idle(dev);
->>> Remember that the driver's async complete function could never get called.
->>>
->>> What would be the reason to move it here?
->> The ISC provides the clock for the sensor, namely, it is the clock provider
->> for the external sensor.
->> So it keeps active to make the sensor probe successfully.
->> Otherwise, the sensor, such as 0v7670 fails to probe due to the failure to
->> clk_enable().
-> You'll still need to balance the get and put calls.
->
-> complete callback is not necessarily called at all or could be called
-> multiple times. Instead, you should probably do pm_runtime_get_sync() when
-> the clock is enabled and put when it's disabled.
-I will send v4 to update it.
+I've got the following report while fuzzing the kernel with syzkaller.
 
-Thank you for your advice.
+On commit 8a5776a5f49812d29fe4b2d0a2d71675c3facf3f (4.14-rc4).
 
-Best Regards,
-Wenyou Yang
+It seems that the return value of usb_ifnum_to_if() can be NULL and
+needs to be checked.
+
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+Modules linked in:
+CPU: 1 PID: 1497 Comm: kworker/1:1 Not tainted
+4.14.0-rc4-43418-g43a3f84d2109-dirty #380
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Workqueue: usb_hub_wq hub_event
+task: ffff88006a5618c0 task.stack: ffff880068bc8000
+RIP: 0010:imon_probe+0x231/0x3f10 drivers/media/rc/imon.c:2519
+RSP: 0018:ffff880068bce2d8 EFLAGS: 00010206
+RAX: 0000000000000000 RBX: ffff8800627dd500 RCX: 0000000000000027
+RDX: dffffc0000000000 RSI: 0000000000000000 RDI: 0000000000000138
+RBP: ffff880068bce5e8 R08: ffff88006a5618c0 R09: ffffffff84b380fc
+R10: ffff880068bce2c8 R11: 1ffff1000d4ac5b3 R12: ffff880061830000
+R13: ffff880061830008 R14: ffffffff883fa200 R15: ffffffff883fa080
+FS:  0000000000000000(0000) GS:ffff88006c500000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000206cbffc CR3: 0000000061085000 CR4: 00000000000006e0
+Call Trace:
+ usb_probe_interface+0x35d/0x8e0 drivers/usb/core/driver.c:361
+ really_probe drivers/base/dd.c:413
+ driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
+ __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
+ bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
+ __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
+ device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
+ bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
+ device_add+0xd0b/0x1660 drivers/base/core.c:1835
+ usb_set_configuration+0x104e/0x1870 drivers/usb/core/message.c:1932
+ generic_probe+0x73/0xe0 drivers/usb/core/generic.c:174
+ usb_probe_device+0xaf/0xe0 drivers/usb/core/driver.c:266
+ really_probe drivers/base/dd.c:413
+ driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
+ __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
+ bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
+ __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
+ device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
+ bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
+ device_add+0xd0b/0x1660 drivers/base/core.c:1835
+ usb_new_device+0x7b8/0x1020 drivers/usb/core/hub.c:2457
+ hub_port_connect drivers/usb/core/hub.c:4903
+ hub_port_connect_change drivers/usb/core/hub.c:5009
+ port_event drivers/usb/core/hub.c:5115
+ hub_event+0x194d/0x3740 drivers/usb/core/hub.c:5195
+ process_one_work+0xc7f/0x1db0 kernel/workqueue.c:2119
+ worker_thread+0x221/0x1850 kernel/workqueue.c:2253
+ kthread+0x3a1/0x470 kernel/kthread.c:231
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+Code: ff e8 a4 81 cb 01 31 f6 48 89 df e8 2a cc 65 ff 0f ae f0 48 8d
+b8 38 01 00 00 48 ba 00 00 00 00 00 fc ff df 48 89 f9 48 c1 e9 03 <80>
+3c 11 00 0f 85 e8 31 00 00 48 8b 98 38 01 00 00 0f ae f0 44
+RIP: imon_probe+0x231/0x3f10 RSP: ffff880068bce2d8
+---[ end trace 07febd2eebe02f84 ]---
