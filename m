@@ -1,114 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:43083 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751271AbdJEIp0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Oct 2017 04:45:26 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andy Walls <awalls.cx18@gmail.com>, linux-media@vger.kernel.org
-Subject: [PATCH v2 00/25] lirc scancode interface, and more
-Date: Thu,  5 Oct 2017 09:45:24 +0100
-Message-Id: <cover.1507192751.git.sean@mess.org>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:43555 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751715AbdJIJUz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Oct 2017 05:20:55 -0400
+Subject: Re: [PATCH v2 10/25] media: lirc: validate scancode for transmit
+To: Sean Young <sean@mess.org>, linux-media@vger.kernel.org
+References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
+ <46af0b140d94a0e4f192120e4e9c68e5bc18ff23.1507192752.git.sean@mess.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1eb71761-53ce-0418-5311-782c3c220164@xs4all.nl>
+Date: Mon, 9 Oct 2017 11:20:52 +0200
+MIME-Version: 1.0
+In-Reply-To: <46af0b140d94a0e4f192120e4e9c68e5bc18ff23.1507192752.git.sean@mess.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Introduce lirc scancode mode, use that to port lirc_zilog to rc-core
-using that interface, and then remove the lirc kernel api.
+On 05/10/17 10:45, Sean Young wrote:
+> Ensure we reject an attempt to transmit invalid scancodes.
+> 
+> Signed-off-by: Sean Young <sean@mess.org>
+> ---
+>  drivers/media/rc/ir-lirc-codec.c |  3 +++
+>  drivers/media/rc/rc-core-priv.h  |  1 +
+>  drivers/media/rc/rc-main.c       | 53 +++++++++++++++++++++++++---------------
+>  3 files changed, 37 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+> index 94561d8b0c0b..863d975d40fb 100644
+> --- a/drivers/media/rc/ir-lirc-codec.c
+> +++ b/drivers/media/rc/ir-lirc-codec.c
+> @@ -122,6 +122,9 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+>  		    scan.timestamp)
+>  			return -EINVAL;
+>  
+> +		if (!rc_validate_scancode(scan.rc_proto, scan.scancode))
+> +			return -EINVAL;
+> +
+>  		if (dev->tx_scancode) {
+>  			ret = dev->tx_scancode(dev, &scan);
+>  			return ret < 0 ? ret : n;
+> diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+> index 21e515d34f64..a064c401fa38 100644
+> --- a/drivers/media/rc/rc-core-priv.h
+> +++ b/drivers/media/rc/rc-core-priv.h
+> @@ -160,6 +160,7 @@ static inline bool is_timing_event(struct ir_raw_event ev)
+>  #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
+>  
+>  /* functions for IR encoders */
+> +bool rc_validate_scancode(enum rc_proto proto, u32 scancode);
+>  
+>  static inline void init_ir_raw_event_duration(struct ir_raw_event *ev,
+>  					      unsigned int pulse,
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 758c14b90a87..38393f13822f 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -776,6 +776,37 @@ void rc_keydown_notimeout(struct rc_dev *dev, enum rc_proto protocol,
+>  EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
+>  
+>  /**
+> + * rc_validate_scancode() - checks that a scancode is valid for a protocol
+> + * @proto:	protocol
+> + * @scancode:	scancode
+> + */
+> +bool rc_validate_scancode(enum rc_proto proto, u32 scancode)
 
-In summary:
- - This removes the lirc staging directory.
- - lirc IR TX can use in-kernel encoders for scancode encoding
- - lirc_zilog uses the same interface
- - lirc kapi (not uapi!) is gone
- - The reading lirc scancode gives more information (e.g. protocol,
-   toggle, repeat). So you can determine what protocol variant a remotes uses
- - Line count is actually down and code cleaner (imo)
- - The scancode interface can be used for cec keycode transmit.
+The scancode in struct lirc_scancode is a u64. Shouldn't this be a u64 as well?
 
-On the cec keycode transmit I am hoping for feedback. Also I am ensure what
-to do with the new firmware file for the zilog_ir.
+> +{
+> +	switch (proto) {
+> +	case RC_PROTO_NECX:
+> +		if ((((scancode >> 16) ^ ~(scancode >> 8)) & 0xff) == 0)
+> +			return false;
+> +		break;
+> +	case RC_PROTO_NEC32:
+> +		if ((((scancode >> 24) ^ ~(scancode >> 16)) & 0xff) == 0)
+> +			return false;
+> +		break;
+> +	case RC_PROTO_RC6_MCE:
+> +		if ((scancode & 0xffff0000) != 0x800f0000)
+> +			return false;
+> +		break;
+> +	case RC_PROTO_RC6_6A_32:
+> +		if ((scancode & 0xffff0000) == 0x800f0000)
+> +			return false;
 
-v2:
- - Add MAINTAINERS entries
- - Fixes for nec repeat
- - Validate scancode for tx
- - Minor bugfixes
+I think that some comments explaining what is tested here would be useful.
 
-Sean Young (25):
-  media: lirc: implement scancode sending
-  media: lirc: use the correct carrier for scancode transmit
-  media: rc: auto load encoder if necessary
-  media: lirc_zilog: remove receiver
-  media: lirc_zilog: fix variable types and other ugliness
-  media: lirc_zilog: port to rc-core using scancode tx interface
-  media: promote lirc_zilog out of staging
-  media: lirc: remove LIRCCODE and LIRC_GET_LENGTH
-  media: lirc: lirc interface should not be a raw decoder
-  media: lirc: validate scancode for transmit
-  media: lirc: merge lirc_dev_fop_ioctl and ir_lirc_ioctl
-  media: lirc: use kfifo rather than lirc_buffer for raw IR
-  media: lirc: move lirc_dev->attached to rc_dev->registered
-  media: lirc: do not call rc_close() on unregistered devices
-  media: lirc: create rc-core open and close lirc functions
-  media: lirc: remove name from lirc_dev
-  media: lirc: remove last remnants of lirc kapi
-  media: lirc: implement reading scancode
-  media: rc: ensure lirc device receives nec repeats
-  media: lirc: document LIRC_MODE_SCANCODE
-  media: lirc: introduce LIRC_SET_POLL_MODE
-  media: lirc: scancode rc devices should have a lirc device too
-  media: MAINTAINERS: remove lirc staging area
-  media: MAINTAINERS: add entry for zilog_ir
-  media: rc: nec decoder should not send both repeat and keycode
+This can be done in a separate patch, or done here.
 
- Documentation/media/kapi/rc-core.rst               |    5 -
- Documentation/media/lirc.h.rst.exceptions          |   31 +
- Documentation/media/uapi/rc/lirc-dev-intro.rst     |   43 +-
- Documentation/media/uapi/rc/lirc-func.rst          |    2 +-
- Documentation/media/uapi/rc/lirc-get-features.rst  |   17 +-
- Documentation/media/uapi/rc/lirc-get-length.rst    |   44 -
- Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |    7 +-
- Documentation/media/uapi/rc/lirc-get-send-mode.rst |    4 +-
- Documentation/media/uapi/rc/lirc-read.rst          |   14 +-
- Documentation/media/uapi/rc/lirc-set-poll-mode.rst |   45 +
- Documentation/media/uapi/rc/lirc-write.rst         |   16 +-
- MAINTAINERS                                        |   12 +-
- drivers/media/rc/Kconfig                           |   41 +-
- drivers/media/rc/Makefile                          |    6 +-
- drivers/media/rc/ir-jvc-decoder.c                  |    1 +
- drivers/media/rc/ir-lirc-codec.c                   |  560 ++++---
- drivers/media/rc/ir-mce_kbd-decoder.c              |   12 +-
- drivers/media/rc/ir-nec-decoder.c                  |   30 +-
- drivers/media/rc/ir-rc5-decoder.c                  |    1 +
- drivers/media/rc/ir-rc6-decoder.c                  |    1 +
- drivers/media/rc/ir-sanyo-decoder.c                |    1 +
- drivers/media/rc/ir-sharp-decoder.c                |    1 +
- drivers/media/rc/ir-sony-decoder.c                 |    1 +
- drivers/media/rc/lirc_dev.c                        |  481 +-----
- drivers/media/rc/rc-core-priv.h                    |   54 +-
- drivers/media/rc/rc-ir-raw.c                       |   56 +-
- drivers/media/rc/rc-main.c                         |  150 +-
- drivers/media/rc/zilog_ir.c                        |  742 +++++++++
- drivers/staging/media/Kconfig                      |    3 -
- drivers/staging/media/Makefile                     |    1 -
- drivers/staging/media/lirc/Kconfig                 |   21 -
- drivers/staging/media/lirc/Makefile                |    6 -
- drivers/staging/media/lirc/TODO                    |   36 -
- drivers/staging/media/lirc/lirc_zilog.c            | 1653 --------------------
- include/media/lirc_dev.h                           |  192 ---
- include/media/rc-core.h                            |   55 +-
- include/media/rc-map.h                             |   54 +-
- include/uapi/linux/lirc.h                          |   93 ++
- 38 files changed, 1701 insertions(+), 2791 deletions(-)
- delete mode 100644 Documentation/media/uapi/rc/lirc-get-length.rst
- create mode 100644 Documentation/media/uapi/rc/lirc-set-poll-mode.rst
- create mode 100644 drivers/media/rc/zilog_ir.c
- delete mode 100644 drivers/staging/media/lirc/Kconfig
- delete mode 100644 drivers/staging/media/lirc/Makefile
- delete mode 100644 drivers/staging/media/lirc/TODO
- delete mode 100644 drivers/staging/media/lirc/lirc_zilog.c
- delete mode 100644 include/media/lirc_dev.h
+Regards,
 
--- 
-2.13.6
+	Hans
+
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +
+> +	return true;
+> +}
+> +
+> +/**
+>   * rc_validate_filter() - checks that the scancode and mask are valid and
+>   *			  provides sensible defaults
+>   * @dev:	the struct rc_dev descriptor of the device
+> @@ -793,26 +824,8 @@ static int rc_validate_filter(struct rc_dev *dev,
+>  
+>  	mask = protocols[protocol].scancode_bits;
+>  
+> -	switch (protocol) {
+> -	case RC_PROTO_NECX:
+> -		if ((((s >> 16) ^ ~(s >> 8)) & 0xff) == 0)
+> -			return -EINVAL;
+> -		break;
+> -	case RC_PROTO_NEC32:
+> -		if ((((s >> 24) ^ ~(s >> 16)) & 0xff) == 0)
+> -			return -EINVAL;
+> -		break;
+> -	case RC_PROTO_RC6_MCE:
+> -		if ((s & 0xffff0000) != 0x800f0000)
+> -			return -EINVAL;
+> -		break;
+> -	case RC_PROTO_RC6_6A_32:
+> -		if ((s & 0xffff0000) == 0x800f0000)
+> -			return -EINVAL;
+> -		break;
+> -	default:
+> -		break;
+> -	}
+> +	if (!rc_validate_scancode(protocol, s))
+> +		return -EINVAL;
+>  
+>  	filter->data &= mask;
+>  	filter->mask &= mask;
+> 
