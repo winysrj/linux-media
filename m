@@ -1,139 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:62814 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751184AbdJILWx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 07:22:53 -0400
-Date: Mon, 9 Oct 2017 08:22:39 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v15 01/32] v4l: async: Remove re-probing support
-Message-ID: <20171009082239.189b4475@vento.lan>
-In-Reply-To: <20171004215051.13385-2-sakari.ailus@linux.intel.com>
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
-        <20171004215051.13385-2-sakari.ailus@linux.intel.com>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:38021 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751581AbdJIK4x (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Oct 2017 06:56:53 -0400
+Subject: Re: [PATCH 04/24] media: v4l2-mediabus: convert flags to enums and
+ document them
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+References: <cover.1507544011.git.mchehab@s-opensource.com>
+ <8d351f92fb18148b4d53acdc7f7c8fb0e9f537d9.1507544011.git.mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Mats Randgaard <matrandg@cisco.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Petr Cvek <petr.cvek@tul.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Rob Herring <robh@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+        Sebastian Reichel <sre@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>, linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <6c1bdfed-9d23-1cd0-eb71-0b35206e5521@xs4all.nl>
+Date: Mon, 9 Oct 2017 12:56:48 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <8d351f92fb18148b4d53acdc7f7c8fb0e9f537d9.1507544011.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu,  5 Oct 2017 00:50:20 +0300
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-
-> Remove V4L2 async re-probing support. The re-probing support has been
-> there to support cases where the sub-devices require resources provided by
-> the main driver's hardware to function, such as clocks.
+On 09/10/17 12:19, Mauro Carvalho Chehab wrote:
+> There is a mess with media bus flags: there are two sets of
+> flags, one used by parallel and ITU-R BT.656 outputs,
+> and another one for CSI2.
 > 
-> Reprobing has allowed unbinding and again binding the main driver without
-> explicilty unbinding the sub-device drivers. This is certainly not a
-> common need, and the responsibility will be the user's going forward.
+> Depending on the type, the same bit has different meanings.
 > 
-> An alternative could have been to introduce notifier specific locks.
-> Considering the complexity of the re-probing and that it isn't really a
-> solution to a problem but a workaround, remove re-probing instead.
-
-If the re-probing isn't using anywhere, that sounds a nice cleanup.
-Did you check if this won't break any driver (like soc_camera)?
-
-If not, then Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
+> That's very confusing, and counter-intuitive. So, split them
+> into two sets of flags, inside an enum.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 54 +-----------------------------------
->  1 file changed, 1 insertion(+), 53 deletions(-)
+> This way, it becomes clearer that there are two separate sets
+> of flags. It also makes easier if CSI1, CSP, CSI3, etc. would
+> need a different set of flags.
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index d741a8e0fdac..60a1a50b9537 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -198,78 +198,26 @@ EXPORT_SYMBOL(v4l2_async_notifier_register);
->  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  {
->  	struct v4l2_subdev *sd, *tmp;
-> -	unsigned int notif_n_subdev = notifier->num_subdevs;
-> -	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
-> -	struct device **dev;
-> -	int i = 0;
->  
->  	if (!notifier->v4l2_dev)
->  		return;
->  
-> -	dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
-> -	if (!dev) {
-> -		dev_err(notifier->v4l2_dev->dev,
-> -			"Failed to allocate device cache!\n");
-> -	}
-> -
->  	mutex_lock(&list_lock);
->  
->  	list_del(&notifier->list);
->  
->  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> -		struct device *d;
-> -
-> -		d = get_device(sd->dev);
-> -
->  		v4l2_async_cleanup(sd);
->  
-> -		/* If we handled USB devices, we'd have to lock the parent too */
-> -		device_release_driver(d);
-> -
->  		if (notifier->unbind)
->  			notifier->unbind(notifier, sd, sd->asd);
->  
-> -		/*
-> -		 * Store device at the device cache, in order to call
-> -		 * put_device() on the final step
-> -		 */
-> -		if (dev)
-> -			dev[i++] = d;
-> -		else
-> -			put_device(d);
-> +		list_move(&sd->async_list, &subdev_list);
->  	}
->  
->  	mutex_unlock(&list_lock);
->  
-> -	/*
-> -	 * Call device_attach() to reprobe devices
-> -	 *
-> -	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
-> -	 * executed.
-> -	 */
-> -	while (i--) {
-> -		struct device *d = dev[i];
-> -
-> -		if (d && device_attach(d) < 0) {
-> -			const char *name = "(none)";
-> -			int lock = device_trylock(d);
-> -
-> -			if (lock && d->driver)
-> -				name = d->driver->name;
-> -			dev_err(d, "Failed to re-probe to %s\n", name);
-> -			if (lock)
-> -				device_unlock(d);
-> -		}
-> -		put_device(d);
-> -	}
-> -	kvfree(dev);
-> -
->  	notifier->v4l2_dev = NULL;
-> -
-> -	/*
-> -	 * Don't care about the waiting list, it is initialised and populated
-> -	 * upon notifier registration.
-> -	 */
->  }
->  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
->  
+> As a side effect, enums can be documented via kernel-docs,
+> so there will be an improvement at flags documentation.
+> 
+> Unfortunately, soc_camera and pxa_camera do a mess with
+> the flags, using either one set of flags without proper
+> checks about the type. That could be fixed, but, as both drivers
+> are obsolete and in the process of cleanings, I opted to just
+> keep the behavior, using an unsigned int inside those two
+> drivers.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
+Nice cleanup.
 
-Thanks,
-Mauro
+Regards,
+
+	Hans
