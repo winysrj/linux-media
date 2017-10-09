@@ -1,102 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:64747 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751677AbdJDL6c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 07:58:32 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v3 09/17] scripts: kernel-doc: improve argument handling
-Date: Wed,  4 Oct 2017 08:48:47 -0300
-Message-Id: <8819dbe2f8e6a5ef43601b666a5d0b0d9cbe2615.1507116877.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
-References: <cover.1507116877.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
-References: <cover.1507116877.git.mchehab@s-opensource.com>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:55022 "EHLO
+        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754068AbdJIWRr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Oct 2017 18:17:47 -0400
+Received: by mail-wm0-f44.google.com with SMTP id i124so239919wmf.3
+        for <linux-media@vger.kernel.org>; Mon, 09 Oct 2017 15:17:46 -0700 (PDT)
+Subject: Re: [PATCH 2/2] media: venus: venc: fix bytesused v4l2_plane field
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+References: <20171009122458.3053-1-stanimir.varbanov@linaro.org>
+ <20171009122458.3053-2-stanimir.varbanov@linaro.org>
+ <5dbda669-6415-6fc5-43d3-37f14ce900c5@xs4all.nl>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <47d29965-667d-fe41-1121-bb1e573e8bfe@linaro.org>
+Date: Tue, 10 Oct 2017 01:17:44 +0300
+MIME-Version: 1.0
+In-Reply-To: <5dbda669-6415-6fc5-43d3-37f14ce900c5@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right now, if one uses "--rst" instead of "-rst", it just
-ignore the argument and produces a man page. Change the
-logic to accept both "-cmd" and "--cmd". Also, if
-"cmd" doesn't exist, print the usage information and exit.
+Hans,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- scripts/kernel-doc | 34 +++++++++++++++++++---------------
- 1 file changed, 19 insertions(+), 15 deletions(-)
+On  9.10.2017 15:31, Hans Verkuil wrote:
+> On 09/10/17 14:24, Stanimir Varbanov wrote:
+>> This fixes wrongly filled bytesused field of v4l2_plane structure
+>> by include data_offset in the plane, Also fill data_offset and
+>> bytesused for capture type of buffers only.
+>>
+>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>> ---
+>>   drivers/media/platform/qcom/venus/venc.c | 9 +++++----
+>>   1 file changed, 5 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+>> index 6f123a387cf9..9445ad492966 100644
+>> --- a/drivers/media/platform/qcom/venus/venc.c
+>> +++ b/drivers/media/platform/qcom/venus/venc.c
+>> @@ -963,15 +963,16 @@ static void venc_buf_done(struct venus_inst *inst, unsigned int buf_type,
+>>   	if (!vbuf)
+>>   		return;
+>>   
+>> -	vb = &vbuf->vb2_buf;
+>> -	vb->planes[0].bytesused = bytesused;
+>> -	vb->planes[0].data_offset = data_offset;
+>> -
+>>   	vbuf->flags = flags;
+>>   
+>>   	if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+>> +		vb = &vbuf->vb2_buf;
+>> +		vb2_set_plane_payload(vb, 0, bytesused + data_offset);
+>> +		vb->planes[0].data_offset = data_offset;
+>>   		vb->timestamp = timestamp_us * NSEC_PER_USEC;
+>>   		vbuf->sequence = inst->sequence_cap++;
+>> +
+>> +		WARN_ON(vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0));
+> 
+> It's good to have this, but this really should never happen. Because if it is,
+> then you'll have a memory overwrite. I hope the DMA engine will prevent this? >
+> Just wondering how this works.
+> 
+> The patch looks good otherwise, but that WARN_ON is a bit scary.
 
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index 68d81a78b2fc..f5901989971f 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -390,45 +390,49 @@ my $undescribed = "-- undescribed --";
- 
- reset_state();
- 
--while ($ARGV[0] =~ m/^-(.*)/) {
--    my $cmd = shift @ARGV;
--    if ($cmd eq "-man") {
-+while ($ARGV[0] =~ m/^--?(.*)/) {
-+    my $cmd = $1;
-+    shift @ARGV;
-+    if ($cmd eq "man") {
- 	$output_mode = "man";
- 	@highlights = @highlights_man;
- 	$blankline = $blankline_man;
--    } elsif ($cmd eq "-rst") {
-+    } elsif ($cmd eq "rst") {
- 	$output_mode = "rst";
- 	@highlights = @highlights_rst;
- 	$blankline = $blankline_rst;
--    } elsif ($cmd eq "-module") { # not needed for XML, inherits from calling document
-+    } elsif ($cmd eq "module") { # not needed for XML, inherits from calling document
- 	$modulename = shift @ARGV;
--    } elsif ($cmd eq "-function") { # to only output specific functions
-+    } elsif ($cmd eq "function") { # to only output specific functions
- 	$output_selection = OUTPUT_INCLUDE;
- 	$function = shift @ARGV;
- 	$function_table{$function} = 1;
--    } elsif ($cmd eq "-nofunction") { # output all except specific functions
-+    } elsif ($cmd eq "nofunction") { # output all except specific functions
- 	$output_selection = OUTPUT_EXCLUDE;
- 	$function = shift @ARGV;
- 	$function_table{$function} = 1;
--    } elsif ($cmd eq "-export") { # only exported symbols
-+    } elsif ($cmd eq "export") { # only exported symbols
- 	$output_selection = OUTPUT_EXPORTED;
- 	%function_table = ();
--    } elsif ($cmd eq "-internal") { # only non-exported symbols
-+    } elsif ($cmd eq "internal") { # only non-exported symbols
- 	$output_selection = OUTPUT_INTERNAL;
- 	%function_table = ();
--    } elsif ($cmd eq "-export-file") {
-+    } elsif ($cmd eq "export-file") {
- 	my $file = shift @ARGV;
- 	push(@export_file_list, $file);
--    } elsif ($cmd eq "-v") {
-+    } elsif ($cmd eq "v") {
- 	$verbose = 1;
--    } elsif (($cmd eq "-h") || ($cmd eq "--help")) {
-+    } elsif (($cmd eq "h") || ($cmd eq "help")) {
- 	usage();
--    } elsif ($cmd eq '-no-doc-sections') {
-+    } elsif ($cmd eq 'no-doc-sections') {
- 	    $no_doc_sections = 1;
--    } elsif ($cmd eq '-enable-lineno') {
-+    } elsif ($cmd eq 'enable-lineno') {
- 	    $enable_lineno = 1;
--    } elsif ($cmd eq '-show-not-found') {
-+    } elsif ($cmd eq 'show-not-found') {
- 	$show_not_found = 1;
-+    } else {
-+	# Unknown argument
-+        usage();
-     }
- }
- 
--- 
-2.13.6
+Infact it is not so scary as it looks like, the IOMMU will catch this 
+and generate a fault. So most probably we will never come to the WARN, 
+thus the warning is pointless so will delete it.
+
+regards,
+Stan
