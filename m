@@ -1,48 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:44966 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751376AbdJPNLu (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58778 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751257AbdJILOR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Oct 2017 09:11:50 -0400
-Subject: Re: Exynos MFC issues on 4.14-rc4
-To: Marian Mihailescu <mihailescu2m@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <ee79d4b3-49c8-24b1-2bfa-05e8322a88e5@samsung.com>
-Date: Mon, 16 Oct 2017 15:11:46 +0200
-MIME-version: 1.0
-In-reply-to: <CAM3PiRzaj=Vku-rBcroHzP+vMBgdYy_V+6+QBwGYypHanu=gbQ@mail.gmail.com>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-transfer-encoding: 7bit
-Content-language: en-US
-References: <CGME20171012004917epcas5p3c1bdb44fd2af15ec38be5de72239f844@epcas5p3.samsung.com>
-        <CAM3PiRzaj=Vku-rBcroHzP+vMBgdYy_V+6+QBwGYypHanu=gbQ@mail.gmail.com>
+        Mon, 9 Oct 2017 07:14:17 -0400
+Date: Mon, 9 Oct 2017 14:14:14 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: Re: [PATCH 01/24] media: v4l2-dev.h: add kernel-doc to two macros
+Message-ID: <20171009111414.xkisr2lqvexpmabo@valkosipuli.retiisi.org.uk>
+References: <cover.1507544011.git.mchehab@s-opensource.com>
+ <2169c19a54e142dcdba99d7c9011552944c74c84.1507544011.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2169c19a54e142dcdba99d7c9011552944c74c84.1507544011.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marian,
+Hi Mauro,
 
-On 2017-10-12 02:49, Marian Mihailescu wrote:
-> I've been testing 4.14-rc4 on Odroid-XU4, and here's a kernel
-> complaint when running:
->
-> gst-launch-1.0 filesrc location=bunny_trailer_1080p.mov ! parsebin !
-> v4l2video4dec capture-io-mode=dmabuf ! v4l2video6convert
-> output-io-mode=dmabuf-import capture-io-mode=dmabuf ! kmssink
->
-> http://paste.debian.net/990353/
+On Mon, Oct 09, 2017 at 07:19:07AM -0300, Mauro Carvalho Chehab wrote:
+> There are two macros at v4l2-dev.h that aren't documented.
+> 
+> Document them, for completeness.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  include/media/v4l2-dev.h | 18 +++++++++++++++---
+>  1 file changed, 15 insertions(+), 3 deletions(-)
+> 
+> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+> index e657614521e3..de1a1453cfd9 100644
+> --- a/include/media/v4l2-dev.h
+> +++ b/include/media/v4l2-dev.h
+> @@ -260,9 +260,21 @@ struct video_device
+>  	struct mutex *lock;
+>  };
+>  
+> -#define media_entity_to_video_device(__e) \
+> -	container_of(__e, struct video_device, entity)
+> -/* dev to video-device */
+> +/**
+> + * media_entity_to_video_device - Returns a &struct video_device from
+> + * 	the &struct media_entity embedded on it.
+> + *
+> + * @entity: pointer to &struct media_entity
+> + */
+> +#define media_entity_to_video_device(entity) \
+> +	container_of(entity, struct video_device, entity)
+> +
+> +/**
+> + * media_entity_to_video_device - Returns a &struct video_device from
 
-This is rather harmless and it happens on v4.14-rcX, because LOCKDEP has
-been enabled by default in the exynos_defconfig. For more information
-see https://lkml.org/lkml/2017/10/13/974
+-> to_video_device
 
-> PS: on kernel 4.9 patched with MFC & GSC updates (almost up to date
-> with 4.14 I think) there was no "Wrong buffer/video queue type (1)"
-> message either
+With that,
 
-I will check it and let you know if this is something we should worry about.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Best regards
+> + * 	the &struct device embedded on it.
+> + *
+> + * @cd: pointer to &struct device
+> + */
+>  #define to_video_device(cd) container_of(cd, struct video_device, dev)
+>  
+>  /**
+
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
