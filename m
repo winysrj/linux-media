@@ -1,61 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:45870 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753184AbdJTVuo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 17:50:44 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC v4 06/17] [media] vb2: add .send_out_fence() to notify userspace of out_fence_fd
-Date: Fri, 20 Oct 2017 19:50:01 -0200
-Message-Id: <20171020215012.20646-7-gustavo@padovan.org>
-In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
-References: <20171020215012.20646-1-gustavo@padovan.org>
+Received: from osg.samsung.com ([64.30.133.232]:33769 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754170AbdJIP1w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Oct 2017 11:27:52 -0400
+Date: Mon, 9 Oct 2017 12:27:42 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com,
+        laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org
+Subject: Re: [PATCH v15 01/32] v4l: async: Remove re-probing support
+Message-ID: <20171009122742.6b9d82f2@vento.lan>
+In-Reply-To: <e45a2974-2a63-7dca-ca09-fa12532d5325@xs4all.nl>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+        <20171004215051.13385-2-sakari.ailus@linux.intel.com>
+        <20171009082239.189b4475@vento.lan>
+        <20171009140646.vqftgwkttgn33m2t@valkosipuli.retiisi.org.uk>
+        <67bcf879-f8dd-094e-47ba-3be977da02b2@xs4all.nl>
+        <20171009141823.zu6m6ir2z7id7px3@valkosipuli.retiisi.org.uk>
+        <e45a2974-2a63-7dca-ca09-fa12532d5325@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Em Mon, 9 Oct 2017 16:20:08 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-With the upcoming explicit synchronization support to V4L2 we need a
-way to notify userspace of the out_fence_fd when buffers are queued to the
-driver - buffers with in-fences attached to it can only be queued once the
-fence signal, so the queueing to the driver might be deferred.
+> On 09/10/17 16:18, Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > On Mon, Oct 09, 2017 at 04:08:47PM +0200, Hans Verkuil wrote:  
+> >> On 09/10/17 16:06, Sakari Ailus wrote:  
+> >>> Hi Mauro,
+> >>>
+> >>> On Mon, Oct 09, 2017 at 08:22:39AM -0300, Mauro Carvalho Chehab wrote:  
+> >>>> Em Thu,  5 Oct 2017 00:50:20 +0300
+> >>>> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> >>>>  
+> >>>>> Remove V4L2 async re-probing support. The re-probing support has been
+> >>>>> there to support cases where the sub-devices require resources provided by
+> >>>>> the main driver's hardware to function, such as clocks.
+> >>>>>
+> >>>>> Reprobing has allowed unbinding and again binding the main driver without
+> >>>>> explicilty unbinding the sub-device drivers. This is certainly not a
+> >>>>> common need, and the responsibility will be the user's going forward.
+> >>>>>
+> >>>>> An alternative could have been to introduce notifier specific locks.
+> >>>>> Considering the complexity of the re-probing and that it isn't really a
+> >>>>> solution to a problem but a workaround, remove re-probing instead.  
+> >>>>
+> >>>> If the re-probing isn't using anywhere, that sounds a nice cleanup.
+> >>>> Did you check if this won't break any driver (like soc_camera)?  
+> >>>
+> >>> That was discussed earlier in the review; Laurent asked the same question.
+> >>>
+> >>> Re-probing never was a proper solution to any problem; it was just a hack
+> >>> to avoid unbinding the sensor if the bridge driver was unbound, no more: it
+> >>> can't be generalised to support more complex use cases. Mind you, this is
+> >>> on devices that aren't actually removable.
+> >>>
+> >>> I've briefly discussed this with Laurent; the proper solution would need to
+> >>> be implemented in the clock framework instead. There, the existing clocks
+> >>> obtained by drivers could be re-activated when the driver for them comes
+> >>> back.
+> >>>
+> >>> My proposal is that if there's real a need to address this, then it could
+> >>> be solved in the clock framework.  
+> >>
+> >> Can you add this information to the commit log?
+> >>
+> >> I think that would be very helpful in the future.  
+> > 
+> > Sure, how about this at the end of the current commit message:
+> > 
+> > If there is a need to support removing the clock provider in the future,
+> > this should be implemented in the clock framework instead, not in V4L2.  
+> 
+> Yes, that sounds good.
 
-v2: rename to .send_out_fence()
+Works for me too.
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- include/media/videobuf2-core.h | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index ef9b64398c8c..96af4eb49e52 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -408,6 +408,7 @@ struct vb2_ops {
-  *			will return an error.
-  * @copy_timestamp:	copy the timestamp from a userspace structure to
-  *			the vb2_buffer struct.
-+ * @send_out_fence:	send an out_fence fd of the buffer queued to userspace.
-  */
- struct vb2_buf_ops {
- 	int (*verify_planes_array)(struct vb2_buffer *vb, const void *pb);
-@@ -415,6 +416,7 @@ struct vb2_buf_ops {
- 	int (*fill_vb2_buffer)(struct vb2_buffer *vb, const void *pb,
- 				struct vb2_plane *planes);
- 	void (*copy_timestamp)(struct vb2_buffer *vb, const void *pb);
-+	void (*send_out_fence)(struct vb2_buffer *vb);
- };
- 
- /**
--- 
-2.13.6
+Regards,
+Mauro
