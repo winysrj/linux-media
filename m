@@ -1,278 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:35551 "EHLO gofer.mess.org"
+Received: from gofer.mess.org ([88.97.38.141]:35881 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751315AbdJEIpb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Oct 2017 04:45:31 -0400
+        id S1751068AbdJIIow (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Oct 2017 04:44:52 -0400
+Date: Mon, 9 Oct 2017 09:44:50 +0100
 From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 08/25] media: lirc: remove LIRCCODE and LIRC_GET_LENGTH
-Date: Thu,  5 Oct 2017 09:45:10 +0100
-Message-Id: <dbbe8a7140ecae3c6a27f00adf3bb2c443c8cb00.1507192752.git.sean@mess.org>
-In-Reply-To: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-In-Reply-To: <cover.1507192751.git.sean@mess.org>
-References: <cover.1507192751.git.sean@mess.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Maciej Purski <m.purski@samsung.com>, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, airlied@linux.ie,
+        architt@codeaurora.org, a.hajda@samsung.com,
+        Laurent.pinchart@ideasonboard.com, b.zolnierkie@samsung.com
+Subject: Re: [PATCH v4] drm/bridge/sii8620: add remote control support
+Message-ID: <20171009084450.k3zdouahgthhplbs@gofer.mess.org>
+References: <CGME20170824085828eucas1p1b3d00ffc06f14cf7c8b9fe84a8f7a0c9@eucas1p1.samsung.com>
+ <1503565087-19730-1-git-send-email-m.purski@samsung.com>
+ <89e30b5f-f90d-1e27-24a1-bd514c1ddc46@xs4all.nl>
+ <3ec0c4ac-d0dc-2127-20a3-344a3604a046@samsung.com>
+ <e07b423a-b7f1-26a6-280b-4da7c8b8199e@xs4all.nl>
+ <20170921114604.blke4aqmkpa4zhhz@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170921114604.blke4aqmkpa4zhhz@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-LIRCCODE is a lirc mode where a driver produces driver-dependent
-codes for record and transmit. No driver use this any more. The
-LIRC_GET_LENGTH ioctl was used for this mode only.
+Hi,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- Documentation/media/lirc.h.rst.exceptions          |  5 +++
- Documentation/media/uapi/rc/lirc-dev-intro.rst     | 15 --------
- Documentation/media/uapi/rc/lirc-func.rst          |  1 -
- Documentation/media/uapi/rc/lirc-get-features.rst  |  7 +---
- Documentation/media/uapi/rc/lirc-get-length.rst    | 44 ----------------------
- Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |  4 +-
- Documentation/media/uapi/rc/lirc-get-send-mode.rst |  3 +-
- drivers/media/rc/ir-lirc-codec.c                   |  1 -
- drivers/media/rc/lirc_dev.c                        | 12 ------
- include/media/lirc_dev.h                           |  4 --
- 10 files changed, 9 insertions(+), 87 deletions(-)
- delete mode 100644 Documentation/media/uapi/rc/lirc-get-length.rst
+On Thu, Sep 21, 2017 at 12:46:04PM +0100, Sean Young wrote:
+> On Mon, Sep 18, 2017 at 04:37:52PM +0200, Hans Verkuil wrote:
+> > On 09/18/2017 04:15 PM, Maciej Purski wrote:
+> > > Hi Hans,
+> > > some time ago in reply to your email I described what messages does
+> > > the MHL driver receive and at what time intervals.
+> > > Regarding that information, do you think that a similar solution as
+> > > in [1] is required? Would it be OK, if I just set REP_DELAY and REP_PERIOD
+> > > to values, which I presented in my last email?
+> > 
+> > Based on the timings you measured I would say that there is a 99% chance that MHL
+> > uses exactly the same "Press and Hold" mechanism as CEC. Since you already specify
+> > RC_PROTO_BIT_CEC in the driver, it will set REP_DELAY and REP_PERIOD to the right
+> > values automatically.
+> > 
+> > You will have to implement the same code as in cec-adap.c for the key press handling,
+> > though. It's a bit tricky to get it right.
+> > 
+> > Since you will have to do the same thing as I do in CEC, I wonder if it would make
+> > more sense to move this code to the RC core. Basically it ensures that repeat mode
+> > doesn't turn on until you get two identical key presses 550ms or less apart. This
+> > is independent of REP_DELAY which can be changed by userspace.
+> > 
+> > Sean, what do you think?
+> 
+> Yes, this makes sense. In fact, since IR protocols have different repeat
+> times, I would like to make this protocol dependant anyway.
+> 
+> To be honest I find REP_DELAY of 500ms too long and REP_PERIOD of 125ms
+> too short; IOW it takes too long for a key to start repeating, and once
+> it starts repeating it is very hard to control. If I try to increase the
+> volume with my remote it first hardly changes at all and then after 500ms
+> the volume shoots up far too quickly, same thing when navigating menus.
+> 
+> CEC dictates a delay period of 550ms, which is not great for the user IMO.
+> 
+> Anyway I'll have a look at this over the weekend.
 
-diff --git a/Documentation/media/lirc.h.rst.exceptions b/Documentation/media/lirc.h.rst.exceptions
-index c130617a9986..63ba1d341905 100644
---- a/Documentation/media/lirc.h.rst.exceptions
-+++ b/Documentation/media/lirc.h.rst.exceptions
-@@ -28,6 +28,10 @@ ignore define LIRC_CAN_SEND_MASK
- ignore define LIRC_CAN_REC_MASK
- ignore define LIRC_CAN_SET_REC_DUTY_CYCLE
- 
-+# Obsolete ioctls
-+
-+ignore ioctl LIRC_GET_LENGTH
-+
- # Undocumented macros
- 
- ignore define PULSE_BIT
-@@ -40,3 +44,4 @@ ignore define LIRC_VALUE_MASK
- ignore define LIRC_MODE2_MASK
- 
- ignore define LIRC_MODE_RAW
-+ignore define LIRC_MODE_LIRCCODE
-diff --git a/Documentation/media/uapi/rc/lirc-dev-intro.rst b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-index d1936eeb9ce0..3cacf9aeac40 100644
---- a/Documentation/media/uapi/rc/lirc-dev-intro.rst
-+++ b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-@@ -72,21 +72,6 @@ on the following table.
-         this packet will be sent, with the number of microseconds with
-         no IR.
- 
--.. _lirc-mode-lirccode:
--
--``LIRC_MODE_LIRCCODE``
--
--    This mode can be used for IR receive and send.
--
--    The IR signal is decoded internally by the receiver, or encoded by the
--    transmitter. The LIRC interface represents the scancode as byte string,
--    which might not be a u32, it can be any length. The value is entirely
--    driver dependent. This mode is used by some older lirc drivers.
--
--    The length of each code depends on the driver, which can be retrieved
--    with :ref:`lirc_get_length`. This length is used both
--    for transmitting and receiving IR.
--
- .. _lirc-mode-pulse:
- 
- ``LIRC_MODE_PULSE``
-diff --git a/Documentation/media/uapi/rc/lirc-func.rst b/Documentation/media/uapi/rc/lirc-func.rst
-index 9b5a772ec96c..ddb4620de294 100644
---- a/Documentation/media/uapi/rc/lirc-func.rst
-+++ b/Documentation/media/uapi/rc/lirc-func.rst
-@@ -18,7 +18,6 @@ LIRC Function Reference
-     lirc-set-send-duty-cycle
-     lirc-get-timeout
-     lirc-set-rec-timeout
--    lirc-get-length
-     lirc-set-rec-carrier
-     lirc-set-rec-carrier-range
-     lirc-set-send-carrier
-diff --git a/Documentation/media/uapi/rc/lirc-get-features.rst b/Documentation/media/uapi/rc/lirc-get-features.rst
-index 64f89a4f9d9c..50c2c26d8e89 100644
---- a/Documentation/media/uapi/rc/lirc-get-features.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-features.rst
-@@ -62,8 +62,7 @@ LIRC features
- 
- ``LIRC_CAN_REC_LIRCCODE``
- 
--    The driver is capable of receiving using
--    :ref:`LIRC_MODE_LIRCCODE <lirc-mode-LIRCCODE>`.
-+    Unused. Kept just to avoid breaking uAPI.
- 
- .. _LIRC-CAN-SET-SEND-CARRIER:
- 
-@@ -170,9 +169,7 @@ LIRC features
- 
- ``LIRC_CAN_SEND_LIRCCODE``
- 
--    The driver supports sending (also called as IR blasting or IR TX) using
--    :ref:`LIRC_MODE_LIRCCODE <lirc-mode-LIRCCODE>`.
--
-+    Unused. Kept just to avoid breaking uAPI.
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/rc/lirc-get-length.rst b/Documentation/media/uapi/rc/lirc-get-length.rst
-deleted file mode 100644
-index 3990af5de0e9..000000000000
---- a/Documentation/media/uapi/rc/lirc-get-length.rst
-+++ /dev/null
-@@ -1,44 +0,0 @@
--.. -*- coding: utf-8; mode: rst -*-
--
--.. _lirc_get_length:
--
--*********************
--ioctl LIRC_GET_LENGTH
--*********************
--
--Name
--====
--
--LIRC_GET_LENGTH - Retrieves the code length in bits.
--
--Synopsis
--========
--
--.. c:function:: int ioctl( int fd, LIRC_GET_LENGTH, __u32 *length )
--    :name: LIRC_GET_LENGTH
--
--Arguments
--=========
--
--``fd``
--    File descriptor returned by open().
--
--``length``
--    length, in bits
--
--
--Description
--===========
--
--Retrieves the code length in bits (only for
--:ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>`).
--Reads on the device must be done in blocks matching the bit count.
--The bit could should be rounded up so that it matches full bytes.
--
--
--Return Value
--============
--
--On success 0 is returned, on error -1 and the ``errno`` variable is set
--appropriately. The generic error codes are described at the
--:ref:`Generic Error Codes <gen-errors>` chapter.
-diff --git a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-index a4eb6c0a26e9..b89de9add921 100644
---- a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-@@ -34,9 +34,7 @@ Description
- ===========
- 
- Get/set supported receive modes. Only :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`
--and :ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>` are supported for IR
--receive. Use :ref:`lirc_get_features` to find out which modes the driver
--supports.
-+is supported for IR receive.
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/rc/lirc-get-send-mode.rst b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-index a169b234290e..e686b21689a0 100644
---- a/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-@@ -36,8 +36,7 @@ Description
- 
- Get/set current transmit mode.
- 
--Only :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>` and
--:ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>` is supported by for IR send,
-+Only :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>` is supported by for IR send,
- depending on the driver. Use :ref:`lirc_get_features` to find out which
- modes the driver supports.
- 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index e78f0a579e98..ed78a141de34 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -446,7 +446,6 @@ static int ir_lirc_register(struct rc_dev *dev)
- 	ldev->features = features;
- 	ldev->data = &dev->raw->lirc;
- 	ldev->buf = NULL;
--	ldev->code_length = sizeof(struct ir_raw_event) * 8;
- 	ldev->chunk_size = sizeof(int);
- 	ldev->buffer_size = LIRCBUF_SIZE;
- 	ldev->fops = &lirc_fops;
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 544796d5b64f..7ef2d8c61df0 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -137,12 +137,6 @@ int lirc_register_device(struct lirc_dev *d)
- 		return -EINVAL;
- 	}
- 
--	if (d->code_length < 1 || d->code_length > (BUFLEN * 8)) {
--		dev_err(&d->dev, "code length must be less than %d bits\n",
--			BUFLEN * 8);
--		return -EBADRQC;
--	}
--
- 	if (!d->buf && !(d->fops && d->fops->read &&
- 			 d->fops->poll && d->fops->unlocked_ioctl)) {
- 		dev_err(&d->dev, "undefined read, poll, ioctl\n");
-@@ -152,9 +146,6 @@ int lirc_register_device(struct lirc_dev *d)
- 	/* some safety check 8-) */
- 	d->name[sizeof(d->name) - 1] = '\0';
- 
--	if (d->features == 0)
--		d->features = LIRC_CAN_REC_LIRCCODE;
--
- 	if (LIRC_CAN_REC(d->features)) {
- 		err = lirc_allocate_buffer(d);
- 		if (err)
-@@ -343,9 +334,6 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 		 * for now, lirc_serial doesn't support mode changing either
- 		 */
- 		break;
--	case LIRC_GET_LENGTH:
--		result = put_user(d->code_length, (__u32 __user *)arg);
--		break;
- 	default:
- 		result = -ENOTTY;
- 	}
-diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
-index 857da67bd931..0a03dd9e5a68 100644
---- a/include/media/lirc_dev.h
-+++ b/include/media/lirc_dev.h
-@@ -9,8 +9,6 @@
- #ifndef _LINUX_LIRC_DEV_H
- #define _LINUX_LIRC_DEV_H
- 
--#define BUFLEN            16
--
- #include <linux/slab.h>
- #include <linux/fs.h>
- #include <linux/ioctl.h>
-@@ -117,7 +115,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
-  *
-  * @name:		used for logging
-  * @minor:		the minor device (/dev/lircX) number for the device
-- * @code_length:	length of a remote control key code expressed in bits
-  * @features:		lirc compatible hardware features, like LIRC_MODE_RAW,
-  *			LIRC_CAN\_\*, as defined at include/media/lirc.h.
-  * @buffer_size:	Number of FIFO buffers with @chunk_size size.
-@@ -142,7 +139,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
- struct lirc_dev {
- 	char name[40];
- 	unsigned int minor;
--	__u32 code_length;
- 	__u32 features;
- 
- 	unsigned int buffer_size; /* in chunks holding one code each */
--- 
-2.13.6
+I have started on this, but I haven't gotten it in a state where I'm
+happy to submit it. I hope to have it ready for v4.15; in the mean time,
+there is no reason to block this patch on this.
+
+
+Sean
