@@ -1,98 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from f5out.microchip.com ([198.175.253.81]:52192 "EHLO
-        DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752919AbdJaBQD (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:51402 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754013AbdJIMsQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Oct 2017 21:16:03 -0400
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: <linux-kernel@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        <devicetree@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-arm-kernel@lists.infradead.org>,
-        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH v4 2/3] media: ov7740: Document device tree bindings
-Date: Tue, 31 Oct 2017 09:11:44 +0800
-Message-ID: <20171031011146.6899-3-wenyou.yang@microchip.com>
-In-Reply-To: <20171031011146.6899-1-wenyou.yang@microchip.com>
-References: <20171031011146.6899-1-wenyou.yang@microchip.com>
+        Mon, 9 Oct 2017 08:48:16 -0400
+Subject: Re: [PATCH v11 1/4] rockchip/rga: v4l2 m2m support
+To: Jacob Chen <jacob-chen@iotwrt.com>,
+        linux-rockchip@lists.infradead.org
+References: <20171009090424.15292-1-jacob-chen@iotwrt.com>
+ <20171009090424.15292-2-jacob-chen@iotwrt.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <39318451-a078-3451-47f8-9205a31cadb5@xs4all.nl>
+Date: Mon, 9 Oct 2017 14:48:13 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20171009090424.15292-2-jacob-chen@iotwrt.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the device tree binding documentation for the ov7740 sensor driver.
+On 09/10/17 11:04, Jacob Chen wrote:
+> Rockchip RGA is a separate 2D raster graphic acceleration unit. It
+> accelerates 2D graphics operations, such as point/line drawing, image
+> scaling, rotation, BitBLT, alpha blending and image blur/sharpness
+> 
+> The driver supports various operations from the rendering pipeline.
+>  - copy
+>  - fast solid color fill
+>  - rotation
+>  - flip
+>  - alpha blending
+> 
+> The code in rga-hw.c is used to configure regs according to operations
+> The code in rga-buf.c is used to create private mmu table for RGA.
+> 
+> Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
 
-Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
----
+I ran checkpatch --strict on this patch and I found a few small issues:
 
-Changes in v4: None
-Changes in v3:
- - Explicitly document the "remote-endpoint" property.
+WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()
+#1222: FILE: drivers/media/platform/rockchip/rga/rga.c:89:
++               BUG_ON(!ctx);
 
-Changes in v2: None
+WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()
+#1229: FILE: drivers/media/platform/rockchip/rga/rga.c:96:
++               BUG_ON(!src);
 
- .../devicetree/bindings/media/i2c/ov7740.txt       | 47 ++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7740.txt
+WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()
+#1230: FILE: drivers/media/platform/rockchip/rga/rga.c:97:
++               BUG_ON(!dst);
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov7740.txt b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
-new file mode 100644
-index 000000000000..af781c3a5f0e
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
-@@ -0,0 +1,47 @@
-+* Omnivision OV7740 CMOS image sensor
-+
-+The Omnivision OV7740 image sensor supports multiple output image
-+size, such as VGA, and QVGA, CIF and any size smaller. It also
-+supports the RAW RGB and YUV output formats.
-+
-+The common video interfaces bindings (see video-interfaces.txt) should
-+be used to specify link to the image data receiver. The OV7740 device
-+node should contain one 'port' child node with an 'endpoint' subnode.
-+
-+Required Properties:
-+- compatible:	"ovti,ov7740".
-+- reg:		I2C slave address of the sensor.
-+- clocks:	Reference to the xvclk input clock.
-+- clock-names:	"xvclk".
-+
-+Optional Properties:
-+- reset-gpios: Rreference to the GPIO connected to the reset_b pin,
-+  if any. Active low with pull-ip resistor.
-+- powerdown-gpios: Reference to the GPIO connected to the pwdn pin,
-+  if any. Active high with pull-down resistor.
-+
-+Endpoint node mandatory properties:
-+- remote-endpoint: A phandle to the bus receiver's endpoint node.
-+
-+Example:
-+
-+	i2c1: i2c@fc028000 {
-+		ov7740: camera@21 {
-+			compatible = "ovti,ov7740";
-+			reg = <0x21>;
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&pinctrl_sensor_power &pinctrl_sensor_reset>;
-+			clocks = <&isc>;
-+			clock-names = "xvclk";
-+			assigned-clocks = <&isc>;
-+			assigned-clock-rates = <24000000>;
-+			reset-gpios = <&pioA 43 GPIO_ACTIVE_LOW>;
-+			powerdown-gpios = <&pioA 44 GPIO_ACTIVE_HIGH>;
-+
-+			port {
-+				ov7740_0: endpoint {
-+					remote-endpoint = <&isc_0>;
-+				};
-+			};
-+		};
-+	};
--- 
-2.13.0
+I think you can use WARN_ON here and just return.
+
+CHECK: struct mutex definition without comment
+#2235: FILE: drivers/media/platform/rockchip/rga/rga.h:84:
++       struct mutex mutex;
+
+CHECK: spinlock_t definition without comment
+#2236: FILE: drivers/media/platform/rockchip/rga/rga.h:85:
++       spinlock_t ctrl_lock;
+
+These two fields need a comment describing what the locks protect.
+
+Also move patch 4/4 to the beginning of the patch series. The bindings
+patch should come before the driver.
+
+If I have a v12 with these issues fixed and a MAINTAINERS patch, then
+I'll take it on Friday.
+
+Do you want me to take the dts patches or will they go through another tree?
+
+Regards,
+
+	Hans
