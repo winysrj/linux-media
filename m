@@ -1,81 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:36357 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750849AbdJAKWy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 1 Oct 2017 06:22:54 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, mchehab@kernel.org,
-        vladimir_zapolskiy@mentor.com, hans.verkuil@cisco.com,
-        sakari.ailus@linux.intel.com, lolivei@synopsys.com,
-        p.zabel@pengutronix.de, Jacob Chen <jacob-chen@iotwrt.com>
-Subject: [PATCH v3 1/2] media: i2c: OV5647: ensure clock lane in LP-11 state before streaming on
-Date: Sun,  1 Oct 2017 18:22:37 +0800
-Message-Id: <20171001102238.21585-1-jacob-chen@iotwrt.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36954 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754076AbdJIUYA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Oct 2017 16:24:00 -0400
+Date: Mon, 9 Oct 2017 23:23:56 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: Re: [PATCH 15/24] media: v4l2-subdev: get rid of
+ __V4L2_SUBDEV_MK_GET_TRY() macro
+Message-ID: <20171009202355.ckhaf5xcba5z4tvh@valkosipuli.retiisi.org.uk>
+References: <cover.1507544011.git.mchehab@s-opensource.com>
+ <63937cedcefd1c56b211ec115b717510c470bd1a.1507544011.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <63937cedcefd1c56b211ec115b717510c470bd1a.1507544011.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When I was supporting Rpi Camera Module on the ASUS Tinker board,
-I found this driver have some issues with rockchip's mipi-csi driver.
-It didn't place clock lane in LP-11 state before performing
-D-PHY initialisation.
+Hi Mauro,
 
->From our experience, on some OV sensors,
-LP-11 state is not achieved while BIT(5)-0x4800 is cleared.
+On Mon, Oct 09, 2017 at 07:19:21AM -0300, Mauro Carvalho Chehab wrote:
+> The __V4L2_SUBDEV_MK_GET_TRY() macro is used to define
+> 3 functions that have the same arguments. The code of those
+> functions is simple enough to just declare them, de-obfuscating
+> the code.
+> 
+> While here, replace BUG_ON() by WARN_ON() as there's no reason
+> why to panic the Kernel if this fails.
 
-So let's set BIT(5) and BIT(0) both while not streaming, in order to
-coax the clock lane into LP-11 state.
+BUG_ON() might actually be a better idea as this will lead to memory
+corruption. I presume it's not been hit often.
 
-0x4800 : MIPI CTRL 00
-	BIT(5) : clock lane gate enable
-		0: continuous
-		1: none-continuous
-	BIT(0) : manually set clock lane
-		0: Not used
-		1: used
+That said, I, too, favour WARN_ON() in this case. In case pad exceeds the
+number of pads, then zero could be used, for instance. The only real
+problem comes if there were no pads to begin with. The callers of these
+functions also don't expect to receive NULL. Another option would be to
+define a static, dummy variable for the purpose that would be at least safe
+to access. Or we could just use the dummy entry whenever the pad isn't
+valid.
 
-Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
----
- drivers/media/i2c/ov5647.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+This will make the functions more complex and I might just keep the
+original macro. Even grep works on it nowadays.
 
-diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
-index 95ce90fdb876..247302d01f53 100644
---- a/drivers/media/i2c/ov5647.c
-+++ b/drivers/media/i2c/ov5647.c
-@@ -253,6 +253,10 @@ static int ov5647_stream_on(struct v4l2_subdev *sd)
- {
- 	int ret;
- 
-+	ret = ov5647_write(sd, 0x4800, 0x04);
-+	if (ret < 0)
-+		return ret;
-+
- 	ret = ov5647_write(sd, 0x4202, 0x00);
- 	if (ret < 0)
- 		return ret;
-@@ -264,6 +268,10 @@ static int ov5647_stream_off(struct v4l2_subdev *sd)
- {
- 	int ret;
- 
-+	ret = ov5647_write(sd, 0x4800, 0x25);
-+	if (ret < 0)
-+		return ret;
-+
- 	ret = ov5647_write(sd, 0x4202, 0x0f);
- 	if (ret < 0)
- 		return ret;
-@@ -320,7 +328,10 @@ static int __sensor_init(struct v4l2_subdev *sd)
- 			return ret;
- 	}
- 
--	return ov5647_write(sd, 0x4800, 0x04);
-+	/*
-+	 * stream off to make the clock lane into LP-11 state.
-+	 */
-+	return ov5647_stream_off(sd);
- }
- 
- static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  include/media/v4l2-subdev.h | 37 +++++++++++++++++++++++++------------
+>  1 file changed, 25 insertions(+), 12 deletions(-)
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 1f34045f07ce..35c4476c56ee 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -897,19 +897,32 @@ struct v4l2_subdev_fh {
+>  	container_of(fh, struct v4l2_subdev_fh, vfh)
+>  
+>  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+> -#define __V4L2_SUBDEV_MK_GET_TRY(rtype, fun_name, field_name)		\
+> -	static inline struct rtype *					\
+> -	fun_name(struct v4l2_subdev *sd,				\
+> -		 struct v4l2_subdev_pad_config *cfg,			\
+> -		 unsigned int pad)					\
+> -	{								\
+> -		BUG_ON(pad >= sd->entity.num_pads);			\
+> -		return &cfg[pad].field_name;				\
+> -	}
+> +static inline struct v4l2_mbus_framefmt
+> +*v4l2_subdev_get_try_format(struct v4l2_subdev *sd,
+> +			    struct v4l2_subdev_pad_config *cfg,
+> +			    unsigned int pad)
+> +{
+> +	WARN_ON(pad >= sd->entity.num_pads);
+> +	return &cfg[pad].try_fmt;
+> +}
+>  
+> -__V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, v4l2_subdev_get_try_format, try_fmt)
+> -__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, v4l2_subdev_get_try_crop, try_crop)
+> -__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, v4l2_subdev_get_try_compose, try_compose)
+> +static inline struct v4l2_rect
+> +*v4l2_subdev_get_try_crop(struct v4l2_subdev *sd,
+> +			  struct v4l2_subdev_pad_config *cfg,
+> +			  unsigned int pad)
+> +{
+> +	WARN_ON(pad >= sd->entity.num_pads);
+> +	return &cfg[pad].try_crop;
+> +}
+> +
+> +static inline struct v4l2_rect
+> +*v4l2_subdev_get_try_compose(struct v4l2_subdev *sd,
+> +			     struct v4l2_subdev_pad_config *cfg,
+> +			     unsigned int pad)
+> +{
+> +	WARN_ON(pad >= sd->entity.num_pads);
+> +	return &cfg[pad].try_compose;
+> +}
+>  #endif
+>  
+>  extern const struct v4l2_file_operations v4l2_subdev_fops;
+
 -- 
-2.14.1
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
