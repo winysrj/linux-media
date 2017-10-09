@@ -1,77 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:43957 "EHLO gofer.mess.org"
+Received: from gofer.mess.org ([88.97.38.141]:35903 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751315AbdJEIpm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Oct 2017 04:45:42 -0400
+        id S1751636AbdJIPLy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Oct 2017 11:11:54 -0400
+Date: Mon, 9 Oct 2017 16:11:53 +0100
 From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 25/25] media: rc: nec decoder should not send both repeat and keycode
-Date: Thu,  5 Oct 2017 09:45:27 +0100
-Message-Id: <6d33ad5b3ff8ce55b07e8c3689e62c2aa791b10f.1507192752.git.sean@mess.org>
-In-Reply-To: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-In-Reply-To: <cover.1507192751.git.sean@mess.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 01/25] media: lirc: implement scancode sending
+Message-ID: <20171009151153.aq2hrhkbbddfi7bq@gofer.mess.org>
 References: <cover.1507192751.git.sean@mess.org>
+ <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
+ <5d67a4a0-d04b-5052-c9c9-cbd46401975e@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5d67a4a0-d04b-5052-c9c9-cbd46401975e@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When receiving an nec repeat, rc_repeat() is called and then rc_keydown()
-with the last decoded scancode. That last call is redundant.
+On Mon, Oct 09, 2017 at 11:14:28AM +0200, Hans Verkuil wrote:
+> On 05/10/17 10:45, Sean Young wrote:
+-snip-
+> > +/*
+> > + * struct lirc_scancode - decoded scancode with protocol for use with
+> > + *	LIRC_MODE_SCANCODE
+> > + *
+> > + * @timestamp: Timestamp in nanoseconds using CLOCK_MONOTONIC when IR
+> > + *	was decoded.
+> > + * @flags: should be 0 for transmit. When receiving scancodes,
+> > + *	LIRC_SCANCODE_FLAG_TOGGLE or LIRC_SCANCODE_FLAG_REPEAT can be set
+> > + *	depending on the protocol
+> > + * @target: target for transmit. Unused, set to 0.
+> > + * @source: source for receive. Unused, set to 0.
+> > + * @unused: set to 0.
+> > + * @rc_proto: see enum rc_proto
+> > + * @scancode: the scancode received or to be sent
+> > + */
+> > +struct lirc_scancode {
+> > +	__u64	timestamp;
+> > +	__u32	flags;
+> > +	__u8	target;
+> > +	__u8	source;
+> > +	__u8	unused;
+> > +	__u8	rc_proto;
+> > +	__u64	scancode;
+> 
+> I'm thinking how this will be implemented using CEC. Some RC commands take arguments
+> (up to 4 bytes for the 0x67 (Tune Function) code), so how will they be handled?
+> 
+> See CEC table 6 in the HDMI 1.4 spec.
+> 
+> Should they be part of the scancode, or would it be better to add a '__u8 args[8];'
+> field?
+> 
+> I've no idea what makes sense, it's a weird corner case.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-nec-decoder.c | 29 +++++++++++++++++------------
- 1 file changed, 17 insertions(+), 12 deletions(-)
+I've given it some more thought.
 
-diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-index 5380a9b23c07..4ace5648866d 100644
---- a/drivers/media/rc/ir-nec-decoder.c
-+++ b/drivers/media/rc/ir-nec-decoder.c
-@@ -87,8 +87,6 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			data->state = STATE_BIT_PULSE;
- 			return 0;
- 		} else if (eq_margin(ev.duration, NEC_REPEAT_SPACE, NEC_UNIT / 2)) {
--			rc_repeat(dev);
--			IR_dprintk(1, "Repeat last key\n");
- 			data->state = STATE_TRAILER_PULSE;
- 			return 0;
- 		}
-@@ -151,19 +149,26 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		if (!geq_margin(ev.duration, NEC_TRAILER_SPACE, NEC_UNIT / 2))
- 			break;
+For cec remote control passthrough, you have the tv with the IR receiver (A),
+which then transmits CEC_MSG_USER_CONTROL_PRESSED and
+CEC_MSG_USER_CONTROL_RELEASED cec messages to the correct target, with
+arguments. Then on the target (B), it reads those commands and should execute
+them as if it received them itself.
+
+First of all (B) is already implemented in cec using rc-core. If RC
+passthrough is enabled, then cec will pass those keycodes to rc-core (which
+end up in an input device).
+
+So the problem we are trying to solve here is (A). How I would see this
+implemented is:
+
+1) A physical IR receiver exists which has an rc-core driver and a /dev/lircN
+   device. This is configured using ir-keytable to map to regular input events
+
+2) A process receives input events, and decides that a particular key/command
+   is not for itself (e.g. tell top set box to tune), so it knows what the
+   target cec address is and the tune arguments, so it fills out a 
+   cec_msg with the target, CEC_MSG_USER_CONTROL_PRESSED, 0x67, arguments,
+   and then transmits it using the ioctl CEC_TRANSMIT, followed by
+   another CEC_MSG_USER_CONTROL_RELEASED cec_msg sent using ioctl CEC_TRANSMIT.
+
+In this way of viewing things, an rc-core device is either cec or lirc, and
+thus rc-core lirc devices have a /dev/lircN and rc-core cec devices have a
+/dev/cecN.
+
+So, the alternative which is being proposed is that a cec device has both
+a /dev/cecN and a /dev/lircN. In this case step 2) would look like:
+
+2) A process receives input events, and decides that a particular key/command
+   is not for itself (e.g. tell top set box to tune), so it knows what the
+   target cec address is and the tune arguments, so it fills in a 
+   lirc_scancode with the target, CEC_MSG_USER_CONTROL_PRESSED, 0x67, arguments,
+   and then transmits it using write() to the /dev/lircN device, which
+   then passes it on to cec_transmit() in drivers/media/cec/cec-api.c
+   (without having a cec_fh), and then another lirc_scancode is
+   filled in CEC_MSG_USER_CONTROL_RELEASED and sent.
+
+Now, I think that this has a number of problems:
+
+ - It's a lot of API for simply doing a CEC_TRANSMIT
+
+ - and another chardev for a cec device (i.e. /dev/lircN).
+
+ - lirc scancode tx deals with scancodes, for cec rc passthrough it isn't
+   really scancodes.
+
+ - Wiring this up is not going to be pretty or easy.
+
+ - The lirc chardev has no other function other than sending
+   CEC_MSG_USER_CONTROL_PRESSED and CEC_MSG_USER_CONTROL_RELEASED cec messages.
  
--		address     = bitrev8((data->bits >> 24) & 0xff);
--		not_address = bitrev8((data->bits >> 16) & 0xff);
--		command	    = bitrev8((data->bits >>  8) & 0xff);
--		not_command = bitrev8((data->bits >>  0) & 0xff);
-+		if (data->count == NEC_NBITS) {
-+			address     = bitrev8((data->bits >> 24) & 0xff);
-+			not_address = bitrev8((data->bits >> 16) & 0xff);
-+			command	    = bitrev8((data->bits >>  8) & 0xff);
-+			not_command = bitrev8((data->bits >>  0) & 0xff);
-+
-+			scancode = ir_nec_bytes_to_scancode(address,
-+							    not_address,
-+							    command,
-+							    not_command,
-+							    &rc_proto);
- 
--		scancode = ir_nec_bytes_to_scancode(address, not_address,
--						    command, not_command,
--						    &rc_proto);
-+			if (data->is_nec_x)
-+				data->necx_repeat = true;
- 
--		if (data->is_nec_x)
--			data->necx_repeat = true;
-+			rc_keydown(dev, rc_proto, scancode, 0);
-+		} else {
-+			rc_repeat(dev);
-+		}
- 
--		rc_keydown(dev, rc_proto, scancode, 0);
- 		data->state = STATE_INACTIVE;
- 		return 0;
- 	}
--- 
-2.13.6
+So what I am proposing is that we don't use lirc for sending rc passthrough
+messages for cec.
+
+I hope this makes sense and where not, please *do* tell me exactly where I
+am wrong. I think that I missed something about the scancode tx idea.
+
+> 
+> > +};
+> > +
+> > +#define LIRC_SCANCODE_FLAG_TOGGLE	1
+> > +#define LIRC_SCANCODE_FLAG_REPEAT	2
+> 
+> These flags need documentation.
+
+They do, fair point.
+
+Thanks,
+
+Sean
