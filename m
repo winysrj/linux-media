@@ -1,131 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:53473 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753455AbdJID3J (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 8 Oct 2017 23:29:09 -0400
-Message-ID: <c640b0c8d89728dd087d136af17af638@smtp-cloud9.xs4all.net>
-Date: Mon, 09 Oct 2017 05:29:06 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from gloria.sntech.de ([95.129.55.99]:36540 "EHLO gloria.sntech.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754420AbdJIMwV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Oct 2017 08:52:21 -0400
+From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jacob Chen <jacob-chen@iotwrt.com>,
+        linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        robh+dt@kernel.org, mchehab@kernel.org,
+        linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com
+Subject: Re: [PATCH v11 1/4] rockchip/rga: v4l2 m2m support
+Date: Mon, 09 Oct 2017 14:52:06 +0200
+Message-ID: <1723232.PDSGHSTtIa@diego>
+In-Reply-To: <39318451-a078-3451-47f8-9205a31cadb5@xs4all.nl>
+References: <20171009090424.15292-1-jacob-chen@iotwrt.com> <20171009090424.15292-2-jacob-chen@iotwrt.com> <39318451-a078-3451-47f8-9205a31cadb5@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Hans,
 
-Results of the daily build of media_tree:
+Am Montag, 9. Oktober 2017, 14:48:13 CEST schrieb Hans Verkuil:
+> On 09/10/17 11:04, Jacob Chen wrote:
+> > Rockchip RGA is a separate 2D raster graphic acceleration unit. It
+> > accelerates 2D graphics operations, such as point/line drawing, image
+> > scaling, rotation, BitBLT, alpha blending and image blur/sharpness
+> > 
+> > The driver supports various operations from the rendering pipeline.
+> > 
+> >  - copy
+> >  - fast solid color fill
+> >  - rotation
+> >  - flip
+> >  - alpha blending
+> > 
+> > The code in rga-hw.c is used to configure regs according to operations
+> > The code in rga-buf.c is used to create private mmu table for RGA.
+> > 
+> > Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+> 
+> I ran checkpatch --strict on this patch and I found a few small issues:
+> 
+> WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code
+> rather than BUG() or BUG_ON() #1222: FILE:
+> drivers/media/platform/rockchip/rga/rga.c:89:
+> +               BUG_ON(!ctx);
+> 
+> WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code
+> rather than BUG() or BUG_ON() #1229: FILE:
+> drivers/media/platform/rockchip/rga/rga.c:96:
+> +               BUG_ON(!src);
+> 
+> WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code
+> rather than BUG() or BUG_ON() #1230: FILE:
+> drivers/media/platform/rockchip/rga/rga.c:97:
+> +               BUG_ON(!dst);
+> 
+> I think you can use WARN_ON here and just return.
+> 
+> CHECK: struct mutex definition without comment
+> #2235: FILE: drivers/media/platform/rockchip/rga/rga.h:84:
+> +       struct mutex mutex;
+> 
+> CHECK: spinlock_t definition without comment
+> #2236: FILE: drivers/media/platform/rockchip/rga/rga.h:85:
+> +       spinlock_t ctrl_lock;
+> 
+> These two fields need a comment describing what the locks protect.
+> 
+> Also move patch 4/4 to the beginning of the patch series. The bindings
+> patch should come before the driver.
+> 
+> If I have a v12 with these issues fixed and a MAINTAINERS patch, then
+> I'll take it on Friday.
+> 
+> Do you want me to take the dts patches or will they go through another tree?
 
-date:			Mon Oct  9 05:00:05 CEST 2017
-media-tree git hash:	c1301077213d4dca34f01fc372b64d3c4a49a437
-media_build git hash:	b829b621b4c2e6c5cbedbd1ce62b4e958f7d13a4
-v4l-utils git hash:	01c04f7c8ad1a91af33e20621eba9200f447737e
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+I'd prefer for me to pick up the dts patches ("ARM: dts" and "arm64: dts:"), 
+as otherwise we always get conflicts and confusion :-)
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-arm-stm32: ERRORS
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12.1-i686: ERRORS
-linux-4.13-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12.1-x86_64: ERRORS
-linux-4.13-x86_64: ERRORS
-apps: OK
-spec-git: OK
+I'm monitoring this series, so after you pick the binding + driver, I can
+just pick the other two.
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Thanks
+Heiko
