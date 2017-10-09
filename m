@@ -1,56 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:57328 "EHLO
-        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754585AbdJJHxO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 03:53:14 -0400
-Received: by mail-wm0-f41.google.com with SMTP id l68so2568351wmd.5
-        for <linux-media@vger.kernel.org>; Tue, 10 Oct 2017 00:53:14 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v2] media: venus: venc: fix bytesused v4l2_plane field
-Date: Tue, 10 Oct 2017 10:52:36 +0300
-Message-Id: <20171010075236.26424-1-stanimir.varbanov@linaro.org>
-In-Reply-To: <20171009122458.3053-2-stanimir.varbanov@linaro.org>
-References: <20171009122458.3053-2-stanimir.varbanov@linaro.org>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:36087 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754096AbdJIJEs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Oct 2017 05:04:48 -0400
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Yakir Yang <ykk@rock-chips.com>
+Subject: [PATCH v11 4/4] dt-bindings: Document the Rockchip RGA bindings
+Date: Mon,  9 Oct 2017 17:04:24 +0800
+Message-Id: <20171009090424.15292-5-jacob-chen@iotwrt.com>
+In-Reply-To: <20171009090424.15292-1-jacob-chen@iotwrt.com>
+References: <20171009090424.15292-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes wrongly filled bytesused field of v4l2_plane structure
-by include data_offset in the plane, Also fill data_offset and
-bytesused for capture type of buffers only.
+Add DT bindings documentation for Rockchip RGA
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+Signed-off-by: Yakir Yang <ykk@rock-chips.com>
+Acked-by: Rob Herring <robh@kernel.org>
 ---
-v2: Just delete pointless WARN_ON.
+ .../devicetree/bindings/media/rockchip-rga.txt     | 33 ++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
 
- drivers/media/platform/qcom/venus/venc.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index 6f123a387cf9..3fcf0e9b7b29 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -963,13 +963,12 @@ static void venc_buf_done(struct venus_inst *inst, unsigned int buf_type,
- 	if (!vbuf)
- 		return;
- 
--	vb = &vbuf->vb2_buf;
--	vb->planes[0].bytesused = bytesused;
--	vb->planes[0].data_offset = data_offset;
--
- 	vbuf->flags = flags;
- 
- 	if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		vb = &vbuf->vb2_buf;
-+		vb2_set_plane_payload(vb, 0, bytesused + data_offset);
-+		vb->planes[0].data_offset = data_offset;
- 		vb->timestamp = timestamp_us * NSEC_PER_USEC;
- 		vbuf->sequence = inst->sequence_cap++;
- 	} else {
+diff --git a/Documentation/devicetree/bindings/media/rockchip-rga.txt b/Documentation/devicetree/bindings/media/rockchip-rga.txt
+new file mode 100644
+index 000000000000..fd5276abfad6
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rockchip-rga.txt
+@@ -0,0 +1,33 @@
++device-tree bindings for rockchip 2D raster graphic acceleration controller (RGA)
++
++RGA is a standalone 2D raster graphic acceleration unit. It accelerates 2D
++graphics operations, such as point/line drawing, image scaling, rotation,
++BitBLT, alpha blending and image blur/sharpness.
++
++Required properties:
++- compatible: value should be one of the following
++		"rockchip,rk3288-rga";
++		"rockchip,rk3399-rga";
++
++- interrupts: RGA interrupt specifier.
++
++- clocks: phandle to RGA sclk/hclk/aclk clocks
++
++- clock-names: should be "aclk", "hclk" and "sclk"
++
++- resets: Must contain an entry for each entry in reset-names.
++  See ../reset/reset.txt for details.
++- reset-names: should be "core", "axi" and "ahb"
++
++Example:
++SoC-specific DT entry:
++	rga: rga@ff680000 {
++		compatible = "rockchip,rk3399-rga";
++		reg = <0xff680000 0x10000>;
++		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA_CORE>;
++		clock-names = "aclk", "hclk", "sclk";
++
++		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru SRST_H_RGA>;
++		reset-names = "core, "axi", "ahb";
++	};
 -- 
-2.11.0
+2.14.1
