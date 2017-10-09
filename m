@@ -1,45 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35255 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753172AbdJQRfV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 13:35:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH] uvcvideo: Stream error events carry no data
-Date: Tue, 17 Oct 2017 20:35:35 +0300
-Message-Id: <20171017173535.8953-1-laurent.pinchart@ideasonboard.com>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:35511 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754108AbdJISPC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Oct 2017 14:15:02 -0400
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: mchehab@kernel.org, sean@mess.org, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com, andi.shyti@samsung.com,
+        andreyknvl@google.com, arnd@arndb.de, dvyukov@google.com,
+        kcc@google.com
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        syzkaller@googlegroups.com
+Subject: [PATCH] media: imon: Fix null-ptr-deref in imon_probe
+Date: Mon,  9 Oct 2017 23:44:48 +0530
+Message-Id: <71782d84353db85a9fb9e45ac09f1c2b53c5a04a.1507572539.git.arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-According to the UVC specification, stream error events carry no data.
-Fix a buffer overflow (that should be harmless given data alignment)
-when reporting the stream error event by removing the data byte from the
-message.
+It seems that the return value of usb_ifnum_to_if() can be NULL and
+needs to be checked.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- drivers/media/usb/uvc/uvc_status.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+This bug report by Andrey Konovalov usb/media/imon: null-ptr-deref
+in imon_probe
 
-diff --git a/drivers/media/usb/uvc/uvc_status.c b/drivers/media/usb/uvc/uvc_status.c
-index f552ab997956..1ef20e74b7ac 100644
---- a/drivers/media/usb/uvc/uvc_status.c
-+++ b/drivers/media/usb/uvc/uvc_status.c
-@@ -93,8 +93,9 @@ static void uvc_event_streaming(struct uvc_device *dev, __u8 *data, int len)
- 			data[1], data[3] ? "pressed" : "released", len);
- 		uvc_input_report_key(dev, KEY_CAMERA, data[3]);
- 	} else {
--		uvc_trace(UVC_TRACE_STATUS, "Stream %u error event %02x %02x "
--			"len %d.\n", data[1], data[2], data[3], len);
-+		uvc_trace(UVC_TRACE_STATUS,
-+			  "Stream %u error event %02x len %d.\n",
-+			  data[1], data[2], len);
- 	}
- }
+ drivers/media/rc/imon.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 7b3f31c..0c46155 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -2517,6 +2517,11 @@ static int imon_probe(struct usb_interface *interface,
+ 	mutex_lock(&driver_lock);
  
+ 	first_if = usb_ifnum_to_if(usbdev, 0);
++	if (!first_if) {
++		ret = -ENODEV;
++		goto fail;
++	}
++
+ 	first_if_ctx = usb_get_intfdata(first_if);
+ 
+ 	if (ifnum == 0) {
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
