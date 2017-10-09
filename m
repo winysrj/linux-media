@@ -1,93 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:46670 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751307AbdJMIC6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 04:02:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [ANN] Agenda (v1) for the media mini-summit on Friday Oct 27 in
- Prague
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <807d66bb-87c6-542e-01e6-f7ebba9301e1@xs4all.nl>
-Date: Fri, 13 Oct 2017 10:02:53 +0200
+Received: from osg.samsung.com ([64.30.133.232]:59914 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754884AbdJINUJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Oct 2017 09:20:09 -0400
+Date: Mon, 9 Oct 2017 10:19:55 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 00/17] kernel-doc: add supported to document nested
+ structs/
+Message-ID: <20171009101955.4a860821@vento.lan>
+In-Reply-To: <46422126-F8AB-41A0-8962-99D024EE17D3@darmarit.de>
+References: <cover.1507116877.git.mchehab@s-opensource.com>
+        <20171007103440.35393957@lwn.net>
+        <46422126-F8AB-41A0-8962-99D024EE17D3@darmarit.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Em Sun, 8 Oct 2017 12:07:29 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-We are organizing a media mini-summit on Friday October 27 in Prague, co-located
-with the ELCE conference:
+> > Am 07.10.2017 um 18:34 schrieb Jonathan Corbet <corbet@lwn.net>:
+> > 
+> > On Wed,  4 Oct 2017 08:48:38 -0300
+> > Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> >   
+> >> Right now, it is not possible to document nested struct and nested unions.
+> >> kernel-doc simply ignore them.
+> >> 
+> >> Add support to document them.  
+> > 
+> > So I've finally found some time to actually look at these; sorry for being
+> > so absent from the discussion.  I plead $EXCUSES...
 
-http://events.linuxfoundation.org/events/embedded-linux-conference-europe
+Thanks for looking into it!
 
-If you plan to attend, please let me know. It is open for all, but it is
-nice if we know beforehand who we can expect.
+> > 
+> > Some overall impressions:
+> > 
+> > - Seems like something we want.
+> > - I love hacking all the cruft out of kernel-doc; I've been meaning to
+> >  do that for a bit.
+> > - It would sure be nice to restore proper man-page generation rather than
+> >  documenting a hack with a perl script.  Someday.
+> > 
+> > I have one real complaint, though: with these patches applied, a "make
+> > htmldocs" generates about 5500 (!) more warnings than it did before.  Over
+> > the last couple of months, I put a bit of focused time into reducing
+> > warnings, and managed to get rid of 20-30 of them.  Now I feel despondent.
 
-Location: Mauro, do you have this information?
+Yeah, I know the feeling...
 
-Attendees:
+> > 
+> > I really don't want to add that much noise to the docs build; I think it
+> > will defeat any hope of cleaning up the warnings we already have.  I
+> > wonder if we could suppress warnings about nested structs by default, and
+> > add a flag or envar to turn them back on for those who want them?  
+> 
+> This is what I vote for: +1
+> 
+> > In truth, now that I look, the real problem is that the warnings are
+> > repeated many times - as in, like 100 times:
+> >   
+> >> ./include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'
+> >> ./include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'  
+> > <107 instances deleted...>  
+> >> ./include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'  
+> > 
+> > That's not something that used to happen, and is certainly not helpful.
+> > Figuring that out would help a lot.  Can I get you to take a look at
+> > what's going on here?  
+> 
+> Hi Jon, if you grep for 
+> 
+>  .. kernel-doc:: include/net/cfg80211.h
+> 
+> e.g. by:  grep cfg80211.h Documentation/driver-api/80211/cfg80211.rst | wc -l
+> you will see, that this directive is used 110 times in one reST file. If you
+> have 5 warnings about the kernel-doc markup in include/net/cfg80211.h you will
+> get 550 warnings about kernel-doc markup just for just one source code file.
+> 
+> This is because the kernel-doc parser is an external process which is called
+> (in this example) 110 times for one reST file and one source code file. If 
+> include/net/cfg80211.h is referred in other reST files, we got accordingly
+> more and more warnings .. thats really noise. 
 
-Sakari Ailus <sakari.ailus@iki.fi>
-Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Alexandre Courbot <acourbot@chromium.org>
-Michael Ira Krufky <mkrufky@linuxtv.org>
-Gustavo Padovan <gustavo@padovan.org>
-Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Hans Verkuil <hverkuil@xs4all.nl>
+I guess the solution here is simple: if any output selection argument
+is passed (-export, -internal, -function, -nofunction), only report
+warnings for things that match the output criteria. 
 
-Agenda
-======
+Not sure how easy is to implement that. I'll take a look.
 
-General remarks: the given start/end times for the various topics are
-approximate since it is always hard to predict how long a discussion will take.
-The Request/Jobs API topic is placed last since I expect that that will take
-most of our time.
+> So what I see is, that a major part of such noise is self made, it was one major
+> goal when I started with the python implementation: run kernel-doc parser in the 
+> Sphinx process, cache the results and use it in all reST files where it is required
+> from a kernel-doc directive.
+> 
+> Since there is also a man page solution in the py- version I vote to merge the
+> py-version into the kernel (ATM man is similar to what we had in DocBook and
+> it is expandable). If you want to have a preview of the result, try this patch:
+> 
+>  https://return42.github.io/linuxdoc/linux.html
+> 
+> The only drawback of the py version I see is, that Mauro prefers perl and I do
+> not want to lose him as an contributer to the kernel-doc parser. IMO he is an
+> experienced C programmer with an excellent regexpr knowledge. This is, what is
+> needed for this job. May be we can motivate him to give python one more try,
+> this is what I hope.
+> 
+> The py version includes all patches we had to the perl version, but I also
+> know, that you are not 100% compliant with the coding style, this could
+> all be fixed in a RFC round. Excuse me if I annoying with this solution;
+> IMO it contains what we need, if we really want to make a step forward.
 
-Let me know asap if there are problems with this schedule, or if new topics
-are requested.
+I can probably submit regex patches, no matter if it is perl or python.
 
-8:00-9:00: Continental Breakfast served in the room
+I actually submitted several patches patchwork, in the past, and I'm doing
+lately some contributions to Solaar, with is written in python, in order
+to fix support for my mice.
 
-9:00-9:15: Introduction (Hans)
+The thing is that it takes me more time to write code in Python, as I
+never had the time to study the language. So, I learned what I needed
+there by coding.
 
-9:15-9:30: Status of the HDMI CEC kernel support (Hans)
-	   Give a quick overview of the status: what has been merged, what is still
-	   pending, what is under development.
-
-9:30-10:00: V4L2 Explicit Synchronization (Gustavo)
-	    Quick overview and discussion of the API/direction we are going
-            with fences.
-
-10:00-10:30 Media development process: what works, what doesn't (Hans)
-	    In the past 6 months or so we tried to improve the media development
-	    process. This is an overview of what we did and why we did it, what
-	    works and what doesn't. Feedback is very much appreciated. It is even
-	    more appreciated if people/companies would be willing to assign
-	    new developers to help improve the media subsystem!
-
-10:30-11:00: Morning Break served in the room
-
-11:00-12:00: Media kAPI and uAPI documentation (Mauro)
-	     Give the current status of media API documentation and identify possible
-	     gaps and how to improve it.
-
-12:00-13:30: Lunch
-
-13:30-??:??: Request/jobs API (Alexandre)
-	     Overview of the work based on the request API (proposed new name: jobs API),
-	     to hopefully converge to something that can be merged soon.
-
-15:00-15:30: Afternoon Break served in the room
-
-16:30-17:00 (or earlier if we're lucky): Wrap up (Hans)
-	     Create action items (and who will take care of them) if needed.
-	     Summarize and conclude the day.
-
-Regards,
-
-	Hans
+Thanks,
+Mauro
