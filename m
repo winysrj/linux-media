@@ -1,53 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:37788 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751697AbdJCJ26 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 05:28:58 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        s.nawrocki@samsung.com, Jacob Chen <jacob-chen@iotwrt.com>,
-        Yakir Yang <ykk@rock-chips.com>
-Subject: [PATCH v10 2/4] ARM: dts: rockchip: add RGA device node for RK3288
-Date: Tue,  3 Oct 2017 17:28:37 +0800
-Message-Id: <20171003092839.26236-3-jacob-chen@iotwrt.com>
-In-Reply-To: <20171003092839.26236-1-jacob-chen@iotwrt.com>
-References: <20171003092839.26236-1-jacob-chen@iotwrt.com>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:59652 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751184AbdJILpG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Oct 2017 07:45:06 -0400
+Subject: Re: [PATCH v15 05/32] v4l: async: Correctly serialise async
+ sub-device unregistration
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+ <20171004215051.13385-6-sakari.ailus@linux.intel.com>
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4f8d0e6f-f982-6f7f-6d49-00a9dbc1e13e@xs4all.nl>
+Date: Mon, 9 Oct 2017 13:45:04 +0200
+MIME-Version: 1.0
+In-Reply-To: <20171004215051.13385-6-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add the RGA dt config of rk3288 SoC.
+On 04/10/17 23:50, Sakari Ailus wrote:
+> The check whether an async sub-device is bound to a notifier was performed
+> without list_lock held, making it possible for another process to
+> unbind the async sub-device before the sub-device unregistration function
+> proceeds to take the lock.
+> 
+> Fix this by first acquiring the lock and then proceeding with the check.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-Signed-off-by: Yakir Yang <ykk@rock-chips.com>
----
- arch/arm/boot/dts/rk3288.dtsi | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
-index a0a0b08bff74..8c6dfc0abc42 100644
---- a/arch/arm/boot/dts/rk3288.dtsi
-+++ b/arch/arm/boot/dts/rk3288.dtsi
-@@ -972,6 +972,17 @@
- 		status = "disabled";
- 	};
- 
-+	rga: rga@ff920000 {
-+		compatible = "rockchip,rk3288-rga";
-+		reg = <0x0 0xff920000 0x0 0x180>;
-+		interrupts = <GIC_SPI 18 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA>;
-+		clock-names = "aclk", "hclk", "sclk";
-+		power-domains = <&power RK3288_PD_VIO>;
-+		resets = <&cru SRST_RGA_CORE>, <&cru SRST_RGA_AXI>, <&cru SRST_RGA_AHB>;
-+		reset-names = "core", "axi", "ahb";
-+	};
-+
- 	vopb: vop@ff930000 {
- 		compatible = "rockchip,rk3288-vop";
- 		reg = <0x0 0xff930000 0x0 0x19c>;
--- 
-2.14.1
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 18 +++++++-----------
+>  1 file changed, 7 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 4924481451ca..cde2cf2ab4b0 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -298,20 +298,16 @@ EXPORT_SYMBOL(v4l2_async_register_subdev);
+>  
+>  void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+>  {
+> -	struct v4l2_async_notifier *notifier = sd->notifier;
+> -
+> -	if (!sd->asd) {
+> -		if (!list_empty(&sd->async_list))
+> -			v4l2_async_cleanup(sd);
+> -		return;
+> -	}
+> -
+>  	mutex_lock(&list_lock);
+>  
+> -	list_add(&sd->asd->list, &notifier->waiting);
+> +	if (sd->asd) {
+> +		struct v4l2_async_notifier *notifier = sd->notifier;
+>  
+> -	if (notifier->unbind)
+> -		notifier->unbind(notifier, sd, sd->asd);
+> +		list_add(&sd->asd->list, &notifier->waiting);
+> +
+> +		if (notifier->unbind)
+> +			notifier->unbind(notifier, sd, sd->asd);
+> +	}
+>  
+>  	v4l2_async_cleanup(sd);
+>  
+> 
