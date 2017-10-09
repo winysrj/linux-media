@@ -1,119 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:54341 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934159AbdJQIHf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 04:07:35 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.15] Various fixes
-Message-ID: <30b014b7-7605-6dd9-15c8-8f4fea44eee5@xs4all.nl>
-Date: Tue, 17 Oct 2017 10:07:30 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from osg.samsung.com ([64.30.133.232]:59614 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753995AbdJIKTj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Oct 2017 06:19:39 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: [PATCH 11/24] media: v4l2-subdev: create cross-references for ioctls
+Date: Mon,  9 Oct 2017 07:19:17 -0300
+Message-Id: <70bc13a95be8ef7e5f8178eb9c859cf06c72e1b2.1507544011.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507544011.git.mchehab@s-opensource.com>
+References: <cover.1507544011.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507544011.git.mchehab@s-opensource.com>
+References: <cover.1507544011.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+When generating Sphinx output, create cross-references for the
+callbacks for each ioctl.
 
-One day later than planned (was hoping to do this on Monday), but better late than
-never.
+While here, fix a few wrong names for ioctls.
 
-Regards,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ include/media/v4l2-subdev.h | 65 ++++++++++++++++++++++++---------------------
+ 1 file changed, 34 insertions(+), 31 deletions(-)
 
-	Hans
-
-The following changes since commit 7571358dd22dc91dea560f0dde62ce23c033b6b6:
-
-  media: dt: bindings: media: Document data lane numbering without lane reordering (2017-10-16 16:54:45 -0700)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.15d
-
-for you to fetch changes up to 137e07c329e83ea6fd0648e3534a3793368f6ddf:
-
-  tc358743: set entity function to video interface bridge (2017-10-17 10:04:50 +0200)
-
-----------------------------------------------------------------
-Arvind Yadav (1):
-      coda: Handle return value of kasprintf
-
-Bhumika Goyal (4):
-      bt8xx: make bttv_vbi_qops const
-      zoran: make zoran_template const
-      cx23885/saa7134: make vb2_ops const
-      au0828/em28xx: make vb2_ops const
-
-Dan Carpenter (1):
-      media: tc358743: remove an unneeded condition
-
-Hans Verkuil (1):
-      cec-pin.h: move non-kAPI parts into cec-pin-priv.h
-
-Jacob Chen (1):
-      media: i2c: tc358743: fix spelling mistake
-
-Markus Elfring (4):
-      tm6000: Delete seven error messages for a failed memory allocation
-      tm6000: Adjust seven checks for null pointers
-      tm6000: Use common error handling code in tm6000_usb_probe()
-      tm6000: One function call less in tm6000_usb_probe() after error detection
-
-Philipp Zabel (1):
-      tc358743: set entity function to video interface bridge
-
-Stanimir Varbanov (3):
-      media: venus: fix wrong size on dma_free
-      media: venus: venc: fix bytesused v4l2_plane field
-      venus: reimplement decoder stop command
-
-Tim Harvey (1):
-      media: imx: Fix VDIC CSI1 selection
-
-Wei Yongjun (1):
-      vimc: Fix return value check in vimc_add_subdevs()
-
-Wenyou Yang (5):
-      media: atmel-isc: Add spin lock for clock enable ops
-      media: atmel-isc: Add prepare and unprepare ops
-      media: atmel-isc: Enable the clocks during probe
-      media: atmel-isc: Remove unnecessary member
-      media: atmel-isc: Rework the format list
-
- drivers/media/cec/cec-api.c                   |   1 +
- drivers/media/cec/cec-pin-priv.h              | 133 ++++++++++++
- drivers/media/cec/cec-pin.c                   |   1 +
- drivers/media/i2c/tc358743.c                  |   5 +-
- drivers/media/pci/bt8xx/bttv-vbi.c            |   2 +-
- drivers/media/pci/bt8xx/bttvp.h               |   2 +-
- drivers/media/pci/cx23885/cx23885-vbi.c       |   2 +-
- drivers/media/pci/cx23885/cx23885.h           |   2 +-
- drivers/media/pci/saa7134/saa7134-vbi.c       |   2 +-
- drivers/media/pci/saa7134/saa7134.h           |   2 +-
- drivers/media/pci/zoran/zoran_card.h          |   2 +-
- drivers/media/pci/zoran/zoran_driver.c        |   2 +-
- drivers/media/platform/atmel/atmel-isc-regs.h |   1 +
- drivers/media/platform/atmel/atmel-isc.c      | 629 ++++++++++++++++++++++++++++++++++++++++++------------
- drivers/media/platform/coda/coda-bit.c        |   4 +
- drivers/media/platform/qcom/venus/core.h      |   2 -
- drivers/media/platform/qcom/venus/helpers.c   |   7 -
- drivers/media/platform/qcom/venus/hfi.c       |   1 +
- drivers/media/platform/qcom/venus/hfi_venus.c |  12 +-
- drivers/media/platform/qcom/venus/vdec.c      |  34 ++-
- drivers/media/platform/qcom/venus/venc.c      |   7 +-
- drivers/media/platform/vimc/vimc-core.c       |   5 +-
- drivers/media/usb/au0828/au0828-vbi.c         |   2 +-
- drivers/media/usb/au0828/au0828.h             |   2 +-
- drivers/media/usb/em28xx/em28xx-v4l.h         |   2 +-
- drivers/media/usb/em28xx/em28xx-vbi.c         |   2 +-
- drivers/media/usb/tm6000/tm6000-cards.c       |  27 ++-
- drivers/media/usb/tm6000/tm6000-dvb.c         |  11 +-
- drivers/media/usb/tm6000/tm6000-input.c       |   2 +-
- drivers/media/usb/tm6000/tm6000-video.c       |  17 +-
- drivers/staging/media/imx/imx-ic-prp.c        |   5 +-
- include/media/cec-pin.h                       | 107 ----------
- 32 files changed, 712 insertions(+), 323 deletions(-)
- create mode 100644 drivers/media/cec/cec-pin-priv.h
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 6286c69a12ba..b299cf63972b 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -141,7 +141,7 @@ struct v4l2_subdev_io_pin_config {
+ /**
+  * struct v4l2_subdev_core_ops - Define core ops callbacks for subdevs
+  *
+- * @log_status: callback for %VIDIOC_LOG_STATUS ioctl handler code.
++ * @log_status: callback for VIDIOC_LOG_STATUS() ioctl handler code.
+  *
+  * @s_io_pin_config: configure one or more chip I/O pins for chips that
+  *	multiplex different internal signal pads out to IO pins.  This function
+@@ -169,9 +169,9 @@ struct v4l2_subdev_io_pin_config {
+  * @compat_ioctl32: called when a 32 bits application uses a 64 bits Kernel,
+  *		    in order to fix data passed from/to userspace.
+  *
+- * @g_register: callback for %VIDIOC_G_REGISTER ioctl handler code.
++ * @g_register: callback for VIDIOC_DBG_G_REGISTER() ioctl handler code.
+  *
+- * @s_register: callback for %VIDIOC_G_REGISTER ioctl handler code.
++ * @s_register: callback for VIDIOC_DBG_S_REGISTER() ioctl handler code.
+  *
+  * @s_power: puts subdevice in power saving mode (on == 0) or normal operation
+  *	mode (on == 1).
+@@ -216,25 +216,25 @@ struct v4l2_subdev_core_ops {
+  * struct v4l2_subdev_tuner_ops - Callbacks used when v4l device was opened
+  *	in radio mode.
+  *
+- * @s_radio: callback for %VIDIOC_S_RADIO ioctl handler code.
++ * @s_radio: callback for VIDIOC_S_RADIO() ioctl handler code.
+  *
+- * @s_frequency: callback for %VIDIOC_S_FREQUENCY ioctl handler code.
++ * @s_frequency: callback for VIDIOC_S_FREQUENCY() ioctl handler code.
+  *
+- * @g_frequency: callback for %VIDIOC_G_FREQUENCY ioctl handler code.
++ * @g_frequency: callback for VIDIOC_G_FREQUENCY() ioctl handler code.
+  *		 freq->type must be filled in. Normally done by video_ioctl2()
+  *		 or the bridge driver.
+  *
+- * @enum_freq_bands: callback for %VIDIOC_ENUM_FREQ_BANDS ioctl handler code.
++ * @enum_freq_bands: callback for VIDIOC_ENUM_FREQ_BANDS() ioctl handler code.
+  *
+- * @g_tuner: callback for %VIDIOC_G_TUNER ioctl handler code.
++ * @g_tuner: callback for VIDIOC_G_TUNER() ioctl handler code.
+  *
+- * @s_tuner: callback for %VIDIOC_S_TUNER ioctl handler code. @vt->type must be
++ * @s_tuner: callback for VIDIOC_S_TUNER() ioctl handler code. @vt->type must be
+  *	     filled in. Normally done by video_ioctl2 or the
+  *	     bridge driver.
+  *
+- * @g_modulator: callback for %VIDIOC_G_MODULATOR ioctl handler code.
++ * @g_modulator: callback for VIDIOC_G_MODULATOR() ioctl handler code.
+  *
+- * @s_modulator: callback for %VIDIOC_S_MODULATOR ioctl handler code.
++ * @s_modulator: callback for VIDIOC_S_MODULATOR() ioctl handler code.
+  *
+  * @s_type_addr: sets tuner type and its I2C addr.
+  *
+@@ -333,9 +333,9 @@ struct v4l2_mbus_frame_desc {
+  *	regarding clock frequency dividers, etc. If not used, then set flags
+  *	to 0. If the frequency is not supported, then -EINVAL is returned.
+  *
+- * @g_std: callback for %VIDIOC_G_STD ioctl handler code.
++ * @g_std: callback for VIDIOC_G_STD() ioctl handler code.
+  *
+- * @s_std: callback for %VIDIOC_S_STD ioctl handler code.
++ * @s_std: callback for VIDIOC_S_STD() ioctl handler code.
+  *
+  * @s_std_output: set v4l2_std_id for video OUTPUT devices. This is ignored by
+  *	video input devices.
+@@ -343,7 +343,7 @@ struct v4l2_mbus_frame_desc {
+  * @g_std_output: get current standard for video OUTPUT devices. This is ignored
+  *	by video input devices.
+  *
+- * @querystd: callback for %VIDIOC_QUERYSTD ioctl handler code.
++ * @querystd: callback for VIDIOC_QUERYSTD() ioctl handler code.
+  *
+  * @g_tvnorms: get &v4l2_std_id with all standards supported by the video
+  *	CAPTURE device. This is ignored by video output devices.
+@@ -359,13 +359,15 @@ struct v4l2_mbus_frame_desc {
+  *
+  * @g_pixelaspect: callback to return the pixelaspect ratio.
+  *
+- * @g_parm: callback for %VIDIOC_G_PARM ioctl handler code.
++ * @g_parm: callback for VIDIOC_G_PARM() ioctl handler code.
+  *
+- * @s_parm: callback for %VIDIOC_S_PARM ioctl handler code.
++ * @s_parm: callback for VIDIOC_S_PARM() ioctl handler code.
+  *
+- * @g_frame_interval: callback for %VIDIOC_G_FRAMEINTERVAL ioctl handler code.
++ * @g_frame_interval: callback for VIDIOC_SUBDEV_G_FRAME_INTERVAL()
++ *		      ioctl handler code.
+  *
+- * @s_frame_interval: callback for %VIDIOC_S_FRAMEINTERVAL ioctl handler code.
++ * @s_frame_interval: callback for VIDIOC_SUBDEV_S_FRAME_INTERVAL()
++ *		      ioctl handler code.
+  *
+  * @s_dv_timings: Set custom dv timings in the sub device. This is used
+  *	when sub device is capable of setting detailed timing information
+@@ -373,7 +375,7 @@ struct v4l2_mbus_frame_desc {
+  *
+  * @g_dv_timings: Get custom dv timings in the sub device.
+  *
+- * @query_dv_timings: callback for %VIDIOC_QUERY_DV_TIMINGS ioctl handler code.
++ * @query_dv_timings: callback for VIDIOC_QUERY_DV_TIMINGS() ioctl handler code.
+  *
+  * @g_mbus_config: get supported mediabus configurations
+  *
+@@ -444,7 +446,8 @@ struct v4l2_subdev_video_ops {
+  *	member (to determine whether CC data from the first or second field
+  *	should be obtained).
+  *
+- * @g_sliced_vbi_cap: callback for %VIDIOC_SLICED_VBI_CAP ioctl handler code.
++ * @g_sliced_vbi_cap: callback for VIDIOC_G_SLICED_VBI_CAP() ioctl handler
++ *		      code.
+  *
+  * @s_raw_fmt: setup the video encoder/decoder for raw VBI.
+  *
+@@ -611,30 +614,30 @@ struct v4l2_subdev_pad_config {
+  * struct v4l2_subdev_pad_ops - v4l2-subdev pad level operations
+  *
+  * @init_cfg: initialize the pad config to default values
+- * @enum_mbus_code: callback for %VIDIOC_SUBDEV_ENUM_MBUS_CODE ioctl handler
++ * @enum_mbus_code: callback for VIDIOC_SUBDEV_ENUM_MBUS_CODE() ioctl handler
+  *		    code.
+- * @enum_frame_size: callback for %VIDIOC_SUBDEV_ENUM_FRAME_SIZE ioctl handler
++ * @enum_frame_size: callback for VIDIOC_SUBDEV_ENUM_FRAME_SIZE() ioctl handler
+  *		     code.
+  *
+- * @enum_frame_interval: callback for %VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL ioctl
++ * @enum_frame_interval: callback for VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL() ioctl
+  *			 handler code.
+  *
+- * @get_fmt: callback for %VIDIOC_SUBDEV_G_FMT ioctl handler code.
++ * @get_fmt: callback for VIDIOC_SUBDEV_G_FMT() ioctl handler code.
+  *
+- * @set_fmt: callback for %VIDIOC_SUBDEV_S_FMT ioctl handler code.
++ * @set_fmt: callback for VIDIOC_SUBDEV_S_FMT() ioctl handler code.
+  *
+- * @get_selection: callback for %VIDIOC_SUBDEV_G_SELECTION ioctl handler code.
++ * @get_selection: callback for VIDIOC_SUBDEV_G_SELECTION() ioctl handler code.
+  *
+- * @set_selection: callback for %VIDIOC_SUBDEV_S_SELECTION ioctl handler code.
++ * @set_selection: callback for VIDIOC_SUBDEV_S_SELECTION() ioctl handler code.
+  *
+- * @get_edid: callback for %VIDIOC_SUBDEV_G_EDID ioctl handler code.
++ * @get_edid: callback for VIDIOC_SUBDEV_G_EDID() ioctl handler code.
+  *
+- * @set_edid: callback for %VIDIOC_SUBDEV_S_EDID ioctl handler code.
++ * @set_edid: callback for VIDIOC_SUBDEV_S_EDID() ioctl handler code.
+  *
+- * @dv_timings_cap: callback for %VIDIOC_SUBDEV_DV_TIMINGS_CAP ioctl handler
++ * @dv_timings_cap: callback for VIDIOC_SUBDEV_DV_TIMINGS_CAP() ioctl handler
+  *		    code.
+  *
+- * @enum_dv_timings: callback for %VIDIOC_SUBDEV_ENUM_DV_TIMINGS ioctl handler
++ * @enum_dv_timings: callback for VIDIOC_SUBDEV_ENUM_DV_TIMINGS() ioctl handler
+  *		     code.
+  *
+  * @link_validate: used by the media controller code to check if the links
+-- 
+2.13.6
