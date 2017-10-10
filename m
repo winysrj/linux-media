@@ -1,197 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:36118 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751257AbdJILp1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 07:45:27 -0400
-Subject: Re: [PATCH v15 04/32] v4l: async: Fix notifier complete callback
- error handling
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
- <20171004215051.13385-5-sakari.ailus@linux.intel.com>
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <c4734787-b4e3-34fb-f0e3-3866fba92e14@xs4all.nl>
-Date: Mon, 9 Oct 2017 13:45:25 +0200
-MIME-Version: 1.0
-In-Reply-To: <20171004215051.13385-5-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from osg.samsung.com ([64.30.133.232]:57389 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755272AbdJJLpd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 07:45:33 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v8 5/7] media: open.rst: Adjust some terms to match the glossary
+Date: Tue, 10 Oct 2017 08:45:21 -0300
+Message-Id: <57ad7d66ae6c9de96cae48cecc77137a0970bab6.1507635716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507635716.git.mchehab@s-opensource.com>
+References: <cover.1507635716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507635716.git.mchehab@s-opensource.com>
+References: <cover.1507635716.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/10/17 23:50, Sakari Ailus wrote:
-> The notifier complete callback may return an error. This error code was
-> simply returned to the caller but never handled properly.
-> 
-> Move calling the complete callback function to the caller from
-> v4l2_async_test_notify and undo the work that was done either in async
-> sub-device or async notifier registration.
-> 
-> Reported-by: Russell King <rmk+kernel@armlinux.org.uk>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 78 +++++++++++++++++++++++++++---------
->  1 file changed, 60 insertions(+), 18 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index ca281438a0ae..4924481451ca 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -122,9 +122,6 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
->  	/* Move from the global subdevice list to notifier's done */
->  	list_move(&sd->async_list, &notifier->done);
->  
-> -	if (list_empty(&notifier->waiting) && notifier->complete)
-> -		return notifier->complete(notifier);
-> -
->  	return 0;
->  }
->  
-> @@ -136,11 +133,27 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
->  	sd->asd = NULL;
->  }
->  
-> +static void v4l2_async_notifier_unbind_all_subdevs(
-> +	struct v4l2_async_notifier *notifier)
-> +{
-> +	struct v4l2_subdev *sd, *tmp;
-> +
-> +	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> +		if (notifier->unbind)
-> +			notifier->unbind(notifier, sd, sd->asd);
-> +
-> +		v4l2_async_cleanup(sd);
-> +
-> +		list_move(&sd->async_list, &subdev_list);
-> +	}
-> +}
-> +
->  int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  				 struct v4l2_async_notifier *notifier)
->  {
->  	struct v4l2_subdev *sd, *tmp;
->  	struct v4l2_async_subdev *asd;
-> +	int ret;
->  	int i;
->  
->  	if (!v4l2_dev || !notifier->num_subdevs ||
-> @@ -185,19 +198,30 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  		}
->  	}
->  
-> +	if (list_empty(&notifier->waiting) && notifier->complete) {
-> +		ret = notifier->complete(notifier);
-> +		if (ret)
-> +			goto err_complete;
-> +	}
-> +
->  	/* Keep also completed notifiers on the list */
->  	list_add(&notifier->list, &notifier_list);
->  
->  	mutex_unlock(&list_lock);
->  
->  	return 0;
-> +
-> +err_complete:
-> +	v4l2_async_notifier_unbind_all_subdevs(notifier);
-> +
-> +	mutex_unlock(&list_lock);
-> +
-> +	return ret;
->  }
->  EXPORT_SYMBOL(v4l2_async_notifier_register);
->  
->  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  {
-> -	struct v4l2_subdev *sd, *tmp;
-> -
->  	if (!notifier->v4l2_dev)
->  		return;
->  
-> @@ -205,14 +229,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  
->  	list_del(&notifier->list);
->  
-> -	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> -		if (notifier->unbind)
-> -			notifier->unbind(notifier, sd, sd->asd);
-> -
-> -		v4l2_async_cleanup(sd);
-> -
-> -		list_move(&sd->async_list, &subdev_list);
-> -	}
-> +	v4l2_async_notifier_unbind_all_subdevs(notifier);
->  
->  	mutex_unlock(&list_lock);
->  
-> @@ -223,6 +240,7 @@ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
->  int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  {
->  	struct v4l2_async_notifier *notifier;
-> +	int ret;
->  
->  	/*
->  	 * No reference taken. The reference is held by the device
-> @@ -238,19 +256,43 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  
->  	list_for_each_entry(notifier, &notifier_list, list) {
->  		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
-> -		if (asd) {
-> -			int ret = v4l2_async_test_notify(notifier, sd, asd);
-> -			mutex_unlock(&list_lock);
-> -			return ret;
-> -		}
-> +		int ret;
-> +
-> +		if (!asd)
-> +			continue;
-> +
-> +		ret = v4l2_async_test_notify(notifier, sd, asd);
-> +		if (ret)
-> +			goto err_unlock;
-> +
-> +		if (!list_empty(&notifier->waiting) || !notifier->complete)
-> +			goto out_unlock;
-> +
-> +		ret = notifier->complete(notifier);
-> +		if (ret)
-> +			goto err_cleanup;
-> +
-> +		goto out_unlock;
->  	}
->  
->  	/* None matched, wait for hot-plugging */
->  	list_add(&sd->async_list, &subdev_list);
->  
-> +out_unlock:
->  	mutex_unlock(&list_lock);
->  
->  	return 0;
-> +
-> +err_cleanup:
-> +	if (notifier->unbind)
-> +		notifier->unbind(notifier, sd, sd->asd);
-> +
-> +	v4l2_async_cleanup(sd);
+As we now have a glossary, some terms used on open.rst
+require adjustments.
 
-I'm trying to understand this. Who will unbind all subdevs in this case?
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/v4l/open.rst | 25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-And in the general case: if complete returns an error, the bridge driver
-should be remove()d. Who will do that? Does that work at all?
-
-Regards,
-
-	Hans
-
-> +
-> +err_unlock:
-> +	mutex_unlock(&list_lock);
-> +
-> +	return ret;
->  }
->  EXPORT_SYMBOL(v4l2_async_register_subdev);
->  
-> 
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index 1a8a9e1d0e84..c9e6bc9280a6 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -159,27 +159,28 @@ Related Devices
+ Devices can support several functions. For example video capturing, VBI
+ capturing and radio support.
+ 
+-The V4L2 API creates different nodes for each of these functions.
++The V4L2 API creates different :term:`V4L2 device nodes <v4l2 device node>`
++types for each of these functions.
+ 
+-The V4L2 API was designed with the idea that one device node could
++The V4L2 API was designed with the idea that one :term:`device node` could
+ support all functions. However, in practice this never worked: this
+-'feature' was never used by applications and many drivers did not
+-support it and if they did it was certainly never tested. In addition,
++'feature' was never used by applications and many :term:`drivers <driver>`
++did not support it and if they did it was certainly never tested. In addition,
+ switching a device node between different functions only works when
+ using the streaming I/O API, not with the
+ :ref:`read() <func-read>`/\ :ref:`write() <func-write>` API.
+ 
+-Today each device node supports just one function.
++Today each V4L2 device node supports just one function.
+ 
+-Besides video input or output the hardware may also support audio
+-sampling or playback. If so, these functions are implemented as ALSA PCM
+-devices with optional ALSA audio mixer devices.
++Besides video input or output, the :term:`media hardware` may also support
++audio sampling or playback. If so, these functions are implemented as ALSA
++PCM devices with optional ALSA audio mixer devices.
+ 
+ One problem with all these devices is that the V4L2 API makes no
+-provisions to find these related devices. Some really complex devices
+-use the Media Controller (see :ref:`media_controller`) which can be
+-used for this purpose. But most drivers do not use it, and while some
+-code exists that uses sysfs to discover related devices (see
++provisions to find these related V4L2 device nodes. Some really complex
++hardware use the :term:`media controller` (see :ref:`media_controller`) which
++can be used for this purpose. But several drivers do not use it, and while
++some code exists that uses sysfs to discover related V4L2 device nodes (see
+ libmedia_dev in the
+ `v4l-utils <http://git.linuxtv.org/cgit.cgi/v4l-utils.git/>`__ git
+ repository), there is no library yet that can provide a single API
+-- 
+2.13.6
