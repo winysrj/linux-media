@@ -1,73 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:50269 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752205AbdJ0Iw3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Oct 2017 04:52:29 -0400
-Received: by mail-wm0-f66.google.com with SMTP id s66so2063479wmf.5
-        for <linux-media@vger.kernel.org>; Fri, 27 Oct 2017 01:52:29 -0700 (PDT)
-Subject: Re: [PATCH 07/13] media: soc_camera pad-aware driver initialisation
-To: William Towle <william.towle@codethink.co.uk>,
-        linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
- <1437654103-26409-8-git-send-email-william.towle@codethink.co.uk>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <abf6792b-a43b-ed80-6d07-fff7f42fdf2a@cogentembedded.com>
-Date: Fri, 27 Oct 2017 10:52:18 +0200
-MIME-Version: 1.0
-In-Reply-To: <1437654103-26409-8-git-send-email-william.towle@codethink.co.uk>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from gofer.mess.org ([88.97.38.141]:33313 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754700AbdJJHSB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 03:18:01 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v3 10/26] media: lirc: validate scancode for transmit
+Date: Tue, 10 Oct 2017 08:17:59 +0100
+Message-Id: <8bc59dcf22de36a4f624122807c5c62fc4cca656.1507618841.git.sean@mess.org>
+In-Reply-To: <cover.1507618840.git.sean@mess.org>
+References: <cover.1507618840.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+Ensure we reject an attempt to transmit invalid scancodes.
 
-On 7/23/2015 2:21 PM, William Towle wrote:
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-lirc-codec.c | 10 ++++++++
+ drivers/media/rc/rc-core-priv.h  |  1 +
+ drivers/media/rc/rc-main.c       | 53 +++++++++++++++++++++++++---------------
+ 3 files changed, 44 insertions(+), 20 deletions(-)
 
-> Add detection of source pad number for drivers aware of the media
-> controller API, so that the combination of soc_camera and rcar_vin
-> can create device nodes to support modern drivers such as adv7604.c
-> (for HDMI on Lager) and the converted adv7180.c (for composite)
-> underneath.
-> 
-> Building rcar_vin gains a dependency on CONFIG_MEDIA_CONTROLLER, in
-> line with requirements for building the drivers associated with it.
-> 
-> Signed-off-by: William Towle <william.towle@codethink.co.uk>
-> Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-> ---
->   drivers/media/platform/soc_camera/Kconfig      |    1 +
->   drivers/media/platform/soc_camera/rcar_vin.c   |    1 +
-
-    This driver no longer exists. What did you base on?
-
->   drivers/media/platform/soc_camera/soc_camera.c |   36 ++++++++++++++++++++++++
->   include/media/soc_camera.h                     |    1 +
->   4 files changed, 39 insertions(+)
-[...]
-> @@ -1310,8 +1313,33 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
->   		return ret;
->   	}
->   
-> +	icd->src_pad_idx = 0;
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
->   	/* At this point client .probe() should have run already */
-> +	ret = media_entity_init(&icd->vdev->entity, 1, &pad, 0);
-> +	if (ret < 0) {
-> +		goto eusrfmt;
-> +	} else {
-> +		int pad_idx;
-> +
-> +		for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
-> +			if (sd->entity.pads[pad_idx].flags
-> +					== MEDIA_PAD_FL_SOURCE)
-
-    Please leave == on the previous line...
-
-[...]
-
-MBR, Sergei
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index f2feca17c3a0..d9406fdbc9a3 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -121,6 +121,16 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 		if (scan.flags || scan.keycode || scan.timestamp)
+ 			return -EINVAL;
+ 
++		/*
++		 * The scancode field in lirc_scancode is 64-bit simply
++		 * to future-proof it, since there are IR protocols encode
++		 * use more than 32 bits. For now only 32-bit protocols
++		 * are supported.
++		 */
++		if (scan.scancode > U32_MAX ||
++		    !rc_validate_scancode(scan.rc_proto, scan.scancode))
++			return -EINVAL;
++
+ 		if (dev->tx_scancode) {
+ 			ret = dev->tx_scancode(dev, &scan);
+ 			return ret < 0 ? ret : n;
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 21e515d34f64..a064c401fa38 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -160,6 +160,7 @@ static inline bool is_timing_event(struct ir_raw_event ev)
+ #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
+ 
+ /* functions for IR encoders */
++bool rc_validate_scancode(enum rc_proto proto, u32 scancode);
+ 
+ static inline void init_ir_raw_event_duration(struct ir_raw_event *ev,
+ 					      unsigned int pulse,
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 758c14b90a87..38393f13822f 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -776,6 +776,37 @@ void rc_keydown_notimeout(struct rc_dev *dev, enum rc_proto protocol,
+ EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
+ 
+ /**
++ * rc_validate_scancode() - checks that a scancode is valid for a protocol
++ * @proto:	protocol
++ * @scancode:	scancode
++ */
++bool rc_validate_scancode(enum rc_proto proto, u32 scancode)
++{
++	switch (proto) {
++	case RC_PROTO_NECX:
++		if ((((scancode >> 16) ^ ~(scancode >> 8)) & 0xff) == 0)
++			return false;
++		break;
++	case RC_PROTO_NEC32:
++		if ((((scancode >> 24) ^ ~(scancode >> 16)) & 0xff) == 0)
++			return false;
++		break;
++	case RC_PROTO_RC6_MCE:
++		if ((scancode & 0xffff0000) != 0x800f0000)
++			return false;
++		break;
++	case RC_PROTO_RC6_6A_32:
++		if ((scancode & 0xffff0000) == 0x800f0000)
++			return false;
++		break;
++	default:
++		break;
++	}
++
++	return true;
++}
++
++/**
+  * rc_validate_filter() - checks that the scancode and mask are valid and
+  *			  provides sensible defaults
+  * @dev:	the struct rc_dev descriptor of the device
+@@ -793,26 +824,8 @@ static int rc_validate_filter(struct rc_dev *dev,
+ 
+ 	mask = protocols[protocol].scancode_bits;
+ 
+-	switch (protocol) {
+-	case RC_PROTO_NECX:
+-		if ((((s >> 16) ^ ~(s >> 8)) & 0xff) == 0)
+-			return -EINVAL;
+-		break;
+-	case RC_PROTO_NEC32:
+-		if ((((s >> 24) ^ ~(s >> 16)) & 0xff) == 0)
+-			return -EINVAL;
+-		break;
+-	case RC_PROTO_RC6_MCE:
+-		if ((s & 0xffff0000) != 0x800f0000)
+-			return -EINVAL;
+-		break;
+-	case RC_PROTO_RC6_6A_32:
+-		if ((s & 0xffff0000) == 0x800f0000)
+-			return -EINVAL;
+-		break;
+-	default:
+-		break;
+-	}
++	if (!rc_validate_scancode(protocol, s))
++		return -EINVAL;
+ 
+ 	filter->data &= mask;
+ 	filter->mask &= mask;
+-- 
+2.13.6
