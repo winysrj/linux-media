@@ -1,400 +1,271 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:41387 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751677AbdJ2U6x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Oct 2017 16:58:53 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 10/28] media: lirc: implement scancode sending
-Date: Sun, 29 Oct 2017 20:58:52 +0000
-Message-Id: <9a94c24c559dc808865035e777dcedd01f4025ac.1509309834.git.sean@mess.org>
-In-Reply-To: <cover.1509309834.git.sean@mess.org>
-References: <cover.1509309834.git.sean@mess.org>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:39086 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755919AbdJJNxw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 09:53:52 -0400
+Subject: Re: [PATCH v8 1/7] media: add glossary.rst with a glossary of terms
+ used at V4L2 spec
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <cover.1507635716.git.mchehab@s-opensource.com>
+ <4df5dd598922e05527bbf7ee9fde4c5ea9be5f7b.1507635716.git.mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e37d7780-e47e-f852-608b-3d48e137a24d@xs4all.nl>
+Date: Tue, 10 Oct 2017 15:53:46 +0200
+MIME-Version: 1.0
+In-Reply-To: <4df5dd598922e05527bbf7ee9fde4c5ea9be5f7b.1507635716.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This introduces a new lirc mode: scancode. Any device which can send raw IR
-can now also send scancodes.
+More (mostly) small stuff:
 
-int main()
-{
-	int mode, fd = open("/dev/lirc0", O_RDWR);
+On 10/10/2017 01:45 PM, Mauro Carvalho Chehab wrote:
+> Add a glossary of terms for V4L2, as several concepts are complex
+> enough to cause misunderstandings.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  Documentation/media/uapi/v4l/glossary.rst | 167 ++++++++++++++++++++++++++++++
+>  Documentation/media/uapi/v4l/v4l2.rst     |   1 +
+>  2 files changed, 168 insertions(+)
+>  create mode 100644 Documentation/media/uapi/v4l/glossary.rst
+> 
+> diff --git a/Documentation/media/uapi/v4l/glossary.rst b/Documentation/media/uapi/v4l/glossary.rst
+> new file mode 100644
+> index 000000000000..a5a832b4dda5
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/glossary.rst
+> @@ -0,0 +1,167 @@
+> +========
+> +Glossary
+> +========
+> +
+> +.. note::
+> +
+> +   This goal of section is to standardize the terms used within the V4L2
+> +   documentation. It is written incrementally as they are standardized in
+> +   the V4L2 documentation. So, it is a Work In Progress.
+> +
+> +.. Please keep the glossary entries in alphabetical order
+> +
+> +.. glossary::
+> +
+> +    Bridge driver
+> +	A driver that provides a bridge between the CPU's bus to the
+> +	data and control buses of a :term:`media hardware`. Often, the
+> +	bridge driver is the same as :term:`V4L2 main driver`.
+> +
+> +    Chip
+> +	:See: :term:`Integrated circuit`.
+> +
+> +    Device Driver
+> +    Driver
+> +	The part of the Linux Kernel that implements support
+> +	for a :term:`hardware component`.
+> +
+> +    Device Node
+> +	A character device node in the file system used to control and/or
+> +	do input/output data transfers from/to a Kernel driver.
+> +
+> +    Digital Signal Processor
+> +    DSP
+> +	A specialized :term:`microprocessor`, with its architecture optimized
+> +	for the operational requirements of digital signal processing.
+> +
+> +    Field-programmable Gate Array
+> +    FPGA
+> +	A field-programmable gate array (FPGA) is an :term:`integrated circuit`
+> +	designed to be configured by a customer or a designer after
+> +	manufacturing.
+> +
+> +	:See: https://en.wikipedia.org/wiki/Field-programmable_gate_array.
+> +
+> +    Hardware component
+> +	A subset of the :term:`media hardware`. For example an :term:`I²C`
+> +	or :term:`SPI` device, or an :term:`IP block` inside an
+> +	:term:`SoC` or :term:`FPGA`.
+> +
+> +    Image Signal Processor
+> +    ISP
+> +	A specialized :term:`microprocessor` that implements a set of
+> +	algorithms for processing image data. ISPs may implement algorithms
+> +	for lens shading correction, demosaic, scaling and pixel format
+> +	conversion as well as produce statistics for the use of the control
+> +	algorithms (e.g. automatic exposure, white balance and focus).
+> +
+> +	ISP drivers often contain a receiver for image data from external
+> +	sources such as sensors and act as :term:`V4L2 main driver`.
+> +
+> +    Integrated circuit
+> +    IC
+> +	A set of electronic circuits on one small flat piece of
+> +	semiconductor material, normally silicon.
+> +
+> +	Also known as :term:`chip`.
+> +
+> +    Intellectual property core
+> +    IP core
+> +	In electronic design a semiconductor intellectual property core,
+> +	is a reusable unit of logic, cell, or integrated circuit layout
+> +	design that is the intellectual property of one party.
+> +	IP cores may be licensed to another party or can be owned
+> +	and used by a single party alone.
+> +
+> +	:See: https://en.wikipedia.org/wiki/Semiconductor_intellectual_property_core).
+> +
+> +    Inter-Integrated Circuit
+> +    I²C
+> +	A  multi-master, multi-slave, packet switched, single-ended,
+> +	serial computer bus. A :term:`V4L2 sub-device driver` usually is
+> +	controlled via this bus.
+> +
+> +	:See: http://www.nxp.com/docs/en/user-guide/UM10204.pdf.
+> +
+> +    IP block
+> +	:See: :term:`IP core`.
+> +
+> +    Media controller
+> +    MC
+> +	An API designed to expose and control the relationships of the
+> +	:term:`media hardware` to applications.
+> +
+> +	:See: :ref:`media_controller`.
+> +
+> +    Media controller centric
+> +    MC-centric
+> +	:term:`V4L2 hardware` that requires a :term:`media controller`.
+> +
+> +	:See: :ref:`v4l2_hardware_control`.
+> +
+> +    Media hardware
+> +	A group of hardware components that together form the
+> +	functional media hardware. For instance the :term:`SoC`
+> +	:term:`ISP` :term:`IP cores <ip core>` and external camera
+> +	sensors together form the camera media hardware.
 
-        mode = LIRC_MODE_SCANCODE;
-	if (ioctl(fd, LIRC_SET_SEND_MODE, &mode)) {
-		// kernel too old or lirc does not support transmit
-	}
-	struct lirc_scancode scancode = {
-		.scancode = 0x1e3d,
-		.rc_proto = RC_PROTO_RC5,
-	};
-	write(fd, &scancode, sizeof(scancode));
-	close(fd);
-}
+Perhaps this is a bit better:
 
-The other fields of lirc_scancode must be set to 0.
+	...form the media hardware for a camera.
 
-Note that toggle (rc5, rc6) and repeats (nec) are not implemented. Nor is
-there a method for holding down a key for a period.
+> +
+> +    Media hardware control
+> +	Type of control for a :term:`media hardware` supported a
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-lirc-codec.c | 99 +++++++++++++++++++++++++++++-----------
- drivers/media/rc/rc-core-priv.h  |  2 +-
- include/media/rc-map.h           | 54 +---------------------
- include/uapi/linux/lirc.h        | 82 +++++++++++++++++++++++++++++++++
- 4 files changed, 156 insertions(+), 81 deletions(-)
+for a -> for
+supported -> supported by
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 6a68d9e4a36b..73e4ff3cb023 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -107,7 +107,8 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- {
- 	struct lirc_codec *lirc;
- 	struct rc_dev *dev;
--	unsigned int *txbuf; /* buffer with values to transmit */
-+	unsigned int *txbuf = NULL;
-+	struct ir_raw_event *raw = NULL;
- 	ssize_t ret = -EINVAL;
- 	size_t count;
- 	ktime_t start;
-@@ -121,16 +122,50 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 	if (!lirc)
- 		return -EFAULT;
- 
--	if (n < sizeof(unsigned) || n % sizeof(unsigned))
--		return -EINVAL;
-+	if (lirc->send_mode == LIRC_MODE_SCANCODE) {
-+		struct lirc_scancode scan;
- 
--	count = n / sizeof(unsigned);
--	if (count > LIRCBUF_SIZE || count % 2 == 0)
--		return -EINVAL;
-+		if (n != sizeof(scan))
-+			return -EINVAL;
- 
--	txbuf = memdup_user(buf, n);
--	if (IS_ERR(txbuf))
--		return PTR_ERR(txbuf);
-+		if (copy_from_user(&scan, buf, sizeof(scan)))
-+			return -EFAULT;
-+
-+		if (scan.flags || scan.keycode || scan.timestamp)
-+			return -EINVAL;
-+
-+		raw = kmalloc_array(LIRCBUF_SIZE, sizeof(*raw), GFP_KERNEL);
-+		if (!raw)
-+			return -ENOMEM;
-+
-+		ret = ir_raw_encode_scancode(scan.rc_proto, scan.scancode,
-+					     raw, LIRCBUF_SIZE);
-+		if (ret < 0)
-+			goto out;
-+
-+		count = ret;
-+
-+		txbuf = kmalloc_array(count, sizeof(unsigned int), GFP_KERNEL);
-+		if (!txbuf) {
-+			ret = -ENOMEM;
-+			goto out;
-+		}
-+
-+		for (i = 0; i < count; i++)
-+			/* Convert from NS to US */
-+			txbuf[i] = DIV_ROUND_UP(raw[i].duration, 1000);
-+	} else {
-+		if (n < sizeof(unsigned int) || n % sizeof(unsigned int))
-+			return -EINVAL;
-+
-+		count = n / sizeof(unsigned int);
-+		if (count > LIRCBUF_SIZE || count % 2 == 0)
-+			return -EINVAL;
-+
-+		txbuf = memdup_user(buf, n);
-+		if (IS_ERR(txbuf))
-+			return PTR_ERR(txbuf);
-+	}
- 
- 	dev = lirc->dev;
- 	if (!dev) {
-@@ -156,24 +191,30 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 	if (ret < 0)
- 		goto out;
- 
--	for (duration = i = 0; i < ret; i++)
--		duration += txbuf[i];
--
--	ret *= sizeof(unsigned int);
--
--	/*
--	 * The lircd gap calculation expects the write function to
--	 * wait for the actual IR signal to be transmitted before
--	 * returning.
--	 */
--	towait = ktime_us_delta(ktime_add_us(start, duration), ktime_get());
--	if (towait > 0) {
--		set_current_state(TASK_INTERRUPTIBLE);
--		schedule_timeout(usecs_to_jiffies(towait));
-+	if (lirc->send_mode == LIRC_MODE_SCANCODE) {
-+		ret = n;
-+	} else {
-+		for (duration = i = 0; i < ret; i++)
-+			duration += txbuf[i];
-+
-+		ret *= sizeof(unsigned int);
-+
-+		/*
-+		 * The lircd gap calculation expects the write function to
-+		 * wait for the actual IR signal to be transmitted before
-+		 * returning.
-+		 */
-+		towait = ktime_us_delta(ktime_add_us(start, duration),
-+					ktime_get());
-+		if (towait > 0) {
-+			set_current_state(TASK_INTERRUPTIBLE);
-+			schedule_timeout(usecs_to_jiffies(towait));
-+		}
- 	}
- 
- out:
- 	kfree(txbuf);
-+	kfree(raw);
- 	return ret;
- }
- 
-@@ -202,20 +243,22 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 
- 	switch (cmd) {
- 
--	/* legacy support */
-+	/* mode support */
- 	case LIRC_GET_SEND_MODE:
- 		if (!dev->tx_ir)
- 			return -ENOTTY;
- 
--		val = LIRC_MODE_PULSE;
-+		val = lirc->send_mode;
- 		break;
- 
- 	case LIRC_SET_SEND_MODE:
- 		if (!dev->tx_ir)
- 			return -ENOTTY;
- 
--		if (val != LIRC_MODE_PULSE)
-+		if (!(val == LIRC_MODE_PULSE || val == LIRC_MODE_SCANCODE))
- 			return -EINVAL;
-+
-+		lirc->send_mode = val;
- 		return 0;
- 
- 	/* TX settings */
-@@ -361,7 +404,7 @@ static int ir_lirc_register(struct rc_dev *dev)
- 	}
- 
- 	if (dev->tx_ir) {
--		features |= LIRC_CAN_SEND_PULSE;
-+		features |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
- 		if (dev->s_tx_mask)
- 			features |= LIRC_CAN_SET_TRANSMITTER_MASK;
- 		if (dev->s_tx_carrier)
-@@ -399,6 +442,8 @@ static int ir_lirc_register(struct rc_dev *dev)
- 	if (rc < 0)
- 		goto out;
- 
-+	dev->raw->lirc.send_mode = LIRC_MODE_PULSE;
-+
- 	dev->raw->lirc.ldev = ldev;
- 	dev->raw->lirc.dev = dev;
- 	return 0;
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index ae4dd0c27731..43eabea9f152 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -113,7 +113,7 @@ struct ir_raw_event_ctrl {
- 		u64 gap_duration;
- 		bool gap;
- 		bool send_timeout_reports;
--
-+		u8 send_mode;
- 	} lirc;
- 	struct xmp_dec {
- 		int state;
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index b4ddcb62c993..2547b321463e 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -10,59 +10,7 @@
-  */
- 
- #include <linux/input.h>
--
--/**
-- * enum rc_proto - the Remote Controller protocol
-- *
-- * @RC_PROTO_UNKNOWN: Protocol not known
-- * @RC_PROTO_OTHER: Protocol known but proprietary
-- * @RC_PROTO_RC5: Philips RC5 protocol
-- * @RC_PROTO_RC5X_20: Philips RC5x 20 bit protocol
-- * @RC_PROTO_RC5_SZ: StreamZap variant of RC5
-- * @RC_PROTO_JVC: JVC protocol
-- * @RC_PROTO_SONY12: Sony 12 bit protocol
-- * @RC_PROTO_SONY15: Sony 15 bit protocol
-- * @RC_PROTO_SONY20: Sony 20 bit protocol
-- * @RC_PROTO_NEC: NEC protocol
-- * @RC_PROTO_NECX: Extended NEC protocol
-- * @RC_PROTO_NEC32: NEC 32 bit protocol
-- * @RC_PROTO_SANYO: Sanyo protocol
-- * @RC_PROTO_MCIR2_KBD: RC6-ish MCE keyboard
-- * @RC_PROTO_MCIR2_MSE: RC6-ish MCE mouse
-- * @RC_PROTO_RC6_0: Philips RC6-0-16 protocol
-- * @RC_PROTO_RC6_6A_20: Philips RC6-6A-20 protocol
-- * @RC_PROTO_RC6_6A_24: Philips RC6-6A-24 protocol
-- * @RC_PROTO_RC6_6A_32: Philips RC6-6A-32 protocol
-- * @RC_PROTO_RC6_MCE: MCE (Philips RC6-6A-32 subtype) protocol
-- * @RC_PROTO_SHARP: Sharp protocol
-- * @RC_PROTO_XMP: XMP protocol
-- * @RC_PROTO_CEC: CEC protocol
-- */
--enum rc_proto {
--	RC_PROTO_UNKNOWN	= 0,
--	RC_PROTO_OTHER		= 1,
--	RC_PROTO_RC5		= 2,
--	RC_PROTO_RC5X_20	= 3,
--	RC_PROTO_RC5_SZ		= 4,
--	RC_PROTO_JVC		= 5,
--	RC_PROTO_SONY12		= 6,
--	RC_PROTO_SONY15		= 7,
--	RC_PROTO_SONY20		= 8,
--	RC_PROTO_NEC		= 9,
--	RC_PROTO_NECX		= 10,
--	RC_PROTO_NEC32		= 11,
--	RC_PROTO_SANYO		= 12,
--	RC_PROTO_MCIR2_KBD	= 13,
--	RC_PROTO_MCIR2_MSE	= 14,
--	RC_PROTO_RC6_0		= 15,
--	RC_PROTO_RC6_6A_20	= 16,
--	RC_PROTO_RC6_6A_24	= 17,
--	RC_PROTO_RC6_6A_32	= 18,
--	RC_PROTO_RC6_MCE	= 19,
--	RC_PROTO_SHARP		= 20,
--	RC_PROTO_XMP		= 21,
--	RC_PROTO_CEC		= 22,
--};
-+#include <uapi/linux/lirc.h>
- 
- #define RC_PROTO_BIT_NONE		0ULL
- #define RC_PROTO_BIT_UNKNOWN		BIT_ULL(RC_PROTO_UNKNOWN)
-diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
-index 991ab4570b8e..fed779546017 100644
---- a/include/uapi/linux/lirc.h
-+++ b/include/uapi/linux/lirc.h
-@@ -46,12 +46,14 @@
- #define LIRC_MODE_RAW                  0x00000001
- #define LIRC_MODE_PULSE                0x00000002
- #define LIRC_MODE_MODE2                0x00000004
-+#define LIRC_MODE_SCANCODE             0x00000008
- #define LIRC_MODE_LIRCCODE             0x00000010
- 
- 
- #define LIRC_CAN_SEND_RAW              LIRC_MODE2SEND(LIRC_MODE_RAW)
- #define LIRC_CAN_SEND_PULSE            LIRC_MODE2SEND(LIRC_MODE_PULSE)
- #define LIRC_CAN_SEND_MODE2            LIRC_MODE2SEND(LIRC_MODE_MODE2)
-+#define LIRC_CAN_SEND_SCANCODE         LIRC_MODE2SEND(LIRC_MODE_SCANCODE)
- #define LIRC_CAN_SEND_LIRCCODE         LIRC_MODE2SEND(LIRC_MODE_LIRCCODE)
- 
- #define LIRC_CAN_SEND_MASK             0x0000003f
-@@ -63,6 +65,7 @@
- #define LIRC_CAN_REC_RAW               LIRC_MODE2REC(LIRC_MODE_RAW)
- #define LIRC_CAN_REC_PULSE             LIRC_MODE2REC(LIRC_MODE_PULSE)
- #define LIRC_CAN_REC_MODE2             LIRC_MODE2REC(LIRC_MODE_MODE2)
-+#define LIRC_CAN_REC_SCANCODE          LIRC_MODE2REC(LIRC_MODE_SCANCODE)
- #define LIRC_CAN_REC_LIRCCODE          LIRC_MODE2REC(LIRC_MODE_LIRCCODE)
- 
- #define LIRC_CAN_REC_MASK              LIRC_MODE2REC(LIRC_CAN_SEND_MASK)
-@@ -130,4 +133,83 @@
- 
- #define LIRC_SET_WIDEBAND_RECEIVER     _IOW('i', 0x00000023, __u32)
- 
-+/*
-+ * struct lirc_scancode - decoded scancode with protocol for use with
-+ *	LIRC_MODE_SCANCODE
-+ *
-+ * @timestamp: Timestamp in nanoseconds using CLOCK_MONOTONIC when IR
-+ *	was decoded.
-+ * @flags: should be 0 for transmit. When receiving scancodes,
-+ *	LIRC_SCANCODE_FLAG_TOGGLE or LIRC_SCANCODE_FLAG_REPEAT can be set
-+ *	depending on the protocol
-+ * @rc_proto: see enum rc_proto
-+ * @keycode: the translated keycode. Set to 0 for transmit.
-+ * @scancode: the scancode received or to be sent
-+ */
-+struct lirc_scancode {
-+	__u64	timestamp;
-+	__u16	flags;
-+	__u16	rc_proto;
-+	__u32	keycode;
-+	__u64	scancode;
-+};
-+
-+/* Set if the toggle bit of rc-5 or rc-6 is enabled */
-+#define LIRC_SCANCODE_FLAG_TOGGLE	1
-+/* Set if this is a nec or sanyo repeat */
-+#define LIRC_SCANCODE_FLAG_REPEAT	2
-+
-+/**
-+ * enum rc_proto - the Remote Controller protocol
-+ *
-+ * @RC_PROTO_UNKNOWN: Protocol not known
-+ * @RC_PROTO_OTHER: Protocol known but proprietary
-+ * @RC_PROTO_RC5: Philips RC5 protocol
-+ * @RC_PROTO_RC5X_20: Philips RC5x 20 bit protocol
-+ * @RC_PROTO_RC5_SZ: StreamZap variant of RC5
-+ * @RC_PROTO_JVC: JVC protocol
-+ * @RC_PROTO_SONY12: Sony 12 bit protocol
-+ * @RC_PROTO_SONY15: Sony 15 bit protocol
-+ * @RC_PROTO_SONY20: Sony 20 bit protocol
-+ * @RC_PROTO_NEC: NEC protocol
-+ * @RC_PROTO_NECX: Extended NEC protocol
-+ * @RC_PROTO_NEC32: NEC 32 bit protocol
-+ * @RC_PROTO_SANYO: Sanyo protocol
-+ * @RC_PROTO_MCIR2_KBD: RC6-ish MCE keyboard
-+ * @RC_PROTO_MCIR2_MSE: RC6-ish MCE mouse
-+ * @RC_PROTO_RC6_0: Philips RC6-0-16 protocol
-+ * @RC_PROTO_RC6_6A_20: Philips RC6-6A-20 protocol
-+ * @RC_PROTO_RC6_6A_24: Philips RC6-6A-24 protocol
-+ * @RC_PROTO_RC6_6A_32: Philips RC6-6A-32 protocol
-+ * @RC_PROTO_RC6_MCE: MCE (Philips RC6-6A-32 subtype) protocol
-+ * @RC_PROTO_SHARP: Sharp protocol
-+ * @RC_PROTO_XMP: XMP protocol
-+ * @RC_PROTO_CEC: CEC protocol
-+ */
-+enum rc_proto {
-+	RC_PROTO_UNKNOWN	= 0,
-+	RC_PROTO_OTHER		= 1,
-+	RC_PROTO_RC5		= 2,
-+	RC_PROTO_RC5X_20	= 3,
-+	RC_PROTO_RC5_SZ		= 4,
-+	RC_PROTO_JVC		= 5,
-+	RC_PROTO_SONY12		= 6,
-+	RC_PROTO_SONY15		= 7,
-+	RC_PROTO_SONY20		= 8,
-+	RC_PROTO_NEC		= 9,
-+	RC_PROTO_NECX		= 10,
-+	RC_PROTO_NEC32		= 11,
-+	RC_PROTO_SANYO		= 12,
-+	RC_PROTO_MCIR2_KBD	= 13,
-+	RC_PROTO_MCIR2_MSE	= 14,
-+	RC_PROTO_RC6_0		= 15,
-+	RC_PROTO_RC6_6A_20	= 16,
-+	RC_PROTO_RC6_6A_24	= 17,
-+	RC_PROTO_RC6_6A_32	= 18,
-+	RC_PROTO_RC6_MCE	= 19,
-+	RC_PROTO_SHARP		= 20,
-+	RC_PROTO_XMP		= 21,
-+	RC_PROTO_CEC		= 22,
-+};
-+
- #endif
--- 
-2.13.6
+> +	V4L2 :term:`driver`.
+> +
+> +	:See: :ref:`v4l2_hardware_control`.
+
+Do we actually need this term in the glossary? I'm not convinced. We will
+typically talk about 'MC-centric' or 'Video device node centric', but rarely
+about 'Media hardware control'. Just my opinion though.
+
+> +
+> +    Microprocessor
+> +	An electronic circuitry that carries out the instructions
+
+It's either "Electronic circuitry" or "An electronic circuit". In this case
+I'd say the former, but I'm no HW engineer.
+
+> +	of a computer program by performing the basic arithmetic, logical,
+> +	control and input/output (I/O) operations specified by the
+> +	instructions on a single :term:`integrated circuit`.
+> +
+> +    SMBus
+> +	A subset of :term:`I²C`, with defines a stricter usage of the bus.
+
+with -> which
+
+> +
+> +    Serial Peripheral Interface
+> +    SPI
+> +	Synchronous serial communication interface specification used for
+> +	short distance communication, primarily in embedded systems.
+
+...primarily used in...
+
+> +
+> +    System on a Chip
+> +    SoC
+> +	An :term:`integrated circuit` that integrates all components of a
+> +	computer or other electronic systems.
+> +
+> +    V4L2 device node
+> +	A :term:`device node` that is associated to a
+> +	:term:`V4L2 main driver`, as specified in :ref:`v4l2_device_naming`.
+> +
+> +    V4L2 hardware
+> +	Hardware that is controlled by a :term:`V4L2 main driver` or a
+> +	:term:`V4L2 sub-device driver`. V4L2 hardware is a subset of the
+> +	:term:`media hardware`. Often the two are the same, but
+> +	:term:`media hardware` can also contain other non-V4L2 hardware
+> +	such as Digital TV hardware.
+> +
+> +    V4L2 main driver
+> +	The V4L2 :term:`device driver` that implements the main logic to
+> +	talk with the :term:`V4L2 hardware`.
+> +
+> +	Often, the same as :term:`bridge driver`.
+
+Remove the comma after 'Often'.
+
+> +
+> +	:See: :ref:`v4l2_hardware_control`.
+> +
+> +    V4L2 sub-device
+> +	:See: :term:`V4L2 sub-device driver`.
+
+Isn't a "V4L2 sub-device" typically an instance of a device as implemented by
+a "V4L2 sub-device driver"?
+
+> +
+> +    V4L2 sub-device driver
+> +	A :term:`driver` for a :term:`media hardware` whose bus(es)
+
+Not media hardware, but "hardware component".
+
+> +	connects it to the hardware controlled via the
+
+I think 'by' is better than 'via'.
+
+> +	:term:`V4L2 main driver`.
+> +
+> +	:See: :ref:`subdev`.
+> +
+> +    Video device node centric
+> +    Vdevnode-centric
+> +	:term:`V4L2 hardware` that is controlled via
+
+Same as before: I think 'by' is better than 'via'.
+
+> +	:term:`V4L2 device nodes <v4l2 device node>`.
+> +
+> +	:See: :ref:`v4l2_hardware_control`.
+> diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
+> index 2128717299b3..698c060939f0 100644
+> --- a/Documentation/media/uapi/v4l/v4l2.rst
+> +++ b/Documentation/media/uapi/v4l/v4l2.rst
+> @@ -32,6 +32,7 @@ This part describes the Video for Linux API version 2 (V4L2 API) specification.
+>      videodev
+>      capture-example
+>      v4l2grab-example
+> +    glossary
+>      biblio
+>  
+>  
+> 
+
+Regards,
+
+	Hans
