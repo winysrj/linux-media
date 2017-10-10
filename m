@@ -1,61 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:44196 "EHLO muru.com"
+Received: from osg.samsung.com ([64.30.133.232]:34525 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751612AbdJMSDm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 14:03:42 -0400
-Date: Fri, 13 Oct 2017 11:03:39 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [Patch 3/6] ARM: OMAP: DRA7xx: Make CAM clock domain SWSUP only
-Message-ID: <20171013180338.GS4394@atomide.com>
-References: <20171012192719.15193-1-bparrot@ti.com>
- <20171012192719.15193-4-bparrot@ti.com>
- <20171013170113.GL4394@atomide.com>
- <20171013175942.GH25400@ti.com>
+        id S1751574AbdJJLpe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 07:45:34 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v8 4/7] media: open.rst: document vdevnode-centric and mc-centric types
+Date: Tue, 10 Oct 2017 08:45:20 -0300
+Message-Id: <ff134d19fc163e16710c81f4f90f885a9003e383.1507635716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507635716.git.mchehab@s-opensource.com>
+References: <cover.1507635716.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171013175942.GH25400@ti.com>
+In-Reply-To: <cover.1507635716.git.mchehab@s-opensource.com>
+References: <cover.1507635716.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Benoit Parrot <bparrot@ti.com> [171013 11:01]:
-> Tony Lindgren <tony@atomide.com> wrote on Fri [2017-Oct-13 10:01:13 -0700]:
-> > * Benoit Parrot <bparrot@ti.com> [171012 12:29]:
-> > > HWSUP on this domain is only working when VIP1 probes.
-> > > If only VIP2 on DRA74x or CAL on DRA72x probes the domain does
-> > > not get enabled. This might indicates an issue in the HW Auto
-> > > state-machine for this domain.
-> > >
-> > > Work around is to set the CAM domain to use SWSUP only.
-> > 
-> > Hmm this you might get fixed automatically by configuring the
-> > parent interconnect target module to use "ti,sysc-omap4" and
-> > adding VIP1 and VIP2 as children to it.
-> > 
-> > The reason why I suspect it will fix the issue is because
-> > with the parent being "ti,sysc-omap4" with "ti,hwmods" being
-> > in that parent node too, you automatically get PM runtime
-> > refcounting keep the parent active for either child.
-> > 
-> > Maybe give it a try against today's Linux next and see for
-> > example how it was done for musb:
-> > 
-> > https://patchwork.kernel.org/patch/9978783/
-> > 
-> > Just use "ti,sysc-omap2" for type1 and "ti,sysc-omap4"
-> > for type2.
-> 
-> Hmm interesting, I'll give that a try and if it fixes it.
+When we added support for omap3, back in 2010, we added a new
+type of V4L2 devices that aren't fully controlled via the V4L2
+device node.
 
-OK great. Note that you need to manually apply "[PATCH] ARM:
-head-common.S: Clear lr before jumping to start_kernel()" on
-today's next and make sure CONFIG_DRM and CONFIG_DRM_KMS_HELPER
-are built-in and not modules if using them.
+Yet, we have never clearly documented in the V4L2 specification
+the differences between the two types.
 
-Regards,
+Let's document them based on the the current implementation.
 
-Tony
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/v4l/open.rst | 55 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 55 insertions(+)
+
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index 46ef63e05696..1a8a9e1d0e84 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -7,6 +7,61 @@ Opening and Closing Devices
+ ***************************
+ 
+ 
++.. _v4l2_hardware_control:
++
++
++Types of V4L2 media hardware control
++====================================
++
++A :term:`V4L2 hardware` is usually complex: support for it is
++implemented via a :term:`V4L2 main driver` and often by several
++additional :term:`drivers <driver>`.
++The main driver always exposes one or more
++:term:`V4L2 device nodes <v4l2 device node>`
++(see :ref:`v4l2_device_naming`) with are responsible for implementing
++data streaming, if applicable.
++
++The other drivers are called :term:`V4L2 sub-devices <v4l2 sub-device>`
++and provide control to other
++:term:`hardware components <hardware component>` are usually connected
++via a serial bus (like :term:`I²C`, :term:`SMBus` or :term:`SPI`).
++Depending on the main driver, they can be implicitly
++controlled directly by the main driver or explicitly via
++the V4L2 sub-device API (see :ref:`subdev`).
++
++When **V4L2** was originally designed, the
++:term:`V4L2 device nodes <v4l2 device node>` served the purpose of both
++control and data interfaces and there was no separation
++between the two interface-wise. V4L2 controls, setting inputs and outputs,
++format configuration and buffer related operations were all performed
++through the same **V4L2 device nodes**. Devices offering such interface are
++called **V4L2 device node centric**.
++
++Later on, support for the :term:`media controller` interface was added
++to V4L2 in order to better support complex :term:`V4L2 hardware` where the
++**V4L2** interface alone could no longer meaningfully serve as both a
++control and a data interface. On such V4L2 hardware, **V4L2** interface
++remains a data interface whereas control takes place through the
++:term:`media controller` and :term:`V4L2 sub-device` interfaces. Stream
++control is an exception to this: streaming is enabled and disabled
++through the **V4L2** interface. These devices are called
++**Media controller centric**.
++
++**MC-centric** V4L2 hardware provide more versatile control of the
++hardware than **V4L2 device node centric** devices at the expense of
++requiring device-specific userspace settings.
++
++On **MC-centric** V4L2 hardware, the **V4L2 sub-device nodes**
++represent specific parts of the V4L2 hardware, to which they enable
++control.
++
++Also, the additional versatility of **MC-centric** V4L2 hardware comes
++with additional responsibilities, the main one of which is the requirements
++of the user configuring the device pipeline before starting streaming. This
++typically involves configuring the links using the **Media controller**
++interface and the media bus formats on pads (at both ends of the links)
++using the **V4L2 sub-device** interface.
++
+ .. _v4l2_device_naming:
+ 
+ V4L2 Device Node Naming
+-- 
+2.13.6
