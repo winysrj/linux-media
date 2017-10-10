@@ -1,290 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39102 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751263AbdJZHyO (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:42182 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754585AbdJJIBl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Oct 2017 03:54:14 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH v16 09/32] omap3isp: Use generic parser for parsing fwnode endpoints
-Date: Thu, 26 Oct 2017 10:53:19 +0300
-Message-Id: <20171026075342.5760-10-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+        Tue, 10 Oct 2017 04:01:41 -0400
+Subject: Re: [PATCH] media: vb2: unify calling of set_page_dirty_lock
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <pawel@osciak.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <8c775a5d-e42a-761b-e5ef-6dee93d7f476@samsung.com>
+Date: Tue, 10 Oct 2017 10:01:36 +0200
+MIME-version: 1.0
+In-reply-to: <dd1e2f3e-18f1-ed77-2520-aac1bea0c1a9@linaro.org>
+Content-type: text/plain; charset="utf-8"; format="flowed"
+Content-transfer-encoding: 7bit
+Content-language: en-US
+References: <20170829112603.32732-1-stanimir.varbanov@linaro.org>
+        <CGME20171010074231epcas5p3c2f9109c62b9e84af7f6905bb34a6ef4@epcas5p3.samsung.com>
+        <dd1e2f3e-18f1-ed77-2520-aac1bea0c1a9@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using a custom driver implementation, use
-v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
-of the device.
+Hi Stanimir,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/isp.c | 121 +++++++++++-----------------------
- drivers/media/platform/omap3isp/isp.h |   5 +-
- 2 files changed, 40 insertions(+), 86 deletions(-)
+On 2017-10-10 09:42, Stanimir Varbanov wrote:
+> Marek,
+>
+> Any comments?
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 1a428fe9f070..97a5206b6ddc 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2001,6 +2001,7 @@ static int isp_remove(struct platform_device *pdev)
- 	__omap3isp_put(isp, false);
- 
- 	media_entity_enum_cleanup(&isp->crashed);
-+	v4l2_async_notifier_cleanup(&isp->notifier);
- 
- 	return 0;
- }
-@@ -2011,44 +2012,41 @@ enum isp_of_phy {
- 	ISP_OF_PHY_CSIPHY2,
- };
- 
--static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
--			    struct isp_async_subdev *isd)
-+static int isp_fwnode_parse(struct device *dev,
-+			    struct v4l2_fwnode_endpoint *vep,
-+			    struct v4l2_async_subdev *asd)
- {
-+	struct isp_async_subdev *isd =
-+		container_of(asd, struct isp_async_subdev, asd);
- 	struct isp_bus_cfg *buscfg = &isd->bus;
--	struct v4l2_fwnode_endpoint vep;
--	unsigned int i;
--	int ret;
- 	bool csi1 = false;
--
--	ret = v4l2_fwnode_endpoint_parse(fwnode, &vep);
--	if (ret)
--		return ret;
-+	unsigned int i;
- 
- 	dev_dbg(dev, "parsing endpoint %pOF, interface %u\n",
--		to_of_node(fwnode), vep.base.port);
-+		to_of_node(vep->base.local_fwnode), vep->base.port);
- 
--	switch (vep.base.port) {
-+	switch (vep->base.port) {
- 	case ISP_OF_PHY_PARALLEL:
- 		buscfg->interface = ISP_INTERFACE_PARALLEL;
- 		buscfg->bus.parallel.data_lane_shift =
--			vep.bus.parallel.data_shift;
-+			vep->bus.parallel.data_shift;
- 		buscfg->bus.parallel.clk_pol =
--			!!(vep.bus.parallel.flags
-+			!!(vep->bus.parallel.flags
- 			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
- 		buscfg->bus.parallel.hs_pol =
--			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
-+			!!(vep->bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
- 		buscfg->bus.parallel.vs_pol =
--			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
-+			!!(vep->bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
- 		buscfg->bus.parallel.fld_pol =
--			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
-+			!!(vep->bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
- 		buscfg->bus.parallel.data_pol =
--			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
--		buscfg->bus.parallel.bt656 = vep.bus_type == V4L2_MBUS_BT656;
-+			!!(vep->bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
-+		buscfg->bus.parallel.bt656 = vep->bus_type == V4L2_MBUS_BT656;
- 		break;
- 
- 	case ISP_OF_PHY_CSIPHY1:
- 	case ISP_OF_PHY_CSIPHY2:
--		switch (vep.bus_type) {
-+		switch (vep->bus_type) {
- 		case V4L2_MBUS_CCP2:
- 		case V4L2_MBUS_CSI1:
- 			dev_dbg(dev, "CSI-1/CCP-2 configuration\n");
-@@ -2060,11 +2058,11 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
- 			break;
- 		default:
- 			dev_err(dev, "unsupported bus type %u\n",
--				vep.bus_type);
-+				vep->bus_type);
- 			return -EINVAL;
- 		}
- 
--		switch (vep.base.port) {
-+		switch (vep->base.port) {
- 		case ISP_OF_PHY_CSIPHY1:
- 			if (csi1)
- 				buscfg->interface = ISP_INTERFACE_CCP2B_PHY1;
-@@ -2080,47 +2078,47 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
- 		}
- 		if (csi1) {
- 			buscfg->bus.ccp2.lanecfg.clk.pos =
--				vep.bus.mipi_csi1.clock_lane;
-+				vep->bus.mipi_csi1.clock_lane;
- 			buscfg->bus.ccp2.lanecfg.clk.pol =
--				vep.bus.mipi_csi1.lane_polarity[0];
-+				vep->bus.mipi_csi1.lane_polarity[0];
- 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
- 				buscfg->bus.ccp2.lanecfg.clk.pol,
- 				buscfg->bus.ccp2.lanecfg.clk.pos);
- 
- 			buscfg->bus.ccp2.lanecfg.data[0].pos =
--				vep.bus.mipi_csi1.data_lane;
-+				vep->bus.mipi_csi1.data_lane;
- 			buscfg->bus.ccp2.lanecfg.data[0].pol =
--				vep.bus.mipi_csi1.lane_polarity[1];
-+				vep->bus.mipi_csi1.lane_polarity[1];
- 
- 			dev_dbg(dev, "data lane polarity %u, pos %u\n",
- 				buscfg->bus.ccp2.lanecfg.data[0].pol,
- 				buscfg->bus.ccp2.lanecfg.data[0].pos);
- 
- 			buscfg->bus.ccp2.strobe_clk_pol =
--				vep.bus.mipi_csi1.clock_inv;
--			buscfg->bus.ccp2.phy_layer = vep.bus.mipi_csi1.strobe;
-+				vep->bus.mipi_csi1.clock_inv;
-+			buscfg->bus.ccp2.phy_layer = vep->bus.mipi_csi1.strobe;
- 			buscfg->bus.ccp2.ccp2_mode =
--				vep.bus_type == V4L2_MBUS_CCP2;
-+				vep->bus_type == V4L2_MBUS_CCP2;
- 			buscfg->bus.ccp2.vp_clk_pol = 1;
- 
- 			buscfg->bus.ccp2.crc = 1;
- 		} else {
- 			buscfg->bus.csi2.lanecfg.clk.pos =
--				vep.bus.mipi_csi2.clock_lane;
-+				vep->bus.mipi_csi2.clock_lane;
- 			buscfg->bus.csi2.lanecfg.clk.pol =
--				vep.bus.mipi_csi2.lane_polarities[0];
-+				vep->bus.mipi_csi2.lane_polarities[0];
- 			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
- 				buscfg->bus.csi2.lanecfg.clk.pol,
- 				buscfg->bus.csi2.lanecfg.clk.pos);
- 
- 			buscfg->bus.csi2.num_data_lanes =
--				vep.bus.mipi_csi2.num_data_lanes;
-+				vep->bus.mipi_csi2.num_data_lanes;
- 
- 			for (i = 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
- 				buscfg->bus.csi2.lanecfg.data[i].pos =
--					vep.bus.mipi_csi2.data_lanes[i];
-+					vep->bus.mipi_csi2.data_lanes[i];
- 				buscfg->bus.csi2.lanecfg.data[i].pol =
--					vep.bus.mipi_csi2.lane_polarities[i + 1];
-+					vep->bus.mipi_csi2.lane_polarities[i + 1];
- 				dev_dbg(dev,
- 					"data lane %u polarity %u, pos %u\n", i,
- 					buscfg->bus.csi2.lanecfg.data[i].pol,
-@@ -2137,57 +2135,13 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwnode,
- 
- 	default:
- 		dev_warn(dev, "%pOF: invalid interface %u\n",
--			 to_of_node(fwnode), vep.base.port);
-+			 to_of_node(vep->base.local_fwnode), vep->base.port);
- 		return -EINVAL;
- 	}
- 
- 	return 0;
- }
- 
--static int isp_fwnodes_parse(struct device *dev,
--			     struct v4l2_async_notifier *notifier)
--{
--	struct fwnode_handle *fwnode = NULL;
--
--	notifier->subdevs = devm_kcalloc(
--		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
--	if (!notifier->subdevs)
--		return -ENOMEM;
--
--	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
--	       (fwnode = fwnode_graph_get_next_endpoint(
--			of_fwnode_handle(dev->of_node), fwnode))) {
--		struct isp_async_subdev *isd;
--
--		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
--		if (!isd)
--			goto error;
--
--		if (isp_fwnode_parse(dev, fwnode, isd)) {
--			devm_kfree(dev, isd);
--			continue;
--		}
--
--		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
--
--		isd->asd.match.fwnode.fwnode =
--			fwnode_graph_get_remote_port_parent(fwnode);
--		if (!isd->asd.match.fwnode.fwnode) {
--			dev_warn(dev, "bad remote port parent\n");
--			goto error;
--		}
--
--		isd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
--		notifier->num_subdevs++;
--	}
--
--	return notifier->num_subdevs;
--
--error:
--	fwnode_handle_put(fwnode);
--	return -EINVAL;
--}
--
- static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- {
- 	struct isp_device *isp = container_of(async, struct isp_device,
-@@ -2256,15 +2210,17 @@ static int isp_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
--	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
--	if (ret < 0)
--		return ret;
--
- 	isp->autoidle = autoidle;
- 
- 	mutex_init(&isp->isp_mutex);
- 	spin_lock_init(&isp->stat_lock);
- 
-+	ret = v4l2_async_notifier_parse_fwnode_endpoints(
-+		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
-+		isp_fwnode_parse);
-+	if (ret < 0)
-+		goto error;
-+
- 	isp->dev = &pdev->dev;
- 	isp->ref_count = 0;
- 
-@@ -2406,6 +2362,7 @@ static int isp_probe(struct platform_device *pdev)
- 	isp_xclk_cleanup(isp);
- 	__omap3isp_put(isp, false);
- error:
-+	v4l2_async_notifier_cleanup(&isp->notifier);
- 	mutex_destroy(&isp->isp_mutex);
- 
- 	return ret;
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index e528df6efc09..8b9043db94b3 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -220,14 +220,11 @@ struct isp_device {
- 
- 	unsigned int sbl_resources;
- 	unsigned int subclk_resources;
--
--#define ISP_MAX_SUBDEVS		8
--	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
- };
- 
- struct isp_async_subdev {
--	struct isp_bus_cfg bus;
- 	struct v4l2_async_subdev asd;
-+	struct isp_bus_cfg bus;
- };
- 
- #define v4l2_subdev_to_bus_cfg(sd) \
+Oh, I thought that this one has been already merged. If not (yet),
+here is my ack.
+
+> On 08/29/2017 02:26 PM, Stanimir Varbanov wrote:
+>> Currently videobuf2-dma-sg checks for dma direction for
+>> every single page and videobuf2-dc lacks any dma direction
+>> checks and calls set_page_dirty_lock unconditionally.
+>>
+>> Thus unify and align the invocations of set_page_dirty_lock
+>> for videobuf2-dc, videobuf2-sg  memory allocators with
+>> videobuf2-vmalloc, i.e. the pattern used in vmalloc has been
+>> copied to dc and dma-sg.
+>>
+>> Suggested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+
+>> ---
+>>   drivers/media/v4l2-core/videobuf2-dma-contig.c | 6 ++++--
+>>   drivers/media/v4l2-core/videobuf2-dma-sg.c     | 7 +++----
+>>   2 files changed, 7 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> index 9f389f36566d..696e24f9128d 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> @@ -434,8 +434,10 @@ static void vb2_dc_put_userptr(void *buf_priv)
+>>   		pages = frame_vector_pages(buf->vec);
+>>   		/* sgt should exist only if vector contains pages... */
+>>   		BUG_ON(IS_ERR(pages));
+>> -		for (i = 0; i < frame_vector_count(buf->vec); i++)
+>> -			set_page_dirty_lock(pages[i]);
+>> +		if (buf->dma_dir == DMA_FROM_DEVICE ||
+>> +		    buf->dma_dir == DMA_BIDIRECTIONAL)
+>> +			for (i = 0; i < frame_vector_count(buf->vec); i++)
+>> +				set_page_dirty_lock(pages[i]);
+>>   		sg_free_table(sgt);
+>>   		kfree(sgt);
+>>   	}
+>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> index 6808231a6bdc..753ed3138dcc 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> @@ -292,11 +292,10 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+>>   	if (buf->vaddr)
+>>   		vm_unmap_ram(buf->vaddr, buf->num_pages);
+>>   	sg_free_table(buf->dma_sgt);
+>> -	while (--i >= 0) {
+>> -		if (buf->dma_dir == DMA_FROM_DEVICE ||
+>> -		    buf->dma_dir == DMA_BIDIRECTIONAL)
+>> +	if (buf->dma_dir == DMA_FROM_DEVICE ||
+>> +	    buf->dma_dir == DMA_BIDIRECTIONAL)
+>> +		while (--i >= 0)
+>>   			set_page_dirty_lock(buf->pages[i]);
+>> -	}
+>>   	vb2_destroy_framevec(buf->vec);
+>>   	kfree(buf);
+>>   }
+>>
+
+Best regards
 -- 
-2.11.0
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
