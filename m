@@ -1,64 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:44055 "EHLO gofer.mess.org"
+Received: from mga06.intel.com ([134.134.136.31]:13334 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751677AbdJ2U7B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Oct 2017 16:59:01 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 12/28] media: rc: auto load encoder if necessary
-Date: Sun, 29 Oct 2017 20:58:59 +0000
-Message-Id: <09186155d70c9d474e3e347a946f7e7e66afc740.1509309834.git.sean@mess.org>
-In-Reply-To: <cover.1509309834.git.sean@mess.org>
-References: <cover.1509309834.git.sean@mess.org>
+        id S1751420AbdJJLte (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 07:49:34 -0400
+Date: Tue, 10 Oct 2017 14:49:29 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Alan Cox <alan@linux.intel.com>
+Cc: Devid Antonio Filoni <d.filoni@ubuntu.com>,
+        andriy.shevchenko@linux.intel.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        =?iso-8859-1?B?Suly6W15?= Lefaure <jeremy.lefaure@lse.epita.fr>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH v4] staging: atomisp: add a driver for ov5648 camera
+ sensor
+Message-ID: <20171010114929.yfo5knj5w6qpp2qy@paasikivi.fi.intel.com>
+References: <1507073092-11936-1-git-send-email-d.filoni@ubuntu.com>
+ <20171006125716.txmwvuhhxdw2fyji@paasikivi.fi.intel.com>
+ <1507626520.26339.9.camel@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1507626520.26339.9.camel@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When sending scancodes, load the encoder if we need it.
+Hi Alan,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/rc-core-priv.h | 1 +
- drivers/media/rc/rc-ir-raw.c    | 2 ++
- drivers/media/rc/rc-main.c      | 2 +-
- 3 files changed, 4 insertions(+), 1 deletion(-)
+On Tue, Oct 10, 2017 at 10:08:40AM +0100, Alan Cox wrote:
+> > Would it make sense to first get the other drivers to upstream and
+> > then see what's the status of atomisp? 
+> 
+> Agreed
+> 
+> > the board specific information from firmware is conveyed to the
+> > sensor drivers will change to what the rest of the sensor drivers are
+> > using. I think a most straightforward way would be to amend the ACPI
+> > tables to include the necessary information.
+> 
+> I don't see that happening. The firmware they have today is the
+> firmware they will always have, and for any new devices we manage to
+> get going is probably going to end up entirely hardcoded.
 
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 3cf09408df6c..d29b1b1ef4b7 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -271,6 +271,7 @@ void ir_raw_event_free(struct rc_dev *dev);
- void ir_raw_event_unregister(struct rc_dev *dev);
- int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
- void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
-+void ir_raw_load_modules(u64 *protocols);
- void ir_raw_init(void);
- 
- /*
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 0814e08a280b..b84201cb012a 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -457,6 +457,8 @@ int ir_raw_encode_scancode(enum rc_proto protocol, u32 scancode,
- 	int ret = -EINVAL;
- 	u64 mask = 1ULL << protocol;
- 
-+	ir_raw_load_modules(&mask);
-+
- 	mutex_lock(&ir_raw_handler_lock);
- 	list_for_each_entry(handler, &ir_raw_handler_list, list) {
- 		if (handler->protocols & mask && handler->encode) {
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index cb78e5702bef..62102b3ef5aa 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1081,7 +1081,7 @@ static int parse_protocol_change(u64 *protocols, const char *buf)
- 	return count;
- }
- 
--static void ir_raw_load_modules(u64 *protocols)
-+void ir_raw_load_modules(u64 *protocols)
- {
- 	u64 available;
- 	int i, ret;
+You'd need to pass the table use initrd to amend the existing tables.
+
+Another option would be to parse the information from ACPI / EFI variables
+or whatever to set things up in the atomisp driver, and rely on e.g. I²C
+matching in the V4L2 async framework.
+
+The board specific information needed by the sensor drivers need to be
+somehow conveyed to the drivers. Perhaps using pset /
+device_add_property()?
+
+This is not trivial and would require at least either V4L2 framework or
+sensor driver changes to support atomisp, which currently is a staging
+driver.
+
 -- 
-2.13.6
+Sakari Ailus
+sakari.ailus@linux.intel.com
