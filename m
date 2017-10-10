@@ -1,468 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:39675 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751332AbdJEIp3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Oct 2017 04:45:29 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 05/25] media: lirc_zilog: fix variable types and other ugliness
-Date: Thu,  5 Oct 2017 09:45:07 +0100
-Message-Id: <8248d13145c18006b0f1bf0629be40e218622fda.1507192752.git.sean@mess.org>
-In-Reply-To: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-In-Reply-To: <cover.1507192751.git.sean@mess.org>
-References: <cover.1507192751.git.sean@mess.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42768 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755794AbdJJIcn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 04:32:43 -0400
+Date: Tue, 10 Oct 2017 11:32:40 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, jian.xu.zheng@intel.com,
+        tfiga@chromium.org, rajmohan.mani@intel.com,
+        tuukka.toivonen@intel.com, hyungwoo.yang@intel.com,
+        ramya.vijaykumar@intel.com, chiranjeevi.rapolu@intel.com
+Subject: Re: [PATCH v5 2/3] doc-rst: add IPU3 raw10 bayer pixel format
+ definitions
+Message-ID: <20171010083239.7qjdkyee42fbileg@valkosipuli.retiisi.org.uk>
+References: <1507333141-28242-1-git-send-email-yong.zhi@intel.com>
+ <1507333141-28242-3-git-send-email-yong.zhi@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1507333141-28242-3-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cleans up code and makes checkpatch happy.
+Hi Yong,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/staging/media/lirc/lirc_zilog.c | 162 +++++++++++---------------------
- 1 file changed, 55 insertions(+), 107 deletions(-)
+On Fri, Oct 06, 2017 at 06:39:00PM -0500, Yong Zhi wrote:
+> The formats added by this patch are:
+> 
+>     V4L2_PIX_FMT_IPU3_SBGGR10
+>     V4L2_PIX_FMT_IPU3_SGBRG10
+>     V4L2_PIX_FMT_IPU3_SGRBG10
+>     V4L2_PIX_FMT_IPU3_SRGGB10
+> 
+> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> Signed-off-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
+> ---
+>  Documentation/media/uapi/v4l/pixfmt-rgb.rst        |   1 +
+>  .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         | 166 +++++++++++++++++++++
+>  2 files changed, 167 insertions(+)
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+> 
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+> index 4cc27195dc79..cf2ef7df9616 100644
+> --- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+> +++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+> @@ -16,6 +16,7 @@ RGB Formats
+>      pixfmt-srggb10p
+>      pixfmt-srggb10alaw8
+>      pixfmt-srggb10dpcm8
+> +    pixfmt-srggb10-ipu3
+>      pixfmt-srggb12
+>      pixfmt-srggb12p
+>      pixfmt-srggb16
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+> new file mode 100644
+> index 000000000000..50292186a8b4
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+> @@ -0,0 +1,166 @@
+> +.. -*- coding: utf-8; mode: rst -*-
+> +
+> +.. _V4L2_PIX_FMT_IPU3_SBGGR10:
+> +.. _V4L2_PIX_FMT_IPU3_SGBRG10:
+> +.. _V4L2_PIX_FMT_IPU3_SGRBG10:
+> +.. _V4L2_PIX_FMT_IPU3_SRGGB10:
+> +
+> +**********************************************************************************************************************************************
+> +V4L2_PIX_FMT_IPU3_SBGGR10 ('ip3b'), V4L2_PIX_FMT_IPU3_SGBRG10 ('ip3g'), V4L2_PIX_FMT_IPU3_SGRBG10 ('ip3G'), V4L2_PIX_FMT_IPU3_SRGGB10 ('ip3r')
+> +**********************************************************************************************************************************************
+> +
+> +10-bit Bayer formats
+> +
+> +Description
+> +===========
+> +
+> +These four pixel formats are used by Intel IPU3 driver, they are raw
+> +sRGB / Bayer formats with 10 bits per sample with every 25 pixels packed
+> +to 32 bytes leaving 6 most significant bits padding in the last byte.
+> +The format is little endian.
+> +
+> +In other respects this format is similar to :ref:`V4L2-PIX-FMT-SRGGB10`.
 
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index 757b3fc247ac..902fade98d57 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -32,32 +32,15 @@
-  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  *  GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- *
-  */
- 
-+#include <asm/unaligned.h>
- #include <linux/module.h>
--#include <linux/kmod.h>
--#include <linux/kernel.h>
--#include <linux/sched/signal.h>
--#include <linux/fs.h>
--#include <linux/poll.h>
--#include <linux/string.h>
--#include <linux/timer.h>
- #include <linux/delay.h>
--#include <linux/completion.h>
--#include <linux/errno.h>
--#include <linux/slab.h>
- #include <linux/i2c.h>
- #include <linux/firmware.h>
- #include <linux/vmalloc.h>
- 
--#include <linux/mutex.h>
--#include <linux/kthread.h>
--
- #include <media/lirc_dev.h>
- #include <media/lirc.h>
- 
-@@ -70,7 +53,7 @@ struct IR_tx {
- 	struct i2c_client *c;
- 
- 	/* TX additional actions needed */
--	int need_boot;
-+	bool need_boot;
- 	bool post_tx_ready_poll;
- 	struct lirc_dev *l;
- };
-@@ -81,45 +64,39 @@ struct IR_tx {
- /* Hauppauge IR transmitter data */
- struct tx_data_struct {
- 	/* Boot block */
--	unsigned char *boot_data;
-+	u8 *boot_data;
- 
- 	/* Start of binary data block */
--	unsigned char *datap;
-+	u8 *datap;
- 
- 	/* End of binary data block */
--	unsigned char *endp;
-+	u8 *endp;
- 
- 	/* Number of installed codesets */
--	unsigned int num_code_sets;
-+	u32 num_code_sets;
- 
- 	/* Pointers to codesets */
--	unsigned char **code_sets;
-+	u8 **code_sets;
- 
- 	/* Global fixed data template */
- 	int fixed[TX_BLOCK_SIZE];
- };
- 
- static struct tx_data_struct *tx_data;
--static struct mutex tx_data_lock;
--
--/* module parameters */
--static bool debug;	/* debug output */
-+static DEFINE_MUTEX(tx_data_lock);
- 
- /* safe read of a uint32 (always network byte order) */
--static int read_uint32(unsigned char **data,
--		       unsigned char *endp, unsigned int *val)
-+static int read_u32(u8 **data, u8 *endp, u32 *val)
- {
- 	if (*data + 4 > endp)
- 		return 0;
--	*val = ((*data)[0] << 24) | ((*data)[1] << 16) |
--	       ((*data)[2] << 8) | (*data)[3];
-+	*val = get_unaligned_be32(*data);
- 	*data += 4;
- 	return 1;
- }
- 
- /* safe read of a uint8 */
--static int read_uint8(unsigned char **data,
--		      unsigned char *endp, unsigned char *val)
-+static int read_u8(u8 **data, u8 *endp, u8 *val)
- {
- 	if (*data + 1 > endp)
- 		return 0;
-@@ -128,8 +105,8 @@ static int read_uint8(unsigned char **data,
- }
- 
- /* safe skipping of N bytes */
--static int skip(unsigned char **data,
--		unsigned char *endp, unsigned int distance)
-+static int skip(u8 **data,
-+		u8 *endp, unsigned int distance)
- {
- 	if (*data + distance > endp)
- 		return 0;
-@@ -138,11 +115,11 @@ static int skip(unsigned char **data,
- }
- 
- /* decompress key data into the given buffer */
--static int get_key_data(unsigned char *buf,
-+static int get_key_data(u8 *buf,
- 			unsigned int codeset, unsigned int key)
- {
--	unsigned char *data, *endp, *diffs, *key_block;
--	unsigned char keys, ndiffs, id;
-+	u8 *data, *endp, *diffs, *key_block;
-+	u8 keys, ndiffs, id;
- 	unsigned int base, lim, pos, i;
- 
- 	/* Binary search for the codeset */
-@@ -150,7 +127,7 @@ static int get_key_data(unsigned char *buf,
- 		pos = base + (lim >> 1);
- 		data = tx_data->code_sets[pos];
- 
--		if (!read_uint32(&data, tx_data->endp, &i))
-+		if (!read_u32(&data, tx_data->endp, &i))
- 			goto corrupt;
- 
- 		if (i == codeset) {
-@@ -169,8 +146,8 @@ static int get_key_data(unsigned char *buf,
- 		tx_data->code_sets[pos + 1] : tx_data->endp;
- 
- 	/* Read the block header */
--	if (!read_uint8(&data, endp, &keys) ||
--	    !read_uint8(&data, endp, &ndiffs) ||
-+	if (!read_u8(&data, endp, &keys) ||
-+	    !read_u8(&data, endp, &ndiffs) ||
- 	    ndiffs > TX_BLOCK_SIZE || keys == 0)
- 		goto corrupt;
- 
-@@ -180,16 +157,16 @@ static int get_key_data(unsigned char *buf,
- 		goto corrupt;
- 
- 	/* Read the id of the first key */
--	if (!read_uint8(&data, endp, &id))
-+	if (!read_u8(&data, endp, &id))
- 		goto corrupt;
- 
- 	/* Unpack the first key's data */
- 	for (i = 0; i < TX_BLOCK_SIZE; ++i) {
- 		if (tx_data->fixed[i] == -1) {
--			if (!read_uint8(&data, endp, &buf[i]))
-+			if (!read_u8(&data, endp, &buf[i]))
- 				goto corrupt;
- 		} else {
--			buf[i] = (unsigned char)tx_data->fixed[i];
-+			buf[i] = tx_data->fixed[i];
- 		}
- 	}
- 
-@@ -207,7 +184,7 @@ static int get_key_data(unsigned char *buf,
- 	/* Binary search for the key */
- 	for (base = 0, lim = keys - 1; lim; lim >>= 1) {
- 		/* Seek to block */
--		unsigned char *key_data;
-+		u8 *key_data;
- 
- 		pos = base + (lim >> 1);
- 		key_data = key_block + (ndiffs + 1) * pos;
-@@ -218,9 +195,9 @@ static int get_key_data(unsigned char *buf,
- 
- 			/* found, so unpack the diffs */
- 			for (i = 0; i < ndiffs; ++i) {
--				unsigned char val;
-+				u8 val;
- 
--				if (!read_uint8(&key_data, endp, &val) ||
-+				if (!read_u8(&key_data, endp, &val) ||
- 				    diffs[i] >= TX_BLOCK_SIZE)
- 					goto corrupt;
- 				buf[diffs[i]] = val;
-@@ -241,17 +218,17 @@ static int get_key_data(unsigned char *buf,
- }
- 
- /* send a block of data to the IR TX device */
--static int send_data_block(struct IR_tx *tx, unsigned char *data_block)
-+static int send_data_block(struct IR_tx *tx, u8 *data_block)
- {
- 	int i, j, ret;
--	unsigned char buf[5];
-+	u8 buf[5];
- 
- 	for (i = 0; i < TX_BLOCK_SIZE;) {
- 		int tosend = TX_BLOCK_SIZE - i;
- 
- 		if (tosend > 4)
- 			tosend = 4;
--		buf[0] = (unsigned char)(i + 1);
-+		buf[0] = i + 1;
- 		for (j = 0; j < tosend; ++j)
- 			buf[1 + j] = data_block[i + j];
- 		dev_dbg(&tx->l->dev, "%*ph", 5, buf);
-@@ -270,7 +247,7 @@ static int send_data_block(struct IR_tx *tx, unsigned char *data_block)
- static int send_boot_data(struct IR_tx *tx)
- {
- 	int ret, i;
--	unsigned char buf[4];
-+	u8 buf[4];
- 
- 	/* send the boot block */
- 	ret = send_data_block(tx, tx_data->boot_data);
-@@ -295,7 +272,7 @@ static int send_boot_data(struct IR_tx *tx)
- 		ret = i2c_master_send(tx->c, buf, 1);
- 		if (ret == 1)
- 			break;
--		udelay(100);
-+		usleep_range(100, 110);
- 	}
- 
- 	if (ret != 1) {
-@@ -348,7 +325,7 @@ static int fw_load(struct IR_tx *tx)
- {
- 	int ret;
- 	unsigned int i;
--	unsigned char *data, version, num_global_fixed;
-+	u8 *data, version, num_global_fixed;
- 	const struct firmware *fw_entry;
- 
- 	/* Already loaded? */
-@@ -392,7 +369,7 @@ static int fw_load(struct IR_tx *tx)
- 
- 	/* Check version */
- 	data = tx_data->datap;
--	if (!read_uint8(&data, tx_data->endp, &version))
-+	if (!read_u8(&data, tx_data->endp, &version))
- 		goto corrupt;
- 	if (version != 1) {
- 		dev_err(&tx->l->dev,
-@@ -408,8 +385,8 @@ static int fw_load(struct IR_tx *tx)
- 	if (!skip(&data, tx_data->endp, TX_BLOCK_SIZE))
- 		goto corrupt;
- 
--	if (!read_uint32(&data, tx_data->endp,
--			 &tx_data->num_code_sets))
-+	if (!read_u32(&data, tx_data->endp,
-+		      &tx_data->num_code_sets))
- 		goto corrupt;
- 
- 	dev_dbg(&tx->l->dev, "%u IR blaster codesets loaded\n",
-@@ -427,14 +404,14 @@ static int fw_load(struct IR_tx *tx)
- 		tx_data->fixed[i] = -1;
- 
- 	/* Read global fixed data template */
--	if (!read_uint8(&data, tx_data->endp, &num_global_fixed) ||
-+	if (!read_u8(&data, tx_data->endp, &num_global_fixed) ||
- 	    num_global_fixed > TX_BLOCK_SIZE)
- 		goto corrupt;
- 	for (i = 0; i < num_global_fixed; ++i) {
--		unsigned char pos, val;
-+		u8 pos, val;
- 
--		if (!read_uint8(&data, tx_data->endp, &pos) ||
--		    !read_uint8(&data, tx_data->endp, &val) ||
-+		if (!read_u8(&data, tx_data->endp, &pos) ||
-+		    !read_u8(&data, tx_data->endp, &val) ||
- 		    pos >= TX_BLOCK_SIZE)
- 			goto corrupt;
- 		tx_data->fixed[pos] = (int)val;
-@@ -442,17 +419,17 @@ static int fw_load(struct IR_tx *tx)
- 
- 	/* Filch out the position of each code set */
- 	for (i = 0; i < tx_data->num_code_sets; ++i) {
--		unsigned int id;
--		unsigned char keys;
--		unsigned char ndiffs;
-+		u32 id;
-+		u8 keys;
-+		u8 ndiffs;
- 
- 		/* Save the codeset position */
- 		tx_data->code_sets[i] = data;
- 
- 		/* Read header */
--		if (!read_uint32(&data, tx_data->endp, &id) ||
--		    !read_uint8(&data, tx_data->endp, &keys) ||
--		    !read_uint8(&data, tx_data->endp, &ndiffs) ||
-+		if (!read_u32(&data, tx_data->endp, &id) ||
-+		    !read_u8(&data, tx_data->endp, &keys) ||
-+		    !read_u8(&data, tx_data->endp, &ndiffs) ||
- 		    ndiffs > TX_BLOCK_SIZE || keys == 0)
- 			goto corrupt;
- 
-@@ -489,8 +466,8 @@ static int fw_load(struct IR_tx *tx)
- /* send a keypress to the IR TX device */
- static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
- {
--	unsigned char data_block[TX_BLOCK_SIZE];
--	unsigned char buf[2];
-+	u8 data_block[TX_BLOCK_SIZE];
-+	u8 buf[2];
- 	int i, ret;
- 
- 	/* Get data for the codeset/key */
-@@ -524,7 +501,7 @@ static int send_code(struct IR_tx *tx, unsigned int code, unsigned int key)
- 		ret = i2c_master_send(tx->c, buf, 1);
- 		if (ret == 1)
- 			break;
--		udelay(100);
-+		usleep_range(100, 110);
- 	}
- 
- 	if (ret != 1) {
-@@ -638,7 +615,7 @@ static ssize_t write(struct file *filep, const char __user *buf, size_t n,
- 		}
- 
- 		/* Send boot data first if required */
--		if (tx->need_boot == 1) {
-+		if (tx->need_boot) {
- 			/* Make sure we have the 'firmware' loaded, first */
- 			ret = fw_load(tx);
- 			if (ret != 0) {
-@@ -650,13 +627,13 @@ static ssize_t write(struct file *filep, const char __user *buf, size_t n,
- 			/* Prep the chip for transmitting codes */
- 			ret = send_boot_data(tx);
- 			if (ret == 0)
--				tx->need_boot = 0;
-+				tx->need_boot = false;
- 		}
- 
- 		/* Send the code */
- 		if (ret == 0) {
- 			ret = send_code(tx, (unsigned int)command >> 16,
--					    (unsigned int)command & 0xFFFF);
-+					(unsigned int)command & 0xFFFF);
- 			if (ret == -EPROTO) {
- 				mutex_unlock(&tx->client_lock);
- 				return ret;
-@@ -680,7 +657,7 @@ static ssize_t write(struct file *filep, const char __user *buf, size_t n,
- 			}
- 			set_current_state(TASK_UNINTERRUPTIBLE);
- 			schedule_timeout((100 * HZ + 999) / 1000);
--			tx->need_boot = 1;
-+			tx->need_boot = true;
- 			++failures;
- 		} else {
- 			i += sizeof(int);
-@@ -693,7 +670,6 @@ static ssize_t write(struct file *filep, const char __user *buf, size_t n,
- 	return n;
- }
- 
--
- static long ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
- {
- 	struct IR_tx *tx = lirc_get_pdata(filep);
-@@ -773,7 +749,7 @@ static const struct i2c_device_id ir_transceiver_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, ir_transceiver_id);
- 
--static struct i2c_driver driver = {
-+static struct i2c_driver zilog_driver = {
- 	.driver = {
- 		.name	= "Zilog/Hauppauge i2c IR",
- 	},
-@@ -806,17 +782,13 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	 * The IR receiver    is at i2c address 0x71.
- 	 * The IR transmitter is at i2c address 0x70.
- 	 */
--
--	pr_info("probing IR Tx on %s (i2c-%d)\n", adap->name, adap->nr);
--
--	/* Set up a struct IR_tx instance */
- 	tx = devm_kzalloc(&client->dev, sizeof(*tx), GFP_KERNEL);
- 	if (!tx)
- 		return -ENOMEM;
- 
- 	mutex_init(&tx->client_lock);
- 	tx->c = client;
--	tx->need_boot = 1;
-+	tx->need_boot = true;
- 	tx->post_tx_ready_poll = !(id->driver_data & ID_FLAG_HDPVR);
- 
- 	/* set lirc_dev stuff */
-@@ -855,40 +827,21 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	/* A tx ref goes to the i2c_client */
- 	i2c_set_clientdata(client, tx);
- 
--	dev_info(&tx->l->dev,
--		 "IR unit on %s (i2c-%d) registered as lirc%d and ready\n",
--		 adap->name, adap->nr, tx->l->minor);
--
--	dev_info(&tx->l->dev,
--		 "probe of IR Tx on %s (i2c-%d) done\n", adap->name, adap->nr);
- 	return 0;
- }
- 
- static int __init zilog_init(void)
- {
--	int ret;
--
--	pr_notice("Zilog/Hauppauge IR driver initializing\n");
--
--	mutex_init(&tx_data_lock);
--
- 	request_module("firmware_class");
- 
--	ret = i2c_add_driver(&driver);
--	if (ret)
--		pr_err("initialization failed\n");
--	else
--		pr_notice("initialization complete\n");
--
--	return ret;
-+	return i2c_add_driver(&zilog_driver);
- }
- 
- static void __exit zilog_exit(void)
- {
--	i2c_del_driver(&driver);
-+	i2c_del_driver(&zilog_driver);
- 	/* if loaded */
- 	fw_unload();
--	pr_notice("Zilog/Hauppauge IR driver unloaded\n");
- }
- 
- module_init(zilog_init);
-@@ -897,8 +850,3 @@ module_exit(zilog_exit);
- MODULE_DESCRIPTION("Zilog/Hauppauge infrared transmitter driver (i2c stack)");
- MODULE_AUTHOR("Gerd Knorr, Michal Kochanowicz, Christoph Bartelmus, Ulrich Mueller, Stefan Jahn, Jerome Brock, Mark Weaver, Andy Walls");
- MODULE_LICENSE("GPL");
--/* for compat with old name, which isn't all that accurate anymore */
--MODULE_ALIAS("lirc_pvr150");
--
--module_param(debug, bool, 0644);
--MODULE_PARM_DESC(debug, "Enable debugging messages");
+You could add:
+
+Below is an example of a small image in V4L2_PIX_FMT_IPU3_SBGGR10 format.
+
+> +
+> +**Byte Order.**
+> +Each cell is one byte.
+> +
+> +.. raw:: latex
+> +
+> +    \newline\newline\begin{adjustbox}{width=\columnwidth}
+> +
+> +.. tabularcolumns:: |p{1.3cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|
+
+The width of this table is over one metre. Could you use fewer columns in
+it, say, four or eight?
+
+> +
+> +.. flat-table::
+> +
+> +    * - start + 0:
+> +      - B\ :sub:`0000low`
+> +      - G\ :sub:`0001low` \ (bits 7--2) B\ :sub:`0000high`\ (bits 1--0)
+> +      - B\ :sub:`0002low` \ (bits 7--4) G\ :sub:`0001high`\ (bits 3--0)
+> +      - G\ :sub:`0003low` \ (bits 7--6) B\ :sub:`0002high`\ (bits 5--0)
+> +      - G\ :sub:`0003high`
+> +      - B\ :sub:`0004low`
+> +      - G\ :sub:`0005low` \ (bits 7--2) B\ :sub:`0004high`\ (bits 1--0)
+> +      - B\ :sub:`0006low` \ (bits 7--4) G\ :sub:`0005high`\ (bits 3--0)
+> +      - G\ :sub:`0007low` \ (bits 7--6) B\ :sub:`0006high`\ (bits 5--0)
+> +      - G\ :sub:`0007high`
+> +      - B\ :sub:`0008low`
+> +      - G\ :sub:`0009low` \ (bits 7--2) B\ :sub:`0008high`\ (bits 1--0)
+> +      - B\ :sub:`0010low` \ (bits 7--4) G\ :sub:`0009high`\ (bits 3--0)
+> +      - G\ :sub:`0011low` \ (bits 7--6) B\ :sub:`0010high`\ (bits 5--0)
+> +      - G\ :sub:`0011high`
+> +      - B\ :sub:`0012low`
+> +      - G\ :sub:`0013low` \ (bits 7--2) B\ :sub:`0012high`\ (bits 1--0)
+> +      - B\ :sub:`0014low` \ (bits 7--4) G\ :sub:`0013high`\ (bits 3--0)
+> +      - G\ :sub:`0015low` \ (bits 7--6) B\ :sub:`0014high`\ (bits 5--0)
+> +      - G\ :sub:`0015high`
+> +      - B\ :sub:`0016low`
+> +      - G\ :sub:`0017low` \ (bits 7--2) B\ :sub:`0016high`\ (bits 1--0)
+> +      - B\ :sub:`0018low` \ (bits 7--4) G\ :sub:`0017high`\ (bits 3--0)
+> +      - G\ :sub:`0019low` \ (bits 7--6) B\ :sub:`0018high`\ (bits 5--0)
+> +      - G\ :sub:`0019high`
+> +      - B\ :sub:`0020low`
+> +      - G\ :sub:`0021low` \ (bits 7--2) B\ :sub:`0020high`\ (bits 1--0)
+> +      - B\ :sub:`0022low` \ (bits 7--4) G\ :sub:`0021high`\ (bits 3--0)
+> +      - G\ :sub:`0023low` \ (bits 7--6) B\ :sub:`0022high`\ (bits 5--0)
+> +      - G\ :sub:`0023high`
+> +      - B\ :sub:`0024low`
+> +      - B\ :sub:`0024high`\ (bits 1--0)
+> +    * - start + 32:
+> +      - G\ :sub:`0100low`
+> +      - R\ :sub:`0101low` \ (bits 7--2) G\ :sub:`0100high`\ (bits 1--0)
+> +      - G\ :sub:`0102low` \ (bits 7--4) R\ :sub:`0101high`\ (bits 3--0)
+> +      - R\ :sub:`0103low` \ (bits 7--6) G\ :sub:`0102high`\ (bits 5--0)
+> +      - R\ :sub:`0103high`
+> +      - G\ :sub:`0104low`
+> +      - R\ :sub:`0105low` \ (bits 7--2) G\ :sub:`0104high`\ (bits 1--0)
+> +      - G\ :sub:`0106low` \ (bits 7--4) R\ :sub:`0105high`\ (bits 3--0)
+> +      - R\ :sub:`0107low` \ (bits 7--6) G\ :sub:`0106high`\ (bits 5--0)
+> +      - R\ :sub:`0107high`
+> +      - G\ :sub:`0108low`
+> +      - R\ :sub:`0109low` \ (bits 7--2) G\ :sub:`0108high`\ (bits 1--0)
+> +      - G\ :sub:`0110low` \ (bits 7--4) R\ :sub:`0109high`\ (bits 3--0)
+> +      - R\ :sub:`0111low` \ (bits 7--6) G\ :sub:`0110high`\ (bits 5--0)
+> +      - R\ :sub:`0111high`
+> +      - G\ :sub:`0112low`
+> +      - R\ :sub:`0113low` \ (bits 7--2) G\ :sub:`0112high`\ (bits 1--0)
+> +      - G\ :sub:`0114low` \ (bits 7--4) R\ :sub:`0113high`\ (bits 3--0)
+> +      - R\ :sub:`0115low` \ (bits 7--6) G\ :sub:`0114high`\ (bits 5--0)
+> +      - R\ :sub:`0115high`
+> +      - G\ :sub:`0116low`
+> +      - R\ :sub:`0117low` \ (bits 7--2) G\ :sub:`0116high`\ (bits 1--0)
+> +      - G\ :sub:`0118low` \ (bits 7--4) R\ :sub:`0117high`\ (bits 3--0)
+> +      - R\ :sub:`0119low` \ (bits 7--6) G\ :sub:`0118high`\ (bits 5--0)
+> +      - R\ :sub:`0119high`
+> +      - G\ :sub:`0120low`
+> +      - R\ :sub:`0121low` \ (bits 7--2) G\ :sub:`0120high`\ (bits 1--0)
+> +      - G\ :sub:`0122low` \ (bits 7--4) R\ :sub:`0121high`\ (bits 3--0)
+> +      - R\ :sub:`0123low` \ (bits 7--6) G\ :sub:`0122high`\ (bits 5--0)
+> +      - R\ :sub:`0123high`
+> +      - G\ :sub:`0124low`
+> +      - G\ :sub:`0124high`\ (bits 1--0)
+> +    * - start + 64:
+> +      - B\ :sub:`0200low`
+> +      - G\ :sub:`0201low` \ (bits 7--2) B\ :sub:`0200high`\ (bits 1--0)
+> +      - B\ :sub:`0202low` \ (bits 7--4) G\ :sub:`0201high`\ (bits 3--0)
+> +      - G\ :sub:`0203low` \ (bits 7--6) B\ :sub:`0202high`\ (bits 5--0)
+> +      - G\ :sub:`0203high`
+> +      - B\ :sub:`0204low`
+> +      - G\ :sub:`0205low` \ (bits 7--2) B\ :sub:`0204high`\ (bits 1--0)
+> +      - B\ :sub:`0206low` \ (bits 7--4) G\ :sub:`0205high`\ (bits 3--0)
+> +      - G\ :sub:`0207low` \ (bits 7--6) B\ :sub:`0206high`\ (bits 5--0)
+> +      - G\ :sub:`0207high`
+> +      - B\ :sub:`0208low`
+> +      - G\ :sub:`0209low` \ (bits 7--2) B\ :sub:`0208high`\ (bits 1--0)
+> +      - B\ :sub:`0210low` \ (bits 7--4) G\ :sub:`0209high`\ (bits 3--0)
+> +      - G\ :sub:`0211low` \ (bits 7--6) B\ :sub:`0210high`\ (bits 5--0)
+> +      - G\ :sub:`0211high`
+> +      - B\ :sub:`0212low`
+> +      - G\ :sub:`0213low` \ (bits 7--2) B\ :sub:`0212high`\ (bits 1--0)
+> +      - B\ :sub:`0214low` \ (bits 7--4) G\ :sub:`0213high`\ (bits 3--0)
+> +      - G\ :sub:`0215low` \ (bits 7--6) B\ :sub:`0214high`\ (bits 5--0)
+> +      - G\ :sub:`0215high`
+> +      - B\ :sub:`0216low`
+> +      - G\ :sub:`0217low` \ (bits 7--2) B\ :sub:`0216high`\ (bits 1--0)
+> +      - B\ :sub:`0218low` \ (bits 7--4) G\ :sub:`0217high`\ (bits 3--0)
+> +      - G\ :sub:`0219low` \ (bits 7--6) B\ :sub:`0218high`\ (bits 5--0)
+> +      - G\ :sub:`0219high`
+> +      - B\ :sub:`0220low`
+> +      - G\ :sub:`0221low` \ (bits 7--2) B\ :sub:`0220high`\ (bits 1--0)
+> +      - B\ :sub:`0222low` \ (bits 7--4) G\ :sub:`0221high`\ (bits 3--0)
+> +      - G\ :sub:`0223low` \ (bits 7--6) B\ :sub:`0222high`\ (bits 5--0)
+> +      - G\ :sub:`0223high`
+> +      - B\ :sub:`0224low`
+> +      - B\ :sub:`0224high`\ (bits 1--0)
+> +    * - start + 96:
+> +      - G\ :sub:`0300low`
+> +      - R\ :sub:`0301low` \ (bits 7--2) G\ :sub:`0300high`\ (bits 1--0)
+> +      - G\ :sub:`0302low` \ (bits 7--4) R\ :sub:`0301high`\ (bits 3--0)
+> +      - R\ :sub:`0303low` \ (bits 7--6) G\ :sub:`0302high`\ (bits 5--0)
+> +      - R\ :sub:`0303high`
+> +      - G\ :sub:`0304low`
+> +      - R\ :sub:`0305low` \ (bits 7--2) G\ :sub:`0304high`\ (bits 1--0)
+> +      - G\ :sub:`0306low` \ (bits 7--4) R\ :sub:`0305high`\ (bits 3--0)
+> +      - R\ :sub:`0307low` \ (bits 7--6) G\ :sub:`0306high`\ (bits 5--0)
+> +      - R\ :sub:`0307high`
+> +      - G\ :sub:`0308low`
+> +      - R\ :sub:`0309low` \ (bits 7--2) G\ :sub:`0308high`\ (bits 1--0)
+> +      - G\ :sub:`0310low` \ (bits 7--4) R\ :sub:`0309high`\ (bits 3--0)
+> +      - R\ :sub:`0311low` \ (bits 7--6) G\ :sub:`0310high`\ (bits 5--0)
+> +      - R\ :sub:`0311high`
+> +      - G\ :sub:`0312low`
+> +      - R\ :sub:`0313low` \ (bits 7--2) G\ :sub:`0312high`\ (bits 1--0)
+> +      - G\ :sub:`0314low` \ (bits 7--4) R\ :sub:`0313high`\ (bits 3--0)
+> +      - R\ :sub:`0315low` \ (bits 7--6) G\ :sub:`0314high`\ (bits 5--0)
+> +      - R\ :sub:`0315high`
+> +      - G\ :sub:`0316low`
+> +      - R\ :sub:`0317low` \ (bits 7--2) G\ :sub:`0316high`\ (bits 1--0)
+> +      - G\ :sub:`0318low` \ (bits 7--4) R\ :sub:`0317high`\ (bits 3--0)
+> +      - R\ :sub:`0319low` \ (bits 7--6) G\ :sub:`0318high`\ (bits 5--0)
+> +      - R\ :sub:`0319high`
+> +      - G\ :sub:`0320low`
+> +      - R\ :sub:`0321low` \ (bits 7--2) G\ :sub:`0320high`\ (bits 1--0)
+> +      - G\ :sub:`0322low` \ (bits 7--4) R\ :sub:`0321high`\ (bits 3--0)
+> +      - R\ :sub:`0323low` \ (bits 7--6) G\ :sub:`0322high`\ (bits 5--0)
+> +      - R\ :sub:`0323high`
+> +      - G\ :sub:`0324low`
+> +      - G\ :sub:`0324high`\ (bits 1--0)
+
 -- 
-2.13.6
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
