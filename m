@@ -1,74 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:49790 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751186AbdJLKvF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Oct 2017 06:51:05 -0400
-Subject: Re: [PATCH v3 2/2] ARM: dts: tegra20: Add video decoder node
-To: Jon Hunter <jonathanh@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Warren <swarren@wwwdotorg.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <cover.1507752381.git.digetx@gmail.com>
- <f58be69f6004393711c9ff3cb4b52aed33e2611a.1507752381.git.digetx@gmail.com>
- <f18b6a72-e255-9aa4-6ebd-852ce1a27a4e@nvidia.com>
-From: Dmitry Osipenko <digetx@gmail.com>
-Message-ID: <6fe375ea-4d8d-5dc2-2d17-c13aa1f46d71@gmail.com>
-Date: Thu, 12 Oct 2017 13:51:00 +0300
+Received: from nasmtp01.atmel.com ([192.199.1.245]:44091 "EHLO
+        DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755910AbdJJCtz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Oct 2017 22:49:55 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        "Jonathan Corbet" <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v4 1/5] media: atmel-isc: Add spin lock for clock enable ops
+Date: Tue, 10 Oct 2017 10:46:36 +0800
+Message-ID: <20171010024640.5733-2-wenyou.yang@microchip.com>
+In-Reply-To: <20171010024640.5733-1-wenyou.yang@microchip.com>
+References: <20171010024640.5733-1-wenyou.yang@microchip.com>
 MIME-Version: 1.0
-In-Reply-To: <f18b6a72-e255-9aa4-6ebd-852ce1a27a4e@nvidia.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12.10.2017 11:49, Jon Hunter wrote:
-> 
-> On 11/10/17 21:08, Dmitry Osipenko wrote:
->> Add a device node for the video decoder engine found on Tegra20.
->>
->> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
->> ---
->>  arch/arm/boot/dts/tegra20.dtsi | 17 +++++++++++++++++
->>  1 file changed, 17 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/tegra20.dtsi b/arch/arm/boot/dts/tegra20.dtsi
->> index 7c85f97f72ea..1b5d54b6c0cb 100644
->> --- a/arch/arm/boot/dts/tegra20.dtsi
->> +++ b/arch/arm/boot/dts/tegra20.dtsi
->> @@ -249,6 +249,23 @@
->>  		*/
->>  	};
->>  
->> +	vde@6001a000 {
->> +		compatible = "nvidia,tegra20-vde";
->> +		reg = <0x6001a000 0x3D00    /* VDE registers */
->> +		       0x40000400 0x3FC00>; /* IRAM region */
->> +		reg-names = "regs", "iram";
->> +		interrupts = <GIC_SPI  8 IRQ_TYPE_LEVEL_HIGH>, /* UCQ error interrupt */
->> +			     <GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
->> +			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
->> +			     <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>, /* BSE-A interrupt */
->> +			     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
->> +		interrupt-names = "ucq-error", "sync-token", "bsev", "bsea", "sxe";
->> +		clocks = <&tegra_car TEGRA20_CLK_VDE>;
->> +		clock-names = "vde";
->> +		resets = <&tegra_car 61>;
->> +		reset-names = "vde";
->> +	};
->> +
-> 
-> I don't see any binding documentation for this node. We need to make
-> sure we add this.
-> 
+Add the spin lock for the clock enable and disable operations.
 
-It's in the first patch.
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+---
 
-+++ b/Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20-vde.txt
+Changes in v4: None
+Changes in v3:
+ - Fix the wrong used spinlock.
+ - s/_/- on the subject.
+
+Changes in v2: None
+
+ drivers/media/platform/atmel/atmel-isc.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index 2f8e345d297e..991f962b7023 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -65,6 +65,7 @@ struct isc_clk {
+ 	struct clk_hw   hw;
+ 	struct clk      *clk;
+ 	struct regmap   *regmap;
++	spinlock_t	lock;
+ 	u8		id;
+ 	u8		parent_id;
+ 	u32		div;
+@@ -312,26 +313,37 @@ static int isc_clk_enable(struct clk_hw *hw)
+ 	struct isc_clk *isc_clk = to_isc_clk(hw);
+ 	u32 id = isc_clk->id;
+ 	struct regmap *regmap = isc_clk->regmap;
++	unsigned long flags;
++	unsigned int status;
+ 
+ 	dev_dbg(isc_clk->dev, "ISC CLK: %s, div = %d, parent id = %d\n",
+ 		__func__, isc_clk->div, isc_clk->parent_id);
+ 
++	spin_lock_irqsave(&isc_clk->lock, flags);
+ 	regmap_update_bits(regmap, ISC_CLKCFG,
+ 			   ISC_CLKCFG_DIV_MASK(id) | ISC_CLKCFG_SEL_MASK(id),
+ 			   (isc_clk->div << ISC_CLKCFG_DIV_SHIFT(id)) |
+ 			   (isc_clk->parent_id << ISC_CLKCFG_SEL_SHIFT(id)));
+ 
+ 	regmap_write(regmap, ISC_CLKEN, ISC_CLK(id));
++	spin_unlock_irqrestore(&isc_clk->lock, flags);
+ 
+-	return 0;
++	regmap_read(regmap, ISC_CLKSR, &status);
++	if (status & ISC_CLK(id))
++		return 0;
++	else
++		return -EINVAL;
+ }
+ 
+ static void isc_clk_disable(struct clk_hw *hw)
+ {
+ 	struct isc_clk *isc_clk = to_isc_clk(hw);
+ 	u32 id = isc_clk->id;
++	unsigned long flags;
+ 
++	spin_lock_irqsave(&isc_clk->lock, flags);
+ 	regmap_write(isc_clk->regmap, ISC_CLKDIS, ISC_CLK(id));
++	spin_unlock_irqrestore(&isc_clk->lock, flags);
+ }
+ 
+ static int isc_clk_is_enabled(struct clk_hw *hw)
+@@ -492,6 +504,7 @@ static int isc_clk_register(struct isc_device *isc, unsigned int id)
+ 	isc_clk->regmap		= regmap;
+ 	isc_clk->id		= id;
+ 	isc_clk->dev		= isc->dev;
++	spin_lock_init(&isc_clk->lock);
+ 
+ 	isc_clk->clk = clk_register(isc->dev, &isc_clk->hw);
+ 	if (IS_ERR(isc_clk->clk)) {
+-- 
+2.13.0
