@@ -1,327 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51104 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751608AbdJXUc7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Oct 2017 16:32:59 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v15.2 24/32] v4l: fwnode: Add a helper function to obtain device / integer references
-Date: Tue, 24 Oct 2017 23:32:54 +0300
-Message-Id: <20171024203254.19993-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <ffc57dfd-e798-d532-e029-dc91989e285c@xs4all.nl>
-References: <ffc57dfd-e798-d532-e029-dc91989e285c@xs4all.nl>
+Received: from osg.samsung.com ([64.30.133.232]:63244 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755134AbdJJIyV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 04:54:21 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH] media: add glossary.rst with a glossary of terms used at V4L2 spec
+Date: Tue, 10 Oct 2017 05:54:10 -0300
+Message-Id: <eeb4eba1421dcfc536c65f406a86ce2ee02710d3.1507625585.git.mchehab@s-opensource.com>
+In-Reply-To: <20171010055134.7747e1e1@vento.lan>
+References: <20171010055134.7747e1e1@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
-the device's own fwnode, it will follow child fwnodes with the given
-property-value pair and return the resulting fwnode.
+Add a glossary of terms for V4L2, as several concepts are complex
+enough to cause misunderstandings.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 286 ++++++++++++++++++++++++++++++++++
- 1 file changed, 286 insertions(+)
+ Documentation/media/uapi/v4l/glossary.rst | 150 ++++++++++++++++++++++++++++++
+ Documentation/media/uapi/v4l/v4l2.rst     |   1 +
+ 2 files changed, 151 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/glossary.rst
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index edd2e8d983a1..ed7e363a8a6a 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -578,6 +578,292 @@ static int v4l2_fwnode_reference_parse(
- 	return ret;
- }
+diff --git a/Documentation/media/uapi/v4l/glossary.rst b/Documentation/media/uapi/v4l/glossary.rst
+new file mode 100644
+index 000000000000..08980e9cb98e
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/glossary.rst
+@@ -0,0 +1,150 @@
++========
++Glossary
++========
++
++.. note::
++
++   This goal of section is to standardize the terms used within the V4L2
++   documentation. It is written incrementally as they are standardized in
++   the V4L2 documentation. So, it is a Work In Progress.
++
++.. Please keep the glossary entries in alphabetical order
++
++.. glossary::
++
++    Bridge driver
++	A driver that provides a bridge between the CPU's bus to the
++	data and control buses of a media hardware. Often, the
++	bridge driver is the same as V4L2 main driver.
++
++    Chip:
++	See: Integrated circuit.
++
++    Device Node
++	A character device node in the file system used to control and/or
++	do input/output data transfers from/to a Kernel driver.
++
++    Digital Signal Processor - DSP
++	A specialized microprocessor, with its architecture optimized for
++	the operational requirements of digital signal processing.
++
++    Driver
++	The part of the Linux Kernel that implements support
++	for a hardware component.
++
++    Field-programmable Gate Array - FPGA
++	A field-programmable gate array (FPGA) is an integrated circuit
++	designed to be configured by a customer or a designer after
++	manufacturing.
++
++	See https://en.wikipedia.org/wiki/Field-programmable_gate_array.
++
++    Hardware component
++	A subset of the media hardware. For example an I²C or SPI device,
++	or an IP block inside an SoC or FPGA.
++
++    Image Signal Processor - ISP
++	A specialised processor that implements a set of algorithms for
++	processing image data. ISPs may implement algorithms for lens
++	shading correction, demosaic, scaling and pixel format conversion
++	as well as produce statistics for the use of the control
++	algorithms (e.g. automatic exposure, white balance and focus).
++
++	ISP drivers often contain a receiver for image data from external
++	sources such as sensors and act as V4L2 main driver.
++
++    Inter-Integrated Circuit - I²C
++	A  multi-master, multi-slave, packet switched, single-ended,
++	serial computer bus. Most V4L2 sub-devices are controlled
++	via this bus.
++
++	See http://www.nxp.com/docs/en/user-guide/UM10204.pdf.
++
++    Integrated circuit - IC
++	A set of electronic circuits on one small flat piece of
++	semiconductor material, normally silicon.
++
++	Also known as chip.
++
++    Intellectual property core - IP core
++	In electronic design a semiconductor intellectual property core,
++	is a reusable unit of logic, cell, or integrated circuit layout
++	design that is the intellectual property of one party.
++	IP cores may be licensed to another party or can be owned
++	and used by a single party alone.
++
++	See https://en.wikipedia.org/wiki/Semiconductor_intellectual_property_core).
++
++    IP block
++	See: IP core.
++
++    Media Controller
++	An API designed to expose and control the relationships of the Media
++	Harware to applications.
++
++	See :ref:`media_controller`.
++
++    Media Controller centric - MC-centric
++	V4L2 hardware that requires a Media controller.
++
++	See :ref:`v4l2_hardware_control`.
++
++    Media hardware
++	A group of hardware components that together form the
++	functional media hardware. For instance the SoC ISP IP
++	cores and external camera sensors together form the
++	camera media hardware.
++
++    Media hardware control
++	Type of control for a media hardware supported by V4L2 drivers.
++
++	See :ref:`v4l2_hardware_control`.
++
++    Microprocessor
++	An electronic circuitry that carries out the instructions
++	of a computer program by performing the basic arithmetic, logical,
++	control and input/output (I/O) operations specified by the
++	instructions on a single integrated circuit.
++
++    SMBus
++	A subset of I²C, with defines a stricter usage of the bus.
++
++    Serial Peripheral Interface Bus - SPI
++	Synchronous serial communication interface specification used for
++	short distance communication, primarily in embedded systems.
++
++    System on a Chip - SoC
++	An integrated circuit that integrates all components of a computer
++	or other electronic systems.
++
++    V4L2 device node
++	A device node that is associated to a V4L2 main driver,
++	as specified in :ref:`v4l2_device_naming`.
++
++    V4L2 hardware
++	Hardware that is controlled by a V4L2 main driver or a V4L2
++	sub-device driver. V4L2 hardware is a subset of the
++	Media hardware. Often the two are the same, but Media hardware
++	can also contain other non-V4L2 hardware such as DVB hardware.
++
++    V4L2 main driver
++	The V4L2 device driver that implements the main logic to talk with
++	the V4L2 hardware.
++
++	Also known as bridge driver.
++
++	See :ref:`v4l2_hardware_control`.
++
++    V4L2 sub-device
++	See: :ref:`V4L2 sub-device driver`
++
++    V4L2 sub-device driver
++	A driver for a media component whose bus(es) connects it
++	to the hardware controlled via the V4L2 main driver.
++
++	See :ref:`subdev`.
++
++    Video device node centric - Vdevnode-centric
++	V4L2 hardware that is controlled via V4L2 device nodes.
++
++	See :ref:`v4l2_hardware_control`.
+diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
+index 2128717299b3..698c060939f0 100644
+--- a/Documentation/media/uapi/v4l/v4l2.rst
++++ b/Documentation/media/uapi/v4l/v4l2.rst
+@@ -32,6 +32,7 @@ This part describes the Video for Linux API version 2 (V4L2 API) specification.
+     videodev
+     capture-example
+     v4l2grab-example
++    glossary
+     biblio
  
-+/*
-+ * v4l2_fwnode_reference_get_int_prop - parse a reference with integer
-+ *					arguments
-+ * @fwnode: fwnode to read @prop from
-+ * @notifier: notifier for @dev
-+ * @prop: the name of the property
-+ * @index: the index of the reference to get
-+ * @props: the array of integer property names
-+ * @nprops: the number of integer property names in @nprops
-+ *
-+ * First find an fwnode referred to by the reference at @index in @prop.
-+ *
-+ * Then under that fwnode, @nprops times, for each property in @props,
-+ * iteratively follow child nodes starting from fwnode such that they have the
-+ * property in @props array at the index of the child node distance from the
-+ * root node and the value of that property matching with the integer argument
-+ * of the reference, at the same index.
-+ *
-+ * The child fwnode reched at the end of the iteration is then returned to the
-+ * caller.
-+ *
-+ * The core reason for this is that you cannot refer to just any node in ACPI.
-+ * So to refer to an endpoint (easy in DT) you need to refer to a device, then
-+ * provide a list of (property name, property value) tuples where each tuple
-+ * uniquely identifies a child node. The first tuple identifies a child directly
-+ * underneath the device fwnode, the next tuple identifies a child node
-+ * underneath the fwnode identified by the previous tuple, etc. until you
-+ * reached the fwnode you need.
-+ *
-+ * An example with a graph, as defined in Documentation/acpi/dsd/graph.txt:
-+ *
-+ *	Scope (\_SB.PCI0.I2C2)
-+ *	{
-+ *		Device (CAM0)
-+ *		{
-+ *			Name (_DSD, Package () {
-+ *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+ *				Package () {
-+ *					Package () {
-+ *						"compatible",
-+ *						Package () { "nokia,smia" }
-+ *					},
-+ *				},
-+ *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+ *				Package () {
-+ *					Package () { "port0", "PRT0" },
-+ *				}
-+ *			})
-+ *			Name (PRT0, Package() {
-+ *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+ *				Package () {
-+ *					Package () { "port", 0 },
-+ *				},
-+ *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+ *				Package () {
-+ *					Package () { "endpoint0", "EP00" },
-+ *				}
-+ *			})
-+ *			Name (EP00, Package() {
-+ *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+ *				Package () {
-+ *					Package () { "endpoint", 0 },
-+ *					Package () {
-+ *						"remote-endpoint",
-+ *						Package() {
-+ *							\_SB.PCI0.ISP, 4, 0
-+ *						}
-+ *					},
-+ *				}
-+ *			})
-+ *		}
-+ *	}
-+ *
-+ *	Scope (\_SB.PCI0)
-+ *	{
-+ *		Device (ISP)
-+ *		{
-+ *			Name (_DSD, Package () {
-+ *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+ *				Package () {
-+ *					Package () { "port4", "PRT4" },
-+ *				}
-+ *			})
-+ *
-+ *			Name (PRT4, Package() {
-+ *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+ *				Package () {
-+ *					Package () { "port", 4 },
-+ *				},
-+ *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+ *				Package () {
-+ *					Package () { "endpoint0", "EP40" },
-+ *				}
-+ *			})
-+ *
-+ *			Name (EP40, Package() {
-+ *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+ *				Package () {
-+ *					Package () { "endpoint", 0 },
-+ *					Package () {
-+ *						"remote-endpoint",
-+ *						Package () {
-+ *							\_SB.PCI0.I2C2.CAM0,
-+ *							0, 0
-+ *						}
-+ *					},
-+ *				}
-+ *			})
-+ *		}
-+ *	}
-+ *
-+ * From the EP40 node under ISP device, you could parse the graph remote
-+ * endpoint using v4l2_fwnode_reference_get_int_prop with these arguments:
-+ *
-+ *  @fwnode: fwnode referring to EP40 under ISP.
-+ *  @prop: "remote-endpoint"
-+ *  @index: 0
-+ *  @props: "port", "endpoint"
-+ *  @nprops: 2
-+ *
-+ * And you'd get back fwnode referring to EP00 under CAM0.
-+ *
-+ * The same works the other way around: if you use EP00 under CAM0 as the
-+ * fwnode, you'll get fwnode referring to EP40 under ISP.
-+ *
-+ * The same example in DT syntax would look like this:
-+ *
-+ * cam: cam0 {
-+ *	compatible = "nokia,smia";
-+ *
-+ *	port {
-+ *		port = <0>;
-+ *		endpoint {
-+ *			endpoint = <0>;
-+ *			remote-endpoint = <&isp 4 0>;
-+ *		};
-+ *	};
-+ * };
-+ *
-+ * isp: isp {
-+ *	ports {
-+ *		port@4 {
-+ *			port = <4>;
-+ *			endpoint {
-+ *				endpoint = <0>;
-+ *				remote-endpoint = <&cam 0 0>;
-+ *			};
-+ *		};
-+ *	};
-+ * };
-+ *
-+ * Return: 0 on success
-+ *	   -ENOENT if no entries (or the property itself) were found
-+ *	   -EINVAL if property parsing otherwise failed
-+ *	   -ENOMEM if memory allocation failed
-+ */
-+static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
-+	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
-+	const char **props, unsigned int nprops)
-+{
-+	struct fwnode_reference_args fwnode_args;
-+	unsigned int *args = fwnode_args.args;
-+	struct fwnode_handle *child;
-+	int ret;
-+
-+	/*
-+	 * Obtain remote fwnode as well as the integer arguments.
-+	 *
-+	 * Note that right now both -ENODATA and -ENOENT may signal
-+	 * out-of-bounds access. Return -ENOENT in that case.
-+	 */
-+	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
-+						 index, &fwnode_args);
-+	if (ret)
-+		return ERR_PTR(ret == -ENODATA ? -ENOENT : ret);
-+
-+	/*
-+	 * Find a node in the tree under the referred fwnode corresponding to
-+	 * the integer arguments.
-+	 */
-+	fwnode = fwnode_args.fwnode;
-+	while (nprops--) {
-+		u32 val;
-+
-+		/* Loop over all child nodes under fwnode. */
-+		fwnode_for_each_child_node(fwnode, child) {
-+			if (fwnode_property_read_u32(child, *props, &val))
-+				continue;
-+
-+			/* Found property, see if its value matches. */
-+			if (val == *args)
-+				break;
-+		}
-+
-+		fwnode_handle_put(fwnode);
-+
-+		/* No property found; return an error here. */
-+		if (!child) {
-+			fwnode = ERR_PTR(-ENOENT);
-+			break;
-+		}
-+
-+		props++;
-+		args++;
-+		fwnode = child;
-+	}
-+
-+	return fwnode;
-+}
-+
-+/*
-+ * v4l2_fwnode_reference_parse_int_props - parse references for async sub-devices
-+ * @dev: struct device pointer
-+ * @notifier: notifier for @dev
-+ * @prop: the name of the property
-+ * @props: the array of integer property names
-+ * @nprops: the number of integer properties
-+ *
-+ * Use v4l2_fwnode_reference_get_int_prop to find fwnodes through reference in
-+ * property @prop with integer arguments with child nodes matching in properties
-+ * @props. Then, set up V4L2 async sub-devices for those fwnodes in the notifier
-+ * accordingly.
-+ *
-+ * While it is technically possible to use this function on DT, it is only
-+ * meaningful on ACPI. On Device tree you can refer to any node in the tree but
-+ * on ACPI the references are limited to devices.
-+ *
-+ * Return: 0 on success
-+ *	   -ENOENT if no entries (or the property itself) were found
-+ *	   -EINVAL if property parsing otherwisefailed
-+ *	   -ENOMEM if memory allocation failed
-+ */
-+static int v4l2_fwnode_reference_parse_int_props(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	const char *prop, const char **props, unsigned int nprops)
-+{
-+	struct fwnode_handle *fwnode;
-+	unsigned int index;
-+	int ret;
-+
-+	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-+					 dev_fwnode(dev), prop, index, props,
-+					 nprops))); index++)
-+		fwnode_handle_put(fwnode);
-+
-+	/*
-+	 * Note that right now both -ENODATA and -ENOENT may signal
-+	 * out-of-bounds access. Return the error in cases other than that.
-+	 */
-+	if (PTR_ERR(fwnode) != -ENOENT && PTR_ERR(fwnode) != -ENODATA)
-+		return PTR_ERR(fwnode);
-+
-+	ret = v4l2_async_notifier_realloc(notifier,
-+					  notifier->num_subdevs + index);
-+	if (ret)
-+		return -ENOMEM;
-+
-+	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-+					 dev_fwnode(dev), prop, index, props,
-+					 nprops))); index++) {
-+		struct v4l2_async_subdev *asd;
-+
-+		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-+			ret = -EINVAL;
-+			goto error;
-+		}
-+
-+		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
-+		if (!asd) {
-+			ret = -ENOMEM;
-+			goto error;
-+		}
-+
-+		notifier->subdevs[notifier->num_subdevs] = asd;
-+		asd->match.fwnode.fwnode = fwnode;
-+		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-+		notifier->num_subdevs++;
-+	}
-+
-+	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
-+
-+error:
-+	fwnode_handle_put(fwnode);
-+	return ret;
-+}
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
- MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+ 
 -- 
-2.11.0
+2.13.6
