@@ -1,251 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:50795 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753380AbdJTVvP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 17:51:15 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
+Received: from gofer.mess.org ([88.97.38.141]:33347 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932069AbdJJHSr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 03:18:47 -0400
+From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC v4 16/17] [media] vb2: add out-fence support to QBUF
-Date: Fri, 20 Oct 2017 19:50:11 -0200
-Message-Id: <20171020215012.20646-17-gustavo@padovan.org>
-In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
-References: <20171020215012.20646-1-gustavo@padovan.org>
+Subject: [PATCH v3 23/26] media: lirc: scancode rc devices should have a lirc device too
+Date: Tue, 10 Oct 2017 08:18:45 +0100
+Message-Id: <90f04ac86e35cd93a2c024f2dadba3818428e198.1507618841.git.sean@mess.org>
+In-Reply-To: <cover.1507618840.git.sean@mess.org>
+References: <cover.1507618840.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Now that the lirc interface supports scancodes, RC scancode devices
+can also have a lirc device. The only feature they will have
+enabled is LIRC_CAN_REC_SCANCODE.
 
-If V4L2_BUF_FLAG_OUT_FENCE flag is present on the QBUF call we create
-an out_fence and send to userspace on the V4L2_EVENT_OUT_FENCE when
-the buffer is queued to the driver, or right away if the queue is ordered
-both in VB2 and in the driver.
+Note that CEC devices have no lirc device, since they can be controlled
+from their /dev/cecN chardev.
 
-The fence is signaled on buffer_done(), when the job on the buffer is
-finished.
-
-v5:
-	- delay fd_install to DQ_EVENT (Hans)
-	- if queue is fully ordered send OUT_FENCE event right away
-	(Brian)
-	- rename 'q->ordered' to 'q->ordered_in_driver'
-	- merge change to implement OUT_FENCE event here
-
-v4:
-	- return the out_fence_fd in the BUF_QUEUED event(Hans)
-
-v3:	- add WARN_ON_ONCE(q->ordered) on requeueing (Hans)
-	- set the OUT_FENCE flag if there is a fence pending (Hans)
-	- call fd_install() after vb2_core_qbuf() (Hans)
-	- clean up fence if vb2_core_qbuf() fails (Hans)
-	- add list to store sync_file and fence for the next queued buffer
-
-v2: check if the queue is ordered.
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/v4l2-core/v4l2-event.c     |  2 ++
- drivers/media/v4l2-core/videobuf2-core.c | 25 +++++++++++++++
- drivers/media/v4l2-core/videobuf2-v4l2.c | 55 ++++++++++++++++++++++++++++++++
- 3 files changed, 82 insertions(+)
+ drivers/media/rc/ir-lirc-codec.c | 34 ++++++++++++++++++++++++++--------
+ drivers/media/rc/lirc_dev.c      |  9 +++++++--
+ drivers/media/rc/rc-main.c       |  6 +++---
+ 3 files changed, 36 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-index 6274e3e174e0..275da224ace4 100644
---- a/drivers/media/v4l2-core/v4l2-event.c
-+++ b/drivers/media/v4l2-core/v4l2-event.c
-@@ -385,6 +385,8 @@ int v4l2_subscribe_event_v4l2(struct v4l2_fh *fh,
- 	switch (sub->type) {
- 	case V4L2_EVENT_CTRL:
- 		return v4l2_ctrl_subscribe_event(fh, sub);
-+	case V4L2_EVENT_OUT_FENCE:
-+		return v4l2_event_subscribe(fh, sub, VIDEO_MAX_FRAME, NULL);
- 	}
- 	return -EINVAL;
- }
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index c7ba67bda5ac..21e2052776c1 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -354,6 +354,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
- 			vb->planes[plane].length = plane_sizes[plane];
- 			vb->planes[plane].min_length = plane_sizes[plane];
- 		}
-+		vb->out_fence_fd = -1;
- 		q->bufs[vb->index] = vb;
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index 559a4049151e..6f1d9dd766d5 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -309,6 +309,9 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
  
- 		/* Allocate video buffer memory for the MMAP type */
-@@ -934,10 +935,24 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	case VB2_BUF_STATE_QUEUED:
- 		return;
- 	case VB2_BUF_STATE_REQUEUEING:
-+		/*
-+		 * Explicit synchronization requires ordered queues for now,
-+		 * so WARN_ON if we are requeuing on an ordered queue.
-+		 */
-+		if (vb->out_fence)
-+			WARN_ON_ONCE(q->ordered_in_driver);
+ 	switch (cmd) {
+ 	case LIRC_GET_FEATURES:
++		if (dev->driver_type == RC_DRIVER_SCANCODE)
++			val |= LIRC_CAN_REC_SCANCODE;
 +
- 		if (q->start_streaming_called)
- 			__enqueue_in_driver(vb);
- 		return;
- 	default:
-+		if (state == VB2_BUF_STATE_ERROR)
-+			dma_fence_set_error(vb->out_fence, -ENOENT);
-+		dma_fence_signal(vb->out_fence);
-+		dma_fence_put(vb->out_fence);
-+		vb->out_fence = NULL;
-+		vb->out_fence_fd = -1;
-+
- 		/* Inform any processes that may be waiting for buffers */
- 		wake_up(&q->done_wq);
+ 		if (dev->driver_type == RC_DRIVER_IR_RAW) {
+ 			val |= LIRC_CAN_REC_MODE2 | LIRC_CAN_REC_SCANCODE;
+ 			if (dev->rx_resolution)
+@@ -352,22 +355,37 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
  		break;
-@@ -1235,6 +1250,9 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- 	trace_vb2_buf_queue(q, vb);
  
- 	call_void_vb_qop(vb, buf_queue, vb);
-+
-+	if (!(q->is_output || q->ordered_in_vb2))
-+		call_void_bufop(q, send_out_fence, vb);
- }
- 
- static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
-@@ -1451,6 +1469,7 @@ static struct dma_fence *__set_in_fence(struct vb2_queue *q,
- 		}
- 
- 		q->last_fence = dma_fence_get(fence);
-+		call_void_bufop(q, send_out_fence, vb);
- 	}
- 
- 	return fence;
-@@ -1840,6 +1859,11 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	}
- 
- 	/*
-+	 * Renew out-fence context.
-+	 */
-+	q->out_fence_context = dma_fence_context_alloc(1);
-+
-+	/*
- 	 * Remove all buffers from videobuf's list...
- 	 */
- 	INIT_LIST_HEAD(&q->queued_list);
-@@ -2171,6 +2195,7 @@ int vb2_core_queue_init(struct vb2_queue *q)
- 	spin_lock_init(&q->done_lock);
- 	mutex_init(&q->mmap_lock);
- 	init_waitqueue_head(&q->done_wq);
-+	q->out_fence_context = dma_fence_context_alloc(1);
- 
- 	if (q->buf_struct_size == 0)
- 		q->buf_struct_size = sizeof(struct vb2_buffer);
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 4c09ea007d90..9fb01ddefdc9 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -32,6 +32,11 @@
- 
- #include <media/videobuf2-v4l2.h>
- 
-+struct out_fence_data {
-+	int fence_fd;
-+	struct file *file;
-+};
-+
- static int debug;
- module_param(debug, int, 0644);
- 
-@@ -138,6 +143,38 @@ static void __copy_timestamp(struct vb2_buffer *vb, const void *pb)
- 	}
- };
- 
-+static void __fd_install_at_dequeue_cb(void *data)
-+{
-+	struct out_fence_data *of = data;
-+
-+	fd_install(of->fence_fd, of->file);
-+	kfree(of);
-+}
-+
-+static void __send_out_fence(struct vb2_buffer *vb)
-+{
-+	struct video_device *vdev = to_video_device(vb->vb2_queue->dev);
-+	struct v4l2_fh *fh = vdev->queue->owner;
-+	struct v4l2_event event;
-+	struct out_fence_data *of;
-+
-+	if (vb->out_fence_fd < 0)
-+		return;
-+
-+	memset(&event, 0, sizeof(event));
-+	event.type = V4L2_EVENT_OUT_FENCE;
-+	event.u.out_fence.index = vb->index;
-+	event.u.out_fence.out_fence_fd = vb->out_fence_fd;
-+
-+	of = kmalloc(sizeof(*of), GFP_KERNEL);
-+	of->fence_fd = vb->out_fence_fd;
-+	of->file = vb->sync_file->file;
-+
-+	v4l2_event_queue_fh_with_cb(fh, &event, __fd_install_at_dequeue_cb, of);
-+
-+	vb->sync_file = NULL;
-+}
-+
- static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
- {
- 	static bool check_once;
-@@ -185,6 +222,12 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
- 		return -EINVAL;
- 	}
- 
-+	if (!q->ordered_in_driver && (b->flags & V4L2_BUF_FLAG_OUT_FENCE)) {
-+		dprintk(1, "%s: out-fence doesn't work on unordered queues\n",
-+			opname);
-+		return -EINVAL;
-+	}
-+
- 	return __verify_planes_array(q->bufs[b->index], b);
- }
- 
-@@ -213,6 +256,8 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	b->reserved = 0;
- 
- 	b->fence_fd = -1;
-+	if (vb->out_fence)
-+		b->flags |= V4L2_BUF_FLAG_OUT_FENCE;
- 	if (vb->in_fence)
- 		b->flags |= V4L2_BUF_FLAG_IN_FENCE;
- 	else
-@@ -456,6 +501,7 @@ static const struct vb2_buf_ops v4l2_buf_ops = {
- 	.fill_user_buffer	= __fill_v4l2_buffer,
- 	.fill_vb2_buffer	= __fill_vb2_buffer,
- 	.copy_timestamp		= __copy_timestamp,
-+	.send_out_fence		= __send_out_fence,
- };
- 
- /**
-@@ -593,6 +639,15 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 		}
- 	}
- 
-+	if (b->flags & V4L2_BUF_FLAG_OUT_FENCE) {
-+		ret = vb2_setup_out_fence(q, b->index);
-+		if (ret) {
-+			dprintk(1, "failed to set up out-fence\n");
-+			dma_fence_put(fence);
-+			return ret;
+ 	case LIRC_SET_REC_MODE:
+-		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
++		switch (dev->driver_type) {
++		case RC_DRIVER_IR_RAW_TX:
+ 			return -ENOTTY;
+-
+-		if (!(val == LIRC_MODE_MODE2 || val == LIRC_MODE_SCANCODE))
+-			return -EINVAL;
++		case RC_DRIVER_SCANCODE:
++			if (val != LIRC_MODE_SCANCODE)
++				return -EINVAL;
++			break;
++		case RC_DRIVER_IR_RAW:
++			if (!(val == LIRC_MODE_MODE2 ||
++			      val == LIRC_MODE_SCANCODE))
++				return -EINVAL;
++			break;
 +		}
+ 
+ 		dev->rec_mode = val;
+ 		dev->poll_mode = val;
+ 		return 0;
+ 
+ 	case LIRC_SET_POLL_MODES:
+-		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
++		switch (dev->driver_type) {
++		case RC_DRIVER_IR_RAW_TX:
+ 			return -ENOTTY;
+-
+-		if (val & ~(LIRC_MODE_MODE2 | LIRC_MODE_SCANCODE))
+-			return -EINVAL;
++		case RC_DRIVER_SCANCODE:
++			if (val != LIRC_MODE_SCANCODE)
++				return -EINVAL;
++			break;
++		case RC_DRIVER_IR_RAW:
++			if (val & ~(LIRC_MODE_MODE2 | LIRC_MODE_SCANCODE))
++				return -EINVAL;
++			break;
++		}
+ 
+ 		dev->poll_mode = val;
+ 		return 0;
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index aee7cbb04439..6fc1ec257153 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -61,8 +61,13 @@ int ir_lirc_register(struct rc_dev *dev)
+ 	else
+ 		dev->send_mode = LIRC_MODE_PULSE;
+ 
+-	dev->rec_mode = LIRC_MODE_MODE2;
+-	dev->poll_mode = LIRC_MODE_MODE2;
++	if (dev->driver_type == RC_DRIVER_SCANCODE) {
++		dev->rec_mode = LIRC_MODE_SCANCODE;
++		dev->poll_mode = LIRC_MODE_SCANCODE;
++	} else {
++		dev->rec_mode = LIRC_MODE_MODE2;
++		dev->poll_mode = LIRC_MODE_MODE2;
 +	}
-+
- 	return vb2_core_qbuf(q, b->index, b, fence);
- }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
+ 
+ 	if (dev->driver_type == RC_DRIVER_IR_RAW) {
+ 		if (kfifo_alloc(&dev->rawir, MAX_IR_EVENT_SIZE, GFP_KERNEL))
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index dae427e25d71..9f39bc074837 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1810,7 +1810,7 @@ int rc_register_device(struct rc_dev *dev)
+ 	}
+ 
+ 	/* Ensure that the lirc kfifo is setup before we start the thread */
+-	if (dev->driver_type != RC_DRIVER_SCANCODE) {
++	if (dev->allowed_protocols != RC_PROTO_BIT_CEC) {
+ 		rc = ir_lirc_register(dev);
+ 		if (rc < 0)
+ 			goto out_rx;
+@@ -1831,7 +1831,7 @@ int rc_register_device(struct rc_dev *dev)
+ 	return 0;
+ 
+ out_lirc:
+-	if (dev->driver_type != RC_DRIVER_SCANCODE)
++	if (dev->allowed_protocols != RC_PROTO_BIT_CEC)
+ 		ir_lirc_unregister(dev);
+ out_rx:
+ 	rc_free_rx_device(dev);
+@@ -1892,7 +1892,7 @@ void rc_unregister_device(struct rc_dev *dev)
+ 	 * lirc device should be freed with dev->registered = false, so
+ 	 * that userspace polling will get notified.
+ 	 */
+-	if (dev->driver_type != RC_DRIVER_SCANCODE)
++	if (dev->allowed_protocols != RC_PROTO_BIT_CEC)
+ 		ir_lirc_unregister(dev);
+ 
+ 	device_del(&dev->dev);
 -- 
 2.13.6
