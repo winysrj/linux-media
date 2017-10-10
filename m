@@ -1,66 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:39940 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751973AbdJZCYz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Oct 2017 22:24:55 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        hyungwoo.yang@intel.com, chiranjeevi.rapolu@intel.com,
-        jerry.w.hu@intel.com, Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v6 1/3] videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
-Date: Wed, 25 Oct 2017 21:24:40 -0500
-Message-Id: <1508984682-25219-2-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1508984682-25219-1-git-send-email-yong.zhi@intel.com>
-References: <1508984682-25219-1-git-send-email-yong.zhi@intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45444 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755221AbdJJLyi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 07:54:38 -0400
+Date: Tue, 10 Oct 2017 14:54:35 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v7 1/7] media: add glossary.rst with a glossary of terms
+ used at V4L2 spec
+Message-ID: <20171010115435.eer5yaybxdni2ck7@valkosipuli.retiisi.org.uk>
+References: <cover.1506550930.git.mchehab@s-opensource.com>
+ <047245414a82a6553361b1dd3497f796855a657d.1506550930.git.mchehab@s-opensource.com>
+ <20171006102229.evjyn77udfcc76gs@valkosipuli.retiisi.org.uk>
+ <20171006115105.wqabs3cm34gdy3w5@valkosipuli.retiisi.org.uk>
+ <20171010061339.67584102@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171010061339.67584102@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add IPU3 specific formats:
+On Tue, Oct 10, 2017 at 06:15:03AM -0300, Mauro Carvalho Chehab wrote:
+> Em Fri, 6 Oct 2017 14:51:06 +0300
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > On Fri, Oct 06, 2017 at 01:22:29PM +0300, Sakari Ailus wrote:
+> > > > +    V4L2 device node
+> > > > +	A device node that is associated to a V4L2 main driver,
+> > > > +	as specified in :ref:`v4l2_device_naming`.  
+> > 
+> > I think we need to name the interface, not so much their instances.
+> > 
+> > How about adding:
+> > 
+> >     V4L2
+> > 	Video4Linux 2 interface. The interface implemented by **V4L2 device
+> > 	nodes**.
+> > 
+> > and:
+> > 
+> >     V4L2 device node
+> > 	A device node implementing the **V4L2** interface.
+> 
+> Not sure if I answered it already. subdev API is part of V4L2.
+> So, a change like that would cause more harm than good ;-)
 
-	V4L2_PIX_FMT_IPU3_SBGGR10
-	V4L2_PIX_FMT_IPU3_SGBRG10
-	V4L2_PIX_FMT_IPU3_SGRBG10
-	V4L2_PIX_FMT_IPU3_SRGGB10
+Hmm. There seems to be a gap here. It'd be much easier to maintain
+consistency in naming and definitions if V4L2 sub-device nodes were also
+documented to be V4L2 device nodes, just as any other device nodes exposed
+by drivers through the V4L2 framework.
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
- include/uapi/linux/videodev2.h       | 6 ++++++
- 2 files changed, 10 insertions(+)
+> 
+> The definition should let it clear that only the devnodes 
+> implemented by the V4L2 main driver are considered as
+> V4L2 device nodes.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 79614992ee21..3937945b12dc 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1202,6 +1202,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_PIX_FMT_SGBRG10P:	descr = "10-bit Bayer GBGB/RGRG Packed"; break;
- 	case V4L2_PIX_FMT_SGRBG10P:	descr = "10-bit Bayer GRGR/BGBG Packed"; break;
- 	case V4L2_PIX_FMT_SRGGB10P:	descr = "10-bit Bayer RGRG/GBGB Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SBGGR10: descr = "10-bit bayer BGGR IPU3 Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SGBRG10: descr = "10-bit bayer GBRG IPU3 Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SGRBG10: descr = "10-bit bayer GRBG IPU3 Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SRGGB10: descr = "10-bit bayer RGGB IPU3 Packed"; break;
- 	case V4L2_PIX_FMT_SBGGR10ALAW8:	descr = "8-bit Bayer BGBG/GRGR (A-law)"; break;
- 	case V4L2_PIX_FMT_SGBRG10ALAW8:	descr = "8-bit Bayer GBGB/RGRG (A-law)"; break;
- 	case V4L2_PIX_FMT_SGRBG10ALAW8:	descr = "8-bit Bayer GRGR/BGBG (A-law)"; break;
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 185d6a0acc06..bcf6a50f6aac 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -668,6 +668,12 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
- #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
- 
-+/* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
-+#define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
-+#define V4L2_PIX_FMT_IPU3_SGBRG10	v4l2_fourcc('i', 'p', '3', 'g') /* IPU3 packed 10-bit GBRG bayer */
-+#define V4L2_PIX_FMT_IPU3_SGRBG10	v4l2_fourcc('i', 'p', '3', 'G') /* IPU3 packed 10-bit GRBG bayer */
-+#define V4L2_PIX_FMT_IPU3_SRGGB10	v4l2_fourcc('i', 'p', '3', 'r') /* IPU3 packed 10-bit RGGB bayer */
-+
- /* SDR formats - used only for Software Defined Radio devices */
- #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
- #define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
+Why? I don't think we should make assumptions on which driver exposes a
+device node; this is not visible to the user space after all.
+
 -- 
-2.7.4
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
