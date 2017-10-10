@@ -1,82 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:51628 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751894AbdJILAa (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43048 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1756002AbdJJIyt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 07:00:30 -0400
-Subject: Re: [PATCH 08/24] media: v4l2-dev: document VFL_DIR_* direction
- defines
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
- <150e771ce68cc38453ddc77f55d5ff9f9142e34a.1507544011.git.mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e9d3d05e-c826-59ec-d38f-63a5e8b798e4@xs4all.nl>
-Date: Mon, 9 Oct 2017 13:00:29 +0200
+        Tue, 10 Oct 2017 04:54:49 -0400
+Date: Tue, 10 Oct 2017 11:54:46 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <pawel@osciak.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: vb2: unify calling of set_page_dirty_lock
+Message-ID: <20171010085446.n3yrr5whcv7lsbpr@valkosipuli.retiisi.org.uk>
+References: <20170829112603.32732-1-stanimir.varbanov@linaro.org>
+ <CGME20171010074231epcas5p3c2f9109c62b9e84af7f6905bb34a6ef4@epcas5p3.samsung.com>
+ <dd1e2f3e-18f1-ed77-2520-aac1bea0c1a9@linaro.org>
+ <8c775a5d-e42a-761b-e5ef-6dee93d7f476@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <150e771ce68cc38453ddc77f55d5ff9f9142e34a.1507544011.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8c775a5d-e42a-761b-e5ef-6dee93d7f476@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/10/17 12:19, Mauro Carvalho Chehab wrote:
-> The V4L_DIR_* direction flags document the direction for a
-> V4L2 device node. Convert them to enum and document.
+On Tue, Oct 10, 2017 at 10:01:36AM +0200, Marek Szyprowski wrote:
+> Hi Stanimir,
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-> ---
->  include/media/v4l2-dev.h | 22 ++++++++++++++++------
->  1 file changed, 16 insertions(+), 6 deletions(-)
+> On 2017-10-10 09:42, Stanimir Varbanov wrote:
+> > Marek,
+> > 
+> > Any comments?
 > 
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index f182b47dfd71..87dac58c7799 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -40,11 +40,21 @@ enum vfl_devnode_type {
->  };
->  #define VFL_TYPE_MAX VFL_TYPE_TOUCH
->  
-> -/* Is this a receiver, transmitter or mem-to-mem? */
-> -/* Ignored for VFL_TYPE_SUBDEV. */
-> -#define VFL_DIR_RX		0
-> -#define VFL_DIR_TX		1
-> -#define VFL_DIR_M2M		2
-> +/**
-> + * enum  vfl_direction - Identifies if a &struct video_device corresponds
-> + *	to a receiver, a transmitter or a mem-to-mem device.
-> + *
-> + * @VFL_DIR_RX:		device is a receiver.
-> + * @VFL_DIR_TX:		device is a transmitter.
-> + * @VFL_DIR_M2M:	device is a memory to memory device.
-> + *
-> + * Note: Ignored if &enum vfl_devnode_type is %VFL_TYPE_SUBDEV.
-> + */
-> +enum vfl_devnode_direction {
-> +	VFL_DIR_RX,
-> +	VFL_DIR_TX,
-> +	VFL_DIR_M2M,
-> +};
->  
->  struct v4l2_ioctl_callbacks;
->  struct video_device;
-> @@ -249,7 +259,7 @@ struct video_device
->  	/* device info */
->  	char name[32];
->  	enum vfl_devnode_type vfl_type;
-> -	int vfl_dir;
-> +	enum vfl_devnode_direction vfl_dir;
->  	int minor;
->  	u16 num;
->  	unsigned long flags;
+> Oh, I thought that this one has been already merged. If not (yet),
+> here is my ack.
 > 
+> > On 08/29/2017 02:26 PM, Stanimir Varbanov wrote:
+> > > Currently videobuf2-dma-sg checks for dma direction for
+> > > every single page and videobuf2-dc lacks any dma direction
+> > > checks and calls set_page_dirty_lock unconditionally.
+> > > 
+> > > Thus unify and align the invocations of set_page_dirty_lock
+> > > for videobuf2-dc, videobuf2-sg  memory allocators with
+> > > videobuf2-vmalloc, i.e. the pattern used in vmalloc has been
+> > > copied to dc and dma-sg.
+> > > 
+> > > Suggested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> > > Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> 
+> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
