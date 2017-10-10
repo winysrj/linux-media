@@ -1,37 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:35425 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751204AbdJBWRY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Oct 2017 18:17:24 -0400
-Received: by mail-oi0-f68.google.com with SMTP id f3so3430560oia.2
-        for <linux-media@vger.kernel.org>; Mon, 02 Oct 2017 15:17:24 -0700 (PDT)
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43090 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755064AbdJJI4Z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 04:56:25 -0400
+Date: Tue, 10 Oct 2017 11:56:23 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v7 1/7] media: add glossary.rst with a glossary of terms
+ used at V4L2 spec
+Message-ID: <20171010085623.2s5qiep752hosugn@valkosipuli.retiisi.org.uk>
+References: <cover.1506550930.git.mchehab@s-opensource.com>
+ <047245414a82a6553361b1dd3497f796855a657d.1506550930.git.mchehab@s-opensource.com>
+ <20171006102229.evjyn77udfcc76gs@valkosipuli.retiisi.org.uk>
+ <20171010053004.2d97795a@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <20171002221247.GH20805@n2100.armlinux.org.uk>
-References: <20171002105954.29474-1-sakari.ailus@linux.intel.com>
- <20171002112846.ymr4ubrg6nlos6hh@valkosipuli.retiisi.org.uk> <20171002221247.GH20805@n2100.armlinux.org.uk>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Mon, 2 Oct 2017 19:17:23 -0300
-Message-ID: <CAOMZO5Da6mOL_s+j6B_mt0z7dPZMmx6StJFu5KzQ8_RYLh5L3Q@mail.gmail.com>
-Subject: Re: [PATCH 1/1] v4l: async: Fix notifier complete callback error handling
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171010053004.2d97795a@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Russell,
+On Tue, Oct 10, 2017 at 05:30:04AM -0300, Mauro Carvalho Chehab wrote:
+> Em Fri, 6 Oct 2017 13:22:29 +0300
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > > +    Bridge driver
+> > > +	The same as V4L2 main driver.  
+> > 
+> > Not all V4L2 main drivers can be bridge drivers. Mem-to-mem devices, for
+> > instance. How about:
+> > 
+> > A driver for a device receiving image data from another device (or
+> > transmitting it to a sub-device) controlled by a sub-device driver. Bridge
+> > drivers typically act as V4L2 main drivers.
+> 
+> That is not true for some device drivers we have.
+> 
+> The GSPCA drivers are bridge drivers, but they don't use any sub-device
+> (well, it should, but nobody will redesign it, as the efforts would
+> be huge, for a very little gain). Also uvcdriver doesn't need sub-device
+> drivers, as the camera's internal firmware does the interface with the
+> sensors.
+> 
+> We could, instead define it as:
+> 
+>     Bridge driver
+> 	A driver that provides a bridge between the CPU's bus to the
+> 	data and control buses of a media hardware. Often, the
+> 	bridge driver is the same as V4L2 main driver.
 
-On Mon, Oct 2, 2017 at 7:12 PM, Russell King - ARM Linux
-<linux@armlinux.org.uk> wrote:
+Looks good to me.
 
->> <URL:http://www.spinics.net/lists/linux-media/msg122689.html>
->
-> Any chance of sending me that patch so I can test this patch?  I'd
-> rather not manually de-html-ise the above patch.
-
-You can get it from https://patchwork.linuxtv.org/patch/44512/
-
-(Click on the patch link and it will download a pure patch file)
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
