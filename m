@@ -1,55 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:52886 "EHLO butterbrot.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752349AbdJDPTk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 11:19:40 -0400
-Received: from localhost (localhost [127.0.0.1])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by butterbrot.org (Postfix) with ESMTPS id 47DEF4AE0598
-        for <linux-media@vger.kernel.org>; Wed,  4 Oct 2017 17:19:39 +0200 (CEST)
-Date: Wed, 4 Oct 2017 17:19:39 +0200 (CEST)
-From: Florian Echtler <floe@butterbrot.org>
-To: linux-media@vger.kernel.org
-Subject: Re: Regression on 4.10 with Logitech Quickcam Sphere
-In-Reply-To: <alpine.DEB.2.10.1710012003100.18874@butterbrot>
-Message-ID: <alpine.DEB.2.10.1710041716470.18874@butterbrot>
-References: <alpine.DEB.2.10.1710012003100.18874@butterbrot>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46420 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932087AbdJJNch (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 09:32:37 -0400
+Date: Tue, 10 Oct 2017 16:32:34 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH 19/24] media: vb2-core: Improve kernel-doc markups
+Message-ID: <20171010133234.ax3ra6qfvj6cemui@valkosipuli.retiisi.org.uk>
+References: <cover.1507544011.git.mchehab@s-opensource.com>
+ <acc10ada9169725a9136f9c039fe68cb0f355131.1507544011.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <acc10ada9169725a9136f9c039fe68cb0f355131.1507544011.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello again,
+Hi Mauro,
 
-solved it myself, posting here for the record.
+On Mon, Oct 09, 2017 at 07:19:25AM -0300, Mauro Carvalho Chehab wrote:
+> There are several issues on the current markups:
+> - lack of cross-references;
+> - wrong cross-references;
+> - lack of a period of the end of several phrases;
+> - Some descriptions can be enhanced.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  include/media/videobuf2-core.h | 376 ++++++++++++++++++++++-------------------
+>  1 file changed, 204 insertions(+), 172 deletions(-)
+> 
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 0308d8439049..e145f1475ffe 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
 
-Solution is to install uvcdynctrl and running
+...
 
-uvcdynctrl -i /usr/share/uvcdynctrl/data/046d/logitech.xml
+>  /**
+>   * vb2_core_queue_init() - initialize a videobuf2 queue
+> - * @q:		videobuf2 queue; this structure should be allocated in driver
+> + * @q:		pointer to &struct vb2_queue with videobuf2 queue.
+> + *		This structure should be allocated in driver
+>   *
+>   * The &vb2_queue structure should be allocated by the driver. The driver is
+>   * responsible of clearing it's content and setting initial values for some
+>   * required entries before calling this function.
+> - * q->ops, q->mem_ops, q->type and q->io_modes are mandatory. Please refer
+> - * to the struct vb2_queue description in include/media/videobuf2-core.h
+> - * for more information.
+> + *
+> + * .. note::
+> + *
+> + *    The following fields at @q should be set before calling this function:
 
-And voila, custom controls back again. Not well documented, but hey.
+should -> shall
 
-Best regards, Florian
-
-On Sun, 1 Oct 2017, Florian Echtler wrote:
-
-> Hello everyone,
->
-> I recently upgraded from a 4.4 kernel to 4.10, and found that my Logitech 
-> Quickcam Sphere now behaves differently.
->
-> More specifically, the pan/tilt controls do not work anymore - in fact, they 
-> are completely gone from "v4l2-ctl -L".
->
-> I suspect that https://bugzilla.kernel.org/show_bug.cgi?id=111291#c10 may be 
-> related, and the new extension handling causes the pan/tilt controls to 
-> disappear.
->
-> Question now is, how to get them back?
->
-> Best, Florian
+I bet there's a lot of that in the documentation elsewhere, including this
+patch.
 
 -- 
-"_Nothing_ brightens up my morning. Coffee simply provides a shade of
-grey just above the pitch-black of the infinite depths of the _abyss_."
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
