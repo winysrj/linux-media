@@ -1,400 +1,272 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:36857 "EHLO gofer.mess.org"
+Received: from gofer.mess.org ([88.97.38.141]:52189 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752216AbdJJHRa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 03:17:30 -0400
+        id S1755354AbdJJHSI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 03:18:08 -0400
 From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Subject: [PATCH v3 01/26] media: lirc: implement scancode sending
-Date: Tue, 10 Oct 2017 08:17:29 +0100
-Message-Id: <0abf9ed3ce84d4f3084633a962c9c7144898b0da.1507618840.git.sean@mess.org>
+Subject: [PATCH v3 12/26] media: lirc: merge lirc_dev_fop_ioctl and ir_lirc_ioctl
+Date: Tue, 10 Oct 2017 08:18:06 +0100
+Message-Id: <0704ff79fddb2b1aa8969d2bd826df981f841c54.1507618841.git.sean@mess.org>
 In-Reply-To: <cover.1507618840.git.sean@mess.org>
 References: <cover.1507618840.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This introduces a new lirc mode: scancode. Any device which can send raw IR
-can now also send scancodes.
+Calculate lirc features when necessary, and add LIRC_{S,G}ET_REC_MODE
+cases to ir_lirc_ioctl.
 
-int main()
-{
-	int mode, fd = open("/dev/lirc0", O_RDWR);
-
-        mode = LIRC_MODE_SCANCODE;
-	if (ioctl(fd, LIRC_SET_SEND_MODE, &mode)) {
-		// kernel too old or lirc does not support transmit
-	}
-	struct lirc_scancode scancode = {
-		.scancode = 0x1e3d,
-		.rc_proto = RC_PROTO_RC5,
-	};
-	write(fd, &scancode, sizeof(scancode));
-	close(fd);
-}
-
-The other fields of lirc_scancode must be set to 0.
-
-Note that toggle (rc5, rc6) and repeats (nec) are not implemented. Nor is
-there a method for holding down a key for a period.
+This makes lirc_dev_fop_ioctl() unnecessary since all cases are
+already handled by ir_lirc_ioctl().
 
 Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/rc/ir-lirc-codec.c | 99 +++++++++++++++++++++++++++++-----------
- drivers/media/rc/rc-core-priv.h  |  2 +-
- include/media/rc-map.h           | 54 +---------------------
- include/uapi/linux/lirc.h        | 82 +++++++++++++++++++++++++++++++++
- 4 files changed, 156 insertions(+), 81 deletions(-)
+ drivers/media/rc/ir-lirc-codec.c | 85 +++++++++++++++++++++++-----------------
+ drivers/media/rc/lirc_dev.c      | 62 ++---------------------------
+ include/media/lirc_dev.h         |  4 --
+ 3 files changed, 53 insertions(+), 98 deletions(-)
 
 diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 8f2f37412fc5..2c89b4474e31 100644
+index d9406fdbc9a3..05b2c1d5c0e6 100644
 --- a/drivers/media/rc/ir-lirc-codec.c
 +++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -107,7 +107,8 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- {
- 	struct lirc_codec *lirc;
- 	struct rc_dev *dev;
--	unsigned int *txbuf; /* buffer with values to transmit */
-+	unsigned int *txbuf = NULL;
-+	struct ir_raw_event *raw = NULL;
- 	ssize_t ret = -EINVAL;
- 	size_t count;
- 	ktime_t start;
-@@ -121,16 +122,50 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 	if (!lirc)
- 		return -EFAULT;
- 
--	if (n < sizeof(unsigned) || n % sizeof(unsigned))
--		return -EINVAL;
-+	if (lirc->send_mode == LIRC_MODE_SCANCODE) {
-+		struct lirc_scancode scan;
- 
--	count = n / sizeof(unsigned);
--	if (count > LIRCBUF_SIZE || count % 2 == 0)
--		return -EINVAL;
-+		if (n != sizeof(scan))
-+			return -EINVAL;
- 
--	txbuf = memdup_user(buf, n);
--	if (IS_ERR(txbuf))
--		return PTR_ERR(txbuf);
-+		if (copy_from_user(&scan, buf, sizeof(scan)))
-+			return -EFAULT;
-+
-+		if (scan.flags || scan.keycode || scan.timestamp)
-+			return -EINVAL;
-+
-+		raw = kmalloc_array(LIRCBUF_SIZE, sizeof(*raw), GFP_KERNEL);
-+		if (!raw)
-+			return -ENOMEM;
-+
-+		ret = ir_raw_encode_scancode(scan.rc_proto, scan.scancode,
-+					     raw, LIRCBUF_SIZE);
-+		if (ret < 0)
-+			goto out;
-+
-+		count = ret;
-+
-+		txbuf = kmalloc_array(count, sizeof(unsigned int), GFP_KERNEL);
-+		if (!txbuf) {
-+			ret = -ENOMEM;
-+			goto out;
-+		}
-+
-+		for (i = 0; i < count; i++)
-+			/* Convert from NS to US */
-+			txbuf[i] = DIV_ROUND_UP(raw[i].duration, 1000);
-+	} else {
-+		if (n < sizeof(unsigned int) || n % sizeof(unsigned int))
-+			return -EINVAL;
-+
-+		count = n / sizeof(unsigned int);
-+		if (count > LIRCBUF_SIZE || count % 2 == 0)
-+			return -EINVAL;
-+
-+		txbuf = memdup_user(buf, n);
-+		if (IS_ERR(txbuf))
-+			return PTR_ERR(txbuf);
-+	}
- 
- 	dev = lirc->dev;
- 	if (!dev) {
-@@ -156,24 +191,30 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 	if (ret < 0)
- 		goto out;
- 
--	for (duration = i = 0; i < ret; i++)
--		duration += txbuf[i];
--
--	ret *= sizeof(unsigned int);
--
--	/*
--	 * The lircd gap calculation expects the write function to
--	 * wait for the actual IR signal to be transmitted before
--	 * returning.
--	 */
--	towait = ktime_us_delta(ktime_add_us(start, duration), ktime_get());
--	if (towait > 0) {
--		set_current_state(TASK_INTERRUPTIBLE);
--		schedule_timeout(usecs_to_jiffies(towait));
-+	if (lirc->send_mode == LIRC_MODE_SCANCODE) {
-+		ret = n;
-+	} else {
-+		for (duration = i = 0; i < ret; i++)
-+			duration += txbuf[i];
-+
-+		ret *= sizeof(unsigned int);
-+
-+		/*
-+		 * The lircd gap calculation expects the write function to
-+		 * wait for the actual IR signal to be transmitted before
-+		 * returning.
-+		 */
-+		towait = ktime_us_delta(ktime_add_us(start, duration),
-+					ktime_get());
-+		if (towait > 0) {
-+			set_current_state(TASK_INTERRUPTIBLE);
-+			schedule_timeout(usecs_to_jiffies(towait));
-+		}
+@@ -236,8 +236,57 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
  	}
- 
- out:
- 	kfree(txbuf);
-+	kfree(raw);
- 	return ret;
- }
- 
-@@ -202,20 +243,22 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
  
  	switch (cmd) {
++	case LIRC_GET_FEATURES:
++		if (dev->driver_type == RC_DRIVER_IR_RAW) {
++			val |= LIRC_CAN_REC_MODE2;
++			if (dev->rx_resolution)
++				val |= LIRC_CAN_GET_REC_RESOLUTION;
++		}
++
++		if (dev->tx_scancode)
++			val |= LIRC_CAN_SEND_SCANCODE;
++
++		if (dev->tx_ir) {
++			val |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
++			if (dev->s_tx_mask)
++				val |= LIRC_CAN_SET_TRANSMITTER_MASK;
++			if (dev->s_tx_carrier)
++				val |= LIRC_CAN_SET_SEND_CARRIER;
++			if (dev->s_tx_duty_cycle)
++				val |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
++		}
++
++		if (dev->s_rx_carrier_range)
++			val |= LIRC_CAN_SET_REC_CARRIER |
++				LIRC_CAN_SET_REC_CARRIER_RANGE;
++
++		if (dev->s_learning_mode)
++			val |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
++
++		if (dev->s_carrier_report)
++			val |= LIRC_CAN_MEASURE_CARRIER;
++
++		if (dev->max_timeout)
++			val |= LIRC_CAN_SET_REC_TIMEOUT;
++
++		break;
  
--	/* legacy support */
-+	/* mode support */
+ 	/* mode support */
++	case LIRC_GET_REC_MODE:
++		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
++			return -ENOTTY;
++
++		val = LIRC_MODE_MODE2;
++		break;
++
++	case LIRC_SET_REC_MODE:
++		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
++			return -ENOTTY;
++
++		if (val != LIRC_MODE_MODE2)
++			return -EINVAL;
++		return 0;
++
  	case LIRC_GET_SEND_MODE:
- 		if (!dev->tx_ir)
+ 		if (!dev->tx_ir && !dev->tx_scancode)
  			return -ENOTTY;
- 
--		val = LIRC_MODE_PULSE;
-+		val = lirc->send_mode;
+@@ -361,7 +410,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
  		break;
  
- 	case LIRC_SET_SEND_MODE:
- 		if (!dev->tx_ir)
- 			return -ENOTTY;
- 
--		if (val != LIRC_MODE_PULSE)
-+		if (!(val == LIRC_MODE_PULSE || val == LIRC_MODE_SCANCODE))
- 			return -EINVAL;
-+
-+		lirc->send_mode = val;
- 		return 0;
- 
- 	/* TX settings */
-@@ -361,7 +404,7 @@ static int ir_lirc_register(struct rc_dev *dev)
+ 	default:
+-		return lirc_dev_fop_ioctl(filep, cmd, arg);
++		return -ENOTTY;
  	}
  
- 	if (dev->tx_ir) {
--		features |= LIRC_CAN_SEND_PULSE;
-+		features |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
- 		if (dev->s_tx_mask)
- 			features |= LIRC_CAN_SET_TRANSMITTER_MASK;
- 		if (dev->s_tx_carrier)
-@@ -400,6 +443,8 @@ static int ir_lirc_register(struct rc_dev *dev)
- 	if (rc < 0)
- 		goto out;
+ 	if (_IOC_DIR(cmd) & _IOC_READ)
+@@ -388,47 +437,13 @@ int ir_lirc_register(struct rc_dev *dev)
+ {
+ 	struct lirc_dev *ldev;
+ 	int rc = -ENOMEM;
+-	unsigned long features = 0;
  
-+	dev->raw->lirc.send_mode = LIRC_MODE_PULSE;
-+
- 	dev->raw->lirc.ldev = ldev;
- 	dev->raw->lirc.dev = dev;
- 	return 0;
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index ae4dd0c27731..43eabea9f152 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -113,7 +113,7 @@ struct ir_raw_event_ctrl {
- 		u64 gap_duration;
- 		bool gap;
- 		bool send_timeout_reports;
+ 	ldev = lirc_allocate_device();
+ 	if (!ldev)
+ 		return rc;
+ 
+-	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
+-		features |= LIRC_CAN_REC_MODE2;
+-		if (dev->rx_resolution)
+-			features |= LIRC_CAN_GET_REC_RESOLUTION;
+-	}
 -
-+		u8 send_mode;
- 	} lirc;
- 	struct xmp_dec {
- 		int state;
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index b4ddcb62c993..2547b321463e 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -10,59 +10,7 @@
-  */
- 
- #include <linux/input.h>
+-	if (dev->tx_scancode)
+-		features |= LIRC_CAN_SEND_SCANCODE;
 -
--/**
-- * enum rc_proto - the Remote Controller protocol
-- *
-- * @RC_PROTO_UNKNOWN: Protocol not known
-- * @RC_PROTO_OTHER: Protocol known but proprietary
-- * @RC_PROTO_RC5: Philips RC5 protocol
-- * @RC_PROTO_RC5X_20: Philips RC5x 20 bit protocol
-- * @RC_PROTO_RC5_SZ: StreamZap variant of RC5
-- * @RC_PROTO_JVC: JVC protocol
-- * @RC_PROTO_SONY12: Sony 12 bit protocol
-- * @RC_PROTO_SONY15: Sony 15 bit protocol
-- * @RC_PROTO_SONY20: Sony 20 bit protocol
-- * @RC_PROTO_NEC: NEC protocol
-- * @RC_PROTO_NECX: Extended NEC protocol
-- * @RC_PROTO_NEC32: NEC 32 bit protocol
-- * @RC_PROTO_SANYO: Sanyo protocol
-- * @RC_PROTO_MCIR2_KBD: RC6-ish MCE keyboard
-- * @RC_PROTO_MCIR2_MSE: RC6-ish MCE mouse
-- * @RC_PROTO_RC6_0: Philips RC6-0-16 protocol
-- * @RC_PROTO_RC6_6A_20: Philips RC6-6A-20 protocol
-- * @RC_PROTO_RC6_6A_24: Philips RC6-6A-24 protocol
-- * @RC_PROTO_RC6_6A_32: Philips RC6-6A-32 protocol
-- * @RC_PROTO_RC6_MCE: MCE (Philips RC6-6A-32 subtype) protocol
-- * @RC_PROTO_SHARP: Sharp protocol
-- * @RC_PROTO_XMP: XMP protocol
-- * @RC_PROTO_CEC: CEC protocol
-- */
--enum rc_proto {
--	RC_PROTO_UNKNOWN	= 0,
--	RC_PROTO_OTHER		= 1,
--	RC_PROTO_RC5		= 2,
--	RC_PROTO_RC5X_20	= 3,
--	RC_PROTO_RC5_SZ		= 4,
--	RC_PROTO_JVC		= 5,
--	RC_PROTO_SONY12		= 6,
--	RC_PROTO_SONY15		= 7,
--	RC_PROTO_SONY20		= 8,
--	RC_PROTO_NEC		= 9,
--	RC_PROTO_NECX		= 10,
--	RC_PROTO_NEC32		= 11,
--	RC_PROTO_SANYO		= 12,
--	RC_PROTO_MCIR2_KBD	= 13,
--	RC_PROTO_MCIR2_MSE	= 14,
--	RC_PROTO_RC6_0		= 15,
--	RC_PROTO_RC6_6A_20	= 16,
--	RC_PROTO_RC6_6A_24	= 17,
--	RC_PROTO_RC6_6A_32	= 18,
--	RC_PROTO_RC6_MCE	= 19,
--	RC_PROTO_SHARP		= 20,
--	RC_PROTO_XMP		= 21,
--	RC_PROTO_CEC		= 22,
--};
-+#include <uapi/linux/lirc.h>
+-	if (dev->tx_ir) {
+-		features |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
+-		if (dev->s_tx_mask)
+-			features |= LIRC_CAN_SET_TRANSMITTER_MASK;
+-		if (dev->s_tx_carrier)
+-			features |= LIRC_CAN_SET_SEND_CARRIER;
+-		if (dev->s_tx_duty_cycle)
+-			features |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
+-	}
+-
+-	if (dev->s_rx_carrier_range)
+-		features |= LIRC_CAN_SET_REC_CARRIER |
+-			LIRC_CAN_SET_REC_CARRIER_RANGE;
+-
+-	if (dev->s_learning_mode)
+-		features |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
+-
+-	if (dev->s_carrier_report)
+-		features |= LIRC_CAN_MEASURE_CARRIER;
+-
+-	if (dev->max_timeout)
+-		features |= LIRC_CAN_SET_REC_TIMEOUT;
+-
+ 	snprintf(ldev->name, sizeof(ldev->name), "ir-lirc-codec (%s)",
+ 		 dev->driver_name);
+-	ldev->features = features;
+ 	ldev->buf = NULL;
+ 	ldev->chunk_size = sizeof(int);
+ 	ldev->buffer_size = LIRCBUF_SIZE;
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 3cc95deaa84e..95058ea01e62 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -109,6 +109,7 @@ EXPORT_SYMBOL(lirc_free_device);
  
- #define RC_PROTO_BIT_NONE		0ULL
- #define RC_PROTO_BIT_UNKNOWN		BIT_ULL(RC_PROTO_UNKNOWN)
-diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
-index 991ab4570b8e..fed779546017 100644
---- a/include/uapi/linux/lirc.h
-+++ b/include/uapi/linux/lirc.h
-@@ -46,12 +46,14 @@
- #define LIRC_MODE_RAW                  0x00000001
- #define LIRC_MODE_PULSE                0x00000002
- #define LIRC_MODE_MODE2                0x00000004
-+#define LIRC_MODE_SCANCODE             0x00000008
- #define LIRC_MODE_LIRCCODE             0x00000010
+ int lirc_register_device(struct lirc_dev *d)
+ {
++	struct rc_dev *rcdev = d->rdev;
+ 	int minor;
+ 	int err;
  
+@@ -146,7 +147,7 @@ int lirc_register_device(struct lirc_dev *d)
+ 	/* some safety check 8-) */
+ 	d->name[sizeof(d->name) - 1] = '\0';
  
- #define LIRC_CAN_SEND_RAW              LIRC_MODE2SEND(LIRC_MODE_RAW)
- #define LIRC_CAN_SEND_PULSE            LIRC_MODE2SEND(LIRC_MODE_PULSE)
- #define LIRC_CAN_SEND_MODE2            LIRC_MODE2SEND(LIRC_MODE_MODE2)
-+#define LIRC_CAN_SEND_SCANCODE         LIRC_MODE2SEND(LIRC_MODE_SCANCODE)
- #define LIRC_CAN_SEND_LIRCCODE         LIRC_MODE2SEND(LIRC_MODE_LIRCCODE)
+-	if (LIRC_CAN_REC(d->features)) {
++	if (rcdev->driver_type == RC_DRIVER_IR_RAW) {
+ 		err = lirc_allocate_buffer(d);
+ 		if (err)
+ 			return err;
+@@ -290,63 +291,6 @@ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait)
+ }
+ EXPORT_SYMBOL(lirc_dev_fop_poll);
  
- #define LIRC_CAN_SEND_MASK             0x0000003f
-@@ -63,6 +65,7 @@
- #define LIRC_CAN_REC_RAW               LIRC_MODE2REC(LIRC_MODE_RAW)
- #define LIRC_CAN_REC_PULSE             LIRC_MODE2REC(LIRC_MODE_PULSE)
- #define LIRC_CAN_REC_MODE2             LIRC_MODE2REC(LIRC_MODE_MODE2)
-+#define LIRC_CAN_REC_SCANCODE          LIRC_MODE2REC(LIRC_MODE_SCANCODE)
- #define LIRC_CAN_REC_LIRCCODE          LIRC_MODE2REC(LIRC_MODE_LIRCCODE)
+-long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+-{
+-	struct rc_dev *rcdev = file->private_data;
+-	struct lirc_dev *d = rcdev->lirc_dev;
+-	__u32 mode;
+-	int result;
+-
+-	dev_dbg(&d->dev, LOGHEAD "ioctl called (0x%x)\n",
+-		d->name, d->minor, cmd);
+-
+-	result = mutex_lock_interruptible(&d->mutex);
+-	if (result)
+-		return result;
+-
+-	if (!d->attached) {
+-		result = -ENODEV;
+-		goto out;
+-	}
+-
+-	switch (cmd) {
+-	case LIRC_GET_FEATURES:
+-		result = put_user(d->features, (__u32 __user *)arg);
+-		break;
+-	case LIRC_GET_REC_MODE:
+-		if (!LIRC_CAN_REC(d->features)) {
+-			result = -ENOTTY;
+-			break;
+-		}
+-
+-		result = put_user(LIRC_REC2MODE
+-				  (d->features & LIRC_CAN_REC_MASK),
+-				  (__u32 __user *)arg);
+-		break;
+-	case LIRC_SET_REC_MODE:
+-		if (!LIRC_CAN_REC(d->features)) {
+-			result = -ENOTTY;
+-			break;
+-		}
+-
+-		result = get_user(mode, (__u32 __user *)arg);
+-		if (!result && !(LIRC_MODE2REC(mode) & d->features))
+-			result = -EINVAL;
+-		/*
+-		 * FIXME: We should actually set the mode somehow but
+-		 * for now, lirc_serial doesn't support mode changing either
+-		 */
+-		break;
+-	default:
+-		result = -ENOTTY;
+-	}
+-
+-out:
+-	mutex_unlock(&d->mutex);
+-	return result;
+-}
+-EXPORT_SYMBOL(lirc_dev_fop_ioctl);
+-
+ ssize_t lirc_dev_fop_read(struct file *file,
+ 			  char __user *buffer,
+ 			  size_t length,
+@@ -375,7 +319,7 @@ ssize_t lirc_dev_fop_read(struct file *file,
+ 		goto out_locked;
+ 	}
  
- #define LIRC_CAN_REC_MASK              LIRC_MODE2REC(LIRC_CAN_SEND_MASK)
-@@ -130,4 +133,83 @@
+-	if (!LIRC_CAN_REC(d->features)) {
++	if (rcdev->driver_type != RC_DRIVER_IR_RAW) {
+ 		ret = -EINVAL;
+ 		goto out_locked;
+ 	}
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index dd0c078796e8..86a3cf798775 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -115,8 +115,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+  *
+  * @name:		used for logging
+  * @minor:		the minor device (/dev/lircX) number for the device
+- * @features:		lirc compatible hardware features, like LIRC_MODE_RAW,
+- *			LIRC_CAN\_\*, as defined at include/media/lirc.h.
+  * @buffer_size:	Number of FIFO buffers with @chunk_size size.
+  *			Only used if @rbuf is NULL.
+  * @chunk_size:		Size of each FIFO buffer.
+@@ -138,7 +136,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+ struct lirc_dev {
+ 	char name[40];
+ 	unsigned int minor;
+-	__u32 features;
  
- #define LIRC_SET_WIDEBAND_RECEIVER     _IOW('i', 0x00000023, __u32)
- 
-+/*
-+ * struct lirc_scancode - decoded scancode with protocol for use with
-+ *	LIRC_MODE_SCANCODE
-+ *
-+ * @timestamp: Timestamp in nanoseconds using CLOCK_MONOTONIC when IR
-+ *	was decoded.
-+ * @flags: should be 0 for transmit. When receiving scancodes,
-+ *	LIRC_SCANCODE_FLAG_TOGGLE or LIRC_SCANCODE_FLAG_REPEAT can be set
-+ *	depending on the protocol
-+ * @rc_proto: see enum rc_proto
-+ * @keycode: the translated keycode. Set to 0 for transmit.
-+ * @scancode: the scancode received or to be sent
-+ */
-+struct lirc_scancode {
-+	__u64	timestamp;
-+	__u16	flags;
-+	__u16	rc_proto;
-+	__u32	keycode;
-+	__u64	scancode;
-+};
-+
-+/* Set if the toggle bit of rc-5 or rc-6 is enabled */
-+#define LIRC_SCANCODE_FLAG_TOGGLE	1
-+/* Set if this is a nec or sanyo repeat */
-+#define LIRC_SCANCODE_FLAG_REPEAT	2
-+
-+/**
-+ * enum rc_proto - the Remote Controller protocol
-+ *
-+ * @RC_PROTO_UNKNOWN: Protocol not known
-+ * @RC_PROTO_OTHER: Protocol known but proprietary
-+ * @RC_PROTO_RC5: Philips RC5 protocol
-+ * @RC_PROTO_RC5X_20: Philips RC5x 20 bit protocol
-+ * @RC_PROTO_RC5_SZ: StreamZap variant of RC5
-+ * @RC_PROTO_JVC: JVC protocol
-+ * @RC_PROTO_SONY12: Sony 12 bit protocol
-+ * @RC_PROTO_SONY15: Sony 15 bit protocol
-+ * @RC_PROTO_SONY20: Sony 20 bit protocol
-+ * @RC_PROTO_NEC: NEC protocol
-+ * @RC_PROTO_NECX: Extended NEC protocol
-+ * @RC_PROTO_NEC32: NEC 32 bit protocol
-+ * @RC_PROTO_SANYO: Sanyo protocol
-+ * @RC_PROTO_MCIR2_KBD: RC6-ish MCE keyboard
-+ * @RC_PROTO_MCIR2_MSE: RC6-ish MCE mouse
-+ * @RC_PROTO_RC6_0: Philips RC6-0-16 protocol
-+ * @RC_PROTO_RC6_6A_20: Philips RC6-6A-20 protocol
-+ * @RC_PROTO_RC6_6A_24: Philips RC6-6A-24 protocol
-+ * @RC_PROTO_RC6_6A_32: Philips RC6-6A-32 protocol
-+ * @RC_PROTO_RC6_MCE: MCE (Philips RC6-6A-32 subtype) protocol
-+ * @RC_PROTO_SHARP: Sharp protocol
-+ * @RC_PROTO_XMP: XMP protocol
-+ * @RC_PROTO_CEC: CEC protocol
-+ */
-+enum rc_proto {
-+	RC_PROTO_UNKNOWN	= 0,
-+	RC_PROTO_OTHER		= 1,
-+	RC_PROTO_RC5		= 2,
-+	RC_PROTO_RC5X_20	= 3,
-+	RC_PROTO_RC5_SZ		= 4,
-+	RC_PROTO_JVC		= 5,
-+	RC_PROTO_SONY12		= 6,
-+	RC_PROTO_SONY15		= 7,
-+	RC_PROTO_SONY20		= 8,
-+	RC_PROTO_NEC		= 9,
-+	RC_PROTO_NECX		= 10,
-+	RC_PROTO_NEC32		= 11,
-+	RC_PROTO_SANYO		= 12,
-+	RC_PROTO_MCIR2_KBD	= 13,
-+	RC_PROTO_MCIR2_MSE	= 14,
-+	RC_PROTO_RC6_0		= 15,
-+	RC_PROTO_RC6_6A_20	= 16,
-+	RC_PROTO_RC6_6A_24	= 17,
-+	RC_PROTO_RC6_6A_32	= 18,
-+	RC_PROTO_RC6_MCE	= 19,
-+	RC_PROTO_SHARP		= 20,
-+	RC_PROTO_XMP		= 21,
-+	RC_PROTO_CEC		= 22,
-+};
-+
+ 	unsigned int buffer_size; /* in chunks holding one code each */
+ 	unsigned int chunk_size;
+@@ -172,7 +169,6 @@ void lirc_unregister_device(struct lirc_dev *d);
+ int lirc_dev_fop_open(struct inode *inode, struct file *file);
+ int lirc_dev_fop_close(struct inode *inode, struct file *file);
+ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait);
+-long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+ ssize_t lirc_dev_fop_read(struct file *file, char __user *buffer, size_t length,
+ 			  loff_t *ppos);
  #endif
 -- 
 2.13.6
