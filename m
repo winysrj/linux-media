@@ -1,232 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:37334 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751169AbdJDVON (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Oct 2017 17:14:13 -0400
-Date: Wed, 4 Oct 2017 16:14:11 -0500
-From: Rob Herring <robh@kernel.org>
-To: Tim Harvey <tharvey@gateworks.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, shawnguo@kernel.org,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH 2/4] media: dt-bindings: Add bindings for TDA1997X
-Message-ID: <20171004211411.27gxy5wnaymdcm3z@rob-hp-laptop>
-References: <1506119053-21828-1-git-send-email-tharvey@gateworks.com>
- <1506119053-21828-3-git-send-email-tharvey@gateworks.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1506119053-21828-3-git-send-email-tharvey@gateworks.com>
+Received: from mail-qt0-f172.google.com ([209.85.216.172]:44851 "EHLO
+        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932287AbdJJPkO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 11:40:14 -0400
+Received: by mail-qt0-f172.google.com with SMTP id 8so6764419qtv.1
+        for <linux-media@vger.kernel.org>; Tue, 10 Oct 2017 08:40:14 -0700 (PDT)
+Message-ID: <1507650010.2784.11.camel@ndufresne.ca>
+Subject: Re: [PATCH] media: vb2: unify calling of set_page_dirty_lock
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Tue, 10 Oct 2017 11:40:10 -0400
+In-Reply-To: <20170829112603.32732-1-stanimir.varbanov@linaro.org>
+References: <20170829112603.32732-1-stanimir.varbanov@linaro.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-kaSLAR9OMwDtkRdrLSMx"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 22, 2017 at 03:24:11PM -0700, Tim Harvey wrote:
-> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
 
-You need a commit msg. Otherwise, maintainers get publicly shamed.
+--=-kaSLAR9OMwDtkRdrLSMx
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+Le mardi 29 ao=C3=BBt 2017 =C3=A0 14:26 +0300, Stanimir Varbanov a =C3=A9cr=
+it :
+> Currently videobuf2-dma-sg checks for dma direction for
+> every single page and videobuf2-dc lacks any dma direction
+> checks and calls set_page_dirty_lock unconditionally.
+>=20
+> Thus unify and align the invocations of set_page_dirty_lock
+> for videobuf2-dc, videobuf2-sg  memory allocators with
+> videobuf2-vmalloc, i.e. the pattern used in vmalloc has been
+> copied to dc and dma-sg.
+
+Just before we go too far in "doing like vmalloc", I would like to
+share this small video that display coherency issues when rendering
+vmalloc backed DMABuf over various KMS/DRM driver. I can reproduce this
+easily with Intel and MSM display drivers using UVC or Vivid as source.
+
+The following is an HDMI capture of the following GStreamer pipeline
+running on Dragonboard 410c.
+
+    gst-launch-1.0 -v v4l2src device=3D/dev/video2 ! video/x-raw,format=3DN=
+V16,width=3D1280,height=3D720 ! kmssink
+    https://people.collabora.com/~nicolas/vmalloc-issue.mov
+
+Feedback on this issue would be more then welcome. It's not clear to me
+who's bug is this (v4l2, drm or iommu). The software is unlikely to be
+blamed as this same pipeline works fine with non-vmalloc based sources.
+
+regards,
+Nicolas
+
+>=20
+> Suggested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 > ---
->  .../devicetree/bindings/media/i2c/tda1997x.txt     | 159 +++++++++++++++++++++
->  1 file changed, 159 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/tda1997x.txt b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
-> new file mode 100644
-> index 0000000..8330733
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
-> @@ -0,0 +1,159 @@
-> +Device-Tree bindings for the NXP TDA1997x HDMI receiver
-> +
-> +The TDA19971/73 are HDMI video receivers.
-> +
-> +The TDA19971 Video port output pins can be used as follows:
-> + - RGB 8bit per color (24 bits total): R[11:4] B[11:4] G[11:4]
-> + - YUV444 8bit per color (24 bits total): Y[11:4] Cr[11:4] Cb[11:4]
-> + - YUV422 semi-planar 8bit per component (16 bits total): Y[11:4] CbCr[11:4]
-> + - YUV422 semi-planar 10bit per component (20 bits total): Y[11:2] CbCr[11:2]
-> + - YUV422 semi-planar 12bit per component (24 bits total): - Y[11:0] CbCr[11:0]
-> + - YUV422 BT656 8bit per component (8 bits total): YCbCr[11:4] (2-cycles)
-> + - YUV422 BT656 10bit per component (10 bits total): YCbCr[11:2] (2-cycles)
-> + - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
-> +
-> +The TDA19973 Video port output pins can be used as follows:
-> + - RGB 12bit per color (36 bits total): R[11:0] B[11:0] G[11:0]
-> + - YUV444 12bit per color (36 bits total): Y[11:0] Cb[11:0] Cr[11:0]
-> + - YUV422 semi-planar 12bit per component (24 bits total): Y[11:0] CbCr[11:0]
-> + - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
-> +
-> +The Video port output pins are mapped via 4-bit 'pin groups' allowing
-> +for a variety fo connection possibilities including swapping pin order within
-> +pin groups. The video_portcfg device-tree property consists of register mapping
-> +pairs which map a chip-specific VP output register to a 4-bit pin group. If
-> +the pin group needs to be bit-swapped you can use the *_S pin-group defines.
-> +
-> +Required Properties:
-> + - compatible      :
-> +  - "nxp,tda19971" for the TDA19971
-> +  - "nxp,tda19973" for the TDA19973
-> + - reg             : I2C slave address
-> + - interrupts      : The interrupt number
-> + - DOVDD-supply    : Digital I/O supply
-> + - DVDD-supply     : Digital Core supply
-> + - AVDD-supply     : Analog supply
-> + - vidout_portcfg  : array of pairs mapping VP output pins to pin groups
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 6 ++++--
+>  drivers/media/v4l2-core/videobuf2-dma-sg.c     | 7 +++----
+>  2 files changed, 7 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/med=
+ia/v4l2-core/videobuf2-dma-contig.c
+> index 9f389f36566d..696e24f9128d 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -434,8 +434,10 @@ static void vb2_dc_put_userptr(void *buf_priv)
+>  		pages =3D frame_vector_pages(buf->vec);
+>  		/* sgt should exist only if vector contains pages... */
+>  		BUG_ON(IS_ERR(pages));
+> -		for (i =3D 0; i < frame_vector_count(buf->vec); i++)
+> -			set_page_dirty_lock(pages[i]);
+> +		if (buf->dma_dir =3D=3D DMA_FROM_DEVICE ||
+> +		    buf->dma_dir =3D=3D DMA_BIDIRECTIONAL)
+> +			for (i =3D 0; i < frame_vector_count(buf->vec); i++)
+> +				set_page_dirty_lock(pages[i]);
+>  		sg_free_table(sgt);
+>  		kfree(sgt);
+>  	}
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v=
+4l2-core/videobuf2-dma-sg.c
+> index 6808231a6bdc..753ed3138dcc 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -292,11 +292,10 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+>  	if (buf->vaddr)
+>  		vm_unmap_ram(buf->vaddr, buf->num_pages);
+>  	sg_free_table(buf->dma_sgt);
+> -	while (--i >=3D 0) {
+> -		if (buf->dma_dir =3D=3D DMA_FROM_DEVICE ||
+> -		    buf->dma_dir =3D=3D DMA_BIDIRECTIONAL)
+> +	if (buf->dma_dir =3D=3D DMA_FROM_DEVICE ||
+> +	    buf->dma_dir =3D=3D DMA_BIDIRECTIONAL)
+> +		while (--i >=3D 0)
+>  			set_page_dirty_lock(buf->pages[i]);
+> -	}
+>  	vb2_destroy_framevec(buf->vec);
+>  	kfree(buf);
+>  }
+--=-kaSLAR9OMwDtkRdrLSMx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Needs a vendor prefix and don't use '_'.
+-----BEGIN PGP SIGNATURE-----
 
-> +
-> +Optional Properties:
-> + - max-pixel-rate  : Maximum pixel rate supported by the SoC (MP/sec)
-> + - audio-port      : parameters defining audio output port connection
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCWdzp2gAKCRBxUwItrAao
+HI35AJ9ZYTNNK9iks0sExSZZ8uETQRIOiwCg0mwVO7kS6meYDNV4lbBh7v4kKvc=
+=6Vpt
+-----END PGP SIGNATURE-----
 
-That description is meaningless to me.
-
-> +
-> +Optional Endpoint Properties:
-> +  The following three properties are defined in video-interfaces.txt and
-> +  are valid for source endpoints only:
-> +  - hsync-active: Horizontal synchronization polarity. Defaults to active high.
-> +  - vsync-active: Vertical synchronization polarity. Defaults to active high.
-> +  - data-active: Data polarity. Defaults to active high.
-> +
-> +The Audio output port consists of A_CLK, A_WS, AP0, AP1, AP2, and AP3 pins
-> +and can support up to 8-chanenl audio using the following audio bus DAI formats:
-> + - I2S16
-> + - I2S32
-> + - SPDIF
-> + - OBA (One-Bit-Audio)
-> + - I2S16_HBR_STRAIGHT (High Bitrate straight through)
-> + - I2S16_HBR_DEMUX (High Bitrate demuxed)
-> + - I2S32_HBR_DEMUX (High Bitrate demuxed)
-> + - DST (Direct Stream Transfer)
-
-This either should be a standard, common property or not be in DT. 
-Practically every system is going to have at least one end of the 
-connection that is configurable. The kernel should be able to get lists 
-of supported modes and pick one.
-
-> +
-> +Audio samples can be output in either SPDIF or I2S bus formats.
-> +In I2S mode, the TDF1997X is the master with 16bit or 32bit words.
-> +The audio port output is configured by three parameters: DAI format, layout
-> +and clock scaler.
-> +
-> +Each DAI format has two pin layouts shown by the following table:
-> +       |  SPDIF  |  SPDIF  |   I2S   |   I2S   |         HBR demux
-> +       | Layout0 | Layout1 | Layout0 | Layout1 | SPDIF      | I2S
-> + ------+---------+---------+---------+---------+------------+------------
-> + A_WS  | WS      | WS      | WS      | WS      | WS         | WS
-> + AP3   |         | SPDIF3  |         | SD3     | SPDIF[x+3] | SD[x+3]
-> + AP2   |         | SPDIF2  |         | SD2     | SPDIF[x+2] | SD[x+2]
-> + AP1   |         | SPDIF1  |         | SD1     | SPDIF[x+1] | SD[x+1]
-> + AP0   | SPDIF   | SPDIF0  | SD      | SD0     | SPDIF[x]   | SD[x]
-> + A_CLK | (32*Fs) | (32*Fs) |(32*Fs)  | (32*Fs) | (32*Fs)    | (32*Fs)
-> +       | (64*Fs) | (64*Fs) |(64*Fs)  | (64*Fs) | (64*Fs)    | (64*Fs)
-> +
-> +Freq(Sysclk) = 2*freq(Aclk)
-> +
-> +Examples:
-> + - VP[15:0] connected to IMX6 CSI_DATA[19:4] for 16bit YUV422
-> +   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
-> +	hdmi_receiver@48 {
-
-s/_/-/
-
-> +		compatible = "nxp,tda19971";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&pinctrl_tda1997x>;
-> +		reg = <0x48>;
-> +		interrupt-parent = <&gpio1>;
-> +		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-> +		DOVDD-supply = <&reg_3p3v>;
-> +		AVDD-supply = <&reg_1p8v>;
-> +		DVDD-supply = <&reg_1p8v>;
-> +		/* audio output format */
-> +		audio-port = < TDA1997X_I2S16
-> +			       TDA1997X_LAYOUT0
-> +			       TDA1997X_ACLK_128FS >;
-> +		/*
-> +		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
-> +		 * and Y[11:4] across 16bits in the same pixclk cycle.
-> +		 */
-> +		vidout_portcfg =
-> +			/* Y[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
-> +			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
-> +			/* Y[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
-> +			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
-> +			/* CbCc[11:8]<->VP[07:04]<->CSI_DATA[11:8] */
-> +			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
-> +			/* CbCr[7:4]<->VP[03:00]<->CSI_DATA[7:4] */
-> +			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
-> +		max-pixel-rate = <180>; /* IMX6 CSI max pixel rate 180MP/sec */
-
-That's a constraint that belongs in the i.MX CSI node or driver.
-
-> +
-> +		port@0 {
-> +			reg = <0>;
-> +		};
-> +		port@1 {
-
-You need to describe how many ports and what they are.
-
-> +			reg = <1>;
-> +			hdmi_in: endpoint {
-> +				remote-endpoint = <&ccdc_in>;
-> +			};
-> +		};
-> +	};
-> + - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
-> +   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
-
-Do you really need 2 examples? It should be possible to figure out other 
-configurations with better descriptions above.
-
-> +	hdmi_receiver@48 {
-> +		compatible = "nxp,tda19971";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&pinctrl_tda1997x>;
-> +		reg = <0x48>;
-> +		interrupt-parent = <&gpio1>;
-> +		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-> +		DOVDD-supply = <&reg_3p3v>;
-> +		AVDD-supply = <&reg_1p8v>;
-> +		DVDD-supply = <&reg_1p8v>;
-> +		/* audio output format */
-> +		#sound-dai-cells = <0>;
-> +		audio-port = < TDA1997X_I2S16
-> +			       TDA1997X_LAYOUT0
-> +			       TDA1997X_ACLK_128FS >;
-> +		/*
-> +		 * The 8bpp BT656 mode outputs YCbCr[11:4] across 8bits over
-> +		 * 2 pixclk cycles.
-> +		 */
-> +		vidout_portcfg =
-> +			/* YCbCr[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
-> +			< TDA1997X_VP24_V15_12 TDA1997X_R_CR_CBCR_11_8 >,
-> +			/* YCbCr[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
-> +			< TDA1997X_VP24_V11_08 TDA1997X_R_CR_CBCR_7_4 >,
-> +		max-pixel-rate = <180>; /* IMX6 CSI max pixel rate 180MP/sec */
-> +
-> +		port@0 {
-> +			reg = <0>;
-> +		};
-> +		port@1 {
-> +			reg = <1>;
-> +			hdmi_in: endpoint {
-> +				remote-endpoint = <&ccdc_in>;
-> +			};
-> +		};
-> +	};
-> +
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=-kaSLAR9OMwDtkRdrLSMx--
