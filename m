@@ -1,101 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f54.google.com ([209.85.218.54]:49489 "EHLO
-        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932237AbdJWOl3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Oct 2017 10:41:29 -0400
-Received: by mail-oi0-f54.google.com with SMTP id w197so31108805oif.6
-        for <linux-media@vger.kernel.org>; Mon, 23 Oct 2017 07:41:29 -0700 (PDT)
-MIME-Version: 1.0
-From: Andrey Konovalov <andreyknvl@google.com>
-Date: Mon, 23 Oct 2017 16:41:28 +0200
-Message-ID: <CAAeHK+wZXZMxqQn9QbAd3xWt00_bKir4-La2QKtzk8nFb0FQmw@mail.gmail.com>
-Subject: usb/media/au0828: use-after-free in au0828_rc_unregister
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        syzkaller <syzkaller@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from gofer.mess.org ([88.97.38.141]:46041 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755354AbdJJHSW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 03:18:22 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v3 16/26] media: lirc: create rc-core open and close lirc functions
+Date: Tue, 10 Oct 2017 08:18:20 +0100
+Message-Id: <6d49c93edf738c08c80ae504845b0c69b626e439.1507618841.git.sean@mess.org>
+In-Reply-To: <cover.1507618840.git.sean@mess.org>
+References: <cover.1507618840.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Replace the generic kernel lirc api with ones which use rc-core, further
+reducing the lirc_dev members.
 
-I've got the following report while fuzzing the kernel with syzkaller.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-lirc-codec.c | 59 ++++++++++++++++++++++++++++++++--
+ drivers/media/rc/lirc_dev.c      | 68 ++--------------------------------------
+ include/media/lirc_dev.h         | 11 -------
+ include/media/rc-core.h          |  2 ++
+ 4 files changed, 62 insertions(+), 78 deletions(-)
 
-On commit 3e0cc09a3a2c40ec1ffb6b4e12da86e98feccb11 (4.14-rc5+).
-
-au0828: recv_control_msg() Failed receiving control message, error -71.
-au0828: recv_control_msg() Failed receiving control message, error -71.
-au0828: recv_control_msg() Failed receiving control message, error -71.
-au8522_writereg: writereg error (reg == 0x106, val == 0x0001, ret == -5)
-usb 1-1: selecting invalid altsetting 5
-au0828: Failure setting usb interface0 to as5
-au0828: au0828_usb_probe() au0282_dev_register failed to register on V4L2
-==================================================================
-BUG: KASAN: use-after-free in au0828_rc_unregister+0xaa/0xc0
-Read of size 8 at addr ffff8800626e2b90 by task kworker/1:1/1491
-
-CPU: 1 PID: 1491 Comm: kworker/1:1 Not tainted
-4.14.0-rc5-43687-g06ab8a23e0e6 #545
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-Workqueue: usb_hub_wq hub_event
-Call Trace:
- __dump_stack lib/dump_stack.c:16
- dump_stack+0x292/0x395 lib/dump_stack.c:52
- print_address_description+0x78/0x280 mm/kasan/report.c:252
- kasan_report_error mm/kasan/report.c:351
- kasan_report+0x23d/0x350 mm/kasan/report.c:409
- __asan_report_load8_noabort+0x19/0x20 mm/kasan/report.c:430
- au0828_rc_unregister+0xaa/0xc0 drivers/media/usb/au0828/au0828-input.c:367
- au0828_usb_disconnect+0x63/0x130 drivers/media/usb/au0828/au0828-core.c:189
- au0828_usb_probe+0xb3e/0xf20 drivers/media/usb/au0828/au0828-core.c:660
- usb_probe_interface+0x35d/0x8e0 drivers/usb/core/driver.c:361
- really_probe drivers/base/dd.c:413
- driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
- __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
- bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
- __device_attach+0x26b/0x3c0 drivers/base/dd.c:710
- device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
- bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
- device_add+0xd0b/0x1660 drivers/base/core.c:1835
- usb_set_configuration+0x104e/0x1870 drivers/usb/core/message.c:1932
- generic_probe+0x73/0xe0 drivers/usb/core/generic.c:174
- usb_probe_device+0xaf/0xe0 drivers/usb/core/driver.c:266
- really_probe drivers/base/dd.c:413
- driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
- __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
- bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
- __device_attach+0x26b/0x3c0 drivers/base/dd.c:710
- device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
- bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
- device_add+0xd0b/0x1660 drivers/base/core.c:1835
- usb_new_device+0x7b8/0x1020 drivers/usb/core/hub.c:2457
- hub_port_connect drivers/usb/core/hub.c:4903
- hub_port_connect_change drivers/usb/core/hub.c:5009
- port_event drivers/usb/core/hub.c:5115
- hub_event+0x194d/0x3740 drivers/usb/core/hub.c:5195
- process_one_work+0xc73/0x1d90 kernel/workqueue.c:2119
- worker_thread+0x221/0x1850 kernel/workqueue.c:2253
- kthread+0x363/0x440 kernel/kthread.c:231
- ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
-
-The buggy address belongs to the page:
-page:ffffea000189b880 count:0 mapcount:0 mapping:          (null) index:0x0
-flags: 0x100000000000000()
-raw: 0100000000000000 0000000000000000 0000000000000000 00000000ffffffff
-raw: 0000000000000000 dead000000000200 ffff88006c00d980 0000000000000000
-page dumped because: kasan: bad access detected
-
-Memory state around the buggy address:
- ffff8800626e2a80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
- ffff8800626e2b00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->ffff8800626e2b80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-                         ^
- ffff8800626e2c00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
- ffff8800626e2c80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-==================================================================
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index 60ff8f188e6f..f852ec231f4e 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -88,6 +88,61 @@ void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
+ 	wake_up_poll(&dev->wait_poll, POLLIN | POLLRDNORM);
+ }
+ 
++static int ir_lirc_open(struct inode *inode, struct file *file)
++{
++	struct lirc_dev *d = container_of(inode->i_cdev, struct lirc_dev, cdev);
++	struct rc_dev *dev = d->rdev;
++	int retval;
++
++	retval = rc_open(dev);
++	if (retval)
++		return retval;
++
++	retval = mutex_lock_interruptible(&dev->lock);
++	if (retval)
++		goto out_rc;
++
++	if (!dev->registered) {
++		retval = -ENODEV;
++		goto out_unlock;
++	}
++
++	if (dev->lirc_open) {
++		retval = -EBUSY;
++		goto out_unlock;
++	}
++
++	if (dev->driver_type == RC_DRIVER_IR_RAW)
++		kfifo_reset_out(&dev->rawir);
++
++	dev->lirc_open++;
++	file->private_data = dev;
++
++	nonseekable_open(inode, file);
++	mutex_unlock(&dev->lock);
++
++	return 0;
++
++out_unlock:
++	mutex_unlock(&dev->lock);
++out_rc:
++	rc_close(dev);
++	return retval;
++}
++
++static int ir_lirc_close(struct inode *inode, struct file *file)
++{
++	struct rc_dev *dev = file->private_data;
++
++	mutex_lock(&dev->lock);
++	dev->lirc_open--;
++	mutex_unlock(&dev->lock);
++
++	rc_close(dev);
++
++	return 0;
++}
++
+ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 				   size_t n, loff_t *ppos)
+ {
+@@ -486,8 +541,8 @@ static const struct file_operations lirc_fops = {
+ #endif
+ 	.read		= ir_lirc_read,
+ 	.poll		= ir_lirc_poll,
+-	.open		= lirc_dev_fop_open,
+-	.release	= lirc_dev_fop_close,
++	.open		= ir_lirc_open,
++	.release	= ir_lirc_close,
+ 	.llseek		= no_llseek,
+ };
+ 
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 22171267aa90..32124fb5c88e 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -61,7 +61,6 @@ lirc_allocate_device(void)
+ 
+ 	d = kzalloc(sizeof(*d), GFP_KERNEL);
+ 	if (d) {
+-		mutex_init(&d->mutex);
+ 		device_initialize(&d->dev);
+ 		d->dev.class = lirc_class;
+ 		d->dev.release = lirc_release_device;
+@@ -150,15 +149,15 @@ void lirc_unregister_device(struct lirc_dev *d)
+ 	dev_dbg(&d->dev, "lirc_dev: driver %s unregistered from minor = %d\n",
+ 		d->name, d->minor);
+ 
+-	mutex_lock(&d->mutex);
++	mutex_lock(&rcdev->lock);
+ 
+-	if (d->open) {
++	if (rcdev->lirc_open) {
+ 		dev_dbg(&d->dev, LOGHEAD "releasing opened driver\n",
+ 			d->name, d->minor);
+ 		wake_up_poll(&rcdev->wait_poll, POLLHUP);
+ 	}
+ 
+-	mutex_unlock(&d->mutex);
++	mutex_unlock(&rcdev->lock);
+ 
+ 	cdev_device_del(&d->cdev, &d->dev);
+ 	ida_simple_remove(&lirc_ida, d->minor);
+@@ -166,67 +165,6 @@ void lirc_unregister_device(struct lirc_dev *d)
+ }
+ EXPORT_SYMBOL(lirc_unregister_device);
+ 
+-int lirc_dev_fop_open(struct inode *inode, struct file *file)
+-{
+-	struct lirc_dev *d = container_of(inode->i_cdev, struct lirc_dev, cdev);
+-	struct rc_dev *rcdev = d->rdev;
+-	int retval;
+-
+-	dev_dbg(&d->dev, LOGHEAD "open called\n", d->name, d->minor);
+-
+-	retval = mutex_lock_interruptible(&d->mutex);
+-	if (retval)
+-		return retval;
+-
+-	if (!rcdev->registered) {
+-		retval = -ENODEV;
+-		goto out;
+-	}
+-
+-	if (d->open) {
+-		retval = -EBUSY;
+-		goto out;
+-	}
+-
+-	if (d->rdev) {
+-		retval = rc_open(d->rdev);
+-		if (retval)
+-			goto out;
+-	}
+-
+-	if (rcdev->driver_type == RC_DRIVER_IR_RAW)
+-		kfifo_reset_out(&rcdev->rawir);
+-
+-	d->open++;
+-
+-	file->private_data = d->rdev;
+-	nonseekable_open(inode, file);
+-	mutex_unlock(&d->mutex);
+-
+-	return 0;
+-
+-out:
+-	mutex_unlock(&d->mutex);
+-	return retval;
+-}
+-EXPORT_SYMBOL(lirc_dev_fop_open);
+-
+-int lirc_dev_fop_close(struct inode *inode, struct file *file)
+-{
+-	struct rc_dev *rcdev = file->private_data;
+-	struct lirc_dev *d = rcdev->lirc_dev;
+-
+-	mutex_lock(&d->mutex);
+-
+-	rc_close(rcdev);
+-	d->open--;
+-
+-	mutex_unlock(&d->mutex);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(lirc_dev_fop_close);
+-
+ int __init lirc_dev_init(void)
+ {
+ 	int retval;
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index 5782add67edd..b45af81b4633 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -26,8 +26,6 @@
+  * @rdev:		&struct rc_dev associated with the device
+  * @fops:		&struct file_operations for the device
+  * @owner:		the module owning this struct
+- * @open:		open count for the device's chardev
+- * @mutex:		serialises file_operations calls
+  * @dev:		&struct device assigned to the device
+  * @cdev:		&struct cdev assigned to the device
+  */
+@@ -39,10 +37,6 @@ struct lirc_dev {
+ 	const struct file_operations *fops;
+ 	struct module *owner;
+ 
+-	int open;
+-
+-	struct mutex mutex; /* protect from simultaneous accesses */
+-
+ 	struct device dev;
+ 	struct cdev cdev;
+ };
+@@ -55,9 +49,4 @@ int lirc_register_device(struct lirc_dev *d);
+ 
+ void lirc_unregister_device(struct lirc_dev *d);
+ 
+-/* default file operations
+- * used by drivers if they override only some operations
+- */
+-int lirc_dev_fop_open(struct inode *inode, struct file *file);
+-int lirc_dev_fop_close(struct inode *inode, struct file *file);
+ #endif
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 17131762fb75..f0ee1ba01a47 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -117,6 +117,7 @@ enum rc_filter_type {
+  * @rx_resolution : resolution (in ns) of input sampler
+  * @tx_resolution: resolution (in ns) of output sampler
+  * @lirc_dev: lirc char device
++ * @lirc_open: count of the number of times the device has been opened
+  * @carrier_low: when setting the carrier range, first the low end must be
+  *	set with an ioctl and then the high end with another ioctl
+  * @gap_start: time when gap starts
+@@ -191,6 +192,7 @@ struct rc_dev {
+ 	u32				tx_resolution;
+ #ifdef CONFIG_LIRC
+ 	struct lirc_dev			*lirc_dev;
++	int				lirc_open;
+ 	int				carrier_low;
+ 	ktime_t				gap_start;
+ 	u64				gap_duration;
+-- 
+2.13.6
