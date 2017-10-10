@@ -1,68 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-cys01nam02on0101.outbound.protection.outlook.com ([104.47.37.101]:53714
-        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750722AbdJMFyf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 01:54:35 -0400
-From: <Yasunari.Takiguchi@sony.com>
-To: <akpm@linux-foundation.org>, <linux-kernel@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>
-CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
-        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
-        Hideki Nozawa <Hideki.Nozawa@sony.com>,
-        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
-        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
-        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
-Subject: [PATCH v4 01/12] [dt-bindings] [media] Add document file for CXD2880 SPI I/F
-Date: Fri, 13 Oct 2017 14:58:00 +0900
-Message-ID: <20171013055800.21045-1-Yasunari.Takiguchi@sony.com>
-In-Reply-To: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
-References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:48312 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756039AbdJJDq4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Oct 2017 23:46:56 -0400
+Subject: Re: [PATCHv3 0/2] drm/bridge/adv7511: add CEC support
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+References: <20171007104658.14528-1-hverkuil@xs4all.nl>
+From: Archit Taneja <architt@codeaurora.org>
+Message-ID: <539a317b-6c68-d6fe-20e1-0f1afe1165e0@codeaurora.org>
+Date: Tue, 10 Oct 2017 09:16:51 +0530
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20171007104658.14528-1-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-This is the document file for Sony CXD2880 DVB-T2/T tuner + demodulator.
-It contains the description of the SPI adapter binding.
 
-Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
-Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
-Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
-Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
-Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
+On 10/07/2017 04:16 PM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This patch series adds CEC support to the drm adv7511/adv7533 drivers.
+> 
+> I have tested this with the Qualcomm Dragonboard C410 (adv7533 based)
+> and the Renesas R-Car Koelsch board (adv7511 based).
+> 
+> I only have the Koelsch board to test with, but it looks like other
+> R-Car boards use the same adv7511. It would be nice if someone can
+> add CEC support to the other R-Car boards as well. The main thing
+> to check is if they all use the same 12 MHz fixed CEC clock source.
+> 
 
-No change since version 1.
+queued to drm-misc-next.
 
- .../devicetree/bindings/media/spi/sony-cxd2880.txt         | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+Thanks,
+Archit
 
-diff --git a/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt b/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
-new file mode 100644
-index 000000000000..fc5aa263abe5
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
-@@ -0,0 +1,14 @@
-+Sony CXD2880 DVB-T2/T tuner + demodulator driver SPI adapter
-+
-+Required properties:
-+- compatible: Should be "sony,cxd2880".
-+- reg: SPI chip select number for the device.
-+- spi-max-frequency: Maximum bus speed, should be set to <55000000> (55MHz).
-+
-+Example:
-+
-+cxd2880@0 {
-+	compatible = "sony,cxd2880";
-+	reg = <0>; /* CE0 */
-+	spi-max-frequency = <55000000>; /* 55MHz */
-+};
+> Anyone who wants to test this will need the CEC utilities that
+> are part of the v4l-utils git repository:
+> 
+> git clone git://linuxtv.org/v4l-utils.git
+> cd v4l-utils
+> ./bootstrap.sh
+> ./configure
+> make
+> sudo make install
+> 
+> Now configure the CEC adapter as a Playback device:
+> 
+> cec-ctl --playback
+> 
+> Discover other CEC devices:
+> 
+> cec-ctl -S
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> Changes since v2:
+> - A small rewording of the 'clocks' property description in the bindings
+>    as per Sergei's comment.
+> 
+> Changes since v1:
+> - Incorporate Archit's comments:
+> 	use defines for irq masks
+> 	combine the adv7511/33 regmap_configs
+> 	adv7511_cec_init now handles dt parsing & CEC registration
+> - Use the new (4.14) CEC_CAP_DEFAULTS define
+> 
+> Hans Verkuil (2):
+>    dt-bindings: adi,adv7511.txt: document cec clock
+>    drm: adv7511/33: add HDMI CEC support
+> 
+>   .../bindings/display/bridge/adi,adv7511.txt        |   4 +
+>   drivers/gpu/drm/bridge/adv7511/Kconfig             |   8 +
+>   drivers/gpu/drm/bridge/adv7511/Makefile            |   1 +
+>   drivers/gpu/drm/bridge/adv7511/adv7511.h           |  43 ++-
+>   drivers/gpu/drm/bridge/adv7511/adv7511_cec.c       | 337 +++++++++++++++++++++
+>   drivers/gpu/drm/bridge/adv7511/adv7511_drv.c       | 116 ++++++-
+>   drivers/gpu/drm/bridge/adv7511/adv7533.c           |  38 +--
+>   7 files changed, 489 insertions(+), 58 deletions(-)
+>   create mode 100644 drivers/gpu/drm/bridge/adv7511/adv7511_cec.c
+> 
+
 -- 
-2.13.0
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
