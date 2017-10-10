@@ -1,85 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:50413 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752057AbdJ3JRN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Oct 2017 05:17:13 -0400
-Subject: Re: Adjustments for a lot of function implementations
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, Lorenzo Stoakes <lstoakes@gmail.com>,
-        Michal Hocko <mhocko@suse.com>,
-        Muralidharan Karicheri <mkaricheri@gmail.com>,
-        Vaibhav Hiremath <hvaibhav@ti.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
- <356f75b2-d303-7f10-b76c-95e2f686bd3c@xs4all.nl>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <14619198-bebe-d215-5324-a14fbc2103fb@users.sourceforge.net>
-Date: Mon, 30 Oct 2017 10:16:22 +0100
+Received: from eusmtp01.atmel.com ([212.144.249.242]:15915 "EHLO
+        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755846AbdJJCur (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Oct 2017 22:50:47 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        "Jonathan Corbet" <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v4 3/5] media: atmel-isc: Enable the clocks during probe
+Date: Tue, 10 Oct 2017 10:46:38 +0800
+Message-ID: <20171010024640.5733-4-wenyou.yang@microchip.com>
+In-Reply-To: <20171010024640.5733-1-wenyou.yang@microchip.com>
+References: <20171010024640.5733-1-wenyou.yang@microchip.com>
 MIME-Version: 1.0
-In-Reply-To: <356f75b2-d303-7f10-b76c-95e2f686bd3c@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> While we do not mind cleanup patches, the way you post them (one fix per file)
+To meet the relationship, enable the HCLOCK and ispck during the
+device probe, "isc_pck frequency is less than or equal to isc_ispck,
+and isc_ispck is greater than or equal to HCLOCK."
+Meanwhile, call the pm_runtime_enable() in the right place.
 
-I find it safer in this way  while I was browsing through the landscape of Linux
-software components.
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+---
 
+Changes in v4:
+ - Move pm_runtime_enable() call from the complete callback to the
+   end of probe.
+ - Call pm_runtime_get_sync() and pm_runtime_put_sync() in
+   ->is_enabled() callbacks.
+ - Call clk_disable_unprepare() in ->remove callback.
 
-> is really annoying and takes us too much time to review.
+Changes in v3: None
+Changes in v2: None
 
-It is just the case that there are so many remaining open issues.
+ drivers/media/platform/atmel/atmel-isc.c | 34 ++++++++++++++++++++++++++++----
+ 1 file changed, 30 insertions(+), 4 deletions(-)
 
-
-> I'll take the "Fix a possible null pointer" patch since it is an actual bug fix,
-
-Thanks for a bit of change acceptance.
-
-
-> but will reject the others, not just this driver but all of them that are currently
-> pending in our patchwork (https://patchwork.linuxtv.org).
-
-Will any chances evolve to integrate 146 patches in any other combination?
-
-
-> Feel free to repost, but only if you organize the patch as either fixing the same type of
-> issue for a whole subdirectory (media/usb, media/pci, etc)
-
-Can we achieve an agreement on the shown change patterns?
-
-Is a consensus possible for involved update candidates?
-
-
-> or fixing all issues for a single driver.
-
-I find that I did this already.
-
-
-> Actual bug fixes (like the null pointer patch in this series) can still be posted as
-> separate patches, but cleanups shouldn't.
-
-I got an other software development opinion.
-
-
-> Just so you know, I'll reject any future patch series that do not follow these rules.
-> Just use common sense when posting these things in the future.
-
-Do we need to try any additional communication tools out?
-
-
-> I would also suggest that your time might be spent more productively if you would
-> work on some more useful projects.
-
-I hope that various change possibilities (from my selection) will become useful
-for more Linux users.
-How will the clarification evolve further?
-
-
-Regards,
-Markus
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index 5f8228fc9c8d..a44a66ad2c02 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -389,8 +389,14 @@ static int isc_clk_is_enabled(struct clk_hw *hw)
+ 	struct isc_clk *isc_clk = to_isc_clk(hw);
+ 	u32 status;
+ 
++	if (isc_clk->id == ISC_MCK)
++		pm_runtime_get_sync(isc_clk->dev);
++
+ 	regmap_read(isc_clk->regmap, ISC_CLKSR, &status);
+ 
++	if (isc_clk->id == ISC_MCK)
++		pm_runtime_put_sync(isc_clk->dev);
++
+ 	return status & ISC_CLK(isc_clk->id) ? 1 : 0;
+ }
+ 
+@@ -1866,25 +1872,37 @@ static int atmel_isc_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	ret = clk_prepare_enable(isc->hclock);
++	if (ret) {
++		dev_err(dev, "failed to enable hclock: %d\n", ret);
++		return ret;
++	}
++
+ 	ret = isc_clk_init(isc);
+ 	if (ret) {
+ 		dev_err(dev, "failed to init isc clock: %d\n", ret);
+-		goto clean_isc_clk;
++		goto unprepare_hclk;
+ 	}
+ 
+ 	isc->ispck = isc->isc_clks[ISC_ISPCK].clk;
+ 
++	ret = clk_prepare_enable(isc->ispck);
++	if (ret) {
++		dev_err(dev, "failed to enable ispck: %d\n", ret);
++		goto unprepare_hclk;
++	}
++
+ 	/* ispck should be greater or equal to hclock */
+ 	ret = clk_set_rate(isc->ispck, clk_get_rate(isc->hclock));
+ 	if (ret) {
+ 		dev_err(dev, "failed to set ispck rate: %d\n", ret);
+-		goto clean_isc_clk;
++		goto unprepare_clk;
+ 	}
+ 
+ 	ret = v4l2_device_register(dev, &isc->v4l2_dev);
+ 	if (ret) {
+ 		dev_err(dev, "unable to register v4l2 device.\n");
+-		goto clean_isc_clk;
++		goto unprepare_clk;
+ 	}
+ 
+ 	ret = isc_parse_dt(dev, isc);
+@@ -1917,7 +1935,9 @@ static int atmel_isc_probe(struct platform_device *pdev)
+ 			break;
+ 	}
+ 
++	pm_runtime_set_active(dev);
+ 	pm_runtime_enable(dev);
++	pm_request_idle(dev);
+ 
+ 	return 0;
+ 
+@@ -1927,7 +1947,11 @@ static int atmel_isc_probe(struct platform_device *pdev)
+ unregister_v4l2_device:
+ 	v4l2_device_unregister(&isc->v4l2_dev);
+ 
+-clean_isc_clk:
++unprepare_clk:
++	clk_disable_unprepare(isc->ispck);
++unprepare_hclk:
++	clk_disable_unprepare(isc->hclock);
++
+ 	isc_clk_cleanup(isc);
+ 
+ 	return ret;
+@@ -1938,6 +1962,8 @@ static int atmel_isc_remove(struct platform_device *pdev)
+ 	struct isc_device *isc = platform_get_drvdata(pdev);
+ 
+ 	pm_runtime_disable(&pdev->dev);
++	clk_disable_unprepare(isc->ispck);
++	clk_disable_unprepare(isc->hclock);
+ 
+ 	isc_subdev_cleanup(isc);
+ 
+-- 
+2.13.0
