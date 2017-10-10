@@ -1,131 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:49468 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753393AbdJNDxr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 23:53:47 -0400
-Message-ID: <a556fa047dd88e4e2777c464b3392962@smtp-cloud9.xs4all.net>
-Date: Sat, 14 Oct 2017 05:53:44 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from osg.samsung.com ([64.30.133.232]:60924 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756200AbdJJLpq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 07:45:46 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH v8 6/7] media: videodev2: add a flag for MC-centric devices
+Date: Tue, 10 Oct 2017 08:45:22 -0300
+Message-Id: <79d2937e0de7dea977f2b2c27e34d81d90b54199.1507635716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507635716.git.mchehab@s-opensource.com>
+References: <cover.1507635716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1507635716.git.mchehab@s-opensource.com>
+References: <cover.1507635716.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+As both vdev-centric and MC-centric devices may implement the
+same APIs, we need a flag to allow userspace to distinguish
+between them.
 
-Results of the daily build of media_tree:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/uapi/v4l/open.rst            | 7 +++++++
+ Documentation/media/uapi/v4l/vidioc-querycap.rst | 5 +++++
+ Documentation/media/videodev2.h.rst.exceptions   | 1 +
+ include/uapi/linux/videodev2.h                   | 2 ++
+ 4 files changed, 15 insertions(+)
 
-date:			Sat Oct 14 05:00:17 CEST 2017
-media-tree git hash:	8382e556b1a2f30c4bf866f021b33577a64f9ebf
-media_build git hash:	33629e38ddda7a5a6ed0f727535c45f08c788bf3
-v4l-utils git hash:	01c04f7c8ad1a91af33e20621eba9200f447737e
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: OK
-spec-git: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index c9e6bc9280a6..58ab75959584 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -62,6 +62,13 @@ typically involves configuring the links using the **Media controller**
+ interface and the media bus formats on pads (at both ends of the links)
+ using the **V4L2 sub-device** interface.
+ 
++.. attention::
++
++   Devices that require **MC-centric** media hardware control should
++   report a ``V4L2_MC_CENTRIC`` :c:type:`v4l2_capability` flag
++   (see :ref:`VIDIOC_QUERYCAP`).
++
++
+ .. _v4l2_device_naming:
+ 
+ V4L2 Device Node Naming
+diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+index 66fb1b3d6e6e..944bc5ba484f 100644
+--- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
++++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+@@ -254,6 +254,11 @@ specification the ioctl returns an ``EINVAL`` error code.
+     * - ``V4L2_CAP_TOUCH``
+       - 0x10000000
+       - This is a touch device.
++    * - ``V4L2_MC_CENTRIC``
++      - 0x20000000
++      - Indicates that the device require **MC-centric** hardware
++        control, and thus can't be used by **vdevnode-centric** applications.
++        See :ref:`v4l2_hardware_control` for more details.
+     * - ``V4L2_CAP_DEVICE_CAPS``
+       - 0x80000000
+       - The driver fills the ``device_caps`` field. This capability can
+diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+index a5cb0a8686ac..b51a575f9f75 100644
+--- a/Documentation/media/videodev2.h.rst.exceptions
++++ b/Documentation/media/videodev2.h.rst.exceptions
+@@ -157,6 +157,7 @@ replace define V4L2_CAP_META_CAPTURE device-capabilities
+ replace define V4L2_CAP_READWRITE device-capabilities
+ replace define V4L2_CAP_ASYNCIO device-capabilities
+ replace define V4L2_CAP_STREAMING device-capabilities
++replace define V4L2_CAP_MC_CENTRIC device-capabilities
+ replace define V4L2_CAP_DEVICE_CAPS device-capabilities
+ replace define V4L2_CAP_TOUCH device-capabilities
+ 
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 185d6a0acc06..4ff1224719a7 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -460,6 +460,8 @@ struct v4l2_capability {
+ 
+ #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
+ 
++#define V4L2_CAP_MC_CENTRIC             0x20000000  /* Device require MC-centric hardware control */
++
+ #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
+ 
+ /*
+-- 
+2.13.6
