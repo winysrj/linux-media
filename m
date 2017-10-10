@@ -1,66 +1,260 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:59146 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751271AbdJEMsa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Oct 2017 08:48:30 -0400
-Date: Thu, 5 Oct 2017 09:48:23 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [ANN] Call for topics for the media mini-summit on Friday Oct
- 27 in Prague
-Message-ID: <20171005094817.36b940a8@recife.lan>
-In-Reply-To: <4c24c976-2ae3-b0f3-d16a-ec31a9b2ea50@xs4all.nl>
-References: <4c24c976-2ae3-b0f3-d16a-ec31a9b2ea50@xs4all.nl>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:59538 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754700AbdJJHrU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Oct 2017 03:47:20 -0400
+Subject: Re: [PATCH v7 1/7] media: add glossary.rst with a glossary of terms
+ used at V4L2 spec
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <cover.1506550930.git.mchehab@s-opensource.com>
+ <047245414a82a6553361b1dd3497f796855a657d.1506550930.git.mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c48ca345-538d-df3f-8888-b207e91e4457@xs4all.nl>
+Date: Tue, 10 Oct 2017 09:47:13 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <047245414a82a6553361b1dd3497f796855a657d.1506550930.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 1 Sep 2017 11:46:59 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 09/28/2017 12:23 AM, Mauro Carvalho Chehab wrote:
+> Add a glossary of terms for V4L2, as several concepts are complex
+> enough to cause misunderstandings.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  Documentation/media/uapi/v4l/glossary.rst | 136 ++++++++++++++++++++++++++++++
+>  Documentation/media/uapi/v4l/v4l2.rst     |   1 +
+>  2 files changed, 137 insertions(+)
+>  create mode 100644 Documentation/media/uapi/v4l/glossary.rst
+> 
+> diff --git a/Documentation/media/uapi/v4l/glossary.rst b/Documentation/media/uapi/v4l/glossary.rst
+> new file mode 100644
+> index 000000000000..b6767da1a46e
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/glossary.rst
+> @@ -0,0 +1,136 @@
+> +========
+> +Glossary
+> +========
+> +
+> +.. note::
+> +
+> +   This goal of section is to standardize the terms used within the V4L2
+> +   documentation. It is written incrementally as they are standardized in
+> +   the V4L2 documentation. So, it is a Work In Progress.
+> +
+> +.. Please keep the glossary entries in alphabetical order
+> +
+> +.. glossary::
+> +
+> +    Bridge driver
+> +	The same as V4L2 main driver.
 
-> Hi all,
-> 
-> We are organizing a media mini-summit on Friday October 27 in Prague, co-located
-> with the ELCE conference:
-> 
-> http://events.linuxfoundation.org/events/embedded-linux-conference-europe
-> 
-> This is a call for topics to discuss during that mini-summit.
-> 
-> Also, if you plan to attend, please let me know. It is open for all, but it is
-> nice if we know beforehand who we can expect.
-> 
-> So if you have a topic that you want to discuss there, then just reply to this
-> post. If possible, please add a rough idea of how much time you think you will
-> need.
-> 
-> I plan to make the agenda based on the received topics around mid-October.
-> 
-> Let me kick this off:
-> 
-> Topic: Media development process: what works, what doesn't.
-> Purpose: In the past 6 months or so we tried to improve the media development
-> 	 process. This is an overview of what we did and why we did it, what
-> 	 works and what doesn't. Feedback is very much appreciated. It is even
-> 	 more appreciated if people/companies would be willing to assign
-> 	 new developers to help improve the media subsystem!
-> Duration: 30-60 minutes
-> 
-> Topic: status of the HDMI CEC kernel support.
-> Purpose: give a quick overview of the status: what has been merged, what is still
-> 	 pending, what is under development.
-> Duration: 10-15 minutes
+Change this to the more standard phrase:
 
+See: V4L2 main driver.
 
-Topic: Media kAPI and uAPI documentation
-Purpose: to give the current status of media API and identify possible
-	 gaps and how to improve it.
+> +
+> +    Device Node
+> +	A character device node in the file system used to control and do
 
-Duration: 45-60 minutes.
+and -> and/or
 
+> +	input/output data transfers from/to a Kernel driver.
+> +
+> +    Digital Signal Processor - DSP
+> +	A specialized microprocessor, with its architecture optimized for
+> +	the operational needs of digital signal processing.
 
-Thanks,
-Mauro
+I'd say 'requirements' instead of 'needs'. I think that's a better term.
+
+> +
+> +    Driver
+> +	The part of the Linux Kernel that implements support
+> +	for a hardware component.
+> +
+> +    Field-programmable Gate Array - FPGA
+> +	A field-programmable gate array (FPGA) is an integrated circuit
+> +	designed to be configured by a customer or a designer after
+> +	manufacturing.
+> +
+> +	See https://en.wikipedia.org/wiki/Field-programmable_gate_array.
+> +
+> +    Hardware component
+> +	A subset of the media hardware. For example an I²C or SPI device,
+> +	or an IP block inside an SoC or FPGA.
+> +
+> +    Image Signal Processor - ISP
+> +	A specialised processor that implements a set of algorithms for
+> +	processing image data. ISPs may implement algorithms for lens
+> +	shading correction, demosaic, scaling and pixel format conversion
+> +	as well as produce statistics for the use of the control
+> +	algorithms (e.g. automatic exposure, white balance and focus).
+> +
+> +    Inter-Integrated Circuit - I²C
+> +	A  multi-master, multi-slave, packet switched, single-ended,
+> +	serial computer bus used to control V4L2 sub-devices.
+
+I'd rephrase this a bit:
+
+	A  multi-master, multi-slave, packet switched, single-ended,
+	serial computer bus. Most V4L2 sub-devices are controlled via
+	this bus.
+
+Your text suggested that i2c is used exclusively for V4L2 subdevs, but
+of course it is used for many other devices as well.
+
+> +
+> +	See http://www.nxp.com/docs/en/user-guide/UM10204.pdf.
+> +
+> +    Integrated circuit - IC
+> +	A set of electronic circuits on one small flat piece of
+> +	semiconductor material, normally silicon.
+> +
+> +	Also known as chip.
+
+Perhaps add an entry for 'Chip' as well, with a 'See: Integrated circuit' as
+description? Just to be consistent.
+
+> +
+> +    Intellectual property core - IP core
+> +	In electronic design a semiconductor intellectual property core,
+> +	is a reusable unit of logic, cell, or integrated circuit layout
+> +	design that is the intellectual property of one party.
+> +	IP cores may be licensed to another party or can be owned
+> +	and used by a single party alone.
+> +
+> +	See https://en.wikipedia.org/wiki/Semiconductor_intellectual_property_core).
+> +
+> +    IP block
+> +	The same as IP core.
+
+'See: '
+
+> +
+> +    MC-centric
+> +	V4L2 hardware that requires a Media controller.
+> +
+> +	See :ref:`v4l2_hardware_control`.
+> +
+> +    Media Controller
+> +	An API designed to expose and control devices and sub-devices
+> +	relationships to applications.
+
+This sentence is not clear. I propose this:
+
+	An API designed to expose and control the relationships of the Media
+	Harware to applications.
+
+> +
+> +	See :ref:`media_controller`.
+> +
+> +    Media hardware
+> +	A group of hardware components that together make a larger
+> +	user-facing functional media hardware. For instance the SoC ISP IP
+
+I'd just say "form the functional". The term 'user-facing' is out of place here.
+
+> +	cores and external camera sensors together make a
+
+make a -> form the
+
+Possible synonym for 'form': 'constitute'. I'm OK with either.
+
+> +	camera media hardware.
+> +
+> +    Media hardware control
+> +	Type of control for a media hardware supported by V4L2 drivers.
+> +
+> +	See :ref:`v4l2_hardware_control`.
+> +
+> +    Microprocessor
+> +	An electronic circuitry that carries out the instructions
+> +	of a computer program by performing the basic arithmetic, logical,
+> +	control and input/output (I/O) operations specified by the
+> +	instructions on a single integrated circuit.
+> +
+> +    SMBus
+> +	A subset of I²C, with defines a stricter usage of the bus.
+> +
+> +    Serial Peripheral Interface Bus - SPI
+> +	Synchronous serial communication interface specification used for
+> +	short distance communication, primarily in embedded systems.
+> +
+> +    System on a Chip - SoC
+> +	An integrated circuit that integrates all components of a computer
+> +	or other electronic systems.
+> +
+> +    V4L2 device node
+> +	A device node that is associated to a V4L2 main driver,
+> +	as specified in :ref:`v4l2_device_naming`.
+> +
+> +    V4L2 hardware
+> +	A hardware used to on a media device supported by the V4L2
+> +	subsystem.
+
+No idea what you mean here. Perhaps this:
+
+Hardware that is controlled by a V4L2 main driver or a V4L2 sub-device driver.
+V4L2 hardware is a subset of the Media hardware. Often the two are the same,
+but Media hardware can also contain other non-V4L2 hardware such as DVB hardware.
+
+> +
+> +    V4L2 main driver
+> +	The V4L2 device driver that implements the main logic to talk with
+> +	the V4L2 hardware.
+> +
+> +	Also known as bridge driver.
+> +
+> +	See :ref:`v4l2_hardware_control`.
+> +
+> +    V4L2 sub-device
+> +	Part of the media hardware that is implemented via a
+> +	V4L2 sub-device driver.
+
+When we talk about 'V4L2 sub-device' we talk about a driver that implement
+the subdev kernel API. I suggest that you change 'V4L2 sub-device' to
+'V4L2 sub-device driver', then explain that such a driver implements support
+for a Hardware component.
+
+> +
+> +	See :ref:`subdev`.
+> +
+> +    Vdevnode-centric
+> +	V4L2 hardware that it is controlled via V4L2 device nodes.
+
+'that it' -> 'that'
+
+This also needs a reference:
+
+	See :ref:`v4l2_hardware_control`.
+
+> +
+> +	See :ref:`v4l2_hardware_control`.
+> diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
+> index 2128717299b3..698c060939f0 100644
+> --- a/Documentation/media/uapi/v4l/v4l2.rst
+> +++ b/Documentation/media/uapi/v4l/v4l2.rst
+> @@ -32,6 +32,7 @@ This part describes the Video for Linux API version 2 (V4L2 API) specification.
+>      videodev
+>      capture-example
+>      v4l2grab-example
+> +    glossary
+>      biblio
+>  
+>  
+> 
+
+Regards,
+
+	Hans
