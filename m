@@ -1,1949 +1,637 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from p3plsmtpa12-09.prod.phx3.secureserver.net ([68.178.252.238]:51630
-        "EHLO p3plsmtpa12-09.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751272AbdJEAGc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 20:06:32 -0400
-From: Leon Luo <leonl@leopardimaging.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, leonl@leopardimaging.com,
-        soren.brinkmann@xilinx.com
-Subject: [PATCH v8 2/2] media:imx274 V4l2 driver for Sony imx274 CMOS sensor
-Date: Wed,  4 Oct 2017 17:06:21 -0700
-Message-Id: <20171005000621.27841-2-leonl@leopardimaging.com>
-In-Reply-To: <20171005000621.27841-1-leonl@leopardimaging.com>
-References: <20171005000621.27841-1-leonl@leopardimaging.com>
+Received: from mga03.intel.com ([134.134.136.65]:42091 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752123AbdJKTOH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Oct 2017 15:14:07 -0400
+Date: Thu, 12 Oct 2017 03:13:08 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: kbuild-all@01.org, linux-media@vger.kernel.org
+Subject: [linuxtv-media:master 2747/2770]
+ drivers/media/dvb-core/dvbdev.c:86:1: warning: control reaches end of
+ non-void function
+Message-ID: <201710120304.oFUL94Uo%fengguang.wu@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="oyUTqETQ0mS9luUI"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The imx274 is a Sony CMOS image sensor that has 1/2.5 image size.
-It supports up to 3840x2160 (4K) 60fps, 1080p 120fps. The interface
-is 4-lane MIPI CSI-2 running at 1.44Gbps each.
 
-This driver has been tested on Xilinx ZCU102 platform with a Leopard
-LI-IMX274MIPI-FMC camera board.
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Support for the following features:
--Resolutions: 3840x2160, 1920x1080, 1280x720
--Frame rate: 3840x2160 : 5 – 60fps
-            1920x1080 : 5 – 120fps
-            1280x720 : 5 – 120fps
--Exposure time: 16 – (frame interval) micro-seconds
--Gain: 1x - 180x
--VFLIP: enable/disabledrivers/media/i2c/imx274.c
--Test pattern: 12 test patterns
+tree:   git://linuxtv.org/media_tree.git master
+head:   01153bf04db18d5fcd30df64ffe428db7ff7bada
+commit: 6bbf7a855d200ddd83494a9ceb95f9465f953f59 [2747/2770] media: dvbdev: convert DVB device types into an enum
+config: x86_64-acpi-redef (attached as .config)
+compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
+reproduce:
+        git checkout 6bbf7a855d200ddd83494a9ceb95f9465f953f59
+        # save the attached .config to linux build tree
+        make ARCH=x86_64 
 
-Signed-off-by: Leon Luo <leonl@leopardimaging.com>
-Tested-by: Sören Brinkmann <soren.brinkmann@xilinx.com>
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+All warnings (new ones prefixed by >>):
+
+   drivers/media/dvb-core/dvbdev.c: In function 'nums2minor':
+>> drivers/media/dvb-core/dvbdev.c:86:1: warning: control reaches end of non-void function [-Wreturn-type]
+    }
+    ^
+
+vim +86 drivers/media/dvb-core/dvbdev.c
+
+    70	
+    71	static int nums2minor(int num, enum dvb_device_type type, int id)
+    72	{
+    73		int n = (num << 6) | (id << 4);
+    74	
+    75		switch (type) {
+    76		case DVB_DEVICE_VIDEO:		return n;
+    77		case DVB_DEVICE_AUDIO:		return n | 1;
+    78		case DVB_DEVICE_SEC:		return n | 2;
+    79		case DVB_DEVICE_FRONTEND:	return n | 3;
+    80		case DVB_DEVICE_DEMUX:		return n | 4;
+    81		case DVB_DEVICE_DVR:		return n | 5;
+    82		case DVB_DEVICE_CA:		return n | 6;
+    83		case DVB_DEVICE_NET:		return n | 7;
+    84		case DVB_DEVICE_OSD:		return n | 8;
+    85		}
+  > 86	}
+    87	
+
 ---
-v8:
- - check division by zero error
-v7:
- - use __v4l2_ctrl_s_ctrl instead of v4l2_ctrl_s_ctrl to have
-   clean mutex_lock/mutex_unlock in imx274_s_stream()
- - define imx274_tp_regs[] as static, move the test pattern reg
-   out of imx274_tp_regs[], and define it as a macro
-   IMX274_TEST_PATTERN_REG
-v6:
- - remove media/v4l2-image-sizes.h from include header
- - make the header file alphabetical order
- - remove fmt->pad check in imx274_get_fmt,
-   the V4L2 subdev framework does it already
- - change 'struct reg_8 *regs' to 'struct reg_8 regs[n]',
-   where n is the exact numbers needed for this function
- - move MODULE_DEVICE_TABLE(of, imx274_of_id_table); closer
-   to imx274_of_id_table definition
- - remove return check of imx274_write_table in imx274_remove,
-   because it should remove all resources even i2c fails here
- - move imx274_load_default before v4l2_async_register_subdev
-v5:
- - no changes
-v4:
- - use 32-bit data type to avoid __divdi3 compile error for i386
- - clean up OR together error codesdrivers/media/i2c/imx274.c
-v3:
- - clean up header files
- - use struct directly instead of alias #define
- - use v4l2_ctrl_s_ctrl instead of v4l2_s_ctrl
- - revise debug output
- - move static helpers closer to their call site
- - don't OR toegether error codes
- - use closest valid gain value instead of erroring out
- - assigne lock to the control handler and omit explicit locking
- - acquire mutex lock for imx274_get_fmt
- - remove format->pad check in imx274_set_fmt since the pad is always 0
- - pass struct v4l2_ctrl pointer in gain/exposure/vlip/test pattern controls
- - remove priv->ctrls.vflip->val = val in imx274_set_vflip()
- - remove priv->ctrls.test_pattern->val = val in imx274_set_test_pattern()
- - remove empty open/close callbacks
- - remove empty core ops
- - add more error labels in probe
- - use v4l2_async_unregister_subdev instead of v4l2_device_unregister_subdev
- - use dynamic debug
- - split start_stream to two steps: imx274_mode_regs() and imx274_start_stream()
-   frame rate & exposure can be updated
-   between imx274_mode_regs() & imx274_start_stream()
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
-v2:
- - Fix Kconfig to not remove existing options
----
- drivers/media/i2c/Kconfig  |    7 +
- drivers/media/i2c/Makefile |    1 +
- drivers/media/i2c/imx274.c | 1811 ++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 1819 insertions(+)
- create mode 100644 drivers/media/i2c/imx274.c
+--oyUTqETQ0mS9luUI
+Content-Type: application/gzip
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 47113774a297..9659849e33a0 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -555,6 +555,13 @@ config VIDEO_APTINA_PLL
- config VIDEO_SMIAPP_PLL
- 	tristate
- 
-+config VIDEO_IMX274
-+	tristate "Sony IMX274 sensor support"
-+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-+	---help---
-+	  This is a V4L2 sensor-level driver for the Sony IMX274
-+	  CMOS image sensor.
-+
- config VIDEO_OV2640
- 	tristate "OmniVision OV2640 sensor support"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index c843c181dfb9..f8d57e453936 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -92,5 +92,6 @@ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
- obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
- obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
- obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
-+obj-$(CONFIG_VIDEO_IMX274)	+= imx274.o
- 
- obj-$(CONFIG_SDR_MAX2175) += max2175.o
-diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-new file mode 100644
-index 000000000000..ab6a5f31da74
---- /dev/null
-+++ b/drivers/media/i2c/imx274.c
-@@ -0,0 +1,1811 @@
-+/*
-+ * imx274.c - IMX274 CMOS Image Sensor driver
-+ *
-+ * Copyright (C) 2017, Leopard Imaging, Inc.
-+ *
-+ * Leon Luo <leonl@leopardimaging.com>
-+ * Edwin Zou <edwinz@leopardimaging.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/gpio.h>
-+#include <linux/gpio/consumer.h>
-+#include <linux/i2c.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/of_gpio.h>
-+#include <linux/regmap.h>
-+#include <linux/slab.h>
-+#include <linux/v4l2-mediabus.h>
-+#include <linux/videodev2.h>
-+
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
-+
-+/*
-+ * See "SHR, SVR Setting" in datasheet
-+ */
-+#define IMX274_DEFAULT_FRAME_LENGTH		(4550)
-+#define IMX274_MAX_FRAME_LENGTH			(0x000fffff)
-+
-+/*
-+ * See "Frame Rate Adjustment" in datasheet
-+ */
-+#define IMX274_PIXCLK_CONST1			(72000000)
-+#define IMX274_PIXCLK_CONST2			(1000000)
-+
-+/*
-+ * The input gain is shifted by IMX274_GAIN_SHIFT to get
-+ * decimal number. The real gain is
-+ * (float)input_gain_value / (1 << IMX274_GAIN_SHIFT)
-+ */
-+#define IMX274_GAIN_SHIFT			(8)
-+#define IMX274_GAIN_SHIFT_MASK			((1 << IMX274_GAIN_SHIFT) - 1)
-+
-+/*
-+ * See "Analog Gain" and "Digital Gain" in datasheet
-+ * min gain is 1X
-+ * max gain is calculated based on IMX274_GAIN_REG_MAX
-+ */
-+#define IMX274_GAIN_REG_MAX			(1957)
-+#define IMX274_MIN_GAIN				(0x01 << IMX274_GAIN_SHIFT)
-+#define IMX274_MAX_ANALOG_GAIN			((2048 << IMX274_GAIN_SHIFT)\
-+					/ (2048 - IMX274_GAIN_REG_MAX))
-+#define IMX274_MAX_DIGITAL_GAIN			(8)
-+#define IMX274_DEF_GAIN				(20 << IMX274_GAIN_SHIFT)
-+#define IMX274_GAIN_CONST			(2048) /* for gain formula */
-+
-+/*
-+ * 1 line time in us = (HMAX / 72), minimal is 4 lines
-+ */
-+#define IMX274_MIN_EXPOSURE_TIME		(4 * 260 / 72)
-+
-+#define IMX274_DEFAULT_MODE			IMX274_MODE_3840X2160
-+#define IMX274_MAX_WIDTH			(3840)
-+#define IMX274_MAX_HEIGHT			(2160)
-+#define IMX274_MAX_FRAME_RATE			(120)
-+#define IMX274_MIN_FRAME_RATE			(5)
-+#define IMX274_DEF_FRAME_RATE			(60)
-+
-+/*
-+ * register SHR is limited to (SVR value + 1) x VMAX value - 4
-+ */
-+#define IMX274_SHR_LIMIT_CONST			(4)
-+
-+/*
-+ * Constants for sensor reset delay
-+ */
-+#define IMX274_RESET_DELAY1			(2000)
-+#define IMX274_RESET_DELAY2			(2200)
-+
-+/*
-+ * shift and mask constants
-+ */
-+#define IMX274_SHIFT_8_BITS			(8)
-+#define IMX274_SHIFT_16_BITS			(16)
-+#define IMX274_MASK_LSB_2_BITS			(0x03)
-+#define IMX274_MASK_LSB_3_BITS			(0x07)
-+#define IMX274_MASK_LSB_4_BITS			(0x0f)
-+#define IMX274_MASK_LSB_8_BITS			(0x00ff)
-+
-+#define DRIVER_NAME "IMX274"
-+
-+/*
-+ * IMX274 register definitions
-+ */
-+#define IMX274_FRAME_LENGTH_ADDR_1		0x30FA /* VMAX, MSB */
-+#define IMX274_FRAME_LENGTH_ADDR_2		0x30F9 /* VMAX */
-+#define IMX274_FRAME_LENGTH_ADDR_3		0x30F8 /* VMAX, LSB */
-+#define IMX274_SVR_REG_MSB			0x300F /* SVR */
-+#define IMX274_SVR_REG_LSB			0x300E /* SVR */
-+#define IMX274_HMAX_REG_MSB			0x30F7 /* HMAX */
-+#define IMX274_HMAX_REG_LSB			0x30F6 /* HMAX */
-+#define IMX274_COARSE_TIME_ADDR_MSB		0x300D /* SHR */
-+#define IMX274_COARSE_TIME_ADDR_LSB		0x300C /* SHR */
-+#define IMX274_ANALOG_GAIN_ADDR_LSB		0x300A /* ANALOG GAIN LSB */
-+#define IMX274_ANALOG_GAIN_ADDR_MSB		0x300B /* ANALOG GAIN MSB */
-+#define IMX274_DIGITAL_GAIN_REG			0x3012 /* Digital Gain */
-+#define IMX274_VFLIP_REG			0x301A /* VERTICAL FLIP */
-+#define IMX274_TEST_PATTERN_REG			0x303D /* TEST PATTERN */
-+#define IMX274_STANDBY_REG			0x3000 /* STANDBY */
-+
-+#define IMX274_TABLE_WAIT_MS			0
-+#define IMX274_TABLE_END			1
-+
-+/*
-+ * imx274 I2C operation related structure
-+ */
-+struct reg_8 {
-+	u16 addr;
-+	u8 val;
-+};
-+
-+static const struct regmap_config imx274_regmap_config = {
-+	.reg_bits = 16,
-+	.val_bits = 8,
-+	.cache_type = REGCACHE_RBTREE,
-+};
-+
-+enum imx274_mode {
-+	IMX274_MODE_3840X2160,
-+	IMX274_MODE_1920X1080,
-+	IMX274_MODE_1280X720,
-+
-+	IMX274_MODE_START_STREAM_1,
-+	IMX274_MODE_START_STREAM_2,
-+	IMX274_MODE_START_STREAM_3,
-+	IMX274_MODE_START_STREAM_4,
-+	IMX274_MODE_STOP_STREAM
-+};
-+
-+/*
-+ * imx274 format related structure
-+ */
-+struct imx274_frmfmt {
-+	u32 mbus_code;
-+	enum v4l2_colorspace colorspace;
-+	struct v4l2_frmsize_discrete size;
-+	enum imx274_mode mode;
-+};
-+
-+/*
-+ * imx274 test pattern related structure
-+ */
-+enum {
-+	TEST_PATTERN_DISABLED = 0,
-+	TEST_PATTERN_ALL_000H,
-+	TEST_PATTERN_ALL_FFFH,
-+	TEST_PATTERN_ALL_555H,
-+	TEST_PATTERN_ALL_AAAH,
-+	TEST_PATTERN_VSP_5AH, /* VERTICAL STRIPE PATTERN 555H/AAAH */
-+	TEST_PATTERN_VSP_A5H, /* VERTICAL STRIPE PATTERN AAAH/555H */
-+	TEST_PATTERN_VSP_05H, /* VERTICAL STRIPE PATTERN 000H/555H */
-+	TEST_PATTERN_VSP_50H, /* VERTICAL STRIPE PATTERN 555H/000H */
-+	TEST_PATTERN_VSP_0FH, /* VERTICAL STRIPE PATTERN 000H/FFFH */
-+	TEST_PATTERN_VSP_F0H, /* VERTICAL STRIPE PATTERN FFFH/000H */
-+	TEST_PATTERN_H_COLOR_BARS,
-+	TEST_PATTERN_V_COLOR_BARS,
-+};
-+
-+static const char * const tp_qmenu[] = {
-+	"Disabled",
-+	"All 000h Pattern",
-+	"All FFFh Pattern",
-+	"All 555h Pattern",
-+	"All AAAh Pattern",
-+	"Vertical Stripe (555h / AAAh)",
-+	"Vertical Stripe (AAAh / 555h)",
-+	"Vertical Stripe (000h / 555h)",
-+	"Vertical Stripe (555h / 000h)",
-+	"Vertical Stripe (000h / FFFh)",
-+	"Vertical Stripe (FFFh / 000h)",
-+	"Horizontal Color Bars",
-+	"Vertical Color Bars",
-+};
-+
-+/*
-+ * All-pixel scan mode (10-bit)
-+ * imx274 mode1(refer to datasheet) register configuration with
-+ * 3840x2160 resolution, raw10 data and mipi four lane output
-+ */
-+static const struct reg_8 imx274_mode1_3840x2160_raw10[] = {
-+	{0x3004, 0x01},
-+	{0x3005, 0x01},
-+	{0x3006, 0x00},
-+	{0x3007, 0x02},
-+
-+	{0x3018, 0xA2}, /* output XVS, HVS */
-+
-+	{0x306B, 0x05},
-+	{0x30E2, 0x01},
-+	{0x30F6, 0x07}, /* HMAX, 263 */
-+	{0x30F7, 0x01}, /* HMAX */
-+
-+	{0x30dd, 0x01}, /* crop to 2160 */
-+	{0x30de, 0x06},
-+	{0x30df, 0x00},
-+	{0x30e0, 0x12},
-+	{0x30e1, 0x00},
-+	{0x3037, 0x01}, /* to crop to 3840 */
-+	{0x3038, 0x0c},
-+	{0x3039, 0x00},
-+	{0x303a, 0x0c},
-+	{0x303b, 0x0f},
-+
-+	{0x30EE, 0x01},
-+	{0x3130, 0x86},
-+	{0x3131, 0x08},
-+	{0x3132, 0x7E},
-+	{0x3133, 0x08},
-+	{0x3342, 0x0A},
-+	{0x3343, 0x00},
-+	{0x3344, 0x16},
-+	{0x3345, 0x00},
-+	{0x33A6, 0x01},
-+	{0x3528, 0x0E},
-+	{0x3554, 0x1F},
-+	{0x3555, 0x01},
-+	{0x3556, 0x01},
-+	{0x3557, 0x01},
-+	{0x3558, 0x01},
-+	{0x3559, 0x00},
-+	{0x355A, 0x00},
-+	{0x35BA, 0x0E},
-+	{0x366A, 0x1B},
-+	{0x366B, 0x1A},
-+	{0x366C, 0x19},
-+	{0x366D, 0x17},
-+	{0x3A41, 0x08},
-+
-+	{IMX274_TABLE_END, 0x00}
-+};
-+
-+/*
-+ * Horizontal/vertical 2/2-line binning
-+ * (Horizontal and vertical weightedbinning, 10-bit)
-+ * imx274 mode3(refer to datasheet) register configuration with
-+ * 1920x1080 resolution, raw10 data and mipi four lane output
-+ */
-+static const struct reg_8 imx274_mode3_1920x1080_raw10[] = {
-+	{0x3004, 0x02},
-+	{0x3005, 0x21},
-+	{0x3006, 0x00},
-+	{0x3007, 0x11},
-+
-+	{0x3018, 0xA2}, /* output XVS, HVS */
-+
-+	{0x306B, 0x05},
-+	{0x30E2, 0x02},
-+
-+	{0x30F6, 0x04}, /* HMAX, 260 */
-+	{0x30F7, 0x01}, /* HMAX */
-+
-+	{0x30dd, 0x01}, /* to crop to 1920x1080 */
-+	{0x30de, 0x05},
-+	{0x30df, 0x00},
-+	{0x30e0, 0x04},
-+	{0x30e1, 0x00},
-+	{0x3037, 0x01},
-+	{0x3038, 0x0c},
-+	{0x3039, 0x00},
-+	{0x303a, 0x0c},
-+	{0x303b, 0x0f},
-+
-+	{0x30EE, 0x01},
-+	{0x3130, 0x4E},
-+	{0x3131, 0x04},
-+	{0x3132, 0x46},
-+	{0x3133, 0x04},
-+	{0x3342, 0x0A},
-+	{0x3343, 0x00},
-+	{0x3344, 0x1A},
-+	{0x3345, 0x00},
-+	{0x33A6, 0x01},
-+	{0x3528, 0x0E},
-+	{0x3554, 0x00},
-+	{0x3555, 0x01},
-+	{0x3556, 0x01},
-+	{0x3557, 0x01},
-+	{0x3558, 0x01},
-+	{0x3559, 0x00},
-+	{0x355A, 0x00},
-+	{0x35BA, 0x0E},
-+	{0x366A, 0x1B},
-+	{0x366B, 0x1A},
-+	{0x366C, 0x19},
-+	{0x366D, 0x17},
-+	{0x3A41, 0x08},
-+
-+	{IMX274_TABLE_END, 0x00}
-+};
-+
-+/*
-+ * Vertical 2/3 subsampling binning horizontal 3 binning
-+ * imx274 mode5(refer to datasheet) register configuration with
-+ * 1280x720 resolution, raw10 data and mipi four lane output
-+ */
-+static const struct reg_8 imx274_mode5_1280x720_raw10[] = {
-+	{0x3004, 0x03},
-+	{0x3005, 0x31},
-+	{0x3006, 0x00},
-+	{0x3007, 0x09},
-+
-+	{0x3018, 0xA2}, /* output XVS, HVS */
-+
-+	{0x306B, 0x05},
-+	{0x30E2, 0x03},
-+
-+	{0x30F6, 0x04}, /* HMAX, 260 */
-+	{0x30F7, 0x01}, /* HMAX */
-+
-+	{0x30DD, 0x01},
-+	{0x30DE, 0x07},
-+	{0x30DF, 0x00},
-+	{0x40E0, 0x04},
-+	{0x30E1, 0x00},
-+	{0x3030, 0xD4},
-+	{0x3031, 0x02},
-+	{0x3032, 0xD0},
-+	{0x3033, 0x02},
-+
-+	{0x30EE, 0x01},
-+	{0x3130, 0xE2},
-+	{0x3131, 0x02},
-+	{0x3132, 0xDE},
-+	{0x3133, 0x02},
-+	{0x3342, 0x0A},
-+	{0x3343, 0x00},
-+	{0x3344, 0x1B},
-+	{0x3345, 0x00},
-+	{0x33A6, 0x01},
-+	{0x3528, 0x0E},
-+	{0x3554, 0x00},
-+	{0x3555, 0x01},
-+	{0x3556, 0x01},
-+	{0x3557, 0x01},
-+	{0x3558, 0x01},
-+	{0x3559, 0x00},
-+	{0x355A, 0x00},
-+	{0x35BA, 0x0E},
-+	{0x366A, 0x1B},
-+	{0x366B, 0x19},
-+	{0x366C, 0x17},
-+	{0x366D, 0x17},
-+	{0x3A41, 0x04},
-+
-+	{IMX274_TABLE_END, 0x00}
-+};
-+
-+/*
-+ * imx274 first step register configuration for
-+ * starting stream
-+ */
-+static const struct reg_8 imx274_start_1[] = {
-+	{IMX274_STANDBY_REG, 0x12},
-+	{IMX274_TABLE_END, 0x00}
-+};
-+
-+/*
-+ * imx274 second step register configuration for
-+ * starting stream
-+ */
-+static const struct reg_8 imx274_start_2[] = {
-+	{0x3120, 0xF0}, /* clock settings */
-+	{0x3121, 0x00}, /* clock settings */
-+	{0x3122, 0x02}, /* clock settings */
-+	{0x3129, 0x9C}, /* clock settings */
-+	{0x312A, 0x02}, /* clock settings */
-+	{0x312D, 0x02}, /* clock settings */
-+
-+	{0x310B, 0x00},
-+
-+	/* PLSTMG */
-+	{0x304C, 0x00}, /* PLSTMG01 */
-+	{0x304D, 0x03},
-+	{0x331C, 0x1A},
-+	{0x331D, 0x00},
-+	{0x3502, 0x02},
-+	{0x3529, 0x0E},
-+	{0x352A, 0x0E},
-+	{0x352B, 0x0E},
-+	{0x3538, 0x0E},
-+	{0x3539, 0x0E},
-+	{0x3553, 0x00},
-+	{0x357D, 0x05},
-+	{0x357F, 0x05},
-+	{0x3581, 0x04},
-+	{0x3583, 0x76},
-+	{0x3587, 0x01},
-+	{0x35BB, 0x0E},
-+	{0x35BC, 0x0E},
-+	{0x35BD, 0x0E},
-+	{0x35BE, 0x0E},
-+	{0x35BF, 0x0E},
-+	{0x366E, 0x00},
-+	{0x366F, 0x00},
-+	{0x3670, 0x00},
-+	{0x3671, 0x00},
-+
-+	/* PSMIPI */
-+	{0x3304, 0x32}, /* PSMIPI1 */
-+	{0x3305, 0x00},
-+	{0x3306, 0x32},
-+	{0x3307, 0x00},
-+	{0x3590, 0x32},
-+	{0x3591, 0x00},
-+	{0x3686, 0x32},
-+	{0x3687, 0x00},
-+
-+	{IMX274_TABLE_END, 0x00}
-+};
-+
-+/*
-+ * imx274 third step register configuration for
-+ * starting stream
-+ */
-+static const struct reg_8 imx274_start_3[] = {
-+	{IMX274_STANDBY_REG, 0x00},
-+	{0x303E, 0x02}, /* SYS_MODE = 2 */
-+	{IMX274_TABLE_END, 0x00}
-+};
-+
-+/*
-+ * imx274 forth step register configuration for
-+ * starting stream
-+ */
-+static const struct reg_8 imx274_start_4[] = {
-+	{0x30F4, 0x00},
-+	{0x3018, 0xA2}, /* XHS VHS OUTUPT */
-+	{IMX274_TABLE_END, 0x00}
-+};
-+
-+/*
-+ * imx274 register configuration for stoping stream
-+ */
-+static const struct reg_8 imx274_stop[] = {
-+	{IMX274_STANDBY_REG, 0x01},
-+	{IMX274_TABLE_END, 0x00}
-+};
-+
-+/*
-+ * imx274 disable test pattern register configuration
-+ */
-+static const struct reg_8 imx274_tp_disabled[] = {
-+	{0x303C, 0x00},
-+	{0x377F, 0x00},
-+	{0x3781, 0x00},
-+	{0x370B, 0x00},
-+	{IMX274_TABLE_END, 0x00}
-+};
-+
-+/*
-+ * imx274 test pattern register configuration
-+ * reg 0x303D defines the test pattern modes
-+ */
-+static const struct reg_8 imx274_tp_regs[] = {
-+	{0x303C, 0x11},
-+	{0x370E, 0x01},
-+	{0x377F, 0x01},
-+	{0x3781, 0x01},
-+	{0x370B, 0x11},
-+	{IMX274_TABLE_END, 0x00}
-+};
-+
-+static const struct reg_8 *mode_table[] = {
-+	[IMX274_MODE_3840X2160]		= imx274_mode1_3840x2160_raw10,
-+	[IMX274_MODE_1920X1080]		= imx274_mode3_1920x1080_raw10,
-+	[IMX274_MODE_1280X720]		= imx274_mode5_1280x720_raw10,
-+
-+	[IMX274_MODE_START_STREAM_1]	= imx274_start_1,
-+	[IMX274_MODE_START_STREAM_2]	= imx274_start_2,
-+	[IMX274_MODE_START_STREAM_3]	= imx274_start_3,
-+	[IMX274_MODE_START_STREAM_4]	= imx274_start_4,
-+	[IMX274_MODE_STOP_STREAM]	= imx274_stop,
-+};
-+
-+/*
-+ * imx274 format related structure
-+ */
-+static const struct imx274_frmfmt imx274_formats[] = {
-+	{MEDIA_BUS_FMT_SRGGB10_1X10, V4L2_COLORSPACE_SRGB, {3840, 2160},
-+		IMX274_MODE_3840X2160},
-+	{MEDIA_BUS_FMT_SRGGB10_1X10, V4L2_COLORSPACE_SRGB, {1920, 1080},
-+		IMX274_MODE_1920X1080},
-+	{MEDIA_BUS_FMT_SRGGB10_1X10, V4L2_COLORSPACE_SRGB, {1280, 720},
-+		IMX274_MODE_1280X720},
-+};
-+
-+/*
-+ * minimal frame length for each mode
-+ * refer to datasheet section "Frame Rate Adjustment (CSI-2)"
-+ */
-+static const int min_frame_len[] = {
-+	4550, /* mode 1, 4K */
-+	2310, /* mode 3, 1080p */
-+	2310 /* mode 5, 720p */
-+};
-+
-+/*
-+ * minimal numbers of SHR register
-+ * refer to datasheet table "Shutter Setting (CSI-2)"
-+ */
-+static const int min_SHR[] = {
-+	12, /* mode 1, 4K */
-+	8, /* mode 3, 1080p */
-+	8 /* mode 5, 720p */
-+};
-+
-+static const int max_frame_rate[] = {
-+	60, /* mode 1 , 4K */
-+	120, /* mode 3, 1080p */
-+	120 /* mode 5, 720p */
-+};
-+
-+/*
-+ * Number of clocks per internal offset period
-+ * a constant based on mode
-+ * refer to section "Integration Time in Each Readout Drive Mode (CSI-2)"
-+ * in the datasheet
-+ * for the implemented 3 modes, it happens to be the same number
-+ */
-+static const int nocpiop[] = {
-+	112, /* mode 1 , 4K */
-+	112, /* mode 3, 1080p */
-+	112 /* mode 5, 720p */
-+};
-+
-+/*
-+ * struct imx274_ctrls - imx274 ctrl structure
-+ * @handler: V4L2 ctrl handler structure
-+ * @exposure: Pointer to expsure ctrl structure
-+ * @gain: Pointer to gain ctrl structure
-+ * @vflip: Pointer to vflip ctrl structure
-+ * @test_pattern: Pointer to test pattern ctrl structure
-+ */
-+struct imx274_ctrls {
-+	struct v4l2_ctrl_handler handler;
-+	struct v4l2_ctrl *exposure;
-+	struct v4l2_ctrl *gain;
-+	struct v4l2_ctrl *vflip;
-+	struct v4l2_ctrl *test_pattern;
-+};
-+
-+/*
-+ * struct stim274 - imx274 device structure
-+ * @sd: V4L2 subdevice structure
-+ * @pd: Media pad structure
-+ * @client: Pointer to I2C client
-+ * @ctrls: imx274 control structure
-+ * @format: V4L2 media bus frame format structure
-+ * @frame_rate: V4L2 frame rate structure
-+ * @regmap: Pointer to regmap structure
-+ * @reset_gpio: Pointer to reset gpio
-+ * @lock: Mutex structure
-+ * @mode_index: Resolution mode index
-+ */
-+struct stimx274 {
-+	struct v4l2_subdev sd;
-+	struct media_pad pad;
-+	struct i2c_client *client;
-+	struct imx274_ctrls ctrls;
-+	struct v4l2_mbus_framefmt format;
-+	struct v4l2_fract frame_interval;
-+	struct regmap *regmap;
-+	struct gpio_desc *reset_gpio;
-+	struct mutex lock; /* mutex lock for operations */
-+	u32 mode_index;
-+};
-+
-+/*
-+ * Function declaration
-+ */
-+static int imx274_set_gain(struct stimx274 *priv, struct v4l2_ctrl *ctrl);
-+static int imx274_set_exposure(struct stimx274 *priv, int val);
-+static int imx274_set_vflip(struct stimx274 *priv, int val);
-+static int imx274_set_test_pattern(struct stimx274 *priv, int val);
-+static int imx274_set_frame_interval(struct stimx274 *priv,
-+				     struct v4l2_fract frame_interval);
-+
-+static inline void msleep_range(unsigned int delay_base)
-+{
-+	usleep_range(delay_base * 1000, delay_base * 1000 + 500);
-+}
-+
-+/*
-+ * v4l2_ctrl and v4l2_subdev related operations
-+ */
-+static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
-+{
-+	return &container_of(ctrl->handler,
-+			     struct stimx274, ctrls.handler)->sd;
-+}
-+
-+static inline struct stimx274 *to_imx274(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct stimx274, sd);
-+}
-+
-+/*
-+ * imx274_regmap_util_write_table_8 - Function for writing register table
-+ * @regmap: Pointer to device reg map structure
-+ * @table: Table containing register values
-+ * @wait_ms_addr: Flag for performing delay
-+ * @end_addr: Flag for incating end of table
-+ *
-+ * This is used to write register table into sensor's reg map.
-+ *
-+ * Return: 0 on success, errors otherwise
-+ */
-+static int imx274_regmap_util_write_table_8(struct regmap *regmap,
-+					    const struct reg_8 table[],
-+					    u16 wait_ms_addr, u16 end_addr)
-+{
-+	int err;
-+	const struct reg_8 *next;
-+	u8 val;
-+
-+	int range_start = -1;
-+	int range_count = 0;
-+	u8 range_vals[16];
-+	int max_range_vals = ARRAY_SIZE(range_vals);
-+
-+	for (next = table;; next++) {
-+		if ((next->addr != range_start + range_count) ||
-+		    (next->addr == end_addr) ||
-+		    (next->addr == wait_ms_addr) ||
-+		    (range_count == max_range_vals)) {
-+			if (range_count == 1)
-+				err = regmap_write(regmap,
-+						   range_start, range_vals[0]);
-+			else if (range_count > 1)
-+				err = regmap_bulk_write(regmap, range_start,
-+							&range_vals[0],
-+							range_count);
-+
-+			if (err)
-+				return err;
-+
-+			range_start = -1;
-+			range_count = 0;
-+
-+			/* Handle special address values */
-+			if (next->addr == end_addr)
-+				break;
-+
-+			if (next->addr == wait_ms_addr) {
-+				msleep_range(next->val);
-+				continue;
-+			}
-+		}
-+
-+		val = next->val;
-+
-+		if (range_start == -1)
-+			range_start = next->addr;
-+
-+		range_vals[range_count++] = val;
-+	}
-+	return 0;
-+}
-+
-+static inline int imx274_read_reg(struct stimx274 *priv, u16 addr, u8 *val)
-+{
-+	int err;
-+
-+	err = regmap_read(priv->regmap, addr, (unsigned int *)val);
-+	if (err)
-+		dev_err(&priv->client->dev,
-+			"%s : i2c read failed, addr = %x\n", __func__, addr);
-+	else
-+		dev_dbg(&priv->client->dev,
-+			"%s : addr 0x%x, val=0x%x\n", __func__,
-+			addr, *val);
-+	return err;
-+}
-+
-+static inline int imx274_write_reg(struct stimx274 *priv, u16 addr, u8 val)
-+{
-+	int err;
-+
-+	err = regmap_write(priv->regmap, addr, val);
-+	if (err)
-+		dev_err(&priv->client->dev,
-+			"%s : i2c write failed, %x = %x\n", __func__,
-+			addr, val);
-+	else
-+		dev_dbg(&priv->client->dev,
-+			"%s : addr 0x%x, val=0x%x\n", __func__,
-+			addr, val);
-+	return err;
-+}
-+
-+static int imx274_write_table(struct stimx274 *priv, const struct reg_8 table[])
-+{
-+	return imx274_regmap_util_write_table_8(priv->regmap,
-+		table, IMX274_TABLE_WAIT_MS, IMX274_TABLE_END);
-+}
-+
-+/*
-+ * imx274_mode_regs - Function for set mode registers per mode index
-+ * @priv: Pointer to device structure
-+ * @mode: Mode index value
-+ *
-+ * This is used to start steam per mode index.
-+ * mode = 0, start stream for sensor Mode 1: 4K/raw10
-+ * mode = 1, start stream for sensor Mode 3: 1080p/raw10
-+ * mode = 2, start stream for sensor Mode 5: 720p/raw10
-+ *
-+ * Return: 0 on success, errors otherwise
-+ */
-+static int imx274_mode_regs(struct stimx274 *priv, int mode)
-+{
-+	int err = 0;
-+
-+	err = imx274_write_table(priv, mode_table[IMX274_MODE_START_STREAM_1]);
-+	if (err)
-+		return err;
-+
-+	err = imx274_write_table(priv, mode_table[IMX274_MODE_START_STREAM_2]);
-+	if (err)
-+		return err;
-+
-+	err = imx274_write_table(priv, mode_table[mode]);
-+
-+	return err;
-+}
-+
-+/*
-+ * imx274_start_stream - Function for starting stream per mode index
-+ * @priv: Pointer to device structure
-+ *
-+ * Return: 0 on success, errors otherwise
-+ */
-+static int imx274_start_stream(struct stimx274 *priv)
-+{
-+	int err = 0;
-+
-+	/*
-+	 * Refer to "Standby Cancel Sequence when using CSI-2" in
-+	 * imx274 datasheet, it should wait 10ms or more here.
-+	 * give it 1 extra ms for margin
-+	 */
-+	msleep_range(11);
-+	err = imx274_write_table(priv, mode_table[IMX274_MODE_START_STREAM_3]);
-+	if (err)
-+		return err;
-+
-+	/*
-+	 * Refer to "Standby Cancel Sequence when using CSI-2" in
-+	 * imx274 datasheet, it should wait 7ms or more here.
-+	 * give it 1 extra ms for margin
-+	 */
-+	msleep_range(8);
-+	err = imx274_write_table(priv, mode_table[IMX274_MODE_START_STREAM_4]);
-+	if (err)
-+		return err;
-+
-+	return 0;
-+}
-+
-+/*
-+ * imx274_reset - Function called to reset the sensor
-+ * @priv: Pointer to device structure
-+ * @rst: Input value for determining the sensor's end state after reset
-+ *
-+ * Set the senor in reset and then
-+ * if rst = 0, keep it in reset;
-+ * if rst = 1, bring it out of reset.
-+ *
-+ */
-+static void imx274_reset(struct stimx274 *priv, int rst)
-+{
-+	gpiod_set_value_cansleep(priv->reset_gpio, 0);
-+	usleep_range(IMX274_RESET_DELAY1, IMX274_RESET_DELAY2);
-+	gpiod_set_value_cansleep(priv->reset_gpio, !!rst);
-+	usleep_range(IMX274_RESET_DELAY1, IMX274_RESET_DELAY2);
-+}
-+
-+/**
-+ * imx274_s_ctrl - This is used to set the imx274 V4L2 controls
-+ * @ctrl: V4L2 control to be set
-+ *
-+ * This function is used to set the V4L2 controls for the imx274 sensor.
-+ *
-+ * Return: 0 on success, errors otherwise
-+ */
-+static int imx274_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = ctrl_to_sd(ctrl);
-+	struct stimx274 *imx274 = to_imx274(sd);
-+	int ret = -EINVAL;
-+
-+	dev_dbg(&imx274->client->dev,
-+		"%s : s_ctrl: %s, value: %d\n", __func__,
-+		ctrl->name, ctrl->val);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_EXPOSURE:
-+		dev_dbg(&imx274->client->dev,
-+			"%s : set V4L2_CID_EXPOSURE\n", __func__);
-+		ret = imx274_set_exposure(imx274, ctrl->val);
-+		break;
-+
-+	case V4L2_CID_GAIN:
-+		dev_dbg(&imx274->client->dev,
-+			"%s : set V4L2_CID_GAIN\n", __func__);
-+		ret = imx274_set_gain(imx274, ctrl);
-+		break;
-+
-+	case V4L2_CID_VFLIP:
-+		dev_dbg(&imx274->client->dev,
-+			"%s : set V4L2_CID_VFLIP\n", __func__);
-+		ret = imx274_set_vflip(imx274, ctrl->val);
-+		break;
-+
-+	case V4L2_CID_TEST_PATTERN:
-+		dev_dbg(&imx274->client->dev,
-+			"%s : set V4L2_CID_TEST_PATTERN\n", __func__);
-+		ret = imx274_set_test_pattern(imx274, ctrl->val);
-+		break;
-+	}
-+
-+	return ret;
-+}
-+
-+/**
-+ * imx274_get_fmt - Get the pad format
-+ * @sd: Pointer to V4L2 Sub device structure
-+ * @cfg: Pointer to sub device pad information structure
-+ * @fmt: Pointer to pad level media bus format
-+ *
-+ * This function is used to get the pad format information.
-+ *
-+ * Return: 0 on success
-+ */
-+static int imx274_get_fmt(struct v4l2_subdev *sd,
-+			  struct v4l2_subdev_pad_config *cfg,
-+			  struct v4l2_subdev_format *fmt)
-+{
-+	struct stimx274 *imx274 = to_imx274(sd);
-+
-+	mutex_lock(&imx274->lock);
-+	fmt->format = imx274->format;
-+	mutex_unlock(&imx274->lock);
-+	return 0;
-+}
-+
-+/**
-+ * imx274_set_fmt - This is used to set the pad format
-+ * @sd: Pointer to V4L2 Sub device structure
-+ * @cfg: Pointer to sub device pad information structure
-+ * @format: Pointer to pad level media bus format
-+ *
-+ * This function is used to set the pad format.
-+ *
-+ * Return: 0 on success
-+ */
-+static int imx274_set_fmt(struct v4l2_subdev *sd,
-+			  struct v4l2_subdev_pad_config *cfg,
-+			  struct v4l2_subdev_format *format)
-+{
-+	struct v4l2_mbus_framefmt *fmt = &format->format;
-+	struct stimx274 *imx274 = to_imx274(sd);
-+	struct i2c_client *client = imx274->client;
-+	int index;
-+
-+	dev_dbg(&client->dev,
-+		"%s: width = %d height = %d code = %d mbus_code = %d\n",
-+		__func__, fmt->width, fmt->height, fmt->code,
-+		imx274_formats[imx274->mode_index].mbus_code);
-+
-+	mutex_lock(&imx274->lock);
-+
-+	for (index = 0; index < ARRAY_SIZE(imx274_formats); index++) {
-+		if (imx274_formats[index].size.width == fmt->width &&
-+		    imx274_formats[index].size.height == fmt->height)
-+			break;
-+	}
-+
-+	if (index >= ARRAY_SIZE(imx274_formats)) {
-+		/* default to first format */
-+		index = 0;
-+	}
-+
-+	imx274->mode_index = index;
-+
-+	if (fmt->width > IMX274_MAX_WIDTH)
-+		fmt->width = IMX274_MAX_WIDTH;
-+	if (fmt->height > IMX274_MAX_HEIGHT)
-+		fmt->height = IMX274_MAX_HEIGHT;
-+	fmt->width = fmt->width & (~IMX274_MASK_LSB_2_BITS);
-+	fmt->height = fmt->height & (~IMX274_MASK_LSB_2_BITS);
-+	fmt->field = V4L2_FIELD_NONE;
-+
-+	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
-+		cfg->try_fmt = *fmt;
-+	else
-+		imx274->format = *fmt;
-+
-+	mutex_unlock(&imx274->lock);
-+	return 0;
-+}
-+
-+/**
-+ * imx274_g_frame_interval - Get the frame interval
-+ * @sd: Pointer to V4L2 Sub device structure
-+ * @fi: Pointer to V4l2 Sub device frame interval structure
-+ *
-+ * This function is used to get the frame interval.
-+ *
-+ * Return: 0 on success
-+ */
-+static int imx274_g_frame_interval(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_frame_interval *fi)
-+{
-+	struct stimx274 *imx274 = to_imx274(sd);
-+
-+	fi->interval = imx274->frame_interval;
-+	dev_dbg(&imx274->client->dev, "%s frame rate = %d / %d\n",
-+		__func__, imx274->frame_interval.numerator,
-+		imx274->frame_interval.denominator);
-+
-+	return 0;
-+}
-+
-+/**
-+ * imx274_s_frame_interval - Set the frame interval
-+ * @sd: Pointer to V4L2 Sub device structure
-+ * @fi: Pointer to V4l2 Sub device frame interval structure
-+ *
-+ * This function is used to set the frame intervavl.
-+ *
-+ * Return: 0 on success
-+ */
-+static int imx274_s_frame_interval(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_frame_interval *fi)
-+{
-+	struct stimx274 *imx274 = to_imx274(sd);
-+	struct v4l2_ctrl *ctrl = imx274->ctrls.exposure;
-+	int min, max, def;
-+	int ret;
-+
-+	mutex_lock(&imx274->lock);
-+	ret = imx274_set_frame_interval(imx274, fi->interval);
-+
-+	if (!ret) {
-+		/*
-+		 * exposure time range is decided by frame interval
-+		 * need to update it after frame interal changes
-+		 */
-+		min = IMX274_MIN_EXPOSURE_TIME;
-+		max = fi->interval.numerator * 1000000
-+			/ fi->interval.denominator;
-+		def = max;
-+		if (__v4l2_ctrl_modify_range(ctrl, min, max, 1, def)) {
-+			dev_err(&imx274->client->dev,
-+				"Exposure ctrl range update failed\n");
-+			goto unlock;
-+		}
-+
-+		/* update exposure time accordingly */
-+		imx274_set_exposure(imx274, imx274->ctrls.exposure->val);
-+
-+		dev_dbg(&imx274->client->dev, "set frame interval to %uus\n",
-+			fi->interval.numerator * 1000000
-+			/ fi->interval.denominator);
-+	}
-+
-+unlock:
-+	mutex_unlock(&imx274->lock);
-+
-+	return ret;
-+}
-+
-+/**
-+ * imx274_load_default - load default control values
-+ * @priv: Pointer to device structure
-+ *
-+ * Return: 0 on success, errors otherwise
-+ */
-+static int imx274_load_default(struct stimx274 *priv)
-+{
-+	int ret;
-+
-+	/* load default control values */
-+	priv->frame_interval.numerator = 1;
-+	priv->frame_interval.denominator = IMX274_DEF_FRAME_RATE;
-+	priv->ctrls.exposure->val = 1000000 / IMX274_DEF_FRAME_RATE;
-+	priv->ctrls.gain->val = IMX274_DEF_GAIN;
-+	priv->ctrls.vflip->val = 0;
-+	priv->ctrls.test_pattern->val = TEST_PATTERN_DISABLED;
-+
-+	/* update frame rate */
-+	ret = imx274_set_frame_interval(priv,
-+					priv->frame_interval);
-+	if (ret)
-+		return ret;
-+
-+	/* update exposure time */
-+	ret = v4l2_ctrl_s_ctrl(priv->ctrls.exposure, priv->ctrls.exposure->val);
-+	if (ret)
-+		return ret;
-+
-+	/* update gain */
-+	ret = v4l2_ctrl_s_ctrl(priv->ctrls.gain, priv->ctrls.gain->val);
-+	if (ret)
-+		return ret;
-+
-+	/* update vflip */
-+	ret = v4l2_ctrl_s_ctrl(priv->ctrls.vflip, priv->ctrls.vflip->val);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+/**
-+ * imx274_s_stream - It is used to start/stop the streaming.
-+ * @sd: V4L2 Sub device
-+ * @on: Flag (True / False)
-+ *
-+ * This function controls the start or stop of streaming for the
-+ * imx274 sensor.
-+ *
-+ * Return: 0 on success, errors otherwise
-+ */
-+static int imx274_s_stream(struct v4l2_subdev *sd, int on)
-+{
-+	struct stimx274 *imx274 = to_imx274(sd);
-+	int ret = 0;
-+
-+	dev_dbg(&imx274->client->dev, "%s : %s, mode index = %d\n", __func__,
-+		on ? "Stream Start" : "Stream Stop", imx274->mode_index);
-+
-+	mutex_lock(&imx274->lock);
-+
-+	if (on) {
-+		/* load mode registers */
-+		imx274_mode_regs(imx274, imx274->mode_index);
-+		if (ret)
-+			goto fail;
-+
-+		/*
-+		 * update frame rate & expsoure. if the last mode is different,
-+		 * HMAX could be changed. As the result, frame rate & exposure
-+		 * are changed.
-+		 * gain is not affected.
-+		 */
-+		ret = imx274_set_frame_interval(imx274,
-+						imx274->frame_interval);
-+		if (ret)
-+			goto fail;
-+
-+		/* update exposure time */
-+		ret = __v4l2_ctrl_s_ctrl(imx274->ctrls.exposure,
-+					 imx274->ctrls.exposure->val);
-+		if (ret)
-+			goto fail;
-+
-+		/* start stream */
-+		ret = imx274_start_stream(imx274);
-+		if (ret)
-+			goto fail;
-+	} else {
-+		/* stop stream */
-+		ret = imx274_write_table(imx274,
-+					 mode_table[IMX274_MODE_STOP_STREAM]);
-+		if (ret)
-+			goto fail;
-+	}
-+
-+	mutex_unlock(&imx274->lock);
-+	dev_dbg(&imx274->client->dev,
-+		"%s : Done: mode = %d\n", __func__, imx274->mode_index);
-+	return 0;
-+
-+fail:
-+	mutex_unlock(&imx274->lock);
-+	dev_err(&imx274->client->dev, "s_stream failed\n");
-+	return ret;
-+}
-+
-+/*
-+ * imx274_get_frame_length - Function for obtaining current frame length
-+ * @priv: Pointer to device structure
-+ * @val: Pointer to obainted value
-+ *
-+ * frame_length = vmax x (svr + 1), in unit of hmax.
-+ *
-+ * Return: 0 on success
-+ */
-+static int imx274_get_frame_length(struct stimx274 *priv, u32 *val)
-+{
-+	int err;
-+	u16 svr;
-+	u32 vmax;
-+	u8 reg_val[3];
-+
-+	/* svr */
-+	err = imx274_read_reg(priv, IMX274_SVR_REG_LSB, &reg_val[0]);
-+	if (err)
-+		goto fail;
-+
-+	err = imx274_read_reg(priv, IMX274_SVR_REG_MSB, &reg_val[1]);
-+	if (err)
-+		goto fail;
-+
-+	svr = (reg_val[1] << IMX274_SHIFT_8_BITS) + reg_val[0];
-+
-+	/* vmax */
-+	err = imx274_read_reg(priv, IMX274_FRAME_LENGTH_ADDR_3, &reg_val[0]);
-+	if (err)
-+		goto fail;
-+
-+	err = imx274_read_reg(priv, IMX274_FRAME_LENGTH_ADDR_2, &reg_val[1]);
-+	if (err)
-+		goto fail;
-+
-+	err = imx274_read_reg(priv, IMX274_FRAME_LENGTH_ADDR_1, &reg_val[2]);
-+	if (err)
-+		goto fail;
-+
-+	vmax = ((reg_val[2] & IMX274_MASK_LSB_3_BITS) << IMX274_SHIFT_16_BITS)
-+		+ (reg_val[1] << IMX274_SHIFT_8_BITS) + reg_val[0];
-+
-+	*val = vmax * (svr + 1);
-+
-+	return 0;
-+
-+fail:
-+	dev_err(&priv->client->dev, "%s error = %d\n", __func__, err);
-+	return err;
-+}
-+
-+static int imx274_clamp_coarse_time(struct stimx274 *priv, u32 *val,
-+				    u32 *frame_length)
-+{
-+	int err;
-+
-+	err = imx274_get_frame_length(priv, frame_length);
-+	if (err)
-+		return err;
-+
-+	if (*frame_length < min_frame_len[priv->mode_index])
-+		*frame_length = min_frame_len[priv->mode_index];
-+
-+	*val = *frame_length - *val; /* convert to raw shr */
-+	if (*val > *frame_length - IMX274_SHR_LIMIT_CONST)
-+		*val = *frame_length - IMX274_SHR_LIMIT_CONST;
-+	else if (*val < min_SHR[priv->mode_index])
-+		*val = min_SHR[priv->mode_index];
-+
-+	return 0;
-+}
-+
-+/*
-+ * imx274_set_digital gain - Function called when setting digital gain
-+ * @priv: Pointer to device structure
-+ * @dgain: Value of digital gain.
-+ *
-+ * Digital gain has only 4 steps: 1x, 2x, 4x, and 8x
-+ *
-+ * Return: 0 on success
-+ */
-+static int imx274_set_digital_gain(struct stimx274 *priv, u32 dgain)
-+{
-+	u8 reg_val;
-+
-+	reg_val = ffs(dgain);
-+
-+	if (reg_val)
-+		reg_val--;
-+
-+	reg_val = clamp(reg_val, (u8)0, (u8)3);
-+
-+	return imx274_write_reg(priv, IMX274_DIGITAL_GAIN_REG,
-+				reg_val & IMX274_MASK_LSB_4_BITS);
-+}
-+
-+static inline void imx274_calculate_gain_regs(struct reg_8 regs[2], u16 gain)
-+{
-+	regs->addr = IMX274_ANALOG_GAIN_ADDR_MSB;
-+	regs->val = (gain >> IMX274_SHIFT_8_BITS) & IMX274_MASK_LSB_3_BITS;
-+
-+	(regs + 1)->addr = IMX274_ANALOG_GAIN_ADDR_LSB;
-+	(regs + 1)->val = (gain) & IMX274_MASK_LSB_8_BITS;
-+}
-+
-+/*
-+ * imx274_set_gain - Function called when setting gain
-+ * @priv: Pointer to device structure
-+ * @val: Value of gain. the real value = val << IMX274_GAIN_SHIFT;
-+ * @ctrl: v4l2 control pointer
-+ *
-+ * Set the gain based on input value.
-+ * The caller should hold the mutex lock imx274->lock if necessary
-+ *
-+ * Return: 0 on success
-+ */
-+static int imx274_set_gain(struct stimx274 *priv, struct v4l2_ctrl *ctrl)
-+{
-+	struct reg_8 reg_list[2];
-+	int err;
-+	u32 gain, analog_gain, digital_gain, gain_reg;
-+	int i;
-+
-+	gain = (u32)(ctrl->val);
-+
-+	dev_dbg(&priv->client->dev,
-+		"%s : input gain = %d.%d\n", __func__,
-+		gain >> IMX274_GAIN_SHIFT,
-+		((gain & IMX274_GAIN_SHIFT_MASK) * 100) >> IMX274_GAIN_SHIFT);
-+
-+	if (gain > IMX274_MAX_DIGITAL_GAIN * IMX274_MAX_ANALOG_GAIN)
-+		gain = IMX274_MAX_DIGITAL_GAIN * IMX274_MAX_ANALOG_GAIN;
-+	else if (gain < IMX274_MIN_GAIN)
-+		gain = IMX274_MIN_GAIN;
-+
-+	if (gain <= IMX274_MAX_ANALOG_GAIN)
-+		digital_gain = 1;
-+	else if (gain <= IMX274_MAX_ANALOG_GAIN * 2)
-+		digital_gain = 2;
-+	else if (gain <= IMX274_MAX_ANALOG_GAIN * 4)
-+		digital_gain = 4;
-+	else
-+		digital_gain = IMX274_MAX_DIGITAL_GAIN;
-+
-+	analog_gain = gain / digital_gain;
-+
-+	dev_dbg(&priv->client->dev,
-+		"%s : digital gain = %d, analog gain = %d.%d\n",
-+		__func__, digital_gain, analog_gain >> IMX274_GAIN_SHIFT,
-+		((analog_gain & IMX274_GAIN_SHIFT_MASK) * 100)
-+		>> IMX274_GAIN_SHIFT);
-+
-+	err = imx274_set_digital_gain(priv, digital_gain);
-+	if (err)
-+		goto fail;
-+
-+	/* convert to register value, refer to imx274 datasheet */
-+	gain_reg = (u32)IMX274_GAIN_CONST -
-+		(IMX274_GAIN_CONST << IMX274_GAIN_SHIFT) / analog_gain;
-+	if (gain_reg > IMX274_GAIN_REG_MAX)
-+		gain_reg = IMX274_GAIN_REG_MAX;
-+
-+	imx274_calculate_gain_regs(reg_list, (u16)gain_reg);
-+
-+	for (i = 0; i < ARRAY_SIZE(reg_list); i++) {
-+		err = imx274_write_reg(priv, reg_list[i].addr,
-+				       reg_list[i].val);
-+		if (err)
-+			goto fail;
-+	}
-+
-+	if (IMX274_GAIN_CONST - gain_reg == 0) {
-+		err = -EINVAL;
-+		goto fail;
-+	}
-+
-+	/* convert register value back to gain value */
-+	ctrl->val = (IMX274_GAIN_CONST << IMX274_GAIN_SHIFT)
-+			/ (IMX274_GAIN_CONST - gain_reg) * digital_gain;
-+
-+	dev_dbg(&priv->client->dev,
-+		"%s : GAIN control success, gain_reg = %d, new gain = %d\n",
-+		__func__, gain_reg, ctrl->val);
-+
-+	return 0;
-+
-+fail:
-+	dev_err(&priv->client->dev, "%s error = %d\n", __func__, err);
-+	return err;
-+}
-+
-+static inline void imx274_calculate_coarse_time_regs(struct reg_8 regs[2],
-+						     u32 coarse_time)
-+{
-+	regs->addr = IMX274_COARSE_TIME_ADDR_MSB;
-+	regs->val = (coarse_time >> IMX274_SHIFT_8_BITS)
-+			& IMX274_MASK_LSB_8_BITS;
-+	(regs + 1)->addr = IMX274_COARSE_TIME_ADDR_LSB;
-+	(regs + 1)->val = (coarse_time) & IMX274_MASK_LSB_8_BITS;
-+}
-+
-+/*
-+ * imx274_set_coarse_time - Function called when setting SHR value
-+ * @priv: Pointer to device structure
-+ * @val: Value for exposure time in number of line_length, or [HMAX]
-+ *
-+ * Set SHR value based on input value.
-+ *
-+ * Return: 0 on success
-+ */
-+static int imx274_set_coarse_time(struct stimx274 *priv, u32 *val)
-+{
-+	struct reg_8 reg_list[2];
-+	int err;
-+	u32 coarse_time, frame_length;
-+	int i;
-+
-+	coarse_time = *val;
-+
-+	/* convert exposure_time to appropriate SHR value */
-+	err = imx274_clamp_coarse_time(priv, &coarse_time, &frame_length);
-+	if (err)
-+		goto fail;
-+
-+	/* prepare SHR registers */
-+	imx274_calculate_coarse_time_regs(reg_list, coarse_time);
-+
-+	/* write to SHR registers */
-+	for (i = 0; i < ARRAY_SIZE(reg_list); i++) {
-+		err = imx274_write_reg(priv, reg_list[i].addr,
-+				       reg_list[i].val);
-+		if (err)
-+			goto fail;
-+	}
-+
-+	*val = frame_length - coarse_time;
-+	return 0;
-+
-+fail:
-+	dev_err(&priv->client->dev, "%s error = %d\n", __func__, err);
-+	return err;
-+}
-+
-+/*
-+ * imx274_set_exposure - Function called when setting exposure time
-+ * @priv: Pointer to device structure
-+ * @val: Variable for exposure time, in the unit of micro-second
-+ *
-+ * Set exposure time based on input value.
-+ * The caller should hold the mutex lock imx274->lock if necessary
-+ *
-+ * Return: 0 on success
-+ */
-+static int imx274_set_exposure(struct stimx274 *priv, int val)
-+{
-+	int err;
-+	u16 hmax;
-+	u8 reg_val[2];
-+	u32 coarse_time; /* exposure time in unit of line (HMAX)*/
-+
-+	dev_dbg(&priv->client->dev,
-+		"%s : EXPOSURE control input = %d\n", __func__, val);
-+
-+	/* step 1: convert input exposure_time (val) into number of 1[HMAX] */
-+
-+	/* obtain HMAX value */
-+	err = imx274_read_reg(priv, IMX274_HMAX_REG_LSB, &reg_val[0]);
-+	if (err)
-+		goto fail;
-+	err = imx274_read_reg(priv, IMX274_HMAX_REG_MSB, &reg_val[1]);
-+	if (err)
-+		goto fail;
-+	hmax = (reg_val[1] << IMX274_SHIFT_8_BITS) + reg_val[0];
-+	if (hmax == 0) {
-+		err = -EINVAL;
-+		goto fail;
-+	}
-+
-+	coarse_time = (IMX274_PIXCLK_CONST1 / IMX274_PIXCLK_CONST2 * val
-+			- nocpiop[priv->mode_index]) / hmax;
-+
-+	/* step 2: convert exposure_time into SHR value */
-+
-+	/* set SHR */
-+	err = imx274_set_coarse_time(priv, &coarse_time);
-+	if (err)
-+		goto fail;
-+
-+	priv->ctrls.exposure->val =
-+			(coarse_time * hmax + nocpiop[priv->mode_index])
-+			/ (IMX274_PIXCLK_CONST1 / IMX274_PIXCLK_CONST2);
-+
-+	dev_dbg(&priv->client->dev,
-+		"%s : EXPOSURE control success\n", __func__);
-+	return 0;
-+
-+fail:
-+	dev_err(&priv->client->dev, "%s error = %d\n", __func__, err);
-+
-+	return err;
-+}
-+
-+/*
-+ * imx274_set_vflip - Function called when setting vertical flip
-+ * @priv: Pointer to device structure
-+ * @val: Value for vflip setting
-+ *
-+ * Set vertical flip based on input value.
-+ * val = 0: normal, no vertical flip
-+ * val = 1: vertical flip enabled
-+ * The caller should hold the mutex lock imx274->lock if necessary
-+ *
-+ * Return: 0 on success
-+ */
-+static int imx274_set_vflip(struct stimx274 *priv, int val)
-+{
-+	int err;
-+
-+	err = imx274_write_reg(priv, IMX274_VFLIP_REG, val);
-+	if (err) {
-+		dev_err(&priv->client->dev, "VFILP control error\n");
-+		return err;
-+	}
-+
-+	dev_dbg(&priv->client->dev,
-+		"%s : VFLIP control success\n", __func__);
-+
-+	return 0;
-+}
-+
-+/*
-+ * imx274_set_test_pattern - Function called when setting test pattern
-+ * @priv: Pointer to device structure
-+ * @val: Variable for test pattern
-+ *
-+ * Set to different test patterns based on input value.
-+ *
-+ * Return: 0 on success
-+ */
-+static int imx274_set_test_pattern(struct stimx274 *priv, int val)
-+{
-+	int err = 0;
-+
-+	if (val == TEST_PATTERN_DISABLED) {
-+		err = imx274_write_table(priv, imx274_tp_disabled);
-+	} else if (val <= TEST_PATTERN_V_COLOR_BARS) {
-+		err = imx274_write_reg(priv, IMX274_TEST_PATTERN_REG, val - 1);
-+		if (!err)
-+			err = imx274_write_table(priv, imx274_tp_regs);
-+	} else {
-+		err = -EINVAL;
-+	}
-+
-+	if (!err)
-+		dev_dbg(&priv->client->dev,
-+			"%s : TEST PATTERN control success\n", __func__);
-+	else
-+		dev_err(&priv->client->dev, "%s error = %d\n", __func__, err);
-+
-+	return err;
-+}
-+
-+static inline void imx274_calculate_frame_length_regs(struct reg_8 regs[3],
-+						      u32 frame_length)
-+{
-+	regs->addr = IMX274_FRAME_LENGTH_ADDR_1;
-+	regs->val = (frame_length >> IMX274_SHIFT_16_BITS)
-+			& IMX274_MASK_LSB_4_BITS;
-+	(regs + 1)->addr = IMX274_FRAME_LENGTH_ADDR_2;
-+	(regs + 1)->val = (frame_length >> IMX274_SHIFT_8_BITS)
-+			& IMX274_MASK_LSB_8_BITS;
-+	(regs + 2)->addr = IMX274_FRAME_LENGTH_ADDR_3;
-+	(regs + 2)->val = (frame_length) & IMX274_MASK_LSB_8_BITS;
-+}
-+
-+/*
-+ * imx274_set_frame_length - Function called when setting frame length
-+ * @priv: Pointer to device structure
-+ * @val: Variable for frame length (= VMAX, i.e. vertical drive period length)
-+ *
-+ * Set frame length based on input value.
-+ *
-+ * Return: 0 on success
-+ */
-+static int imx274_set_frame_length(struct stimx274 *priv, u32 val)
-+{
-+	struct reg_8 reg_list[3];
-+	int err;
-+	u32 frame_length;
-+	int i;
-+
-+	dev_dbg(&priv->client->dev, "%s : input length = %d\n",
-+		__func__, val);
-+
-+	frame_length = (u32)val;
-+
-+	imx274_calculate_frame_length_regs(reg_list, frame_length);
-+	for (i = 0; i < ARRAY_SIZE(reg_list); i++) {
-+		err = imx274_write_reg(priv, reg_list[i].addr,
-+				       reg_list[i].val);
-+		if (err)
-+			goto fail;
-+	}
-+
-+	return 0;
-+
-+fail:
-+	dev_err(&priv->client->dev, "%s error = %d\n", __func__, err);
-+	return err;
-+}
-+
-+/*
-+ * imx274_set_frame_interval - Function called when setting frame interval
-+ * @priv: Pointer to device structure
-+ * @frame_interval: Variable for frame interval
-+ *
-+ * Change frame interval by updating VMAX value
-+ * The caller should hold the mutex lock imx274->lock if necessary
-+ *
-+ * Return: 0 on success
-+ */
-+static int imx274_set_frame_interval(struct stimx274 *priv,
-+				     struct v4l2_fract frame_interval)
-+{
-+	int err;
-+	u32 frame_length, req_frame_rate;
-+	u16 svr;
-+	u16 hmax;
-+	u8 reg_val[2];
-+
-+	dev_dbg(&priv->client->dev, "%s: input frame interval = %d / %d",
-+		__func__, frame_interval.numerator,
-+		frame_interval.denominator);
-+
-+	if (frame_interval.numerator == 0) {
-+		err = -EINVAL;
-+		goto fail;
-+	}
-+
-+	req_frame_rate = (u32)(frame_interval.denominator
-+				/ frame_interval.numerator);
-+
-+	/* boundary check */
-+	if (req_frame_rate > max_frame_rate[priv->mode_index]) {
-+		frame_interval.numerator = 1;
-+		frame_interval.denominator =
-+					max_frame_rate[priv->mode_index];
-+	} else if (req_frame_rate < IMX274_MIN_FRAME_RATE) {
-+		frame_interval.numerator = 1;
-+		frame_interval.denominator = IMX274_MIN_FRAME_RATE;
-+	}
-+
-+	/*
-+	 * VMAX = 1/frame_rate x 72M / (SVR+1) / HMAX
-+	 * frame_length (i.e. VMAX) = (frame_interval) x 72M /(SVR+1) / HMAX
-+	 */
-+
-+	/* SVR */
-+	err = imx274_read_reg(priv, IMX274_SVR_REG_LSB, &reg_val[0]);
-+	if (err)
-+		goto fail;
-+	err = imx274_read_reg(priv, IMX274_SVR_REG_MSB, &reg_val[1]);
-+	if (err)
-+		goto fail;
-+	svr = (reg_val[1] << IMX274_SHIFT_8_BITS) + reg_val[0];
-+	dev_dbg(&priv->client->dev,
-+		"%s : register SVR = %d\n", __func__, svr);
-+
-+	/* HMAX */
-+	err = imx274_read_reg(priv, IMX274_HMAX_REG_LSB, &reg_val[0]);
-+	if (err)
-+		goto fail;
-+	err = imx274_read_reg(priv, IMX274_HMAX_REG_MSB, &reg_val[1]);
-+	if (err)
-+		goto fail;
-+	hmax = (reg_val[1] << IMX274_SHIFT_8_BITS) + reg_val[0];
-+	dev_dbg(&priv->client->dev,
-+		"%s : register HMAX = %d\n", __func__, hmax);
-+
-+	if (hmax == 0 || frame_interval.denominator == 0) {
-+		err = -EINVAL;
-+		goto fail;
-+	}
-+
-+	frame_length = IMX274_PIXCLK_CONST1 / (svr + 1) / hmax
-+					* frame_interval.numerator
-+					/ frame_interval.denominator;
-+
-+	err = imx274_set_frame_length(priv, frame_length);
-+	if (err)
-+		goto fail;
-+
-+	priv->frame_interval = frame_interval;
-+	return 0;
-+
-+fail:
-+	dev_err(&priv->client->dev, "%s error = %d\n", __func__, err);
-+	return err;
-+}
-+
-+static const struct v4l2_subdev_pad_ops imx274_pad_ops = {
-+	.get_fmt = imx274_get_fmt,
-+	.set_fmt = imx274_set_fmt,
-+};
-+
-+static const struct v4l2_subdev_video_ops imx274_video_ops = {
-+	.g_frame_interval = imx274_g_frame_interval,
-+	.s_frame_interval = imx274_s_frame_interval,
-+	.s_stream = imx274_s_stream,
-+};
-+
-+static const struct v4l2_subdev_ops imx274_subdev_ops = {
-+	.pad = &imx274_pad_ops,
-+	.video = &imx274_video_ops,
-+};
-+
-+static const struct v4l2_ctrl_ops imx274_ctrl_ops = {
-+	.s_ctrl	= imx274_s_ctrl,
-+};
-+
-+static const struct of_device_id imx274_of_id_table[] = {
-+	{ .compatible = "sony,imx274" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, imx274_of_id_table);
-+
-+static const struct i2c_device_id imx274_id[] = {
-+	{ "IMX274", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, imx274_id);
-+
-+static int imx274_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
-+{
-+	struct v4l2_subdev *sd;
-+	struct stimx274 *imx274;
-+	int ret;
-+
-+	/* initialize imx274 */
-+	imx274 = devm_kzalloc(&client->dev, sizeof(*imx274), GFP_KERNEL);
-+	if (!imx274)
-+		return -ENOMEM;
-+
-+	mutex_init(&imx274->lock);
-+
-+	/* initialize regmap */
-+	imx274->regmap = devm_regmap_init_i2c(client, &imx274_regmap_config);
-+	if (IS_ERR(imx274->regmap)) {
-+		dev_err(&client->dev,
-+			"regmap init failed: %ld\n", PTR_ERR(imx274->regmap));
-+		ret = -ENODEV;
-+		goto err_regmap;
-+	}
-+
-+	/* initialize subdevice */
-+	imx274->client = client;
-+	sd = &imx274->sd;
-+	v4l2_i2c_subdev_init(sd, client, &imx274_subdev_ops);
-+	strlcpy(sd->name, DRIVER_NAME, sizeof(sd->name));
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
-+
-+	/* initialize subdev media pad */
-+	imx274->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
-+	ret = media_entity_pads_init(&sd->entity, 1, &imx274->pad);
-+	if (ret < 0) {
-+		dev_err(&client->dev,
-+			"%s : media entity init Failed %d\n", __func__, ret);
-+		goto err_regmap;
-+	}
-+
-+	/* initialize sensor reset gpio */
-+	imx274->reset_gpio = devm_gpiod_get_optional(&client->dev, "reset",
-+						     GPIOD_OUT_HIGH);
-+	if (IS_ERR(imx274->reset_gpio)) {
-+		if (PTR_ERR(imx274->reset_gpio) != -EPROBE_DEFER)
-+			dev_err(&client->dev, "Reset GPIO not setup in DT");
-+		ret = PTR_ERR(imx274->reset_gpio);
-+		goto err_me;
-+	}
-+
-+	/* pull sensor out of reset */
-+	imx274_reset(imx274, 1);
-+
-+	/* initialize controls */
-+	ret = v4l2_ctrl_handler_init(&imx274->ctrls.handler, 2);
-+	if (ret < 0) {
-+		dev_err(&client->dev,
-+			"%s : ctrl handler init Failed\n", __func__);
-+		goto err_me;
-+	}
-+
-+	imx274->ctrls.handler.lock = &imx274->lock;
-+
-+	/* add new controls */
-+	imx274->ctrls.test_pattern = v4l2_ctrl_new_std_menu_items(
-+		&imx274->ctrls.handler, &imx274_ctrl_ops,
-+		V4L2_CID_TEST_PATTERN,
-+		ARRAY_SIZE(tp_qmenu) - 1, 0, 0, tp_qmenu);
-+
-+	imx274->ctrls.gain = v4l2_ctrl_new_std(
-+		&imx274->ctrls.handler,
-+		&imx274_ctrl_ops,
-+		V4L2_CID_GAIN, IMX274_MIN_GAIN,
-+		IMX274_MAX_DIGITAL_GAIN * IMX274_MAX_ANALOG_GAIN, 1,
-+		IMX274_DEF_GAIN);
-+
-+	imx274->ctrls.exposure = v4l2_ctrl_new_std(
-+		&imx274->ctrls.handler,
-+		&imx274_ctrl_ops,
-+		V4L2_CID_EXPOSURE, IMX274_MIN_EXPOSURE_TIME,
-+		1000000 / IMX274_DEF_FRAME_RATE, 1,
-+		IMX274_MIN_EXPOSURE_TIME);
-+
-+	imx274->ctrls.vflip = v4l2_ctrl_new_std(
-+		&imx274->ctrls.handler,
-+		&imx274_ctrl_ops,
-+		V4L2_CID_VFLIP, 0, 1, 1, 0);
-+
-+	imx274->sd.ctrl_handler = &imx274->ctrls.handler;
-+	if (imx274->ctrls.handler.error) {
-+		ret = imx274->ctrls.handler.error;
-+		goto err_ctrls;
-+	}
-+
-+	/* setup default controls */
-+	ret = v4l2_ctrl_handler_setup(&imx274->ctrls.handler);
-+	if (ret) {
-+		dev_err(&client->dev,
-+			"Error %d setup default controls\n", ret);
-+		goto err_ctrls;
-+	}
-+
-+	/* initialize format */
-+	imx274->mode_index = IMX274_MODE_3840X2160;
-+	imx274->format.width = imx274_formats[0].size.width;
-+	imx274->format.height = imx274_formats[0].size.height;
-+	imx274->format.field = V4L2_FIELD_NONE;
-+	imx274->format.code = MEDIA_BUS_FMT_SRGGB10_1X10;
-+	imx274->format.colorspace = V4L2_COLORSPACE_SRGB;
-+	imx274->frame_interval.numerator = 1;
-+	imx274->frame_interval.denominator = IMX274_DEF_FRAME_RATE;
-+
-+	/* load default control values */
-+	ret = imx274_load_default(imx274);
-+	if (ret) {
-+		dev_err(&client->dev,
-+			"%s : imx274_load_default failed %d\n",
-+			__func__, ret);
-+		goto err_ctrls;
-+	}
-+
-+	/* register subdevice */
-+	ret = v4l2_async_register_subdev(sd);
-+	if (ret < 0) {
-+		dev_err(&client->dev,
-+			"%s : v4l2_async_register_subdev failed %d\n",
-+			__func__, ret);
-+		goto err_ctrls;
-+	}
-+
-+	dev_info(&client->dev, "imx274 : imx274 probe success !\n");
-+	return 0;
-+
-+err_ctrls:
-+	v4l2_async_unregister_subdev(sd);
-+	v4l2_ctrl_handler_free(sd->ctrl_handler);
-+err_me:
-+	media_entity_cleanup(&sd->entity);
-+err_regmap:
-+	mutex_destroy(&imx274->lock);
-+	return ret;
-+}
-+
-+static int imx274_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct stimx274 *imx274 = to_imx274(sd);
-+
-+	/* stop stream */
-+	imx274_write_table(imx274, mode_table[IMX274_MODE_STOP_STREAM]);
-+
-+	v4l2_async_unregister_subdev(sd);
-+	v4l2_ctrl_handler_free(sd->ctrl_handler);
-+	media_entity_cleanup(&sd->entity);
-+	mutex_destroy(&imx274->lock);
-+	return 0;
-+}
-+
-+static struct i2c_driver imx274_i2c_driver = {
-+	.driver = {
-+		.name	= DRIVER_NAME,
-+		.of_match_table	= imx274_of_id_table,
-+	},
-+	.probe		= imx274_probe,
-+	.remove		= imx274_remove,
-+	.id_table	= imx274_id,
-+};
-+
-+module_i2c_driver(imx274_i2c_driver);
-+
-+MODULE_AUTHOR("Leon Luo <leonl@leopardimaging.com>");
-+MODULE_DESCRIPTION("IMX274 CMOS Image Sensor driver");
-+MODULE_LICENSE("GPL v2");
--- 
-2.14.0.rc1
+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
+
+--oyUTqETQ0mS9luUI--
