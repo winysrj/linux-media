@@ -1,45 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:47704 "EHLO ni.piap.pl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755279AbdJQGM2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 02:12:28 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:34354 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751365AbdJKWOb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Oct 2017 18:14:31 -0400
+Subject: Re: [PATCH] media: staging/imx: do not return error in link_notify
+ for unknown sources
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org,
-        Russell King <rmk+kernel@armlinux.org.uk>
-Subject: [PATCH][MEDIA] i.MX6: Fix MIPI CSI-2 LP-11 check
-Date: Tue, 17 Oct 2017 08:12:25 +0200
-Message-ID: <m3k1zul2uu.fsf@t19.piap.pl>
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <1507057753-31808-1-git-send-email-steve_longerbeam@mentor.com>
+ <20171011214906.GX20805@n2100.armlinux.org.uk>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <87b48a34-4beb-eb21-3361-28f6edb6d73c@gmail.com>
+Date: Wed, 11 Oct 2017 15:14:26 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20171011214906.GX20805@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bitmask for the MIPI CSI-2 data PHY status doesn't seem to be correct.
-Fix it.
 
-Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
 
---- a/drivers/staging/media/imx/imx6-mipi-csi2.c
-+++ b/drivers/staging/media/imx/imx6-mipi-csi2.c
-@@ -252,8 +252,8 @@ static int csi2_dphy_wait_stopstate(struct csi2_dev *csi2)
- 	u32 mask, reg;
- 	int ret;
- 
--	mask = PHY_STOPSTATECLK |
--		((csi2->bus.num_data_lanes - 1) << PHY_STOPSTATEDATA_BIT);
-+	mask = PHY_STOPSTATECLK | (((1 << csi2->bus.num_data_lanes) - 1) <<
-+				   PHY_STOPSTATEDATA_BIT);
- 
- 	ret = readl_poll_timeout(csi2->base + CSI2_PHY_STATE, reg,
- 				 (reg & mask) == mask, 0, 500000);
+On 10/11/2017 02:49 PM, Russell King - ARM Linux wrote:
+> On Tue, Oct 03, 2017 at 12:09:13PM -0700, Steve Longerbeam wrote:
+>> imx_media_link_notify() should not return error if the source subdevice
+>> is not recognized by imx-media, that isn't an error. If the subdev has
+>> controls they will be inherited starting from a known subdev.
+> What does "a known subdev" mean?
 
--- 
-Krzysztof Halasa
+It refers to the previous sentence, "not recognized by imx-media". A
+subdev that was not registered via async registration and so not in
+imx-media's async subdev list. I could elaborate in the commit message
+but it seems fairly obvious to me.
 
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+Steve
