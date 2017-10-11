@@ -1,89 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57028 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751152AbdJ2XDV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Oct 2017 19:03:21 -0400
-Date: Mon, 30 Oct 2017 00:03:18 +0100
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz,
-        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v16 27/32] dt: bindings: smiapp: Document lens-focus and
- flash-leds properties
-Message-ID: <20171029230318.qzf4lfawjam4bqvg@earth>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-28-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="sdqeuk7kqid37qbs"
-Content-Disposition: inline
-In-Reply-To: <20171026075342.5760-28-sakari.ailus@linux.intel.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:37791 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751454AbdJKUJv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Oct 2017 16:09:51 -0400
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Stephen Warren <swarren@wwwdotorg.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v3 0/2] NVIDIA Tegra20 video decoder driver
+Date: Wed, 11 Oct 2017 23:08:10 +0300
+Message-Id: <cover.1507752381.git.digetx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This driver provides accelerated video decoding to NVIDIA Tegra20 SoC's,
+it is a result of reverse-engineering efforts. Driver has been tested on
+Toshiba AC100 and Acer A500, it should work on any Tegra20 device.
 
---sdqeuk7kqid37qbs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In userspace this driver is utilized by libvdpau-tegra [0] that implements
+VDPAU interface, so any video player that supports VDPAU can provide
+accelerated video decoding on Tegra20 on Linux.
 
-Hi,
+[0] https://github.com/grate-driver/libvdpau-tegra
 
-On Thu, Oct 26, 2017 at 10:53:37AM +0300, Sakari Ailus wrote:
-> Document optional lens-focus and flash-leds properties for the smiapp
-> driver.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
+Change log:
+v3:
+	- Suppressed compilation warnings reported by 'kbuild test robot'
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+v2:
+	- Addressed v1 review comments from Stephen Warren and Dan Carpenter
+	- Implemented runtime PM
+	- Miscellaneous code cleanups
+	- Changed 'TODO'
+	- CC'd media maintainers for the review as per Greg K-H request,
+	  v1 can be viewed at https://lkml.org/lkml/2017/9/25/606
 
--- Sebastian
+Dmitry Osipenko (2):
+  staging: Introduce NVIDIA Tegra20 video decoder driver
+  ARM: dts: tegra20: Add video decoder node
 
-> ---
->  Documentation/devicetree/bindings/media/i2c/nokia,smia.txt | 2 ++
->  1 file changed, 2 insertions(+)
->=20
-> diff --git a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt b=
-/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-> index 855e1faf73e2..33f10a94c381 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/nokia,smia.txt
-> @@ -27,6 +27,8 @@ Optional properties
->  - nokia,nvm-size: The size of the NVM, in bytes. If the size is not give=
-n,
->    the NVM contents will not be read.
->  - reset-gpios: XSHUTDOWN GPIO
-> +- flash-leds: See ../video-interfaces.txt
-> +- lens-focus: See ../video-interfaces.txt
-> =20
-> =20
->  Endpoint node mandatory properties
-> --=20
-> 2.11.0
->=20
+ .../bindings/arm/tegra/nvidia,tegra20-vde.txt      |   44 +
+ arch/arm/boot/dts/tegra20.dtsi                     |   17 +
+ drivers/staging/Kconfig                            |    2 +
+ drivers/staging/Makefile                           |    1 +
+ drivers/staging/tegra-vde/Kconfig                  |    6 +
+ drivers/staging/tegra-vde/Makefile                 |    1 +
+ drivers/staging/tegra-vde/TODO                     |    5 +
+ drivers/staging/tegra-vde/uapi.h                   |  101 ++
+ drivers/staging/tegra-vde/vde.c                    | 1109 ++++++++++++++++++++
+ 9 files changed, 1286 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20-vde.txt
+ create mode 100644 drivers/staging/tegra-vde/Kconfig
+ create mode 100644 drivers/staging/tegra-vde/Makefile
+ create mode 100644 drivers/staging/tegra-vde/TODO
+ create mode 100644 drivers/staging/tegra-vde/uapi.h
+ create mode 100644 drivers/staging/tegra-vde/vde.c
 
---sdqeuk7kqid37qbs
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAln2XjYACgkQ2O7X88g7
-+pr7FA/+LHZ2mwOtND9sJRCoyjQDggsOr1TzkHSmwbNNLngaeh8YCGehmfDvKWr5
-R4v6GGVwXkc/39HPB42BpXjGDC2tBpXAA74vk91AR7DOQe8eJRwXMWSmlulomU3J
-u1/NQaSFO2/2qZJIOxLziS0D7jgagZ0n+YcjSk+QpQbivBKBmXXzmkn/uzoezJiw
-QBTWc3TY8ZxdvG9WTz42Skt5/3BnLni2NtuPflmXgn/9kO1M8wSCmVuRuUGKX86l
-t1nxRPvIaJtdT2vbCQ7wcV1W1sh+CCEpMcv4KwV4S47ODDA51Ks0rAaytKkLmvrF
-M7R2UHauG0tpTJRFQhgJ+ySL/MRBu2+8e3W0RN97NzyfvjlW32fh/XqjELywN/oq
-iNvobmTK5z+AkUXtDzIp1+Ez5bv3jqPfnYFxxbrS8J0czL69HW07vo6FWKmKzuMD
-VtmtUjg/8F0vbbSy6Kupe4dciAumIFOc9BBBV2M0cznsYlHhc99xTmFnHId5pevi
-8IwG0u4OXrliVC9Bjm7SqpqhUPat2VtzHKp46FZhRz/BVkh848tSlVATDAWS836n
-6EJF1rjgbwIe7sGtIQFbpE8KxNIICKF54tE8KW7eOCwO8siwvVEY9Jker6NV4yKt
-nGGwa8ROyz0CgWKe/TxJjyBDRheE424pDwdwB5aoHn9/N5PQ64Q=
-=goB8
------END PGP SIGNATURE-----
-
---sdqeuk7kqid37qbs--
+-- 
+2.14.2
