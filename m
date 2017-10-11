@@ -1,54 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:52753 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751676AbdJIJxG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 05:53:06 -0400
-Subject: Re: [PATCH v2 18/25] media: lirc: implement reading scancode
-To: Sean Young <sean@mess.org>, linux-media@vger.kernel.org
-References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
- <8370817465c40a4abe080d5c4865e08305a1a2c7.1507192752.git.sean@mess.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <fbca4af3-7b0b-6e32-09ad-1db10aa7ba7c@xs4all.nl>
-Date: Mon, 9 Oct 2017 11:53:04 +0200
-MIME-Version: 1.0
-In-Reply-To: <8370817465c40a4abe080d5c4865e08305a1a2c7.1507192752.git.sean@mess.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mga04.intel.com ([192.55.52.120]:54499 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757478AbdJKOBK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Oct 2017 10:01:10 -0400
+Message-ID: <1507730484.18241.17.camel@intel.com>
+Subject: Re: [PATCH v2 08/12] intel-ipu3: params: compute and program ccs
+From: Tuukka Toivonen <tuukka.toivonen@intel.com>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
+Cc: "Zhi, Yong" <yong.zhi@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Date: Wed, 11 Oct 2017 17:01:24 +0300
+In-Reply-To: <CAHp75VfTZ5GhNCgSbD2_d99Yq-32hDy06ZyRpNJTwo3PFKG=Uw@mail.gmail.com>
+References: <1497478767-10270-1-git-send-email-yong.zhi@intel.com>
+         <1497478767-10270-9-git-send-email-yong.zhi@intel.com>
+         <CAHp75Vff3tQE4NdsLJDO=7b7_5O3XW360qxOw4nbeE3i+usvhQ@mail.gmail.com>
+         <C193D76D23A22742993887E6D207B54D1AE287D3@ORSMSX106.amr.corp.intel.com>
+         <20171011072925.twuc22cqnv5pymed@paasikivi.fi.intel.com>
+         <CAHp75VfTZ5GhNCgSbD2_d99Yq-32hDy06ZyRpNJTwo3PFKG=Uw@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/10/17 10:45, Sean Young wrote:
-> This implements LIRC_MODE_SCANCODE reading from the lirc device. The
-> scancode can be read from the input device too, but with this interface
-> you get the rc protocol, toggle and repeat status in addition too just
-
-too -> to
-
-Regards,
-
-	Hans
-
-> the scancode.
+On Wed, 2017-10-11 at 16:31 +0300, Andy Shevchenko wrote:
+> On Wed, Oct 11, 2017 at 10:29 AM, sakari.ailus@linux.intel.com
+> <sakari.ailus@linux.intel.com> wrote:
+> > On Wed, Oct 11, 2017 at 04:14:37AM +0000, Zhi, Yong wrote:
+> > > > > +static unsigned int ipu3_css_scaler_get_exp(unsigned int
+> > > > > counter,
+> > > > > +                                           unsigned int
+> > > > > divider) {
+> > > > > +       unsigned int i = 0;
+> > > > > +
+> > > > > +       while (counter <= divider / 2) {
+> > > > > +               divider /= 2;
+> > > > > +               i++;
+> > > > > +       }
+> > > > > +
+> > > > > +       return i;
+> >         return (!counter || divider < counter) ?
+> >                0 : fls(divider / counter) - 1;
 > 
-> int main()
-> {
-> 	int fd, mode, rc;
-> 	fd = open("/dev/lirc0", O_RDWR);
+> Extra division is here (I dunno if counter is always power of 2 but
+> it
+> doesn't matter for compiler).
 > 
-> 	mode = LIRC_MODE_SCANCODE;
-> 	if (ioctl(fd, LIRC_SET_REC_MODE, &mode)) {
-> 		// kernel too old or lirc does not support transmit
-> 	}
-> 	struct lirc_scancode scancode;
-> 	while (read(fd, &scancode, sizeof(scancode)) == sizeof(scancode)) {
-> 		printf("protocol:%d scancode:0x%x toggle:%d repeat:%d\n",
-> 			scancode.rc_proto, scancode.scancode,
-> 			!!(scancode.flags & LIRC_SCANCODE_FLAG_TOGGLE),
-> 			!!(scancode.flags & LIRC_SCANCODE_FLAG_REPEAT));
-> 	}
-> 	close(fd);
-> }
+> Basically above calculates how much bits we need to shift divider to
+> get it less than counter.
 > 
-> Note that the translated KEY_* is not included, that information is
-> published to the input device.
+> I would consider to use something from log2.h.
+> 
+> Roughly like
+> 
+> if (!counter || divider < counter)
+>  return 0;
+> return order_base_2(divider) - order_base_2(counter);
+
+The original loop is typical ran just couple of times, so I think
+that fls or division are probably slower than the original loop.
+Furthermore, these "optimizations" are also harder to read, so in
+my opinion there's no advantage in using them.
+
+- Tuukka
