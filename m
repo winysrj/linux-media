@@ -1,80 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:57145 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758621AbdJQUYM (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:42354 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750831AbdJKXGs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 16:24:12 -0400
-Date: Tue, 17 Oct 2017 22:24:07 +0200
-From: Thierry Reding <thierry.reding@gmail.com>
-To: Rob Herring <robh@kernel.org>
-Cc: Dmitry Osipenko <digetx@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Wed, 11 Oct 2017 19:06:48 -0400
+Date: Thu, 12 Oct 2017 00:06:33 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Warren <swarren@wwwdotorg.org>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 1/2] staging: Introduce NVIDIA Tegra20 video decoder
- driver
-Message-ID: <20171017202407.GA10482@ulmo>
-References: <cover.1507752381.git.digetx@gmail.com>
- <3d432aa2617977a2b0a8621a1fc2f36f751133e1.1507752381.git.digetx@gmail.com>
- <20171017201354.efgjrwvakkseyvr7@rob-hp-laptop>
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH] media: staging/imx: do not return error in link_notify
+ for unknown sources
+Message-ID: <20171011230633.GZ20805@n2100.armlinux.org.uk>
+References: <1507057753-31808-1-git-send-email-steve_longerbeam@mentor.com>
+ <20171011214906.GX20805@n2100.armlinux.org.uk>
+ <87b48a34-4beb-eb21-3361-28f6edb6d73c@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="y0ulUmNC+osPPQO6"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20171017201354.efgjrwvakkseyvr7@rob-hp-laptop>
+In-Reply-To: <87b48a34-4beb-eb21-3361-28f6edb6d73c@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, Oct 11, 2017 at 03:14:26PM -0700, Steve Longerbeam wrote:
+> 
+> 
+> On 10/11/2017 02:49 PM, Russell King - ARM Linux wrote:
+> >On Tue, Oct 03, 2017 at 12:09:13PM -0700, Steve Longerbeam wrote:
+> >>imx_media_link_notify() should not return error if the source subdevice
+> >>is not recognized by imx-media, that isn't an error. If the subdev has
+> >>controls they will be inherited starting from a known subdev.
+> >What does "a known subdev" mean?
+> 
+> It refers to the previous sentence, "not recognized by imx-media". A
+> subdev that was not registered via async registration and so not in
+> imx-media's async subdev list. I could elaborate in the commit message
+> but it seems fairly obvious to me.
 
---y0ulUmNC+osPPQO6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I don't think it's obvious, and I suspect you won't think it's obvious
+in years to come (I talk from experience of some commentry I've added
+in the past.)
 
-On Tue, Oct 17, 2017 at 03:13:54PM -0500, Rob Herring wrote:
-[...]
-> > diff --git a/Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20=
--vde.txt b/Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20-vde.t=
-xt
-[...]
-> > +- resets : Must contain an entry for each entry in reset-names.
-> > +  See ../reset/reset.txt for details.
-> > +- reset-names : Must include the following entries:
-> > +  - vde
->=20
-> -names is pointless when there is only one.
+Now, isn't it true that for a subdev to be part of a media device, it
+has to be registered, and if it's part of a media device that is made
+up of lots of different drivers, it has to use the async registration
+code?  So, is it not also true that any subdev that is part of a
+media device, it will be "known"?
 
-I'd prefer to keep it. In the past we occasionally had to add clocks or
-resets to a device tree node where only one had been present (and hence
-no -names property) and that caused some awkwardness because verbiage
-had to be added to the bindings that clarified that one particular entry
-(the original one) always had to come first.
+Under what circumstances could a subdev be part of a media device but
+not be "known" ?
 
-Thierry
+Now, if you mean "known" to be equivalent with "recognised by
+imx-media" then, as I've pointed out several times already, that
+statement is FALSE.  I'm not sure how many times I'm going to have to
+state this fact.  Let me re-iterate again.  On my imx219 driver, I
+have two subdevs.  Both subdevs have controls attached.  The pixel
+subdev is not "recognised" by imx-media, and without a modification
+like my or your patch, it fails.  However, with the modification,
+this "unrecognised" subdev _STILL_ has it's controls visible through
+imx-media.
 
---y0ulUmNC+osPPQO6
-Content-Type: application/pgp-signature; name="signature.asc"
+Hence, I believe your comment in the code and your commit message
+are misleading and wrong.
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlnmZt8ACgkQ3SOs138+
-s6F7GBAAlryGt57YMC3zYutGNkc9sIbScZ8BauDqsd4DDTt4QGBz0o3IdUY4bvGH
-kMlnaiTUIVkFKrxUJxQiH7dqoLytmvhsgvTjB/u0FHIVbpa93CaAIqgbrtC/blw9
-mVM1t7FJAGoGENq67Z4t8AU6MEu62lVxhHkCcBkyO8JtPk46gvvOwGVPvSlqAqfy
-vsnV3uwkZ12UguHgI+2ruJ58Z1smDdChEjqJjPHZzm3huFiAZARBeIprECA7vUFO
-p8rv3MODxWyz9JZDdlvOnYk+PIgtUjbz5Spymx7mYei8xbHongynEIui5mBC/VOi
-nWeYpNPT2//zU2RC4HOP0X5Dw4LLC9IjSK1JpnLjJ9fAnIF0df1OleuYK7JM3bxd
-/MSElRVCg6aGDc9821bwyNbgoMrOownOROnkPBqyInlO0tAFDaeIrjBuEFHG4WaI
-VNnQZFnWO8YN1+PHGTeYpE6AlpcgxcVhVs0QxnaKVx4oEpK8R4LqHooWQEiqmZ5z
-6FF0/NzrLCDMh+vqmAkzoc/2Zl/+i3qokIEbw+e4EasHrRIzPZQoWhf+GdpmSwCS
-goEBbbr1kw1eeGup8/qoTTjLWlTLTBM7b4V/uvaj/JFv+veP6wbGA6O2sxt7RxPX
-K/NajIAHT7NWAVNw/6HBT/2KRVoyQBCTLXIcL2wQxxCjBLDYTME=
-=a8IM
------END PGP SIGNATURE-----
-
---y0ulUmNC+osPPQO6--
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
