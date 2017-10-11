@@ -1,48 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:42024 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751615AbdJaLbt (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:41376 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750959AbdJKVt2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Oct 2017 07:31:49 -0400
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        mjpeg-users@lists.sourceforge.net, linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] drivers/media/pci/zoran: remove redundant assignment to pointer h
-Date: Tue, 31 Oct 2017 11:31:42 +0000
-Message-Id: <20171031113142.21794-1-colin.king@canonical.com>
+        Wed, 11 Oct 2017 17:49:28 -0400
+Date: Wed, 11 Oct 2017 22:49:06 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH] media: staging/imx: do not return error in link_notify
+ for unknown sources
+Message-ID: <20171011214906.GX20805@n2100.armlinux.org.uk>
+References: <1507057753-31808-1-git-send-email-steve_longerbeam@mentor.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1507057753-31808-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+On Tue, Oct 03, 2017 at 12:09:13PM -0700, Steve Longerbeam wrote:
+> imx_media_link_notify() should not return error if the source subdevice
+> is not recognized by imx-media, that isn't an error. If the subdev has
+> controls they will be inherited starting from a known subdev.
 
-The pointer h is already initialized to codeclist_top so the second
-identical assignment is redundant and can be removed. Cleans up clang
-warning:
+What does "a known subdev" mean?
 
-drivers/media/pci/zoran/videocodec.c:322:21: warning: Value stored to 'h'
-during its initialization is never read
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/media/pci/zoran/videocodec.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/media/pci/zoran/videocodec.c b/drivers/media/pci/zoran/videocodec.c
-index 303289a7fd3f..5ff23ef89215 100644
---- a/drivers/media/pci/zoran/videocodec.c
-+++ b/drivers/media/pci/zoran/videocodec.c
-@@ -325,7 +325,6 @@ static int proc_videocodecs_show(struct seq_file *m, void *v)
- 	seq_printf(m, "<S>lave or attached <M>aster name  type flags    magic    ");
- 	seq_printf(m, "(connected as)\n");
- 
--	h = codeclist_top;
- 	while (h) {
- 		seq_printf(m, "S %32s %04x %08lx %08lx (TEMPLATE)\n",
- 			      h->codec->name, h->codec->type,
 -- 
-2.14.1
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
