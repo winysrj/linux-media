@@ -1,150 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:48070 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753431AbdJTVvL (ORCPT
+Received: from fllnx209.ext.ti.com ([198.47.19.16]:28053 "EHLO
+        fllnx209.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752114AbdJKNYs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 17:51:11 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC v4 15/17] [media] vb2: add infrastructure to support out-fences
-Date: Fri, 20 Oct 2017 19:50:10 -0200
-Message-Id: <20171020215012.20646-16-gustavo@padovan.org>
-In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
-References: <20171020215012.20646-1-gustavo@padovan.org>
+        Wed, 11 Oct 2017 09:24:48 -0400
+Date: Wed, 11 Oct 2017 08:22:59 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        Cyprian Wronka <cwronka@cadence.com>,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>, <nm@ti.com>
+Subject: Re: [PATCH v4 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
+Message-ID: <20171011132258.GB25400@ti.com>
+References: <20170922100823.18184-1-maxime.ripard@free-electrons.com>
+ <20170922100823.18184-3-maxime.ripard@free-electrons.com>
+ <20170929172709.GA3163@ti.com>
+ <20171011092409.ndtr3fdo2oj3zueb@flea.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20171011092409.ndtr3fdo2oj3zueb@flea.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Hi Maxime,
 
-Add vb2_setup_out_fence() and the needed members to struct vb2_buffer.
+Maxime Ripard <maxime.ripard@free-electrons.com> wrote on Wed [2017-Oct-11 11:24:09 +0200]:
+> Hi Benoit,
+> 
+> On Fri, Sep 29, 2017 at 05:27:09PM +0000, Benoit Parrot wrote:
+> > > +static int csi2rx_get_resources(struct csi2rx_priv *csi2rx,
+> > > +				struct platform_device *pdev)
+> > > +{
+> > > +	struct resource *res;
+> > > +	unsigned char i;
+> > > +	u32 reg;
+> > > +
+> > > +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> > > +	csi2rx->base = devm_ioremap_resource(&pdev->dev, res);
+> > > +	if (IS_ERR(csi2rx->base))
+> > > +		return PTR_ERR(csi2rx->base);
+> > > +
+> > > +	csi2rx->sys_clk = devm_clk_get(&pdev->dev, "sys_clk");
+> > > +	if (IS_ERR(csi2rx->sys_clk)) {
+> > > +		dev_err(&pdev->dev, "Couldn't get sys clock\n");
+> > > +		return PTR_ERR(csi2rx->sys_clk);
+> > > +	}
+> > > +
+> > > +	csi2rx->p_clk = devm_clk_get(&pdev->dev, "p_clk");
+> > > +	if (IS_ERR(csi2rx->p_clk)) {
+> > > +		dev_err(&pdev->dev, "Couldn't get P clock\n");
+> > > +		return PTR_ERR(csi2rx->p_clk);
+> > > +	}
+> > > +
+> > > +	csi2rx->dphy = devm_phy_optional_get(&pdev->dev, "dphy");
+> > > +	if (IS_ERR(csi2rx->dphy)) {
+> > > +		dev_err(&pdev->dev, "Couldn't get external D-PHY\n");
+> > > +		return PTR_ERR(csi2rx->dphy);
+> > > +	}
+> > > +
+> > > +	/*
+> > > +	 * FIXME: Once we'll have external D-PHY support, the check
+> > > +	 * will need to be removed.
+> > > +	 */
+> > > +	if (csi2rx->dphy) {
+> > > +		dev_err(&pdev->dev, "External D-PHY not supported yet\n");
+> > > +		return -EINVAL;
+> > > +	}
+> > 
+> > I understand that in your current environment you do not have a
+> > DPHY. But I am wondering in a real setup where you will have either
+> > an internal or an external DPHY, how are they going to interact with
+> > this driver or vice-versa?
+> 
+> It's difficult to give an answer with so little details. How would you
+> choose between those two PHYs? Is there a mux, or should we just power
+> one of the two? If that's the case, is there any use case were we
+> might want to power both? If not, which one should we favor, in which
+> situations?
 
-v2:	- change it to reflect fd_install at DQEVENT
-	- add fence context for out-fences
+Oops, I guess I should clarify, in this case I did not mean we would
+have both an internal and an external DPHY. I just meant one or the other.
+Basically just want to see how you would actually handle a DPHY here whether
+it's internal or external?
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 31 +++++++++++++++++++++++++++++++
- include/media/videobuf2-core.h           | 20 ++++++++++++++++++++
- 2 files changed, 51 insertions(+)
+For instance, using direct register access from within this driver or make
+use of an separate phy driver...
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 78f369dba3e3..c7ba67bda5ac 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -23,8 +23,11 @@
- #include <linux/sched.h>
- #include <linux/freezer.h>
- #include <linux/kthread.h>
-+#include <linux/sync_file.h>
-+#include <linux/dma-fence.h>
- 
- #include <media/videobuf2-core.h>
-+#include <media/videobuf2-fence.h>
- #include <media/v4l2-mc.h>
- 
- #include <trace/events/vb2.h>
-@@ -1316,6 +1319,34 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
- }
- EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
- 
-+int vb2_setup_out_fence(struct vb2_queue *q, unsigned int index)
-+{
-+	struct vb2_buffer *vb;
-+	struct dma_fence *fence;
-+
-+	vb = q->bufs[index];
-+
-+	vb->out_fence_fd = get_unused_fd_flags(O_CLOEXEC);
-+
-+	fence = vb2_fence_alloc(q->out_fence_context);
-+	if (!fence) {
-+		put_unused_fd(vb->out_fence_fd);
-+		return -ENOMEM;
-+	}
-+
-+	vb->sync_file = sync_file_create(fence);
-+	if (!vb->sync_file) {
-+		dma_fence_put(fence);
-+		put_unused_fd(vb->out_fence_fd);
-+		return -ENOMEM;
-+	}
-+
-+	vb->out_fence = dma_fence_get(fence);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(vb2_setup_out_fence);
-+
- /**
-  * vb2_start_streaming() - Attempt to start streaming.
-  * @q:		videobuf2 queue
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 624ca2dce9ea..1925ede73804 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -259,6 +259,10 @@ struct vb2_buffer {
- 	 *			using the buffer (queueing to the driver)
- 	 * fence_cb:		fence callback information
- 	 * fence_cb_lock:	protect callback signal/remove
-+	 * out_fence_fd:	the out_fence_fd to be shared with userspace.
-+	 * out_fence:		the out-fence associated with the buffer once
-+	 *			it is queued to the driver.
-+	 * sync_file:		the sync file to wrap the out fence
- 	 */
- 	enum vb2_buffer_state	state;
- 
-@@ -269,6 +273,10 @@ struct vb2_buffer {
- 	struct dma_fence_cb	fence_cb;
- 	spinlock_t              fence_cb_lock;
- 
-+	int			out_fence_fd;
-+	struct dma_fence	*out_fence;
-+	struct sync_file	*sync_file;
-+
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	/*
- 	 * Counters for how often these buffer-related ops are
-@@ -518,6 +526,7 @@ struct vb2_buf_ops {
-  * @ordered_in_vb2: set by the driver to tell vb2 te guarantee the order
-  *		of buffer queue from userspace with QBUF() until they are
-  *		queued to the driver.
-+ * @out_fence_context: the fence context for the out fences
-  * @last_fence:	last in-fence received. Used to keep ordering.
-  * @fileio:	file io emulator internal data, used only if emulator is active
-  * @threadio:	thread io internal data, used only if thread is active
-@@ -574,6 +583,7 @@ struct vb2_queue {
- 	unsigned int			ordered_in_driver:1;
- 	unsigned int			ordered_in_vb2:1;
- 
-+	u64				out_fence_context;
- 	struct dma_fence		*last_fence;
- 
- 	struct vb2_fileio_data		*fileio;
-@@ -745,6 +755,16 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
- int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
- 
- /**
-+ * vb2_setup_out_fence() - setup new out-fence
-+ * @q:		The vb2_queue where to setup it
-+ * @index:	index of the buffer
-+ *
-+ * Setup the file descriptor, the fence and the sync_file for the next
-+ * buffer to be queued and add everything to the tail of the q->out_fence_list.
-+ */
-+int vb2_setup_out_fence(struct vb2_queue *q, unsigned int index);
-+
-+/**
-  * vb2_core_qbuf() - Queue a buffer from userspace
-  *
-  * @q:		videobuf2 queue
--- 
-2.13.6
+> 
+> I guess all those questions actually depend on the way the integration
+> has been done, and we're not quite there yet. I guess we could do
+> either a platform specific structure or a glue, depending on the
+> complexity. The platform specific compatible will allow us to do that
+> as we see fit anyway.
+> 
+
+Regards,
+Benoit
