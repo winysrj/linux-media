@@ -1,77 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:52288 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752313AbdJSJiP (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:35168 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757193AbdJKNZQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Oct 2017 05:38:15 -0400
-Date: Thu, 19 Oct 2017 11:38:11 +0200
-From: Thierry Reding <thierry.reding@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv4 4/4] drm/tegra: add cec-notifier support
-Message-ID: <20171019093811.GG9005@ulmo>
-References: <20170911122952.33980-1-hverkuil@xs4all.nl>
- <20170911122952.33980-5-hverkuil@xs4all.nl>
+        Wed, 11 Oct 2017 09:25:16 -0400
+Subject: Re: [PATCH] [media] vimc: Fix return value check in
+ vimc_add_subdevs()
+To: Wei Yongjun <weiyongjun1@huawei.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org
+References: <1507720603-128932-1-git-send-email-weiyongjun1@huawei.com>
+From: Helen Koike <helen.koike@collabora.com>
+Message-ID: <8a810b75-c0d3-5bb9-9712-bf72f5daa200@collabora.com>
+Date: Wed, 11 Oct 2017 10:25:09 -0300
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="7lMq7vMTJT4tNk0a"
-Content-Disposition: inline
-In-Reply-To: <20170911122952.33980-5-hverkuil@xs4all.nl>
+In-Reply-To: <1507720603-128932-1-git-send-email-weiyongjun1@huawei.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
 
---7lMq7vMTJT4tNk0a
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 11, 2017 at 02:29:52PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->=20
-> In order to support CEC the HDMI driver has to inform the CEC driver
-> whenever the physical address changes. So when the EDID is read the
-> CEC driver has to be informed and whenever the hotplug detect goes
-> away.
->=20
-> This is done through the cec-notifier framework.
->=20
-> The link between the HDMI driver and the CEC driver is done through
-> the hdmi_phandle in the tegra-cec node in the device tree.
->=20
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+On 2017-10-11 08:16 AM, Wei Yongjun wrote:
+> In case of error, the function platform_device_register_data() returns
+> ERR_PTR() and never returns NULL. The NULL test in the return value check
+> should be replaced with IS_ERR().
+> 
+> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
 > ---
->  drivers/gpu/drm/tegra/Kconfig  | 1 +
->  drivers/gpu/drm/tegra/drm.h    | 3 +++
->  drivers/gpu/drm/tegra/hdmi.c   | 9 +++++++++
->  drivers/gpu/drm/tegra/output.c | 6 ++++++
->  4 files changed, 19 insertions(+)
+>  drivers/media/platform/vimc/vimc-core.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
+> index 51c0eee..fe088a9 100644
+> --- a/drivers/media/platform/vimc/vimc-core.c
+> +++ b/drivers/media/platform/vimc/vimc-core.c
+> @@ -267,11 +267,12 @@ static struct component_match *vimc_add_subdevs(struct vimc_device *vimc)
+>  						PLATFORM_DEVID_AUTO,
+>  						&pdata,
+>  						sizeof(pdata));
+> -		if (!vimc->subdevs[i]) {
+> +		if (IS_ERR(vimc->subdevs[i])) {
+> +			match = ERR_CAST(vimc->subdevs[i]);
+>  			while (--i >= 0)
+>  				platform_device_unregister(vimc->subdevs[i]);
+>  
+> -			return ERR_PTR(-ENOMEM);
+> +			return match;
+>  		}
+>  
+>  		component_match_add(&vimc->pdev.dev, &match, vimc_comp_compare,
+> 
+> 
+> 
 
-I've applied this to drm/tegra/for-next.
+Nice catch, thanks, looks good to me
 
-Thanks,
-Thierry
-
---7lMq7vMTJT4tNk0a
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlnocoMACgkQ3SOs138+
-s6GqExAAiTqswpXhw3CJpQRU1QAFmyNrdIV6rQjVoSVbu9mWqg4LkUJrKsDq3wux
-Y9ZQs6mvsIixjO2WeiLzq7zObYTo88dmMwqEi1+LYWYIAoG/SRZnXM1qb7fIIaQO
-JS5w22yz9qe0WOQZvj7W8PEtC+R9hGtaCEOTX80UId9VMHNuu08RKfc9wUf1zT7z
-BKz60Pvg+L/VftC9JxFszxtRku3ntnHlrs1rVCgOaAnIkLDrwS/a4aXwK0lClT0D
-SuGustGTzgngRZOGJa7XW6XORjfOtgdgJrfg+X5oz3DF51O+hrhIWyQYHhQ9bMAs
-YCKgoLu02E+m8ODWKo2SFBWN/OPSM5nA2wxLuJJB/QRjQ2ZDhTB3vCVLrQb2zm30
-eqXiDEs8Fo+mmilNyiWLdWh3m2+7y3/TIX70yQWL4cmyFxNkP+LCXkH3YwiLZBGu
-s7QmvI0FhxGZUD8fGhtg7PkFj8lO1evV2sLqLI0UAcDFnuHUjOIOquOHCptJh8w3
-ZchzkDbJBAVx3ii8Dsk/Ny9sR2bkin9NyhTDdfUwouibQSoZkAoqdcCBzlgsTQou
-Cx1Y3zNhGnFUEUxO0lr5kg/n8T80WxERx9Jd3H9p1TCJn0wyWhCtU4/qArmqrsk7
-dqFFsaloBHXTgMeAjwSBUAYRTSWNVIXtKXykUpgQctM+ybq4UvY=
-=lD6w
------END PGP SIGNATURE-----
-
---7lMq7vMTJT4tNk0a--
+Acked-by: Helen Koike <helen.koike@collabora.com>
