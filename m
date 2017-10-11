@@ -1,120 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f172.google.com ([209.85.216.172]:44851 "EHLO
-        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932287AbdJJPkO (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:52369 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752949AbdJKJYX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 11:40:14 -0400
-Received: by mail-qt0-f172.google.com with SMTP id 8so6764419qtv.1
-        for <linux-media@vger.kernel.org>; Tue, 10 Oct 2017 08:40:14 -0700 (PDT)
-Message-ID: <1507650010.2784.11.camel@ndufresne.ca>
-Subject: Re: [PATCH] media: vb2: unify calling of set_page_dirty_lock
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Tue, 10 Oct 2017 11:40:10 -0400
-In-Reply-To: <20170829112603.32732-1-stanimir.varbanov@linaro.org>
-References: <20170829112603.32732-1-stanimir.varbanov@linaro.org>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-kaSLAR9OMwDtkRdrLSMx"
-Mime-Version: 1.0
+        Wed, 11 Oct 2017 05:24:23 -0400
+Date: Wed, 11 Oct 2017 11:24:09 +0200
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Benoit Parrot <bparrot@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Cyprian Wronka <cwronka@cadence.com>,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>, nm@ti.com
+Subject: Re: [PATCH v4 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
+Message-ID: <20171011092409.ndtr3fdo2oj3zueb@flea.lan>
+References: <20170922100823.18184-1-maxime.ripard@free-electrons.com>
+ <20170922100823.18184-3-maxime.ripard@free-electrons.com>
+ <20170929172709.GA3163@ti.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="5zjpskp5xiga25tl"
+Content-Disposition: inline
+In-Reply-To: <20170929172709.GA3163@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---=-kaSLAR9OMwDtkRdrLSMx
-Content-Type: text/plain; charset="UTF-8"
+--5zjpskp5xiga25tl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Le mardi 29 ao=C3=BBt 2017 =C3=A0 14:26 +0300, Stanimir Varbanov a =C3=A9cr=
-it :
-> Currently videobuf2-dma-sg checks for dma direction for
-> every single page and videobuf2-dc lacks any dma direction
-> checks and calls set_page_dirty_lock unconditionally.
+Hi Benoit,
+
+On Fri, Sep 29, 2017 at 05:27:09PM +0000, Benoit Parrot wrote:
+> > +static int csi2rx_get_resources(struct csi2rx_priv *csi2rx,
+> > +				struct platform_device *pdev)
+> > +{
+> > +	struct resource *res;
+> > +	unsigned char i;
+> > +	u32 reg;
+> > +
+> > +	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> > +	csi2rx->base =3D devm_ioremap_resource(&pdev->dev, res);
+> > +	if (IS_ERR(csi2rx->base))
+> > +		return PTR_ERR(csi2rx->base);
+> > +
+> > +	csi2rx->sys_clk =3D devm_clk_get(&pdev->dev, "sys_clk");
+> > +	if (IS_ERR(csi2rx->sys_clk)) {
+> > +		dev_err(&pdev->dev, "Couldn't get sys clock\n");
+> > +		return PTR_ERR(csi2rx->sys_clk);
+> > +	}
+> > +
+> > +	csi2rx->p_clk =3D devm_clk_get(&pdev->dev, "p_clk");
+> > +	if (IS_ERR(csi2rx->p_clk)) {
+> > +		dev_err(&pdev->dev, "Couldn't get P clock\n");
+> > +		return PTR_ERR(csi2rx->p_clk);
+> > +	}
+> > +
+> > +	csi2rx->dphy =3D devm_phy_optional_get(&pdev->dev, "dphy");
+> > +	if (IS_ERR(csi2rx->dphy)) {
+> > +		dev_err(&pdev->dev, "Couldn't get external D-PHY\n");
+> > +		return PTR_ERR(csi2rx->dphy);
+> > +	}
+> > +
+> > +	/*
+> > +	 * FIXME: Once we'll have external D-PHY support, the check
+> > +	 * will need to be removed.
+> > +	 */
+> > +	if (csi2rx->dphy) {
+> > +		dev_err(&pdev->dev, "External D-PHY not supported yet\n");
+> > +		return -EINVAL;
+> > +	}
 >=20
-> Thus unify and align the invocations of set_page_dirty_lock
-> for videobuf2-dc, videobuf2-sg  memory allocators with
-> videobuf2-vmalloc, i.e. the pattern used in vmalloc has been
-> copied to dc and dma-sg.
+> I understand that in your current environment you do not have a
+> DPHY. But I am wondering in a real setup where you will have either
+> an internal or an external DPHY, how are they going to interact with
+> this driver or vice-versa?
 
-Just before we go too far in "doing like vmalloc", I would like to
-share this small video that display coherency issues when rendering
-vmalloc backed DMABuf over various KMS/DRM driver. I can reproduce this
-easily with Intel and MSM display drivers using UVC or Vivid as source.
+It's difficult to give an answer with so little details. How would you
+choose between those two PHYs? Is there a mux, or should we just power
+one of the two? If that's the case, is there any use case were we
+might want to power both? If not, which one should we favor, in which
+situations?
 
-The following is an HDMI capture of the following GStreamer pipeline
-running on Dragonboard 410c.
+I guess all those questions actually depend on the way the integration
+has been done, and we're not quite there yet. I guess we could do
+either a platform specific structure or a glue, depending on the
+complexity. The platform specific compatible will allow us to do that
+as we see fit anyway.
 
-    gst-launch-1.0 -v v4l2src device=3D/dev/video2 ! video/x-raw,format=3DN=
-V16,width=3D1280,height=3D720 ! kmssink
-    https://people.collabora.com/~nicolas/vmalloc-issue.mov
-
-Feedback on this issue would be more then welcome. It's not clear to me
-who's bug is this (v4l2, drm or iommu). The software is unlikely to be
-blamed as this same pipeline works fine with non-vmalloc based sources.
-
-regards,
-Nicolas
-
+> > +
+> > +	clk_prepare_enable(csi2rx->p_clk);
+> > +	reg =3D readl(csi2rx->base + CSI2RX_DEVICE_CFG_REG);
+> > +	clk_disable_unprepare(csi2rx->p_clk);
+> > +
+> > +	csi2rx->max_lanes =3D (reg & 7);
+> > +	if (csi2rx->max_lanes > CSI2RX_LANES_MAX) {
+> > +		dev_err(&pdev->dev, "Invalid number of lanes: %u\n",
+> > +			csi2rx->max_lanes);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	csi2rx->max_streams =3D ((reg >> 4) & 7);
+> > +	if (csi2rx->max_streams > CSI2RX_STREAMS_MAX) {
+> > +		dev_err(&pdev->dev, "Invalid number of streams: %u\n",
+> > +			csi2rx->max_streams);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	csi2rx->has_internal_dphy =3D (reg & BIT(3)) ? true : false;
+> > +
+> > +	/*
+> > +	 * FIXME: Once we'll have internal D-PHY support, the check
+> > +	 * will need to be removed.
+> > +	 */
+> > +	if (csi2rx->has_internal_dphy) {
+> > +		dev_err(&pdev->dev, "Internal D-PHY not supported yet\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	for (i =3D 0; i < csi2rx->max_streams; i++) {
+> > +		char clk_name[16];
+> > +
+> > +		snprintf(clk_name, sizeof(clk_name), "pixel_if%u_clk", i);
+> > +		csi2rx->pixel_clk[i] =3D devm_clk_get(&pdev->dev, clk_name);
+> > +		if (IS_ERR(csi2rx->pixel_clk[i])) {
+> > +			dev_err(&pdev->dev, "Couldn't get clock %s\n", clk_name);
+> > +			return PTR_ERR(csi2rx->pixel_clk[i]);
+> > +		}
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int csi2rx_parse_dt(struct csi2rx_priv *csi2rx)
+> > +{
+> > +	struct v4l2_fwnode_endpoint v4l2_ep;
+> > +	struct device_node *ep, *remote;
 >=20
-> Suggested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> ---
->  drivers/media/v4l2-core/videobuf2-dma-contig.c | 6 ++++--
->  drivers/media/v4l2-core/videobuf2-dma-sg.c     | 7 +++----
->  2 files changed, 7 insertions(+), 6 deletions(-)
->=20
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/med=
-ia/v4l2-core/videobuf2-dma-contig.c
-> index 9f389f36566d..696e24f9128d 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -434,8 +434,10 @@ static void vb2_dc_put_userptr(void *buf_priv)
->  		pages =3D frame_vector_pages(buf->vec);
->  		/* sgt should exist only if vector contains pages... */
->  		BUG_ON(IS_ERR(pages));
-> -		for (i =3D 0; i < frame_vector_count(buf->vec); i++)
-> -			set_page_dirty_lock(pages[i]);
-> +		if (buf->dma_dir =3D=3D DMA_FROM_DEVICE ||
-> +		    buf->dma_dir =3D=3D DMA_BIDIRECTIONAL)
-> +			for (i =3D 0; i < frame_vector_count(buf->vec); i++)
-> +				set_page_dirty_lock(pages[i]);
->  		sg_free_table(sgt);
->  		kfree(sgt);
->  	}
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v=
-4l2-core/videobuf2-dma-sg.c
-> index 6808231a6bdc..753ed3138dcc 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> @@ -292,11 +292,10 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
->  	if (buf->vaddr)
->  		vm_unmap_ram(buf->vaddr, buf->num_pages);
->  	sg_free_table(buf->dma_sgt);
-> -	while (--i >=3D 0) {
-> -		if (buf->dma_dir =3D=3D DMA_FROM_DEVICE ||
-> -		    buf->dma_dir =3D=3D DMA_BIDIRECTIONAL)
-> +	if (buf->dma_dir =3D=3D DMA_FROM_DEVICE ||
-> +	    buf->dma_dir =3D=3D DMA_BIDIRECTIONAL)
-> +		while (--i >=3D 0)
->  			set_page_dirty_lock(buf->pages[i]);
-> -	}
->  	vb2_destroy_framevec(buf->vec);
->  	kfree(buf);
->  }
---=-kaSLAR9OMwDtkRdrLSMx
+> *remote is now unused.
+
+It's fixed, thanks!
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--5zjpskp5xiga25tl
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCWdzp2gAKCRBxUwItrAao
-HI35AJ9ZYTNNK9iks0sExSZZ8uETQRIOiwCg0mwVO7kS6meYDNV4lbBh7v4kKvc=
-=6Vpt
+iQIcBAEBAgAGBQJZ3eM5AAoJEBx+YmzsjxAgJBEP/1WJ0AAKkqCJq0a/65xYxkYT
+XktsmatVxFHU4Zt2nlPPY/7elB73mFb5ge+WjNh+jf5nStBRsAonIFpFdSN0NcX8
+VTIF2NGEDjdqxQDCTbqZMKfImjbL6NIsnoEtjtnQrecSqPRdEnuq/vB1ZTWgzJmw
+50VsKDWFiGr5kQN5k5Th8QMFSn9LRBdziq4vlTtJdxO0VGm2vJZ2rQQxgj1RDVrT
+sJC16mZgg5U1IM6gkFSxox0sApzghM0vxAVeYrrfIY3OgSjobExLvkCEzIJ+A9kY
+1pRsXkcFi1rAf1nA0SlfekU4mb9FfAgr7U5saOUjI7vgxaEOYMoSPbJFwBpBOVzS
+BjTRS5mvI2gohsIn9WL8UIEtft4reqicrWXfMkDOLTvnD0LAIlyGdtBwrbRC7if6
+ZS4d37Q6Z/MhHLwStFDs9TSeF7+EuD4Z2y1MoXb00JRqYhTtlUrulPahNfEY5SqV
+cVe6TAKEeytj1Lux40zwXq2oKTuJP3NHq5gvT4tMd7tGrH62RjS1KJP0S/Ue4Nws
+op97deXffRTGasRgk11lOHV6SYr4zwPwy16HmsuTmvR6qFMB5iWfu934IBjzP2wL
+lAMBn5riGvpvruFi39Y181arYX9t6Qza3RFX/MvMTWzMcODwxvfdtegwD7jIJz45
+EI1jukDCzplr/8XXFAo5
+=dazb
 -----END PGP SIGNATURE-----
 
---=-kaSLAR9OMwDtkRdrLSMx--
+--5zjpskp5xiga25tl--
