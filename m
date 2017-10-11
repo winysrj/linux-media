@@ -1,131 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:44321 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750915AbdJ1D4q (ORCPT
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:47605 "EHLO
+        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752350AbdJKNqF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Oct 2017 23:56:46 -0400
-Message-ID: <3163599476d0ce561e3e141a93868063@smtp-cloud8.xs4all.net>
-Date: Sat, 28 Oct 2017 05:56:43 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Wed, 11 Oct 2017 09:46:05 -0400
+Received: by mail-oi0-f42.google.com with SMTP id h200so3132713oib.4
+        for <linux-media@vger.kernel.org>; Wed, 11 Oct 2017 06:46:05 -0700 (PDT)
+MIME-Version: 1.0
+From: Alexandre Da Costa <alexandre.dacosta1@gmail.com>
+Date: Wed, 11 Oct 2017 15:46:04 +0200
+Message-ID: <CAFN7RgCdDoURyS-3NFd_FiZ1gWizD=_eJcG=syWT8_PHg837yA@mail.gmail.com>
+Subject: add support of Geniatech X9320 DVB-S2 quad tuner
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Dear all,
 
-Results of the daily build of media_tree:
+I recently got a Geniatech X9320 DVB-S2 PCIe card :
+https://www.geniatech.com/product/x9320-quad-dvb-s2s-tv-tuner/
 
-date:			Sat Oct 28 05:00:17 CEST 2017
-media-tree git hash:	bbae615636155fa43a9b0fe0ea31c678984be864
-media_build git hash:	c93534951f5d66bef7f17f16293acf2be346b726
-v4l-utils git hash:	482c52f946af4c6b16efa63a35790d92fb65326c
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+The card is not listed in the LinuxTV so it's most probably not
+supported as of now. I quickly tried it on a 4.9 kernel and it seems
+that no driver was loaded.
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: OK
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: OK
-spec-git: OK
+On the hardware side, the board is based on the following ICs :
+- Renesas =C2=B5PD720201 USB 3.0 controller (4 ports)
+- Cypress CY68013 USB bridge
+- Montage M88DS3103as demodulator
+- Unknown RF Tuner but most probably Montage M88TS2022. If required, I
+can remove the RF shield and have a look at the chip.
 
-Detailed results are available here:
+The board is very similar to the Geniatech HD Star (hardware V3.0) :
+https://www.linuxtv.org/wiki/index.php/Geniatech_HD_Star_DVB-S2_USB2.0
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+However, it reports a different idProduct. Instead of 0x3000
+(idProduct of Geniatech HD Star), it returns the following list
+(different idProduct for each DVB-S2 tuner) :
+Bus 001 Device 005: ID 1f4d:3300 G-Tek Electronics Group
+Bus 001 Device 004: ID 1f4d:3301 G-Tek Electronics Group
+Bus 001 Device 003: ID 1f4d:3302 G-Tek Electronics Group
+Bus 001 Device 002: ID 1f4d:3303 G-Tek Electronics Group
 
-Full logs are available here:
+I assume that since the hardware is almost the same, the drivers used
+for the HD Star should work with the X9320 card by adding the new
+idProduct.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+I've no experience in Linux driver development but I would give it a
+try if someone can show me where to look at.
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Regards,
+Alex
