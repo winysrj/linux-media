@@ -1,69 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:43319 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932291AbdJ3Qsz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Oct 2017 12:48:55 -0400
-Subject: Re: [patch] libv4l2: SDL test application
-To: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>, sre@kernel.org,
-        ivo.g.dimitrov.75@gmail.com, linux-media@vger.kernel.org
-References: <20171028195742.GB20127@amd>
- <478fd1ae-6f25-5cda-3035-1d5894c8caab@xs4all.nl>
- <20171030164136.jkn2qlzu27krqvdz@pali>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <40975cb7-4622-9072-d756-5b8173d37f93@xs4all.nl>
-Date: Mon, 30 Oct 2017 17:48:50 +0100
+Received: from osg.samsung.com ([64.30.133.232]:36368 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752449AbdJKTSB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Oct 2017 15:18:01 -0400
+Date: Wed, 11 Oct 2017 16:17:53 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 00/17] kernel-doc: add supported to document nested
+ structs/
+Message-ID: <20171011161753.400cc1d6@vento.lan>
+In-Reply-To: <20171009101955.4a860821@vento.lan>
+References: <cover.1507116877.git.mchehab@s-opensource.com>
+        <20171007103440.35393957@lwn.net>
+        <46422126-F8AB-41A0-8962-99D024EE17D3@darmarit.de>
+        <20171009101955.4a860821@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <20171030164136.jkn2qlzu27krqvdz@pali>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/30/2017 05:41 PM, Pali Rohár wrote:
-> On Monday 30 October 2017 17:30:53 Hans Verkuil wrote:
->> Hi Pavel,
->>
->> On 10/28/2017 09:57 PM, Pavel Machek wrote:
->>> Add support for simple SDL test application. Allows taking jpeg
->>> snapshots, and is meant to run on phone with touchscreen. Not
->>> particulary useful on PC with webcam, but should work.
->>
->> When I try to build this I get:
->>
->> make[3]: Entering directory '/home/hans/work/src/v4l/v4l-utils/contrib/test'
->>   CCLD     sdlcam
->> /usr/bin/ld: sdlcam-sdlcam.o: undefined reference to symbol 'log2@@GLIBC_2.2.5'
->> //lib/x86_64-linux-gnu/libm.so.6: error adding symbols: DSO missing from command line
->> collect2: error: ld returned 1 exit status
->> Makefile:561: recipe for target 'sdlcam' failed
->> make[3]: *** [sdlcam] Error 1
->> make[3]: Leaving directory '/home/hans/work/src/v4l/v4l-utils/contrib/test'
->> Makefile:475: recipe for target 'all-recursive' failed
->> make[2]: *** [all-recursive] Error 1
->> make[2]: Leaving directory '/home/hans/work/src/v4l/v4l-utils/contrib'
->> Makefile:589: recipe for target 'all-recursive' failed
->> make[1]: *** [all-recursive] Error 1
->> make[1]: Leaving directory '/home/hans/work/src/v4l/v4l-utils'
->> Makefile:516: recipe for target 'all' failed
->> make: *** [all] Error 2
->>
->> I had to add -lm -ldl -lrt to sdlcam_LDFLAGS. Is that correct?
-> 
-> Is not for <<undefined reference to symbol 'log2@@GLIBC_2.2.5'>> needed
-> just -lm? log2 should be in mathematical library.
-> 
+Em Mon, 9 Oct 2017 10:19:55 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-Sorry, I was unclear: after adding -lm I got an unresolved for dl_open, after
-adding -ldl I got an unresolved on shm_open.
+> > > I really don't want to add that much noise to the docs build; I think it
+> > > will defeat any hope of cleaning up the warnings we already have.  I
+> > > wonder if we could suppress warnings about nested structs by default, and
+> > > add a flag or envar to turn them back on for those who want them?    
+> > 
+> > This is what I vote for: +1
+> >   
+> > > In truth, now that I look, the real problem is that the warnings are
+> > > repeated many times - as in, like 100 times:
+> > >     
+> > >> ./include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'
+> > >> ./include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'    
+> > > <107 instances deleted...>    
+> > >> ./include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'    
+> > > 
+> > > That's not something that used to happen, and is certainly not helpful.
+> > > Figuring that out would help a lot.  Can I get you to take a look at
+> > > what's going on here?    
+> > 
+> > Hi Jon, if you grep for 
+> > 
+> >  .. kernel-doc:: include/net/cfg80211.h
+> > 
+> > e.g. by:  grep cfg80211.h Documentation/driver-api/80211/cfg80211.rst | wc -l
+> > you will see, that this directive is used 110 times in one reST file. If you
+> > have 5 warnings about the kernel-doc markup in include/net/cfg80211.h you will
+> > get 550 warnings about kernel-doc markup just for just one source code file.
+> > 
+> > This is because the kernel-doc parser is an external process which is called
+> > (in this example) 110 times for one reST file and one source code file. If 
+> > include/net/cfg80211.h is referred in other reST files, we got accordingly
+> > more and more warnings .. thats really noise.   
+> 
+> I guess the solution here is simple: if any output selection argument
+> is passed (-export, -internal, -function, -nofunction), only report
+> warnings for things that match the output criteria. 
+> 
+> Not sure how easy is to implement that. I'll take a look.
 
-Only after using all three did it compile.
+It is actually very easy to suppress those warnings. See the enclosed
+proof of concept patch.
+
+Please notice that this patch is likely incomplete: all it does is that,
+if --function or --nofunction is used, it won't print any warnings
+for structs or enums.
+
+I didn't check yet if this is not making it too silent.
+
+If we're going to follow this way, IMHO, the best would be to define
+a warning function and move the needed checks for $output_selection
+and for $function for it to do the right thing, printing warnings only
+for the stuff that will be output.
+
+Jon,
+
+Please let me know if you prefer go though this way or if, instead, you
+opt to replace the kernel-doc perl script by a Sphinx module.
+
+If you decide to keep with the perl script for now, I can work on an
+improved version of this PoC.
+
 
 Regards,
+Mauro
 
-	Hans
+scripts: kernel-doc: shut up enum/struct warnings if parsing only functions
+
+There are two command line parameters that restrict the kernel-doc output
+to output only functions. If this is used, it doesn't make any sense to
+produce warnings about enums and structs. So, shut up such warnings.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index 049044d95c0e..b4eebea6a8d6 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -1138,16 +1138,20 @@ sub dump_enum($$) {
+ 	    push @parameterlist, $arg;
+ 	    if (!$parameterdescs{$arg}) {
+ 		$parameterdescs{$arg} = $undescribed;
+-		print STDERR "${file}:$.: warning: Enum value '$arg' ".
+-		    "not described in enum '$declaration_name'\n";
++		if ($output_selection != OUTPUT_INCLUDE &&
++		    $output_selection != OUTPUT_EXCLUDE) {
++			print STDERR "${file}:$.: warning: Enum value '$arg' not described in enum '$declaration_name'\n";
++		}
+ 	    }
+ 	    $_members{$arg} = 1;
+ 	}
+ 
+ 	while (my ($k, $v) = each %parameterdescs) {
+ 	    if (!exists($_members{$k})) {
+-	     print STDERR "${file}:$.: warning: Excess enum value " .
+-	                  "'$k' description in '$declaration_name'\n";
++		if ($output_selection != OUTPUT_INCLUDE &&
++		    $output_selection != OUTPUT_EXCLUDE) {
++		     print STDERR "${file}:$.: warning: Excess enum value '$k' description in '$declaration_name'\n";
++		}
+ 	    }
+         }
+ 
+@@ -1353,9 +1357,12 @@ sub push_parameter($$$$) {
+ 	if (!defined $parameterdescs{$param} && $param !~ /^#/) {
+ 		$parameterdescs{$param} = $undescribed;
+ 
+-		print STDERR
+-		      "${file}:$.: warning: Function parameter or member '$param' not described in '$declaration_name'\n";
+-		++$warnings;
++		if ($output_selection != OUTPUT_INCLUDE &&
++		    $output_selection != OUTPUT_EXCLUDE) {
++			print STDERR
++			      "${file}:$.: warning: Function parameter or member '$param' not described in '$declaration_name'\n";
++			++$warnings;
++		}
+ 	}
+ 
+ 	$param = xml_escape($param);
