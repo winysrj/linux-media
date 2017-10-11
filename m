@@ -1,195 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:53809 "EHLO gofer.mess.org"
+Received: from osg.samsung.com ([64.30.133.232]:37560 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755354AbdJJHSP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 03:18:15 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v3 14/26] media: lirc: move lirc_dev->attached to rc_dev->registered
-Date: Tue, 10 Oct 2017 08:18:13 +0100
-Message-Id: <6e62f79bcf50f8b9bb2839a6b3068a501c5c6bf1.1507618841.git.sean@mess.org>
-In-Reply-To: <cover.1507618840.git.sean@mess.org>
-References: <cover.1507618840.git.sean@mess.org>
+        id S1757449AbdJKRwV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Oct 2017 13:52:21 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Shuah Khan <shuah@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>
+Subject: [PATCH] media: dvb: do some coding style cleanup
+Date: Wed, 11 Oct 2017 13:52:16 -0400
+Message-Id: <01153bf04db18d5fcd30df64ffe428db7ff7bada.1507744325.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is done to further remove the lirc kernel api. Ensure that every
-fops checks for this.
+Fix a bunch of coding style issues found by checkpatch on the
+part of the code that the previous patches touched.
 
-Signed-off-by: Sean Young <sean@mess.org>
+WARNING: please, no space before tabs
++ * ^I^Icallback.$
+
+ERROR: space required before the open parenthesis '('
++	switch(cmd) {
+
+WARNING: line over 80 characters
++			err = dtv_property_process_get(fe, &getp, tvp + i, file);
+
+WARNING: line over 80 characters
++			err = fe->ops.diseqc_recv_slave_reply(fe, (struct dvb_diseqc_slave_reply*) parg);
+
+ERROR: "(foo*)" should be "(foo *)"
++			err = fe->ops.diseqc_recv_slave_reply(fe, (struct dvb_diseqc_slave_reply*) parg);
+
+WARNING: line over 80 characters
++				err = fe->ops.read_signal_strength(fe, (__u16 *) parg);
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/rc/ir-lirc-codec.c | 16 ++++++++++------
- drivers/media/rc/lirc_dev.c      |  4 +---
- drivers/media/rc/rc-main.c       |  8 ++++++++
- include/media/lirc_dev.h         |  2 --
- include/media/rc-core.h          |  3 +++
- 5 files changed, 22 insertions(+), 11 deletions(-)
+ drivers/media/dvb-core/dvb_demux.h    |  2 +-
+ drivers/media/dvb-core/dvb_frontend.c | 15 ++++++++-------
+ 2 files changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 7dc3fe8a5a96..60ff8f188e6f 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -101,6 +101,9 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 	unsigned int duration = 0; /* signal duration in us */
- 	int i;
+diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
+index 9a77be02cbb1..cc048f09aa85 100644
+--- a/drivers/media/dvb-core/dvb_demux.h
++++ b/drivers/media/dvb-core/dvb_demux.h
+@@ -101,7 +101,7 @@ struct dvb_demux_filter {
+  * @cb:		digital TV callbacks. depending on the feed type, it can be:
+  *		if the feed is TS, it contains a dmx_ts_cb() @ts callback;
+  *		if the feed is section, it contains a dmx_section_cb() @sec
+- * 		callback.
++ *		callback.
+  *
+  * @demux:	pointer to &struct dvb_demux.
+  * @priv:	private data that can optionally be used by a DVB driver.
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 30c7357e980b..0c7897379535 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -2096,7 +2096,7 @@ static int dvb_frontend_handle_ioctl(struct file *file,
  
-+	if (!dev->registered)
-+		return -ENODEV;
-+
- 	start = ktime_get();
+ 	dev_dbg(fe->dvb->device, "%s:\n", __func__);
  
- 	if (dev->send_mode == LIRC_MODE_SCANCODE) {
-@@ -229,6 +232,9 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 			return ret;
- 	}
- 
-+	if (!dev->registered)
-+		return -ENODEV;
-+
- 	switch (cmd) {
- 	case LIRC_GET_FEATURES:
- 		if (dev->driver_type == RC_DRIVER_IR_RAW) {
-@@ -417,12 +423,11 @@ static unsigned int ir_lirc_poll(struct file *file,
- 				 struct poll_table_struct *wait)
- {
- 	struct rc_dev *rcdev = file->private_data;
--	struct lirc_dev *d = rcdev->lirc_dev;
- 	unsigned int events = 0;
- 
- 	poll_wait(file, &rcdev->wait_poll, wait);
- 
--	if (!d->attached)
-+	if (!rcdev->registered)
- 		events = POLLHUP | POLLERR;
- 	else if (rcdev->driver_type == RC_DRIVER_IR_RAW &&
- 		 !kfifo_is_empty(&rcdev->rawir))
-@@ -435,7 +440,6 @@ static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
- 			    size_t length, loff_t *ppos)
- {
- 	struct rc_dev *rcdev = file->private_data;
--	struct lirc_dev *d = rcdev->lirc_dev;
- 	unsigned int copied;
- 	int ret;
- 
-@@ -445,7 +449,7 @@ static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
- 	if (length < sizeof(unsigned int) || length % sizeof(unsigned int))
- 		return -EINVAL;
- 
--	if (!d->attached)
-+	if (!rcdev->registered)
- 		return -ENODEV;
- 
- 	do {
-@@ -455,12 +459,12 @@ static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
- 
- 			ret = wait_event_interruptible(rcdev->wait_poll,
- 					!kfifo_is_empty(&rcdev->rawir) ||
--					!d->attached);
-+					!rcdev->registered);
- 			if (ret)
- 				return ret;
+-	switch(cmd) {
++	switch (cmd) {
+ 	case FE_SET_PROPERTY: {
+ 		struct dtv_properties *tvps = parg;
+ 		struct dtv_property *tvp = NULL;
+@@ -2164,7 +2164,8 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+ 			}
  		}
+ 		for (i = 0; i < tvps->num; i++) {
+-			err = dtv_property_process_get(fe, &getp, tvp + i, file);
++			err = dtv_property_process_get(fe, &getp,
++						       tvp + i, file);
+ 			if (err < 0) {
+ 				kfree(tvp);
+ 				return err;
+@@ -2296,7 +2297,7 @@ static int dvb_frontend_handle_ioctl(struct file *file,
  
--		if (!d->attached)
-+		if (!rcdev->registered)
- 			return -ENODEV;
+ 	case FE_DISEQC_RECV_SLAVE_REPLY:
+ 		if (fe->ops.diseqc_recv_slave_reply)
+-			err = fe->ops.diseqc_recv_slave_reply(fe, (struct dvb_diseqc_slave_reply*) parg);
++			err = fe->ops.diseqc_recv_slave_reply(fe, parg);
+ 		break;
  
- 		mutex_lock(&rcdev->lock);
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 9a0ad8d9a0cb..22171267aa90 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -122,7 +122,6 @@ int lirc_register_device(struct lirc_dev *d)
- 
- 	cdev_init(&d->cdev, d->fops);
- 	d->cdev.owner = d->owner;
--	d->attached = true;
- 
- 	err = cdev_device_add(&d->cdev, &d->dev);
- 	if (err) {
-@@ -153,7 +152,6 @@ void lirc_unregister_device(struct lirc_dev *d)
- 
- 	mutex_lock(&d->mutex);
- 
--	d->attached = false;
- 	if (d->open) {
- 		dev_dbg(&d->dev, LOGHEAD "releasing opened driver\n",
- 			d->name, d->minor);
-@@ -180,7 +178,7 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
- 	if (retval)
- 		return retval;
- 
--	if (!d->attached) {
-+	if (!rcdev->registered) {
- 		retval = -ENODEV;
- 		goto out;
- 	}
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index ae1df089c96f..9e73899b5994 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1809,6 +1809,8 @@ int rc_register_device(struct rc_dev *dev)
- 			goto out_lirc;
- 	}
- 
-+	dev->registered = true;
-+
- 	IR_dprintk(1, "Registered rc%u (driver: %s)\n",
- 		   dev->minor,
- 		   dev->driver_name ? dev->driver_name : "unknown");
-@@ -1871,6 +1873,12 @@ void rc_unregister_device(struct rc_dev *dev)
- 
- 	rc_free_rx_device(dev);
- 
-+	dev->registered = false;
-+
-+	/*
-+	 * lirc device should be freed with dev->registered = false, so
-+	 * that userspace polling will get notified.
-+	 */
- 	if (dev->driver_type != RC_DRIVER_SCANCODE)
- 		ir_lirc_unregister(dev);
- 
-diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
-index 14d3eb36672e..5782add67edd 100644
---- a/include/media/lirc_dev.h
-+++ b/include/media/lirc_dev.h
-@@ -26,7 +26,6 @@
-  * @rdev:		&struct rc_dev associated with the device
-  * @fops:		&struct file_operations for the device
-  * @owner:		the module owning this struct
-- * @attached:		if the device is still live
-  * @open:		open count for the device's chardev
-  * @mutex:		serialises file_operations calls
-  * @dev:		&struct device assigned to the device
-@@ -40,7 +39,6 @@ struct lirc_dev {
- 	const struct file_operations *fops;
- 	struct module *owner;
- 
--	bool attached;
- 	int open;
- 
- 	struct mutex mutex; /* protect from simultaneous accesses */
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index d886ac56015b..17131762fb75 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -127,6 +127,8 @@ enum rc_filter_type {
-  * @wait_poll: poll struct for lirc device
-  * @send_mode: lirc mode for sending, either LIRC_MODE_SCANCODE or
-  *	LIRC_MODE_PULSE
-+ * @registered: set to true by rc_register_device(), false by
-+ *	rc_unregister_device
-  * @change_protocol: allow changing the protocol used on hardware decoders
-  * @open: callback to allow drivers to enable polling/irq when IR input device
-  *	is opened.
-@@ -198,6 +200,7 @@ struct rc_dev {
- 	wait_queue_head_t		wait_poll;
- 	u8				send_mode;
- #endif
-+	bool				registered;
- 	int				(*change_protocol)(struct rc_dev *dev, u64 *rc_proto);
- 	int				(*open)(struct rc_dev *dev);
- 	void				(*close)(struct rc_dev *dev);
+ 	case FE_ENABLE_HIGH_LNB_VOLTAGE:
+@@ -2381,7 +2382,7 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+ 	case FE_READ_BER:
+ 		if (fe->ops.read_ber) {
+ 			if (fepriv->thread)
+-				err = fe->ops.read_ber(fe, (__u32 *) parg);
++				err = fe->ops.read_ber(fe, parg);
+ 			else
+ 				err = -EAGAIN;
+ 		}
+@@ -2390,7 +2391,7 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+ 	case FE_READ_SIGNAL_STRENGTH:
+ 		if (fe->ops.read_signal_strength) {
+ 			if (fepriv->thread)
+-				err = fe->ops.read_signal_strength(fe, (__u16 *) parg);
++				err = fe->ops.read_signal_strength(fe, parg);
+ 			else
+ 				err = -EAGAIN;
+ 		}
+@@ -2399,7 +2400,7 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+ 	case FE_READ_SNR:
+ 		if (fe->ops.read_snr) {
+ 			if (fepriv->thread)
+-				err = fe->ops.read_snr(fe, (__u16 *) parg);
++				err = fe->ops.read_snr(fe, parg);
+ 			else
+ 				err = -EAGAIN;
+ 		}
+@@ -2408,7 +2409,7 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+ 	case FE_READ_UNCORRECTED_BLOCKS:
+ 		if (fe->ops.read_ucblocks) {
+ 			if (fepriv->thread)
+-				err = fe->ops.read_ucblocks(fe, (__u32 *) parg);
++				err = fe->ops.read_ucblocks(fe, parg);
+ 			else
+ 				err = -EAGAIN;
+ 		}
 -- 
 2.13.6
