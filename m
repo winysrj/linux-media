@@ -1,217 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:45127 "EHLO gofer.mess.org"
+Received: from osg.samsung.com ([64.30.133.232]:56988 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752023AbdJaUIB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Oct 2017 16:08:01 -0400
-Date: Tue, 31 Oct 2017 20:07:58 +0000
-From: Sean Young <sean@mess.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        id S1752781AbdJKJFe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Oct 2017 05:05:34 -0400
+Date: Wed, 11 Oct 2017 06:05:23 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: ttpci: remove autorepeat handling and use
- timer_setup
-Message-ID: <20171031200758.avdowtmcem5fnlb5@gofer.mess.org>
-References: <20171025004005.hyb43h3yvovp4is2@dtor-ws>
- <20171031172758.ugfo6br344iso4ni@gofer.mess.org>
- <20171031174558.vsdpdudcwjneq2nu@gofer.mess.org>
- <20171031182236.cxrasbayon7h52mm@dtor-ws>
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v7 5/7] media: open.rst: Adjust some terms to match the
+ glossary
+Message-ID: <20171011060523.62daca97@vento.lan>
+In-Reply-To: <20171010224100.lfdnvzkxw457setj@valkosipuli.retiisi.org.uk>
+References: <cover.1506550930.git.mchehab@s-opensource.com>
+        <9a2db3c52a3d894728d6ed29681f49e8745f98a9.1506550930.git.mchehab@s-opensource.com>
+        <20171006124822.xjppck3ks4as3zqf@valkosipuli.retiisi.org.uk>
+        <20171010083743.03e8f1b9@vento.lan>
+        <20171010224100.lfdnvzkxw457setj@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171031182236.cxrasbayon7h52mm@dtor-ws>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dmitry,
+Em Wed, 11 Oct 2017 01:41:00 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-On Tue, Oct 31, 2017 at 11:22:36AM -0700, Dmitry Torokhov wrote:
-> Hi Sean,
+> Hi Mauro,
 > 
-> On Tue, Oct 31, 2017 at 05:45:58PM +0000, Sean Young wrote:
-> > Leave the autorepeat handling up to the input layer, and move
-> > to the new timer API.
+> On Tue, Oct 10, 2017 at 08:37:43AM -0300, Mauro Carvalho Chehab wrote:
+> > Em Fri, 6 Oct 2017 15:48:22 +0300
+> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> >   
+> > > Hi Mauro,
+> > > 
+> > > On Wed, Sep 27, 2017 at 07:23:47PM -0300, Mauro Carvalho Chehab wrote:  
+> > > > As we now have a glossary, some terms used on open.rst
+> > > > require adjustments.
+> > > > 
+> > > > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > > > ---
+> > > >  Documentation/media/uapi/v4l/open.rst | 12 ++++++------
+> > > >  1 file changed, 6 insertions(+), 6 deletions(-)
+> > > > 
+> > > > diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+> > > > index f603bc9b49a0..0daf0c122c19 100644
+> > > > --- a/Documentation/media/uapi/v4l/open.rst
+> > > > +++ b/Documentation/media/uapi/v4l/open.rst
+> > > > @@ -143,7 +143,7 @@ Related Devices
+> > > >  Devices can support several functions. For example video capturing, VBI
+> > > >  capturing and radio support.
+> > > >  
+> > > > -The V4L2 API creates different nodes for each of these functions.
+> > > > +The V4L2 API creates different V4L2 device nodes for each of these functions.    
+> > > 
+> > > A V4L2 device node is an instance of the V4L2 API. At the very least we
+> > > should call them "V4L2 device node types", not device nodes only. This
+> > > simply would suggests they're separate.  
 > > 
-> > Compile tested only.
+> > OK, I added "types" there.
+> >   
+> > > 
+> > > s/creates/defines/ ?  
 > > 
-> > Signed-off-by: Sean Young <sean@mess.org>
-> > ---
-> >  drivers/media/pci/ttpci/av7110.h    |  2 +-
-> >  drivers/media/pci/ttpci/av7110_ir.c | 54 ++++++++++++++-----------------------
-> >  2 files changed, 21 insertions(+), 35 deletions(-)
+> > It is meant to say create.
 > > 
-> > diff --git a/drivers/media/pci/ttpci/av7110.h b/drivers/media/pci/ttpci/av7110.h
-> > index 347827925c14..bcb72ecbedc0 100644
-> > --- a/drivers/media/pci/ttpci/av7110.h
-> > +++ b/drivers/media/pci/ttpci/av7110.h
-> > @@ -93,7 +93,7 @@ struct infrared {
-> >  	u8			inversion;
-> >  	u16			last_key;
-> >  	u16			last_toggle;
-> > -	u8			delay_timer_finished;
-> > +	bool			keypressed;
-> >  };
-> >  
-> >  
-> > diff --git a/drivers/media/pci/ttpci/av7110_ir.c b/drivers/media/pci/ttpci/av7110_ir.c
-> > index ca05198de2c2..8207bead2224 100644
-> > --- a/drivers/media/pci/ttpci/av7110_ir.c
-> > +++ b/drivers/media/pci/ttpci/av7110_ir.c
-> > @@ -84,15 +84,16 @@ static u16 default_key_map [256] = {
-> >  
-> >  
-> >  /* key-up timer */
-> > -static void av7110_emit_keyup(unsigned long parm)
-> > +static void av7110_emit_keyup(struct timer_list *t)
-> >  {
-> > -	struct infrared *ir = (struct infrared *) parm;
-> > +	struct infrared *ir = from_timer(ir, t, keyup_timer);
-> >  
-> > -	if (!ir || !test_bit(ir->last_key, ir->input_dev->key))
-> > +	if (!ir || !ir->keypressed)
-> >  		return;
-> >  
-> >  	input_report_key(ir->input_dev, ir->last_key, 0);
-> >  	input_sync(ir->input_dev);
-> > +	ir->keypressed = false;
-> >  }
-> >  
-> >  
-> > @@ -105,6 +106,7 @@ static void av7110_emit_key(unsigned long parm)
-> >  	u8 addr;
-> >  	u16 toggle;
-> >  	u16 keycode;
-> > +	bool new_event;
-> >  
-> >  	/* extract device address and data */
-> >  	switch (ir->protocol) {
-> > @@ -152,29 +154,22 @@ static void av7110_emit_key(unsigned long parm)
-> >  		return;
-> >  	}
-> >  
-> > -	if (timer_pending(&ir->keyup_timer)) {
-> > -		del_timer(&ir->keyup_timer);
-> > -		if (ir->last_key != keycode || toggle != ir->last_toggle) {
-> > -			ir->delay_timer_finished = 0;
-> > -			input_event(ir->input_dev, EV_KEY, ir->last_key, 0);
-> > -			input_event(ir->input_dev, EV_KEY, keycode, 1);
-> > -			input_sync(ir->input_dev);
-> > -		} else if (ir->delay_timer_finished) {
-> > -			input_event(ir->input_dev, EV_KEY, keycode, 2);
-> > -			input_sync(ir->input_dev);
-> > -		}
-> > -	} else {
-> > -		ir->delay_timer_finished = 0;
-> > -		input_event(ir->input_dev, EV_KEY, keycode, 1);
-> > +	new_event = !ir->keypressed || ir->last_key != keycode ||
-> > +		   toggle != ir->last_toggle;
-> > +
-> > +	if (new_event && ir->keypressed)
-> > +		input_event(ir->input_dev, EV_KEY, ir->last_key, 1);
-> > +
-> > +	if (new_event) {
-> > +		input_event(ir->input_dev, EV_KEY, keycode, 0);
+> > A device that supports both radio, video and VBI for the same V4L2
+> > input will create three device nodes:
+> > 	/dev/video0
+> > 	/dev/radio0
+> > 	/dev/vbi0
+> > 
+> > As all are associated to the same video input, and an ioctl send 
+> > to one device may affect the other devices too, as they all associated
+> > with the same hardware.  
 > 
-> I do not think this is correct. You want to release the old button, and
-> press the new one, not the other way around.
-
-Yes, you are right. 0 is for key up, 1 is for key down.
-
-> Given that we are reworking the code, and input core actually filters
-> out duplicate events for you, you can probably simplify it all further:
-
-Ah, that's useful to know.
-
-> 	/* Release old key/button */
-> 	if (ir->keypressed && ir->last_key != keycode)
-> 		input_event(ir->input_dev, EV_KEY, ir->last_key, 0);
+> Right. In this case I'd change the sentence. What would you think of this?
 > 
-> 	input_event(ir->input_dev, EV_KEY, keycode, 1);
-> 	input_sync(ir->input_dev);
+> "Each of these functions is available via separate V4L2 device node."
 
-That is better.
-
-> and get rid of last_toggle member.
-
-The last_toggle is needed, it's a feature of the RC5 and RC6 IR protocol.
-
-Since there is no key up IR message (just key down which gets repeated if
-the key held down), there is no way to distinguish between key hold
-and press-release-press. The toggle is a bit in the RC5 and RC6 IR protocol,
-which flips if the user pressed, released and then presses a button again.
-
-So if the toggle bit changes, we want to send a keyup/keydown event and
-reset autorepeat.
+Maybe replacing "is" by "should be" (or shall be?) would express the
+requirement.
 
 > 
-> >  		input_sync(ir->input_dev);
-> >  	}
-> >  
-> > +	ir->keypressed = true;
-> >  	ir->last_key = keycode;
-> >  	ir->last_toggle = toggle;
-> >  
-> > -	ir->keyup_timer.expires = jiffies + UP_TIMEOUT;
-> > -	add_timer(&ir->keyup_timer);
-> > -
-> > +	mod_timer(&ir->keyup_timer, jiffies + UP_TIMEOUT);
-> >  }
-> >  
-> >  
-> > @@ -204,16 +199,6 @@ static void input_register_keys(struct infrared *ir)
-> >  	ir->input_dev->keycodemax = ARRAY_SIZE(ir->key_map);
-> >  }
-> >  
-> > -
-> > -/* called by the input driver after rep[REP_DELAY] ms */
-> > -static void input_repeat_key(unsigned long parm)
-> > -{
-> > -	struct infrared *ir = (struct infrared *) parm;
-> > -
-> > -	ir->delay_timer_finished = 1;
-> > -}
-> > -
-> > -
-> >  /* check for configuration changes */
-> >  int av7110_check_ir_config(struct av7110 *av7110, int force)
-> >  {
-> > @@ -333,8 +318,7 @@ int av7110_ir_init(struct av7110 *av7110)
-> >  	av_list[av_cnt++] = av7110;
-> >  	av7110_check_ir_config(av7110, true);
-> >  
-> > -	setup_timer(&av7110->ir.keyup_timer, av7110_emit_keyup,
-> > -		    (unsigned long)&av7110->ir);
-> > +	timer_setup(&av7110->ir.keyup_timer, av7110_emit_keyup, 0);
-> >  
-> >  	input_dev = input_allocate_device();
-> >  	if (!input_dev)
-> > @@ -365,8 +349,10 @@ int av7110_ir_init(struct av7110 *av7110)
-> >  		input_free_device(input_dev);
-> >  		return err;
-> >  	}
-> > -	input_dev->timer.function = input_repeat_key;
-> > -	input_dev->timer.data = (unsigned long) &av7110->ir;
-> > +
-> > +	/* Let the input layer handle autorepeat for us */
-> > +	input_dev->rep[REP_DELAY] = 250;
-> > +	input_dev->rep[REP_PERIOD] = 125;
-> 
-> 
-> I'd change this to:
-> 
-> 	/*
-> 	 * Input core's default autorepeat is 33 cps with 250 msec
-> 	 * delay, let's adjust to numbers more suitable for remote
-> 	 * control.
-> 	 */
-> 	input_enable_softrepeat(input_dev, 250, 125);
-> 
-> Thanks.
+> For it's not the V4L2 API that creates them. I failed to grasp what the
+> original sentence meant. Was it about API, or framework, or were the
+> devices nodes just separate or unlike as well?
 
-Good point, thanks again.
+Short answer:
 
-Thanks for the suggestions, I'll send a v2 shortly.
+>From uAPI PoV, it doesn't matter if it is the driver or the framework
+that creates multiple device nodes.
+
+What matters is that, if multiple types of capture/input are possible, 
+multiple devnodes are created. Also, if one wants to control a radio
+function, it should use /dev/radio, instead of /dev/video.
+
+Long answer:
+
+At kAPI, a typical register code, found on almost all non-webcam drivers is:
+
+	ret = video_register_device(&v4l2->vdev, VFL_TYPE_GRABBER,
+				    video_nr[dev->devno]);
+	if (ret)
+		goto error;
+
+	if (vbi_supported(dev)) {
+		ret = video_register_device(&v4l2->vbi_dev, VFL_TYPE_VBI,
+					    vbi_nr[dev->devno]);
+		if (ret)
+			goto error;
+	}
+
+	if (radio_supported(dev)) {
+		ret = video_register_device(&v4l2->radio_dev, VFL_TYPE_RADIO,
+					    radio_nr[dev->devno]);
+		if (ret)
+			goto error;
+	}
+
+	(note: it doesn't make sense to mention the above kAPI code at
+	 the uAPI documentation)
 
 
-Sean
+All tree devnodes are associated to the same capture or input device.
+
+In the past, it was possible to use a /dev/radio to watch a video,
+or /dev/video to listen radio, as they both corresponds to the same
+V4L2 device, and the ioctl arguments used for radio and VBI are 
+different. In other words, "/dev/radio" and "/dev/vbi" worked like a
+sort of alias to the same device. Such support, however, required the
+V4L2 core to do some tricks to identify the type of usage between
+radio and video modes when handling tuner ioctls, like
+VIDIOC_G_FREQUENCY/VIDIOC_S_FREQUENCY, making harder to prevent the
+simultaneous usage of the device by a radio and a video application,
+and causing some bugs (like returning a FM frequency on TV, or an
+UHF frequency on radio).
+
+So, several years ago, the API spec was modified to forbid such
+usage, and support for switching the mode between radio/video mode
+based on ioctl set usage was removed.
+
+Yet, the v4l2 core use a coarse logic there: it only handles
+differently stuff that are required to be different (like frequencies).
+It won't check if, for example, a CTRL belongs to radio or video.
+So, one can change a control using any device node, no matter if
+the control belongs to video or radio.
+
+So, in summary, the goal of the "Related Devices" at uAPI is to
+mention that, if a V4L2 device supports multiple types, multiple
+device nodes will be created, one for each (V4L2 device, type)
+tuple[1].
+
+[1] So, a driver for a board that supports four V4L2 devices, each
+    with radio, vbi and video will create 12 device nodes.
+
+Thanks,
+Mauro
