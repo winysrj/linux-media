@@ -1,38 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:44108 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750973AbdJMRFR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 13:05:17 -0400
-Date: Fri, 13 Oct 2017 10:05:13 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [Patch 5/6] ARM: DRA7: hwmod: Add VPE nodes
-Message-ID: <20171013170513.GM4394@atomide.com>
-References: <20171012192719.15193-1-bparrot@ti.com>
- <20171012192719.15193-6-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171012192719.15193-6-bparrot@ti.com>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:36721 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754285AbdJKH37 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Oct 2017 03:29:59 -0400
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Yakir Yang <ykk@rock-chips.com>
+Subject: [PATCH v12 1/5] dt-bindings: Document the Rockchip RGA bindings
+Date: Wed, 11 Oct 2017 15:29:34 +0800
+Message-Id: <20171011072938.383-2-jacob-chen@iotwrt.com>
+In-Reply-To: <20171011072938.383-1-jacob-chen@iotwrt.com>
+References: <20171011072938.383-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Benoit Parrot <bparrot@ti.com> [171012 12:28]:
-> +static struct omap_hwmod_class_sysconfig dra7xx_vpe_sysc = {
-> +	.sysc_offs	= 0x0010,
-> +	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> +			   MSTANDBY_FORCE | MSTANDBY_NO |
-> +			   MSTANDBY_SMART),
-> +	.sysc_fields	= &omap_hwmod_sysc_type2,
-> +};
+Add DT bindings documentation for Rockchip RGA
 
-I think checkpatch.pl --strict would complain about unnecessary
-parentheses, might as well check the whole series while at it.
+Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
+Signed-off-by: Yakir Yang <ykk@rock-chips.com>
+Acked-by: Rob Herring <robh@kernel.org>
+---
+ .../devicetree/bindings/media/rockchip-rga.txt     | 33 ++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
 
-Regards,
-
-Tony
+diff --git a/Documentation/devicetree/bindings/media/rockchip-rga.txt b/Documentation/devicetree/bindings/media/rockchip-rga.txt
+new file mode 100644
+index 000000000000..fd5276abfad6
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rockchip-rga.txt
+@@ -0,0 +1,33 @@
++device-tree bindings for rockchip 2D raster graphic acceleration controller (RGA)
++
++RGA is a standalone 2D raster graphic acceleration unit. It accelerates 2D
++graphics operations, such as point/line drawing, image scaling, rotation,
++BitBLT, alpha blending and image blur/sharpness.
++
++Required properties:
++- compatible: value should be one of the following
++		"rockchip,rk3288-rga";
++		"rockchip,rk3399-rga";
++
++- interrupts: RGA interrupt specifier.
++
++- clocks: phandle to RGA sclk/hclk/aclk clocks
++
++- clock-names: should be "aclk", "hclk" and "sclk"
++
++- resets: Must contain an entry for each entry in reset-names.
++  See ../reset/reset.txt for details.
++- reset-names: should be "core", "axi" and "ahb"
++
++Example:
++SoC-specific DT entry:
++	rga: rga@ff680000 {
++		compatible = "rockchip,rk3399-rga";
++		reg = <0xff680000 0x10000>;
++		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA_CORE>;
++		clock-names = "aclk", "hclk", "sclk";
++
++		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru SRST_H_RGA>;
++		reset-names = "core, "axi", "ahb";
++	};
+-- 
+2.14.1
