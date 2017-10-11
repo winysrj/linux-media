@@ -1,63 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f172.google.com ([209.85.216.172]:56107 "EHLO
-        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750852AbdJ3Dbm (ORCPT
+Received: from resqmta-po-10v.sys.comcast.net ([96.114.154.169]:33014 "EHLO
+        resqmta-po-10v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754231AbdJKBNb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Oct 2017 23:31:42 -0400
-Received: by mail-qt0-f172.google.com with SMTP id v41so14723749qtv.12
-        for <linux-media@vger.kernel.org>; Sun, 29 Oct 2017 20:31:41 -0700 (PDT)
-Received: from mail-qt0-f182.google.com (mail-qt0-f182.google.com. [209.85.216.182])
-        by smtp.gmail.com with ESMTPSA id y29sm9360001qtk.64.2017.10.29.20.31.40
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 29 Oct 2017 20:31:41 -0700 (PDT)
-Received: by mail-qt0-f182.google.com with SMTP id h4so14756132qtk.8
-        for <linux-media@vger.kernel.org>; Sun, 29 Oct 2017 20:31:40 -0700 (PDT)
+        Tue, 10 Oct 2017 21:13:31 -0400
+To: linux-media@vger.kernel.org
+From: Ron Economos <w6rz@comcast.net>
+Subject: [PATCH]media: dvb-frontends: Add delay to Si2168 restart
+Message-ID: <7b146d05-ae00-bf35-c780-cd5ed54d1f86@comcast.net>
+Date: Tue, 10 Oct 2017 18:13:30 -0700
 MIME-Version: 1.0
-From: Olli Salonen <olli.salonen@iki.fi>
-Date: Mon, 30 Oct 2017 05:31:40 +0200
-Message-ID: <CAAZRmGwuHRHxzvfQCBc+uTq+FCo6Z_2f_oT=H70TCpwQfouLvA@mail.gmail.com>
-Subject: Re: [PATCHv3 1/2] tda18250: support for new silicon tuner
-To: Michael Ira Krufky <mkrufky@linuxtv.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Michael,
+On faster CPUs a delay is required after the POWER_UP/RESUME command and 
+the DD_RESTART command. Without the delay, the DD_RESTART command often 
+returns -EREMOTEIO and the Si2168 does not restart.
 
-Many thanks for taking the time to review the patches.
+diff --git a/drivers/media/dvb-frontends/si2168.c 
+b/drivers/media/dvb-frontends/si2168.c
+index 172fc36..f2a3c8f 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -15,6 +15,7 @@
+   */
 
-On 27 October 2017 at 13:27, Michael Ira Krufky <mkrufky@linuxtv.org> wrote:
->> +static int tda18250_sleep(struct dvb_frontend *fe)
->> +{
->> +       struct i2c_client *client = fe->tuner_priv;
->> +       struct tda18250_dev *dev = i2c_get_clientdata(client);
->> +       int ret;
->> +
->> +       dev_dbg(&client->dev, "\n");
->> +
->> +       /* power down LNA */
->> +       ret = regmap_write_bits(dev->regmap, R0C_AGC11, 0x80, 0x00);
->> +       if (ret)
->> +               return ret;
->> +
->> +       ret = tda18250_power_control(fe, TDA18250_POWER_STANDBY);
->> +       return ret;
->> +}
->
-> Do we know for sure if the IF_FREQUENCY is preserved after returning
-> from a sleep?   It might be a good idea to set `dev->if_frequency = 0`
-> within `tda18250_sleep` to be sure that it gets set again on the next
-> tune, but you may want to check the specification first, if its
-> available.
->
-> This is not a show-stopper -- We can merge this as-is and this can be
-> handled in a follow-up patch.
+  #include "si2168_priv.h"
++#include <linux/delay.h>
 
-I will look into this and send a patch on top of this one if needed.
+  static const struct dvb_frontend_ops si2168_ops;
 
-Thank you for pointing it out.
+@@ -435,6 +436,7 @@ static int si2168_init(struct dvb_frontend *fe)
+                 if (ret)
+                         goto err;
 
-Cheers,
--olli
++               udelay(100);
+                 memcpy(cmd.args, "\x85", 1);
+                 cmd.wlen = 1;
+                 cmd.rlen = 1;
