@@ -1,89 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55698 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751263AbdJ0Or2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Oct 2017 10:47:28 -0400
-Date: Fri, 27 Oct 2017 16:47:25 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz,
-        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v16 11/32] omap3isp: Fix check for our own sub-devices
-Message-ID: <20171027144725.y7rtlq5kyj4yz37l@earth>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-12-sakari.ailus@linux.intel.com>
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:56893 "EHLO
+        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751410AbdJLHyV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Oct 2017 03:54:21 -0400
+Subject: Re: [PATCH] uvcvideo: Apply flags from device to actual properties
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+References: <ca483e75-4519-2bc3-eb11-db647fc60860@edgarthier.net>
+ <1516233.pKQSzG3xyp@avalon>
+ <e6c92808-82e7-05bc-28b4-370ca51aa2de@edgarthier.net>
+ <bf6ced8e-6fbb-5054-bbf6-1186d52459b9@ideasonboard.com>
+ <443c86f9-0973-cf52-c0c3-be662a8fee74@ideasonboard.com>
+ <ae5ca43a-1ccd-b1fd-c699-f9f1d4f96dc3@edgarthier.net>
+ <8b32b0f3-e442-6761-ef1c-34ac535080d0@ideasonboard.com>
+ <7342af02-0158-a99e-caf1-6c394842296b@edgarthier.net>
+ <430ebf60-395c-08ff-5500-dedcda91e3b1@ideasonboard.com>
+From: Edgar Thier <info@edgarthier.net>
+Message-ID: <7807bf0a-a0a1-65ad-1a10-3a3234e566e9@edgarthier.net>
+Date: Thu, 12 Oct 2017 09:54:17 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="5h5nqqtb2ria5tjw"
-Content-Disposition: inline
-In-Reply-To: <20171026075342.5760-12-sakari.ailus@linux.intel.com>
+In-Reply-To: <430ebf60-395c-08ff-5500-dedcda91e3b1@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---5h5nqqtb2ria5tjw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Use flags the device exposes for UVC controls.
+This allows the device to define which property flags are set.
 
-Hi,
+Since some cameras offer auto-adjustments for properties (e.g. auto-gain),
+the values of other properties (e.g. gain) can change in the camera.
+Examining the flags ensures that the driver is aware of such properties.
 
-On Thu, Oct 26, 2017 at 10:53:21AM +0300, Sakari Ailus wrote:
-> We only want to link sub-devices that were bound to the async notifier the
-> isp driver registered but there may be other sub-devices in the
-> v4l2_device as well. Check for the correct async notifier.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> ---
+Signed-off-by: Edgar Thier <info@edgarthier.net>
+---
+ drivers/media/usb/uvc/uvc_ctrl.c | 64 ++++++++++++++++++++++++++++++----------
+ 1 file changed, 49 insertions(+), 15 deletions(-)
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+index 20397aba..8f902a41 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -1629,6 +1629,40 @@ static void uvc_ctrl_fixup_xu_info(struct uvc_device *dev,
+ 	}
+ }
 
--- Sebastian
++/*
++ * Retrieve flags for a given control
++ */
++static int uvc_ctrl_get_flags(struct uvc_device *dev, const struct uvc_control *ctrl,
++	const struct uvc_control_info *info)
++{
++	u8 *data;
++	int ret = 0;
++	int flags = 0;
++
++	data = kmalloc(2, GFP_KERNEL);
++	if (data == NULL)
++		return -ENOMEM;
++
++	ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id, dev->intfnum,
++						 info->selector, data, 1);
++	if (ret < 0) {
++		uvc_trace(UVC_TRACE_CONTROL,
++				  "GET_INFO failed on control %pUl/%u (%d).\n",
++				  info->entity, info->selector, ret);
++	} else {
++		flags = UVC_CTRL_FLAG_GET_MIN | UVC_CTRL_FLAG_GET_MAX
++			| UVC_CTRL_FLAG_GET_RES | UVC_CTRL_FLAG_GET_DEF
++			| (data[0] & UVC_CONTROL_CAP_GET ?
++			   UVC_CTRL_FLAG_GET_CUR : 0)
++			| (data[0] & UVC_CONTROL_CAP_SET ?
++			   UVC_CTRL_FLAG_SET_CUR : 0)
++			| (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
++			   UVC_CTRL_FLAG_AUTO_UPDATE : 0);
++	}
++	kfree(data);
++	return flags;
++}
++
+ /*
+  * Query control information (size and flags) for XU controls.
+  */
+@@ -1636,6 +1670,7 @@ static int uvc_ctrl_fill_xu_info(struct uvc_device *dev,
+ 	const struct uvc_control *ctrl, struct uvc_control_info *info)
+ {
+ 	u8 *data;
++	int flags;
+ 	int ret;
 
->  drivers/media/platform/omap3isp/isp.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platfo=
-rm/omap3isp/isp.c
-> index 97a5206b6ddc..4afd7ba4fad6 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -2155,7 +2155,7 @@ static int isp_subdev_notifier_complete(struct v4l2=
-_async_notifier *async)
->  		return ret;
-> =20
->  	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
-> -		if (!sd->asd)
-> +		if (sd->notifier !=3D &isp->notifier)
->  			continue;
-> =20
->  		ret =3D isp_link_entity(isp, &sd->entity,
-> --=20
-> 2.11.0
->=20
+ 	data = kmalloc(2, GFP_KERNEL);
+@@ -1659,24 +1694,15 @@ static int uvc_ctrl_fill_xu_info(struct uvc_device *dev,
 
---5h5nqqtb2ria5tjw
-Content-Type: application/pgp-signature; name="signature.asc"
+ 	info->size = le16_to_cpup((__le16 *)data);
 
------BEGIN PGP SIGNATURE-----
+-	/* Query the control information (GET_INFO) */
+-	ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id, dev->intfnum,
+-			     info->selector, data, 1);
+-	if (ret < 0) {
++	flags = uvc_ctrl_get_flags(dev, ctrl, info);
++
++	if (flags < 0) {
+ 		uvc_trace(UVC_TRACE_CONTROL,
+-			  "GET_INFO failed on control %pUl/%u (%d).\n",
+-			  info->entity, info->selector, ret);
++			  "Failed to retrieve flags (%d).\n", ret);
++ 		ret = flags;
+ 		goto done;
+ 	}
+-
+-	info->flags = UVC_CTRL_FLAG_GET_MIN | UVC_CTRL_FLAG_GET_MAX
+-		    | UVC_CTRL_FLAG_GET_RES | UVC_CTRL_FLAG_GET_DEF
+-		    | (data[0] & UVC_CONTROL_CAP_GET ?
+-		       UVC_CTRL_FLAG_GET_CUR : 0)
+-		    | (data[0] & UVC_CONTROL_CAP_SET ?
+-		       UVC_CTRL_FLAG_SET_CUR : 0)
+-		    | (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
+-		       UVC_CTRL_FLAG_AUTO_UPDATE : 0);
++	info->flags = flags;
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnzRv0ACgkQ2O7X88g7
-+pouxQ/+PPpU+CgRA2Xl2ZFWexKcaFEOqcDf87tWSl2+qRm50hdXdku1l2G7I6GO
-WRko3onjLNDLppVetbIf5iNk1b/T+XiOtcm8AIGuZldUy2D2bcJFkxwVdNzTcgiy
-QcKu8so1G5DQsoh96ZQTbchWzsISuHCDRsl0ViZF56sUxPEkNb8dyBhviKkIR/kO
-lbvNMZ4EMpNkR4AC7Rjpi1KIMAovPozjJRXsHyvA2y/cOIpGXz7aQIim1f+SVNR0
-8hvWap8DsD+jnJ9uJSc5AYguN4aSOQd8nZ2f+Dz9oIdJXNSuDANk7P1aiPv8Xz9p
-gfHabWrtVNZZvYxJsbDmh8rDxmr/xM8rubPcTdkcH5elDDDADqIT4DkV2UpX8GT8
-+TC6XnjoC4IegBGmzgOTM9GNMjgwawgNHVy2CPt9XeFhNVrOhk75+sN+z/ZtIqyK
-DDjGPxgSp2aatnj5QJ1NonByoYOIgKZCK5HP/Q2WBKsfTj0kb8z942bVV4+b2W+S
-GId6qSODbaHba9oJQ3efty2UiFts8U9f+Y0ZtzUzWU/ztX1R3sHMs0yrzZwbDvWy
-OJPbPsDZoaHYQZlVHuKthPBM55IhAxJ2yvgTstseaoulLtIjIjjvfIGb9q/4goPE
-Pb9SIZ040sx7Rb0fLLv4VzgbJHluFB9Gr0EJjK/jozm73tEIX4k=
-=m/PO
------END PGP SIGNATURE-----
+ 	uvc_ctrl_fixup_xu_info(dev, ctrl, info);
 
---5h5nqqtb2ria5tjw--
+@@ -1890,6 +1916,7 @@ static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control *ctrl,
+ 	const struct uvc_control_info *info)
+ {
+ 	int ret = 0;
++	int flags = 0;
+
+ 	ctrl->info = *info;
+ 	INIT_LIST_HEAD(&ctrl->info.mappings);
+@@ -1902,6 +1929,13 @@ static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control *ctrl,
+ 		goto done;
+ 	}
+
++	flags = uvc_ctrl_get_flags(dev, ctrl, info);
++	if (flags < 0)
++		uvc_trace(UVC_TRACE_CONTROL,
++			  "Failed to retrieve flags (%d).\n", ret);
++	else
++		ctrl->info.flags = flags;
++
+ 	ctrl->initialized = 1;
+
+ 	uvc_trace(UVC_TRACE_CONTROL, "Added control %pUl/%u to device %s "
+-- 
+2.14.2
