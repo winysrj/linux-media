@@ -1,91 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53245 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753500AbdJPPHz (ORCPT
+Received: from fllnx210.ext.ti.com ([198.47.19.17]:34471 "EHLO
+        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751348AbdJLT1g (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Oct 2017 11:07:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Yang <hansy@nvidia.com>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH resend] [media] uvcvideo: zero seq number when disabling stream
-Date: Mon, 16 Oct 2017 18:08:12 +0300
-Message-ID: <2456831.iuhP316MQr@avalon>
-In-Reply-To: <1505456871-12680-1-git-send-email-hansy@nvidia.com>
-References: <1505456871-12680-1-git-send-email-hansy@nvidia.com>
+        Thu, 12 Oct 2017 15:27:36 -0400
+From: Benoit Parrot <bparrot@ti.com>
+To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>,
+        Rob Herring <robh+dt@kernel.org>
+CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benoit Parrot <bparrot@ti.com>
+Subject: [Patch 4/6] dt-bindings: media: ti-vpe: Document VPE driver
+Date: Thu, 12 Oct 2017 14:27:17 -0500
+Message-ID: <20171012192719.15193-5-bparrot@ti.com>
+In-Reply-To: <20171012192719.15193-1-bparrot@ti.com>
+References: <20171012192719.15193-1-bparrot@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Device Tree bindings for the Video Processing Engine (VPE) driver.
 
-(CC'ing Guennadi Liakhovetski)
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+---
+ Documentation/devicetree/bindings/media/ti-vpe.txt | 41 ++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/ti-vpe.txt
 
-Thank you for the patch.
-
-On Friday, 15 September 2017 09:27:51 EEST Hans Yang wrote:
-> For bulk-based devices, when disabling the video stream,
-> in addition to issue CLEAR_FEATURE(HALT), it is better to set
-> alternate setting 0 as well or the sequnce number in host
-> side will probably not reset to zero.
-
-The USB 2.0 specificatin states in the description of the SET_INTERFACE 
-request that "If a device only supports a default setting for the specified 
-interface, then a STALL may be returned in the Status stage of the request".
-
-The Linux implementation of usb_set_interface() deals with this by handling 
-STALL conditions and manually clearing HALT for all endpoints in the 
-interface, but I'm still concerned that this change could break existing bulk-
-based cameras. Do you know what other operating systems do when disabling the 
-stream on bulk cameras ? According to a comment in the driver Windows calls 
-CLEAR_FEATURE(HALT), but the situation might have changed since that was 
-tested.
-
-Guennadi, how do your bulk-based cameras handle this ?
-
-> Then in next time video stream start, the device will expect
-> host starts packet from 0 sequence number but host actually
-> continue the sequence number from last transaction and this
-> causes transaction errors.
-
-Do you mean the DATA0/DATA1 toggle ? Why does the host continue toggling the 
-PID from the last transation ? The usb_clear_halt() function calls 
-usb_reset_endpoint() which should reset the DATA PID toggle.
-
-> This commit fixes this by adding set alternate setting 0 back
-> as what isoch-based devices do.
-> 
-> Below error message will also be eliminated for some devices:
-> uvcvideo: Non-zero status (-71) in video completion handler.
-> 
-> Signed-off-by: Hans Yang <hansy@nvidia.com>
-> ---
->  drivers/media/usb/uvc/uvc_video.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index fb86d6af398d..ad80c2a6da6a 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -1862,10 +1862,9 @@ int uvc_video_enable(struct uvc_streaming *stream,
-> int enable)
-> 
->  	if (!enable) {
->  		uvc_uninit_video(stream, 1);
-> -		if (stream->intf->num_altsetting > 1) {
-> -			usb_set_interface(stream->dev->udev,
-> +		usb_set_interface(stream->dev->udev,
->  					  stream->intfnum, 0);
-> -		} else {
-> +		if (stream->intf->num_altsetting == 1) {
->  			/* UVC doesn't specify how to inform a bulk-based device
->  			 * when the video stream is stopped. Windows sends a
->  			 * CLEAR_FEATURE(HALT) request to the video streaming
-
+diff --git a/Documentation/devicetree/bindings/media/ti-vpe.txt b/Documentation/devicetree/bindings/media/ti-vpe.txt
+new file mode 100644
+index 000000000000..c2ef93d08417
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/ti-vpe.txt
+@@ -0,0 +1,41 @@
++Texas Instruments DRA7x VIDEO PROCESSING ENGINE (VPE)
++------------------------------------------------------
++
++The Video Processing Engine (VPE) is a key component for image post
++processing applications. VPE consist of a single memory to memory
++path which can perform chroma up/down sampling, deinterlacing,
++scaling and color space conversion.
++
++Required properties:
++- compatible: must be "ti,vpe"
++- reg:	physical base address and length of the registers set for the 8
++	memory regions required;
++- reg-names: name associated with the memory regions described is <reg>;
++- interrupts: should contain IRQ line for VPE;
++
++Example:
++	vpe {
++		compatible = "ti,vpe";
++		ti,hwmods = "vpe";
++		clocks = <&dpll_core_h23x2_ck>;
++		clock-names = "fck";
++		reg =	<0x489d0000 0x120>,
++			<0x489d0300 0x20>,
++			<0x489d0400 0x20>,
++			<0x489d0500 0x20>,
++			<0x489d0600 0x3c>,
++			<0x489d0700 0x80>,
++			<0x489d5700 0x18>,
++			<0x489dd000 0x400>;
++		reg-names =	"vpe_top",
++				"vpe_chr_us0",
++				"vpe_chr_us1",
++				"vpe_chr_us2",
++				"vpe_dei",
++				"sc",
++				"csc",
++				"vpdma";
++		interrupts = <GIC_SPI 354 IRQ_TYPE_LEVEL_HIGH>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++	};
 -- 
-Regards,
-
-Laurent Pinchart
+2.9.0
