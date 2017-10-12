@@ -1,216 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:49951 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750823AbdJYOOQ (ORCPT
+Received: from mail-qt0-f177.google.com ([209.85.216.177]:54743 "EHLO
+        mail-qt0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752631AbdJLAZO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Oct 2017 10:14:16 -0400
-Received: by mail-it0-f67.google.com with SMTP id y15so1226537ita.4
-        for <linux-media@vger.kernel.org>; Wed, 25 Oct 2017 07:14:16 -0700 (PDT)
+        Wed, 11 Oct 2017 20:25:14 -0400
+Received: by mail-qt0-f177.google.com with SMTP id z19so10480369qtg.11
+        for <linux-media@vger.kernel.org>; Wed, 11 Oct 2017 17:25:13 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20171024152251.GA104927@beast>
-References: <20171024152251.GA104927@beast>
-From: Kees Cook <keescook@chromium.org>
-Date: Wed, 25 Oct 2017 16:14:15 +0200
-Message-ID: <CAGXu5jKkzLfk+zynzSiGHcL8W7ZfX8DGGuv0RQrAPw-O_tGF1Q@mail.gmail.com>
-Subject: Re: [PATCH] media: pvrusb2: Convert timers to use timer_setup()
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Mike Isely <isely@pobox.com>, linux-media@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>
+In-Reply-To: <0D74D058-EE11-4BFF-974C-16DB6910D2CF@gmail.com>
+References: <cover.1507618840.git.sean@mess.org> <176506027db4255239dc8ce192dc6652af75bd52.1507618840.git.sean@mess.org>
+ <1507750996.2479.11.camel@gmail.com> <20171011210237.bpbfuhpf7om26ldi@gofer.mess.org>
+ <0D74D058-EE11-4BFF-974C-16DB6910D2CF@gmail.com>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Wed, 11 Oct 2017 20:25:12 -0400
+Message-ID: <CAGoCfixQ6uLwbs7pQv5SzNkhP_Au18WrdNnM=Odi4JpbAn174w@mail.gmail.com>
+Subject: Re: [PATCH v3 04/26] media: lirc_zilog: remove receiver
+To: Andy Walls <awalls.cx18@gmail.com>
+Cc: Sean Young <sean@mess.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Eek, sorry, this uses timer_setup_on_stack() which is only in -next.
-If you can Ack this, I can carry it in the timer tree.
+> There's an ir_lock mutex in the driver to prevent simultaneous access to the Rx and Tx functions of the z8.  Accessing Rx and Tx functions of the chip together can cause it to do the wrong thing (sometimes hang?), IIRC.
+>
+> I'll see if I can dig up my old disassembly of the z8's firmware to see if that interlock is strictly necessary.
+>
+> Yes I know ir-kbd-i2c is in mainline, but as I said, I had reasons for avoiding it when using Tx operation of the chip.  It's been 7 years, and I'm getting too old to remember the reasons. :P
 
-Thanks!
+Yeah, you definitely don't want to be issuing requests to the Rx and
+Tx addresses at the same time.  Very bad things will happen.
 
--Kees
+Also, what is the polling interval for ir-kbd-i2c?  If it's too high
+you can wedge the I2C bus (depending on the hardware design).
+Likewise, many people disable IR RX entirely (which is trivial to do
+with lirc_zilog through a modprobe optoin).  This is because early
+versions of the HDPVR had issues where polling too often can interfere
+with traffic that configures the component receiver chip.  This was
+improved in later versions of the design, but many people found it was
+just easiest to disable RX since they don't use it (i.e. they would
+use the blaster for controlling their STB but use a separate IR
+receiver).
 
-On Tue, Oct 24, 2017 at 5:22 PM, Kees Cook <keescook@chromium.org> wrote:
-> In preparation for unconditionally passing the struct timer_list pointer to
-> all timer callbacks, switch to using the new timer_setup() and from_timer()
-> to pass the timer pointer explicitly.
->
-> Cc: Mike Isely <isely@pobox.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Kees Cook <keescook@chromium.org>
-> ---
->  drivers/media/usb/pvrusb2/pvrusb2-hdw.c | 64 ++++++++++++++++++---------------
->  1 file changed, 36 insertions(+), 28 deletions(-)
->
-> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-> index ad5b25b89699..8289ee482f49 100644
-> --- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-> +++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-> @@ -330,10 +330,10 @@ static void pvr2_hdw_state_log_state(struct pvr2_hdw *);
->  static int pvr2_hdw_cmd_usbstream(struct pvr2_hdw *hdw,int runFl);
->  static int pvr2_hdw_commit_setup(struct pvr2_hdw *hdw);
->  static int pvr2_hdw_get_eeprom_addr(struct pvr2_hdw *hdw);
-> -static void pvr2_hdw_quiescent_timeout(unsigned long);
-> -static void pvr2_hdw_decoder_stabilization_timeout(unsigned long);
-> -static void pvr2_hdw_encoder_wait_timeout(unsigned long);
-> -static void pvr2_hdw_encoder_run_timeout(unsigned long);
-> +static void pvr2_hdw_quiescent_timeout(struct timer_list *);
-> +static void pvr2_hdw_decoder_stabilization_timeout(struct timer_list *);
-> +static void pvr2_hdw_encoder_wait_timeout(struct timer_list *);
-> +static void pvr2_hdw_encoder_run_timeout(struct timer_list *);
->  static int pvr2_issue_simple_cmd(struct pvr2_hdw *,u32);
->  static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
->                                 unsigned int timeout,int probe_fl,
-> @@ -2373,18 +2373,15 @@ struct pvr2_hdw *pvr2_hdw_create(struct usb_interface *intf,
->         }
->         if (!hdw) goto fail;
->
-> -       setup_timer(&hdw->quiescent_timer, pvr2_hdw_quiescent_timeout,
-> -                   (unsigned long)hdw);
-> +       timer_setup(&hdw->quiescent_timer, pvr2_hdw_quiescent_timeout, 0);
->
-> -       setup_timer(&hdw->decoder_stabilization_timer,
-> -                   pvr2_hdw_decoder_stabilization_timeout,
-> -                   (unsigned long)hdw);
-> +       timer_setup(&hdw->decoder_stabilization_timer,
-> +                   pvr2_hdw_decoder_stabilization_timeout, 0);
->
-> -       setup_timer(&hdw->encoder_wait_timer, pvr2_hdw_encoder_wait_timeout,
-> -                   (unsigned long)hdw);
-> +       timer_setup(&hdw->encoder_wait_timer, pvr2_hdw_encoder_wait_timeout,
-> +                   0);
->
-> -       setup_timer(&hdw->encoder_run_timer, pvr2_hdw_encoder_run_timeout,
-> -                   (unsigned long)hdw);
-> +       timer_setup(&hdw->encoder_run_timer, pvr2_hdw_encoder_run_timeout, 0);
->
->         hdw->master_state = PVR2_STATE_DEAD;
->
-> @@ -3539,10 +3536,16 @@ static void pvr2_ctl_read_complete(struct urb *urb)
->         complete(&hdw->ctl_done);
->  }
->
-> +struct hdw_timer {
-> +       struct timer_list timer;
-> +       struct pvr2_hdw *hdw;
-> +};
->
-> -static void pvr2_ctl_timeout(unsigned long data)
-> +static void pvr2_ctl_timeout(struct timer_list *t)
->  {
-> -       struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
-> +       struct hdw_timer *timer = from_timer(timer, t, timer);
-> +       struct pvr2_hdw *hdw = timer->hdw;
-> +
->         if (hdw->ctl_write_pend_flag || hdw->ctl_read_pend_flag) {
->                 hdw->ctl_timeout_flag = !0;
->                 if (hdw->ctl_write_pend_flag)
-> @@ -3564,7 +3567,10 @@ static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
->  {
->         unsigned int idx;
->         int status = 0;
-> -       struct timer_list timer;
-> +       struct hdw_timer timer = {
-> +               .hdw = hdw,
-> +       };
-> +
->         if (!hdw->ctl_lock_held) {
->                 pvr2_trace(PVR2_TRACE_ERROR_LEGS,
->                            "Attempted to execute control transfer without lock!!");
-> @@ -3621,8 +3627,8 @@ static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
->         hdw->ctl_timeout_flag = 0;
->         hdw->ctl_write_pend_flag = 0;
->         hdw->ctl_read_pend_flag = 0;
-> -       setup_timer(&timer, pvr2_ctl_timeout, (unsigned long)hdw);
-> -       timer.expires = jiffies + timeout;
-> +       timer_setup_on_stack(&timer.timer, pvr2_ctl_timeout, 0);
-> +       timer.timer.expires = jiffies + timeout;
->
->         if (write_len && write_data) {
->                 hdw->cmd_debug_state = 2;
-> @@ -3677,7 +3683,7 @@ status);
->         }
->
->         /* Start timer */
-> -       add_timer(&timer);
-> +       add_timer(&timer.timer);
->
->         /* Now wait for all I/O to complete */
->         hdw->cmd_debug_state = 4;
-> @@ -3687,7 +3693,7 @@ status);
->         hdw->cmd_debug_state = 5;
->
->         /* Stop timer */
-> -       del_timer_sync(&timer);
-> +       del_timer_sync(&timer.timer);
->
->         hdw->cmd_debug_state = 6;
->         status = 0;
-> @@ -3769,6 +3775,8 @@ status);
->         if ((status < 0) && (!probe_fl)) {
->                 pvr2_hdw_render_useless(hdw);
->         }
-> +       destroy_timer_on_stack(&timer.timer);
-> +
->         return status;
->  }
->
-> @@ -4366,9 +4374,9 @@ static int state_eval_encoder_run(struct pvr2_hdw *hdw)
->
->
->  /* Timeout function for quiescent timer. */
-> -static void pvr2_hdw_quiescent_timeout(unsigned long data)
-> +static void pvr2_hdw_quiescent_timeout(struct timer_list *t)
->  {
-> -       struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
-> +       struct pvr2_hdw *hdw = from_timer(hdw, t, quiescent_timer);
->         hdw->state_decoder_quiescent = !0;
->         trace_stbit("state_decoder_quiescent",hdw->state_decoder_quiescent);
->         hdw->state_stale = !0;
-> @@ -4377,9 +4385,9 @@ static void pvr2_hdw_quiescent_timeout(unsigned long data)
->
->
->  /* Timeout function for decoder stabilization timer. */
-> -static void pvr2_hdw_decoder_stabilization_timeout(unsigned long data)
-> +static void pvr2_hdw_decoder_stabilization_timeout(struct timer_list *t)
->  {
-> -       struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
-> +       struct pvr2_hdw *hdw = from_timer(hdw, t, decoder_stabilization_timer);
->         hdw->state_decoder_ready = !0;
->         trace_stbit("state_decoder_ready", hdw->state_decoder_ready);
->         hdw->state_stale = !0;
-> @@ -4388,9 +4396,9 @@ static void pvr2_hdw_decoder_stabilization_timeout(unsigned long data)
->
->
->  /* Timeout function for encoder wait timer. */
-> -static void pvr2_hdw_encoder_wait_timeout(unsigned long data)
-> +static void pvr2_hdw_encoder_wait_timeout(struct timer_list *t)
->  {
-> -       struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
-> +       struct pvr2_hdw *hdw = from_timer(hdw, t, encoder_wait_timer);
->         hdw->state_encoder_waitok = !0;
->         trace_stbit("state_encoder_waitok",hdw->state_encoder_waitok);
->         hdw->state_stale = !0;
-> @@ -4399,9 +4407,9 @@ static void pvr2_hdw_encoder_wait_timeout(unsigned long data)
->
->
->  /* Timeout function for encoder run timer. */
-> -static void pvr2_hdw_encoder_run_timeout(unsigned long data)
-> +static void pvr2_hdw_encoder_run_timeout(struct timer_list *t)
->  {
-> -       struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
-> +       struct pvr2_hdw *hdw = from_timer(hdw, t, encoder_run_timer);
->         if (!hdw->state_encoder_runok) {
->                 hdw->state_encoder_runok = !0;
->                 trace_stbit("state_encoder_runok",hdw->state_encoder_runok);
-> --
-> 2.7.4
->
->
-> --
-> Kees Cook
-> Pixel Security
+Are you testing with video capture actively in use?  If you're testing
+the IR interface without an active HD capture in progress you're
+likely to miss some of these edge cases (in particular those which
+would hang the encoder).
 
+I'm not against the removal of duplicate code in general, but you have
+to tread carefully because there are plenty of non-obvious edge cases
+to consider.
 
+Devin
 
 -- 
-Kees Cook
-Pixel Security
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
