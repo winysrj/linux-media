@@ -1,193 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:62462 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754104AbdJIKTr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 06:19:47 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 07/24] media: get rid of i2c-addr.h
-Date: Mon,  9 Oct 2017 07:19:13 -0300
-Message-Id: <3ed54fa388ce0ca9752f62eaddde150429bd7e3d.1507544011.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507544011.git.mchehab@s-opensource.com>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507544011.git.mchehab@s-opensource.com>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:52633 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752430AbdJLQVx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Oct 2017 12:21:53 -0400
+Received: by mail-pf0-f195.google.com with SMTP id e64so5539490pfk.9
+        for <linux-media@vger.kernel.org>; Thu, 12 Oct 2017 09:21:53 -0700 (PDT)
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 3/4] media: ov7670: add media controller support
+Date: Fri, 13 Oct 2017 01:21:16 +0900
+Message-Id: <1507825277-18364-4-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1507825277-18364-1-git-send-email-akinobu.mita@gmail.com>
+References: <1507825277-18364-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the past, the same I2C address were used on multiple places.
-After I2C rebinding changes, this is no longer needed. So, we
-can just get rid of this header, placing the I2C address where
-they belong, e. g. either at bttv driver or at tvtuner.
+Create a source pad and set the media controller type to the sensor.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- drivers/media/i2c/tda7432.c             |  1 -
- drivers/media/i2c/tvaudio.c             |  2 --
- drivers/media/pci/bt8xx/bttv-cards.c    |  7 +++++++
- drivers/media/pci/bt8xx/bttv.h          |  1 -
- drivers/media/usb/em28xx/em28xx-cards.c |  1 -
- drivers/media/usb/tm6000/tm6000-cards.c |  1 -
- include/media/i2c-addr.h                | 35 ---------------------------------
- include/media/i2c/tvaudio.h             | 17 +++++++++++++++-
- 8 files changed, 23 insertions(+), 42 deletions(-)
- delete mode 100644 include/media/i2c-addr.h
+ drivers/media/i2c/ov7670.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/drivers/media/i2c/tda7432.c b/drivers/media/i2c/tda7432.c
-index d87168adee45..1c5c61d829d6 100644
---- a/drivers/media/i2c/tda7432.c
-+++ b/drivers/media/i2c/tda7432.c
-@@ -36,7 +36,6 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-ctrls.h>
--#include <media/i2c-addr.h>
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index 4f89a51..38e1876 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -214,6 +214,9 @@ struct ov7670_devtype {
+ struct ov7670_format_struct;  /* coming later */
+ struct ov7670_info {
+ 	struct v4l2_subdev sd;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_pad pad;
++#endif
+ 	struct v4l2_ctrl_handler hdl;
+ 	struct {
+ 		/* gain cluster */
+@@ -1654,6 +1657,14 @@ static int ov7670_probe(struct i2c_client *client,
+ 	if (info->pclk_hb_disable)
+ 		ov7670_write(sd, REG_COM10, COM10_PCLK_HB);
  
- #ifndef VIDEO_AUDIO_BALANCE
- # define VIDEO_AUDIO_BALANCE 32
-diff --git a/drivers/media/i2c/tvaudio.c b/drivers/media/i2c/tvaudio.c
-index ce86534450ac..92718a9ff5ea 100644
---- a/drivers/media/i2c/tvaudio.c
-+++ b/drivers/media/i2c/tvaudio.c
-@@ -40,8 +40,6 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
- 
--#include <media/i2c-addr.h>
--
- /* ---------------------------------------------------------------------- */
- /* insmod args                                                            */
- 
-diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
-index 5cc42b426715..7dcf509e66d9 100644
---- a/drivers/media/pci/bt8xx/bttv-cards.c
-+++ b/drivers/media/pci/bt8xx/bttv-cards.c
-@@ -141,6 +141,13 @@ MODULE_PARM_DESC(audiodev, "specify audio device:\n"
- MODULE_PARM_DESC(saa6588, "if 1, then load the saa6588 RDS module, default (0) is to use the card definition.");
- MODULE_PARM_DESC(no_overlay, "allow override overlay default (0 disables, 1 enables) [some VIA/SIS chipsets are known to have problem with overlay]");
- 
++#ifdef CONFIG_MEDIA_CONTROLLER
++	info->pad.flags = MEDIA_PAD_FL_SOURCE;
++	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
++	ret = media_entity_pads_init(&sd->entity, 1, &info->pad);
++	if (ret)
++		goto clk_disable;
++#endif
 +
-+/* I2C addresses list */
-+#define I2C_ADDR_TDA7432	0x8a
-+#define I2C_ADDR_MSP3400	0x80
-+#define I2C_ADDR_MSP3400_ALT	0x88
-+
-+
- /* ----------------------------------------------------------------------- */
- /* list of card IDs for bt878+ cards                                       */
+ 	v4l2_ctrl_handler_init(&info->hdl, 10);
+ 	v4l2_ctrl_new_std(&info->hdl, &ov7670_ctrl_ops,
+ 			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
+@@ -1700,6 +1711,9 @@ static int ov7670_probe(struct i2c_client *client,
  
-diff --git a/drivers/media/pci/bt8xx/bttv.h b/drivers/media/pci/bt8xx/bttv.h
-index 91301c3cad1e..faea9aeff711 100644
---- a/drivers/media/pci/bt8xx/bttv.h
-+++ b/drivers/media/pci/bt8xx/bttv.h
-@@ -17,7 +17,6 @@
- #include <linux/videodev2.h>
- #include <linux/i2c.h>
- #include <media/v4l2-device.h>
--#include <media/i2c-addr.h>
- #include <media/tuner.h>
+ hdl_free:
+ 	v4l2_ctrl_handler_free(&info->hdl);
++#ifdef CONFIG_MEDIA_CONTROLLER
++	media_entity_cleanup(&sd->entity);
++#endif
+ clk_disable:
+ 	clk_disable_unprepare(info->clk);
+ 	return ret;
+@@ -1713,6 +1727,9 @@ static int ov7670_remove(struct i2c_client *client)
  
- /* ---------------------------------------------------------- */
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 4c57fd7929cb..34e16f6ab4ac 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -36,7 +36,6 @@
- #include <media/i2c/saa7115.h>
- #include <dt-bindings/media/tvp5150.h>
- #include <media/i2c/tvaudio.h>
--#include <media/i2c-addr.h>
- #include <media/tveeprom.h>
- #include <media/v4l2-common.h>
- #include <sound/ac97_codec.h>
-diff --git a/drivers/media/usb/tm6000/tm6000-cards.c b/drivers/media/usb/tm6000/tm6000-cards.c
-index 2537643a1808..b4df9181c54b 100644
---- a/drivers/media/usb/tm6000/tm6000-cards.c
-+++ b/drivers/media/usb/tm6000/tm6000-cards.c
-@@ -23,7 +23,6 @@
- #include <media/v4l2-common.h>
- #include <media/tuner.h>
- #include <media/i2c/tvaudio.h>
--#include <media/i2c-addr.h>
- #include <media/rc-map.h>
- 
- #include "tm6000.h"
-diff --git a/include/media/i2c-addr.h b/include/media/i2c-addr.h
-deleted file mode 100644
-index fba0457b74c4..000000000000
---- a/include/media/i2c-addr.h
-+++ /dev/null
-@@ -1,35 +0,0 @@
--/*
-- *	V4L I2C address list
-- *
-- *
-- *	Copyright (C) 2006 Mauro Carvalho Chehab <mchehab@infradead.org>
-- *	Based on a previous mapping by
-- *	Ralph Metzler (rjkm@thp.uni-koeln.de)
-- *	Gerd Knorr <kraxel@goldbach.in-berlin.de>
-- *
-- */
--
--/* bttv address list */
--#define I2C_ADDR_TDA7432	0x8a
--#define I2C_ADDR_TDA8425	0x82
--#define I2C_ADDR_TDA9840	0x84
--#define I2C_ADDR_TDA9874	0xb0 /* also used by 9875 */
--#define I2C_ADDR_TDA9875	0xb0
--#define I2C_ADDR_MSP3400	0x80
--#define I2C_ADDR_MSP3400_ALT	0x88
--#define I2C_ADDR_TEA6300	0x80 /* also used by 6320 */
--
--/*
-- * i2c bus addresses for the chips supported by tvaudio.c
-- */
--
--#define I2C_ADDR_TDA8425	0x82
--#define I2C_ADDR_TDA9840	0x84 /* also used by TA8874Z */
--#define I2C_ADDR_TDA985x_L	0xb4 /* also used by 9873 */
--#define I2C_ADDR_TDA985x_H	0xb6
--#define I2C_ADDR_TDA9874	0xb0 /* also used by 9875 */
--
--#define I2C_ADDR_TEA6300	0x80 /* also used by 6320 */
--#define I2C_ADDR_TEA6420	0x98
--
--#define I2C_ADDR_PIC16C54	0x96 /* PV951 */
-diff --git a/include/media/i2c/tvaudio.h b/include/media/i2c/tvaudio.h
-index 1ac8184693f8..f13e1a386364 100644
---- a/include/media/i2c/tvaudio.h
-+++ b/include/media/i2c/tvaudio.h
-@@ -21,7 +21,22 @@
- #ifndef _TVAUDIO_H
- #define _TVAUDIO_H
- 
--#include <media/i2c-addr.h>
-+/*
-+ * i2c bus addresses for the chips supported by tvaudio.c
-+ */
-+
-+#define I2C_ADDR_TDA8425	0x82
-+#define I2C_ADDR_TDA9840	0x84
-+#define I2C_ADDR_TDA9874	0xb0 /* also used by 9875 */
-+#define I2C_ADDR_TDA9875	0xb0
-+#define I2C_ADDR_TDA8425	0x82
-+#define I2C_ADDR_TDA9840	0x84 /* also used by TA8874Z */
-+#define I2C_ADDR_TDA985x_L	0xb4 /* also used by 9873 */
-+#define I2C_ADDR_TDA985x_H	0xb6
-+#define I2C_ADDR_TDA9874	0xb0 /* also used by 9875 */
-+#define I2C_ADDR_TEA6300	0x80 /* also used by 6320 */
-+#define I2C_ADDR_TEA6420	0x98
-+#define I2C_ADDR_PIC16C54	0x96 /* PV951 */
- 
- /* The tvaudio module accepts the following inputs: */
- #define TVAUDIO_INPUT_TUNER  0
+ 	v4l2_async_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&info->hdl);
++#ifdef CONFIG_MEDIA_CONTROLLER
++	media_entity_cleanup(&sd->entity);
++#endif
+ 	clk_disable_unprepare(info->clk);
+ 	return 0;
+ }
 -- 
-2.13.6
+2.7.4
