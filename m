@@ -1,131 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:42140 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756502AbdJKD4W (ORCPT
+Received: from mail-qt0-f172.google.com ([209.85.216.172]:43884 "EHLO
+        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751757AbdJLCZf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 23:56:22 -0400
-Message-ID: <6f2f76bdb6ce84decb9553d290082287@smtp-cloud8.xs4all.net>
-Date: Wed, 11 Oct 2017 05:56:20 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Wed, 11 Oct 2017 22:25:35 -0400
+Received: by mail-qt0-f172.google.com with SMTP id a43so11115135qta.0
+        for <linux-media@vger.kernel.org>; Wed, 11 Oct 2017 19:25:35 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1507769407.2736.10.camel@gmail.com>
+References: <cover.1507618840.git.sean@mess.org> <176506027db4255239dc8ce192dc6652af75bd52.1507618840.git.sean@mess.org>
+ <1507750996.2479.11.camel@gmail.com> <20171011210237.bpbfuhpf7om26ldi@gofer.mess.org>
+ <0D74D058-EE11-4BFF-974C-16DB6910D2CF@gmail.com> <CAGoCfixQ6uLwbs7pQv5SzNkhP_Au18WrdNnM=Odi4JpbAn174w@mail.gmail.com>
+ <1507769407.2736.10.camel@gmail.com>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Wed, 11 Oct 2017 22:25:34 -0400
+Message-ID: <CAGoCfiyfEHqrNqQP6eiJ58rpMBasezwbS23N5bqcrSVv8P760Q@mail.gmail.com>
+Subject: Re: [PATCH v3 04/26] media: lirc_zilog: remove receiver
+To: Andy Walls <awalls.cx18@gmail.com>
+Cc: Sean Young <sean@mess.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Andy,
 
-Results of the daily build of media_tree:
+> 5. Rx and IR Learn both use the same external hardware.  Not
+> coordinating Rx with Learn mode in the same driver, will prevent Learn
+> operation from working.  That is, if Learn mode is ever implemented.
+> (Once upon a time, I was planning on doing that.  But I have no time
+> for that anymore.)
 
-date:			Wed Oct 11 05:00:15 CEST 2017
-media-tree git hash:	c1301077213d4dca34f01fc372b64d3c4a49a437
-media_build git hash:	4f1031979bd1ff205f19f88c85f387d6e5408f5e
-v4l-utils git hash:	01c04f7c8ad1a91af33e20621eba9200f447737e
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+There's not really any infrastructure in Linux that maps to the
+Zilog's "learning mode" functionality.  Usually I would just tell
+users to do the learning under Windows and send me the resulting .ini
+file (which we could then add to the database).
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: OK
-spec-git: OK
+I had planned on getting rid of the database entirely and just
+converting an MCE compatible pulse train to the blasting format
+required by the Zilog firmware (using the awesome work you sent me
+privately), but the fact of the matter is that nobody cares and MCEUSB
+devices are $20 online.
 
-Detailed results are available here:
+> I'm glad someone remembers all this stuff.  I'm assuming you had more
+> pain with this than I ever did.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+This would be a safe assumption.  I probably put about a month's worth
+of engineering into driver work for the Zilog, which seems
+extraordinary given how simple something like an IR blaster/receiver
+is supposed to be.  I guess that's the fun of proving out a new
+hardware design as opposed to just making something work under Linux
+that is already known to work under Windows.
 
-Full logs are available here:
+> I never owned an HD-PVR.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+I'm sure I have a spare or two if you really want one (not that you
+have the time to muck with such things nowadays).  :-)
 
-The Media Infrastructure API from this daily build is here:
+The HD-PVR was a bit of a weird case compared to devices like ivtv and
+cx18 because it was technically multi-master (I2C commands came both
+from the host and from the onboard SOC).  Hence you could have weird
+cases where one would block the other at unexpected times.  I2C
+commands to the Zilog would hold the bus which would delay the onboard
+firmware from issuing commands to the video decoder (fun timing
+issues).  There was also some weird edge case I don't recall the
+details of that prompted them to add an I2C gate in later board
+revisions.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
