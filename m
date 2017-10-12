@@ -1,45 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:52075 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752293AbdJHSSy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 8 Oct 2017 14:18:54 -0400
-From: Sean Young <sean@mess.org>
+Received: from mail-pf0-f176.google.com ([209.85.192.176]:52796 "EHLO
+        mail-pf0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751040AbdJLQVb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Oct 2017 12:21:31 -0400
+Received: by mail-pf0-f176.google.com with SMTP id e64so5537978pfk.9
+        for <linux-media@vger.kernel.org>; Thu, 12 Oct 2017 09:21:30 -0700 (PDT)
+From: Akinobu Mita <akinobu.mita@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] media: rc: check for integer overflow
-Date: Sun,  8 Oct 2017 19:18:52 +0100
-Message-Id: <20171008181852.10973-1-sean@mess.org>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 0/4] media: ov7670: add media controller support
+Date: Fri, 13 Oct 2017 01:21:13 +0900
+Message-Id: <1507825277-18364-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ioctl LIRC_SET_REC_TIMEOUT would set a timeout of 704ns if called
-with a timeout of 4294968us.
+This series adds media controller support and other related changes to the
+OV7670 which is cheap and highly available CMOS image sensor for hobbyists.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-lirc-codec.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+This enables to control a video pipeline system with the OV7670.  I've
+tested this with the xilinx video IP pipeline.
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index bd046c41a53a..8f2f37412fc5 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -298,11 +298,14 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 		if (!dev->max_timeout)
- 			return -ENOTTY;
- 
-+		/* Check for multiply overflow */
-+		if (val > U32_MAX / 1000)
-+			return -EINVAL;
-+
- 		tmp = val * 1000;
- 
--		if (tmp < dev->min_timeout ||
--		    tmp > dev->max_timeout)
--				return -EINVAL;
-+		if (tmp < dev->min_timeout || tmp > dev->max_timeout)
-+			return -EINVAL;
- 
- 		if (dev->s_timeout)
- 			ret = dev->s_timeout(dev, tmp);
+Akinobu Mita (4):
+  media: ov7670: create subdevice device node
+  media: ov7670: use v4l2_async_unregister_subdev()
+  media: ov7670: add media controller support
+  media: ov7670: add get_fmt() pad ops callback
+
+ drivers/media/i2c/ov7670.c | 55 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 54 insertions(+), 1 deletion(-)
+
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 -- 
-2.13.6
+2.7.4
