@@ -1,197 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:40119 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751330AbdJEIpf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Oct 2017 04:45:35 -0400
-From: Sean Young <sean@mess.org>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:49884 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752899AbdJLQV5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Oct 2017 12:21:57 -0400
+Received: by mail-pf0-f193.google.com with SMTP id l188so5541872pfc.6
+        for <linux-media@vger.kernel.org>; Thu, 12 Oct 2017 09:21:56 -0700 (PDT)
+From: Akinobu Mita <akinobu.mita@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH v2 13/25] media: lirc: move lirc_dev->attached to rc_dev->registered
-Date: Thu,  5 Oct 2017 09:45:15 +0100
-Message-Id: <a651aac654962a70c1b665dc1b651ac35e0237e2.1507192752.git.sean@mess.org>
-In-Reply-To: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-In-Reply-To: <cover.1507192751.git.sean@mess.org>
-References: <cover.1507192751.git.sean@mess.org>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 4/4] media: ov7670: add get_fmt() pad ops callback
+Date: Fri, 13 Oct 2017 01:21:17 +0900
+Message-Id: <1507825277-18364-5-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1507825277-18364-1-git-send-email-akinobu.mita@gmail.com>
+References: <1507825277-18364-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is done to further remove the lirc kernel api. Ensure that every
-fops checks for this.
+This enables to print the current format on the source pad of the ov7670
+subdev by media-ctl.
 
-Signed-off-by: Sean Young <sean@mess.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- drivers/media/rc/ir-lirc-codec.c | 16 ++++++++++------
- drivers/media/rc/lirc_dev.c      |  4 +---
- drivers/media/rc/rc-main.c       |  8 ++++++++
- include/media/lirc_dev.h         |  2 --
- include/media/rc-core.h          |  3 +++
- 5 files changed, 22 insertions(+), 11 deletions(-)
+ drivers/media/i2c/ov7670.c | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 801d5d174b04..ca3a2556e836 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -101,6 +101,9 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 	unsigned int duration = 0; /* signal duration in us */
- 	int i;
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index 38e1876..9fe99c5 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -234,6 +234,7 @@ struct ov7670_info {
+ 		struct v4l2_ctrl *hue;
+ 	};
+ 	struct ov7670_format_struct *fmt;  /* Current format */
++	struct ov7670_win_size *wsize;	/* Current format */
+ 	struct clk *clk;
+ 	struct gpio_desc *resetb_gpio;
+ 	struct gpio_desc *pwdn_gpio;
+@@ -875,6 +876,36 @@ static int ov7670_set_framerate_legacy(struct v4l2_subdev *sd,
+ 	return ov7670_write(sd, REG_CLKRC, info->clkrc);
+ }
  
-+	if (!dev->registered)
-+		return -ENODEV;
++static int ov7670_get_fmt(struct v4l2_subdev *sd,
++		struct v4l2_subdev_pad_config *cfg,
++		struct v4l2_subdev_format *fmt)
++{
++	struct ov7670_info *info = to_state(sd);
 +
- 	start = ktime_get();
- 
- 	if (dev->send_mode == LIRC_MODE_SCANCODE) {
-@@ -223,6 +226,9 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 			return ret;
- 	}
- 
-+	if (!dev->registered)
-+		return -ENODEV;
++	if (fmt->pad)
++		return -EINVAL;
 +
- 	switch (cmd) {
- 	case LIRC_GET_FEATURES:
- 		if (dev->driver_type == RC_DRIVER_IR_RAW) {
-@@ -408,12 +414,11 @@ static unsigned int ir_lirc_poll(struct file *file,
- 				 struct poll_table_struct *wait)
- {
- 	struct rc_dev *rcdev = file->private_data;
--	struct lirc_dev *d = rcdev->lirc_dev;
- 	unsigned int events = 0;
- 
- 	poll_wait(file, &rcdev->wait_poll, wait);
- 
--	if (!d->attached)
-+	if (!rcdev->registered)
- 		events = POLLHUP | POLLERR;
- 	else if (rcdev->driver_type == RC_DRIVER_IR_RAW &&
- 		 !kfifo_is_empty(&rcdev->rawir))
-@@ -426,7 +431,6 @@ static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
- 			    size_t length, loff_t *ppos)
- {
- 	struct rc_dev *rcdev = file->private_data;
--	struct lirc_dev *d = rcdev->lirc_dev;
- 	unsigned int copied;
- 	int ret;
- 
-@@ -436,7 +440,7 @@ static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
- 	if (length < sizeof(unsigned int) || length % sizeof(unsigned int))
- 		return -EINVAL;
- 
--	if (!d->attached)
-+	if (!rcdev->registered)
- 		return -ENODEV;
- 
- 	do {
-@@ -446,12 +450,12 @@ static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
- 
- 			ret = wait_event_interruptible(rcdev->wait_poll,
- 					!kfifo_is_empty(&rcdev->rawir) ||
--					!d->attached);
-+					!rcdev->registered);
- 			if (ret)
- 				return ret;
- 		}
- 
--		if (!d->attached)
-+		if (!rcdev->registered)
- 			return -ENODEV;
- 
- 		mutex_lock(&rcdev->lock);
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 9a0ad8d9a0cb..22171267aa90 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -122,7 +122,6 @@ int lirc_register_device(struct lirc_dev *d)
- 
- 	cdev_init(&d->cdev, d->fops);
- 	d->cdev.owner = d->owner;
--	d->attached = true;
- 
- 	err = cdev_device_add(&d->cdev, &d->dev);
- 	if (err) {
-@@ -153,7 +152,6 @@ void lirc_unregister_device(struct lirc_dev *d)
- 
- 	mutex_lock(&d->mutex);
- 
--	d->attached = false;
- 	if (d->open) {
- 		dev_dbg(&d->dev, LOGHEAD "releasing opened driver\n",
- 			d->name, d->minor);
-@@ -180,7 +178,7 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
- 	if (retval)
- 		return retval;
- 
--	if (!d->attached) {
-+	if (!rcdev->registered) {
- 		retval = -ENODEV;
- 		goto out;
- 	}
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 38393f13822f..9ae60a5fa6d2 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1795,6 +1795,8 @@ int rc_register_device(struct rc_dev *dev)
- 			goto out_lirc;
- 	}
- 
-+	dev->registered = true;
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++		struct v4l2_mbus_framefmt *mf;
 +
- 	IR_dprintk(1, "Registered rc%u (driver: %s)\n",
- 		   dev->minor,
- 		   dev->driver_name ? dev->driver_name : "unknown");
-@@ -1857,6 +1859,12 @@ void rc_unregister_device(struct rc_dev *dev)
- 
- 	rc_free_rx_device(dev);
- 
-+	dev->registered = false;
++		mf = v4l2_subdev_get_try_format(sd, cfg, 0);
++		fmt->format = *mf;
++		return 0;
++#else
++		return -ENOTTY;
++#endif
++	}
 +
-+	/*
-+	 * lirc device should be freed with dev->registered = false, so
-+	 * that userspace polling will get notified.
-+	 */
- 	if (dev->driver_type != RC_DRIVER_SCANCODE)
- 		ir_lirc_unregister(dev);
++	fmt->format.colorspace = info->fmt->colorspace;
++	fmt->format.code = info->fmt->mbus_code;
++	fmt->format.field = V4L2_FIELD_NONE;
++	fmt->format.width = info->wsize->width;
++	fmt->format.height = info->wsize->height;
++
++	return 0;
++}
++
+ /*
+  * Store a set of start/stop values into the camera.
+  */
+@@ -1026,6 +1057,7 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
+ 	if (wsize->regs)
+ 		ret = ov7670_write_array(sd, wsize->regs);
+ 	info->fmt = ovfmt;
++	info->wsize = wsize;
  
-diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
-index 14d3eb36672e..5782add67edd 100644
---- a/include/media/lirc_dev.h
-+++ b/include/media/lirc_dev.h
-@@ -26,7 +26,6 @@
-  * @rdev:		&struct rc_dev associated with the device
-  * @fops:		&struct file_operations for the device
-  * @owner:		the module owning this struct
-- * @attached:		if the device is still live
-  * @open:		open count for the device's chardev
-  * @mutex:		serialises file_operations calls
-  * @dev:		&struct device assigned to the device
-@@ -40,7 +39,6 @@ struct lirc_dev {
- 	const struct file_operations *fops;
- 	struct module *owner;
+ 	/*
+ 	 * If we're running RGB565, we must rewrite clkrc after setting
+@@ -1529,6 +1561,7 @@ static const struct v4l2_subdev_pad_ops ov7670_pad_ops = {
+ 	.enum_frame_interval = ov7670_enum_frame_interval,
+ 	.enum_frame_size = ov7670_enum_frame_size,
+ 	.enum_mbus_code = ov7670_enum_mbus_code,
++	.get_fmt = ov7670_get_fmt,
+ 	.set_fmt = ov7670_set_fmt,
+ };
  
--	bool attached;
- 	int open;
+@@ -1647,6 +1680,7 @@ static int ov7670_probe(struct i2c_client *client,
  
- 	struct mutex mutex; /* protect from simultaneous accesses */
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index d886ac56015b..17131762fb75 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -127,6 +127,8 @@ enum rc_filter_type {
-  * @wait_poll: poll struct for lirc device
-  * @send_mode: lirc mode for sending, either LIRC_MODE_SCANCODE or
-  *	LIRC_MODE_PULSE
-+ * @registered: set to true by rc_register_device(), false by
-+ *	rc_unregister_device
-  * @change_protocol: allow changing the protocol used on hardware decoders
-  * @open: callback to allow drivers to enable polling/irq when IR input device
-  *	is opened.
-@@ -198,6 +200,7 @@ struct rc_dev {
- 	wait_queue_head_t		wait_poll;
- 	u8				send_mode;
- #endif
-+	bool				registered;
- 	int				(*change_protocol)(struct rc_dev *dev, u64 *rc_proto);
- 	int				(*open)(struct rc_dev *dev);
- 	void				(*close)(struct rc_dev *dev);
+ 	info->devtype = &ov7670_devdata[id->driver_data];
+ 	info->fmt = &ov7670_formats[0];
++	info->wsize = &info->devtype->win_sizes[0];
+ 	info->clkrc = 0;
+ 
+ 	/* Set default frame rate to 30 fps */
 -- 
-2.13.6
+2.7.4
