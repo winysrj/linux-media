@@ -1,239 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:44768 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751401AbdJIK2V (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:49790 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751186AbdJLKvF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 06:28:21 -0400
-Subject: Re: [PATCH 23/24] media: v4l2-tpg*.h: move headers to
- include/media/tpg and merge them
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
- <2dfa08c0c3f289cdde6ea4f751f44ff18c212cf5.1507544011.git.mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Helen Koike <helen.koike@collabora.com>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <d3c84b61-703c-6ed5-bac7-57e517b2a76d@xs4all.nl>
-Date: Mon, 9 Oct 2017 12:28:16 +0200
+        Thu, 12 Oct 2017 06:51:05 -0400
+Subject: Re: [PATCH v3 2/2] ARM: dts: tegra20: Add video decoder node
+To: Jon Hunter <jonathanh@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Stephen Warren <swarren@wwwdotorg.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <cover.1507752381.git.digetx@gmail.com>
+ <f58be69f6004393711c9ff3cb4b52aed33e2611a.1507752381.git.digetx@gmail.com>
+ <f18b6a72-e255-9aa4-6ebd-852ce1a27a4e@nvidia.com>
+From: Dmitry Osipenko <digetx@gmail.com>
+Message-ID: <6fe375ea-4d8d-5dc2-2d17-c13aa1f46d71@gmail.com>
+Date: Thu, 12 Oct 2017 13:51:00 +0300
 MIME-Version: 1.0
-In-Reply-To: <2dfa08c0c3f289cdde6ea4f751f44ff18c212cf5.1507544011.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <f18b6a72-e255-9aa4-6ebd-852ce1a27a4e@nvidia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/10/17 12:19, Mauro Carvalho Chehab wrote:
-> The v4l2-tpg*.h headers are meant to be used only internally by
-> vivid and vimc. There's no sense keeping them together with the
-> V4L2 kAPI headers. Also, one header includes the other as they're
-> meant to be used together. So, merge them.
+On 12.10.2017 11:49, Jon Hunter wrote:
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Thanks!
-
-	Hans
-
-> ---
->  drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c |  2 +-
->  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c   |  2 +-
->  drivers/media/platform/vimc/vimc-sensor.c       |  2 +-
->  drivers/media/platform/vivid/vivid-core.h       |  2 +-
->  include/media/{ => tpg}/v4l2-tpg.h              | 45 +++++++++++++++-
->  include/media/v4l2-tpg-colors.h                 | 68 -------------------------
->  6 files changed, 48 insertions(+), 73 deletions(-)
->  rename include/media/{ => tpg}/v4l2-tpg.h (93%)
->  delete mode 100644 include/media/v4l2-tpg-colors.h
+> On 11/10/17 21:08, Dmitry Osipenko wrote:
+>> Add a device node for the video decoder engine found on Tegra20.
+>>
+>> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+>> ---
+>>  arch/arm/boot/dts/tegra20.dtsi | 17 +++++++++++++++++
+>>  1 file changed, 17 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/tegra20.dtsi b/arch/arm/boot/dts/tegra20.dtsi
+>> index 7c85f97f72ea..1b5d54b6c0cb 100644
+>> --- a/arch/arm/boot/dts/tegra20.dtsi
+>> +++ b/arch/arm/boot/dts/tegra20.dtsi
+>> @@ -249,6 +249,23 @@
+>>  		*/
+>>  	};
+>>  
+>> +	vde@6001a000 {
+>> +		compatible = "nvidia,tegra20-vde";
+>> +		reg = <0x6001a000 0x3D00    /* VDE registers */
+>> +		       0x40000400 0x3FC00>; /* IRAM region */
+>> +		reg-names = "regs", "iram";
+>> +		interrupts = <GIC_SPI  8 IRQ_TYPE_LEVEL_HIGH>, /* UCQ error interrupt */
+>> +			     <GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
+>> +			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
+>> +			     <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>, /* BSE-A interrupt */
+>> +			     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
+>> +		interrupt-names = "ucq-error", "sync-token", "bsev", "bsea", "sxe";
+>> +		clocks = <&tegra_car TEGRA20_CLK_VDE>;
+>> +		clock-names = "vde";
+>> +		resets = <&tegra_car 61>;
+>> +		reset-names = "vde";
+>> +	};
+>> +
 > 
-> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c
-> index 5b5f95c38fe1..95b26f6a0d54 100644
-> --- a/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c
-> +++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c
-> @@ -36,7 +36,7 @@
->   */
->  
->  #include <linux/videodev2.h>
-> -#include <media/v4l2-tpg-colors.h>
-> +#include <media/tpg/v4l2-tpg.h>
->  
->  /* sRGB colors with range [0-255] */
->  const struct color tpg_colors[TPG_COLOR_MAX] = {
-> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> index a772976cfe26..f218b336a3ac 100644
-> --- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> +++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> @@ -21,7 +21,7 @@
->   */
->  
->  #include <linux/module.h>
-> -#include <media/v4l2-tpg.h>
-> +#include <media/tpg/v4l2-tpg.h>
->  
->  /* Must remain in sync with enum tpg_pattern */
->  const char * const tpg_pattern_strings[] = {
-> diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
-> index 02e68c8fc02b..8d2691817aa5 100644
-> --- a/drivers/media/platform/vimc/vimc-sensor.c
-> +++ b/drivers/media/platform/vimc/vimc-sensor.c
-> @@ -23,7 +23,7 @@
->  #include <linux/v4l2-mediabus.h>
->  #include <linux/vmalloc.h>
->  #include <media/v4l2-subdev.h>
-> -#include <media/v4l2-tpg.h>
-> +#include <media/tpg/v4l2-tpg.h>
->  
->  #include "vimc-common.h"
->  
-> diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-> index 5cdf95bdc4d1..36802947a4b0 100644
-> --- a/drivers/media/platform/vivid/vivid-core.h
-> +++ b/drivers/media/platform/vivid/vivid-core.h
-> @@ -27,7 +27,7 @@
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-dev.h>
->  #include <media/v4l2-ctrls.h>
-> -#include <media/v4l2-tpg.h>
-> +#include <media/tpg/v4l2-tpg.h>
->  #include "vivid-rds-gen.h"
->  #include "vivid-vbi-gen.h"
->  
-> diff --git a/include/media/v4l2-tpg.h b/include/media/tpg/v4l2-tpg.h
-> similarity index 93%
-> rename from include/media/v4l2-tpg.h
-> rename to include/media/tpg/v4l2-tpg.h
-> index 13e49d85cae3..028d81182011 100644
-> --- a/include/media/v4l2-tpg.h
-> +++ b/include/media/tpg/v4l2-tpg.h
-> @@ -26,8 +26,51 @@
->  #include <linux/slab.h>
->  #include <linux/vmalloc.h>
->  #include <linux/videodev2.h>
-> -#include <media/v4l2-tpg-colors.h>
->  
-> +struct color {
-> +	unsigned char r, g, b;
-> +};
-> +
-> +struct color16 {
-> +	int r, g, b;
-> +};
-> +
-> +enum tpg_color {
-> +	TPG_COLOR_CSC_WHITE,
-> +	TPG_COLOR_CSC_YELLOW,
-> +	TPG_COLOR_CSC_CYAN,
-> +	TPG_COLOR_CSC_GREEN,
-> +	TPG_COLOR_CSC_MAGENTA,
-> +	TPG_COLOR_CSC_RED,
-> +	TPG_COLOR_CSC_BLUE,
-> +	TPG_COLOR_CSC_BLACK,
-> +	TPG_COLOR_75_YELLOW,
-> +	TPG_COLOR_75_CYAN,
-> +	TPG_COLOR_75_GREEN,
-> +	TPG_COLOR_75_MAGENTA,
-> +	TPG_COLOR_75_RED,
-> +	TPG_COLOR_75_BLUE,
-> +	TPG_COLOR_100_WHITE,
-> +	TPG_COLOR_100_YELLOW,
-> +	TPG_COLOR_100_CYAN,
-> +	TPG_COLOR_100_GREEN,
-> +	TPG_COLOR_100_MAGENTA,
-> +	TPG_COLOR_100_RED,
-> +	TPG_COLOR_100_BLUE,
-> +	TPG_COLOR_100_BLACK,
-> +	TPG_COLOR_TEXTFG,
-> +	TPG_COLOR_TEXTBG,
-> +	TPG_COLOR_RANDOM,
-> +	TPG_COLOR_RAMP,
-> +	TPG_COLOR_MAX = TPG_COLOR_RAMP + 256
-> +};
-> +
-> +extern const struct color tpg_colors[TPG_COLOR_MAX];
-> +extern const unsigned short tpg_rec709_to_linear[255 * 16 + 1];
-> +extern const unsigned short tpg_linear_to_rec709[255 * 16 + 1];
-> +extern const struct color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1]
-> +					  [V4L2_XFER_FUNC_SMPTE2084 + 1]
-> +					  [TPG_COLOR_CSC_BLACK + 1];
->  enum tpg_pattern {
->  	TPG_PAT_75_COLORBAR,
->  	TPG_PAT_100_COLORBAR,
-> diff --git a/include/media/v4l2-tpg-colors.h b/include/media/v4l2-tpg-colors.h
-> deleted file mode 100644
-> index 2a88d1fae0cd..000000000000
-> --- a/include/media/v4l2-tpg-colors.h
-> +++ /dev/null
-> @@ -1,68 +0,0 @@
-> -/*
-> - * v4l2-tpg-colors.h - Color definitions for the test pattern generator
-> - *
-> - * Copyright 2014 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-> - *
-> - * This program is free software; you may redistribute it and/or modify
-> - * it under the terms of the GNU General Public License as published by
-> - * the Free Software Foundation; version 2 of the License.
-> - *
-> - * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-> - * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-> - * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-> - * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-> - * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-> - * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-> - * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-> - * SOFTWARE.
-> - */
-> -
-> -#ifndef _V4L2_TPG_COLORS_H_
-> -#define _V4L2_TPG_COLORS_H_
-> -
-> -struct color {
-> -	unsigned char r, g, b;
-> -};
-> -
-> -struct color16 {
-> -	int r, g, b;
-> -};
-> -
-> -enum tpg_color {
-> -	TPG_COLOR_CSC_WHITE,
-> -	TPG_COLOR_CSC_YELLOW,
-> -	TPG_COLOR_CSC_CYAN,
-> -	TPG_COLOR_CSC_GREEN,
-> -	TPG_COLOR_CSC_MAGENTA,
-> -	TPG_COLOR_CSC_RED,
-> -	TPG_COLOR_CSC_BLUE,
-> -	TPG_COLOR_CSC_BLACK,
-> -	TPG_COLOR_75_YELLOW,
-> -	TPG_COLOR_75_CYAN,
-> -	TPG_COLOR_75_GREEN,
-> -	TPG_COLOR_75_MAGENTA,
-> -	TPG_COLOR_75_RED,
-> -	TPG_COLOR_75_BLUE,
-> -	TPG_COLOR_100_WHITE,
-> -	TPG_COLOR_100_YELLOW,
-> -	TPG_COLOR_100_CYAN,
-> -	TPG_COLOR_100_GREEN,
-> -	TPG_COLOR_100_MAGENTA,
-> -	TPG_COLOR_100_RED,
-> -	TPG_COLOR_100_BLUE,
-> -	TPG_COLOR_100_BLACK,
-> -	TPG_COLOR_TEXTFG,
-> -	TPG_COLOR_TEXTBG,
-> -	TPG_COLOR_RANDOM,
-> -	TPG_COLOR_RAMP,
-> -	TPG_COLOR_MAX = TPG_COLOR_RAMP + 256
-> -};
-> -
-> -extern const struct color tpg_colors[TPG_COLOR_MAX];
-> -extern const unsigned short tpg_rec709_to_linear[255 * 16 + 1];
-> -extern const unsigned short tpg_linear_to_rec709[255 * 16 + 1];
-> -extern const struct color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1]
-> -					  [V4L2_XFER_FUNC_SMPTE2084 + 1]
-> -					  [TPG_COLOR_CSC_BLACK + 1];
-> -
-> -#endif
+> I don't see any binding documentation for this node. We need to make
+> sure we add this.
 > 
+
+It's in the first patch.
+
++++ b/Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20-vde.txt
