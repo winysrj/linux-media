@@ -1,161 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35699 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753581AbdJQSeL (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39978 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752392AbdJLGUC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 14:34:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-Subject: Re: [PATCH 6/6 v5]  uvcvideo: handle control pipe protocol STALLs
-Date: Tue, 17 Oct 2017 21:34:30 +0300
-Message-ID: <1657168.naMi6CNRro@avalon>
-In-Reply-To: <1501245205-15802-7-git-send-email-g.liakhovetski@gmx.de>
-References: <1501245205-15802-1-git-send-email-g.liakhovetski@gmx.de> <1501245205-15802-7-git-send-email-g.liakhovetski@gmx.de>
+        Thu, 12 Oct 2017 02:20:02 -0400
+Date: Thu, 12 Oct 2017 09:19:57 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: "Zhi, Yong" <yong.zhi@intel.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>,
+        "Vijaykumar, Ramya" <ramya.vijaykumar@intel.com>,
+        "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>
+Subject: Re: [PATCH v5 3/3] intel-ipu3: cio2: Add new MIPI-CSI2 driver
+Message-ID: <20171012061957.tx7buq2y4v45zkif@valkosipuli.retiisi.org.uk>
+References: <1507333141-28242-1-git-send-email-yong.zhi@intel.com>
+ <1507333141-28242-4-git-send-email-yong.zhi@intel.com>
+ <20171010074543.xmqavghypbnv25xr@valkosipuli.retiisi.org.uk>
+ <C193D76D23A22742993887E6D207B54D1AE28D72@ORSMSX106.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <C193D76D23A22742993887E6D207B54D1AE28D72@ORSMSX106.amr.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Yong,
 
-Thank you for the patch.
+One more comment below...
 
-On Friday, 28 July 2017 15:33:25 EEST Guennadi Liakhovetski wrote:
-> When a command ends up in a STALL on the control pipe, use the Request
-> Error Code control to provide a more precise error information to the
-> user.
+On Thu, Oct 12, 2017 at 01:02:54AM +0000, Zhi, Yong wrote:
+...
+> > > +/******* V4L2 sub-device asynchronous registration
+> > callbacks***********/
+> > > +
+> > > +struct sensor_async_subdev {
+> > > +	struct v4l2_async_subdev asd;
+> > > +	struct csi2_bus_info csi2;
+> > > +};
+> > > +
+> > > +static struct cio2_queue *cio2_find_queue_by_sensor_node(struct
+> > cio2_queue *q,
+> > > +						struct fwnode_handle
+> > *fwnode)
+> > > +{
+> > > +	unsigned int i;
+> > > +
+> > > +	for (i = 0; i < CIO2_QUEUES; i++) {
+> > > +		if (q[i].sensor->fwnode == fwnode)
+> > > +			return &q[i];
+> > > +	}
+> > > +
+> > > +	return NULL;
+> > > +}
+> > > +
+> > > +/* The .bound() notifier callback when a match is found */
+> > > +static int cio2_notifier_bound(struct v4l2_async_notifier *notifier,
+> > > +			       struct v4l2_subdev *sd,
+> > > +			       struct v4l2_async_subdev *asd)
+> > > +{
+> > > +	struct cio2_device *cio2 = container_of(notifier,
+> > > +					struct cio2_device, notifier);
+> > > +	struct sensor_async_subdev *s_asd = container_of(asd,
+> > > +					struct sensor_async_subdev, asd);
+> > > +	struct cio2_queue *q;
+> > > +	unsigned int i;
+> > > +
+> > > +
+> > > +	/* Find first free slot for the subdev */
+> > > +	for (i = 0; i < CIO2_QUEUES; i++)
+> > > +		if (!cio2->queue[i].sensor)
+> > > +			break;
+
+The queues are related to sub-devices with the same number in the name,
+whereas the number of the CSI-2 receiver is q->csi2.port. The problem here
+is that the CSI-2 receiver that the sensor appears to be connected is a
+incrementing number from zero onwards, depending on the order in which the
+devices are bound rather than the real number of the receiver.
+
+The easiest way to address this would be to create 1:1 mapping between the
+queues and CSI-2 receivers.
+
+> > > +
+> > > +	if (i >= CIO2_QUEUES) {
+> > > +		dev_err(&cio2->pci_dev->dev, "too many subdevs\n");
+> > > +		return -ENOSPC;
+> > > +	}
+> > > +	q = &cio2->queue[i];
+> > > +
+> > > +	q->csi2 = s_asd->csi2;
+> > > +	q->sensor = sd;
+> > > +	q->csi_rx_base = cio2->base + CIO2_REG_PIPE_BASE(q->csi2.port);
+> > > +
+> > > +	return 0;
+> > > +}
+> > > +
+> > > +/* The .unbind callback */
+> > > +static void cio2_notifier_unbind(struct v4l2_async_notifier *notifier,
+> > > +				 struct v4l2_subdev *sd,
+> > > +				 struct v4l2_async_subdev *asd)
+> > > +{
+> > > +	struct cio2_device *cio2 = container_of(notifier,
+> > > +						struct cio2_device, notifier);
+> > > +	unsigned int i;
+> > > +
+> > > +	/* Note: sd may here point to unallocated memory. Do not access. */
+> > 
+> > That may be the case but the patchset that this driver depends on changes
+> > it. :-) So you can remove the comment.
+> > 
 > 
-> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> ---
->  drivers/media/usb/uvc/uvc_video.c | 59 ++++++++++++++++++++++++++++++++----
->  1 file changed, 53 insertions(+), 6 deletions(-)
+> Ack, will remove.
 > 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index 006691e..887561b 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -34,15 +34,59 @@ static int __uvc_query_ctrl(struct uvc_device *dev, __u8
-> query, __u8 unit, __u8 intfnum, __u8 cs, void *data, __u16 size,
->  			int timeout)
->  {
-> -	__u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE;
-> +	__u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE, tmp, error;
-
-Please don't declare multiple variables per line, especially not after an 
-assignment.
-
->  	unsigned int pipe;
-> +	int ret;
+> > > +	for (i = 0; i < CIO2_QUEUES; i++) {
+> > > +		if (cio2->queue[i].sensor == sd) {
+> > > +			cio2->queue[i].sensor = NULL;
+> > > +			return;
+> > > +		}
+> > > +	}
+> > > +}
+> > > +
+> > > +/* .complete() is called after all subdevices have been located */
+> > > +static int cio2_notifier_complete(struct v4l2_async_notifier *notifier)
+> > > +{
+> > > +	struct cio2_device *cio2 = container_of(notifier, struct cio2_device,
+> > > +						notifier);
+> > > +	struct sensor_async_subdev *s_asd;
+> > > +	struct cio2_queue *q;
+> > > +	unsigned int i, pad;
+> > > +	int ret;
+> > > +
+> > > +	for (i = 0; i < notifier->num_subdevs; i++) {
+> > > +		s_asd = container_of(cio2->notifier.subdevs[i],
+> > > +					struct sensor_async_subdev,
+> > > +					asd);
+> > > +
+> > > +		q = cio2_find_queue_by_sensor_node(
+> > > +						cio2->queue,
+> > > +						s_asd-
+> > >asd.match.fwnode.fwnode);
+> > > +		if (!q) {
+> > > +			dev_err(&cio2->pci_dev->dev,
+> > > +					"failed to find cio2 queue %d\n", ret);
+> > > +			return -ENXIO;
+> > > +		}
+> > > +
+> > > +		for (pad = 0; pad < q->sensor->entity.num_pads; pad++)
+> > > +			if (q->sensor->entity.pads[pad].flags &
+> > > +						MEDIA_PAD_FL_SOURCE)
+> > > +				break;
+> > > +
+> > > +		if (pad == q->sensor->entity.num_pads) {
+> > > +			dev_err(&cio2->pci_dev->dev,
+> > > +				"failed to find src pad for %s\n",
+> > > +				q->sensor->name);
+> > > +			return -ENXIO;
+> > > +		}
+> > > +
+> > > +		ret = media_create_pad_link(
+> > > +				&q->sensor->entity, pad,
+> > > +				&q->subdev.entity, CIO2_PAD_SINK,
+> > > +				0);
+> > > +		if (ret) {
+> > > +			dev_err(&cio2->pci_dev->dev,
+> > > +					"failed to create link for %s\n",
+> > > +					cio2->queue[i].sensor->name);
+> > > +			return ret;
+> > > +		}
+> > > +	}
+> > > +
+> > > +	return v4l2_device_register_subdev_nodes(&cio2->v4l2_dev);
+> > > +}
+> > > +
+> > > +static const struct v4l2_async_notifier_operations cio2_async_ops = {
+> > > +	.bound = cio2_notifier_bound,
+> > > +	.unbind = cio2_notifier_unbind,
+> > > +	.complete = cio2_notifier_complete,
+> > > +};
+> > > +
+> > > +static int cio2_fwnode_parse(struct device *dev,
+> > > +			     struct v4l2_fwnode_endpoint *vep,
+> > > +			     struct v4l2_async_subdev *asd)
+> > > +{
+> > > +	struct sensor_async_subdev *s_asd =
+> > > +			container_of(asd, struct sensor_async_subdev, asd);
+> > > +
+> > > +	if (vep->bus_type != V4L2_MBUS_CSI2) {
+> > > +		dev_err(dev, "endpoint bus type error\n");
+> > > +		return -EINVAL;
+> > > +	}
+> > > +
+> > > +	s_asd->csi2.port = vep->base.port;
+> > > +	s_asd->csi2.lanes = vep->bus.mipi_csi2.num_data_lanes;
+> > > +
+> > > +	return 0;
+> > > +}
+> > > +
+> > > +static int cio2_notifier_init(struct cio2_device *cio2)
+> > > +{
+> > > +	int ret;
+> > > +
+> > > +	ret = v4l2_async_notifier_parse_fwnode_endpoints(
+> > > +		&cio2->pci_dev->dev, &cio2->notifier,
+> > > +		sizeof(struct sensor_async_subdev),
+> > > +		cio2_fwnode_parse);
+> > > +	if (ret < 0)
+> > > +		return ret;
+> > > +
+> > > +	if (!cio2->notifier.num_subdevs)
+> > > +		return 0;	/* no endpoint */
+> > 
+> > You could make this an error as well: there device won't do anything in
+> > that case anyway. -ENODEV, perhaps.
+> > 
 > 
->  	pipe = (query & 0x80) ? usb_rcvctrlpipe(dev->udev, 0)
->  			      : usb_sndctrlpipe(dev->udev, 0);
->  	type |= (query & 0x80) ? USB_DIR_IN : USB_DIR_OUT;
+> Ack.
 > 
-> -	return usb_control_msg(dev->udev, pipe, query, type, cs << 8,
-> +	ret = usb_control_msg(dev->udev, pipe, query, type, cs << 8,
->  			unit << 8 | intfnum, data, size, timeout);
-> +
-
-No need for a blank line here.
-
-> +	if (ret != -EPIPE)
-> +		return ret;
-> +
-> +	tmp = *(u8 *)data;
-
-Ouch, borrowing the passed data buffer sounds error-prone :-/ Wouldn't it be 
-better to kmalloc a buffer on demand, or possible allocate one in the 
-uvc_device structure and serialize the following code ? As it should be 
-invoked very infrequently that might not be a big issue.
-
-> +	pipe = usb_rcvctrlpipe(dev->udev, 0);
-> +	type = USB_TYPE_CLASS | USB_RECIP_INTERFACE | USB_DIR_IN;
-> +	ret = usb_control_msg(dev->udev, pipe, UVC_GET_CUR, type,
-> +			      UVC_VC_REQUEST_ERROR_CODE_CONTROL << 8,
-> +			      unit << 8 | intfnum, data, 1, timeout);
-> +	error = *(u8 *)data;
-> +	*(u8 *)data = tmp;
-> +
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	if (!ret)
-> +		return -EINVAL;
-> +
-> +	uvc_trace(UVC_TRACE_CONTROL, "Control error %u\n", error);
-> +
-> +	switch (error) {
-> +	case 0:
-> +		/* Cannot happen - we received a STALL */
-> +		return -EPIPE;
-> +	case 1: /* Not ready */
-> +		return -EAGAIN;
-> +	case 2: /* Wrong state */
-> +		return -EILSEQ;
-> +	case 3: /* Power */
-> +		return -EREMOTE;
-> +	case 4: /* Out of range */
-> +		return -ERANGE;
-> +	case 5: /* Invalid unit */
-> +	case 6: /* Invalid control */
-> +	case 7: /* Invalid Request */
-> +	case 8: /* Invalid value within range */
-> +	default: /* reserved or unknown */
-> +		break;
-> +	}
-> +
-> +	return -EINVAL;
-
-You can move this line to the default case.
-
-What's your use case for this patch ? What error do you need to report, who do 
-you report it to, and how is it handled ?
-
->  }
-> 
->  static const char *uvc_query_name(__u8 query)
-> @@ -80,7 +124,7 @@ int uvc_query_ctrl(struct uvc_device *dev, __u8 query,
-> __u8 unit, uvc_printk(KERN_ERR, "Failed to query (%s) UVC control %u on "
->  			"unit %u: %d (exp. %u).\n", uvc_query_name(query), cs,
->  			unit, ret, size);
-> -		return -EIO;
-> +		return ret < 0 ? ret : -EIO;
->  	}
-> 
->  	return 0;
-> @@ -203,13 +247,15 @@ static int uvc_get_video_ctrl(struct uvc_streaming
-> *stream, uvc_warn_once(stream->dev, UVC_WARN_PROBE_DEF, "UVC non "
->  			"compliance - GET_DEF(PROBE) not supported. "
->  			"Enabling workaround.\n");
-> -		ret = -EIO;
-> +		if (ret >= 0)
-> +			ret = -EIO;
->  		goto out;
->  	} else if (ret != size) {
->  		uvc_printk(KERN_ERR, "Failed to query (%u) UVC %s control : "
->  			"%d (exp. %u).\n", query, probe ? "probe" : "commit",
->  			ret, size);
-> -		ret = -EIO;
-> +		if (ret >= 0)
-> +			ret = -EIO;
->  		goto out;
->  	}
-> 
-> @@ -290,7 +336,8 @@ static int uvc_set_video_ctrl(struct uvc_streaming
-> *stream, uvc_printk(KERN_ERR, "Failed to set UVC %s control : "
->  			"%d (exp. %u).\n", probe ? "probe" : "commit",
->  			ret, size);
-> -		ret = -EIO;
-> +		if (ret >= 0)
-> +			ret = -EIO;
->  	}
-> 
->  	kfree(data);
+> > > +
+> > > +	cio2->notifier.ops = &cio2_async_ops;
+> > > +	ret = v4l2_async_notifier_register(&cio2->v4l2_dev, &cio2->notifier);
+> > > +	if (ret) {
+> > > +		dev_err(&cio2->pci_dev->dev,
+> > > +			"failed to register async notifier : %d\n", ret);
+> > > +		goto error;
+> > > +	}
+> > > +
+> > > +	return 0;
+> > > +
+> > > +error:
+> > > +	v4l2_async_notifier_cleanup(&cio2->notifier);
+> > > +
+> > > +	return ret;
+> > > +}
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
