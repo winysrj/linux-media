@@ -1,115 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:53531 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932315AbdJZPjc (ORCPT
+Received: from lelnx194.ext.ti.com ([198.47.27.80]:15171 "EHLO
+        lelnx194.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752744AbdJLT1d (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Oct 2017 11:39:32 -0400
-Received: by mail-lf0-f68.google.com with SMTP id l23so4223812lfk.10
-        for <linux-media@vger.kernel.org>; Thu, 26 Oct 2017 08:39:31 -0700 (PDT)
-Date: Thu, 26 Oct 2017 17:39:30 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v16 06/32] v4l: async: Use more intuitive names for
- internal functions
-Message-ID: <20171026153930.GE2297@bigcity.dyn.berto.se>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-7-sakari.ailus@linux.intel.com>
+        Thu, 12 Oct 2017 15:27:33 -0400
+From: Benoit Parrot <bparrot@ti.com>
+To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>,
+        Rob Herring <robh+dt@kernel.org>
+CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Benoit Parrot <bparrot@ti.com>
+Subject: [Patch 2/6] ARM: DRA7: hwmod: Add CAL nodes
+Date: Thu, 12 Oct 2017 14:27:15 -0500
+Message-ID: <20171012192719.15193-3-bparrot@ti.com>
+In-Reply-To: <20171012192719.15193-1-bparrot@ti.com>
+References: <20171012192719.15193-1-bparrot@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171026075342.5760-7-sakari.ailus@linux.intel.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2017-10-26 10:53:16 +0300, Sakari Ailus wrote:
-> Rename internal functions to make the names of the functions better
-> describe what they do.
-> 
-> 	Old name			New name
-> 	v4l2_async_test_notify	v4l2_async_match_notify
-> 	v4l2_async_belongs	v4l2_async_find_match
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+This patch adds the required hwmod nodes to support the Camera
+Adaptation Layer (CAL) for the DRA72 family of devices.
 
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+- Added CAL hwmod entry in the DRA72x section.
 
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 19 ++++++++++---------
->  1 file changed, 10 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index cde2cf2ab4b0..8b84fea50c2a 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -60,8 +60,8 @@ static LIST_HEAD(subdev_list);
->  static LIST_HEAD(notifier_list);
->  static DEFINE_MUTEX(list_lock);
->  
-> -static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
-> -						    struct v4l2_subdev *sd)
-> +static struct v4l2_async_subdev *v4l2_async_find_match(
-> +	struct v4l2_async_notifier *notifier, struct v4l2_subdev *sd)
->  {
->  	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
->  	struct v4l2_async_subdev *asd;
-> @@ -95,9 +95,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
->  	return NULL;
->  }
->  
-> -static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
-> -				  struct v4l2_subdev *sd,
-> -				  struct v4l2_async_subdev *asd)
-> +static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-> +				   struct v4l2_subdev *sd,
-> +				   struct v4l2_async_subdev *asd)
->  {
->  	int ret;
->  
-> @@ -187,11 +187,11 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
->  		int ret;
->  
-> -		asd = v4l2_async_belongs(notifier, sd);
-> +		asd = v4l2_async_find_match(notifier, sd);
->  		if (!asd)
->  			continue;
->  
-> -		ret = v4l2_async_test_notify(notifier, sd, asd);
-> +		ret = v4l2_async_match_notify(notifier, sd, asd);
->  		if (ret < 0) {
->  			mutex_unlock(&list_lock);
->  			return ret;
-> @@ -255,13 +255,14 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  	INIT_LIST_HEAD(&sd->async_list);
->  
->  	list_for_each_entry(notifier, &notifier_list, list) {
-> -		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
-> +		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
-> +								      sd);
->  		int ret;
->  
->  		if (!asd)
->  			continue;
->  
-> -		ret = v4l2_async_test_notify(notifier, sd, asd);
-> +		ret = v4l2_async_match_notify(notifier, sd, asd);
->  		if (ret)
->  			goto err_unlock;
->  
-> -- 
-> 2.11.0
-> 
+The DRA72x TRM (Literature Number SPRUHP2x) states that CAL only
+support NO_IDLE, FORCE_IDLE and SMART_IDLE.
+Although CAL does not support standby mode per se hwmod would not
+enabled the functional/interface clock if module is not a master.
+Hence the SWSUP mode flags ifor SIDLE ans MSTANDBY are also enabled.
+This ensure that i/f clocks are available when CAL is enabled.
 
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 44 +++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 2f4f7002f38d..fc53b498975c 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -240,6 +240,41 @@ static struct omap_hwmod dra7xx_bb2d_hwmod = {
+ };
+ 
+ /*
++ * 'cal' class
++ *
++ */
++
++static struct omap_hwmod_class_sysconfig dra7xx_cal_sysc = {
++	.sysc_offs	= 0x0010,
++	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_RESET_STATUS |
++			   SYSC_HAS_SOFTRESET | SYSC_HAS_MIDLEMODE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++			   MSTANDBY_FORCE | MSTANDBY_NO),
++	.sysc_fields	= &omap_hwmod_sysc_type2,
++};
++
++static struct omap_hwmod_class dra7xx_cal_hwmod_class = {
++	.name	= "cal",
++	.sysc	= &dra7xx_cal_sysc,
++};
++
++/* cal */
++static struct omap_hwmod dra7xx_cal_hwmod = {
++	.name		= "cal",
++	.class		= &dra7xx_cal_hwmod_class,
++	.clkdm_name	= "cam_clkdm",
++	.main_clk	= "vip2_gclk_mux",
++	.flags		= (HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY),
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_CAM_VIP2_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_CAM_VIP2_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_HWCTRL,
++		},
++	},
++};
++
++/*
+  * 'counter' class
+  *
+  */
+@@ -3901,6 +3936,14 @@ static struct omap_hwmod_ocp_if dra7xx_l4_per2__vcp2 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* l4_per3 -> cal */
++static struct omap_hwmod_ocp_if dra7xx_l4_per3__cal = {
++	.master		= &dra7xx_l4_per3_hwmod,
++	.slave		= &dra7xx_cal_hwmod,
++	.clk		= "l3_iclk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* l4_wkup -> wd_timer2 */
+ static struct omap_hwmod_ocp_if dra7xx_l4_wkup__wd_timer2 = {
+ 	.master		= &dra7xx_l4_wkup_hwmod,
+@@ -4082,6 +4125,7 @@ static struct omap_hwmod_ocp_if *dra74x_hwmod_ocp_ifs[] __initdata = {
+ };
+ 
+ static struct omap_hwmod_ocp_if *dra72x_hwmod_ocp_ifs[] __initdata = {
++	&dra7xx_l4_per3__cal,
+ 	NULL,
+ };
+ 
 -- 
-Regards,
-Niklas Söderlund
+2.9.0
