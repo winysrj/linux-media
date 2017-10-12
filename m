@@ -1,109 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60248 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750718AbdJKV0q (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:43363 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750716AbdJLEDQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Oct 2017 17:26:46 -0400
-Date: Wed, 11 Oct 2017 23:26:44 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Mats Randgaard <matrandg@cisco.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Benoit Parrot <bparrot@ti.com>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Petr Cvek <petr.cvek@tul.cz>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Rob Herring <robh@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Sebastian Reichel <sre@kernel.org>,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 04/24] media: v4l2-mediabus: convert flags to enums and
- document them
-Message-ID: <20171011212644.GB32314@amd>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
- <8d351f92fb18148b4d53acdc7f7c8fb0e9f537d9.1507544011.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="0eh6TmSyL6TZE2Uz"
-Content-Disposition: inline
-In-Reply-To: <8d351f92fb18148b4d53acdc7f7c8fb0e9f537d9.1507544011.git.mchehab@s-opensource.com>
+        Thu, 12 Oct 2017 00:03:16 -0400
+Message-ID: <be9cfc098ff6ece2cca2f21d1688a219@smtp-cloud9.xs4all.net>
+Date: Thu, 12 Oct 2017 06:03:13 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---0eh6TmSyL6TZE2Uz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Results of the daily build of media_tree:
 
-On Mon 2017-10-09 07:19:10, Mauro Carvalho Chehab wrote:
-> There is a mess with media bus flags: there are two sets of
-> flags, one used by parallel and ITU-R BT.656 outputs,
-> and another one for CSI2.
->=20
-> Depending on the type, the same bit has different meanings.
->=20
+date:			Thu Oct 12 05:00:16 CEST 2017
+media-tree git hash:	8382e556b1a2f30c4bf866f021b33577a64f9ebf
+media_build git hash:	33629e38ddda7a5a6ed0f727535c45f08c788bf3
+v4l-utils git hash:	01c04f7c8ad1a91af33e20621eba9200f447737e
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-> @@ -86,11 +125,22 @@ enum v4l2_mbus_type {
->  /**
->   * struct v4l2_mbus_config - media bus configuration
->   * @type:	in: interface type
-> - * @flags:	in / out: configuration flags, depending on @type
-> + * @pb_flags:	in / out: configuration flags, if @type is
-> + *		%V4L2_MBUS_PARALLEL or %V4L2_MBUS_BT656.
-> + * @csi2_flags:	in / out: configuration flags, if @type is
-> + *		%V4L2_MBUS_CSI2.
-> + * @flag:	access flags, no matter the @type.
-> + *		Used just to avoid needing to rewrite the logic inside
-> + *		soc_camera and pxa_camera drivers. Don't use on newer
-> + * 		drivers!
->   */
->  struct v4l2_mbus_config {
->  	enum v4l2_mbus_type type;
-> -	unsigned int flags;
-> +	union {
-> +		enum v4l2_mbus_parallel_and_bt656_flags	pb_flags;
-> +		enum v4l2_mbus_csi2_flags		csi2_flags;
-> +		unsigned int				flag;
-> +	};
->  };
-> =20
->  static inline void v4l2_fill_pix_format(struct v4l2_pix_format
->  *pix_fmt,
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: OK
+spec-git: OK
 
-The flags->flag conversion is quite subtle, and "flag" is confusing
-because there is more than one inside. What about something like
-__legacy_flags?
+Detailed results are available here:
 
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
---0eh6TmSyL6TZE2Uz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Full logs are available here:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-iEYEARECAAYFAlnejJQACgkQMOfwapXb+vL1ngCfSJfjpkYdLKbCx9x4YXgpGmoX
-nLQAn3G4E0g7OK73fDvk/torTdpsYPBp
-=i6Pt
------END PGP SIGNATURE-----
+The Media Infrastructure API from this daily build is here:
 
---0eh6TmSyL6TZE2Uz--
+http://www.xs4all.nl/~hverkuil/spec/index.html
