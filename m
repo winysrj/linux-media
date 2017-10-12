@@ -1,103 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:34035 "EHLO gofer.mess.org"
+Received: from gofer.mess.org ([88.97.38.141]:35713 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751666AbdJ2U6X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Oct 2017 16:58:23 -0400
+        id S1751458AbdJLMZ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Oct 2017 08:25:59 -0400
+Date: Thu, 12 Oct 2017 13:25:57 +0100
 From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 01/28] media: rc: i2c: set parent of rc device and improve name
-Date: Sun, 29 Oct 2017 20:58:21 +0000
-Message-Id: <035cee19aef712aa088427d169c39b9a7b6bc5ae.1509309834.git.sean@mess.org>
-In-Reply-To: <cover.1509309834.git.sean@mess.org>
-References: <cover.1509309834.git.sean@mess.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Andy Walls <awalls.cx18@gmail.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3 04/26] media: lirc_zilog: remove receiver
+Message-ID: <20171012122557.4hvg6qfje2u7ef5o@gofer.mess.org>
+References: <cover.1507618840.git.sean@mess.org>
+ <176506027db4255239dc8ce192dc6652af75bd52.1507618840.git.sean@mess.org>
+ <1507750996.2479.11.camel@gmail.com>
+ <20171011210237.bpbfuhpf7om26ldi@gofer.mess.org>
+ <0D74D058-EE11-4BFF-974C-16DB6910D2CF@gmail.com>
+ <CAGoCfixQ6uLwbs7pQv5SzNkhP_Au18WrdNnM=Odi4JpbAn174w@mail.gmail.com>
+ <1507769407.2736.10.camel@gmail.com>
+ <CAGoCfiyfEHqrNqQP6eiJ58rpMBasezwbS23N5bqcrSVv8P760Q@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAGoCfiyfEHqrNqQP6eiJ58rpMBasezwbS23N5bqcrSVv8P760Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With the parent set for the rc device, the messages clearly state
-that it is attached via i2c. The additional printk is unnecessary.
+Hi Devin, Andy,
 
-So these are the old messages:
+On Wed, Oct 11, 2017 at 10:25:34PM -0400, Devin Heitmueller wrote:
+> Hi Andy,
+> 
+> > 5. Rx and IR Learn both use the same external hardware.  Not
+> > coordinating Rx with Learn mode in the same driver, will prevent Learn
+> > operation from working.  That is, if Learn mode is ever implemented.
+> > (Once upon a time, I was planning on doing that.  But I have no time
+> > for that anymore.)
+> 
+> There's not really any infrastructure in Linux that maps to the
+> Zilog's "learning mode" functionality.  Usually I would just tell
+> users to do the learning under Windows and send me the resulting .ini
+> file (which we could then add to the database).
+> 
+> I had planned on getting rid of the database entirely and just
+> converting an MCE compatible pulse train to the blasting format
+> required by the Zilog firmware (using the awesome work you sent me
+> privately), but the fact of the matter is that nobody cares and MCEUSB
+> devices are $20 online.
 
-rc rc1: i2c IR (Hauppauge WinTV PVR-150 as /devices/virtual/rc/rc1
-ir-kbd-i2c: i2c IR (Hauppauge WinTV PVR-150 detected at i2c-10/10-0071/ir0 [ivtv i2c driver #0]
+I wouldn't mind working on that, if I had the blasting format. :)
 
-Now we simply get:
+Note that you can have IR Rx and Tx on a gpio port, so it can get even
+cheaper than $20. The hauppauge solution with a z8 microcontroller
+with it's non-obvious firmware and i2c format seem a bit ludricous.
 
-rc rc1: Hauppauge WinTV PVR-150 as /devices/pci0000:00/0000:00:1e.0/0000:02:00.0/i2c-10/10-0071/rc/rc1
+> > I'm glad someone remembers all this stuff.  I'm assuming you had more
+> > pain with this than I ever did.
+> 
+> This would be a safe assumption.  I probably put about a month's worth
+> of engineering into driver work for the Zilog, which seems
+> extraordinary given how simple something like an IR blaster/receiver
+> is supposed to be.  I guess that's the fun of proving out a new
+> hardware design as opposed to just making something work under Linux
+> that is already known to work under Windows.
+> 
+> > I never owned an HD-PVR.
+> 
+> I'm sure I have a spare or two if you really want one (not that you
+> have the time to muck with such things nowadays).  :-)
+> 
+> The HD-PVR was a bit of a weird case compared to devices like ivtv and
+> cx18 because it was technically multi-master (I2C commands came both
+> from the host and from the onboard SOC).  Hence you could have weird
+> cases where one would block the other at unexpected times.  I2C
+> commands to the Zilog would hold the bus which would delay the onboard
+> firmware from issuing commands to the video decoder (fun timing
+> issues).  There was also some weird edge case I don't recall the
+> details of that prompted them to add an I2C gate in later board
+> revisions.
 
-Note that we no longer copy the name. I've checked all call sites
-to verfiy this is not a problem.
+Interesting.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/i2c/ir-kbd-i2c.c            | 11 +++--------
- drivers/media/pci/saa7134/saa7134-input.c |  3 ++-
- include/media/i2c/ir-kbd-i2c.h            |  1 -
- 3 files changed, 5 insertions(+), 10 deletions(-)
+Thanks
 
-diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
-index 8b5f7d0435e4..27e36f45286c 100644
---- a/drivers/media/i2c/ir-kbd-i2c.c
-+++ b/drivers/media/i2c/ir-kbd-i2c.c
-@@ -439,12 +439,9 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		goto err_out_free;
- 	}
- 
--	/* Sets name */
--	snprintf(ir->name, sizeof(ir->name), "i2c IR (%s)", name);
- 	ir->ir_codes = ir_codes;
- 
--	snprintf(ir->phys, sizeof(ir->phys), "%s/%s/ir0",
--		 dev_name(&adap->dev),
-+	snprintf(ir->phys, sizeof(ir->phys), "%s/%s", dev_name(&adap->dev),
- 		 dev_name(&client->dev));
- 
- 	/*
-@@ -453,7 +450,8 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	 */
- 	rc->input_id.bustype = BUS_I2C;
- 	rc->input_phys       = ir->phys;
--	rc->device_name	     = ir->name;
-+	rc->device_name	     = name;
-+	rc->dev.parent       = &client->dev;
- 
- 	/*
- 	 * Initialize the other fields of rc_dev
-@@ -467,9 +465,6 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	if (err)
- 		goto err_out_free;
- 
--	printk(MODULE_NAME ": %s detected at %s [%s]\n",
--	       ir->name, ir->phys, adap->name);
--
- 	/* start polling via eventd */
- 	INIT_DELAYED_WORK(&ir->work, ir_work);
- 	schedule_delayed_work(&ir->work, 0);
-diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
-index 9337e4615519..965098e74c64 100644
---- a/drivers/media/pci/saa7134/saa7134-input.c
-+++ b/drivers/media/pci/saa7134/saa7134-input.c
-@@ -43,7 +43,8 @@ MODULE_PARM_DESC(pinnacle_remote, "Specify Pinnacle PCTV remote: 0=coloured, 1=g
- 	} while (0)
- #define ir_dbg(ir, fmt, arg...) do { \
- 	if (ir_debug) \
--		printk(KERN_DEBUG pr_fmt("ir %s: " fmt), ir->name, ## arg); \
-+		printk(KERN_DEBUG pr_fmt("ir %s: " fmt), ir->rc->device_name, \
-+		       ## arg); \
- 	} while (0)
- 
- /* Helper function for raw decoding at GPIO16 or GPIO18 */
-diff --git a/include/media/i2c/ir-kbd-i2c.h b/include/media/i2c/ir-kbd-i2c.h
-index ac8c55617a79..092ab44da7e0 100644
---- a/include/media/i2c/ir-kbd-i2c.h
-+++ b/include/media/i2c/ir-kbd-i2c.h
-@@ -18,7 +18,6 @@ struct IR_i2c {
- 	u32                    polling_interval; /* in ms */
- 
- 	struct delayed_work    work;
--	char                   name[32];
- 	char                   phys[32];
- 	int                    (*get_key)(struct IR_i2c *ir,
- 					  enum rc_proto *protocol,
--- 
-2.13.6
+Sean
