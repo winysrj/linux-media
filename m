@@ -1,85 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:32810 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751550AbdJIJEc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Oct 2017 05:04:32 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        Jacob Chen <jacob-chen@iotwrt.com>
-Subject: [PATCH v11 0/4] Add Rockchip RGA V4l2 support
-Date: Mon,  9 Oct 2017 17:04:20 +0800
-Message-Id: <20171009090424.15292-1-jacob-chen@iotwrt.com>
+Received: from lelnx194.ext.ti.com ([198.47.27.80]:16099 "EHLO
+        lelnx194.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753048AbdJMR7q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 13:59:46 -0400
+Date: Fri, 13 Oct 2017 12:59:43 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+CC: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>, <linux-media@vger.kernel.org>
+Subject: Re: [Patch 3/6] ARM: OMAP: DRA7xx: Make CAM clock domain SWSUP only
+Message-ID: <20171013175942.GH25400@ti.com>
+References: <20171012192719.15193-1-bparrot@ti.com>
+ <20171012192719.15193-4-bparrot@ti.com>
+ <20171013170113.GL4394@atomide.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20171013170113.GL4394@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-change in V11:
-- fix compile warning
+Tony Lindgren <tony@atomide.com> wrote on Fri [2017-Oct-13 10:01:13 -0700]:
+> * Benoit Parrot <bparrot@ti.com> [171012 12:29]:
+> > HWSUP on this domain is only working when VIP1 probes.
+> > If only VIP2 on DRA74x or CAL on DRA72x probes the domain does
+> > not get enabled. This might indicates an issue in the HW Auto
+> > state-machine for this domain.
+> >
+> > Work around is to set the CAM domain to use SWSUP only.
+> 
+> Hmm this you might get fixed automatically by configuring the
+> parent interconnect target module to use "ti,sysc-omap4" and
+> adding VIP1 and VIP2 as children to it.
+> 
+> The reason why I suspect it will fix the issue is because
+> with the parent being "ti,sysc-omap4" with "ti,hwmods" being
+> in that parent node too, you automatically get PM runtime
+> refcounting keep the parent active for either child.
+> 
+> Maybe give it a try against today's Linux next and see for
+> example how it was done for musb:
+> 
+> https://patchwork.kernel.org/patch/9978783/
+> 
+> Just use "ti,sysc-omap2" for type1 and "ti,sysc-omap4"
+> for type2.
 
-change in V10:
-- move to rockchip/rga
-- changes according to comments
-- some style changes
+Hmm interesting, I'll give that a try and if it fixes it.
 
-change in V9:
-- remove protduff things
-- test with the latest v4l2-compliance
+Benoit
 
-change in V8:
-- remove protduff things
-
-change in V6,V7:
-- correct warning in checkpatch.pl
-
-change in V5:
-- v4l2-compliance: handle invalid pxielformat
-- v4l2-compliance: add subscribe_event
-- add colorspace support
-
-change in V4:
-- document the controls.
-- change according to Hans's comments
-
-change in V3:
-- rename the controls.
-- add pm_runtime support.
-- enable node by default.
-- correct spelling in documents.
-
-change in V2:
-- generalize the controls.
-- map buffers (10-50 us) in every cmd-run rather than in buffer-import to avoid get_free_pages failed on
-actively used systems.
-- remove status in dt-bindings examples.
-
-Jacob Chen (4):
-  rockchip/rga: v4l2 m2m support
-  ARM: dts: rockchip: add RGA device node for RK3288
-  arm64: dts: rockchip: add RGA device node for RK3399
-  dt-bindings: Document the Rockchip RGA bindings
-
- .../devicetree/bindings/media/rockchip-rga.txt     |   33 +
- arch/arm/boot/dts/rk3288.dtsi                      |   11 +
- arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   11 +
- drivers/media/platform/Kconfig                     |   15 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/rockchip/rga/Makefile       |    3 +
- drivers/media/platform/rockchip/rga/rga-buf.c      |  154 +++
- drivers/media/platform/rockchip/rga/rga-hw.c       |  421 ++++++++
- drivers/media/platform/rockchip/rga/rga-hw.h       |  437 +++++++++
- drivers/media/platform/rockchip/rga/rga.c          | 1012 ++++++++++++++++++++
- drivers/media/platform/rockchip/rga/rga.h          |  123 +++
- 11 files changed, 2222 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
- create mode 100644 drivers/media/platform/rockchip/rga/Makefile
- create mode 100644 drivers/media/platform/rockchip/rga/rga-buf.c
- create mode 100644 drivers/media/platform/rockchip/rga/rga-hw.c
- create mode 100644 drivers/media/platform/rockchip/rga/rga-hw.h
- create mode 100644 drivers/media/platform/rockchip/rga/rga.c
- create mode 100644 drivers/media/platform/rockchip/rga/rga.h
-
--- 
-2.14.1
+> 
+> Regards,
+> 
+> Tony
