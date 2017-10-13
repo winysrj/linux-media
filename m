@@ -1,53 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:44662 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751259AbdJDQ5K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 12:57:10 -0400
-Date: Wed, 4 Oct 2017 13:56:51 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, sean@mess.org
-Subject: Re: [PATCH 07/19] lirc_dev: remove kmalloc in lirc_dev_fop_read()
-Message-ID: <20171004135558.53df2b1d@recife.lan>
-In-Reply-To: <149839391031.28811.5094791739782133013.stgit@zeus.hardeman.nu>
-References: <149839373103.28811.9486751698665303339.stgit@zeus.hardeman.nu>
-        <149839391031.28811.5094791739782133013.stgit@zeus.hardeman.nu>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:39983 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756156AbdJMLWm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 07:22:42 -0400
+Subject: Re: [GIT PULL FOR v4.15] Rockchip RGA driver
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Jacob Chen <jacob-chen@iotwrt.com>,
+        =?UTF-8?Q?Heiko_St=c3=bcbner?= <heiko@sntech.de>
+References: <a7c9c661-9820-7b45-c9fd-b1b7abd0b6eb@xs4all.nl>
+Message-ID: <ea109e0c-4b05-0721-8d7a-646696dd7efd@xs4all.nl>
+Date: Fri, 13 Oct 2017 13:22:38 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <a7c9c661-9820-7b45-c9fd-b1b7abd0b6eb@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 25 Jun 2017 14:31:50 +0200
-David Härdeman <david@hardeman.nu> escreveu:
-
-> lirc_zilog uses a chunk_size of 2 and ir-lirc-codec uses sizeof(int).
+On 10/13/17 13:20, Hans Verkuil wrote:
+> Hi Mauro,
 > 
-> Therefore, using stack memory should be perfectly fine.
+> Here is the new Rockchip RGA driver.
+
+Forgot to mention: Heiko will pick up the dts patches (not included in this
+pull request) once this is merged for 4.15.
+
+Regards,
+
+	Hans
+
 > 
-> Signed-off-by: David Härdeman <david@hardeman.nu>
-> ---
->  drivers/media/rc/lirc_dev.c |    8 +-------
->  1 file changed, 1 insertion(+), 7 deletions(-)
+> Regards,
 > 
-> diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-> index 1773a2934484..92048d945ba7 100644
-> --- a/drivers/media/rc/lirc_dev.c
-> +++ b/drivers/media/rc/lirc_dev.c
-> @@ -376,7 +376,7 @@ ssize_t lirc_dev_fop_read(struct file *file,
->  			  loff_t *ppos)
->  {
->  	struct irctl *ir = file->private_data;
-> -	unsigned char *buf;
-> +	unsigned char buf[ir->buf->chunk_size];
-
-No. We don't do dynamic buffer allocation on stak at the Kernel,
-as this could cause the Linux stack to overflow without notice.
-
-This should also generate alerts on static code analyzers like
-sparse.
-
-I'll drop this patch from the series.
-
-Thanks,
-Mauro
+> 	Hans
+> 
+> The following changes since commit 8382e556b1a2f30c4bf866f021b33577a64f9ebf:
+> 
+>   Simplify major/minor non-dynamic logic (2017-10-11 15:32:11 -0400)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git rga
+> 
+> for you to fetch changes up to 90218215bd095b0fa53fa928e4ce40a5861474d3:
+> 
+>   MAINTAINERS: add entry for Rockchip RGA driver (2017-10-13 12:30:01 +0200)
+> 
+> ----------------------------------------------------------------
+> Jacob Chen (3):
+>       dt-bindings: Document the Rockchip RGA bindings
+>       rockchip/rga: v4l2 m2m support
+>       MAINTAINERS: add entry for Rockchip RGA driver
+> 
+>  Documentation/devicetree/bindings/media/rockchip-rga.txt |   33 ++
+>  MAINTAINERS                                              |    7 +
+>  drivers/media/platform/Kconfig                           |   15 +
+>  drivers/media/platform/Makefile                          |    2 +
+>  drivers/media/platform/rockchip/rga/Makefile             |    3 +
+>  drivers/media/platform/rockchip/rga/rga-buf.c            |  154 ++++++++
+>  drivers/media/platform/rockchip/rga/rga-hw.c             |  421 +++++++++++++++++++++
+>  drivers/media/platform/rockchip/rga/rga-hw.h             |  437 ++++++++++++++++++++++
+>  drivers/media/platform/rockchip/rga/rga.c                | 1012 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/media/platform/rockchip/rga/rga.h                |  125 +++++++
+>  10 files changed, 2209 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
+>  create mode 100644 drivers/media/platform/rockchip/rga/Makefile
+>  create mode 100644 drivers/media/platform/rockchip/rga/rga-buf.c
+>  create mode 100644 drivers/media/platform/rockchip/rga/rga-hw.c
+>  create mode 100644 drivers/media/platform/rockchip/rga/rga-hw.h
+>  create mode 100644 drivers/media/platform/rockchip/rga/rga.c
+>  create mode 100644 drivers/media/platform/rockchip/rga/rga.h
+> 
