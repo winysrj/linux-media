@@ -1,66 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:36113 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932209AbdJ3Vv6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Oct 2017 17:51:58 -0400
-Subject: Re: [PATCH 0/2] Fix s5p-mfc lock contention in request firmware paths
-To: Marian Mihailescu <marian.mihailescu@adelaide.edu.au>
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        Andrzej Hajda <a.hajda@samsung.com>, mchehab@kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
-References: <cover.1507325072.git.shuahkh@osg.samsung.com>
- <354e3c31-e502-5ba6-d705-9d67764e78bf@osg.samsung.com>
- <CAM3PiRzS966v=pWRq641sFF-Kg5wHc6fH524CQKusURNfcD0ew@mail.gmail.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <b61035e1-cf27-2949-4c3f-1e5755e44670@osg.samsung.com>
-Date: Mon, 30 Oct 2017 15:51:49 -0600
+Received: from lelnx193.ext.ti.com ([198.47.27.77]:37162 "EHLO
+        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751543AbdJMSFi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 14:05:38 -0400
+Date: Fri, 13 Oct 2017 13:05:34 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+CC: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>, <linux-media@vger.kernel.org>
+Subject: Re: [Patch 5/6] ARM: DRA7: hwmod: Add VPE nodes
+Message-ID: <20171013180534.GI25400@ti.com>
+References: <20171012192719.15193-1-bparrot@ti.com>
+ <20171012192719.15193-6-bparrot@ti.com>
+ <20171013170513.GM4394@atomide.com>
 MIME-Version: 1.0
-In-Reply-To: <CAM3PiRzS966v=pWRq641sFF-Kg5wHc6fH524CQKusURNfcD0ew@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20171013170513.GM4394@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/25/2017 04:28 PM, Marian Mihailescu wrote:
-> Hi Shuah,
+Tony Lindgren <tony@atomide.com> wrote on Fri [2017-Oct-13 10:05:13 -0700]:
+> * Benoit Parrot <bparrot@ti.com> [171012 12:28]:
+> > +static struct omap_hwmod_class_sysconfig dra7xx_vpe_sysc = {
+> > +	.sysc_offs	= 0x0010,
+> > +	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
+> > +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+> > +			   MSTANDBY_FORCE | MSTANDBY_NO |
+> > +			   MSTANDBY_SMART),
+> > +	.sysc_fields	= &omap_hwmod_sysc_type2,
+> > +};
 > 
-> For MFC patch, you can delete the "dev" variable since it's not being
-> used anymore and results in a compile warning.
+> I think checkpatch.pl --strict would complain about unnecessary
+> parentheses, might as well check the whole series while at it.
+
+I actually ran the whole series through "checkpatch.pl --strict"
+before posting. And other then the usual MAINTAINER file needing
+update warning for the binding patch it no other warning or error.
+
+Based on the rest of the file I believe the parentheses around those
+flags are at least consistent.
+
+Now, would the .rev_offs comment also apply here?
+
+Benoit
+
 > 
-> - struct s5p_mfc_dev *dev = ctx->dev;
+> Regards,
 > 
-
-Hi Marian,
-
-This series doesn't have the unused warn problem. I fixed the problem
-in media: s5p-mfc: fix lockdep warning patch that has the warning and
-sent v2.
-
-
-> On Thu, Oct 26, 2017 at 7:54 AM, Shuah Khan <shuahkh@osg.samsung.com> wrote:
->> On 10/06/2017 03:30 PM, Shuah Khan wrote:
->>> This patch series fixes inefficiencies and lock contention in the request
->>> firmware paths.
->>>
->>> Shuah Khan (2):
->>>   media: s5p-mfc: check for firmware allocation before requesting
->>>     firmware
->>>   media: s5p-mfc: fix lock confection - request_firmware() once and keep
->>>     state
->>>
->>>  drivers/media/platform/s5p-mfc/s5p_mfc.c        |  4 ++++
->>>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  3 +++
->>>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   | 15 ++++++++++-----
->>>  3 files changed, 17 insertions(+), 5 deletions(-)
->>>
->>
->> Any feedback on this series?
->>
-
-Still waiting for feedback on this series.
-
-thanks,
--- Shuah
+> Tony
