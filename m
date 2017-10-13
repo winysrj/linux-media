@@ -1,54 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout02.posteo.de ([185.67.36.66]:53934 "EHLO mout02.posteo.de"
+Received: from muru.com ([72.249.23.125]:44098 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751123AbdJEQAd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Oct 2017 12:00:33 -0400
-Received: from submission (posteo.de [89.146.220.130])
-        by mout02.posteo.de (Postfix) with ESMTPS id C5D3F20C05
-        for <linux-media@vger.kernel.org>; Thu,  5 Oct 2017 18:00:31 +0200 (CEST)
-Subject: Re: platform: coda: how to use firmware-imx binary releases?
-To: Philipp Zabel <p.zabel@pengutronix.de>, mchehab@kernel.org
-Cc: linux-media@vger.kernel.org
-References: <ef7cc5b91829f383842a1e4692af5b07@posteo.de>
- <1507218340.8473.19.camel@pengutronix.de>
-From: Martin Kepplinger <martink@posteo.de>
-Message-ID: <72c1247a-63db-3b69-7b46-ca424377b1c1@posteo.de>
-Date: Thu, 5 Oct 2017 18:00:28 +0200
+        id S1752598AbdJMRBS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 13:01:18 -0400
+Date: Fri, 13 Oct 2017 10:01:13 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Benoit Parrot <bparrot@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [Patch 3/6] ARM: OMAP: DRA7xx: Make CAM clock domain SWSUP only
+Message-ID: <20171013170113.GL4394@atomide.com>
+References: <20171012192719.15193-1-bparrot@ti.com>
+ <20171012192719.15193-4-bparrot@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <1507218340.8473.19.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171012192719.15193-4-bparrot@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2017-10-05 17:45, Philipp Zabel wrote:
-> On Wed, 2017-10-04 at 10:44 +0200, Martin Kepplinger wrote:
->> Hi,
->>
->> Commit
->>
->>      be7f1ab26f42 media: coda: mark CODA960 firmware versions 2.3.10
->> and 
->> 3.1.1 as supported
->>
->> says firmware version 3.1.1 revision 46072 is contained in 
->> "firmware-imx-5.4.bin", that's probably
->>
->>      sha1  78a416ae88ff01420260205ce1d567f60af6847e  firmware-imx-
->> 5.4.bin
->>
->> How do I use this in order to get a VPU firmware blob that the coda 
->> platform driver can work with?
->>
->>
->>
->> (Maybe it'd be worth adding some short documentation on this. There 
->> doesn't seem to be a devicetree bindings doc for coda in 
->> Documentation/devicetree/bindings/media 
-> 
-> I was mistaken, Documentation/devicetree/bindings/media/coda.txt exists.
-> It was added in commit 657eee7d25fb ("media: coda: use genalloc API").
+* Benoit Parrot <bparrot@ti.com> [171012 12:29]:
+> HWSUP on this domain is only working when VIP1 probes.
+> If only VIP2 on DRA74x or CAL on DRA72x probes the domain does
+> not get enabled. This might indicates an issue in the HW Auto
+> state-machine for this domain.
+>
+> Work around is to set the CAM domain to use SWSUP only.
 
-Right. Not greppable with "coda". If you've also missed it because of
-that, it might likely help others when "coda" is mendtioned in it :)
+Hmm this you might get fixed automatically by configuring the
+parent interconnect target module to use "ti,sysc-omap4" and
+adding VIP1 and VIP2 as children to it.
+
+The reason why I suspect it will fix the issue is because
+with the parent being "ti,sysc-omap4" with "ti,hwmods" being
+in that parent node too, you automatically get PM runtime
+refcounting keep the parent active for either child.
+
+Maybe give it a try against today's Linux next and see for
+example how it was done for musb:
+
+https://patchwork.kernel.org/patch/9978783/
+
+Just use "ti,sysc-omap2" for type1 and "ti,sysc-omap4"
+for type2.
+
+Regards,
+
+Tony
