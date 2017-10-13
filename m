@@ -1,92 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:38482 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751605AbdJaJyd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Oct 2017 05:54:33 -0400
-Date: Tue, 31 Oct 2017 07:51:50 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL for 4.15] Yet more sensor driver patches
-Message-ID: <20171031074943.1fc240dc@vento.lan>
-In-Reply-To: <20171026090255.2oe6a24qugrngj3o@valkosipuli.retiisi.org.uk>
-References: <20171026090255.2oe6a24qugrngj3o@valkosipuli.retiisi.org.uk>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57451 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753434AbdJMMlu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 08:41:50 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: Re: [PATCH v2 12/17] media: v4l2-fwnode.h: better describe bus union at fwnode endpoint struct
+Date: Fri, 13 Oct 2017 15:42:03 +0300
+Message-ID: <1543874.t5QE87S79G@avalon>
+In-Reply-To: <dfcea28fc432a398b4b87902a2bcb097ad416b2c.1506548682.git.mchehab@s-opensource.com>
+References: <cover.1506548682.git.mchehab@s-opensource.com> <dfcea28fc432a398b4b87902a2bcb097ad416b2c.1506548682.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 26 Oct 2017 12:02:55 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Hi Mauro,
 
-> Hi Mauro,
-> 
-> Here's the final set of sensor driver patches for 4.15.
-> 
-> Please pull.
+Thank you for the patch.
 
-Hi Sakari,
+On Thursday, 28 September 2017 00:46:55 EEST Mauro Carvalho Chehab wrote:
+> Now that kernel-doc handles nested unions, better document the
+> bus union at struct v4l2_fwnode_endpoint.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  include/media/v4l2-fwnode.h | 13 ++++++++++++-
+>  1 file changed, 12 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+> index 7adec9851d9e..5f4716f967d0 100644
+> --- a/include/media/v4l2-fwnode.h
+> +++ b/include/media/v4l2-fwnode.h
+> @@ -79,7 +79,18 @@ struct v4l2_fwnode_bus_mipi_csi1 {
+>   * struct v4l2_fwnode_endpoint - the endpoint data structure
+>   * @base: fwnode endpoint of the v4l2_fwnode
+>   * @bus_type: bus type
+> - * @bus: bus configuration data structure
+> + * @bus: union with bus configuration data structure
+> + * @bus.parallel: pointer for &struct v4l2_fwnode_bus_parallel.
+> + *		  Used if the bus is parallel.
+> + * @bus.mipi_csi1: pointer for &struct v4l2_fwnode_bus_mipi_csi1.
+> + *		   Used if the bus is Mobile Industry Processor
+> + * 		   Interface's Camera Serial Interface version 1
+> + * 		   (MIPI CSI1) or Standard Mobile Imaging Architecture's
+> + *		   Compact Camera Port 2 (SMIA CCP2).
+> + * @bus.mipi_csi2: pointer for &struct v4l2_fwnode_bus_mipi_csi2.
+> + *		   Used if the bus is Mobile Industry Processor
+> + * 		   Interface's Camera Serial Interface version 2
+> + *		   (MIPI CSI2).
 
-Could you please rebase this series on the top of master? The first
-patch started with a merge conflict, and you sent some v2 and RESEND
-git pull requests without marking the previous pull request as superseded
-at patchwork. 
+These are not pointers.
 
-So, I likely applied the earlier version. My mistake. In my defense,
-my usual review process uses 3 big screens. When I'm traveling, I need 
-to live with a single small one, with is not ideal. That's why I opted to
-only apply patches while traveling from subsystem maintainers.
-
-Regards,
-Mauro
-
-> 
-> 
-> The following changes since commit 61065fc3e32002ba48aa6bc3816c1f6f9f8daf55:
-> 
->   Merge commit '3728e6a255b5' into patchwork (2017-10-17 17:22:20 -0700)
-> 
-> are available in the git repository at:
-> 
->   ssh://linuxtv.org/git/sailus/media_tree.git for-4.15-4
-> 
-> for you to fetch changes up to fc8d24b85bc230afe66e9aece38350384c9b65f8:
-> 
->   media: ov9650: remove unnecessary terminated entry in menu items array (2017-10-25 19:08:43 +0300)
-> 
-> ----------------------------------------------------------------
-> Akinobu Mita (5):
->       media: adv7180: don't clear V4L2_SUBDEV_FL_IS_I2C
->       media: max2175: don't clear V4L2_SUBDEV_FL_IS_I2C
->       media: ov2640: don't clear V4L2_SUBDEV_FL_IS_I2C
->       media: ov5640: don't clear V4L2_SUBDEV_FL_IS_I2C
->       media: ov9650: remove unnecessary terminated entry in menu items array
-> 
-> Jacob Chen (2):
->       media: i2c: OV5647: ensure clock lane in LP-11 state before streaming on
->       media: i2c: OV5647: change to use macro for the registers
-> 
-> Philipp Zabel (1):
->       tc358743: validate lane count
-> 
-> Wenyou Yang (3):
->       media: ov7670: Add entity pads initialization
->       media: ov7670: Add the get_fmt callback
->       media: ov7670: Add the ov7670_s_power function
-> 
->  drivers/media/i2c/adv7180.c  |   2 +-
->  drivers/media/i2c/max2175.c  |   2 +-
->  drivers/media/i2c/ov2640.c   |   2 +-
->  drivers/media/i2c/ov5640.c   |   2 +-
->  drivers/media/i2c/ov5647.c   |  51 ++++++++++++-----
->  drivers/media/i2c/ov7670.c   | 129 ++++++++++++++++++++++++++++++++++++++++---
->  drivers/media/i2c/ov9650.c   |   1 -
->  drivers/media/i2c/tc358743.c |   5 ++
->  8 files changed, 167 insertions(+), 27 deletions(-)
-> 
-
+>   * @link_frequencies: array of supported link frequencies
+>   * @nr_of_link_frequencies: number of elements in link_frequenccies array
+>   */
 
 -- 
-Thanks,
-Mauro
+Regards,
+
+Laurent Pinchart
