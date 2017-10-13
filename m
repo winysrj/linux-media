@@ -1,66 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44750 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751337AbdJOUkS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Oct 2017 16:40:18 -0400
-Date: Sun, 15 Oct 2017 23:40:14 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Nicolas Dufresne <nicolas@ndufresne.ca>
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: vb2: unify calling of set_page_dirty_lock
-Message-ID: <20171015204014.2awhhygw6hi3lxas@valkosipuli.retiisi.org.uk>
-References: <20170829112603.32732-1-stanimir.varbanov@linaro.org>
- <1507650010.2784.11.camel@ndufresne.ca>
+Received: from mail-dm3nam03on0135.outbound.protection.outlook.com ([104.47.41.135]:45463
+        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751849AbdJMGFP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 02:05:15 -0400
+From: <Yasunari.Takiguchi@sony.com>
+To: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-media@vger.kernel.org>
+CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
+        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
+        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
+        Hideki Nozawa <Hideki.Nozawa@sony.com>,
+        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
+        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
+        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+Subject: [PATCH v4 06/12] [media] cxd2880: Add integration layer for the driver
+Date: Fri, 13 Oct 2017 15:08:34 +0900
+Message-ID: <20171013060834.21526-1-Yasunari.Takiguchi@sony.com>
+In-Reply-To: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
+References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1507650010.2784.11.camel@ndufresne.ca>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
+From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-On Tue, Oct 10, 2017 at 11:40:10AM -0400, Nicolas Dufresne wrote:
-> Le mardi 29 août 2017 à 14:26 +0300, Stanimir Varbanov a écrit :
-> > Currently videobuf2-dma-sg checks for dma direction for
-> > every single page and videobuf2-dc lacks any dma direction
-> > checks and calls set_page_dirty_lock unconditionally.
-> > 
-> > Thus unify and align the invocations of set_page_dirty_lock
-> > for videobuf2-dc, videobuf2-sg  memory allocators with
-> > videobuf2-vmalloc, i.e. the pattern used in vmalloc has been
-> > copied to dc and dma-sg.
-> 
-> Just before we go too far in "doing like vmalloc", I would like to
-> share this small video that display coherency issues when rendering
-> vmalloc backed DMABuf over various KMS/DRM driver. I can reproduce this
-> easily with Intel and MSM display drivers using UVC or Vivid as source.
-> 
-> The following is an HDMI capture of the following GStreamer pipeline
-> running on Dragonboard 410c.
-> 
->     gst-launch-1.0 -v v4l2src device=/dev/video2 ! video/x-raw,format=NV16,width=1280,height=720 ! kmssink
->     https://people.collabora.com/~nicolas/vmalloc-issue.mov
-> 
-> Feedback on this issue would be more then welcome. It's not clear to me
-> who's bug is this (v4l2, drm or iommu). The software is unlikely to be
-> blamed as this same pipeline works fine with non-vmalloc based sources.
+These functions monitor the driver and watch for task completion.
+This is part of the Sony CXD2880 DVB-T2/T tuner + demodulator driver.
 
-Could you elaborate this a little bit more? Which Intel CPU do you have
-there?
+Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+---
 
-Where are the buffers allocated for this GStreamer pipeline, is it v4l2src
-or another element or somewhere else?
+[Change list]
+Changes in V4   
+   drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+      -removed unnecessary initialization at variable declaration
 
+Changes in V3
+   drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+      -changed cxd2880_atomic_read to atomic_read
+      -changed cxd2880_atomic_set to atomic_set
+      -modified return code
+      -modified coding style of if() 
+   drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+      -modified return code
+
+ .../media/dvb-frontends/cxd2880/cxd2880_integ.c    | 98 ++++++++++++++++++++++
+ .../media/dvb-frontends/cxd2880/cxd2880_integ.h    | 44 ++++++++++
+ 2 files changed, 142 insertions(+)
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+new file mode 100644
+index 000000000000..7264fc355d6b
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+@@ -0,0 +1,98 @@
++/*
++ * cxd2880_integ.c
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * integration layer common functions
++ *
++ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; version 2 of the License.
++ *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include "cxd2880_tnrdmd.h"
++#include "cxd2880_tnrdmd_mon.h"
++#include "cxd2880_integ.h"
++
++int cxd2880_integ_init(struct cxd2880_tnrdmd *tnr_dmd)
++{
++	int ret;
++	struct cxd2880_stopwatch timer;
++	unsigned int elapsed_time = 0;
++	u8 cpu_task_completed = 0;
++
++	if (!tnr_dmd)
++		return -EINVAL;
++
++	ret = cxd2880_tnrdmd_init1(tnr_dmd);
++	if (ret)
++		return ret;
++
++	ret = cxd2880_stopwatch_start(&timer);
++	if (ret)
++		return ret;
++
++	while (1) {
++		ret = cxd2880_stopwatch_elapsed(&timer, &elapsed_time);
++		if (ret)
++			return ret;
++
++		ret =
++		    cxd2880_tnrdmd_check_internal_cpu_status(tnr_dmd,
++						     &cpu_task_completed);
++		if (ret)
++			return ret;
++
++		if (cpu_task_completed)
++			break;
++
++		if (elapsed_time > CXD2880_TNRDMD_WAIT_INIT_TIMEOUT)
++			return -ETIME;
++		ret =
++		    cxd2880_stopwatch_sleep(&timer,
++					    CXD2880_TNRDMD_WAIT_INIT_INTVL);
++		if (ret)
++			return ret;
++	}
++
++	ret = cxd2880_tnrdmd_init2(tnr_dmd);
++	if (ret)
++		return ret;
++
++	return 0;
++}
++
++int cxd2880_integ_cancel(struct cxd2880_tnrdmd *tnr_dmd)
++{
++	if (!tnr_dmd)
++		return -EINVAL;
++
++	atomic_set(&tnr_dmd->cancel, 1);
++
++	return 0;
++}
++
++int cxd2880_integ_check_cancellation(struct cxd2880_tnrdmd *tnr_dmd)
++{
++	if (!tnr_dmd)
++		return -EINVAL;
++
++	if (atomic_read(&tnr_dmd->cancel) != 0)
++		return -ECANCELED;
++
++	return 0;
++}
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+new file mode 100644
+index 000000000000..2b4fe5c3743b
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+@@ -0,0 +1,44 @@
++/*
++ * cxd2880_integ.h
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * integration layer common interface
++ *
++ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; version 2 of the License.
++ *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef CXD2880_INTEG_H
++#define CXD2880_INTEG_H
++
++#include "cxd2880_tnrdmd.h"
++
++#define CXD2880_TNRDMD_WAIT_INIT_TIMEOUT	500
++#define CXD2880_TNRDMD_WAIT_INIT_INTVL	10
++
++#define CXD2880_TNRDMD_WAIT_AGC_STABLE		100
++
++int cxd2880_integ_init(struct cxd2880_tnrdmd *tnr_dmd);
++
++int cxd2880_integ_cancel(struct cxd2880_tnrdmd *tnr_dmd);
++
++int cxd2880_integ_check_cancellation(struct cxd2880_tnrdmd
++				     *tnr_dmd);
++
++#endif
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.0
