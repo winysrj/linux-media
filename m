@@ -1,45 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from regular1.263xmail.com ([211.150.99.132]:36883 "EHLO
-        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753191AbdJMDNx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Oct 2017 23:13:53 -0400
-From: Jeffy Chen <jeffy.chen@rock-chips.com>
-To: linux-kernel@vger.kernel.org, mchehab@s-opensource.com,
-        laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com
-Cc: Jeffy Chen <jeffy.chen@rock-chips.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH v2] media: uvcvideo: Fix uvc dev reference management
-Date: Fri, 13 Oct 2017 11:13:38 +0800
-Message-Id: <20171013031338.8064-1-jeffy.chen@rock-chips.com>
+Received: from muru.com ([72.249.23.125]:44088 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752251AbdJMQ46 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 12:56:58 -0400
+Date: Fri, 13 Oct 2017 09:56:54 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Benoit Parrot <bparrot@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [Patch 2/6] ARM: DRA7: hwmod: Add CAL nodes
+Message-ID: <20171013165654.GK4394@atomide.com>
+References: <20171012192719.15193-1-bparrot@ti.com>
+ <20171012192719.15193-3-bparrot@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171012192719.15193-3-bparrot@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the kref_get() in uvc_register_video(), which is not needed as
-the kref_init() already initializes refcount to 1 for us.
+* Benoit Parrot <bparrot@ti.com> [171012 12:28]:
+> This patch adds the required hwmod nodes to support the Camera
+> Adaptation Layer (CAL) for the DRA72 family of devices.
+...
 
-Fixes: 9d15cd958c17 ("media: uvcvideo: Convert from using an atomic variable to a reference count")
-Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
----
+> +static struct omap_hwmod_class_sysconfig dra7xx_cal_sysc = {
+> +	.sysc_offs	= 0x0010,
 
-Changes in v2:
-Rewrite commit message.
+Also has .rev_offs at 0 so please add that too.
 
- drivers/media/usb/uvc/uvc_driver.c | 1 -
- 1 file changed, 1 deletion(-)
+Regards,
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 6d22b22cb35b..dd6106411eb0 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1939,7 +1939,6 @@ static int uvc_register_video(struct uvc_device *dev,
- 	else
- 		stream->chain->caps |= V4L2_CAP_VIDEO_OUTPUT;
- 
--	kref_get(&dev->ref);
- 	return 0;
- }
- 
--- 
-2.11.0
+Tony
