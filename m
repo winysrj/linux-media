@@ -1,87 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59292 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751922AbdJSVGc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Oct 2017 17:06:32 -0400
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57436 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753231AbdJMMh6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 08:37:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: Re: [PATCH v2 08/17] media: v4l2-ioctl.h: convert debug macros into enum and document
+Date: Fri, 13 Oct 2017 15:38:11 +0300
+Message-ID: <75398545.O2kI4imJ1e@avalon>
+In-Reply-To: <2f79939abf6bfba034fcf46e0d92624df2ea5308.1506548682.git.mchehab@s-opensource.com>
+References: <cover.1506548682.git.mchehab@s-opensource.com> <2f79939abf6bfba034fcf46e0d92624df2ea5308.1506548682.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-In-Reply-To: <20171018130227.GO25400@ti.com>
-References: <20171012192719.15193-1-bparrot@ti.com> <20171012192719.15193-5-bparrot@ti.com>
- <20171017210051.6ap3yg7b7viav6cy@rob-hp-laptop> <20171018130227.GO25400@ti.com>
-From: Rob Herring <robh@kernel.org>
-Date: Thu, 19 Oct 2017 16:06:10 -0500
-Message-ID: <CAL_Jsq+jy-JN=ppfkyexFqJsbQVw3UGdNrNBVUvmGPHBdoLGkg@mail.gmail.com>
-Subject: Re: [Patch 4/6] dt-bindings: media: ti-vpe: Document VPE driver
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        linux-omap <linux-omap@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 18, 2017 at 8:02 AM, Benoit Parrot <bparrot@ti.com> wrote:
-> Rob Herring <robh@kernel.org> wrote on Tue [2017-Oct-17 16:00:51 -0500]:
->> On Thu, Oct 12, 2017 at 02:27:17PM -0500, Benoit Parrot wrote:
->> > Device Tree bindings for the Video Processing Engine (VPE) driver.
->> >
->> > Signed-off-by: Benoit Parrot <bparrot@ti.com>
->> > ---
->> >  Documentation/devicetree/bindings/media/ti-vpe.txt | 41 ++++++++++++++++++++++
->> >  1 file changed, 41 insertions(+)
->> >  create mode 100644 Documentation/devicetree/bindings/media/ti-vpe.txt
->> >
->> > diff --git a/Documentation/devicetree/bindings/media/ti-vpe.txt b/Documentation/devicetree/bindings/media/ti-vpe.txt
->> > new file mode 100644
->> > index 000000000000..c2ef93d08417
->> > --- /dev/null
->> > +++ b/Documentation/devicetree/bindings/media/ti-vpe.txt
->> > @@ -0,0 +1,41 @@
->> > +Texas Instruments DRA7x VIDEO PROCESSING ENGINE (VPE)
->> > +------------------------------------------------------
->> > +
->> > +The Video Processing Engine (VPE) is a key component for image post
->> > +processing applications. VPE consist of a single memory to memory
->> > +path which can perform chroma up/down sampling, deinterlacing,
->> > +scaling and color space conversion.
->> > +
->> > +Required properties:
->> > +- compatible: must be "ti,vpe"
->>
->> Needs SoC specific compatibles.
->
-> This particular I/P is present on all DRA7x family of devices
-> so would "ti,dra7-vpe" be acceptable?
+Hi Mauro,
 
-Better, but it's proven not to be in other cases IIRC. I'll leave it
-to TI maintainers to decide.
+Thank you for the patch.
 
->> > +- reg:     physical base address and length of the registers set for the 8
->> > +   memory regions required;
->> > +- reg-names: name associated with the memory regions described is <reg>;
->> > +- interrupts: should contain IRQ line for VPE;
->> > +
->> > +Example:
->> > +   vpe {
->> > +           compatible = "ti,vpe";
->> > +           ti,hwmods = "vpe";
->> > +           clocks = <&dpll_core_h23x2_ck>;
->> > +           clock-names = "fck";
->> > +           reg =   <0x489d0000 0x120>,
->> > +                   <0x489d0300 0x20>,
->> > +                   <0x489d0400 0x20>,
->> > +                   <0x489d0500 0x20>,
->> > +                   <0x489d0600 0x3c>,
->> > +                   <0x489d0700 0x80>,
->>
->> Is there other stuff between these regions?
->
-> No, they listed separately because each sub-region/module is
-> individually mapped and accessed using a starting 0 offset.
+On Thursday, 28 September 2017 00:46:51 EEST Mauro Carvalho Chehab wrote:
+> Currently, there's no way to document #define foo <value>
+> with kernel-doc. So, convert it to an enum, and document.
 
-So you are going to use 48KB of virtual memory to map 2KB of
-registers? Because each ioremap uses 8KB (1 page plus 1 guard page)
-last time i looked (which has been a while).
+The documentation seems fine to me (except for one comment below). However, 
+converting macros to an enum just to work around a defect of the documentation 
+system doesn't seem like a good idea to me. I'd rather find a way to document 
+macros.
 
-But it's your platform.
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  include/media/v4l2-ioctl.h | 33 +++++++++++++++++++--------------
+>  1 file changed, 19 insertions(+), 14 deletions(-)
+> 
+> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> index bd5312118013..136e2cffcf9e 100644
+> --- a/include/media/v4l2-ioctl.h
+> +++ b/include/media/v4l2-ioctl.h
+> @@ -588,20 +588,25 @@ struct v4l2_ioctl_ops {
+>  };
+> 
+> 
+> -/* v4l debugging and diagnostics */
+> -
+> -/* Device debug flags to be used with the video device debug attribute */
+> -
+> -/* Just log the ioctl name + error code */
+> -#define V4L2_DEV_DEBUG_IOCTL		0x01
+> -/* Log the ioctl name arguments + error code */
+> -#define V4L2_DEV_DEBUG_IOCTL_ARG	0x02
+> -/* Log the file operations open, release, mmap and get_unmapped_area */
+> -#define V4L2_DEV_DEBUG_FOP		0x04
+> -/* Log the read and write file operations and the VIDIOC_(D)QBUF ioctls */
+> -#define V4L2_DEV_DEBUG_STREAMING	0x08
+> -/* Log poll() */
+> -#define V4L2_DEV_DEBUG_POLL		0x10
+> +/**
+> + * enum v4l2_debug_flags - Device debug flags to be used with the video
+> + *	device debug attribute
+> + *
+> + * @V4L2_DEV_DEBUG_IOCTL:	Just log the ioctl name + error code.
+> + * @V4L2_DEV_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
+> + * @V4L2_DEV_DEBUG_FOP:		Log the file operations and open, release,
+> + *				mmap and get_unmapped_area syscalls.
+> + * @V4L2_DEV_DEBUG_STREAMING:	Log the read and write syscalls and
+> + *				:c:ref:`VIDIOC_[Q|DQ]BUFF <VIDIOC_QBUF>` ioctls.
+
+s/BUFF/BUF.
+
+A regexp would use VIDIOC_(Q|DQ)BUF. You can also write VIDIOC_{QBUF,DQBUF} 
+which seems clearer to me.
+
+> + * @V4L2_DEV_DEBUG_POLL:	Log poll syscalls.
+> + */
+> +enum v4l2_debug_flags {
+> +	V4L2_DEV_DEBUG_IOCTL		= 0x01,
+> +	V4L2_DEV_DEBUG_IOCTL_ARG	= 0x02,
+> +	V4L2_DEV_DEBUG_FOP		= 0x04,
+> +	V4L2_DEV_DEBUG_STREAMING	= 0x08,
+> +	V4L2_DEV_DEBUG_POLL		= 0x10,
+> +};
+> 
+>  /*  Video standard functions  */
+
+
+-- 
+Regards,
+
+Laurent Pinchart
