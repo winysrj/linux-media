@@ -1,41 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:49131 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932159AbdJUSvq (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35516 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751339AbdJMWXs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 21 Oct 2017 14:51:46 -0400
-Received: by mail-wm0-f68.google.com with SMTP id p75so3045171wmg.3
-        for <linux-media@vger.kernel.org>; Sat, 21 Oct 2017 11:51:45 -0700 (PDT)
+        Fri, 13 Oct 2017 18:23:48 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 81BF7600EE
+        for <linux-media@vger.kernel.org>; Sat, 14 Oct 2017 01:23:46 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1e38Mr-00031i-UO
+        for linux-media@vger.kernel.org; Sat, 14 Oct 2017 01:23:46 +0300
+Date: Sat, 14 Oct 2017 01:23:45 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.15] More sensor driver patches
+Message-ID: <20171013222345.x33ft5s7qspolf3k@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-From: =?UTF-8?B?VENMIE1vYmlsZSAtINCg0J7QodCh0JjQrw==?=
-        <encorphr@gmail.com>
-Date: Sat, 21 Oct 2017 21:51:44 +0300
-Message-ID: <CAJTYCmXEy5DtMSstVUJWdsr1mJz82_r3GzNdS62j0P7QvON+iQ@mail.gmail.com>
-Subject: =?UTF-8?B?0KHQvNCw0YDRgtGE0L7QvSDQtNC70Y8g0JLQsNGBINCyINC/0L7QtNCw0YDQvtC6INC+?=
-        =?UTF-8?B?0YIg0Lxh0LNh0LfQuNC9YSDRjdC70LXQutGC0YDQvtC90LjQutC4ICJW0IZW0J4t0JzQntCS0IZHUtCe?=
-        =?UTF-8?B?VdCgLVBPQ0PQmNCvIiDQuiDQvtGC0LrRgNGL0YLQuNGOINCy0YLQvtGA0L7Qs9C+INC80LDQs9Cw0Lc=?=
-        =?UTF-8?B?0LjQvdCwINGN0LvQtdC60YLRgNC+0L3QuNC60Lg=?=
-To: neiks@neiks.net.ru, linux-media@vger.kernel.org,
-        sp3ctr00m@gmail.com, oam@imail.ru, linuxppc-embedded@ozlabs.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-0KDQvtGB0YHQuNC50YHQutC+0LUg0L/RgNC10LTRgdGC0LDQstC40YLQtdC70YzRgdGC0LLQviDQ
-ktC+0YHRgtC+0YfQvdC+LUXQstGA0L7Qv9C10LnRgdC60L7Qs9C+INC/0YDQvtC40LfQstC+0LTQ
-uNGC0LXQu9GPDQrQvNC+0LHQuNC70YzQvdGL0YUg0YHRgNC10LTRgdGC0LINCtGB0LLRj9C30Lgg
-0Lgg0LXQs9C+INGA0L7RgdGB0LjQudGB0LrQvtC1INC/0YDQtdC00YHRgtCw0LLQuNGC0LXQu9GM
-0YHRgtCy0L4gIlZJVk9Nb2JpIEdyb3VwIFJ1c3NpYSINCtGB0L7QvtCx0YnQsNC10YIg0L4g0L7R
-gtC60YDRi9GC0LjQuA0K0LLRgtC+0YDQvtCz0L4g0LzQsNCz0LDQt9C40L3QsCDRjdC70LXQutGC
-0YDQvtC90LjQutC4INC4INC/0YDQtdC30LXQvdGC0LDRhtC40Lgg0L3QsCDRgNGL0L3QutC1INCg
-0L7RgdGB0LjQuCDRhNC70LDQs9C80LDQvdGB0LrQvtC5INC80L7QtNC10LvQuA0K0YHQvNCw0YDR
-gtGE0L7QvdCwINC60L7QvNC/0LDQvdC40LggIlZJVk8tTW9iaWxlIi4g0JrQvtC80L/QsNC90LjR
-jyDQuiDQtNCw0L3QvdC+0LzRgyDRgdC+0LHRi9GC0LjRjg0K0L/RgNC10LTQvtGB0YLQsNCy0LvR
-j9C10YIg0YbQtdC90L3Ri9C1DQrQv9C+0LTQsNGA0LrQuCDQv9C+0YHQtdGC0LjRgtC10LvRj9C8
-INC80LDQs9Cw0LfQuNC90L7QsiDQutC+0LzQv9Cw0L3QuNC4LCDQsCDRgtCw0LrQttC1INC/0YDQ
-tdC00LvQsNCz0LDQtdGCINC30LDRgNC10LPQuNGB0YLRgNC40YDQvtCy0LDRgtGM0YHRjw0KXtCy
-XtC/0YDQvtCz0YDQsNC80LzQtV5+IGh0dHA6Ly9tb2JpbGVoZWpoLnVzYS5jYw0Kfl7QtNC70Y9e
-0L/QvtC70YPRh9C10L3QuNGPXtC/0L7QtNCw0YDQutCwXjzRgWDQsdC10YHQv9C70LDRgtC90L7Q
-uWDQtNC+0YHRgtCw0LLQutC+0Llg0L/QvmDQoNC+0YHRgdC40Lg+Xg0K0YHQvNCw0YDRgtGE0L7Q
-vdCwVklWT19WOF9Ob3Rlfi4NCg==
+Hi Mauro,
+
+Here's the second set of sensor driver patches for 4.15.
+
+Please pull.
+
+
+The following changes since commit 8382e556b1a2f30c4bf866f021b33577a64f9ebf:
+
+  Simplify major/minor non-dynamic logic (2017-10-11 15:32:11 -0400)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.15-2
+
+for you to fetch changes up to 5164fc93c2d8c2e9a2de1461bfba9d6b2911ce9e:
+
+  imx274: V4l2 driver for Sony imx274 CMOS sensor (2017-10-14 01:06:10 +0300)
+
+----------------------------------------------------------------
+Leon Luo (2):
+      imx274: device tree binding file
+      imx274: V4l2 driver for Sony imx274 CMOS sensor
+
+ .../devicetree/bindings/media/i2c/imx274.txt       |   33 +
+ drivers/media/i2c/Kconfig                          |    8 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/imx274.c                         | 1811 ++++++++++++++++++++
+ 4 files changed, 1853 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/imx274.txt
+ create mode 100644 drivers/media/i2c/imx274.c
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
