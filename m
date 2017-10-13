@@ -1,115 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:56474 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751047AbdJDUJ0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Oct 2017 16:09:26 -0400
-Message-ID: <1507147735.2981.54.camel@collabora.com>
-Subject: Re: [PATCH v3 00/15] V4L2 Explicit Synchronization support
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
-To: Brian Starkey <brian.starkey@arm.com>,
-        Gustavo Padovan <gustavo@padovan.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        linux-kernel@vger.kernel.org, Jonathan.Chai@arm.com
-Date: Wed, 04 Oct 2017 17:08:55 -0300
-In-Reply-To: <20171002134116.GB22538@e107564-lin.cambridge.arm.com>
-References: <20170907184226.27482-1-gustavo@padovan.org>
-         <20171002134116.GB22538@e107564-lin.cambridge.arm.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:52254 "EHLO
+        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753479AbdJMONk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 10:13:40 -0400
+Received: by mail-wm0-f49.google.com with SMTP id k4so22105217wmc.1
+        for <linux-media@vger.kernel.org>; Fri, 13 Oct 2017 07:13:39 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH] venus: reimplement decoder stop command
+Date: Fri, 13 Oct 2017 17:13:17 +0300
+Message-Id: <20171013141317.23211-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Brian,
+This addresses the wrong behavior of decoder stop command by
+rewriting it. These new implementation enqueue an empty buffer
+on the decoder input buffer queue to signal end-of-stream. The
+client should stop queuing buffers on the V4L2 Output queue
+and continue queuing/dequeuing buffers on Capture queue. This
+process will continue until the client receives a buffer with
+V4L2_BUF_FLAG_LAST flag raised, which means that this is last
+decoded buffer with data.
 
-On Mon, 2017-10-02 at 14:41 +0100, Brian Starkey wrote:
-> Hi Gustavo,
-> 
-> On Thu, Sep 07, 2017 at 03:42:11PM -0300, Gustavo Padovan wrote:
-> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > 
-> > Hi,
-> > 
-> > Refer to the documentation on the first patch for the details. The
-> > previous
-> > iteration is here: https://www.mail-archive.com/linux-media@vger.ke
-> > rnel.org/msg118077.html
-> > 
-> > The 2nd patch proposes an userspace API for fences, then on patch 3
-> > we
-> > prepare to the addition of in-fences in patch 4, by introducing the
-> > infrastructure on vb2 to wait on an in-fence signal before queueing
-> > the
-> > buffer in the driver.
-> > 
-> > Patch 5 fix uvc v4l2 event handling and patch 6 configure q->dev
-> > for
-> > vivid drivers to enable to subscribe and dequeue events on it.
-> > 
-> > Patches 7-9 enables support to notify BUF_QUEUED events, the event
-> > send
-> > to userspace the out-fence fd and the index of the buffer that was
-> > queued.
-> > 
-> > Patches 10-11 add support to mark queues as ordered. Finally
-> > patches 12
-> > and 13 add more fence infrastructure to support out-fences, patch
-> > 13 exposes
-> > close_fd() and patch 14 adds support to out-fences.
-> > 
-> > It only works for ordered queues for now, see open question at the
-> > end
-> > of the letter.
-> > 
-> > Test tool can be found at:
-> > https://git.collabora.com/cgit/user/padovan/v4l2-test.git/
-> > 
-> > Main Changes
-> > ------------
-> > 
-> > * out-fences: change in behavior: the out-fence fd now comes out of
-> > the
-> > BUF_QUEUED event along with the buffer id.
-> 
-> The more I think about this, the more unfortunate it seems.
-> Especially
-> for our use-case (m2m engine which sits in front of the display
-> processor to convert the format of some buffers), having to wait for
-> the in-fence to signal before we can get an out-fence removes a lot
-> of
-> the advantages of having fences at all.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/core.h    |  2 --
+ drivers/media/platform/qcom/venus/helpers.c |  7 ------
+ drivers/media/platform/qcom/venus/hfi.c     |  1 +
+ drivers/media/platform/qcom/venus/vdec.c    | 34 +++++++++++++++++++----------
+ 4 files changed, 24 insertions(+), 20 deletions(-)
 
-Does your m2m driver ensures ordering between the buffer queued to it?
-
-> 
-> Ideally, we'd like to queue up our m2m work (while the GPU is still
-> rendering that buffer, holding the in-fence), immediately get the
-> out-fence for the m2m work, and pass that to DRM as the in-fence for
-> display. With the current behaviour we need to wait in userspace
-> before we can pass the buffer to display.
-> 
-> Wouldn't it be possible to enforce that the buffers aren't queued
-> out-of-order in VB2? An easy way might be to (in qbuf) set a buffer's
-> ->in_fence to be a fence_array of all the ->in_fences from the
-> buffers
-> before it in the queue (and its own). That would then naturally order
-> the enqueue-ing in the driver, and allow you to return the out-fence
-> immediately.
-> 
-> This would also solve your output devices question from below - a
-> buffer can never get queued in the driver until all of the buffers
-> which were QBUF'd before it are queued in the driver.
-
-What you say makes sense, what this proposal lacks the most now is
-feedback regarding its usecases. We can create a control setting to
-enforce ordering in the queue, if it's set we create the fence arrays.
-For output devices this should be set by default.
-
-Gustavo
-
+diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+index cba092bcb76d..a0fe80df0cbd 100644
+--- a/drivers/media/platform/qcom/venus/core.h
++++ b/drivers/media/platform/qcom/venus/core.h
+@@ -194,7 +194,6 @@ struct venus_buffer {
+  * @fh:	 a holder of v4l file handle structure
+  * @streamon_cap: stream on flag for capture queue
+  * @streamon_out: stream on flag for output queue
+- * @cmd_stop:	a flag to signal encoder/decoder commands
+  * @width:	current capture width
+  * @height:	current capture height
+  * @out_width:	current output width
+@@ -258,7 +257,6 @@ struct venus_inst {
+ 	} controls;
+ 	struct v4l2_fh fh;
+ 	unsigned int streamon_cap, streamon_out;
+-	bool cmd_stop;
+ 	u32 width;
+ 	u32 height;
+ 	u32 out_width;
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index cac429be5609..6a85dd10ecd4 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -626,13 +626,6 @@ void venus_helper_vb2_buf_queue(struct vb2_buffer *vb)
+ 
+ 	mutex_lock(&inst->lock);
+ 
+-	if (inst->cmd_stop) {
+-		vbuf->flags |= V4L2_BUF_FLAG_LAST;
+-		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_DONE);
+-		inst->cmd_stop = false;
+-		goto unlock;
+-	}
+-
+ 	v4l2_m2m_buf_queue(m2m_ctx, vbuf);
+ 
+ 	if (!(inst->streamon_out & inst->streamon_cap))
+diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
+index c09490876516..ba29fd4d4984 100644
+--- a/drivers/media/platform/qcom/venus/hfi.c
++++ b/drivers/media/platform/qcom/venus/hfi.c
+@@ -484,6 +484,7 @@ int hfi_session_process_buf(struct venus_inst *inst, struct hfi_frame_data *fd)
+ 
+ 	return -EINVAL;
+ }
++EXPORT_SYMBOL_GPL(hfi_session_process_buf);
+ 
+ irqreturn_t hfi_isr_thread(int irq, void *dev_id)
+ {
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index da611a5eb670..c9e9576bb08a 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -469,8 +469,14 @@ static int vdec_subscribe_event(struct v4l2_fh *fh,
+ static int
+ vdec_try_decoder_cmd(struct file *file, void *fh, struct v4l2_decoder_cmd *cmd)
+ {
+-	if (cmd->cmd != V4L2_DEC_CMD_STOP)
++	switch (cmd->cmd) {
++	case V4L2_DEC_CMD_STOP:
++		if (cmd->flags & V4L2_DEC_CMD_STOP_TO_BLACK)
++			return -EINVAL;
++		break;
++	default:
+ 		return -EINVAL;
++	}
+ 
+ 	return 0;
+ }
+@@ -479,6 +485,7 @@ static int
+ vdec_decoder_cmd(struct file *file, void *fh, struct v4l2_decoder_cmd *cmd)
+ {
+ 	struct venus_inst *inst = to_inst(file);
++	struct hfi_frame_data fdata = {0};
+ 	int ret;
+ 
+ 	ret = vdec_try_decoder_cmd(file, fh, cmd);
+@@ -486,12 +493,23 @@ vdec_decoder_cmd(struct file *file, void *fh, struct v4l2_decoder_cmd *cmd)
+ 		return ret;
+ 
+ 	mutex_lock(&inst->lock);
+-	inst->cmd_stop = true;
+-	mutex_unlock(&inst->lock);
+ 
+-	hfi_session_flush(inst);
++	/*
++	 * Implement V4L2_DEC_CMD_STOP by enqueue an empty buffer on decoder
++	 * input to signal EOS.
++	 */
++	if (!(inst->streamon_out & inst->streamon_cap))
++		goto unlock;
++
++	fdata.buffer_type = HFI_BUFFER_INPUT;
++	fdata.flags |= HFI_BUFFERFLAG_EOS;
++	fdata.device_addr = 0xdeadbeef;
+ 
+-	return 0;
++	ret = hfi_session_process_buf(inst, &fdata);
++
++unlock:
++	mutex_unlock(&inst->lock);
++	return ret;
+ }
+ 
+ static const struct v4l2_ioctl_ops vdec_ioctl_ops = {
+@@ -718,7 +736,6 @@ static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	inst->reconfig = false;
+ 	inst->sequence_cap = 0;
+ 	inst->sequence_out = 0;
+-	inst->cmd_stop = false;
+ 
+ 	ret = vdec_init_session(inst);
+ 	if (ret)
+@@ -807,11 +824,6 @@ static void vdec_buf_done(struct venus_inst *inst, unsigned int buf_type,
+ 		vb->timestamp = timestamp_us * NSEC_PER_USEC;
+ 		vbuf->sequence = inst->sequence_cap++;
+ 
+-		if (inst->cmd_stop) {
+-			vbuf->flags |= V4L2_BUF_FLAG_LAST;
+-			inst->cmd_stop = false;
+-		}
+-
+ 		if (vbuf->flags & V4L2_BUF_FLAG_LAST) {
+ 			const struct v4l2_event ev = { .type = V4L2_EVENT_EOS };
+ 
 -- 
-Gustavo Padovan
-Principal Software Engineer
-Collabora Ltd.
+2.11.0
