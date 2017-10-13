@@ -1,360 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:56776 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751292AbdJSGwb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Oct 2017 02:52:31 -0400
-Subject: Re: [PATCH v15.1 24/32] v4l: fwnode: Add a helper function to obtain
- device / integer references
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org
-References: <20171004215051.13385-25-sakari.ailus@linux.intel.com>
- <20171018135656.13549-1-sakari.ailus@linux.intel.com>
- <20171018153225.i7ahk7fa3fullhur@valkosipuli.retiisi.org.uk>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ffc57dfd-e798-d532-e029-dc91989e285c@xs4all.nl>
-Date: Thu, 19 Oct 2017 08:52:22 +0200
-MIME-Version: 1.0
-In-Reply-To: <20171018153225.i7ahk7fa3fullhur@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from osg.samsung.com ([64.30.133.232]:54784 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753254AbdJMXNo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 19:13:44 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@kernel.org, hansverk@cisco.com, kgene@kernel.org,
+        krzk@kernel.org, s.nawrocki@samsung.com, shailendra.v@samsung.com,
+        shuah@kernel.org, Julia.Lawall@lip6.fr, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 1/2] media: exynos-gsc: fix lockdep warning
+Date: Fri, 13 Oct 2017 17:13:36 -0600
+Message-Id: <f1de8d306e45127bdcb53b4ee53a7d5dc3c5c95b.1507935819.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1507935819.git.shuahkh@osg.samsung.com>
+References: <cover.1507935819.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1507935819.git.shuahkh@osg.samsung.com>
+References: <cover.1507935819.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/18/2017 05:32 PM, Sakari Ailus wrote:
-> On Wed, Oct 18, 2017 at 04:56:56PM +0300, Sakari Ailus wrote:
->> v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
->> the device's own fwnode, it will follow child fwnodes with the given
->> property-value pair and return the resulting fwnode.
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->> ---
->> since v15:
->>
->> - Use a graph example instead of a LED one; this way nprops will be 2.
->>
->>  drivers/media/v4l2-core/v4l2-fwnode.c | 252 ++++++++++++++++++++++++++++++++++
->>  1 file changed, 252 insertions(+)
->>
->> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
->> index edd2e8d983a1..989a6f8a09fa 100644
->> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
->> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
->> @@ -578,6 +578,258 @@ static int v4l2_fwnode_reference_parse(
->>  	return ret;
->>  }
->>  
->> +/*
->> + * v4l2_fwnode_reference_get_int_prop - parse a reference with integer
->> + *					arguments
->> + * @fwnode: fwnode to read @prop from
->> + * @notifier: notifier for @dev
->> + * @prop: the name of the property
->> + * @index: the index of the reference to get
->> + * @props: the array of integer property names
->> + * @nprops: the number of integer property names in @nprops
->> + *
->> + * First find an fwnode referred to by the reference at @index in @prop.
->> + *
->> + * Then under that fwnode, @nprops times, for each property in @props,
->> + * iteratively follow child nodes starting from fwnode such that they have the
->> + * property in @props array at the index of the child node distance from the
->> + * root node and the value of that property matching with the integer argument
->> + * of the reference, at the same index.
->> + *
->> + * The child fwnode reched at the end of the iteration is then returned to the
->> + * caller.
-> 
-> An alternative to these three paragraphs could be:
-> 
-> First obtain an fwnode, with integer arguments, referred to by the reference
-> at @index in @prop. These shall be referred as "remote fwnode" and "remote
-> fwnode arguments".
-> 
-> Under the remote fwnode, perform the following steps iteratively @nprops
-> times. Let the number of iteration be "i", starting from 0.
-> 
-> 1. Designate the remote fwnode as the "current fwnode".
-> 
-> 2. Begin iterating child fwnodes under the current fwnode.
-> 
-> 3. Find next child fwnode under the current fwnode. If no node is found,
->    return NULL.
-> 
-> 4. From the child fwnode, read 32-bit unsigned integer property named as
->    the i'th element in @props array.
-> 
-> 5. Compare the value of that integer property with the i'th element in the
->    remote fwnode argument array. If the values do not match, go to (3).
-> 
-> 6. Increment i by one. If i matches with @nprops, return the child fwnode.
-> 
-> 7. Designate the child fwnode as the current fwnode and continue from (2).
+The driver mmap functions shouldn't take lock when calling vb2_mmap().
+Fix it to not take the lock. The following lockdep warning is fixed
+with this change.
 
-This is definitely a better text.
+[ 1990.972058] ======================================================
+[ 1990.978172] WARNING: possible circular locking dependency detected
+[ 1990.984327] 4.14.0-rc2-00002-gfab205f-dirty #4 Not tainted
+[ 1990.989783] ------------------------------------------------------
+[ 1990.995937] qtdemux0:sink/2765 is trying to acquire lock:
+[ 1991.001309]  (&gsc->lock){+.+.}, at: [<bf1729f0>] gsc_m2m_mmap+0x24/0x5c [exynos_gsc]
+[ 1991.009108]
+               but task is already holding lock:
+[ 1991.014913]  (&mm->mmap_sem){++++}, at: [<c01df2e4>] vm_mmap_pgoff+0x44/0xb8
+[ 1991.021932]
+               which lock already depends on the new lock.
 
-However, this describes the mechanics of the function, not what its purpose
-actually is.
+[ 1991.030078]
+               the existing dependency chain (in reverse order) is:
+[ 1991.037530]
+               -> #1 (&mm->mmap_sem){++++}:
+[ 1991.042913]        __might_fault+0x80/0xb0
+[ 1991.047096]        video_usercopy+0x1cc/0x510 [videodev]
+[ 1991.052297]        v4l2_ioctl+0xa4/0xdc [videodev]
+[ 1991.057036]        do_vfs_ioctl+0xa0/0xa18
+[ 1991.061102]        SyS_ioctl+0x34/0x5c
+[ 1991.064834]        ret_fast_syscall+0x0/0x28
+[ 1991.069072]
+               -> #0 (&gsc->lock){+.+.}:
+[ 1991.074193]        lock_acquire+0x6c/0x88
+[ 1991.078179]        __mutex_lock+0x68/0xa34
+[ 1991.082247]        mutex_lock_interruptible_nested+0x1c/0x24
+[ 1991.087888]        gsc_m2m_mmap+0x24/0x5c [exynos_gsc]
+[ 1991.093029]        v4l2_mmap+0x54/0x88 [videodev]
+[ 1991.097673]        mmap_region+0x3a8/0x638
+[ 1991.101743]        do_mmap+0x330/0x3a4
+[ 1991.105470]        vm_mmap_pgoff+0x90/0xb8
+[ 1991.109542]        SyS_mmap_pgoff+0x90/0xc0
+[ 1991.113702]        ret_fast_syscall+0x0/0x28
+[ 1991.117945]
+               other info that might help us debug this:
 
-The core reason for this is that you cannot refer to just any node in ACPI.
-So to refer to an endpoint (easy in DT) you need to refer to a device, then
-provide a list of (property name, property value) tuples where each tuple
-uniquely identifies a child node. The first tuple identifies a child directly
-underneath the device fwnode, the next tuple identifies a child node underneath
-the fwnode identified by the previous tuple, etc. until you reached the fwnode
-you need.
+[ 1991.125918]  Possible unsafe locking scenario:
 
-Does this make sense?
+[ 1991.131810]        CPU0                    CPU1
+[ 1991.136315]        ----                    ----
+[ 1991.140821]   lock(&mm->mmap_sem);
+[ 1991.144201]                                lock(&gsc->lock);
+[ 1991.149833]                                lock(&mm->mmap_sem);
+[ 1991.155725]   lock(&gsc->lock);
+[ 1991.158845]
+                *** DEADLOCK ***
 
-> 
->> + *
->> + * An example with a graph, as defined in Documentation/acpi/dsd/graph.txt:
->> + *
->> + *	Scope (\_SB.PCI0.I2C2)
->> + *	{
->> + *		Device (CAM0)
->> + *		{
->> + *			Name (_DSD, Package () {
->> + *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->> + *				Package () {
->> + *					Package () {
->> + *						"compatible",
->> + *						Package () { "nokia,smia" }
->> + *					},
->> + *				},
->> + *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
->> + *				Package () {
->> + *					Package () { "port0", "PRT0" },
->> + *				}
->> + *			})
->> + *			Name (PRT0, Package() {
->> + *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->> + *				Package () {
->> + *					Package () { "port", 0 },
->> + *				},
->> + *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
->> + *				Package () {
->> + *					Package () { "endpoint0", "EP00" },
->> + *				}
->> + *			})
->> + *			Name (EP00, Package() {
->> + *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->> + *				Package () {
->> + *					Package () { "endpoint", 0 },
->> + *					Package () {
->> + *						"remote-endpoint",
->> + *						Package() {
->> + *							\_SB.PCI0.ISP, 4, 0
->> + *						}
->> + *					},
->> + *				}
->> + *			})
->> + *		}
->> + *	}
->> + *
->> + *	Scope (\_SB.PCI0)
->> + *	{
->> + *		Device (ISP)
->> + *		{
->> + *			Name (_DSD, Package () {
->> + *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
->> + *				Package () {
->> + *					Package () { "port4", "PRT4" },
->> + *				}
->> + *			})
->> + *
->> + *			Name (PRT4, Package() {
->> + *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->> + *				Package () {
->> + *					Package () { "port", 4 },
->> + *				},
->> + *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
->> + *				Package () {
->> + *					Package () { "endpoint0", "EP40" },
->> + *				}
->> + *			})
->> + *
->> + *			Name (EP40, Package() {
->> + *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->> + *				Package () {
->> + *					Package () { "endpoint", 0 },
->> + *					Package () {
->> + *						"remote-endpoint",
->> + *						Package () {
->> + *							\_SB.PCI0.I2C2.CAM0,
->> + *							0, 0
->> + *						}
->> + *					},
->> + *				}
->> + *			})
->> + *		}
->> + *	}
+[ 1991.164740] 1 lock held by qtdemux0:sink/2765:
+[ 1991.169157]  #0:  (&mm->mmap_sem){++++}, at: [<c01df2e4>] vm_mmap_pgoff+0x44/0xb8
+[ 1991.176609]
+               stack backtrace:
+[ 1991.180946] CPU: 2 PID: 2765 Comm: qtdemux0:sink Not tainted 4.14.0-rc2-00002-gfab205f-dirty #4
+[ 1991.189608] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
+[ 1991.195686] [<c01102c8>] (unwind_backtrace) from [<c010cabc>] (show_stack+0x10/0x14)
+[ 1991.203393] [<c010cabc>] (show_stack) from [<c08543a4>] (dump_stack+0x98/0xc4)
+[ 1991.210586] [<c08543a4>] (dump_stack) from [<c016b2fc>] (print_circular_bug+0x254/0x410)
+[ 1991.218644] [<c016b2fc>] (print_circular_bug) from [<c016c580>] (check_prev_add+0x468/0x938)
+[ 1991.227049] [<c016c580>] (check_prev_add) from [<c016f4dc>] (__lock_acquire+0x1314/0x14fc)
+[ 1991.235281] [<c016f4dc>] (__lock_acquire) from [<c016fefc>] (lock_acquire+0x6c/0x88)
+[ 1991.242993] [<c016fefc>] (lock_acquire) from [<c0869fb4>] (__mutex_lock+0x68/0xa34)
+[ 1991.250620] [<c0869fb4>] (__mutex_lock) from [<c086aa08>] (mutex_lock_interruptible_nested+0x1c/0x24)
+[ 1991.259812] [<c086aa08>] (mutex_lock_interruptible_nested) from [<bf1729f0>] (gsc_m2m_mmap+0x24/0x5c [exynos_gsc])
+[ 1991.270159] [<bf1729f0>] (gsc_m2m_mmap [exynos_gsc]) from [<bf037120>] (v4l2_mmap+0x54/0x88 [videodev])
+[ 1991.279510] [<bf037120>] (v4l2_mmap [videodev]) from [<c01f4798>] (mmap_region+0x3a8/0x638)
+[ 1991.287792] [<c01f4798>] (mmap_region) from [<c01f4d58>] (do_mmap+0x330/0x3a4)
+[ 1991.294986] [<c01f4d58>] (do_mmap) from [<c01df330>] (vm_mmap_pgoff+0x90/0xb8)
+[ 1991.302178] [<c01df330>] (vm_mmap_pgoff) from [<c01f28cc>] (SyS_mmap_pgoff+0x90/0xc0)
+[ 1991.309977] [<c01f28cc>] (SyS_mmap_pgoff) from [<c0108820>] (ret_fast_syscall+0x0/0x28)
 
-Please provide the equivalent DT structure as well. A large part of the
-problem was lack of ACPI syntax understanding on my side.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Suggested-by: Hans Verkuil <hansverk@cisco.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-m2m.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
->> + *
->> + * From the EP40 node under ISP device, you could parse the graph remote
->> + * endpoint using v4l2_fwnode_reference_get_int_prop with these arguments:
->> + *
->> + *  @fwnode: fwnode referring to EP40 under ISP.
->> + *  @prop: "remote-endpoint"
->> + *  @index: 0
->> + *  @props: "port", "endpoint"
->> + *  @nprops: 2
->> + *
->> + * And you'd get back fwnode referring to EP00 under CAM0.
->> + *
->> + * The same works the other way around: if you use EP00 under CAM0 as the
->> + * fwnode, you'll get fwnode referring to EP40 under ISP.
->> + *
->> + * Return: 0 on success
->> + *	   -ENOENT if no entries (or the property itself) were found
->> + *	   -EINVAL if property parsing otherwise failed
->> + *	   -ENOMEM if memory allocation failed
->> + */
->> +static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
->> +	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
->> +	const char **props, unsigned int nprops)
->> +{
->> +	struct fwnode_reference_args fwnode_args;
->> +	unsigned int *args = fwnode_args.args;
->> +	struct fwnode_handle *child;
->> +	int ret;
->> +
->> +	/*
->> +	 * Obtain remote fwnode as well as the integer arguments.
->> +	 *
->> +	 * Note that right now both -ENODATA and -ENOENT may signal
->> +	 * out-of-bounds access. Return -ENOENT in that case.
->> +	 */
->> +	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
->> +						 index, &fwnode_args);
->> +	if (ret)
->> +		return ERR_PTR(ret == -ENODATA ? -ENOENT : ret);
->> +
->> +	/*
->> +	 * Find a node in the tree under the referred fwnode corresponding to
->> +	 * the integer arguments.
->> +	 */
->> +	fwnode = fwnode_args.fwnode;
->> +	while (nprops--) {
->> +		u32 val;
->> +
->> +		/* Loop over all child nodes under fwnode. */
->> +		fwnode_for_each_child_node(fwnode, child) {
->> +			if (fwnode_property_read_u32(child, *props, &val))
->> +				continue;
->> +
->> +			/* Found property, see if its value matches. */
->> +			if (val == *args)
->> +				break;
->> +		}
->> +
->> +		fwnode_handle_put(fwnode);
->> +
->> +		/* No property found; return an error here. */
->> +		if (!child) {
->> +			fwnode = ERR_PTR(-ENOENT);
->> +			break;
->> +		}
->> +
->> +		props++;
->> +		args++;
->> +		fwnode = child;
->> +	}
->> +
->> +	return fwnode;
->> +}
->> +
->> +/*
->> + * v4l2_fwnode_reference_parse_int_props - parse references for async sub-devices
->> + * @dev: struct device pointer
->> + * @notifier: notifier for @dev
->> + * @prop: the name of the property
->> + * @props: the array of integer property names
->> + * @nprops: the number of integer properties
->> + *
->> + * Use v4l2_fwnode_reference_get_int_prop to find fwnodes through reference in
->> + * property @prop with integer arguments with child nodes matching in properties
->> + * @props. Then, set up V4L2 async sub-devices for those fwnodes in the notifier
->> + * accordingly.
->> + *
->> + * While it is technically possible to use this function on DT, it is only
->> + * meaningful on ACPI. On Device tree you can refer to any node in the tree but
->> + * on ACPI the references are limited to devices.
->> + *
->> + * Return: 0 on success
->> + *	   -ENOENT if no entries (or the property itself) were found
->> + *	   -EINVAL if property parsing otherwisefailed
->> + *	   -ENOMEM if memory allocation failed
->> + */
->> +static int v4l2_fwnode_reference_parse_int_props(
->> +	struct device *dev, struct v4l2_async_notifier *notifier,
->> +	const char *prop, const char **props, unsigned int nprops)
->> +{
->> +	struct fwnode_handle *fwnode;
->> +	unsigned int index;
->> +	int ret;
->> +
->> +	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
->> +					 dev_fwnode(dev), prop, index, props,
->> +					 nprops))); index++)
->> +		fwnode_handle_put(fwnode);
->> +
->> +	/*
->> +	 * Note that right now both -ENODATA and -ENOENT may signal
->> +	 * out-of-bounds access. Return the error in cases other than that.
->> +	 */
->> +	if (PTR_ERR(fwnode) != -ENOENT && PTR_ERR(fwnode) != -ENODATA)
->> +		return PTR_ERR(fwnode);
->> +
->> +	ret = v4l2_async_notifier_realloc(notifier,
->> +					  notifier->num_subdevs + index);
->> +	if (ret)
->> +		return -ENOMEM;
->> +
->> +	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
->> +					 dev_fwnode(dev), prop, index, props,
->> +					 nprops))); index++) {
->> +		struct v4l2_async_subdev *asd;
->> +
->> +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
->> +			ret = -EINVAL;
->> +			goto error;
->> +		}
->> +
->> +		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
->> +		if (!asd) {
->> +			ret = -ENOMEM;
->> +			goto error;
->> +		}
->> +
->> +		notifier->subdevs[notifier->num_subdevs] = asd;
->> +		asd->match.fwnode.fwnode = fwnode;
->> +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
->> +		notifier->num_subdevs++;
->> +	}
->> +
->> +	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
->> +
->> +error:
->> +	fwnode_handle_put(fwnode);
->> +	return ret;
->> +}
->> +
->>  MODULE_LICENSE("GPL");
->>  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
->>  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
->> -- 
->> 2.11.0
->>
-> 
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+index 2a2994e..722d7c4 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
++++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+@@ -726,14 +726,9 @@ static unsigned int gsc_m2m_poll(struct file *file,
+ static int gsc_m2m_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct gsc_ctx *ctx = fh_to_ctx(file->private_data);
+-	struct gsc_dev *gsc = ctx->gsc_dev;
+ 	int ret;
+ 
+-	if (mutex_lock_interruptible(&gsc->lock))
+-		return -ERESTARTSYS;
+-
+ 	ret = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
+-	mutex_unlock(&gsc->lock);
+ 
+ 	return ret;
+ }
+-- 
+2.7.4
