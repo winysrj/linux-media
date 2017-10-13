@@ -1,31 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:33315 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750716AbdJMUdX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 16:33:23 -0400
-Subject: Re: [PATCH] build: Remove IDA from lirc_dev
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, david@hardeman.nu
-References: <1507926209-9654-1-git-send-email-jasmin@anw.at>
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <6709a343-26fa-64c7-f7ac-ed3a99ebc6ef@anw.at>
-Date: Fri, 13 Oct 2017 22:33:16 +0200
+Received: from mail-cys01nam02on0101.outbound.protection.outlook.com ([104.47.37.101]:53714
+        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750722AbdJMFyf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 01:54:35 -0400
+From: <Yasunari.Takiguchi@sony.com>
+To: <akpm@linux-foundation.org>, <linux-kernel@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>
+CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
+        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
+        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
+        Hideki Nozawa <Hideki.Nozawa@sony.com>,
+        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
+        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
+        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+Subject: [PATCH v4 01/12] [dt-bindings] [media] Add document file for CXD2880 SPI I/F
+Date: Fri, 13 Oct 2017 14:58:00 +0900
+Message-ID: <20171013055800.21045-1-Yasunari.Takiguchi@sony.com>
+In-Reply-To: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
+References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
 MIME-Version: 1.0
-In-Reply-To: <1507926209-9654-1-git-send-email-jasmin@anw.at>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-With this patch, the media-tree can be compiled back to Kernel 2.6.37.
-For 2.6.32 some patches do not apply. I will fix that later.
+This is the document file for Sony CXD2880 DVB-T2/T tuner + demodulator.
+It contains the description of the SPI adapter binding.
 
-@David:
-Please can you review my changes if I reverted the patch correctly.
-"git revert" didn't work, because of the changes in lirc_dev.c.
+Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+Acked-by: Rob Herring <robh@kernel.org>
+---
 
-BR,
-   Jasmin
+No change since version 1.
+
+ .../devicetree/bindings/media/spi/sony-cxd2880.txt         | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+
+diff --git a/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt b/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+new file mode 100644
+index 000000000000..fc5aa263abe5
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/spi/sony-cxd2880.txt
+@@ -0,0 +1,14 @@
++Sony CXD2880 DVB-T2/T tuner + demodulator driver SPI adapter
++
++Required properties:
++- compatible: Should be "sony,cxd2880".
++- reg: SPI chip select number for the device.
++- spi-max-frequency: Maximum bus speed, should be set to <55000000> (55MHz).
++
++Example:
++
++cxd2880@0 {
++	compatible = "sony,cxd2880";
++	reg = <0>; /* CE0 */
++	spi-max-frequency = <55000000>; /* 55MHz */
++};
+-- 
+2.13.0
