@@ -1,130 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:4740 "EHLO
-        mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751891AbdJDJGW (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:39198 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753394AbdJMN1e (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 05:06:22 -0400
-Date: Wed, 4 Oct 2017 11:06:18 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Todor Tomov <todor.tomov@linaro.org>
-cc: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hansverk@cisco.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] ov5645: I2C address change (fwd)
-Message-ID: <alpine.DEB.2.20.1710041103510.3139@hadrien>
+        Fri, 13 Oct 2017 09:27:34 -0400
+Subject: Re: [PATCH v2 03/17] media: v4l2-common: get rid of struct
+ v4l2_discrete_probe
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+References: <cover.1506548682.git.mchehab@s-opensource.com>
+ <2c6deebfb792a95fb5a0b60ed715671c6398e20f.1506548682.git.mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <fb2ddcfa-12d8-0c00-08b9-bde6ba1d5cdb@xs4all.nl>
+Date: Fri, 13 Oct 2017 15:27:29 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <2c6deebfb792a95fb5a0b60ed715671c6398e20f.1506548682.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 09/27/17 23:46, Mauro Carvalho Chehab wrote:
+> This struct is there just two store two arguments of
+> v4l2_find_nearest_format(). The other two arguments are passed
+> as parameter.
+> 
+> IMHO, there isn't much sense on doing that, and that will just
+> add one more struct to document ;)
+> 
+> So, let's get rid of the struct, passing the parameters directly.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/platform/vivid/vivid-vid-cap.c |  9 +++------
+>  drivers/media/v4l2-core/v4l2-common.c        | 13 +++++++------
+>  include/media/v4l2-common.h                  | 12 ++++--------
+>  3 files changed, 14 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+> index 01419455e545..0fbbcde19f0d 100644
+> --- a/drivers/media/platform/vivid/vivid-vid-cap.c
+> +++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+> @@ -93,11 +93,6 @@ static const struct v4l2_fract webcam_intervals[VIVID_WEBCAM_IVALS] = {
+>  	{  1, 60 },
+>  };
+>  
+> -static const struct v4l2_discrete_probe webcam_probe = {
+> -	webcam_sizes,
+> -	VIVID_WEBCAM_SIZES
+> -};
+> -
+>  static int vid_cap_queue_setup(struct vb2_queue *vq,
+>  		       unsigned *nbuffers, unsigned *nplanes,
+>  		       unsigned sizes[], struct device *alloc_devs[])
+> @@ -578,7 +573,9 @@ int vivid_try_fmt_vid_cap(struct file *file, void *priv,
+>  	mp->field = vivid_field_cap(dev, mp->field);
+>  	if (vivid_is_webcam(dev)) {
+>  		const struct v4l2_frmsize_discrete *sz =
+> -			v4l2_find_nearest_format(&webcam_probe, mp->width, mp->height);
+> +			v4l2_find_nearest_format(webcam_sizes,
+> +						 VIVID_WEBCAM_SIZES,
+> +						 mp->width, mp->height);
+>  
+>  		w = sz->width;
+>  		h = sz->height;
+> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+> index a5ea1f517291..fb9a2a3c1072 100644
+> --- a/drivers/media/v4l2-core/v4l2-common.c
+> +++ b/drivers/media/v4l2-core/v4l2-common.c
+> @@ -371,18 +371,19 @@ void v4l_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
+>  }
+>  EXPORT_SYMBOL_GPL(v4l_bound_align_image);
+>  
+> -const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
+> -		const struct v4l2_discrete_probe *probe,
+> -		s32 width, s32 height)
+> +const struct v4l2_frmsize_discrete
+> +*v4l2_find_nearest_format(const struct v4l2_frmsize_discrete *sizes,
 
-It seems that an unlock is missing on line 764.
+Please move the initial '*' to the end of the first line. Otherwise it is very
+hard to see that this function returns a pointer.
 
-julia
+> +			  const size_t num_sizes,
+> +			  s32 width, s32 height)
+>  {
+>  	int i;
+>  	u32 error, min_error = UINT_MAX;
+>  	const struct v4l2_frmsize_discrete *size, *best = NULL;
+>  
+> -	if (!probe)
+> -		return best;
+> +	if (!sizes)
+> +		return NULL;
+>  
+> -	for (i = 0, size = probe->sizes; i < probe->num_sizes; i++, size++) {
+> +	for (i = 0, size = sizes; i < num_sizes; i++, size++) {
+>  		error = abs(size->width - width) + abs(size->height - height);
+>  		if (error < min_error) {
+>  			min_error = error;
+> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+> index 7dbecbe3009c..7ae7840df068 100644
+> --- a/include/media/v4l2-common.h
+> +++ b/include/media/v4l2-common.h
+> @@ -249,14 +249,10 @@ void v4l_bound_align_image(unsigned int *w, unsigned int wmin,
+>  			   unsigned int hmax, unsigned int halign,
+>  			   unsigned int salign);
+>  
+> -struct v4l2_discrete_probe {
+> -	const struct v4l2_frmsize_discrete	*sizes;
+> -	int					num_sizes;
+> -};
+> -
+> -const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
+> -		const struct v4l2_discrete_probe *probe,
+> -		s32 width, s32 height);
+> +const struct v4l2_frmsize_discrete
+> +*v4l2_find_nearest_format(const struct v4l2_frmsize_discrete *sizes,
 
----------- Forwarded message ----------
-Date: Wed, 4 Oct 2017 05:59:09 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: kbuild@01.org
-Cc: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH] [media] ov5645: I2C address change
+Same here.
 
-CC: kbuild-all@01.org
-In-Reply-To: <1506950925-13924-1-git-send-email-todor.tomov@linaro.org>
-TO: Todor Tomov <todor.tomov@linaro.org>
-CC: mchehab@kernel.org, sakari.ailus@linux.intel.com, hansverk@cisco.com, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
+> +			  const size_t num_sizes,
+> +			  s32 width, s32 height);
+>  
+>  void v4l2_get_timestamp(struct timeval *tv);
+>  
+> 
 
-Hi Todor,
+After changing that you can add my:
 
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.14-rc3 next-20170929]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-url:    https://github.com/0day-ci/linux/commits/Todor-Tomov/ov5645-I2C-address-change/20171003-234231
-base:   git://linuxtv.org/media_tree.git master
-:::::: branch date: 6 hours ago
-:::::: commit date: 6 hours ago
+Regards,
 
->> drivers/media/i2c/ov5645.c:806:1-7: preceding lock on line 760
-
-# https://github.com/0day-ci/linux/commit/c222075023642217170e2ef95f48efef079f9bcd
-git remote add linux-review https://github.com/0day-ci/linux
-git remote update linux-review
-git checkout c222075023642217170e2ef95f48efef079f9bcd
-vim +806 drivers/media/i2c/ov5645.c
-
-9cae9722 Todor Tomov 2017-04-11  747
-9cae9722 Todor Tomov 2017-04-11  748  static int ov5645_s_power(struct v4l2_subdev *sd, int on)
-9cae9722 Todor Tomov 2017-04-11  749  {
-9cae9722 Todor Tomov 2017-04-11  750  	struct ov5645 *ov5645 = to_ov5645(sd);
-9cae9722 Todor Tomov 2017-04-11  751  	int ret = 0;
-9cae9722 Todor Tomov 2017-04-11  752
-9cae9722 Todor Tomov 2017-04-11  753  	mutex_lock(&ov5645->power_lock);
-9cae9722 Todor Tomov 2017-04-11  754
-9cae9722 Todor Tomov 2017-04-11  755  	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
-9cae9722 Todor Tomov 2017-04-11  756  	 * update the power state.
-9cae9722 Todor Tomov 2017-04-11  757  	 */
-9cae9722 Todor Tomov 2017-04-11  758  	if (ov5645->power_count == !on) {
-9cae9722 Todor Tomov 2017-04-11  759  		if (on) {
-c2220750 Todor Tomov 2017-10-02 @760  			mutex_lock(&ov5645_lock);
-c2220750 Todor Tomov 2017-10-02  761
-9cae9722 Todor Tomov 2017-04-11  762  			ret = ov5645_set_power_on(ov5645);
-9cae9722 Todor Tomov 2017-04-11  763  			if (ret < 0)
-9cae9722 Todor Tomov 2017-04-11  764  				goto exit;
-9cae9722 Todor Tomov 2017-04-11  765
-c2220750 Todor Tomov 2017-10-02  766  			ret = ov5645_write_reg_to(ov5645, 0x3100,
-c2220750 Todor Tomov 2017-10-02  767  						ov5645->i2c_client->addr, 0x78);
-c2220750 Todor Tomov 2017-10-02  768  			if (ret < 0) {
-c2220750 Todor Tomov 2017-10-02  769  				dev_err(ov5645->dev,
-c2220750 Todor Tomov 2017-10-02  770  					"could not change i2c address\n");
-c2220750 Todor Tomov 2017-10-02  771  				ov5645_set_power_off(ov5645);
-c2220750 Todor Tomov 2017-10-02  772  				mutex_unlock(&ov5645_lock);
-c2220750 Todor Tomov 2017-10-02  773  				goto exit;
-c2220750 Todor Tomov 2017-10-02  774  			}
-c2220750 Todor Tomov 2017-10-02  775
-c2220750 Todor Tomov 2017-10-02  776  			mutex_unlock(&ov5645_lock);
-c2220750 Todor Tomov 2017-10-02  777
-9cae9722 Todor Tomov 2017-04-11  778  			ret = ov5645_set_register_array(ov5645,
-9cae9722 Todor Tomov 2017-04-11  779  					ov5645_global_init_setting,
-9cae9722 Todor Tomov 2017-04-11  780  					ARRAY_SIZE(ov5645_global_init_setting));
-9cae9722 Todor Tomov 2017-04-11  781  			if (ret < 0) {
-9cae9722 Todor Tomov 2017-04-11  782  				dev_err(ov5645->dev,
-9cae9722 Todor Tomov 2017-04-11  783  					"could not set init registers\n");
-9cae9722 Todor Tomov 2017-04-11  784  				ov5645_set_power_off(ov5645);
-9cae9722 Todor Tomov 2017-04-11  785  				goto exit;
-9cae9722 Todor Tomov 2017-04-11  786  			}
-9cae9722 Todor Tomov 2017-04-11  787
-9cae9722 Todor Tomov 2017-04-11  788  			ret = ov5645_write_reg(ov5645, OV5645_SYSTEM_CTRL0,
-9cae9722 Todor Tomov 2017-04-11  789  					       OV5645_SYSTEM_CTRL0_STOP);
-9cae9722 Todor Tomov 2017-04-11  790  			if (ret < 0) {
-9cae9722 Todor Tomov 2017-04-11  791  				ov5645_set_power_off(ov5645);
-9cae9722 Todor Tomov 2017-04-11  792  				goto exit;
-9cae9722 Todor Tomov 2017-04-11  793  			}
-9cae9722 Todor Tomov 2017-04-11  794  		} else {
-9cae9722 Todor Tomov 2017-04-11  795  			ov5645_set_power_off(ov5645);
-9cae9722 Todor Tomov 2017-04-11  796  		}
-9cae9722 Todor Tomov 2017-04-11  797  	}
-9cae9722 Todor Tomov 2017-04-11  798
-9cae9722 Todor Tomov 2017-04-11  799  	/* Update the power count. */
-9cae9722 Todor Tomov 2017-04-11  800  	ov5645->power_count += on ? 1 : -1;
-9cae9722 Todor Tomov 2017-04-11  801  	WARN_ON(ov5645->power_count < 0);
-9cae9722 Todor Tomov 2017-04-11  802
-9cae9722 Todor Tomov 2017-04-11  803  exit:
-9cae9722 Todor Tomov 2017-04-11  804  	mutex_unlock(&ov5645->power_lock);
-9cae9722 Todor Tomov 2017-04-11  805
-9cae9722 Todor Tomov 2017-04-11 @806  	return ret;
-9cae9722 Todor Tomov 2017-04-11  807  }
-9cae9722 Todor Tomov 2017-04-11  808
-
-:::::: The code at line 806 was first introduced by commit
-:::::: 9cae97221aabfb3ca5daaa424a66c9d8eee1ff59 [media] media: Add a driver for the ov5645 camera sensor
-
-:::::: TO: Todor Tomov <todor.tomov@linaro.org>
-:::::: CC: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+	Hans
