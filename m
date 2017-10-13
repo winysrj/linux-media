@@ -1,90 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:53881 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751109AbdJNIQP (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:33168 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751480AbdJMLdR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Oct 2017 04:16:15 -0400
-Subject: Re: [PATCH 1/3] drm: bridge: synopsys/dw-hdmi: Enable cec clock
-To: Pierre-Hugues Husson <phh@phh.me>,
-        linux-rockchip@lists.infradead.org
-Cc: heiko@sntech.de, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <20171013225337.5196-1-phh@phh.me>
- <20171013225337.5196-2-phh@phh.me>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <35b9fbe3-9859-03e2-173e-8cff5a90efdd@xs4all.nl>
-Date: Sat, 14 Oct 2017 10:16:07 +0200
-MIME-Version: 1.0
-In-Reply-To: <20171013225337.5196-2-phh@phh.me>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Fri, 13 Oct 2017 07:33:17 -0400
+To: LMML <linux-media@vger.kernel.org>,
+        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PULL] Exynos/S5P updates for 4.15
+Message-id: <24a660f7-c3bf-0484-acbf-95ffd03b496b@samsung.com>
+Date: Fri, 13 Oct 2017 13:33:11 +0200
+MIME-version: 1.0
+Content-type: text/plain; charset="utf-8"
+Content-language: en-GB
+Content-transfer-encoding: 7bit
+References: <CGME20171013113314epcas1p457aa6db29020300ffbea61e468752f24@epcas1p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/14/2017 12:53 AM, Pierre-Hugues Husson wrote:
-> The documentation already mentions "cec" optional clock, but
-> currently the driver doesn't enable it.
-> 
-> Signed-off-by: Pierre-Hugues Husson <phh@phh.me>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro,
 
-Thanks!
+The following changes since commit 8382e556b1a2f30c4bf866f021b33577a64f9ebf:
 
-	Hans
+  Simplify major/minor non-dynamic logic (2017-10-11 15:32:11 -0400)
 
-> ---
->  drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 17 +++++++++++++++++
->  1 file changed, 17 insertions(+)
-> 
-> diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-> index bf14214fa464..5007cdf43131 100644
-> --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-> +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-> @@ -138,6 +138,7 @@ struct dw_hdmi {
->  	struct device *dev;
->  	struct clk *isfr_clk;
->  	struct clk *iahb_clk;
-> +	struct clk *cec_clk;
->  	struct dw_hdmi_i2c *i2c;
->  
->  	struct hdmi_data_info hdmi_data;
-> @@ -2382,6 +2383,18 @@ __dw_hdmi_probe(struct platform_device *pdev,
->  		goto err_isfr;
->  	}
->  
-> +	hdmi->cec_clk = devm_clk_get(hdmi->dev, "cec");
-> +	if (IS_ERR(hdmi->cec_clk)) {
-> +		hdmi->cec_clk = NULL;
-> +	} else {
-> +		ret = clk_prepare_enable(hdmi->cec_clk);
-> +		if (ret) {
-> +			dev_err(hdmi->dev, "Cannot enable HDMI cec clock: %d\n",
-> +					ret);
-> +			goto err_res;
-> +		}
-> +	}
-> +
->  	/* Product and revision IDs */
->  	hdmi->version = (hdmi_readb(hdmi, HDMI_DESIGN_ID) << 8)
->  		      | (hdmi_readb(hdmi, HDMI_REVISION_ID) << 0);
-> @@ -2518,6 +2531,8 @@ __dw_hdmi_probe(struct platform_device *pdev,
->  		cec_notifier_put(hdmi->cec_notifier);
->  
->  	clk_disable_unprepare(hdmi->iahb_clk);
-> +	if (hdmi->cec_clk)
-> +		clk_disable_unprepare(hdmi->cec_clk);
->  err_isfr:
->  	clk_disable_unprepare(hdmi->isfr_clk);
->  err_res:
-> @@ -2541,6 +2556,8 @@ static void __dw_hdmi_remove(struct dw_hdmi *hdmi)
->  
->  	clk_disable_unprepare(hdmi->iahb_clk);
->  	clk_disable_unprepare(hdmi->isfr_clk);
-> +	if (hdmi->cec_clk)
-> +		clk_disable_unprepare(hdmi->cec_clk);
->  
->  	if (hdmi->i2c)
->  		i2c_del_adapter(&hdmi->i2c->adap);
-> 
+are available in the git repository at:
+
+  git://linuxtv.org/snawrocki/samsung.git for-v4.15/media/next
+
+for you to fetch changes up to e5fa99e5df93e815920e87e907e5cb61e765505b:
+
+  s5p-mfc: Adjust a null pointer check in four functions (2017-10-13 13:17:49 +0200)
+
+----------------------------------------------------------------
+Hoegeun Kwon (2):
+      exynos-gsc: Add compatible for Exynos 5250 and 5420 SoC version
+      exynos-gsc: Add hardware rotation limits
+
+Markus Elfring (3):
+      s5p-mfc: Delete an error message for a failed memory allocation
+      s5p-mfc: Improve a size determination in s5p_mfc_alloc_memdev()
+      s5p-mfc: Adjust a null pointer check in four functions
+
+ .../devicetree/bindings/media/exynos5-gsc.txt |   9 +-
+ drivers/media/platform/exynos-gsc/gsc-core.c  | 127 ++++++++++++++++-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c      |  14 +-
+ 3 files changed, 134 insertions(+), 16 deletions(-)
+
+
+-- 
+Regards,
+Sylwester
