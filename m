@@ -1,91 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:36282 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751524AbdJaQE0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Oct 2017 12:04:26 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org
-Subject: [PATCH 3/7] media: atomisp: fix switch coding style at input_system.c
-Date: Tue, 31 Oct 2017 12:04:16 -0400
-Message-Id: <849af8bbc79553ca6962caaec782c5ab92743344.1509465351.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1509465351.git.mchehab@s-opensource.com>
-References: <cover.1509465351.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1509465351.git.mchehab@s-opensource.com>
-References: <cover.1509465351.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from fllnx209.ext.ti.com ([198.47.19.16]:21726 "EHLO
+        fllnx209.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751981AbdJMR64 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 13:58:56 -0400
+Date: Fri, 13 Oct 2017 12:58:17 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+CC: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>, <linux-media@vger.kernel.org>
+Subject: Re: [Patch 2/6] ARM: DRA7: hwmod: Add CAL nodes
+Message-ID: <20171013175817.GG25400@ti.com>
+References: <20171012192719.15193-1-bparrot@ti.com>
+ <20171012192719.15193-3-bparrot@ti.com>
+ <20171013165654.GK4394@atomide.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20171013165654.GK4394@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix a switch at input_system.c that were causing smatch warnings:
+Tony Lindgren <tony@atomide.com> wrote on Fri [2017-Oct-13 09:56:54 -0700]:
+> * Benoit Parrot <bparrot@ti.com> [171012 12:28]:
+> > This patch adds the required hwmod nodes to support the Camera
+> > Adaptation Layer (CAL) for the DRA72 family of devices.
+> ...
+> 
+> > +static struct omap_hwmod_class_sysconfig dra7xx_cal_sysc = {
+> > +	.sysc_offs	= 0x0010,
+> 
+> Also has .rev_offs at 0 so please add that too.
 
-drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c:610 rx_channel_get_state() warn: inconsistent indenting
-drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c:616 rx_channel_get_state() warn: inconsistent indenting
-drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c:622 rx_channel_get_state() warn: inconsistent indenting
-drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c:610 rx_channel_get_state() warn: inconsistent indenting
-drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c:616 rx_channel_get_state() warn: inconsistent indenting
-drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c:622 rx_channel_get_state() warn: inconsistent indenting
+Ok, I'll add that.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- .../hive_isp_css_common/host/input_system.c        | 32 +++++++++++-----------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+Benoit
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c
-index c9af2bfc1f88..cd2096fa75c8 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c
-@@ -602,30 +602,30 @@ STORAGE_CLASS_INLINE void rx_channel_get_state(
- 	assert(state != NULL);
- 
- 	switch (ch_id) {
--		case 0:
--			state->comp_scheme0 = receiver_reg_load(ID,
-+	case 0:
-+		state->comp_scheme0 = receiver_reg_load(ID,
- 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC0_REG0_IDX);
--			state->comp_scheme1 = receiver_reg_load(ID,
-+		state->comp_scheme1 = receiver_reg_load(ID,
- 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC0_REG1_IDX);
--	break;
--		case 1:
--			state->comp_scheme0 = receiver_reg_load(ID,
-+		break;
-+	case 1:
-+		state->comp_scheme0 = receiver_reg_load(ID,
- 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC1_REG0_IDX);
--			state->comp_scheme1 = receiver_reg_load(ID,
-+		state->comp_scheme1 = receiver_reg_load(ID,
- 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC1_REG1_IDX);
--	break;
--		case 2:
--			state->comp_scheme0 = receiver_reg_load(ID,
-+		break;
-+	case 2:
-+		state->comp_scheme0 = receiver_reg_load(ID,
- 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC2_REG0_IDX);
--			state->comp_scheme1 = receiver_reg_load(ID,
-+		state->comp_scheme1 = receiver_reg_load(ID,
- 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC2_REG1_IDX);
--	break;
--		case 3:
--			state->comp_scheme0 = receiver_reg_load(ID,
-+		break;
-+	case 3:
-+		state->comp_scheme0 = receiver_reg_load(ID,
- 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC3_REG0_IDX);
--			state->comp_scheme1 = receiver_reg_load(ID,
-+		state->comp_scheme1 = receiver_reg_load(ID,
- 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC3_REG1_IDX);
--	break;
-+		break;
- 	}
- 
- /* See Table 7.1.17,..., 7.1.24 */
--- 
-2.13.6
+> 
+> Regards,
+> 
+> Tony
