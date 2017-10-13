@@ -1,40 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:33367 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755354AbdJJHSS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 03:18:18 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v3 15/26] media: lirc: do not call rc_close() on unregistered devices
-Date: Tue, 10 Oct 2017 08:18:17 +0100
-Message-Id: <c4bbdade93f3cf832660ce295117fa4c7273991b.1507618841.git.sean@mess.org>
-In-Reply-To: <cover.1507618840.git.sean@mess.org>
-References: <cover.1507618840.git.sean@mess.org>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:36316 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753258AbdJMNlx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 09:41:53 -0400
+Date: Fri, 13 Oct 2017 08:41:51 -0500
+From: Rob Herring <robh@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v15 20/32] dt: bindings: Add a binding for flash LED
+ devices associated to a sensor
+Message-ID: <20171013134151.7dokd3h4sv636suj@rob-hp-laptop>
+References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+ <20171004215051.13385-21-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171004215051.13385-21-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If a lirc chardev is held open after a device is unplugged, rc_close()
-will be called after rc_unregister_device(). The driver is not expecting
-any calls at this point, and the iguanair driver causes an oops in
-this scenario.
+On Thu, Oct 05, 2017 at 12:50:39AM +0300, Sakari Ailus wrote:
+> Camera flash drivers (and LEDs) are separate from the sensor devices in
+> DT. In order to make an association between the two, provide the
+> association information to the software.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Rob Herring <robh@kernel.org>
+> Cc: devicetree@vger.kernel.org
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
+> ---
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/rc-main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 9e73899b5994..9a8fc86b0835 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -885,7 +885,7 @@ void rc_close(struct rc_dev *rdev)
- 	if (rdev) {
- 		mutex_lock(&rdev->lock);
- 
--		if (!--rdev->users && rdev->close != NULL)
-+		if (!--rdev->users && rdev->close && rdev->registered)
- 			rdev->close(rdev);
- 
- 		mutex_unlock(&rdev->lock);
--- 
-2.13.6
+Acked-by: Rob Herring <robh@kernel.org>
