@@ -1,120 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:43546 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751943AbdJDL6e (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 07:58:34 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v3 00/17] kernel-doc: add supported to document nested structs/
-Date: Wed,  4 Oct 2017 08:48:38 -0300
-Message-Id: <cover.1507116877.git.mchehab@s-opensource.com>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:38663 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753377AbdJMDxz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Oct 2017 23:53:55 -0400
+Message-ID: <761e0c0ed717c6d5a0dcaacd488ae8a8@smtp-cloud8.xs4all.net>
+Date: Fri, 13 Oct 2017 05:53:52 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Right now, it is not possible to document nested struct and nested unions.
-kernel-doc simply ignore them.
+Results of the daily build of media_tree:
 
-Add support to document them.
+date:			Fri Oct 13 05:00:16 CEST 2017
+media-tree git hash:	8382e556b1a2f30c4bf866f021b33577a64f9ebf
+media_build git hash:	33629e38ddda7a5a6ed0f727535c45f08c788bf3
+v4l-utils git hash:	01c04f7c8ad1a91af33e20621eba9200f447737e
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-Patches 1 to 6 improve kernel-doc documentation to reflect what
-kernel-doc currently supports and import some stuff from the
-old kernel-doc-nano-HOWTO.txt.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: OK
+spec-git: OK
 
-Patch 7 gets rid of the old documentation (kernel-doc-nano-HOWTO.txt).
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-Patch 8 gets rid of the now unused output formats for kernel-doc: since 
-we got rid of all DocBook stuff, we should not need them anymore. The
-reason for dropping it (despite cleaning up), is that it doesn't make 
-sense to invest time on adding new features for formats that aren't
-used anymore.
+Full logs are available here:
 
-Patch 9 improves argument handling, printing script usage if an
-invalid argument is passed and accepting both -cmd and --cmd
-forms.
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-Patch 10 changes the default output format to ReST, as this is a way
-more used than man output nowadays.
+The Media Infrastructure API from this daily build is here:
 
-Patch 11 solves an issue after ReST conversion, where tabs were not
-properly handled on kernel-doc tags.
-
-Patch 12 adds support for parsing kernel-doc nested structures and 
-unions.
-
-Patch 13 does a cleanup, removing $nexted parameter at the
-routines that handle structs.
-
-Patch 14 Improves warning output by printing the identifier where
-the warning occurred.
-
-Patch 15 complements patch 12, by adding support for function
-definitions inside nested structures. It is needed by some media
-docs with use such kind of things.
-
-Patch 16 improves nested struct handling even further, allowing it
-to handle cases where a nested named struct/enum with multiple
-identifiers added (e. g. struct { ... } foo, bar;).
-
-Patch 17 adds documentation for nested union/struct inside w1_netlink.
-
-The entire patch series are at my development tree, at:
-    https://git.linuxtv.org/mchehab/experimental.git/log/?h=nested-fix-v4b
-
---
-
-v3:
-- rebased on the top of docs-next branch at docs git tree;
-- patches reordered to a more logical sequence;
-- Change script to produce ReST format by default;
-- Improve argument handling;
-- Accept structs with multiple identifiers.
-
-
-v2:
-  - solved some issues that Randy pointed;
-  - added patch 10 as suggested by Markus;
-  - Fixed some bugs on patch 9, after parsing nested structs
-   on media subsystem;
-  - added patch 11 with a warning improvement fixup;
-  - added patch 12 in order to handle function parameters
-   on nested structures, due to DVB demux kAPI.
-
-v1:
-  - original version.
-
-Mauro Carvalho Chehab (17):
-  docs: kernel-doc.rst: better describe kernel-doc arguments
-  docs: kernel-doc.rst: improve private members description
-  docs: kernel-doc.rst: improve function documentation section
-  docs: kernel-doc.rst: improve structs chapter
-  docs: kernel-doc.rst: improve typedef documentation
-  docs: kernel-doc.rst: add documentation about man pages
-  docs: get rid of kernel-doc-nano-HOWTO.txt
-  scripts: kernel-doc: get rid of unused output formats
-  scripts: kernel-doc: improve argument handling
-  scripts: kernel-doc: change default to ReST format
-  scripts: kernel-doc: replace tabs by spaces
-  scripts: kernel-doc: parse next structs/unions
-  scripts: kernel-doc: get rid of $nested parameter
-  scripts: kernel-doc: print the declaration name on warnings
-  scripts: kernel-doc: handle nested struct function arguments
-  scripts: kernel-doc: improve nested logic to handle multiple
-    identifiers
-  w1_netlink.h: add support for nested structs
-
- Documentation/00-INDEX                  |    2 -
- Documentation/doc-guide/kernel-doc.rst  |  360 +++++---
- Documentation/kernel-doc-nano-HOWTO.txt |  322 -------
- drivers/w1/w1_netlink.h                 |    6 +-
- scripts/kernel-doc                      | 1441 ++++---------------------------
- 5 files changed, 414 insertions(+), 1717 deletions(-)
- delete mode 100644 Documentation/kernel-doc-nano-HOWTO.txt
-
--- 
-2.13.6
+http://www.xs4all.nl/~hverkuil/spec/index.html
