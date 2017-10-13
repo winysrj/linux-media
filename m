@@ -1,213 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:64894 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:48666 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752025AbdJDL6h (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 07:58:37 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v3 16/17] scripts: kernel-doc: improve nested logic to handle multiple identifiers
-Date: Wed,  4 Oct 2017 08:48:54 -0300
-Message-Id: <03fbd714e9c2def6f6a081ca27ca99f794a5bd0c.1507116877.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
-References: <cover.1507116877.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
-References: <cover.1507116877.git.mchehab@s-opensource.com>
+        id S1758432AbdJMPJp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 11:09:45 -0400
+Subject: Re: [ANN] Call for topics for the media mini-summit on Friday Oct 27
+ in Prague
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Shuah Khan <shuahkhan@gmail.com>,
+        Gustavo Padovan <gustavo@padovan.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Shuah Khan <shuahkh@osg.samsung.com>
+References: <4c24c976-2ae3-b0f3-d16a-ec31a9b2ea50@xs4all.nl>
+ <CAFsbExLdADpSK84b4--z5PZ8kUA7R4+Ppmt2NqzO4y-WfdZ7Fg@mail.gmail.com>
+ <CAKocOOO5SaLD2FqyXusHaEds+sT-YrvRuqJrEmBaJ-dPYBR1wQ@mail.gmail.com>
+ <0b0dbec2-0524-2da9-a888-9336a7ad57be@xs4all.nl>
+ <e52e4914-42bb-2783-3a91-8ad3609ab4fc@osg.samsung.com>
+ <391d751f-642d-8366-9d08-f2aaebed5e1e@xs4all.nl>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <f4da7f44-9fb2-3ea1-8dc8-c937a3c59924@osg.samsung.com>
+Date: Fri, 13 Oct 2017 09:09:38 -0600
+MIME-Version: 1.0
+In-Reply-To: <391d751f-642d-8366-9d08-f2aaebed5e1e@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is possible to use nested structs like:
+On 10/13/2017 09:05 AM, Hans Verkuil wrote:
+> On 10/13/17 16:43, Shuah Khan wrote:
+>> Hi Hans,
+>>
+>> On 10/13/2017 01:36 AM, Hans Verkuil wrote:
+>>> Hi Shuah,
+>>>
+>>> On 10/05/2017 03:53 PM, Shuah Khan wrote:
+>>>> Hi Hans/Gustavo.
+>>>>
+>>>> On Wed, Oct 4, 2017 at 1:34 PM, Gustavo Padovan <gustavo@padovan.org> wrote:
+>>>>> Hi Hans,
+>>>>>
+>>>>>
+>>>>>
+>>>>> On Fri, Sep 1, 2017 at 6:46 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>>>> Hi all,
+>>>>>>
+>>>>>> We are organizing a media mini-summit on Friday October 27 in Prague, co-located
+>>>>>> with the ELCE conference:
+>>>>>>
+>>>>>> http://events.linuxfoundation.org/events/embedded-linux-conference-europe
+>>>>>>
+>>>>>> This is a call for topics to discuss during that mini-summit.
+>>>>>>
+>>>>>> Also, if you plan to attend, please let me know. It is open for all, but it is
+>>>>>> nice if we know beforehand who we can expect.
+>>>>>>
+>>>>>> So if you have a topic that you want to discuss there, then just reply to this
+>>>>>> post. If possible, please add a rough idea of how much time you think you will
+>>>>>> need.
+>>>>>>
+>>>>>> I plan to make the agenda based on the received topics around mid-October.
+>>>>>>
+>>>>>
+>>>>> I"m attending and I want to propose a discussion:
+>>>>>
+>>>>> Topic: V4L2 Explicit Syncronization
+>>>>> Purpose: quick overview and discuss of the API/direction we are going
+>>>>> with fences
+>>>>> Duration: 20-30min
+>>>>
+>>>> I would have loved to attend the Media mini-summit. Unfortunately I
+>>>> already made plans to leave Friday. In addition participating in the
+>>>> V4L2 Explicit Syncronization discussion, it would have been good to
+>>>> discuss:
+>>>>
+>>>> the my pending Media/Audio resource sharing patch series that is
+>>>> dependent on Sakari's lifetime managemnet patch series.
+>>>
+>>> I heard you were trying to extend your stay to include the Friday. Let me
+>>> know if you'll be able to attend this summit and I can add this topic to
+>>> the list. If you can't join us on Friday, then we can discuss this on the
+>>> Thursday: we should have enough time for that.
+>>
+>> It is turning out to be tough and way too expensive to change travel dates.
+>> Thanks for putting this topic on the agenda for Thursday.
+> 
+> No problem. I'll post an updated agenda for the Thursday meeting next week.
+> 
+>>
+>>>
+>>>> I have been unable to get any discussion going on this topic on the
+>>>> mailing list.
+>>>
+>>> I suspect that as long as the core life-time issues aren't solved nothing
+>>> much will happen with this. It's like building a house on quicksand.
+>>
+>> Yes. We have to decide on going forward path to address these life-time
+>> issues.
+>>
+>>>
+>>> It wasn't obvious that the foundation was quicksand when you started, but
+>>> the realization slowly dawned on us that there were more problems than we
+>>> thought. Or at least, this is my understanding.
+>>
+>> Right. Not a surprise as we poke around more it became clear that the framework
+>> is fragile.
+>>
+>> If I could add one more item for discussion for Thursday if time permits.
+>>
+>> Proposing lock contention in mmap and v4l2 ioctl paths
+>>
+>> I also have one more item for discussion. I am debugging a deadlock problem
+>> while running gstreamer pipeline involving s5p_mfc and exynos-gsc drivers with
+>> CONFIG_DEBUG_ATOMIC_SLEEP and CONFIG_PROVE_LOCKING are enabled.
+>>
+>> Lock contention (race condition) between v4l2_ioctl and drivers fops:mmap interface.
+>>
+>> v4l2_ioctl -> video_ioctl2 -> video_usercopy
+>> vm_mmap_pgoff -> v4l2_mmap -> s5p_mfc_mmap
+>>
+>> driver mmap routine tries to hold the video device lock it already holds
+>> and in the debug path mm->mmap_sem gets held
+>>
+>> I think this might be an issue with m2m drivers that hold the video device
+>> lock from the mmap routines. This could be a manifestation of remove
+>> V4L2_FL_LOCK_ALL_FOPS work at least in the case of s5p_mfc.
+>>
+>> It isn't consistent in the way drivers call v4l2_m2m_mmap(). Some drivers
+>> hold a lock and others don't.
+>>
+>> I am working on a couple of patches to fix this contention and we could
+>> either discuss this on the mailing list and/or on Thursday.
+> 
+> The mmap driver function shouldn't take a lock. The vb2_mmap function has its
+> own lock that it uses to protect the critical section.
 
-struct {
-	struct {
-		void *arg1;
-	} st1, st2, *st3, st4;
-};
+Right. I noticed that is the case. My patch for exynos-gsc does exactly that.
+Thanks for confirming.
 
-Handling it requires to split each parameter. Change the logic
-to allow such definitions.
+> 
+> I wasn't aware that there were still vb2-using drivers that took a lock in
+> their mmap function.
+> 
+> This used to be a major problem in the past, but since the mmap_lock was added
+> to vb2_queue this hasn't been an issue.
+> 
+> I think this is just old code (the s5p drivers are old!) that was never updated.
+> I'm not sure this is something we need to discuss, IMHO it is just a bug.
 
-In order to test the new nested logic, the following file
-was used to test
+Great. I will send the patches I am testing now.
 
-<code>
-struct foo { int a; }; /* Just to avoid errors if compiled */
+> 
+> See also the (long!) commit log for f035eb4e976ef5a059e30bc91cfd310ff030a7d3
+> where this lock was added for all the gory details.
+> 
 
-/**
- * struct my_struct - a struct with nested unions and structs
- * @arg1: first argument of anonymous union/anonymous struct
- * @arg2: second argument of anonymous union/anonymous struct
- * @arg1b: first argument of anonymous union/anonymous struct
- * @arg2b: second argument of anonymous union/anonymous struct
- * @arg3: third argument of anonymous union/anonymous struct
- * @arg4: fourth argument of anonymous union/anonymous struct
- * @bar.st1.arg1: first argument of struct st1 on union bar
- * @bar.st1.arg2: second argument of struct st1 on union bar
- * @bar.st1.bar1: bar1 at st1
- * @bar.st1.bar2: bar2 at st1
- * @bar.st2.arg1: first argument of struct st2 on union bar
- * @bar.st2.arg2: second argument of struct st2 on union bar
- * @bar.st3.arg2: second argument of struct st3 on union bar
- * @f1: nested function on anonimous union/struct
- * @bar.st2.f2: nested function on named union/struct
- */
-struct my_struct {
-   /* Anonymous union/struct*/
-   union {
-	struct {
-	    char arg1 : 1;
-	    char arg2 : 3;
-	};
-       struct {
-           int arg1b;
-           int arg2b;
-       };
-       struct {
-           void *arg3;
-           int arg4;
-           int (*f1)(char foo, int bar);
-       };
-   };
-   union {
-       struct {
-           int arg1;
-           int arg2;
-	   struct foo bar1, *bar2;
-       } st1;           /* bar.st1 is undocumented, cause a warning */
-       struct {
-           void *arg1;  /* bar.st3.arg1 is undocumented, cause a warning */
-	    int arg2;
-          int (*f2)(char foo, int bar); /* bar.st3.fn2 is undocumented, cause a warning */
-       } st2, st3, *st4;
-       int (*f3)(char foo, int bar); /* f3 is undocumented, cause a warning */
-   } bar;               /* bar is undocumented, cause a warning */
+Thanks for the pointer.
 
-   /* private: */
-   int undoc_privat;    /* is undocumented but private, no warning */
-
-   /* public: */
-   int undoc_public;    /* is undocumented, cause a warning */
-};
-</code>
-
-It produces the following warnings, as expected:
-
-test2.h:57: warning: Function parameter or member 'bar' not described in 'my_struct'
-test2.h:57: warning: Function parameter or member 'bar.st1' not described in 'my_struct'
-test2.h:57: warning: Function parameter or member 'bar.st2' not described in 'my_struct'
-test2.h:57: warning: Function parameter or member 'bar.st3' not described in 'my_struct'
-test2.h:57: warning: Function parameter or member 'bar.st3.arg1' not described in 'my_struct'
-test2.h:57: warning: Function parameter or member 'bar.st3.f2' not described in 'my_struct'
-test2.h:57: warning: Function parameter or member 'bar.st4' not described in 'my_struct'
-test2.h:57: warning: Function parameter or member 'bar.st4.arg1' not described in 'my_struct'
-test2.h:57: warning: Function parameter or member 'bar.st4.arg2' not described in 'my_struct'
-test2.h:57: warning: Function parameter or member 'bar.st4.f2' not described in 'my_struct'
-test2.h:57: warning: Function parameter or member 'bar.f3' not described in 'my_struct'
-test2.h:57: warning: Function parameter or member 'undoc_public' not described in 'my_struct'
-
-Suggested-by: Markus Heiser <markus.heiser@darmarit.de>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- scripts/kernel-doc | 69 ++++++++++++++++++++++++++++++++++--------------------
- 1 file changed, 44 insertions(+), 25 deletions(-)
-
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index 67e8712aa324..049044d95c0e 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -1008,15 +1008,16 @@ sub dump_struct($$) {
- 	my $declaration = $members;
- 
- 	# Split nested struct/union elements as newer ones
--	my $cont = 1;
--	while ($cont) {
--		$cont = 0;
--		while ($members =~ m/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/) {
--			my $newmember = "$1 $4;";
--			my $id = $4;
--			my $content = $3;
-+	while ($members =~ m/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/) {
-+		my $newmember;
-+		my $maintype = $1;
-+		my $ids = $4;
-+		my $content = $3;
-+		foreach my $id(split /,/, $ids) {
-+			$newmember .= "$maintype $id; ";
-+
- 			$id =~ s/[:\[].*//;
--			$id =~ s/^\*+//;
-+			$id =~ s/^\s*\**(\S+)\s*/$1/;
- 			foreach my $arg (split /;/, $content) {
- 				next if ($arg =~ m/^\s*$/);
- 				if ($arg =~ m/^([^\(]+\(\*?\s*)([\w\.]*)(\s*\).*)/) {
-@@ -1027,30 +1028,48 @@ sub dump_struct($$) {
- 					next if (!$name);
- 					if ($id =~ m/^\s*$/) {
- 						# anonymous struct/union
--						$newmember .= "$type$name$extra;";
-+						$newmember .= "$type$name$extra; ";
- 					} else {
--						$newmember .= "$type$id.$name$extra;";
-+						$newmember .= "$type$id.$name$extra; ";
- 					}
- 				} else {
--					my $type = $arg;
--					my $name = $arg;
--					$type =~ s/\s\S+$//;
--					$name =~ s/.*\s+//;
--					$name =~ s/[:\[].*//;
--					$name =~ s/^\*+//;
--					next if (($name =~ m/^\s*$/));
--					if ($id =~ m/^\s*$/) {
--						# anonymous struct/union
--						$newmember .= "$type $name;";
-+					my $type;
-+					my $names;
-+					$arg =~ s/^\s+//;
-+					$arg =~ s/\s+$//;
-+					# Handle bitmaps
-+					$arg =~ s/:\s*\d+\s*//g;
-+					# Handle arrays
-+					$arg =~ s/\[\S+\]//g;
-+					# The type may have multiple words,
-+					# and multiple IDs can be defined, like:
-+					#	const struct foo, *bar, foobar
-+					# So, we remove spaces when parsing the
-+					# names, in order to match just names
-+					# and commas for the names
-+					$arg =~ s/\s*,\s*/,/g;
-+					if ($arg =~ m/(.*)\s+([\S+,]+)/) {
-+						$type = $1;
-+						$names = $2;
- 					} else {
--						$newmember .= "$type $id.$name;";
-+						$newmember .= "$arg; ";
-+						next;
-+					}
-+					foreach my $name (split /,/, $names) {
-+						$name =~ s/^\s*\**(\S+)\s*/$1/;
-+						next if (($name =~ m/^\s*$/));
-+						if ($id =~ m/^\s*$/) {
-+							# anonymous struct/union
-+							$newmember .= "$type $name; ";
-+						} else {
-+							$newmember .= "$type $id.$name; ";
-+						}
- 					}
- 				}
- 			}
--			$members =~ s/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/$newmember/;
--			$cont = 1;
--		};
--	};
-+		}
-+		$members =~ s/(struct|union)([^{};]+){([^{}]*)}([^{}\;]*)\;/$newmember/;
-+	}
- 
- 	# Ignore other nested elements, like enums
- 	$members =~ s/({[^\{\}]*})//g;
--- 
-2.13.6
+-- Shuah
