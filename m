@@ -1,94 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:48312 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756039AbdJJDq4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Oct 2017 23:46:56 -0400
-Subject: Re: [PATCHv3 0/2] drm/bridge/adv7511: add CEC support
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-References: <20171007104658.14528-1-hverkuil@xs4all.nl>
-From: Archit Taneja <architt@codeaurora.org>
-Message-ID: <539a317b-6c68-d6fe-20e1-0f1afe1165e0@codeaurora.org>
-Date: Tue, 10 Oct 2017 09:16:51 +0530
+Received: from mail-cys01nam02on0138.outbound.protection.outlook.com ([104.47.37.138]:40032
+        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751937AbdJMJKu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 05:10:50 -0400
+Subject: Re: [PATCH v4 02/12] [media] cxd2880-spi: Add support for CXD2880 SPI
+ interface
+To: =?UTF-8?Q?Honza_Petrou=c5=a1?= <jpetrous@gmail.com>
+References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
+ <20171013055928.21132-1-Yasunari.Takiguchi@sony.com>
+ <CAJbz7-0T=LUSTr59kPDk4kVkHLh5XEeNEkA2T=hG=P_fXrrU=g@mail.gmail.com>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tbird20d@gmail.com" <tbird20d@gmail.com>,
+        "frowand.list@gmail.com" <frowand.list@gmail.com>,
+        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
+        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
+        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
+        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
+        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
+        <yasunari.takiguchi@sony.com>
+From: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
+Message-ID: <eab5bd7b-d909-343d-7078-842e3d0d9ab9@sony.com>
+Date: Fri, 13 Oct 2017 18:10:31 +0900
 MIME-Version: 1.0
-In-Reply-To: <20171007104658.14528-1-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+In-Reply-To: <CAJbz7-0T=LUSTr59kPDk4kVkHLh5XEeNEkA2T=hG=P_fXrrU=g@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Honza
 
+> If I understand it right, it uses SPI bus also for passing transport stream
+> to the host system (also having some pid piltering inside!), isn't it?
+> It would be interesting to know what is the max throughput of the CXD's SPI?
 
-On 10/07/2017 04:16 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This patch series adds CEC support to the drm adv7511/adv7533 drivers.
-> 
-> I have tested this with the Qualcomm Dragonboard C410 (adv7533 based)
-> and the Renesas R-Car Koelsch board (adv7511 based).
-> 
-> I only have the Koelsch board to test with, but it looks like other
-> R-Car boards use the same adv7511. It would be nice if someone can
-> add CEC support to the other R-Car boards as well. The main thing
-> to check is if they all use the same 12 MHz fixed CEC clock source.
-> 
+Yes, max clock rate of spi is written in sony-cxd2880.txt of [patch v4 01/12].
 
-queued to drm-misc-next.
+  spi-max-frequency = <55000000>; /* 55MHz */
 
-Thanks,
-Archit
-
-> Anyone who wants to test this will need the CEC utilities that
-> are part of the v4l-utils git repository:
-> 
-> git clone git://linuxtv.org/v4l-utils.git
-> cd v4l-utils
-> ./bootstrap.sh
-> ./configure
-> make
-> sudo make install
-> 
-> Now configure the CEC adapter as a Playback device:
-> 
-> cec-ctl --playback
-> 
-> Discover other CEC devices:
-> 
-> cec-ctl -S
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> Changes since v2:
-> - A small rewording of the 'clocks' property description in the bindings
->    as per Sergei's comment.
-> 
-> Changes since v1:
-> - Incorporate Archit's comments:
-> 	use defines for irq masks
-> 	combine the adv7511/33 regmap_configs
-> 	adv7511_cec_init now handles dt parsing & CEC registration
-> - Use the new (4.14) CEC_CAP_DEFAULTS define
-> 
-> Hans Verkuil (2):
->    dt-bindings: adi,adv7511.txt: document cec clock
->    drm: adv7511/33: add HDMI CEC support
-> 
->   .../bindings/display/bridge/adi,adv7511.txt        |   4 +
->   drivers/gpu/drm/bridge/adv7511/Kconfig             |   8 +
->   drivers/gpu/drm/bridge/adv7511/Makefile            |   1 +
->   drivers/gpu/drm/bridge/adv7511/adv7511.h           |  43 ++-
->   drivers/gpu/drm/bridge/adv7511/adv7511_cec.c       | 337 +++++++++++++++++++++
->   drivers/gpu/drm/bridge/adv7511/adv7511_drv.c       | 116 ++++++-
->   drivers/gpu/drm/bridge/adv7511/adv7533.c           |  38 +--
->   7 files changed, 489 insertions(+), 58 deletions(-)
->   create mode 100644 drivers/gpu/drm/bridge/adv7511/adv7511_cec.c
-> 
-
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+Takiguchi 
