@@ -1,49 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f176.google.com ([209.85.192.176]:52412 "EHLO
-        mail-pf0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751053AbdJLEpY (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57247 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751480AbdJMLVJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Oct 2017 00:45:24 -0400
-Received: by mail-pf0-f176.google.com with SMTP id e64so3296928pfk.9
-        for <linux-media@vger.kernel.org>; Wed, 11 Oct 2017 21:45:24 -0700 (PDT)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v2 1/4] MAINTAINERS: add entry for NXP TDA1997x driver
-Date: Wed, 11 Oct 2017 21:45:03 -0700
-Message-Id: <1507783506-3884-2-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1507783506-3884-1-git-send-email-tharvey@gateworks.com>
-References: <1507783506-3884-1-git-send-email-tharvey@gateworks.com>
+        Fri, 13 Oct 2017 07:21:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2 03/17] media: v4l2-common: get rid of struct v4l2_discrete_probe
+Date: Fri, 13 Oct 2017 14:21:21 +0300
+Message-ID: <10475114.e5cvRCKp5d@avalon>
+In-Reply-To: <2c6deebfb792a95fb5a0b60ed715671c6398e20f.1506548682.git.mchehab@s-opensource.com>
+References: <cover.1506548682.git.mchehab@s-opensource.com> <2c6deebfb792a95fb5a0b60ed715671c6398e20f.1506548682.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
----
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Hi Mauro,
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 2093060..de7124e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -13019,6 +13019,14 @@ T:	git git://linuxtv.org/mkrufky/tuners.git
- S:	Maintained
- F:	drivers/media/tuners/tda18271*
- 
-+TDA1997x MEDIA DRIVER
-+M:	Tim Harvey <tharvey@gateworks.com>
-+L:	linux-media@vger.kernel.org
-+W:	https://linuxtv.org
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+S:	Maintained
-+F:	drivers/media/i2c/tda1997x.*
-+
- TDA827x MEDIA DRIVER
- M:	Michael Krufky <mkrufky@linuxtv.org>
- L:	linux-media@vger.kernel.org
+Thank you for the patch.
+
+On Thursday, 28 September 2017 00:46:46 EEST Mauro Carvalho Chehab wrote:
+> This struct is there just two store two arguments of
+> v4l2_find_nearest_format(). The other two arguments are passed
+> as parameter.
+> 
+> IMHO, there isn't much sense on doing that, and that will just
+> add one more struct to document ;)
+> 
+> So, let's get rid of the struct, passing the parameters directly.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/platform/vivid/vivid-vid-cap.c |  9 +++------
+>  drivers/media/v4l2-core/v4l2-common.c        | 13 +++++++------
+>  include/media/v4l2-common.h                  | 12 ++++--------
+>  3 files changed, 14 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c
+> b/drivers/media/platform/vivid/vivid-vid-cap.c index
+> 01419455e545..0fbbcde19f0d 100644
+> --- a/drivers/media/platform/vivid/vivid-vid-cap.c
+> +++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+> @@ -93,11 +93,6 @@ static const struct v4l2_fract
+> webcam_intervals[VIVID_WEBCAM_IVALS] = { {  1, 60 },
+>  };
+> 
+> -static const struct v4l2_discrete_probe webcam_probe = {
+> -	webcam_sizes,
+> -	VIVID_WEBCAM_SIZES
+> -};
+> -
+>  static int vid_cap_queue_setup(struct vb2_queue *vq,
+>  		       unsigned *nbuffers, unsigned *nplanes,
+>  		       unsigned sizes[], struct device *alloc_devs[])
+> @@ -578,7 +573,9 @@ int vivid_try_fmt_vid_cap(struct file *file, void *priv,
+> mp->field = vivid_field_cap(dev, mp->field);
+>  	if (vivid_is_webcam(dev)) {
+>  		const struct v4l2_frmsize_discrete *sz =
+> -			v4l2_find_nearest_format(&webcam_probe, mp->width, mp->height);
+> +			v4l2_find_nearest_format(webcam_sizes,
+> +						 VIVID_WEBCAM_SIZES,
+> +						 mp->width, mp->height);
+> 
+>  		w = sz->width;
+>  		h = sz->height;
+> diff --git a/drivers/media/v4l2-core/v4l2-common.c
+> b/drivers/media/v4l2-core/v4l2-common.c index a5ea1f517291..fb9a2a3c1072
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-common.c
+> +++ b/drivers/media/v4l2-core/v4l2-common.c
+> @@ -371,18 +371,19 @@ void v4l_bound_align_image(u32 *w, unsigned int wmin,
+> unsigned int wmax, }
+>  EXPORT_SYMBOL_GPL(v4l_bound_align_image);
+> 
+> -const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
+> -		const struct v4l2_discrete_probe *probe,
+> -		s32 width, s32 height)
+> +const struct v4l2_frmsize_discrete
+> +*v4l2_find_nearest_format(const struct v4l2_frmsize_discrete *sizes,
+> +			  const size_t num_sizes,
+> +			  s32 width, s32 height)
+>  {
+>  	int i;
+>  	u32 error, min_error = UINT_MAX;
+>  	const struct v4l2_frmsize_discrete *size, *best = NULL;
+> 
+> -	if (!probe)
+> -		return best;
+> +	if (!sizes)
+> +		return NULL;
+> 
+> -	for (i = 0, size = probe->sizes; i < probe->num_sizes; i++, size++) {
+> +	for (i = 0, size = sizes; i < num_sizes; i++, size++) {
+>  		error = abs(size->width - width) + abs(size->height - height);
+>  		if (error < min_error) {
+>  			min_error = error;
+> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+> index 7dbecbe3009c..7ae7840df068 100644
+> --- a/include/media/v4l2-common.h
+> +++ b/include/media/v4l2-common.h
+> @@ -249,14 +249,10 @@ void v4l_bound_align_image(unsigned int *w, unsigned
+> int wmin, unsigned int hmax, unsigned int halign,
+>  			   unsigned int salign);
+> 
+> -struct v4l2_discrete_probe {
+> -	const struct v4l2_frmsize_discrete	*sizes;
+> -	int					num_sizes;
+> -};
+> -
+> -const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
+> -		const struct v4l2_discrete_probe *probe,
+> -		s32 width, s32 height);
+> +const struct v4l2_frmsize_discrete
+> +*v4l2_find_nearest_format(const struct v4l2_frmsize_discrete *sizes,
+> +			  const size_t num_sizes,
+
+No need for a const keyword.
+
+> +			  s32 width, s32 height);
+> 
+>  void v4l2_get_timestamp(struct timeval *tv);
+
+
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
