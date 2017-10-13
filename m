@@ -1,130 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:33313 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754700AbdJJHSB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 03:18:01 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v3 10/26] media: lirc: validate scancode for transmit
-Date: Tue, 10 Oct 2017 08:17:59 +0100
-Message-Id: <8bc59dcf22de36a4f624122807c5c62fc4cca656.1507618841.git.sean@mess.org>
-In-Reply-To: <cover.1507618840.git.sean@mess.org>
-References: <cover.1507618840.git.sean@mess.org>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:60380 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753468AbdJMPb5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 11:31:57 -0400
+Subject: Re: [PATCH v2 06/17] media: v4l2-dv-timings.h: convert comment into
+ kernel-doc markup
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+References: <cover.1506548682.git.mchehab@s-opensource.com>
+ <bfe081e9560af67cd499c1f5ae458bfb57d557ea.1506548682.git.mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <caaeec02-fb78-0759-a669-fac58127a049@xs4all.nl>
+Date: Fri, 13 Oct 2017 17:31:52 +0200
+MIME-Version: 1.0
+In-Reply-To: <bfe081e9560af67cd499c1f5ae458bfb57d557ea.1506548682.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ensure we reject an attempt to transmit invalid scancodes.
+On 09/27/17 23:46, Mauro Carvalho Chehab wrote:
+> The can_reduce_fps() is already documented, but it is not
+> using the kernel-doc markup. Convert it, in order to generate
+> documentation from it.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-lirc-codec.c | 10 ++++++++
- drivers/media/rc/rc-core-priv.h  |  1 +
- drivers/media/rc/rc-main.c       | 53 +++++++++++++++++++++++++---------------
- 3 files changed, 44 insertions(+), 20 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index f2feca17c3a0..d9406fdbc9a3 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -121,6 +121,16 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 		if (scan.flags || scan.keycode || scan.timestamp)
- 			return -EINVAL;
- 
-+		/*
-+		 * The scancode field in lirc_scancode is 64-bit simply
-+		 * to future-proof it, since there are IR protocols encode
-+		 * use more than 32 bits. For now only 32-bit protocols
-+		 * are supported.
-+		 */
-+		if (scan.scancode > U32_MAX ||
-+		    !rc_validate_scancode(scan.rc_proto, scan.scancode))
-+			return -EINVAL;
-+
- 		if (dev->tx_scancode) {
- 			ret = dev->tx_scancode(dev, &scan);
- 			return ret < 0 ? ret : n;
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 21e515d34f64..a064c401fa38 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -160,6 +160,7 @@ static inline bool is_timing_event(struct ir_raw_event ev)
- #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
- 
- /* functions for IR encoders */
-+bool rc_validate_scancode(enum rc_proto proto, u32 scancode);
- 
- static inline void init_ir_raw_event_duration(struct ir_raw_event *ev,
- 					      unsigned int pulse,
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 758c14b90a87..38393f13822f 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -776,6 +776,37 @@ void rc_keydown_notimeout(struct rc_dev *dev, enum rc_proto protocol,
- EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
- 
- /**
-+ * rc_validate_scancode() - checks that a scancode is valid for a protocol
-+ * @proto:	protocol
-+ * @scancode:	scancode
-+ */
-+bool rc_validate_scancode(enum rc_proto proto, u32 scancode)
-+{
-+	switch (proto) {
-+	case RC_PROTO_NECX:
-+		if ((((scancode >> 16) ^ ~(scancode >> 8)) & 0xff) == 0)
-+			return false;
-+		break;
-+	case RC_PROTO_NEC32:
-+		if ((((scancode >> 24) ^ ~(scancode >> 16)) & 0xff) == 0)
-+			return false;
-+		break;
-+	case RC_PROTO_RC6_MCE:
-+		if ((scancode & 0xffff0000) != 0x800f0000)
-+			return false;
-+		break;
-+	case RC_PROTO_RC6_6A_32:
-+		if ((scancode & 0xffff0000) == 0x800f0000)
-+			return false;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return true;
-+}
-+
-+/**
-  * rc_validate_filter() - checks that the scancode and mask are valid and
-  *			  provides sensible defaults
-  * @dev:	the struct rc_dev descriptor of the device
-@@ -793,26 +824,8 @@ static int rc_validate_filter(struct rc_dev *dev,
- 
- 	mask = protocols[protocol].scancode_bits;
- 
--	switch (protocol) {
--	case RC_PROTO_NECX:
--		if ((((s >> 16) ^ ~(s >> 8)) & 0xff) == 0)
--			return -EINVAL;
--		break;
--	case RC_PROTO_NEC32:
--		if ((((s >> 24) ^ ~(s >> 16)) & 0xff) == 0)
--			return -EINVAL;
--		break;
--	case RC_PROTO_RC6_MCE:
--		if ((s & 0xffff0000) != 0x800f0000)
--			return -EINVAL;
--		break;
--	case RC_PROTO_RC6_6A_32:
--		if ((s & 0xffff0000) == 0x800f0000)
--			return -EINVAL;
--		break;
--	default:
--		break;
--	}
-+	if (!rc_validate_scancode(protocol, s))
-+		return -EINVAL;
- 
- 	filter->data &= mask;
- 	filter->mask &= mask;
--- 
-2.13.6
+> ---
+>  include/media/v4l2-dv-timings.h | 14 ++++++++------
+>  1 file changed, 8 insertions(+), 6 deletions(-)
+> 
+> diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
+> index 61a18893e004..c0855887ad87 100644
+> --- a/include/media/v4l2-dv-timings.h
+> +++ b/include/media/v4l2-dv-timings.h
+> @@ -203,13 +203,15 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait);
+>   */
+>  struct v4l2_fract v4l2_dv_timings_aspect_ratio(const struct v4l2_dv_timings *t);
+>  
+> -/*
+> - * reduce_fps - check if conditions for reduced fps are true.
+> - * bt - v4l2 timing structure
+> +/**
+> + * can_reduce_fps - check if conditions for reduced fps are true.
+> + * @bt: v4l2 timing structure
+> + *
+>   * For different timings reduced fps is allowed if following conditions
+> - * are met -
+> - * For CVT timings: if reduced blanking v2 (vsync == 8) is true.
+> - * For CEA861 timings: if V4L2_DV_FL_CAN_REDUCE_FPS flag is true.
+> + * are met:
+> + *
+> + *   - For CVT timings: if reduced blanking v2 (vsync == 8) is true.
+> + *   - For CEA861 timings: if %V4L2_DV_FL_CAN_REDUCE_FPS flag is true.
+>   */
+>  static inline  bool can_reduce_fps(struct v4l2_bt_timings *bt)
+>  {
+> 
