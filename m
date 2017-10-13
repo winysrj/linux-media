@@ -1,49 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:59610 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750848AbdJ2MvC (ORCPT
+Received: from mail-io0-f195.google.com ([209.85.223.195]:45557 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752050AbdJMU2l (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Oct 2017 08:51:02 -0400
-From: Colin King <colin.king@canonical.com>
-To: Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] mxl111sf: remove redundant assignment to index
-Date: Sun, 29 Oct 2017 12:50:58 +0000
-Message-Id: <20171029125058.5588-1-colin.king@canonical.com>
+        Fri, 13 Oct 2017 16:28:41 -0400
+Received: by mail-io0-f195.google.com with SMTP id i38so10219527iod.2
+        for <linux-media@vger.kernel.org>; Fri, 13 Oct 2017 13:28:41 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Reply-To: michealrita15@yahoo.com
+From: Rita Micheal <ritamicheal95@gmail.com>
+Date: Fri, 13 Oct 2017 20:28:40 +0000
+Message-ID: <CABowv_y=p6J-r6RdSoM2QVTed7bpOQMhYF32NJ7YAqZWfukDKw@mail.gmail.com>
+Subject: Hopefully
+To: undisclosed-recipients:;
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+Dear friend,
 
-Variable index is set to zero and then set to zero again
-a few lines later in a for loop initialization. Remove the
-redundant setting of index to zero. Cleans up the clang
-warning:
+My name is Mr Micheal Rita, I am the Bill and Exchange (assistant)
+Manager of Bank of Africa Ouagadougou, Burkina Faso. In my department
+I discovered an abandoned sum of teen million five hundred thousand United
+State of American dollars (10.5MILLION USA DOLLARS) in an account that
+belongs to one of our foreign customer who died in airline that crashed on 4th
+October 2001.
 
-drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c:519:3: warning: Value
-stored to 'index' is never read
+Since I got information about his death I have been expecting his next
+of kin to come over and claim his money because we can not release
+it unless somebody applies for it as the next of kin or relation to the
+deceased as indicated in our banking guidelines, but unfortunately
+we learnt that all his supposed next of kin or relation died alongside
+with him in the plane crash leaving nobody behind for the claim. It is
+therefore upon this discovery that I decided to make this business
+proposal to you and release the money to you as next of kin or relation
+to the deceased for safety and subsequent disbursement since nobody
+is coming for it and I don't want the money to go into the bank treasury
+as unclaimed bill.
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c | 1 -
- 1 file changed, 1 deletion(-)
+You will be entitled with 40% of the total sum while 60% will be for
+me after which I will visit your Country to invest my own share when
+the fund is successfully transferred into your account, Please I would
+like you to keep this transaction confidential and as a top secret as
+you may wish to know that I am a bank official.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c b/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c
-index 0eb33e043079..a221bb8a12b4 100644
---- a/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c
-+++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c
-@@ -516,7 +516,6 @@ static int mxl111sf_i2c_hw_xfer_msg(struct mxl111sf_state *state,
- 		   data required to program */
- 		block_len = (msg->len / 8);
- 		left_over_len = (msg->len % 8);
--		index = 0;
- 
- 		mxl_i2c("block_len %d, left_over_len %d",
- 			block_len, left_over_len);
--- 
-2.14.1
+Yours sincerely,
+Mr Micheal Rita.
