@@ -1,43 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:33085 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751128AbdJCLoz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 07:44:55 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: gregkh@linuxfoundation.org, jacobvonchorus@cwphoto.ca,
-        mchehab@kernel.org, eric@anholt.net, stefan.wahren@i2se.com,
-        f.fainelli@gmail.com, rjui@broadcom.com, Larry.Finger@lwfinger.net,
-        pkshih@realtek.com
-Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: [PATCH 3/4] staging: bcm2835-camera: pr_err() strings should end with newlines
-Date: Tue,  3 Oct 2017 17:13:25 +0530
-Message-Id: <1507031006-16543-4-git-send-email-arvind.yadav.cs@gmail.com>
-In-Reply-To: <1507031006-16543-1-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1507031006-16543-1-git-send-email-arvind.yadav.cs@gmail.com>
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:45324 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1757463AbdJMPlg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 11:41:36 -0400
+Subject: Re: [PATCH v2 08/17] media: v4l2-ioctl.h: convert debug macros into
+ enum and document
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+References: <cover.1506548682.git.mchehab@s-opensource.com>
+ <2f79939abf6bfba034fcf46e0d92624df2ea5308.1506548682.git.mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <3e677423-2b1f-83c9-afd5-f4c8991fe4de@xs4all.nl>
+Date: Fri, 13 Oct 2017 17:41:30 +0200
+MIME-Version: 1.0
+In-Reply-To: <2f79939abf6bfba034fcf46e0d92624df2ea5308.1506548682.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pr_err() messages should end with a new-line to avoid other messages
-being concatenated.
+On 09/27/17 23:46, Mauro Carvalho Chehab wrote:
+> Currently, there's no way to document #define foo <value>
+> with kernel-doc. So, convert it to an enum, and document.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- drivers/staging/vc04_services/bcm2835-camera/mmal-vchiq.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/staging/vc04_services/bcm2835-camera/mmal-vchiq.c b/drivers/staging/vc04_services/bcm2835-camera/mmal-vchiq.c
-index 4360db6..6ea7fb0 100644
---- a/drivers/staging/vc04_services/bcm2835-camera/mmal-vchiq.c
-+++ b/drivers/staging/vc04_services/bcm2835-camera/mmal-vchiq.c
-@@ -1963,7 +1963,7 @@ int vchiq_mmal_finalise(struct vchiq_mmal_instance *instance)
- 
- 	status = vchi_service_close(instance->handle);
- 	if (status != 0)
--		pr_err("mmal-vchiq: VCHIQ close failed");
-+		pr_err("mmal-vchiq: VCHIQ close failed\n");
- 
- 	mutex_unlock(&instance->vchiq_mutex);
- 
--- 
-1.9.1
+Thanks,
+
+	Hans
+
+> ---
+>  include/media/v4l2-ioctl.h | 33 +++++++++++++++++++--------------
+>  1 file changed, 19 insertions(+), 14 deletions(-)
+> 
+> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> index bd5312118013..136e2cffcf9e 100644
+> --- a/include/media/v4l2-ioctl.h
+> +++ b/include/media/v4l2-ioctl.h
+> @@ -588,20 +588,25 @@ struct v4l2_ioctl_ops {
+>  };
+>  
+>  
+> -/* v4l debugging and diagnostics */
+> -
+> -/* Device debug flags to be used with the video device debug attribute */
+> -
+> -/* Just log the ioctl name + error code */
+> -#define V4L2_DEV_DEBUG_IOCTL		0x01
+> -/* Log the ioctl name arguments + error code */
+> -#define V4L2_DEV_DEBUG_IOCTL_ARG	0x02
+> -/* Log the file operations open, release, mmap and get_unmapped_area */
+> -#define V4L2_DEV_DEBUG_FOP		0x04
+> -/* Log the read and write file operations and the VIDIOC_(D)QBUF ioctls */
+> -#define V4L2_DEV_DEBUG_STREAMING	0x08
+> -/* Log poll() */
+> -#define V4L2_DEV_DEBUG_POLL		0x10
+> +/**
+> + * enum v4l2_debug_flags - Device debug flags to be used with the video
+> + *	device debug attribute
+> + *
+> + * @V4L2_DEV_DEBUG_IOCTL:	Just log the ioctl name + error code.
+> + * @V4L2_DEV_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
+> + * @V4L2_DEV_DEBUG_FOP:		Log the file operations and open, release,
+> + *				mmap and get_unmapped_area syscalls.
+> + * @V4L2_DEV_DEBUG_STREAMING:	Log the read and write syscalls and
+> + *				:c:ref:`VIDIOC_[Q|DQ]BUFF <VIDIOC_QBUF>` ioctls.
+> + * @V4L2_DEV_DEBUG_POLL:	Log poll syscalls.
+> + */
+> +enum v4l2_debug_flags {
+> +	V4L2_DEV_DEBUG_IOCTL		= 0x01,
+> +	V4L2_DEV_DEBUG_IOCTL_ARG	= 0x02,
+> +	V4L2_DEV_DEBUG_FOP		= 0x04,
+> +	V4L2_DEV_DEBUG_STREAMING	= 0x08,
+> +	V4L2_DEV_DEBUG_POLL		= 0x10,
+> +};
+>  
+>  /*  Video standard functions  */
+>  
+> 
