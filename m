@@ -1,65 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:47880 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1759748AbdJRDsO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 23:48:14 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
-        tuukka.toivonen@intel.com, jerry.w.hu@intel.com,
-        Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v4 01/12] videodev2.h, v4l2-ioctl: add IPU3 meta buffer format
-Date: Tue, 17 Oct 2017 22:48:01 -0500
-Message-Id: <1508298481-25869-1-git-send-email-yong.zhi@intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34924 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752195AbdJMVJk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Oct 2017 17:09:40 -0400
+Date: Sat, 14 Oct 2017 00:09:37 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>,
+        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v3 1/4] [media] v4l2-common: Add helper function for
+ fourcc to string
+Message-ID: <20171013210937.pzgmozz7elsb3yo5@valkosipuli.retiisi.org.uk>
+References: <cover.1505916622.git.dave.stevenson@raspberrypi.org>
+ <e6dfbe4afd3f1db4c3f8a81c0813dc418896f5e1.1505916622.git.dave.stevenson@raspberrypi.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e6dfbe4afd3f1db4c3f8a81c0813dc418896f5e1.1505916622.git.dave.stevenson@raspberrypi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the IPU3 specific processing parameter format
-V4L2_META_FMT_IPU3_PARAMS and metadata formats
-for 3A and other statistics:
+Hi Dave,
 
-  V4L2_META_FMT_IPU3_PARAMS
-  V4L2_META_FMT_IPU3_STAT_3A
-  V4L2_META_FMT_IPU3_STAT_DVS
-  V4L2_META_FMT_IPU3_STAT_LACE
+On Wed, Sep 20, 2017 at 05:07:54PM +0100, Dave Stevenson wrote:
+> New helper function char *v4l2_fourcc2s(u32 fourcc, char *buf)
+> that converts a fourcc into a nice printable version.
+> 
+> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+> ---
+> 
+> No changes from v2 to v3
+> 
+>  drivers/media/v4l2-core/v4l2-common.c | 18 ++++++++++++++++++
+>  include/media/v4l2-common.h           |  3 +++
+>  2 files changed, 21 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+> index a5ea1f5..0219895 100644
+> --- a/drivers/media/v4l2-core/v4l2-common.c
+> +++ b/drivers/media/v4l2-core/v4l2-common.c
+> @@ -405,3 +405,21 @@ void v4l2_get_timestamp(struct timeval *tv)
+>  	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_get_timestamp);
+> +
+> +char *v4l2_fourcc2s(u32 fourcc, char *buf)
+> +{
+> +	buf[0] = fourcc & 0x7f;
+> +	buf[1] = (fourcc >> 8) & 0x7f;
+> +	buf[2] = (fourcc >> 16) & 0x7f;
+> +	buf[3] = (fourcc >> 24) & 0x7f;
+> +	if (fourcc & (1 << 31)) {
+> +		buf[4] = '-';
+> +		buf[5] = 'B';
+> +		buf[6] = 'E';
+> +		buf[7] = '\0';
+> +	} else {
+> +		buf[4] = '\0';
+> +	}
+> +	return buf;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_fourcc2s);
+> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+> index aac8b7b..5b0fff9 100644
+> --- a/include/media/v4l2-common.h
+> +++ b/include/media/v4l2-common.h
+> @@ -264,4 +264,7 @@ const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
+>  
+>  void v4l2_get_timestamp(struct timeval *tv);
+>  
+> +#define V4L2_FOURCC_MAX_SIZE 8
+> +char *v4l2_fourcc2s(u32 fourcc, char *buf);
+> +
+>  #endif /* V4L2_COMMON_H_ */
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
- include/uapi/linux/videodev2.h       | 6 ++++++
- 2 files changed, 10 insertions(+)
+I like the idea but the use of a character pointer and assuming a length
+looks a bit scary.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index aa4cbddbc064..638e5d54f21e 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1256,6 +1256,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_TCH_FMT_TU08:		descr = "8-bit unsigned touch data"; break;
- 	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
- 	case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
-+	case V4L2_META_FMT_IPU3_PARAMS:	descr = "IPU3 processing parameters"; break;
-+	case V4L2_META_FMT_IPU3_STAT_3A:	descr = "IPU3 3A statistics"; break;
-+	case V4L2_META_FMT_IPU3_STAT_DVS:	descr = "IPU3 DVS statistics"; break;
-+	case V4L2_META_FMT_IPU3_STAT_LACE:	descr = "IPU3 LACE statistics"; break;
- 
- 	default:
- 		/* Compressed formats */
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 3d694b179a16..036f8a44d3e8 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -696,6 +696,12 @@ struct v4l2_pix_format {
- #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 1-D Histogram */
- #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */
- 
-+/* Vendor specific - used for IPU3 camera sub-system */
-+#define V4L2_META_FMT_IPU3_PARAMS	v4l2_fourcc('i', 'p', '3', 'p') /* IPU3 params */
-+#define V4L2_META_FMT_IPU3_STAT_3A	v4l2_fourcc('i', 'p', '3', 's') /* IPU3 3A statistics */
-+#define V4L2_META_FMT_IPU3_STAT_DVS	v4l2_fourcc('i', 'p', '3', 'd') /* IPU3 DVS statistics */
-+#define V4L2_META_FMT_IPU3_STAT_LACE	v4l2_fourcc('i', 'p', '3', 'l') /* IPU3 LACE statistics */
-+
- /* priv field value to indicates that subsequent fields are valid. */
- #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
- 
+As this seems to be used uniquely for printing stuff, a couple of macros
+could be used instead. Something like
+
+#define V4L2_FOURCC_CONV "%c%c%c%c%s"
+#define V4L2_FOURCC_TO_CONV(fourcc) \
+	fourcc & 0x7f, (fourcc >> 8) & 0x7f, (fourcc >> 16) & 0x7f, \
+	(fourcc >> 24) & 0x7f, fourcc & BIT(31) ? "-BE" : ""
+
+You could use it with printk-style functions, e.g.
+
+	printk("blah fourcc " V4L2_FOURCC_CONV " is a nice format",
+	       V4L2_FOURCC_TO_CONV(fourcc));
+
+I guess it'd be better to add more parentheses around "fourcc" but it'd be
+less clear here that way.
+
 -- 
-2.7.4
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
