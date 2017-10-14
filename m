@@ -1,132 +1,454 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:35903 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751636AbdJIPLy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 11:11:54 -0400
-Date: Mon, 9 Oct 2017 16:11:53 +0100
-From: Sean Young <sean@mess.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 01/25] media: lirc: implement scancode sending
-Message-ID: <20171009151153.aq2hrhkbbddfi7bq@gofer.mess.org>
-References: <cover.1507192751.git.sean@mess.org>
- <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
- <5d67a4a0-d04b-5052-c9c9-cbd46401975e@xs4all.nl>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:43735 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753809AbdJNPEY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 14 Oct 2017 11:04:24 -0400
+Date: Sat, 14 Oct 2017 19:25:40 +0530
+From: Aishwarya Pant <aishpant@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Cc: outreachy-kernel@googlegroups.com
+Subject: [PATCH v2 2/2] staging: atomisp: cleanup out of memory messages
+Message-ID: <8ec1344bd00674449202099775f8835896a77695.1507989088.git.aishpant@gmail.com>
+References: <cover.1507989087.git.aishpant@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <5d67a4a0-d04b-5052-c9c9-cbd46401975e@xs4all.nl>
+In-Reply-To: <cover.1507989087.git.aishpant@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 09, 2017 at 11:14:28AM +0200, Hans Verkuil wrote:
-> On 05/10/17 10:45, Sean Young wrote:
--snip-
-> > +/*
-> > + * struct lirc_scancode - decoded scancode with protocol for use with
-> > + *	LIRC_MODE_SCANCODE
-> > + *
-> > + * @timestamp: Timestamp in nanoseconds using CLOCK_MONOTONIC when IR
-> > + *	was decoded.
-> > + * @flags: should be 0 for transmit. When receiving scancodes,
-> > + *	LIRC_SCANCODE_FLAG_TOGGLE or LIRC_SCANCODE_FLAG_REPEAT can be set
-> > + *	depending on the protocol
-> > + * @target: target for transmit. Unused, set to 0.
-> > + * @source: source for receive. Unused, set to 0.
-> > + * @unused: set to 0.
-> > + * @rc_proto: see enum rc_proto
-> > + * @scancode: the scancode received or to be sent
-> > + */
-> > +struct lirc_scancode {
-> > +	__u64	timestamp;
-> > +	__u32	flags;
-> > +	__u8	target;
-> > +	__u8	source;
-> > +	__u8	unused;
-> > +	__u8	rc_proto;
-> > +	__u64	scancode;
-> 
-> I'm thinking how this will be implemented using CEC. Some RC commands take arguments
-> (up to 4 bytes for the 0x67 (Tune Function) code), so how will they be handled?
-> 
-> See CEC table 6 in the HDMI 1.4 spec.
-> 
-> Should they be part of the scancode, or would it be better to add a '__u8 args[8];'
-> field?
-> 
-> I've no idea what makes sense, it's a weird corner case.
+Logging of explicit out of memory messages is redundant since memory allocation
+failures produce a backtrace.
 
-I've given it some more thought.
+Done with the help of the following cocci script:
 
-For cec remote control passthrough, you have the tv with the IR receiver (A),
-which then transmits CEC_MSG_USER_CONTROL_PRESSED and
-CEC_MSG_USER_CONTROL_RELEASED cec messages to the correct target, with
-arguments. Then on the target (B), it reads those commands and should execute
-them as if it received them itself.
+@@
+expression ex, ret;
+statement s;
+constant char[] c;
+constant err;
+identifier f, l;
+@@
 
-First of all (B) is already implemented in cec using rc-core. If RC
-passthrough is enabled, then cec will pass those keycodes to rc-core (which
-end up in an input device).
+ex =
+\(kmalloc\|kmalloc_array\|kzalloc\|kcalloc\|kmem_cache_alloc\|kmem_cache_zalloc\|
+kmem_cache_alloc_node\|kmalloc_node\|kzalloc_node\|devm_kzalloc\)(...)
+... when != ex
 
-So the problem we are trying to solve here is (A). How I would see this
-implemented is:
+if (
+(
+!ex
+|
+unlikely(!ex)
+)
+)
+- {
+- f(..., c, ...);
+(
+return ex;
+|
+return;
+|
+return err;
+|
+goto l;
+)
+- }
+else s
 
-1) A physical IR receiver exists which has an rc-core driver and a /dev/lircN
-   device. This is configured using ir-keytable to map to regular input events
+Another case where if branch has multiple statements was handled with the
+following condition:
 
-2) A process receives input events, and decides that a particular key/command
-   is not for itself (e.g. tell top set box to tune), so it knows what the
-   target cec address is and the tune arguments, so it fills out a 
-   cec_msg with the target, CEC_MSG_USER_CONTROL_PRESSED, 0x67, arguments,
-   and then transmits it using the ioctl CEC_TRANSMIT, followed by
-   another CEC_MSG_USER_CONTROL_RELEASED cec_msg sent using ioctl CEC_TRANSMIT.
+{
+...
+- f(..., c, ...);
+...
+}
 
-In this way of viewing things, an rc-core device is either cec or lirc, and
-thus rc-core lirc devices have a /dev/lircN and rc-core cec devices have a
-/dev/cecN.
+Signed-off-by: Aishwarya Pant <aishpant@gmail.com>
+---
+v2 changes:
+None, just rebase and re-send
 
-So, the alternative which is being proposed is that a cec device has both
-a /dev/cecN and a /dev/lircN. In this case step 2) would look like:
+drivers/staging/media/atomisp/i2c/ap1302.c                     |  4 +---
+ drivers/staging/media/atomisp/i2c/gc0310.c                     |  4 +---
+ drivers/staging/media/atomisp/i2c/gc2235.c                     |  4 +---
+ drivers/staging/media/atomisp/i2c/imx/imx.c                    |  4 +---
+ drivers/staging/media/atomisp/i2c/lm3554.c                     |  4 +---
+ drivers/staging/media/atomisp/i2c/mt9m114.c                    |  4 +---
+ drivers/staging/media/atomisp/i2c/ov2680.c                     |  4 +---
+ drivers/staging/media/atomisp/i2c/ov2722.c                     |  4 +---
+ drivers/staging/media/atomisp/i2c/ov5693/ov5693.c              |  4 +---
+ drivers/staging/media/atomisp/i2c/ov8858.c                     |  6 +-----
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c      |  4 +---
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c     |  9 ++-------
+ .../media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c  |  4 +---
+ drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c        | 10 ++--------
+ .../staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c  |  6 +-----
+ .../staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c |  5 +----
+ drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_vm.c        |  4 +---
+ .../media/atomisp/platform/intel-mid/atomisp_gmin_platform.c   |  4 +---
+ 18 files changed, 20 insertions(+), 68 deletions(-)
 
-2) A process receives input events, and decides that a particular key/command
-   is not for itself (e.g. tell top set box to tune), so it knows what the
-   target cec address is and the tune arguments, so it fills in a 
-   lirc_scancode with the target, CEC_MSG_USER_CONTROL_PRESSED, 0x67, arguments,
-   and then transmits it using write() to the /dev/lircN device, which
-   then passes it on to cec_transmit() in drivers/media/cec/cec-api.c
-   (without having a cec_fh), and then another lirc_scancode is
-   filled in CEC_MSG_USER_CONTROL_RELEASED and sent.
-
-Now, I think that this has a number of problems:
-
- - It's a lot of API for simply doing a CEC_TRANSMIT
-
- - and another chardev for a cec device (i.e. /dev/lircN).
-
- - lirc scancode tx deals with scancodes, for cec rc passthrough it isn't
-   really scancodes.
-
- - Wiring this up is not going to be pretty or easy.
-
- - The lirc chardev has no other function other than sending
-   CEC_MSG_USER_CONTROL_PRESSED and CEC_MSG_USER_CONTROL_RELEASED cec messages.
+diff --git a/drivers/staging/media/atomisp/i2c/ap1302.c b/drivers/staging/media/atomisp/i2c/ap1302.c
+index 2f772a020c8b..bfbf85122c3b 100644
+--- a/drivers/staging/media/atomisp/i2c/ap1302.c
++++ b/drivers/staging/media/atomisp/i2c/ap1302.c
+@@ -1153,10 +1153,8 @@ static int ap1302_probe(struct i2c_client *client,
  
-So what I am proposing is that we don't use lirc for sending rc passthrough
-messages for cec.
-
-I hope this makes sense and where not, please *do* tell me exactly where I
-am wrong. I think that I missed something about the scancode tx idea.
-
-> 
-> > +};
-> > +
-> > +#define LIRC_SCANCODE_FLAG_TOGGLE	1
-> > +#define LIRC_SCANCODE_FLAG_REPEAT	2
-> 
-> These flags need documentation.
-
-They do, fair point.
-
-Thanks,
-
-Sean
+ 	/* allocate device & init sub device */
+ 	dev = devm_kzalloc(&client->dev, sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "%s: out of memory\n", __func__);
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/gc0310.c b/drivers/staging/media/atomisp/i2c/gc0310.c
+index 35ed51ffe944..291565451bfe 100644
+--- a/drivers/staging/media/atomisp/i2c/gc0310.c
++++ b/drivers/staging/media/atomisp/i2c/gc0310.c
+@@ -1385,10 +1385,8 @@ static int gc0310_probe(struct i2c_client *client,
+ 
+ 	pr_info("%s S\n", __func__);
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
+index e43d31ea9676..f51535eee091 100644
+--- a/drivers/staging/media/atomisp/i2c/gc2235.c
++++ b/drivers/staging/media/atomisp/i2c/gc2235.c
+@@ -1123,10 +1123,8 @@ static int gc2235_probe(struct i2c_client *client,
+ 	unsigned int i;
+ 
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/imx/imx.c b/drivers/staging/media/atomisp/i2c/imx/imx.c
+index 49ab0af87096..957fb1863b40 100644
+--- a/drivers/staging/media/atomisp/i2c/imx/imx.c
++++ b/drivers/staging/media/atomisp/i2c/imx/imx.c
+@@ -2365,10 +2365,8 @@ static int imx_probe(struct i2c_client *client,
+ 
+ 	/* allocate sensor device & init sub device */
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		v4l2_err(client, "%s: out of memory\n", __func__);
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/lm3554.c b/drivers/staging/media/atomisp/i2c/lm3554.c
+index 679176f7c542..37876d245a02 100644
+--- a/drivers/staging/media/atomisp/i2c/lm3554.c
++++ b/drivers/staging/media/atomisp/i2c/lm3554.c
+@@ -871,10 +871,8 @@ static int lm3554_probe(struct i2c_client *client,
+ 	int ret;
+ 
+ 	flash = kzalloc(sizeof(*flash), GFP_KERNEL);
+-	if (!flash) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!flash)
+ 		return -ENOMEM;
+-	}
+ 
+ 	flash->pdata = client->dev.platform_data;
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/mt9m114.c b/drivers/staging/media/atomisp/i2c/mt9m114.c
+index 3c837cb8859c..e204238ae06b 100644
+--- a/drivers/staging/media/atomisp/i2c/mt9m114.c
++++ b/drivers/staging/media/atomisp/i2c/mt9m114.c
+@@ -1863,10 +1863,8 @@ static int mt9m114_probe(struct i2c_client *client,
+ 
+ 	/* Setup sensor configuration structure */
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	v4l2_i2c_subdev_init(&dev->sd, client, &mt9m114_ops);
+ 	pdata = client->dev.platform_data;
+diff --git a/drivers/staging/media/atomisp/i2c/ov2680.c b/drivers/staging/media/atomisp/i2c/ov2680.c
+index 51b7d61df0f5..c81e80e7bdea 100644
+--- a/drivers/staging/media/atomisp/i2c/ov2680.c
++++ b/drivers/staging/media/atomisp/i2c/ov2680.c
+@@ -1447,10 +1447,8 @@ static int ov2680_probe(struct i2c_client *client,
+ 	unsigned int i;
+ 
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/ov2722.c b/drivers/staging/media/atomisp/i2c/ov2722.c
+index 10094ac56561..5f2e8a2798ef 100644
+--- a/drivers/staging/media/atomisp/i2c/ov2722.c
++++ b/drivers/staging/media/atomisp/i2c/ov2722.c
+@@ -1285,10 +1285,8 @@ static int ov2722_probe(struct i2c_client *client,
+ 	struct acpi_device *adev;
+ 
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
+index 123642557aa8..3560f3cd25e8 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
++++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
+@@ -1965,10 +1965,8 @@ static int ov5693_probe(struct i2c_client *client,
+ 	}
+ 
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/ov8858.c b/drivers/staging/media/atomisp/i2c/ov8858.c
+index 43e1638fd674..918139d3d3c0 100644
+--- a/drivers/staging/media/atomisp/i2c/ov8858.c
++++ b/drivers/staging/media/atomisp/i2c/ov8858.c
+@@ -480,8 +480,6 @@ static int ov8858_priv_int_data_init(struct v4l2_subdev *sd)
+ 	if (!dev->otp_data) {
+ 		dev->otp_data = devm_kzalloc(&client->dev, size, GFP_KERNEL);
+ 		if (!dev->otp_data) {
+-			dev_err(&client->dev, "%s: can't allocate memory",
+-				__func__);
+ 			r = -ENOMEM;
+ 			goto error3;
+ 		}
+@@ -2094,10 +2092,8 @@ static int ov8858_probe(struct i2c_client *client,
+ 
+ 	/* allocate sensor device & init sub device */
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "%s: out of memory\n", __func__);
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
+index d8cfed358d55..d64c98944d49 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
+@@ -1137,10 +1137,8 @@ static int remove_pad_from_frame(struct atomisp_device *isp,
+ 	ia_css_ptr store = load;
+ 
+ 	buffer = kmalloc(width*sizeof(load), GFP_KERNEL);
+-	if (!buffer) {
+-		dev_err(isp->dev, "out of memory.\n");
++	if (!buffer)
+ 		return -ENOMEM;
+-	}
+ 
+ 	load += ISP_LEFT_PAD;
+ 	for (i = 0; i < height; i++) {
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
+index 717647951fb6..889cc73be800 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
+@@ -943,10 +943,8 @@ int atomisp_alloc_css_stat_bufs(struct atomisp_sub_device *asd,
+ 		dev_dbg(isp->dev, "allocating %d 3a buffers\n", count);
+ 		while (count--) {
+ 			s3a_buf = kzalloc(sizeof(struct atomisp_s3a_buf), GFP_KERNEL);
+-			if (!s3a_buf) {
+-				dev_err(isp->dev, "s3a stat buf alloc failed\n");
++			if (!s3a_buf)
+ 				goto error;
+-			}
+ 
+ 			if (atomisp_css_allocate_stat_buffers(
+ 					asd, stream_id, s3a_buf, NULL, NULL)) {
+@@ -965,7 +963,6 @@ int atomisp_alloc_css_stat_bufs(struct atomisp_sub_device *asd,
+ 		while (count--) {
+ 			dis_buf = kzalloc(sizeof(struct atomisp_dis_buf), GFP_KERNEL);
+ 			if (!dis_buf) {
+-				dev_err(isp->dev, "dis stat buf alloc failed\n");
+ 				kfree(s3a_buf);
+ 				goto error;
+ 			}
+@@ -990,10 +987,8 @@ int atomisp_alloc_css_stat_bufs(struct atomisp_sub_device *asd,
+ 			while (count--) {
+ 				md_buf = kzalloc(sizeof(struct atomisp_metadata_buf),
+ 						 GFP_KERNEL);
+-				if (!md_buf) {
+-					dev_err(isp->dev, "metadata buf alloc failed\n");
++				if (!md_buf)
+ 					goto error;
+-				}
+ 
+ 				if (atomisp_css_allocate_stat_buffers(
+ 						asd, stream_id, NULL, NULL, md_buf)) {
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c
+index 48e2e63c2336..e6ebd1b08f0d 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c
+@@ -365,10 +365,8 @@ ia_css_shading_table_alloc(
+ 	IA_CSS_ENTER("");
+ 
+ 	me = kmalloc(sizeof(*me), GFP_KERNEL);
+-	if (!me) {
+-		IA_CSS_ERROR("out of memory");
++	if (!me)
+ 		return me;
+-	}
+ 
+ 	me->width         = width;
+ 	me->height        = height;
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+index 5232327f5d9c..ca90b22020cc 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+@@ -727,10 +727,8 @@ static int alloc_private_pages(struct hmm_buffer_object *bo,
+ 
+ 	bo->page_obj = kmalloc_array(pgnr, sizeof(struct hmm_page_object),
+ 				GFP_KERNEL);
+-	if (unlikely(!bo->page_obj)) {
+-		dev_err(atomisp_dev, "out of memory for bo->page_obj\n");
++	if (unlikely(!bo->page_obj))
+ 		return -ENOMEM;
+-	}
+ 
+ 	i = 0;
+ 	alloc_pgnr = 0;
+@@ -991,15 +989,12 @@ static int alloc_user_pages(struct hmm_buffer_object *bo,
+ 	struct page **pages;
+ 
+ 	pages = kmalloc_array(bo->pgnr, sizeof(struct page *), GFP_KERNEL);
+-	if (unlikely(!pages)) {
+-		dev_err(atomisp_dev, "out of memory for pages...\n");
++	if (unlikely(!pages))
+ 		return -ENOMEM;
+-	}
+ 
+ 	bo->page_obj = kmalloc_array(bo->pgnr, sizeof(struct hmm_page_object),
+ 		GFP_KERNEL);
+ 	if (unlikely(!bo->page_obj)) {
+-		dev_err(atomisp_dev, "out of memory for bo->page_obj...\n");
+ 		kfree(pages);
+ 		return -ENOMEM;
+ 	}
+@@ -1366,7 +1361,6 @@ void *hmm_bo_vmap(struct hmm_buffer_object *bo, bool cached)
+ 	pages = kmalloc_array(bo->pgnr, sizeof(*pages), GFP_KERNEL);
+ 	if (unlikely(!pages)) {
+ 		mutex_unlock(&bo->mutex);
+-		dev_err(atomisp_dev, "out of memory for pages...\n");
+ 		return NULL;
+ 	}
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c
+index 19e0e9ee37de..eb82c3e4c776 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c
+@@ -116,8 +116,6 @@ static void free_pages_to_dynamic_pool(void *pool,
+ 	hmm_page = kmem_cache_zalloc(dypool_info->pgptr_cache,
+ 						GFP_KERNEL);
+ 	if (!hmm_page) {
+-		dev_err(atomisp_dev, "out of memory for hmm_page.\n");
+-
+ 		/* free page directly */
+ 		ret = set_pages_wb(page_obj->page, 1);
+ 		if (ret)
+@@ -151,10 +149,8 @@ static int hmm_dynamic_pool_init(void **pool, unsigned int pool_size)
+ 
+ 	dypool_info = kmalloc(sizeof(struct hmm_dynamic_pool_info),
+ 		GFP_KERNEL);
+-	if (unlikely(!dypool_info)) {
+-		dev_err(atomisp_dev, "out of memory for repool_info.\n");
++	if (unlikely(!dypool_info))
+ 		return -ENOMEM;
+-	}
+ 
+ 	dypool_info->pgptr_cache = kmem_cache_create("pgptr_cache",
+ 						sizeof(struct hmm_page), 0,
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c
+index bf6586805f7f..177bc354f1d7 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c
+@@ -92,15 +92,12 @@ static int hmm_reserved_pool_setup(struct hmm_reserved_pool_info **repool_info,
+ 
+ 	pool_info = kmalloc(sizeof(struct hmm_reserved_pool_info),
+ 				GFP_KERNEL);
+-	if (unlikely(!pool_info)) {
+-		dev_err(atomisp_dev, "out of memory for repool_info.\n");
++	if (unlikely(!pool_info))
+ 		return -ENOMEM;
+-	}
+ 
+ 	pool_info->pages = kmalloc(sizeof(struct page *) * pool_size,
+ 			GFP_KERNEL);
+ 	if (unlikely(!pool_info->pages)) {
+-		dev_err(atomisp_dev, "out of memory for repool_info->pages.\n");
+ 		kfree(pool_info);
+ 		return -ENOMEM;
+ 	}
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_vm.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_vm.c
+index 0722a68a49e7..402ffd9cb480 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_vm.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_vm.c
+@@ -89,10 +89,8 @@ static struct hmm_vm_node *alloc_hmm_vm_node(unsigned int pgnr,
+ 	struct hmm_vm_node *node;
+ 
+ 	node = kmem_cache_alloc(vm->cache, GFP_KERNEL);
+-	if (!node) {
+-		dev_err(atomisp_dev, "out of memory.\n");
++	if (!node)
+ 		return NULL;
+-	}
+ 
+ 	INIT_LIST_HEAD(&node->list);
+ 	node->pgnr = pgnr;
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+index edaae93af8f9..0304801fcbe5 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+@@ -739,10 +739,8 @@ int camera_sensor_csi(struct v4l2_subdev *sd, u32 port,
+ 
+ 	if (flag) {
+ 		csi = kzalloc(sizeof(*csi), GFP_KERNEL);
+-		if (!csi) {
+-			dev_err(&client->dev, "out of memory\n");
++		if (!csi)
+ 			return -ENOMEM;
+-		}
+ 		csi->port = port;
+ 		csi->num_lanes = lanes;
+ 		csi->input_format = format;
+-- 
+2.11.0
