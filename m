@@ -1,73 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:44073 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932409AbdJZVw6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Oct 2017 17:52:58 -0400
-Received: by mail-lf0-f68.google.com with SMTP id 75so5342832lfx.1
-        for <linux-media@vger.kernel.org>; Thu, 26 Oct 2017 14:52:58 -0700 (PDT)
-Date: Thu, 26 Oct 2017 23:52:55 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v16 15/32] v4l: async: Register sub-devices before
- calling bound callback
-Message-ID: <20171026215255.GI2297@bigcity.dyn.berto.se>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-16-sakari.ailus@linux.intel.com>
+Received: from gloria.sntech.de ([95.129.55.99]:38042 "EHLO gloria.sntech.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753840AbdJNOwg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 14 Oct 2017 10:52:36 -0400
+From: Heiko Stuebner <heiko@sntech.de>
+To: Pierre-Hugues Husson <phh@phh.me>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/3] Enable CEC on rk3399
+Date: Sat, 14 Oct 2017 16:52:29 +0200
+Message-ID: <2009704.s5LEIeT6xV@phil>
+In-Reply-To: <CAJ-oXjQ3e1UHVGq=uV=yAK9Bu=ZoiNZaEbnHyvNtyc15RQQSKg@mail.gmail.com>
+References: <20171013225337.5196-1-phh@phh.me> <9833f103-769f-b9b9-05c7-4d75bd7e487c@xs4all.nl> <CAJ-oXjQ3e1UHVGq=uV=yAK9Bu=ZoiNZaEbnHyvNtyc15RQQSKg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171026075342.5760-16-sakari.ailus@linux.intel.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2017-10-26 10:53:25 +0300, Sakari Ailus wrote:
-> Register the sub-device before calling the notifier's bound callback.
-> Doing this the other way around is problematic as the struct v4l2_device
-> has not assigned for the sub-device yet and may be required by the bound
-> callback.
+Am Samstag, 14. Oktober 2017, 15:14:40 CEST schrieb Pierre-Hugues Husson:
+> Hi Hans,
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
+> > Nice! I had a similar dw-hdmi.c patch pending but got around to posting it.
+> >
+> > I'll brush off my old rk3288 patches and see if I can get CEC enabled
+> > for my firefly-reload. I was close to getting it work, but I guess
+> > missed the "enable cec pin" change.
+> Please note that on rk3288, there are two CEC pins, and you must write
+> in RK3288_GRF_SOC_CON8 which pin you're using.
+> On the firefly-reload, the pin used is GPIO7C0, while the default pin
+> configuration is GPIO7C7.
 
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+And as an additional note, later socs have even more of these pin-routing
+settings and we currently have infrastructure in the pinctrl driver to do
+this automatically depending on the pinctrl settings.
 
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index e170682dae78..46db85685894 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -130,13 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
->  {
->  	int ret;
->  
-> -	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
-> +	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
->  	if (ret < 0)
->  		return ret;
->  
-> -	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
-> +	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
->  	if (ret < 0) {
-> -		v4l2_async_notifier_call_unbind(notifier, sd, asd);
-> +		v4l2_device_unregister_subdev(sd);
->  		return ret;
->  	}
->  
-> -- 
-> 2.11.0
-> 
+So most likely this can also be added there for the rk3288.
 
--- 
-Regards,
-Niklas Söderlund
+
+Heiko
