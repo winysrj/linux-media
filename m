@@ -1,155 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40292 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751393AbdJDVu7 (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:55147 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751002AbdJNIXR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 17:50:59 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v15 19/32] v4l: async: Ensure only unique fwnodes are registered to notifiers
-Date: Thu,  5 Oct 2017 00:50:38 +0300
-Message-Id: <20171004215051.13385-20-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+        Sat, 14 Oct 2017 04:23:17 -0400
+Subject: Re: [PATCH 0/3] Enable CEC on rk3399
+To: Pierre-Hugues Husson <phh@phh.me>,
+        linux-rockchip@lists.infradead.org
+Cc: heiko@sntech.de, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <20171013225337.5196-1-phh@phh.me>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9833f103-769f-b9b9-05c7-4d75bd7e487c@xs4all.nl>
+Date: Sat, 14 Oct 2017 10:23:12 +0200
+MIME-Version: 1.0
+In-Reply-To: <20171013225337.5196-1-phh@phh.me>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While registering a notifier, check that each newly added fwnode is
-unique, and return an error if it is not. Also check that a newly added
-notifier does not have the same fwnodes twice.
+On 10/14/2017 12:53 AM, Pierre-Hugues Husson wrote:
+> Enable CEC on firefly-rk3399.
+> Tested on a TV with cec-ctl --playback; cec-ctl -S
+> 
+> Pierre-Hugues Husson (3):
+>   drm: bridge: synopsys/dw-hdmi: Enable cec clock
+>   arm64: dts: rockchip: add the cec clk for dw-mipi-hdmi on rk3399
+>   arm64: dts: rockchip: enable cec pin for rk3399 firefly
+> 
+>  arch/arm64/boot/dts/rockchip/rk3399-firefly.dts |  2 ++
+>  arch/arm64/boot/dts/rockchip/rk3399.dtsi        |  8 ++++++--
+>  drivers/gpu/drm/bridge/synopsys/dw-hdmi.c       | 16 ++++++++++++++++
+>  3 files changed, 24 insertions(+), 2 deletions(-)
+> 
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 82 +++++++++++++++++++++++++++++++++---
- 1 file changed, 77 insertions(+), 5 deletions(-)
+Nice! I had a similar dw-hdmi.c patch pending but got around to posting it.
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 3621ed6e6e3c..e1fe3567127a 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -330,8 +330,71 @@ static void v4l2_async_notifier_unbind_all_subdevs(
- 	notifier->parent = NULL;
- }
- 
-+/* See if an fwnode can be found in a notifier's lists. */
-+static bool __v4l2_async_notifier_fwnode_has_async_subdev(
-+	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
-+{
-+	struct v4l2_async_subdev *asd;
-+	struct v4l2_subdev *sd;
-+
-+	list_for_each_entry(asd, &notifier->waiting, list) {
-+		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
-+			continue;
-+
-+		if (asd->match.fwnode.fwnode == fwnode)
-+			return true;
-+	}
-+
-+	list_for_each_entry(sd, &notifier->done, async_list) {
-+		if (WARN_ON(!sd->asd))
-+			continue;
-+
-+		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
-+			continue;
-+
-+		if (sd->asd->match.fwnode.fwnode == fwnode)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
-+/*
-+ * Find out whether an async sub-device was set up for an fwnode already or
-+ * whether it exists in a given notifier before @this_index.
-+ */
-+static bool v4l2_async_notifier_fwnode_has_async_subdev(
-+	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
-+	unsigned int this_index)
-+{
-+	unsigned int j;
-+
-+	lockdep_assert_held(&list_lock);
-+
-+	/* Check that an fwnode is not being added more than once. */
-+	for (j = 0; j < this_index; j++) {
-+		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
-+		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
-+
-+		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
-+		    asd->match.fwnode.fwnode ==
-+		    other_asd->match.fwnode.fwnode)
-+			return true;
-+	}
-+
-+	/* Check than an fwnode did not exist in other notifiers. */
-+	list_for_each_entry(notifier, &notifier_list, list)
-+		if (__v4l2_async_notifier_fwnode_has_async_subdev(
-+			    notifier, fwnode))
-+			return true;
-+
-+	return false;
-+}
-+
- static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- {
-+	struct device *dev =
-+		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
- 	struct v4l2_async_subdev *asd;
- 	int ret;
- 	int i;
-@@ -342,6 +405,8 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
- 
-+	mutex_lock(&list_lock);
-+
- 	for (i = 0; i < notifier->num_subdevs; i++) {
- 		asd = notifier->subdevs[i];
- 
-@@ -349,19 +414,25 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- 		case V4L2_ASYNC_MATCH_CUSTOM:
- 		case V4L2_ASYNC_MATCH_DEVNAME:
- 		case V4L2_ASYNC_MATCH_I2C:
-+			break;
- 		case V4L2_ASYNC_MATCH_FWNODE:
-+			if (v4l2_async_notifier_fwnode_has_async_subdev(
-+				    notifier, asd->match.fwnode.fwnode, i)) {
-+				dev_err(dev,
-+					"fwnode has already been registered or in notifier's subdev list\n");
-+				ret = -EEXIST;
-+				goto out_unlock;
-+			}
- 			break;
- 		default:
--			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
--				"Invalid match type %u on %p\n",
-+			dev_err(dev, "Invalid match type %u on %p\n",
- 				asd->match_type, asd);
--			return -EINVAL;
-+			ret = -EINVAL;
-+			goto out_unlock;
- 		}
- 		list_add_tail(&asd->list, &notifier->waiting);
- 	}
- 
--	mutex_lock(&list_lock);
--
- 	ret = v4l2_async_notifier_try_all_subdevs(notifier);
- 	if (ret)
- 		goto err_unbind;
-@@ -373,6 +444,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- 	/* Keep also completed notifiers on the list */
- 	list_add(&notifier->list, &notifier_list);
- 
-+out_unlock:
- 	mutex_unlock(&list_lock);
- 
- 	return 0;
--- 
-2.11.0
+I'll brush off my old rk3288 patches and see if I can get CEC enabled
+for my firefly-reload. I was close to getting it work, but I guess
+missed the "enable cec pin" change.
+
+Regards,
+
+	Hans
