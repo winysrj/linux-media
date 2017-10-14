@@ -1,50 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:44098 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752598AbdJMRBS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 13:01:18 -0400
-Date: Fri, 13 Oct 2017 10:01:13 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [Patch 3/6] ARM: OMAP: DRA7xx: Make CAM clock domain SWSUP only
-Message-ID: <20171013170113.GL4394@atomide.com>
-References: <20171012192719.15193-1-bparrot@ti.com>
- <20171012192719.15193-4-bparrot@ti.com>
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:44222 "EHLO
+        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753261AbdJNPQl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 14 Oct 2017 11:16:41 -0400
+Date: Sat, 14 Oct 2017 17:16:39 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Aishwarya Pant <aishpant@gmail.com>
+cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, outreachy-kernel@googlegroups.com
+Subject: Re: [Outreachy kernel] [PATCH v2 1/2] staging: atomisp2: cleanup
+ null check on memory allocation
+In-Reply-To: <94b66136d4007e3219fba5714c01eb934c833588.1507989088.git.aishpant@gmail.com>
+Message-ID: <alpine.DEB.2.20.1710141715520.2034@hadrien>
+References: <cover.1507989087.git.aishpant@gmail.com> <94b66136d4007e3219fba5714c01eb934c833588.1507989088.git.aishpant@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171012192719.15193-4-bparrot@ti.com>
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Benoit Parrot <bparrot@ti.com> [171012 12:29]:
-> HWSUP on this domain is only working when VIP1 probes.
-> If only VIP2 on DRA74x or CAL on DRA72x probes the domain does
-> not get enabled. This might indicates an issue in the HW Auto
-> state-machine for this domain.
+
+
+On Sat, 14 Oct 2017, Aishwarya Pant wrote:
+
+> For memory allocation functions that fail with a NULL return value, it
+> is preferred to use the (!x) test in place of (x == NULL).
 >
-> Work around is to set the CAM domain to use SWSUP only.
+> Changes in atomisp2/css2400/sh_css.c were done by hand.
+>
+> Done with the help of the following cocci script:
+>
+> @@
+> type T;
+> T* p;
+> statement s,s1;
+> @@
+>
+> p =
+>   \(devm_kzalloc\|devm_ioremap\|usb_alloc_urb\|alloc_netdev\|dev_alloc_skb\|
+>    kmalloc\|kmalloc_array\|kzalloc\|kcalloc\|kmem_cache_alloc\|kmem_cache_zalloc\|
+>    kmem_cache_alloc_node\|kmalloc_node\|kzalloc_node\|devm_kzalloc\)(...)
+> ...when != p
+>
+> if (
+> - p == NULL
+> + !p
+>  ) s
+>  else s1
+>
+> Signed-off-by: Aishwarya Pant <aishpant@gmail.com>
 
-Hmm this you might get fixed automatically by configuring the
-parent interconnect target module to use "ti,sysc-omap4" and
-adding VIP1 and VIP2 as children to it.
+Acked-by: Julia Lawall <julia.lawall@lip6.fr>
 
-The reason why I suspect it will fix the issue is because
-with the parent being "ti,sysc-omap4" with "ti,hwmods" being
-in that parent node too, you automatically get PM runtime
-refcounting keep the parent active for either child.
-
-Maybe give it a try against today's Linux next and see for
-example how it was done for musb:
-
-https://patchwork.kernel.org/patch/9978783/
-
-Just use "ti,sysc-omap2" for type1 and "ti,sysc-omap4"
-for type2.
-
-Regards,
-
-Tony
+>
+> --
+> Changes in atomisp2/css2400/sh_css.c were done by hand, the above script
+> was not able to match the pattern if (a->b != null).
+>
+> v2 changes:
+> None, just rebase and re-send
+> ---
+>  .../media/atomisp/pci/atomisp2/css2400/sh_css.c    | 36 +++++++++++-----------
+>  .../atomisp/pci/atomisp2/css2400/sh_css_firmware.c |  6 ++--
+>  .../pci/atomisp2/css2400/sh_css_param_shading.c    |  2 +-
+>  3 files changed, 22 insertions(+), 22 deletions(-)
+>
+> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+> index e882b5596813..56de641d8848 100644
+> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+> @@ -5607,13 +5607,13 @@ static enum ia_css_err load_video_binaries(struct ia_css_pipe *pipe)
+>  		mycs->num_yuv_scaler = cas_scaler_descr.num_stage;
+>  		mycs->yuv_scaler_binary = kzalloc(cas_scaler_descr.num_stage *
+>  			sizeof(struct ia_css_binary), GFP_KERNEL);
+> -		if (mycs->yuv_scaler_binary == NULL) {
+> +		if (!mycs->yuv_scaler_binary) {
+>  			err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  			return err;
+>  		}
+>  		mycs->is_output_stage = kzalloc(cas_scaler_descr.num_stage
+>  					* sizeof(bool), GFP_KERNEL);
+> -		if (mycs->is_output_stage == NULL) {
+> +		if (!mycs->is_output_stage) {
+>  			err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  			return err;
+>  		}
+> @@ -6258,14 +6258,14 @@ static enum ia_css_err load_primary_binaries(
+>  		mycs->num_yuv_scaler = cas_scaler_descr.num_stage;
+>  		mycs->yuv_scaler_binary = kzalloc(cas_scaler_descr.num_stage *
+>  			sizeof(struct ia_css_binary), GFP_KERNEL);
+> -		if (mycs->yuv_scaler_binary == NULL) {
+> +		if (!mycs->yuv_scaler_binary) {
+>  			err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  			IA_CSS_LEAVE_ERR_PRIVATE(err);
+>  			return err;
+>  		}
+>  		mycs->is_output_stage = kzalloc(cas_scaler_descr.num_stage *
+>  			sizeof(bool), GFP_KERNEL);
+> -		if (mycs->is_output_stage == NULL) {
+> +		if (!mycs->is_output_stage) {
+>  			err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  			IA_CSS_LEAVE_ERR_PRIVATE(err);
+>  			return err;
+> @@ -6982,27 +6982,27 @@ static enum ia_css_err ia_css_pipe_create_cas_scaler_desc_single_output(
+>  	}
+>
+>  	descr->in_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+> -	if (descr->in_info == NULL) {
+> +	if (!descr->in_info) {
+>  		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  		goto ERR;
+>  	}
+>  	descr->internal_out_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+> -	if (descr->internal_out_info == NULL) {
+> +	if (!descr->internal_out_info) {
+>  		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  		goto ERR;
+>  	}
+>  	descr->out_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+> -	if (descr->out_info == NULL) {
+> +	if (!descr->out_info) {
+>  		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  		goto ERR;
+>  	}
+>  	descr->vf_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+> -	if (descr->vf_info == NULL) {
+> +	if (!descr->vf_info) {
+>  		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  		goto ERR;
+>  	}
+>  	descr->is_output_stage = kmalloc(descr->num_stage * sizeof(bool), GFP_KERNEL);
+> -	if (descr->is_output_stage == NULL) {
+> +	if (!descr->is_output_stage) {
+>  		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  		goto ERR;
+>  	}
+> @@ -7118,22 +7118,22 @@ static enum ia_css_err ia_css_pipe_create_cas_scaler_desc(struct ia_css_pipe *pi
+>  	descr->num_stage = num_stages;
+>
+>  	descr->in_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+> -	if (descr->in_info == NULL) {
+> +	if (!descr->in_info) {
+>  		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  		goto ERR;
+>  	}
+>  	descr->internal_out_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+> -	if (descr->internal_out_info == NULL) {
+> +	if (!descr->internal_out_info) {
+>  		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  		goto ERR;
+>  	}
+>  	descr->out_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+> -	if (descr->out_info == NULL) {
+> +	if (!descr->out_info) {
+>  		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  		goto ERR;
+>  	}
+>  	descr->vf_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+> -	if (descr->vf_info == NULL) {
+> +	if (!descr->vf_info) {
+>  		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  		goto ERR;
+>  	}
+> @@ -7276,13 +7276,13 @@ load_yuvpp_binaries(struct ia_css_pipe *pipe)
+>  		mycs->num_yuv_scaler = cas_scaler_descr.num_stage;
+>  		mycs->yuv_scaler_binary = kzalloc(cas_scaler_descr.num_stage *
+>  			sizeof(struct ia_css_binary), GFP_KERNEL);
+> -		if (mycs->yuv_scaler_binary == NULL) {
+> +		if (!mycs->yuv_scaler_binary) {
+>  			err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  			goto ERR;
+>  		}
+>  		mycs->is_output_stage = kzalloc(cas_scaler_descr.num_stage *
+>  			sizeof(bool), GFP_KERNEL);
+> -		if (mycs->is_output_stage == NULL) {
+> +		if (!mycs->is_output_stage) {
+>  			err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  			goto ERR;
+>  		}
+> @@ -7383,7 +7383,7 @@ load_yuvpp_binaries(struct ia_css_pipe *pipe)
+>  	}
+>  	mycs->vf_pp_binary = kzalloc(mycs->num_vf_pp * sizeof(struct ia_css_binary),
+>  						GFP_KERNEL);
+> -	if (mycs->vf_pp_binary == NULL) {
+> +	if (!mycs->vf_pp_binary) {
+>  		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  		goto ERR;
+>  	}
+> @@ -9445,7 +9445,7 @@ ia_css_stream_create(const struct ia_css_stream_config *stream_config,
+>
+>  	/* allocate the stream instance */
+>  	curr_stream = kmalloc(sizeof(struct ia_css_stream), GFP_KERNEL);
+> -	if (curr_stream == NULL) {
+> +	if (!curr_stream) {
+>  		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  		IA_CSS_LEAVE_ERR(err);
+>  		return err;
+> @@ -9457,7 +9457,7 @@ ia_css_stream_create(const struct ia_css_stream_config *stream_config,
+>  	/* allocate pipes */
+>  	curr_stream->num_pipes = num_pipes;
+>  	curr_stream->pipes = kzalloc(num_pipes * sizeof(struct ia_css_pipe *), GFP_KERNEL);
+> -	if (curr_stream->pipes == NULL) {
+> +	if (!curr_stream->pipes) {
+>  		curr_stream->num_pipes = 0;
+>  		kfree(curr_stream);
+>  		curr_stream = NULL;
+> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+> index 53a7891111f9..ec026b8d6756 100644
+> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+> @@ -147,7 +147,7 @@ sh_css_load_blob_info(const char *fw, const struct ia_css_fw_info *bi, struct ia
+>
+>  		char *parambuf = kmalloc(paramstruct_size + configstruct_size + statestruct_size,
+>  					 GFP_KERNEL);
+> -		if (parambuf == NULL)
+> +		if (!parambuf)
+>  			return IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>
+>  		bd->mem_offsets.array[IA_CSS_PARAM_CLASS_PARAM].ptr = NULL;
+> @@ -229,14 +229,14 @@ sh_css_load_firmware(const char *fw_data,
+>  		sh_css_blob_info = kmalloc(
+>  					(sh_css_num_binaries - NUM_OF_SPS) *
+>  					sizeof(*sh_css_blob_info), GFP_KERNEL);
+> -		if (sh_css_blob_info == NULL)
+> +		if (!sh_css_blob_info)
+>  			return IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>  	} else {
+>  		sh_css_blob_info = NULL;
+>  	}
+>
+>  	fw_minibuffer = kzalloc(sh_css_num_binaries * sizeof(struct fw_param), GFP_KERNEL);
+> -	if (fw_minibuffer == NULL)
+> +	if (!fw_minibuffer)
+>  		return IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+>
+>  	for (i = 0; i < sh_css_num_binaries; i++) {
+> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c
+> index eaf60e7b2dac..48e2e63c2336 100644
+> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c
+> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c
+> @@ -365,7 +365,7 @@ ia_css_shading_table_alloc(
+>  	IA_CSS_ENTER("");
+>
+>  	me = kmalloc(sizeof(*me), GFP_KERNEL);
+> -	if (me == NULL) {
+> +	if (!me) {
+>  		IA_CSS_ERROR("out of memory");
+>  		return me;
+>  	}
+> --
+> 2.11.0
+>
+> --
+> You received this message because you are subscribed to the Google Groups "outreachy-kernel" group.
+> To unsubscribe from this group and stop receiving emails from it, send an email to outreachy-kernel+unsubscribe@googlegroups.com.
+> To post to this group, send email to outreachy-kernel@googlegroups.com.
+> To view this discussion on the web visit https://groups.google.com/d/msgid/outreachy-kernel/94b66136d4007e3219fba5714c01eb934c833588.1507989088.git.aishpant%40gmail.com.
+> For more options, visit https://groups.google.com/d/optout.
+>
