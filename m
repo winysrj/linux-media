@@ -1,115 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53324 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751358AbdJPOuC (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:51369 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753753AbdJNPDj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Oct 2017 10:50:02 -0400
-Date: Mon, 16 Oct 2017 17:49:59 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Luis Oliveira <Luis.Oliveira@synopsys.com>
-Cc: Jacob Chen <jacob-chen@iotwrt.com>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, mchehab@kernel.org,
-        vladimir_zapolskiy@mentor.com, hans.verkuil@cisco.com,
-        sakari.ailus@linux.intel.com, p.zabel@pengutronix.de,
-        Joao Pinto <Joao.Pinto@synopsys.com>
-Subject: Re: [PATCH v3 1/2] media: i2c: OV5647: ensure clock lane in LP-11
- state before streaming on
-Message-ID: <20171016144958.sa7wpeanddnbp6sh@valkosipuli.retiisi.org.uk>
-References: <20171001102238.21585-1-jacob-chen@iotwrt.com>
- <20171016122331.p6pwvb6nkdkq57py@valkosipuli.retiisi.org.uk>
- <f105f473-c089-b10f-afaa-302c09074c2a@synopsys.com>
+        Sat, 14 Oct 2017 11:03:39 -0400
+Date: Sat, 14 Oct 2017 19:24:55 +0530
+From: Aishwarya Pant <aishpant@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Cc: outreachy-kernel@googlegroups.com
+Subject: [PATCH v2 1/2] staging: atomisp2: cleanup null check on memory
+ allocation
+Message-ID: <94b66136d4007e3219fba5714c01eb934c833588.1507989088.git.aishpant@gmail.com>
+References: <cover.1507989087.git.aishpant@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <f105f473-c089-b10f-afaa-302c09074c2a@synopsys.com>
+In-Reply-To: <cover.1507989087.git.aishpant@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 16, 2017 at 03:19:09PM +0100, Luis Oliveira wrote:
-> Hi all,
-> 
-> Sorry for the delay and thank you for the fix.
-> I just checked the databook and the changes makes sense.
-> 
-> cheers,
-> Luis
-> 
-> On 16-Oct-17 13:23, Sakari Ailus wrote:
-> > Luis,
-> > 
-> > Any comment on these?
-> > 
-> > On Sun, Oct 01, 2017 at 06:22:37PM +0800, Jacob Chen wrote:
-> >> When I was supporting Rpi Camera Module on the ASUS Tinker board,
-> >> I found this driver have some issues with rockchip's mipi-csi driver.
-> >> It didn't place clock lane in LP-11 state before performing
-> >> D-PHY initialisation.
-> >>
-> >> From our experience, on some OV sensors,
-> >> LP-11 state is not achieved while BIT(5)-0x4800 is cleared.
-> >>
-> >> So let's set BIT(5) and BIT(0) both while not streaming, in order to
-> >> coax the clock lane into LP-11 state.
-> >>
-> >> 0x4800 : MIPI CTRL 00
-> >> 	BIT(5) : clock lane gate enable
-> >> 		0: continuous
-> >> 		1: none-continuous
-> >> 	BIT(0) : manually set clock lane
-> >> 		0: Not used
-> >> 		1: used
-> >>
-> >> Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-> >> ---
-> >>  drivers/media/i2c/ov5647.c | 13 ++++++++++++-
-> >>  1 file changed, 12 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
-> >> index 95ce90fdb876..247302d01f53 100644
-> >> --- a/drivers/media/i2c/ov5647.c
-> >> +++ b/drivers/media/i2c/ov5647.c
-> >> @@ -253,6 +253,10 @@ static int ov5647_stream_on(struct v4l2_subdev *sd)
-> >>  {
-> >>  	int ret;
-> >>  
-> >> +	ret = ov5647_write(sd, 0x4800, 0x04);
-> >> +	if (ret < 0)
-> >> +		return ret;
-> >> +
-> >>  	ret = ov5647_write(sd, 0x4202, 0x00);
-> >>  	if (ret < 0)
-> >>  		return ret;
-> >> @@ -264,6 +268,10 @@ static int ov5647_stream_off(struct v4l2_subdev *sd)
-> >>  {
-> >>  	int ret;
-> >>  
-> >> +	ret = ov5647_write(sd, 0x4800, 0x25);
-> >> +	if (ret < 0)
-> >> +		return ret;
-> >> +
-> >>  	ret = ov5647_write(sd, 0x4202, 0x0f);
-> >>  	if (ret < 0)
-> >>  		return ret;
-> >> @@ -320,7 +328,10 @@ static int __sensor_init(struct v4l2_subdev *sd)
-> >>  			return ret;
-> >>  	}
-> >>  
-> >> -	return ov5647_write(sd, 0x4800, 0x04);
-> >> +	/*
-> >> +	 * stream off to make the clock lane into LP-11 state.
-> >> +	 */
-> >> +	return ov5647_stream_off(sd);
-> >>  }
-> >>  
-> >>  static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
-> >> -- 
-> >> 2.14.1
-> >>
-> > 
-> Reviewed-by: Luis Oliveira <lolivei@synopsys.com>
+For memory allocation functions that fail with a NULL return value, it
+is preferred to use the (!x) test in place of (x == NULL).
 
-Thanks. I'll apply the patches then.
+Changes in atomisp2/css2400/sh_css.c were done by hand.
 
+Done with the help of the following cocci script:
+
+@@
+type T;
+T* p;
+statement s,s1;
+@@
+
+p =
+  \(devm_kzalloc\|devm_ioremap\|usb_alloc_urb\|alloc_netdev\|dev_alloc_skb\|
+   kmalloc\|kmalloc_array\|kzalloc\|kcalloc\|kmem_cache_alloc\|kmem_cache_zalloc\|
+   kmem_cache_alloc_node\|kmalloc_node\|kzalloc_node\|devm_kzalloc\)(...)
+...when != p
+
+if (
+- p == NULL
++ !p
+ ) s
+ else s1
+
+Signed-off-by: Aishwarya Pant <aishpant@gmail.com>
+
+--
+Changes in atomisp2/css2400/sh_css.c were done by hand, the above script
+was not able to match the pattern if (a->b != null).
+
+v2 changes:
+None, just rebase and re-send
+---
+ .../media/atomisp/pci/atomisp2/css2400/sh_css.c    | 36 +++++++++++-----------
+ .../atomisp/pci/atomisp2/css2400/sh_css_firmware.c |  6 ++--
+ .../pci/atomisp2/css2400/sh_css_param_shading.c    |  2 +-
+ 3 files changed, 22 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+index e882b5596813..56de641d8848 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+@@ -5607,13 +5607,13 @@ static enum ia_css_err load_video_binaries(struct ia_css_pipe *pipe)
+ 		mycs->num_yuv_scaler = cas_scaler_descr.num_stage;
+ 		mycs->yuv_scaler_binary = kzalloc(cas_scaler_descr.num_stage *
+ 			sizeof(struct ia_css_binary), GFP_KERNEL);
+-		if (mycs->yuv_scaler_binary == NULL) {
++		if (!mycs->yuv_scaler_binary) {
+ 			err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 			return err;
+ 		}
+ 		mycs->is_output_stage = kzalloc(cas_scaler_descr.num_stage
+ 					* sizeof(bool), GFP_KERNEL);
+-		if (mycs->is_output_stage == NULL) {
++		if (!mycs->is_output_stage) {
+ 			err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 			return err;
+ 		}
+@@ -6258,14 +6258,14 @@ static enum ia_css_err load_primary_binaries(
+ 		mycs->num_yuv_scaler = cas_scaler_descr.num_stage;
+ 		mycs->yuv_scaler_binary = kzalloc(cas_scaler_descr.num_stage *
+ 			sizeof(struct ia_css_binary), GFP_KERNEL);
+-		if (mycs->yuv_scaler_binary == NULL) {
++		if (!mycs->yuv_scaler_binary) {
+ 			err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 			IA_CSS_LEAVE_ERR_PRIVATE(err);
+ 			return err;
+ 		}
+ 		mycs->is_output_stage = kzalloc(cas_scaler_descr.num_stage *
+ 			sizeof(bool), GFP_KERNEL);
+-		if (mycs->is_output_stage == NULL) {
++		if (!mycs->is_output_stage) {
+ 			err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 			IA_CSS_LEAVE_ERR_PRIVATE(err);
+ 			return err;
+@@ -6982,27 +6982,27 @@ static enum ia_css_err ia_css_pipe_create_cas_scaler_desc_single_output(
+ 	}
+ 
+ 	descr->in_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+-	if (descr->in_info == NULL) {
++	if (!descr->in_info) {
+ 		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 		goto ERR;
+ 	}
+ 	descr->internal_out_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+-	if (descr->internal_out_info == NULL) {
++	if (!descr->internal_out_info) {
+ 		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 		goto ERR;
+ 	}
+ 	descr->out_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+-	if (descr->out_info == NULL) {
++	if (!descr->out_info) {
+ 		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 		goto ERR;
+ 	}
+ 	descr->vf_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+-	if (descr->vf_info == NULL) {
++	if (!descr->vf_info) {
+ 		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 		goto ERR;
+ 	}
+ 	descr->is_output_stage = kmalloc(descr->num_stage * sizeof(bool), GFP_KERNEL);
+-	if (descr->is_output_stage == NULL) {
++	if (!descr->is_output_stage) {
+ 		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 		goto ERR;
+ 	}
+@@ -7118,22 +7118,22 @@ static enum ia_css_err ia_css_pipe_create_cas_scaler_desc(struct ia_css_pipe *pi
+ 	descr->num_stage = num_stages;
+ 
+ 	descr->in_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+-	if (descr->in_info == NULL) {
++	if (!descr->in_info) {
+ 		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 		goto ERR;
+ 	}
+ 	descr->internal_out_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+-	if (descr->internal_out_info == NULL) {
++	if (!descr->internal_out_info) {
+ 		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 		goto ERR;
+ 	}
+ 	descr->out_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+-	if (descr->out_info == NULL) {
++	if (!descr->out_info) {
+ 		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 		goto ERR;
+ 	}
+ 	descr->vf_info = kmalloc(descr->num_stage * sizeof(struct ia_css_frame_info), GFP_KERNEL);
+-	if (descr->vf_info == NULL) {
++	if (!descr->vf_info) {
+ 		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 		goto ERR;
+ 	}
+@@ -7276,13 +7276,13 @@ load_yuvpp_binaries(struct ia_css_pipe *pipe)
+ 		mycs->num_yuv_scaler = cas_scaler_descr.num_stage;
+ 		mycs->yuv_scaler_binary = kzalloc(cas_scaler_descr.num_stage *
+ 			sizeof(struct ia_css_binary), GFP_KERNEL);
+-		if (mycs->yuv_scaler_binary == NULL) {
++		if (!mycs->yuv_scaler_binary) {
+ 			err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 			goto ERR;
+ 		}
+ 		mycs->is_output_stage = kzalloc(cas_scaler_descr.num_stage *
+ 			sizeof(bool), GFP_KERNEL);
+-		if (mycs->is_output_stage == NULL) {
++		if (!mycs->is_output_stage) {
+ 			err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 			goto ERR;
+ 		}
+@@ -7383,7 +7383,7 @@ load_yuvpp_binaries(struct ia_css_pipe *pipe)
+ 	}
+ 	mycs->vf_pp_binary = kzalloc(mycs->num_vf_pp * sizeof(struct ia_css_binary),
+ 						GFP_KERNEL);
+-	if (mycs->vf_pp_binary == NULL) {
++	if (!mycs->vf_pp_binary) {
+ 		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 		goto ERR;
+ 	}
+@@ -9445,7 +9445,7 @@ ia_css_stream_create(const struct ia_css_stream_config *stream_config,
+ 
+ 	/* allocate the stream instance */
+ 	curr_stream = kmalloc(sizeof(struct ia_css_stream), GFP_KERNEL);
+-	if (curr_stream == NULL) {
++	if (!curr_stream) {
+ 		err = IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 		IA_CSS_LEAVE_ERR(err);
+ 		return err;
+@@ -9457,7 +9457,7 @@ ia_css_stream_create(const struct ia_css_stream_config *stream_config,
+ 	/* allocate pipes */
+ 	curr_stream->num_pipes = num_pipes;
+ 	curr_stream->pipes = kzalloc(num_pipes * sizeof(struct ia_css_pipe *), GFP_KERNEL);
+-	if (curr_stream->pipes == NULL) {
++	if (!curr_stream->pipes) {
+ 		curr_stream->num_pipes = 0;
+ 		kfree(curr_stream);
+ 		curr_stream = NULL;
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+index 53a7891111f9..ec026b8d6756 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+@@ -147,7 +147,7 @@ sh_css_load_blob_info(const char *fw, const struct ia_css_fw_info *bi, struct ia
+ 
+ 		char *parambuf = kmalloc(paramstruct_size + configstruct_size + statestruct_size,
+ 					 GFP_KERNEL);
+-		if (parambuf == NULL)
++		if (!parambuf)
+ 			return IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 
+ 		bd->mem_offsets.array[IA_CSS_PARAM_CLASS_PARAM].ptr = NULL;
+@@ -229,14 +229,14 @@ sh_css_load_firmware(const char *fw_data,
+ 		sh_css_blob_info = kmalloc(
+ 					(sh_css_num_binaries - NUM_OF_SPS) *
+ 					sizeof(*sh_css_blob_info), GFP_KERNEL);
+-		if (sh_css_blob_info == NULL)
++		if (!sh_css_blob_info)
+ 			return IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 	} else {
+ 		sh_css_blob_info = NULL;
+ 	}
+ 
+ 	fw_minibuffer = kzalloc(sh_css_num_binaries * sizeof(struct fw_param), GFP_KERNEL);
+-	if (fw_minibuffer == NULL)
++	if (!fw_minibuffer)
+ 		return IA_CSS_ERR_CANNOT_ALLOCATE_MEMORY;
+ 
+ 	for (i = 0; i < sh_css_num_binaries; i++) {
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c
+index eaf60e7b2dac..48e2e63c2336 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c
+@@ -365,7 +365,7 @@ ia_css_shading_table_alloc(
+ 	IA_CSS_ENTER("");
+ 
+ 	me = kmalloc(sizeof(*me), GFP_KERNEL);
+-	if (me == NULL) {
++	if (!me) {
+ 		IA_CSS_ERROR("out of memory");
+ 		return me;
+ 	}
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.11.0
