@@ -1,258 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:9343 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932580AbdJQWzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 18:55:33 -0400
-From: "Zhi, Yong" <yong.zhi@intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>,
-        "Vijaykumar, Ramya" <ramya.vijaykumar@intel.com>,
-        "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>
-Subject: RE: [PATCH v5 3/3] intel-ipu3: cio2: Add new MIPI-CSI2 driver
-Date: Tue, 17 Oct 2017 22:55:27 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D1AE2A35D@ORSMSX106.amr.corp.intel.com>
-References: <1507333141-28242-1-git-send-email-yong.zhi@intel.com>
- <1507333141-28242-4-git-send-email-yong.zhi@intel.com>
- <20171010074543.xmqavghypbnv25xr@valkosipuli.retiisi.org.uk>
- <C193D76D23A22742993887E6D207B54D1AE28D72@ORSMSX106.amr.corp.intel.com>
- <20171012061957.tx7buq2y4v45zkif@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20171012061957.tx7buq2y4v45zkif@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:53881 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751109AbdJNIQP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 14 Oct 2017 04:16:15 -0400
+Subject: Re: [PATCH 1/3] drm: bridge: synopsys/dw-hdmi: Enable cec clock
+To: Pierre-Hugues Husson <phh@phh.me>,
+        linux-rockchip@lists.infradead.org
+Cc: heiko@sntech.de, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <20171013225337.5196-1-phh@phh.me>
+ <20171013225337.5196-2-phh@phh.me>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <35b9fbe3-9859-03e2-173e-8cff5a90efdd@xs4all.nl>
+Date: Sat, 14 Oct 2017 10:16:07 +0200
 MIME-Version: 1.0
+In-Reply-To: <20171013225337.5196-2-phh@phh.me>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Sakari,
+On 10/14/2017 12:53 AM, Pierre-Hugues Husson wrote:
+> The documentation already mentions "cec" optional clock, but
+> currently the driver doesn't enable it.
+> 
+> Signed-off-by: Pierre-Hugues Husson <phh@phh.me>
 
-> -----Original Message-----
-> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
-> Sent: Wednesday, October 11, 2017 11:20 PM
-> To: Zhi, Yong <yong.zhi@intel.com>
-> Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com;
-> hans.verkuil@cisco.com; Zheng, Jian Xu <jian.xu.zheng@intel.com>;
-> tfiga@chromium.org; Mani, Rajmohan <rajmohan.mani@intel.com>;
-> Toivonen, Tuukka <tuukka.toivonen@intel.com>; Yang, Hyungwoo
-> <hyungwoo.yang@intel.com>; Vijaykumar, Ramya
-> <ramya.vijaykumar@intel.com>; Rapolu, Chiranjeevi
-> <chiranjeevi.rapolu@intel.com>
-> Subject: Re: [PATCH v5 3/3] intel-ipu3: cio2: Add new MIPI-CSI2 driver
-> 
-> Hi Yong,
-> 
-> One more comment below...
-> 
-> On Thu, Oct 12, 2017 at 01:02:54AM +0000, Zhi, Yong wrote:
-> ...
-> > > > +/******* V4L2 sub-device asynchronous registration
-> > > callbacks***********/
-> > > > +
-> > > > +struct sensor_async_subdev {
-> > > > +	struct v4l2_async_subdev asd;
-> > > > +	struct csi2_bus_info csi2;
-> > > > +};
-> > > > +
-> > > > +static struct cio2_queue *cio2_find_queue_by_sensor_node(struct
-> > > cio2_queue *q,
-> > > > +						struct fwnode_handle
-> > > *fwnode)
-> > > > +{
-> > > > +	unsigned int i;
-> > > > +
-> > > > +	for (i = 0; i < CIO2_QUEUES; i++) {
-> > > > +		if (q[i].sensor->fwnode == fwnode)
-> > > > +			return &q[i];
-> > > > +	}
-> > > > +
-> > > > +	return NULL;
-> > > > +}
-> > > > +
-> > > > +/* The .bound() notifier callback when a match is found */ static
-> > > > +int cio2_notifier_bound(struct v4l2_async_notifier *notifier,
-> > > > +			       struct v4l2_subdev *sd,
-> > > > +			       struct v4l2_async_subdev *asd) {
-> > > > +	struct cio2_device *cio2 = container_of(notifier,
-> > > > +					struct cio2_device, notifier);
-> > > > +	struct sensor_async_subdev *s_asd = container_of(asd,
-> > > > +					struct sensor_async_subdev, asd);
-> > > > +	struct cio2_queue *q;
-> > > > +	unsigned int i;
-> > > > +
-> > > > +
-> > > > +	/* Find first free slot for the subdev */
-> > > > +	for (i = 0; i < CIO2_QUEUES; i++)
-> > > > +		if (!cio2->queue[i].sensor)
-> > > > +			break;
-> 
-> The queues are related to sub-devices with the same number in the name,
-> whereas the number of the CSI-2 receiver is q->csi2.port. The problem here
-> is that the CSI-2 receiver that the sensor appears to be connected is a
-> incrementing number from zero onwards, depending on the order in which
-> the devices are bound rather than the real number of the receiver.
-> 
-> The easiest way to address this would be to create 1:1 mapping between the
-> queues and CSI-2 receivers.
-> 
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Sure, will fix according your suggestion.
+Thanks!
 
-> > > > +
-> > > > +	if (i >= CIO2_QUEUES) {
-> > > > +		dev_err(&cio2->pci_dev->dev, "too many subdevs\n");
-> > > > +		return -ENOSPC;
-> > > > +	}
-> > > > +	q = &cio2->queue[i];
-> > > > +
-> > > > +	q->csi2 = s_asd->csi2;
-> > > > +	q->sensor = sd;
-> > > > +	q->csi_rx_base = cio2->base + CIO2_REG_PIPE_BASE(q->csi2.port);
-> > > > +
-> > > > +	return 0;
-> > > > +}
-> > > > +
-> > > > +/* The .unbind callback */
-> > > > +static void cio2_notifier_unbind(struct v4l2_async_notifier *notifier,
-> > > > +				 struct v4l2_subdev *sd,
-> > > > +				 struct v4l2_async_subdev *asd) {
-> > > > +	struct cio2_device *cio2 = container_of(notifier,
-> > > > +						struct cio2_device, notifier);
-> > > > +	unsigned int i;
-> > > > +
-> > > > +	/* Note: sd may here point to unallocated memory. Do not access.
-> > > > +*/
-> > >
-> > > That may be the case but the patchset that this driver depends on
-> > > changes it. :-) So you can remove the comment.
-> > >
-> >
-> > Ack, will remove.
-> >
-> > > > +	for (i = 0; i < CIO2_QUEUES; i++) {
-> > > > +		if (cio2->queue[i].sensor == sd) {
-> > > > +			cio2->queue[i].sensor = NULL;
-> > > > +			return;
-> > > > +		}
-> > > > +	}
-> > > > +}
-> > > > +
-> > > > +/* .complete() is called after all subdevices have been located
-> > > > +*/ static int cio2_notifier_complete(struct v4l2_async_notifier
-> > > > +*notifier) {
-> > > > +	struct cio2_device *cio2 = container_of(notifier, struct cio2_device,
-> > > > +						notifier);
-> > > > +	struct sensor_async_subdev *s_asd;
-> > > > +	struct cio2_queue *q;
-> > > > +	unsigned int i, pad;
-> > > > +	int ret;
-> > > > +
-> > > > +	for (i = 0; i < notifier->num_subdevs; i++) {
-> > > > +		s_asd = container_of(cio2->notifier.subdevs[i],
-> > > > +					struct sensor_async_subdev,
-> > > > +					asd);
-> > > > +
-> > > > +		q = cio2_find_queue_by_sensor_node(
-> > > > +						cio2->queue,
-> > > > +						s_asd-
-> > > >asd.match.fwnode.fwnode);
-> > > > +		if (!q) {
-> > > > +			dev_err(&cio2->pci_dev->dev,
-> > > > +					"failed to find cio2 queue %d\n", ret);
-> > > > +			return -ENXIO;
-> > > > +		}
-> > > > +
-> > > > +		for (pad = 0; pad < q->sensor->entity.num_pads; pad++)
-> > > > +			if (q->sensor->entity.pads[pad].flags &
-> > > > +						MEDIA_PAD_FL_SOURCE)
-> > > > +				break;
-> > > > +
-> > > > +		if (pad == q->sensor->entity.num_pads) {
-> > > > +			dev_err(&cio2->pci_dev->dev,
-> > > > +				"failed to find src pad for %s\n",
-> > > > +				q->sensor->name);
-> > > > +			return -ENXIO;
-> > > > +		}
-> > > > +
-> > > > +		ret = media_create_pad_link(
-> > > > +				&q->sensor->entity, pad,
-> > > > +				&q->subdev.entity, CIO2_PAD_SINK,
-> > > > +				0);
-> > > > +		if (ret) {
-> > > > +			dev_err(&cio2->pci_dev->dev,
-> > > > +					"failed to create link for %s\n",
-> > > > +					cio2->queue[i].sensor->name);
-> > > > +			return ret;
-> > > > +		}
-> > > > +	}
-> > > > +
-> > > > +	return v4l2_device_register_subdev_nodes(&cio2->v4l2_dev);
-> > > > +}
-> > > > +
-> > > > +static const struct v4l2_async_notifier_operations cio2_async_ops = {
-> > > > +	.bound = cio2_notifier_bound,
-> > > > +	.unbind = cio2_notifier_unbind,
-> > > > +	.complete = cio2_notifier_complete, };
-> > > > +
-> > > > +static int cio2_fwnode_parse(struct device *dev,
-> > > > +			     struct v4l2_fwnode_endpoint *vep,
-> > > > +			     struct v4l2_async_subdev *asd) {
-> > > > +	struct sensor_async_subdev *s_asd =
-> > > > +			container_of(asd, struct sensor_async_subdev, asd);
-> > > > +
-> > > > +	if (vep->bus_type != V4L2_MBUS_CSI2) {
-> > > > +		dev_err(dev, "endpoint bus type error\n");
-> > > > +		return -EINVAL;
-> > > > +	}
-> > > > +
-> > > > +	s_asd->csi2.port = vep->base.port;
-> > > > +	s_asd->csi2.lanes = vep->bus.mipi_csi2.num_data_lanes;
-> > > > +
-> > > > +	return 0;
-> > > > +}
-> > > > +
-> > > > +static int cio2_notifier_init(struct cio2_device *cio2) {
-> > > > +	int ret;
-> > > > +
-> > > > +	ret = v4l2_async_notifier_parse_fwnode_endpoints(
-> > > > +		&cio2->pci_dev->dev, &cio2->notifier,
-> > > > +		sizeof(struct sensor_async_subdev),
-> > > > +		cio2_fwnode_parse);
-> > > > +	if (ret < 0)
-> > > > +		return ret;
-> > > > +
-> > > > +	if (!cio2->notifier.num_subdevs)
-> > > > +		return 0;	/* no endpoint */
-> > >
-> > > You could make this an error as well: there device won't do anything
-> > > in that case anyway. -ENODEV, perhaps.
-> > >
-> >
-> > Ack.
-> >
-> > > > +
-> > > > +	cio2->notifier.ops = &cio2_async_ops;
-> > > > +	ret = v4l2_async_notifier_register(&cio2->v4l2_dev, &cio2->notifier);
-> > > > +	if (ret) {
-> > > > +		dev_err(&cio2->pci_dev->dev,
-> > > > +			"failed to register async notifier : %d\n", ret);
-> > > > +		goto error;
-> > > > +	}
-> > > > +
-> > > > +	return 0;
-> > > > +
-> > > > +error:
-> > > > +	v4l2_async_notifier_cleanup(&cio2->notifier);
-> > > > +
-> > > > +	return ret;
-> > > > +}
+	Hans
+
+> ---
+>  drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
 > 
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi
+> diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+> index bf14214fa464..5007cdf43131 100644
+> --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+> +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+> @@ -138,6 +138,7 @@ struct dw_hdmi {
+>  	struct device *dev;
+>  	struct clk *isfr_clk;
+>  	struct clk *iahb_clk;
+> +	struct clk *cec_clk;
+>  	struct dw_hdmi_i2c *i2c;
+>  
+>  	struct hdmi_data_info hdmi_data;
+> @@ -2382,6 +2383,18 @@ __dw_hdmi_probe(struct platform_device *pdev,
+>  		goto err_isfr;
+>  	}
+>  
+> +	hdmi->cec_clk = devm_clk_get(hdmi->dev, "cec");
+> +	if (IS_ERR(hdmi->cec_clk)) {
+> +		hdmi->cec_clk = NULL;
+> +	} else {
+> +		ret = clk_prepare_enable(hdmi->cec_clk);
+> +		if (ret) {
+> +			dev_err(hdmi->dev, "Cannot enable HDMI cec clock: %d\n",
+> +					ret);
+> +			goto err_res;
+> +		}
+> +	}
+> +
+>  	/* Product and revision IDs */
+>  	hdmi->version = (hdmi_readb(hdmi, HDMI_DESIGN_ID) << 8)
+>  		      | (hdmi_readb(hdmi, HDMI_REVISION_ID) << 0);
+> @@ -2518,6 +2531,8 @@ __dw_hdmi_probe(struct platform_device *pdev,
+>  		cec_notifier_put(hdmi->cec_notifier);
+>  
+>  	clk_disable_unprepare(hdmi->iahb_clk);
+> +	if (hdmi->cec_clk)
+> +		clk_disable_unprepare(hdmi->cec_clk);
+>  err_isfr:
+>  	clk_disable_unprepare(hdmi->isfr_clk);
+>  err_res:
+> @@ -2541,6 +2556,8 @@ static void __dw_hdmi_remove(struct dw_hdmi *hdmi)
+>  
+>  	clk_disable_unprepare(hdmi->iahb_clk);
+>  	clk_disable_unprepare(hdmi->isfr_clk);
+> +	if (hdmi->cec_clk)
+> +		clk_disable_unprepare(hdmi->cec_clk);
+>  
+>  	if (hdmi->i2c)
+>  		i2c_del_adapter(&hdmi->i2c->adap);
+> 
