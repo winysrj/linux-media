@@ -1,73 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:36721 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754285AbdJKH37 (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:50337 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753753AbdJNPCp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Oct 2017 03:29:59 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Yakir Yang <ykk@rock-chips.com>
-Subject: [PATCH v12 1/5] dt-bindings: Document the Rockchip RGA bindings
-Date: Wed, 11 Oct 2017 15:29:34 +0800
-Message-Id: <20171011072938.383-2-jacob-chen@iotwrt.com>
-In-Reply-To: <20171011072938.383-1-jacob-chen@iotwrt.com>
-References: <20171011072938.383-1-jacob-chen@iotwrt.com>
+        Sat, 14 Oct 2017 11:02:45 -0400
+Date: Sat, 14 Oct 2017 19:24:00 +0530
+From: Aishwarya Pant <aishpant@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Cc: outreachy-kernel@googlegroups.com
+Subject: [PATCH v2 0/2] staging: atomisp: memory allocation cleanups
+Message-ID: <cover.1507989087.git.aishpant@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT bindings documentation for Rockchip RGA
+Patch series performs minor code cleanups using coccinelle to simplify memory
+allocation tests and remove redundant OOM log messages.
 
-Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-Signed-off-by: Yakir Yang <ykk@rock-chips.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
- .../devicetree/bindings/media/rockchip-rga.txt     | 33 ++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
+Changes in v2:
+Rebase and re-send patches
 
-diff --git a/Documentation/devicetree/bindings/media/rockchip-rga.txt b/Documentation/devicetree/bindings/media/rockchip-rga.txt
-new file mode 100644
-index 000000000000..fd5276abfad6
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/rockchip-rga.txt
-@@ -0,0 +1,33 @@
-+device-tree bindings for rockchip 2D raster graphic acceleration controller (RGA)
-+
-+RGA is a standalone 2D raster graphic acceleration unit. It accelerates 2D
-+graphics operations, such as point/line drawing, image scaling, rotation,
-+BitBLT, alpha blending and image blur/sharpness.
-+
-+Required properties:
-+- compatible: value should be one of the following
-+		"rockchip,rk3288-rga";
-+		"rockchip,rk3399-rga";
-+
-+- interrupts: RGA interrupt specifier.
-+
-+- clocks: phandle to RGA sclk/hclk/aclk clocks
-+
-+- clock-names: should be "aclk", "hclk" and "sclk"
-+
-+- resets: Must contain an entry for each entry in reset-names.
-+  See ../reset/reset.txt for details.
-+- reset-names: should be "core", "axi" and "ahb"
-+
-+Example:
-+SoC-specific DT entry:
-+	rga: rga@ff680000 {
-+		compatible = "rockchip,rk3399-rga";
-+		reg = <0xff680000 0x10000>;
-+		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA_CORE>;
-+		clock-names = "aclk", "hclk", "sclk";
-+
-+		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru SRST_H_RGA>;
-+		reset-names = "core, "axi", "ahb";
-+	};
+Aishwarya Pant (2):
+  staging: atomisp2: cleanup null check on memory allocation
+  staging: atomisp: cleanup out of memory messages
+
+ drivers/staging/media/atomisp/i2c/ap1302.c         |  4 +--
+ drivers/staging/media/atomisp/i2c/gc0310.c         |  4 +--
+ drivers/staging/media/atomisp/i2c/gc2235.c         |  4 +--
+ drivers/staging/media/atomisp/i2c/imx/imx.c        |  4 +--
+ drivers/staging/media/atomisp/i2c/lm3554.c         |  4 +--
+ drivers/staging/media/atomisp/i2c/mt9m114.c        |  4 +--
+ drivers/staging/media/atomisp/i2c/ov2680.c         |  4 +--
+ drivers/staging/media/atomisp/i2c/ov2722.c         |  4 +--
+ drivers/staging/media/atomisp/i2c/ov5693/ov5693.c  |  4 +--
+ drivers/staging/media/atomisp/i2c/ov8858.c         |  6 +---
+ .../media/atomisp/pci/atomisp2/atomisp_fops.c      |  4 +--
+ .../media/atomisp/pci/atomisp2/atomisp_ioctl.c     |  9 ++----
+ .../media/atomisp/pci/atomisp2/css2400/sh_css.c    | 36 +++++++++++-----------
+ .../atomisp/pci/atomisp2/css2400/sh_css_firmware.c |  6 ++--
+ .../pci/atomisp2/css2400/sh_css_param_shading.c    |  4 +--
+ .../media/atomisp/pci/atomisp2/hmm/hmm_bo.c        | 10 ++----
+ .../atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c    |  6 +---
+ .../atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c   |  5 +--
+ .../media/atomisp/pci/atomisp2/hmm/hmm_vm.c        |  4 +--
+ .../platform/intel-mid/atomisp_gmin_platform.c     |  4 +--
+ 20 files changed, 41 insertions(+), 89 deletions(-)
+
 -- 
-2.14.1
+2.11.0
