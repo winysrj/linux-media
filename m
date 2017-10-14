@@ -1,73 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blatinox.fr ([51.254.120.209]:33833 "EHLO vps202351.ovh.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751672AbdJATlP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 1 Oct 2017 15:41:15 -0400
-From: =?UTF-8?q?J=C3=A9r=C3=A9my=20Lefaure?=
-        <jeremy.lefaure@lse.epita.fr>
-Cc: alsa-devel@alsa-project.org, amd-gfx@lists.freedesktop.org,
-        brcm80211-dev-list@cypress.com,
-        brcm80211-dev-list.pdl@broadcom.com, devel@acpica.org,
-        devel@driverdev.osuosl.org, dm-devel@redhat.com,
-        dri-devel@lists.freedesktop.org, ecryptfs@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org,
-        intel-gvt-dev@lists.freedesktop.org,
-        intel-wired-lan@lists.osuosl.org,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        linux-acpi@vger.kernel.org, linux-integrity@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-nfs@vger.kernel.org, linux-raid@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org,
-        linux-usb@vger.kernel.org, linux-video@atrey.karlin.mff.cuni.cz,
-        linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
-        nouveau@lists.freedesktop.org,
-        openipmi-developer@lists.sourceforge.net
-Subject: [PATCH 00/18] use ARRAY_SIZE macro
-Date: Sun,  1 Oct 2017 15:30:38 -0400
-Message-Id: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:44053 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752705AbdJNLZ5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 14 Oct 2017 07:25:57 -0400
+Subject: Re: [PATCHv2 0/9] omapdrm: hdmi4: add CEC support
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170802085408.16204-1-hverkuil@xs4all.nl>
+ <bbc92584-71e8-b41e-dd35-5dd0d686cf53@ti.com>
+ <d5034d03-1ef4-0253-0efc-ae7fd5cb09e9@ti.com>
+ <9f921701-910c-d749-378c-038e8405f656@xs4all.nl>
+ <f5d93c33-7825-1034-a605-ee38c796ca20@ti.com>
+ <185e0c6e-8776-67e3-363f-fe9ebef3ba29@xs4all.nl>
+ <2799bcc5-df51-e977-b3c0-22922f59fc39@ti.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2f4e152a-725a-593d-500d-1e6836a38104@xs4all.nl>
+Date: Sat, 14 Oct 2017 13:25:52 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+In-Reply-To: <2799bcc5-df51-e977-b3c0-22922f59fc39@ti.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
-Using ARRAY_SIZE improves the code readability. I used coccinelle (I
-made a change to the array_size.cocci file [1]) to find several places
-where ARRAY_SIZE could be used instead of other macros or sizeof
-division.
+On 10/12/2017 10:03 AM, Tomi Valkeinen wrote:
+> 
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+> 
+> On 12/10/17 09:50, Hans Verkuil wrote:
+> 
+>>> I can't test with a TV, so no CEC for me... But otherwise I think the
+>>> series works ok now, and looks ok. So I'll apply, but it's a bit late
+>>> for the next merge window, so I'll aim for 4.15 with this.
+>>
+>> What is the status? Do you need anything from me? I'd like to get this in for 4.15.
+> 
+> Thanks for reminding. I think I would've forgotten...
+> 
+> I sent the pull request, so all should be fine.
+> 
+> If possible, please test the pull request, preferably with drm-next
+> merged (git://people.freedesktop.org/~airlied/linux drm-next), as I
+> don't have a CEC capable display.
 
-I tried to divide the changes into a patch per subsystem (excepted for
-staging). If one of the patch should be split into several patches, let
-me know.
+Tested with drm-next. Works fine!
 
-In order to reduce the size of the To: and Cc: lines, each patch of the
-series is sent only to the maintainers and lists concerned by the patch.
-This cover letter is sent to every list concerned by this series.
+Great to finally see this merged!
 
-This series is based on linux-next next-20170929. Each patch has been
-tested by building the relevant files with W=1.
+Regards,
 
-This series contains the following patches:
-[PATCH 01/18] sound: use ARRAY_SIZE
-[PATCH 02/18] tracing/filter: use ARRAY_SIZE
-[PATCH 03/18] media: use ARRAY_SIZE
-[PATCH 04/18] IB/mlx5: Use ARRAY_SIZE
-[PATCH 05/18] net: use ARRAY_SIZE
-[PATCH 06/18] drm: use ARRAY_SIZE
-[PATCH 07/18] scsi: bfa: use ARRAY_SIZE
-[PATCH 08/18] ecryptfs: use ARRAY_SIZE
-[PATCH 09/18] nfsd: use ARRAY_SIZE
-[PATCH 10/18] orangefs: use ARRAY_SIZE
-[PATCH 11/18] dm space map metadata: use ARRAY_SIZE
-[PATCH 12/18] x86: use ARRAY_SIZE
-[PATCH 13/18] tpm: use ARRAY_SIZE
-[PATCH 14/18] ipmi: use ARRAY_SIZE
-[PATCH 15/18] acpi: use ARRAY_SIZE
-[PATCH 16/18] media: staging: atomisp: use ARRAY_SIZE
-[PATCH 17/18] staging: rtl8723bs: use ARRAY_SIZE
-[PATCH 18/18] staging: rtlwifi: use ARRAY_SIZE
-
-
-[1]: https://lkml.org/lkml/2017/9/13/689
+	Hans
