@@ -1,151 +1,798 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:56893 "EHLO
-        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751410AbdJLHyV (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34268 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751398AbdJOUwE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Oct 2017 03:54:21 -0400
-Subject: Re: [PATCH] uvcvideo: Apply flags from device to actual properties
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-References: <ca483e75-4519-2bc3-eb11-db647fc60860@edgarthier.net>
- <1516233.pKQSzG3xyp@avalon>
- <e6c92808-82e7-05bc-28b4-370ca51aa2de@edgarthier.net>
- <bf6ced8e-6fbb-5054-bbf6-1186d52459b9@ideasonboard.com>
- <443c86f9-0973-cf52-c0c3-be662a8fee74@ideasonboard.com>
- <ae5ca43a-1ccd-b1fd-c699-f9f1d4f96dc3@edgarthier.net>
- <8b32b0f3-e442-6761-ef1c-34ac535080d0@ideasonboard.com>
- <7342af02-0158-a99e-caf1-6c394842296b@edgarthier.net>
- <430ebf60-395c-08ff-5500-dedcda91e3b1@ideasonboard.com>
-From: Edgar Thier <info@edgarthier.net>
-Message-ID: <7807bf0a-a0a1-65ad-1a10-3a3234e566e9@edgarthier.net>
-Date: Thu, 12 Oct 2017 09:54:17 +0200
-MIME-Version: 1.0
-In-Reply-To: <430ebf60-395c-08ff-5500-dedcda91e3b1@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Sun, 15 Oct 2017 16:52:04 -0400
+Received: by mail-wm0-f67.google.com with SMTP id l10so6165355wmg.1
+        for <linux-media@vger.kernel.org>; Sun, 15 Oct 2017 13:52:03 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at, rjkm@metzlerbros.de
+Subject: [PATCH 3/8] [media] ddbridge: split off CI (common interface) from ddbridge-core
+Date: Sun, 15 Oct 2017 22:51:52 +0200
+Message-Id: <20171015205157.14342-4-d.scheller.oss@gmail.com>
+In-Reply-To: <20171015205157.14342-1-d.scheller.oss@gmail.com>
+References: <20171015205157.14342-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Use flags the device exposes for UVC controls.
-This allows the device to define which property flags are set.
+Move all CI device support related code from ddbridge-core to ddbridge-ci,
+following the previously split off MaxS4/8 support.
 
-Since some cameras offer auto-adjustments for properties (e.g. auto-gain),
-the values of other properties (e.g. gain) can change in the camera.
-Examining the flags ensures that the driver is aware of such properties.
-
-Signed-off-by: Edgar Thier <info@edgarthier.net>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/media/usb/uvc/uvc_ctrl.c | 64 ++++++++++++++++++++++++++++++----------
- 1 file changed, 49 insertions(+), 15 deletions(-)
+ drivers/media/pci/ddbridge/Makefile        |   4 +-
+ drivers/media/pci/ddbridge/ddbridge-ci.c   | 349 +++++++++++++++++++++++++++++
+ drivers/media/pci/ddbridge/ddbridge-ci.h   |  30 +++
+ drivers/media/pci/ddbridge/ddbridge-core.c | 330 +--------------------------
+ 4 files changed, 383 insertions(+), 330 deletions(-)
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-ci.c
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-ci.h
 
-diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
-index 20397aba..8f902a41 100644
---- a/drivers/media/usb/uvc/uvc_ctrl.c
-+++ b/drivers/media/usb/uvc/uvc_ctrl.c
-@@ -1629,6 +1629,40 @@ static void uvc_ctrl_fixup_xu_info(struct uvc_device *dev,
- 	}
- }
-
+diff --git a/drivers/media/pci/ddbridge/Makefile b/drivers/media/pci/ddbridge/Makefile
+index 09703312a3f1..00e89b6a0328 100644
+--- a/drivers/media/pci/ddbridge/Makefile
++++ b/drivers/media/pci/ddbridge/Makefile
+@@ -2,8 +2,8 @@
+ # Makefile for the ddbridge device driver
+ #
+ 
+-ddbridge-objs := ddbridge-main.o ddbridge-core.o ddbridge-hw.o \
+-		ddbridge-i2c.o ddbridge-maxs8.o
++ddbridge-objs := ddbridge-main.o ddbridge-core.o ddbridge-ci.o \
++		ddbridge-hw.o ddbridge-i2c.o ddbridge-maxs8.o
+ 
+ obj-$(CONFIG_DVB_DDBRIDGE) += ddbridge.o
+ 
+diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.c b/drivers/media/pci/ddbridge/ddbridge-ci.c
+new file mode 100644
+index 000000000000..c775b17c3228
+--- /dev/null
++++ b/drivers/media/pci/ddbridge/ddbridge-ci.c
+@@ -0,0 +1,349 @@
 +/*
-+ * Retrieve flags for a given control
++ * ddbridge-ci.c: Digital Devices bridge CI (DuoFlex, CI Bridge) support
++ *
++ * Copyright (C) 2010-2017 Digital Devices GmbH
++ *                         Marcus Metzler <mocm@metzlerbros.de>
++ *                         Ralph Metzler <rjkm@metzlerbros.de>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 only, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * To obtain the license, point your browser to
++ * http://www.gnu.org/copyleft/gpl.html
 + */
-+static int uvc_ctrl_get_flags(struct uvc_device *dev, const struct uvc_control *ctrl,
-+	const struct uvc_control_info *info)
++
++#include "ddbridge.h"
++#include "ddbridge-regs.h"
++#include "ddbridge-io.h"
++#include "ddbridge-i2c.h"
++
++#include "cxd2099.h"
++
++/* Octopus CI internal CI interface */
++
++static int wait_ci_ready(struct ddb_ci *ci)
 +{
-+	u8 *data;
-+	int ret = 0;
-+	int flags = 0;
++	u32 count = 10;
 +
-+	data = kmalloc(2, GFP_KERNEL);
-+	if (data == NULL)
-+		return -ENOMEM;
-+
-+	ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id, dev->intfnum,
-+						 info->selector, data, 1);
-+	if (ret < 0) {
-+		uvc_trace(UVC_TRACE_CONTROL,
-+				  "GET_INFO failed on control %pUl/%u (%d).\n",
-+				  info->entity, info->selector, ret);
-+	} else {
-+		flags = UVC_CTRL_FLAG_GET_MIN | UVC_CTRL_FLAG_GET_MAX
-+			| UVC_CTRL_FLAG_GET_RES | UVC_CTRL_FLAG_GET_DEF
-+			| (data[0] & UVC_CONTROL_CAP_GET ?
-+			   UVC_CTRL_FLAG_GET_CUR : 0)
-+			| (data[0] & UVC_CONTROL_CAP_SET ?
-+			   UVC_CTRL_FLAG_SET_CUR : 0)
-+			| (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
-+			   UVC_CTRL_FLAG_AUTO_UPDATE : 0);
-+	}
-+	kfree(data);
-+	return flags;
++	ndelay(500);
++	do {
++		if (ddbreadl(ci->port->dev,
++			     CI_CONTROL(ci->nr)) & CI_READY)
++			break;
++		usleep_range(1, 2);
++		if ((--count) == 0)
++			return -1;
++	} while (1);
++	return 0;
 +}
 +
- /*
-  * Query control information (size and flags) for XU controls.
-  */
-@@ -1636,6 +1670,7 @@ static int uvc_ctrl_fill_xu_info(struct uvc_device *dev,
- 	const struct uvc_control *ctrl, struct uvc_control_info *info)
- {
- 	u8 *data;
-+	int flags;
- 	int ret;
-
- 	data = kmalloc(2, GFP_KERNEL);
-@@ -1659,24 +1694,15 @@ static int uvc_ctrl_fill_xu_info(struct uvc_device *dev,
-
- 	info->size = le16_to_cpup((__le16 *)data);
-
--	/* Query the control information (GET_INFO) */
--	ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id, dev->intfnum,
--			     info->selector, data, 1);
--	if (ret < 0) {
-+	flags = uvc_ctrl_get_flags(dev, ctrl, info);
++static int read_attribute_mem(struct dvb_ca_en50221 *ca,
++			      int slot, int address)
++{
++	struct ddb_ci *ci = ca->data;
++	u32 val, off = (address >> 1) & (CI_BUFFER_SIZE - 1);
 +
-+	if (flags < 0) {
- 		uvc_trace(UVC_TRACE_CONTROL,
--			  "GET_INFO failed on control %pUl/%u (%d).\n",
--			  info->entity, info->selector, ret);
-+			  "Failed to retrieve flags (%d).\n", ret);
-+ 		ret = flags;
- 		goto done;
- 	}
++	if (address > CI_BUFFER_SIZE)
++		return -1;
++	ddbwritel(ci->port->dev, CI_READ_CMD | (1 << 16) | address,
++		  CI_DO_READ_ATTRIBUTES(ci->nr));
++	wait_ci_ready(ci);
++	val = 0xff & ddbreadl(ci->port->dev, CI_BUFFER(ci->nr) + off);
++	return val;
++}
++
++static int write_attribute_mem(struct dvb_ca_en50221 *ca, int slot,
++			       int address, u8 value)
++{
++	struct ddb_ci *ci = ca->data;
++
++	ddbwritel(ci->port->dev, CI_WRITE_CMD | (value << 16) | address,
++		  CI_DO_ATTRIBUTE_RW(ci->nr));
++	wait_ci_ready(ci);
++	return 0;
++}
++
++static int read_cam_control(struct dvb_ca_en50221 *ca,
++			    int slot, u8 address)
++{
++	u32 count = 100;
++	struct ddb_ci *ci = ca->data;
++	u32 res;
++
++	ddbwritel(ci->port->dev, CI_READ_CMD | address,
++		  CI_DO_IO_RW(ci->nr));
++	ndelay(500);
++	do {
++		res = ddbreadl(ci->port->dev, CI_READDATA(ci->nr));
++		if (res & CI_READY)
++			break;
++		usleep_range(1, 2);
++		if ((--count) == 0)
++			return -1;
++	} while (1);
++	return 0xff & res;
++}
++
++static int write_cam_control(struct dvb_ca_en50221 *ca, int slot,
++			     u8 address, u8 value)
++{
++	struct ddb_ci *ci = ca->data;
++
++	ddbwritel(ci->port->dev, CI_WRITE_CMD | (value << 16) | address,
++		  CI_DO_IO_RW(ci->nr));
++	wait_ci_ready(ci);
++	return 0;
++}
++
++static int slot_reset(struct dvb_ca_en50221 *ca, int slot)
++{
++	struct ddb_ci *ci = ca->data;
++
++	ddbwritel(ci->port->dev, CI_POWER_ON,
++		  CI_CONTROL(ci->nr));
++	msleep(100);
++	ddbwritel(ci->port->dev, CI_POWER_ON | CI_RESET_CAM,
++		  CI_CONTROL(ci->nr));
++	ddbwritel(ci->port->dev, CI_ENABLE | CI_POWER_ON | CI_RESET_CAM,
++		  CI_CONTROL(ci->nr));
++	usleep_range(20, 25);
++	ddbwritel(ci->port->dev, CI_ENABLE | CI_POWER_ON,
++		  CI_CONTROL(ci->nr));
++	return 0;
++}
++
++static int slot_shutdown(struct dvb_ca_en50221 *ca, int slot)
++{
++	struct ddb_ci *ci = ca->data;
++
++	ddbwritel(ci->port->dev, 0, CI_CONTROL(ci->nr));
++	msleep(300);
++	return 0;
++}
++
++static int slot_ts_enable(struct dvb_ca_en50221 *ca, int slot)
++{
++	struct ddb_ci *ci = ca->data;
++	u32 val = ddbreadl(ci->port->dev, CI_CONTROL(ci->nr));
++
++	ddbwritel(ci->port->dev, val | CI_BYPASS_DISABLE,
++		  CI_CONTROL(ci->nr));
++	return 0;
++}
++
++static int poll_slot_status(struct dvb_ca_en50221 *ca, int slot, int open)
++{
++	struct ddb_ci *ci = ca->data;
++	u32 val = ddbreadl(ci->port->dev, CI_CONTROL(ci->nr));
++	int stat = 0;
++
++	if (val & CI_CAM_DETECT)
++		stat |= DVB_CA_EN50221_POLL_CAM_PRESENT;
++	if (val & CI_CAM_READY)
++		stat |= DVB_CA_EN50221_POLL_CAM_READY;
++	return stat;
++}
++
++static struct dvb_ca_en50221 en_templ = {
++	.read_attribute_mem  = read_attribute_mem,
++	.write_attribute_mem = write_attribute_mem,
++	.read_cam_control    = read_cam_control,
++	.write_cam_control   = write_cam_control,
++	.slot_reset          = slot_reset,
++	.slot_shutdown       = slot_shutdown,
++	.slot_ts_enable      = slot_ts_enable,
++	.poll_slot_status    = poll_slot_status,
++};
++
++static void ci_attach(struct ddb_port *port)
++{
++	struct ddb_ci *ci = NULL;
++
++	ci = kzalloc(sizeof(*ci), GFP_KERNEL);
++	if (!ci)
++		return;
++	memcpy(&ci->en, &en_templ, sizeof(en_templ));
++	ci->en.data = ci;
++	port->en = &ci->en;
++	ci->port = port;
++	ci->nr = port->nr - 2;
++}
++
++/* DuoFlex Dual CI support */
++
++static int write_creg(struct ddb_ci *ci, u8 data, u8 mask)
++{
++	struct i2c_adapter *i2c = &ci->port->i2c->adap;
++	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
++
++	ci->port->creg = (ci->port->creg & ~mask) | data;
++	return i2c_write_reg(i2c, adr, 0x02, ci->port->creg);
++}
++
++static int read_attribute_mem_xo2(struct dvb_ca_en50221 *ca,
++				  int slot, int address)
++{
++	struct ddb_ci *ci = ca->data;
++	struct i2c_adapter *i2c = &ci->port->i2c->adap;
++	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
++	int res;
++	u8 val;
++
++	res = i2c_read_reg16(i2c, adr, 0x8000 | address, &val);
++	return res ? res : val;
++}
++
++static int write_attribute_mem_xo2(struct dvb_ca_en50221 *ca, int slot,
++				   int address, u8 value)
++{
++	struct ddb_ci *ci = ca->data;
++	struct i2c_adapter *i2c = &ci->port->i2c->adap;
++	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
++
++	return i2c_write_reg16(i2c, adr, 0x8000 | address, value);
++}
++
++static int read_cam_control_xo2(struct dvb_ca_en50221 *ca,
++				int slot, u8 address)
++{
++	struct ddb_ci *ci = ca->data;
++	struct i2c_adapter *i2c = &ci->port->i2c->adap;
++	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
++	u8 val;
++	int res;
++
++	res = i2c_read_reg(i2c, adr, 0x20 | (address & 3), &val);
++	return res ? res : val;
++}
++
++static int write_cam_control_xo2(struct dvb_ca_en50221 *ca, int slot,
++				 u8 address, u8 value)
++{
++	struct ddb_ci *ci = ca->data;
++	struct i2c_adapter *i2c = &ci->port->i2c->adap;
++	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
++
++	return i2c_write_reg(i2c, adr, 0x20 | (address & 3), value);
++}
++
++static int slot_reset_xo2(struct dvb_ca_en50221 *ca, int slot)
++{
++	struct ddb_ci *ci = ca->data;
++
++	dev_dbg(ci->port->dev->dev, "%s\n", __func__);
++	write_creg(ci, 0x01, 0x01);
++	write_creg(ci, 0x04, 0x04);
++	msleep(20);
++	write_creg(ci, 0x02, 0x02);
++	write_creg(ci, 0x00, 0x04);
++	write_creg(ci, 0x18, 0x18);
++	return 0;
++}
++
++static int slot_shutdown_xo2(struct dvb_ca_en50221 *ca, int slot)
++{
++	struct ddb_ci *ci = ca->data;
++
++	dev_dbg(ci->port->dev->dev, "%s\n", __func__);
++	write_creg(ci, 0x10, 0xff);
++	write_creg(ci, 0x08, 0x08);
++	return 0;
++}
++
++static int slot_ts_enable_xo2(struct dvb_ca_en50221 *ca, int slot)
++{
++	struct ddb_ci *ci = ca->data;
++
++	dev_info(ci->port->dev->dev, "%s\n", __func__);
++	write_creg(ci, 0x00, 0x10);
++	return 0;
++}
++
++static int poll_slot_status_xo2(struct dvb_ca_en50221 *ca, int slot, int open)
++{
++	struct ddb_ci *ci = ca->data;
++	struct i2c_adapter *i2c = &ci->port->i2c->adap;
++	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
++	u8 val = 0;
++	int stat = 0;
++
++	i2c_read_reg(i2c, adr, 0x01, &val);
++
++	if (val & 2)
++		stat |= DVB_CA_EN50221_POLL_CAM_PRESENT;
++	if (val & 1)
++		stat |= DVB_CA_EN50221_POLL_CAM_READY;
++	return stat;
++}
++
++static struct dvb_ca_en50221 en_xo2_templ = {
++	.read_attribute_mem  = read_attribute_mem_xo2,
++	.write_attribute_mem = write_attribute_mem_xo2,
++	.read_cam_control    = read_cam_control_xo2,
++	.write_cam_control   = write_cam_control_xo2,
++	.slot_reset          = slot_reset_xo2,
++	.slot_shutdown       = slot_shutdown_xo2,
++	.slot_ts_enable      = slot_ts_enable_xo2,
++	.poll_slot_status    = poll_slot_status_xo2,
++};
++
++static void ci_xo2_attach(struct ddb_port *port)
++{
++	struct ddb_ci *ci;
++
++	ci = kzalloc(sizeof(*ci), GFP_KERNEL);
++	if (!ci)
++		return;
++	memcpy(&ci->en, &en_xo2_templ, sizeof(en_xo2_templ));
++	ci->en.data = ci;
++	port->en = &ci->en;
++	ci->port = port;
++	ci->nr = port->nr - 2;
++	ci->port->creg = 0;
++	write_creg(ci, 0x10, 0xff);
++	write_creg(ci, 0x08, 0x08);
++}
++
++static struct cxd2099_cfg cxd_cfg = {
++	.bitrate =  72000,
++	.adr     =  0x40,
++	.polarity = 1,
++	.clock_mode = 1,
++	.max_i2c = 512,
++};
++
++int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
++{
++	switch (port->type) {
++	case DDB_CI_EXTERNAL_SONY:
++		cxd_cfg.bitrate = bitrate;
++		port->en = cxd2099_attach(&cxd_cfg, port, &port->i2c->adap);
++		if (!port->en)
++			return -ENODEV;
++		dvb_ca_en50221_init(port->dvb[0].adap,
++				    port->en, 0, 1);
++		break;
++
++	case DDB_CI_EXTERNAL_XO2:
++	case DDB_CI_EXTERNAL_XO2_B:
++		ci_xo2_attach(port);
++		if (!port->en)
++			return -ENODEV;
++		dvb_ca_en50221_init(port->dvb[0].adap, port->en, 0, 1);
++		break;
++
++	case DDB_CI_INTERNAL:
++		ci_attach(port);
++		if (!port->en)
++			return -ENODEV;
++		dvb_ca_en50221_init(port->dvb[0].adap, port->en, 0, 1);
++		break;
++	}
++	return 0;
++}
+diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.h b/drivers/media/pci/ddbridge/ddbridge-ci.h
+new file mode 100644
+index 000000000000..3a5d7ffab7b7
+--- /dev/null
++++ b/drivers/media/pci/ddbridge/ddbridge-ci.h
+@@ -0,0 +1,30 @@
++/*
++ * ddbridge-ci.h: Digital Devices bridge CI (DuoFlex, CI Bridge) support
++ *
++ * Copyright (C) 2010-2017 Digital Devices GmbH
++ *                         Marcus Metzler <mocm@metzlerbros.de>
++ *                         Ralph Metzler <rjkm@metzlerbros.de>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 only, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * To obtain the license, point your browser to
++ * http://www.gnu.org/copyleft/gpl.html
++ */
++
++#ifndef __DDBRIDGE_CI_H__
++#define __DDBRIDGE_CI_H__
++
++#include "ddbridge.h"
++
++/******************************************************************************/
++
++int ddb_ci_attach(struct ddb_port *port, u32 bitrate);
++
++#endif /* __DDBRIDGE_CI_H__ */
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 0eaa2efdcc54..6354e00f4c9b 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -38,6 +38,7 @@
+ #include "ddbridge-i2c.h"
+ #include "ddbridge-regs.h"
+ #include "ddbridge-maxs8.h"
++#include "ddbridge-ci.h"
+ #include "ddbridge-io.h"
+ 
+ #include "tda18271c2dd.h"
+@@ -1917,333 +1918,6 @@ static void ddb_port_probe(struct ddb_port *port)
+ /****************************************************************************/
+ /****************************************************************************/
+ 
+-static int wait_ci_ready(struct ddb_ci *ci)
+-{
+-	u32 count = 10;
 -
--	info->flags = UVC_CTRL_FLAG_GET_MIN | UVC_CTRL_FLAG_GET_MAX
--		    | UVC_CTRL_FLAG_GET_RES | UVC_CTRL_FLAG_GET_DEF
--		    | (data[0] & UVC_CONTROL_CAP_GET ?
--		       UVC_CTRL_FLAG_GET_CUR : 0)
--		    | (data[0] & UVC_CONTROL_CAP_SET ?
--		       UVC_CTRL_FLAG_SET_CUR : 0)
--		    | (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
--		       UVC_CTRL_FLAG_AUTO_UPDATE : 0);
-+	info->flags = flags;
-
- 	uvc_ctrl_fixup_xu_info(dev, ctrl, info);
-
-@@ -1890,6 +1916,7 @@ static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control *ctrl,
- 	const struct uvc_control_info *info)
+-	ndelay(500);
+-	do {
+-		if (ddbreadl(ci->port->dev,
+-			     CI_CONTROL(ci->nr)) & CI_READY)
+-			break;
+-		usleep_range(1, 2);
+-		if ((--count) == 0)
+-			return -1;
+-	} while (1);
+-	return 0;
+-}
+-
+-static int read_attribute_mem(struct dvb_ca_en50221 *ca,
+-			      int slot, int address)
+-{
+-	struct ddb_ci *ci = ca->data;
+-	u32 val, off = (address >> 1) & (CI_BUFFER_SIZE - 1);
+-
+-	if (address > CI_BUFFER_SIZE)
+-		return -1;
+-	ddbwritel(ci->port->dev, CI_READ_CMD | (1 << 16) | address,
+-		  CI_DO_READ_ATTRIBUTES(ci->nr));
+-	wait_ci_ready(ci);
+-	val = 0xff & ddbreadl(ci->port->dev, CI_BUFFER(ci->nr) + off);
+-	return val;
+-}
+-
+-static int write_attribute_mem(struct dvb_ca_en50221 *ca, int slot,
+-			       int address, u8 value)
+-{
+-	struct ddb_ci *ci = ca->data;
+-
+-	ddbwritel(ci->port->dev, CI_WRITE_CMD | (value << 16) | address,
+-		  CI_DO_ATTRIBUTE_RW(ci->nr));
+-	wait_ci_ready(ci);
+-	return 0;
+-}
+-
+-static int read_cam_control(struct dvb_ca_en50221 *ca,
+-			    int slot, u8 address)
+-{
+-	u32 count = 100;
+-	struct ddb_ci *ci = ca->data;
+-	u32 res;
+-
+-	ddbwritel(ci->port->dev, CI_READ_CMD | address,
+-		  CI_DO_IO_RW(ci->nr));
+-	ndelay(500);
+-	do {
+-		res = ddbreadl(ci->port->dev, CI_READDATA(ci->nr));
+-		if (res & CI_READY)
+-			break;
+-		usleep_range(1, 2);
+-		if ((--count) == 0)
+-			return -1;
+-	} while (1);
+-	return 0xff & res;
+-}
+-
+-static int write_cam_control(struct dvb_ca_en50221 *ca, int slot,
+-			     u8 address, u8 value)
+-{
+-	struct ddb_ci *ci = ca->data;
+-
+-	ddbwritel(ci->port->dev, CI_WRITE_CMD | (value << 16) | address,
+-		  CI_DO_IO_RW(ci->nr));
+-	wait_ci_ready(ci);
+-	return 0;
+-}
+-
+-static int slot_reset(struct dvb_ca_en50221 *ca, int slot)
+-{
+-	struct ddb_ci *ci = ca->data;
+-
+-	ddbwritel(ci->port->dev, CI_POWER_ON,
+-		  CI_CONTROL(ci->nr));
+-	msleep(100);
+-	ddbwritel(ci->port->dev, CI_POWER_ON | CI_RESET_CAM,
+-		  CI_CONTROL(ci->nr));
+-	ddbwritel(ci->port->dev, CI_ENABLE | CI_POWER_ON | CI_RESET_CAM,
+-		  CI_CONTROL(ci->nr));
+-	usleep_range(20, 25);
+-	ddbwritel(ci->port->dev, CI_ENABLE | CI_POWER_ON,
+-		  CI_CONTROL(ci->nr));
+-	return 0;
+-}
+-
+-static int slot_shutdown(struct dvb_ca_en50221 *ca, int slot)
+-{
+-	struct ddb_ci *ci = ca->data;
+-
+-	ddbwritel(ci->port->dev, 0, CI_CONTROL(ci->nr));
+-	msleep(300);
+-	return 0;
+-}
+-
+-static int slot_ts_enable(struct dvb_ca_en50221 *ca, int slot)
+-{
+-	struct ddb_ci *ci = ca->data;
+-	u32 val = ddbreadl(ci->port->dev, CI_CONTROL(ci->nr));
+-
+-	ddbwritel(ci->port->dev, val | CI_BYPASS_DISABLE,
+-		  CI_CONTROL(ci->nr));
+-	return 0;
+-}
+-
+-static int poll_slot_status(struct dvb_ca_en50221 *ca, int slot, int open)
+-{
+-	struct ddb_ci *ci = ca->data;
+-	u32 val = ddbreadl(ci->port->dev, CI_CONTROL(ci->nr));
+-	int stat = 0;
+-
+-	if (val & CI_CAM_DETECT)
+-		stat |= DVB_CA_EN50221_POLL_CAM_PRESENT;
+-	if (val & CI_CAM_READY)
+-		stat |= DVB_CA_EN50221_POLL_CAM_READY;
+-	return stat;
+-}
+-
+-static struct dvb_ca_en50221 en_templ = {
+-	.read_attribute_mem  = read_attribute_mem,
+-	.write_attribute_mem = write_attribute_mem,
+-	.read_cam_control    = read_cam_control,
+-	.write_cam_control   = write_cam_control,
+-	.slot_reset          = slot_reset,
+-	.slot_shutdown       = slot_shutdown,
+-	.slot_ts_enable      = slot_ts_enable,
+-	.poll_slot_status    = poll_slot_status,
+-};
+-
+-static void ci_attach(struct ddb_port *port)
+-{
+-	struct ddb_ci *ci = NULL;
+-
+-	ci = kzalloc(sizeof(*ci), GFP_KERNEL);
+-	if (!ci)
+-		return;
+-	memcpy(&ci->en, &en_templ, sizeof(en_templ));
+-	ci->en.data = ci;
+-	port->en = &ci->en;
+-	ci->port = port;
+-	ci->nr = port->nr - 2;
+-}
+-
+-/****************************************************************************/
+-/****************************************************************************/
+-/****************************************************************************/
+-
+-static int write_creg(struct ddb_ci *ci, u8 data, u8 mask)
+-{
+-	struct i2c_adapter *i2c = &ci->port->i2c->adap;
+-	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
+-
+-	ci->port->creg = (ci->port->creg & ~mask) | data;
+-	return i2c_write_reg(i2c, adr, 0x02, ci->port->creg);
+-}
+-
+-static int read_attribute_mem_xo2(struct dvb_ca_en50221 *ca,
+-				  int slot, int address)
+-{
+-	struct ddb_ci *ci = ca->data;
+-	struct i2c_adapter *i2c = &ci->port->i2c->adap;
+-	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
+-	int res;
+-	u8 val;
+-
+-	res = i2c_read_reg16(i2c, adr, 0x8000 | address, &val);
+-	return res ? res : val;
+-}
+-
+-static int write_attribute_mem_xo2(struct dvb_ca_en50221 *ca, int slot,
+-				   int address, u8 value)
+-{
+-	struct ddb_ci *ci = ca->data;
+-	struct i2c_adapter *i2c = &ci->port->i2c->adap;
+-	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
+-
+-	return i2c_write_reg16(i2c, adr, 0x8000 | address, value);
+-}
+-
+-static int read_cam_control_xo2(struct dvb_ca_en50221 *ca,
+-				int slot, u8 address)
+-{
+-	struct ddb_ci *ci = ca->data;
+-	struct i2c_adapter *i2c = &ci->port->i2c->adap;
+-	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
+-	u8 val;
+-	int res;
+-
+-	res = i2c_read_reg(i2c, adr, 0x20 | (address & 3), &val);
+-	return res ? res : val;
+-}
+-
+-static int write_cam_control_xo2(struct dvb_ca_en50221 *ca, int slot,
+-				 u8 address, u8 value)
+-{
+-	struct ddb_ci *ci = ca->data;
+-	struct i2c_adapter *i2c = &ci->port->i2c->adap;
+-	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
+-
+-	return i2c_write_reg(i2c, adr, 0x20 | (address & 3), value);
+-}
+-
+-static int slot_reset_xo2(struct dvb_ca_en50221 *ca, int slot)
+-{
+-	struct ddb_ci *ci = ca->data;
+-
+-	dev_dbg(ci->port->dev->dev, "%s\n", __func__);
+-	write_creg(ci, 0x01, 0x01);
+-	write_creg(ci, 0x04, 0x04);
+-	msleep(20);
+-	write_creg(ci, 0x02, 0x02);
+-	write_creg(ci, 0x00, 0x04);
+-	write_creg(ci, 0x18, 0x18);
+-	return 0;
+-}
+-
+-static int slot_shutdown_xo2(struct dvb_ca_en50221 *ca, int slot)
+-{
+-	struct ddb_ci *ci = ca->data;
+-
+-	dev_dbg(ci->port->dev->dev, "%s\n", __func__);
+-	write_creg(ci, 0x10, 0xff);
+-	write_creg(ci, 0x08, 0x08);
+-	return 0;
+-}
+-
+-static int slot_ts_enable_xo2(struct dvb_ca_en50221 *ca, int slot)
+-{
+-	struct ddb_ci *ci = ca->data;
+-
+-	dev_info(ci->port->dev->dev, "%s\n", __func__);
+-	write_creg(ci, 0x00, 0x10);
+-	return 0;
+-}
+-
+-static int poll_slot_status_xo2(struct dvb_ca_en50221 *ca, int slot, int open)
+-{
+-	struct ddb_ci *ci = ca->data;
+-	struct i2c_adapter *i2c = &ci->port->i2c->adap;
+-	u8 adr = (ci->port->type == DDB_CI_EXTERNAL_XO2) ? 0x12 : 0x13;
+-	u8 val = 0;
+-	int stat = 0;
+-
+-	i2c_read_reg(i2c, adr, 0x01, &val);
+-
+-	if (val & 2)
+-		stat |= DVB_CA_EN50221_POLL_CAM_PRESENT;
+-	if (val & 1)
+-		stat |= DVB_CA_EN50221_POLL_CAM_READY;
+-	return stat;
+-}
+-
+-static struct dvb_ca_en50221 en_xo2_templ = {
+-	.read_attribute_mem  = read_attribute_mem_xo2,
+-	.write_attribute_mem = write_attribute_mem_xo2,
+-	.read_cam_control    = read_cam_control_xo2,
+-	.write_cam_control   = write_cam_control_xo2,
+-	.slot_reset          = slot_reset_xo2,
+-	.slot_shutdown       = slot_shutdown_xo2,
+-	.slot_ts_enable      = slot_ts_enable_xo2,
+-	.poll_slot_status    = poll_slot_status_xo2,
+-};
+-
+-static void ci_xo2_attach(struct ddb_port *port)
+-{
+-	struct ddb_ci *ci;
+-
+-	ci = kzalloc(sizeof(*ci), GFP_KERNEL);
+-	if (!ci)
+-		return;
+-	memcpy(&ci->en, &en_xo2_templ, sizeof(en_xo2_templ));
+-	ci->en.data = ci;
+-	port->en = &ci->en;
+-	ci->port = port;
+-	ci->nr = port->nr - 2;
+-	ci->port->creg = 0;
+-	write_creg(ci, 0x10, 0xff);
+-	write_creg(ci, 0x08, 0x08);
+-}
+-
+-/****************************************************************************/
+-/****************************************************************************/
+-/****************************************************************************/
+-
+-static struct cxd2099_cfg cxd_cfg = {
+-	.bitrate =  72000,
+-	.adr     =  0x40,
+-	.polarity = 1,
+-	.clock_mode = 1,
+-	.max_i2c = 512,
+-};
+-
+-static int ddb_ci_attach(struct ddb_port *port)
+-{
+-	switch (port->type) {
+-	case DDB_CI_EXTERNAL_SONY:
+-		cxd_cfg.bitrate = ci_bitrate;
+-		port->en = cxd2099_attach(&cxd_cfg, port, &port->i2c->adap);
+-		if (!port->en)
+-			return -ENODEV;
+-		dvb_ca_en50221_init(port->dvb[0].adap,
+-				    port->en, 0, 1);
+-		break;
+-
+-	case DDB_CI_EXTERNAL_XO2:
+-	case DDB_CI_EXTERNAL_XO2_B:
+-		ci_xo2_attach(port);
+-		if (!port->en)
+-			return -ENODEV;
+-		dvb_ca_en50221_init(port->dvb[0].adap, port->en, 0, 1);
+-		break;
+-
+-	case DDB_CI_INTERNAL:
+-		ci_attach(port);
+-		if (!port->en)
+-			return -ENODEV;
+-		dvb_ca_en50221_init(port->dvb[0].adap, port->en, 0, 1);
+-		break;
+-	}
+-	return 0;
+-}
+-
+ static int ddb_port_attach(struct ddb_port *port)
  {
  	int ret = 0;
-+	int flags = 0;
-
- 	ctrl->info = *info;
- 	INIT_LIST_HEAD(&ctrl->info.mappings);
-@@ -1902,6 +1929,13 @@ static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control *ctrl,
- 		goto done;
- 	}
-
-+	flags = uvc_ctrl_get_flags(dev, ctrl, info);
-+	if (flags < 0)
-+		uvc_trace(UVC_TRACE_CONTROL,
-+			  "Failed to retrieve flags (%d).\n", ret);
-+	else
-+		ctrl->info.flags = flags;
-+
- 	ctrl->initialized = 1;
-
- 	uvc_trace(UVC_TRACE_CONTROL, "Added control %pUl/%u to device %s "
+@@ -2260,7 +1934,7 @@ static int ddb_port_attach(struct ddb_port *port)
+ 		port->input[1]->redi = port->input[1];
+ 		break;
+ 	case DDB_PORT_CI:
+-		ret = ddb_ci_attach(port);
++		ret = ddb_ci_attach(port, ci_bitrate);
+ 		if (ret < 0)
+ 			break;
+ 		/* fall-through */
 -- 
-2.14.2
+2.13.6
