@@ -1,57 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:63533 "EHLO osg.samsung.com"
+Received: from gloria.sntech.de ([95.129.55.99]:41666 "EHLO gloria.sntech.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751574AbdJJLpq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 07:45:46 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v8 7/7] media: open.rst: add a notice about subdev-API on vdev-centric
-Date: Tue, 10 Oct 2017 08:45:23 -0300
-Message-Id: <dafe58f00487efc85bab5004918711f168e1a9a5.1507635716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507635716.git.mchehab@s-opensource.com>
-References: <cover.1507635716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507635716.git.mchehab@s-opensource.com>
-References: <cover.1507635716.git.mchehab@s-opensource.com>
+        id S1751817AbdJOMNi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 15 Oct 2017 08:13:38 -0400
+From: Heiko Stuebner <heiko@sntech.de>
+To: Pierre-Hugues Husson <phh@phh.me>
+Cc: linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/3] arm64: dts: rockchip: enable cec pin for rk3399 firefly
+Date: Sun, 15 Oct 2017 14:13:35 +0200
+Message-ID: <3188481.VU1olLilPF@phil>
+In-Reply-To: <20171013225337.5196-4-phh@phh.me>
+References: <20171013225337.5196-1-phh@phh.me> <20171013225337.5196-4-phh@phh.me>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The documentation doesn't mention if vdev-centric hardware
-control would have subdev API or not.
+Am Samstag, 14. Oktober 2017, 00:53:37 CEST schrieb Pierre-Hugues Husson:
+> Signed-off-by: Pierre-Hugues Husson <phh@phh.me>
 
-Add a notice about that, reflecting the current status, where
-three drivers use it, in order to support some subdev-specific
-controls.
+applied for 4.15 after adding a basic commit message.
+It is custom to always provide at least some sort of message there.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/v4l/open.rst | 7 +++++++
- 1 file changed, 7 insertions(+)
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index 58ab75959584..ccdf53ab347c 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -62,6 +62,13 @@ typically involves configuring the links using the **Media controller**
- interface and the media bus formats on pads (at both ends of the links)
- using the **V4L2 sub-device** interface.
- 
-+.. note::
-+
-+   A **vdevnode-centric** may also optionally expose V4L2 sub-devices via
-+   :ref:`sub-device API <subdev>`. In that case, it has to implement
-+   the :ref:`media controller API <media_controller>` as well.
-+
-+
- .. attention::
- 
-    Devices that require **MC-centric** media hardware control should
--- 
-2.13.6
+Thanks
+Heiko
