@@ -1,87 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57124 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751295AbdJ2XFU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Oct 2017 19:05:20 -0400
-Date: Mon, 30 Oct 2017 00:05:17 +0100
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz,
-        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v16 29/32] et8ek8: Add support for flash and lens devices
-Message-ID: <20171029230517.2wco6qndrffcp65i@earth>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-30-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="saa3ztkljw4i7iu7"
-Content-Disposition: inline
-In-Reply-To: <20171026075342.5760-30-sakari.ailus@linux.intel.com>
+Received: from mail-qk0-f172.google.com ([209.85.220.172]:49838 "EHLO
+        mail-qk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751261AbdJOXJ1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 15 Oct 2017 19:09:27 -0400
+Received: by mail-qk0-f172.google.com with SMTP id q83so7730721qke.6
+        for <linux-media@vger.kernel.org>; Sun, 15 Oct 2017 16:09:27 -0700 (PDT)
+Message-ID: <1508108964.4502.6.camel@ndufresne.ca>
+Subject: Re: [PATCH] media: vb2: unify calling of set_page_dirty_lock
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Sun, 15 Oct 2017 19:09:24 -0400
+In-Reply-To: <20171015204014.2awhhygw6hi3lxas@valkosipuli.retiisi.org.uk>
+References: <20170829112603.32732-1-stanimir.varbanov@linaro.org>
+         <1507650010.2784.11.camel@ndufresne.ca>
+         <20171015204014.2awhhygw6hi3lxas@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Le dimanche 15 octobre 2017 à 23:40 +0300, Sakari Ailus a écrit :
+> Hi Nicolas,
+> 
+> On Tue, Oct 10, 2017 at 11:40:10AM -0400, Nicolas Dufresne wrote:
+> > Le mardi 29 août 2017 à 14:26 +0300, Stanimir Varbanov a écrit :
+> > > Currently videobuf2-dma-sg checks for dma direction for
+> > > every single page and videobuf2-dc lacks any dma direction
+> > > checks and calls set_page_dirty_lock unconditionally.
+> > > 
+> > > Thus unify and align the invocations of set_page_dirty_lock
+> > > for videobuf2-dc, videobuf2-sg  memory allocators with
+> > > videobuf2-vmalloc, i.e. the pattern used in vmalloc has been
+> > > copied to dc and dma-sg.
+> > 
+> > Just before we go too far in "doing like vmalloc", I would like to
+> > share this small video that display coherency issues when rendering
+> > vmalloc backed DMABuf over various KMS/DRM driver. I can reproduce
+> > this
+> > easily with Intel and MSM display drivers using UVC or Vivid as
+> > source.
+> > 
+> > The following is an HDMI capture of the following GStreamer
+> > pipeline
+> > running on Dragonboard 410c.
+> > 
+> >     gst-launch-1.0 -v v4l2src device=/dev/video2 ! video/x-
+> > raw,format=NV16,width=1280,height=720 ! kmssink
+> >     https://people.collabora.com/~nicolas/vmalloc-issue.mov
+> > 
+> > Feedback on this issue would be more then welcome. It's not clear
+> > to me
+> > who's bug is this (v4l2, drm or iommu). The software is unlikely to
+> > be
+> > blamed as this same pipeline works fine with non-vmalloc based
+> > sources.
+> 
+> Could you elaborate this a little bit more? Which Intel CPU do you
+> have
+> there?
 
---saa3ztkljw4i7iu7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I have tested with Skylake and Ivy Bridge and on Dragonboard 410c
+(Qualcomm APQ8016 SoC) (same visual artefact)
 
-Hi,
+> 
+> Where are the buffers allocated for this GStreamer pipeline, is it
+> v4l2src
+> or another element or somewhere else?
 
-On Thu, Oct 26, 2017 at 10:53:39AM +0300, Sakari Ailus wrote:
-> Parse async sub-devices related to the sensor by switching the async
-> sub-device registration function.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> ---
+This is from V4L2 capture driver, exported as DMABuf, drivers are UVC
+and VIVID, both are using the vmalloc allocator.
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-
--- Sebastian
-
->  drivers/media/i2c/et8ek8/et8ek8_driver.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c=
-/et8ek8/et8ek8_driver.c
-> index c14f0fd6ded3..e9eff9039ef5 100644
-> --- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
-> +++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
-> @@ -1453,7 +1453,7 @@ static int et8ek8_probe(struct i2c_client *client,
->  		goto err_mutex;
->  	}
-> =20
-> -	ret =3D v4l2_async_register_subdev(&sensor->subdev);
-> +	ret =3D v4l2_async_register_subdev_sensor_common(&sensor->subdev);
->  	if (ret < 0)
->  		goto err_entity;
-> =20
-> --=20
-> 2.11.0
->=20
-
---saa3ztkljw4i7iu7
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAln2Xq0ACgkQ2O7X88g7
-+prAfA/7BueRLgPVMWRA3GhZW+DOcIBwSp/ZHiRAvaJbeYNdXd3pmqVJRVddBXd8
-+BQA1glnh+43nPuJ2YnQDflvw/6pfiA/z9V1fbos4hrHPDASmVnYAc/jBpzS3lxZ
-kH0Ci8BOBctaSTcZZTu6rlR2TBW0mE/Y2znlVzvKDEmDOBwdAIWvXVsT1W+6GxPM
-QEGyyE1R89ktpOQ6qQOIaudYKD92HQWJGkPVWKJFyeWq24fRSEVSP2AQM2bZnu6H
-Mr8kzGd/oT23V6Fekf9J0q4CebQqJIlfsU27hHNwoiVHgy7KahhLg1oCgrgVXtms
-TfMPFRyFIj652w4hqv1KtBC9Trf/NOfZ3EDUVz9vit9h1m1tBNWSHOZTYm+jlFm6
-wSmHhTulgIApgy/ZSklvpKlRB7Jekc0cQFgJAH5mwI/x/WvKfRQ7lMvgTguUvGqE
-WdUZyjNy8nWw66IOn1ZfisY3zo28tY4PBs2uasIKERnjDZPLceH+am8UXahDaVVq
-U2VCMkkJDV0CHmzu71QIed6BBYRGLES+k6QyBQR0xEUioRCRiBDfKcGVKvLL/IX0
-BHp8tcm7v/XVlcwBie9P9cVbelRI7BAn/5DPmHEAGOww7ZrSUnYpUUCTw6mR2E5h
-Xgpf1I+odaU9ofyp45DXjq0P0T3ZzzuhTD72RxcS77DaHYYfVV8=
-=Yqe1
------END PGP SIGNATURE-----
-
---saa3ztkljw4i7iu7--
+Nicolas
