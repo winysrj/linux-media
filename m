@@ -1,77 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:54299 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757147AbdJQOx6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 10:53:58 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH] media: v4l2-ctrl: Fix flags field on Control events
-Date: Tue, 17 Oct 2017 16:53:53 +0200
-Message-Id: <20171017145353.8521-1-ricardo.ribalda@gmail.com>
+Received: from smtp.gentoo.org ([140.211.166.183]:35328 "EHLO smtp.gentoo.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751792AbdJOMCN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 15 Oct 2017 08:02:13 -0400
+Subject: Re: [PATCH] Simplify major/minor non-dynamic logic
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <8382e556b1a2f30c4bf866f021b33577a64f9ebf.1507750393.git.mchehab@s-opensource.com>
+From: Matthias Schwarzott <zzam@gentoo.org>
+Message-ID: <fa28ad3a-10c0-9006-b7c9-88fe9f4a1c44@gentoo.org>
+Date: Sun, 15 Oct 2017 14:02:22 +0200
+MIME-Version: 1.0
+In-Reply-To: <8382e556b1a2f30c4bf866f021b33577a64f9ebf.1507750393.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VIDIOC_DQEVENT and VIDIOC_QUERY_EXT_CTRL should give the same output for
-the control flags field.
+Am 11.10.2017 um 21:36 schrieb Mauro Carvalho Chehab:
+> changeset 6bbf7a855d20 ("media: dvbdev: convert DVB device types into an enum")
+> added a new warning on gcc 6:
+> 
+>>> drivers/media/dvb-core/dvbdev.c:86:1: warning: control reaches end of non-void function [-Wreturn-type]
+> 
+> That's because gcc is not smart enough to see that all types are
+> present at the switch. Also, the current code is not too optimized.
+> 
+How should the compiler know that "int type" will only contain values
+0..8? dvb_register_adapter is not inlined.
 
-This patch creates a new function user_flags(), that calculates the user
-exported flags value (which is different than the kernel internal flags
-structure). This function is then used by all the code that exports the
-internal flags to userspace.
+> So, replace it to a more optimized one, based on a static table.
+> 
+> Reported-by: kbuild test robot <fengguang.wu@intel.com>
+> Fixes: 6bbf7a855d20 ("media: dvbdev: convert DVB device types into an enum")
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+> I actually suggested this patch to be fold with changeset 6bbf7a855d20.
+> Unfortunately, I actually forgot to do that (I guess I did, but on a different
+> machine than the one I used today to pick it).
+> 
+> Anyway, that saves some code space with static minors and cleans up
+> a warning. So, let's apply it.
+> 
+>  drivers/media/dvb-core/dvbdev.c | 28 +++++++++++++---------------
+>  1 file changed, 13 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+> index a53eb53a4fd5..060c60ddfcc3 100644
+> --- a/drivers/media/dvb-core/dvbdev.c
+> +++ b/drivers/media/dvb-core/dvbdev.c
+> @@ -68,22 +68,20 @@ static const char * const dnames[] = {
+>  #else
+>  #define DVB_MAX_IDS		4
+>  
+> -static int nums2minor(int num, enum dvb_device_type type, int id)
+> -{
+> -	int n = (num << 6) | (id << 4);
+> +static const u8 minor_type[] = {
+> +       [DVB_DEVICE_VIDEO]      = 0,
+> +       [DVB_DEVICE_AUDIO]      = 1,
+> +       [DVB_DEVICE_SEC]        = 2,
+> +       [DVB_DEVICE_FRONTEND]   = 3,
+> +       [DVB_DEVICE_DEMUX]      = 4,
+> +       [DVB_DEVICE_DVR]        = 5,
+> +       [DVB_DEVICE_CA]         = 6,
+> +       [DVB_DEVICE_NET]        = 7,
+> +       [DVB_DEVICE_OSD]        = 8,
+> +};
+>  
+> -	switch (type) {
+> -	case DVB_DEVICE_VIDEO:		return n;
+> -	case DVB_DEVICE_AUDIO:		return n | 1;
+> -	case DVB_DEVICE_SEC:		return n | 2;
+> -	case DVB_DEVICE_FRONTEND:	return n | 3;
+> -	case DVB_DEVICE_DEMUX:		return n | 4;
+> -	case DVB_DEVICE_DVR:		return n | 5;
+> -	case DVB_DEVICE_CA:		return n | 6;
+> -	case DVB_DEVICE_NET:		return n | 7;
+> -	case DVB_DEVICE_OSD:		return n | 8;
+> -	}
+> -}
+> +#define nums2minor(num, type, id) \
+> +       (((num) << 6) | ((id) << 4) | minor_type[type])
 
-Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
+In this code it is problematic that a bad value of type will trigger an
+invalid memory access.
 
-Maybe we should cc stable on this one.
+>  
+>  #define MAX_DVB_MINORS		(DVB_MAX_ADAPTERS*64)
+>  #endif
+> 
 
- drivers/media/v4l2-core/v4l2-ctrls.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 4e53a8654690..751cf5746f90 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1227,6 +1227,16 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- }
- EXPORT_SYMBOL(v4l2_ctrl_fill);
- 
-+static u32 user_flags(struct v4l2_ctrl *ctrl)
-+{
-+	u32 flags = ctrl->flags;
-+
-+	if (ctrl->is_ptr)
-+		flags |= V4L2_CTRL_FLAG_HAS_PAYLOAD;
-+
-+	return flags;
-+}
-+
- static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 changes)
- {
- 	memset(ev->reserved, 0, sizeof(ev->reserved));
-@@ -1234,7 +1244,7 @@ static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 change
- 	ev->id = ctrl->id;
- 	ev->u.ctrl.changes = changes;
- 	ev->u.ctrl.type = ctrl->type;
--	ev->u.ctrl.flags = ctrl->flags;
-+	ev->u.ctrl.flags = user_flags(ctrl);
- 	if (ctrl->is_ptr)
- 		ev->u.ctrl.value64 = 0;
- 	else
-@@ -2577,10 +2587,8 @@ int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_query_ext_ctr
- 	else
- 		qc->id = ctrl->id;
- 	strlcpy(qc->name, ctrl->name, sizeof(qc->name));
--	qc->flags = ctrl->flags;
-+	qc->flags = user_flags(ctrl);
- 	qc->type = ctrl->type;
--	if (ctrl->is_ptr)
--		qc->flags |= V4L2_CTRL_FLAG_HAS_PAYLOAD;
- 	qc->elem_size = ctrl->elem_size;
- 	qc->elems = ctrl->elems;
- 	qc->nr_of_dims = ctrl->nr_of_dims;
--- 
-2.14.2
+Regards
+Matthias
