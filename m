@@ -1,131 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:46770 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750988AbdJTD6I (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45044 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750896AbdJOVZo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Oct 2017 23:58:08 -0400
-Message-ID: <02d0c1d5bd2bd737751d80e86ce1e235@smtp-cloud8.xs4all.net>
-Date: Fri, 20 Oct 2017 05:58:06 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Sun, 15 Oct 2017 17:25:44 -0400
+Date: Mon, 16 Oct 2017 00:25:41 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH v2 08/14] [media] v4l: add support to BUF_QUEUED event
+Message-ID: <20171015212540.ddbnof2gy2mmqmmi@valkosipuli.retiisi.org.uk>
+References: <20170901015041.7757-1-gustavo@padovan.org>
+ <20170901015041.7757-9-gustavo@padovan.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170901015041.7757-9-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Gustavo,
 
-Results of the daily build of media_tree:
+On Thu, Aug 31, 2017 at 10:50:35PM -0300, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> Implement the needed pieces to let userspace subscribe for
+> V4L2_EVENT_BUF_QUEUED events. Videobuf2 will queue the event for the
+> DQEVENT ioctl.
+> 
+> v3:	- Do not call v4l2 event API from vb2 (Mauro)
+> 
+> v2:	- Use VIDEO_MAX_FRAME to allocate room for events at
+> 	v4l2_event_subscribe() (Hans)
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c     |  6 +++++-
+>  drivers/media/v4l2-core/videobuf2-core.c |  2 ++
+>  drivers/media/v4l2-core/videobuf2-v4l2.c | 13 +++++++++++++
+>  3 files changed, 20 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index dd1db678718c..17d4b9e3eec6 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -3438,8 +3438,12 @@ EXPORT_SYMBOL(v4l2_ctrl_log_status);
+>  int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
+>  				const struct v4l2_event_subscription *sub)
+>  {
+> -	if (sub->type == V4L2_EVENT_CTRL)
+> +	switch (sub->type) {
+> +	case V4L2_EVENT_CTRL:
+>  		return v4l2_event_subscribe(fh, sub, 0, &v4l2_ctrl_sub_ev_ops);
+> +	case V4L2_EVENT_BUF_QUEUED:
+> +		return v4l2_event_subscribe(fh, sub, VIDEO_MAX_FRAME, NULL);
 
-date:			Fri Oct 20 05:00:18 CEST 2017
-media-tree git hash:	61065fc3e32002ba48aa6bc3816c1f6f9f8daf55
-media_build git hash:	c93534951f5d66bef7f17f16293acf2be346b726
-v4l-utils git hash:	03f33ec376fc12efdfe7fa8c745ced2e8bcd61f6
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+While I think this is probably the correct place to add the event
+subscription handling, the name of the function no longer corresponds what
+it does, nor it belongs to v4l2-ctrls.c.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: OK
-spec-git: OK
+v4l2_ctrl_subscribe_event() is also used for subscribing control events on
+sub-devices. BUF_QUEUED events will be available only on video nodes.
 
-Detailed results are available here:
+BUF_QUEUED events presumably should be availble on all video nodes that
+support V4L2_CAP_STREAMING capability. Perhaps this could be handled by
+moving v4l2_ctrl_subscribe_event() to v4l2-event.c and renaming it e.g.
+v4l2_event_subscribe_v4l2(), for these events originate from specific
+conditions the V4L2 framework is aware of.
+v4l2_ctrl_subdev_subscribe_event() handling needs to be addressed as well.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+A separate patch would be nice. 
 
-Full logs are available here:
+> +	}
+>  	return -EINVAL;
+>  }
+>  EXPORT_SYMBOL(v4l2_ctrl_subscribe_event);
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index b19c1bc4b083..bbbae0eed567 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1231,6 +1231,8 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+>  	trace_vb2_buf_queue(q, vb);
+>  
+>  	call_void_vb_qop(vb, buf_queue, vb);
+> +
+> +	call_void_bufop(q, buffer_queued, vb);
+>  }
+>  
+>  static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> index 8c322cd1b346..1c93bfedaffc 100644
+> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> @@ -138,6 +138,18 @@ static void __copy_timestamp(struct vb2_buffer *vb, const void *pb)
+>  	}
+>  };
+>  
+> +static void __buffer_queued(struct vb2_buffer *vb)
+> +{
+> +	struct video_device *vdev = to_video_device(vb->vb2_queue->dev);
+> +	struct v4l2_event event;
+> +
+> +	memset(&event, 0, sizeof(event));
+> +	event.type = V4L2_EVENT_BUF_QUEUED;
+> +	event.u.buf_queued.index = vb->index;
+> +
+> +	v4l2_event_queue(vdev, &event);
+> +}
+> +
+>  static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
+>  {
+>  	static bool check_once;
+> @@ -455,6 +467,7 @@ static const struct vb2_buf_ops v4l2_buf_ops = {
+>  	.fill_user_buffer	= __fill_v4l2_buffer,
+>  	.fill_vb2_buffer	= __fill_vb2_buffer,
+>  	.copy_timestamp		= __copy_timestamp,
+> +	.buffer_queued		= __buffer_queued,
+>  };
+>  
+>  /**
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+-- 
+Kind regards,
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
