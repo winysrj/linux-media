@@ -1,146 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40394 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751250AbdJDVu7 (ORCPT
+Received: from mail-pg0-f54.google.com ([74.125.83.54]:47588 "EHLO
+        mail-pg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932794AbdJPXKu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 17:50:59 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v15 14/32] v4l: async: Introduce helpers for calling async ops callbacks
-Date: Thu,  5 Oct 2017 00:50:33 +0300
-Message-Id: <20171004215051.13385-15-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+        Mon, 16 Oct 2017 19:10:50 -0400
+Received: by mail-pg0-f54.google.com with SMTP id r25so8021852pgn.4
+        for <linux-media@vger.kernel.org>; Mon, 16 Oct 2017 16:10:50 -0700 (PDT)
+Date: Mon, 16 Oct 2017 16:10:47 -0700
+From: Kees Cook <keescook@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: devendra sharma <devendra.sharma9091@gmail.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: dvb-core: Convert timers to use timer_setup()
+Message-ID: <20171016231047.GA99788@beast>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add three helper functions to call async operations callbacks. Besides
-simplifying callbacks, this allows async notifiers to have no ops set,
-i.e. it can be left NULL.
+In preparation for unconditionally passing the struct timer_list pointer to
+all timer callbacks, switch to using the new timer_setup() and from_timer()
+to pass the timer pointer explicitly.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: devendra sharma <devendra.sharma9091@gmail.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 56 +++++++++++++++++++++++++-----------
- 1 file changed, 39 insertions(+), 17 deletions(-)
+ drivers/media/dvb-core/dmxdev.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 9d6fc5f25619..e170682dae78 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -25,6 +25,34 @@
- #include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
- 
-+static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
-+					  struct v4l2_subdev *subdev,
-+					  struct v4l2_async_subdev *asd)
-+{
-+	if (!n->ops || !n->ops->bound)
-+		return 0;
-+
-+	return n->ops->bound(n, subdev, asd);
-+}
-+
-+static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier *n,
-+					    struct v4l2_subdev *subdev,
-+					    struct v4l2_async_subdev *asd)
-+{
-+	if (!n->ops || !n->ops->unbind)
-+		return;
-+
-+	n->ops->unbind(n, subdev, asd);
-+}
-+
-+static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
-+{
-+	if (!n->ops || !n->ops->complete)
-+		return 0;
-+
-+	return n->ops->complete(n);
-+}
-+
- static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
- #if IS_ENABLED(CONFIG_I2C)
-@@ -102,16 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- {
- 	int ret;
- 
--	if (notifier->ops->bound) {
--		ret = notifier->ops->bound(notifier, sd, asd);
--		if (ret < 0)
--			return ret;
--	}
-+	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
-+	if (ret < 0)
-+		return ret;
- 
- 	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
- 	if (ret < 0) {
--		if (notifier->ops->unbind)
--			notifier->ops->unbind(notifier, sd, asd);
-+		v4l2_async_notifier_call_unbind(notifier, sd, asd);
- 		return ret;
- 	}
- 
-@@ -140,8 +165,7 @@ static void v4l2_async_notifier_unbind_all_subdevs(
- 	struct v4l2_subdev *sd, *tmp;
- 
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
--		if (notifier->ops->unbind)
--			notifier->ops->unbind(notifier, sd, sd->asd);
-+		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
- 		v4l2_async_cleanup(sd);
- 
- 		list_move(&sd->async_list, &subdev_list);
-@@ -198,8 +222,8 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 		}
- 	}
- 
--	if (list_empty(&notifier->waiting) && notifier->ops->complete) {
--		ret = notifier->ops->complete(notifier);
-+	if (list_empty(&notifier->waiting)) {
-+		ret = v4l2_async_notifier_call_complete(notifier);
- 		if (ret)
- 			goto err_complete;
- 	}
-@@ -296,10 +320,10 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 		if (ret)
- 			goto err_unlock;
- 
--		if (!list_empty(&notifier->waiting) || !notifier->ops->complete)
-+		if (!list_empty(&notifier->waiting))
- 			goto out_unlock;
- 
--		ret = notifier->ops->complete(notifier);
-+		ret = v4l2_async_notifier_call_complete(notifier);
- 		if (ret)
- 			goto err_cleanup;
- 
-@@ -315,8 +339,7 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
+index 18e4230865be..3ddd44e1ee77 100644
+--- a/drivers/media/dvb-core/dmxdev.c
++++ b/drivers/media/dvb-core/dmxdev.c
+@@ -329,9 +329,9 @@ static int dvb_dmxdev_set_buffer_size(struct dmxdev_filter *dmxdevfilter,
  	return 0;
+ }
  
- err_cleanup:
--	if (notifier->ops->unbind)
--		notifier->ops->unbind(notifier, sd, sd->asd);
-+	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
- 	v4l2_async_cleanup(sd);
+-static void dvb_dmxdev_filter_timeout(unsigned long data)
++static void dvb_dmxdev_filter_timeout(struct timer_list *t)
+ {
+-	struct dmxdev_filter *dmxdevfilter = (struct dmxdev_filter *)data;
++	struct dmxdev_filter *dmxdevfilter = from_timer(dmxdevfilter, t, timer);
  
- err_unlock:
-@@ -335,8 +358,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+ 	dmxdevfilter->buffer.error = -ETIMEDOUT;
+ 	spin_lock_irq(&dmxdevfilter->dev->lock);
+@@ -346,8 +346,6 @@ static void dvb_dmxdev_filter_timer(struct dmxdev_filter *dmxdevfilter)
  
- 		list_add(&sd->asd->list, &notifier->waiting);
+ 	del_timer(&dmxdevfilter->timer);
+ 	if (para->timeout) {
+-		dmxdevfilter->timer.function = dvb_dmxdev_filter_timeout;
+-		dmxdevfilter->timer.data = (unsigned long)dmxdevfilter;
+ 		dmxdevfilter->timer.expires =
+ 		    jiffies + 1 + (HZ / 2 + HZ * para->timeout) / 1000;
+ 		add_timer(&dmxdevfilter->timer);
+@@ -754,7 +752,7 @@ static int dvb_demux_open(struct inode *inode, struct file *file)
+ 	dvb_ringbuffer_init(&dmxdevfilter->buffer, NULL, 8192);
+ 	dmxdevfilter->type = DMXDEV_TYPE_NONE;
+ 	dvb_dmxdev_filter_state_set(dmxdevfilter, DMXDEV_STATE_ALLOCATED);
+-	init_timer(&dmxdevfilter->timer);
++	timer_setup(&dmxdevfilter->timer, dvb_dmxdev_filter_timeout, 0);
  
--		if (notifier->ops->unbind)
--			notifier->ops->unbind(notifier, sd, sd->asd);
-+		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
- 	}
+ 	dvbdev->users++;
  
- 	v4l2_async_cleanup(sd);
 -- 
-2.11.0
+2.7.4
+
+
+-- 
+Kees Cook
+Pixel Security
