@@ -1,60 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:48514 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751565AbdJaPj6 (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:6094 "EHLO
+        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751607AbdJPDRq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Oct 2017 11:39:58 -0400
+        Sun, 15 Oct 2017 23:17:46 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Jonathan Corbet <corbet@lwn.net>
+CC: Nicolas Ferre <nicolas.ferre@microchip.com>,
+        <linux-kernel@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v6 1/3] media: ov7670: Add entity pads initialization
+Date: Mon, 16 Oct 2017 11:14:25 +0800
+Message-ID: <20171016031427.4194-2-wenyou.yang@microchip.com>
+In-Reply-To: <20171016031427.4194-1-wenyou.yang@microchip.com>
+References: <20171016031427.4194-1-wenyou.yang@microchip.com>
 MIME-Version: 1.0
-In-Reply-To: <20171029125058.5588-1-colin.king@canonical.com>
-References: <20171029125058.5588-1-colin.king@canonical.com>
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-Date: Tue, 31 Oct 2017 11:39:56 -0400
-Message-ID: <CAOcJUbypnurqiwO0wZvaDVNLRij+_hsEiJ4eKG7G0b1-LqmEMw@mail.gmail.com>
-Subject: Re: [PATCH] [media] mxl111sf: remove redundant assignment to index
-To: Colin King <colin.king@canonical.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Oct 29, 2017 at 8:50 AM, Colin King <colin.king@canonical.com> wrote:
-> From: Colin Ian King <colin.king@canonical.com>
->
-> Variable index is set to zero and then set to zero again
-> a few lines later in a for loop initialization. Remove the
-> redundant setting of index to zero. Cleans up the clang
-> warning:
->
-> drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c:519:3: warning: Value
-> stored to 'index' is never read
->
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Add the media entity pads initialization.
 
-Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+---
 
+Changes in v6: None
+Changes in v5: None
+Changes in v4:
+ - Fix the build error when not enabling Media Controller API option.
 
-Thanks for the patch!
+Changes in v3: None
+Changes in v2: None
 
+ drivers/media/i2c/ov7670.c | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-> ---
->  drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c | 1 -
->  1 file changed, 1 deletion(-)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c b/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c
-> index 0eb33e043079..a221bb8a12b4 100644
-> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c
-> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c
-> @@ -516,7 +516,6 @@ static int mxl111sf_i2c_hw_xfer_msg(struct mxl111sf_state *state,
->                    data required to program */
->                 block_len = (msg->len / 8);
->                 left_over_len = (msg->len % 8);
-> -               index = 0;
->
->                 mxl_i2c("block_len %d, left_over_len %d",
->                         block_len, left_over_len);
-> --
-> 2.14.1
->
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index e88549f0e704..553945d4ca28 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -213,6 +213,9 @@ struct ov7670_devtype {
+ struct ov7670_format_struct;  /* coming later */
+ struct ov7670_info {
+ 	struct v4l2_subdev sd;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_pad pad;
++#endif
+ 	struct v4l2_ctrl_handler hdl;
+ 	struct {
+ 		/* gain cluster */
+@@ -1688,14 +1691,27 @@ static int ov7670_probe(struct i2c_client *client,
+ 	v4l2_ctrl_auto_cluster(2, &info->auto_exposure,
+ 			       V4L2_EXPOSURE_MANUAL, false);
+ 	v4l2_ctrl_cluster(2, &info->saturation);
++
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	info->pad.flags = MEDIA_PAD_FL_SOURCE;
++	info->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++	ret = media_entity_pads_init(&info->sd.entity, 1, &info->pad);
++	if (ret < 0)
++		goto hdl_free;
++#endif
++
+ 	v4l2_ctrl_handler_setup(&info->hdl);
+ 
+ 	ret = v4l2_async_register_subdev(&info->sd);
+ 	if (ret < 0)
+-		goto hdl_free;
++		goto entity_cleanup;
+ 
+ 	return 0;
+ 
++entity_cleanup:
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&info->sd.entity);
++#endif
+ hdl_free:
+ 	v4l2_ctrl_handler_free(&info->hdl);
+ clk_disable:
+@@ -1712,6 +1728,9 @@ static int ov7670_remove(struct i2c_client *client)
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&info->hdl);
+ 	clk_disable_unprepare(info->clk);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&info->sd.entity);
++#endif
+ 	return 0;
+ }
+ 
+-- 
+2.13.0
