@@ -1,150 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:52955 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751462AbdJKJrf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Oct 2017 05:47:35 -0400
-Date: Wed, 11 Oct 2017 11:47:21 +0200
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Cyprian Wronka <cwronka@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com
-Subject: Re: [PATCH 2/2] v4l: cadence: Add Cadence MIPI-CSI2 TX driver
-Message-ID: <20171011094721.hwbsk736ncx5wstt@flea.lan>
-References: <20170922114703.30511-1-maxime.ripard@free-electrons.com>
- <20170922114703.30511-3-maxime.ripard@free-electrons.com>
- <20170922123849.hcm76tlplnvd44mt@valkosipuli.retiisi.org.uk>
- <20170922153036.u7k3wmuldphkk6w3@flea.lan>
- <20170926080014.7a3lbe23rvzpcmkq@valkosipuli.retiisi.org.uk>
+Received: from mail.bugwerft.de ([46.23.86.59]:33018 "EHLO mail.bugwerft.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752784AbdJPPIl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Oct 2017 11:08:41 -0400
+Subject: Re: [PATCH v4 04/21] doc: media/v4l-drivers: Add Qualcomm Camera
+ Subsystem driver document
+To: Todor Tomov <todor.tomov@linaro.org>
+Cc: mchehab@kernel.org, hans.verkuil@cisco.com, s.nawrocki@samsung.com,
+        sakari.ailus@iki.fi, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+References: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
+ <1502199018-28250-5-git-send-email-todor.tomov@linaro.org>
+ <de3c02a1-5c04-977d-fd51-186a5d39c32a@zonque.org>
+ <7483f716-4240-899f-f9c5-23c6408f39ff@linaro.org>
+From: Daniel Mack <daniel@zonque.org>
+Message-ID: <bfd290f4-4fb7-40b0-2d58-8b2a04a9aeca@zonque.org>
+Date: Mon, 16 Oct 2017 17:01:31 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="br4mtgjntl4dx72l"
-Content-Disposition: inline
-In-Reply-To: <20170926080014.7a3lbe23rvzpcmkq@valkosipuli.retiisi.org.uk>
+In-Reply-To: <7483f716-4240-899f-f9c5-23c6408f39ff@linaro.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
---br4mtgjntl4dx72l
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 28.08.2017 09:10, Todor Tomov wrote:
+> On 25.08.2017 17:10, Daniel Mack wrote:
+>> Could you explain how ISPIF, CSID and CSIPHY are related?
+>>
+>> I have a userspace test setup that works fine for USB webcams, but when
+>> operating on any of the video devices exposed by this driver, the
+>> lowlevel functions such as .s_power of the ISPIF, CSID, CSIPHY and the
+>> sensor driver layers aren't called into.
+> 
+> Have you activated the media controller links? The s_power is called
+> when the subdev is part of a pipeline in which the video device node
+> is opened. You can see example configurations for the Qualcomm CAMSS
+> driver on:
+> https://github.com/96boards/documentation/blob/master/ConsumerEdition/DragonBoard-410c/Guides/CameraModule.md
+> This will probably answer most of your questions.
 
-Hi Sakari,
+It did in fact, yes. Thanks again for the pointer.
 
-Sorry for the belated answer.
+I am however struggling getting a 4-lane OV13855 camera to work with
+this camss driver, and I'd be happy to hear about similar setups that work.
 
-On Tue, Sep 26, 2017 at 08:00:14AM +0000, Sakari Ailus wrote:
-> > On Fri, Sep 22, 2017 at 12:38:49PM +0000, Sakari Ailus wrote:
-> > > > +	/*
-> > > > +	 * Create a static mapping between the CSI virtual channels
-> > > > +	 * and the input streams.
-> > >=20
-> > > Which virtual channel is used here?
-> >=20
-> > Like I was trying to explain in the cover letter, the virtual channel
-> > is not under that block's control. The input video interfaces have an
-> > additional signal that comes from the upstream device which sets the
-> > virtual channel.
->=20
-> Oh, I missed while reviewing the set.
->=20
-> Presumably either driver would be in control of that then (this one or the
-> upstream sub-device).
+In short, here's what my setup looks like:
 
-I don't really see how this driver could be under such control. I
-guess it would depend on the integreation, but the upstream (sub-)
-device is very likely to be under control of that signal, so I guess
-it should be its role to change that. But we should also have that
-information available so that the mixing in the CSI link is reported
-properly in the media API (looking at Niklas' initial implementation).
+1. I wrote a driver for the OV13855 sensor, based on the one for OV13858
+but with updated register values. It announces
+MEDIA_BUS_FMT_SBGGR10_1X10 as bus format which is what the sensor should
+be sending, if I understand the specs correctly.
 
-> > >=20
-> > > > +		 */
-> > > > +		writel(CSI2TX_STREAM_IF_CFG_FILL_LEVEL(4),
-> > > > +		       csi2tx->base + CSI2TX_STREAM_IF_CFG_REG(stream));
-> > > > +	}
-> > > > +
-> > > > +	/* Disable the configuration mode */
-> > > > +	writel(0, csi2tx->base + CSI2TX_CONFIG_REG);
-> > >=20
-> > > Shouldn't you start streaming on the downstream sub-device as well?
-> >=20
-> > I appreciate it's a pretty weak argument, but the current setup we
-> > have is in the FPGA is:
-> >=20
-> > capture <- CSI2-RX <- CSI2-TX <- pattern generator
-> >=20
-> > So far, the CSI2-RX block is calling its remote sub-device, which is
-> > CSI2-TX. If CSI2-RX is calling its remote sub-device (CSI2-RX), we
-> > just found ourselves in an endless loop.
-> >=20
-> > I guess it should be easier, and fixable, when we'll have an actual
-> > device without such a loopback.
->=20
-> What's the intended use case of the device, capture or output?
 
-By device, you mean the CSI2-TX block, or something else?
+2. The DTS snippet for the endpoint connection look like this:
 
-If CSI2-TX, I guess it's more likely to be for output, but that might
-be used for capture as well.
+&blsp_i2c6 {
+	cam0: ov13855@16 {
+		/* ... */
+		port {
+			cam0_ep: endpoint {
+				clock-lanes = <1>;
+				data-lanes = <0 2 3 4>;
+				remote-endpoint = <&csiphy0_ep>;
+			};
+		};
+	};
+};
 
-> How do you currently start the pipeline?
+&camss {
+	ports {
+		port@0 {
+			reg = <0>;
+			csiphy0_ep: endpoint {
+				clock-lanes = <1>;
+				data-lanes = <0 2 3 4>;
+				remote-endpoint = <&cam0_ep>;
+			};
+		};
+	};
+};
 
-The capture device is the v4l2 device, and when the capture starts, it
-enables the CSI2-RX which in turn enables CSI2-TX. The pattern
-generator is enabled all the time.
+There are also no lane swaps or any intermediate components in hardware.
+We've checked the electrical bits many times, and that end seems alright.
 
-> We have a few corner cases in V4L2 for such devices in graph parsing and
-> stream control. The parsing of the device's fwnode graph endpoints are wh=
-at
-> the device can do, but it doesn't know where the parsing should continue
-> and which part of the graph is already parsed.
->=20
-> That will be addressed but right now a driver just needs to know.
 
-I'm not quite sure I got what you wanted me to fix or change.
+3. The pads and links are set up like this:
 
-Thanks!
-Maxime
+# media-ctl -d /dev/media0 -l
+'"msm_csiphy0":1->"msm_csid0":0[1],"msm_csid0":1->"msm_ispif0":0[1],"msm_ispif0":1->"msm_vfe0_rdi0":0[1]'
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+# media-ctl -d /dev/media0 -V '"ov13855
+1-0010":0[fmt:SBGGR10_1X10/4224x3136
+field:none],"msm_csiphy0":0[fmt:SBGGR10_1X10/4224x3136
+field:none],"msm_csid0":0[fmt:SBGGR10_1X10/4224x3136
+field:none],"msm_ispif0":0[fmt:SBGGR10_1X10/4224x3136
+field:none],"msm_vfe0_rdi0":0[fmt:SBGGR10_1X10/4224x3136 field:none]'
 
---br4mtgjntl4dx72l
-Content-Type: application/pgp-signature; name="signature.asc"
+Both commands succeed.
 
------BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJZ3eipAAoJEBx+YmzsjxAgvwIP/RTouIM3Qsirj66axjyQevkG
-NWcKcYRNgOBHyztFd/0zAcs7eGYtQapollKJo3Bd6+shsfHYIBZcma4zP0K9N+LG
-5efgI4/7UjAf4cTXEw1Az4S+dN7UDEULFlhUik+ffNmXbOG1fuhgeWhvMLRyln72
-hpOv/FMQMXE5JPUFQB9EYxxVzjNoVqLPZeqfsSTAUYCWz3wm/tRvTvk3kX9tquL9
-sf4lZrbDtQf8gvOE75A5+zY61a2+mVXVJdaNuxVAALK+Hr43CLfxXAJglZUQIO41
-wc5kofJahhJpVpzuqfI3uV4gkegusYu1jwFLePzHKJCTAwMWzMWMibLCejbd2Q17
-sMCRewbuhLmmAPl58bUPyfbML2jD1x9JHpQzowkSh1F+MMkOTvXWKyjvPdyCBHoV
-Wbn5AUaem1t/Ti+rm9jxE5nHqZ527n7KdFoBr2yJ1oDnK6TCL3EkyW0vK2bP9iN1
-hyDWH/TRoeyFDlIgf8zYSfSCzDiNXyktbGAncFaHoKFwbs3oeVcNlD1QxyZyu4BC
-gcLV2JJsGcdL0dNamr8BRCxYRL0JIKM6lUWvd5EhkxXAetK/nm1GNN5KYo0D/kzZ
-tC221s66xtMDQKSGZWA9uKe+hJ5khn2GVGtGLvFYwlKRAGn39NxRbo74TvSHvY81
-Q5xudEVE4YyXPX5PL1hC
-=lJDC
------END PGP SIGNATURE-----
+4. When streaming is started, the power consumption of the device goes
+up, all necessary external clocks and voltages are provided and are
+stable, and I can see a continuous stream of data on all 4 MIPI lanes
+using an oscilloscope.
 
---br4mtgjntl4dx72l--
+
+5. Capturing frames with the following yavta command doesn't work
+though. The task is mostly stuck in the buffer dequeing ioctl:
+
+# yavta -B capture-mplane -c10 -I -n 5 -f SBGGR10P -s 4224x3136 /dev/video0
+
+vfe_isr() does fire sometimes with VFE_0_IRQ_STATUS_1_RDIn_SOF(0) set,
+but very occasionally only, and the frames do not contain data.
+
+FWIW, an ov6540 is connected to port 1 of the camss, and this sensor
+works fine.
+
+I'd be grateful for any pointer about what I could investigate on.
+
+
+Thanks,
+Daniel
