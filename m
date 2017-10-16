@@ -1,51 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:34870 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751457AbdJHJXZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Oct 2017 05:23:25 -0400
-Date: Sun, 8 Oct 2017 14:53:20 +0530
-From: Aishwarya Pant <aishpant@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Cc: outreachy-kernel@googlegroups.com
-Subject: [PATCH 0/2] staginng: atomisp: memory allocation cleanups
-Message-ID: <cover.1507454423.git.aishpant@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52539 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752631AbdJPOlm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Oct 2017 10:41:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Baoyou Xie <baoyou.xie@linaro.org>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, baoyou.xie@gmail.com,
+        xie.baoyou@zte.com.cn
+Subject: Re: [PATCH v1] [media] uvcvideo: mark buffer error where overflow
+Date: Mon, 16 Oct 2017 17:41:59 +0300
+Message-ID: <14244403.6AF0m6muUx@avalon>
+In-Reply-To: <1504753188-8766-1-git-send-email-baoyou.xie@linaro.org>
+References: <1504753188-8766-1-git-send-email-baoyou.xie@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch series performs minor code cleanups using coccinelle to simplify memory
-allocation tests and remove redundant OOM log messages.
+Hi Baoyou,
 
-Aishwarya Pant (2):
-  staging: atomisp2: cleanup null check on memory allocation
-  staging: atomisp: cleanup out of memory messages
+Thank you for the patch.
 
- drivers/staging/media/atomisp/i2c/ap1302.c         |  4 +--
- drivers/staging/media/atomisp/i2c/gc0310.c         |  4 +--
- drivers/staging/media/atomisp/i2c/gc2235.c         |  4 +--
- drivers/staging/media/atomisp/i2c/imx/imx.c        |  4 +--
- drivers/staging/media/atomisp/i2c/lm3554.c         |  4 +--
- drivers/staging/media/atomisp/i2c/mt9m114.c        |  4 +--
- drivers/staging/media/atomisp/i2c/ov2680.c         |  4 +--
- drivers/staging/media/atomisp/i2c/ov2722.c         |  4 +--
- drivers/staging/media/atomisp/i2c/ov5693/ov5693.c  |  4 +--
- drivers/staging/media/atomisp/i2c/ov8858.c         |  6 +---
- .../media/atomisp/pci/atomisp2/atomisp_fops.c      |  4 +--
- .../media/atomisp/pci/atomisp2/atomisp_ioctl.c     |  9 ++----
- .../media/atomisp/pci/atomisp2/css2400/sh_css.c    | 36 +++++++++++-----------
- .../atomisp/pci/atomisp2/css2400/sh_css_firmware.c |  6 ++--
- .../pci/atomisp2/css2400/sh_css_param_shading.c    |  4 +--
- .../media/atomisp/pci/atomisp2/hmm/hmm_bo.c        | 10 ++----
- .../atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c    |  6 +---
- .../atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c   |  5 +--
- .../media/atomisp/pci/atomisp2/hmm/hmm_vm.c        |  4 +--
- .../platform/intel-mid/atomisp_gmin_platform.c     |  4 +--
- 20 files changed, 41 insertions(+), 89 deletions(-)
+On Thursday, 7 September 2017 05:59:48 EEST Baoyou Xie wrote:
+> Some cameras post inaccurate frame where next frame data overlap
+> it. this results in screen flicker, and it need to be prevented.
+> 
+> So this patch marks the buffer error to discard the frame where
+> buffer overflow.
+
+I've thought about this before and I wasn't sure how to handle this case. As 
+such an overflow might not signal an erroneous buffer, as the buffer could 
+contain a valid image. However, if you have seen erroneous buffer contents in 
+this case, and given that overflows should not occur, I think we could decide 
+to stay on the safe side and set the error flag.
+
+> Signed-off-by: Baoyou Xie <baoyou.xie@linaro.org>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+I'll apply the patch to my tree.
+
+> ---
+>  drivers/media/usb/uvc/uvc_video.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index fb86d6a..81a3530 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -1077,6 +1077,7 @@ static void uvc_video_decode_data(struct uvc_streaming
+> *stream, /* Complete the current frame if the buffer size was exceeded. */
+> if (len > maxlen) {
+>  		uvc_trace(UVC_TRACE_FRAME, "Frame complete (overflow).\n");
+> +		buf->error = 1;
+>  		buf->state = UVC_BUF_STATE_READY;
+>  	}
+>  }
+
 
 -- 
-2.11.0
+Regards,
+
+Laurent Pinchart
