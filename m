@@ -1,63 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43090 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755064AbdJJI4Z (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:46658 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753814AbdJPX21 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 04:56:25 -0400
-Date: Tue, 10 Oct 2017 11:56:23 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
+        Mon, 16 Oct 2017 19:28:27 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
         Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v7 1/7] media: add glossary.rst with a glossary of terms
- used at V4L2 spec
-Message-ID: <20171010085623.2s5qiep752hosugn@valkosipuli.retiisi.org.uk>
-References: <cover.1506550930.git.mchehab@s-opensource.com>
- <047245414a82a6553361b1dd3497f796855a657d.1506550930.git.mchehab@s-opensource.com>
- <20171006102229.evjyn77udfcc76gs@valkosipuli.retiisi.org.uk>
- <20171010053004.2d97795a@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171010053004.2d97795a@vento.lan>
+        Heiko Stuebner <heiko@sntech.de>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-rockchip@lists.infradead.org
+Subject: [PATCH] media: rga: make some functions static
+Date: Mon, 16 Oct 2017 16:28:10 -0700
+Message-Id: <ec8df85f312e299e6d92f7cc3446e67e510ccafb.1508196474.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 10, 2017 at 05:30:04AM -0300, Mauro Carvalho Chehab wrote:
-> Em Fri, 6 Oct 2017 13:22:29 +0300
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > > +    Bridge driver
-> > > +	The same as V4L2 main driver.  
-> > 
-> > Not all V4L2 main drivers can be bridge drivers. Mem-to-mem devices, for
-> > instance. How about:
-> > 
-> > A driver for a device receiving image data from another device (or
-> > transmitting it to a sub-device) controlled by a sub-device driver. Bridge
-> > drivers typically act as V4L2 main drivers.
-> 
-> That is not true for some device drivers we have.
-> 
-> The GSPCA drivers are bridge drivers, but they don't use any sub-device
-> (well, it should, but nobody will redesign it, as the efforts would
-> be huge, for a very little gain). Also uvcdriver doesn't need sub-device
-> drivers, as the camera's internal firmware does the interface with the
-> sensors.
-> 
-> We could, instead define it as:
-> 
->     Bridge driver
-> 	A driver that provides a bridge between the CPU's bus to the
-> 	data and control buses of a media hardware. Often, the
-> 	bridge driver is the same as V4L2 main driver.
+drivers/media/platform/rockchip/rga/rga-hw.c:383:6: warning: no previous prototype for 'rga_cmd_set' [-Wmissing-prototypes]
+ void rga_cmd_set(struct rga_ctx *ctx)
+      ^~~~~~~~~~~
+drivers/media/platform/rockchip/rga/rga.c:359:17: warning: no previous prototype for 'rga_fmt_find' [-Wmissing-prototypes]
+ struct rga_fmt *rga_fmt_find(struct v4l2_format *f)
+                 ^~~~~~~~~~~~
 
-Looks good to me.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/platform/rockchip/rga/rga-hw.c | 2 +-
+ drivers/media/platform/rockchip/rga/rga.c    | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/media/platform/rockchip/rga/rga-hw.c b/drivers/media/platform/rockchip/rga/rga-hw.c
+index 0645481c9a5e..96d1b1b3fe8e 100644
+--- a/drivers/media/platform/rockchip/rga/rga-hw.c
++++ b/drivers/media/platform/rockchip/rga/rga-hw.c
+@@ -380,7 +380,7 @@ static void rga_cmd_set_mode(struct rga_ctx *ctx)
+ 	dest[(RGA_MODE_CTRL - RGA_MODE_BASE_REG) >> 2] = mode.val;
+ }
+ 
+-void rga_cmd_set(struct rga_ctx *ctx)
++static void rga_cmd_set(struct rga_ctx *ctx)
+ {
+ 	struct rockchip_rga *rga = ctx->rga;
+ 
+diff --git a/drivers/media/platform/rockchip/rga/rga.c b/drivers/media/platform/rockchip/rga/rga.c
+index 2cf3bb29a2b3..e7d1b34baf1c 100644
+--- a/drivers/media/platform/rockchip/rga/rga.c
++++ b/drivers/media/platform/rockchip/rga/rga.c
+@@ -356,7 +356,7 @@ struct rga_fmt formats[] = {
+ 
+ #define NUM_FORMATS ARRAY_SIZE(formats)
+ 
+-struct rga_fmt *rga_fmt_find(struct v4l2_format *f)
++static struct rga_fmt *rga_fmt_find(struct v4l2_format *f)
+ {
+ 	unsigned int i;
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.6
