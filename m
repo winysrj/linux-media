@@ -1,68 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:54126 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751609AbdJSJbf (ORCPT
+Received: from mail-pg0-f54.google.com ([74.125.83.54]:50129 "EHLO
+        mail-pg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752200AbdJPXKO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Oct 2017 05:31:35 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Jacob chen <jacob2.chen@rock-chips.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Heiko Stuebner <heiko@sntech.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Hans Verkuil <hansverk@cisco.com>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] rockchip/rga: annotate PM functions as __maybe_unused
-Date: Thu, 19 Oct 2017 11:30:34 +0200
-Message-Id: <20171019093044.531871-1-arnd@arndb.de>
+        Mon, 16 Oct 2017 19:10:14 -0400
+Received: by mail-pg0-f54.google.com with SMTP id g6so6597143pgn.6
+        for <linux-media@vger.kernel.org>; Mon, 16 Oct 2017 16:10:14 -0700 (PDT)
+Date: Mon, 16 Oct 2017 16:10:12 -0700
+From: Kees Cook <keescook@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] media/saa7146: Convert timers to use timer_setup()
+Message-ID: <20171016231012.GA99671@beast>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The newly added driver has incorrect #ifdef annotations on its
-PM functions, leading to a harmless compile-time warning when
-CONFIG_PM is disabled:
+In preparation for unconditionally passing the struct timer_list pointer to
+all timer callbacks, switch to using the new timer_setup() and from_timer()
+to pass the timer pointer explicitly. This requires adding a pointer to
+hold the timer's target file, as there won't be a way to pass this in the
+future.
 
-drivers/media/platform/rockchip/rga/rga.c:760:13: error: 'rga_disable_clocks' defined but not used [-Werror=unused-function]
- static void rga_disable_clocks(struct rockchip_rga *rga)
-             ^~~~~~~~~~~~~~~~~~
-drivers/media/platform/rockchip/rga/rga.c:728:12: error: 'rga_enable_clocks' defined but not used [-Werror=unused-function]
-
-This removes the #ifdef and marks the functions as __maybe_unused,
-so gcc can silently drop all the unused code.
-
-Fixes: f7e7b48e6d79 ("[media] rockchip/rga: v4l2 m2m support")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
 ---
- drivers/media/platform/rockchip/rga/rga.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/media/common/saa7146/saa7146_fops.c | 2 +-
+ drivers/media/common/saa7146/saa7146_vbi.c  | 9 +++++----
+ include/media/drv-intf/saa7146_vv.h         | 1 +
+ 3 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/rockchip/rga/rga.c b/drivers/media/platform/rockchip/rga/rga.c
-index e7d1b34baf1c..89296de9cf4a 100644
---- a/drivers/media/platform/rockchip/rga/rga.c
-+++ b/drivers/media/platform/rockchip/rga/rga.c
-@@ -960,8 +960,7 @@ static int rga_remove(struct platform_device *pdev)
- 	return 0;
+diff --git a/drivers/media/common/saa7146/saa7146_fops.c b/drivers/media/common/saa7146/saa7146_fops.c
+index 930d2c94d5d3..c4664f0da874 100644
+--- a/drivers/media/common/saa7146/saa7146_fops.c
++++ b/drivers/media/common/saa7146/saa7146_fops.c
+@@ -559,7 +559,7 @@ int saa7146_vv_init(struct saa7146_dev* dev, struct saa7146_ext_vv *ext_vv)
+ 	vbi->start[1] = 312;
+ 	vbi->count[1] = 16;
+ 
+-	init_timer(&vv->vbi_read_timeout);
++	timer_setup(&vv->vbi_read_timeout, NULL, 0);
+ 
+ 	vv->ov_fb.capability = V4L2_FBUF_CAP_LIST_CLIPPING;
+ 	vv->ov_fb.flags = V4L2_FBUF_FLAG_PRIMARY;
+diff --git a/drivers/media/common/saa7146/saa7146_vbi.c b/drivers/media/common/saa7146/saa7146_vbi.c
+index 69525ca4f52c..ae66c2325228 100644
+--- a/drivers/media/common/saa7146/saa7146_vbi.c
++++ b/drivers/media/common/saa7146/saa7146_vbi.c
+@@ -348,9 +348,10 @@ static void vbi_stop(struct saa7146_fh *fh, struct file *file)
+ 	spin_unlock_irqrestore(&dev->slock, flags);
  }
  
--#ifdef CONFIG_PM
--static int rga_runtime_suspend(struct device *dev)
-+static int __maybe_unused rga_runtime_suspend(struct device *dev)
+-static void vbi_read_timeout(unsigned long data)
++static void vbi_read_timeout(struct timer_list *t)
  {
- 	struct rockchip_rga *rga = dev_get_drvdata(dev);
+-	struct file *file = (struct file*)data;
++	struct saa7146_vv *vv = from_timer(vv, t, vbi_read_timeout);
++	struct file *file = vv->vbi_read_timeout_file;
+ 	struct saa7146_fh *fh = file->private_data;
+ 	struct saa7146_dev *dev = fh->dev;
  
-@@ -970,13 +969,12 @@ static int rga_runtime_suspend(struct device *dev)
- 	return 0;
- }
+@@ -401,8 +402,8 @@ static int vbi_open(struct saa7146_dev *dev, struct file *file)
+ 			    sizeof(struct saa7146_buf),
+ 			    file, &dev->v4l2_lock);
  
--static int rga_runtime_resume(struct device *dev)
-+static int __maybe_unused rga_runtime_resume(struct device *dev)
- {
- 	struct rockchip_rga *rga = dev_get_drvdata(dev);
+-	vv->vbi_read_timeout.function = vbi_read_timeout;
+-	vv->vbi_read_timeout.data = (unsigned long)file;
++	vv->vbi_read_timeout.function = (TIMER_FUNC_TYPE)vbi_read_timeout;
++	vv->vbi_read_timeout_file = file;
  
- 	return rga_enable_clocks(rga);
- }
--#endif
- 
- static const struct dev_pm_ops rga_pm = {
- 	SET_RUNTIME_PM_OPS(rga_runtime_suspend,
+ 	/* initialize the brs */
+ 	if ( 0 != (SAA7146_USE_PORT_B_FOR_VBI & dev->ext_vv_data->flags)) {
+diff --git a/include/media/drv-intf/saa7146_vv.h b/include/media/drv-intf/saa7146_vv.h
+index 736f4f2d8290..926c5b145279 100644
+--- a/include/media/drv-intf/saa7146_vv.h
++++ b/include/media/drv-intf/saa7146_vv.h
+@@ -107,6 +107,7 @@ struct saa7146_vv
+ 	struct saa7146_dmaqueue		vbi_dmaq;
+ 	struct v4l2_vbi_format		vbi_fmt;
+ 	struct timer_list		vbi_read_timeout;
++	struct file			*vbi_read_timeout_file;
+ 	/* vbi workaround interrupt queue */
+ 	wait_queue_head_t		vbi_wq;
+ 	int				vbi_fieldcount;
 -- 
-2.9.0
+2.7.4
+
+
+-- 
+Kees Cook
+Pixel Security
