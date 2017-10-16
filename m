@@ -1,68 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f169.google.com ([209.85.216.169]:45889 "EHLO
-        mail-qt0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752197AbdJCPAI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 11:00:08 -0400
-Received: by mail-qt0-f169.google.com with SMTP id k1so2465547qti.2
-        for <linux-media@vger.kernel.org>; Tue, 03 Oct 2017 08:00:07 -0700 (PDT)
-Message-ID: <1507042804.27175.12.camel@ndufresne.ca>
-Subject: Re: Memory freeing when dmabuf fds are exported with VIDIOC_EXPBUF
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Kazunori Kobayashi <kkobayas@igel.co.jp>
-Cc: linux-media@vger.kernel.org,
-        Damian Hobson-Garcia <dhobsong@igel.co.jp>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Date: Tue, 03 Oct 2017 11:00:04 -0400
-In-Reply-To: <f0518dd3-ae01-2da1-12ac-1fb041aaa709@xs4all.nl>
-References: <36bf3ef2-e43a-3910-16e2-b51439be5622@igel.co.jp>
-         <2220172.K033cFnpL3@avalon>
-         <f0518dd3-ae01-2da1-12ac-1fb041aaa709@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mx1.redhat.com ([209.132.183.28]:57720 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752080AbdJPMew (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Oct 2017 08:34:52 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: [PATCH] stagin: atomisp: Fix oops by unbalanced clk enable/disable call
+Date: Mon, 16 Oct 2017 14:34:48 +0200
+Message-Id: <20171016123448.12014-1-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'd like to revive this discussion.
+The common-clk core expects clk consumers to always call enable/disable
+in a balanced manner. The atomisp driver does not call gmin_flisclk_ctrl()
+in a balanced manner, so add a clock_on bool and skip redundant calls.
 
-Le lundi 01 août 2016 à 12:56 +0200, Hans Verkuil a écrit :
-> > 
-> > Hans, Marek, any opinion on this ?
-> 
-> What is the use-case for this? What you are doing here is to either free all
-> existing buffers or reallocate buffers. We can decide to rely on refcounting,
-> but then you would create a second set of buffers (when re-allocating) or
-> leave a lot of unfreed memory behind. That's pretty hard on the memory usage.
-> 
-> I think the EBUSY is there to protect the user against him/herself: i.e. don't
-> call this unless you know all refs are closed.
-> 
-> Given the typical large buffersizes we're talking about, I think that EBUSY
-> makes sense.
+This fixes kernel oops like this one:
 
-This is a userspace hell for the use case of seamless resolution
-change. Let's say I'm rendering buffers from a V4L2 camera toward my
-display KMS driver. While I'm streaming, the KMS driver will hold on
-the last frame. This is required when your display is sourcing data
-directly from your DMABuf, because the KMS render are not synchronized
-with the V4L2 camera (you could have 24fps camera over a 60fps
-display).
+[   19.811613] gc0310_s_config S
+[   19.811655] ------------[ cut here ]------------
+[   19.811664] WARNING: CPU: 1 PID: 720 at drivers/clk/clk.c:594 clk_core_disabl
+[   19.811666] Modules linked in: tpm_crb(+) snd_soc_sst_atom_hifi2_platform tpm
+[   19.811744] CPU: 1 PID: 720 Comm: systemd-udevd Tainted: G         C OE   4.1
+[   19.811746] Hardware name: Insyde T701/T701, BIOS BYT70A.YNCHENG.WIN.007 08/2
+[   19.811749] task: ffff988df7ab2500 task.stack: ffffac1400474000
+[   19.811752] RIP: 0010:clk_core_disable+0xc0/0x130
+...
+[   19.811775] Call Trace:
+[   19.811783]  clk_core_disable_lock+0x1f/0x30
+[   19.811788]  clk_disable+0x1f/0x30
+[   19.811794]  gmin_flisclk_ctrl+0x87/0xf0
+[   19.811801]  0xffffffffc0528512
+[   19.811805]  0xffffffffc05295e2
+[   19.811811]  ? acpi_device_wakeup_disable+0x50/0x60
+[   19.811815]  ? acpi_dev_pm_attach+0x8e/0xd0
+[   19.811818]  ? 0xffffffffc05294d0
+[   19.811823]  i2c_device_probe+0x1cd/0x280
+[   19.811828]  driver_probe_device+0x2ff/0x450
 
-When its time to change the resolution, the fact that we can't let go
-the DMABuf means that we need to reclaim the memory from KMS first. We
-can't just take it back, we need to allocate a new buffer, copy using
-the CPU that buffer data, setupe the DMABuf reference. that new buffer
-for redraw and then releas
+Fixes: "staging: atomisp: use clock framework for camera clocks"
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ .../media/atomisp/platform/intel-mid/atomisp_gmin_platform.c       | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-This operation is extremely slow, since it requires an allocation and a
-CPU copy of the data. This is only needed because V4L2 is trying to
-prevent over allocation. In this case, userspace is only holding on 1
-of the frames, this is far from the dramatic memory waste that we are
-describing here.
-
-regards,
-Nicolas
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+index 828fe5abd832..6671ebe4ecc9 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+@@ -29,6 +29,7 @@ struct gmin_subdev {
+ 	struct v4l2_subdev *subdev;
+ 	int clock_num;
+ 	int clock_src;
++	bool clock_on;
+ 	struct clk *pmc_clk;
+ 	struct gpio_desc *gpio0;
+ 	struct gpio_desc *gpio1;
+@@ -583,6 +584,9 @@ static int gmin_flisclk_ctrl(struct v4l2_subdev *subdev, int on)
+ 	struct gmin_subdev *gs = find_gmin_subdev(subdev);
+ 	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+ 
++	if (gs->clock_on == !!on)
++		return 0;
++
+ 	if (on) {
+ 		ret = clk_set_rate(gs->pmc_clk, gs->clock_src);
+ 
+@@ -591,8 +595,11 @@ static int gmin_flisclk_ctrl(struct v4l2_subdev *subdev, int on)
+ 				gs->clock_src);
+ 
+ 		ret = clk_prepare_enable(gs->pmc_clk);
++		if (ret == 0)
++			gs->clock_on = true;
+ 	} else {
+ 		clk_disable_unprepare(gs->pmc_clk);
++		gs->clock_on = false;
+ 	}
+ 
+ 	return ret;
+-- 
+2.14.2
