@@ -1,49 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zsmtpsg2.jfc.com.ph ([52.74.215.116]:55781 "EHLO
-        zsmtpsg2.jfc.com.ph" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751427AbdJFDte (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Oct 2017 23:49:34 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by zsmtpsg2.jfc.com.ph (Postfix) with ESMTP id 19305AA5CEE
-        for <linux-media@vger.kernel.org>; Fri,  6 Oct 2017 03:49:31 +0000 (UTC)
-Received: from zsmtpsg2.jfc.com.ph ([127.0.0.1])
-        by localhost (zsmtpsg2.jfc.com.ph [127.0.0.1]) (amavisd-new, port 10032)
-        with ESMTP id h7cA4IXAI8HU for <linux-media@vger.kernel.org>;
-        Fri,  6 Oct 2017 03:49:30 +0000 (UTC)
-Received: from localhost (localhost [127.0.0.1])
-        by zsmtpsg2.jfc.com.ph (Postfix) with ESMTP id E3E26AA803D
-        for <linux-media@vger.kernel.org>; Fri,  6 Oct 2017 03:34:55 +0000 (UTC)
-Received: from zsmtpsg2.jfc.com.ph ([127.0.0.1])
-        by localhost (zsmtpsg2.jfc.com.ph [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id qx3YYFO-tgdm for <linux-media@vger.kernel.org>;
-        Fri,  6 Oct 2017 03:34:55 +0000 (UTC)
-Received: from [192.168.0.2] (unknown [105.112.39.44])
-        by zsmtpsg2.jfc.com.ph (Postfix) with ESMTPSA id 46ABEAA4DEC
-        for <linux-media@vger.kernel.org>; Fri,  6 Oct 2017 03:21:16 +0000 (UTC)
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: IT MAINTENANCE
-To: linux-media@vger.kernel.org
-From: "IT service Team" <ck1738@chowking.net>
-Date: Fri, 06 Oct 2017 04:21:07 +0100
-Message-Id: <20171006032122.46ABEAA4DEC@zsmtpsg2.jfc.com.ph>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:44966 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751376AbdJPNLu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Oct 2017 09:11:50 -0400
+Subject: Re: Exynos MFC issues on 4.14-rc4
+To: Marian Mihailescu <mihailescu2m@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <ee79d4b3-49c8-24b1-2bfa-05e8322a88e5@samsung.com>
+Date: Mon, 16 Oct 2017 15:11:46 +0200
+MIME-version: 1.0
+In-reply-to: <CAM3PiRzaj=Vku-rBcroHzP+vMBgdYy_V+6+QBwGYypHanu=gbQ@mail.gmail.com>
+Content-type: text/plain; charset="utf-8"; format="flowed"
+Content-transfer-encoding: 7bit
+Content-language: en-US
+References: <CGME20171012004917epcas5p3c1bdb44fd2af15ec38be5de72239f844@epcas5p3.samsung.com>
+        <CAM3PiRzaj=Vku-rBcroHzP+vMBgdYy_V+6+QBwGYypHanu=gbQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ITS service maintenance team will be working online today for cleanup. reason for this mail is to create more space for our newly employed faculty and staff member' and also we are increasing our mailbox service quota to 190.06GB for more space and to empty all spam and junk folder. all our current staff and faculty member's are hereby advice to
+Hi Marian,
 
-upgrade their mailbox for upgrade kindly click https://formcrafts.com/a/30731
+On 2017-10-12 02:49, Marian Mihailescu wrote:
+> I've been testing 4.14-rc4 on Odroid-XU4, and here's a kernel
+> complaint when running:
+>
+> gst-launch-1.0 filesrc location=bunny_trailer_1080p.mov ! parsebin !
+> v4l2video4dec capture-io-mode=dmabuf ! v4l2video6convert
+> output-io-mode=dmabuf-import capture-io-mode=dmabuf ! kmssink
+>
+> http://paste.debian.net/990353/
 
-IT MAINTENANCE (link)
+This is rather harmless and it happens on v4.14-rcX, because LOCKDEP has
+been enabled by default in the exynos_defconfig. For more information
+see https://lkml.org/lkml/2017/10/13/974
 
-IT service Team
+> PS: on kernel 4.9 patched with MFC & GSC updates (almost up to date
+> with 4.14 I think) there was no "Wrong buffer/video queue type (1)"
+> message either
 
-© Copyright 2017.
+I will check it and let you know if this is something we should worry about.
 
-All Rights Reserved
-
----
-This email has been checked for viruses by Avast antivirus software.
-https://www.avast.com/antivirus
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
