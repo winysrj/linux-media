@@ -1,52 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-cld-x11.mail.trdns.com ([77.245.152.11]:49938 "EHLO
-        mail-cld-x11.mail.trdns.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751437AbdJAVRs (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:45036 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757796AbdJQRru (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 1 Oct 2017 17:17:48 -0400
-Date: Sun, 01 Oct 2017 22:12:35 +0100
-To: undisclosed-recipients:;
-From: CAROLINE <huseyin@cnscansuplastik.com.tr>
-Subject: MESSAGE
-Message-ID: <69f5afcca5f563f9e38475abfb4deefe@cnscansuplastik.com.tr>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset=UTF-8
+        Tue, 17 Oct 2017 13:47:50 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2] media: staging/imx: do not return error in link_notify for unknown sources
+Date: Tue, 17 Oct 2017 10:46:37 -0700
+Message-Id: <1508262397-24074-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+imx_media_link_notify() should not return error if the source subdevice
+of the link is not found in the list of subdevices that registered via
+async. If the subdev has controls they will be inherited via a link_notify
+that starts from a known source async subdev.
 
-Hyvää päivää!
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+Changes since v1:
+ - expanded on commit message and comment.
+---
+ drivers/staging/media/imx/imx-media-dev.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-
-Olen varma, että tämä posti olisi tulossa teille yllätyksenä, koska emme ole koskaan ennen tavannut, ja voit myös kysyä, miksi olen päättänyt valitsi sinulle joukossa lukuisia internetin käyttäjiä maailmassa. Sain sähköpostiosoitteesi läpi profiilin Internetissä, joka on tehnyt minua saavuttamaan pyyntöni.
-
-
-Olen Caroline Freund, Bill ja Exchange Manager Cahoot Finance UK. Osastossani huomasin hylätyn 8 000 000 dollarin summan. (Kahdeksan miljoonaa) yhdelle ulkomaiselle asiakkaalle (Paul Louis Halley). Tämä asiakas ja hänen vaimonsa kuolivat vuoden 2003 kone-onnettomuudessa. Voit tarkastella alla olevaa sivua saadaksesi lisätietoja.
-http://newswww.bbc.net.uk/2/hi/uk_news/england/oxfordshire/4537663.stm   
-
-
-Asiakas myöhään Paul Louis Halley polkumyynnillä $ 8,000,000.00 hänen pankkitilille minun pankki vuodesta 2003 tähän päivään.
-
-
-Käytyään läpi myöhään Paul Louis Halley tiedosto pankissa, olen huomannut, että hän ei sisältänyt lähiomaiset tälle tilille ennen kuolemaansa vuonna 2003.
-
-
-Siksi olen nyt hyvässä uskossa ja tietoisesti pyrkiä suostumustasi esitellä teille kuin lähiomaiset / Will edunsaajaa kuolleen jotta kokonaisarvo $ 8.000.000 siirretään pankkitilille Suomessa, johon meidän on jakaa tämän prosenttiosuuden suhde on 60% minulle ja 40% sinulle.
-
-
-Pankin vuoden 1990 politiikan mukaan, jos tämän perinnön vastaanottaja ei ole hakenut rahaston vaatimusta kolmetoista (13) vuoden jälkeen, rahat tulevat Yhdistyneen kuningaskunnan hallituksen omaisuudeksi, enkä halua, että se toteutuu.
-
-
-Siksi olen nyt hyvässä uskossa ja tietoisesti pyrkiä suostumustasi esitellä teille kuin lähiomaiset / Will edunsaajaa kuolleen jotta kokonaisarvo $ 8.000.000 siirretään pankkitilin Suomessa, jossa meillä on jakaa tämä prosenttiosuus suhde on 60% minulle ja 40% menee teille.
-
-
-Haluan vakuuttaa teille, ettei ole mitään haittaa tai riskiä; Kauppa tapahtuu sähköpostilla pankille ja annan sinulle kaikki asiakirjat, joita pankki voi vaatia.
- 
-Lisätietoja; Haluan, että otat yhteyden minuun yksityisellä sähköpostiosoitteellani: carolinefreundct@yahoo.com
-
-
-Kun yhteyttä minuun, minä annan sinulle enemmän tietoa.
- 
-Ystävällisin terveisin,
-Caroline
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index b55e5eb..809d92e 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -508,8 +508,16 @@ static int imx_media_link_notify(struct media_link *link, u32 flags,
+ 	imxmd = dev_get_drvdata(sd->v4l2_dev->dev);
+ 
+ 	imxsd = imx_media_find_subdev_by_sd(imxmd, sd);
+-	if (IS_ERR(imxsd))
+-		return PTR_ERR(imxsd);
++	if (IS_ERR(imxsd)) {
++		/*
++		 * don't bother refreshing video device controls if the
++		 * source subdev isn't found in the async subdev list. If
++		 * this subdev has controls they will be inherited starting
++		 * from a known async subdev.
++		 */
++		return 0;
++	}
++
+ 	imxpad = &imxsd->pad[pad_idx];
+ 
+ 	/*
+-- 
+2.7.4
