@@ -1,84 +1,456 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:44436 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751705AbdJKO12 (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:45180 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964944AbdJQNOx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Oct 2017 10:27:28 -0400
-Received: by mail-qt0-f195.google.com with SMTP id 8so5717998qtv.1
-        for <linux-media@vger.kernel.org>; Wed, 11 Oct 2017 07:27:28 -0700 (PDT)
+        Tue, 17 Oct 2017 09:14:53 -0400
+Date: Tue, 17 Oct 2017 18:44:47 +0530
+From: Aishwarya Pant <aishpant@gmail.com>
+To: Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Cc: outreachy-kernel@googlegroups.com
+Subject: [PATCH v3 2/2] staging: atomisp: cleanup out of memory messages
+Message-ID: <84b8f55c1aaeca8c570cf6ae260c86476fcb87c9.1508245883.git.aishpant@gmail.com>
+References: <cover.1508245883.git.aishpant@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1507730484.18241.17.camel@intel.com>
-References: <1497478767-10270-1-git-send-email-yong.zhi@intel.com>
- <1497478767-10270-9-git-send-email-yong.zhi@intel.com> <CAHp75Vff3tQE4NdsLJDO=7b7_5O3XW360qxOw4nbeE3i+usvhQ@mail.gmail.com>
- <C193D76D23A22742993887E6D207B54D1AE287D3@ORSMSX106.amr.corp.intel.com>
- <20171011072925.twuc22cqnv5pymed@paasikivi.fi.intel.com> <CAHp75VfTZ5GhNCgSbD2_d99Yq-32hDy06ZyRpNJTwo3PFKG=Uw@mail.gmail.com>
- <1507730484.18241.17.camel@intel.com>
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Wed, 11 Oct 2017 17:27:27 +0300
-Message-ID: <CAHp75VcE11_AZ0UCFxBdMRVnmj+FMUhaBFzEFLxqbK7_0_p9pg@mail.gmail.com>
-Subject: Re: [PATCH v2 08/12] intel-ipu3: params: compute and program ccs
-To: Tuukka Toivonen <tuukka.toivonen@intel.com>
-Cc: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zhi, Yong" <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1508245883.git.aishpant@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 11, 2017 at 5:01 PM, Tuukka Toivonen
-<tuukka.toivonen@intel.com> wrote:
-> On Wed, 2017-10-11 at 16:31 +0300, Andy Shevchenko wrote:
->> On Wed, Oct 11, 2017 at 10:29 AM, sakari.ailus@linux.intel.com
->> <sakari.ailus@linux.intel.com> wrote:
->> > On Wed, Oct 11, 2017 at 04:14:37AM +0000, Zhi, Yong wrote:
+Logging of explicit out of memory messages is redundant since memory allocation
+failures produce a backtrace.
 
->> > > > > +static unsigned int ipu3_css_scaler_get_exp(unsigned int
->> > > > > counter,
->> > > > > +                                           unsigned int
->> > > > > divider) {
->> > > > > +       unsigned int i = 0;
->> > > > > +
->> > > > > +       while (counter <= divider / 2) {
->> > > > > +               divider /= 2;
->> > > > > +               i++;
->> > > > > +       }
->> > > > > +
->> > > > > +       return i;
+Done with the help of the following cocci script:
 
->> Roughly like
->>
->> if (!counter || divider < counter)
->>  return 0;
->> return order_base_2(divider) - order_base_2(counter);
->
-> The original loop is typical ran just couple of times, so I think
-> that fls or division are probably slower than the original loop.
-> Furthermore, these "optimizations" are also harder to read, so in
-> my opinion there's no advantage in using them.
+@@
+expression ex, ret;
+statement s;
+constant char[] c;
+constant err;
+identifier f, l;
+@@
 
-Honestly I'm opposing that.
-It took me about minute to be clear what is going on on that loop
-while fls() / ffs() / ilog2() like stuff can be read fast.
+ex =
+\(kmalloc\|kmalloc_array\|kzalloc\|kcalloc\|kmem_cache_alloc\|kmem_cache_zalloc\|
+kmem_cache_alloc_node\|kmalloc_node\|kzalloc_node\|devm_kzalloc\)(...)
+... when != ex
 
-Like
+if (
+(
+!ex
+|
+unlikely(!ex)
+)
+)
+- {
+- f(..., c, ...);
+(
+return ex;
+|
+return;
+|
+return err;
+|
+goto l;
+)
+- }
+else s
 
-int shift = order_base_2(divider) - order_base_2(counter);
+Another case where if branch has multiple statements was handled with the
+following condition:
 
-return shift > 0 ? shift : 0;
+{
+...
+- f(..., c, ...);
+...
+}
 
-And frankly I don't care about under the hoods of order_base_2(). I
-care about this certain piece of code to be simpler.
+Signed-off-by: Aishwarya Pant <aishpant@gmail.com>
+---
+Changes in v3:
+  Rebase changes over atomisp-next branch of the media tree
 
-One may put a comment line:
+ drivers/staging/media/atomisp/i2c/atomisp-ap1302.c             |  4 +---
+ drivers/staging/media/atomisp/i2c/atomisp-gc0310.c             |  4 +---
+ drivers/staging/media/atomisp/i2c/atomisp-gc2235.c             |  4 +---
+ drivers/staging/media/atomisp/i2c/atomisp-lm3554.c             |  4 +---
+ drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c            |  4 +---
+ drivers/staging/media/atomisp/i2c/atomisp-ov2680.c             |  4 +---
+ drivers/staging/media/atomisp/i2c/atomisp-ov2722.c             |  4 +---
+ drivers/staging/media/atomisp/i2c/imx/imx.c                    |  4 +---
+ drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c      |  4 +---
+ drivers/staging/media/atomisp/i2c/ov8858.c                     |  6 +-----
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c      |  4 +---
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c     |  9 ++-------
+ .../media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c  |  4 +---
+ drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c        | 10 ++--------
+ .../staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c  |  6 +-----
+ .../staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c |  5 +----
+ drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_vm.c        |  4 +---
+ .../media/atomisp/platform/intel-mid/atomisp_gmin_platform.c   |  4 +---
+ 18 files changed, 20 insertions(+), 68 deletions(-)
 
-# Get log2 of how divider bigger than counter
-
-And thinking more while writing this message the use of order_base_2()
-actually explains what's going on here.
-
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-ap1302.c b/drivers/staging/media/atomisp/i2c/atomisp-ap1302.c
+index 2f772a020c8b..bfbf85122c3b 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-ap1302.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-ap1302.c
+@@ -1153,10 +1153,8 @@ static int ap1302_probe(struct i2c_client *client,
+ 
+ 	/* allocate device & init sub device */
+ 	dev = devm_kzalloc(&client->dev, sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "%s: out of memory\n", __func__);
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c b/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c
+index 35ed51ffe944..291565451bfe 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c
+@@ -1385,10 +1385,8 @@ static int gc0310_probe(struct i2c_client *client,
+ 
+ 	pr_info("%s S\n", __func__);
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c b/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
+index e43d31ea9676..f51535eee091 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
+@@ -1123,10 +1123,8 @@ static int gc2235_probe(struct i2c_client *client,
+ 	unsigned int i;
+ 
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c b/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c
+index 679176f7c542..37876d245a02 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-lm3554.c
+@@ -871,10 +871,8 @@ static int lm3554_probe(struct i2c_client *client,
+ 	int ret;
+ 
+ 	flash = kzalloc(sizeof(*flash), GFP_KERNEL);
+-	if (!flash) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!flash)
+ 		return -ENOMEM;
+-	}
+ 
+ 	flash->pdata = client->dev.platform_data;
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c b/drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c
+index 3c837cb8859c..e204238ae06b 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c
+@@ -1863,10 +1863,8 @@ static int mt9m114_probe(struct i2c_client *client,
+ 
+ 	/* Setup sensor configuration structure */
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	v4l2_i2c_subdev_init(&dev->sd, client, &mt9m114_ops);
+ 	pdata = client->dev.platform_data;
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c b/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
+index 51b7d61df0f5..c81e80e7bdea 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
+@@ -1447,10 +1447,8 @@ static int ov2680_probe(struct i2c_client *client,
+ 	unsigned int i;
+ 
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c b/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c
+index 10094ac56561..5f2e8a2798ef 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c
+@@ -1285,10 +1285,8 @@ static int ov2722_probe(struct i2c_client *client,
+ 	struct acpi_device *adev;
+ 
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/imx/imx.c b/drivers/staging/media/atomisp/i2c/imx/imx.c
+index 71b688970822..885a26cc158e 100644
+--- a/drivers/staging/media/atomisp/i2c/imx/imx.c
++++ b/drivers/staging/media/atomisp/i2c/imx/imx.c
+@@ -2364,10 +2364,8 @@ static int imx_probe(struct i2c_client *client,
+ 
+ 	/* allocate sensor device & init sub device */
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		v4l2_err(client, "%s: out of memory\n", __func__);
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+index 219501167584..cfdb03fbb9e6 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
++++ b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+@@ -1958,10 +1958,8 @@ static int ov5693_probe(struct i2c_client *client,
+ 	}
+ 
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "out of memory\n");
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/ov8858.c b/drivers/staging/media/atomisp/i2c/ov8858.c
+index 43e1638fd674..918139d3d3c0 100644
+--- a/drivers/staging/media/atomisp/i2c/ov8858.c
++++ b/drivers/staging/media/atomisp/i2c/ov8858.c
+@@ -480,8 +480,6 @@ static int ov8858_priv_int_data_init(struct v4l2_subdev *sd)
+ 	if (!dev->otp_data) {
+ 		dev->otp_data = devm_kzalloc(&client->dev, size, GFP_KERNEL);
+ 		if (!dev->otp_data) {
+-			dev_err(&client->dev, "%s: can't allocate memory",
+-				__func__);
+ 			r = -ENOMEM;
+ 			goto error3;
+ 		}
+@@ -2094,10 +2092,8 @@ static int ov8858_probe(struct i2c_client *client,
+ 
+ 	/* allocate sensor device & init sub device */
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(&client->dev, "%s: out of memory\n", __func__);
++	if (!dev)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mutex_init(&dev->input_lock);
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
+index d8cfed358d55..d64c98944d49 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
+@@ -1137,10 +1137,8 @@ static int remove_pad_from_frame(struct atomisp_device *isp,
+ 	ia_css_ptr store = load;
+ 
+ 	buffer = kmalloc(width*sizeof(load), GFP_KERNEL);
+-	if (!buffer) {
+-		dev_err(isp->dev, "out of memory.\n");
++	if (!buffer)
+ 		return -ENOMEM;
+-	}
+ 
+ 	load += ISP_LEFT_PAD;
+ 	for (i = 0; i < height; i++) {
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
+index dd59167237c1..ccb78f0bc7a2 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
+@@ -942,10 +942,8 @@ int atomisp_alloc_css_stat_bufs(struct atomisp_sub_device *asd,
+ 		dev_dbg(isp->dev, "allocating %d 3a buffers\n", count);
+ 		while (count--) {
+ 			s3a_buf = kzalloc(sizeof(struct atomisp_s3a_buf), GFP_KERNEL);
+-			if (!s3a_buf) {
+-				dev_err(isp->dev, "s3a stat buf alloc failed\n");
++			if (!s3a_buf)
+ 				goto error;
+-			}
+ 
+ 			if (atomisp_css_allocate_stat_buffers(
+ 					asd, stream_id, s3a_buf, NULL, NULL)) {
+@@ -964,7 +962,6 @@ int atomisp_alloc_css_stat_bufs(struct atomisp_sub_device *asd,
+ 		while (count--) {
+ 			dis_buf = kzalloc(sizeof(struct atomisp_dis_buf), GFP_KERNEL);
+ 			if (!dis_buf) {
+-				dev_err(isp->dev, "dis stat buf alloc failed\n");
+ 				kfree(s3a_buf);
+ 				goto error;
+ 			}
+@@ -989,10 +986,8 @@ int atomisp_alloc_css_stat_bufs(struct atomisp_sub_device *asd,
+ 			while (count--) {
+ 				md_buf = kzalloc(sizeof(struct atomisp_metadata_buf),
+ 						 GFP_KERNEL);
+-				if (!md_buf) {
+-					dev_err(isp->dev, "metadata buf alloc failed\n");
++				if (!md_buf)
+ 					goto error;
+-				}
+ 
+ 				if (atomisp_css_allocate_stat_buffers(
+ 						asd, stream_id, NULL, NULL, md_buf)) {
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c
+index 48e2e63c2336..e6ebd1b08f0d 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_param_shading.c
+@@ -365,10 +365,8 @@ ia_css_shading_table_alloc(
+ 	IA_CSS_ENTER("");
+ 
+ 	me = kmalloc(sizeof(*me), GFP_KERNEL);
+-	if (!me) {
+-		IA_CSS_ERROR("out of memory");
++	if (!me)
+ 		return me;
+-	}
+ 
+ 	me->width         = width;
+ 	me->height        = height;
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+index 8007b6f50179..12c96c4f284d 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+@@ -727,10 +727,8 @@ static int alloc_private_pages(struct hmm_buffer_object *bo,
+ 
+ 	bo->page_obj = kmalloc(sizeof(struct hmm_page_object) * pgnr,
+ 				GFP_KERNEL);
+-	if (unlikely(!bo->page_obj)) {
+-		dev_err(atomisp_dev, "out of memory for bo->page_obj\n");
++	if (unlikely(!bo->page_obj))
+ 		return -ENOMEM;
+-	}
+ 
+ 	i = 0;
+ 	alloc_pgnr = 0;
+@@ -991,15 +989,12 @@ static int alloc_user_pages(struct hmm_buffer_object *bo,
+ 	struct page **pages;
+ 
+ 	pages = kmalloc(sizeof(struct page *) * bo->pgnr, GFP_KERNEL);
+-	if (unlikely(!pages)) {
+-		dev_err(atomisp_dev, "out of memory for pages...\n");
++	if (unlikely(!pages))
+ 		return -ENOMEM;
+-	}
+ 
+ 	bo->page_obj = kmalloc(sizeof(struct hmm_page_object) * bo->pgnr,
+ 		GFP_KERNEL);
+ 	if (unlikely(!bo->page_obj)) {
+-		dev_err(atomisp_dev, "out of memory for bo->page_obj...\n");
+ 		kfree(pages);
+ 		return -ENOMEM;
+ 	}
+@@ -1362,7 +1357,6 @@ void *hmm_bo_vmap(struct hmm_buffer_object *bo, bool cached)
+ 	pages = kmalloc(sizeof(*pages) * bo->pgnr, GFP_KERNEL);
+ 	if (unlikely(!pages)) {
+ 		mutex_unlock(&bo->mutex);
+-		dev_err(atomisp_dev, "out of memory for pages...\n");
+ 		return NULL;
+ 	}
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c
+index 19e0e9ee37de..eb82c3e4c776 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c
+@@ -116,8 +116,6 @@ static void free_pages_to_dynamic_pool(void *pool,
+ 	hmm_page = kmem_cache_zalloc(dypool_info->pgptr_cache,
+ 						GFP_KERNEL);
+ 	if (!hmm_page) {
+-		dev_err(atomisp_dev, "out of memory for hmm_page.\n");
+-
+ 		/* free page directly */
+ 		ret = set_pages_wb(page_obj->page, 1);
+ 		if (ret)
+@@ -151,10 +149,8 @@ static int hmm_dynamic_pool_init(void **pool, unsigned int pool_size)
+ 
+ 	dypool_info = kmalloc(sizeof(struct hmm_dynamic_pool_info),
+ 		GFP_KERNEL);
+-	if (unlikely(!dypool_info)) {
+-		dev_err(atomisp_dev, "out of memory for repool_info.\n");
++	if (unlikely(!dypool_info))
+ 		return -ENOMEM;
+-	}
+ 
+ 	dypool_info->pgptr_cache = kmem_cache_create("pgptr_cache",
+ 						sizeof(struct hmm_page), 0,
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c
+index bf6586805f7f..177bc354f1d7 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c
+@@ -92,15 +92,12 @@ static int hmm_reserved_pool_setup(struct hmm_reserved_pool_info **repool_info,
+ 
+ 	pool_info = kmalloc(sizeof(struct hmm_reserved_pool_info),
+ 				GFP_KERNEL);
+-	if (unlikely(!pool_info)) {
+-		dev_err(atomisp_dev, "out of memory for repool_info.\n");
++	if (unlikely(!pool_info))
+ 		return -ENOMEM;
+-	}
+ 
+ 	pool_info->pages = kmalloc(sizeof(struct page *) * pool_size,
+ 			GFP_KERNEL);
+ 	if (unlikely(!pool_info->pages)) {
+-		dev_err(atomisp_dev, "out of memory for repool_info->pages.\n");
+ 		kfree(pool_info);
+ 		return -ENOMEM;
+ 	}
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_vm.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_vm.c
+index 0722a68a49e7..402ffd9cb480 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_vm.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_vm.c
+@@ -89,10 +89,8 @@ static struct hmm_vm_node *alloc_hmm_vm_node(unsigned int pgnr,
+ 	struct hmm_vm_node *node;
+ 
+ 	node = kmem_cache_alloc(vm->cache, GFP_KERNEL);
+-	if (!node) {
+-		dev_err(atomisp_dev, "out of memory.\n");
++	if (!node)
+ 		return NULL;
+-	}
+ 
+ 	INIT_LIST_HEAD(&node->list);
+ 	node->pgnr = pgnr;
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+index 8a20a28d37f1..8c6a26eea095 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+@@ -785,10 +785,8 @@ int camera_sensor_csi(struct v4l2_subdev *sd, u32 port,
+ 
+ 	if (flag) {
+ 		csi = kzalloc(sizeof(*csi), GFP_KERNEL);
+-		if (!csi) {
+-			dev_err(&client->dev, "out of memory\n");
++		if (!csi)
+ 			return -ENOMEM;
+-		}
+ 		csi->port = port;
+ 		csi->num_lanes = lanes;
+ 		csi->input_format = format;
 -- 
-With Best Regards,
-Andy Shevchenko
+2.11.0
