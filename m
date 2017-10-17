@@ -1,86 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:54407 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932246AbdJZPiG (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37646 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753138AbdJQKOX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Oct 2017 11:38:06 -0400
-Received: by mail-lf0-f65.google.com with SMTP id a2so4214560lfh.11
-        for <linux-media@vger.kernel.org>; Thu, 26 Oct 2017 08:38:05 -0700 (PDT)
-Date: Thu, 26 Oct 2017 17:38:03 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v16 05/32] v4l: async: Correctly serialise async
- sub-device unregistration
-Message-ID: <20171026153803.GD2297@bigcity.dyn.berto.se>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-6-sakari.ailus@linux.intel.com>
+        Tue, 17 Oct 2017 06:14:23 -0400
+Date: Tue, 17 Oct 2017 13:14:21 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: vb2: unify calling of set_page_dirty_lock
+Message-ID: <20171017101420.5a5cvyhkadmcqgfy@valkosipuli.retiisi.org.uk>
+References: <20170829112603.32732-1-stanimir.varbanov@linaro.org>
+ <1507650010.2784.11.camel@ndufresne.ca>
+ <20171015204014.2awhhygw6hi3lxas@valkosipuli.retiisi.org.uk>
+ <1508108964.4502.6.camel@ndufresne.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171026075342.5760-6-sakari.ailus@linux.intel.com>
+In-Reply-To: <1508108964.4502.6.camel@ndufresne.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2017-10-26 10:53:15 +0300, Sakari Ailus wrote:
-> The check whether an async sub-device is bound to a notifier was performed
-> without list_lock held, making it possible for another process to
-> unbind the async sub-device before the sub-device unregistration function
-> proceeds to take the lock.
+On Sun, Oct 15, 2017 at 07:09:24PM -0400, Nicolas Dufresne wrote:
+> Le dimanche 15 octobre 2017 à 23:40 +0300, Sakari Ailus a écrit :
+> > Hi Nicolas,
+> > 
+> > On Tue, Oct 10, 2017 at 11:40:10AM -0400, Nicolas Dufresne wrote:
+> > > Le mardi 29 août 2017 à 14:26 +0300, Stanimir Varbanov a écrit :
+> > > > Currently videobuf2-dma-sg checks for dma direction for
+> > > > every single page and videobuf2-dc lacks any dma direction
+> > > > checks and calls set_page_dirty_lock unconditionally.
+> > > > 
+> > > > Thus unify and align the invocations of set_page_dirty_lock
+> > > > for videobuf2-dc, videobuf2-sg  memory allocators with
+> > > > videobuf2-vmalloc, i.e. the pattern used in vmalloc has been
+> > > > copied to dc and dma-sg.
+> > > 
+> > > Just before we go too far in "doing like vmalloc", I would like to
+> > > share this small video that display coherency issues when rendering
+> > > vmalloc backed DMABuf over various KMS/DRM driver. I can reproduce
+> > > this
+> > > easily with Intel and MSM display drivers using UVC or Vivid as
+> > > source.
+> > > 
+> > > The following is an HDMI capture of the following GStreamer
+> > > pipeline
+> > > running on Dragonboard 410c.
+> > > 
+> > >     gst-launch-1.0 -v v4l2src device=/dev/video2 ! video/x-
+> > > raw,format=NV16,width=1280,height=720 ! kmssink
+> > >     https://people.collabora.com/~nicolas/vmalloc-issue.mov
+> > > 
+> > > Feedback on this issue would be more then welcome. It's not clear
+> > > to me
+> > > who's bug is this (v4l2, drm or iommu). The software is unlikely to
+> > > be
+> > > blamed as this same pipeline works fine with non-vmalloc based
+> > > sources.
+> > 
+> > Could you elaborate this a little bit more? Which Intel CPU do you
+> > have
+> > there?
 > 
-> Fix this by first acquiring the lock and then proceeding with the check.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> I have tested with Skylake and Ivy Bridge and on Dragonboard 410c
+> (Qualcomm APQ8016 SoC) (same visual artefact)
 
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 18 +++++++-----------
->  1 file changed, 7 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index 4924481451ca..cde2cf2ab4b0 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -298,20 +298,16 @@ EXPORT_SYMBOL(v4l2_async_register_subdev);
->  
->  void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
->  {
-> -	struct v4l2_async_notifier *notifier = sd->notifier;
-> -
-> -	if (!sd->asd) {
-> -		if (!list_empty(&sd->async_list))
-> -			v4l2_async_cleanup(sd);
-> -		return;
-> -	}
-> -
->  	mutex_lock(&list_lock);
->  
-> -	list_add(&sd->asd->list, &notifier->waiting);
-> +	if (sd->asd) {
-> +		struct v4l2_async_notifier *notifier = sd->notifier;
->  
-> -	if (notifier->unbind)
-> -		notifier->unbind(notifier, sd, sd->asd);
-> +		list_add(&sd->asd->list, &notifier->waiting);
-> +
-> +		if (notifier->unbind)
-> +			notifier->unbind(notifier, sd, sd->asd);
-> +	}
->  
->  	v4l2_async_cleanup(sd);
->  
-> -- 
-> 2.11.0
-> 
+I presume kmssink draws on the display. Which GPU did you use?
 
 -- 
-Regards,
-Niklas Söderlund
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
