@@ -1,133 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa3.microchip.iphmx.com ([68.232.153.233]:53732 "EHLO
-        esa3.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750764AbdJ3Bi2 (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:52353 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1761614AbdJQM1k (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Oct 2017 21:38:28 -0400
-Subject: Re: [PATCH v2 2/2] media: ov7740: Document device tree bindings
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        <linux-kernel@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        <devicetree@vger.kernel.org>, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20171027074220.23839-1-wenyou.yang@microchip.com>
- <20171027074220.23839-3-wenyou.yang@microchip.com>
- <20171027105939.2rxfjfqezexcatc5@valkosipuli.retiisi.org.uk>
-From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
-Message-ID: <3086ade5-b33d-61c8-74fa-8b430896be87@Microchip.com>
-Date: Mon, 30 Oct 2017 09:38:18 +0800
-MIME-Version: 1.0
-In-Reply-To: <20171027105939.2rxfjfqezexcatc5@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+        Tue, 17 Oct 2017 08:27:40 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, prabhakar.csengg@gmail.com,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 1/2] [media] davinci: make function arguments const
+Date: Tue, 17 Oct 2017 14:27:24 +0200
+Message-Id: <1508243245-30849-2-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1508243245-30849-1-git-send-email-bhumirks@gmail.com>
+References: <1508243245-30849-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Make the function arguments of functions vpfe_{register/unregister}_ccdc_device
+const as the pointer dev does not modify the fields of the structure 
+it points to. Also, declare the variable ccdc_dev const as it points to the 
+same structure as dev but it does not modify the fields as well.
 
-Thank you very much for your review and advice.
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/media/platform/davinci/ccdc_hw_device.h | 4 ++--
+ drivers/media/platform/davinci/vpfe_capture.c   | 6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-I will send a new version to fix it.
-
-On 2017/10/27 18:59, Sakari Ailus wrote:
-> Hi Wenyou,
->
-> On Fri, Oct 27, 2017 at 03:42:20PM +0800, Wenyou Yang wrote:
->> Add the device tree binding documentation for ov7740 driver and
->> add a new entry of ov7740 to the MAINTAINERS file.
->>
->> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
->> ---
->>
->> Changes in v2:
->>   - Split off the bindings into a separate patch.
->>   - Add a new entry to the MAINTAINERS file.
->>
->>   .../devicetree/bindings/media/i2c/ov7740.txt       | 43 ++++++++++++++++++++++
->>   MAINTAINERS                                        |  8 ++++
->>   2 files changed, 51 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7740.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/ov7740.txt b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
->> new file mode 100644
->> index 000000000000..b306e5aa97bf
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
->> @@ -0,0 +1,43 @@
->> +* Omnivision OV7740 CMOS image sensor
->> +
->> +The Omnivision OV7740 image sensor supports multiple output image
->> +size, such as VGA, and QVGA, CIF and any size smaller. It also
->> +supports the RAW RGB and YUV output formats.
->> +
->> +Required Properties:
->> +- compatible: should be "ovti,ov7740"
->> +- clocks: reference to the xvclk input clock.
->> +- clock-names: should be "xvclk".
->> +
->> +Optional Properties:
->> +- reset-gpios: reference to the GPIO connected to the reset_b pin,
->> +  if any. Active low with pull-ip resistor.
->> +- powerdown-gpios: reference to the GPIO connected to the pwdn pin,
->> +  if any. Active high with pull-down resistor.
->> +
->> +The device node must contain one 'port' child node for its digital
->> +output video port, in accordance with the video interface bindings
->> +defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
-> Could you add there's a single endpoint node as well, and explicitly
-> document the relevant properties? E.g. as in
-> Documentation/devicetree/bindings/media/i2c/nokia,smia.txt .
->
->> +
->> +Example:
->> +
->> +	i2c1: i2c@fc028000 {
->> +		ov7740: camera@21 {
->> +			compatible = "ovti,ov7740";
->> +			reg = <0x21>;
->> +			pinctrl-names = "default";
->> +			pinctrl-0 = <&pinctrl_sensor_power &pinctrl_sensor_reset>;
->> +			clocks = <&isc>;
->> +			clock-names = "xvclk";
->> +			assigned-clocks = <&isc>;
->> +			assigned-clock-rates = <24000000>;
->> +			reset-gpios = <&pioA 43 GPIO_ACTIVE_LOW>;
->> +			powerdown-gpios = <&pioA 44 GPIO_ACTIVE_HIGH>;
->> +
->> +			port {
->> +				ov7740_0: endpoint {
->> +					remote-endpoint = <&isc_0>;
->> +				};
->> +			};
->> +		};
->> +	};
->> diff --git a/MAINTAINERS b/MAINTAINERS
->> index 90230fe020f3..f0f3f121d1d8 100644
->> --- a/MAINTAINERS
->> +++ b/MAINTAINERS
->> @@ -9965,6 +9965,14 @@ S:	Maintained
->>   F:	drivers/media/i2c/ov7670.c
->>   F:	Documentation/devicetree/bindings/media/i2c/ov7670.txt
->>   
->> +OMNIVISION OV7740 SENSOR DRIVER
->> +M:	Wenyou Yang <wenyou.yang@microchip.com>
->> +L:	linux-media@vger.kernel.org
->> +T:	git git://linuxtv.org/media_tree.git
->> +S:	Maintained
->> +F:	drivers/media/i2c/ov7740.c
->> +F:	Documentation/devicetree/bindings/media/i2c/ov7740.txt
->> +
->>   ONENAND FLASH DRIVER
->>   M:	Kyungmin Park <kyungmin.park@samsung.com>
->>   L:	linux-mtd@lists.infradead.org
-> Please put the MAINTAINERS change to the driver patch after the DT binding
-> patch.
->
-Best Regards,
-Wenyou Yang
+diff --git a/drivers/media/platform/davinci/ccdc_hw_device.h b/drivers/media/platform/davinci/ccdc_hw_device.h
+index f1b5210..3482178 100644
+--- a/drivers/media/platform/davinci/ccdc_hw_device.h
++++ b/drivers/media/platform/davinci/ccdc_hw_device.h
+@@ -82,8 +82,8 @@ struct ccdc_hw_device {
+ };
+ 
+ /* Used by CCDC module to register & unregister with vpfe capture driver */
+-int vpfe_register_ccdc_device(struct ccdc_hw_device *dev);
+-void vpfe_unregister_ccdc_device(struct ccdc_hw_device *dev);
++int vpfe_register_ccdc_device(const struct ccdc_hw_device *dev);
++void vpfe_unregister_ccdc_device(const struct ccdc_hw_device *dev);
+ 
+ #endif
+ #endif
+diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+index 6792da1..7b3f6f8 100644
+--- a/drivers/media/platform/davinci/vpfe_capture.c
++++ b/drivers/media/platform/davinci/vpfe_capture.c
+@@ -115,7 +115,7 @@ struct ccdc_config {
+ };
+ 
+ /* ccdc device registered */
+-static struct ccdc_hw_device *ccdc_dev;
++static const struct ccdc_hw_device *ccdc_dev;
+ /* lock for accessing ccdc information */
+ static DEFINE_MUTEX(ccdc_lock);
+ /* ccdc configuration */
+@@ -203,7 +203,7 @@ static const struct vpfe_pixel_format *vpfe_lookup_pix_format(u32 pix_format)
+  * vpfe_register_ccdc_device. CCDC module calls this to
+  * register with vpfe capture
+  */
+-int vpfe_register_ccdc_device(struct ccdc_hw_device *dev)
++int vpfe_register_ccdc_device(const struct ccdc_hw_device *dev)
+ {
+ 	int ret = 0;
+ 	printk(KERN_NOTICE "vpfe_register_ccdc_device: %s\n", dev->name);
+@@ -259,7 +259,7 @@ int vpfe_register_ccdc_device(struct ccdc_hw_device *dev)
+  * vpfe_unregister_ccdc_device. CCDC module calls this to
+  * unregister with vpfe capture
+  */
+-void vpfe_unregister_ccdc_device(struct ccdc_hw_device *dev)
++void vpfe_unregister_ccdc_device(const struct ccdc_hw_device *dev)
+ {
+ 	if (!dev) {
+ 		printk(KERN_ERR "invalid ccdc device ptr\n");
+-- 
+1.9.1
