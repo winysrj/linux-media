@@ -1,72 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:50469 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751267AbdJCVSt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 3 Oct 2017 17:18:49 -0400
-Date: Tue, 3 Oct 2017 23:18:46 +0200
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-To: Shuah Khan <shuahkhan@gmail.com>
-Cc: Jiri Kosina <jikos@kernel.org>, mchehab@s-opensource.com,
-        Pavel Machek <pavel@ucw.cz>,
-        "Luis R. Rodriguez" <mcgrof@kernel.org>, viro@zeniv.linux.org.uk,
-        bart.vanassche@wdc.com, ming.lei@redhat.com, tytso@mit.edu,
-        darrick.wong@oracle.com, rjw@rjwysocki.net, len.brown@intel.com,
-        linux-fsdevel@vger.kernel.org, boris.ostrovsky@oracle.com,
-        jgross@suse.com, todd.e.brandt@linux.intel.com, nborisov@suse.com,
-        jack@suse.cz, martin.petersen@oracle.com, ONeukum@suse.com,
-        oleksandr@natalenko.name, oleg.b.antonyan@gmail.com,
-        Linux PM list <linux-pm@vger.kernel.org>,
-        linux-block@vger.kernel.org, linux-xfs@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
-        shuahkh@osg.samsung.com
-Subject: Re: [RFC 5/5] pm: remove kernel thread freezing
-Message-ID: <20171003211846.GB5659@wotan.suse.de>
-References: <20171003185313.1017-1-mcgrof@kernel.org>
- <20171003185313.1017-6-mcgrof@kernel.org>
- <20171003201204.GA23521@amd>
- <nycvar.YFH.7.76.1710032213430.17517@jbgna.fhfr.qr>
- <20171003202121.GB23521@amd>
- <nycvar.YFH.7.76.1710032230450.17517@jbgna.fhfr.qr>
- <20171003205739.GA30569@amd>
- <nycvar.YFH.7.76.1710032258540.17517@jbgna.fhfr.qr>
- <CAKocOOM6M5HbTA24wStNFnOTVR6vHc76h6cXT=OcMV2e3XSy9w@mail.gmail.com>
+Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:22668 "EHLO
+        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755515AbdJQJRN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Oct 2017 05:17:13 -0400
+Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
+        by mx07-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v9H9DFVS020910
+        for <linux-media@vger.kernel.org>; Tue, 17 Oct 2017 10:17:11 +0100
+Received: from mail-pf0-f199.google.com (mail-pf0-f199.google.com [209.85.192.199])
+        by mx07-00252a01.pphosted.com with ESMTP id 2dk8001dag-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Tue, 17 Oct 2017 10:17:11 +0100
+Received: by mail-pf0-f199.google.com with SMTP id n14so924548pfh.15
+        for <linux-media@vger.kernel.org>; Tue, 17 Oct 2017 02:17:10 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAKocOOM6M5HbTA24wStNFnOTVR6vHc76h6cXT=OcMV2e3XSy9w@mail.gmail.com>
+In-Reply-To: <20171013210937.pzgmozz7elsb3yo5@valkosipuli.retiisi.org.uk>
+References: <cover.1505916622.git.dave.stevenson@raspberrypi.org>
+ <e6dfbe4afd3f1db4c3f8a81c0813dc418896f5e1.1505916622.git.dave.stevenson@raspberrypi.org>
+ <20171013210937.pzgmozz7elsb3yo5@valkosipuli.retiisi.org.uk>
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Tue, 17 Oct 2017 10:17:07 +0100
+Message-ID: <CAAoAYcN441pVUqCu00hbKmEQWyNaK4jdwkufpJ2P8iXkcQG5KA@mail.gmail.com>
+Subject: Re: [PATCH v3 1/4] [media] v4l2-common: Add helper function for
+ fourcc to string
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>,
+        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 03, 2017 at 03:09:53PM -0600, Shuah Khan wrote:
-> On Tue, Oct 3, 2017 at 3:00 PM, Jiri Kosina <jikos@kernel.org> wrote:
-> > On Tue, 3 Oct 2017, Pavel Machek wrote:
-> >
-> >> > Again, I agree that the (rare) kthreads that are actually "creating" new
-> >> > I/O have to be somehow frozen and require special care.
-> >>
-> >> Agreed. Was any effort made to identify those special kernel threads?
-> >
-> > I don't think there is any other way than just inspecting all the
-> > try_to_freeze() instances in the kernel, and understanding what that
-> > particular kthread is doing.
-> >
-> > I've cleaned up most of the low-hanging fruit already, where the
-> > try_to_freeze() was obviously completely pointless, but a lot more time
-> > needs to be invested into this.
-> >
-> 
-> There are about 36 drivers that call try_to_freeze() and half (18 ) of
-> those are media drivers. Maybe it is easier handle sub-system by
-> sub-system basis for a review of which one of these usages could be
-> removed. cc'ing Mauro and linux-media
+Hi Sakari.
 
-Yes :)
+On 13 October 2017 at 22:09, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Dave,
+>
+> On Wed, Sep 20, 2017 at 05:07:54PM +0100, Dave Stevenson wrote:
+>> New helper function char *v4l2_fourcc2s(u32 fourcc, char *buf)
+>> that converts a fourcc into a nice printable version.
+>>
+>> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+>> ---
+>>
+>> No changes from v2 to v3
+>>
+>>  drivers/media/v4l2-core/v4l2-common.c | 18 ++++++++++++++++++
+>>  include/media/v4l2-common.h           |  3 +++
+>>  2 files changed, 21 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+>> index a5ea1f5..0219895 100644
+>> --- a/drivers/media/v4l2-core/v4l2-common.c
+>> +++ b/drivers/media/v4l2-core/v4l2-common.c
+>> @@ -405,3 +405,21 @@ void v4l2_get_timestamp(struct timeval *tv)
+>>       tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
+>>  }
+>>  EXPORT_SYMBOL_GPL(v4l2_get_timestamp);
+>> +
+>> +char *v4l2_fourcc2s(u32 fourcc, char *buf)
+>> +{
+>> +     buf[0] = fourcc & 0x7f;
+>> +     buf[1] = (fourcc >> 8) & 0x7f;
+>> +     buf[2] = (fourcc >> 16) & 0x7f;
+>> +     buf[3] = (fourcc >> 24) & 0x7f;
+>> +     if (fourcc & (1 << 31)) {
+>> +             buf[4] = '-';
+>> +             buf[5] = 'B';
+>> +             buf[6] = 'E';
+>> +             buf[7] = '\0';
+>> +     } else {
+>> +             buf[4] = '\0';
+>> +     }
+>> +     return buf;
+>> +}
+>> +EXPORT_SYMBOL_GPL(v4l2_fourcc2s);
+>> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+>> index aac8b7b..5b0fff9 100644
+>> --- a/include/media/v4l2-common.h
+>> +++ b/include/media/v4l2-common.h
+>> @@ -264,4 +264,7 @@ const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
+>>
+>>  void v4l2_get_timestamp(struct timeval *tv);
+>>
+>> +#define V4L2_FOURCC_MAX_SIZE 8
+>> +char *v4l2_fourcc2s(u32 fourcc, char *buf);
+>> +
+>>  #endif /* V4L2_COMMON_H_ */
+>
+> I like the idea but the use of a character pointer and assuming a length
+> looks a bit scary.
+>
+> As this seems to be used uniquely for printing stuff, a couple of macros
+> could be used instead. Something like
+>
+> #define V4L2_FOURCC_CONV "%c%c%c%c%s"
+> #define V4L2_FOURCC_TO_CONV(fourcc) \
+>         fourcc & 0x7f, (fourcc >> 8) & 0x7f, (fourcc >> 16) & 0x7f, \
+>         (fourcc >> 24) & 0x7f, fourcc & BIT(31) ? "-BE" : ""
+>
+> You could use it with printk-style functions, e.g.
+>
+>         printk("blah fourcc " V4L2_FOURCC_CONV " is a nice format",
+>                V4L2_FOURCC_TO_CONV(fourcc));
+>
+> I guess it'd be better to add more parentheses around "fourcc" but it'd be
+> less clear here that way.
 
-I guess no one reads cover letters, but indeed. To be clear, this last
-patch should only go in after a few kernels from now all kthreads
-are vetted for piece-meal wise.
+I was following Hans' suggestion made in
+https://www.spinics.net/lists/linux-media/msg117046.html
 
-This patch would be the nail on the kthread freezer coffin. It should
-go in last, who knows how many years from now, and if ever.
+Hans: Do you agree with Sakari here to make it to a macro?
 
-  Luis
+  Dave
