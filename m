@@ -1,75 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:52196 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757046AbdJKH37 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Oct 2017 03:29:59 -0400
-Date: Wed, 11 Oct 2017 10:29:25 +0300
-From: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
-To: "Zhi, Yong" <yong.zhi@intel.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
-Subject: Re: [PATCH v2 08/12] intel-ipu3: params: compute and program ccs
-Message-ID: <20171011072925.twuc22cqnv5pymed@paasikivi.fi.intel.com>
-References: <1497478767-10270-1-git-send-email-yong.zhi@intel.com>
- <1497478767-10270-9-git-send-email-yong.zhi@intel.com>
- <CAHp75Vff3tQE4NdsLJDO=7b7_5O3XW360qxOw4nbeE3i+usvhQ@mail.gmail.com>
- <C193D76D23A22742993887E6D207B54D1AE287D3@ORSMSX106.amr.corp.intel.com>
+Received: from gateway30.websitewelcome.com ([192.185.148.2]:38391 "EHLO
+        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755291AbdJQSEx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Oct 2017 14:04:53 -0400
+Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
+        by gateway30.websitewelcome.com (Postfix) with ESMTP id EF4F61860D
+        for <linux-media@vger.kernel.org>; Tue, 17 Oct 2017 12:19:08 -0500 (CDT)
+Date: Tue, 17 Oct 2017 12:19:07 -0500
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] staging: media: imx: fix inconsistent IS_ERR and PTR_ERR
+Message-ID: <20171017171907.GA3957@embeddedor.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <C193D76D23A22742993887E6D207B54D1AE287D3@ORSMSX106.amr.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 11, 2017 at 04:14:37AM +0000, Zhi, Yong wrote:
-> Hi, Andy,
-> 
-> > -----Original Message-----
-> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > owner@vger.kernel.org] On Behalf Of Andy Shevchenko
-> > Sent: Friday, June 16, 2017 3:53 PM
-> > To: Zhi, Yong <yong.zhi@intel.com>
-> > Cc: Linux Media Mailing List <linux-media@vger.kernel.org>;
-> > sakari.ailus@linux.intel.com; Zheng, Jian Xu <jian.xu.zheng@intel.com>;
-> > tfiga@chromium.org; Mani, Rajmohan <rajmohan.mani@intel.com>;
-> > Toivonen, Tuukka <tuukka.toivonen@intel.com>
-> > Subject: Re: [PATCH v2 08/12] intel-ipu3: params: compute and program ccs
-> > 
-> > On Thu, Jun 15, 2017 at 1:19 AM, Yong Zhi <yong.zhi@intel.com> wrote:
-> > > A collection of routines that are mainly responsible to calculate the
-> > > acc parameters.
-> > 
-> > > +static unsigned int ipu3_css_scaler_get_exp(unsigned int counter,
-> > > +                                           unsigned int divider) {
-> > > +       unsigned int i = 0;
-> > > +
-> > > +       while (counter <= divider / 2) {
-> > > +               divider /= 2;
-> > > +               i++;
-> > > +       }
-> > > +
-> > > +       return i;
-> > 
-> > We have a lot of different helpers including one you may use instead of this
-> > function.
-> > 
-> > It's *highly* recommended you learn what we have under lib/ (and not only
-> > there) in kernel bewfore submitting a new version.
-> > 
-> 
-> Tried to identify more places that could be re-implemented with lib
-> helpers or more generic method, but we failed to spot any obvious
-> candidate thus far.
+Fix inconsistent IS_ERR and PTR_ERR in csi_link_validate.
+The proper pointer to be passed as argument is sensor.
 
-How about:
+This issue was detected with the help of Coccinelle.
 
-	return (!counter || divider < counter) ?
-	       0 : fls(divider / counter) - 1;
+Reported-by: Julia Lawall <julia.lawall@lip6.fr>
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+---
+This code was tested by compilation only.
 
+ drivers/staging/media/imx/imx-media-csi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 6d85611..2fa72c1 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -989,7 +989,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
+ 	sensor = __imx_media_find_sensor(priv->md, &priv->sd.entity);
+ 	if (IS_ERR(sensor)) {
+ 		v4l2_err(&priv->sd, "no sensor attached\n");
+-		return PTR_ERR(priv->sensor);
++		return PTR_ERR(sensor);
+ 	}
+ 
+ 	mutex_lock(&priv->lock);
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.7.4
