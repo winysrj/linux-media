@@ -1,178 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-co1nam03on0132.outbound.protection.outlook.com ([104.47.40.132]:63264
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751901AbdJMGNw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 02:13:52 -0400
-From: <Yasunari.Takiguchi@sony.com>
-To: <akpm@linux-foundation.org>, <linux-kernel@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>
-CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
-        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
-        Hideki Nozawa <Hideki.Nozawa@sony.com>,
-        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
-        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
-        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
-Subject: [PATCH v4 12/12] [media] cxd2880: Add all Makefile, Kconfig files and Update MAINTAINERS file for the driver
-Date: Fri, 13 Oct 2017 15:17:20 +0900
-Message-ID: <20171013061720.22096-1-Yasunari.Takiguchi@sony.com>
-In-Reply-To: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
-References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33306 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753334AbdJQMvc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Oct 2017 08:51:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 2/6 v5]  V4L: Add a UVC Metadata format
+Date: Tue, 17 Oct 2017 15:51:51 +0300
+Message-ID: <3231199.kzeCqNOE3f@avalon>
+In-Reply-To: <1501245205-15802-3-git-send-email-g.liakhovetski@gmx.de>
+References: <1501245205-15802-1-git-send-email-g.liakhovetski@gmx.de> <1501245205-15802-3-git-send-email-g.liakhovetski@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Hi Guennadi,
 
-This is the Makefile, Kconfig files of driver 
-and MAINTAINERS file update about the driver 
-for the Sony CXD2880 DVB-T2/T tuner + demodulator.
+(CC'ing Sakari Ailus)
 
-Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
-Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
-Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
-Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
-Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
----
+Thank you for the patch.
 
-[Change list]
-Changes in V4
-   We put [PATCH v3 12/14], [PATCH v3 13/14] and [PATCH v3 14/14]
-   in [PATCH v4 12/12].
-   
-   drivers/media/dvb-frontends/cxd2880/Makefile
-      -removed cxd2880_integ_dvbt2.o and cxd2880_integ_dvbt.o 
+On Friday, 28 July 2017 15:33:21 EEST Guennadi Liakhovetski wrote:
+> Add a pixel format, used by the UVC driver to stream metadata.
+> 
+> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> ---
+>  Documentation/media/uapi/v4l/meta-formats.rst    |  1 +
+>  Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst | 39 +++++++++++++++++++++
+>  include/uapi/linux/videodev2.h                   |  1 +
+>  3 files changed, 41 insertions(+)
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
+> 
+> diff --git a/Documentation/media/uapi/v4l/meta-formats.rst
+> b/Documentation/media/uapi/v4l/meta-formats.rst index 01e24e3..1bb45a3f
+> 100644
+> --- a/Documentation/media/uapi/v4l/meta-formats.rst
+> +++ b/Documentation/media/uapi/v4l/meta-formats.rst
+> @@ -14,3 +14,4 @@ These formats are used for the :ref:`metadata` interface
+> only.
+> 
+>      pixfmt-meta-vsp1-hgo
+>      pixfmt-meta-vsp1-hgt
+> +    pixfmt-meta-uvc
 
-Changes in V3
-   drivers/media/dvb-frontends/cxd2880/Makefile
-      -removed cxd2880_math.o  
+It might make sense to keep this alphabetically sorted.
 
- MAINTAINERS                                  |  9 +++++++++
- drivers/media/dvb-frontends/Kconfig          |  2 ++
- drivers/media/dvb-frontends/Makefile         |  1 +
- drivers/media/dvb-frontends/cxd2880/Kconfig  |  6 ++++++
- drivers/media/dvb-frontends/cxd2880/Makefile | 18 ++++++++++++++++++
- drivers/media/spi/Kconfig                    | 14 ++++++++++++++
- drivers/media/spi/Makefile                   |  5 +++++
- 7 files changed, 55 insertions(+)
- create mode 100644 drivers/media/dvb-frontends/cxd2880/Kconfig
- create mode 100644 drivers/media/dvb-frontends/cxd2880/Makefile
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
+> b/Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst new file mode 100644
+> index 0000000..58f78cb
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
+> @@ -0,0 +1,39 @@
+> +.. -*- coding: utf-8; mode: rst -*-
+> +
+> +.. _v4l2-meta-fmt-uvc:
+> +
+> +*******************************
+> +V4L2_META_FMT_UVC ('UVCH')
+> +*******************************
+> +
+> +UVC Payload Header Data
+> +
+> +
+> +Description
+> +===========
+> +
+> +This format describes data, supplied by the UVC driver from metadata video
+> +nodes.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index a74227ad082e..9451def42ebe 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8447,6 +8447,15 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Supported
- F:	drivers/media/dvb-frontends/cxd2841er*
- 
-+MEDIA DRIVERS FOR CXD2880
-+M:	Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Supported
-+F:	drivers/media/dvb-frontends/cxd2880/*
-+F:	drivers/media/spi/cxd2880*
-+
- MEDIA DRIVERS FOR DIGITAL DEVICES PCIE DEVICES
- M:	Daniel Scheller <d.scheller.oss@gmail.com>
- L:	linux-media@vger.kernel.org
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index 2631d0e0a024..f29100832639 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -546,6 +546,8 @@ config DVB_GP8PSK_FE
- 	depends on DVB_CORE
- 	default DVB_USB_GP8PSK
- 
-+source "drivers/media/dvb-frontends/cxd2880/Kconfig"
-+
- comment "DVB-C (cable) frontends"
- 	depends on DVB_CORE
- 
-diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
-index f45f6a4a4371..e6b387284f6f 100644
---- a/drivers/media/dvb-frontends/Makefile
-+++ b/drivers/media/dvb-frontends/Makefile
-@@ -129,3 +129,4 @@ obj-$(CONFIG_DVB_HORUS3A) += horus3a.o
- obj-$(CONFIG_DVB_ASCOT2E) += ascot2e.o
- obj-$(CONFIG_DVB_HELENE) += helene.o
- obj-$(CONFIG_DVB_ZD1301_DEMOD) += zd1301_demod.o
-+obj-$(CONFIG_DVB_CXD2880) += cxd2880/
-diff --git a/drivers/media/dvb-frontends/cxd2880/Kconfig b/drivers/media/dvb-frontends/cxd2880/Kconfig
-new file mode 100644
-index 000000000000..36b8b6f7c4f7
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/Kconfig
-@@ -0,0 +1,6 @@
-+config DVB_CXD2880
-+	tristate "Sony CXD2880 DVB-T2/T tuner + demodulator"
-+	depends on DVB_CORE && SPI
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
-+	help
-+	  Say Y when you want to support this frontend.
-\ No newline at end of file
-diff --git a/drivers/media/dvb-frontends/cxd2880/Makefile b/drivers/media/dvb-frontends/cxd2880/Makefile
-new file mode 100644
-index 000000000000..dddedd178cf7
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/Makefile
-@@ -0,0 +1,18 @@
-+cxd2880-objs := cxd2880_common.o \
-+		cxd2880_devio_spi.o \
-+		cxd2880_integ.o \
-+		cxd2880_io.o \
-+		cxd2880_spi_device.o \
-+		cxd2880_stopwatch_port.o \
-+		cxd2880_tnrdmd.o \
-+		cxd2880_tnrdmd_dvbt2.o \
-+		cxd2880_tnrdmd_dvbt2_mon.o \
-+		cxd2880_tnrdmd_dvbt.o \
-+		cxd2880_tnrdmd_dvbt_mon.o\
-+		cxd2880_tnrdmd_mon.o\
-+		cxd2880_top.o
-+
-+obj-$(CONFIG_DVB_CXD2880) += cxd2880.o
-+
-+ccflags-y += -Idrivers/media/dvb-core
-+ccflags-y += -Idrivers/media/dvb-frontends
-diff --git a/drivers/media/spi/Kconfig b/drivers/media/spi/Kconfig
-index a21f5a39a440..b07ac86fc53c 100644
---- a/drivers/media/spi/Kconfig
-+++ b/drivers/media/spi/Kconfig
-@@ -12,3 +12,17 @@ config VIDEO_GS1662
- endmenu
- 
- endif
-+
-+if SPI
-+menu "Media SPI Adapters"
-+
-+config CXD2880_SPI_DRV
-+	tristate "Sony CXD2880 SPI support"
-+	depends on DVB_CORE && SPI
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
-+	help
-+	  Choose if you would like to have SPI interface support for Sony CXD2880.
-+
-+endmenu
-+
-+endif
-diff --git a/drivers/media/spi/Makefile b/drivers/media/spi/Makefile
-index ea64013d16cc..40e0f88d9f6c 100644
---- a/drivers/media/spi/Makefile
-+++ b/drivers/media/spi/Makefile
-@@ -1 +1,6 @@
- obj-$(CONFIG_VIDEO_GS1662) += gs1662.o
-+obj-$(CONFIG_CXD2880_SPI_DRV) += cxd2880-spi.o
-+
-+ccflags-y += -Idrivers/media/dvb-core
-+ccflags-y += -Idrivers/media/dvb-frontends
-+ccflags-y += -Idrivers/media/dvb-frontends/cxd2880
-\ No newline at end of file
+"supplied from metadata video nodes" sounds strange. How about
+
+"This format describes metadata extracted fom UVC packet headers and provided 
+by the UVC driver through metadata video nodes."
+
+> That data includes UVC Payload Header contents and auxiliary timing
+> +information, required for precise interpretation of timestamps, contained
+> in
+> +those headers. Buffers, streamed via UVC metadata nodes, are composed of
+> blocks
+> +of variable length. Those blocks contain are described by struct
+> uvc_meta_buf
+> +and contain the following fields:
+
+You should stated whether a buffer can contain multiple blocks or always 
+contains a single one. In the first case, it would also make sense to explain 
+how many blocks an application can expect.
+
+Another item that needs to be documented is how redundant blocks can be 
+omitted (for instance blocks corresponding to header that have the same SCR 
+and PTS as the previous one, and no additional device-specific metadata).
+
+> +.. flat-table:: UVC Metadata Block
+> +    :widths: 1 4
+> +    :header-rows:  1
+> +    :stub-columns: 0
+> +
+> +    * - Field
+> +      - Description
+> +    * - struct timespec ts;
+> +      - system timestamp, measured by the driver upon reception of the
+> payload
+
+As Hans mentioned, this should be a __u64.
+
+> +    * - __u16 sof;
+> +      - USB Frame Number, also obtained by the driver
+
+You should document that the system timestamp and USB frame number are sampled 
+as close as possible to each other and can be use to correlate the system and 
+USB clocks.
+
+> +    * - :cspan:`1` *The rest is an exact copy of the payload header:*
+
+I'd say "UVC payload header". I would reference the relevant part of the UVC 
+specification.
+
+> +    * - __u8 length;
+> +      - length of the rest of the block, including this field
+> +    * - __u8 flags;
+> +      - Flags, indicating presence of other standard UVC fields
+> +    * - __u8 buf[];
+> +      - The rest of the header, possibly including UVC PTS and SCR fields
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 45cf735..0aad91c 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -682,6 +682,7 @@ struct v4l2_pix_format {
+>  /* Meta-data formats */
+>  #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car
+> VSP1 1-D Histogram */ #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V',
+> 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */ +#define V4L2_META_FMT_UVC   
+>      v4l2_fourcc('U', 'V', 'C', 'H') /* UVC Payload Header metadata */
+> 
+>  /* priv field value to indicates that subsequent fields are valid. */
+>  #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
+
+The main thing that bothers me here is that I'm worried vendors will not play 
+fair and will use this catch-all format to pass undocumented vendor-specific 
+metadata to application without documenting them. It's not a new concern and 
+we've discussed it before, without unfortunately finding a good solution.
+
+Recently in a private conversation Sakari proposed using one V4L2 pixel format 
+per vendor metadata format. As V4L2 pixel formats have to be documented, this 
+could put some pressure on vendors to document formats. Of course it wouldn't 
+prevent vendors from not playing fair and providing documentation that is 
+incomplete and/or incorrect.
+
+Another option, without introducing different formats for different vendors, 
+is to require vendors to document their format in order to have the 
+UVC_DEV_FLAG_METADATA_NODE flag set for their device in the uvcvideo driver. 
+I'm not sure if one option is better than the other for the matter of getting 
+vendors to document formats.
+
+On a related note, this series doesn't enable metadata nodes for the devices 
+you're working on. Wouldn't it be a good idea to fix that, and document the 
+format of your metadata as an example of what vendors are expected to provide 
+?
+
 -- 
-2.13.0
+Regards,
+
+Laurent Pinchart
