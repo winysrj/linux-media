@@ -1,33 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:33537 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751522AbdJFR3g (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Oct 2017 13:29:36 -0400
-Date: Fri, 6 Oct 2017 12:29:33 -0500
-From: Rob Herring <robh@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v3 1/2] dt: bindings: media: Document practices for DT
- bindings, ports, endpoints
-Message-ID: <20171006172933.gmfs4afw55kdiuit@rob-hp-laptop>
-References: <1506673421-6085-1-git-send-email-sakari.ailus@linux.intel.com>
- <1506673421-6085-2-git-send-email-sakari.ailus@linux.intel.com>
+Received: from bombadil.infradead.org ([65.50.211.133]:36106 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752141AbdJQAAn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Oct 2017 20:00:43 -0400
+Date: Mon, 16 Oct 2017 17:00:40 -0700
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Leon Luo <leonl@leopardimaging.com>
+Subject: Re: [GIT PULL for 4.15] More sensor driver patches
+Message-ID: <20171016170040.3fbb9e9a@vela.lan>
+In-Reply-To: <20171013222345.x33ft5s7qspolf3k@valkosipuli.retiisi.org.uk>
+References: <20171013222345.x33ft5s7qspolf3k@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1506673421-6085-2-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 29, 2017 at 11:23:40AM +0300, Sakari Ailus wrote:
-> Port and endpoint numbering has been omitted in DT binding documentation
-> for a large number of devices. Also common properties the device uses have
-> been missed in binding documentation. Make it explicit that these things
-> need to be documented.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  Documentation/devicetree/bindings/media/video-interfaces.txt | 9 +++++++++
->  1 file changed, 9 insertions(+)
+Em Sat, 14 Oct 2017 01:23:45 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-Acked-by: Rob Herring <robh@kernel.org>
+> Hi Mauro,
+> 
+> Here's the second set of sensor driver patches for 4.15.
+> 
+> Please pull.
+> 
+> 
+> The following changes since commit 8382e556b1a2f30c4bf866f021b33577a64f9ebf:
+> 
+>   Simplify major/minor non-dynamic logic (2017-10-11 15:32:11 -0400)
+> 
+> are available in the git repository at:
+> 
+>   ssh://linuxtv.org/git/sailus/media_tree.git for-4.15-2
+> 
+> for you to fetch changes up to 5164fc93c2d8c2e9a2de1461bfba9d6b2911ce9e:
+> 
+>   imx274: V4l2 driver for Sony imx274 CMOS sensor (2017-10-14 01:06:10 +0300)
+> 
+> ----------------------------------------------------------------
+> Leon Luo (2):
+>       imx274: device tree binding file
+>       imx274: V4l2 driver for Sony imx274 CMOS sensor
+
+As checkpatch complained:
+
+WARNING: added, moved or deleted file(s), does MAINTAINERS need updating?
+#69: 
+new file mode 100644
+
+Who will maintain this driver?
+
+Regards,
+Mauro
+
+
+
+Cheers,
+Mauro
