@@ -1,72 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:35952 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751833AbdJCJ3H (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 05:29:07 -0400
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org, heiko@sntech.de, robh+dt@kernel.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        s.nawrocki@samsung.com, Jacob Chen <jacob-chen@iotwrt.com>,
-        Yakir Yang <ykk@rock-chips.com>
-Subject: [PATCH v10 4/4] dt-bindings: Document the Rockchip RGA bindings
-Date: Tue,  3 Oct 2017 17:28:39 +0800
-Message-Id: <20171003092839.26236-5-jacob-chen@iotwrt.com>
-In-Reply-To: <20171003092839.26236-1-jacob-chen@iotwrt.com>
-References: <20171003092839.26236-1-jacob-chen@iotwrt.com>
+Received: from mail-io0-f181.google.com ([209.85.223.181]:45377 "EHLO
+        mail-io0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752911AbdJQPQE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Oct 2017 11:16:04 -0400
+Received: by mail-io0-f181.google.com with SMTP id i38so2650900iod.2
+        for <linux-media@vger.kernel.org>; Tue, 17 Oct 2017 08:16:04 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20171017082307.qsupictqciku73jj@valkosipuli.retiisi.org.uk>
+References: <20171016232456.GA100862@beast> <20171017082307.qsupictqciku73jj@valkosipuli.retiisi.org.uk>
+From: Kees Cook <keescook@chromium.org>
+Date: Tue, 17 Oct 2017 08:16:03 -0700
+Message-ID: <CAGXu5j+TN6rfM1t8qSO7b_5n+65MHAXsf8kZYRMyiq+2Orz+SQ@mail.gmail.com>
+Subject: Re: [PATCH] staging/atomisp: Convert timers to use timer_setup()
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Daeseok Youn <daeseok.youn@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT bindings documentation for Rockchip RGA
+On Tue, Oct 17, 2017 at 1:23 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> On Mon, Oct 16, 2017 at 04:24:56PM -0700, Kees Cook wrote:
+>> In preparation for unconditionally passing the struct timer_list pointer to
+>> all timer callbacks, switch to using the new timer_setup() and from_timer()
+>> to pass the timer pointer explicitly.
+>>
+>> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>> Cc: Alan Cox <alan@linux.intel.com>
+>> Cc: Daeseok Youn <daeseok.youn@gmail.com>
+>> Cc: Arnd Bergmann <arnd@arndb.de>
+>> Cc: linux-media@vger.kernel.org
+>> Cc: devel@driverdev.osuosl.org
+>> Signed-off-by: Kees Cook <keescook@chromium.org>
+>
+> This appears to be the same as the patch I've applied previously.
 
-Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-Signed-off-by: Yakir Yang <ykk@rock-chips.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
- .../devicetree/bindings/media/rockchip-rga.txt     | 33 ++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-rga.txt
+Okay, sorry for the noise. I didn't see it in -next when I did my
+rebase this week.
 
-diff --git a/Documentation/devicetree/bindings/media/rockchip-rga.txt b/Documentation/devicetree/bindings/media/rockchip-rga.txt
-new file mode 100644
-index 000000000000..fd5276abfad6
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/rockchip-rga.txt
-@@ -0,0 +1,33 @@
-+device-tree bindings for rockchip 2D raster graphic acceleration controller (RGA)
-+
-+RGA is a standalone 2D raster graphic acceleration unit. It accelerates 2D
-+graphics operations, such as point/line drawing, image scaling, rotation,
-+BitBLT, alpha blending and image blur/sharpness.
-+
-+Required properties:
-+- compatible: value should be one of the following
-+		"rockchip,rk3288-rga";
-+		"rockchip,rk3399-rga";
-+
-+- interrupts: RGA interrupt specifier.
-+
-+- clocks: phandle to RGA sclk/hclk/aclk clocks
-+
-+- clock-names: should be "aclk", "hclk" and "sclk"
-+
-+- resets: Must contain an entry for each entry in reset-names.
-+  See ../reset/reset.txt for details.
-+- reset-names: should be "core", "axi" and "ahb"
-+
-+Example:
-+SoC-specific DT entry:
-+	rga: rga@ff680000 {
-+		compatible = "rockchip,rk3399-rga";
-+		reg = <0xff680000 0x10000>;
-+		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA_CORE>;
-+		clock-names = "aclk", "hclk", "sclk";
-+
-+		resets = <&cru SRST_RGA_CORE>, <&cru SRST_A_RGA>, <&cru SRST_H_RGA>;
-+		reset-names = "core, "axi", "ahb";
-+	};
+-Kees
+
 -- 
-2.14.1
+Kees Cook
+Pixel Security
