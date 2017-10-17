@@ -1,117 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:39631 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:34080 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755907AbdJJLpd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 07:45:33 -0400
+        id S1753504AbdJQAHh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Oct 2017 20:07:37 -0400
+Date: Mon, 16 Oct 2017 17:07:35 -0700
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH v8 0/7] document types of hardware control for V4L2
-Date: Tue, 10 Oct 2017 08:45:16 -0300
-Message-Id: <cover.1507635716.git.mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>, alan@linux.intel.com
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL for 4.15] Atomisp cleanups
+Message-ID: <20171016170735.15d8d8f6@vela.lan>
+In-Reply-To: <20171013223355.pircr25cwyxg6mvl@valkosipuli.retiisi.org.uk>
+References: <20171013223355.pircr25cwyxg6mvl@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Kernel 2.6.39, the omap3 driver was introduced together with a new way
-to control complex V4L2 devices used on embedded systems, but this was
-never documented, as the original idea were to have "soon" support for
-standard apps to use it as well, via libv4l, but that didn't happen so far.
+Em Sat, 14 Oct 2017 01:33:55 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-Also, it is not possible for an userspace applicatin to detect the kind of
-control a device supports.
+> Hi Mauro,
+> 
+> Here's the usual set of atomisp cleanups.
+> 
+> Please pull.
+> 
+> 
+> The following changes since commit 8382e556b1a2f30c4bf866f021b33577a64f9ebf:
+> 
+>   Simplify major/minor non-dynamic logic (2017-10-11 15:32:11 -0400)
+> 
+> are available in the git repository at:
+> 
+>   ssh://linuxtv.org/git/sailus/media_tree.git atomisp
+> 
+> for you to fetch changes up to 9c55caa37197e80b14250ff5709ce49737ed812c:
+> 
+>   staging: atomisp: use ARRAY_SIZE (2017-10-14 00:55:45 +0300)
+> 
+> ----------------------------------------------------------------
+> Jérémy Lefaure (1):
+>       staging: atomisp: use ARRAY_SIZE
+> 
+> Muhammad Falak R Wani (1):
+>       staging/atomisp: make six local functions static to appease sparse
+> 
+> Sakari Ailus (3):
+>       staging: media: MAINTAINERS: Add entry for atomisp driver
 
-This series fill the gap, by documenting the new type of hardware
-control and adding a way for userspace to detect if the device can be
-used or not by an standard V4L2 application.
+I'd like to see Alan's SOB on this patch.
 
-Notes:
-====
 
-1) For the sake of better review, this series start with the addition of a
-glossary, as requested by Laurent. Please notice, however, that
-the glossary there references some new captions that will only be added
-by subsequent patches. So, when this series get applied, the glossary
-patch should actually be merged after the patches that introduce those
-new captions, in order to avoid warnings for non-existing references.
-
-2) This series doesn't contain patches that actually use the new flag.
-This will be added after such patch gets reviewed.
-
-v8:
-- Addressed Hans and Sakari's comments. Hopefully, we'll all agree
-  with this one :-)
-- Added :term:`foo` references at the glossary and at the first time a
-  term appears inside a V4L2 section.
-  I opted to not replace all occurences for a couple of reasons:
-  	a) it sounded overkill to me;
-	b) if we decide to change some term, there will be a lot
-	   more stuff to be fixed, specially for terms in plural,
-	   as a plural for :term:`device` would be
-	   :term:`devices <device>`.
-  Once we set this patchset into a stone, it could make sense to
-  run some script that would replace every other occurrence of the
-  glossary terms within Documentation/media/uapi/v4l to link to
-  the glossary reference - but let's postpone this to be applied
-  on a separate patchset.
-  Btw, it probably makes sense to make the glossary as a general
-  media book glossary - but again, this is out of topic for this
-  patchset.
-
-v7:
-- Altered some nomenclature at the glossary as suggested by Hans
-  and used git-filter to change it on all patches.
-
-v6:
-- Some editorial changes based on comments from Hans and Sakari.
-
-v5:
-- Added more terms to the glossary
-- Adjusted some wording as proposed by Hans on a few patches
-  and added his ack on others
-
-v4:
-
-- Addressed Hans comments for v2;
-- Fixed broken references at the glossary.rst
-
-v3:
-
-- Add a glossary to be used by the new documentation about hardware control;
-- Add a patch removing minor number range
-- Use glossary terms at open.rst
-- Split the notice about subdev-API on vdev-centric, as this change
-   will require further discussions.
-
-v2:
-
-- added a patch at the beginning of the series better defining the
-  device node naming rules;
-- better defined the differenes between device hardware and V4L2 device node
-  as suggested by Laurent and with changes proposed by Hans and Sakari
-- changed the caps flag to indicate MC-centric devices
-- removed the final patch that would use the new caps flag. I'll write it
-  once we agree on the new caps flag.
-
-Mauro Carvalho Chehab (7):
-  media: add glossary.rst with a glossary of terms used at V4L2 spec
-  media: open.rst: better document device node naming
-  media: open.rst: remove the minor number range
-  media: open.rst: document vdevnode-centric and mc-centric types
-  media: open.rst: Adjust some terms to match the glossary
-  media: videodev2: add a flag for MC-centric devices
-  media: open.rst: add a notice about subdev-API on vdev-centric
-
- Documentation/media/uapi/v4l/glossary.rst        | 167 +++++++++++++++++++++++
- Documentation/media/uapi/v4l/open.rst            | 158 +++++++++++++++++----
- Documentation/media/uapi/v4l/v4l2.rst            |   1 +
- Documentation/media/uapi/v4l/vidioc-querycap.rst |   5 +
- Documentation/media/videodev2.h.rst.exceptions   |   1 +
- include/uapi/linux/videodev2.h                   |   2 +
- 6 files changed, 309 insertions(+), 25 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/glossary.rst
-
--- 
-2.13.6
+Cheers,
+Mauro
