@@ -1,112 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:46505 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932069AbdJJHSZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 03:18:25 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v3 17/26] media: lirc: remove name from lirc_dev
-Date: Tue, 10 Oct 2017 08:18:24 +0100
-Message-Id: <b847eb770df28dda6a7a4d1fab5eaf3de296dbba.1507618841.git.sean@mess.org>
-In-Reply-To: <cover.1507618840.git.sean@mess.org>
-References: <cover.1507618840.git.sean@mess.org>
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:54820 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754945AbdJQNxk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Oct 2017 09:53:40 -0400
+Date: Tue, 17 Oct 2017 14:53:24 +0100
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Krzysztof =?utf-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>
+Cc: Fabio Estevam <festevam@gmail.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH][MEDIA]i.MX6 CSI: Fix MIPI camera operation in RAW/Bayer
+ mode
+Message-ID: <20171017135324.GM20805@n2100.armlinux.org.uk>
+References: <m3fuail25k.fsf@t19.piap.pl>
+ <CAOMZO5A6PYfXz6T4ZTs7M3rtUZLKOjf636i-v6uCjxNfxETQyQ@mail.gmail.com>
+ <m3376hlxc4.fsf@t19.piap.pl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <m3376hlxc4.fsf@t19.piap.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a duplicate of rcdev->driver_name.
+On Tue, Oct 17, 2017 at 03:26:19PM +0200, Krzysztof Hałasa wrote:
+> Fabio Estevam <festevam@gmail.com> writes:
+> 
+> >> --- a/drivers/staging/media/imx/imx-media-csi.c
+> >> +++ b/drivers/staging/media/imx/imx-media-csi.c
+> >> @@ -340,7 +340,7 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+> >>         case V4L2_PIX_FMT_SGBRG8:
+> >>         case V4L2_PIX_FMT_SGRBG8:
+> >>         case V4L2_PIX_FMT_SRGGB8:
+> >> -               burst_size = 8;
+> >> +               burst_size = 16;
+> >>                 passthrough = true;
+> >>                 passthrough_bits = 8;
+> >>                 break;
+> >
+> > Russell has sent the same fix and Philipp made a comment about the
+> > possibility of using 32-byte or 64-byte bursts:
+> > http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/2017-October/111960.html
+> 
+> Great.
+> 
+> Sometimes I wonder how many people are working on exactly the same
+> stuff.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- Documentation/media/uapi/rc/lirc-dev-intro.rst | 2 +-
- drivers/media/rc/ir-lirc-codec.c               | 2 --
- drivers/media/rc/lirc_dev.c                    | 9 +++------
- include/media/lirc_dev.h                       | 2 --
- 4 files changed, 4 insertions(+), 11 deletions(-)
+I do wish the patch was merged (which fixes a real problem) rather than
+hanging around for optimisation questions.  We can always increase it
+in the future if it's deemed that a larger burst size is beneficial.
 
-diff --git a/Documentation/media/uapi/rc/lirc-dev-intro.rst b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-index 3cacf9aeac40..a3fa3c1ef169 100644
---- a/Documentation/media/uapi/rc/lirc-dev-intro.rst
-+++ b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-@@ -18,7 +18,7 @@ Example dmesg output upon a driver registering w/LIRC:
- 
-     $ dmesg |grep lirc_dev
-     lirc_dev: IR Remote Control driver registered, major 248
--    rc rc0: lirc_dev: driver ir-lirc-codec (mceusb) registered at minor = 0
-+    rc rc0: lirc_dev: driver mceusb registered at minor = 0
- 
- What you should see for a chardev:
- 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index f852ec231f4e..4411a3d0a778 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -555,8 +555,6 @@ int ir_lirc_register(struct rc_dev *dev)
- 	if (!ldev)
- 		return rc;
- 
--	snprintf(ldev->name, sizeof(ldev->name), "ir-lirc-codec (%s)",
--		 dev->driver_name);
- 	ldev->fops = &lirc_fops;
- 	ldev->dev.parent = &dev->dev;
- 	ldev->rdev = dev;
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 32124fb5c88e..4ac74fd86fd4 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -101,9 +101,6 @@ int lirc_register_device(struct lirc_dev *d)
- 		return -EINVAL;
- 	}
- 
--	/* some safety check 8-) */
--	d->name[sizeof(d->name) - 1] = '\0';
--
- 	if (rcdev->driver_type == RC_DRIVER_IR_RAW) {
- 		if (kfifo_alloc(&rcdev->rawir, MAX_IR_EVENT_SIZE, GFP_KERNEL))
- 			return -ENOMEM;
-@@ -131,7 +128,7 @@ int lirc_register_device(struct lirc_dev *d)
- 	get_device(d->dev.parent);
- 
- 	dev_info(&d->dev, "lirc_dev: driver %s registered at minor = %d\n",
--		 d->name, d->minor);
-+		 rcdev->driver_name, d->minor);
- 
- 	return 0;
- }
-@@ -147,13 +144,13 @@ void lirc_unregister_device(struct lirc_dev *d)
- 	rcdev = d->rdev;
- 
- 	dev_dbg(&d->dev, "lirc_dev: driver %s unregistered from minor = %d\n",
--		d->name, d->minor);
-+		rcdev->driver_name, d->minor);
- 
- 	mutex_lock(&rcdev->lock);
- 
- 	if (rcdev->lirc_open) {
- 		dev_dbg(&d->dev, LOGHEAD "releasing opened driver\n",
--			d->name, d->minor);
-+			rcdev->driver_name, d->minor);
- 		wake_up_poll(&rcdev->wait_poll, POLLHUP);
- 	}
- 
-diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
-index b45af81b4633..d12e1d1c3d67 100644
---- a/include/media/lirc_dev.h
-+++ b/include/media/lirc_dev.h
-@@ -21,7 +21,6 @@
- /**
-  * struct lirc_dev - represents a LIRC device
-  *
-- * @name:		used for logging
-  * @minor:		the minor device (/dev/lircX) number for the device
-  * @rdev:		&struct rc_dev associated with the device
-  * @fops:		&struct file_operations for the device
-@@ -30,7 +29,6 @@
-  * @cdev:		&struct cdev assigned to the device
-  */
- struct lirc_dev {
--	char name[40];
- 	unsigned int minor;
- 
- 	struct rc_dev *rdev;
 -- 
-2.13.6
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
