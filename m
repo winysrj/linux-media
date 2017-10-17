@@ -1,60 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:48766 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752712AbdJ3WSL (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:43339 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1760050AbdJQUN4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Oct 2017 18:18:11 -0400
-Received: by mail-wm0-f66.google.com with SMTP id p75so18783114wmg.3
-        for <linux-media@vger.kernel.org>; Mon, 30 Oct 2017 15:18:10 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH] [media] dvb-core: dvb_frontend_handle_ioctl(): init err to -EOPNOTSUPP
-Date: Mon, 30 Oct 2017 23:18:08 +0100
-Message-Id: <20171030221808.4642-1-d.scheller.oss@gmail.com>
+        Tue, 17 Oct 2017 16:13:56 -0400
+Date: Tue, 17 Oct 2017 15:13:54 -0500
+From: Rob Herring <robh@kernel.org>
+To: Dmitry Osipenko <digetx@gmail.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Stephen Warren <swarren@wwwdotorg.org>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 1/2] staging: Introduce NVIDIA Tegra20 video decoder
+ driver
+Message-ID: <20171017201354.efgjrwvakkseyvr7@rob-hp-laptop>
+References: <cover.1507752381.git.digetx@gmail.com>
+ <3d432aa2617977a2b0a8621a1fc2f36f751133e1.1507752381.git.digetx@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3d432aa2617977a2b0a8621a1fc2f36f751133e1.1507752381.git.digetx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On Wed, Oct 11, 2017 at 11:08:11PM +0300, Dmitry Osipenko wrote:
+> Video decoder, found on NVIDIA Tegra20 SoC, supports a standard set of
+> video formats like H.264 / MPEG-4 / WMV / VC1. Currently driver supports
+> decoding of CAVLC H.264 only.
+> 
+> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+> ---
+>  .../bindings/arm/tegra/nvidia,tegra20-vde.txt      |   44 +
 
-Fixes: d73dcf0cdb95 ("media: dvb_frontend: cleanup ioctl handling logic")
+It's preferred to split bindings to a separate patch. Also, this doesn't 
+belong under bindings/arm/, but rather bindings/media/.
 
-The mentioned commit cleaned up the ioctl handling, but caused an issue
-with the DVBv3 when they're not defined in a frontend's fe_ops: When a
-userspace application checks for existence and success of a fe_ops with ie.
+>  drivers/staging/Kconfig                            |    2 +
+>  drivers/staging/Makefile                           |    1 +
+>  drivers/staging/tegra-vde/Kconfig                  |    6 +
+>  drivers/staging/tegra-vde/Makefile                 |    1 +
+>  drivers/staging/tegra-vde/TODO                     |    5 +
+>  drivers/staging/tegra-vde/uapi.h                   |  101 ++
+>  drivers/staging/tegra-vde/vde.c                    | 1109 ++++++++++++++++++++
+>  8 files changed, 1269 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20-vde.txt
+>  create mode 100644 drivers/staging/tegra-vde/Kconfig
+>  create mode 100644 drivers/staging/tegra-vde/Makefile
+>  create mode 100644 drivers/staging/tegra-vde/TODO
+>  create mode 100644 drivers/staging/tegra-vde/uapi.h
+>  create mode 100644 drivers/staging/tegra-vde/vde.c
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20-vde.txt b/Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20-vde.txt
+> new file mode 100644
+> index 000000000000..c3f847db8167
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20-vde.txt
+> @@ -0,0 +1,44 @@
+> +NVIDIA Tegra Video Decoder Engine
+> +
+> +Required properties:
+> +- compatible : "nvidia,tegra20-vde"
+> +- reg : Must contain 2 register ranges: registers and IRAM region that
+> +        VDE uses for its internal needs and for passing some of decoding
+> +        parameters.
 
-  if (!ioctl(fd, FE_READ_BER, &val))
+Is the IRAM shared with other things. If so, use mmio-sram binding and 
+define the codec's region.
 
-this will not report failure anymore since in dvb_frontend_handle_ioctl(),
-err is unitialised and thus zero, and "case FE_READ_BER" (and the
-following) doesn't care about the case that fe_op isn't set by the frontend
-driver. So, success is always reported while the value at the passed ptr
-isn't updated. This breaks userspace applications relying on v3 stats.
+> +- reg-names : Must include the following entries:
+> +  - regs
+> +  - iram
+> +- interrupts : Must contain an entry for each entry in interrupt-names.
+> +- interrupt-names : Must include the following entries:
+> +  - ucq-error
+> +  - sync-token
+> +  - bsev
+> +  - bsea
+> +  - sxe
+> +- clocks : Must contain an entry for each entry in clock-names.
+> +  See ../clocks/clock-bindings.txt for details.
+> +- clock-names : Must include the following entries:
+> +  - vde
+> +- resets : Must contain an entry for each entry in reset-names.
+> +  See ../reset/reset.txt for details.
+> +- reset-names : Must include the following entries:
+> +  - vde
 
-Fix this by initialising err to -EOPNOTSUPP like it was before the commit.
-This only affects (and fixes) the DVBv3 stat ioctls, every other handled
-ioctl sets err to a proper return value.
+-names is pointless when there is only one.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
-Discovered and tested with TVHeadend (current GIT master HEAD) which does
-fallback to DVBv3 stats inquiry when v5 is absent.
+> +
+> +Example:
+> +
+> +vde@6001a000 {
 
- drivers/media/dvb-core/dvb_frontend.c | 2 ++
- 1 file changed, 2 insertions(+)
+video-codec@...
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index daaf969719e4..cc64fa38a1df 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -2113,6 +2113,8 @@ static int dvb_frontend_handle_ioctl(struct file *file,
- 
- 	dev_dbg(fe->dvb->device, "%s:\n", __func__);
- 
-+	err = -EOPNOTSUPP;
-+
- 	switch (cmd) {
- 	case FE_SET_PROPERTY: {
- 		struct dtv_properties *tvps = parg;
--- 
-2.13.6
+> +	compatible = "nvidia,tegra20-vde";
+> +	reg = <0x6001a000 0x3D00    /* VDE registers */
+> +		0x40000400 0x3FC00>; /* IRAM region */
+
+Lower case hex please.
+
+> +	reg-names = "regs", "iram";
+> +	interrupts = <GIC_SPI  8 IRQ_TYPE_LEVEL_HIGH>, /* UCQ error interrupt */
+> +			<GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
+> +			<GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
+> +			<GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>, /* BSE-A interrupt */
+> +			<GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
+> +	interrupt-names = "ucq-error", "sync-token", "bsev", "bsea", "sxe";
+> +	clocks = <&tegra_car TEGRA20_CLK_VDE>;
+> +	clock-names = "vde";
+> +	resets = <&tegra_car 61>;
+> +	reset-names = "vde";
+> +};
