@@ -1,151 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:34495 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932142AbdJJOeB (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:55130 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932480AbdJQFUl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 10:34:01 -0400
-Subject: Re: [PATCH v8 4/7] media: open.rst: document vdevnode-centric and
- mc-centric types
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <cover.1507635716.git.mchehab@s-opensource.com>
- <ff134d19fc163e16710c81f4f90f885a9003e383.1507635716.git.mchehab@s-opensource.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <52f4c5e9-a89a-fafa-0d19-20df43225703@xs4all.nl>
-Date: Tue, 10 Oct 2017 16:33:55 +0200
+        Tue, 17 Oct 2017 01:20:41 -0400
+Date: Mon, 16 Oct 2017 22:20:30 -0700
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for v4.14-rc6] media fixes
+Message-ID: <20171016222030.07920410@vela.lan>
+In-Reply-To: <CA+55aFxkX26JFqbbZOqTrKwwmNEk6eEH7ULEft84Vj148drj2w@mail.gmail.com>
+References: <f89cef26-8003-96cb-a1eb-f9dbe1c0a9d2@infradead.org>
+        <CA+55aFxkX26JFqbbZOqTrKwwmNEk6eEH7ULEft84Vj148drj2w@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <ff134d19fc163e16710c81f4f90f885a9003e383.1507635716.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/AsFjnufbt5EylVlvmATH95a"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-More word-smithing...
+--Sig_/AsFjnufbt5EylVlvmATH95a
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-On 10/10/2017 01:45 PM, Mauro Carvalho Chehab wrote:
-> When we added support for omap3, back in 2010, we added a new
-> type of V4L2 devices that aren't fully controlled via the V4L2
-> device node.
-> 
-> Yet, we have never clearly documented in the V4L2 specification
-> the differences between the two types.
-> 
-> Let's document them based on the the current implementation.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  Documentation/media/uapi/v4l/open.rst | 55 +++++++++++++++++++++++++++++++++++
->  1 file changed, 55 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-> index 46ef63e05696..1a8a9e1d0e84 100644
-> --- a/Documentation/media/uapi/v4l/open.rst
-> +++ b/Documentation/media/uapi/v4l/open.rst
-> @@ -7,6 +7,61 @@ Opening and Closing Devices
->  ***************************
->  
->  
-> +.. _v4l2_hardware_control:
-> +
-> +
-> +Types of V4L2 media hardware control
-> +====================================
-> +
-> +A :term:`V4L2 hardware` is usually complex: support for it is
+Hi Linus,
 
-No 'A '.
+Em Mon, 16 Oct 2017 20:15:33 -0400
+Linus Torvalds <torvalds@linux-foundation.org> escreveu:
 
-> +implemented via a :term:`V4L2 main driver` and often by several
+> On Mon, Oct 16, 2017 at 4:31 PM, Mauro Carvalho Chehab
+> <mchehab@infradead.org> wrote:
+> >
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media med=
+ia/v4.14-2 =20
+>=20
+> No such tag.
+>=20
+> Did you forget to push out? The latest tag I see is v4.14-1.
 
-I prefer 'by' instead of 'via'.
+Yes, I forgot to push, sorry[1]!
 
-> +additional :term:`drivers <driver>`.
-> +The main driver always exposes one or more
-> +:term:`V4L2 device nodes <v4l2 device node>`
-> +(see :ref:`v4l2_device_naming`) with are responsible for implementing
+I just pushed it manually. You should now be able to see the
+media/v4.14-2 tag there on my tree.
 
-with -> which
+[1] Actually, my scripts were supposed to push it. I'm out of town for
+two weeks (this week in US, next week in EU), so, I'm handling it from
+my notebook, instead of using my usual machine. Maybe some setup
+differences caused a flaw to it, or maybe the local copy of the script
+is outdated. I'll double-check tomorrow to be sure that, if I need=20
+to do another push before returning home, everything would be just fine.
 
-> +data streaming, if applicable.
-> +
-> +The other drivers are called :term:`V4L2 sub-devices <v4l2 sub-device>`
+> I do see the branch (v4l_for_linus) that contains the commit you
+> mention, but no tag..
 
-I'd say "V4L2 sub-device drivers"
+Yep, the branch is identical to what's referenced by the tag.
 
-> +and provide control to other
-> +:term:`hardware components <hardware component>` are usually connected
+Thanks,
+Mauro
 
-:term:`hardware components <hardware component>`. Those component are usually controlled
+--Sig_/AsFjnufbt5EylVlvmATH95a
+Content-Type: application/pgp-signature
+Content-Description: Assinatura digital OpenPGP
 
-> +via a serial bus (like :term:`I²C`, :term:`SMBus` or :term:`SPI`).
-> +Depending on the main driver, they can be implicitly
-> +controlled directly by the main driver or explicitly via
-> +the V4L2 sub-device API (see :ref:`subdev`).
-> +
-> +When **V4L2** was originally designed, the
-> +:term:`V4L2 device nodes <v4l2 device node>` served the purpose of both
-> +control and data interfaces and there was no separation
-> +between the two interface-wise. V4L2 controls, setting inputs and outputs,
+-----BEGIN PGP SIGNATURE-----
 
-Instead of 'interface-wise' I'd use 'API-wise'. That reminds me: should we add
-'API' to the glossary as well? (Can be done later)
+iQIzBAEBCAAdFiEE+QmuaPwR3wnBdVwACF8+vY7k4RUFAlnlkx4ACgkQCF8+vY7k
+4RXWDA//X1OipERvrv2i15gZFSRGH66p9KcbbhSwBpKjdYl5B76LldU6/4BlHQNB
+/JpzCGMIA7BSLAG7WtRpMWfxWke3fHvqBMNl42NVJ5mkqoQIH9bIgtCT08lCra37
+XFAer63Xbf4PerJatc3+GSk4p9gZHQTcyJlMNUN6S92ehHmxlI90yRvL68lJlC1w
+pn8zo5/2BhFkPN2f8w4jG2Sd4YyjZqgMr8Sbiss0kFwah5VIMWDmGRwcjq581uLR
+MfYL8f6JypWhNIoNnXuASuSdEv6dAx3/gVTJSlGmA92V3B/5T1L6uCDgVbDNHzAl
+pXvq+mFN5n2vljP5cjBtBKYGp85U2BVhl1XlE2b+DirhKiox9pXMGPhM80ZPN8Jk
+f0qodrfdumwrZ8CRPFpJsaVGejnzN90C/K3ndn3qlftido0EgzRVLzjHvOgoPfYY
+9lBD0nmki3i2fQ/NfbrVjGgUHeKx9wRqfjJXy3EqyfWoxES8skrPjlFt06dB5fUm
+KtEQ6iIJn/cgPE6aKqopOSYep03Q7Ivj9Mj8csXvFfEVztgQ+WIByH4lSjphXItm
+2B5IQ6AizCNm2Y+Rawra5DD9ytXzIugKR07rLZ7/soAGjlXrYleBTNkGjEr8up1u
+vfWCHtZRCtz8XMiicZ1Mw4Q9QPzcbyvAhrWR9Y7/8BJN7QYPjbQ=
+=MoxP
+-----END PGP SIGNATURE-----
 
-> +format configuration and buffer related operations were all performed
-> +through the same **V4L2 device nodes**. Devices offering such interface are
-> +called **V4L2 device node centric**.
-> +
-> +Later on, support for the :term:`media controller` interface was added
-> +to V4L2 in order to better support complex :term:`V4L2 hardware` where the
-> +**V4L2** interface alone could no longer meaningfully serve as both a
-> +control and a data interface. On such V4L2 hardware, **V4L2** interface
-
-**V4L2** -> the **V4L2**
-
-> +remains a data interface whereas control takes place through the
-> +:term:`media controller` and :term:`V4L2 sub-device` interfaces. Stream
-> +control is an exception to this: streaming is enabled and disabled
-> +through the **V4L2** interface. These devices are called
-> +**Media controller centric**.
-> +
-> +**MC-centric** V4L2 hardware provide more versatile control of the
-
-provide -> provides
-
-> +hardware than **V4L2 device node centric** devices at the expense of
-> +requiring device-specific userspace settings.
-> +
-> +On **MC-centric** V4L2 hardware, the **V4L2 sub-device nodes**
-> +represent specific parts of the V4L2 hardware, to which they enable
-> +control.
-
-I'd rephrase this:
-
-On **MC-centric** V4L2 hardware, the **V4L2 sub-device nodes**
-provide control of the specific part of the V4L2 hardware represented
-by each node.
-
-> +
-> +Also, the additional versatility of **MC-centric** V4L2 hardware comes
-> +with additional responsibilities, the main one of which is the requirements
-
-...of which the main one is the requirement...
-
-> +of the user configuring the device pipeline before starting streaming. This
-> +typically involves configuring the links using the **Media controller**
-> +interface and the media bus formats on pads (at both ends of the links)
-> +using the **V4L2 sub-device** interface.
-> +
->  .. _v4l2_device_naming:
->  
->  V4L2 Device Node Naming
-> 
-
-Regards,
-
-	Hans
+--Sig_/AsFjnufbt5EylVlvmATH95a--
