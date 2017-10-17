@@ -1,41 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from regular1.263xmail.com ([211.150.99.137]:52162 "EHLO
-        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753740AbdJIDk7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Oct 2017 23:40:59 -0400
-From: Jeffy Chen <jeffy.chen@rock-chips.com>
-To: linux-kernel@vger.kernel.org
-Cc: Jeffy Chen <jeffy.chen@rock-chips.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH] media: uvcvideo: Fix memory leak of uvc resources
-Date: Mon,  9 Oct 2017 11:40:46 +0800
-Message-Id: <20171009034046.7489-1-jeffy.chen@rock-chips.com>
+Received: from gloria.sntech.de ([95.129.55.99]:40858 "EHLO gloria.sntech.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1759865AbdJQSar (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Oct 2017 14:30:47 -0400
+From: Heiko Stuebner <heiko@sntech.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jacob Chen <jacob-chen@iotwrt.com>
+Subject: Re: [GIT PULL FOR v4.15] Rockchip RGA driver
+Date: Tue, 17 Oct 2017 20:30:39 +0200
+Message-ID: <1568794.oOVjkTyP8J@phil>
+In-Reply-To: <2e472b0b-212c-fc53-682b-162652bec9d2@xs4all.nl>
+References: <a7c9c661-9820-7b45-c9fd-b1b7abd0b6eb@xs4all.nl> <ea109e0c-4b05-0721-8d7a-646696dd7efd@xs4all.nl> <2e472b0b-212c-fc53-682b-162652bec9d2@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The refcount would be inited to 1 in kref_init(), so we don't need to
-increase it at the end of uvc_probe().
+Hi Hans,
 
-Fixes: 9d15cd958c17 ("media: uvcvideo: Convert from using an atomic variable to a reference count")
-Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
----
+Am Dienstag, 17. Oktober 2017, 08:30:44 CEST schrieb Hans Verkuil:
+> This driver was merged yesterday for 4.15, so you can go ahead and take the
+> dts patches.
 
- drivers/media/usb/uvc/uvc_driver.c | 1 -
- 1 file changed, 1 deletion(-)
+Thanks for the heads up.
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 6d22b22cb35b..dd6106411eb0 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1939,7 +1939,6 @@ static int uvc_register_video(struct uvc_device *dev,
- 	else
- 		stream->chain->caps |= V4L2_CAP_VIDEO_OUTPUT;
- 
--	kref_get(&dev->ref);
- 	return 0;
- }
- 
--- 
-2.11.0
+While I was monitoring
+https://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git/
+I didn't see if anything did go in there or if this was the wrong tree.
+
+Anyway, I'm going to pick the dts patches now.
+
+
+Thanks
+Heiko
