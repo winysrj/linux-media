@@ -1,129 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53112 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752223AbdJ0K7m (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Oct 2017 06:59:42 -0400
-Date: Fri, 27 Oct 2017 13:59:39 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Wenyou Yang <wenyou.yang@microchip.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        devicetree@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-arm-kernel@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 2/2] media: ov7740: Document device tree bindings
-Message-ID: <20171027105939.2rxfjfqezexcatc5@valkosipuli.retiisi.org.uk>
-References: <20171027074220.23839-1-wenyou.yang@microchip.com>
- <20171027074220.23839-3-wenyou.yang@microchip.com>
+Received: from mga06.intel.com ([134.134.136.31]:19924 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753886AbdJQXEz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Oct 2017 19:04:55 -0400
+From: "Zhi, Yong" <yong.zhi@intel.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "linux-api@vger.kernel.org" <linux-api@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Subject: RE: [PATCH 0/2] Add V4L2_BUF_TYPE_META_OUTPUT buffer type
+Date: Tue, 17 Oct 2017 23:04:53 +0000
+Message-ID: <C193D76D23A22742993887E6D207B54D1AE2A376@ORSMSX106.amr.corp.intel.com>
+References: <1503091856-18294-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1503091856-18294-1-git-send-email-sakari.ailus@linux.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171027074220.23839-3-wenyou.yang@microchip.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wenyou,
+Hi, Sakari,
 
-On Fri, Oct 27, 2017 at 03:42:20PM +0800, Wenyou Yang wrote:
-> Add the device tree binding documentation for ov7740 driver and
-> add a new entry of ov7740 to the MAINTAINERS file.
+> -----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
+> Sent: Friday, August 18, 2017 2:31 PM
+> To: linux-media@vger.kernel.org
+> Cc: linux-api@vger.kernel.org; tfiga@chromium.org; Zhi, Yong
+> <yong.zhi@intel.com>
+> Subject: [PATCH 0/2] Add V4L2_BUF_TYPE_META_OUTPUT buffer type
 > 
-> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
-> ---
+> Hi folks,
 > 
-> Changes in v2:
->  - Split off the bindings into a separate patch.
->  - Add a new entry to the MAINTAINERS file.
+> Here's a non-RFC version of the META_OUTPUT buffer type patches.
 > 
->  .../devicetree/bindings/media/i2c/ov7740.txt       | 43 ++++++++++++++++++++++
->  MAINTAINERS                                        |  8 ++++
->  2 files changed, 51 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7740.txt
+> The V4L2_BUF_TYPE_META_OUTPUT buffer type complements the metadata
+> buffer types support for OUTPUT buffers, capture being already supported.
+> This is intended for similar cases than V4L2_BUF_TYPE_META_CAPTURE but
+> for output buffers, e.g. device parameters that may be complex and highly
+> hierarchical data structure. Statistics are a current use case for metadata
+> capture buffers.
 > 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov7740.txt b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
-> new file mode 100644
-> index 000000000000..b306e5aa97bf
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
-> @@ -0,0 +1,43 @@
-> +* Omnivision OV7740 CMOS image sensor
-> +
-> +The Omnivision OV7740 image sensor supports multiple output image
-> +size, such as VGA, and QVGA, CIF and any size smaller. It also
-> +supports the RAW RGB and YUV output formats.
-> +
-> +Required Properties:
-> +- compatible: should be "ovti,ov7740"
-> +- clocks: reference to the xvclk input clock.
-> +- clock-names: should be "xvclk".
-> +
-> +Optional Properties:
-> +- reset-gpios: reference to the GPIO connected to the reset_b pin,
-> +  if any. Active low with pull-ip resistor.
-> +- powerdown-gpios: reference to the GPIO connected to the pwdn pin,
-> +  if any. Active high with pull-down resistor.
-> +
-> +The device node must contain one 'port' child node for its digital
-> +output video port, in accordance with the video interface bindings
-> +defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
+> Yong: could you take these to your IPU3 ImgU patchset, please? As that
+> would be the first user, the patches would be merged with the driver itself.
+> 
 
-Could you add there's a single endpoint node as well, and explicitly
-document the relevant properties? E.g. as in
-Documentation/devicetree/bindings/media/i2c/nokia,smia.txt .
+We implemented the meta format support in IPU3, the changes will be in ImgU v4, thanks!!
 
-> +
-> +Example:
-> +
-> +	i2c1: i2c@fc028000 {
-> +		ov7740: camera@21 {
-> +			compatible = "ovti,ov7740";
-> +			reg = <0x21>;
-> +			pinctrl-names = "default";
-> +			pinctrl-0 = <&pinctrl_sensor_power &pinctrl_sensor_reset>;
-> +			clocks = <&isc>;
-> +			clock-names = "xvclk";
-> +			assigned-clocks = <&isc>;
-> +			assigned-clock-rates = <24000000>;
-> +			reset-gpios = <&pioA 43 GPIO_ACTIVE_LOW>;
-> +			powerdown-gpios = <&pioA 44 GPIO_ACTIVE_HIGH>;
-> +
-> +			port {
-> +				ov7740_0: endpoint {
-> +					remote-endpoint = <&isc_0>;
-> +				};
-> +			};
-> +		};
-> +	};
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 90230fe020f3..f0f3f121d1d8 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -9965,6 +9965,14 @@ S:	Maintained
->  F:	drivers/media/i2c/ov7670.c
->  F:	Documentation/devicetree/bindings/media/i2c/ov7670.txt
->  
-> +OMNIVISION OV7740 SENSOR DRIVER
-> +M:	Wenyou Yang <wenyou.yang@microchip.com>
-> +L:	linux-media@vger.kernel.org
-> +T:	git git://linuxtv.org/media_tree.git
-> +S:	Maintained
-> +F:	drivers/media/i2c/ov7740.c
-> +F:	Documentation/devicetree/bindings/media/i2c/ov7740.txt
-> +
->  ONENAND FLASH DRIVER
->  M:	Kyungmin Park <kyungmin.park@samsung.com>
->  L:	linux-mtd@lists.infradead.org
-
-Please put the MAINTAINERS change to the driver patch after the DT binding
-patch.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+> since RFC:
+> 
+> - Fix make htmldocs build.
+> 
+> - Fix CAPTURE -> OUTPUT in buffer.rst.
+> 
+> - Added " for specifying how the device processes images" in the
+>   documentation.
+> 
+> Sakari Ailus (2):
+>   v4l: Add support for V4L2_BUF_TYPE_META_OUTPUT
+>   docs-rst: v4l: Document V4L2_BUF_TYPE_META_OUTPUT interface
+> 
+>  Documentation/media/uapi/v4l/buffer.rst          |  3 +++
+>  Documentation/media/uapi/v4l/dev-meta.rst        | 33 ++++++++++++++------
+> ----
+>  Documentation/media/uapi/v4l/vidioc-querycap.rst |  3 +++
+>  Documentation/media/videodev2.h.rst.exceptions   |  2 ++
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c    |  2 ++
+>  drivers/media/v4l2-core/v4l2-ioctl.c             | 25 ++++++++++++++++++
+>  drivers/media/v4l2-core/videobuf2-v4l2.c         |  1 +
+>  include/media/v4l2-ioctl.h                       | 17 ++++++++++++
+>  include/uapi/linux/videodev2.h                   |  2 ++
+>  9 files changed, 75 insertions(+), 13 deletions(-)
+> 
+> --
+> 2.7.4
