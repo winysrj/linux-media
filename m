@@ -1,88 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:33769 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754170AbdJIP1w (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 11:27:52 -0400
-Date: Mon, 9 Oct 2017 12:27:42 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org
-Subject: Re: [PATCH v15 01/32] v4l: async: Remove re-probing support
-Message-ID: <20171009122742.6b9d82f2@vento.lan>
-In-Reply-To: <e45a2974-2a63-7dca-ca09-fa12532d5325@xs4all.nl>
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
-        <20171004215051.13385-2-sakari.ailus@linux.intel.com>
-        <20171009082239.189b4475@vento.lan>
-        <20171009140646.vqftgwkttgn33m2t@valkosipuli.retiisi.org.uk>
-        <67bcf879-f8dd-094e-47ba-3be977da02b2@xs4all.nl>
-        <20171009141823.zu6m6ir2z7id7px3@valkosipuli.retiisi.org.uk>
-        <e45a2974-2a63-7dca-ca09-fa12532d5325@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:54299 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757147AbdJQOx6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Oct 2017 10:53:58 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH] media: v4l2-ctrl: Fix flags field on Control events
+Date: Tue, 17 Oct 2017 16:53:53 +0200
+Message-Id: <20171017145353.8521-1-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 9 Oct 2017 16:20:08 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+VIDIOC_DQEVENT and VIDIOC_QUERY_EXT_CTRL should give the same output for
+the control flags field.
 
-> On 09/10/17 16:18, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > On Mon, Oct 09, 2017 at 04:08:47PM +0200, Hans Verkuil wrote:  
-> >> On 09/10/17 16:06, Sakari Ailus wrote:  
-> >>> Hi Mauro,
-> >>>
-> >>> On Mon, Oct 09, 2017 at 08:22:39AM -0300, Mauro Carvalho Chehab wrote:  
-> >>>> Em Thu,  5 Oct 2017 00:50:20 +0300
-> >>>> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> >>>>  
-> >>>>> Remove V4L2 async re-probing support. The re-probing support has been
-> >>>>> there to support cases where the sub-devices require resources provided by
-> >>>>> the main driver's hardware to function, such as clocks.
-> >>>>>
-> >>>>> Reprobing has allowed unbinding and again binding the main driver without
-> >>>>> explicilty unbinding the sub-device drivers. This is certainly not a
-> >>>>> common need, and the responsibility will be the user's going forward.
-> >>>>>
-> >>>>> An alternative could have been to introduce notifier specific locks.
-> >>>>> Considering the complexity of the re-probing and that it isn't really a
-> >>>>> solution to a problem but a workaround, remove re-probing instead.  
-> >>>>
-> >>>> If the re-probing isn't using anywhere, that sounds a nice cleanup.
-> >>>> Did you check if this won't break any driver (like soc_camera)?  
-> >>>
-> >>> That was discussed earlier in the review; Laurent asked the same question.
-> >>>
-> >>> Re-probing never was a proper solution to any problem; it was just a hack
-> >>> to avoid unbinding the sensor if the bridge driver was unbound, no more: it
-> >>> can't be generalised to support more complex use cases. Mind you, this is
-> >>> on devices that aren't actually removable.
-> >>>
-> >>> I've briefly discussed this with Laurent; the proper solution would need to
-> >>> be implemented in the clock framework instead. There, the existing clocks
-> >>> obtained by drivers could be re-activated when the driver for them comes
-> >>> back.
-> >>>
-> >>> My proposal is that if there's real a need to address this, then it could
-> >>> be solved in the clock framework.  
-> >>
-> >> Can you add this information to the commit log?
-> >>
-> >> I think that would be very helpful in the future.  
-> > 
-> > Sure, how about this at the end of the current commit message:
-> > 
-> > If there is a need to support removing the clock provider in the future,
-> > this should be implemented in the clock framework instead, not in V4L2.  
-> 
-> Yes, that sounds good.
+This patch creates a new function user_flags(), that calculates the user
+exported flags value (which is different than the kernel internal flags
+structure). This function is then used by all the code that exports the
+internal flags to userspace.
 
-Works for me too.
+Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
 
-Regards,
-Mauro
+Maybe we should cc stable on this one.
+
+ drivers/media/v4l2-core/v4l2-ctrls.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 4e53a8654690..751cf5746f90 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1227,6 +1227,16 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_fill);
+ 
++static u32 user_flags(struct v4l2_ctrl *ctrl)
++{
++	u32 flags = ctrl->flags;
++
++	if (ctrl->is_ptr)
++		flags |= V4L2_CTRL_FLAG_HAS_PAYLOAD;
++
++	return flags;
++}
++
+ static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 changes)
+ {
+ 	memset(ev->reserved, 0, sizeof(ev->reserved));
+@@ -1234,7 +1244,7 @@ static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 change
+ 	ev->id = ctrl->id;
+ 	ev->u.ctrl.changes = changes;
+ 	ev->u.ctrl.type = ctrl->type;
+-	ev->u.ctrl.flags = ctrl->flags;
++	ev->u.ctrl.flags = user_flags(ctrl);
+ 	if (ctrl->is_ptr)
+ 		ev->u.ctrl.value64 = 0;
+ 	else
+@@ -2577,10 +2587,8 @@ int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_query_ext_ctr
+ 	else
+ 		qc->id = ctrl->id;
+ 	strlcpy(qc->name, ctrl->name, sizeof(qc->name));
+-	qc->flags = ctrl->flags;
++	qc->flags = user_flags(ctrl);
+ 	qc->type = ctrl->type;
+-	if (ctrl->is_ptr)
+-		qc->flags |= V4L2_CTRL_FLAG_HAS_PAYLOAD;
+ 	qc->elem_size = ctrl->elem_size;
+ 	qc->elems = ctrl->elems;
+ 	qc->nr_of_dims = ctrl->nr_of_dims;
+-- 
+2.14.2
