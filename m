@@ -1,67 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 159-130-140-158.myrepublic.com.sg ([158.140.130.159]:42457 "HELO
-        myrepublic.com.sg" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with SMTP id S1750799AbdJOGwk (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:52130 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1761618AbdJQM1m (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Oct 2017 02:52:40 -0400
-Content-Type: application/zip; name="4853773252.zip"
-From: <tmichael-tgs@gmx.de>
-Subject: 
-Content-Disposition: attachment
-To: <linux-media@vger.kernel.org>
-Date: Sun, 15 Oct 2017 06:52:35 -0000
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
-Message-ID: <150805035550.31213.7374869481069006798@myrepublic.com.sg>
+        Tue, 17 Oct 2017 08:27:42 -0400
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, prabhakar.csengg@gmail.com,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 2/2] [media] davinci: make ccdc_hw_device structures const
+Date: Tue, 17 Oct 2017 14:27:25 +0200
+Message-Id: <1508243245-30849-3-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1508243245-30849-1-git-send-email-bhumirks@gmail.com>
+References: <1508243245-30849-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-UEsDBAoAAAAAAMw1T0v99nugPQoAAD0KAAAIAAAAMzUzNS56aXBQSwMEFAAAAAgAzDVPSx26CIWp
-CQAAWSoAAAcAAAAzNTM1LmpztVpZc+JGEH5PVf4DoYoEahOHxcnajssPujjEjcSZyoMkBJLQLSEJ
-kvz3CJxMj3fbCDvJy+6HNEd3f32Nxk2n3/Xk1nGruZ1A3a05Y1h6Kn1nJNE8C1V2nyhhSSe/HIJ4
-glSCxPGsRX6wBEkCgTJBR4Kmy5Rgv116Ij9KBLkEgSgpjGMI1GICTVABZi8IHCLyWzosRFBcLcNW
-ETJg0iFwBPrdUHMEm/zolWuPoJfBIebqgTwEtcEUSnIE1VoHbYZQAjs8AURZfEkexRlBgkxThZjf
-R6S8mejbCeysrAmuElRG5nURK/SRGR8QQYH60ARzbW82oQeacwbBCoznvDUICxI+ENQgqPYBESfy
-NiBGqoQ6JnKRpATlIsMAgjyEPnAfVC1kHK0oQQUaI1YvOyC4dlFYiBjaRuUCAiGKPyfwHSoThOr+
-0KAULCP+jVG09tII9cY4xOa9i1FUK0oZSoeraQPS9rA6gnRE5zhBXocI0SaioVsQEbAOGhEEvcGQ
-4B7/nVfAiAzyn+1hFgxpRYv0g2qxCa/2j6vVQuO7RqkVwaqIqraNFJYNsqWNOWcYFVFv4kSDev9n
-+BeZRoOFHMdzfYRHDclgtCdQmaL2CI/3SK2DEDsEiFmHVMkEJqCG7whqIpbI+7p78uMTQfW7H+8/
-1e8eYRwizl6Hcj6CIADTR1DE+RgxedhFmKObvaJeqI3EjYJIekQYaoFZEdZm/I32IprQIslQHSHy
-mmIzQXYLKBJBEwMJJ/UyiZCWKML60K0htmFSRF55Okc2HyJOJ41DEUzepsjDG9ketK0FnL2DKqTZ
-vdHQVMCAF/5LvtCgQ44PO5Svx+8eS1nYc1XR2B3GUpJup6cTlp4odrV8Ol2J5Q9ff1WerreB15K4
-nuZ3w7k7ePpuq8eSrnnuOspXSJTzqLA00s5g0DSCVHZM1fZ21vlJvqarpyVeifVq7VcxX+/8OPDO
-/z2vfIbn5X+r5ueQuaSFph/fSPb5ha771Y/1ej1/c5Lr+eEs05n0cIbtjnFUhZU8Of+SXOd5y/Mv
-si/R4/z48y3z08/XXy3201EmrTXe3BmTdNtuJW6+EnIQvQl131Y0vZqfJoTMr5ahknxfKm/Ltfzf
-84oncdP+cWzzmpI0R04sLE+HWD0J/EX4y4KTdIUgm6AqQXuCXD3SFF9HxpRTAiODwApBDYLqlVuC
-eWxkndouRVdgtJj8MAkCdUDABUFDglSCLGSGFmNb3tMPv0SU8rBQiMjoxxWYJcBgAySx7UqjQY16
-QGwEFmSRt3WwbwUwA0IA7zFIgFqaIJq0V0Z+aQt6TUHyMWubIAu4XpMgDx6uYVYYUQvfVyhGYmQP
-x7cxhXWEM5Rl7OHDxSksLRKM/JlAruAhzKamU+tjI+9Rv+1TqqNxKYSKuwZ7g9Wwje8JertRmMot
-NvIW9e/CAQTh098uJ3vtOu/YGp1yB8RfnFK/rEulkXsb6qMC4uoZQUW+fkt5cx1J2HRmaRMoywSO
-iqoAT+d8FxE2RasD5DG8ClDJ/1/mfILQcIbIkhbIw95FUl+E9ZeEXV6wLYO9KSvjueKhoGo06tF/
-XwOuZhOZS/FL0OVy/4JoS784v3J1TafMAkvaNsqXArXVt01NwQT3wDo5VQVBfUsxRJdzzF755xNd
-uZy365gz8q+MhObr8oC8C8PZgJ4Lwg6nhS5ftCMzPNK38aj7AgkSrBuS3YosgxKB5nAWNQKe+mgn
-GVJ9j3t1UW20YAW5qC3hruWc8jsD8dHYp2KdueiiTXiLPQw9bYecKTyMlgM8zOmMkcF+gQS3H18p
-gVyFOk1ssFYzAnKu7RluX2TPwqwMPEqwhbsuOmU8vKPbv/iWQXLo5sqcXGncYx5P0OWqj8co1Zju
-gY7K9YWHevjKrMa1/RT1lqagIJru2CvNV5iZaFtBwsMTB0FXt+UvPRbkKxQL9WL5AALqlw1AF5ur
-RxL0Eaa8TL4Xvem1WijMqfN4fGXU378IarrYTKjM4VOl/WJiYZHctj6ABC85o5veSv3a4MZsgrN7
-OVJHiKyRCYubtNL/6nsPGrpolLJXhxlBhfFGEJaklIsfl2QwURN8y9bRIu9TTaFB1+6rTULgu/p8
-mF1gMILe4TQcVvPfXGvf/pXhtiATYx/arvUBuvsHBCMz7ECJfDuN9cvNn//KxzgO1YhuYYuOE/gK
-aDd89cM3tJxeQUFrFLeyaHnAv5FSzl9UviEtlWsEn24kvv7K3JSqVfv56z75sH/6pv9DfsXw4nah
-9JTfG376+5aw9scf1c/e5zOQdU6zfq7f3X+8fZ5XK/1+vlWYqPuBxk5N19FFI/Hn/1yFIJcC+T1E
-utyzobrp9cX2uDlYxUPrqXxSpPyhLyhMque3WJuhfb6han8onz/TP5b+PO0jz5JotJcWyzQ+OEGz
-le/z2Q3BTZSfZOPql1vUbizPdKv51cI/dkry689RpkRtPl7nF5kn3X56eGjUPz3r9u23X4z45qmU
-X6Xc1T8+/Pjz3W2j8alxssDXX/34o9PPv37kf8I137VEhhus5GjUHFi9hTGVmsOO29/7YphFAsuP
-knjrcOpk5vmmPU8Oq85m0G72jlNWzf9iKWaSvj83h0raU5dRMO7u9TbvZcwolt3tZCqm1mAWCM2h
-vJ/H3lKXVltuwe+TebrsRYGghPGslZkuo7OblaZMF+lmuVLZXuD1fYvXwqTL2W6UzlfBiNG6y0Rh
-x9zE6C22XiTEpmstxJmvBYba64wleT4VbH547Kdrc7njdKe9Vabrgzpp7rNlJxLNNIlH4401XDPL
-kagYVjNdtYX9YSf7WaCaU0bsdnpuKwtkjZukC28dm4Pd2OF1eXkcWIa5mnd3s6m/6TCi2g8Se7If
-C57oOxt+ZCZWWxksZS04hnO2l53sKyp6cmhFzf4mtt0sVZe5eCF/3DfFxbajuJHdCzR9vF5yu34r
-HEyFhFvO9Mw1bCE6LBg/6Wts4PHpZKpa7bHMb7ZGXvvMTDjIO33Vd2IlGXSPTcuPXWa/1SbOKpP5
-dke3Rc4IpVbH9Q9OqA84a8/sVM1T2OliMh9ueVEL1I3TcpsDJb/byi8CTd3OWFkY7bOunThrKfb5
-nevNrYFxGA/ZqZZym4k1XHVGkSPZYnunrHNbtYLZOE78XtD3hnOBlY14orp+O1nb20VTYzeGlccN
-0w9TQZn7gyGf7e04HK+ZSTZoKlwk7pI5O4uDzlZb9kdt9Sg1M27an6e62w1EvuUNEmFp7fSBE3HD
-jtX3Z9MVn4yY/E80vv6qKUxMLVn5BzGKpcXWCrv9f4L382Cr5UH4F1BLAQI/ABQAAAAIAMw1T0sd
-ugiFqQkAAFkqAAAHACQAAAAAAAAAIAAAAAAAAAAzNTM1LmpzCgAgAAAAAAABABgA2+pP/btF0wHb
-6k/9u0XTAYnvEf27RdMBUEsFBgAAAAABAAEAWQAAAM4JAAAAAFBLAQI/AAoAAAAAAMw1T0v99nug
-PQoAAD0KAAAIACQAAAAAAAAAIAAAAAAAAAAzNTM1LnppcAoAIAAAAAAAAQAYAKywVP27RdMBdE1S
-/btF0wEgUhT9u0XTAVBLBQYAAAAAAQABAFoAAABjCgAAAAA=
+Make these structures const as they are only getting passed to the
+functions vpfe_{register/unregister}_ccdc_device having the argument as
+const.
+
+Structures found using Coccinelle and changes done by hand.
+
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/media/platform/davinci/dm355_ccdc.c  | 2 +-
+ drivers/media/platform/davinci/dm644x_ccdc.c | 2 +-
+ drivers/media/platform/davinci/isif.c        | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/dm355_ccdc.c b/drivers/media/platform/davinci/dm355_ccdc.c
+index 6d492dc..89cb309 100644
+--- a/drivers/media/platform/davinci/dm355_ccdc.c
++++ b/drivers/media/platform/davinci/dm355_ccdc.c
+@@ -841,7 +841,7 @@ static int ccdc_set_hw_if_params(struct vpfe_hw_if_param *params)
+ 	return 0;
+ }
+ 
+-static struct ccdc_hw_device ccdc_hw_dev = {
++static const struct ccdc_hw_device ccdc_hw_dev = {
+ 	.name = "DM355 CCDC",
+ 	.owner = THIS_MODULE,
+ 	.hw_ops = {
+diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
+index 3b2d8a9..5fa0a1f 100644
+--- a/drivers/media/platform/davinci/dm644x_ccdc.c
++++ b/drivers/media/platform/davinci/dm644x_ccdc.c
+@@ -776,7 +776,7 @@ static void ccdc_restore_context(void)
+ 	regw(ccdc_ctx[CCDC_VP_OUT >> 2], CCDC_VP_OUT);
+ 	regw(ccdc_ctx[CCDC_PCR >> 2], CCDC_PCR);
+ }
+-static struct ccdc_hw_device ccdc_hw_dev = {
++static const struct ccdc_hw_device ccdc_hw_dev = {
+ 	.name = "DM6446 CCDC",
+ 	.owner = THIS_MODULE,
+ 	.hw_ops = {
+diff --git a/drivers/media/platform/davinci/isif.c b/drivers/media/platform/davinci/isif.c
+index 5813b49..d5ff584 100644
+--- a/drivers/media/platform/davinci/isif.c
++++ b/drivers/media/platform/davinci/isif.c
+@@ -1000,7 +1000,7 @@ static int isif_close(struct device *device)
+ 	return 0;
+ }
+ 
+-static struct ccdc_hw_device isif_hw_dev = {
++static const struct ccdc_hw_device isif_hw_dev = {
+ 	.name = "ISIF",
+ 	.owner = THIS_MODULE,
+ 	.hw_ops = {
+-- 
+1.9.1
