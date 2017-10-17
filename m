@@ -1,284 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.220.in.ua ([89.184.67.205]:52998 "EHLO smtp.220.in.ua"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750806AbdJVOBP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Oct 2017 10:01:15 -0400
-Received: from [192.168.202.100] (unknown [95.67.115.55])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by smtp.220.in.ua (Postfix) with ESMTPSA id D477D1A21D2E
-        for <linux-media@vger.kernel.org>; Sun, 22 Oct 2017 17:01:09 +0300 (EEST)
-To: linux-media <linux-media@vger.kernel.org>
-From: Oleh Kravchenko <oleg@kaa.org.ua>
-Subject: cx231xx IR remote control protocol
-Message-ID: <5f441db1-93eb-2a9f-25ce-022cdcfadfc1@kaa.org.ua>
-Date: Sun, 22 Oct 2017 17:01:05 +0300
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:34969 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S965834AbdJQTUW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Oct 2017 15:20:22 -0400
+Subject: Re: [GIT PULL FOR v4.15] Rockchip RGA driver
+To: Heiko Stuebner <heiko@sntech.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jacob Chen <jacob-chen@iotwrt.com>
+References: <a7c9c661-9820-7b45-c9fd-b1b7abd0b6eb@xs4all.nl>
+ <ea109e0c-4b05-0721-8d7a-646696dd7efd@xs4all.nl>
+ <2e472b0b-212c-fc53-682b-162652bec9d2@xs4all.nl> <1568794.oOVjkTyP8J@phil>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <33df01e2-5f40-97c2-08fa-03304a18cb14@xs4all.nl>
+Date: Tue, 17 Oct 2017 21:20:15 +0200
 MIME-Version: 1.0
+In-Reply-To: <1568794.oOVjkTyP8J@phil>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 10/17/2017 08:30 PM, Heiko Stuebner wrote:
+> Hi Hans,
+> 
+> Am Dienstag, 17. Oktober 2017, 08:30:44 CEST schrieb Hans Verkuil:
+>> This driver was merged yesterday for 4.15, so you can go ahead and take the
+>> dts patches.
+> 
+> Thanks for the heads up.
+> 
+> While I was monitoring
+> https://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git/
+> I didn't see if anything did go in there or if this was the wrong tree.
 
-I'm trying add support remote control for tuners:
-- EvroMedia Full Hybrid Full HD
-- Astrometa T2hybrid
+Wrong tree. This is the repo we use: git://linuxtv.org/media_tree.git (master branch).
 
-But I'm stuck. Can anybody recognize this protocol?
+> Anyway, I'm going to pick the dts patches now.
 
-$ i2cdump -y 5 0x30 b
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 42 3c 2d 0f 3f 4f 67 13 18 00 72 02 55 05 55 00    B<-??Og??.r?U?U.
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-20: 04 02 10 00 46 05 03 07 10 f0 02 00 00 00 00 00    ???.F??????.....
-30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-40: 04 02 10 00 46 05 03 07 00 f0 02 00 00 00 00 00    ???.F???.??.....
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-60: 05 02 10 40 46 05 03 07 00 f0 02 00 00 00 00 00    ???@F???.??.....
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+Thanks!
 
-$ i2cdump -y 18 0x30 b
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 42 3c 2c 0f 3f 4f 67 13 18 00 72 02 55 05 55 00    B<,??Og??.r?U?U.
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-20: 04 02 10 00 46 05 03 07 00 f0 02 00 00 00 00 00    ???.F???.??.....
-30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-40: 04 02 10 00 46 05 03 07 00 f0 02 00 00 00 00 00    ???.F???.??.....
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-60: 04 02 10 00 46 05 03 07 00 f0 02 00 00 00 00 00    ???.F???.??.....
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-
-Here dump of i2c transactions of Windows driver converted to i2c-tools:
-i2cset -y 5 0x30 0x0001 0x10 b
-i2cset -y 5 0x30 0x0000 0x42 b
-i2cset -y 5 0x30 0x0005 0x0f b
-i2cset -y 5 0x30 0x0008 0x18 b
-i2cget -y 5 0x30 0x0008 b # should be 0x18
-i2cset -y 5 0x30 0x0002 0x40 b
-i2cset -y 5 0x30 0x0002 0x00 b
-i2cset -y 5 0x30 0x000a 0x52 b
-i2cset -y 5 0x30 0x0023 0x00 b
-i2cset -y 5 0x30 0x0043 0x00 b
-i2cset -y 5 0x30 0x0063 0x00 b
-i2cset -y 5 0x30 0x000b 0x02 b
-i2cset -y 5 0x30 0x0027 0x17 b
-i2cset -y 5 0x30 0x0047 0x17 b
-i2cset -y 5 0x30 0x0067 0x17 b
-i2cset -y 5 0x30 0x0022 0x10 b
-i2cset -y 5 0x30 0x0042 0x10 b
-i2cset -y 5 0x30 0x0062 0x10 b
-i2cset -y 5 0x30 0x0027 0x07 b
-i2cset -y 5 0x30 0x0047 0x07 b
-i2cset -y 5 0x30 0x0067 0x07 b
-i2cset -y 5 0x30 0x0029 0xf0 b
-i2cset -y 5 0x30 0x0049 0xf0 b
-i2cset -y 5 0x30 0x0069 0xf0 b
-i2cget -y 5 0x30 0x002a b # should be 0xfa
-i2cset -y 5 0x30 0x002a 0x02 b
-i2cget -y 5 0x30 0x004a b # should be 0xfa
-i2cset -y 5 0x30 0x004a 0x02 b
-i2cget -y 5 0x30 0x006a b # should be 0xfa
-i2cset -y 5 0x30 0x006a 0x02 b
-i2cset -y 5 0x30 0x0026 0x03 b
-i2cset -y 5 0x30 0x0046 0x03 b
-i2cset -y 5 0x30 0x0066 0x03 b
-i2cget -y 5 0x30 0x0028 b # should be 0x00
-i2cget -y 5 0x30 0x0029 b # should be 0xf0
-i2cset -y 5 0x30 0x0001 0x10 b
-i2cset -y 5 0x30 0x0000 0x42 b
-i2cset -y 5 0x30 0x0005 0x0f b
-i2cset -y 5 0x30 0x0008 0x18 b
-i2cget -y 5 0x30 0x0008 b # should be 0x18
-i2cset -y 5 0x30 0x0002 0x40 b
-i2cset -y 5 0x30 0x0002 0x00 b
-i2cset -y 5 0x30 0x000a 0x52 b
-i2cget -y 5 0x30 0x0028 b # should be 0x00
-i2cset -y 5 0x30 0x0028 0x10 b
-i2cget -y 5 0x30 0x0028 b # should be 0x10
-i2cget -y 5 0x30 0x0029 b # should be 0xf0
-i2cset -y 5 0x30 0x0001 0x10 b
-i2cset -y 5 0x30 0x0000 0x42 b
-i2cset -y 5 0x30 0x0005 0x0f b
-i2cset -y 5 0x30 0x0008 0x18 b
-i2cget -y 5 0x30 0x0008 b # should be 0x18
-i2cset -y 5 0x30 0x0002 0x40 b
-i2cset -y 5 0x30 0x0002 0x00 b
-i2cset -y 5 0x30 0x000a 0x52 b
-i2cget -y 5 0x30 0x0028 b # should be 0x10
-i2cset -y 5 0x30 0x0028 0x10 b
-i2cget -y 5 0x30 0x0028 b # should be 0x10
-i2cget -y 5 0x30 0x0029 b # should be 0xf0
-i2cset -y 5 0x30 0x0001 0x10 b
-i2cset -y 5 0x30 0x0000 0x42 b
-i2cset -y 5 0x30 0x0005 0x0f b
-i2cset -y 5 0x30 0x0008 0x18 b
-i2cget -y 5 0x30 0x0008 b # should be 0x18
-i2cset -y 5 0x30 0x0002 0x40 b
-i2cset -y 5 0x30 0x0002 0x00 b
-i2cset -y 5 0x30 0x000a 0x52 b
-i2cget -y 5 0x30 0x0028 b # should be 0x10
-i2cset -y 5 0x30 0x0028 0x10 b
-i2cget -y 5 0x30 0x0028 b # should be 0x10
-i2cget -y 5 0x30 0x0029 b # should be 0xf0
-i2cset -y 5 0x30 0x0001 0x10 b
-i2cset -y 5 0x30 0x0000 0x42 b
-i2cset -y 5 0x30 0x0005 0x0f b
-i2cset -y 5 0x30 0x0008 0x18 b
-i2cget -y 5 0x30 0x0008 b # should be 0x18
-i2cset -y 5 0x30 0x0002 0x40 b
-i2cset -y 5 0x30 0x0002 0x00 b
-i2cset -y 5 0x30 0x000a 0x52 b
-i2cget -y 5 0x30 0x0028 b # should be 0x10
-i2cset -y 5 0x30 0x0028 0x10 b
-i2cget -y 5 0x30 0x0028 b # should be 0x10
-i2cget -y 5 0x30 0x0029 b # should be 0xf0
-i2cset -y 5 0x30 0x0001 0x10 b
-i2cset -y 5 0x30 0x0000 0x42 b
-i2cset -y 5 0x30 0x0005 0x0f b
-i2cset -y 5 0x30 0x0008 0x18 b
-i2cget -y 5 0x30 0x0008 b # should be 0x18
-i2cset -y 5 0x30 0x0002 0x40 b
-i2cset -y 5 0x30 0x0002 0x00 b
-i2cset -y 5 0x30 0x000a 0x52 b
-i2cget -y 5 0x30 0x0028 b # should be 0x10
-i2cset -y 5 0x30 0x0028 0x10 b
-i2cget -y 5 0x30 0x0061 b # should be 0x02
-i2cset -y 5 0x30 0x0061 0x03 b
-i2cget -y 5 0x30 0x0061 b # should be 0x01
-i2cset -y 5 0x30 0x0061 0x00 b
-i2cget -y 5 0x30 0x0069 b # should be 0xf0
-i2cset -y 5 0x30 0x0069 0xf0 b
-i2cget -y 5 0x30 0x0068 b # should be 0x00
-i2cset -y 5 0x30 0x0068 0x02 b
-i2cget -y 5 0x30 0x0067 b # should be 0x07
-i2cset -y 5 0x30 0x0067 0x07 b
-i2cget -y 5 0x30 0x0066 b # should be 0x03
-i2cset -y 5 0x30 0x0066 0x03 b
-i2cget -y 5 0x30 0x0065 b # should be 0x05
-i2cset -y 5 0x30 0x0065 0x05 b
-i2cget -y 5 0x30 0x0064 b # should be 0x46
-i2cset -y 5 0x30 0x0064 0x46 b
-i2cget -y 5 0x30 0x0064 b # should be 0x46
-i2cset -y 5 0x30 0x0064 0x46 b
-i2cget -y 5 0x30 0x0063 b # should be 0x00
-i2cset -y 5 0x30 0x0063 0x20 b
-i2cget -y 5 0x30 0x0068 b # should be 0x02
-i2cget -y 5 0x30 0x0069 b # should be 0xf0
-i2cset -y 5 0x30 0x0001 0x10 b
-i2cset -y 5 0x30 0x0000 0x42 b
-i2cset -y 5 0x30 0x0005 0x0f b
-i2cset -y 5 0x30 0x0008 0x18 b
-i2cget -y 5 0x30 0x0008 b # should be 0x18
-i2cset -y 5 0x30 0x0002 0x40 b
-i2cset -y 5 0x30 0x0002 0x00 b
-i2cset -y 5 0x30 0x000a 0x52 b
-i2cget -y 5 0x30 0x0068 b # should be 0x02
-i2cget -y 5 0x30 0x0069 b # should be 0xf0
-i2cset -y 5 0x30 0x0001 0x10 b
-i2cset -y 5 0x30 0x0000 0x42 b
-i2cset -y 5 0x30 0x0005 0x0f b
-i2cset -y 5 0x30 0x0008 0x18 b
-i2cget -y 5 0x30 0x0008 b # should be 0x18
-i2cset -y 5 0x30 0x0002 0x40 b
-i2cset -y 5 0x30 0x0002 0x00 b
-i2cset -y 5 0x30 0x000a 0x52 b
-i2cget -y 5 0x30 0x0068 b # should be 0x02
-i2cget -y 5 0x30 0x0069 b # should be 0xf0
-i2cset -y 5 0x30 0x0001 0x10 b
-i2cset -y 5 0x30 0x0000 0x42 b
-i2cset -y 5 0x30 0x0005 0x0f b
-i2cset -y 5 0x30 0x0008 0x18 b
-i2cget -y 5 0x30 0x0008 b # should be 0x18
-i2cset -y 5 0x30 0x0002 0x40 b
-i2cset -y 5 0x30 0x0002 0x00 b
-i2cset -y 5 0x30 0x000a 0x52 b
-i2cget -y 5 0x30 0x0061 b # should be 0x02
-i2cset -y 5 0x30 0x0061 0x03 b
-i2cget -y 5 0x30 0x0061 b # should be 0x01
-i2cset -y 5 0x30 0x0061 0x00 b
-i2cget -y 5 0x30 0x0069 b # should be 0xf0
-i2cset -y 5 0x30 0x0069 0xf0 b
-i2cget -y 5 0x30 0x0068 b # should be 0x02
-i2cset -y 5 0x30 0x0068 0x02 b
-i2cget -y 5 0x30 0x0067 b # should be 0x07
-i2cset -y 5 0x30 0x0067 0x07 b
-i2cget -y 5 0x30 0x0066 b # should be 0x03
-i2cset -y 5 0x30 0x0066 0x03 b
-i2cget -y 5 0x30 0x0065 b # should be 0x05
-i2cset -y 5 0x30 0x0065 0x05 b
-i2cget -y 5 0x30 0x0064 b # should be 0x46
-i2cset -y 5 0x30 0x0064 0x46 b
-i2cget -y 5 0x30 0x0064 b # should be 0x46
-i2cset -y 5 0x30 0x0064 0x46 b
-i2cget -y 5 0x30 0x0063 b # should be 0x20
-i2cset -y 5 0x30 0x0063 0x20 b
-i2cget -y 5 0x30 0x0068 b # should be 0x02
-i2cget -y 5 0x30 0x0069 b # should be 0xf0
-i2cset -y 5 0x30 0x0001 0x10 b
-i2cset -y 5 0x30 0x0000 0x42 b
-i2cset -y 5 0x30 0x0005 0x0f b
-i2cset -y 5 0x30 0x0008 0x18 b
-i2cget -y 5 0x30 0x0008 b # should be 0x18
-i2cset -y 5 0x30 0x0002 0x40 b
-i2cset -y 5 0x30 0x0002 0x00 b
-i2cset -y 5 0x30 0x000a 0x52 b
-i2cget -y 5 0x30 0x0068 b # should be 0x02
-i2cget -y 5 0x30 0x0069 b # should be 0xf0
-i2cset -y 5 0x30 0x0001 0x10 b
-i2cset -y 5 0x30 0x0000 0x42 b
-i2cset -y 5 0x30 0x0005 0x0f b
-i2cset -y 5 0x30 0x0008 0x18 b
-i2cget -y 5 0x30 0x0008 b # should be 0x18
-i2cset -y 5 0x30 0x0002 0x40 b
-i2cset -y 5 0x30 0x0002 0x00 b
-i2cset -y 5 0x30 0x000a 0x52 b
-i2cget -y 5 0x30 0x0061 b # should be 0x02
-i2cset -y 5 0x30 0x0061 0x03 b
-i2cget -y 5 0x30 0x0061 b # should be 0x01
-i2cset -y 5 0x30 0x0061 0x00 b
-i2cget -y 5 0x30 0x0069 b # should be 0xf0
-i2cset -y 5 0x30 0x0069 0xf0 b
-i2cget -y 5 0x30 0x0068 b # should be 0x02
-i2cset -y 5 0x30 0x0068 0x02 b
-i2cget -y 5 0x30 0x0067 b # should be 0x07
-i2cset -y 5 0x30 0x0067 0x07 b
-i2cget -y 5 0x30 0x0066 b # should be 0x03
-i2cset -y 5 0x30 0x0066 0x03 b
-i2cget -y 5 0x30 0x0065 b # should be 0x05
-i2cset -y 5 0x30 0x0065 0x05 b
-i2cget -y 5 0x30 0x0064 b # should be 0x46
-i2cset -y 5 0x30 0x0064 0x46 b
-i2cget -y 5 0x30 0x0064 b # should be 0x46
-i2cset -y 5 0x30 0x0064 0x46 b
-i2cget -y 5 0x30 0x0063 b # should be 0x20
-i2cset -y 5 0x30 0x0063 0x20 b
-i2cset -y 5 0x30 0x0008 0x18 b
-i2cget -y 5 0x30 0x0008 b # should be 0x18
-i2cset -y 5 0x30 0x0008 0x18 b
-i2cget -y 5 0x30 0x0008 b # should be 0x18
-i2cset -y 5 0x30 0x0008 0x18 b
-i2cget -y 5 0x30 0x0008 b # should be 0x18
-i2cset -y 5 0x30 0x0008 0x18 b
-i2cget -y 5 0x30 0x0008 b # should be 0x18
-
--- 
-Best regards,
-Oleh Kravchenko
+	Hans
