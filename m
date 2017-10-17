@@ -1,46 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39132 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751646AbdJZHyT (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35633 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751473AbdJQSSS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Oct 2017 03:54:19 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH v16 11/32] omap3isp: Fix check for our own sub-devices
-Date: Thu, 26 Oct 2017 10:53:21 +0300
-Message-Id: <20171026075342.5760-12-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+        Tue, 17 Oct 2017 14:18:18 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: kernel test robot <xiaolong.ye@intel.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        lkp@01.org
+Subject: Re: [lkp-robot] [uvcvideo]  c698cbbd35: Failed to query (GET_INFO) UVC control 11 on unit 1: -32 (exp. 1).
+Date: Tue, 17 Oct 2017 21:18:36 +0300
+Message-ID: <1534341.cxAt6LBOsY@avalon>
+In-Reply-To: <20170808021846.GK25554@yexl-desktop>
+References: <20170808021846.GK25554@yexl-desktop>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We only want to link sub-devices that were bound to the async notifier the
-isp driver registered but there may be other sub-devices in the
-v4l2_device as well. Check for the correct async notifier.
+Hi Guennadi,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
----
- drivers/media/platform/omap3isp/isp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I think this problem needs to be handled before merging the patch.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 97a5206b6ddc..4afd7ba4fad6 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2155,7 +2155,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- 		return ret;
- 
- 	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
--		if (!sd->asd)
-+		if (sd->notifier != &isp->notifier)
- 			continue;
- 
- 		ret = isp_link_entity(isp, &sd->entity,
+On Tuesday, 8 August 2017 05:18:46 EEST kernel test robot wrote:
+> FYI, we noticed the following commit:
+> 
+> commit: c698cbbd35daebf58ced376bb6f98dd013e6cf9e ("uvcvideo: send a control
+> event when a Control Change interrupt arrives") url:
+> https://github.com/0day-ci/linux/commits/Guennadi-Liakhovetski/UVC-fix-queu
+> e_setup-to-check-the-number-of-planes/20170730-123108 base:
+> git://linuxtv.org/media_tree.git master
+> 
+> in testcase: netperf
+> with following parameters:
+> 
+> 	ip: ipv4
+> 	runtime: 300s
+> 	nr_threads: 200%
+> 	cluster: cs-localhost
+> 	test: SCTP_STREAM
+> 	cpufreq_governor: performance
+> 
+> test-description: Netperf is a benchmark that can be use to measure various
+> aspect of networking performance. test-url: http://www.netperf.org/netperf/
+> 
+> 
+> on test machine: 4 threads Intel(R) Core(TM) i5-3317U CPU @ 1.70GHz with 4G
+> memory
+> 
+> caused below changes (please refer to attached dmesg/kmsg for entire
+> log/backtrace):
+> 
+> 
+> [   74.743574] uvcvideo: Found UVC 1.00 device Lenovo EasyCamera (5986:0295)
+> [   74.744636] uvcvideo: Failed to query (GET_INFO) UVC control 11 on unit
+> 1: -32 (exp. 1). [   74.745523] input: Ideapad extra buttons as
+> /devices/pci0000:00/0000:00:1f.0/PNP0C09:00/VPC2004:00/input/input15 [  
+> 74.746246] uvcvideo: Failed to query (GET_INFO) UVC control 13 on unit 1:
+> -32 (exp. 1).
+> 
+> 
+> 
+> To reproduce:
+> 
+>         git clone https://github.com/01org/lkp-tests.git
+>         cd lkp-tests
+>         bin/lkp install job.yaml  # job file is attached in this email
+>         bin/lkp run     job.yaml
+> 
+> 
+> 
+> Thanks,
+> Xiaolong
+
+
 -- 
-2.11.0
+Regards,
+
+Laurent Pinchart
