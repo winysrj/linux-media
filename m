@@ -1,63 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f54.google.com ([74.125.83.54]:43954 "EHLO
-        mail-pg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756883AbdJPXKi (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43213 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750853AbdJRQH5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Oct 2017 19:10:38 -0400
-Received: by mail-pg0-f54.google.com with SMTP id s75so7171279pgs.0
-        for <linux-media@vger.kernel.org>; Mon, 16 Oct 2017 16:10:38 -0700 (PDT)
-Date: Mon, 16 Oct 2017 16:10:36 -0700
-From: Kees Cook <keescook@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] media: serial_ir: Convert timers to use timer_setup()
-Message-ID: <20171016231036.GA99738@beast>
+        Wed, 18 Oct 2017 12:07:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Hyun Kwon <hyun.kwon@xilinx.com>
+Subject: Re: [PATCH] dt-bindings: media: xilinx: fix typo in example
+Date: Wed, 18 Oct 2017 19:08:17 +0300
+Message-ID: <1546677.fKvj0pB9W9@avalon>
+In-Reply-To: <1507824214-17744-1-git-send-email-akinobu.mita@gmail.com>
+References: <1507824214-17744-1-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In preparation for unconditionally passing the struct timer_list pointer to
-all timer callbacks, switch to using the new timer_setup() and from_timer()
-to pass the timer pointer explicitly.
+Hi Akinobu,
 
-Cc: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
- drivers/media/rc/serial_ir.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
-index 8b66926bc16a..8bf5637b3a69 100644
---- a/drivers/media/rc/serial_ir.c
-+++ b/drivers/media/rc/serial_ir.c
-@@ -470,7 +470,7 @@ static int hardware_init_port(void)
- 	return 0;
- }
- 
--static void serial_ir_timeout(unsigned long arg)
-+static void serial_ir_timeout(struct timer_list *unused)
- {
- 	DEFINE_IR_RAW_EVENT(ev);
- 
-@@ -540,8 +540,7 @@ static int serial_ir_probe(struct platform_device *dev)
- 
- 	serial_ir.rcdev = rcdev;
- 
--	setup_timer(&serial_ir.timeout_timer, serial_ir_timeout,
--		    (unsigned long)&serial_ir);
-+	timer_setup(&serial_ir.timeout_timer, serial_ir_timeout, 0);
- 
- 	result = devm_request_irq(&dev->dev, irq, serial_ir_irq_handler,
- 				  share_irq ? IRQF_SHARED : 0,
--- 
-2.7.4
+On Thursday, 12 October 2017 19:03:34 EEST Akinobu Mita wrote:
+> Fix typo s/:/;/
+> 
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Hyun Kwon <hyun.kwon@xilinx.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+
+Good catch.
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Should I take this patch in my tree ?
+
+> ---
+>  Documentation/devicetree/bindings/media/xilinx/xlnx,v-tpg.txt | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/xilinx/xlnx,v-tpg.txt
+> b/Documentation/devicetree/bindings/media/xilinx/xlnx,v-tpg.txt index
+> 9dd86b3..439351a 100644
+> --- a/Documentation/devicetree/bindings/media/xilinx/xlnx,v-tpg.txt
+> +++ b/Documentation/devicetree/bindings/media/xilinx/xlnx,v-tpg.txt
+> @@ -66,6 +66,6 @@ Example:
+>  				tpg1_out: endpoint {
+>  					remote-endpoint = <&switch_in0>;
+>  				};
+> -			}:
+> +			};
+>  		};
+>  	};
 
 
 -- 
-Kees Cook
-Pixel Security
+Regards,
+
+Laurent Pinchart
