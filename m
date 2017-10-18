@@ -1,53 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from omr-m005e.mx.aol.com ([204.29.186.5]:60746 "EHLO
-        omr-m005e.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932723AbdJaWoT (ORCPT
+Received: from szxga04-in.huawei.com ([45.249.212.190]:8940 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756002AbdJRJ6V (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Oct 2017 18:44:19 -0400
-Received: from mtaout-mba02.mx.aol.com (mtaout-mba02.mx.aol.com [172.26.133.110])
-        by omr-m005e.mx.aol.com (Outbound Mail Relay) with ESMTP id 0C0DA380009A
-        for <linux-media@vger.kernel.org>; Tue, 31 Oct 2017 18:44:19 -0400 (EDT)
-Received: from [192.168.0.25] (unknown [181.231.56.226])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mtaout-mba02.mx.aol.com (MUA/Third Party Client Interface) with ESMTPSA id DA0253800008A
-        for <linux-media@vger.kernel.org>; Tue, 31 Oct 2017 18:44:17 -0400 (EDT)
-To: linux-media@vger.kernel.org
-From: =?UTF-8?Q?Alfredo_Jes=c3=bas_Delaiti?=
-        <alfredodelaiti@netscape.net>
-Subject: mb86a20s: last patches affect the card X8507
-Message-ID: <28d6449b-b7e9-2a53-7820-e41d19633f1f@netscape.net>
-Date: Tue, 31 Oct 2017 19:44:07 -0300
+        Wed, 18 Oct 2017 05:58:21 -0400
+Subject: Re: [PATCH 1/2] [media] rc/keymaps: add support for RC of hisilicon
+ TV demo boards
+To: Sean Young <sean@mess.org>
+References: <1508324097-5514-1-git-send-email-xuejiancheng@hisilicon.com>
+ <1508324097-5514-2-git-send-email-xuejiancheng@hisilicon.com>
+ <20171018093116.aktxjryzfhslnqwr@gofer.mess.org>
+CC: <hermit.wangheming@hisilicon.com>, <mchehab@kernel.org>,
+        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <shawn.guo@linaro.org>, Younian Wang <wangyounian@hisilicon.com>
+From: Jiancheng Xue <xuejiancheng@hisilicon.com>
+Message-ID: <d94bae0f-5193-229e-5c89-64c2bcc08815@hisilicon.com>
+Date: Wed, 18 Oct 2017 17:57:24 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: es-ANY
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171018093116.aktxjryzfhslnqwr@gofer.mess.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hi,
 
-After updating my operating system I notice that my Mygica X8507 board 
-has stopped working the digital part.
+On 2017/10/18 17:31, Sean Young wrote:
+> On Wed, Oct 18, 2017 at 06:54:56AM -0400, Jiancheng Xue wrote:
+>> From: Younian Wang <wangyounian@hisilicon.com>
+>>
+>> This is a NEC protocol type remote controller distributed with
+>> hisilicon TV demo boards.
+>>
+>> Signed-off-by: Younian Wang <wangyounian@hisilicon.com>
+>> Signed-off-by: Jiancheng Xue <xuejiancheng@hisilicon.com>
+>> ---
+>>  drivers/media/rc/keymaps/Makefile          |  1 +
+>>  drivers/media/rc/keymaps/rc-hisi-tv-demo.c | 70 ++++++++++++++++++++++++++++++
+>>  2 files changed, 71 insertions(+)
+>>  create mode 100644 drivers/media/rc/keymaps/rc-hisi-tv-demo.c
+>>
+>> diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+>> index af6496d..83ec9c3 100644
+>> --- a/drivers/media/rc/keymaps/Makefile
+>> +++ b/drivers/media/rc/keymaps/Makefile
+>> @@ -47,6 +47,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+>>  			rc-geekbox.o \
+>>  			rc-genius-tvgo-a11mce.o \
+>>  			rc-gotview7135.o \
+>> +			rc-hisi-tv-demo.o \
+>>  			rc-imon-mce.o \
+>>  			rc-imon-pad.o \
+>>  			rc-iodata-bctv7e.o \
+>> diff --git a/drivers/media/rc/keymaps/rc-hisi-tv-demo.c b/drivers/media/rc/keymaps/rc-hisi-tv-demo.c
+>> new file mode 100644
+>> index 0000000..410b17d
+>> --- /dev/null
+>> +++ b/drivers/media/rc/keymaps/rc-hisi-tv-demo.c
+>> @@ -0,0 +1,70 @@
+>> +#include <linux/module.h>
+>> +#include <media/rc-map.h>
+> 
+> Both keymaps are missing a copyright statement at the top of the c files.
+> 
 
-After bisecting the kernel: git: 
-//git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-   I find that the patch: 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg102082.html 
-is the one that affects the operation. Reverting this patch I see that 
-it tunes (FE_HAS_LOCK) but does not take any channel, so I try to also 
-remove the patch 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg102085.html, 
-after doing this everything has worked perfectly again.
+Oh. I will add the copyright in next version. Thank you very much.
 
-I have tried removing these patches with the latest versions of 
-media_build.git, as well as with the latest kernels and everything works 
-fine.
+Regards,
+Jiancheng
 
-Can these patches be reversed?
-Mr. Mauro Carvalho Chehab: can you try it if you still have the card 
-Leadership X8502
-
-Regards
-
-Alfredo
+> Thanks
+> Sean
+> 
+>> +
+>> +static struct rc_map_table hisi_tv_demo_keymap[] = {
+>> +	{ 0x00000092, KEY_1},
+>> +	{ 0x00000093, KEY_2},
+>> +	{ 0x000000cc, KEY_3},
+>> +	{ 0x0000009f, KEY_4},
+>> +	{ 0x0000008e, KEY_5},
+>> +	{ 0x0000008f, KEY_6},
+>> +	{ 0x000000c8, KEY_7},
+>> +	{ 0x00000094, KEY_8},
+>> +	{ 0x0000008a, KEY_9},
+>> +	{ 0x0000008b, KEY_0},
+>> +	{ 0x000000ce, KEY_ENTER},
+>> +	{ 0x000000ca, KEY_UP},
+>> +	{ 0x00000099, KEY_LEFT},
+>> +	{ 0x00000084, KEY_PAGEUP},
+>> +	{ 0x000000c1, KEY_RIGHT},
+>> +	{ 0x000000d2, KEY_DOWN},
+>> +	{ 0x00000089, KEY_PAGEDOWN},
+>> +	{ 0x000000d1, KEY_MUTE},
+>> +	{ 0x00000098, KEY_VOLUMEDOWN},
+>> +	{ 0x00000090, KEY_VOLUMEUP},
+>> +	{ 0x0000009c, KEY_POWER},
+>> +	{ 0x000000d6, KEY_STOP},
+>> +	{ 0x00000097, KEY_MENU},
+>> +	{ 0x000000cb, KEY_BACK},
+>> +	{ 0x000000da, KEY_PLAYPAUSE},
+>> +	{ 0x00000080, KEY_INFO},
+>> +	{ 0x000000c3, KEY_REWIND},
+>> +	{ 0x00000087, KEY_HOMEPAGE},
+>> +	{ 0x000000d0, KEY_FASTFORWARD},
+>> +	{ 0x000000c4, KEY_SOUND},
+>> +	{ 0x00000082, BTN_1},
+>> +	{ 0x000000c7, BTN_2},
+>> +	{ 0x00000086, KEY_PROGRAM},
+>> +	{ 0x000000d9, KEY_SUBTITLE},
+>> +	{ 0x00000085, KEY_ZOOM},
+>> +	{ 0x0000009b, KEY_RED},
+>> +	{ 0x0000009a, KEY_GREEN},
+>> +	{ 0x000000c0, KEY_YELLOW},
+>> +	{ 0x000000c2, KEY_BLUE},
+>> +	{ 0x0000009d, KEY_CHANNELDOWN},
+>> +	{ 0x000000cf, KEY_CHANNELUP},
+>> +};
+>> +
+>> +static struct rc_map_list hisi_tv_demo_map = {
+>> +	.map = {
+>> +		.scan	  = hisi_tv_demo_keymap,
+>> +		.size	  = ARRAY_SIZE(hisi_tv_demo_keymap),
+>> +		.rc_proto = RC_PROTO_NEC,
+>> +		.name	  = "rc-hisi-demo",
+>> +	}
+>> +};
+>> +
+>> +static int __init init_rc_map_hisi_tv_demo(void)
+>> +{
+>> +	return rc_map_register(&hisi_tv_demo_map);
+>> +}
+>> +
+>> +static void __exit exit_rc_map_hisi_tv_demo(void)
+>> +{
+>> +	rc_map_unregister(&hisi_tv_demo_map);
+>> +}
+>> +
+>> +module_init(init_rc_map_hisi_tv_demo)
+>> +module_exit(exit_rc_map_hisi_tv_demo)
+>> +
+>> +MODULE_LICENSE("GPL v2");
+>> -- 
+>> 2.7.4
+> 
+> .
+> 
