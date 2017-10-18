@@ -1,86 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:45808 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751214AbdJHVue (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Oct 2017 17:50:34 -0400
-Date: Sun, 8 Oct 2017 23:50:29 +0200
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz
-Subject: Re: [PATCH v15 02/32] v4l: async: Don't set sd->dev NULL in
- v4l2_async_cleanup
-Message-ID: <20171008215029.u6qsuvbwig4gfh7t@earth>
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
- <20171004215051.13385-3-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="bh2rkpnl5gmsoxze"
-Content-Disposition: inline
-In-Reply-To: <20171004215051.13385-3-sakari.ailus@linux.intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:47880 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1759748AbdJRDsO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Oct 2017 23:48:14 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        tuukka.toivonen@intel.com, jerry.w.hu@intel.com,
+        Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH v4 01/12] videodev2.h, v4l2-ioctl: add IPU3 meta buffer format
+Date: Tue, 17 Oct 2017 22:48:01 -0500
+Message-Id: <1508298481-25869-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add the IPU3 specific processing parameter format
+V4L2_META_FMT_IPU3_PARAMS and metadata formats
+for 3A and other statistics:
 
---bh2rkpnl5gmsoxze
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+  V4L2_META_FMT_IPU3_PARAMS
+  V4L2_META_FMT_IPU3_STAT_3A
+  V4L2_META_FMT_IPU3_STAT_DVS
+  V4L2_META_FMT_IPU3_STAT_LACE
 
-Hi,
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
+ include/uapi/linux/videodev2.h       | 6 ++++++
+ 2 files changed, 10 insertions(+)
 
-On Thu, Oct 05, 2017 at 12:50:21AM +0300, Sakari Ailus wrote:
-> v4l2_async_cleanup() is called when the async sub-device is unbound from
-> the media device. As the pointer is set by the driver registering the
-> async sub-device, leave the pointer as set by the driver.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-
--- Sebastian
-
->  drivers/media/v4l2-core/v4l2-async.c | 1 -
->  1 file changed, 1 deletion(-)
->=20
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-co=
-re/v4l2-async.c
-> index 60a1a50b9537..21c748bf3a7b 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -134,7 +134,6 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
->  	/* Subdevice driver will reprobe and put the subdev back onto the list =
-*/
->  	list_del_init(&sd->async_list);
->  	sd->asd =3D NULL;
-> -	sd->dev =3D NULL;
->  }
-> =20
->  int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> --=20
-> 2.11.0
->=20
-
---bh2rkpnl5gmsoxze
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnanaUACgkQ2O7X88g7
-+pqpZQ/+IMVCqZ/SKrId1vBtQEuQP/536VRbx288CLJnNC4QwJTFgftkHBmeiwyJ
-jzkB05W6YFKZhmH3YO47tNvO1aPHMhkkj2YYKJMx9nK5/eVf8FQTUWwRW4mfAo+Y
-2TtKDXJ80S3jJGDw2upeCKAlRi3IVhz2XzbxRSkh2EAfX/6yX3kLa1WEbQ1bBzjX
-nnKod1c5NeERoE6dhj/r1DlUcNS6ZwCvHh0kFvKyJI1OK6CyaNpzA7PP+8FQt26o
-REQskp2iN18lC5Q0fWz+aX77Xg9k/qud9Wrymm6q2jaikJ+74fZt/2uqqBNMXOWP
-fZGemTCu9EM314CFNT3CthGXkSg80Z5GOk8oUCbb34Id6FJWfLCIT/sJiz7k/gQ+
-4o0pZDPfTOLb3zNelb3OORC3e3JnXyGdb4ZIGFAY7b5nbtdpz/1WWNHtQOkH723g
-OCewH4duF38dPct8+RWPsSbsfPBvTOl+12Hk2XUh9E991J/IP1J0oOkZi5rwCln0
-+rLVb35cjqgqNuR8qpTK77wrHqyPJsLYYWxdC7KfTXY+VsDKbQfTJRklKMhvvm1p
-tqi+Mw2rPhw3nQ8Uwqogc/WFFc/2v9CH+iPwEy/hZKBzi2Qt5Am1NQ1lABuk/g8M
-bZrVfwenK3cFHG8K5A0tPtfYFE6mNnNi/VBsQTOCLVFQz39Vj2Q=
-=Kwzb
------END PGP SIGNATURE-----
-
---bh2rkpnl5gmsoxze--
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index aa4cbddbc064..638e5d54f21e 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1256,6 +1256,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_TCH_FMT_TU08:		descr = "8-bit unsigned touch data"; break;
+ 	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
+ 	case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
++	case V4L2_META_FMT_IPU3_PARAMS:	descr = "IPU3 processing parameters"; break;
++	case V4L2_META_FMT_IPU3_STAT_3A:	descr = "IPU3 3A statistics"; break;
++	case V4L2_META_FMT_IPU3_STAT_DVS:	descr = "IPU3 DVS statistics"; break;
++	case V4L2_META_FMT_IPU3_STAT_LACE:	descr = "IPU3 LACE statistics"; break;
+ 
+ 	default:
+ 		/* Compressed formats */
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 3d694b179a16..036f8a44d3e8 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -696,6 +696,12 @@ struct v4l2_pix_format {
+ #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 1-D Histogram */
+ #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */
+ 
++/* Vendor specific - used for IPU3 camera sub-system */
++#define V4L2_META_FMT_IPU3_PARAMS	v4l2_fourcc('i', 'p', '3', 'p') /* IPU3 params */
++#define V4L2_META_FMT_IPU3_STAT_3A	v4l2_fourcc('i', 'p', '3', 's') /* IPU3 3A statistics */
++#define V4L2_META_FMT_IPU3_STAT_DVS	v4l2_fourcc('i', 'p', '3', 'd') /* IPU3 DVS statistics */
++#define V4L2_META_FMT_IPU3_STAT_LACE	v4l2_fourcc('i', 'p', '3', 'l') /* IPU3 LACE statistics */
++
+ /* priv field value to indicates that subsequent fields are valid. */
+ #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
+ 
+-- 
+2.7.4
