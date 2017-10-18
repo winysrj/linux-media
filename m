@@ -1,76 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:7027 "EHLO mga03.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:23748 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752272AbdJSLkl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Oct 2017 07:40:41 -0400
-Message-ID: <1508413231.16112.508.camel@linux.intel.com>
-Subject: Re: [PATCH v1 00/13] staging: atomisp: clean up bomb
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Date: Thu, 19 Oct 2017 14:40:31 +0300
-In-Reply-To: <20171018205330.rjvlri6u4l6ntxzj@valkosipuli.retiisi.org.uk>
-References: <20170927182508.52119-1-andriy.shevchenko@linux.intel.com>
-         <20171018205330.rjvlri6u4l6ntxzj@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        id S1755570AbdJRDzK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Oct 2017 23:55:10 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        tuukka.toivonen@intel.com, jerry.w.hu@intel.com,
+        Yong Zhi <yong.zhi@intel.com>, Tomasz Figa <tfiga@chromium.org>
+Subject: [PATCH v4 06/12] intel-ipu3: css: imgu dma buff pool
+Date: Tue, 17 Oct 2017 22:54:51 -0500
+Message-Id: <1508298896-26096-3-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1508298896-26096-1-git-send-email-yong.zhi@intel.com>
+References: <1508298896-26096-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2017-10-18 at 23:53 +0300, Sakari Ailus wrote:
-> On Wed, Sep 27, 2017 at 09:24:55PM +0300, Andy Shevchenko wrote:
-> > The driver has been submitted with a limitation to few platforms and
-> > sensors which it does support. Even though two sensor drivers have
-> > no
-> > users neither on ACPI-enabled platforms, nor in current Linux kernel
-> > code. Patches 1 and 2 removes those drivers for now.
-> > 
-> > It seems new contributors follow cargo cult programming done by the
-> > original driver developers. It's neither good for code, nor for
-> > reviewing process. To avoid such issues in the future here are few
-> > clean
-> > up patches, i.e. patches 3, 4, 6. 13.
-> > 
-> > On top of this here are clean ups with regard to GPIO use. One may
-> > consider this as an intermediate clean up. This part toughly related
-> > to
-> > removal of unused sensor drivers in patches 1 and 2.
-> > 
-> > Patch series has been partially compile tested. It would be nice to
-> > see
-> > someone with hardware to confirm it doesn't break anything.
-> > 
-> > Andy Shevchenko (13):
-> >   staging: atomisp: Remove IMX sensor support
-> >   staging: atomisp: Remove AP1302 sensor support
-> >   staging: atomisp: Use module_i2c_driver() macro
-> >   staging: atomisp: Switch i2c drivers to use ->probe_new()
-> >   staging: atomisp: Do not set GPIO twice
-> >   staging: atomisp: Remove unneeded gpio.h inclusion
-> >   staging: atomisp: Remove ->gpio_ctrl() callback
-> >   staging: atomisp: Remove ->power_ctrl() callback
-> >   staging: atomisp: Remove unused members of
-> > camera_sensor_platform_data
-> >   staging: atomisp: Remove Gmin dead code #1
-> >   staging: atomisp: Remove Gmin dead code #2
-> >   staging: atomisp: Remove duplicate declaration in header
-> >   staging: atomisp: Remove FSF snail address
-> 
-> After chatting with Andy we figured out the first patch was actually
-> missing from the set, both on the mailing list and Patchwork. I've
-> uploaded
-> it to the same branch, and the patch itself is here:
-> 
-> <URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=atomisp-a
-> ndy&id=5ef68fbdbb80e72f3239363289fbf12f673988a1>;
-> 
+The pools are used to store previous parameters set by
+user with the parameter queue. Due to pipelining,
+there needs to be multiple sets (up to four)
+of parameters which are queued in a host-to-sp queue.
 
-Looks good, thanks!
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+---
+ drivers/media/pci/intel/ipu3/ipu3-css-pool.c | 132 +++++++++++++++++++++++++++
+ drivers/media/pci/intel/ipu3/ipu3-css-pool.h |  54 +++++++++++
+ 2 files changed, 186 insertions(+)
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.h
 
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.c b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
+new file mode 100644
+index 000000000000..d08e2a8b68ed
+--- /dev/null
++++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
+@@ -0,0 +1,132 @@
++/*
++ * Copyright (c) 2017 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/dma-direction.h>
++#include <linux/scatterlist.h>
++#include <linux/types.h>
++
++#include "ipu3-css-pool.h"
++#include "ipu3-dmamap.h"
++
++int ipu3_css_dma_alloc(struct device *dev,
++		       struct ipu3_css_map *map, size_t size)
++{
++	struct imgu_device *imgu = dev_get_drvdata(dev);
++
++	if (size == 0) {
++		map->vaddr = NULL;
++		return 0;
++	}
++
++	if (!ipu3_dmamap_alloc(imgu, map, size))
++		return -ENOMEM;
++
++	return 0;
++}
++
++void ipu3_css_dma_free(struct device *dev, struct ipu3_css_map *map)
++{
++	struct imgu_device *imgu = dev_get_drvdata(dev);
++
++	ipu3_dmamap_free(imgu, map);
++}
++
++void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool)
++{
++	int i;
++
++	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++)
++		ipu3_css_dma_free(dev, &pool->entry[i].param);
++}
++
++int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool,
++		       int size)
++{
++	int i;
++
++	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++) {
++		pool->entry[i].framenum = INT_MIN;
++		if (ipu3_css_dma_alloc(dev, &pool->entry[i].param, size))
++			goto fail;
++	}
++
++	pool->last = IPU3_CSS_POOL_SIZE;
++
++	return 0;
++
++fail:
++	ipu3_css_pool_cleanup(dev, pool);
++	return -ENOMEM;
++}
++
++/*
++ * Check that the following call to pool_get succeeds.
++ * Return negative on error.
++ */
++static int ipu3_css_pool_check(struct ipu3_css_pool *pool, long framenum)
++{
++	/* Get the oldest entry */
++	int n = (pool->last + 1) % IPU3_CSS_POOL_SIZE;
++
++	/*
++	 * pool->entry[n].framenum stores the frame number where that
++	 * entry was allocated. If that was allocated more than POOL_SIZE
++	 * frames back, it is old enough that we know it is no more in
++	 * use by firmware.
++	 */
++	if (pool->entry[n].framenum + IPU3_CSS_POOL_SIZE > framenum)
++		return -ENOSPC;
++
++	return n;
++}
++
++/*
++ * Allocate a new parameter from pool at frame number `framenum'.
++ * Release the oldest entry in the pool to make space for the new entry.
++ * Return negative on error.
++ */
++int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum)
++{
++	int n = ipu3_css_pool_check(pool, framenum);
++
++	if (n < 0)
++		return n;
++
++	pool->entry[n].framenum = framenum;
++	pool->last = n;
++
++	return n;
++}
++
++/*
++ * Undo, for all practical purposes, the effect of pool_get().
++ */
++void ipu3_css_pool_put(struct ipu3_css_pool *pool)
++{
++	pool->entry[pool->last].framenum = INT_MIN;
++	pool->last = (pool->last + IPU3_CSS_POOL_SIZE - 1) % IPU3_CSS_POOL_SIZE;
++}
++
++const struct ipu3_css_map *
++ipu3_css_pool_last(struct ipu3_css_pool *pool, unsigned int n)
++{
++	static const struct ipu3_css_map null_map = { 0 };
++	int i = (pool->last + IPU3_CSS_POOL_SIZE - n) % IPU3_CSS_POOL_SIZE;
++
++	WARN_ON(n >= IPU3_CSS_POOL_SIZE);
++
++	if (pool->entry[i].framenum < 0)
++		return &null_map;
++
++	return &pool->entry[i].param;
++}
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.h b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
+new file mode 100644
+index 000000000000..9b6ac14acfb2
+--- /dev/null
++++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
+@@ -0,0 +1,54 @@
++/*
++ * Copyright (c) 2017 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef __IPU3_UTIL_H
++#define __IPU3_UTIL_H
++
++#include <linux/device.h>
++
++#define sqr(x)				((x) * (x))
++#define DIV_ROUND_CLOSEST_DOWN(a, b)	(((a) + (b / 2) - 1) / (b))
++#define roundclosest_down(a, b)		(DIV_ROUND_CLOSEST_DOWN(a, b) * (b))
++#define roundclosest(n, di)				\
++	({ typeof(n) __n = (n); typeof(di) __di = (di); \
++	DIV_ROUND_CLOSEST(__n, __di) * __di; })
++
++#define IPU3_CSS_POOL_SIZE		4
++
++struct ipu3_css_map {
++	size_t size;
++	void *vaddr;
++	dma_addr_t daddr;
++	struct vm_struct *vma;
++};
++
++struct ipu3_css_pool {
++	struct {
++		struct ipu3_css_map param;
++		long framenum;
++	} entry[IPU3_CSS_POOL_SIZE];
++	unsigned int last; /* Latest entry */
++};
++
++int ipu3_css_dma_alloc(struct device *dev, struct ipu3_css_map *map,
++		       size_t size);
++void ipu3_css_dma_free(struct device *dev, struct ipu3_css_map *map);
++void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool);
++int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool,
++		       int size);
++int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum);
++void ipu3_css_pool_put(struct ipu3_css_pool *pool);
++const struct ipu3_css_map *ipu3_css_pool_last(struct ipu3_css_pool *pool,
++					      unsigned int last);
++
++#endif
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+2.7.4
