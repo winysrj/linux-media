@@ -1,68 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([92.60.52.57]:47811 "EHLO shell.v3.sk"
+Received: from mga04.intel.com ([192.55.52.120]:20281 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751328AbdJYGu6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Oct 2017 02:50:58 -0400
-Message-ID: <1508914250.6059.0.camel@v3.sk>
-Subject: Re: [PATCH] media: usbtv: fix brightness and contrast controls
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: Adam Sampson <ats@offog.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org
-Date: Wed, 25 Oct 2017 08:50:50 +0200
-In-Reply-To: <20171024201446.30021-1-ats@offog.org>
-References: <20171024201446.30021-1-ats@offog.org>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        id S1751243AbdJROm2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 18 Oct 2017 10:42:28 -0400
+From: "Zhi, Yong" <yong.zhi@intel.com>
+To: Christoph Hellwig <hch@lst.de>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "arnd@arndb.de" <arnd@arndb.de>,
+        "robin.murphy@arm.com" <robin.murphy@arm.com>,
+        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+Subject: RE: [PATCH v4 00/12] Intel IPU3 ImgU patchset
+Date: Wed, 18 Oct 2017 14:42:25 +0000
+Message-ID: <C193D76D23A22742993887E6D207B54D1AE2A712@ORSMSX106.amr.corp.intel.com>
+References: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
+ <20171018062319.GB10605@lst.de>
+In-Reply-To: <20171018062319.GB10605@lst.de>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-10-24 at 21:14 +0100, Adam Sampson wrote:
-> Because the brightness and contrast controls share a register,
-> usbtv_s_ctrl needs to read the existing values for both controls
-> before
-> inserting the new value. However, the code accidentally wrote to the
-> registers (from an uninitialised stack array), rather than reading
-> them.
-> 
-> The user-visible effect of this was that adjusting the brightness
-> would
-> also set the contrast to a random value, and vice versa -- so it
-> wasn't
-> possible to correctly adjust the brightness of usbtv's video output.
-> 
-> Tested with an "EasyDAY" UTV007 device.
-> 
-> Fixes: c53a846c48f2 ("usbtv: add video controls")
-> Signed-off-by: Adam Sampson <ats@offog.org>
+Hi, Christoph,
 
-Thank you!
+Thanks for the message.
 
-Reviewed-By: Lubomir Rintel <lkundrak@v3.sk>
-
-> ---
->  drivers/media/usb/usbtv/usbtv-video.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> -----Original Message-----
+> From: Christoph Hellwig [mailto:hch@lst.de]
+> Sent: Tuesday, October 17, 2017 11:23 PM
+> To: Zhi, Yong <yong.zhi@intel.com>
+> Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; Zheng, Jian
+> Xu <jian.xu.zheng@intel.com>; Mani, Rajmohan
+> <rajmohan.mani@intel.com>; Toivonen, Tuukka
+> <tuukka.toivonen@intel.com>; Hu, Jerry W <jerry.w.hu@intel.com>;
+> arnd@arndb.de; hch@lst.de; robin.murphy@arm.com; iommu@lists.linux-
+> foundation.org
+> Subject: Re: [PATCH v4 00/12] Intel IPU3 ImgU patchset
 > 
-> diff --git a/drivers/media/usb/usbtv/usbtv-video.c
-> b/drivers/media/usb/usbtv/usbtv-video.c
-> index 95b5f43..3668a04 100644
-> --- a/drivers/media/usb/usbtv/usbtv-video.c
-> +++ b/drivers/media/usb/usbtv/usbtv-video.c
-> @@ -718,8 +718,8 @@ static int usbtv_s_ctrl(struct v4l2_ctrl *ctrl)
->  	 */
->  	if (ctrl->id == V4L2_CID_BRIGHTNESS || ctrl->id ==
-> V4L2_CID_CONTRAST) {
->  		ret = usb_control_msg(usbtv->udev,
-> -			usb_sndctrlpipe(usbtv->udev, 0),
-> USBTV_CONTROL_REG,
-> -			USB_DIR_OUT | USB_TYPE_VENDOR |
-> USB_RECIP_DEVICE,
-> +			usb_rcvctrlpipe(usbtv->udev, 0),
-> USBTV_CONTROL_REG,
-> +			USB_DIR_IN | USB_TYPE_VENDOR |
-> USB_RECIP_DEVICE,
->  			0, USBTV_BASE + 0x0244, (void *)data, 3, 0);
->  		if (ret < 0)
->  			goto error;
+> Please keep everyone on CC for all the patches, othervise they are complete
+> unreviable and will be ignored.
+
+Last time, Tomasz instructed me to cc you and other iommu experts only for mmu/dmamap patches(3 of 12), should I resend the 12 patches to both Linux-media and iommu list? or to Linux-media and cc everyone? Or just send the missing patches to iommu list and you folks this time? 
+
+Yong 
