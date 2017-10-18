@@ -1,718 +1,475 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55686 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752500AbdJTJWZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 05:22:25 -0400
-Date: Fri, 20 Oct 2017 12:22:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+Received: from mga03.intel.com ([134.134.136.65]:3258 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751129AbdJRDrD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Oct 2017 23:47:03 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
         tuukka.toivonen@intel.com, jerry.w.hu@intel.com, arnd@arndb.de,
         hch@lst.de, robin.murphy@arm.com, iommu@lists.linux-foundation.org,
-        Tomasz Figa <tfiga@chromium.org>
-Subject: Re: [PATCH v4 02/12] intel-ipu3: Add mmu driver
-Message-ID: <20171020092222.fld6gpomdvkjzx23@valkosipuli.retiisi.org.uk>
-References: <1508298514-25919-1-git-send-email-yong.zhi@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1508298514-25919-1-git-send-email-yong.zhi@intel.com>
+        Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH v4 00/12] Intel IPU3 ImgU patchset
+Date: Tue, 17 Oct 2017 22:46:48 -0500
+Message-Id: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+This patchset adds support for the Intel IPU3 (Image Processing Unit)
+ImgU which is essentially a modern memory-to-memory ISP. It implements
+raw Bayer to YUV image format conversion as well as a large number of
+other pixel processing algorithms for improving the image quality.
 
-On Tue, Oct 17, 2017 at 10:48:34PM -0500, Yong Zhi wrote:
-> From: Tomasz Figa <tfiga@chromium.org>
-> 
-> IPU3 is capable to deal with a virtual address space with
-> a dedicated MMU. The driver supports address translation
-> from virtual(IPU3 internal) to 39 bit wide physical(system).
-> 
-> Build has dependency on exported symbols from:
-> 
-> <URL:https://patchwork.kernel.org/patch/9825939/>
-> 
-> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> ---
->  drivers/media/pci/intel/ipu3/Kconfig    |   9 +
->  drivers/media/pci/intel/ipu3/Makefile   |  15 +
->  drivers/media/pci/intel/ipu3/ipu3-mmu.c | 580 ++++++++++++++++++++++++++++++++
->  drivers/media/pci/intel/ipu3/ipu3-mmu.h |  26 ++
->  4 files changed, 630 insertions(+)
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.h
-> 
-> diff --git a/drivers/media/pci/intel/ipu3/Kconfig b/drivers/media/pci/intel/ipu3/Kconfig
-> index 0861077a4dae..46ff138f3e50 100644
-> --- a/drivers/media/pci/intel/ipu3/Kconfig
-> +++ b/drivers/media/pci/intel/ipu3/Kconfig
-> @@ -17,3 +17,12 @@ config VIDEO_IPU3_CIO2
->  	Say Y or M here if you have a Skylake/Kaby Lake SoC with MIPI CSI-2
->  	connected camera.
->  	The module will be called ipu3-cio2.
-> +
-> +config INTEL_IPU3_MMU
-> +	tristate
-> +	default n
-> +	select IOMMU_API
-> +	select IOMMU_IOVA
-> +	---help---
-> +	  For IPU3, this option enables its MMU driver to translate its internal
-> +	  virtual address to 39 bits wide physical address for 64GBytes space access.
-> diff --git a/drivers/media/pci/intel/ipu3/Makefile b/drivers/media/pci/intel/ipu3/Makefile
-> index 20186e3ff2ae..91cac9cb7401 100644
-> --- a/drivers/media/pci/intel/ipu3/Makefile
-> +++ b/drivers/media/pci/intel/ipu3/Makefile
-> @@ -1 +1,16 @@
-> +#
-> +#  Copyright (c) 2017, Intel Corporation.
-> +#
-> +#  This program is free software; you can redistribute it and/or modify it
-> +#  under the terms and conditions of the GNU General Public License,
-> +#  version 2, as published by the Free Software Foundation.
-> +#
-> +#  This program is distributed in the hope it will be useful, but WITHOUT
-> +#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> +#  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> +#  more details.
+Meta data formats are defined for image statistics (3A, i.e. automatic
+white balance, exposure and focus, histogram and local area contrast
+enhancement) as well as for the pixel processing algorithm parameters.
+The documentation for these formats is currently not included in the
+patchset but will be added in a future version of this set.
 
-No need for such a header in a Makefile.
+The algorithm parameters need to be considered specific to a given frame
+and typically a large number of these parameters change on frame to frame
+basis. Additionally, the parameters are highly structured (and not a flat
+space of independent configuration primitives). They also reflect the
+data structures used by the firmware and the hardware. On top of that,
+the algorithms require highly specialized user space to make meaningful
+use of them. For these reasons it has been chosen video buffers to pass
+the parameters to the device.
 
-> +#
-> +
->  obj-$(CONFIG_VIDEO_IPU3_CIO2) += ipu3-cio2.o
-> +obj-$(CONFIG_INTEL_IPU3_MMU) += ipu3-mmu.o
-> +
-> diff --git a/drivers/media/pci/intel/ipu3/ipu3-mmu.c b/drivers/media/pci/intel/ipu3/ipu3-mmu.c
-> new file mode 100644
-> index 000000000000..05d001319aca
-> --- /dev/null
-> +++ b/drivers/media/pci/intel/ipu3/ipu3-mmu.c
-> @@ -0,0 +1,580 @@
-> +/*
-> + * Copyright (c) 2017 Intel Corporation.
-> + * Copyright (C) 2017 Google, Inc.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License version
-> + * 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + */
-> +
-> +#include <linux/dma-mapping.h>
-> +#include <linux/iommu.h>
-> +#include <linux/iopoll.h>
-> +#include <linux/module.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/slab.h>
-> +#include <linux/vmalloc.h>
-> +
-> +#include <asm/set_memory.h>
-> +
-> +#include "ipu3-mmu.h"
-> +
-> +#define IMGU_DMA_NAME		"ipu3-imgu-dma"
-> +#define IMGU_DMA_BUS_NAME	"ipu3-imgu-bus"
-> +
-> +#define IPU3_PAGE_SHIFT		12
-> +#define IPU3_PAGE_SIZE		(1UL << IPU3_PAGE_SHIFT)
-> +
-> +#define IPU3_PT_BITS		10
-> +#define IPU3_PT_PTES		(1UL << IPU3_PT_BITS)
-> +#define IPU3_PT_SIZE		(IPU3_PT_PTES << 2)
-> +#define IPU3_PT_ORDER		(IPU3_PT_SIZE >> PAGE_SHIFT)
-> +
-> +#define IPU3_ADDR2PTE(addr)	((addr) >> IPU3_PAGE_SHIFT)
-> +#define IPU3_PTE2ADDR(pte)	((phys_addr_t)(pte) << IPU3_PAGE_SHIFT)
-> +
-> +#define IPU3_L2PT_SHIFT		IPU3_PT_BITS
-> +#define IPU3_L2PT_MASK		((1UL << IPU3_L2PT_SHIFT) - 1)
-> +
-> +#define IPU3_L1PT_SHIFT		IPU3_PT_BITS
-> +#define IPU3_L1PT_MASK		((1UL << IPU3_L1PT_SHIFT) - 1)
-> +
-> +#define IPU3_MMU_ADDRESS_BITS	(IPU3_PAGE_SHIFT + \
-> +				 IPU3_L2PT_SHIFT + \
-> +				 IPU3_L1PT_SHIFT)
-> +
-> +#define IMGU_REG_BASE		0x4000
-> +#define REG_TLB_INVALIDATE	(IMGU_REG_BASE + 0x300)
-> +#define TLB_INVALIDATE		1
-> +#define REG_L1_PHYS		(IMGU_REG_BASE + 0x304) /* 27-bit pfn */
-> +#define REG_GP_HALT		(IMGU_REG_BASE + 0x5dc)
-> +#define REG_GP_HALTED		(IMGU_REG_BASE + 0x5e0)
-> +
-> +struct ipu3_mmu_domain {
-> +	struct iommu_domain domain;
-> +	struct ipu3_mmu *mmu;
-> +};
-> +
-> +struct ipu3_mmu {
-> +	struct bus_type bus;
-> +	struct device *dev;
-> +	struct device dma_dev;
-> +	void __iomem *base;
-> +	struct iommu_group *group;
-> +	spinlock_t lock;
-> +
-> +	void *dummy_page;
-> +	u32 dummy_page_pteval;
-> +
-> +	u32 *dummy_l2pt;
-> +	u32 dummy_l2pt_pteval;
-> +
-> +	u32 **l2pts;
-> +	u32 *l1pt;
-> +};
-> +
-> +static inline struct ipu3_mmu_domain *
-> +to_ipu3_mmu_domain(struct iommu_domain *domain)
-> +{
-> +	return container_of(domain, struct ipu3_mmu_domain, domain);
-> +}
-> +
-> +/**
-> + * ipu3_mmu_tlb_invalidate - invalidate translation look-aside buffer
-> + * @mmu: MMU to perform the invalidate operation on
-> + *
-> + * This function invalidates the whole TLB. Must be called when the hardware
-> + * is powered on.
-> + */
-> +static void ipu3_mmu_tlb_invalidate(struct ipu3_mmu *mmu)
-> +{
-> +	writel(TLB_INVALIDATE, mmu->base + REG_TLB_INVALIDATE);
-> +}
-> +
-> +static void call_if_ipu3_is_powered(struct ipu3_mmu *mmu,
-> +				    void (*func)(struct ipu3_mmu *mmu))
-> +{
-> +	pm_runtime_get_noresume(mmu->dev);
-> +	if (pm_runtime_active(mmu->dev))
-> +		func(mmu);
-> +	pm_runtime_put(mmu->dev);
-> +}
-> +
-> +/**
-> + * ipu3_mmu_set_halt - set CIO gate halt bit
-> + * @mmu: MMU to set the CIO gate bit in.
-> + * @halt: Desired state of the gate bit.
-> + *
-> + * This function sets the CIO gate bit that controls whether external memory
-> + * accesses are allowed. Must be called when the hardware is powered on.
-> + */
-> +static void ipu3_mmu_set_halt(struct ipu3_mmu *mmu, bool halt)
-> +{
-> +	int ret;
-> +	u32 val;
-> +
-> +	writel(halt, mmu->base + REG_GP_HALT);
-> +	ret = readl_poll_timeout(mmu->base + REG_GP_HALTED,
-> +				 val, (val & 1) == halt, 1000, 100000);
-> +
-> +	if (ret)
-> +		dev_err(mmu->dev, "failed to %s CIO gate halt\n",
-> +			halt ? "set" : "clear");
-> +}
-> +
-> +/**
-> + * ipu3_mmu_alloc_page_table - allocate a pre-filled page table
-> + * @pteval: Value to initialize for page table entries with.
-> + *
-> + * Return: Pointer to allocated page table or NULL on failure.
-> + */
-> +static u32 *ipu3_mmu_alloc_page_table(u32 pteval)
-> +{
-> +	u32 *pt;
-> +	int pte;
-> +
-> +	pt = kmalloc_array(IPU3_PT_PTES, sizeof(*pt), GFP_KERNEL);
-> +
-> +	if (!pt)
-> +		return NULL;
-> +
-> +	for (pte = 0; pte < IPU3_PT_PTES; pte++)
-> +		pt[pte] = pteval;
-> +
-> +	set_memory_uc((unsigned long int)pt, IPU3_PT_ORDER);
-> +
-> +	return pt;
-> +}
-> +
-> +/**
-> + * ipu3_mmu_free_page_table - free page table
-> + * @pt: Page table to free.
-> + */
-> +static void ipu3_mmu_free_page_table(u32 *pt)
-> +{
-> +	set_memory_wb((unsigned long int)pt, IPU3_PT_ORDER);
-> +	kfree(pt);
-> +}
-> +
-> +/**
-> + * address_to_pte_idx - split IOVA into L1 and L2 page table indices
-> + * @iova: IOVA to split.
-> + * @l1pt_idx: Output for the L1 page table index.
-> + * @l2pt_idx: Output for the L2 page index.
-> + */
-> +static inline void address_to_pte_idx(unsigned long iova, u32 *l1pt_idx,
-> +			       u32 *l2pt_idx)
-> +{
-> +	iova >>= IPU3_PAGE_SHIFT;
-> +
-> +	if (l2pt_idx)
-> +		*l2pt_idx = iova & IPU3_L2PT_MASK;
-> +
-> +	iova >>= IPU3_L2PT_SHIFT;
-> +
-> +	if (l1pt_idx)
-> +		*l1pt_idx = iova & IPU3_L1PT_MASK;
-> +}
-> +
-> +static struct iommu_domain *ipu3_mmu_domain_alloc(unsigned int type)
-> +{
-> +	struct ipu3_mmu_domain *mmu_dom;
-> +
-> +	if (type != IOMMU_DOMAIN_UNMANAGED)
-> +		return NULL;
-> +
-> +	mmu_dom = kzalloc(sizeof(*mmu_dom), GFP_KERNEL);
-> +	if (!mmu_dom)
-> +		return NULL;
-> +
-> +	mmu_dom->domain.geometry.aperture_start = 0;
-> +	mmu_dom->domain.geometry.aperture_end =
-> +		DMA_BIT_MASK(IPU3_MMU_ADDRESS_BITS);
-> +	mmu_dom->domain.geometry.force_aperture = true;
-> +
-> +	return &mmu_dom->domain;
-> +}
-> +
-> +static void ipu3_mmu_domain_free(struct iommu_domain *domain)
-> +{
-> +	struct ipu3_mmu_domain *mmu_dom = to_ipu3_mmu_domain(domain);
-> +
-> +	/* We expect the domain to be detached already. */
-> +	WARN_ON(mmu_dom->mmu);
-> +	kfree(mmu_dom);
-> +}
-> +
-> +static void ipu3_mmu_detach_dev(struct iommu_domain *domain,
-> +				struct device *dev)
-> +{
-> +	struct ipu3_mmu_domain *mmu_dom = to_ipu3_mmu_domain(domain);
-> +
-> +	mmu_dom->mmu = NULL;
-> +}
-> +
-> +static int ipu3_mmu_attach_dev(struct iommu_domain *domain,
-> +			       struct device *dev)
-> +{
-> +	struct ipu3_mmu_domain *mmu_dom = to_ipu3_mmu_domain(domain);
-> +	struct ipu3_mmu *mmu = dev_get_drvdata(dev);
-> +
-> +	mmu_dom->mmu = mmu;
-> +	return 0;
-> +}
-> +
-> +static u32 *ipu3_mmu_get_l2pt(struct ipu3_mmu *mmu, u32 l1pt_idx)
-> +{
-> +	unsigned long flags;
-> +	u32 *l2pt, *new_l2pt;
-> +	u32 pteval;
-> +
-> +	spin_lock_irqsave(&mmu->lock, flags);
-> +
-> +	l2pt = mmu->l2pts[l1pt_idx];
-> +	if (l2pt)
-> +		goto done;
-> +
-> +	spin_unlock_irqrestore(&mmu->lock, flags);
-> +
-> +	new_l2pt = ipu3_mmu_alloc_page_table(mmu->dummy_page_pteval);
-> +	if (!new_l2pt)
-> +		return NULL;
-> +
-> +	spin_lock_irqsave(&mmu->lock, flags);
-> +
-> +	dev_dbg(mmu->dev,
-> +		"allocated page table %p for l1pt_idx %u\n",
-> +		new_l2pt, l1pt_idx);
-> +
-> +	l2pt = mmu->l2pts[l1pt_idx];
-> +	if (l2pt) {
-> +		ipu3_mmu_free_page_table(new_l2pt);
-> +		goto done;
-> +	}
-> +
-> +	l2pt = new_l2pt;
-> +	mmu->l2pts[l1pt_idx] = new_l2pt;
-> +
-> +	pteval = IPU3_ADDR2PTE(virt_to_phys(new_l2pt));
-> +	mmu->l1pt[l1pt_idx] = pteval;
-> +
-> +done:
-> +	spin_unlock_irqrestore(&mmu->lock, flags);
-> +	return l2pt;
-> +}
-> +
-> +static int ipu3_mmu_map(struct iommu_domain *domain, unsigned long iova,
-> +			phys_addr_t paddr, size_t size, int prot)
-> +{
-> +	struct ipu3_mmu_domain *mmu_dom = to_ipu3_mmu_domain(domain);
-> +	struct ipu3_mmu *mmu = mmu_dom->mmu;
-> +	u32 l1pt_idx, l2pt_idx;
-> +	unsigned long flags;
-> +	u32 *l2pt;
-> +
-> +	if (!mmu)
-> +		return -ENODEV;
-> +
-> +	address_to_pte_idx(iova, &l1pt_idx, &l2pt_idx);
-> +
-> +	l2pt = ipu3_mmu_get_l2pt(mmu, l1pt_idx);
-> +	if (!l2pt)
-> +		return -ENOMEM;
-> +
-> +	spin_lock_irqsave(&mmu->lock, flags);
-> +
-> +	if (l2pt[l2pt_idx] != mmu->dummy_page_pteval) {
-> +		spin_unlock_irqrestore(&mmu->lock, flags);
-> +		return -EBUSY;
-> +	}
-> +
-> +	l2pt[l2pt_idx] = IPU3_ADDR2PTE(paddr);
-> +	call_if_ipu3_is_powered(mmu, ipu3_mmu_tlb_invalidate);
-> +
-> +	spin_unlock_irqrestore(&mmu->lock, flags);
-> +
-> +	return 0;
-> +}
-> +
-> +static size_t ipu3_mmu_unmap(struct iommu_domain *domain, unsigned long iova,
-> +			     size_t size)
-> +{
-> +	struct ipu3_mmu_domain *mmu_dom = to_ipu3_mmu_domain(domain);
-> +	struct ipu3_mmu *mmu = mmu_dom->mmu;
-> +	u32 l1pt_idx, l2pt_idx;
-> +	unsigned long flags;
-> +	u32 *l2pt;
-> +
-> +	if (!mmu)
-> +		return 0;
-> +
-> +	address_to_pte_idx(iova, &l1pt_idx, &l2pt_idx);
-> +
-> +	spin_lock_irqsave(&mmu->lock, flags);
-> +
-> +	l2pt = mmu->l2pts[l1pt_idx];
-> +	if (!l2pt) {
-> +		spin_unlock_irqrestore(&mmu->lock, flags);
-> +		return 0;
-> +	}
-> +
-> +	if (l2pt[l2pt_idx] == mmu->dummy_page_pteval)
-> +		size = 0;
-> +
-> +	l2pt[l2pt_idx] = mmu->dummy_page_pteval;
-> +	call_if_ipu3_is_powered(mmu, ipu3_mmu_tlb_invalidate);
-> +
-> +	spin_unlock_irqrestore(&mmu->lock, flags);
-> +
-> +	return size;
-> +}
-> +
-> +static phys_addr_t ipu3_mmu_iova_to_phys(struct iommu_domain *domain,
-> +					 dma_addr_t iova)
-> +{
-> +	struct ipu3_mmu_domain *mmu_dom = to_ipu3_mmu_domain(domain);
-> +	struct ipu3_mmu *mmu = mmu_dom->mmu;
-> +	u32 l1pt_idx, l2pt_idx;
-> +	unsigned long flags;
-> +	u32 pteval;
-> +	u32 *l2pt;
-> +
-> +	if (!mmu)
-> +		return 0;
-> +
-> +	address_to_pte_idx(iova, &l1pt_idx, &l2pt_idx);
-> +
-> +	spin_lock_irqsave(&mmu->lock, flags);
-> +
-> +	l2pt = mmu->l2pts[l1pt_idx];
-> +
-> +	spin_unlock_irqrestore(&mmu->lock, flags);
-> +
-> +	if (!l2pt)
-> +		return 0;
-> +
-> +	pteval = l2pt[l2pt_idx];
-> +	if (pteval == mmu->dummy_page_pteval)
-> +		return 0;
-> +
-> +	return IPU3_PTE2ADDR(pteval);
-> +}
-> +
-> +static struct iommu_group *ipu3_mmu_device_group(struct device *dev)
-> +{
-> +	struct ipu3_mmu *mmu = dev_get_drvdata(dev);
-> +
-> +	return iommu_group_ref_get(mmu->group);
-> +}
-> +
-> +static int ipu3_mmu_add_device(struct device *dev)
-> +{
-> +	struct iommu_group *group;
-> +
-> +	group = iommu_group_get_for_dev(dev);
-> +	if (IS_ERR(group))
-> +		return PTR_ERR(group);
-> +
-> +	iommu_group_put(group);
-> +	return 0;
-> +}
-> +
-> +static void ipu3_mmu_remove_device(struct device *dev)
-> +{
-> +	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
-> +
-> +	if (!domain)
-> +		return;
-> +
-> +	iommu_group_remove_device(dev);
-> +}
-> +
-> +static struct iommu_ops ipu3_iommu_ops = {
-> +	.domain_alloc   = ipu3_mmu_domain_alloc,
-> +	.domain_free    = ipu3_mmu_domain_free,
-> +	.attach_dev	= ipu3_mmu_attach_dev,
-> +	.detach_dev	= ipu3_mmu_detach_dev,
-> +	.map		= ipu3_mmu_map,
-> +	.unmap		= ipu3_mmu_unmap,
-> +	.map_sg		= default_iommu_map_sg,
-> +	.iova_to_phys	= ipu3_mmu_iova_to_phys,
-> +	.device_group	= ipu3_mmu_device_group,
-> +	.add_device	= ipu3_mmu_add_device,
-> +	.remove_device	= ipu3_mmu_remove_device,
-> +	.pgsize_bitmap	= IPU3_PAGE_SIZE,
-> +};
-> +
-> +static void ipu3_mmu_dev_release(struct device *dev)
-> +{
-> +	/* Nothing to do here. */
-> +}
-> +
-> +/**
-> + * ipu3_mmu_init() - initialize IPU3 MMU block
-> + * @base:	IOMEM base of hardware registers.
-> + *
-> + * Return: Pointer to IPU3 MMU private data pointer or ERR_PTR() on error.
-> + */
-> +struct device *ipu3_mmu_init(struct device *parent, void __iomem *base)
-> +{
-> +	struct ipu3_mmu *mmu;
-> +	u32 pteval;
-> +	int ret;
-> +
-> +	mmu = kzalloc(sizeof(*mmu), GFP_KERNEL);
-> +	if (!mmu)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	mmu->dev = parent;
-> +	mmu->base = base;
-> +	spin_lock_init(&mmu->lock);
-> +
-> +	/* Disallow external memory access when having no valid page tables. */
-> +	ipu3_mmu_set_halt(mmu, true);
-> +
-> +	mmu->bus.name = IMGU_DMA_BUS_NAME;
-> +	ret = bus_register(&mmu->bus);
-> +	if (ret)
-> +		goto fail_mmu;
-> +
-> +	mmu->dma_dev.release = ipu3_mmu_dev_release;
-> +	ret = dev_set_name(&mmu->dma_dev, IMGU_DMA_NAME);
-> +	if (ret)
-> +		goto fail_bus;
-> +
-> +	mmu->dma_dev.bus = &mmu->bus;
-> +	ret = device_register(&mmu->dma_dev);
+On individual patches:
 
-Once you no longer depend on the IOMMU API, you can remove the extra
-device, too.
+The heart of ImgU is the CSS, or Camera Subsystem, which contains the
+image processors and HW accelerators.
 
-> +	if (ret)
-> +		goto fail_bus;
-> +	dev_set_drvdata(&mmu->dma_dev, mmu);
-> +
-> +	mmu->group = iommu_group_alloc();
-> +	if (!mmu->group) {
-> +		ret = -ENOMEM;
-> +		goto fail_device;
-> +	}
-> +
-> +	/*
-> +	 * The MMU does not have a "valid" bit, so we have to use a dummy
-> +	 * page for invalid entries.
-> +	 */
-> +	mmu->dummy_page = kzalloc(IPU3_PAGE_SIZE, GFP_KERNEL);
-> +	if (!mmu->dummy_page)
-> +		goto fail_group;
-> +	pteval = IPU3_ADDR2PTE(virt_to_phys(mmu->dummy_page));
-> +	mmu->dummy_page_pteval = pteval;
-> +
-> +	/*
-> +	 * Allocate a dummy L2 page table with all entries pointing to
-> +	 * the dummy page.
-> +	 */
-> +	mmu->dummy_l2pt = ipu3_mmu_alloc_page_table(pteval);
-> +	if (!mmu->dummy_l2pt)
-> +		goto fail_dummy_page;
-> +	pteval = IPU3_ADDR2PTE(virt_to_phys(mmu->dummy_l2pt));
-> +	mmu->dummy_l2pt_pteval = pteval;
-> +
-> +	/*
-> +	 * Allocate the array of L2PT CPU pointers, initialized to zero,
-> +	 * which means the dummy L2PT allocated above.
-> +	 */
-> +	mmu->l2pts = vzalloc(IPU3_PT_PTES * sizeof(*mmu->l2pts));
-> +	if (!mmu->l2pts)
-> +		goto fail_l2pt;
-> +
-> +	/* Allocate the L1 page table. */
-> +	mmu->l1pt = ipu3_mmu_alloc_page_table(mmu->dummy_l2pt_pteval);
-> +	if (!mmu->l1pt) {
-> +		ret = -ENOMEM;
-> +		goto fail_l2pts;
-> +	}
-> +
-> +	pteval = IPU3_ADDR2PTE(virt_to_phys(mmu->l1pt));
-> +	writel(pteval, mmu->base + REG_L1_PHYS);
-> +	ipu3_mmu_tlb_invalidate(mmu);
-> +	ipu3_mmu_set_halt(mmu, false);
-> +
-> +	bus_set_iommu(&mmu->bus, &ipu3_iommu_ops);
-> +
-> +	return &mmu->dma_dev;
-> +
-> +fail_l2pts:
-> +	vfree(mmu->l2pts);
-> +fail_l2pt:
-> +	ipu3_mmu_free_page_table(mmu->dummy_l2pt);
-> +fail_dummy_page:
-> +	kfree(mmu->dummy_page);
-> +fail_group:
-> +	iommu_group_put(mmu->group);
-> +fail_device:
-> +	device_unregister(&mmu->dma_dev);
-> +fail_bus:
-> +	bus_unregister(&mmu->bus);
-> +fail_mmu:
-> +	kfree(mmu);
-> +
-> +	return ERR_PTR(ret);
-> +}
-> +EXPORT_SYMBOL_GPL(ipu3_mmu_init);
-> +
-> +/**
-> + * ipu3_mmu_exit() - clean up IPU3 MMU block
-> + * @mmu: IPU3 MMU private data
-> + */
-> +void ipu3_mmu_exit(struct device *dev)
-> +{
-> +	struct ipu3_mmu *mmu = dev_get_drvdata(dev);
-> +
-> +	device_unregister(&mmu->dma_dev);
-> +	bus_unregister(&mmu->bus);
-> +
-> +	bus_set_iommu(&mmu->bus, NULL);
-> +
-> +	/* We are going to free our page tables, no more memory access. */
-> +	ipu3_mmu_set_halt(mmu, true);
-> +	ipu3_mmu_tlb_invalidate(mmu);
-> +
-> +	ipu3_mmu_free_page_table(mmu->l1pt);
-> +	vfree(mmu->l2pts);
-> +	ipu3_mmu_free_page_table(mmu->dummy_l2pt);
-> +	kfree(mmu->dummy_page);
-> +	iommu_group_put(mmu->group);
-> +	kfree(mmu);
-> +}
-> +EXPORT_SYMBOL_GPL(ipu3_mmu_exit);
-> +
-> +void ipu3_mmu_suspend(struct device *dev)
-> +{
-> +	struct ipu3_mmu *mmu = dev_get_drvdata(dev);
-> +
-> +	ipu3_mmu_set_halt(mmu, true);
-> +}
-> +EXPORT_SYMBOL_GPL(ipu3_mmu_suspend);
-> +
-> +void ipu3_mmu_resume(struct device *dev)
-> +{
-> +	struct ipu3_mmu *mmu = dev_get_drvdata(dev);
-> +	u32 pteval;
-> +
-> +	ipu3_mmu_set_halt(mmu, true);
-> +
-> +	pteval = IPU3_ADDR2PTE(virt_to_phys(mmu->l1pt));
-> +	writel(pteval, mmu->base + REG_L1_PHYS);
-> +
-> +	ipu3_mmu_tlb_invalidate(mmu);
-> +	ipu3_mmu_set_halt(mmu, false);
-> +}
-> +EXPORT_SYMBOL_GPL(ipu3_mmu_resume);
-> +
-> +MODULE_AUTHOR("Tuukka Toivonen <tuukka.toivonen@intel.com>");
-> +MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
-> +MODULE_AUTHOR("Samu Onkalo <samu.onkalo@intel.com>");
-> +MODULE_AUTHOR("Tomasz Figa <tfiga@chromium.org>");
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_DESCRIPTION("IPU3 MMU driver");
-> diff --git a/drivers/media/pci/intel/ipu3/ipu3-mmu.h b/drivers/media/pci/intel/ipu3/ipu3-mmu.h
-> new file mode 100644
-> index 000000000000..7ac13c701caf
-> --- /dev/null
-> +++ b/drivers/media/pci/intel/ipu3/ipu3-mmu.h
-> @@ -0,0 +1,26 @@
-> +/*
-> + * Copyright (c) 2017 Intel Corporation.
-> + * Copyright (C) 2017 Google, Inc.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License version
-> + * 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + */
-> +
-> +#ifndef __IPU3_MMU_H
-> +#define __IPU3_MMU_H
-> +
-> +struct device;
-> +
-> +struct device *ipu3_mmu_init(struct device *parent, void __iomem *base);
-> +void ipu3_mmu_exit(struct device *dev);
-> +void ipu3_mmu_suspend(struct device *dev);
-> +void ipu3_mmu_resume(struct device *dev);
-> +
-> +#endif
-> -- 
-> 2.7.4
-> 
+The 3A statistics and other firmware parameter computation related
+functions are implemented in patch 8.
+
+All h/w programming related code can be found in patch 9.
+
+To access DDR via ImgU's own memory space, IPU3 is also equipped with
+its own MMU unit, the driver is implemented in patch 2.
+
+Currently, the MMU driver has dependency on two exported symbols
+(iommu_group_ref_get and iommu_group_get_for_dev))to build as ko.
+
+Patch 3 uses above IOMMU driver for DMA mem related functions.
+
+Patch 5-10 are basically IPU3 CSS specific implementations:
+
+6 and 7 provide some utility functions and manage IPU3 fw download and
+install.
+
+The firmware which is called ipu3-fw.bin can be downloaded from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
+(commit 2c27b0cb02f18c022d8378e0e1abaf8b7ae8188f)
+
+Patch 9 and 10 are of the same file, the latter implements interface
+functions for access fw & hw capabilities defined in patch 8.
+
+Patch 11 has a dependency on Sakari's V4L2_BUF_TYPE_META_OUTPUT work:
+
+<URL:https://patchwork.kernel.org/patch/9976293/>
+<URL:https://patchwork.kernel.org/patch/9976295/>
+
+Patch 12 uses Kconfig and Makefile created by IPU3 cio2 patch series.
+
+Link to user space implementation:
+
+<URL:https://chromium.googlesource.com/chromiumos/platform/arc-camera/+/master>
+
+Device topology:
+
+./media-ctl -d /dev/media0 -p                                                   
+Media controller API version 4.14.0
+
+Media device information
+------------------------
+driver          ipu3-imgu
+model           ipu3-imgu
+serial          
+bus info        0000:00:05.0
+hw revision     0x0
+driver version  4.14.0
+
+Device topology
+- entity 1: ipu3-imgu:0 (8 pads, 8 links)
+            type V4L2 subdev subtype Unknown flags 0
+            device node name /dev/v4l-subdev0
+	pad0: Sink
+		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
+		<- "input":0 [ENABLED,IMMUTABLE]
+	pad1: Sink
+		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
+		<- "parameters":0 []
+	pad2: Source
+		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
+		-> "output":0 []
+	pad3: Source
+		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
+		-> "viewfinder":0 []
+	pad4: Source
+		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
+		-> "postview":0 []
+	pad5: Source
+		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
+		-> "3a stat":0 []
+	pad6: Source
+		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
+		-> "dvs stat":0 []
+	pad7: Source
+		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
+		-> "lace stat":0 []
+
+- entity 12: input (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video0
+	pad0: Source
+		-> "ipu3-imgu:0":0 [ENABLED,IMMUTABLE]
+
+- entity 18: parameters (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video1
+	pad0: Source
+		-> "ipu3-imgu:0":1 []
+
+- entity 24: output (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video2
+	pad0: Sink
+		<- "ipu3-imgu:0":2 []
+
+- entity 30: viewfinder (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video3
+	pad0: Sink
+		<- "ipu3-imgu:0":3 []
+
+- entity 36: postview (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video4
+	pad0: Sink
+		<- "ipu3-imgu:0":4 []
+
+- entity 42: 3a stat (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video5
+	pad0: Sink
+		<- "ipu3-imgu:0":5 []
+
+- entity 48: dvs stat (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video6
+	pad0: Sink
+		<- "ipu3-imgu:0":6 []
+
+- entity 54: lace stat (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video7
+	pad0: Sink
+		<- "ipu3-imgu:0":7 []
+
+
+Sample test results on input and 3A video nodes:
+
+localhost # ./v4l2-compliance -d /dev/video0                                    
+v4l2-compliance SHA   : f71ba5a1779ddb6a5a59562504dcf4fabf5c1de1
+
+Driver Info:
+	Driver name   : ipu3-imgu:0
+	Card type     : ipu3-imgu
+	Bus info      : PCI:input
+	Driver version: 4.14.0
+	Capabilities  : 0x84202000
+		Video Output Multiplanar
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x04202000
+		Video Output Multiplanar
+		Streaming
+		Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 1 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test output 0:
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+		test VIDIOC_QUERYCTRL: OK (Not Supported)
+		test VIDIOC_G/S_CTRL: OK (Not Supported)
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 0 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK (Not Supported)
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		test VIDIOC_TRY_FMT: OK
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK (Not Supported)
+		test Composing: OK (Not Supported)
+		test Scaling: OK
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK
+
+Test output 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+
+localhost # ./v4l2-compliance -d /dev/video5                                    
+v4l2-compliance SHA   : f71ba5a1779ddb6a5a59562504dcf4fabf5c1de1
+
+Driver Info:
+	Driver name   : ipu3-imgu:0
+	Card type     : ipu3-imgu
+	Bus info      : PCI:3a stat
+	Driver version: 4.14.0
+	Capabilities  : 0x84A00000
+		Metadata Capture
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x04A00000
+		Metadata Capture
+		Streaming
+		Extended Pix Format
+
+Compliance test for device /dev/video5 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+		test VIDIOC_QUERYCTRL: OK (Not Supported)
+		test VIDIOC_G/S_CTRL: OK (Not Supported)
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 0 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK (Not Supported)
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		test VIDIOC_TRY_FMT: OK
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK (Not Supported)
+		test Composing: OK (Not Supported)
+		test Scaling: OK (Not Supported)
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+
+Note: stream test with -f fails as pre-configuration of sub-devs is required.
+
+===========
+= history =
+===========
+
+version 4:
+- Used V4L2_BUF_TYPE_META_OUTPUT for:
+    - V4L2_META_FMT_IPU3_STAT_PARAMS
+- Used V4L2_BUF_TYPE_META_CAPTURE for:
+    - V4L2_META_FMT_IPU3_STAT_3A
+    - V4L2_META_FMT_IPU3_STAT_DVS
+    - V4L2_META_FMT_IPU3_STAT_LACE
+- Supported v4l2 MPLANE format on video nodes.
+- ipu3-dmamap.c: Removed dma ops and dependencies on IOMMU_DMA lib.
+- ipu3-mmu.c: Re-structured the driver:
+  Removed dependencies on linux/dma-iommu.h
+  Add dev and dma_dev to struct ipu3_mmu to faciliate the dma_map_ops-less way of
+  binding between mmu, dmamap and ipu3 driver.
+  Addressed MMU review comments of v3.
+  Removed cache flush via setting page table as un-cache for improved performance.
+- intel-ipu3.h: Added __padding qualifier for uapi definitions.
+- Internal fix: power and performance related issues.
+- Fixed v4l2-compliance test failures on video and meta nodes.
+- Fixed build failure for x86 with 32bit config.
+- Fixed checkpatch.pl errors/warnings/checks.
+
+version 3:
+- ipu3-mmu.c and ipu3-dmamap.c:
+  Tomasz Figa reworked both drivers and updated related files.
+- ipu2-abi.h:
+  update imgu_abi_binary_info ABI to support latest ipu3-fw.bin.
+  use __packed qualifier on structs suggested by Sakari Ailus.
+- ipu3-css-fw.c/ipu3-css-fw.h: following fix were suggested by Tomasz Figa:
+  remove pointer type in firmware blob structs.
+  fix binary_header array in struct imgu_fw_header.
+  fix calling ipu3_css_fw_show_binary() before proper checking.
+  fix logic error for valid length checking of blob name.
+- ipu3-css-params.c/ipu3_css_scaler_get_exp():
+  use lib helper suggested by Andy Shevchenko.
+- ipu3-v4l2.c/ipu3_videoc_querycap():
+  fill device_caps fix suggested by Hans Verkuil.
+  add VB2_DMABUF suggested by Tomasz Figa.
+- ipu3-css.c: increase IMGU freq from 300MHZ to 450MHZ (internal fix)
+- ipu3.c: use vb2_dma_sg_memop for the time being(internal fix).
+
+version 2:
+This version cherry-picked firmware ABI change and other
+fix in order to bring the code up-to-date with our internal release.
+
+I will go over the review comments in v1 and address them in v3 and
+future update.
+
+version 1:
+- Initial submission
+
+Tomasz Figa (2):
+  intel-ipu3: Add mmu driver
+  intel-ipu3: Add IOMMU based dmamap support
+
+Yong Zhi (10):
+  videodev2.h, v4l2-ioctl: add IPU3 meta buffer format
+  intel-ipu3: Add user space ABI definitions
+  intel-ipu3: css: tables
+  intel-ipu3: css: imgu dma buff pool
+  intel-ipu3: css: firmware management
+  intel-ipu3: params: compute and program ccs
+  intel-ipu3: css hardware setup
+  intel-ipu3: css pipeline
+  intel-ipu3: Add imgu v4l2 driver
+  intel-ipu3: imgu top level pci device
+
+ drivers/media/pci/intel/ipu3/Kconfig           |   33 +
+ drivers/media/pci/intel/ipu3/Makefile          |   21 +
+ drivers/media/pci/intel/ipu3/ipu3-abi.h        | 1579 ++++
+ drivers/media/pci/intel/ipu3/ipu3-css-fw.c     |  270 +
+ drivers/media/pci/intel/ipu3/ipu3-css-fw.h     |  206 +
+ drivers/media/pci/intel/ipu3/ipu3-css-params.c | 3161 ++++++++
+ drivers/media/pci/intel/ipu3/ipu3-css-params.h |  105 +
+ drivers/media/pci/intel/ipu3/ipu3-css-pool.c   |  132 +
+ drivers/media/pci/intel/ipu3/ipu3-css-pool.h   |   54 +
+ drivers/media/pci/intel/ipu3/ipu3-css.c        | 2278 ++++++
+ drivers/media/pci/intel/ipu3/ipu3-css.h        |  225 +
+ drivers/media/pci/intel/ipu3/ipu3-dmamap.c     |  342 +
+ drivers/media/pci/intel/ipu3/ipu3-dmamap.h     |   33 +
+ drivers/media/pci/intel/ipu3/ipu3-mmu.c        |  580 ++
+ drivers/media/pci/intel/ipu3/ipu3-mmu.h        |   26 +
+ drivers/media/pci/intel/ipu3/ipu3-tables.c     | 9621 ++++++++++++++++++++++++
+ drivers/media/pci/intel/ipu3/ipu3-tables.h     |   82 +
+ drivers/media/pci/intel/ipu3/ipu3-v4l2.c       | 1150 +++
+ drivers/media/pci/intel/ipu3/ipu3.c            |  882 +++
+ drivers/media/pci/intel/ipu3/ipu3.h            |  186 +
+ drivers/media/v4l2-core/v4l2-ioctl.c           |    4 +
+ include/uapi/linux/intel-ipu3.h                | 2199 ++++++
+ include/uapi/linux/videodev2.h                 |    6 +
+ 23 files changed, 23175 insertions(+)
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-abi.h
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.h
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-params.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-params.h
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.h
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css.h
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.h
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.h
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-tables.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-tables.h
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-v4l2.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3.h
+ create mode 100644 include/uapi/linux/intel-ipu3.h
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
