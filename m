@@ -1,80 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:35517 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751043AbdJEOCH (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46979 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750926AbdJRVL7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Oct 2017 10:02:07 -0400
-Message-ID: <1507212125.8473.14.camel@pengutronix.de>
-Subject: Re: i.MX6 CODA warning: vb2:   counters for queue xxx, buffer y:
- UNBALANCED!
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
-        Linux Media <linux-media@vger.kernel.org>
-Date: Thu, 05 Oct 2017 16:02:05 +0200
-In-Reply-To: <m3zi95yjgz.fsf@t19.piap.pl>
-References: <m3zi95yjgz.fsf@t19.piap.pl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Wed, 18 Oct 2017 17:11:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jacob Chen <jacob-chen@iotwrt.com>
+Subject: Re: [PATCH] videobuf2-core: add queue_busy/idle queue ops
+Date: Thu, 19 Oct 2017 00:12:19 +0300
+Message-ID: <68563113.VIsaoZKvtQ@avalon>
+In-Reply-To: <223c0040-0d7f-5a6b-4fa7-9b7f04db1e9f@xs4all.nl>
+References: <223c0040-0d7f-5a6b-4fa7-9b7f04db1e9f@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2017-10-05 at 12:31 +0200, Krzysztof Hałasa wrote:
-> Hi,
+Hi Hans,
+
+Thank you for the patch.
+
+On Friday, 22 September 2017 15:29:22 EEST Hans Verkuil wrote:
+> Some controls (ROTATE) change the buffer layout. This means that they cannot
+> be set when buffers are allocated. This can be achieved by calling
+> v4l2_ctrl_grab(ctrl, true) when the queue becomes busy (i.e. the first
+> buffer is allocated) and v4l2_ctrl_grab(ctrl, false) when the queue becomes
+> idle (i.e. the last buffer is released).
 > 
-> I'm using i.MX6 CODA H.264 encoder and found a minor bug somewhere.
-> Not sure how it should be fixed, though.
-> The problem manifests itself when I configure (open, qbuf etc) the
-> encoder device and then close it without any start/stop streaming
-> calls.
-> I'm using 2 buffers in this example:
+> However, we do not have such queue ops at the moment. This patch adds a
+> queue_busy and a queue_idle op.
+
+I wonder if this is the best approach. From a quick look at the patch, and 
+without seeing drivers using it, I'm worried those new callbacks will be prone 
+to race conditions with control operations. I think an in-depth analysis of 
+the issue is needed first, and I'd rather avoid new users of the rotation 
+control until we come up with a good way to handle it.
+
+> Note that currently queue_busy returns a void, so it assumes that it can't
+> return an error.
 > 
-> vb2:   counters for queue b699c808, buffer 0: UNBALANCED!
-> vb2:     buf_init: 1 buf_cleanup: 1 buf_prepare: 1 buf_finish: 1
-> vb2:     buf_queue: 0 buf_done: 0
-> vb2:     alloc: 1 put: 1 prepare: 1 finish: 0 mmap: 1
->                          ^^^^^^^^^^^^^^^^^^^^
-> vb2:     get_userptr: 0 put_userptr: 0
-> vb2:     attach_dmabuf: 0 detach_dmabuf: 0 map_dmabuf: 0 unmap_dmabuf:
-> 0
-> vb2:     get_dmabuf: 0 num_users: 0 vaddr: 0 cookie: 0
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+> Jacob, this has only been compile-tested. It's best if you add this patch to
+> your rockchip-rga patch series and test it there.
+> ---
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c index 14f83cecfa92..e8ad0e9f78d2
+> 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -665,6 +665,7 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum
+> vb2_memory memory, }
 > 
-> vb2:   counters for queue b699c808, buffer 1: UNBALANCED!
-> vb2:     buf_init: 1 buf_cleanup: 1 buf_prepare: 1 buf_finish: 1
-> vb2:     buf_queue: 0 buf_done: 0
-> vb2:     alloc: 1 put: 1 prepare: 1 finish: 0 mmap: 1
->                          ^^^^^^^^^^^^^^^^^^^^
-> vb2:     get_userptr: 0 put_userptr: 0
-> vb2:     attach_dmabuf: 0 detach_dmabuf: 0 map_dmabuf: 0 unmap_dmabuf:
-> 0
-> vb2:     get_dmabuf: 0 num_users: 0 vaddr: 0 cookie: 0
+>  	if (*count == 0 || q->num_buffers != 0 || q->memory != memory) {
+> +		num_buffers = q->num_buffers;
+>  		/*
+>  		 * We already have buffers allocated, so first check if they
+>  		 * are not in use and can be freed.
+> @@ -686,6 +687,8 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum
+> vb2_memory memory, mutex_unlock(&q->mmap_lock);
+>  		if (ret)
+>  			return ret;
+> +		if (num_buffers)
+> +			call_void_qop(q, queue_idle, q);
 > 
-> These are H.264 (encoder "capture") buffers. Note the alloc
-> prepare/finish disparity.
+>  		/*
+>  		 * In case of REQBUFS(0) return immediately without calling
+> @@ -752,6 +755,7 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum
+> vb2_memory memory, */
+>  	}
 > 
-> I have investigated a bit and it seems it's some missing *buf_done()
-> call, probably belonging to coda_release(), but I'm not sure. Or maybe
-> should my program "finish" the buffers before doing close()?
+> +	call_void_qop(q, queue_busy, q);
+>  	mutex_lock(&q->mmap_lock);
+>  	q->num_buffers = allocated_buffers;
+> 
+> @@ -762,6 +766,7 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum
+> vb2_memory memory, */
+>  		__vb2_queue_free(q, allocated_buffers);
+>  		mutex_unlock(&q->mmap_lock);
+> +		call_void_qop(q, queue_idle, q);
+>  		return ret;
+>  	}
+>  	mutex_unlock(&q->mmap_lock);
+> @@ -842,6 +847,8 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum
+> vb2_memory memory, */
+>  	}
+> 
+> +	if (!q->num_buffers)
+> +		call_void_qop(q, queue_busy, q);
+>  	mutex_lock(&q->mmap_lock);
+>  	q->num_buffers += allocated_buffers;
+> 
+> @@ -852,6 +859,8 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum
+> vb2_memory memory, */
+>  		__vb2_queue_free(q, allocated_buffers);
+>  		mutex_unlock(&q->mmap_lock);
+> +		if (!q->num_buffers)
+> +			call_void_qop(q, queue_idle, q);
+>  		return -ENOMEM;
+>  	}
+>  	mutex_unlock(&q->mmap_lock);
+> @@ -2011,11 +2020,15 @@ static int __vb2_init_fileio(struct vb2_queue *q,
+> int read); static int __vb2_cleanup_fileio(struct vb2_queue *q);
+>  void vb2_core_queue_release(struct vb2_queue *q)
+>  {
+> +	bool was_busy = vb2_is_busy(q);
+> +
+>  	__vb2_cleanup_fileio(q);
+>  	__vb2_queue_cancel(q);
+>  	mutex_lock(&q->mmap_lock);
+>  	__vb2_queue_free(q, q->num_buffers);
+>  	mutex_unlock(&q->mmap_lock);
+> +	if (was_busy)
+> +		call_void_qop(q, queue_idle, q);
+>  }
+>  EXPORT_SYMBOL_GPL(vb2_core_queue_release);
+> 
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index cb97c224be73..3aa039fd29ce 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -315,6 +315,10 @@ struct vb2_buffer {
+>   *			\*num_buffers are being allocated additionally to
+>   *			q->num_buffers. If either \*num_planes or the requested
+>   *			sizes are invalid callback must return %-EINVAL.
+> + * @queue_busy:		called when the queue becomes busy (i.e. at least one
+> + *			buffer has been allocated).
+> + * @queue_idle:		called when the last buffer from the queue is released
+> + *			and the queue is no longer marked busy.
+>   * @wait_prepare:	release any locks taken while calling vb2 functions;
+>   *			it is called before an ioctl needs to wait for a new
+>   *			buffer to arrive; required to avoid a deadlock in
+> @@ -380,6 +384,8 @@ struct vb2_ops {
+>  	int (*queue_setup)(struct vb2_queue *q,
+>  			   unsigned int *num_buffers, unsigned int *num_planes,
+>  			   unsigned int sizes[], struct device *alloc_devs[]);
+> +	void (*queue_busy)(struct vb2_queue *q);
+> +	void (*queue_idle)(struct vb2_queue *q);
+> 
+>  	void (*wait_prepare)(struct vb2_queue *q);
+>  	void (*wait_finish)(struct vb2_queue *q);
+> @@ -547,6 +553,8 @@ struct vb2_queue {
+>  	 * called. Used to check for unbalanced ops.
+>  	 */
+>  	u32				cnt_queue_setup;
+> +	u32				cnt_queue_busy;
+> +	u32				cnt_queue_idle;
+>  	u32				cnt_wait_prepare;
+>  	u32				cnt_wait_finish;
+>  	u32				cnt_start_streaming;
 
-I have to admit, I'm a bit unsure how this should be handled.
 
-If the buffers are queued via VIDIOC_QBUF, but VIDIOC_STREAMON is never
-called, the buffers are (mem_)prepared in __buf_prepare, but they are
-never enqueued in the driver via __enqueue_in_driver. This is reflected
-by the balanced buf_queue/done line:
+-- 
+Regards,
 
-vb2:     buf_queue: 0 buf_done: 0
-
-I can't call v4l2_m2m_buf_done on buffers that have not been queued in
-the driver yet: these buffers are in state VB2_BUF_STATE_QUEUED, not
-VB2_BUF_STATE_ACTIVE. But vb2_buffer_done, which is the only place that
-(mem_)finishes the buffers, only operates on active buffers.
-
-The kerneldoc comments for vb2_mem_ops indicate that prepare/finish are
-called whenever the buffer is passed from userspace to the driver and
-back, but they make no mention of buffers being passed from userspace to
-the videobuf2 core, which doesn't pass them on to the driver until
-STREAMON.
-
-regards
-Philipp
+Laurent Pinchart
