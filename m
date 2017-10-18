@@ -1,43 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:38831 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751230AbdJCLos (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 07:44:48 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: gregkh@linuxfoundation.org, jacobvonchorus@cwphoto.ca,
-        mchehab@kernel.org, eric@anholt.net, stefan.wahren@i2se.com,
-        f.fainelli@gmail.com, rjui@broadcom.com, Larry.Finger@lwfinger.net,
-        pkshih@realtek.com
-Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: [PATCH 1/4] staging: gs_fpgaboot: pr_err() strings should end with newlines
-Date: Tue,  3 Oct 2017 17:13:23 +0530
-Message-Id: <1507031006-16543-2-git-send-email-arvind.yadav.cs@gmail.com>
-In-Reply-To: <1507031006-16543-1-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1507031006-16543-1-git-send-email-arvind.yadav.cs@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57164 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751724AbdJRNx2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 18 Oct 2017 09:53:28 -0400
+Date: Wed, 18 Oct 2017 16:53:25 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v1 00/13] staging: atomisp: clean up bomb
+Message-ID: <20171018135325.ivamfadhzlhioqhp@valkosipuli.retiisi.org.uk>
+References: <20170927182508.52119-1-andriy.shevchenko@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170927182508.52119-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pr_err() messages should end with a new-line to avoid other messages
-being concatenated.
+Hi Andy,
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- drivers/staging/gs_fpgaboot/gs_fpgaboot.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks for the patchset.
 
-diff --git a/drivers/staging/gs_fpgaboot/gs_fpgaboot.c b/drivers/staging/gs_fpgaboot/gs_fpgaboot.c
-index bcbdc73..fa8b27e 100644
---- a/drivers/staging/gs_fpgaboot/gs_fpgaboot.c
-+++ b/drivers/staging/gs_fpgaboot/gs_fpgaboot.c
-@@ -106,7 +106,7 @@ static int readmagic_bitstream(u8 *bitdata, int *offset)
- 	read_bitstream(bitdata, buf, offset, 13);
- 	r = memcmp(buf, bits_magic, 13);
- 	if (r) {
--		pr_err("error: corrupted header");
-+		pr_err("error: corrupted header\n");
- 		return -EINVAL;
- 	}
- 	pr_info("bitstream file magic number Ok\n");
+On Wed, Sep 27, 2017 at 09:24:55PM +0300, Andy Shevchenko wrote:
+> The driver has been submitted with a limitation to few platforms and
+> sensors which it does support. Even though two sensor drivers have no
+> users neither on ACPI-enabled platforms, nor in current Linux kernel
+> code. Patches 1 and 2 removes those drivers for now.
+> 
+> It seems new contributors follow cargo cult programming done by the
+> original driver developers. It's neither good for code, nor for
+> reviewing process. To avoid such issues in the future here are few clean
+> up patches, i.e. patches 3, 4, 6. 13.
+> 
+> On top of this here are clean ups with regard to GPIO use. One may
+> consider this as an intermediate clean up. This part toughly related to
+> removal of unused sensor drivers in patches 1 and 2.
+> 
+> Patch series has been partially compile tested. It would be nice to see
+> someone with hardware to confirm it doesn't break anything.
+
+Partially compile tested? :-) That sounds really reliable. ;)
+
+Considering the cleanups this set contains, and we need to move forward,
+reducing the number of extra drivers that are unverifiable anyway, I think
+the patchset is definitely worth merging.
+
+I've rebased this on the current atomisp branch, and I've pushed the result
+here:
+
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=atomisp-andy>
+
+Let me know if you see issues. The only manually resolved conflict was in
+the removal of the ap1302 driver.
+
 -- 
-1.9.1
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
