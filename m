@@ -1,90 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:56524 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751557AbdJDUSd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Oct 2017 16:18:33 -0400
-Message-ID: <1507148284.2981.62.camel@collabora.com>
-Subject: Re: [PATCH v3 10/15] [media] vb2: add 'ordered' property to queues
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
-To: Brian Starkey <brian.starkey@arm.com>,
-        Gustavo Padovan <gustavo@padovan.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        linux-kernel@vger.kernel.org, Jonathan.Chai@arm.com
-Date: Wed, 04 Oct 2017 17:18:04 -0300
-In-Reply-To: <20171002134350.GE22538@e107564-lin.cambridge.arm.com>
-References: <20170907184226.27482-1-gustavo@padovan.org>
-         <20170907184226.27482-11-gustavo@padovan.org>
-         <20171002134350.GE22538@e107564-lin.cambridge.arm.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from szxga05-in.huawei.com ([45.249.212.191]:8995 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752916AbdJSLkz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Oct 2017 07:40:55 -0400
+From: Jiancheng Xue <xuejiancheng@hisilicon.com>
+To: <mchehab@kernel.org>
+CC: <sean@mess.org>, <hverkuil@xs4all.nl>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <shawn.guo@linaro.org>, <hermit.wangheming@hisilicon.com>,
+        <xuejiancheng@hisilicon.com>,
+        Younian Wang <wangyounian@hisilicon.com>
+Subject: [PATCH v2 2/2] [media] rc/keymaps: add support for RC of hisilicon poplar board
+Date: Thu, 19 Oct 2017 15:43:30 -0400
+Message-ID: <1508442210-43958-3-git-send-email-xuejiancheng@hisilicon.com>
+In-Reply-To: <1508442210-43958-1-git-send-email-xuejiancheng@hisilicon.com>
+References: <1508442210-43958-1-git-send-email-xuejiancheng@hisilicon.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2017-10-02 at 14:43 +0100, Brian Starkey wrote:
-> Hi,
-> 
-> On Thu, Sep 07, 2017 at 03:42:21PM -0300, Gustavo Padovan wrote:
-> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > 
-> > For explicit synchronization (and soon for HAL3/Request API) we
-> > need
-> > the v4l2-driver to guarantee the ordering in which the buffers were
-> > queued
-> > by userspace. This is already true for many drivers, but we never
-> > needed
-> > to say it.
-> > 
-> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > ---
-> > include/media/videobuf2-core.h | 4 ++++
-> > 1 file changed, 4 insertions(+)
-> > 
-> > diff --git a/include/media/videobuf2-core.h
-> > b/include/media/videobuf2-core.h
-> > index 5ed8d3402474..20099dc22f26 100644
-> > --- a/include/media/videobuf2-core.h
-> > +++ b/include/media/videobuf2-core.h
-> > @@ -508,6 +508,9 @@ struct vb2_buf_ops {
-> >  * @last_buffer_dequeued: used in poll() and DQBUF to immediately
-> > return if the
-> >  *		last decoded buffer was already dequeued. Set for
-> > capture queues
-> >  *		when a buffer with the V4L2_BUF_FLAG_LAST is
-> > dequeued.
-> > + * @ordered: if the driver can guarantee that the queue will be
-> > ordered or not.
-> > + *		The default is not ordered unless the driver
-> > sets this flag. It
-> > + *		is mandatory for using explicit fences.
-> 
-> If it's mandatory for fences (why is that?), then I guess this patch
-> should come before any of the fence implementation?
+From: Younian Wang <wangyounian@hisilicon.com>
 
-As of this implementation it is mandatory for out-fences, so that is
-why I didn't put it before the in-fences support.
+This is a NEC protocol type remote controller distributed with
+96boards poplar@tocoding board.
 
-> 
-> But it's not entirely clear to me what this flag means - ordered with
-> respect to what? Ordered such that the order in which the buffers are
-> queued in the driver are the same order that they will be dequeued by
-> userspace?
+Signed-off-by: Younian Wang <wangyounian@hisilicon.com>
+Signed-off-by: Jiancheng Xue <xuejiancheng@hisilicon.com>
+---
+ drivers/media/rc/keymaps/Makefile         |  1 +
+ drivers/media/rc/keymaps/rc-hisi-poplar.c | 69 +++++++++++++++++++++++++++++++
+ 2 files changed, 70 insertions(+)
+ create mode 100644 drivers/media/rc/keymaps/rc-hisi-poplar.c
 
-Exactly.
-
-> I think the order they are queued from userspace can still be
-> different from both the order they are queued in the driver (because
-> the in-fences can signal in any order), and dequeued again in
-> userspace, so "ordered" seems a bit ambiguous.
-
-Exactly. That is what the current implementation does.
-
-> 
-> I think it should be more clear.
-
-Sure, sorry for not being clear, the next iteration will have a much
-better explanation.
-
-Gustavo
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index 83ec9c3..8daabfc6 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -47,6 +47,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-geekbox.o \
+ 			rc-genius-tvgo-a11mce.o \
+ 			rc-gotview7135.o \
++			rc-hisi-poplar.o \
+ 			rc-hisi-tv-demo.o \
+ 			rc-imon-mce.o \
+ 			rc-imon-pad.o \
+diff --git a/drivers/media/rc/keymaps/rc-hisi-poplar.c b/drivers/media/rc/keymaps/rc-hisi-poplar.c
+new file mode 100644
+index 0000000..5f50800
+--- /dev/null
++++ b/drivers/media/rc/keymaps/rc-hisi-poplar.c
+@@ -0,0 +1,69 @@
++/*
++ * Keytable for remote controller of HiSilicon poplar board.
++ *
++ * Copyright (c) 2017 HiSilicon Technologies Co., Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/module.h>
++#include <media/rc-map.h>
++
++static struct rc_map_table hisi_poplar_keymap[] = {
++	{ 0x0000b292, KEY_1},
++	{ 0x0000b293, KEY_2},
++	{ 0x0000b2cc, KEY_3},
++	{ 0x0000b28e, KEY_4},
++	{ 0x0000b28f, KEY_5},
++	{ 0x0000b2c8, KEY_6},
++	{ 0x0000b28a, KEY_7},
++	{ 0x0000b28b, KEY_8},
++	{ 0x0000b2c4, KEY_9},
++	{ 0x0000b287, KEY_0},
++	{ 0x0000b282, KEY_HOMEPAGE},
++	{ 0x0000b2ca, KEY_UP},
++	{ 0x0000b299, KEY_LEFT},
++	{ 0x0000b2c1, KEY_RIGHT},
++	{ 0x0000b2d2, KEY_DOWN},
++	{ 0x0000b2c5, KEY_DELETE},
++	{ 0x0000b29c, KEY_MUTE},
++	{ 0x0000b281, KEY_VOLUMEDOWN},
++	{ 0x0000b280, KEY_VOLUMEUP},
++	{ 0x0000b2dc, KEY_POWER},
++	{ 0x0000b29a, KEY_MENU},
++	{ 0x0000b28d, KEY_SETUP},
++	{ 0x0000b2c5, KEY_BACK},
++	{ 0x0000b295, KEY_PLAYPAUSE},
++	{ 0x0000b2ce, KEY_ENTER},
++	{ 0x0000b285, KEY_CHANNELUP},
++	{ 0x0000b286, KEY_CHANNELDOWN},
++	{ 0x0000b2da, KEY_NUMERIC_STAR},
++	{ 0x0000b2d0, KEY_NUMERIC_POUND},
++};
++
++static struct rc_map_list hisi_poplar_map = {
++	.map = {
++		.scan	  = hisi_poplar_keymap,
++		.size	  = ARRAY_SIZE(hisi_poplar_keymap),
++		.rc_proto = RC_PROTO_NEC,
++		.name	  = "rc-hisi-poplar",
++	}
++};
++
++static int __init init_rc_map_hisi_poplar(void)
++{
++	return rc_map_register(&hisi_poplar_map);
++}
++
++static void __exit exit_rc_map_hisi_poplar(void)
++{
++	rc_map_unregister(&hisi_poplar_map);
++}
++
++module_init(init_rc_map_hisi_poplar)
++module_exit(exit_rc_map_hisi_poplar)
++
++MODULE_LICENSE("GPL v2");
+-- 
+2.7.4
