@@ -1,40 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:39107 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751714AbdJPONe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Oct 2017 10:13:34 -0400
-Date: Mon, 16 Oct 2017 17:13:31 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Joe Perches <joe@perches.com>, linux-media@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] [media] stk-webcam: Fix use after free on disconnect
-Message-ID: <20171016141331.qyjzz26l567ycdew@paasikivi.fi.intel.com>
-References: <CAAeHK+yQshGzduWP-hpGbbnYh9uHbeODDsEX_K3KmgaNXHNFNQ@mail.gmail.com>
- <20170922134841.kxfwwn2yocjgnuad@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170922134841.kxfwwn2yocjgnuad@mwanda>
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:51497 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752345AbdJSVhk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Oct 2017 17:37:40 -0400
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Stephen Warren <swarren@wwwdotorg.org>,
+        Vladimir Zapolskiy <vz@mleia.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v4 5/5] ARM: defconfig: tegra: Enable Video Decoder driver
+Date: Fri, 20 Oct 2017 00:34:25 +0300
+Message-Id: <0d1f231d98019ac0a4a58691e0dcd12b38d9db3c.1508448293.git.digetx@gmail.com>
+In-Reply-To: <cover.1508448293.git.digetx@gmail.com>
+References: <cover.1508448293.git.digetx@gmail.com>
+In-Reply-To: <cover.1508448293.git.digetx@gmail.com>
+References: <cover.1508448293.git.digetx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 22, 2017 at 04:48:41PM +0300, Dan Carpenter wrote:
-> We free the stk_camera device too early.  It's allocate first in probe
-> and it should be freed last in stk_camera_disconnect().
-> 
-> Reported-by: Andrey Konovalov <andreyknvl@google.com>
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> Not tested but these bug reports seem surprisingly straight forward.
-> Thanks Andrey!
+Compile Tegra VDE driver as a module.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+---
+ arch/arm/configs/tegra_defconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/arch/arm/configs/tegra_defconfig b/arch/arm/configs/tegra_defconfig
+index 6678f2929356..c931bd48f7fd 100644
+--- a/arch/arm/configs/tegra_defconfig
++++ b/arch/arm/configs/tegra_defconfig
+@@ -29,7 +29,6 @@ CONFIG_PCI_MSI=y
+ CONFIG_PCI_TEGRA=y
+ CONFIG_SMP=y
+ CONFIG_PREEMPT=y
+-CONFIG_AEABI=y
+ CONFIG_HIGHMEM=y
+ CONFIG_CMA=y
+ CONFIG_ZBOOT_ROM_TEXT=0x0
+@@ -256,6 +255,7 @@ CONFIG_KEYBOARD_NVEC=y
+ CONFIG_SERIO_NVEC_PS2=y
+ CONFIG_NVEC_POWER=y
+ CONFIG_NVEC_PAZ00=y
++CONFIG_TEGRA_VDE=m
+ CONFIG_TEGRA_IOMMU_GART=y
+ CONFIG_TEGRA_IOMMU_SMMU=y
+ CONFIG_ARCH_TEGRA_2x_SOC=y
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.14.2
