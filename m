@@ -1,98 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
-        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
-        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@lists.01.org>,
-        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
-        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
-        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>
-Cc: "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Bridgman, John" <John.Bridgman@amd.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
-From: Ludwig Petrosyan <ludwig.petrosyan@desy.de>
-Message-ID: <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
-Date: Fri, 20 Oct 2017 14:36:07 +0200
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:39627 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751411AbdJSHWA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Oct 2017 03:22:00 -0400
+Subject: Re: [PATCH 0/2] [media] rc/keymaps: add support for two RCs of
+ hisilicon boards.
+To: Jiancheng Xue <xuejiancheng@hisilicon.com>, mchehab@kernel.org
+Cc: hermit.wangheming@hisilicon.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, shawn.guo@linaro.org
+References: <1508324097-5514-1-git-send-email-xuejiancheng@hisilicon.com>
+ <b6902032-5f51-94ef-cc7e-ea3ad3ae97ff@xs4all.nl>
+ <ff9dce75-da40-ca70-ca76-8e8c6196a250@hisilicon.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2aca5bb1-1a81-8a4e-b37c-ea25a1864648@xs4all.nl>
+Date: Thu, 19 Oct 2017 09:21:55 +0200
 MIME-Version: 1.0
-In-Reply-To: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <ff9dce75-da40-ca70-ca76-8e8c6196a250@hisilicon.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
-Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Linux kernel group
+On 10/19/2017 09:12 AM, Jiancheng Xue wrote:
+> Hi Hans，
+> 
+> On 2017/10/19 15:01, Hans Verkuil wrote:
+>> On 10/18/2017 12:54 PM, Jiancheng Xue wrote:
+>>> Add support for two remote controllers of hisilicon boards.
+>>>
+>>> Younian Wang (2):
+>>>   [media] rc/keymaps: add support for RC of hisilicon TV demo boards
+>>>   [media] rc/keymaps: add support for RC of hisilicon poplar board
+>>>
+>>>  drivers/media/rc/keymaps/Makefile          |  2 +
+>>>  drivers/media/rc/keymaps/rc-hisi-poplar.c  | 58 +++++++++++++++++++++++++
+>>>  drivers/media/rc/keymaps/rc-hisi-tv-demo.c | 70 ++++++++++++++++++++++++++++++
+>>>  3 files changed, 130 insertions(+)
+>>>  create mode 100644 drivers/media/rc/keymaps/rc-hisi-poplar.c
+>>>  create mode 100644 drivers/media/rc/keymaps/rc-hisi-tv-demo.c
+>>>
+>>
+>> Did you make a mistake? You reposted these two patches, but still without any
+>> copyright statement...
+>>
+>> I think something went wrong here.
+>>
+> I haven't reposted them so far. This is still the first version. I am waiting
+> to see if there are any more comments. If not, I can repost them soon.
 
-my name is Ludwig Petrosyan I am working in DESY (Germany)
+Ah, now I see why I got confused: something is wrong with the email dates: Sean's
+reply has an earlier timestamp than your patch series. So I mistakenly thought
+that the patch series was a v2 series.
 
-we are responsible for the control system of  all accelerators in DESY.
+Regards,
 
-For a 7-8 years we have switched to MTCA.4 systems and using PCIe as a 
-central Bus.
-
-I am mostly responsible for the Linux drivers of the AMC Cards (PCIe 
-endpoints).
-
-The idea is start to use peer to peer transaction for PCIe endpoint (DMA 
-and/or usual Read/Write)
-
-Could You please advise me where to start, is there some Documentation 
-how to do it.
-
-
-with best regards
-
-
-Ludwig
-
-
-On 11/21/2016 09:36 PM, Deucher, Alexander wrote:
-> This is certainly not the first time this has been brought up, but I'd like to try and get some consensus on the best way to move this forward.  Allowing devices to talk directly improves performance and reduces latency by avoiding the use of staging buffers in system memory.  Also in cases where both devices are behind a switch, it avoids the CPU entirely.  Most current APIs (DirectGMA, PeerDirect, CUDA, HSA) that deal with this are pointer based.  Ideally we'd be able to take a CPU virtual address and be able to get to a physical address taking into account IOMMUs, etc.  Having struct pages for the memory would allow it to work more generally and wouldn't require as much explicit support in drivers that wanted to use it.
->   
-> Some use cases:
-> 1. Storage devices streaming directly to GPU device memory
-> 2. GPU device memory to GPU device memory streaming
-> 3. DVB/V4L/SDI devices streaming directly to GPU device memory
-> 4. DVB/V4L/SDI devices streaming directly to storage devices
->   
-> Here is a relatively simple example of how this could work for testing.  This is obviously not a complete solution.
-> - Device memory will be registered with Linux memory sub-system by created corresponding struct page structures for device memory
-> - get_user_pages_fast() will  return corresponding struct pages when CPU address points to the device memory
-> - put_page() will deal with struct pages for device memory
->   
-> Previously proposed solutions and related proposals:
-> 1.P2P DMA
-> DMA-API/PCI map_peer_resource support for peer-to-peer (http://www.spinics.net/lists/linux-pci/msg44560.html)
-> Pros: Low impact, already largely reviewed.
-> Cons: requires explicit support in all drivers that want to support it, doesn't handle S/G in device memory.
->   
-> 2. ZONE_DEVICE IO
-> Direct I/O and DMA for persistent memory (https://lwn.net/Articles/672457/)
-> Add support for ZONE_DEVICE IO memory with struct pages. (https://patchwork.kernel.org/patch/8583221/)
-> Pro: Doesn't waste system memory for ZONE metadata
-> Cons: CPU access to ZONE metadata slow, may be lost, corrupted on device reset.
->   
-> 3. DMA-BUF
-> RDMA subsystem DMA-BUF support (http://www.spinics.net/lists/linux-rdma/msg38748.html)
-> Pros: uses existing dma-buf interface
-> Cons: dma-buf is handle based, requires explicit dma-buf support in drivers.
->
-> 4. iopmem
-> iopmem : A block device for PCIe memory (https://lwn.net/Articles/703895/)
->   
-> 5. HMM
-> Heterogeneous Memory Management (http://lkml.iu.edu/hypermail/linux/kernel/1611.2/02473.html)
->
-> 6. Some new mmap-like interface that takes a userptr and a length and returns a dma-buf and offset?
->   
-> Alex
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Hans
