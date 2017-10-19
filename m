@@ -1,163 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:37174 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751281AbdJBNmQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Oct 2017 09:42:16 -0400
-Date: Mon, 2 Oct 2017 14:42:12 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Jonathan.Chai@arm.com
-Subject: Re: [PATCH v3 02/15] [media] vb2: add explicit fence user API
-Message-ID: <20171002134212.GC22538@e107564-lin.cambridge.arm.com>
-References: <20170907184226.27482-1-gustavo@padovan.org>
- <20170907184226.27482-3-gustavo@padovan.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <20170907184226.27482-3-gustavo@padovan.org>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:56412 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752305AbdJSVhi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Oct 2017 17:37:38 -0400
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Stephen Warren <swarren@wwwdotorg.org>,
+        Vladimir Zapolskiy <vz@mleia.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v4 4/5] ARM: dts: tegra20: Add video decoder node
+Date: Fri, 20 Oct 2017 00:34:24 +0300
+Message-Id: <75e7f97c65443cdf064ce743070255625e5cd5b6.1508448293.git.digetx@gmail.com>
+In-Reply-To: <cover.1508448293.git.digetx@gmail.com>
+References: <cover.1508448293.git.digetx@gmail.com>
+In-Reply-To: <cover.1508448293.git.digetx@gmail.com>
+References: <cover.1508448293.git.digetx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Add Video Decoder Engine device node.
 
-On Thu, Sep 07, 2017 at 03:42:13PM -0300, Gustavo Padovan wrote:
->From: Gustavo Padovan <gustavo.padovan@collabora.com>
->
->Turn the reserved2 field into fence_fd that we will use to send
->an in-fence to the kernel and return an out-fence from the kernel to
->userspace.
->
->Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
->when sending a fence to the kernel to be waited on, and
->V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
+Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+---
+ arch/arm/boot/dts/tegra20.dtsi | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-It seems a bit off to me to add this to the uapi, and document it,
-before any of the implementation is present in the kernel.
-
-Wouldn't it be better to move this patch to be the last one, after all
-of the implementation is done?
-
-Cheers,
--Brian
-
->
->v2: add documentation
->
->Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
->---
-> Documentation/media/uapi/v4l/buffer.rst       | 19 +++++++++++++++++++
-> drivers/media/usb/cpia2/cpia2_v4l.c           |  2 +-
-> drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  4 ++--
-> drivers/media/v4l2-core/videobuf2-v4l2.c      |  2 +-
-> include/uapi/linux/videodev2.h                |  4 +++-
-> 5 files changed, 26 insertions(+), 5 deletions(-)
->
->diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
->index ae6ee73f151c..664507ad06c6 100644
->--- a/Documentation/media/uapi/v4l/buffer.rst
->+++ b/Documentation/media/uapi/v4l/buffer.rst
->@@ -648,6 +648,25 @@ Buffer Flags
->       - Start Of Exposure. The buffer timestamp has been taken when the
-> 	exposure of the frame has begun. This is only valid for the
-> 	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
->+    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
->+
->+      - ``V4L2_BUF_FLAG_IN_FENCE``
->+      - 0x00200000
->+      - Ask V4L2 to wait on fence passed in ``fence_fd`` field. The buffer
->+	won't be queued to the driver until the fence signals.
->+
->+    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
->+
->+      - ``V4L2_BUF_FLAG_OUT_FENCE``
->+      - 0x00400000
->+      - Request a fence for the next buffer to be queued to V4L2 driver.
->+	The fence received back through the ``fence_fd`` field  doesn't
->+	necessarily relate to the current buffer in the
->+	:ref:`VIDIOC_QBUF <VIDIOC_QBUF>` ioctl. Although, most of the time
->+	the fence will relate to the current buffer it can't be guaranteed.
->+	So to tell userspace which buffer is associated to the out_fence,
->+	one should listen for the ``V4L2_EVENT_BUF_QUEUED`` event that
->+	provide the id of the buffer when it is queued to the V4L2 driver.
->
->
->
->diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
->index 3dedd83f0b19..6cde686bf44c 100644
->--- a/drivers/media/usb/cpia2/cpia2_v4l.c
->+++ b/drivers/media/usb/cpia2/cpia2_v4l.c
->@@ -948,7 +948,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
-> 	buf->sequence = cam->buffers[buf->index].seq;
-> 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
-> 	buf->length = cam->frame_size;
->-	buf->reserved2 = 0;
->+	buf->fence_fd = -1;
-> 	buf->reserved = 0;
-> 	memset(&buf->timecode, 0, sizeof(buf->timecode));
->
->diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->index 821f2aa299ae..d624fb5df130 100644
->--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->@@ -370,7 +370,7 @@ struct v4l2_buffer32 {
-> 		__s32		fd;
-> 	} m;
-> 	__u32			length;
->-	__u32			reserved2;
->+	__s32			fence_fd;
-> 	__u32			reserved;
-> };
->
->@@ -533,8 +533,8 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
-> 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
-> 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
-> 		put_user(kp->sequence, &up->sequence) ||
->-		put_user(kp->reserved2, &up->reserved2) ||
-> 		put_user(kp->reserved, &up->reserved) ||
->+		put_user(kp->fence_fd, &up->fence_fd) ||
-> 		put_user(kp->length, &up->length))
-> 			return -EFAULT;
->
->diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
->index 0c0669976bdc..110fb45fef6f 100644
->--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
->+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
->@@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
-> 	b->timestamp = ns_to_timeval(vb->timestamp);
-> 	b->timecode = vbuf->timecode;
-> 	b->sequence = vbuf->sequence;
->-	b->reserved2 = 0;
->+	b->fence_fd = -1;
-> 	b->reserved = 0;
->
-> 	if (q->is_multiplanar) {
->diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
->index 185d6a0acc06..e5abab9a908c 100644
->--- a/include/uapi/linux/videodev2.h
->+++ b/include/uapi/linux/videodev2.h
->@@ -924,7 +924,7 @@ struct v4l2_buffer {
-> 		__s32		fd;
-> 	} m;
-> 	__u32			length;
->-	__u32			reserved2;
->+	__s32			fence_fd;
-> 	__u32			reserved;
-> };
->
->@@ -961,6 +961,8 @@ struct v4l2_buffer {
-> #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
-> /* mem2mem encoder/decoder */
-> #define V4L2_BUF_FLAG_LAST			0x00100000
->+#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
->+#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
->
-> /**
->  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
->-- 
->2.13.5
->
+diff --git a/arch/arm/boot/dts/tegra20.dtsi b/arch/arm/boot/dts/tegra20.dtsi
+index aaf32f96f1e8..6b2d7bf5c707 100644
+--- a/arch/arm/boot/dts/tegra20.dtsi
++++ b/arch/arm/boot/dts/tegra20.dtsi
+@@ -15,6 +15,11 @@
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		ranges = <0 0x40000000 0x40000>;
++
++		vde_pool: vde {
++			reg = <0x400 0x3fc00>;
++			pool;
++		};
+ 	};
+ 
+ 	host1x@50000000 {
+@@ -257,6 +262,28 @@
+ 		*/
+ 	};
+ 
++	vde@6001a000 {
++		compatible = "nvidia,tegra20-vde";
++		reg = <0x6001a000 0x1000   /* Syntax Engine */
++		       0x6001b000 0x1000   /* Video Bitstream Engine */
++		       0x6001c000  0x100   /* Macroblock Engine */
++		       0x6001c200  0x100   /* Post-processing Engine */
++		       0x6001c400  0x100   /* Motion Compensation Engine */
++		       0x6001c600  0x100   /* Transform Engine */
++		       0x6001c800  0x100   /* Pixel prediction block */
++		       0x6001ca00  0x100   /* Video DMA */
++		       0x6001d800  0x300>; /* Video frame controls */
++		reg-names = "sxe", "bsev", "mbe", "ppe", "mce",
++			    "tfe", "ppb", "vdma", "frameid";
++		iram = <&vde_pool>; /* IRAM region */
++		interrupts = <GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
++			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
++			     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
++		interrupt-names = "sync-token", "bsev", "sxe";
++		clocks = <&tegra_car TEGRA20_CLK_VDE>;
++		resets = <&tegra_car 61>;
++	};
++
+ 	apbmisc@70000800 {
+ 		compatible = "nvidia,tegra20-apbmisc";
+ 		reg = <0x70000800 0x64   /* Chip revision */
+-- 
+2.14.2
