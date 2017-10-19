@@ -1,76 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f172.google.com ([209.85.128.172]:54366 "EHLO
-        mail-wr0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752991AbdJUJ6D (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44634 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752746AbdJSPOk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 21 Oct 2017 05:58:03 -0400
-Received: by mail-wr0-f172.google.com with SMTP id o44so13171371wrf.11
-        for <linux-media@vger.kernel.org>; Sat, 21 Oct 2017 02:58:02 -0700 (PDT)
-Date: Sat, 21 Oct 2017 11:57:57 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Ralph Metzler <rjkm@metzlerbros.de>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com, jasmin@anw.at
-Subject: Re: [PATCH] [media] dvb-frontends/stv0910: prevent consecutive
- mutex_unlock()'s
-Message-ID: <20171021115757.729e000f@audiostation.wuest.de>
-In-Reply-To: <23019.4906.236885.50919@morden.metzler>
-References: <20171021083641.7226-1-d.scheller.oss@gmail.com>
-        <23019.4906.236885.50919@morden.metzler>
+        Thu, 19 Oct 2017 11:14:40 -0400
+Date: Thu, 19 Oct 2017 18:14:37 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v1 00/13] staging: atomisp: clean up bomb
+Message-ID: <20171019151437.oly6uydu356gsm4f@valkosipuli.retiisi.org.uk>
+References: <20170927182508.52119-1-andriy.shevchenko@linux.intel.com>
+ <20171018205330.rjvlri6u4l6ntxzj@valkosipuli.retiisi.org.uk>
+ <1508413231.16112.508.camel@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1508413231.16112.508.camel@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Sat, 21 Oct 2017 11:28:10 +0200
-schrieb Ralph Metzler <rjkm@metzlerbros.de>:
-
-> Daniel Scheller writes:
->  > From: Daniel Scheller <d.scheller@gmx.net>
->  > 
->  > When calling gate_ctrl() with enable=0 if previously the mutex
->  > wasn't locked (ie. on enable=1 failure and subdrivers not handling
->  > this properly, or by otherwise badly behaving drivers), the
->  > i2c_lock could be unlocked  
+On Thu, Oct 19, 2017 at 02:40:31PM +0300, Andy Shevchenko wrote:
+> On Wed, 2017-10-18 at 23:53 +0300, Sakari Ailus wrote:
+> > On Wed, Sep 27, 2017 at 09:24:55PM +0300, Andy Shevchenko wrote:
+> > > The driver has been submitted with a limitation to few platforms and
+> > > sensors which it does support. Even though two sensor drivers have
+> > > no
+> > > users neither on ACPI-enabled platforms, nor in current Linux kernel
+> > > code. Patches 1 and 2 removes those drivers for now.
+> > > 
+> > > It seems new contributors follow cargo cult programming done by the
+> > > original driver developers. It's neither good for code, nor for
+> > > reviewing process. To avoid such issues in the future here are few
+> > > clean
+> > > up patches, i.e. patches 3, 4, 6. 13.
+> > > 
+> > > On top of this here are clean ups with regard to GPIO use. One may
+> > > consider this as an intermediate clean up. This part toughly related
+> > > to
+> > > removal of unused sensor drivers in patches 1 and 2.
+> > > 
+> > > Patch series has been partially compile tested. It would be nice to
+> > > see
+> > > someone with hardware to confirm it doesn't break anything.
+> > > 
+> > > Andy Shevchenko (13):
+> > >   staging: atomisp: Remove IMX sensor support
+> > >   staging: atomisp: Remove AP1302 sensor support
+> > >   staging: atomisp: Use module_i2c_driver() macro
+> > >   staging: atomisp: Switch i2c drivers to use ->probe_new()
+> > >   staging: atomisp: Do not set GPIO twice
+> > >   staging: atomisp: Remove unneeded gpio.h inclusion
+> > >   staging: atomisp: Remove ->gpio_ctrl() callback
+> > >   staging: atomisp: Remove ->power_ctrl() callback
+> > >   staging: atomisp: Remove unused members of
+> > > camera_sensor_platform_data
+> > >   staging: atomisp: Remove Gmin dead code #1
+> > >   staging: atomisp: Remove Gmin dead code #2
+> > >   staging: atomisp: Remove duplicate declaration in header
+> > >   staging: atomisp: Remove FSF snail address
+> > 
+> > After chatting with Andy we figured out the first patch was actually
+> > missing from the set, both on the mailing list and Patchwork. I've
+> > uploaded
+> > it to the same branch, and the patch itself is here:
+> > 
+> > <URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=atomisp-a
+> > ndy&id=5ef68fbdbb80e72f3239363289fbf12f673988a1>;
+> > 
 > 
-> I think drivers and subdrivers should rather be fixed so that this
-> cannot happen.
+> Looks good, thanks!
 
-As long as stv6111 remains the only chip/driver interfacing with the
-stv0910, that's an easy task. However, if other hardware has some other
-stv0910+tunerchip combination, things get interesting. In a perfect
-world with unicorns and such, every component interacts as intended,
-but that's not the case, so I believe this should be handled at the
-root.
+Thanks, Andy! I'll add these to the next atomisp pull request.
 
-> But to do this we will first need to define exactly how a failure in
-> gate_ctrl() is supposed to be handled, both inside gate_ctrl() and
-> by calling drivers.
-
-Well, IMHO (and thats the intention) if gate_ctrl fails due to a
-hardware/I2C problem, it isn't opened so there's no need to hold the
-lock (since the gate isn't - exclusively - opened). For reasons stated
-above this keeps things safe from deadlocking (and we want to avoid
-that, even more than double unlocking).
-
->  > consecutively which isn't allowed. Prevent this by keeping track
->  > of the lock state, and actually call mutex_unlock() only when
->  > certain the lock is held.  
-> 
-> Why not use mutex_is_locked()?
-
-Good catch (I should try harder finding out what the kernel API has to
-offer...). If you prefer that, I'll respin with this and without the
-var as v2.
-
-> And there should be a debug message if it (tried double unlocking)
-> happens.
-
-Ok. Should IMHO go to dev_dbg then - if drivers don't catch that
-situation, this may else lead do kernel log spam.
-
-Best regards,
-Daniel Scheller
 -- 
-https://github.com/herrnst
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
