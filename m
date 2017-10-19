@@ -1,24 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.211]:35622 "EHLO newverein.lst.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755487AbdJRGXV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Oct 2017 02:23:21 -0400
-Date: Wed, 18 Oct 2017 08:23:19 +0200
-From: Christoph Hellwig <hch@lst.de>
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
-        tuukka.toivonen@intel.com, jerry.w.hu@intel.com, arnd@arndb.de,
-        hch@lst.de, robin.murphy@arm.com, iommu@lists.linux-foundation.org
-Subject: Re: [PATCH v4 00/12] Intel IPU3 ImgU patchset
-Message-ID: <20171018062319.GB10605@lst.de>
-References: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:8996 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752916AbdJSLlE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Oct 2017 07:41:04 -0400
+From: Jiancheng Xue <xuejiancheng@hisilicon.com>
+To: <mchehab@kernel.org>
+CC: <sean@mess.org>, <hverkuil@xs4all.nl>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <shawn.guo@linaro.org>, <hermit.wangheming@hisilicon.com>,
+        <xuejiancheng@hisilicon.com>,
+        Younian Wang <wangyounian@hisilicon.com>
+Subject: [PATCH v2 1/2] [media] rc/keymaps: add support for RC of hisilicon TV demo boards
+Date: Thu, 19 Oct 2017 15:43:29 -0400
+Message-ID: <1508442210-43958-2-git-send-email-xuejiancheng@hisilicon.com>
+In-Reply-To: <1508442210-43958-1-git-send-email-xuejiancheng@hisilicon.com>
+References: <1508442210-43958-1-git-send-email-xuejiancheng@hisilicon.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please keep everyone on CC for all the patches, othervise they are
-complete unreviable and will be ignored.
+From: Younian Wang <wangyounian@hisilicon.com>
+
+This is a NEC protocol type remote controller distributed with
+hisilicon TV demo boards.
+
+Signed-off-by: Younian Wang <wangyounian@hisilicon.com>
+Signed-off-by: Jiancheng Xue <xuejiancheng@hisilicon.com>
+---
+ drivers/media/rc/keymaps/Makefile          |  1 +
+ drivers/media/rc/keymaps/rc-hisi-tv-demo.c | 81 ++++++++++++++++++++++++++++++
+ 2 files changed, 82 insertions(+)
+ create mode 100644 drivers/media/rc/keymaps/rc-hisi-tv-demo.c
+
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index af6496d..83ec9c3 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -47,6 +47,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-geekbox.o \
+ 			rc-genius-tvgo-a11mce.o \
+ 			rc-gotview7135.o \
++			rc-hisi-tv-demo.o \
+ 			rc-imon-mce.o \
+ 			rc-imon-pad.o \
+ 			rc-iodata-bctv7e.o \
+diff --git a/drivers/media/rc/keymaps/rc-hisi-tv-demo.c b/drivers/media/rc/keymaps/rc-hisi-tv-demo.c
+new file mode 100644
+index 0000000..03bef29
+--- /dev/null
++++ b/drivers/media/rc/keymaps/rc-hisi-tv-demo.c
+@@ -0,0 +1,81 @@
++/*
++ * Keytable for remote controller of HiSilicon tv demo board.
++ *
++ * Copyright (c) 2017 HiSilicon Technologies Co., Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/module.h>
++#include <media/rc-map.h>
++
++static struct rc_map_table hisi_tv_demo_keymap[] = {
++	{ 0x00000092, KEY_1},
++	{ 0x00000093, KEY_2},
++	{ 0x000000cc, KEY_3},
++	{ 0x0000009f, KEY_4},
++	{ 0x0000008e, KEY_5},
++	{ 0x0000008f, KEY_6},
++	{ 0x000000c8, KEY_7},
++	{ 0x00000094, KEY_8},
++	{ 0x0000008a, KEY_9},
++	{ 0x0000008b, KEY_0},
++	{ 0x000000ce, KEY_ENTER},
++	{ 0x000000ca, KEY_UP},
++	{ 0x00000099, KEY_LEFT},
++	{ 0x00000084, KEY_PAGEUP},
++	{ 0x000000c1, KEY_RIGHT},
++	{ 0x000000d2, KEY_DOWN},
++	{ 0x00000089, KEY_PAGEDOWN},
++	{ 0x000000d1, KEY_MUTE},
++	{ 0x00000098, KEY_VOLUMEDOWN},
++	{ 0x00000090, KEY_VOLUMEUP},
++	{ 0x0000009c, KEY_POWER},
++	{ 0x000000d6, KEY_STOP},
++	{ 0x00000097, KEY_MENU},
++	{ 0x000000cb, KEY_BACK},
++	{ 0x000000da, KEY_PLAYPAUSE},
++	{ 0x00000080, KEY_INFO},
++	{ 0x000000c3, KEY_REWIND},
++	{ 0x00000087, KEY_HOMEPAGE},
++	{ 0x000000d0, KEY_FASTFORWARD},
++	{ 0x000000c4, KEY_SOUND},
++	{ 0x00000082, BTN_1},
++	{ 0x000000c7, BTN_2},
++	{ 0x00000086, KEY_PROGRAM},
++	{ 0x000000d9, KEY_SUBTITLE},
++	{ 0x00000085, KEY_ZOOM},
++	{ 0x0000009b, KEY_RED},
++	{ 0x0000009a, KEY_GREEN},
++	{ 0x000000c0, KEY_YELLOW},
++	{ 0x000000c2, KEY_BLUE},
++	{ 0x0000009d, KEY_CHANNELDOWN},
++	{ 0x000000cf, KEY_CHANNELUP},
++};
++
++static struct rc_map_list hisi_tv_demo_map = {
++	.map = {
++		.scan	  = hisi_tv_demo_keymap,
++		.size	  = ARRAY_SIZE(hisi_tv_demo_keymap),
++		.rc_proto = RC_PROTO_NEC,
++		.name	  = "rc-hisi-tv-demo",
++	}
++};
++
++static int __init init_rc_map_hisi_tv_demo(void)
++{
++	return rc_map_register(&hisi_tv_demo_map);
++}
++
++static void __exit exit_rc_map_hisi_tv_demo(void)
++{
++	rc_map_unregister(&hisi_tv_demo_map);
++}
++
++module_init(init_rc_map_hisi_tv_demo)
++module_exit(exit_rc_map_hisi_tv_demo)
++
++MODULE_LICENSE("GPL v2");
+-- 
+2.7.4
