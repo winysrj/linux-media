@@ -1,114 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56246 "EHLO mail.kernel.org"
+Received: from nat-hk.nvidia.com ([203.18.50.4]:48802 "EHLO nat-hk.nvidia.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751286AbdJ0Oti (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Oct 2017 10:49:38 -0400
-Date: Fri, 27 Oct 2017 16:49:35 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz,
-        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v16 16/32] v4l: async: Allow async notifier register call
- succeed with no subdevs
-Message-ID: <20171027144934.jhgvgehf4jblgoet@earth>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-17-sakari.ailus@linux.intel.com>
+        id S1751592AbdJSHYX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Oct 2017 03:24:23 -0400
+Subject: Re: [PATCH resend] [media] uvcvideo: zero seq number when disabling
+ stream
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: <mchehab@kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+References: <1505456871-12680-1-git-send-email-hansy@nvidia.com>
+ <2456831.iuhP316MQr@avalon>
+ <alpine.DEB.2.20.1710181042550.11231@axis700.grange>
+From: Hans Yang <hansy@nvidia.com>
+Message-ID: <4037e7e9-e017-e096-8020-94395260655b@nvidia.com>
+Date: Thu, 19 Oct 2017 15:23:06 +0800
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="ezsyaa45ehfhihqy"
-Content-Disposition: inline
-In-Reply-To: <20171026075342.5760-17-sakari.ailus@linux.intel.com>
+In-Reply-To: <alpine.DEB.2.20.1710181042550.11231@axis700.grange>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Laurent and Guennadi,
 
---ezsyaa45ehfhihqy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 2017年10月18日 16:52, Guennadi Liakhovetski wrote:
+> Hi Laurent,
+> 
+> On Mon, 16 Oct 2017, Laurent Pinchart wrote:
+> 
+>> Hi Hans,
+>>
+>> (CC'ing Guennadi Liakhovetski)
+>>
+>> Thank you for the patch.
+>>
+>> On Friday, 15 September 2017 09:27:51 EEST Hans Yang wrote:
+>>> For bulk-based devices, when disabling the video stream,
+>>> in addition to issue CLEAR_FEATURE(HALT), it is better to set
+>>> alternate setting 0 as well or the sequnce number in host
+>>> side will probably not reset to zero.
+>>
+>> The USB 2.0 specificatin states in the description of the SET_INTERFACE
+>> request that "If a device only supports a default setting for the specified
+>> interface, then a STALL may be returned in the Status stage of the request".
+>>
+>> The Linux implementation of usb_set_interface() deals with this by handling
+>> STALL conditions and manually clearing HALT for all endpoints in the
+>> interface, but I'm still concerned that this change could break existing bulk-
+>> based cameras. Do you know what other operating systems do when disabling the
+>> stream on bulk cameras ? According to a comment in the driver Windows calls
+>> CLEAR_FEATURE(HALT), but the situation might have changed since that was
+>> tested.
 
-Hi,
+Sorry I did not mention that it is about SS bulk-based cameras using 
+sequence number technique.
+ From my observations, invoking usb_clear_halt() will reset the endpoint 
+in the device side via CLEAR_FEATURE(HALT)
+and reset the sequence number as well; however usb_reset_endpoint() does 
+not reset the host side endpoint with xhci driver,
+then the sequence number will mismatch in next time stream enable.
+I can always observe this through a bus analyzer on Linux implementation 
+whatever X86 or ARM based.
+This is not observed on the Windows.
 
-On Thu, Oct 26, 2017 at 10:53:26AM +0300, Sakari Ailus wrote:
-> The information on how many async sub-devices would be bindable to a
-> notifier is typically dependent on information from platform firmware and
-> it's not driver's business to be aware of that.
->=20
-> Many V4L2 main drivers are perfectly usable (and useful) without async
-> sub-devices and so if there aren't any around, just proceed call the
-> notifier's complete callback immediately without registering the notifier
-> itself.
->=20
-> If a driver needs to check whether there are async sub-devices available,
-> it can be done by inspecting the notifier's num_subdevs field which tells
-> the number of async sub-devices.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
+>>
+>> Guennadi, how do your bulk-based cameras handle this ?
+> 
+> I don't know what design decisions are implemented there, but I tested a
+> couple of cameras for sending a STREAMOFF after a few captured buffers,
+> sleeping for a couple of seconds, requeuing buffers, sending STREAMON and
+> capturing a few more - that seems to have worked. "Seems" because I only
+> used a modified version of capture-example, I haven't checked buffer
+> contents.
+> 
+> BTW, Hans, may I ask - what cameras did you use?
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+I have three SS bulk-based cameras as follows:
+e-con Systems See3CAM_CU130 (2560:c1d0)
+Leopard ZED (2b03:f580)
+Intel(R) RealSense(TM) Camera SR300 (8086:0aa5)
 
--- Sebastian
+I can observe the same issue on all above;
+besides, to reproduce issue do not let the camera enter suspend because 
+it will *help* to reset the sequence number through usb_set_interface(0).
 
->  drivers/media/v4l2-core/v4l2-async.c | 12 ++++++++++--
->  1 file changed, 10 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-co=
-re/v4l2-async.c
-> index 46db85685894..1b536d68cedf 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -180,14 +180,22 @@ int v4l2_async_notifier_register(struct v4l2_device=
- *v4l2_dev,
->  	int ret;
->  	int i;
-> =20
-> -	if (!v4l2_dev || !notifier->num_subdevs ||
-> -	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-> +	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
->  		return -EINVAL;
-> =20
->  	notifier->v4l2_dev =3D v4l2_dev;
->  	INIT_LIST_HEAD(&notifier->waiting);
->  	INIT_LIST_HEAD(&notifier->done);
-> =20
-> +	if (!notifier->num_subdevs) {
-> +		int ret;
-> +
-> +		ret =3D v4l2_async_notifier_call_complete(notifier);
-> +		notifier->v4l2_dev =3D NULL;
-> +
-> +		return ret;
-> +	}
-> +
->  	for (i =3D 0; i < notifier->num_subdevs; i++) {
->  		asd =3D notifier->subdevs[i];
-> =20
-> --=20
-> 2.11.0
->=20
+> 
+> Thanks
+> Guennadi
+> 
+>>> Then in next time video stream start, the device will expect
+>>> host starts packet from 0 sequence number but host actually
+>>> continue the sequence number from last transaction and this
+>>> causes transaction errors.
+>>
+>> Do you mean the DATA0/DATA1 toggle ? Why does the host continue toggling the
+>> PID from the last transation ? The usb_clear_halt() function calls
+>> usb_reset_endpoint() which should reset the DATA PID toggle.
+>>
+>>> This commit fixes this by adding set alternate setting 0 back
+>>> as what isoch-based devices do.
+>>>
+>>> Below error message will also be eliminated for some devices:
+>>> uvcvideo: Non-zero status (-71) in video completion handler.
+>>>
+>>> Signed-off-by: Hans Yang <hansy@nvidia.com>
+>>> ---
+>>>   drivers/media/usb/uvc/uvc_video.c | 5 ++---
+>>>   1 file changed, 2 insertions(+), 3 deletions(-)
+>>>
+>>> diff --git a/drivers/media/usb/uvc/uvc_video.c
+>>> b/drivers/media/usb/uvc/uvc_video.c index fb86d6af398d..ad80c2a6da6a 100644
+>>> --- a/drivers/media/usb/uvc/uvc_video.c
+>>> +++ b/drivers/media/usb/uvc/uvc_video.c
+>>> @@ -1862,10 +1862,9 @@ int uvc_video_enable(struct uvc_streaming *stream,
+>>> int enable)
+>>>
+>>>   	if (!enable) {
+>>>   		uvc_uninit_video(stream, 1);
+>>> -		if (stream->intf->num_altsetting > 1) {
+>>> -			usb_set_interface(stream->dev->udev,
+>>> +		usb_set_interface(stream->dev->udev,
+>>>   					  stream->intfnum, 0);
+>>> -		} else {
+>>> +		if (stream->intf->num_altsetting == 1) {
+>>>   			/* UVC doesn't specify how to inform a bulk-based device
+>>>   			 * when the video stream is stopped. Windows sends a
+>>>   			 * CLEAR_FEATURE(HALT) request to the video streaming
+>>
+>> -- 
+>> Regards,
+>>
+>> Laurent Pinchart
+>>
 
---ezsyaa45ehfhihqy
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnzR34ACgkQ2O7X88g7
-+potRA/+O1su/7Aft1Bt0yrE3vsN07KMRCUTE7u/8NEM8Kqjsu9SOeZXGzi9eLpo
-xgUYqzaamCLyd9jY/kiO1ohHHcXcxCpPV9iwmt576KO+uDORDLwJX8MHWwZrcY4U
-0YTrKCziQYAOAkaOf53n+a3AVz5nDR5bmxXCkdWps89yjVjj3DWAMLPMd2SsLPoM
-FCnnU8rGARHRsC1yzc1+rOL9aGVx7TcU5N+RzYwdvw+S98aZGbLyEi2omUqTpJr7
-Ps8yUmhvnEcZLzc5F5NLoYiX984wTuwGnSi7Lnp8nvN+qspdCSHvbNHk4GBuIzqs
-mu12nwv5z6rZCIvfjcW23pgQa/Rm1tk+CnTW1w3L1o4pFtCqM6HYK81Je2wapEAv
-kobFRi5UYpaZ5h/cA/E17sfhkgCo9qd/R9Ac0SDjYP3JDvAzJmrjyyk98KF7Afby
-GcIAyn8DrfmgMd9lNZqo0/Yo2SCyLC8tpyZ+CQVQVfDN4KYPzUnlXDxB5mXI74+4
-5FIWoXKPWl0/gRJkN4nQn3WdP4Omget7Iodk7GHXj8gv0KN/OpnEcBWRaxs0pyDU
-9oUm1vaUcOy61RUwJkVA/u1j4kZ+Qna5mdQDstOGhzaimulg6/w0uge05V6wysOX
-cTziDKCK9sVb8IpKyMijaNJANUVWBqqH1axxMghsj6Wb8rP5vHU=
-=EOWq
------END PGP SIGNATURE-----
-
---ezsyaa45ehfhihqy--
+Regards,
+Hans Yang
+--nvpublic--
