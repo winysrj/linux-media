@@ -1,130 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:54640 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753318AbdJMB4Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Oct 2017 21:56:16 -0400
-Date: Fri, 13 Oct 2017 02:56:07 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: Gustavo Padovan <gustavo.padovan@collabora.com>
-Cc: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        linux-kernel@vger.kernel.org, Jonathan.Chai@arm.com
-Subject: Re: [PATCH v3 00/15] V4L2 Explicit Synchronization support
-Message-ID: <20171013015607.GA17049@e107564-lin.cambridge.arm.com>
-References: <20170907184226.27482-1-gustavo@padovan.org>
- <20171002134116.GB22538@e107564-lin.cambridge.arm.com>
- <1507147735.2981.54.camel@collabora.com>
+Received: from mail-qk0-f179.google.com ([209.85.220.179]:43374 "EHLO
+        mail-qk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752212AbdJSJhE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Oct 2017 05:37:04 -0400
+Date: Thu, 19 Oct 2017 11:37:00 +0200
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv4 3/4] tegra-cec: add Tegra HDMI CEC driver
+Message-ID: <20171019093700.GF9005@ulmo>
+References: <20170911122952.33980-1-hverkuil@xs4all.nl>
+ <20170911122952.33980-4-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="7cm2iqirTL37Ot+N"
 Content-Disposition: inline
-In-Reply-To: <1507147735.2981.54.camel@collabora.com>
+In-Reply-To: <20170911122952.33980-4-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-On Wed, Oct 04, 2017 at 05:08:55PM -0300, Gustavo Padovan wrote:
->Hi Brian,
->
->On Mon, 2017-10-02 at 14:41 +0100, Brian Starkey wrote:
->> Hi Gustavo,
->>
->> On Thu, Sep 07, 2017 at 03:42:11PM -0300, Gustavo Padovan wrote:
->> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
->> >
->> > Hi,
->> >
->> > Refer to the documentation on the first patch for the details. The
->> > previous
->> > iteration is here: https://www.mail-archive.com/linux-media@vger.ke
->> > rnel.org/msg118077.html
->> >
->> > The 2nd patch proposes an userspace API for fences, then on patch 3
->> > we
->> > prepare to the addition of in-fences in patch 4, by introducing the
->> > infrastructure on vb2 to wait on an in-fence signal before queueing
->> > the
->> > buffer in the driver.
->> >
->> > Patch 5 fix uvc v4l2 event handling and patch 6 configure q->dev
->> > for
->> > vivid drivers to enable to subscribe and dequeue events on it.
->> >
->> > Patches 7-9 enables support to notify BUF_QUEUED events, the event
->> > send
->> > to userspace the out-fence fd and the index of the buffer that was
->> > queued.
->> >
->> > Patches 10-11 add support to mark queues as ordered. Finally
->> > patches 12
->> > and 13 add more fence infrastructure to support out-fences, patch
->> > 13 exposes
->> > close_fd() and patch 14 adds support to out-fences.
->> >
->> > It only works for ordered queues for now, see open question at the
->> > end
->> > of the letter.
->> >
->> > Test tool can be found at:
->> > https://git.collabora.com/cgit/user/padovan/v4l2-test.git/
->> >
->> > Main Changes
->> > ------------
->> >
->> > * out-fences: change in behavior: the out-fence fd now comes out of
->> > the
->> > BUF_QUEUED event along with the buffer id.
->>
->> The more I think about this, the more unfortunate it seems.
->> Especially
->> for our use-case (m2m engine which sits in front of the display
->> processor to convert the format of some buffers), having to wait for
->> the in-fence to signal before we can get an out-fence removes a lot
->> of
->> the advantages of having fences at all.
->
->Does your m2m driver ensures ordering between the buffer queued to it?
->
+--7cm2iqirTL37Ot+N
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I'm not so familiar with the code, how can I check that?
+On Mon, Sep 11, 2017 at 02:29:51PM +0200, Hans Verkuil wrote:
+[...]
+> diff --git a/drivers/media/platform/tegra-cec/tegra_cec.c b/drivers/media/platform/tegra-cec/tegra_cec.c
+[...]
+> +static int tegra_cec_probe(struct platform_device *pdev)
+> +{
+> +	struct platform_device *hdmi_dev;
+> +	struct device_node *np;
+> +	struct tegra_cec *cec;
+> +	struct resource *res;
+> +	int ret = 0;
+> +
+> +	np = of_parse_phandle(pdev->dev.of_node, "hdmi-phandle", 0);
+> +
+> +	if (!np) {
+> +		dev_err(&pdev->dev, "Failed to find hdmi node in device tree\n");
+> +		return -ENODEV;
+> +	}
+> +	hdmi_dev = of_find_device_by_node(np);
+> +	if (hdmi_dev == NULL)
+> +		return -EPROBE_DEFER;
 
->>
->> Ideally, we'd like to queue up our m2m work (while the GPU is still
->> rendering that buffer, holding the in-fence), immediately get the
->> out-fence for the m2m work, and pass that to DRM as the in-fence for
->> display. With the current behaviour we need to wait in userspace
->> before we can pass the buffer to display.
->>
->> Wouldn't it be possible to enforce that the buffers aren't queued
->> out-of-order in VB2? An easy way might be to (in qbuf) set a buffer's
->> ->in_fence to be a fence_array of all the ->in_fences from the
->> buffers
->> before it in the queue (and its own). That would then naturally order
->> the enqueue-ing in the driver, and allow you to return the out-fence
->> immediately.
->>
->> This would also solve your output devices question from below - a
->> buffer can never get queued in the driver until all of the buffers
->> which were QBUF'd before it are queued in the driver.
->
->What you say makes sense, what this proposal lacks the most now is
->feedback regarding its usecases. We can create a control setting to
->enforce ordering in the queue, if it's set we create the fence arrays.
->For output devices this should be set by default.
+This seems a little awkward. Why exactly do we need to defer probe here?
+It seems to me like cec_notifier_get() should be able to deal with HDMI
+appearing at a later point.
 
-Yeah that could work. I can see that in some cases queueing
-out-of-order as the fences signal would be the right thing to do, so
-makes sense to allow both.
+> +
+> +	cec = devm_kzalloc(&pdev->dev, sizeof(struct tegra_cec), GFP_KERNEL);
+> +
+> +	if (!cec)
+> +		return -ENOMEM;
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +
+> +	if (!res) {
+> +		dev_err(&pdev->dev,
+> +			"Unable to allocate resources for device\n");
+> +		ret = -EBUSY;
+> +		goto cec_error;
+> +	}
+> +
+> +	if (!devm_request_mem_region(&pdev->dev, res->start, resource_size(res),
+> +		pdev->name)) {
+> +		dev_err(&pdev->dev,
+> +			"Unable to request mem region for device\n");
+> +		ret = -EBUSY;
+> +		goto cec_error;
+> +	}
+> +
+> +	cec->tegra_cec_irq = platform_get_irq(pdev, 0);
+> +
+> +	if (cec->tegra_cec_irq <= 0) {
+> +		ret = -EBUSY;
+> +		goto cec_error;
+> +	}
+> +
+> +	cec->cec_base = devm_ioremap_nocache(&pdev->dev, res->start,
+> +		resource_size(res));
+> +
+> +	if (!cec->cec_base) {
+> +		dev_err(&pdev->dev, "Unable to grab IOs for device\n");
+> +		ret = -EBUSY;
+> +		goto cec_error;
+> +	}
+> +
+> +	cec->clk = devm_clk_get(&pdev->dev, "cec");
+> +
+> +	if (IS_ERR_OR_NULL(cec->clk)) {
+> +		dev_err(&pdev->dev, "Can't get clock for CEC\n");
+> +		ret = -ENOENT;
+> +		goto clk_error;
+> +	}
+> +
+> +	clk_prepare_enable(cec->clk);
+> +
+> +	/* set context info. */
+> +	cec->dev = &pdev->dev;
+> +
+> +	platform_set_drvdata(pdev, cec);
+> +
+> +	ret = devm_request_threaded_irq(&pdev->dev, cec->tegra_cec_irq,
+> +		tegra_cec_irq_handler, tegra_cec_irq_thread_handler,
+> +		0, "cec_irq", &pdev->dev);
+> +
+> +	if (ret) {
+> +		dev_err(&pdev->dev,
+> +			"Unable to request interrupt for device\n");
+> +		goto cec_error;
+> +	}
+> +
+> +	cec->notifier = cec_notifier_get(&hdmi_dev->dev);
+> +	if (!cec->notifier) {
+> +		ret = -ENOMEM;
+> +		goto cec_error;
+> +	}
 
-Thanks,
--Brian
+Ah... I see why we need the HDMI device right away. This seems a little
+brittle to me, for two reasons: what if the HDMI controller goes away?
+Will we be hanging on to a stale device? I mean, the device doesn't
+necessarily have to go away, but what's the effect on CEC if the driver
+unbinds from the HDMI controller?
 
->
->Gustavo
->
->-- 
->Gustavo Padovan
->Principal Software Engineer
->Collabora Ltd.
+Secondly, this creates a circular dependency. It seems to me like it'd
+actually be simpler if the CEC controller was a "service provider" that
+HDMI could use and "request/release" as appropriate.
+
+In that case, the DT would look somewhat like this:
+
+	hdmi@... {
+		cec = <&cec>;
+	};
+
+	cec: cec@... {
+		...
+	};
+
+And then the HDMI driver could do something like:
+
+	cec = cec_get(&pdev->dev);
+	/* register notifier, ... */
+
+That way the dependency becomes unidirectional and it seems to me like
+that would allow interactions between HDMI and CEC would become simpler
+overall.
+
+Anyway, this is something that could always be changed after the fact
+(except maybe for some bits needed for backwards-compatibility with old
+device trees), and this seems to work well enough as it is, so:
+
+Acked-by: Thierry Reding <treding@nvidia.com>
+
+--7cm2iqirTL37Ot+N
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlnocjoACgkQ3SOs138+
+s6FmfA/+Pokhc2uBRCGapvBS1ySbQNUCGLrfmpFLMxzWoiLjlzRRa6n4a9cNH/be
+V0zMfIsqfsrKkoQV5EY4uTWIWpLpnBf6lGEKxEP58X/pNMY4wc38gFi/P58HDAXe
+vsxzqvAmUSuBpssMZnTaepO+ZjS8E5JaqjOoig+lxSbs7e78y6uVzY4sfrzQ0m1m
+7Ql7Vtq6QrsmFn4RDJKPEEx7spCZ+PWqQlZLs65bN8L7ASk3LQu4/aetAdG6NRWZ
+zFiIJRbO7JsaosoHCES/yeM2pCZatsEhH7Txe/k6rOW3v6cGs3QZoj9NeDmWqcfy
+2z21d/3PiwBd7Iby7CDmy3QU4ORn0FIE/GZk/8QJbLZ/v92MH/lBBkOw5lpbCr4e
+aZ8MvKT497CEhoOarsO15xzoYQ+HCcua1Ms7KkFqgb/JobU4GunMXP5RxRwWeMDg
+mLaa9hPkuScd3pis6XVOGcs3KZz6W/TLgg2T+q+jL7sgfePk85OIxiqEE9Qy6i3p
+etl200CY/zbyWOjpsOaXtooOg/lK3MQXHmKgnvDrNlqlLjc3vzNwdP3eQz0jg0oO
+90rs07N12C7YcRm/CmmGhIhyVwahtiflhaK+javXgYE6NWjLjx1Ecqftt3YT6UaB
+IdM7tmDp08ajJlv0xO/zGYUaLbM3fdbjWWLxe8P9l14qH0UbQr8=
+=O17f
+-----END PGP SIGNATURE-----
+
+--7cm2iqirTL37Ot+N--
