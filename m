@@ -1,114 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:51435 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751408AbdJEIph (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Oct 2017 04:45:37 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 16/25] media: lirc: remove name from lirc_dev
-Date: Thu,  5 Oct 2017 09:45:18 +0100
-Message-Id: <9d44ca610eb52048c29d4c7e51435b4570e8f40b.1507192752.git.sean@mess.org>
-In-Reply-To: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-In-Reply-To: <cover.1507192751.git.sean@mess.org>
-References: <cover.1507192751.git.sean@mess.org>
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:47937 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751824AbdJSJXT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Oct 2017 05:23:19 -0400
+Date: Thu, 19 Oct 2017 11:23:15 +0200
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv4 2/4] ARM: tegra: add CEC support to tegra124.dtsi
+Message-ID: <20171019092315.GE9005@ulmo>
+References: <20170911122952.33980-1-hverkuil@xs4all.nl>
+ <20170911122952.33980-3-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="4Epv4kl9IRBfg3rk"
+Content-Disposition: inline
+In-Reply-To: <20170911122952.33980-3-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a duplicate of rcdev->driver_name.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- Documentation/media/uapi/rc/lirc-dev-intro.rst | 2 +-
- drivers/media/rc/ir-lirc-codec.c               | 2 --
- drivers/media/rc/lirc_dev.c                    | 9 +++------
- include/media/lirc_dev.h                       | 2 --
- 4 files changed, 4 insertions(+), 11 deletions(-)
+--4Epv4kl9IRBfg3rk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/Documentation/media/uapi/rc/lirc-dev-intro.rst b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-index 3cacf9aeac40..a3fa3c1ef169 100644
---- a/Documentation/media/uapi/rc/lirc-dev-intro.rst
-+++ b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-@@ -18,7 +18,7 @@ Example dmesg output upon a driver registering w/LIRC:
- 
-     $ dmesg |grep lirc_dev
-     lirc_dev: IR Remote Control driver registered, major 248
--    rc rc0: lirc_dev: driver ir-lirc-codec (mceusb) registered at minor = 0
-+    rc rc0: lirc_dev: driver mceusb registered at minor = 0
- 
- What you should see for a chardev:
- 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index b7b4344237ba..c2e70f664c66 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -546,8 +546,6 @@ int ir_lirc_register(struct rc_dev *dev)
- 	if (!ldev)
- 		return rc;
- 
--	snprintf(ldev->name, sizeof(ldev->name), "ir-lirc-codec (%s)",
--		 dev->driver_name);
- 	ldev->fops = &lirc_fops;
- 	ldev->dev.parent = &dev->dev;
- 	ldev->rdev = dev;
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 32124fb5c88e..4ac74fd86fd4 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -101,9 +101,6 @@ int lirc_register_device(struct lirc_dev *d)
- 		return -EINVAL;
- 	}
- 
--	/* some safety check 8-) */
--	d->name[sizeof(d->name) - 1] = '\0';
--
- 	if (rcdev->driver_type == RC_DRIVER_IR_RAW) {
- 		if (kfifo_alloc(&rcdev->rawir, MAX_IR_EVENT_SIZE, GFP_KERNEL))
- 			return -ENOMEM;
-@@ -131,7 +128,7 @@ int lirc_register_device(struct lirc_dev *d)
- 	get_device(d->dev.parent);
- 
- 	dev_info(&d->dev, "lirc_dev: driver %s registered at minor = %d\n",
--		 d->name, d->minor);
-+		 rcdev->driver_name, d->minor);
- 
- 	return 0;
- }
-@@ -147,13 +144,13 @@ void lirc_unregister_device(struct lirc_dev *d)
- 	rcdev = d->rdev;
- 
- 	dev_dbg(&d->dev, "lirc_dev: driver %s unregistered from minor = %d\n",
--		d->name, d->minor);
-+		rcdev->driver_name, d->minor);
- 
- 	mutex_lock(&rcdev->lock);
- 
- 	if (rcdev->lirc_open) {
- 		dev_dbg(&d->dev, LOGHEAD "releasing opened driver\n",
--			d->name, d->minor);
-+			rcdev->driver_name, d->minor);
- 		wake_up_poll(&rcdev->wait_poll, POLLHUP);
- 	}
- 
-diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
-index b45af81b4633..d12e1d1c3d67 100644
---- a/include/media/lirc_dev.h
-+++ b/include/media/lirc_dev.h
-@@ -21,7 +21,6 @@
- /**
-  * struct lirc_dev - represents a LIRC device
-  *
-- * @name:		used for logging
-  * @minor:		the minor device (/dev/lircX) number for the device
-  * @rdev:		&struct rc_dev associated with the device
-  * @fops:		&struct file_operations for the device
-@@ -30,7 +29,6 @@
-  * @cdev:		&struct cdev assigned to the device
-  */
- struct lirc_dev {
--	char name[40];
- 	unsigned int minor;
- 
- 	struct rc_dev *rdev;
--- 
-2.13.6
+On Mon, Sep 11, 2017 at 02:29:50PM +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>=20
+> Add support for the Tegra CEC IP to tegra124.dtsi and enable it on the
+> Jetson TK1.
+>=20
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  arch/arm/boot/dts/tegra124-jetson-tk1.dts |  4 ++++
+>  arch/arm/boot/dts/tegra124.dtsi           | 12 +++++++++++-
+>  2 files changed, 15 insertions(+), 1 deletion(-)
+
+I prefer SoC and board changes to be split into separate patches. I've
+done that with this patch while applying.
+
+Thanks,
+Thierry
+
+--4Epv4kl9IRBfg3rk
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlnobwMACgkQ3SOs138+
+s6Hvkg/9E5EJQszegpVwxmrEQoSTR8EHfeMqz55S175h5g6oN3jxBP0cU4/hqyVV
+01Q4i3UFR17OY8OKMzcogE3K7sWUZ8BkWibJcst2quy7/tR8pl/LbrKb+yRmmV+h
+XEWuS8zcaErSspV10s5mgFkuadNwZ8y/mHhqXPB7StCwvgxqf3jy0hi59DOv2zeN
+kYneC70IEEIiNVS/ETGLVU+3Ov4mi7wt/5f4acd6z30oeuWbj0vkLLMImFBnKcy2
+tDtIh2jAWxk8O/E6uREQ3I6i8TiiBhvVHORf0xBexbLtyNL65ZnR1902iWZJly5u
+Aq9NQ1EdvYprogKz3QZd9I4wNn/nwi0NbffkW60oWXMGqKc0CbxFWiKxnMGp5D6b
+WVAUdjGFipsrxaMFoQm9PTcoXdqtF5a5iXv6zMuyTPAW/+SqiLShLWSYkDKe0w/O
+JyYN45gYV/E0G+ZobBFJkUBU5JwQZjh3EAvPFrI/+ZOhNm6/fKvPVlQpGrjGoq2K
+0YeVI2AA+umoTi08bIk5okUPskR+wJYveCFk9/H+Q1NjDTSqOITjNqrAMHl7rxdj
+UMEwwGE4E/QI/SNJRVfVWLjPKiHUicW4kZ/ih6pDw0gxhM373fdxKSBr35zSuKQz
+PQ1Fe+7CUMwkDbuWejXmyeruf1m3+nJB4TFgM0JiIA8sdczrS2U=
+=7DH/
+-----END PGP SIGNATURE-----
+
+--4Epv4kl9IRBfg3rk--
