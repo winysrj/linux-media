@@ -1,62 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:35253 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755134AbdJJIgT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 04:36:19 -0400
-Date: Tue, 10 Oct 2017 05:36:13 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v7 1/7] media: add glossary.rst with a glossary of terms
- used at V4L2 spec
-Message-ID: <20171010053613.05809408@vento.lan>
-In-Reply-To: <9629017a-99ca-f641-00fa-f6d076f9532c@xs4all.nl>
-References: <cover.1506550930.git.mchehab@s-opensource.com>
-        <047245414a82a6553361b1dd3497f796855a657d.1506550930.git.mchehab@s-opensource.com>
-        <c48ca345-538d-df3f-8888-b207e91e4457@xs4all.nl>
-        <20171010052000.322de12f@vento.lan>
-        <9629017a-99ca-f641-00fa-f6d076f9532c@xs4all.nl>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:51305 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751898AbdJSWs2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Oct 2017 18:48:28 -0400
+Date: Thu, 19 Oct 2017 15:48:25 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Kees Cook <keescook@chromium.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geliang Tang <geliangtang@gmail.com>,
+        linux-input <linux-input@vger.kernel.org>,
+        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] media: input: Convert timers to use timer_setup()
+Message-ID: <20171019224825.h54muomkruk4wtgn@dtor-ws>
+References: <20171016231443.GA100011@beast>
+ <20171019223246.2wsgr6in7oigq6da@dtor-ws>
+ <CAGXu5j+sV7PyOE4Zr-osWFmXZBU-i3A2pd4gQUpZiZYhP9d11w@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAGXu5j+sV7PyOE4Zr-osWFmXZBU-i3A2pd4gQUpZiZYhP9d11w@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 10 Oct 2017 10:27:12 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> > +    V4L2 sub-device driver
-> > +	Part of the media hardware that implements support for
-> > +	a hardware component.  
+On Thu, Oct 19, 2017 at 03:45:38PM -0700, Kees Cook wrote:
+> On Thu, Oct 19, 2017 at 3:32 PM, Dmitry Torokhov
+> <dmitry.torokhov@gmail.com> wrote:
+> > On Mon, Oct 16, 2017 at 04:14:43PM -0700, Kees Cook wrote:
+> >> In preparation for unconditionally passing the struct timer_list pointer to
+> >> all timer callbacks, switch to using the new timer_setup() and from_timer()
+> >> to pass the timer pointer explicitly.
+> >>
+> >> One input_dev user hijacks the input_dev software autorepeat timer to
+> >> perform its own repeat management. However, there is no path back to the
+> >> existing status variable, so add a generic one to the input structure and
+> >> use that instead.
+> >
+> > That is too bad and it should not be doing this. I'd rather av7110 used
+> > its own private timer for that.
 > 
-> The description now no longer fits the term. I suggest:
-> 
-> "The V4L2 driver that implements support for a hardware component."
+> Yeah, that was a pretty weird case. I couldn't see how to avoid it,
+> though. I didn't see a way to hook the autorepeat, but I'm not too
+> familiar with the code here.
 
-Look how we defined the term driver:
+You just need to manage the private timer in the driver and not mess up
+with the input core if input core's autorepeat does not provide the
+desired behavior...
 
-    Driver
-	The part of the Linux Kernel that implements support
-        for a hardware component.
+Thanks.
 
-If we define sub-device driver as you're proposing, we're basically
-saying that:
-	sub-device driver == Driver
-
-with is not true.
-
-I guess the proper definition would be, instead:
-
-    V4L2 sub-device driver
-	A driver for a media component whose bus(es) connects it
-	to the hardware controlled via the V4L2 main driver.
-	
-
-
-Thanks,
-Mauro
+-- 
+Dmitry
