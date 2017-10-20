@@ -1,155 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:49453 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753342AbdJMLsY (ORCPT
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:55578 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753184AbdJTVu5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 07:48:24 -0400
-Date: Fri, 13 Oct 2017 13:48:22 +0200
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Cyprian Wronka <cwronka@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>, nm@ti.com
-Subject: Re: [PATCH v4 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
-Message-ID: <20171013114822.vem6bbgy4vw2lx77@flea.lan>
-References: <20170922100823.18184-1-maxime.ripard@free-electrons.com>
- <20170922100823.18184-3-maxime.ripard@free-electrons.com>
- <20170929172709.GA3163@ti.com>
- <20171011092409.ndtr3fdo2oj3zueb@flea.lan>
- <20171011132258.GB25400@ti.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="shlcvjfyecllhxq3"
-Content-Disposition: inline
-In-Reply-To: <20171011132258.GB25400@ti.com>
+        Fri, 20 Oct 2017 17:50:57 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC v4 10/17] [media] vivid: mark vivid queues as ordered_in_driver
+Date: Fri, 20 Oct 2017 19:50:05 -0200
+Message-Id: <20171020215012.20646-11-gustavo@padovan.org>
+In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
+References: <20171020215012.20646-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
---shlcvjfyecllhxq3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+To enable vivid to be used with explicit synchronization we need
+to mark its queues as ordered. vivid queues are already ordered by
+default so we no changes are needed.
 
-Hi Benoit,
+v2: rename 'ordered' to 'ordered_in_driver' to avoid confusion.
 
-On Wed, Oct 11, 2017 at 01:22:59PM +0000, Benoit Parrot wrote:
-> Maxime Ripard <maxime.ripard@free-electrons.com> wrote on Wed [2017-Oct-1=
-1 11:24:09 +0200]:
-> > On Fri, Sep 29, 2017 at 05:27:09PM +0000, Benoit Parrot wrote:
-> > > > +static int csi2rx_get_resources(struct csi2rx_priv *csi2rx,
-> > > > +				struct platform_device *pdev)
-> > > > +{
-> > > > +	struct resource *res;
-> > > > +	unsigned char i;
-> > > > +	u32 reg;
-> > > > +
-> > > > +	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> > > > +	csi2rx->base =3D devm_ioremap_resource(&pdev->dev, res);
-> > > > +	if (IS_ERR(csi2rx->base))
-> > > > +		return PTR_ERR(csi2rx->base);
-> > > > +
-> > > > +	csi2rx->sys_clk =3D devm_clk_get(&pdev->dev, "sys_clk");
-> > > > +	if (IS_ERR(csi2rx->sys_clk)) {
-> > > > +		dev_err(&pdev->dev, "Couldn't get sys clock\n");
-> > > > +		return PTR_ERR(csi2rx->sys_clk);
-> > > > +	}
-> > > > +
-> > > > +	csi2rx->p_clk =3D devm_clk_get(&pdev->dev, "p_clk");
-> > > > +	if (IS_ERR(csi2rx->p_clk)) {
-> > > > +		dev_err(&pdev->dev, "Couldn't get P clock\n");
-> > > > +		return PTR_ERR(csi2rx->p_clk);
-> > > > +	}
-> > > > +
-> > > > +	csi2rx->dphy =3D devm_phy_optional_get(&pdev->dev, "dphy");
-> > > > +	if (IS_ERR(csi2rx->dphy)) {
-> > > > +		dev_err(&pdev->dev, "Couldn't get external D-PHY\n");
-> > > > +		return PTR_ERR(csi2rx->dphy);
-> > > > +	}
-> > > > +
-> > > > +	/*
-> > > > +	 * FIXME: Once we'll have external D-PHY support, the check
-> > > > +	 * will need to be removed.
-> > > > +	 */
-> > > > +	if (csi2rx->dphy) {
-> > > > +		dev_err(&pdev->dev, "External D-PHY not supported yet\n");
-> > > > +		return -EINVAL;
-> > > > +	}
-> > >=20
-> > > I understand that in your current environment you do not have a
-> > > DPHY. But I am wondering in a real setup where you will have either
-> > > an internal or an external DPHY, how are they going to interact with
-> > > this driver or vice-versa?
-> >=20
-> > It's difficult to give an answer with so little details. How would you
-> > choose between those two PHYs? Is there a mux, or should we just power
-> > one of the two? If that's the case, is there any use case were we
-> > might want to power both? If not, which one should we favor, in which
-> > situations?
->=20
-> Oops, I guess I should clarify, in this case I did not mean we would
-> have both an internal and an external DPHY. I just meant one or the other.
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com> (v1)
+---
+ drivers/media/platform/vivid/vivid-core.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Ok, my bad :)
-
-> Basically just want to see how you would actually handle a DPHY here
-> whether it's internal or external?
->=20
-> For instance, using direct register access from within this driver
-> or make use of an separate phy driver...
-
-So internal would be easy, the only internal D-PHY that is supposed to
-be integrated is Cadence's, and its registers would be located in the
-same memory region, so that driver would handle it.
-
-In the external case, the ideal solution would be to extend the phy
-framework to deal with more phy types. CSI would be a good candidate,
-but we also have that issue with the DSI patches Boris has been
-sending, and other phy types like USB.
-
-The idea would be to extend it (or subclass it) to allow to pass more
-configuration data that would allow to implement a D-PHY driver of its
-own. That's the long term goal obviously, and we haven't started
-working on that. So we might have to settle for in-drivers quirks
-short term.
-
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---shlcvjfyecllhxq3
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJZ4KgGAAoJEBx+YmzsjxAgUDoP/0yQCqxc7xkRVvtQZQgy+iA5
-3aiqOEdjASK0qLX1kEaL0mg7CWw6Tzum6iJPWhcMNeErtgLk489SDIZpPSxDKdFf
-ZFAoTaxxRL5V2RoNDX2lj1RQSk4frW5GDjyK1G0oL8tP45G40UfihhVa+bErviY1
-Q3uFYXtQwRuLRw8VUz52h4YUYbJZcHL+vAnNm8Sqw9gi87dr1953hUw+8WUqeb5x
-/T5mowk9xeG/z3f6+o99036rFVM5GJLAAvN8SKgLZBE/zDIFRHnY0h6ydmB5JFhN
-lN0zkPesgIXLEsVdCNaYTlFXC2QbzeowffN80BE9J+six6XmN/BOw9bJAYGv9aGE
-dpnHOCkKka9ne1J6g1Ti/NUGoqobxQ5iJiLoyJgHNKgBqu4uveEeedY8QGZz1HfU
-XvOvnVQM1ftEM6UhNUKbx1KBx3xh47pUM8CIivGWJaGjX8Adnvk+GQSlnsZHdg6W
-ECtnLIP1YJaa12b1XQ4TCDRCWkmStBd1s9TzLVHbYNG+eSfsSOM1lB+QRdaEFCTm
-yNcZc7Bm0/0OSxOWhNnbvugifqBZ0ESrSjW65byoHgiiHGxTsnYC4QuT5BB91eIS
-MwNMN5kaJRnmBl/4kaVYnhCXocE24+ud7qgde8PK8H9Fm+a9wX6GMDra+dBc74Ar
-3GvY/oKn/PkwI/NcYKzz
-=qpdm
------END PGP SIGNATURE-----
-
---shlcvjfyecllhxq3--
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 608bcceed463..1f7702faea7d 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -1063,6 +1063,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE :
+ 			V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
++		q->ordered_in_driver = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vid_cap_qops;
+@@ -1083,6 +1084,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
+ 			V4L2_BUF_TYPE_VIDEO_OUTPUT;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
++		q->ordered_in_driver = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vid_out_qops;
+@@ -1103,6 +1105,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->has_raw_vbi_cap ? V4L2_BUF_TYPE_VBI_CAPTURE :
+ 					      V4L2_BUF_TYPE_SLICED_VBI_CAPTURE;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
++		q->ordered_in_driver = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vbi_cap_qops;
+@@ -1123,6 +1126,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->has_raw_vbi_out ? V4L2_BUF_TYPE_VBI_OUTPUT :
+ 					      V4L2_BUF_TYPE_SLICED_VBI_OUTPUT;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
++		q->ordered_in_driver = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vbi_out_qops;
+@@ -1142,6 +1146,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q = &dev->vb_sdr_cap_q;
+ 		q->type = V4L2_BUF_TYPE_SDR_CAPTURE;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
++		q->ordered_in_driver = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_sdr_cap_qops;
+-- 
+2.13.6
