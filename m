@@ -1,231 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:49415 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752190AbdJ0K0w (ORCPT
+Received: from relmlor3.renesas.com ([210.160.252.173]:18125 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751718AbdJTHON (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Oct 2017 06:26:52 -0400
-Received: by mail-lf0-f67.google.com with SMTP id w21so6880593lfc.6
-        for <linux-media@vger.kernel.org>; Fri, 27 Oct 2017 03:26:51 -0700 (PDT)
-Date: Fri, 27 Oct 2017 12:26:49 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v16 19/32] v4l: async: Ensure only unique fwnodes are
- registered to notifiers
-Message-ID: <20171027102649.GB8854@bigcity.dyn.berto.se>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-20-sakari.ailus@linux.intel.com>
- <20171027095227.GA8854@bigcity.dyn.berto.se>
- <20171027100609.zvww6o5bacfvkfsv@valkosipuli.retiisi.org.uk>
+        Fri, 20 Oct 2017 03:14:13 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: Akinobu Mita <akinobu.mita@gmail.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: RE: [PATCH 2/4] media: max2175: don't clear V4L2_SUBDEV_FL_IS_I2C
+Date: Fri, 20 Oct 2017 07:14:09 +0000
+Message-ID: <KL1PR0601MB20387F1150A7BCE3C2058C98C3430@KL1PR0601MB2038.apcprd06.prod.outlook.com>
+References: <1508430683-8674-1-git-send-email-akinobu.mita@gmail.com>
+ <1508430683-8674-3-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1508430683-8674-3-git-send-email-akinobu.mita@gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171027100609.zvww6o5bacfvkfsv@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Mita-san,
 
-On 2017-10-27 13:06:09 +0300, Sakari Ailus wrote:
-> Hi Niklas,
-> 
-> On Fri, Oct 27, 2017 at 11:52:27AM +0200, Niklas Söderlund wrote:
-> > Hi Sakari,
-> > 
-> > Thanks for your patch.
-> > 
-> > On 2017-10-26 10:53:29 +0300, Sakari Ailus wrote:
-> > > While registering a notifier, check that each newly added fwnode is
-> > > unique, and return an error if it is not. Also check that a newly added
-> > > notifier does not have the same fwnodes twice.
-> > > 
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > > ---
-> > >  drivers/media/v4l2-core/v4l2-async.c | 82 +++++++++++++++++++++++++++++++++---
-> > >  1 file changed, 77 insertions(+), 5 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> > > index ed539c4fd5dc..b4e88eef195f 100644
-> > > --- a/drivers/media/v4l2-core/v4l2-async.c
-> > > +++ b/drivers/media/v4l2-core/v4l2-async.c
-> > > @@ -308,8 +308,71 @@ static void v4l2_async_notifier_unbind_all_subdevs(
-> > >  	notifier->parent = NULL;
-> > >  }
-> > >  
-> > > +/* See if an fwnode can be found in a notifier's lists. */
-> > > +static bool __v4l2_async_notifier_fwnode_has_async_subdev(
-> > > +	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
-> > > +{
-> > > +	struct v4l2_async_subdev *asd;
-> > > +	struct v4l2_subdev *sd;
-> > > +
-> > > +	list_for_each_entry(asd, &notifier->waiting, list) {
-> > > +		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
-> > > +			continue;
-> > > +
-> > > +		if (asd->match.fwnode.fwnode == fwnode)
-> > > +			return true;
-> > > +	}
-> > > +
-> > > +	list_for_each_entry(sd, &notifier->done, async_list) {
-> > > +		if (WARN_ON(!sd->asd))
-> > > +			continue;
-> > > +
-> > > +		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
-> > > +			continue;
-> > > +
-> > > +		if (sd->asd->match.fwnode.fwnode == fwnode)
-> > > +			return true;
-> > > +	}
-> > > +
-> > > +	return false;
-> > > +}
-> > > +
-> > > +/*
-> > > + * Find out whether an async sub-device was set up for an fwnode already or
-> > > + * whether it exists in a given notifier before @this_index.
-> > > + */
-> > > +static bool v4l2_async_notifier_fwnode_has_async_subdev(
-> > > +	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
-> > > +	unsigned int this_index)
-> > > +{
-> > > +	unsigned int j;
-> > > +
-> > > +	lockdep_assert_held(&list_lock);
-> > > +
-> > > +	/* Check that an fwnode is not being added more than once. */
-> > > +	for (j = 0; j < this_index; j++) {
-> > > +		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
-> > > +		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
-> > > +
-> > > +		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
-> > > +		    asd->match.fwnode.fwnode ==
-> > > +		    other_asd->match.fwnode.fwnode)
-> > > +			return true;
-> > > +	}
-> > > +
-> > > +	/* Check than an fwnode did not exist in other notifiers. */
-> > > +	list_for_each_entry(notifier, &notifier_list, list)
-> > > +		if (__v4l2_async_notifier_fwnode_has_async_subdev(
-> > > +			    notifier, fwnode))
-> > > +			return true;
-> > > +
-> > > +	return false;
-> > > +}
-> > > +
-> > >  static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
-> > >  {
-> > > +	struct device *dev =
-> > > +		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
-> > >  	struct v4l2_async_subdev *asd;
-> > >  	int ret;
-> > >  	int i;
-> > > @@ -320,6 +383,8 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
-> > >  	INIT_LIST_HEAD(&notifier->waiting);
-> > >  	INIT_LIST_HEAD(&notifier->done);
-> > >  
-> > > +	mutex_lock(&list_lock);
-> > > +
-> > >  	for (i = 0; i < notifier->num_subdevs; i++) {
-> > >  		asd = notifier->subdevs[i];
-> > >  
-> > > @@ -327,19 +392,25 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
-> > >  		case V4L2_ASYNC_MATCH_CUSTOM:
-> > >  		case V4L2_ASYNC_MATCH_DEVNAME:
-> > >  		case V4L2_ASYNC_MATCH_I2C:
-> > > +			break;
-> > >  		case V4L2_ASYNC_MATCH_FWNODE:
-> > > +			if (v4l2_async_notifier_fwnode_has_async_subdev(
-> > > +				    notifier, asd->match.fwnode.fwnode, i)) {
-> > > +				dev_err(dev,
-> > > +					"fwnode has already been registered or in notifier's subdev list\n");
-> > > +				ret = -EEXIST;
-> > > +				goto out_unlock;
-> > 
-> > You store the error code in ret before the jump, but in the out_unlock 
-> > path ret is not considered and 0 is always returned.
-> > 
-> > > +			}
-> > >  			break;
-> > >  		default:
-> > > -			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
-> > > -				"Invalid match type %u on %p\n",
-> > > +			dev_err(dev, "Invalid match type %u on %p\n",
-> > >  				asd->match_type, asd);
-> > > -			return -EINVAL;
-> > > +			ret = -EINVAL;
-> > > +			goto out_unlock;
-> > 
-> > Same here.
-> 
-> Good catch! How about this change on top of the patch? It makes return
-> value checks a little bit safer, too.
+Thank you for fixing this.
 
-I'm happy whit this change, feel free to add
+> Subject: [PATCH 2/4] media: max2175: don't clear V4L2_SUBDEV_FL_IS_I2C
+>=20
+> The v4l2_i2c_subdev_init() sets V4L2_SUBDEV_FL_IS_I2C flag in the
+> subdev->flags.  But this driver overwrites subdev->flags immediately
+> subdev->after
+> calling v4l2_i2c_subdev_init().  So V4L2_SUBDEV_FL_IS_I2C is not set afte=
+r
+> all.
+>=20
+> This stops breaking subdev->flags and preserves V4L2_SUBDEV_FL_IS_I2C.
+>=20
+> Side note: According to the comment in v4l2_device_unregister(), this is
+> problematic only if the device is platform bus device.  Device tree or
+> ACPI based devices are not affected.
+>=20
+> Cc: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Acked-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
 
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index b4e88eef195f..a33a68e5417b 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -412,12 +412,13 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
->  	}
->  
->  	ret = v4l2_async_notifier_try_all_subdevs(notifier);
-> -	if (ret)
-> +	if (ret < 0)
->  		goto err_unbind;
->  
->  	ret = v4l2_async_notifier_try_complete(notifier);
-> -	if (ret)
-> +	if (ret < 0)
->  		goto err_unbind;
-> +	ret = 0;
->  
->  	/* Keep also completed notifiers on the list */
->  	list_add(&notifier->list, &notifier_list);
-> @@ -425,7 +426,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
->  out_unlock:
->  	mutex_unlock(&list_lock);
->  
-> -	return 0;
-> +	return ret;
->  
->  err_unbind:
->  	/*
-> 
-> > 
-> > >  		}
-> > >  		list_add_tail(&asd->list, &notifier->waiting);
-> > >  	}
-> > >  
-> > > -	mutex_lock(&list_lock);
-> > > -
-> > >  	ret = v4l2_async_notifier_try_all_subdevs(notifier);
-> > >  	if (ret)
-> > >  		goto err_unbind;
-> > > @@ -351,6 +422,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
-> > >  	/* Keep also completed notifiers on the list */
-> > >  	list_add(&notifier->list, &notifier_list);
-> > >  
-> > > +out_unlock:
-> > >  	mutex_unlock(&list_lock);
-> > >  
-> > >  	return 0;
-> 
-> -- 
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi
+Thanks,
+Ramesh
 
--- 
-Regards,
-Niklas Söderlund
+> ---
+>  drivers/media/i2c/max2175.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/media/i2c/max2175.c b/drivers/media/i2c/max2175.c
+> index bf0e821..2f1966b 100644
+> --- a/drivers/media/i2c/max2175.c
+> +++ b/drivers/media/i2c/max2175.c
+> @@ -1345,7 +1345,7 @@ static int max2175_probe(struct i2c_client *client,
+>  	v4l2_i2c_subdev_init(sd, client, &max2175_ops);
+>  	ctx->client =3D client;
+>=20
+> -	sd->flags =3D V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	sd->flags |=3D V4L2_SUBDEV_FL_HAS_DEVNODE;
+>=20
+>  	/* Controls */
+>  	hdl =3D &ctx->ctrl_hdl;
+> --
+> 2.7.4
