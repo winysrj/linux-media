@@ -1,97 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f54.google.com ([74.125.83.54]:50129 "EHLO
-        mail-pg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752200AbdJPXKO (ORCPT
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:56924 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753259AbdJTVus (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Oct 2017 19:10:14 -0400
-Received: by mail-pg0-f54.google.com with SMTP id g6so6597143pgn.6
-        for <linux-media@vger.kernel.org>; Mon, 16 Oct 2017 16:10:14 -0700 (PDT)
-Date: Mon, 16 Oct 2017 16:10:12 -0700
-From: Kees Cook <keescook@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] media/saa7146: Convert timers to use timer_setup()
-Message-ID: <20171016231012.GA99671@beast>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Fri, 20 Oct 2017 17:50:48 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC v4 07/17] [media] vivid: assign the specific device to the vb2_queue->dev
+Date: Fri, 20 Oct 2017 19:50:02 -0200
+Message-Id: <20171020215012.20646-8-gustavo@padovan.org>
+In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
+References: <20171020215012.20646-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In preparation for unconditionally passing the struct timer_list pointer to
-all timer callbacks, switch to using the new timer_setup() and from_timer()
-to pass the timer pointer explicitly. This requires adding a pointer to
-hold the timer's target file, as there won't be a way to pass this in the
-future.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
+Instead of assigning the global v4l2 device, assign the specific device.
+This was causing trouble when using V4L2 events with vivid devices.
+The device's queue should be the same we opened in userspace.
+
+This is needed for the upcoming V4L2_EVENT_OUT_FENCE support. The current
+vivid code isn't wrong, it just needs to be changed so V4L2_EVENT_OUT_FENCE
+can be supported. The change doesn't affect any other behaviour of vivid.
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/common/saa7146/saa7146_fops.c | 2 +-
- drivers/media/common/saa7146/saa7146_vbi.c  | 9 +++++----
- include/media/drv-intf/saa7146_vv.h         | 1 +
- 3 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/media/platform/vivid/vivid-core.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/common/saa7146/saa7146_fops.c b/drivers/media/common/saa7146/saa7146_fops.c
-index 930d2c94d5d3..c4664f0da874 100644
---- a/drivers/media/common/saa7146/saa7146_fops.c
-+++ b/drivers/media/common/saa7146/saa7146_fops.c
-@@ -559,7 +559,7 @@ int saa7146_vv_init(struct saa7146_dev* dev, struct saa7146_ext_vv *ext_vv)
- 	vbi->start[1] = 312;
- 	vbi->count[1] = 16;
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 5f316a5e38db..608bcceed463 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -1070,7 +1070,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vid_cap_dev.dev;
  
--	init_timer(&vv->vbi_read_timeout);
-+	timer_setup(&vv->vbi_read_timeout, NULL, 0);
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1090,7 +1090,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vid_out_dev.dev;
  
- 	vv->ov_fb.capability = V4L2_FBUF_CAP_LIST_CLIPPING;
- 	vv->ov_fb.flags = V4L2_FBUF_FLAG_PRIMARY;
-diff --git a/drivers/media/common/saa7146/saa7146_vbi.c b/drivers/media/common/saa7146/saa7146_vbi.c
-index 69525ca4f52c..ae66c2325228 100644
---- a/drivers/media/common/saa7146/saa7146_vbi.c
-+++ b/drivers/media/common/saa7146/saa7146_vbi.c
-@@ -348,9 +348,10 @@ static void vbi_stop(struct saa7146_fh *fh, struct file *file)
- 	spin_unlock_irqrestore(&dev->slock, flags);
- }
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1110,7 +1110,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vbi_cap_dev.dev;
  
--static void vbi_read_timeout(unsigned long data)
-+static void vbi_read_timeout(struct timer_list *t)
- {
--	struct file *file = (struct file*)data;
-+	struct saa7146_vv *vv = from_timer(vv, t, vbi_read_timeout);
-+	struct file *file = vv->vbi_read_timeout_file;
- 	struct saa7146_fh *fh = file->private_data;
- 	struct saa7146_dev *dev = fh->dev;
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1130,7 +1130,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vbi_out_dev.dev;
  
-@@ -401,8 +402,8 @@ static int vbi_open(struct saa7146_dev *dev, struct file *file)
- 			    sizeof(struct saa7146_buf),
- 			    file, &dev->v4l2_lock);
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1149,7 +1149,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 8;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->sdr_cap_dev.dev;
  
--	vv->vbi_read_timeout.function = vbi_read_timeout;
--	vv->vbi_read_timeout.data = (unsigned long)file;
-+	vv->vbi_read_timeout.function = (TIMER_FUNC_TYPE)vbi_read_timeout;
-+	vv->vbi_read_timeout_file = file;
- 
- 	/* initialize the brs */
- 	if ( 0 != (SAA7146_USE_PORT_B_FOR_VBI & dev->ext_vv_data->flags)) {
-diff --git a/include/media/drv-intf/saa7146_vv.h b/include/media/drv-intf/saa7146_vv.h
-index 736f4f2d8290..926c5b145279 100644
---- a/include/media/drv-intf/saa7146_vv.h
-+++ b/include/media/drv-intf/saa7146_vv.h
-@@ -107,6 +107,7 @@ struct saa7146_vv
- 	struct saa7146_dmaqueue		vbi_dmaq;
- 	struct v4l2_vbi_format		vbi_fmt;
- 	struct timer_list		vbi_read_timeout;
-+	struct file			*vbi_read_timeout_file;
- 	/* vbi workaround interrupt queue */
- 	wait_queue_head_t		vbi_wq;
- 	int				vbi_fieldcount;
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
 -- 
-2.7.4
-
-
--- 
-Kees Cook
-Pixel Security
+2.13.6
