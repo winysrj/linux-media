@@ -1,37 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:38176 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751230AbdJCLoo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 07:44:44 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: gregkh@linuxfoundation.org, jacobvonchorus@cwphoto.ca,
-        mchehab@kernel.org, eric@anholt.net, stefan.wahren@i2se.com,
-        f.fainelli@gmail.com, rjui@broadcom.com, Larry.Finger@lwfinger.net,
-        pkshih@realtek.com
-Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: [PATCH 0/4] staging: rtlwifi: pr_err() strings should end with newlines
-Date: Tue,  3 Oct 2017 17:13:22 +0530
-Message-Id: <1507031006-16543-1-git-send-email-arvind.yadav.cs@gmail.com>
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:45870 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753184AbdJTVuo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Oct 2017 17:50:44 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC v4 06/17] [media] vb2: add .send_out_fence() to notify userspace of out_fence_fd
+Date: Fri, 20 Oct 2017 19:50:01 -0200
+Message-Id: <20171020215012.20646-7-gustavo@padovan.org>
+In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
+References: <20171020215012.20646-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pr_err() messages should end with a new-line to avoid other messages
-being concatenated.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Arvind Yadav (4):
-  [PATCH 1/4] staging: gs_fpgaboot: pr_err() strings should end with newlines
-  [PATCH 2/4] staging: media: davinci_vpfe: pr_err() strings should end with
-    newlines
-  [PATCH 3/4] staging: bcm2835-camera: pr_err() strings should end with newlines
-  [PATCH 4/4] staging: rtlwifi: pr_err() strings should end with newlines
+With the upcoming explicit synchronization support to V4L2 we need a
+way to notify userspace of the out_fence_fd when buffers are queued to the
+driver - buffers with in-fences attached to it can only be queued once the
+fence signal, so the queueing to the driver might be deferred.
 
- drivers/staging/gs_fpgaboot/gs_fpgaboot.c                     | 2 +-
- drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c           | 2 +-
- drivers/staging/rtlwifi/halmac/halmac_88xx/halmac_func_88xx.c | 6 +++---
- drivers/staging/rtlwifi/rtl8822be/phy.c                       | 4 ++--
- drivers/staging/vc04_services/bcm2835-camera/mmal-vchiq.c     | 2 +-
- 5 files changed, 8 insertions(+), 8 deletions(-)
+v2: rename to .send_out_fence()
 
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ include/media/videobuf2-core.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index ef9b64398c8c..96af4eb49e52 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -408,6 +408,7 @@ struct vb2_ops {
+  *			will return an error.
+  * @copy_timestamp:	copy the timestamp from a userspace structure to
+  *			the vb2_buffer struct.
++ * @send_out_fence:	send an out_fence fd of the buffer queued to userspace.
+  */
+ struct vb2_buf_ops {
+ 	int (*verify_planes_array)(struct vb2_buffer *vb, const void *pb);
+@@ -415,6 +416,7 @@ struct vb2_buf_ops {
+ 	int (*fill_vb2_buffer)(struct vb2_buffer *vb, const void *pb,
+ 				struct vb2_plane *planes);
+ 	void (*copy_timestamp)(struct vb2_buffer *vb, const void *pb);
++	void (*send_out_fence)(struct vb2_buffer *vb);
+ };
+ 
+ /**
 -- 
-1.9.1
+2.13.6
