@@ -1,55 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:47605 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752350AbdJKNqF (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:54599 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752936AbdJTLRd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Oct 2017 09:46:05 -0400
-Received: by mail-oi0-f42.google.com with SMTP id h200so3132713oib.4
-        for <linux-media@vger.kernel.org>; Wed, 11 Oct 2017 06:46:05 -0700 (PDT)
+        Fri, 20 Oct 2017 07:17:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [ANN] Agenda (v2) for the media mini-summit on Friday Oct 27 in
+ Prague
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <4361603d-7c2c-6362-662a-646ee138619c@xs4all.nl>
+Date: Fri, 20 Oct 2017 13:17:31 +0200
 MIME-Version: 1.0
-From: Alexandre Da Costa <alexandre.dacosta1@gmail.com>
-Date: Wed, 11 Oct 2017 15:46:04 +0200
-Message-ID: <CAFN7RgCdDoURyS-3NFd_FiZ1gWizD=_eJcG=syWT8_PHg837yA@mail.gmail.com>
-Subject: add support of Geniatech X9320 DVB-S2 quad tuner
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear all,
+Hi all,
 
-I recently got a Geniatech X9320 DVB-S2 PCIe card :
-https://www.geniatech.com/product/x9320-quad-dvb-s2s-tv-tuner/
+We are organizing a media mini-summit on Friday October 27 in Prague, co-located
+with the ELCE conference:
 
-The card is not listed in the LinuxTV so it's most probably not
-supported as of now. I quickly tried it on a 4.9 kernel and it seems
-that no driver was loaded.
+http://events.linuxfoundation.org/events/embedded-linux-conference-europe
 
-On the hardware side, the board is based on the following ICs :
-- Renesas =C2=B5PD720201 USB 3.0 controller (4 ports)
-- Cypress CY68013 USB bridge
-- Montage M88DS3103as demodulator
-- Unknown RF Tuner but most probably Montage M88TS2022. If required, I
-can remove the RF shield and have a look at the chip.
+If you plan to attend, please let me know. It is open for all, but it is
+nice if we know beforehand who we can expect.
 
-The board is very similar to the Geniatech HD Star (hardware V3.0) :
-https://www.linuxtv.org/wiki/index.php/Geniatech_HD_Star_DVB-S2_USB2.0
+You can register here:
 
-However, it reports a different idProduct. Instead of 0x3000
-(idProduct of Geniatech HD Star), it returns the following list
-(different idProduct for each DVB-S2 tuner) :
-Bus 001 Device 005: ID 1f4d:3300 G-Tek Electronics Group
-Bus 001 Device 004: ID 1f4d:3301 G-Tek Electronics Group
-Bus 001 Device 003: ID 1f4d:3302 G-Tek Electronics Group
-Bus 001 Device 002: ID 1f4d:3303 G-Tek Electronics Group
+http://events.linuxfoundation.org/events/open-source-summit-europe/extend-the-experience/co-located-events
 
-I assume that since the hardware is almost the same, the drivers used
-for the HD Star should work with the X9320 card by adding the new
-idProduct.
+Name of the room in the Hilton Prague: Athens
 
-I've no experience in Linux driver development but I would give it a
-try if someone can show me where to look at.
+Currently known attendees:
+
+Sakari Ailus <sakari.ailus@iki.fi>
+Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Alexandre Courbot <acourbot@chromium.org>
+Michael Ira Krufky <mkrufky@linuxtv.org>
+Gustavo Padovan <gustavo@padovan.org>
+Benoit Parrot <bparrot@ti.com>
+Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Hans Verkuil <hverkuil@xs4all.nl>
+
+Agenda
+======
+
+General remarks: the given start/end times for the various topics are
+approximate since it is always hard to predict how long a discussion will take.
+The Request/Jobs API topic is placed last since I expect that that will take
+most of our time.
+
+Let me know asap if there are problems with this schedule, or if new topics
+are requested.
+
+8:00-9:00: Continental Breakfast served in the room
+
+9:00-9:15: Introduction (Hans)
+
+9:15-9:30: Status of the HDMI CEC kernel support (Hans)
+	   Give a quick overview of the status: what has been merged, what is still
+	   pending, what is under development.
+
+9:30-10:00: V4L2 Explicit Synchronization (Gustavo)
+	    Quick overview and discussion of the API/direction we are going
+            with fences.
+
+10:00-10:30 Media development process: what works, what doesn't (Hans)
+	    In the past 6 months or so we tried to improve the media development
+	    process. This is an overview of what we did and why we did it, what
+	    works and what doesn't. Feedback is very much appreciated. It is even
+	    more appreciated if people/companies would be willing to assign
+	    new developers to help improve the media subsystem!
+
+10:30-11:00: Morning Break served in the room
+
+11:00-12:00: Media kAPI and uAPI documentation (Mauro)
+	     Give the current status of media API documentation and identify possible
+	     gaps and how to improve it.
+
+12:00-13:30: Lunch
+
+13:30-??:??: Request/jobs API (Alexandre)
+	     Overview of the work based on the request API (proposed new name: jobs API),
+	     to hopefully converge to something that can be merged soon.
+
+15:00-15:30: Afternoon Break served in the room
+
+17:00-17:30 (or earlier if we're lucky): Wrap up (Hans)
+	     Create action items (and who will take care of them) if needed.
+	     Summarize and conclude the day.
 
 Regards,
-Alex
+
+	Hans
+
+v2: updated room, attendee list, moved the last slot 30 minutes later
