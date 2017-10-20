@@ -1,50 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps-vb.mhejs.net ([37.28.154.113]:50180 "EHLO vps-vb.mhejs.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756635AbdJJVxx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 17:53:53 -0400
-From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-Subject: [PATCH v2 3/6] cx25840: fix a possible divide by zero in set_fmt
- callback
-To: Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <f08f1935-c394-0dec-5434-64ff0e530aae@maciej.szmigiero.name>
-Date: Tue, 10 Oct 2017 23:35:37 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:45203 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753296AbdJTVux (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Oct 2017 17:50:53 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC v4 09/17] [media] vb2: add 'ordered_in_vb2' property to queues
+Date: Fri, 20 Oct 2017 19:50:04 -0200
+Message-Id: <20171020215012.20646-10-gustavo@padovan.org>
+In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
+References: <20171020215012.20646-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If set_fmt callback is called with format->width or format->height set to
-zero and HACTIVE_CNT or VACTIVE_CNT bits (respectively) in chip are zero
-we will divide by zero later in this callback when we try to calculate
-HSC or VSC values.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Fix this by explicitly rejecting these values.
+By setting this member on vb2_queue the driver tell vb2 core that
+it requires the buffers queued in QBUF to be queued with same order to the
+driver.
 
-Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- drivers/media/i2c/cx25840/cx25840-core.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/media/videobuf2-core.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
-index c36103587c4d..cebd1a540df8 100644
---- a/drivers/media/i2c/cx25840/cx25840-core.c
-+++ b/drivers/media/i2c/cx25840/cx25840-core.c
-@@ -1672,8 +1672,9 @@ static int cx25840_set_fmt(struct v4l2_subdev *sd,
- 	 * height. Without that margin the cx23885 fails in this
- 	 * check.
- 	 */
--	if ((fmt->width * 16 < Hsrc) || (Hsrc < fmt->width) ||
--			(Vlines * 8 < Vsrc) || (Vsrc + 1 < Vlines)) {
-+	if ((fmt->width == 0) || (Vlines == 0) ||
-+	    (fmt->width * 16 < Hsrc) || (Hsrc < fmt->width) ||
-+	    (Vlines * 8 < Vsrc) || (Vsrc + 1 < Vlines)) {
- 		v4l_err(client, "%dx%d is not a valid size!\n",
- 				fmt->width, fmt->height);
- 		return -ERANGE;
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 6dd3f0181107..fc333e10e7d8 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -505,6 +505,9 @@ struct vb2_buf_ops {
+  *		the same order they are dequeued from the driver. The default
+  *		is not ordered unless the driver sets this flag. As of now it
+  *		is mandatory for using explicit fences.
++ * @ordered_in_vb2: set by the driver to tell vb2 te guarantee the order
++ *		of buffer queue from userspace with QBUF() until they are
++ *		queued to the driver.
+  * @fileio:	file io emulator internal data, used only if emulator is active
+  * @threadio:	thread io internal data, used only if thread is active
+  */
+@@ -558,6 +561,7 @@ struct vb2_queue {
+ 	unsigned int			copy_timestamp:1;
+ 	unsigned int			last_buffer_dequeued:1;
+ 	unsigned int			ordered_in_driver:1;
++	unsigned int			ordered_in_vb2:1;
+ 
+ 	struct vb2_fileio_data		*fileio;
+ 	struct vb2_threadio_data	*threadio;
+-- 
+2.13.6
