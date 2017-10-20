@@ -1,297 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57230 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753080AbdJRN46 (ORCPT
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:47286 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753015AbdJTVuc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Oct 2017 09:56:58 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+        Fri, 20 Oct 2017 17:50:32 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v15.1 24/32] v4l: fwnode: Add a helper function to obtain device / integer references
-Date: Wed, 18 Oct 2017 16:56:56 +0300
-Message-Id: <20171018135656.13549-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171004215051.13385-25-sakari.ailus@linux.intel.com>
-References: <20171004215051.13385-25-sakari.ailus@linux.intel.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC v4 03/17] [media] v4l: use v4l2_subscribe_event_v4l2() on drivers
+Date: Fri, 20 Oct 2017 19:49:58 -0200
+Message-Id: <20171020215012.20646-4-gustavo@padovan.org>
+In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
+References: <20171020215012.20646-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
-the device's own fwnode, it will follow child fwnodes with the given
-property-value pair and return the resulting fwnode.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Driver that implement their own .vidioc_subscribe_event function should
+be using v4l2_subscribe_event_v4l2() instead of
+v4l2_ctrl_subscribe_event().
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
-since v15:
+ drivers/media/pci/cobalt/cobalt-v4l2.c             | 2 +-
+ drivers/media/pci/ivtv/ivtv-ioctl.c                | 2 +-
+ drivers/media/pci/tw5864/tw5864-video.c            | 2 +-
+ drivers/media/platform/coda/coda-common.c          | 2 +-
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 2 +-
+ drivers/media/platform/qcom/venus/vdec.c           | 4 +---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c        | 2 +-
+ drivers/media/platform/vivid/vivid-vid-out.c       | 2 +-
+ drivers/media/usb/go7007/go7007-v4l2.c             | 2 +-
+ drivers/media/usb/uvc/uvc_v4l2.c                   | 2 +-
+ 10 files changed, 10 insertions(+), 12 deletions(-)
 
-- Use a graph example instead of a LED one; this way nprops will be 2.
-
- drivers/media/v4l2-core/v4l2-fwnode.c | 252 ++++++++++++++++++++++++++++++++++
- 1 file changed, 252 insertions(+)
-
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index edd2e8d983a1..989a6f8a09fa 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -578,6 +578,258 @@ static int v4l2_fwnode_reference_parse(
- 	return ret;
+diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.c b/drivers/media/pci/cobalt/cobalt-v4l2.c
+index def4a3b37084..7b79daa09416 100644
+--- a/drivers/media/pci/cobalt/cobalt-v4l2.c
++++ b/drivers/media/pci/cobalt/cobalt-v4l2.c
+@@ -1071,7 +1071,7 @@ static int cobalt_subscribe_event(struct v4l2_fh *fh,
+ 	case V4L2_EVENT_SOURCE_CHANGE:
+ 		return v4l2_event_subscribe(fh, sub, 4, NULL);
+ 	}
+-	return v4l2_ctrl_subscribe_event(fh, sub);
++	return v4l2_subscribe_event_v4l2(fh, sub);
  }
  
-+/*
-+ * v4l2_fwnode_reference_get_int_prop - parse a reference with integer
-+ *					arguments
-+ * @fwnode: fwnode to read @prop from
-+ * @notifier: notifier for @dev
-+ * @prop: the name of the property
-+ * @index: the index of the reference to get
-+ * @props: the array of integer property names
-+ * @nprops: the number of integer property names in @nprops
-+ *
-+ * First find an fwnode referred to by the reference at @index in @prop.
-+ *
-+ * Then under that fwnode, @nprops times, for each property in @props,
-+ * iteratively follow child nodes starting from fwnode such that they have the
-+ * property in @props array at the index of the child node distance from the
-+ * root node and the value of that property matching with the integer argument
-+ * of the reference, at the same index.
-+ *
-+ * The child fwnode reched at the end of the iteration is then returned to the
-+ * caller.
-+ *
-+ * An example with a graph, as defined in Documentation/acpi/dsd/graph.txt:
-+ *
-+ *	Scope (\_SB.PCI0.I2C2)
-+ *	{
-+ *		Device (CAM0)
-+ *		{
-+ *			Name (_DSD, Package () {
-+ *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+ *				Package () {
-+ *					Package () {
-+ *						"compatible",
-+ *						Package () { "nokia,smia" }
-+ *					},
-+ *				},
-+ *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+ *				Package () {
-+ *					Package () { "port0", "PRT0" },
-+ *				}
-+ *			})
-+ *			Name (PRT0, Package() {
-+ *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+ *				Package () {
-+ *					Package () { "port", 0 },
-+ *				},
-+ *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+ *				Package () {
-+ *					Package () { "endpoint0", "EP00" },
-+ *				}
-+ *			})
-+ *			Name (EP00, Package() {
-+ *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+ *				Package () {
-+ *					Package () { "endpoint", 0 },
-+ *					Package () {
-+ *						"remote-endpoint",
-+ *						Package() {
-+ *							\_SB.PCI0.ISP, 4, 0
-+ *						}
-+ *					},
-+ *				}
-+ *			})
-+ *		}
-+ *	}
-+ *
-+ *	Scope (\_SB.PCI0)
-+ *	{
-+ *		Device (ISP)
-+ *		{
-+ *			Name (_DSD, Package () {
-+ *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+ *				Package () {
-+ *					Package () { "port4", "PRT4" },
-+ *				}
-+ *			})
-+ *
-+ *			Name (PRT4, Package() {
-+ *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+ *				Package () {
-+ *					Package () { "port", 4 },
-+ *				},
-+ *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+ *				Package () {
-+ *					Package () { "endpoint0", "EP40" },
-+ *				}
-+ *			})
-+ *
-+ *			Name (EP40, Package() {
-+ *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+ *				Package () {
-+ *					Package () { "endpoint", 0 },
-+ *					Package () {
-+ *						"remote-endpoint",
-+ *						Package () {
-+ *							\_SB.PCI0.I2C2.CAM0,
-+ *							0, 0
-+ *						}
-+ *					},
-+ *				}
-+ *			})
-+ *		}
-+ *	}
-+ *
-+ * From the EP40 node under ISP device, you could parse the graph remote
-+ * endpoint using v4l2_fwnode_reference_get_int_prop with these arguments:
-+ *
-+ *  @fwnode: fwnode referring to EP40 under ISP.
-+ *  @prop: "remote-endpoint"
-+ *  @index: 0
-+ *  @props: "port", "endpoint"
-+ *  @nprops: 2
-+ *
-+ * And you'd get back fwnode referring to EP00 under CAM0.
-+ *
-+ * The same works the other way around: if you use EP00 under CAM0 as the
-+ * fwnode, you'll get fwnode referring to EP40 under ISP.
-+ *
-+ * Return: 0 on success
-+ *	   -ENOENT if no entries (or the property itself) were found
-+ *	   -EINVAL if property parsing otherwise failed
-+ *	   -ENOMEM if memory allocation failed
-+ */
-+static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
-+	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
-+	const char **props, unsigned int nprops)
-+{
-+	struct fwnode_reference_args fwnode_args;
-+	unsigned int *args = fwnode_args.args;
-+	struct fwnode_handle *child;
-+	int ret;
-+
-+	/*
-+	 * Obtain remote fwnode as well as the integer arguments.
-+	 *
-+	 * Note that right now both -ENODATA and -ENOENT may signal
-+	 * out-of-bounds access. Return -ENOENT in that case.
-+	 */
-+	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
-+						 index, &fwnode_args);
-+	if (ret)
-+		return ERR_PTR(ret == -ENODATA ? -ENOENT : ret);
-+
-+	/*
-+	 * Find a node in the tree under the referred fwnode corresponding to
-+	 * the integer arguments.
-+	 */
-+	fwnode = fwnode_args.fwnode;
-+	while (nprops--) {
-+		u32 val;
-+
-+		/* Loop over all child nodes under fwnode. */
-+		fwnode_for_each_child_node(fwnode, child) {
-+			if (fwnode_property_read_u32(child, *props, &val))
-+				continue;
-+
-+			/* Found property, see if its value matches. */
-+			if (val == *args)
-+				break;
-+		}
-+
-+		fwnode_handle_put(fwnode);
-+
-+		/* No property found; return an error here. */
-+		if (!child) {
-+			fwnode = ERR_PTR(-ENOENT);
-+			break;
-+		}
-+
-+		props++;
-+		args++;
-+		fwnode = child;
-+	}
-+
-+	return fwnode;
-+}
-+
-+/*
-+ * v4l2_fwnode_reference_parse_int_props - parse references for async sub-devices
-+ * @dev: struct device pointer
-+ * @notifier: notifier for @dev
-+ * @prop: the name of the property
-+ * @props: the array of integer property names
-+ * @nprops: the number of integer properties
-+ *
-+ * Use v4l2_fwnode_reference_get_int_prop to find fwnodes through reference in
-+ * property @prop with integer arguments with child nodes matching in properties
-+ * @props. Then, set up V4L2 async sub-devices for those fwnodes in the notifier
-+ * accordingly.
-+ *
-+ * While it is technically possible to use this function on DT, it is only
-+ * meaningful on ACPI. On Device tree you can refer to any node in the tree but
-+ * on ACPI the references are limited to devices.
-+ *
-+ * Return: 0 on success
-+ *	   -ENOENT if no entries (or the property itself) were found
-+ *	   -EINVAL if property parsing otherwisefailed
-+ *	   -ENOMEM if memory allocation failed
-+ */
-+static int v4l2_fwnode_reference_parse_int_props(
-+	struct device *dev, struct v4l2_async_notifier *notifier,
-+	const char *prop, const char **props, unsigned int nprops)
-+{
-+	struct fwnode_handle *fwnode;
-+	unsigned int index;
-+	int ret;
-+
-+	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-+					 dev_fwnode(dev), prop, index, props,
-+					 nprops))); index++)
-+		fwnode_handle_put(fwnode);
-+
-+	/*
-+	 * Note that right now both -ENODATA and -ENOENT may signal
-+	 * out-of-bounds access. Return the error in cases other than that.
-+	 */
-+	if (PTR_ERR(fwnode) != -ENOENT && PTR_ERR(fwnode) != -ENODATA)
-+		return PTR_ERR(fwnode);
-+
-+	ret = v4l2_async_notifier_realloc(notifier,
-+					  notifier->num_subdevs + index);
-+	if (ret)
-+		return -ENOMEM;
-+
-+	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
-+					 dev_fwnode(dev), prop, index, props,
-+					 nprops))); index++) {
-+		struct v4l2_async_subdev *asd;
-+
-+		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
-+			ret = -EINVAL;
-+			goto error;
-+		}
-+
-+		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
-+		if (!asd) {
-+			ret = -ENOMEM;
-+			goto error;
-+		}
-+
-+		notifier->subdevs[notifier->num_subdevs] = asd;
-+		asd->match.fwnode.fwnode = fwnode;
-+		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-+		notifier->num_subdevs++;
-+	}
-+
-+	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
-+
-+error:
-+	fwnode_handle_put(fwnode);
-+	return ret;
-+}
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
- MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+ static int cobalt_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
+diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
+index 670462d195b5..4d76a433fcf3 100644
+--- a/drivers/media/pci/ivtv/ivtv-ioctl.c
++++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
+@@ -1507,7 +1507,7 @@ static int ivtv_subscribe_event(struct v4l2_fh *fh, const struct v4l2_event_subs
+ 	case V4L2_EVENT_EOS:
+ 		return v4l2_event_subscribe(fh, sub, 0, NULL);
+ 	default:
+-		return v4l2_ctrl_subscribe_event(fh, sub);
++		return v4l2_subscribe_event_v4l2(fh, sub);
+ 	}
+ }
+ 
+diff --git a/drivers/media/pci/tw5864/tw5864-video.c b/drivers/media/pci/tw5864/tw5864-video.c
+index e7bd2b8484e3..67fa883bed3c 100644
+--- a/drivers/media/pci/tw5864/tw5864-video.c
++++ b/drivers/media/pci/tw5864/tw5864-video.c
+@@ -671,7 +671,7 @@ static int tw5864_subscribe_event(struct v4l2_fh *fh,
+ 		 */
+ 		return v4l2_event_subscribe(fh, sub, 30, NULL);
+ 	default:
+-		return v4l2_ctrl_subscribe_event(fh, sub);
++		return v4l2_subscribe_event_v4l2(fh, sub);
+ 	}
+ }
+ 
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 15eb5dc4dff9..897c6939ab0f 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1085,7 +1085,7 @@ static int coda_subscribe_event(struct v4l2_fh *fh,
+ 	case V4L2_EVENT_EOS:
+ 		return v4l2_event_subscribe(fh, sub, 0, NULL);
+ 	default:
+-		return v4l2_ctrl_subscribe_event(fh, sub);
++		return v4l2_subscribe_event_v4l2(fh, sub);
+ 	}
+ }
+ 
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+index 843510979ad8..a9f80db14b47 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+@@ -629,7 +629,7 @@ static int vidioc_vdec_subscribe_evt(struct v4l2_fh *fh,
+ 	case V4L2_EVENT_SOURCE_CHANGE:
+ 		return v4l2_src_change_event_subscribe(fh, sub);
+ 	default:
+-		return v4l2_ctrl_subscribe_event(fh, sub);
++		return v4l2_subscribe_event_v4l2(fh, sub);
+ 	}
+ }
+ 
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index da611a5eb670..ccf9b778dcf9 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -459,10 +459,8 @@ static int vdec_subscribe_event(struct v4l2_fh *fh,
+ 		return v4l2_event_subscribe(fh, sub, 2, NULL);
+ 	case V4L2_EVENT_SOURCE_CHANGE:
+ 		return v4l2_src_change_event_subscribe(fh, sub);
+-	case V4L2_EVENT_CTRL:
+-		return v4l2_ctrl_subscribe_event(fh, sub);
+ 	default:
+-		return -EINVAL;
++		return v4l2_subscribe_event_v4l2(fh, sub);
+ 	}
+ }
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index dd37ea811680..153622e0d42f 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -542,7 +542,7 @@ static int rvin_subscribe_event(struct v4l2_fh *fh,
+ 	case V4L2_EVENT_SOURCE_CHANGE:
+ 		return v4l2_event_subscribe(fh, sub, 4, NULL);
+ 	}
+-	return v4l2_ctrl_subscribe_event(fh, sub);
++	return v4l2_subscribe_event_v4l2(fh, sub);
+ }
+ 
+ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
+diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+index 0b1b6218ede8..f420e9c9d1f6 100644
+--- a/drivers/media/platform/vivid/vivid-vid-out.c
++++ b/drivers/media/platform/vivid/vivid-vid-out.c
+@@ -1183,7 +1183,7 @@ int vidioc_subscribe_event(struct v4l2_fh *fh,
+ 			return v4l2_src_change_event_subscribe(fh, sub);
+ 		break;
+ 	default:
+-		return v4l2_ctrl_subscribe_event(fh, sub);
++		return v4l2_subscribe_event_v4l2(fh, sub);
+ 	}
+ 	return -EINVAL;
+ }
+diff --git a/drivers/media/usb/go7007/go7007-v4l2.c b/drivers/media/usb/go7007/go7007-v4l2.c
+index 98cd57eaf36a..a0343a4b4dbc 100644
+--- a/drivers/media/usb/go7007/go7007-v4l2.c
++++ b/drivers/media/usb/go7007/go7007-v4l2.c
+@@ -797,7 +797,7 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
+ 		 * stored. */
+ 		return v4l2_event_subscribe(fh, sub, 30, NULL);
+ 	default:
+-		return v4l2_ctrl_subscribe_event(fh, sub);
++		return v4l2_subscribe_event_v4l2(fh, sub);
+ 	}
+ }
+ 
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 3e7e283a44a8..943c6bb5548b 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -1240,7 +1240,7 @@ static int uvc_ioctl_subscribe_event(struct v4l2_fh *fh,
+ 	case V4L2_EVENT_CTRL:
+ 		return v4l2_event_subscribe(fh, sub, 0, &uvc_ctrl_sub_ev_ops);
+ 	default:
+-		return -EINVAL;
++		return v4l2_subscribe_event_v4l2(fh, sub);
+ 	}
+ }
+ 
 -- 
-2.11.0
+2.13.6
