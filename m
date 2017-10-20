@@ -1,216 +1,375 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:50361 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751330AbdJEIp2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Oct 2017 04:45:28 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 02/25] media: lirc: use the correct carrier for scancode transmit
-Date: Thu,  5 Oct 2017 09:45:04 +0100
-Message-Id: <74ec6996b9c87b6d3edf80ae0b10bb6e1731ea15.1507192751.git.sean@mess.org>
-In-Reply-To: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-In-Reply-To: <cover.1507192751.git.sean@mess.org>
-References: <cover.1507192751.git.sean@mess.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57266 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752628AbdJTLfR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Oct 2017 07:35:17 -0400
+Date: Fri, 20 Oct 2017 14:35:13 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com,
+        laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org
+Subject: Re: [PATCH v15.1 24/32] v4l: fwnode: Add a helper function to obtain
+ device / integer references
+Message-ID: <20171020113513.rt3g5dumufdd32zx@valkosipuli.retiisi.org.uk>
+References: <20171004215051.13385-25-sakari.ailus@linux.intel.com>
+ <20171018135656.13549-1-sakari.ailus@linux.intel.com>
+ <20171018153225.i7ahk7fa3fullhur@valkosipuli.retiisi.org.uk>
+ <ffc57dfd-e798-d532-e029-dc91989e285c@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ffc57dfd-e798-d532-e029-dc91989e285c@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the lirc device supports it, set the carrier for the protocol.
+Hi Hans,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-jvc-decoder.c     |  1 +
- drivers/media/rc/ir-lirc-codec.c      |  7 +++++++
- drivers/media/rc/ir-mce_kbd-decoder.c |  1 +
- drivers/media/rc/ir-nec-decoder.c     |  1 +
- drivers/media/rc/ir-rc5-decoder.c     |  1 +
- drivers/media/rc/ir-rc6-decoder.c     |  1 +
- drivers/media/rc/ir-sanyo-decoder.c   |  1 +
- drivers/media/rc/ir-sharp-decoder.c   |  1 +
- drivers/media/rc/ir-sony-decoder.c    |  1 +
- drivers/media/rc/rc-core-priv.h       |  1 +
- drivers/media/rc/rc-ir-raw.c          | 30 ++++++++++++++++++++++++++++++
- include/media/rc-core.h               |  1 +
- 12 files changed, 47 insertions(+)
+On Thu, Oct 19, 2017 at 08:52:22AM +0200, Hans Verkuil wrote:
+> On 10/18/2017 05:32 PM, Sakari Ailus wrote:
+> > On Wed, Oct 18, 2017 at 04:56:56PM +0300, Sakari Ailus wrote:
+> >> v4l2_fwnode_reference_parse_int_prop() will find an fwnode such that under
+> >> the device's own fwnode, it will follow child fwnodes with the given
+> >> property-value pair and return the resulting fwnode.
+> >>
+> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> ---
+> >> since v15:
+> >>
+> >> - Use a graph example instead of a LED one; this way nprops will be 2.
+> >>
+> >>  drivers/media/v4l2-core/v4l2-fwnode.c | 252 ++++++++++++++++++++++++++++++++++
+> >>  1 file changed, 252 insertions(+)
+> >>
+> >> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> >> index edd2e8d983a1..989a6f8a09fa 100644
+> >> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> >> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> >> @@ -578,6 +578,258 @@ static int v4l2_fwnode_reference_parse(
+> >>  	return ret;
+> >>  }
+> >>  
+> >> +/*
+> >> + * v4l2_fwnode_reference_get_int_prop - parse a reference with integer
+> >> + *					arguments
+> >> + * @fwnode: fwnode to read @prop from
+> >> + * @notifier: notifier for @dev
+> >> + * @prop: the name of the property
+> >> + * @index: the index of the reference to get
+> >> + * @props: the array of integer property names
+> >> + * @nprops: the number of integer property names in @nprops
+> >> + *
+> >> + * First find an fwnode referred to by the reference at @index in @prop.
+> >> + *
+> >> + * Then under that fwnode, @nprops times, for each property in @props,
+> >> + * iteratively follow child nodes starting from fwnode such that they have the
+> >> + * property in @props array at the index of the child node distance from the
+> >> + * root node and the value of that property matching with the integer argument
+> >> + * of the reference, at the same index.
+> >> + *
+> >> + * The child fwnode reched at the end of the iteration is then returned to the
+> >> + * caller.
+> > 
+> > An alternative to these three paragraphs could be:
+> > 
+> > First obtain an fwnode, with integer arguments, referred to by the reference
+> > at @index in @prop. These shall be referred as "remote fwnode" and "remote
+> > fwnode arguments".
+> > 
+> > Under the remote fwnode, perform the following steps iteratively @nprops
+> > times. Let the number of iteration be "i", starting from 0.
+> > 
+> > 1. Designate the remote fwnode as the "current fwnode".
+> > 
+> > 2. Begin iterating child fwnodes under the current fwnode.
+> > 
+> > 3. Find next child fwnode under the current fwnode. If no node is found,
+> >    return NULL.
+> > 
+> > 4. From the child fwnode, read 32-bit unsigned integer property named as
+> >    the i'th element in @props array.
+> > 
+> > 5. Compare the value of that integer property with the i'th element in the
+> >    remote fwnode argument array. If the values do not match, go to (3).
+> > 
+> > 6. Increment i by one. If i matches with @nprops, return the child fwnode.
+> > 
+> > 7. Designate the child fwnode as the current fwnode and continue from (2).
+> 
+> This is definitely a better text.
+> 
+> However, this describes the mechanics of the function, not what its purpose
+> actually is.
+> 
+> The core reason for this is that you cannot refer to just any node in ACPI.
+> So to refer to an endpoint (easy in DT) you need to refer to a device, then
+> provide a list of (property name, property value) tuples where each tuple
+> uniquely identifies a child node. The first tuple identifies a child directly
+> underneath the device fwnode, the next tuple identifies a child node underneath
+> the fwnode identified by the previous tuple, etc. until you reached the fwnode
+> you need.
+> 
+> Does this make sense?
 
-diff --git a/drivers/media/rc/ir-jvc-decoder.c b/drivers/media/rc/ir-jvc-decoder.c
-index e2bd68c42edf..2ae20dfc0e61 100644
---- a/drivers/media/rc/ir-jvc-decoder.c
-+++ b/drivers/media/rc/ir-jvc-decoder.c
-@@ -212,6 +212,7 @@ static struct ir_raw_handler jvc_handler = {
- 	.protocols	= RC_PROTO_BIT_JVC,
- 	.decode		= ir_jvc_decode,
- 	.encode		= ir_jvc_encode,
-+	.carrier	= 38000,
- };
- 
- static int __init ir_jvc_decode_init(void)
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index ef0b8df88613..8db8ee403647 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -155,6 +155,13 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 		for (i = 0; i < count; i++)
- 			/* Convert from NS to US */
- 			txbuf[i] = DIV_ROUND_UP(raw[i].duration, 1000);
-+
-+		if (dev->s_tx_carrier) {
-+			int carrier = ir_raw_encode_carrier(scan.rc_proto);
-+
-+			if (carrier > 0)
-+				dev->s_tx_carrier(dev, carrier);
-+		}
- 	} else {
- 		if (n < sizeof(unsigned int) || n % sizeof(unsigned int))
- 			return -EINVAL;
-diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
-index 7c572a643656..efa3b735dcc4 100644
---- a/drivers/media/rc/ir-mce_kbd-decoder.c
-+++ b/drivers/media/rc/ir-mce_kbd-decoder.c
-@@ -474,6 +474,7 @@ static struct ir_raw_handler mce_kbd_handler = {
- 	.encode		= ir_mce_kbd_encode,
- 	.raw_register	= ir_mce_kbd_register,
- 	.raw_unregister	= ir_mce_kbd_unregister,
-+	.carrier	= 36000,
- };
- 
- static int __init ir_mce_kbd_decode_init(void)
-diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-index 817c18f2ddd1..5380a9b23c07 100644
---- a/drivers/media/rc/ir-nec-decoder.c
-+++ b/drivers/media/rc/ir-nec-decoder.c
-@@ -259,6 +259,7 @@ static struct ir_raw_handler nec_handler = {
- 							RC_PROTO_BIT_NEC32,
- 	.decode		= ir_nec_decode,
- 	.encode		= ir_nec_encode,
-+	.carrier	= 38000,
- };
- 
- static int __init ir_nec_decode_init(void)
-diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
-index 1292f534de43..cd1c4ee5fcd4 100644
---- a/drivers/media/rc/ir-rc5-decoder.c
-+++ b/drivers/media/rc/ir-rc5-decoder.c
-@@ -282,6 +282,7 @@ static struct ir_raw_handler rc5_handler = {
- 							RC_PROTO_BIT_RC5_SZ,
- 	.decode		= ir_rc5_decode,
- 	.encode		= ir_rc5_encode,
-+	.carrier	= 36000,
- };
- 
- static int __init ir_rc5_decode_init(void)
-diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
-index 5d0d2fe3b7a7..665025303c28 100644
---- a/drivers/media/rc/ir-rc6-decoder.c
-+++ b/drivers/media/rc/ir-rc6-decoder.c
-@@ -408,6 +408,7 @@ static struct ir_raw_handler rc6_handler = {
- 			  RC_PROTO_BIT_RC6_MCE,
- 	.decode		= ir_rc6_decode,
- 	.encode		= ir_rc6_encode,
-+	.carrier	= 36000,
- };
- 
- static int __init ir_rc6_decode_init(void)
-diff --git a/drivers/media/rc/ir-sanyo-decoder.c b/drivers/media/rc/ir-sanyo-decoder.c
-index 758c60956850..723e7d75a593 100644
---- a/drivers/media/rc/ir-sanyo-decoder.c
-+++ b/drivers/media/rc/ir-sanyo-decoder.c
-@@ -218,6 +218,7 @@ static struct ir_raw_handler sanyo_handler = {
- 	.protocols	= RC_PROTO_BIT_SANYO,
- 	.decode		= ir_sanyo_decode,
- 	.encode		= ir_sanyo_encode,
-+	.carrier	= 38000,
- };
- 
- static int __init ir_sanyo_decode_init(void)
-diff --git a/drivers/media/rc/ir-sharp-decoder.c b/drivers/media/rc/ir-sharp-decoder.c
-index ed43a4212479..73174081e843 100644
---- a/drivers/media/rc/ir-sharp-decoder.c
-+++ b/drivers/media/rc/ir-sharp-decoder.c
-@@ -226,6 +226,7 @@ static struct ir_raw_handler sharp_handler = {
- 	.protocols	= RC_PROTO_BIT_SHARP,
- 	.decode		= ir_sharp_decode,
- 	.encode		= ir_sharp_encode,
-+	.carrier	= 38000,
- };
- 
- static int __init ir_sharp_decode_init(void)
-diff --git a/drivers/media/rc/ir-sony-decoder.c b/drivers/media/rc/ir-sony-decoder.c
-index a47ced763031..e4bcff21c025 100644
---- a/drivers/media/rc/ir-sony-decoder.c
-+++ b/drivers/media/rc/ir-sony-decoder.c
-@@ -221,6 +221,7 @@ static struct ir_raw_handler sony_handler = {
- 							RC_PROTO_BIT_SONY20,
- 	.decode		= ir_sony_decode,
- 	.encode		= ir_sony_encode,
-+	.carrier	= 40000,
- };
- 
- static int __init ir_sony_decode_init(void)
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 43eabea9f152..3cf09408df6c 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -29,6 +29,7 @@ struct ir_raw_handler {
- 	int (*decode)(struct rc_dev *dev, struct ir_raw_event event);
- 	int (*encode)(enum rc_proto protocol, u32 scancode,
- 		      struct ir_raw_event *events, unsigned int max);
-+	u32 carrier;
- 
- 	/* These two should only be used by the lirc decoder */
- 	int (*raw_register)(struct rc_dev *dev);
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 503bc425a187..0814e08a280b 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -492,6 +492,36 @@ static void edge_handle(unsigned long arg)
- 	ir_raw_event_handle(dev);
- }
- 
-+/**
-+ * ir_raw_encode_carrier() - Get carrier used for protocol
-+ *
-+ * @protocol:		protocol
-+ *
-+ * Attempts to find the carrier for the specified protocol
-+ *
-+ * Returns:	The carrier in Hz
-+ *		-EINVAL if the protocol is invalid, or if no
-+ *		compatible encoder was found.
-+ */
-+int ir_raw_encode_carrier(enum rc_proto protocol)
-+{
-+	struct ir_raw_handler *handler;
-+	int ret = -EINVAL;
-+	u64 mask = BIT_ULL(protocol);
-+
-+	mutex_lock(&ir_raw_handler_lock);
-+	list_for_each_entry(handler, &ir_raw_handler_list, list) {
-+		if (handler->protocols & mask && handler->encode) {
-+			ret = handler->carrier;
-+			break;
-+		}
-+	}
-+	mutex_unlock(&ir_raw_handler_lock);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(ir_raw_encode_carrier);
-+
- /*
-  * Used to (un)register raw event clients
-  */
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 314a1edb6189..ca48632ec8e2 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -309,6 +309,7 @@ int ir_raw_event_store_with_filter(struct rc_dev *dev,
- void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
- int ir_raw_encode_scancode(enum rc_proto protocol, u32 scancode,
- 			   struct ir_raw_event *events, unsigned int max);
-+int ir_raw_encode_carrier(enum rc_proto protocol);
- 
- static inline void ir_raw_event_reset(struct rc_dev *dev)
- {
+I'm fine with using the above text. The function will move out of V4L2
+probably quite soon and the documentation in the ACPI framework will likely
+be different from whatever we end up using here anyway.
+
+> 
+> > 
+> >> + *
+> >> + * An example with a graph, as defined in Documentation/acpi/dsd/graph.txt:
+> >> + *
+> >> + *	Scope (\_SB.PCI0.I2C2)
+> >> + *	{
+> >> + *		Device (CAM0)
+> >> + *		{
+> >> + *			Name (_DSD, Package () {
+> >> + *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> >> + *				Package () {
+> >> + *					Package () {
+> >> + *						"compatible",
+> >> + *						Package () { "nokia,smia" }
+> >> + *					},
+> >> + *				},
+> >> + *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+> >> + *				Package () {
+> >> + *					Package () { "port0", "PRT0" },
+> >> + *				}
+> >> + *			})
+> >> + *			Name (PRT0, Package() {
+> >> + *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> >> + *				Package () {
+> >> + *					Package () { "port", 0 },
+> >> + *				},
+> >> + *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+> >> + *				Package () {
+> >> + *					Package () { "endpoint0", "EP00" },
+> >> + *				}
+> >> + *			})
+> >> + *			Name (EP00, Package() {
+> >> + *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> >> + *				Package () {
+> >> + *					Package () { "endpoint", 0 },
+> >> + *					Package () {
+> >> + *						"remote-endpoint",
+> >> + *						Package() {
+> >> + *							\_SB.PCI0.ISP, 4, 0
+> >> + *						}
+> >> + *					},
+> >> + *				}
+> >> + *			})
+> >> + *		}
+> >> + *	}
+> >> + *
+> >> + *	Scope (\_SB.PCI0)
+> >> + *	{
+> >> + *		Device (ISP)
+> >> + *		{
+> >> + *			Name (_DSD, Package () {
+> >> + *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+> >> + *				Package () {
+> >> + *					Package () { "port4", "PRT4" },
+> >> + *				}
+> >> + *			})
+> >> + *
+> >> + *			Name (PRT4, Package() {
+> >> + *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> >> + *				Package () {
+> >> + *					Package () { "port", 4 },
+> >> + *				},
+> >> + *				ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+> >> + *				Package () {
+> >> + *					Package () { "endpoint0", "EP40" },
+> >> + *				}
+> >> + *			})
+> >> + *
+> >> + *			Name (EP40, Package() {
+> >> + *				ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> >> + *				Package () {
+> >> + *					Package () { "endpoint", 0 },
+> >> + *					Package () {
+> >> + *						"remote-endpoint",
+> >> + *						Package () {
+> >> + *							\_SB.PCI0.I2C2.CAM0,
+> >> + *							0, 0
+> >> + *						}
+> >> + *					},
+> >> + *				}
+> >> + *			})
+> >> + *		}
+> >> + *	}
+> 
+> Please provide the equivalent DT structure as well. A large part of the
+> problem was lack of ACPI syntax understanding on my side.
+
+Yes, I'll add that.
+
+> 
+> >> + *
+> >> + * From the EP40 node under ISP device, you could parse the graph remote
+> >> + * endpoint using v4l2_fwnode_reference_get_int_prop with these arguments:
+> >> + *
+> >> + *  @fwnode: fwnode referring to EP40 under ISP.
+> >> + *  @prop: "remote-endpoint"
+> >> + *  @index: 0
+> >> + *  @props: "port", "endpoint"
+> >> + *  @nprops: 2
+> >> + *
+> >> + * And you'd get back fwnode referring to EP00 under CAM0.
+> >> + *
+> >> + * The same works the other way around: if you use EP00 under CAM0 as the
+> >> + * fwnode, you'll get fwnode referring to EP40 under ISP.
+> >> + *
+> >> + * Return: 0 on success
+> >> + *	   -ENOENT if no entries (or the property itself) were found
+> >> + *	   -EINVAL if property parsing otherwise failed
+> >> + *	   -ENOMEM if memory allocation failed
+> >> + */
+> >> +static struct fwnode_handle *v4l2_fwnode_reference_get_int_prop(
+> >> +	struct fwnode_handle *fwnode, const char *prop, unsigned int index,
+> >> +	const char **props, unsigned int nprops)
+> >> +{
+> >> +	struct fwnode_reference_args fwnode_args;
+> >> +	unsigned int *args = fwnode_args.args;
+> >> +	struct fwnode_handle *child;
+> >> +	int ret;
+> >> +
+> >> +	/*
+> >> +	 * Obtain remote fwnode as well as the integer arguments.
+> >> +	 *
+> >> +	 * Note that right now both -ENODATA and -ENOENT may signal
+> >> +	 * out-of-bounds access. Return -ENOENT in that case.
+> >> +	 */
+> >> +	ret = fwnode_property_get_reference_args(fwnode, prop, NULL, nprops,
+> >> +						 index, &fwnode_args);
+> >> +	if (ret)
+> >> +		return ERR_PTR(ret == -ENODATA ? -ENOENT : ret);
+> >> +
+> >> +	/*
+> >> +	 * Find a node in the tree under the referred fwnode corresponding to
+> >> +	 * the integer arguments.
+> >> +	 */
+> >> +	fwnode = fwnode_args.fwnode;
+> >> +	while (nprops--) {
+> >> +		u32 val;
+> >> +
+> >> +		/* Loop over all child nodes under fwnode. */
+> >> +		fwnode_for_each_child_node(fwnode, child) {
+> >> +			if (fwnode_property_read_u32(child, *props, &val))
+> >> +				continue;
+> >> +
+> >> +			/* Found property, see if its value matches. */
+> >> +			if (val == *args)
+> >> +				break;
+> >> +		}
+> >> +
+> >> +		fwnode_handle_put(fwnode);
+> >> +
+> >> +		/* No property found; return an error here. */
+> >> +		if (!child) {
+> >> +			fwnode = ERR_PTR(-ENOENT);
+> >> +			break;
+> >> +		}
+> >> +
+> >> +		props++;
+> >> +		args++;
+> >> +		fwnode = child;
+> >> +	}
+> >> +
+> >> +	return fwnode;
+> >> +}
+> >> +
+> >> +/*
+> >> + * v4l2_fwnode_reference_parse_int_props - parse references for async sub-devices
+> >> + * @dev: struct device pointer
+> >> + * @notifier: notifier for @dev
+> >> + * @prop: the name of the property
+> >> + * @props: the array of integer property names
+> >> + * @nprops: the number of integer properties
+> >> + *
+> >> + * Use v4l2_fwnode_reference_get_int_prop to find fwnodes through reference in
+> >> + * property @prop with integer arguments with child nodes matching in properties
+> >> + * @props. Then, set up V4L2 async sub-devices for those fwnodes in the notifier
+> >> + * accordingly.
+> >> + *
+> >> + * While it is technically possible to use this function on DT, it is only
+> >> + * meaningful on ACPI. On Device tree you can refer to any node in the tree but
+> >> + * on ACPI the references are limited to devices.
+> >> + *
+> >> + * Return: 0 on success
+> >> + *	   -ENOENT if no entries (or the property itself) were found
+> >> + *	   -EINVAL if property parsing otherwisefailed
+> >> + *	   -ENOMEM if memory allocation failed
+> >> + */
+> >> +static int v4l2_fwnode_reference_parse_int_props(
+> >> +	struct device *dev, struct v4l2_async_notifier *notifier,
+> >> +	const char *prop, const char **props, unsigned int nprops)
+> >> +{
+> >> +	struct fwnode_handle *fwnode;
+> >> +	unsigned int index;
+> >> +	int ret;
+> >> +
+> >> +	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
+> >> +					 dev_fwnode(dev), prop, index, props,
+> >> +					 nprops))); index++)
+> >> +		fwnode_handle_put(fwnode);
+> >> +
+> >> +	/*
+> >> +	 * Note that right now both -ENODATA and -ENOENT may signal
+> >> +	 * out-of-bounds access. Return the error in cases other than that.
+> >> +	 */
+> >> +	if (PTR_ERR(fwnode) != -ENOENT && PTR_ERR(fwnode) != -ENODATA)
+> >> +		return PTR_ERR(fwnode);
+> >> +
+> >> +	ret = v4l2_async_notifier_realloc(notifier,
+> >> +					  notifier->num_subdevs + index);
+> >> +	if (ret)
+> >> +		return -ENOMEM;
+> >> +
+> >> +	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
+> >> +					 dev_fwnode(dev), prop, index, props,
+> >> +					 nprops))); index++) {
+> >> +		struct v4l2_async_subdev *asd;
+> >> +
+> >> +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
+> >> +			ret = -EINVAL;
+> >> +			goto error;
+> >> +		}
+> >> +
+> >> +		asd = kzalloc(sizeof(struct v4l2_async_subdev), GFP_KERNEL);
+> >> +		if (!asd) {
+> >> +			ret = -ENOMEM;
+> >> +			goto error;
+> >> +		}
+> >> +
+> >> +		notifier->subdevs[notifier->num_subdevs] = asd;
+> >> +		asd->match.fwnode.fwnode = fwnode;
+> >> +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> >> +		notifier->num_subdevs++;
+> >> +	}
+> >> +
+> >> +	return PTR_ERR(fwnode) == -ENOENT ? 0 : PTR_ERR(fwnode);
+> >> +
+> >> +error:
+> >> +	fwnode_handle_put(fwnode);
+> >> +	return ret;
+> >> +}
+> >> +
+> >>  MODULE_LICENSE("GPL");
+> >>  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+> >>  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+> >> -- 
+> >> 2.11.0
+> >>
+> > 
+> 
+> Regards,
+> 
+> 	Hans
+
 -- 
-2.13.6
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
