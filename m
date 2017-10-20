@@ -1,63 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:43638 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932369AbdJ3Qlj (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:46770 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750988AbdJTD6I (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Oct 2017 12:41:39 -0400
-Received: by mail-wr0-f194.google.com with SMTP id w105so13295285wrc.0
-        for <linux-media@vger.kernel.org>; Mon, 30 Oct 2017 09:41:39 -0700 (PDT)
-Date: Mon, 30 Oct 2017 17:41:36 +0100
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Pavel Machek <pavel@ucw.cz>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>, sre@kernel.org,
-        ivo.g.dimitrov.75@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [patch] libv4l2: SDL test application
-Message-ID: <20171030164136.jkn2qlzu27krqvdz@pali>
-References: <20171028195742.GB20127@amd>
- <478fd1ae-6f25-5cda-3035-1d5894c8caab@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <478fd1ae-6f25-5cda-3035-1d5894c8caab@xs4all.nl>
+        Thu, 19 Oct 2017 23:58:08 -0400
+Message-ID: <02d0c1d5bd2bd737751d80e86ce1e235@smtp-cloud8.xs4all.net>
+Date: Fri, 20 Oct 2017 05:58:06 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 30 October 2017 17:30:53 Hans Verkuil wrote:
-> Hi Pavel,
-> 
-> On 10/28/2017 09:57 PM, Pavel Machek wrote:
-> > Add support for simple SDL test application. Allows taking jpeg
-> > snapshots, and is meant to run on phone with touchscreen. Not
-> > particulary useful on PC with webcam, but should work.
-> 
-> When I try to build this I get:
-> 
-> make[3]: Entering directory '/home/hans/work/src/v4l/v4l-utils/contrib/test'
->   CCLD     sdlcam
-> /usr/bin/ld: sdlcam-sdlcam.o: undefined reference to symbol 'log2@@GLIBC_2.2.5'
-> //lib/x86_64-linux-gnu/libm.so.6: error adding symbols: DSO missing from command line
-> collect2: error: ld returned 1 exit status
-> Makefile:561: recipe for target 'sdlcam' failed
-> make[3]: *** [sdlcam] Error 1
-> make[3]: Leaving directory '/home/hans/work/src/v4l/v4l-utils/contrib/test'
-> Makefile:475: recipe for target 'all-recursive' failed
-> make[2]: *** [all-recursive] Error 1
-> make[2]: Leaving directory '/home/hans/work/src/v4l/v4l-utils/contrib'
-> Makefile:589: recipe for target 'all-recursive' failed
-> make[1]: *** [all-recursive] Error 1
-> make[1]: Leaving directory '/home/hans/work/src/v4l/v4l-utils'
-> Makefile:516: recipe for target 'all' failed
-> make: *** [all] Error 2
-> 
-> I had to add -lm -ldl -lrt to sdlcam_LDFLAGS. Is that correct?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Is not for <<undefined reference to symbol 'log2@@GLIBC_2.2.5'>> needed
-just -lm? log2 should be in mathematical library.
+Results of the daily build of media_tree:
 
--- 
-Pali Rohár
-pali.rohar@gmail.com
+date:			Fri Oct 20 05:00:18 CEST 2017
+media-tree git hash:	61065fc3e32002ba48aa6bc3816c1f6f9f8daf55
+media_build git hash:	c93534951f5d66bef7f17f16293acf2be346b726
+v4l-utils git hash:	03f33ec376fc12efdfe7fa8c745ced2e8bcd61f6
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: OK
+spec-git: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
