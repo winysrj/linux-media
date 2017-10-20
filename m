@@ -1,56 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:36607 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750974AbdJGKrD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 7 Oct 2017 06:47:03 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Archit Taneja <architt@codeaurora.org>,
-        linux-renesas-soc@vger.kernel.org,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 1/2] dt-bindings: adi,adv7511.txt: document cec clock
-Date: Sat,  7 Oct 2017 12:46:57 +0200
-Message-Id: <20171007104658.14528-2-hverkuil@xs4all.nl>
-In-Reply-To: <20171007104658.14528-1-hverkuil@xs4all.nl>
-References: <20171007104658.14528-1-hverkuil@xs4all.nl>
+To: Ludwig Petrosyan <ludwig.petrosyan@desy.de>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
+        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
+        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@lists.01.org>,
+        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
+        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
+        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>
+Cc: "Bridgman, John" <John.Bridgman@amd.com>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4@deltatee.com>
+Date: Fri, 20 Oct 2017 09:48:58 -0600
+MIME-Version: 1.0
+In-Reply-To: <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Ludwig,
 
-Document the cec clock binding.
+P2P transactions are still *very* experimental at the moment and take a 
+lot of expertise to get working in a general setup. It will definitely 
+require changes to the kernel, including the drivers of all the devices 
+you are trying to make talk to eachother. If you're up for it you can 
+take a look at:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
- Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt | 4 ++++
- 1 file changed, 4 insertions(+)
+https://github.com/sbates130272/linux-p2pmem/
 
-diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-index 06668bca7ffc..0047b1394c70 100644
---- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-+++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-@@ -68,6 +68,8 @@ Optional properties:
- - adi,disable-timing-generator: Only for ADV7533. Disables the internal timing
-   generator. The chip will rely on the sync signals in the DSI data lanes,
-   rather than generate its own timings for HDMI output.
-+- clocks: from common clock binding: reference to the CEC clock.
-+- clock-names: from common clock binding: must be "cec".
- 
- Required nodes:
- 
-@@ -89,6 +91,8 @@ Example
- 		reg = <39>;
- 		interrupt-parent = <&gpio3>;
- 		interrupts = <29 IRQ_TYPE_EDGE_FALLING>;
-+		clocks = <&cec_clock>;
-+		clock-names = "cec";
- 
- 		adi,input-depth = <8>;
- 		adi,input-colorspace = "rgb";
--- 
-2.14.1
+Which has our current rough work making NVMe fabrics use p2p transactions.
+
+Logan
+
+On 10/20/2017 6:36 AM, Ludwig Petrosyan wrote:
+> Dear Linux kernel group
+> 
+> my name is Ludwig Petrosyan I am working in DESY (Germany)
+> 
+> we are responsible for the control system of  all accelerators in DESY.
+> 
+> For a 7-8 years we have switched to MTCA.4 systems and using PCIe as a 
+> central Bus.
+> 
+> I am mostly responsible for the Linux drivers of the AMC Cards (PCIe 
+> endpoints).
+> 
+> The idea is start to use peer to peer transaction for PCIe endpoint (DMA 
+> and/or usual Read/Write)
+> 
+> Could You please advise me where to start, is there some Documentation 
+> how to do it.
+> 
+> 
+> with best regards
+> 
+> 
+> Ludwig
+> 
+> 
+> On 11/21/2016 09:36 PM, Deucher, Alexander wrote:
+>> This is certainly not the first time this has been brought up, but I'd 
+>> like to try and get some consensus on the best way to move this 
+>> forward.  Allowing devices to talk directly improves performance and 
+>> reduces latency by avoiding the use of staging buffers in system 
+>> memory.  Also in cases where both devices are behind a switch, it 
+>> avoids the CPU entirely.  Most current APIs (DirectGMA, PeerDirect, 
+>> CUDA, HSA) that deal with this are pointer based.  Ideally we'd be 
+>> able to take a CPU virtual address and be able to get to a physical 
+>> address taking into account IOMMUs, etc.  Having struct pages for the 
+>> memory would allow it to work more generally and wouldn't require as 
+>> much explicit support in drivers that wanted to use it.
+>> Some use cases:
+>> 1. Storage devices streaming directly to GPU device memory
+>> 2. GPU device memory to GPU device memory streaming
+>> 3. DVB/V4L/SDI devices streaming directly to GPU device memory
+>> 4. DVB/V4L/SDI devices streaming directly to storage devices
+>> Here is a relatively simple example of how this could work for 
+>> testing.  This is obviously not a complete solution.
+>> - Device memory will be registered with Linux memory sub-system by 
+>> created corresponding struct page structures for device memory
+>> - get_user_pages_fast() will  return corresponding struct pages when 
+>> CPU address points to the device memory
+>> - put_page() will deal with struct pages for device memory
+>> Previously proposed solutions and related proposals:
+>> 1.P2P DMA
+>> DMA-API/PCI map_peer_resource support for peer-to-peer 
+>> (http://www.spinics.net/lists/linux-pci/msg44560.html)
+>> Pros: Low impact, already largely reviewed.
+>> Cons: requires explicit support in all drivers that want to support 
+>> it, doesn't handle S/G in device memory.
+>> 2. ZONE_DEVICE IO
+>> Direct I/O and DMA for persistent memory 
+>> (https://lwn.net/Articles/672457/)
+>> Add support for ZONE_DEVICE IO memory with struct pages. 
+>> (https://patchwork.kernel.org/patch/8583221/)
+>> Pro: Doesn't waste system memory for ZONE metadata
+>> Cons: CPU access to ZONE metadata slow, may be lost, corrupted on 
+>> device reset.
+>> 3. DMA-BUF
+>> RDMA subsystem DMA-BUF support 
+>> (http://www.spinics.net/lists/linux-rdma/msg38748.html)
+>> Pros: uses existing dma-buf interface
+>> Cons: dma-buf is handle based, requires explicit dma-buf support in 
+>> drivers.
+>>
+>> 4. iopmem
+>> iopmem : A block device for PCIe memory 
+>> (https://lwn.net/Articles/703895/)
+>> 5. HMM
+>> Heterogeneous Memory Management 
+>> (http://lkml.iu.edu/hypermail/linux/kernel/1611.2/02473.html)
+>>
+>> 6. Some new mmap-like interface that takes a userptr and a length and 
+>> returns a dma-buf and offset?
+>> Alex
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
