@@ -1,45 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40348 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751357AbdJDVu5 (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:52015 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752198AbdJTHZo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 17:50:57 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v15 11/32] omap3isp: Fix check for our own sub-devices
-Date: Thu,  5 Oct 2017 00:50:30 +0300
-Message-Id: <20171004215051.13385-12-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+        Fri, 20 Oct 2017 03:25:44 -0400
+Received: by mail-pf0-f195.google.com with SMTP id n14so9820307pfh.8
+        for <linux-media@vger.kernel.org>; Fri, 20 Oct 2017 00:25:44 -0700 (PDT)
+From: Jaejoong Kim <climbbb.kim@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, Jaejoong Kim <climbbb.kim@gmail.com>
+Subject: [PATCH 2/2] media: usb: usbtv: remove duplicate & operation
+Date: Fri, 20 Oct 2017 16:25:28 +0900
+Message-Id: <1508484328-11018-3-git-send-email-climbbb.kim@gmail.com>
+In-Reply-To: <1508484328-11018-1-git-send-email-climbbb.kim@gmail.com>
+References: <1508484328-11018-1-git-send-email-climbbb.kim@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We only want to link sub-devices that were bound to the async notifier the
-isp driver registered but there may be other sub-devices in the
-v4l2_device as well. Check for the correct async notifier.
+usb_endpoint_maxp() has an inline keyword and searches for bits[10:0]
+by & operation with 0x7ff. So, we can remove the duplicate & operation
+with 0x7ff.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Jaejoong Kim <climbbb.kim@gmail.com>
 ---
- drivers/media/platform/omap3isp/isp.c | 2 +-
+ drivers/media/usb/usbtv/usbtv-core.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 97a5206b6ddc..4afd7ba4fad6 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2155,7 +2155,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- 		return ret;
+diff --git a/drivers/media/usb/usbtv/usbtv-core.c b/drivers/media/usb/usbtv/usbtv-core.c
+index ceb953b..a95a468 100644
+--- a/drivers/media/usb/usbtv/usbtv-core.c
++++ b/drivers/media/usb/usbtv/usbtv-core.c
+@@ -84,7 +84,7 @@ static int usbtv_probe(struct usb_interface *intf,
+ 	/* Packet size is split into 11 bits of base size and count of
+ 	 * extra multiplies of it.*/
+ 	size = usb_endpoint_maxp(&ep->desc);
+-	size = (size & 0x07ff) * usb_endpoint_maxp_mult(&ep->desc);
++	size = size * usb_endpoint_maxp_mult(&ep->desc);
  
- 	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
--		if (!sd->asd)
-+		if (sd->notifier != &isp->notifier)
- 			continue;
- 
- 		ret = isp_link_entity(isp, &sd->entity,
+ 	/* Device structure */
+ 	usbtv = kzalloc(sizeof(struct usbtv), GFP_KERNEL);
 -- 
-2.11.0
+2.7.4
