@@ -1,49 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fllnx210.ext.ti.com ([198.47.19.17]:65406 "EHLO
-        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751455AbdJLIEB (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:42066 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751655AbdJTKHh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Oct 2017 04:04:01 -0400
-Subject: Re: [PATCHv2 0/9] omapdrm: hdmi4: add CEC support
-To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>
-CC: <dri-devel@lists.freedesktop.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20170802085408.16204-1-hverkuil@xs4all.nl>
- <bbc92584-71e8-b41e-dd35-5dd0d686cf53@ti.com>
- <d5034d03-1ef4-0253-0efc-ae7fd5cb09e9@ti.com>
- <9f921701-910c-d749-378c-038e8405f656@xs4all.nl>
- <f5d93c33-7825-1034-a605-ee38c796ca20@ti.com>
- <185e0c6e-8776-67e3-363f-fe9ebef3ba29@xs4all.nl>
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Message-ID: <2799bcc5-df51-e977-b3c0-22922f59fc39@ti.com>
-Date: Thu, 12 Oct 2017 11:03:56 +0300
-MIME-Version: 1.0
-In-Reply-To: <185e0c6e-8776-67e3-363f-fe9ebef3ba29@xs4all.nl>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
+        Fri, 20 Oct 2017 06:07:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: linux-rockchip@lists.infradead.org,
+        Heiko Stuebner <heiko@sntech.de>
+Subject: [PATCH 0/4] arm: dts: rockchip: enable HDMI+CEC on Firefly Reload
+Date: Fri, 20 Oct 2017 12:07:30 +0200
+Message-Id: <20171020100734.17064-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-=EF=BB=BF
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
-siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 12/10/17 09:50, Hans Verkuil wrote:
+This patch series sits on top of these two patch series:
 
->> I can't test with a TV, so no CEC for me... But otherwise I think the
->> series works ok now, and looks ok. So I'll apply, but it's a bit late
->> for the next merge window, so I'll aim for 4.15 with this.
->=20
-> What is the status? Do you need anything from me? I'd like to get this in=
- for 4.15.
+https://lkml.org/lkml/2017/10/13/971
+https://lkml.org/lkml/2017/10/14/161
 
-Thanks for reminding. I think I would've forgotten...
+The first adds support for the cec clk in dw-hdmi, the second adds an
+iomux-route for the CEC pin on the rk3288.
 
-I sent the pull request, so all should be fine.
+This patch series defines the cec clk for the rk3288, enables the
+first HDMI output on the Firefly Reload. The second output isn't working,
+I don't have enough knowledge to enable it. But I can test any patches
+adding support for it!
 
-If possible, please test the pull request, preferably with drm-next
-merged (git://people.freedesktop.org/~airlied/linux drm-next), as I
-don't have a CEC capable display.
+The third patch defines the two possible CEC pins and the last selects
+the correct pin for the Firefly Reload.
 
- Tomi
+Likely the same thing can be done for the 'regular' Firefly, but I don't
+have the hardware to test.
+
+Regards,
+
+	Hans
+
+
+Hans Verkuil (4):
+  arm: dts: rockchip: add the cec clk for dw-hdmi on rk3288
+  arm: dts: rockchip: enable the first hdmi output
+  arm: dts: rockchip: define the two possible CEC pins
+  arm: dts: rockchip: select which CEC pin is used for the Firefly
+    Reload
+
+ arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi |  2 ++
+ arch/arm/boot/dts/rk3288-firefly-reload.dts       | 11 +++++++++++
+ arch/arm/boot/dts/rk3288.dtsi                     | 12 ++++++++++--
+ 3 files changed, 23 insertions(+), 2 deletions(-)
+
+-- 
+2.14.1
