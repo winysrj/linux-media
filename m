@@ -1,60 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:38830 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755257AbdJJLpl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 07:45:41 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v8 3/7] media: open.rst: remove the minor number range
-Date: Tue, 10 Oct 2017 08:45:19 -0300
-Message-Id: <bcf91886902d08c6b338fe3710cf0ea797da9034.1507635716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507635716.git.mchehab@s-opensource.com>
-References: <cover.1507635716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507635716.git.mchehab@s-opensource.com>
-References: <cover.1507635716.git.mchehab@s-opensource.com>
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:43951 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753184AbdJTVuv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Oct 2017 17:50:51 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC v4 08/17] [media] vb2: add 'ordered_in_driver' property to queues
+Date: Fri, 20 Oct 2017 19:50:03 -0200
+Message-Id: <20171020215012.20646-9-gustavo@padovan.org>
+In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
+References: <20171020215012.20646-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-minor numbers use to range between 0 to 255, but that
-was changed a long time ago. While it still applies when
-CONFIG_VIDEO_FIXED_MINOR_RANGES, when the minor number is
-dynamically allocated, this may not be true. In any case,
-this is not relevant, as udev will take care of it.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-So, remove this useless misinformation.
+For explicit synchronization (and soon for HAL3/Request API) we need
+the v4l2-driver to guarantee the ordering in which the buffers were queued
+by userspace. This is already true for many drivers, but we never needed
+to say it.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+v2: rename property to 'ordered_in_driver' to avoid confusion
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- Documentation/media/uapi/v4l/open.rst | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ include/media/videobuf2-core.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-index de2144277f55..46ef63e05696 100644
---- a/Documentation/media/uapi/v4l/open.rst
-+++ b/Documentation/media/uapi/v4l/open.rst
-@@ -19,11 +19,10 @@ module. It provides helper functions and a common application interface
- specified in this document.
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 96af4eb49e52..6dd3f0181107 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -500,6 +500,11 @@ struct vb2_buf_ops {
+  * @last_buffer_dequeued: used in poll() and DQBUF to immediately return if the
+  *		last decoded buffer was already dequeued. Set for capture queues
+  *		when a buffer with the V4L2_BUF_FLAG_LAST is dequeued.
++ * @ordered_in_driver: if the driver can guarantee that the queue will be
++ *		ordered or not, i.e., the buffers are queued to the driver in
++ *		the same order they are dequeued from the driver. The default
++ *		is not ordered unless the driver sets this flag. As of now it
++ *		is mandatory for using explicit fences.
+  * @fileio:	file io emulator internal data, used only if emulator is active
+  * @threadio:	thread io internal data, used only if thread is active
+  */
+@@ -552,6 +557,7 @@ struct vb2_queue {
+ 	unsigned int			is_output:1;
+ 	unsigned int			copy_timestamp:1;
+ 	unsigned int			last_buffer_dequeued:1;
++	unsigned int			ordered_in_driver:1;
  
- Each driver thus loaded registers one or more device nodes with major
--number 81 and a minor number between 0 and 255. Minor numbers are
--allocated dynamically unless the kernel is compiled with the kernel
--option CONFIG_VIDEO_FIXED_MINOR_RANGES. In that case minor numbers
--are allocated in ranges depending on the device node type (video, radio,
--etc.).
-+number 81. Minor numbers are allocated dynamically unless the kernel
-+is compiled with the kernel option CONFIG_VIDEO_FIXED_MINOR_RANGES.
-+In that case minor numbers are allocated in ranges depending on the
-+device node type.
- 
- The existing :term:`device node` types defined at V4L2 spec are:
- 
+ 	struct vb2_fileio_data		*fileio;
+ 	struct vb2_threadio_data	*threadio;
 -- 
 2.13.6
