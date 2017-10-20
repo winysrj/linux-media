@@ -1,67 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:54090 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751213AbdJVHgl (ORCPT
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:50795 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753380AbdJTVvP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Oct 2017 03:36:41 -0400
-Subject: Re: Camera support, Prague next week, sdlcam
-To: Pavel Machek <pavel@ucw.cz>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170414232332.63850d7b@vento.lan>
- <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan> <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan> <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan> <20170426105300.GA857@amd>
- <20170426082608.7dd52fbf@vento.lan> <20171021220026.GA26881@amd>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        pali.rohar@gmail.com, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
-        linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <f85cab54-30cf-0774-7376-abced86842af@xs4all.nl>
-Date: Sun, 22 Oct 2017 09:36:32 +0200
-MIME-Version: 1.0
-In-Reply-To: <20171021220026.GA26881@amd>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Fri, 20 Oct 2017 17:51:15 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC v4 16/17] [media] vb2: add out-fence support to QBUF
+Date: Fri, 20 Oct 2017 19:50:11 -0200
+Message-Id: <20171020215012.20646-17-gustavo@padovan.org>
+In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
+References: <20171020215012.20646-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22/10/17 00:00, Pavel Machek wrote:
-> Hi!
-> 
-> I'd still like to get some reasonable support for cellphone camera in
-> Linux.
-> 
-> IMO first reasonable step is to merge sdlcam, then we can implement
-> autofocus, improve autogain... and rest of the boring stuff. Ouch and
-> media graph support would be nice. Currently, _nothing_ works with
-> media graph device, such as N900.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Can you post your latest rebased patch for sdlcam for v4l-utils?
+If V4L2_BUF_FLAG_OUT_FENCE flag is present on the QBUF call we create
+an out_fence and send to userspace on the V4L2_EVENT_OUT_FENCE when
+the buffer is queued to the driver, or right away if the queue is ordered
+both in VB2 and in the driver.
 
-I'll do a review and will likely merge it for you. Yes, I've changed my
-mind on that.
+The fence is signaled on buffer_done(), when the job on the buffer is
+finished.
 
-> 
-> I'll talk about the issues at ELCE in few days:
-> 
-> https://osseu17.sched.com/event/ByYH/cheap-complex-cameras-pavel-machek-denx-software-engineering-gmbh
-> 
-> Will someone else be there? Is there some place where v4l people meet?
+v5:
+	- delay fd_install to DQ_EVENT (Hans)
+	- if queue is fully ordered send OUT_FENCE event right away
+	(Brian)
+	- rename 'q->ordered' to 'q->ordered_in_driver'
+	- merge change to implement OUT_FENCE event here
 
-Why don't we discuss this Tuesday morning at 9am? I have no interest in the
-keynotes on that day, so those who are interested can get together.
+v4:
+	- return the out_fence_fd in the BUF_QUEUED event(Hans)
 
-I'll be at your presentation tomorrow and we can discuss a bit during
-the following coffee break if time permits.
+v3:	- add WARN_ON_ONCE(q->ordered) on requeueing (Hans)
+	- set the OUT_FENCE flag if there is a fence pending (Hans)
+	- call fd_install() after vb2_core_qbuf() (Hans)
+	- clean up fence if vb2_core_qbuf() fails (Hans)
+	- add list to store sync_file and fence for the next queued buffer
 
-Regards,
+v2: check if the queue is ordered.
 
-	Hans
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ drivers/media/v4l2-core/v4l2-event.c     |  2 ++
+ drivers/media/v4l2-core/videobuf2-core.c | 25 +++++++++++++++
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 55 ++++++++++++++++++++++++++++++++
+ 3 files changed, 82 insertions(+)
+
+diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
+index 6274e3e174e0..275da224ace4 100644
+--- a/drivers/media/v4l2-core/v4l2-event.c
++++ b/drivers/media/v4l2-core/v4l2-event.c
+@@ -385,6 +385,8 @@ int v4l2_subscribe_event_v4l2(struct v4l2_fh *fh,
+ 	switch (sub->type) {
+ 	case V4L2_EVENT_CTRL:
+ 		return v4l2_ctrl_subscribe_event(fh, sub);
++	case V4L2_EVENT_OUT_FENCE:
++		return v4l2_event_subscribe(fh, sub, VIDEO_MAX_FRAME, NULL);
+ 	}
+ 	return -EINVAL;
+ }
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index c7ba67bda5ac..21e2052776c1 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -354,6 +354,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+ 			vb->planes[plane].length = plane_sizes[plane];
+ 			vb->planes[plane].min_length = plane_sizes[plane];
+ 		}
++		vb->out_fence_fd = -1;
+ 		q->bufs[vb->index] = vb;
+ 
+ 		/* Allocate video buffer memory for the MMAP type */
+@@ -934,10 +935,24 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	case VB2_BUF_STATE_QUEUED:
+ 		return;
+ 	case VB2_BUF_STATE_REQUEUEING:
++		/*
++		 * Explicit synchronization requires ordered queues for now,
++		 * so WARN_ON if we are requeuing on an ordered queue.
++		 */
++		if (vb->out_fence)
++			WARN_ON_ONCE(q->ordered_in_driver);
++
+ 		if (q->start_streaming_called)
+ 			__enqueue_in_driver(vb);
+ 		return;
+ 	default:
++		if (state == VB2_BUF_STATE_ERROR)
++			dma_fence_set_error(vb->out_fence, -ENOENT);
++		dma_fence_signal(vb->out_fence);
++		dma_fence_put(vb->out_fence);
++		vb->out_fence = NULL;
++		vb->out_fence_fd = -1;
++
+ 		/* Inform any processes that may be waiting for buffers */
+ 		wake_up(&q->done_wq);
+ 		break;
+@@ -1235,6 +1250,9 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ 	trace_vb2_buf_queue(q, vb);
+ 
+ 	call_void_vb_qop(vb, buf_queue, vb);
++
++	if (!(q->is_output || q->ordered_in_vb2))
++		call_void_bufop(q, send_out_fence, vb);
+ }
+ 
+ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+@@ -1451,6 +1469,7 @@ static struct dma_fence *__set_in_fence(struct vb2_queue *q,
+ 		}
+ 
+ 		q->last_fence = dma_fence_get(fence);
++		call_void_bufop(q, send_out_fence, vb);
+ 	}
+ 
+ 	return fence;
+@@ -1840,6 +1859,11 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	}
+ 
+ 	/*
++	 * Renew out-fence context.
++	 */
++	q->out_fence_context = dma_fence_context_alloc(1);
++
++	/*
+ 	 * Remove all buffers from videobuf's list...
+ 	 */
+ 	INIT_LIST_HEAD(&q->queued_list);
+@@ -2171,6 +2195,7 @@ int vb2_core_queue_init(struct vb2_queue *q)
+ 	spin_lock_init(&q->done_lock);
+ 	mutex_init(&q->mmap_lock);
+ 	init_waitqueue_head(&q->done_wq);
++	q->out_fence_context = dma_fence_context_alloc(1);
+ 
+ 	if (q->buf_struct_size == 0)
+ 		q->buf_struct_size = sizeof(struct vb2_buffer);
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 4c09ea007d90..9fb01ddefdc9 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -32,6 +32,11 @@
+ 
+ #include <media/videobuf2-v4l2.h>
+ 
++struct out_fence_data {
++	int fence_fd;
++	struct file *file;
++};
++
+ static int debug;
+ module_param(debug, int, 0644);
+ 
+@@ -138,6 +143,38 @@ static void __copy_timestamp(struct vb2_buffer *vb, const void *pb)
+ 	}
+ };
+ 
++static void __fd_install_at_dequeue_cb(void *data)
++{
++	struct out_fence_data *of = data;
++
++	fd_install(of->fence_fd, of->file);
++	kfree(of);
++}
++
++static void __send_out_fence(struct vb2_buffer *vb)
++{
++	struct video_device *vdev = to_video_device(vb->vb2_queue->dev);
++	struct v4l2_fh *fh = vdev->queue->owner;
++	struct v4l2_event event;
++	struct out_fence_data *of;
++
++	if (vb->out_fence_fd < 0)
++		return;
++
++	memset(&event, 0, sizeof(event));
++	event.type = V4L2_EVENT_OUT_FENCE;
++	event.u.out_fence.index = vb->index;
++	event.u.out_fence.out_fence_fd = vb->out_fence_fd;
++
++	of = kmalloc(sizeof(*of), GFP_KERNEL);
++	of->fence_fd = vb->out_fence_fd;
++	of->file = vb->sync_file->file;
++
++	v4l2_event_queue_fh_with_cb(fh, &event, __fd_install_at_dequeue_cb, of);
++
++	vb->sync_file = NULL;
++}
++
+ static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
+ {
+ 	static bool check_once;
+@@ -185,6 +222,12 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 		return -EINVAL;
+ 	}
+ 
++	if (!q->ordered_in_driver && (b->flags & V4L2_BUF_FLAG_OUT_FENCE)) {
++		dprintk(1, "%s: out-fence doesn't work on unordered queues\n",
++			opname);
++		return -EINVAL;
++	}
++
+ 	return __verify_planes_array(q->bufs[b->index], b);
+ }
+ 
+@@ -213,6 +256,8 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->reserved = 0;
+ 
+ 	b->fence_fd = -1;
++	if (vb->out_fence)
++		b->flags |= V4L2_BUF_FLAG_OUT_FENCE;
+ 	if (vb->in_fence)
+ 		b->flags |= V4L2_BUF_FLAG_IN_FENCE;
+ 	else
+@@ -456,6 +501,7 @@ static const struct vb2_buf_ops v4l2_buf_ops = {
+ 	.fill_user_buffer	= __fill_v4l2_buffer,
+ 	.fill_vb2_buffer	= __fill_vb2_buffer,
+ 	.copy_timestamp		= __copy_timestamp,
++	.send_out_fence		= __send_out_fence,
+ };
+ 
+ /**
+@@ -593,6 +639,15 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		}
+ 	}
+ 
++	if (b->flags & V4L2_BUF_FLAG_OUT_FENCE) {
++		ret = vb2_setup_out_fence(q, b->index);
++		if (ret) {
++			dprintk(1, "failed to set up out-fence\n");
++			dma_fence_put(fence);
++			return ret;
++		}
++	}
++
+ 	return vb2_core_qbuf(q, b->index, b, fence);
+ }
+ EXPORT_SYMBOL_GPL(vb2_qbuf);
+-- 
+2.13.6
