@@ -1,93 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57940 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751636AbdJIJe3 (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:56115 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752096AbdJTHZN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 05:34:29 -0400
-Date: Mon, 9 Oct 2017 12:34:26 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, hansverk@cisco.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH] [media] ov5645: I2C address change
-Message-ID: <20171009093425.ftxgckycj2nuumle@valkosipuli.retiisi.org.uk>
-References: <1506950925-13924-1-git-send-email-todor.tomov@linaro.org>
- <20171004103008.g7azpn4a3hfj4fs2@valkosipuli.retiisi.org.uk>
- <3073637.dhNDna4gKQ@avalon>
- <edc2f078-0896-d9c7-f52a-e5d0604fdeea@linaro.org>
+        Fri, 20 Oct 2017 03:25:13 -0400
+Subject: Re: [PATCH 1/3] drm: bridge: synopsys/dw-hdmi: Enable cec clock
+To: Pierre-Hugues Husson <phh@phh.me>,
+        linux-rockchip@lists.infradead.org
+References: <20171013225337.5196-1-phh@phh.me>
+ <20171013225337.5196-2-phh@phh.me>
+ <35b9fbe3-9859-03e2-173e-8cff5a90efdd@xs4all.nl>
+Cc: heiko@sntech.de, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <01c4773b-ec8b-5bdc-11ea-c4816b9c673a@xs4all.nl>
+Date: Fri, 20 Oct 2017 09:25:09 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <edc2f078-0896-d9c7-f52a-e5d0604fdeea@linaro.org>
+In-Reply-To: <35b9fbe3-9859-03e2-173e-8cff5a90efdd@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Todor,
-
-On Mon, Oct 09, 2017 at 11:36:01AM +0300, Todor Tomov wrote:
-> Hi Sakari,
+On 14/10/17 10:16, Hans Verkuil wrote:
+> On 10/14/2017 12:53 AM, Pierre-Hugues Husson wrote:
+>> The documentation already mentions "cec" optional clock, but
+>> currently the driver doesn't enable it.
+>>
+>> Signed-off-by: Pierre-Hugues Husson <phh@phh.me>
 > 
-> On  4.10.2017 13:47, Laurent Pinchart wrote:
-> > CC'ing the I2C mainling list and the I2C maintainer.
-> > 
-> > On Wednesday, 4 October 2017 13:30:08 EEST Sakari Ailus wrote:
-> >> Hi Todor,
-> >>
-> >> On Mon, Oct 02, 2017 at 04:28:45PM +0300, Todor Tomov wrote:
-> >>> As soon as the sensor is powered on, change the I2C address to the one
-> >>> specified in DT. This allows to use multiple physical sensors connected
-> >>> to the same I2C bus.
-> >>>
-> >>> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-> >>
-> >> The smiapp driver does something similar and I understand Laurent might be
-> >> interested in such functionality as well.
-> >>
-> >> It'd be nice to handle this through the I²C framework instead and to define
-> >> how the information is specified through DT. That way it could be made
-> >> generic, to work with more devices than just this one.
-> >>
-> >> What do you think?
-> 
-> Thank you for this suggestion.
-> 
-> The way I have done it is to put the new I2C address in the DT and the driver
-> programs the change using the original I2C address. The original I2C address
-> is hardcoded in the driver. So maybe we can extend the DT binding and the I2C
-> framework so that both addresses come from the DT and avoid hiding the
-> original I2C address in the driver. This sounds good to me.
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Agreed.
-
-In this case the address is known but in general that's not the case it's
-not that simple. There are register compatible devices that have different
-addresses even if they're the same devices.
-
-It might be a good idea to make this explicit.
+Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 > 
-> Then changing the address could be device specific and also this must be done
-> right after power on so that there are no address conflicts. So I don't think
-> that we can support this through the I2C framework only, the drivers that we
-> want to do that will have to be expanded with this functionality. Or do you
-> have any other idea?
-
-Yes, how the address is changed is always hardware specific. This would be
-most conveniently done in driver's probe or PM runtime_resume functions.
-
-It could be as simple as providing an adapter specific mutex to serialise
-address changes on the bus so that no two address changes are taking place
-at the same time. Which is essentially the impliementation you had, only
-the mutex would be for the I²C adapter, not the driver. An helper functions
-for acquiring and releasing the mutex.
-
-I wonder what others think.
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+> Thanks!
+> 
+> 	Hans
+> 
+>> ---
+>>  drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 17 +++++++++++++++++
+>>  1 file changed, 17 insertions(+)
+>>
+>> diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+>> index bf14214fa464..5007cdf43131 100644
+>> --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+>> +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+>> @@ -138,6 +138,7 @@ struct dw_hdmi {
+>>  	struct device *dev;
+>>  	struct clk *isfr_clk;
+>>  	struct clk *iahb_clk;
+>> +	struct clk *cec_clk;
+>>  	struct dw_hdmi_i2c *i2c;
+>>  
+>>  	struct hdmi_data_info hdmi_data;
+>> @@ -2382,6 +2383,18 @@ __dw_hdmi_probe(struct platform_device *pdev,
+>>  		goto err_isfr;
+>>  	}
+>>  
+>> +	hdmi->cec_clk = devm_clk_get(hdmi->dev, "cec");
+>> +	if (IS_ERR(hdmi->cec_clk)) {
+>> +		hdmi->cec_clk = NULL;
+>> +	} else {
+>> +		ret = clk_prepare_enable(hdmi->cec_clk);
+>> +		if (ret) {
+>> +			dev_err(hdmi->dev, "Cannot enable HDMI cec clock: %d\n",
+>> +					ret);
+>> +			goto err_res;
+>> +		}
+>> +	}
+>> +
+>>  	/* Product and revision IDs */
+>>  	hdmi->version = (hdmi_readb(hdmi, HDMI_DESIGN_ID) << 8)
+>>  		      | (hdmi_readb(hdmi, HDMI_REVISION_ID) << 0);
+>> @@ -2518,6 +2531,8 @@ __dw_hdmi_probe(struct platform_device *pdev,
+>>  		cec_notifier_put(hdmi->cec_notifier);
+>>  
+>>  	clk_disable_unprepare(hdmi->iahb_clk);
+>> +	if (hdmi->cec_clk)
+>> +		clk_disable_unprepare(hdmi->cec_clk);
+>>  err_isfr:
+>>  	clk_disable_unprepare(hdmi->isfr_clk);
+>>  err_res:
+>> @@ -2541,6 +2556,8 @@ static void __dw_hdmi_remove(struct dw_hdmi *hdmi)
+>>  
+>>  	clk_disable_unprepare(hdmi->iahb_clk);
+>>  	clk_disable_unprepare(hdmi->isfr_clk);
+>> +	if (hdmi->cec_clk)
+>> +		clk_disable_unprepare(hdmi->cec_clk);
+>>  
+>>  	if (hdmi->i2c)
+>>  		i2c_del_adapter(&hdmi->i2c->adap);
+>>
+> 
