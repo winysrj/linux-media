@@ -1,79 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57466 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932267AbdJYKXK (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:54186 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752421AbdJTKHh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Oct 2017 06:23:10 -0400
-Date: Wed, 25 Oct 2017 13:23:07 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org,
-        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH] media: ov9650: remove unnecessary terminated entry in
- menu items array
-Message-ID: <20171025102307.qjvqtorri4lw3weo@valkosipuli.retiisi.org.uk>
-References: <1508779826-12499-1-git-send-email-akinobu.mita@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1508779826-12499-1-git-send-email-akinobu.mita@gmail.com>
+        Fri, 20 Oct 2017 06:07:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: linux-rockchip@lists.infradead.org,
+        Heiko Stuebner <heiko@sntech.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/4] arm: dts: rockchip: enable the first hdmi output
+Date: Fri, 20 Oct 2017 12:07:32 +0200
+Message-Id: <20171020100734.17064-3-hverkuil@xs4all.nl>
+In-Reply-To: <20171020100734.17064-1-hverkuil@xs4all.nl>
+References: <20171020100734.17064-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 24, 2017 at 02:30:26AM +0900, Akinobu Mita wrote:
-> The test_pattern_menu[] array has two valid items and a null terminated
-> item.  So the control's maximum value which is passed to
-> v4l2_ctrl_new_std_menu_items() should be one.  However,
-> 'ARRAY_SIZE(test_pattern_menu) - 1' is actually passed and it's not
-> correct.
-> 
-> Fix it by removing unnecessary terminated entry and let the correct
-> control's maximum value be passed to v4l2_ctrl_new_std_menu_items().
-> 
-> Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
->  drivers/media/i2c/ov9650.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-> index 6ffb460..69433e1 100644
-> --- a/drivers/media/i2c/ov9650.c
-> +++ b/drivers/media/i2c/ov9650.c
-> @@ -985,7 +985,6 @@ static const struct v4l2_ctrl_ops ov965x_ctrl_ops = {
->  static const char * const test_pattern_menu[] = {
->  	"Disabled",
->  	"Color bars",
-> -	NULL
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The number of items in the menu changes; I fixed that while applying the
-patch:
+The vdd10_lcd and vcc18_lcd regulators need to be enabled for HDMI output
+to work, so add 'regulator-always-on', just as is done in rk3288-firefly.dtsi.
 
-diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-index 69433e1e2533..4f59da1f967b 100644
---- a/drivers/media/i2c/ov9650.c
-+++ b/drivers/media/i2c/ov9650.c
-@@ -1039,7 +1039,7 @@ static int ov965x_initialize_controls(struct ov965x *ov965x)
- 				       V4L2_CID_POWER_LINE_FREQUENCY_50HZ);
+Also enable i2c5 and the hdmi block.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi | 2 ++
+ arch/arm/boot/dts/rk3288-firefly-reload.dts       | 9 +++++++++
+ 2 files changed, 11 insertions(+)
+
+diff --git a/arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi b/arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi
+index 5f05815f47e0..5f1e336dbaac 100644
+--- a/arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi
++++ b/arch/arm/boot/dts/rk3288-firefly-reload-core.dtsi
+@@ -184,6 +184,7 @@
+ 				regulator-name = "vdd10_lcd";
+ 				regulator-min-microvolt = <1000000>;
+ 				regulator-max-microvolt = <1000000>;
++				regulator-always-on;
+ 			};
  
- 	v4l2_ctrl_new_std_menu_items(hdl, ops, V4L2_CID_TEST_PATTERN,
--				     ARRAY_SIZE(test_pattern_menu) - 1, 0, 0,
-+				     ARRAY_SIZE(test_pattern_menu), 0, 0,
- 				     test_pattern_menu);
- 	if (hdl->error) {
- 		ret = hdl->error;
-
-
-Let me know if you see issues with this.
-
->  };
->  
->  static int ov965x_initialize_controls(struct ov965x *ov965x)
-
+ 			vcca_18: REG7  {
+@@ -223,6 +224,7 @@
+ 				regulator-name = "vcc18_lcd";
+ 				regulator-min-microvolt = <1800000>;
+ 				regulator-max-microvolt = <1800000>;
++				regulator-always-on;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/rk3288-firefly-reload.dts b/arch/arm/boot/dts/rk3288-firefly-reload.dts
+index 7da0947ababb..859938d8832e 100644
+--- a/arch/arm/boot/dts/rk3288-firefly-reload.dts
++++ b/arch/arm/boot/dts/rk3288-firefly-reload.dts
+@@ -226,6 +226,11 @@
+ 	};
+ };
+ 
++&hdmi {
++	ddc-i2c-bus = <&i2c5>;
++	status = "okay";
++};
++
+ &i2c0 {
+ 	hym8563: hym8563@51 {
+ 		compatible = "haoyu,hym8563";
+@@ -255,6 +260,10 @@
+ 	};
+ };
+ 
++&i2c5 {
++	status = "okay";
++};
++
+ &i2s {
+ 	status = "okay";
+ };
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.1
