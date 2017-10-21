@@ -1,60 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:50949 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751195AbdJDVSR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 17:18:17 -0400
-Date: Wed, 4 Oct 2017 22:18:15 +0100
-From: Sean Young <sean@mess.org>
-To: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
-Cc: Mans Rullgard <mans@mansr.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        Mason <slash.tmp@free.fr>
-Subject: Re: [PATCH v6 2/2] media: rc: Add driver for tango HW IR decoder
-Message-ID: <20171004211815.qnu6yy24ow3dmjmz@gofer.mess.org>
-References: <308711ef-0ba8-d533-26fd-51e5b8f32cc8@free.fr>
- <e3d91250-e6bd-bb8c-5497-689c351ac55f@free.fr>
- <yw1xzi9ieuqe.fsf@mansr.com>
- <893874ee-a6e0-e4be-5b4f-a49e60197e92@free.fr>
- <yw1xr2uuenhv.fsf@mansr.com>
- <0690fbbb-a13f-63af-bc43-b1f9d4771bc4@free.fr>
- <3dc97914-048f-e932-c05d-211b5111eb84@sigmadesigns.com>
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.219]:35462 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753093AbdJUJ2U (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 21 Oct 2017 05:28:20 -0400
+From: Ralph Metzler <rjkm@metzlerbros.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3dc97914-048f-e932-c05d-211b5111eb84@sigmadesigns.com>
+Content-Transfer-Encoding: 7bit
+Message-ID: <23019.4906.236885.50919@morden.metzler>
+Date: Sat, 21 Oct 2017 11:28:10 +0200
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, jasmin@anw.at
+Subject: [PATCH] [media] dvb-frontends/stv0910: prevent consecutive mutex_unlock()'s
+In-Reply-To: <20171021083641.7226-1-d.scheller.oss@gmail.com>
+References: <20171021083641.7226-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 04, 2017 at 06:00:47PM +0200, Marc Gonzalez wrote:
-> On 26/09/2017 10:51, Marc Gonzalez wrote:
-> 
-> > From: Mans Rullgard <mans@mansr.com>
-> > 
-> > The tango HW IR decoder supports NEC, RC-5, RC-6 protocols.
-> > 
-> > Signed-off-by: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
-> > ---
-> > Changes between v5 and v6
-> > * Move "register fields" macros to top of file
-> > * Restore IRQ pending writes
-> > ---
-> >  drivers/media/rc/Kconfig    |  10 ++
-> >  drivers/media/rc/Makefile   |   1 +
-> >  drivers/media/rc/tango-ir.c | 279 ++++++++++++++++++++++++++++++++++++++++++++
-> >  3 files changed, 290 insertions(+)
-> >  create mode 100644 drivers/media/rc/tango-ir.c
-> 
-> Hello Sean,
-> 
-> Are there issues remaining before this series can be accepted upstream?
-> 
-> Are you waiting for the DT folks to review the DT binding?
+Daniel Scheller writes:
+ > From: Daniel Scheller <d.scheller@gmx.net>
+ > 
+ > When calling gate_ctrl() with enable=0 if previously the mutex wasn't
+ > locked (ie. on enable=1 failure and subdrivers not handling this properly,
+ > or by otherwise badly behaving drivers), the i2c_lock could be unlocked
 
-I am waiting for that review. 
+I think drivers and subdrivers should rather be fixed so that this
+cannot happen.
+But to do this we will first need to define exactly how a failure in
+gate_ctrl() is supposed to be handled, both inside gate_ctrl() and
+by calling drivers.
 
-> Can I submit a keymap patch on top of the series?
 
-Of course. Or you could post v7 with a keymap.
+ > consecutively which isn't allowed. Prevent this by keeping track of the
+ > lock state, and actually call mutex_unlock() only when certain the lock
+ > is held.
 
-Thanks
-Sean
+Why not use mutex_is_locked()?
+And there should be a debug message if it (tried double unlocking) happens.
+
+
+Regards,
+Ralph
