@@ -1,266 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:57687 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932115AbdJ2U7P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Oct 2017 16:59:15 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 16/28] media: lirc: merge lirc_dev_fop_ioctl and ir_lirc_ioctl
-Date: Sun, 29 Oct 2017 20:59:14 +0000
-Message-Id: <6eb64df58a9af9793eca4a86b227b7682f873bfc.1509309834.git.sean@mess.org>
-In-Reply-To: <cover.1509309834.git.sean@mess.org>
-References: <cover.1509309834.git.sean@mess.org>
+Received: from mail-wr0-f172.google.com ([209.85.128.172]:54366 "EHLO
+        mail-wr0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752991AbdJUJ6D (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 21 Oct 2017 05:58:03 -0400
+Received: by mail-wr0-f172.google.com with SMTP id o44so13171371wrf.11
+        for <linux-media@vger.kernel.org>; Sat, 21 Oct 2017 02:58:02 -0700 (PDT)
+Date: Sat, 21 Oct 2017 11:57:57 +0200
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: Ralph Metzler <rjkm@metzlerbros.de>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, jasmin@anw.at
+Subject: Re: [PATCH] [media] dvb-frontends/stv0910: prevent consecutive
+ mutex_unlock()'s
+Message-ID: <20171021115757.729e000f@audiostation.wuest.de>
+In-Reply-To: <23019.4906.236885.50919@morden.metzler>
+References: <20171021083641.7226-1-d.scheller.oss@gmail.com>
+        <23019.4906.236885.50919@morden.metzler>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Calculate lirc features when necessary, and add LIRC_{S,G}ET_REC_MODE
-cases to ir_lirc_ioctl.
+Am Sat, 21 Oct 2017 11:28:10 +0200
+schrieb Ralph Metzler <rjkm@metzlerbros.de>:
 
-This makes lirc_dev_fop_ioctl() unnecessary since all cases are
-already handled by ir_lirc_ioctl().
+> Daniel Scheller writes:
+>  > From: Daniel Scheller <d.scheller@gmx.net>
+>  > 
+>  > When calling gate_ctrl() with enable=0 if previously the mutex
+>  > wasn't locked (ie. on enable=1 failure and subdrivers not handling
+>  > this properly, or by otherwise badly behaving drivers), the
+>  > i2c_lock could be unlocked  
+> 
+> I think drivers and subdrivers should rather be fixed so that this
+> cannot happen.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-lirc-codec.c | 79 ++++++++++++++++++++++++----------------
- drivers/media/rc/lirc_dev.c      | 62 ++-----------------------------
- include/media/lirc_dev.h         |  4 --
- 3 files changed, 50 insertions(+), 95 deletions(-)
+As long as stv6111 remains the only chip/driver interfacing with the
+stv0910, that's an easy task. However, if other hardware has some other
+stv0910+tunerchip combination, things get interesting. In a perfect
+world with unicorns and such, every component interacts as intended,
+but that's not the case, so I believe this should be handled at the
+root.
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 1ed69c9e64bf..f933e7617882 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -231,8 +231,54 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 	}
- 
- 	switch (cmd) {
-+	case LIRC_GET_FEATURES:
-+		if (dev->driver_type == RC_DRIVER_IR_RAW) {
-+			val |= LIRC_CAN_REC_MODE2;
-+			if (dev->rx_resolution)
-+				val |= LIRC_CAN_GET_REC_RESOLUTION;
-+		}
-+
-+		if (dev->tx_ir) {
-+			val |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
-+			if (dev->s_tx_mask)
-+				val |= LIRC_CAN_SET_TRANSMITTER_MASK;
-+			if (dev->s_tx_carrier)
-+				val |= LIRC_CAN_SET_SEND_CARRIER;
-+			if (dev->s_tx_duty_cycle)
-+				val |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
-+		}
-+
-+		if (dev->s_rx_carrier_range)
-+			val |= LIRC_CAN_SET_REC_CARRIER |
-+				LIRC_CAN_SET_REC_CARRIER_RANGE;
-+
-+		if (dev->s_learning_mode)
-+			val |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
-+
-+		if (dev->s_carrier_report)
-+			val |= LIRC_CAN_MEASURE_CARRIER;
-+
-+		if (dev->max_timeout)
-+			val |= LIRC_CAN_SET_REC_TIMEOUT;
-+
-+		break;
- 
- 	/* mode support */
-+	case LIRC_GET_REC_MODE:
-+		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
-+			return -ENOTTY;
-+
-+		val = LIRC_MODE_MODE2;
-+		break;
-+
-+	case LIRC_SET_REC_MODE:
-+		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
-+			return -ENOTTY;
-+
-+		if (val != LIRC_MODE_MODE2)
-+			return -EINVAL;
-+		return 0;
-+
- 	case LIRC_GET_SEND_MODE:
- 		if (!dev->tx_ir)
- 			return -ENOTTY;
-@@ -353,7 +399,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 		break;
- 
- 	default:
--		return lirc_dev_fop_ioctl(filep, cmd, arg);
-+		return -ENOTTY;
- 	}
- 
- 	if (_IOC_DIR(cmd) & _IOC_READ)
-@@ -380,44 +426,13 @@ int ir_lirc_register(struct rc_dev *dev)
- {
- 	struct lirc_dev *ldev;
- 	int rc = -ENOMEM;
--	unsigned long features = 0;
- 
- 	ldev = lirc_allocate_device();
- 	if (!ldev)
- 		return rc;
- 
--	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
--		features |= LIRC_CAN_REC_MODE2;
--		if (dev->rx_resolution)
--			features |= LIRC_CAN_GET_REC_RESOLUTION;
--	}
--
--	if (dev->tx_ir) {
--		features |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
--		if (dev->s_tx_mask)
--			features |= LIRC_CAN_SET_TRANSMITTER_MASK;
--		if (dev->s_tx_carrier)
--			features |= LIRC_CAN_SET_SEND_CARRIER;
--		if (dev->s_tx_duty_cycle)
--			features |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
--	}
--
--	if (dev->s_rx_carrier_range)
--		features |= LIRC_CAN_SET_REC_CARRIER |
--			LIRC_CAN_SET_REC_CARRIER_RANGE;
--
--	if (dev->s_learning_mode)
--		features |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
--
--	if (dev->s_carrier_report)
--		features |= LIRC_CAN_MEASURE_CARRIER;
--
--	if (dev->max_timeout)
--		features |= LIRC_CAN_SET_REC_TIMEOUT;
--
- 	snprintf(ldev->name, sizeof(ldev->name), "ir-lirc-codec (%s)",
- 		 dev->driver_name);
--	ldev->features = features;
- 	ldev->buf = NULL;
- 	ldev->chunk_size = sizeof(int);
- 	ldev->buffer_size = LIRCBUF_SIZE;
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 3cc95deaa84e..95058ea01e62 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -109,6 +109,7 @@ EXPORT_SYMBOL(lirc_free_device);
- 
- int lirc_register_device(struct lirc_dev *d)
- {
-+	struct rc_dev *rcdev = d->rdev;
- 	int minor;
- 	int err;
- 
-@@ -146,7 +147,7 @@ int lirc_register_device(struct lirc_dev *d)
- 	/* some safety check 8-) */
- 	d->name[sizeof(d->name) - 1] = '\0';
- 
--	if (LIRC_CAN_REC(d->features)) {
-+	if (rcdev->driver_type == RC_DRIVER_IR_RAW) {
- 		err = lirc_allocate_buffer(d);
- 		if (err)
- 			return err;
-@@ -290,63 +291,6 @@ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait)
- }
- EXPORT_SYMBOL(lirc_dev_fop_poll);
- 
--long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
--{
--	struct rc_dev *rcdev = file->private_data;
--	struct lirc_dev *d = rcdev->lirc_dev;
--	__u32 mode;
--	int result;
--
--	dev_dbg(&d->dev, LOGHEAD "ioctl called (0x%x)\n",
--		d->name, d->minor, cmd);
--
--	result = mutex_lock_interruptible(&d->mutex);
--	if (result)
--		return result;
--
--	if (!d->attached) {
--		result = -ENODEV;
--		goto out;
--	}
--
--	switch (cmd) {
--	case LIRC_GET_FEATURES:
--		result = put_user(d->features, (__u32 __user *)arg);
--		break;
--	case LIRC_GET_REC_MODE:
--		if (!LIRC_CAN_REC(d->features)) {
--			result = -ENOTTY;
--			break;
--		}
--
--		result = put_user(LIRC_REC2MODE
--				  (d->features & LIRC_CAN_REC_MASK),
--				  (__u32 __user *)arg);
--		break;
--	case LIRC_SET_REC_MODE:
--		if (!LIRC_CAN_REC(d->features)) {
--			result = -ENOTTY;
--			break;
--		}
--
--		result = get_user(mode, (__u32 __user *)arg);
--		if (!result && !(LIRC_MODE2REC(mode) & d->features))
--			result = -EINVAL;
--		/*
--		 * FIXME: We should actually set the mode somehow but
--		 * for now, lirc_serial doesn't support mode changing either
--		 */
--		break;
--	default:
--		result = -ENOTTY;
--	}
--
--out:
--	mutex_unlock(&d->mutex);
--	return result;
--}
--EXPORT_SYMBOL(lirc_dev_fop_ioctl);
--
- ssize_t lirc_dev_fop_read(struct file *file,
- 			  char __user *buffer,
- 			  size_t length,
-@@ -375,7 +319,7 @@ ssize_t lirc_dev_fop_read(struct file *file,
- 		goto out_locked;
- 	}
- 
--	if (!LIRC_CAN_REC(d->features)) {
-+	if (rcdev->driver_type != RC_DRIVER_IR_RAW) {
- 		ret = -EINVAL;
- 		goto out_locked;
- 	}
-diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
-index dd0c078796e8..86a3cf798775 100644
---- a/include/media/lirc_dev.h
-+++ b/include/media/lirc_dev.h
-@@ -115,8 +115,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
-  *
-  * @name:		used for logging
-  * @minor:		the minor device (/dev/lircX) number for the device
-- * @features:		lirc compatible hardware features, like LIRC_MODE_RAW,
-- *			LIRC_CAN\_\*, as defined at include/media/lirc.h.
-  * @buffer_size:	Number of FIFO buffers with @chunk_size size.
-  *			Only used if @rbuf is NULL.
-  * @chunk_size:		Size of each FIFO buffer.
-@@ -138,7 +136,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
- struct lirc_dev {
- 	char name[40];
- 	unsigned int minor;
--	__u32 features;
- 
- 	unsigned int buffer_size; /* in chunks holding one code each */
- 	unsigned int chunk_size;
-@@ -172,7 +169,6 @@ void lirc_unregister_device(struct lirc_dev *d);
- int lirc_dev_fop_open(struct inode *inode, struct file *file);
- int lirc_dev_fop_close(struct inode *inode, struct file *file);
- unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait);
--long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
- ssize_t lirc_dev_fop_read(struct file *file, char __user *buffer, size_t length,
- 			  loff_t *ppos);
- #endif
+> But to do this we will first need to define exactly how a failure in
+> gate_ctrl() is supposed to be handled, both inside gate_ctrl() and
+> by calling drivers.
+
+Well, IMHO (and thats the intention) if gate_ctrl fails due to a
+hardware/I2C problem, it isn't opened so there's no need to hold the
+lock (since the gate isn't - exclusively - opened). For reasons stated
+above this keeps things safe from deadlocking (and we want to avoid
+that, even more than double unlocking).
+
+>  > consecutively which isn't allowed. Prevent this by keeping track
+>  > of the lock state, and actually call mutex_unlock() only when
+>  > certain the lock is held.  
+> 
+> Why not use mutex_is_locked()?
+
+Good catch (I should try harder finding out what the kernel API has to
+offer...). If you prefer that, I'll respin with this and without the
+var as v2.
+
+> And there should be a debug message if it (tried double unlocking)
+> happens.
+
+Ok. Should IMHO go to dev_dbg then - if drivers don't catch that
+situation, this may else lead do kernel log spam.
+
+Best regards,
+Daniel Scheller
 -- 
-2.13.6
+https://github.com/herrnst
