@@ -1,70 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:61548 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751065AbdJBMYK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Oct 2017 08:24:10 -0400
-Subject: Re: [PATCH v14 07/28] rcar-vin: Use generic parser for parsing fwnode
- endpoints
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
-Cc: linux-media@vger.kernel.org, maxime.ripard@free-electrons.com,
-        robh@kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org,
-        pavel@ucw.cz, sre@kernel.org
-References: <20170925222540.371-1-sakari.ailus@linux.intel.com>
- <20170925222540.371-8-sakari.ailus@linux.intel.com>
- <20170930131709.GP17182@bigcity.dyn.berto.se>
- <3f940721-f190-4662-cfda-d99a0d97bf08@linux.intel.com>
- <20171002121422.GQ17182@bigcity.dyn.berto.se>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <82a055f5-b0ad-bcd2-7d28-f256163a288c@linux.intel.com>
-Date: Mon, 2 Oct 2017 15:24:05 +0300
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:47352 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751213AbdJVHkz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 22 Oct 2017 03:40:55 -0400
+Subject: Re: [PATCH 0/4] arm: dts: rockchip: enable HDMI+CEC on Firefly Reload
+To: linux-media@vger.kernel.org
+References: <20171020100734.17064-1-hverkuil@xs4all.nl>
+Cc: linux-rockchip@lists.infradead.org,
+        Heiko Stuebner <heiko@sntech.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2d624a0f-ff2c-7d18-3e13-ff5f766bf5c8@xs4all.nl>
+Date: Sun, 22 Oct 2017 09:40:53 +0200
 MIME-Version: 1.0
-In-Reply-To: <20171002121422.GQ17182@bigcity.dyn.berto.se>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171020100734.17064-1-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hejssan,
+Hi Heiko,
 
-On 10/02/17 15:14, Niklas Söderlund wrote:
-> Hi Sakari,
+On 20/10/17 12:07, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> On 2017-10-02 14:58:10 +0300, Sakari Ailus wrote:
->> Hi Niklas,
->>
->> On 09/30/17 16:17, Niklas Söderlund wrote:
->>> Hi Sakari,
->>>
->>> Thanks for your patch, I like it. Unfortunately it causes issues :-(
->>>
->>> I picked the first 7 patches of this series on top of media-next and it 
->>> produce problems when tested on Koelsch with CONFIG_OF_DYNAMIC=y.
->>>
->>> 1. It print's 'OF: ERROR: Bad of_node_put() on /video@e6ef0000/port' 
->>>    messages during boot.
->>
->> Do you have your own patch to fix fwnode_graph_get_port_parent()
->> applied? I noticed it doesn't seem to be in Rob's tree; let's continue
->> in the other thread.
->>
->> <URL:https://www.mail-archive.com/linux-media@vger.kernel.org/msg117450.html>
+> This patch series sits on top of these two patch series:
 > 
-> To produce this issue the fix is not applied. But as I try to describe 
-> at the end of my email applying it fixes both issues. So I think this 
-> patch is correct (and that is why I Acked it) but my concern is that if 
-> it's picked up before the fwnode_graph_get_port_parent() issue is sorted 
-> out there will be problems for rcar-vin, and if possible I would like to 
-> avoid that.
+> https://lkml.org/lkml/2017/10/13/971
+> https://lkml.org/lkml/2017/10/14/161
+> 
+> The first adds support for the cec clk in dw-hdmi, the second adds an
+> iomux-route for the CEC pin on the rk3288.
+> 
+> This patch series defines the cec clk for the rk3288, enables the
+> first HDMI output on the Firefly Reload. The second output isn't working,
+> I don't have enough knowledge to enable it. But I can test any patches
+> adding support for it!
+> 
+> The third patch defines the two possible CEC pins and the last selects
+> the correct pin for the Firefly Reload.
+> 
+> Likely the same thing can be done for the 'regular' Firefly, but I don't
+> have the hardware to test.
 
-Oops. I missed that between the oops log and the patch. X-)
+My Firefly Reload thanks you for merging this series! :-)
 
-Well, good to hear that this isn't an actual bug in this set. I'll try
-to be careful in sending pull requests. :-) The same issue would be
-present in any other driver using the new convenience functions.
+Regards,
 
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+	Hans
