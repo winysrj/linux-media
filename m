@@ -1,134 +1,284 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:56823 "EHLO
-        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753184AbdJTVul (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 17:50:41 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC v4 05/17] [media] v4l: add V4L2_EVENT_OUT_FENCE event
-Date: Fri, 20 Oct 2017 19:50:00 -0200
-Message-Id: <20171020215012.20646-6-gustavo@padovan.org>
-In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
-References: <20171020215012.20646-1-gustavo@padovan.org>
+Received: from smtp.220.in.ua ([89.184.67.205]:52998 "EHLO smtp.220.in.ua"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750806AbdJVOBP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 22 Oct 2017 10:01:15 -0400
+Received: from [192.168.202.100] (unknown [95.67.115.55])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by smtp.220.in.ua (Postfix) with ESMTPSA id D477D1A21D2E
+        for <linux-media@vger.kernel.org>; Sun, 22 Oct 2017 17:01:09 +0300 (EEST)
+To: linux-media <linux-media@vger.kernel.org>
+From: Oleh Kravchenko <oleg@kaa.org.ua>
+Subject: cx231xx IR remote control protocol
+Message-ID: <5f441db1-93eb-2a9f-25ce-022cdcfadfc1@kaa.org.ua>
+Date: Sun, 22 Oct 2017 17:01:05 +0300
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Hi,
 
-Add a new event the userspace can subscribe to receive notifications
-of the out_fence_fd when a buffer is queued onto the driver.
-The event provides the index of the queued buffer and the out_fence_fd.
+I'm trying add support remote control for tuners:
+- EvroMedia Full Hybrid Full HD
+- Astrometa T2hybrid
 
-v3: - Rename event to V4L2_EVENT_OUT_FENCE
+But I'm stuck. Can anybody recognize this protocol?
 
-v2: - Add missing Documentation (Mauro)
+$ i2cdump -y 5 0x30 b
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 42 3c 2d 0f 3f 4f 67 13 18 00 72 02 55 05 55 00    B<-??Og??.r?U?U.
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+20: 04 02 10 00 46 05 03 07 10 f0 02 00 00 00 00 00    ???.F??????.....
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+40: 04 02 10 00 46 05 03 07 00 f0 02 00 00 00 00 00    ???.F???.??.....
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+60: 05 02 10 40 46 05 03 07 00 f0 02 00 00 00 00 00    ???@F???.??.....
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- Documentation/media/uapi/v4l/vidioc-dqevent.rst | 23 +++++++++++++++++++++++
- Documentation/media/videodev2.h.rst.exceptions  |  1 +
- include/uapi/linux/videodev2.h                  | 12 ++++++++++++
- 3 files changed, 36 insertions(+)
+$ i2cdump -y 18 0x30 b
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 42 3c 2c 0f 3f 4f 67 13 18 00 72 02 55 05 55 00    B<,??Og??.r?U?U.
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+20: 04 02 10 00 46 05 03 07 00 f0 02 00 00 00 00 00    ???.F???.??.....
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+40: 04 02 10 00 46 05 03 07 00 f0 02 00 00 00 00 00    ???.F???.??.....
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+60: 04 02 10 00 46 05 03 07 00 f0 02 00 00 00 00 00    ???.F???.??.....
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-dqevent.rst b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-index cb3565f36793..2143df63aeb1 100644
---- a/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-@@ -79,6 +79,10 @@ call.
-       - ``src_change``
-       - Event data for event V4L2_EVENT_SOURCE_CHANGE.
-     * -
-+      - struct :c:type:`v4l2_event_buf_queued`
-+      - ``buf_queued``
-+      - Event data for event V4L2_EVENT_OUT_FENCE.
-+    * -
-       - __u8
-       - ``data``\ [64]
-       - Event data. Defined by the event type. The union should be used to
-@@ -338,6 +342,25 @@ call.
- 	each cell in the motion detection grid, then that all cells are
- 	automatically assigned to the default region 0.
- 
-+.. c:type:: v4l2_event_out_fence
-+
-+.. flat-table:: struct v4l2_event_out_fence
-+    :header-rows:  0
-+    :stub-columns: 0
-+    :widths:       1 1 2
-+
-+    * - __u32
-+      - ``index``
-+      - The index of the buffer that was queued to the driver.
-+    * - __s32
-+      - ``out_fence_fd``
-+      - The out-fence file descriptor of the buffer that was queued to
-+	the driver. It will signal when the buffer is ready, or if an
-+	error happens.
-+
-+
-+
-+.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{8.7cm}|
- 
- 
- .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
-diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-index a5cb0a8686ac..32f3d5b37e3a 100644
---- a/Documentation/media/videodev2.h.rst.exceptions
-+++ b/Documentation/media/videodev2.h.rst.exceptions
-@@ -462,6 +462,7 @@ replace define V4L2_EVENT_CTRL event-type
- replace define V4L2_EVENT_FRAME_SYNC event-type
- replace define V4L2_EVENT_SOURCE_CHANGE event-type
- replace define V4L2_EVENT_MOTION_DET event-type
-+replace define V4L2_EVENT_OUT_FENCE event-type
- replace define V4L2_EVENT_PRIVATE_START event-type
- 
- replace define V4L2_EVENT_CTRL_CH_VALUE ctrl-changes-flags
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 185d6a0acc06..2a432e8c18e3 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -2156,6 +2156,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_FRAME_SYNC			4
- #define V4L2_EVENT_SOURCE_CHANGE		5
- #define V4L2_EVENT_MOTION_DET			6
-+#define V4L2_EVENT_OUT_FENCE			7
- #define V4L2_EVENT_PRIVATE_START		0x08000000
- 
- /* Payload for V4L2_EVENT_VSYNC */
-@@ -2208,6 +2209,16 @@ struct v4l2_event_motion_det {
- 	__u32 region_mask;
- };
- 
-+/**
-+ * struct v4l2_event_out_fence - out fence fd event
-+ * @index:		index of the buffer queued in the driver
-+ * @out_fence_fd:	out-fence fd of the buffer queued
-+ */
-+struct v4l2_event_out_fence {
-+	__u32 index;
-+	__s32 out_fence_fd;
-+};
-+
- struct v4l2_event {
- 	__u32				type;
- 	union {
-@@ -2216,6 +2227,7 @@ struct v4l2_event {
- 		struct v4l2_event_frame_sync	frame_sync;
- 		struct v4l2_event_src_change	src_change;
- 		struct v4l2_event_motion_det	motion_det;
-+		struct v4l2_event_out_fence	out_fence;
- 		__u8				data[64];
- 	} u;
- 	__u32				pending;
+Here dump of i2c transactions of Windows driver converted to i2c-tools:
+i2cset -y 5 0x30 0x0001 0x10 b
+i2cset -y 5 0x30 0x0000 0x42 b
+i2cset -y 5 0x30 0x0005 0x0f b
+i2cset -y 5 0x30 0x0008 0x18 b
+i2cget -y 5 0x30 0x0008 b # should be 0x18
+i2cset -y 5 0x30 0x0002 0x40 b
+i2cset -y 5 0x30 0x0002 0x00 b
+i2cset -y 5 0x30 0x000a 0x52 b
+i2cset -y 5 0x30 0x0023 0x00 b
+i2cset -y 5 0x30 0x0043 0x00 b
+i2cset -y 5 0x30 0x0063 0x00 b
+i2cset -y 5 0x30 0x000b 0x02 b
+i2cset -y 5 0x30 0x0027 0x17 b
+i2cset -y 5 0x30 0x0047 0x17 b
+i2cset -y 5 0x30 0x0067 0x17 b
+i2cset -y 5 0x30 0x0022 0x10 b
+i2cset -y 5 0x30 0x0042 0x10 b
+i2cset -y 5 0x30 0x0062 0x10 b
+i2cset -y 5 0x30 0x0027 0x07 b
+i2cset -y 5 0x30 0x0047 0x07 b
+i2cset -y 5 0x30 0x0067 0x07 b
+i2cset -y 5 0x30 0x0029 0xf0 b
+i2cset -y 5 0x30 0x0049 0xf0 b
+i2cset -y 5 0x30 0x0069 0xf0 b
+i2cget -y 5 0x30 0x002a b # should be 0xfa
+i2cset -y 5 0x30 0x002a 0x02 b
+i2cget -y 5 0x30 0x004a b # should be 0xfa
+i2cset -y 5 0x30 0x004a 0x02 b
+i2cget -y 5 0x30 0x006a b # should be 0xfa
+i2cset -y 5 0x30 0x006a 0x02 b
+i2cset -y 5 0x30 0x0026 0x03 b
+i2cset -y 5 0x30 0x0046 0x03 b
+i2cset -y 5 0x30 0x0066 0x03 b
+i2cget -y 5 0x30 0x0028 b # should be 0x00
+i2cget -y 5 0x30 0x0029 b # should be 0xf0
+i2cset -y 5 0x30 0x0001 0x10 b
+i2cset -y 5 0x30 0x0000 0x42 b
+i2cset -y 5 0x30 0x0005 0x0f b
+i2cset -y 5 0x30 0x0008 0x18 b
+i2cget -y 5 0x30 0x0008 b # should be 0x18
+i2cset -y 5 0x30 0x0002 0x40 b
+i2cset -y 5 0x30 0x0002 0x00 b
+i2cset -y 5 0x30 0x000a 0x52 b
+i2cget -y 5 0x30 0x0028 b # should be 0x00
+i2cset -y 5 0x30 0x0028 0x10 b
+i2cget -y 5 0x30 0x0028 b # should be 0x10
+i2cget -y 5 0x30 0x0029 b # should be 0xf0
+i2cset -y 5 0x30 0x0001 0x10 b
+i2cset -y 5 0x30 0x0000 0x42 b
+i2cset -y 5 0x30 0x0005 0x0f b
+i2cset -y 5 0x30 0x0008 0x18 b
+i2cget -y 5 0x30 0x0008 b # should be 0x18
+i2cset -y 5 0x30 0x0002 0x40 b
+i2cset -y 5 0x30 0x0002 0x00 b
+i2cset -y 5 0x30 0x000a 0x52 b
+i2cget -y 5 0x30 0x0028 b # should be 0x10
+i2cset -y 5 0x30 0x0028 0x10 b
+i2cget -y 5 0x30 0x0028 b # should be 0x10
+i2cget -y 5 0x30 0x0029 b # should be 0xf0
+i2cset -y 5 0x30 0x0001 0x10 b
+i2cset -y 5 0x30 0x0000 0x42 b
+i2cset -y 5 0x30 0x0005 0x0f b
+i2cset -y 5 0x30 0x0008 0x18 b
+i2cget -y 5 0x30 0x0008 b # should be 0x18
+i2cset -y 5 0x30 0x0002 0x40 b
+i2cset -y 5 0x30 0x0002 0x00 b
+i2cset -y 5 0x30 0x000a 0x52 b
+i2cget -y 5 0x30 0x0028 b # should be 0x10
+i2cset -y 5 0x30 0x0028 0x10 b
+i2cget -y 5 0x30 0x0028 b # should be 0x10
+i2cget -y 5 0x30 0x0029 b # should be 0xf0
+i2cset -y 5 0x30 0x0001 0x10 b
+i2cset -y 5 0x30 0x0000 0x42 b
+i2cset -y 5 0x30 0x0005 0x0f b
+i2cset -y 5 0x30 0x0008 0x18 b
+i2cget -y 5 0x30 0x0008 b # should be 0x18
+i2cset -y 5 0x30 0x0002 0x40 b
+i2cset -y 5 0x30 0x0002 0x00 b
+i2cset -y 5 0x30 0x000a 0x52 b
+i2cget -y 5 0x30 0x0028 b # should be 0x10
+i2cset -y 5 0x30 0x0028 0x10 b
+i2cget -y 5 0x30 0x0028 b # should be 0x10
+i2cget -y 5 0x30 0x0029 b # should be 0xf0
+i2cset -y 5 0x30 0x0001 0x10 b
+i2cset -y 5 0x30 0x0000 0x42 b
+i2cset -y 5 0x30 0x0005 0x0f b
+i2cset -y 5 0x30 0x0008 0x18 b
+i2cget -y 5 0x30 0x0008 b # should be 0x18
+i2cset -y 5 0x30 0x0002 0x40 b
+i2cset -y 5 0x30 0x0002 0x00 b
+i2cset -y 5 0x30 0x000a 0x52 b
+i2cget -y 5 0x30 0x0028 b # should be 0x10
+i2cset -y 5 0x30 0x0028 0x10 b
+i2cget -y 5 0x30 0x0061 b # should be 0x02
+i2cset -y 5 0x30 0x0061 0x03 b
+i2cget -y 5 0x30 0x0061 b # should be 0x01
+i2cset -y 5 0x30 0x0061 0x00 b
+i2cget -y 5 0x30 0x0069 b # should be 0xf0
+i2cset -y 5 0x30 0x0069 0xf0 b
+i2cget -y 5 0x30 0x0068 b # should be 0x00
+i2cset -y 5 0x30 0x0068 0x02 b
+i2cget -y 5 0x30 0x0067 b # should be 0x07
+i2cset -y 5 0x30 0x0067 0x07 b
+i2cget -y 5 0x30 0x0066 b # should be 0x03
+i2cset -y 5 0x30 0x0066 0x03 b
+i2cget -y 5 0x30 0x0065 b # should be 0x05
+i2cset -y 5 0x30 0x0065 0x05 b
+i2cget -y 5 0x30 0x0064 b # should be 0x46
+i2cset -y 5 0x30 0x0064 0x46 b
+i2cget -y 5 0x30 0x0064 b # should be 0x46
+i2cset -y 5 0x30 0x0064 0x46 b
+i2cget -y 5 0x30 0x0063 b # should be 0x00
+i2cset -y 5 0x30 0x0063 0x20 b
+i2cget -y 5 0x30 0x0068 b # should be 0x02
+i2cget -y 5 0x30 0x0069 b # should be 0xf0
+i2cset -y 5 0x30 0x0001 0x10 b
+i2cset -y 5 0x30 0x0000 0x42 b
+i2cset -y 5 0x30 0x0005 0x0f b
+i2cset -y 5 0x30 0x0008 0x18 b
+i2cget -y 5 0x30 0x0008 b # should be 0x18
+i2cset -y 5 0x30 0x0002 0x40 b
+i2cset -y 5 0x30 0x0002 0x00 b
+i2cset -y 5 0x30 0x000a 0x52 b
+i2cget -y 5 0x30 0x0068 b # should be 0x02
+i2cget -y 5 0x30 0x0069 b # should be 0xf0
+i2cset -y 5 0x30 0x0001 0x10 b
+i2cset -y 5 0x30 0x0000 0x42 b
+i2cset -y 5 0x30 0x0005 0x0f b
+i2cset -y 5 0x30 0x0008 0x18 b
+i2cget -y 5 0x30 0x0008 b # should be 0x18
+i2cset -y 5 0x30 0x0002 0x40 b
+i2cset -y 5 0x30 0x0002 0x00 b
+i2cset -y 5 0x30 0x000a 0x52 b
+i2cget -y 5 0x30 0x0068 b # should be 0x02
+i2cget -y 5 0x30 0x0069 b # should be 0xf0
+i2cset -y 5 0x30 0x0001 0x10 b
+i2cset -y 5 0x30 0x0000 0x42 b
+i2cset -y 5 0x30 0x0005 0x0f b
+i2cset -y 5 0x30 0x0008 0x18 b
+i2cget -y 5 0x30 0x0008 b # should be 0x18
+i2cset -y 5 0x30 0x0002 0x40 b
+i2cset -y 5 0x30 0x0002 0x00 b
+i2cset -y 5 0x30 0x000a 0x52 b
+i2cget -y 5 0x30 0x0061 b # should be 0x02
+i2cset -y 5 0x30 0x0061 0x03 b
+i2cget -y 5 0x30 0x0061 b # should be 0x01
+i2cset -y 5 0x30 0x0061 0x00 b
+i2cget -y 5 0x30 0x0069 b # should be 0xf0
+i2cset -y 5 0x30 0x0069 0xf0 b
+i2cget -y 5 0x30 0x0068 b # should be 0x02
+i2cset -y 5 0x30 0x0068 0x02 b
+i2cget -y 5 0x30 0x0067 b # should be 0x07
+i2cset -y 5 0x30 0x0067 0x07 b
+i2cget -y 5 0x30 0x0066 b # should be 0x03
+i2cset -y 5 0x30 0x0066 0x03 b
+i2cget -y 5 0x30 0x0065 b # should be 0x05
+i2cset -y 5 0x30 0x0065 0x05 b
+i2cget -y 5 0x30 0x0064 b # should be 0x46
+i2cset -y 5 0x30 0x0064 0x46 b
+i2cget -y 5 0x30 0x0064 b # should be 0x46
+i2cset -y 5 0x30 0x0064 0x46 b
+i2cget -y 5 0x30 0x0063 b # should be 0x20
+i2cset -y 5 0x30 0x0063 0x20 b
+i2cget -y 5 0x30 0x0068 b # should be 0x02
+i2cget -y 5 0x30 0x0069 b # should be 0xf0
+i2cset -y 5 0x30 0x0001 0x10 b
+i2cset -y 5 0x30 0x0000 0x42 b
+i2cset -y 5 0x30 0x0005 0x0f b
+i2cset -y 5 0x30 0x0008 0x18 b
+i2cget -y 5 0x30 0x0008 b # should be 0x18
+i2cset -y 5 0x30 0x0002 0x40 b
+i2cset -y 5 0x30 0x0002 0x00 b
+i2cset -y 5 0x30 0x000a 0x52 b
+i2cget -y 5 0x30 0x0068 b # should be 0x02
+i2cget -y 5 0x30 0x0069 b # should be 0xf0
+i2cset -y 5 0x30 0x0001 0x10 b
+i2cset -y 5 0x30 0x0000 0x42 b
+i2cset -y 5 0x30 0x0005 0x0f b
+i2cset -y 5 0x30 0x0008 0x18 b
+i2cget -y 5 0x30 0x0008 b # should be 0x18
+i2cset -y 5 0x30 0x0002 0x40 b
+i2cset -y 5 0x30 0x0002 0x00 b
+i2cset -y 5 0x30 0x000a 0x52 b
+i2cget -y 5 0x30 0x0061 b # should be 0x02
+i2cset -y 5 0x30 0x0061 0x03 b
+i2cget -y 5 0x30 0x0061 b # should be 0x01
+i2cset -y 5 0x30 0x0061 0x00 b
+i2cget -y 5 0x30 0x0069 b # should be 0xf0
+i2cset -y 5 0x30 0x0069 0xf0 b
+i2cget -y 5 0x30 0x0068 b # should be 0x02
+i2cset -y 5 0x30 0x0068 0x02 b
+i2cget -y 5 0x30 0x0067 b # should be 0x07
+i2cset -y 5 0x30 0x0067 0x07 b
+i2cget -y 5 0x30 0x0066 b # should be 0x03
+i2cset -y 5 0x30 0x0066 0x03 b
+i2cget -y 5 0x30 0x0065 b # should be 0x05
+i2cset -y 5 0x30 0x0065 0x05 b
+i2cget -y 5 0x30 0x0064 b # should be 0x46
+i2cset -y 5 0x30 0x0064 0x46 b
+i2cget -y 5 0x30 0x0064 b # should be 0x46
+i2cset -y 5 0x30 0x0064 0x46 b
+i2cget -y 5 0x30 0x0063 b # should be 0x20
+i2cset -y 5 0x30 0x0063 0x20 b
+i2cset -y 5 0x30 0x0008 0x18 b
+i2cget -y 5 0x30 0x0008 b # should be 0x18
+i2cset -y 5 0x30 0x0008 0x18 b
+i2cget -y 5 0x30 0x0008 b # should be 0x18
+i2cset -y 5 0x30 0x0008 0x18 b
+i2cget -y 5 0x30 0x0008 b # should be 0x18
+i2cset -y 5 0x30 0x0008 0x18 b
+i2cget -y 5 0x30 0x0008 b # should be 0x18
+
 -- 
-2.13.6
+Best regards,
+Oleh Kravchenko
