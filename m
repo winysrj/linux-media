@@ -1,129 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:47385 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752369AbdJaQE2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Oct 2017 12:04:28 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org
-Subject: [PATCH 5/7] media: atomisp: get rid of wrong stddef.h include
-Date: Tue, 31 Oct 2017 12:04:18 -0400
-Message-Id: <d2e59b395d3ed98c9e3fefc0ac6ae95a0a0fb74c.1509465351.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1509465351.git.mchehab@s-opensource.com>
-References: <cover.1509465351.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1509465351.git.mchehab@s-opensource.com>
-References: <cover.1509465351.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:58794 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751013AbdJVD50 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 21 Oct 2017 23:57:26 -0400
+Message-ID: <93b3ed6cc258d6d0b8d17814a853f61b@smtp-cloud7.xs4all.net>
+Date: Sun, 22 Oct 2017 05:57:23 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The places at atomisp.h that use stddef.h are wrong: the
-types it needs are actually defined at linux/types.h. Also,
-it causes lots of smatch warnings due to the redefinition of
-ofsetof() macro:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-/opt/gcc-7.1.0/x86/lib/gcc/x86_64-pc-linux-gnu/7.1.0/include/stddef.h:417:9: warning: preprocessor token offsetof redefined
-./include/linux/stddef.h:16:9: this was the original definition
+Results of the daily build of media_tree:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- .../css2400/hive_isp_css_common/host/dma.c         |  2 +-
- .../hive_isp_css_include/host/hmem_public.h        |  4 +--
- .../css2400/hive_isp_css_include/type_support.h    | 42 ----------------------
- 3 files changed, 3 insertions(+), 45 deletions(-)
+date:			Sun Oct 22 05:00:15 CEST 2017
+media-tree git hash:	61065fc3e32002ba48aa6bc3816c1f6f9f8daf55
+media_build git hash:	c93534951f5d66bef7f17f16293acf2be346b726
+v4l-utils git hash:	482c52f946af4c6b16efa63a35790d92fb65326c
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/dma.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/dma.c
-index 87a25d4289ec..770db7dff5d3 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/dma.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/dma.c
-@@ -12,7 +12,7 @@
-  * more details.
-  */
- 
--#include <stddef.h>		/* NULL */
-+#include <linux/kernel.h>
- 
- #include "dma.h"
- 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/hmem_public.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/hmem_public.h
-index 9b8e7c92442d..8538f86ab5e6 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/hmem_public.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/hmem_public.h
-@@ -15,10 +15,10 @@
- #ifndef __HMEM_PUBLIC_H_INCLUDED__
- #define __HMEM_PUBLIC_H_INCLUDED__
- 
--#include <stddef.h>		/* size_t */
-+#include <linux/types.h>		/* size_t */
- 
- /*! Return the size of HMEM[ID]
-- 
-+
-  \param	ID[in]				HMEM identifier
- 
-  \Note: The size is the byte size of the area it occupies
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/type_support.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/type_support.h
-index b82fa3eba79f..bc77537fa73a 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/type_support.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/type_support.h
-@@ -30,27 +30,6 @@
- #define IA_CSS_INT32_T_BITS						32
- #define IA_CSS_UINT64_T_BITS					64
- 
--#if defined(_MSC_VER)
--#include <stdint.h>
--/* For ATE compilation define the bool */
--#if defined(_ATE_)
--#define bool int
--#define true 1
--#define false 0
--#else
--#include <stdbool.h>
--#endif
--#include <stddef.h>
--#include <limits.h>
--#include <errno.h>
--#if defined(_M_X64)
--#define HOST_ADDRESS(x) (unsigned long long)(x)
--#else
--#define HOST_ADDRESS(x) (unsigned long)(x)
--#endif
--
--#elif defined(__KERNEL__)
--
- #define CHAR_BIT (8)
- 
- #include <linux/types.h>
-@@ -58,25 +37,4 @@
- #include <linux/errno.h>
- #define HOST_ADDRESS(x) (unsigned long)(x)
- 
--#elif defined(__GNUC__)
--#ifndef __STDC_LIMIT_MACROS
--#define __STDC_LIMIT_MACROS 1
--#endif
--#include <stdint.h>
--#include <stdbool.h>
--#include <stddef.h>
--#include <limits.h>
--#include <errno.h>
--#define HOST_ADDRESS(x) (unsigned long)(x)
--
--#else /* default is for the FIST environment */
--#include <stdint.h>
--#include <stdbool.h>
--#include <stddef.h>
--#include <limits.h>
--#include <errno.h>
--#define HOST_ADDRESS(x) (unsigned long)(x)
--
--#endif
--
- #endif /* __TYPE_SUPPORT_H_INCLUDED__ */
--- 
-2.13.6
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: OK
+spec-git: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
