@@ -1,140 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:36390 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751720AbdJPPSm (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53215 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751624AbdJWSyz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Oct 2017 11:18:42 -0400
-Subject: Re: [PATCH v2 1/2] media: exynos-gsc: fix lockdep warning
-To: Shuah Khan <shuahkh@osg.samsung.com>, mchehab@kernel.org,
-        hansverk@cisco.com, kgene@kernel.org, krzk@kernel.org,
-        s.nawrocki@samsung.com, shailendra.v@samsung.com, shuah@kernel.org,
-        Julia.Lawall@lip6.fr, kyungmin.park@samsung.com, kamil@wypas.org,
-        jtp.park@samsung.com, a.hajda@samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org
-References: <cover.1507935819.git.shuahkh@osg.samsung.com>
- <f1de8d306e45127bdcb53b4ee53a7d5dc3c5c95b.1507935819.git.shuahkh@osg.samsung.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5362d81f-80c1-e806-51c2-a818a941518a@xs4all.nl>
-Date: Mon, 16 Oct 2017 17:18:33 +0200
+        Mon, 23 Oct 2017 14:54:55 -0400
+Date: Mon, 23 Oct 2017 20:54:49 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: Camera support, Prague next week, sdlcam
+Message-ID: <20171023185414.GA2258@amd>
+References: <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+ <20170419105118.72b8e284@vento.lan>
+ <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+ <20170426105300.GA857@amd>
+ <20170426082608.7dd52fbf@vento.lan>
+ <20171021220026.GA26881@amd>
+ <f85cab54-30cf-0774-7376-abced86842af@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <f1de8d306e45127bdcb53b4ee53a7d5dc3c5c95b.1507935819.git.shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="+pHx0qQiF2pBVqBT"
+Content-Disposition: inline
+In-Reply-To: <f85cab54-30cf-0774-7376-abced86842af@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/16/2017 05:16 PM, Shuah Khan wrote:
-> The driver mmap functions shouldn't take lock when calling vb2_mmap().
-> Fix it to not take the lock.
-> 
-> Reference: commit log for f035eb4e976ef5a059e30bc91cfd310ff030a7d3
-> and e752577ed7bf55c81e10343fced8b378cda2b63b
-> 
-> The following lockdep warning is fixed with this change.
-> 
-> [ 1990.972058] ======================================================
-> [ 1990.978172] WARNING: possible circular locking dependency detected
-> [ 1990.984327] 4.14.0-rc2-00002-gfab205f-dirty #4 Not tainted
-> [ 1990.989783] ------------------------------------------------------
-> [ 1990.995937] qtdemux0:sink/2765 is trying to acquire lock:
-> [ 1991.001309]  (&gsc->lock){+.+.}, at: [<bf1729f0>] gsc_m2m_mmap+0x24/0x5c [exynos_gsc]
-> [ 1991.009108]
->                but task is already holding lock:
-> [ 1991.014913]  (&mm->mmap_sem){++++}, at: [<c01df2e4>] vm_mmap_pgoff+0x44/0xb8
-> [ 1991.021932]
->                which lock already depends on the new lock.
-> 
-> [ 1991.030078]
->                the existing dependency chain (in reverse order) is:
-> [ 1991.037530]
->                -> #1 (&mm->mmap_sem){++++}:
-> [ 1991.042913]        __might_fault+0x80/0xb0
-> [ 1991.047096]        video_usercopy+0x1cc/0x510 [videodev]
-> [ 1991.052297]        v4l2_ioctl+0xa4/0xdc [videodev]
-> [ 1991.057036]        do_vfs_ioctl+0xa0/0xa18
-> [ 1991.061102]        SyS_ioctl+0x34/0x5c
-> [ 1991.064834]        ret_fast_syscall+0x0/0x28
-> [ 1991.069072]
->                -> #0 (&gsc->lock){+.+.}:
-> [ 1991.074193]        lock_acquire+0x6c/0x88
-> [ 1991.078179]        __mutex_lock+0x68/0xa34
-> [ 1991.082247]        mutex_lock_interruptible_nested+0x1c/0x24
-> [ 1991.087888]        gsc_m2m_mmap+0x24/0x5c [exynos_gsc]
-> [ 1991.093029]        v4l2_mmap+0x54/0x88 [videodev]
-> [ 1991.097673]        mmap_region+0x3a8/0x638
-> [ 1991.101743]        do_mmap+0x330/0x3a4
-> [ 1991.105470]        vm_mmap_pgoff+0x90/0xb8
-> [ 1991.109542]        SyS_mmap_pgoff+0x90/0xc0
-> [ 1991.113702]        ret_fast_syscall+0x0/0x28
-> [ 1991.117945]
->                other info that might help us debug this:
-> 
-> [ 1991.125918]  Possible unsafe locking scenario:
-> 
-> [ 1991.131810]        CPU0                    CPU1
-> [ 1991.136315]        ----                    ----
-> [ 1991.140821]   lock(&mm->mmap_sem);
-> [ 1991.144201]                                lock(&gsc->lock);
-> [ 1991.149833]                                lock(&mm->mmap_sem);
-> [ 1991.155725]   lock(&gsc->lock);
-> [ 1991.158845]
->                 *** DEADLOCK ***
-> 
-> [ 1991.164740] 1 lock held by qtdemux0:sink/2765:
-> [ 1991.169157]  #0:  (&mm->mmap_sem){++++}, at: [<c01df2e4>] vm_mmap_pgoff+0x44/0xb8
-> [ 1991.176609]
->                stack backtrace:
-> [ 1991.180946] CPU: 2 PID: 2765 Comm: qtdemux0:sink Not tainted 4.14.0-rc2-00002-gfab205f-dirty #4
-> [ 1991.189608] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
-> [ 1991.195686] [<c01102c8>] (unwind_backtrace) from [<c010cabc>] (show_stack+0x10/0x14)
-> [ 1991.203393] [<c010cabc>] (show_stack) from [<c08543a4>] (dump_stack+0x98/0xc4)
-> [ 1991.210586] [<c08543a4>] (dump_stack) from [<c016b2fc>] (print_circular_bug+0x254/0x410)
-> [ 1991.218644] [<c016b2fc>] (print_circular_bug) from [<c016c580>] (check_prev_add+0x468/0x938)
-> [ 1991.227049] [<c016c580>] (check_prev_add) from [<c016f4dc>] (__lock_acquire+0x1314/0x14fc)
-> [ 1991.235281] [<c016f4dc>] (__lock_acquire) from [<c016fefc>] (lock_acquire+0x6c/0x88)
-> [ 1991.242993] [<c016fefc>] (lock_acquire) from [<c0869fb4>] (__mutex_lock+0x68/0xa34)
-> [ 1991.250620] [<c0869fb4>] (__mutex_lock) from [<c086aa08>] (mutex_lock_interruptible_nested+0x1c/0x24)
-> [ 1991.259812] [<c086aa08>] (mutex_lock_interruptible_nested) from [<bf1729f0>] (gsc_m2m_mmap+0x24/0x5c [exynos_gsc])
-> [ 1991.270159] [<bf1729f0>] (gsc_m2m_mmap [exynos_gsc]) from [<bf037120>] (v4l2_mmap+0x54/0x88 [videodev])
-> [ 1991.279510] [<bf037120>] (v4l2_mmap [videodev]) from [<c01f4798>] (mmap_region+0x3a8/0x638)
-> [ 1991.287792] [<c01f4798>] (mmap_region) from [<c01f4d58>] (do_mmap+0x330/0x3a4)
-> [ 1991.294986] [<c01f4d58>] (do_mmap) from [<c01df330>] (vm_mmap_pgoff+0x90/0xb8)
-> [ 1991.302178] [<c01df330>] (vm_mmap_pgoff) from [<c01f28cc>] (SyS_mmap_pgoff+0x90/0xc0)
-> [ 1991.309977] [<c01f28cc>] (SyS_mmap_pgoff) from [<c0108820>] (ret_fast_syscall+0x0/0x28)
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> Suggested-by: Hans Verkuil <hansverk@cisco.com>
-> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Acked-by: Hans Verkuil <hansverk@cisco.com>
+--+pHx0qQiF2pBVqBT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+Hi!
 
-	Hans
+> > I'll talk about the issues at ELCE in few days:
+> >=20
+> > https://osseu17.sched.com/event/ByYH/cheap-complex-cameras-pavel-machek=
+-denx-software-engineering-gmbh
+> >=20
+> > Will someone else be there? Is there some place where v4l people meet?
+>=20
+> Why don't we discuss this Tuesday morning at 9am? I have no interest in t=
+he
+> keynotes on that day, so those who are interested can get together.
 
-> ---
->  drivers/media/platform/exynos-gsc/gsc-m2m.c | 5 -----
->  1 file changed, 5 deletions(-)
-> 
-> diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-> index 2a2994e..722d7c4 100644
-> --- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-> +++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-> @@ -726,14 +726,9 @@ static unsigned int gsc_m2m_poll(struct file *file,
->  static int gsc_m2m_mmap(struct file *file, struct vm_area_struct *vma)
->  {
->  	struct gsc_ctx *ctx = fh_to_ctx(file->private_data);
-> -	struct gsc_dev *gsc = ctx->gsc_dev;
->  	int ret;
->  
-> -	if (mutex_lock_interruptible(&gsc->lock))
-> -		return -ERESTARTSYS;
-> -
->  	ret = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-> -	mutex_unlock(&gsc->lock);
->  
->  	return ret;
->  }
-> 
+Ok, what about 9:30am? The place near the elevators where we were
+talking last time?
+
+And.... sorry for late reply.
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--+pHx0qQiF2pBVqBT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlnuOvkACgkQMOfwapXb+vIGLgCeKHHLFvFIGYpbpERo8PMAGLG9
+G1kAoIuw9ylB3GQBp5y782q1k/HmX8Hh
+=0VAO
+-----END PGP SIGNATURE-----
+
+--+pHx0qQiF2pBVqBT--
