@@ -1,45 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f51.google.com ([74.125.83.51]:47854 "EHLO
-        mail-pg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753831AbdJSOXB (ORCPT
+Received: from mail-qk0-f176.google.com ([209.85.220.176]:53559 "EHLO
+        mail-qk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932141AbdJWNMU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Oct 2017 10:23:01 -0400
+        Mon, 23 Oct 2017 09:12:20 -0400
+Received: by mail-qk0-f176.google.com with SMTP id y23so21819574qkb.10
+        for <linux-media@vger.kernel.org>; Mon, 23 Oct 2017 06:12:20 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1546677.fKvj0pB9W9@avalon>
-References: <1507824214-17744-1-git-send-email-akinobu.mita@gmail.com> <1546677.fKvj0pB9W9@avalon>
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Thu, 19 Oct 2017 23:22:39 +0900
-Message-ID: <CAC5umyhkqORobZ779eWTA4ynZ3fdchTLO8zg5Q92Bfi5ppJ+aA@mail.gmail.com>
-Subject: Re: [PATCH] dt-bindings: media: xilinx: fix typo in example
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
-        linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Hyun Kwon <hyun.kwon@xilinx.com>
+In-Reply-To: <20171023093724.4cgcwbjpeygfb4so@gofer.mess.org>
+References: <5f441db1-93eb-2a9f-25ce-022cdcfadfc1@kaa.org.ua> <20171023093724.4cgcwbjpeygfb4so@gofer.mess.org>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Mon, 23 Oct 2017 09:12:18 -0400
+Message-ID: <CAGoCfix8JxMTuz2ynV=NsHG9jtSqLDr0Wwcchw4Dbd0k5z0p+Q@mail.gmail.com>
+Subject: Re: cx231xx IR remote control protocol
+To: Sean Young <sean@mess.org>
+Cc: Oleh Kravchenko <oleg@kaa.org.ua>,
+        linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-10-19 1:08 GMT+09:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Akinobu,
->
-> Thank you for the patch.
->
-> On Thursday, 12 October 2017 19:03:34 EEST Akinobu Mita wrote:
->> Fix typo s/:/;/
->>
->> Cc: Rob Herring <robh+dt@kernel.org>
->> Cc: Hyun Kwon <hyun.kwon@xilinx.com>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
->
-> Good catch.
->
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->
-> Should I take this patch in my tree ?
+Hi Oleh,
 
-Yes, please do.
-Could you also take a look at another patch that I sent at the same time
-"media: xilinx-video: fix bad of_node_put() on endpoint error" ?
+On Mon, Oct 23, 2017 at 5:37 AM, Sean Young <sean@mess.org> wrote:
+> Hi Oleh,
+>
+> On Sun, Oct 22, 2017 at 05:01:05PM +0300, Oleh Kravchenko wrote:
+>> Hi,
+>>
+>> I'm trying add support remote control for tuners:
+>> - EvroMedia Full Hybrid Full HD
+>> - Astrometa T2hybrid
+>>
+>> But I'm stuck. Can anybody recognize this protocol?
+>
+
+Is there anything to indicate that there actually a separate IR
+receiver on the board?  Most cx231xx devices have an MCEUSB compliant
+IR RX/TX built into the chip, and thus they don't use a separate part.
+
+Also, IIRC, address 0x30 is the I2C address of the onboard analog
+frontend for the cx23102, and I suspect you're just reading the values
+out of the AFE.  I suspect you've grabbed a dump from the initial
+device plug-in, which would coincide with the initial register
+programming of the AFE.
+
+I suspect if you connect the device, let it device settle, *then*
+start the I2C capture and hit a key on the remote, you'll see traffic
+on a totally different endpoint which would be the IR traffic being
+sent back over the IR interface/endpoint.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
