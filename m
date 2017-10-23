@@ -1,62 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:38608 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754002AbdJIK3m (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 06:29:42 -0400
-Subject: Re: [PATCH] media: v4l2-tpg: use __u16 instead of int for struct
- tpg_rbg_color16
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-References: <a96b3f52121ef0e3446a4e33c8c34871ddabc319.1507544529.git.mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <a5ea1e04-afe6-c1be-f300-49256537f547@xs4all.nl>
-Date: Mon, 9 Oct 2017 12:29:39 +0200
+To: David Laight <David.Laight@ACULAB.COM>,
+        "'Petrosyan, Ludwig'" <ludwig.petrosyan@desy.de>
+Cc: "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
+ <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4@deltatee.com>
+ <1381807327.12461494.1508652825239.JavaMail.zimbra@desy.de>
+ <063D6719AE5E284EB5DD2968C1650D6DD00A04EA@AcuExch.aculab.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <d61b6829-0515-a809-2a43-c41add4b1594@deltatee.com>
+Date: Mon, 23 Oct 2017 16:04:26 -0600
 MIME-Version: 1.0
-In-Reply-To: <a96b3f52121ef0e3446a4e33c8c34871ddabc319.1507544529.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6DD00A04EA@AcuExch.aculab.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/10/17 12:23, Mauro Carvalho Chehab wrote:
-> Despite the struct says "color16", it was actually using 32 bits
-> for each color. Fix it.
-> 
-> Suggested-by: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks!
+On 23/10/17 10:08 AM, David Laight wrote:
+> It is also worth checking that the hardware actually supports p2p transfers.
+> Writes are more likely to be supported then reads.
+> ISTR that some intel cpus support some p2p writes, but there could easily
+> be errata against them.
 
-	Hans
+Ludwig mentioned a PCIe switch. The few switches I'm aware of support 
+P2P transfers. So if everything is setup correctly, the TLPs shouldn't 
+even touch the CPU.
 
-> ---
-> 
-> Should come after this patch series:
->     V4L2 kAPI cleanups and documentation improvements part 2
-> 
-> 
->  include/media/tpg/v4l2-tpg.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/include/media/tpg/v4l2-tpg.h b/include/media/tpg/v4l2-tpg.h
-> index bc0b38440719..823fadede7bf 100644
-> --- a/include/media/tpg/v4l2-tpg.h
-> +++ b/include/media/tpg/v4l2-tpg.h
-> @@ -32,7 +32,7 @@ struct tpg_rbg_color8 {
->  };
->  
->  struct tpg_rbg_color16 {
-> -	int r, g, b;
-> +	__u16 r, g, b;
->  };
->  
->  enum tpg_color {
-> 
+But, yes, generally it's a good idea to start with writes and see if 
+they work first.
+
+Logan
