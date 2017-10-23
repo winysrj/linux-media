@@ -1,102 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:38650 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751566AbdJDL6c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 07:58:32 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: [PATCH v3 01/17] docs: kernel-doc.rst: better describe kernel-doc arguments
-Date: Wed,  4 Oct 2017 08:48:39 -0300
-Message-Id: <1538e8507a0565ba81b1e0d41bb853e3abce0620.1507116877.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
-References: <cover.1507116877.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
-References: <cover.1507116877.git.mchehab@s-opensource.com>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:46030 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751280AbdJWRao (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Oct 2017 13:30:44 -0400
+Received: by mail-pg0-f67.google.com with SMTP id b192so12308113pga.2
+        for <linux-media@vger.kernel.org>; Mon, 23 Oct 2017 10:30:44 -0700 (PDT)
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH] media: ov9650: remove unnecessary terminated entry in menu items array
+Date: Tue, 24 Oct 2017 02:30:26 +0900
+Message-Id: <1508779826-12499-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new section to describe kernel-doc arguments,
-adding examples about how identation should happen, as failing
-to do that causes Sphinx to do the wrong thing.
+The test_pattern_menu[] array has two valid items and a null terminated
+item.  So the control's maximum value which is passed to
+v4l2_ctrl_new_std_menu_items() should be one.  However,
+'ARRAY_SIZE(test_pattern_menu) - 1' is actually passed and it's not
+correct.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Fix it by removing unnecessary terminated entry and let the correct
+control's maximum value be passed to v4l2_ctrl_new_std_menu_items().
+
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- Documentation/doc-guide/kernel-doc.rst | 44 +++++++++++++++++++++++++++++++---
- 1 file changed, 41 insertions(+), 3 deletions(-)
+ drivers/media/i2c/ov9650.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
-index b24854b5d6be..662755f830d5 100644
---- a/Documentation/doc-guide/kernel-doc.rst
-+++ b/Documentation/doc-guide/kernel-doc.rst
-@@ -112,16 +112,17 @@ Example kernel-doc function comment::
+diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+index 6ffb460..69433e1 100644
+--- a/drivers/media/i2c/ov9650.c
++++ b/drivers/media/i2c/ov9650.c
+@@ -985,7 +985,6 @@ static const struct v4l2_ctrl_ops ov965x_ctrl_ops = {
+ static const char * const test_pattern_menu[] = {
+ 	"Disabled",
+ 	"Color bars",
+-	NULL
+ };
  
-   /**
-    * foobar() - Brief description of foobar.
--   * @arg: Description of argument of foobar.
-+   * @argument1: Description of parameter argument1 of foobar.
-+   * @argument2: Description of parameter argument2 of foobar.
-    *
-    * Longer description of foobar.
-    *
-    * Return: Description of return value of foobar.
-    */
--  int foobar(int arg)
-+  int foobar(int argument1, char *argument2)
- 
- The format is similar for documentation for structures, enums, paragraphs,
--etc. See the sections below for details.
-+etc. See the sections below for specific details of each type.
- 
- The kernel-doc structure is extracted from the comments, and proper `Sphinx C
- Domain`_ function and type descriptions with anchors are generated for them. The
-@@ -130,6 +131,43 @@ cross-references. See below for details.
- 
- .. _Sphinx C Domain: http://www.sphinx-doc.org/en/stable/domains.html
- 
-+
-+Parameters and member arguments
-+-------------------------------
-+
-+The kernel-doc function comments describe each parameter to the function and
-+function typedefs or each member of struct/union, in order, with the
-+``@argument:`` descriptions. For each non-private member argument, one
-+``@argument`` definition is needed.
-+
-+The ``@argument:`` descriptions begin on the very next line following
-+the opening brief function description line, with no intervening blank
-+comment lines.
-+
-+The ``@argument:`` descriptions may span multiple lines.
-+
-+.. note::
-+
-+   If the ``@argument`` description has multiple lines, the continuation
-+   of the description should be starting exactly at the same column as
-+   the previous line, e. g.::
-+
-+      * @argument: some long description
-+      *       that continues on next lines
-+
-+   or::
-+
-+      * @argument:
-+      *		some long description
-+      *		that continues on next lines
-+
-+If a function or typedef parameter argument is ``...`` (e. g. a variable
-+number of arguments), its description should be listed in kernel-doc
-+notation as::
-+
-+      * @...: description
-+
-+
- Highlights and cross-references
- -------------------------------
- 
+ static int ov965x_initialize_controls(struct ov965x *ov965x)
 -- 
-2.13.6
+2.7.4
