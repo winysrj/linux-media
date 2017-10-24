@@ -1,746 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from f5out.microchip.com ([198.175.253.81]:51449 "EHLO
-        DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932446AbdJ0DaK (ORCPT
+Received: from mail-oi0-f44.google.com ([209.85.218.44]:47582 "EHLO
+        mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932408AbdJXLTU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Oct 2017 23:30:10 -0400
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: <linux-kernel@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        "Jonathan Corbet" <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH v5 5/5] media: atmel-isc: Rework the format list
-Date: Fri, 27 Oct 2017 11:21:32 +0800
-Message-ID: <20171027032132.16418-6-wenyou.yang@microchip.com>
-In-Reply-To: <20171027032132.16418-1-wenyou.yang@microchip.com>
-References: <20171027032132.16418-1-wenyou.yang@microchip.com>
+        Tue, 24 Oct 2017 07:19:20 -0400
+Received: by mail-oi0-f44.google.com with SMTP id h200so36125771oib.4
+        for <linux-media@vger.kernel.org>; Tue, 24 Oct 2017 04:19:20 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <c4ad7f4e-c838-aa44-5f0d-f8072ed41904@gentoo.org>
+References: <CAAeHK+zRfmghESqdKBqFw1CQnrkEkCxCLNgDQKzPqzZS=onEpg@mail.gmail.com>
+ <c4ad7f4e-c838-aa44-5f0d-f8072ed41904@gentoo.org>
+From: Andrey Konovalov <andreyknvl@google.com>
+Date: Tue, 24 Oct 2017 13:19:18 +0200
+Message-ID: <CAAeHK+xM8B3+3k0c7+r2YDu+8Mx-WX5KcxLGJr8aM0+Xbaw--Q@mail.gmail.com>
+Subject: Re: usb/media/dtt200u: use-after-free in __dvb_frontend_free
+To: Matthias Schwarzott <zzam@gentoo.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        syzkaller <syzkaller@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To improve the readability of code, split the format array into two,
-one for the format description, other for the register configuration.
-Meanwhile, add the flag member to indicate the format can be achieved
-from the sensor or be produced by the controller, and rename members
-related to the register configuration.
+On Mon, Oct 23, 2017 at 8:58 PM, Matthias Schwarzott <zzam@gentoo.org> wrote:
+> Am 23.10.2017 um 16:41 schrieb Andrey Konovalov:
+>> Hi!
+>>
+>> I've got the following report while fuzzing the kernel with syzkaller.
+>>
+>> On commit 3e0cc09a3a2c40ec1ffb6b4e12da86e98feccb11 (4.14-rc5+).
+>>
+>> dvb-usb: found a 'WideView WT-220U PenType Receiver (based on ZL353)'
+>> in warm state.
+>> dvb-usb: bulk message failed: -22 (2/1102416563)
+>> dvb-usb: will use the device's hardware PID filter (table count: 15).
+>> dvbdev: DVB: registering new adapter (WideView WT-220U PenType
+>> Receiver (based on ZL353))
+>> usb 1-1: media controller created
+>> dvbdev: dvb_create_media_entity: media entity 'dvb-demux' registered.
+>> usb 1-1: DVB: registering adapter 0 frontend 0 (WideView USB DVB-T)...
+>> dvbdev: dvb_create_media_entity: media entity 'WideView USB DVB-T' registered.
+>> Registered IR keymap rc-dtt200u
+>> rc rc1: IR-receiver inside an USB DVB receiver as
+>> /devices/platform/dummy_hcd.0/usb1/1-1/rc/rc1
+>> input: IR-receiver inside an USB DVB receiver as
+>> /devices/platform/dummy_hcd.0/usb1/1-1/rc/rc1/input9
+>> dvb-usb: schedule remote query interval to 300 msecs.
+>> dvb-usb: WideView WT-220U PenType Receiver (based on ZL353)
+>> successfully initialized and connected.
+>> dvb-usb: bulk message failed: -22 (1/1807119384)
+>> dvb-usb: error -22 while querying for an remote control event.
+>> dvb-usb: bulk message failed: -22 (1/1807119384)
+>> dvb-usb: error -22 while querying for an remote control event.
+>> dvb-usb: bulk message failed: -22 (1/1807119384)
+>> dvb-usb: error -22 while querying for an remote control event.
+>> dvb-usb: bulk message failed: -22 (1/1807119384)
+>> dvb-usb: error -22 while querying for an remote control event.
+>> dvb-usb: bulk message failed: -22 (1/1807119384)
+>> dvb-usb: error -22 while querying for an remote control event.
+>> dvb-usb: bulk message failed: -22 (1/1807119384)
+>> dvb-usb: error -22 while querying for an remote control event.
+>> usb 1-1: USB disconnect, device number 2
+>> ==================================================================
+>> BUG: KASAN: use-after-free in __dvb_frontend_free+0x113/0x120
+>> Write of size 8 at addr ffff880067d45a00 by task kworker/0:1/24
+>>
+>> CPU: 0 PID: 24 Comm: kworker/0:1 Not tainted 4.14.0-rc5-43687-g06ab8a23e0e6 #545
+>> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+>> Workqueue: usb_hub_wq hub_event
+>> Call Trace:
+>>  __dump_stack lib/dump_stack.c:16
+>>  dump_stack+0x292/0x395 lib/dump_stack.c:52
+>>  print_address_description+0x78/0x280 mm/kasan/report.c:252
+>>  kasan_report_error mm/kasan/report.c:351
+>>  kasan_report+0x23d/0x350 mm/kasan/report.c:409
+>>  __asan_report_store8_noabort+0x1c/0x20 mm/kasan/report.c:435
+>>  __dvb_frontend_free+0x113/0x120 drivers/media/dvb-core/dvb_frontend.c:156
+>>  dvb_frontend_put+0x59/0x70 drivers/media/dvb-core/dvb_frontend.c:176
+>>  dvb_frontend_detach+0x120/0x150 drivers/media/dvb-core/dvb_frontend.c:2803
+>>  dvb_usb_adapter_frontend_exit+0xd6/0x160
+>> drivers/media/usb/dvb-usb/dvb-usb-dvb.c:340
+>>  dvb_usb_adapter_exit drivers/media/usb/dvb-usb/dvb-usb-init.c:116
+>>  dvb_usb_exit+0x9b/0x200 drivers/media/usb/dvb-usb/dvb-usb-init.c:132
+>>  dvb_usb_device_exit+0xa5/0xf0 drivers/media/usb/dvb-usb/dvb-usb-init.c:295
+>>  usb_unbind_interface+0x21c/0xa90 drivers/usb/core/driver.c:423
+>>  __device_release_driver drivers/base/dd.c:861
+>>  device_release_driver_internal+0x4f1/0x5c0 drivers/base/dd.c:893
+>>  device_release_driver+0x1e/0x30 drivers/base/dd.c:918
+>>  bus_remove_device+0x2f4/0x4b0 drivers/base/bus.c:565
+>>  device_del+0x5c4/0xab0 drivers/base/core.c:1985
+>>  usb_disable_device+0x1e9/0x680 drivers/usb/core/message.c:1170
+>>  usb_disconnect+0x260/0x7a0 drivers/usb/core/hub.c:2124
+>>  hub_port_connect drivers/usb/core/hub.c:4754
+>>  hub_port_connect_change drivers/usb/core/hub.c:5009
+>>  port_event drivers/usb/core/hub.c:5115
+>>  hub_event+0x1318/0x3740 drivers/usb/core/hub.c:5195
+>>  process_one_work+0xc73/0x1d90 kernel/workqueue.c:2119
+>>  worker_thread+0x221/0x1850 kernel/workqueue.c:2253
+>>  kthread+0x363/0x440 kernel/kthread.c:231
+>>  ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+>>
+> It looks like this is caused by commit
+> ead666000a5fe34bdc82d61838e4df2d416ea15e ("media: dvb_frontend: only use
+> kref after initialized").
+>
+> The writing to "fe->frontend_priv" in dvb_frontend.c:156 is a
+> use-after-free in case the object dvb_frontend *fe is already freed by
+> the release callback called in line 153.
+> Only if the demod driver is based on new style i2c_client the memory is
+> still accessible.
+>
+> There are two possible solutions:
+> 1. Clear fe->frontend_priv earlier (before line 153).
+> 2. Do not clear fe->frontend_priv
+>
+> Can you try if the following patch (solution 1) fixes the issue?
 
-Also add more formats support: GREY, ARGB444, ARGB555 and ARGB32.
+Hi Matthias,
 
-Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
----
+Your patch fixes the issue.
 
-Changes in v5: None
-Changes in v4: None
-Changes in v3:
- - Add a new flag for Raw Bayer format to remove MAX_RAW_FMT_INDEX define.
- - Add the comments for define of the format flag.
- - Rebase media_tree/master.
+Thanks!
 
-Changes in v2:
- - Add the new patch to remove the unnecessary member from
-   isc_subdev_entity struct.
- - Rebase on the patch set,
-        [PATCH 0/6] [media] Atmel: Adjustments for seven function implementations
-        https://www.mail-archive.com/linux-media@vger.kernel.org/msg118342.html
+Tested-by: Andrey Konovalov <andreyknvl@google.com>
 
- drivers/media/platform/atmel/atmel-isc.c | 530 ++++++++++++++++++++++++-------
- 1 file changed, 411 insertions(+), 119 deletions(-)
-
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-index a99796f7eb03..9294ff0c7b83 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -89,34 +89,63 @@ struct isc_subdev_entity {
- 	struct list_head list;
- };
- 
-+/* Indicate the format is generated by the sensor */
-+#define FMT_FLAG_FROM_SENSOR		BIT(0)
-+/* Indicate the format is produced by ISC itself */
-+#define FMT_FLAG_FROM_CONTROLLER	BIT(1)
-+/* Indicate a Raw Bayer format */
-+#define FMT_FLAG_RAW_FORMAT		BIT(2)
-+
-+#define FMT_FLAG_RAW_FROM_SENSOR	(FMT_FLAG_FROM_SENSOR | \
-+					 FMT_FLAG_RAW_FORMAT)
-+
- /*
-  * struct isc_format - ISC media bus format information
-  * @fourcc:		Fourcc code for this format
-  * @mbus_code:		V4L2 media bus format code.
-+ * flags:		Indicate format from sensor or converted by controller
-  * @bpp:		Bits per pixel (when stored in memory)
-- * @reg_bps:		reg value for bits per sample
-  *			(when transferred over a bus)
-- * @pipeline:		pipeline switch
-  * @sd_support:		Subdev supports this format
-  * @isc_support:	ISC can convert raw format to this format
-  */
-+
- struct isc_format {
- 	u32	fourcc;
- 	u32	mbus_code;
-+	u32	flags;
- 	u8	bpp;
- 
--	u32	reg_bps;
--	u32	reg_bay_cfg;
--	u32	reg_rlp_mode;
--	u32	reg_dcfg_imode;
--	u32	reg_dctrl_dview;
--
--	u32	pipeline;
--
- 	bool	sd_support;
- 	bool	isc_support;
- };
- 
-+/* Pipeline bitmap */
-+#define WB_ENABLE	BIT(0)
-+#define CFA_ENABLE	BIT(1)
-+#define CC_ENABLE	BIT(2)
-+#define GAM_ENABLE	BIT(3)
-+#define GAM_BENABLE	BIT(4)
-+#define GAM_GENABLE	BIT(5)
-+#define GAM_RENABLE	BIT(6)
-+#define CSC_ENABLE	BIT(7)
-+#define CBC_ENABLE	BIT(8)
-+#define SUB422_ENABLE	BIT(9)
-+#define SUB420_ENABLE	BIT(10)
-+
-+#define GAM_ENABLES	(GAM_RENABLE | GAM_GENABLE | GAM_BENABLE | GAM_ENABLE)
-+
-+struct fmt_config {
-+	u32	fourcc;
-+
-+	u32	pfe_cfg0_bps;
-+	u32	cfa_baycfg;
-+	u32	rlp_cfg_mode;
-+	u32	dcfg_imode;
-+	u32	dctrl_dview;
-+
-+	u32	bits_pipeline;
-+};
- 
- #define HIST_ENTRIES		512
- #define HIST_BAYER		(ISC_HIS_CFG_MODE_B + 1)
-@@ -181,80 +210,320 @@ struct isc_device {
- 	struct list_head		subdev_entities;
- };
- 
--#define RAW_FMT_IND_START    0
--#define RAW_FMT_IND_END      11
--#define ISC_FMT_IND_START    12
--#define ISC_FMT_IND_END      14
--
--static struct isc_format isc_formats[] = {
--	{ V4L2_PIX_FMT_SBGGR8, MEDIA_BUS_FMT_SBGGR8_1X8, 8,
--	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT8,
--	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
--	{ V4L2_PIX_FMT_SGBRG8, MEDIA_BUS_FMT_SGBRG8_1X8, 8,
--	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_GBGB, ISC_RLP_CFG_MODE_DAT8,
--	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
--	{ V4L2_PIX_FMT_SGRBG8, MEDIA_BUS_FMT_SGRBG8_1X8, 8,
--	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_GRGR, ISC_RLP_CFG_MODE_DAT8,
--	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
--	{ V4L2_PIX_FMT_SRGGB8, MEDIA_BUS_FMT_SRGGB8_1X8, 8,
--	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_RGRG, ISC_RLP_CFG_MODE_DAT8,
--	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
--
--	{ V4L2_PIX_FMT_SBGGR10, MEDIA_BUS_FMT_SBGGR10_1X10, 16,
--	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT10,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
--	{ V4L2_PIX_FMT_SGBRG10, MEDIA_BUS_FMT_SGBRG10_1X10, 16,
--	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_GBGB, ISC_RLP_CFG_MODE_DAT10,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
--	{ V4L2_PIX_FMT_SGRBG10, MEDIA_BUS_FMT_SGRBG10_1X10, 16,
--	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_GRGR, ISC_RLP_CFG_MODE_DAT10,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
--	{ V4L2_PIX_FMT_SRGGB10, MEDIA_BUS_FMT_SRGGB10_1X10, 16,
--	  ISC_PFG_CFG0_BPS_TEN, ISC_BAY_CFG_RGRG, ISC_RLP_CFG_MODE_DAT10,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
--
--	{ V4L2_PIX_FMT_SBGGR12, MEDIA_BUS_FMT_SBGGR12_1X12, 16,
--	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT12,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
--	{ V4L2_PIX_FMT_SGBRG12, MEDIA_BUS_FMT_SGBRG12_1X12, 16,
--	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_GBGB, ISC_RLP_CFG_MODE_DAT12,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
--	{ V4L2_PIX_FMT_SGRBG12, MEDIA_BUS_FMT_SGRBG12_1X12, 16,
--	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_GRGR, ISC_RLP_CFG_MODE_DAT12,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
--	{ V4L2_PIX_FMT_SRGGB12, MEDIA_BUS_FMT_SRGGB12_1X12, 16,
--	  ISC_PFG_CFG0_BPS_TWELVE, ISC_BAY_CFG_RGRG, ISC_RLP_CFG_MODE_DAT12,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
--
--	{ V4L2_PIX_FMT_YUV420, 0x0, 12,
--	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_YYCC,
--	  ISC_DCFG_IMODE_YC420P, ISC_DCTRL_DVIEW_PLANAR, 0x7fb,
--	  false, false },
--	{ V4L2_PIX_FMT_YUV422P, 0x0, 16,
--	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_YYCC,
--	  ISC_DCFG_IMODE_YC422P, ISC_DCTRL_DVIEW_PLANAR, 0x3fb,
--	  false, false },
--	{ V4L2_PIX_FMT_RGB565, MEDIA_BUS_FMT_RGB565_2X8_LE, 16,
--	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_RGB565,
--	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, 0x7b,
--	  false, false },
--
--	{ V4L2_PIX_FMT_YUYV, MEDIA_BUS_FMT_YUYV8_2X8, 16,
--	  ISC_PFE_CFG0_BPS_EIGHT, ISC_BAY_CFG_BGBG, ISC_RLP_CFG_MODE_DAT8,
--	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, 0x0,
--	  false, false },
-+static struct isc_format formats_list[] = {
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SBGGR8,
-+		.mbus_code	= MEDIA_BUS_FMT_SBGGR8_1X8,
-+		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
-+		.bpp		= 8,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SGBRG8,
-+		.mbus_code	= MEDIA_BUS_FMT_SGBRG8_1X8,
-+		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
-+		.bpp		= 8,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SGRBG8,
-+		.mbus_code	= MEDIA_BUS_FMT_SGRBG8_1X8,
-+		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
-+		.bpp		= 8,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SRGGB8,
-+		.mbus_code	= MEDIA_BUS_FMT_SRGGB8_1X8,
-+		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
-+		.bpp		= 8,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SBGGR10,
-+		.mbus_code	= MEDIA_BUS_FMT_SBGGR10_1X10,
-+		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
-+		.bpp		= 16,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SGBRG10,
-+		.mbus_code	= MEDIA_BUS_FMT_SGBRG10_1X10,
-+		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
-+		.bpp		= 16,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SGRBG10,
-+		.mbus_code	= MEDIA_BUS_FMT_SGRBG10_1X10,
-+		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
-+		.bpp		= 16,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SRGGB10,
-+		.mbus_code	= MEDIA_BUS_FMT_SRGGB10_1X10,
-+		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
-+		.bpp		= 16,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SBGGR12,
-+		.mbus_code	= MEDIA_BUS_FMT_SBGGR12_1X12,
-+		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
-+		.bpp		= 16,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SGBRG12,
-+		.mbus_code	= MEDIA_BUS_FMT_SGBRG12_1X12,
-+		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
-+		.bpp		= 16,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SGRBG12,
-+		.mbus_code	= MEDIA_BUS_FMT_SGRBG12_1X12,
-+		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
-+		.bpp		= 16,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SRGGB12,
-+		.mbus_code	= MEDIA_BUS_FMT_SRGGB12_1X12,
-+		.flags		= FMT_FLAG_RAW_FROM_SENSOR,
-+		.bpp		= 16,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_YUV420,
-+		.mbus_code	= 0x0,
-+		.flags		= FMT_FLAG_FROM_CONTROLLER,
-+		.bpp		= 12,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_YUV422P,
-+		.mbus_code	= 0x0,
-+		.flags		= FMT_FLAG_FROM_CONTROLLER,
-+		.bpp		= 16,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_GREY,
-+		.mbus_code	= MEDIA_BUS_FMT_Y8_1X8,
-+		.flags		= FMT_FLAG_FROM_CONTROLLER |
-+				  FMT_FLAG_FROM_SENSOR,
-+		.bpp		= 8,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_ARGB444,
-+		.mbus_code	= MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE,
-+		.flags		= FMT_FLAG_FROM_CONTROLLER,
-+		.bpp		= 16,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_ARGB555,
-+		.mbus_code	= MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE,
-+		.flags		= FMT_FLAG_FROM_CONTROLLER,
-+		.bpp		= 16,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_RGB565,
-+		.mbus_code	= MEDIA_BUS_FMT_RGB565_2X8_LE,
-+		.flags		= FMT_FLAG_FROM_CONTROLLER,
-+		.bpp		= 16,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_ARGB32,
-+		.mbus_code	= MEDIA_BUS_FMT_ARGB8888_1X32,
-+		.flags		= FMT_FLAG_FROM_CONTROLLER,
-+		.bpp		= 32,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_YUYV,
-+		.mbus_code	= MEDIA_BUS_FMT_YUYV8_2X8,
-+		.flags		= FMT_FLAG_FROM_CONTROLLER |
-+				  FMT_FLAG_FROM_SENSOR,
-+		.bpp		= 16,
-+	},
-+};
-+
-+struct fmt_config fmt_configs_list[] = {
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SBGGR8,
-+		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
-+		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT8,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED8,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= 0x0,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SGBRG8,
-+		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
-+		.cfa_baycfg	= ISC_BAY_CFG_GBGB,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT8,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED8,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= 0x0,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SGRBG8,
-+		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
-+		.cfa_baycfg	= ISC_BAY_CFG_GRGR,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT8,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED8,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= 0x0,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SRGGB8,
-+		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
-+		.cfa_baycfg	= ISC_BAY_CFG_RGRG,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT8,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED8,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= 0x0,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SBGGR10,
-+		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TEN,
-+		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT10,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= 0x0,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SGBRG10,
-+		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TEN,
-+		.cfa_baycfg	= ISC_BAY_CFG_GBGB,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT10,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= 0x0,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SGRBG10,
-+		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TEN,
-+		.cfa_baycfg	= ISC_BAY_CFG_GRGR,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT10,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= 0x0,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SRGGB10,
-+		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TEN,
-+		.cfa_baycfg	= ISC_BAY_CFG_RGRG,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT10,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= 0x0,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SBGGR12,
-+		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TWELVE,
-+		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT12,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= 0x0,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SGBRG12,
-+		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TWELVE,
-+		.cfa_baycfg	= ISC_BAY_CFG_GBGB,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT12,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= 0x0
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SGRBG12,
-+		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TWELVE,
-+		.cfa_baycfg	= ISC_BAY_CFG_GRGR,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT12,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= 0x0,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_SRGGB12,
-+		.pfe_cfg0_bps	= ISC_PFG_CFG0_BPS_TWELVE,
-+		.cfa_baycfg	= ISC_BAY_CFG_RGRG,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT12,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= 0x0,
-+	},
-+	{
-+		.fourcc = V4L2_PIX_FMT_YUV420,
-+		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
-+		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_YYCC,
-+		.dcfg_imode	= ISC_DCFG_IMODE_YC420P,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PLANAR,
-+		.bits_pipeline	= SUB420_ENABLE | SUB422_ENABLE |
-+				  CBC_ENABLE | CSC_ENABLE |
-+				  GAM_ENABLES |
-+				  CFA_ENABLE | WB_ENABLE,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_YUV422P,
-+		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
-+		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_YYCC,
-+		.dcfg_imode	= ISC_DCFG_IMODE_YC422P,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PLANAR,
-+		.bits_pipeline	= SUB422_ENABLE |
-+				  CBC_ENABLE | CSC_ENABLE |
-+				  GAM_ENABLES |
-+				  CFA_ENABLE | WB_ENABLE,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_GREY,
-+		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
-+		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DATY8,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED8,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= CBC_ENABLE | CSC_ENABLE |
-+				  GAM_ENABLES |
-+				  CFA_ENABLE | WB_ENABLE,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_ARGB444,
-+		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
-+		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_ARGB444,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= GAM_ENABLES | CFA_ENABLE | WB_ENABLE,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_ARGB555,
-+		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
-+		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_ARGB555,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= GAM_ENABLES | CFA_ENABLE | WB_ENABLE,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_RGB565,
-+		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
-+		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_RGB565,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED16,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= GAM_ENABLES | CFA_ENABLE | WB_ENABLE,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_ARGB32,
-+		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
-+		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_ARGB32,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED32,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= GAM_ENABLES | CFA_ENABLE | WB_ENABLE,
-+	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_YUYV,
-+		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
-+		.cfa_baycfg	= ISC_BAY_CFG_BGBG,
-+		.rlp_cfg_mode	= ISC_RLP_CFG_MODE_DAT8,
-+		.dcfg_imode	= ISC_DCFG_IMODE_PACKED8,
-+		.dctrl_dview	= ISC_DCTRL_DVIEW_PACKED,
-+		.bits_pipeline	= 0x0
-+	},
- };
- 
- #define GAMMA_MAX	2
-@@ -633,11 +902,27 @@ static inline bool sensor_is_preferred(const struct isc_format *isc_fmt)
- 		!isc_fmt->isc_support;
- }
- 
-+static struct fmt_config *get_fmt_config(u32 fourcc)
-+{
-+	struct fmt_config *config;
-+	int i;
-+
-+	config = &fmt_configs_list[0];
-+	for (i = 0; i < ARRAY_SIZE(fmt_configs_list); i++) {
-+		if (config->fourcc == fourcc)
-+			return config;
-+
-+		config++;
-+	}
-+	return NULL;
-+}
-+
- static void isc_start_dma(struct isc_device *isc)
- {
- 	struct regmap *regmap = isc->regmap;
- 	struct v4l2_pix_format *pixfmt = &isc->fmt.fmt.pix;
- 	u32 sizeimage = pixfmt->sizeimage;
-+	struct fmt_config *config = get_fmt_config(isc->current_fmt->fourcc);
- 	u32 dctrl_dview;
- 	dma_addr_t addr0;
- 
-@@ -660,7 +945,7 @@ static void isc_start_dma(struct isc_device *isc)
- 	if (sensor_is_preferred(isc->current_fmt))
- 		dctrl_dview = ISC_DCTRL_DVIEW_PACKED;
- 	else
--		dctrl_dview = isc->current_fmt->reg_dctrl_dview;
-+		dctrl_dview = config->dctrl_dview;
- 
- 	regmap_write(regmap, ISC_DCTRL, dctrl_dview | ISC_DCTRL_IE_IS);
- 	regmap_write(regmap, ISC_CTRLEN, ISC_CTRL_CAPTURE);
-@@ -670,6 +955,7 @@ static void isc_set_pipeline(struct isc_device *isc, u32 pipeline)
- {
- 	struct regmap *regmap = isc->regmap;
- 	struct isc_ctrls *ctrls = &isc->ctrls;
-+	struct fmt_config *config = get_fmt_config(isc->raw_fmt->fourcc);
- 	u32 val, bay_cfg;
- 	const u32 *gamma;
- 	unsigned int i;
-@@ -683,7 +969,7 @@ static void isc_set_pipeline(struct isc_device *isc, u32 pipeline)
- 	if (!pipeline)
- 		return;
- 
--	bay_cfg = isc->raw_fmt->reg_bay_cfg;
-+	bay_cfg = config->cfa_baycfg;
- 
- 	regmap_write(regmap, ISC_WB_CFG, bay_cfg);
- 	regmap_write(regmap, ISC_WB_O_RGR, 0x0);
-@@ -736,11 +1022,13 @@ static void isc_set_histogram(struct isc_device *isc)
- {
- 	struct regmap *regmap = isc->regmap;
- 	struct isc_ctrls *ctrls = &isc->ctrls;
-+	struct fmt_config *config = get_fmt_config(isc->raw_fmt->fourcc);
- 
- 	if (ctrls->awb && (ctrls->hist_stat != HIST_ENABLED)) {
--		regmap_write(regmap, ISC_HIS_CFG, ISC_HIS_CFG_MODE_R |
--		      (isc->raw_fmt->reg_bay_cfg << ISC_HIS_CFG_BAYSEL_SHIFT) |
--		      ISC_HIS_CFG_RAR);
-+		regmap_write(regmap, ISC_HIS_CFG,
-+			     ISC_HIS_CFG_MODE_R |
-+			     (config->cfa_baycfg << ISC_HIS_CFG_BAYSEL_SHIFT) |
-+			     ISC_HIS_CFG_RAR);
- 		regmap_write(regmap, ISC_HIS_CTRL, ISC_HIS_CTRL_EN);
- 		regmap_write(regmap, ISC_INTEN, ISC_INT_HISDONE);
- 		ctrls->hist_id = ISC_HIS_CFG_MODE_R;
-@@ -757,8 +1045,10 @@ static void isc_set_histogram(struct isc_device *isc)
- }
- 
- static inline void isc_get_param(const struct isc_format *fmt,
--				  u32 *rlp_mode, u32 *dcfg)
-+				 u32 *rlp_mode, u32 *dcfg)
- {
-+	struct fmt_config *config = get_fmt_config(fmt->fourcc);
-+
- 	*dcfg = ISC_DCFG_YMBSIZE_BEATS8;
- 
- 	switch (fmt->fourcc) {
-@@ -770,8 +1060,8 @@ static inline void isc_get_param(const struct isc_format *fmt,
- 	case V4L2_PIX_FMT_SGBRG12:
- 	case V4L2_PIX_FMT_SGRBG12:
- 	case V4L2_PIX_FMT_SRGGB12:
--		*rlp_mode = fmt->reg_rlp_mode;
--		*dcfg |= fmt->reg_dcfg_imode;
-+		*rlp_mode = config->rlp_cfg_mode;
-+		*dcfg |= config->dcfg_imode;
- 		break;
- 	default:
- 		*rlp_mode = ISC_RLP_CFG_MODE_DAT8;
-@@ -784,20 +1074,22 @@ static int isc_configure(struct isc_device *isc)
- {
- 	struct regmap *regmap = isc->regmap;
- 	const struct isc_format *current_fmt = isc->current_fmt;
-+	struct fmt_config *curfmt_config = get_fmt_config(current_fmt->fourcc);
-+	struct fmt_config *rawfmt_config = get_fmt_config(isc->raw_fmt->fourcc);
- 	struct isc_subdev_entity *subdev = isc->current_subdev;
- 	u32 pfe_cfg0, rlp_mode, dcfg, mask, pipeline;
- 
- 	if (sensor_is_preferred(current_fmt)) {
--		pfe_cfg0 = current_fmt->reg_bps;
-+		pfe_cfg0 = curfmt_config->pfe_cfg0_bps;
- 		pipeline = 0x0;
- 		isc_get_param(current_fmt, &rlp_mode, &dcfg);
- 		isc->ctrls.hist_stat = HIST_INIT;
- 	} else {
--		pfe_cfg0  = isc->raw_fmt->reg_bps;
--		pipeline = current_fmt->pipeline;
--		rlp_mode = current_fmt->reg_rlp_mode;
--		dcfg = current_fmt->reg_dcfg_imode | ISC_DCFG_YMBSIZE_BEATS8 |
--		       ISC_DCFG_CMBSIZE_BEATS8;
-+		pfe_cfg0 = rawfmt_config->pfe_cfg0_bps;
-+		pipeline = curfmt_config->bits_pipeline;
-+		rlp_mode = curfmt_config->rlp_cfg_mode;
-+		dcfg = curfmt_config->dcfg_imode |
-+		       ISC_DCFG_YMBSIZE_BEATS8 | ISC_DCFG_CMBSIZE_BEATS8;
- 	}
- 
- 	pfe_cfg0  |= subdev->pfe_cfg0 | ISC_PFE_CFG0_MODE_PROGRESSIVE;
-@@ -1382,6 +1674,7 @@ static void isc_awb_work(struct work_struct *w)
- 	struct isc_device *isc =
- 		container_of(w, struct isc_device, awb_work);
- 	struct regmap *regmap = isc->regmap;
-+	struct fmt_config *config = get_fmt_config(isc->raw_fmt->fourcc);
- 	struct isc_ctrls *ctrls = &isc->ctrls;
- 	u32 hist_id = ctrls->hist_id;
- 	u32 baysel;
-@@ -1399,7 +1692,7 @@ static void isc_awb_work(struct work_struct *w)
- 	}
- 
- 	ctrls->hist_id = hist_id;
--	baysel = isc->raw_fmt->reg_bay_cfg << ISC_HIS_CFG_BAYSEL_SHIFT;
-+	baysel = config->cfa_baycfg << ISC_HIS_CFG_BAYSEL_SHIFT;
- 
- 	pm_runtime_get_sync(isc->dev);
- 
-@@ -1500,10 +1793,10 @@ static void isc_async_unbind(struct v4l2_async_notifier *notifier,
- 
- static struct isc_format *find_format_by_code(unsigned int code, int *index)
- {
--	struct isc_format *fmt = &isc_formats[0];
-+	struct isc_format *fmt = &formats_list[0];
- 	unsigned int i;
- 
--	for (i = 0; i < ARRAY_SIZE(isc_formats); i++) {
-+	for (i = 0; i < ARRAY_SIZE(formats_list); i++) {
- 		if (fmt->mbus_code == code) {
- 			*index = i;
- 			return fmt;
-@@ -1520,37 +1813,36 @@ static int isc_formats_init(struct isc_device *isc)
- 	struct isc_format *fmt;
- 	struct v4l2_subdev *subdev = isc->current_subdev->sd;
- 	unsigned int num_fmts, i, j;
-+	u32 list_size = ARRAY_SIZE(formats_list);
- 	struct v4l2_subdev_mbus_code_enum mbus_code = {
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
- 	};
- 
--	fmt = &isc_formats[0];
--	for (i = 0; i < ARRAY_SIZE(isc_formats); i++) {
--		fmt->isc_support = false;
--		fmt->sd_support = false;
--
--		fmt++;
--	}
--
- 	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code,
- 	       NULL, &mbus_code)) {
- 		mbus_code.index++;
-+
- 		fmt = find_format_by_code(mbus_code.code, &i);
--		if (!fmt)
-+		if ((!fmt) || (!(fmt->flags & FMT_FLAG_FROM_SENSOR)))
- 			continue;
- 
- 		fmt->sd_support = true;
- 
--		if (i <= RAW_FMT_IND_END) {
--			for (j = ISC_FMT_IND_START; j <= ISC_FMT_IND_END; j++)
--				isc_formats[j].isc_support = true;
--
-+		if (fmt->flags & FMT_FLAG_RAW_FORMAT)
- 			isc->raw_fmt = fmt;
--		}
- 	}
- 
--	fmt = &isc_formats[0];
--	for (i = 0, num_fmts = 0; i < ARRAY_SIZE(isc_formats); i++) {
-+	fmt = &formats_list[0];
-+	for (i = 0; i < list_size; i++) {
-+		if (fmt->flags & FMT_FLAG_FROM_CONTROLLER)
-+			fmt->isc_support = true;
-+
-+		fmt++;
-+	}
-+
-+	fmt = &formats_list[0];
-+	num_fmts = 0;
-+	for (i = 0; i < list_size; i++) {
- 		if (fmt->isc_support || fmt->sd_support)
- 			num_fmts++;
- 
-@@ -1567,8 +1859,8 @@ static int isc_formats_init(struct isc_device *isc)
- 	if (!isc->user_formats)
- 		return -ENOMEM;
- 
--	fmt = &isc_formats[0];
--	for (i = 0, j = 0; i < ARRAY_SIZE(isc_formats); i++) {
-+	fmt = &formats_list[0];
-+	for (i = 0, j = 0; i < list_size; i++) {
- 		if (fmt->isc_support || fmt->sd_support)
- 			isc->user_formats[j++] = fmt;
- 
--- 
-2.13.0
+>
+> Regards
+> Matthias
+>
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c
+> b/drivers/media/dvb-core/dvb_frontend.c
+> index daaf969719e4..f552acdb7d8c 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> @@ -150,10 +150,11 @@ static void __dvb_frontend_free(struct
+> dvb_frontend *fe)
+>
+>         dvb_free_device(fepriv->dvbdev);
+>
+> +       fe->frontend_priv = NULL;
+> +
+>         dvb_frontend_invoke_release(fe, fe->ops.release);
+>
+>         kfree(fepriv);
+> -       fe->frontend_priv = NULL;
+>  }
+>
+>  static void dvb_frontend_free(struct kref *ref)
