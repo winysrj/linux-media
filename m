@@ -1,106 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34924 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752195AbdJMVJk (ORCPT
+Received: from a-painless.mh.aa.net.uk ([81.187.30.51]:34645 "EHLO
+        a-painless.mh.aa.net.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751280AbdJXUoe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 17:09:40 -0400
-Date: Sat, 14 Oct 2017 00:09:37 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Eric Anholt <eric@anholt.net>,
-        Stefan Wahren <stefan.wahren@i2se.com>,
-        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v3 1/4] [media] v4l2-common: Add helper function for
- fourcc to string
-Message-ID: <20171013210937.pzgmozz7elsb3yo5@valkosipuli.retiisi.org.uk>
-References: <cover.1505916622.git.dave.stevenson@raspberrypi.org>
- <e6dfbe4afd3f1db4c3f8a81c0813dc418896f5e1.1505916622.git.dave.stevenson@raspberrypi.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e6dfbe4afd3f1db4c3f8a81c0813dc418896f5e1.1505916622.git.dave.stevenson@raspberrypi.org>
+        Tue, 24 Oct 2017 16:44:34 -0400
+From: Adam Sampson <ats@offog.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Lubomir Rintel <lkundrak@v3.sk>, linux-media@vger.kernel.org,
+        Adam Sampson <ats@offog.org>
+Subject: [PATCH] media: usbtv: fix brightness and contrast controls
+Date: Tue, 24 Oct 2017 21:14:46 +0100
+Message-Id: <20171024201446.30021-1-ats@offog.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dave,
+Because the brightness and contrast controls share a register,
+usbtv_s_ctrl needs to read the existing values for both controls before
+inserting the new value. However, the code accidentally wrote to the
+registers (from an uninitialised stack array), rather than reading them.
 
-On Wed, Sep 20, 2017 at 05:07:54PM +0100, Dave Stevenson wrote:
-> New helper function char *v4l2_fourcc2s(u32 fourcc, char *buf)
-> that converts a fourcc into a nice printable version.
-> 
-> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
-> ---
-> 
-> No changes from v2 to v3
-> 
->  drivers/media/v4l2-core/v4l2-common.c | 18 ++++++++++++++++++
->  include/media/v4l2-common.h           |  3 +++
->  2 files changed, 21 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-> index a5ea1f5..0219895 100644
-> --- a/drivers/media/v4l2-core/v4l2-common.c
-> +++ b/drivers/media/v4l2-core/v4l2-common.c
-> @@ -405,3 +405,21 @@ void v4l2_get_timestamp(struct timeval *tv)
->  	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
->  }
->  EXPORT_SYMBOL_GPL(v4l2_get_timestamp);
-> +
-> +char *v4l2_fourcc2s(u32 fourcc, char *buf)
-> +{
-> +	buf[0] = fourcc & 0x7f;
-> +	buf[1] = (fourcc >> 8) & 0x7f;
-> +	buf[2] = (fourcc >> 16) & 0x7f;
-> +	buf[3] = (fourcc >> 24) & 0x7f;
-> +	if (fourcc & (1 << 31)) {
-> +		buf[4] = '-';
-> +		buf[5] = 'B';
-> +		buf[6] = 'E';
-> +		buf[7] = '\0';
-> +	} else {
-> +		buf[4] = '\0';
-> +	}
-> +	return buf;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_fourcc2s);
-> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> index aac8b7b..5b0fff9 100644
-> --- a/include/media/v4l2-common.h
-> +++ b/include/media/v4l2-common.h
-> @@ -264,4 +264,7 @@ const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
->  
->  void v4l2_get_timestamp(struct timeval *tv);
->  
-> +#define V4L2_FOURCC_MAX_SIZE 8
-> +char *v4l2_fourcc2s(u32 fourcc, char *buf);
-> +
->  #endif /* V4L2_COMMON_H_ */
+The user-visible effect of this was that adjusting the brightness would
+also set the contrast to a random value, and vice versa -- so it wasn't
+possible to correctly adjust the brightness of usbtv's video output.
 
-I like the idea but the use of a character pointer and assuming a length
-looks a bit scary.
+Tested with an "EasyDAY" UTV007 device.
 
-As this seems to be used uniquely for printing stuff, a couple of macros
-could be used instead. Something like
+Fixes: c53a846c48f2 ("usbtv: add video controls")
+Signed-off-by: Adam Sampson <ats@offog.org>
+---
+ drivers/media/usb/usbtv/usbtv-video.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-#define V4L2_FOURCC_CONV "%c%c%c%c%s"
-#define V4L2_FOURCC_TO_CONV(fourcc) \
-	fourcc & 0x7f, (fourcc >> 8) & 0x7f, (fourcc >> 16) & 0x7f, \
-	(fourcc >> 24) & 0x7f, fourcc & BIT(31) ? "-BE" : ""
-
-You could use it with printk-style functions, e.g.
-
-	printk("blah fourcc " V4L2_FOURCC_CONV " is a nice format",
-	       V4L2_FOURCC_TO_CONV(fourcc));
-
-I guess it'd be better to add more parentheses around "fourcc" but it'd be
-less clear here that way.
-
+diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
+index 95b5f43..3668a04 100644
+--- a/drivers/media/usb/usbtv/usbtv-video.c
++++ b/drivers/media/usb/usbtv/usbtv-video.c
+@@ -718,8 +718,8 @@ static int usbtv_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	 */
+ 	if (ctrl->id == V4L2_CID_BRIGHTNESS || ctrl->id == V4L2_CID_CONTRAST) {
+ 		ret = usb_control_msg(usbtv->udev,
+-			usb_sndctrlpipe(usbtv->udev, 0), USBTV_CONTROL_REG,
+-			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++			usb_rcvctrlpipe(usbtv->udev, 0), USBTV_CONTROL_REG,
++			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+ 			0, USBTV_BASE + 0x0244, (void *)data, 3, 0);
+ 		if (ret < 0)
+ 			goto error;
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.1.4
