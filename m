@@ -1,69 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:47937 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751824AbdJSJXT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Oct 2017 05:23:19 -0400
-Date: Thu, 19 Oct 2017 11:23:15 +0200
-From: Thierry Reding <thierry.reding@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv4 2/4] ARM: tegra: add CEC support to tegra124.dtsi
-Message-ID: <20171019092315.GE9005@ulmo>
-References: <20170911122952.33980-1-hverkuil@xs4all.nl>
- <20170911122952.33980-3-hverkuil@xs4all.nl>
+Received: from mga14.intel.com ([192.55.52.115]:57073 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751336AbdJXXOH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Oct 2017 19:14:07 -0400
+From: "Zhi, Yong" <yong.zhi@intel.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>,
+        "Vijaykumar, Ramya" <ramya.vijaykumar@intel.com>,
+        "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>
+Subject: RE: [PATCH v5 2/3] doc-rst: add IPU3 raw10 bayer pixel format
+ definitions
+Date: Tue, 24 Oct 2017 23:14:00 +0000
+Message-ID: <C193D76D23A22742993887E6D207B54D1AE2C5E8@ORSMSX106.amr.corp.intel.com>
+References: <1507333141-28242-1-git-send-email-yong.zhi@intel.com>
+ <1507333141-28242-3-git-send-email-yong.zhi@intel.com>
+ <20171010083239.7qjdkyee42fbileg@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20171010083239.7qjdkyee42fbileg@valkosipuli.retiisi.org.uk>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="4Epv4kl9IRBfg3rk"
-Content-Disposition: inline
-In-Reply-To: <20170911122952.33980-3-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi, Sakari,
 
---4Epv4kl9IRBfg3rk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks for the feedback.
 
-On Mon, Sep 11, 2017 at 02:29:50PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->=20
-> Add support for the Tegra CEC IP to tegra124.dtsi and enable it on the
-> Jetson TK1.
->=20
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  arch/arm/boot/dts/tegra124-jetson-tk1.dts |  4 ++++
->  arch/arm/boot/dts/tegra124.dtsi           | 12 +++++++++++-
->  2 files changed, 15 insertions(+), 1 deletion(-)
+> -----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
+> Sent: Tuesday, October 10, 2017 1:33 AM
+> To: Zhi, Yong <yong.zhi@intel.com>
+> Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com;
+> hans.verkuil@cisco.com; Zheng, Jian Xu <jian.xu.zheng@intel.com>;
+> tfiga@chromium.org; Mani, Rajmohan <rajmohan.mani@intel.com>;
+> Toivonen, Tuukka <tuukka.toivonen@intel.com>; Yang, Hyungwoo
+> <hyungwoo.yang@intel.com>; Vijaykumar, Ramya
+> <ramya.vijaykumar@intel.com>; Rapolu, Chiranjeevi
+> <chiranjeevi.rapolu@intel.com>
+> Subject: Re: [PATCH v5 2/3] doc-rst: add IPU3 raw10 bayer pixel format
+> definitions
+> 
+> Hi Yong,
+> 
+> On Fri, Oct 06, 2017 at 06:39:00PM -0500, Yong Zhi wrote:
+> > The formats added by this patch are:
+> >
+> >     V4L2_PIX_FMT_IPU3_SBGGR10
+> >     V4L2_PIX_FMT_IPU3_SGBRG10
+> >     V4L2_PIX_FMT_IPU3_SGRBG10
+> >     V4L2_PIX_FMT_IPU3_SRGGB10
+> >
+> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > Signed-off-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
+> > ---
+> >  Documentation/media/uapi/v4l/pixfmt-rgb.rst        |   1 +
+> >  .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         | 166
+> +++++++++++++++++++++
+> >  2 files changed, 167 insertions(+)
+> >  create mode 100644
+> > Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+> >
+> > diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+> > b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+> > index 4cc27195dc79..cf2ef7df9616 100644
+> > --- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+> > +++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+> > @@ -16,6 +16,7 @@ RGB Formats
+> >      pixfmt-srggb10p
+> >      pixfmt-srggb10alaw8
+> >      pixfmt-srggb10dpcm8
+> > +    pixfmt-srggb10-ipu3
+> >      pixfmt-srggb12
+> >      pixfmt-srggb12p
+> >      pixfmt-srggb16
+> > diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+> > b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+> > new file mode 100644
+> > index 000000000000..50292186a8b4
+> > --- /dev/null
+> > +++ b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+> > @@ -0,0 +1,166 @@
+> > +.. -*- coding: utf-8; mode: rst -*-
+> > +
+> > +.. _V4L2_PIX_FMT_IPU3_SBGGR10:
+> > +.. _V4L2_PIX_FMT_IPU3_SGBRG10:
+> > +.. _V4L2_PIX_FMT_IPU3_SGRBG10:
+> > +.. _V4L2_PIX_FMT_IPU3_SRGGB10:
+> > +
+> >
+> +***************************************************************
+> ******
+> >
+> +***************************************************************
+> ******
+> > +****
+> > +V4L2_PIX_FMT_IPU3_SBGGR10 ('ip3b'), V4L2_PIX_FMT_IPU3_SGBRG10
+> > +('ip3g'), V4L2_PIX_FMT_IPU3_SGRBG10 ('ip3G'),
+> > +V4L2_PIX_FMT_IPU3_SRGGB10 ('ip3r')
+> >
+> +***************************************************************
+> ******
+> >
+> +***************************************************************
+> ******
+> > +****
+> > +
+> > +10-bit Bayer formats
+> > +
+> > +Description
+> > +===========
+> > +
+> > +These four pixel formats are used by Intel IPU3 driver, they are raw
+> > +sRGB / Bayer formats with 10 bits per sample with every 25 pixels
+> > +packed to 32 bytes leaving 6 most significant bits padding in the last byte.
+> > +The format is little endian.
+> > +
+> > +In other respects this format is similar to :ref:`V4L2-PIX-FMT-SRGGB10`.
+> 
+> You could add:
+> 
+> Below is an example of a small image in V4L2_PIX_FMT_IPU3_SBGGR10
+> format.
+> 
 
-I prefer SoC and board changes to be split into separate patches. I've
-done that with this patch while applying.
+Ack.
 
-Thanks,
-Thierry
+> > +
+> > +**Byte Order.**
+> > +Each cell is one byte.
+> > +
+> > +.. raw:: latex
+> > +
+> > +    \newline\newline\begin{adjustbox}{width=\columnwidth}
+> > +
+> > +.. tabularcolumns::
+> >
+> +|p{1.3cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p
+> {
+> >
+> +10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{
+> 1
+> >
+> +0.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.
+> 0
+> >
+> +cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9
+> c
+> > +m}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|
+> 
+> The width of this table is over one metre. Could you use fewer columns in it,
+> say, four or eight?
+> 
 
---4Epv4kl9IRBfg3rk
-Content-Type: application/pgp-signature; name="signature.asc"
+Sure, will do four columns in next update.
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlnobwMACgkQ3SOs138+
-s6Hvkg/9E5EJQszegpVwxmrEQoSTR8EHfeMqz55S175h5g6oN3jxBP0cU4/hqyVV
-01Q4i3UFR17OY8OKMzcogE3K7sWUZ8BkWibJcst2quy7/tR8pl/LbrKb+yRmmV+h
-XEWuS8zcaErSspV10s5mgFkuadNwZ8y/mHhqXPB7StCwvgxqf3jy0hi59DOv2zeN
-kYneC70IEEIiNVS/ETGLVU+3Ov4mi7wt/5f4acd6z30oeuWbj0vkLLMImFBnKcy2
-tDtIh2jAWxk8O/E6uREQ3I6i8TiiBhvVHORf0xBexbLtyNL65ZnR1902iWZJly5u
-Aq9NQ1EdvYprogKz3QZd9I4wNn/nwi0NbffkW60oWXMGqKc0CbxFWiKxnMGp5D6b
-WVAUdjGFipsrxaMFoQm9PTcoXdqtF5a5iXv6zMuyTPAW/+SqiLShLWSYkDKe0w/O
-JyYN45gYV/E0G+ZobBFJkUBU5JwQZjh3EAvPFrI/+ZOhNm6/fKvPVlQpGrjGoq2K
-0YeVI2AA+umoTi08bIk5okUPskR+wJYveCFk9/H+Q1NjDTSqOITjNqrAMHl7rxdj
-UMEwwGE4E/QI/SNJRVfVWLjPKiHUicW4kZ/ih6pDw0gxhM373fdxKSBr35zSuKQz
-PQ1Fe+7CUMwkDbuWejXmyeruf1m3+nJB4TFgM0JiIA8sdczrS2U=
-=7DH/
------END PGP SIGNATURE-----
-
---4Epv4kl9IRBfg3rk--
+(snip)
+> 
+> --
+> Kind regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi
