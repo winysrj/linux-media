@@ -1,51 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33428 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751535AbdJFLvJ (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:35748 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933149AbdJXNLK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Oct 2017 07:51:09 -0400
-Date: Fri, 6 Oct 2017 14:51:06 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v7 1/7] media: add glossary.rst with a glossary of terms
- used at V4L2 spec
-Message-ID: <20171006115105.wqabs3cm34gdy3w5@valkosipuli.retiisi.org.uk>
-References: <cover.1506550930.git.mchehab@s-opensource.com>
- <047245414a82a6553361b1dd3497f796855a657d.1506550930.git.mchehab@s-opensource.com>
- <20171006102229.evjyn77udfcc76gs@valkosipuli.retiisi.org.uk>
+        Tue, 24 Oct 2017 09:11:10 -0400
+Subject: Re: [RFC v4 08/17] [media] vb2: add 'ordered_in_driver' property to
+ queues
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+References: <20171020215012.20646-1-gustavo@padovan.org>
+ <20171020215012.20646-9-gustavo@padovan.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <16d62242-60a6-8524-76c6-600dc786469f@xs4all.nl>
+Date: Tue, 24 Oct 2017 15:11:05 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171006102229.evjyn77udfcc76gs@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20171020215012.20646-9-gustavo@padovan.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 10/20/2017 11:50 PM, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> For explicit synchronization (and soon for HAL3/Request API) we need
+> the v4l2-driver to guarantee the ordering in which the buffers were queued
+> by userspace. This is already true for many drivers, but we never needed
+> to say it.
+> 
+> v2: rename property to 'ordered_in_driver' to avoid confusion
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  include/media/videobuf2-core.h | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 96af4eb49e52..6dd3f0181107 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -500,6 +500,11 @@ struct vb2_buf_ops {
+>   * @last_buffer_dequeued: used in poll() and DQBUF to immediately return if the
+>   *		last decoded buffer was already dequeued. Set for capture queues
+>   *		when a buffer with the V4L2_BUF_FLAG_LAST is dequeued.
+> + * @ordered_in_driver: if the driver can guarantee that the queue will be
+> + *		ordered or not, i.e., the buffers are queued to the driver in
+> + *		the same order they are dequeued from the driver. The default
 
-On Fri, Oct 06, 2017 at 01:22:29PM +0300, Sakari Ailus wrote:
-> > +    V4L2 device node
-> > +	A device node that is associated to a V4L2 main driver,
-> > +	as specified in :ref:`v4l2_device_naming`.
+I'd swap the words 'queued' and 'dequeued'. It's more logical that way.
 
-I think we need to name the interface, not so much their instances.
+Regards,
 
-How about adding:
+	Hans
 
-    V4L2
-	Video4Linux 2 interface. The interface implemented by **V4L2 device
-	nodes**.
-
-and:
-
-    V4L2 device node
-	A device node implementing the **V4L2** interface.
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+> + *		is not ordered unless the driver sets this flag. As of now it
+> + *		is mandatory for using explicit fences.
+>   * @fileio:	file io emulator internal data, used only if emulator is active
+>   * @threadio:	thread io internal data, used only if thread is active
+>   */
+> @@ -552,6 +557,7 @@ struct vb2_queue {
+>  	unsigned int			is_output:1;
+>  	unsigned int			copy_timestamp:1;
+>  	unsigned int			last_buffer_dequeued:1;
+> +	unsigned int			ordered_in_driver:1;
+>  
+>  	struct vb2_fileio_data		*fileio;
+>  	struct vb2_threadio_data	*threadio;
+> 
