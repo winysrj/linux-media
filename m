@@ -1,229 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:64139 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754119AbdJIKTw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 06:19:52 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Helen Koike <helen.koike@collabora.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 23/24] media: v4l2-tpg*.h: move headers to include/media/tpg and merge them
-Date: Mon,  9 Oct 2017 07:19:29 -0300
-Message-Id: <2dfa08c0c3f289cdde6ea4f751f44ff18c212cf5.1507544011.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507544011.git.mchehab@s-opensource.com>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507544011.git.mchehab@s-opensource.com>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:46751 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932492AbdJXPWy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Oct 2017 11:22:54 -0400
+Received: by mail-pg0-f67.google.com with SMTP id k7so14805599pga.3
+        for <linux-media@vger.kernel.org>; Tue, 24 Oct 2017 08:22:53 -0700 (PDT)
+Date: Tue, 24 Oct 2017 08:22:51 -0700
+From: Kees Cook <keescook@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Mike Isely <isely@pobox.com>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] media: pvrusb2: Convert timers to use timer_setup()
+Message-ID: <20171024152251.GA104927@beast>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2-tpg*.h headers are meant to be used only internally by
-vivid and vimc. There's no sense keeping them together with the
-V4L2 kAPI headers. Also, one header includes the other as they're
-meant to be used together. So, merge them.
+In preparation for unconditionally passing the struct timer_list pointer to
+all timer callbacks, switch to using the new timer_setup() and from_timer()
+to pass the timer pointer explicitly.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mike Isely <isely@pobox.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
 ---
- drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c |  2 +-
- drivers/media/common/v4l2-tpg/v4l2-tpg-core.c   |  2 +-
- drivers/media/platform/vimc/vimc-sensor.c       |  2 +-
- drivers/media/platform/vivid/vivid-core.h       |  2 +-
- include/media/{ => tpg}/v4l2-tpg.h              | 45 +++++++++++++++-
- include/media/v4l2-tpg-colors.h                 | 68 -------------------------
- 6 files changed, 48 insertions(+), 73 deletions(-)
- rename include/media/{ => tpg}/v4l2-tpg.h (93%)
- delete mode 100644 include/media/v4l2-tpg-colors.h
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.c | 64 ++++++++++++++++++---------------
+ 1 file changed, 36 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c
-index 5b5f95c38fe1..95b26f6a0d54 100644
---- a/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c
-+++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c
-@@ -36,7 +36,7 @@
-  */
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+index ad5b25b89699..8289ee482f49 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+@@ -330,10 +330,10 @@ static void pvr2_hdw_state_log_state(struct pvr2_hdw *);
+ static int pvr2_hdw_cmd_usbstream(struct pvr2_hdw *hdw,int runFl);
+ static int pvr2_hdw_commit_setup(struct pvr2_hdw *hdw);
+ static int pvr2_hdw_get_eeprom_addr(struct pvr2_hdw *hdw);
+-static void pvr2_hdw_quiescent_timeout(unsigned long);
+-static void pvr2_hdw_decoder_stabilization_timeout(unsigned long);
+-static void pvr2_hdw_encoder_wait_timeout(unsigned long);
+-static void pvr2_hdw_encoder_run_timeout(unsigned long);
++static void pvr2_hdw_quiescent_timeout(struct timer_list *);
++static void pvr2_hdw_decoder_stabilization_timeout(struct timer_list *);
++static void pvr2_hdw_encoder_wait_timeout(struct timer_list *);
++static void pvr2_hdw_encoder_run_timeout(struct timer_list *);
+ static int pvr2_issue_simple_cmd(struct pvr2_hdw *,u32);
+ static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
+ 				unsigned int timeout,int probe_fl,
+@@ -2373,18 +2373,15 @@ struct pvr2_hdw *pvr2_hdw_create(struct usb_interface *intf,
+ 	}
+ 	if (!hdw) goto fail;
  
- #include <linux/videodev2.h>
--#include <media/v4l2-tpg-colors.h>
-+#include <media/tpg/v4l2-tpg.h>
+-	setup_timer(&hdw->quiescent_timer, pvr2_hdw_quiescent_timeout,
+-		    (unsigned long)hdw);
++	timer_setup(&hdw->quiescent_timer, pvr2_hdw_quiescent_timeout, 0);
  
- /* sRGB colors with range [0-255] */
- const struct color tpg_colors[TPG_COLOR_MAX] = {
-diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-index a772976cfe26..f218b336a3ac 100644
---- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-+++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-@@ -21,7 +21,7 @@
-  */
+-	setup_timer(&hdw->decoder_stabilization_timer,
+-		    pvr2_hdw_decoder_stabilization_timeout,
+-		    (unsigned long)hdw);
++	timer_setup(&hdw->decoder_stabilization_timer,
++		    pvr2_hdw_decoder_stabilization_timeout, 0);
  
- #include <linux/module.h>
--#include <media/v4l2-tpg.h>
-+#include <media/tpg/v4l2-tpg.h>
+-	setup_timer(&hdw->encoder_wait_timer, pvr2_hdw_encoder_wait_timeout,
+-		    (unsigned long)hdw);
++	timer_setup(&hdw->encoder_wait_timer, pvr2_hdw_encoder_wait_timeout,
++		    0);
  
- /* Must remain in sync with enum tpg_pattern */
- const char * const tpg_pattern_strings[] = {
-diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
-index 02e68c8fc02b..8d2691817aa5 100644
---- a/drivers/media/platform/vimc/vimc-sensor.c
-+++ b/drivers/media/platform/vimc/vimc-sensor.c
-@@ -23,7 +23,7 @@
- #include <linux/v4l2-mediabus.h>
- #include <linux/vmalloc.h>
- #include <media/v4l2-subdev.h>
--#include <media/v4l2-tpg.h>
-+#include <media/tpg/v4l2-tpg.h>
+-	setup_timer(&hdw->encoder_run_timer, pvr2_hdw_encoder_run_timeout,
+-		    (unsigned long)hdw);
++	timer_setup(&hdw->encoder_run_timer, pvr2_hdw_encoder_run_timeout, 0);
  
- #include "vimc-common.h"
+ 	hdw->master_state = PVR2_STATE_DEAD;
  
-diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-index 5cdf95bdc4d1..36802947a4b0 100644
---- a/drivers/media/platform/vivid/vivid-core.h
-+++ b/drivers/media/platform/vivid/vivid-core.h
-@@ -27,7 +27,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-dev.h>
- #include <media/v4l2-ctrls.h>
--#include <media/v4l2-tpg.h>
-+#include <media/tpg/v4l2-tpg.h>
- #include "vivid-rds-gen.h"
- #include "vivid-vbi-gen.h"
+@@ -3539,10 +3536,16 @@ static void pvr2_ctl_read_complete(struct urb *urb)
+ 	complete(&hdw->ctl_done);
+ }
  
-diff --git a/include/media/v4l2-tpg.h b/include/media/tpg/v4l2-tpg.h
-similarity index 93%
-rename from include/media/v4l2-tpg.h
-rename to include/media/tpg/v4l2-tpg.h
-index 13e49d85cae3..028d81182011 100644
---- a/include/media/v4l2-tpg.h
-+++ b/include/media/tpg/v4l2-tpg.h
-@@ -26,8 +26,51 @@
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
- #include <linux/videodev2.h>
--#include <media/v4l2-tpg-colors.h>
- 
-+struct color {
-+	unsigned char r, g, b;
++struct hdw_timer {
++	struct timer_list timer;
++	struct pvr2_hdw *hdw;
 +};
+ 
+-static void pvr2_ctl_timeout(unsigned long data)
++static void pvr2_ctl_timeout(struct timer_list *t)
+ {
+-	struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
++	struct hdw_timer *timer = from_timer(timer, t, timer);
++	struct pvr2_hdw *hdw = timer->hdw;
 +
-+struct color16 {
-+	int r, g, b;
-+};
+ 	if (hdw->ctl_write_pend_flag || hdw->ctl_read_pend_flag) {
+ 		hdw->ctl_timeout_flag = !0;
+ 		if (hdw->ctl_write_pend_flag)
+@@ -3564,7 +3567,10 @@ static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
+ {
+ 	unsigned int idx;
+ 	int status = 0;
+-	struct timer_list timer;
++	struct hdw_timer timer = {
++		.hdw = hdw,
++	};
 +
-+enum tpg_color {
-+	TPG_COLOR_CSC_WHITE,
-+	TPG_COLOR_CSC_YELLOW,
-+	TPG_COLOR_CSC_CYAN,
-+	TPG_COLOR_CSC_GREEN,
-+	TPG_COLOR_CSC_MAGENTA,
-+	TPG_COLOR_CSC_RED,
-+	TPG_COLOR_CSC_BLUE,
-+	TPG_COLOR_CSC_BLACK,
-+	TPG_COLOR_75_YELLOW,
-+	TPG_COLOR_75_CYAN,
-+	TPG_COLOR_75_GREEN,
-+	TPG_COLOR_75_MAGENTA,
-+	TPG_COLOR_75_RED,
-+	TPG_COLOR_75_BLUE,
-+	TPG_COLOR_100_WHITE,
-+	TPG_COLOR_100_YELLOW,
-+	TPG_COLOR_100_CYAN,
-+	TPG_COLOR_100_GREEN,
-+	TPG_COLOR_100_MAGENTA,
-+	TPG_COLOR_100_RED,
-+	TPG_COLOR_100_BLUE,
-+	TPG_COLOR_100_BLACK,
-+	TPG_COLOR_TEXTFG,
-+	TPG_COLOR_TEXTBG,
-+	TPG_COLOR_RANDOM,
-+	TPG_COLOR_RAMP,
-+	TPG_COLOR_MAX = TPG_COLOR_RAMP + 256
-+};
+ 	if (!hdw->ctl_lock_held) {
+ 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
+ 			   "Attempted to execute control transfer without lock!!");
+@@ -3621,8 +3627,8 @@ static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
+ 	hdw->ctl_timeout_flag = 0;
+ 	hdw->ctl_write_pend_flag = 0;
+ 	hdw->ctl_read_pend_flag = 0;
+-	setup_timer(&timer, pvr2_ctl_timeout, (unsigned long)hdw);
+-	timer.expires = jiffies + timeout;
++	timer_setup_on_stack(&timer.timer, pvr2_ctl_timeout, 0);
++	timer.timer.expires = jiffies + timeout;
+ 
+ 	if (write_len && write_data) {
+ 		hdw->cmd_debug_state = 2;
+@@ -3677,7 +3683,7 @@ status);
+ 	}
+ 
+ 	/* Start timer */
+-	add_timer(&timer);
++	add_timer(&timer.timer);
+ 
+ 	/* Now wait for all I/O to complete */
+ 	hdw->cmd_debug_state = 4;
+@@ -3687,7 +3693,7 @@ status);
+ 	hdw->cmd_debug_state = 5;
+ 
+ 	/* Stop timer */
+-	del_timer_sync(&timer);
++	del_timer_sync(&timer.timer);
+ 
+ 	hdw->cmd_debug_state = 6;
+ 	status = 0;
+@@ -3769,6 +3775,8 @@ status);
+ 	if ((status < 0) && (!probe_fl)) {
+ 		pvr2_hdw_render_useless(hdw);
+ 	}
++	destroy_timer_on_stack(&timer.timer);
 +
-+extern const struct color tpg_colors[TPG_COLOR_MAX];
-+extern const unsigned short tpg_rec709_to_linear[255 * 16 + 1];
-+extern const unsigned short tpg_linear_to_rec709[255 * 16 + 1];
-+extern const struct color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1]
-+					  [V4L2_XFER_FUNC_SMPTE2084 + 1]
-+					  [TPG_COLOR_CSC_BLACK + 1];
- enum tpg_pattern {
- 	TPG_PAT_75_COLORBAR,
- 	TPG_PAT_100_COLORBAR,
-diff --git a/include/media/v4l2-tpg-colors.h b/include/media/v4l2-tpg-colors.h
-deleted file mode 100644
-index 2a88d1fae0cd..000000000000
---- a/include/media/v4l2-tpg-colors.h
-+++ /dev/null
-@@ -1,68 +0,0 @@
--/*
-- * v4l2-tpg-colors.h - Color definitions for the test pattern generator
-- *
-- * Copyright 2014 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-- *
-- * This program is free software; you may redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; version 2 of the License.
-- *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-- * SOFTWARE.
-- */
--
--#ifndef _V4L2_TPG_COLORS_H_
--#define _V4L2_TPG_COLORS_H_
--
--struct color {
--	unsigned char r, g, b;
--};
--
--struct color16 {
--	int r, g, b;
--};
--
--enum tpg_color {
--	TPG_COLOR_CSC_WHITE,
--	TPG_COLOR_CSC_YELLOW,
--	TPG_COLOR_CSC_CYAN,
--	TPG_COLOR_CSC_GREEN,
--	TPG_COLOR_CSC_MAGENTA,
--	TPG_COLOR_CSC_RED,
--	TPG_COLOR_CSC_BLUE,
--	TPG_COLOR_CSC_BLACK,
--	TPG_COLOR_75_YELLOW,
--	TPG_COLOR_75_CYAN,
--	TPG_COLOR_75_GREEN,
--	TPG_COLOR_75_MAGENTA,
--	TPG_COLOR_75_RED,
--	TPG_COLOR_75_BLUE,
--	TPG_COLOR_100_WHITE,
--	TPG_COLOR_100_YELLOW,
--	TPG_COLOR_100_CYAN,
--	TPG_COLOR_100_GREEN,
--	TPG_COLOR_100_MAGENTA,
--	TPG_COLOR_100_RED,
--	TPG_COLOR_100_BLUE,
--	TPG_COLOR_100_BLACK,
--	TPG_COLOR_TEXTFG,
--	TPG_COLOR_TEXTBG,
--	TPG_COLOR_RANDOM,
--	TPG_COLOR_RAMP,
--	TPG_COLOR_MAX = TPG_COLOR_RAMP + 256
--};
--
--extern const struct color tpg_colors[TPG_COLOR_MAX];
--extern const unsigned short tpg_rec709_to_linear[255 * 16 + 1];
--extern const unsigned short tpg_linear_to_rec709[255 * 16 + 1];
--extern const struct color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1]
--					  [V4L2_XFER_FUNC_SMPTE2084 + 1]
--					  [TPG_COLOR_CSC_BLACK + 1];
--
--#endif
+ 	return status;
+ }
+ 
+@@ -4366,9 +4374,9 @@ static int state_eval_encoder_run(struct pvr2_hdw *hdw)
+ 
+ 
+ /* Timeout function for quiescent timer. */
+-static void pvr2_hdw_quiescent_timeout(unsigned long data)
++static void pvr2_hdw_quiescent_timeout(struct timer_list *t)
+ {
+-	struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
++	struct pvr2_hdw *hdw = from_timer(hdw, t, quiescent_timer);
+ 	hdw->state_decoder_quiescent = !0;
+ 	trace_stbit("state_decoder_quiescent",hdw->state_decoder_quiescent);
+ 	hdw->state_stale = !0;
+@@ -4377,9 +4385,9 @@ static void pvr2_hdw_quiescent_timeout(unsigned long data)
+ 
+ 
+ /* Timeout function for decoder stabilization timer. */
+-static void pvr2_hdw_decoder_stabilization_timeout(unsigned long data)
++static void pvr2_hdw_decoder_stabilization_timeout(struct timer_list *t)
+ {
+-	struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
++	struct pvr2_hdw *hdw = from_timer(hdw, t, decoder_stabilization_timer);
+ 	hdw->state_decoder_ready = !0;
+ 	trace_stbit("state_decoder_ready", hdw->state_decoder_ready);
+ 	hdw->state_stale = !0;
+@@ -4388,9 +4396,9 @@ static void pvr2_hdw_decoder_stabilization_timeout(unsigned long data)
+ 
+ 
+ /* Timeout function for encoder wait timer. */
+-static void pvr2_hdw_encoder_wait_timeout(unsigned long data)
++static void pvr2_hdw_encoder_wait_timeout(struct timer_list *t)
+ {
+-	struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
++	struct pvr2_hdw *hdw = from_timer(hdw, t, encoder_wait_timer);
+ 	hdw->state_encoder_waitok = !0;
+ 	trace_stbit("state_encoder_waitok",hdw->state_encoder_waitok);
+ 	hdw->state_stale = !0;
+@@ -4399,9 +4407,9 @@ static void pvr2_hdw_encoder_wait_timeout(unsigned long data)
+ 
+ 
+ /* Timeout function for encoder run timer. */
+-static void pvr2_hdw_encoder_run_timeout(unsigned long data)
++static void pvr2_hdw_encoder_run_timeout(struct timer_list *t)
+ {
+-	struct pvr2_hdw *hdw = (struct pvr2_hdw *)data;
++	struct pvr2_hdw *hdw = from_timer(hdw, t, encoder_run_timer);
+ 	if (!hdw->state_encoder_runok) {
+ 		hdw->state_encoder_runok = !0;
+ 		trace_stbit("state_encoder_runok",hdw->state_encoder_runok);
 -- 
-2.13.6
+2.7.4
+
+
+-- 
+Kees Cook
+Pixel Security
