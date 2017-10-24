@@ -1,95 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:50318 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932533AbdJXMvY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Oct 2017 08:51:24 -0400
-Subject: Re: [RFC v4 01/17] [media] v4l: create v4l2_event_subscribe_v4l2()
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-References: <20171020215012.20646-1-gustavo@padovan.org>
- <20171020215012.20646-2-gustavo@padovan.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <49438973-5ae5-c6dd-4abc-41feaab5806c@xs4all.nl>
-Date: Tue, 24 Oct 2017 14:51:16 +0200
-MIME-Version: 1.0
-In-Reply-To: <20171020215012.20646-2-gustavo@padovan.org>
-Content-Type: text/plain; charset=utf-8
+From: David Laight <David.Laight@ACULAB.COM>
+To: "'Petrosyan, Ludwig'" <ludwig.petrosyan@desy.de>,
+        Logan Gunthorpe <logang@deltatee.com>
+CC: Alexander Deucher <Alexander.Deucher@amd.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        linux-nvdimm <linux-nvdimm@lists.01.org>,
+        Linux-media <Linux-media@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        linux-pci <linux-pci@vger.kernel.org>,
+        John Bridgman <John.Bridgman@amd.com>,
+        Felix Kuehling <Felix.Kuehling@amd.com>,
+        Serguei Sagalovitch <Serguei.Sagalovitch@amd.com>,
+        Paul Blinzer <Paul.Blinzer@amd.com>,
+        "Christian Koenig" <Christian.Koenig@amd.com>,
+        Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>,
+        Ben Sander <ben.sander@amd.com>
+Subject: RE: Enabling peer to peer device transactions for PCIe devices
+Date: Tue, 24 Oct 2017 14:58:24 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6DD00A19B9@AcuExch.aculab.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
+ <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4@deltatee.com>
+ <1381807327.12461494.1508652825239.JavaMail.zimbra@desy.de>
+ <063D6719AE5E284EB5DD2968C1650D6DD00A04EA@AcuExch.aculab.com>
+ <d61b6829-0515-a809-2a43-c41add4b1594@deltatee.com>
+ <1264390131.14701401.1508824699016.JavaMail.zimbra@desy.de>
+In-Reply-To: <1264390131.14701401.1508824699016.JavaMail.zimbra@desy.de>
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/20/2017 11:49 PM, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> We need a common function to subscribe all the common events in drivers,
-> so far we had only V4L2_EVENT_CTRL, so such a function wasn't necessary,
-> but we are about to introduce a new event for the upcoming explicit fences
-> implementation, thus a common place is needed.
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  drivers/media/v4l2-core/v4l2-event.c | 12 ++++++++++++
->  include/media/v4l2-event.h           |  8 ++++++++
->  2 files changed, 20 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-> index 968c2eb08b5a..313ee9d1f9ee 100644
-> --- a/drivers/media/v4l2-core/v4l2-event.c
-> +++ b/drivers/media/v4l2-core/v4l2-event.c
-> @@ -20,6 +20,7 @@
->  #include <media/v4l2-dev.h>
->  #include <media/v4l2-fh.h>
->  #include <media/v4l2-event.h>
-> +#include <media/v4l2-ctrls.h>
->  
->  #include <linux/mm.h>
->  #include <linux/sched.h>
-> @@ -354,3 +355,14 @@ int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
->  	return v4l2_src_change_event_subscribe(fh, sub);
->  }
->  EXPORT_SYMBOL_GPL(v4l2_src_change_event_subdev_subscribe);
-> +
-> +int v4l2_subscribe_event_v4l2(struct v4l2_fh *fh,
-> +			      const struct v4l2_event_subscription *sub)
-> +{
-> +	switch (sub->type) {
-> +	case V4L2_EVENT_CTRL:
-> +		return v4l2_ctrl_subscribe_event(fh, sub);
-> +	}
-> +	return -EINVAL;
-> +}
-> +EXPORT_SYMBOL(v4l2_subscribe_event_v4l2);
-> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-> index 6741910c3a18..2b794f2ad824 100644
-> --- a/include/media/v4l2-event.h
-> +++ b/include/media/v4l2-event.h
-> @@ -236,4 +236,12 @@ int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
->  int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
->  					   struct v4l2_fh *fh,
->  					   struct v4l2_event_subscription *sub);
-> +/**
-> + * v4l2_subscribe_event_v4l2 - helper function that subscribe all v4l2 events
-> + *
-> + * @fh: pointer to struct v4l2_fh
-> + * @sub: pointer to &struct v4l2_event_subscription
-> + */
-> +int v4l2_subscribe_event_v4l2(struct v4l2_fh *fh,
-
-Why the _v4l2 suffix? It's weird and I think you can just drop it. Otherwise this looks good.
-
-Regards,
-
-	Hans
-
-> +			      const struct v4l2_event_subscription *sub);
->  #endif /* V4L2_EVENT_H */
-> 
+UGxlYXNlIGRvbid0IHRvcCBwb3N0LCB3cml0ZSBzaG9ydGVyIGxpbmVzLCBhbmQgYWRkIHRoZSBv
+ZGQgYmxhbmsgbGluZS4NCkJpZyBibG9ja3Mgb2YgdGV4dCBhcmUgaGFyZCB0byByZWFkIHF1aWNr
+bHkuDQoNCj4gRnJvbTogUGV0cm9zeWFuLCBMdWR3aWcgW21haWx0bzpsdWR3aWcucGV0cm9zeWFu
+QGRlc3kuZGVdDQo+IFllcyBJIGFncmVlIGl0IGhhcyB0byBiZSBzdGFydGVkIHdpdGggdGhlIHdy
+aXRlIHRyYW5zYWN0aW9uLCBhY2NvcmRpbmcgb2YgUENJZSBzdGFuZGFyZCBhbGwgd3JpdGUNCj4g
+dHJhbnNhY3Rpb24gYXJlIGFkZHJlc3Mgcm91dGVkLCBhbmQgSSBhZ3JlZSB3aXRoIExvZ2FuOg0K
+PiBpZiBpbiB3cml0ZSB0cmFuc2FjdGlvbiBUTFAgdGhlIGVuZHBvaW50IGFkZHJlc3Mgd3JpdHRl
+biBpbiBoZWFkZXIgdGhlIFRMUCBzaG91bGQgbm90IHRvdWNoIENQVSwgdGhlDQo+IFBDSWUgU3dp
+dGNoIGhhcyB0byByb3V0ZSBpdCB0byBlbmRwb2ludC4NCg0KVGhhdCBkZXBlbmRzLCBJSVJDIHRo
+ZXJlIGlzIGEgZmVhdHVyZSBmb3IgUENJZSBzd2l0Y2hlcyB0byBmb3JjZSB0aGVtDQp0byBzZW5k
+IGFsbCB0cmFuc2FjdGlvbnMgdG8gdGhlIHJvb3QgaHViLg0KVGhpcyBpcyB0aGVyZSBzbyB0aGF0
+IHRoZSBob3N0IGNhbiBlbmZvcmNlIHJ1bGVzIHRvIHN0b3AgcDJwIHRyYW5zZmVycy4NCkl0IG1p
+Z2h0IGVuYWJsZWQgb24gdGhlIHN3aXRjaCB5b3UgaGF2ZS4NCg0KPiBUaGUgaWRlYSB3YXM6IGlu
+IE1UQ0Egc3lzdGVtIHRoZXJlIGlzIFBDSWUgU3dpdGNoIG9uIE1DSCAoTVRDQSBjcmF0ZSBIVUIp
+IHRoaXMgc3dpdGNoIGNvbm5lY3RzIENQVSB0bw0KPiBvdGhlciBDcmF0ZSBTbG90cywgc28gb25l
+IHBvcnQgaXMgVXBzdHJlYW0gYW5kIG90aGVycyBhcmUgRG93bnN0cmVhbSAgcG9ydHMsIERNQSBy
+ZWFkIGZyb20gQ1BVIGlzDQo+IHVzdWFsIHdyaXRlIG9uIGVuZHBvaW50IHNpZGUsIFhpbGlueCBE
+TUEgY29yZSBoYXMgdHdvIHJlZ2lzdGVycyBEZXN0aW5hdGlvbiBBZGRyZXNzIGFuZCBTb3VyY2UN
+Cj4gQWRkcmVzcywNCj4gZGV2aWNlIGRyaXZlciB0byBtYWtlIERNQSBoYXMgdG8gc2V0IHVwIHRo
+ZXNlIHJlZ2lzdGVycywNCj4gdXN1YWxseSBkZXZpY2UgZHJpdmVyIHRvIHN0YXJ0IERNQSByZWFk
+IGZyb20gQm9hcmQgc2V0cyBTb3VyY2UgYWRkcmVzcyBhcyBGUEdBIG1lbW9yeSBhZGRyZXNzIGFu
+ZA0KPiBEZXN0aW5hdGlvbiBhZGRyZXNzIGlzIERNQSBwcmVwYXJlZCBzeXN0ZW0gYWRkcmVzcywN
+Cj4gaW4gY2FzZSBvZiB0ZXN0aW5nIHAycCBJIHNldCBEZXN0aW5hdGlvbiBhZGRyZXNzIGFzIHBo
+eXNpY2FsIGFkZHJlc3Mgb2Ygb3RoZXIgZW5kcG9pbnQuDQoNClVubmVjZXNzYXJ5IGRldGFpbC4u
+Lg0KDQo+IE1vcmUgZGV0YWlsZWQ6DQo+IHdlIGhhdmUgc28gY2FsbGVkIHBjaWUgdW5pdmVyc2Fs
+IGRyaXZlcjogdGhlIGlkZWEgYmVoaW5kIGlzDQo+IDEuIGFsbCBwY2llIGNvbmZpZ3VyYXRpb24g
+c3RhZmYsIGZpbmQgZW5hYmxlZCBCQVJzLCBtYXBwaW5nIEJBUnMsIHVzdWFsIHJlYWQvd3JpdGUg
+YW5kIGNvbW1vbiBpb2N0bA0KPiAoZ2V0IHNsb3QgbnVtYmVyLCBnZXQgZHJpdmVyIHZlcnNpb24g
+Li4uKSBpbXBsZW1lbnRlZCBpbiB1bml2ZXJzYWwgZHJpdmVyIGFuZCBFWFBPUlRlZC4NCj4gMi4g
+aWYgc29tZSBzeXN0ZW0gZnVuY3Rpb24gaW4gbmV3IGtlcm5lbCBhcmUgY2hhbmdlZCB3ZSBjaGFu
+Z2UgaXQgb25seSBpbiB1bml2ZXJzYWwgcGFydHMgKGVhc3kNCj4gc3VwcG9ydCBhIGJpZyBudW1i
+ZXIgb2YgZHJpdmVycyApDQo+IHNvIHRoZSB1bml2ZXJzYWwgZHJpdmVyIHNvbWV0aGluZyBsaWtl
+IFBDSWUgRHJpdmVyIEFQSQ0KPiAzLiB0aGUgdW5pdmVyc2FsIGRyaXZlciBwcm92aWRlcyByZWFk
+L3dyaXQgZnVuY3Rpb25zIHNvIHdlIGhhdmUgdGhlIHNhbWUgZGV2aWNlIGFjY2VzcyBBUEkgZm9y
+IGFueQ0KPiBQQ0llIGRldmljZSwgd2UgY291bGQgdXNlIHRoZSBzYW1lIHVzZXIgYXBwbGljYXRp
+b24gd2l0aCBhbnkgUENJZSBkZXZpY2UNCg0KTW9yZSBjcmFwLi4uDQoNCj4gbm93LiBkdXJpbmcg
+QkFScyBmaW5kaW5nIGFuZCBtYXBwaW5nIHVuaXZlcnNhbCBkcml2ZXIga2VlcHMgcGNpZSBlbmRw
+b2ludCBwaHlzaWNhbCBhZGRyZXNzIGluIHNvbWUNCj4gaW50ZXJuYWwgc3RydWN0dXJlcywgYW55
+IHRvcCBkcml2ZXIgbWF5IGdldCBwaHlzaWNhbCBhZGRyZXNzDQo+IG9mIG90aGVyIHBjaWUgZW5k
+cG9pbnQgYnkgc2xvdCBudW1iZXIuDQo+IGluIG1heSBjYXNlIGR1cmluZyBnZXRfcmVzb3JjZSB0
+aGUgcGh5c2ljYWwgYWRkcmVzcyBpcyAweEIyMDAwMDAwLCBJIGNoZWNrIGxzcGNpIC1IMSAtdnZ2
+diAtcyBwc2llDQo+IHN3aXRjaCBwb3J0IGJ1cyBhZGRyZXNzICh0aGUgZW5kcG9pbnQgY29ubmVj
+dGVkIHRvIHRoaXMgcG9ydCwgY2hlY2tlZCBieSBsc3BjaSAtSDEgLXQpIHRoZSBzYW1lDQo+IGFk
+ZHJlc3MgKDB4QjIwMDAwMCkgaXMgdGhlIG1lbW9yeSBiZWhpbmQgYnJpZGdlLA0KDQpPdmVybHkg
+dmVyYm9zZS4uLg0KDQo+IEkgd2FudCB0byBtYWtlIHAycCB3cml0ZXMgdG8gb2Zmc2V0IDB4NDAw
+MDAsIHNvIEkgc2V0IERNQSBkZXN0aW5hdGlvbiBhZGRyZXNzIDB4QjI0MDAwMDANCj4gaXMgc29t
+ZXRoaW5nIHdyb25nPw0KDQpQb3NzaWJseS4NCg0KWW91IGFsbW9zdCBjZXJ0YWlubHkgbmVlZCB0
+aGUgYWRkcmVzcyB0aGF0IGlzIHdyaXR0ZW4gaW50byB0aGUgQkFSIG9mIHRoZQ0KdGFyZ2V0IGVu
+ZHBvaW50Lg0KVGhpcyBjb3VsZCB3ZWxsIGJlIGRpZmZlcmVudCBmcm9tIHRoZSBwaHlzaWNhbCBh
+ZGRyZXNzIHRoYXQgdGhlIGNwdSB1c2VzDQp0byB3cml0ZSB0byB0aGUgZW5kcG9pbnQgKGFzIHdl
+bGwgYXMgdGhlIGNwdSB2aXJ0dWFsIGFkZHJlc3MpLg0KDQpsc3BjaSBsaWVzIFsxXSwgcnVuIGxz
+cGNpIC14ICAob3IgaGV4ZHVtcCBjb25maWcgc3BhY2UgdGhyb3VnaCAvc3lzL2RldmljZXMpDQp0
+byBzZWUgd2hhdCBpcyBhY3R1YWxseSBpbiB0aGUgQkFSLg0KDQpbMV0gVGhlIGFkZHJlc3NlcyBj
+b21lIGZyb20gc29tZXdoZXJlIG90aGVyIHRoYW4gcmVhZGluZyB0aGUgQkFSLg0KSWYgdGhlIGVu
+ZHBvaW50IHJlc2V0cyB0aGUgQkFSIGxzcGNpIHdpbGwgc3RpbGwgcmVwb3J0IHRoZSBvbGQNCmFk
+ZHJlc3Nlcy4NCg0KCURhdmlkDQoNCg==
