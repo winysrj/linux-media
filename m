@@ -1,29 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gloria.sntech.de ([95.129.55.99]:41666 "EHLO gloria.sntech.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751817AbdJOMNi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Oct 2017 08:13:38 -0400
-From: Heiko Stuebner <heiko@sntech.de>
-To: Pierre-Hugues Husson <phh@phh.me>
-Cc: linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] arm64: dts: rockchip: enable cec pin for rk3399 firefly
-Date: Sun, 15 Oct 2017 14:13:35 +0200
-Message-ID: <3188481.VU1olLilPF@phil>
-In-Reply-To: <20171013225337.5196-4-phh@phh.me>
-References: <20171013225337.5196-1-phh@phh.me> <20171013225337.5196-4-phh@phh.me>
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:56799 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751825AbdJXLmq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Oct 2017 07:42:46 -0400
+Received: by mail-oi0-f67.google.com with SMTP id v9so36239251oif.13
+        for <linux-media@vger.kernel.org>; Tue, 24 Oct 2017 04:42:46 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <0ade6e417fbf2cd119aa1f2345f88a3810c03e11.1508844352.git.arvind.yadav.cs@gmail.com>
+References: <0ade6e417fbf2cd119aa1f2345f88a3810c03e11.1508844352.git.arvind.yadav.cs@gmail.com>
+From: Andrey Konovalov <andreyknvl@google.com>
+Date: Tue, 24 Oct 2017 13:42:45 +0200
+Message-ID: <CAAeHK+yU10k0ESZj2axpOCzC-7P9tq4oF2Z5-_7NpRN47JOJVA@mail.gmail.com>
+Subject: Re: [RFT] media: dvb_frontend: Fix use-after-free in __dvb_frontend_free
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Shuah Khan <shuah@kernel.org>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+        syzkaller <syzkaller@googlegroups.com>,
+        Matthias Schwarzott <zzam@gentoo.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Samstag, 14. Oktober 2017, 00:53:37 CEST schrieb Pierre-Hugues Husson:
-> Signed-off-by: Pierre-Hugues Husson <phh@phh.me>
+On Tue, Oct 24, 2017 at 1:36 PM, Arvind Yadav <arvind.yadav.cs@gmail.com> wrote:
+> Here, dvb_free_device will free dvb_device. dvb_frontend_invoke_release
+> is using  dvb_device after free.
 
-applied for 4.15 after adding a basic commit message.
-It is custom to always provide at least some sort of message there.
+Hi Arvind,
 
+Matthias already suggested a fix. Also it looks like your patch is
+based on an outdated tree, which doesn't contain the commit that seems
+to have caused the bug (ead666000a5fe34bdc82d61838e4df2d416ea15e).
 
-Thanks
-Heiko
+Thanks!
+
+>
+> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+> ---
+> This bug report by Andrey Konovalov (usb/media/dtt200u: use-after-free
+> in __dvb_frontend_free).
+>
+>  drivers/media/dvb-core/dvb_frontend.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+> index 2fcba16..7f1ef12 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> @@ -147,10 +147,10 @@ static void dvb_frontend_free(struct kref *ref)
+>                 container_of(ref, struct dvb_frontend, refcount);
+>         struct dvb_frontend_private *fepriv = fe->frontend_priv;
+>
+> -       dvb_free_device(fepriv->dvbdev);
+> -
+>         dvb_frontend_invoke_release(fe, fe->ops.release);
+>
+> +       dvb_free_device(fepriv->dvbdev);
+> +
+>         kfree(fepriv);
+>  }
+>
+> --
+> 1.9.1
+>
