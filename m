@@ -1,118 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:53811 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751893AbdJ1UlR (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:53401 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751267AbdJXD51 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 28 Oct 2017 16:41:17 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 9/9] media: staging/imx: update TODO
-Date: Sat, 28 Oct 2017 13:36:49 -0700
-Message-Id: <1509223009-6392-10-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1509223009-6392-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1509223009-6392-1-git-send-email-steve_longerbeam@mentor.com>
+        Mon, 23 Oct 2017 23:57:27 -0400
+Message-ID: <9c38bb8a2da52c13bc5a78a6b2435deb@smtp-cloud7.xs4all.net>
+Date: Tue, 24 Oct 2017 05:57:25 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update TODO file:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-- Remove TODO info about the OV564x driver, while this still needs
-  to be done (add a OV5642 driver or merge with OV5640 driver), it
-  is not relevant here.
+Results of the daily build of media_tree:
 
-- Update TODO about methods for retrieving CSI bus config.
+date:			Tue Oct 24 05:00:15 CEST 2017
+media-tree git hash:	61065fc3e32002ba48aa6bc3816c1f6f9f8daf55
+media_build git hash:	c93534951f5d66bef7f17f16293acf2be346b726
+v4l-utils git hash:	482c52f946af4c6b16efa63a35790d92fb65326c
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-- Add some TODO's about OF graph parsing restrictions.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: OK
+spec-git: OK
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/TODO | 63 ++++++++++++++++++++++++++++++++++--------
- 1 file changed, 51 insertions(+), 12 deletions(-)
+Detailed results are available here:
 
-diff --git a/drivers/staging/media/imx/TODO b/drivers/staging/media/imx/TODO
-index 0bee313..9eb7326 100644
---- a/drivers/staging/media/imx/TODO
-+++ b/drivers/staging/media/imx/TODO
-@@ -1,19 +1,14 @@
- 
--- Clean up and move the ov5642 subdev driver to drivers/media/i2c, or
--  merge support for OV5642 into drivers/media/i2c/ov5640.c, and create
--  the binding docs for it.
--
- - The Frame Interval Monitor could be exported to v4l2-core for
-   general use.
- 
--- At driver load time, the device-tree node that is the original source
--  (the "sensor"), is parsed to record its media bus configuration, and
--  this info is required in imx-media-csi.c to setup the CSI.
--  Laurent Pinchart argues that instead the CSI subdev should call its
--  neighbor's g_mbus_config op (which should be propagated if necessary)
--  to get this info. However Hans Verkuil is planning to remove the
--  g_mbus_config op. For now this driver uses the parsed DT mbus config
--  method until this issue is resolved.
-+- The CSI subdevice parses its nearest upstream neighbor's device-tree
-+  bus config in order to setup the CSI. Laurent Pinchart argues that
-+  instead the CSI subdev should call its neighbor's g_mbus_config op
-+  (which should be propagated if necessary) to get this info. However
-+  Hans Verkuil is planning to remove the g_mbus_config op. For now this
-+  driver uses the parsed DT bus config method until this issue is
-+  resolved.
- 
- - This media driver supports inheriting V4L2 controls to the
-   video capture devices, from the subdevices in the capture device's
-@@ -21,3 +16,47 @@
-   link_notify callback when the pipeline is modified. It should be
-   decided whether this feature is useful enough to make it generally
-   available by exporting to v4l2-core.
-+
-+- The OF graph is walked at probe time to form the list of fwnodes to
-+  be passed to v4l2_async_notifier_register(), starting from the IPU
-+  CSI ports. And after all async subdevices have been bound,
-+  v4l2_fwnode_parse_link() is used to form the media links between
-+  the entities discovered by walking the OF graph.
-+
-+  While this approach allows support for arbitrary OF graphs, there
-+  are some assumptions for this to work:
-+
-+  1. All port parent nodes reachable in the graph from the IPU CSI
-+     ports bind to V4L2 async subdevice drivers.
-+
-+     If a device has mixed-use ports such as video plus audio, the
-+     endpoints from the audio ports are followed to devices that must
-+     bind to V4L2 subdevice drivers, and not for example, to an ALSA
-+     driver or a non-V4L2 media driver. If the device were bound to
-+     such a driver, imx-media would never get an async completion
-+     notification because the device fwnode was added to the async
-+     list, but the driver does not interface with the V4L2 async
-+     framework.
-+
-+  2. Every port reachable in the graph is treated as a media pad,
-+     owned by the V4L2 subdevice that is bound to the port's parent.
-+
-+     This presents problems for devices that don't make this port = pad
-+     assumption. Examples are SMIAPP compatible cameras which define only
-+     a single output port node, but which define multiple pads owned
-+     by multiple subdevices (pixel-array, binner, scaler). Or video
-+     decoders (entity function MEDIA_ENT_F_ATV_DECODER), which also define
-+     only a single output port node, but define multiple pads for video,
-+     VBI, and audio out.
-+
-+     A workaround at present is to set the port reg properties to
-+     correspond to the media pad index that the port represents. A
-+     possible long-term solution is to implement a subdev API that
-+     maps a port id to a media pad index.
-+
-+  3. Every endpoint of a port reachable in the graph is treated as
-+     a media link, between V4L2 subdevices that are bound to the
-+     port parents of the local and remote endpoints.
-+
-+     Which means a port must not contain mixed-use endpoints, they
-+     must all refer to media links between V4L2 subdevices.
--- 
-2.7.4
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
