@@ -1,73 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:56373 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755434AbdJJICd (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:50318 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932533AbdJXMvY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 04:02:33 -0400
-Subject: Re: [PATCH v7 7/7] media: open.rst: add a notice about subdev-API on
- vdev-centric
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <cover.1506550930.git.mchehab@s-opensource.com>
- <628a25e694c33ab6dd1ea061bc4d766ec4fe30ef.1506550930.git.mchehab@s-opensource.com>
+        Tue, 24 Oct 2017 08:51:24 -0400
+Subject: Re: [RFC v4 01/17] [media] v4l: create v4l2_event_subscribe_v4l2()
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+References: <20171020215012.20646-1-gustavo@padovan.org>
+ <20171020215012.20646-2-gustavo@padovan.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5d748df3-3a0b-d62b-1fe3-3c018d8a1d6e@xs4all.nl>
-Date: Tue, 10 Oct 2017 10:02:28 +0200
+Message-ID: <49438973-5ae5-c6dd-4abc-41feaab5806c@xs4all.nl>
+Date: Tue, 24 Oct 2017 14:51:16 +0200
 MIME-Version: 1.0
-In-Reply-To: <628a25e694c33ab6dd1ea061bc4d766ec4fe30ef.1506550930.git.mchehab@s-opensource.com>
+In-Reply-To: <20171020215012.20646-2-gustavo@padovan.org>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/28/2017 12:23 AM, Mauro Carvalho Chehab wrote:
-> The documentation doesn't mention if vdev-centric hardware
-> control would have subdev API or not.
+On 10/20/2017 11:49 PM, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
 > 
-> Add a notice about that, reflecting the current status, where
-> three drivers use it, in order to support some subdev-specific
-> controls.
+> We need a common function to subscribe all the common events in drivers,
+> so far we had only V4L2_EVENT_CTRL, so such a function wasn't necessary,
+> but we are about to introduce a new event for the upcoming explicit fences
+> implementation, thus a common place is needed.
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-event.c | 12 ++++++++++++
+>  include/media/v4l2-event.h           |  8 ++++++++
+>  2 files changed, 20 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
+> index 968c2eb08b5a..313ee9d1f9ee 100644
+> --- a/drivers/media/v4l2-core/v4l2-event.c
+> +++ b/drivers/media/v4l2-core/v4l2-event.c
+> @@ -20,6 +20,7 @@
+>  #include <media/v4l2-dev.h>
+>  #include <media/v4l2-fh.h>
+>  #include <media/v4l2-event.h>
+> +#include <media/v4l2-ctrls.h>
+>  
+>  #include <linux/mm.h>
+>  #include <linux/sched.h>
+> @@ -354,3 +355,14 @@ int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
+>  	return v4l2_src_change_event_subscribe(fh, sub);
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_src_change_event_subdev_subscribe);
+> +
+> +int v4l2_subscribe_event_v4l2(struct v4l2_fh *fh,
+> +			      const struct v4l2_event_subscription *sub)
+> +{
+> +	switch (sub->type) {
+> +	case V4L2_EVENT_CTRL:
+> +		return v4l2_ctrl_subscribe_event(fh, sub);
+> +	}
+> +	return -EINVAL;
+> +}
+> +EXPORT_SYMBOL(v4l2_subscribe_event_v4l2);
+> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+> index 6741910c3a18..2b794f2ad824 100644
+> --- a/include/media/v4l2-event.h
+> +++ b/include/media/v4l2-event.h
+> @@ -236,4 +236,12 @@ int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
+>  int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
+>  					   struct v4l2_fh *fh,
+>  					   struct v4l2_event_subscription *sub);
+> +/**
+> + * v4l2_subscribe_event_v4l2 - helper function that subscribe all v4l2 events
+> + *
+> + * @fh: pointer to struct v4l2_fh
+> + * @sub: pointer to &struct v4l2_event_subscription
+> + */
+> +int v4l2_subscribe_event_v4l2(struct v4l2_fh *fh,
 
-Just to note that there is a pull request pending from me that
-removes this from the cobalt driver. So once that's merged there
-are only two drivers that do this.
-
-Anyway:
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Why the _v4l2 suffix? It's weird and I think you can just drop it. Otherwise this looks good.
 
 Regards,
 
 	Hans
 
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  Documentation/media/uapi/v4l/open.rst | 7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
-> index 75ccc9d6614d..ed011ed123cc 100644
-> --- a/Documentation/media/uapi/v4l/open.rst
-> +++ b/Documentation/media/uapi/v4l/open.rst
-> @@ -47,6 +47,13 @@ the periferal can be used. For such devices, the sub-devices' configuration
->  can be controlled via the :ref:`sub-device API <subdev>`, which creates one
->  device node per sub-device.
->  
-> +.. note::
-> +
-> +   A **vdevnode-centric** may also optionally expose V4L2 sub-devices via
-> +   :ref:`sub-device API <subdev>`. In that case, it has to implement
-> +   the :ref:`media controller API <media_controller>` as well.
-> +
-> +
->  .. attention::
->  
->     Devices that require **MC-centric** media hardware control should
+> +			      const struct v4l2_event_subscription *sub);
+>  #endif /* V4L2_EVENT_H */
 > 
