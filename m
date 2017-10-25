@@ -1,111 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fllnx209.ext.ti.com ([198.47.19.16]:28053 "EHLO
-        fllnx209.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752114AbdJKNYs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Oct 2017 09:24:48 -0400
-Date: Wed, 11 Oct 2017 08:22:59 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        Cyprian Wronka <cwronka@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>, <nm@ti.com>
-Subject: Re: [PATCH v4 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
-Message-ID: <20171011132258.GB25400@ti.com>
-References: <20170922100823.18184-1-maxime.ripard@free-electrons.com>
- <20170922100823.18184-3-maxime.ripard@free-electrons.com>
- <20170929172709.GA3163@ti.com>
- <20171011092409.ndtr3fdo2oj3zueb@flea.lan>
+Received: from mail.bugwerft.de ([46.23.86.59]:34620 "EHLO mail.bugwerft.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750747AbdJYMSZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Oct 2017 08:18:25 -0400
+Subject: Re: [PATCH v4 04/21] doc: media/v4l-drivers: Add Qualcomm Camera
+ Subsystem driver document
+To: Todor Tomov <todor.tomov@linaro.org>
+Cc: mchehab@kernel.org, hans.verkuil@cisco.com, s.nawrocki@samsung.com,
+        sakari.ailus@iki.fi, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
+References: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
+ <1502199018-28250-5-git-send-email-todor.tomov@linaro.org>
+ <de3c02a1-5c04-977d-fd51-186a5d39c32a@zonque.org>
+ <7483f716-4240-899f-f9c5-23c6408f39ff@linaro.org>
+ <bfd290f4-4fb7-40b0-2d58-8b2a04a9aeca@zonque.org>
+ <3c042974-4118-957b-c9e8-411b30ed5909@linaro.org>
+From: Daniel Mack <daniel@zonque.org>
+Message-ID: <bd38c9fb-d42a-ed1c-dee2-52eb35788c0c@zonque.org>
+Date: Wed, 25 Oct 2017 14:18:22 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20171011092409.ndtr3fdo2oj3zueb@flea.lan>
+In-Reply-To: <3c042974-4118-957b-c9e8-411b30ed5909@linaro.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+Hi Todor,
 
-Maxime Ripard <maxime.ripard@free-electrons.com> wrote on Wed [2017-Oct-11 11:24:09 +0200]:
-> Hi Benoit,
+On Wednesday, October 25, 2017 02:07 PM, Todor Tomov wrote:
+> On 16.10.2017 18:01, Daniel Mack wrote:
+>> I'd be grateful for any pointer about what I could investigate on.
+>>
 > 
-> On Fri, Sep 29, 2017 at 05:27:09PM +0000, Benoit Parrot wrote:
-> > > +static int csi2rx_get_resources(struct csi2rx_priv *csi2rx,
-> > > +				struct platform_device *pdev)
-> > > +{
-> > > +	struct resource *res;
-> > > +	unsigned char i;
-> > > +	u32 reg;
-> > > +
-> > > +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> > > +	csi2rx->base = devm_ioremap_resource(&pdev->dev, res);
-> > > +	if (IS_ERR(csi2rx->base))
-> > > +		return PTR_ERR(csi2rx->base);
-> > > +
-> > > +	csi2rx->sys_clk = devm_clk_get(&pdev->dev, "sys_clk");
-> > > +	if (IS_ERR(csi2rx->sys_clk)) {
-> > > +		dev_err(&pdev->dev, "Couldn't get sys clock\n");
-> > > +		return PTR_ERR(csi2rx->sys_clk);
-> > > +	}
-> > > +
-> > > +	csi2rx->p_clk = devm_clk_get(&pdev->dev, "p_clk");
-> > > +	if (IS_ERR(csi2rx->p_clk)) {
-> > > +		dev_err(&pdev->dev, "Couldn't get P clock\n");
-> > > +		return PTR_ERR(csi2rx->p_clk);
-> > > +	}
-> > > +
-> > > +	csi2rx->dphy = devm_phy_optional_get(&pdev->dev, "dphy");
-> > > +	if (IS_ERR(csi2rx->dphy)) {
-> > > +		dev_err(&pdev->dev, "Couldn't get external D-PHY\n");
-> > > +		return PTR_ERR(csi2rx->dphy);
-> > > +	}
-> > > +
-> > > +	/*
-> > > +	 * FIXME: Once we'll have external D-PHY support, the check
-> > > +	 * will need to be removed.
-> > > +	 */
-> > > +	if (csi2rx->dphy) {
-> > > +		dev_err(&pdev->dev, "External D-PHY not supported yet\n");
-> > > +		return -EINVAL;
-> > > +	}
-> > 
-> > I understand that in your current environment you do not have a
-> > DPHY. But I am wondering in a real setup where you will have either
-> > an internal or an external DPHY, how are they going to interact with
-> > this driver or vice-versa?
+> Everything that you have described seems correct.
 > 
-> It's difficult to give an answer with so little details. How would you
-> choose between those two PHYs? Is there a mux, or should we just power
-> one of the two? If that's the case, is there any use case were we
-> might want to power both? If not, which one should we favor, in which
-> situations?
-
-Oops, I guess I should clarify, in this case I did not mean we would
-have both an internal and an external DPHY. I just meant one or the other.
-Basically just want to see how you would actually handle a DPHY here whether
-it's internal or external?
-
-For instance, using direct register access from within this driver or make
-use of an separate phy driver...
-
+> As you say that frames do not contain any data, do
+> VFE_0_IRQ_STATUS_0_IMAGE_MASTER_n_PING_PONG
+> fire at all or not?
 > 
-> I guess all those questions actually depend on the way the integration
-> has been done, and we're not quite there yet. I guess we could do
-> either a platform specific structure or a glue, depending on the
-> complexity. The platform specific compatible will allow us to do that
-> as we see fit anyway.
+> Do you see any interrupts on the ISPIF? Which?
 > 
+> Could you please share what hardware setup you have - mezzanine and camera module.
 
-Regards,
-Benoit
+Thanks for your reply!
+
+I now got it working, at least as far as camss is concerned. I can
+confirm the camss driver is working for 4 lanes, and that the DTS
+settings described above are correct.
+
+Some of the problems I had were related to the sensor driver reporting
+wrong clock values, which in turn caused camss to not configure its
+hardware clocks correctly.
+
+Linux userspace does not seem to be prepared for Bayer 10bit packed
+formats at all however, but that's out of scope for this list I guess.
+
+
+
+Thanks again!
+Daniel
