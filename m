@@ -1,99 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps-vb.mhejs.net ([37.28.154.113]:50046 "EHLO vps-vb.mhejs.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755515AbdJJVxl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 17:53:41 -0400
-From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-Subject: [PATCH v2 0/6] [media] Add analog mode support for Medion MD95700
-To: Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1bd19a77-a915-81bd-1e6a-a747ef3675f9@maciej.szmigiero.name>
-Date: Tue, 10 Oct 2017 23:34:32 +0200
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60744 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750974AbdJYQIF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Oct 2017 12:08:05 -0400
+Date: Wed, 25 Oct 2017 19:08:02 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org,
+        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH] media: ov9650: remove unnecessary terminated entry in
+ menu items array
+Message-ID: <20171025160802.wdywuhp3vnbaxig5@valkosipuli.retiisi.org.uk>
+References: <1508779826-12499-1-git-send-email-akinobu.mita@gmail.com>
+ <20171025102307.qjvqtorri4lw3weo@valkosipuli.retiisi.org.uk>
+ <CAC5umyhsaWru-Z-LO7jZDt0z6H8LNh+VgC8PCO4y9GGEVA8YRQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAC5umyhsaWru-Z-LO7jZDt0z6H8LNh+VgC8PCO4y9GGEVA8YRQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series adds support for analog part of Medion 95700 in the cxusb
-driver.
+On Thu, Oct 26, 2017 at 12:22:14AM +0900, Akinobu Mita wrote:
+> Hi Sakari,
+> 
+> 2017-10-25 19:23 GMT+09:00 Sakari Ailus <sakari.ailus@iki.fi>:
+> > On Tue, Oct 24, 2017 at 02:30:26AM +0900, Akinobu Mita wrote:
+> >> The test_pattern_menu[] array has two valid items and a null terminated
+> >> item.  So the control's maximum value which is passed to
+> >> v4l2_ctrl_new_std_menu_items() should be one.  However,
+> >> 'ARRAY_SIZE(test_pattern_menu) - 1' is actually passed and it's not
+> >> correct.
+> >>
+> >> Fix it by removing unnecessary terminated entry and let the correct
+> >> control's maximum value be passed to v4l2_ctrl_new_std_menu_items().
+> >>
+> >> Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+> >> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> >> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> >> ---
+> >>  drivers/media/i2c/ov9650.c | 1 -
+> >>  1 file changed, 1 deletion(-)
+> >>
+> >> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+> >> index 6ffb460..69433e1 100644
+> >> --- a/drivers/media/i2c/ov9650.c
+> >> +++ b/drivers/media/i2c/ov9650.c
+> >> @@ -985,7 +985,6 @@ static const struct v4l2_ctrl_ops ov965x_ctrl_ops = {
+> >>  static const char * const test_pattern_menu[] = {
+> >>       "Disabled",
+> >>       "Color bars",
+> >> -     NULL
+> >
+> > The number of items in the menu changes; I fixed that while applying the
+> > patch:
+> >
+> > diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+> > index 69433e1e2533..4f59da1f967b 100644
+> > --- a/drivers/media/i2c/ov9650.c
+> > +++ b/drivers/media/i2c/ov9650.c
+> > @@ -1039,7 +1039,7 @@ static int ov965x_initialize_controls(struct ov965x *ov965x)
+> >                                        V4L2_CID_POWER_LINE_FREQUENCY_50HZ);
+> >
+> >         v4l2_ctrl_new_std_menu_items(hdl, ops, V4L2_CID_TEST_PATTERN,
+> > -                                    ARRAY_SIZE(test_pattern_menu) - 1, 0, 0,
+> > +                                    ARRAY_SIZE(test_pattern_menu), 0, 0,
+> >                                      test_pattern_menu);
+> >         if (hdl->error) {
+> >                 ret = hdl->error;
+> >
+> >
+> > Let me know if you see issues with this.
+> 
+> This change actually causes an issue.
+> 
+> This problem was found when I got the list of available controls for
+> ov9650 subdev.
+> 
+> $ yavta -l /dev/v4l-subdev0
+> <...>
+> --- Image Processing Controls (class 0x009f0001) ---
+> control 0x009f0903 `Test Pattern' min 0 max 2 step 1 default 0 current 0.
+>   0: Disabled (*)
+>   1: Color bars
+> 
+> Strangely, the max control value is '2'.  So I tried to set the control to '2'
+> for the fun and got a null pointer dereference.
+> 
+> $ yavta -w '0x009f0903 2' --no-query /dev/v4l-subdev0
+> Device /dev/v4l-subdev0 opened.
+> Segmentation fault
+> 
+> Then, I found that the root cause is unnecessary terminated entry.
+> So 'ARRAY_SIZE(test_pattern_menu) - 1' (=1) should be passed to
+> v4l2_ctrl_new_std_menu_items().
 
-What works:
-* Video capture at various sizes with sequential fields,
-* Input switching (TV Tuner, Composite, S-Video),
-* TV and radio tuning,
-* Video standard switching and auto detection,
-* Radio mode switching (stereo / mono),
-* Unplugging while capturing,
-* DVB / analog coexistence,
-* Raw BT.656 stream support.
+Oops. Indeed, I'll drop that change above.
 
-What does not work yet:
-* Audio,
-* VBI,
-* Picture controls.
+Thanks!
 
-This series (as an one patch) was submitted for inclusion few years ago,
-then waited few months in a patch queue.
-Unfortunately, by the time it was supposed to be merged there
-were enough changes in media that it was no longer mergable.
-
-I thought at that time that I will be able to rebase and retest it soon
-but unfortunately up till now I was never able to find enough time to do
-so.
-Also, with the passing of time the implementation diverged more and
-more from the current kernel code, necessitating even more reworking.
-
-That last iteration can be found here:
-https://patchwork.linuxtv.org/patch/8048/
-
-Since that version there had been the following changes:
-* Adaptation to changes in V4L2 / DVB core,
-
-* Radio device was added, with a possibility to tune to a FM radio
-station and switch between stereo and mono modes (tested by taping
-audio signal directly at tuner output pin),
-
-* DVB / analog coexistence was improved - resolved a few cases where
-DVB core would switch off power or reset the tuner when the device
-was still being used but in the analog mode,
-
-* Fixed issues reported by v4l2-compliance,
-
-* Switching to raw BT.656 mode is now done by a custom streaming
-parameter set via VIDIOC_S_PARM ioctl instead of using a
-V4L2_BUF_TYPE_PRIVATE buffer (which was removed from V4L2),
-
-* General small code cleanups (like using BIT() or ARRAY_SIZE() macros
-instead of open coding them, code formatting improvements, etc.).
-
-Changes from v1:
-* Only support configuration of cx25840 pins that the cxusb driver is
-actually using so there is no need for an ugly CX25840_PIN() macro,
-
-* Split cxusb changes into two patches: first one implementing
-digital / analog coexistence in this driver, second one adding the
-actual implementation of the analog mode,
-
-* Fix warning reported by kbuild test robot.
-
- drivers/media/i2c/cx25840/cx25840-core.c |  405 ++++++-
- drivers/media/i2c/cx25840/cx25840-core.h |   11 +
- drivers/media/i2c/cx25840/cx25840-vbi.c  |    3 +
- drivers/media/pci/ivtv/ivtv-i2c.c        |    1 +
- drivers/media/tuners/tuner-simple.c      |    5 +-
- drivers/media/usb/dvb-usb/Kconfig        |    8 +-
- drivers/media/usb/dvb-usb/Makefile       |    2 +-
- drivers/media/usb/dvb-usb/cxusb-analog.c | 1865 ++++++++++++++++++++++++++++++
- drivers/media/usb/dvb-usb/cxusb.c        |  453 +++++++-
- drivers/media/usb/dvb-usb/cxusb.h        |  136 +++
- drivers/media/usb/dvb-usb/dvb-usb-dvb.c  |   20 +-
- drivers/media/usb/dvb-usb/dvb-usb-init.c |   13 +
- drivers/media/usb/dvb-usb/dvb-usb.h      |    8 +
- include/media/drv-intf/cx25840.h         |   74 +-
- 14 files changed, 2937 insertions(+), 67 deletions(-)
- create mode 100644 drivers/media/usb/dvb-usb/cxusb-analog.c
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
