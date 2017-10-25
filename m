@@ -1,84 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:55130 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932480AbdJQFUl (ORCPT
+Received: from mail-io0-f196.google.com ([209.85.223.196]:56586 "EHLO
+        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751682AbdJYAkJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 01:20:41 -0400
-Date: Mon, 16 Oct 2017 22:20:30 -0700
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for v4.14-rc6] media fixes
-Message-ID: <20171016222030.07920410@vela.lan>
-In-Reply-To: <CA+55aFxkX26JFqbbZOqTrKwwmNEk6eEH7ULEft84Vj148drj2w@mail.gmail.com>
-References: <f89cef26-8003-96cb-a1eb-f9dbe1c0a9d2@infradead.org>
-        <CA+55aFxkX26JFqbbZOqTrKwwmNEk6eEH7ULEft84Vj148drj2w@mail.gmail.com>
+        Tue, 24 Oct 2017 20:40:09 -0400
+Date: Tue, 24 Oct 2017 17:40:05 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] media: av7110: switch to useing timer_setup()
+Message-ID: <20171025004005.hyb43h3yvovp4is2@dtor-ws>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/AsFjnufbt5EylVlvmATH95a"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/AsFjnufbt5EylVlvmATH95a
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+In preparation for unconditionally passing the struct timer_list pointer to
+all timer callbacks, switch to using the new timer_setup() and from_timer()
+to pass the timer pointer explicitly.
 
-Hi Linus,
+Also stop poking into input core internals and override its autorepeat
+timer function. I am not sure why we have such convoluted autorepeat
+handling in this driver instead of letting input core handle autorepeat,
+but this preserves current behavior of allowing controlling autorepeat
+delay and forcing autorepeat period to be whatever the hardware has.
 
-Em Mon, 16 Oct 2017 20:15:33 -0400
-Linus Torvalds <torvalds@linux-foundation.org> escreveu:
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
 
-> On Mon, Oct 16, 2017 at 4:31 PM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
-> >
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media med=
-ia/v4.14-2 =20
->=20
-> No such tag.
->=20
-> Did you forget to push out? The latest tag I see is v4.14-1.
+Note that this has not been tested on the hardware. But it should
+compile, so I have that going for me.
 
-Yes, I forgot to push, sorry[1]!
+ drivers/media/pci/ttpci/av7110.h    |  4 ++--
+ drivers/media/pci/ttpci/av7110_ir.c | 40 +++++++++++++++++--------------------
+ 2 files changed, 20 insertions(+), 24 deletions(-)
 
-I just pushed it manually. You should now be able to see the
-media/v4.14-2 tag there on my tree.
+diff --git a/drivers/media/pci/ttpci/av7110.h b/drivers/media/pci/ttpci/av7110.h
+index 347827925c14..0aa3c6f01853 100644
+--- a/drivers/media/pci/ttpci/av7110.h
++++ b/drivers/media/pci/ttpci/av7110.h
+@@ -80,10 +80,11 @@ struct av7110;
+ 
+ /* infrared remote control */
+ struct infrared {
+-	u16	key_map[256];
++	u16			key_map[256];
+ 	struct input_dev	*input_dev;
+ 	char			input_phys[32];
+ 	struct timer_list	keyup_timer;
++	unsigned long		keydown_time;
+ 	struct tasklet_struct	ir_tasklet;
+ 	void			(*ir_handler)(struct av7110 *av7110, u32 ircom);
+ 	u32			ir_command;
+@@ -93,7 +94,6 @@ struct infrared {
+ 	u8			inversion;
+ 	u16			last_key;
+ 	u16			last_toggle;
+-	u8			delay_timer_finished;
+ };
+ 
+ 
+diff --git a/drivers/media/pci/ttpci/av7110_ir.c b/drivers/media/pci/ttpci/av7110_ir.c
+index ca05198de2c2..b602e64b3412 100644
+--- a/drivers/media/pci/ttpci/av7110_ir.c
++++ b/drivers/media/pci/ttpci/av7110_ir.c
+@@ -84,9 +84,9 @@ static u16 default_key_map [256] = {
+ 
+ 
+ /* key-up timer */
+-static void av7110_emit_keyup(unsigned long parm)
++static void av7110_emit_keyup(struct timer_list *t)
+ {
+-	struct infrared *ir = (struct infrared *) parm;
++	struct infrared *ir = from_timer(ir, keyup_timer, t);
+ 
+ 	if (!ir || !test_bit(ir->last_key, ir->input_dev->key))
+ 		return;
+@@ -152,19 +152,20 @@ static void av7110_emit_key(unsigned long parm)
+ 		return;
+ 	}
+ 
+-	if (timer_pending(&ir->keyup_timer)) {
+-		del_timer(&ir->keyup_timer);
++	if (del_timer(&ir->keyup_timer)) {
+ 		if (ir->last_key != keycode || toggle != ir->last_toggle) {
+-			ir->delay_timer_finished = 0;
++			ir->keydown_time = jiffies;
+ 			input_event(ir->input_dev, EV_KEY, ir->last_key, 0);
+ 			input_event(ir->input_dev, EV_KEY, keycode, 1);
+ 			input_sync(ir->input_dev);
+-		} else if (ir->delay_timer_finished) {
++		} else if (time_after(jiffies, ir->keydown_time +
++				msecs_to_jiffies(
++					ir->input_dev->rep[REP_PERIOD]))) {
+ 			input_event(ir->input_dev, EV_KEY, keycode, 2);
+ 			input_sync(ir->input_dev);
+ 		}
+ 	} else {
+-		ir->delay_timer_finished = 0;
++		ir->keydown_time = jiffies;
+ 		input_event(ir->input_dev, EV_KEY, keycode, 1);
+ 		input_sync(ir->input_dev);
+ 	}
+@@ -172,9 +173,7 @@ static void av7110_emit_key(unsigned long parm)
+ 	ir->last_key = keycode;
+ 	ir->last_toggle = toggle;
+ 
+-	ir->keyup_timer.expires = jiffies + UP_TIMEOUT;
+-	add_timer(&ir->keyup_timer);
+-
++	mod_timer(&ir->keyup_timer, jiffies + UP_TIMEOUT);
+ }
+ 
+ 
+@@ -184,12 +183,19 @@ static void input_register_keys(struct infrared *ir)
+ 	int i;
+ 
+ 	set_bit(EV_KEY, ir->input_dev->evbit);
+-	set_bit(EV_REP, ir->input_dev->evbit);
+ 	set_bit(EV_MSC, ir->input_dev->evbit);
+ 
+ 	set_bit(MSC_RAW, ir->input_dev->mscbit);
+ 	set_bit(MSC_SCAN, ir->input_dev->mscbit);
+ 
++	set_bit(EV_REP, ir->input_dev->evbit);
++	/*
++	 * By setting the delay before registering input device we
++	 * indicate that we will be implementing the autorepeat
++	 * ourselves.
++	 */
++	ir->input_dev->rep[REP_DELAY] = 250;
++
+ 	memset(ir->input_dev->keybit, 0, sizeof(ir->input_dev->keybit));
+ 
+ 	for (i = 0; i < ARRAY_SIZE(ir->key_map); i++) {
+@@ -205,15 +211,6 @@ static void input_register_keys(struct infrared *ir)
+ }
+ 
+ 
+-/* called by the input driver after rep[REP_DELAY] ms */
+-static void input_repeat_key(unsigned long parm)
+-{
+-	struct infrared *ir = (struct infrared *) parm;
+-
+-	ir->delay_timer_finished = 1;
+-}
+-
+-
+ /* check for configuration changes */
+ int av7110_check_ir_config(struct av7110 *av7110, int force)
+ {
+@@ -333,8 +330,7 @@ int av7110_ir_init(struct av7110 *av7110)
+ 	av_list[av_cnt++] = av7110;
+ 	av7110_check_ir_config(av7110, true);
+ 
+-	setup_timer(&av7110->ir.keyup_timer, av7110_emit_keyup,
+-		    (unsigned long)&av7110->ir);
++	timer_setup(&av7110->ir.keyup_timer, av7110_emit_keyup, 0);
+ 
+ 	input_dev = input_allocate_device();
+ 	if (!input_dev)
+-- 
+2.15.0.rc0.271.g36b669edcc-goog
 
-[1] Actually, my scripts were supposed to push it. I'm out of town for
-two weeks (this week in US, next week in EU), so, I'm handling it from
-my notebook, instead of using my usual machine. Maybe some setup
-differences caused a flaw to it, or maybe the local copy of the script
-is outdated. I'll double-check tomorrow to be sure that, if I need=20
-to do another push before returning home, everything would be just fine.
 
-> I do see the branch (v4l_for_linus) that contains the commit you
-> mention, but no tag..
-
-Yep, the branch is identical to what's referenced by the tag.
-
-Thanks,
-Mauro
-
---Sig_/AsFjnufbt5EylVlvmATH95a
-Content-Type: application/pgp-signature
-Content-Description: Assinatura digital OpenPGP
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEE+QmuaPwR3wnBdVwACF8+vY7k4RUFAlnlkx4ACgkQCF8+vY7k
-4RXWDA//X1OipERvrv2i15gZFSRGH66p9KcbbhSwBpKjdYl5B76LldU6/4BlHQNB
-/JpzCGMIA7BSLAG7WtRpMWfxWke3fHvqBMNl42NVJ5mkqoQIH9bIgtCT08lCra37
-XFAer63Xbf4PerJatc3+GSk4p9gZHQTcyJlMNUN6S92ehHmxlI90yRvL68lJlC1w
-pn8zo5/2BhFkPN2f8w4jG2Sd4YyjZqgMr8Sbiss0kFwah5VIMWDmGRwcjq581uLR
-MfYL8f6JypWhNIoNnXuASuSdEv6dAx3/gVTJSlGmA92V3B/5T1L6uCDgVbDNHzAl
-pXvq+mFN5n2vljP5cjBtBKYGp85U2BVhl1XlE2b+DirhKiox9pXMGPhM80ZPN8Jk
-f0qodrfdumwrZ8CRPFpJsaVGejnzN90C/K3ndn3qlftido0EgzRVLzjHvOgoPfYY
-9lBD0nmki3i2fQ/NfbrVjGgUHeKx9wRqfjJXy3EqyfWoxES8skrPjlFt06dB5fUm
-KtEQ6iIJn/cgPE6aKqopOSYep03Q7Ivj9Mj8csXvFfEVztgQ+WIByH4lSjphXItm
-2B5IQ6AizCNm2Y+Rawra5DD9ytXzIugKR07rLZ7/soAGjlXrYleBTNkGjEr8up1u
-vfWCHtZRCtz8XMiicZ1Mw4Q9QPzcbyvAhrWR9Y7/8BJN7QYPjbQ=
-=MoxP
------END PGP SIGNATURE-----
-
---Sig_/AsFjnufbt5EylVlvmATH95a--
+-- 
+Dmitry
