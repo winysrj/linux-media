@@ -1,38 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52922 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752838AbdJaHk5 (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:53226 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751421AbdJYW2H (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Oct 2017 03:40:57 -0400
-Date: Tue, 31 Oct 2017 09:40:55 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Wenyou Yang <wenyou.yang@microchip.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        devicetree@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-arm-kernel@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v4 0/3] media: ov7740: Add a V4L2 sensor-level driver
-Message-ID: <20171031074055.ph5aghwr5baluoem@valkosipuli.retiisi.org.uk>
-References: <20171031011146.6899-1-wenyou.yang@microchip.com>
+        Wed, 25 Oct 2017 18:28:07 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171031011146.6899-1-wenyou.yang@microchip.com>
+In-Reply-To: <354e3c31-e502-5ba6-d705-9d67764e78bf@osg.samsung.com>
+References: <cover.1507325072.git.shuahkh@osg.samsung.com> <354e3c31-e502-5ba6-d705-9d67764e78bf@osg.samsung.com>
+From: Marian Mihailescu <marian.mihailescu@adelaide.edu.au>
+Date: Thu, 26 Oct 2017 08:58:05 +1030
+Message-ID: <CAM3PiRzS966v=pWRq641sFF-Kg5wHc6fH524CQKusURNfcD0ew@mail.gmail.com>
+Subject: Re: [PATCH 0/2] Fix s5p-mfc lock contention in request firmware paths
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        Andrzej Hajda <a.hajda@samsung.com>, mchehab@kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 31, 2017 at 09:11:42AM +0800, Wenyou Yang wrote:
-> Add a Video4Linux2 sensor-level driver for the OmniVision OV7740
-> VGA camera image sensor.
+Hi Shuah,
 
-Oh, and please wait until the patches have been reviewed, no need to send
-v5 before that.
+For MFC patch, you can delete the "dev" variable since it's not being
+used anymore and results in a compile warning.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+- struct s5p_mfc_dev *dev = ctx->dev;
+
+Cheers,
+Marian
+
+On Thu, Oct 26, 2017 at 7:54 AM, Shuah Khan <shuahkh@osg.samsung.com> wrote:
+> On 10/06/2017 03:30 PM, Shuah Khan wrote:
+>> This patch series fixes inefficiencies and lock contention in the request
+>> firmware paths.
+>>
+>> Shuah Khan (2):
+>>   media: s5p-mfc: check for firmware allocation before requesting
+>>     firmware
+>>   media: s5p-mfc: fix lock confection - request_firmware() once and keep
+>>     state
+>>
+>>  drivers/media/platform/s5p-mfc/s5p_mfc.c        |  4 ++++
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  3 +++
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   | 15 ++++++++++-----
+>>  3 files changed, 17 insertions(+), 5 deletions(-)
+>>
+>
+> Any feedback on this series?
+>
+> thanks,
+> -- Shuah
