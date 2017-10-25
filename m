@@ -1,122 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:6187 "EHLO
-        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751872AbdJPDSl (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:50027 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751895AbdJYD4m (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Oct 2017 23:18:41 -0400
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Jonathan Corbet <corbet@lwn.net>
-CC: Nicolas Ferre <nicolas.ferre@microchip.com>,
-        <linux-kernel@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH v6 3/3] media: ov7670: Add the ov7670_s_power function
-Date: Mon, 16 Oct 2017 11:14:27 +0800
-Message-ID: <20171016031427.4194-4-wenyou.yang@microchip.com>
-In-Reply-To: <20171016031427.4194-1-wenyou.yang@microchip.com>
-References: <20171016031427.4194-1-wenyou.yang@microchip.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Tue, 24 Oct 2017 23:56:42 -0400
+Message-ID: <83081d0341b423fa11cbfc46d06d9630@smtp-cloud8.xs4all.net>
+Date: Wed, 25 Oct 2017 05:56:40 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the ov7670_s_power function which is responsible for
-manipulating the power dowm mode through the PWDN pin and the reset
-operation through the RESET pin, and keep it powered at all times.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
----
+Results of the daily build of media_tree:
 
-Changes in v6:
- - Remove .s_power callback to keep the ov7670 powered at all times.
- - Update the commit log accordingly.
+date:			Wed Oct 25 05:00:14 CEST 2017
+media-tree git hash:	61065fc3e32002ba48aa6bc3816c1f6f9f8daf55
+media_build git hash:	c93534951f5d66bef7f17f16293acf2be346b726
+v4l-utils git hash:	482c52f946af4c6b16efa63a35790d92fb65326c
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-Changes in v5: None
-Changes in v4: None
-Changes in v3: None
-Changes in v2:
- - Add the patch to support the get_fmt ops.
- - Remove the redundant invoking ov7670_init_gpio().
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: OK
+spec-git: OK
 
- drivers/media/i2c/ov7670.c | 31 ++++++++++++++++++++++++++-----
- 1 file changed, 26 insertions(+), 5 deletions(-)
+Detailed results are available here:
 
-diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index 73ceec63a8ca..35a30605d6e3 100644
---- a/drivers/media/i2c/ov7670.c
-+++ b/drivers/media/i2c/ov7670.c
-@@ -1544,6 +1544,22 @@ static int ov7670_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_regis
- }
- #endif
- 
-+static int ov7670_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct ov7670_info *info = to_state(sd);
-+
-+	if (info->pwdn_gpio)
-+		gpiod_direction_output(info->pwdn_gpio, !on);
-+	if (on && info->resetb_gpio) {
-+		gpiod_set_value(info->resetb_gpio, 1);
-+		usleep_range(500, 1000);
-+		gpiod_set_value(info->resetb_gpio, 0);
-+		usleep_range(3000, 5000);
-+	}
-+
-+	return 0;
-+}
-+
- static void ov7670_get_default_format(struct v4l2_subdev *sd,
- 				      struct v4l2_mbus_framefmt *format)
- {
-@@ -1694,23 +1710,25 @@ static int ov7670_probe(struct i2c_client *client,
- 	if (ret)
- 		return ret;
- 
--	ret = ov7670_init_gpio(client, info);
--	if (ret)
--		goto clk_disable;
--
- 	info->clock_speed = clk_get_rate(info->clk) / 1000000;
- 	if (info->clock_speed < 10 || info->clock_speed > 48) {
- 		ret = -EINVAL;
- 		goto clk_disable;
- 	}
- 
-+	ret = ov7670_init_gpio(client, info);
-+	if (ret)
-+		goto clk_disable;
-+
-+	ov7670_s_power(sd, 1);
-+
- 	/* Make sure it's an ov7670 */
- 	ret = ov7670_detect(sd);
- 	if (ret) {
- 		v4l_dbg(1, debug, client,
- 			"chip found @ 0x%x (%s) is not an ov7670 chip.\n",
- 			client->addr << 1, client->adapter->name);
--		goto clk_disable;
-+		goto power_off;
- 	}
- 	v4l_info(client, "chip found @ 0x%02x (%s)\n",
- 			client->addr << 1, client->adapter->name);
-@@ -1789,6 +1807,8 @@ static int ov7670_probe(struct i2c_client *client,
- #endif
- hdl_free:
- 	v4l2_ctrl_handler_free(&info->hdl);
-+power_off:
-+	ov7670_s_power(sd, 0);
- clk_disable:
- 	clk_disable_unprepare(info->clk);
- 	return ret;
-@@ -1806,6 +1826,7 @@ static int ov7670_remove(struct i2c_client *client)
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	media_entity_cleanup(&info->sd.entity);
- #endif
-+	ov7670_s_power(sd, 0);
- 	return 0;
- }
- 
--- 
-2.13.0
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
