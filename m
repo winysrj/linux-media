@@ -1,86 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:51538 "EHLO
-        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753462AbdJTVvS (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:50025 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932326AbdJZWAy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 17:51:18 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC v4 17/17] [media] v4l: Document explicit synchronization behaviour
-Date: Fri, 20 Oct 2017 19:50:12 -0200
-Message-Id: <20171020215012.20646-18-gustavo@padovan.org>
-In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
-References: <20171020215012.20646-1-gustavo@padovan.org>
+        Thu, 26 Oct 2017 18:00:54 -0400
+Received: by mail-lf0-f67.google.com with SMTP id w21so5353809lfc.6
+        for <linux-media@vger.kernel.org>; Thu, 26 Oct 2017 15:00:53 -0700 (PDT)
+Date: Fri, 27 Oct 2017 00:00:51 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v16 16/32] v4l: async: Allow async notifier register call
+ succeed with no subdevs
+Message-ID: <20171026220051.GJ2297@bigcity.dyn.berto.se>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-17-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171026075342.5760-17-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+On 2017-10-26 10:53:26 +0300, Sakari Ailus wrote:
+> The information on how many async sub-devices would be bindable to a
+> notifier is typically dependent on information from platform firmware and
+> it's not driver's business to be aware of that.
+> 
+> Many V4L2 main drivers are perfectly usable (and useful) without async
+> sub-devices and so if there aren't any around, just proceed call the
+> notifier's complete callback immediately without registering the notifier
+> itself.
+> 
+> If a driver needs to check whether there are async sub-devices available,
+> it can be done by inspecting the notifier's num_subdevs field which tells
+> the number of async sub-devices.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add section to VIDIOC_QBUF about it
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-v3:
-	- make the out_fence refer to the current buffer (Hans)
-	- Note what happens when the IN_FENCE is not set (Hans)
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 46db85685894..1b536d68cedf 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -180,14 +180,22 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  	int ret;
+>  	int i;
+>  
+> -	if (!v4l2_dev || !notifier->num_subdevs ||
+> -	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+> +	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+>  		return -EINVAL;
+>  
+>  	notifier->v4l2_dev = v4l2_dev;
+>  	INIT_LIST_HEAD(&notifier->waiting);
+>  	INIT_LIST_HEAD(&notifier->done);
+>  
+> +	if (!notifier->num_subdevs) {
+> +		int ret;
+> +
+> +		ret = v4l2_async_notifier_call_complete(notifier);
+> +		notifier->v4l2_dev = NULL;
+> +
+> +		return ret;
+> +	}
+> +
+>  	for (i = 0; i < notifier->num_subdevs; i++) {
+>  		asd = notifier->subdevs[i];
+>  
+> -- 
+> 2.11.0
+> 
 
-v2:
-	- mention that fences are files (Hans)
-	- rework for the new API
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- Documentation/media/uapi/v4l/vidioc-qbuf.rst | 31 ++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
-
-diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-index 9e448a4aa3aa..a65a50578bad 100644
---- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-@@ -118,6 +118,37 @@ immediately with an ``EAGAIN`` error code when no buffer is available.
- The struct :c:type:`v4l2_buffer` structure is specified in
- :ref:`buffer`.
- 
-+Explicit Synchronization
-+------------------------
-+
-+Explicit Synchronization allows us to control the synchronization of
-+shared buffers from userspace by passing fences to the kernel and/or
-+receiving them from it. Fences passed to the kernel are named in-fences and
-+the kernel should wait on them to signal before using the buffer, i.e., queueing
-+it to the driver. On the other side, the kernel can create out-fences for the
-+buffers it queues to the drivers. Out-fences signal when the driver is
-+finished with buffer, i.e., the buffer is ready. The fences are represented
-+as a file and passed as a file descriptor to userspace.
-+
-+The in-fences are communicated to the kernel at the ``VIDIOC_QBUF`` ioctl
-+using the ``V4L2_BUF_FLAG_IN_FENCE`` buffer
-+flags and the `fence_fd` field. If an in-fence needs to be passed to the kernel,
-+`fence_fd` should be set to the fence file descriptor number and the
-+``V4L2_BUF_FLAG_IN_FENCE`` should be set as well Setting one but not the other
-+will cause ``VIDIOC_QBUF`` to return with error.
-+
-+The fence_fd field (formely the reserved2 field) will be ignored if the
-+``V4L2_BUF_FLAG_IN_FENCE`` is not set.
-+
-+To get an out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE`` flag should
-+be set to ask for a fence to be attached to the buffer. To become aware of
-+the out-fence created one should listen for the ``V4L2_EVENT_OUT_FENCE`` event.
-+An event will be triggered for every buffer queued to the V4L2 driver with the
-+``V4L2_BUF_FLAG_OUT_FENCE``.
-+
-+At streamoff the out-fences will either signal normally if the drivers waits
-+for the operations on the buffers to finish or signal with error if the
-+driver cancels the pending operations.
- 
- Return Value
- ============
 -- 
-2.13.6
+Regards,
+Niklas Söderlund
