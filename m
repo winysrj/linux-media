@@ -1,328 +1,512 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.math.uni-bielefeld.de ([129.70.45.10]:38832 "EHLO
-        smtp.math.uni-bielefeld.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751722AbdJTOFe (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39086 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751620AbdJZHyL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 10:05:34 -0400
-Subject: Re: [PATCH] media: s5p-mfc: Add support for V4L2_MEMORY_DMABUF type
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Marian Mihailescu <mihailescu2m@gmail.com>,
-        Chanwoo Choi <cw00.choi@samsung.com>,
-        JaeChul Lee <jcsing.lee@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-References: <CGME20171020101455eucas1p1ad826b685fab9d93bb5f12b2b27096c6@eucas1p1.samsung.com>
- <20171020101433.30119-1-m.szyprowski@samsung.com>
-From: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
-Message-ID: <acd3bfd1-991d-4f39-603c-5d07b90ebb98@math.uni-bielefeld.de>
-Date: Fri, 20 Oct 2017 15:59:49 +0200
-MIME-Version: 1.0
-In-Reply-To: <20171020101433.30119-1-m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Thu, 26 Oct 2017 03:54:11 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: [PATCH v16 08/32] v4l: fwnode: Support generic parsing of graph endpoints in a device
+Date: Thu, 26 Oct 2017 10:53:18 +0300
+Message-Id: <20171026075342.5760-9-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Marek and others,
+Add two functions for parsing devices graph endpoints:
+v4l2_async_notifier_parse_fwnode_endpoints and
+v4l2_async_notifier_parse_fwnode_endpoints_by_port. The former iterates
+over all endpoints whereas the latter only iterates over the endpoints in
+a given port.
 
-just wanted to point out that I've also played around with Seung-Woo' patch for
-a while. However this patch alone is very much incomplete.
+The former is mostly useful for existing drivers that currently implement
+the iteration over all the endpoints themselves whereas the latter is
+especially intended for devices with both sinks and sources: async
+sub-devices for external devices connected to the device's sources will
+have already been set up, or the external sub-devices are part of the
+master device.
 
-In particular this is missing:
-- At least v5 MFC hw needs source buffers to be also writable, so dma mapping
-needs to be setup bidirectional.
-- Like with mmap, all buffers need to be setup before decoding can begin. This
-is due to how MFC hw gets initialized. dmabufs that are added later are not
-going to be used before MFC hw isn't reinitialized.
-- Removing dmabufs, or replacing them seems to be impossible with the current
-code architecture.
+Depends-on: ("device property: preserve usecount for node passed to of_fwnode_graph_get_port_parent()")
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c  |  31 ++++++
+ drivers/media/v4l2-core/v4l2-fwnode.c | 196 ++++++++++++++++++++++++++++++++++
+ include/media/v4l2-async.h            |  24 ++++-
+ include/media/v4l2-fwnode.h           | 118 ++++++++++++++++++++
+ 4 files changed, 367 insertions(+), 2 deletions(-)
 
-I had extended samsung-utils with some C++ app to test stuff when I was looking
-into this. You can find the code here:
-https://github.com/tobiasjakobi/samsung-utils/tree/devel/v4l2-mfc-drm-direct
-
-Now here is what happens. I allocate N buffer objects in DRM land to be used as
-destination for the MFC decoder. The BOs are exported, so that I can then use
-them in V4L2 space. I have to queue n (with n < N) buffers before I can start
-the MFC engine.
-
-If I do start the engine at that point (n buffers queued), I soon get an IOMMU
-pagefault. I need to queue all N buffers before anything works at all. Queueing
-a buffer the first time also registers it, and this has to happen before the MFC
-hw is initialized.
-
-In particular I can't just allocate more buffers from DRM and use them here
-_after_ decoding has started.
-
-To me it looks like the MFC code was never written with dmabuf in mind. It's
-centered around a static memory setup that is fixed before decoding begins.
-
-Anyway, just my 2 cents :)
-
-- Tobias
-
-
-Marek Szyprowski wrote:
-> From: Seung-Woo Kim <sw0312.kim@samsung.com>
-> 
-> There is memory constraint for the buffers in V5 of the MFC hardware, but
-> when IOMMU is used, then this constraint is meaningless. Other version of
-> the MFC hardware don't have such limitations. So in such cases the driver
-> is able to use buffers placed anywhere in the system memory, thus USERPTR
-> and DMABUF operation modes can be also enabled.
-> 
-> This patch also removes USERPTR operation mode from encoder node, as it
-> doesn't work with v5 MFC hardware without IOMMU being enabled.
-> 
-> Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-> [mszyprow: adapted to v4.14 code base and updated commit message]
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc.c     | 14 ++++--
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 73 ++++++++++++++++++++++++----
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 24 ++++++---
->  3 files changed, 89 insertions(+), 22 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> index cf68aed59e0d..f975523dc040 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> @@ -754,6 +754,7 @@ static int s5p_mfc_open(struct file *file)
->  	struct s5p_mfc_dev *dev = video_drvdata(file);
->  	struct s5p_mfc_ctx *ctx = NULL;
->  	struct vb2_queue *q;
-> +	unsigned int io_modes;
->  	int ret = 0;
->  
->  	mfc_debug_enter();
-> @@ -839,16 +840,21 @@ static int s5p_mfc_open(struct file *file)
->  		if (ret)
->  			goto err_init_hw;
->  	}
-> +
-> +	io_modes = VB2_MMAP;
-> +	if (exynos_is_iommu_available(&dev->plat_dev->dev) || !IS_TWOPORT(dev))
-> +		io_modes |= VB2_USERPTR | VB2_DMABUF;
-> +
->  	/* Init videobuf2 queue for CAPTURE */
->  	q = &ctx->vq_dst;
->  	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
->  	q->drv_priv = &ctx->fh;
->  	q->lock = &dev->mfc_mutex;
->  	if (vdev == dev->vfd_dec) {
-> -		q->io_modes = VB2_MMAP;
-> +		q->io_modes = io_modes;
->  		q->ops = get_dec_queue_ops();
->  	} else if (vdev == dev->vfd_enc) {
-> -		q->io_modes = VB2_MMAP | VB2_USERPTR;
-> +		q->io_modes = io_modes;
->  		q->ops = get_enc_queue_ops();
->  	} else {
->  		ret = -ENOENT;
-> @@ -872,10 +878,10 @@ static int s5p_mfc_open(struct file *file)
->  	q->drv_priv = &ctx->fh;
->  	q->lock = &dev->mfc_mutex;
->  	if (vdev == dev->vfd_dec) {
-> -		q->io_modes = VB2_MMAP;
-> +		q->io_modes = io_modes;
->  		q->ops = get_dec_queue_ops();
->  	} else if (vdev == dev->vfd_enc) {
-> -		q->io_modes = VB2_MMAP | VB2_USERPTR;
-> +		q->io_modes = io_modes;
->  		q->ops = get_enc_queue_ops();
->  	} else {
->  		ret = -ENOENT;
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> index 8937b0af7cb3..efe65fce4880 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> @@ -546,14 +546,27 @@ static int reqbufs_capture(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx,
->  			goto out;
->  		}
->  
-> -		WARN_ON(ctx->dst_bufs_cnt != ctx->total_dpb_count);
-> -		ctx->capture_state = QUEUE_BUFS_MMAPED;
-> +		if (reqbufs->memory == V4L2_MEMORY_MMAP) {
-> +			if (ctx->dst_bufs_cnt == ctx->total_dpb_count) {
-> +				ctx->capture_state = QUEUE_BUFS_MMAPED;
-> +			} else {
-> +				mfc_err("Not all buffers passed to buf_init\n");
-> +				reqbufs->count = 0;
-> +				ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
-> +				s5p_mfc_hw_call(dev->mfc_ops,
-> +						release_codec_buffers, ctx);
-> +				ret = -ENOMEM;
-> +				goto out;
-> +			}
-> +		}
->  
->  		if (s5p_mfc_ctx_ready(ctx))
->  			set_work_bit_irqsave(ctx);
->  		s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
-> -		s5p_mfc_wait_for_done_ctx(ctx, S5P_MFC_R2H_CMD_INIT_BUFFERS_RET,
-> -					  0);
-> +		if (reqbufs->memory == V4L2_MEMORY_MMAP) {
-> +			s5p_mfc_wait_for_done_ctx(ctx,
-> +					 S5P_MFC_R2H_CMD_INIT_BUFFERS_RET, 0);
-> +		}
->  	} else {
->  		mfc_err("Buffers have already been requested\n");
->  		ret = -EINVAL;
-> @@ -571,15 +584,19 @@ static int vidioc_reqbufs(struct file *file, void *priv,
->  {
->  	struct s5p_mfc_dev *dev = video_drvdata(file);
->  	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
-> -
-> -	if (reqbufs->memory != V4L2_MEMORY_MMAP) {
-> -		mfc_debug(2, "Only V4L2_MEMORY_MMAP is supported\n");
-> -		return -EINVAL;
-> -	}
-> +	int ret;
->  
->  	if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-> +		ret = vb2_verify_memory_type(&ctx->vq_src, reqbufs->memory,
-> +					     reqbufs->type);
-> +		if (ret)
-> +			return ret;
->  		return reqbufs_output(dev, ctx, reqbufs);
->  	} else if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-> +		ret = vb2_verify_memory_type(&ctx->vq_dst, reqbufs->memory,
-> +					     reqbufs->type);
-> +		if (ret)
-> +			return ret;
->  		return reqbufs_capture(dev, ctx, reqbufs);
->  	} else {
->  		mfc_err("Invalid type requested\n");
-> @@ -998,6 +1015,27 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
->  	return 0;
->  }
->  
-> +static int s5p_mfc_buf_prepare(struct vb2_buffer *vb)
-> +{
-> +	struct vb2_queue *vq = vb->vb2_queue;
-> +	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
-> +
-> +	if (vq->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-> +		if (vb2_plane_size(vb, 0) < ctx->luma_size ||
-> +			vb2_plane_size(vb, 1) < ctx->chroma_size) {
-> +			mfc_err("Plane buffer (CAPTURE) is too small.\n");
-> +			return -EINVAL;
-> +		}
-> +	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-> +		if (vb2_plane_size(vb, 0) < ctx->dec_src_buf_size) {
-> +			mfc_err("Plane buffer (OUTPUT) is too small.\n");
-> +			return -EINVAL;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static int s5p_mfc_start_streaming(struct vb2_queue *q, unsigned int count)
->  {
->  	struct s5p_mfc_ctx *ctx = fh_to_ctx(q->drv_priv);
-> @@ -1066,6 +1104,7 @@ static void s5p_mfc_buf_queue(struct vb2_buffer *vb)
->  	struct s5p_mfc_dev *dev = ctx->dev;
->  	unsigned long flags;
->  	struct s5p_mfc_buf *mfc_buf;
-> +	int wait_flag = 0;
->  
->  	if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
->  		mfc_buf = &ctx->src_bufs[vb->index];
-> @@ -1083,12 +1122,25 @@ static void s5p_mfc_buf_queue(struct vb2_buffer *vb)
->  		list_add_tail(&mfc_buf->list, &ctx->dst_queue);
->  		ctx->dst_queue_cnt++;
->  		spin_unlock_irqrestore(&dev->irqlock, flags);
-> +		if ((vq->memory == V4L2_MEMORY_USERPTR ||
-> +			vq->memory == V4L2_MEMORY_DMABUF) &&
-> +			ctx->dst_queue_cnt == ctx->total_dpb_count)
-> +			ctx->capture_state = QUEUE_BUFS_MMAPED;
->  	} else {
->  		mfc_err("Unsupported buffer type (%d)\n", vq->type);
->  	}
-> -	if (s5p_mfc_ctx_ready(ctx))
-> +	if (s5p_mfc_ctx_ready(ctx)) {
->  		set_work_bit_irqsave(ctx);
-> +		if ((vq->memory == V4L2_MEMORY_USERPTR ||
-> +			vq->memory == V4L2_MEMORY_DMABUF) &&
-> +			ctx->state == MFCINST_HEAD_PARSED &&
-> +			ctx->capture_state == QUEUE_BUFS_MMAPED)
-> +			wait_flag = 1;
-> +	}
->  	s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
-> +	if (wait_flag)
-> +		s5p_mfc_wait_for_done_ctx(ctx,
-> +				S5P_MFC_R2H_CMD_INIT_BUFFERS_RET, 0);
->  }
->  
->  static struct vb2_ops s5p_mfc_dec_qops = {
-> @@ -1096,6 +1148,7 @@ static struct vb2_ops s5p_mfc_dec_qops = {
->  	.wait_prepare		= vb2_ops_wait_prepare,
->  	.wait_finish		= vb2_ops_wait_finish,
->  	.buf_init		= s5p_mfc_buf_init,
-> +	.buf_prepare		= s5p_mfc_buf_prepare,
->  	.start_streaming	= s5p_mfc_start_streaming,
->  	.stop_streaming		= s5p_mfc_stop_streaming,
->  	.buf_queue		= s5p_mfc_buf_queue,
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> index 2a5fd7c42cd5..63a2cb3c7555 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> @@ -1130,11 +1130,11 @@ static int vidioc_reqbufs(struct file *file, void *priv,
->  	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
->  	int ret = 0;
->  
-> -	/* if memory is not mmp or userptr return error */
-> -	if ((reqbufs->memory != V4L2_MEMORY_MMAP) &&
-> -		(reqbufs->memory != V4L2_MEMORY_USERPTR))
-> -		return -EINVAL;
->  	if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-> +		ret = vb2_verify_memory_type(&ctx->vq_dst, reqbufs->memory,
-> +					     reqbufs->type);
-> +		if (ret)
-> +			return ret;
->  		if (reqbufs->count == 0) {
->  			mfc_debug(2, "Freeing buffers\n");
->  			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
-> @@ -1164,6 +1164,10 @@ static int vidioc_reqbufs(struct file *file, void *priv,
->  			return -ENOMEM;
->  		}
->  	} else if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-> +		ret = vb2_verify_memory_type(&ctx->vq_dst, reqbufs->memory,
-> +					     reqbufs->type);
-> +		if (ret)
-> +			return ret;
->  		if (reqbufs->count == 0) {
->  			mfc_debug(2, "Freeing buffers\n");
->  			ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
-> @@ -1209,11 +1213,11 @@ static int vidioc_querybuf(struct file *file, void *priv,
->  	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
->  	int ret = 0;
->  
-> -	/* if memory is not mmp or userptr return error */
-> -	if ((buf->memory != V4L2_MEMORY_MMAP) &&
-> -		(buf->memory != V4L2_MEMORY_USERPTR))
-> -		return -EINVAL;
->  	if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-> +		ret = vb2_verify_memory_type(&ctx->vq_dst, buf->memory,
-> +					     buf->type);
-> +		if (ret)
-> +			return ret;
->  		if (ctx->state != MFCINST_GOT_INST) {
->  			mfc_err("invalid context state: %d\n", ctx->state);
->  			return -EINVAL;
-> @@ -1225,6 +1229,10 @@ static int vidioc_querybuf(struct file *file, void *priv,
->  		}
->  		buf->m.planes[0].m.mem_offset += DST_QUEUE_OFF_BASE;
->  	} else if (buf->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-> +		ret = vb2_verify_memory_type(&ctx->vq_src, buf->memory,
-> +					     buf->type);
-> +		if (ret)
-> +			return ret;
->  		ret = vb2_querybuf(&ctx->vq_src, buf);
->  		if (ret != 0) {
->  			mfc_err("error in vb2_querybuf() for E(S)\n");
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 8b84fea50c2a..46aebfc75e43 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -22,6 +22,7 @@
+ 
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-subdev.h>
+ 
+ static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+@@ -237,6 +238,36 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ }
+ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+ 
++void v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier)
++{
++	unsigned int i;
++
++	if (!notifier->max_subdevs)
++		return;
++
++	for (i = 0; i < notifier->num_subdevs; i++) {
++		struct v4l2_async_subdev *asd = notifier->subdevs[i];
++
++		switch (asd->match_type) {
++		case V4L2_ASYNC_MATCH_FWNODE:
++			fwnode_handle_put(asd->match.fwnode.fwnode);
++			break;
++		default:
++			WARN_ON_ONCE(true);
++			break;
++		}
++
++		kfree(asd);
++	}
++
++	notifier->max_subdevs = 0;
++	notifier->num_subdevs = 0;
++
++	kvfree(notifier->subdevs);
++	notifier->subdevs = NULL;
++}
++EXPORT_SYMBOL_GPL(v4l2_async_notifier_cleanup);
++
+ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ {
+ 	struct v4l2_async_notifier *notifier;
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 40b2fbfe8865..df0695b7bbcc 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -19,6 +19,7 @@
+  */
+ #include <linux/acpi.h>
+ #include <linux/kernel.h>
++#include <linux/mm.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/property.h>
+@@ -26,6 +27,7 @@
+ #include <linux/string.h>
+ #include <linux/types.h>
+ 
++#include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+ 
+ enum v4l2_fwnode_bus_type {
+@@ -388,6 +390,200 @@ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fwnode_put_link);
+ 
++static int v4l2_async_notifier_realloc(struct v4l2_async_notifier *notifier,
++				       unsigned int max_subdevs)
++{
++	struct v4l2_async_subdev **subdevs;
++
++	if (max_subdevs <= notifier->max_subdevs)
++		return 0;
++
++	subdevs = kvmalloc_array(
++		max_subdevs, sizeof(*notifier->subdevs),
++		GFP_KERNEL | __GFP_ZERO);
++	if (!subdevs)
++		return -ENOMEM;
++
++	if (notifier->subdevs) {
++		memcpy(subdevs, notifier->subdevs,
++		       sizeof(*subdevs) * notifier->num_subdevs);
++
++		kvfree(notifier->subdevs);
++	}
++
++	notifier->subdevs = subdevs;
++	notifier->max_subdevs = max_subdevs;
++
++	return 0;
++}
++
++static int v4l2_async_notifier_fwnode_parse_endpoint(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	struct fwnode_handle *endpoint, unsigned int asd_struct_size,
++	int (*parse_endpoint)(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd))
++{
++	struct v4l2_async_subdev *asd;
++	struct v4l2_fwnode_endpoint *vep;
++	int ret = 0;
++
++	asd = kzalloc(asd_struct_size, GFP_KERNEL);
++	if (!asd)
++		return -ENOMEM;
++
++	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
++	asd->match.fwnode.fwnode =
++		fwnode_graph_get_remote_port_parent(endpoint);
++	if (!asd->match.fwnode.fwnode) {
++		dev_warn(dev, "bad remote port parent\n");
++		ret = -EINVAL;
++		goto out_err;
++	}
++
++	vep = v4l2_fwnode_endpoint_alloc_parse(endpoint);
++	if (IS_ERR(vep)) {
++		ret = PTR_ERR(vep);
++		dev_warn(dev, "unable to parse V4L2 fwnode endpoint (%d)\n",
++			 ret);
++		goto out_err;
++	}
++
++	ret = parse_endpoint ? parse_endpoint(dev, vep, asd) : 0;
++	if (ret == -ENOTCONN)
++		dev_dbg(dev, "ignoring port@%u/endpoint@%u\n", vep->base.port,
++			vep->base.id);
++	else if (ret < 0)
++		dev_warn(dev,
++			 "driver could not parse port@%u/endpoint@%u (%d)\n",
++			 vep->base.port, vep->base.id, ret);
++	v4l2_fwnode_endpoint_free(vep);
++	if (ret < 0)
++		goto out_err;
++
++	notifier->subdevs[notifier->num_subdevs] = asd;
++	notifier->num_subdevs++;
++
++	return 0;
++
++out_err:
++	fwnode_handle_put(asd->match.fwnode.fwnode);
++	kfree(asd);
++
++	return ret == -ENOTCONN ? 0 : ret;
++}
++
++static int __v4l2_async_notifier_parse_fwnode_endpoints(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	size_t asd_struct_size, unsigned int port, bool has_port,
++	int (*parse_endpoint)(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd))
++{
++	struct fwnode_handle *fwnode;
++	unsigned int max_subdevs = notifier->max_subdevs;
++	int ret;
++
++	if (WARN_ON(asd_struct_size < sizeof(struct v4l2_async_subdev)))
++		return -EINVAL;
++
++	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
++				     dev_fwnode(dev), fwnode)); ) {
++		struct fwnode_handle *dev_fwnode;
++		bool is_available;
++
++		dev_fwnode = fwnode_graph_get_port_parent(fwnode);
++		is_available = fwnode_device_is_available(dev_fwnode);
++		fwnode_handle_put(dev_fwnode);
++		if (!is_available)
++			continue;
++
++		if (has_port) {
++			struct fwnode_endpoint ep;
++
++			ret = fwnode_graph_parse_endpoint(fwnode, &ep);
++			if (ret) {
++				fwnode_handle_put(fwnode);
++				return ret;
++			}
++
++			if (ep.port != port)
++				continue;
++		}
++		max_subdevs++;
++	}
++
++	/* No subdevs to add? Return here. */
++	if (max_subdevs == notifier->max_subdevs)
++		return 0;
++
++	ret = v4l2_async_notifier_realloc(notifier, max_subdevs);
++	if (ret)
++		return ret;
++
++	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
++				     dev_fwnode(dev), fwnode)); ) {
++		struct fwnode_handle *dev_fwnode;
++		bool is_available;
++
++		dev_fwnode = fwnode_graph_get_port_parent(fwnode);
++		is_available = fwnode_device_is_available(dev_fwnode);
++		fwnode_handle_put(dev_fwnode);
++
++		if (!fwnode_device_is_available(dev_fwnode))
++			continue;
++
++		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
++			ret = -EINVAL;
++			break;
++		}
++
++		if (has_port) {
++			struct fwnode_endpoint ep;
++
++			ret = fwnode_graph_parse_endpoint(fwnode, &ep);
++			if (ret)
++				break;
++
++			if (ep.port != port)
++				continue;
++		}
++
++		ret = v4l2_async_notifier_fwnode_parse_endpoint(
++			dev, notifier, fwnode, asd_struct_size, parse_endpoint);
++		if (ret < 0)
++			break;
++	}
++
++	fwnode_handle_put(fwnode);
++
++	return ret;
++}
++
++int v4l2_async_notifier_parse_fwnode_endpoints(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	size_t asd_struct_size,
++	int (*parse_endpoint)(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd))
++{
++	return __v4l2_async_notifier_parse_fwnode_endpoints(
++		dev, notifier, asd_struct_size, 0, false, parse_endpoint);
++}
++EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints);
++
++int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	size_t asd_struct_size, unsigned int port,
++	int (*parse_endpoint)(struct device *dev,
++			    struct v4l2_fwnode_endpoint *vep,
++			    struct v4l2_async_subdev *asd))
++{
++	return __v4l2_async_notifier_parse_fwnode_endpoints(
++		dev, notifier, asd_struct_size, port, true, parse_endpoint);
++}
++EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints_by_port);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index c69d8c8a66d0..329aeebd1a80 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -18,7 +18,6 @@ struct device;
+ struct device_node;
+ struct v4l2_device;
+ struct v4l2_subdev;
+-struct v4l2_async_notifier;
+ 
+ /* A random max subdevice number, used to allocate an array on stack */
+ #define V4L2_MAX_SUBDEVS 128U
+@@ -50,6 +49,10 @@ enum v4l2_async_match_type {
+  * @match:	union of per-bus type matching data sets
+  * @list:	used to link struct v4l2_async_subdev objects, waiting to be
+  *		probed, to a notifier->waiting list
++ *
++ * When this struct is used as a member in a driver specific struct,
++ * the driver specific struct shall contain the &struct
++ * v4l2_async_subdev as its first member.
+  */
+ struct v4l2_async_subdev {
+ 	enum v4l2_async_match_type match_type;
+@@ -78,7 +81,8 @@ struct v4l2_async_subdev {
+ /**
+  * struct v4l2_async_notifier - v4l2_device notifier data
+  *
+- * @num_subdevs: number of subdevices
++ * @num_subdevs: number of subdevices used in the subdevs array
++ * @max_subdevs: number of subdevices allocated in the subdevs array
+  * @subdevs:	array of pointers to subdevice descriptors
+  * @v4l2_dev:	pointer to struct v4l2_device
+  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+@@ -90,6 +94,7 @@ struct v4l2_async_subdev {
+  */
+ struct v4l2_async_notifier {
+ 	unsigned int num_subdevs;
++	unsigned int max_subdevs;
+ 	struct v4l2_async_subdev **subdevs;
+ 	struct v4l2_device *v4l2_dev;
+ 	struct list_head waiting;
+@@ -121,6 +126,21 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
+ 
+ /**
++ * v4l2_async_notifier_cleanup - clean up notifier resources
++ * @notifier: the notifier the resources of which are to be cleaned up
++ *
++ * Release memory resources related to a notifier, including the async
++ * sub-devices allocated for the purposes of the notifier but not the notifier
++ * itself. The user is responsible for calling this function to clean up the
++ * notifier after calling @v4l2_async_notifier_parse_fwnode_endpoints.
++ *
++ * There is no harm from calling v4l2_async_notifier_cleanup in other
++ * cases as long as its memory has been zeroed after it has been
++ * allocated.
++ */
++void v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier);
++
++/**
+  * v4l2_async_register_subdev - registers a sub-device to the asynchronous
+  * 	subdevice framework
+  *
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index 7adec9851d9e..ac605af9b877 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -25,6 +25,8 @@
+ #include <media/v4l2-mediabus.h>
+ 
+ struct fwnode_handle;
++struct v4l2_async_notifier;
++struct v4l2_async_subdev;
+ 
+ #define V4L2_FWNODE_CSI2_MAX_DATA_LANES	4
+ 
+@@ -122,4 +124,120 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
+ 			   struct v4l2_fwnode_link *link);
+ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
+ 
++/**
++ * v4l2_async_notifier_parse_fwnode_endpoints - Parse V4L2 fwnode endpoints in a
++ *						device node
++ * @dev: the device the endpoints of which are to be parsed
++ * @notifier: notifier for @dev
++ * @asd_struct_size: size of the driver's async sub-device struct, including
++ *		     sizeof(struct v4l2_async_subdev). The &struct
++ *		     v4l2_async_subdev shall be the first member of
++ *		     the driver's async sub-device struct, i.e. both
++ *		     begin at the same memory address.
++ * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
++ *		    endpoint. Optional.
++ *		    Return: %0 on success
++ *			    %-ENOTCONN if the endpoint is to be skipped but this
++ *				       should not be considered as an error
++ *			    %-EINVAL if the endpoint configuration is invalid
++ *
++ * Parse the fwnode endpoints of the @dev device and populate the async sub-
++ * devices array of the notifier. The @parse_endpoint callback function is
++ * called for each endpoint with the corresponding async sub-device pointer to
++ * let the caller initialize the driver-specific part of the async sub-device
++ * structure.
++ *
++ * The notifier memory shall be zeroed before this function is called on the
++ * notifier.
++ *
++ * This function may not be called on a registered notifier and may be called on
++ * a notifier only once.
++ *
++ * Do not change the notifier's subdevs array, take references to the subdevs
++ * array itself or change the notifier's num_subdevs field. This is because this
++ * function allocates and reallocates the subdevs array based on parsing
++ * endpoints.
++ *
++ * The &struct v4l2_fwnode_endpoint passed to the callback function
++ * @parse_endpoint is released once the function is finished. If there is a need
++ * to retain that configuration, the user needs to allocate memory for it.
++ *
++ * Any notifier populated using this function must be released with a call to
++ * v4l2_async_notifier_cleanup() after it has been unregistered and the async
++ * sub-devices are no longer in use, even if the function returned an error.
++ *
++ * Return: %0 on success, including when no async sub-devices are found
++ *	   %-ENOMEM if memory allocation failed
++ *	   %-EINVAL if graph or endpoint parsing failed
++ *	   Other error codes as returned by @parse_endpoint
++ */
++int v4l2_async_notifier_parse_fwnode_endpoints(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	size_t asd_struct_size,
++	int (*parse_endpoint)(struct device *dev,
++			      struct v4l2_fwnode_endpoint *vep,
++			      struct v4l2_async_subdev *asd));
++
++/**
++ * v4l2_async_notifier_parse_fwnode_endpoints_by_port - Parse V4L2 fwnode
++ *							endpoints of a port in a
++ *							device node
++ * @dev: the device the endpoints of which are to be parsed
++ * @notifier: notifier for @dev
++ * @asd_struct_size: size of the driver's async sub-device struct, including
++ *		     sizeof(struct v4l2_async_subdev). The &struct
++ *		     v4l2_async_subdev shall be the first member of
++ *		     the driver's async sub-device struct, i.e. both
++ *		     begin at the same memory address.
++ * @port: port number where endpoints are to be parsed
++ * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
++ *		    endpoint. Optional.
++ *		    Return: %0 on success
++ *			    %-ENOTCONN if the endpoint is to be skipped but this
++ *				       should not be considered as an error
++ *			    %-EINVAL if the endpoint configuration is invalid
++ *
++ * This function is just like v4l2_async_notifier_parse_fwnode_endpoints() with
++ * the exception that it only parses endpoints in a given port. This is useful
++ * on devices that have both sinks and sources: the async sub-devices connected
++ * to sources have already been configured by another driver (on capture
++ * devices). In this case the driver must know which ports to parse.
++ *
++ * Parse the fwnode endpoints of the @dev device on a given @port and populate
++ * the async sub-devices array of the notifier. The @parse_endpoint callback
++ * function is called for each endpoint with the corresponding async sub-device
++ * pointer to let the caller initialize the driver-specific part of the async
++ * sub-device structure.
++ *
++ * The notifier memory shall be zeroed before this function is called on the
++ * notifier the first time.
++ *
++ * This function may not be called on a registered notifier and may be called on
++ * a notifier only once per port.
++ *
++ * Do not change the notifier's subdevs array, take references to the subdevs
++ * array itself or change the notifier's num_subdevs field. This is because this
++ * function allocates and reallocates the subdevs array based on parsing
++ * endpoints.
++ *
++ * The &struct v4l2_fwnode_endpoint passed to the callback function
++ * @parse_endpoint is released once the function is finished. If there is a need
++ * to retain that configuration, the user needs to allocate memory for it.
++ *
++ * Any notifier populated using this function must be released with a call to
++ * v4l2_async_notifier_cleanup() after it has been unregistered and the async
++ * sub-devices are no longer in use, even if the function returned an error.
++ *
++ * Return: %0 on success, including when no async sub-devices are found
++ *	   %-ENOMEM if memory allocation failed
++ *	   %-EINVAL if graph or endpoint parsing failed
++ *	   Other error codes as returned by @parse_endpoint
++ */
++int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
++	struct device *dev, struct v4l2_async_notifier *notifier,
++	size_t asd_struct_size, unsigned int port,
++	int (*parse_endpoint)(struct device *dev,
++			      struct v4l2_fwnode_endpoint *vep,
++			      struct v4l2_async_subdev *asd));
++
+ #endif /* _V4L2_FWNODE_H */
+-- 
+2.11.0
