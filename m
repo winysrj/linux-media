@@ -1,47 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:35511 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754108AbdJISPC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Oct 2017 14:15:02 -0400
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-To: mchehab@kernel.org, sean@mess.org, hans.verkuil@cisco.com,
-        sakari.ailus@linux.intel.com, andi.shyti@samsung.com,
-        andreyknvl@google.com, arnd@arndb.de, dvyukov@google.com,
-        kcc@google.com
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        syzkaller@googlegroups.com
-Subject: [PATCH] media: imon: Fix null-ptr-deref in imon_probe
-Date: Mon,  9 Oct 2017 23:44:48 +0530
-Message-Id: <71782d84353db85a9fb9e45ac09f1c2b53c5a04a.1507572539.git.arvind.yadav.cs@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39220 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932284AbdJZHyc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Oct 2017 03:54:32 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: [PATCH v16 16/32] v4l: async: Allow async notifier register call succeed with no subdevs
+Date: Thu, 26 Oct 2017 10:53:26 +0300
+Message-Id: <20171026075342.5760-17-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It seems that the return value of usb_ifnum_to_if() can be NULL and
-needs to be checked.
+The information on how many async sub-devices would be bindable to a
+notifier is typically dependent on information from platform firmware and
+it's not driver's business to be aware of that.
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Many V4L2 main drivers are perfectly usable (and useful) without async
+sub-devices and so if there aren't any around, just proceed call the
+notifier's complete callback immediately without registering the notifier
+itself.
+
+If a driver needs to check whether there are async sub-devices available,
+it can be done by inspecting the notifier's num_subdevs field which tells
+the number of async sub-devices.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-This bug report by Andrey Konovalov usb/media/imon: null-ptr-deref
-in imon_probe
+ drivers/media/v4l2-core/v4l2-async.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
- drivers/media/rc/imon.c | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index 7b3f31c..0c46155 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -2517,6 +2517,11 @@ static int imon_probe(struct usb_interface *interface,
- 	mutex_lock(&driver_lock);
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 46db85685894..1b536d68cedf 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -180,14 +180,22 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 	int ret;
+ 	int i;
  
- 	first_if = usb_ifnum_to_if(usbdev, 0);
-+	if (!first_if) {
-+		ret = -ENODEV;
-+		goto fail;
+-	if (!v4l2_dev || !notifier->num_subdevs ||
+-	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
++	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+ 		return -EINVAL;
+ 
+ 	notifier->v4l2_dev = v4l2_dev;
+ 	INIT_LIST_HEAD(&notifier->waiting);
+ 	INIT_LIST_HEAD(&notifier->done);
+ 
++	if (!notifier->num_subdevs) {
++		int ret;
++
++		ret = v4l2_async_notifier_call_complete(notifier);
++		notifier->v4l2_dev = NULL;
++
++		return ret;
 +	}
 +
- 	first_if_ctx = usb_get_intfdata(first_if);
+ 	for (i = 0; i < notifier->num_subdevs; i++) {
+ 		asd = notifier->subdevs[i];
  
- 	if (ifnum == 0) {
 -- 
-2.7.4
+2.11.0
