@@ -1,42 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cams.careind.net ([1.23.164.19]:57614 "EHLO cams.careind.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751148AbdJDTbY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 15:31:24 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-        by cams.careind.net (Postfix) with ESMTP id 8AF992850697
-        for <linux-media@vger.kernel.org>; Thu,  5 Oct 2017 00:42:14 +0530 (IST)
-Received: from cams.careind.net ([127.0.0.1])
-        by localhost (cams.careind.net [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id eX8lkhF5LV7h for <linux-media@vger.kernel.org>;
-        Thu,  5 Oct 2017 00:42:14 +0530 (IST)
-Received: from [192.168.0.2] (unknown [192.168.0.31])
-        by cams.careind.net (Postfix) with ESMTPSA id 954F928504BC
-        for <linux-media@vger.kernel.org>; Thu,  5 Oct 2017 00:42:13 +0530 (IST)
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: IT MAINTENANCE
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39408 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752062AbdJZHzG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Oct 2017 03:55:06 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-From: "IT service Team" <umeshkmar.s@careind.net>
-Date: Wed, 04 Oct 2017 20:25:14 +0100
-Message-Id: <20171004191213.954F928504BC@cams.careind.net>
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: [PATCH v16 28/32] smiapp: Add support for flash and lens devices
+Date: Thu, 26 Oct 2017 10:53:38 +0300
+Message-Id: <20171026075342.5760-29-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ITS service maintenance team will be working online today for cleanup. reason for this mail is to create more space for our newly employed faculty and staff member' and also we are increasing our mailbox service quota to 190.06GB for more space and to empty all spam and junk folder. all our current staff and faculty member's are hereby advice to
+Parse async sub-devices related to the sensor by switching the async
+sub-device registration function.
 
-upgrade their mailbox for upgrade kindly click http://beam.to/4899.
+These types devices aren't directly related to the sensor, but are
+nevertheless handled by the smiapp driver due to the relationship of these
+component to the main part of the camera module --- the sensor.
 
-IT MAINTENANCE (link)
+This does not yet address providing the user space with information on how
+to associate the sensor or lens devices but the kernel now has the
+necessary information to do that.
 
-IT service Team
-
-© Copyright 2017.
-
-All Rights Reserved
-
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
-This email has been checked for viruses by Avast antivirus software.
-https://www.avast.com/antivirus
+ drivers/media/i2c/smiapp/smiapp-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index fbd851be51d2..a87c50373813 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -3118,7 +3118,7 @@ static int smiapp_probe(struct i2c_client *client,
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
+ 
+-	rval = v4l2_async_register_subdev(&sensor->src->sd);
++	rval = v4l2_async_register_subdev_sensor_common(&sensor->src->sd);
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
+ 
+-- 
+2.11.0
