@@ -1,54 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:55962 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933638AbdJQLdJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 07:33:09 -0400
-Received: by mail-oi0-f68.google.com with SMTP id g125so2132567oib.12
-        for <linux-media@vger.kernel.org>; Tue, 17 Oct 2017 04:33:09 -0700 (PDT)
+Received: from osg.samsung.com ([64.30.133.232]:42351 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751027AbdJZGxd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Oct 2017 02:53:33 -0400
+Subject: Re: [PATCH 0/2] Fix s5p-mfc lock contention in request firmware paths
+To: Marian Mihailescu <marian.mihailescu@adelaide.edu.au>
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        Andrzej Hajda <a.hajda@samsung.com>, mchehab@kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
+References: <cover.1507325072.git.shuahkh@osg.samsung.com>
+ <354e3c31-e502-5ba6-d705-9d67764e78bf@osg.samsung.com>
+ <CAM3PiRzS966v=pWRq641sFF-Kg5wHc6fH524CQKusURNfcD0ew@mail.gmail.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <ddde8616-6bbc-266b-f28c-3f6125ce5027@osg.samsung.com>
+Date: Thu, 26 Oct 2017 00:53:28 -0600
 MIME-Version: 1.0
-In-Reply-To: <m3fuail25k.fsf@t19.piap.pl>
-References: <m3fuail25k.fsf@t19.piap.pl>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Tue, 17 Oct 2017 09:33:08 -0200
-Message-ID: <CAOMZO5A6PYfXz6T4ZTs7M3rtUZLKOjf636i-v6uCjxNfxETQyQ@mail.gmail.com>
-Subject: Re: [PATCH][MEDIA]i.MX6 CSI: Fix MIPI camera operation in RAW/Bayer mode
-To: =?UTF-8?Q?Krzysztof_Ha=C5=82asa?= <khalasa@piap.pl>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <CAM3PiRzS966v=pWRq641sFF-Kg5wHc6fH524CQKusURNfcD0ew@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Krzysztof,
+On 10/25/2017 04:28 PM, Marian Mihailescu wrote:
+> Hi Shuah,
+> 
+> For MFC patch, you can delete the "dev" variable since it's not being
+> used anymore and results in a compile warning.
+> 
+> - struct s5p_mfc_dev *dev = ctx->dev;
+> 
+> Cheers,
+> Marian
 
-On Tue, Oct 17, 2017 at 4:27 AM, Krzysztof Ha=C5=82asa <khalasa@piap.pl> wr=
-ote:
-> Without this fix, in 8-bit Y/Bayer mode, every other 8-byte group
-> of pixels is lost.
-> Not sure about possible side effects, though.
->
-> Signed-off-by: Krzysztof Ha=C5=82asa <khalasa@piap.pl>
->
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -340,7 +340,7 @@ static int csi_idmac_setup_channel(struct csi_priv *p=
-riv)
->         case V4L2_PIX_FMT_SGBRG8:
->         case V4L2_PIX_FMT_SGRBG8:
->         case V4L2_PIX_FMT_SRGGB8:
-> -               burst_size =3D 8;
-> +               burst_size =3D 16;
->                 passthrough =3D true;
->                 passthrough_bits =3D 8;
->                 break;
+Oops. I thought I handled that. I will fix that and resend the patch.
 
-Russell has sent the same fix and Philipp made a comment about the
-possibility of using 32-byte or 64-byte bursts:
-http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/2017-Octo=
-ber/111960.html
+thanks,
+-- Shuah
