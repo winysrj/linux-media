@@ -1,117 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:42606 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750959AbdJKX1p (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39260 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932320AbdJZHyl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Oct 2017 19:27:45 -0400
-Date: Thu, 12 Oct 2017 00:27:34 +0100
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH] media: staging/imx: do not return error in link_notify
- for unknown sources
-Message-ID: <20171011232734.GA12236@n2100.armlinux.org.uk>
-References: <1507057753-31808-1-git-send-email-steve_longerbeam@mentor.com>
- <20171011214906.GX20805@n2100.armlinux.org.uk>
- <87b48a34-4beb-eb21-3361-28f6edb6d73c@gmail.com>
- <20171011230633.GZ20805@n2100.armlinux.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171011230633.GZ20805@n2100.armlinux.org.uk>
+        Thu, 26 Oct 2017 03:54:41 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: [PATCH v16 19/32] v4l: async: Ensure only unique fwnodes are registered to notifiers
+Date: Thu, 26 Oct 2017 10:53:29 +0300
+Message-Id: <20171026075342.5760-20-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 12, 2017 at 12:06:33AM +0100, Russell King - ARM Linux wrote:
-> Now, if you mean "known" to be equivalent with "recognised by
-> imx-media" then, as I've pointed out several times already, that
-> statement is FALSE.  I'm not sure how many times I'm going to have to
-> state this fact.  Let me re-iterate again.  On my imx219 driver, I
-> have two subdevs.  Both subdevs have controls attached.  The pixel
-> subdev is not "recognised" by imx-media, and without a modification
-> like my or your patch, it fails.  However, with the modification,
-> this "unrecognised" subdev _STILL_ has it's controls visible through
-> imx-media.
+While registering a notifier, check that each newly added fwnode is
+unique, and return an error if it is not. Also check that a newly added
+notifier does not have the same fwnodes twice.
 
-If you refuse to believe what I'm saying, then read through:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 82 +++++++++++++++++++++++++++++++++---
+ 1 file changed, 77 insertions(+), 5 deletions(-)
 
-http://git.armlinux.org.uk/cgit/linux-arm.git/commit/?h=csi-v6&id=e3f847cd37b007d55b76282414bfcf13abb8fc9a
-
-and look at this:
-
-# for f in 2 3 4 5 6 7 8 9; do v4l2-ctl -L -d /dev/video$f; done
-# ./cam/cam-setup.sh
-# v4l2-ctl -L -d /dev/video6
-
-User Controls
-
-                           gain (int)    : min=256 max=4095 step=1 default=256 value=256
-                     fim_enable (bool)   : default=0 value=0
-                fim_num_average (int)    : min=1 max=64 step=1 default=8 value=8              fim_tolerance_min (int)    : min=2 max=200 step=1 default=50 value=50
-              fim_tolerance_max (int)    : min=0 max=500 step=1 default=0 value=0
-                   fim_num_skip (int)    : min=0 max=256 step=1 default=2 value=2
-         fim_input_capture_edge (int)    : min=0 max=3 step=1 default=0 value=0
-      fim_input_capture_channel (int)    : min=0 max=1 step=1 default=0 value=0
-
-Camera Controls
-
-         exposure_time_absolute (int)    : min=1 max=399 step=1 default=399 value=166
-
-Image Source Controls
-
-              vertical_blanking (int)    : min=32 max=64814 step=1 default=2509
-value=2509 flags=read-only
-            horizontal_blanking (int)    : min=2168 max=31472 step=1 default=2168 value=2168 flags=read-only
-                  analogue_gain (int)    : min=1000 max=8000 step=1 default=1000 value=1000
-                red_pixel_value (int)    : min=0 max=1023 step=1 default=0 value=0 flags=inactive
-          green_red_pixel_value (int)    : min=0 max=1023 step=1 default=0 value=0 flags=inactive
-               blue_pixel_value (int)    : min=0 max=1023 step=1 default=0 value=0 flags=inactive
-         green_blue_pixel_value (int)    : min=0 max=1023 step=1 default=0 value=0 flags=inactive
-
-Image Processing Controls
-
-                     pixel_rate (int64)  : min=160000000 max=278400000 step=1 default=278400000 value=278400000 flags=read-only
-                   test_pattern (menu)   : min=0 max=9 default=0 value=0
-                                0: Disabled
-                                1: Solid Color
-                                2: 100% Color Bars
-                                3: Fade to Grey Color Bar
-                                4: PN9
-                                5: 16 Split Color Bar
-                                6: 16 Split Inverted Color Bar
-                                7: Column Counter
-                                8: Inverted Column Counter
-                                9: PN31
-
-Now, the pixel array subdev has these controls:
-	gain
-	vertical_blanking
-	horizontal_blanking
-	analogue_gain
-	pixel_rate
-	exposure_time_absolute
-
-The root subdev (which is the one which connects to your code) has
-these controls:
-	red_pixel_value
-	green_red_pixel_value
-	blue_pixel_value
-	green_blue_pixel_value
-	test_pattern
-
-As you can see from the above output, _all_ controls from _both_ subdevs
-are listed.
-
-Now, before you spot your old patch adding v4l2_pipeline_inherit_controls()
-and try to blame that for this, nothing in my kernel calls that function,
-so that patch can be dropped, and so it's not responsible for this.
-
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index ed539c4fd5dc..b4e88eef195f 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -308,8 +308,71 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+ 	notifier->parent = NULL;
+ }
+ 
++/* See if an fwnode can be found in a notifier's lists. */
++static bool __v4l2_async_notifier_fwnode_has_async_subdev(
++	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
++{
++	struct v4l2_async_subdev *asd;
++	struct v4l2_subdev *sd;
++
++	list_for_each_entry(asd, &notifier->waiting, list) {
++		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
++			continue;
++
++		if (asd->match.fwnode.fwnode == fwnode)
++			return true;
++	}
++
++	list_for_each_entry(sd, &notifier->done, async_list) {
++		if (WARN_ON(!sd->asd))
++			continue;
++
++		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
++			continue;
++
++		if (sd->asd->match.fwnode.fwnode == fwnode)
++			return true;
++	}
++
++	return false;
++}
++
++/*
++ * Find out whether an async sub-device was set up for an fwnode already or
++ * whether it exists in a given notifier before @this_index.
++ */
++static bool v4l2_async_notifier_fwnode_has_async_subdev(
++	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
++	unsigned int this_index)
++{
++	unsigned int j;
++
++	lockdep_assert_held(&list_lock);
++
++	/* Check that an fwnode is not being added more than once. */
++	for (j = 0; j < this_index; j++) {
++		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
++		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
++
++		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
++		    asd->match.fwnode.fwnode ==
++		    other_asd->match.fwnode.fwnode)
++			return true;
++	}
++
++	/* Check than an fwnode did not exist in other notifiers. */
++	list_for_each_entry(notifier, &notifier_list, list)
++		if (__v4l2_async_notifier_fwnode_has_async_subdev(
++			    notifier, fwnode))
++			return true;
++
++	return false;
++}
++
+ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ {
++	struct device *dev =
++		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
+ 	struct v4l2_async_subdev *asd;
+ 	int ret;
+ 	int i;
+@@ -320,6 +383,8 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 	INIT_LIST_HEAD(&notifier->waiting);
+ 	INIT_LIST_HEAD(&notifier->done);
+ 
++	mutex_lock(&list_lock);
++
+ 	for (i = 0; i < notifier->num_subdevs; i++) {
+ 		asd = notifier->subdevs[i];
+ 
+@@ -327,19 +392,25 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 		case V4L2_ASYNC_MATCH_CUSTOM:
+ 		case V4L2_ASYNC_MATCH_DEVNAME:
+ 		case V4L2_ASYNC_MATCH_I2C:
++			break;
+ 		case V4L2_ASYNC_MATCH_FWNODE:
++			if (v4l2_async_notifier_fwnode_has_async_subdev(
++				    notifier, asd->match.fwnode.fwnode, i)) {
++				dev_err(dev,
++					"fwnode has already been registered or in notifier's subdev list\n");
++				ret = -EEXIST;
++				goto out_unlock;
++			}
+ 			break;
+ 		default:
+-			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+-				"Invalid match type %u on %p\n",
++			dev_err(dev, "Invalid match type %u on %p\n",
+ 				asd->match_type, asd);
+-			return -EINVAL;
++			ret = -EINVAL;
++			goto out_unlock;
+ 		}
+ 		list_add_tail(&asd->list, &notifier->waiting);
+ 	}
+ 
+-	mutex_lock(&list_lock);
+-
+ 	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+ 	if (ret)
+ 		goto err_unbind;
+@@ -351,6 +422,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 	/* Keep also completed notifiers on the list */
+ 	list_add(&notifier->list, &notifier_list);
+ 
++out_unlock:
+ 	mutex_unlock(&list_lock);
+ 
+ 	return 0;
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
-According to speedtest.net: 8.21Mbps down 510kbps up
+2.11.0
