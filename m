@@ -1,205 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:63244 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755134AbdJJIyV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 04:54:21 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH] media: add glossary.rst with a glossary of terms used at V4L2 spec
-Date: Tue, 10 Oct 2017 05:54:10 -0300
-Message-Id: <eeb4eba1421dcfc536c65f406a86ce2ee02710d3.1507625585.git.mchehab@s-opensource.com>
-In-Reply-To: <20171010055134.7747e1e1@vento.lan>
-References: <20171010055134.7747e1e1@vento.lan>
+Date: Thu, 26 Oct 2017 15:28:02 +0200 (CEST)
+From: "Petrosyan, Ludwig" <ludwig.petrosyan@desy.de>
+To: David Laight <David.Laight@ACULAB.COM>
+Cc: Logan Gunthorpe <logang@deltatee.com>,
+        Alexander Deucher <Alexander.Deucher@amd.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        linux-nvdimm <linux-nvdimm@lists.01.org>,
+        Linux-media <Linux-media@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        linux-pci <linux-pci@vger.kernel.org>,
+        John Bridgman <John.Bridgman@amd.com>,
+        Felix Kuehling <Felix.Kuehling@amd.com>,
+        Serguei Sagalovitch <Serguei.Sagalovitch@amd.com>,
+        Paul Blinzer <Paul.Blinzer@amd.com>,
+        Christian Koenig <Christian.Koenig@amd.com>,
+        Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>,
+        Ben Sander <ben.sander@amd.com>
+Message-ID: <2068822709.17434955.1509024482956.JavaMail.zimbra@desy.de>
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6DD00A19B9@AcuExch.aculab.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com> <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de> <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4@deltatee.com> <1381807327.12461494.1508652825239.JavaMail.zimbra@desy.de> <063D6719AE5E284EB5DD2968C1650D6DD00A04EA@AcuExch.aculab.com> <d61b6829-0515-a809-2a43-c41add4b1594@deltatee.com> <1264390131.14701401.1508824699016.JavaMail.zimbra@desy.de> <063D6719AE5E284EB5DD2968C1650D6DD00A19B9@AcuExch.aculab.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a glossary of terms for V4L2, as several concepts are complex
-enough to cause misunderstandings.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/v4l/glossary.rst | 150 ++++++++++++++++++++++++++++++
- Documentation/media/uapi/v4l/v4l2.rst     |   1 +
- 2 files changed, 151 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/glossary.rst
 
-diff --git a/Documentation/media/uapi/v4l/glossary.rst b/Documentation/media/uapi/v4l/glossary.rst
-new file mode 100644
-index 000000000000..08980e9cb98e
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/glossary.rst
-@@ -0,0 +1,150 @@
-+========
-+Glossary
-+========
-+
-+.. note::
-+
-+   This goal of section is to standardize the terms used within the V4L2
-+   documentation. It is written incrementally as they are standardized in
-+   the V4L2 documentation. So, it is a Work In Progress.
-+
-+.. Please keep the glossary entries in alphabetical order
-+
-+.. glossary::
-+
-+    Bridge driver
-+	A driver that provides a bridge between the CPU's bus to the
-+	data and control buses of a media hardware. Often, the
-+	bridge driver is the same as V4L2 main driver.
-+
-+    Chip:
-+	See: Integrated circuit.
-+
-+    Device Node
-+	A character device node in the file system used to control and/or
-+	do input/output data transfers from/to a Kernel driver.
-+
-+    Digital Signal Processor - DSP
-+	A specialized microprocessor, with its architecture optimized for
-+	the operational requirements of digital signal processing.
-+
-+    Driver
-+	The part of the Linux Kernel that implements support
-+	for a hardware component.
-+
-+    Field-programmable Gate Array - FPGA
-+	A field-programmable gate array (FPGA) is an integrated circuit
-+	designed to be configured by a customer or a designer after
-+	manufacturing.
-+
-+	See https://en.wikipedia.org/wiki/Field-programmable_gate_array.
-+
-+    Hardware component
-+	A subset of the media hardware. For example an I²C or SPI device,
-+	or an IP block inside an SoC or FPGA.
-+
-+    Image Signal Processor - ISP
-+	A specialised processor that implements a set of algorithms for
-+	processing image data. ISPs may implement algorithms for lens
-+	shading correction, demosaic, scaling and pixel format conversion
-+	as well as produce statistics for the use of the control
-+	algorithms (e.g. automatic exposure, white balance and focus).
-+
-+	ISP drivers often contain a receiver for image data from external
-+	sources such as sensors and act as V4L2 main driver.
-+
-+    Inter-Integrated Circuit - I²C
-+	A  multi-master, multi-slave, packet switched, single-ended,
-+	serial computer bus. Most V4L2 sub-devices are controlled
-+	via this bus.
-+
-+	See http://www.nxp.com/docs/en/user-guide/UM10204.pdf.
-+
-+    Integrated circuit - IC
-+	A set of electronic circuits on one small flat piece of
-+	semiconductor material, normally silicon.
-+
-+	Also known as chip.
-+
-+    Intellectual property core - IP core
-+	In electronic design a semiconductor intellectual property core,
-+	is a reusable unit of logic, cell, or integrated circuit layout
-+	design that is the intellectual property of one party.
-+	IP cores may be licensed to another party or can be owned
-+	and used by a single party alone.
-+
-+	See https://en.wikipedia.org/wiki/Semiconductor_intellectual_property_core).
-+
-+    IP block
-+	See: IP core.
-+
-+    Media Controller
-+	An API designed to expose and control the relationships of the Media
-+	Harware to applications.
-+
-+	See :ref:`media_controller`.
-+
-+    Media Controller centric - MC-centric
-+	V4L2 hardware that requires a Media controller.
-+
-+	See :ref:`v4l2_hardware_control`.
-+
-+    Media hardware
-+	A group of hardware components that together form the
-+	functional media hardware. For instance the SoC ISP IP
-+	cores and external camera sensors together form the
-+	camera media hardware.
-+
-+    Media hardware control
-+	Type of control for a media hardware supported by V4L2 drivers.
-+
-+	See :ref:`v4l2_hardware_control`.
-+
-+    Microprocessor
-+	An electronic circuitry that carries out the instructions
-+	of a computer program by performing the basic arithmetic, logical,
-+	control and input/output (I/O) operations specified by the
-+	instructions on a single integrated circuit.
-+
-+    SMBus
-+	A subset of I²C, with defines a stricter usage of the bus.
-+
-+    Serial Peripheral Interface Bus - SPI
-+	Synchronous serial communication interface specification used for
-+	short distance communication, primarily in embedded systems.
-+
-+    System on a Chip - SoC
-+	An integrated circuit that integrates all components of a computer
-+	or other electronic systems.
-+
-+    V4L2 device node
-+	A device node that is associated to a V4L2 main driver,
-+	as specified in :ref:`v4l2_device_naming`.
-+
-+    V4L2 hardware
-+	Hardware that is controlled by a V4L2 main driver or a V4L2
-+	sub-device driver. V4L2 hardware is a subset of the
-+	Media hardware. Often the two are the same, but Media hardware
-+	can also contain other non-V4L2 hardware such as DVB hardware.
-+
-+    V4L2 main driver
-+	The V4L2 device driver that implements the main logic to talk with
-+	the V4L2 hardware.
-+
-+	Also known as bridge driver.
-+
-+	See :ref:`v4l2_hardware_control`.
-+
-+    V4L2 sub-device
-+	See: :ref:`V4L2 sub-device driver`
-+
-+    V4L2 sub-device driver
-+	A driver for a media component whose bus(es) connects it
-+	to the hardware controlled via the V4L2 main driver.
-+
-+	See :ref:`subdev`.
-+
-+    Video device node centric - Vdevnode-centric
-+	V4L2 hardware that is controlled via V4L2 device nodes.
-+
-+	See :ref:`v4l2_hardware_control`.
-diff --git a/Documentation/media/uapi/v4l/v4l2.rst b/Documentation/media/uapi/v4l/v4l2.rst
-index 2128717299b3..698c060939f0 100644
---- a/Documentation/media/uapi/v4l/v4l2.rst
-+++ b/Documentation/media/uapi/v4l/v4l2.rst
-@@ -32,6 +32,7 @@ This part describes the Video for Linux API version 2 (V4L2 API) specification.
-     videodev
-     capture-example
-     v4l2grab-example
-+    glossary
-     biblio
- 
- 
--- 
-2.13.6
+----- Original Message -----
+> From: "David Laight" <David.Laight@ACULAB.COM>
+> To: "Petrosyan, Ludwig" <ludwig.petrosyan@desy.de>, "Logan Gunthorpe" <logang@deltatee.com>
+> Cc: "Alexander Deucher" <Alexander.Deucher@amd.com>, "linux-kernel" <linux-kernel@vger.kernel.org>, "linux-rdma"
+> <linux-rdma@vger.kernel.org>, "linux-nvdimm" <linux-nvdimm@lists.01.org>, "Linux-media" <Linux-media@vger.kernel.org>,
+> "dri-devel" <dri-devel@lists.freedesktop.org>, "linux-pci" <linux-pci@vger.kernel.org>, "John Bridgman"
+> <John.Bridgman@amd.com>, "Felix Kuehling" <Felix.Kuehling@amd.com>, "Serguei Sagalovitch"
+> <Serguei.Sagalovitch@amd.com>, "Paul Blinzer" <Paul.Blinzer@amd.com>, "Christian Koenig" <Christian.Koenig@amd.com>,
+> "Suravee Suthikulpanit" <Suravee.Suthikulpanit@amd.com>, "Ben Sander" <ben.sander@amd.com>
+> Sent: Tuesday, 24 October, 2017 16:58:24
+> Subject: RE: Enabling peer to peer device transactions for PCIe devices
+
+> Please don't top post, write shorter lines, and add the odd blank line.
+> Big blocks of text are hard to read quickly.
+> 
+
+OK this time I am very short. 
+peer2peer works
+
+Ludwig
