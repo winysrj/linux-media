@@ -1,46 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:34172 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753291AbdJNNlW (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39186 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751232AbdJZHy1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Oct 2017 09:41:22 -0400
-MIME-Version: 1.0
-In-Reply-To: <CAJ-oXjQG9pbrXpTWyPWnJZ30DBkcQ1vjMG26rQunZq4V_-k8-w@mail.gmail.com>
-References: <20171013225337.5196-1-phh@phh.me> <20171013225337.5196-2-phh@phh.me>
- <CAOMZO5CtP=A0jF1FimScjSUvv-t6a2ua=ungr0LUHmQvUTKr3Q@mail.gmail.com> <CAJ-oXjQG9pbrXpTWyPWnJZ30DBkcQ1vjMG26rQunZq4V_-k8-w@mail.gmail.com>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Sat, 14 Oct 2017 10:41:20 -0300
-Message-ID: <CAOMZO5AxNRj5o0cw1-bjtZbHeQZwZJ0dYV+zPBd8TKxpSZxizQ@mail.gmail.com>
-Subject: Re: [PATCH 1/3] drm: bridge: synopsys/dw-hdmi: Enable cec clock
-To: Pierre-Hugues Husson <phh@phh.me>
-Cc: linux-rockchip@lists.infradead.org,
-        linux-media <linux-media@vger.kernel.org>,
-        =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Thu, 26 Oct 2017 03:54:27 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: [PATCH v16 14/32] v4l: async: Introduce helpers for calling async ops callbacks
+Date: Thu, 26 Oct 2017 10:53:24 +0300
+Message-Id: <20171026075342.5760-15-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pierre,
+Add three helper functions to call async operations callbacks. Besides
+simplifying callbacks, this allows async notifiers to have no ops set,
+i.e. it can be left NULL.
 
-On Sat, Oct 14, 2017 at 10:21 AM, Pierre-Hugues Husson <phh@phh.me> wrote:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 56 +++++++++++++++++++++++++-----------
+ 1 file changed, 39 insertions(+), 17 deletions(-)
 
-> As far as I understand, dw_hdmi_cec_enable only gates
-> the CEC clock inside the Synopsis IP,
-> but the SOC still has to provide a specific CEC clock to it.
-> To enable such an external CEC clock, the binding documentation [1]
-> mentions a "cec" optional clock, and I'm not seeing any code in dw-hdmi
-> to enable it.
-
-Ok, understood.
-
-In the case of i.MX6 we control the CEC clock via
-HDMI_MC_CLKDIS_CECCLK_DISABLE bit inside the Synopsis IP.
-
-Looks like Rockchip needs the external CEC clock then.
-
-Regards,
-
-Fabio Estevam
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 9d6fc5f25619..e170682dae78 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -25,6 +25,34 @@
+ #include <media/v4l2-fwnode.h>
+ #include <media/v4l2-subdev.h>
+ 
++static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
++					  struct v4l2_subdev *subdev,
++					  struct v4l2_async_subdev *asd)
++{
++	if (!n->ops || !n->ops->bound)
++		return 0;
++
++	return n->ops->bound(n, subdev, asd);
++}
++
++static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier *n,
++					    struct v4l2_subdev *subdev,
++					    struct v4l2_async_subdev *asd)
++{
++	if (!n->ops || !n->ops->unbind)
++		return;
++
++	n->ops->unbind(n, subdev, asd);
++}
++
++static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
++{
++	if (!n->ops || !n->ops->complete)
++		return 0;
++
++	return n->ops->complete(n);
++}
++
+ static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+ #if IS_ENABLED(CONFIG_I2C)
+@@ -102,16 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ {
+ 	int ret;
+ 
+-	if (notifier->ops->bound) {
+-		ret = notifier->ops->bound(notifier, sd, asd);
+-		if (ret < 0)
+-			return ret;
+-	}
++	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
++	if (ret < 0)
++		return ret;
+ 
+ 	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+ 	if (ret < 0) {
+-		if (notifier->ops->unbind)
+-			notifier->ops->unbind(notifier, sd, asd);
++		v4l2_async_notifier_call_unbind(notifier, sd, asd);
+ 		return ret;
+ 	}
+ 
+@@ -140,8 +165,7 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+ 	struct v4l2_subdev *sd, *tmp;
+ 
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+-		if (notifier->ops->unbind)
+-			notifier->ops->unbind(notifier, sd, sd->asd);
++		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+ 		v4l2_async_cleanup(sd);
+ 
+ 		list_move(&sd->async_list, &subdev_list);
+@@ -198,8 +222,8 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 		}
+ 	}
+ 
+-	if (list_empty(&notifier->waiting) && notifier->ops->complete) {
+-		ret = notifier->ops->complete(notifier);
++	if (list_empty(&notifier->waiting)) {
++		ret = v4l2_async_notifier_call_complete(notifier);
+ 		if (ret)
+ 			goto err_complete;
+ 	}
+@@ -296,10 +320,10 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 		if (ret)
+ 			goto err_unlock;
+ 
+-		if (!list_empty(&notifier->waiting) || !notifier->ops->complete)
++		if (!list_empty(&notifier->waiting))
+ 			goto out_unlock;
+ 
+-		ret = notifier->ops->complete(notifier);
++		ret = v4l2_async_notifier_call_complete(notifier);
+ 		if (ret)
+ 			goto err_cleanup;
+ 
+@@ -315,8 +339,7 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 	return 0;
+ 
+ err_cleanup:
+-	if (notifier->ops->unbind)
+-		notifier->ops->unbind(notifier, sd, sd->asd);
++	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+ 	v4l2_async_cleanup(sd);
+ 
+ err_unlock:
+@@ -335,8 +358,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+ 
+ 		list_add(&sd->asd->list, &notifier->waiting);
+ 
+-		if (notifier->ops->unbind)
+-			notifier->ops->unbind(notifier, sd, sd->asd);
++		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+ 	}
+ 
+ 	v4l2_async_cleanup(sd);
+-- 
+2.11.0
