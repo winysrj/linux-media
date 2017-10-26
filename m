@@ -1,46 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60180 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39148 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750835AbdJWUQB (ORCPT
+        by vger.kernel.org with ESMTP id S1752023AbdJZHyV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Oct 2017 16:16:01 -0400
-Date: Mon, 23 Oct 2017 23:15:57 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Pavel Machek <pavel@ucw.cz>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        pali.rohar@gmail.com, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: Camera support, Prague next week, sdlcam
-Message-ID: <20171023201557.hecu4e6o3ynp5hmv@valkosipuli.retiisi.org.uk>
-References: <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan>
- <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan>
- <20170426105300.GA857@amd>
- <20170426082608.7dd52fbf@vento.lan>
- <20171021220026.GA26881@amd>
- <f85cab54-30cf-0774-7376-abced86842af@xs4all.nl>
- <20171023185414.GA2258@amd>
- <40C85971-7DDE-4FB0-AB90-C52CA864C0D4@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <40C85971-7DDE-4FB0-AB90-C52CA864C0D4@xs4all.nl>
+        Thu, 26 Oct 2017 03:54:21 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: [PATCH v16 12/32] omap3isp: Print the name of the entity where no source pads could be found
+Date: Thu, 26 Oct 2017 10:53:22 +0300
+Message-Id: <20171026075342.5760-13-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 23, 2017 at 09:24:24PM +0200, Hans Verkuil wrote:
-> Sounds good. That's the elevators on level LL by the way.
+If no source pads are found in an entity, print the name of the entity.
 
-I'll be there, too!
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+---
+ drivers/media/platform/omap3isp/isp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 4afd7ba4fad6..35687c9707e0 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -1669,8 +1669,8 @@ static int isp_link_entity(
+ 			break;
+ 	}
+ 	if (i == entity->num_pads) {
+-		dev_err(isp->dev, "%s: no source pad in external entity\n",
+-			__func__);
++		dev_err(isp->dev, "%s: no source pad in external entity %s\n",
++			__func__, entity->name);
+ 		return -EINVAL;
+ 	}
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.11.0
