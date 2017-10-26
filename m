@@ -1,19 +1,20 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40292 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39388 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751424AbdJDVvB (ORCPT
+        by vger.kernel.org with ESMTP id S1752049AbdJZHzD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 17:51:01 -0400
+        Thu, 26 Oct 2017 03:55:03 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
 Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
         hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v15 27/32] dt: bindings: smiapp: Document lens-focus and flash-leds properties
-Date: Thu,  5 Oct 2017 00:50:46 +0300
-Message-Id: <20171004215051.13385-28-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: [PATCH v16 27/32] dt: bindings: smiapp: Document lens-focus and flash-leds properties
+Date: Thu, 26 Oct 2017 10:53:37 +0300
+Message-Id: <20171026075342.5760-28-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
