@@ -1,51 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:43997 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752193AbdJTHZn (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:54407 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932246AbdJZPiG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 03:25:43 -0400
-Received: by mail-pf0-f195.google.com with SMTP id a8so9830902pfc.0
-        for <linux-media@vger.kernel.org>; Fri, 20 Oct 2017 00:25:42 -0700 (PDT)
-From: Jaejoong Kim <climbbb.kim@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, Jaejoong Kim <climbbb.kim@gmail.com>
-Subject: [PATCH 1/2] media: usb: uvc: remove duplicate & operation
-Date: Fri, 20 Oct 2017 16:25:27 +0900
-Message-Id: <1508484328-11018-2-git-send-email-climbbb.kim@gmail.com>
-In-Reply-To: <1508484328-11018-1-git-send-email-climbbb.kim@gmail.com>
-References: <1508484328-11018-1-git-send-email-climbbb.kim@gmail.com>
+        Thu, 26 Oct 2017 11:38:06 -0400
+Received: by mail-lf0-f65.google.com with SMTP id a2so4214560lfh.11
+        for <linux-media@vger.kernel.org>; Thu, 26 Oct 2017 08:38:05 -0700 (PDT)
+Date: Thu, 26 Oct 2017 17:38:03 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v16 05/32] v4l: async: Correctly serialise async
+ sub-device unregistration
+Message-ID: <20171026153803.GD2297@bigcity.dyn.berto.se>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-6-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171026075342.5760-6-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-usb_endpoint_maxp() has an inline keyword and searches for bits[10:0]
-by & operation with 0x7ff. So, we can remove the duplicate & operation
-with 0x7ff.
+On 2017-10-26 10:53:15 +0300, Sakari Ailus wrote:
+> The check whether an async sub-device is bound to a notifier was performed
+> without list_lock held, making it possible for another process to
+> unbind the async sub-device before the sub-device unregistration function
+> proceeds to take the lock.
+> 
+> Fix this by first acquiring the lock and then proceeding with the check.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Jaejoong Kim <climbbb.kim@gmail.com>
----
- drivers/media/usb/uvc/uvc_video.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index fb86d6a..f4ace63 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1469,13 +1469,13 @@ static unsigned int uvc_endpoint_max_bpi(struct usb_device *dev,
- 	case USB_SPEED_HIGH:
- 		psize = usb_endpoint_maxp(&ep->desc);
- 		mult = usb_endpoint_maxp_mult(&ep->desc);
--		return (psize & 0x07ff) * mult;
-+		return psize * mult;
- 	case USB_SPEED_WIRELESS:
- 		psize = usb_endpoint_maxp(&ep->desc);
- 		return psize;
- 	default:
- 		psize = usb_endpoint_maxp(&ep->desc);
--		return psize & 0x07ff;
-+		return psize;
- 	}
- }
- 
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 18 +++++++-----------
+>  1 file changed, 7 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 4924481451ca..cde2cf2ab4b0 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -298,20 +298,16 @@ EXPORT_SYMBOL(v4l2_async_register_subdev);
+>  
+>  void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+>  {
+> -	struct v4l2_async_notifier *notifier = sd->notifier;
+> -
+> -	if (!sd->asd) {
+> -		if (!list_empty(&sd->async_list))
+> -			v4l2_async_cleanup(sd);
+> -		return;
+> -	}
+> -
+>  	mutex_lock(&list_lock);
+>  
+> -	list_add(&sd->asd->list, &notifier->waiting);
+> +	if (sd->asd) {
+> +		struct v4l2_async_notifier *notifier = sd->notifier;
+>  
+> -	if (notifier->unbind)
+> -		notifier->unbind(notifier, sd, sd->asd);
+> +		list_add(&sd->asd->list, &notifier->waiting);
+> +
+> +		if (notifier->unbind)
+> +			notifier->unbind(notifier, sd, sd->asd);
+> +	}
+>  
+>  	v4l2_async_cleanup(sd);
+>  
+> -- 
+> 2.11.0
+> 
+
 -- 
-2.7.4
+Regards,
+Niklas Söderlund
