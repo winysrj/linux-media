@@ -1,138 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:59889 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753026AbdJNNsN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Oct 2017 09:48:13 -0400
-Subject: Re: [PATCHv4 0/4] tegra-cec: add Tegra HDMI CEC support
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org
-References: <20170911122952.33980-1-hverkuil@xs4all.nl>
- <9314614a-446d-b76d-640b-033cc74e3879@xs4all.nl>
- <20171014133410.GA13205@ulmo>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <f3c8aa19-fc13-63fc-724b-1200ce7ce090@xs4all.nl>
-Date: Sat, 14 Oct 2017 15:48:08 +0200
-MIME-Version: 1.0
-In-Reply-To: <20171014133410.GA13205@ulmo>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mga01.intel.com ([192.55.52.88]:39940 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751973AbdJZCYz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Oct 2017 22:24:55 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
+        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
+        hyungwoo.yang@intel.com, chiranjeevi.rapolu@intel.com,
+        jerry.w.hu@intel.com, Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH v6 1/3] videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
+Date: Wed, 25 Oct 2017 21:24:40 -0500
+Message-Id: <1508984682-25219-2-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1508984682-25219-1-git-send-email-yong.zhi@intel.com>
+References: <1508984682-25219-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/14/2017 03:34 PM, Thierry Reding wrote:
-> On Sat, Oct 14, 2017 at 02:08:31PM +0200, Hans Verkuil wrote:
->> Hi Thierry,
->>
->> On 09/11/2017 02:29 PM, Hans Verkuil wrote:
->>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> This patch series adds support for the Tegra CEC functionality.
->>>
->>> This v4 has been rebased to the latest 4.14 pre-rc1 mainline.
->>>
->>> Please review! Other than for the bindings that are now Acked I have not
->>> received any feedback.
->>
->> Can you or someone else from the Tegra maintainers review this?
->>
->> I have not heard anything about this patch series, nor of the previous
->> versions of this series. What's the hold-up?
-> 
-> Sorry about that. I've been meaning to look at this for a while now, but
-> never got around to it. From a quick glance this looks good. Let me take
-> this for a quick test-drive when I'm back at the office next week and
-> I'll report back.
+Add IPU3 specific formats:
 
-It would be great if you can test if the TK1 dts changes will also work
-with the Jetson X1. It should, but I don't have a Jetson X1 to test with.
+	V4L2_PIX_FMT_IPU3_SBGGR10
+	V4L2_PIX_FMT_IPU3_SGBRG10
+	V4L2_PIX_FMT_IPU3_SGRBG10
+	V4L2_PIX_FMT_IPU3_SRGGB10
 
-> Is there any particular ordering that we need to observe in order to
-> merge this? Looks to me like it would be safe to merge patches 1 and 3
-> through the CEC (media?) tree and take the others through DRM and Tegra
-> separately without breaking anything.
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
+ include/uapi/linux/videodev2.h       | 6 ++++++
+ 2 files changed, 10 insertions(+)
 
-Correct. Once I have your Ack I can make a pull request for patches 1+3.
-Patches 2+4 would have to go through you.
-
-Regards,
-
-	Hans
-
-> 
-> Thierry
-> 
->>> The first patch documents the CEC bindings, the second adds support
->>> for this to tegra124.dtsi and enables it for the Jetson TK1.
->>>
->>> The third patch adds the CEC driver itself and the final patch adds
->>> the cec notifier support to the drm/tegra driver in order to notify
->>> the CEC driver whenever the physical address changes.
->>>
->>> I expect that the dts changes apply as well to the Tegra X1/X2 and possibly
->>> other Tegra SoCs, but I can only test this with my Jetson TK1 board.
->>>
->>> The dt-bindings and the tegra-cec driver would go in through the media
->>> subsystem, the drm/tegra part through the drm subsystem and the dts
->>> changes through (I guess) the linux-tegra developers. Luckily they are
->>> all independent of one another.
->>>
->>> To test this you need the CEC utilities from git://linuxtv.org/v4l-utils.git.
->>>
->>> To build this:
->>>
->>> git clone git://linuxtv.org/v4l-utils.git
->>> cd v4l-utils
->>> ./bootstrap.sh; ./configure
->>> make
->>> sudo make install # optional, you really only need utils/cec*
->>>
->>> To test:
->>>
->>> cec-ctl --playback # configure as playback device
->>> cec-ctl -S # detect all connected CEC devices
->>>
->>> See here for the public CEC API:
->>>
->>> https://hverkuil.home.xs4all.nl/spec/uapi/cec/cec-api.html
->>>
->>> Regards,
->>>
->>> 	Hans
->>>
->>> Changes since v3:
->>>
->>> - Use the new CEC_CAP_DEFAULTS define
->>> - Use IS_ERR(cec->adap) instead of IS_ERR_OR_NULL(cec->adap)
->>>   (cec_allocate_adapter never returns a NULL pointer)
->>> - Drop the device_init_wakeup: wakeup is not (yet) supported by
->>>   the CEC framework and I have never tested it.
->>>
->>> Hans Verkuil (4):
->>>   dt-bindings: document the tegra CEC bindings
->>>   ARM: tegra: add CEC support to tegra124.dtsi
->>>   tegra-cec: add Tegra HDMI CEC driver
->>>   drm/tegra: add cec-notifier support
->>>
->>>  .../devicetree/bindings/media/tegra-cec.txt        |  27 ++
->>>  MAINTAINERS                                        |   8 +
->>>  arch/arm/boot/dts/tegra124-jetson-tk1.dts          |   4 +
->>>  arch/arm/boot/dts/tegra124.dtsi                    |  12 +-
->>>  drivers/gpu/drm/tegra/Kconfig                      |   1 +
->>>  drivers/gpu/drm/tegra/drm.h                        |   3 +
->>>  drivers/gpu/drm/tegra/hdmi.c                       |   9 +
->>>  drivers/gpu/drm/tegra/output.c                     |   6 +
->>>  drivers/media/platform/Kconfig                     |  11 +
->>>  drivers/media/platform/Makefile                    |   2 +
->>>  drivers/media/platform/tegra-cec/Makefile          |   1 +
->>>  drivers/media/platform/tegra-cec/tegra_cec.c       | 501 +++++++++++++++++++++
->>>  drivers/media/platform/tegra-cec/tegra_cec.h       | 127 ++++++
->>>  13 files changed, 711 insertions(+), 1 deletion(-)
->>>  create mode 100644 Documentation/devicetree/bindings/media/tegra-cec.txt
->>>  create mode 100644 drivers/media/platform/tegra-cec/Makefile
->>>  create mode 100644 drivers/media/platform/tegra-cec/tegra_cec.c
->>>  create mode 100644 drivers/media/platform/tegra-cec/tegra_cec.h
->>>
->>
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 79614992ee21..3937945b12dc 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1202,6 +1202,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_SGBRG10P:	descr = "10-bit Bayer GBGB/RGRG Packed"; break;
+ 	case V4L2_PIX_FMT_SGRBG10P:	descr = "10-bit Bayer GRGR/BGBG Packed"; break;
+ 	case V4L2_PIX_FMT_SRGGB10P:	descr = "10-bit Bayer RGRG/GBGB Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SBGGR10: descr = "10-bit bayer BGGR IPU3 Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SGBRG10: descr = "10-bit bayer GBRG IPU3 Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SGRBG10: descr = "10-bit bayer GRBG IPU3 Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SRGGB10: descr = "10-bit bayer RGGB IPU3 Packed"; break;
+ 	case V4L2_PIX_FMT_SBGGR10ALAW8:	descr = "8-bit Bayer BGBG/GRGR (A-law)"; break;
+ 	case V4L2_PIX_FMT_SGBRG10ALAW8:	descr = "8-bit Bayer GBGB/RGRG (A-law)"; break;
+ 	case V4L2_PIX_FMT_SGRBG10ALAW8:	descr = "8-bit Bayer GRGR/BGBG (A-law)"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 185d6a0acc06..bcf6a50f6aac 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -668,6 +668,12 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
+ #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
+ 
++/* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
++#define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
++#define V4L2_PIX_FMT_IPU3_SGBRG10	v4l2_fourcc('i', 'p', '3', 'g') /* IPU3 packed 10-bit GBRG bayer */
++#define V4L2_PIX_FMT_IPU3_SGRBG10	v4l2_fourcc('i', 'p', '3', 'G') /* IPU3 packed 10-bit GRBG bayer */
++#define V4L2_PIX_FMT_IPU3_SRGGB10	v4l2_fourcc('i', 'p', '3', 'r') /* IPU3 packed 10-bit RGGB bayer */
++
+ /* SDR formats - used only for Software Defined Radio devices */
+ #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+ #define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
+-- 
+2.7.4
