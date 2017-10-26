@@ -1,76 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:33528 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750835AbdJWVYw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Oct 2017 17:24:52 -0400
-From: "Zhi, Yong" <yong.zhi@intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "arnd@arndb.de" <arnd@arndb.de>, "hch@lst.de" <hch@lst.de>,
-        "robin.murphy@arm.com" <robin.murphy@arm.com>,
-        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
-Subject: RE: [PATCH v4 00/12] Intel IPU3 ImgU patchset
-Date: Mon, 23 Oct 2017 21:24:50 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D1AE2BC75@ORSMSX106.amr.corp.intel.com>
-References: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
- <20171020090949.nhv74sfb5jjrtxhx@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20171020090949.nhv74sfb5jjrtxhx@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40404 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751027AbdJZJC5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Oct 2017 05:02:57 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 3BDFC600E1
+        for <linux-media@vger.kernel.org>; Thu, 26 Oct 2017 12:02:56 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1e7e3z-00032a-To
+        for linux-media@vger.kernel.org; Thu, 26 Oct 2017 12:02:55 +0300
+Date: Thu, 26 Oct 2017 12:02:55 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.15] Yet more sensor driver patches
+Message-ID: <20171026090255.2oe6a24qugrngj3o@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Sakari,
+Hi Mauro,
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Sakari Ailus
-> Sent: Friday, October 20, 2017 2:10 AM
-> To: Zhi, Yong <yong.zhi@intel.com>
-> Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; Zheng, Jian
-> Xu <jian.xu.zheng@intel.com>; Mani, Rajmohan
-> <rajmohan.mani@intel.com>; Toivonen, Tuukka
-> <tuukka.toivonen@intel.com>; Hu, Jerry W <jerry.w.hu@intel.com>;
-> arnd@arndb.de; hch@lst.de; robin.murphy@arm.com; iommu@lists.linux-
-> foundation.org
-> Subject: Re: [PATCH v4 00/12] Intel IPU3 ImgU patchset
-> 
-> Hi Yong,
-> 
-> On Tue, Oct 17, 2017 at 10:46:48PM -0500, Yong Zhi wrote:
-> > This patchset adds support for the Intel IPU3 (Image Processing Unit)
-> > ImgU which is essentially a modern memory-to-memory ISP. It implements
-> > raw Bayer to YUV image format conversion as well as a large number of
-> > other pixel processing algorithms for improving the image quality.
-> >
-> > Meta data formats are defined for image statistics (3A, i.e. automatic
-> > white balance, exposure and focus, histogram and local area contrast
-> > enhancement) as well as for the pixel processing algorithm parameters.
-> > The documentation for these formats is currently not included in the
-> > patchset but will be added in a future version of this set.
-> >
-> > The algorithm parameters need to be considered specific to a given
-> > frame and typically a large number of these parameters change on frame
-> > to frame basis. Additionally, the parameters are highly structured
-> > (and not a flat space of independent configuration primitives). They
-> > also reflect the data structures used by the firmware and the
-> > hardware. On top of that, the algorithms require highly specialized
-> > user space to make meaningful use of them. For these reasons it has
-> > been chosen video buffers to pass
-> 
-> Do you have a to-do list for this patchset? I think it would be useful to
-> maintain one, in case not all the comments have been addressed.
-> 
+Here's the final set of sensor driver patches for 4.15.
 
-Sure, will add in next update.
+Please pull.
 
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi
+
+The following changes since commit 61065fc3e32002ba48aa6bc3816c1f6f9f8daf55:
+
+  Merge commit '3728e6a255b5' into patchwork (2017-10-17 17:22:20 -0700)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.15-4
+
+for you to fetch changes up to fc8d24b85bc230afe66e9aece38350384c9b65f8:
+
+  media: ov9650: remove unnecessary terminated entry in menu items array (2017-10-25 19:08:43 +0300)
+
+----------------------------------------------------------------
+Akinobu Mita (5):
+      media: adv7180: don't clear V4L2_SUBDEV_FL_IS_I2C
+      media: max2175: don't clear V4L2_SUBDEV_FL_IS_I2C
+      media: ov2640: don't clear V4L2_SUBDEV_FL_IS_I2C
+      media: ov5640: don't clear V4L2_SUBDEV_FL_IS_I2C
+      media: ov9650: remove unnecessary terminated entry in menu items array
+
+Jacob Chen (2):
+      media: i2c: OV5647: ensure clock lane in LP-11 state before streaming on
+      media: i2c: OV5647: change to use macro for the registers
+
+Philipp Zabel (1):
+      tc358743: validate lane count
+
+Wenyou Yang (3):
+      media: ov7670: Add entity pads initialization
+      media: ov7670: Add the get_fmt callback
+      media: ov7670: Add the ov7670_s_power function
+
+ drivers/media/i2c/adv7180.c  |   2 +-
+ drivers/media/i2c/max2175.c  |   2 +-
+ drivers/media/i2c/ov2640.c   |   2 +-
+ drivers/media/i2c/ov5640.c   |   2 +-
+ drivers/media/i2c/ov5647.c   |  51 ++++++++++++-----
+ drivers/media/i2c/ov7670.c   | 129 ++++++++++++++++++++++++++++++++++++++++---
+ drivers/media/i2c/ov9650.c   |   1 -
+ drivers/media/i2c/tc358743.c |   5 ++
+ 8 files changed, 167 insertions(+), 27 deletions(-)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
