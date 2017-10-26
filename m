@@ -1,147 +1,381 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:54642 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753184AbdJTVvD (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39116 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752021AbdJZHyR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 17:51:03 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
+        Thu, 26 Oct 2017 03:54:17 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC v4 12/17] [media] vb2: add explicit fence user API
-Date: Fri, 20 Oct 2017 19:50:07 -0200
-Message-Id: <20171020215012.20646-13-gustavo@padovan.org>
-In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
-References: <20171020215012.20646-1-gustavo@padovan.org>
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: [PATCH v16 10/32] rcar-vin: Use generic parser for parsing fwnode endpoints
+Date: Thu, 26 Oct 2017 10:53:20 +0300
+Message-Id: <20171026075342.5760-11-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Instead of using a custom driver implementation, use
+v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
+of the device.
 
-Turn the reserved2 field into fence_fd that we will use to send
-an in-fence to the kernel and return an out-fence from the kernel to
-userspace.
-
-Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
-when sending a fence to the kernel to be waited on, and
-V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
-
-v3:
-	- make the out_fence refer to the current buffer (Hans)
-
-v2: add documentation
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- Documentation/media/uapi/v4l/buffer.rst       | 15 +++++++++++++++
- drivers/media/usb/cpia2/cpia2_v4l.c           |  2 +-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  4 ++--
- drivers/media/v4l2-core/videobuf2-v4l2.c      |  2 +-
- include/uapi/linux/videodev2.h                |  4 +++-
- 5 files changed, 22 insertions(+), 5 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-core.c | 107 +++++++++-------------------
+ drivers/media/platform/rcar-vin/rcar-dma.c  |  10 +--
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  14 ++--
+ drivers/media/platform/rcar-vin/rcar-vin.h  |   4 +-
+ 4 files changed, 46 insertions(+), 89 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-index ae6ee73f151c..99afc0837671 100644
---- a/Documentation/media/uapi/v4l/buffer.rst
-+++ b/Documentation/media/uapi/v4l/buffer.rst
-@@ -648,6 +648,21 @@ Buffer Flags
-       - Start Of Exposure. The buffer timestamp has been taken when the
- 	exposure of the frame has begun. This is only valid for the
- 	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
-+    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 142de447aaaa..380288658601 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -21,6 +21,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ 
++#include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+ 
+ #include "rcar-vin.h"
+@@ -77,14 +78,14 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+ 	int ret;
+ 
+ 	/* Verify subdevices mbus format */
+-	if (!rvin_mbus_supported(&vin->digital)) {
++	if (!rvin_mbus_supported(vin->digital)) {
+ 		vin_err(vin, "Unsupported media bus format for %s\n",
+-			vin->digital.subdev->name);
++			vin->digital->subdev->name);
+ 		return -EINVAL;
+ 	}
+ 
+ 	vin_dbg(vin, "Found media bus format for %s: %d\n",
+-		vin->digital.subdev->name, vin->digital.code);
++		vin->digital->subdev->name, vin->digital->code);
+ 
+ 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
+ 	if (ret < 0) {
+@@ -103,7 +104,7 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
+ 
+ 	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
+ 	rvin_v4l2_remove(vin);
+-	vin->digital.subdev = NULL;
++	vin->digital->subdev = NULL;
+ }
+ 
+ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+@@ -120,117 +121,71 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+ 	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
+ 	if (ret < 0)
+ 		return ret;
+-	vin->digital.source_pad = ret;
++	vin->digital->source_pad = ret;
+ 
+ 	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
+-	vin->digital.sink_pad = ret < 0 ? 0 : ret;
++	vin->digital->sink_pad = ret < 0 ? 0 : ret;
+ 
+-	vin->digital.subdev = subdev;
++	vin->digital->subdev = subdev;
+ 
+ 	vin_dbg(vin, "bound subdev %s source pad: %u sink pad: %u\n",
+-		subdev->name, vin->digital.source_pad,
+-		vin->digital.sink_pad);
++		subdev->name, vin->digital->source_pad,
++		vin->digital->sink_pad);
+ 
+ 	return 0;
+ }
+ 
+-static int rvin_digitial_parse_v4l2(struct rvin_dev *vin,
+-				    struct device_node *ep,
+-				    struct v4l2_mbus_config *mbus_cfg)
++static int rvin_digital_parse_v4l2(struct device *dev,
++				   struct v4l2_fwnode_endpoint *vep,
++				   struct v4l2_async_subdev *asd)
+ {
+-	struct v4l2_fwnode_endpoint v4l2_ep;
+-	int ret;
++	struct rvin_dev *vin = dev_get_drvdata(dev);
++	struct rvin_graph_entity *rvge =
++		container_of(asd, struct rvin_graph_entity, asd);
+ 
+-	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
+-	if (ret) {
+-		vin_err(vin, "Could not parse v4l2 endpoint\n");
+-		return -EINVAL;
+-	}
++	if (vep->base.port || vep->base.id)
++		return -ENOTCONN;
+ 
+-	mbus_cfg->type = v4l2_ep.bus_type;
++	rvge->mbus_cfg.type = vep->bus_type;
+ 
+-	switch (mbus_cfg->type) {
++	switch (rvge->mbus_cfg.type) {
+ 	case V4L2_MBUS_PARALLEL:
+ 		vin_dbg(vin, "Found PARALLEL media bus\n");
+-		mbus_cfg->flags = v4l2_ep.bus.parallel.flags;
++		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
+ 		break;
+ 	case V4L2_MBUS_BT656:
+ 		vin_dbg(vin, "Found BT656 media bus\n");
+-		mbus_cfg->flags = 0;
++		rvge->mbus_cfg.flags = 0;
+ 		break;
+ 	default:
+ 		vin_err(vin, "Unknown media bus type\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	return 0;
+-}
+-
+-static int rvin_digital_graph_parse(struct rvin_dev *vin)
+-{
+-	struct device_node *ep, *np;
+-	int ret;
+-
+-	vin->digital.asd.match.fwnode.fwnode = NULL;
+-	vin->digital.subdev = NULL;
+-
+-	/*
+-	 * Port 0 id 0 is local digital input, try to get it.
+-	 * Not all instances can or will have this, that is OK
+-	 */
+-	ep = of_graph_get_endpoint_by_regs(vin->dev->of_node, 0, 0);
+-	if (!ep)
+-		return 0;
+-
+-	np = of_graph_get_remote_port_parent(ep);
+-	if (!np) {
+-		vin_err(vin, "No remote parent for digital input\n");
+-		of_node_put(ep);
+-		return -EINVAL;
+-	}
+-	of_node_put(np);
+-
+-	ret = rvin_digitial_parse_v4l2(vin, ep, &vin->digital.mbus_cfg);
+-	of_node_put(ep);
+-	if (ret)
+-		return ret;
+-
+-	vin->digital.asd.match.fwnode.fwnode = of_fwnode_handle(np);
+-	vin->digital.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
++	vin->digital = rvge;
+ 
+ 	return 0;
+ }
+ 
+ static int rvin_digital_graph_init(struct rvin_dev *vin)
+ {
+-	struct v4l2_async_subdev **subdevs = NULL;
+ 	int ret;
+ 
+-	ret = rvin_digital_graph_parse(vin);
++	ret = v4l2_async_notifier_parse_fwnode_endpoints(
++		vin->dev, &vin->notifier,
++		sizeof(struct rvin_graph_entity), rvin_digital_parse_v4l2);
+ 	if (ret)
+ 		return ret;
+ 
+-	if (!vin->digital.asd.match.fwnode.fwnode) {
+-		vin_dbg(vin, "No digital subdevice found\n");
++	if (!vin->digital)
+ 		return -ENODEV;
+-	}
+-
+-	/* Register the subdevices notifier. */
+-	subdevs = devm_kzalloc(vin->dev, sizeof(*subdevs), GFP_KERNEL);
+-	if (subdevs == NULL)
+-		return -ENOMEM;
+-
+-	subdevs[0] = &vin->digital.asd;
+ 
+ 	vin_dbg(vin, "Found digital subdevice %pOF\n",
+-		to_of_node(subdevs[0]->match.fwnode.fwnode));
++		to_of_node(vin->digital->asd.match.fwnode.fwnode));
+ 
+-	vin->notifier.num_subdevs = 1;
+-	vin->notifier.subdevs = subdevs;
+ 	vin->notifier.bound = rvin_digital_notify_bound;
+ 	vin->notifier.unbind = rvin_digital_notify_unbind;
+ 	vin->notifier.complete = rvin_digital_notify_complete;
+-
+ 	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
+ 	if (ret < 0) {
+ 		vin_err(vin, "Notifier registration failed\n");
+@@ -290,6 +245,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
++	platform_set_drvdata(pdev, vin);
 +
-+      - ``V4L2_BUF_FLAG_IN_FENCE``
-+      - 0x00200000
-+      - Ask V4L2 to wait on fence passed in ``fence_fd`` field. The buffer
-+	won't be queued to the driver until the fence signals.
-+
-+    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
-+
-+      - ``V4L2_BUF_FLAG_OUT_FENCE``
-+      - 0x00400000
-+      - Request a fence to be attached to the buffer. One should listen for
-+	the ``V4L2_EVENT_OUT_FENCE`` event to receive the buffer ``index``
-+	and the ``out_fence_fd`` attached to the buffer.  The event is
-+	triggered at the moment the buffer is queued to the V4L2 driver.
+ 	ret = rvin_digital_graph_init(vin);
+ 	if (ret < 0)
+ 		goto error;
+@@ -297,11 +254,10 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	pm_suspend_ignore_children(&pdev->dev, true);
+ 	pm_runtime_enable(&pdev->dev);
  
+-	platform_set_drvdata(pdev, vin);
+-
+ 	return 0;
+ error:
+ 	rvin_dma_remove(vin);
++	v4l2_async_notifier_cleanup(&vin->notifier);
  
+ 	return ret;
+ }
+@@ -313,6 +269,7 @@ static int rcar_vin_remove(struct platform_device *pdev)
+ 	pm_runtime_disable(&pdev->dev);
  
-diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
-index 4666a642b2f6..d9d6b6a31751 100644
---- a/drivers/media/usb/cpia2/cpia2_v4l.c
-+++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-@@ -948,7 +948,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 	buf->sequence = cam->buffers[buf->index].seq;
- 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
- 	buf->length = cam->frame_size;
--	buf->reserved2 = 0;
-+	buf->fence_fd = -1;
- 	buf->reserved = 0;
- 	memset(&buf->timecode, 0, sizeof(buf->timecode));
+ 	v4l2_async_notifier_unregister(&vin->notifier);
++	v4l2_async_notifier_cleanup(&vin->notifier);
  
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 821f2aa299ae..3a31d318df2a 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -370,7 +370,7 @@ struct v4l2_buffer32 {
- 		__s32		fd;
- 	} m;
- 	__u32			length;
--	__u32			reserved2;
-+	__s32			fence_fd;
- 	__u32			reserved;
+ 	rvin_dma_remove(vin);
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index b136844499f6..23fdff7a7370 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -183,7 +183,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	/*
+ 	 * Input interface
+ 	 */
+-	switch (vin->digital.code) {
++	switch (vin->digital->code) {
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 		/* BT.601/BT.1358 16bit YCbCr422 */
+ 		vnmc |= VNMC_INF_YUV16;
+@@ -191,7 +191,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+-		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -200,7 +200,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+-		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -212,11 +212,11 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+ 
+ 	/* Hsync Signal Polarity Select */
+-	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
++	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_HPS;
+ 
+ 	/* Vsync Signal Polarity Select */
+-	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
++	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_VPS;
+ 
+ 	/*
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index dd37ea811680..b479b882da12 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -111,7 +111,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
+ 	struct v4l2_mbus_framefmt *mf = &fmt.format;
+ 	int ret;
+ 
+-	fmt.pad = vin->digital.source_pad;
++	fmt.pad = vin->digital->source_pad;
+ 
+ 	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
+ 	if (ret)
+@@ -172,13 +172,13 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 
+ 	sd = vin_to_source(vin);
+ 
+-	v4l2_fill_mbus_format(&format.format, pix, vin->digital.code);
++	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
+ 
+ 	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
+ 	if (pad_cfg == NULL)
+ 		return -ENOMEM;
+ 
+-	format.pad = vin->digital.source_pad;
++	format.pad = vin->digital->source_pad;
+ 
+ 	field = pix->field;
+ 
+@@ -555,7 +555,7 @@ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
+ 	if (timings->pad)
+ 		return -EINVAL;
+ 
+-	timings->pad = vin->digital.sink_pad;
++	timings->pad = vin->digital->sink_pad;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
+ 
+@@ -607,7 +607,7 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
+ 	if (cap->pad)
+ 		return -EINVAL;
+ 
+-	cap->pad = vin->digital.sink_pad;
++	cap->pad = vin->digital->sink_pad;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
+ 
+@@ -625,7 +625,7 @@ static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+ 	if (edid->pad)
+ 		return -EINVAL;
+ 
+-	edid->pad = vin->digital.sink_pad;
++	edid->pad = vin->digital->sink_pad;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, get_edid, edid);
+ 
+@@ -643,7 +643,7 @@ static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+ 	if (edid->pad)
+ 		return -EINVAL;
+ 
+-	edid->pad = vin->digital.sink_pad;
++	edid->pad = vin->digital->sink_pad;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, set_edid, edid);
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 9bfb5a7c4dc4..5382078143fb 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -126,7 +126,7 @@ struct rvin_dev {
+ 	struct v4l2_device v4l2_dev;
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	struct v4l2_async_notifier notifier;
+-	struct rvin_graph_entity digital;
++	struct rvin_graph_entity *digital;
+ 
+ 	struct mutex lock;
+ 	struct vb2_queue queue;
+@@ -145,7 +145,7 @@ struct rvin_dev {
+ 	struct v4l2_rect compose;
  };
  
-@@ -533,7 +533,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
- 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
- 		put_user(kp->sequence, &up->sequence) ||
--		put_user(kp->reserved2, &up->reserved2) ||
-+		put_user(kp->fence_fd, &up->fence_fd) ||
- 		put_user(kp->reserved, &up->reserved) ||
- 		put_user(kp->length, &up->length))
- 			return -EFAULT;
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 0c0669976bdc..110fb45fef6f 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	b->timestamp = ns_to_timeval(vb->timestamp);
- 	b->timecode = vbuf->timecode;
- 	b->sequence = vbuf->sequence;
--	b->reserved2 = 0;
-+	b->fence_fd = -1;
- 	b->reserved = 0;
+-#define vin_to_source(vin)		vin->digital.subdev
++#define vin_to_source(vin)		((vin)->digital->subdev)
  
- 	if (q->is_multiplanar) {
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 2a432e8c18e3..8975fec4ab68 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -924,7 +924,7 @@ struct v4l2_buffer {
- 		__s32		fd;
- 	} m;
- 	__u32			length;
--	__u32			reserved2;
-+	__s32			fence_fd;
- 	__u32			reserved;
- };
- 
-@@ -961,6 +961,8 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
- /* mem2mem encoder/decoder */
- #define V4L2_BUF_FLAG_LAST			0x00100000
-+#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
-+#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
- 
- /**
-  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+ /* Debug */
+ #define vin_dbg(d, fmt, arg...)		dev_dbg(d->dev, fmt, ##arg)
 -- 
-2.13.6
+2.11.0
