@@ -1,78 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:45970 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932952AbdJQPs6 (ORCPT
+Received: from p3plsmtpa11-01.prod.phx3.secureserver.net ([68.178.252.102]:42320
+        "EHLO p3plsmtpa11-01.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751173AbdJZGvT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 11:48:58 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v2] media: v4l2-ctrl: Fix flags field on Control events
-Date: Tue, 17 Oct 2017 17:48:50 +0200
-Message-Id: <20171017154850.26968-1-ricardo.ribalda@gmail.com>
+        Thu, 26 Oct 2017 02:51:19 -0400
+From: Leon Luo <leonl@leopardimaging.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, leonl@leopardimaging.com,
+        soren.brinkmann@xilinx.com
+Subject: [PATCH v9 1/2] media:imx274 device tree binding file
+Date: Wed, 25 Oct 2017 23:51:02 -0700
+Message-Id: <20171026065103.28213-1-leonl@leopardimaging.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VIDIOC_DQEVENT and VIDIOC_QUERY_EXT_CTRL should give the same output for
-the control flags field.
+The binding file for imx274 CMOS sensor V4l2 driver
 
-This patch creates a new function user_flags(), that calculates the user
-exported flags value (which is different than the kernel internal flags
-structure). This function is then used by all the code that exports the
-internal flags to userspace.
-
-Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: Leon Luo <leonl@leopardimaging.com>
+Acked-by: Sören Brinkmann <soren.brinkmann@xilinx.com>
+Acked-by: Rob Herring <robh@kernel.org>
 ---
-Attention: Maybe we want to cc stable.
+v9:
+ - add an entry in MAINTAINERS
+v8:
+ - no changes
+v7:
+ - no changes
+v6:
+ - no changes
+v5:
+ - add 'port' and 'endpoint' information
+v4:
+ - no changes
+v3:
+ - remove redundant properties and references
+ - document 'reg' property
+v2:
+ - no changes
+---
+ .../devicetree/bindings/media/i2c/imx274.txt       | 33 ++++++++++++++++++++++
+ MAINTAINERS                                        |  8 ++++++
+ 2 files changed, 41 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/imx274.txt
 
-v2: Suggested-by Hans Verkuil <hverkuil@xs4all.nl>
- -Define struct v4l2_ctrl as const
- drivers/media/v4l2-core/v4l2-ctrls.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 4e53a8654690..c230bd5c6558 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1227,6 +1227,16 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- }
- EXPORT_SYMBOL(v4l2_ctrl_fill);
+diff --git a/Documentation/devicetree/bindings/media/i2c/imx274.txt b/Documentation/devicetree/bindings/media/i2c/imx274.txt
+new file mode 100644
+index 000000000000..80f2e89568e1
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/imx274.txt
+@@ -0,0 +1,33 @@
++* Sony 1/2.5-Inch 8.51Mp CMOS Digital Image Sensor
++
++The Sony imx274 is a 1/2.5-inch CMOS active pixel digital image sensor with
++an active array size of 3864H x 2202V. It is programmable through I2C
++interface. The I2C address is fixed to 0x1a as per sensor data sheet.
++Image data is sent through MIPI CSI-2, which is configured as 4 lanes
++at 1440 Mbps.
++
++
++Required Properties:
++- compatible: value should be "sony,imx274" for imx274 sensor
++- reg: I2C bus address of the device
++
++Optional Properties:
++- reset-gpios: Sensor reset GPIO
++
++The imx274 device node should contain one 'port' child node with
++an 'endpoint' subnode. For further reading on port node refer to
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++	sensor@1a {
++		compatible = "sony,imx274";
++		reg = <0x1a>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reset-gpios = <&gpio_sensor 0 0>;
++		port {
++			sensor_out: endpoint {
++				remote-endpoint = <&csiss_in>;
++			};
++		};
++	};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 90230fe020f3..b5927bd4fe1e 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -12486,6 +12486,14 @@ S:	Maintained
+ F:	drivers/ssb/
+ F:	include/linux/ssb/
  
-+static u32 user_flags(const struct v4l2_ctrl *ctrl)
-+{
-+	u32 flags = ctrl->flags;
++SONY IMX274 SENSOR DRIVER
++M:	Leon Luo <leonl@leopardimaging.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/i2c/imx274.c
++F:	Documentation/devicetree/bindings/media/i2c/imx274.txt
 +
-+	if (ctrl->is_ptr)
-+		flags |= V4L2_CTRL_FLAG_HAS_PAYLOAD;
-+
-+	return flags;
-+}
-+
- static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 changes)
- {
- 	memset(ev->reserved, 0, sizeof(ev->reserved));
-@@ -1234,7 +1244,7 @@ static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 change
- 	ev->id = ctrl->id;
- 	ev->u.ctrl.changes = changes;
- 	ev->u.ctrl.type = ctrl->type;
--	ev->u.ctrl.flags = ctrl->flags;
-+	ev->u.ctrl.flags = user_flags(ctrl);
- 	if (ctrl->is_ptr)
- 		ev->u.ctrl.value64 = 0;
- 	else
-@@ -2577,10 +2587,8 @@ int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_query_ext_ctr
- 	else
- 		qc->id = ctrl->id;
- 	strlcpy(qc->name, ctrl->name, sizeof(qc->name));
--	qc->flags = ctrl->flags;
-+	qc->flags = user_flags(ctrl);
- 	qc->type = ctrl->type;
--	if (ctrl->is_ptr)
--		qc->flags |= V4L2_CTRL_FLAG_HAS_PAYLOAD;
- 	qc->elem_size = ctrl->elem_size;
- 	qc->elems = ctrl->elems;
- 	qc->nr_of_dims = ctrl->nr_of_dims;
+ SONY MEMORYSTICK CARD SUPPORT
+ M:	Alex Dubov <oakad@yahoo.com>
+ W:	http://tifmxx.berlios.de/
 -- 
-2.13.2
+2.14.0.rc1
