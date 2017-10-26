@@ -1,84 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:37731 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751636AbdJIOUK (ORCPT
+Received: from mail-yw0-f196.google.com ([209.85.161.196]:46248 "EHLO
+        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751973AbdJZCt7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 10:20:10 -0400
-Subject: Re: [PATCH v15 01/32] v4l: async: Remove re-probing support
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
- <20171004215051.13385-2-sakari.ailus@linux.intel.com>
- <20171009082239.189b4475@vento.lan>
- <20171009140646.vqftgwkttgn33m2t@valkosipuli.retiisi.org.uk>
- <67bcf879-f8dd-094e-47ba-3be977da02b2@xs4all.nl>
- <20171009141823.zu6m6ir2z7id7px3@valkosipuli.retiisi.org.uk>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e45a2974-2a63-7dca-ca09-fa12532d5325@xs4all.nl>
-Date: Mon, 9 Oct 2017 16:20:08 +0200
+        Wed, 25 Oct 2017 22:49:59 -0400
+Received: by mail-yw0-f196.google.com with SMTP id t71so1763984ywc.3
+        for <linux-media@vger.kernel.org>; Wed, 25 Oct 2017 19:49:59 -0700 (PDT)
+Received: from mail-yw0-f171.google.com (mail-yw0-f171.google.com. [209.85.161.171])
+        by smtp.gmail.com with ESMTPSA id i6sm2080737ywa.62.2017.10.25.19.49.57
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 25 Oct 2017 19:49:58 -0700 (PDT)
+Received: by mail-yw0-f171.google.com with SMTP id k11so1774471ywh.1
+        for <linux-media@vger.kernel.org>; Wed, 25 Oct 2017 19:49:57 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20171009141823.zu6m6ir2z7id7px3@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20171019144343.2j34twk6dvodan2o@valkosipuli.retiisi.org.uk>
+References: <20170928095027.127173-1-acourbot@chromium.org> <20171019144343.2j34twk6dvodan2o@valkosipuli.retiisi.org.uk>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 26 Oct 2017 11:49:36 +0900
+Message-ID: <CAAFQd5BmeWzwcDcRwP6r7eTvK=JjdZC8X96WqwfUN0KqQeOOTw@mail.gmail.com>
+Subject: Re: [RFC PATCH 0/9] V4L2 Jobs API WIP
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Alexandre Courbot <acourbot@chromium.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/10/17 16:18, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Mon, Oct 09, 2017 at 04:08:47PM +0200, Hans Verkuil wrote:
->> On 09/10/17 16:06, Sakari Ailus wrote:
->>> Hi Mauro,
->>>
->>> On Mon, Oct 09, 2017 at 08:22:39AM -0300, Mauro Carvalho Chehab wrote:
->>>> Em Thu,  5 Oct 2017 00:50:20 +0300
->>>> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
->>>>
->>>>> Remove V4L2 async re-probing support. The re-probing support has been
->>>>> there to support cases where the sub-devices require resources provided by
->>>>> the main driver's hardware to function, such as clocks.
->>>>>
->>>>> Reprobing has allowed unbinding and again binding the main driver without
->>>>> explicilty unbinding the sub-device drivers. This is certainly not a
->>>>> common need, and the responsibility will be the user's going forward.
->>>>>
->>>>> An alternative could have been to introduce notifier specific locks.
->>>>> Considering the complexity of the re-probing and that it isn't really a
->>>>> solution to a problem but a workaround, remove re-probing instead.
->>>>
->>>> If the re-probing isn't using anywhere, that sounds a nice cleanup.
->>>> Did you check if this won't break any driver (like soc_camera)?
->>>
->>> That was discussed earlier in the review; Laurent asked the same question.
->>>
->>> Re-probing never was a proper solution to any problem; it was just a hack
->>> to avoid unbinding the sensor if the bridge driver was unbound, no more: it
->>> can't be generalised to support more complex use cases. Mind you, this is
->>> on devices that aren't actually removable.
->>>
->>> I've briefly discussed this with Laurent; the proper solution would need to
->>> be implemented in the clock framework instead. There, the existing clocks
->>> obtained by drivers could be re-activated when the driver for them comes
->>> back.
->>>
->>> My proposal is that if there's real a need to address this, then it could
->>> be solved in the clock framework.
+Hi Sakari,
+
+On Thu, Oct 19, 2017 at 11:43 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Alexandre,
+>
+> On Thu, Sep 28, 2017 at 06:50:18PM +0900, Alexandre Courbot wrote:
+>> Hi everyone,
 >>
->> Can you add this information to the commit log?
->>
->> I think that would be very helpful in the future.
-> 
-> Sure, how about this at the end of the current commit message:
-> 
-> If there is a need to support removing the clock provider in the future,
-> this should be implemented in the clock framework instead, not in V4L2.
+[snip]
+>
+> Still it shouldn't be forgotten that if the framework is geared towards
+> helping drivers "running one job at a time" the scope will be limited to
+> memory-to-memory devices; streaming devices, e.g. all kinds of cameras have
+> multiple requests being processed simultaneously (or frames are bound to be
+> lost, something we can't allow to happen due to framework design).
 
-Yes, that sounds good.
+I'd be interested in some further explanation of these multiple
+requests being processed simultaneously and why they couldn't be
+included in a single job.
 
-Regards,
-
-	Hans
+Best regards,
+Tomasz
