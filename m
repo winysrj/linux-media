@@ -1,89 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52922 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752530AbdJ3VTd (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:45416 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932275AbdJZSUF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Oct 2017 17:19:33 -0400
-Date: Mon, 30 Oct 2017 22:19:31 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        pali.rohar@gmail.com, sre@kernel.org, ivo.g.dimitrov.75@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [patch] libv4l2: SDL test application
-Message-ID: <20171030211931.GA19901@amd>
-References: <20171028195742.GB20127@amd>
- <478fd1ae-6f25-5cda-3035-1d5894c8caab@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="k+w/mQv8wyuph6w0"
-Content-Disposition: inline
-In-Reply-To: <478fd1ae-6f25-5cda-3035-1d5894c8caab@xs4all.nl>
+        Thu, 26 Oct 2017 14:20:05 -0400
+From: Pierre-Hugues Husson <phh@phh.me>
+To: linux-rockchip@lists.infradead.org
+Cc: heiko@sntech.de, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux@armlinux.org.uk, Archit Taneja <architt@codeaurora.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        dri-devel@lists.freedesktop.org, Pierre-Hugues Husson <phh@phh.me>
+Subject: [PATCH v3] drm: bridge: synopsys/dw-hdmi: Enable cec clock
+Date: Thu, 26 Oct 2017 20:19:42 +0200
+Message-Id: <20171026181942.9516-1-phh@phh.me>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The documentation already mentions "cec" optional clock, but
+currently the driver doesn't enable it.
 
---k+w/mQv8wyuph6w0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Changes:
+v3:
+- Drop useless braces
 
-On Mon 2017-10-30 17:30:53, Hans Verkuil wrote:
-> Hi Pavel,
->=20
-> On 10/28/2017 09:57 PM, Pavel Machek wrote:
-> > Add support for simple SDL test application. Allows taking jpeg
-> > snapshots, and is meant to run on phone with touchscreen. Not
-> > particulary useful on PC with webcam, but should work.
->=20
-> When I try to build this I get:
->=20
-> make[3]: Entering directory '/home/hans/work/src/v4l/v4l-utils/contrib/te=
-st'
->   CCLD     sdlcam
-> /usr/bin/ld: sdlcam-sdlcam.o: undefined reference to symbol 'log2@@GLIBC_=
-2.2.5'
-> //lib/x86_64-linux-gnu/libm.so.6: error adding symbols: DSO missing from =
-command line
-> collect2: error: ld returned 1 exit status
-> Makefile:561: recipe for target 'sdlcam' failed
-> make[3]: *** [sdlcam] Error 1
-> make[3]: Leaving directory '/home/hans/work/src/v4l/v4l-utils/contrib/tes=
-t'
-> Makefile:475: recipe for target 'all-recursive' failed
-> make[2]: *** [all-recursive] Error 1
-> make[2]: Leaving directory '/home/hans/work/src/v4l/v4l-utils/contrib'
-> Makefile:589: recipe for target 'all-recursive' failed
-> make[1]: *** [all-recursive] Error 1
-> make[1]: Leaving directory '/home/hans/work/src/v4l/v4l-utils'
-> Makefile:516: recipe for target 'all' failed
-> make: *** [all] Error 2
->=20
-> I had to add -lm -ldl -lrt to sdlcam_LDFLAGS. Is that correct?
+v2:
+- Separate ENOENT errors from others
+- Propagate other errors (especially -EPROBE_DEFER)
 
-Yes, that should be correct. I had that problem, too, but I thought I
-solved it with simpler configure.ac.
+Signed-off-by: Pierre-Hugues Husson <phh@phh.me>
+---
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-Best regards,
-									Pavel
-								=09
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---k+w/mQv8wyuph6w0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAln3l2MACgkQMOfwapXb+vJHHQCfWG79S57+V5f5iaJ4mAJLy2jH
-f8MAniXlgVmZV0cFsYla+gGeHBOMnIRV
-=Zawd
------END PGP SIGNATURE-----
-
---k+w/mQv8wyuph6w0--
+diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+index bf14214fa464..d82b9747a979 100644
+--- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
++++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+@@ -138,6 +138,7 @@ struct dw_hdmi {
+ 	struct device *dev;
+ 	struct clk *isfr_clk;
+ 	struct clk *iahb_clk;
++	struct clk *cec_clk;
+ 	struct dw_hdmi_i2c *i2c;
+ 
+ 	struct hdmi_data_info hdmi_data;
+@@ -2382,6 +2383,26 @@ __dw_hdmi_probe(struct platform_device *pdev,
+ 		goto err_isfr;
+ 	}
+ 
++	hdmi->cec_clk = devm_clk_get(hdmi->dev, "cec");
++	if (PTR_ERR(hdmi->cec_clk) == -ENOENT) {
++		hdmi->cec_clk = NULL;
++	} else if (IS_ERR(hdmi->cec_clk)) {
++		ret = PTR_ERR(hdmi->cec_clk);
++		if (ret != -EPROBE_DEFER)
++			dev_err(hdmi->dev, "Cannot get HDMI cec clock: %d\n",
++					ret);
++
++		hdmi->cec_clk = NULL;
++		goto err_iahb;
++	} else {
++		ret = clk_prepare_enable(hdmi->cec_clk);
++		if (ret) {
++			dev_err(hdmi->dev, "Cannot enable HDMI cec clock: %d\n",
++					ret);
++			goto err_iahb;
++		}
++	}
++
+ 	/* Product and revision IDs */
+ 	hdmi->version = (hdmi_readb(hdmi, HDMI_DESIGN_ID) << 8)
+ 		      | (hdmi_readb(hdmi, HDMI_REVISION_ID) << 0);
+@@ -2518,6 +2539,8 @@ __dw_hdmi_probe(struct platform_device *pdev,
+ 		cec_notifier_put(hdmi->cec_notifier);
+ 
+ 	clk_disable_unprepare(hdmi->iahb_clk);
++	if (hdmi->cec_clk)
++		clk_disable_unprepare(hdmi->cec_clk);
+ err_isfr:
+ 	clk_disable_unprepare(hdmi->isfr_clk);
+ err_res:
+@@ -2541,6 +2564,8 @@ static void __dw_hdmi_remove(struct dw_hdmi *hdmi)
+ 
+ 	clk_disable_unprepare(hdmi->iahb_clk);
+ 	clk_disable_unprepare(hdmi->isfr_clk);
++	if (hdmi->cec_clk)
++		clk_disable_unprepare(hdmi->cec_clk);
+ 
+ 	if (hdmi->i2c)
+ 		i2c_del_adapter(&hdmi->i2c->adap);
+-- 
+2.14.2
