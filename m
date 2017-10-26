@@ -1,128 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39356 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40366 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752023AbdJZHy5 (ORCPT
+        by vger.kernel.org with ESMTP id S1751009AbdJZJAp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Oct 2017 03:54:57 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+        Thu, 26 Oct 2017 05:00:45 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 55905600E1
+        for <linux-media@vger.kernel.org>; Thu, 26 Oct 2017 12:00:44 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1e7e1r-00032Q-On
+        for linux-media@vger.kernel.org; Thu, 26 Oct 2017 12:00:43 +0300
+Date: Thu, 26 Oct 2017 12:00:43 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH v16 25/32] v4l: fwnode: Add convenience function for parsing common external refs
-Date: Thu, 26 Oct 2017 10:53:35 +0300
-Message-Id: <20171026075342.5760-26-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+Subject: [GIT PULL v2 for 4.15] Imx274 driver
+Message-ID: <20171026090042.c2wsyvmvmpvxqiwu@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add v4l2_fwnode_parse_reference_sensor_common for parsing common
-sensor properties that refer to adjacent devices such as flash or lens
-driver chips.
+Hi Mauro,
 
-As this is an association only, there's little a regular driver needs to
-know about these devices as such.
+Here's the imx274 driver, this time with the MAINTAINERS entry. A few minor
+fixes have been done as well in error handling.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
----
- drivers/media/v4l2-core/v4l2-fwnode.c | 35 +++++++++++++++++++++++++++++++++++
- include/media/v4l2-async.h            |  3 ++-
- include/media/v4l2-fwnode.h           | 21 +++++++++++++++++++++
- 3 files changed, 58 insertions(+), 1 deletion(-)
+Please pull.
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 845ef8da9002..1234bd1a2f49 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -865,6 +865,41 @@ static int v4l2_fwnode_reference_parse_int_props(
- 	return ret;
- }
- 
-+int v4l2_async_notifier_parse_fwnode_sensor_common(
-+	struct device *dev, struct v4l2_async_notifier *notifier)
-+{
-+	static const char * const led_props[] = { "led" };
-+	static const struct {
-+		const char * const name;
-+		const char **props;
-+		unsigned int nprops;
-+	} props[] = {
-+		{ "flash-leds", led_props, ARRAY_SIZE(led_props) },
-+		{ "lens-focus", NULL, 0 },
-+	};
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(props); i++) {
-+		int ret;
-+
-+		if (props[i].props && is_acpi_node(dev_fwnode(dev)))
-+			ret = v4l2_fwnode_reference_parse_int_props(
-+				dev, notifier, props[i].name,
-+				props[i].props, props[i].nprops);
-+		else
-+			ret = v4l2_fwnode_reference_parse(
-+				dev, notifier, props[i].name);
-+		if (ret && ret != -ENOENT) {
-+			dev_warn(dev, "parsing property \"%s\" failed (%d)\n",
-+				 props[i].name, ret);
-+			return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_sensor_common);
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
- MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 17c4ac7c73e8..8d8cfc3f3100 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -156,7 +156,8 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
-  * Release memory resources related to a notifier, including the async
-  * sub-devices allocated for the purposes of the notifier but not the notifier
-  * itself. The user is responsible for calling this function to clean up the
-- * notifier after calling @v4l2_async_notifier_parse_fwnode_endpoints.
-+ * notifier after calling @v4l2_async_notifier_parse_fwnode_endpoints or
-+ * @v4l2_fwnode_reference_parse_sensor_common.
-  *
-  * There is no harm from calling v4l2_async_notifier_cleanup in other
-  * cases as long as its memory has been zeroed after it has been
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index 105cfeee44ef..ca50108dfd8f 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -319,4 +319,25 @@ int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
- 			      struct v4l2_fwnode_endpoint *vep,
- 			      struct v4l2_async_subdev *asd));
- 
-+/**
-+ * v4l2_fwnode_reference_parse_sensor_common - parse common references on
-+ *					       sensors for async sub-devices
-+ * @dev: the device node the properties of which are parsed for references
-+ * @notifier: the async notifier where the async subdevs will be added
-+ *
-+ * Parse common sensor properties for remote devices related to the
-+ * sensor and set up async sub-devices for them.
-+ *
-+ * Any notifier populated using this function must be released with a call to
-+ * v4l2_async_notifier_release() after it has been unregistered and the async
-+ * sub-devices are no longer in use, even in the case the function returned an
-+ * error.
-+ *
-+ * Return: 0 on success
-+ *	   -ENOMEM if memory allocation failed
-+ *	   -EINVAL if property parsing failed
-+ */
-+int v4l2_async_notifier_parse_fwnode_sensor_common(
-+	struct device *dev, struct v4l2_async_notifier *notifier);
-+
- #endif /* _V4L2_FWNODE_H */
+
+The following changes since commit 61065fc3e32002ba48aa6bc3816c1f6f9f8daf55:
+
+  Merge commit '3728e6a255b5' into patchwork (2017-10-17 17:22:20 -0700)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.15-2
+
+for you to fetch changes up to 9bcabda990b45147819a1fe38e8e6181a0f474c3:
+
+  imx274: Add MAINTAINERS entry (2017-10-26 11:37:22 +0300)
+
+----------------------------------------------------------------
+Leon Luo (2):
+      imx274: device tree binding file
+      imx274: V4l2 driver for Sony imx274 CMOS sensor
+
+Sakari Ailus (1):
+      imx274: Add MAINTAINERS entry
+
+ .../devicetree/bindings/media/i2c/imx274.txt       |   33 +
+ MAINTAINERS                                        |    8 +
+ drivers/media/i2c/Kconfig                          |    7 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/imx274.c                         | 1810 ++++++++++++++++++++
+ 5 files changed, 1859 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/imx274.txt
+ create mode 100644 drivers/media/i2c/imx274.c
+
+
 -- 
-2.11.0
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
