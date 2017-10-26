@@ -1,60 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f176.google.com ([209.85.216.176]:50443 "EHLO
-        mail-qt0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751673AbdJWTDa (ORCPT
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:44073 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932409AbdJZVw6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Oct 2017 15:03:30 -0400
-Date: Mon, 23 Oct 2017 17:03:23 -0200
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC PATCH 0/9] V4L2 Jobs API WIP
-Message-ID: <20171023190323.GA25210@jade>
-References: <20170928095027.127173-1-acourbot@chromium.org>
- <0442082f-f176-2be7-89c0-ccf6f563917a@xs4all.nl>
+        Thu, 26 Oct 2017 17:52:58 -0400
+Received: by mail-lf0-f68.google.com with SMTP id 75so5342832lfx.1
+        for <linux-media@vger.kernel.org>; Thu, 26 Oct 2017 14:52:58 -0700 (PDT)
+Date: Thu, 26 Oct 2017 23:52:55 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v16 15/32] v4l: async: Register sub-devices before
+ calling bound callback
+Message-ID: <20171026215255.GI2297@bigcity.dyn.berto.se>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-16-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <0442082f-f176-2be7-89c0-ccf6f563917a@xs4all.nl>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171026075342.5760-16-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-10-16 Hans Verkuil <hverkuil@xs4all.nl>:
+On 2017-10-26 10:53:25 +0300, Sakari Ailus wrote:
+> Register the sub-device before calling the notifier's bound callback.
+> Doing this the other way around is problematic as the struct v4l2_device
+> has not assigned for the sub-device yet and may be required by the bound
+> callback.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
 
-> Hi Alexandre,
-> 
-> Thank you very much for working on this. Much appreciated!
-> 
-> I only did a very high-level review of the patch series: there is not much
-> point IMHO of doing a detailed review given the upcoming discussions in
-> Prague. It's better to wait until we agree with the high-level API.
-> 
-> Regarding the public API: the ioctls seem sane. It's all very similar to the
-> other implementations we've seen.
-> 
-> I'm still not sure about the name 'job', but this is 'just' a naming issue.
-> 
-> The part where I have more doubts is the need to create a new device node.
-> 
-> For the upcoming meeting I would like to discuss whether this cannot be added
-> to the media API.
-> 
-> Originally the plan was that the media API would be subsystem-agnostic and could
-> also be used by ALSA/DRM/etc. This never happened and I also am not aware of any
-> movement in that area.
-> 
-> I am wondering whether we should just be realistic and abandon the 'subsystem
-> agnostic' part and be willing to add e.g. the job support to the media API.
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Stupid question here: is there any techinically possible way to support
-it through the media API while being subsystem agnostic?
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index e170682dae78..46db85685894 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -130,13 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+>  {
+>  	int ret;
+>  
+> -	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
+> +	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+> +	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
+>  	if (ret < 0) {
+> -		v4l2_async_notifier_call_unbind(notifier, sd, asd);
+> +		v4l2_device_unregister_subdev(sd);
+>  		return ret;
+>  	}
+>  
+> -- 
+> 2.11.0
+> 
 
-Gustavo
+-- 
+Regards,
+Niklas Söderlund
