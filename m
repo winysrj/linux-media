@@ -1,58 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f177.google.com ([209.85.216.177]:54743 "EHLO
-        mail-qt0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752631AbdJLAZO (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43822 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932246AbdJZPDb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Oct 2017 20:25:14 -0400
-Received: by mail-qt0-f177.google.com with SMTP id z19so10480369qtg.11
-        for <linux-media@vger.kernel.org>; Wed, 11 Oct 2017 17:25:13 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <0D74D058-EE11-4BFF-974C-16DB6910D2CF@gmail.com>
-References: <cover.1507618840.git.sean@mess.org> <176506027db4255239dc8ce192dc6652af75bd52.1507618840.git.sean@mess.org>
- <1507750996.2479.11.camel@gmail.com> <20171011210237.bpbfuhpf7om26ldi@gofer.mess.org>
- <0D74D058-EE11-4BFF-974C-16DB6910D2CF@gmail.com>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-Date: Wed, 11 Oct 2017 20:25:12 -0400
-Message-ID: <CAGoCfixQ6uLwbs7pQv5SzNkhP_Au18WrdNnM=Odi4JpbAn174w@mail.gmail.com>
-Subject: Re: [PATCH v3 04/26] media: lirc_zilog: remove receiver
-To: Andy Walls <awalls.cx18@gmail.com>
-Cc: Sean Young <sean@mess.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Thu, 26 Oct 2017 11:03:31 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v16.1 25/32] v4l: fwnode: Add convenience function for parsing common external refs
+Date: Thu, 26 Oct 2017 18:03:27 +0300
+Message-Id: <20171026150327.8247-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171026075342.5760-26-sakari.ailus@linux.intel.com>
+References: <20171026075342.5760-26-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> There's an ir_lock mutex in the driver to prevent simultaneous access to the Rx and Tx functions of the z8.  Accessing Rx and Tx functions of the chip together can cause it to do the wrong thing (sometimes hang?), IIRC.
->
-> I'll see if I can dig up my old disassembly of the z8's firmware to see if that interlock is strictly necessary.
->
-> Yes I know ir-kbd-i2c is in mainline, but as I said, I had reasons for avoiding it when using Tx operation of the chip.  It's been 7 years, and I'm getting too old to remember the reasons. :P
+Add v4l2_fwnode_parse_reference_sensor_common for parsing common
+sensor properties that refer to adjacent devices such as flash or lens
+driver chips.
 
-Yeah, you definitely don't want to be issuing requests to the Rx and
-Tx addresses at the same time.  Very bad things will happen.
+As this is an association only, there's little a regular driver needs to
+know about these devices as such.
 
-Also, what is the polling interval for ir-kbd-i2c?  If it's too high
-you can wedge the I2C bus (depending on the hardware design).
-Likewise, many people disable IR RX entirely (which is trivial to do
-with lirc_zilog through a modprobe optoin).  This is because early
-versions of the HDPVR had issues where polling too often can interfere
-with traffic that configures the component receiver chip.  This was
-improved in later versions of the design, but many people found it was
-just easiest to disable RX since they don't use it (i.e. they would
-use the blaster for controlling their STB but use a separate IR
-receiver).
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+---
+since v16:
 
-Are you testing with video capture actively in use?  If you're testing
-the IR interface without an active HD capture in progress you're
-likely to miss some of these edge cases (in particular those which
-would hang the encoder).
+- use const char * const *props for string arrays with property names.
 
-I'm not against the removal of duplicate code in general, but you have
-to tread carefully because there are plenty of non-obvious edge cases
-to consider.
+ drivers/media/v4l2-core/v4l2-fwnode.c | 35 +++++++++++++++++++++++++++++++++++
+ include/media/v4l2-async.h            |  3 ++-
+ include/media/v4l2-fwnode.h           | 21 +++++++++++++++++++++
+ 3 files changed, 58 insertions(+), 1 deletion(-)
 
-Devin
-
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index f8cd88f791c4..39387dc6cadd 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -865,6 +865,41 @@ static int v4l2_fwnode_reference_parse_int_props(
+ 	return ret;
+ }
+ 
++int v4l2_async_notifier_parse_fwnode_sensor_common(
++	struct device *dev, struct v4l2_async_notifier *notifier)
++{
++	static const char * const led_props[] = { "led" };
++	static const struct {
++		const char *name;
++		const char * const *props;
++		unsigned int nprops;
++	} props[] = {
++		{ "flash-leds", led_props, ARRAY_SIZE(led_props) },
++		{ "lens-focus", NULL, 0 },
++	};
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(props); i++) {
++		int ret;
++
++		if (props[i].props && is_acpi_node(dev_fwnode(dev)))
++			ret = v4l2_fwnode_reference_parse_int_props(
++				dev, notifier, props[i].name,
++				props[i].props, props[i].nprops);
++		else
++			ret = v4l2_fwnode_reference_parse(
++				dev, notifier, props[i].name);
++		if (ret && ret != -ENOENT) {
++			dev_warn(dev, "parsing property \"%s\" failed (%d)\n",
++				 props[i].name, ret);
++			return ret;
++		}
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_sensor_common);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 17c4ac7c73e8..8d8cfc3f3100 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -156,7 +156,8 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
+  * Release memory resources related to a notifier, including the async
+  * sub-devices allocated for the purposes of the notifier but not the notifier
+  * itself. The user is responsible for calling this function to clean up the
+- * notifier after calling @v4l2_async_notifier_parse_fwnode_endpoints.
++ * notifier after calling @v4l2_async_notifier_parse_fwnode_endpoints or
++ * @v4l2_fwnode_reference_parse_sensor_common.
+  *
+  * There is no harm from calling v4l2_async_notifier_cleanup in other
+  * cases as long as its memory has been zeroed after it has been
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index 105cfeee44ef..ca50108dfd8f 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -319,4 +319,25 @@ int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+ 			      struct v4l2_fwnode_endpoint *vep,
+ 			      struct v4l2_async_subdev *asd));
+ 
++/**
++ * v4l2_fwnode_reference_parse_sensor_common - parse common references on
++ *					       sensors for async sub-devices
++ * @dev: the device node the properties of which are parsed for references
++ * @notifier: the async notifier where the async subdevs will be added
++ *
++ * Parse common sensor properties for remote devices related to the
++ * sensor and set up async sub-devices for them.
++ *
++ * Any notifier populated using this function must be released with a call to
++ * v4l2_async_notifier_release() after it has been unregistered and the async
++ * sub-devices are no longer in use, even in the case the function returned an
++ * error.
++ *
++ * Return: 0 on success
++ *	   -ENOMEM if memory allocation failed
++ *	   -EINVAL if property parsing failed
++ */
++int v4l2_async_notifier_parse_fwnode_sensor_common(
++	struct device *dev, struct v4l2_async_notifier *notifier);
++
+ #endif /* _V4L2_FWNODE_H */
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+2.11.0
