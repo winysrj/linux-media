@@ -1,78 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39468 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752098AbdJZHzP (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:27563 "EHLO
+        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751960AbdJ0DZa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Oct 2017 03:55:15 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH v16 32/32] arm: dts: omap3: N9/N950: Add flash references to the camera
-Date: Thu, 26 Oct 2017 10:53:42 +0300
-Message-Id: <20171026075342.5760-33-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+        Thu, 26 Oct 2017 23:25:30 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        "Jonathan Corbet" <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v5 3/5] media: atmel-isc: Enable the clocks during probe
+Date: Fri, 27 Oct 2017 11:21:30 +0800
+Message-ID: <20171027032132.16418-4-wenyou.yang@microchip.com>
+In-Reply-To: <20171027032132.16418-1-wenyou.yang@microchip.com>
+References: <20171027032132.16418-1-wenyou.yang@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add flash and indicator LED phandles to the sensor node.
+To meet the relationship, enable the HCLOCK and ispck during the
+device probe, "isc_pck frequency is less than or equal to isc_ispck,
+and isc_ispck is greater than or equal to HCLOCK."
+Meanwhile, call the pm_runtime_enable() in the right place.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
 ---
- arch/arm/boot/dts/omap3-n9.dts       | 1 +
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 4 ++--
- arch/arm/boot/dts/omap3-n950.dts     | 1 +
- 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
-index b9e58c536afd..39e35f8b8206 100644
---- a/arch/arm/boot/dts/omap3-n9.dts
-+++ b/arch/arm/boot/dts/omap3-n9.dts
-@@ -26,6 +26,7 @@
- 		clocks = <&isp 0>;
- 		clock-frequency = <9600000>;
- 		nokia,nvm-size = <(16 * 64)>;
-+		flash-leds = <&as3645a_flash &as3645a_indicator>;
- 		port {
- 			smia_1_1: endpoint {
- 				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index 1b0bd72945f2..12fbb3da5fce 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -271,14 +271,14 @@
- 		#size-cells = <0>;
- 		reg = <0x30>;
- 		compatible = "ams,as3645a";
--		flash@0 {
-+		as3645a_flash: flash@0 {
- 			reg = <0x0>;
- 			flash-timeout-us = <150000>;
- 			flash-max-microamp = <320000>;
- 			led-max-microamp = <60000>;
- 			ams,input-max-microamp = <1750000>;
- 		};
--		indicator@1 {
-+		as3645a_indicator: indicator@1 {
- 			reg = <0x1>;
- 			led-max-microamp = <10000>;
- 		};
-diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-index 646601a3ebd8..c354a1ed1e70 100644
---- a/arch/arm/boot/dts/omap3-n950.dts
-+++ b/arch/arm/boot/dts/omap3-n950.dts
-@@ -60,6 +60,7 @@
- 		clocks = <&isp 0>;
- 		clock-frequency = <9600000>;
- 		nokia,nvm-size = <(16 * 64)>;
-+		flash-leds = <&as3645a_flash &as3645a_indicator>;
- 		port {
- 			smia_1_1: endpoint {
- 				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
+Changes in v5:
+ - Fix the clock ID to ISC_ISPCK, instead of ISC_MCK for
+   isc_clk_is_enabled().
+
+Changes in v4:
+ - Move pm_runtime_enable() call from the complete callback to the
+   end of probe.
+ - Call pm_runtime_get_sync() and pm_runtime_put_sync() in
+   ->is_enabled() callbacks.
+ - Call clk_disable_unprepare() in ->remove callback.
+
+Changes in v3: None
+Changes in v2: None
+
+ drivers/media/platform/atmel/atmel-isc.c | 34 ++++++++++++++++++++++++++++----
+ 1 file changed, 30 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index 329ee8f256bb..4431c27dfb09 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -389,8 +389,14 @@ static int isc_clk_is_enabled(struct clk_hw *hw)
+ 	struct isc_clk *isc_clk = to_isc_clk(hw);
+ 	u32 status;
+ 
++	if (isc_clk->id == ISC_ISPCK)
++		pm_runtime_get_sync(isc_clk->dev);
++
+ 	regmap_read(isc_clk->regmap, ISC_CLKSR, &status);
+ 
++	if (isc_clk->id == ISC_ISPCK)
++		pm_runtime_put_sync(isc_clk->dev);
++
+ 	return status & ISC_CLK(isc_clk->id) ? 1 : 0;
+ }
+ 
+@@ -1866,25 +1872,37 @@ static int atmel_isc_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	ret = clk_prepare_enable(isc->hclock);
++	if (ret) {
++		dev_err(dev, "failed to enable hclock: %d\n", ret);
++		return ret;
++	}
++
+ 	ret = isc_clk_init(isc);
+ 	if (ret) {
+ 		dev_err(dev, "failed to init isc clock: %d\n", ret);
+-		goto clean_isc_clk;
++		goto unprepare_hclk;
+ 	}
+ 
+ 	isc->ispck = isc->isc_clks[ISC_ISPCK].clk;
+ 
++	ret = clk_prepare_enable(isc->ispck);
++	if (ret) {
++		dev_err(dev, "failed to enable ispck: %d\n", ret);
++		goto unprepare_hclk;
++	}
++
+ 	/* ispck should be greater or equal to hclock */
+ 	ret = clk_set_rate(isc->ispck, clk_get_rate(isc->hclock));
+ 	if (ret) {
+ 		dev_err(dev, "failed to set ispck rate: %d\n", ret);
+-		goto clean_isc_clk;
++		goto unprepare_clk;
+ 	}
+ 
+ 	ret = v4l2_device_register(dev, &isc->v4l2_dev);
+ 	if (ret) {
+ 		dev_err(dev, "unable to register v4l2 device.\n");
+-		goto clean_isc_clk;
++		goto unprepare_clk;
+ 	}
+ 
+ 	ret = isc_parse_dt(dev, isc);
+@@ -1917,7 +1935,9 @@ static int atmel_isc_probe(struct platform_device *pdev)
+ 			break;
+ 	}
+ 
++	pm_runtime_set_active(dev);
+ 	pm_runtime_enable(dev);
++	pm_request_idle(dev);
+ 
+ 	return 0;
+ 
+@@ -1927,7 +1947,11 @@ static int atmel_isc_probe(struct platform_device *pdev)
+ unregister_v4l2_device:
+ 	v4l2_device_unregister(&isc->v4l2_dev);
+ 
+-clean_isc_clk:
++unprepare_clk:
++	clk_disable_unprepare(isc->ispck);
++unprepare_hclk:
++	clk_disable_unprepare(isc->hclock);
++
+ 	isc_clk_cleanup(isc);
+ 
+ 	return ret;
+@@ -1938,6 +1962,8 @@ static int atmel_isc_remove(struct platform_device *pdev)
+ 	struct isc_device *isc = platform_get_drvdata(pdev);
+ 
+ 	pm_runtime_disable(&pdev->dev);
++	clk_disable_unprepare(isc->ispck);
++	clk_disable_unprepare(isc->hclock);
+ 
+ 	isc_subdev_cleanup(isc);
+ 
 -- 
-2.11.0
+2.13.0
