@@ -1,514 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-dm3nam03on0139.outbound.protection.outlook.com ([104.47.41.139]:53768
-        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751503AbdJMGCk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 02:02:40 -0400
-From: <Yasunari.Takiguchi@sony.com>
-To: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-media@vger.kernel.org>
-CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
-        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
-        Hideki Nozawa <Hideki.Nozawa@sony.com>,
-        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
-        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
-        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
-Subject: [PATCH v4 04/12] [media] cxd2880: Add spi device IO routines
-Date: Fri, 13 Oct 2017 15:05:59 +0900
-Message-ID: <20171013060559.21309-1-Yasunari.Takiguchi@sony.com>
-In-Reply-To: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
-References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52552 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752239AbdJ0KGN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Oct 2017 06:06:13 -0400
+Date: Fri, 27 Oct 2017 13:06:09 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v16 19/32] v4l: async: Ensure only unique fwnodes are
+ registered to notifiers
+Message-ID: <20171027100609.zvww6o5bacfvkfsv@valkosipuli.retiisi.org.uk>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-20-sakari.ailus@linux.intel.com>
+ <20171027095227.GA8854@bigcity.dyn.berto.se>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171027095227.GA8854@bigcity.dyn.berto.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Hi Niklas,
 
-Add functions for initializing, reading and writing to the SPI
-device for the Sony CXD2880 DVB-T2/T tuner + demodulator.
+On Fri, Oct 27, 2017 at 11:52:27AM +0200, Niklas Söderlund wrote:
+> Hi Sakari,
+> 
+> Thanks for your patch.
+> 
+> On 2017-10-26 10:53:29 +0300, Sakari Ailus wrote:
+> > While registering a notifier, check that each newly added fwnode is
+> > unique, and return an error if it is not. Also check that a newly added
+> > notifier does not have the same fwnodes twice.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-async.c | 82 +++++++++++++++++++++++++++++++++---
+> >  1 file changed, 77 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> > index ed539c4fd5dc..b4e88eef195f 100644
+> > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > @@ -308,8 +308,71 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+> >  	notifier->parent = NULL;
+> >  }
+> >  
+> > +/* See if an fwnode can be found in a notifier's lists. */
+> > +static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+> > +	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
+> > +{
+> > +	struct v4l2_async_subdev *asd;
+> > +	struct v4l2_subdev *sd;
+> > +
+> > +	list_for_each_entry(asd, &notifier->waiting, list) {
+> > +		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+> > +			continue;
+> > +
+> > +		if (asd->match.fwnode.fwnode == fwnode)
+> > +			return true;
+> > +	}
+> > +
+> > +	list_for_each_entry(sd, &notifier->done, async_list) {
+> > +		if (WARN_ON(!sd->asd))
+> > +			continue;
+> > +
+> > +		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+> > +			continue;
+> > +
+> > +		if (sd->asd->match.fwnode.fwnode == fwnode)
+> > +			return true;
+> > +	}
+> > +
+> > +	return false;
+> > +}
+> > +
+> > +/*
+> > + * Find out whether an async sub-device was set up for an fwnode already or
+> > + * whether it exists in a given notifier before @this_index.
+> > + */
+> > +static bool v4l2_async_notifier_fwnode_has_async_subdev(
+> > +	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
+> > +	unsigned int this_index)
+> > +{
+> > +	unsigned int j;
+> > +
+> > +	lockdep_assert_held(&list_lock);
+> > +
+> > +	/* Check that an fwnode is not being added more than once. */
+> > +	for (j = 0; j < this_index; j++) {
+> > +		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
+> > +		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
+> > +
+> > +		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
+> > +		    asd->match.fwnode.fwnode ==
+> > +		    other_asd->match.fwnode.fwnode)
+> > +			return true;
+> > +	}
+> > +
+> > +	/* Check than an fwnode did not exist in other notifiers. */
+> > +	list_for_each_entry(notifier, &notifier_list, list)
+> > +		if (__v4l2_async_notifier_fwnode_has_async_subdev(
+> > +			    notifier, fwnode))
+> > +			return true;
+> > +
+> > +	return false;
+> > +}
+> > +
+> >  static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+> >  {
+> > +	struct device *dev =
+> > +		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
+> >  	struct v4l2_async_subdev *asd;
+> >  	int ret;
+> >  	int i;
+> > @@ -320,6 +383,8 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+> >  	INIT_LIST_HEAD(&notifier->waiting);
+> >  	INIT_LIST_HEAD(&notifier->done);
+> >  
+> > +	mutex_lock(&list_lock);
+> > +
+> >  	for (i = 0; i < notifier->num_subdevs; i++) {
+> >  		asd = notifier->subdevs[i];
+> >  
+> > @@ -327,19 +392,25 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+> >  		case V4L2_ASYNC_MATCH_CUSTOM:
+> >  		case V4L2_ASYNC_MATCH_DEVNAME:
+> >  		case V4L2_ASYNC_MATCH_I2C:
+> > +			break;
+> >  		case V4L2_ASYNC_MATCH_FWNODE:
+> > +			if (v4l2_async_notifier_fwnode_has_async_subdev(
+> > +				    notifier, asd->match.fwnode.fwnode, i)) {
+> > +				dev_err(dev,
+> > +					"fwnode has already been registered or in notifier's subdev list\n");
+> > +				ret = -EEXIST;
+> > +				goto out_unlock;
+> 
+> You store the error code in ret before the jump, but in the out_unlock 
+> path ret is not considered and 0 is always returned.
+> 
+> > +			}
+> >  			break;
+> >  		default:
+> > -			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+> > -				"Invalid match type %u on %p\n",
+> > +			dev_err(dev, "Invalid match type %u on %p\n",
+> >  				asd->match_type, asd);
+> > -			return -EINVAL;
+> > +			ret = -EINVAL;
+> > +			goto out_unlock;
+> 
+> Same here.
 
-Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
-Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
-Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
-Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
-Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
----
+Good catch! How about this change on top of the patch? It makes return
+value checks a little bit safer, too.
 
-[Change list]
-Changes in V4
-   drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
-      -removed unnecessary initialization at variable declaration
-
-Changes in V3
-   drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
-      -removed unnecessary cast
-      -changed cxd2880_memcpy to memcpy
-      -modified return code
-      -changed hexadecimal code to lower case. 
-   drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
-      -modified return code
-   drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
-      -modified return code
-   drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
-      -removed unnecessary cast
-      -modified return code
-   drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
-      -modified return code
-
- .../dvb-frontends/cxd2880/cxd2880_devio_spi.c      | 146 +++++++++++++++++++++
- .../dvb-frontends/cxd2880/cxd2880_devio_spi.h      |  40 ++++++
- drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h  |  51 +++++++
- .../dvb-frontends/cxd2880/cxd2880_spi_device.c     | 130 ++++++++++++++++++
- .../dvb-frontends/cxd2880/cxd2880_spi_device.h     |  43 ++++++
- 5 files changed, 410 insertions(+)
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
-
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
-new file mode 100644
-index 000000000000..e6226a00fc8c
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
-@@ -0,0 +1,146 @@
-+/*
-+ * cxd2880_devio_spi.c
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * I/O interface via SPI
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include "cxd2880_devio_spi.h"
-+
-+#define BURST_WRITE_MAX 128
-+
-+static int cxd2880_io_spi_read_reg(struct cxd2880_io *io,
-+				   enum cxd2880_io_tgt tgt,
-+				   u8 sub_address, u8 *data,
-+				   u32 size)
-+{
-+	int ret;
-+	struct cxd2880_spi *spi = NULL;
-+	u8 send_data[6];
-+	u8 *read_data_top = data;
-+
-+	if ((!io) || (!io->if_object) || (!data))
-+		return -EINVAL;
-+
-+	if (sub_address + size > 0x100)
-+		return -ERANGE;
-+
-+	spi = io->if_object;
-+
-+	if (tgt == CXD2880_IO_TGT_SYS)
-+		send_data[0] = 0x0b;
-+	else
-+		send_data[0] = 0x0a;
-+
-+	send_data[3] = 0;
-+	send_data[4] = 0;
-+	send_data[5] = 0;
-+
-+	while (size > 0) {
-+		send_data[1] = sub_address;
-+		if (size > 255)
-+			send_data[2] = 255;
-+		else
-+			send_data[2] = size;
-+
-+		ret =
-+		    spi->write_read(spi, send_data, sizeof(send_data),
-+				    read_data_top, send_data[2]);
-+		if (ret)
-+			return ret;
-+
-+		sub_address += send_data[2];
-+		read_data_top += send_data[2];
-+		size -= send_data[2];
-+	}
-+
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index b4e88eef195f..a33a68e5417b 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -412,12 +412,13 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 	}
+ 
+ 	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+-	if (ret)
++	if (ret < 0)
+ 		goto err_unbind;
+ 
+ 	ret = v4l2_async_notifier_try_complete(notifier);
+-	if (ret)
++	if (ret < 0)
+ 		goto err_unbind;
++	ret = 0;
+ 
+ 	/* Keep also completed notifiers on the list */
+ 	list_add(&notifier->list, &notifier_list);
+@@ -425,7 +426,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ out_unlock:
+ 	mutex_unlock(&list_lock);
+ 
+-	return 0;
 +	return ret;
-+}
-+
-+static int cxd2880_io_spi_write_reg(struct cxd2880_io *io,
-+				    enum cxd2880_io_tgt tgt,
-+				    u8 sub_address,
-+				    const u8 *data, u32 size)
-+{
-+	int ret;
-+	struct cxd2880_spi *spi = NULL;
-+	u8 send_data[BURST_WRITE_MAX + 4];
-+	const u8 *write_data_top = data;
-+
-+	if ((!io) || (!io->if_object) || (!data))
-+		return -EINVAL;
-+
-+	if (size > BURST_WRITE_MAX)
-+		return -EOVERFLOW;
-+
-+	if (sub_address + size > 0x100)
-+		return -ERANGE;
-+
-+	spi = io->if_object;
-+
-+	if (tgt == CXD2880_IO_TGT_SYS)
-+		send_data[0] = 0x0f;
-+	else
-+		send_data[0] = 0x0e;
-+
-+	while (size > 0) {
-+		send_data[1] = sub_address;
-+		if (size > 255)
-+			send_data[2] = 255;
-+		else
-+			send_data[2] = size;
-+
-+		memcpy(&send_data[3], write_data_top, send_data[2]);
-+
-+		if (tgt == CXD2880_IO_TGT_SYS) {
-+			send_data[3 + send_data[2]] = 0x00;
-+			ret = spi->write(spi, send_data, send_data[2] + 4);
-+		} else {
-+			ret = spi->write(spi, send_data, send_data[2] + 3);
-+		}
-+		if (ret)
-+			return ret;
-+
-+		sub_address += send_data[2];
-+		write_data_top += send_data[2];
-+		size -= send_data[2];
-+	}
-+
-+	return ret;
-+}
-+
-+int cxd2880_io_spi_create(struct cxd2880_io *io,
-+			  struct cxd2880_spi *spi, u8 slave_select)
-+{
-+	if ((!io) || (!spi))
-+		return -EINVAL;
-+
-+	io->read_regs = cxd2880_io_spi_read_reg;
-+	io->write_regs = cxd2880_io_spi_write_reg;
-+	io->write_reg = cxd2880_io_common_write_one_reg;
-+	io->if_object = spi;
-+	io->i2c_address_sys = 0;
-+	io->i2c_address_demod = 0;
-+	io->slave_select = slave_select;
-+
-+	return 0;
-+}
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
-new file mode 100644
-index 000000000000..41a86f0f558e
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
-@@ -0,0 +1,40 @@
-+/*
-+ * cxd2880_devio_spi.h
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * I/O interface via SPI
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef CXD2880_DEVIO_SPI_H
-+#define CXD2880_DEVIO_SPI_H
-+
-+#include "cxd2880_common.h"
-+#include "cxd2880_io.h"
-+#include "cxd2880_spi.h"
-+
-+#include "cxd2880_tnrdmd.h"
-+
-+int cxd2880_io_spi_create(struct cxd2880_io *io,
-+			  struct cxd2880_spi *spi,
-+			  u8 slave_select);
-+
-+#endif
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
-new file mode 100644
-index 000000000000..f9e28daa6a2c
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
-@@ -0,0 +1,51 @@
-+/*
-+ * cxd2880_spi.h
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * SPI access definitions
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef CXD2880_SPI_H
-+#define CXD2880_SPI_H
-+
-+#include "cxd2880_common.h"
-+
-+enum cxd2880_spi_mode {
-+	CXD2880_SPI_MODE_0,
-+	CXD2880_SPI_MODE_1,
-+	CXD2880_SPI_MODE_2,
-+	CXD2880_SPI_MODE_3
-+};
-+
-+struct cxd2880_spi {
-+	int (*read)(struct cxd2880_spi *spi, u8 *data,
-+		    u32 size);
-+	int (*write)(struct cxd2880_spi *spi, const u8 *data,
-+		     u32 size);
-+	int (*write_read)(struct cxd2880_spi *spi,
-+			  const u8 *tx_data, u32 tx_size,
-+			  u8 *rx_data, u32 rx_size);
-+	u32 flags;
-+	void *user;
-+};
-+
-+#endif
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
-new file mode 100644
-index 000000000000..60b14e4a4098
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
-@@ -0,0 +1,130 @@
-+/*
-+ * cxd2880_spi_device.c
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * SPI access functions
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/spi/spi.h>
-+
-+#include "cxd2880_spi_device.h"
-+
-+static int cxd2880_spi_device_write(struct cxd2880_spi *spi,
-+				    const u8 *data, u32 size)
-+{
-+	struct cxd2880_spi_device *spi_device = NULL;
-+	struct spi_message msg;
-+	struct spi_transfer tx;
-+	int result = 0;
-+
-+	if ((!spi) || (!spi->user) || (!data) || (size == 0))
-+		return -EINVAL;
-+
-+	spi_device = spi->user;
-+
-+	memset(&tx, 0, sizeof(tx));
-+	tx.tx_buf = data;
-+	tx.len = size;
-+
-+	spi_message_init(&msg);
-+	spi_message_add_tail(&tx, &msg);
-+	result = spi_sync(spi_device->spi, &msg);
-+
-+	if (result < 0)
-+		return -EIO;
-+
-+	return 0;
-+}
-+
-+static int cxd2880_spi_device_write_read(struct cxd2880_spi *spi,
-+					 const u8 *tx_data,
-+					 u32 tx_size,
-+					 u8 *rx_data,
-+					 u32 rx_size)
-+{
-+	struct cxd2880_spi_device *spi_device = NULL;
-+	int result = 0;
-+
-+	if ((!spi) || (!spi->user) || (!tx_data) ||
-+		 (tx_size == 0) || (!rx_data) || (rx_size == 0))
-+		return -EINVAL;
-+
-+	spi_device = spi->user;
-+
-+	result = spi_write_then_read(spi_device->spi, tx_data,
-+				     tx_size, rx_data, rx_size);
-+	if (result < 0)
-+		return -EIO;
-+
-+	return 0;
-+}
-+
-+int
-+cxd2880_spi_device_initialize(struct cxd2880_spi_device *spi_device,
-+			      enum cxd2880_spi_mode mode,
-+			      u32 speed_hz)
-+{
-+	int result = 0;
-+	struct spi_device *spi = spi_device->spi;
-+
-+	switch (mode) {
-+	case CXD2880_SPI_MODE_0:
-+		spi->mode = SPI_MODE_0;
-+		break;
-+	case CXD2880_SPI_MODE_1:
-+		spi->mode = SPI_MODE_1;
-+		break;
-+	case CXD2880_SPI_MODE_2:
-+		spi->mode = SPI_MODE_2;
-+		break;
-+	case CXD2880_SPI_MODE_3:
-+		spi->mode = SPI_MODE_3;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	spi->max_speed_hz = speed_hz;
-+	spi->bits_per_word = 8;
-+	result = spi_setup(spi);
-+	if (result != 0) {
-+		pr_err("spi_setup failed %d\n", result);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+int cxd2880_spi_device_create_spi(struct cxd2880_spi *spi,
-+				  struct cxd2880_spi_device *spi_device)
-+{
-+	if ((!spi) || (!spi_device))
-+		return -EINVAL;
-+
-+	spi->read = NULL;
-+	spi->write = cxd2880_spi_device_write;
-+	spi->write_read = cxd2880_spi_device_write_read;
-+	spi->flags = 0;
-+	spi->user = spi_device;
-+
-+	return 0;
-+}
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
-new file mode 100644
-index 000000000000..63f658e29343
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
-@@ -0,0 +1,43 @@
-+/*
-+ * cxd2880_spi_device.h
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * SPI access interface
-+ *
-+ * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; version 2 of the License.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef CXD2880_SPI_DEVICE_H
-+#define CXD2880_SPI_DEVICE_H
-+
-+#include "cxd2880_spi.h"
-+
-+struct cxd2880_spi_device {
-+	struct spi_device *spi;
-+};
-+
-+int cxd2880_spi_device_initialize(struct cxd2880_spi_device *spi_device,
-+				  enum cxd2880_spi_mode mode,
-+				  u32 speedHz);
-+
-+int cxd2880_spi_device_create_spi(struct cxd2880_spi *spi,
-+				  struct cxd2880_spi_device *spi_device);
-+
-+#endif /* CXD2880_SPI_DEVICE_H */
+ 
+ err_unbind:
+ 	/*
+
+> 
+> >  		}
+> >  		list_add_tail(&asd->list, &notifier->waiting);
+> >  	}
+> >  
+> > -	mutex_lock(&list_lock);
+> > -
+> >  	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+> >  	if (ret)
+> >  		goto err_unbind;
+> > @@ -351,6 +422,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+> >  	/* Keep also completed notifiers on the list */
+> >  	list_add(&notifier->list, &notifier_list);
+> >  
+> > +out_unlock:
+> >  	mutex_unlock(&list_lock);
+> >  
+> >  	return 0;
+
 -- 
-2.13.0
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
