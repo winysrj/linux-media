@@ -1,68 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f50.google.com ([209.85.214.50]:47596 "EHLO
-        mail-it0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751508AbdJXOdW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Oct 2017 10:33:22 -0400
-Received: by mail-it0-f50.google.com with SMTP id p138so10236104itp.2
-        for <linux-media@vger.kernel.org>; Tue, 24 Oct 2017 07:33:21 -0700 (PDT)
+Received: from mail.kernel.org ([198.145.29.99]:55950 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751270AbdJ0OsV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Oct 2017 10:48:21 -0400
+Date: Fri, 27 Oct 2017 16:48:18 +0200
+From: Sebastian Reichel <sre@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, pavel@ucw.cz,
+        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH v16 14/32] v4l: async: Introduce helpers for calling
+ async ops callbacks
+Message-ID: <20171027144818.dwtcxuyrb5ci7rqv@earth>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-15-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20171019224825.h54muomkruk4wtgn@dtor-ws>
-References: <20171016231443.GA100011@beast> <20171019223246.2wsgr6in7oigq6da@dtor-ws>
- <CAGXu5j+sV7PyOE4Zr-osWFmXZBU-i3A2pd4gQUpZiZYhP9d11w@mail.gmail.com> <20171019224825.h54muomkruk4wtgn@dtor-ws>
-From: Kees Cook <keescook@chromium.org>
-Date: Tue, 24 Oct 2017 07:33:20 -0700
-Message-ID: <CAGXu5jKo=zGmQ6-dn24Kxe_7P+yHRNKJR+ud_bOuKq3ZXiqdLw@mail.gmail.com>
-Subject: Re: [PATCH] media: input: Convert timers to use timer_setup()
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Oliver Endriss <o.endriss@gmx.de>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geliang Tang <geliangtang@gmail.com>,
-        linux-input <linux-input@vger.kernel.org>,
-        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="bgznnm2zym343hx2"
+Content-Disposition: inline
+In-Reply-To: <20171026075342.5760-15-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 19, 2017 at 3:48 PM, Dmitry Torokhov
-<dmitry.torokhov@gmail.com> wrote:
-> On Thu, Oct 19, 2017 at 03:45:38PM -0700, Kees Cook wrote:
->> On Thu, Oct 19, 2017 at 3:32 PM, Dmitry Torokhov
->> <dmitry.torokhov@gmail.com> wrote:
->> > On Mon, Oct 16, 2017 at 04:14:43PM -0700, Kees Cook wrote:
->> >> In preparation for unconditionally passing the struct timer_list pointer to
->> >> all timer callbacks, switch to using the new timer_setup() and from_timer()
->> >> to pass the timer pointer explicitly.
->> >>
->> >> One input_dev user hijacks the input_dev software autorepeat timer to
->> >> perform its own repeat management. However, there is no path back to the
->> >> existing status variable, so add a generic one to the input structure and
->> >> use that instead.
->> >
->> > That is too bad and it should not be doing this. I'd rather av7110 used
->> > its own private timer for that.
->>
->> Yeah, that was a pretty weird case. I couldn't see how to avoid it,
->> though. I didn't see a way to hook the autorepeat, but I'm not too
->> familiar with the code here.
->
-> You just need to manage the private timer in the driver and not mess up
-> with the input core if input core's autorepeat does not provide the
-> desired behavior...
 
-I don't know how to fix this, but I still need to do this refactoring.
-What's the correct step forward here? Should I temporarily disable the
-timer in av7110?
+--bgznnm2zym343hx2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Seems like the hijacking was introduced in ee820a648fb3 ("V4L/DVB
-(5334): Dvb-ttpci: Infrared remote control refactoring").
+Hi,
 
-Thanks!
+On Thu, Oct 26, 2017 at 10:53:24AM +0300, Sakari Ailus wrote:
+> Add three helper functions to call async operations callbacks. Besides
+> simplifying callbacks, this allows async notifiers to have no ops set,
+> i.e. it can be left NULL.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
+> ---
 
--Kees
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
--- 
-Kees Cook
-Pixel Security
+-- Sebastian
+
+>  drivers/media/v4l2-core/v4l2-async.c | 56 +++++++++++++++++++++++++-----=
+------
+>  1 file changed, 39 insertions(+), 17 deletions(-)
+>=20
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-co=
+re/v4l2-async.c
+> index 9d6fc5f25619..e170682dae78 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -25,6 +25,34 @@
+>  #include <media/v4l2-fwnode.h>
+>  #include <media/v4l2-subdev.h>
+> =20
+> +static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
+> +					  struct v4l2_subdev *subdev,
+> +					  struct v4l2_async_subdev *asd)
+> +{
+> +	if (!n->ops || !n->ops->bound)
+> +		return 0;
+> +
+> +	return n->ops->bound(n, subdev, asd);
+> +}
+> +
+> +static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier *=
+n,
+> +					    struct v4l2_subdev *subdev,
+> +					    struct v4l2_async_subdev *asd)
+> +{
+> +	if (!n->ops || !n->ops->unbind)
+> +		return;
+> +
+> +	n->ops->unbind(n, subdev, asd);
+> +}
+> +
+> +static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier =
+*n)
+> +{
+> +	if (!n->ops || !n->ops->complete)
+> +		return 0;
+> +
+> +	return n->ops->complete(n);
+> +}
+> +
+>  static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *=
+asd)
+>  {
+>  #if IS_ENABLED(CONFIG_I2C)
+> @@ -102,16 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_asyn=
+c_notifier *notifier,
+>  {
+>  	int ret;
+> =20
+> -	if (notifier->ops->bound) {
+> -		ret =3D notifier->ops->bound(notifier, sd, asd);
+> -		if (ret < 0)
+> -			return ret;
+> -	}
+> +	ret =3D v4l2_async_notifier_call_bound(notifier, sd, asd);
+> +	if (ret < 0)
+> +		return ret;
+> =20
+>  	ret =3D v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+>  	if (ret < 0) {
+> -		if (notifier->ops->unbind)
+> -			notifier->ops->unbind(notifier, sd, asd);
+> +		v4l2_async_notifier_call_unbind(notifier, sd, asd);
+>  		return ret;
+>  	}
+> =20
+> @@ -140,8 +165,7 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+>  	struct v4l2_subdev *sd, *tmp;
+> =20
+>  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+> -		if (notifier->ops->unbind)
+> -			notifier->ops->unbind(notifier, sd, sd->asd);
+> +		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+>  		v4l2_async_cleanup(sd);
+> =20
+>  		list_move(&sd->async_list, &subdev_list);
+> @@ -198,8 +222,8 @@ int v4l2_async_notifier_register(struct v4l2_device *=
+v4l2_dev,
+>  		}
+>  	}
+> =20
+> -	if (list_empty(&notifier->waiting) && notifier->ops->complete) {
+> -		ret =3D notifier->ops->complete(notifier);
+> +	if (list_empty(&notifier->waiting)) {
+> +		ret =3D v4l2_async_notifier_call_complete(notifier);
+>  		if (ret)
+>  			goto err_complete;
+>  	}
+> @@ -296,10 +320,10 @@ int v4l2_async_register_subdev(struct v4l2_subdev *=
+sd)
+>  		if (ret)
+>  			goto err_unlock;
+> =20
+> -		if (!list_empty(&notifier->waiting) || !notifier->ops->complete)
+> +		if (!list_empty(&notifier->waiting))
+>  			goto out_unlock;
+> =20
+> -		ret =3D notifier->ops->complete(notifier);
+> +		ret =3D v4l2_async_notifier_call_complete(notifier);
+>  		if (ret)
+>  			goto err_cleanup;
+> =20
+> @@ -315,8 +339,7 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  	return 0;
+> =20
+>  err_cleanup:
+> -	if (notifier->ops->unbind)
+> -		notifier->ops->unbind(notifier, sd, sd->asd);
+> +	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+>  	v4l2_async_cleanup(sd);
+> =20
+>  err_unlock:
+> @@ -335,8 +358,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev =
+*sd)
+> =20
+>  		list_add(&sd->asd->list, &notifier->waiting);
+> =20
+> -		if (notifier->ops->unbind)
+> -			notifier->ops->unbind(notifier, sd, sd->asd);
+> +		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+>  	}
+> =20
+>  	v4l2_async_cleanup(sd);
+> --=20
+> 2.11.0
+>=20
+
+--bgznnm2zym343hx2
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnzRzIACgkQ2O7X88g7
++pqh9RAAjX/Wy6TXNZb1P9Y7gE3gR+JMwLF3piPXgBxQ+mHg16axTnI5DMiegEnJ
+NXZrLTy7ML5x7lfbDU9YaxrPSuqaZsu4P3i5zNRDmniWsF/LNolh4ivjMJVLD6Nz
+pJFnGgbM3jDuF4+IjzOgRRp1usMb/z5NMtOran6gHWHDWXFH+ArchH4XuoQ4BHUe
+jGF2g1/GKGs4DzCyyEJi5hckt7fa0CxrtfU5Kh0fEYoKP0NLdbnjJtsMr/TlSg+x
+tFIx2oe55Tpvn4EfJGXnsm+Igzk5mGeQHN94doNuSmE9fZ71ThnakFzRjbE5aGFh
+fyN6S9HLw5xPEOUeszDkOPit7VJSTE2kYO25qidWCBIl5y1CBuF9Uk6oCvc7tZAW
+36duZt/lPH8X379r2vTdl+VxfypjOKnghTULFXxMnay3dyGaHcG4UEQMJZGhu2WG
+wD7TeO9omnqk03+lZoUii2PRzkeYUnRgxY6Q0yPK1FcR7VOiLFciJ7adAxFX3am8
+OdoX4cQxj4Unv/Ymqm/ADdokZ7vWknPYVajp3bXLUoo95eO8iaVduIrsh4XLKc7h
+IXI5bMgv4qpQSq9OphQr3cYUoDSCiumvL2IfoSgDlUPdg8KdRXRuOAYm3WfAFdlu
+V8dgKNYF7iKNMQkzS625pn3rB8e5wu8hGBQXL9GP+qMl5fpcTuc=
+=HijD
+-----END PGP SIGNATURE-----
+
+--bgznnm2zym343hx2--
