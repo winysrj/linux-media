@@ -1,180 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:43872 "EHLO
-        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751782AbdJYBDT (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:45194 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751530AbdJ0IKG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Oct 2017 21:03:19 -0400
+        Fri, 27 Oct 2017 04:10:06 -0400
+Received: by mail-lf0-f65.google.com with SMTP id n69so6472930lfn.2
+        for <linux-media@vger.kernel.org>; Fri, 27 Oct 2017 01:10:05 -0700 (PDT)
+Date: Fri, 27 Oct 2017 10:10:02 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v16 17/32] v4l: async: Prepare for async sub-device
+ notifiers
+Message-ID: <20171027081002.GL2297@bigcity.dyn.berto.se>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-18-sakari.ailus@linux.intel.com>
+ <20171026221051.GK2297@bigcity.dyn.berto.se>
 MIME-Version: 1.0
-In-Reply-To: <20171025004005.hyb43h3yvovp4is2@dtor-ws>
-References: <20171025004005.hyb43h3yvovp4is2@dtor-ws>
-From: Jaejoong Kim <climbbb.kim@gmail.com>
-Date: Wed, 25 Oct 2017 10:03:18 +0900
-Message-ID: <CAL6iAaK-3bK9K7oF3so9vcpUfNLvwLzfpD10aWRniH-k_WQKLQ@mail.gmail.com>
-Subject: Re: [PATCH] media: av7110: switch to useing timer_setup()
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171026221051.GK2297@bigcity.dyn.berto.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sakari,
 
-[PATCH] media: av7110: switch to useing timer_setup()
-                                                       ^^^^^^^
-typo error.
+On 2017-10-27 00:10:51 +0200, Niklas Söderlund wrote:
+> On 2017-10-26 10:53:27 +0300, Sakari Ailus wrote:
+> > Refactor the V4L2 async framework a little in preparation for async
+> > sub-device notifiers. This avoids making some structural changes in the
+> > patch actually implementing sub-device notifiers, making that patch easier
+> > to review.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-2017-10-25 9:40 GMT+09:00 Dmitry Torokhov <dmitry.torokhov@gmail.com>:
-> In preparation for unconditionally passing the struct timer_list pointer to
-> all timer callbacks, switch to using the new timer_setup() and from_timer()
-> to pass the timer pointer explicitly.
->
-> Also stop poking into input core internals and override its autorepeat
-> timer function. I am not sure why we have such convoluted autorepeat
-> handling in this driver instead of letting input core handle autorepeat,
-> but this preserves current behavior of allowing controlling autorepeat
-> delay and forcing autorepeat period to be whatever the hardware has.
->
-> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> ---
->
-> Note that this has not been tested on the hardware. But it should
-> compile, so I have that going for me.
->
->  drivers/media/pci/ttpci/av7110.h    |  4 ++--
->  drivers/media/pci/ttpci/av7110_ir.c | 40 +++++++++++++++++--------------------
->  2 files changed, 20 insertions(+), 24 deletions(-)
->
-> diff --git a/drivers/media/pci/ttpci/av7110.h b/drivers/media/pci/ttpci/av7110.h
-> index 347827925c14..0aa3c6f01853 100644
-> --- a/drivers/media/pci/ttpci/av7110.h
-> +++ b/drivers/media/pci/ttpci/av7110.h
-> @@ -80,10 +80,11 @@ struct av7110;
->
->  /* infrared remote control */
->  struct infrared {
-> -       u16     key_map[256];
-> +       u16                     key_map[256];
->         struct input_dev        *input_dev;
->         char                    input_phys[32];
->         struct timer_list       keyup_timer;
-> +       unsigned long           keydown_time;
->         struct tasklet_struct   ir_tasklet;
->         void                    (*ir_handler)(struct av7110 *av7110, u32 ircom);
->         u32                     ir_command;
-> @@ -93,7 +94,6 @@ struct infrared {
->         u8                      inversion;
->         u16                     last_key;
->         u16                     last_toggle;
-> -       u8                      delay_timer_finished;
->  };
->
->
-> diff --git a/drivers/media/pci/ttpci/av7110_ir.c b/drivers/media/pci/ttpci/av7110_ir.c
-> index ca05198de2c2..b602e64b3412 100644
-> --- a/drivers/media/pci/ttpci/av7110_ir.c
-> +++ b/drivers/media/pci/ttpci/av7110_ir.c
-> @@ -84,9 +84,9 @@ static u16 default_key_map [256] = {
->
->
->  /* key-up timer */
-> -static void av7110_emit_keyup(unsigned long parm)
-> +static void av7110_emit_keyup(struct timer_list *t)
->  {
-> -       struct infrared *ir = (struct infrared *) parm;
-> +       struct infrared *ir = from_timer(ir, keyup_timer, t);
->
->         if (!ir || !test_bit(ir->last_key, ir->input_dev->key))
->                 return;
-> @@ -152,19 +152,20 @@ static void av7110_emit_key(unsigned long parm)
->                 return;
->         }
->
-> -       if (timer_pending(&ir->keyup_timer)) {
-> -               del_timer(&ir->keyup_timer);
-> +       if (del_timer(&ir->keyup_timer)) {
->                 if (ir->last_key != keycode || toggle != ir->last_toggle) {
-> -                       ir->delay_timer_finished = 0;
-> +                       ir->keydown_time = jiffies;
->                         input_event(ir->input_dev, EV_KEY, ir->last_key, 0);
->                         input_event(ir->input_dev, EV_KEY, keycode, 1);
->                         input_sync(ir->input_dev);
-> -               } else if (ir->delay_timer_finished) {
-> +               } else if (time_after(jiffies, ir->keydown_time +
-> +                               msecs_to_jiffies(
-> +                                       ir->input_dev->rep[REP_PERIOD]))) {
->                         input_event(ir->input_dev, EV_KEY, keycode, 2);
->                         input_sync(ir->input_dev);
->                 }
->         } else {
-> -               ir->delay_timer_finished = 0;
-> +               ir->keydown_time = jiffies;
->                 input_event(ir->input_dev, EV_KEY, keycode, 1);
->                 input_sync(ir->input_dev);
->         }
-> @@ -172,9 +173,7 @@ static void av7110_emit_key(unsigned long parm)
->         ir->last_key = keycode;
->         ir->last_toggle = toggle;
->
-> -       ir->keyup_timer.expires = jiffies + UP_TIMEOUT;
-> -       add_timer(&ir->keyup_timer);
-> -
-> +       mod_timer(&ir->keyup_timer, jiffies + UP_TIMEOUT);
->  }
->
->
-> @@ -184,12 +183,19 @@ static void input_register_keys(struct infrared *ir)
->         int i;
->
->         set_bit(EV_KEY, ir->input_dev->evbit);
-> -       set_bit(EV_REP, ir->input_dev->evbit);
->         set_bit(EV_MSC, ir->input_dev->evbit);
->
->         set_bit(MSC_RAW, ir->input_dev->mscbit);
->         set_bit(MSC_SCAN, ir->input_dev->mscbit);
->
-> +       set_bit(EV_REP, ir->input_dev->evbit);
-> +       /*
-> +        * By setting the delay before registering input device we
-> +        * indicate that we will be implementing the autorepeat
-> +        * ourselves.
-> +        */
-> +       ir->input_dev->rep[REP_DELAY] = 250;
-> +
->         memset(ir->input_dev->keybit, 0, sizeof(ir->input_dev->keybit));
->
->         for (i = 0; i < ARRAY_SIZE(ir->key_map); i++) {
-> @@ -205,15 +211,6 @@ static void input_register_keys(struct infrared *ir)
->  }
->
->
-> -/* called by the input driver after rep[REP_DELAY] ms */
-> -static void input_repeat_key(unsigned long parm)
-> -{
-> -       struct infrared *ir = (struct infrared *) parm;
-> -
-> -       ir->delay_timer_finished = 1;
-> -}
-> -
-> -
->  /* check for configuration changes */
->  int av7110_check_ir_config(struct av7110 *av7110, int force)
->  {
-> @@ -333,8 +330,7 @@ int av7110_ir_init(struct av7110 *av7110)
->         av_list[av_cnt++] = av7110;
->         av7110_check_ir_config(av7110, true);
->
-> -       setup_timer(&av7110->ir.keyup_timer, av7110_emit_keyup,
-> -                   (unsigned long)&av7110->ir);
-> +       timer_setup(&av7110->ir.keyup_timer, av7110_emit_keyup, 0);
->
->         input_dev = input_allocate_device();
->         if (!input_dev)
-> --
-> 2.15.0.rc0.271.g36b669edcc-goog
->
->
-> --
-> Dmitry
+I'm sorry I acted to soon, I think I found a small issue with this 
+patch, see bellow. With that fixed feel free to attach my ack.
+
+> 
+> > ---
+> >  drivers/media/v4l2-core/v4l2-async.c | 71 ++++++++++++++++++++++++++----------
+> >  1 file changed, 52 insertions(+), 19 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> > index 1b536d68cedf..eb31d96254d1 100644
+> > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > @@ -125,12 +125,13 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
+> >  }
+> >  
+> >  static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+> > +				   struct v4l2_device *v4l2_dev,
+> >  				   struct v4l2_subdev *sd,
+> >  				   struct v4l2_async_subdev *asd)
+> >  {
+> >  	int ret;
+> >  
+> > -	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+> > +	ret = v4l2_device_register_subdev(v4l2_dev, sd);
+> >  	if (ret < 0)
+> >  		return ret;
+> >  
+> > @@ -151,6 +152,31 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+> >  	return 0;
+> >  }
+> >  
+> > +/* Test all async sub-devices in a notifier for a match. */
+> > +static int v4l2_async_notifier_try_all_subdevs(
+> > +	struct v4l2_async_notifier *notifier)
+> > +{
+> > +	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
+> > +	struct v4l2_subdev *sd, *tmp;
+> > +
+> > +	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+> > +		struct v4l2_async_subdev *asd;
+> > +		int ret;
+> > +
+> > +		asd = v4l2_async_find_match(notifier, sd);
+> > +		if (!asd)
+> > +			continue;
+> > +
+> > +		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
+> > +		if (ret < 0) {
+> > +			mutex_unlock(&list_lock);
+
+The mutex should not be unlocked here, as the caller will also unlock it 
+if ret is none zero. You fix this in 18/32 so the end result is OK but I 
+think its better to fix this in this patch.
+
+> > +			return ret;
+> > +		}
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> >  static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+> >  {
+> >  	v4l2_device_unregister_subdev(sd);
+> > @@ -172,18 +198,15 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+> >  	}
+> >  }
+> >  
+> > -int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> > -				 struct v4l2_async_notifier *notifier)
+> > +static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+> >  {
+> > -	struct v4l2_subdev *sd, *tmp;
+> >  	struct v4l2_async_subdev *asd;
+> >  	int ret;
+> >  	int i;
+> >  
+> > -	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+> > +	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+> >  		return -EINVAL;
+> >  
+> > -	notifier->v4l2_dev = v4l2_dev;
+> >  	INIT_LIST_HEAD(&notifier->waiting);
+> >  	INIT_LIST_HEAD(&notifier->done);
+> >  
+> > @@ -216,18 +239,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> >  
+> >  	mutex_lock(&list_lock);
+> >  
+> > -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+> > -		int ret;
+> > -
+> > -		asd = v4l2_async_find_match(notifier, sd);
+> > -		if (!asd)
+> > -			continue;
+> > -
+> > -		ret = v4l2_async_match_notify(notifier, sd, asd);
+> > -		if (ret < 0) {
+> > -			mutex_unlock(&list_lock);
+> > -			return ret;
+> > -		}
+> > +	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+> > +	if (ret) {
+> > +		mutex_unlock(&list_lock);
+> > +		return ret;
+> >  	}
+> >  
+> >  	if (list_empty(&notifier->waiting)) {
+> > @@ -250,6 +265,23 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> >  
+> >  	return ret;
+> >  }
+> > +
+> > +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> > +				 struct v4l2_async_notifier *notifier)
+> > +{
+> > +	int ret;
+> > +
+> > +	if (WARN_ON(!v4l2_dev))
+> > +		return -EINVAL;
+> > +
+> > +	notifier->v4l2_dev = v4l2_dev;
+> > +
+> > +	ret = __v4l2_async_notifier_register(notifier);
+> > +	if (ret)
+> > +		notifier->v4l2_dev = NULL;
+> > +
+> > +	return ret;
+> > +}
+> >  EXPORT_SYMBOL(v4l2_async_notifier_register);
+> >  
+> >  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> > @@ -324,7 +356,8 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+> >  		if (!asd)
+> >  			continue;
+> >  
+> > -		ret = v4l2_async_match_notify(notifier, sd, asd);
+> > +		ret = v4l2_async_match_notify(notifier, notifier->v4l2_dev, sd,
+> > +					      asd);
+> >  		if (ret)
+> >  			goto err_unlock;
+> >  
+> > -- 
+> > 2.11.0
+> > 
+> 
+> -- 
+> Regards,
+> Niklas Söderlund
+
+-- 
+Regards,
+Niklas Söderlund
