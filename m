@@ -1,243 +1,299 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42768 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755794AbdJJIcn (ORCPT
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:48008 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752052AbdJ0NRs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 04:32:43 -0400
-Date: Tue, 10 Oct 2017 11:32:40 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com, jian.xu.zheng@intel.com,
-        tfiga@chromium.org, rajmohan.mani@intel.com,
-        tuukka.toivonen@intel.com, hyungwoo.yang@intel.com,
-        ramya.vijaykumar@intel.com, chiranjeevi.rapolu@intel.com
-Subject: Re: [PATCH v5 2/3] doc-rst: add IPU3 raw10 bayer pixel format
- definitions
-Message-ID: <20171010083239.7qjdkyee42fbileg@valkosipuli.retiisi.org.uk>
-References: <1507333141-28242-1-git-send-email-yong.zhi@intel.com>
- <1507333141-28242-3-git-send-email-yong.zhi@intel.com>
+        Fri, 27 Oct 2017 09:17:48 -0400
+Received: by mail-qt0-f194.google.com with SMTP id z50so8352697qtj.4
+        for <linux-media@vger.kernel.org>; Fri, 27 Oct 2017 06:17:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1507333141-28242-3-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1501678828-3925-2-git-send-email-olli.salonen@iki.fi>
+References: <1501678828-3925-1-git-send-email-olli.salonen@iki.fi> <1501678828-3925-2-git-send-email-olli.salonen@iki.fi>
+From: Michael Ira Krufky <mkrufky@linuxtv.org>
+Date: Fri, 27 Oct 2017 09:17:47 -0400
+Message-ID: <CAOcJUbycHf1MEtxVP-VD3Bz6=Q3x5EN8uFCvgZcfQfG4g9w0Zw@mail.gmail.com>
+Subject: Re: [PATCHv3 2/2] dib0700: add support for Xbox One Digital TV Tuner
+To: Olli Salonen <olli.salonen@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+On Wed, Aug 2, 2017 at 9:00 AM,  <olli.salonen@iki.fi> wrote:
+> From: Olli Salonen <olli.salonen@iki.fi>
+>
+> Xbox One Digital TV Tuner is a low-cost USB 2.0 multistandard TV tuner. It
+> supports DVB-T, DVB-T2 and DVB-C broadcast standards.
+>
+> USB bridge: DibCom 0700C
+> Demodulator: Panasonic MN88472
+> Tuner: TDA18250BHN
+>
+> The demodulator requires firmware. Download one from here:
+> http://palosaari.fi/linux/v4l-dvb/firmware/MN88472/02/latest/
+>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 
-On Fri, Oct 06, 2017 at 06:39:00PM -0500, Yong Zhi wrote:
-> The formats added by this patch are:
-> 
->     V4L2_PIX_FMT_IPU3_SBGGR10
->     V4L2_PIX_FMT_IPU3_SGBRG10
->     V4L2_PIX_FMT_IPU3_SGRBG10
->     V4L2_PIX_FMT_IPU3_SRGGB10
-> 
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> Signed-off-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
+Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
+
 > ---
->  Documentation/media/uapi/v4l/pixfmt-rgb.rst        |   1 +
->  .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         | 166 +++++++++++++++++++++
->  2 files changed, 167 insertions(+)
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
-> 
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-> index 4cc27195dc79..cf2ef7df9616 100644
-> --- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-> +++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-> @@ -16,6 +16,7 @@ RGB Formats
->      pixfmt-srggb10p
->      pixfmt-srggb10alaw8
->      pixfmt-srggb10dpcm8
-> +    pixfmt-srggb10-ipu3
->      pixfmt-srggb12
->      pixfmt-srggb12p
->      pixfmt-srggb16
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
-> new file mode 100644
-> index 000000000000..50292186a8b4
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
-> @@ -0,0 +1,166 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _V4L2_PIX_FMT_IPU3_SBGGR10:
-> +.. _V4L2_PIX_FMT_IPU3_SGBRG10:
-> +.. _V4L2_PIX_FMT_IPU3_SGRBG10:
-> +.. _V4L2_PIX_FMT_IPU3_SRGGB10:
-> +
-> +**********************************************************************************************************************************************
-> +V4L2_PIX_FMT_IPU3_SBGGR10 ('ip3b'), V4L2_PIX_FMT_IPU3_SGBRG10 ('ip3g'), V4L2_PIX_FMT_IPU3_SGRBG10 ('ip3G'), V4L2_PIX_FMT_IPU3_SRGGB10 ('ip3r')
-> +**********************************************************************************************************************************************
-> +
-> +10-bit Bayer formats
-> +
-> +Description
-> +===========
-> +
-> +These four pixel formats are used by Intel IPU3 driver, they are raw
-> +sRGB / Bayer formats with 10 bits per sample with every 25 pixels packed
-> +to 32 bytes leaving 6 most significant bits padding in the last byte.
-> +The format is little endian.
-> +
-> +In other respects this format is similar to :ref:`V4L2-PIX-FMT-SRGGB10`.
+>  drivers/media/dvb-core/dvb-usb-ids.h        |   2 +
+>  drivers/media/usb/dvb-usb/Kconfig           |   2 +
+>  drivers/media/usb/dvb-usb/dib0700.h         |   2 +
+>  drivers/media/usb/dvb-usb/dib0700_core.c    |  26 ++++++-
+>  drivers/media/usb/dvb-usb/dib0700_devices.c | 109 +++++++++++++++++++++++++++-
+>  5 files changed, 139 insertions(+), 2 deletions(-)
+>
 
-You could add:
 
-Below is an example of a small image in V4L2_PIX_FMT_IPU3_SBGGR10 format.
 
-> +
-> +**Byte Order.**
-> +Each cell is one byte.
-> +
-> +.. raw:: latex
-> +
-> +    \newline\newline\begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{1.3cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|p{10.9cm}|p{10.9cm}|p{1.0cm}|p{1.0cm}|p{10.9cm}|
+Thanks for this contribution!  It's good to finally have an example of
+card support within the dib0700 driver that can serve an an example of
+using the newer method of frontend attachment.
 
-The width of this table is over one metre. Could you use fewer columns in
-it, say, four or eight?
+It would be nice to move some of the attachment code out of the
+card-specific `_attach()` function into a common function, but since
+this is the only attachment that works this way, leaving things as-is
+is fine enough for now.   After we convert some of the other
+`_attach()` functions, or adding some new ones using this method, we
+may want to refactor this a bit.
 
+Meanwhile, this is good for merge.  Nice work.
+
+
+
+> diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+> index 5b6041d..daf49ec 100644
+> --- a/drivers/media/dvb-core/dvb-usb-ids.h
+> +++ b/drivers/media/dvb-core/dvb-usb-ids.h
+> @@ -80,6 +80,7 @@
+>  #define USB_VID_AZUREWAVE                      0x13d3
+>  #define USB_VID_TECHNISAT                      0x14f7
+>  #define USB_VID_HAMA                           0x147f
+> +#define USB_VID_MICROSOFT                      0x045e
+>
+>  /* Product IDs */
+>  #define USB_PID_ADSTECH_USB2_COLD                      0xa333
+> @@ -417,4 +418,5 @@
+>  #define USB_PID_WINTV_SOLOHD                            0x0264
+>  #define USB_PID_EVOLVEO_XTRATV_STICK                   0xa115
+>  #define USB_PID_HAMA_DVBT_HYBRID                       0x2758
+> +#define USB_PID_XBOX_ONE_TUNER                          0x02d5
+>  #endif
+> diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
+> index 959fa09..2651ae2 100644
+> --- a/drivers/media/usb/dvb-usb/Kconfig
+> +++ b/drivers/media/usb/dvb-usb/Kconfig
+> @@ -86,6 +86,7 @@ config DVB_USB_DIB0700
+>         select DVB_USB_DIB3000MC if MEDIA_SUBDRV_AUTOSELECT
+>         select DVB_S5H1411 if MEDIA_SUBDRV_AUTOSELECT
+>         select DVB_LGDT3305 if MEDIA_SUBDRV_AUTOSELECT
+> +       select DVB_MN88472 if MEDIA_SUBDRV_AUTOSELECT
+>         select DVB_TUNER_DIB0070 if MEDIA_SUBDRV_AUTOSELECT
+>         select DVB_TUNER_DIB0090 if MEDIA_SUBDRV_AUTOSELECT
+>         select MEDIA_TUNER_MT2060 if MEDIA_SUBDRV_AUTOSELECT
+> @@ -94,6 +95,7 @@ config DVB_USB_DIB0700
+>         select MEDIA_TUNER_XC5000 if MEDIA_SUBDRV_AUTOSELECT
+>         select MEDIA_TUNER_XC4000 if MEDIA_SUBDRV_AUTOSELECT
+>         select MEDIA_TUNER_MXL5007T if MEDIA_SUBDRV_AUTOSELECT
+> +       select MEDIA_TUNER_TDA18250 if MEDIA_SUBDRV_AUTOSELECT
+>         help
+>           Support for USB2.0/1.1 DVB receivers based on the DiB0700 USB bridge. The
+>           USB bridge is also present in devices having the DiB7700 DVB-T-USB
+> diff --git a/drivers/media/usb/dvb-usb/dib0700.h b/drivers/media/usb/dvb-usb/dib0700.h
+> index 8fd8f5b..5f29128 100644
+> --- a/drivers/media/usb/dvb-usb/dib0700.h
+> +++ b/drivers/media/usb/dvb-usb/dib0700.h
+> @@ -51,6 +51,8 @@ struct dib0700_state {
+>         int (*read_status)(struct dvb_frontend *, enum fe_status *);
+>         int (*sleep)(struct dvb_frontend* fe);
+>         u8 buf[255];
+> +       struct i2c_client *i2c_client_demod;
+> +       struct i2c_client *i2c_client_tuner;
+>  };
+>
+>  extern int dib0700_get_version(struct dvb_usb_device *d, u32 *hwversion,
+> diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+> index bea1b47..dbd031c 100644
+> --- a/drivers/media/usb/dvb-usb/dib0700_core.c
+> +++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+> @@ -911,10 +911,34 @@ static int dib0700_probe(struct usb_interface *intf,
+>         return -ENODEV;
+>  }
+>
+> +static void dib0700_disconnect(struct usb_interface *intf)
+> +{
+> +       struct dvb_usb_device *d = usb_get_intfdata(intf);
+> +       struct dib0700_state *st = d->priv;
+> +       struct i2c_client *client;
 > +
-> +.. flat-table::
+> +       /* remove I2C client for tuner */
+> +       client = st->i2c_client_tuner;
+> +       if (client) {
+> +               module_put(client->dev.driver->owner);
+> +               i2c_unregister_device(client);
+> +       }
 > +
-> +    * - start + 0:
-> +      - B\ :sub:`0000low`
-> +      - G\ :sub:`0001low` \ (bits 7--2) B\ :sub:`0000high`\ (bits 1--0)
-> +      - B\ :sub:`0002low` \ (bits 7--4) G\ :sub:`0001high`\ (bits 3--0)
-> +      - G\ :sub:`0003low` \ (bits 7--6) B\ :sub:`0002high`\ (bits 5--0)
-> +      - G\ :sub:`0003high`
-> +      - B\ :sub:`0004low`
-> +      - G\ :sub:`0005low` \ (bits 7--2) B\ :sub:`0004high`\ (bits 1--0)
-> +      - B\ :sub:`0006low` \ (bits 7--4) G\ :sub:`0005high`\ (bits 3--0)
-> +      - G\ :sub:`0007low` \ (bits 7--6) B\ :sub:`0006high`\ (bits 5--0)
-> +      - G\ :sub:`0007high`
-> +      - B\ :sub:`0008low`
-> +      - G\ :sub:`0009low` \ (bits 7--2) B\ :sub:`0008high`\ (bits 1--0)
-> +      - B\ :sub:`0010low` \ (bits 7--4) G\ :sub:`0009high`\ (bits 3--0)
-> +      - G\ :sub:`0011low` \ (bits 7--6) B\ :sub:`0010high`\ (bits 5--0)
-> +      - G\ :sub:`0011high`
-> +      - B\ :sub:`0012low`
-> +      - G\ :sub:`0013low` \ (bits 7--2) B\ :sub:`0012high`\ (bits 1--0)
-> +      - B\ :sub:`0014low` \ (bits 7--4) G\ :sub:`0013high`\ (bits 3--0)
-> +      - G\ :sub:`0015low` \ (bits 7--6) B\ :sub:`0014high`\ (bits 5--0)
-> +      - G\ :sub:`0015high`
-> +      - B\ :sub:`0016low`
-> +      - G\ :sub:`0017low` \ (bits 7--2) B\ :sub:`0016high`\ (bits 1--0)
-> +      - B\ :sub:`0018low` \ (bits 7--4) G\ :sub:`0017high`\ (bits 3--0)
-> +      - G\ :sub:`0019low` \ (bits 7--6) B\ :sub:`0018high`\ (bits 5--0)
-> +      - G\ :sub:`0019high`
-> +      - B\ :sub:`0020low`
-> +      - G\ :sub:`0021low` \ (bits 7--2) B\ :sub:`0020high`\ (bits 1--0)
-> +      - B\ :sub:`0022low` \ (bits 7--4) G\ :sub:`0021high`\ (bits 3--0)
-> +      - G\ :sub:`0023low` \ (bits 7--6) B\ :sub:`0022high`\ (bits 5--0)
-> +      - G\ :sub:`0023high`
-> +      - B\ :sub:`0024low`
-> +      - B\ :sub:`0024high`\ (bits 1--0)
-> +    * - start + 32:
-> +      - G\ :sub:`0100low`
-> +      - R\ :sub:`0101low` \ (bits 7--2) G\ :sub:`0100high`\ (bits 1--0)
-> +      - G\ :sub:`0102low` \ (bits 7--4) R\ :sub:`0101high`\ (bits 3--0)
-> +      - R\ :sub:`0103low` \ (bits 7--6) G\ :sub:`0102high`\ (bits 5--0)
-> +      - R\ :sub:`0103high`
-> +      - G\ :sub:`0104low`
-> +      - R\ :sub:`0105low` \ (bits 7--2) G\ :sub:`0104high`\ (bits 1--0)
-> +      - G\ :sub:`0106low` \ (bits 7--4) R\ :sub:`0105high`\ (bits 3--0)
-> +      - R\ :sub:`0107low` \ (bits 7--6) G\ :sub:`0106high`\ (bits 5--0)
-> +      - R\ :sub:`0107high`
-> +      - G\ :sub:`0108low`
-> +      - R\ :sub:`0109low` \ (bits 7--2) G\ :sub:`0108high`\ (bits 1--0)
-> +      - G\ :sub:`0110low` \ (bits 7--4) R\ :sub:`0109high`\ (bits 3--0)
-> +      - R\ :sub:`0111low` \ (bits 7--6) G\ :sub:`0110high`\ (bits 5--0)
-> +      - R\ :sub:`0111high`
-> +      - G\ :sub:`0112low`
-> +      - R\ :sub:`0113low` \ (bits 7--2) G\ :sub:`0112high`\ (bits 1--0)
-> +      - G\ :sub:`0114low` \ (bits 7--4) R\ :sub:`0113high`\ (bits 3--0)
-> +      - R\ :sub:`0115low` \ (bits 7--6) G\ :sub:`0114high`\ (bits 5--0)
-> +      - R\ :sub:`0115high`
-> +      - G\ :sub:`0116low`
-> +      - R\ :sub:`0117low` \ (bits 7--2) G\ :sub:`0116high`\ (bits 1--0)
-> +      - G\ :sub:`0118low` \ (bits 7--4) R\ :sub:`0117high`\ (bits 3--0)
-> +      - R\ :sub:`0119low` \ (bits 7--6) G\ :sub:`0118high`\ (bits 5--0)
-> +      - R\ :sub:`0119high`
-> +      - G\ :sub:`0120low`
-> +      - R\ :sub:`0121low` \ (bits 7--2) G\ :sub:`0120high`\ (bits 1--0)
-> +      - G\ :sub:`0122low` \ (bits 7--4) R\ :sub:`0121high`\ (bits 3--0)
-> +      - R\ :sub:`0123low` \ (bits 7--6) G\ :sub:`0122high`\ (bits 5--0)
-> +      - R\ :sub:`0123high`
-> +      - G\ :sub:`0124low`
-> +      - G\ :sub:`0124high`\ (bits 1--0)
-> +    * - start + 64:
-> +      - B\ :sub:`0200low`
-> +      - G\ :sub:`0201low` \ (bits 7--2) B\ :sub:`0200high`\ (bits 1--0)
-> +      - B\ :sub:`0202low` \ (bits 7--4) G\ :sub:`0201high`\ (bits 3--0)
-> +      - G\ :sub:`0203low` \ (bits 7--6) B\ :sub:`0202high`\ (bits 5--0)
-> +      - G\ :sub:`0203high`
-> +      - B\ :sub:`0204low`
-> +      - G\ :sub:`0205low` \ (bits 7--2) B\ :sub:`0204high`\ (bits 1--0)
-> +      - B\ :sub:`0206low` \ (bits 7--4) G\ :sub:`0205high`\ (bits 3--0)
-> +      - G\ :sub:`0207low` \ (bits 7--6) B\ :sub:`0206high`\ (bits 5--0)
-> +      - G\ :sub:`0207high`
-> +      - B\ :sub:`0208low`
-> +      - G\ :sub:`0209low` \ (bits 7--2) B\ :sub:`0208high`\ (bits 1--0)
-> +      - B\ :sub:`0210low` \ (bits 7--4) G\ :sub:`0209high`\ (bits 3--0)
-> +      - G\ :sub:`0211low` \ (bits 7--6) B\ :sub:`0210high`\ (bits 5--0)
-> +      - G\ :sub:`0211high`
-> +      - B\ :sub:`0212low`
-> +      - G\ :sub:`0213low` \ (bits 7--2) B\ :sub:`0212high`\ (bits 1--0)
-> +      - B\ :sub:`0214low` \ (bits 7--4) G\ :sub:`0213high`\ (bits 3--0)
-> +      - G\ :sub:`0215low` \ (bits 7--6) B\ :sub:`0214high`\ (bits 5--0)
-> +      - G\ :sub:`0215high`
-> +      - B\ :sub:`0216low`
-> +      - G\ :sub:`0217low` \ (bits 7--2) B\ :sub:`0216high`\ (bits 1--0)
-> +      - B\ :sub:`0218low` \ (bits 7--4) G\ :sub:`0217high`\ (bits 3--0)
-> +      - G\ :sub:`0219low` \ (bits 7--6) B\ :sub:`0218high`\ (bits 5--0)
-> +      - G\ :sub:`0219high`
-> +      - B\ :sub:`0220low`
-> +      - G\ :sub:`0221low` \ (bits 7--2) B\ :sub:`0220high`\ (bits 1--0)
-> +      - B\ :sub:`0222low` \ (bits 7--4) G\ :sub:`0221high`\ (bits 3--0)
-> +      - G\ :sub:`0223low` \ (bits 7--6) B\ :sub:`0222high`\ (bits 5--0)
-> +      - G\ :sub:`0223high`
-> +      - B\ :sub:`0224low`
-> +      - B\ :sub:`0224high`\ (bits 1--0)
-> +    * - start + 96:
-> +      - G\ :sub:`0300low`
-> +      - R\ :sub:`0301low` \ (bits 7--2) G\ :sub:`0300high`\ (bits 1--0)
-> +      - G\ :sub:`0302low` \ (bits 7--4) R\ :sub:`0301high`\ (bits 3--0)
-> +      - R\ :sub:`0303low` \ (bits 7--6) G\ :sub:`0302high`\ (bits 5--0)
-> +      - R\ :sub:`0303high`
-> +      - G\ :sub:`0304low`
-> +      - R\ :sub:`0305low` \ (bits 7--2) G\ :sub:`0304high`\ (bits 1--0)
-> +      - G\ :sub:`0306low` \ (bits 7--4) R\ :sub:`0305high`\ (bits 3--0)
-> +      - R\ :sub:`0307low` \ (bits 7--6) G\ :sub:`0306high`\ (bits 5--0)
-> +      - R\ :sub:`0307high`
-> +      - G\ :sub:`0308low`
-> +      - R\ :sub:`0309low` \ (bits 7--2) G\ :sub:`0308high`\ (bits 1--0)
-> +      - G\ :sub:`0310low` \ (bits 7--4) R\ :sub:`0309high`\ (bits 3--0)
-> +      - R\ :sub:`0311low` \ (bits 7--6) G\ :sub:`0310high`\ (bits 5--0)
-> +      - R\ :sub:`0311high`
-> +      - G\ :sub:`0312low`
-> +      - R\ :sub:`0313low` \ (bits 7--2) G\ :sub:`0312high`\ (bits 1--0)
-> +      - G\ :sub:`0314low` \ (bits 7--4) R\ :sub:`0313high`\ (bits 3--0)
-> +      - R\ :sub:`0315low` \ (bits 7--6) G\ :sub:`0314high`\ (bits 5--0)
-> +      - R\ :sub:`0315high`
-> +      - G\ :sub:`0316low`
-> +      - R\ :sub:`0317low` \ (bits 7--2) G\ :sub:`0316high`\ (bits 1--0)
-> +      - G\ :sub:`0318low` \ (bits 7--4) R\ :sub:`0317high`\ (bits 3--0)
-> +      - R\ :sub:`0319low` \ (bits 7--6) G\ :sub:`0318high`\ (bits 5--0)
-> +      - R\ :sub:`0319high`
-> +      - G\ :sub:`0320low`
-> +      - R\ :sub:`0321low` \ (bits 7--2) G\ :sub:`0320high`\ (bits 1--0)
-> +      - G\ :sub:`0322low` \ (bits 7--4) R\ :sub:`0321high`\ (bits 3--0)
-> +      - R\ :sub:`0323low` \ (bits 7--6) G\ :sub:`0322high`\ (bits 5--0)
-> +      - R\ :sub:`0323high`
-> +      - G\ :sub:`0324low`
-> +      - G\ :sub:`0324high`\ (bits 1--0)
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+> +       /* remove I2C client for demodulator */
+> +       client = st->i2c_client_demod;
+> +       if (client) {
+> +               module_put(client->dev.driver->owner);
+> +               i2c_unregister_device(client);
+> +       }
+> +
+> +       dvb_usb_device_exit(intf);
+> +}
+> +
+> +
+>  static struct usb_driver dib0700_driver = {
+>         .name       = "dvb_usb_dib0700",
+>         .probe      = dib0700_probe,
+> -       .disconnect = dvb_usb_device_exit,
+> +       .disconnect = dib0700_disconnect,
+>         .id_table   = dib0700_usb_id_table,
+>  };
+>
+> diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+> index 6a57fc6..7c0fb18 100644
+> --- a/drivers/media/usb/dvb-usb/dib0700_devices.c
+> +++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+> @@ -23,6 +23,9 @@
+>  #include "dib0090.h"
+>  #include "lgdt3305.h"
+>  #include "mxl5007t.h"
+> +#include "mn88472.h"
+> +#include "tda18250.h"
+> +
+>
+>  static int force_lna_activation;
+>  module_param(force_lna_activation, int, 0644);
+> @@ -3725,6 +3728,90 @@ static int mxl5007t_tuner_attach(struct dvb_usb_adapter *adap)
+>                           &hcw_mxl5007t_config) == NULL ? -ENODEV : 0;
+>  }
+>
+> +static int xbox_one_attach(struct dvb_usb_adapter *adap)
+> +{
+> +       struct dib0700_state *st = adap->dev->priv;
+> +       struct i2c_client *client_demod, *client_tuner;
+> +       struct dvb_usb_device *d = adap->dev;
+> +       struct mn88472_config mn88472_config = { };
+> +       struct tda18250_config tda18250_config;
+> +       struct i2c_board_info info;
+> +
+> +       st->fw_use_new_i2c_api = 1;
+> +       st->disable_streaming_master_mode = 1;
+> +
+> +       /* fe power enable */
+> +       dib0700_set_gpio(adap->dev, GPIO6, GPIO_OUT, 0);
+> +       msleep(30);
+> +       dib0700_set_gpio(adap->dev, GPIO6, GPIO_OUT, 1);
+> +       msleep(30);
+> +
+> +       /* demod reset */
+> +       dib0700_set_gpio(adap->dev, GPIO10, GPIO_OUT, 1);
+> +       msleep(30);
+> +       dib0700_set_gpio(adap->dev, GPIO10, GPIO_OUT, 0);
+> +       msleep(30);
+> +       dib0700_set_gpio(adap->dev, GPIO10, GPIO_OUT, 1);
+> +       msleep(30);
+> +
+> +       /* attach demod */
+> +       mn88472_config.fe = &adap->fe_adap[0].fe;
+> +       mn88472_config.i2c_wr_max = 22;
+> +       mn88472_config.xtal = 20500000;
+> +       mn88472_config.ts_mode = PARALLEL_TS_MODE;
+> +       mn88472_config.ts_clock = FIXED_TS_CLOCK;
+> +       memset(&info, 0, sizeof(struct i2c_board_info));
+> +       strlcpy(info.type, "mn88472", I2C_NAME_SIZE);
+> +       info.addr = 0x18;
+> +       info.platform_data = &mn88472_config;
+> +       request_module(info.type);
+> +       client_demod = i2c_new_device(&d->i2c_adap, &info);
+> +       if (client_demod == NULL || client_demod->dev.driver == NULL)
+> +               goto fail_demod_device;
+> +       if (!try_module_get(client_demod->dev.driver->owner))
+> +               goto fail_demod_module;
+> +
+> +       st->i2c_client_demod = client_demod;
+> +
+> +       adap->fe_adap[0].fe = mn88472_config.get_dvb_frontend(client_demod);
+> +
+> +       /* attach tuner */
+> +       memset(&tda18250_config, 0, sizeof(tda18250_config));
+> +       tda18250_config.if_dvbt_6 = 3950;
+> +       tda18250_config.if_dvbt_7 = 4450;
+> +       tda18250_config.if_dvbt_8 = 4950;
+> +       tda18250_config.if_dvbc_6 = 4950;
+> +       tda18250_config.if_dvbc_8 = 4950;
+> +       tda18250_config.if_atsc = 4079;
+> +       tda18250_config.loopthrough = true;
+> +       tda18250_config.xtal_freq = TDA18250_XTAL_FREQ_27MHZ;
+> +       tda18250_config.fe = adap->fe_adap[0].fe;
+> +
+> +       memset(&info, 0, sizeof(struct i2c_board_info));
+> +       strlcpy(info.type, "tda18250", I2C_NAME_SIZE);
+> +       info.addr = 0x60;
+> +       info.platform_data = &tda18250_config;
+> +
+> +       request_module(info.type);
+> +       client_tuner = i2c_new_device(&adap->dev->i2c_adap, &info);
+> +       if (client_tuner == NULL || client_tuner->dev.driver == NULL)
+> +               goto fail_tuner_device;
+> +       if (!try_module_get(client_tuner->dev.driver->owner))
+> +               goto fail_tuner_module;
+> +
+> +       st->i2c_client_tuner = client_tuner;
+> +       return 0;
+> +
+> +fail_tuner_module:
+> +       i2c_unregister_device(client_tuner);
+> +fail_tuner_device:
+> +       module_put(client_demod->dev.driver->owner);
+> +fail_demod_module:
+> +       i2c_unregister_device(client_demod);
+> +fail_demod_device:
+> +       return -ENODEV;
+> +}
+> +
+>
+>  /* DVB-USB and USB stuff follows */
+>  struct usb_device_id dib0700_usb_id_table[] = {
+> @@ -3816,7 +3903,8 @@ struct usb_device_id dib0700_usb_id_table[] = {
+>         { USB_DEVICE(USB_VID_PCTV,      USB_PID_PCTV_2002E_SE) },
+>         { USB_DEVICE(USB_VID_PCTV,      USB_PID_DIBCOM_STK8096PVR) },
+>         { USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_STK8096PVR) },
+> -       { USB_DEVICE(USB_VID_HAMA,      USB_PID_HAMA_DVBT_HYBRID) },
+> +/* 85 */{ USB_DEVICE(USB_VID_HAMA,     USB_PID_HAMA_DVBT_HYBRID) },
+> +       { USB_DEVICE(USB_VID_MICROSOFT, USB_PID_XBOX_ONE_TUNER) },
+>         { 0 }           /* Terminating entry */
+>  };
+>  MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
+> @@ -5040,6 +5128,25 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+>                                 RC_BIT_NEC,
+>                         .change_protocol  = dib0700_change_protocol,
+>                 },
+> +       }, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
+> +               .num_adapters = 1,
+> +               .adapter = {
+> +                       {
+> +                               DIB0700_NUM_FRONTENDS(1),
+> +                               .fe = {{
+> +                                       .frontend_attach = xbox_one_attach,
+> +
+> +                                       DIB0700_DEFAULT_STREAMING_CONFIG(0x82),
+> +                               } },
+> +                       },
+> +               },
+> +               .num_device_descs = 1,
+> +               .devices = {
+> +                       { "Microsoft Xbox One Digital TV Tuner",
+> +                               { &dib0700_usb_id_table[86], NULL },
+> +                               { NULL },
+> +                       },
+> +               },
+>         },
+>  };
+>
+> --
+> 2.7.4
+>
