@@ -1,78 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:48782 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751357AbdJBNxt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Oct 2017 09:53:49 -0400
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Subject: Re: [v4,
- 1/9] brcmsmac: make some local variables 'static const' to reduce
- stack size
-From: Kalle Valo <kvalo@codeaurora.org>
-In-Reply-To: <20170922212930.620249-2-arnd@arndb.de>
-References: <20170922212930.620249-2-arnd@arndb.de>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Arend van Spriel <arend.vanspriel@broadcom.com>,
-        Franky Lin <franky.lin@broadcom.com>,
-        Hante Meuleman <hante.meuleman@broadcom.com>,
-        Chi-Hsien Lin <chi-hsien.lin@cypress.com>,
-        Wright Feng <wright.feng@cypress.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jiri Pirko <jiri@resnulli.us>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Michal Marek <mmarek@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Kees Cook <keescook@chromium.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-        brcm80211-dev-list.pdl@broadcom.com,
-        brcm80211-dev-list@cypress.com, kasan-dev@googlegroups.com,
-        linux-kbuild@vger.kernel.org, Jakub Jelinek <jakub@gcc.gnu.org>,
-        =?UTF-8?q?Martin=20Li=C5=A1ka?= <marxin@gcc.gnu.org>
-Message-Id: <20171002135348.7AFA560AFB@smtp.codeaurora.org>
-Date: Mon,  2 Oct 2017 13:53:48 +0000 (UTC)
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51476 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750790AbdJ0I0f (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Oct 2017 04:26:35 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v16.1 17/32] v4l: async: Prepare for async sub-device notifiers
+Date: Fri, 27 Oct 2017 11:26:29 +0300
+Message-Id: <20171027082629.27648-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171026075342.5760-18-sakari.ailus@linux.intel.com>
+References: <20171026075342.5760-18-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Arnd Bergmann <arnd@arndb.de> wrote:
+Refactor the V4L2 async framework a little in preparation for async
+sub-device notifiers. This avoids making some structural changes in the
+patch actually implementing sub-device notifiers, making that patch easier
+to review.
 
-> With KASAN and a couple of other patches applied, this driver is one
-> of the few remaining ones that actually use more than 2048 bytes of
-> kernel stack:
-> 
-> broadcom/brcm80211/brcmsmac/phy/phy_n.c: In function 'wlc_phy_workarounds_nphy_gainctrl':
-> broadcom/brcm80211/brcmsmac/phy/phy_n.c:16065:1: warning: the frame size of 3264 bytes is larger than 2048 bytes [-Wframe-larger-than=]
-> broadcom/brcm80211/brcmsmac/phy/phy_n.c: In function 'wlc_phy_workarounds_nphy':
-> broadcom/brcm80211/brcmsmac/phy/phy_n.c:17138:1: warning: the frame size of 2864 bytes is larger than 2048 bytes [-Wframe-larger-than=]
-> 
-> Here, I'm reducing the stack size by marking as many local variables as
-> 'static const' as I can without changing the actual code.
-> 
-> This is the first of three patches to improve the stack usage in this
-> driver. It would be good to have this backported to stabl kernels
-> to get all drivers in 'allmodconfig' below the 2048 byte limit so
-> we can turn on the frame warning again globally, but I realize that
-> the patch is larger than the normal limit for stable backports.
-> 
-> The other two patches do not need to be backported.
-> 
-> Cc: <stable@vger.kernel.org>
-> Acked-by: Arend van Spriel <arend.vanspriel@broadcom.com>
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 69 ++++++++++++++++++++++++++----------
+ 1 file changed, 50 insertions(+), 19 deletions(-)
 
-Patch applied to wireless-drivers.git, thanks.
-
-c503dd38f850 brcmsmac: make some local variables 'static const' to reduce stack size
-
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 1b536d68cedf..6265717769d2 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -125,12 +125,13 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
+ }
+ 
+ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
++				   struct v4l2_device *v4l2_dev,
+ 				   struct v4l2_subdev *sd,
+ 				   struct v4l2_async_subdev *asd)
+ {
+ 	int ret;
+ 
+-	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
++	ret = v4l2_device_register_subdev(v4l2_dev, sd);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -151,6 +152,29 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ 	return 0;
+ }
+ 
++/* Test all async sub-devices in a notifier for a match. */
++static int v4l2_async_notifier_try_all_subdevs(
++	struct v4l2_async_notifier *notifier)
++{
++	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
++	struct v4l2_subdev *sd, *tmp;
++
++	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
++		struct v4l2_async_subdev *asd;
++		int ret;
++
++		asd = v4l2_async_find_match(notifier, sd);
++		if (!asd)
++			continue;
++
++		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
++		if (ret < 0)
++			return ret;
++	}
++
++	return 0;
++}
++
+ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+ {
+ 	v4l2_device_unregister_subdev(sd);
+@@ -172,18 +196,15 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+ 	}
+ }
+ 
+-int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+-				 struct v4l2_async_notifier *notifier)
++static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ {
+-	struct v4l2_subdev *sd, *tmp;
+ 	struct v4l2_async_subdev *asd;
+ 	int ret;
+ 	int i;
+ 
+-	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
++	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+ 		return -EINVAL;
+ 
+-	notifier->v4l2_dev = v4l2_dev;
+ 	INIT_LIST_HEAD(&notifier->waiting);
+ 	INIT_LIST_HEAD(&notifier->done);
+ 
+@@ -216,18 +237,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 
+ 	mutex_lock(&list_lock);
+ 
+-	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+-		int ret;
+-
+-		asd = v4l2_async_find_match(notifier, sd);
+-		if (!asd)
+-			continue;
+-
+-		ret = v4l2_async_match_notify(notifier, sd, asd);
+-		if (ret < 0) {
+-			mutex_unlock(&list_lock);
+-			return ret;
+-		}
++	ret = v4l2_async_notifier_try_all_subdevs(notifier);
++	if (ret) {
++		mutex_unlock(&list_lock);
++		return ret;
+ 	}
+ 
+ 	if (list_empty(&notifier->waiting)) {
+@@ -250,6 +263,23 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 
+ 	return ret;
+ }
++
++int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
++				 struct v4l2_async_notifier *notifier)
++{
++	int ret;
++
++	if (WARN_ON(!v4l2_dev))
++		return -EINVAL;
++
++	notifier->v4l2_dev = v4l2_dev;
++
++	ret = __v4l2_async_notifier_register(notifier);
++	if (ret)
++		notifier->v4l2_dev = NULL;
++
++	return ret;
++}
+ EXPORT_SYMBOL(v4l2_async_notifier_register);
+ 
+ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+@@ -324,7 +354,8 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 		if (!asd)
+ 			continue;
+ 
+-		ret = v4l2_async_match_notify(notifier, sd, asd);
++		ret = v4l2_async_match_notify(notifier, notifier->v4l2_dev, sd,
++					      asd);
+ 		if (ret)
+ 			goto err_unlock;
+ 
 -- 
-https://patchwork.kernel.org/patch/9967145/
-
-https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
+2.11.0
