@@ -1,92 +1,442 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-From: David Laight <David.Laight@ACULAB.COM>
-To: "'Petrosyan, Ludwig'" <ludwig.petrosyan@desy.de>,
-        Logan Gunthorpe <logang@deltatee.com>
-CC: Alexander Deucher <Alexander.Deucher@amd.com>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-rdma <linux-rdma@vger.kernel.org>,
-        linux-nvdimm <linux-nvdimm@lists.01.org>,
-        Linux-media <Linux-media@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        linux-pci <linux-pci@vger.kernel.org>,
-        John Bridgman <John.Bridgman@amd.com>,
-        Felix Kuehling <Felix.Kuehling@amd.com>,
-        Serguei Sagalovitch <Serguei.Sagalovitch@amd.com>,
-        Paul Blinzer <Paul.Blinzer@amd.com>,
-        "Christian Koenig" <Christian.Koenig@amd.com>,
-        Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>,
-        Ben Sander <ben.sander@amd.com>
-Subject: RE: Enabling peer to peer device transactions for PCIe devices
-Date: Tue, 24 Oct 2017 14:58:24 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6DD00A19B9@AcuExch.aculab.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
- <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4@deltatee.com>
- <1381807327.12461494.1508652825239.JavaMail.zimbra@desy.de>
- <063D6719AE5E284EB5DD2968C1650D6DD00A04EA@AcuExch.aculab.com>
- <d61b6829-0515-a809-2a43-c41add4b1594@deltatee.com>
- <1264390131.14701401.1508824699016.JavaMail.zimbra@desy.de>
-In-Reply-To: <1264390131.14701401.1508824699016.JavaMail.zimbra@desy.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51498 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751070AbdJ0I1N (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Oct 2017 04:27:13 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v16.1 18/32] v4l: async: Allow binding notifiers to sub-devices
+Date: Fri, 27 Oct 2017 11:27:09 +0300
+Message-Id: <20171027082709.27725-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171026075342.5760-19-sakari.ailus@linux.intel.com>
+References: <20171026075342.5760-19-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-UGxlYXNlIGRvbid0IHRvcCBwb3N0LCB3cml0ZSBzaG9ydGVyIGxpbmVzLCBhbmQgYWRkIHRoZSBv
-ZGQgYmxhbmsgbGluZS4NCkJpZyBibG9ja3Mgb2YgdGV4dCBhcmUgaGFyZCB0byByZWFkIHF1aWNr
-bHkuDQoNCj4gRnJvbTogUGV0cm9zeWFuLCBMdWR3aWcgW21haWx0bzpsdWR3aWcucGV0cm9zeWFu
-QGRlc3kuZGVdDQo+IFllcyBJIGFncmVlIGl0IGhhcyB0byBiZSBzdGFydGVkIHdpdGggdGhlIHdy
-aXRlIHRyYW5zYWN0aW9uLCBhY2NvcmRpbmcgb2YgUENJZSBzdGFuZGFyZCBhbGwgd3JpdGUNCj4g
-dHJhbnNhY3Rpb24gYXJlIGFkZHJlc3Mgcm91dGVkLCBhbmQgSSBhZ3JlZSB3aXRoIExvZ2FuOg0K
-PiBpZiBpbiB3cml0ZSB0cmFuc2FjdGlvbiBUTFAgdGhlIGVuZHBvaW50IGFkZHJlc3Mgd3JpdHRl
-biBpbiBoZWFkZXIgdGhlIFRMUCBzaG91bGQgbm90IHRvdWNoIENQVSwgdGhlDQo+IFBDSWUgU3dp
-dGNoIGhhcyB0byByb3V0ZSBpdCB0byBlbmRwb2ludC4NCg0KVGhhdCBkZXBlbmRzLCBJSVJDIHRo
-ZXJlIGlzIGEgZmVhdHVyZSBmb3IgUENJZSBzd2l0Y2hlcyB0byBmb3JjZSB0aGVtDQp0byBzZW5k
-IGFsbCB0cmFuc2FjdGlvbnMgdG8gdGhlIHJvb3QgaHViLg0KVGhpcyBpcyB0aGVyZSBzbyB0aGF0
-IHRoZSBob3N0IGNhbiBlbmZvcmNlIHJ1bGVzIHRvIHN0b3AgcDJwIHRyYW5zZmVycy4NCkl0IG1p
-Z2h0IGVuYWJsZWQgb24gdGhlIHN3aXRjaCB5b3UgaGF2ZS4NCg0KPiBUaGUgaWRlYSB3YXM6IGlu
-IE1UQ0Egc3lzdGVtIHRoZXJlIGlzIFBDSWUgU3dpdGNoIG9uIE1DSCAoTVRDQSBjcmF0ZSBIVUIp
-IHRoaXMgc3dpdGNoIGNvbm5lY3RzIENQVSB0bw0KPiBvdGhlciBDcmF0ZSBTbG90cywgc28gb25l
-IHBvcnQgaXMgVXBzdHJlYW0gYW5kIG90aGVycyBhcmUgRG93bnN0cmVhbSAgcG9ydHMsIERNQSBy
-ZWFkIGZyb20gQ1BVIGlzDQo+IHVzdWFsIHdyaXRlIG9uIGVuZHBvaW50IHNpZGUsIFhpbGlueCBE
-TUEgY29yZSBoYXMgdHdvIHJlZ2lzdGVycyBEZXN0aW5hdGlvbiBBZGRyZXNzIGFuZCBTb3VyY2UN
-Cj4gQWRkcmVzcywNCj4gZGV2aWNlIGRyaXZlciB0byBtYWtlIERNQSBoYXMgdG8gc2V0IHVwIHRo
-ZXNlIHJlZ2lzdGVycywNCj4gdXN1YWxseSBkZXZpY2UgZHJpdmVyIHRvIHN0YXJ0IERNQSByZWFk
-IGZyb20gQm9hcmQgc2V0cyBTb3VyY2UgYWRkcmVzcyBhcyBGUEdBIG1lbW9yeSBhZGRyZXNzIGFu
-ZA0KPiBEZXN0aW5hdGlvbiBhZGRyZXNzIGlzIERNQSBwcmVwYXJlZCBzeXN0ZW0gYWRkcmVzcywN
-Cj4gaW4gY2FzZSBvZiB0ZXN0aW5nIHAycCBJIHNldCBEZXN0aW5hdGlvbiBhZGRyZXNzIGFzIHBo
-eXNpY2FsIGFkZHJlc3Mgb2Ygb3RoZXIgZW5kcG9pbnQuDQoNClVubmVjZXNzYXJ5IGRldGFpbC4u
-Lg0KDQo+IE1vcmUgZGV0YWlsZWQ6DQo+IHdlIGhhdmUgc28gY2FsbGVkIHBjaWUgdW5pdmVyc2Fs
-IGRyaXZlcjogdGhlIGlkZWEgYmVoaW5kIGlzDQo+IDEuIGFsbCBwY2llIGNvbmZpZ3VyYXRpb24g
-c3RhZmYsIGZpbmQgZW5hYmxlZCBCQVJzLCBtYXBwaW5nIEJBUnMsIHVzdWFsIHJlYWQvd3JpdGUg
-YW5kIGNvbW1vbiBpb2N0bA0KPiAoZ2V0IHNsb3QgbnVtYmVyLCBnZXQgZHJpdmVyIHZlcnNpb24g
-Li4uKSBpbXBsZW1lbnRlZCBpbiB1bml2ZXJzYWwgZHJpdmVyIGFuZCBFWFBPUlRlZC4NCj4gMi4g
-aWYgc29tZSBzeXN0ZW0gZnVuY3Rpb24gaW4gbmV3IGtlcm5lbCBhcmUgY2hhbmdlZCB3ZSBjaGFu
-Z2UgaXQgb25seSBpbiB1bml2ZXJzYWwgcGFydHMgKGVhc3kNCj4gc3VwcG9ydCBhIGJpZyBudW1i
-ZXIgb2YgZHJpdmVycyApDQo+IHNvIHRoZSB1bml2ZXJzYWwgZHJpdmVyIHNvbWV0aGluZyBsaWtl
-IFBDSWUgRHJpdmVyIEFQSQ0KPiAzLiB0aGUgdW5pdmVyc2FsIGRyaXZlciBwcm92aWRlcyByZWFk
-L3dyaXQgZnVuY3Rpb25zIHNvIHdlIGhhdmUgdGhlIHNhbWUgZGV2aWNlIGFjY2VzcyBBUEkgZm9y
-IGFueQ0KPiBQQ0llIGRldmljZSwgd2UgY291bGQgdXNlIHRoZSBzYW1lIHVzZXIgYXBwbGljYXRp
-b24gd2l0aCBhbnkgUENJZSBkZXZpY2UNCg0KTW9yZSBjcmFwLi4uDQoNCj4gbm93LiBkdXJpbmcg
-QkFScyBmaW5kaW5nIGFuZCBtYXBwaW5nIHVuaXZlcnNhbCBkcml2ZXIga2VlcHMgcGNpZSBlbmRw
-b2ludCBwaHlzaWNhbCBhZGRyZXNzIGluIHNvbWUNCj4gaW50ZXJuYWwgc3RydWN0dXJlcywgYW55
-IHRvcCBkcml2ZXIgbWF5IGdldCBwaHlzaWNhbCBhZGRyZXNzDQo+IG9mIG90aGVyIHBjaWUgZW5k
-cG9pbnQgYnkgc2xvdCBudW1iZXIuDQo+IGluIG1heSBjYXNlIGR1cmluZyBnZXRfcmVzb3JjZSB0
-aGUgcGh5c2ljYWwgYWRkcmVzcyBpcyAweEIyMDAwMDAwLCBJIGNoZWNrIGxzcGNpIC1IMSAtdnZ2
-diAtcyBwc2llDQo+IHN3aXRjaCBwb3J0IGJ1cyBhZGRyZXNzICh0aGUgZW5kcG9pbnQgY29ubmVj
-dGVkIHRvIHRoaXMgcG9ydCwgY2hlY2tlZCBieSBsc3BjaSAtSDEgLXQpIHRoZSBzYW1lDQo+IGFk
-ZHJlc3MgKDB4QjIwMDAwMCkgaXMgdGhlIG1lbW9yeSBiZWhpbmQgYnJpZGdlLA0KDQpPdmVybHkg
-dmVyYm9zZS4uLg0KDQo+IEkgd2FudCB0byBtYWtlIHAycCB3cml0ZXMgdG8gb2Zmc2V0IDB4NDAw
-MDAsIHNvIEkgc2V0IERNQSBkZXN0aW5hdGlvbiBhZGRyZXNzIDB4QjI0MDAwMDANCj4gaXMgc29t
-ZXRoaW5nIHdyb25nPw0KDQpQb3NzaWJseS4NCg0KWW91IGFsbW9zdCBjZXJ0YWlubHkgbmVlZCB0
-aGUgYWRkcmVzcyB0aGF0IGlzIHdyaXR0ZW4gaW50byB0aGUgQkFSIG9mIHRoZQ0KdGFyZ2V0IGVu
-ZHBvaW50Lg0KVGhpcyBjb3VsZCB3ZWxsIGJlIGRpZmZlcmVudCBmcm9tIHRoZSBwaHlzaWNhbCBh
-ZGRyZXNzIHRoYXQgdGhlIGNwdSB1c2VzDQp0byB3cml0ZSB0byB0aGUgZW5kcG9pbnQgKGFzIHdl
-bGwgYXMgdGhlIGNwdSB2aXJ0dWFsIGFkZHJlc3MpLg0KDQpsc3BjaSBsaWVzIFsxXSwgcnVuIGxz
-cGNpIC14ICAob3IgaGV4ZHVtcCBjb25maWcgc3BhY2UgdGhyb3VnaCAvc3lzL2RldmljZXMpDQp0
-byBzZWUgd2hhdCBpcyBhY3R1YWxseSBpbiB0aGUgQkFSLg0KDQpbMV0gVGhlIGFkZHJlc3NlcyBj
-b21lIGZyb20gc29tZXdoZXJlIG90aGVyIHRoYW4gcmVhZGluZyB0aGUgQkFSLg0KSWYgdGhlIGVu
-ZHBvaW50IHJlc2V0cyB0aGUgQkFSIGxzcGNpIHdpbGwgc3RpbGwgcmVwb3J0IHRoZSBvbGQNCmFk
-ZHJlc3Nlcy4NCg0KCURhdmlkDQoNCg==
+Registering a notifier has required the knowledge of struct v4l2_device
+for the reason that sub-devices generally are registered to the
+v4l2_device (as well as the media device, also available through
+v4l2_device).
+
+This information is not available for sub-device drivers at probe time.
+
+What this patch does is that it allows registering notifiers without
+having v4l2_device around. Instead the sub-device pointer is stored in the
+notifier. Once the sub-device of the driver that registered the notifier
+is registered, the notifier will gain the knowledge of the v4l2_device,
+and the binding of async sub-devices from the sub-device driver's notifier
+may proceed.
+
+The complete callback of the root notifier will be called only when the
+v4l2_device is available and no notifier has pending sub-devices to bind.
+No complete callbacks are supported for sub-device notifiers.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 212 ++++++++++++++++++++++++++++-------
+ include/media/v4l2-async.h           |  19 +++-
+ 2 files changed, 189 insertions(+), 42 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 6265717769d2..ed539c4fd5dc 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -124,11 +124,87 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
+ 	return NULL;
+ }
+ 
++/* Find the sub-device notifier registered by a sub-device driver. */
++static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
++	struct v4l2_subdev *sd)
++{
++	struct v4l2_async_notifier *n;
++
++	list_for_each_entry(n, &notifier_list, list)
++		if (n->sd == sd)
++			return n;
++
++	return NULL;
++}
++
++/* Get v4l2_device related to the notifier if one can be found. */
++static struct v4l2_device *v4l2_async_notifier_find_v4l2_dev(
++	struct v4l2_async_notifier *notifier)
++{
++	while (notifier->parent)
++		notifier = notifier->parent;
++
++	return notifier->v4l2_dev;
++}
++
++/*
++ * Return true if all child sub-device notifiers are complete, false otherwise.
++ */
++static bool v4l2_async_notifier_can_complete(
++	struct v4l2_async_notifier *notifier)
++{
++	struct v4l2_subdev *sd;
++
++	if (!list_empty(&notifier->waiting))
++		return false;
++
++	list_for_each_entry(sd, &notifier->done, async_list) {
++		struct v4l2_async_notifier *subdev_notifier =
++			v4l2_async_find_subdev_notifier(sd);
++
++		if (subdev_notifier &&
++		    !v4l2_async_notifier_can_complete(subdev_notifier))
++			return false;
++	}
++
++	return true;
++}
++
++/*
++ * Complete the master notifier if possible. This is done when all async
++ * sub-devices have been bound; v4l2_device is also available then.
++ */
++static int v4l2_async_notifier_try_complete(
++	struct v4l2_async_notifier *notifier)
++{
++	/* Quick check whether there are still more sub-devices here. */
++	if (!list_empty(&notifier->waiting))
++		return 0;
++
++	/* Check the entire notifier tree; find the root notifier first. */
++	while (notifier->parent)
++		notifier = notifier->parent;
++
++	/* This is root if it has v4l2_dev. */
++	if (!notifier->v4l2_dev)
++		return 0;
++
++	/* Is everything ready? */
++	if (!v4l2_async_notifier_can_complete(notifier))
++		return 0;
++
++	return v4l2_async_notifier_call_complete(notifier);
++}
++
++static int v4l2_async_notifier_try_all_subdevs(
++	struct v4l2_async_notifier *notifier);
++
+ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ 				   struct v4l2_device *v4l2_dev,
+ 				   struct v4l2_subdev *sd,
+ 				   struct v4l2_async_subdev *asd)
+ {
++	struct v4l2_async_notifier *subdev_notifier;
+ 	int ret;
+ 
+ 	ret = v4l2_device_register_subdev(v4l2_dev, sd);
+@@ -149,17 +225,36 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ 	/* Move from the global subdevice list to notifier's done */
+ 	list_move(&sd->async_list, &notifier->done);
+ 
+-	return 0;
++	/*
++	 * See if the sub-device has a notifier. If not, return here.
++	 */
++	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
++	if (!subdev_notifier || subdev_notifier->parent)
++		return 0;
++
++	/*
++	 * Proceed with checking for the sub-device notifier's async
++	 * sub-devices, and return the result. The error will be handled by the
++	 * caller.
++	 */
++	subdev_notifier->parent = notifier;
++
++	return v4l2_async_notifier_try_all_subdevs(subdev_notifier);
+ }
+ 
+ /* Test all async sub-devices in a notifier for a match. */
+ static int v4l2_async_notifier_try_all_subdevs(
+ 	struct v4l2_async_notifier *notifier)
+ {
+-	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
+-	struct v4l2_subdev *sd, *tmp;
++	struct v4l2_device *v4l2_dev =
++		v4l2_async_notifier_find_v4l2_dev(notifier);
++	struct v4l2_subdev *sd;
++
++	if (!v4l2_dev)
++		return 0;
+ 
+-	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
++again:
++	list_for_each_entry(sd, &subdev_list, async_list) {
+ 		struct v4l2_async_subdev *asd;
+ 		int ret;
+ 
+@@ -170,6 +265,14 @@ static int v4l2_async_notifier_try_all_subdevs(
+ 		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
+ 		if (ret < 0)
+ 			return ret;
++
++		/*
++		 * v4l2_async_match_notify() may lead to registering a
++		 * new notifier and thus changing the async subdevs
++		 * list. In order to proceed safely from here, restart
++		 * parsing the list from the beginning.
++		 */
++		goto again;
+ 	}
+ 
+ 	return 0;
+@@ -183,17 +286,26 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+ 	sd->asd = NULL;
+ }
+ 
++/* Unbind all sub-devices in the notifier tree. */
+ static void v4l2_async_notifier_unbind_all_subdevs(
+ 	struct v4l2_async_notifier *notifier)
+ {
+ 	struct v4l2_subdev *sd, *tmp;
+ 
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
++		struct v4l2_async_notifier *subdev_notifier =
++			v4l2_async_find_subdev_notifier(sd);
++
++		if (subdev_notifier)
++			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
++
+ 		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+ 		v4l2_async_cleanup(sd);
+ 
+ 		list_move(&sd->async_list, &subdev_list);
+ 	}
++
++	notifier->parent = NULL;
+ }
+ 
+ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+@@ -208,15 +320,6 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 	INIT_LIST_HEAD(&notifier->waiting);
+ 	INIT_LIST_HEAD(&notifier->done);
+ 
+-	if (!notifier->num_subdevs) {
+-		int ret;
+-
+-		ret = v4l2_async_notifier_call_complete(notifier);
+-		notifier->v4l2_dev = NULL;
+-
+-		return ret;
+-	}
+-
+ 	for (i = 0; i < notifier->num_subdevs; i++) {
+ 		asd = notifier->subdevs[i];
+ 
+@@ -238,16 +341,12 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 	mutex_lock(&list_lock);
+ 
+ 	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+-	if (ret) {
+-		mutex_unlock(&list_lock);
+-		return ret;
+-	}
++	if (ret)
++		goto err_unbind;
+ 
+-	if (list_empty(&notifier->waiting)) {
+-		ret = v4l2_async_notifier_call_complete(notifier);
+-		if (ret)
+-			goto err_complete;
+-	}
++	ret = v4l2_async_notifier_try_complete(notifier);
++	if (ret)
++		goto err_unbind;
+ 
+ 	/* Keep also completed notifiers on the list */
+ 	list_add(&notifier->list, &notifier_list);
+@@ -256,7 +355,10 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 
+ 	return 0;
+ 
+-err_complete:
++err_unbind:
++	/*
++	 * On failure, unbind all sub-devices registered through this notifier.
++	 */
+ 	v4l2_async_notifier_unbind_all_subdevs(notifier);
+ 
+ 	mutex_unlock(&list_lock);
+@@ -269,7 +371,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ {
+ 	int ret;
+ 
+-	if (WARN_ON(!v4l2_dev))
++	if (WARN_ON(!v4l2_dev || notifier->sd))
+ 		return -EINVAL;
+ 
+ 	notifier->v4l2_dev = v4l2_dev;
+@@ -282,20 +384,39 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ }
+ EXPORT_SYMBOL(v4l2_async_notifier_register);
+ 
++int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
++					struct v4l2_async_notifier *notifier)
++{
++	int ret;
++
++	if (WARN_ON(!sd || notifier->v4l2_dev))
++		return -EINVAL;
++
++	notifier->sd = sd;
++
++	ret = __v4l2_async_notifier_register(notifier);
++	if (ret)
++		notifier->sd = NULL;
++
++	return ret;
++}
++EXPORT_SYMBOL(v4l2_async_subdev_notifier_register);
++
+ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ {
+-	if (!notifier->v4l2_dev)
++	if (!notifier->v4l2_dev && !notifier->sd)
+ 		return;
+ 
+ 	mutex_lock(&list_lock);
+ 
+-	list_del(&notifier->list);
+-
+ 	v4l2_async_notifier_unbind_all_subdevs(notifier);
+ 
+-	mutex_unlock(&list_lock);
+-
++	notifier->sd = NULL;
+ 	notifier->v4l2_dev = NULL;
++
++	list_del(&notifier->list);
++
++	mutex_unlock(&list_lock);
+ }
+ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+ 
+@@ -331,6 +452,7 @@ EXPORT_SYMBOL_GPL(v4l2_async_notifier_cleanup);
+ 
+ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ {
++	struct v4l2_async_notifier *subdev_notifier;
+ 	struct v4l2_async_notifier *notifier;
+ 	int ret;
+ 
+@@ -347,24 +469,26 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 	INIT_LIST_HEAD(&sd->async_list);
+ 
+ 	list_for_each_entry(notifier, &notifier_list, list) {
+-		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
+-								      sd);
++		struct v4l2_device *v4l2_dev =
++			v4l2_async_notifier_find_v4l2_dev(notifier);
++		struct v4l2_async_subdev *asd;
+ 		int ret;
+ 
++		if (!v4l2_dev)
++			continue;
++
++		asd = v4l2_async_find_match(notifier, sd);
+ 		if (!asd)
+ 			continue;
+ 
+ 		ret = v4l2_async_match_notify(notifier, notifier->v4l2_dev, sd,
+ 					      asd);
+ 		if (ret)
+-			goto err_unlock;
+-
+-		if (!list_empty(&notifier->waiting))
+-			goto out_unlock;
++			goto err_unbind;
+ 
+-		ret = v4l2_async_notifier_call_complete(notifier);
++		ret = v4l2_async_notifier_try_complete(notifier);
+ 		if (ret)
+-			goto err_cleanup;
++			goto err_unbind;
+ 
+ 		goto out_unlock;
+ 	}
+@@ -377,11 +501,19 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 
+ 	return 0;
+ 
+-err_cleanup:
+-	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
++err_unbind:
++	/*
++	 * Complete failed. Unbind the sub-devices bound through registering
++	 * this async sub-device.
++	 */
++	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
++	if (subdev_notifier)
++		v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
++
++	if (sd->asd)
++		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+ 	v4l2_async_cleanup(sd);
+ 
+-err_unlock:
+ 	mutex_unlock(&list_lock);
+ 
+ 	return ret;
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 68606afb5ef9..17c4ac7c73e8 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -82,7 +82,8 @@ struct v4l2_async_subdev {
+ /**
+  * struct v4l2_async_notifier_operations - Asynchronous V4L2 notifier operations
+  * @bound:	a subdevice driver has successfully probed one of the subdevices
+- * @complete:	all subdevices have been probed successfully
++ * @complete:	All subdevices have been probed successfully. The complete
++ *		callback is only executed for the root notifier.
+  * @unbind:	a subdevice is leaving
+  */
+ struct v4l2_async_notifier_operations {
+@@ -102,7 +103,9 @@ struct v4l2_async_notifier_operations {
+  * @num_subdevs: number of subdevices used in the subdevs array
+  * @max_subdevs: number of subdevices allocated in the subdevs array
+  * @subdevs:	array of pointers to subdevice descriptors
+- * @v4l2_dev:	pointer to struct v4l2_device
++ * @v4l2_dev:	v4l2_device of the root notifier, NULL otherwise
++ * @sd:		sub-device that registered the notifier, NULL otherwise
++ * @parent:	parent notifier
+  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+  * @done:	list of struct v4l2_subdev, already probed
+  * @list:	member in a global list of notifiers
+@@ -113,6 +116,8 @@ struct v4l2_async_notifier {
+ 	unsigned int max_subdevs;
+ 	struct v4l2_async_subdev **subdevs;
+ 	struct v4l2_device *v4l2_dev;
++	struct v4l2_subdev *sd;
++	struct v4l2_async_notifier *parent;
+ 	struct list_head waiting;
+ 	struct list_head done;
+ 	struct list_head list;
+@@ -128,6 +133,16 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 				 struct v4l2_async_notifier *notifier);
+ 
+ /**
++ * v4l2_async_subdev_notifier_register - registers a subdevice asynchronous
++ *					 notifier for a sub-device
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ * @notifier: pointer to &struct v4l2_async_notifier
++ */
++int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
++					struct v4l2_async_notifier *notifier);
++
++/**
+  * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
+  *
+  * @notifier: pointer to &struct v4l2_async_notifier
+-- 
+2.11.0
