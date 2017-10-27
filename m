@@ -1,59 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:50748 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752751AbdJKCCm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 22:02:42 -0400
-From: "Zhi, Yong" <yong.zhi@intel.com>
-To: Andy Shevchenko <andy.shevchenko@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
-Subject: RE: [PATCH v2 09/12] intel-ipu3: css hardware setup
-Date: Wed, 11 Oct 2017 02:02:38 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D1AE2869E@ORSMSX106.amr.corp.intel.com>
-References: <1497478767-10270-1-git-send-email-yong.zhi@intel.com>
- <1497478767-10270-10-git-send-email-yong.zhi@intel.com>
- <CAHp75VfK7qL5j+hDZj-QKcqf85_JiBDG7N8XET4a59Kfet5z1g@mail.gmail.com>
- <20170617184348.GW12407@valkosipuli.retiisi.org.uk>
- <CAHp75VcOnGuz5s1Y9ZU=Tgrz3wNHfG_APZbd=_HESpRm6BdAGg@mail.gmail.com>
-In-Reply-To: <CAHp75VcOnGuz5s1Y9ZU=Tgrz3wNHfG_APZbd=_HESpRm6BdAGg@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:54381 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751158AbdJ0Jwb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Oct 2017 05:52:31 -0400
+Received: by mail-lf0-f67.google.com with SMTP id a2so6738608lfh.11
+        for <linux-media@vger.kernel.org>; Fri, 27 Oct 2017 02:52:30 -0700 (PDT)
+Date: Fri, 27 Oct 2017 11:52:27 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v16 19/32] v4l: async: Ensure only unique fwnodes are
+ registered to notifiers
+Message-ID: <20171027095227.GA8854@bigcity.dyn.berto.se>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-20-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171026075342.5760-20-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksIEFuZHksDQoNClRoYW5rcyBmb3IgdGhlIHJldmlldy4NCg0KPiAtLS0tLU9yaWdpbmFsIE1l
-c3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1tZWRpYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21h
-aWx0bzpsaW51eC1tZWRpYS0NCj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2Yg
-QW5keSBTaGV2Y2hlbmtvDQo+IFNlbnQ6IFNhdHVyZGF5LCBKdW5lIDE3LCAyMDE3IDEyOjA3IFBN
-DQo+IFRvOiBTYWthcmkgQWlsdXMgPHNha2FyaS5haWx1c0Bpa2kuZmk+DQo+IENjOiBaaGksIFlv
-bmcgPHlvbmcuemhpQGludGVsLmNvbT47IExpbnV4IE1lZGlhIE1haWxpbmcgTGlzdCA8bGludXgt
-DQo+IG1lZGlhQHZnZXIua2VybmVsLm9yZz47IHNha2FyaS5haWx1c0BsaW51eC5pbnRlbC5jb207
-IFpoZW5nLCBKaWFuIFh1DQo+IDxqaWFuLnh1LnpoZW5nQGludGVsLmNvbT47IFRvbWFzeiBGaWdh
-IDx0ZmlnYUBjaHJvbWl1bS5vcmc+OyBNYW5pLA0KPiBSYWptb2hhbiA8cmFqbW9oYW4ubWFuaUBp
-bnRlbC5jb20+OyBUb2l2b25lbiwgVHV1a2thDQo+IDx0dXVra2EudG9pdm9uZW5AaW50ZWwuY29t
-Pg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHYyIDA5LzEyXSBpbnRlbC1pcHUzOiBjc3MgaGFyZHdh
-cmUgc2V0dXANCj4gDQo+IE9uIFNhdCwgSnVuIDE3LCAyMDE3IGF0IDk6NDMgUE0sIFNha2FyaSBB
-aWx1cyA8c2FrYXJpLmFpbHVzQGlraS5maT4gd3JvdGU6DQo+ID4gT24gU2F0LCBKdW4gMTcsIDIw
-MTcgYXQgMDE6NTQ6NTFBTSArMDMwMCwgQW5keSBTaGV2Y2hlbmtvIHdyb3RlOg0KPiA+PiBPbiBU
-aHUsIEp1biAxNSwgMjAxNyBhdCAxOjE5IEFNLCBZb25nIFpoaSA8eW9uZy56aGlAaW50ZWwuY29t
-PiB3cm90ZToNCj4gDQo+ID4+ID4gK3N0YXRpYyB2b2lkIHdyaXRlcyh2b2lkICptZW0sIHNzaXpl
-X3QgbGVuLCB2b2lkIF9faW9tZW0gKnJlZykgew0KPiA+PiA+ICsgICAgICAgd2hpbGUgKGxlbiA+
-PSA0KSB7DQo+ID4+ID4gKyAgICAgICAgICAgICAgIHdyaXRlbCgqKHUzMiAqKW1lbSwgcmVnKTsN
-Cj4gPj4gPiArICAgICAgICAgICAgICAgbWVtICs9IDQ7DQo+ID4+ID4gKyAgICAgICAgICAgICAg
-IHJlZyArPSA0Ow0KPiA+PiA+ICsgICAgICAgICAgICAgICBsZW4gLT0gNDsNCj4gPj4gPiArICAg
-ICAgIH0NCj4gPj4gPiArfQ0KPiA+Pg0KPiA+PiBBZ2FpbiwgSSBqdXN0IGxvb2tlZCBpbnRvIHBh
-dGNoZXMgYW5kIGZpcnN0IHdoYXQgSSBzZWUgaXMgcmVpbnZlbnRpbmcgdGhlDQo+IHdoZWVsLg0K
-PiA+Pg0KPiA+PiBtZW1jcHlfdG9pbygpDQo+IA0KPiA+IFRoYXQgZG9lc24ndCBxdWl0ZSB3b3Jr
-OiB0aGUgaGFyZHdhcmUgb25seSBzdXBwb3J0cyAzMi1iaXQgYWNjZXNzLg0KPiA+DQo+ID4gU28g
-dGhlIGFuc3dlciBpcyB3cml0ZXNsKCkuDQo+IA0KPiBNYWtlcyBzZW5zZSENCj4gDQoNCldlIGFy
-ZSBub3QgYWJsZSB0byB1c2Ugd3JpdGVzbCgpIGluIHRoZSBwYXN0IGJlY2F1c2UgaXQncyBub3Qg
-ZGVmaW5lZCBmb3IgeDg2IHBsYXRmb3JtLCBidXQgbm93IHRoZSBoZWxwZXIgZnVuY3Rpb24gaXMg
-YXZhaWxhYmxlIGluIDQuMTQsIHdlIHdpbGwgdXNlIGl0IGluIG5leHQgdXBkYXRlLg0KDQo+IC0t
-DQo+IFdpdGggQmVzdCBSZWdhcmRzLA0KPiBBbmR5IFNoZXZjaGVua28NCg==
+Hi Sakari,
+
+Thanks for your patch.
+
+On 2017-10-26 10:53:29 +0300, Sakari Ailus wrote:
+> While registering a notifier, check that each newly added fwnode is
+> unique, and return an error if it is not. Also check that a newly added
+> notifier does not have the same fwnodes twice.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 82 +++++++++++++++++++++++++++++++++---
+>  1 file changed, 77 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index ed539c4fd5dc..b4e88eef195f 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -308,8 +308,71 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+>  	notifier->parent = NULL;
+>  }
+>  
+> +/* See if an fwnode can be found in a notifier's lists. */
+> +static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+> +	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
+> +{
+> +	struct v4l2_async_subdev *asd;
+> +	struct v4l2_subdev *sd;
+> +
+> +	list_for_each_entry(asd, &notifier->waiting, list) {
+> +		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+> +			continue;
+> +
+> +		if (asd->match.fwnode.fwnode == fwnode)
+> +			return true;
+> +	}
+> +
+> +	list_for_each_entry(sd, &notifier->done, async_list) {
+> +		if (WARN_ON(!sd->asd))
+> +			continue;
+> +
+> +		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+> +			continue;
+> +
+> +		if (sd->asd->match.fwnode.fwnode == fwnode)
+> +			return true;
+> +	}
+> +
+> +	return false;
+> +}
+> +
+> +/*
+> + * Find out whether an async sub-device was set up for an fwnode already or
+> + * whether it exists in a given notifier before @this_index.
+> + */
+> +static bool v4l2_async_notifier_fwnode_has_async_subdev(
+> +	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
+> +	unsigned int this_index)
+> +{
+> +	unsigned int j;
+> +
+> +	lockdep_assert_held(&list_lock);
+> +
+> +	/* Check that an fwnode is not being added more than once. */
+> +	for (j = 0; j < this_index; j++) {
+> +		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
+> +		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
+> +
+> +		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
+> +		    asd->match.fwnode.fwnode ==
+> +		    other_asd->match.fwnode.fwnode)
+> +			return true;
+> +	}
+> +
+> +	/* Check than an fwnode did not exist in other notifiers. */
+> +	list_for_each_entry(notifier, &notifier_list, list)
+> +		if (__v4l2_async_notifier_fwnode_has_async_subdev(
+> +			    notifier, fwnode))
+> +			return true;
+> +
+> +	return false;
+> +}
+> +
+>  static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  {
+> +	struct device *dev =
+> +		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
+>  	struct v4l2_async_subdev *asd;
+>  	int ret;
+>  	int i;
+> @@ -320,6 +383,8 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  	INIT_LIST_HEAD(&notifier->waiting);
+>  	INIT_LIST_HEAD(&notifier->done);
+>  
+> +	mutex_lock(&list_lock);
+> +
+>  	for (i = 0; i < notifier->num_subdevs; i++) {
+>  		asd = notifier->subdevs[i];
+>  
+> @@ -327,19 +392,25 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  		case V4L2_ASYNC_MATCH_CUSTOM:
+>  		case V4L2_ASYNC_MATCH_DEVNAME:
+>  		case V4L2_ASYNC_MATCH_I2C:
+> +			break;
+>  		case V4L2_ASYNC_MATCH_FWNODE:
+> +			if (v4l2_async_notifier_fwnode_has_async_subdev(
+> +				    notifier, asd->match.fwnode.fwnode, i)) {
+> +				dev_err(dev,
+> +					"fwnode has already been registered or in notifier's subdev list\n");
+> +				ret = -EEXIST;
+> +				goto out_unlock;
+
+You store the error code in ret before the jump, but in the out_unlock 
+path ret is not considered and 0 is always returned.
+
+> +			}
+>  			break;
+>  		default:
+> -			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+> -				"Invalid match type %u on %p\n",
+> +			dev_err(dev, "Invalid match type %u on %p\n",
+>  				asd->match_type, asd);
+> -			return -EINVAL;
+> +			ret = -EINVAL;
+> +			goto out_unlock;
+
+Same here.
+
+>  		}
+>  		list_add_tail(&asd->list, &notifier->waiting);
+>  	}
+>  
+> -	mutex_lock(&list_lock);
+> -
+>  	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+>  	if (ret)
+>  		goto err_unbind;
+> @@ -351,6 +422,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  	/* Keep also completed notifiers on the list */
+>  	list_add(&notifier->list, &notifier_list);
+>  
+> +out_unlock:
+>  	mutex_unlock(&list_lock);
+>  
+>  	return 0;
+> -- 
+> 2.11.0
+> 
+
+-- 
+Regards,
+Niklas Söderlund
