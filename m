@@ -1,125 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:60679 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751380AbdJEIpb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Oct 2017 04:45:31 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 10/25] media: lirc: validate scancode for transmit
-Date: Thu,  5 Oct 2017 09:45:12 +0100
-Message-Id: <46af0b140d94a0e4f192120e4e9c68e5bc18ff23.1507192752.git.sean@mess.org>
-In-Reply-To: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-References: <88e30a50734f7d132ac8a6234acc7335cbbb3a56.1507192751.git.sean@mess.org>
-In-Reply-To: <cover.1507192751.git.sean@mess.org>
-References: <cover.1507192751.git.sean@mess.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51546 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751050AbdJ0IaE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Oct 2017 04:30:04 -0400
+Date: Fri, 27 Oct 2017 11:30:01 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v16 17/32] v4l: async: Prepare for async sub-device
+ notifiers
+Message-ID: <20171027083001.4zaeaewb2zyqatu6@valkosipuli.retiisi.org.uk>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-18-sakari.ailus@linux.intel.com>
+ <20171026221051.GK2297@bigcity.dyn.berto.se>
+ <20171027081002.GL2297@bigcity.dyn.berto.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171027081002.GL2297@bigcity.dyn.berto.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ensure we reject an attempt to transmit invalid scancodes.
+On Fri, Oct 27, 2017 at 10:10:02AM +0200, Niklas Söderlund wrote:
+> > > @@ -151,6 +152,31 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+> > >  	return 0;
+> > >  }
+> > >  
+> > > +/* Test all async sub-devices in a notifier for a match. */
+> > > +static int v4l2_async_notifier_try_all_subdevs(
+> > > +	struct v4l2_async_notifier *notifier)
+> > > +{
+> > > +	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
+> > > +	struct v4l2_subdev *sd, *tmp;
+> > > +
+> > > +	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+> > > +		struct v4l2_async_subdev *asd;
+> > > +		int ret;
+> > > +
+> > > +		asd = v4l2_async_find_match(notifier, sd);
+> > > +		if (!asd)
+> > > +			continue;
+> > > +
+> > > +		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
+> > > +		if (ret < 0) {
+> > > +			mutex_unlock(&list_lock);
+> 
+> The mutex should not be unlocked here, as the caller will also unlock it 
+> if ret is none zero. You fix this in 18/32 so the end result is OK but I 
+> think its better to fix this in this patch.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-lirc-codec.c |  3 +++
- drivers/media/rc/rc-core-priv.h  |  1 +
- drivers/media/rc/rc-main.c       | 53 +++++++++++++++++++++++++---------------
- 3 files changed, 37 insertions(+), 20 deletions(-)
+Good catch. I've sent v16.1 of these and forgot the change log. There are
+no other changes than fixing this, i.e. the end result is the same.
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 94561d8b0c0b..863d975d40fb 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -122,6 +122,9 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 		    scan.timestamp)
- 			return -EINVAL;
- 
-+		if (!rc_validate_scancode(scan.rc_proto, scan.scancode))
-+			return -EINVAL;
-+
- 		if (dev->tx_scancode) {
- 			ret = dev->tx_scancode(dev, &scan);
- 			return ret < 0 ? ret : n;
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 21e515d34f64..a064c401fa38 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -160,6 +160,7 @@ static inline bool is_timing_event(struct ir_raw_event ev)
- #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
- 
- /* functions for IR encoders */
-+bool rc_validate_scancode(enum rc_proto proto, u32 scancode);
- 
- static inline void init_ir_raw_event_duration(struct ir_raw_event *ev,
- 					      unsigned int pulse,
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 758c14b90a87..38393f13822f 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -776,6 +776,37 @@ void rc_keydown_notimeout(struct rc_dev *dev, enum rc_proto protocol,
- EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
- 
- /**
-+ * rc_validate_scancode() - checks that a scancode is valid for a protocol
-+ * @proto:	protocol
-+ * @scancode:	scancode
-+ */
-+bool rc_validate_scancode(enum rc_proto proto, u32 scancode)
-+{
-+	switch (proto) {
-+	case RC_PROTO_NECX:
-+		if ((((scancode >> 16) ^ ~(scancode >> 8)) & 0xff) == 0)
-+			return false;
-+		break;
-+	case RC_PROTO_NEC32:
-+		if ((((scancode >> 24) ^ ~(scancode >> 16)) & 0xff) == 0)
-+			return false;
-+		break;
-+	case RC_PROTO_RC6_MCE:
-+		if ((scancode & 0xffff0000) != 0x800f0000)
-+			return false;
-+		break;
-+	case RC_PROTO_RC6_6A_32:
-+		if ((scancode & 0xffff0000) == 0x800f0000)
-+			return false;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return true;
-+}
-+
-+/**
-  * rc_validate_filter() - checks that the scancode and mask are valid and
-  *			  provides sensible defaults
-  * @dev:	the struct rc_dev descriptor of the device
-@@ -793,26 +824,8 @@ static int rc_validate_filter(struct rc_dev *dev,
- 
- 	mask = protocols[protocol].scancode_bits;
- 
--	switch (protocol) {
--	case RC_PROTO_NECX:
--		if ((((s >> 16) ^ ~(s >> 8)) & 0xff) == 0)
--			return -EINVAL;
--		break;
--	case RC_PROTO_NEC32:
--		if ((((s >> 24) ^ ~(s >> 16)) & 0xff) == 0)
--			return -EINVAL;
--		break;
--	case RC_PROTO_RC6_MCE:
--		if ((s & 0xffff0000) != 0x800f0000)
--			return -EINVAL;
--		break;
--	case RC_PROTO_RC6_6A_32:
--		if ((s & 0xffff0000) == 0x800f0000)
--			return -EINVAL;
--		break;
--	default:
--		break;
--	}
-+	if (!rc_validate_scancode(protocol, s))
-+		return -EINVAL;
- 
- 	filter->data &= mask;
- 	filter->mask &= mask;
 -- 
-2.13.6
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
