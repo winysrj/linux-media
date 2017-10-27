@@ -1,52 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:60059 "EHLO
-        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751402AbdJJXmy (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:54430 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751399AbdJ0BBo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Oct 2017 19:42:54 -0400
-Date: Wed, 11 Oct 2017 10:42:50 +1100
-From: "Tobin C. Harding" <me@tobin.cc>
-To: Branislav Radocaj <branislav@radocaj.org>
-Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        hans.verkuil@cisco.com, devel@driverdev.osuosl.org,
-        nikola.jelic83@gmail.com, ran.algawi@gmail.com,
-        linux-kernel@vger.kernel.org, jb@abbadie.fr, shilpapri@gmail.com,
-        aquannie@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] Staging: bcm2048 fix bare use of 'unsigned' in
- radio-bcm2048.c
-Message-ID: <20171010234250.GC2049@eros>
-References: <20171010132919.18428-1-branislav@radocaj.org>
+        Thu, 26 Oct 2017 21:01:44 -0400
+Date: Thu, 26 Oct 2017 20:01:42 -0500
+From: Rob Herring <robh@kernel.org>
+To: Dmitry Osipenko <digetx@gmail.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Stephen Warren <swarren@wwwdotorg.org>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4 2/5] media: dt: bindings: Add binding for NVIDIA Tegra
+ Video Decoder Engine
+Message-ID: <20171027010142.2glhx2djupxesnjp@rob-hp-laptop>
+References: <cover.1508448293.git.digetx@gmail.com>
+ <bf5b91666229f9e46ed8c73d6ca2e4b65f86b5ab.1508448293.git.digetx@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20171010132919.18428-1-branislav@radocaj.org>
+In-Reply-To: <bf5b91666229f9e46ed8c73d6ca2e4b65f86b5ab.1508448293.git.digetx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Branislav,
-
-On Tue, Oct 10, 2017 at 03:29:19PM +0200, Branislav Radocaj wrote:
-> This is a patch to the radio-bcm2048.c file that fixes up
-> a warning found by the checkpatch.pl tool.
+On Fri, Oct 20, 2017 at 12:34:22AM +0300, Dmitry Osipenko wrote:
+> Add binding documentation for the Video Decoder Engine which is found
+> on NVIDIA Tegra20/30/114/124/132 SoC's.
 > 
-> Signed-off-by: Branislav Radocaj <branislav@radocaj.org>
+> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+> ---
+>  .../devicetree/bindings/media/nvidia,tegra-vde.txt | 55 ++++++++++++++++++++++
+>  1 file changed, 55 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
 
-Nice work, a few git log nit picks for you to ensure your future kernel development success.
-
-You can read all this in Documentaton/process/submitting-patches.rst (section 2).
-
-- You can use imperative mood, i.e 'Fix foo by doing bar' instead of 'This patch ...'
-- We don't need to mention the file (either in the summary or in the body), people can see this from
-  the diff.
-
-This is one way of writing the git log message for checkpatch fixes
-
-	checkpatch emits WARNING: EXPORT_SYMBOL(foo); should immediately follow
-	its function/variable.
-
-	Move EXPORT_SYMBOL macro call to immediately follow function definition.
-
-
-Good work, hope this helps.
-
-Tobin
+Acked-by: Rob Herring <robh@kernel.org>
