@@ -1,55 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:50337 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753753AbdJNPCp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Oct 2017 11:02:45 -0400
-Date: Sat, 14 Oct 2017 19:24:00 +0530
-From: Aishwarya Pant <aishpant@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Cc: outreachy-kernel@googlegroups.com
-Subject: [PATCH v2 0/2] staging: atomisp: memory allocation cleanups
-Message-ID: <cover.1507989087.git.aishpant@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mga04.intel.com ([192.55.52.120]:64748 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752151AbdJ0Kh1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Oct 2017 06:37:27 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: alan@linux.intel.com, andriy.shevchenko@intel.com
+Subject: [PATCH 1/1] staging: atomisp: Add videobuf2 switch to TODO
+Date: Fri, 27 Oct 2017 13:37:16 +0300
+Message-Id: <1509100636-13822-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch series performs minor code cleanups using coccinelle to simplify memory
-allocation tests and remove redundant OOM log messages.
+The atomisp driver uses the videobuf1 framework for buffer management. The
+framework is being removed; switch to videobuf2 needs to be made. There
+are only a handful of remaining non-staging drivers using videobuf1.
 
-Changes in v2:
-Rebase and re-send patches
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/staging/media/atomisp/TODO | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Aishwarya Pant (2):
-  staging: atomisp2: cleanup null check on memory allocation
-  staging: atomisp: cleanup out of memory messages
-
- drivers/staging/media/atomisp/i2c/ap1302.c         |  4 +--
- drivers/staging/media/atomisp/i2c/gc0310.c         |  4 +--
- drivers/staging/media/atomisp/i2c/gc2235.c         |  4 +--
- drivers/staging/media/atomisp/i2c/imx/imx.c        |  4 +--
- drivers/staging/media/atomisp/i2c/lm3554.c         |  4 +--
- drivers/staging/media/atomisp/i2c/mt9m114.c        |  4 +--
- drivers/staging/media/atomisp/i2c/ov2680.c         |  4 +--
- drivers/staging/media/atomisp/i2c/ov2722.c         |  4 +--
- drivers/staging/media/atomisp/i2c/ov5693/ov5693.c  |  4 +--
- drivers/staging/media/atomisp/i2c/ov8858.c         |  6 +---
- .../media/atomisp/pci/atomisp2/atomisp_fops.c      |  4 +--
- .../media/atomisp/pci/atomisp2/atomisp_ioctl.c     |  9 ++----
- .../media/atomisp/pci/atomisp2/css2400/sh_css.c    | 36 +++++++++++-----------
- .../atomisp/pci/atomisp2/css2400/sh_css_firmware.c |  6 ++--
- .../pci/atomisp2/css2400/sh_css_param_shading.c    |  4 +--
- .../media/atomisp/pci/atomisp2/hmm/hmm_bo.c        | 10 ++----
- .../atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c    |  6 +---
- .../atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c   |  5 +--
- .../media/atomisp/pci/atomisp2/hmm/hmm_vm.c        |  4 +--
- .../platform/intel-mid/atomisp_gmin_platform.c     |  4 +--
- 20 files changed, 41 insertions(+), 89 deletions(-)
-
+diff --git a/drivers/staging/media/atomisp/TODO b/drivers/staging/media/atomisp/TODO
+index 447cb59..255ce36 100644
+--- a/drivers/staging/media/atomisp/TODO
++++ b/drivers/staging/media/atomisp/TODO
+@@ -48,6 +48,8 @@
+ 10. Use LED flash API for flash LED drivers such as LM3554 (which already
+     has a LED class driver).
+ 
++11. Switch from videobuf1 to videobuf2. Videobuf1 is being removed!
++
+ Limitations:
+ 
+ 1. To test the patches, you also need the ISP firmware
 -- 
-2.11.0
+2.7.4
