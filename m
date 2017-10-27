@@ -1,54 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:33168 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751480AbdJMLdR (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:34834 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751796AbdJ0QUM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Oct 2017 07:33:17 -0400
-To: LMML <linux-media@vger.kernel.org>,
-        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PULL] Exynos/S5P updates for 4.15
-Message-id: <24a660f7-c3bf-0484-acbf-95ffd03b496b@samsung.com>
-Date: Fri, 13 Oct 2017 13:33:11 +0200
-MIME-version: 1.0
-Content-type: text/plain; charset="utf-8"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <CGME20171013113314epcas1p457aa6db29020300ffbea61e468752f24@epcas1p4.samsung.com>
+        Fri, 27 Oct 2017 12:20:12 -0400
+From: Colin King <colin.king@canonical.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] radio-raremono: remove redundant initialization of freq
+Date: Fri, 27 Oct 2017 17:20:08 +0100
+Message-Id: <20171027162008.13749-1-colin.king@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Colin Ian King <colin.king@canonical.com>
 
-Hi Mauro,
+Variable freq is initialized to f->frequency however this value
+is never read and freq is later updated; hence the initialization
+is redundant and can be removed.
 
-The following changes since commit 8382e556b1a2f30c4bf866f021b33577a64f9ebf:
+Cleans up clang warning:
+drivers/media/radio/radio-raremono.c:257:6: warning: Value stored
+to 'freq' during its initialization is never read
 
-  Simplify major/minor non-dynamic logic (2017-10-11 15:32:11 -0400)
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/radio/radio-raremono.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-are available in the git repository at:
-
-  git://linuxtv.org/snawrocki/samsung.git for-v4.15/media/next
-
-for you to fetch changes up to e5fa99e5df93e815920e87e907e5cb61e765505b:
-
-  s5p-mfc: Adjust a null pointer check in four functions (2017-10-13 13:17:49 +0200)
-
-----------------------------------------------------------------
-Hoegeun Kwon (2):
-      exynos-gsc: Add compatible for Exynos 5250 and 5420 SoC version
-      exynos-gsc: Add hardware rotation limits
-
-Markus Elfring (3):
-      s5p-mfc: Delete an error message for a failed memory allocation
-      s5p-mfc: Improve a size determination in s5p_mfc_alloc_memdev()
-      s5p-mfc: Adjust a null pointer check in four functions
-
- .../devicetree/bindings/media/exynos5-gsc.txt |   9 +-
- drivers/media/platform/exynos-gsc/gsc-core.c  | 127 ++++++++++++++++-
- drivers/media/platform/s5p-mfc/s5p_mfc.c      |  14 +-
- 3 files changed, 134 insertions(+), 16 deletions(-)
-
-
+diff --git a/drivers/media/radio/radio-raremono.c b/drivers/media/radio/radio-raremono.c
+index 3c0a22a54113..70a2c86774ce 100644
+--- a/drivers/media/radio/radio-raremono.c
++++ b/drivers/media/radio/radio-raremono.c
+@@ -254,7 +254,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 				const struct v4l2_frequency *f)
+ {
+ 	struct raremono_device *radio = video_drvdata(file);
+-	u32 freq = f->frequency;
++	u32 freq;
+ 	unsigned band;
+ 
+ 	if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
 -- 
-Regards,
-Sylwester
+2.14.1
