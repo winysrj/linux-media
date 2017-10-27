@@ -1,164 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:56949 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751994AbdJKLzs (ORCPT
+Received: from f5out.microchip.com ([198.175.253.81]:51449 "EHLO
+        DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932407AbdJ0DaK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Oct 2017 07:55:48 -0400
-Date: Wed, 11 Oct 2017 13:55:44 +0200
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Cyprian Wronka <cwronka@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>, nm@ti.com
-Subject: Re: [PATCH 2/2] v4l: cadence: Add Cadence MIPI-CSI2 TX driver
-Message-ID: <20171011115544.w7eswyhke6dskgbb@flea>
-References: <20170922114703.30511-1-maxime.ripard@free-electrons.com>
- <20170922114703.30511-3-maxime.ripard@free-electrons.com>
- <20170929182125.GB3163@ti.com>
+        Thu, 26 Oct 2017 23:30:10 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        "Jonathan Corbet" <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v5 1/5] media: atmel-isc: Add spin lock for clock enable ops
+Date: Fri, 27 Oct 2017 11:21:28 +0800
+Message-ID: <20171027032132.16418-2-wenyou.yang@microchip.com>
+In-Reply-To: <20171027032132.16418-1-wenyou.yang@microchip.com>
+References: <20171027032132.16418-1-wenyou.yang@microchip.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="qcs55slvibc6hjsc"
-Content-Disposition: inline
-In-Reply-To: <20170929182125.GB3163@ti.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add the spin lock for the clock enable and disable operations.
 
---qcs55slvibc6hjsc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+---
 
-Hi Benoit,
+Changes in v5: None
+Changes in v4: None
+Changes in v3:
+ - Fix the wrong used spinlock.
+ - s/_/- on the subject.
 
-On Fri, Sep 29, 2017 at 06:21:25PM +0000, Benoit Parrot wrote:
-> > +struct csi2tx_priv {
-> > +	struct device			*dev;
-> > +	atomic_t			count;
-> > +
-> > +	void __iomem			*base;
-> > +
-> > +	struct clk			*esc_clk;
-> > +	struct clk			*p_clk;
-> > +	struct clk			*pixel_clk[CSI2TX_STREAMS_MAX];
-> > +
-> > +	struct v4l2_subdev		subdev;
-> > +	struct media_pad		pads[CSI2TX_PAD_MAX];
-> > +	struct v4l2_mbus_framefmt	pad_fmts[CSI2TX_PAD_MAX];
-> > +
-> > +	bool				has_internal_dphy;
->=20
-> I assume dphy support is for a subsequent revision?
+Changes in v2: None
 
-Yes, the situation is similar to the CSI2-RX driver.
+ drivers/media/platform/atmel/atmel-isc.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-> > +		/*
-> > +		 * We use the stream ID there, but it's wrong.
-> > +		 *
-> > +		 * A stream could very well send a data type that is
-> > +		 * not equal to its stream ID. We need to find a
-> > +		 * proper way to address it.
-> > +		 */
->=20
-> I don't quite get the above comment, from the code below it looks like
-> you are using the current fmt as a source to provide the correct DT.
-> Am I missing soemthing?
-
-Yes, so far the datatype is inferred from the format set. Is there
-anything wrong with that?
-
->=20
-> > +		writel(CSI2TX_DT_CFG_DT(fmt->dt),
-> > +		       csi2tx->base + CSI2TX_DT_CFG_REG(stream));
-> > +
-> > +		writel(CSI2TX_DT_FORMAT_BYTES_PER_LINE(mfmt->width * fmt->bpp) |
-> > +		       CSI2TX_DT_FORMAT_MAX_LINE_NUM(mfmt->height + 1),
-> > +		       csi2tx->base + CSI2TX_DT_FORMAT_REG(stream));
-> > +
-> > +		/*
-> > +		 * TODO: This needs to be calculated based on the
-> > +		 * clock rate.
-> > +		 */
-> > +		writel(CSI2TX_STREAM_IF_CFG_FILL_LEVEL(4),
-> > +		       csi2tx->base + CSI2TX_STREAM_IF_CFG_REG(stream));
-> > +	}
-> > +
-> > +	/* Disable the configuration mode */
-> > +	writel(0, csi2tx->base + CSI2TX_CONFIG_REG);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int csi2tx_stop(struct csi2tx_priv *csi2tx)
-> > +{
-> > +	/*
-> > +	 * Let the last user turn off the lights
-> > +	 */
-> > +	if (!atomic_dec_and_test(&csi2tx->count))
-> > +		return 0;
-> > +
-> > +	/* FIXME: Disable the IP here */
-> > +
-> > +	return 0;
-> > +}
->=20
-> At this point both _start() and _stop() only return 0.
-> Are there any cases where any of these might fail to "start" or "stop"?
-
-None that I know of.
-
-There might be some errors with the video stream itself, but that
-can be detected after the block has been enabled.
-
-> > +	csi2tx->lanes =3D csi2tx_get_num_lanes(&pdev->dev);
-> > +	if (csi2tx->lanes < 0) {
-> > +		dev_err(&pdev->dev, "Invalid number of lanes, bailing out.\n");
-> > +		ret =3D csi2tx->lanes;
-> > +		goto err_free_priv;
-> > +	}
->=20
-> csi2tx->lanes is unsigned so it will never be negative.
-
-Ah, right, I'll change that.
-
-Thanks!
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---qcs55slvibc6hjsc
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJZ3gbAAAoJEBx+YmzsjxAg6gwP/1UIcPeIKkTMuiGKIJ69FZfv
-bVTujMQd1GfxVLqev+0RW3iVw+XUjpf9GHSVWv61ip1dSWIwd4N0mNzdHyJkAbrF
-NWsE0II7OYoCMqs2uYDVnQM/C/8R22s0Q6laVKPzyEnXRF6RBYiRjIGlFac71Iik
-AKRWy/fxu653ZfPvQ9PbLQVuoMhM8/kxgRqdNqtG8Lo83t53Rx7xcTntJ1p3azLC
-7zL/+g+06kOct1a2kfd8L5CCET2C/GRwnwcNdeWEUg8ZwVHxnRidMjqDDvdIfYvY
-MbORToUsKs/ri/82v6ZZKmpTweMngs+FhhANnaO9jg5nLV0yxULY31/pZujmr6Ds
-k7rZD4XcKWYN4yied6JrWDF2dfurTN0noaC8xJcRYoupHWEPqlY40zJxbOmjUl1l
-AX35HENCqCUfntQiEfH5gGTyjXb5ZvLnLjdWz/Gp3KONvNelMn6fUULL20JdScg0
-n4HB64jgc3NB5JUmXzkL6rW8HcfS+/daIvarTf0lQSxQNvCLmYOLTZsqIKKiyBvB
-h7+dGVLAot+KqsLq04hezKAOEUzaDewhYGsvjlAgeJ+ae3oj1GnJBP/YRrPDmEcw
-1tpuFyS9QklgZ3Zc20jRPiUiGKsZieQFKftFm9vCKsYKSajFJDGdOOdUJ27i+bHE
-FwdnVpQwU1r1b7r+s/Yg
-=w8B1
------END PGP SIGNATURE-----
-
---qcs55slvibc6hjsc--
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index 2f8e345d297e..991f962b7023 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -65,6 +65,7 @@ struct isc_clk {
+ 	struct clk_hw   hw;
+ 	struct clk      *clk;
+ 	struct regmap   *regmap;
++	spinlock_t	lock;
+ 	u8		id;
+ 	u8		parent_id;
+ 	u32		div;
+@@ -312,26 +313,37 @@ static int isc_clk_enable(struct clk_hw *hw)
+ 	struct isc_clk *isc_clk = to_isc_clk(hw);
+ 	u32 id = isc_clk->id;
+ 	struct regmap *regmap = isc_clk->regmap;
++	unsigned long flags;
++	unsigned int status;
+ 
+ 	dev_dbg(isc_clk->dev, "ISC CLK: %s, div = %d, parent id = %d\n",
+ 		__func__, isc_clk->div, isc_clk->parent_id);
+ 
++	spin_lock_irqsave(&isc_clk->lock, flags);
+ 	regmap_update_bits(regmap, ISC_CLKCFG,
+ 			   ISC_CLKCFG_DIV_MASK(id) | ISC_CLKCFG_SEL_MASK(id),
+ 			   (isc_clk->div << ISC_CLKCFG_DIV_SHIFT(id)) |
+ 			   (isc_clk->parent_id << ISC_CLKCFG_SEL_SHIFT(id)));
+ 
+ 	regmap_write(regmap, ISC_CLKEN, ISC_CLK(id));
++	spin_unlock_irqrestore(&isc_clk->lock, flags);
+ 
+-	return 0;
++	regmap_read(regmap, ISC_CLKSR, &status);
++	if (status & ISC_CLK(id))
++		return 0;
++	else
++		return -EINVAL;
+ }
+ 
+ static void isc_clk_disable(struct clk_hw *hw)
+ {
+ 	struct isc_clk *isc_clk = to_isc_clk(hw);
+ 	u32 id = isc_clk->id;
++	unsigned long flags;
+ 
++	spin_lock_irqsave(&isc_clk->lock, flags);
+ 	regmap_write(isc_clk->regmap, ISC_CLKDIS, ISC_CLK(id));
++	spin_unlock_irqrestore(&isc_clk->lock, flags);
+ }
+ 
+ static int isc_clk_is_enabled(struct clk_hw *hw)
+@@ -492,6 +504,7 @@ static int isc_clk_register(struct isc_device *isc, unsigned int id)
+ 	isc_clk->regmap		= regmap;
+ 	isc_clk->id		= id;
+ 	isc_clk->dev		= isc->dev;
++	spin_lock_init(&isc_clk->lock);
+ 
+ 	isc_clk->clk = clk_register(isc->dev, &isc_clk->hw);
+ 	if (IS_ERR(isc_clk->clk)) {
+-- 
+2.13.0
