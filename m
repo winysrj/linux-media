@@ -1,73 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:60001 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751216AbdJ2Nh0 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52976 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752507AbdJ0KxP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Oct 2017 09:37:26 -0400
-Subject: Re: [PATCH] [media] bdisp: remove redundant assignment to pix
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Fabien Dessenne <fabien.dessenne@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <20171029132105.6444-1-colin.king@canonical.com>
- <alpine.DEB.2.20.1710292129380.2004@hadrien>
-From: Colin Ian King <colin.king@canonical.com>
-Message-ID: <7324ffb7-56d9-0f3a-46a8-c5b4be0b452b@canonical.com>
-Date: Sun, 29 Oct 2017 13:37:23 +0000
+        Fri, 27 Oct 2017 06:53:15 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        pavel@ucw.cz, sre@kernel.org
+Subject: [PATCH v16.1 19/32] v4l: async: Ensure only unique fwnodes are registered to notifiers
+Date: Fri, 27 Oct 2017 13:53:09 +0300
+Message-Id: <20171027105309.8766-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171026075342.5760-20-sakari.ailus@linux.intel.com>
+References: <20171026075342.5760-20-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.20.1710292129380.2004@hadrien>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29/10/17 13:30, Julia Lawall wrote:
-> 
-> 
-> On Sun, 29 Oct 2017, Colin King wrote:
-> 
->> From: Colin Ian King <colin.king@canonical.com>
->>
->> Pointer pix is being initialized to a value and a little later
->> being assigned the same value again. Remove the redundant second
->> duplicate assignment. Cleans up the clang warning:
->>
->> drivers/media/platform/sti/bdisp/bdisp-v4l2.c:726:26: warning: Value
->> stored to 'pix' during its initialization is never read
->>
->> Signed-off-by: Colin Ian King <colin.king@canonical.com>
->> ---
->>  drivers/media/platform/sti/bdisp/bdisp-v4l2.c | 1 -
->>  1 file changed, 1 deletion(-)
->>
->> diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
->> index 939da6da7644..14e99aeae140 100644
->> --- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
->> +++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
->> @@ -731,7 +731,6 @@ static int bdisp_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
->>  		return PTR_ERR(frame);
->>  	}
->>
->> -	pix = &f->fmt.pix;
-> 
-> Why not keep this one and drop the first one?  Maybe it would be nice to
-> keep all the initializations related to pix together?
+While registering a notifier, check that each newly added fwnode is
+unique, and return an error if it is not. Also check that a newly added
+notifier does not have the same fwnodes twice.
 
-Good point. Will send a V2.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 89 ++++++++++++++++++++++++++++++++----
+ 1 file changed, 81 insertions(+), 8 deletions(-)
 
-> 
-> julia
-> 
->>  	pix->width = frame->width;
->>  	pix->height = frame->height;
->>  	pix->pixelformat = frame->fmt->pixelformat;
->> --
->> 2.14.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index ed539c4fd5dc..a33a68e5417b 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -308,8 +308,71 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+ 	notifier->parent = NULL;
+ }
+ 
++/* See if an fwnode can be found in a notifier's lists. */
++static bool __v4l2_async_notifier_fwnode_has_async_subdev(
++	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
++{
++	struct v4l2_async_subdev *asd;
++	struct v4l2_subdev *sd;
++
++	list_for_each_entry(asd, &notifier->waiting, list) {
++		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
++			continue;
++
++		if (asd->match.fwnode.fwnode == fwnode)
++			return true;
++	}
++
++	list_for_each_entry(sd, &notifier->done, async_list) {
++		if (WARN_ON(!sd->asd))
++			continue;
++
++		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
++			continue;
++
++		if (sd->asd->match.fwnode.fwnode == fwnode)
++			return true;
++	}
++
++	return false;
++}
++
++/*
++ * Find out whether an async sub-device was set up for an fwnode already or
++ * whether it exists in a given notifier before @this_index.
++ */
++static bool v4l2_async_notifier_fwnode_has_async_subdev(
++	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
++	unsigned int this_index)
++{
++	unsigned int j;
++
++	lockdep_assert_held(&list_lock);
++
++	/* Check that an fwnode is not being added more than once. */
++	for (j = 0; j < this_index; j++) {
++		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
++		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
++
++		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
++		    asd->match.fwnode.fwnode ==
++		    other_asd->match.fwnode.fwnode)
++			return true;
++	}
++
++	/* Check than an fwnode did not exist in other notifiers. */
++	list_for_each_entry(notifier, &notifier_list, list)
++		if (__v4l2_async_notifier_fwnode_has_async_subdev(
++			    notifier, fwnode))
++			return true;
++
++	return false;
++}
++
+ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ {
++	struct device *dev =
++		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
+ 	struct v4l2_async_subdev *asd;
+ 	int ret;
+ 	int i;
+@@ -320,6 +383,8 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 	INIT_LIST_HEAD(&notifier->waiting);
+ 	INIT_LIST_HEAD(&notifier->done);
+ 
++	mutex_lock(&list_lock);
++
+ 	for (i = 0; i < notifier->num_subdevs; i++) {
+ 		asd = notifier->subdevs[i];
+ 
+@@ -327,33 +392,41 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 		case V4L2_ASYNC_MATCH_CUSTOM:
+ 		case V4L2_ASYNC_MATCH_DEVNAME:
+ 		case V4L2_ASYNC_MATCH_I2C:
++			break;
+ 		case V4L2_ASYNC_MATCH_FWNODE:
++			if (v4l2_async_notifier_fwnode_has_async_subdev(
++				    notifier, asd->match.fwnode.fwnode, i)) {
++				dev_err(dev,
++					"fwnode has already been registered or in notifier's subdev list\n");
++				ret = -EEXIST;
++				goto out_unlock;
++			}
+ 			break;
+ 		default:
+-			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+-				"Invalid match type %u on %p\n",
++			dev_err(dev, "Invalid match type %u on %p\n",
+ 				asd->match_type, asd);
+-			return -EINVAL;
++			ret = -EINVAL;
++			goto out_unlock;
+ 		}
+ 		list_add_tail(&asd->list, &notifier->waiting);
+ 	}
+ 
+-	mutex_lock(&list_lock);
+-
+ 	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+-	if (ret)
++	if (ret < 0)
+ 		goto err_unbind;
+ 
+ 	ret = v4l2_async_notifier_try_complete(notifier);
+-	if (ret)
++	if (ret < 0)
+ 		goto err_unbind;
++	ret = 0;
+ 
+ 	/* Keep also completed notifiers on the list */
+ 	list_add(&notifier->list, &notifier_list);
+ 
++out_unlock:
+ 	mutex_unlock(&list_lock);
+ 
+-	return 0;
++	return ret;
+ 
+ err_unbind:
+ 	/*
+-- 
+2.11.0
