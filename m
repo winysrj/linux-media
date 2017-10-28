@@ -1,78 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:53058 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751065AbdJBIl6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Oct 2017 04:41:58 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: David Laight <David.Laight@aculab.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Kees Cook <keescook@chromium.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "linux-media @ vger . kernel . org" <linux-media@vger.kernel.org>,
-        "linux-kernel @ vger . kernel . org" <linux-kernel@vger.kernel.org>,
-        "kasan-dev @ googlegroups . com" <kasan-dev@googlegroups.com>,
-        "linux-kbuild @ vger . kernel . org" <linux-kbuild@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] string.h: work around for increased stack usage
-Date: Mon,  2 Oct 2017 10:40:55 +0200
-Message-Id: <20171002084119.3504771-1-arnd@arndb.de>
-In-Reply-To: <CAK8P3a0WtHjvo6tOp79U4gKjLSRmVCAmjYU_xTVJfBL1Qe-hdQ@mail.gmail.com>
-References: <CAK8P3a0WtHjvo6tOp79U4gKjLSRmVCAmjYU_xTVJfBL1Qe-hdQ@mail.gmail.com>
+Received: from smtp.220.in.ua ([89.184.67.205]:42441 "EHLO smtp.220.in.ua"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751269AbdJ1Nih (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 28 Oct 2017 09:38:37 -0400
+From: Oleh Kravchenko <oleg@kaa.org.ua>
+To: linux-media@vger.kernel.org
+Cc: Oleh Kravchenko <oleg@kaa.org.ua>
+Subject: [PATCH 2/5] [media] Add Astrometa T2hybrid keymap module
+Date: Sat, 28 Oct 2017 16:38:17 +0300
+Message-Id: <20171028133820.18246-2-oleg@kaa.org.ua>
+In-Reply-To: <20171028133820.18246-1-oleg@kaa.org.ua>
+References: <20171028133820.18246-1-oleg@kaa.org.ua>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The hardened strlen() function causes rather large stack usage
-in at least one file in the kernel when CONFIG_KASAN is enabled:
+Add the keymap module for Astrometa T2hybrid remote control commands.
 
-drivers/media/usb/em28xx/em28xx-dvb.c: In function 'em28xx_dvb_init':
-drivers/media/usb/em28xx/em28xx-dvb.c:2062:1: error: the frame size of 3256 bytes is larger than 204 bytes [-Werror=frame-larger-than=]
-
-Analyzing this problem led to the discovery that gcc fails to
-merge the stack slots for the i2c_board_info[] structures after
-we strlcpy() into them, due to the 'noreturn' attribute on the
-source string length check.
-
-The compiler behavior should get fixed in gcc-8, but for users
-of existing gcc versions, we can work around it using an empty
-inline assembly statement before the call to fortify_panic().
-
-The workaround is unfortunately very ugly, and I tried my best
-to limit it being applied to affected versions of gcc when
-KASAN is used. Alternative suggestions welcome.
-
-Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82365
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
 ---
- include/linux/string.h | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/media/rc/keymaps/Makefile                |  1 +
+ drivers/media/rc/keymaps/rc-astrometa-t2hybrid.c | 70 ++++++++++++++++++++++++
+ include/media/rc-map.h                           |  1 +
+ 3 files changed, 72 insertions(+)
+ create mode 100644 drivers/media/rc/keymaps/rc-astrometa-t2hybrid.c
 
-diff --git a/include/linux/string.h b/include/linux/string.h
-index c7a1132cdc93..1bf5ecdf8e01 100644
---- a/include/linux/string.h
-+++ b/include/linux/string.h
-@@ -228,6 +228,16 @@ static inline const char *kbasename(const char *path)
- #define __RENAME(x) __asm__(#x)
- 
- void fortify_panic(const char *name) __noreturn __cold;
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index 2945f99907b5..530307c15d84 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -2,6 +2,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-alink-dtu-m.o \
+ 			rc-anysee.o \
+ 			rc-apac-viewcomp.o \
++			rc-astrometa-t2hybrid.o \
+ 			rc-asus-pc39.o \
+ 			rc-asus-ps3-100.o \
+ 			rc-ati-tv-wonder-hd-600.o \
+diff --git a/drivers/media/rc/keymaps/rc-astrometa-t2hybrid.c b/drivers/media/rc/keymaps/rc-astrometa-t2hybrid.c
+new file mode 100644
+index 000000000000..c3efece21733
+--- /dev/null
++++ b/drivers/media/rc/keymaps/rc-astrometa-t2hybrid.c
+@@ -0,0 +1,70 @@
++/*
++ * Keytable for the Astrometa T2hybrid remote controller
++ *
++ * Copyright (C) 2017 Oleh Kravchenko <oleg@kaa.org.ua>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ */
 +
-+/* work around GCC PR82365 */
-+#if defined(CONFIG_KASAN) && !defined(__clang__) && GCC_VERSION <= 80000
-+#define fortify_panic(x) \
-+	do { \
-+		asm volatile(""); \
-+		fortify_panic(x); \
-+	} while (0)
-+#endif
++#include <media/rc-map.h>
++#include <linux/module.h>
 +
- void __read_overflow(void) __compiletime_error("detected read beyond size of object passed as 1st parameter");
- void __read_overflow2(void) __compiletime_error("detected read beyond size of object passed as 2nd parameter");
- void __read_overflow3(void) __compiletime_error("detected read beyond size of object passed as 3rd parameter");
++static struct rc_map_table t2hybrid[] = {
++	{ 0x4d, KEY_POWER2 },
++	{ 0x54, KEY_VIDEO }, /* Source */
++	{ 0x16, KEY_MUTE },
++
++	{ 0x4c, KEY_RECORD },
++	{ 0x05, KEY_CHANNELUP },
++	{ 0x0c, KEY_TIME}, /* Timeshift */
++
++	{ 0x0a, KEY_VOLUMEDOWN },
++	{ 0x40, KEY_ZOOM }, /* Fullscreen */
++	{ 0x1e, KEY_VOLUMEUP },
++
++	{ 0x12, KEY_0 },
++	{ 0x02, KEY_CHANNELDOWN },
++	{ 0x1c, KEY_AGAIN }, /* Recall */
++
++	{ 0x09, KEY_1 },
++	{ 0x1d, KEY_2 },
++	{ 0x1f, KEY_3 },
++
++	{ 0x0d, KEY_4 },
++	{ 0x19, KEY_5 },
++	{ 0x1b, KEY_6 },
++
++	{ 0x11, KEY_7 },
++	{ 0x15, KEY_8 },
++	{ 0x17, KEY_9 },
++};
++
++static struct rc_map_list t2hybrid_map = {
++	.map = {
++		.scan    = t2hybrid,
++		.size    = ARRAY_SIZE(t2hybrid),
++		.rc_type = RC_TYPE_NEC,
++		.name    = RC_MAP_ASTROMETA_T2HYBRID,
++	}
++};
++
++static int __init init_rc_map_t2hybrid(void)
++{
++	return rc_map_register(&t2hybrid_map);
++}
++
++static void __exit exit_rc_map_t2hybrid(void)
++{
++	rc_map_unregister(&t2hybrid_map);
++}
++
++module_init(init_rc_map_t2hybrid)
++module_exit(exit_rc_map_t2hybrid)
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Oleh Kravchenko <oleg@kaa.org.ua>");
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 1a815a572fa1..4e7a5c8f4538 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -202,6 +202,7 @@ struct rc_map *rc_map_get(const char *name);
+ #define RC_MAP_ALINK_DTU_M               "rc-alink-dtu-m"
+ #define RC_MAP_ANYSEE                    "rc-anysee"
+ #define RC_MAP_APAC_VIEWCOMP             "rc-apac-viewcomp"
++#define RC_MAP_ASTROMETA_T2HYBRID        "rc-astrometa-t2hybrid"
+ #define RC_MAP_ASUS_PC39                 "rc-asus-pc39"
+ #define RC_MAP_ASUS_PS3_100              "rc-asus-ps3-100"
+ #define RC_MAP_ATI_TV_WONDER_HD_600      "rc-ati-tv-wonder-hd-600"
 -- 
-2.9.0
+2.13.6
