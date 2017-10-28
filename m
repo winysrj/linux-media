@@ -1,44 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39434 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752049AbdJZHzK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Oct 2017 03:55:10 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from smtp.220.in.ua ([89.184.67.205]:42419 "EHLO smtp.220.in.ua"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751230AbdJ1Nib (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 28 Oct 2017 09:38:31 -0400
+From: Oleh Kravchenko <oleg@kaa.org.ua>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH v16 30/32] ov5670: Add support for flash and lens devices
-Date: Thu, 26 Oct 2017 10:53:40 +0300
-Message-Id: <20171026075342.5760-31-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+Cc: Oleh Kravchenko <oleg@kaa.org.ua>
+Subject: [PATCH 1/5] [media] mceusb: add support for 1b80:d3b2
+Date: Sat, 28 Oct 2017 16:38:16 +0300
+Message-Id: <20171028133820.18246-1-oleg@kaa.org.ua>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse async sub-devices related to the sensor by switching the async
-sub-device registration function.
+Evromedia USB Full Hybrid Full HD (1b80:d3b2) has IR on Interface 0.
+Remote controller supplied with this tuner fully compatible
+with RC_MAP_MSI_DIGIVOX_III.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
 ---
- drivers/media/i2c/ov5670.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/rc/mceusb.c                 | 9 +++++++++
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 1 -
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
-index a65469f88e36..9f9196568eb8 100644
---- a/drivers/media/i2c/ov5670.c
-+++ b/drivers/media/i2c/ov5670.c
-@@ -2529,7 +2529,7 @@ static int ov5670_probe(struct i2c_client *client)
- 	}
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index eb130694bbb8..a12941d2f4f0 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -188,6 +188,7 @@ enum mceusb_model_type {
+ 	TIVO_KIT,
+ 	MCE_GEN2_NO_TX,
+ 	HAUPPAUGE_CX_HYBRID_TV,
++	EVROMEDIA_FULL_HYBRID_FULLHD,
+ };
  
- 	/* Async register for subdev */
--	ret = v4l2_async_register_subdev(&ov5670->sd);
-+	ret = v4l2_async_register_subdev_sensor_common(&ov5670->sd);
- 	if (ret < 0) {
- 		err_msg = "v4l2_async_register_subdev() error";
- 		goto error_entity_cleanup;
+ struct mceusb_model {
+@@ -247,6 +248,11 @@ static const struct mceusb_model mceusb_model[] = {
+ 		.mce_gen2 = 1,
+ 		.rc_map = RC_MAP_TIVO,
+ 	},
++	[EVROMEDIA_FULL_HYBRID_FULLHD] = {
++		.name = "Evromedia USB Full Hybrid Full HD",
++		.no_tx = 1,
++		.rc_map = RC_MAP_MSI_DIGIVOX_III,
++	},
+ };
+ 
+ static struct usb_device_id mceusb_dev_table[] = {
+@@ -398,6 +404,9 @@ static struct usb_device_id mceusb_dev_table[] = {
+ 	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
+ 	/* Adaptec / HP eHome Receiver */
+ 	{ USB_DEVICE(VENDOR_ADAPTEC, 0x0094) },
++	/* Evromedia USB Full Hybrid Full HD */
++	{ USB_DEVICE(0x1b80, 0xd3b2),
++	  .driver_info = EVROMEDIA_FULL_HYBRID_FULLHD },
+ 
+ 	/* Terminating entry */
+ 	{ }
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index e0daa9b6c2a0..f327ae73c1f0 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -847,7 +847,6 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.demod_addr = 0x64, /* 0xc8 >> 1 */
+ 		.demod_i2c_master = I2C_1_MUX_3,
+ 		.has_dvb = 1,
+-		.ir_i2c_master = I2C_0,
+ 		.norm = V4L2_STD_PAL,
+ 		.output_mode = OUT_MODE_VIP11,
+ 		.tuner_addr = 0x60, /* 0xc0 >> 1 */
 -- 
-2.11.0
+2.13.6
