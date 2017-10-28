@@ -1,160 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40308 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751369AbdJDVu6 (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:46670 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751821AbdJ1UlQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 17:50:58 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v15 17/32] v4l: async: Prepare for async sub-device notifiers
-Date: Thu,  5 Oct 2017 00:50:36 +0300
-Message-Id: <20171004215051.13385-18-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+        Sat, 28 Oct 2017 16:41:16 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 8/9] media: staging/imx: reorder function prototypes
+Date: Sat, 28 Oct 2017 13:36:48 -0700
+Message-Id: <1509223009-6392-9-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1509223009-6392-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1509223009-6392-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Refactor the V4L2 async framework a little in preparation for async
-sub-device notifiers. This avoids making some structural changes in the
-patch actually implementing sub-device notifiers, making that patch easier
-to review.
+Re-order some of the function prototypes in imx-media.h to
+group them correctly by source file. No functional changes.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 70 ++++++++++++++++++++++++++----------
- 1 file changed, 51 insertions(+), 19 deletions(-)
+ drivers/staging/media/imx/imx-media.h | 21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 1b536d68cedf..1812310746d9 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -125,12 +125,13 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
- }
+diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+index 79d7958..39b09fc 100644
+--- a/drivers/staging/media/imx/imx-media.h
++++ b/drivers/staging/media/imx/imx-media.h
+@@ -157,6 +157,7 @@ enum codespace_sel {
+ 	CS_SEL_ANY,
+ };
  
- static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-+				   struct v4l2_device *v4l2_dev,
- 				   struct v4l2_subdev *sd,
- 				   struct v4l2_async_subdev *asd)
- {
- 	int ret;
- 
--	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
-+	ret = v4l2_device_register_subdev(v4l2_dev, sd);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -151,6 +152,31 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 	return 0;
- }
- 
-+/* Test all async sub-devices in a notifier for a match. */
-+static int v4l2_async_notifier_try_all_subdevs(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
-+	struct v4l2_subdev *sd, *tmp;
-+
-+	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-+		struct v4l2_async_subdev *asd;
-+		int ret;
-+
-+		asd = v4l2_async_find_match(notifier, sd);
-+		if (!asd)
-+			continue;
-+
-+		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
-+		if (ret < 0) {
-+			mutex_unlock(&list_lock);
-+			return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static void v4l2_async_cleanup(struct v4l2_subdev *sd)
- {
- 	v4l2_device_unregister_subdev(sd);
-@@ -172,18 +198,15 @@ static void v4l2_async_notifier_unbind_all_subdevs(
- 	}
- }
- 
--int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
--				 struct v4l2_async_notifier *notifier)
-+static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- {
--	struct v4l2_subdev *sd, *tmp;
- 	struct v4l2_async_subdev *asd;
- 	int ret;
- 	int i;
- 
--	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-+	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
- 		return -EINVAL;
- 
--	notifier->v4l2_dev = v4l2_dev;
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
- 
-@@ -216,18 +239,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 
- 	mutex_lock(&list_lock);
- 
--	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
--		int ret;
++/* imx-media-utils.c */
+ const struct imx_media_pixfmt *
+ imx_media_find_format(u32 fourcc, enum codespace_sel cs_sel, bool allow_bayer);
+ int imx_media_enum_format(u32 *fourcc, u32 index, enum codespace_sel cs_sel);
+@@ -181,17 +182,8 @@ int imx_media_mbus_fmt_to_ipu_image(struct ipu_image *image,
+ 				    struct v4l2_mbus_framefmt *mbus);
+ int imx_media_ipu_image_to_mbus_fmt(struct v4l2_mbus_framefmt *mbus,
+ 				    struct ipu_image *image);
+-int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+-			       struct fwnode_handle *fwnode,
+-			       struct platform_device *pdev);
+ void imx_media_grp_id_to_sd_name(char *sd_name, int sz,
+ 				 u32 grp_id, int ipu_id);
 -
--		asd = v4l2_async_find_match(notifier, sd);
--		if (!asd)
--			continue;
+-int imx_media_add_internal_subdevs(struct imx_media_dev *imxmd);
+-int imx_media_create_internal_links(struct imx_media_dev *imxmd,
+-				    struct v4l2_subdev *sd);
+-void imx_media_remove_internal_subdevs(struct imx_media_dev *imxmd);
 -
--		ret = v4l2_async_match_notify(notifier, sd, asd);
--		if (ret < 0) {
--			mutex_unlock(&list_lock);
--			return ret;
--		}
-+	ret = v4l2_async_notifier_try_all_subdevs(notifier);
-+	if (ret) {
-+		mutex_unlock(&list_lock);
-+		return ret;
- 	}
+ struct v4l2_subdev *
+ imx_media_find_subdev_by_fwnode(struct imx_media_dev *imxmd,
+ 				struct fwnode_handle *fwnode);
+@@ -227,6 +219,11 @@ int imx_media_pipeline_set_stream(struct imx_media_dev *imxmd,
+ 				  struct media_entity *entity,
+ 				  bool on);
  
- 	if (list_empty(&notifier->waiting)) {
-@@ -250,6 +265,22 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 
- 	return ret;
- }
++/* imx-media-dev.c */
++int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
++			       struct fwnode_handle *fwnode,
++			       struct platform_device *pdev);
 +
-+int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-+				 struct v4l2_async_notifier *notifier)
-+{
-+	int ret;
-+	if (WARN_ON(!v4l2_dev))
-+		return -EINVAL;
-+
-+	notifier->v4l2_dev = v4l2_dev;
-+
-+	ret = __v4l2_async_notifier_register(notifier);
-+	if (ret)
-+		notifier->v4l2_dev = NULL;
-+
-+	return ret;
-+}
- EXPORT_SYMBOL(v4l2_async_notifier_register);
+ /* imx-media-fim.c */
+ struct imx_media_fim;
+ void imx_media_fim_eof_monitor(struct imx_media_fim *fim, struct timespec *ts);
+@@ -237,6 +234,12 @@ int imx_media_fim_add_controls(struct imx_media_fim *fim);
+ struct imx_media_fim *imx_media_fim_init(struct v4l2_subdev *sd);
+ void imx_media_fim_free(struct imx_media_fim *fim);
  
- void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-@@ -324,7 +355,8 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 		if (!asd)
- 			continue;
- 
--		ret = v4l2_async_match_notify(notifier, sd, asd);
-+		ret = v4l2_async_match_notify(notifier, notifier->v4l2_dev, sd,
-+					      asd);
- 		if (ret)
- 			goto err_unlock;
- 
++/* imx-media-internal-sd.c */
++int imx_media_add_internal_subdevs(struct imx_media_dev *imxmd);
++int imx_media_create_internal_links(struct imx_media_dev *imxmd,
++				    struct v4l2_subdev *sd);
++void imx_media_remove_internal_subdevs(struct imx_media_dev *imxmd);
++
+ /* imx-media-of.c */
+ int imx_media_add_of_subdevs(struct imx_media_dev *dev,
+ 			     struct device_node *np);
 -- 
-2.11.0
+2.7.4
