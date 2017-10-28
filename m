@@ -1,54 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:53226 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751421AbdJYW2H (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Oct 2017 18:28:07 -0400
-MIME-Version: 1.0
-In-Reply-To: <354e3c31-e502-5ba6-d705-9d67764e78bf@osg.samsung.com>
-References: <cover.1507325072.git.shuahkh@osg.samsung.com> <354e3c31-e502-5ba6-d705-9d67764e78bf@osg.samsung.com>
-From: Marian Mihailescu <marian.mihailescu@adelaide.edu.au>
-Date: Thu, 26 Oct 2017 08:58:05 +1030
-Message-ID: <CAM3PiRzS966v=pWRq641sFF-Kg5wHc6fH524CQKusURNfcD0ew@mail.gmail.com>
-Subject: Re: [PATCH 0/2] Fix s5p-mfc lock contention in request firmware paths
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        Andrzej Hajda <a.hajda@samsung.com>, mchehab@kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Received: from smtp.220.in.ua ([89.184.67.205]:42452 "EHLO smtp.220.in.ua"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751269AbdJ1Nil (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 28 Oct 2017 09:38:41 -0400
+From: Oleh Kravchenko <oleg@kaa.org.ua>
+To: linux-media@vger.kernel.org
+Cc: Oleh Kravchenko <oleg@kaa.org.ua>
+Subject: [PATCH 4/5] Fix NTSC/PAL on Evromedia USB Full Hybrid Full HD
+Date: Sat, 28 Oct 2017 16:38:19 +0300
+Message-Id: <20171028133820.18246-4-oleg@kaa.org.ua>
+In-Reply-To: <20171028133820.18246-1-oleg@kaa.org.ua>
+References: <20171028133820.18246-1-oleg@kaa.org.ua>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
+Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
+---
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-For MFC patch, you can delete the "dev" variable since it's not being
-used anymore and results in a compile warning.
-
-- struct s5p_mfc_dev *dev = ctx->dev;
-
-Cheers,
-Marian
-
-On Thu, Oct 26, 2017 at 7:54 AM, Shuah Khan <shuahkh@osg.samsung.com> wrote:
-> On 10/06/2017 03:30 PM, Shuah Khan wrote:
->> This patch series fixes inefficiencies and lock contention in the request
->> firmware paths.
->>
->> Shuah Khan (2):
->>   media: s5p-mfc: check for firmware allocation before requesting
->>     firmware
->>   media: s5p-mfc: fix lock confection - request_firmware() once and keep
->>     state
->>
->>  drivers/media/platform/s5p-mfc/s5p_mfc.c        |  4 ++++
->>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  3 +++
->>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   | 15 ++++++++++-----
->>  3 files changed, 17 insertions(+), 5 deletions(-)
->>
->
-> Any feedback on this series?
->
-> thanks,
-> -- Shuah
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index f327ae73c1f0..fc9f09573fec 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -847,6 +847,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.demod_addr = 0x64, /* 0xc8 >> 1 */
+ 		.demod_i2c_master = I2C_1_MUX_3,
+ 		.has_dvb = 1,
++		.decoder = CX231XX_AVDECODER,
+ 		.norm = V4L2_STD_PAL,
+ 		.output_mode = OUT_MODE_VIP11,
+ 		.tuner_addr = 0x60, /* 0xc0 >> 1 */
+-- 
+2.13.6
