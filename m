@@ -1,82 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58804 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751184AbdJILPr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 07:15:47 -0400
-Date: Mon, 9 Oct 2017 14:15:45 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH 02/24] media: v4l2-flash-led-class.h: add kernel-doc to
- two ancillary funcs
-Message-ID: <20171009111545.tbkwf3n7rqxogsyh@valkosipuli.retiisi.org.uk>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
- <f7e55a81bf0e687d55ffead522f00096a3e001c5.1507544011.git.mchehab@s-opensource.com>
+Received: from smtp.220.in.ua ([89.184.67.205]:41245 "EHLO smtp.220.in.ua"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750803AbdJ1Iv4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 28 Oct 2017 04:51:56 -0400
+Subject: Re: cx231xx IR remote control protocol
+To: Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Sean Young <sean@mess.org>
+Cc: linux-media <linux-media@vger.kernel.org>
+References: <5f441db1-93eb-2a9f-25ce-022cdcfadfc1@kaa.org.ua>
+ <20171023093724.4cgcwbjpeygfb4so@gofer.mess.org>
+ <CAGoCfix8JxMTuz2ynV=NsHG9jtSqLDr0Wwcchw4Dbd0k5z0p+Q@mail.gmail.com>
+From: Oleh Kravchenko <oleg@kaa.org.ua>
+Message-ID: <8580123e-191f-b393-2829-47707a5c2233@kaa.org.ua>
+Date: Sat, 28 Oct 2017 11:51:49 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <f7e55a81bf0e687d55ffead522f00096a3e001c5.1507544011.git.mchehab@s-opensource.com>
+In-Reply-To: <CAGoCfix8JxMTuz2ynV=NsHG9jtSqLDr0Wwcchw4Dbd0k5z0p+Q@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Devin and Sean!
 
-Thanks for the patch.
+It was very easy, suddenly IR is fully supported by mceusb!
+Required only correct USB ID.
 
-On Mon, Oct 09, 2017 at 07:19:08AM -0300, Mauro Carvalho Chehab wrote:
-> There are two ancillary functions at v4l2-flash-led-class.h
-> that aren't documented.
+Thank you!
+
+On 23.10.17 16:12, Devin Heitmueller wrote:
+> Hi Oleh,
 > 
-> Document them.
+> On Mon, Oct 23, 2017 at 5:37 AM, Sean Young <sean@mess.org> wrote:
+>> Hi Oleh,
+>>
+>> On Sun, Oct 22, 2017 at 05:01:05PM +0300, Oleh Kravchenko wrote:
+>>> Hi,
+>>>
+>>> I'm trying add support remote control for tuners:
+>>> - EvroMedia Full Hybrid Full HD
+>>> - Astrometa T2hybrid
+>>>
+>>> But I'm stuck. Can anybody recognize this protocol?
+>>
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  include/media/v4l2-flash-led-class.h | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
+> Is there anything to indicate that there actually a separate IR
+> receiver on the board?  Most cx231xx devices have an MCEUSB compliant
+> IR RX/TX built into the chip, and thus they don't use a separate part.
 > 
-> diff --git a/include/media/v4l2-flash-led-class.h b/include/media/v4l2-flash-led-class.h
-> index 5c1d50f78e12..39a5daa977aa 100644
-> --- a/include/media/v4l2-flash-led-class.h
-> +++ b/include/media/v4l2-flash-led-class.h
-> @@ -91,12 +91,24 @@ struct v4l2_flash {
->  	struct v4l2_ctrl **ctrls;
->  };
->  
-> +/**
-> + * v4l2_subdev_to_v4l2_flash - Returns a &v4l2_flash from the
-
-v4l2_flash -> struct v4l2_flash ?
-
-Same below. With these,
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-> + * &struct v4l2_subdev embedded on it.
-> + *
-> + * @sd: pointer to &struct v4l2_subdev
-> + */
->  static inline struct v4l2_flash *v4l2_subdev_to_v4l2_flash(
->  							struct v4l2_subdev *sd)
->  {
->  	return container_of(sd, struct v4l2_flash, sd);
->  }
->  
-> +/**
-> + * v4l2_ctrl_to_v4l2_flash - Returns a &v4l2_flash from the
-> + * &struct v4l2_ctrl embedded on it.
-> + *
-> + * @c: pointer to &struct v4l2_ctrl
-> + */
->  static inline struct v4l2_flash *v4l2_ctrl_to_v4l2_flash(struct v4l2_ctrl *c)
->  {
->  	return container_of(c->handler, struct v4l2_flash, hdl);
+> Also, IIRC, address 0x30 is the I2C address of the onboard analog
+> frontend for the cx23102, and I suspect you're just reading the values
+> out of the AFE.  I suspect you've grabbed a dump from the initial
+> device plug-in, which would coincide with the initial register
+> programming of the AFE.
+> 
+> I suspect if you connect the device, let it device settle, *then*
+> start the I2C capture and hit a key on the remote, you'll see traffic
+> on a totally different endpoint which would be the IR traffic being
+> sent back over the IR interface/endpoint.
+> 
+> Devin
+> 
 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Best regards,
+Oleh Kravchenko
