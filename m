@@ -1,148 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:53318 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753015AbdJTVug (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 17:50:36 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
+Received: from gofer.mess.org ([88.97.38.141]:57687 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932115AbdJ2U7P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 29 Oct 2017 16:59:15 -0400
+From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC v4 04/17] WIP: [media] v4l2: add v4l2_event_queue_fh_with_cb()
-Date: Fri, 20 Oct 2017 19:49:59 -0200
-Message-Id: <20171020215012.20646-5-gustavo@padovan.org>
-In-Reply-To: <20171020215012.20646-1-gustavo@padovan.org>
-References: <20171020215012.20646-1-gustavo@padovan.org>
+Subject: [PATCH 16/28] media: lirc: merge lirc_dev_fop_ioctl and ir_lirc_ioctl
+Date: Sun, 29 Oct 2017 20:59:14 +0000
+Message-Id: <6eb64df58a9af9793eca4a86b227b7682f873bfc.1509309834.git.sean@mess.org>
+In-Reply-To: <cover.1509309834.git.sean@mess.org>
+References: <cover.1509309834.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Calculate lirc features when necessary, and add LIRC_{S,G}ET_REC_MODE
+cases to ir_lirc_ioctl.
 
-For some type of events we may require the event user in the
-kernel to run some operation when DQ_EVENT() is called.
-V4L2_EVENT_OUT_FENCE is the first user of this mechanism as it needs
-to call v4l2 core back to install a file descriptor.
+This makes lirc_dev_fop_ioctl() unnecessary since all cases are
+already handled by ir_lirc_ioctl().
 
-This is WIP, I believe we are able to come up with better ways to do it,
-but as that is not the main part of the patchset I'll keep it like
-this for now.
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/v4l2-core/v4l2-event.c | 31 +++++++++++++++++++++++++++----
- include/media/v4l2-event.h           |  7 +++++++
- 2 files changed, 34 insertions(+), 4 deletions(-)
+ drivers/media/rc/ir-lirc-codec.c | 79 ++++++++++++++++++++++++----------------
+ drivers/media/rc/lirc_dev.c      | 62 ++-----------------------------
+ include/media/lirc_dev.h         |  4 --
+ 3 files changed, 50 insertions(+), 95 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-index 313ee9d1f9ee..6274e3e174e0 100644
---- a/drivers/media/v4l2-core/v4l2-event.c
-+++ b/drivers/media/v4l2-core/v4l2-event.c
-@@ -58,6 +58,9 @@ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index 1ed69c9e64bf..f933e7617882 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -231,8 +231,54 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 	}
  
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 
-+	if (kev->prepare)
-+		kev->prepare(kev->data);
+ 	switch (cmd) {
++	case LIRC_GET_FEATURES:
++		if (dev->driver_type == RC_DRIVER_IR_RAW) {
++			val |= LIRC_CAN_REC_MODE2;
++			if (dev->rx_resolution)
++				val |= LIRC_CAN_GET_REC_RESOLUTION;
++		}
 +
- 	return 0;
- }
++		if (dev->tx_ir) {
++			val |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
++			if (dev->s_tx_mask)
++				val |= LIRC_CAN_SET_TRANSMITTER_MASK;
++			if (dev->s_tx_carrier)
++				val |= LIRC_CAN_SET_SEND_CARRIER;
++			if (dev->s_tx_duty_cycle)
++				val |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
++		}
++
++		if (dev->s_rx_carrier_range)
++			val |= LIRC_CAN_SET_REC_CARRIER |
++				LIRC_CAN_SET_REC_CARRIER_RANGE;
++
++		if (dev->s_learning_mode)
++			val |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
++
++		if (dev->s_carrier_report)
++			val |= LIRC_CAN_MEASURE_CARRIER;
++
++		if (dev->max_timeout)
++			val |= LIRC_CAN_SET_REC_TIMEOUT;
++
++		break;
  
-@@ -104,8 +107,11 @@ static struct v4l2_subscribed_event *v4l2_event_subscribed(
- 	return NULL;
- }
+ 	/* mode support */
++	case LIRC_GET_REC_MODE:
++		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
++			return -ENOTTY;
++
++		val = LIRC_MODE_MODE2;
++		break;
++
++	case LIRC_SET_REC_MODE:
++		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
++			return -ENOTTY;
++
++		if (val != LIRC_MODE_MODE2)
++			return -EINVAL;
++		return 0;
++
+ 	case LIRC_GET_SEND_MODE:
+ 		if (!dev->tx_ir)
+ 			return -ENOTTY;
+@@ -353,7 +399,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 		break;
  
--static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev,
--		const struct timespec *ts)
-+static void __v4l2_event_queue_fh_with_cb(struct v4l2_fh *fh,
-+					  const struct v4l2_event *ev,
-+					  const struct timespec *ts,
-+					  void (*prepare)(void *data),
-+					  void *data)
+ 	default:
+-		return lirc_dev_fop_ioctl(filep, cmd, arg);
++		return -ENOTTY;
+ 	}
+ 
+ 	if (_IOC_DIR(cmd) & _IOC_READ)
+@@ -380,44 +426,13 @@ int ir_lirc_register(struct rc_dev *dev)
  {
- 	struct v4l2_subscribed_event *sev;
- 	struct v4l2_kevent *kev;
-@@ -155,6 +161,8 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *e
- 	kev->event.id = ev->id;
- 	kev->event.timestamp = *ts;
- 	kev->event.sequence = fh->sequence;
-+	kev->prepare = prepare;
-+	kev->data = data;
- 	sev->in_use++;
- 	list_add_tail(&kev->list, &fh->available);
+ 	struct lirc_dev *ldev;
+ 	int rc = -ENOMEM;
+-	unsigned long features = 0;
  
-@@ -177,7 +185,7 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
- 	spin_lock_irqsave(&vdev->fh_lock, flags);
+ 	ldev = lirc_allocate_device();
+ 	if (!ldev)
+ 		return rc;
  
- 	list_for_each_entry(fh, &vdev->fh_list, list)
--		__v4l2_event_queue_fh(fh, ev, &timestamp);
-+		__v4l2_event_queue_fh_with_cb(fh, ev, &timestamp, NULL, NULL);
+-	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
+-		features |= LIRC_CAN_REC_MODE2;
+-		if (dev->rx_resolution)
+-			features |= LIRC_CAN_GET_REC_RESOLUTION;
+-	}
+-
+-	if (dev->tx_ir) {
+-		features |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
+-		if (dev->s_tx_mask)
+-			features |= LIRC_CAN_SET_TRANSMITTER_MASK;
+-		if (dev->s_tx_carrier)
+-			features |= LIRC_CAN_SET_SEND_CARRIER;
+-		if (dev->s_tx_duty_cycle)
+-			features |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
+-	}
+-
+-	if (dev->s_rx_carrier_range)
+-		features |= LIRC_CAN_SET_REC_CARRIER |
+-			LIRC_CAN_SET_REC_CARRIER_RANGE;
+-
+-	if (dev->s_learning_mode)
+-		features |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
+-
+-	if (dev->s_carrier_report)
+-		features |= LIRC_CAN_MEASURE_CARRIER;
+-
+-	if (dev->max_timeout)
+-		features |= LIRC_CAN_SET_REC_TIMEOUT;
+-
+ 	snprintf(ldev->name, sizeof(ldev->name), "ir-lirc-codec (%s)",
+ 		 dev->driver_name);
+-	ldev->features = features;
+ 	ldev->buf = NULL;
+ 	ldev->chunk_size = sizeof(int);
+ 	ldev->buffer_size = LIRCBUF_SIZE;
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 3cc95deaa84e..95058ea01e62 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -109,6 +109,7 @@ EXPORT_SYMBOL(lirc_free_device);
  
- 	spin_unlock_irqrestore(&vdev->fh_lock, flags);
- }
-@@ -191,11 +199,26 @@ void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev)
- 	ktime_get_ts(&timestamp);
- 
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
--	__v4l2_event_queue_fh(fh, ev, &timestamp);
-+	__v4l2_event_queue_fh_with_cb(fh, ev, &timestamp, NULL, NULL);
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- }
- EXPORT_SYMBOL_GPL(v4l2_event_queue_fh);
- 
-+void v4l2_event_queue_fh_with_cb(struct v4l2_fh *fh,
-+				 const struct v4l2_event *ev,
-+				 void (*prepare)(void *data), void *data)
-+{
-+	unsigned long flags;
-+	struct timespec timestamp;
-+
-+	ktime_get_ts(&timestamp);
-+
-+	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-+	__v4l2_event_queue_fh_with_cb(fh, ev, &timestamp, prepare, data);
-+	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_event_queue_fh_with_cb);
-+
- int v4l2_event_pending(struct v4l2_fh *fh)
+ int lirc_register_device(struct lirc_dev *d)
  {
- 	return fh->navailable;
-diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-index 2b794f2ad824..dc770257811e 100644
---- a/include/media/v4l2-event.h
-+++ b/include/media/v4l2-event.h
-@@ -68,11 +68,14 @@ struct video_device;
-  * @list:	List node for the v4l2_fh->available list.
-  * @sev:	Pointer to parent v4l2_subscribed_event.
-  * @event:	The event itself.
-+ * @prepare:	Callback to prepare the event only at DQ_EVENT() time.
-  */
- struct v4l2_kevent {
- 	struct list_head	list;
- 	struct v4l2_subscribed_event *sev;
- 	struct v4l2_event	event;
-+	void (*prepare)(void *data);
-+	void *data;
- };
++	struct rc_dev *rcdev = d->rdev;
+ 	int minor;
+ 	int err;
  
- /**
-@@ -160,6 +163,10 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev);
-  */
- void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev);
+@@ -146,7 +147,7 @@ int lirc_register_device(struct lirc_dev *d)
+ 	/* some safety check 8-) */
+ 	d->name[sizeof(d->name) - 1] = '\0';
  
-+void v4l2_event_queue_fh_with_cb(struct v4l2_fh *fh,
-+				 const struct v4l2_event *ev,
-+				 void (*prepare)(void *data), void *data);
-+
- /**
-  * v4l2_event_pending - Check if an event is available
+-	if (LIRC_CAN_REC(d->features)) {
++	if (rcdev->driver_type == RC_DRIVER_IR_RAW) {
+ 		err = lirc_allocate_buffer(d);
+ 		if (err)
+ 			return err;
+@@ -290,63 +291,6 @@ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait)
+ }
+ EXPORT_SYMBOL(lirc_dev_fop_poll);
+ 
+-long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+-{
+-	struct rc_dev *rcdev = file->private_data;
+-	struct lirc_dev *d = rcdev->lirc_dev;
+-	__u32 mode;
+-	int result;
+-
+-	dev_dbg(&d->dev, LOGHEAD "ioctl called (0x%x)\n",
+-		d->name, d->minor, cmd);
+-
+-	result = mutex_lock_interruptible(&d->mutex);
+-	if (result)
+-		return result;
+-
+-	if (!d->attached) {
+-		result = -ENODEV;
+-		goto out;
+-	}
+-
+-	switch (cmd) {
+-	case LIRC_GET_FEATURES:
+-		result = put_user(d->features, (__u32 __user *)arg);
+-		break;
+-	case LIRC_GET_REC_MODE:
+-		if (!LIRC_CAN_REC(d->features)) {
+-			result = -ENOTTY;
+-			break;
+-		}
+-
+-		result = put_user(LIRC_REC2MODE
+-				  (d->features & LIRC_CAN_REC_MASK),
+-				  (__u32 __user *)arg);
+-		break;
+-	case LIRC_SET_REC_MODE:
+-		if (!LIRC_CAN_REC(d->features)) {
+-			result = -ENOTTY;
+-			break;
+-		}
+-
+-		result = get_user(mode, (__u32 __user *)arg);
+-		if (!result && !(LIRC_MODE2REC(mode) & d->features))
+-			result = -EINVAL;
+-		/*
+-		 * FIXME: We should actually set the mode somehow but
+-		 * for now, lirc_serial doesn't support mode changing either
+-		 */
+-		break;
+-	default:
+-		result = -ENOTTY;
+-	}
+-
+-out:
+-	mutex_unlock(&d->mutex);
+-	return result;
+-}
+-EXPORT_SYMBOL(lirc_dev_fop_ioctl);
+-
+ ssize_t lirc_dev_fop_read(struct file *file,
+ 			  char __user *buffer,
+ 			  size_t length,
+@@ -375,7 +319,7 @@ ssize_t lirc_dev_fop_read(struct file *file,
+ 		goto out_locked;
+ 	}
+ 
+-	if (!LIRC_CAN_REC(d->features)) {
++	if (rcdev->driver_type != RC_DRIVER_IR_RAW) {
+ 		ret = -EINVAL;
+ 		goto out_locked;
+ 	}
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index dd0c078796e8..86a3cf798775 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -115,8 +115,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
   *
+  * @name:		used for logging
+  * @minor:		the minor device (/dev/lircX) number for the device
+- * @features:		lirc compatible hardware features, like LIRC_MODE_RAW,
+- *			LIRC_CAN\_\*, as defined at include/media/lirc.h.
+  * @buffer_size:	Number of FIFO buffers with @chunk_size size.
+  *			Only used if @rbuf is NULL.
+  * @chunk_size:		Size of each FIFO buffer.
+@@ -138,7 +136,6 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+ struct lirc_dev {
+ 	char name[40];
+ 	unsigned int minor;
+-	__u32 features;
+ 
+ 	unsigned int buffer_size; /* in chunks holding one code each */
+ 	unsigned int chunk_size;
+@@ -172,7 +169,6 @@ void lirc_unregister_device(struct lirc_dev *d);
+ int lirc_dev_fop_open(struct inode *inode, struct file *file);
+ int lirc_dev_fop_close(struct inode *inode, struct file *file);
+ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait);
+-long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+ ssize_t lirc_dev_fop_read(struct file *file, char __user *buffer, size_t length,
+ 			  loff_t *ppos);
+ #endif
 -- 
 2.13.6
