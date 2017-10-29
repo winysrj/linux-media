@@ -1,144 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:53551 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751318AbdJDKRo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Oct 2017 06:17:44 -0400
-Received: by mail-wm0-f48.google.com with SMTP id q132so22107483wmd.2
-        for <linux-media@vger.kernel.org>; Wed, 04 Oct 2017 03:17:43 -0700 (PDT)
-Subject: Re: [PATCH] [media] ov5645: I2C address change (fwd)
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hansverk@cisco.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <alpine.DEB.2.20.1710041103510.3139@hadrien>
-From: Todor Tomov <todor.tomov@linaro.org>
-Message-ID: <30d57dfd-f348-8a9b-2985-22f1ebd5acd9@linaro.org>
-Date: Wed, 4 Oct 2017 13:17:39 +0300
+Received: from youngberry.canonical.com ([91.189.89.112]:59869 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751269AbdJ2NVI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 29 Oct 2017 09:21:08 -0400
+From: Colin King <colin.king@canonical.com>
+To: Fabien Dessenne <fabien.dessenne@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] bdisp: remove redundant assignment to pix
+Date: Sun, 29 Oct 2017 13:21:05 +0000
+Message-Id: <20171029132105.6444-1-colin.king@canonical.com>
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.20.1710041103510.3139@hadrien>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Colin Ian King <colin.king@canonical.com>
 
-On  4.10.2017 12:06, Julia Lawall wrote:
-> Hello,
-> 
-> It seems that an unlock is missing on line 764.
+Pointer pix is being initialized to a value and a little later
+being assigned the same value again. Remove the redundant second
+duplicate assignment. Cleans up the clang warning:
 
-Yes, this is true. I'll add an unlock there. Thank you for noticing this.
+drivers/media/platform/sti/bdisp/bdisp-v4l2.c:726:26: warning: Value
+stored to 'pix' during its initialization is never read
 
-Best regards,
-Todor
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-> 
-> julia
-> 
-> ---------- Forwarded message ----------
-> Date: Wed, 4 Oct 2017 05:59:09 +0800
-> From: kbuild test robot <fengguang.wu@intel.com>
-> To: kbuild@01.org
-> Cc: Julia Lawall <julia.lawall@lip6.fr>
-> Subject: Re: [PATCH] [media] ov5645: I2C address change
-> 
-> CC: kbuild-all@01.org
-> In-Reply-To: <1506950925-13924-1-git-send-email-todor.tomov@linaro.org>
-> TO: Todor Tomov <todor.tomov@linaro.org>
-> CC: mchehab@kernel.org, sakari.ailus@linux.intel.com, hansverk@cisco.com, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-> CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-> 
-> Hi Todor,
-> 
-> [auto build test WARNING on linuxtv-media/master]
-> [also build test WARNING on v4.14-rc3 next-20170929]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Todor-Tomov/ov5645-I2C-address-change/20171003-234231
-> base:   git://linuxtv.org/media_tree.git master
-> :::::: branch date: 6 hours ago
-> :::::: commit date: 6 hours ago
-> 
->>> drivers/media/i2c/ov5645.c:806:1-7: preceding lock on line 760
-> 
-> # https://github.com/0day-ci/linux/commit/c222075023642217170e2ef95f48efef079f9bcd
-> git remote add linux-review https://github.com/0day-ci/linux
-> git remote update linux-review
-> git checkout c222075023642217170e2ef95f48efef079f9bcd
-> vim +806 drivers/media/i2c/ov5645.c
-> 
-> 9cae9722 Todor Tomov 2017-04-11  747
-> 9cae9722 Todor Tomov 2017-04-11  748  static int ov5645_s_power(struct v4l2_subdev *sd, int on)
-> 9cae9722 Todor Tomov 2017-04-11  749  {
-> 9cae9722 Todor Tomov 2017-04-11  750  	struct ov5645 *ov5645 = to_ov5645(sd);
-> 9cae9722 Todor Tomov 2017-04-11  751  	int ret = 0;
-> 9cae9722 Todor Tomov 2017-04-11  752
-> 9cae9722 Todor Tomov 2017-04-11  753  	mutex_lock(&ov5645->power_lock);
-> 9cae9722 Todor Tomov 2017-04-11  754
-> 9cae9722 Todor Tomov 2017-04-11  755  	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
-> 9cae9722 Todor Tomov 2017-04-11  756  	 * update the power state.
-> 9cae9722 Todor Tomov 2017-04-11  757  	 */
-> 9cae9722 Todor Tomov 2017-04-11  758  	if (ov5645->power_count == !on) {
-> 9cae9722 Todor Tomov 2017-04-11  759  		if (on) {
-> c2220750 Todor Tomov 2017-10-02 @760  			mutex_lock(&ov5645_lock);
-> c2220750 Todor Tomov 2017-10-02  761
-> 9cae9722 Todor Tomov 2017-04-11  762  			ret = ov5645_set_power_on(ov5645);
-> 9cae9722 Todor Tomov 2017-04-11  763  			if (ret < 0)
-> 9cae9722 Todor Tomov 2017-04-11  764  				goto exit;
-> 9cae9722 Todor Tomov 2017-04-11  765
-> c2220750 Todor Tomov 2017-10-02  766  			ret = ov5645_write_reg_to(ov5645, 0x3100,
-> c2220750 Todor Tomov 2017-10-02  767  						ov5645->i2c_client->addr, 0x78);
-> c2220750 Todor Tomov 2017-10-02  768  			if (ret < 0) {
-> c2220750 Todor Tomov 2017-10-02  769  				dev_err(ov5645->dev,
-> c2220750 Todor Tomov 2017-10-02  770  					"could not change i2c address\n");
-> c2220750 Todor Tomov 2017-10-02  771  				ov5645_set_power_off(ov5645);
-> c2220750 Todor Tomov 2017-10-02  772  				mutex_unlock(&ov5645_lock);
-> c2220750 Todor Tomov 2017-10-02  773  				goto exit;
-> c2220750 Todor Tomov 2017-10-02  774  			}
-> c2220750 Todor Tomov 2017-10-02  775
-> c2220750 Todor Tomov 2017-10-02  776  			mutex_unlock(&ov5645_lock);
-> c2220750 Todor Tomov 2017-10-02  777
-> 9cae9722 Todor Tomov 2017-04-11  778  			ret = ov5645_set_register_array(ov5645,
-> 9cae9722 Todor Tomov 2017-04-11  779  					ov5645_global_init_setting,
-> 9cae9722 Todor Tomov 2017-04-11  780  					ARRAY_SIZE(ov5645_global_init_setting));
-> 9cae9722 Todor Tomov 2017-04-11  781  			if (ret < 0) {
-> 9cae9722 Todor Tomov 2017-04-11  782  				dev_err(ov5645->dev,
-> 9cae9722 Todor Tomov 2017-04-11  783  					"could not set init registers\n");
-> 9cae9722 Todor Tomov 2017-04-11  784  				ov5645_set_power_off(ov5645);
-> 9cae9722 Todor Tomov 2017-04-11  785  				goto exit;
-> 9cae9722 Todor Tomov 2017-04-11  786  			}
-> 9cae9722 Todor Tomov 2017-04-11  787
-> 9cae9722 Todor Tomov 2017-04-11  788  			ret = ov5645_write_reg(ov5645, OV5645_SYSTEM_CTRL0,
-> 9cae9722 Todor Tomov 2017-04-11  789  					       OV5645_SYSTEM_CTRL0_STOP);
-> 9cae9722 Todor Tomov 2017-04-11  790  			if (ret < 0) {
-> 9cae9722 Todor Tomov 2017-04-11  791  				ov5645_set_power_off(ov5645);
-> 9cae9722 Todor Tomov 2017-04-11  792  				goto exit;
-> 9cae9722 Todor Tomov 2017-04-11  793  			}
-> 9cae9722 Todor Tomov 2017-04-11  794  		} else {
-> 9cae9722 Todor Tomov 2017-04-11  795  			ov5645_set_power_off(ov5645);
-> 9cae9722 Todor Tomov 2017-04-11  796  		}
-> 9cae9722 Todor Tomov 2017-04-11  797  	}
-> 9cae9722 Todor Tomov 2017-04-11  798
-> 9cae9722 Todor Tomov 2017-04-11  799  	/* Update the power count. */
-> 9cae9722 Todor Tomov 2017-04-11  800  	ov5645->power_count += on ? 1 : -1;
-> 9cae9722 Todor Tomov 2017-04-11  801  	WARN_ON(ov5645->power_count < 0);
-> 9cae9722 Todor Tomov 2017-04-11  802
-> 9cae9722 Todor Tomov 2017-04-11  803  exit:
-> 9cae9722 Todor Tomov 2017-04-11  804  	mutex_unlock(&ov5645->power_lock);
-> 9cae9722 Todor Tomov 2017-04-11  805
-> 9cae9722 Todor Tomov 2017-04-11 @806  	return ret;
-> 9cae9722 Todor Tomov 2017-04-11  807  }
-> 9cae9722 Todor Tomov 2017-04-11  808
-> 
-> :::::: The code at line 806 was first introduced by commit
-> :::::: 9cae97221aabfb3ca5daaa424a66c9d8eee1ff59 [media] media: Add a driver for the ov5645 camera sensor
-> 
-> :::::: TO: Todor Tomov <todor.tomov@linaro.org>
-> :::::: CC: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> 
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
-> 
+diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+index 939da6da7644..14e99aeae140 100644
+--- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
++++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+@@ -731,7 +731,6 @@ static int bdisp_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
+ 		return PTR_ERR(frame);
+ 	}
+ 
+-	pix = &f->fmt.pix;
+ 	pix->width = frame->width;
+ 	pix->height = frame->height;
+ 	pix->pixelformat = frame->fmt->pixelformat;
+-- 
+2.14.1
