@@ -1,60 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us-smtp-delivery-107.mimecast.com ([63.128.21.107]:46789 "EHLO
-        us-smtp-delivery-107.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752187AbdJFMio (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:60053 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751216AbdJ2Nnm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Oct 2017 08:38:44 -0400
-To: Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>
-CC: DT <devicetree@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Mans Rullgard <mans@mansr.com>,
-        Thibaud Cornic <thibaud_cornic@sigmadesigns.com>,
-        Mason <slash.tmp@free.fr>
-From: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
-Subject: [PATCH v8 1/3] media: dt: bindings: Add binding for tango HW IR
- decoder
-Message-ID: <3d911a4a-1945-08a7-ae19-0cd0dc6aaacd@sigmadesigns.com>
-Date: Fri, 6 Oct 2017 14:23:37 +0200
+        Sun, 29 Oct 2017 09:43:42 -0400
+From: Colin King <colin.king@canonical.com>
+To: Fabien Dessenne <fabien.dessenne@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH][V2] bdisp: remove redundant assignment to pix
+Date: Sun, 29 Oct 2017 13:43:39 +0000
+Message-Id: <20171029134339.7101-1-colin.king@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT binding for the HW IR decoder embedded in SMP86xx/SMP87xx.
+From: Colin Ian King <colin.king@canonical.com>
 
-Signed-off-by: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+Pointer pix is being initialized to a value and a little later
+being assigned the same value again. Remove the initial assignment to
+avoid a duplicate assignment. Cleans up the clang warning:
+
+drivers/media/platform/sti/bdisp/bdisp-v4l2.c:726:26: warning: Value
+stored to 'pix' during its initialization is never read
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- .../devicetree/bindings/media/tango-ir.txt          | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/tango-ir.txt
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/media/tango-ir.txt b/Documentation/devicetree/bindings/media/tango-ir.txt
-new file mode 100644
-index 000000000000..a9f00c2bf897
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/tango-ir.txt
-@@ -0,0 +1,21 @@
-+Sigma Designs Tango IR NEC/RC-5/RC-6 decoder (SMP86xx and SMP87xx)
-+
-+Required properties:
-+
-+- compatible: "sigma,smp8642-ir"
-+- reg: address/size of NEC+RC5 area, address/size of RC6 area
-+- interrupts: spec for IR IRQ
-+- clocks: spec for IR clock (typically the crystal oscillator)
-+
-+Optional properties:
-+
-+- linux,rc-map-name: see Documentation/devicetree/bindings/media/rc.txt
-+
-+Example:
-+
-+	ir@10518 {
-+		compatible = "sigma,smp8642-ir";
-+		reg = <0x10518 0x18>, <0x105e0 0x1c>;
-+		interrupts = <21 IRQ_TYPE_EDGE_RISING>;
-+		clocks = <&xtal>;
-+	};
+diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+index 939da6da7644..7e9ed9c7b3e1 100644
+--- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
++++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+@@ -723,7 +723,7 @@ static int bdisp_enum_fmt(struct file *file, void *fh, struct v4l2_fmtdesc *f)
+ static int bdisp_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
+ {
+ 	struct bdisp_ctx *ctx = fh_to_ctx(fh);
+-	struct v4l2_pix_format *pix = &f->fmt.pix;
++	struct v4l2_pix_format *pix;
+ 	struct bdisp_frame *frame  = ctx_get_frame(ctx, f->type);
+ 
+ 	if (IS_ERR(frame)) {
 -- 
-2.14.2
+2.14.1
