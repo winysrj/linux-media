@@ -1,131 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:43363 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750716AbdJLEDQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Oct 2017 00:03:16 -0400
-Message-ID: <be9cfc098ff6ece2cca2f21d1688a219@smtp-cloud9.xs4all.net>
-Date: Thu, 12 Oct 2017 06:03:13 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from gofer.mess.org ([88.97.38.141]:34035 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751666AbdJ2U6X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 29 Oct 2017 16:58:23 -0400
+From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Subject: [PATCH 01/28] media: rc: i2c: set parent of rc device and improve name
+Date: Sun, 29 Oct 2017 20:58:21 +0000
+Message-Id: <035cee19aef712aa088427d169c39b9a7b6bc5ae.1509309834.git.sean@mess.org>
+In-Reply-To: <cover.1509309834.git.sean@mess.org>
+References: <cover.1509309834.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+With the parent set for the rc device, the messages clearly state
+that it is attached via i2c. The additional printk is unnecessary.
 
-Results of the daily build of media_tree:
+So these are the old messages:
 
-date:			Thu Oct 12 05:00:16 CEST 2017
-media-tree git hash:	8382e556b1a2f30c4bf866f021b33577a64f9ebf
-media_build git hash:	33629e38ddda7a5a6ed0f727535c45f08c788bf3
-v4l-utils git hash:	01c04f7c8ad1a91af33e20621eba9200f447737e
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+rc rc1: i2c IR (Hauppauge WinTV PVR-150 as /devices/virtual/rc/rc1
+ir-kbd-i2c: i2c IR (Hauppauge WinTV PVR-150 detected at i2c-10/10-0071/ir0 [ivtv i2c driver #0]
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: OK
-spec-git: OK
+Now we simply get:
 
-Detailed results are available here:
+rc rc1: Hauppauge WinTV PVR-150 as /devices/pci0000:00/0000:00:1e.0/0000:02:00.0/i2c-10/10-0071/rc/rc1
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+Note that we no longer copy the name. I've checked all call sites
+to verfiy this is not a problem.
 
-Full logs are available here:
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/i2c/ir-kbd-i2c.c            | 11 +++--------
+ drivers/media/pci/saa7134/saa7134-input.c |  3 ++-
+ include/media/i2c/ir-kbd-i2c.h            |  1 -
+ 3 files changed, 5 insertions(+), 10 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
+index 8b5f7d0435e4..27e36f45286c 100644
+--- a/drivers/media/i2c/ir-kbd-i2c.c
++++ b/drivers/media/i2c/ir-kbd-i2c.c
+@@ -439,12 +439,9 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		goto err_out_free;
+ 	}
+ 
+-	/* Sets name */
+-	snprintf(ir->name, sizeof(ir->name), "i2c IR (%s)", name);
+ 	ir->ir_codes = ir_codes;
+ 
+-	snprintf(ir->phys, sizeof(ir->phys), "%s/%s/ir0",
+-		 dev_name(&adap->dev),
++	snprintf(ir->phys, sizeof(ir->phys), "%s/%s", dev_name(&adap->dev),
+ 		 dev_name(&client->dev));
+ 
+ 	/*
+@@ -453,7 +450,8 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	 */
+ 	rc->input_id.bustype = BUS_I2C;
+ 	rc->input_phys       = ir->phys;
+-	rc->device_name	     = ir->name;
++	rc->device_name	     = name;
++	rc->dev.parent       = &client->dev;
+ 
+ 	/*
+ 	 * Initialize the other fields of rc_dev
+@@ -467,9 +465,6 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	if (err)
+ 		goto err_out_free;
+ 
+-	printk(MODULE_NAME ": %s detected at %s [%s]\n",
+-	       ir->name, ir->phys, adap->name);
+-
+ 	/* start polling via eventd */
+ 	INIT_DELAYED_WORK(&ir->work, ir_work);
+ 	schedule_delayed_work(&ir->work, 0);
+diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
+index 9337e4615519..965098e74c64 100644
+--- a/drivers/media/pci/saa7134/saa7134-input.c
++++ b/drivers/media/pci/saa7134/saa7134-input.c
+@@ -43,7 +43,8 @@ MODULE_PARM_DESC(pinnacle_remote, "Specify Pinnacle PCTV remote: 0=coloured, 1=g
+ 	} while (0)
+ #define ir_dbg(ir, fmt, arg...) do { \
+ 	if (ir_debug) \
+-		printk(KERN_DEBUG pr_fmt("ir %s: " fmt), ir->name, ## arg); \
++		printk(KERN_DEBUG pr_fmt("ir %s: " fmt), ir->rc->device_name, \
++		       ## arg); \
+ 	} while (0)
+ 
+ /* Helper function for raw decoding at GPIO16 or GPIO18 */
+diff --git a/include/media/i2c/ir-kbd-i2c.h b/include/media/i2c/ir-kbd-i2c.h
+index ac8c55617a79..092ab44da7e0 100644
+--- a/include/media/i2c/ir-kbd-i2c.h
++++ b/include/media/i2c/ir-kbd-i2c.h
+@@ -18,7 +18,6 @@ struct IR_i2c {
+ 	u32                    polling_interval; /* in ms */
+ 
+ 	struct delayed_work    work;
+-	char                   name[32];
+ 	char                   phys[32];
+ 	int                    (*get_key)(struct IR_i2c *ir,
+ 					  enum rc_proto *protocol,
+-- 
+2.13.6
