@@ -1,62 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:56952 "EHLO osg.samsung.com"
+Received: from gofer.mess.org ([88.97.38.141]:36669 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751896AbdJIKTi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 06:19:38 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 18/24] media: vb2-core: use bitops for bits
-Date: Mon,  9 Oct 2017 07:19:24 -0300
-Message-Id: <28954c09c38082fdc7d538ece5192606ccdc7ea5.1507544011.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507544011.git.mchehab@s-opensource.com>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1507544011.git.mchehab@s-opensource.com>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
+        id S1751666AbdJ2U61 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 29 Oct 2017 16:58:27 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 03/28] media: rc: i2c: only poll if the rc device is opened
+Date: Sun, 29 Oct 2017 20:58:25 +0000
+Message-Id: <8993198484d3288550dea524ef60e2d2b0161598.1509309834.git.sean@mess.org>
+In-Reply-To: <cover.1509309834.git.sean@mess.org>
+References: <cover.1509309834.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the existing macros to identify vb2_io_modes bits.
+The lirc_zilog driver only polls the device if the lirc chardev
+is opened; do the same with the rc-core driver.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- include/media/videobuf2-core.h | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/media/i2c/ir-kbd-i2c.c | 25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 5f4df060affb..0308d8439049 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -16,6 +16,7 @@
- #include <linux/mutex.h>
- #include <linux/poll.h>
- #include <linux/dma-buf.h>
-+#include <linux/bitops.h>
+diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
+index 1b8cd1b75bfb..22f32717638a 100644
+--- a/drivers/media/i2c/ir-kbd-i2c.c
++++ b/drivers/media/i2c/ir-kbd-i2c.c
+@@ -298,6 +298,22 @@ static void ir_work(struct work_struct *work)
+ 	schedule_delayed_work(&ir->work, msecs_to_jiffies(ir->polling_interval));
+ }
  
- #define VB2_MAX_FRAME	(32)
- #define VB2_MAX_PLANES	(8)
-@@ -191,11 +192,11 @@ struct vb2_plane {
-  * @VB2_DMABUF:		driver supports DMABUF with streaming API
-  */
- enum vb2_io_modes {
--	VB2_MMAP	= (1 << 0),
--	VB2_USERPTR	= (1 << 1),
--	VB2_READ	= (1 << 2),
--	VB2_WRITE	= (1 << 3),
--	VB2_DMABUF	= (1 << 4),
-+	VB2_MMAP	= BIT(0),
-+	VB2_USERPTR	= BIT(1),
-+	VB2_READ	= BIT(2),
-+	VB2_WRITE	= BIT(3),
-+	VB2_DMABUF	= BIT(4),
- };
++static int ir_open(struct rc_dev *dev)
++{
++	struct IR_i2c *ir = dev->priv;
++
++	schedule_delayed_work(&ir->work, 0);
++
++	return 0;
++}
++
++static void ir_close(struct rc_dev *dev)
++{
++	struct IR_i2c *ir = dev->priv;
++
++	cancel_delayed_work_sync(&ir->work);
++}
++
+ /* ----------------------------------------------------------------------- */
  
- /**
+ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+@@ -441,6 +457,9 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	rc->input_phys       = ir->phys;
+ 	rc->device_name	     = name;
+ 	rc->dev.parent       = &client->dev;
++	rc->priv             = ir;
++	rc->open             = ir_open;
++	rc->close            = ir_close;
+ 
+ 	/*
+ 	 * Initialize the other fields of rc_dev
+@@ -450,14 +469,12 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	if (!rc->driver_name)
+ 		rc->driver_name = KBUILD_MODNAME;
+ 
++	INIT_DELAYED_WORK(&ir->work, ir_work);
++
+ 	err = rc_register_device(rc);
+ 	if (err)
+ 		goto err_out_free;
+ 
+-	/* start polling via eventd */
+-	INIT_DELAYED_WORK(&ir->work, ir_work);
+-	schedule_delayed_work(&ir->work, 0);
+-
+ 	return 0;
+ 
+  err_out_free:
 -- 
 2.13.6
