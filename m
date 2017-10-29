@@ -1,52 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:37214 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750841AbdJCWBz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 18:01:55 -0400
-Date: Tue, 3 Oct 2017 17:01:53 -0500
-From: Rob Herring <robh@kernel.org>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Cyprian Wronka <cwronka@cadence.com>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com
-Subject: Re: [PATCH 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 TX Device
- Tree bindings
-Message-ID: <20171003220153.mxjwzmcejwojevlg@rob-hp-laptop>
-References: <20170922114703.30511-1-maxime.ripard@free-electrons.com>
- <20170922114703.30511-2-maxime.ripard@free-electrons.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170922114703.30511-2-maxime.ripard@free-electrons.com>
+Received: from gofer.mess.org ([88.97.38.141]:44055 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751677AbdJ2U7B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 29 Oct 2017 16:59:01 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 12/28] media: rc: auto load encoder if necessary
+Date: Sun, 29 Oct 2017 20:58:59 +0000
+Message-Id: <09186155d70c9d474e3e347a946f7e7e66afc740.1509309834.git.sean@mess.org>
+In-Reply-To: <cover.1509309834.git.sean@mess.org>
+References: <cover.1509309834.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 22, 2017 at 01:47:02PM +0200, Maxime Ripard wrote:
-> The Cadence MIPI-CSI2 RX controller is a CSI2 bridge that supports up to 4
-> video streams and can output on up to 4 CSI-2 lanes, depending on the
-> hardware implementation.
-> 
-> It can operate with an external D-PHY, an internal one or no D-PHY at all
-> in some configurations.
-> 
-> Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
-> ---
->  .../devicetree/bindings/media/cdns,csi2tx.txt      | 97 ++++++++++++++++++++++
->  1 file changed, 97 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+When sending scancodes, load the encoder if we need it.
 
-Other than the one issue pointed out,
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/rc-core-priv.h | 1 +
+ drivers/media/rc/rc-ir-raw.c    | 2 ++
+ drivers/media/rc/rc-main.c      | 2 +-
+ 3 files changed, 4 insertions(+), 1 deletion(-)
 
-Acked-by: Rob Herring <robh@kernel.org>
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 3cf09408df6c..d29b1b1ef4b7 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -271,6 +271,7 @@ void ir_raw_event_free(struct rc_dev *dev);
+ void ir_raw_event_unregister(struct rc_dev *dev);
+ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
+ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
++void ir_raw_load_modules(u64 *protocols);
+ void ir_raw_init(void);
+ 
+ /*
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 0814e08a280b..b84201cb012a 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -457,6 +457,8 @@ int ir_raw_encode_scancode(enum rc_proto protocol, u32 scancode,
+ 	int ret = -EINVAL;
+ 	u64 mask = 1ULL << protocol;
+ 
++	ir_raw_load_modules(&mask);
++
+ 	mutex_lock(&ir_raw_handler_lock);
+ 	list_for_each_entry(handler, &ir_raw_handler_list, list) {
+ 		if (handler->protocols & mask && handler->encode) {
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index cb78e5702bef..62102b3ef5aa 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1081,7 +1081,7 @@ static int parse_protocol_change(u64 *protocols, const char *buf)
+ 	return count;
+ }
+ 
+-static void ir_raw_load_modules(u64 *protocols)
++void ir_raw_load_modules(u64 *protocols)
+ {
+ 	u64 available;
+ 	int i, ret;
+-- 
+2.13.6
