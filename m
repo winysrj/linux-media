@@ -1,69 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40300 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751366AbdJDVu6 (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:60001 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751216AbdJ2Nh0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Oct 2017 17:50:58 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org
-Subject: [PATCH v15 16/32] v4l: async: Allow async notifier register call succeed with no subdevs
-Date: Thu,  5 Oct 2017 00:50:35 +0300
-Message-Id: <20171004215051.13385-17-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
-References: <20171004215051.13385-1-sakari.ailus@linux.intel.com>
+        Sun, 29 Oct 2017 09:37:26 -0400
+Subject: Re: [PATCH] [media] bdisp: remove redundant assignment to pix
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Fabien Dessenne <fabien.dessenne@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20171029132105.6444-1-colin.king@canonical.com>
+ <alpine.DEB.2.20.1710292129380.2004@hadrien>
+From: Colin Ian King <colin.king@canonical.com>
+Message-ID: <7324ffb7-56d9-0f3a-46a8-c5b4be0b452b@canonical.com>
+Date: Sun, 29 Oct 2017 13:37:23 +0000
+MIME-Version: 1.0
+In-Reply-To: <alpine.DEB.2.20.1710292129380.2004@hadrien>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The information on how many async sub-devices would be bindable to a
-notifier is typically dependent on information from platform firmware and
-it's not driver's business to be aware of that.
+On 29/10/17 13:30, Julia Lawall wrote:
+> 
+> 
+> On Sun, 29 Oct 2017, Colin King wrote:
+> 
+>> From: Colin Ian King <colin.king@canonical.com>
+>>
+>> Pointer pix is being initialized to a value and a little later
+>> being assigned the same value again. Remove the redundant second
+>> duplicate assignment. Cleans up the clang warning:
+>>
+>> drivers/media/platform/sti/bdisp/bdisp-v4l2.c:726:26: warning: Value
+>> stored to 'pix' during its initialization is never read
+>>
+>> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+>> ---
+>>  drivers/media/platform/sti/bdisp/bdisp-v4l2.c | 1 -
+>>  1 file changed, 1 deletion(-)
+>>
+>> diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+>> index 939da6da7644..14e99aeae140 100644
+>> --- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+>> +++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+>> @@ -731,7 +731,6 @@ static int bdisp_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
+>>  		return PTR_ERR(frame);
+>>  	}
+>>
+>> -	pix = &f->fmt.pix;
+> 
+> Why not keep this one and drop the first one?  Maybe it would be nice to
+> keep all the initializations related to pix together?
 
-Many V4L2 main drivers are perfectly usable (and useful) without async
-sub-devices and so if there aren't any around, just proceed call the
-notifier's complete callback immediately without registering the notifier
-itself.
+Good point. Will send a V2.
 
-If a driver needs to check whether there are async sub-devices available,
-it can be done by inspecting the notifier's num_subdevs field which tells
-the number of async sub-devices.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 46db85685894..1b536d68cedf 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -180,14 +180,22 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 	int ret;
- 	int i;
- 
--	if (!v4l2_dev || !notifier->num_subdevs ||
--	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-+	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
- 		return -EINVAL;
- 
- 	notifier->v4l2_dev = v4l2_dev;
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
- 
-+	if (!notifier->num_subdevs) {
-+		int ret;
-+
-+		ret = v4l2_async_notifier_call_complete(notifier);
-+		notifier->v4l2_dev = NULL;
-+
-+		return ret;
-+	}
-+
- 	for (i = 0; i < notifier->num_subdevs; i++) {
- 		asd = notifier->subdevs[i];
- 
--- 
-2.11.0
+> 
+> julia
+> 
+>>  	pix->width = frame->width;
+>>  	pix->height = frame->height;
+>>  	pix->pixelformat = frame->fmt->pixelformat;
+>> --
+>> 2.14.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
