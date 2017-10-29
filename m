@@ -1,81 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:52633 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752430AbdJLQVx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Oct 2017 12:21:53 -0400
-Received: by mail-pf0-f195.google.com with SMTP id e64so5539490pfk.9
-        for <linux-media@vger.kernel.org>; Thu, 12 Oct 2017 09:21:53 -0700 (PDT)
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 3/4] media: ov7670: add media controller support
-Date: Fri, 13 Oct 2017 01:21:16 +0900
-Message-Id: <1507825277-18364-4-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1507825277-18364-1-git-send-email-akinobu.mita@gmail.com>
-References: <1507825277-18364-1-git-send-email-akinobu.mita@gmail.com>
+Received: from mail.kernel.org ([198.145.29.99]:55050 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751152AbdJ2W0q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 29 Oct 2017 18:26:46 -0400
+Date: Sun, 29 Oct 2017 23:26:43 +0100
+From: Sebastian Reichel <sre@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, pavel@ucw.cz,
+        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org,
+        Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v16 20/32] dt: bindings: Add a binding for flash LED
+ devices associated to a sensor
+Message-ID: <20171029222643.hncpyrvlkbrg2k57@earth>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-21-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="y2d6l53w2cbhvhga"
+Content-Disposition: inline
+In-Reply-To: <20171026075342.5760-21-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Create a source pad and set the media controller type to the sensor.
 
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
- drivers/media/i2c/ov7670.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+--y2d6l53w2cbhvhga
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index 4f89a51..38e1876 100644
---- a/drivers/media/i2c/ov7670.c
-+++ b/drivers/media/i2c/ov7670.c
-@@ -214,6 +214,9 @@ struct ov7670_devtype {
- struct ov7670_format_struct;  /* coming later */
- struct ov7670_info {
- 	struct v4l2_subdev sd;
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_pad pad;
-+#endif
- 	struct v4l2_ctrl_handler hdl;
- 	struct {
- 		/* gain cluster */
-@@ -1654,6 +1657,14 @@ static int ov7670_probe(struct i2c_client *client,
- 	if (info->pclk_hb_disable)
- 		ov7670_write(sd, REG_COM10, COM10_PCLK_HB);
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	info->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
-+	ret = media_entity_pads_init(&sd->entity, 1, &info->pad);
-+	if (ret)
-+		goto clk_disable;
-+#endif
-+
- 	v4l2_ctrl_handler_init(&info->hdl, 10);
- 	v4l2_ctrl_new_std(&info->hdl, &ov7670_ctrl_ops,
- 			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
-@@ -1700,6 +1711,9 @@ static int ov7670_probe(struct i2c_client *client,
- 
- hdl_free:
- 	v4l2_ctrl_handler_free(&info->hdl);
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	media_entity_cleanup(&sd->entity);
-+#endif
- clk_disable:
- 	clk_disable_unprepare(info->clk);
- 	return ret;
-@@ -1713,6 +1727,9 @@ static int ov7670_remove(struct i2c_client *client)
- 
- 	v4l2_async_unregister_subdev(sd);
- 	v4l2_ctrl_handler_free(&info->hdl);
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	media_entity_cleanup(&sd->entity);
-+#endif
- 	clk_disable_unprepare(info->clk);
- 	return 0;
- }
--- 
-2.7.4
+Hi,
+
+On Thu, Oct 26, 2017 at 10:53:30AM +0300, Sakari Ailus wrote:
+> Camera flash drivers (and LEDs) are separate from the sensor devices in
+> DT. In order to make an association between the two, provide the
+> association information to the software.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Rob Herring <robh@kernel.org>
+> Cc: devicetree@vger.kernel.org
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
+> Acked-by: Rob Herring <robh@kernel.org>
+> ---
+
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+
+-- Sebastian
+
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt=
+ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index bd6474920510..dc66e3224692 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -76,6 +76,14 @@ are required in a relevant parent node:
+>  		    identifier, should be 1.
+>   - #size-cells    : should be zero.
+> =20
+> +
+> +Optional properties
+> +-------------------
+> +
+> +- flash-leds: An array of phandles, each referring to a flash LED, a sub=
+-node
+> +  of the LED driver device node.
+> +
+> +
+>  Optional endpoint properties
+>  ----------------------------
+> =20
+> --=20
+> 2.11.0
+>=20
+
+--y2d6l53w2cbhvhga
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAln2VaMACgkQ2O7X88g7
++pqpyA//ZAshtDhYm9LJqNOpXhw0XSjSWGgNwpayFfoLZ/G7TcpTROB7tYE9atjZ
+6Cbbl7bYdBDr07d4r4QI5/AgzsjZnjUDhvkCW8vT+6em7vY37nHPkcoTv2VOcqgJ
+IVrSzPybs94CKrhc8u1x4qJWRaLzcPi9Gi8T/wgC8ayOG0RybwvenwNY+xqJ1UD7
+65Hlqa5c3JNjaTNEfRLGMJxVbeO/eS4M946YJDzoCjCZwX1vJBBvBpqgnO10paaa
+WVx90XCDbY3t/asMH6ld8q8jmszzauSXy0jTmt5U8kS+giqY5IorcRSLRctOd0kp
+OJqEMszDEKYkAHagztnBvcc27UD+l77GMnQZm6syo0jhiC3GwkXm0+NnChPL+ZGz
+NErLudA2Y6uHJO0IfaH4Dk80rPFTnoFJrPY7T+71B6Nla8Cakm6OTsMGp5OcySBo
+QugHMHbLzFLTAasB3nnXPykBLHqQNIB1zTk79fKFutUmXH03DoQGUr8o0iBnCodU
+8z3wIyJaCk2M0wRNu9/BuHbzUyYqNqF6bULl6AC2k0ApCIBl2efONq44Yy+3KF0i
+X1uLwVN1ZX1dIwcOpR1BwMNnSALK5C8GT/SLrxK4p9Nzy83+PZzHKoWA4sW/1BhO
+SCXZLAiJSNDCyZ9+w8tD0x0DwQFd5n70hObQJ4BTB7lgVGJXAFo=
+=/v65
+-----END PGP SIGNATURE-----
+
+--y2d6l53w2cbhvhga--
