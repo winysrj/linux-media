@@ -1,141 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37536 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933518AbdJQKIz (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:38732 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750741AbdJ2EyH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 06:08:55 -0400
-Date: Tue, 17 Oct 2017 13:08:51 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Eric Anholt <eric@anholt.net>,
-        Stefan Wahren <stefan.wahren@i2se.com>,
-        linux-media@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v3 1/4] [media] v4l2-common: Add helper function for
- fourcc to string
-Message-ID: <20171017100851.lr4vmrwqucq4q46f@valkosipuli.retiisi.org.uk>
-References: <cover.1505916622.git.dave.stevenson@raspberrypi.org>
- <e6dfbe4afd3f1db4c3f8a81c0813dc418896f5e1.1505916622.git.dave.stevenson@raspberrypi.org>
- <20171013210937.pzgmozz7elsb3yo5@valkosipuli.retiisi.org.uk>
- <CAAoAYcN441pVUqCu00hbKmEQWyNaK4jdwkufpJ2P8iXkcQG5KA@mail.gmail.com>
- <8cd44cbf-6751-c3de-1729-c8c1d54e8b00@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8cd44cbf-6751-c3de-1729-c8c1d54e8b00@cisco.com>
+        Sun, 29 Oct 2017 00:54:07 -0400
+Message-ID: <70d67261b4ffc9340939d3f6fbb254f1@smtp-cloud7.xs4all.net>
+Date: Sun, 29 Oct 2017 05:54:04 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Tue, Oct 17, 2017 at 11:28:46AM +0200, Hans Verkuil wrote:
-> On 10/17/17 11:17, Dave Stevenson wrote:
-> > Hi Sakari.
-> > 
-> > On 13 October 2017 at 22:09, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> >> Hi Dave,
-> >>
-> >> On Wed, Sep 20, 2017 at 05:07:54PM +0100, Dave Stevenson wrote:
-> >>> New helper function char *v4l2_fourcc2s(u32 fourcc, char *buf)
-> >>> that converts a fourcc into a nice printable version.
-> >>>
-> >>> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
-> >>> ---
-> >>>
-> >>> No changes from v2 to v3
-> >>>
-> >>>  drivers/media/v4l2-core/v4l2-common.c | 18 ++++++++++++++++++
-> >>>  include/media/v4l2-common.h           |  3 +++
-> >>>  2 files changed, 21 insertions(+)
-> >>>
-> >>> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-> >>> index a5ea1f5..0219895 100644
-> >>> --- a/drivers/media/v4l2-core/v4l2-common.c
-> >>> +++ b/drivers/media/v4l2-core/v4l2-common.c
-> >>> @@ -405,3 +405,21 @@ void v4l2_get_timestamp(struct timeval *tv)
-> >>>       tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
-> >>>  }
-> >>>  EXPORT_SYMBOL_GPL(v4l2_get_timestamp);
-> >>> +
-> >>> +char *v4l2_fourcc2s(u32 fourcc, char *buf)
-> >>> +{
-> >>> +     buf[0] = fourcc & 0x7f;
-> >>> +     buf[1] = (fourcc >> 8) & 0x7f;
-> >>> +     buf[2] = (fourcc >> 16) & 0x7f;
-> >>> +     buf[3] = (fourcc >> 24) & 0x7f;
-> >>> +     if (fourcc & (1 << 31)) {
-> >>> +             buf[4] = '-';
-> >>> +             buf[5] = 'B';
-> >>> +             buf[6] = 'E';
-> >>> +             buf[7] = '\0';
-> >>> +     } else {
-> >>> +             buf[4] = '\0';
-> >>> +     }
-> >>> +     return buf;
-> >>> +}
-> >>> +EXPORT_SYMBOL_GPL(v4l2_fourcc2s);
-> >>> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> >>> index aac8b7b..5b0fff9 100644
-> >>> --- a/include/media/v4l2-common.h
-> >>> +++ b/include/media/v4l2-common.h
-> >>> @@ -264,4 +264,7 @@ const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
-> >>>
-> >>>  void v4l2_get_timestamp(struct timeval *tv);
-> >>>
-> >>> +#define V4L2_FOURCC_MAX_SIZE 8
-> >>> +char *v4l2_fourcc2s(u32 fourcc, char *buf);
-> >>> +
-> >>>  #endif /* V4L2_COMMON_H_ */
-> >>
-> >> I like the idea but the use of a character pointer and assuming a length
-> >> looks a bit scary.
-> >>
-> >> As this seems to be used uniquely for printing stuff, a couple of macros
-> >> could be used instead. Something like
-> >>
-> >> #define V4L2_FOURCC_CONV "%c%c%c%c%s"
-> >> #define V4L2_FOURCC_TO_CONV(fourcc) \
-> >>         fourcc & 0x7f, (fourcc >> 8) & 0x7f, (fourcc >> 16) & 0x7f, \
-> >>         (fourcc >> 24) & 0x7f, fourcc & BIT(31) ? "-BE" : ""
-> 
-> 'fourcc' should be in parenthesis '(fourcc)'.
+Results of the daily build of media_tree:
 
-Yes, I omitted those for readability here.
+date:			Sun Oct 29 05:00:15 CET 2017
+media-tree git hash:	bbae615636155fa43a9b0fe0ea31c678984be864
+media_build git hash:	c93534951f5d66bef7f17f16293acf2be346b726
+v4l-utils git hash:	482c52f946af4c6b16efa63a35790d92fb65326c
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-> 
-> >>
-> >> You could use it with printk-style functions, e.g.
-> >>
-> >>         printk("blah fourcc " V4L2_FOURCC_CONV " is a nice format",
-> >>                V4L2_FOURCC_TO_CONV(fourcc));
-> >>
-> >> I guess it'd be better to add more parentheses around "fourcc" but it'd be
-> >> less clear here that way.
-> > 
-> > I was following Hans' suggestion made in
-> > https://www.spinics.net/lists/linux-media/msg117046.html
-> > 
-> > Hans: Do you agree with Sakari here to make it to a macro?
-> 
-> Not a bad idea. But I think we should add it to the public videodev2.h
-> header in that case, allowing it to be used by applications as well.
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: OK
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: OK
+spec-git: OK
 
-Sounds good.
+Detailed results are available here:
 
-> 
-> How about calling the defines V4L2_FOURCC_FMT and V4L2_FOURCC_FMT_ARGS?
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-printf(3) describes conversion specifiers (%...) and I thought of using
-"CONV" there for that purpose to make it explicit. Fourcc, implicitly,
-already is about formats. What would you think of V4L2_FOURCC_CONV and
-V4L2_FOURCC_CONV_ARGS (or just V4L2_FOURCC_ARGS)?
+Full logs are available here:
 
--- 
-Kind regards,
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
