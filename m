@@ -1,42 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36258 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750788AbdJBL2s (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Oct 2017 07:28:48 -0400
-Date: Mon, 2 Oct 2017 14:28:46 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: Re: [PATCH 1/1] v4l: async: Fix notifier complete callback error
- handling
-Message-ID: <20171002112846.ymr4ubrg6nlos6hh@valkosipuli.retiisi.org.uk>
-References: <20171002105954.29474-1-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171002105954.29474-1-sakari.ailus@linux.intel.com>
+Received: from gofer.mess.org ([88.97.38.141]:54385 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932115AbdJ2U7o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 29 Oct 2017 16:59:44 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 24/28] media: rc: ensure lirc device receives nec repeats
+Date: Sun, 29 Oct 2017 20:59:43 +0000
+Message-Id: <a9b2c9d8238db2d6ea8fc620f60f419f8a7c62e1.1509309834.git.sean@mess.org>
+In-Reply-To: <cover.1509309834.git.sean@mess.org>
+References: <cover.1509309834.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 02, 2017 at 01:59:54PM +0300, Sakari Ailus wrote:
-> The notifier complete callback may return an error. This error code was
-> simply returned to the caller but never handled properly.
-> 
-> Move calling the complete callback function to the caller from
-> v4l2_async_test_notify and undo the work that was done either in async
-> sub-device or async notifier registration.
-> 
-> Reported-by: Russell King <rmk+kernel@armlinux.org.uk>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+The lirc device should get lirc repeats whether there is a keymap
+match or not.
 
-Oh, I forgot to metion this patch depends on another patch here, part of
-the fwnode parsing patchset:
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/rc-main.c | 27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
-<URL:http://www.spinics.net/lists/linux-media/msg122689.html>
-
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index e9d6ce024cd2..dae427e25d71 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -662,19 +662,25 @@ void rc_repeat(struct rc_dev *dev)
+ {
+ 	unsigned long flags;
+ 	unsigned int timeout = protocols[dev->last_protocol].repeat_period;
++	struct lirc_scancode sc = {
++		.scancode = dev->last_scancode, .rc_proto = dev->last_protocol,
++		.keycode = dev->keypressed ? dev->last_keycode : KEY_RESERVED,
++		.flags = LIRC_SCANCODE_FLAG_REPEAT |
++			 (dev->last_toggle ? LIRC_SCANCODE_FLAG_TOGGLE : 0)
++	};
+ 
+-	spin_lock_irqsave(&dev->keylock, flags);
++	ir_lirc_scancode_event(dev, &sc);
+ 
+-	if (!dev->keypressed)
+-		goto out;
++	spin_lock_irqsave(&dev->keylock, flags);
+ 
+ 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
+ 	input_sync(dev->input_dev);
+ 
+-	dev->keyup_jiffies = jiffies + msecs_to_jiffies(timeout);
+-	mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
++	if (dev->keypressed) {
++		dev->keyup_jiffies = jiffies + msecs_to_jiffies(timeout);
++		mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
++	}
+ 
+-out:
+ 	spin_unlock_irqrestore(&dev->keylock, flags);
+ }
+ EXPORT_SYMBOL_GPL(rc_repeat);
+@@ -710,13 +716,14 @@ static void ir_do_keydown(struct rc_dev *dev, enum rc_proto protocol,
+ 
+ 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
+ 
++	dev->last_protocol = protocol;
++	dev->last_scancode = scancode;
++	dev->last_toggle = toggle;
++	dev->last_keycode = keycode;
++
+ 	if (new_event && keycode != KEY_RESERVED) {
+ 		/* Register a keypress */
+ 		dev->keypressed = true;
+-		dev->last_protocol = protocol;
+-		dev->last_scancode = scancode;
+-		dev->last_toggle = toggle;
+-		dev->last_keycode = keycode;
+ 
+ 		IR_dprintk(1, "%s: key down event, key 0x%04x, protocol 0x%04x, scancode 0x%08x\n",
+ 			   dev->device_name, keycode, protocol, scancode);
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.13.6
