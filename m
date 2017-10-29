@@ -1,49 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55876 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54786 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751970AbdJ0OsC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Oct 2017 10:48:02 -0400
-Date: Fri, 27 Oct 2017 16:47:58 +0200
+        id S1751152AbdJ2WTY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 29 Oct 2017 18:19:24 -0400
+Date: Sun, 29 Oct 2017 23:19:20 +0100
 From: Sebastian Reichel <sre@kernel.org>
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
         maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz,
-        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v16 13/32] v4l: async: Move async subdev notifier
- operations to a separate structure
-Message-ID: <20171027144758.jawi5ofk4mvxh766@earth>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-14-sakari.ailus@linux.intel.com>
+        laurent.pinchart@ideasonboard.com, pavel@ucw.cz
+Subject: Re: [PATCH v16.1 18/32] v4l: async: Allow binding notifiers to
+ sub-devices
+Message-ID: <20171029221920.cea3d65tmbvusnn7@earth>
+References: <20171026075342.5760-19-sakari.ailus@linux.intel.com>
+ <20171027082709.27725-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="rbzmphwvb44ic52y"
+        protocol="application/pgp-signature"; boundary="aft32s52x6ab2ctf"
 Content-Disposition: inline
-In-Reply-To: <20171026075342.5760-14-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171027082709.27725-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---rbzmphwvb44ic52y
+--aft32s52x6ab2ctf
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Oct 26, 2017 at 10:53:23AM +0300, Sakari Ailus wrote:
-> From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On Fri, Oct 27, 2017 at 11:27:09AM +0300, Sakari Ailus wrote:
+> Registering a notifier has required the knowledge of struct v4l2_device
+> for the reason that sub-devices generally are registered to the
+> v4l2_device (as well as the media device, also available through
+> v4l2_device).
 >=20
-> The async subdev notifier .bound(), .unbind() and .complete() operations
-> are function pointers stored directly in the v4l2_async_subdev
-> structure. As the structure isn't immutable, this creates a potential
-> security risk as the function pointers are mutable.
+> This information is not available for sub-device drivers at probe time.
 >=20
-> To fix this, move the function pointers to a new
-> v4l2_async_subdev_operations structure that can be made const in
-> drivers.
+> What this patch does is that it allows registering notifiers without
+> having v4l2_device around. Instead the sub-device pointer is stored in the
+> notifier. Once the sub-device of the driver that registered the notifier
+> is registered, the notifier will gain the knowledge of the v4l2_device,
+> and the binding of async sub-devices from the sub-device driver's notifier
+> may proceed.
 >=20
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> The complete callback of the root notifier will be called only when the
+> v4l2_device is available and no notifier has pending sub-devices to bind.
+> No complete callbacks are supported for sub-device notifiers.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 > ---
 
@@ -51,700 +57,447 @@ Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
 -- Sebastian
 
->  drivers/media/platform/am437x/am437x-vpfe.c    |  8 +++++--
->  drivers/media/platform/atmel/atmel-isc.c       | 10 ++++++---
->  drivers/media/platform/atmel/atmel-isi.c       | 10 ++++++---
->  drivers/media/platform/davinci/vpif_capture.c  |  8 +++++--
->  drivers/media/platform/davinci/vpif_display.c  |  8 +++++--
->  drivers/media/platform/exynos4-is/media-dev.c  |  8 +++++--
->  drivers/media/platform/omap3isp/isp.c          |  6 +++++-
->  drivers/media/platform/pxa_camera.c            |  8 +++++--
->  drivers/media/platform/qcom/camss-8x16/camss.c |  8 +++++--
->  drivers/media/platform/rcar-vin/rcar-core.c    | 10 ++++++---
->  drivers/media/platform/rcar_drif.c             | 10 ++++++---
->  drivers/media/platform/soc_camera/soc_camera.c | 14 ++++++------
->  drivers/media/platform/stm32/stm32-dcmi.c      | 10 ++++++---
->  drivers/media/platform/ti-vpe/cal.c            |  8 +++++--
->  drivers/media/platform/xilinx/xilinx-vipp.c    |  8 +++++--
->  drivers/media/v4l2-core/v4l2-async.c           | 30 ++++++++++++--------=
+>  drivers/media/v4l2-core/v4l2-async.c | 212 ++++++++++++++++++++++++++++-=
 ------
->  drivers/staging/media/imx/imx-media-dev.c      |  8 +++++--
->  include/media/v4l2-async.h                     | 29 ++++++++++++++++----=
------
->  18 files changed, 135 insertions(+), 66 deletions(-)
+>  include/media/v4l2-async.h           |  19 +++-
+>  2 files changed, 189 insertions(+), 42 deletions(-)
 >=20
-> diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/=
-platform/am437x/am437x-vpfe.c
-> index dfcc484cab89..0997c640191d 100644
-> --- a/drivers/media/platform/am437x/am437x-vpfe.c
-> +++ b/drivers/media/platform/am437x/am437x-vpfe.c
-> @@ -2417,6 +2417,11 @@ static int vpfe_async_complete(struct v4l2_async_n=
-otifier *notifier)
->  	return vpfe_probe_complete(vpfe);
->  }
-> =20
-> +static const struct v4l2_async_notifier_operations vpfe_async_ops =3D {
-> +	.bound =3D vpfe_async_bound,
-> +	.complete =3D vpfe_async_complete,
-> +};
-> +
->  static struct vpfe_config *
->  vpfe_get_pdata(struct platform_device *pdev)
->  {
-> @@ -2590,8 +2595,7 @@ static int vpfe_probe(struct platform_device *pdev)
-> =20
->  	vpfe->notifier.subdevs =3D vpfe->cfg->asd;
->  	vpfe->notifier.num_subdevs =3D ARRAY_SIZE(vpfe->cfg->asd);
-> -	vpfe->notifier.bound =3D vpfe_async_bound;
-> -	vpfe->notifier.complete =3D vpfe_async_complete;
-> +	vpfe->notifier.ops =3D &vpfe_async_ops;
->  	ret =3D v4l2_async_notifier_register(&vpfe->v4l2_dev,
->  						&vpfe->notifier);
->  	if (ret) {
-> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/pla=
-tform/atmel/atmel-isc.c
-> index 2f8e345d297e..382fe355e616 100644
-> --- a/drivers/media/platform/atmel/atmel-isc.c
-> +++ b/drivers/media/platform/atmel/atmel-isc.c
-> @@ -1637,6 +1637,12 @@ static int isc_async_complete(struct v4l2_async_no=
-tifier *notifier)
->  	return 0;
->  }
-> =20
-> +static const struct v4l2_async_notifier_operations isc_async_ops =3D {
-> +	.bound =3D isc_async_bound,
-> +	.unbind =3D isc_async_unbind,
-> +	.complete =3D isc_async_complete,
-> +};
-> +
->  static void isc_subdev_cleanup(struct isc_device *isc)
->  {
->  	struct isc_subdev_entity *subdev_entity;
-> @@ -1849,9 +1855,7 @@ static int atmel_isc_probe(struct platform_device *=
-pdev)
->  	list_for_each_entry(subdev_entity, &isc->subdev_entities, list) {
->  		subdev_entity->notifier.subdevs =3D &subdev_entity->asd;
->  		subdev_entity->notifier.num_subdevs =3D 1;
-> -		subdev_entity->notifier.bound =3D isc_async_bound;
-> -		subdev_entity->notifier.unbind =3D isc_async_unbind;
-> -		subdev_entity->notifier.complete =3D isc_async_complete;
-> +		subdev_entity->notifier.ops =3D &isc_async_ops;
-> =20
->  		ret =3D v4l2_async_notifier_register(&isc->v4l2_dev,
->  						   &subdev_entity->notifier);
-> diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/pla=
-tform/atmel/atmel-isi.c
-> index 463c0146915e..e900995143a3 100644
-> --- a/drivers/media/platform/atmel/atmel-isi.c
-> +++ b/drivers/media/platform/atmel/atmel-isi.c
-> @@ -1103,6 +1103,12 @@ static int isi_graph_notify_bound(struct v4l2_asyn=
-c_notifier *notifier,
->  	return 0;
->  }
-> =20
-> +static const struct v4l2_async_notifier_operations isi_graph_notify_ops =
-=3D {
-> +	.bound =3D isi_graph_notify_bound,
-> +	.unbind =3D isi_graph_notify_unbind,
-> +	.complete =3D isi_graph_notify_complete,
-> +};
-> +
->  static int isi_graph_parse(struct atmel_isi *isi, struct device_node *no=
-de)
->  {
->  	struct device_node *ep =3D NULL;
-> @@ -1150,9 +1156,7 @@ static int isi_graph_init(struct atmel_isi *isi)
-> =20
->  	isi->notifier.subdevs =3D subdevs;
->  	isi->notifier.num_subdevs =3D 1;
-> -	isi->notifier.bound =3D isi_graph_notify_bound;
-> -	isi->notifier.unbind =3D isi_graph_notify_unbind;
-> -	isi->notifier.complete =3D isi_graph_notify_complete;
-> +	isi->notifier.ops =3D &isi_graph_notify_ops;
-> =20
->  	ret =3D v4l2_async_notifier_register(&isi->v4l2_dev, &isi->notifier);
->  	if (ret < 0) {
-> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/medi=
-a/platform/davinci/vpif_capture.c
-> index 0ef36cec21d1..a89367ab1e06 100644
-> --- a/drivers/media/platform/davinci/vpif_capture.c
-> +++ b/drivers/media/platform/davinci/vpif_capture.c
-> @@ -1500,6 +1500,11 @@ static int vpif_async_complete(struct v4l2_async_n=
-otifier *notifier)
->  	return vpif_probe_complete();
->  }
-> =20
-> +static const struct v4l2_async_notifier_operations vpif_async_ops =3D {
-> +	.bound =3D vpif_async_bound,
-> +	.complete =3D vpif_async_complete,
-> +};
-> +
->  static struct vpif_capture_config *
->  vpif_capture_get_pdata(struct platform_device *pdev)
->  {
-> @@ -1691,8 +1696,7 @@ static __init int vpif_probe(struct platform_device=
- *pdev)
->  	} else {
->  		vpif_obj.notifier.subdevs =3D vpif_obj.config->asd;
->  		vpif_obj.notifier.num_subdevs =3D vpif_obj.config->asd_sizes[0];
-> -		vpif_obj.notifier.bound =3D vpif_async_bound;
-> -		vpif_obj.notifier.complete =3D vpif_async_complete;
-> +		vpif_obj.notifier.ops =3D &vpif_async_ops;
->  		err =3D v4l2_async_notifier_register(&vpif_obj.v4l2_dev,
->  						   &vpif_obj.notifier);
->  		if (err) {
-> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/medi=
-a/platform/davinci/vpif_display.c
-> index 56fe4e5b396e..ff2f75a328c9 100644
-> --- a/drivers/media/platform/davinci/vpif_display.c
-> +++ b/drivers/media/platform/davinci/vpif_display.c
-> @@ -1232,6 +1232,11 @@ static int vpif_async_complete(struct v4l2_async_n=
-otifier *notifier)
->  	return vpif_probe_complete();
->  }
-> =20
-> +static const struct v4l2_async_notifier_operations vpif_async_ops =3D {
-> +	.bound =3D vpif_async_bound,
-> +	.complete =3D vpif_async_complete,
-> +};
-> +
->  /*
->   * vpif_probe: This function creates device entries by register itself t=
-o the
->   * V4L2 driver and initializes fields of each channel objects
-> @@ -1313,8 +1318,7 @@ static __init int vpif_probe(struct platform_device=
- *pdev)
->  	} else {
->  		vpif_obj.notifier.subdevs =3D vpif_obj.config->asd;
->  		vpif_obj.notifier.num_subdevs =3D vpif_obj.config->asd_sizes[0];
-> -		vpif_obj.notifier.bound =3D vpif_async_bound;
-> -		vpif_obj.notifier.complete =3D vpif_async_complete;
-> +		vpif_obj.notifier.ops =3D &vpif_async_ops;
->  		err =3D v4l2_async_notifier_register(&vpif_obj.v4l2_dev,
->  						   &vpif_obj.notifier);
->  		if (err) {
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/medi=
-a/platform/exynos4-is/media-dev.c
-> index d4656d5175d7..c15596b56dc9 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -1405,6 +1405,11 @@ static int subdev_notifier_complete(struct v4l2_as=
-ync_notifier *notifier)
->  	return media_device_register(&fmd->media_dev);
->  }
-> =20
-> +static const struct v4l2_async_notifier_operations subdev_notifier_ops =
-=3D {
-> +	.bound =3D subdev_notifier_bound,
-> +	.complete =3D subdev_notifier_complete,
-> +};
-> +
->  static int fimc_md_probe(struct platform_device *pdev)
->  {
->  	struct device *dev =3D &pdev->dev;
-> @@ -1479,8 +1484,7 @@ static int fimc_md_probe(struct platform_device *pd=
-ev)
->  	if (fmd->num_sensors > 0) {
->  		fmd->subdev_notifier.subdevs =3D fmd->async_subdevs;
->  		fmd->subdev_notifier.num_subdevs =3D fmd->num_sensors;
-> -		fmd->subdev_notifier.bound =3D subdev_notifier_bound;
-> -		fmd->subdev_notifier.complete =3D subdev_notifier_complete;
-> +		fmd->subdev_notifier.ops =3D &subdev_notifier_ops;
->  		fmd->num_sensors =3D 0;
-> =20
->  		ret =3D v4l2_async_notifier_register(&fmd->v4l2_dev,
-> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platfo=
-rm/omap3isp/isp.c
-> index 35687c9707e0..b7ff3842afc0 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -2171,6 +2171,10 @@ static int isp_subdev_notifier_complete(struct v4l=
-2_async_notifier *async)
->  	return media_device_register(&isp->media_dev);
->  }
-> =20
-> +static const struct v4l2_async_notifier_operations isp_subdev_notifier_o=
-ps =3D {
-> +	.complete =3D isp_subdev_notifier_complete,
-> +};
-> +
->  /*
->   * isp_probe - Probe ISP platform device
->   * @pdev: Pointer to ISP platform device
-> @@ -2341,7 +2345,7 @@ static int isp_probe(struct platform_device *pdev)
->  	if (ret < 0)
->  		goto error_register_entities;
-> =20
-> -	isp->notifier.complete =3D isp_subdev_notifier_complete;
-> +	isp->notifier.ops =3D &isp_subdev_notifier_ops;
-> =20
->  	ret =3D v4l2_async_notifier_register(&isp->v4l2_dev, &isp->notifier);
->  	if (ret)
-> diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform=
-/pxa_camera.c
-> index edca993c2b1f..9d3f0cb1d95a 100644
-> --- a/drivers/media/platform/pxa_camera.c
-> +++ b/drivers/media/platform/pxa_camera.c
-> @@ -2221,6 +2221,11 @@ static void pxa_camera_sensor_unbind(struct v4l2_a=
-sync_notifier *notifier,
->  	mutex_unlock(&pcdev->mlock);
->  }
-> =20
-> +static const struct v4l2_async_notifier_operations pxa_camera_sensor_ops=
- =3D {
-> +	.bound =3D pxa_camera_sensor_bound,
-> +	.unbind =3D pxa_camera_sensor_unbind,
-> +};
-> +
->  /*
->   * Driver probe, remove, suspend and resume operations
->   */
-> @@ -2489,8 +2494,7 @@ static int pxa_camera_probe(struct platform_device =
-*pdev)
->  	pcdev->asds[0] =3D &pcdev->asd;
->  	pcdev->notifier.subdevs =3D pcdev->asds;
->  	pcdev->notifier.num_subdevs =3D 1;
-> -	pcdev->notifier.bound =3D pxa_camera_sensor_bound;
-> -	pcdev->notifier.unbind =3D pxa_camera_sensor_unbind;
-> +	pcdev->notifier.ops =3D &pxa_camera_sensor_ops;
-> =20
->  	if (!of_have_populated_dt())
->  		pcdev->asd.match_type =3D V4L2_ASYNC_MATCH_I2C;
-> diff --git a/drivers/media/platform/qcom/camss-8x16/camss.c b/drivers/med=
-ia/platform/qcom/camss-8x16/camss.c
-> index a3760b5dd1d1..390a42c17b66 100644
-> --- a/drivers/media/platform/qcom/camss-8x16/camss.c
-> +++ b/drivers/media/platform/qcom/camss-8x16/camss.c
-> @@ -601,6 +601,11 @@ static int camss_subdev_notifier_complete(struct v4l=
-2_async_notifier *async)
->  	return media_device_register(&camss->media_dev);
->  }
-> =20
-> +static const struct v4l2_async_notifier_operations camss_subdev_notifier=
-_ops =3D {
-> +	.bound =3D camss_subdev_notifier_bound,
-> +	.complete =3D camss_subdev_notifier_complete,
-> +};
-> +
->  static const struct media_device_ops camss_media_ops =3D {
->  	.link_notify =3D v4l2_pipeline_link_notify,
->  };
-> @@ -655,8 +660,7 @@ static int camss_probe(struct platform_device *pdev)
->  		goto err_register_entities;
-> =20
->  	if (camss->notifier.num_subdevs) {
-> -		camss->notifier.bound =3D camss_subdev_notifier_bound;
-> -		camss->notifier.complete =3D camss_subdev_notifier_complete;
-> +		camss->notifier.ops =3D &camss_subdev_notifier_ops;
-> =20
->  		ret =3D v4l2_async_notifier_register(&camss->v4l2_dev,
->  						   &camss->notifier);
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/=
-platform/rcar-vin/rcar-core.c
-> index 380288658601..108d776f3265 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -134,6 +134,12 @@ static int rvin_digital_notify_bound(struct v4l2_asy=
-nc_notifier *notifier,
-> =20
->  	return 0;
->  }
-> +static const struct v4l2_async_notifier_operations rvin_digital_notify_o=
-ps =3D {
-> +	.bound =3D rvin_digital_notify_bound,
-> +	.unbind =3D rvin_digital_notify_unbind,
-> +	.complete =3D rvin_digital_notify_complete,
-> +};
-> +
-> =20
->  static int rvin_digital_parse_v4l2(struct device *dev,
->  				   struct v4l2_fwnode_endpoint *vep,
-> @@ -183,9 +189,7 @@ static int rvin_digital_graph_init(struct rvin_dev *v=
-in)
->  	vin_dbg(vin, "Found digital subdevice %pOF\n",
->  		to_of_node(vin->digital->asd.match.fwnode.fwnode));
-> =20
-> -	vin->notifier.bound =3D rvin_digital_notify_bound;
-> -	vin->notifier.unbind =3D rvin_digital_notify_unbind;
-> -	vin->notifier.complete =3D rvin_digital_notify_complete;
-> +	vin->notifier.ops =3D &rvin_digital_notify_ops;
->  	ret =3D v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
->  	if (ret < 0) {
->  		vin_err(vin, "Notifier registration failed\n");
-> diff --git a/drivers/media/platform/rcar_drif.c b/drivers/media/platform/=
-rcar_drif.c
-> index 2c6afd38b78a..63c94f4028a7 100644
-> --- a/drivers/media/platform/rcar_drif.c
-> +++ b/drivers/media/platform/rcar_drif.c
-> @@ -1185,6 +1185,12 @@ static int rcar_drif_notify_complete(struct v4l2_a=
-sync_notifier *notifier)
->  	return ret;
->  }
-> =20
-> +static const struct v4l2_async_notifier_operations rcar_drif_notify_ops =
-=3D {
-> +	.bound =3D rcar_drif_notify_bound,
-> +	.unbind =3D rcar_drif_notify_unbind,
-> +	.complete =3D rcar_drif_notify_complete,
-> +};
-> +
->  /* Read endpoint properties */
->  static void rcar_drif_get_ep_properties(struct rcar_drif_sdr *sdr,
->  					struct fwnode_handle *fwnode)
-> @@ -1347,9 +1353,7 @@ static int rcar_drif_sdr_probe(struct rcar_drif_sdr=
- *sdr)
->  	if (ret)
->  		goto error;
-> =20
-> -	sdr->notifier.bound =3D rcar_drif_notify_bound;
-> -	sdr->notifier.unbind =3D rcar_drif_notify_unbind;
-> -	sdr->notifier.complete =3D rcar_drif_notify_complete;
-> +	sdr->notifier.ops =3D &rcar_drif_notify_ops;
-> =20
->  	/* Register notifier */
->  	ret =3D v4l2_async_notifier_register(&sdr->v4l2_dev, &sdr->notifier);
-> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/med=
-ia/platform/soc_camera/soc_camera.c
-> index 1f3c450c7a69..916ff68b73d4 100644
-> --- a/drivers/media/platform/soc_camera/soc_camera.c
-> +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> @@ -1391,6 +1391,12 @@ static int soc_camera_async_complete(struct v4l2_a=
-sync_notifier *notifier)
->  	return 0;
->  }
-> =20
-> +static const struct v4l2_async_notifier_operations soc_camera_async_ops =
-=3D {
-> +	.bound =3D soc_camera_async_bound,
-> +	.unbind =3D soc_camera_async_unbind,
-> +	.complete =3D soc_camera_async_complete,
-> +};
-> +
->  static int scan_async_group(struct soc_camera_host *ici,
->  			    struct v4l2_async_subdev **asd, unsigned int size)
->  {
-> @@ -1437,9 +1443,7 @@ static int scan_async_group(struct soc_camera_host =
-*ici,
-> =20
->  	sasc->notifier.subdevs =3D asd;
->  	sasc->notifier.num_subdevs =3D size;
-> -	sasc->notifier.bound =3D soc_camera_async_bound;
-> -	sasc->notifier.unbind =3D soc_camera_async_unbind;
-> -	sasc->notifier.complete =3D soc_camera_async_complete;
-> +	sasc->notifier.ops =3D &soc_camera_async_ops;
-> =20
->  	icd->sasc =3D sasc;
->  	icd->parent =3D ici->v4l2_dev.dev;
-> @@ -1537,9 +1541,7 @@ static int soc_of_bind(struct soc_camera_host *ici,
-> =20
->  	sasc->notifier.subdevs =3D &info->subdev;
->  	sasc->notifier.num_subdevs =3D 1;
-> -	sasc->notifier.bound =3D soc_camera_async_bound;
-> -	sasc->notifier.unbind =3D soc_camera_async_unbind;
-> -	sasc->notifier.complete =3D soc_camera_async_complete;
-> +	sasc->notifier.ops =3D &soc_camera_async_ops;
-> =20
->  	icd->sasc =3D sasc;
->  	icd->parent =3D ici->v4l2_dev.dev;
-> diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/pl=
-atform/stm32/stm32-dcmi.c
-> index 35ba6f211b79..ac4c450a6c7d 100644
-> --- a/drivers/media/platform/stm32/stm32-dcmi.c
-> +++ b/drivers/media/platform/stm32/stm32-dcmi.c
-> @@ -1495,6 +1495,12 @@ static int dcmi_graph_notify_bound(struct v4l2_asy=
-nc_notifier *notifier,
->  	return 0;
->  }
-> =20
-> +static const struct v4l2_async_notifier_operations dcmi_graph_notify_ops=
- =3D {
-> +	.bound =3D dcmi_graph_notify_bound,
-> +	.unbind =3D dcmi_graph_notify_unbind,
-> +	.complete =3D dcmi_graph_notify_complete,
-> +};
-> +
->  static int dcmi_graph_parse(struct stm32_dcmi *dcmi, struct device_node =
-*node)
->  {
->  	struct device_node *ep =3D NULL;
-> @@ -1542,9 +1548,7 @@ static int dcmi_graph_init(struct stm32_dcmi *dcmi)
-> =20
->  	dcmi->notifier.subdevs =3D subdevs;
->  	dcmi->notifier.num_subdevs =3D 1;
-> -	dcmi->notifier.bound =3D dcmi_graph_notify_bound;
-> -	dcmi->notifier.unbind =3D dcmi_graph_notify_unbind;
-> -	dcmi->notifier.complete =3D dcmi_graph_notify_complete;
-> +	dcmi->notifier.ops =3D &dcmi_graph_notify_ops;
-> =20
->  	ret =3D v4l2_async_notifier_register(&dcmi->v4l2_dev, &dcmi->notifier);
->  	if (ret < 0) {
-> diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform=
-/ti-vpe/cal.c
-> index 42e383a48ffe..8b586c864524 100644
-> --- a/drivers/media/platform/ti-vpe/cal.c
-> +++ b/drivers/media/platform/ti-vpe/cal.c
-> @@ -1522,6 +1522,11 @@ static int cal_async_complete(struct v4l2_async_no=
-tifier *notifier)
->  	return 0;
->  }
-> =20
-> +static const struct v4l2_async_notifier_operations cal_async_ops =3D {
-> +	.bound =3D cal_async_bound,
-> +	.complete =3D cal_async_complete,
-> +};
-> +
->  static int cal_complete_ctx(struct cal_ctx *ctx)
->  {
->  	struct video_device *vfd;
-> @@ -1736,8 +1741,7 @@ static int of_cal_create_instance(struct cal_ctx *c=
-tx, int inst)
->  	ctx->asd_list[0] =3D asd;
->  	ctx->notifier.subdevs =3D ctx->asd_list;
->  	ctx->notifier.num_subdevs =3D 1;
-> -	ctx->notifier.bound =3D cal_async_bound;
-> -	ctx->notifier.complete =3D cal_async_complete;
-> +	ctx->notifier.ops =3D &cal_async_ops;
->  	ret =3D v4l2_async_notifier_register(&ctx->v4l2_dev,
->  					   &ctx->notifier);
->  	if (ret) {
-> diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/=
-platform/xilinx/xilinx-vipp.c
-> index ebfdf334d99c..d881cf09876d 100644
-> --- a/drivers/media/platform/xilinx/xilinx-vipp.c
-> +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
-> @@ -351,6 +351,11 @@ static int xvip_graph_notify_bound(struct v4l2_async=
-_notifier *notifier,
->  	return -EINVAL;
->  }
-> =20
-> +static const struct v4l2_async_notifier_operations xvip_graph_notify_ops=
- =3D {
-> +	.bound =3D xvip_graph_notify_bound,
-> +	.complete =3D xvip_graph_notify_complete,
-> +};
-> +
->  static int xvip_graph_parse_one(struct xvip_composite_device *xdev,
->  				struct device_node *node)
->  {
-> @@ -548,8 +553,7 @@ static int xvip_graph_init(struct xvip_composite_devi=
-ce *xdev)
-> =20
->  	xdev->notifier.subdevs =3D subdevs;
->  	xdev->notifier.num_subdevs =3D num_subdevs;
-> -	xdev->notifier.bound =3D xvip_graph_notify_bound;
-> -	xdev->notifier.complete =3D xvip_graph_notify_complete;
-> +	xdev->notifier.ops =3D &xvip_graph_notify_ops;
-> =20
->  	ret =3D v4l2_async_notifier_register(&xdev->v4l2_dev, &xdev->notifier);
->  	if (ret < 0) {
 > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-co=
 re/v4l2-async.c
-> index 46aebfc75e43..9d6fc5f25619 100644
+> index 6265717769d2..ed539c4fd5dc 100644
 > --- a/drivers/media/v4l2-core/v4l2-async.c
 > +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -102,16 +102,16 @@ static int v4l2_async_match_notify(struct v4l2_asyn=
-c_notifier *notifier,
+> @@ -124,11 +124,87 @@ static struct v4l2_async_subdev *v4l2_async_find_ma=
+tch(
+>  	return NULL;
+>  }
+> =20
+> +/* Find the sub-device notifier registered by a sub-device driver. */
+> +static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
+> +	struct v4l2_subdev *sd)
+> +{
+> +	struct v4l2_async_notifier *n;
+> +
+> +	list_for_each_entry(n, &notifier_list, list)
+> +		if (n->sd =3D=3D sd)
+> +			return n;
+> +
+> +	return NULL;
+> +}
+> +
+> +/* Get v4l2_device related to the notifier if one can be found. */
+> +static struct v4l2_device *v4l2_async_notifier_find_v4l2_dev(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	while (notifier->parent)
+> +		notifier =3D notifier->parent;
+> +
+> +	return notifier->v4l2_dev;
+> +}
+> +
+> +/*
+> + * Return true if all child sub-device notifiers are complete, false oth=
+erwise.
+> + */
+> +static bool v4l2_async_notifier_can_complete(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	struct v4l2_subdev *sd;
+> +
+> +	if (!list_empty(&notifier->waiting))
+> +		return false;
+> +
+> +	list_for_each_entry(sd, &notifier->done, async_list) {
+> +		struct v4l2_async_notifier *subdev_notifier =3D
+> +			v4l2_async_find_subdev_notifier(sd);
+> +
+> +		if (subdev_notifier &&
+> +		    !v4l2_async_notifier_can_complete(subdev_notifier))
+> +			return false;
+> +	}
+> +
+> +	return true;
+> +}
+> +
+> +/*
+> + * Complete the master notifier if possible. This is done when all async
+> + * sub-devices have been bound; v4l2_device is also available then.
+> + */
+> +static int v4l2_async_notifier_try_complete(
+> +	struct v4l2_async_notifier *notifier)
+> +{
+> +	/* Quick check whether there are still more sub-devices here. */
+> +	if (!list_empty(&notifier->waiting))
+> +		return 0;
+> +
+> +	/* Check the entire notifier tree; find the root notifier first. */
+> +	while (notifier->parent)
+> +		notifier =3D notifier->parent;
+> +
+> +	/* This is root if it has v4l2_dev. */
+> +	if (!notifier->v4l2_dev)
+> +		return 0;
+> +
+> +	/* Is everything ready? */
+> +	if (!v4l2_async_notifier_can_complete(notifier))
+> +		return 0;
+> +
+> +	return v4l2_async_notifier_call_complete(notifier);
+> +}
+> +
+> +static int v4l2_async_notifier_try_all_subdevs(
+> +	struct v4l2_async_notifier *notifier);
+> +
+>  static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+>  				   struct v4l2_device *v4l2_dev,
+>  				   struct v4l2_subdev *sd,
+>  				   struct v4l2_async_subdev *asd)
 >  {
+> +	struct v4l2_async_notifier *subdev_notifier;
 >  	int ret;
 > =20
-> -	if (notifier->bound) {
-> -		ret =3D notifier->bound(notifier, sd, asd);
-> +	if (notifier->ops->bound) {
-> +		ret =3D notifier->ops->bound(notifier, sd, asd);
+>  	ret =3D v4l2_device_register_subdev(v4l2_dev, sd);
+> @@ -149,17 +225,36 @@ static int v4l2_async_match_notify(struct v4l2_asyn=
+c_notifier *notifier,
+>  	/* Move from the global subdevice list to notifier's done */
+>  	list_move(&sd->async_list, &notifier->done);
+> =20
+> -	return 0;
+> +	/*
+> +	 * See if the sub-device has a notifier. If not, return here.
+> +	 */
+> +	subdev_notifier =3D v4l2_async_find_subdev_notifier(sd);
+> +	if (!subdev_notifier || subdev_notifier->parent)
+> +		return 0;
+> +
+> +	/*
+> +	 * Proceed with checking for the sub-device notifier's async
+> +	 * sub-devices, and return the result. The error will be handled by the
+> +	 * caller.
+> +	 */
+> +	subdev_notifier->parent =3D notifier;
+> +
+> +	return v4l2_async_notifier_try_all_subdevs(subdev_notifier);
+>  }
+> =20
+>  /* Test all async sub-devices in a notifier for a match. */
+>  static int v4l2_async_notifier_try_all_subdevs(
+>  	struct v4l2_async_notifier *notifier)
+>  {
+> -	struct v4l2_device *v4l2_dev =3D notifier->v4l2_dev;
+> -	struct v4l2_subdev *sd, *tmp;
+> +	struct v4l2_device *v4l2_dev =3D
+> +		v4l2_async_notifier_find_v4l2_dev(notifier);
+> +	struct v4l2_subdev *sd;
+> +
+> +	if (!v4l2_dev)
+> +		return 0;
+> =20
+> -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+> +again:
+> +	list_for_each_entry(sd, &subdev_list, async_list) {
+>  		struct v4l2_async_subdev *asd;
+>  		int ret;
+> =20
+> @@ -170,6 +265,14 @@ static int v4l2_async_notifier_try_all_subdevs(
+>  		ret =3D v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
 >  		if (ret < 0)
 >  			return ret;
+> +
+> +		/*
+> +		 * v4l2_async_match_notify() may lead to registering a
+> +		 * new notifier and thus changing the async subdevs
+> +		 * list. In order to proceed safely from here, restart
+> +		 * parsing the list from the beginning.
+> +		 */
+> +		goto again;
 >  	}
 > =20
->  	ret =3D v4l2_device_register_subdev(notifier->v4l2_dev, sd);
->  	if (ret < 0) {
-> -		if (notifier->unbind)
-> -			notifier->unbind(notifier, sd, asd);
-> +		if (notifier->ops->unbind)
-> +			notifier->ops->unbind(notifier, sd, asd);
->  		return ret;
->  	}
+>  	return 0;
+> @@ -183,17 +286,26 @@ static void v4l2_async_cleanup(struct v4l2_subdev *=
+sd)
+>  	sd->asd =3D NULL;
+>  }
 > =20
-> @@ -140,9 +140,8 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+> +/* Unbind all sub-devices in the notifier tree. */
+>  static void v4l2_async_notifier_unbind_all_subdevs(
+>  	struct v4l2_async_notifier *notifier)
+>  {
 >  	struct v4l2_subdev *sd, *tmp;
 > =20
 >  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> -		if (notifier->unbind)
-> -			notifier->unbind(notifier, sd, sd->asd);
-> -
-> +		if (notifier->ops->unbind)
-> +			notifier->ops->unbind(notifier, sd, sd->asd);
+> +		struct v4l2_async_notifier *subdev_notifier =3D
+> +			v4l2_async_find_subdev_notifier(sd);
+> +
+> +		if (subdev_notifier)
+> +			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
+> +
+>  		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
 >  		v4l2_async_cleanup(sd);
 > =20
 >  		list_move(&sd->async_list, &subdev_list);
-> @@ -199,8 +198,8 @@ int v4l2_async_notifier_register(struct v4l2_device *=
-v4l2_dev,
->  		}
 >  	}
-> =20
-> -	if (list_empty(&notifier->waiting) && notifier->complete) {
-> -		ret =3D notifier->complete(notifier);
-> +	if (list_empty(&notifier->waiting) && notifier->ops->complete) {
-> +		ret =3D notifier->ops->complete(notifier);
->  		if (ret)
->  			goto err_complete;
->  	}
-> @@ -297,10 +296,10 @@ int v4l2_async_register_subdev(struct v4l2_subdev *=
-sd)
->  		if (ret)
->  			goto err_unlock;
-> =20
-> -		if (!list_empty(&notifier->waiting) || !notifier->complete)
-> +		if (!list_empty(&notifier->waiting) || !notifier->ops->complete)
->  			goto out_unlock;
-> =20
-> -		ret =3D notifier->complete(notifier);
-> +		ret =3D notifier->ops->complete(notifier);
->  		if (ret)
->  			goto err_cleanup;
-> =20
-> @@ -316,9 +315,8 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  	return 0;
-> =20
->  err_cleanup:
-> -	if (notifier->unbind)
-> -		notifier->unbind(notifier, sd, sd->asd);
-> -
-> +	if (notifier->ops->unbind)
-> +		notifier->ops->unbind(notifier, sd, sd->asd);
->  	v4l2_async_cleanup(sd);
-> =20
->  err_unlock:
-> @@ -337,8 +335,8 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev =
-*sd)
-> =20
->  		list_add(&sd->asd->list, &notifier->waiting);
-> =20
-> -		if (notifier->unbind)
-> -			notifier->unbind(notifier, sd, sd->asd);
-> +		if (notifier->ops->unbind)
-> +			notifier->ops->unbind(notifier, sd, sd->asd);
->  	}
-> =20
->  	v4l2_async_cleanup(sd);
-> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/=
-media/imx/imx-media-dev.c
-> index b55e5ebba8b4..47c4c954fed5 100644
-> --- a/drivers/staging/media/imx/imx-media-dev.c
-> +++ b/drivers/staging/media/imx/imx-media-dev.c
-> @@ -440,6 +440,11 @@ static int imx_media_probe_complete(struct v4l2_asyn=
-c_notifier *notifier)
->  	return media_device_register(&imxmd->md);
+> +
+> +	notifier->parent =3D NULL;
 >  }
 > =20
-> +static const struct v4l2_async_notifier_operations imx_media_subdev_ops =
-=3D {
-> +	.bound =3D imx_media_subdev_bound,
-> +	.complete =3D imx_media_probe_complete,
-> +};
-> +
->  /*
->   * adds controls to a video device from an entity subdevice.
->   * Continues upstream from the entity's sink pads.
-> @@ -608,8 +613,7 @@ static int imx_media_probe(struct platform_device *pd=
-ev)
+>  static int __v4l2_async_notifier_register(struct v4l2_async_notifier *no=
+tifier)
+> @@ -208,15 +320,6 @@ static int __v4l2_async_notifier_register(struct v4l=
+2_async_notifier *notifier)
+>  	INIT_LIST_HEAD(&notifier->waiting);
+>  	INIT_LIST_HEAD(&notifier->done);
 > =20
->  	/* prepare the async subdev notifier and register it */
->  	imxmd->subdev_notifier.subdevs =3D imxmd->async_ptrs;
-> -	imxmd->subdev_notifier.bound =3D imx_media_subdev_bound;
-> -	imxmd->subdev_notifier.complete =3D imx_media_probe_complete;
-> +	imxmd->subdev_notifier.ops =3D &imx_media_subdev_ops;
->  	ret =3D v4l2_async_notifier_register(&imxmd->v4l2_dev,
->  					   &imxmd->subdev_notifier);
->  	if (ret) {
+> -	if (!notifier->num_subdevs) {
+> -		int ret;
+> -
+> -		ret =3D v4l2_async_notifier_call_complete(notifier);
+> -		notifier->v4l2_dev =3D NULL;
+> -
+> -		return ret;
+> -	}
+> -
+>  	for (i =3D 0; i < notifier->num_subdevs; i++) {
+>  		asd =3D notifier->subdevs[i];
+> =20
+> @@ -238,16 +341,12 @@ static int __v4l2_async_notifier_register(struct v4=
+l2_async_notifier *notifier)
+>  	mutex_lock(&list_lock);
+> =20
+>  	ret =3D v4l2_async_notifier_try_all_subdevs(notifier);
+> -	if (ret) {
+> -		mutex_unlock(&list_lock);
+> -		return ret;
+> -	}
+> +	if (ret)
+> +		goto err_unbind;
+> =20
+> -	if (list_empty(&notifier->waiting)) {
+> -		ret =3D v4l2_async_notifier_call_complete(notifier);
+> -		if (ret)
+> -			goto err_complete;
+> -	}
+> +	ret =3D v4l2_async_notifier_try_complete(notifier);
+> +	if (ret)
+> +		goto err_unbind;
+> =20
+>  	/* Keep also completed notifiers on the list */
+>  	list_add(&notifier->list, &notifier_list);
+> @@ -256,7 +355,10 @@ static int __v4l2_async_notifier_register(struct v4l=
+2_async_notifier *notifier)
+> =20
+>  	return 0;
+> =20
+> -err_complete:
+> +err_unbind:
+> +	/*
+> +	 * On failure, unbind all sub-devices registered through this notifier.
+> +	 */
+>  	v4l2_async_notifier_unbind_all_subdevs(notifier);
+> =20
+>  	mutex_unlock(&list_lock);
+> @@ -269,7 +371,7 @@ int v4l2_async_notifier_register(struct v4l2_device *=
+v4l2_dev,
+>  {
+>  	int ret;
+> =20
+> -	if (WARN_ON(!v4l2_dev))
+> +	if (WARN_ON(!v4l2_dev || notifier->sd))
+>  		return -EINVAL;
+> =20
+>  	notifier->v4l2_dev =3D v4l2_dev;
+> @@ -282,20 +384,39 @@ int v4l2_async_notifier_register(struct v4l2_device=
+ *v4l2_dev,
+>  }
+>  EXPORT_SYMBOL(v4l2_async_notifier_register);
+> =20
+> +int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
+> +					struct v4l2_async_notifier *notifier)
+> +{
+> +	int ret;
+> +
+> +	if (WARN_ON(!sd || notifier->v4l2_dev))
+> +		return -EINVAL;
+> +
+> +	notifier->sd =3D sd;
+> +
+> +	ret =3D __v4l2_async_notifier_register(notifier);
+> +	if (ret)
+> +		notifier->sd =3D NULL;
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL(v4l2_async_subdev_notifier_register);
+> +
+>  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>  {
+> -	if (!notifier->v4l2_dev)
+> +	if (!notifier->v4l2_dev && !notifier->sd)
+>  		return;
+> =20
+>  	mutex_lock(&list_lock);
+> =20
+> -	list_del(&notifier->list);
+> -
+>  	v4l2_async_notifier_unbind_all_subdevs(notifier);
+> =20
+> -	mutex_unlock(&list_lock);
+> -
+> +	notifier->sd =3D NULL;
+>  	notifier->v4l2_dev =3D NULL;
+> +
+> +	list_del(&notifier->list);
+> +
+> +	mutex_unlock(&list_lock);
+>  }
+>  EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+> =20
+> @@ -331,6 +452,7 @@ EXPORT_SYMBOL_GPL(v4l2_async_notifier_cleanup);
+> =20
+>  int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  {
+> +	struct v4l2_async_notifier *subdev_notifier;
+>  	struct v4l2_async_notifier *notifier;
+>  	int ret;
+> =20
+> @@ -347,24 +469,26 @@ int v4l2_async_register_subdev(struct v4l2_subdev *=
+sd)
+>  	INIT_LIST_HEAD(&sd->async_list);
+> =20
+>  	list_for_each_entry(notifier, &notifier_list, list) {
+> -		struct v4l2_async_subdev *asd =3D v4l2_async_find_match(notifier,
+> -								      sd);
+> +		struct v4l2_device *v4l2_dev =3D
+> +			v4l2_async_notifier_find_v4l2_dev(notifier);
+> +		struct v4l2_async_subdev *asd;
+>  		int ret;
+> =20
+> +		if (!v4l2_dev)
+> +			continue;
+> +
+> +		asd =3D v4l2_async_find_match(notifier, sd);
+>  		if (!asd)
+>  			continue;
+> =20
+>  		ret =3D v4l2_async_match_notify(notifier, notifier->v4l2_dev, sd,
+>  					      asd);
+>  		if (ret)
+> -			goto err_unlock;
+> -
+> -		if (!list_empty(&notifier->waiting))
+> -			goto out_unlock;
+> +			goto err_unbind;
+> =20
+> -		ret =3D v4l2_async_notifier_call_complete(notifier);
+> +		ret =3D v4l2_async_notifier_try_complete(notifier);
+>  		if (ret)
+> -			goto err_cleanup;
+> +			goto err_unbind;
+> =20
+>  		goto out_unlock;
+>  	}
+> @@ -377,11 +501,19 @@ int v4l2_async_register_subdev(struct v4l2_subdev *=
+sd)
+> =20
+>  	return 0;
+> =20
+> -err_cleanup:
+> -	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+> +err_unbind:
+> +	/*
+> +	 * Complete failed. Unbind the sub-devices bound through registering
+> +	 * this async sub-device.
+> +	 */
+> +	subdev_notifier =3D v4l2_async_find_subdev_notifier(sd);
+> +	if (subdev_notifier)
+> +		v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
+> +
+> +	if (sd->asd)
+> +		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+>  	v4l2_async_cleanup(sd);
+> =20
+> -err_unlock:
+>  	mutex_unlock(&list_lock);
+> =20
+>  	return ret;
 > diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> index 329aeebd1a80..68606afb5ef9 100644
+> index 68606afb5ef9..17c4ac7c73e8 100644
 > --- a/include/media/v4l2-async.h
 > +++ b/include/media/v4l2-async.h
-> @@ -18,6 +18,7 @@ struct device;
->  struct device_node;
->  struct v4l2_device;
->  struct v4l2_subdev;
-> +struct v4l2_async_notifier;
-> =20
->  /* A random max subdevice number, used to allocate an array on stack */
->  #define V4L2_MAX_SUBDEVS 128U
-> @@ -79,8 +80,25 @@ struct v4l2_async_subdev {
->  };
-> =20
+> @@ -82,7 +82,8 @@ struct v4l2_async_subdev {
 >  /**
-> + * struct v4l2_async_notifier_operations - Asynchronous V4L2 notifier op=
+>   * struct v4l2_async_notifier_operations - Asynchronous V4L2 notifier op=
 erations
-> + * @bound:	a subdevice driver has successfully probed one of the subdevi=
+>   * @bound:	a subdevice driver has successfully probed one of the subdevi=
 ces
-> + * @complete:	all subdevices have been probed successfully
-> + * @unbind:	a subdevice is leaving
-> + */
-> +struct v4l2_async_notifier_operations {
-> +	int (*bound)(struct v4l2_async_notifier *notifier,
-> +		     struct v4l2_subdev *subdev,
-> +		     struct v4l2_async_subdev *asd);
-> +	int (*complete)(struct v4l2_async_notifier *notifier);
-> +	void (*unbind)(struct v4l2_async_notifier *notifier,
-> +		       struct v4l2_subdev *subdev,
-> +		       struct v4l2_async_subdev *asd);
-> +};
-> +
-> +/**
->   * struct v4l2_async_notifier - v4l2_device notifier data
->   *
-> + * @ops:	notifier operations
+> - * @complete:	all subdevices have been probed successfully
+> + * @complete:	All subdevices have been probed successfully. The complete
+> + *		callback is only executed for the root notifier.
+>   * @unbind:	a subdevice is leaving
+>   */
+>  struct v4l2_async_notifier_operations {
+> @@ -102,7 +103,9 @@ struct v4l2_async_notifier_operations {
 >   * @num_subdevs: number of subdevices used in the subdevs array
 >   * @max_subdevs: number of subdevices allocated in the subdevs array
 >   * @subdevs:	array of pointers to subdevice descriptors
-> @@ -88,11 +106,9 @@ struct v4l2_async_subdev {
+> - * @v4l2_dev:	pointer to struct v4l2_device
+> + * @v4l2_dev:	v4l2_device of the root notifier, NULL otherwise
+> + * @sd:		sub-device that registered the notifier, NULL otherwise
+> + * @parent:	parent notifier
 >   * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
 >   * @done:	list of struct v4l2_subdev, already probed
 >   * @list:	member in a global list of notifiers
-> - * @bound:	a subdevice driver has successfully probed one of subdevices
-> - * @complete:	all subdevices have been probed successfully
-> - * @unbind:	a subdevice is leaving
->   */
->  struct v4l2_async_notifier {
-> +	const struct v4l2_async_notifier_operations *ops;
->  	unsigned int num_subdevs;
+> @@ -113,6 +116,8 @@ struct v4l2_async_notifier {
 >  	unsigned int max_subdevs;
 >  	struct v4l2_async_subdev **subdevs;
-> @@ -100,13 +116,6 @@ struct v4l2_async_notifier {
+>  	struct v4l2_device *v4l2_dev;
+> +	struct v4l2_subdev *sd;
+> +	struct v4l2_async_notifier *parent;
 >  	struct list_head waiting;
 >  	struct list_head done;
 >  	struct list_head list;
-> -	int (*bound)(struct v4l2_async_notifier *notifier,
-> -		     struct v4l2_subdev *subdev,
-> -		     struct v4l2_async_subdev *asd);
-> -	int (*complete)(struct v4l2_async_notifier *notifier);
-> -	void (*unbind)(struct v4l2_async_notifier *notifier,
-> -		       struct v4l2_subdev *subdev,
-> -		       struct v4l2_async_subdev *asd);
->  };
+> @@ -128,6 +133,16 @@ int v4l2_async_notifier_register(struct v4l2_device =
+*v4l2_dev,
+>  				 struct v4l2_async_notifier *notifier);
 > =20
 >  /**
+> + * v4l2_async_subdev_notifier_register - registers a subdevice asynchron=
+ous
+> + *					 notifier for a sub-device
+> + *
+> + * @sd: pointer to &struct v4l2_subdev
+> + * @notifier: pointer to &struct v4l2_async_notifier
+> + */
+> +int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
+> +					struct v4l2_async_notifier *notifier);
+> +
+> +/**
+>   * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous=
+ notifier
+>   *
+>   * @notifier: pointer to &struct v4l2_async_notifier
 > --=20
 > 2.11.0
 >=20
 
---rbzmphwvb44ic52y
+--aft32s52x6ab2ctf
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnzRx4ACgkQ2O7X88g7
-+ponTxAAmq1zf7w+vnl4rBSHe2HLwSLQjucZFZTxnAX/ZotL+OQFCri+t27daVMK
-vcjQYX/U9E+zj1ujspXfkVCWK7kb/1SxycL6tE5i0h73+bSXg5My4f3e5Bn0mIjk
-tB/PpN+OHpmZ9DQwZ4QkyRPdyRY1Ka/WRGzATZIkr9Fx4BGiiryVE8XOs/vfTmm7
-zhf4XJauwBfBQRpeak1e80or5MzYvOU4x3KMb49+y2vRkG1Hln/WvAn1tRvuChDJ
-jLOw3J4XJsJTwi7mG5HyiIMZBmsoaD/zqC4nuEi+5ArAyahS92wghc9exHe9Rai2
-ReCk8zyuD/U9syFTkNf+MTDQeouFz+SOG1guOigVLjnzNDKplIX/lKNJSqbAbUqL
-+BwA0SH6e+zT0gmF3JgPRRKrogE6ixPMk1R2NaoummbLh/6/Waz4t/HxugfilsPJ
-1rIZjKxnCdPlq5tGywJTDRucIbmaoqqPYtvnPGImG0YDRBgWwsXQhtHMRRAY1W8z
-gmN3I44tzB2E3pjmWGB/0bHsNF7fQaBHp1CsGkNZlz+X4vz6Q8K75UZYH/GoJGon
-t8LrReqy9PdQrz9nJkw60EK4Zl2oIW/5cV63jMwnA1uMt9j3GE2KBYuL7MejtK9j
-t/FpTvowMhodVvZtTHdjianSFR6d5A/6+G7EHslj//VbkTY+Mzw=
-=xOph
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAln2U+UACgkQ2O7X88g7
++po7Xg/+PyX7Luw7Z+C9TTcXay8/GlnfPcQBqYp0XlMfwGjPecjJBGpY1gekzvYU
+m6EpR2yQ/iebfcB9MEQuLQq68iYc9UEA5emA8D7zDosofFdGJz+4tKznDFCguIPc
+dUj04GVBl1FTx0ZNdDQ5pkRnDMPY5XsJ1tcWrm9hVlIfTgf8n63ie0TZIo9B2jkI
+afRyy+DEthi85B+WAPHRPKG7pX0J9h7yubnaSVqbjzqVFL8GI46NoBC8GGhDdv7B
+UAeZHXBEBEU3LsoXE7RioV1CY4qzxRetpYA97oHz+VrifX1Ste+isO1GVGf2OyPn
+PbyfLpf4EtY6ixQqh7PmCIoyh1xPmq2S1GiOMwXyDMW4KWXlyRZYanaX4WVcNxgT
+lyRjXeU1+hxPjKbmxmo3cricC1djE9elL66UkiZrWYQqxx0wuhOSdF26WFAnVXYt
+HfHtj2dJQsoJXoVDikcO927eIXxwYNvUdQSlkuIvSvBP/YTvtTHlLh9MBjIWBSsX
+fH/RY9+5zKu1x798SeOE26BxzZ2qeRtEJCZlcItN3IzgnDfji+fw9M20Sdi+tgt1
+pSSp58lfXmBb+0Ve5+LQ+KGt/zZyojGHfT2G0TeGK3Xg8E9XvFnGH9HEB2n7wSRa
+Ms43/bgwEESFrC9P13xu7Jq8NFYYuUI0Ao9PLCmP5KVpQwKOKc8=
+=+bFo
 -----END PGP SIGNATURE-----
 
---rbzmphwvb44ic52y--
+--aft32s52x6ab2ctf--
