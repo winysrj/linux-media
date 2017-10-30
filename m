@@ -1,45 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:34772 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752278AbdJTKHh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 06:07:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-rockchip@lists.infradead.org,
-        Heiko Stuebner <heiko@sntech.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/4] arm: dts: rockchip: add the cec clk for dw-hdmi on rk3288
-Date: Fri, 20 Oct 2017 12:07:31 +0200
-Message-Id: <20171020100734.17064-2-hverkuil@xs4all.nl>
-In-Reply-To: <20171020100734.17064-1-hverkuil@xs4all.nl>
-References: <20171020100734.17064-1-hverkuil@xs4all.nl>
+Received: from mout.web.de ([217.72.192.78]:52968 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751917AbdJ3Kk7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Oct 2017 06:40:59 -0400
+Subject: Re: Adjustments for a lot of function implementations
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: Julia Lawall <julia.lawall@lip6.fr>, Jan Kara <jack@suse.cz>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Michal Hocko <mhocko@suse.com>,
+        Muralidharan Karicheri <mkaricheri@gmail.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
+ <356f75b2-d303-7f10-b76c-95e2f686bd3c@xs4all.nl>
+ <14619198-bebe-d215-5324-a14fbc2103fb@users.sourceforge.net>
+ <alpine.DEB.2.20.1710301745530.2160@hadrien>
+ <ebf37d57-38c6-b3de-5a66-dbb1c13fd63a@xs4all.nl>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <049aa1b4-6291-ec24-1ffb-77ae8d1cdb63@users.sourceforge.net>
+Date: Mon, 30 Oct 2017 11:40:10 +0100
+MIME-Version: 1.0
+In-Reply-To: <ebf37d57-38c6-b3de-5a66-dbb1c13fd63a@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>> Feel free to repost, but only if you organize the patch as either fixing the same type of
+>>>> issue for a whole subdirectory (media/usb, media/pci, etc)
+>>
+>> Just for the record, while this may work for media, it won't work for all
+>> subsystems.  One will quickly get a complaint that the big patch needs to
+>> go into multiple trees.
+> 
+> For the record: this only applies to drivers/media.
 
-The dw-hdmi block needs the cec clk for the rk3288. Add it.
+Interesting …
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- arch/arm/boot/dts/rk3288.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
-index 356ed1e62452..a48352aa1591 100644
---- a/arch/arm/boot/dts/rk3288.dtsi
-+++ b/arch/arm/boot/dts/rk3288.dtsi
-@@ -1124,8 +1124,8 @@
- 		reg-io-width = <4>;
- 		rockchip,grf = <&grf>;
- 		interrupts = <GIC_SPI 103 IRQ_TYPE_LEVEL_HIGH>;
--		clocks = <&cru  PCLK_HDMI_CTRL>, <&cru SCLK_HDMI_HDCP>;
--		clock-names = "iahb", "isfr";
-+		clocks = <&cru  PCLK_HDMI_CTRL>, <&cru SCLK_HDMI_HDCP>, <&cru SCLK_HDMI_CEC>;
-+		clock-names = "iahb", "isfr", "cec";
- 		power-domains = <&power RK3288_PD_VIO>;
- 		status = "disabled";
- 
--- 
-2.14.1
+> We discussed what do to with series like this during our media summit last Friday
+
+Would you like to share any more information from this meeting?
+
+
+> and this was the conclusion of that.
+
+I would appreciate further indications for a corresponding change acceptance.
+
+I found a feedback by Mauro Carvalho Chehab more constructive.
+
+[GIT,PULL,FOR,v4.15] Cleanup fixes
+https://patchwork.linuxtv.org/patch/43957/
+
+“…
+This time, I was nice and I took some time doing:
+
+	$ quilt fold < `quilt next` && quilt delete `quilt next`
+…”
+
+
+Regards,
+Markus
