@@ -1,64 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:38874 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757852AbdJKUJy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Oct 2017 16:09:54 -0400
-From: Dmitry Osipenko <digetx@gmail.com>
-To: Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Warren <swarren@wwwdotorg.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v3 2/2] ARM: dts: tegra20: Add video decoder node
-Date: Wed, 11 Oct 2017 23:08:12 +0300
-Message-Id: <f58be69f6004393711c9ff3cb4b52aed33e2611a.1507752381.git.digetx@gmail.com>
-In-Reply-To: <cover.1507752381.git.digetx@gmail.com>
-References: <cover.1507752381.git.digetx@gmail.com>
-In-Reply-To: <cover.1507752381.git.digetx@gmail.com>
-References: <cover.1507752381.git.digetx@gmail.com>
+Received: from osg.samsung.com ([64.30.133.232]:54561 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932291AbdJ3JM7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Oct 2017 05:12:59 -0400
+Date: Mon, 30 Oct 2017 07:12:45 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [ANN] Agenda (v2) for the media mini-summit on Friday Oct 27 in
+ Prague
+Message-ID: <20171030071238.711e55ae@vela.lan>
+In-Reply-To: <4361603d-7c2c-6362-662a-646ee138619c@xs4all.nl>
+References: <4361603d-7c2c-6362-662a-646ee138619c@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a device node for the video decoder engine found on Tegra20.
+Em Fri, 20 Oct 2017 13:17:31 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
----
- arch/arm/boot/dts/tegra20.dtsi | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+> Hi all,
+> 
+> We are organizing a media mini-summit on Friday October 27 in Prague, co-located
+> with the ELCE conference:
 
-diff --git a/arch/arm/boot/dts/tegra20.dtsi b/arch/arm/boot/dts/tegra20.dtsi
-index 7c85f97f72ea..1b5d54b6c0cb 100644
---- a/arch/arm/boot/dts/tegra20.dtsi
-+++ b/arch/arm/boot/dts/tegra20.dtsi
-@@ -249,6 +249,23 @@
- 		*/
- 	};
- 
-+	vde@6001a000 {
-+		compatible = "nvidia,tegra20-vde";
-+		reg = <0x6001a000 0x3D00    /* VDE registers */
-+		       0x40000400 0x3FC00>; /* IRAM region */
-+		reg-names = "regs", "iram";
-+		interrupts = <GIC_SPI  8 IRQ_TYPE_LEVEL_HIGH>, /* UCQ error interrupt */
-+			     <GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
-+			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
-+			     <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>, /* BSE-A interrupt */
-+			     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
-+		interrupt-names = "ucq-error", "sync-token", "bsev", "bsea", "sxe";
-+		clocks = <&tegra_car TEGRA20_CLK_VDE>;
-+		clock-names = "vde";
-+		resets = <&tegra_car 61>;
-+		reset-names = "vde";
-+	};
-+
- 	apbmisc@70000800 {
- 		compatible = "nvidia,tegra20-apbmisc";
- 		reg = <0x70000800 0x64   /* Chip revision */
--- 
-2.14.2
+For those that were at our gpg sign party, don't forget to sign the
+keys :-)
+
+The way I did was to place all keys that were exchanged there at the key
+party into a file named keys.txt (except for my own key). Then, I ran this
+small script to import the keys to my keychain, sign them and send back to
+the key server:
+
+$ for i in $(cat keys.txt |sed 's, ,,g'); do if [ "$(gpg --list-sig $i|grep "my@address")" == "" ]; then echo $i; gpg --recv-keys $i; gpg --sign-key $i; gpg --send-keys $i; fi; done
+
+PS.: don't forget to replace "my@address" to the email address you
+use for sign keys.
+
+Regard
+
+
+Cheers,
+Mauro
