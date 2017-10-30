@@ -1,183 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56896 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751152AbdJ2XAU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Oct 2017 19:00:20 -0400
-Date: Mon, 30 Oct 2017 00:00:17 +0100
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, pavel@ucw.cz
-Subject: Re: [PATCH v16.1 25/32] v4l: fwnode: Add convenience function for
- parsing common external refs
-Message-ID: <20171029230017.srqoc7ojn7umux53@earth>
-References: <20171026075342.5760-26-sakari.ailus@linux.intel.com>
- <20171026150327.8247-1-sakari.ailus@linux.intel.com>
+Received: from mail-qt0-f173.google.com ([209.85.216.173]:51512 "EHLO
+        mail-qt0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932513AbdJ3U7f (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Oct 2017 16:59:35 -0400
+Received: by mail-qt0-f173.google.com with SMTP id h4so18204619qtk.8
+        for <linux-media@vger.kernel.org>; Mon, 30 Oct 2017 13:59:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="a7hcamohr46kjiyn"
-Content-Disposition: inline
-In-Reply-To: <20171026150327.8247-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171029193121.p2q6dxxz376cpx5y@gofer.mess.org>
+References: <CACG2urxXyivORcKhgZf=acwA8ajz5UspHf8YTHEQJG=VauqHpg@mail.gmail.com>
+ <20171023094305.nxrxsqjrrwtygupc@gofer.mess.org> <CACG2urzPV2q63-bLP98cHDDqzP3a-oydDScPqG=tVKSCzxREBg@mail.gmail.com>
+ <20171023185750.5m5qo575myogzbhz@gofer.mess.org> <CACG2urzH5dAtnasGfjiK1Y8owGcsn0VtRSEWX75A6mb0pyuSRw@mail.gmail.com>
+ <20171029193121.p2q6dxxz376cpx5y@gofer.mess.org>
+From: Laurent Caumont <lcaumont2@gmail.com>
+Date: Mon, 30 Oct 2017 21:59:34 +0100
+Message-ID: <CACG2urwdnXs2v8hv24R3+sNW6qOifh6Gtt+semez_c8QC58-gA@mail.gmail.com>
+Subject: Re: 'LITE-ON USB2.0 DVB-T Tune' driver crash with kernel 4.13 /
+ ubuntu 17.10
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sean,
 
---a7hcamohr46kjiyn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I found the problem. The read buffer needs to be allocated with kmalloc too.
 
-Hi,
+int dibusb_read_eeprom_byte(struct dvb_usb_device *d, u8 offs, u8 *val)
+{
+          u8 *wbuf;
+          u8 *rbuf;
+          int rc;
 
-On Thu, Oct 26, 2017 at 06:03:27PM +0300, Sakari Ailus wrote:
-> Add v4l2_fwnode_parse_reference_sensor_common for parsing common
-> sensor properties that refer to adjacent devices such as flash or lens
-> driver chips.
->=20
-> As this is an association only, there's little a regular driver needs to
-> know about these devices as such.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
+          rbuf = kmalloc(1, GFP_KERNEL);
+          if (!rbuf)
+            return -ENOMEM;
 
-Reviewd-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+          wbuf = kmalloc(1, GFP_KERNEL);
+          if (!wbuf)
+            return -ENOMEM;
 
--- Sebastian
+         *wbuf = offs;
 
+         rc = dibusb_i2c_msg(d, 0x50, wbuf, 1, rbuf, 1);
+         kfree(wbuf);
+         *val = *rbuf;
+         kfree(rbuf);
+
+        return rc;
+}
+
+It works now.
+Please update the code in the main branch for futur versions.
+Thanks.
+Regards,
+Laurent
+
+2017-10-29 20:31 GMT+01:00 Sean Young <sean@mess.org>:
+> On Sun, Oct 29, 2017 at 06:54:28PM +0100, Laurent Caumont wrote:
+>> Hi Sean,
+>>
+>> I recompiled the modules by following the
+>> https://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+>> page and applied the patch.
+>> But I still have problems (see below). It doesn't seem to be the same callstack.
+>> Is it the right way to get the fix ?
+>
+> Yes, it's the right way to get the fix. However, you've hit a new problem
+> of a similar making. Please can you try with this patch as well:
+>
+> Thanks
+> Sean
 > ---
-> since v16:
->=20
-> - use const char * const *props for string arrays with property names.
->=20
->  drivers/media/v4l2-core/v4l2-fwnode.c | 35 +++++++++++++++++++++++++++++=
-++++++
->  include/media/v4l2-async.h            |  3 ++-
->  include/media/v4l2-fwnode.h           | 21 +++++++++++++++++++++
->  3 files changed, 58 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-c=
-ore/v4l2-fwnode.c
-> index f8cd88f791c4..39387dc6cadd 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -865,6 +865,41 @@ static int v4l2_fwnode_reference_parse_int_props(
->  	return ret;
+> From 84efb0bf72ae5d9183f25d69d95fb9ad9b9bc644 Mon Sep 17 00:00:00 2001
+> From: Sean Young <sean@mess.org>
+> Date: Sun, 29 Oct 2017 19:28:32 +0000
+> Subject: [PATCH] media: dibusb: don't do DMA on stack
+>
+> The USB control messages require DMA to work. We cannot pass
+> a stack-allocated buffer, as it is not warranted that the
+> stack would be into a DMA enabled area.
+>
+> Signed-off-by: Sean Young <sean@mess.org>
+> ---
+>  drivers/media/usb/dvb-usb/dibusb-common.c | 14 ++++++++++++--
+>  1 file changed, 12 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb/dibusb-common.c b/drivers/media/usb/dvb-usb/dibusb-common.c
+> index 8207e6900656..18c6e454b1b7 100644
+> --- a/drivers/media/usb/dvb-usb/dibusb-common.c
+> +++ b/drivers/media/usb/dvb-usb/dibusb-common.c
+> @@ -223,8 +223,18 @@ EXPORT_SYMBOL(dibusb_i2c_algo);
+>
+>  int dibusb_read_eeprom_byte(struct dvb_usb_device *d, u8 offs, u8 *val)
+>  {
+> -       u8 wbuf[1] = { offs };
+> -       return dibusb_i2c_msg(d, 0x50, wbuf, 1, val, 1);
+> +       u8 *wbuf;
+> +       int rc;
+> +
+> +       wbuf = kmalloc(1, GFP_KERNEL);
+> +       if (!wbuf)
+> +               return -ENOMEM;
+> +
+> +       *wbuf = offs;
+> +       rc = dibusb_i2c_msg(d, 0x50, wbuf, 1, val, 1);
+> +       kfree(wbuf);
+> +
+> +       return rc;
 >  }
-> =20
-> +int v4l2_async_notifier_parse_fwnode_sensor_common(
-> +	struct device *dev, struct v4l2_async_notifier *notifier)
-> +{
-> +	static const char * const led_props[] =3D { "led" };
-> +	static const struct {
-> +		const char *name;
-> +		const char * const *props;
-> +		unsigned int nprops;
-> +	} props[] =3D {
-> +		{ "flash-leds", led_props, ARRAY_SIZE(led_props) },
-> +		{ "lens-focus", NULL, 0 },
-> +	};
-> +	unsigned int i;
-> +
-> +	for (i =3D 0; i < ARRAY_SIZE(props); i++) {
-> +		int ret;
-> +
-> +		if (props[i].props && is_acpi_node(dev_fwnode(dev)))
-> +			ret =3D v4l2_fwnode_reference_parse_int_props(
-> +				dev, notifier, props[i].name,
-> +				props[i].props, props[i].nprops);
-> +		else
-> +			ret =3D v4l2_fwnode_reference_parse(
-> +				dev, notifier, props[i].name);
-> +		if (ret && ret !=3D -ENOENT) {
-> +			dev_warn(dev, "parsing property \"%s\" failed (%d)\n",
-> +				 props[i].name, ret);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_sensor_common);
-> +
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
->  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
-> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> index 17c4ac7c73e8..8d8cfc3f3100 100644
-> --- a/include/media/v4l2-async.h
-> +++ b/include/media/v4l2-async.h
-> @@ -156,7 +156,8 @@ void v4l2_async_notifier_unregister(struct v4l2_async=
-_notifier *notifier);
->   * Release memory resources related to a notifier, including the async
->   * sub-devices allocated for the purposes of the notifier but not the no=
-tifier
->   * itself. The user is responsible for calling this function to clean up=
- the
-> - * notifier after calling @v4l2_async_notifier_parse_fwnode_endpoints.
-> + * notifier after calling @v4l2_async_notifier_parse_fwnode_endpoints or
-> + * @v4l2_fwnode_reference_parse_sensor_common.
->   *
->   * There is no harm from calling v4l2_async_notifier_cleanup in other
->   * cases as long as its memory has been zeroed after it has been
-> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-> index 105cfeee44ef..ca50108dfd8f 100644
-> --- a/include/media/v4l2-fwnode.h
-> +++ b/include/media/v4l2-fwnode.h
-> @@ -319,4 +319,25 @@ int v4l2_async_notifier_parse_fwnode_endpoints_by_po=
-rt(
->  			      struct v4l2_fwnode_endpoint *vep,
->  			      struct v4l2_async_subdev *asd));
-> =20
-> +/**
-> + * v4l2_fwnode_reference_parse_sensor_common - parse common references on
-> + *					       sensors for async sub-devices
-> + * @dev: the device node the properties of which are parsed for referenc=
-es
-> + * @notifier: the async notifier where the async subdevs will be added
-> + *
-> + * Parse common sensor properties for remote devices related to the
-> + * sensor and set up async sub-devices for them.
-> + *
-> + * Any notifier populated using this function must be released with a ca=
-ll to
-> + * v4l2_async_notifier_release() after it has been unregistered and the =
-async
-> + * sub-devices are no longer in use, even in the case the function retur=
-ned an
-> + * error.
-> + *
-> + * Return: 0 on success
-> + *	   -ENOMEM if memory allocation failed
-> + *	   -EINVAL if property parsing failed
-> + */
-> +int v4l2_async_notifier_parse_fwnode_sensor_common(
-> +	struct device *dev, struct v4l2_async_notifier *notifier);
-> +
->  #endif /* _V4L2_FWNODE_H */
-> --=20
-> 2.11.0
->=20
-
---a7hcamohr46kjiyn
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAln2XYAACgkQ2O7X88g7
-+prx4A/+MeDwza++rUwUa7QPstiYbM9c4ScdPrsQK+2Pd4NmC/bDsaWnKO2lW1Ox
-CdpSQSua8hbgsrcc27q3JVOWBXnPi3Bl0ZR9y+jxtHJxFT8dbGYKUAiHDnC9+A4s
-/Ox3+QkH/zNjFc3l7GNpv5YJsgL0PFlvBVjkcGYKoELU2gVosbcM661tFojLHfwN
-pUJV/i5sGmtejgk63Wq51Jc6mUCiazf1hF/pKeYj2OMMSRHjmFe1aiQH0IJh5/Be
-nPBASUySrKJVyMpVlWue1v2r/r/HKMPWDvU5Jd3g9qymoJevF8VeG0bWww8VJe3r
-JW3PebVbtUjN0QPgtU/9cX3kiqe+yABeJiSVQlkYp0MFiwl5GIiQ85T2sNsBEp+Z
-pHfDmC9PSeS+eLU6WqXhwe2q2lNNEYWuFs5uYEqss8uSdIQk0DJpr1/4YSgTP7p1
-cAfgyeuwLW2kHmsV/JCcplLJ3CZTntrSyv9Gq2tpsSztCUXFN19zw/doWw2QLb2P
-xQR0qVXJAqosBMxY1YHfSyrye+9o+6hX91CFnylsEjmj6GLr7Ruo0SqO0oxM+svZ
-MVSpBkn9LJKAhrw3i/DAUj7ZgxYLJVX4WzuolB0r4oSMeC6aig6bAcAt+2LdVVpT
-MpRGWETG2ZSnYAUFIgkFish0ozOZWzcgByZJryvvxkTRLIulq/s=
-=5L6U
------END PGP SIGNATURE-----
-
---a7hcamohr46kjiyn--
+>  EXPORT_SYMBOL(dibusb_read_eeprom_byte);
+>
+> --
+> 2.13.6
+>
