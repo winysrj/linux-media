@@ -1,52 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:44864 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752781AbdJSQbm (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:43319 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932291AbdJ3Qsz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Oct 2017 12:31:42 -0400
-Received: by mail-pg0-f67.google.com with SMTP id j3so7627988pga.1
-        for <linux-media@vger.kernel.org>; Thu, 19 Oct 2017 09:31:41 -0700 (PDT)
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 3/4] media: ov2640: don't clear V4L2_SUBDEV_FL_IS_I2C
-Date: Fri, 20 Oct 2017 01:31:22 +0900
-Message-Id: <1508430683-8674-4-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1508430683-8674-1-git-send-email-akinobu.mita@gmail.com>
-References: <1508430683-8674-1-git-send-email-akinobu.mita@gmail.com>
+        Mon, 30 Oct 2017 12:48:55 -0400
+Subject: Re: [patch] libv4l2: SDL test application
+To: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>, sre@kernel.org,
+        ivo.g.dimitrov.75@gmail.com, linux-media@vger.kernel.org
+References: <20171028195742.GB20127@amd>
+ <478fd1ae-6f25-5cda-3035-1d5894c8caab@xs4all.nl>
+ <20171030164136.jkn2qlzu27krqvdz@pali>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <40975cb7-4622-9072-d756-5b8173d37f93@xs4all.nl>
+Date: Mon, 30 Oct 2017 17:48:50 +0100
+MIME-Version: 1.0
+In-Reply-To: <20171030164136.jkn2qlzu27krqvdz@pali>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_i2c_subdev_init() sets V4L2_SUBDEV_FL_IS_I2C flag in the
-subdev->flags.  But this driver overwrites subdev->flags immediately after
-calling v4l2_i2c_subdev_init().  So V4L2_SUBDEV_FL_IS_I2C is not set after
-all.
+On 10/30/2017 05:41 PM, Pali Rohár wrote:
+> On Monday 30 October 2017 17:30:53 Hans Verkuil wrote:
+>> Hi Pavel,
+>>
+>> On 10/28/2017 09:57 PM, Pavel Machek wrote:
+>>> Add support for simple SDL test application. Allows taking jpeg
+>>> snapshots, and is meant to run on phone with touchscreen. Not
+>>> particulary useful on PC with webcam, but should work.
+>>
+>> When I try to build this I get:
+>>
+>> make[3]: Entering directory '/home/hans/work/src/v4l/v4l-utils/contrib/test'
+>>   CCLD     sdlcam
+>> /usr/bin/ld: sdlcam-sdlcam.o: undefined reference to symbol 'log2@@GLIBC_2.2.5'
+>> //lib/x86_64-linux-gnu/libm.so.6: error adding symbols: DSO missing from command line
+>> collect2: error: ld returned 1 exit status
+>> Makefile:561: recipe for target 'sdlcam' failed
+>> make[3]: *** [sdlcam] Error 1
+>> make[3]: Leaving directory '/home/hans/work/src/v4l/v4l-utils/contrib/test'
+>> Makefile:475: recipe for target 'all-recursive' failed
+>> make[2]: *** [all-recursive] Error 1
+>> make[2]: Leaving directory '/home/hans/work/src/v4l/v4l-utils/contrib'
+>> Makefile:589: recipe for target 'all-recursive' failed
+>> make[1]: *** [all-recursive] Error 1
+>> make[1]: Leaving directory '/home/hans/work/src/v4l/v4l-utils'
+>> Makefile:516: recipe for target 'all' failed
+>> make: *** [all] Error 2
+>>
+>> I had to add -lm -ldl -lrt to sdlcam_LDFLAGS. Is that correct?
+> 
+> Is not for <<undefined reference to symbol 'log2@@GLIBC_2.2.5'>> needed
+> just -lm? log2 should be in mathematical library.
+> 
 
-This stops breaking subdev->flags and preserves V4L2_SUBDEV_FL_IS_I2C.
+Sorry, I was unclear: after adding -lm I got an unresolved for dl_open, after
+adding -ldl I got an unresolved on shm_open.
 
-Side note: According to the comment in v4l2_device_unregister(), this is
-problematic only if the device is platform bus device.  Device tree or
-ACPI based devices are not affected.
+Only after using all three did it compile.
 
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
- drivers/media/i2c/ov2640.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Regards,
 
-diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-index e6d0c1f..5b035d1 100644
---- a/drivers/media/i2c/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -1116,7 +1116,7 @@ static int ov2640_probe(struct i2c_client *client,
- 		goto err_clk;
- 
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
--	priv->subdev.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	priv->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	v4l2_ctrl_handler_init(&priv->hdl, 2);
- 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
- 			V4L2_CID_VFLIP, 0, 1, 1, 0);
--- 
-2.7.4
+	Hans
