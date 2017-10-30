@@ -1,125 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42839 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753506AbdJRN7x (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:49025 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751269AbdJ3Igk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Oct 2017 09:59:53 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/6 v5] uvcvideo: add a metadata device node
-Date: Wed, 18 Oct 2017 17:00:13 +0300
-Message-ID: <6157714.SQ3tiB96PG@avalon>
-In-Reply-To: <alpine.DEB.2.20.1710180926280.11231@axis700.grange>
-References: <1501245205-15802-1-git-send-email-g.liakhovetski@gmx.de> <ee61391f-4183-eaf3-437a-666652cd4f23@xs4all.nl> <alpine.DEB.2.20.1710180926280.11231@axis700.grange>
+        Mon, 30 Oct 2017 04:36:40 -0400
+Subject: Re: [PATCH 0/6] [media] omap_vout: Adjustments for three function
+ implementations
+To: SF Markus Elfring <elfring@users.sourceforge.net>,
+        linux-media@vger.kernel.org, Jan Kara <jack@suse.cz>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michal Hocko <mhocko@suse.com>,
+        Muralidharan Karicheri <mkaricheri@gmail.com>,
+        Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <356f75b2-d303-7f10-b76c-95e2f686bd3c@xs4all.nl>
+Date: Mon, 30 Oct 2017 09:36:33 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Markus,
 
-On Wednesday, 18 October 2017 10:32:10 EEST Guennadi Liakhovetski wrote:
-> On Fri, 28 Jul 2017, Hans Verkuil wrote:
-> > On 07/28/2017 02:33 PM, Guennadi Liakhovetski wrote:
-> >> Some UVC video cameras contain metadata in their payload headers. This
-> >> patch extracts that data, adding more clock synchronisation information,
-> >> on both bulk and isochronous endpoints and makes it available to the
-> >> user space on a separate video node, using the V4L2_CAP_META_CAPTURE
-> >> capability and the V4L2_BUF_TYPE_META_CAPTURE buffer queue type. Even
-> >> though different cameras will have different metadata formats, we use
-> >> the same V4L2_META_FMT_UVC pixel format for all of them. Users have to
-> >> parse data, based on the specific camera model information. This
-> >> version of the patch only creates such metadata nodes for cameras,
-> >> specifying a UVC_QUIRK_METADATA_NODE quirk flag.
-> >> 
-> >> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> >> ---
-> >> 
-> >>  drivers/media/usb/uvc/Makefile       |   2 +-
-> >>  drivers/media/usb/uvc/uvc_ctrl.c     |   3 +
-> >>  drivers/media/usb/uvc/uvc_driver.c   |  12 +++
-> >>  drivers/media/usb/uvc/uvc_isight.c   |   2 +-
-> >>  drivers/media/usb/uvc/uvc_metadata.c | 139 +++++++++++++++++++++++++++++
-> >>  drivers/media/usb/uvc/uvc_queue.c    |  41 +++++++++--
-> >>  drivers/media/usb/uvc/uvc_video.c    | 119 +++++++++++++++++++++++++---
-> >>  drivers/media/usb/uvc/uvcvideo.h     |  17 ++++-
-> >>  drivers/media/v4l2-core/v4l2-ioctl.c |   1 +
-> >>  include/uapi/linux/uvcvideo.h        |  26 +++++++
-> >>  10 files changed, 341 insertions(+), 21 deletions(-)
-> >>  create mode 100644 drivers/media/usb/uvc/uvc_metadata.c
+On 09/24/2017 12:20 PM, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Sun, 24 Sep 2017 12:06:54 +0200
 > 
-> [snip]
+> A few update suggestions were taken into account
+> from static source code analysis.
 > 
-> >> diff --git a/include/uapi/linux/uvcvideo.h
-> >> b/include/uapi/linux/uvcvideo.h
-> >> index 3b08186..ffe17ec 100644
-> >> --- a/include/uapi/linux/uvcvideo.h
-> >> +++ b/include/uapi/linux/uvcvideo.h
-> >> @@ -67,4 +67,30 @@ struct uvc_xu_control_query {
-> >> 
-> >>  #define UVCIOC_CTRL_MAP		_IOWR('u', 0x20, struct
-> >>  uvc_xu_control_mapping)
-> >>  #define UVCIOC_CTRL_QUERY	_IOWR('u', 0x21, struct 
-uvc_xu_control_query)
-> >> 
-> >> +/*
-> >> + * Metadata node
-> >> + */
-> >> +
-> >> +/**
-> >> + * struct uvc_meta_buf - metadata buffer building block
-> >> + * @ns		- system timestamp of the payload in nanoseconds
-> >> + * @sof		- USB Frame Number
-> >> + * @length	- length of the payload header
-> >> + * @flags	- payload header flags
-> >> + * @buf		- optional device-specific header data
-> >> + *
-> >> + * UVC metadata nodes fill buffers with possibly multiple instances of
-> >> this
-> >> + * struct. The first two fields are added by the driver, they can be
-> >> used for
-> >> + * clock synchronisation. The rest is an exact copy of a UVC payload
-> >> header.
-> >> + * Only complete objects with complete buffers are included. Therefore
-> >> it's
-> >> + * always sizeof(meta->ts) + sizeof(meta->sof) + meta->length bytes
-> >> large.
-> >> + */
-> >> +struct uvc_meta_buf {
-> > > +	__u64 ns;
-> > > +	__u16 sof;
-> > > +	__u8 length;
-> > > +	__u8 flags;
-> > 
-> > I think the struct layout is architecture dependent. I could be wrong, but
-> > I think for x64 there is a 4-byte hole here, but not for arm32/arm64.
-> > 
-> > Please double-check the struct layout.
+> Markus Elfring (6):
+>   Delete an error message for a failed memory allocation in omap_vout_create_video_devices()
+>   Improve a size determination in two functions
+>   Adjust a null pointer check in two functions
+>   Fix a possible null pointer dereference in omap_vout_open()
+>   Delete an unnecessary variable initialisation in omap_vout_open()
+>   Delete two unnecessary variable initialisations in omap_vout_probe()
 > 
-> You mean this can be a problem for 64- / 32-bit compatibility? If the
-> difference is just between ARM and X86 then we don't care, do we? Or do
-> video buffers have to be safe for cross-system transfer?
+>  drivers/media/platform/omap/omap_vout.c | 23 ++++++++++-------------
+>  1 file changed, 10 insertions(+), 13 deletions(-)
+> 
 
-The structure size is 12 bytes on x86-32 and 16 bytes on x86-64, arm32 and 
-arm64 (using the GNU EABI).
+While we do not mind cleanup patches, the way you post them (one fix per file) is really
+annoying and takes us too much time to review.
 
-Given that the structure is meant to describe the content of the buffer, it 
-would likely be better to make it packed.
+I'll take the "Fix a possible null pointer" patch since it is an actual bug fix, but
+will reject the others, not just this driver but all of them that are currently pending
+in our patchwork (https://patchwork.linuxtv.org).
 
-> > BTW: __u8 for length? The payload can never be longer in UVC?
-> 
-> No, not the payload, a single payload header cannot be larger than 255
-> bytes, that's right.
-> 
-> >> +	__u8 buf[];
-> >> +};
-> >> +
-> >> 
-> >>  #endif
+Feel free to repost, but only if you organize the patch as either fixing the same type of
+issue for a whole subdirectory (media/usb, media/pci, etc) or fixing all issues for a
+single driver.
 
--- 
+Actual bug fixes (like the null pointer patch in this series) can still be posted as
+separate patches, but cleanups shouldn't.
+
+So in this particular case I would expect two omap_vout patches: one for the bug fix,
+one for the cleanups.
+
+Just so you know, I'll reject any future patch series that do not follow these rules.
+Just use common sense when posting these things in the future.
+
+I would also suggest that your time might be spent more productively if you would
+work on some more useful projects. There is more than enough to do. However, that's
+up to you.
+
 Regards,
 
-Laurent Pinchart
+	Hans
