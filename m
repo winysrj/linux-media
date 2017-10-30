@@ -1,92 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:49276 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750943AbdJBIdi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Oct 2017 04:33:38 -0400
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:51310 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751476AbdJ3Jnf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Oct 2017 05:43:35 -0400
+Subject: Re: [PATCH] media: usb: s2255drv: update to firmware loading
+To: dean@sensoray.com, linux-media@vger.kernel.org
+Cc: linux-dev@sensoray.com
+References: <505a133e73cbe64e723d9c55a3b03991@sensoray.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <6150e164-e97d-eafa-cea0-8932bc7e0675@xs4all.nl>
+Date: Mon, 30 Oct 2017 10:43:30 +0100
 MIME-Version: 1.0
-In-Reply-To: <CAK8P3a3BiPh+d4vcb4pbbOsZLegp6YGk+BU3L=71sxatTuk-GQ@mail.gmail.com>
-References: <20170922212930.620249-1-arnd@arndb.de> <20170922212930.620249-5-arnd@arndb.de>
- <063D6719AE5E284EB5DD2968C1650D6DD007F521@AcuExch.aculab.com>
- <CAK8P3a1zxjMsQTBPijCo8FJjEU5aRVTr7n_NZ1YM2UnDPKoRLw@mail.gmail.com>
- <CAK8P3a37Ts5q7BvA2JWse87huyAp+=e18CUXEt8731RrBnB+Ow@mail.gmail.com>
- <e7e6418e-4340-5057-aa17-800082aca5fb@virtuozzo.com> <CAK8P3a2C7DBTfQZvRi-QQfrfm1GXktFcXQRmXmzpF4SCa+BADA@mail.gmail.com>
- <2631e8a6-03f2-69ea-d889-afd9a345e7ef@virtuozzo.com> <CAK8P3a3BiPh+d4vcb4pbbOsZLegp6YGk+BU3L=71sxatTuk-GQ@mail.gmail.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Mon, 2 Oct 2017 10:33:37 +0200
-Message-ID: <CAK8P3a0WtHjvo6tOp79U4gKjLSRmVCAmjYU_xTVJfBL1Qe-hdQ@mail.gmail.com>
-Subject: Re: [PATCH v4 4/9] em28xx: fix em28xx_dvb_init for KASAN
-To: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: David Laight <David.Laight@aculab.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jiri Pirko <jiri@resnulli.us>,
-        Arend van Spriel <arend.vanspriel@broadcom.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Michal Marek <mmarek@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Kees Cook <keescook@chromium.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>,
-        "brcm80211-dev-list.pdl@broadcom.com"
-        <brcm80211-dev-list.pdl@broadcom.com>,
-        "brcm80211-dev-list@cypress.com" <brcm80211-dev-list@cypress.com>,
-        "kasan-dev@googlegroups.com" <kasan-dev@googlegroups.com>,
-        "linux-kbuild@vger.kernel.org" <linux-kbuild@vger.kernel.org>,
-        Jakub Jelinek <jakub@gcc.gnu.org>,
-        =?UTF-8?Q?Martin_Li=C5=A1ka?= <marxin@gcc.gnu.org>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <505a133e73cbe64e723d9c55a3b03991@sensoray.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 28, 2017 at 4:30 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Thu, Sep 28, 2017 at 6:09 AM, Andrey Ryabinin
-> <aryabinin@virtuozzo.com> wrote:
->> On 09/27/2017 04:26 PM, Arnd Bergmann wrote:
->>> On Tue, Sep 26, 2017 at 9:49 AM, Andrey Ryabinin
->>> <aryabinin@virtuozzo.com> wrote:
->
->>> --- a/include/linux/string.h
->>> +++ b/include/linux/string.h
->>> @@ -227,7 +227,7 @@ static inline const char *kbasename(const char *path)
->>>  #define __FORTIFY_INLINE extern __always_inline __attribute__((gnu_inline))
->>>  #define __RENAME(x) __asm__(#x)
->>>
->>> -void fortify_panic(const char *name) __noreturn __cold;
->>> +void fortify_panic(const char *name) __cold;
->>>  void __read_overflow(void) __compiletime_error("detected read beyond
->>> size of object passed as 1st parameter");
->>>  void __read_overflow2(void) __compiletime_error("detected read beyond
->>> size of object passed as 2nd parameter");
->>>  void __read_overflow3(void) __compiletime_error("detected read beyond
->>> size of object passed as 3rd parameter");
->>>
->>> I don't immediately see why the __noreturn changes the behavior here, any idea?
->>>
->>
->>
->> At first I thought that this somehow might be related to __asan_handle_no_return(). GCC calls it
->> before noreturn function. So I made patch to remove generation of these calls (we don't need them in the kernel anyway)
->> but it didn't help. It must be something else than.
->
-> I made a reduced test case yesterday (see http://paste.ubuntu.com/25628030/),
-> and it shows the same behavior with and without the sanitizer, it uses 128
-> bytes without the noreturn attribute and 480 bytes when its added, the sanitizer
-> adds a factor of 1.5x on top. It's possible that I did something wrong while
-> reducing, since the original driver file uses very little stack (a few hundred
-> bytes) without -fsanitize=kernel-address, but finding out what happens in
-> the reduced case may still help understand the other one.
+On 09/30/2017 12:15 AM, dean@sensoray.com wrote:
+>      fixes intermittent soft reboot issue with firmware load
+>      increases wait time of reset, as required by HW
+> 
+> Signed-off-by: Dean Anderson <dean@sensoray.com>
+> 
+> ---
+>   drivers/media/usb/s2255/s2255drv.c | 13 ++++++-------
+>   1 file changed, 6 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/usb/s2255/s2255drv.c 
+> b/drivers/media/usb/s2255/s2255drv.c
+> index b2f239c..8a8e314 100644
+> --- a/drivers/media/usb/s2255/s2255drv.c
+> +++ b/drivers/media/usb/s2255/s2255drv.c
+> @@ -350,7 +350,7 @@ static void s2255_fillbuff(struct s2255_vc *vc, 
+> struct s2255_buffer *buf,
+>   			   int jpgsize);
 
-This is now GCC PR82365, see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82365
+Please repost: lines are wrapped around so this patch won't apply.
 
-I've come up with a workaround, but I'm not sure if that is any better than the
-alternatives, will send the patch as a follow-up in a bit.
+Thanks!
 
-     Arnd
+	Hans
+
+>   static int s2255_set_mode(struct s2255_vc *vc, struct s2255_mode 
+> *mode);
+>   static int s2255_board_shutdown(struct s2255_dev *dev);
+> -static void s2255_fwload_start(struct s2255_dev *dev, int reset);
+> +static void s2255_fwload_start(struct s2255_dev *dev);
+>   static void s2255_destroy(struct s2255_dev *dev);
+>   static long s2255_vendor_req(struct s2255_dev *dev, unsigned char req,
+>   			     u16 index, u16 value, void *buf,
+> @@ -476,7 +476,7 @@ static void planar422p_to_yuv_packed(const unsigned 
+> char *in,
+>   static void s2255_reset_dsppower(struct s2255_dev *dev)
+>   {
+>   	s2255_vendor_req(dev, 0x40, 0x0000, 0x0001, NULL, 0, 1);
+> -	msleep(20);
+> +	msleep(50);
+>   	s2255_vendor_req(dev, 0x50, 0x0000, 0x0000, NULL, 0, 1);
+>   	msleep(600);
+>   	s2255_vendor_req(dev, 0x10, 0x0000, 0x0000, NULL, 0, 1);
+> @@ -1449,7 +1449,7 @@ static int s2255_open(struct file *file)
+>   	case S2255_FW_FAILED:
+>   		s2255_dev_err(&dev->udev->dev,
+>   			"firmware load failed. retrying.\n");
+> -		s2255_fwload_start(dev, 1);
+> +		s2255_fwload_start(dev);
+>   		wait_event_timeout(dev->fw_data->wait_fw,
+>   				   ((atomic_read(&dev->fw_data->fw_state)
+>   				     == S2255_FW_SUCCESS) ||
+> @@ -2208,10 +2208,9 @@ static void s2255_stop_readpipe(struct s2255_dev 
+> *dev)
+>   	return;
+>   }
+> 
+> -static void s2255_fwload_start(struct s2255_dev *dev, int reset)
+> +static void s2255_fwload_start(struct s2255_dev *dev)
+>   {
+> -	if (reset)
+> -		s2255_reset_dsppower(dev);
+> +	s2255_reset_dsppower(dev);
+>   	dev->fw_data->fw_size = dev->fw_data->fw->size;
+>   	atomic_set(&dev->fw_data->fw_state, S2255_FW_NOTLOADED);
+>   	memcpy(dev->fw_data->pfw_data,
+> @@ -2336,7 +2335,7 @@ static int s2255_probe(struct usb_interface 
+> *interface,
+>   	retval = s2255_board_init(dev);
+>   	if (retval)
+>   		goto errorBOARDINIT;
+> -	s2255_fwload_start(dev, 0);
+> +	s2255_fwload_start(dev);
+>   	/* loads v4l specific */
+>   	retval = s2255_probe_v4l(dev);
+>   	if (retval)
+> 
