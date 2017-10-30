@@ -1,130 +1,1366 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45044 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750896AbdJOVZo (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:57848 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752417AbdJ3Qa6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Oct 2017 17:25:44 -0400
-Date: Mon, 16 Oct 2017 00:25:41 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH v2 08/14] [media] v4l: add support to BUF_QUEUED event
-Message-ID: <20171015212540.ddbnof2gy2mmqmmi@valkosipuli.retiisi.org.uk>
-References: <20170901015041.7757-1-gustavo@padovan.org>
- <20170901015041.7757-9-gustavo@padovan.org>
+        Mon, 30 Oct 2017 12:30:58 -0400
+Subject: Re: [patch] libv4l2: SDL test application
+To: Pavel Machek <pavel@ucw.cz>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        pali.rohar@gmail.com, sre@kernel.org, ivo.g.dimitrov.75@gmail.com,
+        linux-media@vger.kernel.org
+References: <20171028195742.GB20127@amd>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <478fd1ae-6f25-5cda-3035-1d5894c8caab@xs4all.nl>
+Date: Mon, 30 Oct 2017 17:30:53 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170901015041.7757-9-gustavo@padovan.org>
+In-Reply-To: <20171028195742.GB20127@amd>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gustavo,
+Hi Pavel,
 
-On Thu, Aug 31, 2017 at 10:50:35PM -0300, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+On 10/28/2017 09:57 PM, Pavel Machek wrote:
+> Add support for simple SDL test application. Allows taking jpeg
+> snapshots, and is meant to run on phone with touchscreen. Not
+> particulary useful on PC with webcam, but should work.
+
+When I try to build this I get:
+
+make[3]: Entering directory '/home/hans/work/src/v4l/v4l-utils/contrib/test'
+  CCLD     sdlcam
+/usr/bin/ld: sdlcam-sdlcam.o: undefined reference to symbol 'log2@@GLIBC_2.2.5'
+//lib/x86_64-linux-gnu/libm.so.6: error adding symbols: DSO missing from command line
+collect2: error: ld returned 1 exit status
+Makefile:561: recipe for target 'sdlcam' failed
+make[3]: *** [sdlcam] Error 1
+make[3]: Leaving directory '/home/hans/work/src/v4l/v4l-utils/contrib/test'
+Makefile:475: recipe for target 'all-recursive' failed
+make[2]: *** [all-recursive] Error 1
+make[2]: Leaving directory '/home/hans/work/src/v4l/v4l-utils/contrib'
+Makefile:589: recipe for target 'all-recursive' failed
+make[1]: *** [all-recursive] Error 1
+make[1]: Leaving directory '/home/hans/work/src/v4l/v4l-utils'
+Makefile:516: recipe for target 'all' failed
+make: *** [all] Error 2
+
+I had to add -lm -ldl -lrt to sdlcam_LDFLAGS. Is that correct?
+
+Regards,
+
+	Hans
+
 > 
-> Implement the needed pieces to let userspace subscribe for
-> V4L2_EVENT_BUF_QUEUED events. Videobuf2 will queue the event for the
-> DQEVENT ioctl.
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 > 
-> v3:	- Do not call v4l2 event API from vb2 (Mauro)
-> 
-> v2:	- Use VIDEO_MAX_FRAME to allocate room for events at
-> 	v4l2_event_subscribe() (Hans)
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  drivers/media/v4l2-core/v4l2-ctrls.c     |  6 +++++-
->  drivers/media/v4l2-core/videobuf2-core.c |  2 ++
->  drivers/media/v4l2-core/videobuf2-v4l2.c | 13 +++++++++++++
->  3 files changed, 20 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index dd1db678718c..17d4b9e3eec6 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -3438,8 +3438,12 @@ EXPORT_SYMBOL(v4l2_ctrl_log_status);
->  int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
->  				const struct v4l2_event_subscription *sub)
->  {
-> -	if (sub->type == V4L2_EVENT_CTRL)
-> +	switch (sub->type) {
-> +	case V4L2_EVENT_CTRL:
->  		return v4l2_event_subscribe(fh, sub, 0, &v4l2_ctrl_sub_ev_ops);
-> +	case V4L2_EVENT_BUF_QUEUED:
-> +		return v4l2_event_subscribe(fh, sub, VIDEO_MAX_FRAME, NULL);
-
-While I think this is probably the correct place to add the event
-subscription handling, the name of the function no longer corresponds what
-it does, nor it belongs to v4l2-ctrls.c.
-
-v4l2_ctrl_subscribe_event() is also used for subscribing control events on
-sub-devices. BUF_QUEUED events will be available only on video nodes.
-
-BUF_QUEUED events presumably should be availble on all video nodes that
-support V4L2_CAP_STREAMING capability. Perhaps this could be handled by
-moving v4l2_ctrl_subscribe_event() to v4l2-event.c and renaming it e.g.
-v4l2_event_subscribe_v4l2(), for these events originate from specific
-conditions the V4L2 framework is aware of.
-v4l2_ctrl_subdev_subscribe_event() handling needs to be addressed as well.
-
-A separate patch would be nice. 
-
-> +	}
->  	return -EINVAL;
->  }
->  EXPORT_SYMBOL(v4l2_ctrl_subscribe_event);
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index b19c1bc4b083..bbbae0eed567 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1231,6 +1231,8 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
->  	trace_vb2_buf_queue(q, vb);
+> diff --git a/configure.ac b/configure.ac
+> index f3691be..f6540c2 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -439,6 +439,9 @@ AC_ARG_ENABLE(gconv,
+>     esac]
+>  )
 >  
->  	call_void_vb_qop(vb, buf_queue, vb);
+> +PKG_CHECK_MODULES([SDL2], [sdl2 SDL2_image], [sdl_pc=yes], [sdl_pc=no])
+> +AM_CONDITIONAL([HAVE_SDL], [test x$sdl_pc = xyes])
 > +
-> +	call_void_bufop(q, buffer_queued, vb);
->  }
+>  # Check if backtrace functions are defined
+>  AC_SEARCH_LIBS([backtrace], [execinfo], [
+>    AC_DEFINE(HAVE_BACKTRACE, [1], [glibc has functions to provide stack backtrace])
+> @@ -507,6 +510,7 @@ compile time options summary
+>      pthread                    : $have_pthread
+>      QT version                 : $QT_VERSION
+>      ALSA support               : $USE_ALSA
+> +    SDL support		       : $sdl_pc
 >  
->  static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> index 8c322cd1b346..1c93bfedaffc 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -138,6 +138,18 @@ static void __copy_timestamp(struct vb2_buffer *vb, const void *pb)
->  	}
->  };
+>      build dynamic libs         : $enable_shared
+>      build static libs          : $enable_static
+> diff --git a/contrib/test/Makefile.am b/contrib/test/Makefile.am
+> index 4641e21..0f97ce2 100644
+> --- a/contrib/test/Makefile.am
+> +++ b/contrib/test/Makefile.am
+> @@ -16,6 +16,10 @@ if HAVE_GLU
+>  noinst_PROGRAMS += v4l2gl
+>  endif
 >  
-> +static void __buffer_queued(struct vb2_buffer *vb)
+> +if HAVE_SDL
+> +noinst_PROGRAMS += sdlcam
+> +endif
+> +
+>  driver_test_SOURCES = driver-test.c
+>  driver_test_LDADD = ../../utils/libv4l2util/libv4l2util.la
+>  
+> @@ -31,6 +35,10 @@ v4l2gl_SOURCES = v4l2gl.c
+>  v4l2gl_LDFLAGS = $(X11_LIBS) $(GL_LIBS) $(GLU_LIBS) $(ARGP_LIBS)
+>  v4l2gl_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la
+>  
+> +sdlcam_LDFLAGS = $(JPEG_LIBS) $(SDL2_LIBS)
+> +sdlcam_CFLAGS = -I../.. $(SDL2_CFLAGS)
+> +sdlcam_LDADD = ../../lib/libv4l2/.libs/libv4l2.a  ../../lib/libv4lconvert/.libs/libv4lconvert.a
+> +
+>  mc_nextgen_test_CFLAGS = $(LIBUDEV_CFLAGS)
+>  mc_nextgen_test_LDFLAGS = $(LIBUDEV_LIBS)
+>  
+> diff --git a/contrib/test/sdlcam.c b/contrib/test/sdlcam.c
+> new file mode 100644
+> index 0000000..cc43a10
+> --- /dev/null
+> +++ b/contrib/test/sdlcam.c
+> @@ -0,0 +1,1250 @@
+> +/*
+> +   Digital still camera.
+> +
+> +   SDL based, suitable for camera phone such as Nokia N900. In
+> +   particular, we support focus, gain and exposure control, but not
+> +   aperture control or lens zoom.
+> +
+> +   Copyright 2017 Pavel Machek, LGPL
+> +
+> +   Needs sdl2, sdl2_image libraries. sudo aptitude install libsdl2-dev
+> +   libsdl2-image-dev on Debian systems.
+> +*/
+> +
+> +#include <time.h>
+> +#include <errno.h>
+> +#include <stdarg.h>
+> +#include <stdio.h>
+> +#include <stdlib.h>
+> +#include <string.h>
+> +#include <unistd.h>
+> +#include <sys/types.h>
+> +#include <sys/mman.h>
+> +#include <sys/stat.h>
+> +#include <sys/types.h>
+> +#include <sys/stat.h>
+> +#include <sys/time.h>
+> +#include <sys/ioctl.h>
+> +#include <fcntl.h>
+> +
+> +#include <jpeglib.h>
+> +
+> +#include "libv4l2.h"
+> +#include <linux/videodev2.h>
+> +#include "libv4l-plugin.h"
+> +
+> +#include <SDL2/SDL.h>
+> +#include <SDL2/SDL_image.h>
+> +
+> +#define PICDIR "."
+> +#define SX 2592
+> +#define SY 1968
+> +#define SIZE SX*SY*3
+> +
+> +static void fmt_print(struct v4l2_format *fmt)
 > +{
-> +	struct video_device *vdev = to_video_device(vb->vb2_queue->dev);
-> +	struct v4l2_event event;
-> +
-> +	memset(&event, 0, sizeof(event));
-> +	event.type = V4L2_EVENT_BUF_QUEUED;
-> +	event.u.buf_queued.index = vb->index;
-> +
-> +	v4l2_event_queue(vdev, &event);
+> +	int f;
+> +	printf("Format: %dx%d. ", fmt->fmt.pix.width, fmt->fmt.pix.height);
+> +	printf("%x ", fmt->fmt.pix.pixelformat);
+> +	f = fmt->fmt.pix.pixelformat;
+> +	for (int i=0; i<4; i++) {
+> +		printf("%c", f & 0xff);
+> +		f >>= 8;
+> +	}
+> +	printf("\n");
 > +}
 > +
->  static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
->  {
->  	static bool check_once;
-> @@ -455,6 +467,7 @@ static const struct vb2_buf_ops v4l2_buf_ops = {
->  	.fill_user_buffer	= __fill_v4l2_buffer,
->  	.fill_vb2_buffer	= __fill_vb2_buffer,
->  	.copy_timestamp		= __copy_timestamp,
-> +	.buffer_queued		= __buffer_queued,
->  };
->  
->  /**
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+> +static double dtime(void)
+> +{
+> +	static double start = 0.0;
+> +	struct timeval now;
+> +
+> +	gettimeofday(&now, NULL);
+> +
+> +	double n = now.tv_sec + now.tv_usec / 1000000.;
+> +	if (!start)
+> +		start = n;
+> +	return n - start;
+> +}
+> +
+> +static long v4l2_g_ctrl(int fd, long id)
+> +{
+> +	int res;
+> +	struct v4l2_control ctrl;
+> +	ctrl.id = id;
+> +	ctrl.value = 0;
+> +	res = v4l2_ioctl(fd, VIDIOC_G_CTRL, &ctrl);
+> +	if (res < 0)
+> +		printf("Get control %lx failed\n", id);
+> +	return ctrl.value;
+> +}
+> +
+> +static int v4l2_s_ctrl(int fd, long id, long value)
+> +{
+> +	int res;
+> +	struct v4l2_control ctrl;
+> +	ctrl.id = id;
+> +	ctrl.value = value;
+> +	res = v4l2_ioctl(fd, VIDIOC_S_CTRL, &ctrl);
+> +	if (res < 0)
+> +		printf("Set control %lx %ld failed\n", id, value);
+> +	return res;
+> +}
+> +
+> +static int v4l2_set_focus(int fd, int diopt)
+> +{
+> +	if (v4l2_s_ctrl(fd, V4L2_CID_FOCUS_ABSOLUTE, diopt) < 0) {
+> +		printf("Could not set focus\n");
+> +	}
+> +	return 0;
+> +}
+> +
+> +struct dev_info {
+> +	int fd;
+> +	struct v4l2_format fmt;
+> +
+> +	unsigned char buf[SIZE];
+> +	int debug;
+> +#define D_TIMING 1
+> +};
+> +
+> +struct sdl {
+> +	SDL_Window *window;
+> +	SDL_Surface *screen, *liveview;
+> +
+> +	int wx, wy; /* Window size */
+> +	int sx, sy; /* Live view size */
+> +	int bx, by; /* Border size */
+> +	int nx, ny; /* Number of buttons */
+> +	float factor;
+> +
+> +	/* These should go separately */
+> +	int do_focus, do_exposure, do_flash, do_white, do_big, do_full;
+> +	double zoom;
+> +	double focus_min;
+> +
+> +	int slider_mode;
+> +#define M_BIAS 0
+> +#define M_EXPOSURE 1
+> +#define M_GAIN 2
+> +#define M_FOCUS 3
+> +#define M_NUM 4
+> +
+> +	int fd;
+> +
+> +	struct dev_info *dev;
+> +};
+> +
+> +typedef struct {
+> +	uint8_t r, g, b, alpha;
+> +} pixel;
+> +
+> +#define d_raw 1
+> +
+> +static void sfc_put_pixel(SDL_Surface* liveview, int x, int y, pixel *p)
+> +{
+> +	Uint32* p_liveview = (Uint32*)liveview->pixels;
+> +	p_liveview += y*liveview->w+x;
+> +	*p_liveview = SDL_MapRGBA(liveview->format, p->r, p->g, p->b, p->alpha);
+> +}
+> +
+> +static void sdl_begin_paint(struct sdl *m)
+> +{
+> +	/* Fill the surface white */
+> +	SDL_FillRect(m->liveview, NULL, SDL_MapRGB( m->liveview->format, 0, 0, 0 ));
+> +
+> +	SDL_LockSurface(m->liveview);
+> +}
+> +
+> +static void sdl_finish_paint(struct sdl *m) {
+> +	SDL_UnlockSurface(m->liveview);
+> +	SDL_Rect rcDest = { m->bx, m->by, m->sx, m->sy };
+> +
+> +	SDL_BlitSurface(m->liveview, NULL, m->screen, &rcDest);
+> +	SDL_UpdateWindowSurfaceRects(m->window, &rcDest, 1);
+> +}
+> +
+> +static void sdl_paint_image(struct sdl *m, char **xpm, int x, int y) {
+> +	SDL_Surface *image = IMG_ReadXPMFromArray(xpm);
+> +	if (!image) {
+> +		printf("IMG_Load: %s\n", IMG_GetError());
+> +		exit(1);
+> +	}
+> +
+> +	int x_pos = x - image->w/2, y_pos = y - image->h/2;
+> +
+> +	SDL_Rect rcDest = { x_pos, y_pos, image->w, image->h };
+> +	int r = SDL_BlitSurface(image, NULL, m->screen, &rcDest);
+> +
+> +	if (r) {
+> +		printf("Error blitting: %s\n", SDL_GetError());
+> +		exit(1);
+> +	}
+> +	SDL_FreeSurface(image);
+> +}
+> +
+> +static void cam_exposure_limits(struct sdl *m, struct v4l2_queryctrl *qctrl)
+> +{
+> +	qctrl->id = V4L2_CID_EXPOSURE_ABSOLUTE;
+> +
+> +	if (v4l2_ioctl(m->fd, VIDIOC_QUERYCTRL, qctrl)) {
+> +		printf("Exposure absolute limits failed\n");
+> +		exit(1);
+> +	}
+> +
+> +	/* Minimum of 11300 gets approximately same range on ISO and
+> +	 * exposure axis. */
+> +	if (qctrl->minimum < 500)
+> +		qctrl->minimum = 500;
+> +}
+> +
+> +static void cam_set_exposure(struct sdl *m, double v)
+> +{
+> +	int cid = V4L2_CID_EXPOSURE_ABSOLUTE;
+> +	double res;
+> +	double range;
+> +	struct v4l2_queryctrl qctrl = { .id = cid };
+> +	struct v4l2_control ctrl = { .id = cid };
+> +
+> +	cam_exposure_limits(m, &qctrl);
+> +
+> +	if (v4l2_ioctl(m->fd, VIDIOC_G_CTRL, &ctrl)) {
+> +		printf("Can't get exposure parameters\n");
+> +		exit(1);
+> +	}
+> +
+> +	range = log2(qctrl.maximum) - log2(qctrl.minimum);
+> +	res = log2(qctrl.minimum) + v*range;
+> +	res = exp2(res);
+> +
+> +	v4l2_s_ctrl(m->fd, V4L2_CID_EXPOSURE_ABSOLUTE, res);
+> +}
+> +
+> +static double cam_convert_exposure(struct sdl *m, int v)
+> +{
+> +	int cid = V4L2_CID_EXPOSURE_ABSOLUTE;
+> +	double res;
+> +	struct v4l2_queryctrl qctrl = { .id = cid };
+> +
+> +	cam_exposure_limits(m, &qctrl);
+> +	res = (log2(v) - log2(qctrl.minimum)) / (log2(qctrl.maximum) - log2(qctrl.minimum));
+> +
+> +	return res;
+> +}
+> +
+> +static double cam_get_exposure(struct sdl *m)
+> +{
+> +	int cid = V4L2_CID_EXPOSURE_ABSOLUTE;
+> +	struct v4l2_control ctrl = { .id = cid };
+> +
+> +	if (v4l2_ioctl(m->fd, VIDIOC_G_CTRL, &ctrl))
+> +		return -1;
+> +
+> +	return cam_convert_exposure(m, ctrl.value);
+> +}
+> +
+> +static int cam_get_gain_iso(struct dev_info *dev)
+> +{
+> +	double x;
+> +
+> +	x = v4l2_g_ctrl(dev->fd, 0x00980913);
+> +	x = (x / 10); /* EV */
+> +	x = exp2(x);
+> +	x = 100*x;
+> +	return x;
+> +}
+> +
+> +static void cam_set_focus(struct sdl *m, double val)
+> +{
+> +	v4l2_s_ctrl(m->fd, V4L2_CID_FOCUS_ABSOLUTE, (val * m->focus_min) * (1023. / 20));
+> +}
+> +
+> +static double cam_convert_focus(struct sdl *m, double diopter)
+> +{
+> +	return diopter / m->focus_min;
+> +}
+> +
+> +static double cam_get_focus_diopter(struct sdl *m)
+> +{
+> +	return (v4l2_g_ctrl(m->fd, V4L2_CID_FOCUS_ABSOLUTE) * 20.) / 1023.;
+> +}
+> +
+> +static double cam_get_focus(struct sdl *m)
+> +{
+> +	return cam_convert_focus(m, cam_get_focus_diopter(m));
+> +}
+> +
+> +static void sdl_line_color(struct sdl *m, int x1, int y1, int x2, int y2, Uint32 color)
+> +{
+> +	SDL_Rect rcDest = { x1, y1, x2-x1+1, y2-y1+1};
+> +
+> +	SDL_FillRect(m->screen, &rcDest, color);
+> +}
+> +
+> +static void sdl_line(struct sdl *m, int x1, int y1, int x2, int y2)
+> +{
+> +	sdl_line_color(m, x1, y1, x2, y2, SDL_MapRGB( m->liveview->format, 255, 255, 255 ));
+> +}
+> +
+> +static void sdl_digit(struct sdl *m, int x, int y, int s, int i)
+> +{
+> +	unsigned char gr[] = { 0x5f, 0x0a, 0x76, 0x7a, 0x2b,
+> +			       0x79, 0x7d, 0x1a, 0x7f, 0x7b };
+> +	unsigned char g = gr[i];
+> +	/*
+> +              10
+> +	    01  02
+> +              20
+> +            04  08
+> +	      40
+> +	*/
+> +
+> +	if (g & 1) sdl_line(m, x, y, x, y+s);
+> +	if (g & 2) sdl_line(m, x+s, y, x+s, y+s);
+> +	if (g & 4) sdl_line(m, x, y+s, x, y+s+s);
+> +	if (g & 8) sdl_line(m, x+s, y+s, x+s, y+s+s);
+> +
+> +	if (g & 0x10) sdl_line(m, x, y, x+s, y);
+> +	if (g & 0x20) sdl_line(m, x, y+s, x+s, y+s);
+> +	if (g & 0x40) sdl_line(m, x, y+s+s, x+s, y+s+s);
+> +}
+> +
+> +static void sdl_number(struct sdl *m, int x, int y, int s, int digits, int i)
+> +{
+> +	int tot = s * 5;
+> +	x += tot * digits;
+> +	for (int j=0; j<digits; j++) {
+> +		sdl_digit(m, x+2, y+4, s*3, i%10);
+> +		i /= 10;
+> +		x -= tot;
+> +	}
+> +}
+> +
+> +static void sdl_icon_pos(struct sdl *m, int *x, int *y, double val)
+> +{
+> +	*x = m->wx - 10;
+> +	*y = val * m->wy;
+> +}
+> +
+> +static void sdl_paint_ui_iso(struct sdl *m, double y_, int i)
+> +{
+> +	static char *iso_xpm[] = {
+> +		"16 12 2 1",
+> +		"x c #ffffff",
+> +		". c #000000",
+> +		"................",
+> +		"................",
+> +		"................",
+> +		".x..xx..x.......",
+> +		".x.x...x.x......",
+> +		".x..x..x.x......",
+> +		".x...x.x.x......",
+> +		".x.xx...x.......",
+> +		"................",
+> +		"................",
+> +		"................",
+> +		"................",
+> +	};
+> +
+> +	int x, y;
+> +
+> +	sdl_icon_pos(m, &x, &y, y_);
+> +	sdl_number(m, x-35, y-10, 1, 3, i);
+> +	sdl_paint_image(m, iso_xpm, x, y);
+> +}
+> +
+> +static void sdl_paint_ui_exposure(struct sdl *m, int t)
+> +{
+> +	static char *time_1_xpm[] = {
+> +		"16 12 2 1",
+> +		"x c #ffffff",
+> +		". c #000000",
+> +		"......x.........",
+> +		".....x..........",
+> +		"....x...........",
+> +		"...x............",
+> +		"................",
+> +		".xxx.xxxx.xxxx..",
+> +		"x....x....x.....",
+> +		".xx..xxx..x.....",
+> +		"...x.x....x.....",
+> +		"...x.x....x.....",
+> +		"xxx..xxxx.xxxx..",
+> +		"................",
+> +	};
+> +	int x, y;
+> +
+> +	sdl_icon_pos(m, &x, &y, cam_convert_exposure(m, 1000000/t));
+> +	sdl_number(m, x-35, y-10, 1, 3, t);
+> +	sdl_paint_image(m, time_1_xpm, x, y);
+> +}
+> +
+> +static void sdl_paint_boolean(struct sdl *m, char **image, int x, int y, int yes)
+> +{
+> +	static char *not_xpm[] = {
+> +		"16 12 2 1",
+> +		"x c #ffffff",
+> +		". c #000000",
+> +		"......xxxxx.....",
+> +		"....xx.....xx...",
+> +		"...x.........x..",
+> +		"..x........xx.x.",
+> +		"..x......xx...x.",
+> +		".x.....xx......x",
+> +		".x...xx........x",
+> +		"..xxx.........x.",
+> +		"..x...........x.",
+> +		"...x.........x..",
+> +		"....xx.....xx...",
+> +		"......xxxxx.....",
+> +	};
+> +
+> +	sdl_paint_image(m, image, x, y);
+> +	if (!yes)
+> +		sdl_paint_image(m, not_xpm,  16+x, y);
+> +}
+> +
+> +static void sdl_paint_button(struct sdl *m, char **image, int x, int y, int yes)
+> +{
+> +	int bsx = m->wx/m->nx;
+> +	int bsy = m->wy/m->ny;
+> +	if (x < 0)
+> +		x += m->nx;
+> +	if (y < 0)
+> +		y += m->ny;
+> +	x = bsx/2 + x*bsx;
+> +	y = bsy/2 + y*bsy;
+> +	sdl_paint_boolean(m, image, x, y, yes);
+> +}
+> +
+> +static void sdl_paint_ui_focus(struct sdl *m, int f)
+> +{
+> +	static char *cm_xpm[] = {
+> +		"16 9 2 1",
+> +		"# c #ffffff",
+> +		". c #000000",
+> +		"................",
+> +		"................",
+> +		"................",
+> +		"....###..#.#.##.",
+> +		"...#.....##.#..#",
+> +		"...#.....#..#..#",
+> +		"...#.....#..#..#",
+> +		"....###..#..#..#",
+> +		"................",
+> +	};
+> +	double dioptr = 1/(f/100.);
+> +	int x, y;
+> +
+> +	if (dioptr > m->focus_min)
+> +		return;
+> +
+> +	sdl_icon_pos(m, &x, &y, cam_convert_focus(m, dioptr));
+> +	sdl_paint_image(m, cm_xpm, x, y);
+> +	sdl_number(m, x-12, y-15, 1, 3, f);
+> +}
+> +
+> +static void sdl_paint_ui_bias(struct sdl *m, double v)
+> +{
+> +	static char *bias_xpm[] = {
+> +		"16 12 2 1",
+> +		"# c #ffffff",
+> +		". c #000000",
+> +		"...#............",
+> +		"...#.......#....",
+> +		".#####....#.....",
+> +		"...#.....#......",
+> +		"...#....#.......",
+> +		".......#........",
+> +		"......#...#####.",
+> +		".....#..........",
+> +		"....#...........",
+> +		"...#............",
+> +		"................",
+> +		"................",
+> +	};
+> +	int x, y;
+> +
+> +	sdl_icon_pos(m, &x, &y, v);
+> +	sdl_paint_image(m, bias_xpm, x, y);
+> +}
+> +
+> +static void sdl_paint_slider(struct sdl *m)
+> +{
+> +	switch (m->slider_mode) {
+> +	case M_BIAS:
+> +		sdl_paint_ui_bias(m, 0.5);
+> +		return;
+> +	case M_EXPOSURE:
+> +		sdl_paint_ui_exposure(m, 10);
+> +		sdl_paint_ui_exposure(m, 100);
+> +		sdl_paint_ui_exposure(m, 999);
+> +		return;
+> +	case M_GAIN:
+> +		sdl_paint_ui_iso(m, 0/4., 100);
+> +		sdl_paint_ui_iso(m, 1/4., 200);
+> +		sdl_paint_ui_iso(m, 2/4., 400);
+> +		sdl_paint_ui_iso(m, 3/4., 800);
+> +		return;
+> +	case M_FOCUS:
+> +		sdl_paint_ui_focus(m, 100);
+> +		sdl_paint_ui_focus(m, 40);
+> +		sdl_paint_ui_focus(m, 25);
+> +		sdl_paint_ui_focus(m, 16);
+> +		sdl_paint_ui_focus(m, 10);
+> +		sdl_paint_ui_focus(m, 8);
+> +		sdl_paint_ui_focus(m, 6);
+> +		return;
+> +	}
+> +}
+> +
+> +static void sdl_paint_ui(struct sdl *m)
+> +{
+> +	static char *wait_xpm[] = {
+> +		"16 9 2 1",
+> +		"# c #ffffff",
+> +		". c #000000",
+> +		"....########....",
+> +		".....#....#.....",
+> +		".....#....#.....",
+> +		"......#..#......",
+> +		".......##.......",
+> +		"......#..#......",
+> +		".....#....#.....",
+> +		".....#....#.....",
+> +		"....########....",
+> +	};
+> +
+> +	static char *ok_xpm[] = {
+> +		"16 9 2 1",
+> +		"# c #ffffff",
+> +		". c #000000",
+> +		"...............#",
+> +		"............###.",
+> +		"..........##....",
+> +		"#.......##......",
+> +		".#.....#........",
+> +		"..#...#.........",
+> +		"..#..#..........",
+> +		"...##...........",
+> +		"...#............",
+> +	};
+> +
+> +	static char *exit_xpm[] = {
+> +		"16 9 2 1",
+> +		"x c #ffffff",
+> +		". c #000000",
+> +		"....x......x....",
+> +		".....x....x.....",
+> +		"......x..x......",
+> +		".......xx.......",
+> +		".......xx.......",
+> +		"......x..x......",
+> +		".....x....x.....",
+> +		"....x......x....",
+> +		"................",
+> +	};
+> +
+> +	static char *af_xpm[] = {
+> +		"16 12 2 1",
+> +		"x c #ffffff",
+> +		". c #000000",
+> +		"................",
+> +		"................",
+> +		".....xxxxxxx....",
+> +		".....x..........",
+> +		".....x..........",
+> +		".x...xxxxx......",
+> +		"x.x..x..........",
+> +		"xxx..x..........",
+> +		"x.x..x..........",
+> +		"x.x..x..........",
+> +		"................",
+> +		"................",
+> +	};
+> +
+> +	static char *ae_xpm[] = {
+> +		"16 12 2 1",
+> +		"x c #ffffff",
+> +		". c #000000",
+> +		"................",
+> +		"................",
+> +		".....xxxxxxx....",
+> +		".....x..........",
+> +		".....x..........",
+> +		".x...xxxxx......",
+> +		"x.x..x..........",
+> +		"xxx..x..........",
+> +		"x.x..x..........",
+> +		"x.x..xxxxxxx....",
+> +		"................",
+> +		"................",
+> +	};
+> +
+> +	static char *focus_xpm[] = {
+> +		"16 12 2 1",
+> +		"# c #ffffff",
+> +		". c #000000",
+> +		"................",
+> +		"................",
+> +		"###..........###",
+> +		"#..............#",
+> +		"#.....####.....#",
+> +		".....#....#.....",
+> +		".....#....#.....",
+> +		"#.....####.....#",
+> +		"#..............#",
+> +		"###..........###",
+> +		"................",
+> +		"................",
+> +	};
+> +
+> +	static char *flash_xpm[] = {
+> +		"16 12 2 1",
+> +		"# c #ffffff",
+> +		". c #000000",
+> +		"................",
+> +		"..........#.....",
+> +		"........##......",
+> +		".......##.......",
+> +		"......##........",
+> +		".....########...",
+> +		"..........##....",
+> +		".......#.##.....",
+> +		".......###......",
+> +		".......####.....",
+> +		"................",
+> +		"................",
+> +	};
+> +
+> +	static char *wb_xpm[] = {
+> +		"16 12 2 1",
+> +		"# c #ffffff",
+> +		". c #000000",
+> +		"................",
+> +		"................",
+> +		"................",
+> +		"#.....#..####...",
+> +		"#.....#..#...#..",
+> +		"#..#..#..####...",
+> +		"#..#..#..#...#..",
+> +		".##.##...####...",
+> +		"................",
+> +		"................",
+> +		"................",
+> +		"................",
+> +	};
+> +/* Template for more xpm's:
+> +	static char *empty_xpm[] = {
+> +		"16 12 2 1",
+> +		"# c #ffffff",
+> +		". c #000000",
+> +		"................",
+> +		"................",
+> +		"................",
+> +		"................",
+> +		"................",
+> +		"................",
+> +		"................",
+> +		"................",
+> +		"................",
+> +		"................",
+> +		"................",
+> +		"................",
+> +	};
+> +*/
+> +	SDL_FillRect(m->screen, NULL, SDL_MapRGB( m->liveview->format, 0, 0, 0 ));
+> +
+> +	{
+> +		/* Paint grid */
+> +		int x, y;
+> +		int nx = m->nx;
+> +		for (x=1; x<nx; x++) {
+> +			int x_ = (x*m->wx)/nx;
+> +			sdl_line_color(m, x_, 1, x_, m->wy-1, SDL_MapRGB( m->liveview->format, 40, 40, 40 ));
+> +		}
+> +
+> +		int ny = m->ny;
+> +		for (y=1; y<nx; y++) {
+> +			int y_ = (y*m->wy)/ny;
+> +			sdl_line_color(m, 1, y_, m->wx-1, y_, SDL_MapRGB( m->liveview->format, 40, 40, 40 ));
+> +		}
+> +
+> +	}
+> +
+> +	sdl_paint_image(m, wait_xpm,  m->wx/2,     m->wy/2);
+> +
+> +
+> +	sdl_paint_button(m, af_xpm, 0,  0, m->do_focus);
+> +	sdl_paint_button(m, ae_xpm, -1, 0, m->do_exposure);
+> +
+> +	sdl_paint_button(m, exit_xpm,   0, -1, 1);
+> +	sdl_paint_button(m, flash_xpm,  1, -1, m->do_flash);
+> +	sdl_paint_button(m, wb_xpm,     2, -1, m->do_white);
+> +	sdl_paint_button(m, focus_xpm, -1, -2, 1);
+> +	sdl_paint_button(m, ok_xpm,    -1, -1, 1);
+> +
+> +	sdl_paint_slider(m);
+> +	SDL_UpdateWindowSurface(m->window);
+> +}
+> +
+> +static double usec_to_time(double v)
+> +{
+> +	return 1/(v*.000001);
+> +}
+> +
+> +static void sdl_status(struct sdl *m, double avg)
+> +{
+> +	int ox = 0;
+> +	int oy = m->wy/2;
+> +	int s = 3;
+> +	SDL_Rect rcDest = { ox, oy, s*25, s*40 };
+> +
+> +	SDL_FillRect(m->screen, &rcDest, SDL_MapRGB( m->liveview->format, 30, 30, 30 ));
+> +
+> +	sdl_number(m, ox, oy, s, 3, avg*1000);
+> +	oy += s*10;
+> +
+> +	{
+> +		double focus, gain, exposure;
+> +
+> +		exposure = v4l2_g_ctrl(m->fd, V4L2_CID_EXPOSURE_ABSOLUTE);
+> +		gain = cam_get_gain_iso(m->dev);
+> +		focus = cam_get_focus_diopter(m);
+> +
+> +		double x = usec_to_time(exposure);
+> +		if (x > 999) x = 999;
+> +		sdl_number(m, ox, oy, s, 3, x);
+> +
+> +		oy += s*10;
+> +		if (gain > 999)
+> +			gain = 999;
+> +		sdl_number(m, ox, oy, s, 3, gain);
+> +
+> +		oy += s*10;
+> +		x = focus; /* diopters */
+> +		if (x == 0)
+> +			x = 999;
+> +		else
+> +			x = 100/x; /* centimeters */
+> +		sdl_number(m, ox, oy, s, 3, x);
+> +	}
+> +
+> +	SDL_UpdateWindowSurfaceRects(m->window, &rcDest, 1);
+> +}
+> +static pixel buf_pixel(struct v4l2_format *fmt, unsigned char *buf, int x, int y)
+> +{
+> +	pixel p = { 0, 0, 0, 0 };
+> +	int pos = x + y*fmt->fmt.pix.width;
+> +
+> +	p.alpha = 128;
+> +
+> +	switch (fmt->fmt.pix.pixelformat) {
+> +	case V4L2_PIX_FMT_SGRBG10:
+> +		{
+> +			short *b2 = (void *)buf;
+> +			x &= ~1;
+> +			y &= ~1;
+> +			p.g = b2[x + y*fmt->fmt.pix.width] /4;
+> +			p.r = b2[x + y*fmt->fmt.pix.width+1] /4;
+> +			p.b = b2[x + (y+1)*fmt->fmt.pix.width] /4;
+> +		}
+> +		break;
+> +
+> +	case V4L2_PIX_FMT_RGB24:
+> +		pos *= 3;
+> +		p.r = buf[pos];
+> +		p.g = buf[pos+1];
+> +		p.b = buf[pos+2];
+> +		break;
+> +
+> +	default:
+> +		printf("Wrong pixel format!\n");
+> +		fmt_print(fmt);
+> +		exit(1);
+> +	}
+> +
+> +	return p;
+> +}
+> +
+> +static char *fmt_name(struct v4l2_format *fmt)
+> +{
+> +	switch (fmt->fmt.pix.pixelformat) {
+> +	case V4L2_PIX_FMT_SGRBG10:
+> +		return "GRBG10";
+> +	case V4L2_PIX_FMT_RGB24:
+> +		return "RGB24";
+> +	default:
+> +		return "unknown";
+> +	}
+> +}
+> +
+> +static void sdl_handle_focus(struct sdl *m, float how)
+> +{
+> +	v4l2_set_control(m->fd, V4L2_CID_FOCUS_ABSOLUTE, 65535. * how);
+> +}
+> +
+> +static void sdl_key(struct sdl *m, int c)
+> +{
+> +	switch (c) {
+> +	case 27: exit(1); break;
+> +	case 'q': sdl_handle_focus(m, 0.); break;
+> +	case 'w': sdl_handle_focus(m, 1/6.); break;
+> +	case 'e': sdl_handle_focus(m, 1/3.); break;
+> +	case 'r': sdl_handle_focus(m, 1/2.); break;
+> +	case 't': sdl_handle_focus(m, 1/1); break;
+> +	case 'y': sdl_handle_focus(m, 1/.8); break;
+> +	case 'u': sdl_handle_focus(m, 1/.5); break;
+> +	case 'i': sdl_handle_focus(m, 1/.2); break;
+> +	case 'o': sdl_handle_focus(m, 1/.1); break;
+> +	case 'p': sdl_handle_focus(m, 1/.05); break;
+> +	default: printf("Unknown key %d / %c", c, c);
+> +	}
+> +}
+> +
+> +static int sdl_render_statistics(struct sdl *m)
+> +{
+> +	pixel white;
+> +	double focus, gain, exposure;
+> +
+> +	white.r = (Uint8)0xff;
+> +	white.g = (Uint8)0xff;
+> +	white.b = (Uint8)0xff;
+> +	white.alpha = (Uint8)128;
+> +
+> +	exposure = cam_get_exposure(m);
+> +	gain = v4l2_get_control(m->fd, 0x00980913) / 65535.;
+> +	focus = cam_get_focus(m);
+> +
+> +	for (int x=0; x<m->sx && x<m->sx*focus; x++)
+> +		sfc_put_pixel(m->liveview, x, 0, &white);
+> +
+> +	for (int y=0; y<m->sy && y<m->sy*gain; y++)
+> +		sfc_put_pixel(m->liveview, 0, y, &white);
+> +
+> +	for (int y=0; y<m->sy && y<m->sy*exposure; y++)
+> +		sfc_put_pixel(m->liveview, m->sx-1, y, &white);
+> +
+> +	for (int x=0; x<m->sx; x++)
+> +		sfc_put_pixel(m->liveview, x, m->sy-1, &white);
+> +
+> +	return 0;
+> +}
+> +
+> +static void sdl_render(struct sdl *m, unsigned char *buf, struct v4l2_format *fmt)
+> +{
+> +	float zoom = m->zoom;
+> +	if (!m->window)
+> +		return;
+> +
+> +	sdl_begin_paint(m);
+> +	int x0 = (fmt->fmt.pix.width - m->sx*m->factor/zoom)/2;
+> +	int y0 = (fmt->fmt.pix.height - m->sy*m->factor/zoom)/2;
+> +
+> +	for (int y = 0; y < m->sy; y++)
+> +		for (int x = 0; x < m->sx; x++) {
+> +			int x1 = x0+x*m->factor/zoom;
+> +			int y1 = y0+y*m->factor/zoom;
+> +			pixel p = buf_pixel(fmt, buf, x1, y1);
+> +			p.alpha = 128;
+> +			sfc_put_pixel(m->liveview, x, y, &p);
+> +		}
+> +
+> +	sdl_render_statistics(m);
+> +	sdl_finish_paint(m);
+> +}
+> +
+> +static void sdl_sync_settings(struct sdl *m)
+> +{
+> +	printf("Autofocus: "); v4l2_s_ctrl(m->fd, V4L2_CID_FOCUS_AUTO, m->do_focus);
+> +	printf("Autogain: " ); v4l2_s_ctrl(m->fd, V4L2_CID_AUTOGAIN, m->do_exposure);
+> +	printf("Autowhite: "); v4l2_s_ctrl(m->fd, V4L2_CID_AUTO_WHITE_BALANCE, m->do_white);
+> +	v4l2_s_ctrl(m->fd, 0x009c0901, m->do_flash ? 2 : 0);
+> +}
+> +
+> +static void sdl_init_window(struct sdl *m)
+> +{
+> +	if (m->do_full) {
+> +		m->wx = 800;
+> +		m->wy = 480;
+> +	} else {
+> +		m->wx = 800;
+> +		m->wy = 429;
+> +	}
+> +
+> +	SDL_SetWindowFullscreen(m->window, m->do_full*SDL_WINDOW_FULLSCREEN_DESKTOP);
+> +
+> +	m->screen = SDL_GetWindowSurface(m->window);
+> +	if (!m->screen) {
+> +		printf("Couldn't create screen\n");
+> +		exit(1);
+> +	}
+> +}
+> +
+> +static void sdl_init(struct sdl *m, struct dev_info *dev)
+> +{
+> +	m->fd = dev->fd;
+> +	m->dev = dev;
+> +
+> +	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+> +		printf("Could not init SDL\n");
+> +		exit(1);
+> +	}
+> +
+> +	atexit(SDL_Quit);
+> +
+> +	m->nx = 6;
+> +	m->ny = 4;
+> +
+> +	m->do_flash = 1;
+> +	m->do_focus = 0;
+> +	m->do_exposure = 1;
+> +	m->focus_min = 5;
+> +	m->do_white = 0;
+> +	m->do_big = 0;
+> +	m->do_full = 0;
+> +	m->zoom = 1;
+> +
+> +	m->window = SDL_CreateWindow("Camera", SDL_WINDOWPOS_UNDEFINED,
+> +				     SDL_WINDOWPOS_UNDEFINED, 800, 429,
+> +				     SDL_WINDOW_SHOWN |
+> +				     m->do_full * SDL_WINDOW_FULLSCREEN_DESKTOP);
+> +	if (m->window == NULL) {
+> +		printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+> +		exit(1);
+> +	}
+> +
+> +	sdl_init_window(m);
+> +}
+> +
+> +static void sdl_set_size(struct sdl *m, int _sx)
+> +{
+> +	m->sx = _sx;
+> +	m->factor = (float) m->dev->fmt.fmt.pix.width / m->sx;
+> +	m->sy = m->dev->fmt.fmt.pix.height / m->factor;
+> +
+> +	m->bx = (m->wx-m->sx)/2;
+> +	m->by = (m->wy-m->sy)/2;
+> +
+> +	m->liveview = SDL_CreateRGBSurface(0,m->sx,m->sy,32,0,0,0,0);
+> +	if (!m->liveview) {
+> +		printf("Couldn't create liveview\n");
+> +		exit(1);
+> +	}
+> +
+> +	sdl_paint_ui(m);
+> +	sdl_sync_settings(m);
+> +}
+> +
+> +static struct sdl sdl;
+> +
+> +static void ppm_write(struct v4l2_format *fmt, unsigned char *img, char *out_name)
+> +{
+> +	FILE *fout;
+> +	fout = fopen(out_name, "w");
+> +	if (!fout) {
+> +		perror("Cannot open image");
+> +		exit(EXIT_FAILURE);
+> +	}
+> +	switch (fmt->fmt.pix.pixelformat) {
+> +	case V4L2_PIX_FMT_RGB24:
+> +		printf("ok\n");
+> +		break;
+> +	default:
+> +		printf("Bad pixel format\n");
+> +		exit(1);
+> +	}
+> +
+> +	fprintf(fout, "P6\n%d %d 255\n",
+> +		fmt->fmt.pix.width, fmt->fmt.pix.height);
+> +	fwrite(img, fmt->fmt.pix.width, 3*fmt->fmt.pix.height, fout);
+> +	fclose(fout);
+> +}
+> +
+> +/**
+> +   Write image to jpeg file.
+> +   \param img image to write
+> +*/
+> +static void jpeg_write(struct v4l2_format *fmt, unsigned char *img, char *jpegFilename)
+> +{
+> +	struct jpeg_compress_struct cinfo;
+> +	struct jpeg_error_mgr jerr;
+> +
+> +	JSAMPROW row_pointer[1];
+> +	FILE *outfile = fopen(jpegFilename, "wb");
+> +	if (!outfile) {
+> +		printf("Can't open jpeg for writing.\n");
+> +		exit(2);
+> +	}
+> +
+> +	/* create jpeg data */
+> +	cinfo.err = jpeg_std_error(&jerr);
+> +	jpeg_create_compress(&cinfo);
+> +	jpeg_stdio_dest(&cinfo, outfile);
+> +
+> +	/* set image parameters */
+> +	cinfo.image_width = fmt->fmt.pix.width;
+> +	cinfo.image_height = fmt->fmt.pix.height;
+> +	cinfo.input_components = 3;
+> +	switch (fmt->fmt.pix.pixelformat) {
+> +	case V4L2_PIX_FMT_SGRBG10:
+> +	case V4L2_PIX_FMT_RGB24:
+> +		cinfo.in_color_space = JCS_RGB;
+> +		break;
+> +	default:
+> +		printf("Need to specify colorspace!\n");
+> +		exit(1);
+> +	}
+> +
+> +	/* set jpeg compression parameters to default */
+> +	jpeg_set_defaults(&cinfo);
+> +	jpeg_set_quality(&cinfo, 90, TRUE);
+> +
+> +	jpeg_start_compress(&cinfo, TRUE);
+> +
+> +	/* feed data */
+> +	while (cinfo.next_scanline < cinfo.image_height) {
+> +		row_pointer[0] = &img[cinfo.next_scanline * cinfo.image_width *  cinfo.input_components];
+> +		jpeg_write_scanlines(&cinfo, row_pointer, 1);
+> +	}
+> +
+> +	jpeg_finish_compress(&cinfo);
+> +	jpeg_destroy_compress(&cinfo);
+> +	fclose(outfile);
+> +}
+> +
+> +static void any_write(struct dev_info *dev)
+> +{
+> +	char name[1024];
+> +	unsigned char *buf;
+> +	time_t t = time(NULL);
+> +	int ppm = 0;
+> +
+> +	buf = dev->buf;
+> +
+> +	sprintf(name, PICDIR "/delme_%d.%s", (int) t, ppm ? "ppm" : "jpg");
+> +	if (dev->fmt.fmt.pix.pixelformat != V4L2_PIX_FMT_RGB24) {
+> +		printf("Wrong pixel format\n");
+> +		exit(1);
+> +	}
+> +	if (ppm)
+> +		ppm_write(&dev->fmt, buf, name);
+> +	else
+> +		jpeg_write(&dev->fmt, buf, name);
+> +}
+> +
+> +static void sdl_mouse(struct sdl *m, SDL_Event event)
+> +{
+> +	int ax = 0, ay = 0;
+> +	int nx = event.button.x / (m->wx/m->nx), ny = event.button.y / (m->wy/m->ny);
+> +	if (nx >= m->nx/2)
+> +		nx -= m->nx;
+> +	if (ny >= m->ny/2)
+> +		ny -= m->ny;
+> +
+> +	printf("Button %d %d\n", nx, ny);
+> +
+> +	/* Virtual slider */
+> +	if (nx == -2) {
+> +		double value = (double) event.button.y / m->wy;
+> +		switch (m->slider_mode) {
+> +		case M_BIAS: {
+> +			double ev = value - .5; /* -.5 .. +.5 */
+> +			ev *= 3000;
+> +			printf("Exposure bias: %f mEV %d\n", ev, (int) ev);
+> +			if (v4l2_s_ctrl(m->fd, V4L2_CID_AUTO_EXPOSURE_BIAS, ev) < 0) {
+> +				printf("Could not set exposure bias\n");
+> +			}
+> +		}
+> +			return;
+> +		case M_EXPOSURE:
+> +			m->do_exposure = 0;
+> +			cam_set_exposure(m, value);
+> +			sdl_sync_settings(m);
+> +			return;
+> +		case M_GAIN:
+> +			m->do_exposure = 0;
+> +			v4l2_set_control(m->fd, 0x00980913, value * 65535);
+> +			sdl_sync_settings(m);
+> +			return;
+> +		case M_FOCUS:
+> +			cam_set_focus(m, value);
+> +			return;
+> +		}
+> +	}
+> +
+> +	switch (ny) {
+> +	case 0:
+> +		switch (nx) {
+> +		case 0:
+> +			m->do_focus ^= 1;
+> +			sdl_paint_ui(m);
+> +			sdl_sync_settings(m);
+> +			return;
+> +		case -1:
+> +			m->do_exposure ^= 1;
+> +			sdl_paint_ui(m);
+> +			sdl_sync_settings(m);
+> +			return;
+> +		}
+> +		break;
+> +	case 1:
+> +		switch (nx) {
+> +		case -1:
+> +			m->slider_mode = (m->slider_mode + 1) % M_NUM;
+> +			sdl_paint_ui(m);
+> +		}
+> +		break;
+> +	case -2:
+> +		switch (nx) {
+> +		case -1:
+> +			v4l2_s_ctrl(m->fd, V4L2_CID_AUTO_FOCUS_STATUS, 1);
+> +			return;
+> +		break;
+> +		}
+> +	case -1:
+> +		switch (nx) {
+> +		case 0:
+> +			exit(0);
+> +		case 1:
+> +			m->do_flash ^= 1;
+> +			sdl_paint_ui(m);
+> +			sdl_sync_settings(m);
+> +			return;
+> +		case 2:
+> +			m->do_white ^= 1;
+> +			sdl_paint_ui(m);
+> +			sdl_sync_settings(m);
+> +			return;
+> +		case -3:
+> +			m->do_big ^= 1;
+> +			if (m->do_big)
+> +				sdl_set_size(m, m->do_full ? 630:512);
+> +			else
+> +				sdl_set_size(m, 256);
+> +			return;
+> +		case -1:
+> +			sdl_paint_ui(m);
+> +			any_write(m->dev);
+> +			return;
+> +		}
+> +		break;
+> +	}
+> +
+> +	if (event.button.x > m->wx-m->bx)
+> +		ax = 1;
+> +	if (event.button.x < m->bx)
+> +		ax = -1;
+> +
+> +	if (event.button.y > m->wy-m->by)
+> +		ay = 1;
+> +	if (event.button.y < m->by)
+> +		ay = -1;
+> +
+> +	printf("mouse button at...%d, %d area %d, %d\n", event.button.x, event.button.y,
+> +	       ax, ay);
+> +}
+> +
+> +static void sdl_iteration(struct sdl *m)
+> +{
+> +	SDL_Event event;
+> +
+> +	while(SDL_PollEvent(&event)) {
+> +		switch(event.type) {
+> +		case SDL_QUIT:
+> +			exit(1);
+> +			break;
+> +		case SDL_KEYDOWN:
+> +			printf("key pressed... %c\n", event.key.keysym.sym);
+> +			/* SDLK_A, SDLK_LEFT, SDLK_RETURN, SDLK_BACKSPACE, SDLK_SPACE */
+> +			switch (event.key.keysym.sym) {
+> +			default: sdl_key(m, event.key.keysym.sym);
+> +			}
+> +			break;
+> +		case SDL_WINDOWEVENT:
+> +			if (event.window.event == SDL_WINDOWEVENT_EXPOSED)
+> +				sdl_paint_ui(m);
+> +			break;
+> +		case SDL_MOUSEBUTTONDOWN:
+> +			sdl_mouse(m, event);
+> +			break;
+> +		}
+> +	}
+> +}
+> +
+> +static void cam_open(struct dev_info *dev, char *name)
+> +{
+> +	struct v4l2_format *fmt = &dev->fmt;
+> +
+> +	dev->fd = v4l2_open(name, O_RDWR);
+> +	if (dev->fd < 0) {
+> +		printf("video %s open failed: %m\n", name);
+> +		exit(1);
+> +	}
+> +
+> +	fmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +	fmt->fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
+> +	fmt->fmt.pix.field = V4L2_FIELD_NONE;
+> +	fmt->fmt.pix.width = SX;
+> +	fmt->fmt.pix.height = SY;
+> +
+> +	v4l2_s_ctrl(dev->fd, V4L2_CID_AUTO_FOCUS_STATUS, 0);
+> +	v4l2_set_focus(dev->fd, 50);
+> +
+> +	printf("ioctl = %d\n", v4l2_ioctl(dev->fd, VIDIOC_S_FMT, fmt));
+> +
+> +	printf("capture is %lx %s %d x %d\n", (unsigned long) fmt->fmt.pix.pixelformat, fmt_name(fmt), fmt->fmt.pix.width, fmt->fmt.pix.height);
+> +}
+> +
+> +/* ------------------------------------------------------------------ */
+> +
+> +
+> +static struct dev_info dev;
+> +
+> +int main(void)
+> +{
+> +	int i;
+> +	struct v4l2_format *fmt = &dev.fmt;
+> +
+> +	dtime();
+> +	cam_open(&dev, "/dev/video0");
+> +
+> +	sdl_init(&sdl, &dev);
+> +	sdl_set_size(&sdl, 256);
+> +
+> +	double loop = dtime(), max = 0, avg = .200;
+> +	if (dev.debug & D_TIMING)
+> +		printf("startup took %f\n", loop);
+> +
+> +	for (i=0; i<500000; i++) {
+> +		int num = v4l2_read(dev.fd, dev.buf, SIZE);
+> +		if (num < 0) {
+> +			printf("Could not read frame\n");
+> +			return 1;
+> +		}
+> +		{
+> +			double d = dtime();
+> +			sdl_render(&sdl, dev.buf, fmt);
+> +			if (dev.debug & D_TIMING)
+> +				printf("Render took %f\n", dtime() - d);
+> +		}
+> +		{
+> +			double d = dtime();
+> +			for (int i = 0; i<1; i++)
+> +				sdl_status(&sdl, avg);
+> +			if (dev.debug & D_TIMING)
+> +				printf("Status took %f\n", dtime() - d);
+> +		}
+> +
+> +		sdl_iteration(&sdl);
+> +		double now = dtime();
+> +		if (now - loop > max)
+> +			max = now - loop;
+> +		double c = 0.03;
+> +		avg = (now - loop) * c + avg * (1-c);
+> +		if (dev.debug & D_TIMING)
+> +			printf("Iteration %f, maximum %f, average %f\n", now-loop, max, avg);
+> +		loop = now;
+> +	}
+> +	return 0;
+> +}
+> 
+> 
