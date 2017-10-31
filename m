@@ -1,46 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39148 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752023AbdJZHyV (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:48514 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751565AbdJaPj6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Oct 2017 03:54:21 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH v16 12/32] omap3isp: Print the name of the entity where no source pads could be found
-Date: Thu, 26 Oct 2017 10:53:22 +0300
-Message-Id: <20171026075342.5760-13-sakari.ailus@linux.intel.com>
-In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+        Tue, 31 Oct 2017 11:39:58 -0400
+MIME-Version: 1.0
+In-Reply-To: <20171029125058.5588-1-colin.king@canonical.com>
+References: <20171029125058.5588-1-colin.king@canonical.com>
+From: Michael Ira Krufky <mkrufky@linuxtv.org>
+Date: Tue, 31 Oct 2017 11:39:56 -0400
+Message-ID: <CAOcJUbypnurqiwO0wZvaDVNLRij+_hsEiJ4eKG7G0b1-LqmEMw@mail.gmail.com>
+Subject: Re: [PATCH] [media] mxl111sf: remove redundant assignment to index
+To: Colin King <colin.king@canonical.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If no source pads are found in an entity, print the name of the entity.
+On Sun, Oct 29, 2017 at 8:50 AM, Colin King <colin.king@canonical.com> wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+>
+> Variable index is set to zero and then set to zero again
+> a few lines later in a for loop initialization. Remove the
+> redundant setting of index to zero. Cleans up the clang
+> warning:
+>
+> drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c:519:3: warning: Value
+> stored to 'index' is never read
+>
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
----
- drivers/media/platform/omap3isp/isp.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 4afd7ba4fad6..35687c9707e0 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1669,8 +1669,8 @@ static int isp_link_entity(
- 			break;
- 	}
- 	if (i == entity->num_pads) {
--		dev_err(isp->dev, "%s: no source pad in external entity\n",
--			__func__);
-+		dev_err(isp->dev, "%s: no source pad in external entity %s\n",
-+			__func__, entity->name);
- 		return -EINVAL;
- 	}
- 
--- 
-2.11.0
+
+Thanks for the patch!
+
+
+> ---
+>  drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c | 1 -
+>  1 file changed, 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c b/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c
+> index 0eb33e043079..a221bb8a12b4 100644
+> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c
+> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c
+> @@ -516,7 +516,6 @@ static int mxl111sf_i2c_hw_xfer_msg(struct mxl111sf_state *state,
+>                    data required to program */
+>                 block_len = (msg->len / 8);
+>                 left_over_len = (msg->len % 8);
+> -               index = 0;
+>
+>                 mxl_i2c("block_len %d, left_over_len %d",
+>                         block_len, left_over_len);
+> --
+> 2.14.1
+>
