@@ -1,58 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:45036 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757796AbdJQRru (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Oct 2017 13:47:50 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2] media: staging/imx: do not return error in link_notify for unknown sources
-Date: Tue, 17 Oct 2017 10:46:37 -0700
-Message-Id: <1508262397-24074-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from osg.samsung.com ([64.30.133.232]:36800 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751024AbdJaJhf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Oct 2017 05:37:35 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Songjun Wu <songjun.wu@microchip.com>
+Subject: [PATCH] media: atmel-isc: get rid of an unused var
+Date: Tue, 31 Oct 2017 05:37:28 -0400
+Message-Id: <ec62464e83beacd8b8856e8313a4cae4a91ea90b.1509442643.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-imx_media_link_notify() should not return error if the source subdevice
-of the link is not found in the list of subdevices that registered via
-async. If the subdev has controls they will be inherited via a link_notify
-that starts from a known source async subdev.
+drivers/media/platform/atmel/atmel-isc.c: In function 'isc_async_complete':
+drivers/media/platform/atmel/atmel-isc.c:1900:28: warning: variable 'sd_entity' set but not used [-Wunused-but-set-variable]
+  struct isc_subdev_entity *sd_entity;
+                            ^~~~~~~~~
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
-Changes since v1:
- - expanded on commit message and comment.
----
- drivers/staging/media/imx/imx-media-dev.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/media/platform/atmel/atmel-isc.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index b55e5eb..809d92e 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -508,8 +508,16 @@ static int imx_media_link_notify(struct media_link *link, u32 flags,
- 	imxmd = dev_get_drvdata(sd->v4l2_dev->dev);
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index 2c40a7886542..8b37656f035d 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -1897,7 +1897,6 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
+ {
+ 	struct isc_device *isc = container_of(notifier->v4l2_dev,
+ 					      struct isc_device, v4l2_dev);
+-	struct isc_subdev_entity *sd_entity;
+ 	struct video_device *vdev = &isc->video_dev;
+ 	struct vb2_queue *q = &isc->vb2_vidq;
+ 	int ret;
+@@ -1910,8 +1909,6 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
  
- 	imxsd = imx_media_find_subdev_by_sd(imxmd, sd);
--	if (IS_ERR(imxsd))
--		return PTR_ERR(imxsd);
-+	if (IS_ERR(imxsd)) {
-+		/*
-+		 * don't bother refreshing video device controls if the
-+		 * source subdev isn't found in the async subdev list. If
-+		 * this subdev has controls they will be inherited starting
-+		 * from a known async subdev.
-+		 */
-+		return 0;
-+	}
-+
- 	imxpad = &imxsd->pad[pad_idx];
+ 	isc->current_subdev = container_of(notifier,
+ 					   struct isc_subdev_entity, notifier);
+-	sd_entity = isc->current_subdev;
+-
+ 	mutex_init(&isc->lock);
+ 	init_completion(&isc->comp);
  
- 	/*
 -- 
-2.7.4
+2.13.6
