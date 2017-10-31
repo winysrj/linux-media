@@ -1,52 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:34257 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750820AbdJCTKC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Oct 2017 15:10:02 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Russell King <rmk+kernel@armlinux.org.uk>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH] media: staging/imx: do not return error in link_notify for unknown sources
-Date: Tue,  3 Oct 2017 12:09:13 -0700
-Message-Id: <1507057753-31808-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from f5out.microchip.com ([198.175.253.81]:52192 "EHLO
+        DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752919AbdJaBQD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Oct 2017 21:16:03 -0400
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        <devicetree@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v4 2/3] media: ov7740: Document device tree bindings
+Date: Tue, 31 Oct 2017 09:11:44 +0800
+Message-ID: <20171031011146.6899-3-wenyou.yang@microchip.com>
+In-Reply-To: <20171031011146.6899-1-wenyou.yang@microchip.com>
+References: <20171031011146.6899-1-wenyou.yang@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-imx_media_link_notify() should not return error if the source subdevice
-is not recognized by imx-media, that isn't an error. If the subdev has
-controls they will be inherited starting from a known subdev.
+Add the device tree binding documentation for the ov7740 sensor driver.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
 ---
- drivers/staging/media/imx/imx-media-dev.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index b55e5eb..dd47861 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -508,8 +508,15 @@ static int imx_media_link_notify(struct media_link *link, u32 flags,
- 	imxmd = dev_get_drvdata(sd->v4l2_dev->dev);
- 
- 	imxsd = imx_media_find_subdev_by_sd(imxmd, sd);
--	if (IS_ERR(imxsd))
--		return PTR_ERR(imxsd);
-+	if (IS_ERR(imxsd)) {
-+		/*
-+		 * don't bother if the source subdev isn't known to
-+		 * imx-media. If the subdev has controls they will be
-+		 * inherited starting from a known subdev.
-+		 */
-+		return 0;
-+	}
+Changes in v4: None
+Changes in v3:
+ - Explicitly document the "remote-endpoint" property.
+
+Changes in v2: None
+
+ .../devicetree/bindings/media/i2c/ov7740.txt       | 47 ++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7740.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov7740.txt b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
+new file mode 100644
+index 000000000000..af781c3a5f0e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
+@@ -0,0 +1,47 @@
++* Omnivision OV7740 CMOS image sensor
 +
- 	imxpad = &imxsd->pad[pad_idx];
- 
- 	/*
++The Omnivision OV7740 image sensor supports multiple output image
++size, such as VGA, and QVGA, CIF and any size smaller. It also
++supports the RAW RGB and YUV output formats.
++
++The common video interfaces bindings (see video-interfaces.txt) should
++be used to specify link to the image data receiver. The OV7740 device
++node should contain one 'port' child node with an 'endpoint' subnode.
++
++Required Properties:
++- compatible:	"ovti,ov7740".
++- reg:		I2C slave address of the sensor.
++- clocks:	Reference to the xvclk input clock.
++- clock-names:	"xvclk".
++
++Optional Properties:
++- reset-gpios: Rreference to the GPIO connected to the reset_b pin,
++  if any. Active low with pull-ip resistor.
++- powerdown-gpios: Reference to the GPIO connected to the pwdn pin,
++  if any. Active high with pull-down resistor.
++
++Endpoint node mandatory properties:
++- remote-endpoint: A phandle to the bus receiver's endpoint node.
++
++Example:
++
++	i2c1: i2c@fc028000 {
++		ov7740: camera@21 {
++			compatible = "ovti,ov7740";
++			reg = <0x21>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_sensor_power &pinctrl_sensor_reset>;
++			clocks = <&isc>;
++			clock-names = "xvclk";
++			assigned-clocks = <&isc>;
++			assigned-clock-rates = <24000000>;
++			reset-gpios = <&pioA 43 GPIO_ACTIVE_LOW>;
++			powerdown-gpios = <&pioA 44 GPIO_ACTIVE_HIGH>;
++
++			port {
++				ov7740_0: endpoint {
++					remote-endpoint = <&isc_0>;
++				};
++			};
++		};
++	};
 -- 
-2.7.4
+2.13.0
