@@ -1,122 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:58885 "EHLO
-        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751334AbdJFKeB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Oct 2017 06:34:01 -0400
-Subject: Re: [PATCH] uvcvideo: Apply flags from device to actual properties
-To: kieran.bingham@ideasonboard.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-References: <ca483e75-4519-2bc3-eb11-db647fc60860@edgarthier.net>
- <1516233.pKQSzG3xyp@avalon>
- <e6c92808-82e7-05bc-28b4-370ca51aa2de@edgarthier.net>
- <bf6ced8e-6fbb-5054-bbf6-1186d52459b9@ideasonboard.com>
- <443c86f9-0973-cf52-c0c3-be662a8fee74@ideasonboard.com>
-From: Edgar Thier <info@edgarthier.net>
-Message-ID: <ae5ca43a-1ccd-b1fd-c699-f9f1d4f96dc3@edgarthier.net>
-Date: Fri, 6 Oct 2017 12:34:00 +0200
-MIME-Version: 1.0
-In-Reply-To: <443c86f9-0973-cf52-c0c3-be662a8fee74@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from osg.samsung.com ([64.30.133.232]:57326 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932543AbdJaSXE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Oct 2017 14:23:04 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH] media: v4l2-fwnode: use the cached value instead of getting again
+Date: Tue, 31 Oct 2017 14:22:59 -0400
+Message-Id: <2e926f1070f783f603806068c282399cf832bf2b.1509474169.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+There is a get/put operation in order to get firmware is_available
+data there at the __v4l2_async_notifier_parse_fwnode_endpoints()
+function. However, instead of using it, the code just reads again
+without the lock. That's probably a mistake, as a similar code on
+another function use the cached value.
 
-Use flags the device exposes for UVC controls.
-This allows the device to define which property flags are set.
+This solves this smatch warning:
 
-Since some cameras offer auto-adjustments for properties (e.g. auto-gain),
-the values of other properties (e.g. gain) can change in the camera.
-Examining the flags ensures that the driver is aware of such properties.
+drivers/media/v4l2-core/v4l2-fwnode.c:453:8: warning: variable 'is_available' set but not used [-Wunused-but-set-variable]
+   bool is_available;
+        ^~~~~~~~~~~~
 
-Signed-off-by: Edgar Thier <info@edgarthier.net>
+Fixes: 9ca465312132 ("media: v4l: fwnode: Support generic parsing of graph endpoints in a device")
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/uvc/uvc_ctrl.c | 56 +++++++++++++++++++++++++++-------------
- 1 file changed, 38 insertions(+), 18 deletions(-)
+ drivers/media/v4l2-core/v4l2-fwnode.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
-index 20397ab..5091086 100644
---- a/drivers/media/usb/uvc/uvc_ctrl.c
-+++ b/drivers/media/usb/uvc/uvc_ctrl.c
-@@ -1630,6 +1630,41 @@ static void uvc_ctrl_fixup_xu_info(struct uvc_device *dev,
- }
-
- /*
-+ * Retrieve flags for a given control
-+ */
-+static int uvc_ctrl_get_flags(struct uvc_device *dev, const struct uvc_control *ctrl,
-+	const struct uvc_control_info *info)
-+{
-+	u8 *data;
-+	int ret = 0;
-+	int flags = 0;
-+
-+	data = kmalloc(2, GFP_KERNEL);
-+	if (data == NULL)
-+		return -ENOMEM;
-+
-+	ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id, dev->intfnum,
-+						 info->selector, data, 1);
-+	if (ret < 0) {
-+		uvc_trace(UVC_TRACE_CONTROL,
-+				  "GET_INFO failed on control %pUl/%u (%d).\n",
-+				  info->entity, info->selector, ret);
-+	} else {
-+		flags = UVC_CTRL_FLAG_GET_MIN | UVC_CTRL_FLAG_GET_MAX
-+			| UVC_CTRL_FLAG_GET_RES | UVC_CTRL_FLAG_GET_DEF
-+			| (data[0] & UVC_CONTROL_CAP_GET ?
-+			   UVC_CTRL_FLAG_GET_CUR : 0)
-+			| (data[0] & UVC_CONTROL_CAP_SET ?
-+			   UVC_CTRL_FLAG_SET_CUR : 0)
-+			| (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
-+			   UVC_CTRL_FLAG_AUTO_UPDATE : 0);
-+	}
-+	kfree(data);
-+	return flags;
-+}
-+
-+
-+/*
-  * Query control information (size and flags) for XU controls.
-  */
- static int uvc_ctrl_fill_xu_info(struct uvc_device *dev,
-@@ -1659,24 +1694,7 @@ static int uvc_ctrl_fill_xu_info(struct uvc_device *dev,
-
- 	info->size = le16_to_cpup((__le16 *)data);
-
--	/* Query the control information (GET_INFO) */
--	ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id, dev->intfnum,
--			     info->selector, data, 1);
--	if (ret < 0) {
--		uvc_trace(UVC_TRACE_CONTROL,
--			  "GET_INFO failed on control %pUl/%u (%d).\n",
--			  info->entity, info->selector, ret);
--		goto done;
--	}
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 3b9c6afb49a3..681b192420d9 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -455,8 +455,7 @@ static int __v4l2_async_notifier_parse_fwnode_endpoints(
+ 		dev_fwnode = fwnode_graph_get_port_parent(fwnode);
+ 		is_available = fwnode_device_is_available(dev_fwnode);
+ 		fwnode_handle_put(dev_fwnode);
 -
--	info->flags = UVC_CTRL_FLAG_GET_MIN | UVC_CTRL_FLAG_GET_MAX
--		    | UVC_CTRL_FLAG_GET_RES | UVC_CTRL_FLAG_GET_DEF
--		    | (data[0] & UVC_CONTROL_CAP_GET ?
--		       UVC_CTRL_FLAG_GET_CUR : 0)
--		    | (data[0] & UVC_CONTROL_CAP_SET ?
--		       UVC_CTRL_FLAG_SET_CUR : 0)
--		    | (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
--		       UVC_CTRL_FLAG_AUTO_UPDATE : 0);
-+	info->flags = uvc_ctrl_get_flags(dev, ctrl, info);
-
- 	uvc_ctrl_fixup_xu_info(dev, ctrl, info);
-
-@@ -1902,6 +1920,8 @@ static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control *ctrl,
- 		goto done;
- 	}
-
-+	ctrl->info.flags = uvc_ctrl_get_flags(dev, ctrl, info);
-+
- 	ctrl->initialized = 1;
-
- 	uvc_trace(UVC_TRACE_CONTROL, "Added control %pUl/%u to device %s "
+-		if (!fwnode_device_is_available(dev_fwnode))
++		if (!is_available)
+ 			continue;
+ 
+ 		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
 -- 
-2.7.4
+2.13.6
