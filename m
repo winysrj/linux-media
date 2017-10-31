@@ -1,85 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:49697 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751350AbdJLLL7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Oct 2017 07:11:59 -0400
-Subject: Re: [PATCH v3 2/2] ARM: dts: tegra20: Add video decoder node
-To: Jon Hunter <jonathanh@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
+Received: from osg.samsung.com ([64.30.133.232]:36282 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751524AbdJaQE0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Oct 2017 12:04:26 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Warren <swarren@wwwdotorg.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <cover.1507752381.git.digetx@gmail.com>
- <f58be69f6004393711c9ff3cb4b52aed33e2611a.1507752381.git.digetx@gmail.com>
- <f18b6a72-e255-9aa4-6ebd-852ce1a27a4e@nvidia.com>
- <6fe375ea-4d8d-5dc2-2d17-c13aa1f46d71@gmail.com>
- <694edb38-ca8f-2580-5207-0ea2414f37ba@nvidia.com>
-From: Dmitry Osipenko <digetx@gmail.com>
-Message-ID: <fe0e4bc2-3eef-f6f0-4afb-0cdcab797d7b@gmail.com>
-Date: Thu, 12 Oct 2017 14:11:54 +0300
-MIME-Version: 1.0
-In-Reply-To: <694edb38-ca8f-2580-5207-0ea2414f37ba@nvidia.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        devel@driverdev.osuosl.org
+Subject: [PATCH 3/7] media: atomisp: fix switch coding style at input_system.c
+Date: Tue, 31 Oct 2017 12:04:16 -0400
+Message-Id: <849af8bbc79553ca6962caaec782c5ab92743344.1509465351.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1509465351.git.mchehab@s-opensource.com>
+References: <cover.1509465351.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1509465351.git.mchehab@s-opensource.com>
+References: <cover.1509465351.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12.10.2017 13:57, Jon Hunter wrote:
-> 
-> On 12/10/17 11:51, Dmitry Osipenko wrote:
->> On 12.10.2017 11:49, Jon Hunter wrote:
->>>
->>> On 11/10/17 21:08, Dmitry Osipenko wrote:
->>>> Add a device node for the video decoder engine found on Tegra20.
->>>>
->>>> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
->>>> ---
->>>>  arch/arm/boot/dts/tegra20.dtsi | 17 +++++++++++++++++
->>>>  1 file changed, 17 insertions(+)
->>>>
->>>> diff --git a/arch/arm/boot/dts/tegra20.dtsi b/arch/arm/boot/dts/tegra20.dtsi
->>>> index 7c85f97f72ea..1b5d54b6c0cb 100644
->>>> --- a/arch/arm/boot/dts/tegra20.dtsi
->>>> +++ b/arch/arm/boot/dts/tegra20.dtsi
->>>> @@ -249,6 +249,23 @@
->>>>  		*/
->>>>  	};
->>>>  
->>>> +	vde@6001a000 {
->>>> +		compatible = "nvidia,tegra20-vde";
->>>> +		reg = <0x6001a000 0x3D00    /* VDE registers */
->>>> +		       0x40000400 0x3FC00>; /* IRAM region */
->>>> +		reg-names = "regs", "iram";
->>>> +		interrupts = <GIC_SPI  8 IRQ_TYPE_LEVEL_HIGH>, /* UCQ error interrupt */
->>>> +			     <GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
->>>> +			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
->>>> +			     <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>, /* BSE-A interrupt */
->>>> +			     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
->>>> +		interrupt-names = "ucq-error", "sync-token", "bsev", "bsea", "sxe";
->>>> +		clocks = <&tegra_car TEGRA20_CLK_VDE>;
->>>> +		clock-names = "vde";
->>>> +		resets = <&tegra_car 61>;
->>>> +		reset-names = "vde";
->>>> +	};
->>>> +
->>>
->>> I don't see any binding documentation for this node. We need to make
->>> sure we add this.
->>>
->>
->> It's in the first patch.
->>
->> +++ b/Documentation/devicetree/bindings/arm/tegra/nvidia,tegra20-vde.txt
->>
-> 
-> Ah yes indeed, then that needs to be a separate patch.
-> 
+Fix a switch at input_system.c that were causing smatch warnings:
 
-Okay
+drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c:610 rx_channel_get_state() warn: inconsistent indenting
+drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c:616 rx_channel_get_state() warn: inconsistent indenting
+drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c:622 rx_channel_get_state() warn: inconsistent indenting
+drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c:610 rx_channel_get_state() warn: inconsistent indenting
+drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c:616 rx_channel_get_state() warn: inconsistent indenting
+drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c:622 rx_channel_get_state() warn: inconsistent indenting
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ .../hive_isp_css_common/host/input_system.c        | 32 +++++++++++-----------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c
+index c9af2bfc1f88..cd2096fa75c8 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/input_system.c
+@@ -602,30 +602,30 @@ STORAGE_CLASS_INLINE void rx_channel_get_state(
+ 	assert(state != NULL);
+ 
+ 	switch (ch_id) {
+-		case 0:
+-			state->comp_scheme0 = receiver_reg_load(ID,
++	case 0:
++		state->comp_scheme0 = receiver_reg_load(ID,
+ 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC0_REG0_IDX);
+-			state->comp_scheme1 = receiver_reg_load(ID,
++		state->comp_scheme1 = receiver_reg_load(ID,
+ 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC0_REG1_IDX);
+-	break;
+-		case 1:
+-			state->comp_scheme0 = receiver_reg_load(ID,
++		break;
++	case 1:
++		state->comp_scheme0 = receiver_reg_load(ID,
+ 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC1_REG0_IDX);
+-			state->comp_scheme1 = receiver_reg_load(ID,
++		state->comp_scheme1 = receiver_reg_load(ID,
+ 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC1_REG1_IDX);
+-	break;
+-		case 2:
+-			state->comp_scheme0 = receiver_reg_load(ID,
++		break;
++	case 2:
++		state->comp_scheme0 = receiver_reg_load(ID,
+ 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC2_REG0_IDX);
+-			state->comp_scheme1 = receiver_reg_load(ID,
++		state->comp_scheme1 = receiver_reg_load(ID,
+ 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC2_REG1_IDX);
+-	break;
+-		case 3:
+-			state->comp_scheme0 = receiver_reg_load(ID,
++		break;
++	case 3:
++		state->comp_scheme0 = receiver_reg_load(ID,
+ 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC3_REG0_IDX);
+-			state->comp_scheme1 = receiver_reg_load(ID,
++		state->comp_scheme1 = receiver_reg_load(ID,
+ 				_HRT_CSS_RECEIVER_2400_COMP_SCHEME_VC3_REG1_IDX);
+-	break;
++		break;
+ 	}
+ 
+ /* See Table 7.1.17,..., 7.1.24 */
+-- 
+2.13.6
