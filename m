@@ -1,91 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gloria.sntech.de ([95.129.55.99]:36540 "EHLO gloria.sntech.de"
+Received: from mga09.intel.com ([134.134.136.24]:40769 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754420AbdJIMwV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Oct 2017 08:52:21 -0400
-From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Jacob Chen <jacob-chen@iotwrt.com>,
-        linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        robh+dt@kernel.org, mchehab@kernel.org,
-        linux-media@vger.kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com
-Subject: Re: [PATCH v11 1/4] rockchip/rga: v4l2 m2m support
-Date: Mon, 09 Oct 2017 14:52:06 +0200
-Message-ID: <1723232.PDSGHSTtIa@diego>
-In-Reply-To: <39318451-a078-3451-47f8-9205a31cadb5@xs4all.nl>
-References: <20171009090424.15292-1-jacob-chen@iotwrt.com> <20171009090424.15292-2-jacob-chen@iotwrt.com> <39318451-a078-3451-47f8-9205a31cadb5@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        id S1752589AbdJaOW3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Oct 2017 10:22:29 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Subject: [PATCH v1 15/15] media: i2c: adv748x: Remove duplicate NULL check
+Date: Tue, 31 Oct 2017 16:21:49 +0200
+Message-Id: <20171031142149.32512-15-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20171031142149.32512-1-andriy.shevchenko@linux.intel.com>
+References: <20171031142149.32512-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Since i2c_unregister_device() became NULL-aware we may remove duplicate
+NULL check.
 
-Am Montag, 9. Oktober 2017, 14:48:13 CEST schrieb Hans Verkuil:
-> On 09/10/17 11:04, Jacob Chen wrote:
-> > Rockchip RGA is a separate 2D raster graphic acceleration unit. It
-> > accelerates 2D graphics operations, such as point/line drawing, image
-> > scaling, rotation, BitBLT, alpha blending and image blur/sharpness
-> > 
-> > The driver supports various operations from the rendering pipeline.
-> > 
-> >  - copy
-> >  - fast solid color fill
-> >  - rotation
-> >  - flip
-> >  - alpha blending
-> > 
-> > The code in rga-hw.c is used to configure regs according to operations
-> > The code in rga-buf.c is used to create private mmu table for RGA.
-> > 
-> > Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
-> 
-> I ran checkpatch --strict on this patch and I found a few small issues:
-> 
-> WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code
-> rather than BUG() or BUG_ON() #1222: FILE:
-> drivers/media/platform/rockchip/rga/rga.c:89:
-> +               BUG_ON(!ctx);
-> 
-> WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code
-> rather than BUG() or BUG_ON() #1229: FILE:
-> drivers/media/platform/rockchip/rga/rga.c:96:
-> +               BUG_ON(!src);
-> 
-> WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code
-> rather than BUG() or BUG_ON() #1230: FILE:
-> drivers/media/platform/rockchip/rga/rga.c:97:
-> +               BUG_ON(!dst);
-> 
-> I think you can use WARN_ON here and just return.
-> 
-> CHECK: struct mutex definition without comment
-> #2235: FILE: drivers/media/platform/rockchip/rga/rga.h:84:
-> +       struct mutex mutex;
-> 
-> CHECK: spinlock_t definition without comment
-> #2236: FILE: drivers/media/platform/rockchip/rga/rga.h:85:
-> +       spinlock_t ctrl_lock;
-> 
-> These two fields need a comment describing what the locks protect.
-> 
-> Also move patch 4/4 to the beginning of the patch series. The bindings
-> patch should come before the driver.
-> 
-> If I have a v12 with these issues fixed and a MAINTAINERS patch, then
-> I'll take it on Friday.
-> 
-> Do you want me to take the dts patches or will they go through another tree?
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/media/i2c/adv748x/adv748x-core.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-I'd prefer for me to pick up the dts patches ("ARM: dts" and "arm64: dts:"), 
-as otherwise we always get conflicts and confusion :-)
-
-I'm monitoring this series, so after you pick the binding + driver, I can
-just pick the other two.
-
-
-Thanks
-Heiko
+diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+index 5ee14f2c2747..10c3d469175c 100644
+--- a/drivers/media/i2c/adv748x/adv748x-core.c
++++ b/drivers/media/i2c/adv748x/adv748x-core.c
+@@ -225,10 +225,8 @@ static void adv748x_unregister_clients(struct adv748x_state *state)
+ {
+ 	unsigned int i;
+ 
+-	for (i = 1; i < ARRAY_SIZE(state->i2c_clients); ++i) {
+-		if (state->i2c_clients[i])
+-			i2c_unregister_device(state->i2c_clients[i]);
+-	}
++	for (i = 1; i < ARRAY_SIZE(state->i2c_clients); ++i)
++		i2c_unregister_device(state->i2c_clients[i]);
+ }
+ 
+ static int adv748x_initialise_clients(struct adv748x_state *state)
+-- 
+2.14.2
