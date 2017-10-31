@@ -1,126 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bugwerft.de ([46.23.86.59]:33018 "EHLO mail.bugwerft.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752784AbdJPPIl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Oct 2017 11:08:41 -0400
-Subject: Re: [PATCH v4 04/21] doc: media/v4l-drivers: Add Qualcomm Camera
- Subsystem driver document
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: mchehab@kernel.org, hans.verkuil@cisco.com, s.nawrocki@samsung.com,
-        sakari.ailus@iki.fi, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org
-References: <1502199018-28250-1-git-send-email-todor.tomov@linaro.org>
- <1502199018-28250-5-git-send-email-todor.tomov@linaro.org>
- <de3c02a1-5c04-977d-fd51-186a5d39c32a@zonque.org>
- <7483f716-4240-899f-f9c5-23c6408f39ff@linaro.org>
-From: Daniel Mack <daniel@zonque.org>
-Message-ID: <bfd290f4-4fb7-40b0-2d58-8b2a04a9aeca@zonque.org>
-Date: Mon, 16 Oct 2017 17:01:31 +0200
+Received: from youngberry.canonical.com ([91.189.89.112]:42024 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751615AbdJaLbt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Oct 2017 07:31:49 -0400
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        mjpeg-users@lists.sourceforge.net, linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] drivers/media/pci/zoran: remove redundant assignment to pointer h
+Date: Tue, 31 Oct 2017 11:31:42 +0000
+Message-Id: <20171031113142.21794-1-colin.king@canonical.com>
 MIME-Version: 1.0
-In-Reply-To: <7483f716-4240-899f-f9c5-23c6408f39ff@linaro.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Colin Ian King <colin.king@canonical.com>
 
-On 28.08.2017 09:10, Todor Tomov wrote:
-> On 25.08.2017 17:10, Daniel Mack wrote:
->> Could you explain how ISPIF, CSID and CSIPHY are related?
->>
->> I have a userspace test setup that works fine for USB webcams, but when
->> operating on any of the video devices exposed by this driver, the
->> lowlevel functions such as .s_power of the ISPIF, CSID, CSIPHY and the
->> sensor driver layers aren't called into.
-> 
-> Have you activated the media controller links? The s_power is called
-> when the subdev is part of a pipeline in which the video device node
-> is opened. You can see example configurations for the Qualcomm CAMSS
-> driver on:
-> https://github.com/96boards/documentation/blob/master/ConsumerEdition/DragonBoard-410c/Guides/CameraModule.md
-> This will probably answer most of your questions.
+The pointer h is already initialized to codeclist_top so the second
+identical assignment is redundant and can be removed. Cleans up clang
+warning:
 
-It did in fact, yes. Thanks again for the pointer.
+drivers/media/pci/zoran/videocodec.c:322:21: warning: Value stored to 'h'
+during its initialization is never read
 
-I am however struggling getting a 4-lane OV13855 camera to work with
-this camss driver, and I'd be happy to hear about similar setups that work.
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/pci/zoran/videocodec.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-In short, here's what my setup looks like:
-
-1. I wrote a driver for the OV13855 sensor, based on the one for OV13858
-but with updated register values. It announces
-MEDIA_BUS_FMT_SBGGR10_1X10 as bus format which is what the sensor should
-be sending, if I understand the specs correctly.
-
-
-2. The DTS snippet for the endpoint connection look like this:
-
-&blsp_i2c6 {
-	cam0: ov13855@16 {
-		/* ... */
-		port {
-			cam0_ep: endpoint {
-				clock-lanes = <1>;
-				data-lanes = <0 2 3 4>;
-				remote-endpoint = <&csiphy0_ep>;
-			};
-		};
-	};
-};
-
-&camss {
-	ports {
-		port@0 {
-			reg = <0>;
-			csiphy0_ep: endpoint {
-				clock-lanes = <1>;
-				data-lanes = <0 2 3 4>;
-				remote-endpoint = <&cam0_ep>;
-			};
-		};
-	};
-};
-
-There are also no lane swaps or any intermediate components in hardware.
-We've checked the electrical bits many times, and that end seems alright.
-
-
-3. The pads and links are set up like this:
-
-# media-ctl -d /dev/media0 -l
-'"msm_csiphy0":1->"msm_csid0":0[1],"msm_csid0":1->"msm_ispif0":0[1],"msm_ispif0":1->"msm_vfe0_rdi0":0[1]'
-
-# media-ctl -d /dev/media0 -V '"ov13855
-1-0010":0[fmt:SBGGR10_1X10/4224x3136
-field:none],"msm_csiphy0":0[fmt:SBGGR10_1X10/4224x3136
-field:none],"msm_csid0":0[fmt:SBGGR10_1X10/4224x3136
-field:none],"msm_ispif0":0[fmt:SBGGR10_1X10/4224x3136
-field:none],"msm_vfe0_rdi0":0[fmt:SBGGR10_1X10/4224x3136 field:none]'
-
-Both commands succeed.
-
-
-4. When streaming is started, the power consumption of the device goes
-up, all necessary external clocks and voltages are provided and are
-stable, and I can see a continuous stream of data on all 4 MIPI lanes
-using an oscilloscope.
-
-
-5. Capturing frames with the following yavta command doesn't work
-though. The task is mostly stuck in the buffer dequeing ioctl:
-
-# yavta -B capture-mplane -c10 -I -n 5 -f SBGGR10P -s 4224x3136 /dev/video0
-
-vfe_isr() does fire sometimes with VFE_0_IRQ_STATUS_1_RDIn_SOF(0) set,
-but very occasionally only, and the frames do not contain data.
-
-FWIW, an ov6540 is connected to port 1 of the camss, and this sensor
-works fine.
-
-I'd be grateful for any pointer about what I could investigate on.
-
-
-Thanks,
-Daniel
+diff --git a/drivers/media/pci/zoran/videocodec.c b/drivers/media/pci/zoran/videocodec.c
+index 303289a7fd3f..5ff23ef89215 100644
+--- a/drivers/media/pci/zoran/videocodec.c
++++ b/drivers/media/pci/zoran/videocodec.c
+@@ -325,7 +325,6 @@ static int proc_videocodecs_show(struct seq_file *m, void *v)
+ 	seq_printf(m, "<S>lave or attached <M>aster name  type flags    magic    ");
+ 	seq_printf(m, "(connected as)\n");
+ 
+-	h = codeclist_top;
+ 	while (h) {
+ 		seq_printf(m, "S %32s %04x %08lx %08lx (TEMPLATE)\n",
+ 			      h->codec->name, h->codec->type,
+-- 
+2.14.1
