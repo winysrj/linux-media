@@ -1,81 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44634 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752746AbdJSPOk (ORCPT
+Received: from mail-io0-f195.google.com ([209.85.223.195]:54798 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751295AbdJaSWk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Oct 2017 11:14:40 -0400
-Date: Thu, 19 Oct 2017 18:14:37 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+        Tue, 31 Oct 2017 14:22:40 -0400
+Date: Tue, 31 Oct 2017 11:22:36 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Sean Young <sean@mess.org>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v1 00/13] staging: atomisp: clean up bomb
-Message-ID: <20171019151437.oly6uydu356gsm4f@valkosipuli.retiisi.org.uk>
-References: <20170927182508.52119-1-andriy.shevchenko@linux.intel.com>
- <20171018205330.rjvlri6u4l6ntxzj@valkosipuli.retiisi.org.uk>
- <1508413231.16112.508.camel@linux.intel.com>
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: ttpci: remove autorepeat handling and use
+ timer_setup
+Message-ID: <20171031182236.cxrasbayon7h52mm@dtor-ws>
+References: <20171025004005.hyb43h3yvovp4is2@dtor-ws>
+ <20171031172758.ugfo6br344iso4ni@gofer.mess.org>
+ <20171031174558.vsdpdudcwjneq2nu@gofer.mess.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1508413231.16112.508.camel@linux.intel.com>
+In-Reply-To: <20171031174558.vsdpdudcwjneq2nu@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 19, 2017 at 02:40:31PM +0300, Andy Shevchenko wrote:
-> On Wed, 2017-10-18 at 23:53 +0300, Sakari Ailus wrote:
-> > On Wed, Sep 27, 2017 at 09:24:55PM +0300, Andy Shevchenko wrote:
-> > > The driver has been submitted with a limitation to few platforms and
-> > > sensors which it does support. Even though two sensor drivers have
-> > > no
-> > > users neither on ACPI-enabled platforms, nor in current Linux kernel
-> > > code. Patches 1 and 2 removes those drivers for now.
-> > > 
-> > > It seems new contributors follow cargo cult programming done by the
-> > > original driver developers. It's neither good for code, nor for
-> > > reviewing process. To avoid such issues in the future here are few
-> > > clean
-> > > up patches, i.e. patches 3, 4, 6. 13.
-> > > 
-> > > On top of this here are clean ups with regard to GPIO use. One may
-> > > consider this as an intermediate clean up. This part toughly related
-> > > to
-> > > removal of unused sensor drivers in patches 1 and 2.
-> > > 
-> > > Patch series has been partially compile tested. It would be nice to
-> > > see
-> > > someone with hardware to confirm it doesn't break anything.
-> > > 
-> > > Andy Shevchenko (13):
-> > >   staging: atomisp: Remove IMX sensor support
-> > >   staging: atomisp: Remove AP1302 sensor support
-> > >   staging: atomisp: Use module_i2c_driver() macro
-> > >   staging: atomisp: Switch i2c drivers to use ->probe_new()
-> > >   staging: atomisp: Do not set GPIO twice
-> > >   staging: atomisp: Remove unneeded gpio.h inclusion
-> > >   staging: atomisp: Remove ->gpio_ctrl() callback
-> > >   staging: atomisp: Remove ->power_ctrl() callback
-> > >   staging: atomisp: Remove unused members of
-> > > camera_sensor_platform_data
-> > >   staging: atomisp: Remove Gmin dead code #1
-> > >   staging: atomisp: Remove Gmin dead code #2
-> > >   staging: atomisp: Remove duplicate declaration in header
-> > >   staging: atomisp: Remove FSF snail address
-> > 
-> > After chatting with Andy we figured out the first patch was actually
-> > missing from the set, both on the mailing list and Patchwork. I've
-> > uploaded
-> > it to the same branch, and the patch itself is here:
-> > 
-> > <URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=atomisp-a
-> > ndy&id=5ef68fbdbb80e72f3239363289fbf12f673988a1>;
-> > 
-> 
-> Looks good, thanks!
+Hi Sean,
 
-Thanks, Andy! I'll add these to the next atomisp pull request.
+On Tue, Oct 31, 2017 at 05:45:58PM +0000, Sean Young wrote:
+> Leave the autorepeat handling up to the input layer, and move
+> to the new timer API.
+> 
+> Compile tested only.
+> 
+> Signed-off-by: Sean Young <sean@mess.org>
+> ---
+>  drivers/media/pci/ttpci/av7110.h    |  2 +-
+>  drivers/media/pci/ttpci/av7110_ir.c | 54 ++++++++++++++-----------------------
+>  2 files changed, 21 insertions(+), 35 deletions(-)
+> 
+> diff --git a/drivers/media/pci/ttpci/av7110.h b/drivers/media/pci/ttpci/av7110.h
+> index 347827925c14..bcb72ecbedc0 100644
+> --- a/drivers/media/pci/ttpci/av7110.h
+> +++ b/drivers/media/pci/ttpci/av7110.h
+> @@ -93,7 +93,7 @@ struct infrared {
+>  	u8			inversion;
+>  	u16			last_key;
+>  	u16			last_toggle;
+> -	u8			delay_timer_finished;
+> +	bool			keypressed;
+>  };
+>  
+>  
+> diff --git a/drivers/media/pci/ttpci/av7110_ir.c b/drivers/media/pci/ttpci/av7110_ir.c
+> index ca05198de2c2..8207bead2224 100644
+> --- a/drivers/media/pci/ttpci/av7110_ir.c
+> +++ b/drivers/media/pci/ttpci/av7110_ir.c
+> @@ -84,15 +84,16 @@ static u16 default_key_map [256] = {
+>  
+>  
+>  /* key-up timer */
+> -static void av7110_emit_keyup(unsigned long parm)
+> +static void av7110_emit_keyup(struct timer_list *t)
+>  {
+> -	struct infrared *ir = (struct infrared *) parm;
+> +	struct infrared *ir = from_timer(ir, t, keyup_timer);
+>  
+> -	if (!ir || !test_bit(ir->last_key, ir->input_dev->key))
+> +	if (!ir || !ir->keypressed)
+>  		return;
+>  
+>  	input_report_key(ir->input_dev, ir->last_key, 0);
+>  	input_sync(ir->input_dev);
+> +	ir->keypressed = false;
+>  }
+>  
+>  
+> @@ -105,6 +106,7 @@ static void av7110_emit_key(unsigned long parm)
+>  	u8 addr;
+>  	u16 toggle;
+>  	u16 keycode;
+> +	bool new_event;
+>  
+>  	/* extract device address and data */
+>  	switch (ir->protocol) {
+> @@ -152,29 +154,22 @@ static void av7110_emit_key(unsigned long parm)
+>  		return;
+>  	}
+>  
+> -	if (timer_pending(&ir->keyup_timer)) {
+> -		del_timer(&ir->keyup_timer);
+> -		if (ir->last_key != keycode || toggle != ir->last_toggle) {
+> -			ir->delay_timer_finished = 0;
+> -			input_event(ir->input_dev, EV_KEY, ir->last_key, 0);
+> -			input_event(ir->input_dev, EV_KEY, keycode, 1);
+> -			input_sync(ir->input_dev);
+> -		} else if (ir->delay_timer_finished) {
+> -			input_event(ir->input_dev, EV_KEY, keycode, 2);
+> -			input_sync(ir->input_dev);
+> -		}
+> -	} else {
+> -		ir->delay_timer_finished = 0;
+> -		input_event(ir->input_dev, EV_KEY, keycode, 1);
+> +	new_event = !ir->keypressed || ir->last_key != keycode ||
+> +		   toggle != ir->last_toggle;
+> +
+> +	if (new_event && ir->keypressed)
+> +		input_event(ir->input_dev, EV_KEY, ir->last_key, 1);
+> +
+> +	if (new_event) {
+> +		input_event(ir->input_dev, EV_KEY, keycode, 0);
+
+I do not think this is correct. You want to release the old button, and
+press the new one, not the other way around.
+
+Given that we are reworking the code, and input core actually filters
+out duplicate events for you, you can probably simplify it all further:
+
+
+	/* Release old key/button */
+	if (ir->keypressed && ir->last_key != keycode)
+		input_event(ir->input_dev, EV_KEY, ir->last_key, 0);
+
+	input_event(ir->input_dev, EV_KEY, keycode, 1);
+	input_sync(ir->input_dev);
+
+and get rid of last_toggle member.
+
+>  		input_sync(ir->input_dev);
+>  	}
+>  
+> +	ir->keypressed = true;
+>  	ir->last_key = keycode;
+>  	ir->last_toggle = toggle;
+>  
+> -	ir->keyup_timer.expires = jiffies + UP_TIMEOUT;
+> -	add_timer(&ir->keyup_timer);
+> -
+> +	mod_timer(&ir->keyup_timer, jiffies + UP_TIMEOUT);
+>  }
+>  
+>  
+> @@ -204,16 +199,6 @@ static void input_register_keys(struct infrared *ir)
+>  	ir->input_dev->keycodemax = ARRAY_SIZE(ir->key_map);
+>  }
+>  
+> -
+> -/* called by the input driver after rep[REP_DELAY] ms */
+> -static void input_repeat_key(unsigned long parm)
+> -{
+> -	struct infrared *ir = (struct infrared *) parm;
+> -
+> -	ir->delay_timer_finished = 1;
+> -}
+> -
+> -
+>  /* check for configuration changes */
+>  int av7110_check_ir_config(struct av7110 *av7110, int force)
+>  {
+> @@ -333,8 +318,7 @@ int av7110_ir_init(struct av7110 *av7110)
+>  	av_list[av_cnt++] = av7110;
+>  	av7110_check_ir_config(av7110, true);
+>  
+> -	setup_timer(&av7110->ir.keyup_timer, av7110_emit_keyup,
+> -		    (unsigned long)&av7110->ir);
+> +	timer_setup(&av7110->ir.keyup_timer, av7110_emit_keyup, 0);
+>  
+>  	input_dev = input_allocate_device();
+>  	if (!input_dev)
+> @@ -365,8 +349,10 @@ int av7110_ir_init(struct av7110 *av7110)
+>  		input_free_device(input_dev);
+>  		return err;
+>  	}
+> -	input_dev->timer.function = input_repeat_key;
+> -	input_dev->timer.data = (unsigned long) &av7110->ir;
+> +
+> +	/* Let the input layer handle autorepeat for us */
+> +	input_dev->rep[REP_DELAY] = 250;
+> +	input_dev->rep[REP_PERIOD] = 125;
+
+
+I'd change this to:
+
+	/*
+	 * Input core's default autorepeat is 33 cps with 250 msec
+	 * delay, let's adjust to numbers more suitable for remote
+	 * control.
+	 */
+	input_enable_softrepeat(input_dev, 250, 125);
+
+Thanks.
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Dmitry
