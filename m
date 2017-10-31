@@ -1,158 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60464 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751667AbdJELFw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Oct 2017 07:05:52 -0400
-Subject: Re: [PATCH] uvcvideo: Apply flags from device to actual properties
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Edgar Thier <info@edgarthier.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Reply-To: kieran.bingham@ideasonboard.com, kieran.bingham@ideasonboard.com
-References: <ca483e75-4519-2bc3-eb11-db647fc60860@edgarthier.net>
- <1516233.pKQSzG3xyp@avalon>
- <e6c92808-82e7-05bc-28b4-370ca51aa2de@edgarthier.net>
- <bf6ced8e-6fbb-5054-bbf6-1186d52459b9@ideasonboard.com>
-Message-ID: <443c86f9-0973-cf52-c0c3-be662a8fee74@ideasonboard.com>
-Date: Thu, 5 Oct 2017 12:05:48 +0100
-MIME-Version: 1.0
-In-Reply-To: <bf6ced8e-6fbb-5054-bbf6-1186d52459b9@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Received: from osg.samsung.com ([64.30.133.232]:44997 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753562AbdJaQE3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Oct 2017 12:04:29 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        kbuild test robot <fengguang.wu@intel.com>,
+        Aishwarya Pant <aishpant@gmail.com>, devel@driverdev.osuosl.org
+Subject: [PATCH 7/7] media: atomisp: make function calls cleaner
+Date: Tue, 31 Oct 2017 12:04:20 -0400
+Message-Id: <efb110c90542359e1cca9cfb6f8ae05387a4bc48.1509465351.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1509465351.git.mchehab@s-opensource.com>
+References: <cover.1509465351.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1509465351.git.mchehab@s-opensource.com>
+References: <cover.1509465351.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Edgar,
+The #ifs inside the code makes confusing for reviewers and also
+cause problems with smatch:
+	drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c:2937:1: error: directive in argument list
+	drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c:2939:1: error: directive in argument list
+	drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c:2941:1: error: directive in argument list
 
-On 05/10/17 10:43, Kieran Bingham wrote:
-> Hi Edgar,
-> 
-> On 18/08/17 11:12, Edgar Thier wrote:
->>
->> Use flags the device exposes for UVC controls.
->> This allows the device to define which property flags are set.
->>
->> Since some cameras offer auto-adjustments for properties (e.g. auto-gain),
->> the values of other properties (e.g. gain) can change in the camera.
->> Examining the flags ensures that the driver is aware of such properties.
->>
->> Signed-off-by: Edgar Thier <info@edgarthier.net>> ---
->>  drivers/media/usb/uvc/uvc_ctrl.c | 58 +++++++++++++++++++++++++++-------------
->>  1 file changed, 40 insertions(+), 18 deletions(-)
->>
->> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
->> index c2ee6e3..6922c0cb 100644
->> --- a/drivers/media/usb/uvc/uvc_ctrl.c
->> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
->> @@ -1629,6 +1629,9 @@ static void uvc_ctrl_fixup_xu_info(struct uvc_device *dev,
->>  	}
->>  }
->>
->> +static int uvc_ctrl_get_flags(struct uvc_device *dev, const struct uvc_control *ctrl,
->> +	const struct uvc_control_info *info);
-> 
-> Rather than forward declaring the function ... Could you put the function higher
-> in the module please?
-> 
->> +
->>  /*
->>   * Query control information (size and flags) for XU controls.
->>   */
->> @@ -1659,24 +1662,7 @@ static int uvc_ctrl_fill_xu_info(struct uvc_device *dev,
->>
->>  	info->size = le16_to_cpup((__le16 *)data);
->>
->> -	/* Query the control information (GET_INFO) */
->> -	ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id, dev->intfnum,
->> -			     info->selector, data, 1);
->> -	if (ret < 0) {
->> -		uvc_trace(UVC_TRACE_CONTROL,
->> -			  "GET_INFO failed on control %pUl/%u (%d).\n",
->> -			  info->entity, info->selector, ret);
->> -		goto done;
->> -	}
->> -
->> -	info->flags = UVC_CTRL_FLAG_GET_MIN | UVC_CTRL_FLAG_GET_MAX
->> -		    | UVC_CTRL_FLAG_GET_RES | UVC_CTRL_FLAG_GET_DEF
->> -		    | (data[0] & UVC_CONTROL_CAP_GET ?
->> -		       UVC_CTRL_FLAG_GET_CUR : 0)
->> -		    | (data[0] & UVC_CONTROL_CAP_SET ?
->> -		       UVC_CTRL_FLAG_SET_CUR : 0)
->> -		    | (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
->> -		       UVC_CTRL_FLAG_AUTO_UPDATE : 0);
->> +	info->flags = uvc_ctrl_get_flags(dev, ctrl, info);
->>
->>  	uvc_ctrl_fixup_xu_info(dev, ctrl, info);
->>
->> @@ -1884,6 +1870,40 @@ int uvc_ctrl_restore_values(struct uvc_device *dev)
->>   */
->>
->>  /*
->> + * Retrieve flags for a given control
->> + */
->> +static int uvc_ctrl_get_flags(struct uvc_device *dev, const struct uvc_control *ctrl,
->> +	const struct uvc_control_info *info)
->> +{
->> +	u8 *data;
->> +	int ret = 0;
->> +	int flags = 0;
->> +
->> +	data = kmalloc(2, GFP_KERNEL);
-> 
-> kmalloc seems a bit of an overhead for 2 bytes (only one of which is used).
-> Can this use local stack storage?
-> 
-> (Laurent, looks like you originally wrote the code that did that, was there a
-> reason for the kmalloc for 2 bytes?)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-
-Aha - OK, Just spoke with Laurent and - yes this is needed, as we can't DMA to
-the stack :) - I hadn't realised the 'data' was being DMA'd ..
-
->> +	if (data == NULL)
->> +		return -ENOMEM;
-> 
-> This will set the callers 'flags' to -ENOMEM ? Is that desired?
-> 
-> Of course removing the kmalloc will fix that anyway ...
-
-Perhaps we have to return an empty flags here, which is what we will return if
-the uvc_query_ctrl() fails anyway.
-
-
->> +
->> +	ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id, dev->intfnum,
->> +						 info->selector, data, 1);
->> +	if (ret < 0) {
->> +		uvc_trace(UVC_TRACE_CONTROL,
->> +				  "GET_INFO failed on control %pUl/%u (%d).\n",
->> +				  info->entity, info->selector, ret);
->> +	} else {
->> +		flags = UVC_CTRL_FLAG_GET_MIN | UVC_CTRL_FLAG_GET_MAX
->> +			| UVC_CTRL_FLAG_GET_RES | UVC_CTRL_FLAG_GET_DEF
->> +			| (data[0] & UVC_CONTROL_CAP_GET ?
->> +			   UVC_CTRL_FLAG_GET_CUR : 0)
->> +			| (data[0] & UVC_CONTROL_CAP_SET ?
->> +			   UVC_CTRL_FLAG_SET_CUR : 0)
->> +			| (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
->> +			   UVC_CTRL_FLAG_AUTO_UPDATE : 0);
->> +	}
->> +	kfree(data);
->> +	return flags;
->> +}
->> +
->> +/*
->>   * Add control information to a given control.
->>   */
->>  static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control *ctrl,
->> @@ -1902,6 +1922,8 @@ static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control *ctrl,
->>  		goto done;
->>  	}
->>
->> +	ctrl->info.flags = uvc_ctrl_get_flags(dev, ctrl, info);
->> +
->>  	ctrl->initialized = 1;
->>
->>  	uvc_trace(UVC_TRACE_CONTROL, "Added control %pUl/%u to device %s "
->>
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
+index 8698f8f758ca..339b5d31e1f1 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
+@@ -2933,13 +2933,15 @@ static long atomisp_vidioc_default(struct file *file, void *fh,
+ #else
+ 		if (isp->motor)
+ #endif
+-			err = v4l2_subdev_call(
+ #ifndef ISP2401
++			err = v4l2_subdev_call(
+ 					isp->inputs[asd->input_curr].motor,
++					core, ioctl, cmd, arg);
+ #else
++			err = v4l2_subdev_call(
+ 					isp->motor,
+-#endif
+ 					core, ioctl, cmd, arg);
++#endif
+ 		else
+ 			err = v4l2_subdev_call(
+ 					isp->inputs[asd->input_curr].camera,
+-- 
+2.13.6
