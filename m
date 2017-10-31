@@ -1,102 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:50637 "EHLO
-        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759341AbdJRIfP (ORCPT
+Received: from mail-lf0-f50.google.com ([209.85.215.50]:48698 "EHLO
+        mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751876AbdJaOfI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Oct 2017 04:35:15 -0400
-Received: by mail-wm0-f51.google.com with SMTP id u138so8432726wmu.5
-        for <linux-media@vger.kernel.org>; Wed, 18 Oct 2017 01:35:15 -0700 (PDT)
-Subject: Re: [PATCH] media: vb2: unify calling of set_page_dirty_lock
-To: Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20170829112603.32732-1-stanimir.varbanov@linaro.org>
- <1507650010.2784.11.camel@ndufresne.ca>
- <20171015204014.2awhhygw6hi3lxas@valkosipuli.retiisi.org.uk>
- <1508108964.4502.6.camel@ndufresne.ca>
- <20171017101420.5a5cvyhkadmcqgfy@valkosipuli.retiisi.org.uk>
- <1508249953.19297.4.camel@ndufresne.ca>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <8f1eda59-fc51-b77e-ae43-9603b5759b14@linaro.org>
-Date: Wed, 18 Oct 2017 11:34:58 +0300
+        Tue, 31 Oct 2017 10:35:08 -0400
+Received: by mail-lf0-f50.google.com with SMTP id a69so19292938lfe.5
+        for <linux-media@vger.kernel.org>; Tue, 31 Oct 2017 07:35:08 -0700 (PDT)
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, andriy.shevchenko@linux.intel.com
+From: Andrei Lavreniyuk <andy.lavr@gmail.com>
+Subject: [ov2722 Error] atomisp: ERROR
+Message-ID: <9cfdd431-c8e3-c85c-07b5-e2e42f1fddca@gmail.com>
+Date: Tue, 31 Oct 2017 16:35:05 +0200
 MIME-Version: 1.0
-In-Reply-To: <1508249953.19297.4.camel@ndufresne.ca>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
+
+Very long I try to run ov2722 on Acer Aspire SW5-012 / Fendi2 Z3537F
+
+Kernel 4.13.10 + atomisp from 4.14 and all your corrections for atomisp 
+from here
+
+https://patchwork.linuxtv.org/project/linux-media/list/?submitter=Andy+Shevchenko&state=* 
+<https://patchwork.linuxtv.org/project/linux-media/list/?submitter=Andy+Shevchenko&state=*>
+
+as a result:
+
+[69.677080] media: Linux media interface: v0.10
+[69.699534] Linux video capture interface: v2.00
+[69.714154] ov2722: module is from the staging directory, the quality is 
+unknown, you have been warned.
+[69.777623] ov2722 i2c-INT33FB: 00: gmin: initializing the atomisp 
+module subdev data.PMIC ID 1
+[69.778097] ov2722 i2c-INT33FB: 00: i2c-INT33FB: 00 supply V1P8SX not 
+found, using dummy regulator
+[69.778208] ov2722 i2c-INT33FB: 00: i2c-INT33FB: 00 supply V2P8SX not 
+found, using dummy regulator
+[69.778278] ov2722 i2c-INT33FB: 00: i2c-INT33FB: 00 supply V1P2A not 
+found, using dummy regulator
+[69.778348] ov2722 i2c-INT33FB: 00: i2c-INT33FB: 00 supply VPROG4B not 
+found, using dummy regulator
+[69.785182] ov2722 i2c-INT33FB: 00: unable to set PMC rate 0
+[69.807860] ov2722 i2c-INT33FB: 00: camera pdata: port: 0 lanes: 1 
+order: 00000000
+[69.808183] ov2722 i2c-INT33FB: 00: read from offset 0x300a error -121
+[69.808203] ov2722 i2c-INT33FB: 00: sensor_id_high = 0xffff
+[69.808216] ov2722 i2c-INT33FB: 00: ov2722_detect err s_config.
+[69.808259] ov2722 i2c-INT33FB: 00: sensor power-gating failed
 
 
-On 10/17/2017 05:19 PM, Nicolas Dufresne wrote:
-> Le mardi 17 octobre 2017 à 13:14 +0300, Sakari Ailus a écrit :
->> On Sun, Oct 15, 2017 at 07:09:24PM -0400, Nicolas Dufresne wrote:
->>> Le dimanche 15 octobre 2017 à 23:40 +0300, Sakari Ailus a écrit :
->>>> Hi Nicolas,
->>>>
->>>> On Tue, Oct 10, 2017 at 11:40:10AM -0400, Nicolas Dufresne wrote:
->>>>> Le mardi 29 août 2017 à 14:26 +0300, Stanimir Varbanov a écrit :
->>>>>> Currently videobuf2-dma-sg checks for dma direction for
->>>>>> every single page and videobuf2-dc lacks any dma direction
->>>>>> checks and calls set_page_dirty_lock unconditionally.
->>>>>>
->>>>>> Thus unify and align the invocations of set_page_dirty_lock
->>>>>> for videobuf2-dc, videobuf2-sg  memory allocators with
->>>>>> videobuf2-vmalloc, i.e. the pattern used in vmalloc has been
->>>>>> copied to dc and dma-sg.
->>>>>
->>>>> Just before we go too far in "doing like vmalloc", I would like to
->>>>> share this small video that display coherency issues when rendering
->>>>> vmalloc backed DMABuf over various KMS/DRM driver. I can reproduce
->>>>> this
->>>>> easily with Intel and MSM display drivers using UVC or Vivid as
->>>>> source.
->>>>>
->>>>> The following is an HDMI capture of the following GStreamer
->>>>> pipeline
->>>>> running on Dragonboard 410c.
->>>>>
->>>>>     gst-launch-1.0 -v v4l2src device=/dev/video2 ! video/x-
->>>>> raw,format=NV16,width=1280,height=720 ! kmssink
->>>>>     https://people.collabora.com/~nicolas/vmalloc-issue.mov
->>>>>
->>>>> Feedback on this issue would be more then welcome. It's not clear
->>>>> to me
->>>>> who's bug is this (v4l2, drm or iommu). The software is unlikely to
->>>>> be
->>>>> blamed as this same pipeline works fine with non-vmalloc based
->>>>> sources.
->>>>
->>>> Could you elaborate this a little bit more? Which Intel CPU do you
->>>> have
->>>> there?
->>>
->>> I have tested with Skylake and Ivy Bridge and on Dragonboard 410c
->>> (Qualcomm APQ8016 SoC) (same visual artefact)
->>
->> I presume kmssink draws on the display. Which GPU did you use?
-> 
-> In order, GPU will be Iris Pro 580, Intel® Ivybridge Mobile and an
-> Adreno (3x ?). Why does it matter ? I'm pretty sure the GPU is not used
-> on the DB410c for this use case.
+Tested the kernels from the repositories:
+https://github.com/torvalds/linux 
+<https://github.com/torvalds/linux> and master from git.linuxtv.org 
+<http://git.linuxtv.org/>
 
-Nicolas, for me this looks like a problem in v4l2. In the case of vivid
-the stats overlay (where the coherency issues are observed, and most
-probably the issue will be observed on the whole image but fortunately
-it is a static image pattern) are filled by the CPU but I cannot see
-where the cache is flushed. Also I'm wondering why .finish method is
-missing for dma-vmalloc mem_ops.
+  The result is the same - ov2722 i2c-INT33FB: 00: read from offset 
+0x300a error -121
 
-To be sure that the problem is in vmalloc v4l2 allocator, could you
-change the allocator to dma-contig, there is a module param for that
-called 'allocators'.
+Additional information for debug:
+https://drive.google.com/drive/folders/0B5ngHZIeNdyTM0FEbWNVQzlpNUU 
+<https://drive.google.com/drive/folders/0B5ngHZIeNdyTM0FEbWNVQzlpNUU>
+
+Kernel build form my repo - 
+https://github.com/AndyLavr/Aspire-SW5-012_Kernel_4.13 
+<https://github.com/AndyLavr/Aspire-SW5-012_Kernel_4.13>
+
+If you need more information, then I will.
 
 
--- 
-regards,
-Stan
+---
+Best regards, Andrei Lavreniyuk
