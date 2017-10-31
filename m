@@ -1,257 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56470 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752774AbdJTKia (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:47453 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932237AbdJaLDk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Oct 2017 06:38:30 -0400
-Date: Fri, 20 Oct 2017 13:38:27 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
-        tuukka.toivonen@intel.com, jerry.w.hu@intel.com,
-        Tomasz Figa <tfiga@chromium.org>
-Subject: Re: [PATCH v4 06/12] intel-ipu3: css: imgu dma buff pool
-Message-ID: <20171020103827.owz24ki6cmd6laop@valkosipuli.retiisi.org.uk>
-References: <1508298896-26096-1-git-send-email-yong.zhi@intel.com>
- <1508298896-26096-3-git-send-email-yong.zhi@intel.com>
+        Tue, 31 Oct 2017 07:03:40 -0400
+Date: Tue, 31 Oct 2017 14:02:23 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: kbuild@01.org, Leon Luo <leonl@leopardimaging.com>
+Cc: kbuild-all@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
+        linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [ragnatech:media-tree 2807/2822] drivers/media/i2c/imx274.c:659
+ imx274_regmap_util_write_table_8() error: uninitialized symbol 'err'.
+Message-ID: <20171031110223.lk73lh6dpesgcg45@mwanda>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1508298896-26096-3-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 17, 2017 at 10:54:51PM -0500, Yong Zhi wrote:
-> The pools are used to store previous parameters set by
-> user with the parameter queue. Due to pipelining,
-> there needs to be multiple sets (up to four)
-> of parameters which are queued in a host-to-sp queue.
-> 
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
-> ---
->  drivers/media/pci/intel/ipu3/ipu3-css-pool.c | 132 +++++++++++++++++++++++++++
->  drivers/media/pci/intel/ipu3/ipu3-css-pool.h |  54 +++++++++++
->  2 files changed, 186 insertions(+)
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.h
-> 
-> diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.c b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
-> new file mode 100644
-> index 000000000000..d08e2a8b68ed
-> --- /dev/null
-> +++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
-> @@ -0,0 +1,132 @@
-> +/*
-> + * Copyright (c) 2017 Intel Corporation.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License version
-> + * 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/dma-direction.h>
-> +#include <linux/scatterlist.h>
-> +#include <linux/types.h>
-> +
-> +#include "ipu3-css-pool.h"
-> +#include "ipu3-dmamap.h"
-> +
-> +int ipu3_css_dma_alloc(struct device *dev,
-> +		       struct ipu3_css_map *map, size_t size)
-> +{
-> +	struct imgu_device *imgu = dev_get_drvdata(dev);
-> +
-> +	if (size == 0) {
-> +		map->vaddr = NULL;
-> +		return 0;
-> +	}
-> +
-> +	if (!ipu3_dmamap_alloc(imgu, map, size))
-> +		return -ENOMEM;
-> +
-> +	return 0;
-> +}
-> +
-> +void ipu3_css_dma_free(struct device *dev, struct ipu3_css_map *map)
-> +{
-> +	struct imgu_device *imgu = dev_get_drvdata(dev);
-> +
-> +	ipu3_dmamap_free(imgu, map);
-> +}
-> +
-> +void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++)
-> +		ipu3_css_dma_free(dev, &pool->entry[i].param);
-> +}
-> +
-> +int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool,
-> +		       int size)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++) {
-> +		pool->entry[i].framenum = INT_MIN;
-> +		if (ipu3_css_dma_alloc(dev, &pool->entry[i].param, size))
-> +			goto fail;
-> +	}
-> +
-> +	pool->last = IPU3_CSS_POOL_SIZE;
-> +
-> +	return 0;
-> +
-> +fail:
-> +	ipu3_css_pool_cleanup(dev, pool);
-> +	return -ENOMEM;
-> +}
-> +
-> +/*
-> + * Check that the following call to pool_get succeeds.
-> + * Return negative on error.
-> + */
-> +static int ipu3_css_pool_check(struct ipu3_css_pool *pool, long framenum)
-> +{
-> +	/* Get the oldest entry */
-> +	int n = (pool->last + 1) % IPU3_CSS_POOL_SIZE;
-> +
-> +	/*
-> +	 * pool->entry[n].framenum stores the frame number where that
-> +	 * entry was allocated. If that was allocated more than POOL_SIZE
-> +	 * frames back, it is old enough that we know it is no more in
-> +	 * use by firmware.
-> +	 */
-> +	if (pool->entry[n].framenum + IPU3_CSS_POOL_SIZE > framenum)
+tree:   git://git.ragnatech.se/linux media-tree
+head:   bbae615636155fa43a9b0fe0ea31c678984be864
+commit: 0985dd306f727df6c0e71cd8a8eda93e8fa5206e [2807/2822] media: imx274: V4l2 driver for Sony imx274 CMOS sensor
 
-This will wrap around and the comparison fails when pool->entry[n].framenum
-+ IPU3_CSS_POOL_SIZE - 1 reaches LONG_MAX.
+drivers/media/i2c/imx274.c:659 imx274_regmap_util_write_table_8() error: uninitialized symbol 'err'.
 
-You could write this as:
+git remote add ragnatech git://git.ragnatech.se/linux
+git remote update ragnatech
+git checkout 0985dd306f727df6c0e71cd8a8eda93e8fa5206e
+vim +/err +659 drivers/media/i2c/imx274.c
 
-if (framenum - pool->entry[n].franenum < IPU3_CSS_POOL_SIZE)
+0985dd30 Leon Luo 2017-10-05  621  
+0985dd30 Leon Luo 2017-10-05  622  /*
+0985dd30 Leon Luo 2017-10-05  623   * imx274_regmap_util_write_table_8 - Function for writing register table
+0985dd30 Leon Luo 2017-10-05  624   * @regmap: Pointer to device reg map structure
+0985dd30 Leon Luo 2017-10-05  625   * @table: Table containing register values
+0985dd30 Leon Luo 2017-10-05  626   * @wait_ms_addr: Flag for performing delay
+0985dd30 Leon Luo 2017-10-05  627   * @end_addr: Flag for incating end of table
+0985dd30 Leon Luo 2017-10-05  628   *
+0985dd30 Leon Luo 2017-10-05  629   * This is used to write register table into sensor's reg map.
+0985dd30 Leon Luo 2017-10-05  630   *
+0985dd30 Leon Luo 2017-10-05  631   * Return: 0 on success, errors otherwise
+0985dd30 Leon Luo 2017-10-05  632   */
+0985dd30 Leon Luo 2017-10-05  633  static int imx274_regmap_util_write_table_8(struct regmap *regmap,
+0985dd30 Leon Luo 2017-10-05  634  					    const struct reg_8 table[],
+0985dd30 Leon Luo 2017-10-05  635  					    u16 wait_ms_addr, u16 end_addr)
+0985dd30 Leon Luo 2017-10-05  636  {
+0985dd30 Leon Luo 2017-10-05  637  	int err;
+0985dd30 Leon Luo 2017-10-05  638  	const struct reg_8 *next;
+0985dd30 Leon Luo 2017-10-05  639  	u8 val;
+0985dd30 Leon Luo 2017-10-05  640  
+0985dd30 Leon Luo 2017-10-05  641  	int range_start = -1;
+0985dd30 Leon Luo 2017-10-05  642  	int range_count = 0;
+0985dd30 Leon Luo 2017-10-05  643  	u8 range_vals[16];
+0985dd30 Leon Luo 2017-10-05  644  	int max_range_vals = ARRAY_SIZE(range_vals);
+0985dd30 Leon Luo 2017-10-05  645  
+0985dd30 Leon Luo 2017-10-05  646  	for (next = table;; next++) {
+0985dd30 Leon Luo 2017-10-05  647  		if ((next->addr != range_start + range_count) ||
+0985dd30 Leon Luo 2017-10-05  648  		    (next->addr == end_addr) ||
+0985dd30 Leon Luo 2017-10-05  649  		    (next->addr == wait_ms_addr) ||
+0985dd30 Leon Luo 2017-10-05  650  		    (range_count == max_range_vals)) {
+0985dd30 Leon Luo 2017-10-05  651  			if (range_count == 1)
+0985dd30 Leon Luo 2017-10-05  652  				err = regmap_write(regmap,
+0985dd30 Leon Luo 2017-10-05  653  						   range_start, range_vals[0]);
+0985dd30 Leon Luo 2017-10-05  654  			else if (range_count > 1)
+0985dd30 Leon Luo 2017-10-05  655  				err = regmap_bulk_write(regmap, range_start,
+0985dd30 Leon Luo 2017-10-05  656  							&range_vals[0],
+0985dd30 Leon Luo 2017-10-05  657  							range_count);
+0985dd30 Leon Luo 2017-10-05  658  
+0985dd30 Leon Luo 2017-10-05 @659  			if (err)
+0985dd30 Leon Luo 2017-10-05  660  				return err;
+0985dd30 Leon Luo 2017-10-05  661  
+0985dd30 Leon Luo 2017-10-05  662  			range_start = -1;
+0985dd30 Leon Luo 2017-10-05  663  			range_count = 0;
+0985dd30 Leon Luo 2017-10-05  664  
+0985dd30 Leon Luo 2017-10-05  665  			/* Handle special address values */
+0985dd30 Leon Luo 2017-10-05  666  			if (next->addr == end_addr)
+0985dd30 Leon Luo 2017-10-05  667  				break;
+0985dd30 Leon Luo 2017-10-05  668  
+0985dd30 Leon Luo 2017-10-05  669  			if (next->addr == wait_ms_addr) {
+0985dd30 Leon Luo 2017-10-05  670  				msleep_range(next->val);
+0985dd30 Leon Luo 2017-10-05  671  				continue;
+0985dd30 Leon Luo 2017-10-05  672  			}
+0985dd30 Leon Luo 2017-10-05  673  		}
+0985dd30 Leon Luo 2017-10-05  674  
+0985dd30 Leon Luo 2017-10-05  675  		val = next->val;
+0985dd30 Leon Luo 2017-10-05  676  
+0985dd30 Leon Luo 2017-10-05  677  		if (range_start == -1)
+0985dd30 Leon Luo 2017-10-05  678  			range_start = next->addr;
+0985dd30 Leon Luo 2017-10-05  679  
+0985dd30 Leon Luo 2017-10-05  680  		range_vals[range_count++] = val;
+0985dd30 Leon Luo 2017-10-05  681  	}
+0985dd30 Leon Luo 2017-10-05  682  	return 0;
+0985dd30 Leon Luo 2017-10-05  683  }
+0985dd30 Leon Luo 2017-10-05  684  
 
-to avoid the problem.
-
-You could use also int instead of long without any other changes to the
-code, or change INT_MAX / INT_MIN assignments to LONG_MAX / LONG_MIN.
-
-> +		return -ENOSPC;
-> +
-> +	return n;
-> +}
-> +
-> +/*
-> + * Allocate a new parameter from pool at frame number `framenum'.
-> + * Release the oldest entry in the pool to make space for the new entry.
-> + * Return negative on error.
-> + */
-> +int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum)
-> +{
-> +	int n = ipu3_css_pool_check(pool, framenum);
-> +
-> +	if (n < 0)
-> +		return n;
-> +
-> +	pool->entry[n].framenum = framenum;
-> +	pool->last = n;
-> +
-> +	return n;
-> +}
-> +
-> +/*
-> + * Undo, for all practical purposes, the effect of pool_get().
-> + */
-> +void ipu3_css_pool_put(struct ipu3_css_pool *pool)
-> +{
-> +	pool->entry[pool->last].framenum = INT_MIN;
-> +	pool->last = (pool->last + IPU3_CSS_POOL_SIZE - 1) % IPU3_CSS_POOL_SIZE;
-> +}
-> +
-> +const struct ipu3_css_map *
-> +ipu3_css_pool_last(struct ipu3_css_pool *pool, unsigned int n)
-> +{
-> +	static const struct ipu3_css_map null_map = { 0 };
-> +	int i = (pool->last + IPU3_CSS_POOL_SIZE - n) % IPU3_CSS_POOL_SIZE;
-> +
-> +	WARN_ON(n >= IPU3_CSS_POOL_SIZE);
-> +
-> +	if (pool->entry[i].framenum < 0)
-> +		return &null_map;
-> +
-> +	return &pool->entry[i].param;
-> +}
-> diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.h b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
-> new file mode 100644
-> index 000000000000..9b6ac14acfb2
-> --- /dev/null
-> +++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
-> @@ -0,0 +1,54 @@
-> +/*
-> + * Copyright (c) 2017 Intel Corporation.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License version
-> + * 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#ifndef __IPU3_UTIL_H
-> +#define __IPU3_UTIL_H
-> +
-> +#include <linux/device.h>
-> +
-> +#define sqr(x)				((x) * (x))
-> +#define DIV_ROUND_CLOSEST_DOWN(a, b)	(((a) + (b / 2) - 1) / (b))
-> +#define roundclosest_down(a, b)		(DIV_ROUND_CLOSEST_DOWN(a, b) * (b))
-> +#define roundclosest(n, di)				\
-> +	({ typeof(n) __n = (n); typeof(di) __di = (di); \
-> +	DIV_ROUND_CLOSEST(__n, __di) * __di; })
-> +
-> +#define IPU3_CSS_POOL_SIZE		4
-> +
-> +struct ipu3_css_map {
-> +	size_t size;
-> +	void *vaddr;
-> +	dma_addr_t daddr;
-> +	struct vm_struct *vma;
-> +};
-> +
-> +struct ipu3_css_pool {
-> +	struct {
-> +		struct ipu3_css_map param;
-> +		long framenum;
-> +	} entry[IPU3_CSS_POOL_SIZE];
-> +	unsigned int last; /* Latest entry */
-> +};
-> +
-> +int ipu3_css_dma_alloc(struct device *dev, struct ipu3_css_map *map,
-> +		       size_t size);
-> +void ipu3_css_dma_free(struct device *dev, struct ipu3_css_map *map);
-> +void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool);
-> +int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool,
-> +		       int size);
-> +int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum);
-> +void ipu3_css_pool_put(struct ipu3_css_pool *pool);
-> +const struct ipu3_css_map *ipu3_css_pool_last(struct ipu3_css_pool *pool,
-> +					      unsigned int last);
-> +
-> +#endif
-> -- 
-> 2.7.4
-> 
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
