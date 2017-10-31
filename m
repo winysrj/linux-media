@@ -1,97 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:6152 "EHLO
-        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751940AbdJ3Bso (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Oct 2017 21:48:44 -0400
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: <linux-kernel@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        <devicetree@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-arm-kernel@lists.infradead.org>,
-        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH v3 2/3] media: ov7740: Document device tree bindings
-Date: Mon, 30 Oct 2017 09:44:31 +0800
-Message-ID: <20171030014432.24025-3-wenyou.yang@microchip.com>
-In-Reply-To: <20171030014432.24025-1-wenyou.yang@microchip.com>
-References: <20171030014432.24025-1-wenyou.yang@microchip.com>
+Received: from mga03.intel.com ([134.134.136.65]:37126 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933163AbdJaX3B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Oct 2017 19:29:01 -0400
+Subject: [PATCH 11/15] [media] v4l2: disable filesystem-dax mapping support
+From: Dan Williams <dan.j.williams@intel.com>
+To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org,
+        stable@vger.kernel.org, linux-xfs@vger.kernel.org,
+        linux-mm@kvack.org, linux-fsdevel@vger.kernel.org,
+        akpm@linux-foundation.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>, hch@lst.de,
+        linux-media@vger.kernel.org
+Date: Tue, 31 Oct 2017 16:22:35 -0700
+Message-ID: <150949215507.24061.16244906635037694605.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the device tree binding documentation for the ov7740 sensor driver.
+V4L2 memory registrations are incompatible with filesystem-dax that
+needs the ability to revoke dma access to a mapping at will, or
+otherwise allow the kernel to wait for completion of DMA. The
+filesystem-dax implementation breaks the traditional solution of
+truncate of active file backed mappings since there is no page-cache
+page we can orphan to sustain ongoing DMA.
 
-Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+If v4l2 wants to support long lived DMA mappings it needs to arrange to
+hold a file lease or use some other mechanism so that the kernel can
+coordinate revoking DMA access when the filesystem needs to truncate
+mappings.
+
+Reported-by: Jan Kara <jack@suse.cz>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/media/v4l2-core/videobuf-dma-sg.c |   39 ++++++++++++++++++++++++++++-
+ 1 file changed, 37 insertions(+), 2 deletions(-)
 
-Changes in v3:
- - Explicitly document the "remote-endpoint" property.
-
-Changes in v2: None
-
- .../devicetree/bindings/media/i2c/ov7740.txt       | 47 ++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7740.txt
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov7740.txt b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
-new file mode 100644
-index 000000000000..af781c3a5f0e
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
-@@ -0,0 +1,47 @@
-+* Omnivision OV7740 CMOS image sensor
+diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
+index 0b5c43f7e020..37a4ae61b2c0 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -155,8 +155,9 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+ 			int direction, unsigned long data, unsigned long size)
+ {
+ 	unsigned long first, last;
+-	int err, rw = 0;
++	int err, rw = 0, i, nr_pages;
+ 	unsigned int flags = FOLL_FORCE;
++	struct vm_area_struct **vmas = NULL;
+ 
+ 	dma->direction = direction;
+ 	switch (dma->direction) {
+@@ -179,6 +180,16 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+ 	if (NULL == dma->pages)
+ 		return -ENOMEM;
+ 
++	if (IS_ENABLED(CONFIG_FS_DAX)) {
++		vmas = kmalloc(dma->nr_pages * sizeof(struct vm_area_struct *),
++				GFP_KERNEL);
++		if (NULL == vmas) {
++			kfree(dma->pages);
++			dma->pages = NULL;
++			return -ENOMEM;
++		}
++	}
 +
-+The Omnivision OV7740 image sensor supports multiple output image
-+size, such as VGA, and QVGA, CIF and any size smaller. It also
-+supports the RAW RGB and YUV output formats.
+ 	if (rw == READ)
+ 		flags |= FOLL_WRITE;
+ 
+@@ -186,7 +197,31 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+ 		data, size, dma->nr_pages);
+ 
+ 	err = get_user_pages(data & PAGE_MASK, dma->nr_pages,
+-			     flags, dma->pages, NULL);
++			     flags, dma->pages, vmas);
++	nr_pages = err;
 +
-+The common video interfaces bindings (see video-interfaces.txt) should
-+be used to specify link to the image data receiver. The OV7740 device
-+node should contain one 'port' child node with an 'endpoint' subnode.
++	for (i = 0; vmas && i < nr_pages; i++) {
++		struct vm_area_struct *vma = vmas[i];
++		struct inode *inode;
 +
-+Required Properties:
-+- compatible:	"ovti,ov7740".
-+- reg:		I2C slave address of the sensor.
-+- clocks:	Reference to the xvclk input clock.
-+- clock-names:	"xvclk".
++		if (!vma_is_dax(vma))
++			continue;
 +
-+Optional Properties:
-+- reset-gpios: Rreference to the GPIO connected to the reset_b pin,
-+  if any. Active low with pull-ip resistor.
-+- powerdown-gpios: Reference to the GPIO connected to the pwdn pin,
-+  if any. Active high with pull-down resistor.
++		/* device-dax is safe for long-lived v4l2 mappings... */
++		inode = file_inode(vma->vm_file);
++		if (inode->i_mode == S_IFCHR)
++			continue;
 +
-+Endpoint node mandatory properties:
-+- remote-endpoint: A phandle to the bus receiver's endpoint node.
++		/* ...filesystem-dax is not. */
++		err = -EOPNOTSUPP;
++		break;
 +
-+Example:
-+
-+	i2c1: i2c@fc028000 {
-+		ov7740: camera@21 {
-+			compatible = "ovti,ov7740";
-+			reg = <0x21>;
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&pinctrl_sensor_power &pinctrl_sensor_reset>;
-+			clocks = <&isc>;
-+			clock-names = "xvclk";
-+			assigned-clocks = <&isc>;
-+			assigned-clock-rates = <24000000>;
-+			reset-gpios = <&pioA 43 GPIO_ACTIVE_LOW>;
-+			powerdown-gpios = <&pioA 44 GPIO_ACTIVE_HIGH>;
-+
-+			port {
-+				ov7740_0: endpoint {
-+					remote-endpoint = <&isc_0>;
-+				};
-+			};
-+		};
-+	};
--- 
-2.13.0
++		/*
++		 * FIXME: add a 'with lease' mechanism for v4l2 to
++		 * obtain time bounded access to filesytem-dax mappings
++		 */
++	}
++	kfree(vmas);
+ 
+ 	if (err != dma->nr_pages) {
+ 		dma->nr_pages = (err >= 0) ? err : 0;
