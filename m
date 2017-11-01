@@ -1,78 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:53652 "EHLO mout.gmx.net"
+Received: from osg.samsung.com ([64.30.133.232]:64333 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752276AbdKFOxV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Nov 2017 09:53:21 -0500
-Date: Mon, 6 Nov 2017 15:53:10 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 2/6 v5] V4L: Add a UVC Metadata format
-In-Reply-To: <604abbde-1e2a-350b-efd4-2bbce08c1839@xs4all.nl>
-Message-ID: <alpine.DEB.2.20.1711061545090.26825@axis700.grange>
-References: <1501245205-15802-1-git-send-email-g.liakhovetski@gmx.de> <1501245205-15802-3-git-send-email-g.liakhovetski@gmx.de> <17361c20-0390-e8ae-9773-c5db58e07caa@xs4all.nl> <604abbde-1e2a-350b-efd4-2bbce08c1839@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        id S933304AbdKAVGN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Nov 2017 17:06:13 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 07/26] media: radio-si476x: fix behavior when seek->range* are defined
+Date: Wed,  1 Nov 2017 17:05:44 -0400
+Message-Id: <719a45638261947315e47bf7cd8743f7f4f513a1.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The logic at si476x_radio_s_hw_freq_seek() checks if the
+frequency range that will be used to handle hardware seek
+has the minimal frequency under rangelow. That works fine
+if userspace zeros both fields. However, if userspace
+fills either seek->rangelow or seek-rangehigh, it won't
+read the corresponding range from the device, causing the
+values to be unitialized, as warned by smatch:
 
-Thanks for the comments.
+	drivers/media/radio/radio-si476x.c:789 si476x_radio_s_hw_freq_seek() error: uninitialized symbol 'rangelow'.
+	drivers/media/radio/radio-si476x.c:789 si476x_radio_s_hw_freq_seek() error: uninitialized symbol 'rangehigh'.
 
-On Mon, 30 Oct 2017, Hans Verkuil wrote:
+Fix it by initializing those vars from the values present at
+the struct v4l2_hw_freq_seek.
 
-> Hi Guennadi,
-> 
-> On 07/28/2017 02:46 PM, Hans Verkuil wrote:
-> > On 07/28/2017 02:33 PM, Guennadi Liakhovetski wrote:
-> >> Add a pixel format, used by the UVC driver to stream metadata.
-> >>
-> >> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> >> ---
-> >>  Documentation/media/uapi/v4l/meta-formats.rst    |  1 +
-> >>  Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst | 39 ++++++++++++++++++++++++
-> >>  include/uapi/linux/videodev2.h                   |  1 +
-> >>  3 files changed, 41 insertions(+)
-> >>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
+While here, simplify the logic which reads such values from
+the hardware limits.
 
-[snip]
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/radio/radio-si476x.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-> >> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> >> index 45cf735..0aad91c 100644
-> >> --- a/include/uapi/linux/videodev2.h
-> >> +++ b/include/uapi/linux/videodev2.h
-> >> @@ -682,6 +682,7 @@ struct v4l2_pix_format {
-> >>  /* Meta-data formats */
-> >>  #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 1-D Histogram */
-> >>  #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */
-> >> +#define V4L2_META_FMT_UVC         v4l2_fourcc('U', 'V', 'C', 'H') /* UVC Payload Header metadata */
-> 
-> I discussed this with Laurent last week and since the metadata for UVC starts
-> with a standard header followed by vendor-specific data it makes sense to
-> use V4L2_META_FMT_UVC for just the standard header. Any vendor specific formats
-> should have their own fourcc which starts with the standard header followed by
-> the custom data. The UVC driver would enumerate both the standard and the vendor
-> specific fourcc. This would allow generic UVC applications to use the standard
-> header. Applications that know about the vendor specific data can select the
-> vendor specific format.
-> 
-> This change would make this much more convenient to use.
-
-Then the driver should be able to decide, which private fourcc code to use 
-for each of those devices. A natural way to do that seems to be to put 
-that in the .driver_info field of struct usb_device_id. For that I'd 
-replace the current use of that field for quirks with a pointer to a 
-struct in a separate patch. Laurent, would that be acceptable? Then add a 
-field to that struct for a private metadata fourcc code.
-
-Thanks
-Guennadi
-
-> Regards,
-> 
-> 	Hans
-> 
-> >>  /* priv field value to indicates that subsequent fields are valid. */
-> >>  #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
+diff --git a/drivers/media/radio/radio-si476x.c b/drivers/media/radio/radio-si476x.c
+index 271f725b17e8..740714d9dd85 100644
+--- a/drivers/media/radio/radio-si476x.c
++++ b/drivers/media/radio/radio-si476x.c
+@@ -755,7 +755,7 @@ static int si476x_radio_s_hw_freq_seek(struct file *file, void *priv,
+ {
+ 	int err;
+ 	enum si476x_func func;
+-	u32 rangelow, rangehigh;
++	u32 rangelow = seek->rangelow, rangehigh = seek->rangehigh;
+ 	struct si476x_radio *radio = video_drvdata(file);
+ 
+ 	if (file->f_flags & O_NONBLOCK)
+@@ -767,23 +767,21 @@ static int si476x_radio_s_hw_freq_seek(struct file *file, void *priv,
+ 
+ 	si476x_core_lock(radio->core);
+ 
+-	if (!seek->rangelow) {
++	if (!rangelow) {
+ 		err = regmap_read(radio->core->regmap,
+ 				  SI476X_PROP_SEEK_BAND_BOTTOM,
+ 				  &rangelow);
+-		if (!err)
+-			rangelow = si476x_to_v4l2(radio->core, rangelow);
+-		else
++		if (err)
+ 			goto unlock;
++		rangelow = si476x_to_v4l2(radio->core, rangelow);
+ 	}
+-	if (!seek->rangehigh) {
++	if (!rangehigh) {
+ 		err = regmap_read(radio->core->regmap,
+ 				  SI476X_PROP_SEEK_BAND_TOP,
+ 				  &rangehigh);
+-		if (!err)
+-			rangehigh = si476x_to_v4l2(radio->core, rangehigh);
+-		else
++		if (err)
+ 			goto unlock;
++		rangehigh = si476x_to_v4l2(radio->core, rangehigh);
+ 	}
+ 
+ 	if (rangelow > rangehigh) {
+-- 
+2.13.6
