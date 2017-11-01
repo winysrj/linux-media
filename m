@@ -1,68 +1,522 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:51144 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752500AbdKWL6G (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Nov 2017 06:58:06 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 1/2] drivers/video/hdmi: allow for larger-than-needed
- vendor IF
-To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Hans Verkuil <hansverk@cisco.com>
-References: <20171120134129.26161-1-hverkuil@xs4all.nl>
- <20171120134129.26161-2-hverkuil@xs4all.nl>
- <20171120145154.GW10981@intel.com>
- <dea1aedf-80f8-ad6d-2560-eb7a0b1936a3@xs4all.nl>
- <20171121152726.GE10981@intel.com>
-Message-ID: <cf90e2eb-1fa1-6496-d04b-d5bb261f5df2@xs4all.nl>
-Date: Thu, 23 Nov 2017 12:57:58 +0100
-MIME-Version: 1.0
-In-Reply-To: <20171121152726.GE10981@intel.com>
-Content-Type: text/plain; charset=utf-8
+Received: from mga01.intel.com ([192.55.52.88]:41914 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933551AbdKAVpd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Nov 2017 17:45:33 -0400
+From: "Zhi, Yong" <yong.zhi@intel.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "arnd@arndb.de" <arnd@arndb.de>, "hch@lst.de" <hch@lst.de>,
+        "robin.murphy@arm.com" <robin.murphy@arm.com>,
+        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>,
+        "Tomasz Figa" <tfiga@chromium.org>
+Subject: RE: [PATCH v4 03/12] intel-ipu3: Add IOMMU based dmamap support
+Date: Wed, 1 Nov 2017 21:45:08 +0000
+Message-ID: <C193D76D23A22742993887E6D207B54D1AE2F15C@ORSMSX106.amr.corp.intel.com>
+References: <1508298539-25965-1-git-send-email-yong.zhi@intel.com>
+ <20171020091932.hcizvgo6mm6whivq@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20171020091932.hcizvgo6mm6whivq@valkosipuli.retiisi.org.uk>
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/21/17 16:27, Ville Syrjälä wrote:
-> On Mon, Nov 20, 2017 at 04:02:14PM +0100, Hans Verkuil wrote:
->> On 11/20/2017 03:51 PM, Ville Syrjälä wrote:
->>> On Mon, Nov 20, 2017 at 02:41:28PM +0100, Hans Verkuil wrote:
->>>> From: Hans Verkuil <hansverk@cisco.com>
->>>>
->>>> Some devices (Windows Intel driver!) send a Vendor InfoFrame that
->>>> uses a payload length of 0x1b instead of the length of 5 or 6
->>>> that the unpack code expects. The InfoFrame is padded with 0 by
->>>> the source.
->>>
->>> So it doesn't put any 3D_Metadata stuff in there? We don't see to
->>> have code to parse/generate any of that.
->>
->> I can't remember if it puts any 3D stuff in there. Let me know if you
->> want me to check this later this week.
+Hi, Sakari,
+
+> -----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
+> Sent: Friday, October 20, 2017 2:20 AM
+> To: Zhi, Yong <yong.zhi@intel.com>
+> Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; Zheng, Jian
+> Xu <jian.xu.zheng@intel.com>; Mani, Rajmohan
+> <rajmohan.mani@intel.com>; Toivonen, Tuukka
+> <tuukka.toivonen@intel.com>; Hu, Jerry W <jerry.w.hu@intel.com>;
+> arnd@arndb.de; hch@lst.de; robin.murphy@arm.com; iommu@lists.linux-
+> foundation.org; Tomasz Figa <tfiga@chromium.org>
+> Subject: Re: [PATCH v4 03/12] intel-ipu3: Add IOMMU based dmamap
+> support
 > 
-> Would be nice to know.
+> Hi Yong,
 > 
-> I guess we should really add code to parse/generate that stuff too,
-> otherwise we're going to be lying when we unpack an infoframe with that
-> stuff present.
+> On Tue, Oct 17, 2017 at 10:48:59PM -0500, Yong Zhi wrote:
+> > From: Tomasz Figa <tfiga@chromium.org>
+> >
+> > This patch adds driver to support IPU3-specific MMU-aware memory
+> > alloc/free and sg mapping functions.
+> >
+> > Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > ---
+> >  drivers/media/pci/intel/ipu3/Kconfig       |   7 +
+> >  drivers/media/pci/intel/ipu3/Makefile      |   2 +-
+> >  drivers/media/pci/intel/ipu3/ipu3-dmamap.c | 342
+> > +++++++++++++++++++++++++++++
+> > drivers/media/pci/intel/ipu3/ipu3-dmamap.h |  33 +++
+> >  4 files changed, 383 insertions(+), 1 deletion(-)  create mode 100644
+> > drivers/media/pci/intel/ipu3/ipu3-dmamap.c
+> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.h
+> >
+> > diff --git a/drivers/media/pci/intel/ipu3/Kconfig
+> > b/drivers/media/pci/intel/ipu3/Kconfig
+> > index 46ff138f3e50..d7dab52dc881 100644
+> > --- a/drivers/media/pci/intel/ipu3/Kconfig
+> > +++ b/drivers/media/pci/intel/ipu3/Kconfig
+> > @@ -26,3 +26,10 @@ config INTEL_IPU3_MMU
+> >  	---help---
+> >  	  For IPU3, this option enables its MMU driver to translate its internal
+> >  	  virtual address to 39 bits wide physical address for 64GBytes space
+> access.
+> > +
+> > +config INTEL_IPU3_DMAMAP
+> > +	tristate
+> > +	default n
+> > +	select IOMMU_IOVA
+> > +	---help---
+> > +	  This is IPU3 IOMMU domain specific DMA driver.
+> > diff --git a/drivers/media/pci/intel/ipu3/Makefile
+> > b/drivers/media/pci/intel/ipu3/Makefile
+> > index 91cac9cb7401..651773231496 100644
+> > --- a/drivers/media/pci/intel/ipu3/Makefile
+> > +++ b/drivers/media/pci/intel/ipu3/Makefile
+> > @@ -13,4 +13,4 @@
+> >
+> >  obj-$(CONFIG_VIDEO_IPU3_CIO2) += ipu3-cio2.o
+> >  obj-$(CONFIG_INTEL_IPU3_MMU) += ipu3-mmu.o
+> > -
+> > +obj-$(CONFIG_INTEL_IPU3_DMAMAP) += ipu3-dmamap.o
+> > diff --git a/drivers/media/pci/intel/ipu3/ipu3-dmamap.c
+> > b/drivers/media/pci/intel/ipu3/ipu3-dmamap.c
+> > new file mode 100644
+> > index 000000000000..e54bd9dfa302
+> > --- /dev/null
+> > +++ b/drivers/media/pci/intel/ipu3/ipu3-dmamap.c
+> > @@ -0,0 +1,342 @@
+> > +/*
+> > + * Copyright (c) 2017 Intel Corporation.
+> > + * Copyright (C) 2017 Google, Inc.
+> > + *
+> > + * This program is free software; you can redistribute it and/or
+> > + * modify it under the terms of the GNU General Public License
+> > +version
+> > + * 2 as published by the Free Software Foundation.
+> > + *
+> > + * This program is distributed in the hope that it will be useful,
+> > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > + * GNU General Public License for more details.
+> > + *
+> > + */
+> > +
+> > +#include <linux/dma-direction.h>
+> > +#include <linux/highmem.h>
+> > +#include <linux/iommu.h>
+> > +#include <linux/iova.h>
+> > +#include <linux/module.h>
+> > +#include <linux/slab.h>
+> > +#include <linux/types.h>
+> > +#include <linux/version.h>
+> 
+> Do you need this for something?
 > 
 
-Hmm, I can't reproduce this anymore. We did observe it but I can't
-remember with which hardware or graphics driver version.
+Ouch, will remove the un-needed headers.
 
-Testing with a Windows 10 Intel laptop with recent drivers just showed
-either an empty vendor InfoFrame with a 1080p EDID or a vendor InfoFrame
-that sets the HDMI VIC to 1 for a 4kp30 EDID.
+> > +#include <linux/vmalloc.h>
+> > +
+> > +#include "ipu3-css-pool.h"
+> > +#include "ipu3.h"
+> > +
+> > +/*
+> > + * Based on arch/arm64/mm/dma-mapping.c, with simplifications
+> > +possible due
+> > + * to driver-specific character of this file.
+> > + */
+> > +
+> > +static int dma_direction_to_prot(enum dma_data_direction dir, bool
+> > +coherent) {
+> > +	int prot = coherent ? IOMMU_CACHE : 0;
+> > +
+> > +	switch (dir) {
+> > +	case DMA_BIDIRECTIONAL:
+> > +		return prot | IOMMU_READ | IOMMU_WRITE;
+> > +	case DMA_TO_DEVICE:
+> > +		return prot | IOMMU_READ;
+> > +	case DMA_FROM_DEVICE:
+> > +		return prot | IOMMU_WRITE;
+> > +	default:
+> > +		return 0;
+> > +	}
+> > +}
+> > +
+> > +/*
+> > + * Free a buffer allocated by ipu3_dmamap_alloc_buffer()  */ static
+> > +void ipu3_dmamap_free_buffer(struct page **pages,
+> > +				    size_t size)
+> > +{
+> > +	int count = size >> PAGE_SHIFT;
+> > +
+> > +	while (count--)
+> > +		__free_page(pages[count]);
+> > +	kvfree(pages);
+> > +}
+> > +
+> > +/*
+> > + * Based on the implementation of __iommu_dma_alloc_pages()
+> > + * defined in drivers/iommu/dma-iommu.c  */ static struct page
+> > +**ipu3_dmamap_alloc_buffer(size_t size,
+> > +					      unsigned long order_mask,
+> > +					      gfp_t gfp)
+> > +{
+> > +	struct page **pages;
+> > +	unsigned int i = 0, count = size >> PAGE_SHIFT;
+> > +	const gfp_t high_order_gfp = __GFP_NOWARN | __GFP_NORETRY;
+> > +
+> > +	/* Allocate mem for array of page ptrs */
+> > +	pages = kvmalloc_array(count, sizeof(struct page *), GFP_KERNEL);
+> > +
+> > +	if (!pages)
+> > +		return NULL;
+> > +
+> > +	order_mask &= (2U << MAX_ORDER) - 1;
+> > +	if (!order_mask)
+> > +		return NULL;
+> > +
+> > +	gfp |= __GFP_NOWARN | __GFP_HIGHMEM | __GFP_ZERO;
+> > +
+> > +	while (count) {
+> > +		struct page *page = NULL;
+> > +		unsigned int order_size;
+> > +
+> > +		for (order_mask &= (2U << __fls(count)) - 1;
+> > +		     order_mask; order_mask &= ~order_size) {
+> > +			unsigned int order = __fls(order_mask);
+> > +
+> > +			order_size = 1U << order;
+> > +			page = alloc_pages((order_mask - order_size) ?
+> > +					   gfp | high_order_gfp : gfp, order);
+> > +			if (!page)
+> > +				continue;
+> > +			if (!order)
+> > +				break;
+> > +			if (!PageCompound(page)) {
+> > +				split_page(page, order);
+> > +				break;
+> > +			}
+> > +
+> > +			__free_pages(page, order);
+> > +		}
+> > +		if (!page) {
+> > +			ipu3_dmamap_free_buffer(pages, i << PAGE_SHIFT);
+> > +			return NULL;
+> > +		}
+> > +		count -= order_size;
+> > +		while (order_size--)
+> > +			pages[i++] = page++;
+> > +	}
+> > +
+> > +	return pages;
+> > +}
+> > +
+> > +/**
+> > + * ipu3_dmamap_alloc - allocate and map a buffer into KVA
+> > + * @dev: struct device pointer
+> > + * @map: struct to store mapping variables
+> > + * @len: size required
+> > + *
+> > + * Return KVA on success or NULL on failure  */ void
+> > +*ipu3_dmamap_alloc(struct imgu_device *imgu, struct ipu3_css_map
+> *map,
+> > +			size_t len)
+> > +{
+> > +	unsigned long shift = iova_shift(&imgu->iova_domain);
+> > +	unsigned int alloc_sizes = imgu->domain->pgsize_bitmap;
+> > +	size_t size = PAGE_ALIGN(len);
+> > +	struct page **pages;
+> > +	dma_addr_t iovaddr;
+> > +	struct iova *iova;
+> > +	int i, rval;
+> > +
+> > +	if (WARN(!(&imgu->pci_dev->dev),
+> > +		 "cannot create IOMMU mapping for unknown device\n"))
+> > +		return NULL;
+> > +
+> > +	dev_dbg(&imgu->pci_dev->dev, "%s: allocating %zu\n", __func__,
+> > +size);
+> > +
+> > +	iova = alloc_iova(&imgu->iova_domain, size >> shift,
+> > +			  imgu->domain->geometry.aperture_end >> shift, 0);
+> > +	if (!iova)
+> > +		return NULL;
+> > +
+> > +	pages = ipu3_dmamap_alloc_buffer(size, alloc_sizes >> PAGE_SHIFT,
+> > +					 GFP_KERNEL);
+> > +	if (!pages)
+> > +		goto out_free_iova;
+> > +
+> > +	/* Call IOMMU driver to setup pgt */
+> > +	iovaddr = iova_dma_addr(&imgu->iova_domain, iova);
+> > +	for (i = 0; i < size / PAGE_SIZE; ++i) {
+> > +		rval = iommu_map(imgu->domain, iovaddr,
+> > +				 page_to_phys(pages[i]), PAGE_SIZE, 0);
+> 
+> In the current implementation, you don't have much benefit from the use of
+> the IOMMU framework left: it's more or less a wrapper between this and the
+> MMU driver.
+> 
+> Could you remove it, and use the MMU driver directly?
+> 
+> Neither should need to be a separate module anymore.
+> 
 
-The length is 5 in both cases.
+Ok, will remove the dependency on IOMMU framework and use MMU directly for next update.
 
-Testing with a different laptop gave a vendor InfoFrame with HDMI VIC 1 and
-a length of 6.
-
-Regards,
-
-	Hans
+> > +		if (rval)
+> > +			goto out_unmap;
+> > +
+> > +		iovaddr += PAGE_SIZE;
+> > +	}
+> > +
+> > +	/* Now grab a virtual region */
+> > +	map->vma = __get_vm_area(size, VM_USERMAP, VMALLOC_START,
+> VMALLOC_END);
+> > +	if (!map->vma)
+> > +		goto out_unmap;
+> > +
+> > +	map->vma->pages = pages;
+> > +	/* And map it in KVA */
+> > +	if (map_vm_area(map->vma, PAGE_KERNEL, pages))
+> > +		goto out_vunmap;
+> > +
+> > +	map->size = size;
+> > +	map->daddr = iova_dma_addr(&imgu->iova_domain, iova);
+> > +	map->vaddr = map->vma->addr;
+> > +
+> > +	dev_dbg(&imgu->pci_dev->dev, "%s: allocated %zu @ IOVA %pad @
+> VA %p\n",
+> > +		__func__, size, &map->daddr, map->vma->addr);
+> > +
+> > +	return map->vma->addr;
+> > +
+> > +out_vunmap:
+> > +	vunmap(map->vma->addr);
+> > +
+> > +out_unmap:
+> > +	ipu3_dmamap_free_buffer(pages, size);
+> > +	iommu_unmap(imgu->domain, iova_dma_addr(&imgu-
+> >iova_domain, iova),
+> > +		    i * PAGE_SIZE);
+> > +	map->vma = NULL;
+> > +
+> > +out_free_iova:
+> > +	__free_iova(&imgu->iova_domain, iova);
+> > +
+> > +	return NULL;
+> > +}
+> > +EXPORT_SYMBOL_GPL(ipu3_dmamap_alloc);
+> > +
+> > +void ipu3_dmamap_unmap(struct imgu_device *imgu, struct
+> ipu3_css_map
+> > +*map) {
+> > +	struct iova *iova;
+> > +
+> > +	iova = find_iova(&imgu->iova_domain,
+> > +			 iova_pfn(&imgu->iova_domain, map->daddr));
+> > +	if (WARN_ON(!iova))
+> > +		return;
+> > +
+> > +	iommu_unmap(imgu->domain, iova_dma_addr(&imgu-
+> >iova_domain, iova),
+> > +		    iova_size(iova) << iova_shift(&imgu->iova_domain));
+> > +
+> > +	__free_iova(&imgu->iova_domain, iova); }
+> > +EXPORT_SYMBOL_GPL(ipu3_dmamap_unmap);
+> > +
+> > +/*
+> > + * Counterpart of ipu3_dmamap_alloc
+> > + */
+> > +void ipu3_dmamap_free(struct imgu_device *imgu, struct ipu3_css_map
+> > +*map) {
+> > +	struct vm_struct *area = map->vma;
+> > +
+> > +	dev_dbg(&imgu->pci_dev->dev, "%s: freeing %zu @ IOVA %pad @
+> VA %p\n",
+> > +		__func__, map->size, &map->daddr, map->vaddr);
+> > +
+> > +	if (!map->vaddr)
+> > +		return;
+> > +
+> > +	ipu3_dmamap_unmap(imgu, map);
+> > +
+> > +	if (WARN_ON(!area) || WARN_ON(!area->pages))
+> > +		return;
+> > +
+> > +	ipu3_dmamap_free_buffer(area->pages, map->size);
+> > +	vunmap(map->vaddr);
+> > +	map->vaddr = NULL;
+> > +}
+> > +EXPORT_SYMBOL_GPL(ipu3_dmamap_free);
+> > +
+> > +int ipu3_dmamap_map_sg(struct imgu_device *imgu, struct scatterlist
+> *sglist,
+> > +		       int nents, enum dma_data_direction dir,
+> > +		       struct ipu3_css_map *map)
+> > +{
+> > +	unsigned long shift = iova_shift(&imgu->iova_domain);
+> > +	struct scatterlist *sg;
+> > +	struct iova *iova;
+> > +	size_t size = 0;
+> > +	size_t size_aligned;
+> > +	int i;
+> > +
+> > +	for_each_sg(sglist, sg, nents, i) {
+> > +		if (sg->offset)
+> > +			return -EINVAL;
+> > +
+> > +		if (i != nents - 1 && !PAGE_ALIGNED(sg->length))
+> > +			return -EINVAL;
+> > +
+> > +		size += sg->length;
+> > +	}
+> > +	size_aligned = PAGE_ALIGN(size);
+> > +
+> > +	dev_dbg(&imgu->pci_dev->dev, "dmamap: mapping sg %d
+> entries, %zu pages\n",
+> > +		nents, size_aligned >> shift);
+> > +
+> > +	iova = alloc_iova(&imgu->iova_domain, size_aligned >> shift,
+> > +			  imgu->domain->geometry.aperture_end >> shift, 0);
+> > +	if (!iova)
+> > +		return -ENOMEM;
+> > +
+> > +	dev_dbg(&imgu->pci_dev->dev, "dmamap: iova low pfn %lu, high
+> pfn %lu\n",
+> > +		iova->pfn_lo, iova->pfn_hi);
+> > +
+> > +	if (iommu_map_sg(imgu->domain,
+> > +			 iova_dma_addr(&imgu->iova_domain, iova),
+> > +			 sglist, nents, dma_direction_to_prot(dir, true))
+> > +			 < size)
+> > +		goto out_fail;
+> > +
+> > +	memset(map, 0, sizeof(*map));
+> > +	map->daddr = iova_dma_addr(&imgu->iova_domain, iova);
+> > +	map->size = size_aligned;
+> > +
+> > +	return 0;
+> > +
+> > +out_fail:
+> > +	__free_iova(&imgu->iova_domain, iova);
+> > +
+> > +	return -EFAULT;
+> > +}
+> > +EXPORT_SYMBOL_GPL(ipu3_dmamap_map_sg);
+> > +
+> > +int ipu3_dmamap_init(struct imgu_device *imgu) {
+> > +	unsigned long order, base_pfn, end_pfn;
+> > +	int ret;
+> > +
+> > +	imgu->domain = iommu_domain_alloc(imgu->mmu->bus);
+> > +	if (!imgu->domain)
+> > +		return -ENOMEM;
+> > +
+> > +	ret = iova_cache_get();
+> > +	if (ret)
+> > +		goto out_domain;
+> > +
+> > +	order = __ffs(imgu->domain->pgsize_bitmap);
+> > +	base_pfn = max_t(unsigned long, 1,
+> > +			 imgu->domain->geometry.aperture_start >> order);
+> > +	end_pfn = imgu->domain->geometry.aperture_end >> order;
+> > +
+> > +	init_iova_domain(&imgu->iova_domain, 1UL << order, base_pfn,
+> > +end_pfn);
+> > +
+> > +	ret = iommu_attach_device(imgu->domain, imgu->mmu);
+> > +	if (ret)
+> > +		goto out_iova_cache;
+> > +
+> > +	return 0;
+> > +
+> > +out_iova_cache:
+> > +	iova_cache_put();
+> > +	put_iova_domain(&imgu->iova_domain);
+> > +out_domain:
+> > +	iommu_domain_free(imgu->domain);
+> > +	return ret;
+> > +}
+> > +EXPORT_SYMBOL_GPL(ipu3_dmamap_init);
+> > +
+> > +void ipu3_dmamap_exit(struct imgu_device *imgu) {
+> > +	put_iova_domain(&imgu->iova_domain);
+> > +	iova_cache_put();
+> > +	iommu_detach_device(imgu->domain, imgu->mmu);
+> > +	iommu_domain_free(imgu->domain);
+> > +	imgu->domain = NULL;
+> > +}
+> > +EXPORT_SYMBOL_GPL(ipu3_dmamap_exit);
+> > +
+> > +MODULE_AUTHOR("Tomasz Figa <tfiga@chromium.org>");
+> > +MODULE_AUTHOR("Yong Zhi <yong.zhi@intel.com>");
+> MODULE_LICENSE("GPL
+> > +v2");
+> > +MODULE_DESCRIPTION("IPU3 DMA mapping support");
+> > diff --git a/drivers/media/pci/intel/ipu3/ipu3-dmamap.h
+> > b/drivers/media/pci/intel/ipu3/ipu3-dmamap.h
+> > new file mode 100644
+> > index 000000000000..9b442a40ee06
+> > --- /dev/null
+> > +++ b/drivers/media/pci/intel/ipu3/ipu3-dmamap.h
+> > @@ -0,0 +1,33 @@
+> > +/*
+> > + * Copyright (c) 2017 Intel Corporation.
+> > + * Copyright (C) 2017 Google, Inc.
+> > + *
+> > + * This program is free software; you can redistribute it and/or
+> > + * modify it under the terms of the GNU General Public License
+> > +version
+> > + * 2 as published by the Free Software Foundation.
+> > + *
+> > + * This program is distributed in the hope that it will be useful,
+> > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > + * GNU General Public License for more details.
+> > + *
+> > + */
+> > +
+> > +#ifndef __IPU3_DMAMAP_H
+> > +#define __IPU3_DMAMAP_H
+> > +
+> > +struct imgu_device;
+> > +
+> > +void *ipu3_dmamap_alloc(struct imgu_device *imgu, struct ipu3_css_map
+> *map,
+> > +			size_t len);
+> > +void ipu3_dmamap_free(struct imgu_device *imgu, struct ipu3_css_map
+> > +*map);
+> > +
+> > +int ipu3_dmamap_map_sg(struct imgu_device *imgu, struct scatterlist
+> *sglist,
+> > +		       int nents, enum dma_data_direction dir,
+> > +		       struct ipu3_css_map *map);
+> > +void ipu3_dmamap_unmap(struct imgu_device *imgu, struct
+> ipu3_css_map
+> > +*map);
+> > +
+> > +int ipu3_dmamap_init(struct imgu_device *imgu); void
+> > +ipu3_dmamap_exit(struct imgu_device *imgu);
+> > +
+> > +#endif
+> >
+> 
+> --
+> Kind regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi
