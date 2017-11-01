@@ -1,164 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:54502 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752640AbdK2ToJ (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:36655 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751840AbdKAJRE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 14:44:09 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v8 13/28] rcar-vin: fix handling of single field frames (top, bottom and alternate fields)
-Date: Wed, 29 Nov 2017 20:43:27 +0100
-Message-Id: <20171129194342.26239-14-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Wed, 1 Nov 2017 05:17:04 -0400
+Message-ID: <1509527817.8832.1.camel@pengutronix.de>
+Subject: Re: [PATCH 1/7] media: atomisp: fix ident for assert/return
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        devel@driverdev.osuosl.org
+Date: Wed, 01 Nov 2017 10:16:57 +0100
+In-Reply-To: <7b2c3c762cad663021b3b3e7aac47b2a8c8d03a9.1509465351.git.mchehab@s-opensource.com>
+References: <cover.1509465351.git.mchehab@s-opensource.com>
+         <7b2c3c762cad663021b3b3e7aac47b2a8c8d03a9.1509465351.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There was never proper support in the VIN driver to deliver ALTERNATING
-field format to user-space, remove this field option. For sources using
-this field format instead use the VIN hardware feature of combining the
-fields to an interlaced format. This mode of operation was previously
-the default behavior and ALTERNATING was only delivered to user-space if
-explicitly requested. Allowing this to be explicitly requested was a
-mistake and was never properly tested and never worked due to the
-constraints put on the field format when it comes to sequence numbers and
-timestamps etc.
+Hi Mauro,
 
-The height should not be cut in half for the format for TOP or BOTTOM
-fields settings. This was a mistake and it was made visible by the
-scaling refactoring. Correct behavior is that the user should request a
-frame size that fits the half height frame reflected in the field
-setting. If not the VIN will do its best to scale the top or bottom to
-the requested format and cropping and scaling do not work as expected.
+On Tue, 2017-10-31 at 12:04 -0400, Mauro Carvalho Chehab wrote:
+> On lots of places, assert/return are starting at the first
+> column, causing indentation issues, as complained by spatch:
+> 
+> drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/irq_private.h:32 irq_reg_store() warn: inconsistent indenting
+> 
+> Used this small script to fix such occurrences:
+> 
+> for i in $(git grep -l -E "^(assert|return)" drivers/staging/media/); do perl -ne 's/^(assert|return)/\t$1/; print $_' <$i >a && mv a $i; done
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/rcar-vin/rcar-dma.c  | 15 +--------
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 48 +++++++++++------------------
- 2 files changed, 19 insertions(+), 44 deletions(-)
+This also catches labels that start with "return". Adding some
+whitespace to the regular expression may avoid these false positives.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 7be5080f742825fb..e6478088d9464221 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -617,7 +617,6 @@ static int rvin_setup(struct rvin_dev *vin)
- 	case V4L2_FIELD_INTERLACED_BT:
- 		vnmc = VNMC_IM_FULL | VNMC_FOC;
- 		break;
--	case V4L2_FIELD_ALTERNATE:
- 	case V4L2_FIELD_NONE:
- 		if (vin->continuous) {
- 			vnmc = VNMC_IM_ODD_EVEN;
-@@ -757,18 +756,6 @@ static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
- 	return 0;
- }
- 
--static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
--{
--	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
--		/* If FS is set it's a Even field */
--		if (vnms & VNMS_FS)
--			return V4L2_FIELD_BOTTOM;
--		return V4L2_FIELD_TOP;
--	}
--
--	return vin->format.field;
--}
--
- static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
- {
- 	const struct rvin_video_format *fmt;
-@@ -941,7 +928,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
- 		goto done;
- 
- 	/* Capture frame */
--	vin->queue_buf[slot]->field = rvin_get_active_field(vin, vnms);
-+	vin->queue_buf[slot]->field = vin->format.field;
- 	vin->queue_buf[slot]->sequence = sequence;
- 	vin->queue_buf[slot]->vb2_buf.timestamp = ktime_get_ns();
- 	vb2_buffer_done(&vin->queue_buf[slot]->vb2_buf, VB2_BUF_STATE_DONE);
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 9cf9ff48ac1e2f4f..37fe1f6c646b0ea3 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -102,6 +102,24 @@ static int rvin_get_sd_format(struct rvin_dev *vin, struct v4l2_pix_format *pix)
- 	if (ret)
- 		return ret;
- 
-+	switch (fmt.format.field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_INTERLACED:
-+		break;
-+	case V4L2_FIELD_ALTERNATE:
-+		/* Use VIN hardware to combine the two fields */
-+		fmt.format.field = V4L2_FIELD_INTERLACED;
-+		fmt.format.height *= 2;
-+		break;
-+	default:
-+		vin->format.field = V4L2_FIELD_NONE;
-+		break;
-+	}
-+
- 	v4l2_fill_pix_format(pix, &fmt.format);
- 
- 	return 0;
-@@ -115,33 +133,6 @@ static int rvin_reset_format(struct rvin_dev *vin)
- 	if (ret)
- 		return ret;
- 
--	/*
--	 * If the subdevice uses ALTERNATE field mode and G_STD is
--	 * implemented use the VIN HW to combine the two fields to
--	 * one INTERLACED frame. The ALTERNATE field mode can still
--	 * be requested in S_FMT and be respected, this is just the
--	 * default which is applied at probing or when S_STD is called.
--	 */
--	if (vin->format.field == V4L2_FIELD_ALTERNATE &&
--	    v4l2_subdev_has_op(vin_to_source(vin), video, g_std))
--		vin->format.field = V4L2_FIELD_INTERLACED;
--
--	switch (vin->format.field) {
--	case V4L2_FIELD_TOP:
--	case V4L2_FIELD_BOTTOM:
--	case V4L2_FIELD_ALTERNATE:
--		vin->format.height /= 2;
--		break;
--	case V4L2_FIELD_NONE:
--	case V4L2_FIELD_INTERLACED_TB:
--	case V4L2_FIELD_INTERLACED_BT:
--	case V4L2_FIELD_INTERLACED:
--		break;
--	default:
--		vin->format.field = V4L2_FIELD_NONE;
--		break;
--	}
--
- 	vin->crop.top = vin->crop.left = 0;
- 	vin->crop.width = vin->format.width;
- 	vin->crop.height = vin->format.height;
-@@ -226,9 +217,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	switch (pix->field) {
- 	case V4L2_FIELD_TOP:
- 	case V4L2_FIELD_BOTTOM:
--	case V4L2_FIELD_ALTERNATE:
--		pix->height /= 2;
--		break;
- 	case V4L2_FIELD_NONE:
- 	case V4L2_FIELD_INTERLACED_TB:
- 	case V4L2_FIELD_INTERLACED_BT:
--- 
-2.15.0
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  .../pci/atomisp2/css2400/camera/util/src/util.c    |  2 +-
+>  .../hive_isp_css_common/host/event_fifo_private.h  |  2 +-
+>  .../host/fifo_monitor_private.h                    | 28 +++++-----
+>  .../css2400/hive_isp_css_common/host/gdc.c         |  8 +--
+>  .../css2400/hive_isp_css_common/host/gp_device.c   |  2 +-
+>  .../hive_isp_css_common/host/gp_device_private.h   | 16 +++---
+>  .../hive_isp_css_common/host/gpio_private.h        |  4 +-
+>  .../hive_isp_css_common/host/hmem_private.h        |  4 +-
+>  .../host/input_formatter_private.h                 | 16 +++---
+>  .../hive_isp_css_common/host/input_system.c        | 28 +++++-----
+>  .../host/input_system_private.h                    | 64 +++++++++++-----------
+>  .../css2400/hive_isp_css_common/host/irq.c         | 30 +++++-----
+>  .../css2400/hive_isp_css_common/host/irq_private.h | 12 ++--
+>  .../css2400/hive_isp_css_common/host/isp.c         |  4 +-
+>  .../css2400/hive_isp_css_common/host/mmu.c         |  6 +-
+>  .../css2400/hive_isp_css_common/host/mmu_private.h | 12 ++--
+>  .../css2400/hive_isp_css_common/host/sp_private.h  | 60 ++++++++++----------
+>  .../atomisp/pci/atomisp2/css2400/sh_css_hrt.c      |  2 +-
+>  drivers/staging/media/imx/imx-media-capture.c      |  2 +-
+[...]
+> diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
+> index ea145bafb880..149f0e1753a1 100644
+> --- a/drivers/staging/media/imx/imx-media-capture.c
+> +++ b/drivers/staging/media/imx/imx-media-capture.c
+> @@ -463,7 +463,7 @@ static int capture_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  
+>  	return 0;
+>  
+> -return_bufs:
+> +	return_bufs:
+>  	spin_lock_irqsave(&priv->q_lock, flags);
+>  	list_for_each_entry_safe(buf, tmp, &priv->ready_q, list) {
+>  		list_del(&buf->list);
+
+This label should stay at the first column.
+
+regards
+Philipp
