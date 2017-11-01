@@ -1,96 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:54516 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752659AbdK2ToK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 14:44:10 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v8 16/28] rcar-vin: add function to manipulate Gen3 chsel value
-Date: Wed, 29 Nov 2017 20:43:30 +0100
-Message-Id: <20171129194342.26239-17-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from osg.samsung.com ([64.30.133.232]:44746 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751922AbdKAU5E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Nov 2017 16:57:04 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Songjun Wu <songjun.wu@microchip.com>
+Subject: [PATCH v2 01/26] media: atmel-isc: avoid returning a random value at isc_parse_dt()
+Date: Wed,  1 Nov 2017 16:56:33 -0400
+Message-Id: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. One
-feature of this register is that it's only present in the VIN0 and VIN4
-instances. The register in VIN0 controls the routing for VIN0-3 and the
-register in VIN4 controls routing for VIN4-7.
+As warned by smatch:
+drivers/media/platform/atmel/atmel-isc.c:2097 isc_parse_dt() error: uninitialized symbol 'ret'.
 
-To be able to control routing from a media device this function is need
-to control runtime PM for the subgroup master (VIN0 and VIN4). The
-subgroup master must be switched on before the register is manipulated,
-once the operation is complete it's safe to switch the master off and
-the new routing will still be in effect.
+The problem here is that of_graph_get_next_endpoint() can
+potentially return NULL on its first pass, with would make
+it return a random value, as ret is not initialized.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+While here, use while(1) instead of for(; ;), as while is
+the preferred syntax for such kind of loops.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/rcar-vin/rcar-dma.c | 25 +++++++++++++++++++++++++
- drivers/media/platform/rcar-vin/rcar-vin.h |  2 ++
- 2 files changed, 27 insertions(+)
+ drivers/media/platform/atmel/atmel-isc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index ace95d5b543a17e3..d2788d8bb9565aaa 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -16,6 +16,7 @@
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index 13f1c1c797b0..0c2635647f69 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -2039,10 +2039,10 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
  
- #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/pm_runtime.h>
+ 	INIT_LIST_HEAD(&isc->subdev_entities);
  
- #include <media/videobuf2-dma-contig.h>
+-	for (; ;) {
++	while (1) {
+ 		epn = of_graph_get_next_endpoint(np, epn);
+ 		if (!epn)
+-			break;
++			return 0;
  
-@@ -1228,3 +1229,27 @@ int rvin_dma_register(struct rvin_dev *vin, int irq)
- 
- 	return ret;
- }
-+
-+/* -----------------------------------------------------------------------------
-+ * Gen3 CHSEL manipulation
-+ */
-+
-+void rvin_set_chsel(struct rvin_dev *vin, u8 chsel)
-+{
-+	u32 ifmd, vnmc;
-+
-+	pm_runtime_get_sync(vin->dev);
-+
-+	/* Make register writes take effect immediately */
-+	vnmc = rvin_read(vin, VNMC_REG) & ~VNMC_VUP;
-+	rvin_write(vin, vnmc, VNMC_REG);
-+
-+	ifmd = VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
-+		VNCSI_IFMD_CSI_CHSEL(chsel);
-+
-+	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
-+
-+	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
-+
-+	pm_runtime_put(vin->dev);
-+}
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index a440effe4b86af31..7819c760c2c13422 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -163,4 +163,6 @@ void rvin_v4l2_unregister(struct rvin_dev *vin);
- 
- const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
- 
-+void rvin_set_chsel(struct rvin_dev *vin, u8 chsel);
-+
- #endif
+ 		rem = of_graph_get_remote_port_parent(epn);
+ 		if (!rem) {
 -- 
-2.15.0
+2.13.6
