@@ -1,238 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:54606 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752728AbdK2ToP (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40412 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754516AbdKANb0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 14:44:15 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Subject: [PATCH v8 26/28] rcar-vin: enable support for r8a7795
-Date: Wed, 29 Nov 2017 20:43:40 +0100
-Message-Id: <20171129194342.26239-27-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+        Wed, 1 Nov 2017 09:31:26 -0400
+Date: Wed, 1 Nov 2017 15:31:24 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] media: v4l2-fwnode: use a typedef for a function callback
+Message-ID: <20171101133123.aa2qmqjq743d56fj@valkosipuli.retiisi.org.uk>
+References: <e7c1eccf22beb14262e34f47d1867dde93676a58.1509542559.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e7c1eccf22beb14262e34f47d1867dde93676a58.1509542559.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the SoC specific information for Renesas r8a7795 ES1.x and ES2.0.
+Hi Mauro,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/rcar-vin/Kconfig     |   2 +-
- drivers/media/platform/rcar-vin/rcar-core.c | 150 ++++++++++++++++++++++++++++
- 2 files changed, 151 insertions(+), 1 deletion(-)
+Thanks for the patch.
 
-diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
-index af4c98b44d2e22cb..8fa7ee468c63afb9 100644
---- a/drivers/media/platform/rcar-vin/Kconfig
-+++ b/drivers/media/platform/rcar-vin/Kconfig
-@@ -6,7 +6,7 @@ config VIDEO_RCAR_VIN
- 	select V4L2_FWNODE
- 	---help---
- 	  Support for Renesas R-Car Video Input (VIN) driver.
--	  Supports R-Car Gen2 SoCs.
-+	  Supports R-Car Gen2 and Gen3 SoCs.
- 
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called rcar-vin.
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 456f93d60b40fb80..9da5aff33fd224f2 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -21,6 +21,7 @@
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/slab.h>
-+#include <linux/sys_soc.h>
- 
- #include <media/v4l2-async.h>
- #include <media/v4l2-fwnode.h>
-@@ -956,6 +957,134 @@ static const struct rvin_info rcar_info_gen2 = {
- 	.max_height = 2048,
- };
- 
-+static const struct rvin_info rcar_info_r8a7795 = {
-+	.chip = RCAR_GEN3,
-+	.use_mc = true,
-+	.max_width = 4096,
-+	.max_height = 4096,
-+
-+	.num_chsels = 5,
-+	.chsels = {
-+		{
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI40, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+		}, {
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI41, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+		},
-+	},
-+};
-+
-+static const struct rvin_info rcar_info_r8a7795es1 = {
-+	.chip = RCAR_GEN3,
-+	.use_mc = true,
-+	.max_width = 4096,
-+	.max_height = 4096,
-+
-+	.num_chsels = 6,
-+	.chsels = {
-+		{
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+			{ .csi = RVIN_CSI21, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+			{ .csi = RVIN_CSI40, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+			{ .csi = RVIN_CSI21, .chan = 3 },
-+		}, {
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+			{ .csi = RVIN_CSI21, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+			{ .csi = RVIN_CSI41, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+			{ .csi = RVIN_CSI21, .chan = 3 },
-+		},
-+	},
-+};
-+
- static const struct of_device_id rvin_of_id_table[] = {
- 	{
- 		.compatible = "renesas,vin-r8a7778",
-@@ -985,12 +1114,25 @@ static const struct of_device_id rvin_of_id_table[] = {
- 		.compatible = "renesas,rcar-gen2-vin",
- 		.data = &rcar_info_gen2,
- 	},
-+	{
-+		.compatible = "renesas,vin-r8a7795",
-+		.data = &rcar_info_r8a7795,
-+	},
- 	{ },
- };
- MODULE_DEVICE_TABLE(of, rvin_of_id_table);
- 
-+static const struct soc_device_attribute r8a7795es1[] = {
-+	{
-+		.soc_id = "r8a7795", .revision = "ES1.*",
-+		.data = &rcar_info_r8a7795es1,
-+	},
-+	{ /* sentinel */ }
-+};
-+
- static int rcar_vin_probe(struct platform_device *pdev)
- {
-+	const struct soc_device_attribute *attr;
- 	struct rvin_dev *vin;
- 	struct resource *mem;
- 	int irq, ret;
-@@ -1002,6 +1144,14 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	vin->dev = &pdev->dev;
- 	vin->info = of_device_get_match_data(&pdev->dev);
- 
-+	/*
-+	 * Special care is needed on r8a7795 ES1.x since it
-+	 * uses different routing than r8a7795 ES2.0.
-+	 */
-+	attr = soc_device_match(r8a7795es1);
-+	if (attr)
-+		vin->info = attr->data;
-+
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (mem == NULL)
- 		return -EINVAL;
+There's btw. something unexpected in the To header that mutt doesn't handle
+well; the end result is that the mail, by default, will be addressed to the
+sender (you) only. That has likely been the reason why the list (as well as
+other recipients) have been occasionally dropped.
+
+Please see my comments below.
+
+On Wed, Nov 01, 2017 at 09:22:50AM -0400, Mauro Carvalho Chehab wrote:
+> That allows having a kernel-doc markup for the function
+> prototype. It also prevents the need of describing the
+> return values twice.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  include/media/v4l2-fwnode.h | 37 +++++++++++++++++++++++--------------
+>  1 file changed, 23 insertions(+), 14 deletions(-)
+> 
+> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+> index ca50108dfd8f..9b04692e4fde 100644
+> --- a/include/media/v4l2-fwnode.h
+> +++ b/include/media/v4l2-fwnode.h
+> @@ -203,6 +203,27 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
+>   */
+>  void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
+>  
+> +
+> +/**
+> + * typedef parse_endpoint_fnc - Driver's callback function to be called on
+> + *	each V4L2 fwnode endpoint.
+> + *
+> + * @dev: pointer to &struct device
+> + * @vep: pointer to &struct v4l2_fwnode_endpoint
+> + * @asd: pointer to &struct v4l2_async_subdev
+> + *
+> + * Return:
+> + * * %0 on success
+> + * * %-ENOTCONN if the endpoint is to be skipped but this
+> + *   should not be considered as an error
+> + * * %-EINVAL if the endpoint configuration is invalid
+> + */
+> +
+> +typedef	int (*parse_endpoint_fnc)(struct device *dev,
+> +			        struct v4l2_fwnode_endpoint *vep,
+> +			        struct v4l2_async_subdev *asd);
+> +
+> +
+
+Extra newline. I'd call the typedef parse_endpoint_func; dropping the "u"
+doesn't really shorten it much, just makes it look odd IMO.
+
+With that,
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+>  /**
+>   * v4l2_async_notifier_parse_fwnode_endpoints - Parse V4L2 fwnode endpoints in a
+>   *						device node
+> @@ -215,10 +236,6 @@ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
+>   *		     begin at the same memory address.
+>   * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
+>   *		    endpoint. Optional.
+> - *		    Return: %0 on success
+> - *			    %-ENOTCONN if the endpoint is to be skipped but this
+> - *				       should not be considered as an error
+> - *			    %-EINVAL if the endpoint configuration is invalid
+>   *
+>   * Parse the fwnode endpoints of the @dev device and populate the async sub-
+>   * devices array of the notifier. The @parse_endpoint callback function is
+> @@ -253,9 +270,7 @@ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
+>  int v4l2_async_notifier_parse_fwnode_endpoints(
+>  	struct device *dev, struct v4l2_async_notifier *notifier,
+>  	size_t asd_struct_size,
+> -	int (*parse_endpoint)(struct device *dev,
+> -			      struct v4l2_fwnode_endpoint *vep,
+> -			      struct v4l2_async_subdev *asd));
+> +	parse_endpoint_fnc parse_endpoint);
+>  
+>  /**
+>   * v4l2_async_notifier_parse_fwnode_endpoints_by_port - Parse V4L2 fwnode
+> @@ -271,10 +286,6 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
+>   * @port: port number where endpoints are to be parsed
+>   * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
+>   *		    endpoint. Optional.
+> - *		    Return: %0 on success
+> - *			    %-ENOTCONN if the endpoint is to be skipped but this
+> - *				       should not be considered as an error
+> - *			    %-EINVAL if the endpoint configuration is invalid
+>   *
+>   * This function is just like v4l2_async_notifier_parse_fwnode_endpoints() with
+>   * the exception that it only parses endpoints in a given port. This is useful
+> @@ -315,9 +326,7 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
+>  int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+>  	struct device *dev, struct v4l2_async_notifier *notifier,
+>  	size_t asd_struct_size, unsigned int port,
+> -	int (*parse_endpoint)(struct device *dev,
+> -			      struct v4l2_fwnode_endpoint *vep,
+> -			      struct v4l2_async_subdev *asd));
+> +	parse_endpoint_fnc parse_endpoint);
+>  
+>  /**
+>   * v4l2_fwnode_reference_parse_sensor_common - parse common references on
+> -- 
+> 2.13.6
+> 
+
 -- 
-2.15.0
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
