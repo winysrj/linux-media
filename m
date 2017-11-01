@@ -1,53 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:33118 "EHLO
-        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751244AbdKVMxR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Nov 2017 07:53:17 -0500
-MIME-Version: 1.0
-In-Reply-To: <1510856571-30281-3-git-send-email-fabrizio.castro@bp.renesas.com>
-References: <1510856571-30281-1-git-send-email-fabrizio.castro@bp.renesas.com> <1510856571-30281-3-git-send-email-fabrizio.castro@bp.renesas.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Wed, 22 Nov 2017 13:53:15 +0100
-Message-ID: <CAMuHMdWeP0NUoOxxnN0NQUf84Js76tq5c=_JgHRA6MngPPs1tg@mail.gmail.com>
-Subject: Re: [PATCH v2 2/4] dt-bindings: media: rcar_vin: add device tree
- support for r8a774[35]
-To: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+Received: from osg.samsung.com ([64.30.133.232]:37695 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933262AbdKAVGM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Nov 2017 17:06:12 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Simon Horman <horms+renesas@verge.net.au>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Biju Das <biju.das@bp.renesas.com>
-Content-Type: text/plain; charset="UTF-8"
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH v2 06/26] media: xc5000: better handle I2C error messages
+Date: Wed,  1 Nov 2017 17:05:43 -0400
+Message-Id: <2849e18196b46bf89516ee5c9077c7f0468e89ed.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 16, 2017 at 7:22 PM, Fabrizio Castro
-<fabrizio.castro@bp.renesas.com> wrote:
-> Add compatible strings for r8a7743 and r8a7745. No driver change
-> is needed as "renesas,rcar-gen2-vin" will activate the right code.
-> However, it is good practice to document compatible strings for the
-> specific SoC as this allows SoC specific changes to the driver if
-> needed, in addition to document SoC support and therefore allow
-> checkpatch.pl to validate compatible string values.
->
-> Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-> Reviewed-by: Biju Das <biju.das@bp.renesas.com>
+As warned by smatch, there are several places where the I2C
+transfer may fail, leading into inconsistent behavior:
 
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+	drivers/media/tuners/xc5000.c:689 xc_debug_dump() error: uninitialized symbol 'regval'.
+	drivers/media/tuners/xc5000.c:841 xc5000_is_firmware_loaded() error: uninitialized symbol 'id'.
+	drivers/media/tuners/xc5000.c:939 xc5000_set_tv_freq() error: uninitialized symbol 'pll_lock_status'.
+	drivers/media/tuners/xc5000.c:1195 xc_load_fw_and_init_tuner() error: uninitialized symbol 'pll_lock_status'.
 
-Gr{oetje,eeting}s,
+Handle the return codes from the I2C transfer, in order to
+address those issues.
 
-                        Geert
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/tuners/xc5000.c | 22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
+index 0e7e4fdf9e50..98ba177dbc29 100644
+--- a/drivers/media/tuners/xc5000.c
++++ b/drivers/media/tuners/xc5000.c
+@@ -685,8 +685,8 @@ static void xc_debug_dump(struct xc5000_priv *priv)
+ 		(totalgain % 256) * 100 / 256);
+ 
+ 	if (priv->pll_register_no) {
+-		xc5000_readreg(priv, priv->pll_register_no, &regval);
+-		dprintk(1, "*** PLL lock status = 0x%04x\n", regval);
++		if (!xc5000_readreg(priv, priv->pll_register_no, &regval))
++			dprintk(1, "*** PLL lock status = 0x%04x\n", regval);
+ 	}
+ }
+ 
+@@ -831,15 +831,16 @@ static int xc5000_is_firmware_loaded(struct dvb_frontend *fe)
+ 	u16 id;
+ 
+ 	ret = xc5000_readreg(priv, XREG_PRODUCT_ID, &id);
+-	if (ret == 0) {
++	if (!ret) {
+ 		if (id == XC_PRODUCT_ID_FW_NOT_LOADED)
+ 			ret = -ENOENT;
+ 		else
+ 			ret = 0;
++		dprintk(1, "%s() returns id = 0x%x\n", __func__, id);
++	} else {
++		dprintk(1, "%s() returns error %d\n", __func__, ret);
+ 	}
+ 
+-	dprintk(1, "%s() returns %s id = 0x%x\n", __func__,
+-		ret == 0 ? "True" : "False", id);
+ 	return ret;
+ }
+ 
+@@ -935,7 +936,10 @@ static int xc5000_set_tv_freq(struct dvb_frontend *fe)
+ 
+ 	if (priv->pll_register_no != 0) {
+ 		msleep(20);
+-		xc5000_readreg(priv, priv->pll_register_no, &pll_lock_status);
++		ret = xc5000_readreg(priv, priv->pll_register_no,
++				     &pll_lock_status);
++		if (ret)
++			return ret;
+ 		if (pll_lock_status > 63) {
+ 			/* PLL is unlocked, force reload of the firmware */
+ 			dprintk(1, "xc5000: PLL not locked (0x%x).  Reloading...\n",
+@@ -1190,8 +1194,10 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe, int force)
+ 		}
+ 
+ 		if (priv->pll_register_no) {
+-			xc5000_readreg(priv, priv->pll_register_no,
+-				       &pll_lock_status);
++			ret = xc5000_readreg(priv, priv->pll_register_no,
++					     &pll_lock_status);
++			if (ret)
++				continue;
+ 			if (pll_lock_status > 63) {
+ 				/* PLL is unlocked, force reload of the firmware */
+ 				printk(KERN_ERR
+-- 
+2.13.6
