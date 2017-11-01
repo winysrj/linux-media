@@ -1,60 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:61464 "EHLO mga07.intel.com"
+Received: from osg.samsung.com ([64.30.133.232]:45223 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755158AbdKIWYN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Nov 2017 17:24:13 -0500
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        hyungwoo.yang@intel.com, chiranjeevi.rapolu@intel.com,
-        jerry.w.hu@intel.com, Yong Zhi <yong.zhi@intel.com>
-Subject: Re: [PATCH v8 3/4] intel-ipu3: cio2: add new MIPI-CSI2 driver
-Date: Thu,  9 Nov 2017 14:25:26 -0800
-Message-Id: <1510266326-15516-1-git-send-email-yong.zhi@intel.com>
+        id S933387AbdKAVGL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Nov 2017 17:06:11 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hyun Kwon <hyun.kwon@xilinx.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        =?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v2 14/26] media: xilinx: fix a debug printk
+Date: Wed,  1 Nov 2017 17:05:51 -0400
+Message-Id: <be86653c5e5641582f65f43780b1fe255e92cdc0.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Sakari,
+Two orthogonal changesets caused a breakage at several printk
+messages inside xilinx. Changeset 859969b38e2e
+("[media] v4l: Switch from V4L2 OF not V4L2 fwnode API")
+made davinci to use struct fwnode_handle instead of
+struct device_node. Changeset 68d9c47b1679
+("media: Convert to using %pOF instead of full_name")
+changed the printk to not use ->full_name, but, instead,
+to rely on %pOF.
 
-Fixed warnings about memset of pointer array and unsigned int used for 0 comparison
-reported by static code analysis tool, please squash this to the driver, thanks!!
+With both patches applied, the Kernel will do the wrong
+thing, as warned by smatch:
+	drivers/media/platform/xilinx/xilinx-vipp.c:108 xvip_graph_build_one() error: '%pOF' expects argument of type 'struct device_node*', argument 4 has type 'void*'
+	drivers/media/platform/xilinx/xilinx-vipp.c:117 xvip_graph_build_one() error: '%pOF' expects argument of type 'struct device_node*', argument 4 has type 'void*'
+	drivers/media/platform/xilinx/xilinx-vipp.c:126 xvip_graph_build_one() error: '%pOF' expects argument of type 'struct device_node*', argument 4 has type 'void*'
+	drivers/media/platform/xilinx/xilinx-vipp.c:138 xvip_graph_build_one() error: '%pOF' expects argument of type 'struct device_node*', argument 3 has type 'void*'
+	drivers/media/platform/xilinx/xilinx-vipp.c:148 xvip_graph_build_one() error: '%pOF' expects argument of type 'struct device_node*', argument 4 has type 'void*'
+	drivers/media/platform/xilinx/xilinx-vipp.c:245 xvip_graph_build_dma() error: '%pOF' expects argument of type 'struct device_node*', argument 3 has type 'void*'
+	drivers/media/platform/xilinx/xilinx-vipp.c:254 xvip_graph_build_dma() error: '%pOF' expects argument of type 'struct device_node*', argument 4 has type 'void*'
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+So, change the logic to actually print the device name
+that was obtained before the print logic.
+
+Fixes: 68d9c47b1679 ("media: Convert to using %pOF instead of full_name")
+Fixes: 859969b38e2e ("[media] v4l: Switch from V4L2 OF not V4L2 fwnode API")
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/pci/intel/ipu3/ipu3-cio2.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/platform/xilinx/xilinx-vipp.c | 31 ++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-index 39d89ee..4295bdb 100644
---- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-+++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-@@ -842,7 +842,7 @@ static int cio2_vb2_buf_init(struct vb2_buffer *vb)
- 	unsigned int lops = DIV_ROUND_UP(pages + 1, entries_per_page);
- 	struct sg_table *sg;
- 	struct sg_page_iter sg_iter;
--	unsigned int i, j;
-+	int i, j;
+diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
+index d881cf09876d..dd777c834c43 100644
+--- a/drivers/media/platform/xilinx/xilinx-vipp.c
++++ b/drivers/media/platform/xilinx/xilinx-vipp.c
+@@ -65,6 +65,9 @@ xvip_graph_find_entity(struct xvip_composite_device *xdev,
+ 	return NULL;
+ }
  
- 	if (lops <= 0 || lops > CIO2_MAX_LOPS) {
- 		dev_err(dev, "%s: bad buffer size (%i)\n", __func__,
-@@ -850,7 +850,7 @@ static int cio2_vb2_buf_init(struct vb2_buffer *vb)
- 		return -ENOSPC;		/* Should never happen */
- 	}
++#define LOCAL_NAME(link)	to_of_node(link.local_node)->full_name
++#define REMOTE_NAME(link)	to_of_node(link.remote_node)->full_name
++
+ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
+ 				struct xvip_graph_entity *entity)
+ {
+@@ -103,9 +106,9 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
+ 		 * the link.
+ 		 */
+ 		if (link.local_port >= local->num_pads) {
+-			dev_err(xdev->dev, "invalid port number %u for %pOF\n",
++			dev_err(xdev->dev, "invalid port number %u for %s\n",
+ 				link.local_port,
+-				to_of_node(link.local_node));
++				LOCAL_NAME(link));
+ 			v4l2_fwnode_put_link(&link);
+ 			ret = -EINVAL;
+ 			break;
+@@ -114,8 +117,8 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
+ 		local_pad = &local->pads[link.local_port];
  
--	memset(b->lop, 0, sizeof(*b->lop));
-+	memset(b->lop, 0, sizeof(b->lop));
- 	/* Allocate LOP table */
- 	for (i = 0; i < lops; i++) {
- 		b->lop[i] = dma_alloc_coherent(dev, CIO2_PAGE_SIZE,
-@@ -880,7 +880,7 @@ static int cio2_vb2_buf_init(struct vb2_buffer *vb)
- 	b->lop[i][j] = cio2->dummy_page_bus_addr >> PAGE_SHIFT;
- 	return 0;
- fail:
--	for (; i >= 0; i--)
-+	for (i--; i >= 0; i--)
- 		dma_free_coherent(dev, CIO2_PAGE_SIZE,
- 				  b->lop[i], b->lop_bus_addr[i]);
- 	return -ENOMEM;
+ 		if (local_pad->flags & MEDIA_PAD_FL_SINK) {
+-			dev_dbg(xdev->dev, "skipping sink port %pOF:%u\n",
+-				to_of_node(link.local_node),
++			dev_dbg(xdev->dev, "skipping sink port %s:%u\n",
++				LOCAL_NAME(link),
+ 				link.local_port);
+ 			v4l2_fwnode_put_link(&link);
+ 			continue;
+@@ -123,8 +126,8 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
+ 
+ 		/* Skip DMA engines, they will be processed separately. */
+ 		if (link.remote_node == of_fwnode_handle(xdev->dev->of_node)) {
+-			dev_dbg(xdev->dev, "skipping DMA port %pOF:%u\n",
+-				to_of_node(link.local_node),
++			dev_dbg(xdev->dev, "skipping DMA port %s:%u\n",
++				REMOTE_NAME(link),
+ 				link.local_port);
+ 			v4l2_fwnode_put_link(&link);
+ 			continue;
+@@ -134,8 +137,8 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
+ 		ent = xvip_graph_find_entity(xdev,
+ 					     to_of_node(link.remote_node));
+ 		if (ent == NULL) {
+-			dev_err(xdev->dev, "no entity found for %pOF\n",
+-				to_of_node(link.remote_node));
++			dev_err(xdev->dev, "no entity found for %s\n",
++				REMOTE_NAME(link));
+ 			v4l2_fwnode_put_link(&link);
+ 			ret = -ENODEV;
+ 			break;
+@@ -144,8 +147,8 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
+ 		remote = ent->entity;
+ 
+ 		if (link.remote_port >= remote->num_pads) {
+-			dev_err(xdev->dev, "invalid port number %u on %pOF\n",
+-				link.remote_port, to_of_node(link.remote_node));
++			dev_err(xdev->dev, "invalid port number %u on %s\n",
++				link.remote_port, REMOTE_NAME(link));
+ 			v4l2_fwnode_put_link(&link);
+ 			ret = -EINVAL;
+ 			break;
+@@ -241,17 +244,17 @@ static int xvip_graph_build_dma(struct xvip_composite_device *xdev)
+ 		ent = xvip_graph_find_entity(xdev,
+ 					     to_of_node(link.remote_node));
+ 		if (ent == NULL) {
+-			dev_err(xdev->dev, "no entity found for %pOF\n",
+-				to_of_node(link.remote_node));
++			dev_err(xdev->dev, "no entity found for %s\n",
++				REMOTE_NAME(link));
+ 			v4l2_fwnode_put_link(&link);
+ 			ret = -ENODEV;
+ 			break;
+ 		}
+ 
+ 		if (link.remote_port >= ent->entity->num_pads) {
+-			dev_err(xdev->dev, "invalid port number %u on %pOF\n",
++			dev_err(xdev->dev, "invalid port number %u on %s\n",
+ 				link.remote_port,
+-				to_of_node(link.remote_node));
++				REMOTE_NAME(link));
+ 			v4l2_fwnode_put_link(&link);
+ 			ret = -EINVAL;
+ 			break;
 -- 
-1.9.1
+2.13.6
