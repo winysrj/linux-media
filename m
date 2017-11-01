@@ -1,76 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:40792 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751702AbdKVFcb (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38468 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754372AbdKAJn3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Nov 2017 00:32:31 -0500
-From: Sinan Kaya <okaya@codeaurora.org>
-To: linux-pci@vger.kernel.org, timur@codeaurora.org
-Cc: linux-arm-msm@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        Sinan Kaya <okaya@codeaurora.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        kbuild test robot <fengguang.wu@intel.com>,
-        Arushi Singhal <arushisinghal19971997@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Avraham Shukron <avraham.shukron@gmail.com>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Valentin Vidic <Valentin.Vidic@CARNet.hr>,
-        linux-media@vger.kernel.org (open list:MEDIA INPUT INFRASTRUCTURE
-        (V4L/DVB)),
-        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH 23/30] [media] atomisp: deprecate pci_get_bus_and_slot()
-Date: Wed, 22 Nov 2017 00:31:08 -0500
-Message-Id: <1511328675-21981-24-git-send-email-okaya@codeaurora.org>
-In-Reply-To: <1511328675-21981-1-git-send-email-okaya@codeaurora.org>
-References: <1511328675-21981-1-git-send-email-okaya@codeaurora.org>
+        Wed, 1 Nov 2017 05:43:29 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: leonl@leopardimaging.com
+Subject: [PATCH 1/1] imx274: Fix error handling, add MAINTAINERS entry
+Date: Wed,  1 Nov 2017 11:43:27 +0200
+Message-Id: <20171101094327.7702-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pci_get_bus_and_slot() is restrictive such that it assumes domain=0 as
-where a PCI device is present. This restricts the device drivers to be
-reused for other domain numbers.
+Add the missing MAINTAINERS entry for imx274, fix error handling in driver
+probe and unregister the correct control handler in driver remove.
 
-Use pci_get_domain_bus_and_slot() with a domain number of 0 where we can't
-extract the domain number. Other places, use the actual domain number from
-the device.
-
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c               | 2 +-
- drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+The earlier version of the imx274 patchset got merged, this is the diff
+between what was merged and what was intended.
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-index 663aa91..95b9c7a 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-@@ -1233,7 +1233,7 @@ static int atomisp_pci_probe(struct pci_dev *dev,
- 	isp->pdev = dev;
- 	isp->dev = &dev->dev;
- 	isp->sw_contex.power_state = ATOM_ISP_POWER_UP;
--	isp->pci_root = pci_get_bus_and_slot(0, 0);
-+	isp->pci_root = pci_get_domain_bus_and_slot(0, 0, 0);
- 	if (!isp->pci_root) {
- 		dev_err(&dev->dev, "Unable to find PCI host\n");
- 		return -ENODEV;
-diff --git a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
-index 4631b1d..51dcef57 100644
---- a/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
-+++ b/drivers/staging/media/atomisp/platform/intel-mid/intel_mid_pcihelpers.c
-@@ -39,7 +39,7 @@ static inline int platform_is(u8 model)
+ MAINTAINERS                | 8 ++++++++
+ drivers/media/i2c/imx274.c | 5 ++---
+ 2 files changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index adbf69306e9e..a50dc70ae30b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -12494,6 +12494,14 @@ S:	Maintained
+ F:	drivers/ssb/
+ F:	include/linux/ssb/
  
- static int intel_mid_msgbus_init(void)
- {
--	pci_root = pci_get_bus_and_slot(0, PCI_DEVFN(0, 0));
-+	pci_root = pci_get_domain_bus_and_slot(0, 0, PCI_DEVFN(0, 0));
- 	if (!pci_root) {
- 		pr_err("%s: Error: msgbus PCI handle NULL\n", __func__);
- 		return -ENODEV;
++SONY IMX274 SENSOR DRIVER
++M:	Leon Luo <leonl@leopardimaging.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/i2c/imx274.c
++F:	Documentation/devicetree/bindings/media/i2c/imx274.txt
++
+ SONY MEMORYSTICK CARD SUPPORT
+ M:	Alex Dubov <oakad@yahoo.com>
+ W:	http://tifmxx.berlios.de/
+diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
+index ab6a5f31da74..737dbf59a0d2 100644
+--- a/drivers/media/i2c/imx274.c
++++ b/drivers/media/i2c/imx274.c
+@@ -1770,8 +1770,7 @@ static int imx274_probe(struct i2c_client *client,
+ 	return 0;
+ 
+ err_ctrls:
+-	v4l2_async_unregister_subdev(sd);
+-	v4l2_ctrl_handler_free(sd->ctrl_handler);
++	v4l2_ctrl_handler_free(&imx274->ctrls.handler);
+ err_me:
+ 	media_entity_cleanup(&sd->entity);
+ err_regmap:
+@@ -1788,7 +1787,7 @@ static int imx274_remove(struct i2c_client *client)
+ 	imx274_write_table(imx274, mode_table[IMX274_MODE_STOP_STREAM]);
+ 
+ 	v4l2_async_unregister_subdev(sd);
+-	v4l2_ctrl_handler_free(sd->ctrl_handler);
++	v4l2_ctrl_handler_free(&imx274->ctrls.handler);
+ 	media_entity_cleanup(&sd->entity);
+ 	mutex_destroy(&imx274->lock);
+ 	return 0;
 -- 
-1.9.1
+2.11.0
