@@ -1,75 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:13263 "EHLO mga02.intel.com"
+Received: from osg.samsung.com ([64.30.133.232]:33655 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755436AbdKNOLD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Nov 2017 09:11:03 -0500
-Date: Tue, 14 Nov 2017 16:10:57 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
-Cc: Alan <alan@linux.intel.com>, vincent.hervieux@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] atomisp: fix vfree of bogus data on unload
-Message-ID: <20171114141057.e3twr7ubztzd7t4m@kekkonen.localdomain>
-References: <151001137594.77201.4306351721772580664.stgit@alans-desktop>
- <151001140261.77201.8823780763771880199.stgit@alans-desktop>
- <20171113220548.ji4z4e5neehxg4wn@kekkonen.localdomain>
- <20171114001601.4d51d230@alans-desktop>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171114001601.4d51d230@alans-desktop>
+        id S933417AbdKAVGL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Nov 2017 17:06:11 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 12/26] media: davinci: fix a debug printk
+Date: Wed,  1 Nov 2017 17:05:49 -0400
+Message-Id: <c0f1eacb1871395845a89668f18a6663c9dabbfd.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 14, 2017 at 12:16:01AM +0000, Alan Cox wrote:
-> On Tue, 14 Nov 2017 00:05:48 +0200
-> Sakari Ailus <sakari.ailus@linux.intel.com> wrote:
-> 
-> > Hi Alan,
-> > 
-> > On Mon, Nov 06, 2017 at 11:36:45PM +0000, Alan wrote:
-> > > We load the firmware once, set pointers to it and then at some point release
-> > > it. We should not be doing a vfree() on the pointers into the firmware.
-> > > 
-> > > Signed-off-by: Alan Cox <alan@linux.intel.com>
-> > > ---
-> > >  .../atomisp/pci/atomisp2/css2400/sh_css_firmware.c |    2 --
-> > >  1 file changed, 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-> > > index 8158ea40d069..f181bd8fcee2 100644
-> > > --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-> > > +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-> > > @@ -288,8 +288,6 @@ void sh_css_unload_firmware(void)
-> > >  		for (i = 0; i < sh_css_num_binaries; i++) {
-> > >  			if (fw_minibuffer[i].name)
-> > >  				kfree((void *)fw_minibuffer[i].name);
-> > > -			if (fw_minibuffer[i].buffer)
-> > > -				vfree((void *)fw_minibuffer[i].buffer);  
-> > 
-> > You shouldn't end up here if the firmware is just loaded once. If multiple
-> > times, then yes.
-> 
-> You end up there when unloading the module.
+Two orthogonal changesets caused a breakage at a printk
+inside davinci. Changeset a2d17962c9ca
+("[media] davinci: Switch from V4L2 OF to V4L2 fwnode")
+made davinci to use struct fwnode_handle instead of
+struct device_node. Changeset 68d9c47b1679
+("media: Convert to using %pOF instead of full_name")
+changed the printk to not use ->full_name, but, instead,
+to rely on %pOF.
 
-Ah, that's for sure indeed. I thought loading would be already a challenge.
-:-)
+With both patches applied, the Kernel will do the wrong
+thing, as warned by smatch:
+	drivers/media/platform/davinci/vpif_capture.c:1399 vpif_async_bound() error: '%pOF' expects argument of type 'struct device_node*', argument 5 has type 'void*'
 
-> 
-> > The memory appears to have been allocated using kmalloc() in some cases.
-> > How about kvfree(), or changing that kmalloc() to vmalloc()
-> 
-> I'll take a deeper look at what is going on.
+So, change the logic to actually print the device name
+that was obtained before the print logic.
 
-Look for minibuffer in sh_css_load_blob_info(). The buffer field of the
-struct is allocated using kmalloc, I wonder if changing that to vmalloc
-would just address this.
+Fixes: 68d9c47b1679 ("media: Convert to using %pOF instead of full_name")
+Fixes: a2d17962c9ca ("[media] davinci: Switch from V4L2 OF to V4L2 fwnode")
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-The buffer is elsewhere allocated using vmalloc. I suspect that some of the
-cleanup patches changed how this works but missed changing the other one.
-
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index a89367ab1e06..1a443181a320 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -1397,9 +1397,9 @@ static int vpif_async_bound(struct v4l2_async_notifier *notifier,
+ 			vpif_obj.config->chan_config->inputs[i].subdev_name =
+ 				(char *)to_of_node(subdev->fwnode)->full_name;
+ 			vpif_dbg(2, debug,
+-				 "%s: setting input %d subdev_name = %pOF\n",
++				 "%s: setting input %d subdev_name = %s\n",
+ 				 __func__, i,
+-				 to_of_node(subdev->fwnode));
++				vpif_obj.config->chan_config->inputs[i].subdev_name);
+ 			return 0;
+ 		}
+ 	}
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.13.6
