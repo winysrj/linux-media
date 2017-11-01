@@ -1,47 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42604 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932594AbdKPAd4 (ORCPT
+Received: from fw-tnat.cambridge.arm.com ([217.140.96.140]:56968 "EHLO
+        cam-smtp0.cambridge.arm.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754562AbdKAPKa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 19:33:56 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH/RFC 2/2] v4l: rcar-vin: Wait for device access to complete before unplugging
-Date: Thu, 16 Nov 2017 02:33:49 +0200
-Message-Id: <20171116003349.19235-3-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com>
+        Wed, 1 Nov 2017 11:10:30 -0400
+From: Liviu Dudau <Liviu.Dudau@arm.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Linux Media ML <linux-media@vger.kernel.org>,
+        DRI-devel <dri-devel@lists.freedesktop.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Liviu Dudau <liviu.dudau@arm.com>
+Subject: [PATCH] dma-buf: Cleanup comments on dma_buf_map_attachment()
+Date: Wed,  1 Nov 2017 14:06:30 +0000
+Message-Id: <20171101140630.2884-1-Liviu.Dudau@arm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To avoid races between device access and unplug, call the
-video_device_unplug() function in the platform driver remove handler.
-This will unsure that all device access completes before the remove
-handler proceeds to free resources.
+Mappings need to be unmapped by calling dma_buf_unmap_attachment() and
+not by calling again dma_buf_map_attachment(). Also fix some spelling
+mistakes.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Liviu Dudau <liviu.dudau@arm.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/dma-buf/dma-buf.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index bd7976efa1fb..c5210f1d09ed 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -1273,6 +1273,7 @@ static int rcar_vin_remove(struct platform_device *pdev)
- 
- 	pm_runtime_disable(&pdev->dev);
- 
-+	video_device_unplug(&vin->vdev);
- 
- 	if (!vin->info->use_mc) {
- 		v4l2_async_notifier_unregister(&vin->notifier);
+diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+index bc1cb284111cb..1792385405f0e 100644
+--- a/drivers/dma-buf/dma-buf.c
++++ b/drivers/dma-buf/dma-buf.c
+@@ -351,13 +351,13 @@ static inline int is_dma_buf_file(struct file *file)
+  *
+  * 2. Userspace passes this file-descriptors to all drivers it wants this buffer
+  *    to share with: First the filedescriptor is converted to a &dma_buf using
+- *    dma_buf_get(). The the buffer is attached to the device using
++ *    dma_buf_get(). Then the buffer is attached to the device using
+  *    dma_buf_attach().
+  *
+  *    Up to this stage the exporter is still free to migrate or reallocate the
+  *    backing storage.
+  *
+- * 3. Once the buffer is attached to all devices userspace can inniate DMA
++ * 3. Once the buffer is attached to all devices userspace can initiate DMA
+  *    access to the shared buffer. In the kernel this is done by calling
+  *    dma_buf_map_attachment() and dma_buf_unmap_attachment().
+  *
+@@ -617,7 +617,7 @@ EXPORT_SYMBOL_GPL(dma_buf_detach);
+  * Returns sg_table containing the scatterlist to be returned; returns ERR_PTR
+  * on error. May return -EINTR if it is interrupted by a signal.
+  *
+- * A mapping must be unmapped again using dma_buf_map_attachment(). Note that
++ * A mapping must be unmapped by using dma_buf_unmap_attachment(). Note that
+  * the underlying backing storage is pinned for as long as a mapping exists,
+  * therefore users/importers should not hold onto a mapping for undue amounts of
+  * time.
 -- 
-Regards,
-
-Laurent Pinchart
+2.14.3
