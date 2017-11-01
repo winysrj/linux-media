@@ -1,68 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:37150 "EHLO
-        shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751731AbdKWBqb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Nov 2017 20:46:31 -0500
-Message-ID: <1511401568.14687.13.camel@decadent.org.uk>
-Subject: Re: [PATCH 1/1] s2255drv: f2255usb: firmware version 1.2.8
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Dean Anderson <dean@sensoray.com>, linux-firmware@kernel.org,
-        linux-dev@sensoray.com
-Cc: linux-media <linux-media@vger.kernel.org>
-Date: Thu, 23 Nov 2017 01:46:08 +0000
-In-Reply-To: <20171103203339.GA23968@sensoray.com>
-References: <20171103203339.GA23968@sensoray.com>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-        protocol="application/pgp-signature"; boundary="=-vaqCLTB9985Saza0YLBs"
-Mime-Version: 1.0
+Received: from osg.samsung.com ([64.30.133.232]:44139 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753855AbdKAMQV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Nov 2017 08:16:21 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH] [RFC] media: camss-vfe: always initialize reg at vfe_set_xbar_cfg()
+Date: Wed,  1 Nov 2017 08:16:11 -0400
+Message-Id: <20e982c47af6eafe58274fa299ec587b2fb91d32.1509538566.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+if output->wm_num is bigger than 1, the value for reg is
+not initialized, as warned by smatch:
+	drivers/media/platform/qcom/camss-8x16/camss-vfe.c:633 vfe_set_xbar_cfg() error: uninitialized symbol 'reg'.
+	drivers/media/platform/qcom/camss-8x16/camss-vfe.c:637 vfe_set_xbar_cfg() error: uninitialized symbol 'reg'.
 
---=-vaqCLTB9985Saza0YLBs
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I didn't check the logic into its details, but there is at least
+one point where wm_num is made equal to two. So, something
+seem broken.
 
-On Fri, 2017-11-03 at 13:33 -0700, Dean Anderson wrote:
-> Updates the firmware for the s2255drv driver.
-> Adds support for NTSC4.43, horizontal/vertical adjustments and
-> Motion JPEG capture mode improvements.
->=20
-> Signed-off-by: Dean Anderson <dean@sensoray.com>
-> ---
->  f2255usb.bin | Bin 180776 -> 181312 bytes
->  1 file changed, 0 insertions(+), 0 deletions(-)
-[...]
+For now, I just reset it to zero, and added a FIXME. Hopefully,
+the driver authors will know if this is OK, or if something else
+is needed there.
 
-Applied, thanks.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/qcom/camss-8x16/camss-vfe.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Ben.
-
---=20
-Ben Hutchings
-When in doubt, use brute force. - Ken Thompson
-
-
---=-vaqCLTB9985Saza0YLBs
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEErCspvTSmr92z9o8157/I7JWGEQkFAloWKGAACgkQ57/I7JWG
-EQkBUQ/9EJ0VR86Qiulh3PicwhTlsH/CLwNHJsrpneW+B7sfGvkqTZoM2UGTk9+Q
-MQMygjFNeTuCHeIT7UAevzSgOoLNt40GoNjv1ZVcDIvJNEUcFp4QOpaONWTnmAX5
-CC02SzzahgikUAh8fvpTdVmoBaPumr3ypxMTw3Xf3Y+1smA8QzknHxQPs8AmnlVR
-SFTXGzK3ja0R/KK7cC8PcJSxnhuettny4SAWj34JeBgJddOXajkR6I0HYPu3CLRE
-y1G/ty5St/3tH9Y5tGGyy1CgRstkvrslKPNP6EoDclgMbdpI2SI829tO62EfDXlr
-3WpHvLeyd8HyMZBNap3eyvek314kon2TvMVce36LZUbgdI0qkS+5rT/7b0qXXyTM
-hStjPDO/LxC43+OApvLFU0hZirbM6l8AnRGYc0nCsthgnAN0sYdxeH5cfWmO2NMI
-BNvsvUcJxlR5aNtXL8Pyzmqzq7ISCSN6W/JQmt4wn5RHJ5S1WqWPhIjHTos8HeKZ
-cAov9zw/bpsocNGACzb80J6DRPJZ8bTmrVrJR1jQDemQihO1RMeaP0LjA1KF5aU4
-kFplTTxY0ZEobX+icG7bFdwB1oP1iw++g5Vp8RZucIplqn1DtrPyXtsKqOwUvCGh
-8bPkDalCqqVFYf+WOW+G1D3zIynGbDN2v43WRT5lX03F5aNmNDI=
-=yTbs
------END PGP SIGNATURE-----
-
---=-vaqCLTB9985Saza0YLBs--
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
+index b22d2dfcd3c2..388431f747fa 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
++++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
+@@ -622,6 +622,8 @@ static void vfe_set_xbar_cfg(struct vfe_device *vfe, struct vfe_output *output,
+ 			reg = VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_EN;
+ 			if (p == V4L2_PIX_FMT_NV12 || p == V4L2_PIX_FMT_NV16)
+ 				reg |= VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_SWAP_INTER_INTRA;
++		} else {
++			reg = 0;	/* FIXME: is it the right value for i > 1? */
+ 		}
+ 
+ 		if (output->wm_idx[i] % 2 == 1)
+-- 
+2.13.6
