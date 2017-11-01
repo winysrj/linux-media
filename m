@@ -1,186 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:58196 "EHLO mga05.intel.com"
+Received: from osg.samsung.com ([64.30.133.232]:58318 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754498AbdKAM0C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 08:26:02 -0400
-Date: Wed, 01 Nov 2017 20:25:29 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [ragnatech:media-tree] BUILD SUCCESS
- 1acce5f72cfabcafee5e101b9ac7d71ebe1c7af9
-Message-ID: <59f9bd39.cKmyQrHmfS+BcYOV%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+        id S933381AbdKAVGO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Nov 2017 17:06:14 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Colin Ian King <colin.king@canonical.com>
+Subject: [PATCH v2 16/26] media: drxd_hard: better handle I2C errors
+Date: Wed,  1 Nov 2017 17:05:53 -0400
+Message-Id: <4c70e369e01853324fbe93b6da299323694d789b.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree/branch: git://git.ragnatech.se/linux  media-tree
-branch HEAD: 1acce5f72cfabcafee5e101b9ac7d71ebe1c7af9  media: v4l2-fwnode: use the cached value instead of getting again
+As warned by smatch:
+	drivers/media/dvb-frontends/drxd_hard.c:989 HI_Command() error: uninitialized symbol 'waitCmd'.
+	drivers/media/dvb-frontends/drxd_hard.c:1306 SC_WaitForReady() error: uninitialized symbol 'curCmd'.
+	drivers/media/dvb-frontends/drxd_hard.c:1322 SC_SendCommand() error: uninitialized symbol 'errCode'.
+	drivers/media/dvb-frontends/drxd_hard.c:1339 SC_ProcStartCommand() error: uninitialized symbol 'scExec'.
 
-elapsed time: 173m
+The error handling on several places are somewhat flawed, as
+they don't check if Read16() returns an error.
 
-configs tested: 155
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-frontends/drxd_hard.c | 22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-sh                            titan_defconfig
-sh                          rsk7269_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                                allnoconfig
-i386                   randconfig-x019-201744
-i386                   randconfig-x013-201744
-i386                   randconfig-x014-201744
-i386                   randconfig-x015-201744
-i386                   randconfig-x011-201744
-i386                   randconfig-x018-201744
-i386                   randconfig-x010-201744
-i386                   randconfig-x017-201744
-i386                   randconfig-x012-201744
-i386                   randconfig-x016-201744
-x86_64                 randconfig-x000-201744
-x86_64                 randconfig-x001-201744
-x86_64                 randconfig-x008-201744
-x86_64                 randconfig-x004-201744
-x86_64                 randconfig-x005-201744
-x86_64                 randconfig-x006-201744
-x86_64                 randconfig-x007-201744
-x86_64                 randconfig-x003-201744
-x86_64                 randconfig-x009-201744
-x86_64                 randconfig-x002-201744
-powerpc                             defconfig
-s390                        default_defconfig
-powerpc                       ppc64_defconfig
-powerpc                           allnoconfig
-x86_64                              defconfig
-arm                            u300_defconfig
-powerpc                 canyonlands_defconfig
-alpha                               defconfig
-parisc                            allnoconfig
-parisc                         b180_defconfig
-parisc                        c3000_defconfig
-parisc                              defconfig
-x86_64                 randconfig-x018-201744
-x86_64                 randconfig-x011-201744
-x86_64                 randconfig-x019-201744
-x86_64                 randconfig-x013-201744
-x86_64                 randconfig-x012-201744
-x86_64                 randconfig-x017-201744
-x86_64                 randconfig-x016-201744
-x86_64                 randconfig-x015-201744
-x86_64                 randconfig-x014-201744
-x86_64                 randconfig-x010-201744
-arm                       omap2plus_defconfig
-arm                                    sa1100
-arm                              allmodconfig
-arm                                   samsung
-arm                        mvebu_v7_defconfig
-arm                          ixp4xx_defconfig
-arm                       imx_v6_v7_defconfig
-arm64                            allmodconfig
-arm                           tegra_defconfig
-arm                                      arm5
-arm64                            alldefconfig
-arm                                        sh
-arm                                     arm67
-i386                     randconfig-a0-201744
-i386                     randconfig-a1-201744
-frv                                 defconfig
-mn10300                     asb2364_defconfig
-openrisc                    or1ksim_defconfig
-tile                         tilegx_defconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-cris                 etrax-100lx_v2_defconfig
-blackfin                  TCM-BF537_defconfig
-blackfin            BF561-EZKIT-SMP_defconfig
-blackfin                BF533-EZKIT_defconfig
-blackfin                BF526-EZBRD_defconfig
-arm                          nuc960_defconfig
-arm                         palmz72_defconfig
-mips                malta_kvm_guest_defconfig
-powerpc                     sequoia_defconfig
-powerpc                     tqm8555_defconfig
-i386                              allnoconfig
-i386                                defconfig
-i386                             alldefconfig
-m68k                           sun3_defconfig
-m68k                          multi_defconfig
-m68k                       m5475evb_defconfig
-i386                     randconfig-s0-201744
-i386                     randconfig-s1-201744
-x86_64                           allmodconfig
-i386                             allmodconfig
-x86_64                   randconfig-i0-201744
-sparc                               defconfig
-sparc64                           allnoconfig
-sparc64                             defconfig
-i386                     randconfig-i1-201744
-i386                     randconfig-i0-201744
-m32r                        oaks32r_defconfig
-mips                          lasat_defconfig
-powerpc                 mpc8540_ads_defconfig
-i386                               tinyconfig
-mips                                   jz4740
-mips                      malta_kvm_defconfig
-mips                         64r6el_defconfig
-mips                           32r2_defconfig
-mips                              allnoconfig
-mips                      fuloong2e_defconfig
-mips                                     txx9
-microblaze                      mmu_defconfig
-microblaze                    nommu_defconfig
-c6x                        evmc6678_defconfig
-xtensa                       common_defconfig
-m32r                       m32104ut_defconfig
-score                      spct6600_defconfig
-xtensa                          iss_defconfig
-m32r                         opsput_defconfig
-m32r                           usrv_defconfig
-m32r                     mappi3.smp_defconfig
-nios2                         10m50_defconfig
-h8300                    h8300h-sim_defconfig
-x86_64                             acpi-redef
-x86_64                           allyesdebian
-x86_64                                nfsroot
-arm                         at91_dt_defconfig
-arm                               allnoconfig
-arm                           efm32_defconfig
-arm64                               defconfig
-arm                        multi_v5_defconfig
-arm                           sunxi_defconfig
-arm64                             allnoconfig
-arm                          exynos_defconfig
-arm                        shmobile_defconfig
-arm                        multi_v7_defconfig
-i386                   randconfig-x074-201744
-i386                   randconfig-x071-201744
-i386                   randconfig-x076-201744
-i386                   randconfig-x077-201744
-i386                   randconfig-x073-201744
-i386                   randconfig-x072-201744
-i386                   randconfig-x078-201744
-i386                   randconfig-x079-201744
-i386                   randconfig-x075-201744
-i386                   randconfig-x070-201744
-ia64                              allnoconfig
-ia64                                defconfig
-ia64                             alldefconfig
-x86_64                                  kexec
-x86_64                                   rhel
-x86_64                               rhel-7.2
-i386                   randconfig-x001-201744
-i386                   randconfig-x008-201744
-i386                   randconfig-x004-201744
-i386                   randconfig-x003-201744
-i386                   randconfig-x002-201744
-i386                   randconfig-x006-201744
-i386                   randconfig-x007-201744
-i386                   randconfig-x000-201744
-i386                   randconfig-x005-201744
-i386                   randconfig-x009-201744
-
-Thanks,
-Fengguang
+diff --git a/drivers/media/dvb-frontends/drxd_hard.c b/drivers/media/dvb-frontends/drxd_hard.c
+index 3bdf9b1f4e7c..79210db117a7 100644
+--- a/drivers/media/dvb-frontends/drxd_hard.c
++++ b/drivers/media/dvb-frontends/drxd_hard.c
+@@ -972,7 +972,6 @@ static int DownloadMicrocode(struct drxd_state *state,
+ static int HI_Command(struct drxd_state *state, u16 cmd, u16 * pResult)
+ {
+ 	u32 nrRetries = 0;
+-	u16 waitCmd;
+ 	int status;
+ 
+ 	status = Write16(state, HI_RA_RAM_SRV_CMD__A, cmd, 0);
+@@ -985,8 +984,8 @@ static int HI_Command(struct drxd_state *state, u16 cmd, u16 * pResult)
+ 			status = -1;
+ 			break;
+ 		}
+-		status = Read16(state, HI_RA_RAM_SRV_CMD__A, &waitCmd, 0);
+-	} while (waitCmd != 0);
++		status = Read16(state, HI_RA_RAM_SRV_CMD__A, NULL, 0);
++	} while (status != 0);
+ 
+ 	if (status >= 0)
+ 		status = Read16(state, HI_RA_RAM_SRV_RES__A, pResult, 0);
+@@ -1298,12 +1297,11 @@ static int InitFT(struct drxd_state *state)
+ 
+ static int SC_WaitForReady(struct drxd_state *state)
+ {
+-	u16 curCmd;
+ 	int i;
+ 
+ 	for (i = 0; i < DRXD_MAX_RETRIES; i += 1) {
+-		int status = Read16(state, SC_RA_RAM_CMD__A, &curCmd, 0);
+-		if (status == 0 || curCmd == 0)
++		int status = Read16(state, SC_RA_RAM_CMD__A, NULL, 0);
++		if (status == 0)
+ 			return status;
+ 	}
+ 	return -1;
+@@ -1311,15 +1309,15 @@ static int SC_WaitForReady(struct drxd_state *state)
+ 
+ static int SC_SendCommand(struct drxd_state *state, u16 cmd)
+ {
+-	int status = 0;
++	int status = 0, ret;
+ 	u16 errCode;
+ 
+ 	Write16(state, SC_RA_RAM_CMD__A, cmd, 0);
+ 	SC_WaitForReady(state);
+ 
+-	Read16(state, SC_RA_RAM_CMD_ADDR__A, &errCode, 0);
++	ret = Read16(state, SC_RA_RAM_CMD_ADDR__A, &errCode, 0);
+ 
+-	if (errCode == 0xFFFF) {
++	if (ret < 0 || errCode == 0xFFFF) {
+ 		printk(KERN_ERR "Command Error\n");
+ 		status = -1;
+ 	}
+@@ -1330,13 +1328,13 @@ static int SC_SendCommand(struct drxd_state *state, u16 cmd)
+ static int SC_ProcStartCommand(struct drxd_state *state,
+ 			       u16 subCmd, u16 param0, u16 param1)
+ {
+-	int status = 0;
++	int ret, status = 0;
+ 	u16 scExec;
+ 
+ 	mutex_lock(&state->mutex);
+ 	do {
+-		Read16(state, SC_COMM_EXEC__A, &scExec, 0);
+-		if (scExec != 1) {
++		ret = Read16(state, SC_COMM_EXEC__A, &scExec, 0);
++		if (ret < 0 || scExec != 1) {
+ 			status = -1;
+ 			break;
+ 		}
+-- 
+2.13.6
