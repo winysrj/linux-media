@@ -1,48 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:45017 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753888AbdKISpu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Nov 2017 13:45:50 -0500
-Received: by mail-pf0-f195.google.com with SMTP id x7so4891545pfa.1
-        for <linux-media@vger.kernel.org>; Thu, 09 Nov 2017 10:45:50 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 1/5] MAINTAINERS: add entry for NXP TDA1997x driver
-Date: Thu,  9 Nov 2017 10:45:32 -0800
-Message-Id: <1510253136-14153-2-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
-References: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:55021 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751366AbdKANJk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Nov 2017 09:09:40 -0400
+Received: by mail-wm0-f67.google.com with SMTP id r68so4829275wmr.3
+        for <linux-media@vger.kernel.org>; Wed, 01 Nov 2017 06:09:39 -0700 (PDT)
+Subject: Re: [PATCH] [RFC] media: camss-vfe: always initialize reg at
+ vfe_set_xbar_cfg()
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <20e982c47af6eafe58274fa299ec587b2fb91d32.1509538566.git.mchehab@s-opensource.com>
+ <a3b51962-1316-c7cf-1182-5a5d7f0ed719@linaro.org>
+ <20171101110314.482206b6@vento.lan>
+From: Todor Tomov <todor.tomov@linaro.org>
+Message-ID: <baa710bc-375b-e306-674c-e6ecc6b1d0f5@linaro.org>
+Date: Wed, 1 Nov 2017 15:09:36 +0200
+MIME-Version: 1.0
+In-Reply-To: <20171101110314.482206b6@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
----
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+On  1.11.2017 15:03, Mauro Carvalho Chehab wrote:
+> Hi Todor,
+> 
+> Em Wed, 1 Nov 2017 14:38:02 +0200
+> Todor Tomov <todor.tomov@linaro.org> escreveu:
+> 
+>> Hi Mauro,
+>>
+>> Thank you for pointing to this.
+>>
+>> On  1.11.2017 14:16, Mauro Carvalho Chehab wrote:
+>>> if output->wm_num is bigger than 1, the value for reg is  
+>> If output->wn_num equals 2, we handle all cases (i == 0, i == 1) and set reg properly.
+>> If output->wn_num is bigger than 2, then reg will not be initialized. However this is something that "cannot happen" and because of this the case is not handled.
+>>
+>> So I think that there is nothing wrong really but we have to do something to remove the warning. I agree with your patch, it is technically not a right value for reg but any cases in which wm_num is bigger than 2 are not supported anyway and should not happen.
+> 
+> Thanks for your promptly answer. Well, if i is always at the [0..1] range,
+> then I guess the enclosed patch is actually better.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 2093060..de7124e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -13019,6 +13019,14 @@ T:	git git://linuxtv.org/mkrufky/tuners.git
- S:	Maintained
- F:	drivers/media/tuners/tda18271*
- 
-+TDA1997x MEDIA DRIVER
-+M:	Tim Harvey <tharvey@gateworks.com>
-+L:	linux-media@vger.kernel.org
-+W:	https://linuxtv.org
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+S:	Maintained
-+F:	drivers/media/i2c/tda1997x.*
-+
- TDA827x MEDIA DRIVER
- M:	Michael Krufky <mkrufky@linuxtv.org>
- L:	linux-media@vger.kernel.org
--- 
-2.7.4
+I don't think that there is a lot of difference practically. If this one fixes the warning too, then it is fine for me. Thank you for working on this.
+
+Best regards,
+Todor
+
+> 
+> 
+> Thanks,
+> Mauro
+> 
+> 
+> [PATCH] media: camss-vfe: always initialize reg at vfe_set_xbar_cfg()
+> 
+> if output->wm_num is bigger than 2, the value for reg is
+> not initialized, as warned by smatch:
+> 	drivers/media/platform/qcom/camss-8x16/camss-vfe.c:633 vfe_set_xbar_cfg() error: uninitialized symbol 'reg'.
+> 	drivers/media/platform/qcom/camss-8x16/camss-vfe.c:637 vfe_set_xbar_cfg() error: uninitialized symbol 'reg'.
+> 
+> That shouldn't happen in practice, so add a logic that will
+> break the loop if i > 1, fixing the warnings.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> 
+> diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
+> index b22d2dfcd3c2..55232a912950 100644
+> --- a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
+> +++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
+> @@ -622,6 +622,9 @@ static void vfe_set_xbar_cfg(struct vfe_device *vfe, struct vfe_output *output,
+>  			reg = VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_EN;
+>  			if (p == V4L2_PIX_FMT_NV12 || p == V4L2_PIX_FMT_NV16)
+>  				reg |= VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_SWAP_INTER_INTRA;
+> +		} else {
+> +			/* On current devices output->wm_num is always <= 2 */
+> +			break;
+>  		}
+>  
+>  		if (output->wm_idx[i] % 2 == 1)
+> 
