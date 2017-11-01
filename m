@@ -1,134 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:38821 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751647AbdKNFDL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Nov 2017 00:03:11 -0500
-Message-ID: <46cf0f7a950be8a41d5740d7af919d62@smtp-cloud7.xs4all.net>
-Date: Tue, 14 Nov 2017 06:03:08 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from osg.samsung.com ([64.30.133.232]:59927 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754336AbdKAMhl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Nov 2017 08:37:41 -0400
+Date: Wed, 1 Nov 2017 10:37:35 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Olli Salonen <olli.salonen@iki.fi>
+Cc: Michael Ira Krufky <mkrufky@linuxtv.org>,
+        linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv3 1/2] tda18250: support for new silicon tuner
+Message-ID: <20171101103735.59e9c77c@vento.lan>
+In-Reply-To: <CAAZRmGwuHRHxzvfQCBc+uTq+FCo6Z_2f_oT=H70TCpwQfouLvA@mail.gmail.com>
+References: <CAAZRmGwuHRHxzvfQCBc+uTq+FCo6Z_2f_oT=H70TCpwQfouLvA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Mon, 30 Oct 2017 05:31:40 +0200
+Olli Salonen <olli.salonen@iki.fi> escreveu:
 
-Results of the daily build of media_tree:
+> Hello Michael,
+> 
+> Many thanks for taking the time to review the patches.
+> 
+> On 27 October 2017 at 13:27, Michael Ira Krufky <mkrufky@linuxtv.org> wrote:
+> >> +static int tda18250_sleep(struct dvb_frontend *fe)
+> >> +{
+> >> +       struct i2c_client *client = fe->tuner_priv;
+> >> +       struct tda18250_dev *dev = i2c_get_clientdata(client);
+> >> +       int ret;
+> >> +
+> >> +       dev_dbg(&client->dev, "\n");
+> >> +
+> >> +       /* power down LNA */
+> >> +       ret = regmap_write_bits(dev->regmap, R0C_AGC11, 0x80, 0x00);
+> >> +       if (ret)
+> >> +               return ret;
+> >> +
+> >> +       ret = tda18250_power_control(fe, TDA18250_POWER_STANDBY);
+> >> +       return ret;
+> >> +}  
+> >
+> > Do we know for sure if the IF_FREQUENCY is preserved after returning
+> > from a sleep?   It might be a good idea to set `dev->if_frequency = 0`
+> > within `tda18250_sleep` to be sure that it gets set again on the next
+> > tune, but you may want to check the specification first, if its
+> > available.
+> >
+> > This is not a show-stopper -- We can merge this as-is and this can be
+> > handled in a follow-up patch.  
+> 
+> I will look into this and send a patch on top of this one if needed.
+> 
+> Thank you for pointing it out.
 
-date:			Tue Nov 14 05:00:21 CET 2017
-media-tree git hash:	eb0c19942288569e0ae492476534d5a485fb8ab4
-media_build git hash:	097aaf3e4e4bfdeff130db9697dec1befeb3221b
-v4l-utils git hash:	7b2d48ff594dcc2c9b395463441e5abb4f5e9439
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		0.5.1 (Debian: 0.5.1-2)
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.13.0-164
+There is a show-stopper issue here, though: it lacks adding an
+entry for the driver at MAINTAINERS file :-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-4.14-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-linux-4.14-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Please add it.
 
-Detailed results are available here:
+While here, please look at the checkpatch warnings:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
+#746: FILE: drivers/media/tuners/tda18250.c:678:
++ msleep(5);
 
-Full logs are available here:
+and the 80 column ones. I was unable to see, at the places it complained,
+a reason why not limit the lines to 80 columns.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+Regards,
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Thanks,
+Mauro
