@@ -1,47 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sn1nam02on0119.outbound.protection.outlook.com ([104.47.36.119]:13344
-        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753234AbdK2IWL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 03:22:11 -0500
-From: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "tbird20d@gmail.com" <tbird20d@gmail.com>,
-        "frowand.list@gmail.com" <frowand.list@gmail.com>,
-        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
-        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
-        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
-        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
-        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
-        Sean Young <sean@mess.org>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>,
-        "Bird, Timothy" <Tim.Bird@sony.com>,
-        "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
-Subject: RE: [PATCH v4 00/12] [dt-bindings] [media] Add document file and
- driver for Sony CXD2880 DVB-T2/T tuner + demodulator
-Date: Wed, 29 Nov 2017 08:21:57 +0000
-Message-ID: <02699364973B424C83A42A84B04FDA854287B5@JPYOKXMS113.jp.sony.com>
-References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
-        <67ca63fc-4675-8a97-e43e-6336bbc9fada@sony.com>
-        <3e2f788b-3e4a-eb9b-eb36-2f65ffce669a@sony.com>
- <20171129053830.7900d933@recife.lan>
-In-Reply-To: <20171129053830.7900d933@recife.lan>
-Content-Language: ja-JP
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Received: from osg.samsung.com ([64.30.133.232]:47557 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933436AbdKAVGT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Nov 2017 17:06:19 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Colin Ian King <colin.king@canonical.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH v2 23/26] media: drxj: better handle errors
+Date: Wed,  1 Nov 2017 17:06:00 -0400
+Message-Id: <f240315c530fef8d181d2b4c626ac1ef64bf4069.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Mauro
+as reported by smatch:
+	drivers/media/dvb-frontends/drx39xyj/drxj.c:2157 drxj_dap_atomic_read_write_block() error: uninitialized symbol 'word'.
 
-Thanks for your support and reply.
-I understood current status.
+The driver doesn't check if a read error occurred. Add such
+check.
 
-We will wait for community's feedback.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-frontends/drx39xyj/drxj.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-Regards and Thanks,
-Takiguchi
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index 499ccff557bf..28e24d5b7fb3 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -2151,9 +2151,13 @@ int drxj_dap_atomic_read_write_block(struct i2c_device_addr *dev_addr,
+ 	if (read_flag) {
+ 		/* read data from buffer */
+ 		for (i = 0; i < (datasize / 2); i++) {
+-			drxj_dap_read_reg16(dev_addr,
+-					    (DRXJ_HI_ATOMIC_BUF_START + i),
+-					   &word, 0);
++			rc = drxj_dap_read_reg16(dev_addr,
++						 (DRXJ_HI_ATOMIC_BUF_START + i),
++						 &word, 0);
++			if (rc) {
++				pr_err("error %d\n", rc);
++				goto rw_error;
++			}
+ 			data[2 * i] = (u8) (word & 0xFF);
+ 			data[(2 * i) + 1] = (u8) (word >> 8);
+ 		}
+-- 
+2.13.6
