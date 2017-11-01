@@ -1,96 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:49800 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933303AbdKORLf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 12:11:35 -0500
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [RFC v5 08/11] [media] vb2: add videobuf2 dma-buf fence helpers
-Date: Wed, 15 Nov 2017 15:10:54 -0200
-Message-Id: <20171115171057.17340-9-gustavo@padovan.org>
-In-Reply-To: <20171115171057.17340-1-gustavo@padovan.org>
-References: <20171115171057.17340-1-gustavo@padovan.org>
+Received: from bombadil.infradead.org ([65.50.211.133]:40446 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933267AbdKAVDy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Nov 2017 17:03:54 -0400
+Date: Wed, 1 Nov 2017 19:03:49 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Songjun Wu <songjun.wu@microchip.com>
+Subject: Re: [PATCH v2 01/26] media: atmel-isc: avoid returning a random
+ value at isc_parse_dt()
+Message-ID: <20171101190349.30c173e6@vento.lan>
+In-Reply-To: <20171101185948.4a5d91c6@vento.lan>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+        <20171101185948.4a5d91c6@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Javier Martinez Canillas <javier@osg.samsung.com>
+Em Wed, 1 Nov 2017 18:59:48 -0200
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-Add a videobuf2-fence.h header file that contains different helpers
-for DMA buffer sharing explicit fence support in videobuf2.
+> Em Wed,  1 Nov 2017 16:56:33 -0400
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+> 
+> > As warned by smatch:
+> > drivers/media/platform/atmel/atmel-isc.c:2097 isc_parse_dt() error: uninitialized symbol 'ret'.
+> > 
+> > The problem here is that of_graph_get_next_endpoint() can
+> > potentially return NULL on its first pass, with would make
+> > it return a random value, as ret is not initialized.
+> > 
+> > While here, use while(1) instead of for(; ;), as while is
+> > the preferred syntax for such kind of loops.
+> 
+> Sorry, please discard this e-mail... there's something wrong on my
+> environment.
+> 
+> git send-email is dying after the first e-mail:
+> 
+> 	Died at /usr/libexec/git-core/git-send-email line 1350.
 
-v2:	- use fence context provided by the caller in vb2_fence_alloc()
+Btw, this never happened before today... probably it is because I'm trying
+to send a pull request between Halloween and the Day of the Dead :-p
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- include/media/videobuf2-fence.h | 48 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
- create mode 100644 include/media/videobuf2-fence.h
-
-diff --git a/include/media/videobuf2-fence.h b/include/media/videobuf2-fence.h
-new file mode 100644
-index 000000000000..b49cc1bf6bb4
---- /dev/null
-+++ b/include/media/videobuf2-fence.h
-@@ -0,0 +1,48 @@
-+/*
-+ * videobuf2-fence.h - DMA buffer sharing fence helpers for videobuf 2
-+ *
-+ * Copyright (C) 2016 Samsung Electronics
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#include <linux/dma-fence.h>
-+#include <linux/slab.h>
-+
-+static DEFINE_SPINLOCK(vb2_fence_lock);
-+
-+static inline const char *vb2_fence_get_driver_name(struct dma_fence *fence)
-+{
-+	return "vb2_fence";
-+}
-+
-+static inline const char *vb2_fence_get_timeline_name(struct dma_fence *fence)
-+{
-+	return "vb2_fence_timeline";
-+}
-+
-+static inline bool vb2_fence_enable_signaling(struct dma_fence *fence)
-+{
-+	return true;
-+}
-+
-+static const struct dma_fence_ops vb2_fence_ops = {
-+	.get_driver_name = vb2_fence_get_driver_name,
-+	.get_timeline_name = vb2_fence_get_timeline_name,
-+	.enable_signaling = vb2_fence_enable_signaling,
-+	.wait = dma_fence_default_wait,
-+};
-+
-+static inline struct dma_fence *vb2_fence_alloc(u64 context)
-+{
-+	struct dma_fence *vb2_fence = kzalloc(sizeof(*vb2_fence), GFP_KERNEL);
-+
-+	if (!vb2_fence)
-+		return NULL;
-+
-+	dma_fence_init(vb2_fence, &vb2_fence_ops, &vb2_fence_lock, context, 1);
-+
-+	return vb2_fence;
-+}
--- 
-2.13.6
+Thanks,
+Mauro
