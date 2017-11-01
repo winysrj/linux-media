@@ -1,51 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:44682 "EHLO smtp.gentoo.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751241AbdKEOZ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 5 Nov 2017 09:25:26 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: mchehab@kernel.org, linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 09/15] cx231xx: Use semicolon after assignment instead of comma
-Date: Sun,  5 Nov 2017 15:25:05 +0100
-Message-Id: <20171105142511.16563-9-zzam@gentoo.org>
-In-Reply-To: <20171105142511.16563-1-zzam@gentoo.org>
-References: <20171105142511.16563-1-zzam@gentoo.org>
+Received: from bombadil.infradead.org ([65.50.211.133]:58299 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755433AbdKAVHe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Nov 2017 17:07:34 -0400
+Received: from [179.95.4.10] (helo=vento.lan)
+        by bombadil.infradead.org with esmtpsa (Exim 4.87 #1 (Red Hat Linux))
+        id 1eA0EX-0007lJ-BQ
+        for linux-media@vger.kernel.org; Wed, 01 Nov 2017 21:07:33 +0000
+Date: Wed, 1 Nov 2017 19:07:30 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 01/26] media: atmel-isc: avoid returning a random
+ value at isc_parse_dt()
+Message-ID: <20171101190730.55308c48@vento.lan>
+In-Reply-To: <20171101185948.4a5d91c6@vento.lan>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+        <20171101185948.4a5d91c6@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-End assignments by semicolon instead of comma.
+Em Wed, 1 Nov 2017 18:59:48 -0200
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/usb/cx231xx/cx231xx-dvb.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+> Em Wed,  1 Nov 2017 16:56:33 -0400
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+> 
+> > As warned by smatch:
+> > drivers/media/platform/atmel/atmel-isc.c:2097 isc_parse_dt() error: uninitialized symbol 'ret'.
+> > 
+> > The problem here is that of_graph_get_next_endpoint() can
+> > potentially return NULL on its first pass, with would make
+> > it return a random value, as ret is not initialized.
+> > 
+> > While here, use while(1) instead of for(; ;), as while is
+> > the preferred syntax for such kind of loops.
+> 
+> Sorry, please discard this e-mail... there's something wrong on my
+> environment.
+> 
+> git send-email is dying after the first e-mail:
+> 
+> 	Died at /usr/libexec/git-core/git-send-email line 1350.
+> 
+> I'll try to fix and re-send it.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 4e462edf044f..5cee642dff06 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -762,8 +762,8 @@ static int dvb_init(struct cx231xx *dev)
- 		/* attach demod */
- 		memset(&si2165_pdata, 0, sizeof(si2165_pdata));
- 		si2165_pdata.fe = &dev->dvb->frontend;
--		si2165_pdata.chip_mode = SI2165_MODE_PLL_XTAL,
--		si2165_pdata.ref_freq_hz = 16000000,
-+		si2165_pdata.chip_mode = SI2165_MODE_PLL_XTAL;
-+		si2165_pdata.ref_freq_hz = 16000000;
- 
- 		memset(&info, 0, sizeof(struct i2c_board_info));
- 		strlcpy(info.type, "si2165", I2C_NAME_SIZE);
-@@ -809,8 +809,8 @@ static int dvb_init(struct cx231xx *dev)
- 		/* attach demod */
- 		memset(&si2165_pdata, 0, sizeof(si2165_pdata));
- 		si2165_pdata.fe = &dev->dvb->frontend;
--		si2165_pdata.chip_mode = SI2165_MODE_PLL_EXT,
--		si2165_pdata.ref_freq_hz = 24000000,
-+		si2165_pdata.chip_mode = SI2165_MODE_PLL_EXT;
-+		si2165_pdata.ref_freq_hz = 24000000;
- 
- 		memset(&info, 0, sizeof(struct i2c_board_info));
- 		strlcpy(info.type, "si2165", I2C_NAME_SIZE);
--- 
-2.15.0
+Found the issue... on patch 2 of this series, it was marked with:
+
+Cc: stable@vger.kernel.org # for 4.14
+
+It seems that my environment didn't like this...
+
+Just resent the hole stuff
+
+
+Thanks,
+Mauro
