@@ -1,66 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:51684 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752560AbdKBJqG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 05:46:06 -0400
-Reply-To: christian.koenig@amd.com
-Subject: Re: [PATCH] dma-buf: Cleanup comments on dma_buf_map_attachment()
-To: Liviu Dudau <Liviu.Dudau@arm.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        DRI-devel <dri-devel@lists.freedesktop.org>,
-        Linux Media ML <linux-media@vger.kernel.org>
-References: <20171101140630.2884-1-Liviu.Dudau@arm.com>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
-Message-ID: <118709d7-07f7-7d81-4861-6cbff81e5ba7@gmail.com>
-Date: Thu, 2 Nov 2017 10:45:57 +0100
-MIME-Version: 1.0
-In-Reply-To: <20171101140630.2884-1-Liviu.Dudau@arm.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Received: from osg.samsung.com ([64.30.133.232]:46855 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933431AbdKAVGR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Nov 2017 17:06:17 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Akinobu Mita <akinobu.mita@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Nicholas Mc Guire <hofrat@osadl.org>
+Subject: [PATCH v2 19/26] media: ov9650: fix bogus warnings
+Date: Wed,  1 Nov 2017 17:05:56 -0400
+Message-Id: <a4092bf193d3a1c9ccd0dae4a735a1cbf5261ecd.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 01.11.2017 um 15:06 schrieb Liviu Dudau:
-> Mappings need to be unmapped by calling dma_buf_unmap_attachment() and
-> not by calling again dma_buf_map_attachment(). Also fix some spelling
-> mistakes.
->
-> Signed-off-by: Liviu Dudau <liviu.dudau@arm.com>
+The smatch logic gets confused with the syntax used to check if the
+ov9650x_read() reads succedded:
+	drivers/media/i2c/ov9650.c:895 __g_volatile_ctrl() error: uninitialized symbol 'reg2'.
+	drivers/media/i2c/ov9650.c:895 __g_volatile_ctrl() error: uninitialized symbol 'reg1'.
 
-Reviewed-by: Christian König <christian.koenig@amd.com>
+There's nothing wrong with the original logic, except that
+it is a little more harder to review.
 
-> ---
->   drivers/dma-buf/dma-buf.c | 6 +++---
->   1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index bc1cb284111cb..1792385405f0e 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -351,13 +351,13 @@ static inline int is_dma_buf_file(struct file *file)
->    *
->    * 2. Userspace passes this file-descriptors to all drivers it wants this buffer
->    *    to share with: First the filedescriptor is converted to a &dma_buf using
-> - *    dma_buf_get(). The the buffer is attached to the device using
-> + *    dma_buf_get(). Then the buffer is attached to the device using
->    *    dma_buf_attach().
->    *
->    *    Up to this stage the exporter is still free to migrate or reallocate the
->    *    backing storage.
->    *
-> - * 3. Once the buffer is attached to all devices userspace can inniate DMA
-> + * 3. Once the buffer is attached to all devices userspace can initiate DMA
->    *    access to the shared buffer. In the kernel this is done by calling
->    *    dma_buf_map_attachment() and dma_buf_unmap_attachment().
->    *
-> @@ -617,7 +617,7 @@ EXPORT_SYMBOL_GPL(dma_buf_detach);
->    * Returns sg_table containing the scatterlist to be returned; returns ERR_PTR
->    * on error. May return -EINTR if it is interrupted by a signal.
->    *
-> - * A mapping must be unmapped again using dma_buf_map_attachment(). Note that
-> + * A mapping must be unmapped by using dma_buf_unmap_attachment(). Note that
->    * the underlying backing storage is pinned for as long as a mapping exists,
->    * therefore users/importers should not hold onto a mapping for undue amounts of
->    * time.
+So, let's stick with the syntax that won't cause read
+issues.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/i2c/ov9650.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+index 69433e1e2533..e519f278d5f9 100644
+--- a/drivers/media/i2c/ov9650.c
++++ b/drivers/media/i2c/ov9650.c
+@@ -886,10 +886,12 @@ static int __g_volatile_ctrl(struct ov965x *ov965x, struct v4l2_ctrl *ctrl)
+ 		if (ctrl->val == V4L2_EXPOSURE_MANUAL)
+ 			return 0;
+ 		ret = ov965x_read(client, REG_COM1, &reg0);
+-		if (!ret)
+-			ret = ov965x_read(client, REG_AECH, &reg1);
+-		if (!ret)
+-			ret = ov965x_read(client, REG_AECHM, &reg2);
++		if (ret < 0)
++			return ret;
++		ret = ov965x_read(client, REG_AECH, &reg1);
++		if (ret < 0)
++			return ret;
++		ret = ov965x_read(client, REG_AECHM, &reg2);
+ 		if (ret < 0)
+ 			return ret;
+ 		exposure = ((reg2 & 0x3f) << 10) | (reg1 << 2) |
+-- 
+2.13.6
