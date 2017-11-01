@@ -1,58 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:42571 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:56634 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933164AbdKAVGT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 17:06:19 -0400
+        id S1751324AbdKANWz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Nov 2017 09:22:55 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Leon Luo <leonl@leopardimaging.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 20/26] media: imx274: don't randomly return if range_count is zero
-Date: Wed,  1 Nov 2017 17:05:57 -0400
-Message-Id: <13dbb41e9cd36e5d974e144c7c34bd6b0079537c.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] media: v4l2-fwnode: use a typedef for a function callback
+Date: Wed,  1 Nov 2017 09:22:50 -0400
+Message-Id: <e7c1eccf22beb14262e34f47d1867dde93676a58.1509542559.git.mchehab@s-opensource.com>
 To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As smatch reported:
-	drivers/media/i2c/imx274.c:659 imx274_regmap_util_write_table_8() error: uninitialized symbol 'err'.
-
-There is a bug at imx274_regmap_util_write_table_8() with causes
-it to randomly return a random error if range_count is zero.
-
-Worse than that, the logic there starts with range_count
-equal to zero, and periodically resets it to zero again.
-
-As it is a way more likely that err assumes a non-zero value,
-I suspect that the chance of this code to run is very small,
-so, it would be worth to review the entire function.
-
-Anyway, clearly it shouldn't be returning error if range_count
-is zero. So, let's fix it.
+That allows having a kernel-doc markup for the function
+prototype. It also prevents the need of describing the
+return values twice.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/i2c/imx274.c | 2 ++
- 1 file changed, 2 insertions(+)
+ include/media/v4l2-fwnode.h | 37 +++++++++++++++++++++++--------------
+ 1 file changed, 23 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-index ab6a5f31da74..0d8314bfd3cb 100644
---- a/drivers/media/i2c/imx274.c
-+++ b/drivers/media/i2c/imx274.c
-@@ -655,6 +655,8 @@ static int imx274_regmap_util_write_table_8(struct regmap *regmap,
- 				err = regmap_bulk_write(regmap, range_start,
- 							&range_vals[0],
- 							range_count);
-+			else
-+				err = 0;
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index ca50108dfd8f..9b04692e4fde 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -203,6 +203,27 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
+  */
+ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
  
- 			if (err)
- 				return err;
++
++/**
++ * typedef parse_endpoint_fnc - Driver's callback function to be called on
++ *	each V4L2 fwnode endpoint.
++ *
++ * @dev: pointer to &struct device
++ * @vep: pointer to &struct v4l2_fwnode_endpoint
++ * @asd: pointer to &struct v4l2_async_subdev
++ *
++ * Return:
++ * * %0 on success
++ * * %-ENOTCONN if the endpoint is to be skipped but this
++ *   should not be considered as an error
++ * * %-EINVAL if the endpoint configuration is invalid
++ */
++
++typedef	int (*parse_endpoint_fnc)(struct device *dev,
++			        struct v4l2_fwnode_endpoint *vep,
++			        struct v4l2_async_subdev *asd);
++
++
+ /**
+  * v4l2_async_notifier_parse_fwnode_endpoints - Parse V4L2 fwnode endpoints in a
+  *						device node
+@@ -215,10 +236,6 @@ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
+  *		     begin at the same memory address.
+  * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
+  *		    endpoint. Optional.
+- *		    Return: %0 on success
+- *			    %-ENOTCONN if the endpoint is to be skipped but this
+- *				       should not be considered as an error
+- *			    %-EINVAL if the endpoint configuration is invalid
+  *
+  * Parse the fwnode endpoints of the @dev device and populate the async sub-
+  * devices array of the notifier. The @parse_endpoint callback function is
+@@ -253,9 +270,7 @@ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
+ int v4l2_async_notifier_parse_fwnode_endpoints(
+ 	struct device *dev, struct v4l2_async_notifier *notifier,
+ 	size_t asd_struct_size,
+-	int (*parse_endpoint)(struct device *dev,
+-			      struct v4l2_fwnode_endpoint *vep,
+-			      struct v4l2_async_subdev *asd));
++	parse_endpoint_fnc parse_endpoint);
+ 
+ /**
+  * v4l2_async_notifier_parse_fwnode_endpoints_by_port - Parse V4L2 fwnode
+@@ -271,10 +286,6 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
+  * @port: port number where endpoints are to be parsed
+  * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
+  *		    endpoint. Optional.
+- *		    Return: %0 on success
+- *			    %-ENOTCONN if the endpoint is to be skipped but this
+- *				       should not be considered as an error
+- *			    %-EINVAL if the endpoint configuration is invalid
+  *
+  * This function is just like v4l2_async_notifier_parse_fwnode_endpoints() with
+  * the exception that it only parses endpoints in a given port. This is useful
+@@ -315,9 +326,7 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
+ int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+ 	struct device *dev, struct v4l2_async_notifier *notifier,
+ 	size_t asd_struct_size, unsigned int port,
+-	int (*parse_endpoint)(struct device *dev,
+-			      struct v4l2_fwnode_endpoint *vep,
+-			      struct v4l2_async_subdev *asd));
++	parse_endpoint_fnc parse_endpoint);
+ 
+ /**
+  * v4l2_fwnode_reference_parse_sensor_common - parse common references on
 -- 
 2.13.6
