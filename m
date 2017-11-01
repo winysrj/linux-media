@@ -1,222 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42595 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932594AbdKPAdx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 19:33:53 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH/RFC 1/2] v4l: v4l2-dev: Add infrastructure to protect device unplug race
-Date: Thu, 16 Nov 2017 02:33:48 +0200
-Message-Id: <20171116003349.19235-2-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from osg.samsung.com ([64.30.133.232]:33184 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933175AbdKAVGN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Nov 2017 17:06:13 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 13/26] media: rcar: fix a debug printk
+Date: Wed,  1 Nov 2017 17:05:50 -0400
+Message-Id: <ef0a1dc7f902c8ed9cc8aa454bd07a8fcda66dfa.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Device unplug being asynchronous, it naturally races with operations
-performed by userspace through ioctls or other file operations on video
-device nodes.
+Two orthogonal changesets caused a breakage at a printk
+inside rcar. Changeset 859969b38e2e
+("[media] v4l: Switch from V4L2 OF not V4L2 fwnode API")
+made davinci to use struct fwnode_handle instead of
+struct device_node. Changeset 68d9c47b1679
+("media: Convert to using %pOF instead of full_name")
+changed the printk to not use ->full_name, but, instead,
+to rely on %pOF.
 
-This leads to potential access to freed memory or to other resources
-during device access if unplug occurs during device access. To solve
-this, we need to wait until all device access completes when unplugging
-the device, and block all further access when the device is being
-unplugged.
+With both patches applied, the Kernel will do the wrong
+thing, as warned by smatch:
+	drivers/media/platform/rcar-vin/rcar-core.c:189 rvin_digital_graph_init() error: '%pOF' expects argument of type 'struct device_node*', argument 4 has type 'void*'
 
-Three new functions are introduced. The video_device_enter() and
-video_device_exit() functions must be used to mark entry and exit from
-all code sections where the device can be accessed. The
-video_device_unplug() function is then used in the unplug handler to
-mark the device as being unplugged and wait for all access to complete.
+So, change the logic to actually print the device name
+that was obtained before the print logic.
 
-As an example mark the ioctl handler as a device access section. Other
-file operations need to be protected too, and blocking ioctls (such as
-VIDIOC_DQBUF) need to be handled as well.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Fixes: 68d9c47b1679 ("media: Convert to using %pOF instead of full_name")
+Fixes: 859969b38e2e ("[media] v4l: Switch from V4L2 OF not V4L2 fwnode API")
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/v4l2-dev.c | 57 ++++++++++++++++++++++++++++++++++++++
- include/media/v4l2-dev.h           | 47 +++++++++++++++++++++++++++++++
- 2 files changed, 104 insertions(+)
+ drivers/media/platform/rcar-vin/rcar-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index c647ba648805..c73c6d49e7cf 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -156,6 +156,52 @@ void video_device_release_empty(struct video_device *vdev)
- }
- EXPORT_SYMBOL(video_device_release_empty);
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 108d776f3265..ce5914f7a056 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -186,8 +186,8 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+ 	if (!vin->digital)
+ 		return -ENODEV;
  
-+int video_device_enter(struct video_device *vdev)
-+{
-+	bool unplugged;
-+
-+	spin_lock(&vdev->unplug_lock);
-+	unplugged = vdev->unplugged;
-+	if (!unplugged)
-+		vdev->access_refcount++;
-+	spin_unlock(&vdev->unplug_lock);
-+
-+	return unplugged ? -ENODEV : 0;
-+}
-+EXPORT_SYMBOL_GPL(video_device_enter);
-+
-+void video_device_exit(struct video_device *vdev)
-+{
-+	bool wake_up;
-+
-+	spin_lock(&vdev->unplug_lock);
-+	WARN_ON(--vdev->access_refcount < 0);
-+	wake_up = vdev->access_refcount == 0;
-+	spin_unlock(&vdev->unplug_lock);
-+
-+	if (wake_up)
-+		wake_up(&vdev->unplug_wait);
-+}
-+EXPORT_SYMBOL_GPL(video_device_exit);
-+
-+void video_device_unplug(struct video_device *vdev)
-+{
-+	bool unplug_blocked;
-+
-+	spin_lock(&vdev->unplug_lock);
-+	unplug_blocked = vdev->access_refcount > 0;
-+	vdev->unplugged = true;
-+	spin_unlock(&vdev->unplug_lock);
-+
-+	if (!unplug_blocked)
-+		return;
-+
-+	if (!wait_event_timeout(vdev->unplug_wait, !vdev->access_refcount,
-+				msecs_to_jiffies(150000)))
-+		WARN(1, "Timeout waiting for device access to complete\n");
-+}
-+EXPORT_SYMBOL_GPL(video_device_unplug);
-+
- static inline void video_get(struct video_device *vdev)
- {
- 	get_device(&vdev->dev);
-@@ -351,6 +397,10 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 	struct video_device *vdev = video_devdata(filp);
- 	int ret = -ENODEV;
+-	vin_dbg(vin, "Found digital subdevice %pOF\n",
+-		to_of_node(vin->digital->asd.match.fwnode.fwnode));
++	vin_dbg(vin, "Found digital subdevice %s\n",
++		to_of_node(vin->digital->asd.match.fwnode.fwnode)->full_name);
  
-+	ret = video_device_enter(vdev);
-+	if (ret < 0)
-+		return ret;
-+
- 	if (vdev->fops->unlocked_ioctl) {
- 		struct mutex *lock = v4l2_ioctl_get_lock(vdev, cmd);
- 
-@@ -358,11 +408,14 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 			return -ERESTARTSYS;
- 		if (video_is_registered(vdev))
- 			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
-+		else
-+			ret = -ENODEV;
- 		if (lock)
- 			mutex_unlock(lock);
- 	} else
- 		ret = -ENOTTY;
- 
-+	video_device_exit(vdev);
- 	return ret;
- }
- 
-@@ -841,6 +894,10 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 	if (WARN_ON(!vdev->v4l2_dev))
- 		return -EINVAL;
- 
-+	/* unplug support */
-+	spin_lock_init(&vdev->unplug_lock);
-+	init_waitqueue_head(&vdev->unplug_wait);
-+
- 	/* v4l2_fh support */
- 	spin_lock_init(&vdev->fh_lock);
- 	INIT_LIST_HEAD(&vdev->fh_list);
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index e657614521e3..365a94f91dc9 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -15,6 +15,7 @@
- #include <linux/cdev.h>
- #include <linux/mutex.h>
- #include <linux/videodev2.h>
-+#include <linux/wait.h>
- 
- #include <media/media-entity.h>
- 
-@@ -178,6 +179,12 @@ struct v4l2_file_operations {
-  * @pipe: &struct media_pipeline
-  * @fops: pointer to &struct v4l2_file_operations for the video device
-  * @device_caps: device capabilities as used in v4l2_capabilities
-+ * @unplugged: when set the device has been unplugged and no device access
-+ *	section can be entered
-+ * @access_refcount: number of device access section currently running for the
-+ *	device
-+ * @unplug_lock: protects unplugged and access_refcount
-+ * @unplug_wait: wait queue to wait for device access sections to complete
-  * @dev: &struct device for the video device
-  * @cdev: character device
-  * @v4l2_dev: pointer to &struct v4l2_device parent
-@@ -221,6 +228,12 @@ struct video_device
- 
- 	u32 device_caps;
- 
-+	/* unplug handling */
-+	bool unplugged;
-+	int access_refcount;
-+	spinlock_t unplug_lock;
-+	wait_queue_head_t unplug_wait;
-+
- 	/* sysfs */
- 	struct device dev;
- 	struct cdev *cdev;
-@@ -506,4 +519,38 @@ static inline int video_is_registered(struct video_device *vdev)
- 	return test_bit(V4L2_FL_REGISTERED, &vdev->flags);
- }
- 
-+/**
-+ * video_device_enter - enter a device access section
-+ * @vdev: the video device
-+ *
-+ * This function marks and protects the beginning of a section that should not
-+ * be entered after the device has been unplugged. The section end is marked
-+ * with a call to video_device_exit(). Calls to this function can be nested.
-+ *
-+ * Returns:
-+ * 0 on success or a negative error code if the device has been unplugged.
-+ */
-+int video_device_enter(struct video_device *vdev);
-+
-+/**
-+ * video_device_exit - exit a device access section
-+ * @vdev: the video device
-+ *
-+ * This function marks the end of a section entered with video_device_enter().
-+ * It wakes up all tasks waiting on video_device_unplug() for device access
-+ * sections to be exited.
-+ */
-+void video_device_exit(struct video_device *vdev);
-+
-+/**
-+ * video_device_unplug - mark a device as unplugged
-+ * @vdev: the video device
-+ *
-+ * Mark a device as unplugged, causing all subsequent calls to
-+ * video_device_enter() to return an error. If a device access section is
-+ * currently being executed the function waits until the section is exited as
-+ * marked by a call to video_device_exit().
-+ */
-+void video_device_unplug(struct video_device *vdev);
-+
- #endif /* _V4L2_DEV_H */
+ 	vin->notifier.ops = &rvin_digital_notify_ops;
+ 	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
 -- 
-Regards,
-
-Laurent Pinchart
+2.13.6
