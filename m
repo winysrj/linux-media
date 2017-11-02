@@ -1,115 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:58318 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933381AbdKAVGO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 17:06:14 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Elfring <elfring@users.sourceforge.net>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Colin Ian King <colin.king@canonical.com>
-Subject: [PATCH v2 16/26] media: drxd_hard: better handle I2C errors
-Date: Wed,  1 Nov 2017 17:05:53 -0400
-Message-Id: <4c70e369e01853324fbe93b6da299323694d789b.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:51577 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932196AbdKBN5X (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 09:57:23 -0400
+Received: by mail-ot0-f193.google.com with SMTP id n74so1512434ota.8
+        for <linux-media@vger.kernel.org>; Thu, 02 Nov 2017 06:57:23 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <33aff2c8fed7ea8fb30c58b5a255a4e8a0aad6d5.1509630639.git.andreyknvl@google.com>
+References: <33aff2c8fed7ea8fb30c58b5a255a4e8a0aad6d5.1509630639.git.andreyknvl@google.com>
+From: Andrey Konovalov <andreyknvl@google.com>
+Date: Thu, 2 Nov 2017 14:57:22 +0100
+Message-ID: <CAAeHK+zB2J92N1w2Z_DuB14nCOizctTV7=_+-rmg2cUjDOCKXg@mail.gmail.com>
+Subject: Re: [PATCH] media: pvrusb2: properly check endpoint types
+To: Mike Isely <isely@pobox.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        Andrey Konovalov <andreyknvl@google.com>,
+        Takashi Iwai <tiwai@suse.de>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As warned by smatch:
-	drivers/media/dvb-frontends/drxd_hard.c:989 HI_Command() error: uninitialized symbol 'waitCmd'.
-	drivers/media/dvb-frontends/drxd_hard.c:1306 SC_WaitForReady() error: uninitialized symbol 'curCmd'.
-	drivers/media/dvb-frontends/drxd_hard.c:1322 SC_SendCommand() error: uninitialized symbol 'errCode'.
-	drivers/media/dvb-frontends/drxd_hard.c:1339 SC_ProcStartCommand() error: uninitialized symbol 'scExec'.
+On Thu, Nov 2, 2017 at 2:52 PM, Andrey Konovalov <andreyknvl@google.com> wrote:
+> As syzkaller detected, pvrusb2 driver submits bulk urb withount checking
+> the the endpoint type is actually blunk. Add a check.
+>
+> usb 1-1: BOGUS urb xfer, pipe 3 != type 1
+> ------------[ cut here ]------------
+> WARNING: CPU: 1 PID: 2713 at drivers/usb/core/urb.c:449 usb_submit_urb+0xf8a/0x11d0
+> Modules linked in:
+> CPU: 1 PID: 2713 Comm: pvrusb2-context Not tainted
+> 4.14.0-rc1-42251-gebb2c2437d80 #210
+> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+> task: ffff88006b7a18c0 task.stack: ffff880069978000
+> RIP: 0010:usb_submit_urb+0xf8a/0x11d0 drivers/usb/core/urb.c:448
+> RSP: 0018:ffff88006997f990 EFLAGS: 00010286
+> RAX: 0000000000000029 RBX: ffff880063661900 RCX: 0000000000000000
+> RDX: 0000000000000029 RSI: ffffffff86876d60 RDI: ffffed000d32ff24
+> RBP: ffff88006997fa90 R08: 1ffff1000d32fdca R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff1000d32ff39
+> R13: 0000000000000001 R14: 0000000000000003 R15: ffff880068bbed68
+> FS:  0000000000000000(0000) GS:ffff88006c600000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 0000000001032000 CR3: 000000006a0ff000 CR4: 00000000000006f0
+> Call Trace:
+>  pvr2_send_request_ex+0xa57/0x1d80 drivers/media/usb/pvrusb2/pvrusb2-hdw.c:3645
+>  pvr2_hdw_check_firmware drivers/media/usb/pvrusb2/pvrusb2-hdw.c:1812
+>  pvr2_hdw_setup_low drivers/media/usb/pvrusb2/pvrusb2-hdw.c:2107
+>  pvr2_hdw_setup drivers/media/usb/pvrusb2/pvrusb2-hdw.c:2250
+>  pvr2_hdw_initialize+0x548/0x3c10 drivers/media/usb/pvrusb2/pvrusb2-hdw.c:2327
+>  pvr2_context_check drivers/media/usb/pvrusb2/pvrusb2-context.c:118
+>  pvr2_context_thread_func+0x361/0x8c0 drivers/media/usb/pvrusb2/pvrusb2-context.c:167
+>  kthread+0x3a1/0x470 kernel/kthread.c:231
+>  ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+> Code: 48 8b 85 30 ff ff ff 48 8d b8 98 00 00 00 e8 ee 82 89 fe 45 89
+> e8 44 89 f1 4c 89 fa 48 89 c6 48 c7 c7 40 c0 ea 86 e8 30 1b dc fc <0f>
+> ff e9 9b f7 ff ff e8 aa 95 25 fd e9 80 f7 ff ff e8 50 74 f3
+> ---[ end trace 6919030503719da6 ]---
+>
+> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+> ---
 
-The error handling on several places are somewhat flawed, as
-they don't check if Read16() returns an error.
+Note: this patch is based on a patch [1] by Takashi Iwai that adds
+usb_urb_ep_type_check().
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-frontends/drxd_hard.c | 22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+[1] https://www.spinics.net/lists/alsa-devel/msg68365.html
 
-diff --git a/drivers/media/dvb-frontends/drxd_hard.c b/drivers/media/dvb-frontends/drxd_hard.c
-index 3bdf9b1f4e7c..79210db117a7 100644
---- a/drivers/media/dvb-frontends/drxd_hard.c
-+++ b/drivers/media/dvb-frontends/drxd_hard.c
-@@ -972,7 +972,6 @@ static int DownloadMicrocode(struct drxd_state *state,
- static int HI_Command(struct drxd_state *state, u16 cmd, u16 * pResult)
- {
- 	u32 nrRetries = 0;
--	u16 waitCmd;
- 	int status;
- 
- 	status = Write16(state, HI_RA_RAM_SRV_CMD__A, cmd, 0);
-@@ -985,8 +984,8 @@ static int HI_Command(struct drxd_state *state, u16 cmd, u16 * pResult)
- 			status = -1;
- 			break;
- 		}
--		status = Read16(state, HI_RA_RAM_SRV_CMD__A, &waitCmd, 0);
--	} while (waitCmd != 0);
-+		status = Read16(state, HI_RA_RAM_SRV_CMD__A, NULL, 0);
-+	} while (status != 0);
- 
- 	if (status >= 0)
- 		status = Read16(state, HI_RA_RAM_SRV_RES__A, pResult, 0);
-@@ -1298,12 +1297,11 @@ static int InitFT(struct drxd_state *state)
- 
- static int SC_WaitForReady(struct drxd_state *state)
- {
--	u16 curCmd;
- 	int i;
- 
- 	for (i = 0; i < DRXD_MAX_RETRIES; i += 1) {
--		int status = Read16(state, SC_RA_RAM_CMD__A, &curCmd, 0);
--		if (status == 0 || curCmd == 0)
-+		int status = Read16(state, SC_RA_RAM_CMD__A, NULL, 0);
-+		if (status == 0)
- 			return status;
- 	}
- 	return -1;
-@@ -1311,15 +1309,15 @@ static int SC_WaitForReady(struct drxd_state *state)
- 
- static int SC_SendCommand(struct drxd_state *state, u16 cmd)
- {
--	int status = 0;
-+	int status = 0, ret;
- 	u16 errCode;
- 
- 	Write16(state, SC_RA_RAM_CMD__A, cmd, 0);
- 	SC_WaitForReady(state);
- 
--	Read16(state, SC_RA_RAM_CMD_ADDR__A, &errCode, 0);
-+	ret = Read16(state, SC_RA_RAM_CMD_ADDR__A, &errCode, 0);
- 
--	if (errCode == 0xFFFF) {
-+	if (ret < 0 || errCode == 0xFFFF) {
- 		printk(KERN_ERR "Command Error\n");
- 		status = -1;
- 	}
-@@ -1330,13 +1328,13 @@ static int SC_SendCommand(struct drxd_state *state, u16 cmd)
- static int SC_ProcStartCommand(struct drxd_state *state,
- 			       u16 subCmd, u16 param0, u16 param1)
- {
--	int status = 0;
-+	int ret, status = 0;
- 	u16 scExec;
- 
- 	mutex_lock(&state->mutex);
- 	do {
--		Read16(state, SC_COMM_EXEC__A, &scExec, 0);
--		if (scExec != 1) {
-+		ret = Read16(state, SC_COMM_EXEC__A, &scExec, 0);
-+		if (ret < 0 || scExec != 1) {
- 			status = -1;
- 			break;
- 		}
--- 
-2.13.6
+>  drivers/media/usb/pvrusb2/pvrusb2-hdw.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+>
+> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> index ad5b25b89699..44975061b953 100644
+> --- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> +++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> @@ -3642,6 +3642,12 @@ static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
+>                                   hdw);
+>                 hdw->ctl_write_urb->actual_length = 0;
+>                 hdw->ctl_write_pend_flag = !0;
+> +               if (usb_urb_ep_type_check(hdw->ctl_write_urb)) {
+> +                       pvr2_trace(
+> +                               PVR2_TRACE_ERROR_LEGS,
+> +                               "Invalid write control endpoint");
+> +                       return -EINVAL;
+> +               }
+>                 status = usb_submit_urb(hdw->ctl_write_urb,GFP_KERNEL);
+>                 if (status < 0) {
+>                         pvr2_trace(PVR2_TRACE_ERROR_LEGS,
+> @@ -3666,6 +3672,12 @@ status);
+>                                   hdw);
+>                 hdw->ctl_read_urb->actual_length = 0;
+>                 hdw->ctl_read_pend_flag = !0;
+> +               if (usb_urb_ep_type_check(hdw->ctl_read_urb)) {
+> +                       pvr2_trace(
+> +                               PVR2_TRACE_ERROR_LEGS,
+> +                               "Invalid read control endpoint");
+> +                       return -EINVAL;
+> +               }
+>                 status = usb_submit_urb(hdw->ctl_read_urb,GFP_KERNEL);
+>                 if (status < 0) {
+>                         pvr2_trace(PVR2_TRACE_ERROR_LEGS,
+> --
+> 2.15.0.403.gc27cc4dac6-goog
+>
