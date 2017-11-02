@@ -1,68 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51652 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750836AbdKBIn0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Nov 2017 04:43:26 -0400
-Date: Thu, 2 Nov 2017 10:43:24 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: "Zhi, Yong" <yong.zhi@intel.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Vijaykumar, Ramya" <ramya.vijaykumar@intel.com>
-Subject: Re: [PATCH v4 11/12] intel-ipu3: Add imgu v4l2 driver
-Message-ID: <20171102084323.lbgz4nyr6ld3csv4@valkosipuli.retiisi.org.uk>
-References: <1508298896-26096-1-git-send-email-yong.zhi@intel.com>
- <1508298896-26096-8-git-send-email-yong.zhi@intel.com>
- <20171020112940.2ptehi2ejl5mhjez@valkosipuli.retiisi.org.uk>
- <C193D76D23A22742993887E6D207B54D1AE2BFC9@ORSMSX106.amr.corp.intel.com>
+Received: from mail-io0-f196.google.com ([209.85.223.196]:43014 "EHLO
+        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755877AbdKBLRA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 07:17:00 -0400
+Received: by mail-io0-f196.google.com with SMTP id 134so13118194ioo.0
+        for <linux-media@vger.kernel.org>; Thu, 02 Nov 2017 04:17:00 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <C193D76D23A22742993887E6D207B54D1AE2BFC9@ORSMSX106.amr.corp.intel.com>
+From: Menion <menion@gmail.com>
+Date: Thu, 2 Nov 2017 12:16:39 +0100
+Message-ID: <CAJVZm6euviGF_HFfTT9-CUR75eGkJMVpDo29ZzOf4yMyVXX40A@mail.gmail.com>
+Subject: 32bit userland cannot work with DVB drivers in 64bit kernel, design issue
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+Hi all
+I am investigating for Armbian, the feasability of running 32bit
+userland on single board computers based on arm64 SoC, where only 64
+bit kernel is available, for reducing the memory footprint.
+I have discovered that there is a flaw in the DVB frontend ioctl (at
+least) that prevents to do so.
+in frontend.h the biggest problem is:
 
-On Mon, Oct 23, 2017 at 10:41:57PM +0000, Zhi, Yong wrote:
-> > > +	default:
-> > > +		return -EINVAL;
-> > > +	}
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +static int ipu3_try_fmt(struct file *file, void *fh, struct
-> > > +v4l2_format *f) {
-> > > +	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
-> > > +	const struct ipu3_fmt *fmt;
-> > > +
-> > > +	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-> > > +		fmt = find_format(f, M2M_CAPTURE);
-> > > +	else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-> > > +		fmt = find_format(f, M2M_OUTPUT);
-> > > +	else
-> > > +		return -EINVAL;
-> > > +
-> > > +	pixm->pixelformat = fmt->fourcc;
-> > > +
-> > > +	memset(pixm->plane_fmt[0].reserved, 0,
-> > > +	       sizeof(pixm->plane_fmt[0].reserved));
-> > 
-> > No need for the memset here, the framework handles this.
-> > 
-> > Are there limits on the image size?
-> > 
-> 
-> The memset is added to fix v4l2-compliance failure here.
+struct dtv_properties {
+__u32 num;
+struct dtv_property *props;
+};
 
-Oops. Indeed, this is about the plane format. Please ignore the comment.
+The master userland-kernel ioctl structure is based on an array set by
+pointer, so the 32bit userland will allocate 32bit pointer (and the
+resulting structure size) while the 64bit kernel will expect the 64bit
+pointers
+Also
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+struct dtv_property {
+__u32 cmd;
+__u32 reserved[3];
+union {
+__u32 data;
+struct dtv_fe_stats st;
+struct {
+__u8 data[32];
+__u32 len;
+__u32 reserved1[3];
+void *reserved2;
+} buffer;
+} u;
+int result;
+} __attribute__ ((packed));
+
+The void *reserved2 field will also give problem when crossing the
+32-64bits boundaries
+As today the endire dvb linux infrastructure can only work in 32-32
+and 64-64 bit mode
+Bye
+
+Antonio
