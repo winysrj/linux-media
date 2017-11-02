@@ -1,57 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f193.google.com ([209.85.217.193]:46473 "EHLO
-        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757737AbdKOLiR (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52592 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752237AbdKBJ7U (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 06:38:17 -0500
-Received: by mail-ua0-f193.google.com with SMTP id w47so12491617uah.3
-        for <linux-media@vger.kernel.org>; Wed, 15 Nov 2017 03:38:17 -0800 (PST)
-MIME-Version: 1.0
-Reply-To: mshakourrosarita22@gmail.com
-From: "M,Shakour Rosarita" <hassantara789@gmail.com>
-Date: Wed, 15 Nov 2017 11:38:15 +0000
-Message-ID: <CAMyxZDE0oLsvNkEuwqreU+ts7=O+YuPgJ3YtzLjz78_fp-hW3g@mail.gmail.com>
-Subject: Hello Dear...
-To: undisclosed-recipients:;
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Thu, 2 Nov 2017 05:59:20 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: devicetree@vger.kernel.org, mchehab@s-opensource.com
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        robh@kernel.org, hyun.kwon@xilinx.com, soren.brinkmann@xilinx.com,
+        linux-arm-kernel@lists.infradead.org
+Subject: [RESEND PATCH 1/1] of: Make return types of to_of_node and of_fwnode_handle macros consistent
+Date: Thu,  2 Nov 2017 11:59:18 +0200
+Message-Id: <20171102095918.7041-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <2117711.dO2rQLXOup@avalon>
+References: <2117711.dO2rQLXOup@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Dear...
+(Fixed Mauro's e-mail.)
 
-I know that this message will come to you as a surprise. I hoped that
-you will not expose or betray this trust and confident that I am about
-to repose on you, my name is M, Shakour Rosarita. I am 19 years old
-Girl, female, from Tartu Syria, (never married) 61 kg, white in
-complexion, and I am currently living in the refugee camp here in
-Abidjan Ivory Coast, My late beloved father M,Shakour Hassin was a
-renowned businessman and owner of Natour Petrol Station in Syria, he
-was killed in a stampede riot in Tartu, Syria.
-When I got the news about my parents. I fled to a nearby country
-Jordan before I joined a ferry to Africa and came to Abidjan capital
-city Ivory Coast West Africa find safety here.
-I came in 2015 to Abidjan and I now live in refugee camps here as
-refugees are allowed freely to enter here without, My late father
-deposited (US$6.200.000.00m) My late father kept the money at the bank
-of Africa, I want you to help me transfer the money to your hand so
-that you will help me bring me into your country for my continue
-education.
+to_of_node() macro checks whether the fwnode_handle passed to it is not an
+OF node, and if so, returns NULL in order to be NULL-safe. Otherwise it
+returns the pointer to the OF node which the fwnode_handle contains.
 
-I sent my pictures here for you to see. Who I am seriously looking for
-a good-person in my life, so I want to hear from you soon and learn
-more about you.
+The problem with returning NULL is that its type was void *, which
+sometimes matters. Explicitly return struct device_node * instead.
 
-I am an open-minded and friendly girl to share a good time with you
-and have fun and enjoy on the go, bird watching, the rest of our
-lives. My Hobbies, tourism books, dance, music, soccer, tennis,
-swimming and cinema.
-I would just think about you, including your dose and doesn=E2=80=99t .I
-believe we will do well together, and live like one family.
-Thank you and God bless you, for you in your promise to help me here,
-looking forward to your reply by the grace of God and have a good day.
-I hope you send me your photos as well? I await your next reply in
-faith please reply through my private email at
-(mshakourrosarita22@gmail.com):
+Make a similar change to of_fwnode_handle() as well.
+
+Fixes: d20dc1493db4 ("of: Support const and non-const use for to_of_node()")
+Fixes: debd3a3b27c7 ("of: Make of_fwnode_handle() safer")
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+Hi Mauro,
+
+Could you check whether this addresses the smatch issue with the xilinx
+driver?
+
 Thanks.
-Ms Rosarita
+
+ include/linux/of.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/of.h b/include/linux/of.h
+index b240ed69dc96..0651231c115e 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -161,7 +161,7 @@ static inline bool is_of_node(const struct fwnode_handle *fwnode)
+ 		is_of_node(__to_of_node_fwnode) ?			\
+ 			container_of(__to_of_node_fwnode,		\
+ 				     struct device_node, fwnode) :	\
+-			NULL;						\
++			(struct device_node *)NULL;			\
+ 	})
+ 
+ #define of_fwnode_handle(node)						\
+@@ -169,7 +169,8 @@ static inline bool is_of_node(const struct fwnode_handle *fwnode)
+ 		typeof(node) __of_fwnode_handle_node = (node);		\
+ 									\
+ 		__of_fwnode_handle_node ?				\
+-			&__of_fwnode_handle_node->fwnode : NULL;	\
++			&__of_fwnode_handle_node->fwnode :		\
++			(struct fwnode_handle *)NULL;			\
+ 	})
+ 
+ static inline bool of_have_populated_dt(void)
+-- 
+2.11.0
