@@ -1,59 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:56407 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754220AbdK2Kqr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 05:46:47 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53813 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933888AbdKBCvk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Nov 2017 22:51:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        James Hogan <jhogan@kernel.org>,
-        Shawn Guo <shawn.guo@linaro.org>,
-        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH 10/12] media: ir-nec-decoder: fix kernel-doc parameters
-Date: Wed, 29 Nov 2017 05:46:31 -0500
-Message-Id: <64dc6829a0080e3c8e70d52a98e9b0e30d968bd8.1511952372.git.mchehab@s-opensource.com>
-In-Reply-To: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-References: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-In-Reply-To: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-References: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH v2 08/26] media: v4l2-async: shut up an unitialized symbol warning
+Date: Thu, 02 Nov 2017 04:51:40 +0200
+Message-ID: <1844403.anYkCZaVIn@avalon>
+In-Reply-To: <e510e9651f4c8672ab7f64df4a55863b4b9cb787.1509569763.git.mchehab@s-opensource.com>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com> <e510e9651f4c8672ab7f64df4a55863b4b9cb787.1509569763.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some parameters aren't correctly identified, as noticed by
-those warnings:
-	drivers/media/rc/ir-nec-decoder.c:49: warning: No description found for parameter 'ev'
-	drivers/media/rc/ir-nec-decoder.c:49: warning: Excess function parameter 'duration' description in 'ir_nec_decode'
-	drivers/media/rc/ir-nec-decoder.c:189: warning: Excess function parameter 'raw' description in 'ir_nec_scancode_to_raw'
+Hi Mauro,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/rc/ir-nec-decoder.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-index a95d09acc22a..6880c190dcd2 100644
---- a/drivers/media/rc/ir-nec-decoder.c
-+++ b/drivers/media/rc/ir-nec-decoder.c
-@@ -41,7 +41,7 @@ enum nec_state {
- /**
-  * ir_nec_decode() - Decode one NEC pulse or space
-  * @dev:	the struct rc_dev descriptor of the device
-- * @duration:	the struct ir_raw_event descriptor of the pulse/space
-+ * @ev:		the struct ir_raw_event descriptor of the pulse/space
-  *
-  * This function returns -EINVAL if the pulse violates the state machine
-  */
-@@ -183,7 +183,6 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
-  * ir_nec_scancode_to_raw() - encode an NEC scancode ready for modulation.
-  * @protocol:	specific protocol to use
-  * @scancode:	a single NEC scancode.
-- * @raw:	raw data to be modulated.
-  */
- static u32 ir_nec_scancode_to_raw(enum rc_proto protocol, u32 scancode)
- {
+On Wednesday, 1 November 2017 23:05:45 EET Mauro Carvalho Chehab wrote:
+> Smatch reports this warning:
+> 	drivers/media/v4l2-core/v4l2-async.c:597 v4l2_async_register_subdev()
+> error: uninitialized symbol 'ret'.
+> 
+> However, there's nothing wrong there. So, just shut up the
+> warning.
+
+Nothing wrong, really ? ret does seem to be used uninitialized when the 
+function returns at the very last line.
+
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c
+> b/drivers/media/v4l2-core/v4l2-async.c index 49f7eccc76db..5bc861c4ae5c
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -532,7 +532,7 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  {
+>  	struct v4l2_async_notifier *subdev_notifier;
+>  	struct v4l2_async_notifier *notifier;
+> -	int ret;
+> +	int uninitialized_var(ret);
+> 
+>  	/*
+>  	 * No reference taken. The reference is held by the device
+
+
 -- 
-2.14.3
+Regards,
+
+Laurent Pinchart
