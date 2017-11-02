@@ -1,69 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:24303 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751943AbdK2RLl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 12:11:41 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v2 1/4] media: ov5640: switch to gpiod_set_value_cansleep()
-Date: Wed, 29 Nov 2017 18:11:09 +0100
-Message-ID: <1511975472-26659-2-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1511975472-26659-1-git-send-email-hugues.fruchet@st.com>
-References: <1511975472-26659-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:48131 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755175AbdKBIMt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 04:12:49 -0400
+Subject: Re: [PATCH 1/2] media: s5p-mfc: check for firmware allocation
+ before requesting firmware
+To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, mchehab@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+From: Andrzej Hajda <a.hajda@samsung.com>
+Message-id: <5bbc048a-4b68-de23-373d-eb8a12c5b736@samsung.com>
+Date: Thu, 02 Nov 2017 09:12:43 +0100
+MIME-version: 1.0
+In-reply-to: <e7c1ad0167ca363cc783be11871a04957127a3fa.1507325072.git.shuahkh@osg.samsung.com>
+Content-type: text/plain; charset="utf-8"
+Content-transfer-encoding: 7bit
+Content-language: en-US
+References: <cover.1507325072.git.shuahkh@osg.samsung.com>
+        <CGME20171006213015epcas3p2c0d4741e06b2d8c25583fb656b7f5532@epcas3p2.samsung.com>
+        <e7c1ad0167ca363cc783be11871a04957127a3fa.1507325072.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch gpiod_set_value to gpiod_set_value_cansleep to avoid
-warnings when powering sensor.
+Hi Shuah,
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/i2c/ov5640.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+On 06.10.2017 23:30, Shuah Khan wrote:
+> Check if firmware is allocated before requesting firmware instead of
+> requesting firmware only to release it if firmware is not allocated.
+>
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> index 69ef9c2..f064a0d1 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> @@ -55,6 +55,11 @@ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev)
+>  	 * into kernel. */
+>  	mfc_debug_enter();
+>  
+> +	if (!dev->fw_buf.virt) {
+> +		mfc_err("MFC firmware is not allocated\n");
+> +		return -EINVAL;
+> +	}
+> +
+>  	for (i = MFC_FW_MAX_VERSIONS - 1; i >= 0; i--) {
+>  		if (!dev->variant->fw_name[i])
+>  			continue;
+> @@ -75,11 +80,6 @@ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev)
+>  		release_firmware(fw_blob);
+>  		return -ENOMEM;
+>  	}
+> -	if (!dev->fw_buf.virt) {
+> -		mfc_err("MFC firmware is not allocated\n");
+> -		release_firmware(fw_blob);
+> -		return -EINVAL;
+> -	}
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index c89ed66..61071f5 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -1524,7 +1524,7 @@ static int ov5640_restore_mode(struct ov5640_dev *sensor)
- 
- static void ov5640_power(struct ov5640_dev *sensor, bool enable)
- {
--	gpiod_set_value(sensor->pwdn_gpio, enable ? 0 : 1);
-+	gpiod_set_value_cansleep(sensor->pwdn_gpio, enable ? 0 : 1);
- }
- 
- static void ov5640_reset(struct ov5640_dev *sensor)
-@@ -1532,7 +1532,7 @@ static void ov5640_reset(struct ov5640_dev *sensor)
- 	if (!sensor->reset_gpio)
- 		return;
- 
--	gpiod_set_value(sensor->reset_gpio, 0);
-+	gpiod_set_value_cansleep(sensor->reset_gpio, 0);
- 
- 	/* camera power cycle */
- 	ov5640_power(sensor, false);
-@@ -1540,10 +1540,10 @@ static void ov5640_reset(struct ov5640_dev *sensor)
- 	ov5640_power(sensor, true);
- 	usleep_range(5000, 10000);
- 
--	gpiod_set_value(sensor->reset_gpio, 1);
-+	gpiod_set_value_cansleep(sensor->reset_gpio, 1);
- 	usleep_range(1000, 2000);
- 
--	gpiod_set_value(sensor->reset_gpio, 0);
-+	gpiod_set_value_cansleep(sensor->reset_gpio, 0);
- 	usleep_range(5000, 10000);
- }
- 
--- 
-1.9.1
+Is there any scenario in which dev->fw_buf.virt is null and
+s5p_mfc_load_firmware is called?
+I suspect this check is not necessary at all.
+
+Regards
+Andrzej
+
+>  	memcpy(dev->fw_buf.virt, fw_blob->data, fw_blob->size);
+>  	wmb();
+>  	release_firmware(fw_blob);
