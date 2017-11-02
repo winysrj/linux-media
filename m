@@ -1,57 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor2.renesas.com ([210.160.252.172]:45669 "EHLO
-        relmlie1.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S934507AbdKPMLl (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:47187 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750704AbdKBEl4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 07:11:41 -0500
-From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: Fabrizio Castro <fabrizio.castro@bp.renesas.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        devicetree@vger.kernel.org,
-        Simon Horman <horms+renesas@verge.net.au>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Biju Das <biju.das@bp.renesas.com>
-Subject: [PATCH 1/2] dt-bindings: media: rcar_vin: add device tree support for r8a774[35]
-Date: Thu, 16 Nov 2017 12:11:29 +0000
-Message-Id: <1510834290-25434-2-git-send-email-fabrizio.castro@bp.renesas.com>
-In-Reply-To: <1510834290-25434-1-git-send-email-fabrizio.castro@bp.renesas.com>
-References: <1510834290-25434-1-git-send-email-fabrizio.castro@bp.renesas.com>
+        Thu, 2 Nov 2017 00:41:56 -0400
+Message-ID: <81997a5ce73c11138fb7034b7108b9ac@smtp-cloud7.xs4all.net>
+Date: Thu, 02 Nov 2017 05:41:53 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add compatible strings for r8a7743 and r8a7745. No driver change
-change is needed as "renesas,rcar-gen2-vin" will activate the right
-code. However, it is good practice to document compatible strings
-for the specific SoC as this allows SoC specific changes to the
-driver if needed, in addition to document SoC support and therefore
-allow checkpatch.pl to validate compatible string values.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Reviewed-by: Biju Das <biju.das@bp.renesas.com>
----
- Documentation/devicetree/bindings/media/rcar_vin.txt | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Results of the daily build of media_tree:
 
-diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-index 6e4ef8c..0042ef2 100644
---- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-+++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-@@ -14,7 +14,10 @@ channel which can be either RGB, YUYV or BT656.
-    - "renesas,vin-r8a7790" for the R8A7790 device
-    - "renesas,vin-r8a7779" for the R8A7779 device
-    - "renesas,vin-r8a7778" for the R8A7778 device
--   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
-+   - "renesas,vin-r8a7745" for the R8A7745 device
-+   - "renesas,vin-r8a7743" for the R8A7743 device
-+   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
-+     device.
-    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
- 
-    When compatible with the generic version nodes must list the
--- 
-2.7.4
+date:			Thu Nov  2 05:00:16 CET 2017
+media-tree git hash:	9917fbcfa20ab987d6381fd0365665e5c1402d75
+media_build git hash:	c93534951f5d66bef7f17f16293acf2be346b726
+v4l-utils git hash:	814949be25dffaffa5d6354ce3aaf61f9d3dbbaa
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+apps: OK
+spec-git: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
