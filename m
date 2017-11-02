@@ -1,46 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51794 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755183AbdKBIyE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Nov 2017 04:54:04 -0400
-Date: Thu, 2 Nov 2017 10:54:01 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Joe Perches <joe@perches.com>,
-        Linux LED Subsystem <linux-leds@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Subject: Re: MAINTAINERS has a AS3645A LED FLASH duplicated section in -next
-Message-ID: <20171102085401.6puq5gukxkfikfqa@valkosipuli.retiisi.org.uk>
-References: <1509587669.31043.66.camel@perches.com>
- <15893854.LnnCGWFPPP@avalon>
+Received: from youngberry.canonical.com ([91.189.89.112]:38161 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934083AbdKBQtM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 12:49:12 -0400
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: drxd: make const array fastIncrDecLUT static
+Date: Thu,  2 Nov 2017 16:49:08 +0000
+Message-Id: <20171102164908.12651-1-colin.king@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <15893854.LnnCGWFPPP@avalon>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Colin Ian King <colin.king@canonical.com>
 
-On Thu, Nov 02, 2017 at 04:24:19AM +0200, Laurent Pinchart wrote:
-> Hi Joe,
-> 
-> On Thursday, 2 November 2017 03:54:29 EET Joe Perches wrote:
-> > MAINTAINERS is not supposed to have duplicated sections.
-> > Can you both please resolve this?
-> 
-> Sure.
-> 
-> Sakari, your plan was to drop drivers/media/i2c/as3645a.c if I recall 
-> correctly. Do you still want to proceed with that, or should we just rename 
-> one of the entries in MAINTAINERS ?
+Don't populate array fastIncrDecLUT on the stack but instead make it
+static. Makes the object code smaller by over 360 bytes:
 
-I was waiting your ack to the patch. :-)
+   text	   data	    bss	    dec	    hex	filename
+  32680	    944	     64	  33688	   8398	drxd_hard.o
 
-<URL:http://www.spinics.net/lists/linux-media/msg121459.html>
+   text	   data	    bss	    dec	    hex	filename
+  32223	   1040	     64	  33327	   822f	drxd_hard.o
 
+(gcc version 7.2.0 x86_64)
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/dvb-frontends/drxd_hard.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb-frontends/drxd_hard.c b/drivers/media/dvb-frontends/drxd_hard.c
+index 3bdf9b1f4e7c..0696bc62dcc9 100644
+--- a/drivers/media/dvb-frontends/drxd_hard.c
++++ b/drivers/media/dvb-frontends/drxd_hard.c
+@@ -640,7 +640,7 @@ static int SetCfgIfAgc(struct drxd_state *state, struct SCfgAgc *cfg)
+ 				const u16 maxRur = 8;
+ 				static const u16 slowIncrDecLUT[] = {
+ 					3, 4, 4, 5, 6 };
+-				const u16 fastIncrDecLUT[] = {
++				static const u16 fastIncrDecLUT[] = {
+ 					14, 15, 15, 16,
+ 					17, 18, 18, 19,
+ 					20, 21, 22, 23,
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.1
