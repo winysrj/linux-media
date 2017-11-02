@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:56336 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:49477 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932497AbdKBUED (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Nov 2017 16:04:03 -0400
+        id S932497AbdKBUDl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Nov 2017 16:03:41 -0400
 From: Ville Syrjala <ville.syrjala@linux.intel.com>
 To: dri-devel@lists.freedesktop.org
 Cc: Dave Airlie <airlied@redhat.com>,
@@ -10,23 +10,29 @@ Cc: Dave Airlie <airlied@redhat.com>,
         linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
         Alex Deucher <alexander.deucher@amd.com>,
         =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH 2/4] dma-buf/fence: Sparse wants __rcu on the object itself
-Date: Thu,  2 Nov 2017 22:03:34 +0200
-Message-Id: <20171102200336.23347-3-ville.syrjala@linux.intel.com>
-In-Reply-To: <20171102200336.23347-1-ville.syrjala@linux.intel.com>
-References: <20171102200336.23347-1-ville.syrjala@linux.intel.com>
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Chris Wilson <chris@chris-wilson.co.uk>
+Subject: [PATCH 0/4] dma-buf: Silence dma_fence __rcu sparse warnings
+Date: Thu,  2 Nov 2017 22:03:32 +0200
+Message-Id: <20171102200336.23347-1-ville.syrjala@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Chris Wilson <chris@chris-wilson.co.uk>
+From: Ville Syrjälä <ville.syrjala@linux.intel.com>
 
-In order to silent sparse in dma_fence_get_rcu_safe(), we need to mark
-the incoming fence object as being RCU protected and not the pointer to
-the object.
+When building drm+i915 I get around 150 lines of sparse noise from 
+dma_fence __rcu warnings. This series eliminates all of that.
+
+The first two patches were already posted by Chris, but there wasn't
+any real reaction, so I figured I'd repost with a wider Cc list.
+
+As for the other two patches, I'm no expert on dma_fence and I didn't
+spend a lot of time looking at it so I can't be sure I annotated all
+the accesses correctly. But I figured someone will scream at me if
+I got it wrong ;)
 
 Cc: Dave Airlie <airlied@redhat.com>
 Cc: Jason Ekstrand <jason@jlekstrand.net>
@@ -35,23 +41,21 @@ Cc: linux-media@vger.kernel.org
 Cc: Alex Deucher <alexander.deucher@amd.com>
 Cc: Christian König <christian.koenig@amd.com>
 Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
----
- include/linux/dma-fence.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
 
-diff --git a/include/linux/dma-fence.h b/include/linux/dma-fence.h
-index efdabbb64e3c..4c008170fe65 100644
---- a/include/linux/dma-fence.h
-+++ b/include/linux/dma-fence.h
-@@ -242,7 +242,7 @@ static inline struct dma_fence *dma_fence_get_rcu(struct dma_fence *fence)
-  * The caller is required to hold the RCU read lock.
-  */
- static inline struct dma_fence *
--dma_fence_get_rcu_safe(struct dma_fence * __rcu *fencep)
-+dma_fence_get_rcu_safe(struct dma_fence __rcu **fencep)
- {
- 	do {
- 		struct dma_fence *fence;
+Chris Wilson (2):
+  drm/syncobj: Mark up the fence as an RCU protected pointer
+  dma-buf/fence: Sparse wants __rcu on the object itself
+
+Ville Syrjälä (2):
+  drm/syncobj: Use proper methods for accessing rcu protected pointers
+  dma-buf: Use rcu_assign_pointer() to set rcu protected pointers
+
+ drivers/dma-buf/reservation.c |  2 +-
+ drivers/gpu/drm/drm_syncobj.c | 11 +++++++----
+ include/drm/drm_syncobj.h     |  2 +-
+ include/linux/dma-fence.h     |  2 +-
+ 4 files changed, 10 insertions(+), 7 deletions(-)
+
 -- 
 2.13.6
