@@ -1,98 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:44670 "EHLO smtp.gentoo.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751097AbdKEOZW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 5 Nov 2017 09:25:22 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: mchehab@kernel.org, linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 06/15] si2165: improve read_status
-Date: Sun,  5 Nov 2017 15:25:02 +0100
-Message-Id: <20171105142511.16563-6-zzam@gentoo.org>
-In-Reply-To: <20171105142511.16563-1-zzam@gentoo.org>
-References: <20171105142511.16563-1-zzam@gentoo.org>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:46052 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751578AbdKBIbF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 04:31:05 -0400
+Subject: Re: [PATCH 2/2] media: s5p-mfc: fix lock confection -
+ request_firmware() once and keep state
+To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, mchehab@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+From: Andrzej Hajda <a.hajda@samsung.com>
+Message-id: <c1704d1b-95e8-e6a2-9086-3079f78daa00@samsung.com>
+Date: Thu, 02 Nov 2017 09:31:00 +0100
+MIME-version: 1.0
+In-reply-to: <fab205fc9ba1bc00e5dda4db6d426fde69116c37.1507325072.git.shuahkh@osg.samsung.com>
+Content-type: text/plain; charset="utf-8"
+Content-transfer-encoding: 7bit
+Content-language: en-US
+References: <cover.1507325072.git.shuahkh@osg.samsung.com>
+        <CGME20171006213016epcas3p20e34abea60ca43f7c3f79a68fc7a38d7@epcas3p2.samsung.com>
+        <fab205fc9ba1bc00e5dda4db6d426fde69116c37.1507325072.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use check_signal register for DVB-T additionally.
-For DVB-C use ps_lock additionally.
+On 06.10.2017 23:30, Shuah Khan wrote:
+> Driver calls request_firmware() whenever the device is opened for the
+> first time. As the device gets opened and closed, dev->num_inst == 1
+> is true several times. This is not necessary since the firmware is saved
+> in the fw_buf. s5p_mfc_load_firmware() copies the buffer returned by
+> the request_firmware() to dev->fw_buf.
+>
+> fw_buf sticks around until it gets released from s5p_mfc_remove(), hence
+> there is no need to keep requesting firmware and copying it to fw_buf.
+>
+> This might have been overlooked when changes are made to free fw_buf from
+> the device release interface s5p_mfc_release().
+>
+> Fix s5p_mfc_load_firmware() to call request_firmware() once and keep state.
+> Change _probe() to load firmware once fw_buf has been allocated.
+>
+> s5p_mfc_open() and it continues to call s5p_mfc_load_firmware() and init
+> hardware which is the step where firmware is written to the device.
+>
+> This addresses the mfc_mutex contention due to repeated request_firmware()
+> calls from open() in the following circular locking warning:
+>
+> [  552.194115] qtdemux0:sink/2710 is trying to acquire lock:
+> [  552.199488]  (&dev->mfc_mutex){+.+.}, at: [<bf145544>] s5p_mfc_mmap+0x28/0xd4 [s5p_mfc]
+> [  552.207459]
+>                but task is already holding lock:
+> [  552.213264]  (&mm->mmap_sem){++++}, at: [<c01df2e4>] vm_mmap_pgoff+0x44/0xb8
+> [  552.220284]
+>                which lock already depends on the new lock.
+>
+> [  552.228429]
+>                the existing dependency chain (in reverse order) is:
+> [  552.235881]
+>                -> #2 (&mm->mmap_sem){++++}:
+> [  552.241259]        __might_fault+0x80/0xb0
+> [  552.245331]        filldir64+0xc0/0x2f8
+> [  552.249144]        call_filldir+0xb0/0x14c
+> [  552.253214]        ext4_readdir+0x768/0x90c
+> [  552.257374]        iterate_dir+0x74/0x168
+> [  552.261360]        SyS_getdents64+0x7c/0x1a0
+> [  552.265608]        ret_fast_syscall+0x0/0x28
+> [  552.269850]
+>                -> #1 (&type->i_mutex_dir_key#2){++++}:
+> [  552.276180]        down_read+0x48/0x90
+> [  552.279904]        lookup_slow+0x74/0x178
+> [  552.283889]        walk_component+0x1a4/0x2e4
+> [  552.288222]        link_path_walk+0x174/0x4a0
+> [  552.292555]        path_openat+0x68/0x944
+> [  552.296541]        do_filp_open+0x60/0xc4
+> [  552.300528]        file_open_name+0xe4/0x114
+> [  552.304772]        filp_open+0x28/0x48
+> [  552.308499]        kernel_read_file_from_path+0x30/0x78
+> [  552.313700]        _request_firmware+0x3ec/0x78c
+> [  552.318291]        request_firmware+0x3c/0x54
+> [  552.322642]        s5p_mfc_load_firmware+0x54/0x150 [s5p_mfc]
+> [  552.328358]        s5p_mfc_open+0x4e4/0x550 [s5p_mfc]
+> [  552.333394]        v4l2_open+0xa0/0x104 [videodev]
+> [  552.338137]        chrdev_open+0xa4/0x18c
+> [  552.342121]        do_dentry_open+0x208/0x310
+> [  552.346454]        path_openat+0x28c/0x944
+> [  552.350526]        do_filp_open+0x60/0xc4
+> [  552.354512]        do_sys_open+0x118/0x1c8
+> [  552.358586]        ret_fast_syscall+0x0/0x28
+> [  552.362830]
+>                -> #0 (&dev->mfc_mutex){+.+.}:
+>                -> #0 (&dev->mfc_mutex){+.+.}:
+> [  552.368379]        lock_acquire+0x6c/0x88
+> [  552.372364]        __mutex_lock+0x68/0xa34
+> [  552.376437]        mutex_lock_interruptible_nested+0x1c/0x24
+> [  552.382086]        s5p_mfc_mmap+0x28/0xd4 [s5p_mfc]
+> [  552.386939]        v4l2_mmap+0x54/0x88 [videodev]
+> [  552.391601]        mmap_region+0x3a8/0x638
+> [  552.395673]        do_mmap+0x330/0x3a4
+> [  552.399400]        vm_mmap_pgoff+0x90/0xb8
+> [  552.403472]        SyS_mmap_pgoff+0x90/0xc0
+> [  552.407632]        ret_fast_syscall+0x0/0x28
+> [  552.411876]
+>                other info that might help us debug this:
+>
+> [  552.419848] Chain exists of:
+>                  &dev->mfc_mutex --> &type->i_mutex_dir_key#2 --> &mm->mmap_sem
+>
+> [  552.431200]  Possible unsafe locking scenario:
+>
+> [  552.437092]        CPU0                    CPU1
+> [  552.441598]        ----                    ----
+> [  552.446104]   lock(&mm->mmap_sem);
+> [  552.449484]                                lock(&type->i_mutex_dir_key#2);
+> [  552.456329]                                lock(&mm->mmap_sem);
+> [  552.462222]   lock(&dev->mfc_mutex);
+> [  552.465775]
+>                 *** DEADLOCK ***
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/dvb-frontends/si2165.c      | 41 ++++++++++++++++++++++++++-----
- drivers/media/dvb-frontends/si2165_priv.h |  2 ++
- 2 files changed, 37 insertions(+), 6 deletions(-)
+I am not 100% but it looks like false positive. Could you describe
+scenario when it deadlocks?
 
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index b2541c1fe554..f8d7595a25d4 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -651,18 +651,47 @@ static int si2165_sleep(struct dvb_frontend *fe)
- static int si2165_read_status(struct dvb_frontend *fe, enum fe_status *status)
- {
- 	int ret;
--	u8 fec_lock = 0;
-+	u8 u8tmp;
- 	struct si2165_state *state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-+	u32 delsys = p->delivery_system;
- 
--	if (!state->has_dvbt)
--		return -EINVAL;
-+	*status = 0;
-+
-+	switch (delsys) {
-+	case SYS_DVBT:
-+		/* check fast signal type */
-+		ret = si2165_readreg8(state, REG_CHECK_SIGNAL, &u8tmp);
-+		if (ret < 0)
-+			return ret;
-+		switch (u8tmp & 0x3) {
-+		case 0: /* searching */
-+		case 1: /* nothing */
-+			break;
-+		case 2: /* digital signal */
-+			*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER;
-+			break;
-+		}
-+		break;
-+	case SYS_DVBC_ANNEX_A:
-+		/* check packet sync lock */
-+		ret = si2165_readreg8(state, REG_PS_LOCK, &u8tmp);
-+		if (ret < 0)
-+			return ret;
-+		if (u8tmp & 0x01) {
-+			*status |= FE_HAS_SIGNAL;
-+			*status |= FE_HAS_CARRIER;
-+			*status |= FE_HAS_VITERBI;
-+			*status |= FE_HAS_SYNC;
-+		}
-+		break;
-+	}
- 
- 	/* check fec_lock */
--	ret = si2165_readreg8(state, REG_FEC_LOCK, &fec_lock);
-+	ret = si2165_readreg8(state, REG_FEC_LOCK, &u8tmp);
- 	if (ret < 0)
- 		return ret;
--	*status = 0;
--	if (fec_lock & 0x01) {
-+	if (u8tmp & 0x01) {
- 		*status |= FE_HAS_SIGNAL;
- 		*status |= FE_HAS_CARRIER;
- 		*status |= FE_HAS_VITERBI;
-diff --git a/drivers/media/dvb-frontends/si2165_priv.h b/drivers/media/dvb-frontends/si2165_priv.h
-index da8bbda8a4e3..47f18ff69fe5 100644
---- a/drivers/media/dvb-frontends/si2165_priv.h
-+++ b/drivers/media/dvb-frontends/si2165_priv.h
-@@ -93,6 +93,8 @@ struct si2165_config {
- #define REG_GP_REG0_LSB			0x0384
- #define REG_GP_REG0_MSB			0x0387
- #define REG_CRC				0x037a
-+#define REG_CHECK_SIGNAL		0x03a8
-+#define REG_PS_LOCK			0x0440
- #define REG_BER_PKT			0x0470
- #define REG_FEC_LOCK			0x04e0
- #define REG_TS_DATA_MODE		0x04e4
--- 
-2.15.0
+>
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c        | 4 ++++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 3 +++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   | 5 +++++
+>  3 files changed, 12 insertions(+)
+>
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index 1afde50..4c253fb 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -1315,6 +1315,10 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+>  		goto err_dma;
+>  	}
+>  
+> +	ret = s5p_mfc_load_firmware(dev);
+> +	if (ret)
+> +		mfc_err("Failed to load FW - try loading from open()\n");
+> +
+
+What is the point of adding it? It will produce error log in case
+filesystem is not yet mounted, and as I remember it was the reason to
+put fw load to open callback.
+
+Regards
+Andrzej
+
+>  	mutex_init(&dev->mfc_mutex);
+>  	init_waitqueue_head(&dev->queue);
+>  	dev->hw_lock = 0;
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> index 4220914..76119a8 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> @@ -290,6 +290,8 @@ struct s5p_mfc_priv_buf {
+>   * @mfc_cmds:		cmd structure holding HW commands function pointers
+>   * @mfc_regs:		structure holding MFC registers
+>   * @fw_ver:		loaded firmware sub-version
+> + * @fw_get_done		flag set when request_firmware() is complete and
+> + *			copied into fw_buf
+>   * risc_on:		flag indicates RISC is on or off
+>   *
+>   */
+> @@ -336,6 +338,7 @@ struct s5p_mfc_dev {
+>  	struct s5p_mfc_hw_cmds *mfc_cmds;
+>  	const struct s5p_mfc_regs *mfc_regs;
+>  	enum s5p_mfc_fw_ver fw_ver;
+> +	bool fw_get_done;
+>  	bool risc_on; /* indicates if RISC is on or off */
+>  };
+>  
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> index f064a0d1..ca57936 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> @@ -55,6 +55,9 @@ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev)
+>  	 * into kernel. */
+>  	mfc_debug_enter();
+>  
+> +	if (dev->fw_get_done)
+> +		return 0;
+> +
+>  	if (!dev->fw_buf.virt) {
+>  		mfc_err("MFC firmware is not allocated\n");
+>  		return -EINVAL;
+> @@ -82,6 +85,7 @@ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev)
+>  	}
+>  	memcpy(dev->fw_buf.virt, fw_blob->data, fw_blob->size);
+>  	wmb();
+> +	dev->fw_get_done = true;
+>  	release_firmware(fw_blob);
+>  	mfc_debug_leave();
+>  	return 0;
+> @@ -93,6 +97,7 @@ int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev)
+>  	/* Before calling this function one has to make sure
+>  	 * that MFC is no longer processing */
+>  	s5p_mfc_release_priv_buf(dev, &dev->fw_buf);
+> +	dev->fw_get_done = false;
+>  	return 0;
+>  }
+>  
