@@ -1,90 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fireflyinternet.com ([109.228.58.192]:52893 "EHLO
-        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751067AbdKUP6Y (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Nov 2017 10:58:24 -0500
-Content-Type: text/plain; charset="utf-8"
+Received: from 178.115.242.59.static.drei.at ([178.115.242.59]:56713 "EHLO
+        mail.osadl.at" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1755215AbdKBKND (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 06:13:03 -0400
+Date: Thu, 2 Nov 2017 10:06:06 +0000
+From: Nicholas Mc Guire <der.herr@hofr.at>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Akinobu Mita <akinobu.mita@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Nicholas Mc Guire <hofrat@osadl.org>
+Subject: Re: [PATCH v2 19/26] media: ov9650: fix bogus warnings
+Message-ID: <20171102100606.GC2552@osadl.at>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+ <a4092bf193d3a1c9ccd0dae4a735a1cbf5261ecd.1509569763.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-To: christian.koenig@amd.com,
-        =?utf-8?q?Christian_K=C3=B6nig?= <ckoenig.leichtzumerken@gmail.com>,
-        "Rob Clark" <robdclark@gmail.com>
-From: Chris Wilson <chris@chris-wilson.co.uk>
-In-Reply-To: <83c7c887-0d40-69b5-2ad2-67d0af6eda71@gmail.com>
-Cc: "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        "Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <20171121140850.23401-1-robdclark@gmail.com>
- <151127508188.436.3320065005004428970@mail.alporthouse.com>
- <CAF6AEGuo=e8rOnLHX3rL9qGTenSRDO2D=S7GQs9rq+=5SVqS0g@mail.gmail.com>
- <83c7c887-0d40-69b5-2ad2-67d0af6eda71@gmail.com>
-Message-ID: <151127989753.436.17300151969206767494@mail.alporthouse.com>
-Subject: Re: [PATCH] reservation: don't wait when timeout=0
-Date: Tue, 21 Nov 2017 15:58:17 +0000
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <a4092bf193d3a1c9ccd0dae4a735a1cbf5261ecd.1509569763.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Quoting Christian König (2017-11-21 15:49:55)
-> Am 21.11.2017 um 15:59 schrieb Rob Clark:
-> > On Tue, Nov 21, 2017 at 9:38 AM, Chris Wilson <chris@chris-wilson.co.uk> wrote:
-> >> Quoting Rob Clark (2017-11-21 14:08:46)
-> >>> If we are testing if a reservation object's fences have been
-> >>> signaled with timeout=0 (non-blocking), we need to pass 0 for
-> >>> timeout to dma_fence_wait_timeout().
-> >>>
-> >>> Plus bonus spelling correction.
-> >>>
-> >>> Signed-off-by: Rob Clark <robdclark@gmail.com>
-> >>> ---
-> >>>   drivers/dma-buf/reservation.c | 11 +++++++++--
-> >>>   1 file changed, 9 insertions(+), 2 deletions(-)
-> >>>
-> >>> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
-> >>> index dec3a815455d..71f51140a9ad 100644
-> >>> --- a/drivers/dma-buf/reservation.c
-> >>> +++ b/drivers/dma-buf/reservation.c
-> >>> @@ -420,7 +420,7 @@ EXPORT_SYMBOL_GPL(reservation_object_get_fences_rcu);
-> >>>    *
-> >>>    * RETURNS
-> >>>    * Returns -ERESTARTSYS if interrupted, 0 if the wait timed out, or
-> >>> - * greater than zer on success.
-> >>> + * greater than zero on success.
-> >>>    */
-> >>>   long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
-> >>>                                           bool wait_all, bool intr,
-> >>> @@ -483,7 +483,14 @@ long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
-> >>>                          goto retry;
-> >>>                  }
-> >>>
-> >>> -               ret = dma_fence_wait_timeout(fence, intr, ret);
-> >>> +               /*
-> >>> +                * Note that dma_fence_wait_timeout() will return 1 if
-> >>> +                * the fence is already signaled, so in the wait_all
-> >>> +                * case when we go through the retry loop again, ret
-> >>> +                * will be greater than 0 and we don't want this to
-> >>> +                * cause _wait_timeout() to block
-> >>> +                */
-> >>> +               ret = dma_fence_wait_timeout(fence, intr, timeout ? ret : 0);
-> >> One should ask if we should just fix the interface to stop returning
-> >> incorrect results (stop "correcting" a completion with 0 jiffies remaining
-> >> as 1). A timeout can be distinguished by -ETIME (or your pick of errno).
-> > perhaps -EBUSY, if we go that route (although maybe it should be a
-> > follow-on patch, this one is suitable for backport to stable/lts if
-> > one should so choose..)
-> >
-> > I think current approach was chosen to match schedule_timeout() and
-> > other such functions that take a timeout in jiffies.  Not making a
-> > judgement on whether that is a good or bad reason..
+On Wed, Nov 01, 2017 at 05:05:56PM -0400, Mauro Carvalho Chehab wrote:
+> The smatch logic gets confused with the syntax used to check if the
+> ov9650x_read() reads succedded:
+> 	drivers/media/i2c/ov9650.c:895 __g_volatile_ctrl() error: uninitialized symbol 'reg2'.
+> 	drivers/media/i2c/ov9650.c:895 __g_volatile_ctrl() error: uninitialized symbol 'reg1'.
 > 
-> We intentionally switched away from that to be in sync with the 
-> wait_event_* interface.
-> 
-> Returning 1 when a function with a zero timeout succeeds is actually 
-> quite common in the kernel.
+> There's nothing wrong with the original logic, except that
+> it is a little more harder to review.
 
-We actually had this conversation last time, and outside of that it
-isn't. Looking at all the convolution to first return 1, then undo the
-damage in the caller, it looks pretty silly.
--Chris
+Maybe I do not understand the original logic correctly but
+ov965x_read(...) is passing on the return value from 
+i2c_transfer() -> __i2c_transfer() and thus if one of those
+calls would have been a negativ error status it would have simply
+executed the next call to ov965x_read() and if that 
+call would have suceeded it would eventually reach the
+line " exposure = ((reg2 & 0x3f) << 10) | (reg1 << 2) |..."
+with the potential to operate on uninitialized registers reg0/1/2
+the current code sems only to handle error conditions in the last
+call to ov965x_read() correctly.
+
+I think this is actually not an equivalent transform but a bug-fix
+of  case V4L2_CID_EXPOSURE_AUTO: (aside from being a code inconsistency)
+So should this not carry a 
+ Fixes: 84a15ded76ec ("[media] V4L: Add driver for OV9650/52 image sensors")
+tag ?
+
+thx!
+hofrat
+
+> 
+> So, let's stick with the syntax that won't cause read
+> issues.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+Reviewed-by: Nicholas Mc Guire <hofrat@osadl.org>
+
+> ---
+>  drivers/media/i2c/ov9650.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+> index 69433e1e2533..e519f278d5f9 100644
+> --- a/drivers/media/i2c/ov9650.c
+> +++ b/drivers/media/i2c/ov9650.c
+> @@ -886,10 +886,12 @@ static int __g_volatile_ctrl(struct ov965x *ov965x, struct v4l2_ctrl *ctrl)
+>  		if (ctrl->val == V4L2_EXPOSURE_MANUAL)
+>  			return 0;
+>  		ret = ov965x_read(client, REG_COM1, &reg0);
+> -		if (!ret)
+> -			ret = ov965x_read(client, REG_AECH, &reg1);
+> -		if (!ret)
+> -			ret = ov965x_read(client, REG_AECHM, &reg2);
+> +		if (ret < 0)
+> +			return ret;
+> +		ret = ov965x_read(client, REG_AECH, &reg1);
+> +		if (ret < 0)
+> +			return ret;
+> +		ret = ov965x_read(client, REG_AECHM, &reg2);
+>  		if (ret < 0)
+>  			return ret;
+>  		exposure = ((reg2 & 0x3f) << 10) | (reg1 << 2) |
+> -- 
+> 2.13.6
+> 
