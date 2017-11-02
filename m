@@ -1,95 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:54259 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:56336 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755979AbdKNUEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Nov 2017 15:04:45 -0500
-Subject: [PATCH v2 0/4] introduce get_user_pages_longterm()
-From: Dan Williams <dan.j.williams@intel.com>
-To: akpm@linux-foundation.org
-Cc: Inki Dae <inki.dae@samsung.com>, Jan Kara <jack@suse.cz>,
-        Joonyoung Shim <jy0922.shim@samsung.com>,
-        linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Jeff Moyer <jmoyer@redhat.com>, stable@vger.kernel.org,
-        Hal Rosenstock <hal.rosenstock@gmail.com>,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        linux-mm@kvack.org, Doug Ledford <dledford@redhat.com>,
-        Mel Gorman <mgorman@suse.de>,
-        Ross Zwisler <ross.zwisler@linux.intel.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Sean Hefty <sean.hefty@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Christoph Hellwig <hch@lst.de>,
-        Vlastimil Babka <vbabka@suse.cz>, linux-media@vger.kernel.org
-Date: Tue, 14 Nov 2017 11:56:29 -0800
-Message-ID: <151068938905.7446.12333914805308312313.stgit@dwillia2-desk3.amr.corp.intel.com>
+        id S932497AbdKBUEG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Nov 2017 16:04:06 -0400
+From: Ville Syrjala <ville.syrjala@linux.intel.com>
+To: dri-devel@lists.freedesktop.org
+Cc: Dave Airlie <airlied@redhat.com>,
+        Jason Ekstrand <jason@jlekstrand.net>,
+        linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        Alex Deucher <alexander.deucher@amd.com>,
+        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Chris Wilson <chris@chris-wilson.co.uk>
+Subject: [PATCH 4/4] dma-buf: Use rcu_assign_pointer() to set rcu protected pointers
+Date: Thu,  2 Nov 2017 22:03:36 +0200
+Message-Id: <20171102200336.23347-5-ville.syrjala@linux.intel.com>
+In-Reply-To: <20171102200336.23347-1-ville.syrjala@linux.intel.com>
+References: <20171102200336.23347-1-ville.syrjala@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changes since v1 [1]:
-* Cleanup local 'vmas' argument (Christoph)
-* Replace inline IS_ENABLED(CONFIG_FS_DAX) in C code with ifdef
-  versions of get_user_pages_longterm() for the FS_DAX on/off cases
-  (Christoph)
-* Add a new patch for the get_vaddr_frames() case, this impacts users
-  like V4L2, and the Exynos driver.
-* Collect Christoph's reviewed-by for the rdma change
+From: Ville Syrjälä <ville.syrjala@linux.intel.com>
 
-[1]: https://lwn.net/Articles/738323/
+Use rcu_assign_pointer() when setting an rcu protected pointer.
+This gets rid of another sparse warning.
 
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Jason Ekstrand <jason@jlekstrand.net>
+Cc: linaro-mm-sig@lists.linaro.org
+Cc: linux-media@vger.kernel.org
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
 ---
+ drivers/dma-buf/reservation.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Andrew,
-
-Here is a new get_user_pages api for cases where a driver intends to
-keep an elevated page count indefinitely. This is distinct from usages
-like iov_iter_get_pages where the elevated page counts are transient.
-The iov_iter_get_pages cases immediately turn around and submit the
-pages to a device driver which will put_page when the i/o operation
-completes (under kernel control).
-
-In the longterm case userspace is responsible for dropping the page
-reference at some undefined point in the future. This is untenable for
-filesystem-dax case where the filesystem is in control of the lifetime
-of the block / page and needs reasonable limits on how long it can wait
-for pages in a mapping to become idle.
-
-Fixing filesystems to actually wait for dax pages to be idle before
-blocks from a truncate/hole-punch operation are repurposed is saved for
-a later patch series.
-
-Also, allowing longterm registration of dax mappings is a future patch
-series that introduces a "map with lease" semantic where the kernel can
-revoke a lease and force userspace to drop its page references.
-
-I have also tagged these for -stable to purposely break cases that might
-assume that longterm memory registrations for filesystem-dax mappings
-were supported by the kernel. The behavior regression this policy change
-implies is one of the reasons we maintain the "dax enabled. Warning:
-EXPERIMENTAL, use at your own risk" notification when mounting a
-filesystem in dax mode.
-
-It is worth noting the device-dax interface does not suffer the same
-constraints since it does not support file space management operations
-like hole-punch.
-
----
-
-Dan Williams (4):
-      mm: introduce get_user_pages_longterm
-      mm: fail get_vaddr_frames() for filesystem-dax mappings
-      [media] v4l2: disable filesystem-dax mapping support
-      IB/core: disable memory registration of fileystem-dax vmas
-
-
- drivers/infiniband/core/umem.c            |    2 -
- drivers/media/v4l2-core/videobuf-dma-sg.c |    5 +-
- include/linux/fs.h                        |   14 ++++++
- include/linux/mm.h                        |   13 ++++++
- mm/frame_vector.c                         |    4 ++
- mm/gup.c                                  |   64 +++++++++++++++++++++++++++++
- 6 files changed, 99 insertions(+), 3 deletions(-)
+diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+index b44d9d7db347..d90333e0b6d5 100644
+--- a/drivers/dma-buf/reservation.c
++++ b/drivers/dma-buf/reservation.c
+@@ -318,7 +318,7 @@ int reservation_object_copy_fences(struct reservation_object *dst,
+ 				continue;
+ 			}
+ 
+-			dst_list->shared[dst_list->shared_count++] = fence;
++			rcu_assign_pointer(dst_list->shared[dst_list->shared_count++], fence);
+ 		}
+ 	} else {
+ 		dst_list = NULL;
+-- 
+2.13.6
