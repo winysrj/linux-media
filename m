@@ -1,211 +1,389 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:47112 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933364AbdKBOi3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 10:38:29 -0400
-Received: by mail-wm0-f65.google.com with SMTP id r196so11590903wmf.2
-        for <linux-media@vger.kernel.org>; Thu, 02 Nov 2017 07:38:29 -0700 (PDT)
-From: Andrey Konovalov <andreyknvl@google.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Piotr Oleszczyk <piotr.oleszczyk@gmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sean Young <sean@mess.org>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        Andrey Konovalov <andreyknvl@google.com>
-Subject: [PATCH] media: dib0700: fix invalid dvb_detach argument
-Date: Thu,  2 Nov 2017 15:38:21 +0100
-Message-Id: <7d99503f8ba3308371c4da948b53c3ac0e53586d.1509633491.git.andreyknvl@google.com>
+Received: from mga06.intel.com ([134.134.136.31]:12806 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932497AbdKBUAR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Nov 2017 16:00:17 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
+        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
+        hyungwoo.yang@intel.com, chiranjeevi.rapolu@intel.com,
+        jerry.w.hu@intel.com, Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH v7 2/3] doc-rst: add IPU3 raw10 bayer pixel format definitions
+Date: Thu,  2 Nov 2017 15:00:00 -0500
+Message-Id: <1509652801-9729-3-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1509652801-9729-1-git-send-email-yong.zhi@intel.com>
+References: <1509652801-9729-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dvb_detach(arg) calls symbol_put_addr(arg), where arg should be a pointer
-to a function. Right now a pointer to state->dib7000p_ops is passed to
-dvb_detach(), which causes a BUG() in symbol_put_addr() as discovered by
-syzkaller. Pass state->dib7000p_ops.set_wbd_ref instead.
+The formats added by this patch are:
 
-------------[ cut here ]------------
-kernel BUG at kernel/module.c:1081!
-invalid opcode: 0000 [#1] PREEMPT SMP KASAN
-Modules linked in:
-CPU: 1 PID: 1151 Comm: kworker/1:1 Tainted: G        W
-4.14.0-rc1-42251-gebb2c2437d80 #224
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-Workqueue: usb_hub_wq hub_event
-task: ffff88006a336300 task.stack: ffff88006a7c8000
-RIP: 0010:symbol_put_addr+0x54/0x60 kernel/module.c:1083
-RSP: 0018:ffff88006a7ce210 EFLAGS: 00010246
-RAX: 0000000000000000 RBX: ffff880062a8d190 RCX: 0000000000000000
-RDX: dffffc0000000020 RSI: ffffffff85876d60 RDI: ffff880062a8d190
-RBP: ffff88006a7ce218 R08: 1ffff1000d4f9c12 R09: 1ffff1000d4f9ae4
-R10: 1ffff1000d4f9bed R11: 0000000000000000 R12: ffff880062a8d180
-R13: 00000000ffffffed R14: ffff880062a8d190 R15: ffff88006947c000
-FS:  0000000000000000(0000) GS:ffff88006c900000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f6416532000 CR3: 00000000632f5000 CR4: 00000000000006e0
-Call Trace:
- stk7070p_frontend_attach+0x515/0x610
-drivers/media/usb/dvb-usb/dib0700_devices.c:1013
- dvb_usb_adapter_frontend_init+0x32b/0x660
-drivers/media/usb/dvb-usb/dvb-usb-dvb.c:286
- dvb_usb_adapter_init drivers/media/usb/dvb-usb/dvb-usb-init.c:86
- dvb_usb_init drivers/media/usb/dvb-usb/dvb-usb-init.c:162
- dvb_usb_device_init+0xf70/0x17f0 drivers/media/usb/dvb-usb/dvb-usb-init.c:277
- dib0700_probe+0x171/0x5a0 drivers/media/usb/dvb-usb/dib0700_core.c:886
- usb_probe_interface+0x35d/0x8e0 drivers/usb/core/driver.c:361
- really_probe drivers/base/dd.c:413
- driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
- __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
- bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
- __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
- device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
- bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
- device_add+0xd0b/0x1660 drivers/base/core.c:1835
- usb_set_configuration+0x104e/0x1870 drivers/usb/core/message.c:1932
- generic_probe+0x73/0xe0 drivers/usb/core/generic.c:174
- usb_probe_device+0xaf/0xe0 drivers/usb/core/driver.c:266
- really_probe drivers/base/dd.c:413
- driver_probe_device+0x610/0xa00 drivers/base/dd.c:557
- __device_attach_driver+0x230/0x290 drivers/base/dd.c:653
- bus_for_each_drv+0x161/0x210 drivers/base/bus.c:463
- __device_attach+0x26e/0x3d0 drivers/base/dd.c:710
- device_initial_probe+0x1f/0x30 drivers/base/dd.c:757
- bus_probe_device+0x1eb/0x290 drivers/base/bus.c:523
- device_add+0xd0b/0x1660 drivers/base/core.c:1835
- usb_new_device+0x7b8/0x1020 drivers/usb/core/hub.c:2457
- hub_port_connect drivers/usb/core/hub.c:4903
- hub_port_connect_change drivers/usb/core/hub.c:5009
- port_event drivers/usb/core/hub.c:5115
- hub_event+0x194d/0x3740 drivers/usb/core/hub.c:5195
- process_one_work+0xc7f/0x1db0 kernel/workqueue.c:2119
- worker_thread+0x221/0x1850 kernel/workqueue.c:2253
- kthread+0x3a1/0x470 kernel/kthread.c:231
- ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
-Code: ff ff 48 85 c0 74 24 48 89 c7 e8 48 ea ff ff bf 01 00 00 00 e8
-de 20 e3 ff 65 8b 05 b7 2f c2 7e 85 c0 75 c9 e8 f9 0b c1 ff eb c2 <0f>
-0b 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 b8 00 00
-RIP: symbol_put_addr+0x54/0x60 RSP: ffff88006a7ce210
----[ end trace b75b357739e7e116 ]---
+    V4L2_PIX_FMT_IPU3_SBGGR10
+    V4L2_PIX_FMT_IPU3_SGBRG10
+    V4L2_PIX_FMT_IPU3_SGRBG10
+    V4L2_PIX_FMT_IPU3_SRGGB10
 
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Signed-off-by: Hyungwoo Yang <hyungwoo.yang@intel.com>
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 ---
- drivers/media/usb/dvb-usb/dib0700_devices.c | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ Documentation/media/uapi/v4l/pixfmt-rgb.rst        |   1 +
+ .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         | 335 +++++++++++++++++++++
+ 2 files changed, 336 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
 
-diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
-index 6020170fe99a..92098c1b78e5 100644
---- a/drivers/media/usb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
-@@ -291,7 +291,7 @@ static int stk7700P2_frontend_attach(struct dvb_usb_adapter *adap)
- 					     stk7700d_dib7000p_mt2266_config)
- 		    != 0) {
- 			err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n", __func__);
--			dvb_detach(&state->dib7000p_ops);
-+			dvb_detach(state->dib7000p_ops.set_wbd_ref);
- 			return -ENODEV;
- 		}
- 	}
-@@ -325,7 +325,7 @@ static int stk7700d_frontend_attach(struct dvb_usb_adapter *adap)
- 					     stk7700d_dib7000p_mt2266_config)
- 		    != 0) {
- 			err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n", __func__);
--			dvb_detach(&state->dib7000p_ops);
-+			dvb_detach(state->dib7000p_ops.set_wbd_ref);
- 			return -ENODEV;
- 		}
- 	}
-@@ -478,7 +478,7 @@ static int stk7700ph_frontend_attach(struct dvb_usb_adapter *adap)
- 				     &stk7700ph_dib7700_xc3028_config) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n",
- 		    __func__);
--		dvb_detach(&state->dib7000p_ops);
-+		dvb_detach(state->dib7000p_ops.set_wbd_ref);
- 		return -ENODEV;
- 	}
- 
-@@ -1010,7 +1010,7 @@ static int stk7070p_frontend_attach(struct dvb_usb_adapter *adap)
- 				     &dib7070p_dib7000p_config) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n",
- 		    __func__);
--		dvb_detach(&state->dib7000p_ops);
-+		dvb_detach(state->dib7000p_ops.set_wbd_ref);
- 		return -ENODEV;
- 	}
- 
-@@ -1068,7 +1068,7 @@ static int stk7770p_frontend_attach(struct dvb_usb_adapter *adap)
- 				     &dib7770p_dib7000p_config) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n",
- 		    __func__);
--		dvb_detach(&state->dib7000p_ops);
-+		dvb_detach(state->dib7000p_ops.set_wbd_ref);
- 		return -ENODEV;
- 	}
- 
-@@ -3056,7 +3056,7 @@ static int nim7090_frontend_attach(struct dvb_usb_adapter *adap)
- 
- 	if (state->dib7000p_ops.i2c_enumeration(&adap->dev->i2c_adap, 1, 0x10, &nim7090_dib7000p_config) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n", __func__);
--		dvb_detach(&state->dib7000p_ops);
-+		dvb_detach(state->dib7000p_ops.set_wbd_ref);
- 		return -ENODEV;
- 	}
- 	adap->fe_adap[0].fe = state->dib7000p_ops.init(&adap->dev->i2c_adap, 0x80, &nim7090_dib7000p_config);
-@@ -3109,7 +3109,7 @@ static int tfe7090pvr_frontend0_attach(struct dvb_usb_adapter *adap)
- 	/* initialize IC 0 */
- 	if (state->dib7000p_ops.i2c_enumeration(&adap->dev->i2c_adap, 1, 0x20, &tfe7090pvr_dib7000p_config[0]) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n", __func__);
--		dvb_detach(&state->dib7000p_ops);
-+		dvb_detach(state->dib7000p_ops.set_wbd_ref);
- 		return -ENODEV;
- 	}
- 
-@@ -3139,7 +3139,7 @@ static int tfe7090pvr_frontend1_attach(struct dvb_usb_adapter *adap)
- 	i2c = state->dib7000p_ops.get_i2c_master(adap->dev->adapter[0].fe_adap[0].fe, DIBX000_I2C_INTERFACE_GPIO_6_7, 1);
- 	if (state->dib7000p_ops.i2c_enumeration(i2c, 1, 0x10, &tfe7090pvr_dib7000p_config[1]) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n", __func__);
--		dvb_detach(&state->dib7000p_ops);
-+		dvb_detach(state->dib7000p_ops.set_wbd_ref);
- 		return -ENODEV;
- 	}
- 
-@@ -3214,7 +3214,7 @@ static int tfe7790p_frontend_attach(struct dvb_usb_adapter *adap)
- 				1, 0x10, &tfe7790p_dib7000p_config) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n",
- 				__func__);
--		dvb_detach(&state->dib7000p_ops);
-+		dvb_detach(state->dib7000p_ops.set_wbd_ref);
- 		return -ENODEV;
- 	}
- 	adap->fe_adap[0].fe = state->dib7000p_ops.init(&adap->dev->i2c_adap,
-@@ -3309,7 +3309,7 @@ static int stk7070pd_frontend_attach0(struct dvb_usb_adapter *adap)
- 				     stk7070pd_dib7000p_config) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n",
- 		    __func__);
--		dvb_detach(&state->dib7000p_ops);
-+		dvb_detach(state->dib7000p_ops.set_wbd_ref);
- 		return -ENODEV;
- 	}
- 
-@@ -3384,7 +3384,7 @@ static int novatd_frontend_attach(struct dvb_usb_adapter *adap)
- 					     stk7070pd_dib7000p_config) != 0) {
- 			err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n",
- 			    __func__);
--			dvb_detach(&state->dib7000p_ops);
-+			dvb_detach(state->dib7000p_ops.set_wbd_ref);
- 			return -ENODEV;
- 		}
- 	}
-@@ -3620,7 +3620,7 @@ static int pctv340e_frontend_attach(struct dvb_usb_adapter *adap)
- 
- 	if (state->dib7000p_ops.dib7000pc_detection(&adap->dev->i2c_adap) == 0) {
- 		/* Demodulator not found for some reason? */
--		dvb_detach(&state->dib7000p_ops);
-+		dvb_detach(state->dib7000p_ops.set_wbd_ref);
- 		return -ENODEV;
- 	}
- 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+index 4cc27195dc79..cf2ef7df9616 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+@@ -16,6 +16,7 @@ RGB Formats
+     pixfmt-srggb10p
+     pixfmt-srggb10alaw8
+     pixfmt-srggb10dpcm8
++    pixfmt-srggb10-ipu3
+     pixfmt-srggb12
+     pixfmt-srggb12p
+     pixfmt-srggb16
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+new file mode 100644
+index 000000000000..72fbd8f96381
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+@@ -0,0 +1,335 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2_PIX_FMT_IPU3_SBGGR10:
++.. _V4L2_PIX_FMT_IPU3_SGBRG10:
++.. _V4L2_PIX_FMT_IPU3_SGRBG10:
++.. _V4L2_PIX_FMT_IPU3_SRGGB10:
++
++**********************************************************************************************************************************************
++V4L2_PIX_FMT_IPU3_SBGGR10 ('ip3b'), V4L2_PIX_FMT_IPU3_SGBRG10 ('ip3g'), V4L2_PIX_FMT_IPU3_SGRBG10 ('ip3G'), V4L2_PIX_FMT_IPU3_SRGGB10 ('ip3r')
++**********************************************************************************************************************************************
++
++10-bit Bayer formats
++
++Description
++===========
++
++These four pixel formats are used by Intel IPU3 driver, they are raw
++sRGB / Bayer formats with 10 bits per sample with every 25 pixels packed
++to 32 bytes leaving 6 most significant bits padding in the last byte.
++The format is little endian.
++
++In other respects this format is similar to :ref:`V4L2-PIX-FMT-SRGGB10`.
++Below is an example of a small image in V4L2_PIX_FMT_IPU3_SBGGR10 format.
++
++**Byte Order.**
++Each cell is one byte.
++
++.. tabularcolumns:: |p{0.8cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|
++
++.. flat-table::
++
++    * - start + 0:
++      - B\ :sub:`0000low`
++      - G\ :sub:`0001low`\ (bits 7--2)
++
++        B\ :sub:`0000high`\ (bits 1--0)
++      - B\ :sub:`0002low`\ (bits 7--4)
++
++        G\ :sub:`0001high`\ (bits 3--0)
++      - G\ :sub:`0003low`\ (bits 7--6)
++
++        B\ :sub:`0002high`\ (bits 5--0)
++    * - start + 4:
++      - G\ :sub:`0003high`
++      - B\ :sub:`0004low`
++      - G\ :sub:`0005low`\ (bits 7--2)
++
++        B\ :sub:`0004high`\ (bits 1--0)
++      - B\ :sub:`0006low`\ (bits 7--4)
++
++        G\ :sub:`0005high`\ (bits 3--0)
++    * - start + 8:
++      - G\ :sub:`0007low`\ (bits 7--6)
++
++        B\ :sub:`0006high`\ (bits 5--0)
++      - G\ :sub:`0007high`
++      - B\ :sub:`0008low`
++      - G\ :sub:`0009low`\ (bits 7--2)
++
++        B\ :sub:`0008high`\ (bits 1--0)
++    * - start + 12:
++      - B\ :sub:`0010low`\ (bits 7--4)
++
++        G\ :sub:`0009high`\ (bits 3--0)
++      - G\ :sub:`0011low`\ (bits 7--6)
++
++        B\ :sub:`0010high`\ (bits 5--0)
++      - G\ :sub:`0011high`
++      - B\ :sub:`0012low`
++    * - start + 16:
++      - G\ :sub:`0013low`\ (bits 7--2)
++
++        B\ :sub:`0012high`\ (bits 1--0)
++      - B\ :sub:`0014low`\ (bits 7--4)
++
++        G\ :sub:`0013high`\ (bits 3--0)
++      - G\ :sub:`0015low`\ (bits 7--6)
++
++        B\ :sub:`0014high`\ (bits 5--0)
++      - G\ :sub:`0015high`
++    * - start + 20
++      - B\ :sub:`0016low`
++      - G\ :sub:`0017low`\ (bits 7--2)
++
++        B\ :sub:`0016high`\ (bits 1--0)
++      - B\ :sub:`0018low`\ (bits 7--4)
++
++        G\ :sub:`0017high`\ (bits 3--0)
++      - G\ :sub:`0019low`\ (bits 7--6)
++
++        B\ :sub:`0018high`\ (bits 5--0)
++    * - start + 24:
++      - G\ :sub:`0019high`
++      - B\ :sub:`0020low`
++      - G\ :sub:`0021low`\ (bits 7--2)
++
++        B\ :sub:`0020high`\ (bits 1--0)
++      - B\ :sub:`0022low`\ (bits 7--4)
++
++        G\ :sub:`0021high`\ (bits 3--0)
++    * - start + 28:
++      - G\ :sub:`0023low`\ (bits 7--6)
++
++        B\ :sub:`0022high`\ (bits 5--0)
++      - G\ :sub:`0023high`
++      - B\ :sub:`0024low`
++      - B\ :sub:`0024high`\ (bits 1--0)
++    * - start + 32:
++      - G\ :sub:`0100low`
++      - R\ :sub:`0101low`\ (bits 7--2)
++
++        G\ :sub:`0100high`\ (bits 1--0)
++      - G\ :sub:`0102low`\ (bits 7--4)
++
++        R\ :sub:`0101high`\ (bits 3--0)
++      - R\ :sub:`0103low`\ (bits 7--6)
++
++        G\ :sub:`0102high`\ (bits 5--0)
++    * - start + 36:
++      - R\ :sub:`0103high`
++      - G\ :sub:`0104low`
++      - R\ :sub:`0105low`\ (bits 7--2)
++
++        G\ :sub:`0104high`\ (bits 1--0)
++      - G\ :sub:`0106low`\ (bits 7--4)
++
++        R\ :sub:`0105high`\ (bits 3--0)
++    * - start + 40:
++      - R\ :sub:`0107low`\ (bits 7--6)
++
++        G\ :sub:`0106high`\ (bits 5--0)
++      - R\ :sub:`0107high`
++      - G\ :sub:`0108low`
++      - R\ :sub:`0109low`\ (bits 7--2)
++
++        G\ :sub:`0108high`\ (bits 1--0)
++    * - start + 44:
++      - G\ :sub:`0110low`\ (bits 7--4)
++
++        R\ :sub:`0109high`\ (bits 3--0)
++      - R\ :sub:`0111low`\ (bits 7--6)
++
++        G\ :sub:`0110high`\ (bits 5--0)
++      - R\ :sub:`0111high`
++      - G\ :sub:`0112low`
++    * - start + 48:
++      - R\ :sub:`0113low`\ (bits 7--2)
++
++        G\ :sub:`0112high`\ (bits 1--0)
++      - G\ :sub:`0114low`\ (bits 7--4)
++
++        R\ :sub:`0113high`\ (bits 3--0)
++      - R\ :sub:`0115low`\ (bits 7--6)
++
++        G\ :sub:`0114high`\ (bits 5--0)
++      - R\ :sub:`0115high`
++    * - start + 52:
++      - G\ :sub:`0116low`
++      - R\ :sub:`0117low`\ (bits 7--2)
++
++        G\ :sub:`0116high`\ (bits 1--0)
++      - G\ :sub:`0118low`\ (bits 7--4)
++
++        R\ :sub:`0117high`\ (bits 3--0)
++      - R\ :sub:`0119low`\ (bits 7--6)
++
++        G\ :sub:`0118high`\ (bits 5--0)
++    * - start + 56:
++      - R\ :sub:`0119high`
++      - G\ :sub:`0120low`
++      - R\ :sub:`0121low`\ (bits 7--2)
++
++        G\ :sub:`0120high`\ (bits 1--0)
++      - G\ :sub:`0122low`\ (bits 7--4)
++
++        R\ :sub:`0121high`\ (bits 3--0)
++    * - start + 60:
++      - R\ :sub:`0123low`\ (bits 7--6)
++
++        G\ :sub:`0122high`\ (bits 5--0)
++      - R\ :sub:`0123high`
++      - G\ :sub:`0124low`
++      - G\ :sub:`0124high`\ (bits 1--0)
++    * - start + 64:
++      - B\ :sub:`0200low`
++      - G\ :sub:`0201low`\ (bits 7--2)
++
++        B\ :sub:`0200high`\ (bits 1--0)
++      - B\ :sub:`0202low`\ (bits 7--4)
++
++        G\ :sub:`0201high`\ (bits 3--0)
++      - G\ :sub:`0203low`\ (bits 7--6)
++
++        B\ :sub:`0202high`\ (bits 5--0)
++    * - start + 68:
++      - G\ :sub:`0203high`
++      - B\ :sub:`0204low`
++      - G\ :sub:`0205low`\ (bits 7--2)
++
++        B\ :sub:`0204high`\ (bits 1--0)
++      - B\ :sub:`0206low`\ (bits 7--4)
++
++        G\ :sub:`0205high`\ (bits 3--0)
++    * - start + 72:
++      - G\ :sub:`0207low`\ (bits 7--6)
++
++        B\ :sub:`0206high`\ (bits 5--0)
++      - G\ :sub:`0207high`
++      - B\ :sub:`0208low`
++      - G\ :sub:`0209low`\ (bits 7--2)
++
++        B\ :sub:`0208high`\ (bits 1--0)
++    * - start + 76:
++      - B\ :sub:`0210low`\ (bits 7--4)
++
++        G\ :sub:`0209high`\ (bits 3--0)
++      - G\ :sub:`0211low`\ (bits 7--6)
++
++        B\ :sub:`0210high`\ (bits 5--0)
++      - G\ :sub:`0211high`
++      - B\ :sub:`0212low`
++    * - start + 80:
++      - G\ :sub:`0213low`\ (bits 7--2)
++
++        B\ :sub:`0212high`\ (bits 1--0)
++      - B\ :sub:`0214low`\ (bits 7--4)
++
++        G\ :sub:`0213high`\ (bits 3--0)
++      - G\ :sub:`0215low`\ (bits 7--6)
++
++        B\ :sub:`0214high`\ (bits 5--0)
++      - G\ :sub:`0215high`
++    * - start + 84:
++      - B\ :sub:`0216low`
++      - G\ :sub:`0217low`\ (bits 7--2)
++
++        B\ :sub:`0216high`\ (bits 1--0)
++      - B\ :sub:`0218low`\ (bits 7--4)
++
++        G\ :sub:`0217high`\ (bits 3--0)
++      - G\ :sub:`0219low`\ (bits 7--6)
++
++        B\ :sub:`0218high`\ (bits 5--0)
++    * - start + 88:
++      - G\ :sub:`0219high`
++      - B\ :sub:`0220low`
++      - G\ :sub:`0221low`\ (bits 7--2)
++
++        B\ :sub:`0220high`\ (bits 1--0)
++      - B\ :sub:`0222low`\ (bits 7--4)
++
++        G\ :sub:`0221high`\ (bits 3--0)
++    * - start + 92:
++      - G\ :sub:`0223low`\ (bits 7--6)
++
++        B\ :sub:`0222high`\ (bits 5--0)
++      - G\ :sub:`0223high`
++      - B\ :sub:`0224low`
++      - B\ :sub:`0224high`\ (bits 1--0)
++    * - start + 96:
++      - G\ :sub:`0300low`
++      - R\ :sub:`0301low`\ (bits 7--2)
++
++        G\ :sub:`0300high`\ (bits 1--0)
++      - G\ :sub:`0302low`\ (bits 7--4)
++
++        R\ :sub:`0301high`\ (bits 3--0)
++      - R\ :sub:`0303low`\ (bits 7--6)
++
++        G\ :sub:`0302high`\ (bits 5--0)
++    * - start + 100:
++      - R\ :sub:`0303high`
++      - G\ :sub:`0304low`
++      - R\ :sub:`0305low`\ (bits 7--2)
++
++        G\ :sub:`0304high`\ (bits 1--0)
++      - G\ :sub:`0306low`\ (bits 7--4)
++
++        R\ :sub:`0305high`\ (bits 3--0)
++    * - start + 104:
++      - R\ :sub:`0307low`\ (bits 7--6)
++
++        G\ :sub:`0306high`\ (bits 5--0)
++      - R\ :sub:`0307high`
++      - G\ :sub:`0308low`
++      - R\ :sub:`0309low`\ (bits 7--2)
++
++        G\ :sub:`0308high`\ (bits 1--0)
++    * - start + 108:
++      - G\ :sub:`0310low`\ (bits 7--4)
++
++        R\ :sub:`0309high`\ (bits 3--0)
++      - R\ :sub:`0311low`\ (bits 7--6)
++
++        G\ :sub:`0310high`\ (bits 5--0)
++      - R\ :sub:`0311high`
++      - G\ :sub:`0312low`
++    * - start + 112:
++      - R\ :sub:`0313low`\ (bits 7--2)
++
++        G\ :sub:`0312high`\ (bits 1--0)
++      - G\ :sub:`0314low`\ (bits 7--4)
++
++        R\ :sub:`0313high`\ (bits 3--0)
++      - R\ :sub:`0315low`\ (bits 7--6)
++
++        G\ :sub:`0314high`\ (bits 5--0)
++      - R\ :sub:`0315high`
++    * - start + 116:
++      - G\ :sub:`0316low`
++      - R\ :sub:`0317low`\ (bits 7--2)
++
++        G\ :sub:`0316high`\ (bits 1--0)
++      - G\ :sub:`0318low`\ (bits 7--4)
++
++        R\ :sub:`0317high`\ (bits 3--0)
++      - R\ :sub:`0319low`\ (bits 7--6)
++
++        G\ :sub:`0318high`\ (bits 5--0)
++    * - start + 120:
++      - R\ :sub:`0319high`
++      - G\ :sub:`0320low`
++      - R\ :sub:`0321low`\ (bits 7--2)
++
++        G\ :sub:`0320high`\ (bits 1--0)
++      - G\ :sub:`0322low`\ (bits 7--4)
++
++        R\ :sub:`0321high`\ (bits 3--0)
++    * - start + 124:
++      - R\ :sub:`0323low`\ (bits 7--6)
++
++        G\ :sub:`0322high`\ (bits 5--0)
++      - R\ :sub:`0323high`
++      - G\ :sub:`0324low`
++      - G\ :sub:`0324high`\ (bits 1--0)
 -- 
-2.15.0.403.gc27cc4dac6-goog
+2.7.4
