@@ -1,41 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:34985 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751067AbdKUVD0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Nov 2017 16:03:26 -0500
-Date: Tue, 21 Nov 2017 21:03:23 +0000
-From: Sean Young <sean@mess.org>
-To: Laurent Caumont <lcaumont2@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        linux-media@vger.kernel.org
-Subject: Re: 'LITE-ON USB2.0 DVB-T Tune' driver crash with kernel 4.13 /
- ubuntu 17.10
-Message-ID: <20171121210323.ii7pniffyq4fnx3i@gofer.mess.org>
-References: <20171029193121.p2q6dxxz376cpx5y@gofer.mess.org>
- <CACG2urwdnXs2v8hv24R3+sNW6qOifh6Gtt+semez_c8QC58-gA@mail.gmail.com>
- <20171107084245.47dce306@vento.lan>
- <CACG2ury9Ab3pHGVyNLQeOH03TF3r_oeX1h3=AuJ5XzNgjx+yag@mail.gmail.com>
- <20171111105643.ozwukzmdhalxhoho@gofer.mess.org>
- <CACG2urwv1dTtEW5vuspTF5A3t2F1s-iRPZE5SiCt9o8k+k71hA@mail.gmail.com>
- <20171111180159.fb33mc2t467ygfqw@gofer.mess.org>
- <CACG2uryHHu-vvHj0B1wGRYZuczB5_8cbD3LBscaBmbN-LFJQMg@mail.gmail.com>
- <20171111205527.g5dach2rmhlxmr5x@gofer.mess.org>
- <CACG2urxfW-O_AEhOKFApxxSdoSxJRkaTd1TNQ-6jNxouquB2fA@mail.gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51970 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754859AbdKBJIe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Nov 2017 05:08:34 -0400
+Date: Thu, 2 Nov 2017 11:08:32 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v2 03/26] media: led-class-flash: better handle NULL
+ flash struct
+Message-ID: <20171102090832.irvz5px745lz55kh@valkosipuli.retiisi.org.uk>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+ <7e38ad92ea843f1ec1130a64ab50afeb72b850c1.1509569763.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CACG2urxfW-O_AEhOKFApxxSdoSxJRkaTd1TNQ-6jNxouquB2fA@mail.gmail.com>
+In-Reply-To: <7e38ad92ea843f1ec1130a64ab50afeb72b850c1.1509569763.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Mauro,
 
-On Sun, Nov 12, 2017 at 09:38:47AM +0100, Laurent Caumont wrote:
-> Thank you for the changes, It's better like this, I will test it.
+Somehow the To header in your message ends up being:
 
-Just wondering if you have had the time to test this patch. It would be
-great if it could be included after being tested.
+To: unlisted-recipients: no To-header on input <;
 
-Thanks,
+This doesn't end well when replying to the messages.
 
-Sean
+On Wed, Nov 01, 2017 at 05:05:40PM -0400, Mauro Carvalho Chehab wrote:
+> The logic at V4L2 led core assumes that the flash struct
+> can be null. However, it doesn't check for null while
+> trying to set, causing some smatch  to warn:
+> 
+> 	drivers/media/v4l2-core/v4l2-flash-led-class.c:210 v4l2_flash_s_ctrl() error: we previously assumed 'fled_cdev' could be null (see line 200)
+
+I guess this is fine for suppressing the warning but there's not a
+technical problem it fixes: if there's no flash, then the flash controls
+aren't registered with the control handler.
+
+Anyway,
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  include/linux/led-class-flash.h | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/include/linux/led-class-flash.h b/include/linux/led-class-flash.h
+> index e97966d1fb8d..700efaa9e115 100644
+> --- a/include/linux/led-class-flash.h
+> +++ b/include/linux/led-class-flash.h
+> @@ -121,6 +121,8 @@ extern void led_classdev_flash_unregister(struct led_classdev_flash *fled_cdev);
+>  static inline int led_set_flash_strobe(struct led_classdev_flash *fled_cdev,
+>  					bool state)
+>  {
+> +	if (!fled_cdev)
+> +		return -EINVAL;
+>  	return fled_cdev->ops->strobe_set(fled_cdev, state);
+>  }
+>  
+> @@ -136,6 +138,8 @@ static inline int led_set_flash_strobe(struct led_classdev_flash *fled_cdev,
+>  static inline int led_get_flash_strobe(struct led_classdev_flash *fled_cdev,
+>  					bool *state)
+>  {
+> +	if (!fled_cdev)
+> +		return -EINVAL;
+>  	if (fled_cdev->ops->strobe_get)
+>  		return fled_cdev->ops->strobe_get(fled_cdev, state);
+>  
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
