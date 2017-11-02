@@ -1,66 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:37416 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752799AbdKIA31 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 8 Nov 2017 19:29:27 -0500
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        hyungwoo.yang@intel.com, chiranjeevi.rapolu@intel.com,
-        jerry.w.hu@intel.com, Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v8 1/4] videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
-Date: Wed,  8 Nov 2017 16:30:36 -0800
-Message-Id: <1510187439-19125-2-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1510187439-19125-1-git-send-email-yong.zhi@intel.com>
-References: <1510187439-19125-1-git-send-email-yong.zhi@intel.com>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:55880 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754885AbdKBIPs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 04:15:48 -0400
+Received: by mail-lf0-f66.google.com with SMTP id e143so5375124lfg.12
+        for <linux-media@vger.kernel.org>; Thu, 02 Nov 2017 01:15:48 -0700 (PDT)
+Date: Thu, 2 Nov 2017 09:15:45 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 13/26] media: rcar: fix a debug printk
+Message-ID: <20171102081545.GB24132@bigcity.dyn.berto.se>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+ <ef0a1dc7f902c8ed9cc8aa454bd07a8fcda66dfa.1509569763.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <ef0a1dc7f902c8ed9cc8aa454bd07a8fcda66dfa.1509569763.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add IPU3 specific formats:
+Hi Mauro,
 
-	V4L2_PIX_FMT_IPU3_SBGGR10
-	V4L2_PIX_FMT_IPU3_SGBRG10
-	V4L2_PIX_FMT_IPU3_SGRBG10
-	V4L2_PIX_FMT_IPU3_SRGGB10
+Thanks for your patch.
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
- include/uapi/linux/videodev2.h       | 6 ++++++
- 2 files changed, 10 insertions(+)
+On 2017-11-01 17:05:50 -0400, Mauro Carvalho Chehab wrote:
+> Two orthogonal changesets caused a breakage at a printk
+> inside rcar. Changeset 859969b38e2e
+> ("[media] v4l: Switch from V4L2 OF not V4L2 fwnode API")
+> made davinci to use struct fwnode_handle instead of
+> struct device_node. Changeset 68d9c47b1679
+> ("media: Convert to using %pOF instead of full_name")
+> changed the printk to not use ->full_name, but, instead,
+> to rely on %pOF.
+> 
+> With both patches applied, the Kernel will do the wrong
+> thing, as warned by smatch:
+> 	drivers/media/platform/rcar-vin/rcar-core.c:189 rvin_digital_graph_init() error: '%pOF' expects argument of type 'struct device_node*', argument 4 has type 'void*'
+> 
+> So, change the logic to actually print the device name
+> that was obtained before the print logic.
+> 
+> Fixes: 68d9c47b1679 ("media: Convert to using %pOF instead of full_name")
+> Fixes: 859969b38e2e ("[media] v4l: Switch from V4L2 OF not V4L2 fwnode API")
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index 108d776f3265..ce5914f7a056 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -186,8 +186,8 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+>  	if (!vin->digital)
+>  		return -ENODEV;
+>  
+> -	vin_dbg(vin, "Found digital subdevice %pOF\n",
+> -		to_of_node(vin->digital->asd.match.fwnode.fwnode));
+> +	vin_dbg(vin, "Found digital subdevice %s\n",
+> +		to_of_node(vin->digital->asd.match.fwnode.fwnode)->full_name);
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 7961499..3937945 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1202,6 +1202,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_PIX_FMT_SGBRG10P:	descr = "10-bit Bayer GBGB/RGRG Packed"; break;
- 	case V4L2_PIX_FMT_SGRBG10P:	descr = "10-bit Bayer GRGR/BGBG Packed"; break;
- 	case V4L2_PIX_FMT_SRGGB10P:	descr = "10-bit Bayer RGRG/GBGB Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SBGGR10: descr = "10-bit bayer BGGR IPU3 Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SGBRG10: descr = "10-bit bayer GBRG IPU3 Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SGRBG10: descr = "10-bit bayer GRBG IPU3 Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SRGGB10: descr = "10-bit bayer RGGB IPU3 Packed"; break;
- 	case V4L2_PIX_FMT_SBGGR10ALAW8:	descr = "8-bit Bayer BGBG/GRGR (A-law)"; break;
- 	case V4L2_PIX_FMT_SGBRG10ALAW8:	descr = "8-bit Bayer GBGB/RGRG (A-law)"; break;
- 	case V4L2_PIX_FMT_SGRBG10ALAW8:	descr = "8-bit Bayer GRGR/BGBG (A-law)"; break;
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 185d6a0..bcf6a50 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -668,6 +668,12 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
- #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
- 
-+/* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
-+#define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
-+#define V4L2_PIX_FMT_IPU3_SGBRG10	v4l2_fourcc('i', 'p', '3', 'g') /* IPU3 packed 10-bit GBRG bayer */
-+#define V4L2_PIX_FMT_IPU3_SGRBG10	v4l2_fourcc('i', 'p', '3', 'G') /* IPU3 packed 10-bit GRBG bayer */
-+#define V4L2_PIX_FMT_IPU3_SRGGB10	v4l2_fourcc('i', 'p', '3', 'r') /* IPU3 packed 10-bit RGGB bayer */
-+
- /* SDR formats - used only for Software Defined Radio devices */
- #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
- #define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
+For the same reasons as Laurent brings up in patch 14/26 I'm a bit 
+sceptical to this change.
+
+>  
+>  	vin->notifier.ops = &rvin_digital_notify_ops;
+>  	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
+> -- 
+> 2.13.6
+> 
+
 -- 
-1.9.1
+Regards,
+Niklas Söderlund
