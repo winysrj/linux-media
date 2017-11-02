@@ -1,47 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:8972 "EHLO
-        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S966330AbdKPSWv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 13:22:51 -0500
-From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        =?utf-8?B?TmlrbGFzIFPDtmRlcmx1bmQ=?=
-        <niklas.soderlund@ragnatech.se>,
-        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Simon Horman <horms+renesas@verge.net.au>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Biju Das <biju.das@bp.renesas.com>
-Subject: RE: [PATCH 1/2] dt-bindings: media: rcar_vin: add device tree support
- for r8a774[35]
-Date: Thu, 16 Nov 2017 18:22:45 +0000
-Message-ID: <TY1PR06MB0895A2D7F004364284EB2289C02E0@TY1PR06MB0895.apcprd06.prod.outlook.com>
-References: <1510834290-25434-1-git-send-email-fabrizio.castro@bp.renesas.com>
- <1510834290-25434-2-git-send-email-fabrizio.castro@bp.renesas.com>
- <CAMuHMdW+krUp5ELO4NFxGi8NZ5-H4vrtm-=OXyvZKMCk2f-WcQ@mail.gmail.com>
- <TY1PR06MB089529F042099069AD960093C02E0@TY1PR06MB0895.apcprd06.prod.outlook.com>
- <CAMuHMdVLkhdb0nKMd8OzRK7=wnh_Dxww932Vq2P_OiL=a29V4w@mail.gmail.com>
-In-Reply-To: <CAMuHMdVLkhdb0nKMd8OzRK7=wnh_Dxww932Vq2P_OiL=a29V4w@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail-yw0-f194.google.com ([209.85.161.194]:47530 "EHLO
+        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750704AbdKBEBy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 00:01:54 -0400
 MIME-Version: 1.0
+In-Reply-To: <20171101140630.2884-1-Liviu.Dudau@arm.com>
+References: <20171101140630.2884-1-Liviu.Dudau@arm.com>
+From: Alex Deucher <alexdeucher@gmail.com>
+Date: Thu, 2 Nov 2017 00:01:53 -0400
+Message-ID: <CADnq5_Ok4v0vdqermmXEuK7ZWFWbM=nN7pqEmPG1uYnn_z7Khw@mail.gmail.com>
+Subject: Re: [PATCH] dma-buf: Cleanup comments on dma_buf_map_attachment()
+To: Liviu Dudau <Liviu.Dudau@arm.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        DRI-devel <dri-devel@lists.freedesktop.org>,
+        Linux Media ML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgR2VlcnQsDQoNCj4gPj4NCj4gPj4gUGxlYXNlIGtlZXAgdGhlIGxpc3Qgc29ydGVkIGJ5IFNv
-QyBwYXJ0IG51bWJlci4NCj4gPg0KPiA+IEl0IGlzIHNvcnRlZCwganVzdCBpbiBkZXNjZW5kaW5n
-IG9yZGVyLiBEbyB5b3Ugd2FudCBtZSB0byByZS1vcmRlciB0aGUgZnVsbCBsaXN0IGluIGFzY2Vu
-ZGluZyBvcmRlcj8NCj4NCj4gVGhhdCBtYXkgYmUgYSBnb29kIGlkZWEsIGdpdmVuIHRoZSBjdXJy
-ZW50IG9yZGVyIGlzIG5vbi1zdGFuZGFyZCBhbmQNCj4gY291bnRlci1pbnR1aXRpdmUuDQoNCnN1
-cmUsIGRyb3BwaW5nIHRoaXMgc2VyaWVzIGFuZCBzZW5kaW5nIGEgdjIgdGhlbi4NCg0KQ2hlZXJz
-LA0KRmFiDQoNCj4NCj4gVGhhbmtzIQ0KPg0KPiBHcntvZXRqZSxlZXRpbmd9cywNCj4NCj4gICAg
-ICAgICAgICAgICAgICAgICAgICAgR2VlcnQNCg0KDQoNClJlbmVzYXMgRWxlY3Ryb25pY3MgRXVy
-b3BlIEx0ZCwgRHVrZXMgTWVhZG93LCBNaWxsYm9hcmQgUm9hZCwgQm91cm5lIEVuZCwgQnVja2lu
-Z2hhbXNoaXJlLCBTTDggNUZILCBVSy4gUmVnaXN0ZXJlZCBpbiBFbmdsYW5kICYgV2FsZXMgdW5k
-ZXIgUmVnaXN0ZXJlZCBOby4gMDQ1ODY3MDkuDQo=
+On Wed, Nov 1, 2017 at 10:06 AM, Liviu Dudau <Liviu.Dudau@arm.com> wrote:
+> Mappings need to be unmapped by calling dma_buf_unmap_attachment() and
+> not by calling again dma_buf_map_attachment(). Also fix some spelling
+> mistakes.
+>
+> Signed-off-by: Liviu Dudau <liviu.dudau@arm.com>
+
+Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
+
+> ---
+>  drivers/dma-buf/dma-buf.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> index bc1cb284111cb..1792385405f0e 100644
+> --- a/drivers/dma-buf/dma-buf.c
+> +++ b/drivers/dma-buf/dma-buf.c
+> @@ -351,13 +351,13 @@ static inline int is_dma_buf_file(struct file *file)
+>   *
+>   * 2. Userspace passes this file-descriptors to all drivers it wants this buffer
+>   *    to share with: First the filedescriptor is converted to a &dma_buf using
+> - *    dma_buf_get(). The the buffer is attached to the device using
+> + *    dma_buf_get(). Then the buffer is attached to the device using
+>   *    dma_buf_attach().
+>   *
+>   *    Up to this stage the exporter is still free to migrate or reallocate the
+>   *    backing storage.
+>   *
+> - * 3. Once the buffer is attached to all devices userspace can inniate DMA
+> + * 3. Once the buffer is attached to all devices userspace can initiate DMA
+>   *    access to the shared buffer. In the kernel this is done by calling
+>   *    dma_buf_map_attachment() and dma_buf_unmap_attachment().
+>   *
+> @@ -617,7 +617,7 @@ EXPORT_SYMBOL_GPL(dma_buf_detach);
+>   * Returns sg_table containing the scatterlist to be returned; returns ERR_PTR
+>   * on error. May return -EINTR if it is interrupted by a signal.
+>   *
+> - * A mapping must be unmapped again using dma_buf_map_attachment(). Note that
+> + * A mapping must be unmapped by using dma_buf_unmap_attachment(). Note that
+>   * the underlying backing storage is pinned for as long as a mapping exists,
+>   * therefore users/importers should not hold onto a mapping for undue amounts of
+>   * time.
+> --
+> 2.14.3
+>
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
