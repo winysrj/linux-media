@@ -1,64 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:39035 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753427AbdKXCiH (ORCPT
+Received: from smtprelay0204.hostedemail.com ([216.40.44.204]:52167 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751628AbdKBCDw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Nov 2017 21:38:07 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org,
-        Jacob Chen <jacob2.chen@rock-chips.com>
-Subject: [PATCH v2 07/11] ARM: dts: rockchip: add isp node for rk3288
-Date: Fri, 24 Nov 2017 10:37:02 +0800
-Message-Id: <20171124023706.5702-8-jacob-chen@iotwrt.com>
-In-Reply-To: <20171124023706.5702-1-jacob-chen@iotwrt.com>
-References: <20171124023706.5702-1-jacob-chen@iotwrt.com>
+        Wed, 1 Nov 2017 22:03:52 -0400
+Message-ID: <1509587669.31043.66.camel@perches.com>
+Subject: MAINTAINERS has a AS3645A LED FLASH duplicated section in -next
+From: Joe Perches <joe@perches.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Date: Wed, 01 Nov 2017 18:54:29 -0700
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacob Chen <jacob2.chen@rock-chips.com>
+MAINTAINERS is not supposed to have duplicated sections.
+Can you both please resolve this?
 
-rk3288 have a Embedded 13M ISP
+AS3645A LED FLASH CONTROLLER DRIVER
+M:	Sakari Ailus <sakari.ailus@iki.fi>
+L:	linux-leds@vger.kernel.org
+S:	Maintained
+F:	drivers/leds/leds-as3645a.c
 
-Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
----
- arch/arm/boot/dts/rk3288.dtsi | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
-
-diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
-index f3e7f98c2724..30677a0167fe 100644
---- a/arch/arm/boot/dts/rk3288.dtsi
-+++ b/arch/arm/boot/dts/rk3288.dtsi
-@@ -962,6 +962,23 @@
- 		status = "disabled";
- 	};
- 
-+	isp: isp@ff910000 {
-+		compatible = "rockchip,rk3288-cif-isp";
-+		reg = <0x0 0xff910000 0x0 0x4000>;
-+		interrupts = <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cru SCLK_ISP>, <&cru ACLK_ISP>,
-+			 <&cru HCLK_ISP>, <&cru PCLK_ISP_IN>,
-+			 <&cru SCLK_ISP_JPE>;
-+		clock-names = "clk_isp", "aclk_isp",
-+			      "hclk_isp", "pclk_isp_in",
-+			      "sclk_isp_jpe";
-+		assigned-clocks = <&cru SCLK_ISP>;
-+		assigned-clock-rates = <400000000>;
-+		power-domains = <&power RK3288_PD_VIO>;
-+		iommus = <&isp_mmu>;
-+		status = "disabled";
-+	};
-+
- 	isp_mmu: iommu@ff914000 {
- 		compatible = "rockchip,iommu";
- 		reg = <0x0 0xff914000 0x0 0x100>, <0x0 0xff915000 0x0 0x100>;
--- 
-2.15.0
+AS3645A LED FLASH CONTROLLER DRIVER
+M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+L:	linux-media@vger.kernel.org
+T:	git git://linuxtv.org/media_tree.git
+S:	Maintained
+F:	drivers/media/i2c/as3645a.c
+F:	include/media/i2c/as3645a.h
