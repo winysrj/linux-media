@@ -1,40 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0125.hostedemail.com ([216.40.44.125]:37192 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1759056AbdKPP1i (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 10:27:38 -0500
-From: Joe Perches <joe@perches.com>
-To: Chanwoo Choi <cw00.choi@samsung.com>, linux-pm@vger.kernel.org,
-        linux-integrity@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-security-module@vger.kernel.org
-Subject: [PATCH 0/4] treewide: Fix line continuation formats
-Date: Thu, 16 Nov 2017 07:27:25 -0800
-Message-Id: <cover.1510845910.git.joe@perches.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:57999 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752780AbdKBKL5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 06:11:57 -0400
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Antti Palosaari <crope@iki.fi>,
+        Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+        linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 2/7] cx231xx: fix spelling mistake: "synchronuously" -> "synchronously"
+Date: Thu,  2 Nov 2017 10:11:48 +0000
+Message-Id: <20171102101153.18225-2-colin.king@canonical.com>
+In-Reply-To: <20171102101153.18225-1-colin.king@canonical.com>
+References: <20171102101153.18225-1-colin.king@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Avoid using line continations in formats as that causes unexpected
-output.
+From: Colin Ian King <colin.king@canonical.com>
 
-Joe Perches (4):
-  rk3399_dmc: Fix line continuation format
-  drm: amd: Fix line continuation formats
-  [media] dibx000_common: Fix line continuation format
-  ima: Fix line continuation format
+Trivial fix to spelling mistake in error message text
 
- drivers/devfreq/rk3399_dmc.c                       |  4 ++--
- drivers/gpu/drm/amd/display/dc/core/dc_link_dp.c   | 11 ++++-----
- .../amd/powerplay/hwmgr/process_pptables_v1_0.c    |  6 ++---
- drivers/gpu/drm/amd/powerplay/hwmgr/vega10_hwmgr.c | 27 ++++++++--------------
- drivers/gpu/drm/amd/powerplay/smumgr/ci_smumgr.c   |  6 ++---
- .../gpu/drm/amd/powerplay/smumgr/iceland_smumgr.c  |  9 +++-----
- .../gpu/drm/amd/powerplay/smumgr/vega10_smumgr.c   |  6 ++---
- drivers/media/dvb-frontends/dibx000_common.c       |  8 +++----
- security/integrity/ima/ima_template.c              | 11 ++++-----
- 9 files changed, 33 insertions(+), 55 deletions(-)
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-dvb.c   | 4 ++--
+ drivers/media/usb/cx231xx/cx231xx-vbi.c   | 4 ++--
+ drivers/media/usb/cx231xx/cx231xx-video.c | 4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index c18bb33e060e..54abc1a7c8e1 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -179,10 +179,10 @@ static inline void print_err_status(struct cx231xx *dev, int packet, int status)
+ 
+ 	switch (status) {
+ 	case -ENOENT:
+-		errmsg = "unlinked synchronuously";
++		errmsg = "unlinked synchronously";
+ 		break;
+ 	case -ECONNRESET:
+-		errmsg = "unlinked asynchronuously";
++		errmsg = "unlinked asynchronously";
+ 		break;
+ 	case -ENOSR:
+ 		errmsg = "Buffer error (overrun)";
+diff --git a/drivers/media/usb/cx231xx/cx231xx-vbi.c b/drivers/media/usb/cx231xx/cx231xx-vbi.c
+index 330b86e4e38f..d3bfe8e23b1f 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-vbi.c
++++ b/drivers/media/usb/cx231xx/cx231xx-vbi.c
+@@ -43,10 +43,10 @@ static inline void print_err_status(struct cx231xx *dev, int packet, int status)
+ 
+ 	switch (status) {
+ 	case -ENOENT:
+-		errmsg = "unlinked synchronuously";
++		errmsg = "unlinked synchronously";
+ 		break;
+ 	case -ECONNRESET:
+-		errmsg = "unlinked asynchronuously";
++		errmsg = "unlinked asynchronously";
+ 		break;
+ 	case -ENOSR:
+ 		errmsg = "Buffer error (overrun)";
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index 179b8481a870..226059fc672b 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -199,10 +199,10 @@ static inline void print_err_status(struct cx231xx *dev, int packet, int status)
+ 
+ 	switch (status) {
+ 	case -ENOENT:
+-		errmsg = "unlinked synchronuously";
++		errmsg = "unlinked synchronously";
+ 		break;
+ 	case -ECONNRESET:
+-		errmsg = "unlinked asynchronuously";
++		errmsg = "unlinked asynchronously";
+ 		break;
+ 	case -ENOSR:
+ 		errmsg = "Buffer error (overrun)";
 -- 
-2.15.0
+2.14.1
