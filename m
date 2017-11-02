@@ -1,240 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:34939 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753313AbdKQLJY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 06:09:24 -0500
-Subject: Re: [PATCH/RFC 1/2] v4l: v4l2-dev: Add infrastructure to protect
- device unplug race
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org
-References: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com>
- <20171116003349.19235-2-laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8942419d-fc0e-7a82-cc35-a7960cd22800@xs4all.nl>
-Date: Fri, 17 Nov 2017 12:09:20 +0100
-MIME-Version: 1.0
-In-Reply-To: <20171116003349.19235-2-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mga06.intel.com ([134.134.136.31]:12806 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932497AbdKBUAP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Nov 2017 16:00:15 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
+        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
+        hyungwoo.yang@intel.com, chiranjeevi.rapolu@intel.com,
+        jerry.w.hu@intel.com, Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH v7 1/3] videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
+Date: Thu,  2 Nov 2017 14:59:59 -0500
+Message-Id: <1509652801-9729-2-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1509652801-9729-1-git-send-email-yong.zhi@intel.com>
+References: <1509652801-9729-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Add IPU3 specific formats:
 
-On 16/11/17 01:33, Laurent Pinchart wrote:
-> Device unplug being asynchronous, it naturally races with operations
-> performed by userspace through ioctls or other file operations on video
-> device nodes.
-> 
-> This leads to potential access to freed memory or to other resources
-> during device access if unplug occurs during device access. To solve
-> this, we need to wait until all device access completes when unplugging
-> the device, and block all further access when the device is being
-> unplugged.
-> 
-> Three new functions are introduced. The video_device_enter() and
-> video_device_exit() functions must be used to mark entry and exit from
-> all code sections where the device can be accessed. The
-> video_device_unplug() function is then used in the unplug handler to
-> mark the device as being unplugged and wait for all access to complete.
-> 
-> As an example mark the ioctl handler as a device access section. Other
-> file operations need to be protected too, and blocking ioctls (such as
-> VIDIOC_DQBUF) need to be handled as well.
+	V4L2_PIX_FMT_IPU3_SBGGR10
+	V4L2_PIX_FMT_IPU3_SGBRG10
+	V4L2_PIX_FMT_IPU3_SGRBG10
+	V4L2_PIX_FMT_IPU3_SRGGB10
 
-As long as the queue field in struct video_device is filled in properly
-this shouldn't be a problem.
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
+ include/uapi/linux/videodev2.h       | 6 ++++++
+ 2 files changed, 10 insertions(+)
 
-This looks pretty good, simple and straightforward.
-
-Do we need something similar for media_device? Other devices?
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  drivers/media/v4l2-core/v4l2-dev.c | 57 ++++++++++++++++++++++++++++++++++++++
->  include/media/v4l2-dev.h           | 47 +++++++++++++++++++++++++++++++
->  2 files changed, 104 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index c647ba648805..c73c6d49e7cf 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -156,6 +156,52 @@ void video_device_release_empty(struct video_device *vdev)
->  }
->  EXPORT_SYMBOL(video_device_release_empty);
->  
-> +int video_device_enter(struct video_device *vdev)
-> +{
-> +	bool unplugged;
-> +
-> +	spin_lock(&vdev->unplug_lock);
-> +	unplugged = vdev->unplugged;
-> +	if (!unplugged)
-> +		vdev->access_refcount++;
-> +	spin_unlock(&vdev->unplug_lock);
-> +
-> +	return unplugged ? -ENODEV : 0;
-> +}
-> +EXPORT_SYMBOL_GPL(video_device_enter);
-> +
-> +void video_device_exit(struct video_device *vdev)
-> +{
-> +	bool wake_up;
-> +
-> +	spin_lock(&vdev->unplug_lock);
-> +	WARN_ON(--vdev->access_refcount < 0);
-> +	wake_up = vdev->access_refcount == 0;
-> +	spin_unlock(&vdev->unplug_lock);
-> +
-> +	if (wake_up)
-> +		wake_up(&vdev->unplug_wait);
-> +}
-> +EXPORT_SYMBOL_GPL(video_device_exit);
-> +
-> +void video_device_unplug(struct video_device *vdev)
-> +{
-> +	bool unplug_blocked;
-> +
-> +	spin_lock(&vdev->unplug_lock);
-> +	unplug_blocked = vdev->access_refcount > 0;
-> +	vdev->unplugged = true;
-> +	spin_unlock(&vdev->unplug_lock);
-> +
-> +	if (!unplug_blocked)
-> +		return;
-> +
-> +	if (!wait_event_timeout(vdev->unplug_wait, !vdev->access_refcount,
-> +				msecs_to_jiffies(150000)))
-> +		WARN(1, "Timeout waiting for device access to complete\n");
-> +}
-> +EXPORT_SYMBOL_GPL(video_device_unplug);
-> +
->  static inline void video_get(struct video_device *vdev)
->  {
->  	get_device(&vdev->dev);
-> @@ -351,6 +397,10 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
->  	struct video_device *vdev = video_devdata(filp);
->  	int ret = -ENODEV;
->  
-> +	ret = video_device_enter(vdev);
-> +	if (ret < 0)
-> +		return ret;
-> +
->  	if (vdev->fops->unlocked_ioctl) {
->  		struct mutex *lock = v4l2_ioctl_get_lock(vdev, cmd);
->  
-> @@ -358,11 +408,14 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
->  			return -ERESTARTSYS;
->  		if (video_is_registered(vdev))
->  			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
-> +		else
-> +			ret = -ENODEV;
->  		if (lock)
->  			mutex_unlock(lock);
->  	} else
->  		ret = -ENOTTY;
->  
-> +	video_device_exit(vdev);
->  	return ret;
->  }
->  
-> @@ -841,6 +894,10 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
->  	if (WARN_ON(!vdev->v4l2_dev))
->  		return -EINVAL;
->  
-> +	/* unplug support */
-> +	spin_lock_init(&vdev->unplug_lock);
-> +	init_waitqueue_head(&vdev->unplug_wait);
-> +
->  	/* v4l2_fh support */
->  	spin_lock_init(&vdev->fh_lock);
->  	INIT_LIST_HEAD(&vdev->fh_list);
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index e657614521e3..365a94f91dc9 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -15,6 +15,7 @@
->  #include <linux/cdev.h>
->  #include <linux/mutex.h>
->  #include <linux/videodev2.h>
-> +#include <linux/wait.h>
->  
->  #include <media/media-entity.h>
->  
-> @@ -178,6 +179,12 @@ struct v4l2_file_operations {
->   * @pipe: &struct media_pipeline
->   * @fops: pointer to &struct v4l2_file_operations for the video device
->   * @device_caps: device capabilities as used in v4l2_capabilities
-> + * @unplugged: when set the device has been unplugged and no device access
-> + *	section can be entered
-> + * @access_refcount: number of device access section currently running for the
-> + *	device
-> + * @unplug_lock: protects unplugged and access_refcount
-> + * @unplug_wait: wait queue to wait for device access sections to complete
->   * @dev: &struct device for the video device
->   * @cdev: character device
->   * @v4l2_dev: pointer to &struct v4l2_device parent
-> @@ -221,6 +228,12 @@ struct video_device
->  
->  	u32 device_caps;
->  
-> +	/* unplug handling */
-> +	bool unplugged;
-> +	int access_refcount;
-> +	spinlock_t unplug_lock;
-> +	wait_queue_head_t unplug_wait;
-> +
->  	/* sysfs */
->  	struct device dev;
->  	struct cdev *cdev;
-> @@ -506,4 +519,38 @@ static inline int video_is_registered(struct video_device *vdev)
->  	return test_bit(V4L2_FL_REGISTERED, &vdev->flags);
->  }
->  
-> +/**
-> + * video_device_enter - enter a device access section
-> + * @vdev: the video device
-> + *
-> + * This function marks and protects the beginning of a section that should not
-> + * be entered after the device has been unplugged. The section end is marked
-> + * with a call to video_device_exit(). Calls to this function can be nested.
-> + *
-> + * Returns:
-> + * 0 on success or a negative error code if the device has been unplugged.
-> + */
-> +int video_device_enter(struct video_device *vdev);
-> +
-> +/**
-> + * video_device_exit - exit a device access section
-> + * @vdev: the video device
-> + *
-> + * This function marks the end of a section entered with video_device_enter().
-> + * It wakes up all tasks waiting on video_device_unplug() for device access
-> + * sections to be exited.
-> + */
-> +void video_device_exit(struct video_device *vdev);
-> +
-> +/**
-> + * video_device_unplug - mark a device as unplugged
-> + * @vdev: the video device
-> + *
-> + * Mark a device as unplugged, causing all subsequent calls to
-> + * video_device_enter() to return an error. If a device access section is
-> + * currently being executed the function waits until the section is exited as
-> + * marked by a call to video_device_exit().
-> + */
-> +void video_device_unplug(struct video_device *vdev);
-> +
->  #endif /* _V4L2_DEV_H */
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 79614992ee21..3937945b12dc 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1202,6 +1202,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_SGBRG10P:	descr = "10-bit Bayer GBGB/RGRG Packed"; break;
+ 	case V4L2_PIX_FMT_SGRBG10P:	descr = "10-bit Bayer GRGR/BGBG Packed"; break;
+ 	case V4L2_PIX_FMT_SRGGB10P:	descr = "10-bit Bayer RGRG/GBGB Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SBGGR10: descr = "10-bit bayer BGGR IPU3 Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SGBRG10: descr = "10-bit bayer GBRG IPU3 Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SGRBG10: descr = "10-bit bayer GRBG IPU3 Packed"; break;
++	case V4L2_PIX_FMT_IPU3_SRGGB10: descr = "10-bit bayer RGGB IPU3 Packed"; break;
+ 	case V4L2_PIX_FMT_SBGGR10ALAW8:	descr = "8-bit Bayer BGBG/GRGR (A-law)"; break;
+ 	case V4L2_PIX_FMT_SGBRG10ALAW8:	descr = "8-bit Bayer GBGB/RGRG (A-law)"; break;
+ 	case V4L2_PIX_FMT_SGRBG10ALAW8:	descr = "8-bit Bayer GRGR/BGBG (A-law)"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 185d6a0acc06..bcf6a50f6aac 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -668,6 +668,12 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
+ #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
+ 
++/* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
++#define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
++#define V4L2_PIX_FMT_IPU3_SGBRG10	v4l2_fourcc('i', 'p', '3', 'g') /* IPU3 packed 10-bit GBRG bayer */
++#define V4L2_PIX_FMT_IPU3_SGRBG10	v4l2_fourcc('i', 'p', '3', 'G') /* IPU3 packed 10-bit GRBG bayer */
++#define V4L2_PIX_FMT_IPU3_SRGGB10	v4l2_fourcc('i', 'p', '3', 'r') /* IPU3 packed 10-bit RGGB bayer */
++
+ /* SDR formats - used only for Software Defined Radio devices */
+ #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+ #define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
+-- 
+2.7.4
