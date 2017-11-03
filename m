@@ -1,248 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.133]:50112 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751980AbdK3LKe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Nov 2017 06:10:34 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, stable@vger.kernel.org,
-        Sergey Kozlov <serjk@netup.ru>, Abylay Ospan <aospan@netup.ru>,
-        Daniel Scheller <d.scheller@gmx.net>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Masanari Iida <standby24x7@gmail.com>,
-        Jiri Kosina <jkosina@suse.cz>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH, RESEND 1/2] dvb-frontends: fix i2c access helpers for KASAN
-Date: Thu, 30 Nov 2017 12:08:04 +0100
-Message-Id: <20171130110939.1140969-1-arnd@arndb.de>
+Received: from osg.samsung.com ([64.30.133.232]:58876 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934600AbdKCARF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Nov 2017 20:17:05 -0400
+Date: Thu, 2 Nov 2017 22:16:58 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH v2] media: ttpci: remove autorepeat handling and use
+ timer_setup
+Message-ID: <20171102221658.6d41bfcf@vento.lan>
+In-Reply-To: <20171102235037.4gndwq5223uyv5kw@dtor-ws>
+References: <20171025004005.hyb43h3yvovp4is2@dtor-ws>
+        <20171031172758.ugfo6br344iso4ni@gofer.mess.org>
+        <20171031174558.vsdpdudcwjneq2nu@gofer.mess.org>
+        <20171031182236.cxrasbayon7h52mm@dtor-ws>
+        <20171031200758.avdowtmcem5fnlb5@gofer.mess.org>
+        <20171031201143.ziwohlwpdvc4barr@gofer.mess.org>
+        <CAGXu5jLZaSDXdCVO3G1zsh3WLYaKvqm32xrJ8saBnCP8a7dZ8w@mail.gmail.com>
+        <20171102235037.4gndwq5223uyv5kw@dtor-ws>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A typical code fragment was copied across many dvb-frontend drivers and
-causes large stack frames when built with with CONFIG_KASAN on gcc-5/6/7:
+Em Thu, 2 Nov 2017 16:50:37 -0700
+Dmitry Torokhov <dmitry.torokhov@gmail.com> escreveu:
 
-drivers/media/dvb-frontends/cxd2841er.c:3225:1: error: the frame size of 3992 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-drivers/media/dvb-frontends/cxd2841er.c:3404:1: error: the frame size of 3136 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-drivers/media/dvb-frontends/stv0367.c:3143:1: error: the frame size of 4016 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-drivers/media/dvb-frontends/stv090x.c:3430:1: error: the frame size of 5312 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-drivers/media/dvb-frontends/stv090x.c:4248:1: error: the frame size of 4872 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+> On Thu, Nov 02, 2017 at 04:24:27PM -0700, Kees Cook wrote:
+> > On Tue, Oct 31, 2017 at 1:11 PM, Sean Young <sean@mess.org> wrote:  
+> > > Leave the autorepeat handling up to the input layer, and move
+> > > to the new timer API.
+> > >
+> > > Compile tested only.
+> > >
+> > > Signed-off-by: Sean Young <sean@mess.org>  
+> > 
+> > Hi! Just checking up on this... the input timer conversion is blocked
+> > by getting this sorted out, so I'd love to have something either
+> > media, input, or timer tree can carry. :)  
+> 
+> Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> 
+> From my POV the patch is good. Mauro, do you want me to take it through
+> my tree, or maybe you could create an immutable branch off 4.14-rc5 (or
+> 6) with this commit and I will pull it in and then can apply Kees input
+> core conversion patch?
 
-gcc-8 now solves this by consolidating the stack slots for the argument
-variables, but on older compilers we can get the same behavior by taking
-the pointer of a local variable rather than the inline function argument.
+Feel free to apply it into your tree with my ack:
 
-Cc: stable@vger.kernel.org
-Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81715
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-I'm undecided here whether there should be a comment pointing
-to PR81715 for each file that the bogus local variable workaround
-to prevent it from being cleaned up again. It's probably not
-necessary since anything that causes actual problems would also
-trigger a build warning.
----
- drivers/media/dvb-frontends/ascot2e.c     | 4 +++-
- drivers/media/dvb-frontends/cxd2841er.c   | 4 +++-
- drivers/media/dvb-frontends/helene.c      | 4 +++-
- drivers/media/dvb-frontends/horus3a.c     | 4 +++-
- drivers/media/dvb-frontends/itd1000.c     | 5 +++--
- drivers/media/dvb-frontends/mt312.c       | 4 +++-
- drivers/media/dvb-frontends/stb0899_drv.c | 3 ++-
- drivers/media/dvb-frontends/stb6100.c     | 6 ++++--
- drivers/media/dvb-frontends/stv0367.c     | 4 +++-
- drivers/media/dvb-frontends/stv090x.c     | 4 +++-
- drivers/media/dvb-frontends/stv6110x.c    | 4 +++-
- drivers/media/dvb-frontends/zl10039.c     | 4 +++-
- 12 files changed, 36 insertions(+), 14 deletions(-)
+Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-diff --git a/drivers/media/dvb-frontends/ascot2e.c b/drivers/media/dvb-frontends/ascot2e.c
-index 0ee0df53b91b..1219272ca3f0 100644
---- a/drivers/media/dvb-frontends/ascot2e.c
-+++ b/drivers/media/dvb-frontends/ascot2e.c
-@@ -155,7 +155,9 @@ static int ascot2e_write_regs(struct ascot2e_priv *priv,
- 
- static int ascot2e_write_reg(struct ascot2e_priv *priv, u8 reg, u8 val)
- {
--	return ascot2e_write_regs(priv, reg, &val, 1);
-+	u8 tmp = val;
-+
-+	return ascot2e_write_regs(priv, reg, &tmp, 1);
- }
- 
- static int ascot2e_read_regs(struct ascot2e_priv *priv,
-diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-index 48ee9bc00c06..b7574deff5c6 100644
---- a/drivers/media/dvb-frontends/cxd2841er.c
-+++ b/drivers/media/dvb-frontends/cxd2841er.c
-@@ -257,7 +257,9 @@ static int cxd2841er_write_regs(struct cxd2841er_priv *priv,
- static int cxd2841er_write_reg(struct cxd2841er_priv *priv,
- 			       u8 addr, u8 reg, u8 val)
- {
--	return cxd2841er_write_regs(priv, addr, reg, &val, 1);
-+	u8 tmp = val;
-+
-+	return cxd2841er_write_regs(priv, addr, reg, &tmp, 1);
- }
- 
- static int cxd2841er_read_regs(struct cxd2841er_priv *priv,
-diff --git a/drivers/media/dvb-frontends/helene.c b/drivers/media/dvb-frontends/helene.c
-index 4bf5a551ba40..6e93f2d1575b 100644
---- a/drivers/media/dvb-frontends/helene.c
-+++ b/drivers/media/dvb-frontends/helene.c
-@@ -331,7 +331,9 @@ static int helene_write_regs(struct helene_priv *priv,
- 
- static int helene_write_reg(struct helene_priv *priv, u8 reg, u8 val)
- {
--	return helene_write_regs(priv, reg, &val, 1);
-+	u8 tmp = val;
-+
-+	return helene_write_regs(priv, reg, &tmp, 1);
- }
- 
- static int helene_read_regs(struct helene_priv *priv,
-diff --git a/drivers/media/dvb-frontends/horus3a.c b/drivers/media/dvb-frontends/horus3a.c
-index 68d759c4c52e..fa9e2d373073 100644
---- a/drivers/media/dvb-frontends/horus3a.c
-+++ b/drivers/media/dvb-frontends/horus3a.c
-@@ -89,7 +89,9 @@ static int horus3a_write_regs(struct horus3a_priv *priv,
- 
- static int horus3a_write_reg(struct horus3a_priv *priv, u8 reg, u8 val)
- {
--	return horus3a_write_regs(priv, reg, &val, 1);
-+	u8 tmp = val;
-+
-+	return horus3a_write_regs(priv, reg, &tmp, 1);
- }
- 
- static int horus3a_enter_power_save(struct horus3a_priv *priv)
-diff --git a/drivers/media/dvb-frontends/itd1000.c b/drivers/media/dvb-frontends/itd1000.c
-index 5bb1e73a10b4..1ac5177162f6 100644
---- a/drivers/media/dvb-frontends/itd1000.c
-+++ b/drivers/media/dvb-frontends/itd1000.c
-@@ -95,8 +95,9 @@ static int itd1000_read_reg(struct itd1000_state *state, u8 reg)
- 
- static inline int itd1000_write_reg(struct itd1000_state *state, u8 r, u8 v)
- {
--	int ret = itd1000_write_regs(state, r, &v, 1);
--	state->shadow[r] = v;
-+	u8 tmp = v;
-+	int ret = itd1000_write_regs(state, r, &tmp, 1);
-+	state->shadow[r] = tmp;
- 	return ret;
- }
- 
-diff --git a/drivers/media/dvb-frontends/mt312.c b/drivers/media/dvb-frontends/mt312.c
-index 961b9a2508e0..12c32c024252 100644
---- a/drivers/media/dvb-frontends/mt312.c
-+++ b/drivers/media/dvb-frontends/mt312.c
-@@ -142,7 +142,9 @@ static inline int mt312_readreg(struct mt312_state *state,
- static inline int mt312_writereg(struct mt312_state *state,
- 				 const enum mt312_reg_addr reg, const u8 val)
- {
--	return mt312_write(state, reg, &val, 1);
-+	u8 tmp = val;
-+
-+	return mt312_write(state, reg, &tmp, 1);
- }
- 
- static inline u32 mt312_div(u32 a, u32 b)
-diff --git a/drivers/media/dvb-frontends/stb0899_drv.c b/drivers/media/dvb-frontends/stb0899_drv.c
-index 02347598277a..db5dde3215f0 100644
---- a/drivers/media/dvb-frontends/stb0899_drv.c
-+++ b/drivers/media/dvb-frontends/stb0899_drv.c
-@@ -539,7 +539,8 @@ int stb0899_write_regs(struct stb0899_state *state, unsigned int reg, u8 *data,
- 
- int stb0899_write_reg(struct stb0899_state *state, unsigned int reg, u8 data)
- {
--	return stb0899_write_regs(state, reg, &data, 1);
-+	u8 tmp = data;
-+	return stb0899_write_regs(state, reg, &tmp, 1);
- }
- 
- /*
-diff --git a/drivers/media/dvb-frontends/stb6100.c b/drivers/media/dvb-frontends/stb6100.c
-index 17a955d0031b..0167a3e1ecc5 100644
---- a/drivers/media/dvb-frontends/stb6100.c
-+++ b/drivers/media/dvb-frontends/stb6100.c
-@@ -226,12 +226,14 @@ static int stb6100_write_reg_range(struct stb6100_state *state, u8 buf[], int st
- 
- static int stb6100_write_reg(struct stb6100_state *state, u8 reg, u8 data)
- {
-+	u8 tmp = data;
-+
- 	if (unlikely(reg >= STB6100_NUMREGS)) {
- 		dprintk(verbose, FE_ERROR, 1, "Invalid register offset 0x%x", reg);
- 		return -EREMOTEIO;
- 	}
--	data = (data & stb6100_template[reg].mask) | stb6100_template[reg].set;
--	return stb6100_write_reg_range(state, &data, reg, 1);
-+	tmp = (tmp & stb6100_template[reg].mask) | stb6100_template[reg].set;
-+	return stb6100_write_reg_range(state, &tmp, reg, 1);
- }
- 
- 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index f3529df8211d..1964cb7d58b7 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -166,7 +166,9 @@ int stv0367_writeregs(struct stv0367_state *state, u16 reg, u8 *data, int len)
- 
- static int stv0367_writereg(struct stv0367_state *state, u16 reg, u8 data)
- {
--	return stv0367_writeregs(state, reg, &data, 1);
-+	u8 tmp = data;
-+
-+	return stv0367_writeregs(state, reg, &tmp, 1);
- }
- 
- static u8 stv0367_readreg(struct stv0367_state *state, u16 reg)
-diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
-index 7ef469c0c866..85ec19305483 100644
---- a/drivers/media/dvb-frontends/stv090x.c
-+++ b/drivers/media/dvb-frontends/stv090x.c
-@@ -755,7 +755,9 @@ static int stv090x_write_regs(struct stv090x_state *state, unsigned int reg, u8
- 
- static int stv090x_write_reg(struct stv090x_state *state, unsigned int reg, u8 data)
- {
--	return stv090x_write_regs(state, reg, &data, 1);
-+	u8 tmp = data;
-+
-+	return stv090x_write_regs(state, reg, &tmp, 1);
- }
- 
- static int stv090x_i2c_gate_ctrl(struct stv090x_state *state, int enable)
-diff --git a/drivers/media/dvb-frontends/stv6110x.c b/drivers/media/dvb-frontends/stv6110x.c
-index 66eba38f1014..f0fd9605aa77 100644
---- a/drivers/media/dvb-frontends/stv6110x.c
-+++ b/drivers/media/dvb-frontends/stv6110x.c
-@@ -97,7 +97,9 @@ static int stv6110x_write_regs(struct stv6110x_state *stv6110x, int start, u8 da
- 
- static int stv6110x_write_reg(struct stv6110x_state *stv6110x, u8 reg, u8 data)
- {
--	return stv6110x_write_regs(stv6110x, reg, &data, 1);
-+	u8 tmp = data;
-+
-+	return stv6110x_write_regs(stv6110x, reg, &tmp, 1);
- }
- 
- static int stv6110x_init(struct dvb_frontend *fe)
-diff --git a/drivers/media/dvb-frontends/zl10039.c b/drivers/media/dvb-frontends/zl10039.c
-index 623355fc2666..4ec9a8fb8c12 100644
---- a/drivers/media/dvb-frontends/zl10039.c
-+++ b/drivers/media/dvb-frontends/zl10039.c
-@@ -134,7 +134,9 @@ static inline int zl10039_writereg(struct zl10039_state *state,
- 				const enum zl10039_reg_addr reg,
- 				const u8 val)
- {
--	return zl10039_write(state, reg, &val, 1);
-+	const u8 tmp = val;
-+
-+	return zl10039_write(state, reg, &tmp, 1);
- }
- 
- static int zl10039_init(struct dvb_frontend *fe)
--- 
-2.9.0
+Regards,
+Mauro
+
+> 
+> Thanks!
+> 
+> > 
+> > Thanks!
+> > 
+> > -Kees
+> >   
+> > > ---
+> > > v2:
+> > >  - fixes and improvements from Dmitry Torokhov
+> > >
+> > >  drivers/media/pci/ttpci/av7110.h    |  2 +-
+> > >  drivers/media/pci/ttpci/av7110_ir.c | 56 +++++++++++++------------------------
+> > >  2 files changed, 21 insertions(+), 37 deletions(-)
+> > >
+> > > diff --git a/drivers/media/pci/ttpci/av7110.h b/drivers/media/pci/ttpci/av7110.h
+> > > index 347827925c14..bcb72ecbedc0 100644
+> > > --- a/drivers/media/pci/ttpci/av7110.h
+> > > +++ b/drivers/media/pci/ttpci/av7110.h
+> > > @@ -93,7 +93,7 @@ struct infrared {
+> > >         u8                      inversion;
+> > >         u16                     last_key;
+> > >         u16                     last_toggle;
+> > > -       u8                      delay_timer_finished;
+> > > +       bool                    keypressed;
+> > >  };
+> > >
+> > >
+> > > diff --git a/drivers/media/pci/ttpci/av7110_ir.c b/drivers/media/pci/ttpci/av7110_ir.c
+> > > index ca05198de2c2..ee414803e6b5 100644
+> > > --- a/drivers/media/pci/ttpci/av7110_ir.c
+> > > +++ b/drivers/media/pci/ttpci/av7110_ir.c
+> > > @@ -84,15 +84,16 @@ static u16 default_key_map [256] = {
+> > >
+> > >
+> > >  /* key-up timer */
+> > > -static void av7110_emit_keyup(unsigned long parm)
+> > > +static void av7110_emit_keyup(struct timer_list *t)
+> > >  {
+> > > -       struct infrared *ir = (struct infrared *) parm;
+> > > +       struct infrared *ir = from_timer(ir, t, keyup_timer);
+> > >
+> > > -       if (!ir || !test_bit(ir->last_key, ir->input_dev->key))
+> > > +       if (!ir || !ir->keypressed)
+> > >                 return;
+> > >
+> > >         input_report_key(ir->input_dev, ir->last_key, 0);
+> > >         input_sync(ir->input_dev);
+> > > +       ir->keypressed = false;
+> > >  }
+> > >
+> > >
+> > > @@ -152,29 +153,18 @@ static void av7110_emit_key(unsigned long parm)
+> > >                 return;
+> > >         }
+> > >
+> > > -       if (timer_pending(&ir->keyup_timer)) {
+> > > -               del_timer(&ir->keyup_timer);
+> > > -               if (ir->last_key != keycode || toggle != ir->last_toggle) {
+> > > -                       ir->delay_timer_finished = 0;
+> > > -                       input_event(ir->input_dev, EV_KEY, ir->last_key, 0);
+> > > -                       input_event(ir->input_dev, EV_KEY, keycode, 1);
+> > > -                       input_sync(ir->input_dev);
+> > > -               } else if (ir->delay_timer_finished) {
+> > > -                       input_event(ir->input_dev, EV_KEY, keycode, 2);
+> > > -                       input_sync(ir->input_dev);
+> > > -               }
+> > > -       } else {
+> > > -               ir->delay_timer_finished = 0;
+> > > -               input_event(ir->input_dev, EV_KEY, keycode, 1);
+> > > -               input_sync(ir->input_dev);
+> > > -       }
+> > > +       if (ir->keypressed &&
+> > > +           (ir->last_key != keycode || toggle != ir->last_toggle))
+> > > +               input_event(ir->input_dev, EV_KEY, ir->last_key, 0);
+> > >
+> > > +       input_event(ir->input_dev, EV_KEY, keycode, 1);
+> > > +       input_sync(ir->input_dev);
+> > > +
+> > > +       ir->keypressed = true;
+> > >         ir->last_key = keycode;
+> > >         ir->last_toggle = toggle;
+> > >
+> > > -       ir->keyup_timer.expires = jiffies + UP_TIMEOUT;
+> > > -       add_timer(&ir->keyup_timer);
+> > > -
+> > > +       mod_timer(&ir->keyup_timer, jiffies + UP_TIMEOUT);
+> > >  }
+> > >
+> > >
+> > > @@ -204,16 +194,6 @@ static void input_register_keys(struct infrared *ir)
+> > >         ir->input_dev->keycodemax = ARRAY_SIZE(ir->key_map);
+> > >  }
+> > >
+> > > -
+> > > -/* called by the input driver after rep[REP_DELAY] ms */
+> > > -static void input_repeat_key(unsigned long parm)
+> > > -{
+> > > -       struct infrared *ir = (struct infrared *) parm;
+> > > -
+> > > -       ir->delay_timer_finished = 1;
+> > > -}
+> > > -
+> > > -
+> > >  /* check for configuration changes */
+> > >  int av7110_check_ir_config(struct av7110 *av7110, int force)
+> > >  {
+> > > @@ -333,8 +313,7 @@ int av7110_ir_init(struct av7110 *av7110)
+> > >         av_list[av_cnt++] = av7110;
+> > >         av7110_check_ir_config(av7110, true);
+> > >
+> > > -       setup_timer(&av7110->ir.keyup_timer, av7110_emit_keyup,
+> > > -                   (unsigned long)&av7110->ir);
+> > > +       timer_setup(&av7110->ir.keyup_timer, av7110_emit_keyup, 0);
+> > >
+> > >         input_dev = input_allocate_device();
+> > >         if (!input_dev)
+> > > @@ -365,8 +344,13 @@ int av7110_ir_init(struct av7110 *av7110)
+> > >                 input_free_device(input_dev);
+> > >                 return err;
+> > >         }
+> > > -       input_dev->timer.function = input_repeat_key;
+> > > -       input_dev->timer.data = (unsigned long) &av7110->ir;
+> > > +
+> > > +       /*
+> > > +        * Input core's default autorepeat is 33 cps with 250 msec
+> > > +        * delay, let's adjust to numbers more suitable for remote
+> > > +        * control.
+> > > +        */
+> > > +       input_enable_softrepeat(input_dev, 250, 125);
+> > >
+> > >         if (av_cnt == 1) {
+> > >                 e = proc_create("av7110_ir", S_IWUSR, NULL, &av7110_ir_proc_fops);
+> > > --
+> > > 2.13.6
+> > >  
+> > 
+> > 
+> > 
+> > -- 
+> > Kees Cook
+> > Pixel Security  
+> 
+
+
+
+Thanks,
+Mauro
