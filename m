@@ -1,122 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:34057 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751254AbdK2UFX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 15:05:23 -0500
-Date: Wed, 29 Nov 2017 20:05:21 +0000
-From: Sean Young <sean@mess.org>
-To: Matthias Reichl <hias@horus.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [BUG] ir-ctl: error sending file with multiple scancodes
-Message-ID: <20171129200521.z4phw7kzcmf56qgi@gofer.mess.org>
-References: <20171129144400.ojhd32gz33wabp33@camel2.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171129144400.ojhd32gz33wabp33@camel2.lan>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:57307 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751448AbdKCElE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 3 Nov 2017 00:41:04 -0400
+Message-ID: <c647c187971978e2fbcaba3c9f835c55@smtp-cloud7.xs4all.net>
+Date: Fri, 03 Nov 2017 05:41:02 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Matthias,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Wed, Nov 29, 2017 at 03:44:00PM +0100, Matthias Reichl wrote:
-> Hi Sean!
-> 
-> According to the ir-ctl manpage it should be possible to send a file
-> containing multiple scancodes, but when trying to do this I get
-> a warning and an error message.
-> 
-> I initially noticed that on version 1.12.3 but 1.12.5 and master
-> (rev 85f8e5a99) give the same error.
-> 
-> Sending a file with a single scancode or using the -S option
-> to specify the scancode on the command line both work fine.
-> 
-> I've tested with the following file:
-> 
-> scancode sony12:0x100015
-> space 25000
-> scancode sony12:0x100015
-> 
-> Trying to send it gives this:
-> $ ./utils/ir-ctl/ir-ctl -s ../sony-test.irctl
-> warning: ../sony-test.irctl:2: trailing space ignored
-> /dev/lirc0: failed to send: Invalid argument
-> 
-> Checking with the -v option gives some interesting output - it
-> looks like the the second half of the buffer hadn't been filled in:
-> 
-> $ ./utils/ir-ctl/ir-ctl -v -s ../sony-test.irctl
-> warning: ../sony-test.irctl:2: trailing space ignored
-> Sending:
-> pulse 2400
-> space 600
-> pulse 1200
-> space 600
-> pulse 600
-> space 600
-> pulse 1200
-> space 600
-> pulse 600
-> space 600
-> pulse 1200
-> space 600
-> pulse 600
-> space 600
-> pulse 600
-> space 600
-> pulse 600
-> space 600
-> pulse 600
-> space 600
-> pulse 600
-> space 600
-> pulse 600
-> space 600
-> pulse 1200
-> space 600
-> pulse 0
-> space 0
-> pulse 0
-> space 0
-> pulse 0
-> space 0
-> pulse 0
-> space 0
-> pulse 0
-> space 0
-> pulse 0
-> space 0
-> pulse 0
-> space 0
-> pulse 0
-> space 0
-> pulse 0
-> space 0
-> pulse 0
-> space 0
-> pulse 0
-> space 0
-> pulse 0
-> /dev/lirc0: failed to send: Invalid argument
+Results of the daily build of media_tree:
 
-Oh dear, that looks very broken! Looks like I did not test multiple
-scancodes in one file.
+date:			Fri Nov  3 05:00:21 CET 2017
+media-tree git hash:	9917fbcfa20ab987d6381fd0365665e5c1402d75
+media_build git hash:	c93534951f5d66bef7f17f16293acf2be346b726
+v4l-utils git hash:	e656ea2b16cbb83ca5e37d9df7af0c2cc34379f4
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-> The goal I'm trying to achieve is to send a repeated signal with ir-ctl
-> (a user reported his sony receiver needs this to actually power up).
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+apps: OK
+spec-git: OK
 
-That's interesting.
+Detailed results are available here:
 
-> Using the -S option multiple times comes rather close, but the 125ms
-> delay between signals is a bit long for the sony protocol - would be
-> nice if that would be adjustable :)
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-Yes, that would be a useful feature.
+Full logs are available here:
 
-I've got some patches for this, I'll send them as a reply to this. Please
-let me know what you think.
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-Thanks,
+The Media Infrastructure API from this daily build is here:
 
-Sean
+http://www.xs4all.nl/~hverkuil/spec/index.html
