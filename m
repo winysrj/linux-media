@@ -1,130 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:42529 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S964842AbdKGKP2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Nov 2017 05:15:28 -0500
-Date: Tue, 7 Nov 2017 10:15:26 +0000
-From: Sean Young <sean@mess.org>
-To: Laurent Caumont <lcaumont2@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: 'LITE-ON USB2.0 DVB-T Tune' driver crash with kernel 4.13 /
- ubuntu 17.10
-Message-ID: <20171107101526.y5njy2s2lw67wszv@gofer.mess.org>
-References: <CACG2urxXyivORcKhgZf=acwA8ajz5UspHf8YTHEQJG=VauqHpg@mail.gmail.com>
- <20171023094305.nxrxsqjrrwtygupc@gofer.mess.org>
- <CACG2urzPV2q63-bLP98cHDDqzP3a-oydDScPqG=tVKSCzxREBg@mail.gmail.com>
- <20171023185750.5m5qo575myogzbhz@gofer.mess.org>
- <CACG2urzH5dAtnasGfjiK1Y8owGcsn0VtRSEWX75A6mb0pyuSRw@mail.gmail.com>
- <20171029193121.p2q6dxxz376cpx5y@gofer.mess.org>
- <CACG2urwdnXs2v8hv24R3+sNW6qOifh6Gtt+semez_c8QC58-gA@mail.gmail.com>
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:50414 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932575AbdKCADV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 20:03:21 -0400
+Date: Thu, 2 Nov 2017 22:03:13 -0200
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Brian Starkey <brian.starkey@arm.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [RFC v4 16/17] [media] vb2: add out-fence support to QBUF
+Message-ID: <20171103000313.GJ4111@jade>
+References: <20171020215012.20646-1-gustavo@padovan.org>
+ <20171020215012.20646-17-gustavo@padovan.org>
+ <20171027100139.GF40170@e107564-lin.cambridge.arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CACG2urwdnXs2v8hv24R3+sNW6qOifh6Gtt+semez_c8QC58-gA@mail.gmail.com>
+In-Reply-To: <20171027100139.GF40170@e107564-lin.cambridge.arm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Brian,
 
-Sorry about the delay, I forgot about this. :/
+2017-10-27 Brian Starkey <brian.starkey@arm.com>:
 
-On Mon, Oct 30, 2017 at 09:59:34PM +0100, Laurent Caumont wrote:
-> Hi Sean,
+> Hi Gustavo,
 > 
-> I found the problem. The read buffer needs to be allocated with kmalloc too.
-> 
-> int dibusb_read_eeprom_byte(struct dvb_usb_device *d, u8 offs, u8 *val)
-> {
->           u8 *wbuf;
->           u8 *rbuf;
->           int rc;
-> 
->           rbuf = kmalloc(1, GFP_KERNEL);
->           if (!rbuf)
->             return -ENOMEM;
-> 
->           wbuf = kmalloc(1, GFP_KERNEL);
->           if (!wbuf)
->             return -ENOMEM;
-> 
->          *wbuf = offs;
-> 
->          rc = dibusb_i2c_msg(d, 0x50, wbuf, 1, rbuf, 1);
->          kfree(wbuf);
->          *val = *rbuf;
->          kfree(rbuf);
-> 
->         return rc;
-> }
-
-Looks good. Would you mind sending either a Signed-off-by: or submit it
-as a patch?
-
-Thanks
-Sean
-
-> 
-> It works now.
-> Please update the code in the main branch for futur versions.
-> Thanks.
-> Regards,
-> Laurent
-> 
-> 2017-10-29 20:31 GMT+01:00 Sean Young <sean@mess.org>:
-> > On Sun, Oct 29, 2017 at 06:54:28PM +0100, Laurent Caumont wrote:
-> >> Hi Sean,
-> >>
-> >> I recompiled the modules by following the
-> >> https://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
-> >> page and applied the patch.
-> >> But I still have problems (see below). It doesn't seem to be the same callstack.
-> >> Is it the right way to get the fix ?
-> >
-> > Yes, it's the right way to get the fix. However, you've hit a new problem
-> > of a similar making. Please can you try with this patch as well:
-> >
-> > Thanks
-> > Sean
+> On Fri, Oct 20, 2017 at 07:50:11PM -0200, Gustavo Padovan wrote:
+> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > 
+> > If V4L2_BUF_FLAG_OUT_FENCE flag is present on the QBUF call we create
+> > an out_fence and send to userspace on the V4L2_EVENT_OUT_FENCE when
+> > the buffer is queued to the driver, or right away if the queue is ordered
+> > both in VB2 and in the driver.
+> > 
+> > The fence is signaled on buffer_done(), when the job on the buffer is
+> > finished.
+> > 
+> > v5:
+> > 	- delay fd_install to DQ_EVENT (Hans)
+> > 	- if queue is fully ordered send OUT_FENCE event right away
+> > 	(Brian)
+> > 	- rename 'q->ordered' to 'q->ordered_in_driver'
+> > 	- merge change to implement OUT_FENCE event here
+> > 
+> > v4:
+> > 	- return the out_fence_fd in the BUF_QUEUED event(Hans)
+> > 
+> > v3:	- add WARN_ON_ONCE(q->ordered) on requeueing (Hans)
+> > 	- set the OUT_FENCE flag if there is a fence pending (Hans)
+> > 	- call fd_install() after vb2_core_qbuf() (Hans)
+> > 	- clean up fence if vb2_core_qbuf() fails (Hans)
+> > 	- add list to store sync_file and fence for the next queued buffer
+> > 
+> > v2: check if the queue is ordered.
+> > 
+> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 > > ---
-> > From 84efb0bf72ae5d9183f25d69d95fb9ad9b9bc644 Mon Sep 17 00:00:00 2001
-> > From: Sean Young <sean@mess.org>
-> > Date: Sun, 29 Oct 2017 19:28:32 +0000
-> > Subject: [PATCH] media: dibusb: don't do DMA on stack
-> >
-> > The USB control messages require DMA to work. We cannot pass
-> > a stack-allocated buffer, as it is not warranted that the
-> > stack would be into a DMA enabled area.
-> >
-> > Signed-off-by: Sean Young <sean@mess.org>
-> > ---
-> >  drivers/media/usb/dvb-usb/dibusb-common.c | 14 ++++++++++++--
-> >  1 file changed, 12 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/media/usb/dvb-usb/dibusb-common.c b/drivers/media/usb/dvb-usb/dibusb-common.c
-> > index 8207e6900656..18c6e454b1b7 100644
-> > --- a/drivers/media/usb/dvb-usb/dibusb-common.c
-> > +++ b/drivers/media/usb/dvb-usb/dibusb-common.c
-> > @@ -223,8 +223,18 @@ EXPORT_SYMBOL(dibusb_i2c_algo);
-> >
-> >  int dibusb_read_eeprom_byte(struct dvb_usb_device *d, u8 offs, u8 *val)
-> >  {
-> > -       u8 wbuf[1] = { offs };
-> > -       return dibusb_i2c_msg(d, 0x50, wbuf, 1, val, 1);
-> > +       u8 *wbuf;
-> > +       int rc;
+> > drivers/media/v4l2-core/v4l2-event.c     |  2 ++
+> > drivers/media/v4l2-core/videobuf2-core.c | 25 +++++++++++++++
+> > drivers/media/v4l2-core/videobuf2-v4l2.c | 55 ++++++++++++++++++++++++++++++++
+> > 3 files changed, 82 insertions(+)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
+> > index 6274e3e174e0..275da224ace4 100644
+> > --- a/drivers/media/v4l2-core/v4l2-event.c
+> > +++ b/drivers/media/v4l2-core/v4l2-event.c
+> > @@ -385,6 +385,8 @@ int v4l2_subscribe_event_v4l2(struct v4l2_fh *fh,
+> > 	switch (sub->type) {
+> > 	case V4L2_EVENT_CTRL:
+> > 		return v4l2_ctrl_subscribe_event(fh, sub);
+> > +	case V4L2_EVENT_OUT_FENCE:
+> > +		return v4l2_event_subscribe(fh, sub, VIDEO_MAX_FRAME, NULL);
+> > 	}
+> > 	return -EINVAL;
+> > }
+> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> > index c7ba67bda5ac..21e2052776c1 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-core.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> > @@ -354,6 +354,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+> > 			vb->planes[plane].length = plane_sizes[plane];
+> > 			vb->planes[plane].min_length = plane_sizes[plane];
+> > 		}
+> > +		vb->out_fence_fd = -1;
+> > 		q->bufs[vb->index] = vb;
+> > 
+> > 		/* Allocate video buffer memory for the MMAP type */
+> > @@ -934,10 +935,24 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+> > 	case VB2_BUF_STATE_QUEUED:
+> > 		return;
+> > 	case VB2_BUF_STATE_REQUEUEING:
+> > +		/*
+> > +		 * Explicit synchronization requires ordered queues for now,
+> > +		 * so WARN_ON if we are requeuing on an ordered queue.
+> > +		 */
+> > +		if (vb->out_fence)
+> > +			WARN_ON_ONCE(q->ordered_in_driver);
 > > +
-> > +       wbuf = kmalloc(1, GFP_KERNEL);
-> > +       if (!wbuf)
-> > +               return -ENOMEM;
+> > 		if (q->start_streaming_called)
+> > 			__enqueue_in_driver(vb);
+> > 		return;
+> > 	default:
+> > +		if (state == VB2_BUF_STATE_ERROR)
+> > +			dma_fence_set_error(vb->out_fence, -ENOENT);
+> > +		dma_fence_signal(vb->out_fence);
+> > +		dma_fence_put(vb->out_fence);
+> > +		vb->out_fence = NULL;
+> > +		vb->out_fence_fd = -1;
 > > +
-> > +       *wbuf = offs;
-> > +       rc = dibusb_i2c_msg(d, 0x50, wbuf, 1, val, 1);
-> > +       kfree(wbuf);
+> > 		/* Inform any processes that may be waiting for buffers */
+> > 		wake_up(&q->done_wq);
+> > 		break;
+> > @@ -1235,6 +1250,9 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+> > 	trace_vb2_buf_queue(q, vb);
+> > 
+> > 	call_void_vb_qop(vb, buf_queue, vb);
 > > +
-> > +       return rc;
-> >  }
-> >  EXPORT_SYMBOL(dibusb_read_eeprom_byte);
-> >
-> > --
-> > 2.13.6
-> >
+> > +	if (!(q->is_output || q->ordered_in_vb2))
+> > +		call_void_bufop(q, send_out_fence, vb);
+> > }
+> > 
+> > static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+> > @@ -1451,6 +1469,7 @@ static struct dma_fence *__set_in_fence(struct vb2_queue *q,
+> > 		}
+> > 
+> > 		q->last_fence = dma_fence_get(fence);
+> > +		call_void_bufop(q, send_out_fence, vb);
+> > 	}
+> > 
+> > 	return fence;
+> > @@ -1840,6 +1859,11 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+> > 	}
+> > 
+> > 	/*
+> > +	 * Renew out-fence context.
+> > +	 */
+> 
+> Why is that? I don't think I understand the nuances of fence contexts.
+
+Because inside each context we should maintain ordering of the fences.
+If we cancel the stream and restart it with we need a new context. Look
+at ordering between two different streams doesn't make sense.
+
+> 
+> > +	q->out_fence_context = dma_fence_context_alloc(1);
+> > +
+> > +	/*
+> > 	 * Remove all buffers from videobuf's list...
+> > 	 */
+> > 	INIT_LIST_HEAD(&q->queued_list);
+> > @@ -2171,6 +2195,7 @@ int vb2_core_queue_init(struct vb2_queue *q)
+> > 	spin_lock_init(&q->done_lock);
+> > 	mutex_init(&q->mmap_lock);
+> > 	init_waitqueue_head(&q->done_wq);
+> > +	q->out_fence_context = dma_fence_context_alloc(1);
+> > 
+> > 	if (q->buf_struct_size == 0)
+> > 		q->buf_struct_size = sizeof(struct vb2_buffer);
+> > diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > index 4c09ea007d90..9fb01ddefdc9 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > @@ -32,6 +32,11 @@
+> > 
+> > #include <media/videobuf2-v4l2.h>
+> > 
+> > +struct out_fence_data {
+> > +	int fence_fd;
+> > +	struct file *file;
+> > +};
+> > +
+> > static int debug;
+> > module_param(debug, int, 0644);
+> > 
+> > @@ -138,6 +143,38 @@ static void __copy_timestamp(struct vb2_buffer *vb, const void *pb)
+> > 	}
+> > };
+> > 
+> > +static void __fd_install_at_dequeue_cb(void *data)
+> > +{
+> > +	struct out_fence_data *of = data;
+> > +
+> > +	fd_install(of->fence_fd, of->file);
+> > +	kfree(of);
+> 
+> Is it possible for the user to never dequeue the event? In that case
+> the fd and sync_file would leak I guess.
+
+
+Yes. It is totally possible. That fell through...
+
+> 
+> > +}
+> > +
+> > +static void __send_out_fence(struct vb2_buffer *vb)
+> > +{
+> > +	struct video_device *vdev = to_video_device(vb->vb2_queue->dev);
+> > +	struct v4l2_fh *fh = vdev->queue->owner;
+> > +	struct v4l2_event event;
+> > +	struct out_fence_data *of;
+> > +
+> > +	if (vb->out_fence_fd < 0)
+> > +		return;
+> > +
+> > +	memset(&event, 0, sizeof(event));
+> > +	event.type = V4L2_EVENT_OUT_FENCE;
+> > +	event.u.out_fence.index = vb->index;
+> > +	event.u.out_fence.out_fence_fd = vb->out_fence_fd;
+> > +
+> > +	of = kmalloc(sizeof(*of), GFP_KERNEL);
+> > +	of->fence_fd = vb->out_fence_fd;
+> > +	of->file = vb->sync_file->file;
+> > +
+> > +	v4l2_event_queue_fh_with_cb(fh, &event, __fd_install_at_dequeue_cb, of);
+> > +
+> > +	vb->sync_file = NULL;
+> 
+> See the comment above about never dequeuing the event - maybe you need
+> to keep hold of the sync file to be able to clean it up in-case the
+> user never dequeues. If not, then you could set vb->out_fence_fd = -1
+> here too.
+
+That is a good suggestion.
+
+> I've been looking at your v4l2-fences branch on kernel.org, which
+> looks quite different. Is this the newer version?
+
+Yes. I wrote this in a hurry to send it to the mailing list before
+the Media Summit, so I probably forgot to push and left a few issues
+around.
+
+Regards,
+
+Gustavo
