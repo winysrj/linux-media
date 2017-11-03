@@ -1,63 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.m1stereo.tv ([91.244.124.37]:58849 "EHLO
-        kazbek.m1stereo.tv" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752935AbdKXKOG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Nov 2017 05:14:06 -0500
-Received: from [10.1.5.65] (dev-3.internal.m1stereo.tv [10.1.5.65])
-        by kazbek.m1stereo.tv (8.14.4/8.14.4) with ESMTP id vAO8fP1A023987
-        for <linux-media@vger.kernel.org>; Fri, 24 Nov 2017 10:41:25 +0200
-To: linux-media@vger.kernel.org
-From: Maksym Veremeyenko <verem@m1stereo.tv>
-Subject: [PATCH] Fix selecting satellite number 0
-Message-ID: <c7546899-6333-72f2-68a9-76b52b946aab@m1stereo.tv>
-Date: Fri, 24 Nov 2017 10:41:25 +0200
+Received: from mout.web.de ([212.227.15.4]:62160 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750883AbdKCJyu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 3 Nov 2017 05:54:50 -0400
+To: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
+        Derek Robson <robsonde@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Simran Singhal <singhalsimran0@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] staging/media/davinci_vpfe: Use common error handling code in
+ vpfe_attach_irq()
+Message-ID: <47780e02-1fcd-dfc7-c7d7-65d32f6652e4@users.sourceforge.net>
+Date: Fri, 3 Nov 2017 10:54:38 +0100
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------25FEEDE0A95502E231FFC210"
-Content-Language: en-US
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------25FEEDE0A95502E231FFC210
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 3 Nov 2017 10:45:31 +0100
 
-Hi,
+Add a jump target so that a bit of exception handling can be better reused
+at the end of this function.
 
-attached patch fixing zapping to satellite #0
+This issue was detected by using the Coccinelle software.
 
-without it specifying -S 0 for *dvbv5-zap* does not work and sat_number 
-remains a negative default value. as result, no settings where made
-in *dvbsat_diseqc_set_input* ( 
-https://git.linuxtv.org/v4l-utils.git/tree/lib/libdvbv5/dvb-sat.c#n526 )
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-please apply
-
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+index bffe2153b910..80297d2df31d 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+@@ -309,8 +309,7 @@ static int vpfe_attach_irq(struct vpfe_device *vpfe_dev)
+ 	if (ret < 0) {
+ 		v4l2_err(&vpfe_dev->v4l2_dev,
+ 			"Error: requesting VINT1 interrupt\n");
+-		free_irq(vpfe_dev->ccdc_irq0, vpfe_dev);
+-		return ret;
++		goto free_irq;
+ 	}
+ 
+ 	ret = request_irq(vpfe_dev->imp_dma_irq, vpfe_imp_dma_isr,
+@@ -319,11 +318,14 @@ static int vpfe_attach_irq(struct vpfe_device *vpfe_dev)
+ 		v4l2_err(&vpfe_dev->v4l2_dev,
+ 			 "Error: requesting IMP IRQ interrupt\n");
+ 		free_irq(vpfe_dev->ccdc_irq1, vpfe_dev);
+-		free_irq(vpfe_dev->ccdc_irq0, vpfe_dev);
+-		return ret;
++		goto free_irq;
+ 	}
+ 
+ 	return 0;
++
++free_irq:
++	free_irq(vpfe_dev->ccdc_irq0, vpfe_dev);
++	return ret;
+ }
+ 
+ /*
 -- 
-Maksym Veremeyenko
-
-
---------------25FEEDE0A95502E231FFC210
-Content-Type: text/plain; charset=UTF-8;
- name="0001-Fix-selecting-satellite-number-0.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="0001-Fix-selecting-satellite-number-0.patch"
-
-RnJvbSAxZWVjYmY5YjZkM2UxMWE3ZTc5YzYwMDRlM2RmM2IwMWJiNzM2Mzc4IE1vbiBTZXAg
-MTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBNYWtzeW0gVmVyZW1leWVua28gPHZlcmVtQG0xLnR2
-PgpEYXRlOiBUaHUsIDIzIE5vdiAyMDE3IDEyOjU4OjQxICswMTAwClN1YmplY3Q6IFtQQVRD
-SCAxLzRdIEZpeCBzZWxlY3Rpbmcgc2F0ZWxsaXRlIG51bWJlciAwCgotLS0KIHV0aWxzL2R2
-Yi9kdmJ2NS16YXAuYyB8IDIgKy0KIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwg
-MSBkZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL3V0aWxzL2R2Yi9kdmJ2NS16YXAuYyBiL3V0
-aWxzL2R2Yi9kdmJ2NS16YXAuYwppbmRleCBhODg1MDBkMS4uMWI2ZGFiZDAgMTAwNjQ0Ci0t
-LSBhL3V0aWxzL2R2Yi9kdmJ2NS16YXAuYworKysgYi91dGlscy9kdmIvZHZidjUtemFwLmMK
-QEAgLTkzMCw3ICs5MzAsNyBAQCBpbnQgbWFpbihpbnQgYXJnYywgY2hhciAqKmFyZ3YpCiAJ
-CWdvdG8gZXJyOwogCWlmIChsbmIgPj0gMCkKIAkJcGFybXMtPmxuYiA9IGR2Yl9zYXRfZ2V0
-X2xuYihsbmIpOwotCWlmIChhcmdzLnNhdF9udW1iZXIgPiAwKQorCWlmIChhcmdzLnNhdF9u
-dW1iZXIgPj0gMCkKIAkJcGFybXMtPnNhdF9udW1iZXIgPSBhcmdzLnNhdF9udW1iZXI7CiAJ
-cGFybXMtPmRpc2VxY193YWl0ID0gYXJncy5kaXNlcWNfd2FpdDsKIAlwYXJtcy0+ZnJlcV9i
-cGYgPSBhcmdzLmZyZXFfYnBmOwotLSAKMi4xMy42Cgo=
---------------25FEEDE0A95502E231FFC210--
+2.15.0
