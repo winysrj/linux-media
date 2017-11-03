@@ -1,134 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:55936 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750744AbdKOFG5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 00:06:57 -0500
-Message-ID: <4035cbd351c170338799317ed958c20d@smtp-cloud7.xs4all.net>
-Date: Wed, 15 Nov 2017 06:06:55 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:44974 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932747AbdKCOpo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Nov 2017 10:45:44 -0400
+Received: by mail-oi0-f68.google.com with SMTP id v132so2231053oie.1
+        for <linux-media@vger.kernel.org>; Fri, 03 Nov 2017 07:45:44 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAAeHK+x_V05KHcLaa0+-ghj7GuzFGuybARat7KO0-4GEFzS9Nw@mail.gmail.com>
+References: <CAAeHK+x_V05KHcLaa0+-ghj7GuzFGuybARat7KO0-4GEFzS9Nw@mail.gmail.com>
+From: Andrey Konovalov <andreyknvl@google.com>
+Date: Fri, 3 Nov 2017 15:45:43 +0100
+Message-ID: <CAAeHK+xNemb9-+pqifrXd5qsnEvbS8h+cgAgy0FhzL1A7FRfJA@mail.gmail.com>
+Subject: Re: usb/media/em28xx: use-after-free in em28xx_dvb_fini
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        syzkaller <syzkaller@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Fri, Nov 3, 2017 at 3:44 PM, Andrey Konovalov <andreyknvl@google.com> wrote:
+> Hi!
+>
+> I've got the following report while fuzzing the kernel with syzkaller.
+>
+> On commit 3a99df9a3d14cd866b5516f8cba515a3bfd554ab (4.14-rc7+).
+>
+> em28xx 1-1:2.0: New device a  @ 480 Mbps (eb1a:2801, interface 0, class 0)
+> em28xx 1-1:2.0: Audio interface 0 found (Vendor Class)
+> em28xx 1-1:2.0: chip ID is em2860
+> em28xx 1-1:2.0: Config register raw data: 0x22
+> em28xx 1-1:2.0: I2S Audio (3 sample rate(s))
+> em28xx 1-1:2.0: No AC97 audio processor
+> em28xx 1-1:2.0: Binding audio extension
+> em28xx 1-1:2.0: em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+> em28xx 1-1:2.0: em28xx-audio.c: Copyright (C) 2007-2016 Mauro Carvalho Chehab
+> em28xx 1-1:2.0: alt 0 doesn't exist on interface 7
+> usb 1-1: USB disconnect, device number 2
+> em28xx 1-1:2.0: Disconnecting
+> em28xx 1-1:2.0: Closing audio extension
+> em28xx 1-1:2.0: Freeing device
+> ==================================================================
+> BUG: KASAN: use-after-free in em28xx_dvb_fini+0x74b/0x8e0
+> Read of size 1 at addr ffff880069d2c12c by task kworker/0:1/24
+>
+> CPU: 0 PID: 24 Comm: kworker/0:1 Not tainted
+> 4.14.0-rc7-44290-gf28444df2601-dirty #52
+> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+> Workqueue: usb_hub_wq hub_event
+> Call Trace:
+>  __dump_stack lib/dump_stack.c:16
+>  dump_stack+0xe1/0x157 lib/dump_stack.c:52
+>  print_address_description+0x71/0x234 mm/kasan/report.c:252
+>  kasan_report_error mm/kasan/report.c:351
+>  kasan_report+0x173/0x270 mm/kasan/report.c:409
+>  __asan_report_load1_noabort+0x19/0x20 mm/kasan/report.c:427
+>  em28xx_dvb_fini+0x74b/0x8e0 drivers/media/usb/em28xx/em28xx-dvb.c:2076
+>  em28xx_close_extension+0x71/0x220 drivers/media/usb/em28xx/em28xx-core.c:1122
+>  em28xx_usb_disconnect+0xd7/0x140 drivers/media/usb/em28xx/em28xx-cards.c:3763
+>  usb_unbind_interface+0x1b6/0x950 drivers/usb/core/driver.c:423
+>  __device_release_driver drivers/base/dd.c:861
+>  device_release_driver_internal+0x529/0x5f0 drivers/base/dd.c:893
+>  device_release_driver+0x1e/0x30 drivers/base/dd.c:918
+>  bus_remove_device+0x2fc/0x4b0 drivers/base/bus.c:565
+>  device_del+0x591/0xa70 drivers/base/core.c:1985
+>  usb_disable_device+0x223/0x710 drivers/usb/core/message.c:1170
+>  usb_disconnect+0x285/0x7f0 drivers/usb/core/hub.c:2205
+>  hub_port_connect drivers/usb/core/hub.c:4838
+>  hub_port_connect_change drivers/usb/core/hub.c:5093
+>  port_event drivers/usb/core/hub.c:5199
+>  hub_event_impl+0x10ec/0x3440 drivers/usb/core/hub.c:5311
+>  hub_event+0x38/0x50 drivers/usb/core/hub.c:5209
+>  process_one_work+0x925/0x15d0 kernel/workqueue.c:2113
+>  worker_thread+0xef/0x10d0 kernel/workqueue.c:2247
+>  kthread+0x346/0x410 kernel/kthread.c:231
+>  ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+>
+> The buggy address belongs to the page:
+> page:ffffea0001a74b00 count:0 mapcount:-127 mapping:          (null) index:0x0
+> flags: 0x100000000000000()
+> raw: 0100000000000000 0000000000000000 0000000000000000 00000000ffffff80
+> raw: ffffea00019f0320 ffff88007fffa690 0000000000000002 0000000000000000
+> page dumped because: kasan: bad access detected
+>
+> Memory state around the buggy address:
+>  ffff880069d2c000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  ffff880069d2c080: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>>ffff880069d2c100: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>                                   ^
+>  ffff880069d2c180: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  ffff880069d2c200: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> ==================================================================
 
-Results of the daily build of media_tree:
-
-date:			Wed Nov 15 05:00:25 CET 2017
-media-tree git hash:	f2ecc3d0787e05d9145722feed01d4a11ab6bec1
-media_build git hash:	097aaf3e4e4bfdeff130db9697dec1befeb3221b
-v4l-utils git hash:	462792610598eb5402cb59692b172f43c555ad23
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		0.5.1 (Debian: 0.5.1-2)
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.13.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: ERRORS
-linux-git-arm-stm32: ERRORS
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-4.14-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-linux-4.14-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-linux-kernel@vger.kernel.or
++linux-kernel@vger.kernel.org
