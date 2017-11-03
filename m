@@ -1,257 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kadath.azazel.net ([81.187.231.250]:60932 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750968AbdK3Vkm (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:37877 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752596AbdKCHrp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Nov 2017 16:40:42 -0500
-From: Jeremy Sowden <jeremy@azazel.net>
-To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Cc: Jeremy Sowden <jeremy@azazel.net>
-Subject: [PATCH 3/3] media: atomisp: delete empty default struct values.
-Date: Thu, 30 Nov 2017 21:40:14 +0000
-Message-Id: <20171130214014.31412-4-jeremy@azazel.net>
-In-Reply-To: <20171130214014.31412-1-jeremy@azazel.net>
-References: <20171129083835.tam3avqz5vishwqw@azazel.net>
- <20171130214014.31412-1-jeremy@azazel.net>
+        Fri, 3 Nov 2017 03:47:45 -0400
+Subject: Re: [RFC v4 12/17] [media] vb2: add explicit fence user API
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+References: <20171020215012.20646-1-gustavo@padovan.org>
+ <20171020215012.20646-13-gustavo@padovan.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <413b769d-b35a-bbd7-6f2b-c5a68f60f3b7@xs4all.nl>
+Date: Fri, 3 Nov 2017 08:47:40 +0100
+MIME-Version: 1.0
+In-Reply-To: <20171020215012.20646-13-gustavo@padovan.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Removing zero-valued struct-members left a number of the default
-struct-values empty.  These values have now been removed.
+On 10/20/2017 11:50 PM, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> Turn the reserved2 field into fence_fd that we will use to send
+> an in-fence to the kernel and return an out-fence from the kernel to
+> userspace.
+> 
+> Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+> when sending a fence to the kernel to be waited on, and
+> V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
+> 
+> v3:
+> 	- make the out_fence refer to the current buffer (Hans)
+> 
+> v2: add documentation
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  Documentation/media/uapi/v4l/buffer.rst       | 15 +++++++++++++++
+>  drivers/media/usb/cpia2/cpia2_v4l.c           |  2 +-
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  4 ++--
+>  drivers/media/v4l2-core/videobuf2-v4l2.c      |  2 +-
+>  include/uapi/linux/videodev2.h                |  4 +++-
+>  5 files changed, 22 insertions(+), 5 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+> index ae6ee73f151c..99afc0837671 100644
+> --- a/Documentation/media/uapi/v4l/buffer.rst
+> +++ b/Documentation/media/uapi/v4l/buffer.rst
+> @@ -648,6 +648,21 @@ Buffer Flags
+>        - Start Of Exposure. The buffer timestamp has been taken when the
+>  	exposure of the frame has begun. This is only valid for the
+>  	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
+> +    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
+> +
+> +      - ``V4L2_BUF_FLAG_IN_FENCE``
+> +      - 0x00200000
+> +      - Ask V4L2 to wait on fence passed in ``fence_fd`` field. The buffer
+> +	won't be queued to the driver until the fence signals.
+> +
+> +    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
+> +
+> +      - ``V4L2_BUF_FLAG_OUT_FENCE``
+> +      - 0x00400000
+> +      - Request a fence to be attached to the buffer. One should listen for
+> +	the ``V4L2_EVENT_OUT_FENCE`` event to receive the buffer ``index``
+> +	and the ``out_fence_fd`` attached to the buffer.  The event is
+> +	triggered at the moment the buffer is queued to the V4L2 driver.
+>  
+>  
+>  
+> diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+> index 4666a642b2f6..d9d6b6a31751 100644
+> --- a/drivers/media/usb/cpia2/cpia2_v4l.c
+> +++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+> @@ -948,7 +948,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+>  	buf->sequence = cam->buffers[buf->index].seq;
+>  	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+>  	buf->length = cam->frame_size;
+> -	buf->reserved2 = 0;
+> +	buf->fence_fd = -1;
+>  	buf->reserved = 0;
+>  	memset(&buf->timecode, 0, sizeof(buf->timecode));
+>  
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index 821f2aa299ae..3a31d318df2a 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -370,7 +370,7 @@ struct v4l2_buffer32 {
+>  		__s32		fd;
+>  	} m;
+>  	__u32			length;
+> -	__u32			reserved2;
+> +	__s32			fence_fd;
+>  	__u32			reserved;
+>  };
+>  
+> @@ -533,7 +533,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+>  		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+>  		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+>  		put_user(kp->sequence, &up->sequence) ||
+> -		put_user(kp->reserved2, &up->reserved2) ||
+> +		put_user(kp->fence_fd, &up->fence_fd) ||
+>  		put_user(kp->reserved, &up->reserved) ||
+>  		put_user(kp->length, &up->length))
+>  			return -EFAULT;
+> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> index 0c0669976bdc..110fb45fef6f 100644
+> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> @@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+>  	b->timestamp = ns_to_timeval(vb->timestamp);
+>  	b->timecode = vbuf->timecode;
+>  	b->sequence = vbuf->sequence;
+> -	b->reserved2 = 0;
+> +	b->fence_fd = -1;
+>  	b->reserved = 0;
+>  
+>  	if (q->is_multiplanar) {
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 2a432e8c18e3..8975fec4ab68 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -924,7 +924,7 @@ struct v4l2_buffer {
+>  		__s32		fd;
+>  	} m;
+>  	__u32			length;
+> -	__u32			reserved2;
+> +	__s32			fence_fd;
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- .../atomisp/pci/atomisp2/css2400/ia_css_pipe.h     |  1 -
- .../atomisp/pci/atomisp2/css2400/ia_css_types.h    |  1 -
- .../isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h     |  3 --
- .../kernels/sdis/common/ia_css_sdis_common_types.h | 34 +++++-----------------
- .../isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c   |  2 +-
- .../runtime/binary/interface/ia_css_binary.h       |  6 ----
- .../isp_param/interface/ia_css_isp_param_types.h   |  9 ------
- .../media/atomisp/pci/atomisp2/css2400/sh_css.c    |  9 +++---
- .../atomisp/pci/atomisp2/css2400/sh_css_legacy.h   |  2 --
- .../atomisp/pci/atomisp2/css2400/sh_css_metrics.h  |  8 -----
- 10 files changed, 12 insertions(+), 63 deletions(-)
+I think this should become:
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h
-index a8f89866876d..9c6efaa66c93 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h
-@@ -164,7 +164,6 @@ struct ia_css_pipe {
- #define IA_CSS_DEFAULT_PIPE \
- (struct ia_css_pipe) { \
- 	.config			= DEFAULT_PIPE_CONFIG, \
--	.extra_config		= DEFAULT_PIPE_EXTRA_CONFIG, \
- 	.info			= DEFAULT_PIPE_INFO, \
- 	.mode			= IA_CSS_PIPE_ID_ACC, /* (pipe_id) */ \
- 	.pipeline		= DEFAULT_PIPELINE, \
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h
-index 0ae60a3d0643..e49fe5bc98b8 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h
-@@ -407,7 +407,6 @@ struct ia_css_grid_info {
- /** defaults for ia_css_grid_info structs */
- #define DEFAULT_GRID_INFO \
- (struct ia_css_grid_info) { \
--	.s3a_grid	= DEFAULT_3A_GRID_INFO, \
- 	.dvs_grid	= DEFAULT_DVS_GRID_INFO, \
- 	.vamem_type	= IA_CSS_VAMEM_TYPE_1 \
- }
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h
-index 1309b06747d0..4297c3addcb2 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h
-@@ -98,9 +98,6 @@ struct ia_css_3a_grid_info {
- };
- 
- 
--#define DEFAULT_3A_GRID_INFO (struct ia_css_3a_grid_info) { }
--
--
- /* This struct should be split into 3, for AE, AWB and AF.
-  * However, that will require driver/ 3A lib modifications.
-  */
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h
-index a969384430aa..4cfd31bd3e5f 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h
-@@ -41,8 +41,6 @@ struct ia_css_sdis_info {
- 	uint32_t deci_factor_log2;
- };
- 
--#define IA_CSS_DEFAULT_SDIS_INFO (struct ia_css_sdis_info) { }
--
- /** DVS statistics grid
-  *
-  *  ISP block: SDVS1 (DIS/DVS Support for DIS/DVS ver.1 (2-axes))
-@@ -197,33 +195,15 @@ struct ia_css_dvs_stat_grid_info {
- 
- /** DVS statistics generated by accelerator default grid info
-  */
--#define DEFAULT_DVS_STAT_PUBLIC_DVS_GLOBAL_CFG \
--(struct dvs_stat_public_dvs_global_cfg) { }
--
--#define DEFAULT_DVS_STAT_PUBLIC_DVS_GRD_CFG \
--(struct dvs_stat_public_dvs_grd_cfg) { }
--
--#define DEFAULT_DVS_STAT_PUBLIC_DVS_LEVEL_FE_ROI_CFG(X_START) \
--	(struct dvs_stat_public_dvs_level_fe_roi_cfg) { .x_start = X_START, }
--
--#define DEFAULT_DVS_STAT_GRID_INFO \
--(struct ia_css_dvs_stat_grid_info) { \
--	.dvs_gbl_cfg = DEFAULT_DVS_STAT_PUBLIC_DVS_GLOBAL_CFG, \
--	.grd_cfg = { \
--		DEFAULT_DVS_STAT_PUBLIC_DVS_GRD_CFG, \
--		DEFAULT_DVS_STAT_PUBLIC_DVS_GRD_CFG, \
--		DEFAULT_DVS_STAT_PUBLIC_DVS_GRD_CFG \
--	}, \
--	.fe_roi_cfg = { \
--		DEFAULT_DVS_STAT_PUBLIC_DVS_LEVEL_FE_ROI_CFG(0), \
--		DEFAULT_DVS_STAT_PUBLIC_DVS_LEVEL_FE_ROI_CFG(4), \
--		DEFAULT_DVS_STAT_PUBLIC_DVS_LEVEL_FE_ROI_CFG(0), \
--	} \
--}
--
- #define DEFAULT_DVS_GRID_INFO \
- (union ia_css_dvs_grid_u) { \
--	.dvs_stat_grid_info = DEFAULT_DVS_STAT_GRID_INFO, \
-+	.dvs_stat_grid_info = (struct ia_css_dvs_stat_grid_info) { \
-+		.fe_roi_cfg = { \
-+			[1] = (struct dvs_stat_public_dvs_level_fe_roi_cfg) { \
-+				.x_start = 4 \
-+			} \
-+		} \
-+	} \
- }
- 
- /** Union that holds all types of DVS statistics grid info in
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c
-index e45a3c3fcf4a..0fdd696bf654 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c
-@@ -169,7 +169,7 @@ ia_css_sdis_init_info(
- 	unsigned enabled)
- {
- 	if (!enabled) {
--		*dis = IA_CSS_DEFAULT_SDIS_INFO;
-+		*dis = (struct ia_css_sdis_info) { };
- 		return;
- 	}
- 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h
-index dcde6efa4943..e83a2fa8413b 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h
-@@ -93,8 +93,6 @@ struct ia_css_cas_binary_descr {
- 	bool *is_output_stage;
- };
- 
--#define IA_CSS_DEFAULT_CAS_BINARY_DESCR (struct ia_css_cas_binary_descr) { }
--
- struct ia_css_binary_descr {
- 	int mode;
- 	bool online;
-@@ -169,10 +167,6 @@ struct ia_css_binary {
- 	.internal_frame_info	= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
- 	.out_frame_info		= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
- 	.vf_frame_info		= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
--	.dis			= IA_CSS_DEFAULT_SDIS_INFO, \
--	.metrics		= DEFAULT_BINARY_METRICS, \
--	.mem_params		= IA_CSS_DEFAULT_ISP_MEM_PARAMS, \
--	.css_params		= IA_CSS_DEFAULT_ISP_CSS_PARAMS, \
- }
- 
- enum ia_css_err
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
-index 022db8a2a184..2cb61811e53c 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
-@@ -94,13 +94,4 @@ union ia_css_all_memory_offsets {
- 	} array[IA_CSS_NUM_PARAM_CLASSES];
- };
- 
--#define IA_CSS_DEFAULT_ISP_MEM_PARAMS \
--	(struct ia_css_isp_param_host_segments) { }
--
--#define IA_CSS_DEFAULT_ISP_CSS_PARAMS \
--	(struct ia_css_isp_param_css_segments) { }
--
--#define IA_CSS_DEFAULT_ISP_ISP_PARAMS \
--	(struct ia_css_isp_param_isp_segments) { }
--
- #endif /* _IA_CSS_ISP_PARAM_TYPES_H_ */
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-index 9439d643fd03..59bf3402703f 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-@@ -5582,8 +5582,7 @@ static enum ia_css_err load_video_binaries(struct ia_css_pipe *pipe)
- 	/* we build up the pipeline starting at the end */
- 	/* YUV post-processing if needed */
- 	if (need_scaler) {
--		struct ia_css_cas_binary_descr cas_scaler_descr
--			= IA_CSS_DEFAULT_CAS_BINARY_DESCR;
-+		struct ia_css_cas_binary_descr cas_scaler_descr = { };
- 
- 		/* NV12 is the common format that is supported by both */
- 		/* yuv_scaler and the video_xx_isp2_min binaries. */
-@@ -6236,8 +6235,8 @@ static enum ia_css_err load_primary_binaries(
- 						pipe_out_info->res);
- 
- 	if (need_extra_yuv_scaler) {
--		struct ia_css_cas_binary_descr cas_scaler_descr
--			= IA_CSS_DEFAULT_CAS_BINARY_DESCR;
-+		struct ia_css_cas_binary_descr cas_scaler_descr = { };
-+
- 		err = ia_css_pipe_create_cas_scaler_desc_single_output(
- 			&capt_pp_out_info,
- 			pipe_out_info,
-@@ -7224,7 +7223,7 @@ load_yuvpp_binaries(struct ia_css_pipe *pipe)
- 	struct ia_css_frame_info *vf_pp_in_info[IA_CSS_PIPE_MAX_OUTPUT_STAGE];
- 	struct ia_css_yuvpp_settings *mycs;
- 	struct ia_css_binary *next_binary;
--	struct ia_css_cas_binary_descr cas_scaler_descr = IA_CSS_DEFAULT_CAS_BINARY_DESCR;
-+	struct ia_css_cas_binary_descr cas_scaler_descr = { };
- 	unsigned int i, j;
- 	bool need_isp_copy_binary = false;
- 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h
-index cd95d46a6212..c690a184ccd4 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h
-@@ -52,8 +52,6 @@ struct ia_css_pipe_extra_config {
- 	bool disable_vf_pp;
- };
- 
--#define DEFAULT_PIPE_EXTRA_CONFIG (struct ia_css_pipe_extra_config) { }
--
- enum ia_css_err
- ia_css_pipe_create_extra(const struct ia_css_pipe_config *config,
- 			 const struct ia_css_pipe_extra_config *extra_config,
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h
-index 275d6e8decf9..2ef9238d95ad 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h
-@@ -24,8 +24,6 @@ struct sh_css_pc_histogram {
- 	unsigned *msink;
- };
- 
--#define DEFAULT_PC_HISTOGRAM (struct sh_css_pc_histogram) { }
--
- struct sh_css_binary_metrics {
- 	unsigned mode;
- 	unsigned id;
-@@ -34,12 +32,6 @@ struct sh_css_binary_metrics {
- 	struct sh_css_binary_metrics *next;
- };
- 
--#define DEFAULT_BINARY_METRICS \
--(struct sh_css_binary_metrics) { \
--	.isp_histogram	= DEFAULT_PC_HISTOGRAM, \
--	.sp_histogram	= DEFAULT_PC_HISTOGRAM, \
--}
--
- struct ia_css_frame_metrics {
- 	unsigned num_frames;
- };
--- 
-2.15.0
+	union {
+		__s32 fence_fd;
+		__u32 reserved2;
+	};
+
+Currently applications set reserved2 to 0:
+
+	buf.reserved2 = 0;
+
+But if we just replace reserved2 by fence_fd this will no longer compile and
+Linus will start yelling at you (and more importantly, us :-) ).
+
+Regards,
+
+	Hans
+
+>  	__u32			reserved;
+>  };
+>  
+> @@ -961,6 +961,8 @@ struct v4l2_buffer {
+>  #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+>  /* mem2mem encoder/decoder */
+>  #define V4L2_BUF_FLAG_LAST			0x00100000
+> +#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
+> +#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
+>  
+>  /**
+>   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+> 
