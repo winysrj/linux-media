@@ -1,82 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:15724 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932497AbdKBUDy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Nov 2017 16:03:54 -0400
-From: Ville Syrjala <ville.syrjala@linux.intel.com>
-To: dri-devel@lists.freedesktop.org
+Received: from mail-sn1nam02on0043.outbound.protection.outlook.com ([104.47.36.43]:48492
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752465AbdKCHsu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 3 Nov 2017 03:48:50 -0400
+Subject: Re: [PATCH 0/4] dma-buf: Silence dma_fence __rcu sparse warnings
+To: Ville Syrjala <ville.syrjala@linux.intel.com>,
+        dri-devel@lists.freedesktop.org
 Cc: Dave Airlie <airlied@redhat.com>,
         Jason Ekstrand <jason@jlekstrand.net>,
         linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
         Alex Deucher <alexander.deucher@amd.com>,
-        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
         Sumit Semwal <sumit.semwal@linaro.org>,
         Chris Wilson <chris@chris-wilson.co.uk>
-Subject: [PATCH 3/4] drm/syncobj: Use proper methods for accessing rcu protected pointers
-Date: Thu,  2 Nov 2017 22:03:35 +0200
-Message-Id: <20171102200336.23347-4-ville.syrjala@linux.intel.com>
-In-Reply-To: <20171102200336.23347-1-ville.syrjala@linux.intel.com>
 References: <20171102200336.23347-1-ville.syrjala@linux.intel.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <e9a25939-e932-ef7a-9bba-9070f5876ae9@amd.com>
+Date: Fri, 3 Nov 2017 08:48:23 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20171102200336.23347-1-ville.syrjala@linux.intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Patch #4 is Reviewed-by: Christian König <christian.koenig@amd.com>.
 
-Use rcu_dereference_protected() and rcu_assign_pointer() for accessing
-the rcu protected syncobj->fence pointer. This eliminates several sparse
-warnings.
+The rest is Acked-by: Christian König <christian.koenig@amd.com>.
 
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Jason Ekstrand <jason@jlekstrand.net>
-Cc: linaro-mm-sig@lists.linaro.org
-Cc: linux-media@vger.kernel.org
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
----
- drivers/gpu/drm/drm_syncobj.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+Regards,
+Christian.
 
-diff --git a/drivers/gpu/drm/drm_syncobj.c b/drivers/gpu/drm/drm_syncobj.c
-index f776fc1cc543..9b733c510cbf 100644
---- a/drivers/gpu/drm/drm_syncobj.c
-+++ b/drivers/gpu/drm/drm_syncobj.c
-@@ -106,7 +106,8 @@ static int drm_syncobj_fence_get_or_add_callback(struct drm_syncobj *syncobj,
- 	 * callback when a fence has already been set.
- 	 */
- 	if (syncobj->fence) {
--		*fence = dma_fence_get(syncobj->fence);
-+		*fence = dma_fence_get(rcu_dereference_protected(syncobj->fence,
-+								 lockdep_is_held(&syncobj->lock)));
- 		ret = 1;
- 	} else {
- 		*fence = NULL;
-@@ -168,8 +169,9 @@ void drm_syncobj_replace_fence(struct drm_syncobj *syncobj,
- 
- 	spin_lock(&syncobj->lock);
- 
--	old_fence = syncobj->fence;
--	syncobj->fence = fence;
-+	old_fence = rcu_dereference_protected(syncobj->fence,
-+					      lockdep_is_held(&syncobj->lock));
-+	rcu_assign_pointer(syncobj->fence, fence);
- 
- 	if (fence != old_fence) {
- 		list_for_each_entry_safe(cur, tmp, &syncobj->cb_list, node) {
-@@ -659,7 +661,8 @@ static void syncobj_wait_syncobj_func(struct drm_syncobj *syncobj,
- 		container_of(cb, struct syncobj_wait_entry, syncobj_cb);
- 
- 	/* This happens inside the syncobj lock */
--	wait->fence = dma_fence_get(syncobj->fence);
-+	wait->fence = dma_fence_get(rcu_dereference_protected(syncobj->fence,
-+							      lockdep_is_held(&syncobj->lock)));
- 	wake_up_process(wait->task);
- }
- 
--- 
-2.13.6
+Am 02.11.2017 um 21:03 schrieb Ville Syrjala:
+> From: Ville Syrjälä <ville.syrjala@linux.intel.com>
+>
+> When building drm+i915 I get around 150 lines of sparse noise from
+> dma_fence __rcu warnings. This series eliminates all of that.
+>
+> The first two patches were already posted by Chris, but there wasn't
+> any real reaction, so I figured I'd repost with a wider Cc list.
+>
+> As for the other two patches, I'm no expert on dma_fence and I didn't
+> spend a lot of time looking at it so I can't be sure I annotated all
+> the accesses correctly. But I figured someone will scream at me if
+> I got it wrong ;)
+>
+> Cc: Dave Airlie <airlied@redhat.com>
+> Cc: Jason Ekstrand <jason@jlekstrand.net>
+> Cc: linaro-mm-sig@lists.linaro.org
+> Cc: linux-media@vger.kernel.org
+> Cc: Alex Deucher <alexander.deucher@amd.com>
+> Cc: Christian König <christian.koenig@amd.com>
+> Cc: Sumit Semwal <sumit.semwal@linaro.org>
+> Cc: Chris Wilson <chris@chris-wilson.co.uk>
+>
+> Chris Wilson (2):
+>    drm/syncobj: Mark up the fence as an RCU protected pointer
+>    dma-buf/fence: Sparse wants __rcu on the object itself
+>
+> Ville Syrjälä (2):
+>    drm/syncobj: Use proper methods for accessing rcu protected pointers
+>    dma-buf: Use rcu_assign_pointer() to set rcu protected pointers
+>
+>   drivers/dma-buf/reservation.c |  2 +-
+>   drivers/gpu/drm/drm_syncobj.c | 11 +++++++----
+>   include/drm/drm_syncobj.h     |  2 +-
+>   include/linux/dma-fence.h     |  2 +-
+>   4 files changed, 10 insertions(+), 7 deletions(-)
+>
