@@ -1,164 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:47716 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754441AbdKKAjH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Nov 2017 19:39:07 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v7 16/25] rcar-vin: break out format alignment and checking
-Date: Sat, 11 Nov 2017 01:38:26 +0100
-Message-Id: <20171111003835.4909-17-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mga07.intel.com ([134.134.136.100]:60546 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751676AbdKCNgM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 3 Nov 2017 09:36:12 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1] [media] v4l2-ctrls: Don't validate BITMASK twice
+Date: Fri,  3 Nov 2017 15:35:39 +0200
+Message-Id: <20171103133539.35305-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Part of the format alignment and checking can be shared with the Gen3
-format handling. Break that part out to its own function. While doing
-this clean up the checking and add more checks.
+There is no need to repeat what check_range() does for us, i.e. BITMASK
+validation in v4l2_ctrl_new().
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 98 +++++++++++++++--------------
- 1 file changed, 51 insertions(+), 47 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index f7e04601007edb64..c9a3fe21dea4ce5d 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -86,6 +86,56 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
- 	return pix->bytesperline * pix->height;
- }
- 
-+static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
-+{
-+	u32 walign;
-+
-+	/* If requested format is not supported fallback to the default */
-+	if (!rvin_format_from_pixel(pix->pixelformat)) {
-+		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
-+			pix->pixelformat, RVIN_DEFAULT_FORMAT);
-+		pix->pixelformat = RVIN_DEFAULT_FORMAT;
-+	}
-+
-+	switch (pix->field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_INTERLACED:
-+		break;
-+	default:
-+		pix->field = V4L2_FIELD_NONE;
-+		break;
-+	}
-+
-+	/* Check that colorspace is reasonable, if not keep current */
-+	if (!pix->colorspace || pix->colorspace >= 0xff)
-+		pix->colorspace = vin->format.colorspace;
-+
-+	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
-+	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
-+
-+	/* Limit to VIN capabilities */
-+	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-+			      &pix->height, 4, vin->info->max_height, 2, 0);
-+
-+	pix->bytesperline = rvin_format_bytesperline(pix);
-+	pix->sizeimage = rvin_format_sizeimage(pix);
-+
-+	if (vin->info->chip == RCAR_M1 &&
-+	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-+		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
-+		return -EINVAL;
-+	}
-+
-+	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
-+		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
-+
-+	return 0;
-+}
-+
- /* -----------------------------------------------------------------------------
-  * V4L2
-  */
-@@ -191,64 +241,18 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- static int __rvin_try_format(struct rvin_dev *vin,
- 			     u32 which, struct v4l2_pix_format *pix)
- {
--	u32 walign;
- 	int ret;
- 
- 	/* Keep current field if no specific one is asked for */
- 	if (pix->field == V4L2_FIELD_ANY)
- 		pix->field = vin->format.field;
- 
--	/* If requested format is not supported fallback to the default */
--	if (!rvin_format_from_pixel(pix->pixelformat)) {
--		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
--			pix->pixelformat, RVIN_DEFAULT_FORMAT);
--		pix->pixelformat = RVIN_DEFAULT_FORMAT;
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index c230bd5c6558..cbb2ef43945f 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2013,10 +2013,6 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		handler_set_err(hdl, err);
+ 		return NULL;
+ 	}
+-	if (type == V4L2_CTRL_TYPE_BITMASK && ((def & ~max) || min || step)) {
+-		handler_set_err(hdl, -ERANGE);
+-		return NULL;
 -	}
--
--	/* Always recalculate */
--	pix->bytesperline = 0;
--	pix->sizeimage = 0;
--
- 	/* Limit to source capabilities */
- 	ret = __rvin_try_format_source(vin, which, pix);
- 	if (ret)
- 		return ret;
- 
--	switch (pix->field) {
--	case V4L2_FIELD_TOP:
--	case V4L2_FIELD_BOTTOM:
--	case V4L2_FIELD_NONE:
--	case V4L2_FIELD_INTERLACED_TB:
--	case V4L2_FIELD_INTERLACED_BT:
--	case V4L2_FIELD_INTERLACED:
--		break;
--	default:
--		pix->field = V4L2_FIELD_NONE;
--		break;
--	}
--
--	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
--	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
--
--	/* Limit to VIN capabilities */
--	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
--			      &pix->height, 4, vin->info->max_height, 2, 0);
--
--	pix->bytesperline = max_t(u32, pix->bytesperline,
--				  rvin_format_bytesperline(pix));
--	pix->sizeimage = max_t(u32, pix->sizeimage,
--			       rvin_format_sizeimage(pix));
--
--	if (vin->info->chip == RCAR_M1 &&
--	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
--		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
--		return -EINVAL;
--	}
--
--	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
--		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
--
--	return 0;
-+	return rvin_format_align(vin, pix);
- }
- 
- static int rvin_querycap(struct file *file, void *priv,
+ 	if (is_array &&
+ 	    (type == V4L2_CTRL_TYPE_BUTTON ||
+ 	     type == V4L2_CTRL_TYPE_CTRL_CLASS)) {
 -- 
-2.15.0
+2.14.2
