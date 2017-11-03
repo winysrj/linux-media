@@ -1,57 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:5608 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752401AbdK0PL6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Nov 2017 10:11:58 -0500
-Message-ID: <1511795153.25007.451.camel@linux.intel.com>
-Subject: Re: [PATCH 7/8] [media] staging: atomisp: convert timestamps to
- ktime_t
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Arnd Bergmann <arnd@arndb.de>, Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: y2038@lists.linaro.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Date: Mon, 27 Nov 2017 17:05:53 +0200
-In-Reply-To: <20171127132027.1734806-7-arnd@arndb.de>
-References: <20171127132027.1734806-1-arnd@arndb.de>
-         <20171127132027.1734806-7-arnd@arndb.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:51328 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933233AbdKCR6E (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Nov 2017 13:58:04 -0400
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Subject: [PATCH] uvc: Add D3DFMT_L8 support
+Date: Fri,  3 Nov 2017 13:57:46 -0400
+Message-Id: <20171103175746.30456-1-nicolas.dufresne@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2017-11-27 at 14:19 +0100, Arnd Bergmann wrote:
-> timespec overflows in 2038 on 32-bit architectures, and the
-> getnstimeofday() suffers from possible time jumps, so the
-> timestamps here are better done using ktime_get(), which has
-> neither of those problems.
-> 
-> In case of ov2680, we don't seem to use the timestamp at
-> all, so I just remove it.
-> 
+Microsoft HoloLense UVC sensor uses D3DFMT instead of FOURCC when
+exposing formats. This add support for D3DFMT_L8 as exposed from
+the Acer Windows Mixed Reality Headset.
 
-> +	ktime_t timedelay = ns_to_ktime(
->  		min((u32)abs(dev->number_of_steps) *
-> DELAY_PER_STEP_NS,
-> -		(u32)DELAY_MAX_PER_STEP_NS),
-> -	};
-> +		    (u32)DELAY_MAX_PER_STEP_NS));
+Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 5 +++++
+ drivers/media/usb/uvc/uvcvideo.h   | 5 +++++
+ 2 files changed, 10 insertions(+)
 
-Since you are touching this, it might make sense to convert to
-
-min_t(u32, ...)
-
-...and locate lines something like:
-
-ktime_t timeday = ns_to_ktime(min_t(u32,
-     param1,
-     param2));
-
->From my pov will make readability better.
-
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 6d22b22cb35b..56f70851f88b 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -203,6 +203,11 @@ static struct uvc_format_desc uvc_fmts[] = {
+ 		.guid		= UVC_GUID_FORMAT_INZI,
+ 		.fcc		= V4L2_PIX_FMT_INZI,
+ 	},
++	{
++		.name		= "Greyscale 8-bit (D3DFMT_L8)",
++		.guid		= UVC_GUID_FORMAT_D3DFMT_L8,
++		.fcc		= V4L2_PIX_FMT_GREY,
++	},
+ };
+ 
+ /* ------------------------------------------------------------------------
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 34c7ee6cc9e5..fbc1f433ff05 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -153,6 +153,11 @@
+ 	{ 'I',  'N',  'V',  'I', 0xdb, 0x57, 0x49, 0x5e, \
+ 	 0x8e, 0x3f, 0xf4, 0x79, 0x53, 0x2b, 0x94, 0x6f}
+ 
++#define UVC_GUID_FORMAT_D3DFMT_L8 \
++	{0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++
++
+ /* ------------------------------------------------------------------------
+  * Driver specific constants.
+  */
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+2.13.6
