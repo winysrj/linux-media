@@ -1,74 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50846 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752514AbdK3MdT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Nov 2017 07:33:19 -0500
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 9E1F9600F8
-        for <linux-media@vger.kernel.org>; Thu, 30 Nov 2017 14:33:17 +0200 (EET)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1eKO1l-0006Kq-8q
-        for linux-media@vger.kernel.org; Thu, 30 Nov 2017 14:33:17 +0200
-Date: Thu, 30 Nov 2017 14:33:17 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.16] Sensor driver patches, et8ek8 lens binding
-Message-ID: <20171130123316.uepj2ccezdvpqgdj@valkosipuli.retiisi.org.uk>
+Received: from youngberry.canonical.com ([91.189.89.112]:50208 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750821AbdKCG6e (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Nov 2017 02:58:34 -0400
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Sebastian Reichel <sre@kernel.org>, linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: v4l: async: fix return of unitialized variable ret
+Date: Fri,  3 Nov 2017 06:58:27 +0000
+Message-Id: <20171103065827.25988-1-colin.king@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Colin Ian King <colin.king@canonical.com>
 
-Here are sensor driver patches, including error handling fixes, and DT
-binding documentation and DTS changes for Nokia N900.
+A shadow declaration of variable ret is being assigned a return error
+status and this value is being lost when the error exit goto's jump
+out of the local scope. This leads to an uninitalized error return value
+in the outer scope being returned. Fix this by removing the inner scoped
+declaration of variable ret.
 
-Please pull.
+Detected by CoverityScan, CID#1460380 ("Uninitialized scalar variable")
 
+Fixes: fb45f436b818 ("media: v4l: async: Fix notifier complete callback error handling")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-The following changes since commit be9b53c83792e3898755dce90f8c632d40e7c83e:
-
-  media: dvb-frontends: complete kernel-doc markups (2017-11-30 04:19:05 -0500)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git for-4.16-1
-
-for you to fetch changes up to 5e1372893debd1d0e74546072424ee912c9625fd:
-
-  v4l: mt9v032: Disable clock on error paths (2017-11-30 14:26:42 +0200)
-
-----------------------------------------------------------------
-Akinobu Mita (2):
-      media: ov7670: use v4l2_async_unregister_subdev()
-      media: ov7670: add V4L2_CID_TEST_PATTERN control
-
-Alexey Khoroshilov (1):
-      v4l: mt9v032: Disable clock on error paths
-
-Pavel Machek (2):
-      dt-bindings: et8ek8: Document support for flash and lens devices
-      ARM: dts: nokia n900: enable autofocus
-
-Sakari Ailus (1):
-      imx274: Fix error handling, add MAINTAINERS entry
-
- .../bindings/media/i2c/toshiba,et8ek8.txt          |  7 ++++
- MAINTAINERS                                        |  8 ++++
- arch/arm/boot/dts/omap3-n900.dts                   |  2 +
- drivers/media/i2c/imx274.c                         |  5 +--
- drivers/media/i2c/mt9v032.c                        | 21 +++++++---
- drivers/media/i2c/ov7670.c                         | 48 +++++++++++++++++++++-
- 6 files changed, 80 insertions(+), 11 deletions(-)
-
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 49f7eccc76db..7020b2e6d158 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -550,7 +550,6 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 		struct v4l2_device *v4l2_dev =
+ 			v4l2_async_notifier_find_v4l2_dev(notifier);
+ 		struct v4l2_async_subdev *asd;
+-		int ret;
+ 
+ 		if (!v4l2_dev)
+ 			continue;
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.1
