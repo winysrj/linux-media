@@ -1,68 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:54846 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759688AbdKPNxc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 08:53:32 -0500
+Received: from mail-io0-f194.google.com ([209.85.223.194]:53387 "EHLO
+        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754501AbdKCWRk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Nov 2017 18:17:40 -0400
+Date: Fri, 3 Nov 2017 15:17:36 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Kees Cook <keescook@chromium.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH v2] media: ttpci: remove autorepeat handling and use
+ timer_setup
+Message-ID: <20171103221736.c5stezumtwneqdgu@dtor-ws>
+References: <20171025004005.hyb43h3yvovp4is2@dtor-ws>
+ <20171031172758.ugfo6br344iso4ni@gofer.mess.org>
+ <20171031174558.vsdpdudcwjneq2nu@gofer.mess.org>
+ <20171031182236.cxrasbayon7h52mm@dtor-ws>
+ <20171031200758.avdowtmcem5fnlb5@gofer.mess.org>
+ <20171031201143.ziwohlwpdvc4barr@gofer.mess.org>
+ <CAGXu5jLZaSDXdCVO3G1zsh3WLYaKvqm32xrJ8saBnCP8a7dZ8w@mail.gmail.com>
+ <20171102235037.4gndwq5223uyv5kw@dtor-ws>
+ <20171102221658.6d41bfcf@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <TY1PR06MB089529F042099069AD960093C02E0@TY1PR06MB0895.apcprd06.prod.outlook.com>
-References: <1510834290-25434-1-git-send-email-fabrizio.castro@bp.renesas.com>
- <1510834290-25434-2-git-send-email-fabrizio.castro@bp.renesas.com>
- <CAMuHMdW+krUp5ELO4NFxGi8NZ5-H4vrtm-=OXyvZKMCk2f-WcQ@mail.gmail.com> <TY1PR06MB089529F042099069AD960093C02E0@TY1PR06MB0895.apcprd06.prod.outlook.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Thu, 16 Nov 2017 14:53:31 +0100
-Message-ID: <CAMuHMdVLkhdb0nKMd8OzRK7=wnh_Dxww932Vq2P_OiL=a29V4w@mail.gmail.com>
-Subject: Re: [PATCH 1/2] dt-bindings: media: rcar_vin: add device tree support
- for r8a774[35]
-To: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Simon Horman <horms+renesas@verge.net.au>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Biju Das <biju.das@bp.renesas.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171102221658.6d41bfcf@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabrizio,
+On Thu, Nov 02, 2017 at 10:16:58PM -0200, Mauro Carvalho Chehab wrote:
+> Em Thu, 2 Nov 2017 16:50:37 -0700
+> Dmitry Torokhov <dmitry.torokhov@gmail.com> escreveu:
+> 
+> > On Thu, Nov 02, 2017 at 04:24:27PM -0700, Kees Cook wrote:
+> > > On Tue, Oct 31, 2017 at 1:11 PM, Sean Young <sean@mess.org> wrote:  
+> > > > Leave the autorepeat handling up to the input layer, and move
+> > > > to the new timer API.
+> > > >
+> > > > Compile tested only.
+> > > >
+> > > > Signed-off-by: Sean Young <sean@mess.org>  
+> > > 
+> > > Hi! Just checking up on this... the input timer conversion is blocked
+> > > by getting this sorted out, so I'd love to have something either
+> > > media, input, or timer tree can carry. :)  
+> > 
+> > Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> > 
+> > From my POV the patch is good. Mauro, do you want me to take it through
+> > my tree, or maybe you could create an immutable branch off 4.14-rc5 (or
+> > 6) with this commit and I will pull it in and then can apply Kees input
+> > core conversion patch?
+> 
+> Feel free to apply it into your tree with my ack:
+> 
+> Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-On Thu, Nov 16, 2017 at 2:45 PM, Fabrizio Castro
-<fabrizio.castro@bp.renesas.com> wrote:
->> Subject: Re: [PATCH 1/2] dt-bindings: media: rcar_vin: add device tree support for r8a774[35]
->>
->> On Thu, Nov 16, 2017 at 1:11 PM, Fabrizio Castro
->> <fabrizio.castro@bp.renesas.com> wrote:
->> > --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
->> > +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
->> > @@ -14,7 +14,10 @@ channel which can be either RGB, YUYV or BT656.
->> >     - "renesas,vin-r8a7790" for the R8A7790 device
->> >     - "renesas,vin-r8a7779" for the R8A7779 device
->> >     - "renesas,vin-r8a7778" for the R8A7778 device
->> > -   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
->> > +   - "renesas,vin-r8a7745" for the R8A7745 device
->> > +   - "renesas,vin-r8a7743" for the R8A7743 device
->>
->> Please keep the list sorted by SoC part number.
->
-> It is sorted, just in descending order. Do you want me to re-order the full list in ascending order?
+Applied and pulled Kees' patch to the input core (dropping the timer_data
+business) on top.
 
-That may be a good idea, given the current order is non-standard and
-counter-intuitive.
+Thanks.
 
-Thanks!
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+-- 
+Dmitry
