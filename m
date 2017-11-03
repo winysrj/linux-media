@@ -1,143 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:43476 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750962AbdKOHaP (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:44631 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752099AbdKCHcD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 02:30:15 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, heiko@sntech.de,
-        mchehab@kernel.org, laurent.pinchart+renesas@ideasonboard.com,
-        hans.verkuil@cisco.com, tfiga@chromium.org, nicolas@ndufresne.ca,
-        sakari.ailus@linux.intel.com, zhengsq@rock-chips.com,
-        zyc@rock-chips.com, eddie.cai.linux@gmail.com,
-        jeffy.chen@rock-chips.com, allon.huang@rock-chips.com,
-        p.zabel@pengutronix.de, slongerbeam@gmail.com,
-        linux@armlinux.org.uk, Jacob Chen <jacob-chen@iotwrt.com>
-Subject: [RFC PATCH 0/5] Rockchip ISP1 Driver
-Date: Wed, 15 Nov 2017 15:29:22 +0800
-Message-Id: <20171115072927.29367-1-jacob-chen@iotwrt.com>
+        Fri, 3 Nov 2017 03:32:03 -0400
+Subject: Re: [RFC v4 04/17] WIP: [media] v4l2: add
+ v4l2_event_queue_fh_with_cb()
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+References: <20171020215012.20646-1-gustavo@padovan.org>
+ <20171020215012.20646-5-gustavo@padovan.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <a94bc776-c133-c8bc-921a-7ae1b70df840@xs4all.nl>
+Date: Fri, 3 Nov 2017 08:31:58 +0100
+MIME-Version: 1.0
+In-Reply-To: <20171020215012.20646-5-gustavo@padovan.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series add a ISP(Camera) v4l2 driver for rockchip rk3288/rk3399 SoC.
+On 10/20/2017 11:49 PM, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> For some type of events we may require the event user in the
+> kernel to run some operation when DQ_EVENT() is called.
+> V4L2_EVENT_OUT_FENCE is the first user of this mechanism as it needs
+> to call v4l2 core back to install a file descriptor.
+> 
+> This is WIP, I believe we are able to come up with better ways to do it,
+> but as that is not the main part of the patchset I'll keep it like
+> this for now.
 
-TODO:
-  - Thomas is rewriting the binding code between isp, phy, sensors, i hope we could get suggestions.
-        https://chromium-review.googlesource.com/c/chromiumos/third_party/kernel/+/768633/2
-    rules:
-      - There are many mipi interfaces("rx0", "dxrx0")(actually it also could be parallel interface) in SoC and isp can decide which one will be used.
-      - Sometimes there will be more than one senor in a mipi phy, the sofrware should decide which one is used(media link).
-      - rk3399 have two isp.
-  - Add a dummy buffer(dma_alloc_coherent) so drvier won't hold buffer.
-  - Finish all TODO comments(mostly about hardware) in driver.
+I'm OK with this callback. I don't off-hand see a better way of doing this.
 
-To help do a quick review, i have push source code to my Github.
-  https://github.com/wzyy2/linux/tree/rkisp1/drivers/media/platform/rockchip/isp1
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-event.c | 31 +++++++++++++++++++++++++++----
+>  include/media/v4l2-event.h           |  7 +++++++
+>  2 files changed, 34 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
+> index 313ee9d1f9ee..6274e3e174e0 100644
+> --- a/drivers/media/v4l2-core/v4l2-event.c
+> +++ b/drivers/media/v4l2-core/v4l2-event.c
+> @@ -58,6 +58,9 @@ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
+>  
+>  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+>  
+> +	if (kev->prepare)
+> +		kev->prepare(kev->data);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -104,8 +107,11 @@ static struct v4l2_subscribed_event *v4l2_event_subscribed(
+>  	return NULL;
+>  }
+>  
+> -static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev,
+> -		const struct timespec *ts)
+> +static void __v4l2_event_queue_fh_with_cb(struct v4l2_fh *fh,
 
-Below are some infomations about driver/hardware:
+I wouldn't rename this function, just add the two arguments.
 
-Rockchip ISP1 have many Hardware Blocks(simplied):
+> +					  const struct v4l2_event *ev,
+> +					  const struct timespec *ts,
+> +					  void (*prepare)(void *data),
+> +					  void *data)
+>  {
+>  	struct v4l2_subscribed_event *sev;
+>  	struct v4l2_kevent *kev;
+> @@ -155,6 +161,8 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *e
+>  	kev->event.id = ev->id;
+>  	kev->event.timestamp = *ts;
+>  	kev->event.sequence = fh->sequence;
+> +	kev->prepare = prepare;
+> +	kev->data = data;
+>  	sev->in_use++;
+>  	list_add_tail(&kev->list, &fh->available);
+>  
+> @@ -177,7 +185,7 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
+>  	spin_lock_irqsave(&vdev->fh_lock, flags);
+>  
+>  	list_for_each_entry(fh, &vdev->fh_list, list)
+> -		__v4l2_event_queue_fh(fh, ev, &timestamp);
+> +		__v4l2_event_queue_fh_with_cb(fh, ev, &timestamp, NULL, NULL);
+>  
+>  	spin_unlock_irqrestore(&vdev->fh_lock, flags);
+>  }
+> @@ -191,11 +199,26 @@ void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev)
+>  	ktime_get_ts(&timestamp);
+>  
+>  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> -	__v4l2_event_queue_fh(fh, ev, &timestamp);
+> +	__v4l2_event_queue_fh_with_cb(fh, ev, &timestamp, NULL, NULL);
+>  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_event_queue_fh);
 
-  MIPI      --> ISP --> DCrop(Mainpath) --> RSZ(Mainpath) --> DMA(Mainpath)
-  DMA-Input -->     --> DCrop(Selfpath) --> RSZ(Selfpath) --> DMA(Selfpath);)
+I'd drop this function and replace it with a static inline in the v4l2-event.h
+header that calls v4l2_event_queue_fh_with_cb.
 
-(Acutally the TRM(rk3288, isp) could be found online...... which contains a more detailed block diagrams ;-P)
+>  
+> +void v4l2_event_queue_fh_with_cb(struct v4l2_fh *fh,
+> +				 const struct v4l2_event *ev,
+> +				 void (*prepare)(void *data), void *data)
+> +{
+> +	unsigned long flags;
+> +	struct timespec timestamp;
+> +
+> +	ktime_get_ts(&timestamp);
+> +
+> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> +	__v4l2_event_queue_fh_with_cb(fh, ev, &timestamp, prepare, data);
+> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_queue_fh_with_cb);
+> +
+>  int v4l2_event_pending(struct v4l2_fh *fh)
+>  {
+>  	return fh->navailable;
+> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+> index 2b794f2ad824..dc770257811e 100644
+> --- a/include/media/v4l2-event.h
+> +++ b/include/media/v4l2-event.h
+> @@ -68,11 +68,14 @@ struct video_device;
+>   * @list:	List node for the v4l2_fh->available list.
+>   * @sev:	Pointer to parent v4l2_subscribed_event.
+>   * @event:	The event itself.
+> + * @prepare:	Callback to prepare the event only at DQ_EVENT() time.
 
-The funcitons of each hardware block:
+@data is not documented.
 
-  Mainpath : up to 4k resolution, support raw/yuv format
-  Selfpath : up tp 1080p, support rotate, support rgb/yuv format
-  RSZ: scaling 
-  DCrop: crop
-  ISP: 3A, Color processing, Crop
-  MIPI: MIPI Camera interface
+>   */
+>  struct v4l2_kevent {
+>  	struct list_head	list;
+>  	struct v4l2_subscribed_event *sev;
+>  	struct v4l2_event	event;
+> +	void (*prepare)(void *data);
+> +	void *data;
+>  };
+>  
+>  /**
+> @@ -160,6 +163,10 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev);
+>   */
+>  void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev);
+>  
+> +void v4l2_event_queue_fh_with_cb(struct v4l2_fh *fh,
+> +				 const struct v4l2_event *ev,
+> +				 void (*prepare)(void *data), void *data);
+> +
 
-Media pipelines:
+Missing kerneldoc documentation.
 
-  Mainpath, Selfpath <-- ISP subdev <-- MIPI  <-- Sensor
-  3A stats           <--            <-- 3A parms
+>  /**
+>   * v4l2_event_pending - Check if an event is available
+>   *
+> 
 
-Code struct:
+Regards,
 
-  capture.c : Mainpath, Selfpath, RSZ, DCROP : capture device.
-  rkisp1.c : ISP : v4l2 sub-device.
-  isp_params.c : 3A parms : output device.
-  isp_stats.c : 3A stats : capture device.
-  mipi_dphy_sy.c : MIPI : sperated v4l2 sub-device.
-
-Usage:
-  ChromiumOS:
-    use below v4l2-ctl command to capture frames.
-
-      v4l2-ctl --verbose -d /dev/video4 --stream-mmap=2
-      --stream-to=/tmp/stream.out --stream-count=60 --stream-poll
-
-    use below command to playback the video on your PC.
-
-      mplayer /tmp/stream.out -loop 0 --demuxer=rawvideo
-      --rawvideo=w=800:h=600:size=$((800*600*2)):format=yuy2
-    or
-      mplayer ./stream.out -loop 0 -demuxer rawvideo -rawvideo
-      w=800:h=600:size=$((800*600*2)):format=yuy2
-
-  Linux:
-    use rkcamsrc gstreamer plugin(just a modified v4l2src) to preview.
-
-      gst-launch-1.0 rkcamsrc device=/dev/video0 io-mode=4 disable-3A=true
-      videoconvert ! video/x-raw,format=NV12,width=640,height=480 ! kmssink
-
-Jacob Chen (2):
-  media: rkisp1: add rockchip isp1 driver
-  ARM: dts: rockchip: add isp node for rk3288
-
-Jeffy Chen (1):
-  media: rkisp1: Add user space ABI definitions
-
-Shunqian Zheng (2):
-  media: videodev2.h, v4l2-ioctl: add rkisp1 meta buffer format
-  arm64: dts: rockchip: add isp0 node for rk3399
-
- arch/arm/boot/dts/rk3288.dtsi                      |   24 +
- arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   26 +
- drivers/media/platform/Kconfig                     |   10 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/rockchip/isp1/Makefile      |    9 +
- drivers/media/platform/rockchip/isp1/capture.c     | 1678 ++++++++++++++++++++
- drivers/media/platform/rockchip/isp1/capture.h     |   46 +
- drivers/media/platform/rockchip/isp1/common.h      |  327 ++++
- drivers/media/platform/rockchip/isp1/dev.c         |  728 +++++++++
- drivers/media/platform/rockchip/isp1/isp_params.c  | 1556 ++++++++++++++++++
- drivers/media/platform/rockchip/isp1/isp_params.h  |   81 +
- drivers/media/platform/rockchip/isp1/isp_stats.c   |  537 +++++++
- drivers/media/platform/rockchip/isp1/isp_stats.h   |   81 +
- .../media/platform/rockchip/isp1/mipi_dphy_sy.c    |  619 ++++++++
- .../media/platform/rockchip/isp1/mipi_dphy_sy.h    |   42 +
- drivers/media/platform/rockchip/isp1/regs.c        |  251 +++
- drivers/media/platform/rockchip/isp1/regs.h        | 1578 ++++++++++++++++++
- drivers/media/platform/rockchip/isp1/rkisp1.c      | 1132 +++++++++++++
- drivers/media/platform/rockchip/isp1/rkisp1.h      |  130 ++
- drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +
- include/uapi/linux/rkisp1-config.h                 |  554 +++++++
- include/uapi/linux/videodev2.h                     |    4 +
- 22 files changed, 9416 insertions(+)
- create mode 100644 drivers/media/platform/rockchip/isp1/Makefile
- create mode 100644 drivers/media/platform/rockchip/isp1/capture.c
- create mode 100644 drivers/media/platform/rockchip/isp1/capture.h
- create mode 100644 drivers/media/platform/rockchip/isp1/common.h
- create mode 100644 drivers/media/platform/rockchip/isp1/dev.c
- create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.c
- create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.h
- create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.c
- create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.h
- create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.c
- create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.h
- create mode 100644 drivers/media/platform/rockchip/isp1/regs.c
- create mode 100644 drivers/media/platform/rockchip/isp1/regs.h
- create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.c
- create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.h
- create mode 100644 include/uapi/linux/rkisp1-config.h
-
--- 
-2.14.2
+	Hans
