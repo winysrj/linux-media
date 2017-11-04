@@ -1,78 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47112 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S964801AbdKBUWh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Nov 2017 16:22:37 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] libv4lconvert: We support more then 32 bit src fmts now, so use 64 bit bitmasks
-Date: Thu,  2 Nov 2017 21:22:34 +0100
-Message-Id: <20171102202234.9140-1-hdegoede@redhat.com>
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:54012 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751361AbdKDC0r (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Nov 2017 22:26:47 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH] media: v4l: async: fix unregister for implicitly registered sub-device notifiers
+Date: Sat,  4 Nov 2017 03:25:56 +0100
+Message-Id: <20171104022556.23153-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We support more then 32 bit src fmts now, so we can no longer re-use
-struct v4l2_frmsizeenum.pixel_format to store a bitmask of all the
-supported src-formats for a given frame-size.
+The commit aef69d54755d45ed ("media: v4l: fwnode: Add a convenience
+function for registering sensors") adds the function
+v4l2_async_notifier_parse_fwnode_sensor_common() to parse and register a
+subdevice and a subdev-notifier by parsing firmware information. This
+new subdev-notifier is stored in the new field 'subdev_notifier' in
+struct v4l2_subdev.
 
-This fixes a subtile bug where we would try to use SE401 as src fmt
-instead of YUYV under certain circumstances.
+In v4l2_async_unregister_subdev() this field is used to unregister and
+cleanup the subdev-notifier. A check for if the subdev-notifier is
+initialized or not was forgotten leading to a NULL pointer dereference
+in v4l2_async_notifier_cleanup() if a subdevice do not use the optional
+convince function to initialize the field.
 
-BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1508706
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Fix this by checking in v4l2_async_notifier_cleanup() that it is
+provided whit a notifier making it safe to call with a NULL parameter.
+
+Fixes: aef69d54755d45ed ("media: v4l: fwnode: Add a convenience function for registering sensors")
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- lib/libv4lconvert/libv4lconvert-priv.h | 2 ++
- lib/libv4lconvert/libv4lconvert.c      | 9 ++++-----
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/media/v4l2-core/v4l2-async.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
-index e2389347..9a467e10 100644
---- a/lib/libv4lconvert/libv4lconvert-priv.h
-+++ b/lib/libv4lconvert/libv4lconvert-priv.h
-@@ -66,6 +66,8 @@ struct v4lconvert_data {
- 	int cinfo_initialized;
- #endif // HAVE_JPEG
- 	struct v4l2_frmsizeenum framesizes[V4LCONVERT_MAX_FRAMESIZES];
-+	/* Bitmask of all supported src_formats which can do for a size */
-+	int64_t framesize_supported_src_formats[V4LCONVERT_MAX_FRAMESIZES];
- 	unsigned int no_framesizes;
- 	int bandwidth;
- 	int fps;
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-index 1a5ccec2..d666bd97 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -434,7 +434,8 @@ static int v4lconvert_do_try_format_uvc(struct v4lconvert_data *data,
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 49f7eccc76dbbc3b..8684e002e72f280d 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -502,7 +502,7 @@ void v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier)
+ {
+ 	unsigned int i;
  
- 	for (i = 0; i < ARRAY_SIZE(supported_src_pixfmts); i++) {
- 		/* is this format supported? */
--		if (!(data->framesizes[best_framesize].pixel_format & (1 << i)))
-+		if (!(data->framesize_supported_src_formats[best_framesize] &
-+		      (1ULL << i)))
- 			continue;
+-	if (!notifier->max_subdevs)
++	if (!notifier || !notifier->max_subdevs)
+ 		return;
  
- 		/* Note the hardcoded use of discrete is based on this function
-@@ -1647,9 +1648,7 @@ static void v4lconvert_get_framesizes(struct v4lconvert_data *data,
- 				return;
- 			}
- 			data->framesizes[data->no_framesizes].type = frmsize.type;
--			/* We use the pixel_format member to store a bitmask of all
--			   supported src_formats which can do this size */
--			data->framesizes[data->no_framesizes].pixel_format = 1 << index;
-+			data->framesize_supported_src_formats[data->no_framesizes] = 1ULL << index;
- 
- 			switch (frmsize.type) {
- 			case V4L2_FRMSIZE_TYPE_DISCRETE:
-@@ -1662,7 +1661,7 @@ static void v4lconvert_get_framesizes(struct v4lconvert_data *data,
- 			}
- 			data->no_framesizes++;
- 		} else {
--			data->framesizes[j].pixel_format |= 1 << index;
-+			data->framesize_supported_src_formats[j] |= 1ULL << index;
- 		}
- 	}
- }
+ 	for (i = 0; i < notifier->num_subdevs; i++) {
 -- 
-2.14.3
+2.14.2
