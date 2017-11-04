@@ -1,242 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:50414 "EHLO
-        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932575AbdKCADV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 20:03:21 -0400
-Date: Thu, 2 Nov 2017 22:03:13 -0200
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Brian Starkey <brian.starkey@arm.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [RFC v4 16/17] [media] vb2: add out-fence support to QBUF
-Message-ID: <20171103000313.GJ4111@jade>
-References: <20171020215012.20646-1-gustavo@padovan.org>
- <20171020215012.20646-17-gustavo@padovan.org>
- <20171027100139.GF40170@e107564-lin.cambridge.arm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171027100139.GF40170@e107564-lin.cambridge.arm.com>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:53382 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750750AbdKDElY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 4 Nov 2017 00:41:24 -0400
+Message-ID: <3fe44ad1f73c7ae84788860f136eeb4c@smtp-cloud9.xs4all.net>
+Date: Sat, 04 Nov 2017 05:41:21 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Brian,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-2017-10-27 Brian Starkey <brian.starkey@arm.com>:
+Results of the daily build of media_tree:
 
-> Hi Gustavo,
-> 
-> On Fri, Oct 20, 2017 at 07:50:11PM -0200, Gustavo Padovan wrote:
-> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > 
-> > If V4L2_BUF_FLAG_OUT_FENCE flag is present on the QBUF call we create
-> > an out_fence and send to userspace on the V4L2_EVENT_OUT_FENCE when
-> > the buffer is queued to the driver, or right away if the queue is ordered
-> > both in VB2 and in the driver.
-> > 
-> > The fence is signaled on buffer_done(), when the job on the buffer is
-> > finished.
-> > 
-> > v5:
-> > 	- delay fd_install to DQ_EVENT (Hans)
-> > 	- if queue is fully ordered send OUT_FENCE event right away
-> > 	(Brian)
-> > 	- rename 'q->ordered' to 'q->ordered_in_driver'
-> > 	- merge change to implement OUT_FENCE event here
-> > 
-> > v4:
-> > 	- return the out_fence_fd in the BUF_QUEUED event(Hans)
-> > 
-> > v3:	- add WARN_ON_ONCE(q->ordered) on requeueing (Hans)
-> > 	- set the OUT_FENCE flag if there is a fence pending (Hans)
-> > 	- call fd_install() after vb2_core_qbuf() (Hans)
-> > 	- clean up fence if vb2_core_qbuf() fails (Hans)
-> > 	- add list to store sync_file and fence for the next queued buffer
-> > 
-> > v2: check if the queue is ordered.
-> > 
-> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > ---
-> > drivers/media/v4l2-core/v4l2-event.c     |  2 ++
-> > drivers/media/v4l2-core/videobuf2-core.c | 25 +++++++++++++++
-> > drivers/media/v4l2-core/videobuf2-v4l2.c | 55 ++++++++++++++++++++++++++++++++
-> > 3 files changed, 82 insertions(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-> > index 6274e3e174e0..275da224ace4 100644
-> > --- a/drivers/media/v4l2-core/v4l2-event.c
-> > +++ b/drivers/media/v4l2-core/v4l2-event.c
-> > @@ -385,6 +385,8 @@ int v4l2_subscribe_event_v4l2(struct v4l2_fh *fh,
-> > 	switch (sub->type) {
-> > 	case V4L2_EVENT_CTRL:
-> > 		return v4l2_ctrl_subscribe_event(fh, sub);
-> > +	case V4L2_EVENT_OUT_FENCE:
-> > +		return v4l2_event_subscribe(fh, sub, VIDEO_MAX_FRAME, NULL);
-> > 	}
-> > 	return -EINVAL;
-> > }
-> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> > index c7ba67bda5ac..21e2052776c1 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-core.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > @@ -354,6 +354,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
-> > 			vb->planes[plane].length = plane_sizes[plane];
-> > 			vb->planes[plane].min_length = plane_sizes[plane];
-> > 		}
-> > +		vb->out_fence_fd = -1;
-> > 		q->bufs[vb->index] = vb;
-> > 
-> > 		/* Allocate video buffer memory for the MMAP type */
-> > @@ -934,10 +935,24 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
-> > 	case VB2_BUF_STATE_QUEUED:
-> > 		return;
-> > 	case VB2_BUF_STATE_REQUEUEING:
-> > +		/*
-> > +		 * Explicit synchronization requires ordered queues for now,
-> > +		 * so WARN_ON if we are requeuing on an ordered queue.
-> > +		 */
-> > +		if (vb->out_fence)
-> > +			WARN_ON_ONCE(q->ordered_in_driver);
-> > +
-> > 		if (q->start_streaming_called)
-> > 			__enqueue_in_driver(vb);
-> > 		return;
-> > 	default:
-> > +		if (state == VB2_BUF_STATE_ERROR)
-> > +			dma_fence_set_error(vb->out_fence, -ENOENT);
-> > +		dma_fence_signal(vb->out_fence);
-> > +		dma_fence_put(vb->out_fence);
-> > +		vb->out_fence = NULL;
-> > +		vb->out_fence_fd = -1;
-> > +
-> > 		/* Inform any processes that may be waiting for buffers */
-> > 		wake_up(&q->done_wq);
-> > 		break;
-> > @@ -1235,6 +1250,9 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
-> > 	trace_vb2_buf_queue(q, vb);
-> > 
-> > 	call_void_vb_qop(vb, buf_queue, vb);
-> > +
-> > +	if (!(q->is_output || q->ordered_in_vb2))
-> > +		call_void_bufop(q, send_out_fence, vb);
-> > }
-> > 
-> > static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
-> > @@ -1451,6 +1469,7 @@ static struct dma_fence *__set_in_fence(struct vb2_queue *q,
-> > 		}
-> > 
-> > 		q->last_fence = dma_fence_get(fence);
-> > +		call_void_bufop(q, send_out_fence, vb);
-> > 	}
-> > 
-> > 	return fence;
-> > @@ -1840,6 +1859,11 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
-> > 	}
-> > 
-> > 	/*
-> > +	 * Renew out-fence context.
-> > +	 */
-> 
-> Why is that? I don't think I understand the nuances of fence contexts.
+date:			Sat Nov  4 05:00:27 CET 2017
+media-tree git hash:	9917fbcfa20ab987d6381fd0365665e5c1402d75
+media_build git hash:	c93534951f5d66bef7f17f16293acf2be346b726
+v4l-utils git hash:	f28ea7e869751e284b739fb226c3d26e9f8c2b1a
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-Because inside each context we should maintain ordering of the fences.
-If we cancel the stream and restart it with we need a new context. Look
-at ordering between two different streams doesn't make sense.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+apps: OK
+spec-git: OK
 
-> 
-> > +	q->out_fence_context = dma_fence_context_alloc(1);
-> > +
-> > +	/*
-> > 	 * Remove all buffers from videobuf's list...
-> > 	 */
-> > 	INIT_LIST_HEAD(&q->queued_list);
-> > @@ -2171,6 +2195,7 @@ int vb2_core_queue_init(struct vb2_queue *q)
-> > 	spin_lock_init(&q->done_lock);
-> > 	mutex_init(&q->mmap_lock);
-> > 	init_waitqueue_head(&q->done_wq);
-> > +	q->out_fence_context = dma_fence_context_alloc(1);
-> > 
-> > 	if (q->buf_struct_size == 0)
-> > 		q->buf_struct_size = sizeof(struct vb2_buffer);
-> > diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> > index 4c09ea007d90..9fb01ddefdc9 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> > @@ -32,6 +32,11 @@
-> > 
-> > #include <media/videobuf2-v4l2.h>
-> > 
-> > +struct out_fence_data {
-> > +	int fence_fd;
-> > +	struct file *file;
-> > +};
-> > +
-> > static int debug;
-> > module_param(debug, int, 0644);
-> > 
-> > @@ -138,6 +143,38 @@ static void __copy_timestamp(struct vb2_buffer *vb, const void *pb)
-> > 	}
-> > };
-> > 
-> > +static void __fd_install_at_dequeue_cb(void *data)
-> > +{
-> > +	struct out_fence_data *of = data;
-> > +
-> > +	fd_install(of->fence_fd, of->file);
-> > +	kfree(of);
-> 
-> Is it possible for the user to never dequeue the event? In that case
-> the fd and sync_file would leak I guess.
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Yes. It is totally possible. That fell through...
+Full logs are available here:
 
-> 
-> > +}
-> > +
-> > +static void __send_out_fence(struct vb2_buffer *vb)
-> > +{
-> > +	struct video_device *vdev = to_video_device(vb->vb2_queue->dev);
-> > +	struct v4l2_fh *fh = vdev->queue->owner;
-> > +	struct v4l2_event event;
-> > +	struct out_fence_data *of;
-> > +
-> > +	if (vb->out_fence_fd < 0)
-> > +		return;
-> > +
-> > +	memset(&event, 0, sizeof(event));
-> > +	event.type = V4L2_EVENT_OUT_FENCE;
-> > +	event.u.out_fence.index = vb->index;
-> > +	event.u.out_fence.out_fence_fd = vb->out_fence_fd;
-> > +
-> > +	of = kmalloc(sizeof(*of), GFP_KERNEL);
-> > +	of->fence_fd = vb->out_fence_fd;
-> > +	of->file = vb->sync_file->file;
-> > +
-> > +	v4l2_event_queue_fh_with_cb(fh, &event, __fd_install_at_dequeue_cb, of);
-> > +
-> > +	vb->sync_file = NULL;
-> 
-> See the comment above about never dequeuing the event - maybe you need
-> to keep hold of the sync file to be able to clean it up in-case the
-> user never dequeues. If not, then you could set vb->out_fence_fd = -1
-> here too.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-That is a good suggestion.
+The Media Infrastructure API from this daily build is here:
 
-> I've been looking at your v4l2-fences branch on kernel.org, which
-> looks quite different. Is this the newer version?
-
-Yes. I wrote this in a hurry to send it to the mailing list before
-the Media Summit, so I probably forgot to push and left a few issues
-around.
-
-Regards,
-
-Gustavo
+http://www.xs4all.nl/~hverkuil/spec/index.html
