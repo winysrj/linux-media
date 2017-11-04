@@ -1,146 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:44352 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751664AbdKJNcE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Nov 2017 08:32:04 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v10 0/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 
-Date: Fri, 10 Nov 2017 14:31:35 +0100
-Message-Id: <20171110133137.9137-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-wr0-f169.google.com ([209.85.128.169]:45848 "EHLO
+        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752329AbdKDAR5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Nov 2017 20:17:57 -0400
+Received: by mail-wr0-f169.google.com with SMTP id y9so3861691wrb.2
+        for <linux-media@vger.kernel.org>; Fri, 03 Nov 2017 17:17:57 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJ+vNU2a8qtL4hbg5FQamF3WanQG1610QsJv=2cCxpD8OsiQ6w@mail.gmail.com>
+References: <1507783506-3884-1-git-send-email-tharvey@gateworks.com>
+ <1507783506-3884-4-git-send-email-tharvey@gateworks.com> <230ceb18-1d69-7fa8-acb0-c810094f8e50@xs4all.nl>
+ <CAJ+vNU0Z988G+wTfpiSXXOM9QsPj-eRvH=F1b9__8kJ+18xk4g@mail.gmail.com>
+ <a5bd27c9-10e4-b9f5-f0ac-293528fa570e@xs4all.nl> <CAJ+vNU2yHKDf5tCVyj6iw83z0sDuV0ZsZ-=sLfa+fTFbtjVo0A@mail.gmail.com>
+ <5c68003a-380d-d339-718f-47bce64cdae8@xs4all.nl> <CAJ+vNU2a8qtL4hbg5FQamF3WanQG1610QsJv=2cCxpD8OsiQ6w@mail.gmail.com>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Fri, 3 Nov 2017 17:17:55 -0700
+Message-ID: <CAJ+vNU1ipKzm5AX4HY0ckrBM3aMC1mn0Dp7nQfsjzJcEYgBV5Q@mail.gmail.com>
+Subject: Re: [PATCH v2 3/4] media: i2c: Add TDA1997x HDMI receiver driver
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        alsa-devel@alsa-project.org,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, Oct 23, 2017 at 10:05 AM, Tim Harvey <tharvey@gateworks.com> wrote:
+>
+> On Fri, Oct 20, 2017 at 9:23 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> >>
+> >> I see the AVI infoframe has hdmi_quantization_range and
+> >> hdmi_ycc_quantization_range along with vid_code.
+> >>
+> >> I'm not at all clear what to do with this information. Is there
+> >> anything you see in the datasheet [1] that points to something I need
+> >> to be doing?
+> >
+> > You can ignore hdmi_ycc_quantization_range, it is the hdmi_quantization_range
+> > that you need to read out.
+> >
+> > The TDA can receive the following formats:
+> >
+> > RGB Full Range
+> > RGB Limited Range
+> > YUV Bt.601 (aka SMPTE 170M)
+> > YUV Rec.709
+> >
+> > The YUV formats are always limited range.
+> >
+> > The TDA can transmit RGB and YUV to the SoC. You want RGB to be full range and
+> > YUV to be limited range. YUV can be either 601 or 709.
+> >
+> > So if the TDA transmits RGB then you need to support the following conversions:
+> >
+> > RGB Full -> RGB Full
+> > RGB Limited -> RGB Full
+> > YUV 601 -> RGB Full
+> > YUV 709 -> RGB Full
+> >
+> > And if the TDA transmits YUV then you need these conversions:
+> >
+> > RGB Full -> YUV601 or YUV709
+> > RGB Limited -> YUV601 or YUV709
+> > YUV601 -> YUV601
+> > YUV709 -> YUV709
+> >
+> > For the RGB to YUV conversion you have a choice of converting to YUV601 or 709.
+> > I recommend to either always convert to YUV601 or to let it depend on the resolution
+> > (SDTV YUV601, HDTV YUV709).
+> >
+>
+> Ok - this is a good explanation that I should be able to follow. I
+> will make sure to take into account hdmi_quantization_range when I
+> setup the colorspace conversion matrix for v3.
 
-This is the latest incarnation of R-Car MIPI CSI-2 receiver driver. It's
-based on top of the media-tree and are tested on Renesas Salvator-X
-together with the out-of-tree patches for rcar-vin to add support for
-Gen3 VIN. If anyone is interested to test video grabbing using these out
-of tree patches please see [1].
+Hans,
 
-* Changes since v9
-- Add reset property to device tree example
-- Use BIT(x) instead of (1 << x)
-- Use u16 in struct phypll_hsfreqrange to pack struct better.
-- Use unsigned int type for loop variable in rcar_csi2_code_to_fmt
-- Move fields inside struct struct rcar_csi2_info and struct rcar_csi2 
-  to pack struct's tighter.
-- Use %u instead of %d when printing __u32.
-- Don't check return of platform_get_resource(), let 
-  devm_ioremap_resource() handle it.
-- Store quirk workaround for r8a7795 ES1.0 in the data field of struct 
-  soc_device_attribute.
+I'm having trouble figuring out the conversion matrix to use between
+limited and full.
 
-Changes since v8:
-- Updated bindings documentation, thanks Rob!
-- Make use of the now in media-tree sub-notifier V4L2 API
-- Add delay when resetting the IP to allow for a proper reset
-- Fix bug in s_stream error path where the usage count was off if an
-  error was hit.
-- Add support for H3 ES2.0
+Currently I have the following conversion matrices, the values which
+came from some old vendor code:
 
-Changes since v7:
-- Rebase on top of the latest incremental async patches.
-- Fix comments on DT documentation.
-- Use v4l2_ctrl_g_ctrl_int64() instead of v4l2_g_ext_ctrls().
-- Handle try formats in .set_fmt() and .get_fmt().
-- Don't call v4l2_device_register_subdev_nodes() as this is not needed
-  with the complete() callbacks synchronized.
-- Fix line over 80 chars.
-- Fix varies spelling mistakes.
+        /* Colorspace conversion matrix coefficients and offsets */
+        struct color_matrix_coefs {
+                /* Input offsets */
+                s16 offint1;
+                s16 offint2;
+                s16 offint3;
+                /* Coeficients */
+                s16 p11coef;
+                s16 p12coef;
+                s16 p13coef;
+                s16 p21coef;
+                s16 p22coef;
+                s16 p23coef;
+                s16 p31coef;
+                s16 p32coef;
+                s16 p33coef;
+                /* Output offsets */
+                s16 offout1;
+                s16 offout2;
+                s16 offout3;
+        };
+        /* Conversion matrixes */
+        enum {
+                ITU709_RGBLIMITED,
+                ITU601_RGBLIMITED,
+                RGBLIMITED_ITU601,
+       };
+       static const struct color_matrix_coefs conv_matrix[] = {
+                /* ITU709 -> RGBLimited */
+                {
+                        -256, -2048,  -2048,
+                        4096, -1875,   -750,
+                        4096,  6307,      0,
+                        4096,     0,   7431,
+                         256,   256,    256,
+                },
+                /* YUV601 limited -> RGB limited */
+                {
+                        -256, -2048,  -2048,
+                        4096, -2860,  -1378,
+                        4096,  5615,      0,
+                        4096,     0,   7097,
+                        256,    256,    256,
+                },
+                /* RGB limited -> ITU601 */
+                {
+                        -256,  -256,   -256,
+                        2404,  1225,    467,
+                        -1754, 2095,   -341,
+                        -1388, -707,   2095,
+                        256,   2048,   2048,
+                },
+        };
 
-Changes since v6:
-- Rebased on top of Sakaris fwnode patches.
-- Changed of RCAR_CSI2_PAD_MAX to NR_OF_RCAR_CSI2_PAD.
-- Remove assumption about unknown media bus type, thanks Sakari for
-  pointing this out.
-- Created table for supported format information instead of scattering
-  this information around the driver, thanks Sakari!
-- Small newline fixes and reduce some indentation levels.
+Assuming the above are correct this leaves me missing RGB limitted ->
+RGB full, YUV601 -> RGB full, YUV709 -> RGB full, and RGB Full ->
+YUV601.
 
-Changes since v5:
-- Make use of the incremental async subnotifer and helper to map DT
-  endpoint to media pad number. This moves functionality which
-  previously in the Gen3 patches for R-Car VIN driver to this R-Car
-  CSI-2 driver. This is done in preparation to support the ADV7482
-  driver in development by Kieran which will register more then one
-  subdevice and the CSI-2 driver needs to cope wit this. Further more it
-  prepares the driver for another use-case where more then one subdevice
-  is present upstream for the CSI-2.
-- Small cleanups.
-- Add explicit include for linux/io.h, thanks Kieran.
+I don't have documentation for the registers but I'm assuming the
+input offset is applied first, then the multiplication by the coef,
+then the output offset is applied. I'm looking over
+https://en.wikipedia.org/wiki/YUV for colorspace conversion matrices
+but I'm unable to figure out how to apply those to the above. Any
+ideas?
 
-Changes since v4:
-- Match SoC part numbers and drop trailing space in documentation,
-  thanks Geert for pointing this out.
-- Clarify that the driver is a CSI-2 receiver by supervised
-  s/interface/receiver/, thanks Laurent.
-- Add entries in Kconfig and Makefile alphabetically instead of append.
-- Rename struct rcar_csi2 member swap to lane_swap.
-- Remove macros to wrap calls to dev_{dbg,info,warn,err}.
-- Add wrappers for ioread32 and iowrite32.
-- Remove unused interrupt handler, but keep checking in probe that there
-  are a interrupt define in DT.
-- Rework how to wait for LP-11 state, thanks Laurent for the great idea!
-- Remove unneeded delay in rcar_csi2_reset()
-- Remove check for duplicated lane id:s from DT parsing. Broken out to a
-  separate patch adding this check directly to v4l2_of_parse_endpoint().
-- Fixed rcar_csi2_start() to ask it's source subdevice for information
-  about pixel rate and frame format. With this change having
-  {set,get}_fmt operations became redundant, it was only used for
-  figuring out this out so dropped them.
-- Tabulated frequency settings map.
-- Dropped V4L2_SUBDEV_FL_HAS_DEVNODE it should never have been set.
-- Switched from MEDIA_ENT_F_ATV_DECODER to
-  MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER as entity function. I can't
-  find a more suitable function, and what the hardware do is to fetch
-  video from an external chip and passes it on to a another SoC internal
-  IP it's sort of a formatter.
-- Break out DT documentation and code in two patches.
+Thanks,
 
-Changes since v3:
-- Update DT binding documentation with input from Geert Uytterhoeven,
-  thanks!
-
-Changes since v2:
-- Added media control pads as this is needed by the new rcar-vin driver.
-- Update DT bindings after review comments and to add r8a7796 support.
-- Add get_fmt handler.
-- Fix media bus format error s/YUYV8/UYVY8/
-
-Changes since v1:
-- Drop dependency on a pad aware s_stream operation.
-- Use the DT bindings format "renesas,<soctype>-<device>", thanks Geert
-  for pointing this out.
-
-1. http://elinux.org/R-Car/Tests:rcar-vin
-
-Niklas Söderlund (2):
-  media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
-  media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver driver
-
- .../devicetree/bindings/media/rcar-csi2.txt        | 104 +++
- MAINTAINERS                                        |   1 +
- drivers/media/platform/rcar-vin/Kconfig            |  12 +
- drivers/media/platform/rcar-vin/Makefile           |   1 +
- drivers/media/platform/rcar-vin/rcar-csi2.c        | 934 +++++++++++++++++++++
- 5 files changed, 1052 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
- create mode 100644 drivers/media/platform/rcar-vin/rcar-csi2.c
-
--- 
-2.15.0
+Tim
