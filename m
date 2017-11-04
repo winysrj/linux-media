@@ -1,74 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:45159 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750998AbdKOHby (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 02:31:54 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, heiko@sntech.de,
-        mchehab@kernel.org, laurent.pinchart+renesas@ideasonboard.com,
-        hans.verkuil@cisco.com, tfiga@chromium.org, nicolas@ndufresne.ca,
-        sakari.ailus@linux.intel.com, zhengsq@rock-chips.com,
-        zyc@rock-chips.com, eddie.cai.linux@gmail.com,
-        jeffy.chen@rock-chips.com, allon.huang@rock-chips.com,
-        p.zabel@pengutronix.de, slongerbeam@gmail.com,
-        linux@armlinux.org.uk, Jacob Chen <jacob2.chen@rock-chips.com>
-Subject: [RFC PATCH 4/5] arm64: dts: rockchip: add isp0 node for rk3399
-Date: Wed, 15 Nov 2017 15:31:31 +0800
-Message-Id: <20171115073132.30123-4-jacob-chen@iotwrt.com>
-In-Reply-To: <20171115073132.30123-1-jacob-chen@iotwrt.com>
-References: <20171115073132.30123-1-jacob-chen@iotwrt.com>
+Received: from smtp.gentoo.org ([140.211.166.183]:43656 "EHLO smtp.gentoo.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751732AbdKDQFF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 4 Nov 2017 12:05:05 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH] build: Add support for timer_setup
+Date: Sat,  4 Nov 2017 17:05:06 +0100
+Message-Id: <20171104160506.8319-1-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shunqian Zheng <zhengsq@rock-chips.com>
+Literally copied the implementation from kernel
+commit 686fef928bba6be13 (timer: Prepare to change timer callback argument type)
 
-rk3399 have two ISP, but we havn't test isp1, so just add isp0 at present.
-
-Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 ---
- arch/arm64/boot/dts/rockchip/rk3399.dtsi | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ v4l/compat.h                      | 17 +++++++++++++++++
+ v4l/scripts/make_config_compat.pl |  1 +
+ 2 files changed, 18 insertions(+)
 
-diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-index ab7629c5b856..f696e62d09dd 100644
---- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-+++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-@@ -1577,6 +1577,32 @@
- 		status = "disabled";
- 	};
+diff --git a/v4l/compat.h b/v4l/compat.h
+index 3504288..f788e79 100644
+--- a/v4l/compat.h
++++ b/v4l/compat.h
+@@ -2195,4 +2195,21 @@ static inline void *bsearch(const void *key, const void *base, size_t num, size_
+ }
+ #endif
  
-+	isp0: isp0@ff910000 {
-+		compatible = "rockchip,rk3399-cif-isp";
-+		reg = <0x0 0xff910000 0x0 0x4000>;
-+		interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH 0>;
-+		clocks = <&cru SCLK_ISP0>,
-+			 <&cru ACLK_ISP0>, <&cru ACLK_ISP0_WRAPPER>,
-+			 <&cru HCLK_ISP0>, <&cru HCLK_ISP0_WRAPPER>;
-+		clock-names = "clk_isp",
-+			      "aclk_isp", "aclk_isp_wrap",
-+			      "hclk_isp", "hclk_isp_wrap";
-+		power-domains = <&power RK3399_PD_ISP0>;
-+		iommus = <&isp0_mmu>;
-+		status = "disabled";
++#ifdef NEED_TIMER_SETUP
++#define TIMER_DATA_TYPE                unsigned long
++#define TIMER_FUNC_TYPE                void (*)(TIMER_DATA_TYPE)
 +
-+		isp_mipi_dphy_rx0: isp-mipi-dphy-rx0 {
-+			compatible = "rockchip,rk3399-mipi-dphy";
-+			rockchip,grf = <&grf>;
-+			clocks = <&cru SCLK_MIPIDPHY_REF>,
-+				 <&cru SCLK_DPHY_RX0_CFG>,
-+				 <&cru PCLK_VIO_GRF>;
-+			clock-names = "dphy-ref", "dphy-cfg", "grf";
-+			power-domains = <&power RK3399_PD_VIO>;
-+			status = "disabled";
-+		};
-+	};
++static inline void timer_setup(struct timer_list *timer,
++                              void (*callback)(struct timer_list *),
++                              unsigned int flags)
++{
++       __setup_timer(timer, (TIMER_FUNC_TYPE)callback,
++                     (TIMER_DATA_TYPE)timer, flags);
++}
 +
- 	isp0_mmu: iommu@ff914000 {
- 		compatible = "rockchip,iommu";
- 		reg = <0x0 0xff914000 0x0 0x100>, <0x0 0xff915000 0x0 0x100>;
++#define from_timer(var, callback_timer, timer_fieldname) \
++       container_of(callback_timer, typeof(*var), timer_fieldname)
++
++#endif
++
+ #endif /*  _COMPAT_H */
+diff --git a/v4l/scripts/make_config_compat.pl b/v4l/scripts/make_config_compat.pl
+index 8ebeea3..62eb6b9 100644
+--- a/v4l/scripts/make_config_compat.pl
++++ b/v4l/scripts/make_config_compat.pl
+@@ -706,6 +706,7 @@ sub check_other_dependencies()
+ 	check_files_for_func("annotate_reachable", "NEED_ANNOTATE_REACHABLE", "include/linux/compiler.h");
+ 	check_files_for_func("U32_MAX", "NEED_U32_MAX", "include/linux/kernel.h");
+ 	check_files_for_func("bsearch", "NEED_BSEARCH", "include/linux/bsearch.h");
++	check_files_for_func("timer_setup", "NEED_TIMER_SETUP", "include/linux/timer.h");
+ 
+ 	# For tests for uapi-dependent logic
+ 	check_files_for_func_uapi("usb_endpoint_maxp", "NEED_USB_ENDPOINT_MAXP", "usb/ch9.h");
 -- 
-2.14.2
+2.15.0
