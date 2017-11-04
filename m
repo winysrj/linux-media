@@ -1,131 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:57307 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751448AbdKCElE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Nov 2017 00:41:04 -0400
-Message-ID: <c647c187971978e2fbcaba3c9f835c55@smtp-cloud7.xs4all.net>
-Date: Fri, 03 Nov 2017 05:41:02 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from sauhun.de ([88.99.104.3]:44819 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751755AbdKDUU1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 4 Nov 2017 16:20:27 -0400
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: linux-i2c@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org, Mark Brown <broonie@kernel.org>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>
+Subject: [PATCH v6 6/9] i2c: smbus: use DMA safe buffers for emulated SMBus transactions
+Date: Sat,  4 Nov 2017 21:20:06 +0100
+Message-Id: <20171104202009.3818-7-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20171104202009.3818-1-wsa+renesas@sang-engineering.com>
+References: <20171104202009.3818-1-wsa+renesas@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+For all block commands, try to allocate a DMA safe buffer and mark it
+accordingly. Only use the stack, if the buffers cannot be allocated.
 
-Results of the daily build of media_tree:
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+---
+ drivers/i2c/i2c-core-smbus.c | 45 ++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 39 insertions(+), 6 deletions(-)
 
-date:			Fri Nov  3 05:00:21 CET 2017
-media-tree git hash:	9917fbcfa20ab987d6381fd0365665e5c1402d75
-media_build git hash:	c93534951f5d66bef7f17f16293acf2be346b726
-v4l-utils git hash:	e656ea2b16cbb83ca5e37d9df7af0c2cc34379f4
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12.1-i686: ERRORS
-linux-4.13-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12.1-x86_64: ERRORS
-linux-4.13-x86_64: ERRORS
-apps: OK
-spec-git: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/i2c/i2c-core-smbus.c b/drivers/i2c/i2c-core-smbus.c
+index 4bb9927afd0106..931c274fe26809 100644
+--- a/drivers/i2c/i2c-core-smbus.c
++++ b/drivers/i2c/i2c-core-smbus.c
+@@ -18,6 +18,7 @@
+ #include <linux/err.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c-smbus.h>
++#include <linux/slab.h>
+ 
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/smbus.h>
+@@ -291,6 +292,22 @@ s32 i2c_smbus_write_i2c_block_data(const struct i2c_client *client, u8 command,
+ }
+ EXPORT_SYMBOL(i2c_smbus_write_i2c_block_data);
+ 
++static void i2c_smbus_try_get_dmabuf(struct i2c_msg *msg, u8 init_val)
++{
++	bool is_read = msg->flags & I2C_M_RD;
++	unsigned char *dma_buf;
++
++	dma_buf = kzalloc(I2C_SMBUS_BLOCK_MAX + (is_read ? 2 : 3), GFP_KERNEL);
++	if (!dma_buf)
++		return;
++
++	msg->buf = dma_buf;
++	msg->flags |= I2C_M_DMA_SAFE;
++
++	if (init_val)
++		msg->buf[0] = init_val;
++
++}
+ /* Simulate a SMBus command using the i2c protocol
+    No checking of parameters is done!  */
+ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+@@ -368,6 +385,7 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+ 			msg[1].flags |= I2C_M_RECV_LEN;
+ 			msg[1].len = 1; /* block length will be added by
+ 					   the underlying bus driver */
++			i2c_smbus_try_get_dmabuf(&msg[1], 0);
+ 		} else {
+ 			msg[0].len = data->block[0] + 2;
+ 			if (msg[0].len > I2C_SMBUS_BLOCK_MAX + 2) {
+@@ -376,8 +394,10 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+ 					data->block[0]);
+ 				return -EINVAL;
+ 			}
++
++			i2c_smbus_try_get_dmabuf(&msg[0], command);
+ 			for (i = 1; i < msg[0].len; i++)
+-				msgbuf0[i] = data->block[i-1];
++				msg[0].buf[i] = data->block[i-1];
+ 		}
+ 		break;
+ 	case I2C_SMBUS_BLOCK_PROC_CALL:
+@@ -389,16 +409,21 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+ 				data->block[0]);
+ 			return -EINVAL;
+ 		}
++
+ 		msg[0].len = data->block[0] + 2;
++		i2c_smbus_try_get_dmabuf(&msg[0], command);
+ 		for (i = 1; i < msg[0].len; i++)
+-			msgbuf0[i] = data->block[i-1];
++			msg[0].buf[i] = data->block[i-1];
++
+ 		msg[1].flags |= I2C_M_RECV_LEN;
+ 		msg[1].len = 1; /* block length will be added by
+ 				   the underlying bus driver */
++		i2c_smbus_try_get_dmabuf(&msg[1], 0);
+ 		break;
+ 	case I2C_SMBUS_I2C_BLOCK_DATA:
+ 		if (read_write == I2C_SMBUS_READ) {
+ 			msg[1].len = data->block[0];
++			i2c_smbus_try_get_dmabuf(&msg[1], 0);
+ 		} else {
+ 			msg[0].len = data->block[0] + 1;
+ 			if (msg[0].len > I2C_SMBUS_BLOCK_MAX + 1) {
+@@ -407,8 +432,10 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+ 					data->block[0]);
+ 				return -EINVAL;
+ 			}
++
++			i2c_smbus_try_get_dmabuf(&msg[0], command);
+ 			for (i = 1; i <= data->block[0]; i++)
+-				msgbuf0[i] = data->block[i];
++				msg[0].buf[i] = data->block[i];
+ 		}
+ 		break;
+ 	default:
+@@ -456,14 +483,20 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+ 			break;
+ 		case I2C_SMBUS_I2C_BLOCK_DATA:
+ 			for (i = 0; i < data->block[0]; i++)
+-				data->block[i+1] = msgbuf1[i];
++				data->block[i+1] = msg[1].buf[i];
+ 			break;
+ 		case I2C_SMBUS_BLOCK_DATA:
+ 		case I2C_SMBUS_BLOCK_PROC_CALL:
+-			for (i = 0; i < msgbuf1[0] + 1; i++)
+-				data->block[i] = msgbuf1[i];
++			for (i = 0; i < msg[1].buf[0] + 1; i++)
++				data->block[i] = msg[1].buf[i];
+ 			break;
+ 		}
++
++	if (msg[0].flags & I2C_M_DMA_SAFE)
++		kfree(msg[0].buf);
++	if (msg[1].flags & I2C_M_DMA_SAFE)
++		kfree(msg[1].buf);
++
+ 	return 0;
+ }
+ 
+-- 
+2.11.0
