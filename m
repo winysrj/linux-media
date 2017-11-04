@@ -1,119 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:49546 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753116AbdK2MIS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 07:08:18 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        James Hogan <jhogan@kernel.org>
-Subject: [PATCH 2/7] media: rc: fix kernel-doc parameter names
-Date: Wed, 29 Nov 2017 07:08:05 -0500
-Message-Id: <cc043fc67b9fa1e3f33a076c9a7f4b628c4a206f.1511952403.git.mchehab@s-opensource.com>
-In-Reply-To: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
-References: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
-In-Reply-To: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
-References: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from smtprelay0107.hostedemail.com ([216.40.44.107]:40037 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932111AbdKDRXe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 4 Nov 2017 13:23:34 -0400
+From: Joe Perches <joe@perches.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: uvcvideo: Make some structs const
+Date: Sat,  4 Nov 2017 10:23:29 -0700
+Message-Id: <0e85822616b665b20bc5b883d5be4a1265137f87.1509816184.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several parameters there that are named wrong, as
-reported by those warnings:
+Move some data to text
 
-	drivers/media/rc/ir-sharp-decoder.c:47: warning: No description found for parameter 'ev'
-	drivers/media/rc/ir-sharp-decoder.c:47: warning: Excess function parameter 'duration' description in 'ir_sharp_decode'
-	drivers/media/rc/ir-sanyo-decoder.c:56: warning: No description found for parameter 'ev'
-	drivers/media/rc/ir-sanyo-decoder.c:56: warning: Excess function parameter 'duration' description in 'ir_sanyo_decode'
-	drivers/media/rc/ir-xmp-decoder.c:43: warning: No description found for parameter 'ev'
-	drivers/media/rc/ir-xmp-decoder.c:43: warning: Excess function parameter 'duration' description in 'ir_xmp_decode'
-	drivers/media/rc/ir-jvc-decoder.c:47: warning: No description found for parameter 'ev'
-	drivers/media/rc/ir-jvc-decoder.c:47: warning: Excess function parameter 'duration' description in 'ir_jvc_decode'
-	drivers/media/rc/ir-lirc-codec.c:34: warning: No description found for parameter 'dev'
-	drivers/media/rc/ir-lirc-codec.c:34: warning: No description found for parameter 'ev'
-	drivers/media/rc/ir-lirc-codec.c:34: warning: Excess function parameter 'input_dev' description in 'ir_lirc_decode'
-	drivers/media/rc/ir-lirc-codec.c:34: warning: Excess function parameter 'duration' description in 'ir_lirc_decode'
+$ size drivers/media/usb/uvc/uvc_ctrl.o*
+   text	   data	    bss	    dec	    hex	filename
+  34323	   2364	      0	  36687	   8f4f	drivers/media/usb/uvc/uvc_ctrl.o.new
+  28659	   8028	      0	  36687	   8f4f	drivers/media/usb/uvc/uvc_ctrl.o.old
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/media/rc/ir-jvc-decoder.c   | 2 +-
- drivers/media/rc/ir-lirc-codec.c    | 4 ++--
- drivers/media/rc/ir-sanyo-decoder.c | 2 +-
- drivers/media/rc/ir-sharp-decoder.c | 2 +-
- drivers/media/rc/ir-xmp-decoder.c   | 2 +-
- 5 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/media/usb/uvc/uvc_ctrl.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/rc/ir-jvc-decoder.c b/drivers/media/rc/ir-jvc-decoder.c
-index e2bd68c42edf..22c8aee3df4f 100644
---- a/drivers/media/rc/ir-jvc-decoder.c
-+++ b/drivers/media/rc/ir-jvc-decoder.c
-@@ -39,7 +39,7 @@ enum jvc_state {
- /**
-  * ir_jvc_decode() - Decode one JVC pulse or space
-  * @dev:	the struct rc_dev descriptor of the device
-- * @duration:   the struct ir_raw_event descriptor of the pulse/space
-+ * @ev:   the struct ir_raw_event descriptor of the pulse/space
-  *
-  * This function returns -EINVAL if the pulse violates the state machine
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+index 20397aba6849..44a0554bf62d 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -37,7 +37,7 @@
+  * Controls
   */
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 8f2f37412fc5..4fd4521693d9 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -25,8 +25,8 @@
- /**
-  * ir_lirc_decode() - Send raw IR data to lirc_dev to be relayed to the
-  *		      lircd userspace daemon for decoding.
-- * @input_dev:	the struct rc_dev descriptor of the device
-- * @duration:	the struct ir_raw_event descriptor of the pulse/space
-+ * @dev:	the struct rc_dev descriptor of the device
-+ * @ev:		the struct ir_raw_event descriptor of the pulse/space
-  *
-  * This function returns -EINVAL if the lirc interfaces aren't wired up.
-  */
-diff --git a/drivers/media/rc/ir-sanyo-decoder.c b/drivers/media/rc/ir-sanyo-decoder.c
-index 758c60956850..d94e07b02f3b 100644
---- a/drivers/media/rc/ir-sanyo-decoder.c
-+++ b/drivers/media/rc/ir-sanyo-decoder.c
-@@ -48,7 +48,7 @@ enum sanyo_state {
- /**
-  * ir_sanyo_decode() - Decode one SANYO pulse or space
-  * @dev:	the struct rc_dev descriptor of the device
-- * @duration:	the struct ir_raw_event descriptor of the pulse/space
-+ * @ev:		the struct ir_raw_event descriptor of the pulse/space
-  *
-  * This function returns -EINVAL if the pulse violates the state machine
-  */
-diff --git a/drivers/media/rc/ir-sharp-decoder.c b/drivers/media/rc/ir-sharp-decoder.c
-index 129b558acc92..7140dd6160ee 100644
---- a/drivers/media/rc/ir-sharp-decoder.c
-+++ b/drivers/media/rc/ir-sharp-decoder.c
-@@ -39,7 +39,7 @@ enum sharp_state {
- /**
-  * ir_sharp_decode() - Decode one Sharp pulse or space
-  * @dev:	the struct rc_dev descriptor of the device
-- * @duration:	the struct ir_raw_event descriptor of the pulse/space
-+ * @ev:		the struct ir_raw_event descriptor of the pulse/space
-  *
-  * This function returns -EINVAL if the pulse violates the state machine
-  */
-diff --git a/drivers/media/rc/ir-xmp-decoder.c b/drivers/media/rc/ir-xmp-decoder.c
-index 6f464be1c8d7..712bc6d76e92 100644
---- a/drivers/media/rc/ir-xmp-decoder.c
-+++ b/drivers/media/rc/ir-xmp-decoder.c
-@@ -35,7 +35,7 @@ enum xmp_state {
- /**
-  * ir_xmp_decode() - Decode one XMP pulse or space
-  * @dev:	the struct rc_dev descriptor of the device
-- * @duration:	the struct ir_raw_event descriptor of the pulse/space
-+ * @ev:		the struct ir_raw_event descriptor of the pulse/space
-  *
-  * This function returns -EINVAL if the pulse violates the state machine
-  */
+ 
+-static struct uvc_control_info uvc_ctrls[] = {
++static const struct uvc_control_info uvc_ctrls[] = {
+ 	{
+ 		.entity		= UVC_GUID_UVC_PROCESSING,
+ 		.selector	= UVC_PU_BRIGHTNESS_CONTROL,
+@@ -420,7 +420,7 @@ static void uvc_ctrl_set_rel_speed(struct uvc_control_mapping *mapping,
+ 	data[first+1] = min_t(int, abs(value), 0xff);
+ }
+ 
+-static struct uvc_control_mapping uvc_ctrl_mappings[] = {
++static const struct uvc_control_mapping uvc_ctrl_mappings[] = {
+ 	{
+ 		.id		= V4L2_CID_BRIGHTNESS,
+ 		.name		= "Brightness",
 -- 
-2.14.3
+2.15.0
