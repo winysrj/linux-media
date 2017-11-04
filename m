@@ -1,62 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:33184 "EHLO osg.samsung.com"
+Received: from sauhun.de ([88.99.104.3]:44807 "EHLO pokefinder.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933175AbdKAVGN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 17:06:13 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v2 13/26] media: rcar: fix a debug printk
-Date: Wed,  1 Nov 2017 17:05:50 -0400
-Message-Id: <ef0a1dc7f902c8ed9cc8aa454bd07a8fcda66dfa.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        id S1751709AbdKDUUZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 4 Nov 2017 16:20:25 -0400
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: linux-i2c@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org, Mark Brown <broonie@kernel.org>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>
+Subject: [PATCH v6 4/9] i2c: refactor i2c_master_{send_recv}
+Date: Sat,  4 Nov 2017 21:20:04 +0100
+Message-Id: <20171104202009.3818-5-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20171104202009.3818-1-wsa+renesas@sang-engineering.com>
+References: <20171104202009.3818-1-wsa+renesas@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Two orthogonal changesets caused a breakage at a printk
-inside rcar. Changeset 859969b38e2e
-("[media] v4l: Switch from V4L2 OF not V4L2 fwnode API")
-made davinci to use struct fwnode_handle instead of
-struct device_node. Changeset 68d9c47b1679
-("media: Convert to using %pOF instead of full_name")
-changed the printk to not use ->full_name, but, instead,
-to rely on %pOF.
+Those two functions are very similar, the only differences are that one
+needs the I2C_M_RD flag for its message while the other one needs the
+buffer casted to drop the const. Introduce a generic helper which
+allows to specify the flags (also needed later for DMA safe variants of
+these calls) and let the casting be done in the inlining fuctions which
+are now calling the new helper function.
 
-With both patches applied, the Kernel will do the wrong
-thing, as warned by smatch:
-	drivers/media/platform/rcar-vin/rcar-core.c:189 rvin_digital_graph_init() error: '%pOF' expects argument of type 'struct device_node*', argument 4 has type 'void*'
-
-So, change the logic to actually print the device name
-that was obtained before the print logic.
-
-Fixes: 68d9c47b1679 ("media: Convert to using %pOF instead of full_name")
-Fixes: 859969b38e2e ("[media] v4l: Switch from V4L2 OF not V4L2 fwnode API")
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/i2c/i2c-core-base.c | 64 +++++++++++++--------------------------------
+ include/linux/i2c.h         | 34 +++++++++++++++++++++---
+ 2 files changed, 48 insertions(+), 50 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 108d776f3265..ce5914f7a056 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -186,8 +186,8 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
- 	if (!vin->digital)
- 		return -ENODEV;
+diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
+index de1850bd440659..206c47c85c98c5 100644
+--- a/drivers/i2c/i2c-core-base.c
++++ b/drivers/i2c/i2c-core-base.c
+@@ -1972,63 +1972,35 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
+ EXPORT_SYMBOL(i2c_transfer);
  
--	vin_dbg(vin, "Found digital subdevice %pOF\n",
--		to_of_node(vin->digital->asd.match.fwnode.fwnode));
-+	vin_dbg(vin, "Found digital subdevice %s\n",
-+		to_of_node(vin->digital->asd.match.fwnode.fwnode)->full_name);
+ /**
+- * i2c_master_send - issue a single I2C message in master transmit mode
++ * i2c_transfer_buffer_flags - issue a single I2C message transferring data
++ * 			       to/from a buffer
+  * @client: Handle to slave device
+- * @buf: Data that will be written to the slave
+- * @count: How many bytes to write, must be less than 64k since msg.len is u16
++ * @buf: Where the data is stored
++ * @count: How many bytes to transfer, must be less than 64k since msg.len is u16
++ * @flags: The flags to be used for the message, e.g. I2C_M_RD for reads
+  *
+- * Returns negative errno, or else the number of bytes written.
++ * Returns negative errno, or else the number of bytes transferred.
+  */
+-int i2c_master_send(const struct i2c_client *client, const char *buf, int count)
++int i2c_transfer_buffer_flags(const struct i2c_client *client, char *buf,
++			      int count, u16 flags)
+ {
+ 	int ret;
+-	struct i2c_adapter *adap = client->adapter;
+-	struct i2c_msg msg;
+-
+-	msg.addr = client->addr;
+-	msg.flags = client->flags & I2C_M_TEN;
+-	msg.len = count;
+-	msg.buf = (char *)buf;
+-
+-	ret = i2c_transfer(adap, &msg, 1);
+-
+-	/*
+-	 * If everything went ok (i.e. 1 msg transmitted), return #bytes
+-	 * transmitted, else error code.
+-	 */
+-	return (ret == 1) ? count : ret;
+-}
+-EXPORT_SYMBOL(i2c_master_send);
+-
+-/**
+- * i2c_master_recv - issue a single I2C message in master receive mode
+- * @client: Handle to slave device
+- * @buf: Where to store data read from slave
+- * @count: How many bytes to read, must be less than 64k since msg.len is u16
+- *
+- * Returns negative errno, or else the number of bytes read.
+- */
+-int i2c_master_recv(const struct i2c_client *client, char *buf, int count)
+-{
+-	struct i2c_adapter *adap = client->adapter;
+-	struct i2c_msg msg;
+-	int ret;
+-
+-	msg.addr = client->addr;
+-	msg.flags = client->flags & I2C_M_TEN;
+-	msg.flags |= I2C_M_RD;
+-	msg.len = count;
+-	msg.buf = buf;
++	struct i2c_msg msg = {
++		.addr = client->addr,
++		.flags = flags | (client->flags & I2C_M_TEN),
++		.len = count,
++		.buf = buf,
++	};
  
- 	vin->notifier.ops = &rvin_digital_notify_ops;
- 	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
+-	ret = i2c_transfer(adap, &msg, 1);
++	ret = i2c_transfer(client->adapter, &msg, 1);
+ 
+ 	/*
+-	 * If everything went ok (i.e. 1 msg received), return #bytes received,
+-	 * else error code.
++	 * If everything went ok (i.e. 1 msg transferred), return #bytes
++	 * transferred, else error code.
+ 	 */
+ 	return (ret == 1) ? count : ret;
+ }
+-EXPORT_SYMBOL(i2c_master_recv);
++EXPORT_SYMBOL(i2c_transfer_buffer_flags);
+ 
+ /* ----------------------------------------------------
+  * the i2c address scanning function
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index a0b57de91e21d3..ef1a8791c1ae24 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -63,10 +63,36 @@ struct property_entry;
+  * transmit an arbitrary number of messages without interruption.
+  * @count must be be less than 64k since msg.len is u16.
+  */
+-extern int i2c_master_send(const struct i2c_client *client, const char *buf,
+-			   int count);
+-extern int i2c_master_recv(const struct i2c_client *client, char *buf,
+-			   int count);
++extern int i2c_transfer_buffer_flags(const struct i2c_client *client,
++				     char *buf, int count, u16 flags);
++
++/**
++ * i2c_master_recv - issue a single I2C message in master receive mode
++ * @client: Handle to slave device
++ * @buf: Where to store data read from slave
++ * @count: How many bytes to read, must be less than 64k since msg.len is u16
++ *
++ * Returns negative errno, or else the number of bytes read.
++ */
++static inline int i2c_master_recv(const struct i2c_client *client,
++				  char *buf, int count)
++{
++	return i2c_transfer_buffer_flags(client, buf, count, I2C_M_RD);
++};
++
++/**
++ * i2c_master_send - issue a single I2C message in master transmit mode
++ * @client: Handle to slave device
++ * @buf: Data that will be written to the slave
++ * @count: How many bytes to write, must be less than 64k since msg.len is u16
++ *
++ * Returns negative errno, or else the number of bytes written.
++ */
++static inline int i2c_master_send(const struct i2c_client *client,
++				  const char *buf, int count)
++{
++	return i2c_transfer_buffer_flags(client, (char *)buf, count, 0);
++};
+ 
+ /* Transfer num messages.
+  */
 -- 
-2.13.6
+2.11.0
