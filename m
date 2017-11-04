@@ -1,33 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.llwyncelyn.cymru ([82.70.14.225]:51192 "EHLO fuzix.org"
+Received: from osg.samsung.com ([64.30.133.232]:53036 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751642AbdK0TJq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Nov 2017 14:09:46 -0500
-Date: Mon, 27 Nov 2017 19:09:38 +0000
-From: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
-To: Jeremy Sowden <jeremy@azazel.net>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: Re: [PATCH v2 3/3] media: staging: atomisp: fixed some checkpatch
- integer type warnings.
-Message-ID: <20171127190938.73c6b15a@alans-desktop>
-In-Reply-To: <20171127124450.28799-4-jeremy@azazel.net>
-References: <20171127122125.GB8561@kroah.com>
-        <20171127124450.28799-1-jeremy@azazel.net>
-        <20171127124450.28799-4-jeremy@azazel.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        id S1751869AbdKDCCF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 3 Nov 2017 22:02:05 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2 1/2] media: s5p-mfc: remove firmware buf null check in s5p_mfc_load_firmware()
+Date: Fri,  3 Nov 2017 20:01:57 -0600
+Message-Id: <af2205b4a377fa0a77e01ac60893fc5f63bffd4a.1509760484.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1509760483.git.shuahkh@osg.samsung.com>
+References: <cover.1509760483.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1509760483.git.shuahkh@osg.samsung.com>
+References: <cover.1509760483.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 27 Nov 2017 12:44:50 +0000
-Jeremy Sowden <jeremy@azazel.net> wrote:
+s5p_mfc_load_firmware() will not get called if fw_buf.virt allocation
+fails. The allocation happens very early on in the probe routine and
+probe fails if allocation fails.
 
-> Changed the types of some arrays from int16_t to s16W
+There is no need to check if it is null in s5p_mfc_load_firmware().
+Remove the check.
 
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-Which are the same type, except int16_t is the standard form.
-
-No point.
-
-Alan
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index 69ef9c2..46c9d67 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -75,11 +75,6 @@ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev)
+ 		release_firmware(fw_blob);
+ 		return -ENOMEM;
+ 	}
+-	if (!dev->fw_buf.virt) {
+-		mfc_err("MFC firmware is not allocated\n");
+-		release_firmware(fw_blob);
+-		return -EINVAL;
+-	}
+ 	memcpy(dev->fw_buf.virt, fw_blob->data, fw_blob->size);
+ 	wmb();
+ 	release_firmware(fw_blob);
+-- 
+2.7.4
