@@ -1,93 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:45539 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752506AbdKQR1M (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 12:27:12 -0500
-Received: by mail-wm0-f67.google.com with SMTP id 9so7870001wme.4
-        for <linux-media@vger.kernel.org>; Fri, 17 Nov 2017 09:27:12 -0800 (PST)
-MIME-Version: 1.0
-From: Philippe Ombredanne <pombredanne@nexb.com>
-Date: Fri, 17 Nov 2017 18:26:30 +0100
-Message-ID: <CAOFm3uG-b5RYC4Wxms2dPw659cAUPvdVHeZOG8fjfkQji7wyMg@mail.gmail.com>
-Subject: Re: [PATCH] media: usbvision: remove unneeded DRIVER_LICENSE #define
-To: Thomas Gleixner <tglx@linutronix.de>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Johan Hovold <johan@kernel.org>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from sauhun.de ([88.99.104.3]:44822 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752156AbdKDUU1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 4 Nov 2017 16:20:27 -0400
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: linux-i2c@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org, Mark Brown <broonie@kernel.org>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: [PATCH v6 8/9] i2c: sh_mobile: use core helper to decide when to use DMA
+Date: Sat,  4 Nov 2017 21:20:08 +0100
+Message-Id: <20171104202009.3818-9-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20171104202009.3818-1-wsa+renesas@sang-engineering.com>
+References: <20171104202009.3818-1-wsa+renesas@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 17, 2017 at 6:01 PM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> Em Fri, 17 Nov 2017 16:01:41 +0100
-> Philippe Ombredanne <pombredanne@nexb.com> escreveu:
->
->> On Fri, Nov 17, 2017 at 3:58 PM, Mauro Carvalho Chehab
->> <mchehab@s-opensource.com> wrote:
->> > Em Fri, 17 Nov 2017 15:18:26 +0100
->> > Greg Kroah-Hartman <gregkh@linuxfoundation.org> escreveu:
->> >
->> > Its license is actually GPL 2.0+
->> >
->> > So, I would actually change it to:
->> >
->> > MODULE_LICENSE("GPL v2");
->>
->> Mauro:
->>
->> actually even if it sounds weird the module.h doc [1] is clear on this topic:
->>
->>  * "GPL" [GNU Public License v2 or later]
->>  * "GPL v2" [GNU Public License v2]
->>
->> So it should be "GPL" IMHO.
->>
->>
->> [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/linux/module.h?id=refs/tags/v4.10#n175
->>
->
-> Oh! Yeah, you're right. I would add that on the Kernel documentation
-> somewhere, perhaps with the new document that Thomas is writing
-> about SPFX.
-> The Documentation/kernel-hacking/hacking.rst doc mentions
-> MODULE_LICENSE, but doesn't define the expected values for it.
+This ensures that we fall back to PIO if the message length is too small
+for DMA being useful. Otherwise, we use DMA. A bounce buffer might be
+applied by the helper if the original message buffer is not DMA safe.
 
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+---
+ drivers/i2c/busses/i2c-sh_mobile.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-Good point!
-
-Thomas:
-Is this something that should be taken care of?
-If yes, I may be able take a crack at it sometimes next week.
-
-unless...
-
-Mauro:
-if you have a docwriter soul and want to make a good deed for the
-holidays, may you feel like starting a doc patch? :P
-
-e.g. something along the lines:
-
-"Here are the valid values for MODULE_LICENSE as found in module.h ...
-And here are the rules to set a MODULE_LICENSE and how this relates to
-the top level SPDX-License-Identifier..."
-
-BTW, I wished we could align the MODULE_LICENSE values with the SPDX
-ids for clarity and as this would inject normalized SPDX license tags
-in the Elf binaries.
-
-But that 's likely impossible as it would break a truck load of
-out-of-tree module macros and out-of-tree module loading command line
-tools everywhere (such as busybox and many other) so the (computing)
-world would crawl to a halt. *sigh*
-
+diff --git a/drivers/i2c/busses/i2c-sh_mobile.c b/drivers/i2c/busses/i2c-sh_mobile.c
+index c03acdf7139726..fbadb861672b84 100644
+--- a/drivers/i2c/busses/i2c-sh_mobile.c
++++ b/drivers/i2c/busses/i2c-sh_mobile.c
+@@ -145,6 +145,7 @@ struct sh_mobile_i2c_data {
+ 	struct dma_chan *dma_rx;
+ 	struct scatterlist sg;
+ 	enum dma_data_direction dma_direction;
++	u8 *dma_buf;
+ };
+ 
+ struct sh_mobile_dt_config {
+@@ -548,6 +549,8 @@ static void sh_mobile_i2c_dma_callback(void *data)
+ 	pd->pos = pd->msg->len;
+ 	pd->stop_after_dma = true;
+ 
++	i2c_release_dma_safe_msg_buf(pd->msg, pd->dma_buf);
++
+ 	iic_set_clr(pd, ICIC, 0, ICIC_TDMAE | ICIC_RDMAE);
+ }
+ 
+@@ -608,7 +611,7 @@ static void sh_mobile_i2c_xfer_dma(struct sh_mobile_i2c_data *pd)
+ 	if (IS_ERR(chan))
+ 		return;
+ 
+-	dma_addr = dma_map_single(chan->device->dev, pd->msg->buf, pd->msg->len, dir);
++	dma_addr = dma_map_single(chan->device->dev, pd->dma_buf, pd->msg->len, dir);
+ 	if (dma_mapping_error(chan->device->dev, dma_addr)) {
+ 		dev_dbg(pd->dev, "dma map failed, using PIO\n");
+ 		return;
+@@ -665,7 +668,8 @@ static int start_ch(struct sh_mobile_i2c_data *pd, struct i2c_msg *usr_msg,
+ 	pd->pos = -1;
+ 	pd->sr = 0;
+ 
+-	if (pd->msg->len > 8)
++	pd->dma_buf = i2c_get_dma_safe_msg_buf(pd->msg, 8);
++	if (pd->dma_buf)
+ 		sh_mobile_i2c_xfer_dma(pd);
+ 
+ 	/* Enable all interrupts to begin with */
 -- 
-Cordially
-Philippe Ombredanne
+2.11.0
