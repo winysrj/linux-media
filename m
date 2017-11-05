@@ -1,88 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:32975 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753241AbdK1Noj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 08:44:39 -0500
-Received: by mail-lf0-f66.google.com with SMTP id x68so508266lff.0
-        for <linux-media@vger.kernel.org>; Tue, 28 Nov 2017 05:44:39 -0800 (PST)
-Date: Tue, 28 Nov 2017 14:44:37 +0100
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: i2c: adv748x: Restore full DT paths in kernel
- messages
-Message-ID: <20171128134437.GK23832@bigcity.dyn.berto.se>
-References: <1511874084-5068-1-git-send-email-geert+renesas@glider.be>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1511874084-5068-1-git-send-email-geert+renesas@glider.be>
+Received: from smtp.gentoo.org ([140.211.166.183]:44702 "EHLO smtp.gentoo.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751307AbdKEOZa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 5 Nov 2017 09:25:30 -0500
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: mchehab@kernel.org, linux-media@vger.kernel.org
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH 12/15] si2165: add DVBv5 BER statistics
+Date: Sun,  5 Nov 2017 15:25:08 +0100
+Message-Id: <20171105142511.16563-12-zzam@gentoo.org>
+In-Reply-To: <20171105142511.16563-1-zzam@gentoo.org>
+References: <20171105142511.16563-1-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
+Add support for BER statistics.
+Configure a measurement period of 30000 packets.
 
-Thanks for your patch.
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+---
+ drivers/media/dvb-frontends/si2165.c      | 57 +++++++++++++++++++++++++++++--
+ drivers/media/dvb-frontends/si2165_priv.h | 11 ++++++
+ 2 files changed, 66 insertions(+), 2 deletions(-)
 
-On 2017-11-28 14:01:24 +0100, Geert Uytterhoeven wrote:
-> As of_node_full_name() now returns only the basename, the endpoint
-> information printed became useless:
-> 
->     adv748x 4-0070: Endpoint endpoint on port 7
->     adv748x 4-0070: Endpoint endpoint on port 8
->     adv748x 4-0070: Endpoint endpoint on port 10
->     adv748x 4-0070: Endpoint endpoint on port 11
-> 
-> Restore the old behavior by using "%pOF" instead:
-> 
->     adv748x 4-0070: Endpoint /soc/i2c@e66d8000/video-receiver@70/port@7/endpoint on port 7
->     adv748x 4-0070: Endpoint /soc/i2c@e66d8000/video-receiver@70/port@8/endpoint on port 8
->     adv748x 4-0070: Endpoint /soc/i2c@e66d8000/video-receiver@70/port@10/endpoint on port 10
->     adv748x 4-0070: Endpoint /soc/i2c@e66d8000/video-receiver@70/port@11/endpoint on port 11
-> 
-> Fixes: a7e4cfb0a7ca4773 ("of/fdt: only store the device node basename in full_name")
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-> ---
->  drivers/media/i2c/adv748x/adv748x-core.c | 10 ++++------
->  1 file changed, 4 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-> index 5ee14f2c27478e3a..c1001db6a172e256 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> @@ -646,14 +646,12 @@ static int adv748x_parse_dt(struct adv748x_state *state)
->  
->  	for_each_endpoint_of_node(state->dev->of_node, ep_np) {
->  		of_graph_parse_endpoint(ep_np, &ep);
-> -		adv_info(state, "Endpoint %s on port %d",
-> -				of_node_full_name(ep.local_node),
-> -				ep.port);
-> +		adv_info(state, "Endpoint %pOF on port %d", ep.local_node,
-> +			 ep.port);
->  
->  		if (ep.port >= ADV748X_PORT_MAX) {
-> -			adv_err(state, "Invalid endpoint %s on port %d",
-> -				of_node_full_name(ep.local_node),
-> -				ep.port);
-> +			adv_err(state, "Invalid endpoint %pOF on port %d",
-> +				ep.local_node, ep.port);
->  
->  			continue;
->  		}
-> -- 
-> 2.7.4
-> 
-
+diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
+index 777b7d049ae7..1cd2120f5dc4 100644
+--- a/drivers/media/dvb-frontends/si2165.c
++++ b/drivers/media/dvb-frontends/si2165.c
+@@ -594,8 +594,9 @@ static int si2165_init(struct dvb_frontend *fe)
+ 	if (ret < 0)
+ 		goto error;
+ 
+-	/* ber_pkt */
+-	ret = si2165_writereg16(state, REG_BER_PKT, 0x7530);
++	/* ber_pkt - default 65535 */
++	ret = si2165_writereg16(state, REG_BER_PKT,
++				STATISTICS_PERIOD_PKT_COUNT);
+ 	if (ret < 0)
+ 		goto error;
+ 
+@@ -642,6 +643,10 @@ static int si2165_init(struct dvb_frontend *fe)
+ 	c = &state->fe.dtv_property_cache;
+ 	c->cnr.len = 1;
+ 	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->post_bit_error.len = 1;
++	c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->post_bit_count.len = 1;
++	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 
+ 	return 0;
+ error:
+@@ -738,6 +743,54 @@ static int si2165_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ 	} else
+ 		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 
++	/* BER */
++	if (*status & FE_HAS_VITERBI) {
++		if (c->post_bit_error.stat[0].scale == FE_SCALE_NOT_AVAILABLE) {
++			/* start new sampling period to get rid of old data*/
++			ret = si2165_writereg8(state, REG_BER_RST, 0x01);
++			if (ret < 0)
++				return ret;
++
++			/* set scale to enter read code on next call */
++			c->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
++			c->post_bit_count.stat[0].scale = FE_SCALE_COUNTER;
++			c->post_bit_error.stat[0].uvalue = 0;
++			c->post_bit_count.stat[0].uvalue = 0;
++
++		} else {
++			ret = si2165_readreg8(state, REG_BER_AVAIL, &u8tmp);
++			if (ret < 0)
++				return ret;
++
++			if (u8tmp & 1) {
++				u32 biterrcnt;
++
++				ret = si2165_readreg24(state, REG_BER_BIT,
++							&biterrcnt);
++				if (ret < 0)
++					return ret;
++
++				c->post_bit_error.stat[0].uvalue +=
++					biterrcnt;
++				c->post_bit_count.stat[0].uvalue +=
++					STATISTICS_PERIOD_BIT_COUNT;
++
++				/* start new sampling period */
++				ret = si2165_writereg8(state,
++							REG_BER_RST, 0x01);
++				if (ret < 0)
++					return ret;
++
++				dev_dbg(&state->client->dev,
++					"post_bit_error=%u post_bit_count=%u\n",
++					biterrcnt, STATISTICS_PERIOD_BIT_COUNT);
++			}
++		}
++	} else {
++		c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	}
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/dvb-frontends/si2165_priv.h b/drivers/media/dvb-frontends/si2165_priv.h
+index 9d79e86d04c2..8c6fbfe441ff 100644
+--- a/drivers/media/dvb-frontends/si2165_priv.h
++++ b/drivers/media/dvb-frontends/si2165_priv.h
+@@ -38,6 +38,9 @@ struct si2165_config {
+ 	bool inversion;
+ };
+ 
++#define STATISTICS_PERIOD_PKT_COUNT	30000u
++#define STATISTICS_PERIOD_BIT_COUNT	(STATISTICS_PERIOD_PKT_COUNT * 204 * 8)
++
+ #define REG_CHIP_MODE			0x0000
+ #define REG_CHIP_REVCODE		0x0023
+ #define REV_CHIP_TYPE			0x0118
+@@ -95,8 +98,16 @@ struct si2165_config {
+ #define REG_GP_REG0_MSB			0x0387
+ #define REG_CRC				0x037a
+ #define REG_CHECK_SIGNAL		0x03a8
++#define REG_CBER_RST			0x0424
++#define REG_CBER_BIT			0x0428
++#define REG_CBER_ERR			0x0430
++#define REG_CBER_AVAIL			0x0434
+ #define REG_PS_LOCK			0x0440
++#define REG_UNCOR_CNT			0x0468
++#define REG_BER_RST			0x046c
+ #define REG_BER_PKT			0x0470
++#define REG_BER_BIT			0x0478
++#define REG_BER_AVAIL			0x047c
+ #define REG_FEC_LOCK			0x04e0
+ #define REG_TS_DATA_MODE		0x04e4
+ #define REG_TS_CLK_MODE			0x04e5
 -- 
-Regards,
-Niklas Söderlund
+2.15.0
