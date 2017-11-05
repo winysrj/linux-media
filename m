@@ -1,139 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:45482 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755502AbdKOKMW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 05:12:22 -0500
-Subject: Re: [RFCv1 PATCH 0/6] v4l2-ctrls: implement requests
-To: Alexandre Courbot <acourbot@chromium.org>
-References: <20171113143408.19644-1-hverkuil@xs4all.nl>
- <05b8ed23-cea4-49a2-914d-3efb5ad2df30@chromium.org>
-Cc: linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3d881ae9-97b1-6267-df77-39f96bdc7e09@xs4all.nl>
-Date: Wed, 15 Nov 2017 11:12:19 +0100
-MIME-Version: 1.0
-In-Reply-To: <05b8ed23-cea4-49a2-914d-3efb5ad2df30@chromium.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp.gentoo.org ([140.211.166.183]:44698 "EHLO smtp.gentoo.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751241AbdKEOZ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 5 Nov 2017 09:25:28 -0500
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: mchehab@kernel.org, linux-media@vger.kernel.org
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH 11/15] si2165: add DVBv5 C/N statistics for DVB-C
+Date: Sun,  5 Nov 2017 15:25:07 +0100
+Message-Id: <20171105142511.16563-11-zzam@gentoo.org>
+In-Reply-To: <20171105142511.16563-1-zzam@gentoo.org>
+References: <20171105142511.16563-1-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alexandre,
+Add C/N statistics in dB to read_status (DVBv5).
 
-On 15/11/17 10:38, Alexandre Courbot wrote:
-> Hi Hans!
-> 
-> Thanks for the patchset! It looks quite good at first sight, a few comments and
-> questions follow though.
-> 
-> On Monday, November 13, 2017 11:34:02 PM JST, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Hi Alexandre,
->>
->> This is a first implementation of the request API in the
->> control framework. It is fairly simplistic at the moment in that
->> it just clones all the control values (so no refcounting yet for
->> values as Laurent proposed, I will work on that later). But this
->> should not be a problem for codecs since there aren't all that many
->> controls involved.
-> 
-> Regarding value refcounting, I think we can probably do without it if we parse
-> the requests queue when looking values up. It may be more practical (having a
-> kref for each v4l2_ctrl_ref in a request sounds overkill to me), and maybe also
-> more predictible since we would have less chance of having dangling old values.
-> 
->> The API is as follows:
->>
->> struct v4l2_ctrl_handler *v4l2_ctrl_request_alloc(void);
->>
->> This allocates a struct v4l2_ctrl_handler that is empty (i.e. has
->> no controls) but is refcounted and is marked as representing a
->> request.
->>
->> int v4l2_ctrl_request_clone(struct v4l2_ctrl_handler *hdl,
->>                             const struct v4l2_ctrl_handler *from,
->>                             bool (*filter)(const struct v4l2_ctrl *ctrl));
->>
->> Delete any existing controls in handler 'hdl', then clone the values
->> from an existing handler 'from' into 'hdl'. If 'from' == NULL, then
->> this just clears the handler. 'from' can either be another request
->> control handler or a regular control handler in which case the
->> current values are cloned. If 'filter' != NULL then you can
->> filter which controls you want to clone.
-> 
-> One thing that seems to be missing is, what happens if you try to set a control
-> on an empty request? IIUC this would currently fail because find_ref() would
-> not be able to find the control. The value ref should probably be created in
-> that case so we can create requests with a handful of controls.
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+---
+ drivers/media/dvb-frontends/si2165.c      | 43 +++++++++++++++++++++++++++++--
+ drivers/media/dvb-frontends/si2165_priv.h |  1 +
+ 2 files changed, 42 insertions(+), 2 deletions(-)
 
-Wasn't the intention that we never have an empty request but always clone?
-I.e. in your code the _alloc call is always followed by a _clone call.
-
-The reason I have a separate _alloc function is that you use that when you
-want to create a new control handler ('new request'). If the user wants to reuse an
-existing request, then _clone can be called directly on the existing handler.
-
-> Also, if you clone a handler that is not a request, I understand that all
-> controls will be deduplicated, creating a full-state copy? That could be useful,
-> but since this is the only way to make the current code work, I hope that the
-> current impossibility to set a control on an empty request is a bug (or misunderstanding from my part).
-
-I think it is a misunderstanding. Seen from userspace you'll never have an empty
-request.
-
-> 
->>
->> void v4l2_ctrl_request_get(struct v4l2_ctrl_handler *hdl);
->>
->> Increase the refcount.
->>
->> void v4l2_ctrl_request_put(struct v4l2_ctrl_handler *hdl);
->>
->> Decrease the refcount and delete hdl if it reaches 0.
->>
->> void v4l2_ctrl_request_setup(struct v4l2_ctrl_handler *hdl);
->>
->> Apply the values from the handler (i.e. request object) to the
->> hardware.
->>
->> You will have to modify v4l_g/s/try_ext_ctrls in v4l2-ioctls.c to
->> obtain the request v4l2_ctrl_handler pointer based on the request
->> field in struct v4l2_ext_controls.
->>
->> The first patch in this series is necessary to avoid cloning
->> controls that belong to other devices (as opposed to the subdev
->> or bridge device for which you make a request). It can probably
->> be dropped for codecs, but it is needed for MC devices like
->> omap3isp.
->>
->> This series has only been compile tested! So if it crashes as
->> soon as you try to use it, then that's why :-)
->>
->> Note: I'm not sure if it makes sense to refcount the control
->> handler, you might prefer to have a refcount in a higher-level
->> request struct. If that's the case, then I can drop the _get
->> function and replace the _put function by a v4l2_ctrl_request_free()
->> function.
-> 
-> That's exactly what I thought when I saw the refcounting. This is probably a
-> problem for later since we want to focus on codecs for now, but I think we will
-> ultimately want to manage refcounting outside of v4l2_ctrl_handler. Maybe a
-> higher-level request class of which the current control-framework based design
-> would be an implementation. I am thinking about IPs like the VSP1 which will
-> probably want to model the controls either in a different way, or at least to
-> add extra data beyond the controls.
-> 
-> All in all I think I can use this for codecs. I am still trying to shoehorn my
-> first version into the media stuff, and to nobody's surprise this is not that
-> easy. :P But the fact the control framework part is already mostly taken care
-> of greatly helps.
-
-I agree with you that it is better to do the refcounting in a higher-level
-request object. Just don't call _get and call _put when you want to free it.
-We'll clean it up later.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
+index 30ceba664f5f..777b7d049ae7 100644
+--- a/drivers/media/dvb-frontends/si2165.c
++++ b/drivers/media/dvb-frontends/si2165.c
+@@ -116,6 +116,17 @@ static int si2165_readreg16(struct si2165_state *state,
+ 	return ret;
+ }
+ 
++static int si2165_readreg24(struct si2165_state *state,
++			    const u16 reg, u32 *val)
++{
++	u8 buf[3];
++
++	int ret = si2165_read(state, reg, buf, 3);
++	*val = buf[0] | buf[1] << 8 | buf[2] << 16;
++	dev_dbg(&state->client->dev, "reg read: R(0x%04x)=0x%06x\n", reg, *val);
++	return ret;
++}
++
+ static int si2165_writereg8(struct si2165_state *state, const u16 reg, u8 val)
+ {
+ 	return regmap_write(state->regmap, reg, val);
+@@ -518,6 +529,7 @@ static int si2165_init(struct dvb_frontend *fe)
+ {
+ 	int ret = 0;
+ 	struct si2165_state *state = fe->demodulator_priv;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	u8 val;
+ 	u8 patch_version = 0x00;
+ 
+@@ -627,6 +639,10 @@ static int si2165_init(struct dvb_frontend *fe)
+ 	if (ret < 0)
+ 		return ret;
+ 
++	c = &state->fe.dtv_property_cache;
++	c->cnr.len = 1;
++	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++
+ 	return 0;
+ error:
+ 	return ret;
+@@ -652,9 +668,10 @@ static int si2165_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ {
+ 	int ret;
+ 	u8 u8tmp;
++	u32 u32tmp;
+ 	struct si2165_state *state = fe->demodulator_priv;
+-	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+-	u32 delsys = p->delivery_system;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	u32 delsys = c->delivery_system;
+ 
+ 	*status = 0;
+ 
+@@ -699,6 +716,28 @@ static int si2165_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ 		*status |= FE_HAS_LOCK;
+ 	}
+ 
++	/* CNR */
++	if (delsys == SYS_DVBC_ANNEX_A && *status & FE_HAS_VITERBI) {
++		ret = si2165_readreg24(state, REG_C_N, &u32tmp);
++		if (ret < 0)
++			return ret;
++		/*
++		 * svalue =
++		 * 1000 * c_n/dB =
++		 * 1000 * 10 * log10(2^24 / regval) =
++		 * 1000 * 10 * (log10(2^24) - log10(regval)) =
++		 * 1000 * 10 * (intlog10(2^24) - intlog10(regval)) / 2^24
++		 *
++		 * intlog10(x) = log10(x) * 2^24
++		 * intlog10(2^24) = log10(2^24) * 2^24 = 121210686
++		 */
++		u32tmp = (1000 * 10 * (121210686 - (u64)intlog10(u32tmp)))
++				>> 24;
++		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
++		c->cnr.stat[0].svalue = u32tmp;
++	} else
++		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/dvb-frontends/si2165_priv.h b/drivers/media/dvb-frontends/si2165_priv.h
+index 47f18ff69fe5..9d79e86d04c2 100644
+--- a/drivers/media/dvb-frontends/si2165_priv.h
++++ b/drivers/media/dvb-frontends/si2165_priv.h
+@@ -74,6 +74,7 @@ struct si2165_config {
+ #define REG_KP_LOCK			0x023a
+ #define REG_UNKNOWN_24C			0x024c
+ #define REG_CENTRAL_TAP			0x0261
++#define REG_C_N				0x026c
+ #define REG_EQ_AUTO_CONTROL		0x0278
+ #define REG_UNKNOWN_27C			0x027c
+ #define REG_START_SYNCHRO		0x02e0
+-- 
+2.15.0
