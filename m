@@ -1,194 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57677 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964890AbdKQPHN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 10:07:13 -0500
-Subject: Re: [PATCH v2 5/8] v4l: vsp1: Refactor display list configure
- operations
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
- <9223590.WNj3Hrfh0H@avalon>
- <70512969-8fca-3056-1a0e-d294549b827d@ideasonboard.com>
- <3974720.2jhbfEKCZX@avalon>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reply-To: kieran.bingham@ideasonboard.com
-Message-ID: <adf83d35-3ccf-d0cc-747e-20b29f8aa629@ideasonboard.com>
-Date: Fri, 17 Nov 2017 15:07:08 +0000
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:50500 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750888AbdKFIpO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Nov 2017 03:45:14 -0500
+Received: by mail-wm0-f67.google.com with SMTP id s66so11954979wmf.5
+        for <linux-media@vger.kernel.org>; Mon, 06 Nov 2017 00:45:13 -0800 (PST)
+Date: Mon, 6 Nov 2017 09:45:10 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Ville Syrjala <ville.syrjala@linux.intel.com>
+Cc: dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+        Jason Ekstrand <jason@jlekstrand.net>,
+        Alex Deucher <alexander.deucher@amd.com>,
+        Dave Airlie <airlied@redhat.com>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/4] dma-buf/fence: Sparse wants __rcu on the object
+ itself
+Message-ID: <20171106084510.lffterxp3ibj6odq@phenom.ffwll.local>
+References: <20171102200336.23347-1-ville.syrjala@linux.intel.com>
+ <20171102200336.23347-3-ville.syrjala@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <3974720.2jhbfEKCZX@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171102200336.23347-3-ville.syrjala@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Just a query on your bikeshedding here.
-
-Choose your colours wisely :)
-
---
-Kieran
-
-On 12/09/17 20:19, Laurent Pinchart wrote:
-> Hi Kieran,
+On Thu, Nov 02, 2017 at 10:03:34PM +0200, Ville Syrjala wrote:
+> From: Chris Wilson <chris@chris-wilson.co.uk>
 > 
-> On Tuesday, 12 September 2017 00:16:50 EEST Kieran Bingham wrote:
->> On 17/08/17 19:13, Laurent Pinchart wrote:
->>> On Monday 14 Aug 2017 16:13:28 Kieran Bingham wrote:
->>>> The entities provide a single .configure operation which configures the
->>>> object into the target display list, based on the vsp1_entity_params
->>>> selection.
->>>>
->>>> This restricts us to a single function prototype for both static
->>>> configuration (the pre-stream INIT stage) and the dynamic runtime stages
->>>> for both each frame - and each partition therein.
->>>>
->>>> Split the configure function into two parts, '.prepare()' and
->>>> '.configure()', merging both the VSP1_ENTITY_PARAMS_RUNTIME and
->>>> VSP1_ENTITY_PARAMS_PARTITION stages into a single call through the
->>>> .configure(). The configuration for individual partitions is handled by
->>>> passing the partition number to the configure call, and processing any
->>>> runtime stage actions on the first partition only.
->>>>
->>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>>> ---
->>>>
->>>>  drivers/media/platform/vsp1/vsp1_bru.c    |  12 +-
->>>>  drivers/media/platform/vsp1/vsp1_clu.c    |  43 +--
->>>>  drivers/media/platform/vsp1/vsp1_drm.c    |  11 +-
->>>>  drivers/media/platform/vsp1/vsp1_entity.c |  15 +-
->>>>  drivers/media/platform/vsp1/vsp1_entity.h |  27 +--
->>>>  drivers/media/platform/vsp1/vsp1_hgo.c    |  12 +-
->>>>  drivers/media/platform/vsp1/vsp1_hgt.c    |  12 +-
->>>>  drivers/media/platform/vsp1/vsp1_hsit.c   |  12 +-
->>>>  drivers/media/platform/vsp1/vsp1_lif.c    |  12 +-
->>>>  drivers/media/platform/vsp1/vsp1_lut.c    |  24 +-
->>>>  drivers/media/platform/vsp1/vsp1_rpf.c    | 162 ++++++-------
->>>>  drivers/media/platform/vsp1/vsp1_sru.c    |  12 +-
->>>>  drivers/media/platform/vsp1/vsp1_uds.c    |  55 ++--
->>>>  drivers/media/platform/vsp1/vsp1_video.c  |  24 +--
->>>>  drivers/media/platform/vsp1/vsp1_wpf.c    | 297 ++++++++++++-----------
->>>>  15 files changed, 359 insertions(+), 371 deletions(-)
->>>
->>> [snip]
->>>
->>>> diff --git a/drivers/media/platform/vsp1/vsp1_clu.c
->>>> b/drivers/media/platform/vsp1/vsp1_clu.c index 175717018e11..5f65ce3ad97f
->>>> 100644
->>>> --- a/drivers/media/platform/vsp1/vsp1_clu.c
->>>> +++ b/drivers/media/platform/vsp1/vsp1_clu.c
->>>> @@ -213,37 +213,37 @@ static const struct v4l2_subdev_ops clu_ops = {
->>>>
->>>>  /*
->>>>  -----------------------------------------------------------------------
->>>>  -
->>>>  
->>>>   * VSP1 Entity Operations
->>>>   */
->>>>
->>>> +static void clu_prepare(struct vsp1_entity *entity,
->>>> +			struct vsp1_pipeline *pipe,
->>>> +			struct vsp1_dl_list *dl)
->>>> +{
->>>> +	struct vsp1_clu *clu = to_clu(&entity->subdev);
->>>> +
->>>> +	/*
->>>> +	 * The format can't be changed during streaming, only verify it
->>>> +	 * at setup time and store the information internally for future
->>>> +	 * runtime configuration calls.
->>>> +	 */
->>>
->>> I know you're just moving the comment around, but let's fix it at the same
->>> time. There's no verification here (and no "setup time" either). I'd write
->>> it as
->>>
->>> 	/*
->>> 	
->>> 	 * The format can't be changed during streaming. Cache it internally
->>> 	 * for future runtime configuration calls.
->>> 	 */
->>
->> I think I'm ok with that and I've updated the patch - but I'm not sure we
->> are really caching the 'format' here, as much as the yuv_mode ...
+> In order to silent sparse in dma_fence_get_rcu_safe(), we need to mark
+
+s/silent/silence/
+
+On the series (assuming sparse is indeed happy now, I didn't check that):
+
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+
+> the incoming fence object as being RCU protected and not the pointer to
+> the object.
 > 
-> Yes, it's the YUV mode we're caching, feel free to update the comment.
-
-Done.
-
+> Cc: Dave Airlie <airlied@redhat.com>
+> Cc: Jason Ekstrand <jason@jlekstrand.net>
+> Cc: linaro-mm-sig@lists.linaro.org
+> Cc: linux-media@vger.kernel.org
+> Cc: Alex Deucher <alexander.deucher@amd.com>
+> Cc: Christian König <christian.koenig@amd.com>
+> Cc: Sumit Semwal <sumit.semwal@linaro.org>
+> Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+> ---
+>  include/linux/dma-fence.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
->> I'll ponder ...
->>
->>>> +	struct v4l2_mbus_framefmt *format;
->>>> +
->>>> +	format = vsp1_entity_get_pad_format(&clu->entity,
->>>> +					    clu->entity.config,
->>>> +					    CLU_PAD_SINK);
->>>> +	clu->yuv_mode = format->code == MEDIA_BUS_FMT_AYUV8_1X32;
->>>> +}
->>>
->>> [snip]
->>>
->>>> diff --git a/drivers/media/platform/vsp1/vsp1_entity.h
->>>> b/drivers/media/platform/vsp1/vsp1_entity.h index
->>>> 408602ebeb97..2f33e343ccc6 100644
->>>> --- a/drivers/media/platform/vsp1/vsp1_entity.h
->>>> +++ b/drivers/media/platform/vsp1/vsp1_entity.h
->>>
->>> [snip]
->>>
->>>> @@ -80,8 +68,10 @@ struct vsp1_route {
->>>>
->>>>  /**
->>>>  
->>>>   * struct vsp1_entity_operations - Entity operations
->>>>   * @destroy:	Destroy the entity.
->>>>
->>>> - * @configure:	Setup the hardware based on the entity state
->>>> (pipeline, formats,
->>>> - *		selection rectangles, ...)
->>>> + * @prepare:	Setup the initial hardware parameters for the stream
->>>> (pipeline,
->>>> + *		formats)
->>>> + * @configure:	Configure the runtime parameters for each partition
->>>> (rectangles,
->>>> + *		buffer addresses, ...)
->>>
->>> Now moving to the bikeshedding territory, I'm not sure if prepare and
->>> configure are the best names for those operations.
-
-
-Would init() and configure() be more suitable for you ?
-
-Or 'setup()' and 'configure() or perhaps 'runtime()' ?
-
-I'm not convinced on either init() or setup() yet, as they might refer to
-'initialising' the object, rather than portraying the configuration of the
-object into a body...
-
->>> I'd like to also point
->>> out that we could go one step further by caching the partition-related
->>> parameters too, in which case we would need a third operation (or
->>> possibly passing the partition number to the prepare operation). While I
->>> won't mind if you implement this now, the issue could also be addressed
->>> later, but I'd like the operations to already support that use case to
->>> avoid yet another painful rename patch.
->>
->> Ok, understood - but I think I'll have to defer to a v4 for now ... I'm
->> running out of time.>>>
->>>>   * @max_width:	Return the max supported width of data that the entity
->>>>
->>>> can
->>>>
->>>>   *		process in a single operation.
->>>>   * @partition:	Process the partition construction based on this
->>>>
->>>> entity's
->>>
->>> [snip]
->>>
->>> The rest of the patch looks good to me.
+> diff --git a/include/linux/dma-fence.h b/include/linux/dma-fence.h
+> index efdabbb64e3c..4c008170fe65 100644
+> --- a/include/linux/dma-fence.h
+> +++ b/include/linux/dma-fence.h
+> @@ -242,7 +242,7 @@ static inline struct dma_fence *dma_fence_get_rcu(struct dma_fence *fence)
+>   * The caller is required to hold the RCU read lock.
+>   */
+>  static inline struct dma_fence *
+> -dma_fence_get_rcu_safe(struct dma_fence * __rcu *fencep)
+> +dma_fence_get_rcu_safe(struct dma_fence __rcu **fencep)
+>  {
+>  	do {
+>  		struct dma_fence *fence;
+> -- 
+> 2.13.6
 > 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
