@@ -1,262 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60038 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932459AbdKPMck (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:39594 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750899AbdKFKTP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 07:32:40 -0500
-Date: Thu, 16 Nov 2017 14:32:37 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH/RFC 1/2] v4l: v4l2-dev: Add infrastructure to protect
- device unplug race
-Message-ID: <20171116123236.kqvpoglodhs45x6l@valkosipuli.retiisi.org.uk>
-References: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com>
- <20171116003349.19235-2-laurent.pinchart+renesas@ideasonboard.com>
+        Mon, 6 Nov 2017 05:19:15 -0500
+Subject: Re: [PATCH] vimc: add test_pattern and h/vflip controls to the sensor
+To: Helen Koike <helen.koike@collabora.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <519c6f9f-178e-5ffa-e7a3-83057d31602a@xs4all.nl>
+ <1baf9c70-ef12-546e-ef25-7d7ab1058c2b@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8864ab0b-fbce-c803-f3e4-8031dc50ce84@xs4all.nl>
+Date: Mon, 6 Nov 2017 11:19:10 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171116003349.19235-2-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1baf9c70-ef12-546e-ef25-7d7ab1058c2b@collabora.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Helen,
 
-Thank you for the initiative to bring up and address the matter!
-
-On Thu, Nov 16, 2017 at 02:33:48AM +0200, Laurent Pinchart wrote:
-> Device unplug being asynchronous, it naturally races with operations
-> performed by userspace through ioctls or other file operations on video
-> device nodes.
+On 09/27/2017 08:30 PM, Helen Koike wrote:
+> Hi Hans,
 > 
-> This leads to potential access to freed memory or to other resources
-> during device access if unplug occurs during device access. To solve
-> this, we need to wait until all device access completes when unplugging
-> the device, and block all further access when the device is being
-> unplugged.
+> Thanks for your patch and sorry for my late reply.
+
+Sorry for my late reply to your reply :-)
+
+> Please see my comments and questions below
 > 
-> Three new functions are introduced. The video_device_enter() and
-> video_device_exit() functions must be used to mark entry and exit from
-> all code sections where the device can be accessed. The
-
-I wonder if it'd help splitting this patch into two: one that introduces
-the mechanism and the other that uses it. Up to you.
-
-Nevertheless, it'd be better to have other system calls covered as well.
-
-> video_device_unplug() function is then used in the unplug handler to
-> mark the device as being unplugged and wait for all access to complete.
+> On 2017-07-28 07:23 AM, Hans Verkuil wrote:
+>> Add support for the test_pattern control and the h/vflip controls.
+>>
+>> This makes it possible to switch to more interesting test patterns and to
+>> test control handling in v4l-subdevs.
+>>
+>> There are more tpg-related controls that can be added, but this is a good
+>> start.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>> diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
+>> index dca528a316e7..2e9981b18166 100644
+>> --- a/drivers/media/platform/vimc/vimc-common.h
+>> +++ b/drivers/media/platform/vimc/vimc-common.h
+>> @@ -22,6 +22,11 @@
+>>  #include <media/media-device.h>
+>>  #include <media/v4l2-device.h>
+>>
+>> +/* VIMC-specific controls */
+>> +#define VIMC_CID_VIMC_BASE		(0x00f00000 | 0xf000)
+>> +#define VIMC_CID_VIMC_CLASS		(0x00f00000 | 1)
 > 
-> As an example mark the ioctl handler as a device access section. Other
-> file operations need to be protected too, and blocking ioctls (such as
-> VIDIOC_DQBUF) need to be handled as well.
+> Why this values, shouldn't we use a derivative from
+> V4L2_CID_PRIVATE_BASE for custom controls? Or can we use random values?
+
+The values are taken from vivid which uses the same scheme. These controls
+deal with how the virtual driver emulates things, and I prefer not to make
+these control IDs part of the public API so we can be a bit more flexible in
+the future. It's a design choice which worked well for vivid.
+
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  drivers/media/v4l2-core/v4l2-dev.c | 57 ++++++++++++++++++++++++++++++++++++++
->  include/media/v4l2-dev.h           | 47 +++++++++++++++++++++++++++++++
->  2 files changed, 104 insertions(+)
+>> +#define VIMC_CID_TEST_PATTERN		(VIMC_CID_VIMC_BASE + 0)
+>> +
+>>  #define VIMC_FRAME_MAX_WIDTH 4096
+>>  #define VIMC_FRAME_MAX_HEIGHT 2160
+>>  #define VIMC_FRAME_MIN_WIDTH 16
+>> diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+>> index 615c2b18dcfc..532097566b27 100644
+>> --- a/drivers/media/platform/vimc/vimc-sensor.c
+>> +++ b/drivers/media/platform/vimc/vimc-sensor.c
+>> @@ -22,6 +22,7 @@
+>>  #include <linux/platform_device.h>
+>>  #include <linux/v4l2-mediabus.h>
+>>  #include <linux/vmalloc.h>
+>> +#include <media/v4l2-ctrls.h>
+>>  #include <media/v4l2-subdev.h>
+>>  #include <media/v4l2-tpg.h>
+>>
+>> @@ -38,6 +39,7 @@ struct vimc_sen_device {
+>>  	u8 *frame;
+>>  	/* The active format */
+>>  	struct v4l2_mbus_framefmt mbus_format;
+>> +	struct v4l2_ctrl_handler hdl;
+>>  };
+>>
+>>  static const struct v4l2_mbus_framefmt fmt_default = {
+>> @@ -291,6 +293,31 @@ static const struct v4l2_subdev_ops vimc_sen_ops = {
+>>  	.video = &vimc_sen_video_ops,
+>>  };
+>>
+>> +static int vimc_sen_s_ctrl(struct v4l2_ctrl *ctrl)
+>> +{
+>> +	struct vimc_sen_device *vsen =
+>> +		container_of(ctrl->handler, struct vimc_sen_device, hdl);
+>> +
+>> +	switch (ctrl->id) {
+>> +	case VIMC_CID_TEST_PATTERN:
+>> +		tpg_s_pattern(&vsen->tpg, ctrl->val);
+>> +		break;
+>> +	case V4L2_CID_HFLIP:
+>> +		tpg_s_hflip(&vsen->tpg, ctrl->val);
+>> +		break;
+>> +	case V4L2_CID_VFLIP:
+>> +		tpg_s_vflip(&vsen->tpg, ctrl->val);
+>> +		break;
+>> +	default:
+>> +		return -EINVAL;
+>> +	}
+>> +	return 0;
+>> +}
+>> +
+>> +static const struct v4l2_ctrl_ops vimc_sen_ctrl_ops = {
+>> +	.s_ctrl = vimc_sen_s_ctrl,
+>> +};
+>> +
+>>  static void vimc_sen_comp_unbind(struct device *comp, struct device *master,
+>>  				 void *master_data)
+>>  {
+>> @@ -299,10 +326,29 @@ static void vimc_sen_comp_unbind(struct device *comp, struct device *master,
+>>  				container_of(ved, struct vimc_sen_device, ved);
+>>
+>>  	vimc_ent_sd_unregister(ved, &vsen->sd);
+>> +	v4l2_ctrl_handler_free(&vsen->hdl);
+>>  	tpg_free(&vsen->tpg);
+>>  	kfree(vsen);
+>>  }
+>>
+>> +/* Image Processing Controls */
+>> +static const struct v4l2_ctrl_config vimc_sen_ctrl_class = {
+>> +	.ops = &vimc_sen_ctrl_ops,
+>> +	.flags = V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY,
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index c647ba648805..c73c6d49e7cf 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -156,6 +156,52 @@ void video_device_release_empty(struct video_device *vdev)
->  }
->  EXPORT_SYMBOL(video_device_release_empty);
->  
-> +int video_device_enter(struct video_device *vdev)
-> +{
-> +	bool unplugged;
-> +
-> +	spin_lock(&vdev->unplug_lock);
-> +	unplugged = vdev->unplugged;
-> +	if (!unplugged)
-> +		vdev->access_refcount++;
-> +	spin_unlock(&vdev->unplug_lock);
-> +
-> +	return unplugged ? -ENODEV : 0;
-> +}
-> +EXPORT_SYMBOL_GPL(video_device_enter);
-> +
-> +void video_device_exit(struct video_device *vdev)
-> +{
-> +	bool wake_up;
-> +
-> +	spin_lock(&vdev->unplug_lock);
-> +	WARN_ON(--vdev->access_refcount < 0);
-> +	wake_up = vdev->access_refcount == 0;
-> +	spin_unlock(&vdev->unplug_lock);
-> +
-> +	if (wake_up)
-> +		wake_up(&vdev->unplug_wait);
-> +}
-> +EXPORT_SYMBOL_GPL(video_device_exit);
+> I was wondering if it is really necessary to specify the ops and flags
+> in the class, as this is seems to me a meta control for the other
+> controls to be grouped in a class.
 
-Is there a need to export the two, i.e. wouldn't you only call them from
-the framework, or the same module?
+ops can be dropped, but flags needs to be there.
 
-> +
-> +void video_device_unplug(struct video_device *vdev)
-> +{
-> +	bool unplug_blocked;
-> +
-> +	spin_lock(&vdev->unplug_lock);
-> +	unplug_blocked = vdev->access_refcount > 0;
-> +	vdev->unplugged = true;
-
-Shouldn't this be set to false in video_register_device()?
-
-> +	spin_unlock(&vdev->unplug_lock);
-> +
-> +	if (!unplug_blocked)
-> +		return;
-
-Not necessary, wait_event_timeout() handles this already.
-
-> +
-> +	if (!wait_event_timeout(vdev->unplug_wait, !vdev->access_refcount,
-> +				msecs_to_jiffies(150000)))
-> +		WARN(1, "Timeout waiting for device access to complete\n");
-
-Why a timeout? Does this get somehow less problematic over time? :-)
-
-> +}
-> +EXPORT_SYMBOL_GPL(video_device_unplug);
-> +
->  static inline void video_get(struct video_device *vdev)
->  {
->  	get_device(&vdev->dev);
-> @@ -351,6 +397,10 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
->  	struct video_device *vdev = video_devdata(filp);
->  	int ret = -ENODEV;
-
-You could leave ret unassigned here.
-
->  
-> +	ret = video_device_enter(vdev);
-> +	if (ret < 0)
-> +		return ret;
-> +
->  	if (vdev->fops->unlocked_ioctl) {
->  		struct mutex *lock = v4l2_ioctl_get_lock(vdev, cmd);
->  
-> @@ -358,11 +408,14 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
->  			return -ERESTARTSYS;
->  		if (video_is_registered(vdev))
->  			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
-> +		else
-> +			ret = -ENODEV;
->  		if (lock)
->  			mutex_unlock(lock);
->  	} else
->  		ret = -ENOTTY;
->  
-> +	video_device_exit(vdev);
->  	return ret;
->  }
->  
-> @@ -841,6 +894,10 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
->  	if (WARN_ON(!vdev->v4l2_dev))
->  		return -EINVAL;
->  
-> +	/* unplug support */
-> +	spin_lock_init(&vdev->unplug_lock);
-> +	init_waitqueue_head(&vdev->unplug_wait);
-> +
->  	/* v4l2_fh support */
->  	spin_lock_init(&vdev->fh_lock);
->  	INIT_LIST_HEAD(&vdev->fh_list);
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index e657614521e3..365a94f91dc9 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -15,6 +15,7 @@
->  #include <linux/cdev.h>
->  #include <linux/mutex.h>
->  #include <linux/videodev2.h>
-> +#include <linux/wait.h>
->  
->  #include <media/media-entity.h>
->  
-> @@ -178,6 +179,12 @@ struct v4l2_file_operations {
->   * @pipe: &struct media_pipeline
->   * @fops: pointer to &struct v4l2_file_operations for the video device
->   * @device_caps: device capabilities as used in v4l2_capabilities
-> + * @unplugged: when set the device has been unplugged and no device access
-> + *	section can be entered
-> + * @access_refcount: number of device access section currently running for the
-> + *	device
-> + * @unplug_lock: protects unplugged and access_refcount
-> + * @unplug_wait: wait queue to wait for device access sections to complete
->   * @dev: &struct device for the video device
->   * @cdev: character device
->   * @v4l2_dev: pointer to &struct v4l2_device parent
-> @@ -221,6 +228,12 @@ struct video_device
->  
->  	u32 device_caps;
->  
-> +	/* unplug handling */
-> +	bool unplugged;
-> +	int access_refcount;
-
-Could you use refcount_t instead, to avoid integer overflow issues?
-
-> +	spinlock_t unplug_lock;
-> +	wait_queue_head_t unplug_wait;
-> +
->  	/* sysfs */
->  	struct device dev;
->  	struct cdev *cdev;
-> @@ -506,4 +519,38 @@ static inline int video_is_registered(struct video_device *vdev)
->  	return test_bit(V4L2_FL_REGISTERED, &vdev->flags);
->  }
->  
-> +/**
-> + * video_device_enter - enter a device access section
-> + * @vdev: the video device
-> + *
-> + * This function marks and protects the beginning of a section that should not
-> + * be entered after the device has been unplugged. The section end is marked
-> + * with a call to video_device_exit(). Calls to this function can be nested.
-> + *
-> + * Returns:
-> + * 0 on success or a negative error code if the device has been unplugged.
-> + */
-> +int video_device_enter(struct video_device *vdev);
-> +
-> +/**
-> + * video_device_exit - exit a device access section
-> + * @vdev: the video device
-> + *
-> + * This function marks the end of a section entered with video_device_enter().
-> + * It wakes up all tasks waiting on video_device_unplug() for device access
-> + * sections to be exited.
-> + */
-> +void video_device_exit(struct video_device *vdev);
-> +
-> +/**
-> + * video_device_unplug - mark a device as unplugged
-> + * @vdev: the video device
-> + *
-> + * Mark a device as unplugged, causing all subsequent calls to
-> + * video_device_enter() to return an error. If a device access section is
-> + * currently being executed the function waits until the section is exited as
-> + * marked by a call to video_device_exit().
-> + */
-> +void video_device_unplug(struct video_device *vdev);
-> +
->  #endif /* _V4L2_DEV_H */
-> -- 
-> Regards,
 > 
-> Laurent Pinchart
+>> +	.id = VIMC_CID_VIMC_CLASS,
+>> +	.name = "VIMC Controls",
+>> +	.type = V4L2_CTRL_TYPE_CTRL_CLASS,
+>> +};
+>> +
+>> +static const struct v4l2_ctrl_config vimc_sen_ctrl_test_pattern = {
+>> +	.ops = &vimc_sen_ctrl_ops,
+>> +	.id = VIMC_CID_TEST_PATTERN,
+>> +	.name = "Test Pattern",
+>> +	.type = V4L2_CTRL_TYPE_MENU,
+>> +	.max = TPG_PAT_NOISE,
+>> +	.qmenu = tpg_pattern_strings,
+>> +};
+>> +
+>>  static int vimc_sen_comp_bind(struct device *comp, struct device *master,
+>>  			      void *master_data)
+>>  {
+>> @@ -316,6 +362,20 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
+>>  	if (!vsen)
+>>  		return -ENOMEM;
+>>
+>> +	v4l2_ctrl_handler_init(&vsen->hdl, 4);
+>> +
+>> +	v4l2_ctrl_new_custom(&vsen->hdl, &vimc_sen_ctrl_class, NULL);
+>> +	v4l2_ctrl_new_custom(&vsen->hdl, &vimc_sen_ctrl_test_pattern, NULL);
+>> +	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
+>> +			V4L2_CID_VFLIP, 0, 1, 1, 0);
+>> +	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
+>> +			V4L2_CID_HFLIP, 0, 1, 1, 0);
 > 
+> Shouldn't we test the return values of the above functions? Or maybe not
+> because we should know what we are doing and this doesn't depend on the
+> user space.
+> 
+>> +	vsen->sd.ctrl_handler = &vsen->hdl;
+>> +	if (vsen->hdl.error) {
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+The error check happens here. These control functions do nothing if vsen->hdl.error
+is non-0, and set it if an error occurs.
+
+This simplifies the code since you have to check for an error only once at the end.
+
+>> +		ret = vsen->hdl.error;
+>> +		goto err_free_vsen;
+>> +	}
+>> +
+>>  	/* Initialize ved and sd */
+>>  	ret = vimc_ent_sd_register(&vsen->ved, &vsen->sd, v4l2_dev,
+>>  				   pdata->entity_name,
+>> @@ -323,7 +383,7 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
+>>  				   (const unsigned long[1]) {MEDIA_PAD_FL_SOURCE},
+>>  				   &vimc_sen_ops);
+>>  	if (ret)
+>> -		goto err_free_vsen;
+>> +		goto err_free_hdl;
+>>
+>>  	dev_set_drvdata(comp, &vsen->ved);
+>>  	vsen->dev = comp;
+>> @@ -342,6 +402,8 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
+>>
+>>  err_unregister_ent_sd:
+>>  	vimc_ent_sd_unregister(&vsen->ved,  &vsen->sd);
+>> +err_free_hdl:
+>> +	v4l2_ctrl_handler_free(&vsen->hdl);
+>>  err_free_vsen:
+>>  	kfree(vsen);
+>>
+> 
+> 
+> This conflicts a bit in the way I was preparing the optimization to
+> generate the pattern directly from the capture device as it will need to
+> propagate the changes from the controls in the sensor as well, but it
+> shouldn't be a problem to let the sensor to configure the tpg used in
+> the capture, I'll re-work my patch to include this.
+
+OK. I'll post a v2 dropping the ops field for the 'control class' control.
+
+Regards,
+
+	Hans
