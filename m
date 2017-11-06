@@ -1,667 +1,669 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:21330 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753317AbdKWWF0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Nov 2017 17:05:26 -0500
-Date: Fri, 24 Nov 2017 06:05:02 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: kbuild-all@01.org, linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <m.chehab@samsung.com>,
-        linux-media@vger.kernel.org,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: drivers/media/i2c/et8ek8/et8ek8_driver.c:1456: undefined reference
- to `v4l2_async_register_subdev_sensor_common'
-Message-ID: <201711240600.NuKUHUR1%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="pf9I7BMVVzbSWLtt"
-Content-Disposition: inline
+Received: from mail-qt0-f174.google.com ([209.85.216.174]:45073 "EHLO
+        mail-qt0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932576AbdKFTV1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Nov 2017 14:21:27 -0500
+Received: by mail-qt0-f174.google.com with SMTP id p1so12381095qtg.2
+        for <linux-media@vger.kernel.org>; Mon, 06 Nov 2017 11:21:26 -0800 (PST)
+Message-ID: <1509996082.30233.51.camel@ndufresne.ca>
+Subject: Re: [PATCH v2] media: s5p-mfc: Add support for V4L2_MEMORY_DMABUF
+ type
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Marian Mihailescu <mihailescu2m@gmail.com>,
+        Chanwoo Choi <cw00.choi@samsung.com>,
+        JaeChul Lee <jcsing.lee@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Date: Mon, 06 Nov 2017 14:21:22 -0500
+In-Reply-To: <decd38f5-d3c0-6a60-cdbb-20bb804be3a5@samsung.com>
+References: <CGME20171103081132eucas1p2212e32d26e7921340336d78d0d92cb1b@eucas1p2.samsung.com>
+         <20171103081124.30119-1-m.szyprowski@samsung.com>
+         <1509716721.3607.6.camel@ndufresne.ca>
+         <decd38f5-d3c0-6a60-cdbb-20bb804be3a5@samsung.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-IE3Lk9Un4IyxVXaTJGop"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---pf9I7BMVVzbSWLtt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-IE3Lk9Un4IyxVXaTJGop
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
-head:   0c86a6bd85ff0629cd2c5141027fc1c8bb6cde9c
-commit: d8932f38c10ffb4b604c97d0765b500e8964cbd1 media: et8ek8: Add support for flash and lens devices
-date:   3 weeks ago
-config: x86_64-randconfig-s0-11240340 (attached as .config)
-compiler: gcc-6 (Debian 6.4.0-9) 6.4.0 20171026
-reproduce:
-        git checkout d8932f38c10ffb4b604c97d0765b500e8964cbd1
-        # save the attached .config to linux build tree
-        make ARCH=x86_64 
+Le lundi 06 novembre 2017 =C3=A0 10:28 +0100, Marek Szyprowski a =C3=A9crit=
+ :
+> Hi Nicolas,
+>=20
+> On 2017-11-03 14:45, Nicolas Dufresne wrote:
+> > Le vendredi 03 novembre 2017 =C3=A0 09:11 +0100, Marek Szyprowski a =C3=
+=A9crit :
+> > > MFC driver supports only MMAP operation mode mainly due to the hardwa=
+re
+> > > restrictions of the addresses of the DMA buffers (MFC v5 hardware can
+> > > access buffers only in 128MiB memory region starting from the base ad=
+dress
+> > > of its firmware). When IOMMU is available, this requirement is easily
+> > > fulfilled even for the buffers located anywhere in the memory - typic=
+ally
+> > > by mapping them in the DMA address space as close as possible to the
+> > > firmware. Later hardware revisions don't have this limitations at all=
+.
+> > >=20
+> > > The second limitation of the MFC hardware related to the memory buffe=
+rs
+> > > is constant buffer address. Once the hardware has been initialized fo=
+r
+> > > operation on given buffer set, the addresses of the buffers cannot be
+> > > changed.
+> > >=20
+> > > With the above assumptions, a limited support for USERPTR and DMABUF
+> > > operation modes can be added. The main requirement is to have all buf=
+fers
+> > > known when starting hardware. This has been achieved by postponing
+> > > hardware initialization once all the DMABUF or USERPTR buffers have b=
+een
+> > > queued for the first time. Once then, buffers cannot be modified to p=
+oint
+> > > to other memory area.
+> >=20
+> > I am concerned about enabling this support with existing userspace.
+> > Userspace application will be left with some driver with this
+> > limitation and other drivers without. I think it is harmful to enable
+> > that feature without providing userspace the ability to know.
+> >=20
+> > This is specially conflicting with let's say UVC driver providing
+> > buffers, since UVC driver implementing CREATE_BUFS ioctl. So even if
+> > userspace start making an effort to maintain the same DMABuf for the
+> > same buffer index, if a new buffer is created, we won't be able to use
+> > it.
+>=20
+> Sorry, but I don't get this as an 'issue'. The typical use scenario is to
+> configure buffer queue and start streaming. Basically ReqBufs, stream on =
+and
+> a sequence of bufq/bufdq. This is handled without any problem by MFC driv=
+er
+> with this patch. After releasing a queue with reqbufs(0), one can use
+> different set of buffers.
 
-All errors (new ones prefixed by >>):
+In real life, you often have capture code decorelated from the encoder
+code. At least, it's the case in GStreamer. The encoder have no
+information about how many buffers were pre-allocated by let's say the
+capture driver. As a side effect, we cannot make sure the importation
+queue is of the same size (amount of buffer). Specially if you have UVC
+driver that allow allocating more buffers at run-time. This is used in
+real-life to compensate additional latency that get's added when a
+pipeline topology is changed (at run-time). Only workaround I had in
+mind, would be to always prepare the queue with the maximum (32), and
+use this as a cache size, but for now, this is not how the deployed
+userspace works unfortunately.
 
-   drivers/media/i2c/et8ek8/et8ek8_driver.o: In function `et8ek8_probe':
->> drivers/media/i2c/et8ek8/et8ek8_driver.c:1456: undefined reference to `v4l2_async_register_subdev_sensor_common'
+Your reqbuf(0) technique cause a break in the stream (probably a new
+keyframe), as you are forced to STREAMOFF. This is often unwanted, and
+it may create a time discontinuity in case the allocation took time.
 
-vim +1456 drivers/media/i2c/et8ek8/et8ek8_driver.c
+>=20
+> What is the point of changing the buffers during the streaming? IMHO it w=
+as
+> one of the biggest pathology of the V4L2 USERPTR API that the buffers=20
+> were in
+> fact 'created' on the first queue operation. By creating I mean creating =
+all
+> the kernel all needed structures and mappings between the real memory (us=
+er
+> ptr value) and the buffer index. The result of this was userspace, which=
+=20
+> don't
+> use buffer indices and always queues buffers with index =3D 0, what means=
+ that
+> kernel has to reacquire direct access to each buffer every single frame.=
+=20
+> That
+> is highly inefficient approach. DMABUF operation mode inherited this=20
+> drawback.
 
-  1406	
-  1407	static int et8ek8_probe(struct i2c_client *client,
-  1408				const struct i2c_device_id *devid)
-  1409	{
-  1410		struct et8ek8_sensor *sensor;
-  1411		struct device *dev = &client->dev;
-  1412		int ret;
-  1413	
-  1414		sensor = devm_kzalloc(&client->dev, sizeof(*sensor), GFP_KERNEL);
-  1415		if (!sensor)
-  1416			return -ENOMEM;
-  1417	
-  1418		sensor->reset = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
-  1419		if (IS_ERR(sensor->reset)) {
-  1420			dev_dbg(&client->dev, "could not request reset gpio\n");
-  1421			return PTR_ERR(sensor->reset);
-  1422		}
-  1423	
-  1424		sensor->vana = devm_regulator_get(dev, "vana");
-  1425		if (IS_ERR(sensor->vana)) {
-  1426			dev_err(&client->dev, "could not get regulator for vana\n");
-  1427			return PTR_ERR(sensor->vana);
-  1428		}
-  1429	
-  1430		sensor->ext_clk = devm_clk_get(dev, NULL);
-  1431		if (IS_ERR(sensor->ext_clk)) {
-  1432			dev_err(&client->dev, "could not get clock\n");
-  1433			return PTR_ERR(sensor->ext_clk);
-  1434		}
-  1435	
-  1436		ret = of_property_read_u32(dev->of_node, "clock-frequency",
-  1437					   &sensor->xclk_freq);
-  1438		if (ret) {
-  1439			dev_warn(dev, "can't get clock-frequency\n");
-  1440			return ret;
-  1441		}
-  1442	
-  1443		mutex_init(&sensor->power_lock);
-  1444	
-  1445		v4l2_i2c_subdev_init(&sensor->subdev, client, &et8ek8_ops);
-  1446		sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-  1447		sensor->subdev.internal_ops = &et8ek8_internal_ops;
-  1448	
-  1449		sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
-  1450		ret = media_entity_pads_init(&sensor->subdev.entity, 1, &sensor->pad);
-  1451		if (ret < 0) {
-  1452			dev_err(&client->dev, "media entity init failed!\n");
-  1453			goto err_mutex;
-  1454		}
-  1455	
-> 1456		ret = v4l2_async_register_subdev_sensor_common(&sensor->subdev);
-  1457		if (ret < 0)
-  1458			goto err_entity;
-  1459	
-  1460		dev_dbg(dev, "initialized!\n");
-  1461	
-  1462		return 0;
-  1463	
-  1464	err_entity:
-  1465		media_entity_cleanup(&sensor->subdev.entity);
-  1466	err_mutex:
-  1467		mutex_destroy(&sensor->power_lock);
-  1468		return ret;
-  1469	}
-  1470	
+This in fact is an implementation detail of the caching in the kernel
+framework. There is nothing that prevent the framework to maintain a
+validation cache that isn't bound to the queue size. DMABuf simply
+makes the buffer identification easier and safer. I bet it is difficult
+and it will stay like this, so it should at least be documented.
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+I am completely aware of the inefficiency of the GStreamer behaviour,
+though it remains much faster in many case then copying raw frames
+using the CPU. You can complain as much as you can about what this
+userspace doing, but it as has been working better then nothing for
+many users. It might not be like this forever, someone could optimize
+this by signalling the missing information or with the 32 buffer hack I
+just mention, but I don't see anyone standing up for that work atm,
+which I have assumed to be good enough (for now). We see a lot more
+overhead from other component when piling up with a wayland compositor,
+a GL stack and more.
 
---pf9I7BMVVzbSWLtt
-Content-Type: application/gzip
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
+>=20
+> When we have a pipeline for processing video data it should use N buffers=
+ on
+> both input and output of each element when DMAbuf is used. Once we=20
+> allocate N
+> buffers, using N dmabuf-imported buffers which maps 1-1 is trivial. Only=
+=20
+> this
+> way you will have true zero-copy processing without any additional overhe=
+ad.
 
-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
-++sclk9mpKjjVOYv9bzCqLcCTN2UYAqSqObWjcoRCGuhEw1WLZUxvr9xdey//5p83P94+tck
-ST9x3e93dwWh2taQ7FoJY8ZlqYLWFM/P2xfUYoJF2/OB6+B4pqC+ui3ShGSnmSjQ38GQMjR/
-wCTCn6BiqIMZEBT1dmtlVBZwmsD1FpyIIvoaZyfr1dt3a+wpOM2p0TaL3CQSgd/HAEUu/u8Q
-GcWDL6UrTALOlRT+D4IwNvQBCtnnzacGJKptVA2vFqeOIkzN2FEERsQdisSl/q6tqy6U5Pj8
-zcILSCUw0fHMJ24nZpSPP7uGEkcK+IerznPq1hNwjvjxJLG2QQtNErtNFkGeLK0G2OiVvr8p
-AGxFVMQTqUgS7YEYRQFxIEw+dHIu6Ze54YnfE8k82f31BdKKnlCemjqRgAYW8tZ+QSqByJCm
-zRg7ySSvFzq7mlmdBYCdRE8ucQeQaHs8BfRioPxABEphgfpMKKJ96azEDeM2Z22Jv0icQk/u
-tCZtUlJsDZNLE29EqMfecIte7Ah8NzWygw2IstQiVgcgyYt13SEYN5RoQFkibfSbqyzuWsGh
-ITBN3LZusy/BmDFL/8rAW0yXJXhXr5K0rLm1Ob7f0F2SWgyXQKEQOohzekz4fo0jxVeIYu58
-jOR7MJcSlotjbWsl21O+aeRYVgp1NNAckP2dVroBMYCQzD5KHeiiYBWkFjiTS7nZIgByQd9u
-s/Tse/ljJASNIhOPRZWQ8Q+pQIwvgzi48Xhc7mB7karDflpD4LYps7dlvqLnTmNzj5UtkRBs
-hvnW9lgS6LaD5KKR+FmCTuU8SmK+poQ28YDpo6YzSiFTnzCtAx+tCh/FeDJSDVwb4/FsCuMm
-UrGjdSF28vEBbqbgFOBbIYxnPhWnDq9vC3Jhz5VylkSr+S/vWg0tXy1nziQ4pstg5d3P5Epu
-f9OUzi5pomNQvs3xUlmIcE1kdI1VWOUYS3YkmIeG8acwGym66IGwIJDcRL6Ugzj3RALKXu98
-XatpKkWbyKSZNm5f2PMcoKnYRsVZKIimWZkg8LiZWmsEzGjpV1ulPjVGpZFe15DKsW3xMCBO
-Y16VwmkSH7emNzSSwUP6ffL388c3XsL3T3SzmXy//3j+v6fJM2T+/vP+QTujFUWQnbVQ9MDL
-OXkERZIdsGcXBO62bvNbq7l8HJJgYUqHrE84IMN32DACBc2LcGZzFrqH+NpY+eFAfTWSR8hX
-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
+Though, it is not a strict requirement. This is specific to V4L2 here,
+other kernel framework provide rather more flexible API, which indeed
+can have small period of inefficiency (during allocation and first
+importation) but will stabilize later on if userspace implements enough
+caching. Also, the cost of importation will vary a lot per driver.
 
---pf9I7BMVVzbSWLtt--
+My point here, is just that we need to know from userspace if there is
+a strict limitation like this, because otherwise it may completely fall
+apart instead of being slightly inefficient.
+
+>=20
+> > > This patch also removes unconditional USERPTR operation mode from enc=
+oder
+> > > video node, because it doesn't work with v5 MFC hardware without IOMM=
+U
+> > > being enabled.
+> > >=20
+> > > In case of MFC v5 a bidirectional queue flag has to be enabled as a
+> > > workaround of the strange hardware behavior - MFC performs a few writ=
+es
+> > > to source data during the operation.
+> >=20
+> > Do you have more information about this ? It is quite terrible, since
+> > if you enable buffer importation, the buffer might be multi-plex across
+> > multiple encoder instance. That is another way this feature can be
+> > harmful to existing userspace.
+>=20
+> I also don't like this behavior of the hardware. I will probably investig=
+ate
+> it further once I have some time. The other workaround would be to=20
+> always use
+> driver allocated buffers and simply copy input stream in case of USERPTR =
+or
+> DMABUF to avoid modifying source data. It would mean copying the compress=
+ed
+> stream, what should not hurt us that much.
+
+Thanks for letting us know. So the writes are strictly for the decoder
+? I was referring to the encoder in my comment. On Qualcomm Venus side,
+the writes are done in a portion expose to user space (see data_offset
+in mplane structures). As a side effect, importation is skipped, since
+there is no upstream driver that will magically provide this padding
+data.
+
+>=20
+> > > Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+> > > [mszyprow: adapted to v4.14 code base, rewrote and extended commit me=
+ssage,
+> > >   added checks for changing buffer addresses, added bidirectional que=
+ue
+> > >   flags and comments]
+> > > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> > > ---
+> > > v2:
+> > > - fixed copy/paste bug, which broke encoding support (thanks to Maria=
+n
+> > >    Mihailescu for reporting it)
+> > > - added checks for changing buffers DMA addresses
+> > > - added bidirectional queue flags
+> > >=20
+> > > v1:
+> > > - inital version
+> > > ---
+> > >   drivers/media/platform/s5p-mfc/s5p_mfc.c     |  23 +++++-
+> > >   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 111 ++++++++++++++++=
++++--------
+> > >   drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |  64 +++++++++++----
+> > >   3 files changed, 147 insertions(+), 51 deletions(-)
+> > >=20
+> > > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media=
+/platform/s5p-mfc/s5p_mfc.c
+> > > index 1839a86cc2a5..f1ab8d198158 100644
+> > > --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> > > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> > > @@ -754,6 +754,7 @@ static int s5p_mfc_open(struct file *file)
+> > >   	struct s5p_mfc_dev *dev =3D video_drvdata(file);
+> > >   	struct s5p_mfc_ctx *ctx =3D NULL;
+> > >   	struct vb2_queue *q;
+> > > +	unsigned int io_modes;
+> > >   	int ret =3D 0;
+> > >  =20
+> > >   	mfc_debug_enter();
+> > > @@ -839,16 +840,25 @@ static int s5p_mfc_open(struct file *file)
+> > >   		if (ret)
+> > >   			goto err_init_hw;
+> > >   	}
+> > > +
+> > > +	io_modes =3D VB2_MMAP;
+> > > +	if (exynos_is_iommu_available(&dev->plat_dev->dev) || !IS_TWOPORT(d=
+ev))
+> > > +		io_modes |=3D VB2_USERPTR | VB2_DMABUF;
+> > > +
+> > >   	/* Init videobuf2 queue for CAPTURE */
+> > >   	q =3D &ctx->vq_dst;
+> > >   	q->type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+> > > +	q->io_modes =3D io_modes;
+> > > +	/*
+> > > +	 * Destination buffers are always bidirectional, they use used as
+> > > +	 * reference data, which require READ access
+> > > +	 */
+> > > +	q->bidirectional =3D true;
+> > >   	q->drv_priv =3D &ctx->fh;
+> > >   	q->lock =3D &dev->mfc_mutex;
+> > >   	if (vdev =3D=3D dev->vfd_dec) {
+> > > -		q->io_modes =3D VB2_MMAP;
+> > >   		q->ops =3D get_dec_queue_ops();
+> > >   	} else if (vdev =3D=3D dev->vfd_enc) {
+> > > -		q->io_modes =3D VB2_MMAP | VB2_USERPTR;
+> > >   		q->ops =3D get_enc_queue_ops();
+> > >   	} else {
+> > >   		ret =3D -ENOENT;
+> > > @@ -869,13 +879,18 @@ static int s5p_mfc_open(struct file *file)
+> > >   	/* Init videobuf2 queue for OUTPUT */
+> > >   	q =3D &ctx->vq_src;
+> > >   	q->type =3D V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+> > > +	q->io_modes =3D io_modes;
+> > > +	/*
+> > > +	 * MFV v5 performs write operations on source data, so make queue
+> > > +	 * bidirectional to avoid IOMMU protection fault.
+> > > +	 */
+> > > +	if (!IS_MFCV6_PLUS(dev))
+> > > +		q->bidirectional =3D true;
+> > >   	q->drv_priv =3D &ctx->fh;
+> > >   	q->lock =3D &dev->mfc_mutex;
+> > >   	if (vdev =3D=3D dev->vfd_dec) {
+> > > -		q->io_modes =3D VB2_MMAP;
+> > >   		q->ops =3D get_dec_queue_ops();
+> > >   	} else if (vdev =3D=3D dev->vfd_enc) {
+> > > -		q->io_modes =3D VB2_MMAP | VB2_USERPTR;
+> > >   		q->ops =3D get_enc_queue_ops();
+> > >   	} else {
+> > >   		ret =3D -ENOENT;
+> > > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/m=
+edia/platform/s5p-mfc/s5p_mfc_dec.c
+> > > index e3e5c442902a..26ee8315e2cf 100644
+> > > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> > > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> > > @@ -551,14 +551,27 @@ static int reqbufs_capture(struct s5p_mfc_dev *=
+dev, struct s5p_mfc_ctx *ctx,
+> > >   			goto out;
+> > >   		}
+> > >  =20
+> > > -		WARN_ON(ctx->dst_bufs_cnt !=3D ctx->total_dpb_count);
+> > > -		ctx->capture_state =3D QUEUE_BUFS_MMAPED;
+> > > +		if (reqbufs->memory =3D=3D V4L2_MEMORY_MMAP) {
+> > > +			if (ctx->dst_bufs_cnt =3D=3D ctx->total_dpb_count) {
+> > > +				ctx->capture_state =3D QUEUE_BUFS_MMAPED;
+> > > +			} else {
+> > > +				mfc_err("Not all buffers passed to buf_init\n");
+> > > +				reqbufs->count =3D 0;
+> > > +				ret =3D vb2_reqbufs(&ctx->vq_dst, reqbufs);
+> > > +				s5p_mfc_hw_call(dev->mfc_ops,
+> > > +						release_codec_buffers, ctx);
+> > > +				ret =3D -ENOMEM;
+> > > +				goto out;
+> > > +			}
+> > > +		}
+> > >  =20
+> > >   		if (s5p_mfc_ctx_ready(ctx))
+> > >   			set_work_bit_irqsave(ctx);
+> > >   		s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
+> > > -		s5p_mfc_wait_for_done_ctx(ctx, S5P_MFC_R2H_CMD_INIT_BUFFERS_RET,
+> > > -					  0);
+> > > +		if (reqbufs->memory =3D=3D V4L2_MEMORY_MMAP) {
+> > > +			s5p_mfc_wait_for_done_ctx(ctx,
+> > > +					 S5P_MFC_R2H_CMD_INIT_BUFFERS_RET, 0);
+> > > +		}
+> > >   	} else {
+> > >   		mfc_err("Buffers have already been requested\n");
+> > >   		ret =3D -EINVAL;
+> > > @@ -576,15 +589,19 @@ static int vidioc_reqbufs(struct file *file, vo=
+id *priv,
+> > >   {
+> > >   	struct s5p_mfc_dev *dev =3D video_drvdata(file);
+> > >   	struct s5p_mfc_ctx *ctx =3D fh_to_ctx(priv);
+> > > -
+> > > -	if (reqbufs->memory !=3D V4L2_MEMORY_MMAP) {
+> > > -		mfc_debug(2, "Only V4L2_MEMORY_MMAP is supported\n");
+> > > -		return -EINVAL;
+> > > -	}
+> > > +	int ret;
+> > >  =20
+> > >   	if (reqbufs->type =3D=3D V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> > > +		ret =3D vb2_verify_memory_type(&ctx->vq_src, reqbufs->memory,
+> > > +					     reqbufs->type);
+> > > +		if (ret)
+> > > +			return ret;
+> > >   		return reqbufs_output(dev, ctx, reqbufs);
+> > >   	} else if (reqbufs->type =3D=3D V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE=
+) {
+> > > +		ret =3D vb2_verify_memory_type(&ctx->vq_dst, reqbufs->memory,
+> > > +					     reqbufs->type);
+> > > +		if (ret)
+> > > +			return ret;
+> > >   		return reqbufs_capture(dev, ctx, reqbufs);
+> > >   	} else {
+> > >   		mfc_err("Invalid type requested\n");
+> > > @@ -600,16 +617,20 @@ static int vidioc_querybuf(struct file *file, v=
+oid *priv,
+> > >   	int ret;
+> > >   	int i;
+> > >  =20
+> > > -	if (buf->memory !=3D V4L2_MEMORY_MMAP) {
+> > > -		mfc_err("Only mmaped buffers can be used\n");
+> > > -		return -EINVAL;
+> > > -	}
+> > >   	mfc_debug(2, "State: %d, buf->type: %d\n", ctx->state, buf->type);
+> > >   	if (ctx->state =3D=3D MFCINST_GOT_INST &&
+> > >   			buf->type =3D=3D V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> > > +		ret =3D vb2_verify_memory_type(&ctx->vq_src, buf->memory,
+> > > +					     buf->type);
+> > > +		if (ret)
+> > > +			return ret;
+> > >   		ret =3D vb2_querybuf(&ctx->vq_src, buf);
+> > >   	} else if (ctx->state =3D=3D MFCINST_RUNNING &&
+> > >   			buf->type =3D=3D V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> > > +		ret =3D vb2_verify_memory_type(&ctx->vq_dst, buf->memory,
+> > > +					     buf->type);
+> > > +		if (ret)
+> > > +			return ret;
+> > >   		ret =3D vb2_querybuf(&ctx->vq_dst, buf);
+> > >   		for (i =3D 0; i < buf->length; i++)
+> > >   			buf->m.planes[i].m.mem_offset +=3D DST_QUEUE_OFF_BASE;
+> > > @@ -940,10 +961,12 @@ static int s5p_mfc_queue_setup(struct vb2_queue=
+ *vq,
+> > >   		else
+> > >   			alloc_devs[0] =3D ctx->dev->mem_dev[BANK_R_CTX];
+> > >   		alloc_devs[1] =3D ctx->dev->mem_dev[BANK_L_CTX];
+> > > +		memset(ctx->dst_bufs, 0, sizeof(ctx->dst_bufs));
+> > >   	} else if (vq->type =3D=3D V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE &&
+> > >   		   ctx->state =3D=3D MFCINST_INIT) {
+> > >   		psize[0] =3D ctx->dec_src_buf_size;
+> > >   		alloc_devs[0] =3D ctx->dev->mem_dev[BANK_L_CTX];
+> > > +		memset(ctx->src_bufs, 0, sizeof(ctx->src_bufs));
+> > >   	} else {
+> > >   		mfc_err("This video node is dedicated to decoding. Decoding not i=
+nitialized\n");
+> > >   		return -EINVAL;
+> > > @@ -959,30 +982,35 @@ static int s5p_mfc_buf_init(struct vb2_buffer *=
+vb)
+> > >   	unsigned int i;
+> > >  =20
+> > >   	if (vq->type =3D=3D V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> > > +		dma_addr_t luma, chroma;
+> > > +
+> > >   		if (ctx->capture_state =3D=3D QUEUE_BUFS_MMAPED)
+> > >   			return 0;
+> > > -		for (i =3D 0; i < ctx->dst_fmt->num_planes; i++) {
+> > > -			if (IS_ERR_OR_NULL(ERR_PTR(
+> > > -					vb2_dma_contig_plane_dma_addr(vb, i)))) {
+> > > -				mfc_err("Plane mem not allocated\n");
+> > > -				return -EINVAL;
+> > > -			}
+> > > -		}
+> > > -		if (vb2_plane_size(vb, 0) < ctx->luma_size ||
+> > > -			vb2_plane_size(vb, 1) < ctx->chroma_size) {
+> > > -			mfc_err("Plane buffer (CAPTURE) is too small\n");
+> > > +
+> > > +		luma =3D vb2_dma_contig_plane_dma_addr(vb, 0);
+> > > +		chroma =3D vb2_dma_contig_plane_dma_addr(vb, 1);
+> > > +		if (!luma || !chroma) {
+> > > +			mfc_err("Plane mem not allocated\n");
+> > >   			return -EINVAL;
+> > >   		}
+> > > +
+> > >   		i =3D vb->index;
+> > > +		if ((ctx->dst_bufs[i].cookie.raw.luma &&
+> > > +		     ctx->dst_bufs[i].cookie.raw.luma !=3D luma) ||
+> > > +		    (ctx->dst_bufs[i].cookie.raw.chroma &&
+> > > +		     ctx->dst_bufs[i].cookie.raw.chroma !=3D chroma)) {
+> > > +			mfc_err("Changing CAPTURE buffer address during straming is not p=
+ossible\n");
+> > > +			return -EINVAL;
+> > > +		}
+> > > +
+> > >   		ctx->dst_bufs[i].b =3D vbuf;
+> > > -		ctx->dst_bufs[i].cookie.raw.luma =3D
+> > > -					vb2_dma_contig_plane_dma_addr(vb, 0);
+> > > -		ctx->dst_bufs[i].cookie.raw.chroma =3D
+> > > -					vb2_dma_contig_plane_dma_addr(vb, 1);
+> > > +		ctx->dst_bufs[i].cookie.raw.luma =3D luma;
+> > > +		ctx->dst_bufs[i].cookie.raw.chroma =3D chroma;
+> > >   		ctx->dst_bufs_cnt++;
+> > >   	} else if (vq->type =3D=3D V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> > > -		if (IS_ERR_OR_NULL(ERR_PTR(
+> > > -					vb2_dma_contig_plane_dma_addr(vb, 0)))) {
+> > > +		dma_addr_t stream =3D vb2_dma_contig_plane_dma_addr(vb, 0);
+> > > +
+> > > +		if (!stream) {
+> > >   			mfc_err("Plane memory not allocated\n");
+> > >   			return -EINVAL;
+> > >   		}
+> > > @@ -992,9 +1020,14 @@ static int s5p_mfc_buf_init(struct vb2_buffer *=
+vb)
+> > >   		}
+> > >  =20
+> > >   		i =3D vb->index;
+> > > +		if (ctx->src_bufs[i].cookie.stream &&
+> > > +		     ctx->src_bufs[i].cookie.stream !=3D stream) {
+> > > +			mfc_err("Changing OUTPUT buffer address during straming is not po=
+ssible\n");
+> > > +			return -EINVAL;
+> > > +		}
+> > > +
+> > >   		ctx->src_bufs[i].b =3D vbuf;
+> > > -		ctx->src_bufs[i].cookie.stream =3D
+> > > -					vb2_dma_contig_plane_dma_addr(vb, 0);
+> > > +		ctx->src_bufs[i].cookie.stream =3D stream;
+> > >   		ctx->src_bufs_cnt++;
+> > >   	} else {
+> > >   		mfc_err("s5p_mfc_buf_init: unknown queue type\n");
+> > > @@ -1071,6 +1104,7 @@ static void s5p_mfc_buf_queue(struct vb2_buffer=
+ *vb)
+> > >   	struct s5p_mfc_dev *dev =3D ctx->dev;
+> > >   	unsigned long flags;
+> > >   	struct s5p_mfc_buf *mfc_buf;
+> > > +	int wait_flag =3D 0;
+> > >  =20
+> > >   	if (vq->type =3D=3D V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> > >   		mfc_buf =3D &ctx->src_bufs[vb->index];
+> > > @@ -1088,12 +1122,25 @@ static void s5p_mfc_buf_queue(struct vb2_buff=
+er *vb)
+> > >   		list_add_tail(&mfc_buf->list, &ctx->dst_queue);
+> > >   		ctx->dst_queue_cnt++;
+> > >   		spin_unlock_irqrestore(&dev->irqlock, flags);
+> > > +		if ((vq->memory =3D=3D V4L2_MEMORY_USERPTR ||
+> > > +			vq->memory =3D=3D V4L2_MEMORY_DMABUF) &&
+> > > +			ctx->dst_queue_cnt =3D=3D ctx->total_dpb_count)
+> > > +			ctx->capture_state =3D QUEUE_BUFS_MMAPED;
+> > >   	} else {
+> > >   		mfc_err("Unsupported buffer type (%d)\n", vq->type);
+> > >   	}
+> > > -	if (s5p_mfc_ctx_ready(ctx))
+> > > +	if (s5p_mfc_ctx_ready(ctx)) {
+> > >   		set_work_bit_irqsave(ctx);
+> > > +		if ((vq->memory =3D=3D V4L2_MEMORY_USERPTR ||
+> > > +			vq->memory =3D=3D V4L2_MEMORY_DMABUF) &&
+> > > +			ctx->state =3D=3D MFCINST_HEAD_PARSED &&
+> > > +			ctx->capture_state =3D=3D QUEUE_BUFS_MMAPED)
+> > > +			wait_flag =3D 1;
+> > > +	}
+> > >   	s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
+> > > +	if (wait_flag)
+> > > +		s5p_mfc_wait_for_done_ctx(ctx,
+> > > +				S5P_MFC_R2H_CMD_INIT_BUFFERS_RET, 0);
+> > >   }
+> > >  =20
+> > >   static struct vb2_ops s5p_mfc_dec_qops =3D {
+> > > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/m=
+edia/platform/s5p-mfc/s5p_mfc_enc.c
+> > > index 7b041e5ee4be..33fc3f3ef48a 100644
+> > > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> > > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> > > @@ -1125,11 +1125,11 @@ static int vidioc_reqbufs(struct file *file, =
+void *priv,
+> > >   	struct s5p_mfc_ctx *ctx =3D fh_to_ctx(priv);
+> > >   	int ret =3D 0;
+> > >  =20
+> > > -	/* if memory is not mmp or userptr return error */
+> > > -	if ((reqbufs->memory !=3D V4L2_MEMORY_MMAP) &&
+> > > -		(reqbufs->memory !=3D V4L2_MEMORY_USERPTR))
+> > > -		return -EINVAL;
+> > >   	if (reqbufs->type =3D=3D V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> > > +		ret =3D vb2_verify_memory_type(&ctx->vq_dst, reqbufs->memory,
+> > > +					     reqbufs->type);
+> > > +		if (ret)
+> > > +			return ret;
+> > >   		if (reqbufs->count =3D=3D 0) {
+> > >   			mfc_debug(2, "Freeing buffers\n");
+> > >   			ret =3D vb2_reqbufs(&ctx->vq_dst, reqbufs);
+> > > @@ -1159,6 +1159,10 @@ static int vidioc_reqbufs(struct file *file, v=
+oid *priv,
+> > >   			return -ENOMEM;
+> > >   		}
+> > >   	} else if (reqbufs->type =3D=3D V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)=
+ {
+> > > +		ret =3D vb2_verify_memory_type(&ctx->vq_src, reqbufs->memory,
+> > > +					     reqbufs->type);
+> > > +		if (ret)
+> > > +			return ret;
+> > >   		if (reqbufs->count =3D=3D 0) {
+> > >   			mfc_debug(2, "Freeing buffers\n");
+> > >   			ret =3D vb2_reqbufs(&ctx->vq_src, reqbufs);
+> > > @@ -1190,6 +1194,8 @@ static int vidioc_reqbufs(struct file *file, vo=
+id *priv,
+> > >   			mfc_err("error in vb2_reqbufs() for E(S)\n");
+> > >   			return ret;
+> > >   		}
+> > > +		if (reqbufs->memory !=3D V4L2_MEMORY_MMAP)
+> > > +			ctx->src_bufs_cnt =3D reqbufs->count;
+> > >   		ctx->output_state =3D QUEUE_BUFS_REQUESTED;
+> > >   	} else {
+> > >   		mfc_err("invalid buf type\n");
+> > > @@ -1204,11 +1210,11 @@ static int vidioc_querybuf(struct file *file,=
+ void *priv,
+> > >   	struct s5p_mfc_ctx *ctx =3D fh_to_ctx(priv);
+> > >   	int ret =3D 0;
+> > >  =20
+> > > -	/* if memory is not mmp or userptr return error */
+> > > -	if ((buf->memory !=3D V4L2_MEMORY_MMAP) &&
+> > > -		(buf->memory !=3D V4L2_MEMORY_USERPTR))
+> > > -		return -EINVAL;
+> > >   	if (buf->type =3D=3D V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> > > +		ret =3D vb2_verify_memory_type(&ctx->vq_dst, buf->memory,
+> > > +					     buf->type);
+> > > +		if (ret)
+> > > +			return ret;
+> > >   		if (ctx->state !=3D MFCINST_GOT_INST) {
+> > >   			mfc_err("invalid context state: %d\n", ctx->state);
+> > >   			return -EINVAL;
+> > > @@ -1220,6 +1226,10 @@ static int vidioc_querybuf(struct file *file, =
+void *priv,
+> > >   		}
+> > >   		buf->m.planes[0].m.mem_offset +=3D DST_QUEUE_OFF_BASE;
+> > >   	} else if (buf->type =3D=3D V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> > > +		ret =3D vb2_verify_memory_type(&ctx->vq_src, buf->memory,
+> > > +					     buf->type);
+> > > +		if (ret)
+> > > +			return ret;
+> > >   		ret =3D vb2_querybuf(&ctx->vq_src, buf);
+> > >   		if (ret !=3D 0) {
+> > >   			mfc_err("error in vb2_querybuf() for E(S)\n");
+> > > @@ -1828,6 +1838,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue=
+ *vq,
+> > >   			*buf_count =3D MFC_MAX_BUFFERS;
+> > >   		psize[0] =3D ctx->enc_dst_buf_size;
+> > >   		alloc_devs[0] =3D ctx->dev->mem_dev[BANK_L_CTX];
+> > > +		memset(ctx->dst_bufs, 0, sizeof(ctx->dst_bufs));
+> > >   	} else if (vq->type =3D=3D V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> > >   		if (ctx->src_fmt)
+> > >   			*plane_count =3D ctx->src_fmt->num_planes;
+> > > @@ -1849,6 +1860,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue=
+ *vq,
+> > >   			alloc_devs[0] =3D ctx->dev->mem_dev[BANK_R_CTX];
+> > >   			alloc_devs[1] =3D ctx->dev->mem_dev[BANK_R_CTX];
+> > >   		}
+> > > +		memset(ctx->src_bufs, 0, sizeof(ctx->src_bufs));
+> > >   	} else {
+> > >   		mfc_err("invalid queue type: %d\n", vq->type);
+> > >   		return -EINVAL;
+> > > @@ -1865,25 +1877,47 @@ static int s5p_mfc_buf_init(struct vb2_buffer=
+ *vb)
+> > >   	int ret;
+> > >  =20
+> > >   	if (vq->type =3D=3D V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> > > +		dma_addr_t stream;
+> > > +
+> > >   		ret =3D check_vb_with_fmt(ctx->dst_fmt, vb);
+> > >   		if (ret < 0)
+> > >   			return ret;
+> > > +
+> > > +		stream =3D vb2_dma_contig_plane_dma_addr(vb, 0);
+> > >   		i =3D vb->index;
+> > > +		if (ctx->dst_bufs[i].cookie.stream &&
+> > > +		    ctx->src_bufs[i].cookie.stream !=3D stream) {
+> > > +			mfc_err("Changing CAPTURE buffer address during straming is not p=
+ossible\n");
+> > > +			return -EINVAL;
+> > > +		}
+> > > +
+> > >   		ctx->dst_bufs[i].b =3D vbuf;
+> > > -		ctx->dst_bufs[i].cookie.stream =3D
+> > > -					vb2_dma_contig_plane_dma_addr(vb, 0);
+> > > +		ctx->dst_bufs[i].cookie.stream =3D stream;
+> > >   		ctx->dst_bufs_cnt++;
+> > >   	} else if (vq->type =3D=3D V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> > > +		dma_addr_t luma, chroma;
+> > > +
+> > >   		ret =3D check_vb_with_fmt(ctx->src_fmt, vb);
+> > >   		if (ret < 0)
+> > >   			return ret;
+> > > +
+> > > +		luma =3D vb2_dma_contig_plane_dma_addr(vb, 0);
+> > > +		chroma =3D vb2_dma_contig_plane_dma_addr(vb, 1);
+> > > +
+> > >   		i =3D vb->index;
+> > > +		if ((ctx->src_bufs[i].cookie.raw.luma &&
+> > > +		     ctx->src_bufs[i].cookie.raw.luma !=3D luma) ||
+> > > +		    (ctx->src_bufs[i].cookie.raw.chroma &&
+> > > +		     ctx->src_bufs[i].cookie.raw.chroma !=3D chroma)) {
+> > > +			mfc_err("Changing OUTPUT buffer address during straming is not po=
+ssible\n");
+> > > +			return -EINVAL;
+> > > +		}
+> > > +
+> > >   		ctx->src_bufs[i].b =3D vbuf;
+> > > -		ctx->src_bufs[i].cookie.raw.luma =3D
+> > > -					vb2_dma_contig_plane_dma_addr(vb, 0);
+> > > -		ctx->src_bufs[i].cookie.raw.chroma =3D
+> > > -					vb2_dma_contig_plane_dma_addr(vb, 1);
+> > > -		ctx->src_bufs_cnt++;
+> > > +		ctx->src_bufs[i].cookie.raw.luma =3D luma;
+> > > +		ctx->src_bufs[i].cookie.raw.chroma =3D chroma;
+> > > +		if (vb->memory =3D=3D V4L2_MEMORY_MMAP)
+> > > +			ctx->src_bufs_cnt++;
+> > >   	} else {
+> > >   		mfc_err("invalid queue type: %d\n", vq->type);
+> > >   		return -EINVAL;
+>=20
+> Best regards
+--=-IE3Lk9Un4IyxVXaTJGop
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCWgC2MgAKCRBxUwItrAao
+HKMEAKDP3oQ/EQGcmegf8vlS3tuj6nROEwCbBErYePXgp3EVxMBE1BEMBaIHn9Q=
+=ipwD
+-----END PGP SIGNATURE-----
+
+--=-IE3Lk9Un4IyxVXaTJGop--
