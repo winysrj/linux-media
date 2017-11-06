@@ -1,63 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:39268 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932621AbdKOPob (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 10:44:31 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH] v4l: async: use the v4l2_dev from the root notifier when matching sub-devices
-Date: Wed, 15 Nov 2017 16:43:58 +0100
-Message-Id: <20171115154358.32734-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-it0-f66.google.com ([209.85.214.66]:51668 "EHLO
+        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751337AbdKFCHZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Nov 2017 21:07:25 -0500
+Received: by mail-it0-f66.google.com with SMTP id o135so3402360itb.0
+        for <linux-media@vger.kernel.org>; Sun, 05 Nov 2017 18:07:25 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1508484328-11018-2-git-send-email-climbbb.kim@gmail.com>
+References: <1508484328-11018-1-git-send-email-climbbb.kim@gmail.com> <1508484328-11018-2-git-send-email-climbbb.kim@gmail.com>
+From: Jaejoong Kim <climbbb.kim@gmail.com>
+Date: Mon, 6 Nov 2017 11:07:24 +0900
+Message-ID: <CAL6iAa+eZzrY=PPmr2r8UM64sT9pc0vPcEXVkJNgA5XOx9UdBw@mail.gmail.com>
+Subject: Re: [PATCH 1/2] media: usb: uvc: remove duplicate & operation
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, Jaejoong Kim <climbbb.kim@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When matching and registering a sub-device from a sub-notifier use the
-v4l2_device from the root parent notifier. Using the v4l2_dev stored in
-the sub-notifier itself is incorrect as it might not be set.
+Hi, Laurent
 
-This can be demonstrated by unbinding and rebinding the adv748x driver
-and observing that it fails to probe due to the check !v4l2_dev in
-v4l2_device_register_subdev().
+Could you please review this patch?
 
-    # echo 4-0070 > /sys/bus/i2c/drivers/adv748x/unbind
-    # echo 4-0070 > /sys/bus/i2c/drivers/adv748x/bind
-    adv748x 4-0070: chip found @ 0xe0 revision 2143
-    adv748x 4-0070: Failed to probe TXA
-    adv748x: probe of 4-0070 failed with error -22
+Thanks, jaejoong
 
-Looking at the commit which adds sub-notifiers to V4L2 it looks like
-this is the intended behavior of the original commit. Whit this fix the
-adv748x can be re-bound and still function properly.
-
-Fixes: 2cab00bb076b9f0e ("media: v4l: async: Allow binding notifiers to sub-devices")
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/v4l2-core/v4l2-async.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index a7c3464976f24361..e5acfab470a5ee6b 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -558,8 +558,7 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 		if (!asd)
- 			continue;
- 
--		ret = v4l2_async_match_notify(notifier, notifier->v4l2_dev, sd,
--					      asd);
-+		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
- 		if (ret)
- 			goto err_unbind;
- 
--- 
-2.15.0
+2017-10-20 16:25 GMT+09:00 Jaejoong Kim <climbbb.kim@gmail.com>:
+> usb_endpoint_maxp() has an inline keyword and searches for bits[10:0]
+> by & operation with 0x7ff. So, we can remove the duplicate & operation
+> with 0x7ff.
+>
+> Signed-off-by: Jaejoong Kim <climbbb.kim@gmail.com>
+> ---
+>  drivers/media/usb/uvc/uvc_video.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+> index fb86d6a..f4ace63 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -1469,13 +1469,13 @@ static unsigned int uvc_endpoint_max_bpi(struct usb_device *dev,
+>         case USB_SPEED_HIGH:
+>                 psize = usb_endpoint_maxp(&ep->desc);
+>                 mult = usb_endpoint_maxp_mult(&ep->desc);
+> -               return (psize & 0x07ff) * mult;
+> +               return psize * mult;
+>         case USB_SPEED_WIRELESS:
+>                 psize = usb_endpoint_maxp(&ep->desc);
+>                 return psize;
+>         default:
+>                 psize = usb_endpoint_maxp(&ep->desc);
+> -               return psize & 0x07ff;
+> +               return psize;
+>         }
+>  }
+>
+> --
+> 2.7.4
+>
