@@ -1,174 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:49580 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755030AbdKIXoI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Nov 2017 18:44:08 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v9 1/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
-Date: Fri, 10 Nov 2017 00:43:19 +0100
-Message-Id: <20171109234320.13016-2-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171109234320.13016-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171109234320.13016-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from palahniuk.acksyn.org ([5.9.7.26]:42206 "EHLO
+        palahniuk.acksyn.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753384AbdKFN5X (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Nov 2017 08:57:23 -0500
+From: Michele Baldessari <michele@acksyn.org>
+To: linux-media@vger.kernel.org
+Cc: Michele Baldessari <michele@acksyn.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] Don't do DMA on stack for firmware upload in the AS102 driver
+Date: Mon,  6 Nov 2017 14:50:22 +0100
+Message-Id: <20171106135024.16695-1-michele@acksyn.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
-are located between the video sources (CSI-2 transmitters) and the video
-grabbers (VIN) on Gen3 of Renesas R-Car SoC.
+Firmware load on AS102 is using the stack which is not allowed any
+longer. We currently fail with:
 
-Each CSI-2 device is connected to more then one VIN device which
-simultaneously can receive video from the same CSI-2 device. Each VIN
-device can also be connected to more then one CSI-2 device. The routing
-of which link are used are controlled by the VIN devices. There are only
-a few possible routes which are set by hardware limitations, which are
-different for each SoC in the Gen3 family.
+kernel: transfer buffer not dma capable
+kernel: ------------[ cut here ]------------
+kernel: WARNING: CPU: 0 PID: 598 at drivers/usb/core/hcd.c:1595 usb_hcd_map_urb_for_dma+0x41d/0x620
+kernel: Modules linked in: amd64_edac_mod(-) edac_mce_amd as102_fe dvb_as102(+) kvm_amd kvm snd_hda_codec_realtek dvb_core snd_hda_codec_generic snd_hda_codec_hdmi snd_hda_intel snd_hda_codec irqbypass crct10dif_pclmul crc32_pclmul snd_hda_core snd_hwdep snd_seq ghash_clmulni_intel sp5100_tco fam15h_power wmi k10temp i2c_piix4 snd_seq_device snd_pcm snd_timer parport_pc parport tpm_infineon snd tpm_tis soundcore tpm_tis_core tpm shpchp acpi_cpufreq xfs libcrc32c amdgpu amdkfd amd_iommu_v2 radeon hid_logitech_hidpp i2c_algo_bit drm_kms_helper crc32c_intel ttm drm r8169 mii hid_logitech_dj
+kernel: CPU: 0 PID: 598 Comm: systemd-udevd Not tainted 4.13.10-200.fc26.x86_64 #1
+kernel: Hardware name: ASUS All Series/AM1I-A, BIOS 0505 03/13/2014
+kernel: task: ffff979933b24c80 task.stack: ffffaf83413a4000
+kernel: RIP: 0010:usb_hcd_map_urb_for_dma+0x41d/0x620
+systemd-fsck[659]: /dev/sda2: clean, 49/128016 files, 268609/512000 blocks
+kernel: RSP: 0018:ffffaf83413a7728 EFLAGS: 00010282
+systemd-udevd[604]: link_config: autonegotiation is unset or enabled, the speed and duplex are not writable.
+kernel: RAX: 000000000000001f RBX: ffff979930bce780 RCX: 0000000000000000
+kernel: RDX: 0000000000000000 RSI: ffff97993ec0e118 RDI: ffff97993ec0e118
+kernel: RBP: ffffaf83413a7768 R08: 000000000000039a R09: 0000000000000000
+kernel: R10: 0000000000000001 R11: 00000000ffffffff R12: 00000000fffffff5
+kernel: R13: 0000000001400000 R14: 0000000000000001 R15: ffff979930806800
+kernel: FS:  00007effaca5c8c0(0000) GS:ffff97993ec00000(0000) knlGS:0000000000000000
+kernel: CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+kernel: CR2: 00007effa9fca962 CR3: 0000000233089000 CR4: 00000000000406f0
+kernel: Call Trace:
+kernel:  usb_hcd_submit_urb+0x493/0xb40
+kernel:  ? page_cache_tree_insert+0x100/0x100
+kernel:  ? xfs_iunlock+0xd5/0x100 [xfs]
+kernel:  ? xfs_file_buffered_aio_read+0x57/0xc0 [xfs]
+kernel:  usb_submit_urb+0x22d/0x560
+kernel:  usb_start_wait_urb+0x6e/0x180
+kernel:  usb_bulk_msg+0xb8/0x160
+kernel:  as102_send_ep1+0x49/0xe0 [dvb_as102]
+kernel:  ? devres_add+0x3f/0x50
+kernel:  as102_firmware_upload.isra.0+0x1dc/0x210 [dvb_as102]
+kernel:  as102_fw_upload+0xb6/0x1f0 [dvb_as102]
+kernel:  as102_dvb_register+0x2af/0x2d0 [dvb_as102]
+kernel:  as102_usb_probe+0x1f3/0x260 [dvb_as102]
+kernel:  usb_probe_interface+0x124/0x300
+kernel:  driver_probe_device+0x2ff/0x450
+kernel:  __driver_attach+0xa4/0xe0
+kernel:  ? driver_probe_device+0x450/0x450
+kernel:  bus_for_each_dev+0x6e/0xb0
+kernel:  driver_attach+0x1e/0x20
+kernel:  bus_add_driver+0x1c7/0x270
+kernel:  driver_register+0x60/0xe0
+kernel:  usb_register_driver+0x81/0x150
+kernel:  ? 0xffffffffc0807000
+kernel:  as102_usb_driver_init+0x1e/0x1000 [dvb_as102]
+kernel:  do_one_initcall+0x50/0x190
+kernel:  ? __vunmap+0x81/0xb0
+kernel:  ? kfree+0x154/0x170
+kernel:  ? kmem_cache_alloc_trace+0x15f/0x1c0
+kernel:  ? do_init_module+0x27/0x1e9
+kernel:  do_init_module+0x5f/0x1e9
+kernel:  load_module+0x2602/0x2c30
+kernel:  SYSC_init_module+0x170/0x1a0
+kernel:  ? SYSC_init_module+0x170/0x1a0
+kernel:  SyS_init_module+0xe/0x10
+kernel:  do_syscall_64+0x67/0x140
+kernel:  entry_SYSCALL64_slow_path+0x25/0x25
+kernel: RIP: 0033:0x7effab6cf3ea
+kernel: RSP: 002b:00007fff5cfcbbc8 EFLAGS: 00000246 ORIG_RAX: 00000000000000af
+kernel: RAX: ffffffffffffffda RBX: 00005569e0b83760 RCX: 00007effab6cf3ea
+kernel: RDX: 00007effac2099c5 RSI: 0000000000009a13 RDI: 00005569e0b98c50
+kernel: RBP: 00007effac2099c5 R08: 00005569e0b83ed0 R09: 0000000000001d80
+kernel: R10: 00007effab98db00 R11: 0000000000000246 R12: 00005569e0b98c50
+kernel: R13: 00005569e0b81c60 R14: 0000000000020000 R15: 00005569dfadfdf7
+kernel: Code: 48 39 c8 73 30 80 3d 59 60 9d 00 00 41 bc f5 ff ff ff 0f 85 26 ff ff ff 48 c7 c7 b8 6b d0 92 c6 05 3f 60 9d 00 01 e8 24 3d ad ff <0f> ff 8b 53 64 e9 09 ff ff ff 65 48 8b 0c 25 00 d3 00 00 48 8b
+kernel: ---[ end trace c4cae366180e70ec ]---
+kernel: as10x_usb: error during firmware upload part1
 
-To work with the limitations of routing possibilities it is necessary
-for the DT bindings to describe which VIN device is connected to which
-CSI-2 device. This is why port 1 needs to to assign reg numbers for each
-VIN device that be connected to it. To setup and to know which links are
-valid for each SoC is the responsibility of the VIN driver since the
-register to configure it belongs to the VIN hardware.
+Let's allocate the the structure dynamically so we can get the firmware
+loaded correctly:
+[   14.243057] as10x_usb: firmware: as102_data1_st.hex loaded with success
+[   14.500777] as10x_usb: firmware: as102_data2_st.hex loaded with success
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Michele Baldessari <michele@acksyn.org>
 ---
- .../devicetree/bindings/media/rcar-csi2.txt        | 103 +++++++++++++++++++++
- MAINTAINERS                                        |   1 +
- 2 files changed, 104 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
+ drivers/media/usb/as102/as102_fw.c | 28 +++++++++++++++++-----------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/rcar-csi2.txt b/Documentation/devicetree/bindings/media/rcar-csi2.txt
-new file mode 100644
-index 0000000000000000..39d41d82b71b60eb
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/rcar-csi2.txt
-@@ -0,0 +1,103 @@
-+Renesas R-Car MIPI CSI-2
-+------------------------
+diff --git a/drivers/media/usb/as102/as102_fw.c b/drivers/media/usb/as102/as102_fw.c
+index 5a28ce3a1d49..38dbc128340d 100644
+--- a/drivers/media/usb/as102/as102_fw.c
++++ b/drivers/media/usb/as102/as102_fw.c
+@@ -101,18 +101,23 @@ static int as102_firmware_upload(struct as10x_bus_adapter_t *bus_adap,
+ 				 unsigned char *cmd,
+ 				 const struct firmware *firmware) {
+ 
+-	struct as10x_fw_pkt_t fw_pkt;
++	struct as10x_fw_pkt_t *fw_pkt;
+ 	int total_read_bytes = 0, errno = 0;
+ 	unsigned char addr_has_changed = 0;
+ 
++	fw_pkt = kmalloc(sizeof(*fw_pkt), GFP_KERNEL);
++	if (!fw_pkt)
++		return -ENOMEM;
 +
-+The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesas R-Car
-+family of devices. It is to be used in conjunction with the R-Car VIN module,
-+which provides the video capture capabilities.
 +
-+Mandatory properties
-+--------------------
-+ - compatible: Must be one or more of the following
-+   - "renesas,r8a7795-csi2" for the R8A7795 device.
-+   - "renesas,r8a7796-csi2" for the R8A7796 device.
-+
-+ - reg: the register base and size for the device registers
-+ - interrupts: the interrupt for the device
-+ - clocks: Reference to the parent clock
-+
-+The device node shall contain two 'port' child nodes according to the
-+bindings defined in Documentation/devicetree/bindings/media/
-+video-interfaces.txt. Port 0 shall connect the node that is the video
-+source for to the CSI-2. Port 1 shall connect all the R-Car VIN
-+modules, which can make use of the CSI-2 module.
-+
-+- Port 0 - Video source (Mandatory)
-+	- Endpoint 0 - sub-node describing the endpoint that is the video source
-+
-+- Port 1 - VIN instances (Mandatory for all VIN present in the SoC)
-+	- Endpoint 0 - sub-node describing the endpoint that is VIN0
-+	- Endpoint 1 - sub-node describing the endpoint that is VIN1
-+	- Endpoint 2 - sub-node describing the endpoint that is VIN2
-+	- Endpoint 3 - sub-node describing the endpoint that is VIN3
-+	- Endpoint 4 - sub-node describing the endpoint that is VIN4
-+	- Endpoint 5 - sub-node describing the endpoint that is VIN5
-+	- Endpoint 6 - sub-node describing the endpoint that is VIN6
-+	- Endpoint 7 - sub-node describing the endpoint that is VIN7
-+
-+Example:
-+
-+	csi20: csi2@fea80000 {
-+		compatible = "renesas,r8a7796-csi2", "renesas,rcar-gen3-csi2";
-+		reg = <0 0xfea80000 0 0x10000>;
-+		interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 714>;
-+		power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				reg = <0>;
-+
-+				csi20_in: endpoint@0 {
-+					clock-lanes = <0>;
-+					data-lanes = <1>;
-+					remote-endpoint = <&adv7482_txb>;
-+				};
-+			};
-+
-+			port@1 {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				reg = <1>;
-+
-+				csi20vin0: endpoint@0 {
-+					reg = <0>;
-+					remote-endpoint = <&vin0csi20>;
-+				};
-+				csi20vin1: endpoint@1 {
-+					reg = <1>;
-+					remote-endpoint = <&vin1csi20>;
-+				};
-+				csi20vin2: endpoint@2 {
-+					reg = <2>;
-+					remote-endpoint = <&vin2csi20>;
-+				};
-+				csi20vin3: endpoint@3 {
-+					reg = <3>;
-+					remote-endpoint = <&vin3csi20>;
-+				};
-+				csi20vin4: endpoint@4 {
-+					reg = <4>;
-+					remote-endpoint = <&vin4csi20>;
-+				};
-+				csi20vin5: endpoint@5 {
-+					reg = <5>;
-+					remote-endpoint = <&vin5csi20>;
-+				};
-+				csi20vin6: endpoint@6 {
-+					reg = <6>;
-+					remote-endpoint = <&vin6csi20>;
-+				};
-+				csi20vin7: endpoint@7 {
-+					reg = <7>;
-+					remote-endpoint = <&vin7csi20>;
-+				};
-+			};
-+		};
-+	};
-diff --git a/MAINTAINERS b/MAINTAINERS
-index adbf69306e9ee3d2..fa81ee6e80274646 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8565,6 +8565,7 @@ L:	linux-media@vger.kernel.org
- L:	linux-renesas-soc@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
- S:	Supported
-+F:	Documentation/devicetree/bindings/media/rcar-csi2.txt
- F:	Documentation/devicetree/bindings/media/rcar_vin.txt
- F:	drivers/media/platform/rcar-vin/
+ 	for (total_read_bytes = 0; total_read_bytes < firmware->size; ) {
+ 		int read_bytes = 0, data_len = 0;
+ 
+ 		/* parse intel hex line */
+ 		read_bytes = parse_hex_line(
+ 				(u8 *) (firmware->data + total_read_bytes),
+-				fw_pkt.raw.address,
+-				fw_pkt.raw.data,
++				fw_pkt->raw.address,
++				fw_pkt->raw.data,
+ 				&data_len,
+ 				&addr_has_changed);
+ 
+@@ -122,28 +127,28 @@ static int as102_firmware_upload(struct as10x_bus_adapter_t *bus_adap,
+ 		/* detect the end of file */
+ 		total_read_bytes += read_bytes;
+ 		if (total_read_bytes == firmware->size) {
+-			fw_pkt.u.request[0] = 0x00;
+-			fw_pkt.u.request[1] = 0x03;
++			fw_pkt->u.request[0] = 0x00;
++			fw_pkt->u.request[1] = 0x03;
+ 
+ 			/* send EOF command */
+ 			errno = bus_adap->ops->upload_fw_pkt(bus_adap,
+ 							     (uint8_t *)
+-							     &fw_pkt, 2, 0);
++							     fw_pkt, 2, 0);
+ 			if (errno < 0)
+ 				goto error;
+ 		} else {
+ 			if (!addr_has_changed) {
+ 				/* prepare command to send */
+-				fw_pkt.u.request[0] = 0x00;
+-				fw_pkt.u.request[1] = 0x01;
++				fw_pkt->u.request[0] = 0x00;
++				fw_pkt->u.request[1] = 0x01;
+ 
+-				data_len += sizeof(fw_pkt.u.request);
+-				data_len += sizeof(fw_pkt.raw.address);
++				data_len += sizeof(fw_pkt->u.request);
++				data_len += sizeof(fw_pkt->raw.address);
+ 
+ 				/* send cmd to device */
+ 				errno = bus_adap->ops->upload_fw_pkt(bus_adap,
+ 								     (uint8_t *)
+-								     &fw_pkt,
++								     fw_pkt,
+ 								     data_len,
+ 								     0);
+ 				if (errno < 0)
+@@ -152,6 +157,7 @@ static int as102_firmware_upload(struct as10x_bus_adapter_t *bus_adap,
+ 		}
+ 	}
+ error:
++	kfree(fw_pkt);
+ 	return (errno == 0) ? total_read_bytes : errno;
+ }
  
 -- 
-2.15.0
+2.14.3
