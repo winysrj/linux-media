@@ -1,197 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:1858 "EHLO
-        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751259AbdKVQjZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Nov 2017 11:39:25 -0500
-Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
-        by mx07-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id vAMGaC2N012974
-        for <linux-media@vger.kernel.org>; Wed, 22 Nov 2017 16:39:24 GMT
-Received: from mail-pg0-f69.google.com (mail-pg0-f69.google.com [74.125.83.69])
-        by mx07-00252a01.pphosted.com with ESMTP id 2ecvybgdh6-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-        for <linux-media@vger.kernel.org>; Wed, 22 Nov 2017 16:39:24 +0000
-Received: by mail-pg0-f69.google.com with SMTP id x202so16687520pgx.1
-        for <linux-media@vger.kernel.org>; Wed, 22 Nov 2017 08:39:24 -0800 (PST)
+Received: from mail-ot0-f194.google.com ([74.125.82.194]:52718 "EHLO
+        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753262AbdKFN1b (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Nov 2017 08:27:31 -0500
+Received: by mail-ot0-f194.google.com with SMTP id v105so8469253ota.9
+        for <linux-media@vger.kernel.org>; Mon, 06 Nov 2017 05:27:31 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <87bmjvcpyv.fsf@anholt.net>
-References: <cover.1505916622.git.dave.stevenson@raspberrypi.org>
- <fae3d29bba67825030c0077dd9c79534b6888512.1505916622.git.dave.stevenson@raspberrypi.org>
- <1814950930.414004.1506062733728@email.1und1.de> <CAAoAYcMFm82vo5k-iCCpARbndyrLDt1UMV_kRUDHiHA0iMzhMg@mail.gmail.com>
- <20170927215124.6k3j54qf2qscnzc2@rob-hp-laptop> <CAAoAYcM0m6Z8hUDn+FuNb-O28geAYJqHWrhKPDP_Jvh2P-YE3A@mail.gmail.com>
- <877euje8mc.fsf@anholt.net> <CAL_JsqJ51jd8nkYAKvLUEf8n7+eJsd8JxW-8YJ6gfx1_Y1LzdA@mail.gmail.com>
- <87bmjvcpyv.fsf@anholt.net>
-From: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Date: Wed, 22 Nov 2017 16:39:21 +0000
-Message-ID: <CAAoAYcMaL9m9fN8XHAYaUhVsrWxH7rwuYW1F+K9Wjjde_E242w@mail.gmail.com>
-Subject: Re: [PATCH v3 2/4] [media] dt-bindings: Document BCM283x CSI2/CCP2 receiver
-To: Eric Anholt <eric@anholt.net>
-Cc: Rob Herring <robh@kernel.org>,
-        Stefan Wahren <stefan.wahren@i2se.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "moderated list:BROADCOM BCM2835 ARM ARCHITECTURE"
-        <linux-rpi-kernel@lists.infradead.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+From: Andrey Konovalov <andreyknvl@google.com>
+Date: Mon, 6 Nov 2017 14:27:29 +0100
+Message-ID: <CAAeHK+x6mg8uO7mT8Ot--+u55iJFaa__NhbvM-YK2qDQ91HKpw@mail.gmail.com>
+Subject: usb/media/tm6000: use-after-free in tm6000_read_write_usb
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        syzkaller <syzkaller@googlegroups.com>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21 November 2017 at 20:54, Eric Anholt <eric@anholt.net> wrote:
-> Rob Herring <robh@kernel.org> writes:
->
->> On Tue, Nov 21, 2017 at 1:26 PM, Eric Anholt <eric@anholt.net> wrote:
->>> Dave Stevenson <dave.stevenson@raspberrypi.org> writes:
->>>
->>>> Hi Rob
->>>>
->>>> On 27 September 2017 at 22:51, Rob Herring <robh@kernel.org> wrote:
->>>>> On Fri, Sep 22, 2017 at 05:07:22PM +0100, Dave Stevenson wrote:
->>>>>> Hi Stefan
->>>>>>
->>>>>> On 22 September 2017 at 07:45, Stefan Wahren <stefan.wahren@i2se.com> wrote:
->>>>>> > Hi Dave,
->>>>>> >
->>>>>> >> Dave Stevenson <dave.stevenson@raspberrypi.org> hat am 20. September 2017 um 18:07 geschrieben:
->>>>>> >>
->>>>>> >>
->>>>>> >> Document the DT bindings for the CSI2/CCP2 receiver peripheral
->>>>>> >> (known as Unicam) on BCM283x SoCs.
->>>>>> >>
->>>>>> >> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
->>>>>> >> ---
->>>>>> >>
->>>>>> >> Changes since v2
->>>>>> >> - Removed all references to Linux drivers.
->>>>>> >> - Reworded section about disabling the firmware driver.
->>>>>> >> - Renamed clock from "lp_clock" to "lp" in description and example.
->>>>>> >> - Referred to video-interfaces.txt and stated requirements on remote-endpoint
->>>>>> >>   and data-lanes.
->>>>>> >> - Corrected typo in example from csi to csi1.
->>>>>> >> - Removed unnecessary #address-cells and #size-cells in example.
->>>>>> >> - Removed setting of status from the example.
->>>>>> >>
->>>>>> >>  .../devicetree/bindings/media/bcm2835-unicam.txt   | 85 ++++++++++++++++++++++
->>>>>> >>  1 file changed, 85 insertions(+)
->>>>>> >>  create mode 100644 Documentation/devicetree/bindings/media/bcm2835-unicam.txt
->>>>>> >>
->>>>>> >> diff --git a/Documentation/devicetree/bindings/media/bcm2835-unicam.txt b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
->>>>>> >> new file mode 100644
->>>>>> >> index 0000000..7714fb3
->>>>>> >> --- /dev/null
->>>>>> >> +++ b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
->>>>>> >> @@ -0,0 +1,85 @@
->>>>>> >> +Broadcom BCM283x Camera Interface (Unicam)
->>>>>> >> +------------------------------------------
->>>>>> >> +
->>>>>> >> +The Unicam block on BCM283x SoCs is the receiver for either
->>>>>> >> +CSI-2 or CCP2 data from image sensors or similar devices.
->>>>>> >> +
->>>>>> >> +The main platform using this SoC is the Raspberry Pi family of boards.
->>>>>> >> +On the Pi the VideoCore firmware can also control this hardware block,
->>>>>> >> +and driving it from two different processors will cause issues.
->>>>>> >> +To avoid this, the firmware checks the device tree configuration
->>>>>> >> +during boot. If it finds device tree nodes called csi0 or csi1 then
->>>>>> >> +it will stop the firmware accessing the block, and it can then
->>>>>> >> +safely be used via the device tree binding.
->>>>>> >> +
->>>>>> >> +Required properties:
->>>>>> >> +===================
->>>>>> >> +- compatible : must be "brcm,bcm2835-unicam".
->>>>>> >> +- reg                : physical base address and length of the register sets for the
->>>>>> >> +               device.
->>>>>> >> +- interrupts : should contain the IRQ line for this Unicam instance.
->>>>>> >> +- clocks     : list of clock specifiers, corresponding to entries in
->>>>>> >> +               clock-names property.
->>>>>> >> +- clock-names        : must contain an "lp" entry, matching entries in the
->>>>>> >> +               clocks property.
->>>>>> >> +
->>>>>> >> +Unicam supports a single port node. It should contain one 'port' child node
->>>>>> >> +with child 'endpoint' node. Please refer to the bindings defined in
->>>>>> >> +Documentation/devicetree/bindings/media/video-interfaces.txt.
->>>>>> >> +
->>>>>> >> +Within the endpoint node the "remote-endpoint" and "data-lanes" properties
->>>>>> >> +are mandatory.
->>>>>> >> +Data lane reordering is not supported so the data lanes must be in order,
->>>>>> >> +starting at 1. The number of data lanes should represent the number of
->>>>>> >> +usable lanes for the hardware block. That may be limited by either the SoC or
->>>>>> >> +how the platform presents the interface, and the lower value must be used.
->>>>>> >> +
->>>>>> >> +Lane reordering is not supported on the clock lane either, so the optional
->>>>>> >> +property "clock-lane" will implicitly be <0>.
->>>>>> >> +Similarly lane inversion is not supported, therefore "lane-polarities" will
->>>>>> >> +implicitly be <0 0 0 0 0>.
->>>>>> >> +Neither of these values will be checked.
->>>>>> >> +
->>>>>> >> +Example:
->>>>>> >> +     csi1: csi1@7e801000 {
->>>>>> >> +             compatible = "brcm,bcm2835-unicam";
->>>>>> >> +             reg = <0x7e801000 0x800>,
->>>>>> >> +                   <0x7e802004 0x4>;
->>>>>> >
->>>>>> > sorry, i didn't noticed this before. I'm afraid this is using a small range of the CMI. Are there possible other users of this range? Does it make sense to handle this by a separate clock driver?
->>>>>>
->>>>>> CMI (Clock Manager Image) consists of a total of 4 registers.
->>>>>> 0x7e802000 is CMI_CAM0, with only bits 0-5 used for gating and
->>>>>> inversion of the clock and data lanes (2 data lanes available on
->>>>>> CAM0).
->>>>>> 0x7e802004 is CMI_CAM1, with only bits 0-9 used for gating and
->>>>>> inversion of the clock and data lanes (4 data lanes available on
->>>>>> CAM1).
->>>>>> 0x7e802008 is CMI_CAMTEST which I have no documentation or drivers for.
->>>>>> 0x7e802010 is CMI_USBCTL. Only bit 6 is documented and is a reset. The
->>>>>> default value is the required value. Nothing touches it that I can
->>>>>> find.
->>>>>>
->>>>>> The range listed only covers the one register associated with that
->>>>>> Unicam instance, so no other users. The other two aren't touched.
->>>>>> Do 16 active register bits solely for camera clock gating really
->>>>>> warrant a full clock driver?
->>>>>
->>>>> You should describe all the registers in DT, not just what the driver
->>>>> (currently) uses.
->>>>
->>>> I'm not clear what you're asking for here.
->>>>
->>>> This binding is for the Unicam block, not for CMI (Clock Manager
->>>> Imaging). In order for a Unicam instance to work, it needs to enable
->>>> the relevant clock gating via 1 CMI register, and it will only ever be
->>>> one register.
->>>
->>> Rob, the CMI just a small bit of glue required by the crossing of a
->>> power domain in a unicam instance, and the two unicam instances in this
->>> HW have their CMI regs next to each other.  It's not really a separate
->>> block, and I think describing the unicam's CMI reg in the unicam binding
->>> is appropriate.
->>>
->>> What would you need from Dave to ack this binding?
->>
->> Sorry, had started to reply on this and got distracted.
->>
->> I guess since there seems to be only 1 other bit that could possibly
->> be used (CMI_USBCTL) it is fine like this. However, my concern would
->> be if the CMI registers are integrated in a different way in some
->> future chip that has the same unicam instances. Or just if the
->> register bits are rearranged. Those are not an uncommon occurrence.
->> You would have to provide access to those registers in some other way.
->> It can be dealt with, but then you have to support both cases in the
->> driver. If you all are fine with that, then:
->
-> The bigisland chips match bcm2835.  For capri the lane enables are
-> shifted down by two and the clock is up at bit 20.  That would be
-> trivial to handle based on the compatible string, except that we can't
-> talk to capri's hardware from ARM anyway :(
+Hi!
 
-Thank you both.
+I've got the following report while fuzzing the kernel with syzkaller.
 
-The Java and Hawaii chips also have the same Unicam block, but appear
-to be missing CMI totally based on the BCM Android kernel source.
-They aren't chips I have any interest in, but as Eric says it can be
-supported easily via the compatible string, or by making the resource
-optional. The latter is easy to do, so I'll add that to v4 of the
-patch set.
+On commit 39dae59d66acd86d1de24294bd2f343fd5e7a625 (4.14-rc8).
 
-Cheers,
-  Dave
+usb 1-1: USB disconnect, device number 11
+tm6000: disconnecting tm6000 #0
+xc2028 0-0061: destroying instance
+==================================================================
+BUG: KASAN: use-after-free in tm6000_read_write_usb+0x3cd/0x3f0
+Read of size 4 at addr ffff8800697c4c80 by task v4l_id/5544
+
+CPU: 1 PID: 5544 Comm: v4l_id Not tainted 4.14.0-rc8-44453-g1fdc1a82c34f #56
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17
+ dump_stack+0xe1/0x157 lib/dump_stack.c:53
+ print_address_description+0x71/0x234 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351
+ kasan_report+0x173/0x270 mm/kasan/report.c:409
+ __asan_report_load4_noabort+0x19/0x20 mm/kasan/report.c:429
+ tm6000_read_write_usb+0x3cd/0x3f0 drivers/media/usb/tm6000/tm6000-core.c:48
+ tm6000_set_reg+0x3d/0x50 drivers/media/usb/tm6000/tm6000-core.c:113
+ tm6000_set_standard+0x7f1/0x13dc drivers/media/usb/tm6000/tm6000-stds.c:574
+ tm6000_init_analog_mode+0x232/0x990 drivers/media/usb/tm6000/tm6000-core.c:340
+ __tm6000_open drivers/media/usb/tm6000/tm6000-video.c:1373
+ tm6000_open+0x409/0x830 drivers/media/usb/tm6000/tm6000-video.c:1406
+ v4l2_open+0x1b7/0x380 drivers/media/v4l2-core/v4l2-dev.c:425
+ chrdev_open+0x1db/0x520 fs/char_dev.c:417
+ do_dentry_open+0x735/0xe20 fs/open.c:752
+ vfs_open+0x13e/0x230 fs/open.c:866
+ do_last fs/namei.c:3388
+ path_openat+0x722/0x2860 fs/namei.c:3528
+ do_filp_open+0x13f/0x1d0 fs/namei.c:3563
+ do_sys_open+0x362/0x4c0 fs/open.c:1059
+ SYSC_open fs/open.c:1077
+ SyS_open+0x32/0x40 fs/open.c:1072
+ entry_SYSCALL_64_fastpath+0x23/0xc2 arch/x86/entry/entry_64.S:203
+RIP: 0033:0x7f10089a9120
+RSP: 002b:00007ffd20f92098 EFLAGS: 00000246 ORIG_RAX: 0000000000000002
+RAX: ffffffffffffffda RBX: 0000000000000046 RCX: 00007f10089a9120
+RDX: 00007f1008c5e138 RSI: 0000000000000000 RDI: 00007ffd20f93f27
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000400884
+R13: 00007ffd20f921f0 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 2263:
+ save_stack_trace+0x1b/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x11a/0x290 mm/slub.c:2773
+ kmalloc ./include/linux/slab.h:494
+ kzalloc ./include/linux/slab.h:667
+ usb_alloc_dev+0x3a/0xd86 drivers/usb/core/usb.c:561
+ hub_port_connect drivers/usb/core/hub.c:4893
+ hub_port_connect_change drivers/usb/core/hub.c:5093
+ port_event drivers/usb/core/hub.c:5199
+ hub_event_impl+0x124b/0x3440 drivers/usb/core/hub.c:5311
+ hub_event+0x38/0x50 drivers/usb/core/hub.c:5209
+ process_one_work+0x925/0x15d0 kernel/workqueue.c:2113
+ worker_thread+0xef/0x10d0 kernel/workqueue.c:2247
+ kthread+0x346/0x410 kernel/kthread.c:231
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:432
+
+Freed by task 2263:
+ save_stack_trace+0x1b/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459
+ kasan_slab_free+0x72/0xc0 mm/kasan/kasan.c:524
+ slab_free_hook mm/slub.c:1391
+ slab_free_freelist_hook mm/slub.c:1413
+ slab_free mm/slub.c:2989
+ kfree+0xf2/0x2e0 mm/slub.c:3920
+ usb_release_dev+0xe3/0x110 drivers/usb/core/usb.c:424
+ device_release+0xfc/0x1b0 drivers/base/core.c:812
+ kobject_cleanup lib/kobject.c:648
+ kobject_release lib/kobject.c:677
+ kref_put ./include/linux/kref.h:70
+ kobject_put+0x18f/0x240 lib/kobject.c:694
+ put_device+0x25/0x30 drivers/base/core.c:1931
+ usb_disconnect+0x5de/0x7f0 drivers/usb/core/hub.c:2248
+ hub_port_connect drivers/usb/core/hub.c:4838
+ hub_port_connect_change drivers/usb/core/hub.c:5093
+ port_event drivers/usb/core/hub.c:5199
+ hub_event_impl+0x10ec/0x3440 drivers/usb/core/hub.c:5311
+ hub_event+0x38/0x50 drivers/usb/core/hub.c:5209
+ process_one_work+0x925/0x15d0 kernel/workqueue.c:2113
+ worker_thread+0xef/0x10d0 kernel/workqueue.c:2247
+ kthread+0x346/0x410 kernel/kthread.c:231
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:432
+
+The buggy address belongs to the object at ffff8800697c4c80
+ which belongs to the cache kmalloc-2048 of size 2048
+The buggy address is located 0 bytes inside of
+ 2048-byte region [ffff8800697c4c80, ffff8800697c5480)
+The buggy address belongs to the page:
+page:ffffea0001a5f000 count:1 mapcount:0 mapping:          (null)
+index:0x0 compound_mapcount: 0
+flags: 0x100000000008100(slab|head)
+raw: 0100000000008100 0000000000000000 0000000000000000 00000001000f000f
+raw: dead000000000100 dead000000000200 ffff88006c402d80 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8800697c4b80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8800697c4c00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8800697c4c80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff8800697c4d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8800697c4d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================
