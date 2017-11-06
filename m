@@ -1,125 +1,438 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:35169 "EHLO mail.horus.com"
+Received: from gofer.mess.org ([88.97.38.141]:39215 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757172AbdKQOwx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 09:52:53 -0500
-Date: Fri, 17 Nov 2017 15:52:50 +0100
-From: Matthias Reichl <hias@horus.com>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: rc: double keypresses due to timeout expiring to
- early
-Message-ID: <20171117145249.wc4ql2hw46enxu7d@camel2.lan>
-References: <20171116152700.filid3ask3gowegl@camel2.lan>
- <20171116163920.ouxinvde5ai4fle3@gofer.mess.org>
- <20171116215451.min7sqdo7itiyyif@gofer.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171116215451.min7sqdo7itiyyif@gofer.mess.org>
+        id S1752116AbdKFKkX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Nov 2017 05:40:23 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 4/5] media: lirc: improve locking
+Date: Mon,  6 Nov 2017 10:40:19 +0000
+Message-Id: <4389380ed5dc50cfad76db8ccd0803edcbe8f89d.1509964131.git.sean@mess.org>
+In-Reply-To: <cover.1509964131.git.sean@mess.org>
+References: <cover.1509964131.git.sean@mess.org>
+In-Reply-To: <cover.1509964131.git.sean@mess.org>
+References: <cover.1509964131.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean!
+Once rc_unregister_device() has been called, no driver function
+should be called.
 
-On Thu, Nov 16, 2017 at 09:54:51PM +0000, Sean Young wrote:
-> Since commit d57ea877af38 ("media: rc: per-protocol repeat period"),
-> double keypresses are reported on the ite-cir driver. This is due
-> two factors: that commit reduced the timeout used for some protocols
-> (it became protocol dependant) and the high default IR timeout used
-> by the ite-cir driver.
-> 
-> Some of the IR decoders wait for a trailing space, as that is
-> the only way to know if the bit stream has ended (e.g. rc-6 can be
-> 16, 20 or 32 bits). The longer the IR timeout, the longer it will take
-> to receive the trailing space, delaying decoding and pushing it past the
-> keyup timeout.
-> 
-> So, add the IR timeout to the keyup timeout.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/lirc_dev.c | 255 +++++++++++++++++++++++++-------------------
+ 1 file changed, 147 insertions(+), 108 deletions(-)
 
-Thanks a lot for the patch, I've asked the people with ite-cir
-receivers to test it.
-
-In the meanwhile I ran some tests with gpio-ir-recv and timeout
-set to 200ms with a rc-5 remote (that's as close to the original
-setup as I can test right now).
-
-While the patch fixes the additional key down/up event on longer
-presses, I still get a repeated key event on a short button
-press - which makes it hard to do a single click with the
-remote.
-
-Test on kernel 4.14 with your patch:
-1510927844.292126: event type EV_MSC(0x04): scancode = 0x1015
-1510927844.292126: event type EV_KEY(0x01) key_down: KEY_ENTER(0x001c)
-1510927844.292126: event type EV_SYN(0x00).
-1510927844.498773: event type EV_MSC(0x04): scancode = 0x1015
-1510927844.498773: event type EV_SYN(0x00).
-1510927844.795410: event type EV_KEY(0x01) key_down: KEY_ENTER(0x001c)
-1510927844.795410: event type EV_SYN(0x00).
-1510927844.875412: event type EV_KEY(0x01) key_up: KEY_ENTER(0x001c)
-1510927844.875412: event type EV_SYN(0x00).
-
-Same signal received on kernel 4.9:
-1510927844.280350: event type EV_MSC(0x04): scancode = 0x1015
-1510927844.280350: event type EV_KEY(0x01) key_down: KEY_OK(0x0160)
-1510927844.280350: event type EV_SYN(0x00).
-1510927844.506477: event type EV_MSC(0x04): scancode = 0x1015
-1510927844.506477: event type EV_SYN(0x00).
-1510927844.763111: event type EV_KEY(0x01) key_up: KEY_OK(0x0160)
-1510927844.763111: event type EV_SYN(0x00).
-
-If I understand it correctly it's the input layer repeat (500ms delay)
-kicking in, because time between initial scancode and timeout is
-now signal time + 200ms + 164ms + 200ms (about 570-580ms).
-On older kernels this was signal time + 200ms + 250ms, so typically
-just below the 500ms default repeat delay.
-
-I'm still trying to wrap my head around the timeout code in the
-rc layer. One problem seems to be that we apply the rather large
-timeout twice. Maybe detecting scancodes generated via timeout
-(sth like timestamp - last_timestamp > protocol_repeat_period)
-and in that case immediately signalling keyup could help? Could well
-be that I'm missing somehting important and this is a bad idea.
-I guess I'd better let you figure something out :)
-
-so long,
-
-Hias
-
-> 
-> Cc: <stable@vger.kernel.org> # 4.14
-> Reported-by: Matthias Reichl <hias@horus.com>
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  drivers/media/rc/rc-main.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 17950e29d4e3..fae721534517 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -672,7 +672,8 @@ void rc_repeat(struct rc_dev *dev)
->  	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
->  	input_sync(dev->input_dev);
->  
-> -	dev->keyup_jiffies = jiffies + msecs_to_jiffies(timeout);
-> +	dev->keyup_jiffies = jiffies + msecs_to_jiffies(timeout) +
-> +					nsecs_to_jiffies(dev->timeout);
->  	mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
->  
->  out:
-> @@ -744,7 +745,8 @@ void rc_keydown(struct rc_dev *dev, enum rc_proto protocol, u32 scancode,
->  
->  	if (dev->keypressed) {
->  		dev->keyup_jiffies = jiffies +
-> -			msecs_to_jiffies(protocols[protocol].repeat_period);
-> +			msecs_to_jiffies(protocols[protocol].repeat_period) +
-> +			nsecs_to_jiffies(dev->timeout);
->  		mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
->  	}
->  	spin_unlock_irqrestore(&dev->keylock, flags);
-> -- 
-> 2.14.3
-> 
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 32beecf103cc..6b0053d4f041 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -240,15 +240,21 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 	struct rc_dev *dev = fh->rc;
+ 	unsigned int *txbuf = NULL;
+ 	struct ir_raw_event *raw = NULL;
+-	ssize_t ret = -EINVAL;
++	ssize_t ret;
+ 	size_t count;
+ 	ktime_t start;
+ 	s64 towait;
+ 	unsigned int duration = 0; /* signal duration in us */
+ 	int i;
+ 
+-	if (!dev->registered)
+-		return -ENODEV;
++	ret = mutex_lock_interruptible(&dev->lock);
++	if (ret)
++		return ret;
++
++	if (!dev->registered) {
++		ret = -ENODEV;
++		goto out;
++	}
+ 
+ 	start = ktime_get();
+ 
+@@ -260,14 +266,20 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 	if (fh->send_mode == LIRC_MODE_SCANCODE) {
+ 		struct lirc_scancode scan;
+ 
+-		if (n != sizeof(scan))
+-			return -EINVAL;
++		if (n != sizeof(scan)) {
++			ret = -EINVAL;
++			goto out;
++		}
+ 
+-		if (copy_from_user(&scan, buf, sizeof(scan)))
+-			return -EFAULT;
++		if (copy_from_user(&scan, buf, sizeof(scan))) {
++			ret = -EFAULT;
++			goto out;
++		}
+ 
+-		if (scan.flags || scan.keycode || scan.timestamp)
+-			return -EINVAL;
++		if (scan.flags || scan.keycode || scan.timestamp) {
++			ret = -EINVAL;
++			goto out;
++		}
+ 
+ 		/*
+ 		 * The scancode field in lirc_scancode is 64-bit simply
+@@ -276,12 +288,16 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 		 * are supported.
+ 		 */
+ 		if (scan.scancode > U32_MAX ||
+-		    !rc_validate_scancode(scan.rc_proto, scan.scancode))
+-			return -EINVAL;
++		    !rc_validate_scancode(scan.rc_proto, scan.scancode)) {
++			ret = -EINVAL;
++			goto out;
++		}
+ 
+ 		raw = kmalloc_array(LIRCBUF_SIZE, sizeof(*raw), GFP_KERNEL);
+-		if (!raw)
+-			return -ENOMEM;
++		if (!raw) {
++			ret = -ENOMEM;
++			goto out;
++		}
+ 
+ 		ret = ir_raw_encode_scancode(scan.rc_proto, scan.scancode,
+ 					     raw, LIRCBUF_SIZE);
+@@ -307,16 +323,22 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 				dev->s_tx_carrier(dev, carrier);
+ 		}
+ 	} else {
+-		if (n < sizeof(unsigned int) || n % sizeof(unsigned int))
+-			return -EINVAL;
++		if (n < sizeof(unsigned int) || n % sizeof(unsigned int)) {
++			ret = -EINVAL;
++			goto out;
++		}
+ 
+ 		count = n / sizeof(unsigned int);
+-		if (count > LIRCBUF_SIZE || count % 2 == 0)
+-			return -EINVAL;
++		if (count > LIRCBUF_SIZE || count % 2 == 0) {
++			ret = -EINVAL;
++			goto out;
++		}
+ 
+ 		txbuf = memdup_user(buf, n);
+-		if (IS_ERR(txbuf))
+-			return PTR_ERR(txbuf);
++		if (IS_ERR(txbuf)) {
++			ret = PTR_ERR(txbuf);
++			goto out;
++		}
+ 	}
+ 
+ 	for (i = 0; i < count; i++) {
+@@ -354,6 +376,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 	}
+ 
+ out:
++	mutex_unlock(&dev->lock);
+ 	kfree(txbuf);
+ 	kfree(raw);
+ 	return ret;
+@@ -365,8 +388,8 @@ static long ir_lirc_ioctl(struct file *file, unsigned int cmd,
+ 	struct lirc_fh *fh = file->private_data;
+ 	struct rc_dev *dev = fh->rc;
+ 	u32 __user *argp = (u32 __user *)(arg);
+-	int ret = 0;
+-	__u32 val = 0, tmp;
++	u32 val = 0;
++	int ret;
+ 
+ 	if (_IOC_DIR(cmd) & _IOC_WRITE) {
+ 		ret = get_user(val, argp);
+@@ -374,8 +397,14 @@ static long ir_lirc_ioctl(struct file *file, unsigned int cmd,
+ 			return ret;
+ 	}
+ 
+-	if (!dev->registered)
+-		return -ENODEV;
++	ret = mutex_lock_interruptible(&dev->lock);
++	if (ret)
++		return ret;
++
++	if (!dev->registered) {
++		ret = -ENODEV;
++		goto out;
++	}
+ 
+ 	switch (cmd) {
+ 	case LIRC_GET_FEATURES:
+@@ -416,173 +445,183 @@ static long ir_lirc_ioctl(struct file *file, unsigned int cmd,
+ 	/* mode support */
+ 	case LIRC_GET_REC_MODE:
+ 		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
+-			return -ENOTTY;
+-
+-		val = fh->rec_mode;
++			ret = -ENOTTY;
++		else
++			val = fh->rec_mode;
+ 		break;
+ 
+ 	case LIRC_SET_REC_MODE:
+ 		switch (dev->driver_type) {
+ 		case RC_DRIVER_IR_RAW_TX:
+-			return -ENOTTY;
++			ret = -ENOTTY;
++			break;
+ 		case RC_DRIVER_SCANCODE:
+ 			if (val != LIRC_MODE_SCANCODE)
+-				return -EINVAL;
++				ret = -EINVAL;
+ 			break;
+ 		case RC_DRIVER_IR_RAW:
+ 			if (!(val == LIRC_MODE_MODE2 ||
+ 			      val == LIRC_MODE_SCANCODE))
+-				return -EINVAL;
++				ret = -EINVAL;
+ 			break;
+ 		}
+ 
+-		fh->rec_mode = val;
+-		fh->poll_mode = val;
+-		return 0;
++		if (!ret) {
++			fh->rec_mode = val;
++			fh->poll_mode = val;
++		}
++		break;
+ 
+ 	case LIRC_SET_POLL_MODES:
+ 		switch (dev->driver_type) {
+ 		case RC_DRIVER_IR_RAW_TX:
+-			return -ENOTTY;
++			ret = -ENOTTY;
++			break;
+ 		case RC_DRIVER_SCANCODE:
+ 			if (val != LIRC_MODE_SCANCODE)
+-				return -EINVAL;
++				ret = -EINVAL;
+ 			break;
+ 		case RC_DRIVER_IR_RAW:
+ 			if (val & ~(LIRC_MODE_MODE2 | LIRC_MODE_SCANCODE))
+-				return -EINVAL;
++				ret = -EINVAL;
+ 			break;
+ 		}
+ 
+-		fh->poll_mode = val;
+-		return 0;
++		if (!ret)
++			fh->poll_mode = val;
++
++		break;
+ 
+ 	case LIRC_GET_SEND_MODE:
+ 		if (!dev->tx_ir)
+-			return -ENOTTY;
+-
+-		val = fh->send_mode;
++			ret = -ENOTTY;
++		else
++			val = fh->send_mode;
+ 		break;
+ 
+ 	case LIRC_SET_SEND_MODE:
+ 		if (!dev->tx_ir)
+-			return -ENOTTY;
+-
+-		if (!(val == LIRC_MODE_PULSE || val == LIRC_MODE_SCANCODE))
+-			return -EINVAL;
+-
+-		fh->send_mode = val;
+-		return 0;
++			ret = -ENOTTY;
++		else if (!(val == LIRC_MODE_PULSE || val == LIRC_MODE_SCANCODE))
++			ret = -EINVAL;
++		else
++			fh->send_mode = val;
++		break;
+ 
+ 	/* TX settings */
+ 	case LIRC_SET_TRANSMITTER_MASK:
+ 		if (!dev->s_tx_mask)
+-			return -ENOTTY;
+-
+-		return dev->s_tx_mask(dev, val);
++			ret = -ENOTTY;
++		else
++			ret = dev->s_tx_mask(dev, val);
++		break;
+ 
+ 	case LIRC_SET_SEND_CARRIER:
+ 		if (!dev->s_tx_carrier)
+-			return -ENOTTY;
+-
+-		return dev->s_tx_carrier(dev, val);
++			ret = -ENOTTY;
++		else
++			ret = dev->s_tx_carrier(dev, val);
++		break;
+ 
+ 	case LIRC_SET_SEND_DUTY_CYCLE:
+ 		if (!dev->s_tx_duty_cycle)
+-			return -ENOTTY;
+-
+-		if (val <= 0 || val >= 100)
+-			return -EINVAL;
+-
+-		return dev->s_tx_duty_cycle(dev, val);
++			ret = -ENOTTY;
++		else if (val <= 0 || val >= 100)
++			ret = -EINVAL;
++		else
++			ret = dev->s_tx_duty_cycle(dev, val);
++		break;
+ 
+ 	/* RX settings */
+ 	case LIRC_SET_REC_CARRIER:
+ 		if (!dev->s_rx_carrier_range)
+-			return -ENOTTY;
+-
+-		if (val <= 0)
+-			return -EINVAL;
+-
+-		return dev->s_rx_carrier_range(dev,
+-					       fh->carrier_low,
+-					       val);
++			ret = -ENOTTY;
++		else if (val <= 0)
++			ret = -EINVAL;
++		else
++			ret = dev->s_rx_carrier_range(dev, fh->carrier_low,
++						      val);
++		break;
+ 
+ 	case LIRC_SET_REC_CARRIER_RANGE:
+ 		if (!dev->s_rx_carrier_range)
+-			return -ENOTTY;
+-
+-		if (val <= 0)
+-			return -EINVAL;
+-
+-		fh->carrier_low = val;
+-		return 0;
++			ret = -ENOTTY;
++		else if (val <= 0)
++			ret = -EINVAL;
++		else
++			fh->carrier_low = val;
++		break;
+ 
+ 	case LIRC_GET_REC_RESOLUTION:
+ 		if (!dev->rx_resolution)
+-			return -ENOTTY;
+-
+-		val = dev->rx_resolution / 1000;
++			ret = -ENOTTY;
++		else
++			val = dev->rx_resolution / 1000;
+ 		break;
+ 
+ 	case LIRC_SET_WIDEBAND_RECEIVER:
+ 		if (!dev->s_learning_mode)
+-			return -ENOTTY;
+-
+-		return dev->s_learning_mode(dev, !!val);
++			ret = -ENOTTY;
++		else
++			ret = dev->s_learning_mode(dev, !!val);
++		break;
+ 
+ 	case LIRC_SET_MEASURE_CARRIER_MODE:
+ 		if (!dev->s_carrier_report)
+-			return -ENOTTY;
+-
+-		return dev->s_carrier_report(dev, !!val);
++			ret = -ENOTTY;
++		else
++			ret = dev->s_carrier_report(dev, !!val);
++		break;
+ 
+ 	/* Generic timeout support */
+ 	case LIRC_GET_MIN_TIMEOUT:
+ 		if (!dev->max_timeout)
+-			return -ENOTTY;
+-		val = DIV_ROUND_UP(dev->min_timeout, 1000);
++			ret = -ENOTTY;
++		else
++			val = DIV_ROUND_UP(dev->min_timeout, 1000);
+ 		break;
+ 
+ 	case LIRC_GET_MAX_TIMEOUT:
+ 		if (!dev->max_timeout)
+-			return -ENOTTY;
+-		val = dev->max_timeout / 1000;
++			ret = -ENOTTY;
++		else
++			val = dev->max_timeout / 1000;
+ 		break;
+ 
+ 	case LIRC_SET_REC_TIMEOUT:
+-		if (!dev->max_timeout)
+-			return -ENOTTY;
+-
+-		/* Check for multiply overflow */
+-		if (val > U32_MAX / 1000)
+-			return -EINVAL;
+-
+-		tmp = val * 1000;
+-
+-		if (tmp < dev->min_timeout || tmp > dev->max_timeout)
+-			return -EINVAL;
+-
+-		if (dev->s_timeout)
+-			ret = dev->s_timeout(dev, tmp);
+-		if (!ret)
+-			dev->timeout = tmp;
++		if (!dev->max_timeout) {
++			ret = -ENOTTY;
++		} else if (val > U32_MAX / 1000) {
++			/* Check for multiply overflow */
++			ret = -EINVAL;
++		} else {
++			u32 tmp = val * 1000;
++
++			if (tmp < dev->min_timeout || tmp > dev->max_timeout)
++				ret = -EINVAL;
++			else if (dev->s_timeout)
++				ret = dev->s_timeout(dev, tmp);
++			else if (!ret)
++				dev->timeout = tmp;
++		}
+ 		break;
+ 
+ 	case LIRC_SET_REC_TIMEOUT_REPORTS:
+ 		if (!dev->timeout)
+-			return -ENOTTY;
+-
+-		fh->send_timeout_reports = !!val;
++			ret = -ENOTTY;
++		else
++			fh->send_timeout_reports = !!val;
+ 		break;
+ 
+ 	default:
+-		return -ENOTTY;
++		ret = -ENOTTY;
+ 	}
+ 
+-	if (_IOC_DIR(cmd) & _IOC_READ)
++	if (!ret && _IOC_DIR(cmd) & _IOC_READ)
+ 		ret = put_user(val, argp);
+ 
++out:
++	mutex_unlock(&dev->lock);
+ 	return ret;
+ }
+ 
+-- 
+2.13.6
