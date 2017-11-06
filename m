@@ -1,611 +1,1343 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:59123 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1030289AbdKQOPm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 09:15:42 -0500
-Subject: Re: [RFC v5 07/11] [media] vb2: add in-fence support to QBUF
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-References: <20171115171057.17340-1-gustavo@padovan.org>
- <20171115171057.17340-8-gustavo@padovan.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <185d8656-dacd-5e94-d93a-979a1acb2f66@xs4all.nl>
-Date: Fri, 17 Nov 2017 15:15:39 +0100
-MIME-Version: 1.0
-In-Reply-To: <20171115171057.17340-8-gustavo@padovan.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from gofer.mess.org ([88.97.38.141]:45169 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752102AbdKFKkW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Nov 2017 05:40:22 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/5] media: rc: move ir-lirc-codec.c contents into lirc_dev.c
+Date: Mon,  6 Nov 2017 10:40:16 +0000
+Message-Id: <f952894bb8f969db4c23de9f7ccf8b2750d80e52.1509964131.git.sean@mess.org>
+In-Reply-To: <cover.1509964131.git.sean@mess.org>
+References: <cover.1509964131.git.sean@mess.org>
+In-Reply-To: <cover.1509964131.git.sean@mess.org>
+References: <cover.1509964131.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15/11/17 18:10, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> Receive in-fence from userspace and add support for waiting on them
-> before queueing the buffer to the driver. Buffers can't be queued to the
-> driver before its fences signal. And a buffer can't be queue to the driver
-> out of the order they were queued from userspace. That means that even if
-> it fence signal it must wait all other buffers, ahead of it in the queue,
-> to signal first.
-> 
-> To make that possible we use fence_array to keep that ordering. Basically
-> we create a fence_array that contains both the current fence and the fence
-> from the previous buffer (which might be a fence array as well). The base
-> fence class for the fence_array becomes the new buffer fence, waiting on
-> that one guarantees that it won't be queued out of order.
-> 
-> v6:
-> 	- With fences always keep the order userspace queues the buffers.
-> 	- Protect in_fence manipulation with a lock (Brian Starkey)
-> 	- check if fences have the same context before adding a fence array
-> 	- Fix last_fence ref unbalance in __set_in_fence() (Brian Starkey)
-> 	- Clean up fence if __set_in_fence() fails (Brian Starkey)
-> 	- treat -EINVAL from dma_fence_add_callback() (Brian Starkey)
-> 
-> v5:	- use fence_array to keep buffers ordered in vb2 core when
-> 	needed (Brian Starkey)
-> 	- keep backward compat on the reserved2 field (Brian Starkey)
-> 	- protect fence callback removal with lock (Brian Starkey)
-> 
-> v4:
-> 	- Add a comment about dma_fence_add_callback() not returning a
-> 	error (Hans)
-> 	- Call dma_fence_put(vb->in_fence) if fence signaled (Hans)
-> 	- select SYNC_FILE under config VIDEOBUF2_CORE (Hans)
-> 	- Move dma_fence_is_signaled() check to __enqueue_in_driver() (Hans)
-> 	- Remove list_for_each_entry() in __vb2_core_qbuf() (Hans)
-> 	-  Remove if (vb->state != VB2_BUF_STATE_QUEUED) from
-> 	vb2_start_streaming() (Hans)
-> 	- set IN_FENCE flags on __fill_v4l2_buffer (Hans)
-> 	- Queue buffers to the driver as soon as they are ready (Hans)
-> 	- call fill_user_buffer() after queuing the buffer (Hans)
-> 	- add err: label to clean up fence
-> 	- add dma_fence_wait() before calling vb2_start_streaming()
-> 
-> v3:	- document fence parameter
-> 	- remove ternary if at vb2_qbuf() return (Mauro)
-> 	- do not change if conditions behaviour (Mauro)
-> 
-> v2:
-> 	- fix vb2_queue_or_prepare_buf() ret check
-> 	- remove check for VB2_MEMORY_DMABUF only (Javier)
-> 	- check num of ready buffers to start streaming
-> 	- when queueing, start from the first ready buffer
-> 	- handle queue cancel
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  drivers/media/v4l2-core/Kconfig          |   1 +
->  drivers/media/v4l2-core/videobuf2-core.c | 202 ++++++++++++++++++++++++++++---
->  drivers/media/v4l2-core/videobuf2-v4l2.c |  29 ++++-
->  include/media/videobuf2-core.h           |  17 ++-
->  4 files changed, 231 insertions(+), 18 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-> index a35c33686abf..3f988c407c80 100644
-> --- a/drivers/media/v4l2-core/Kconfig
-> +++ b/drivers/media/v4l2-core/Kconfig
-> @@ -83,6 +83,7 @@ config VIDEOBUF_DVB
->  # Used by drivers that need Videobuf2 modules
->  config VIDEOBUF2_CORE
->  	select DMA_SHARED_BUFFER
-> +	select SYNC_FILE
->  	tristate
->  
->  config VIDEOBUF2_MEMOPS
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 60f8b582396a..26de4c80717d 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -23,6 +23,7 @@
->  #include <linux/sched.h>
->  #include <linux/freezer.h>
->  #include <linux/kthread.h>
-> +#include <linux/dma-fence-array.h>
->  
->  #include <media/videobuf2-core.h>
->  #include <media/v4l2-mc.h>
-> @@ -346,6 +347,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
->  		vb->index = q->num_buffers + buffer;
->  		vb->type = q->type;
->  		vb->memory = memory;
-> +		spin_lock_init(&vb->fence_cb_lock);
->  		for (plane = 0; plane < num_planes; ++plane) {
->  			vb->planes[plane].length = plane_sizes[plane];
->  			vb->planes[plane].min_length = plane_sizes[plane];
-> @@ -1222,6 +1224,9 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
->  {
->  	struct vb2_queue *q = vb->vb2_queue;
->  
-> +	if (vb->in_fence && !dma_fence_is_signaled(vb->in_fence))
-> +		return;
-> +
->  	vb->state = VB2_BUF_STATE_ACTIVE;
->  	atomic_inc(&q->owned_by_drv_count);
->  
-> @@ -1273,6 +1278,23 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
->  	return 0;
->  }
->  
-> +static int __get_num_ready_buffers(struct vb2_queue *q)
-> +{
-> +	struct vb2_buffer *vb;
-> +	int ready_count = 0;
-> +	unsigned long flags;
-> +
-> +	/* count num of buffers ready in front of the queued_list */
-> +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-> +		spin_lock_irqsave(&vb->fence_cb_lock, flags);
-> +		if (!vb->in_fence || dma_fence_is_signaled(vb->in_fence))
-> +			ready_count++;
+Since removing the lirc kapi, ir-lirc-codec.c only contains lirc fops
+so the file name is no longer correct. By moving its content into
+lirc_dev.c the ugly extern struct lirc_fops is not longer needed,
+and everything lirc related is in one file.
 
-Shouldn't there be a:
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/Makefile        |   2 +-
+ drivers/media/rc/ir-lirc-codec.c | 637 ---------------------------------------
+ drivers/media/rc/lirc_dev.c      | 618 +++++++++++++++++++++++++++++++++++++
+ drivers/media/rc/rc-core-priv.h  |   2 -
+ 4 files changed, 619 insertions(+), 640 deletions(-)
+ delete mode 100644 drivers/media/rc/ir-lirc-codec.c
 
-		else
-			break;
-
-here? You're counting the number of available (i.e. no fence or signaled
-fence) buffers at the start of the queued buffer list.
-
-> +		spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-> +	}
-> +
-> +	return ready_count;
-> +}
-> +
->  int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
->  {
->  	struct vb2_buffer *vb;
-> @@ -1361,9 +1383,87 @@ static int vb2_start_streaming(struct vb2_queue *q)
->  	return ret;
->  }
->  
-> -int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
-> +static struct dma_fence *__set_in_fence(struct vb2_queue *q,
-> +					struct vb2_buffer *vb,
-> +					struct dma_fence *fence)
-> +{
-> +	if (q->last_fence && dma_fence_is_signaled(q->last_fence)) {
-> +		dma_fence_put(q->last_fence);
-> +		q->last_fence = NULL;
-> +	}
-> +
-> +	/*
-> +	 * We always guarantee the ordering of buffers queued from
-> +	 * userspace to be the same it is queued to the driver. For that
-> +	 * we create a fence array with the fence from the last queued
-> +	 * buffer and this one, that way the fence for this buffer can't
-> +	 * signal before the last one.
-> +	 */
-> +	if (fence && q->last_fence) {
-> +		struct dma_fence **fences;
-> +		struct dma_fence_array *arr;
-> +
-> +		if (fence->context == q->last_fence->context) {
-> +			if (fence->seqno - q->last_fence->seqno <= INT_MAX) {
-> +				dma_fence_put(q->last_fence);
-> +				q->last_fence = dma_fence_get(fence);
-> +			} else {
-> +				dma_fence_put(fence);
-> +				fence = dma_fence_get(q->last_fence);
-> +			}
-> +			return fence;
-> +		}
-> +
-> +		fences = kcalloc(2, sizeof(*fences), GFP_KERNEL);
-> +		if (!fences)
-> +			return ERR_PTR(-ENOMEM);
-> +
-> +		fences[0] = fence;
-> +		fences[1] = q->last_fence;
-> +
-> +		arr = dma_fence_array_create(2, fences,
-> +					     dma_fence_context_alloc(1),
-> +					     1, false);
-> +		if (!arr) {
-> +			kfree(fences);
-> +			return ERR_PTR(-ENOMEM);
-> +		}
-> +
-> +		fence = &arr->base;
-> +
-> +		q->last_fence = dma_fence_get(fence);
-> +	} else if (!fence && q->last_fence) {
-> +		fence = dma_fence_get(q->last_fence);
-> +	}
-
-I have absolutely no idea what the purpose is of this code.
-
-The application is queuing buffers with in-fences. Why would it matter in what
-order the in-fences trigger? All vb2 needs is the minimum number of usable
-(no fence or signaled fence) buffers counted from the start of the queued list
-(i.e. a contiguous set of buffers with no unsignaled fences in between).
-
-When that's reached it can start streaming.
-
-When streaming you cannot enqueue buffers to the driver as long as the first
-buffer in the queued list is still waiting on a signal. Once that arrives the
-fence callback can enqueue all buffers from the start of the queued list until
-it reaches the next unsignaled fence.
-
-At least, that's the mechanism I have in my head and I think that's what users
-expect.
-
-It looks like you allow for buffers to be queued to the driver out-of-order,
-but you shouldn't do this.
-
-If userspace queues buffers A, B, C and D in that order, then that's also the
-order they should be queued to the driver. Especially with the upcoming support
-for the request API keeping the sequence intact is crucial.
-
-> +
-> +	return fence;
-> +}
-> +
-> +static void vb2_qbuf_fence_cb(struct dma_fence *f, struct dma_fence_cb *cb)
-> +{
-> +	struct vb2_buffer *vb = container_of(cb, struct vb2_buffer, fence_cb);
-> +	struct vb2_queue *q = vb->vb2_queue;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&vb->fence_cb_lock, flags);
-> +	if (!vb->in_fence) {
-> +		spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-> +		return;
-> +	}
-> +
-> +	dma_fence_put(vb->in_fence);
-> +	vb->in_fence = NULL;
-> +
-> +	if (q->start_streaming_called)
-> +		__enqueue_in_driver(vb);
-> +	spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-> +}
-> +
-> +int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-> +		  struct dma_fence *fence)
->  {
->  	struct vb2_buffer *vb;
-> +	unsigned long flags;
->  	int ret;
->  
->  	vb = q->bufs[index];
-> @@ -1372,16 +1472,18 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
->  	case VB2_BUF_STATE_DEQUEUED:
->  		ret = __buf_prepare(vb, pb);
->  		if (ret)
-> -			return ret;
-> +			goto err;
->  		break;
->  	case VB2_BUF_STATE_PREPARED:
->  		break;
->  	case VB2_BUF_STATE_PREPARING:
->  		dprintk(1, "buffer still being prepared\n");
-> -		return -EINVAL;
-> +		ret = -EINVAL;
-> +		goto err;
->  	default:
->  		dprintk(1, "invalid buffer state %d\n", vb->state);
-> -		return -EINVAL;
-> +		ret = -EINVAL;
-> +		goto err;
->  	}
->  
->  	/*
-> @@ -1398,30 +1500,83 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
->  
->  	trace_vb2_qbuf(q, vb);
->  
-> +	vb->in_fence = __set_in_fence(q, vb, fence);
-> +	if (IS_ERR(vb->in_fence)) {
-> +		dma_fence_put(fence);
-> +		ret = PTR_ERR(vb->in_fence);
-> +		goto err;
-> +	}
-> +	fence = NULL;
-> +
-> +	/*
-> +	 * If it is time to call vb2_start_streaming() wait for the fence
-> +	 * to signal first. Of course, this happens only once per streaming.
-> +	 * We want to run any step that might fail before we set the callback
-> +	 * to queue the fence when it signals.
-> +	 */
-> +	if (vb->in_fence && !q->start_streaming_called &&
-> +	    __get_num_ready_buffers(q) == q->min_buffers_needed - 1)
-> +		dma_fence_wait(vb->in_fence, true);
-
-This is very wrong. This should be done in the fence callback: i.e. if we're not
-streaming and __get_num_ready_buffers(q) >= q->min_buffers_needed, then call
-vb2_start_streaming(q).
-
-We definitely should not do a blocking qbuf here.
-
-> +
->  	/*
->  	 * If streamon has been called, and we haven't yet called
->  	 * start_streaming() since not enough buffers were queued, and
->  	 * we now have reached the minimum number of queued buffers,
->  	 * then we can finally call start_streaming().
-> -	 *
-> -	 * If already streaming, give the buffer to driver for processing.
-> -	 * If not, the buffer will be given to driver on next streamon.
->  	 */
->  	if (q->streaming && !q->start_streaming_called &&
-> -	    q->queued_count >= q->min_buffers_needed) {
-> +	    __get_num_ready_buffers(q) >= q->min_buffers_needed) {
->  		ret = vb2_start_streaming(q);
->  		if (ret)
-> -			return ret;
-> -	} else if (q->start_streaming_called) {
-> -		__enqueue_in_driver(vb);
-> +			goto err;
->  	}
->  
-> +	/*
-> +	 * For explicit synchronization: If the fence didn't signal
-> +	 * yet we setup a callback to queue the buffer once the fence
-> +	 * signals, and then, return successfully. But if the fence
-> +	 * already signaled we lose the reference we held and queue the
-> +	 * buffer to the driver.
-> +	 */
-> +	spin_lock_irqsave(&vb->fence_cb_lock, flags);
-> +	if (vb->in_fence) {
-> +		ret = dma_fence_add_callback(vb->in_fence, &vb->fence_cb,
-> +					     vb2_qbuf_fence_cb);
-> +		if (ret == -EINVAL) {
-> +			spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-> +			goto err;
-> +		} else if (!ret) {
-> +			goto fill;
-> +		}
-> +
-> +		dma_fence_put(vb->in_fence);
-> +		vb->in_fence = NULL;
-> +	}
-> +
-> +fill:
-> +	/*
-> +	 * If already streaming and there is no fence to wait on
-> +	 * give the buffer to driver for processing.
-> +	 */
-> +	if (q->start_streaming_called && !vb->in_fence)
-> +		__enqueue_in_driver(vb);
-> +	spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-> +
->  	/* Fill buffer information for the userspace */
->  	if (pb)
->  		call_void_bufop(q, fill_user_buffer, vb, pb);
->  
->  	dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
->  	return 0;
-> +
-> +err:
-> +	if (vb->in_fence) {
-> +		dma_fence_put(vb->in_fence);
-> +		vb->in_fence = NULL;
-> +	}
-> +
-> +	return ret;
-> +
->  }
->  EXPORT_SYMBOL_GPL(vb2_core_qbuf);
->  
-> @@ -1632,6 +1787,8 @@ EXPORT_SYMBOL_GPL(vb2_core_dqbuf);
->  static void __vb2_queue_cancel(struct vb2_queue *q)
->  {
->  	unsigned int i;
-> +	struct vb2_buffer *vb;
-> +	unsigned long flags;
->  
->  	/*
->  	 * Tell driver to stop all transactions and release all queued
-> @@ -1659,6 +1816,21 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
->  	q->queued_count = 0;
->  	q->error = 0;
->  
-> +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-> +		spin_lock_irqsave(&vb->fence_cb_lock, flags);
-> +		if (vb->in_fence) {
-> +			dma_fence_remove_callback(vb->in_fence, &vb->fence_cb);
-> +			dma_fence_put(vb->in_fence);
-> +			vb->in_fence = NULL;
-> +		}
-> +		spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-> +	}
-> +
-> +	if (q->last_fence) {
-> +		dma_fence_put(q->last_fence);
-> +		q->last_fence = NULL;
-> +	}
-> +
->  	/*
->  	 * Remove all buffers from videobuf's list...
->  	 */
-> @@ -1720,7 +1892,7 @@ int vb2_core_streamon(struct vb2_queue *q, unsigned int type)
->  	 * Tell driver to start streaming provided sufficient buffers
->  	 * are available.
->  	 */
-> -	if (q->queued_count >= q->min_buffers_needed) {
-> +	if (__get_num_ready_buffers(q) >= q->min_buffers_needed) {
->  		ret = v4l_vb2q_enable_media_source(q);
->  		if (ret)
->  			return ret;
-> @@ -2240,7 +2412,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
->  		 * Queue all buffers.
->  		 */
->  		for (i = 0; i < q->num_buffers; i++) {
-> -			ret = vb2_core_qbuf(q, i, NULL);
-> +			ret = vb2_core_qbuf(q, i, NULL, NULL);
->  			if (ret)
->  				goto err_reqbufs;
->  			fileio->bufs[i].queued = 1;
-> @@ -2419,7 +2591,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
->  
->  		if (copy_timestamp)
->  			b->timestamp = ktime_get_ns();
-> -		ret = vb2_core_qbuf(q, index, NULL);
-> +		ret = vb2_core_qbuf(q, index, NULL, NULL);
->  		dprintk(5, "vb2_dbuf result: %d\n", ret);
->  		if (ret)
->  			return ret;
-> @@ -2522,7 +2694,7 @@ static int vb2_thread(void *data)
->  		if (copy_timestamp)
->  			vb->timestamp = ktime_get_ns();;
->  		if (!threadio->stop)
-> -			ret = vb2_core_qbuf(q, vb->index, NULL);
-> +			ret = vb2_core_qbuf(q, vb->index, NULL, NULL);
->  		call_void_qop(q, wait_prepare, q);
->  		if (ret || threadio->stop)
->  			break;
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> index 110fb45fef6f..4c09ea007d90 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -23,6 +23,7 @@
->  #include <linux/sched.h>
->  #include <linux/freezer.h>
->  #include <linux/kthread.h>
-> +#include <linux/sync_file.h>
->  
->  #include <media/v4l2-dev.h>
->  #include <media/v4l2-fh.h>
-> @@ -178,6 +179,12 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
->  		return -EINVAL;
->  	}
->  
-> +	if ((b->fence_fd != 0 && b->fence_fd != -1) &&
-> +	    !(b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
-> +		dprintk(1, "%s: fence_fd set without IN_FENCE flag\n", opname);
-> +		return -EINVAL;
-> +	}
-> +
->  	return __verify_planes_array(q->bufs[b->index], b);
->  }
->  
-> @@ -203,9 +210,14 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
->  	b->timestamp = ns_to_timeval(vb->timestamp);
->  	b->timecode = vbuf->timecode;
->  	b->sequence = vbuf->sequence;
-> -	b->fence_fd = -1;
->  	b->reserved = 0;
->  
-> +	b->fence_fd = -1;
-> +	if (vb->in_fence)
-> +		b->flags |= V4L2_BUF_FLAG_IN_FENCE;
-> +	else
-> +		b->flags &= ~V4L2_BUF_FLAG_IN_FENCE;
-> +
->  	if (q->is_multiplanar) {
->  		/*
->  		 * Fill in plane-related data if userspace provided an array
-> @@ -560,6 +572,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
->  
->  int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  {
-> +	struct dma_fence *fence = NULL;
->  	int ret;
->  
->  	if (vb2_fileio_is_active(q)) {
-> @@ -568,7 +581,19 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  	}
->  
->  	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
-> -	return ret ? ret : vb2_core_qbuf(q, b->index, b);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
-> +		fence = sync_file_get_fence(b->fence_fd);
-> +		if (!fence) {
-> +			dprintk(1, "failed to get in-fence from fd %d\n",
-> +				b->fence_fd);
-> +			return -EINVAL;
-> +		}
-> +	}
-> +
-> +	return vb2_core_qbuf(q, b->index, b, fence);
->  }
->  EXPORT_SYMBOL_GPL(vb2_qbuf);
->  
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 38b9c8dd42c6..5f48c7be7770 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -16,6 +16,7 @@
->  #include <linux/mutex.h>
->  #include <linux/poll.h>
->  #include <linux/dma-buf.h>
-> +#include <linux/dma-fence.h>
->  
->  #define VB2_MAX_FRAME	(32)
->  #define VB2_MAX_PLANES	(8)
-> @@ -254,11 +255,20 @@ struct vb2_buffer {
->  	 *			all buffers queued from userspace
->  	 * done_entry:		entry on the list that stores all buffers ready
->  	 *			to be dequeued to userspace
-> +	 * in_fence:		fence receive from vb2 client to wait on before
-> +	 *			using the buffer (queueing to the driver)
-> +	 * fence_cb:		fence callback information
-> +	 * fence_cb_lock:	protect callback signal/remove
->  	 */
->  	enum vb2_buffer_state	state;
->  
->  	struct list_head	queued_entry;
->  	struct list_head	done_entry;
-> +
-> +	struct dma_fence	*in_fence;
-> +	struct dma_fence_cb	fence_cb;
-> +	spinlock_t              fence_cb_lock;
-> +
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
->  	/*
->  	 * Counters for how often these buffer-related ops are
-> @@ -504,6 +514,7 @@ struct vb2_buf_ops {
->   * @last_buffer_dequeued: used in poll() and DQBUF to immediately return if the
->   *		last decoded buffer was already dequeued. Set for capture queues
->   *		when a buffer with the V4L2_BUF_FLAG_LAST is dequeued.
-> + * @last_fence:	last in-fence received. Used to keep ordering.
->   * @fileio:	file io emulator internal data, used only if emulator is active
->   * @threadio:	thread io internal data, used only if thread is active
->   */
-> @@ -558,6 +569,8 @@ struct vb2_queue {
->  	unsigned int			copy_timestamp:1;
->  	unsigned int			last_buffer_dequeued:1;
->  
-> +	struct dma_fence		*last_fence;
-> +
->  	struct vb2_fileio_data		*fileio;
->  	struct vb2_threadio_data	*threadio;
->  
-> @@ -733,6 +746,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
->   * @index:	id number of the buffer
->   * @pb:		buffer structure passed from userspace to vidioc_qbuf handler
->   *		in driver
-> + * @fence:	in-fence to wait on before queueing the buffer
->   *
->   * Should be called from vidioc_qbuf ioctl handler of a driver.
->   * The passed buffer should have been verified.
-> @@ -747,7 +761,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
->   * The return values from this function are intended to be directly returned
->   * from vidioc_qbuf handler in driver.
->   */
-> -int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
-> +int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-> +		  struct dma_fence *fence);
->  
->  /**
->   * vb2_core_dqbuf() - Dequeue a buffer to the userspace
-> 
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index a1ef86767aef..9d487988b78d 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -3,7 +3,7 @@ obj-y += keymaps/
+ 
+ obj-$(CONFIG_RC_CORE) += rc-core.o
+ rc-core-y := rc-main.o rc-ir-raw.o
+-rc-core-$(CONFIG_LIRC) += lirc_dev.o ir-lirc-codec.o
++rc-core-$(CONFIG_LIRC) += lirc_dev.o
+ obj-$(CONFIG_IR_NEC_DECODER) += ir-nec-decoder.o
+ obj-$(CONFIG_IR_RC5_DECODER) += ir-rc5-decoder.o
+ obj-$(CONFIG_IR_RC6_DECODER) += ir-rc6-decoder.o
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+deleted file mode 100644
+index 78934479bcff..000000000000
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ /dev/null
+@@ -1,637 +0,0 @@
+-/* ir-lirc-codec.c - rc-core to classic lirc interface bridge
+- *
+- * Copyright (C) 2010 by Jarod Wilson <jarod@redhat.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation version 2 of the License.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+- */
+-
+-#include <linux/poll.h>
+-#include <linux/sched.h>
+-#include <linux/wait.h>
+-#include <media/lirc.h>
+-#include <media/rc-core.h>
+-#include "rc-core-priv.h"
+-
+-#define LIRCBUF_SIZE 256
+-
+-/**
+- * ir_lirc_raw_event() - Send raw IR data to lirc to be relayed to userspace
+- *
+- * @dev:	the struct rc_dev descriptor of the device
+- * @ev:		the struct ir_raw_event descriptor of the pulse/space
+- */
+-void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
+-{
+-	int sample;
+-
+-	/* Packet start */
+-	if (ev.reset) {
+-		/* Userspace expects a long space event before the start of
+-		 * the signal to use as a sync.  This may be done with repeat
+-		 * packets and normal samples.  But if a reset has been sent
+-		 * then we assume that a long time has passed, so we send a
+-		 * space with the maximum time value. */
+-		sample = LIRC_SPACE(LIRC_VALUE_MASK);
+-		IR_dprintk(2, "delivering reset sync space to lirc_dev\n");
+-
+-	/* Carrier reports */
+-	} else if (ev.carrier_report) {
+-		sample = LIRC_FREQUENCY(ev.carrier);
+-		IR_dprintk(2, "carrier report (freq: %d)\n", sample);
+-
+-	/* Packet end */
+-	} else if (ev.timeout) {
+-
+-		if (dev->gap)
+-			return;
+-
+-		dev->gap_start = ktime_get();
+-		dev->gap = true;
+-		dev->gap_duration = ev.duration;
+-
+-		if (!dev->send_timeout_reports)
+-			return;
+-
+-		sample = LIRC_TIMEOUT(ev.duration / 1000);
+-		IR_dprintk(2, "timeout report (duration: %d)\n", sample);
+-
+-	/* Normal sample */
+-	} else {
+-
+-		if (dev->gap) {
+-			dev->gap_duration += ktime_to_ns(ktime_sub(ktime_get(),
+-							 dev->gap_start));
+-
+-			/* Convert to ms and cap by LIRC_VALUE_MASK */
+-			do_div(dev->gap_duration, 1000);
+-			dev->gap_duration = min_t(u64, dev->gap_duration,
+-						  LIRC_VALUE_MASK);
+-
+-			kfifo_put(&dev->rawir, LIRC_SPACE(dev->gap_duration));
+-			dev->gap = false;
+-		}
+-
+-		sample = ev.pulse ? LIRC_PULSE(ev.duration / 1000) :
+-					LIRC_SPACE(ev.duration / 1000);
+-		IR_dprintk(2, "delivering %uus %s to lirc_dev\n",
+-			   TO_US(ev.duration), TO_STR(ev.pulse));
+-	}
+-
+-	kfifo_put(&dev->rawir, sample);
+-	wake_up_poll(&dev->wait_poll, POLLIN | POLLRDNORM);
+-}
+-
+-/**
+- * ir_lirc_scancode_event() - Send scancode data to lirc to be relayed to
+- *		userspace
+- * @dev:	the struct rc_dev descriptor of the device
+- * @lsc		the struct lirc_scancode describing the decoded scancode
+- */
+-void ir_lirc_scancode_event(struct rc_dev *dev, struct lirc_scancode *lsc)
+-{
+-	lsc->timestamp = ktime_get_ns();
+-
+-	if (kfifo_put(&dev->scancodes, *lsc))
+-		wake_up_poll(&dev->wait_poll, POLLIN | POLLRDNORM);
+-}
+-EXPORT_SYMBOL_GPL(ir_lirc_scancode_event);
+-
+-static int ir_lirc_open(struct inode *inode, struct file *file)
+-{
+-	struct rc_dev *dev = container_of(inode->i_cdev, struct rc_dev,
+-					  lirc_cdev);
+-	int retval;
+-
+-	retval = rc_open(dev);
+-	if (retval)
+-		return retval;
+-
+-	retval = mutex_lock_interruptible(&dev->lock);
+-	if (retval)
+-		goto out_rc;
+-
+-	if (!dev->registered) {
+-		retval = -ENODEV;
+-		goto out_unlock;
+-	}
+-
+-	if (dev->lirc_open) {
+-		retval = -EBUSY;
+-		goto out_unlock;
+-	}
+-
+-	if (dev->driver_type == RC_DRIVER_IR_RAW)
+-		kfifo_reset_out(&dev->rawir);
+-	if (dev->driver_type != RC_DRIVER_IR_RAW_TX)
+-		kfifo_reset_out(&dev->scancodes);
+-
+-	dev->lirc_open++;
+-	file->private_data = dev;
+-
+-	nonseekable_open(inode, file);
+-	mutex_unlock(&dev->lock);
+-
+-	return 0;
+-
+-out_unlock:
+-	mutex_unlock(&dev->lock);
+-out_rc:
+-	rc_close(dev);
+-	return retval;
+-}
+-
+-static int ir_lirc_close(struct inode *inode, struct file *file)
+-{
+-	struct rc_dev *dev = file->private_data;
+-
+-	mutex_lock(&dev->lock);
+-	dev->lirc_open--;
+-	mutex_unlock(&dev->lock);
+-
+-	rc_close(dev);
+-
+-	return 0;
+-}
+-
+-static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+-				   size_t n, loff_t *ppos)
+-{
+-	struct rc_dev *dev = file->private_data;
+-	unsigned int *txbuf = NULL;
+-	struct ir_raw_event *raw = NULL;
+-	ssize_t ret = -EINVAL;
+-	size_t count;
+-	ktime_t start;
+-	s64 towait;
+-	unsigned int duration = 0; /* signal duration in us */
+-	int i;
+-
+-	if (!dev->registered)
+-		return -ENODEV;
+-
+-	start = ktime_get();
+-
+-	if (!dev->tx_ir) {
+-		ret = -EINVAL;
+-		goto out;
+-	}
+-
+-	if (dev->send_mode == LIRC_MODE_SCANCODE) {
+-		struct lirc_scancode scan;
+-
+-		if (n != sizeof(scan))
+-			return -EINVAL;
+-
+-		if (copy_from_user(&scan, buf, sizeof(scan)))
+-			return -EFAULT;
+-
+-		if (scan.flags || scan.keycode || scan.timestamp)
+-			return -EINVAL;
+-
+-		/*
+-		 * The scancode field in lirc_scancode is 64-bit simply
+-		 * to future-proof it, since there are IR protocols encode
+-		 * use more than 32 bits. For now only 32-bit protocols
+-		 * are supported.
+-		 */
+-		if (scan.scancode > U32_MAX ||
+-		    !rc_validate_scancode(scan.rc_proto, scan.scancode))
+-			return -EINVAL;
+-
+-		raw = kmalloc_array(LIRCBUF_SIZE, sizeof(*raw), GFP_KERNEL);
+-		if (!raw)
+-			return -ENOMEM;
+-
+-		ret = ir_raw_encode_scancode(scan.rc_proto, scan.scancode,
+-					     raw, LIRCBUF_SIZE);
+-		if (ret < 0)
+-			goto out;
+-
+-		count = ret;
+-
+-		txbuf = kmalloc_array(count, sizeof(unsigned int), GFP_KERNEL);
+-		if (!txbuf) {
+-			ret = -ENOMEM;
+-			goto out;
+-		}
+-
+-		for (i = 0; i < count; i++)
+-			/* Convert from NS to US */
+-			txbuf[i] = DIV_ROUND_UP(raw[i].duration, 1000);
+-
+-		if (dev->s_tx_carrier) {
+-			int carrier = ir_raw_encode_carrier(scan.rc_proto);
+-
+-			if (carrier > 0)
+-				dev->s_tx_carrier(dev, carrier);
+-		}
+-	} else {
+-		if (n < sizeof(unsigned int) || n % sizeof(unsigned int))
+-			return -EINVAL;
+-
+-		count = n / sizeof(unsigned int);
+-		if (count > LIRCBUF_SIZE || count % 2 == 0)
+-			return -EINVAL;
+-
+-		txbuf = memdup_user(buf, n);
+-		if (IS_ERR(txbuf))
+-			return PTR_ERR(txbuf);
+-	}
+-
+-	for (i = 0; i < count; i++) {
+-		if (txbuf[i] > IR_MAX_DURATION / 1000 - duration || !txbuf[i]) {
+-			ret = -EINVAL;
+-			goto out;
+-		}
+-
+-		duration += txbuf[i];
+-	}
+-
+-	ret = dev->tx_ir(dev, txbuf, count);
+-	if (ret < 0)
+-		goto out;
+-
+-	if (dev->send_mode == LIRC_MODE_SCANCODE) {
+-		ret = n;
+-	} else {
+-		for (duration = i = 0; i < ret; i++)
+-			duration += txbuf[i];
+-
+-		ret *= sizeof(unsigned int);
+-
+-		/*
+-		 * The lircd gap calculation expects the write function to
+-		 * wait for the actual IR signal to be transmitted before
+-		 * returning.
+-		 */
+-		towait = ktime_us_delta(ktime_add_us(start, duration),
+-					ktime_get());
+-		if (towait > 0) {
+-			set_current_state(TASK_INTERRUPTIBLE);
+-			schedule_timeout(usecs_to_jiffies(towait));
+-		}
+-	}
+-
+-out:
+-	kfree(txbuf);
+-	kfree(raw);
+-	return ret;
+-}
+-
+-static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+-			unsigned long arg)
+-{
+-	struct rc_dev *dev = filep->private_data;
+-	u32 __user *argp = (u32 __user *)(arg);
+-	int ret = 0;
+-	__u32 val = 0, tmp;
+-
+-	if (_IOC_DIR(cmd) & _IOC_WRITE) {
+-		ret = get_user(val, argp);
+-		if (ret)
+-			return ret;
+-	}
+-
+-	if (!dev->registered)
+-		return -ENODEV;
+-
+-	switch (cmd) {
+-	case LIRC_GET_FEATURES:
+-		if (dev->driver_type == RC_DRIVER_SCANCODE)
+-			val |= LIRC_CAN_REC_SCANCODE;
+-
+-		if (dev->driver_type == RC_DRIVER_IR_RAW) {
+-			val |= LIRC_CAN_REC_MODE2 | LIRC_CAN_REC_SCANCODE;
+-			if (dev->rx_resolution)
+-				val |= LIRC_CAN_GET_REC_RESOLUTION;
+-		}
+-
+-		if (dev->tx_ir) {
+-			val |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
+-			if (dev->s_tx_mask)
+-				val |= LIRC_CAN_SET_TRANSMITTER_MASK;
+-			if (dev->s_tx_carrier)
+-				val |= LIRC_CAN_SET_SEND_CARRIER;
+-			if (dev->s_tx_duty_cycle)
+-				val |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
+-		}
+-
+-		if (dev->s_rx_carrier_range)
+-			val |= LIRC_CAN_SET_REC_CARRIER |
+-				LIRC_CAN_SET_REC_CARRIER_RANGE;
+-
+-		if (dev->s_learning_mode)
+-			val |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
+-
+-		if (dev->s_carrier_report)
+-			val |= LIRC_CAN_MEASURE_CARRIER;
+-
+-		if (dev->max_timeout)
+-			val |= LIRC_CAN_SET_REC_TIMEOUT;
+-
+-		break;
+-
+-	/* mode support */
+-	case LIRC_GET_REC_MODE:
+-		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
+-			return -ENOTTY;
+-
+-		val = dev->rec_mode;
+-		break;
+-
+-	case LIRC_SET_REC_MODE:
+-		switch (dev->driver_type) {
+-		case RC_DRIVER_IR_RAW_TX:
+-			return -ENOTTY;
+-		case RC_DRIVER_SCANCODE:
+-			if (val != LIRC_MODE_SCANCODE)
+-				return -EINVAL;
+-			break;
+-		case RC_DRIVER_IR_RAW:
+-			if (!(val == LIRC_MODE_MODE2 ||
+-			      val == LIRC_MODE_SCANCODE))
+-				return -EINVAL;
+-			break;
+-		}
+-
+-		dev->rec_mode = val;
+-		dev->poll_mode = val;
+-		return 0;
+-
+-	case LIRC_SET_POLL_MODES:
+-		switch (dev->driver_type) {
+-		case RC_DRIVER_IR_RAW_TX:
+-			return -ENOTTY;
+-		case RC_DRIVER_SCANCODE:
+-			if (val != LIRC_MODE_SCANCODE)
+-				return -EINVAL;
+-			break;
+-		case RC_DRIVER_IR_RAW:
+-			if (val & ~(LIRC_MODE_MODE2 | LIRC_MODE_SCANCODE))
+-				return -EINVAL;
+-			break;
+-		}
+-
+-		dev->poll_mode = val;
+-		return 0;
+-
+-	case LIRC_GET_SEND_MODE:
+-		if (!dev->tx_ir)
+-			return -ENOTTY;
+-
+-		val = dev->send_mode;
+-		break;
+-
+-	case LIRC_SET_SEND_MODE:
+-		if (!dev->tx_ir)
+-			return -ENOTTY;
+-
+-		if (!(val == LIRC_MODE_PULSE || val == LIRC_MODE_SCANCODE))
+-			return -EINVAL;
+-
+-		dev->send_mode = val;
+-		return 0;
+-
+-	/* TX settings */
+-	case LIRC_SET_TRANSMITTER_MASK:
+-		if (!dev->s_tx_mask)
+-			return -ENOTTY;
+-
+-		return dev->s_tx_mask(dev, val);
+-
+-	case LIRC_SET_SEND_CARRIER:
+-		if (!dev->s_tx_carrier)
+-			return -ENOTTY;
+-
+-		return dev->s_tx_carrier(dev, val);
+-
+-	case LIRC_SET_SEND_DUTY_CYCLE:
+-		if (!dev->s_tx_duty_cycle)
+-			return -ENOTTY;
+-
+-		if (val <= 0 || val >= 100)
+-			return -EINVAL;
+-
+-		return dev->s_tx_duty_cycle(dev, val);
+-
+-	/* RX settings */
+-	case LIRC_SET_REC_CARRIER:
+-		if (!dev->s_rx_carrier_range)
+-			return -ENOTTY;
+-
+-		if (val <= 0)
+-			return -EINVAL;
+-
+-		return dev->s_rx_carrier_range(dev,
+-					       dev->carrier_low,
+-					       val);
+-
+-	case LIRC_SET_REC_CARRIER_RANGE:
+-		if (!dev->s_rx_carrier_range)
+-			return -ENOTTY;
+-
+-		if (val <= 0)
+-			return -EINVAL;
+-
+-		dev->carrier_low = val;
+-		return 0;
+-
+-	case LIRC_GET_REC_RESOLUTION:
+-		if (!dev->rx_resolution)
+-			return -ENOTTY;
+-
+-		val = dev->rx_resolution / 1000;
+-		break;
+-
+-	case LIRC_SET_WIDEBAND_RECEIVER:
+-		if (!dev->s_learning_mode)
+-			return -ENOTTY;
+-
+-		return dev->s_learning_mode(dev, !!val);
+-
+-	case LIRC_SET_MEASURE_CARRIER_MODE:
+-		if (!dev->s_carrier_report)
+-			return -ENOTTY;
+-
+-		return dev->s_carrier_report(dev, !!val);
+-
+-	/* Generic timeout support */
+-	case LIRC_GET_MIN_TIMEOUT:
+-		if (!dev->max_timeout)
+-			return -ENOTTY;
+-		val = DIV_ROUND_UP(dev->min_timeout, 1000);
+-		break;
+-
+-	case LIRC_GET_MAX_TIMEOUT:
+-		if (!dev->max_timeout)
+-			return -ENOTTY;
+-		val = dev->max_timeout / 1000;
+-		break;
+-
+-	case LIRC_SET_REC_TIMEOUT:
+-		if (!dev->max_timeout)
+-			return -ENOTTY;
+-
+-		/* Check for multiply overflow */
+-		if (val > U32_MAX / 1000)
+-			return -EINVAL;
+-
+-		tmp = val * 1000;
+-
+-		if (tmp < dev->min_timeout || tmp > dev->max_timeout)
+-			return -EINVAL;
+-
+-		if (dev->s_timeout)
+-			ret = dev->s_timeout(dev, tmp);
+-		if (!ret)
+-			dev->timeout = tmp;
+-		break;
+-
+-	case LIRC_SET_REC_TIMEOUT_REPORTS:
+-		if (!dev->timeout)
+-			return -ENOTTY;
+-
+-		dev->send_timeout_reports = !!val;
+-		break;
+-
+-	default:
+-		return -ENOTTY;
+-	}
+-
+-	if (_IOC_DIR(cmd) & _IOC_READ)
+-		ret = put_user(val, argp);
+-
+-	return ret;
+-}
+-
+-static unsigned int ir_lirc_poll(struct file *file,
+-				 struct poll_table_struct *wait)
+-{
+-	struct rc_dev *rcdev = file->private_data;
+-	unsigned int events = 0;
+-
+-	poll_wait(file, &rcdev->wait_poll, wait);
+-
+-	if (!rcdev->registered) {
+-		events = POLLHUP | POLLERR;
+-	} else if (rcdev->driver_type != RC_DRIVER_IR_RAW_TX) {
+-		if ((rcdev->poll_mode & LIRC_MODE_SCANCODE) &&
+-		    !kfifo_is_empty(&rcdev->scancodes))
+-			events |= POLLIN | POLLRDNORM;
+-
+-		if ((rcdev->poll_mode & LIRC_MODE_MODE2) &&
+-		    !kfifo_is_empty(&rcdev->rawir))
+-			events |= POLLIN | POLLRDNORM;
+-	}
+-
+-	return events;
+-}
+-
+-static ssize_t ir_lirc_read_mode2(struct file *file, char __user *buffer,
+-				  size_t length)
+-{
+-	struct rc_dev *rcdev = file->private_data;
+-	unsigned int copied;
+-	int ret;
+-
+-	if (length < sizeof(unsigned int) || length % sizeof(unsigned int))
+-		return -EINVAL;
+-
+-	do {
+-		if (kfifo_is_empty(&rcdev->rawir)) {
+-			if (file->f_flags & O_NONBLOCK)
+-				return -EAGAIN;
+-
+-			ret = wait_event_interruptible(rcdev->wait_poll,
+-					!kfifo_is_empty(&rcdev->rawir) ||
+-					!rcdev->registered);
+-			if (ret)
+-				return ret;
+-		}
+-
+-		if (!rcdev->registered)
+-			return -ENODEV;
+-
+-		mutex_lock(&rcdev->lock);
+-		ret = kfifo_to_user(&rcdev->rawir, buffer, length, &copied);
+-		mutex_unlock(&rcdev->lock);
+-		if (ret)
+-			return ret;
+-	} while (copied == 0);
+-
+-	return copied;
+-}
+-
+-static ssize_t ir_lirc_read_scancode(struct file *file, char __user *buffer,
+-				     size_t length)
+-{
+-	struct rc_dev *rcdev = file->private_data;
+-	unsigned int copied;
+-	int ret;
+-
+-	if (length < sizeof(struct lirc_scancode) ||
+-	    length % sizeof(struct lirc_scancode))
+-		return -EINVAL;
+-
+-	do {
+-		if (kfifo_is_empty(&rcdev->scancodes)) {
+-			if (file->f_flags & O_NONBLOCK)
+-				return -EAGAIN;
+-
+-			ret = wait_event_interruptible(rcdev->wait_poll,
+-					!kfifo_is_empty(&rcdev->scancodes) ||
+-					!rcdev->registered);
+-			if (ret)
+-				return ret;
+-		}
+-
+-		if (!rcdev->registered)
+-			return -ENODEV;
+-
+-		mutex_lock(&rcdev->lock);
+-		ret = kfifo_to_user(&rcdev->scancodes, buffer, length, &copied);
+-		mutex_unlock(&rcdev->lock);
+-		if (ret)
+-			return ret;
+-	} while (copied == 0);
+-
+-	return copied;
+-}
+-
+-static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
+-			    size_t length, loff_t *ppos)
+-{
+-	struct rc_dev *rcdev = file->private_data;
+-
+-	if (rcdev->driver_type == RC_DRIVER_IR_RAW_TX)
+-		return -EINVAL;
+-
+-	if (!rcdev->registered)
+-		return -ENODEV;
+-
+-	if (rcdev->rec_mode == LIRC_MODE_MODE2)
+-		return ir_lirc_read_mode2(file, buffer, length);
+-	else /* LIRC_MODE_SCANCODE */
+-		return ir_lirc_read_scancode(file, buffer, length);
+-}
+-
+-const struct file_operations lirc_fops = {
+-	.owner		= THIS_MODULE,
+-	.write		= ir_lirc_transmit_ir,
+-	.unlocked_ioctl	= ir_lirc_ioctl,
+-#ifdef CONFIG_COMPAT
+-	.compat_ioctl	= ir_lirc_ioctl,
+-#endif
+-	.read		= ir_lirc_read,
+-	.poll		= ir_lirc_poll,
+-	.open		= ir_lirc_open,
+-	.release	= ir_lirc_close,
+-	.llseek		= no_llseek,
+-};
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 04a2d521c441..5c0e6a3ea3d4 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -22,11 +22,14 @@
+ #include <linux/device.h>
+ #include <linux/idr.h>
+ #include <linux/poll.h>
++#include <linux/sched.h>
++#include <linux/wait.h>
+ 
+ #include "rc-core-priv.h"
+ #include <media/lirc.h>
+ 
+ #define LOGHEAD		"lirc_dev (%s[%d]): "
++#define LIRCBUF_SIZE	256
+ 
+ static dev_t lirc_base_dev;
+ 
+@@ -36,6 +39,621 @@ static DEFINE_IDA(lirc_ida);
+ /* Only used for sysfs but defined to void otherwise */
+ static struct class *lirc_class;
+ 
++/**
++ * ir_lirc_raw_event() - Send raw IR data to lirc to be relayed to userspace
++ *
++ * @dev:	the struct rc_dev descriptor of the device
++ * @ev:		the struct ir_raw_event descriptor of the pulse/space
++ */
++void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
++{
++	int sample;
++
++	/* Packet start */
++	if (ev.reset) {
++		/*
++		 * Userspace expects a long space event before the start of
++		 * the signal to use as a sync.  This may be done with repeat
++		 * packets and normal samples.  But if a reset has been sent
++		 * then we assume that a long time has passed, so we send a
++		 * space with the maximum time value.
++		 */
++		sample = LIRC_SPACE(LIRC_VALUE_MASK);
++		IR_dprintk(2, "delivering reset sync space to lirc_dev\n");
++
++	/* Carrier reports */
++	} else if (ev.carrier_report) {
++		sample = LIRC_FREQUENCY(ev.carrier);
++		IR_dprintk(2, "carrier report (freq: %d)\n", sample);
++
++	/* Packet end */
++	} else if (ev.timeout) {
++		if (dev->gap)
++			return;
++
++		dev->gap_start = ktime_get();
++		dev->gap = true;
++		dev->gap_duration = ev.duration;
++
++		if (!dev->send_timeout_reports)
++			return;
++
++		sample = LIRC_TIMEOUT(ev.duration / 1000);
++		IR_dprintk(2, "timeout report (duration: %d)\n", sample);
++
++	/* Normal sample */
++	} else {
++		if (dev->gap) {
++			dev->gap_duration += ktime_to_ns(ktime_sub(ktime_get(),
++							 dev->gap_start));
++
++			/* Convert to ms and cap by LIRC_VALUE_MASK */
++			do_div(dev->gap_duration, 1000);
++			dev->gap_duration = min_t(u64, dev->gap_duration,
++						  LIRC_VALUE_MASK);
++
++			kfifo_put(&dev->rawir, LIRC_SPACE(dev->gap_duration));
++			dev->gap = false;
++		}
++
++		sample = ev.pulse ? LIRC_PULSE(ev.duration / 1000) :
++					LIRC_SPACE(ev.duration / 1000);
++		IR_dprintk(2, "delivering %uus %s to lirc_dev\n",
++			   TO_US(ev.duration), TO_STR(ev.pulse));
++	}
++
++	kfifo_put(&dev->rawir, sample);
++	wake_up_poll(&dev->wait_poll, POLLIN | POLLRDNORM);
++}
++
++/**
++ * ir_lirc_scancode_event() - Send scancode data to lirc to be relayed to
++ *		userspace
++ * @dev:	the struct rc_dev descriptor of the device
++ * @lsc		the struct lirc_scancode describing the decoded scancode
++ */
++void ir_lirc_scancode_event(struct rc_dev *dev, struct lirc_scancode *lsc)
++{
++	lsc->timestamp = ktime_get_ns();
++
++	if (kfifo_put(&dev->scancodes, *lsc))
++		wake_up_poll(&dev->wait_poll, POLLIN | POLLRDNORM);
++}
++EXPORT_SYMBOL_GPL(ir_lirc_scancode_event);
++
++static int ir_lirc_open(struct inode *inode, struct file *file)
++{
++	struct rc_dev *dev = container_of(inode->i_cdev, struct rc_dev,
++					  lirc_cdev);
++	int retval;
++
++	retval = rc_open(dev);
++	if (retval)
++		return retval;
++
++	retval = mutex_lock_interruptible(&dev->lock);
++	if (retval)
++		goto out_rc;
++
++	if (!dev->registered) {
++		retval = -ENODEV;
++		goto out_unlock;
++	}
++
++	if (dev->lirc_open) {
++		retval = -EBUSY;
++		goto out_unlock;
++	}
++
++	if (dev->driver_type == RC_DRIVER_IR_RAW)
++		kfifo_reset_out(&dev->rawir);
++	if (dev->driver_type != RC_DRIVER_IR_RAW_TX)
++		kfifo_reset_out(&dev->scancodes);
++
++	dev->lirc_open++;
++	file->private_data = dev;
++
++	nonseekable_open(inode, file);
++	mutex_unlock(&dev->lock);
++
++	return 0;
++
++out_unlock:
++	mutex_unlock(&dev->lock);
++out_rc:
++	rc_close(dev);
++	return retval;
++}
++
++static int ir_lirc_close(struct inode *inode, struct file *file)
++{
++	struct rc_dev *dev = file->private_data;
++
++	mutex_lock(&dev->lock);
++	dev->lirc_open--;
++	mutex_unlock(&dev->lock);
++
++	rc_close(dev);
++
++	return 0;
++}
++
++static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
++				   size_t n, loff_t *ppos)
++{
++	struct rc_dev *dev = file->private_data;
++	unsigned int *txbuf = NULL;
++	struct ir_raw_event *raw = NULL;
++	ssize_t ret = -EINVAL;
++	size_t count;
++	ktime_t start;
++	s64 towait;
++	unsigned int duration = 0; /* signal duration in us */
++	int i;
++
++	if (!dev->registered)
++		return -ENODEV;
++
++	start = ktime_get();
++
++	if (!dev->tx_ir) {
++		ret = -EINVAL;
++		goto out;
++	}
++
++	if (dev->send_mode == LIRC_MODE_SCANCODE) {
++		struct lirc_scancode scan;
++
++		if (n != sizeof(scan))
++			return -EINVAL;
++
++		if (copy_from_user(&scan, buf, sizeof(scan)))
++			return -EFAULT;
++
++		if (scan.flags || scan.keycode || scan.timestamp)
++			return -EINVAL;
++
++		/*
++		 * The scancode field in lirc_scancode is 64-bit simply
++		 * to future-proof it, since there are IR protocols encode
++		 * use more than 32 bits. For now only 32-bit protocols
++		 * are supported.
++		 */
++		if (scan.scancode > U32_MAX ||
++		    !rc_validate_scancode(scan.rc_proto, scan.scancode))
++			return -EINVAL;
++
++		raw = kmalloc_array(LIRCBUF_SIZE, sizeof(*raw), GFP_KERNEL);
++		if (!raw)
++			return -ENOMEM;
++
++		ret = ir_raw_encode_scancode(scan.rc_proto, scan.scancode,
++					     raw, LIRCBUF_SIZE);
++		if (ret < 0)
++			goto out;
++
++		count = ret;
++
++		txbuf = kmalloc_array(count, sizeof(unsigned int), GFP_KERNEL);
++		if (!txbuf) {
++			ret = -ENOMEM;
++			goto out;
++		}
++
++		for (i = 0; i < count; i++)
++			/* Convert from NS to US */
++			txbuf[i] = DIV_ROUND_UP(raw[i].duration, 1000);
++
++		if (dev->s_tx_carrier) {
++			int carrier = ir_raw_encode_carrier(scan.rc_proto);
++
++			if (carrier > 0)
++				dev->s_tx_carrier(dev, carrier);
++		}
++	} else {
++		if (n < sizeof(unsigned int) || n % sizeof(unsigned int))
++			return -EINVAL;
++
++		count = n / sizeof(unsigned int);
++		if (count > LIRCBUF_SIZE || count % 2 == 0)
++			return -EINVAL;
++
++		txbuf = memdup_user(buf, n);
++		if (IS_ERR(txbuf))
++			return PTR_ERR(txbuf);
++	}
++
++	for (i = 0; i < count; i++) {
++		if (txbuf[i] > IR_MAX_DURATION / 1000 - duration || !txbuf[i]) {
++			ret = -EINVAL;
++			goto out;
++		}
++
++		duration += txbuf[i];
++	}
++
++	ret = dev->tx_ir(dev, txbuf, count);
++	if (ret < 0)
++		goto out;
++
++	if (dev->send_mode == LIRC_MODE_SCANCODE) {
++		ret = n;
++	} else {
++		for (duration = i = 0; i < ret; i++)
++			duration += txbuf[i];
++
++		ret *= sizeof(unsigned int);
++
++		/*
++		 * The lircd gap calculation expects the write function to
++		 * wait for the actual IR signal to be transmitted before
++		 * returning.
++		 */
++		towait = ktime_us_delta(ktime_add_us(start, duration),
++					ktime_get());
++		if (towait > 0) {
++			set_current_state(TASK_INTERRUPTIBLE);
++			schedule_timeout(usecs_to_jiffies(towait));
++		}
++	}
++
++out:
++	kfree(txbuf);
++	kfree(raw);
++	return ret;
++}
++
++static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
++			  unsigned long arg)
++{
++	struct rc_dev *dev = filep->private_data;
++	u32 __user *argp = (u32 __user *)(arg);
++	int ret = 0;
++	__u32 val = 0, tmp;
++
++	if (_IOC_DIR(cmd) & _IOC_WRITE) {
++		ret = get_user(val, argp);
++		if (ret)
++			return ret;
++	}
++
++	if (!dev->registered)
++		return -ENODEV;
++
++	switch (cmd) {
++	case LIRC_GET_FEATURES:
++		if (dev->driver_type == RC_DRIVER_SCANCODE)
++			val |= LIRC_CAN_REC_SCANCODE;
++
++		if (dev->driver_type == RC_DRIVER_IR_RAW) {
++			val |= LIRC_CAN_REC_MODE2 | LIRC_CAN_REC_SCANCODE;
++			if (dev->rx_resolution)
++				val |= LIRC_CAN_GET_REC_RESOLUTION;
++		}
++
++		if (dev->tx_ir) {
++			val |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
++			if (dev->s_tx_mask)
++				val |= LIRC_CAN_SET_TRANSMITTER_MASK;
++			if (dev->s_tx_carrier)
++				val |= LIRC_CAN_SET_SEND_CARRIER;
++			if (dev->s_tx_duty_cycle)
++				val |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
++		}
++
++		if (dev->s_rx_carrier_range)
++			val |= LIRC_CAN_SET_REC_CARRIER |
++				LIRC_CAN_SET_REC_CARRIER_RANGE;
++
++		if (dev->s_learning_mode)
++			val |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
++
++		if (dev->s_carrier_report)
++			val |= LIRC_CAN_MEASURE_CARRIER;
++
++		if (dev->max_timeout)
++			val |= LIRC_CAN_SET_REC_TIMEOUT;
++
++		break;
++
++	/* mode support */
++	case LIRC_GET_REC_MODE:
++		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
++			return -ENOTTY;
++
++		val = dev->rec_mode;
++		break;
++
++	case LIRC_SET_REC_MODE:
++		switch (dev->driver_type) {
++		case RC_DRIVER_IR_RAW_TX:
++			return -ENOTTY;
++		case RC_DRIVER_SCANCODE:
++			if (val != LIRC_MODE_SCANCODE)
++				return -EINVAL;
++			break;
++		case RC_DRIVER_IR_RAW:
++			if (!(val == LIRC_MODE_MODE2 ||
++			      val == LIRC_MODE_SCANCODE))
++				return -EINVAL;
++			break;
++		}
++
++		dev->rec_mode = val;
++		dev->poll_mode = val;
++		return 0;
++
++	case LIRC_SET_POLL_MODES:
++		switch (dev->driver_type) {
++		case RC_DRIVER_IR_RAW_TX:
++			return -ENOTTY;
++		case RC_DRIVER_SCANCODE:
++			if (val != LIRC_MODE_SCANCODE)
++				return -EINVAL;
++			break;
++		case RC_DRIVER_IR_RAW:
++			if (val & ~(LIRC_MODE_MODE2 | LIRC_MODE_SCANCODE))
++				return -EINVAL;
++			break;
++		}
++
++		dev->poll_mode = val;
++		return 0;
++
++	case LIRC_GET_SEND_MODE:
++		if (!dev->tx_ir)
++			return -ENOTTY;
++
++		val = dev->send_mode;
++		break;
++
++	case LIRC_SET_SEND_MODE:
++		if (!dev->tx_ir)
++			return -ENOTTY;
++
++		if (!(val == LIRC_MODE_PULSE || val == LIRC_MODE_SCANCODE))
++			return -EINVAL;
++
++		dev->send_mode = val;
++		return 0;
++
++	/* TX settings */
++	case LIRC_SET_TRANSMITTER_MASK:
++		if (!dev->s_tx_mask)
++			return -ENOTTY;
++
++		return dev->s_tx_mask(dev, val);
++
++	case LIRC_SET_SEND_CARRIER:
++		if (!dev->s_tx_carrier)
++			return -ENOTTY;
++
++		return dev->s_tx_carrier(dev, val);
++
++	case LIRC_SET_SEND_DUTY_CYCLE:
++		if (!dev->s_tx_duty_cycle)
++			return -ENOTTY;
++
++		if (val <= 0 || val >= 100)
++			return -EINVAL;
++
++		return dev->s_tx_duty_cycle(dev, val);
++
++	/* RX settings */
++	case LIRC_SET_REC_CARRIER:
++		if (!dev->s_rx_carrier_range)
++			return -ENOTTY;
++
++		if (val <= 0)
++			return -EINVAL;
++
++		return dev->s_rx_carrier_range(dev,
++					       dev->carrier_low,
++					       val);
++
++	case LIRC_SET_REC_CARRIER_RANGE:
++		if (!dev->s_rx_carrier_range)
++			return -ENOTTY;
++
++		if (val <= 0)
++			return -EINVAL;
++
++		dev->carrier_low = val;
++		return 0;
++
++	case LIRC_GET_REC_RESOLUTION:
++		if (!dev->rx_resolution)
++			return -ENOTTY;
++
++		val = dev->rx_resolution / 1000;
++		break;
++
++	case LIRC_SET_WIDEBAND_RECEIVER:
++		if (!dev->s_learning_mode)
++			return -ENOTTY;
++
++		return dev->s_learning_mode(dev, !!val);
++
++	case LIRC_SET_MEASURE_CARRIER_MODE:
++		if (!dev->s_carrier_report)
++			return -ENOTTY;
++
++		return dev->s_carrier_report(dev, !!val);
++
++	/* Generic timeout support */
++	case LIRC_GET_MIN_TIMEOUT:
++		if (!dev->max_timeout)
++			return -ENOTTY;
++		val = DIV_ROUND_UP(dev->min_timeout, 1000);
++		break;
++
++	case LIRC_GET_MAX_TIMEOUT:
++		if (!dev->max_timeout)
++			return -ENOTTY;
++		val = dev->max_timeout / 1000;
++		break;
++
++	case LIRC_SET_REC_TIMEOUT:
++		if (!dev->max_timeout)
++			return -ENOTTY;
++
++		/* Check for multiply overflow */
++		if (val > U32_MAX / 1000)
++			return -EINVAL;
++
++		tmp = val * 1000;
++
++		if (tmp < dev->min_timeout || tmp > dev->max_timeout)
++			return -EINVAL;
++
++		if (dev->s_timeout)
++			ret = dev->s_timeout(dev, tmp);
++		if (!ret)
++			dev->timeout = tmp;
++		break;
++
++	case LIRC_SET_REC_TIMEOUT_REPORTS:
++		if (!dev->timeout)
++			return -ENOTTY;
++
++		dev->send_timeout_reports = !!val;
++		break;
++
++	default:
++		return -ENOTTY;
++	}
++
++	if (_IOC_DIR(cmd) & _IOC_READ)
++		ret = put_user(val, argp);
++
++	return ret;
++}
++
++static unsigned int ir_lirc_poll(struct file *file,
++				 struct poll_table_struct *wait)
++{
++	struct rc_dev *rcdev = file->private_data;
++	unsigned int events = 0;
++
++	poll_wait(file, &rcdev->wait_poll, wait);
++
++	if (!rcdev->registered) {
++		events = POLLHUP | POLLERR;
++	} else if (rcdev->driver_type != RC_DRIVER_IR_RAW_TX) {
++		if ((rcdev->poll_mode & LIRC_MODE_SCANCODE) &&
++		    !kfifo_is_empty(&rcdev->scancodes))
++			events |= POLLIN | POLLRDNORM;
++
++		if ((rcdev->poll_mode & LIRC_MODE_MODE2) &&
++		    !kfifo_is_empty(&rcdev->rawir))
++			events |= POLLIN | POLLRDNORM;
++	}
++
++	return events;
++}
++
++static ssize_t ir_lirc_read_mode2(struct file *file, char __user *buffer,
++				  size_t length)
++{
++	struct rc_dev *rcdev = file->private_data;
++	unsigned int copied;
++	int ret;
++
++	if (length < sizeof(unsigned int) || length % sizeof(unsigned int))
++		return -EINVAL;
++
++	do {
++		if (kfifo_is_empty(&rcdev->rawir)) {
++			if (file->f_flags & O_NONBLOCK)
++				return -EAGAIN;
++
++			ret = wait_event_interruptible(rcdev->wait_poll,
++					!kfifo_is_empty(&rcdev->rawir) ||
++					!rcdev->registered);
++			if (ret)
++				return ret;
++		}
++
++		if (!rcdev->registered)
++			return -ENODEV;
++
++		mutex_lock(&rcdev->lock);
++		ret = kfifo_to_user(&rcdev->rawir, buffer, length, &copied);
++		mutex_unlock(&rcdev->lock);
++		if (ret)
++			return ret;
++	} while (copied == 0);
++
++	return copied;
++}
++
++static ssize_t ir_lirc_read_scancode(struct file *file, char __user *buffer,
++				     size_t length)
++{
++	struct rc_dev *rcdev = file->private_data;
++	unsigned int copied;
++	int ret;
++
++	if (length < sizeof(struct lirc_scancode) ||
++	    length % sizeof(struct lirc_scancode))
++		return -EINVAL;
++
++	do {
++		if (kfifo_is_empty(&rcdev->scancodes)) {
++			if (file->f_flags & O_NONBLOCK)
++				return -EAGAIN;
++
++			ret = wait_event_interruptible(rcdev->wait_poll,
++					!kfifo_is_empty(&rcdev->scancodes) ||
++					!rcdev->registered);
++			if (ret)
++				return ret;
++		}
++
++		if (!rcdev->registered)
++			return -ENODEV;
++
++		mutex_lock(&rcdev->lock);
++		ret = kfifo_to_user(&rcdev->scancodes, buffer, length, &copied);
++		mutex_unlock(&rcdev->lock);
++		if (ret)
++			return ret;
++	} while (copied == 0);
++
++	return copied;
++}
++
++static ssize_t ir_lirc_read(struct file *file, char __user *buffer,
++			    size_t length, loff_t *ppos)
++{
++	struct rc_dev *rcdev = file->private_data;
++
++	if (rcdev->driver_type == RC_DRIVER_IR_RAW_TX)
++		return -EINVAL;
++
++	if (!rcdev->registered)
++		return -ENODEV;
++
++	if (rcdev->rec_mode == LIRC_MODE_MODE2)
++		return ir_lirc_read_mode2(file, buffer, length);
++	else /* LIRC_MODE_SCANCODE */
++		return ir_lirc_read_scancode(file, buffer, length);
++}
++
++static const struct file_operations lirc_fops = {
++	.owner		= THIS_MODULE,
++	.write		= ir_lirc_transmit_ir,
++	.unlocked_ioctl	= ir_lirc_ioctl,
++#ifdef CONFIG_COMPAT
++	.compat_ioctl	= ir_lirc_ioctl,
++#endif
++	.read		= ir_lirc_read,
++	.poll		= ir_lirc_poll,
++	.open		= ir_lirc_open,
++	.release	= ir_lirc_close,
++	.llseek		= no_llseek,
++};
++
+ static void lirc_release_device(struct device *ld)
+ {
+ 	struct rc_dev *rcdev = container_of(ld, struct rc_dev, lirc_dev);
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 950de264666f..063a8c0457bd 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -289,8 +289,6 @@ void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev);
+ void ir_lirc_scancode_event(struct rc_dev *dev, struct lirc_scancode *lsc);
+ int ir_lirc_register(struct rc_dev *dev);
+ void ir_lirc_unregister(struct rc_dev *dev);
+-
+-extern const struct file_operations lirc_fops;
+ #else
+ static inline int lirc_dev_init(void) { return 0; }
+ static inline void lirc_dev_exit(void) {}
+-- 
+2.13.6
