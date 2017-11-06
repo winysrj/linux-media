@@ -1,43 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:61093 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756306AbdKCOJJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Nov 2017 10:09:09 -0400
-Subject: Re: [PATCH 2/2] media: s5p-mfc: fix lock confection -
- request_firmware() once and keep state
-To: Marian Mihailescu <marian.mihailescu@adelaide.edu.au>
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>, kamil@wypas.org,
-        jtp.park@samsung.com, mchehab@kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
-References: <cover.1507325072.git.shuahkh@osg.samsung.com>
- <CGME20171006213016epcas3p20e34abea60ca43f7c3f79a68fc7a38d7@epcas3p2.samsung.com>
- <fab205fc9ba1bc00e5dda4db6d426fde69116c37.1507325072.git.shuahkh@osg.samsung.com>
- <c1704d1b-95e8-e6a2-9086-3079f78daa00@samsung.com>
- <93d0668e-1fa6-ac2b-d998-9e0317469dd1@osg.samsung.com>
- <CAM3PiRxjO-sP22v5ZSRvKUCwn7B8S_G_GVWW_Uk75aZd3CsoMQ@mail.gmail.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <f7839fdb-42e5-489d-26be-e3b1b9610aff@osg.samsung.com>
-Date: Fri, 3 Nov 2017 08:09:00 -0600
+Received: from mail-oi0-f48.google.com ([209.85.218.48]:52659 "EHLO
+        mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751712AbdKFVps (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Nov 2017 16:45:48 -0500
+Date: Mon, 6 Nov 2017 15:45:46 -0600
+From: Rob Herring <robh@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: devicetree@vger.kernel.org, mchehab@s-opensource.com,
+        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        hyun.kwon@xilinx.com, soren.brinkmann@xilinx.com,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [RESEND PATCH 1/1] of: Make return types of to_of_node and
+ of_fwnode_handle macros consistent
+Message-ID: <20171106214546.br4excrvclrxfd7f@rob-hp-laptop>
+References: <2117711.dO2rQLXOup@avalon>
+ <20171102095918.7041-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAM3PiRxjO-sP22v5ZSRvKUCwn7B8S_G_GVWW_Uk75aZd3CsoMQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171102095918.7041-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/02/2017 06:43 PM, Marian Mihailescu wrote:
-> I can confirm, with this patch, there is always error loading MFC in
-> boot log, since FS is not mounted.
+On Thu, Nov 02, 2017 at 11:59:18AM +0200, Sakari Ailus wrote:
+> (Fixed Mauro's e-mail.)
 > 
-> -Marian
+> to_of_node() macro checks whether the fwnode_handle passed to it is not an
+> OF node, and if so, returns NULL in order to be NULL-safe. Otherwise it
+> returns the pointer to the OF node which the fwnode_handle contains.
 > 
+> The problem with returning NULL is that its type was void *, which
+> sometimes matters. Explicitly return struct device_node * instead.
+> 
+> Make a similar change to of_fwnode_handle() as well.
+> 
+> Fixes: d20dc1493db4 ("of: Support const and non-const use for to_of_node()")
+> Fixes: debd3a3b27c7 ("of: Make of_fwnode_handle() safer")
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> Hi Mauro,
+> 
+> Could you check whether this addresses the smatch issue with the xilinx
+> driver?
+> 
+> Thanks.
+> 
+>  include/linux/of.h | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
 
-Please refrain from top posting to a kernel email threads. It is very difficult
-to follow. Bottom post is the norm.
-
-thanks,
--- Shuah 
+Acked-by: Rob Herring <robh@kernel.org>
