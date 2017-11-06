@@ -1,61 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f182.google.com ([209.85.216.182]:36586 "EHLO
-        mail-qt0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751312AbdKQNIH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 08:08:07 -0500
-Date: Fri, 17 Nov 2017 11:08:01 -0200
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [RFC v5 07/11] [media] vb2: add in-fence support to QBUF
-Message-ID: <20171117130801.GH19033@jade>
-References: <20171115171057.17340-1-gustavo@padovan.org>
- <20171115171057.17340-8-gustavo@padovan.org>
- <422c5326-374b-487f-9ef1-594f239438f1@chromium.org>
- <20171117110025.2a49db49@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171117110025.2a49db49@vento.lan>
+Received: from gofer.mess.org ([88.97.38.141]:40143 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752123AbdKFKkX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Nov 2017 05:40:23 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 5/5] media: rc: iguanair: remove unnecessary locking
+Date: Mon,  6 Nov 2017 10:40:20 +0000
+Message-Id: <b56f810c16b109a0a7a5391771fccac638cfeb0d.1509964131.git.sean@mess.org>
+In-Reply-To: <cover.1509964131.git.sean@mess.org>
+References: <cover.1509964131.git.sean@mess.org>
+In-Reply-To: <cover.1509964131.git.sean@mess.org>
+References: <cover.1509964131.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-11-17 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+Since lirc now correctly locks the rcdev, this locking is no longer
+needed.
 
-> Em Fri, 17 Nov 2017 15:49:23 +0900
-> Alexandre Courbot <acourbot@chromium.org> escreveu:
-> 
-> > > @@ -178,6 +179,12 @@ static int vb2_queue_or_prepare_buf(struct 
-> > > vb2_queue *q, struct v4l2_buffer *b,
-> > >  		return -EINVAL;
-> > >  	}
-> > >  
-> > > +	if ((b->fence_fd != 0 && b->fence_fd != -1) &&  
-> > 
-> > Why do we need to consider both values invalid? Can 0 ever be a valid fence 
-> > fd?
-> 
-> Programs that don't use fences will initialize reserved2/fence_fd field
-> at the uAPI call to zero.
-> 
-> So, I guess using fd=0 here could be a problem. Anyway, I would, instead,
-> do:
-> 
-> 	if ((b->fence_fd < 1) &&
-> 		...
-> 
-> as other negative values are likely invalid as well.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/iguanair.c | 28 ----------------------------
+ 1 file changed, 28 deletions(-)
 
-We are checking when the fence_fd is set but the flag wasn't. Checking
-for < 1 is exactly the opposite. so we keep as is or do it fence_fd > 0.
-
-Gustavo
+diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
+index 30e24da67226..64231efcc47a 100644
+--- a/drivers/media/rc/iguanair.c
++++ b/drivers/media/rc/iguanair.c
+@@ -36,8 +36,6 @@ struct iguanair {
+ 	uint8_t bufsize;
+ 	uint8_t cycle_overhead;
+ 
+-	struct mutex lock;
+-
+ 	/* receiver support */
+ 	bool receiver_on;
+ 	dma_addr_t dma_in, dma_out;
+@@ -295,8 +293,6 @@ static int iguanair_set_tx_carrier(struct rc_dev *dev, uint32_t carrier)
+ 	if (carrier < 25000 || carrier > 150000)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&ir->lock);
+-
+ 	if (carrier != ir->carrier) {
+ 		uint32_t cycles, fours, sevens;
+ 
+@@ -325,8 +321,6 @@ static int iguanair_set_tx_carrier(struct rc_dev *dev, uint32_t carrier)
+ 		ir->packet->busy4 = 110 - fours;
+ 	}
+ 
+-	mutex_unlock(&ir->lock);
+-
+ 	return 0;
+ }
+ 
+@@ -337,9 +331,7 @@ static int iguanair_set_tx_mask(struct rc_dev *dev, uint32_t mask)
+ 	if (mask > 15)
+ 		return 4;
+ 
+-	mutex_lock(&ir->lock);
+ 	ir->packet->channels = mask << 4;
+-	mutex_unlock(&ir->lock);
+ 
+ 	return 0;
+ }
+@@ -351,7 +343,6 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ 	unsigned i, size, periods, bytes;
+ 	int rc;
+ 
+-	mutex_lock(&ir->lock);
+ 
+ 	/* convert from us to carrier periods */
+ 	for (i = space = size = 0; i < count; i++) {
+@@ -382,8 +373,6 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ 		rc = -EOVERFLOW;
+ 
+ out:
+-	mutex_unlock(&ir->lock);
+-
+ 	return rc ? rc : count;
+ }
+ 
+@@ -392,14 +381,10 @@ static int iguanair_open(struct rc_dev *rdev)
+ 	struct iguanair *ir = rdev->priv;
+ 	int rc;
+ 
+-	mutex_lock(&ir->lock);
+-
+ 	rc = iguanair_receiver(ir, true);
+ 	if (rc == 0)
+ 		ir->receiver_on = true;
+ 
+-	mutex_unlock(&ir->lock);
+-
+ 	return rc;
+ }
+ 
+@@ -408,14 +393,10 @@ static void iguanair_close(struct rc_dev *rdev)
+ 	struct iguanair *ir = rdev->priv;
+ 	int rc;
+ 
+-	mutex_lock(&ir->lock);
+-
+ 	rc = iguanair_receiver(ir, false);
+ 	ir->receiver_on = false;
+ 	if (rc && rc != -ENODEV)
+ 		dev_warn(ir->dev, "failed to disable receiver: %d\n", rc);
+-
+-	mutex_unlock(&ir->lock);
+ }
+ 
+ static int iguanair_probe(struct usb_interface *intf,
+@@ -456,7 +437,6 @@ static int iguanair_probe(struct usb_interface *intf,
+ 	ir->rc = rc;
+ 	ir->dev = &intf->dev;
+ 	ir->udev = udev;
+-	mutex_init(&ir->lock);
+ 
+ 	init_completion(&ir->completion);
+ 	pipeout = usb_sndintpipe(udev,
+@@ -553,8 +533,6 @@ static int iguanair_suspend(struct usb_interface *intf, pm_message_t message)
+ 	struct iguanair *ir = usb_get_intfdata(intf);
+ 	int rc = 0;
+ 
+-	mutex_lock(&ir->lock);
+-
+ 	if (ir->receiver_on) {
+ 		rc = iguanair_receiver(ir, false);
+ 		if (rc)
+@@ -564,8 +542,6 @@ static int iguanair_suspend(struct usb_interface *intf, pm_message_t message)
+ 	usb_kill_urb(ir->urb_in);
+ 	usb_kill_urb(ir->urb_out);
+ 
+-	mutex_unlock(&ir->lock);
+-
+ 	return rc;
+ }
+ 
+@@ -574,8 +550,6 @@ static int iguanair_resume(struct usb_interface *intf)
+ 	struct iguanair *ir = usb_get_intfdata(intf);
+ 	int rc = 0;
+ 
+-	mutex_lock(&ir->lock);
+-
+ 	rc = usb_submit_urb(ir->urb_in, GFP_KERNEL);
+ 	if (rc)
+ 		dev_warn(&intf->dev, "failed to submit urb: %d\n", rc);
+@@ -586,8 +560,6 @@ static int iguanair_resume(struct usb_interface *intf)
+ 			dev_warn(ir->dev, "failed to enable receiver after resume\n");
+ 	}
+ 
+-	mutex_unlock(&ir->lock);
+-
+ 	return rc;
+ }
+ 
+-- 
+2.13.6
