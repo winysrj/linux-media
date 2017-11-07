@@ -1,120 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:62366 "EHLO mout.gmx.net"
+Received: from osg.samsung.com ([64.30.133.232]:54105 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752608AbdKHQAS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 8 Nov 2017 11:00:18 -0500
-Received: from axis700.grange ([84.44.207.202]) by mail.gmx.com (mrgmx001
- [212.227.17.190]) with ESMTPSA (Nemesis) id 0MEXHd-1eRYwC0gll-00FlBq for
- <linux-media@vger.kernel.org>; Wed, 08 Nov 2017 17:00:17 +0100
-Received: from 200r.grange (200r.grange [192.168.1.16])
-        by axis700.grange (Postfix) with ESMTP id 72A0E61892
-        for <linux-media@vger.kernel.org>; Wed,  8 Nov 2017 17:00:15 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-Subject: [PATCH 1/3 v7] V4L: Add a UVC Metadata format
-Date: Wed,  8 Nov 2017 17:00:12 +0100
-Message-Id: <1510156814-28645-2-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1510156814-28645-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1510156814-28645-1-git-send-email-g.liakhovetski@gmx.de>
+        id S1751942AbdKGKbQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Nov 2017 05:31:16 -0500
+Date: Tue, 7 Nov 2017 08:31:05 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Matthias Schwarzott <zzam@gentoo.org>,
+        Andrey Konovalov <andreyknvl@google.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        syzkaller <syzkaller@googlegroups.com>
+Subject: Re: usb/media/dtt200u: use-after-free in __dvb_frontend_free
+Message-ID: <20171107083105.6998b182@vento.lan>
+In-Reply-To: <c4ad7f4e-c838-aa44-5f0d-f8072ed41904@gentoo.org>
+References: <CAAeHK+zRfmghESqdKBqFw1CQnrkEkCxCLNgDQKzPqzZS=onEpg@mail.gmail.com>
+        <c4ad7f4e-c838-aa44-5f0d-f8072ed41904@gentoo.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Em Mon, 23 Oct 2017 20:58:09 +0200
+Matthias Schwarzott <zzam@gentoo.org> escreveu:
 
-Add a pixel format, used by the UVC driver to stream metadata.
+> Am 23.10.2017 um 16:41 schrieb Andrey Konovalov:
+> > Hi!
+> > 
+> > I've got the following report while fuzzing the kernel with syzkaller.
+> > 
+> > On commit 3e0cc09a3a2c40ec1ffb6b4e12da86e98feccb11 (4.14-rc5+).
+> > 
+> > dvb-usb: found a 'WideView WT-220U PenType Receiver (based on ZL353)'
+> > in warm state.
+> > dvb-usb: bulk message failed: -22 (2/1102416563)
+> > dvb-usb: will use the device's hardware PID filter (table count: 15).
+> > dvbdev: DVB: registering new adapter (WideView WT-220U PenType
+> > Receiver (based on ZL353))
+> > usb 1-1: media controller created
+> > dvbdev: dvb_create_media_entity: media entity 'dvb-demux' registered.
+> > usb 1-1: DVB: registering adapter 0 frontend 0 (WideView USB DVB-T)...
+> > dvbdev: dvb_create_media_entity: media entity 'WideView USB DVB-T' registered.
+> > Registered IR keymap rc-dtt200u
+> > rc rc1: IR-receiver inside an USB DVB receiver as
+> > /devices/platform/dummy_hcd.0/usb1/1-1/rc/rc1
+> > input: IR-receiver inside an USB DVB receiver as
+> > /devices/platform/dummy_hcd.0/usb1/1-1/rc/rc1/input9
+> > dvb-usb: schedule remote query interval to 300 msecs.
+> > dvb-usb: WideView WT-220U PenType Receiver (based on ZL353)
+> > successfully initialized and connected.
+> > dvb-usb: bulk message failed: -22 (1/1807119384)
+> > dvb-usb: error -22 while querying for an remote control event.
+> > dvb-usb: bulk message failed: -22 (1/1807119384)
+> > dvb-usb: error -22 while querying for an remote control event.
+> > dvb-usb: bulk message failed: -22 (1/1807119384)
+> > dvb-usb: error -22 while querying for an remote control event.
+> > dvb-usb: bulk message failed: -22 (1/1807119384)
+> > dvb-usb: error -22 while querying for an remote control event.
+> > dvb-usb: bulk message failed: -22 (1/1807119384)
+> > dvb-usb: error -22 while querying for an remote control event.
+> > dvb-usb: bulk message failed: -22 (1/1807119384)
+> > dvb-usb: error -22 while querying for an remote control event.
+> > usb 1-1: USB disconnect, device number 2
+> > ==================================================================
+> > BUG: KASAN: use-after-free in __dvb_frontend_free+0x113/0x120
+> > Write of size 8 at addr ffff880067d45a00 by task kworker/0:1/24
+> > 
+> > CPU: 0 PID: 24 Comm: kworker/0:1 Not tainted 4.14.0-rc5-43687-g06ab8a23e0e6 #545
+> > Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+> > Workqueue: usb_hub_wq hub_event
+> > Call Trace:
+> >  __dump_stack lib/dump_stack.c:16
+> >  dump_stack+0x292/0x395 lib/dump_stack.c:52
+> >  print_address_description+0x78/0x280 mm/kasan/report.c:252
+> >  kasan_report_error mm/kasan/report.c:351
+> >  kasan_report+0x23d/0x350 mm/kasan/report.c:409
+> >  __asan_report_store8_noabort+0x1c/0x20 mm/kasan/report.c:435
+> >  __dvb_frontend_free+0x113/0x120 drivers/media/dvb-core/dvb_frontend.c:156
+> >  dvb_frontend_put+0x59/0x70 drivers/media/dvb-core/dvb_frontend.c:176
+> >  dvb_frontend_detach+0x120/0x150 drivers/media/dvb-core/dvb_frontend.c:2803
+> >  dvb_usb_adapter_frontend_exit+0xd6/0x160
+> > drivers/media/usb/dvb-usb/dvb-usb-dvb.c:340
+> >  dvb_usb_adapter_exit drivers/media/usb/dvb-usb/dvb-usb-init.c:116
+> >  dvb_usb_exit+0x9b/0x200 drivers/media/usb/dvb-usb/dvb-usb-init.c:132
+> >  dvb_usb_device_exit+0xa5/0xf0 drivers/media/usb/dvb-usb/dvb-usb-init.c:295
+> >  usb_unbind_interface+0x21c/0xa90 drivers/usb/core/driver.c:423
+> >  __device_release_driver drivers/base/dd.c:861
+> >  device_release_driver_internal+0x4f1/0x5c0 drivers/base/dd.c:893
+> >  device_release_driver+0x1e/0x30 drivers/base/dd.c:918
+> >  bus_remove_device+0x2f4/0x4b0 drivers/base/bus.c:565
+> >  device_del+0x5c4/0xab0 drivers/base/core.c:1985
+> >  usb_disable_device+0x1e9/0x680 drivers/usb/core/message.c:1170
+> >  usb_disconnect+0x260/0x7a0 drivers/usb/core/hub.c:2124
+> >  hub_port_connect drivers/usb/core/hub.c:4754
+> >  hub_port_connect_change drivers/usb/core/hub.c:5009
+> >  port_event drivers/usb/core/hub.c:5115
+> >  hub_event+0x1318/0x3740 drivers/usb/core/hub.c:5195
+> >  process_one_work+0xc73/0x1d90 kernel/workqueue.c:2119
+> >  worker_thread+0x221/0x1850 kernel/workqueue.c:2253
+> >  kthread+0x363/0x440 kernel/kthread.c:231
+> >  ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+> >   
+> It looks like this is caused by commit
+> ead666000a5fe34bdc82d61838e4df2d416ea15e ("media: dvb_frontend: only use
+> kref after initialized").
+> 
+> The writing to "fe->frontend_priv" in dvb_frontend.c:156 is a
+> use-after-free in case the object dvb_frontend *fe is already freed by
+> the release callback called in line 153.
+> Only if the demod driver is based on new style i2c_client the memory is
+> still accessible.
+> 
+> There are two possible solutions:
+> 1. Clear fe->frontend_priv earlier (before line 153).
+> 2. Do not clear fe->frontend_priv
+> 
+> Can you try if the following patch (solution 1) fixes the issue?
 
-Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
----
+The problem with (1) is that drivers may need to use frontend_priv
+on their own release callbacks.
 
-v7: alphabetic order, update documentation.
+So, I don't think this is the right fix.
 
- Documentation/media/uapi/v4l/meta-formats.rst    |  1 +
- Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst | 50 ++++++++++++++++++++++++
- include/uapi/linux/videodev2.h                   |  1 +
- 3 files changed, 52 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
+I guess option (2) is the best one here.
 
-diff --git a/Documentation/media/uapi/v4l/meta-formats.rst b/Documentation/media/uapi/v4l/meta-formats.rst
-index 01e24e3..0c4e1ec 100644
---- a/Documentation/media/uapi/v4l/meta-formats.rst
-+++ b/Documentation/media/uapi/v4l/meta-formats.rst
-@@ -12,5 +12,6 @@ These formats are used for the :ref:`metadata` interface only.
- .. toctree::
-     :maxdepth: 1
+Andrey,
+
+Could you please test the enclosed patch?
+
+Thanks!
+Mauro
+
+dvb_frontend: don't use-after-free the frontend struct
+
+dvb_frontend_invoke_release() may free the frontend struct.
+So, we can't update it anymore after calling it.
+That's OK, as __dvb_frontend_free() is called only when the
+krefs are zeroed, so nobody is using it anymore.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index daaf969719e4..80191a15cd89 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -153,7 +153,6 @@ static void __dvb_frontend_free(struct dvb_frontend *fe)
+ 	dvb_frontend_invoke_release(fe, fe->ops.release);
  
-+    pixfmt-meta-uvc
-     pixfmt-meta-vsp1-hgo
-     pixfmt-meta-vsp1-hgt
-diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst b/Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
-new file mode 100644
-index 0000000..06f603c
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
-@@ -0,0 +1,50 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _v4l2-meta-fmt-uvc:
-+
-+*******************************
-+V4L2_META_FMT_UVC ('UVCH')
-+*******************************
-+
-+UVC Payload Header Data
-+
-+
-+Description
-+===========
-+
-+This format describes standard UVC metadata, extracted from UVC packet headers
-+and provided by the UVC driver through metadata video nodes. That data includes
-+exact copies of the standard part of UVC Payload Header contents and auxiliary
-+timing information, required for precise interpretation of timestamps, contained
-+in those headers. See section "2.4.3.3 Video and Still Image Payload Headers" of
-+the "UVC 1.5 Class specification" for details.
-+
-+Each UVC payload header can be between 2 and 12 bytes large. Buffers can contain
-+multiple headers, if multiple such headers have been transmitted by the camera
-+for the respective frame. However, headers, containing no useful information,
-+e.g. those without the SCR field or with that field identical to the previous
-+header, will be dropped by the driver.
-+
-+Each individual block contains the following fields:
-+
-+.. flat-table:: UVC Metadata Block
-+    :widths: 1 4
-+    :header-rows:  1
-+    :stub-columns: 0
-+
-+    * - Field
-+      - Description
-+    * - __u64 ts;
-+      - system timestamp in host byte order, measured by the driver upon
-+        reception of the payload
-+    * - __u16 sof;
-+      - USB Frame Number in host byte order, also obtained by the driver as
-+        close as possible to the above timestamp to enable correlation between
-+        them
-+    * - :cspan:`1` *The rest is an exact copy of the UVC payload header:*
-+    * - __u8 length;
-+      - length of the rest of the block, including this field
-+    * - __u8 flags;
-+      - Flags, indicating presence of other standard UVC fields
-+    * - __u8 buf[];
-+      - The rest of the header, possibly including UVC PTS and SCR fields
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 185d6a0..0d07b2d 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -687,6 +687,7 @@ struct v4l2_pix_format {
- /* Meta-data formats */
- #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 1-D Histogram */
- #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */
-+#define V4L2_META_FMT_UVC         v4l2_fourcc('U', 'V', 'C', 'H') /* UVC Payload Header metadata */
+ 	kfree(fepriv);
+-	fe->frontend_priv = NULL;
+ }
  
- /* priv field value to indicates that subsequent fields are valid. */
- #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
--- 
-1.9.3
+ static void dvb_frontend_free(struct kref *ref)
+
+
+Thanks,
+Mauro
