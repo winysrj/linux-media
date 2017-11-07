@@ -1,206 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:40075 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755543AbdKNOYp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Nov 2017 09:24:45 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH] dtv-scan-tables: Intelsat34-55.5W: update definitions from Vivo streaming
-Date: Tue, 14 Nov 2017 12:24:38 -0200
-Message-Id: <6d6a11dd61450819a5ad5c47f52cc53afa9dd40d.1510669453.git.mchehab@s-opensource.com>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:40678 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755341AbdKGHrZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Nov 2017 02:47:25 -0500
+Subject: Re: [PATCH v2 3/4] media: i2c: Add TDA1997x HDMI receiver driver
+To: Tim Harvey <tharvey@gateworks.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        alsa-devel@alsa-project.org,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <1507783506-3884-1-git-send-email-tharvey@gateworks.com>
+ <1507783506-3884-4-git-send-email-tharvey@gateworks.com>
+ <230ceb18-1d69-7fa8-acb0-c810094f8e50@xs4all.nl>
+ <CAJ+vNU0Z988G+wTfpiSXXOM9QsPj-eRvH=F1b9__8kJ+18xk4g@mail.gmail.com>
+ <a5bd27c9-10e4-b9f5-f0ac-293528fa570e@xs4all.nl>
+ <CAJ+vNU2yHKDf5tCVyj6iw83z0sDuV0ZsZ-=sLfa+fTFbtjVo0A@mail.gmail.com>
+ <CAJ+vNU267VyOiq+fyv0dRm4Mui3YfK-ybqeOSENGMX6LmzZdcQ@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <82454b04-1664-423b-2b9e-36b3ae76e83a@xs4all.nl>
+Date: Tue, 7 Nov 2017 08:47:18 +0100
+MIME-Version: 1.0
+In-Reply-To: <CAJ+vNU267VyOiq+fyv0dRm4Mui3YfK-ybqeOSENGMX6LmzZdcQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There were some frequency changes on this Satellite.
-Update them.
+On 11/07/2017 07:04 AM, Tim Harvey wrote:
+> On Fri, Oct 20, 2017 at 7:00 AM, Tim Harvey <tharvey@gateworks.com> wrote:
+>> On Thu, Oct 19, 2017 at 12:39 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> <snip>
+>>>>
+>>>> Regarding video standard detection where this chip provides me with
+>>>> vertical-period, horizontal-period, and horizontal-pulse-width I
+>>>> should be able to detect the standard simply based off of
+>>>> vertical-period (framerate) and horizontal-period (line width
+>>>> including blanking) right? I wasn't sure if my method of matching
+>>>> these within 14% tolerance made sense. I will be removing the hsmatch
+>>>> logic from that as it seems the horizontal-pulse-width should be
+>>>> irrelevant.
+>>>
+>>> For proper video detection you ideally need:
+>>>
+>>> h/v sync size
+>>> h/v back/front porch size
+>>> h/v polarity
+>>> pixelclock (usually an approximation)
+>>>
+>>> The v4l2_find_dv_timings_cap() helper can help you find the corresponding
+>>> timings, allowing for pixelclock variation.
+>>>
+>>> That function assumes that the sync/back/frontporch values are all known.
+>>> But not all devices can actually discover those values. What can your
+>>> hardware detect? Can it tell front and backporch apart? Can it determine
+>>> the sync size?
+>>>
+>>> I've been considering for some time to improve that helper function to be
+>>> able to handle hardware that isn't able separate sync/back/frontporch values.
+>>>
+>>
+>> The TDA1997x provides only the vertical/horizontal periods and the
+>> horizontal pulse
+>> width (section 8.3.4 of datasheet [1]).
+>>
+>> Can you point me to a good primer on the relationship between these
+>> values and the h/v back/front porch?
+>>
+>> Currently I iterate over the list of known formats calculating hper
+>> (bt->pixelclock / V4L2_DV_BT_FRAME_WIDTH(bt)) and vper (hper /
+>> V4L2_DV_BT_FRAME_HEIGHT(bt)) (framerate) and find the closest match
+>> within +/- 7% tolerance. The list of supported formats is sorted by
+>> framerate then width.
+>>
+>>         /* look for matching timings */
+>>         for (i = 0; i < ARRAY_SIZE(tda1997x_hdmi_modes); i++) {
+>>                 const struct tda1997x_video_std *std = &tda1997x_hdmi_modes[i];
+>>                 const struct v4l2_bt_timings *bt = &std->timings.bt;
+>>                 int _hper, _vper, _hsper;
+>>                 int vmin, vmax, hmin, hmax, hsmin, hsmax;
+>>                 int vmatch, hsmatch;
+>>
+>>                 width = V4L2_DV_BT_FRAME_WIDTH(bt);
+>>                 lines = V4L2_DV_BT_FRAME_HEIGHT(bt);
+>>
+>>                 _hper = (int)bt->pixelclock / (int)width;
+>>                 _vper = _hper / lines;
+>>                 _hsper = (int)bt->pixelclock / (int)bt->hsync;
+>>                 if (bt->interlaced)
+>>                         _vper *= 2;
+>>                 /* vper +/- 0.7% */
+>>                 vmin = 993 * (27000000 / _vper) / 1000;
+>>                 vmax = 1007 * (27000000 / _vper) / 1000;
+>>                 _hsper = (int)bt->pixelclock / (int)bt->hsync;
+>>                 if (bt->interlaced)
+>>                         _vper *= 2;
+>>                 /* vper +/- 0.7% */
+>>                 vmin = 993 * (27000000 / _vper) / 1000;
+>>                 vmax = 1007 * (27000000 / _vper) / 1000;
+>>                 /* hper +/- 0.7% */
+>>                 hmin = 993 * (27000000 / _hper) / 1000;
+>>                 hmax = 1007 * (27000000 / _hper) / 1000;
+>>
+>>                 /* vmatch matches the framerate */
+>>                 vmatch = ((vper <= vmax) && (vper >= vmin)) ? 1 : 0;
+>>                 /* hmatch matches the width */
+>>                 hmatch = ((hper <= hmax) && (hper >= hmin)) ? 1 : 0;
+>>                 if (vmatch && hsmatch) {
+>>                         v4l_info(state->client,
+>>                                  "resolution: %dx%d%c@%d (%d/%d/%d) %dMHz %d\n",
+>>                                  bt->width, bt->height, bt->interlaced?'i':'p',
+>>                                  _vper, vper, hper, hsper, pixrate, hsmatch);
+>>                         state->fps = (int)bt->pixelclock / (width * lines);
+>>                         state->std = std;
+>>                         return 0;
+>>                 }
+>>         }
+>>
+>> Note that I've thrown out any comparisons based on horizontal pulse
+>> width from my first patch as that didn't appear to fit well. So far
+>> the above works well however I do fail to recognize the following
+>> modes (using a Marshall SG4K HDMI test generator):
+>>
+> 
+> Hans,
+> 
+> I've found that I do indeed need to look at the 'hsper' that the TDA
+> provides above along with the vper/hper as there are several timings
+> that match a given vper/hper. However I haven't figured out how to
+> make sense of the hsper value that is returned.
+> 
+> Here are some example timings and the vper/hper/hsper returned from the TDA:
+> V4L2_DV_BT_DMT_1280X960P60 449981/448/55
+> V4L2_DV_BT_DMT_1280X1024P60 449833/420/27
+> V4L2_DV_BT_DMT_1280X768P60 450021/568/11
+> V4L2_DV_BT_DMT_1360X768P60 449867/564/34
+> 
+> Do you know what the hsper could be here? It doesn't appear to match
+> v4l2_bt_timings hsync ((27MHz/bt->pixelclock)*bt->hsync).
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- dvb-s/Intelsat34-55.5W | 120 ++++++++++++-------------------------------------
- 1 file changed, 29 insertions(+), 91 deletions(-)
+Actually, all numbers except for the first match (assuming V4L2_DV_BT_DMT_1280X768P60
+is really V4L2_DV_BT_DMT_1280X768P60_RB).
 
-diff --git a/dvb-s/Intelsat34-55.5W b/dvb-s/Intelsat34-55.5W
-index 3b96fc894c99..617b1c75b2cd 100644
---- a/dvb-s/Intelsat34-55.5W
-+++ b/dvb-s/Intelsat34-55.5W
-@@ -1,148 +1,86 @@
- # Intelsat 34 @ 55.5W Ku-BAND
- 
--# TV channels
--
--[CHANNEL]
--	DELIVERY_SYSTEM = DVBS2
--	FREQUENCY = 11825000
--	POLARIZATION = HORIZONTAL
--	SYMBOL_RATE = 45000000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
--	STREAM_ID = 0
--	INVERSION = AUTO
--
--[CHANNEL]
--	DELIVERY_SYSTEM = DVBS2
--	FREQUENCY = 11825000
--	POLARIZATION = VERTICAL
--	SYMBOL_RATE = 45000000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
--	STREAM_ID = 0
--	INVERSION = AUTO
--
- [CHANNEL]
- 	DELIVERY_SYSTEM = DVBS2
- 	FREQUENCY = 11890000
- 	POLARIZATION = HORIZONTAL
- 	SYMBOL_RATE = 30000000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
--	STREAM_ID = 0
--	INVERSION = AUTO
--
--[CHANNEL]
--	DELIVERY_SYSTEM = DVBS2
--	FREQUENCY = 11905000
--	POLARIZATION = VERTICAL
--	SYMBOL_RATE = 45000000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
-+	INNER_FEC = 2/3
-+	ROLLOFF = 20
-+	MODULATION = PSK/8
- 	STREAM_ID = 0
- 	INVERSION = AUTO
-+	PILOT = OFF
- 
- [CHANNEL]
- 	DELIVERY_SYSTEM = DVBS2
- 	FREQUENCY = 11930000
- 	POLARIZATION = HORIZONTAL
- 	SYMBOL_RATE = 30000000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
-+	INNER_FEC = 2/3
-+	ROLLOFF = 20
-+	MODULATION = PSK/8
- 	STREAM_ID = 0
- 	INVERSION = AUTO
-+	PILOT = OFF
- 
- [CHANNEL]
- 	DELIVERY_SYSTEM = DVBS2
- 	FREQUENCY = 11970000
- 	POLARIZATION = HORIZONTAL
- 	SYMBOL_RATE = 30000000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
-+	INNER_FEC = 2/3
-+	ROLLOFF = 20
-+	MODULATION = PSK/8
- 	STREAM_ID = 0
- 	INVERSION = AUTO
-+	PILOT = OFF
- 
- [CHANNEL]
- 	DELIVERY_SYSTEM = DVBS2
- 	FREQUENCY = 12010000
- 	POLARIZATION = HORIZONTAL
- 	SYMBOL_RATE = 30000000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
-+	INNER_FEC = 2/3
-+	ROLLOFF = 20
-+	MODULATION = PSK/8
- 	STREAM_ID = 0
- 	INVERSION = AUTO
-+	PILOT = OFF
- 
- [CHANNEL]
- 	DELIVERY_SYSTEM = DVBS2
- 	FREQUENCY = 12050000
- 	POLARIZATION = HORIZONTAL
- 	SYMBOL_RATE = 30000000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
-+	INNER_FEC = 2/3
-+	ROLLOFF = 20
-+	MODULATION = PSK/8
- 	STREAM_ID = 0
- 	INVERSION = AUTO
-+	PILOT = OFF
- 
- [CHANNEL]
- 	DELIVERY_SYSTEM = DVBS2
- 	FREQUENCY = 12090000
- 	POLARIZATION = HORIZONTAL
--	SYMBOL_RATE = 30000000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
-+	SYMBOL_RATE = 30001465
-+	INNER_FEC = 2/3
-+	ROLLOFF = 20
-+	MODULATION = PSK/8
- 	STREAM_ID = 0
- 	INVERSION = AUTO
-+	PILOT = OFF
- 
- [CHANNEL]
- 	DELIVERY_SYSTEM = DVBS2
- 	FREQUENCY = 12130000
- 	POLARIZATION = HORIZONTAL
- 	SYMBOL_RATE = 30000000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
-+	INNER_FEC = 2/3
-+	ROLLOFF = 20
-+	MODULATION = PSK/8
- 	STREAM_ID = 0
- 	INVERSION = AUTO
-+	PILOT = OFF
- 
--[CHANNEL]
--	DELIVERY_SYSTEM = DVBS2
--	FREQUENCY = 12170000
--	POLARIZATION = HORIZONTAL
--	SYMBOL_RATE = 30000000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
--	STREAM_ID = 0
--	INVERSION = AUTO
--
--# IP data channels
--
--[CHANNEL]
--	DELIVERY_SYSTEM = DVBS2
--	FREQUENCY = 12020000
--	POLARIZATION = VERTICAL
--	SYMBOL_RATE = 2700000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
--	STREAM_ID = 0
--	INVERSION = AUTO
--
--[CHANNEL]
--	DELIVERY_SYSTEM = DVBS2
--	FREQUENCY = 12030000
--	POLARIZATION = VERTICAL
--	SYMBOL_RATE = 12820000
--	INNER_FEC = AUTO
--	INVERSION = AUTO
--	MODULATION = QAM/AUTO
--	ROLLOFF = AUTO
--	STREAM_ID = 0
--- 
-2.14.3
+Are you sure about the first one?
+
+Unfortunately, due to rounding errors the hsper is simply not accurate enough to
+use reliably. Furthermore, what is really needed if you want to add support for
+GTF and CVT standards is the vsync value, and that's not reported at all.
+
+I'd just give up on this and use your original code.
+
+Very poor hardware design :-(
+
+Regards,
+
+	Hans
