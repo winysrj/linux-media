@@ -1,49 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58586 "EHLO mail.kernel.org"
+Received: from mga07.intel.com ([134.134.136.100]:41667 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965821AbdKQPru (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 10:47:50 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v4 9/9] v4l: vsp1: Reduce display list body size
-Date: Fri, 17 Nov 2017 15:47:32 +0000
-Message-Id: <84592170dbe4ffdb4cc8d33aa20c23218e029ee7.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
+        id S935062AbdKGBFn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Nov 2017 20:05:43 -0500
+Subject: [PATCH 3/3] [media] v4l2: disable filesystem-dax mapping support
+From: Dan Williams <dan.j.williams@intel.com>
+To: akpm@linux-foundation.org
+Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org,
+        stable@vger.kernel.org, linux-mm@kvack.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Date: Mon, 06 Nov 2017 16:57:28 -0800
+Message-ID: <151001624873.16354.2551756846133945335.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <151001623063.16354.14661493921524115663.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151001623063.16354.14661493921524115663.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The display list originally allocated a body of 256 entries to store all
-of the register lists required for each frame.
+V4L2 memory registrations are incompatible with filesystem-dax that
+needs the ability to revoke dma access to a mapping at will, or
+otherwise allow the kernel to wait for completion of DMA. The
+filesystem-dax implementation breaks the traditional solution of
+truncate of active file backed mappings since there is no page-cache
+page we can orphan to sustain ongoing DMA.
 
-This has now been separated into fragments for constant stream setup, and
-runtime updates.
+If v4l2 wants to support long lived DMA mappings it needs to arrange to
+hold a file lease or use some other mechanism so that the kernel can
+coordinate revoking DMA access when the filesystem needs to truncate
+mappings.
 
-Empirical testing shows that the body0 now uses a maximum of 41
-registers for each frame, for both DRM and Video API pipelines thus a
-rounded 64 entries provides a suitable allocation.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reported-by: Jan Kara <jack@suse.cz>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/media/platform/vsp1/vsp1_dl.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/videobuf-dma-sg.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 49d88b03d359..278451e8bc4e 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -21,7 +21,7 @@
- #include "vsp1.h"
- #include "vsp1_dl.h"
+diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
+index 0b5c43f7e020..f412429cf5ba 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -185,12 +185,13 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+ 	dprintk(1, "init user [0x%lx+0x%lx => %d pages]\n",
+ 		data, size, dma->nr_pages);
  
--#define VSP1_DL_NUM_ENTRIES		256
-+#define VSP1_DL_NUM_ENTRIES		64
+-	err = get_user_pages(data & PAGE_MASK, dma->nr_pages,
++	err = get_user_pages_longterm(data & PAGE_MASK, dma->nr_pages,
+ 			     flags, dma->pages, NULL);
  
- #define VSP1_DLH_INT_ENABLE		(1 << 1)
- #define VSP1_DLH_AUTO_START		(1 << 0)
--- 
-git-series 0.9.1
+ 	if (err != dma->nr_pages) {
+ 		dma->nr_pages = (err >= 0) ? err : 0;
+-		dprintk(1, "get_user_pages: err=%d [%d]\n", err, dma->nr_pages);
++		dprintk(1, "get_user_pages_longterm: err=%d [%d]\n", err,
++			dma->nr_pages);
+ 		return err < 0 ? err : -EINVAL;
+ 	}
+ 	return 0;
