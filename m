@@ -1,63 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:40315 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751887AbdKXCiU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Nov 2017 21:38:20 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org,
-        Jacob Chen <jacob2.chen@rock-chips.com>
-Subject: [PATCH v2 09/11] arm64: dts: rockchip: add isp0 node for rk3399
-Date: Fri, 24 Nov 2017 10:37:04 +0800
-Message-Id: <20171124023706.5702-10-jacob-chen@iotwrt.com>
-In-Reply-To: <20171124023706.5702-1-jacob-chen@iotwrt.com>
-References: <20171124023706.5702-1-jacob-chen@iotwrt.com>
+Received: from mail-wr0-f181.google.com ([209.85.128.181]:50214 "EHLO
+        mail-wr0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753967AbdKGGEb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Nov 2017 01:04:31 -0500
+Received: by mail-wr0-f181.google.com with SMTP id p96so10762654wrb.7
+        for <linux-media@vger.kernel.org>; Mon, 06 Nov 2017 22:04:31 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAJ+vNU2yHKDf5tCVyj6iw83z0sDuV0ZsZ-=sLfa+fTFbtjVo0A@mail.gmail.com>
+References: <1507783506-3884-1-git-send-email-tharvey@gateworks.com>
+ <1507783506-3884-4-git-send-email-tharvey@gateworks.com> <230ceb18-1d69-7fa8-acb0-c810094f8e50@xs4all.nl>
+ <CAJ+vNU0Z988G+wTfpiSXXOM9QsPj-eRvH=F1b9__8kJ+18xk4g@mail.gmail.com>
+ <a5bd27c9-10e4-b9f5-f0ac-293528fa570e@xs4all.nl> <CAJ+vNU2yHKDf5tCVyj6iw83z0sDuV0ZsZ-=sLfa+fTFbtjVo0A@mail.gmail.com>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Mon, 6 Nov 2017 22:04:29 -0800
+Message-ID: <CAJ+vNU267VyOiq+fyv0dRm4Mui3YfK-ybqeOSENGMX6LmzZdcQ@mail.gmail.com>
+Subject: Re: [PATCH v2 3/4] media: i2c: Add TDA1997x HDMI receiver driver
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        alsa-devel@alsa-project.org,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shunqian Zheng <zhengsq@rock-chips.com>
+On Fri, Oct 20, 2017 at 7:00 AM, Tim Harvey <tharvey@gateworks.com> wrote:
+> On Thu, Oct 19, 2017 at 12:39 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> <snip>
+>>>
+>>> Regarding video standard detection where this chip provides me with
+>>> vertical-period, horizontal-period, and horizontal-pulse-width I
+>>> should be able to detect the standard simply based off of
+>>> vertical-period (framerate) and horizontal-period (line width
+>>> including blanking) right? I wasn't sure if my method of matching
+>>> these within 14% tolerance made sense. I will be removing the hsmatch
+>>> logic from that as it seems the horizontal-pulse-width should be
+>>> irrelevant.
+>>
+>> For proper video detection you ideally need:
+>>
+>> h/v sync size
+>> h/v back/front porch size
+>> h/v polarity
+>> pixelclock (usually an approximation)
+>>
+>> The v4l2_find_dv_timings_cap() helper can help you find the corresponding
+>> timings, allowing for pixelclock variation.
+>>
+>> That function assumes that the sync/back/frontporch values are all known.
+>> But not all devices can actually discover those values. What can your
+>> hardware detect? Can it tell front and backporch apart? Can it determine
+>> the sync size?
+>>
+>> I've been considering for some time to improve that helper function to be
+>> able to handle hardware that isn't able separate sync/back/frontporch values.
+>>
+>
+> The TDA1997x provides only the vertical/horizontal periods and the
+> horizontal pulse
+> width (section 8.3.4 of datasheet [1]).
+>
+> Can you point me to a good primer on the relationship between these
+> values and the h/v back/front porch?
+>
+> Currently I iterate over the list of known formats calculating hper
+> (bt->pixelclock / V4L2_DV_BT_FRAME_WIDTH(bt)) and vper (hper /
+> V4L2_DV_BT_FRAME_HEIGHT(bt)) (framerate) and find the closest match
+> within +/- 7% tolerance. The list of supported formats is sorted by
+> framerate then width.
+>
+>         /* look for matching timings */
+>         for (i = 0; i < ARRAY_SIZE(tda1997x_hdmi_modes); i++) {
+>                 const struct tda1997x_video_std *std = &tda1997x_hdmi_modes[i];
+>                 const struct v4l2_bt_timings *bt = &std->timings.bt;
+>                 int _hper, _vper, _hsper;
+>                 int vmin, vmax, hmin, hmax, hsmin, hsmax;
+>                 int vmatch, hsmatch;
+>
+>                 width = V4L2_DV_BT_FRAME_WIDTH(bt);
+>                 lines = V4L2_DV_BT_FRAME_HEIGHT(bt);
+>
+>                 _hper = (int)bt->pixelclock / (int)width;
+>                 _vper = _hper / lines;
+>                 _hsper = (int)bt->pixelclock / (int)bt->hsync;
+>                 if (bt->interlaced)
+>                         _vper *= 2;
+>                 /* vper +/- 0.7% */
+>                 vmin = 993 * (27000000 / _vper) / 1000;
+>                 vmax = 1007 * (27000000 / _vper) / 1000;
+>                 _hsper = (int)bt->pixelclock / (int)bt->hsync;
+>                 if (bt->interlaced)
+>                         _vper *= 2;
+>                 /* vper +/- 0.7% */
+>                 vmin = 993 * (27000000 / _vper) / 1000;
+>                 vmax = 1007 * (27000000 / _vper) / 1000;
+>                 /* hper +/- 0.7% */
+>                 hmin = 993 * (27000000 / _hper) / 1000;
+>                 hmax = 1007 * (27000000 / _hper) / 1000;
+>
+>                 /* vmatch matches the framerate */
+>                 vmatch = ((vper <= vmax) && (vper >= vmin)) ? 1 : 0;
+>                 /* hmatch matches the width */
+>                 hmatch = ((hper <= hmax) && (hper >= hmin)) ? 1 : 0;
+>                 if (vmatch && hsmatch) {
+>                         v4l_info(state->client,
+>                                  "resolution: %dx%d%c@%d (%d/%d/%d) %dMHz %d\n",
+>                                  bt->width, bt->height, bt->interlaced?'i':'p',
+>                                  _vper, vper, hper, hsper, pixrate, hsmatch);
+>                         state->fps = (int)bt->pixelclock / (width * lines);
+>                         state->std = std;
+>                         return 0;
+>                 }
+>         }
+>
+> Note that I've thrown out any comparisons based on horizontal pulse
+> width from my first patch as that didn't appear to fit well. So far
+> the above works well however I do fail to recognize the following
+> modes (using a Marshall SG4K HDMI test generator):
+>
 
-rk3399 have two ISP, but we havn't test isp1, so just add isp0 at present.
+Hans,
 
-Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
----
- arch/arm64/boot/dts/rockchip/rk3399.dtsi | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+I've found that I do indeed need to look at the 'hsper' that the TDA
+provides above along with the vper/hper as there are several timings
+that match a given vper/hper. However I haven't figured out how to
+make sense of the hsper value that is returned.
 
-diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-index d340b58ab184..66a912fab5dd 100644
---- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-+++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-@@ -1588,6 +1588,21 @@
- 		status = "disabled";
- 	};
- 
-+	isp0: isp0@ff910000 {
-+		compatible = "rockchip,rk3399-cif-isp";
-+		reg = <0x0 0xff910000 0x0 0x4000>;
-+		interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH 0>;
-+		clocks = <&cru SCLK_ISP0>,
-+			 <&cru ACLK_ISP0>, <&cru ACLK_ISP0_WRAPPER>,
-+			 <&cru HCLK_ISP0>, <&cru HCLK_ISP0_WRAPPER>;
-+		clock-names = "clk_isp",
-+			      "aclk_isp", "aclk_isp_wrap",
-+			      "hclk_isp", "hclk_isp_wrap";
-+		power-domains = <&power RK3399_PD_ISP0>;
-+		iommus = <&isp0_mmu>;
-+		status = "disabled";
-+	};
-+
- 	isp0_mmu: iommu@ff914000 {
- 		compatible = "rockchip,iommu";
- 		reg = <0x0 0xff914000 0x0 0x100>, <0x0 0xff915000 0x0 0x100>;
--- 
-2.15.0
+Here are some example timings and the vper/hper/hsper returned from the TDA:
+V4L2_DV_BT_DMT_1280X960P60 449981/448/55
+V4L2_DV_BT_DMT_1280X1024P60 449833/420/27
+V4L2_DV_BT_DMT_1280X768P60 450021/568/11
+V4L2_DV_BT_DMT_1360X768P60 449867/564/34
+
+Do you know what the hsper could be here? It doesn't appear to match
+v4l2_bt_timings hsync ((27MHz/bt->pixelclock)*bt->hsync).
+
+Thanks,
+
+Tim
