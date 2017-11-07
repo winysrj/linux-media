@@ -1,77 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:44026 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933404AbdKAVGU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 17:06:20 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH v2 26/26] media: mb86a16: avoid division by zero
-Date: Wed,  1 Nov 2017 17:06:03 -0400
-Message-Id: <5ec788acbc0aea0843fb5c024519f9b802228da6.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:44794 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753910AbdKGRnm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Nov 2017 12:43:42 -0500
+Received: by mail-oi0-f66.google.com with SMTP id v132so22425oie.1
+        for <linux-media@vger.kernel.org>; Tue, 07 Nov 2017 09:43:42 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20171107063345.22626a5d@vento.lan>
+References: <151001623063.16354.14661493921524115663.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <151001624873.16354.2551756846133945335.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171107063345.22626a5d@vento.lan>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 7 Nov 2017 09:43:41 -0800
+Message-ID: <CAPcyv4hNSV=c4KY8omKEdRth2w4YEr8EQJQfOoxXS8XELGFVcA@mail.gmail.com>
+Subject: Re: [PATCH 3/3] [media] v4l2: disable filesystem-dax mapping support
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "stable@vger.kernel.org" <stable@vger.kernel.org>,
+        Linux MM <linux-mm@kvack.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As warned by smatch:
-	drivers/media/dvb-frontends/mb86a16.c:1690 mb86a16_read_ber() error: uninitialized symbol 'timer'.
-	drivers/media/dvb-frontends/mb86a16.c:1706 mb86a16_read_ber() error: uninitialized symbol 'timer'.
+On Tue, Nov 7, 2017 at 12:33 AM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+> Em Mon, 06 Nov 2017 16:57:28 -0800
+> Dan Williams <dan.j.williams@intel.com> escreveu:
+>
+>> V4L2 memory registrations are incompatible with filesystem-dax that
+>> needs the ability to revoke dma access to a mapping at will, or
+>> otherwise allow the kernel to wait for completion of DMA. The
+>> filesystem-dax implementation breaks the traditional solution of
+>> truncate of active file backed mappings since there is no page-cache
+>> page we can orphan to sustain ongoing DMA.
+>>
+>> If v4l2 wants to support long lived DMA mappings it needs to arrange to
+>> hold a file lease or use some other mechanism so that the kernel can
+>> coordinate revoking DMA access when the filesystem needs to truncate
+>> mappings.
+>
+>
+> Not sure if I understand this your comment here... what happens
+> if FS_DAX is enabled? The new err = get_user_pages_longterm()
+> would cause DMA allocation to fail?
 
-There is a potential risk of doing a division by zero if
-timer is not handled well. Enforce it by setting a bit mask
-for the values used to select the timer.
+Correct, any attempt to specify a filesystem-dax mapping range to
+get_user_pages_longterm will fail with EOPNOTSUPP. In the future we
+want to add something like a 'struct file_lock *' argument to
+get_user_pages_longterm so that the kernel has a handle to revoke
+access to the returned pages. Once we have a safe way for the kernel
+to undo elevated page counts we can stop failing the longterm vs
+filesystem-dax case.
 
-While here, optimize the logic to prevent uneeded tests.
+Here is more background on why _longterm gup is a problem for filesystem-dax:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-frontends/mb86a16.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+    https://lwn.net/Articles/737273/
 
-diff --git a/drivers/media/dvb-frontends/mb86a16.c b/drivers/media/dvb-frontends/mb86a16.c
-index f1aad52094c3..5d2bb76bc07a 100644
---- a/drivers/media/dvb-frontends/mb86a16.c
-+++ b/drivers/media/dvb-frontends/mb86a16.c
-@@ -1677,15 +1677,15 @@ static int mb86a16_read_ber(struct dvb_frontend *fe, u32 *ber)
- 			 * the deinterleaver output.
- 			 * monitored BER is expressed as a 20 bit output in total
- 			 */
--			ber_rst = ber_mon >> 3;
-+			ber_rst = (ber_mon >> 3) & 0x03;
- 			*ber = (((ber_msb << 8) | ber_mid) << 8) | ber_lsb;
- 			if (ber_rst == 0)
- 				timer =  12500000;
--			if (ber_rst == 1)
-+			else if (ber_rst == 1)
- 				timer =  25000000;
--			if (ber_rst == 2)
-+			else if (ber_rst == 2)
- 				timer =  50000000;
--			if (ber_rst == 3)
-+			else /* ber_rst == 3 */
- 				timer = 100000000;
- 
- 			*ber /= timer;
-@@ -1697,11 +1697,11 @@ static int mb86a16_read_ber(struct dvb_frontend *fe, u32 *ber)
- 			 * QPSK demodulator output.
- 			 * monitored BER is expressed as a 24 bit output in total
- 			 */
--			ber_tim = ber_mon >> 1;
-+			ber_tim = (ber_mon >> 1) & 0x01;
- 			*ber = (((ber_msb << 8) | ber_mid) << 8) | ber_lsb;
- 			if (ber_tim == 0)
- 				timer = 16;
--			if (ber_tim == 1)
-+			else /* ber_tim == 1 */
- 				timer = 24;
- 
- 			*ber /= 2 ^ timer;
--- 
-2.13.6
+> If so, that doesn't sound
+> right. Instead, mm should somehow mark this mapping to be out
+> of FS_DAX control range.
+
+DAX is currently global setting for the entire backing device of the
+filesystem, so any mapping of any file when the "-o dax" mount option
+is set is in the "FS_DAX control range". In other words there's
+currently no way to prevent FS_DAX mappings from being exposed to V4L2
+outside of CONFIG_FS_DAX=n.
+
+> Also, it is not only videobuf-dma-sg.c that does long lived
+> DMA mappings. VB2 also does that (and videobuf-vmalloc).
+
+Without finding the code videobuf-vmalloc sounds like it should be ok
+if the kernel is allocating memory separate from a file-backed DAX
+mapping. Where is the VB2 get_user_pages call?
