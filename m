@@ -1,53 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51716 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750917AbdKBItJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Nov 2017 04:49:09 -0400
-Date: Thu, 2 Nov 2017 10:49:07 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v2 08/26] media: v4l2-async: shut up an unitialized
- symbol warning
-Message-ID: <20171102084906.pjlittllatltkvwv@valkosipuli.retiisi.org.uk>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
- <e510e9651f4c8672ab7f64df4a55863b4b9cb787.1509569763.git.mchehab@s-opensource.com>
- <1844403.anYkCZaVIn@avalon>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35875 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932468AbdKGLOD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Nov 2017 06:14:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/6 v5] V4L: Add a UVC Metadata format
+Date: Tue, 07 Nov 2017 13:14:06 +0200
+Message-ID: <17991420.GWclfaas9a@avalon>
+In-Reply-To: <alpine.DEB.2.20.1711061545090.26825@axis700.grange>
+References: <1501245205-15802-1-git-send-email-g.liakhovetski@gmx.de> <604abbde-1e2a-350b-efd4-2bbce08c1839@xs4all.nl> <alpine.DEB.2.20.1711061545090.26825@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1844403.anYkCZaVIn@avalon>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 02, 2017 at 04:51:40AM +0200, Laurent Pinchart wrote:
-> Hi Mauro,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday, 1 November 2017 23:05:45 EET Mauro Carvalho Chehab wrote:
-> > Smatch reports this warning:
-> > 	drivers/media/v4l2-core/v4l2-async.c:597 v4l2_async_register_subdev()
-> > error: uninitialized symbol 'ret'.
-> > 
-> > However, there's nothing wrong there. So, just shut up the
-> > warning.
-> 
-> Nothing wrong, really ? ret does seem to be used uninitialized when the 
-> function returns at the very last line.
+Hi Guennadi,
 
-There's another ret defined in a block under this one; removing that is the
-correct fix. I wonder why GCC didn't complain about that to begin with...
-usually it does.
+On Monday, 6 November 2017 16:53:10 EET Guennadi Liakhovetski wrote:
+> On Mon, 30 Oct 2017, Hans Verkuil wrote:
+> > On 07/28/2017 02:46 PM, Hans Verkuil wrote:
+> >> On 07/28/2017 02:33 PM, Guennadi Liakhovetski wrote:
+> >>> Add a pixel format, used by the UVC driver to stream metadata.
+> >>> 
+> >>> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> >>> ---
+> >>> 
+> >>>  Documentation/media/uapi/v4l/meta-formats.rst    |  1 +
+> >>>  Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst | 39 +++++++++++++++++
+> >>>  include/uapi/linux/videodev2.h                   |  1 +
+> >>>  3 files changed, 41 insertions(+)
+> >>>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
+> 
+> [snip]
+> 
+> >>> diff --git a/include/uapi/linux/videodev2.h
+> >>> b/include/uapi/linux/videodev2.h index 45cf735..0aad91c 100644
+> >>> --- a/include/uapi/linux/videodev2.h
+> >>> +++ b/include/uapi/linux/videodev2.h
+> >>> @@ -682,6 +682,7 @@ struct v4l2_pix_format {
+> >>> 
+> >>>  /* Meta-data formats */
+> >>>  #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /*
+> >>>  R-Car VSP1 1-D Histogram */ #define V4L2_META_FMT_VSP1_HGT   
+> >>>  v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */> >> 
+> >>> +#define V4L2_META_FMT_UVC         v4l2_fourcc('U', 'V', 'C', 'H') /*
+> >>> UVC Payload Header metadata */
+> > 
+> > I discussed this with Laurent last week and since the metadata for UVC
+> > starts with a standard header followed by vendor-specific data it makes
+> > sense to use V4L2_META_FMT_UVC for just the standard header. Any vendor
+> > specific formats should have their own fourcc which starts with the
+> > standard header followed by the custom data. The UVC driver would
+> > enumerate both the standard and the vendor specific fourcc. This would
+> > allow generic UVC applications to use the standard header. Applications
+> > that know about the vendor specific data can select the vendor specific
+> > format.
+> > 
+> > This change would make this much more convenient to use.
+> 
+> Then the driver should be able to decide, which private fourcc code to use
+> for each of those devices. A natural way to do that seems to be to put
+> that in the .driver_info field of struct usb_device_id. For that I'd
+> replace the current use of that field for quirks with a pointer to a
+> struct in a separate patch. Laurent, would that be acceptable? Then add a
+> field to that struct for a private metadata fourcc code.
+
+I've been thinking about doing so for some time now. If you can write a patch 
+it would be great ! What I've been wondering is how to keep the code both 
+readable and small. If we declared those structures separately from the 
+devices array we could use one instance for multiple devices, but naming might 
+become awkward. On the other hand, if we defined them inline within the 
+devices array, we'd get rid of the naming issue, but at the expense of 
+increased memory usage.
+
+One middle-ground option would be to allow storing either a structure pointer 
+or quirks flags in the field, relying on the fact that the low order bit of a 
+pointer will be NULL. We could repurpose flag BIT(0) to indicate that the 
+field contains flags instead of a pointer.
+
+Maybe I'm over-engineering this and that the extra memory consumption won't be 
+too bad, or separately defined structures will be easy to name. I'd appreciate 
+your opinion on this matter.
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Regards,
+
+Laurent Pinchart
