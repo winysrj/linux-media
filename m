@@ -1,160 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:13243 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753693AbdKFXi3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Nov 2017 18:38:29 -0500
-Date: Tue, 7 Nov 2017 01:38:24 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Cc: "Zhi, Yong" <yong.zhi@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>,
-        "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Vijaykumar, Ramya" <ramya.vijaykumar@intel.com>
-Subject: Re: [PATCH v7 3/3] intel-ipu3: cio2: Add new MIPI-CSI2 driver
-Message-ID: <20171106233824.f4wkeewkyx6hotvs@kekkonen.localdomain>
-References: <1509652801-9729-1-git-send-email-yong.zhi@intel.com>
- <1509652801-9729-4-git-send-email-yong.zhi@intel.com>
- <20171102224120.zp7adyuajwhag7ye@kekkonen.localdomain>
- <6F87890CF0F5204F892DEA1EF0D77A5972FD0A9F@FMSMSX114.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A5972FD0A9F@FMSMSX114.amr.corp.intel.com>
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.219]:31949 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751954AbdKHN20 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Nov 2017 08:28:26 -0500
+Message-ID: <1510147704.2225.329.camel@rohdewald.de>
+Subject: Re: pctv452e oops without HTML
+From: Wolfgang Rohdewald <wolfgang@rohdewald.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Max Kellermann <max.kellermann@gmail.com>,
+        linux-media@vger.kernel.org
+Date: Wed, 08 Nov 2017 14:28:24 +0100
+In-Reply-To: <1510146389.2225.324.camel@rohdewald.de>
+References: <1510146389.2225.324.camel@rohdewald.de>
+Content-Type: multipart/mixed; boundary="=-18BcaRFZ+pV0qhg1T/7R"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rajmohan,
 
-On Mon, Nov 06, 2017 at 07:32:52PM +0000, Mani, Rajmohan wrote:
-> Hi Sakari, Yong,
-> 
-> > Subject: Re: [PATCH v7 3/3] intel-ipu3: cio2: Add new MIPI-CSI2 driver
-> > 
-> > Hi Yong,
-> > 
-> > Thanks for the update!
-> > 
-> > I took a final glance, there are a few matters that still need to be addressed but
-> > then I think we're done. Please see below.
-> > 
-> > Then we'll need an entry in the MAINTAINERS file in the kernel root directory.
-> > Could you add an entry for this driver in v8?
-> > 
-> > On Thu, Nov 02, 2017 at 03:00:01PM -0500, Yong Zhi wrote:
-> > ...
-> > > +static int cio2_fbpt_rearrange(struct cio2_device *cio2, struct
-> > > +cio2_queue *q) {
-> > > +	unsigned int i, j;
-> > > +
-> > > +	for (i = 0, j = q->bufs_first; i < CIO2_MAX_BUFFERS;
-> > > +		i++, j = (j + 1) % CIO2_MAX_BUFFERS)
-> > > +		if (q->bufs[j])
-> > > +			break;
-> > > +
-> > > +	if (i == CIO2_MAX_BUFFERS)
-> > > +		return 0;
-> > 
-> > You always return 0. The return type could be void.
-> > 
-> > You could also move this function just above the function using it (it's a single
-> > location).
-> > 
-> > > +
-> > > +	if (j) {
-> > > +		arrange(q->fbpt, sizeof(struct cio2_fbpt_entry) *
-> > CIO2_MAX_LOPS,
-> > > +			CIO2_MAX_BUFFERS, j);
-> > > +		arrange(q->bufs, sizeof(struct cio2_buffer *),
-> > > +			CIO2_MAX_BUFFERS, j);
-> > > +	}
-> > > +
-> > > +	/*
-> > > +	 * DMA clears the valid bit when accessing the buffer.
-> > > +	 * When stopping stream in suspend callback, some of the buffers
-> > > +	 * may be in invalid state. After resume, when DMA meets the invalid
-> > > +	 * buffer, it will halt and stop receiving new data.
-> > > +	 * To avoid DMA halting, set the valid bit for all buffers in FBPT.
-> > > +	 */
-> > > +	for (i = 0; i < CIO2_MAX_BUFFERS; i++)
-> > > +		cio2_fbpt_entry_enable(cio2, q->fbpt + i * CIO2_MAX_LOPS);
-> > > +
-> > > +	return 0;
-> > > +}
-> > 
-> > ...
-> > 
-> > > +static int cio2_vb2_start_streaming(struct vb2_queue *vq, unsigned
-> > > +int count) {
-> > > +	struct cio2_queue *q = vb2q_to_cio2_queue(vq);
-> > > +	struct cio2_device *cio2 = vb2_get_drv_priv(vq);
-> > > +	int r;
-> > > +
-> > > +	cio2->cur_queue = q;
-> > > +	atomic_set(&q->frame_sequence, 0);
-> > > +
-> > > +	r = pm_runtime_get_sync(&cio2->pci_dev->dev);
-> > > +	if (r < 0) {
-> > > +		dev_info(&cio2->pci_dev->dev, "failed to set power %d\n", r);
-> > > +		pm_runtime_put(&cio2->pci_dev->dev);
-> 
-> Shouldn't we use pm_runtime_put_noidle() here, so the usage_count gets decremented?
+--=-18BcaRFZ+pV0qhg1T/7R
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Yeah, pm_runtime_put_noidle() would be perhaps more appropriate. The
-difference is that the noidle variant won't suspend the device (but it was
-already suspended to begin with as resuming failed).
+since kernel 4.9 I cannot use my four dvb-s2 USB receivers anymore, so
+I am stuck with 4.8.x
 
-> 
-> > > +		return r;
-> > > +	}
-> > > +
-> > > +	r = media_pipeline_start(&q->vdev.entity, &q->pipe);
-> > > +	if (r)
-> > > +		goto fail_pipeline;
-> > > +
-> > > +	r = cio2_hw_init(cio2, q);
-> > > +	if (r)
-> > > +		goto fail_hw;
-> > > +
-> > > +	/* Start streaming on sensor */
-> > > +	r = v4l2_subdev_call(q->sensor, video, s_stream, 1);
-> > > +	if (r)
-> > > +		goto fail_csi2_subdev;
-> > > +
-> > > +	cio2->streaming = true;
-> > > +
-> > > +	return 0;
-> > > +
-> > > +fail_csi2_subdev:
-> > > +	cio2_hw_exit(cio2, q);
-> > > +fail_hw:
-> > > +	media_pipeline_stop(&q->vdev.entity);
-> > > +fail_pipeline:
-> > > +	dev_dbg(&cio2->pci_dev->dev, "failed to start streaming (%d)\n", r);
-> > > +	cio2_vb2_return_all_buffers(q);
-> > 
-> > I believe there should be
-> > 
-> > 	pm_runtime_put(&cio2->pci_dev->dev);
-> > 
-> > here. You should also add a label and use goto from where you do
-> > pm_runtime_put() in error handling in this function in order to make this
-> > cleaner.
-> > 
-> > > +
-> > > +	return r;
-> > > +}
-> > 
-> > --
-> > Kind regards,
-> > 
-> > Sakari Ailus
-> > sakari.ailus@linux.intel.com
+Now I tried again with an unmodified kernel 4.13.12. After some time, 
+I get 3 oopses (remember - I have 4 devices). The call trace is always
+the same.
+
+
+attached:
+
+tasks.txt showing the timing of the oopses
+oops.txt with one of them
+
 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+mit freundlichen Grüssen
+
+Wolfgang Rohdewald
+--=-18BcaRFZ+pV0qhg1T/7R
+Content-Disposition: attachment; filename="oops.txt"
+Content-Type: text/plain; name="oops.txt"; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+Tm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4ODU2OF0gV0FSTklORzogQ1BVOiAx
+IFBJRDogMjMzMSBhdCBtb2R1bGVfcHV0LnBhcnQuMzMrMHhiOC8weGQwCk5vdiAgOCAxMzowNTo1
+MSBzNSBrZXJuZWw6IFsgICA4MS41ODg1NjldIE1vZHVsZXMgbGlua2VkIGluOiBzbmRfaGRhX2Nv
+ZGVjX2hkbWkgeDg2X3BrZ190ZW1wX3RoZXJtYWwgaW50ZWxfcG93ZXJjbGFtcCBjb3JldGVtcCBr
+dm1faW50ZWwga3ZtIGlycWJ5cGFzcyBjcmN0MTBkaWZfcGNsbXVsIGNyYzMyX3BjbG11bCBnaGFz
+aF9jbG11bG5pX2ludGVsIHNuZF9oZGFfaW50ZWwgc25kX2hkYV9jb2RlYyBzbmRfaHdkZXAgYWVz
+bmlfaW50ZWwgc25kX2hkYV9jb3JlIHJjX3R0XzE1MDAgYWVzX3g4Nl82NCBjcnlwdG9fc2ltZCBz
+dGI2MTAwIGNyeXB0ZCBnbHVlX2hlbHBlciBsbmJwMjIgc25kX3BjbSBzbmRfc2VxX21pZGkgc25k
+X3NlcV9taWRpX2V2ZW50IHNuZF9yYXdtaWRpIGpveWRldiBzbmRfc2VxIHNnIGZ0ZGlfc2lvIHVz
+YnNlcmlhbCBkdmJfdXNiX3BjdHY0NTJlKC0pIGxwY19pY2ggc25kX3RpbWVyIHR0cGNpX2VlcHJv
+bSBkdmJfdXNiIGR2Yl9jb3JlIHNuZF9zZXFfZGV2aWNlIHJjX2NvcmUgc25kIG1laV9tZSBzb3Vu
+ZGNvcmUgbWVpIHNocGNocCB0cG1fdGlzIHRwbV90aXNfY29yZSBuZnNkIGF1dGhfcnBjZ3NzIG5m
+c19hY2wgbG9ja2QgZ3JhY2Ugc3RiMDg5OSBzdW5ycGMgaXBfdGFibGVzIHhfdGFibGVzIGF1dG9m
+czQgdXNiX3N0b3JhZ2UgaGlkX2dlbmVyaWMgaGlkX2xvZ2l0ZWNoX2hpZHBwIGhpZF9sb2dpdGVj
+aF9kaiB1c2JoaWQgaGlkIHNkX21vZCBub3V2ZWF1IGUxMDAwZSBhaGNpIHdtaSBwdHAgbGliYWhj
+aSBwcHNfY29yZSB0dG0gdmlkZW8KTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4
+ODYwMl0gQ1BVOiAxIFBJRDogMjMzMSBDb21tOiBybW1vZCBOb3QgdGFpbnRlZCA0LjEzLjEyICMx
+Ck5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2MDNdIEhhcmR3YXJlIG5hbWU6
+ICAgICAgICAgICAgICAgICAgL0RIODdSTCwgQklPUyBSTEg4NzEwSC44NkEuMDMyMy4yMDEzLjEy
+MDQuMTcyNiAxMi8wNC8yMDEzCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2
+MDRdIHRhc2s6IGZmZmY4ODAxZWI2YmJjMDAgdGFzay5zdGFjazogZmZmZmM5MDAwODQ5NDAwMApO
+b3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjA2XSBSSVA6IDAwMTA6bW9kdWxl
+X3B1dC5wYXJ0LjMzKzB4YjgvMHhkMApOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEu
+NTg4NjA2XSBSU1A6IDAwMTg6ZmZmZmM5MDAwODQ5N2NjMCBFRkxBR1M6IDAwMDEwMjk3Ck5vdiAg
+OCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2MDddIFJBWDogMDAwMDAwMDAwMDAwMDAw
+MiBSQlg6IGZmZmZmZmZmYTAyNjcxNzAgUkNYOiAwMDAwMDAwMGZmZmZmZmZmCk5vdiAgOCAxMzow
+NTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2MDhdIFJEWDogMDAwMDAwMDAwMDAwMDAwMCBSU0k6
+IGZmZmZmZmZmYTAyNjcwMDAgUkRJOiAwMDAwMDAwMDAwMDAwMDAxCk5vdiAgOCAxMzowNTo1MSBz
+NSBrZXJuZWw6IFsgICA4MS41ODg2MDldIFJCUDogZmZmZmM5MDAwODQ5N2NkOCBSMDg6IDAwMDAw
+MDAwMDAwMDAwMDAgUjA5OiAwMDAwMDAwMDAwMDAwMWIwCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJu
+ZWw6IFsgICA4MS41ODg2MDldIFIxMDogZmZmZmZmZmY4MWMwNmE4MCBSMTE6IGZmZmZmZmZmODFm
+MGYyMDAgUjEyOiBmZmZmZmZmZmEwMjZmMjgwCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsg
+ICA4MS41ODg2MTBdIFIxMzogZmZmZjg4MDIxMDM2N2MwMCBSMTQ6IGZmZmY4ODAyMTRjZmQ4MDAg
+UjE1OiBmZmZmODgwMjE0Y2ZkODk4Ck5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41
+ODg2MTFdIEZTOiAgMDAwMDdmMDM1ZjZiMDc0MCgwMDAwKSBHUzpmZmZmODgwMjFlYzQwMDAwKDAw
+MDApIGtubEdTOjAwMDAwMDAwMDAwMDAwMDAKTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAg
+IDgxLjU4ODYxMV0gQ1M6ICAwMDEwIERTOiAwMDAwIEVTOiAwMDAwIENSMDogMDAwMDAwMDA4MDA1
+MDAzMwpOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjEyXSBDUjI6IDAwMDA3
+ZjM1NzcyOTMwMTggQ1IzOiAwMDAwMDAwMWIxZDNjMDAwIENSNDogMDAwMDAwMDAwMDE0MDZlMApO
+b3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjEzXSBDYWxsIFRyYWNlOgpOb3Yg
+IDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjE2XSAgPyBfc3RiMDg5OV9yZWFkX3Jl
+ZysweDEwMC8weDEwMCBbc3RiMDg5OV0KTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgx
+LjU4ODYxN10gID8gX3N0YjA4OTlfcmVhZF9yZWcrMHgxMDAvMHgxMDAgW3N0YjA4OTldCk5vdiAg
+OCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2MTldICBzeW1ib2xfcHV0X2FkZHIrMHgz
+OC8weDYwCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2MjNdICBkdmJfZnJv
+bnRlbmRfcHV0KzB4NDIvMHg2MCBbZHZiX2NvcmVdCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6
+IFsgICA4MS41ODg2MjVdICA/IHN0YjA4OTlfc2xlZXArMHg1MC8weDUwIFtzdGIwODk5XQpOb3Yg
+IDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjI3XSAgZHZiX2Zyb250ZW5kX2RldGFj
+aCsweDdjLzB4OTAgW2R2Yl9jb3JlXQpOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEu
+NTg4NjI5XSAgZHZiX3VzYl9hZGFwdGVyX2Zyb250ZW5kX2V4aXQrMHg1Ny8weDgwIFtkdmJfdXNi
+XQpOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjMxXSAgZHZiX3VzYl9leGl0
+KzB4MzkvMHhiMCBbZHZiX3VzYl0KTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4
+ODYzM10gIGR2Yl91c2JfZGV2aWNlX2V4aXQrMHgzZi8weDYwIFtkdmJfdXNiXQpOb3YgIDggMTM6
+MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjM0XSAgcGN0djQ1MmVfdXNiX2Rpc2Nvbm5lY3Qr
+MHg2Zi8weDgwIFtkdmJfdXNiX3BjdHY0NTJlXQpOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBb
+ICAgODEuNTg4NjM4XSAgdXNiX3VuYmluZF9pbnRlcmZhY2UrMHg3Mi8weDI4MApOb3YgIDggMTM6
+MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjQwXSAgPyBfcmF3X3NwaW5fdW5sb2NrX2lycXJl
+c3RvcmUrMHgyNC8weDQwCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2NDNd
+ICBkZXZpY2VfcmVsZWFzZV9kcml2ZXJfaW50ZXJuYWwrMHgxNTgvMHgyMTAKTm92ICA4IDEzOjA1
+OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4ODY0NF0gIGRyaXZlcl9kZXRhY2grMHgzZC8weDgwCk5v
+diAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2NDVdICBidXNfcmVtb3ZlX2RyaXZl
+cisweDU5LzB4ZDAKTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4ODY0Nl0gIGRy
+aXZlcl91bnJlZ2lzdGVyKzB4MmMvMHg0MApOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAg
+ODEuNTg4NjQ4XSAgdXNiX2RlcmVnaXN0ZXIrMHg2OS8weGUwCk5vdiAgOCAxMzowNTo1MSBzNSBr
+ZXJuZWw6IFsgICA4MS41ODg2NDldICBwY3R2NDUyZV91c2JfZHJpdmVyX2V4aXQrMHgxMC8weGVj
+MCBbZHZiX3VzYl9wY3R2NDUyZV0KTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4
+ODY1MV0gIFN5U19kZWxldGVfbW9kdWxlKzB4MTdlLzB4MjEwCk5vdiAgOCAxMzowNTo1MSBzNSBr
+ZXJuZWw6IFsgICA4MS41ODg2NTNdICBlbnRyeV9TWVNDQUxMXzY0X2Zhc3RwYXRoKzB4MWUvMHhh
+OQpOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjU0XSBSSVA6IDAwMzM6MHg3
+ZjAzNWYxZWIyNTcKTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4ODY1NF0gUlNQ
+OiAwMDJiOjAwMDA3ZmZlYjgwMjEzYTggRUZMQUdTOiAwMDAwMDIwNiBPUklHX1JBWDogMDAwMDAw
+MDAwMDAwMDBiMApOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjU1XSBSQVg6
+IGZmZmZmZmZmZmZmZmZmZGEgUkJYOiAwMDAwMDAwMDAwMDAwMDAwIFJDWDogMDAwMDdmMDM1ZjFl
+YjI1NwpOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjU2XSBSRFg6IDAwMDAw
+MDAwMDAwMDAwMGEgUlNJOiAwMDAwMDAwMDAwMDAwODAwIFJESTogMDAwMDU1ZjE4YmFhZjdmOApO
+b3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjU2XSBSQlA6IDAwMDA1NWYxOGJh
+YWY3OTAgUjA4OiAwMDAwMDAwMDAwMDAwMDBhIFIwOTogMDAwMDAwMDAwMDAwMDAwMApOb3YgIDgg
+MTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjU3XSBSMTA6IDAwMDA3ZjAzNWYyNjQyNDAg
+UjExOiAwMDAwMDAwMDAwMDAwMjA2IFIxMjogMDAwMDAwMDAwMDAwMDAwMwpOb3YgIDggMTM6MDU6
+NTEgczUga2VybmVsOiBbICAgODEuNTg4NjU3XSBSMTM6IDAwMDA3ZmZlYjgwMjAzOTAgUjE0OiAw
+MDAwNTVmMThiYWFlMjYwIFIxNTogMDAwMDU1ZjE4YmFhZjc5MApOb3YgIDggMTM6MDU6NTEgczUg
+a2VybmVsOiBbICAgODEuNTg4NjU4XSBDb2RlOiA0OCA4YiAwMyA0OCA4YiA3YiAwOCA0OCA4MyBj
+MyAxOCA0YyA4OSBlYSA0YyA4OSBlNiBmZiBkMCA0OCA4YiAwMyA0OCA4NSBjMCA3NSBlOCA2NSBm
+ZiAwZCA4MSA4NCBmMSA3ZSA3NSA5YSBlOCA0NSBlMCBmMCBmZiBlYiA5MyA8MGY+IGZmIGViIDg2
+IGU4IDIyIGUwIGYwIGZmIDViIDQxIDVjIDQxIDVkIDVkIGMzIDg5IGMyIGU5IDU0IGZmIApOb3Yg
+IDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4Njc3XSAtLS1bIGVuZCB0cmFjZSA2M2U4
+YjkxMjVjMzZkZDg5IF0tLS0KTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4ODky
+OF0gZHZiLXVzYjogVGVjaG5vdHJlbmQgVFQgQ29ubmVjdCBTMi0zNjAwIHN1Y2Nlc3NmdWxseSBk
+ZWluaXRpYWxpemVkIGFuZCBkaXNjb25uZWN0ZWQuCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6
+IFsgICA4MS42MzY1MTRdIGR2Yi11c2I6IGJ1bGsgbWVzc2FnZSBmYWlsZWQ6IC0yICgxMS8wKQpO
+b3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNjM2NTE4XSBwY3R2NDUyZTogSTJDIGVy
+cm9yIC0yOyBBQSA0NCAgMTAgMDQgMDAgLT4gYWEgNDQgMzEgMDcgMTAgMDQgMDAKTm92ICA4IDEz
+OjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjYzNjUyMl0gZHZiLXVzYjogYnVsayBtZXNzYWdlIGZh
+aWxlZDogLTIgKDEwLzApCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS42MzY1MjRd
+IHBjdHY0NTJlOiBJMkMgZXJyb3IgLTI7IEFBIDQ1ICBEMCAwMyAwMCAtPiBhYSA0NSAzMSAwNiBk
+MCAwMyAwMAo=
+
+
+--=-18BcaRFZ+pV0qhg1T/7R
+Content-Disposition: attachment; filename="tasks.txt"
+Content-Type: text/plain; name="tasks.txt"; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+Tm92ICA3IDIwOjA2OjAwIHM1IGtlcm5lbDogWzExNTM4My42NzQ2NTRdIHRhc2s6IGZmZmY4ODAy
+MTQ5MmJjMDAgdGFzay5zdGFjazogZmZmZmM5MDAwZGI5NDAwMApOb3YgIDcgMjA6MDY6MDEgczUg
+a2VybmVsOiBbMTE1MzgzLjcyNjY2OF0gdGFzazogZmZmZjg4MDIxNDkyYmMwMCB0YXNrLnN0YWNr
+OiBmZmZmYzkwMDBkYjk0MDAwCk5vdiAgNyAyMDowNjowMSBzNSBrZXJuZWw6IFsxMTUzODMuNzI2
+Nzc0XSB0YXNrOiBmZmZmODgwMjE0OTJiYzAwIHRhc2suc3RhY2s6IGZmZmZjOTAwMGRiOTQwMDAK
+Tm92ICA3IDIwOjE1OjQ4IHM1IGtlcm5lbDogWyAgIDgxLjc4NTQ2MV0gdGFzazogZmZmZjg4MDFi
+OTNhODAwMCB0YXNrLnN0YWNrOiBmZmZmYzkwMDAzZmQ4MDAwCk5vdiAgNyAyMDoxNTo0OCBzNSBr
+ZXJuZWw6IFsgICA4MS44Mjk0MDFdIHRhc2s6IGZmZmY4ODAxYjkzYTgwMDAgdGFzay5zdGFjazog
+ZmZmZmM5MDAwM2ZkODAwMApOb3YgIDcgMjA6MTU6NDggczUga2VybmVsOiBbICAgODEuODI5NDk0
+XSB0YXNrOiBmZmZmODgwMWI5M2E4MDAwIHRhc2suc3RhY2s6IGZmZmZjOTAwMDNmZDgwMDAKTm92
+ICA3IDIzOjQxOjAxIHM1IGtlcm5lbDogWyA2NDI4LjUyMDc2MF0gdGFzazogZmZmZjg4MDIwMjQ1
+NWEwMCB0YXNrLnN0YWNrOiBmZmZmYzkwMDBjYzU0MDAwCk5vdiAgNyAyMzo0MTowMSBzNSBrZXJu
+ZWw6IFsgNjQyOC41NzY3NjBdIHRhc2s6IGZmZmY4ODAyMDI0NTVhMDAgdGFzay5zdGFjazogZmZm
+ZmM5MDAwY2M1NDAwMApOb3YgIDcgMjM6NDE6MDEgczUga2VybmVsOiBbIDY0MjguNTc2OTA0XSB0
+YXNrOiBmZmZmODgwMjAyNDU1YTAwIHRhc2suc3RhY2s6IGZmZmZjOTAwMGNjNTQwMDAKTm92ICA4
+IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4ODYwNF0gdGFzazogZmZmZjg4MDFlYjZiYmMw
+MCB0YXNrLnN0YWNrOiBmZmZmYzkwMDA4NDk0MDAwCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6
+IFsgICA4MS42MzY1NjddIHRhc2s6IGZmZmY4ODAxZWI2YmJjMDAgdGFzay5zdGFjazogZmZmZmM5
+MDAwODQ5NDAwMApOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNjM2NjY3XSB0YXNr
+OiBmZmZmODgwMWViNmJiYzAwIHRhc2suc3RhY2s6IGZmZmZjOTAwMDg0OTQwMDAK
+
+
+--=-18BcaRFZ+pV0qhg1T/7R--
