@@ -1,74 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:47937 "EHLO osg.samsung.com"
+Received: from mout02.posteo.de ([185.67.36.66]:50429 "EHLO mout02.posteo.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934475AbdKPLre (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 06:47:34 -0500
-Date: Thu, 16 Nov 2017 09:47:29 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: =?UTF-8?B?UmFmYcOrbCBDYXJyw6k=?= <funman@videolan.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] dvbv5-daemon: 0 is a valid fd
-Message-ID: <20171116094729.1526db2f@vento.lan>
-In-Reply-To: <7f84667f-ef2c-03b5-db09-c932d270c343@videolan.org>
-References: <20171115113336.3756-1-funman@videolan.org>
-        <20171115113336.3756-2-funman@videolan.org>
-        <20171116092509.7b521fbe@vento.lan>
-        <7f84667f-ef2c-03b5-db09-c932d270c343@videolan.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+        id S1751944AbdKHS6T (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 8 Nov 2017 13:58:19 -0500
+Received: from submission (posteo.de [89.146.220.130])
+        by mout02.posteo.de (Postfix) with ESMTPS id 892EC20C05
+        for <linux-media@vger.kernel.org>; Wed,  8 Nov 2017 19:58:17 +0100 (CET)
+From: Martin Kepplinger <martink@posteo.de>
+To: p.zabel@pengutronix.de, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Martin Kepplinger <martink@posteo.de>
+Subject: [PATCH] media: coda: remove definition of CODA_STD_MJPG
+Date: Wed,  8 Nov 2017 19:58:03 +0100
+Message-Id: <20171108185803.12408-1-martink@posteo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 16 Nov 2017 12:36:24 +0100
-Rafaël Carré <funman@videolan.org> escreveu:
+According to i.MX VPU API Reference Manuals the MJPG video codec is
+refernced to by number 7, not 3.
 
-> On 16/11/2017 12:25, Mauro Carvalho Chehab wrote:
-> > Em Wed, 15 Nov 2017 12:33:36 +0100
-> > Rafaël Carré <funman@videolan.org> escreveu:
-> >   
-> >> ---
-> >>  utils/dvb/dvbv5-daemon.c | 2 +-
-> >>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >>
-> >> diff --git a/utils/dvb/dvbv5-daemon.c b/utils/dvb/dvbv5-daemon.c
-> >> index 58485ac6..711694e0 100644
-> >> --- a/utils/dvb/dvbv5-daemon.c
-> >> +++ b/utils/dvb/dvbv5-daemon.c
-> >> @@ -570,7 +570,7 @@ void dvb_remote_log(void *priv, int level, const char *fmt, ...)
-> >>  
-> >>  	va_end(ap);
-> >>  
-> >> -	if (fd > 0)
-> >> +	if (fd >= 0)
-> >>  		send_data(fd, "%i%s%i%s", 0, "log", level, buf);
-> >>  	else
-> >>  		local_log(level, buf);  
-> 
-> Signed-off-by: Rafaël Carré <funman@videolan.org>
-> 
-> > 
-> > Patch looks OK. Just need a description explaining why we
-> > need to consider fd == 0 and a SOB.  
-> 
-> Sorry, I am not used to do sign-off, will try to remember.
-> 
-> fd == 0 can happen if the application closes stdin/out/err then opens a
-> new fd.
-> 
-> Should I put this in the commit log?
+Also Philipp pointed out that this value is only meant to fill in
+CMD_ENC_SEQ_COD_STD for encoding, only on i.MX53. It was never written
+to any register, and even if defined correctly, wouldn't be needed
+for i.MX6.
 
-For this one, no need. Next time, the best is to resend, as I usually
-use patchwork also to pick the patches. Patchwork won't automatically
-pick new patch descriptions.
+So avoid confusion and remove this definition.
 
-> 
-> > Thanks,
-> > Mauro
-> >   
-> 
+Signed-off-by: Martin Kepplinger <martink@posteo.de>
+---
+ drivers/media/platform/coda/coda_regs.h | 1 -
+ 1 file changed, 1 deletion(-)
 
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/coda/coda_regs.h b/drivers/media/platform/coda/coda_regs.h
+index 38df5fd9a2fa..35e620c7f1f4 100644
+--- a/drivers/media/platform/coda/coda_regs.h
++++ b/drivers/media/platform/coda/coda_regs.h
+@@ -254,7 +254,6 @@
+ #define		CODA9_STD_H264					0
+ #define		CODA_STD_H263					1
+ #define		CODA_STD_H264					2
+-#define		CODA_STD_MJPG					3
+ #define		CODA9_STD_MPEG4					3
+ 
+ #define CODA_CMD_ENC_SEQ_SRC_SIZE				0x190
+-- 
+2.11.0
