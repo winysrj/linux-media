@@ -1,201 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:54794 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753685AbdKQLb7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 06:31:59 -0500
-Subject: Re: [PATCH v7 23/25] rcar-vin: extend {start,stop}_streaming to work
- with media controller
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
- <20171111003835.4909-24-niklas.soderlund+renesas@ragnatech.se>
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <fdd067d2-4019-9dfd-6e9b-0f5cb0754cc6@xs4all.nl>
-Date: Fri, 17 Nov 2017 12:31:57 +0100
+Received: from mail-oi0-f45.google.com ([209.85.218.45]:47494 "EHLO
+        mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751140AbdKHANl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Nov 2017 19:13:41 -0500
+Received: by mail-oi0-f45.google.com with SMTP id h200so776026oib.4
+        for <linux-media@vger.kernel.org>; Tue, 07 Nov 2017 16:13:41 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20171111003835.4909-24-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171107183950.46f238fd@vento.lan>
+References: <151001623063.16354.14661493921524115663.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <151001624873.16354.2551756846133945335.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171107063345.22626a5d@vento.lan> <CAPcyv4hNSV=c4KY8omKEdRth2w4YEr8EQJQfOoxXS8XELGFVcA@mail.gmail.com>
+ <20171107183950.46f238fd@vento.lan>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 7 Nov 2017 16:13:40 -0800
+Message-ID: <CAPcyv4gvE8ovWA8DQoHJYoGqaOk1HxQLBJdwPPu3OXAb=MbfKw@mail.gmail.com>
+Subject: Re: [PATCH 3/3] [media] v4l2: disable filesystem-dax mapping support
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "stable@vger.kernel.org" <stable@vger.kernel.org>,
+        Linux MM <linux-mm@kvack.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/11/17 01:38, Niklas Söderlund wrote:
-> The procedure to start or stop streaming using the non-MC single
-> subdevice and the MC graph and multiple subdevices are quite different.
-> Create a new function to abstract which method is used based on which
-> mode the driver is running in and add logic to start the MC graph.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+On Tue, Nov 7, 2017 at 12:39 PM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+> Em Tue, 7 Nov 2017 09:43:41 -0800
+> Dan Williams <dan.j.williams@intel.com> escreveu:
+>
+>> On Tue, Nov 7, 2017 at 12:33 AM, Mauro Carvalho Chehab
+>> <mchehab@s-opensource.com> wrote:
+>> > Em Mon, 06 Nov 2017 16:57:28 -0800
+>> > Dan Williams <dan.j.williams@intel.com> escreveu:
+>> >
+>> >> V4L2 memory registrations are incompatible with filesystem-dax that
+>> >> needs the ability to revoke dma access to a mapping at will, or
+>> >> otherwise allow the kernel to wait for completion of DMA. The
+>> >> filesystem-dax implementation breaks the traditional solution of
+>> >> truncate of active file backed mappings since there is no page-cache
+>> >> page we can orphan to sustain ongoing DMA.
+>> >>
+>> >> If v4l2 wants to support long lived DMA mappings it needs to arrange to
+>> >> hold a file lease or use some other mechanism so that the kernel can
+>> >> coordinate revoking DMA access when the filesystem needs to truncate
+>> >> mappings.
+>> >
+>> >
+>> > Not sure if I understand this your comment here... what happens
+>> > if FS_DAX is enabled? The new err = get_user_pages_longterm()
+>> > would cause DMA allocation to fail?
+>>
+>> Correct, any attempt to specify a filesystem-dax mapping range to
+>> get_user_pages_longterm will fail with EOPNOTSUPP. In the future we
+>> want to add something like a 'struct file_lock *' argument to
+>> get_user_pages_longterm so that the kernel has a handle to revoke
+>> access to the returned pages. Once we have a safe way for the kernel
+>> to undo elevated page counts we can stop failing the longterm vs
+>> filesystem-dax case.
+>
+> Argh! Perhaps we should make it depend on BROKEN while not fixed :-/
 
-One tiny typo in a comment, see below. After fixing that you can add my:
+Small consolation, but we do warn that filesystem-dax is still
+considered experimental when mounting a filesystem with "-o dax"
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Here is more background on why _longterm gup is a problem for filesystem-dax:
+>>
+>>     https://lwn.net/Articles/737273/
+>>
+>> > If so, that doesn't sound
+>> > right. Instead, mm should somehow mark this mapping to be out
+>> > of FS_DAX control range.
+>>
+>> DAX is currently global setting for the entire backing device of the
+>> filesystem, so any mapping of any file when the "-o dax" mount option
+>> is set is in the "FS_DAX control range". In other words there's
+>> currently no way to prevent FS_DAX mappings from being exposed to V4L2
+>> outside of CONFIG_FS_DAX=n.
+>
+> Grrr...
+>
+>> > Also, it is not only videobuf-dma-sg.c that does long lived
+>> > DMA mappings. VB2 also does that (and videobuf-vmalloc).
+>>
+>> Without finding the code videobuf-vmalloc sounds like it should be ok
+>> if the kernel is allocating memory separate from a file-backed DAX
+>> mapping.
+>
+> videobuf-vmalloc do DMA mapping for pages allocated via vmalloc(),
+> via vmalloc_user()/remap_vmalloc_range().
 
-Regards,
+Ok, that's completely safe since filesystem-dax mappings are not
+involved in a vmalloc backed virtual address range.
 
-	Hans
+> There aren't much drivers using VB1 anymore, but a change at VB2
+> will likely break support for almost all webcams if fs DAX is
+> in usage.
 
-> ---
->  drivers/media/platform/rcar-vin/rcar-dma.c | 113 +++++++++++++++++++++++++++--
->  1 file changed, 106 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> index fe1319eb4c5df02d..b16b892a4de876bb 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -1087,15 +1087,116 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
->  	spin_unlock_irqrestore(&vin->qlock, flags);
->  }
->  
-> +static int rvin_set_stream(struct rvin_dev *vin, int on)
-> +{
-> +	struct v4l2_subdev_format fmt = {
-> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-> +	};
-> +	struct media_pipeline *pipe;
-> +	struct  v4l2_subdev *sd;
-> +	struct media_pad *pad;
-> +	int ret;
-> +
-> +	/* No media controller used, simply pass operation to subdevice */
-> +	if (!vin->info->use_mc) {
-> +		ret = v4l2_subdev_call(vin->digital->subdev, video, s_stream,
-> +				       on);
-> +
-> +		return ret == -ENOIOCTLCMD ? 0 : ret;
-> +	}
-> +
-> +	pad = media_entity_remote_pad(&vin->pad);
-> +	if (!pad)
-> +		return -EPIPE;
-> +
-> +	sd = media_entity_to_v4l2_subdev(pad->entity);
-> +	if (!sd)
-> +		return -EPIPE;
-> +
-> +	if (!on) {
-> +		media_pipeline_stop(&vin->vdev.entity);
-> +		ret = v4l2_subdev_call(sd, video, s_stream, 0);
-> +		return 0;
-> +	}
-> +
-> +	fmt.pad = pad->index;
-> +	if (v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt))
-> +		return -EPIPE;
-> +
-> +	switch (fmt.format.code) {
-> +	case MEDIA_BUS_FMT_YUYV8_1X16:
-> +	case MEDIA_BUS_FMT_UYVY8_2X8:
-> +	case MEDIA_BUS_FMT_UYVY10_2X10:
-> +	case MEDIA_BUS_FMT_RGB888_1X24:
-> +		vin->code = fmt.format.code;
-> +		break;
-> +	default:
-> +		return -EPIPE;
-> +	}
-> +
-> +	switch (fmt.format.field) {
-> +	case V4L2_FIELD_TOP:
-> +	case V4L2_FIELD_BOTTOM:
-> +	case V4L2_FIELD_NONE:
-> +	case V4L2_FIELD_INTERLACED_TB:
-> +	case V4L2_FIELD_INTERLACED_BT:
-> +	case V4L2_FIELD_INTERLACED:
-> +	case V4L2_FIELD_SEQ_TB:
-> +	case V4L2_FIELD_SEQ_BT:
-> +		/* Supported nativly */
+Yes, unless / until we can switch userspace to using a new memory
+registration api that includes a way for the kernel to revoke access
+to a dax mapping. Another mitigation is following through on support
+for moving dax support from a global mount flag to a per-inode flag to
+at least prevent dax from leaking to use cases that need explicit
+coordination.
 
-nativly -> natively
+>> Where is the VB2 get_user_pages call?
+>
+> Before changeset 3336c24f25ec, the logic for get_user_pages() were
+> at drivers/media/v4l2-core/videobuf2-dma-sg.c. Now, the logic
+> it uses is inside mm/frame_vector.c.
 
-> +		break;
-> +	case V4L2_FIELD_ALTERNATE:
-> +		switch (vin->format.field) {
-> +		case V4L2_FIELD_TOP:
-> +		case V4L2_FIELD_BOTTOM:
-> +		case V4L2_FIELD_NONE:
-> +			break;
-> +		case V4L2_FIELD_INTERLACED_TB:
-> +		case V4L2_FIELD_INTERLACED_BT:
-> +		case V4L2_FIELD_INTERLACED:
-> +		case V4L2_FIELD_SEQ_TB:
-> +		case V4L2_FIELD_SEQ_BT:
-> +			/* Use VIN hardware to combine the two fields */
-> +			fmt.format.height *= 2;
-> +			break;
-> +		default:
-> +			return -EPIPE;
-> +		}
-> +		break;
-> +	default:
-> +		return -EPIPE;
-> +	}
-> +
-> +	if (fmt.format.width != vin->format.width ||
-> +	    fmt.format.height != vin->format.height)
-> +		return -EPIPE;
-> +
-> +	pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev.pipe;
-> +	if (media_pipeline_start(&vin->vdev.entity, pipe))
-> +		return -EPIPE;
-> +
-> +	ret = v4l2_subdev_call(sd, video, s_stream, 1);
-> +	if (ret == -ENOIOCTLCMD)
-> +		ret = 0;
-> +	if (ret)
-> +		media_pipeline_stop(&vin->vdev.entity);
-> +
-> +	return ret;
-> +}
-> +
->  static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
->  {
->  	struct rvin_dev *vin = vb2_get_drv_priv(vq);
-> -	struct v4l2_subdev *sd;
->  	unsigned long flags;
->  	int ret;
->  
-> -	sd = vin_to_source(vin);
-> -	v4l2_subdev_call(sd, video, s_stream, 1);
-> +	ret = rvin_set_stream(vin, 1);
-> +	if (ret) {
-> +		spin_lock_irqsave(&vin->qlock, flags);
-> +		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
-> +		spin_unlock_irqrestore(&vin->qlock, flags);
-> +		return ret;
-> +	}
->  
->  	spin_lock_irqsave(&vin->qlock, flags);
->  
-> @@ -1104,7 +1205,7 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
->  	ret = rvin_capture_start(vin);
->  	if (ret) {
->  		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
-> -		v4l2_subdev_call(sd, video, s_stream, 0);
-> +		rvin_set_stream(vin, 0);
->  	}
->  
->  	spin_unlock_irqrestore(&vin->qlock, flags);
-> @@ -1115,7 +1216,6 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
->  static void rvin_stop_streaming(struct vb2_queue *vq)
->  {
->  	struct rvin_dev *vin = vb2_get_drv_priv(vq);
-> -	struct v4l2_subdev *sd;
->  	unsigned long flags;
->  	int retries = 0;
->  
-> @@ -1154,8 +1254,7 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
->  
->  	spin_unlock_irqrestore(&vin->qlock, flags);
->  
-> -	sd = vin_to_source(vin);
-> -	v4l2_subdev_call(sd, video, s_stream, 0);
-> +	rvin_set_stream(vin, 0);
->  
->  	/* disable interrupts */
->  	rvin_disable_interrupts(vin);
-> 
+Ok, I'll take a look.
