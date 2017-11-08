@@ -1,105 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:37307 "EHLO
-        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752473AbdK1NSM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 08:18:12 -0500
-Date: Tue, 28 Nov 2017 14:18:14 +0100
-From: Greg KH <greg@kroah.com>
-To: Martin Homuth <martin@martinhomuth.de>
-Cc: mchehab@kernel.org, devel@driverdev.osuosl.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] staging/media: lirc: style fix - replace hard-coded
- function names
-Message-ID: <20171128131814.GC20021@kroah.com>
-References: <8bfec3aa-8f12-365c-9cf2-10d97f54adec@martinhomuth.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8bfec3aa-8f12-365c-9cf2-10d97f54adec@martinhomuth.de>
+Received: from mout.gmx.net ([212.227.15.18]:56461 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752603AbdKHQAS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 8 Nov 2017 11:00:18 -0500
+Received: from axis700.grange ([84.44.207.202]) by mail.gmx.com (mrgmx002
+ [212.227.17.190]) with ESMTPSA (Nemesis) id 0MUoma-1ekbnA22xw-00YBYM for
+ <linux-media@vger.kernel.org>; Wed, 08 Nov 2017 17:00:16 +0100
+Received: from 200r.grange (200r.grange [192.168.1.16])
+        by axis700.grange (Postfix) with ESMTP id 4F28E61886
+        for <linux-media@vger.kernel.org>; Wed,  8 Nov 2017 17:00:15 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Subject: [PATCH 0/3 v7] uvcvideo: metadata nodes
+Date: Wed,  8 Nov 2017 17:00:11 +0100
+Message-Id: <1510156814-28645-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 26, 2017 at 08:49:42PM +0100, Martin Homuth wrote:
-> This patch fixes the remaining coding style warnings in the lirc module.
-> 
-> It fixes the following checkpatch.pl warning:
-> 
-> WARNING: Prefer using '"%s...", __func__' to using 'read', this
-> function's name, in a string
+From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
 
-> >From f11f24667ba6696cb71ac33a67fc0c7d3b4cd542 Mon Sep 17 00:00:00 2001
-> From: Martin Homuth <martin.homuth@emlix.com>
-> Date: Sun, 26 Nov 2017 20:14:33 +0100
-> Subject: [PATCH] lirc: style fix - replace hard-coded function names
-> 
-> Instead of hard coding the function name the __func__ variable
-> should be used.
-> 
-> Signed-off-by: Martin Homuth <martin.homuth@emlix.com>
-> ---
->  drivers/staging/media/lirc/lirc_zilog.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-> index 6bd0717bf76e..be68ee652071 100644
-> --- a/drivers/staging/media/lirc/lirc_zilog.c
-> +++ b/drivers/staging/media/lirc/lirc_zilog.c
-> @@ -888,9 +888,9 @@ static ssize_t read(struct file *filep, char __user *outbuf, size_t n,
->  	unsigned int m;
->  	DECLARE_WAITQUEUE(wait, current);
->  
-> -	dev_dbg(ir->dev, "read called\n");
-> +	dev_dbg(ir->dev, "%s called\n", __func__);
->  	if (n % rbuf->chunk_size) {
-> -		dev_dbg(ir->dev, "read result = -EINVAL\n");
-> +		dev_dbg(ir->dev, "%s result = -EINVAL\n", __func__);
->  		return -EINVAL;
->  	}
->  
-> @@ -949,7 +949,7 @@ static ssize_t read(struct file *filep, char __user *outbuf, size_t n,
->  				retries++;
->  			}
->  			if (retries >= 5) {
-> -				dev_err(ir->dev, "Buffer read failed!\n");
-> +				dev_err(ir->dev, "%s failed!\n", __func__);
->  				ret = -EIO;
->  			}
->  		}
-> @@ -959,7 +959,7 @@ static ssize_t read(struct file *filep, char __user *outbuf, size_t n,
->  	put_ir_rx(rx, false);
->  	set_current_state(TASK_RUNNING);
->  
-> -	dev_dbg(ir->dev, "read result = %d (%s)\n", ret,
-> +	dev_dbg(ir->dev, "%s result = %d (%s)\n", __func__, ret,
->  		ret ? "Error" : "OK");
->  
->  	return ret ? ret : written;
-> -- 
-> 2.13.6
-> 
+Comments by Laurent and Hans addressed, thanks.
 
-Hi,
+Regards
+Guennadi
 
-This is the friendly patch-bot of Greg Kroah-Hartman.  You have sent him
-a patch that has triggered this response.  He used to manually respond
-to these common problems, but in order to save his sanity (he kept
-writing the same thing over and over, yet to different people), I was
-created.  Hopefully you will not take offence and will fix the problem
-in your patch and resubmit it so that it can be accepted into the Linux
-kernel tree.
+Guennadi Liakhovetski (3):
+  V4L: Add a UVC Metadata format
+  uvcvideo: add extensible device information
+  uvcvideo: add a metadata device node
 
-You are receiving this message because of the following common error(s)
-as indicated below:
+ Documentation/media/uapi/v4l/meta-formats.rst    |   1 +
+ Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst |  50 ++++++
+ drivers/media/usb/uvc/Makefile                   |   2 +-
+ drivers/media/usb/uvc/uvc_driver.c               | 142 ++++++++++------
+ drivers/media/usb/uvc/uvc_isight.c               |   2 +-
+ drivers/media/usb/uvc/uvc_metadata.c             | 204 +++++++++++++++++++++++
+ drivers/media/usb/uvc/uvc_queue.c                |  41 ++++-
+ drivers/media/usb/uvc/uvc_video.c                | 127 ++++++++++++--
+ drivers/media/usb/uvc/uvcvideo.h                 |  19 ++-
+ drivers/media/v4l2-core/v4l2-ioctl.c             |   1 +
+ include/uapi/linux/uvcvideo.h                    |  26 +++
+ include/uapi/linux/videodev2.h                   |   1 +
+ 12 files changed, 546 insertions(+), 70 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
+ create mode 100644 drivers/media/usb/uvc/uvc_metadata.c
 
-- Your patch was attached, please place it inline so that it can be
-  applied directly from the email message itself.
-
-If you wish to discuss this problem further, or you have questions about
-how to resolve this issue, please feel free to respond to this email and
-Greg will reply once he has dug out from the pending patches received
-from other developers.
-
-thanks,
-
-greg k-h's patch email bot
+-- 
+1.9.3
