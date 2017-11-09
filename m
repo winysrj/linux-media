@@ -1,67 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f42.google.com ([209.85.214.42]:45513 "EHLO
-        mail-it0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934150AbdKQH3K (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 02:29:10 -0500
-Received: by mail-it0-f42.google.com with SMTP id l196so2999135itl.4
-        for <linux-media@vger.kernel.org>; Thu, 16 Nov 2017 23:29:09 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        <linux-kernel@vger.kernel.org>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [RFC v5 09/11] [media] vb2: add infrastructure to support =?iso-8859-1?Q?out-fences?=
-Date: Fri, 17 Nov 2017 16:29:04 +0900
+Received: from mout.gmx.net ([212.227.17.20]:49223 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751117AbdKIHho (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 9 Nov 2017 02:37:44 -0500
+Date: Thu, 9 Nov 2017 08:37:38 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/6 v5] V4L: Add a UVC Metadata format
+In-Reply-To: <1861262.E5lR5RDANx@avalon>
+Message-ID: <alpine.DEB.2.20.1711090834220.23569@axis700.grange>
+References: <1501245205-15802-1-git-send-email-g.liakhovetski@gmx.de> <17991420.GWclfaas9a@avalon> <alpine.DEB.2.20.1711081126370.20370@axis700.grange> <1861262.E5lR5RDANx@avalon>
 MIME-Version: 1.0
-Message-ID: <c452dc82-d7a6-4f8a-b4fe-2c98bf41106f@chromium.org>
-In-Reply-To: <17276dda-817b-4977-bb6e-77a818fe5f3e@chromium.org>
-References: <20171115171057.17340-1-gustavo@padovan.org>
- <20171115171057.17340-10-gustavo@padovan.org>
- <17276dda-817b-4977-bb6e-77a818fe5f3e@chromium.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, November 17, 2017 4:19:00 PM JST, Alexandre Courbot wrote:
-> On Thursday, November 16, 2017 2:10:55 AM JST, Gustavo Padovan wrote:
->> From: Gustavo Padovan <gustavo.padovan@collabora.com>
->> 
->> Add vb2_setup_out_fence() and the needed members to struct vb2_buffer.
->> 
->> v3:
->> 	- Do not hold yet another ref to the out_fence (Brian Starkey)
->> 
->> v2:	- change it to reflect fd_install at DQEVENT ...
->
-> out_fence_fd is allocated in this patch but not used anywhere 
-> for the moment.
-> For consistency, maybe move its allocation to the next patch, 
-> or move the call
-> to fd_install() here if that is possible? In both cases, the 
-> call to get_unused_fd() can be moved right before fd_install() 
-> so you don't need to
-> call put_unused_fd() in the error paths below.
+Hi Laurent,
 
-Aha, just realized that fd_install() was called in qbuf() :) Other comments 
-probably still hold though.
+On Thu, 9 Nov 2017, Laurent Pinchart wrote:
 
->
-> ... same thing for sync_file too. Maybe this patch can just be merged into
-> the next one? The current patch just creates an incomplete 
-> version of vb2_setup_out_fence() for which no user exist yet.
->
->> +
->> +	vb->out_fence = vb2_fence_alloc(q->out_fence_context);
->> +	if (!vb->out_fence) {
->> +		put_unused_fd(vb->out_fence_fd);
->> +		return -ENOMEM; ...
->
->
+> Hi Guennadi,
+> 
+> On Wednesday, 8 November 2017 12:43:46 EET Guennadi Liakhovetski wrote:
+
+[snip]
+
+> > To recall the metadata buffer layout should be
+> > 
+> > struct uvc_meta_buf {
+> > 	uint64_t ns;
+> > 	uint16_t sof;
+> > 	uint8_t length;
+> > 	uint8_t flags;
+> > 	uint8_t buf[];
+> > } __attribute__((packed));
+> > 
+> > where all the fields, beginning with "length" are a direct copy from the
+> > UVC payload header. If multiple such payload headers have arrived for a
+> > single frame, they will be appended and .bytesused will as usually have
+> > the total byte count, used up in this frame. An application would then
+> > calculate lengths of those individual metadata blocks as
+> > 
+> > sizeof(.ns) + sizeof(.sof) + .length
+> > 
+> > But this won't work with the "standard" UVC metadata format where any
+> > private data, following standard fields, are dropped. In that case
+> > applications would have to look at .flags and calculate the block length
+> > based on them. Another possibility would be to rewrite the .length field
+> > in the driver to only include standard fields, but I really don't think
+> > that would be a good idea.
+> 
+> For the standard header the length can indeed be easily computed from the 
+> flags. I wonder, however, why you think rewriting length would be a bad idea ?
+
+Because I like the guarantee of the least intrusion. We (so far) 
+guarantee, that the buffer contents beyond the system and the USB 
+timestamps are a direct unmodified copy from the camera. This seems to be 
+a good principle to stick to.
+
+Thanks
+Guennadi
