@@ -1,80 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:41040 "EHLO mail.ispras.ru"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753813AbdKXWEq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Nov 2017 17:04:46 -0500
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        ldv-project@linuxtesting.org
-Subject: [PATCH] [media] v4l: mt9v032: Disable clock on error paths
-Date: Sat, 25 Nov 2017 01:04:37 +0300
-Message-Id: <1511561077-25192-1-git-send-email-khoroshilov@ispras.ru>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:47762 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752790AbdKISpw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Nov 2017 13:45:52 -0500
+Received: by mail-pg0-f68.google.com with SMTP id o7so5397527pgc.4
+        for <linux-media@vger.kernel.org>; Thu, 09 Nov 2017 10:45:52 -0800 (PST)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh@kernel.org>
+Subject: [PATCH 2/5] media: dt-bindings: Add bindings for TDA1997X
+Date: Thu,  9 Nov 2017 10:45:33 -0800
+Message-Id: <1510253136-14153-3-git-send-email-tharvey@gateworks.com>
+In-Reply-To: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
+References: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-mt9v032_power_on() leaves clk enabled in case of errors,
-but it is not expected by its callers.
-There is a similar problem in mt9v032_registered().
-
-Found by Linux Driver Verification project (linuxtesting.org).
-
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Cc: Rob Herring <robh@kernel.org>
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
 ---
- drivers/media/i2c/mt9v032.c | 21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+v3:
+ - fix typo
 
-diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-index 8a430640c85d..4de63b2df334 100644
---- a/drivers/media/i2c/mt9v032.c
-+++ b/drivers/media/i2c/mt9v032.c
-@@ -294,14 +294,22 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
- 	/* Reset the chip and stop data read out */
- 	ret = regmap_write(map, MT9V032_RESET, 1);
- 	if (ret < 0)
--		return ret;
-+		goto err;
- 
- 	ret = regmap_write(map, MT9V032_RESET, 0);
- 	if (ret < 0)
--		return ret;
-+		goto err;
+v2:
+ - add vendor prefix and remove _ from vidout-portcfg
+ - remove _ from labels
+ - remove max-pixel-rate property
+ - describe and provide example for single output port
+ - update to new audio port bindings
+---
+ .../devicetree/bindings/media/i2c/tda1997x.txt     | 179 +++++++++++++++++++++
+ 1 file changed, 179 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/tda1997x.txt b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+new file mode 100644
+index 0000000..dd37f14
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+@@ -0,0 +1,179 @@
++Device-Tree bindings for the NXP TDA1997x HDMI receiver
 +
-+	ret = regmap_write(map, MT9V032_CHIP_CONTROL,
-+			   MT9V032_CHIP_CONTROL_MASTER_MODE);
-+	if (ret < 0)
-+		goto err;
++The TDA19971/73 are HDMI video receivers.
 +
-+	return 0;
- 
--	return regmap_write(map, MT9V032_CHIP_CONTROL,
--			    MT9V032_CHIP_CONTROL_MASTER_MODE);
-+err:
-+	clk_disable_unprepare(mt9v032->clk);
-+	return ret;
- }
- 
- static void mt9v032_power_off(struct mt9v032 *mt9v032)
-@@ -876,6 +884,9 @@ static int mt9v032_registered(struct v4l2_subdev *subdev)
- 
- 	/* Read and check the sensor version */
- 	ret = regmap_read(mt9v032->regmap, MT9V032_CHIP_VERSION, &version);
++The TDA19971 Video port output pins can be used as follows:
++ - RGB 8bit per color (24 bits total): R[11:4] B[11:4] G[11:4]
++ - YUV444 8bit per color (24 bits total): Y[11:4] Cr[11:4] Cb[11:4]
++ - YUV422 semi-planar 8bit per component (16 bits total): Y[11:4] CbCr[11:4]
++ - YUV422 semi-planar 10bit per component (20 bits total): Y[11:2] CbCr[11:2]
++ - YUV422 semi-planar 12bit per component (24 bits total): - Y[11:0] CbCr[11:0]
++ - YUV422 BT656 8bit per component (8 bits total): YCbCr[11:4] (2-cycles)
++ - YUV422 BT656 10bit per component (10 bits total): YCbCr[11:2] (2-cycles)
++ - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
 +
-+	mt9v032_power_off(mt9v032);
++The TDA19973 Video port output pins can be used as follows:
++ - RGB 12bit per color (36 bits total): R[11:0] B[11:0] G[11:0]
++ - YUV444 12bit per color (36 bits total): Y[11:0] Cb[11:0] Cr[11:0]
++ - YUV422 semi-planar 12bit per component (24 bits total): Y[11:0] CbCr[11:0]
++ - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
 +
- 	if (ret < 0) {
- 		dev_err(&client->dev, "Failed reading chip version\n");
- 		return ret;
-@@ -894,8 +905,6 @@ static int mt9v032_registered(struct v4l2_subdev *subdev)
- 		return -ENODEV;
- 	}
- 
--	mt9v032_power_off(mt9v032);
--
- 	dev_info(&client->dev, "%s detected at address 0x%02x\n",
- 		 mt9v032->version->name, client->addr);
- 
++The Video port output pins are mapped via 4-bit 'pin groups' allowing
++for a variety of connection possibilities including swapping pin order within
++pin groups. The video_portcfg device-tree property consists of register mapping
++pairs which map a chip-specific VP output register to a 4-bit pin group. If
++the pin group needs to be bit-swapped you can use the *_S pin-group defines.
++
++Required Properties:
++ - compatible          :
++  - "nxp,tda19971" for the TDA19971
++  - "nxp,tda19973" for the TDA19973
++ - reg                 : I2C slave address
++ - interrupts          : The interrupt number
++ - DOVDD-supply        : Digital I/O supply
++ - DVDD-supply         : Digital Core supply
++ - AVDD-supply         : Analog supply
++ - nxp,vidout-portcfg  : array of pairs mapping VP output pins to pin groups.
++
++Optional Properties:
++ - nxp,audout-format   : DAI bus format: "i2s" or "spdif".
++ - nxp,audout-width    : width of audio output data bus (1-4).
++ - nxp,audout-layout   : data layout (0=AP0 used, 1=AP0/AP1/AP2/AP3 used).
++ - nxp,audout-mclk-fs  : Multiplication factor between stream rate and codec
++                         mclk.
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Optional Endpoint Properties:
++  The following three properties are defined in video-interfaces.txt and
++  are valid for source endpoints only:
++  - hsync-active: Horizontal synchronization polarity. Defaults to active high.
++  - vsync-active: Vertical synchronization polarity. Defaults to active high.
++  - data-active: Data polarity. Defaults to active high.
++
++Examples:
++ - VP[15:0] connected to IMX6 CSI_DATA[19:4] for 16bit YUV422
++   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
++	hdmi-receiver@48 {
++		compatible = "nxp,tda19971";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_tda1997x>;
++		reg = <0x48>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		DOVDD-supply = <&reg_3p3v>;
++		AVDD-supply = <&reg_1p8v>;
++		DVDD-supply = <&reg_1p8v>;
++		/* audio */
++		#sound-dai-cells = <0>;
++		nxp,audout-format = "i2s";
++		nxp,audout-layout = <0>;
++		nxp,audout-width = <16>;
++		nxp,audout-mclk-fs = <128>;
++		/*
++		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
++		 * and Y[11:4] across 16bits in the same pixclk cycle.
++		 */
++		nxp,vidout-portcfg =
++			/* Y[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
++			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
++			/* Y[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
++			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
++			/* CbCc[11:8]<->VP[07:04]<->CSI_DATA[11:8] */
++			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
++			/* CbCr[7:4]<->VP[03:00]<->CSI_DATA[7:4] */
++			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
++
++		port {
++			tda1997x_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <16>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++				data-active = <1>;
++			};
++		};
++	};
++ - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
++   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
++	hdmi-receiver@48 {
++		compatible = "nxp,tda19971";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_tda1997x>;
++		reg = <0x48>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		DOVDD-supply = <&reg_3p3v>;
++		AVDD-supply = <&reg_1p8v>;
++		DVDD-supply = <&reg_1p8v>;
++		/* audio */
++		#sound-dai-cells = <0>;
++		nxp,audout-format = "i2s";
++		nxp,audout-layout = <0>;
++		nxp,audout-width = <16>;
++		nxp,audout-mclk-fs = <128>;
++		/*
++		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
++		 * and Y[11:4] across 16bits in the same pixclk cycle.
++		 */
++		nxp,vidout-portcfg =
++			/* Y[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
++			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
++			/* Y[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
++			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
++			/* CbCc[11:8]<->VP[07:04]<->CSI_DATA[11:8] */
++			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
++			/* CbCr[7:4]<->VP[03:00]<->CSI_DATA[7:4] */
++			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
++
++		port {
++			tda1997x_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <16>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++				data-active = <1>;
++			};
++		};
++	};
++ - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
++   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
++	hdmi-receiver@48 {
++		compatible = "nxp,tda19971";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_tda1997x>;
++		reg = <0x48>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		DOVDD-supply = <&reg_3p3v>;
++		AVDD-supply = <&reg_1p8v>;
++		DVDD-supply = <&reg_1p8v>;
++		/* audio */
++		#sound-dai-cells = <0>;
++		nxp,audout-format = "i2s";
++		nxp,audout-layout = <0>;
++		nxp,audout-width = <16>;
++		nxp,audout-mclk-fs = <128>;
++		/*
++		 * The 8bpp BT656 mode outputs YCbCr[11:4] across 8bits over
++		 * 2 pixclk cycles.
++		 */
++		nxp,vidout-portcfg =
++			/* YCbCr[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
++			< TDA1997X_VP24_V15_12 TDA1997X_R_CR_CBCR_11_8 >,
++			/* YCbCr[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
++			< TDA1997X_VP24_V11_08 TDA1997X_R_CR_CBCR_7_4 >,
++
++		port {
++			tda1997x_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <16>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++				data-active = <1>;
++			};
++		};
++	};
++
 -- 
 2.7.4
