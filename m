@@ -1,98 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51212 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1764654AbdKRK3w (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 18 Nov 2017 05:29:52 -0500
-Date: Sat, 18 Nov 2017 11:29:55 +0100
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Philippe Ombredanne <pombredanne@nexb.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Johan Hovold <johan@kernel.org>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media: usbvision: remove unneeded DRIVER_LICENSE #define
-Message-ID: <20171118102955.GH8368@kroah.com>
-References: <CAOFm3uG-b5RYC4Wxms2dPw659cAUPvdVHeZOG8fjfkQji7wyMg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOFm3uG-b5RYC4Wxms2dPw659cAUPvdVHeZOG8fjfkQji7wyMg@mail.gmail.com>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:57115 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754054AbdKISqA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Nov 2017 13:46:00 -0500
+Received: by mail-pf0-f196.google.com with SMTP id b85so4867011pfj.13
+        for <linux-media@vger.kernel.org>; Thu, 09 Nov 2017 10:46:00 -0800 (PST)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 5/5] ARM: dts: imx: Add TDA19971 HDMI Receiver to GW551x
+Date: Thu,  9 Nov 2017 10:45:36 -0800
+Message-Id: <1510253136-14153-6-git-send-email-tharvey@gateworks.com>
+In-Reply-To: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
+References: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 17, 2017 at 06:26:30PM +0100, Philippe Ombredanne wrote:
-> On Fri, Nov 17, 2017 at 6:01 PM, Mauro Carvalho Chehab
-> <mchehab@s-opensource.com> wrote:
-> > Em Fri, 17 Nov 2017 16:01:41 +0100
-> > Philippe Ombredanne <pombredanne@nexb.com> escreveu:
-> >
-> >> On Fri, Nov 17, 2017 at 3:58 PM, Mauro Carvalho Chehab
-> >> <mchehab@s-opensource.com> wrote:
-> >> > Em Fri, 17 Nov 2017 15:18:26 +0100
-> >> > Greg Kroah-Hartman <gregkh@linuxfoundation.org> escreveu:
-> >> >
-> >> > Its license is actually GPL 2.0+
-> >> >
-> >> > So, I would actually change it to:
-> >> >
-> >> > MODULE_LICENSE("GPL v2");
-> >>
-> >> Mauro:
-> >>
-> >> actually even if it sounds weird the module.h doc [1] is clear on this topic:
-> >>
-> >>  * "GPL" [GNU Public License v2 or later]
-> >>  * "GPL v2" [GNU Public License v2]
-> >>
-> >> So it should be "GPL" IMHO.
-> >>
-> >>
-> >> [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/linux/module.h?id=refs/tags/v4.10#n175
-> >>
-> >
-> > Oh! Yeah, you're right. I would add that on the Kernel documentation
-> > somewhere, perhaps with the new document that Thomas is writing
-> > about SPFX.
-> > The Documentation/kernel-hacking/hacking.rst doc mentions
-> > MODULE_LICENSE, but doesn't define the expected values for it.
-> 
-> 
-> Good point!
-> 
-> Thomas:
-> Is this something that should be taken care of?
-> If yes, I may be able take a crack at it sometimes next week.
-> 
-> unless...
-> 
-> Mauro:
-> if you have a docwriter soul and want to make a good deed for the
-> holidays, may you feel like starting a doc patch? :P
-> 
-> e.g. something along the lines:
-> 
-> "Here are the valid values for MODULE_LICENSE as found in module.h ...
-> And here are the rules to set a MODULE_LICENSE and how this relates to
-> the top level SPDX-License-Identifier..."
-> 
-> BTW, I wished we could align the MODULE_LICENSE values with the SPDX
-> ids for clarity and as this would inject normalized SPDX license tags
-> in the Elf binaries.
-> 
-> But that 's likely impossible as it would break a truck load of
-> out-of-tree module macros and out-of-tree module loading command line
-> tools everywhere (such as busybox and many other) so the (computing)
-> world would crawl to a halt. *sigh*
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ arch/arm/boot/dts/imx6qdl-gw551x.dtsi | 85 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 85 insertions(+)
 
-That's a much longer-term project, let's get the obvious things done
-first before worrying about this type of thing :)
-
-thanks,
-
-greg k-h
+diff --git a/arch/arm/boot/dts/imx6qdl-gw551x.dtsi b/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
+index 30d4662..8ce0b15 100644
+--- a/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
+@@ -46,6 +46,7 @@
+  */
+ 
+ #include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/media/tda1997x.h>
+ 
+ / {
+ 	/* these are used by bootloader for disabling nodes */
+@@ -263,6 +264,60 @@
+ 		#gpio-cells = <2>;
+ 	};
+ 
++	tda1997x: tda1997x@48 {
++		compatible = "nxp,tda19971";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_tda1997x>;
++		reg = <0x48>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		DOVDD-supply = <&reg_3p3>;
++		AVDD-supply = <&reg_1p8b>;
++		DVDD-supply = <&reg_1p8a>;
++		#sound-dai-cells = <0>;
++		nxp,audout-format = "i2s";
++		nxp,audout-layout = <0>;
++		nxp,audout-width = <16>;
++		nxp,audout-mclk-fs = <128>;
++		/*
++		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
++		 * and Y[11:4] across 16bits in the same cycle
++		 * which we map to VP[15:08]<->CSI_DATA[19:12]
++		 */
++		nxp,vidout-portcfg =
++			/*G_Y_11_8<->VP[15:12]<->CSI_DATA[19:16]*/
++			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
++			/*G_Y_7_4<->VP[11:08]<->CSI_DATA[15:12]*/
++			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
++			/*R_CR_CBCR_11_8<->VP[07:04]<->CSI_DATA[11:08]*/
++			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
++			/*R_CR_CBCR_7_4<->VP[03:00]<->CSI_DATA[07:04]*/
++			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
++
++		port {
++			tda1997x_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <16>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++				data-active = <1>;
++			};
++		};
++	};
++};
++
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <16>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&tda1997x_to_ipu1_csi0_mux>;
++	bus-width = <16>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
+ };
+ 
+ &pcie {
+@@ -375,6 +430,30 @@
+ 		>;
+ 	};
+ 
++	pinctrl_ipu1_csi0: ipu1_csi0grp {
++		fsl,pins = <
++			MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT8__IPU1_CSI0_DATA08		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT9__IPU1_CSI0_DATA09		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT10__IPU1_CSI0_DATA10		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT11__IPU1_CSI0_DATA11		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19		0x1b0b0
++			MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC		0x1b0b0
++			MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK	0x1b0b0
++			MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC		0x1b0b0
++		>;
++	};
++
+ 	pinctrl_pcie: pciegrp {
+ 		fsl,pins = <
+ 			MX6QDL_PAD_GPIO_0__GPIO1_IO00		0x1b0b0 /* PCIE RST */
+@@ -399,6 +478,12 @@
+ 		>;
+ 	};
+ 
++	pinctrl_tda1997x: tda1997xgrp {
++		fsl,pins = <
++			MX6QDL_PAD_GPIO_7__GPIO1_IO07		0x1b0b0
++		>;
++	};
++
+ 	pinctrl_uart2: uart2grp {
+ 		fsl,pins = <
+ 			MX6QDL_PAD_SD4_DAT7__UART2_TX_DATA	0x1b0b1
+-- 
+2.7.4
