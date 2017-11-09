@@ -1,71 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sn1nam02on0043.outbound.protection.outlook.com ([104.47.36.43]:48492
-        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752465AbdKCHsu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Nov 2017 03:48:50 -0400
-Subject: Re: [PATCH 0/4] dma-buf: Silence dma_fence __rcu sparse warnings
-To: Ville Syrjala <ville.syrjala@linux.intel.com>,
-        dri-devel@lists.freedesktop.org
-Cc: Dave Airlie <airlied@redhat.com>,
-        Jason Ekstrand <jason@jlekstrand.net>,
-        linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        Alex Deucher <alexander.deucher@amd.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Chris Wilson <chris@chris-wilson.co.uk>
-References: <20171102200336.23347-1-ville.syrjala@linux.intel.com>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
-Message-ID: <e9a25939-e932-ef7a-9bba-9070f5876ae9@amd.com>
-Date: Fri, 3 Nov 2017 08:48:23 +0100
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50958 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750837AbdKIFms (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Nov 2017 00:42:48 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/6 v5] V4L: Add a UVC Metadata format
+Date: Thu, 09 Nov 2017 07:42:54 +0200
+Message-ID: <1861262.E5lR5RDANx@avalon>
+In-Reply-To: <alpine.DEB.2.20.1711081126370.20370@axis700.grange>
+References: <1501245205-15802-1-git-send-email-g.liakhovetski@gmx.de> <17991420.GWclfaas9a@avalon> <alpine.DEB.2.20.1711081126370.20370@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <20171102200336.23347-1-ville.syrjala@linux.intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch #4 is Reviewed-by: Christian König <christian.koenig@amd.com>.
+Hi Guennadi,
 
-The rest is Acked-by: Christian König <christian.koenig@amd.com>.
+On Wednesday, 8 November 2017 12:43:46 EET Guennadi Liakhovetski wrote:
+> On Tue, 7 Nov 2017, Laurent Pinchart wrote:
+> > On Monday, 6 November 2017 16:53:10 EET Guennadi Liakhovetski wrote:
+> > > On Mon, 30 Oct 2017, Hans Verkuil wrote:
+> > > > On 07/28/2017 02:46 PM, Hans Verkuil wrote:
+> > > >> On 07/28/2017 02:33 PM, Guennadi Liakhovetski wrote:
+> > > >>> Add a pixel format, used by the UVC driver to stream metadata.
+> > > >>> 
+> > > >>> Signed-off-by: Guennadi Liakhovetski
+> > > >>> <guennadi.liakhovetski@intel.com>
+> > > >>> ---
+> > > >>> 
+> > > >>>  Documentation/media/uapi/v4l/meta-formats.rst    |  1 +
+> > > >>>  Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst | 39
+> > > >>>  +++++++++++++++++
+> > > >>>  include/uapi/linux/videodev2.h                   |  1 +
+> > > >>>  3 files changed, 41 insertions(+)
+> > > >>>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
+> > > 
+> > > [snip]
+> > > 
+> > > >>> diff --git a/include/uapi/linux/videodev2.h
+> > > >>> b/include/uapi/linux/videodev2.h index 45cf735..0aad91c 100644
+> > > >>> --- a/include/uapi/linux/videodev2.h
+> > > >>> +++ b/include/uapi/linux/videodev2.h
+> > > >>> @@ -682,6 +682,7 @@ struct v4l2_pix_format {
+> > > >>> 
+> > > >>>  /* Meta-data formats */
+> > > >>>  #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H')
+> > > >>>  /*
+> > > >>>  R-Car VSP1 1-D Histogram */ #define V4L2_META_FMT_VSP1_HGT
+> > > >>>  v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */> >>
+> > > >>> 
+> > > >>> +#define V4L2_META_FMT_UVC         v4l2_fourcc('U', 'V', 'C', 'H')
+> > > >>> /*
+> > > >>> UVC Payload Header metadata */
+> > > > 
+> > > > I discussed this with Laurent last week and since the metadata for UVC
+> > > > starts with a standard header followed by vendor-specific data it
+> > > > makes
+> > > > sense to use V4L2_META_FMT_UVC for just the standard header. Any
+> > > > vendor
+> > > > specific formats should have their own fourcc which starts with the
+> > > > standard header followed by the custom data. The UVC driver would
+> > > > enumerate both the standard and the vendor specific fourcc. This would
+> > > > allow generic UVC applications to use the standard header.
+> > > > Applications
+> > > > that know about the vendor specific data can select the vendor
+> > > > specific
+> > > > format.
+> > > > 
+> > > > This change would make this much more convenient to use.
+> > > 
+> > > Then the driver should be able to decide, which private fourcc code to
+> > > use
+> > > for each of those devices. A natural way to do that seems to be to put
+> > > that in the .driver_info field of struct usb_device_id. For that I'd
+> > > replace the current use of that field for quirks with a pointer to a
+> > > struct in a separate patch. Laurent, would that be acceptable? Then add
+> > > a
+> > > field to that struct for a private metadata fourcc code.
+> > 
+> > I've been thinking about doing so for some time now. If you can write a
+> > patch it would be great ! What I've been wondering is how to keep the
+> > code both readable and small. If we declared those structures separately
+> > from the devices array we could use one instance for multiple devices,
+> > but naming might become awkward. On the other hand, if we defined them
+> > inline within the devices array, we'd get rid of the naming issue, but at
+> > the expense of increased memory usage.
+> 
+> We have in the meantime agreed to always use structs and to create named
+> structs for reoccurring quirk flags and in-place structs for
+> single-occurrance flags.
+> 
+> While implementing this I came across yet one more compromise, that we'll
+> have to accept with this approach:
+> 
+> To recall the metadata buffer layout should be
+> 
+> struct uvc_meta_buf {
+> 	uint64_t ns;
+> 	uint16_t sof;
+> 	uint8_t length;
+> 	uint8_t flags;
+> 	uint8_t buf[];
+> } __attribute__((packed));
+> 
+> where all the fields, beginning with "length" are a direct copy from the
+> UVC payload header. If multiple such payload headers have arrived for a
+> single frame, they will be appended and .bytesused will as usually have
+> the total byte count, used up in this frame. An application would then
+> calculate lengths of those individual metadata blocks as
+> 
+> sizeof(.ns) + sizeof(.sof) + .length
+> 
+> But this won't work with the "standard" UVC metadata format where any
+> private data, following standard fields, are dropped. In that case
+> applications would have to look at .flags and calculate the block length
+> based on them. Another possibility would be to rewrite the .length field
+> in the driver to only include standard fields, but I really don't think
+> that would be a good idea.
 
+For the standard header the length can indeed be easily computed from the 
+flags. I wonder, however, why you think rewriting length would be a bad idea ?
+
+> > One middle-ground option would be to allow storing either a structure
+> > pointer or quirks flags in the field, relying on the fact that the low
+> > order bit of a pointer will be NULL. We could repurpose flag BIT(0) to
+> > indicate that the field contains flags instead of a pointer.
+> > 
+> > Maybe I'm over-engineering this and that the extra memory consumption
+> > won't be too bad, or separately defined structures will be easy to name.
+> > I'd appreciate your opinion on this matter.
+
+-- 
 Regards,
-Christian.
 
-Am 02.11.2017 um 21:03 schrieb Ville Syrjala:
-> From: Ville Syrjälä <ville.syrjala@linux.intel.com>
->
-> When building drm+i915 I get around 150 lines of sparse noise from
-> dma_fence __rcu warnings. This series eliminates all of that.
->
-> The first two patches were already posted by Chris, but there wasn't
-> any real reaction, so I figured I'd repost with a wider Cc list.
->
-> As for the other two patches, I'm no expert on dma_fence and I didn't
-> spend a lot of time looking at it so I can't be sure I annotated all
-> the accesses correctly. But I figured someone will scream at me if
-> I got it wrong ;)
->
-> Cc: Dave Airlie <airlied@redhat.com>
-> Cc: Jason Ekstrand <jason@jlekstrand.net>
-> Cc: linaro-mm-sig@lists.linaro.org
-> Cc: linux-media@vger.kernel.org
-> Cc: Alex Deucher <alexander.deucher@amd.com>
-> Cc: Christian König <christian.koenig@amd.com>
-> Cc: Sumit Semwal <sumit.semwal@linaro.org>
-> Cc: Chris Wilson <chris@chris-wilson.co.uk>
->
-> Chris Wilson (2):
->    drm/syncobj: Mark up the fence as an RCU protected pointer
->    dma-buf/fence: Sparse wants __rcu on the object itself
->
-> Ville Syrjälä (2):
->    drm/syncobj: Use proper methods for accessing rcu protected pointers
->    dma-buf: Use rcu_assign_pointer() to set rcu protected pointers
->
->   drivers/dma-buf/reservation.c |  2 +-
->   drivers/gpu/drm/drm_syncobj.c | 11 +++++++----
->   include/drm/drm_syncobj.h     |  2 +-
->   include/linux/dma-fence.h     |  2 +-
->   4 files changed, 10 insertions(+), 7 deletions(-)
->
+Laurent Pinchart
