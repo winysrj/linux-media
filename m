@@ -1,70 +1,244 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:47921 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755020AbdKGXHn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Nov 2017 18:07:43 -0500
-Subject: Re: HDMI field order
-To: Carlos Rafael Giani <dv@pseudoterminal.org>,
-        linux-media <linux-media@vger.kernel.org>
-References: <CAJ+vNU3=GCFUgo0DYufyeisHYFuRwsY1qUeuQ29Y9J+mdjR57g@mail.gmail.com>
- <d865b201-c4d8-5907-832a-5b098891c994@pseudoterminal.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b056104d-06c2-55b4-4ce8-95dbca47fc97@xs4all.nl>
-Date: Wed, 8 Nov 2017 00:07:37 +0100
-MIME-Version: 1.0
-In-Reply-To: <d865b201-c4d8-5907-832a-5b098891c994@pseudoterminal.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:49058 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754049AbdKISp6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Nov 2017 13:45:58 -0500
+Received: by mail-pf0-f194.google.com with SMTP id b79so4887590pfk.5
+        for <linux-media@vger.kernel.org>; Thu, 09 Nov 2017 10:45:58 -0800 (PST)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 4/5] ARM: dts: imx: Add TDA19971 HDMI Receiver to GW54xx
+Date: Thu,  9 Nov 2017 10:45:35 -0800
+Message-Id: <1510253136-14153-5-git-send-email-tharvey@gateworks.com>
+In-Reply-To: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
+References: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/07/2017 11:35 PM, Carlos Rafael Giani wrote:
-> I was discussing this with Tim earlier, and there was a little 
-> confusion. He meant V4L2_FIELD_SEQ_TB/BT, not V4L2_FIELD_INTERLACED.
-> 
-> When I tried out 1080i50 with HDMI in and the i.MX6, I got something 
-> that looks like V4L2_FIELD_SEQ_TB. The question though is: are the field 
-> rows always arranged like this with interlaced HDMI? Or does this depend 
-> on the source? Could it for example be possible that 2 HDMI cameras 
-> deliver both interlaced video, but the first one delivers 
-> V4L2_FIELD_INTERLACED, and the second delivers V4L2_FIELD_SEQ_TB? Could 
-> this happen?
+The GW54xx has a front-panel microHDMI connector routed to a TDA19971
+which is connected the the IPU CSI when using IMX6Q.
 
-HDMI doesn't deliver any of the V4L2_FIELD_* formats, those are a property
-of the DMA engine and/or possible processing blocks earlier in the video
-pipeline.
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+v2:
+ - add HDMI audio input support
+---
+ arch/arm/boot/dts/imx6q-gw54xx.dts    | 102 ++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/imx6qdl-gw54xx.dtsi |  29 +++++++++-
+ 2 files changed, 128 insertions(+), 3 deletions(-)
 
-Interlaced formats as transmitted over HDMI are sent as a sequence of fields.
-All defined interlaced formats except for one send the top field first, then
-the bottom field. The exception (I'm 99% certain of that) is 720x480i (aka NTSC)
-which sends the bottom field before the top field.
-
-The video pipeline will typically DMA each field in a separate buffer (i.e.
-FIELD_ALTERNATE) or concatenate two fields in one buffer (SEQ_TB or SEQ_BT for
-720x480i), although the latter is less common. There is little point to it
-since it would just increase the latency with little benefit.
-
-If the video pipeline contains a deinterlacer, then FIELD_NONE is also an
-option.
-
-Regards,
-
-	Hans
-
-> 
-> 
-> On 2017-11-07 19:40, Tim Harvey wrote:
->> Greetings,
->>
->> I'm trying to understand the various field orders supported by v4l2
->> [1]. Do HDMI sources always use V4L2_FIELD_INTERLACED or can they
->> support alternate modes as well?
->>
->> Regards,
->>
->> Tim
->>
->> [1] - https://www.linuxtv.org/downloads/legacy/video4linux/API/V4L2_API/spec/ch03s06.html
-> 
+diff --git a/arch/arm/boot/dts/imx6q-gw54xx.dts b/arch/arm/boot/dts/imx6q-gw54xx.dts
+index 56e5b50..99dac63 100644
+--- a/arch/arm/boot/dts/imx6q-gw54xx.dts
++++ b/arch/arm/boot/dts/imx6q-gw54xx.dts
+@@ -12,10 +12,27 @@
+ /dts-v1/;
+ #include "imx6q.dtsi"
+ #include "imx6qdl-gw54xx.dtsi"
++#include <dt-bindings/media/tda1997x.h>
+ 
+ / {
+ 	model = "Gateworks Ventana i.MX6 Dual/Quad GW54XX";
+ 	compatible = "gw,imx6q-gw54xx", "gw,ventana", "fsl,imx6q";
++
++	sound-digital {
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "tda1997x-audio";
++		simple-audio-card,dai-link@0 {
++			format = "i2s";
++			cpu {
++				sound-dai = <&ssi2>;
++			};
++			codec {
++				bitclock-master;
++				frame-master;
++				sound-dai = <&tda1997x>;
++			};
++		};
++	};
+ };
+ 
+ &i2c3 {
+@@ -35,6 +52,61 @@
+ 			};
+ 		};
+ 	};
++
++	tda1997x: codec@48 {
++		compatible = "nxp,tda19971";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_tda1997x>;
++		reg = <0x48>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		DOVDD-supply = <&reg_3p3v>;
++		AVDD-supply = <&sw4_reg>;
++		DVDD-supply = <&sw4_reg>;
++		#sound-dai-cells = <0>;
++		nxp,audout-format = "i2s";
++		nxp,audout-layout = <0>;
++		nxp,audout-width = <16>;
++		nxp,audout-mclk-fs = <128>;
++		/*
++		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
++		 * and Y[11:4] across 16bits in the same cycle
++		 * which we map to VP[15:08]<->CSI_DATA[19:12]
++		 */
++		nxp,vidout-portcfg =
++			/*G_Y_11_8<->VP[15:12]<->CSI_DATA[19:16]*/
++			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
++			/*G_Y_7_4<->VP[11:08]<->CSI_DATA[15:12]*/
++			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
++			/*R_CR_CBCR_11_8<->VP[07:04]<->CSI_DATA[11:08]*/
++			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
++			/*R_CR_CBCR_7_4<->VP[03:00]<->CSI_DATA[07:04]*/
++			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
++
++		port {
++			tda1997x_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <16>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++				data-active = <1>;
++			};
++		};
++	};
++};
++
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <16>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&tda1997x_to_ipu1_csi0_mux>;
++	bus-width = <16>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
+ };
+ 
+ &ipu2_csi1_from_ipu2_csi1_mux {
+@@ -63,6 +135,30 @@
+ 		>;
+ 	};
+ 
++	pinctrl_ipu1_csi0: ipu1_csi0grp {
++		fsl,pins = <
++			MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT8__IPU1_CSI0_DATA08		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT9__IPU1_CSI0_DATA09		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT10__IPU1_CSI0_DATA10		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT11__IPU1_CSI0_DATA11		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19		0x1b0b0
++			MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC		0x1b0b0
++			MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK	0x1b0b0
++			MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC		0x1b0b0
++		>;
++	};
++
+ 	pinctrl_ipu2_csi1: ipu2_csi1grp {
+ 		fsl,pins = <
+ 			MX6QDL_PAD_EIM_EB2__IPU2_CSI1_DATA19    0x1b0b0
+@@ -78,4 +174,10 @@
+ 			MX6QDL_PAD_EIM_A16__IPU2_CSI1_PIXCLK    0x1b0b0
+ 		>;
+ 	};
++
++	pinctrl_tda1997x: tda1997xgrp {
++		fsl,pins = <
++			MX6QDL_PAD_GPIO_7__GPIO1_IO07	0x1b0b0
++		>;
++	};
+ };
+diff --git a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+index 07458a2..1bcb298 100644
+--- a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+@@ -10,6 +10,7 @@
+  */
+ 
+ #include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/sound/fsl-imx-audmux.h>
+ 
+ / {
+ 	/* these are used by bootloader for disabling nodes */
+@@ -114,12 +115,12 @@
+ 		};
+ 	};
+ 
+-	sound {
++	sound-analog {
+ 		compatible = "fsl,imx6q-ventana-sgtl5000",
+ 			     "fsl,imx-audio-sgtl5000";
+ 		model = "sgtl5000-audio";
+ 		ssi-controller = <&ssi1>;
+-		audio-codec = <&codec>;
++		audio-codec = <&sgtl5000>;
+ 		audio-routing =
+ 			"MIC_IN", "Mic Jack",
+ 			"Mic Jack", "Mic Bias",
+@@ -133,6 +134,25 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_audmux>; /* AUD4<->sgtl5000 */
+ 	status = "okay";
++
++	ssi2 {
++		fsl,audmux-port = <1>;
++		fsl,port-config = <
++			(IMX_AUDMUX_V2_PTCR_TFSDIR |
++			IMX_AUDMUX_V2_PTCR_TFSEL(4+8) | /* RXFS */
++			IMX_AUDMUX_V2_PTCR_TCLKDIR |
++			IMX_AUDMUX_V2_PTCR_TCSEL(4+8) | /* RXC */
++			IMX_AUDMUX_V2_PTCR_SYN)
++			IMX_AUDMUX_V2_PDCR_RXDSEL(4)
++		>;
++	};
++
++	aud5 {
++		fsl,audmux-port = <4>;
++		fsl,port-config = <
++			IMX_AUDMUX_V2_PTCR_SYN
++			IMX_AUDMUX_V2_PDCR_RXDSEL(1)>;
++	};
+ };
+ 
+ &can1 {
+@@ -331,7 +351,7 @@
+ 	pinctrl-0 = <&pinctrl_i2c3>;
+ 	status = "okay";
+ 
+-	codec: sgtl5000@0a {
++	sgtl5000: codec@0a {
+ 		compatible = "fsl,sgtl5000";
+ 		reg = <0x0a>;
+ 		clocks = <&clks IMX6QDL_CLK_CKO>;
+@@ -475,6 +495,9 @@
+ 			MX6QDL_PAD_SD2_DAT2__AUD4_TXD		0x110b0
+ 			MX6QDL_PAD_SD2_DAT1__AUD4_TXFS		0x130b0
+ 			MX6QDL_PAD_GPIO_0__CCM_CLKO1		0x130b0 /* AUD4_MCK */
++			MX6QDL_PAD_EIM_D25__AUD5_RXC            0x130b0
++			MX6QDL_PAD_DISP0_DAT19__AUD5_RXD        0x130b0
++			MX6QDL_PAD_EIM_D24__AUD5_RXFS           0x130b0
+ 		>;
+ 	};
+ 
+-- 
+2.7.4
