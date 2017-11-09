@@ -1,115 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f45.google.com ([209.85.218.45]:47494 "EHLO
-        mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751140AbdKHANl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Nov 2017 19:13:41 -0500
-Received: by mail-oi0-f45.google.com with SMTP id h200so776026oib.4
-        for <linux-media@vger.kernel.org>; Tue, 07 Nov 2017 16:13:41 -0800 (PST)
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58426 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750936AbdKIKhq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 9 Nov 2017 05:37:46 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 72CF760123
+        for <linux-media@vger.kernel.org>; Thu,  9 Nov 2017 12:37:44 +0200 (EET)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1eCkDP-0002ml-SV
+        for linux-media@vger.kernel.org; Thu, 09 Nov 2017 12:37:43 +0200
+Date: Thu, 9 Nov 2017 12:37:43 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.15] imx274 fix
+Message-ID: <20171109103743.q4bvjeqttohyxxga@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <20171107183950.46f238fd@vento.lan>
-References: <151001623063.16354.14661493921524115663.stgit@dwillia2-desk3.amr.corp.intel.com>
- <151001624873.16354.2551756846133945335.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171107063345.22626a5d@vento.lan> <CAPcyv4hNSV=c4KY8omKEdRth2w4YEr8EQJQfOoxXS8XELGFVcA@mail.gmail.com>
- <20171107183950.46f238fd@vento.lan>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 7 Nov 2017 16:13:40 -0800
-Message-ID: <CAPcyv4gvE8ovWA8DQoHJYoGqaOk1HxQLBJdwPPu3OXAb=MbfKw@mail.gmail.com>
-Subject: Re: [PATCH 3/3] [media] v4l2: disable filesystem-dax mapping support
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>,
-        Linux MM <linux-mm@kvack.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 7, 2017 at 12:39 PM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> Em Tue, 7 Nov 2017 09:43:41 -0800
-> Dan Williams <dan.j.williams@intel.com> escreveu:
->
->> On Tue, Nov 7, 2017 at 12:33 AM, Mauro Carvalho Chehab
->> <mchehab@s-opensource.com> wrote:
->> > Em Mon, 06 Nov 2017 16:57:28 -0800
->> > Dan Williams <dan.j.williams@intel.com> escreveu:
->> >
->> >> V4L2 memory registrations are incompatible with filesystem-dax that
->> >> needs the ability to revoke dma access to a mapping at will, or
->> >> otherwise allow the kernel to wait for completion of DMA. The
->> >> filesystem-dax implementation breaks the traditional solution of
->> >> truncate of active file backed mappings since there is no page-cache
->> >> page we can orphan to sustain ongoing DMA.
->> >>
->> >> If v4l2 wants to support long lived DMA mappings it needs to arrange to
->> >> hold a file lease or use some other mechanism so that the kernel can
->> >> coordinate revoking DMA access when the filesystem needs to truncate
->> >> mappings.
->> >
->> >
->> > Not sure if I understand this your comment here... what happens
->> > if FS_DAX is enabled? The new err = get_user_pages_longterm()
->> > would cause DMA allocation to fail?
->>
->> Correct, any attempt to specify a filesystem-dax mapping range to
->> get_user_pages_longterm will fail with EOPNOTSUPP. In the future we
->> want to add something like a 'struct file_lock *' argument to
->> get_user_pages_longterm so that the kernel has a handle to revoke
->> access to the returned pages. Once we have a safe way for the kernel
->> to undo elevated page counts we can stop failing the longterm vs
->> filesystem-dax case.
->
-> Argh! Perhaps we should make it depend on BROKEN while not fixed :-/
+Hi Mauro,
 
-Small consolation, but we do warn that filesystem-dax is still
-considered experimental when mounting a filesystem with "-o dax"
+This fixes error handling in imx274 as well as adds an entry to
+MAINTAINERS.
 
->> Here is more background on why _longterm gup is a problem for filesystem-dax:
->>
->>     https://lwn.net/Articles/737273/
->>
->> > If so, that doesn't sound
->> > right. Instead, mm should somehow mark this mapping to be out
->> > of FS_DAX control range.
->>
->> DAX is currently global setting for the entire backing device of the
->> filesystem, so any mapping of any file when the "-o dax" mount option
->> is set is in the "FS_DAX control range". In other words there's
->> currently no way to prevent FS_DAX mappings from being exposed to V4L2
->> outside of CONFIG_FS_DAX=n.
->
-> Grrr...
->
->> > Also, it is not only videobuf-dma-sg.c that does long lived
->> > DMA mappings. VB2 also does that (and videobuf-vmalloc).
->>
->> Without finding the code videobuf-vmalloc sounds like it should be ok
->> if the kernel is allocating memory separate from a file-backed DAX
->> mapping.
->
-> videobuf-vmalloc do DMA mapping for pages allocated via vmalloc(),
-> via vmalloc_user()/remap_vmalloc_range().
+Please pull.
 
-Ok, that's completely safe since filesystem-dax mappings are not
-involved in a vmalloc backed virtual address range.
+The following changes since commit eb0c19942288569e0ae492476534d5a485fb8ab4:
 
-> There aren't much drivers using VB1 anymore, but a change at VB2
-> will likely break support for almost all webcams if fs DAX is
-> in usage.
+  media: dib0700: fix invalid dvb_detach argument (2017-11-07 05:52:52 -0500)
 
-Yes, unless / until we can switch userspace to using a new memory
-registration api that includes a way for the kernel to revoke access
-to a dax mapping. Another mitigation is following through on support
-for moving dax support from a global mount flag to a per-inode flag to
-at least prevent dax from leaking to use cases that need explicit
-coordination.
+are available in the git repository at:
 
->> Where is the VB2 get_user_pages call?
->
-> Before changeset 3336c24f25ec, the logic for get_user_pages() were
-> at drivers/media/v4l2-core/videobuf2-dma-sg.c. Now, the logic
-> it uses is inside mm/frame_vector.c.
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.15-5
 
-Ok, I'll take a look.
+for you to fetch changes up to 873e03462ce74c3650a34d2d1601b8c2e028ac3c:
+
+  imx274: Fix error handling, add MAINTAINERS entry (2017-11-09 12:20:24 +0200)
+
+----------------------------------------------------------------
+Sakari Ailus (1):
+      imx274: Fix error handling, add MAINTAINERS entry
+
+ MAINTAINERS                | 8 ++++++++
+ drivers/media/i2c/imx274.c | 5 ++---
+ 2 files changed, 10 insertions(+), 3 deletions(-)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
