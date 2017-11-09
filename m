@@ -1,124 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:38984 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752963AbdK2Meh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 07:34:37 -0500
-Date: Wed, 29 Nov 2017 14:34:28 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Alan Cox <alan@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Daeseok Youn <daeseok.youn@gmail.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Geliang Tang <geliangtang@gmail.com>,
-        Amitoj Kaur Chawla <amitoj1606@gmail.com>,
-        Georgiana Chelu <georgiana.chelu93@gmail.com>,
-        simran singhal <singhalsimran0@gmail.com>,
-        Julia Lawall <julia.lawall@lip6.fr>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Guru Das Srinagesh <gurooodas@gmail.com>,
-        Arushi Singhal <arushisinghal19971997@gmail.com>,
-        Paolo Cretaro <melko@frugalware.org>,
-        Joe Perches <joe@perches.com>,
-        =?iso-8859-1?B?Suly6W15?= Lefaure <jeremy.lefaure@lse.epita.fr>,
-        Colin Ian King <colin.king@canonical.com>,
-        Thomas Meyer <thomas@m3y3r.de>, Shy More <smklearn@gmail.com>,
-        Varsha Rao <rvarsha016@gmail.com>,
-        Srishti Sharma <srishtishar@gmail.com>,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH 1/7] media: atomisp: stop producing hundreds of
- kernel-doc warnings
-Message-ID: <20171129123428.3b35cmdp3qp5okaz@paasikivi.fi.intel.com>
-References: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
- <20171129121453.i2qmuwxzcajgx5ev@paasikivi.fi.intel.com>
- <20171129102457.4b41091c@recife.lan>
- <20171129102826.12c46e21@recife.lan>
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.217]:14706 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751348AbdKIPbk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Nov 2017 10:31:40 -0500
+Received: from rjkm by morden.metzler with local (Exim 4.89)
+        (envelope-from <rjkm@morden.metzler>)
+        id 1eCokc-0000oz-Jq
+        for linux-media@vger.kernel.org; Thu, 09 Nov 2017 16:28:18 +0100
+From: Ralph Metzler <rjkm@metzlerbros.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171129102826.12c46e21@recife.lan>
+Content-Transfer-Encoding: 7bit
+Message-ID: <23044.29714.500132.822313@morden.metzler>
+Date: Thu, 9 Nov 2017 16:28:18 +0100
+To: linux-media@vger.kernel.org
+Subject: DVB-S2 and S2X API extensions
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 29, 2017 at 10:28:26AM -0200, Mauro Carvalho Chehab wrote:
-> Em Wed, 29 Nov 2017 10:24:57 -0200
-> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
-> 
-> > Em Wed, 29 Nov 2017 14:14:54 +0200
-> > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> > 
-> > > Hi Mauro,
-> > > 
-> > > Thanks for the patch.
-> > > 
-> > > On Wed, Nov 29, 2017 at 07:08:04AM -0500, Mauro Carvalho Chehab wrote:  
-> > > > A recent change on Kernel 4.15-rc1 causes all tags with
-> > > > /** to be handled as kernel-doc markups. Well, several
-> > > > atomisp modules, it doesn't use kernel-doc, but some other
-> > > > documentation markup (doxygen?).
-> > > > 
-> > > > So, suppress all those warns by replacing /** by /*.
-> > > > 
-> > > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>    
-> > > 
-> > > I presume you haven't written the patch manually. There are other changes
-> > > that described by the comment, too, such as removing lesser
-> > > than-characaters.
-> > > 
-> > > It'd be good to mention how it's been generated.  
-> > 
-> > Yeah, I used a simple script, and manually fixed a few minor things
-> > that were still causing warnings.
-> > 
-> > The core changes were done via:
-> > 
-> > 	for i in $(find drivers/staging/media/atomisp -type f); do sed 's,/\*\* ,/\*, ' -i $i; done
-> > 	for i in $(find drivers/staging/media/atomisp -type f); do sed 's,/\*\*<,/\**,' -i $i; done
-> > 	for i in drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/debug/src/ia_css_debug.c drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_sp.c drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/rmgr/src/rmgr_vbuf.c; do perl -ne 's,\/\*\*$,/*,g; print $_'  $i > a && mv a $i; done;
-> > 
-> > I'll add it at the patch description.
-> > 
-> > Thanks,
-> > Mauro
-> 
-> Changed patch description to the one enclosed.
-> 
-> 
-> commit 699a8caa3de69b2bdaa54b9347c29644bc2222a6
-> Author: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Date:   Wed Nov 29 03:16:17 2017 -0500
-> 
->     media: atomisp: stop producing hundreds of kernel-doc warnings
->     
->     A recent change on Kernel 4.15-rc1 causes all tags with
->     /** to be handled as kernel-doc markups. Well, several
->     atomisp modules, it doesn't use kernel-doc, but some other
->     documentation markup (doxygen?).
->     
->     So, suppress all those warns by:
->             - replacing /**< by /**.
->             - replacing /** by /*.
->     
->     The core changes were done with:
->     
->             for i in $(find drivers/staging/media/atomisp -type f); do sed 's,/\*\* ,/\*, ' -i $i; done
->             for i in $(find drivers/staging/media/atomisp -type f); do sed 's,/\*\*<,/\**,' -i $i; done
->             for i in drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/debug/src/ia_css_debug.c drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_sp.c drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/rmgr/src/rmgr_vbuf.c; do perl -ne 's,\/\*\*$,/*,g; print $_'  $i > a && mv a $i; done;
->     
->     A few manual adjustments were made, where needed.
->     
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Hi,
 
-Thanks. The patch doesn't conflict with the other atomisp patches I have
-already so feel free to apply it directly.
+I have a few RFCs regarding new needed enums and
+properties for DVB-S2 and DVB-S2X:
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+- DVB-S2/X physical layer scrambling
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+I currently use the inofficial DTV_PLS for setting the scrambling
+sequence index (cf. ETSI EN 300 468 table 41) of
+the physical layer scrambling in DVB-S2 and DVB-S2X.
+Some drivers already misuse bits 8-27 of the DTV_STREAM_ID
+for setting this. They also differentiate between gold, root
+and combo codes.
+The gold code is the actual scrambling sequence index.
+The root code is just an intermediate calculation
+accepted by some chips, but derived from the gold code.
+It can be easily mapped one-to-one to the gold code.
+(see https://github.com/DigitalDevices/dddvb/blob/master/apps/pls.c,
+A more optimized version of this could be added to dvb-math.c)
+The combo code does not really exist but is a by-product
+of the buggy usage of a gold to root code conversion in ST chips.
+
+So, I would propose to officially introduce a property
+for the scrambling sequence index (=gold code).
+Should it be called DTV_PLS (which I already used in the dddvb package)
+or rather DTV_SSI?
+I realized PLS can be confused with physical layer signalling which
+uses the acronym PLS in the DVB-S2 specs.
+
+DVB-S2X also defines 7 preferred scrambling code sequences
+(EN 302 307-2 5.5.4) which should be checked during tuning.
+If the demod does not do this, should the DVB kernel layer or
+application do this?
+
+
+- slices
+
+DVB-S2 and DVB-C2, additionally to ISI/PLP, also can have
+slicing. For DVB-C2 I currently use bits 8-15 of DTV_STREAM_ID as slice id.
+For DVB-S2/X the misuse of bits 8-27 by some drivers for selecting
+the scrambling sequence index code could cause problems.
+Should there be a new property for slice selection?
+It is recommended that slice id and ISI/PLP id are identical but they
+can be different.
+
+
+- new DVB-S2X features
+
+DVB-S2X needs some more roll-offs, FECs and modulations. I guess adding those
+should be no problem?
+
+Do we need FE_CAN_SLICES, FE_CAN_3G_MODULATION, etc?
+Or would a new delivery system type for S2X make sense?
+
+
+-DVB-S2 base band frame support
+
+There are some older patches which allowed to switch the demod
+to a raw BB frame mode (if it and the bridge support this) and
+have those parsed in the DVB layer.
+
+See
+https://patchwork.linuxtv.org/patch/10402/
+or
+https://linuxtv.org/pipermail/linux-dvb/2007-December/022217.html
+
+Chris Lee seems to have a tree based on those:
+https://bitbucket.org/updatelee/v4l-updatelee
+
+
+Another method to support this is to wrap the BB frames
+into sections and deliver them as a normal transport stream.
+Some demods and/or PCIe bridges support this in hardware.
+This has the advantage that it would even work with SAT>IP.
+
+How should the latter method be supported in the DVB API?
+With a special stream id or separate porperty?
+Switching to this mode could even be done automatically
+in case of non-TS streams.
+
+
+
+Regards,
+Ralph
