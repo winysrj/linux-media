@@ -1,181 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway20.websitewelcome.com ([192.185.65.13]:28678 "EHLO
-        gateway20.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753114AbdKJR7a (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Nov 2017 12:59:30 -0500
-Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
-        by gateway20.websitewelcome.com (Postfix) with ESMTP id 83CAD40105F78
-        for <linux-media@vger.kernel.org>; Fri, 10 Nov 2017 11:35:53 -0600 (CST)
-Date: Fri, 10 Nov 2017 11:35:52 -0600
-Message-ID: <20171110113552.Horde.eGcnMRStkxzNDhQOqlhnkI5@gator4166.hostgator.com>
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Andrey Konovalov <andreyknvl@google.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
-        Andi Shyti <andi.shyti@samsung.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        syzkaller <syzkaller@googlegroups.com>
-Subject: Re: [PATCH] au0828: fix use-after-free at USB probing
-References: <CAAeHK+wZXZMxqQn9QbAd3xWt00_bKir4-La2QKtzk8nFb0FQmw@mail.gmail.com>
- <20171110002134.GA32019@embeddedor.com>
- <CAAeHK+zC2-7cP+oJbKPOUs+5Un5+TUkMY2FNs=z+GxLZa4kQug@mail.gmail.com>
-In-Reply-To: <CAAeHK+zC2-7cP+oJbKPOUs+5Un5+TUkMY2FNs=z+GxLZa4kQug@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:49580 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755030AbdKIXoI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Nov 2017 18:44:08 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v9 1/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
+Date: Fri, 10 Nov 2017 00:43:19 +0100
+Message-Id: <20171109234320.13016-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171109234320.13016-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171109234320.13016-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
+are located between the video sources (CSI-2 transmitters) and the video
+grabbers (VIN) on Gen3 of Renesas R-Car SoC.
 
-Quoting Andrey Konovalov <andreyknvl@google.com>:
+Each CSI-2 device is connected to more then one VIN device which
+simultaneously can receive video from the same CSI-2 device. Each VIN
+device can also be connected to more then one CSI-2 device. The routing
+of which link are used are controlled by the VIN devices. There are only
+a few possible routes which are set by hardware limitations, which are
+different for each SoC in the Gen3 family.
 
-> On Fri, Nov 10, 2017 at 1:21 AM, Gustavo A. R. Silva
-> <garsilva@embeddedor.com> wrote:
->> Hi Andrey,
->>
->> Could you please try this patch?
->>
->> Thank you
->
-> Hi Gustavo,
->
-> With your patch I get a different crash. Not sure if it's another bug
-> or the same one manifesting differently.
->
+To work with the limitations of routing possibilities it is necessary
+for the DT bindings to describe which VIN device is connected to which
+CSI-2 device. This is why port 1 needs to to assign reg numbers for each
+VIN device that be connected to it. To setup and to know which links are
+valid for each SoC is the responsibility of the VIN driver since the
+register to configure it belongs to the VIN hardware.
 
-That's the same one. It seems that the best solution is to remove the  
-kfree after the mutex_unlock and let the device resources be freed in  
-au0828_usb_disconnect.
-
-Please try the following patch instead.
-
-I appreciate your help.
-
-Thank you, Andrey.
-
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
-  drivers/media/usb/au0828/au0828-core.c | 1 -
-  1 file changed, 1 deletion(-)
+ .../devicetree/bindings/media/rcar-csi2.txt        | 103 +++++++++++++++++++++
+ MAINTAINERS                                        |   1 +
+ 2 files changed, 104 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c  
-b/drivers/media/usb/au0828/au0828-core.c
-index cd363a2..257ae0d 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -629,7 +629,6 @@ static int au0828_usb_probe(struct usb_interface  
-*interface,
-                 pr_err("%s() au0282_dev_register failed to register  
-on V4L2\n",
-                         __func__);
-                 mutex_unlock(&dev->lock);
--               kfree(dev);
-                 goto done;
-         }
-
+diff --git a/Documentation/devicetree/bindings/media/rcar-csi2.txt b/Documentation/devicetree/bindings/media/rcar-csi2.txt
+new file mode 100644
+index 0000000000000000..39d41d82b71b60eb
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rcar-csi2.txt
+@@ -0,0 +1,103 @@
++Renesas R-Car MIPI CSI-2
++------------------------
++
++The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesas R-Car
++family of devices. It is to be used in conjunction with the R-Car VIN module,
++which provides the video capture capabilities.
++
++Mandatory properties
++--------------------
++ - compatible: Must be one or more of the following
++   - "renesas,r8a7795-csi2" for the R8A7795 device.
++   - "renesas,r8a7796-csi2" for the R8A7796 device.
++
++ - reg: the register base and size for the device registers
++ - interrupts: the interrupt for the device
++ - clocks: Reference to the parent clock
++
++The device node shall contain two 'port' child nodes according to the
++bindings defined in Documentation/devicetree/bindings/media/
++video-interfaces.txt. Port 0 shall connect the node that is the video
++source for to the CSI-2. Port 1 shall connect all the R-Car VIN
++modules, which can make use of the CSI-2 module.
++
++- Port 0 - Video source (Mandatory)
++	- Endpoint 0 - sub-node describing the endpoint that is the video source
++
++- Port 1 - VIN instances (Mandatory for all VIN present in the SoC)
++	- Endpoint 0 - sub-node describing the endpoint that is VIN0
++	- Endpoint 1 - sub-node describing the endpoint that is VIN1
++	- Endpoint 2 - sub-node describing the endpoint that is VIN2
++	- Endpoint 3 - sub-node describing the endpoint that is VIN3
++	- Endpoint 4 - sub-node describing the endpoint that is VIN4
++	- Endpoint 5 - sub-node describing the endpoint that is VIN5
++	- Endpoint 6 - sub-node describing the endpoint that is VIN6
++	- Endpoint 7 - sub-node describing the endpoint that is VIN7
++
++Example:
++
++	csi20: csi2@fea80000 {
++		compatible = "renesas,r8a7796-csi2", "renesas,rcar-gen3-csi2";
++		reg = <0 0xfea80000 0 0x10000>;
++		interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cpg CPG_MOD 714>;
++		power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				reg = <0>;
++
++				csi20_in: endpoint@0 {
++					clock-lanes = <0>;
++					data-lanes = <1>;
++					remote-endpoint = <&adv7482_txb>;
++				};
++			};
++
++			port@1 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				reg = <1>;
++
++				csi20vin0: endpoint@0 {
++					reg = <0>;
++					remote-endpoint = <&vin0csi20>;
++				};
++				csi20vin1: endpoint@1 {
++					reg = <1>;
++					remote-endpoint = <&vin1csi20>;
++				};
++				csi20vin2: endpoint@2 {
++					reg = <2>;
++					remote-endpoint = <&vin2csi20>;
++				};
++				csi20vin3: endpoint@3 {
++					reg = <3>;
++					remote-endpoint = <&vin3csi20>;
++				};
++				csi20vin4: endpoint@4 {
++					reg = <4>;
++					remote-endpoint = <&vin4csi20>;
++				};
++				csi20vin5: endpoint@5 {
++					reg = <5>;
++					remote-endpoint = <&vin5csi20>;
++				};
++				csi20vin6: endpoint@6 {
++					reg = <6>;
++					remote-endpoint = <&vin6csi20>;
++				};
++				csi20vin7: endpoint@7 {
++					reg = <7>;
++					remote-endpoint = <&vin7csi20>;
++				};
++			};
++		};
++	};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index adbf69306e9ee3d2..fa81ee6e80274646 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8565,6 +8565,7 @@ L:	linux-media@vger.kernel.org
+ L:	linux-renesas-soc@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ S:	Supported
++F:	Documentation/devicetree/bindings/media/rcar-csi2.txt
+ F:	Documentation/devicetree/bindings/media/rcar_vin.txt
+ F:	drivers/media/platform/rcar-vin/
+ 
 -- 
-2.7.4
-
-> au0828: recv_control_msg() Failed receiving control message, error -71.
-> au0828: recv_control_msg() Failed receiving control message, error -71.
-> au8522_writereg: writereg error (reg == 0x106, val == 0x0001, ret == -5)
-> usb 1-1: selecting invalid altsetting 5
-> au0828: Failure setting usb interface0 to as5
-> au0828: au0828_usb_probe() au0282_dev_register failed to register on V4L2
-> au0828: probe of 1-1:0.0 failed with error -22
-> usb 1-1: USB disconnect, device number 2
-> ==================================================================
-> BUG: KASAN: use-after-free in __list_del_entry_valid+0xda/0xf3
-> Read of size 8 at addr ffff8800641d0410 by task kworker/0:1/24
->
-> CPU: 0 PID: 24 Comm: kworker/0:1 Not tainted
-> 4.14.0-rc5-43687-g72e555fa3d2e-dirty #105
-> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-> Workqueue: usb_hub_wq hub_event
-> Call Trace:
->  __dump_stack lib/dump_stack.c:16
->  dump_stack+0xc1/0x11f lib/dump_stack.c:52
->  print_address_description+0x71/0x234 mm/kasan/report.c:252
->  kasan_report_error mm/kasan/report.c:351
->  kasan_report+0x173/0x270 mm/kasan/report.c:409
->  __asan_report_load8_noabort+0x19/0x20 mm/kasan/report.c:430
->  __list_del_entry_valid+0xda/0xf3 lib/list_debug.c:54
->  __list_del_entry ./include/linux/list.h:116
->  list_del_init ./include/linux/list.h:158
->  device_pm_remove+0x4a/0x1da drivers/base/power/main.c:149
->  device_del+0x55f/0xa30 drivers/base/core.c:1986
->  usb_disable_device+0x1df/0x670 drivers/usb/core/message.c:1170
->  usb_disconnect+0x260/0x7a0 drivers/usb/core/hub.c:2124
->  hub_port_connect drivers/usb/core/hub.c:4754
->  hub_port_connect_change drivers/usb/core/hub.c:5009
->  port_event drivers/usb/core/hub.c:5115
->  hub_event+0xe09/0x2eb0 drivers/usb/core/hub.c:5195
->  process_one_work+0x86d/0x13e0 kernel/workqueue.c:2119
->  process_scheduled_works kernel/workqueue.c:2179
->  worker_thread+0x689/0xea0 kernel/workqueue.c:2255
->  kthread+0x334/0x400 kernel/kthread.c:231
->  ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
->
-> The buggy address belongs to the page:
-> page:ffffea0001907400 count:0 mapcount:-127 mapping:          (null)  
-> index:0x0
-> flags: 0x100000000000000()
-> raw: 0100000000000000 0000000000000000 0000000000000000 00000000ffffff80
-> raw: ffffea00018a8f20 ffff88007fffa690 0000000000000002 0000000000000000
-> page dumped because: kasan: bad access detected
->
-> Memory state around the buggy address:
->  ffff8800641d0300: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->  ffff8800641d0380: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->> ffff8800641d0400: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->                          ^
->  ffff8800641d0480: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->  ffff8800641d0500: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> ==================================================================
->
-> Thanks!
->
->>
->>
->> The device is typically freed on failure after trying to set
->> USB interface0 to as5 in function au0828_analog_register.
->>
->> Fix use-after-free by returning the error value inmediately
->> after failure, instead of jumping to au0828_usb_disconnect
->> where _dev_ is also freed.
->>
->> Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
->> ---
->>  drivers/media/usb/au0828/au0828-core.c | 3 +--
->>  1 file changed, 1 insertion(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/usb/au0828/au0828-core.c  
->> b/drivers/media/usb/au0828/au0828-core.c
->> index cd363a2..b4abd90 100644
->> --- a/drivers/media/usb/au0828/au0828-core.c
->> +++ b/drivers/media/usb/au0828/au0828-core.c
->> @@ -630,7 +630,7 @@ static int au0828_usb_probe(struct  
->> usb_interface *interface,
->>                         __func__);
->>                 mutex_unlock(&dev->lock);
->>                 kfree(dev);
->> -               goto done;
->> +               return retval;
->>         }
->>
->>         /* Digital TV */
->> @@ -655,7 +655,6 @@ static int au0828_usb_probe(struct  
->> usb_interface *interface,
->>
->>         retval = au0828_media_device_register(dev, usbdev);
->>
->> -done:
->>         if (retval < 0)
->>                 au0828_usb_disconnect(interface);
->>
->> --
->> 2.7.4
->>
+2.15.0
