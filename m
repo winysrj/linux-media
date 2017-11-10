@@ -1,108 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57045 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933397AbdKQNka (ORCPT
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:45318 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751327AbdKJM3Y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 08:40:30 -0500
-Subject: Re: [PATCH v2 6/8] v4l: vsp1: Adapt entities to configure into a body
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
- <1807083.ZJnR2iqIOD@avalon>
- <112c0f66-4918-40d0-d2dd-17f9bbd03f12@ideasonboard.com>
- <4353515.cR2bnzc1Fq@avalon>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <6dffaedc-75b4-f817-d91c-304f7cd54f1f@ideasonboard.com>
-Date: Fri, 17 Nov 2017 13:40:26 +0000
+        Fri, 10 Nov 2017 07:29:24 -0500
+Received: by mail-oi0-f68.google.com with SMTP id f66so6711401oib.2
+        for <linux-media@vger.kernel.org>; Fri, 10 Nov 2017 04:29:24 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <4353515.cR2bnzc1Fq@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20171110002134.GA32019@embeddedor.com>
+References: <CAAeHK+wZXZMxqQn9QbAd3xWt00_bKir4-La2QKtzk8nFb0FQmw@mail.gmail.com>
+ <20171110002134.GA32019@embeddedor.com>
+From: Andrey Konovalov <andreyknvl@google.com>
+Date: Fri, 10 Nov 2017 13:29:23 +0100
+Message-ID: <CAAeHK+zC2-7cP+oJbKPOUs+5Un5+TUkMY2FNs=z+GxLZa4kQug@mail.gmail.com>
+Subject: Re: [PATCH] au0828: fix use-after-free at USB probing
+To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
+        Andi Shyti <andi.shyti@samsung.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        syzkaller <syzkaller@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Fri, Nov 10, 2017 at 1:21 AM, Gustavo A. R. Silva
+<garsilva@embeddedor.com> wrote:
+> Hi Andrey,
+>
+> Could you please try this patch?
+>
+> Thank you
 
-On 12/09/17 20:18, Laurent Pinchart wrote:
-> Hi Kieran,
-> 
-> On Tuesday, 12 September 2017 00:42:09 EEST Kieran Bingham wrote:
->> On 17/08/17 18:58, Laurent Pinchart wrote:
->>> On Monday 14 Aug 2017 16:13:29 Kieran Bingham wrote:
->>>> Currently the entities store their configurations into a display list.
->>>> Adapt this such that the code can be configured into a body fragment
->>>> directly, allowing greater flexibility and control of the content.
->>>>
->>>> All users of vsp1_dl_list_write() are removed in this process, thus it
->>>> too is removed.
->>>>
->>>> A helper, vsp1_dl_list_body() is provided to access the internal body0
->>>> from the display list.
->>>>
->>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>>> ---
->>>>
->>>>  drivers/media/platform/vsp1/vsp1_bru.c    | 22 ++++++------
->>>>  drivers/media/platform/vsp1/vsp1_clu.c    | 22 ++++++------
->>>>  drivers/media/platform/vsp1/vsp1_dl.c     | 12 ++-----
->>>>  drivers/media/platform/vsp1/vsp1_dl.h     |  2 +-
->>>>  drivers/media/platform/vsp1/vsp1_drm.c    | 14 +++++---
->>>>  drivers/media/platform/vsp1/vsp1_entity.c | 16 ++++-----
->>>>  drivers/media/platform/vsp1/vsp1_entity.h | 12 ++++---
->>>>  drivers/media/platform/vsp1/vsp1_hgo.c    | 16 ++++-----
->>>>  drivers/media/platform/vsp1/vsp1_hgt.c    | 18 +++++-----
->>>>  drivers/media/platform/vsp1/vsp1_hsit.c   | 10 +++---
->>>>  drivers/media/platform/vsp1/vsp1_lif.c    | 13 +++----
->>>>  drivers/media/platform/vsp1/vsp1_lut.c    | 21 ++++++------
->>>>  drivers/media/platform/vsp1/vsp1_pipe.c   |  4 +-
->>>>  drivers/media/platform/vsp1/vsp1_pipe.h   |  3 +-
->>>>  drivers/media/platform/vsp1/vsp1_rpf.c    | 43 +++++++++++-------------
->>>>  drivers/media/platform/vsp1/vsp1_sru.c    | 14 ++++----
->>>>  drivers/media/platform/vsp1/vsp1_uds.c    | 24 +++++++------
->>>>  drivers/media/platform/vsp1/vsp1_uds.h    |  2 +-
->>>>  drivers/media/platform/vsp1/vsp1_video.c  | 11 ++++--
->>>>  drivers/media/platform/vsp1/vsp1_wpf.c    | 42 ++++++++++++-----------
->>>>  20 files changed, 168 insertions(+), 153 deletions(-)
->>>
->>> This is quite intrusive, and it bothers me slightly that we need to pass
->>> both the DL and the DLB to the configure function in order to add
->>> fragments to the DL in the CLU and LUT modules. Wouldn't it be simpler to
->>> add a pointer to the current body in the DL structure, and modify
->>> vsp1_dl_list_write() to write to the current fragment ?
->>
->> No doubt about it, 168+, 153- is certainly intrusive.
->>
->> Yes, now I'm looking back at this, I think this does look like this part is
->> not quite the right approach.
->>
->> Which otherwise stalls the series until I have time to reconsider. I will
->> likely repost the work I have done on the earlier patches, including the
->> 's/fragment/body/g' changes and ready myself for a v4 which will contain the
->> heavier reworks.
-> 
-> Fine with me. Could you make sure to mention the open issues in the cover 
-> letter ? I want to avoid commenting on them if you know already that you will 
-> rework them later.
+Hi Gustavo,
 
-I've been trying to tackle this today, but I think I've come up a bit stuck on a
-key part.
+With your patch I get a different crash. Not sure if it's another bug
+or the same one manifesting differently.
 
-The reason for this patch, is to allow the functions to configure directly into
-a display list body, even when that body *is not part* of a display list.
+au0828: recv_control_msg() Failed receiving control message, error -71.
+au0828: recv_control_msg() Failed receiving control message, error -71.
+au8522_writereg: writereg error (reg == 0x106, val == 0x0001, ret == -5)
+usb 1-1: selecting invalid altsetting 5
+au0828: Failure setting usb interface0 to as5
+au0828: au0828_usb_probe() au0282_dev_register failed to register on V4L2
+au0828: probe of 1-1:0.0 failed with error -22
+usb 1-1: USB disconnect, device number 2
+==================================================================
+BUG: KASAN: use-after-free in __list_del_entry_valid+0xda/0xf3
+Read of size 8 at addr ffff8800641d0410 by task kworker/0:1/24
 
-So - converting vsp1_dl_list_write() to configure into the 'current' body (was
-fragment) of a display list would not work for writing to the cached objects -
-which do not have a display list. They are simply body objects.
+CPU: 0 PID: 24 Comm: kworker/0:1 Not tainted
+4.14.0-rc5-43687-g72e555fa3d2e-dirty #105
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:16
+ dump_stack+0xc1/0x11f lib/dump_stack.c:52
+ print_address_description+0x71/0x234 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351
+ kasan_report+0x173/0x270 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x19/0x20 mm/kasan/report.c:430
+ __list_del_entry_valid+0xda/0xf3 lib/list_debug.c:54
+ __list_del_entry ./include/linux/list.h:116
+ list_del_init ./include/linux/list.h:158
+ device_pm_remove+0x4a/0x1da drivers/base/power/main.c:149
+ device_del+0x55f/0xa30 drivers/base/core.c:1986
+ usb_disable_device+0x1df/0x670 drivers/usb/core/message.c:1170
+ usb_disconnect+0x260/0x7a0 drivers/usb/core/hub.c:2124
+ hub_port_connect drivers/usb/core/hub.c:4754
+ hub_port_connect_change drivers/usb/core/hub.c:5009
+ port_event drivers/usb/core/hub.c:5115
+ hub_event+0xe09/0x2eb0 drivers/usb/core/hub.c:5195
+ process_one_work+0x86d/0x13e0 kernel/workqueue.c:2119
+ process_scheduled_works kernel/workqueue.c:2179
+ worker_thread+0x689/0xea0 kernel/workqueue.c:2255
+ kthread+0x334/0x400 kernel/kthread.c:231
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
 
-It seems a bit extraneous to create holding display lists to contain a single
-body, when the display list itself will never be used, but I can't think of an
-alternative.
+The buggy address belongs to the page:
+page:ffffea0001907400 count:0 mapcount:-127 mapping:          (null) index:0x0
+flags: 0x100000000000000()
+raw: 0100000000000000 0000000000000000 0000000000000000 00000000ffffff80
+raw: ffffea00018a8f20 ffff88007fffa690 0000000000000002 0000000000000000
+page dumped because: kasan: bad access detected
 
-Would you prefer this 'container display list' approach? or do you have another
-idea?
+Memory state around the buggy address:
+ ffff8800641d0300: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8800641d0380: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff8800641d0400: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                         ^
+ ffff8800641d0480: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8800641d0500: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================
 
---
-Regards
+Thanks!
 
-Kieran
+>
+>
+> The device is typically freed on failure after trying to set
+> USB interface0 to as5 in function au0828_analog_register.
+>
+> Fix use-after-free by returning the error value inmediately
+> after failure, instead of jumping to au0828_usb_disconnect
+> where _dev_ is also freed.
+>
+> Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+> ---
+>  drivers/media/usb/au0828/au0828-core.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+> index cd363a2..b4abd90 100644
+> --- a/drivers/media/usb/au0828/au0828-core.c
+> +++ b/drivers/media/usb/au0828/au0828-core.c
+> @@ -630,7 +630,7 @@ static int au0828_usb_probe(struct usb_interface *interface,
+>                         __func__);
+>                 mutex_unlock(&dev->lock);
+>                 kfree(dev);
+> -               goto done;
+> +               return retval;
+>         }
+>
+>         /* Digital TV */
+> @@ -655,7 +655,6 @@ static int au0828_usb_probe(struct usb_interface *interface,
+>
+>         retval = au0828_media_device_register(dev, usbdev);
+>
+> -done:
+>         if (retval < 0)
+>                 au0828_usb_disconnect(interface);
+>
+> --
+> 2.7.4
+>
