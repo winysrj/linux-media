@@ -1,134 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:33966 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750724AbdKEX2z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 5 Nov 2017 18:28:55 -0500
-Date: Fri, 3 Nov 2017 00:41:21 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: linux-media@vger.kernel.org, jian.xu.zheng@intel.com,
-        tfiga@chromium.org, rajmohan.mani@intel.com,
-        tuukka.toivonen@intel.com, hyungwoo.yang@intel.com,
-        chiranjeevi.rapolu@intel.com, jerry.w.hu@intel.com,
-        Vijaykumar Ramya <ramya.vijaykumar@intel.com>
-Subject: Re: [PATCH v7 3/3] intel-ipu3: cio2: Add new MIPI-CSI2 driver
-Message-ID: <20171102224120.zp7adyuajwhag7ye@kekkonen.localdomain>
-References: <1509652801-9729-1-git-send-email-yong.zhi@intel.com>
- <1509652801-9729-4-git-send-email-yong.zhi@intel.com>
+Received: from gateway20.websitewelcome.com ([192.185.65.13]:28678 "EHLO
+        gateway20.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753114AbdKJR7a (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Nov 2017 12:59:30 -0500
+Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
+        by gateway20.websitewelcome.com (Postfix) with ESMTP id 83CAD40105F78
+        for <linux-media@vger.kernel.org>; Fri, 10 Nov 2017 11:35:53 -0600 (CST)
+Date: Fri, 10 Nov 2017 11:35:52 -0600
+Message-ID: <20171110113552.Horde.eGcnMRStkxzNDhQOqlhnkI5@gator4166.hostgator.com>
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Andrey Konovalov <andreyknvl@google.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
+        Andi Shyti <andi.shyti@samsung.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        syzkaller <syzkaller@googlegroups.com>
+Subject: Re: [PATCH] au0828: fix use-after-free at USB probing
+References: <CAAeHK+wZXZMxqQn9QbAd3xWt00_bKir4-La2QKtzk8nFb0FQmw@mail.gmail.com>
+ <20171110002134.GA32019@embeddedor.com>
+ <CAAeHK+zC2-7cP+oJbKPOUs+5Un5+TUkMY2FNs=z+GxLZa4kQug@mail.gmail.com>
+In-Reply-To: <CAAeHK+zC2-7cP+oJbKPOUs+5Un5+TUkMY2FNs=z+GxLZa4kQug@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1509652801-9729-4-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
 
-Thanks for the update!
+Quoting Andrey Konovalov <andreyknvl@google.com>:
 
-I took a final glance, there are a few matters that still need to be
-addressed but then I think we're done. Please see below.
+> On Fri, Nov 10, 2017 at 1:21 AM, Gustavo A. R. Silva
+> <garsilva@embeddedor.com> wrote:
+>> Hi Andrey,
+>>
+>> Could you please try this patch?
+>>
+>> Thank you
+>
+> Hi Gustavo,
+>
+> With your patch I get a different crash. Not sure if it's another bug
+> or the same one manifesting differently.
+>
 
-Then we'll need an entry in the MAINTAINERS file in the kernel root
-directory. Could you add an entry for this driver in v8?
+That's the same one. It seems that the best solution is to remove the  
+kfree after the mutex_unlock and let the device resources be freed in  
+au0828_usb_disconnect.
 
-On Thu, Nov 02, 2017 at 03:00:01PM -0500, Yong Zhi wrote:
-...
-> +static int cio2_fbpt_rearrange(struct cio2_device *cio2, struct cio2_queue *q)
-> +{
-> +	unsigned int i, j;
-> +
-> +	for (i = 0, j = q->bufs_first; i < CIO2_MAX_BUFFERS;
-> +		i++, j = (j + 1) % CIO2_MAX_BUFFERS)
-> +		if (q->bufs[j])
-> +			break;
-> +
-> +	if (i == CIO2_MAX_BUFFERS)
-> +		return 0;
+Please try the following patch instead.
 
-You always return 0. The return type could be void.
+I appreciate your help.
 
-You could also move this function just above the function using it (it's a
-single location).
+Thank you, Andrey.
 
-> +
-> +	if (j) {
-> +		arrange(q->fbpt, sizeof(struct cio2_fbpt_entry) * CIO2_MAX_LOPS,
-> +			CIO2_MAX_BUFFERS, j);
-> +		arrange(q->bufs, sizeof(struct cio2_buffer *),
-> +			CIO2_MAX_BUFFERS, j);
-> +	}
-> +
-> +	/*
-> +	 * DMA clears the valid bit when accessing the buffer.
-> +	 * When stopping stream in suspend callback, some of the buffers
-> +	 * may be in invalid state. After resume, when DMA meets the invalid
-> +	 * buffer, it will halt and stop receiving new data.
-> +	 * To avoid DMA halting, set the valid bit for all buffers in FBPT.
-> +	 */
-> +	for (i = 0; i < CIO2_MAX_BUFFERS; i++)
-> +		cio2_fbpt_entry_enable(cio2, q->fbpt + i * CIO2_MAX_LOPS);
-> +
-> +	return 0;
-> +}
+---
+  drivers/media/usb/au0828/au0828-core.c | 1 -
+  1 file changed, 1 deletion(-)
 
-...
-
-> +static int cio2_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
-> +{
-> +	struct cio2_queue *q = vb2q_to_cio2_queue(vq);
-> +	struct cio2_device *cio2 = vb2_get_drv_priv(vq);
-> +	int r;
-> +
-> +	cio2->cur_queue = q;
-> +	atomic_set(&q->frame_sequence, 0);
-> +
-> +	r = pm_runtime_get_sync(&cio2->pci_dev->dev);
-> +	if (r < 0) {
-> +		dev_info(&cio2->pci_dev->dev, "failed to set power %d\n", r);
-> +		pm_runtime_put(&cio2->pci_dev->dev);
-> +		return r;
-> +	}
-> +
-> +	r = media_pipeline_start(&q->vdev.entity, &q->pipe);
-> +	if (r)
-> +		goto fail_pipeline;
-> +
-> +	r = cio2_hw_init(cio2, q);
-> +	if (r)
-> +		goto fail_hw;
-> +
-> +	/* Start streaming on sensor */
-> +	r = v4l2_subdev_call(q->sensor, video, s_stream, 1);
-> +	if (r)
-> +		goto fail_csi2_subdev;
-> +
-> +	cio2->streaming = true;
-> +
-> +	return 0;
-> +
-> +fail_csi2_subdev:
-> +	cio2_hw_exit(cio2, q);
-> +fail_hw:
-> +	media_pipeline_stop(&q->vdev.entity);
-> +fail_pipeline:
-> +	dev_dbg(&cio2->pci_dev->dev, "failed to start streaming (%d)\n", r);
-> +	cio2_vb2_return_all_buffers(q);
-
-I believe there should be
-
-	pm_runtime_put(&cio2->pci_dev->dev);
-
-here. You should also add a label and use goto from where you do
-pm_runtime_put() in error handling in this function in order to make this
-cleaner.
-
-> +
-> +	return r;
-> +}
+diff --git a/drivers/media/usb/au0828/au0828-core.c  
+b/drivers/media/usb/au0828/au0828-core.c
+index cd363a2..257ae0d 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -629,7 +629,6 @@ static int au0828_usb_probe(struct usb_interface  
+*interface,
+                 pr_err("%s() au0282_dev_register failed to register  
+on V4L2\n",
+                         __func__);
+                 mutex_unlock(&dev->lock);
+-               kfree(dev);
+                 goto done;
+         }
 
 -- 
-Kind regards,
+2.7.4
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+> au0828: recv_control_msg() Failed receiving control message, error -71.
+> au0828: recv_control_msg() Failed receiving control message, error -71.
+> au8522_writereg: writereg error (reg == 0x106, val == 0x0001, ret == -5)
+> usb 1-1: selecting invalid altsetting 5
+> au0828: Failure setting usb interface0 to as5
+> au0828: au0828_usb_probe() au0282_dev_register failed to register on V4L2
+> au0828: probe of 1-1:0.0 failed with error -22
+> usb 1-1: USB disconnect, device number 2
+> ==================================================================
+> BUG: KASAN: use-after-free in __list_del_entry_valid+0xda/0xf3
+> Read of size 8 at addr ffff8800641d0410 by task kworker/0:1/24
+>
+> CPU: 0 PID: 24 Comm: kworker/0:1 Not tainted
+> 4.14.0-rc5-43687-g72e555fa3d2e-dirty #105
+> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+> Workqueue: usb_hub_wq hub_event
+> Call Trace:
+>  __dump_stack lib/dump_stack.c:16
+>  dump_stack+0xc1/0x11f lib/dump_stack.c:52
+>  print_address_description+0x71/0x234 mm/kasan/report.c:252
+>  kasan_report_error mm/kasan/report.c:351
+>  kasan_report+0x173/0x270 mm/kasan/report.c:409
+>  __asan_report_load8_noabort+0x19/0x20 mm/kasan/report.c:430
+>  __list_del_entry_valid+0xda/0xf3 lib/list_debug.c:54
+>  __list_del_entry ./include/linux/list.h:116
+>  list_del_init ./include/linux/list.h:158
+>  device_pm_remove+0x4a/0x1da drivers/base/power/main.c:149
+>  device_del+0x55f/0xa30 drivers/base/core.c:1986
+>  usb_disable_device+0x1df/0x670 drivers/usb/core/message.c:1170
+>  usb_disconnect+0x260/0x7a0 drivers/usb/core/hub.c:2124
+>  hub_port_connect drivers/usb/core/hub.c:4754
+>  hub_port_connect_change drivers/usb/core/hub.c:5009
+>  port_event drivers/usb/core/hub.c:5115
+>  hub_event+0xe09/0x2eb0 drivers/usb/core/hub.c:5195
+>  process_one_work+0x86d/0x13e0 kernel/workqueue.c:2119
+>  process_scheduled_works kernel/workqueue.c:2179
+>  worker_thread+0x689/0xea0 kernel/workqueue.c:2255
+>  kthread+0x334/0x400 kernel/kthread.c:231
+>  ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+>
+> The buggy address belongs to the page:
+> page:ffffea0001907400 count:0 mapcount:-127 mapping:          (null)  
+> index:0x0
+> flags: 0x100000000000000()
+> raw: 0100000000000000 0000000000000000 0000000000000000 00000000ffffff80
+> raw: ffffea00018a8f20 ffff88007fffa690 0000000000000002 0000000000000000
+> page dumped because: kasan: bad access detected
+>
+> Memory state around the buggy address:
+>  ffff8800641d0300: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  ffff8800641d0380: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> ffff8800641d0400: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>                          ^
+>  ffff8800641d0480: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  ffff8800641d0500: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> ==================================================================
+>
+> Thanks!
+>
+>>
+>>
+>> The device is typically freed on failure after trying to set
+>> USB interface0 to as5 in function au0828_analog_register.
+>>
+>> Fix use-after-free by returning the error value inmediately
+>> after failure, instead of jumping to au0828_usb_disconnect
+>> where _dev_ is also freed.
+>>
+>> Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+>> ---
+>>  drivers/media/usb/au0828/au0828-core.c | 3 +--
+>>  1 file changed, 1 insertion(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/au0828/au0828-core.c  
+>> b/drivers/media/usb/au0828/au0828-core.c
+>> index cd363a2..b4abd90 100644
+>> --- a/drivers/media/usb/au0828/au0828-core.c
+>> +++ b/drivers/media/usb/au0828/au0828-core.c
+>> @@ -630,7 +630,7 @@ static int au0828_usb_probe(struct  
+>> usb_interface *interface,
+>>                         __func__);
+>>                 mutex_unlock(&dev->lock);
+>>                 kfree(dev);
+>> -               goto done;
+>> +               return retval;
+>>         }
+>>
+>>         /* Digital TV */
+>> @@ -655,7 +655,6 @@ static int au0828_usb_probe(struct  
+>> usb_interface *interface,
+>>
+>>         retval = au0828_media_device_register(dev, usbdev);
+>>
+>> -done:
+>>         if (retval < 0)
+>>                 au0828_usb_disconnect(interface);
+>>
+>> --
+>> 2.7.4
+>>
