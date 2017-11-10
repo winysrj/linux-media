@@ -1,83 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:37930 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752895AbdK0QPO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Nov 2017 11:15:14 -0500
-Date: Mon, 27 Nov 2017 17:15:11 +0100
-From: Jan Kara <jack@suse.cz>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: akpm@linux-foundation.org, Jan Kara <jack@suse.cz>,
-        Joonyoung Shim <jy0922.shim@samsung.com>,
-        linux-nvdimm@lists.01.org, Seung-Woo Kim <sw0312.kim@samsung.com>,
-        linux-kernel@vger.kernel.org, stable@vger.kernel.org,
-        Inki Dae <inki.dae@samsung.com>, linux-mm@kvack.org,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Mel Gorman <mgorman@suse.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 2/4] mm: fail get_vaddr_frames() for filesystem-dax
- mappings
-Message-ID: <20171127161511.GE5977@quack2.suse.cz>
-References: <151068938905.7446.12333914805308312313.stgit@dwillia2-desk3.amr.corp.intel.com>
- <151068939985.7446.15684639617389154187.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:44376 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751661AbdKJNcE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Nov 2017 08:32:04 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v10 1/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
+Date: Fri, 10 Nov 2017 14:31:36 +0100
+Message-Id: <20171110133137.9137-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171110133137.9137-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171110133137.9137-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <151068939985.7446.15684639617389154187.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 14-11-17 11:56:39, Dan Williams wrote:
-> Until there is a solution to the dma-to-dax vs truncate problem it is
-> not safe to allow V4L2, Exynos, and other frame vector users to create
-> long standing / irrevocable memory registrations against filesytem-dax
-> vmas.
-> 
-> Cc: Inki Dae <inki.dae@samsung.com>
-> Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
-> Cc: Joonyoung Shim <jy0922.shim@samsung.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: linux-media@vger.kernel.org
-> Cc: Jan Kara <jack@suse.cz>
-> Cc: Mel Gorman <mgorman@suse.de>
-> Cc: Vlastimil Babka <vbabka@suse.cz>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: <stable@vger.kernel.org>
-> Fixes: 3565fce3a659 ("mm, x86: get_user_pages() for dax mappings")
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
+are located between the video sources (CSI-2 transmitters) and the video
+grabbers (VIN) on Gen3 of Renesas R-Car SoC.
 
-Makes sense. I'd just note that in principle get_vaddr_frames() is no more
-long-term than get_user_pages(). It is just so that all the users of
-get_vaddr_frames() currently want a long-term reference. Maybe could you
-add here also a comment that the vma_is_fsdax() check is there because all
-users of this function want a long term page reference? With that you can
-add:
+Each CSI-2 device is connected to more then one VIN device which
+simultaneously can receive video from the same CSI-2 device. Each VIN
+device can also be connected to more then one CSI-2 device. The routing
+of which link are used are controlled by the VIN devices. There are only
+a few possible routes which are set by hardware limitations, which are
+different for each SoC in the Gen3 family.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+To work with the limitations of routing possibilities it is necessary
+for the DT bindings to describe which VIN device is connected to which
+CSI-2 device. This is why port 1 needs to to assign reg numbers for each
+VIN device that be connected to it. To setup and to know which links are
+valid for each SoC is the responsibility of the VIN driver since the
+register to configure it belongs to the VIN hardware.
 
-								Honza
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ .../devicetree/bindings/media/rcar-csi2.txt        | 104 +++++++++++++++++++++
+ MAINTAINERS                                        |   1 +
+ 2 files changed, 105 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
 
-> ---
->  mm/frame_vector.c |    4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/mm/frame_vector.c b/mm/frame_vector.c
-> index 72ebec18629c..d2fdbeaadc8b 100644
-> --- a/mm/frame_vector.c
-> +++ b/mm/frame_vector.c
-> @@ -52,6 +52,10 @@ int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
->  		ret = -EFAULT;
->  		goto out;
->  	}
-> +
-> +	if (vma_is_fsdax(vma))
-> +		return -EOPNOTSUPP;
-> +
->  	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP))) {
->  		vec->got_ref = true;
->  		vec->is_pfns = false;
-> 
+diff --git a/Documentation/devicetree/bindings/media/rcar-csi2.txt b/Documentation/devicetree/bindings/media/rcar-csi2.txt
+new file mode 100644
+index 0000000000000000..24705d8997b14a10
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rcar-csi2.txt
+@@ -0,0 +1,104 @@
++Renesas R-Car MIPI CSI-2
++------------------------
++
++The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesas R-Car
++family of devices. It is to be used in conjunction with the R-Car VIN module,
++which provides the video capture capabilities.
++
++Mandatory properties
++--------------------
++ - compatible: Must be one or more of the following
++   - "renesas,r8a7795-csi2" for the R8A7795 device.
++   - "renesas,r8a7796-csi2" for the R8A7796 device.
++
++ - reg: the register base and size for the device registers
++ - interrupts: the interrupt for the device
++ - clocks: Reference to the parent clock
++
++The device node shall contain two 'port' child nodes according to the
++bindings defined in Documentation/devicetree/bindings/media/
++video-interfaces.txt. Port 0 shall connect the node that is the video
++source for to the CSI-2. Port 1 shall connect all the R-Car VIN
++modules, which can make use of the CSI-2 module.
++
++- Port 0 - Video source (Mandatory)
++	- Endpoint 0 - sub-node describing the endpoint that is the video source
++
++- Port 1 - VIN instances (Mandatory for all VIN present in the SoC)
++	- Endpoint 0 - sub-node describing the endpoint that is VIN0
++	- Endpoint 1 - sub-node describing the endpoint that is VIN1
++	- Endpoint 2 - sub-node describing the endpoint that is VIN2
++	- Endpoint 3 - sub-node describing the endpoint that is VIN3
++	- Endpoint 4 - sub-node describing the endpoint that is VIN4
++	- Endpoint 5 - sub-node describing the endpoint that is VIN5
++	- Endpoint 6 - sub-node describing the endpoint that is VIN6
++	- Endpoint 7 - sub-node describing the endpoint that is VIN7
++
++Example:
++
++	csi20: csi2@fea80000 {
++		compatible = "renesas,r8a7796-csi2", "renesas,rcar-gen3-csi2";
++		reg = <0 0xfea80000 0 0x10000>;
++		interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cpg CPG_MOD 714>;
++		power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
++		resets = <&cpg 714>;
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				reg = <0>;
++
++				csi20_in: endpoint@0 {
++					clock-lanes = <0>;
++					data-lanes = <1>;
++					remote-endpoint = <&adv7482_txb>;
++				};
++			};
++
++			port@1 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				reg = <1>;
++
++				csi20vin0: endpoint@0 {
++					reg = <0>;
++					remote-endpoint = <&vin0csi20>;
++				};
++				csi20vin1: endpoint@1 {
++					reg = <1>;
++					remote-endpoint = <&vin1csi20>;
++				};
++				csi20vin2: endpoint@2 {
++					reg = <2>;
++					remote-endpoint = <&vin2csi20>;
++				};
++				csi20vin3: endpoint@3 {
++					reg = <3>;
++					remote-endpoint = <&vin3csi20>;
++				};
++				csi20vin4: endpoint@4 {
++					reg = <4>;
++					remote-endpoint = <&vin4csi20>;
++				};
++				csi20vin5: endpoint@5 {
++					reg = <5>;
++					remote-endpoint = <&vin5csi20>;
++				};
++				csi20vin6: endpoint@6 {
++					reg = <6>;
++					remote-endpoint = <&vin6csi20>;
++				};
++				csi20vin7: endpoint@7 {
++					reg = <7>;
++					remote-endpoint = <&vin7csi20>;
++				};
++			};
++		};
++	};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index adbf69306e9ee3d2..fa81ee6e80274646 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8565,6 +8565,7 @@ L:	linux-media@vger.kernel.org
+ L:	linux-renesas-soc@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ S:	Supported
++F:	Documentation/devicetree/bindings/media/rcar-csi2.txt
+ F:	Documentation/devicetree/bindings/media/rcar_vin.txt
+ F:	drivers/media/platform/rcar-vin/
+ 
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+2.15.0
