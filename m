@@ -1,173 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:44631 "EHLO
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:34228 "EHLO
         lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752099AbdKCHcD (ORCPT
+        by vger.kernel.org with ESMTP id S1755871AbdKJEyO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Nov 2017 03:32:03 -0400
-Subject: Re: [RFC v4 04/17] WIP: [media] v4l2: add
- v4l2_event_queue_fh_with_cb()
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-References: <20171020215012.20646-1-gustavo@padovan.org>
- <20171020215012.20646-5-gustavo@padovan.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <a94bc776-c133-c8bc-921a-7ae1b70df840@xs4all.nl>
-Date: Fri, 3 Nov 2017 08:31:58 +0100
-MIME-Version: 1.0
-In-Reply-To: <20171020215012.20646-5-gustavo@padovan.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Thu, 9 Nov 2017 23:54:14 -0500
+Message-ID: <7206f6ce210847d5ecd3b3ad40f0954d@smtp-cloud8.xs4all.net>
+Date: Fri, 10 Nov 2017 05:54:11 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/20/2017 11:49 PM, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> For some type of events we may require the event user in the
-> kernel to run some operation when DQ_EVENT() is called.
-> V4L2_EVENT_OUT_FENCE is the first user of this mechanism as it needs
-> to call v4l2 core back to install a file descriptor.
-> 
-> This is WIP, I believe we are able to come up with better ways to do it,
-> but as that is not the main part of the patchset I'll keep it like
-> this for now.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I'm OK with this callback. I don't off-hand see a better way of doing this.
+Results of the daily build of media_tree:
 
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  drivers/media/v4l2-core/v4l2-event.c | 31 +++++++++++++++++++++++++++----
->  include/media/v4l2-event.h           |  7 +++++++
->  2 files changed, 34 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-> index 313ee9d1f9ee..6274e3e174e0 100644
-> --- a/drivers/media/v4l2-core/v4l2-event.c
-> +++ b/drivers/media/v4l2-core/v4l2-event.c
-> @@ -58,6 +58,9 @@ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
->  
->  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
->  
-> +	if (kev->prepare)
-> +		kev->prepare(kev->data);
-> +
->  	return 0;
->  }
->  
-> @@ -104,8 +107,11 @@ static struct v4l2_subscribed_event *v4l2_event_subscribed(
->  	return NULL;
->  }
->  
-> -static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev,
-> -		const struct timespec *ts)
-> +static void __v4l2_event_queue_fh_with_cb(struct v4l2_fh *fh,
+date:			Fri Nov 10 05:00:17 CET 2017
+media-tree git hash:	eb0c19942288569e0ae492476534d5a485fb8ab4
+media_build git hash:	106c5880df126bdd61f8d1c1f59570524a95d77c
+v4l-utils git hash:	7b2d48ff594dcc2c9b395463441e5abb4f5e9439
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
 
-I wouldn't rename this function, just add the two arguments.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: OK
+spec-git: OK
 
-> +					  const struct v4l2_event *ev,
-> +					  const struct timespec *ts,
-> +					  void (*prepare)(void *data),
-> +					  void *data)
->  {
->  	struct v4l2_subscribed_event *sev;
->  	struct v4l2_kevent *kev;
-> @@ -155,6 +161,8 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *e
->  	kev->event.id = ev->id;
->  	kev->event.timestamp = *ts;
->  	kev->event.sequence = fh->sequence;
-> +	kev->prepare = prepare;
-> +	kev->data = data;
->  	sev->in_use++;
->  	list_add_tail(&kev->list, &fh->available);
->  
-> @@ -177,7 +185,7 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
->  	spin_lock_irqsave(&vdev->fh_lock, flags);
->  
->  	list_for_each_entry(fh, &vdev->fh_list, list)
-> -		__v4l2_event_queue_fh(fh, ev, &timestamp);
-> +		__v4l2_event_queue_fh_with_cb(fh, ev, &timestamp, NULL, NULL);
->  
->  	spin_unlock_irqrestore(&vdev->fh_lock, flags);
->  }
-> @@ -191,11 +199,26 @@ void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev)
->  	ktime_get_ts(&timestamp);
->  
->  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> -	__v4l2_event_queue_fh(fh, ev, &timestamp);
-> +	__v4l2_event_queue_fh_with_cb(fh, ev, &timestamp, NULL, NULL);
->  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
->  }
->  EXPORT_SYMBOL_GPL(v4l2_event_queue_fh);
+Detailed results are available here:
 
-I'd drop this function and replace it with a static inline in the v4l2-event.h
-header that calls v4l2_event_queue_fh_with_cb.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
->  
-> +void v4l2_event_queue_fh_with_cb(struct v4l2_fh *fh,
-> +				 const struct v4l2_event *ev,
-> +				 void (*prepare)(void *data), void *data)
-> +{
-> +	unsigned long flags;
-> +	struct timespec timestamp;
-> +
-> +	ktime_get_ts(&timestamp);
-> +
-> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> +	__v4l2_event_queue_fh_with_cb(fh, ev, &timestamp, prepare, data);
-> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_event_queue_fh_with_cb);
-> +
->  int v4l2_event_pending(struct v4l2_fh *fh)
->  {
->  	return fh->navailable;
-> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-> index 2b794f2ad824..dc770257811e 100644
-> --- a/include/media/v4l2-event.h
-> +++ b/include/media/v4l2-event.h
-> @@ -68,11 +68,14 @@ struct video_device;
->   * @list:	List node for the v4l2_fh->available list.
->   * @sev:	Pointer to parent v4l2_subscribed_event.
->   * @event:	The event itself.
-> + * @prepare:	Callback to prepare the event only at DQ_EVENT() time.
+Full logs are available here:
 
-@data is not documented.
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
->   */
->  struct v4l2_kevent {
->  	struct list_head	list;
->  	struct v4l2_subscribed_event *sev;
->  	struct v4l2_event	event;
-> +	void (*prepare)(void *data);
-> +	void *data;
->  };
->  
->  /**
-> @@ -160,6 +163,10 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev);
->   */
->  void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev);
->  
-> +void v4l2_event_queue_fh_with_cb(struct v4l2_fh *fh,
-> +				 const struct v4l2_event *ev,
-> +				 void (*prepare)(void *data), void *data);
-> +
+The Media Infrastructure API from this daily build is here:
 
-Missing kerneldoc documentation.
-
->  /**
->   * v4l2_event_pending - Check if an event is available
->   *
-> 
-
-Regards,
-
-	Hans
+http://www.xs4all.nl/~hverkuil/spec/index.html
