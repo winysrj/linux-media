@@ -1,50 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:45754 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933333AbdKAVGP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 17:06:15 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v2 09/26] media: cx25821-alsa: fix usage of a pointer printk
-Date: Wed,  1 Nov 2017 17:05:46 -0400
-Message-Id: <c3e209a8eea5b2f37312f3bc4073995778a740e5.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:53548 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751133AbdKJQFz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Nov 2017 11:05:55 -0500
+Received: by mail-wr0-f196.google.com with SMTP id u40so9001591wrf.10
+        for <linux-media@vger.kernel.org>; Fri, 10 Nov 2017 08:05:55 -0800 (PST)
+Received: from localhost.localdomain ([62.147.246.169])
+        by smtp.gmail.com with ESMTPSA id 56sm5153746wrx.2.2017.11.10.08.05.53
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 10 Nov 2017 08:05:53 -0800 (PST)
+From: =?UTF-8?q?Rafa=C3=ABl=20Carr=C3=A9?= <funman@videolan.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/2] sdlcam: fix linking
+Date: Fri, 10 Nov 2017 17:05:46 +0100
+Message-Id: <20171110160547.32639-1-funman@videolan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As warned by smatch:
-	drivers/media/pci/cx25821/cx25821-alsa.c:155 cx25821_alsa_dma_init() warn: argument 3 to %08lx specifier is cast from pointer
-
-Use the standard %p to print a pointer.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/pci/cx25821/cx25821-alsa.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ contrib/test/Makefile.am | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/cx25821/cx25821-alsa.c b/drivers/media/pci/cx25821/cx25821-alsa.c
-index 2b34990e86f2..a45bf0331eeb 100644
---- a/drivers/media/pci/cx25821/cx25821-alsa.c
-+++ b/drivers/media/pci/cx25821/cx25821-alsa.c
-@@ -152,8 +152,8 @@ static int cx25821_alsa_dma_init(struct cx25821_audio_dev *chip, int nr_pages)
- 		return -ENOMEM;
- 	}
+diff --git a/contrib/test/Makefile.am b/contrib/test/Makefile.am
+index 6a4303d7..0188fe21 100644
+--- a/contrib/test/Makefile.am
++++ b/contrib/test/Makefile.am
+@@ -37,7 +37,7 @@ v4l2gl_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconver
  
--	dprintk(1, "vmalloc is at addr 0x%08lx, size=%d\n",
--				(unsigned long)buf->vaddr,
-+	dprintk(1, "vmalloc is at addr 0x%p, size=%d\n",
-+				buf->vaddr,
- 				nr_pages << PAGE_SHIFT);
+ sdlcam_LDFLAGS = $(JPEG_LIBS) $(SDL2_LIBS) -lm -ldl -lrt
+ sdlcam_CFLAGS = -I../.. $(SDL2_CFLAGS)
+-sdlcam_LDADD = ../../lib/libv4l2/.libs/libv4l2.a  ../../lib/libv4lconvert/.libs/libv4lconvert.a
++sdlcam_LDADD = ../../lib/libv4l2/libv4l2.la  ../../lib/libv4lconvert/libv4lconvert.la
  
- 	memset(buf->vaddr, 0, nr_pages << PAGE_SHIFT);
+ mc_nextgen_test_CFLAGS = $(LIBUDEV_CFLAGS)
+ mc_nextgen_test_LDFLAGS = $(LIBUDEV_LIBS)
 -- 
-2.13.6
+2.14.1
