@@ -1,244 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:49058 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754049AbdKISp6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Nov 2017 13:45:58 -0500
-Received: by mail-pf0-f194.google.com with SMTP id b79so4887590pfk.5
-        for <linux-media@vger.kernel.org>; Thu, 09 Nov 2017 10:45:58 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 4/5] ARM: dts: imx: Add TDA19971 HDMI Receiver to GW54xx
-Date: Thu,  9 Nov 2017 10:45:35 -0800
-Message-Id: <1510253136-14153-5-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
-References: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:47424 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751239AbdKJJa0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Nov 2017 04:30:26 -0500
+MIME-Version: 1.0
+In-Reply-To: <20171109234320.13016-3-niklas.soderlund+renesas@ragnatech.se>
+References: <20171109234320.13016-1-niklas.soderlund+renesas@ragnatech.se> <20171109234320.13016-3-niklas.soderlund+renesas@ragnatech.se>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Fri, 10 Nov 2017 10:30:24 +0100
+Message-ID: <CAMuHMdWgUNeJPkORSKRQJfxkarRdSnzu2Q9cSB7E1nJzV2oFSQ@mail.gmail.com>
+Subject: Re: [PATCH v9 2/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2
+ receiver driver
+To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Fukawa <tomoharu.fukawa.eb@renesas.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The GW54xx has a front-panel microHDMI connector routed to a TDA19971
-which is connected the the IPU CSI when using IMX6Q.
+Hi Niklas,
 
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
----
-v2:
- - add HDMI audio input support
----
- arch/arm/boot/dts/imx6q-gw54xx.dts    | 102 ++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/imx6qdl-gw54xx.dtsi |  29 +++++++++-
- 2 files changed, 128 insertions(+), 3 deletions(-)
+On Fri, Nov 10, 2017 at 12:43 AM, Niklas S=C3=B6derlund
+<niklas.soderlund+renesas@ragnatech.se> wrote:
+> A V4L2 driver for Renesas R-Car MIPI CSI-2 receiver. The driver
+> supports the rcar-vin driver on R-Car Gen3 SoCs where separate CSI-2
+> hardware blocks are connected between the video sources and the video
+> grabbers (VIN).
+>
+> Driver is based on a prototype by Koji Matsuoka in the Renesas BSP.
+>
+> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
+se>
 
-diff --git a/arch/arm/boot/dts/imx6q-gw54xx.dts b/arch/arm/boot/dts/imx6q-gw54xx.dts
-index 56e5b50..99dac63 100644
---- a/arch/arm/boot/dts/imx6q-gw54xx.dts
-+++ b/arch/arm/boot/dts/imx6q-gw54xx.dts
-@@ -12,10 +12,27 @@
- /dts-v1/;
- #include "imx6q.dtsi"
- #include "imx6qdl-gw54xx.dtsi"
-+#include <dt-bindings/media/tda1997x.h>
- 
- / {
- 	model = "Gateworks Ventana i.MX6 Dual/Quad GW54XX";
- 	compatible = "gw,imx6q-gw54xx", "gw,ventana", "fsl,imx6q";
-+
-+	sound-digital {
-+		compatible = "simple-audio-card";
-+		simple-audio-card,name = "tda1997x-audio";
-+		simple-audio-card,dai-link@0 {
-+			format = "i2s";
-+			cpu {
-+				sound-dai = <&ssi2>;
-+			};
-+			codec {
-+				bitclock-master;
-+				frame-master;
-+				sound-dai = <&tda1997x>;
-+			};
-+		};
-+	};
- };
- 
- &i2c3 {
-@@ -35,6 +52,61 @@
- 			};
- 		};
- 	};
-+
-+	tda1997x: codec@48 {
-+		compatible = "nxp,tda19971";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_tda1997x>;
-+		reg = <0x48>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-+		DOVDD-supply = <&reg_3p3v>;
-+		AVDD-supply = <&sw4_reg>;
-+		DVDD-supply = <&sw4_reg>;
-+		#sound-dai-cells = <0>;
-+		nxp,audout-format = "i2s";
-+		nxp,audout-layout = <0>;
-+		nxp,audout-width = <16>;
-+		nxp,audout-mclk-fs = <128>;
-+		/*
-+		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
-+		 * and Y[11:4] across 16bits in the same cycle
-+		 * which we map to VP[15:08]<->CSI_DATA[19:12]
-+		 */
-+		nxp,vidout-portcfg =
-+			/*G_Y_11_8<->VP[15:12]<->CSI_DATA[19:16]*/
-+			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
-+			/*G_Y_7_4<->VP[11:08]<->CSI_DATA[15:12]*/
-+			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
-+			/*R_CR_CBCR_11_8<->VP[07:04]<->CSI_DATA[11:08]*/
-+			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
-+			/*R_CR_CBCR_7_4<->VP[03:00]<->CSI_DATA[07:04]*/
-+			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
-+
-+		port {
-+			tda1997x_to_ipu1_csi0_mux: endpoint {
-+				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+				bus-width = <16>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+				data-active = <1>;
-+			};
-+		};
-+	};
-+};
-+
-+&ipu1_csi0_from_ipu1_csi0_mux {
-+	bus-width = <16>;
-+};
-+
-+&ipu1_csi0_mux_from_parallel_sensor {
-+	remote-endpoint = <&tda1997x_to_ipu1_csi0_mux>;
-+	bus-width = <16>;
-+};
-+
-+&ipu1_csi0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_ipu1_csi0>;
- };
- 
- &ipu2_csi1_from_ipu2_csi1_mux {
-@@ -63,6 +135,30 @@
- 		>;
- 	};
- 
-+	pinctrl_ipu1_csi0: ipu1_csi0grp {
-+		fsl,pins = <
-+			MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT8__IPU1_CSI0_DATA08		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT9__IPU1_CSI0_DATA09		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT10__IPU1_CSI0_DATA10		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT11__IPU1_CSI0_DATA11		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19		0x1b0b0
-+			MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC		0x1b0b0
-+			MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK	0x1b0b0
-+			MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC		0x1b0b0
-+		>;
-+	};
-+
- 	pinctrl_ipu2_csi1: ipu2_csi1grp {
- 		fsl,pins = <
- 			MX6QDL_PAD_EIM_EB2__IPU2_CSI1_DATA19    0x1b0b0
-@@ -78,4 +174,10 @@
- 			MX6QDL_PAD_EIM_A16__IPU2_CSI1_PIXCLK    0x1b0b0
- 		>;
- 	};
-+
-+	pinctrl_tda1997x: tda1997xgrp {
-+		fsl,pins = <
-+			MX6QDL_PAD_GPIO_7__GPIO1_IO07	0x1b0b0
-+		>;
-+	};
- };
-diff --git a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
-index 07458a2..1bcb298 100644
---- a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
-@@ -10,6 +10,7 @@
-  */
- 
- #include <dt-bindings/gpio/gpio.h>
-+#include <dt-bindings/sound/fsl-imx-audmux.h>
- 
- / {
- 	/* these are used by bootloader for disabling nodes */
-@@ -114,12 +115,12 @@
- 		};
- 	};
- 
--	sound {
-+	sound-analog {
- 		compatible = "fsl,imx6q-ventana-sgtl5000",
- 			     "fsl,imx-audio-sgtl5000";
- 		model = "sgtl5000-audio";
- 		ssi-controller = <&ssi1>;
--		audio-codec = <&codec>;
-+		audio-codec = <&sgtl5000>;
- 		audio-routing =
- 			"MIC_IN", "Mic Jack",
- 			"Mic Jack", "Mic Bias",
-@@ -133,6 +134,25 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_audmux>; /* AUD4<->sgtl5000 */
- 	status = "okay";
-+
-+	ssi2 {
-+		fsl,audmux-port = <1>;
-+		fsl,port-config = <
-+			(IMX_AUDMUX_V2_PTCR_TFSDIR |
-+			IMX_AUDMUX_V2_PTCR_TFSEL(4+8) | /* RXFS */
-+			IMX_AUDMUX_V2_PTCR_TCLKDIR |
-+			IMX_AUDMUX_V2_PTCR_TCSEL(4+8) | /* RXC */
-+			IMX_AUDMUX_V2_PTCR_SYN)
-+			IMX_AUDMUX_V2_PDCR_RXDSEL(4)
-+		>;
-+	};
-+
-+	aud5 {
-+		fsl,audmux-port = <4>;
-+		fsl,port-config = <
-+			IMX_AUDMUX_V2_PTCR_SYN
-+			IMX_AUDMUX_V2_PDCR_RXDSEL(1)>;
-+	};
- };
- 
- &can1 {
-@@ -331,7 +351,7 @@
- 	pinctrl-0 = <&pinctrl_i2c3>;
- 	status = "okay";
- 
--	codec: sgtl5000@0a {
-+	sgtl5000: codec@0a {
- 		compatible = "fsl,sgtl5000";
- 		reg = <0x0a>;
- 		clocks = <&clks IMX6QDL_CLK_CKO>;
-@@ -475,6 +495,9 @@
- 			MX6QDL_PAD_SD2_DAT2__AUD4_TXD		0x110b0
- 			MX6QDL_PAD_SD2_DAT1__AUD4_TXFS		0x130b0
- 			MX6QDL_PAD_GPIO_0__CCM_CLKO1		0x130b0 /* AUD4_MCK */
-+			MX6QDL_PAD_EIM_D25__AUD5_RXC            0x130b0
-+			MX6QDL_PAD_DISP0_DAT19__AUD5_RXD        0x130b0
-+			MX6QDL_PAD_EIM_D24__AUD5_RXFS           0x130b0
- 		>;
- 	};
- 
--- 
-2.7.4
+Thanks for your patch!
+
+> --- /dev/null
+> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> @@ -0,0 +1,933 @@
+
+> +/* Control Timing Select */
+> +#define TREF_REG                       0x00
+> +#define TREF_TREF                      (1 << 0)
+
+BIT(0)? (many more)
+
+> +struct phypll_hsfreqrange {
+> +       unsigned int    mbps;
+> +       unsigned char   reg;
+
+The "unsigned char" doesn't buy you much, due to alignment rules.
+What about making both u16 instead?
+
+> +static const struct rcar_csi2_format *rcar_csi2_code_to_fmt(unsigned int=
+ code)
+> +{
+> +       int i;
+
+unsigned int
+
+> +
+> +       for (i =3D 0; i < ARRAY_SIZE(rcar_csi2_formats); i++)
+> +               if (rcar_csi2_formats[i].code =3D=3D code)
+> +                       return rcar_csi2_formats + i;
+> +       return NULL;
+> +}
+
+> +struct rcar_csi2_info {
+> +       const struct phypll_hsfreqrange *hsfreqrange;
+> +       bool clear_ulps;
+> +       bool have_phtw;
+> +       unsigned int csi0clkfreqrange;
+
+I'd sort by decreasing size/alignment, i.e. the bools last.
+
+> +};
+> +
+> +struct rcar_csi2 {
+> +       struct device *dev;
+> +       void __iomem *base;
+> +       const struct rcar_csi2_info *info;
+> +
+> +       unsigned short lanes;
+> +       unsigned char lane_swap[4];
+> +
+> +       struct v4l2_subdev subdev;
+> +       struct media_pad pads[NR_OF_RCAR_CSI2_PAD];
+> +
+> +       struct v4l2_mbus_framefmt mf;
+> +
+> +       struct mutex lock;
+> +       int stream_count;
+> +
+> +       struct v4l2_async_notifier notifier;
+> +       struct v4l2_async_subdev remote;
+
+Likewise.
+
+> +static int rcar_csi2_start(struct rcar_csi2 *priv)
+> +{
+
+> +       dev_dbg(priv->dev, "Input size (%dx%d%c)\n", mf->width,
+
+%u for __u32
+
+> +               mf->height, mf->field =3D=3D V4L2_FIELD_NONE ? 'p' : 'i')=
+;
+
+> +static int rcar_csi2_probe_resources(struct rcar_csi2 *priv,
+> +                                    struct platform_device *pdev)
+> +{
+> +       struct resource *mem;
+> +       int irq;
+> +
+> +       mem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +       if (!mem)
+
+No need to check mem, platform_get_resource() and devm_ioremap_resource()
+are designed to be pipelined.
+
+> +               return -ENODEV;
+> +
+> +       priv->base =3D devm_ioremap_resource(&pdev->dev, mem);
+
+
+> +static const struct soc_device_attribute r8a7795es1[] =3D {
+> +       { .soc_id =3D "r8a7795", .revision =3D "ES1.*" },
+> +       { /* sentinel */ }
+> +};
+> +
+> +static int rcar_csi2_probe(struct platform_device *pdev)
+> +{
+> +       struct rcar_csi2 *priv;
+> +       unsigned int i;
+> +       int ret;
+> +
+> +       priv =3D devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+> +       if (!priv)
+> +               return -ENOMEM;
+> +
+> +       priv->info =3D of_device_get_match_data(&pdev->dev);
+> +
+> +       /* r8a7795 ES1.x behaves different then ES2.0+ but no own compat =
+*/
+> +       if (priv->info =3D=3D &rcar_csi2_info_r8a7795 &&
+> +           soc_device_match(r8a7795es1))
+> +               priv->info =3D &rcar_csi2_info_r8a7795es1;
+
+Please store &rcar_csi2_info_r8a7795es1 in r8a7795es1[0].data instead.
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
+
+In personal conversations with technical people, I call myself a hacker. Bu=
+t
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
