@@ -1,41 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:64912 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751443AbdKZTHN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 26 Nov 2017 14:07:13 -0500
-Subject: Re: Adjustments for a lot of function implementations
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: Julia Lawall <julia.lawall@lip6.fr>, Jan Kara <jack@suse.cz>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Michal Hocko <mhocko@suse.com>,
-        Muralidharan Karicheri <mkaricheri@gmail.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-References: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
- <356f75b2-d303-7f10-b76c-95e2f686bd3c@xs4all.nl>
- <14619198-bebe-d215-5324-a14fbc2103fb@users.sourceforge.net>
- <alpine.DEB.2.20.1710301745530.2160@hadrien>
- <ebf37d57-38c6-b3de-5a66-dbb1c13fd63a@xs4all.nl>
- <049aa1b4-6291-ec24-1ffb-77ae8d1cdb63@users.sourceforge.net>
- <804550a6-1096-12f1-a0ec-1ccd6bcc191e@xs4all.nl>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <f3ad7c9a-db9d-7e73-312e-eee04fddd036@users.sourceforge.net>
-Date: Sun, 26 Nov 2017 20:06:56 +0100
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:37599 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751354AbdKKMEr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 11 Nov 2017 07:04:47 -0500
+Received: by mail-wm0-f65.google.com with SMTP id b14so7111554wme.2
+        for <linux-media@vger.kernel.org>; Sat, 11 Nov 2017 04:04:46 -0800 (PST)
+Received: from [192.168.0.22] ([62.147.246.169])
+        by smtp.googlemail.com with ESMTPSA id m8sm10013159edl.74.2017.11.11.04.04.44
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sat, 11 Nov 2017 04:04:44 -0800 (PST)
+Subject: Re: [PATCH 2/2] sdlcam: ignore binary
+From: =?UTF-8?B?UmFmYcOrbCBDYXJyw6k=?= <funman@videolan.org>
+To: linux-media@vger.kernel.org
+References: <20171110160547.32639-1-funman@videolan.org>
+ <20171110160547.32639-2-funman@videolan.org>
+Message-ID: <74120e78-9c30-77f2-43c9-75a58efbf25f@videolan.org>
+Date: Sat, 11 Nov 2017 13:04:44 +0100
 MIME-Version: 1.0
-In-Reply-To: <804550a6-1096-12f1-a0ec-1ccd6bcc191e@xs4all.nl>
+In-Reply-To: <20171110160547.32639-2-funman@videolan.org>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> ??? I did that: either one patch per directory with the same type of change,
-> or one patch per driver combining all the changes for that driver.
+On 11/10/2017 05:05 PM, Rafaël Carré wrote:
+> ---
+>  contrib/test/.gitignore | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/contrib/test/.gitignore b/contrib/test/.gitignore
+> index ad64325b..5bd81d01 100644
+> --- a/contrib/test/.gitignore
+> +++ b/contrib/test/.gitignore
+> @@ -8,3 +8,4 @@ stress-buffer
+>  v4l2gl
+>  v4l2grab
+>  mc_nextgen_test
+> +sdlcam
+> 
 
-Would you like to answer my still remaining questions in any more
-constructive ways?
-
-Regards,
-Markus
+Signed-off-by: Rafaël Carré <funman@videolan.org>
