@@ -1,194 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:51270 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932201AbdKBXul (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 19:50:41 -0400
-Date: Thu, 2 Nov 2017 16:50:37 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Kees Cook <keescook@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Sean Young <sean@mess.org>, Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH v2] media: ttpci: remove autorepeat handling and use
- timer_setup
-Message-ID: <20171102235037.4gndwq5223uyv5kw@dtor-ws>
-References: <20171025004005.hyb43h3yvovp4is2@dtor-ws>
- <20171031172758.ugfo6br344iso4ni@gofer.mess.org>
- <20171031174558.vsdpdudcwjneq2nu@gofer.mess.org>
- <20171031182236.cxrasbayon7h52mm@dtor-ws>
- <20171031200758.avdowtmcem5fnlb5@gofer.mess.org>
- <20171031201143.ziwohlwpdvc4barr@gofer.mess.org>
- <CAGXu5jLZaSDXdCVO3G1zsh3WLYaKvqm32xrJ8saBnCP8a7dZ8w@mail.gmail.com>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:10516 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754967AbdKKANs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Nov 2017 19:13:48 -0500
+Date: Sat, 11 Nov 2017 00:13:26 +0000
+From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>
+CC: <linux-i2c@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-renesas-soc@vger.kernel.org>, <linux-iio@vger.kernel.org>,
+        <linux-input@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v6 6/9] i2c: smbus: use DMA safe buffers for emulated
+ SMBus transactions
+Message-ID: <20171111001326.0000349b@huawei.com>
+In-Reply-To: <20171104202009.3818-7-wsa+renesas@sang-engineering.com>
+References: <20171104202009.3818-1-wsa+renesas@sang-engineering.com>
+        <20171104202009.3818-7-wsa+renesas@sang-engineering.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAGXu5jLZaSDXdCVO3G1zsh3WLYaKvqm32xrJ8saBnCP8a7dZ8w@mail.gmail.com>
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 02, 2017 at 04:24:27PM -0700, Kees Cook wrote:
-> On Tue, Oct 31, 2017 at 1:11 PM, Sean Young <sean@mess.org> wrote:
-> > Leave the autorepeat handling up to the input layer, and move
-> > to the new timer API.
-> >
-> > Compile tested only.
-> >
-> > Signed-off-by: Sean Young <sean@mess.org>
-> 
-> Hi! Just checking up on this... the input timer conversion is blocked
-> by getting this sorted out, so I'd love to have something either
-> media, input, or timer tree can carry. :)
+On Sat, 4 Nov 2017 21:20:06 +0100
+Wolfram Sang <wsa+renesas@sang-engineering.com> wrote:
 
-Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> For all block commands, try to allocate a DMA safe buffer and mark it
+> accordingly. Only use the stack, if the buffers cannot be allocated.
+> 
+> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 
->From my POV the patch is good. Mauro, do you want me to take it through
-my tree, or maybe you could create an immutable branch off 4.14-rc5 (or
-6) with this commit and I will pull it in and then can apply Kees input
-core conversion patch?
+Hmm. Interesting balance here as this adds allocations to paths where the i2c
+master can't take advantage.  Not ideal, but perhaps not worth the hassle
+of working around it?
 
-Thanks!
+It's only for the block calls I guess so not that major an issue.
 
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> ---
+>  drivers/i2c/i2c-core-smbus.c | 45 ++++++++++++++++++++++++++++++++++++++------
+>  1 file changed, 39 insertions(+), 6 deletions(-)
 > 
-> Thanks!
-> 
-> -Kees
-> 
-> > ---
-> > v2:
-> >  - fixes and improvements from Dmitry Torokhov
-> >
-> >  drivers/media/pci/ttpci/av7110.h    |  2 +-
-> >  drivers/media/pci/ttpci/av7110_ir.c | 56 +++++++++++++------------------------
-> >  2 files changed, 21 insertions(+), 37 deletions(-)
-> >
-> > diff --git a/drivers/media/pci/ttpci/av7110.h b/drivers/media/pci/ttpci/av7110.h
-> > index 347827925c14..bcb72ecbedc0 100644
-> > --- a/drivers/media/pci/ttpci/av7110.h
-> > +++ b/drivers/media/pci/ttpci/av7110.h
-> > @@ -93,7 +93,7 @@ struct infrared {
-> >         u8                      inversion;
-> >         u16                     last_key;
-> >         u16                     last_toggle;
-> > -       u8                      delay_timer_finished;
-> > +       bool                    keypressed;
-> >  };
-> >
-> >
-> > diff --git a/drivers/media/pci/ttpci/av7110_ir.c b/drivers/media/pci/ttpci/av7110_ir.c
-> > index ca05198de2c2..ee414803e6b5 100644
-> > --- a/drivers/media/pci/ttpci/av7110_ir.c
-> > +++ b/drivers/media/pci/ttpci/av7110_ir.c
-> > @@ -84,15 +84,16 @@ static u16 default_key_map [256] = {
-> >
-> >
-> >  /* key-up timer */
-> > -static void av7110_emit_keyup(unsigned long parm)
-> > +static void av7110_emit_keyup(struct timer_list *t)
-> >  {
-> > -       struct infrared *ir = (struct infrared *) parm;
-> > +       struct infrared *ir = from_timer(ir, t, keyup_timer);
-> >
-> > -       if (!ir || !test_bit(ir->last_key, ir->input_dev->key))
-> > +       if (!ir || !ir->keypressed)
-> >                 return;
-> >
-> >         input_report_key(ir->input_dev, ir->last_key, 0);
-> >         input_sync(ir->input_dev);
-> > +       ir->keypressed = false;
-> >  }
-> >
-> >
-> > @@ -152,29 +153,18 @@ static void av7110_emit_key(unsigned long parm)
-> >                 return;
-> >         }
-> >
-> > -       if (timer_pending(&ir->keyup_timer)) {
-> > -               del_timer(&ir->keyup_timer);
-> > -               if (ir->last_key != keycode || toggle != ir->last_toggle) {
-> > -                       ir->delay_timer_finished = 0;
-> > -                       input_event(ir->input_dev, EV_KEY, ir->last_key, 0);
-> > -                       input_event(ir->input_dev, EV_KEY, keycode, 1);
-> > -                       input_sync(ir->input_dev);
-> > -               } else if (ir->delay_timer_finished) {
-> > -                       input_event(ir->input_dev, EV_KEY, keycode, 2);
-> > -                       input_sync(ir->input_dev);
-> > -               }
-> > -       } else {
-> > -               ir->delay_timer_finished = 0;
-> > -               input_event(ir->input_dev, EV_KEY, keycode, 1);
-> > -               input_sync(ir->input_dev);
-> > -       }
-> > +       if (ir->keypressed &&
-> > +           (ir->last_key != keycode || toggle != ir->last_toggle))
-> > +               input_event(ir->input_dev, EV_KEY, ir->last_key, 0);
-> >
-> > +       input_event(ir->input_dev, EV_KEY, keycode, 1);
-> > +       input_sync(ir->input_dev);
-> > +
-> > +       ir->keypressed = true;
-> >         ir->last_key = keycode;
-> >         ir->last_toggle = toggle;
-> >
-> > -       ir->keyup_timer.expires = jiffies + UP_TIMEOUT;
-> > -       add_timer(&ir->keyup_timer);
-> > -
-> > +       mod_timer(&ir->keyup_timer, jiffies + UP_TIMEOUT);
-> >  }
-> >
-> >
-> > @@ -204,16 +194,6 @@ static void input_register_keys(struct infrared *ir)
-> >         ir->input_dev->keycodemax = ARRAY_SIZE(ir->key_map);
-> >  }
-> >
-> > -
-> > -/* called by the input driver after rep[REP_DELAY] ms */
-> > -static void input_repeat_key(unsigned long parm)
-> > -{
-> > -       struct infrared *ir = (struct infrared *) parm;
-> > -
-> > -       ir->delay_timer_finished = 1;
-> > -}
-> > -
-> > -
-> >  /* check for configuration changes */
-> >  int av7110_check_ir_config(struct av7110 *av7110, int force)
-> >  {
-> > @@ -333,8 +313,7 @@ int av7110_ir_init(struct av7110 *av7110)
-> >         av_list[av_cnt++] = av7110;
-> >         av7110_check_ir_config(av7110, true);
-> >
-> > -       setup_timer(&av7110->ir.keyup_timer, av7110_emit_keyup,
-> > -                   (unsigned long)&av7110->ir);
-> > +       timer_setup(&av7110->ir.keyup_timer, av7110_emit_keyup, 0);
-> >
-> >         input_dev = input_allocate_device();
-> >         if (!input_dev)
-> > @@ -365,8 +344,13 @@ int av7110_ir_init(struct av7110 *av7110)
-> >                 input_free_device(input_dev);
-> >                 return err;
-> >         }
-> > -       input_dev->timer.function = input_repeat_key;
-> > -       input_dev->timer.data = (unsigned long) &av7110->ir;
-> > +
-> > +       /*
-> > +        * Input core's default autorepeat is 33 cps with 250 msec
-> > +        * delay, let's adjust to numbers more suitable for remote
-> > +        * control.
-> > +        */
-> > +       input_enable_softrepeat(input_dev, 250, 125);
-> >
-> >         if (av_cnt == 1) {
-> >                 e = proc_create("av7110_ir", S_IWUSR, NULL, &av7110_ir_proc_fops);
-> > --
-> > 2.13.6
-> >
-> 
-> 
-> 
-> -- 
-> Kees Cook
-> Pixel Security
-
--- 
-Dmitry
+> diff --git a/drivers/i2c/i2c-core-smbus.c b/drivers/i2c/i2c-core-smbus.c
+> index 4bb9927afd0106..931c274fe26809 100644
+> --- a/drivers/i2c/i2c-core-smbus.c
+> +++ b/drivers/i2c/i2c-core-smbus.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/err.h>
+>  #include <linux/i2c.h>
+>  #include <linux/i2c-smbus.h>
+> +#include <linux/slab.h>
+>  
+>  #define CREATE_TRACE_POINTS
+>  #include <trace/events/smbus.h>
+> @@ -291,6 +292,22 @@ s32 i2c_smbus_write_i2c_block_data(const struct i2c_client *client, u8 command,
+>  }
+>  EXPORT_SYMBOL(i2c_smbus_write_i2c_block_data);
+>  
+> +static void i2c_smbus_try_get_dmabuf(struct i2c_msg *msg, u8 init_val)
+> +{
+> +	bool is_read = msg->flags & I2C_M_RD;
+> +	unsigned char *dma_buf;
+> +
+> +	dma_buf = kzalloc(I2C_SMBUS_BLOCK_MAX + (is_read ? 2 : 3), GFP_KERNEL);
+> +	if (!dma_buf)
+> +		return;
+> +
+> +	msg->buf = dma_buf;
+> +	msg->flags |= I2C_M_DMA_SAFE;
+> +
+> +	if (init_val)
+> +		msg->buf[0] = init_val;
+> +
+> +}
+>  /* Simulate a SMBus command using the i2c protocol
+>     No checking of parameters is done!  */
+>  static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+> @@ -368,6 +385,7 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+>  			msg[1].flags |= I2C_M_RECV_LEN;
+>  			msg[1].len = 1; /* block length will be added by
+>  					   the underlying bus driver */
+> +			i2c_smbus_try_get_dmabuf(&msg[1], 0);
+>  		} else {
+>  			msg[0].len = data->block[0] + 2;
+>  			if (msg[0].len > I2C_SMBUS_BLOCK_MAX + 2) {
+> @@ -376,8 +394,10 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+>  					data->block[0]);
+>  				return -EINVAL;
+>  			}
+> +
+> +			i2c_smbus_try_get_dmabuf(&msg[0], command);
+>  			for (i = 1; i < msg[0].len; i++)
+> -				msgbuf0[i] = data->block[i-1];
+> +				msg[0].buf[i] = data->block[i-1];
+>  		}
+>  		break;
+>  	case I2C_SMBUS_BLOCK_PROC_CALL:
+> @@ -389,16 +409,21 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+>  				data->block[0]);
+>  			return -EINVAL;
+>  		}
+> +
+>  		msg[0].len = data->block[0] + 2;
+> +		i2c_smbus_try_get_dmabuf(&msg[0], command);
+>  		for (i = 1; i < msg[0].len; i++)
+> -			msgbuf0[i] = data->block[i-1];
+> +			msg[0].buf[i] = data->block[i-1];
+> +
+>  		msg[1].flags |= I2C_M_RECV_LEN;
+>  		msg[1].len = 1; /* block length will be added by
+>  				   the underlying bus driver */
+> +		i2c_smbus_try_get_dmabuf(&msg[1], 0);
+>  		break;
+>  	case I2C_SMBUS_I2C_BLOCK_DATA:
+>  		if (read_write == I2C_SMBUS_READ) {
+>  			msg[1].len = data->block[0];
+> +			i2c_smbus_try_get_dmabuf(&msg[1], 0);
+>  		} else {
+>  			msg[0].len = data->block[0] + 1;
+>  			if (msg[0].len > I2C_SMBUS_BLOCK_MAX + 1) {
+> @@ -407,8 +432,10 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+>  					data->block[0]);
+>  				return -EINVAL;
+>  			}
+> +
+> +			i2c_smbus_try_get_dmabuf(&msg[0], command);
+>  			for (i = 1; i <= data->block[0]; i++)
+> -				msgbuf0[i] = data->block[i];
+> +				msg[0].buf[i] = data->block[i];
+>  		}
+>  		break;
+>  	default:
+> @@ -456,14 +483,20 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+>  			break;
+>  		case I2C_SMBUS_I2C_BLOCK_DATA:
+>  			for (i = 0; i < data->block[0]; i++)
+> -				data->block[i+1] = msgbuf1[i];
+> +				data->block[i+1] = msg[1].buf[i];
+>  			break;
+>  		case I2C_SMBUS_BLOCK_DATA:
+>  		case I2C_SMBUS_BLOCK_PROC_CALL:
+> -			for (i = 0; i < msgbuf1[0] + 1; i++)
+> -				data->block[i] = msgbuf1[i];
+> +			for (i = 0; i < msg[1].buf[0] + 1; i++)
+> +				data->block[i] = msg[1].buf[i];
+>  			break;
+>  		}
+> +
+> +	if (msg[0].flags & I2C_M_DMA_SAFE)
+> +		kfree(msg[0].buf);
+> +	if (msg[1].flags & I2C_M_DMA_SAFE)
+> +		kfree(msg[1].buf);
+> +
+>  	return 0;
+>  }
+>  
