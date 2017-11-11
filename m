@@ -1,70 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:51009 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754336AbdKAMiF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Nov 2017 08:38:05 -0400
-Received: by mail-wm0-f65.google.com with SMTP id s66so4476669wmf.5
-        for <linux-media@vger.kernel.org>; Wed, 01 Nov 2017 05:38:04 -0700 (PDT)
-Subject: Re: [PATCH] [RFC] media: camss-vfe: always initialize reg at
- vfe_set_xbar_cfg()
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <20e982c47af6eafe58274fa299ec587b2fb91d32.1509538566.git.mchehab@s-opensource.com>
-From: Todor Tomov <todor.tomov@linaro.org>
-Message-ID: <a3b51962-1316-c7cf-1182-5a5d7f0ed719@linaro.org>
-Date: Wed, 1 Nov 2017 14:38:02 +0200
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:47598 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754421AbdKKAjC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Nov 2017 19:39:02 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Subject: [PATCH v7 01/25] rcar-vin: add Gen3 devicetree bindings documentation
+Date: Sat, 11 Nov 2017 01:38:11 +0100
+Message-Id: <20171111003835.4909-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20e982c47af6eafe58274fa299ec587b2fb91d32.1509538566.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Document the devicetree bindings for the CSI-2 inputs available on Gen3.
 
-Thank you for pointing to this.
+There is a need to add a custom property 'renesas,id' and to define
+which CSI-2 input is described in which endpoint under the port@1 node.
+This information is needed since there are a set of predefined routes
+between each VIN and CSI-2 block. This routing table will be kept
+inside the driver but in order for it to act on it it must know which
+VIN and CSI-2 is which.
 
-On  1.11.2017 14:16, Mauro Carvalho Chehab wrote:
-> if output->wm_num is bigger than 1, the value for reg is
-If output->wn_num equals 2, we handle all cases (i == 0, i == 1) and set reg properly.
-If output->wn_num is bigger than 2, then reg will not be initialized. However this is something that "cannot happen" and because of this the case is not handled.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ .../devicetree/bindings/media/rcar_vin.txt         | 116 ++++++++++++++++++---
+ 1 file changed, 104 insertions(+), 12 deletions(-)
 
-So I think that there is nothing wrong really but we have to do something to remove the warning. I agree with your patch, it is technically not a right value for reg but any cases in which wm_num is bigger than 2 are not supported anyway and should not happen.
-
-> not initialized, as warned by smatch:
-> 	drivers/media/platform/qcom/camss-8x16/camss-vfe.c:633 vfe_set_xbar_cfg() error: uninitialized symbol 'reg'.
-> 	drivers/media/platform/qcom/camss-8x16/camss-vfe.c:637 vfe_set_xbar_cfg() error: uninitialized symbol 'reg'.
-> 
-> I didn't check the logic into its details, but there is at least
-> one point where wm_num is made equal to two. So, something
-> seem broken.
-> 
-> For now, I just reset it to zero, and added a FIXME. Hopefully,
-> the driver authors will know if this is OK, or if something else
-> is needed there.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/platform/qcom/camss-8x16/camss-vfe.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-> index b22d2dfcd3c2..388431f747fa 100644
-> --- a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-> +++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-> @@ -622,6 +622,8 @@ static void vfe_set_xbar_cfg(struct vfe_device *vfe, struct vfe_output *output,
->  			reg = VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_EN;
->  			if (p == V4L2_PIX_FMT_NV12 || p == V4L2_PIX_FMT_NV16)
->  				reg |= VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_SWAP_INTER_INTRA;
-> +		} else {
-> +			reg = 0;	/* FIXME: is it the right value for i > 1? */
->  		}
->  
->  		if (output->wm_idx[i] % 2 == 1)
-> 
-
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index 6e4ef8caf759e5d3..df1abd0fb20386f8 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -2,8 +2,12 @@ Renesas R-Car Video Input driver (rcar_vin)
+ -------------------------------------------
+ 
+ The rcar_vin device provides video input capabilities for the Renesas R-Car
+-family of devices. The current blocks are always slaves and suppot one input
+-channel which can be either RGB, YUYV or BT656.
++family of devices.
++
++Each VIN instance has a single parallel input that supports RGB and YUV video,
++with both external synchronization and BT.656 synchronization for the latter.
++Depending on the instance the VIN input is connected to external SoC pins, or
++on Gen3 to a CSI-2 receiver.
+ 
+  - compatible: Must be one or more of the following
+    - "renesas,vin-r8a7795" for the R8A7795 device
+@@ -28,21 +32,38 @@ channel which can be either RGB, YUYV or BT656.
+ Additionally, an alias named vinX will need to be created to specify
+ which video input device this is.
+ 
+-The per-board settings:
++The per-board settings Gen2:
+  - port sub-node describing a single endpoint connected to the vin
+    as described in video-interfaces.txt[1]. Only the first one will
+    be considered as each vin interface has one input port.
+ 
+-   These settings are used to work out video input format and widths
+-   into the system.
++The per-board settings Gen3:
++
++Gen3 can support both a single connected parallel input source from
++external SoC pins (port0) and/or multiple parallel input sources from
++local SoC CSI-2 receivers (port1) depending on SoC.
+ 
++- renesas,id - ID number of the VIN, VINx in the documentation.
++- ports
++    - port0 - sub-node describing a single endpoint connected to the VIN
++      from external SoC pins described in video-interfaces.txt[1]. Only
++      the first one will be considered as each VIN interface has at most
++      one set of SoC external input pins.
++    - port1 - sub-nodes describing one or more endpoints connected to
++      the VIN from local SoC CSI-2 receivers. The endpoint numbers must
++      use the following schema.
+ 
+-Device node example
+--------------------
++        - Endpoint 0 - sub-node describing the endpoint which is CSI20
++        - Endpoint 1 - sub-node describing the endpoint which is CSI21
++        - Endpoint 2 - sub-node describing the endpoint which is CSI40
++        - Endpoint 3 - sub-node describing the endpoint which is CSI41
+ 
+-	aliases {
+-	       vin0 = &vin0;
+-	};
++Device node example Gen2
++------------------------
++
++        aliases {
++                vin0 = &vin0;
++        };
+ 
+         vin0: vin@0xe6ef0000 {
+                 compatible = "renesas,vin-r8a7790", "renesas,rcar-gen2-vin";
+@@ -52,8 +73,8 @@ Device node example
+                 status = "disabled";
+         };
+ 
+-Board setup example (vin1 composite video input)
+-------------------------------------------------
++Board setup example Gen2 (vin1 composite video input)
++-----------------------------------------------------
+ 
+ &i2c2   {
+         status = "ok";
+@@ -92,6 +113,77 @@ Board setup example (vin1 composite video input)
+         };
+ };
+ 
++Device node example Gen3
++------------------------
++
++        vin0: video@e6ef0000 {
++                compatible = "renesas,vin-r8a7795";
++                reg = <0 0xe6ef0000 0 0x1000>;
++                interrupts = <GIC_SPI 188 IRQ_TYPE_LEVEL_HIGH>;
++                clocks = <&cpg CPG_MOD 811>;
++                power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
++                resets = <&cpg 811>;
++                renesas,id = <0>;
++
++                ports {
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++
++                        port@1 {
++                                #address-cells = <1>;
++                                #size-cells = <0>;
++
++                                reg = <1>;
++
++                                vin0csi20: endpoint@0 {
++                                        reg = <0>;
++                                        remote-endpoint= <&csi20vin0>;
++                                };
++                                vin0csi21: endpoint@1 {
++                                        reg = <1>;
++                                        remote-endpoint= <&csi21vin0>;
++                                };
++                                vin0csi40: endpoint@2 {
++                                        reg = <2>;
++                                        remote-endpoint= <&csi40vin0>;
++                                };
++                        };
++                };
++        };
++
++        csi20: csi2@fea80000 {
++                compatible = "renesas,r8a7795-csi2", "renesas,rcar-gen3-csi2";
++                reg = <0 0xfea80000 0 0x10000>;
++                interrupts = <GIC_SPI 184 IRQ_TYPE_LEVEL_HIGH>;
++                clocks = <&cpg CPG_MOD 714>;
++                power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
++                resets = <&cpg 714>;
++
++                ports {
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++
++                        port@0 {
++                                reg = <0>;
++                                csi20_in: endpoint {
++                                        clock-lanes = <0>;
++                                        data-lanes = <1>;
++                                        remote-endpoint = <&adv7482_txb>;
++                                };
++                        };
++
++                        port@1 {
++                                #address-cells = <1>;
++                                #size-cells = <0>;
+ 
++                                reg = <1>;
++
++                                csi20vin0: endpoint@0 {
++                                        reg = <0>;
++                                        remote-endpoint = <&vin0csi20>;
++                                };
++                        };
++                };
++        };
+ 
+ [1] video-interfaces.txt common video media interface
 -- 
-Best regards,
-Todor Tomov
+2.15.0
