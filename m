@@ -1,135 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:42858 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751601AbdK0VpX (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:49613 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750848AbdKKExh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Nov 2017 16:45:23 -0500
-Received: by mail-wr0-f195.google.com with SMTP id o14so27906529wrf.9
-        for <linux-media@vger.kernel.org>; Mon, 27 Nov 2017 13:45:22 -0800 (PST)
-From: Riccardo Schirone <sirmy15@gmail.com>
-To: alan@linux.intel.com, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org
-Cc: Riccardo Schirone <sirmy15@gmail.com>
-Subject: [PATCH 1/4] staging: add missing blank line after declarations in atomisp-ov5693
-Date: Mon, 27 Nov 2017 22:44:10 +0100
-Message-Id: <20171127214413.10749-2-sirmy15@gmail.com>
-In-Reply-To: <20171127214413.10749-1-sirmy15@gmail.com>
-References: <20171127214413.10749-1-sirmy15@gmail.com>
+        Fri, 10 Nov 2017 23:53:37 -0500
+Message-ID: <57792021760e72835179491deabd73a3@smtp-cloud9.xs4all.net>
+Date: Sat, 11 Nov 2017 05:53:34 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Riccardo Schirone <sirmy15@gmail.com>
----
- drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-diff --git a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
-index 3e7c3851280f..387c65be10f4 100644
---- a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
-+++ b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
-@@ -82,6 +82,7 @@ static int ad5823_i2c_write(struct i2c_client *client, u8 reg, u8 val)
- {
- 	struct i2c_msg msg;
- 	u8 buf[2];
-+
- 	buf[0] = reg;
- 	buf[1] = val;
- 	msg.addr = AD5823_VCM_ADDR;
-@@ -98,6 +99,7 @@ static int ad5823_i2c_read(struct i2c_client *client, u8 reg, u8 *val)
- {
- 	struct i2c_msg msg[2];
- 	u8 buf[2];
-+
- 	buf[0] = reg;
- 	buf[1] = 0;
- 
-@@ -228,6 +230,7 @@ static int vcm_detect(struct i2c_client *client)
- 	int i, ret;
- 	struct i2c_msg msg;
- 	u16 data0 = 0, data;
-+
- 	for (i = 0; i < 4; i++) {
- 		msg.addr = VCM_ADDR;
- 		msg.flags = I2C_M_RD;
-@@ -690,6 +693,7 @@ static long ov5693_s_exposure(struct v4l2_subdev *sd,
- 	/* we should not accept the invalid value below */
- 	if (analog_gain == 0) {
- 		struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
- 		v4l2_err(client, "%s: invalid value\n", __func__);
- 		return -EINVAL;
- 	}
-@@ -722,6 +726,7 @@ static int __ov5693_otp_read(struct v4l2_subdev *sd, u8 *buf)
- 	int ret;
- 	int i;
- 	u8 *b = buf;
-+
- 	dev->otp_size = 0;
- 	for (i = 1; i < OV5693_OTP_BANK_MAX; i++) {
- 		/*set bank NO and OTP read mode. */
-@@ -984,6 +989,7 @@ static int ov5693_t_focus_abs(struct v4l2_subdev *sd, s32 value)
- static int ov5693_t_focus_rel(struct v4l2_subdev *sd, s32 value)
- {
- 	struct ov5693_device *dev = to_ov5693_sensor(sd);
-+
- 	return ov5693_t_focus_abs(sd, dev->focus + value);
- }
- 
-@@ -1033,6 +1039,7 @@ static int ov5693_q_focus_abs(struct v4l2_subdev *sd, s32 *value)
- static int ov5693_t_vcm_slew(struct v4l2_subdev *sd, s32 value)
- {
- 	struct ov5693_device *dev = to_ov5693_sensor(sd);
-+
- 	dev->number_of_steps = value;
- 	dev->vcm_update = true;
- 	return 0;
-@@ -1041,6 +1048,7 @@ static int ov5693_t_vcm_slew(struct v4l2_subdev *sd, s32 value)
- static int ov5693_t_vcm_timing(struct v4l2_subdev *sd, s32 value)
- {
- 	struct ov5693_device *dev = to_ov5693_sensor(sd);
-+
- 	dev->number_of_steps = value;
- 	dev->vcm_update = true;
- 	return 0;
-@@ -1563,6 +1571,7 @@ static int ov5693_set_fmt(struct v4l2_subdev *sd,
- 	struct camera_mipi_info *ov5693_info = NULL;
- 	int ret = 0;
- 	int idx;
-+
- 	if (format->pad)
- 		return -EINVAL;
- 	if (!fmt)
-@@ -1599,6 +1608,7 @@ static int ov5693_set_fmt(struct v4l2_subdev *sd,
- 	ret = startup(sd);
- 	if (ret) {
- 		int i = 0;
-+
- 		dev_err(&client->dev, "ov5693 startup err, retry to power up\n");
- 		for (i = 0; i < OV5693_POWER_UP_RETRY_NUM; i++) {
- 			dev_err(&client->dev,
-@@ -1655,6 +1665,7 @@ static int ov5693_get_fmt(struct v4l2_subdev *sd,
- {
- 	struct v4l2_mbus_framefmt *fmt = &format->format;
- 	struct ov5693_device *dev = to_ov5693_sensor(sd);
-+
- 	if (format->pad)
- 		return -EINVAL;
- 
-@@ -1818,6 +1829,7 @@ static int ov5693_s_parm(struct v4l2_subdev *sd,
- 			struct v4l2_streamparm *param)
- {
- 	struct ov5693_device *dev = to_ov5693_sensor(sd);
-+
- 	dev->run_mode = param->parm.capture.capturemode;
- 
- 	mutex_lock(&dev->input_lock);
-@@ -1907,6 +1919,7 @@ static int ov5693_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 	struct ov5693_device *dev = to_ov5693_sensor(sd);
-+
- 	dev_dbg(&client->dev, "ov5693_remove...\n");
- 
- 	dev->platform_data->csi_cfg(sd, 0);
--- 
-2.14.3
+Results of the daily build of media_tree:
+
+date:			Sat Nov 11 05:00:16 CET 2017
+media-tree git hash:	eb0c19942288569e0ae492476534d5a485fb8ab4
+media_build git hash:	106c5880df126bdd61f8d1c1f59570524a95d77c
+v4l-utils git hash:	7b2d48ff594dcc2c9b395463441e5abb4f5e9439
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.12.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+apps: OK
+spec-git: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
