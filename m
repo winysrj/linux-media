@@ -1,131 +1,347 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:58320 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751534AbdKME4Z (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:47736 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754882AbdKKAjI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Nov 2017 23:56:25 -0500
-Message-ID: <d1c7c946aaba3dff747c90fd92141450@smtp-cloud8.xs4all.net>
-Date: Mon, 13 Nov 2017 05:56:22 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 10 Nov 2017 19:39:08 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v7 19/25] rcar-vin: add group allocator functions
+Date: Sat, 11 Nov 2017 01:38:29 +0100
+Message-Id: <20171111003835.4909-20-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+In media controller mode all VIN instances needs to be part of the same
+media graph. There is also a need to each VIN instance to know and in
+some cases be able to communicate with other VIN instances.
 
-Results of the daily build of media_tree:
+Add an allocator framework where the first VIN instance to be probed
+creates a shared data structure and creates a media device.
 
-date:			Mon Nov 13 05:00:17 CET 2017
-media-tree git hash:	eb0c19942288569e0ae492476534d5a485fb8ab4
-media_build git hash:	106c5880df126bdd61f8d1c1f59570524a95d77c
-v4l-utils git hash:	7b2d48ff594dcc2c9b395463441e5abb4f5e9439
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 179 +++++++++++++++++++++++++++-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  38 ++++++
+ 2 files changed, 216 insertions(+), 1 deletion(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: OK
-spec-git: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 1b3572c8b6691a07..e204eb3db77c1d2b 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -20,12 +20,171 @@
+ #include <linux/of_graph.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
++#include <linux/slab.h>
+ 
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+ 
+ #include "rcar-vin.h"
+ 
++/* -----------------------------------------------------------------------------
++ * Gen3 CSI2 Group Allocator
++ */
++
++static int rvin_group_read_id(struct rvin_dev *vin, struct device_node *np)
++{
++	u32 val;
++	int ret;
++
++	ret = of_property_read_u32(np, "renesas,id", &val);
++	if (ret) {
++		vin_err(vin, "%s: No renesas,id property found\n",
++			of_node_full_name(np));
++		return -EINVAL;
++	}
++
++	if (val >= RCAR_VIN_NUM) {
++		vin_err(vin, "%s: Invalid renesas,id '%u'\n",
++			of_node_full_name(np), val);
++		return -EINVAL;
++	}
++
++	return val;
++}
++
++static DEFINE_MUTEX(rvin_group_lock);
++static struct rvin_group *rvin_group_data;
++
++static void rvin_group_release(struct kref *kref)
++{
++	struct rvin_group *group =
++		container_of(kref, struct rvin_group, refcount);
++
++	mutex_lock(&rvin_group_lock);
++
++	media_device_unregister(&group->mdev);
++	media_device_cleanup(&group->mdev);
++
++	rvin_group_data = NULL;
++
++	mutex_unlock(&rvin_group_lock);
++
++	kfree(group);
++}
++
++static struct rvin_group *__rvin_group_allocate(struct rvin_dev *vin)
++{
++	struct rvin_group *group;
++
++	if (rvin_group_data) {
++		group = rvin_group_data;
++		kref_get(&group->refcount);
++		vin_dbg(vin, "%s: get group=%p\n", __func__, group);
++		return group;
++	}
++
++	group = kzalloc(sizeof(*group), GFP_KERNEL);
++	if (!group)
++		return NULL;
++
++	kref_init(&group->refcount);
++	rvin_group_data = group;
++
++	vin_dbg(vin, "%s: alloc group=%p\n", __func__, group);
++	return group;
++}
++
++static int rvin_group_add_vin(struct rvin_dev *vin)
++{
++	int ret;
++
++	ret = rvin_group_read_id(vin, vin->dev->of_node);
++	if (ret < 0)
++		return ret;
++
++	mutex_lock(&vin->group->lock);
++
++	if (vin->group->vin[ret]) {
++		mutex_unlock(&vin->group->lock);
++		vin_err(vin, "VIN number %d already occupied\n", ret);
++		return -EINVAL;
++	}
++
++	vin->group->vin[ret] = vin;
++
++	mutex_unlock(&vin->group->lock);
++
++	vin_dbg(vin, "I'm VIN number %d", ret);
++
++	return 0;
++}
++
++static int rvin_group_allocate(struct rvin_dev *vin)
++{
++	struct rvin_group *group;
++	struct media_device *mdev;
++	int ret;
++
++	mutex_lock(&rvin_group_lock);
++
++	group = __rvin_group_allocate(vin);
++	if (!group) {
++		mutex_unlock(&rvin_group_lock);
++		return -ENOMEM;
++	}
++
++	/* Init group data if it is not already initialized */
++	mdev = &group->mdev;
++	if (!mdev->dev) {
++		mutex_init(&group->lock);
++		mdev->dev = vin->dev;
++
++		strlcpy(mdev->driver_name, "Renesas VIN",
++			sizeof(mdev->driver_name));
++		strlcpy(mdev->model, vin->dev->of_node->name,
++			sizeof(mdev->model));
++		strlcpy(mdev->bus_info, of_node_full_name(vin->dev->of_node),
++			sizeof(mdev->bus_info));
++		media_device_init(mdev);
++
++		ret = media_device_register(mdev);
++		if (ret) {
++			vin_err(vin, "Failed to register media device\n");
++			kref_put(&group->refcount, rvin_group_release);
++			mutex_unlock(&rvin_group_lock);
++			return ret;
++		}
++	}
++
++	vin->group = group;
++	vin->v4l2_dev.mdev = mdev;
++
++	ret = rvin_group_add_vin(vin);
++	if (ret) {
++		kref_put(&group->refcount, rvin_group_release);
++		mutex_unlock(&rvin_group_lock);
++		return ret;
++	}
++
++	mutex_unlock(&rvin_group_lock);
++
++	return 0;
++}
++
++static void rvin_group_delete(struct rvin_dev *vin)
++{
++	unsigned int i;
++
++	mutex_lock(&vin->group->lock);
++	for (i = 0; i < RCAR_VIN_NUM; i++)
++		if (vin->group->vin[i] == vin)
++			vin->group->vin[i] = NULL;
++	mutex_unlock(&vin->group->lock);
++
++	vin_dbg(vin, "%s: group=%p\n", __func__, &vin->group);
++	kref_put(&vin->group->refcount, rvin_group_release);
++}
++
+ /* -----------------------------------------------------------------------------
+  * Async notifier
+  */
+@@ -248,12 +407,27 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+ 
+ static int rvin_group_init(struct rvin_dev *vin)
+ {
++	int ret;
++
++	ret = rvin_group_allocate(vin);
++	if (ret)
++		return ret;
++
+ 	/* All our sources are CSI-2 */
+ 	vin->mbus_cfg.type = V4L2_MBUS_CSI2;
+ 	vin->mbus_cfg.flags = 0;
+ 
+ 	vin->pad.flags = MEDIA_PAD_FL_SINK;
+-	return media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
++	ret = media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
++	if (ret)
++		goto error_group;
++
++	return 0;
++
++error_group:
++	rvin_group_delete(vin);
++
++	return ret;
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -377,6 +551,9 @@ static int rcar_vin_remove(struct platform_device *pdev)
+ 
+ 	rvin_v4l2_unregister(vin);
+ 
++	if (vin->info->use_mc)
++		rvin_group_delete(vin);
++
+ 	rvin_dma_remove(vin);
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 2d92b9dd0aed6cc9..a9bd570d6635fd47 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -17,6 +17,8 @@
+ #ifndef __RCAR_VIN__
+ #define __RCAR_VIN__
+ 
++#include <linux/kref.h>
++
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-dev.h>
+@@ -30,6 +32,9 @@
+ /* Address alignment mask for HW buffers */
+ #define HW_BUFFER_MASK 0x7f
+ 
++/* Max number on VIN instances that can be in a system */
++#define RCAR_VIN_NUM 8
++
+ enum chip_id {
+ 	RCAR_H1,
+ 	RCAR_M1,
+@@ -37,6 +42,15 @@ enum chip_id {
+ 	RCAR_GEN3,
+ };
+ 
++enum rvin_csi_id {
++	RVIN_CSI20,
++	RVIN_CSI21,
++	RVIN_CSI40,
++	RVIN_CSI41,
++	RVIN_CSI_MAX,
++	RVIN_NC, /* Not Connected */
++};
++
+ /**
+  * STOPPED  - No operation in progress
+  * RUNNING  - Operation in progress have buffers
+@@ -75,6 +89,8 @@ struct rvin_graph_entity {
+ 	unsigned int sink_pad;
+ };
+ 
++struct rvin_group;
++
+ /**
+  * struct rvin_info - Information about the particular VIN implementation
+  * @chip:		type of VIN chip
+@@ -103,6 +119,7 @@ struct rvin_info {
+  * @notifier:		V4L2 asynchronous subdevs notifier
+  * @digital:		entity in the DT for local digital subdevice
+  *
++ * @group:		Gen3 CSI group
+  * @pad:		pad for media controller
+  *
+  * @lock:		protects @queue
+@@ -134,6 +151,7 @@ struct rvin_dev {
+ 	struct v4l2_async_notifier notifier;
+ 	struct rvin_graph_entity *digital;
+ 
++	struct rvin_group *group;
+ 	struct media_pad pad;
+ 
+ 	struct mutex lock;
+@@ -162,6 +180,26 @@ struct rvin_dev {
+ #define vin_warn(d, fmt, arg...)	dev_warn(d->dev, fmt, ##arg)
+ #define vin_err(d, fmt, arg...)		dev_err(d->dev, fmt, ##arg)
+ 
++/**
++ * struct rvin_group - VIN CSI2 group information
++ * @refcount:		number of VIN instances using the group
++ *
++ * @mdev:		media device which represents the group
++ *
++ * @lock:		protects the vin and csi members
++ * @vin:		VIN instances which are part of the group
++ * @csi:		CSI-2 entities that are part of the group
++ */
++struct rvin_group {
++	struct kref refcount;
++
++	struct media_device mdev;
++
++	struct mutex lock;
++	struct rvin_dev *vin[RCAR_VIN_NUM];
++	struct rvin_graph_entity csi[RVIN_CSI_MAX];
++};
++
+ int rvin_dma_probe(struct rvin_dev *vin, int irq);
+ void rvin_dma_remove(struct rvin_dev *vin);
+ 
+-- 
+2.15.0
