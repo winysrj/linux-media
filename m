@@ -1,69 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:47188 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751259AbdKVOFM (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33371 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751564AbdKKMEi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Nov 2017 09:05:12 -0500
-Subject: Re: [PATCH 23/30] [media] atomisp: deprecate pci_get_bus_and_slot()
-To: Alan Cox <alan@linux.intel.com>, linux-pci@vger.kernel.org,
-        timur@codeaurora.org
-Cc: linux-arm-msm@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        kbuild test robot <fengguang.wu@intel.com>,
-        Arushi Singhal <arushisinghal19971997@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Avraham Shukron <avraham.shukron@gmail.com>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Valentin Vidic <Valentin.Vidic@CARNet.hr>,
-        "open list:MEDIA INPUT INFRASTRUCTURE (V4L/DVB)"
-        <linux-media@vger.kernel.org>,
-        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
-        open list <linux-kernel@vger.kernel.org>
-References: <1511328675-21981-1-git-send-email-okaya@codeaurora.org>
- <1511328675-21981-24-git-send-email-okaya@codeaurora.org>
- <1511353247.3539.10.camel@linux.intel.com>
-From: Sinan Kaya <okaya@codeaurora.org>
-Message-ID: <b87604f8-07f5-5cdc-b022-286c17ea66eb@codeaurora.org>
-Date: Wed, 22 Nov 2017 09:05:08 -0500
+        Sat, 11 Nov 2017 07:04:38 -0500
+Received: by mail-wm0-f66.google.com with SMTP id r68so8637904wmr.0
+        for <linux-media@vger.kernel.org>; Sat, 11 Nov 2017 04:04:38 -0800 (PST)
+Received: from [192.168.0.22] ([62.147.246.169])
+        by smtp.googlemail.com with ESMTPSA id b36sm10427020edd.67.2017.11.11.04.04.35
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sat, 11 Nov 2017 04:04:35 -0800 (PST)
+Subject: Re: [PATCH 1/2] sdlcam: fix linking
+From: =?UTF-8?B?UmFmYcOrbCBDYXJyw6k=?= <funman@videolan.org>
+To: linux-media@vger.kernel.org
+References: <20171110160547.32639-1-funman@videolan.org>
+Message-ID: <6f4de3ec-17f4-66c5-8a28-dbd403963a62@videolan.org>
+Date: Sat, 11 Nov 2017 13:04:34 +0100
 MIME-Version: 1.0
-In-Reply-To: <1511353247.3539.10.camel@linux.intel.com>
+In-Reply-To: <20171110160547.32639-1-funman@videolan.org>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alex,
-
-On 11/22/2017 7:20 AM, Alan Cox wrote:
-> On Wed, 2017-11-22 at 00:31 -0500, Sinan Kaya wrote:
->> pci_get_bus_and_slot() is restrictive such that it assumes domain=0
->> as
->> where a PCI device is present. This restricts the device drivers to
->> be
->> reused for other domain numbers.
+On 11/10/2017 05:05 PM, Rafaël Carré wrote:
+> ---
+>  contrib/test/Makefile.am | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> The ISP v2 will always been in domain 0.
-> 
-
-Sorry, I didn't get what you mean. Do you mean that you are OK with the
-change (thus, can I get a reviewed by) or do you mean that I should fix
-the commit message?
-
-I wrote a generic commit message and applied it to all 30 patches that
-are more or less similar. I can certainly tailor the message a little
-bit for atomisp since you confirmed domain 0.
-
-> Alan
-> 
+> diff --git a/contrib/test/Makefile.am b/contrib/test/Makefile.am
+> index 6a4303d7..0188fe21 100644
+> --- a/contrib/test/Makefile.am
+> +++ b/contrib/test/Makefile.am
+> @@ -37,7 +37,7 @@ v4l2gl_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconver
+>  
+>  sdlcam_LDFLAGS = $(JPEG_LIBS) $(SDL2_LIBS) -lm -ldl -lrt
+>  sdlcam_CFLAGS = -I../.. $(SDL2_CFLAGS)
+> -sdlcam_LDADD = ../../lib/libv4l2/.libs/libv4l2.a  ../../lib/libv4lconvert/.libs/libv4lconvert.a
+> +sdlcam_LDADD = ../../lib/libv4l2/libv4l2.la  ../../lib/libv4lconvert/libv4lconvert.la
+>  
+>  mc_nextgen_test_CFLAGS = $(LIBUDEV_CFLAGS)
+>  mc_nextgen_test_LDFLAGS = $(LIBUDEV_LIBS)
 > 
 
-
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Signed-off-by: Rafaël Carré <funman@videolan.org>
