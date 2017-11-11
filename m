@@ -1,43 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f47.google.com ([209.85.218.47]:35713 "EHLO
-        mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750940AbdK3THB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Nov 2017 14:07:01 -0500
-Received: by mail-oi0-f47.google.com with SMTP id 184so5556121oii.2
-        for <linux-media@vger.kernel.org>; Thu, 30 Nov 2017 11:07:01 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1511975472-26659-3-git-send-email-hugues.fruchet@st.com>
-References: <1511975472-26659-1-git-send-email-hugues.fruchet@st.com> <1511975472-26659-3-git-send-email-hugues.fruchet@st.com>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Thu, 30 Nov 2017 17:07:00 -0200
-Message-ID: <CAOMZO5CUeHhju95KrOmNL7Q7kMjCO5JQdLkvXfBHsdEyOS1AGA@mail.gmail.com>
-Subject: Re: [PATCH v2 2/4] media: ov5640: check chip id
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from mleia.com ([178.79.152.223]:53742 "EHLO mail.mleia.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750746AbdKKOVK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 11 Nov 2017 09:21:10 -0500
+Subject: Re: [PATCH v4 2/5] media: dt: bindings: Add binding for NVIDIA Tegra
+ Video Decoder Engine
+To: Dmitry Osipenko <digetx@gmail.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Rob Herring <robh+dt@kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
+        Stephen Warren <swarren@wwwdotorg.org>
+References: <cover.1508448293.git.digetx@gmail.com>
+ <bf5b91666229f9e46ed8c73d6ca2e4b65f86b5ab.1508448293.git.digetx@gmail.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+From: Vladimir Zapolskiy <vz@mleia.com>
+Message-ID: <6492d1af-19fa-253f-2b75-2c37ccd44cbe@mleia.com>
+Date: Sat, 11 Nov 2017 16:21:07 +0200
+MIME-Version: 1.0
+In-Reply-To: <bf5b91666229f9e46ed8c73d6ca2e4b65f86b5ab.1508448293.git.digetx@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hugues,
+Hi Dmitry,
 
-On Wed, Nov 29, 2017 at 3:11 PM, Hugues Fruchet <hugues.fruchet@st.com> wrote:
+On 10/20/2017 12:34 AM, Dmitry Osipenko wrote:
+> Add binding documentation for the Video Decoder Engine which is found
+> on NVIDIA Tegra20/30/114/124/132 SoC's.
+> 
+> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+> ---
+>  .../devicetree/bindings/media/nvidia,tegra-vde.txt | 55 ++++++++++++++++++++++
+>  1 file changed, 55 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt b/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
+> new file mode 100644
+> index 000000000000..470237ed6fe5
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
+> @@ -0,0 +1,55 @@
+> +NVIDIA Tegra Video Decoder Engine
+> +
+> +Required properties:
+> +- compatible : Must contain one of the following values:
+> +   - "nvidia,tegra20-vde"
+> +   - "nvidia,tegra30-vde"
+> +   - "nvidia,tegra114-vde"
+> +   - "nvidia,tegra124-vde"
+> +   - "nvidia,tegra132-vde"
+> +- reg : Must contain an entry for each entry in reg-names.
+> +- reg-names : Must include the following entries:
+> +  - sxe
+> +  - bsev
+> +  - mbe
+> +  - ppe
+> +  - mce
+> +  - tfe
+> +  - ppb
+> +  - vdma
+> +  - frameid
 
->  /* read exposure, in number of line periods */
->  static int ov5640_get_exposure(struct ov5640_dev *sensor)
->  {
-> @@ -1562,6 +1586,10 @@ static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
->                 ov5640_reset(sensor);
->                 ov5640_power(sensor, true);
->
-> +               ret = ov5640_check_chip_id(sensor);
-> +               if (ret)
-> +                       goto power_off;
+I've already mentioned it in my review of the driver code, but the
+version from v3 with a single region is more preferable.
 
-Wouldn't it make more sense to add this check in ov5640_probe()
-function instead?
+Also it implies that "reg-names" property will be removed.
+
+> +- iram : Must contain phandle to the mmio-sram device node that represents
+> +         IRAM region used by VDE.
+> +- interrupts : Must contain an entry for each entry in interrupt-names.
+> +- interrupt-names : Must include the following entries:
+> +  - sync-token
+> +  - bsev
+> +  - sxe
+> +- clocks : Must include the following entries:
+> +  - vde
+> +- resets : Must include the following entries:
+> +  - vde
+> +
+> +Example:
+> +
+> +video-codec@6001a000 {
+> +	compatible = "nvidia,tegra20-vde";
+> +	reg = <0x6001a000 0x1000 /* Syntax Engine */
+> +	       0x6001b000 0x1000 /* Video Bitstream Engine */
+> +	       0x6001c000  0x100 /* Macroblock Engine */
+> +	       0x6001c200  0x100 /* Post-processing Engine */
+> +	       0x6001c400  0x100 /* Motion Compensation Engine */
+> +	       0x6001c600  0x100 /* Transform Engine */
+> +	       0x6001c800  0x100 /* Pixel prediction block */
+> +	       0x6001ca00  0x100 /* Video DMA */
+> +	       0x6001d800  0x300 /* Video frame controls */>;
+> +	reg-names = "sxe", "bsev", "mbe", "ppe", "mce",
+> +		    "tfe", "ppb", "vdma", "frameid";
+> +	iram = <&vde_pool>; /* IRAM region */
+> +	interrupts = <GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
+> +		     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
+> +		     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
+> +	interrupt-names = "sync-token", "bsev", "sxe";
+> +	clocks = <&tegra_car TEGRA20_CLK_VDE>;
+> +	resets = <&tegra_car 61>;
+> +};
+> 
+
+--
+With best wishes,
+Vladimir
