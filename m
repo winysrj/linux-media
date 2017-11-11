@@ -1,88 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:55905 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753467AbdKXLoE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Nov 2017 06:44:04 -0500
-From: Sean Young <sean@mess.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 2/3] input: handle case whether first repeated key triggers repeat
-Date: Fri, 24 Nov 2017 11:44:00 +0000
-Message-Id: <e00a5bd5e87f011c92f7af5aac7e1654bf455cfb.1511523174.git.sean@mess.org>
-In-Reply-To: <cover.1511523174.git.sean@mess.org>
-References: <cover.1511523174.git.sean@mess.org>
-In-Reply-To: <cover.1511523174.git.sean@mess.org>
-References: <cover.1511523174.git.sean@mess.org>
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:47716 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754441AbdKKAjH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Nov 2017 19:39:07 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v7 16/25] rcar-vin: break out format alignment and checking
+Date: Sat, 11 Nov 2017 01:38:26 +0100
+Message-Id: <20171111003835.4909-17-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the CEC protocol, as soon as the first repeated key is received,
-the autorepeat should start. We introduce a special value 3 for this
-situation.
+Part of the format alignment and checking can be shared with the Gen3
+format handling. Break that part out to its own function. While doing
+this clean up the checking and add more checks.
 
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/input/input.rst |  4 +++-
- drivers/input/input.c         | 17 +++++++++++++++--
- 2 files changed, 18 insertions(+), 3 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 98 +++++++++++++++--------------
+ 1 file changed, 51 insertions(+), 47 deletions(-)
 
-diff --git a/Documentation/input/input.rst b/Documentation/input/input.rst
-index 47f86a4bf16c..31cea9026193 100644
---- a/Documentation/input/input.rst
-+++ b/Documentation/input/input.rst
-@@ -276,6 +276,8 @@ list is in include/uapi/linux/input-event-codes.h.
- 
- ``value`` is the value the event carries. Either a relative change for
- EV_REL, absolute new value for EV_ABS (joysticks ...), or 0 for EV_KEY for
--release, 1 for keypress and 2 for autorepeat.
-+release, 1 for keypress and 2 for autorepeat, and 3 for autorepeat where
-+the repeats should start immediately, rather than waiting REP_DELAY
-+milliseconds.
- 
- See :ref:`input-event-codes` for more information about various even codes.
-diff --git a/drivers/input/input.c b/drivers/input/input.c
-index ecc41d65b82a..84182d7e5a6b 100644
---- a/drivers/input/input.c
-+++ b/drivers/input/input.c
-@@ -72,6 +72,16 @@ static int input_defuzz_abs_event(int value, int old_val, int fuzz)
- 	return value;
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index f7e04601007edb64..c9a3fe21dea4ce5d 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -86,6 +86,56 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
+ 	return pix->bytesperline * pix->height;
  }
  
-+static void input_start_autorepeat_now(struct input_dev *dev, int code)
++static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
 +{
-+	if (dev->rep[REP_PERIOD] && dev->timer.data &&
-+	    !timer_pending(&dev->timer)) {
-+		dev->repeat_key = code;
-+		mod_timer(&dev->timer,
-+			  jiffies + msecs_to_jiffies(dev->rep[REP_PERIOD]));
++	u32 walign;
++
++	/* If requested format is not supported fallback to the default */
++	if (!rvin_format_from_pixel(pix->pixelformat)) {
++		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
++			pix->pixelformat, RVIN_DEFAULT_FORMAT);
++		pix->pixelformat = RVIN_DEFAULT_FORMAT;
 +	}
++
++	switch (pix->field) {
++	case V4L2_FIELD_TOP:
++	case V4L2_FIELD_BOTTOM:
++	case V4L2_FIELD_NONE:
++	case V4L2_FIELD_INTERLACED_TB:
++	case V4L2_FIELD_INTERLACED_BT:
++	case V4L2_FIELD_INTERLACED:
++		break;
++	default:
++		pix->field = V4L2_FIELD_NONE;
++		break;
++	}
++
++	/* Check that colorspace is reasonable, if not keep current */
++	if (!pix->colorspace || pix->colorspace >= 0xff)
++		pix->colorspace = vin->format.colorspace;
++
++	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
++	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
++
++	/* Limit to VIN capabilities */
++	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
++			      &pix->height, 4, vin->info->max_height, 2, 0);
++
++	pix->bytesperline = rvin_format_bytesperline(pix);
++	pix->sizeimage = rvin_format_sizeimage(pix);
++
++	if (vin->info->chip == RCAR_M1 &&
++	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
++		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
++		return -EINVAL;
++	}
++
++	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
++		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
++
++	return 0;
 +}
 +
- static void input_start_autorepeat(struct input_dev *dev, int code)
+ /* -----------------------------------------------------------------------------
+  * V4L2
+  */
+@@ -191,64 +241,18 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ static int __rvin_try_format(struct rvin_dev *vin,
+ 			     u32 which, struct v4l2_pix_format *pix)
  {
- 	if (dev->rep[REP_PERIOD] && dev->rep[REP_DELAY] && dev->timer.data) {
-@@ -155,7 +165,10 @@ static void input_pass_values(struct input_dev *dev,
- 	if (test_bit(EV_REP, dev->evbit) && test_bit(EV_KEY, dev->evbit)) {
- 		for (v = vals; v != vals + count; v++) {
- 			if (v->type == EV_KEY && v->value != 2) {
--				if (v->value)
-+				if (v->value == 3)
-+					input_start_autorepeat_now(dev,
-+								   v->code);
-+				else if (v->value)
- 					input_start_autorepeat(dev, v->code);
- 				else
- 					input_stop_autorepeat(dev);
-@@ -285,7 +298,7 @@ static int input_get_disposition(struct input_dev *dev,
- 		if (is_event_supported(code, dev->keybit, KEY_MAX)) {
+-	u32 walign;
+ 	int ret;
  
- 			/* auto-repeat bypasses state updates */
--			if (value == 2) {
-+			if (value == 2 || value == 3) {
- 				disposition = INPUT_PASS_TO_HANDLERS;
- 				break;
- 			}
+ 	/* Keep current field if no specific one is asked for */
+ 	if (pix->field == V4L2_FIELD_ANY)
+ 		pix->field = vin->format.field;
+ 
+-	/* If requested format is not supported fallback to the default */
+-	if (!rvin_format_from_pixel(pix->pixelformat)) {
+-		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
+-			pix->pixelformat, RVIN_DEFAULT_FORMAT);
+-		pix->pixelformat = RVIN_DEFAULT_FORMAT;
+-	}
+-
+-	/* Always recalculate */
+-	pix->bytesperline = 0;
+-	pix->sizeimage = 0;
+-
+ 	/* Limit to source capabilities */
+ 	ret = __rvin_try_format_source(vin, which, pix);
+ 	if (ret)
+ 		return ret;
+ 
+-	switch (pix->field) {
+-	case V4L2_FIELD_TOP:
+-	case V4L2_FIELD_BOTTOM:
+-	case V4L2_FIELD_NONE:
+-	case V4L2_FIELD_INTERLACED_TB:
+-	case V4L2_FIELD_INTERLACED_BT:
+-	case V4L2_FIELD_INTERLACED:
+-		break;
+-	default:
+-		pix->field = V4L2_FIELD_NONE;
+-		break;
+-	}
+-
+-	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
+-	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
+-
+-	/* Limit to VIN capabilities */
+-	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
+-			      &pix->height, 4, vin->info->max_height, 2, 0);
+-
+-	pix->bytesperline = max_t(u32, pix->bytesperline,
+-				  rvin_format_bytesperline(pix));
+-	pix->sizeimage = max_t(u32, pix->sizeimage,
+-			       rvin_format_sizeimage(pix));
+-
+-	if (vin->info->chip == RCAR_M1 &&
+-	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+-		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
+-		return -EINVAL;
+-	}
+-
+-	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
+-		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+-
+-	return 0;
++	return rvin_format_align(vin, pix);
+ }
+ 
+ static int rvin_querycap(struct file *file, void *priv,
 -- 
-2.14.3
+2.15.0
