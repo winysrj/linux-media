@@ -1,60 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45784 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752111AbdKXSJn (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:47686 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754827AbdKKAjI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Nov 2017 13:09:43 -0500
-Subject: Re: [PATCH] media: ov7670: use v4l2_async_unregister_subdev()
-To: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <1511534445-30512-1-git-send-email-akinobu.mita@gmail.com>
-Reply-To: kieran.bingham@ideasonboard.com
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <016d6451-2a58-42f1-8556-6bbf6467caf2@ideasonboard.com>
-Date: Fri, 24 Nov 2017 18:09:38 +0000
+        Fri, 10 Nov 2017 19:39:08 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v7 20/25] rcar-vin: add chsel information to rvin_info
+Date: Sat, 11 Nov 2017 01:38:30 +0100
+Message-Id: <20171111003835.4909-21-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <1511534445-30512-1-git-send-email-akinobu.mita@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Akinobu,
+Each Gen3 SoC has a limited set of predefined routing possibilities for
+which CSI-2 device and virtual channel can be routed to which VIN
+instance. Prepare to store this information in the struct rvin_info.
 
-Thankyou for the patch.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-vin.h | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-On 24/11/17 14:40, Akinobu Mita wrote:
-> The sub-device for ov7670 is registered by v4l2_async_register_subdev().
-> So it should be unregistered by v4l2_async_unregister_subdev() instead of
-> v4l2_device_unregister_subdev().
-> 
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
->  drivers/media/i2c/ov7670.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-> index 950a0ac..b61d88e 100644
-> --- a/drivers/media/i2c/ov7670.c
-> +++ b/drivers/media/i2c/ov7670.c
-> @@ -1820,7 +1820,7 @@ static int ov7670_remove(struct i2c_client *client)
->  	struct v4l2_subdev *sd = i2c_get_clientdata(client);
->  	struct ov7670_info *info = to_state(sd);
->  
-> -	v4l2_device_unregister_subdev(sd);
-> +	v4l2_async_unregister_subdev(sd);
-
-Good spot.
-
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
->  	v4l2_ctrl_handler_free(&info->hdl);
->  	clk_disable_unprepare(info->clk);
->  #if defined(CONFIG_MEDIA_CONTROLLER)
-> 
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index a9bd570d6635fd47..41c81b8d9fb8e851 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -35,6 +35,9 @@
+ /* Max number on VIN instances that can be in a system */
+ #define RCAR_VIN_NUM 8
+ 
++/* Max number of CHSEL values for any Gen3 SoC */
++#define RCAR_CHSEL_MAX 6
++
+ enum chip_id {
+ 	RCAR_H1,
+ 	RCAR_M1,
+@@ -91,6 +94,22 @@ struct rvin_graph_entity {
+ 
+ struct rvin_group;
+ 
++/** struct rvin_group_chsel - Map a CSI-2 receiver and channel to a CHSEL value
++ * @csi:		VIN internal number for CSI-2 device
++ * @chan:		Output channel of the CSI-2 receiver. Each R-Car CSI-2
++ *			receiver has four output channels facing the VIN
++ *			devices, each channel can carry one CSI-2 Virtual
++ *			Channel (VC) and there are no correlation between
++ *			output channel number and CSI-2 VC. It's up to the
++ *			CSI-2 receiver driver to configure which VC is
++ *			outputted on which channel, the VIN devices only
++ *			cares about output channels.
++ */
++struct rvin_group_chsel {
++	enum rvin_csi_id csi;
++	unsigned int chan;
++};
++
+ /**
+  * struct rvin_info - Information about the particular VIN implementation
+  * @chip:		type of VIN chip
+@@ -98,6 +117,9 @@ struct rvin_group;
+  *
+  * max_width:		max input width the VIN supports
+  * max_height:		max input height the VIN supports
++ *
++ * num_chsels:		number of possible chsel values for this VIN
++ * chsels:		routing table VIN <-> CSI-2 for the chsel values
+  */
+ struct rvin_info {
+ 	enum chip_id chip;
+@@ -105,6 +127,9 @@ struct rvin_info {
+ 
+ 	unsigned int max_width;
+ 	unsigned int max_height;
++
++	unsigned int num_chsels;
++	struct rvin_group_chsel chsels[RCAR_VIN_NUM][RCAR_CHSEL_MAX];
+ };
+ 
+ /**
+-- 
+2.15.0
