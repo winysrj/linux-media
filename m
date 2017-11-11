@@ -1,107 +1,1126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f182.google.com ([74.125.82.182]:36541 "EHLO
-        mail-ot0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751415AbdKWQQ5 (ORCPT
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:44374 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754127AbdKKALR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Nov 2017 11:16:57 -0500
-Received: by mail-ot0-f182.google.com with SMTP id t79so16690316ota.3
-        for <linux-media@vger.kernel.org>; Thu, 23 Nov 2017 08:16:57 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <f0af1285-f941-4e7b-c626-ea82d4917dd4@gentoo.org>
-References: <CAAeHK+ymo-iNX82-Ff9xdhf-jyTqAKxgvRAz_FYcNdHVCmqLgw@mail.gmail.com>
- <f0af1285-f941-4e7b-c626-ea82d4917dd4@gentoo.org>
-From: Andrey Konovalov <andreyknvl@google.com>
-Date: Thu, 23 Nov 2017 17:16:55 +0100
-Message-ID: <CAAeHK+xNmK=y735DLVQWJyfdudgtw08pEKK-Z5pASOVSMEJiuQ@mail.gmail.com>
-Subject: Re: usb/media/em28xx: use-after-free in dvb_unregister_frontend
-To: Matthias Schwarzott <zzam@gentoo.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Colin Ian King <colin.king@canonical.com>,
-        Daniel Scheller <d.scheller@gmx.net>,
-        Ingo Molnar <mingo@kernel.org>,
+        Fri, 10 Nov 2017 19:11:17 -0500
+Received: by mail-lf0-f68.google.com with SMTP id s16so12540158lfs.1
+        for <linux-media@vger.kernel.org>; Fri, 10 Nov 2017 16:11:16 -0800 (PST)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Sat, 11 Nov 2017 01:11:13 +0100
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        syzkaller <syzkaller@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH v10 2/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2
+ receiver driver
+Message-ID: <20171111001113.GB13042@bigcity.dyn.berto.se>
+References: <20171110133137.9137-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171110133137.9137-3-niklas.soderlund+renesas@ragnatech.se>
+ <20171110223227.pug7d4qi7rdi4b4b@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171110223227.pug7d4qi7rdi4b4b@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 23, 2017 at 8:25 AM, Matthias Schwarzott <zzam@gentoo.org> wrote:
-> Am 21.11.2017 um 14:51 schrieb Andrey Konovalov:
->> Hi!
->>
-> Hi Andrey,
->
->> I've got the following report while fuzzing the kernel with syzkaller.
->>
->> On commit e1d1ea549b57790a3d8cf6300e6ef86118d692a3 (4.15-rc1).
->>
->> em28xx 1-1:9.0: Disconnecting
->> tc90522 1-0015: Toshiba TC90522 attached.
->> qm1d1c0042 2-0061: Sharp QM1D1C0042 attached.
->> dvbdev: DVB: registering new adapter (1-1:9.0)
->> em28xx 1-1:9.0: DVB: registering adapter 0 frontend 0 (Toshiba TC90522
->> ISDB-S module)...
->> dvbdev: dvb_create_media_entity: media entity 'Toshiba TC90522 ISDB-S
->> module' registered.
->> dvbdev: dvb_create_media_entity: media entity 'dvb-demux' registered.
->> em28xx 1-1:9.0: DVB extension successfully initialized
->> em28xx 1-1:9.0: Remote control support is not available for this card.
->> em28xx 1-1:9.0: Closing DVB extension
->> ==================================================================
->> BUG: KASAN: use-after-free in dvb_unregister_frontend+0x8f/0xa0
->> Read of size 8 at addr ffff880067853628 by task kworker/0:3/3182
->>
->> CPU: 0 PID: 3182 Comm: kworker/0:3 Not tainted 4.14.0-57501-g9284d204d604 #119
->> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
->> Workqueue: usb_hub_wq hub_event
->> Call Trace:
->>  __dump_stack lib/dump_stack.c:17
->>  dump_stack+0xe1/0x157 lib/dump_stack.c:53
->>  print_address_description+0x71/0x234 mm/kasan/report.c:252
->>  kasan_report_error mm/kasan/report.c:351
->>  kasan_report+0x173/0x270 mm/kasan/report.c:409
->>  __asan_report_load8_noabort+0x19/0x20 mm/kasan/report.c:430
->>  dvb_unregister_frontend+0x8f/0xa0 drivers/media/dvb-core/dvb_frontend.c:2768
->>  em28xx_unregister_dvb drivers/media/usb/em28xx/em28xx-dvb.c:1122
->>  em28xx_dvb_fini+0x62d/0x8e0 drivers/media/usb/em28xx/em28xx-dvb.c:2129
->>  em28xx_close_extension+0x71/0x220 drivers/media/usb/em28xx/em28xx-core.c:1122
->>  em28xx_usb_disconnect+0xd7/0x130 drivers/media/usb/em28xx/em28xx-cards.c:3763
->>  usb_unbind_interface+0x1b6/0x950 drivers/usb/core/driver.c:423
->>  __device_release_driver drivers/base/dd.c:870
->>  device_release_driver_internal+0x563/0x630 drivers/base/dd.c:903
->>  device_release_driver+0x1e/0x30 drivers/base/dd.c:928
->>  bus_remove_device+0x2fc/0x4b0 drivers/base/bus.c:565
->>  device_del+0x39f/0xa70 drivers/base/core.c:1984
->>  usb_disable_device+0x223/0x710 drivers/usb/core/message.c:1205
->>  usb_disconnect+0x285/0x7f0 drivers/usb/core/hub.c:2205
->>  hub_port_connect drivers/usb/core/hub.c:4851
->>  hub_port_connect_change drivers/usb/core/hub.c:5106
->>  port_event drivers/usb/core/hub.c:5212
->>  hub_event_impl+0x10f0/0x3440 drivers/usb/core/hub.c:5324
->>  hub_event+0x38/0x50 drivers/usb/core/hub.c:5222
->>  process_one_work+0x944/0x15f0 kernel/workqueue.c:2112
->>  worker_thread+0xef/0x10d0 kernel/workqueue.c:2246
->>  kthread+0x367/0x420 kernel/kthread.c:238
->>  ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:437
->>
->
-> this looks similar to the oops fixed by this patch:
->
-> https://patchwork.linuxtv.org/patch/45219/
->
-> Could you try if it fixes your case also?
+Hej Sakari,
 
-Hi Matthias!
+On 2017-11-11 00:32:27 +0200, Sakari Ailus wrote:
+> Hej Niklas,
+> 
+> Tack för uppdaterade lappar! Jag har några kommentar nedan... det ser bra
+> ut överallt.
 
-Yes, it does fixes the crash for me.
+Tack för din feedback!
 
-Thanks!
+> 
+> On Fri, Nov 10, 2017 at 02:31:37PM +0100, Niklas Söderlund wrote:
+> > A V4L2 driver for Renesas R-Car MIPI CSI-2 receiver. The driver
+> > supports the rcar-vin driver on R-Car Gen3 SoCs where separate CSI-2
+> > hardware blocks are connected between the video sources and the video
+> > grabbers (VIN).
+> > 
+> > Driver is based on a prototype by Koji Matsuoka in the Renesas BSP.
+> > 
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  drivers/media/platform/rcar-vin/Kconfig     |  12 +
+> >  drivers/media/platform/rcar-vin/Makefile    |   1 +
+> >  drivers/media/platform/rcar-vin/rcar-csi2.c | 934 ++++++++++++++++++++++++++++
+> >  3 files changed, 947 insertions(+)
+> >  create mode 100644 drivers/media/platform/rcar-vin/rcar-csi2.c
+> > 
+> > diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
+> > index af4c98b44d2e22cb..6875f30c1ae42631 100644
+> > --- a/drivers/media/platform/rcar-vin/Kconfig
+> > +++ b/drivers/media/platform/rcar-vin/Kconfig
+> > @@ -1,3 +1,15 @@
+> > +config VIDEO_RCAR_CSI2
+> > +	tristate "R-Car MIPI CSI-2 Receiver"
+> > +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF
+> > +	depends on ARCH_RENESAS || COMPILE_TEST
+> > +	select V4L2_FWNODE
+> > +	---help---
+> > +	  Support for Renesas R-Car MIPI CSI-2 receiver.
+> > +	  Supports R-Car Gen3 SoCs.
+> > +
+> > +	  To compile this driver as a module, choose M here: the
+> > +	  module will be called rcar-csi2.
+> > +
+> >  config VIDEO_RCAR_VIN
+> >  	tristate "R-Car Video Input (VIN) Driver"
+> >  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF && HAS_DMA && MEDIA_CONTROLLER
+> > diff --git a/drivers/media/platform/rcar-vin/Makefile b/drivers/media/platform/rcar-vin/Makefile
+> > index 48c5632c21dc060b..5ab803d3e7c1aa57 100644
+> > --- a/drivers/media/platform/rcar-vin/Makefile
+> > +++ b/drivers/media/platform/rcar-vin/Makefile
+> > @@ -1,3 +1,4 @@
+> >  rcar-vin-objs = rcar-core.o rcar-dma.o rcar-v4l2.o
+> >  
+> > +obj-$(CONFIG_VIDEO_RCAR_CSI2) += rcar-csi2.o
+> >  obj-$(CONFIG_VIDEO_RCAR_VIN) += rcar-vin.o
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> > new file mode 100644
+> > index 0000000000000000..27d09da191a09b39
+> > --- /dev/null
+> > +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> > @@ -0,0 +1,934 @@
+> > +/*
+> > + * Driver for Renesas R-Car MIPI CSI-2 Receiver
+> > + *
+> > + * Copyright (C) 2017 Renesas Electronics Corp.
+> > + *
+> > + * This program is free software; you can redistribute  it and/or modify it
+> > + * under  the terms of  the GNU General  Public License as published by the
+> > + * Free Software Foundation;  either version 2 of the  License, or (at your
+> > + * option) any later version.
+> > + */
+> > +
+> > +#include <linux/delay.h>
+> > +#include <linux/interrupt.h>
+> > +#include <linux/io.h>
+> > +#include <linux/module.h>
+> > +#include <linux/of.h>
+> > +#include <linux/of_device.h>
+> > +#include <linux/of_graph.h>
+> > +#include <linux/platform_device.h>
+> > +#include <linux/pm_runtime.h>
+> > +#include <linux/sys_soc.h>
+> > +
+> > +#include <media/v4l2-ctrls.h>
+> > +#include <media/v4l2-device.h>
+> > +#include <media/v4l2-fwnode.h>
+> > +#include <media/v4l2-mc.h>
+> > +#include <media/v4l2-subdev.h>
+> > +
+> > +/* Register offsets and bits */
+> > +
+> > +/* Control Timing Select */
+> > +#define TREF_REG			0x00
+> > +#define TREF_TREF			BIT(0)
+> > +
+> > +/* Software Reset */
+> > +#define SRST_REG			0x04
+> > +#define SRST_SRST			BIT(0)
+> > +
+> > +/* PHY Operation Control */
+> > +#define PHYCNT_REG			0x08
+> > +#define PHYCNT_SHUTDOWNZ		BIT(17)
+> > +#define PHYCNT_RSTZ			BIT(16)
+> > +#define PHYCNT_ENABLECLK		BIT(4)
+> > +#define PHYCNT_ENABLE_3			BIT(3)
+> > +#define PHYCNT_ENABLE_2			BIT(2)
+> > +#define PHYCNT_ENABLE_1			BIT(1)
+> > +#define PHYCNT_ENABLE_0			BIT(0)
+> > +
+> > +/* Checksum Control */
+> > +#define CHKSUM_REG			0x0c
+> > +#define CHKSUM_ECC_EN			BIT(1)
+> > +#define CHKSUM_CRC_EN			BIT(0)
+> > +
+> > +/*
+> > + * Channel Data Type Select
+> > + * VCDT[0-15]:  Channel 1 VCDT[16-31]:  Channel 2
+> > + * VCDT2[0-15]: Channel 3 VCDT2[16-31]: Channel 4
+> > + */
+> > +#define VCDT_REG			0x10
+> > +#define VCDT2_REG			0x14
+> > +#define VCDT_VCDTN_EN			BIT(15)
+> > +#define VCDT_SEL_VC(n)			(((n) & 0x3) << 8)
+> > +#define VCDT_SEL_DTN_ON			BIT(6)
+> > +#define VCDT_SEL_DT(n)			(((n) & 0x3f) << 0)
+> > +
+> > +/* Frame Data Type Select */
+> > +#define FRDT_REG			0x18
+> > +
+> > +/* Field Detection Control */
+> > +#define FLD_REG				0x1c
+> > +#define FLD_FLD_NUM(n)			(((n) & 0xff) << 16)
+> > +#define FLD_FLD_EN4			BIT(3)
+> > +#define FLD_FLD_EN3			BIT(2)
+> > +#define FLD_FLD_EN2			BIT(1)
+> > +#define FLD_FLD_EN			BIT(0)
+> > +
+> > +/* Automatic Standby Control */
+> > +#define ASTBY_REG			0x20
+> > +
+> > +/* Long Data Type Setting 0 */
+> > +#define LNGDT0_REG			0x28
+> > +
+> > +/* Long Data Type Setting 1 */
+> > +#define LNGDT1_REG			0x2c
+> > +
+> > +/* Interrupt Enable */
+> > +#define INTEN_REG			0x30
+> > +
+> > +/* Interrupt Source Mask */
+> > +#define INTCLOSE_REG			0x34
+> > +
+> > +/* Interrupt Status Monitor */
+> > +#define INTSTATE_REG			0x38
+> > +#define INTSTATE_INT_ULPS_START		BIT(7)
+> > +#define INTSTATE_INT_ULPS_END		BIT(6)
+> > +
+> > +/* Interrupt Error Status Monitor */
+> > +#define INTERRSTATE_REG			0x3c
+> > +
+> > +/* Short Packet Data */
+> > +#define SHPDAT_REG			0x40
+> > +
+> > +/* Short Packet Count */
+> > +#define SHPCNT_REG			0x44
+> > +
+> > +/* LINK Operation Control */
+> > +#define LINKCNT_REG			0x48
+> > +#define LINKCNT_MONITOR_EN		BIT(31)
+> > +#define LINKCNT_REG_MONI_PACT_EN	BIT(25)
+> > +#define LINKCNT_ICLK_NONSTOP		BIT(24)
+> > +
+> > +/* Lane Swap */
+> > +#define LSWAP_REG			0x4c
+> > +#define LSWAP_L3SEL(n)			(((n) & 0x3) << 6)
+> > +#define LSWAP_L2SEL(n)			(((n) & 0x3) << 4)
+> > +#define LSWAP_L1SEL(n)			(((n) & 0x3) << 2)
+> > +#define LSWAP_L0SEL(n)			(((n) & 0x3) << 0)
+> > +
+> > +/* PHY Test Interface Write Register */
+> > +#define PHTW_REG			0x50
+> > +
+> > +/* PHY Test Interface Clear */
+> > +#define PHTC_REG			0x58
+> > +#define PHTC_TESTCLR			BIT(0)
+> > +
+> > +/* PHY Frequency Control */
+> > +#define PHYPLL_REG			0x68
+> > +#define PHYPLL_HSFREQRANGE(n)		((n) << 16)
+> > +
+> > +struct phypll_hsfreqrange {
+> > +	u16 mbps;
+> > +	u16 reg;
+> > +};
+> > +
+> > +static const struct phypll_hsfreqrange hsfreqrange_h3_v3h_m3n[] = {
+> > +	{ .mbps =   80, .reg = 0x00 },
+> > +	{ .mbps =   90, .reg = 0x10 },
+> > +	{ .mbps =  100, .reg = 0x20 },
+> > +	{ .mbps =  110, .reg = 0x30 },
+> > +	{ .mbps =  120, .reg = 0x01 },
+> > +	{ .mbps =  130, .reg = 0x11 },
+> > +	{ .mbps =  140, .reg = 0x21 },
+> > +	{ .mbps =  150, .reg = 0x31 },
+> > +	{ .mbps =  160, .reg = 0x02 },
+> > +	{ .mbps =  170, .reg = 0x12 },
+> > +	{ .mbps =  180, .reg = 0x22 },
+> > +	{ .mbps =  190, .reg = 0x32 },
+> > +	{ .mbps =  205, .reg = 0x03 },
+> > +	{ .mbps =  220, .reg = 0x13 },
+> > +	{ .mbps =  235, .reg = 0x23 },
+> > +	{ .mbps =  250, .reg = 0x33 },
+> > +	{ .mbps =  275, .reg = 0x04 },
+> > +	{ .mbps =  300, .reg = 0x14 },
+> > +	{ .mbps =  325, .reg = 0x25 },
+> > +	{ .mbps =  350, .reg = 0x35 },
+> > +	{ .mbps =  400, .reg = 0x05 },
+> > +	{ .mbps =  450, .reg = 0x26 },
+> > +	{ .mbps =  500, .reg = 0x36 },
+> > +	{ .mbps =  550, .reg = 0x37 },
+> > +	{ .mbps =  600, .reg = 0x07 },
+> > +	{ .mbps =  650, .reg = 0x18 },
+> > +	{ .mbps =  700, .reg = 0x28 },
+> > +	{ .mbps =  750, .reg = 0x39 },
+> > +	{ .mbps =  800, .reg = 0x09 },
+> > +	{ .mbps =  850, .reg = 0x19 },
+> > +	{ .mbps =  900, .reg = 0x29 },
+> > +	{ .mbps =  950, .reg = 0x3a },
+> > +	{ .mbps = 1000, .reg = 0x0a },
+> > +	{ .mbps = 1050, .reg = 0x1a },
+> > +	{ .mbps = 1100, .reg = 0x2a },
+> > +	{ .mbps = 1150, .reg = 0x3b },
+> > +	{ .mbps = 1200, .reg = 0x0b },
+> > +	{ .mbps = 1250, .reg = 0x1b },
+> > +	{ .mbps = 1300, .reg = 0x2b },
+> > +	{ .mbps = 1350, .reg = 0x3c },
+> > +	{ .mbps = 1400, .reg = 0x0c },
+> > +	{ .mbps = 1450, .reg = 0x1c },
+> > +	{ .mbps = 1500, .reg = 0x2c },
+> > +	/* guard */
+> > +	{ .mbps =   0,	.reg = 0x00 },
+> > +};
+> > +
+> > +static const struct phypll_hsfreqrange hsfreqrange_m3w_h3es1[] = {
+> > +	{ .mbps =   80,	.reg = 0x00 },
+> > +	{ .mbps =   90,	.reg = 0x10 },
+> > +	{ .mbps =  100,	.reg = 0x20 },
+> > +	{ .mbps =  110,	.reg = 0x30 },
+> > +	{ .mbps =  120,	.reg = 0x01 },
+> > +	{ .mbps =  130,	.reg = 0x11 },
+> > +	{ .mbps =  140,	.reg = 0x21 },
+> > +	{ .mbps =  150,	.reg = 0x31 },
+> > +	{ .mbps =  160,	.reg = 0x02 },
+> > +	{ .mbps =  170,	.reg = 0x12 },
+> > +	{ .mbps =  180,	.reg = 0x22 },
+> > +	{ .mbps =  190,	.reg = 0x32 },
+> > +	{ .mbps =  205,	.reg = 0x03 },
+> > +	{ .mbps =  220,	.reg = 0x13 },
+> > +	{ .mbps =  235,	.reg = 0x23 },
+> > +	{ .mbps =  250,	.reg = 0x33 },
+> > +	{ .mbps =  275,	.reg = 0x04 },
+> > +	{ .mbps =  300,	.reg = 0x14 },
+> > +	{ .mbps =  325,	.reg = 0x05 },
+> > +	{ .mbps =  350,	.reg = 0x15 },
+> > +	{ .mbps =  400,	.reg = 0x25 },
+> > +	{ .mbps =  450,	.reg = 0x06 },
+> > +	{ .mbps =  500,	.reg = 0x16 },
+> > +	{ .mbps =  550,	.reg = 0x07 },
+> > +	{ .mbps =  600,	.reg = 0x17 },
+> > +	{ .mbps =  650,	.reg = 0x08 },
+> > +	{ .mbps =  700,	.reg = 0x18 },
+> > +	{ .mbps =  750,	.reg = 0x09 },
+> > +	{ .mbps =  800,	.reg = 0x19 },
+> > +	{ .mbps =  850,	.reg = 0x29 },
+> > +	{ .mbps =  900,	.reg = 0x39 },
+> > +	{ .mbps =  950,	.reg = 0x0A },
+> > +	{ .mbps = 1000,	.reg = 0x1A },
+> > +	{ .mbps = 1050,	.reg = 0x2A },
+> > +	{ .mbps = 1100,	.reg = 0x3A },
+> > +	{ .mbps = 1150,	.reg = 0x0B },
+> > +	{ .mbps = 1200,	.reg = 0x1B },
+> > +	{ .mbps = 1250,	.reg = 0x2B },
+> > +	{ .mbps = 1300,	.reg = 0x3B },
+> > +	{ .mbps = 1350,	.reg = 0x0C },
+> > +	{ .mbps = 1400,	.reg = 0x1C },
+> > +	{ .mbps = 1450,	.reg = 0x2C },
+> > +	{ .mbps = 1500,	.reg = 0x3C },
+> > +	/* guard */
+> > +	{ .mbps =   0,	.reg = 0x00 },
+> > +};
+> > +
+> > +/* PHY ESC Error Monitor */
+> > +#define PHEERM_REG			0x74
+> > +
+> > +/* PHY Clock Lane Monitor */
+> > +#define PHCLM_REG			0x78
+> > +
+> > +/* PHY Data Lane Monitor */
+> > +#define PHDLM_REG			0x7c
+> > +
+> > +/* CSI0CLK Frequency Configuration Preset Register */
+> > +#define CSI0CLKFCPR_REG			0x260
+> > +#define CSI0CLKFREQRANGE(n)		((n & 0x3f) << 16)
+> > +
+> > +struct rcar_csi2_format {
+> > +	unsigned int code;
+> > +	unsigned int datatype;
+> > +	unsigned int bpp;
+> > +};
+> > +
+> > +static const struct rcar_csi2_format rcar_csi2_formats[] = {
+> > +	{ .code = MEDIA_BUS_FMT_RGB888_1X24,	.datatype = 0x24, .bpp = 24 },
+> > +	{ .code = MEDIA_BUS_FMT_UYVY8_1X16,	.datatype = 0x1e, .bpp = 16 },
+> > +	{ .code = MEDIA_BUS_FMT_UYVY8_2X8,	.datatype = 0x1e, .bpp = 16 },
+> > +	{ .code = MEDIA_BUS_FMT_YUYV10_2X10,	.datatype = 0x1e, .bpp = 16 },
+> > +};
+> > +
+> > +static const struct rcar_csi2_format *rcar_csi2_code_to_fmt(unsigned int code)
+> > +{
+> > +	unsigned int i;
+> > +
+> > +	for (i = 0; i < ARRAY_SIZE(rcar_csi2_formats); i++)
+> > +		if (rcar_csi2_formats[i].code == code)
+> > +			return rcar_csi2_formats + i;
+> 
+> Extra newline would be nice.
 
->
-> Regards
-> Matthias
+Yes :-)
+
+> 
+> > +	return NULL;
+> > +}
+> > +
+> > +enum rcar_csi2_pads {
+> > +	RCAR_CSI2_SINK,
+> > +	RCAR_CSI2_SOURCE_VC0,
+> > +	RCAR_CSI2_SOURCE_VC1,
+> > +	RCAR_CSI2_SOURCE_VC2,
+> > +	RCAR_CSI2_SOURCE_VC3,
+> > +	NR_OF_RCAR_CSI2_PAD,
+> > +};
+> > +
+> > +struct rcar_csi2_info {
+> > +	const struct phypll_hsfreqrange *hsfreqrange;
+> > +	unsigned int csi0clkfreqrange;
+> > +	bool clear_ulps;
+> > +	bool have_phtw;
+> > +};
+> > +
+> > +struct rcar_csi2 {
+> > +	struct device *dev;
+> > +	void __iomem *base;
+> > +	const struct rcar_csi2_info *info;
+> > +
+> > +	struct v4l2_subdev subdev;
+> > +	struct media_pad pads[NR_OF_RCAR_CSI2_PAD];
+> > +
+> > +	struct v4l2_async_notifier notifier;
+> > +	struct v4l2_async_subdev remote;
+> > +
+> > +	struct v4l2_mbus_framefmt mf;
+> > +
+> > +	struct mutex lock;
+> > +	int stream_count;
+> > +
+> > +	unsigned short lanes;
+> > +	unsigned char lane_swap[4];
+> > +};
+> > +
+> > +static inline struct rcar_csi2 *sd_to_csi2(struct v4l2_subdev *sd)
+> > +{
+> > +	return container_of(sd, struct rcar_csi2, subdev);
+> > +}
+> > +
+> > +static inline struct rcar_csi2 *notifier_to_csi2(struct v4l2_async_notifier *n)
+> > +{
+> > +	return container_of(n, struct rcar_csi2, notifier);
+> > +}
+> > +
+> > +static u32 rcar_csi2_read(struct rcar_csi2 *priv, unsigned int reg)
+> > +{
+> > +	return ioread32(priv->base + reg);
+> > +}
+> > +
+> > +static void rcar_csi2_write(struct rcar_csi2 *priv, unsigned int reg, u32 data)
+> > +{
+> > +	iowrite32(data, priv->base + reg);
+> > +}
+> > +
+> > +static void rcar_csi2_reset(struct rcar_csi2 *priv)
+> > +{
+> > +	rcar_csi2_write(priv, SRST_REG, SRST_SRST);
+> > +	usleep_range(100, 150);
+> > +	rcar_csi2_write(priv, SRST_REG, 0);
+> > +}
+> > +
+> > +static int rcar_csi2_wait_phy_start(struct rcar_csi2 *priv)
+> > +{
+> > +	int timeout;
+> > +
+> > +	/* Wait for the clock and data lanes to enter LP-11 state. */
+> > +	for (timeout = 100; timeout > 0; timeout--) {
+> > +		const u32 lane_mask = (1 << priv->lanes) - 1;
+> > +
+> > +		if ((rcar_csi2_read(priv, PHCLM_REG) & 1) == 1 &&
+> > +		    (rcar_csi2_read(priv, PHDLM_REG) & lane_mask) == lane_mask)
+> > +			return 0;
+> > +
+> > +		msleep(20);
+> > +	}
+> > +
+> > +	dev_err(priv->dev, "Timeout waiting for LP-11 state\n");
+> > +
+> > +	return -ETIMEDOUT;
+> > +}
+> > +
+> > +static int rcar_csi2_calc_phypll(struct rcar_csi2 *priv,
+> > +				 struct v4l2_subdev *source,
+> > +				 struct v4l2_mbus_framefmt *mf,
+> > +				 u32 *phypll)
+> > +{
+> > +	const struct phypll_hsfreqrange *hsfreq;
+> > +	const struct rcar_csi2_format *format;
+> > +	struct v4l2_ctrl *ctrl;
+> > +	u64 mbps;
+> > +
+> > +	ctrl = v4l2_ctrl_find(source->ctrl_handler, V4L2_CID_PIXEL_RATE);
+> 
+> How about LINK_FREQ instead? It'd be more straightforward to calculate
+> this. Up to you.
+
+I need to use PIXEL_RATE as my test setup uses the adv748x driver which 
+only implement that control. In the short term I would like to support 
+both, but I need a setup to test that before I can add support for it.  
+In the long term, maybe we should deprecate one of the controls?
+
+> 
+> > +	if (!ctrl) {
+> > +		dev_err(priv->dev, "no link freq control in subdev %s\n",
+> > +			source->name);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	format = rcar_csi2_code_to_fmt(mf->code);
+> > +	if (!format) {
+> > +		dev_err(priv->dev, "Unknown format: %d\n", mf->code);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	mbps = v4l2_ctrl_g_ctrl_int64(ctrl) * format->bpp;
+> > +	do_div(mbps, priv->lanes * 1000000);
+> > +
+> > +	for (hsfreq = priv->info->hsfreqrange; hsfreq->mbps != 0; hsfreq++)
+> > +		if (hsfreq->mbps >= mbps)
+> > +			break;
+> > +
+> > +	if (!hsfreq->mbps) {
+> > +		dev_err(priv->dev, "Unsupported PHY speed (%llu Mbps)", mbps);
+> > +		return -ERANGE;
+> > +	}
+> > +
+> > +	dev_dbg(priv->dev, "PHY HSFREQRANGE requested %llu got %u Mbps\n", mbps,
+> > +		hsfreq->mbps);
+> > +
+> > +	*phypll = PHYPLL_HSFREQRANGE(hsfreq->reg);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int rcar_csi2_start(struct rcar_csi2 *priv)
+> > +{
+> > +	const struct rcar_csi2_format *format;
+> > +	struct v4l2_subdev_format fmt;
+> > +	struct media_pad *pad, *source_pad;
+> > +	struct v4l2_subdev *source = NULL;
+> > +	struct v4l2_mbus_framefmt *mf = &fmt.format;
+> > +	u32 phycnt, phypll, tmp;
+> > +	u32 vcdt = 0, vcdt2 = 0;
+> > +	unsigned int i;
+> > +	int ret;
+> > +
+> > +	pad = &priv->subdev.entity.pads[RCAR_CSI2_SINK];
+> > +	source_pad = media_entity_remote_pad(pad);
+> > +	if (!source_pad) {
+> > +		dev_err(priv->dev, "Could not find remote source pad\n");
+> > +		return -ENODEV;
+> > +	}
+> > +
+> > +	source = media_entity_to_v4l2_subdev(source_pad->entity);
+> > +	if (!source) {
+> > +		dev_err(priv->dev, "Could not find remote subdevice\n");
+> > +		return -ENODEV;
+> > +	}
+> 
+> Something must be really, really wrong if the above would happen. A pad
+> without an entity?
+
+Good catch, I will remove the unneeded check.
+
+> 
+> > +
+> > +	dev_dbg(priv->dev, "Using source %s pad: %u\n", source->name,
+> > +		source_pad->index);
+> > +
+> > +	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> > +	fmt.pad = source_pad->index;
+> > +	ret = v4l2_subdev_call(source, pad, get_fmt, NULL, &fmt);
+> > +	if (ret)
+> > +		return ret;
+> 
+> The link format has been validated already by this point this isn't
+> supposed to fail or produce different results than in link validation.
+> 
+> You could get the same format from the local pad, too.
+
+Another good catch, I will use the format stored locally to make the 
+code simpler. As you state the formats are already validated so it's 
+safe to do so. I still need to get the remote subdevice to be able to 
+read the PIXEL_RATE control, but I can move that to 
+rcar_csi2_calc_phypll() where it's actually used.
+
+> 
+> > +
+> > +	dev_dbg(priv->dev, "Input size (%ux%u%c)\n", mf->width,
+> > +		mf->height, mf->field == V4L2_FIELD_NONE ? 'p' : 'i');
+> > +
+> > +	/*
+> > +	 * Enable all Virtual Channels
+> > +	 *
+> > +	 * NOTE: It's not possible to get individual format for each
+> > +	 *       source virtual channel. Once this is possible in V4L2
+> > +	 *       it should be used here.
+> > +	 */
+> > +	for (i = 0; i < 4; i++) {
+> > +		format = rcar_csi2_code_to_fmt(mf->code);
+> > +		if (!format) {
+> > +			dev_err(priv->dev, "Unsupported media bus format: %d\n",
+> > +				mf->code);
+> > +			return -EINVAL;
+> > +		}
+> > +
+> > +		tmp = VCDT_SEL_VC(i) | VCDT_VCDTN_EN | VCDT_SEL_DTN_ON |
+> > +			VCDT_SEL_DT(format->datatype);
+> > +
+> > +		/* Store in correct reg and offset */
+> > +		if (i < 2)
+> > +			vcdt |= tmp << ((i % 2) * 16);
+> > +		else
+> > +			vcdt2 |= tmp << ((i % 2) * 16);
+> > +	}
+> > +
+> > +	switch (priv->lanes) {
+> > +	case 1:
+> > +		phycnt = PHYCNT_ENABLECLK | PHYCNT_ENABLE_0;
+> > +		break;
+> > +	case 2:
+> > +		phycnt = PHYCNT_ENABLECLK | PHYCNT_ENABLE_1 | PHYCNT_ENABLE_0;
+> > +		break;
+> > +	case 4:
+> > +		phycnt = PHYCNT_ENABLECLK | PHYCNT_ENABLE_3 | PHYCNT_ENABLE_2 |
+> > +			PHYCNT_ENABLE_1 | PHYCNT_ENABLE_0;
+> > +		break;
+> > +	default:
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	ret = rcar_csi2_calc_phypll(priv, source, mf, &phypll);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	/* Clear Ultra Low Power interrupt */
+> > +	if (priv->info->clear_ulps)
+> > +		rcar_csi2_write(priv, INTSTATE_REG,
+> > +				INTSTATE_INT_ULPS_START |
+> > +				INTSTATE_INT_ULPS_END);
+> > +
+> > +	/* Init */
+> > +	rcar_csi2_write(priv, TREF_REG, TREF_TREF);
+> > +	rcar_csi2_reset(priv);
+> > +	rcar_csi2_write(priv, PHTC_REG, 0);
+> > +
+> > +	/* Configure */
+> > +	rcar_csi2_write(priv, FLD_REG, FLD_FLD_NUM(2) | FLD_FLD_EN4 |
+> > +			FLD_FLD_EN3 | FLD_FLD_EN2 | FLD_FLD_EN);
+> > +	rcar_csi2_write(priv, VCDT_REG, vcdt);
+> > +	rcar_csi2_write(priv, VCDT2_REG, vcdt2);
+> > +	/* Lanes are zero indexed */
+> > +	rcar_csi2_write(priv, LSWAP_REG,
+> > +			LSWAP_L0SEL(priv->lane_swap[0] - 1) |
+> > +			LSWAP_L1SEL(priv->lane_swap[1] - 1) |
+> > +			LSWAP_L2SEL(priv->lane_swap[2] - 1) |
+> > +			LSWAP_L3SEL(priv->lane_swap[3] - 1));
+> > +
+> > +	if (priv->info->have_phtw) {
+> > +		/*
+> > +		 * This is for H3 ES2.0
+> > +		 *
+> > +		 * NOTE: Additional logic is needed here when
+> > +		 * support for V3H and/or M3-N is added
+> > +		 */
+> > +		rcar_csi2_write(priv, PHTW_REG, 0x01cc01e2);
+> > +		rcar_csi2_write(priv, PHTW_REG, 0x010101e3);
+> > +		rcar_csi2_write(priv, PHTW_REG, 0x010101e4);
+> > +		rcar_csi2_write(priv, PHTW_REG, 0x01100104);
+> > +		rcar_csi2_write(priv, PHTW_REG, 0x01030100);
+> > +		rcar_csi2_write(priv, PHTW_REG, 0x01800100);
+> > +	}
+> > +
+> > +	/* Start */
+> > +	rcar_csi2_write(priv, PHYPLL_REG, phypll);
+> > +
+> > +	/* Set frequency range if we have it */
+> > +	if (priv->info->csi0clkfreqrange)
+> > +		rcar_csi2_write(priv, CSI0CLKFCPR_REG,
+> > +				CSI0CLKFREQRANGE(priv->info->csi0clkfreqrange));
+> > +
+> > +	rcar_csi2_write(priv, PHYCNT_REG, phycnt);
+> > +	rcar_csi2_write(priv, LINKCNT_REG, LINKCNT_MONITOR_EN |
+> > +			LINKCNT_REG_MONI_PACT_EN | LINKCNT_ICLK_NONSTOP);
+> > +	rcar_csi2_write(priv, PHYCNT_REG, phycnt | PHYCNT_SHUTDOWNZ);
+> > +	rcar_csi2_write(priv, PHYCNT_REG, phycnt | PHYCNT_SHUTDOWNZ |
+> > +			PHYCNT_RSTZ);
+> > +
+> > +	return rcar_csi2_wait_phy_start(priv);
+> > +}
+> > +
+> > +static void rcar_csi2_stop(struct rcar_csi2 *priv)
+> > +{
+> > +	rcar_csi2_write(priv, PHYCNT_REG, 0);
+> > +
+> > +	rcar_csi2_reset(priv);
+> > +}
+> > +
+> > +static int rcar_csi2_sd_info(struct rcar_csi2 *priv, struct v4l2_subdev **sd)
+> > +{
+> > +	struct media_pad *pad;
+> > +
+> > +	pad = media_entity_remote_pad(&priv->pads[RCAR_CSI2_SINK]);
+> > +	if (!pad) {
+> > +		dev_err(priv->dev, "Could not find remote pad\n");
+> > +		return -ENODEV;
+> > +	}
+> > +
+> > +	*sd = media_entity_to_v4l2_subdev(pad->entity);
+> > +	if (!*sd) {
+> > +		dev_err(priv->dev, "Could not find remote subdevice\n");
+> > +		return -ENODEV;
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int rcar_csi2_s_stream(struct v4l2_subdev *sd, int enable)
+> > +{
+> > +	struct rcar_csi2 *priv = sd_to_csi2(sd);
+> > +	struct v4l2_subdev *nextsd;
+> > +	int ret;
+> > +
+> > +	mutex_lock(&priv->lock);
+> > +
+> > +	ret = rcar_csi2_sd_info(priv, &nextsd);
+> > +	if (ret)
+> > +		goto out;
+> > +
+> > +	if (enable && priv->stream_count == 0) {
+> > +		ret =  rcar_csi2_start(priv);
+> > +		if (ret)
+> > +			goto out;
+> > +
+> > +		ret = v4l2_subdev_call(nextsd, video, s_stream, 1);
+> > +		if (ret) {
+> > +			rcar_csi2_stop(priv);
+> > +			goto out;
+> > +		}
+> > +	} else if (!enable && priv->stream_count == 1) {
+> > +		rcar_csi2_stop(priv);
+> > +		ret = v4l2_subdev_call(nextsd, video, s_stream, 0);
+> > +	}
+> > +
+> > +	priv->stream_count += enable ? 1 : -1;
+> > +out:
+> > +	mutex_unlock(&priv->lock);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static int rcar_csi2_s_power(struct v4l2_subdev *sd, int on)
+> > +{
+> > +	struct rcar_csi2 *priv = sd_to_csi2(sd);
+> > +
+> > +	if (on)
+> > +		pm_runtime_get_sync(priv->dev);
+> > +	else
+> > +		pm_runtime_put(priv->dev);
+> 
+> The pipeline you have is already rather complex. Would it be an option to
+> power the hardware on when streaming is started? The smiapp driver does
+> this, without even implementing the s_power callback. (You'd still need to
+> call it on the image source, as long as we have drivers that need it.)
+
+I tested this early in early development for this driver and back then I 
+could not. But now 10 versions later it is possible so will do so for 
+version 11 :-) Really good you pointed this out, makes the code much 
+better thanks!
+
+> 
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int rcar_csi2_set_pad_format(struct v4l2_subdev *sd,
+> > +				    struct v4l2_subdev_pad_config *cfg,
+> > +				    struct v4l2_subdev_format *format)
+> > +{
+> > +	struct rcar_csi2 *priv = sd_to_csi2(sd);
+> > +	struct v4l2_mbus_framefmt *framefmt;
+> > +
+> 
+> Is everything possible? For instance, are there limits regarding width or
+> height? Or the pixel code? They should be checked here.
+
+Yes it do care about pixel code which was only validated at s_stream() 
+time, will move the check here thanks!
+
+> 
+> Also the format on the source pad is, presumably, dependent on the format
+> on the sink pad.
+
+Yes, but since this driver can't change the format in any way is there 
+any harm in mirror whatever is set on one pad on the other(s)? This will 
+change once multiple stream support is added in a later series.
+
+> 
+> > +	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+> > +		priv->mf = format->format;
+> > +	} else {
+> > +		framefmt = v4l2_subdev_get_try_format(sd, cfg, 0);
+> > +		*framefmt = format->format;
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int rcar_csi2_get_pad_format(struct v4l2_subdev *sd,
+> > +				    struct v4l2_subdev_pad_config *cfg,
+> > +				    struct v4l2_subdev_format *format)
+> > +{
+> > +	struct rcar_csi2 *priv = sd_to_csi2(sd);
+> > +
+> > +	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+> > +		format->format = priv->mf;
+> > +	else
+> > +		format->format = *v4l2_subdev_get_try_format(sd, cfg, 0);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static const struct v4l2_subdev_video_ops rcar_csi2_video_ops = {
+> > +	.s_stream = rcar_csi2_s_stream,
+> > +};
+> > +
+> > +static const struct v4l2_subdev_core_ops rcar_csi2_subdev_core_ops = {
+> > +	.s_power = rcar_csi2_s_power,
+> > +};
+> > +
+> > +static const struct v4l2_subdev_pad_ops rcar_csi2_pad_ops = {
+> > +	.set_fmt = rcar_csi2_set_pad_format,
+> > +	.get_fmt = rcar_csi2_get_pad_format,
+> > +};
+> > +
+> > +static const struct v4l2_subdev_ops rcar_csi2_subdev_ops = {
+> > +	.video	= &rcar_csi2_video_ops,
+> > +	.core	= &rcar_csi2_subdev_core_ops,
+> > +	.pad	= &rcar_csi2_pad_ops,
+> > +};
+> > +
+> > +/* -----------------------------------------------------------------------------
+> > + * Async and registered of subdevices and links
+> > + */
+> > +
+> > +static int rcar_csi2_notify_bound(struct v4l2_async_notifier *notifier,
+> > +				   struct v4l2_subdev *subdev,
+> > +				   struct v4l2_async_subdev *asd)
+> > +{
+> > +	struct rcar_csi2 *priv = notifier_to_csi2(notifier);
+> > +	int pad;
+> > +
+> > +	v4l2_set_subdev_hostdata(subdev, priv);
+> > +
+> > +	pad = media_entity_get_fwnode_pad(&subdev->entity,
+> > +					  asd->match.fwnode.fwnode,
+> > +					  MEDIA_PAD_FL_SOURCE);
+> > +	if (pad < 0) {
+> > +		dev_err(priv->dev, "Failed to find pad for %s\n", subdev->name);
+> > +		return pad;
+> > +	}
+> > +
+> > +	dev_dbg(priv->dev, "Bound %s pad: %d\n", subdev->name, pad);
+> > +
+> > +	return media_create_pad_link(&subdev->entity, pad,
+> > +				     &priv->subdev.entity, 0,
+> > +				     MEDIA_LNK_FL_ENABLED |
+> > +				     MEDIA_LNK_FL_IMMUTABLE);
+> > +}
+> > +
+> > +static void rcar_csi2_notify_unbind(struct v4l2_async_notifier *notifier,
+> > +				     struct v4l2_subdev *subdev,
+> > +				     struct v4l2_async_subdev *asd)
+> > +{
+> > +	struct rcar_csi2 *priv = notifier_to_csi2(notifier);
+> > +
+> > +	dev_dbg(priv->dev, "Unbind %s\n", subdev->name);
+> 
+> This doesn't really do anything. I'd probably just remove this.
+
+I liked the debug message when running bind/unbind tests, but you are 
+right it adds no real value and I can just as easily move this to a 
+local test patch. Will remove for next version.
+
+> 
+> > +}
+> > +
+> > +static const struct v4l2_async_notifier_operations rcar_csi2_notify_ops = {
+> > +	.bound = rcar_csi2_notify_bound,
+> > +	.unbind = rcar_csi2_notify_unbind,
+> > +};
+> > +
+> > +static int rcar_csi2_parse_v4l2(struct rcar_csi2 *priv,
+> > +				struct v4l2_fwnode_endpoint *vep)
+> > +{
+> > +	unsigned int i;
+> > +
+> > +	/* Only port 0 enpoint 0 is valid */
+> > +	if (vep->base.port || vep->base.id)
+> > +		return -ENOTCONN;
+> > +
+> > +	if (vep->bus_type != V4L2_MBUS_CSI2) {
+> > +		dev_err(priv->dev, "Unsupported bus: 0x%x\n", vep->bus_type);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	priv->lanes = vep->bus.mipi_csi2.num_data_lanes;
+> > +	if (priv->lanes != 1 && priv->lanes != 2 && priv->lanes != 4) {
+> > +		dev_err(priv->dev, "Unsupported number of data-lanes: %d\n",
+> > +			priv->lanes);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	for (i = 0; i < ARRAY_SIZE(priv->lane_swap); i++) {
+> > +		priv->lane_swap[i] = i < priv->lanes ?
+> > +			vep->bus.mipi_csi2.data_lanes[i] : i;
+> > +
+> > +		/* Check for valid lane number */
+> > +		if (priv->lane_swap[i] < 1 || priv->lane_swap[i] > 4) {
+> > +			dev_err(priv->dev, "data-lanes must be in 1-4 range\n");
+> > +			return -EINVAL;
+> > +		}
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int rcar_csi2_parse_dt(struct rcar_csi2 *priv)
+> > +{
+> > +	struct device_node *ep;
+> > +	struct v4l2_fwnode_endpoint v4l2_ep;
+> > +	int ret;
+> > +
+> > +	ep = of_graph_get_endpoint_by_regs(priv->dev->of_node, 0, 0);
+> > +	if (!ep) {
+> > +		dev_err(priv->dev, "Not connected to subdevice\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
+> > +	if (ret) {
+> > +		dev_err(priv->dev, "Could not parse v4l2 endpoint\n");
+> > +		of_node_put(ep);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	ret = rcar_csi2_parse_v4l2(priv, &v4l2_ep);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	priv->remote.match.fwnode.fwnode =
+> > +		fwnode_graph_get_remote_endpoint(of_fwnode_handle(ep));
+> > +	priv->remote.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> > +
+> > +	of_node_put(ep);
+> > +
+> > +	priv->notifier.subdevs = devm_kzalloc(priv->dev,
+> > +					      sizeof(*priv->notifier.subdevs),
+> > +					      GFP_KERNEL);
+> > +	if (priv->notifier.subdevs == NULL)
+> > +		return -ENOMEM;
+> > +
+> > +	priv->notifier.num_subdevs = 1;
+> > +	priv->notifier.subdevs[0] = &priv->remote;
+> > +	priv->notifier.ops = &rcar_csi2_notify_ops;
+> > +
+> > +	dev_dbg(priv->dev, "Found '%pOF'\n",
+> > +		to_of_node(priv->remote.match.fwnode.fwnode));
+> > +
+> > +	return v4l2_async_subdev_notifier_register(&priv->subdev,
+> > +						   &priv->notifier);
+> 
+> Could you use v4l2_async_notifier_parse_fwnode_endpoints_by_port() or does
+> something bad happen if you do? The intent with that was to avoid functions
+> like the above in drivers.
+
+Unfortunately not :-(
+
+I have a local patch which do this, but it won't work since this driver 
+needs to register remote endpoints (fwnode_graph_get_remote_endpoint() 
+above) and not the remote parent in the async framework. The reason for 
+this is that that is what the adv748x driver registers with the async 
+framework given that it only have one node in DT but registers multiple 
+subdevices. I would love to in the future resolve this in the helper 
+functions and switch to such a helper here.
+
+> 
+> > +}
+> > +
+> > +/* -----------------------------------------------------------------------------
+> > + * Platform Device Driver
+> > + */
+> > +
+> > +static const struct media_entity_operations rcar_csi2_entity_ops = {
+> > +	.link_validate = v4l2_subdev_link_validate,
+> > +};
+> > +
+> > +static int rcar_csi2_probe_resources(struct rcar_csi2 *priv,
+> > +				     struct platform_device *pdev)
+> > +{
+> > +	struct resource *res;
+> > +	int irq;
+> > +
+> > +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> > +	priv->base = devm_ioremap_resource(&pdev->dev, res);
+> > +	if (IS_ERR(priv->base))
+> > +		return PTR_ERR(priv->base);
+> > +
+> > +	irq = platform_get_irq(pdev, 0);
+> > +	if (irq < 0)
+> > +		return irq;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static const struct rcar_csi2_info rcar_csi2_info_r8a7795 = {
+> > +	.hsfreqrange = hsfreqrange_h3_v3h_m3n,
+> > +	.clear_ulps = true,
+> > +	.have_phtw = true,
+> > +	.csi0clkfreqrange = 0x20,
+> > +};
+> > +
+> > +static const struct rcar_csi2_info rcar_csi2_info_r8a7795es1 = {
+> > +	.hsfreqrange = hsfreqrange_m3w_h3es1,
+> > +};
+> > +
+> > +static const struct rcar_csi2_info rcar_csi2_info_r8a7796 = {
+> > +	.hsfreqrange = hsfreqrange_m3w_h3es1,
+> > +};
+> > +
+> > +static const struct of_device_id rcar_csi2_of_table[] = {
+> > +	{
+> > +		.compatible = "renesas,r8a7795-csi2",
+> > +		.data = &rcar_csi2_info_r8a7795,
+> > +	},
+> > +	{
+> > +		.compatible = "renesas,r8a7796-csi2",
+> > +		.data = &rcar_csi2_info_r8a7796,
+> > +	},
+> > +	{ /* sentinel */ },
+> > +};
+> > +MODULE_DEVICE_TABLE(of, rcar_csi2_of_table);
+> > +
+> > +static const struct soc_device_attribute r8a7795es1[] = {
+> > +	{
+> > +		.soc_id = "r8a7795", .revision = "ES1.*",
+> > +		.data = &rcar_csi2_info_r8a7795es1,
+> > +	},
+> > +	{ /* sentinel */}
+> > +};
+> > +
+> > +static int rcar_csi2_probe(struct platform_device *pdev)
+> > +{
+> > +	const struct soc_device_attribute *attr;
+> > +	struct rcar_csi2 *priv;
+> > +	unsigned int i;
+> > +	int ret;
+> > +
+> > +	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+> > +	if (!priv)
+> > +		return -ENOMEM;
+> > +
+> > +	priv->info = of_device_get_match_data(&pdev->dev);
+> > +
+> > +	/* r8a7795 ES1.x behaves different then ES2.0+ but no own compat */
+> > +	attr = soc_device_match(r8a7795es1);
+> > +	if (attr)
+> > +		priv->info = attr->data;
+> > +
+> > +	priv->dev = &pdev->dev;
+> > +
+> > +	mutex_init(&priv->lock);
+> > +	priv->stream_count = 0;
+> > +
+> > +	ret = rcar_csi2_probe_resources(priv, pdev);
+> > +	if (ret) {
+> > +		dev_err(priv->dev, "Failed to get resources\n");
+> > +		return ret;
+> > +	}
+> > +
+> > +	platform_set_drvdata(pdev, priv);
+> > +
+> > +	ret = rcar_csi2_parse_dt(priv);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	priv->subdev.owner = THIS_MODULE;
+> > +	priv->subdev.dev = &pdev->dev;
+> > +	v4l2_subdev_init(&priv->subdev, &rcar_csi2_subdev_ops);
+> > +	v4l2_set_subdevdata(&priv->subdev, &pdev->dev);
+> > +	snprintf(priv->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s %s",
+> > +		 KBUILD_MODNAME, dev_name(&pdev->dev));
+> > +	priv->subdev.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
+> > +
+> > +	priv->subdev.entity.function = MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
+> > +	priv->subdev.entity.ops = &rcar_csi2_entity_ops;
+> > +
+> > +	priv->pads[RCAR_CSI2_SINK].flags = MEDIA_PAD_FL_SINK;
+> > +	for (i = RCAR_CSI2_SOURCE_VC0; i < NR_OF_RCAR_CSI2_PAD; i++)
+> > +		priv->pads[i].flags = MEDIA_PAD_FL_SOURCE;
+> > +
+> > +	ret = media_entity_pads_init(&priv->subdev.entity, NR_OF_RCAR_CSI2_PAD,
+> > +				     priv->pads);
+> > +	if (ret)
+> > +		goto error;
+> > +
+> > +	ret = v4l2_async_register_subdev(&priv->subdev);
+> > +	if (ret < 0)
+> > +		goto error;
+> > +
+> > +	pm_runtime_enable(&pdev->dev);
+> > +
+> > +	dev_info(priv->dev, "%d lanes found\n", priv->lanes);
+> > +
+> > +	return 0;
+> > +
+> > +error:
+> > +	v4l2_async_notifier_cleanup(&priv->notifier);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static int rcar_csi2_remove(struct platform_device *pdev)
+> > +{
+> > +	struct rcar_csi2 *priv = platform_get_drvdata(pdev);
+> > +
+> > +	v4l2_async_notifier_cleanup(&priv->notifier);
+> > +	v4l2_async_unregister_subdev(&priv->subdev);
+> > +
+> > +	pm_runtime_disable(&pdev->dev);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static struct platform_driver __refdata rcar_csi2_pdrv = {
+> > +	.remove	= rcar_csi2_remove,
+> > +	.probe	= rcar_csi2_probe,
+> > +	.driver	= {
+> > +		.name	= "rcar-csi2",
+> > +		.of_match_table	= of_match_ptr(rcar_csi2_of_table),
+> > +	},
+> > +};
+> > +
+> > +module_platform_driver(rcar_csi2_pdrv);
+> > +
+> > +MODULE_AUTHOR("Niklas Söderlund <niklas.soderlund@ragnatech.se>");
+> > +MODULE_DESCRIPTION("Renesas R-Car MIPI CSI-2 receiver");
+> > +MODULE_LICENSE("GPL v2");
+> 
+> -- 
+> Kind regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi
+
+-- 
+Regards,
+Niklas Söderlund
