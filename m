@@ -1,131 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:52142 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751472AbdKIEyt (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:43564 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754129AbdKKA0v (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 8 Nov 2017 23:54:49 -0500
-Message-ID: <df3c8a2416343a5c4c7c5d636e32172c@smtp-cloud7.xs4all.net>
-Date: Thu, 09 Nov 2017 05:54:45 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 10 Nov 2017 19:26:51 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Subject: [PATCH v11 1/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
+Date: Sat, 11 Nov 2017 01:25:25 +0100
+Message-Id: <20171111002526.2646-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171111002526.2646-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171111002526.2646-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
+are located between the video sources (CSI-2 transmitters) and the video
+grabbers (VIN) on Gen3 of Renesas R-Car SoC.
 
-Results of the daily build of media_tree:
+Each CSI-2 device is connected to more then one VIN device which
+simultaneously can receive video from the same CSI-2 device. Each VIN
+device can also be connected to more then one CSI-2 device. The routing
+of which link are used are controlled by the VIN devices. There are only
+a few possible routes which are set by hardware limitations, which are
+different for each SoC in the Gen3 family.
 
-date:			Thu Nov  9 05:00:15 CET 2017
-media-tree git hash:	eb0c19942288569e0ae492476534d5a485fb8ab4
-media_build git hash:	106c5880df126bdd61f8d1c1f59570524a95d77c
-v4l-utils git hash:	7b2d48ff594dcc2c9b395463441e5abb4f5e9439
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+To work with the limitations of routing possibilities it is necessary
+for the DT bindings to describe which VIN device is connected to which
+CSI-2 device. This is why port 1 needs to to assign reg numbers for each
+VIN device that be connected to it. To setup and to know which links are
+valid for each SoC is the responsibility of the VIN driver since the
+register to configure it belongs to the VIN hardware.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-apps: OK
-spec-git: OK
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ .../bindings/media/renesas,rcar-csi2.txt           | 104 +++++++++++++++++++++
+ MAINTAINERS                                        |   1 +
+ 2 files changed, 105 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+new file mode 100644
+index 0000000000000000..24705d8997b14a10
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+@@ -0,0 +1,104 @@
++Renesas R-Car MIPI CSI-2
++------------------------
++
++The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesas R-Car
++family of devices. It is to be used in conjunction with the R-Car VIN module,
++which provides the video capture capabilities.
++
++Mandatory properties
++--------------------
++ - compatible: Must be one or more of the following
++   - "renesas,r8a7795-csi2" for the R8A7795 device.
++   - "renesas,r8a7796-csi2" for the R8A7796 device.
++
++ - reg: the register base and size for the device registers
++ - interrupts: the interrupt for the device
++ - clocks: Reference to the parent clock
++
++The device node shall contain two 'port' child nodes according to the
++bindings defined in Documentation/devicetree/bindings/media/
++video-interfaces.txt. Port 0 shall connect the node that is the video
++source for to the CSI-2. Port 1 shall connect all the R-Car VIN
++modules, which can make use of the CSI-2 module.
++
++- Port 0 - Video source (Mandatory)
++	- Endpoint 0 - sub-node describing the endpoint that is the video source
++
++- Port 1 - VIN instances (Mandatory for all VIN present in the SoC)
++	- Endpoint 0 - sub-node describing the endpoint that is VIN0
++	- Endpoint 1 - sub-node describing the endpoint that is VIN1
++	- Endpoint 2 - sub-node describing the endpoint that is VIN2
++	- Endpoint 3 - sub-node describing the endpoint that is VIN3
++	- Endpoint 4 - sub-node describing the endpoint that is VIN4
++	- Endpoint 5 - sub-node describing the endpoint that is VIN5
++	- Endpoint 6 - sub-node describing the endpoint that is VIN6
++	- Endpoint 7 - sub-node describing the endpoint that is VIN7
++
++Example:
++
++	csi20: csi2@fea80000 {
++		compatible = "renesas,r8a7796-csi2", "renesas,rcar-gen3-csi2";
++		reg = <0 0xfea80000 0 0x10000>;
++		interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cpg CPG_MOD 714>;
++		power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
++		resets = <&cpg 714>;
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				reg = <0>;
++
++				csi20_in: endpoint@0 {
++					clock-lanes = <0>;
++					data-lanes = <1>;
++					remote-endpoint = <&adv7482_txb>;
++				};
++			};
++
++			port@1 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				reg = <1>;
++
++				csi20vin0: endpoint@0 {
++					reg = <0>;
++					remote-endpoint = <&vin0csi20>;
++				};
++				csi20vin1: endpoint@1 {
++					reg = <1>;
++					remote-endpoint = <&vin1csi20>;
++				};
++				csi20vin2: endpoint@2 {
++					reg = <2>;
++					remote-endpoint = <&vin2csi20>;
++				};
++				csi20vin3: endpoint@3 {
++					reg = <3>;
++					remote-endpoint = <&vin3csi20>;
++				};
++				csi20vin4: endpoint@4 {
++					reg = <4>;
++					remote-endpoint = <&vin4csi20>;
++				};
++				csi20vin5: endpoint@5 {
++					reg = <5>;
++					remote-endpoint = <&vin5csi20>;
++				};
++				csi20vin6: endpoint@6 {
++					reg = <6>;
++					remote-endpoint = <&vin6csi20>;
++				};
++				csi20vin7: endpoint@7 {
++					reg = <7>;
++					remote-endpoint = <&vin7csi20>;
++				};
++			};
++		};
++	};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index adbf69306e9ee3d2..fe999e9de76e3cb3 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8565,6 +8565,7 @@ L:	linux-media@vger.kernel.org
+ L:	linux-renesas-soc@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ S:	Supported
++F:	Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+ F:	Documentation/devicetree/bindings/media/rcar_vin.txt
+ F:	drivers/media/platform/rcar-vin/
+ 
+-- 
+2.15.0
