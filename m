@@ -1,114 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:46907 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933761AbdKQHDA (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:43578 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754072AbdKKA0v (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 02:03:00 -0500
-Received: by mail-pg0-f65.google.com with SMTP id z184so1283626pgd.13
-        for <linux-media@vger.kernel.org>; Thu, 16 Nov 2017 23:03:00 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        <linux-kernel@vger.kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: Re: [RFC v5 08/11] [media] vb2: add videobuf2 dma-buf fence helpers
-Date: Fri, 17 Nov 2017 16:02:56 +0900
+        Fri, 10 Nov 2017 19:26:51 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v11 0/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2
+Date: Sat, 11 Nov 2017 01:25:24 +0100
+Message-Id: <20171111002526.2646-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Message-ID: <a5b0e0e6-4912-4aec-ac6f-f7744a856d3d@chromium.org>
-In-Reply-To: <20171115171057.17340-9-gustavo@padovan.org>
-References: <20171115171057.17340-1-gustavo@padovan.org>
- <20171115171057.17340-9-gustavo@padovan.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday, November 16, 2017 2:10:54 AM JST, Gustavo Padovan wrote:
-> From: Javier Martinez Canillas <javier@osg.samsung.com>
->
-> Add a videobuf2-fence.h header file that contains different helpers
-> for DMA buffer sharing explicit fence support in videobuf2.
->
-> v2:	- use fence context provided by the caller in vb2_fence_alloc()
->
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  include/media/videobuf2-fence.h | 48 
-> +++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 48 insertions(+)
->  create mode 100644 include/media/videobuf2-fence.h
->
-> diff --git a/include/media/videobuf2-fence.h 
-> b/include/media/videobuf2-fence.h
-> new file mode 100644
-> index 000000000000..b49cc1bf6bb4
-> --- /dev/null
-> +++ b/include/media/videobuf2-fence.h
-> @@ -0,0 +1,48 @@
-> +/*
-> + * videobuf2-fence.h - DMA buffer sharing fence helpers for videobuf 2
-> + *
-> + * Copyright (C) 2016 Samsung Electronics
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation.
-> + */
-> +
-> +#include <linux/dma-fence.h>
-> +#include <linux/slab.h>
-> +
-> +static DEFINE_SPINLOCK(vb2_fence_lock);
-> +
-> +static inline const char *vb2_fence_get_driver_name(struct 
-> dma_fence *fence)
-> +{
-> +	return "vb2_fence";
-> +}
-> +
-> +static inline const char *vb2_fence_get_timeline_name(struct 
-> dma_fence *fence)
-> +{
-> +	return "vb2_fence_timeline";
-> +}
-> +
-> +static inline bool vb2_fence_enable_signaling(struct dma_fence *fence)
-> +{
-> +	return true;
-> +}
-> +
-> +static const struct dma_fence_ops vb2_fence_ops = {
-> +	.get_driver_name = vb2_fence_get_driver_name,
-> +	.get_timeline_name = vb2_fence_get_timeline_name,
-> +	.enable_signaling = vb2_fence_enable_signaling,
-> +	.wait = dma_fence_default_wait,
-> +};
+Hi,
 
-It is probably not a good idea to define that struct here since it will be
-deduplicated for every source file that includes it.
+This is the latest incarnation of R-Car MIPI CSI-2 receiver driver. It's
+based on top of the media-tree and are tested on Renesas Salvator-X
+together with the out-of-tree patches for rcar-vin to add support for
+Gen3 VIN. If anyone is interested to test video grabbing using these out
+of tree patches please see [1].
 
-Maybe change it to a simple declaration, and move the definition to
-videobuf2-core.c or a dedicated videobuf2-fence.c file?
+* Changes since v10
+- Renamed Documentation/devicetree/bindings/media/rcar-csi2.txt to 
+  Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+- Add extra newline in rcar_csi2_code_to_fmt()
+- Use locally stored format information instead of reading it from the 
+  remote subdevice, Sakari pointed out that the pipeline is validated 
+  before .s_stream() is called so this is safe.
+- Do not check return from media_entity_to_v4l2_subdev() in 
+  rcar_csi2_start(), Sakari pointed out it can't fail. Also move logic 
+  to find the remote subdevice is moved to the only user of it,
+  rcar_csi2_calc_phypll().
+- Move pm_runtime_get_sync() and pm_runtime_put() to 
+  rcar_csi2_s_stream() and remove rcar_csi2_s_power().
+- Add validation of pixel code to rcar_csi2_set_pad_format().
+- Remove static rcar_csi2_notify_unbind() as it only printed a debug 
+  message.
 
-> +
-> +static inline struct dma_fence *vb2_fence_alloc(u64 context)
-> +{
-> +	struct dma_fence *vb2_fence = kzalloc(sizeof(*vb2_fence), GFP_KERNEL);
-> +
-> +	if (!vb2_fence)
-> +		return NULL;
-> +
-> +	dma_fence_init(vb2_fence, &vb2_fence_ops, &vb2_fence_lock, context, 1);
-> +
-> +	return vb2_fence;
-> +}
+* Changes since v9
+- Add reset property to device tree example
+- Use BIT(x) instead of (1 << x)
+- Use u16 in struct phypll_hsfreqrange to pack struct better.
+- Use unsigned int type for loop variable in rcar_csi2_code_to_fmt
+- Move fields inside struct struct rcar_csi2_info and struct rcar_csi2
+  to pack struct's tighter.
+- Use %u instead of %d when printing __u32.
+- Don't check return of platform_get_resource(), let
+  devm_ioremap_resource() handle it.
+- Store quirk workaround for r8a7795 ES1.0 in the data field of struct
+  soc_device_attribute.
 
-Not sure we gain a lot by having this function static inline, but your 
-call.
+Changes since v8:
+- Updated bindings documentation, thanks Rob!
+- Make use of the now in media-tree sub-notifier V4L2 API
+- Add delay when resetting the IP to allow for a proper reset
+- Fix bug in s_stream error path where the usage count was off if an
+  error was hit.
+- Add support for H3 ES2.0
+
+Changes since v7:
+- Rebase on top of the latest incremental async patches.
+- Fix comments on DT documentation.
+- Use v4l2_ctrl_g_ctrl_int64() instead of v4l2_g_ext_ctrls().
+- Handle try formats in .set_fmt() and .get_fmt().
+- Don't call v4l2_device_register_subdev_nodes() as this is not needed
+  with the complete() callbacks synchronized.
+- Fix line over 80 chars.
+- Fix varies spelling mistakes.
+
+Changes since v6:
+- Rebased on top of Sakaris fwnode patches.
+- Changed of RCAR_CSI2_PAD_MAX to NR_OF_RCAR_CSI2_PAD.
+- Remove assumption about unknown media bus type, thanks Sakari for
+  pointing this out.
+- Created table for supported format information instead of scattering
+  this information around the driver, thanks Sakari!
+- Small newline fixes and reduce some indentation levels.
+
+Changes since v5:
+- Make use of the incremental async subnotifer and helper to map DT
+  endpoint to media pad number. This moves functionality which
+  previously in the Gen3 patches for R-Car VIN driver to this R-Car
+  CSI-2 driver. This is done in preparation to support the ADV7482
+  driver in development by Kieran which will register more then one
+  subdevice and the CSI-2 driver needs to cope wit this. Further more it
+  prepares the driver for another use-case where more then one subdevice
+  is present upstream for the CSI-2.
+- Small cleanups.
+- Add explicit include for linux/io.h, thanks Kieran.
+
+Changes since v4:
+- Match SoC part numbers and drop trailing space in documentation,
+  thanks Geert for pointing this out.
+- Clarify that the driver is a CSI-2 receiver by supervised
+  s/interface/receiver/, thanks Laurent.
+- Add entries in Kconfig and Makefile alphabetically instead of append.
+- Rename struct rcar_csi2 member swap to lane_swap.
+- Remove macros to wrap calls to dev_{dbg,info,warn,err}.
+- Add wrappers for ioread32 and iowrite32.
+- Remove unused interrupt handler, but keep checking in probe that there
+  are a interrupt define in DT.
+- Rework how to wait for LP-11 state, thanks Laurent for the great idea!
+- Remove unneeded delay in rcar_csi2_reset()
+- Remove check for duplicated lane id:s from DT parsing. Broken out to a
+  separate patch adding this check directly to v4l2_of_parse_endpoint().
+- Fixed rcar_csi2_start() to ask it's source subdevice for information
+  about pixel rate and frame format. With this change having
+  {set,get}_fmt operations became redundant, it was only used for
+  figuring out this out so dropped them.
+- Tabulated frequency settings map.
+- Dropped V4L2_SUBDEV_FL_HAS_DEVNODE it should never have been set.
+- Switched from MEDIA_ENT_F_ATV_DECODER to
+  MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER as entity function. I can't
+  find a more suitable function, and what the hardware do is to fetch
+  video from an external chip and passes it on to a another SoC internal
+  IP it's sort of a formatter.
+- Break out DT documentation and code in two patches.
+
+Changes since v3:
+- Update DT binding documentation with input from Geert Uytterhoeven,
+  thanks!
+
+Changes since v2:
+- Added media control pads as this is needed by the new rcar-vin driver.
+- Update DT bindings after review comments and to add r8a7796 support.
+- Add get_fmt handler.
+- Fix media bus format error s/YUYV8/UYVY8/
+
+Changes since v1:
+- Drop dependency on a pad aware s_stream operation.
+- Use the DT bindings format "renesas,<soctype>-<device>", thanks Geert
+  for pointing this out.
+
+1. http://elinux.org/R-Car/Tests:rcar-vin
+Niklas Söderlund (2):
+  media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
+  media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver driver
+
+ .../bindings/media/renesas,rcar-csi2.txt           | 104 +++
+ MAINTAINERS                                        |   1 +
+ drivers/media/platform/rcar-vin/Kconfig            |  12 +
+ drivers/media/platform/rcar-vin/Makefile           |   1 +
+ drivers/media/platform/rcar-vin/rcar-csi2.c        | 896 +++++++++++++++++++++
+ 5 files changed, 1014 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+ create mode 100644 drivers/media/platform/rcar-vin/rcar-csi2.c
+
+-- 
+2.15.0
