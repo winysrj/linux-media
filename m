@@ -1,79 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:18100 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750760AbdK3J6i (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:47716 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754883AbdKKAjK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Nov 2017 04:58:38 -0500
-Date: Thu, 30 Nov 2017 12:58:25 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org
-Subject: [bug report] media: dvb_frontend: cleanup ioctl handling logic
-Message-ID: <20171130095825.ubdg6swiupe7rv6d@mwanda>
+        Fri, 10 Nov 2017 19:39:10 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v7 24/25] rcar-vin: enable support for r8a7795
+Date: Sat, 11 Nov 2017 01:38:34 +0100
+Message-Id: <20171111003835.4909-25-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro Carvalho Chehab,
+Add the SoC specific information for Renesas r8a7795 ES1.x and ES2.0.
 
-The patch d73dcf0cdb95: "media: dvb_frontend: cleanup ioctl handling
-logic" from Sep 18, 2017, leads to the following static checker
-warning:
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/rcar-vin/Kconfig     |   2 +-
+ drivers/media/platform/rcar-vin/rcar-core.c | 150 ++++++++++++++++++++++++++++
+ 2 files changed, 151 insertions(+), 1 deletion(-)
 
-	drivers/media/dvb-core/dvb_frontend.c:2469 dvb_frontend_handle_ioctl()
-	error: uninitialized symbol 'err'.
-
-drivers/media/dvb-core/dvb_frontend.c
-  2427          case FE_READ_UNCORRECTED_BLOCKS:
-  2428                  if (fe->ops.read_ucblocks) {
-  2429                          if (fepriv->thread)
-  2430                                  err = fe->ops.read_ucblocks(fe, parg);
-  2431                          else
-  2432                                  err = -EAGAIN;
-  2433                  }
-
-"err" isn't initialized if ->ops.read_ucblocks is NULL.
-
-  2434                  break;
-  2435  
-  2436          /* DEPRECATED DVBv3 ioctls */
-  2437  
-  2438          case FE_SET_FRONTEND:
-  2439                  err = dvbv3_set_delivery_system(fe);
-  2440                  if (err)
-  2441                          break;
-  2442  
-  2443                  err = dtv_property_cache_sync(fe, c, parg);
-  2444                  if (err)
-  2445                          break;
-  2446                  err = dtv_set_frontend(fe);
-  2447                  break;
-  2448          case FE_GET_EVENT:
-  2449                  err = dvb_frontend_get_event (fe, parg, file->f_flags);
-  2450                  break;
-  2451  
-  2452          case FE_GET_FRONTEND: {
-  2453                  struct dtv_frontend_properties getp = fe->dtv_property_cache;
-  2454  
-  2455                  /*
-  2456                   * Let's use our own copy of property cache, in order to
-  2457                   * avoid mangling with DTV zigzag logic, as drivers might
-  2458                   * return crap, if they don't check if the data is available
-  2459                   * before updating the properties cache.
-  2460                   */
-  2461                  err = dtv_get_frontend(fe, &getp, parg);
-  2462                  break;
-  2463          }
-  2464  
-  2465          default:
-  2466                  return -ENOTSUPP;
-  2467          } /* switch */
-  2468  
-  2469          return err;
-                ^^^^^^^^^^
-  2470  }
-
-regards,
-dan carpenter
+diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
+index af4c98b44d2e22cb..8fa7ee468c63afb9 100644
+--- a/drivers/media/platform/rcar-vin/Kconfig
++++ b/drivers/media/platform/rcar-vin/Kconfig
+@@ -6,7 +6,7 @@ config VIDEO_RCAR_VIN
+ 	select V4L2_FWNODE
+ 	---help---
+ 	  Support for Renesas R-Car Video Input (VIN) driver.
+-	  Supports R-Car Gen2 SoCs.
++	  Supports R-Car Gen2 and Gen3 SoCs.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called rcar-vin.
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 79b0334d8c563328..b22f6596700d2479 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -21,6 +21,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/slab.h>
++#include <linux/sys_soc.h>
+ 
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+@@ -955,6 +956,134 @@ static const struct rvin_info rcar_info_gen2 = {
+ 	.max_height = 2048,
+ };
+ 
++static const struct rvin_info rcar_info_r8a7795 = {
++	.chip = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++
++	.num_chsels = 5,
++	.chsels = {
++		{
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++		}, {
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++		}, {
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 2 },
++			{ .csi = RVIN_CSI20, .chan = 2 },
++		}, {
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI40, .chan = 3 },
++			{ .csi = RVIN_CSI20, .chan = 3 },
++		}, {
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 1 },
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++		}, {
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 1 },
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++		}, {
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 2 },
++			{ .csi = RVIN_CSI20, .chan = 2 },
++		}, {
++			{ .csi = RVIN_CSI41, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI41, .chan = 3 },
++			{ .csi = RVIN_CSI20, .chan = 3 },
++		},
++	},
++};
++
++static const struct rvin_info rcar_info_r8a7795es1 = {
++	.chip = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++
++	.num_chsels = 6,
++	.chsels = {
++		{
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI21, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI21, .chan = 0 },
++		}, {
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI21, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI21, .chan = 1 },
++		}, {
++			{ .csi = RVIN_CSI21, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 2 },
++			{ .csi = RVIN_CSI20, .chan = 2 },
++			{ .csi = RVIN_CSI21, .chan = 2 },
++		}, {
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI21, .chan = 1 },
++			{ .csi = RVIN_CSI40, .chan = 3 },
++			{ .csi = RVIN_CSI20, .chan = 3 },
++			{ .csi = RVIN_CSI21, .chan = 3 },
++		}, {
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI21, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI21, .chan = 0 },
++		}, {
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI21, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI21, .chan = 1 },
++		}, {
++			{ .csi = RVIN_CSI21, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI41, .chan = 2 },
++			{ .csi = RVIN_CSI20, .chan = 2 },
++			{ .csi = RVIN_CSI21, .chan = 2 },
++		}, {
++			{ .csi = RVIN_CSI41, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_CSI21, .chan = 1 },
++			{ .csi = RVIN_CSI41, .chan = 3 },
++			{ .csi = RVIN_CSI20, .chan = 3 },
++			{ .csi = RVIN_CSI21, .chan = 3 },
++		},
++	},
++};
++
+ static const struct of_device_id rvin_of_id_table[] = {
+ 	{
+ 		.compatible = "renesas,vin-r8a7778",
+@@ -984,12 +1113,25 @@ static const struct of_device_id rvin_of_id_table[] = {
+ 		.compatible = "renesas,rcar-gen2-vin",
+ 		.data = &rcar_info_gen2,
+ 	},
++	{
++		.compatible = "renesas,vin-r8a7795",
++		.data = &rcar_info_r8a7795,
++	},
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+ 
++static const struct soc_device_attribute r8a7795es1[] = {
++	{
++		.soc_id = "r8a7795", .revision = "ES1.*",
++		.data = &rcar_info_r8a7795es1,
++	},
++	{ /* sentinel */ }
++};
++
+ static int rcar_vin_probe(struct platform_device *pdev)
+ {
++	const struct soc_device_attribute *attr;
+ 	struct rvin_dev *vin;
+ 	struct resource *mem;
+ 	int irq, ret;
+@@ -1001,6 +1143,14 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	vin->dev = &pdev->dev;
+ 	vin->info = of_device_get_match_data(&pdev->dev);
+ 
++	/*
++	 * Special care is needed on r8a7795 ES1.x since it
++	 * uses different routing than r8a7795 ES2.0.
++	 */
++	attr = soc_device_match(r8a7795es1);
++	if (attr)
++		vin->info = attr->data;
++
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (mem == NULL)
+ 		return -EINVAL;
+-- 
+2.15.0
