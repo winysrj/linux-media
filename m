@@ -1,157 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.micronovasrl.com ([212.103.203.10]:49196 "EHLO
-        mail.micronovasrl.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934994AbdKPNmZ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60066 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751607AbdKKXcg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 08:42:25 -0500
-Received: from mail.micronovasrl.com (mail.micronovasrl.com [127.0.0.1])
-        by mail.micronovasrl.com (Postfix) with ESMTP id C7EC4B012D4
-        for <linux-media@vger.kernel.org>; Thu, 16 Nov 2017 14:42:23 +0100 (CET)
-Received: from mail.micronovasrl.com ([127.0.0.1])
-        by mail.micronovasrl.com (mail.micronovasrl.com [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id RCIN9w9sZNRf for <linux-media@vger.kernel.org>;
-        Thu, 16 Nov 2017 14:42:23 +0100 (CET)
-Subject: Re: [linux-sunxi] Cedrus driver
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Andreas Baierl <list@imkreisrum.de>,
-        linux-sunxi <linux-sunxi@googlegroups.com>,
-        linux@armlinux.org.uk, wens@csie.org, linux-kernel@vger.kernel.org,
-        thomas@vitsch.nl, linux-media@vger.kernel.org
-References: <1510059543-7064-1-git-send-email-giulio.benetti@micronovasrl.com>
- <1b12fa21-bfe6-9ba7-ae1d-8131ac6f4668@micronovasrl.com>
- <6fcdc0d9-d0f8-785a-bb00-b1b41c684e59@imkreisrum.de>
- <693e8786-af83-9d77-0fd4-50fa1f6a135f@micronovasrl.com>
- <20171116110204.poakahqjz4sj7pmu@flea>
- <5fcf64db-c654-37d0-5863-20379c04f99c@micronovasrl.com>
- <20171116125310.yavjs7352nw2sm7r@flea>
- <e03cfdb5-57b3-fefd-75c3-6b97348682ff@micronovasrl.com>
- <6f94505d-69bb-6688-4b13-6a0ed2af8dd4@xs4all.nl>
- <d0b7f6e5-8758-ac92-e6a2-9ed4ff3cbc63@micronovasrl.com>
- <20171116133906.xsrpkdflgf34kkoy@flea>
-From: Giulio Benetti <giulio.benetti@micronovasrl.com>
-Message-ID: <b5c23ea7-4efa-1565-0c53-014c8a1ee37d@micronovasrl.com>
-Date: Thu, 16 Nov 2017 14:42:23 +0100
+        Sat, 11 Nov 2017 18:32:36 -0500
+Date: Sun, 12 Nov 2017 01:32:31 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH v10 2/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2
+ receiver driver
+Message-ID: <20171111233230.zbrt6mkfcplccuuw@valkosipuli.retiisi.org.uk>
+References: <20171110133137.9137-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171110133137.9137-3-niklas.soderlund+renesas@ragnatech.se>
+ <20171110223227.pug7d4qi7rdi4b4b@valkosipuli.retiisi.org.uk>
+ <20171111001113.GB13042@bigcity.dyn.berto.se>
 MIME-Version: 1.0
-In-Reply-To: <20171116133906.xsrpkdflgf34kkoy@flea>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: it
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171111001113.GB13042@bigcity.dyn.berto.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hejssan, Niklas!
 
-Il 16/11/2017 14:39, Maxime Ripard ha scritto:
-> On Thu, Nov 16, 2017 at 02:17:08PM +0100, Giulio Benetti wrote:
->> Hi Hans,
->>
->> Il 16/11/2017 14:12, Hans Verkuil ha scritto:
->>> On 16/11/17 13:57, Giulio Benetti wrote:
->>>> Il 16/11/2017 13:53, Maxime Ripard ha scritto:
->>>>> On Thu, Nov 16, 2017 at 01:30:52PM +0100, Giulio Benetti wrote:
->>>>>>> On Thu, Nov 16, 2017 at 11:37:30AM +0100, Giulio Benetti wrote:
->>>>>>>> Il 16/11/2017 11:31, Andreas Baierl ha scritto:
->>>>>>>>> Am 16.11.2017 um 11:13 schrieb Giulio Benetti:
->>>>>>>>>> Hello,
->>>>>>>>>>
->>>>>>>>> Hello,
->>>>>>>>>> I'm wondering why cedrus
->>>>>>>>>> https://github.com/FlorentRevest/linux-sunxi-cedrus has never been
->>>>>>>>>> merged with linux-sunxi sunxi-next.
->>>>>>>>>>
->>>>>>>>> Because it is not ready to be merged. It depends on the v4l2 request
->>>>>>>>> API, which was not merged and which is re-worked atm.
->>>>>>>>> Also, sunxi-cedrus itself is not in a finished state and is not as
->>>>>>>>> feature-complete to be merged. Anyway it might be something for
->>>>>>>>> staging... Has there been a [RFC] on the mailing list at all?
->>>>>>>>
->>>>>>>> Where can I find a list of TODOs to get it ready to be merged?
->>>>>>>
->>>>>>> Assuming that the request API is in, we'd need to:
->>>>>>>       - Finish the MPEG4 support
->>>>>>>       - Work on more useful codecs (H264 comes to my mind)
->>>>>>>       - Implement the DRM planes support for the custom frame format
->>>>>>>       - Implement the DRM planes support for scaling
->>>>>>>       - Test it on more SoCs
->>>>>>>
->>>>>>> Or something along those lines.
->>>>>>
->>>>>> Lot of work to do
->>>>>
->>>>> Well... If it was fast and easy it would have been done already :)
->>>>
->>>> :))
->>>>
->>>>>
->>>>>>>>>> I see it seems to be dead, no commit in 1 year.
->>>>>>>>>
->>>>>>>>> Yes, because the author did this during an internship, which ended ...
->>>>>>>>> Afaik nobody picked up his work yet.
->>>>>>>
->>>>>>> That's not entirely true. Some work has been done by Thomas (in CC),
->>>>>>> especially on the display engine side, but last time we talked his
->>>>>>> work was not really upstreamable.
->>>>>>>
->>>>>>> We will also resume that effort starting next march.
->>>>>>
->>>>>> Is it possible a preview on a separate Reporitory to start working on now?
->>>>>> Expecially to start porting everything done by FlorentRevest to mainline,
->>>>>> admitted you've not already done.
->>>>>
->>>>> I'm not sure what you're asking for. Florent's work *was* on mainline.
->>>>
->>>> and then they took it off because it was unmantained?
->>>> You've spoken about Thomas(in CC) not ready,
->>>> maybe I could help on that if it's public to accelerate.
->>>> If I'm able to of course, this is my primary concern.
->>>>
->>>> Otherwise, in which way can I help improving it to make it accept to linux-sunxi?
->>>> Starting from Florent's work and porting it to sunxi-next to begin?
->>>> And after that adding all features you've listed?
->>>> Tell me what I can do(I repeat, if I'm able to).
->>>
->>> The bottleneck is that the Request API is not mainlined. We restarted work
->>> on it after a meeting a few weeks back where we all agreed on the roadmap
->>> so hopefully it will go into mainline Q1 or Q2 next year.
->>>
->>> That said, you can use Florent's patch series for further development.
->>> It should be relatively easy to convert it to the final version of the
->>> Request API. Just note that the public API of the final Request API will
->>> be somewhat different from the old version Florent's patch series is using.
->>
->> So I'm going to try soon to :
->> 1) adapt that patchset to sunxi-next
->> 2) add A20 support
->> 3) add A33 support
->> 4) after mainlined APIs, merge
+On Sat, Nov 11, 2017 at 01:11:13AM +0100, Niklas Söderlund wrote:
+> Hej Sakari,
 > 
-> That sounds good. Thomas already has the support for the A20, and as I
-> was saying, there is someone that is going to work full time on this
-> in a couple monthes on our side.
+> On 2017-11-11 00:32:27 +0200, Sakari Ailus wrote:
+> > Hej Niklas,
+> > 
+> > Tack för uppdaterade lappar! Jag har några kommentar nedan... det ser bra
+> > ut överallt.
 > 
-> I'll set up a git repo on github so that we can collaborate until the
-> request API is ready.
+> Tack för din feedback!
 
-Great!
-Write me when you've got news.
+Var så god!
 
-Thank you very much!
+...
 
+> > > +static int rcar_csi2_calc_phypll(struct rcar_csi2 *priv,
+> > > +				 struct v4l2_subdev *source,
+> > > +				 struct v4l2_mbus_framefmt *mf,
+> > > +				 u32 *phypll)
+> > > +{
+> > > +	const struct phypll_hsfreqrange *hsfreq;
+> > > +	const struct rcar_csi2_format *format;
+> > > +	struct v4l2_ctrl *ctrl;
+> > > +	u64 mbps;
+> > > +
+> > > +	ctrl = v4l2_ctrl_find(source->ctrl_handler, V4L2_CID_PIXEL_RATE);
+> > 
+> > How about LINK_FREQ instead? It'd be more straightforward to calculate
+> > this. Up to you.
 > 
-> Maxime
-> 
+> I need to use PIXEL_RATE as my test setup uses the adv748x driver which 
+> only implement that control. In the short term I would like to support 
+> both, but I need a setup to test that before I can add support for it.  
+> In the long term, maybe we should deprecate one of the controls?
 
+Hmm. At least we musn't give the responsibility to calculate the pixel rate
+to the end user: this depends on the bus and that is not visible to the
+user space.
+
+The link frequency is usually chosen from a few alternatives (or there's
+just a single choice). And the pixel rate depends on the pixel code chosen
+--- so you'd have a menu with menu entries changing based on format. That'd
+be odd.
+
+Perhaps just leave it as-is, as suggested by Laurent?
+
+...
+
+> > > +
+> > > +	dev_dbg(priv->dev, "Using source %s pad: %u\n", source->name,
+> > > +		source_pad->index);
+> > > +
+> > > +	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> > > +	fmt.pad = source_pad->index;
+> > > +	ret = v4l2_subdev_call(source, pad, get_fmt, NULL, &fmt);
+> > > +	if (ret)
+> > > +		return ret;
+> > 
+> > The link format has been validated already by this point this isn't
+> > supposed to fail or produce different results than in link validation.
+> > 
+> > You could get the same format from the local pad, too.
+> 
+> Another good catch, I will use the format stored locally to make the 
+> code simpler. As you state the formats are already validated so it's 
+> safe to do so. I still need to get the remote subdevice to be able to 
+> read the PIXEL_RATE control, but I can move that to 
+> rcar_csi2_calc_phypll() where it's actually used.
+
+Sounds good to me.
+ 
+...
+
+> > > +
+> > > +	return 0;
+> > > +}
+> > > +
+> > > +static int rcar_csi2_set_pad_format(struct v4l2_subdev *sd,
+> > > +				    struct v4l2_subdev_pad_config *cfg,
+> > > +				    struct v4l2_subdev_format *format)
+> > > +{
+> > > +	struct rcar_csi2 *priv = sd_to_csi2(sd);
+> > > +	struct v4l2_mbus_framefmt *framefmt;
+> > > +
+> > 
+> > Is everything possible? For instance, are there limits regarding width or
+> > height? Or the pixel code? They should be checked here.
+> 
+> Yes it do care about pixel code which was only validated at s_stream() 
+> time, will move the check here thanks!
+> 
+> > 
+> > Also the format on the source pad is, presumably, dependent on the format
+> > on the sink pad.
+> 
+> Yes, but since this driver can't change the format in any way is there 
+> any harm in mirror whatever is set on one pad on the other(s)? This will 
+> change once multiple stream support is added in a later series.
+
+If the hardware does not have functionality that may affect the size or the
+pixel code, then the format on the source pad shouldn't be settable.
+
+Yes, this will change when support for multiple streams is added. You'll
+get more pads, and the sink pad no longer will have a format. But... it's a
+good question how to prepare for this --- is it possible without changing
+the user space API? I'm sure we'll have other such cases, such as the
+smiapp driver with sensor embedded data.
+
+...
+
+> > > +static int rcar_csi2_parse_dt(struct rcar_csi2 *priv)
+> > > +{
+> > > +	struct device_node *ep;
+> > > +	struct v4l2_fwnode_endpoint v4l2_ep;
+> > > +	int ret;
+> > > +
+> > > +	ep = of_graph_get_endpoint_by_regs(priv->dev->of_node, 0, 0);
+> > > +	if (!ep) {
+> > > +		dev_err(priv->dev, "Not connected to subdevice\n");
+> > > +		return -EINVAL;
+> > > +	}
+> > > +
+> > > +	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
+> > > +	if (ret) {
+> > > +		dev_err(priv->dev, "Could not parse v4l2 endpoint\n");
+> > > +		of_node_put(ep);
+> > > +		return -EINVAL;
+> > > +	}
+> > > +
+> > > +	ret = rcar_csi2_parse_v4l2(priv, &v4l2_ep);
+> > > +	if (ret)
+> > > +		return ret;
+> > > +
+> > > +	priv->remote.match.fwnode.fwnode =
+> > > +		fwnode_graph_get_remote_endpoint(of_fwnode_handle(ep));
+> > > +	priv->remote.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> > > +
+> > > +	of_node_put(ep);
+> > > +
+> > > +	priv->notifier.subdevs = devm_kzalloc(priv->dev,
+> > > +					      sizeof(*priv->notifier.subdevs),
+> > > +					      GFP_KERNEL);
+> > > +	if (priv->notifier.subdevs == NULL)
+> > > +		return -ENOMEM;
+> > > +
+> > > +	priv->notifier.num_subdevs = 1;
+> > > +	priv->notifier.subdevs[0] = &priv->remote;
+> > > +	priv->notifier.ops = &rcar_csi2_notify_ops;
+> > > +
+> > > +	dev_dbg(priv->dev, "Found '%pOF'\n",
+> > > +		to_of_node(priv->remote.match.fwnode.fwnode));
+> > > +
+> > > +	return v4l2_async_subdev_notifier_register(&priv->subdev,
+> > > +						   &priv->notifier);
+> > 
+> > Could you use v4l2_async_notifier_parse_fwnode_endpoints_by_port() or does
+> > something bad happen if you do? The intent with that was to avoid functions
+> > like the above in drivers.
+> 
+> Unfortunately not :-(
+> 
+> I have a local patch which do this, but it won't work since this driver 
+> needs to register remote endpoints (fwnode_graph_get_remote_endpoint() 
+> above) and not the remote parent in the async framework. The reason for 
+> this is that that is what the adv748x driver registers with the async 
+> framework given that it only have one node in DT but registers multiple 
+> subdevices. I would love to in the future resolve this in the helper 
+> functions and switch to such a helper here.
+
+Right. How does the fwnode matching work then? Don't you need to do
+endpoint node matching here, i.e. the patch for the fwnode framework, too?
+
+Could you change how the framework assigns the matched fwnode?
+
+What I'd like to do still is to decouple registering async sub-devices and
+parsing the endpoints. The two are quite entangled and I just haven't been
+able to come up with a good API for that yet.
 
 -- 
-Giulio Benetti
-R&D Manager &
-Advanced Research
+Trevliga hälsningar,
 
-MICRONOVA SRL
-Sede: Via A. Niedda 3 - 35010 Vigonza (PD)
-Tel. 049/8931563 - Fax 049/8931346
-Cod.Fiscale - P.IVA 02663420285
-Capitale Sociale € 26.000 i.v.
-Iscritta al Reg. Imprese di Padova N. 02663420285
-Numero R.E.A. 258642
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
