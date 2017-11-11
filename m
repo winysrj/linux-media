@@ -1,69 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:46903 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754416AbdK2Kqt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 05:46:49 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Colin Ian King <colin.king@canonical.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        Daniel Scheller <d.scheller@gmx.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 07/12] media: dvb_frontend fix kernel_doc markups
-Date: Wed, 29 Nov 2017 05:46:28 -0500
-Message-Id: <771a0997ef305cd4a763877a9fd2caa6d4a4276f.1511952372.git.mchehab@s-opensource.com>
-In-Reply-To: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-References: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-In-Reply-To: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-References: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:47686 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754777AbdKKAjE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Nov 2017 19:39:04 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v7 05/25] rcar-vin: change name of video device
+Date: Sat, 11 Nov 2017 01:38:15 +0100
+Message-Id: <20171111003835.4909-6-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There were some troubles there:
-	drivers/media/dvb-core/dvb_frontend.c:379: warning: No description found for parameter 'fe'
-	drivers/media/dvb-core/dvb_frontend.c:379: warning: No description found for parameter 'check_wrapped'
-	drivers/media/dvb-core/dvb_frontend.c:1265: warning: No description found for parameter 'p_out'
+The rcar-vin driver needs to be part of a media controller to support
+Gen3. Give each VIN instance a unique name so it can be referenced from
+userspace.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-core/dvb_frontend.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 3ad83359098b..2afaa8226342 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -369,11 +369,14 @@ static void dvb_frontend_swzigzag_update_delay(struct dvb_frontend_private *fepr
- }
- 
- /**
-- * Performs automatic twiddling of frontend parameters.
-+ * dvb_frontend_swzigzag_autotune - Performs automatic twiddling of frontend
-+ *	parameters.
-  *
-- * @param fe The frontend concerned.
-- * @param check_wrapped Checks if an iteration has completed. DO NOT SET ON THE FIRST ATTEMPT
-- * @returns Number of complete iterations that have been performed.
-+ * @fe: The frontend concerned.
-+ * @check_wrapped: Checks if an iteration has completed.
-+ *		   DO NOT SET ON THE FIRST ATTEMPT.
-+ *
-+ * return: Number of complete iterations that have been performed.
-  */
- static int dvb_frontend_swzigzag_autotune(struct dvb_frontend *fe, int check_wrapped)
- {
-@@ -1253,7 +1256,7 @@ dtv_property_legacy_params_sync(struct dvb_frontend *fe,
-  * dtv_get_frontend - calls a callback for retrieving DTV parameters
-  * @fe:		struct dvb_frontend pointer
-  * @c:		struct dtv_frontend_properties pointer (DVBv5 cache)
-- * @p_out	struct dvb_frontend_parameters pointer (DVBv3 FE struct)
-+ * @p_out:	struct dvb_frontend_parameters pointer (DVBv3 FE struct)
-  *
-  * This routine calls either the DVBv3 or DVBv5 get_frontend call.
-  * If c is not null, it will update the DVBv5 cache struct pointed by it.
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 76c0b8fa8602d08d..f501da9df48c288b 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -878,7 +878,8 @@ int rvin_v4l2_register(struct rvin_dev *vin)
+ 	vdev->fops = &rvin_fops;
+ 	vdev->v4l2_dev = &vin->v4l2_dev;
+ 	vdev->queue = &vin->queue;
+-	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
++	snprintf(vdev->name, sizeof(vdev->name), "%s %s", KBUILD_MODNAME,
++		 dev_name(vin->dev));
+ 	vdev->release = video_device_release_empty;
+ 	vdev->ioctl_ops = &rvin_ioctl_ops;
+ 	vdev->lock = &vin->lock;
 -- 
-2.14.3
+2.15.0
