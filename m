@@ -1,48 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway34.websitewelcome.com ([192.185.148.204]:16110 "EHLO
-        gateway34.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751573AbdKLITB (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:47708 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754814AbdKKAjF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Nov 2017 03:19:01 -0500
-Received: from cm16.websitewelcome.com (cm16.websitewelcome.com [100.42.49.19])
-        by gateway34.websitewelcome.com (Postfix) with ESMTP id EE93228C9CE
-        for <linux-media@vger.kernel.org>; Sun, 12 Nov 2017 02:19:00 -0600 (CST)
-Date: Sun, 12 Nov 2017 02:18:59 -0600
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+        Fri, 10 Nov 2017 19:39:05 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] usb: uvc_debugfs: remove unnecessary NULL check before
- debugfs_remove_recursive
-Message-ID: <20171112081859.GA19079@embeddedor.com>
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v7 08/25] rcar-vin: do not reset crop and compose when setting format
+Date: Sat, 11 Nov 2017 01:38:18 +0100
+Message-Id: <20171111003835.4909-9-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-NULL check before freeing functions like debugfs_remove_recursive
-is not needed.
+It was a bad idea to reset the crop and compose settings when a new
+format is set. This would overwrite any crop/compose set by s_select and
+cause unexpected behaviors, remove it. Also fold the reset helper in to
+the only remaining caller.
 
-This issue was detected with the help of Coccinelle.
-
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/uvc/uvc_debugfs.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_debugfs.c b/drivers/media/usb/uvc/uvc_debugfs.c
-index 368f8f8..6995aeb 100644
---- a/drivers/media/usb/uvc/uvc_debugfs.c
-+++ b/drivers/media/usb/uvc/uvc_debugfs.c
-@@ -128,6 +128,5 @@ void uvc_debugfs_init(void)
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 02b081d2d8826e90..25f2386cb67447f2 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -90,17 +90,6 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
+  * V4L2
+  */
  
- void uvc_debugfs_cleanup(void)
+-static void rvin_reset_crop_compose(struct rvin_dev *vin)
+-{
+-	vin->crop.top = vin->crop.left = 0;
+-	vin->crop.width = vin->source.width;
+-	vin->crop.height = vin->source.height;
+-
+-	vin->compose.top = vin->compose.left = 0;
+-	vin->compose.width = vin->format.width;
+-	vin->compose.height = vin->format.height;
+-}
+-
+ int rvin_reset_format(struct rvin_dev *vin)
  {
--	if (uvc_debugfs_root_dir != NULL)
--		debugfs_remove_recursive(uvc_debugfs_root_dir);
-+	debugfs_remove_recursive(uvc_debugfs_root_dir);
+ 	struct v4l2_subdev_format fmt = {
+@@ -147,7 +136,13 @@ int rvin_reset_format(struct rvin_dev *vin)
+ 		break;
+ 	}
+ 
+-	rvin_reset_crop_compose(vin);
++	vin->crop.top = vin->crop.left = 0;
++	vin->crop.width = mf->width;
++	vin->crop.height = mf->height;
++
++	vin->compose.top = vin->compose.left = 0;
++	vin->compose.width = mf->width;
++	vin->compose.height = mf->height;
+ 
+ 	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
+ 	vin->format.sizeimage = rvin_format_sizeimage(&vin->format);
+@@ -317,8 +312,6 @@ static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	vin->format = f->fmt.pix;
+ 
+-	rvin_reset_crop_compose(vin);
+-
+ 	return 0;
  }
+ 
 -- 
-2.7.4
+2.15.0
