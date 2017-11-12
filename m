@@ -1,63 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kadath.azazel.net ([81.187.231.250]:60914 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750773AbdK3Vkh (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:45549 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751577AbdKLQTT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Nov 2017 16:40:37 -0500
-From: Jeremy Sowden <jeremy@azazel.net>
-To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Cc: Jeremy Sowden <jeremy@azazel.net>
-Subject: [PATCH 0/3] Clean up of data-structure initialization in the CSS API
-Date: Thu, 30 Nov 2017 21:40:11 +0000
-Message-Id: <20171130214014.31412-1-jeremy@azazel.net>
-In-Reply-To: <20171129083835.tam3avqz5vishwqw@azazel.net>
-References: <20171129083835.tam3avqz5vishwqw@azazel.net>
+        Sun, 12 Nov 2017 11:19:19 -0500
+Subject: Re: [PATCH v4 2/5] media: dt: bindings: Add binding for NVIDIA Tegra
+ Video Decoder Engine
+To: Vladimir Zapolskiy <vz@mleia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Stephen Warren <swarren@wwwdotorg.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <cover.1508448293.git.digetx@gmail.com>
+ <bf5b91666229f9e46ed8c73d6ca2e4b65f86b5ab.1508448293.git.digetx@gmail.com>
+ <6492d1af-19fa-253f-2b75-2c37ccd44cbe@mleia.com>
+From: Dmitry Osipenko <digetx@gmail.com>
+Message-ID: <619c789c-decc-ae80-aed6-c93c594847a3@gmail.com>
+Date: Sun, 12 Nov 2017 19:19:15 +0300
+MIME-Version: 1.0
+In-Reply-To: <6492d1af-19fa-253f-2b75-2c37ccd44cbe@mleia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The CSS API uses a lot of nested anonymous structs defined in object
-macros to assign default values to its data-structures.  These have been
-changed to use compound-literals and designated initializers to make
-them more comprehensible and less fragile.
+On 11.11.2017 17:21, Vladimir Zapolskiy wrote:
+> Hi Dmitry,
+> 
+> On 10/20/2017 12:34 AM, Dmitry Osipenko wrote:
+>> Add binding documentation for the Video Decoder Engine which is found
+>> on NVIDIA Tegra20/30/114/124/132 SoC's.
+>>
+>> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+>> ---
+>>  .../devicetree/bindings/media/nvidia,tegra-vde.txt | 55 ++++++++++++++++++++++
+>>  1 file changed, 55 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt b/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
+>> new file mode 100644
+>> index 000000000000..470237ed6fe5
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
+>> @@ -0,0 +1,55 @@
+>> +NVIDIA Tegra Video Decoder Engine
+>> +
+>> +Required properties:
+>> +- compatible : Must contain one of the following values:
+>> +   - "nvidia,tegra20-vde"
+>> +   - "nvidia,tegra30-vde"
+>> +   - "nvidia,tegra114-vde"
+>> +   - "nvidia,tegra124-vde"
+>> +   - "nvidia,tegra132-vde"
+>> +- reg : Must contain an entry for each entry in reg-names.
+>> +- reg-names : Must include the following entries:
+>> +  - sxe
+>> +  - bsev
+>> +  - mbe
+>> +  - ppe
+>> +  - mce
+>> +  - tfe
+>> +  - ppb
+>> +  - vdma
+>> +  - frameid
+> 
+> I've already mentioned it in my review of the driver code, but the
+> version from v3 with a single region is more preferable.
+> 
+> Also it implies that "reg-names" property will be removed.
+> 
 
-The compound-literals can also be used in assignment, which made it
-possible get rid of some temporary variables whose only purpose is to be
-initialized by one of these anonymous structs and then serve as the
-rvalue in an assignment expression.
+Please see my reply to the drivers code review.
 
-The designated initializers also allow the removal of lots of
-struct-members initialized to zero values.
-
-I made the changes in three stages: firstly, I converted the default
-values to compound-literals and designated initializers and removed the
-temporary variables; secondly, I removed the zero-valued struct-members;
-finally, I removed some structs which had become empty.
-
-Jeremy Sowden (3):
-  media: atomisp: convert default struct values to use compound-literals
-    with designated initializers.
-  media: atomisp: delete zero-valued struct members.
-  media: atomisp: delete empty default struct values.
-
- .../hive_isp_css_common/input_formatter_global.h   |  16 ---
- .../pci/atomisp2/css2400/ia_css_frame_public.h     |  29 ++----
- .../atomisp/pci/atomisp2/css2400/ia_css_pipe.h     | 110 +++++++--------------
- .../pci/atomisp2/css2400/ia_css_pipe_public.h      | 108 +++-----------------
- .../atomisp/pci/atomisp2/css2400/ia_css_types.h    |  64 +++---------
- .../isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h     |  50 +---------
- .../kernels/sdis/common/ia_css_sdis_common_types.h |  31 ++----
- .../isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c   |   3 +-
- .../runtime/binary/interface/ia_css_binary.h       |  88 ++---------------
- .../atomisp2/css2400/runtime/binary/src/binary.c   |   3 +-
- .../isp_param/interface/ia_css_isp_param_types.h   |  10 --
- .../runtime/pipeline/interface/ia_css_pipeline.h   |  24 ++---
- .../css2400/runtime/pipeline/src/pipeline.c        |   7 +-
- .../media/atomisp/pci/atomisp2/css2400/sh_css.c    |  31 ++----
- .../atomisp/pci/atomisp2/css2400/sh_css_legacy.h   |  11 ---
- .../atomisp/pci/atomisp2/css2400/sh_css_metrics.h  |  21 ----
- 16 files changed, 114 insertions(+), 492 deletions(-)
-
-
-base-commit: 37cb8e1f8e10c6e9bd2a1b95cdda0620a21b0551
--- 
-2.15.0
+>> +- iram : Must contain phandle to the mmio-sram device node that represents
+>> +         IRAM region used by VDE.
+>> +- interrupts : Must contain an entry for each entry in interrupt-names.
+>> +- interrupt-names : Must include the following entries:
+>> +  - sync-token
+>> +  - bsev
+>> +  - sxe
+>> +- clocks : Must include the following entries:
+>> +  - vde
+>> +- resets : Must include the following entries:
+>> +  - vde
+>> +
+>> +Example:
+>> +
+>> +video-codec@6001a000 {
+>> +	compatible = "nvidia,tegra20-vde";
+>> +	reg = <0x6001a000 0x1000 /* Syntax Engine */
+>> +	       0x6001b000 0x1000 /* Video Bitstream Engine */
+>> +	       0x6001c000  0x100 /* Macroblock Engine */
+>> +	       0x6001c200  0x100 /* Post-processing Engine */
+>> +	       0x6001c400  0x100 /* Motion Compensation Engine */
+>> +	       0x6001c600  0x100 /* Transform Engine */
+>> +	       0x6001c800  0x100 /* Pixel prediction block */
+>> +	       0x6001ca00  0x100 /* Video DMA */
+>> +	       0x6001d800  0x300 /* Video frame controls */>;
+>> +	reg-names = "sxe", "bsev", "mbe", "ppe", "mce",
+>> +		    "tfe", "ppb", "vdma", "frameid";
+>> +	iram = <&vde_pool>; /* IRAM region */
+>> +	interrupts = <GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
+>> +		     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
+>> +		     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
+>> +	interrupt-names = "sync-token", "bsev", "sxe";
+>> +	clocks = <&tegra_car TEGRA20_CLK_VDE>;
+>> +	resets = <&tegra_car 61>;
+>> +};
+>>
