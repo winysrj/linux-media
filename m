@@ -1,77 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:44794 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753910AbdKGRnm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Nov 2017 12:43:42 -0500
-Received: by mail-oi0-f66.google.com with SMTP id v132so22425oie.1
-        for <linux-media@vger.kernel.org>; Tue, 07 Nov 2017 09:43:42 -0800 (PST)
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54742 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751389AbdKLQig (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 12 Nov 2017 11:38:36 -0500
+Subject: Re: [PATCH v2] media: vsp1: Prevent suspending and resuming DRM
+ pipelines
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <c1f99c379343a52a4923b3bf74a9e366f4e89dcb.1505898862.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <12283788.m7AaoQf6S4@avalon>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reply-To: kieran.bingham@ideasonboard.com
+Message-ID: <2e94b8b2-267e-1392-ca2d-4bb0e79ade66@ideasonboard.com>
+Date: Sun, 12 Nov 2017 16:38:31 +0000
 MIME-Version: 1.0
-In-Reply-To: <20171107063345.22626a5d@vento.lan>
-References: <151001623063.16354.14661493921524115663.stgit@dwillia2-desk3.amr.corp.intel.com>
- <151001624873.16354.2551756846133945335.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171107063345.22626a5d@vento.lan>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 7 Nov 2017 09:43:41 -0800
-Message-ID: <CAPcyv4hNSV=c4KY8omKEdRth2w4YEr8EQJQfOoxXS8XELGFVcA@mail.gmail.com>
-Subject: Re: [PATCH 3/3] [media] v4l2: disable filesystem-dax mapping support
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>,
-        Linux MM <linux-mm@kvack.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <12283788.m7AaoQf6S4@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 7, 2017 at 12:33 AM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> Em Mon, 06 Nov 2017 16:57:28 -0800
-> Dan Williams <dan.j.williams@intel.com> escreveu:
->
->> V4L2 memory registrations are incompatible with filesystem-dax that
->> needs the ability to revoke dma access to a mapping at will, or
->> otherwise allow the kernel to wait for completion of DMA. The
->> filesystem-dax implementation breaks the traditional solution of
->> truncate of active file backed mappings since there is no page-cache
->> page we can orphan to sustain ongoing DMA.
+Hi Laurent,
+
+On 12/11/17 04:28, Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday, 20 September 2017 12:16:54 EET Kieran Bingham wrote:
+>> When used as part of a display pipeline, the VSP is stopped and
+>> restarted explicitly by the DU from its suspend and resume handlers.
+>> There is thus no need to stop or restart pipelines in the VSP suspend
+>> and resume handlers, and doing so would cause the hardware to be
+>> left in a misconfigured state.
 >>
->> If v4l2 wants to support long lived DMA mappings it needs to arrange to
->> hold a file lease or use some other mechanism so that the kernel can
->> coordinate revoking DMA access when the filesystem needs to truncate
->> mappings.
->
->
-> Not sure if I understand this your comment here... what happens
-> if FS_DAX is enabled? The new err = get_user_pages_longterm()
-> would cause DMA allocation to fail?
+>> Ensure that the VSP suspend and resume handlers do not affect DRM
+>> based pipelines.
+> 
+> s/DRM-base/DRM-based/
 
-Correct, any attempt to specify a filesystem-dax mapping range to
-get_user_pages_longterm will fail with EOPNOTSUPP. In the future we
-want to add something like a 'struct file_lock *' argument to
-get_user_pages_longterm so that the kernel has a handle to revoke
-access to the returned pages. Once we have a safe way for the kernel
-to undo elevated page counts we can stop failing the longterm vs
-filesystem-dax case.
+-ENOMATCH
 
-Here is more background on why _longterm gup is a problem for filesystem-dax:
 
-    https://lwn.net/Articles/737273/
+> 
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>> ---
+>>  drivers/media/platform/vsp1/vsp1_drv.c | 16 ++++++++++++++--
+>>  1 file changed, 14 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
+>> b/drivers/media/platform/vsp1/vsp1_drv.c index 962e4c304076..ed25ba9d551b
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_drv.c
+>> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
+>> @@ -571,7 +571,13 @@ static int __maybe_unused vsp1_pm_suspend(struct device
+>> *dev) {
+>>  	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+>>
+>> -	vsp1_pipelines_suspend(vsp1);
+>> +	/*
+>> +	 * When used as part of a display pipeline, the VSP is stopped and
+>> +	 * restarted explicitly by the DU
+> 
+> s/DU/DU./
+> 
+>> +	 */
+>> +	if (!vsp1->drm)
+>> +		vsp1_pipelines_suspend(vsp1);
+>> +
+>>  	pm_runtime_force_suspend(vsp1->dev);
+>>
+>>  	return 0;
+>> @@ -582,7 +588,13 @@ static int __maybe_unused vsp1_pm_resume(struct device
+>> *dev) struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+>>
+>>  	pm_runtime_force_resume(vsp1->dev);
+>> -	vsp1_pipelines_resume(vsp1);
+>> +
+>> +	/*
+>> +	 * When used as part of a display pipeline, the VSP is stopped and
+>> +	 * restarted explicitly by the DU
+> 
+> s/DU/DU./
+> 
+> Apart from that,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> If so, that doesn't sound
-> right. Instead, mm should somehow mark this mapping to be out
-> of FS_DAX control range.
+Thanks,
 
-DAX is currently global setting for the entire backing device of the
-filesystem, so any mapping of any file when the "-o dax" mount option
-is set is in the "FS_DAX control range". In other words there's
-currently no way to prevent FS_DAX mappings from being exposed to V4L2
-outside of CONFIG_FS_DAX=n.
+I'll add the full-stops and repost a v2.1 with your RB tag.
 
-> Also, it is not only videobuf-dma-sg.c that does long lived
-> DMA mappings. VB2 also does that (and videobuf-vmalloc).
-
-Without finding the code videobuf-vmalloc sounds like it should be ok
-if the kernel is allocating memory separate from a file-backed DAX
-mapping. Where is the VB2 get_user_pages call?
+> 
+>> +	 */
+>> +	if (!vsp1->drm)
+>> +		vsp1_pipelines_resume(vsp1);
+>>
+>>  	return 0;
+>>  }
+> 
