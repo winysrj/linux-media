@@ -1,120 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:57912 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753029AbdK2M2h (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 07:28:37 -0500
-Date: Wed, 29 Nov 2017 10:28:26 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Alan Cox <alan@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Daeseok Youn <daeseok.youn@gmail.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Geliang Tang <geliangtang@gmail.com>,
-        Amitoj Kaur Chawla <amitoj1606@gmail.com>,
-        Georgiana Chelu <georgiana.chelu93@gmail.com>,
-        simran singhal <singhalsimran0@gmail.com>,
-        Julia Lawall <julia.lawall@lip6.fr>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Guru Das Srinagesh <gurooodas@gmail.com>,
-        Arushi Singhal <arushisinghal19971997@gmail.com>,
-        Paolo Cretaro <melko@frugalware.org>,
-        Joe Perches <joe@perches.com>,
-        =?UTF-8?B?SsOpcsOp?= =?UTF-8?B?bXk=?= Lefaure
-        <jeremy.lefaure@lse.epita.fr>,
-        Colin Ian King <colin.king@canonical.com>,
-        Thomas Meyer <thomas@m3y3r.de>, Shy More <smklearn@gmail.com>,
-        Varsha Rao <rvarsha016@gmail.com>,
-        Srishti Sharma <srishtishar@gmail.com>,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH 1/7] media: atomisp: stop producing hundreds of
- kernel-doc warnings
-Message-ID: <20171129102826.12c46e21@recife.lan>
-In-Reply-To: <20171129102457.4b41091c@recife.lan>
-References: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
-        <20171129121453.i2qmuwxzcajgx5ev@paasikivi.fi.intel.com>
-        <20171129102457.4b41091c@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.221]:24327 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750941AbdKLSxU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 12 Nov 2017 13:53:20 -0500
+Message-ID: <1510512796.2225.432.camel@rohdewald.de>
+Subject: Re: pctv452e oops
+From: Wolfgang Rohdewald <wolfgang@rohdewald.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Max Kellermann <max.kellermann@gmail.com>,
+        linux-media@vger.kernel.org
+Date: Sun, 12 Nov 2017 19:53:16 +0100
+In-Reply-To: <1510147704.2225.329.camel@rohdewald.de>
+References: <1510146389.2225.324.camel@rohdewald.de>
+         <1510147704.2225.329.camel@rohdewald.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 29 Nov 2017 10:24:57 -0200
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
-
-> Em Wed, 29 Nov 2017 14:14:54 +0200
-> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+On Mi, 2017-11-08 at 14:28 +0100, Wolfgang Rohdewald wrote:
+> since kernel 4.9 I cannot use my four dvb-s2 USB receivers anymore, so
+> I am stuck with 4.8.x
 > 
-> > Hi Mauro,
-> > 
-> > Thanks for the patch.
-> > 
-> > On Wed, Nov 29, 2017 at 07:08:04AM -0500, Mauro Carvalho Chehab wrote:  
-> > > A recent change on Kernel 4.15-rc1 causes all tags with
-> > > /** to be handled as kernel-doc markups. Well, several
-> > > atomisp modules, it doesn't use kernel-doc, but some other
-> > > documentation markup (doxygen?).
-> > > 
-> > > So, suppress all those warns by replacing /** by /*.
-> > > 
-> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>    
-> > 
-> > I presume you haven't written the patch manually. There are other changes
-> > that described by the comment, too, such as removing lesser
-> > than-characaters.
-> > 
-> > It'd be good to mention how it's been generated.  
+> Now I tried again with an unmodified kernel 4.13.12. After some time, 
+> I get 3 oopses (remember - I have 4 devices). The call trace is always
+> the same.
 > 
-> Yeah, I used a simple script, and manually fixed a few minor things
-> that were still causing warnings.
 > 
-> The core changes were done via:
+> attached:
 > 
-> 	for i in $(find drivers/staging/media/atomisp -type f); do sed 's,/\*\* ,/\*, ' -i $i; done
-> 	for i in $(find drivers/staging/media/atomisp -type f); do sed 's,/\*\*<,/\**,' -i $i; done
-> 	for i in drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/debug/src/ia_css_debug.c drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_sp.c drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/rmgr/src/rmgr_vbuf.c; do perl -ne 's,\/\*\*$,/*,g; print $_'  $i > a && mv a $i; done;
-> 
-> I'll add it at the patch description.
-> 
-> Thanks,
-> Mauro
+> tasks.txt showing the timing of the oopses
+> oops.txt with one of them
 
-Changed patch description to the one enclosed.
+after this happens, lsmod shows a negative reference count:
 
+Module                  Size  Used by
+stb0899                40960  -1
 
-commit 699a8caa3de69b2bdaa54b9347c29644bc2222a6
-Author: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Date:   Wed Nov 29 03:16:17 2017 -0500
+-- 
+mit freundlichen Grüssen
 
-    media: atomisp: stop producing hundreds of kernel-doc warnings
-    
-    A recent change on Kernel 4.15-rc1 causes all tags with
-    /** to be handled as kernel-doc markups. Well, several
-    atomisp modules, it doesn't use kernel-doc, but some other
-    documentation markup (doxygen?).
-    
-    So, suppress all those warns by:
-            - replacing /**< by /**.
-            - replacing /** by /*.
-    
-    The core changes were done with:
-    
-            for i in $(find drivers/staging/media/atomisp -type f); do sed 's,/\*\* ,/\*, ' -i $i; done
-            for i in $(find drivers/staging/media/atomisp -type f); do sed 's,/\*\*<,/\**,' -i $i; done
-            for i in drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/debug/src/ia_css_debug.c drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_sp.c drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/rmgr/src/rmgr_vbuf.c; do perl -ne 's,\/\*\*$,/*,g; print $_'  $i > a && mv a $i; done;
-    
-    A few manual adjustments were made, where needed.
-    
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-
-
-
-Thanks,
-Mauro
+Wolfgang Rohdewald
