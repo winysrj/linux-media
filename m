@@ -1,66 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:12806 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932497AbdKBUAP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Nov 2017 16:00:15 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        hyungwoo.yang@intel.com, chiranjeevi.rapolu@intel.com,
-        jerry.w.hu@intel.com, Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v7 1/3] videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
-Date: Thu,  2 Nov 2017 14:59:59 -0500
-Message-Id: <1509652801-9729-2-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1509652801-9729-1-git-send-email-yong.zhi@intel.com>
-References: <1509652801-9729-1-git-send-email-yong.zhi@intel.com>
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:53173 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751638AbdKMImC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Nov 2017 03:42:02 -0500
+MIME-Version: 1.0
+In-Reply-To: <20171111003835.4909-26-niklas.soderlund+renesas@ragnatech.se>
+References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se> <20171111003835.4909-26-niklas.soderlund+renesas@ragnatech.se>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Mon, 13 Nov 2017 09:42:01 +0100
+Message-ID: <CAMuHMdXP7jOK8LxMtUFkEn0ooPPuodomVr2sqkNX4idMzrmrpw@mail.gmail.com>
+Subject: Re: [PATCH v7 25/25] rcar-vin: enable support for r8a7796
+To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Fukawa <tomoharu.fukawa.eb@renesas.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add IPU3 specific formats:
+CC DT
 
-	V4L2_PIX_FMT_IPU3_SBGGR10
-	V4L2_PIX_FMT_IPU3_SGBRG10
-	V4L2_PIX_FMT_IPU3_SGRBG10
-	V4L2_PIX_FMT_IPU3_SRGGB10
-
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++++
- include/uapi/linux/videodev2.h       | 6 ++++++
- 2 files changed, 10 insertions(+)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 79614992ee21..3937945b12dc 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1202,6 +1202,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_PIX_FMT_SGBRG10P:	descr = "10-bit Bayer GBGB/RGRG Packed"; break;
- 	case V4L2_PIX_FMT_SGRBG10P:	descr = "10-bit Bayer GRGR/BGBG Packed"; break;
- 	case V4L2_PIX_FMT_SRGGB10P:	descr = "10-bit Bayer RGRG/GBGB Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SBGGR10: descr = "10-bit bayer BGGR IPU3 Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SGBRG10: descr = "10-bit bayer GBRG IPU3 Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SGRBG10: descr = "10-bit bayer GRBG IPU3 Packed"; break;
-+	case V4L2_PIX_FMT_IPU3_SRGGB10: descr = "10-bit bayer RGGB IPU3 Packed"; break;
- 	case V4L2_PIX_FMT_SBGGR10ALAW8:	descr = "8-bit Bayer BGBG/GRGR (A-law)"; break;
- 	case V4L2_PIX_FMT_SGBRG10ALAW8:	descr = "8-bit Bayer GBGB/RGRG (A-law)"; break;
- 	case V4L2_PIX_FMT_SGRBG10ALAW8:	descr = "8-bit Bayer GRGR/BGBG (A-law)"; break;
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 185d6a0acc06..bcf6a50f6aac 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -668,6 +668,12 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
- #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
- 
-+/* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
-+#define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
-+#define V4L2_PIX_FMT_IPU3_SGBRG10	v4l2_fourcc('i', 'p', '3', 'g') /* IPU3 packed 10-bit GBRG bayer */
-+#define V4L2_PIX_FMT_IPU3_SGRBG10	v4l2_fourcc('i', 'p', '3', 'G') /* IPU3 packed 10-bit GRBG bayer */
-+#define V4L2_PIX_FMT_IPU3_SRGGB10	v4l2_fourcc('i', 'p', '3', 'r') /* IPU3 packed 10-bit RGGB bayer */
-+
- /* SDR formats - used only for Software Defined Radio devices */
- #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
- #define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
--- 
-2.7.4
+On Sat, Nov 11, 2017 at 1:38 AM, Niklas S=C3=B6derlund
+<niklas.soderlund+renesas@ragnatech.se> wrote:
+> Add the SoC specific information for Renesas r8a7796.
+>
+> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
+se>
+> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  .../devicetree/bindings/media/rcar_vin.txt         |  1 +
+>  drivers/media/platform/rcar-vin/rcar-core.c        | 64 ++++++++++++++++=
+++++++
+>  2 files changed, 65 insertions(+)
+>
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Docum=
+entation/devicetree/bindings/media/rcar_vin.txt
+> index df1abd0fb20386f8..ddf249c2276600d2 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -10,6 +10,7 @@ Depending on the instance the VIN input is connected to=
+ external SoC pins, or
+>  on Gen3 to a CSI-2 receiver.
+>
+>   - compatible: Must be one or more of the following
+> +   - "renesas,vin-r8a7796" for the R8A7796 device
+>     - "renesas,vin-r8a7795" for the R8A7795 device
+>     - "renesas,vin-r8a7794" for the R8A7794 device
+>     - "renesas,vin-r8a7793" for the R8A7793 device
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/=
+platform/rcar-vin/rcar-core.c
+> index b22f6596700d2479..e329de4ce0172e8d 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -1084,6 +1084,66 @@ static const struct rvin_info rcar_info_r8a7795es1=
+ =3D {
+>         },
+>  };
+>
+> +static const struct rvin_info rcar_info_r8a7796 =3D {
+> +       .chip =3D RCAR_GEN3,
+> +       .use_mc =3D true,
+> +       .max_width =3D 4096,
+> +       .max_height =3D 4096,
+> +
+> +       .num_chsels =3D 5,
+> +       .chsels =3D {
+> +               {
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 0 },
+> +                       { .csi =3D RVIN_NC, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 0 },
+> +               }, {
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 0 },
+> +                       { .csi =3D RVIN_NC, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 1 },
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 1 },
+> +               }, {
+> +                       { .csi =3D RVIN_NC, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 2 },
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 2 },
+> +               }, {
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 1 },
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 1 },
+> +                       { .csi =3D RVIN_NC, .chan =3D 1 },
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 3 },
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 3 },
+> +               }, {
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 0 },
+> +                       { .csi =3D RVIN_NC, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 0 },
+> +               }, {
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 0 },
+> +                       { .csi =3D RVIN_NC, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 1 },
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 1 },
+> +               }, {
+> +                       { .csi =3D RVIN_NC, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 0 },
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 2 },
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 2 },
+> +               }, {
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 1 },
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 1 },
+> +                       { .csi =3D RVIN_NC, .chan =3D 1 },
+> +                       { .csi =3D RVIN_CSI40, .chan =3D 3 },
+> +                       { .csi =3D RVIN_CSI20, .chan =3D 3 },
+> +               },
+> +       },
+> +};
+> +
+>  static const struct of_device_id rvin_of_id_table[] =3D {
+>         {
+>                 .compatible =3D "renesas,vin-r8a7778",
+> @@ -1117,6 +1177,10 @@ static const struct of_device_id rvin_of_id_table[=
+] =3D {
+>                 .compatible =3D "renesas,vin-r8a7795",
+>                 .data =3D &rcar_info_r8a7795,
+>         },
+> +       {
+> +               .compatible =3D "renesas,vin-r8a7796",
+> +               .data =3D &rcar_info_r8a7796,
+> +       },
+>         { },
+>  };
+>  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+> --
+> 2.15.0
