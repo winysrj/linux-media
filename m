@@ -1,231 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:34196 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752492AbdKFMPe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Nov 2017 07:15:34 -0500
-Subject: Re: [PATCH] vimc: add test_pattern and h/vflip controls to the sensor
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <519c6f9f-178e-5ffa-e7a3-83057d31602a@xs4all.nl>
- <1baf9c70-ef12-546e-ef25-7d7ab1058c2b@collabora.com>
- <8864ab0b-fbce-c803-f3e4-8031dc50ce84@xs4all.nl>
-From: Helen Koike <helen.koike@collabora.com>
-Message-ID: <5d3ec487-0756-d68c-ab71-a1afc3289217@collabora.com>
-Date: Mon, 6 Nov 2017 10:15:25 -0200
-MIME-Version: 1.0
-In-Reply-To: <8864ab0b-fbce-c803-f3e4-8031dc50ce84@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:33536 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752201AbdKMOeL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Nov 2017 09:34:11 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 2/6] v4l2-ctrls: prepare internal structs for request API
+Date: Mon, 13 Nov 2017 15:34:04 +0100
+Message-Id: <20171113143408.19644-3-hverkuil@xs4all.nl>
+In-Reply-To: <20171113143408.19644-1-hverkuil@xs4all.nl>
+References: <20171113143408.19644-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 2017-11-06 08:19 AM, Hans Verkuil wrote:
-> Hi Helen,
-> 
-> On 09/27/2017 08:30 PM, Helen Koike wrote:
->> Hi Hans,
->>
->> Thanks for your patch and sorry for my late reply.
-> 
-> Sorry for my late reply to your reply :-)
-> 
->> Please see my comments and questions below
->>
->> On 2017-07-28 07:23 AM, Hans Verkuil wrote:
->>> Add support for the test_pattern control and the h/vflip controls.
->>>
->>> This makes it possible to switch to more interesting test patterns and to
->>> test control handling in v4l-subdevs.
->>>
->>> There are more tpg-related controls that can be added, but this is a good
->>> start.
->>>
->>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> ---
->>> diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
->>> index dca528a316e7..2e9981b18166 100644
->>> --- a/drivers/media/platform/vimc/vimc-common.h
->>> +++ b/drivers/media/platform/vimc/vimc-common.h
->>> @@ -22,6 +22,11 @@
->>>  #include <media/media-device.h>
->>>  #include <media/v4l2-device.h>
->>>
->>> +/* VIMC-specific controls */
->>> +#define VIMC_CID_VIMC_BASE		(0x00f00000 | 0xf000)
->>> +#define VIMC_CID_VIMC_CLASS		(0x00f00000 | 1)
->>
->> Why this values, shouldn't we use a derivative from
->> V4L2_CID_PRIVATE_BASE for custom controls? Or can we use random values?
-> 
-> The values are taken from vivid which uses the same scheme. These controls
-> deal with how the virtual driver emulates things, and I prefer not to make
-> these control IDs part of the public API so we can be a bit more flexible in
-> the future. It's a design choice which worked well for vivid.
-> 
->>
->>> +#define VIMC_CID_TEST_PATTERN		(VIMC_CID_VIMC_BASE + 0)
->>> +
->>>  #define VIMC_FRAME_MAX_WIDTH 4096
->>>  #define VIMC_FRAME_MAX_HEIGHT 2160
->>>  #define VIMC_FRAME_MIN_WIDTH 16
->>> diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
->>> index 615c2b18dcfc..532097566b27 100644
->>> --- a/drivers/media/platform/vimc/vimc-sensor.c
->>> +++ b/drivers/media/platform/vimc/vimc-sensor.c
->>> @@ -22,6 +22,7 @@
->>>  #include <linux/platform_device.h>
->>>  #include <linux/v4l2-mediabus.h>
->>>  #include <linux/vmalloc.h>
->>> +#include <media/v4l2-ctrls.h>
->>>  #include <media/v4l2-subdev.h>
->>>  #include <media/v4l2-tpg.h>
->>>
->>> @@ -38,6 +39,7 @@ struct vimc_sen_device {
->>>  	u8 *frame;
->>>  	/* The active format */
->>>  	struct v4l2_mbus_framefmt mbus_format;
->>> +	struct v4l2_ctrl_handler hdl;
->>>  };
->>>
->>>  static const struct v4l2_mbus_framefmt fmt_default = {
->>> @@ -291,6 +293,31 @@ static const struct v4l2_subdev_ops vimc_sen_ops = {
->>>  	.video = &vimc_sen_video_ops,
->>>  };
->>>
->>> +static int vimc_sen_s_ctrl(struct v4l2_ctrl *ctrl)
->>> +{
->>> +	struct vimc_sen_device *vsen =
->>> +		container_of(ctrl->handler, struct vimc_sen_device, hdl);
->>> +
->>> +	switch (ctrl->id) {
->>> +	case VIMC_CID_TEST_PATTERN:
->>> +		tpg_s_pattern(&vsen->tpg, ctrl->val);
->>> +		break;
->>> +	case V4L2_CID_HFLIP:
->>> +		tpg_s_hflip(&vsen->tpg, ctrl->val);
->>> +		break;
->>> +	case V4L2_CID_VFLIP:
->>> +		tpg_s_vflip(&vsen->tpg, ctrl->val);
->>> +		break;
->>> +	default:
->>> +		return -EINVAL;
->>> +	}
->>> +	return 0;
->>> +}
->>> +
->>> +static const struct v4l2_ctrl_ops vimc_sen_ctrl_ops = {
->>> +	.s_ctrl = vimc_sen_s_ctrl,
->>> +};
->>> +
->>>  static void vimc_sen_comp_unbind(struct device *comp, struct device *master,
->>>  				 void *master_data)
->>>  {
->>> @@ -299,10 +326,29 @@ static void vimc_sen_comp_unbind(struct device *comp, struct device *master,
->>>  				container_of(ved, struct vimc_sen_device, ved);
->>>
->>>  	vimc_ent_sd_unregister(ved, &vsen->sd);
->>> +	v4l2_ctrl_handler_free(&vsen->hdl);
->>>  	tpg_free(&vsen->tpg);
->>>  	kfree(vsen);
->>>  }
->>>
->>> +/* Image Processing Controls */
->>> +static const struct v4l2_ctrl_config vimc_sen_ctrl_class = {
->>> +	.ops = &vimc_sen_ctrl_ops,
->>> +	.flags = V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY,
->>
->> I was wondering if it is really necessary to specify the ops and flags
->> in the class, as this is seems to me a meta control for the other
->> controls to be grouped in a class.
-> 
-> ops can be dropped, but flags needs to be there.
-> 
->>
->>> +	.id = VIMC_CID_VIMC_CLASS,
->>> +	.name = "VIMC Controls",
->>> +	.type = V4L2_CTRL_TYPE_CTRL_CLASS,
->>> +};
->>> +
->>> +static const struct v4l2_ctrl_config vimc_sen_ctrl_test_pattern = {
->>> +	.ops = &vimc_sen_ctrl_ops,
->>> +	.id = VIMC_CID_TEST_PATTERN,
->>> +	.name = "Test Pattern",
->>> +	.type = V4L2_CTRL_TYPE_MENU,
->>> +	.max = TPG_PAT_NOISE,
->>> +	.qmenu = tpg_pattern_strings,
->>> +};
->>> +
->>>  static int vimc_sen_comp_bind(struct device *comp, struct device *master,
->>>  			      void *master_data)
->>>  {
->>> @@ -316,6 +362,20 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
->>>  	if (!vsen)
->>>  		return -ENOMEM;
->>>
->>> +	v4l2_ctrl_handler_init(&vsen->hdl, 4);
->>> +
->>> +	v4l2_ctrl_new_custom(&vsen->hdl, &vimc_sen_ctrl_class, NULL);
->>> +	v4l2_ctrl_new_custom(&vsen->hdl, &vimc_sen_ctrl_test_pattern, NULL);
->>> +	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
->>> +			V4L2_CID_VFLIP, 0, 1, 1, 0);
->>> +	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
->>> +			V4L2_CID_HFLIP, 0, 1, 1, 0);
->>
->> Shouldn't we test the return values of the above functions? Or maybe not
->> because we should know what we are doing and this doesn't depend on the
->> user space.
->>
->>> +	vsen->sd.ctrl_handler = &vsen->hdl;
->>> +	if (vsen->hdl.error) {
-> 
-> The error check happens here. These control functions do nothing if vsen->hdl.error
-> is non-0, and set it if an error occurs.
-> 
-> This simplifies the code since you have to check for an error only once at the end.
-> 
->>> +		ret = vsen->hdl.error;
->>> +		goto err_free_vsen;
->>> +	}
->>> +
->>>  	/* Initialize ved and sd */
->>>  	ret = vimc_ent_sd_register(&vsen->ved, &vsen->sd, v4l2_dev,
->>>  				   pdata->entity_name,
->>> @@ -323,7 +383,7 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
->>>  				   (const unsigned long[1]) {MEDIA_PAD_FL_SOURCE},
->>>  				   &vimc_sen_ops);
->>>  	if (ret)
->>> -		goto err_free_vsen;
->>> +		goto err_free_hdl;
->>>
->>>  	dev_set_drvdata(comp, &vsen->ved);
->>>  	vsen->dev = comp;
->>> @@ -342,6 +402,8 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
->>>
->>>  err_unregister_ent_sd:
->>>  	vimc_ent_sd_unregister(&vsen->ved,  &vsen->sd);
->>> +err_free_hdl:
->>> +	v4l2_ctrl_handler_free(&vsen->hdl);
->>>  err_free_vsen:
->>>  	kfree(vsen);
->>>
->>
->>
->> This conflicts a bit in the way I was preparing the optimization to
->> generate the pattern directly from the capture device as it will need to
->> propagate the changes from the controls in the sensor as well, but it
->> shouldn't be a problem to let the sensor to configure the tpg used in
->> the capture, I'll re-work my patch to include this.
-> 
-> OK. I'll post a v2 dropping the ops field for the 'control class' control.
+Add a refcount and is_request bool to struct v4l2_ctrl_handler:
+this is used to refcount a handler that represents a request.
 
-with this change,
-Acked-by: Helen Koike <helen.koike@collabora.com>
+Add a p_req field to struct v4l2_ctrl_ref that will store the
+request value.
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 1 +
+ include/media/v4l2-ctrls.h           | 4 ++++
+ 2 files changed, 5 insertions(+)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 2e58381444d1..1ff8fc59fff5 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1761,6 +1761,7 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
+ 				      sizeof(hdl->buckets[0]),
+ 				      GFP_KERNEL | __GFP_ZERO);
+ 	hdl->error = hdl->buckets ? 0 : -ENOMEM;
++	hdl->is_request = false;
+ 	return hdl->error;
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_handler_init_class);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index a762f3392d90..a215f25a82cf 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -18,6 +18,7 @@
+ #define _V4L2_CTRLS_H
+ 
+ #include <linux/list.h>
++#include <linux/kref.h>
+ #include <linux/mutex.h>
+ #include <linux/videodev2.h>
+ 
+@@ -250,6 +251,7 @@ struct v4l2_ctrl_ref {
+ 	struct v4l2_ctrl_ref *next;
+ 	struct v4l2_ctrl *ctrl;
+ 	struct v4l2_ctrl_helper *helper;
++	union v4l2_ctrl_ptr p_req;
+ 	bool from_other_dev;
+ };
+ 
+@@ -285,7 +287,9 @@ struct v4l2_ctrl_handler {
+ 	v4l2_ctrl_notify_fnc notify;
+ 	void *notify_priv;
+ 	u16 nr_of_buckets;
++	bool is_request;
+ 	int error;
++	struct kref ref;
+ };
+ 
+ /**
+-- 
+2.14.1
