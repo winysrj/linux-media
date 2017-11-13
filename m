@@ -1,114 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mleia.com ([178.79.152.223]:53742 "EHLO mail.mleia.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750746AbdKKOVK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Nov 2017 09:21:10 -0500
-Subject: Re: [PATCH v4 2/5] media: dt: bindings: Add binding for NVIDIA Tegra
- Video Decoder Engine
-To: Dmitry Osipenko <digetx@gmail.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Warren <swarren@wwwdotorg.org>
-References: <cover.1508448293.git.digetx@gmail.com>
- <bf5b91666229f9e46ed8c73d6ca2e4b65f86b5ab.1508448293.git.digetx@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-From: Vladimir Zapolskiy <vz@mleia.com>
-Message-ID: <6492d1af-19fa-253f-2b75-2c37ccd44cbe@mleia.com>
-Date: Sat, 11 Nov 2017 16:21:07 +0200
-MIME-Version: 1.0
-In-Reply-To: <bf5b91666229f9e46ed8c73d6ca2e4b65f86b5ab.1508448293.git.digetx@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:51404 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751174AbdKMOeL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Nov 2017 09:34:11 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv1 PATCH 0/6] v4l2-ctrls: implement requests
+Date: Mon, 13 Nov 2017 15:34:02 +0100
+Message-Id: <20171113143408.19644-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dmitry,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 10/20/2017 12:34 AM, Dmitry Osipenko wrote:
-> Add binding documentation for the Video Decoder Engine which is found
-> on NVIDIA Tegra20/30/114/124/132 SoC's.
-> 
-> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
-> ---
->  .../devicetree/bindings/media/nvidia,tegra-vde.txt | 55 ++++++++++++++++++++++
->  1 file changed, 55 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt b/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
-> new file mode 100644
-> index 000000000000..470237ed6fe5
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
-> @@ -0,0 +1,55 @@
-> +NVIDIA Tegra Video Decoder Engine
-> +
-> +Required properties:
-> +- compatible : Must contain one of the following values:
-> +   - "nvidia,tegra20-vde"
-> +   - "nvidia,tegra30-vde"
-> +   - "nvidia,tegra114-vde"
-> +   - "nvidia,tegra124-vde"
-> +   - "nvidia,tegra132-vde"
-> +- reg : Must contain an entry for each entry in reg-names.
-> +- reg-names : Must include the following entries:
-> +  - sxe
-> +  - bsev
-> +  - mbe
-> +  - ppe
-> +  - mce
-> +  - tfe
-> +  - ppb
-> +  - vdma
-> +  - frameid
+Hi Alexandre,
 
-I've already mentioned it in my review of the driver code, but the
-version from v3 with a single region is more preferable.
+This is a first implementation of the request API in the
+control framework. It is fairly simplistic at the moment in that
+it just clones all the control values (so no refcounting yet for
+values as Laurent proposed, I will work on that later). But this
+should not be a problem for codecs since there aren't all that many
+controls involved.
 
-Also it implies that "reg-names" property will be removed.
+The API is as follows:
 
-> +- iram : Must contain phandle to the mmio-sram device node that represents
-> +         IRAM region used by VDE.
-> +- interrupts : Must contain an entry for each entry in interrupt-names.
-> +- interrupt-names : Must include the following entries:
-> +  - sync-token
-> +  - bsev
-> +  - sxe
-> +- clocks : Must include the following entries:
-> +  - vde
-> +- resets : Must include the following entries:
-> +  - vde
-> +
-> +Example:
-> +
-> +video-codec@6001a000 {
-> +	compatible = "nvidia,tegra20-vde";
-> +	reg = <0x6001a000 0x1000 /* Syntax Engine */
-> +	       0x6001b000 0x1000 /* Video Bitstream Engine */
-> +	       0x6001c000  0x100 /* Macroblock Engine */
-> +	       0x6001c200  0x100 /* Post-processing Engine */
-> +	       0x6001c400  0x100 /* Motion Compensation Engine */
-> +	       0x6001c600  0x100 /* Transform Engine */
-> +	       0x6001c800  0x100 /* Pixel prediction block */
-> +	       0x6001ca00  0x100 /* Video DMA */
-> +	       0x6001d800  0x300 /* Video frame controls */>;
-> +	reg-names = "sxe", "bsev", "mbe", "ppe", "mce",
-> +		    "tfe", "ppb", "vdma", "frameid";
-> +	iram = <&vde_pool>; /* IRAM region */
-> +	interrupts = <GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
-> +		     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
-> +		     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
-> +	interrupt-names = "sync-token", "bsev", "sxe";
-> +	clocks = <&tegra_car TEGRA20_CLK_VDE>;
-> +	resets = <&tegra_car 61>;
-> +};
-> 
+struct v4l2_ctrl_handler *v4l2_ctrl_request_alloc(void);
 
---
-With best wishes,
-Vladimir
+This allocates a struct v4l2_ctrl_handler that is empty (i.e. has
+no controls) but is refcounted and is marked as representing a
+request.
+
+int v4l2_ctrl_request_clone(struct v4l2_ctrl_handler *hdl,
+                            const struct v4l2_ctrl_handler *from,
+                            bool (*filter)(const struct v4l2_ctrl *ctrl));
+
+Delete any existing controls in handler 'hdl', then clone the values
+from an existing handler 'from' into 'hdl'. If 'from' == NULL, then
+this just clears the handler. 'from' can either be another request
+control handler or a regular control handler in which case the
+current values are cloned. If 'filter' != NULL then you can
+filter which controls you want to clone.
+
+void v4l2_ctrl_request_get(struct v4l2_ctrl_handler *hdl);
+
+Increase the refcount.
+
+void v4l2_ctrl_request_put(struct v4l2_ctrl_handler *hdl);
+
+Decrease the refcount and delete hdl if it reaches 0.
+
+void v4l2_ctrl_request_setup(struct v4l2_ctrl_handler *hdl);
+
+Apply the values from the handler (i.e. request object) to the
+hardware.
+
+You will have to modify v4l_g/s/try_ext_ctrls in v4l2-ioctls.c to
+obtain the request v4l2_ctrl_handler pointer based on the request
+field in struct v4l2_ext_controls.
+
+The first patch in this series is necessary to avoid cloning
+controls that belong to other devices (as opposed to the subdev
+or bridge device for which you make a request). It can probably
+be dropped for codecs, but it is needed for MC devices like
+omap3isp.
+
+This series has only been compile tested! So if it crashes as
+soon as you try to use it, then that's why :-)
+
+Note: I'm not sure if it makes sense to refcount the control
+handler, you might prefer to have a refcount in a higher-level
+request struct. If that's the case, then I can drop the _get
+function and replace the _put function by a v4l2_ctrl_request_free()
+function.
+
+Good luck!
+
+	Hans
+
+Hans Verkuil (6):
+  v4l2-ctrls: v4l2_ctrl_add_handler: add from_other_dev
+  v4l2-ctrls: prepare internal structs for request API
+  v4l2-ctrls: add core request API
+  v4l2-ctrls: use ref in helper instead of ctrl
+  v4l2-ctrls: support g/s_ext_ctrls for requests
+  v4l2-ctrls: add v4l2_ctrl_request_setup
+
+ drivers/media/dvb-frontends/rtl2832_sdr.c        |   5 +-
+ drivers/media/pci/bt8xx/bttv-driver.c            |   2 +-
+ drivers/media/pci/cx23885/cx23885-417.c          |   2 +-
+ drivers/media/pci/cx88/cx88-blackbird.c          |   2 +-
+ drivers/media/pci/cx88/cx88-video.c              |   2 +-
+ drivers/media/pci/saa7134/saa7134-empress.c      |   4 +-
+ drivers/media/pci/saa7134/saa7134-video.c        |   2 +-
+ drivers/media/platform/exynos4-is/fimc-capture.c |   2 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c      |   3 +-
+ drivers/media/platform/rcar_drif.c               |   2 +-
+ drivers/media/platform/soc_camera/soc_camera.c   |   3 +-
+ drivers/media/platform/vivid/vivid-ctrls.c       |  42 ++--
+ drivers/media/usb/cx231xx/cx231xx-417.c          |   2 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c        |   4 +-
+ drivers/media/usb/msi2500/msi2500.c              |   2 +-
+ drivers/media/usb/tm6000/tm6000-video.c          |   2 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c             | 242 +++++++++++++++++++++--
+ drivers/media/v4l2-core/v4l2-device.c            |   3 +-
+ drivers/staging/media/imx/imx-media-dev.c        |   2 +-
+ drivers/staging/media/imx/imx-media-fim.c        |   2 +-
+ include/media/v4l2-ctrls.h                       |  17 +-
+ 21 files changed, 287 insertions(+), 60 deletions(-)
+
+-- 
+2.14.1
