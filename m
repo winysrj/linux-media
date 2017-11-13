@@ -1,202 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:39643 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753352AbdK2Kqk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 05:46:40 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
-        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 02/12] media: rc: fix lots of documentation warnings
-Date: Wed, 29 Nov 2017 05:46:23 -0500
-Message-Id: <f67f366c69c8e2287cfe32a3b2406ff706b43075.1511952372.git.mchehab@s-opensource.com>
-In-Reply-To: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-References: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-In-Reply-To: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-References: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60084 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751107AbdKMCQS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 12 Nov 2017 21:16:18 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: kieran.bingham@ideasonboard.com
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2] media: vsp1: Prevent suspending and resuming DRM pipelines
+Date: Mon, 13 Nov 2017 04:16:25 +0200
+Message-ID: <1750090.PJjXDSLecP@avalon>
+In-Reply-To: <2e94b8b2-267e-1392-ca2d-4bb0e79ade66@ideasonboard.com>
+References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com> <12283788.m7AaoQf6S4@avalon> <2e94b8b2-267e-1392-ca2d-4bb0e79ade66@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Building the driver with gcc 7.2.1 and:
-	make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y W=1 CHECK='' M=drivers/media
+Hi Kieran,
 
-now produces a lot of warnings:
-	drivers/media/rc/rc-main.c:278: warning: No description found for parameter 'new_keycode'
-	drivers/media/rc/rc-main.c:278: warning: Excess function parameter 'keycode' description in 'ir_update_mapping'
-	drivers/media/rc/rc-main.c:387: warning: No description found for parameter 'ke'
-	drivers/media/rc/rc-main.c:387: warning: No description found for parameter 'old_keycode'
-	drivers/media/rc/rc-main.c:387: warning: Excess function parameter 'scancode' description in 'ir_setkeycode'
-	drivers/media/rc/rc-main.c:387: warning: Excess function parameter 'keycode' description in 'ir_setkeycode'
-	drivers/media/rc/rc-main.c:433: warning: Excess function parameter 'to' description in 'ir_setkeytable'
-	drivers/media/rc/rc-main.c:506: warning: No description found for parameter 'ke'
-	drivers/media/rc/rc-main.c:506: warning: Excess function parameter 'scancode' description in 'ir_getkeycode'
-	drivers/media/rc/rc-main.c:506: warning: Excess function parameter 'keycode' description in 'ir_getkeycode'
-	drivers/media/rc/rc-main.c:634: warning: No description found for parameter 't'
-	drivers/media/rc/rc-main.c:634: warning: Excess function parameter 'cookie' description in 'ir_timer_keyup'
+On Sunday, 12 November 2017 18:38:31 EET Kieran Bingham wrote:
+> On 12/11/17 04:28, Laurent Pinchart wrote:
+> > On Wednesday, 20 September 2017 12:16:54 EET Kieran Bingham wrote:
+> >> When used as part of a display pipeline, the VSP is stopped and
+> >> restarted explicitly by the DU from its suspend and resume handlers.
+> >> There is thus no need to stop or restart pipelines in the VSP suspend
+> >> and resume handlers, and doing so would cause the hardware to be
+> >> left in a misconfigured state.
+> >> 
+> >> Ensure that the VSP suspend and resume handlers do not affect DRM
+> >> based pipelines.
+> > 
+> > s/DRM-base/DRM-based/
+> 
+> -ENOMATCH
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/rc/rc-main.c | 46 ++++++++++++++++++++++++++++------------------
- 1 file changed, 28 insertions(+), 18 deletions(-)
+This was of course meant to be s/DRM based/DRM-based/ :-)
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 17950e29d4e3..c4b0217bd169 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -170,10 +170,11 @@ static struct rc_map_list empty_map = {
-  * @name:	name to assign to the table
-  * @rc_proto:	ir type to assign to the new table
-  * @size:	initial size of the table
-- * @return:	zero on success or a negative error code
-  *
-  * This routine will initialize the rc_map and will allocate
-  * memory to hold at least the specified number of elements.
-+ *
-+ * return:	zero on success or a negative error code
-  */
- static int ir_create_table(struct rc_map *rc_map,
- 			   const char *name, u64 rc_proto, size_t size)
-@@ -216,10 +217,11 @@ static void ir_free_table(struct rc_map *rc_map)
-  * ir_resize_table() - resizes a scancode table if necessary
-  * @rc_map:	the rc_map to resize
-  * @gfp_flags:	gfp flags to use when allocating memory
-- * @return:	zero on success or a negative error code
-  *
-  * This routine will shrink the rc_map if it has lots of
-  * unused entries and grow it if it is full.
-+ *
-+ * return:	zero on success or a negative error code
-  */
- static int ir_resize_table(struct rc_map *rc_map, gfp_t gfp_flags)
- {
-@@ -265,11 +267,13 @@ static int ir_resize_table(struct rc_map *rc_map, gfp_t gfp_flags)
-  * @dev:	the struct rc_dev device descriptor
-  * @rc_map:	scancode table to be adjusted
-  * @index:	index of the mapping that needs to be updated
-- * @keycode:	the desired keycode
-- * @return:	previous keycode assigned to the mapping
-+ * @new_keycode: the desired keycode
-  *
-  * This routine is used to update scancode->keycode mapping at given
-  * position.
-+ *
-+ * return:	previous keycode assigned to the mapping
-+ *
-  */
- static unsigned int ir_update_mapping(struct rc_dev *dev,
- 				      struct rc_map *rc_map,
-@@ -320,12 +324,13 @@ static unsigned int ir_update_mapping(struct rc_dev *dev,
-  * @scancode:	the desired scancode
-  * @resize:	controls whether we allowed to resize the table to
-  *		accommodate not yet present scancodes
-- * @return:	index of the mapping containing scancode in question
-- *		or -1U in case of failure.
-  *
-  * This routine is used to locate given scancode in rc_map.
-  * If scancode is not yet present the routine will allocate a new slot
-  * for it.
-+ *
-+ * return:	index of the mapping containing scancode in question
-+ *		or -1U in case of failure.
-  */
- static unsigned int ir_establish_scancode(struct rc_dev *dev,
- 					  struct rc_map *rc_map,
-@@ -375,11 +380,12 @@ static unsigned int ir_establish_scancode(struct rc_dev *dev,
- /**
-  * ir_setkeycode() - set a keycode in the scancode->keycode table
-  * @idev:	the struct input_dev device descriptor
-- * @scancode:	the desired scancode
-- * @keycode:	result
-- * @return:	-EINVAL if the keycode could not be inserted, otherwise zero.
-+ * @ke:		Input keymap entry
-+ * @old_keycode: result
-  *
-  * This routine is used to handle evdev EVIOCSKEY ioctl.
-+ *
-+ * return:	-EINVAL if the keycode could not be inserted, otherwise zero.
-  */
- static int ir_setkeycode(struct input_dev *idev,
- 			 const struct input_keymap_entry *ke,
-@@ -422,11 +428,11 @@ static int ir_setkeycode(struct input_dev *idev,
- /**
-  * ir_setkeytable() - sets several entries in the scancode->keycode table
-  * @dev:	the struct rc_dev device descriptor
-- * @to:		the struct rc_map to copy entries to
-  * @from:	the struct rc_map to copy entries from
-- * @return:	-ENOMEM if all keycodes could not be inserted, otherwise zero.
-  *
-  * This routine is used to handle table initialization.
-+ *
-+ * return:	-ENOMEM if all keycodes could not be inserted, otherwise zero.
-  */
- static int ir_setkeytable(struct rc_dev *dev,
- 			  const struct rc_map *from)
-@@ -474,10 +480,11 @@ static int rc_map_cmp(const void *key, const void *elt)
-  * ir_lookup_by_scancode() - locate mapping by scancode
-  * @rc_map:	the struct rc_map to search
-  * @scancode:	scancode to look for in the table
-- * @return:	index in the table, -1U if not found
-  *
-  * This routine performs binary search in RC keykeymap table for
-  * given scancode.
-+ *
-+ * return:	index in the table, -1U if not found
-  */
- static unsigned int ir_lookup_by_scancode(const struct rc_map *rc_map,
- 					  unsigned int scancode)
-@@ -495,11 +502,11 @@ static unsigned int ir_lookup_by_scancode(const struct rc_map *rc_map,
- /**
-  * ir_getkeycode() - get a keycode from the scancode->keycode table
-  * @idev:	the struct input_dev device descriptor
-- * @scancode:	the desired scancode
-- * @keycode:	used to return the keycode, if found, or KEY_RESERVED
-- * @return:	always returns zero.
-+ * @ke:		Input keymap entry
-  *
-  * This routine is used to handle evdev EVIOCGKEY ioctl.
-+ *
-+ * return:	always returns zero.
-  */
- static int ir_getkeycode(struct input_dev *idev,
- 			 struct input_keymap_entry *ke)
-@@ -556,11 +563,12 @@ static int ir_getkeycode(struct input_dev *idev,
-  * rc_g_keycode_from_table() - gets the keycode that corresponds to a scancode
-  * @dev:	the struct rc_dev descriptor of the device
-  * @scancode:	the scancode to look for
-- * @return:	the corresponding keycode, or KEY_RESERVED
-  *
-  * This routine is used by drivers which need to convert a scancode to a
-  * keycode. Normally it should not be used since drivers should have no
-  * interest in keycodes.
-+ *
-+ * return:	the corresponding keycode, or KEY_RESERVED
-  */
- u32 rc_g_keycode_from_table(struct rc_dev *dev, u32 scancode)
- {
-@@ -625,7 +633,8 @@ EXPORT_SYMBOL_GPL(rc_keyup);
- 
- /**
-  * ir_timer_keyup() - generates a keyup event after a timeout
-- * @cookie:	a pointer to the struct rc_dev for the device
-+ *
-+ * @t:		a pointer to the struct timer_list
-  *
-  * This routine will generate a keyup event some time after a keydown event
-  * is generated when no further activity has been detected.
-@@ -780,7 +789,8 @@ EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
-  *			  provides sensible defaults
-  * @dev:	the struct rc_dev descriptor of the device
-  * @filter:	the scancode and mask
-- * @return:	0 or -EINVAL if the filter is not valid
-+ *
-+ * return:	0 or -EINVAL if the filter is not valid
-  */
- static int rc_validate_filter(struct rc_dev *dev,
- 			      struct rc_scancode_filter *filter)
+> >> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >> ---
+> >> 
+> >>  drivers/media/platform/vsp1/vsp1_drv.c | 16 ++++++++++++++--
+> >>  1 file changed, 14 insertions(+), 2 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
+> >> b/drivers/media/platform/vsp1/vsp1_drv.c index 962e4c304076..ed25ba9d551b
+> >> 100644
+> >> --- a/drivers/media/platform/vsp1/vsp1_drv.c
+> >> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
+> >> @@ -571,7 +571,13 @@ static int __maybe_unused vsp1_pm_suspend(struct
+> >> device *dev) {
+> >> 
+> >>  	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+> >> 
+> >> -	vsp1_pipelines_suspend(vsp1);
+> >> +	/*
+> >> +	 * When used as part of a display pipeline, the VSP is stopped and
+> >> +	 * restarted explicitly by the DU
+> > 
+> > s/DU/DU./
+> > 
+> >> +	 */
+> >> +	if (!vsp1->drm)
+> >> +		vsp1_pipelines_suspend(vsp1);
+> >> +
+> >> 
+> >>  	pm_runtime_force_suspend(vsp1->dev);
+> >>  	
+> >>  	return 0;
+> >> 
+> >> @@ -582,7 +588,13 @@ static int __maybe_unused vsp1_pm_resume(struct
+> >> device
+> >> *dev) struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+> >> 
+> >>  	pm_runtime_force_resume(vsp1->dev);
+> >> 
+> >> -	vsp1_pipelines_resume(vsp1);
+> >> +
+> >> +	/*
+> >> +	 * When used as part of a display pipeline, the VSP is stopped and
+> >> +	 * restarted explicitly by the DU
+> > 
+> > s/DU/DU./
+> > 
+> > Apart from that,
+> > 
+> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> Thanks,
+> 
+> I'll add the full-stops and repost a v2.1 with your RB tag.
+> 
+> >> +	 */
+> >> +	if (!vsp1->drm)
+> >> +		vsp1_pipelines_resume(vsp1);
+> >> 
+> >>  	return 0;
+> >>  
+> >>  }
+
 -- 
-2.14.3
+Regards,
+
+Laurent Pinchart
