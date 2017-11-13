@@ -1,139 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:35229 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754319AbdK1Ukf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 15:40:35 -0500
-Received: by mail-wr0-f195.google.com with SMTP id g53so1367480wra.2
-        for <linux-media@vger.kernel.org>; Tue, 28 Nov 2017 12:40:35 -0800 (PST)
-From: Riccardo Schirone <sirmy15@gmail.com>
-To: alan@linux.intel.com, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org
-Cc: Riccardo Schirone <sirmy15@gmail.com>
-Subject: [PATCHv2 1/4] staging: add missing blank line after declarations in atomisp-ov5693
-Date: Tue, 28 Nov 2017 21:40:01 +0100
-Message-Id: <20171128204004.9345-2-sirmy15@gmail.com>
-In-Reply-To: <20171128204004.9345-1-sirmy15@gmail.com>
-References: <20171127214413.10749-1-sirmy15@gmail.com>
- <20171128204004.9345-1-sirmy15@gmail.com>
+Received: from mga05.intel.com ([192.55.52.43]:4231 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753801AbdKMREh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Nov 2017 12:04:37 -0500
+From: Ville Syrjala <ville.syrjala@linux.intel.com>
+To: dri-devel@lists.freedesktop.org
+Cc: intel-gfx@lists.freedesktop.org,
+        Akashdeep Sharma <akashdeep.sharma@intel.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Emil Velikov <emil.l.velikov@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Jim Bride <jim.bride@linux.intel.com>,
+        Jose Abreu <Jose.Abreu@synopsys.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "Lin, Jia" <lin.a.jia@intel.com>, linux-media@vger.kernel.org,
+        Sean Paul <seanpaul@chromium.org>,
+        Shashank Sharma <shashank.sharma@intel.com>,
+        Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH 00/10] drm/edid: Infoframe cleanups and fixes
+Date: Mon, 13 Nov 2017 19:04:17 +0200
+Message-Id: <20171113170427.4150-1-ville.syrjala@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix "Missing a blank line after declarations" warning reported by
-checkpatch.
+From: Ville Syrjälä <ville.syrjala@linux.intel.com>
 
-Signed-off-by: Riccardo Schirone <sirmy15@gmail.com>
----
- drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+This series tries to fix some issues with HDMI infoframes. In particular
+we can currently send a bogus picture aspect ratio in the infoframe. I
+included stuff to to make the infoframe unpakc more robust, evne though
+we don't (yet) use it in drm. Additionally I included my earlier "empty"
+HDMI infoframe support.
 
-diff --git a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
-index 3e7c3851280f..387c65be10f4 100644
---- a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
-+++ b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
-@@ -82,6 +82,7 @@ static int ad5823_i2c_write(struct i2c_client *client, u8 reg, u8 val)
- {
- 	struct i2c_msg msg;
- 	u8 buf[2];
-+
- 	buf[0] = reg;
- 	buf[1] = val;
- 	msg.addr = AD5823_VCM_ADDR;
-@@ -98,6 +99,7 @@ static int ad5823_i2c_read(struct i2c_client *client, u8 reg, u8 *val)
- {
- 	struct i2c_msg msg[2];
- 	u8 buf[2];
-+
- 	buf[0] = reg;
- 	buf[1] = 0;
- 
-@@ -228,6 +230,7 @@ static int vcm_detect(struct i2c_client *client)
- 	int i, ret;
- 	struct i2c_msg msg;
- 	u16 data0 = 0, data;
-+
- 	for (i = 0; i < 4; i++) {
- 		msg.addr = VCM_ADDR;
- 		msg.flags = I2C_M_RD;
-@@ -690,6 +693,7 @@ static long ov5693_s_exposure(struct v4l2_subdev *sd,
- 	/* we should not accept the invalid value below */
- 	if (analog_gain == 0) {
- 		struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
- 		v4l2_err(client, "%s: invalid value\n", __func__);
- 		return -EINVAL;
- 	}
-@@ -722,6 +726,7 @@ static int __ov5693_otp_read(struct v4l2_subdev *sd, u8 *buf)
- 	int ret;
- 	int i;
- 	u8 *b = buf;
-+
- 	dev->otp_size = 0;
- 	for (i = 1; i < OV5693_OTP_BANK_MAX; i++) {
- 		/*set bank NO and OTP read mode. */
-@@ -984,6 +989,7 @@ static int ov5693_t_focus_abs(struct v4l2_subdev *sd, s32 value)
- static int ov5693_t_focus_rel(struct v4l2_subdev *sd, s32 value)
- {
- 	struct ov5693_device *dev = to_ov5693_sensor(sd);
-+
- 	return ov5693_t_focus_abs(sd, dev->focus + value);
- }
- 
-@@ -1033,6 +1039,7 @@ static int ov5693_q_focus_abs(struct v4l2_subdev *sd, s32 *value)
- static int ov5693_t_vcm_slew(struct v4l2_subdev *sd, s32 value)
- {
- 	struct ov5693_device *dev = to_ov5693_sensor(sd);
-+
- 	dev->number_of_steps = value;
- 	dev->vcm_update = true;
- 	return 0;
-@@ -1041,6 +1048,7 @@ static int ov5693_t_vcm_slew(struct v4l2_subdev *sd, s32 value)
- static int ov5693_t_vcm_timing(struct v4l2_subdev *sd, s32 value)
- {
- 	struct ov5693_device *dev = to_ov5693_sensor(sd);
-+
- 	dev->number_of_steps = value;
- 	dev->vcm_update = true;
- 	return 0;
-@@ -1563,6 +1571,7 @@ static int ov5693_set_fmt(struct v4l2_subdev *sd,
- 	struct camera_mipi_info *ov5693_info = NULL;
- 	int ret = 0;
- 	int idx;
-+
- 	if (format->pad)
- 		return -EINVAL;
- 	if (!fmt)
-@@ -1599,6 +1608,7 @@ static int ov5693_set_fmt(struct v4l2_subdev *sd,
- 	ret = startup(sd);
- 	if (ret) {
- 		int i = 0;
-+
- 		dev_err(&client->dev, "ov5693 startup err, retry to power up\n");
- 		for (i = 0; i < OV5693_POWER_UP_RETRY_NUM; i++) {
- 			dev_err(&client->dev,
-@@ -1655,6 +1665,7 @@ static int ov5693_get_fmt(struct v4l2_subdev *sd,
- {
- 	struct v4l2_mbus_framefmt *fmt = &format->format;
- 	struct ov5693_device *dev = to_ov5693_sensor(sd);
-+
- 	if (format->pad)
- 		return -EINVAL;
- 
-@@ -1818,6 +1829,7 @@ static int ov5693_s_parm(struct v4l2_subdev *sd,
- 			struct v4l2_streamparm *param)
- {
- 	struct ov5693_device *dev = to_ov5693_sensor(sd);
-+
- 	dev->run_mode = param->parm.capture.capturemode;
- 
- 	mutex_lock(&dev->input_lock);
-@@ -1907,6 +1919,7 @@ static int ov5693_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 	struct ov5693_device *dev = to_ov5693_sensor(sd);
-+
- 	dev_dbg(&client->dev, "ov5693_remove...\n");
- 
- 	dev->platform_data->csi_cfg(sd, 0);
+I have further work piled up on top which allows us to precompuet the
+infoframes during the atomic check phase. But the series would have
+become rather big, so I wanted to post these fixes and cleanups first.
+
+Entire series (with the infoframe precompute) is available here:
+git://github.com/vsyrjala/linux.git infoframe_precompute
+
+Cc: Akashdeep Sharma <akashdeep.sharma@intel.com>
+Cc: Andrzej Hajda <a.hajda@samsung.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Emil Velikov <emil.l.velikov@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Jim Bride <jim.bride@linux.intel.com>
+Cc: Jose Abreu <Jose.Abreu@synopsys.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "Lin, Jia" <lin.a.jia@intel.com>
+Cc: linux-media@vger.kernel.org
+Cc: Sean Paul <seanpaul@chromium.org>
+Cc: Shashank Sharma <shashank.sharma@intel.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>
+
+Ville Syrjälä (10):
+  video/hdmi: Allow "empty" HDMI infoframes
+  drm/edid: Allow HDMI infoframe without VIC or S3D
+  drm/modes: Introduce drm_mode_match()
+  drm/edid: Use drm_mode_match_no_clocks_no_stereo() for consistentcy
+  drm/edid: Fix up edid_cea_modes[] formatting
+  drm/edid: Fix cea mode aspect ratio handling
+  drm/edid: Don't send bogus aspect ratios in AVI infoframes
+  video/hdmi: Reject illegal picture aspect ratios
+  video/hdmi: Constify 'buffer' to the unpack functions
+  video/hdmi: Pass buffer size to infoframe unpack functions
+
+ drivers/gpu/drm/bridge/sil-sii8620.c      |   3 +-
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi.c |   4 +-
+ drivers/gpu/drm/drm_edid.c                | 159 +++++++++++++++++++-----------
+ drivers/gpu/drm/drm_modes.c               | 134 +++++++++++++++++++------
+ drivers/gpu/drm/exynos/exynos_hdmi.c      |   2 +-
+ drivers/gpu/drm/i915/intel_hdmi.c         |  14 +--
+ drivers/gpu/drm/mediatek/mtk_hdmi.c       |   3 +-
+ drivers/gpu/drm/nouveau/nv50_display.c    |   3 +-
+ drivers/gpu/drm/rockchip/inno_hdmi.c      |   1 +
+ drivers/gpu/drm/sti/sti_hdmi.c            |   4 +-
+ drivers/gpu/drm/zte/zx_hdmi.c             |   1 +
+ drivers/media/i2c/adv7511.c               |   2 +-
+ drivers/media/i2c/adv7604.c               |   2 +-
+ drivers/media/i2c/adv7842.c               |   2 +-
+ drivers/media/i2c/tc358743.c              |   2 +-
+ drivers/video/hdmi.c                      | 118 ++++++++++++++--------
+ include/drm/drm_connector.h               |   5 +
+ include/drm/drm_edid.h                    |   1 +
+ include/drm/drm_modes.h                   |   9 ++
+ include/linux/hdmi.h                      |   3 +-
+ 20 files changed, 326 insertions(+), 146 deletions(-)
+
 -- 
-2.14.3
+2.13.6
