@@ -1,52 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:45566 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751189AbdKUP1a (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Nov 2017 10:27:30 -0500
-Date: Tue, 21 Nov 2017 17:27:26 +0200
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [PATCH 1/2] drivers/video/hdmi: allow for larger-than-needed
- vendor IF
-Message-ID: <20171121152726.GE10981@intel.com>
-References: <20171120134129.26161-1-hverkuil@xs4all.nl>
- <20171120134129.26161-2-hverkuil@xs4all.nl>
- <20171120145154.GW10981@intel.com>
- <dea1aedf-80f8-ad6d-2560-eb7a0b1936a3@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <dea1aedf-80f8-ad6d-2560-eb7a0b1936a3@xs4all.nl>
+Received: from out20-85.mail.aliyun.com ([115.124.20.85]:39516 "EHLO
+        out20-85.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751682AbdKMIay (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Nov 2017 03:30:54 -0500
+Date: Mon, 13 Nov 2017 16:30:29 +0800
+From: Yong <yong.deng@magewell.com>
+To: yong.deng@magewell.com
+Cc: maxime.ripard@free-electrons.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com, megous@megous.com
+Subject: Re: [linux-sunxi] [PATCH v3 3/3] media: MAINTAINERS: add entries
+ for Allwinner V3s CSI
+Message-Id: <20171113163029.d0563943558192e36af7c9b0@magewell.com>
+In-Reply-To: <1510558631-45511-1-git-send-email-yong.deng@magewell.com>
+References: <1510558631-45511-1-git-send-email-yong.deng@magewell.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 20, 2017 at 04:02:14PM +0100, Hans Verkuil wrote:
-> On 11/20/2017 03:51 PM, Ville Syrjälä wrote:
-> > On Mon, Nov 20, 2017 at 02:41:28PM +0100, Hans Verkuil wrote:
-> >> From: Hans Verkuil <hansverk@cisco.com>
-> >>
-> >> Some devices (Windows Intel driver!) send a Vendor InfoFrame that
-> >> uses a payload length of 0x1b instead of the length of 5 or 6
-> >> that the unpack code expects. The InfoFrame is padded with 0 by
-> >> the source.
-> > 
-> > So it doesn't put any 3D_Metadata stuff in there? We don't see to
-> > have code to parse/generate any of that.
+On Mon, 13 Nov 2017 15:37:11 +0800
+Yong Deng <yong.deng@magewell.com> wrote:
+
+> Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> ---
+>  MAINTAINERS | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 > 
-> I can't remember if it puts any 3D stuff in there. Let me know if you
-> want me to check this later this week.
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index adbf693..1ba7782 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -3744,6 +3744,14 @@ M:	Jaya Kumar <jayakumar.alsa@gmail.com>
+>  S:	Maintained
+>  F:	sound/pci/cs5535audio/
+>  
+> +CSI DRIVERS FOR ALLWINNER V3s
+> +M:	Yong Deng <yong.deng@magewell.com>
+> +L:	linux-media@vger.kernel.org
+> +T:	git git://linuxtv.org/media_tree.git
+> +S:	Maintained
+> +F:	drivers/media/platform/sun6i-csi/
 
-Would be nice to know.
+Sorry, the path has been changed to drivers/media/platform/sunxi/sun6i-csi/.
+I will fix it.
 
-I guess we should really add code to parse/generate that stuff too,
-otherwise we're going to be lying when we unpack an infoframe with that
-stuff present.
+> +F:	Documentation/devicetree/bindings/media/sun6i-csi.txt
+> +
+>  CW1200 WLAN driver
+>  M:	Solomon Peachy <pizza@shaftnet.org>
+>  S:	Maintained
+> -- 
+> 1.8.3.1
+> 
+> -- 
+> You received this message because you are subscribed to the Google Groups "linux-sunxi" group.
+> To unsubscribe from this group and stop receiving emails from it, send an email to linux-sunxi+unsubscribe@googlegroups.com.
+> For more options, visit https://groups.google.com/d/optout.
 
--- 
-Ville Syrjälä
-Intel OTC
+
+Thanks,
+Yong
