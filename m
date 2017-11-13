@@ -1,101 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:65479 "EHLO osg.samsung.com"
+Received: from mga05.intel.com ([192.55.52.43]:9208 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933304AbdKGUkC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Nov 2017 15:40:02 -0500
-Date: Tue, 7 Nov 2017 18:39:50 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>,
-        Linux MM <linux-mm@kvack.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/3] [media] v4l2: disable filesystem-dax mapping
- support
-Message-ID: <20171107183950.46f238fd@vento.lan>
-In-Reply-To: <CAPcyv4hNSV=c4KY8omKEdRth2w4YEr8EQJQfOoxXS8XELGFVcA@mail.gmail.com>
-References: <151001623063.16354.14661493921524115663.stgit@dwillia2-desk3.amr.corp.intel.com>
-        <151001624873.16354.2551756846133945335.stgit@dwillia2-desk3.amr.corp.intel.com>
-        <20171107063345.22626a5d@vento.lan>
-        <CAPcyv4hNSV=c4KY8omKEdRth2w4YEr8EQJQfOoxXS8XELGFVcA@mail.gmail.com>
+        id S1753801AbdKMRFK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Nov 2017 12:05:10 -0500
+From: Ville Syrjala <ville.syrjala@linux.intel.com>
+To: dri-devel@lists.freedesktop.org
+Cc: intel-gfx@lists.freedesktop.org,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 09/10] video/hdmi: Constify 'buffer' to the unpack functions
+Date: Mon, 13 Nov 2017 19:04:26 +0200
+Message-Id: <20171113170427.4150-10-ville.syrjala@linux.intel.com>
+In-Reply-To: <20171113170427.4150-1-ville.syrjala@linux.intel.com>
+References: <20171113170427.4150-1-ville.syrjala@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 7 Nov 2017 09:43:41 -0800
-Dan Williams <dan.j.williams@intel.com> escreveu:
+From: Ville Syrjälä <ville.syrjala@linux.intel.com>
 
-> On Tue, Nov 7, 2017 at 12:33 AM, Mauro Carvalho Chehab
-> <mchehab@s-opensource.com> wrote:
-> > Em Mon, 06 Nov 2017 16:57:28 -0800
-> > Dan Williams <dan.j.williams@intel.com> escreveu:
-> >  
-> >> V4L2 memory registrations are incompatible with filesystem-dax that
-> >> needs the ability to revoke dma access to a mapping at will, or
-> >> otherwise allow the kernel to wait for completion of DMA. The
-> >> filesystem-dax implementation breaks the traditional solution of
-> >> truncate of active file backed mappings since there is no page-cache
-> >> page we can orphan to sustain ongoing DMA.
-> >>
-> >> If v4l2 wants to support long lived DMA mappings it needs to arrange to
-> >> hold a file lease or use some other mechanism so that the kernel can
-> >> coordinate revoking DMA access when the filesystem needs to truncate
-> >> mappings.  
-> >
-> >
-> > Not sure if I understand this your comment here... what happens
-> > if FS_DAX is enabled? The new err = get_user_pages_longterm()
-> > would cause DMA allocation to fail?  
-> 
-> Correct, any attempt to specify a filesystem-dax mapping range to
-> get_user_pages_longterm will fail with EOPNOTSUPP. In the future we
-> want to add something like a 'struct file_lock *' argument to
-> get_user_pages_longterm so that the kernel has a handle to revoke
-> access to the returned pages. Once we have a safe way for the kernel
-> to undo elevated page counts we can stop failing the longterm vs
-> filesystem-dax case.
+The unpack functions just read from the passed in buffer,
+so make it const.
 
-Argh! Perhaps we should make it depend on BROKEN while not fixed :-/
+Cc: Thierry Reding <thierry.reding@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+---
+ drivers/video/hdmi.c | 23 ++++++++++++-----------
+ include/linux/hdmi.h |  3 ++-
+ 2 files changed, 14 insertions(+), 12 deletions(-)
 
-> Here is more background on why _longterm gup is a problem for filesystem-dax:
-> 
->     https://lwn.net/Articles/737273/
-> 
-> > If so, that doesn't sound
-> > right. Instead, mm should somehow mark this mapping to be out
-> > of FS_DAX control range.  
-> 
-> DAX is currently global setting for the entire backing device of the
-> filesystem, so any mapping of any file when the "-o dax" mount option
-> is set is in the "FS_DAX control range". In other words there's
-> currently no way to prevent FS_DAX mappings from being exposed to V4L2
-> outside of CONFIG_FS_DAX=n.
-
-Grrr...
-
-> > Also, it is not only videobuf-dma-sg.c that does long lived
-> > DMA mappings. VB2 also does that (and videobuf-vmalloc).  
-> 
-> Without finding the code videobuf-vmalloc sounds like it should be ok
-> if the kernel is allocating memory separate from a file-backed DAX
-> mapping.
-
-videobuf-vmalloc do DMA mapping for pages allocated via vmalloc(),
-via vmalloc_user()/remap_vmalloc_range().
-
-There aren't much drivers using VB1 anymore, but a change at VB2
-will likely break support for almost all webcams if fs DAX is
-in usage.
-
-> Where is the VB2 get_user_pages call?
-
-Before changeset 3336c24f25ec, the logic for get_user_pages() were
-at drivers/media/v4l2-core/videobuf2-dma-sg.c. Now, the logic
-it uses is inside mm/frame_vector.c.
-
-Thanks,
-Mauro
+diff --git a/drivers/video/hdmi.c b/drivers/video/hdmi.c
+index 38716eb50408..65b915ea4936 100644
+--- a/drivers/video/hdmi.c
++++ b/drivers/video/hdmi.c
+@@ -31,7 +31,7 @@
+ 
+ #define hdmi_log(fmt, ...) dev_printk(level, dev, fmt, ##__VA_ARGS__)
+ 
+-static u8 hdmi_infoframe_checksum(u8 *ptr, size_t size)
++static u8 hdmi_infoframe_checksum(const u8 *ptr, size_t size)
+ {
+ 	u8 csum = 0;
+ 	size_t i;
+@@ -1016,9 +1016,9 @@ EXPORT_SYMBOL(hdmi_infoframe_log);
+  * Returns 0 on success or a negative error code on failure.
+  */
+ static int hdmi_avi_infoframe_unpack(struct hdmi_avi_infoframe *frame,
+-				     void *buffer)
++				     const void *buffer)
+ {
+-	u8 *ptr = buffer;
++	const u8 *ptr = buffer;
+ 	int ret;
+ 
+ 	if (ptr[0] != HDMI_INFOFRAME_TYPE_AVI ||
+@@ -1079,9 +1079,9 @@ static int hdmi_avi_infoframe_unpack(struct hdmi_avi_infoframe *frame,
+  * Returns 0 on success or a negative error code on failure.
+  */
+ static int hdmi_spd_infoframe_unpack(struct hdmi_spd_infoframe *frame,
+-				     void *buffer)
++				     const void *buffer)
+ {
+-	u8 *ptr = buffer;
++	const u8 *ptr = buffer;
+ 	int ret;
+ 
+ 	if (ptr[0] != HDMI_INFOFRAME_TYPE_SPD ||
+@@ -1117,9 +1117,9 @@ static int hdmi_spd_infoframe_unpack(struct hdmi_spd_infoframe *frame,
+  * Returns 0 on success or a negative error code on failure.
+  */
+ static int hdmi_audio_infoframe_unpack(struct hdmi_audio_infoframe *frame,
+-				       void *buffer)
++				       const void *buffer)
+ {
+-	u8 *ptr = buffer;
++	const u8 *ptr = buffer;
+ 	int ret;
+ 
+ 	if (ptr[0] != HDMI_INFOFRAME_TYPE_AUDIO ||
+@@ -1163,9 +1163,9 @@ static int hdmi_audio_infoframe_unpack(struct hdmi_audio_infoframe *frame,
+  */
+ static int
+ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
+-				 void *buffer)
++				 const void *buffer)
+ {
+-	u8 *ptr = buffer;
++	const u8 *ptr = buffer;
+ 	size_t length;
+ 	int ret;
+ 	u8 hdmi_video_format;
+@@ -1234,10 +1234,11 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
+  *
+  * Returns 0 on success or a negative error code on failure.
+  */
+-int hdmi_infoframe_unpack(union hdmi_infoframe *frame, void *buffer)
++int hdmi_infoframe_unpack(union hdmi_infoframe *frame,
++			  const void *buffer)
+ {
+ 	int ret;
+-	u8 *ptr = buffer;
++	const u8 *ptr = buffer;
+ 
+ 	switch (ptr[0]) {
+ 	case HDMI_INFOFRAME_TYPE_AVI:
+diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
+index d271ff23984f..d3816170c062 100644
+--- a/include/linux/hdmi.h
++++ b/include/linux/hdmi.h
+@@ -332,7 +332,8 @@ union hdmi_infoframe {
+ 
+ ssize_t
+ hdmi_infoframe_pack(union hdmi_infoframe *frame, void *buffer, size_t size);
+-int hdmi_infoframe_unpack(union hdmi_infoframe *frame, void *buffer);
++int hdmi_infoframe_unpack(union hdmi_infoframe *frame,
++			  const void *buffer);
+ void hdmi_infoframe_log(const char *level, struct device *dev,
+ 			union hdmi_infoframe *frame);
+ 
+-- 
+2.13.6
