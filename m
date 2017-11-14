@@ -1,131 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:57283 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751185AbdKAEma (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:50428 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751245AbdKNKvA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 00:42:30 -0400
-Message-ID: <a1a94c682823b7458597c8a45fae82c0@smtp-cloud8.xs4all.net>
-Date: Wed, 01 Nov 2017 05:42:28 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 14 Nov 2017 05:51:00 -0500
+Date: Tue, 14 Nov 2017 11:50:58 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: et8ek8: select V4L2_FWNODE
+Message-ID: <20171114105057.GA2576@amd>
+References: <20171113135658.3208951-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="G4iJoqBmSsgzjUCe"
+Content-Disposition: inline
+In-Reply-To: <20171113135658.3208951-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--G4iJoqBmSsgzjUCe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-date:			Wed Nov  1 05:00:16 CET 2017
-media-tree git hash:	f283c01b8094da9454f4b51c997f578227c29d95
-media_build git hash:	c93534951f5d66bef7f17f16293acf2be346b726
-v4l-utils git hash:	814949be25dffaffa5d6354ce3aaf61f9d3dbbaa
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
+On Mon 2017-11-13 14:56:45, Arnd Bergmann wrote:
+> v4l2_async_register_subdev_sensor_common() is only provided when
+> CONFIG_V4L2_FWNODE is enabled, otherwise we get a link failure:
+>=20
+> drivers/media/i2c/et8ek8/et8ek8_driver.o: In function `et8ek8_probe':
+> et8ek8_driver.c:(.text+0x884): undefined reference to `v4l2_async_registe=
+r_subdev_sensor_common'
+>=20
+> This adds a Kconfig 'select' statement like all the other users of
+> this interface have.
+>=20
+> Fixes: d8932f38c10f ("media: et8ek8: Add support for flash and lens devic=
+es")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12.1-i686: ERRORS
-linux-4.13-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12.1-x86_64: ERRORS
-linux-4.13-x86_64: ERRORS
-apps: OK
-spec-git: OK
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
-Detailed results are available here:
+Thanks!
+									Pavel
+								=09
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+--G4iJoqBmSsgzjUCe
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Full logs are available here:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+iEYEARECAAYFAloKypEACgkQMOfwapXb+vIxoACgnnqxRGF1fGeZOFE+TlF6Nb+y
+BbwAn0DhRvO4AyVXPSPuh/MlLY/TQqTy
+=DTLW
+-----END PGP SIGNATURE-----
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+--G4iJoqBmSsgzjUCe--
