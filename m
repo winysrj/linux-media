@@ -1,68 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:52520 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933280AbdKAVGS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 17:06:18 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sergey Kozlov <serjk@netup.ru>, Abylay Ospan <aospan@netup.ru>
-Subject: [PATCH v2 22/26] [RFC] media: cxd2841er: ensure that status will always be available
-Date: Wed,  1 Nov 2017 17:05:59 -0400
-Message-Id: <36d7bfe208024f2301c2d2b31dcf5d995d162b18.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:38821 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751647AbdKNFDL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Nov 2017 00:03:11 -0500
+Message-ID: <46cf0f7a950be8a41d5740d7af919d62@smtp-cloud7.xs4all.net>
+Date: Tue, 14 Nov 2017 06:03:08 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The loop with read status use a dynamic timeout value, calculated
-from symbol rate. It should run the loop at least one time for
-the status to be handled after the loop.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-While this should, in practice, happen every time, it doesn't
-hurt to change the logic to make it explicit.
+Results of the daily build of media_tree:
 
-This solves a smatch warning:
-	drivers/media/dvb-frontends/cxd2841er.c:3350 cxd2841er_set_frontend_s() error: uninitialized symbol 'status'.
+date:			Tue Nov 14 05:00:21 CET 2017
+media-tree git hash:	eb0c19942288569e0ae492476534d5a485fb8ab4
+media_build git hash:	097aaf3e4e4bfdeff130db9697dec1befeb3221b
+v4l-utils git hash:	7b2d48ff594dcc2c9b395463441e5abb4f5e9439
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		0.5.1 (Debian: 0.5.1-2)
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.13.0-164
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-4.14-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+linux-4.14-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
----
+Detailed results are available here:
 
-On a separate note, it looks weird to have something there waiting
-for lock. This should happen on userspace, except if there are
-some bugs at the hardware that prevent it to work otherwise.
----
- drivers/media/dvb-frontends/cxd2841er.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-index 48ee9bc00c06..98e40b7adad5 100644
---- a/drivers/media/dvb-frontends/cxd2841er.c
-+++ b/drivers/media/dvb-frontends/cxd2841er.c
-@@ -3340,13 +3340,17 @@ static int cxd2841er_set_frontend_s(struct dvb_frontend *fe)
- 
- 	cxd2841er_tune_done(priv);
- 	timeout = ((3000000 + (symbol_rate - 1)) / symbol_rate) + 150;
--	for (i = 0; i < timeout / CXD2841ER_DVBS_POLLING_INVL; i++) {
-+
-+	i = 0;
-+	do {
- 		usleep_range(CXD2841ER_DVBS_POLLING_INVL*1000,
- 			(CXD2841ER_DVBS_POLLING_INVL + 2) * 1000);
- 		cxd2841er_read_status_s(fe, &status);
- 		if (status & FE_HAS_LOCK)
- 			break;
--	}
-+		i++;
-+	} while (i < timeout / CXD2841ER_DVBS_POLLING_INVL);
-+
- 	if (status & FE_HAS_LOCK) {
- 		if (cxd2841er_get_carrier_offset_s_s2(
- 				priv, &carr_offset)) {
--- 
-2.13.6
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
