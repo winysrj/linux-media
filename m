@@ -1,78 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:60051 "EHLO gofer.mess.org"
+Received: from mga02.intel.com ([134.134.136.20]:13263 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750768AbdK3W1v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Nov 2017 17:27:51 -0500
-Date: Thu, 30 Nov 2017 22:27:49 +0000
-From: Sean Young <sean@mess.org>
-To: Matthias Reichl <hias@horus.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [BUG] ir-ctl: error sending file with multiple scancodes
-Message-ID: <20171130222749.zuh6iqv63354wflf@gofer.mess.org>
-References: <20171129144400.ojhd32gz33wabp33@camel2.lan>
- <20171129200521.z4phw7kzcmf56qgi@gofer.mess.org>
- <20171130153433.yiunybv2sgfwwt3t@camel2.lan>
+        id S1755436AbdKNOLD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Nov 2017 09:11:03 -0500
+Date: Tue, 14 Nov 2017 16:10:57 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
+Cc: Alan <alan@linux.intel.com>, vincent.hervieux@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] atomisp: fix vfree of bogus data on unload
+Message-ID: <20171114141057.e3twr7ubztzd7t4m@kekkonen.localdomain>
+References: <151001137594.77201.4306351721772580664.stgit@alans-desktop>
+ <151001140261.77201.8823780763771880199.stgit@alans-desktop>
+ <20171113220548.ji4z4e5neehxg4wn@kekkonen.localdomain>
+ <20171114001601.4d51d230@alans-desktop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20171130153433.yiunybv2sgfwwt3t@camel2.lan>
+In-Reply-To: <20171114001601.4d51d230@alans-desktop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Matthias,
-
-On Thu, Nov 30, 2017 at 04:34:33PM +0100, Matthias Reichl wrote:
-> Hi Sean,
+On Tue, Nov 14, 2017 at 12:16:01AM +0000, Alan Cox wrote:
+> On Tue, 14 Nov 2017 00:05:48 +0200
+> Sakari Ailus <sakari.ailus@linux.intel.com> wrote:
 > 
-> On Wed, Nov 29, 2017 at 08:05:21PM +0000, Sean Young wrote:
-> > On Wed, Nov 29, 2017 at 03:44:00PM +0100, Matthias Reichl wrote:
-> > > The goal I'm trying to achieve is to send a repeated signal with ir-ctl
-> > > (a user reported his sony receiver needs this to actually power up).
+> > Hi Alan,
 > > 
-> > That's interesting.
-> 
-> I'm not sure how common that is. I've got a Panasonic TV here
-> that needs a 0.5-1sec button press to power up from standby,
-> but it could well be that this is a rather nieche issue.
-> 
-> I had a look at what it would take to add proper repeat handling
-> to ir-ctl (similar to the --count <NUMBER> option in lirc's irsend)
-> but that looks like a larger endeavour: implement automatic
-> variable length gaps to get fixed repeat times, handle toggle
-> bits in some protocols, send special repeat codes eg in NEC etc.
-
-Yes, I've thought about that too. I'm not sure what the user inferface
-should look like (and how useful it is).
-
-> As I'm not sure if all of this is even needed I think it's best
-> to leave it for maybe some time later. For now the current
-> functionality in ir-ctl looks sufficient.
-
-If you have any suggestions. :-)
-
-> > > Using the -S option multiple times comes rather close, but the 125ms
-> > > delay between signals is a bit long for the sony protocol - would be
-> > > nice if that would be adjustable :)
+> > On Mon, Nov 06, 2017 at 11:36:45PM +0000, Alan wrote:
+> > > We load the firmware once, set pointers to it and then at some point release
+> > > it. We should not be doing a vfree() on the pointers into the firmware.
+> > > 
+> > > Signed-off-by: Alan Cox <alan@linux.intel.com>
+> > > ---
+> > >  .../atomisp/pci/atomisp2/css2400/sh_css_firmware.c |    2 --
+> > >  1 file changed, 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+> > > index 8158ea40d069..f181bd8fcee2 100644
+> > > --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+> > > +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+> > > @@ -288,8 +288,6 @@ void sh_css_unload_firmware(void)
+> > >  		for (i = 0; i < sh_css_num_binaries; i++) {
+> > >  			if (fw_minibuffer[i].name)
+> > >  				kfree((void *)fw_minibuffer[i].name);
+> > > -			if (fw_minibuffer[i].buffer)
+> > > -				vfree((void *)fw_minibuffer[i].buffer);  
 > > 
-> > Yes, that would be a useful feature.
-> > 
-> > I've got some patches for this, I'll send them as a reply to this. Please
-> > let me know what you think.
+> > You shouldn't end up here if the firmware is just loaded once. If multiple
+> > times, then yes.
 > 
-> [PATCH 1/2] ir-ctl: fix multiple scancodes in one file 01-multiple-scancodes.patch
-> [PATCH 2/2] ir-ctl: specify the gap between scancodes or files
-> 
-> Tested-by: Matthias Reichl <hias@horus.com>
-> 
-> Thanks, the patches look and tested fine!
-> 
-> I've tested multiple scancodes in a file with and without explicit
-> space in between and the gap option with multiple -S scancodes on
-> the command line. I also tested rc5 protocol in addition to sony12.
-> 
-> So I'd like to say a big thank you for fixing the issue so quickly!
+> You end up there when unloading the module.
 
-Thanks for making ir-ctl a better tool :)
+Ah, that's for sure indeed. I thought loading would be already a challenge.
+:-)
 
+> 
+> > The memory appears to have been allocated using kmalloc() in some cases.
+> > How about kvfree(), or changing that kmalloc() to vmalloc()
+> 
+> I'll take a deeper look at what is going on.
 
-Sean
+Look for minibuffer in sh_css_load_blob_info(). The buffer field of the
+struct is allocated using kmalloc, I wonder if changing that to vmalloc
+would just address this.
+
+The buffer is elsewhere allocated using vmalloc. I suspect that some of the
+cleanup patches changed how this works but missed changing the other one.
+
+-- 
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
