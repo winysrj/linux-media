@@ -1,131 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:47187 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750704AbdKBEl4 (ORCPT
+Received: from mail-wr0-f181.google.com ([209.85.128.181]:45076 "EHLO
+        mail-wr0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932294AbdKOLdo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Nov 2017 00:41:56 -0400
-Message-ID: <81997a5ce73c11138fb7034b7108b9ac@smtp-cloud7.xs4all.net>
-Date: Thu, 02 Nov 2017 05:41:53 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Wed, 15 Nov 2017 06:33:44 -0500
+Received: by mail-wr0-f181.google.com with SMTP id w95so1349066wrc.2
+        for <linux-media@vger.kernel.org>; Wed, 15 Nov 2017 03:33:43 -0800 (PST)
+Received: from localhost.localdomain ([62.147.246.169])
+        by smtp.gmail.com with ESMTPSA id m37sm24217424wrm.4.2017.11.15.03.33.41
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 15 Nov 2017 03:33:41 -0800 (PST)
+From: =?UTF-8?q?Rafa=C3=ABl=20Carr=C3=A9?= <funman@videolan.org>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Subject: [PATCH 2/2] dvbv5-daemon: 0 is a valid fd
+Date: Wed, 15 Nov 2017 12:33:36 +0100
+Message-Id: <20171115113336.3756-2-funman@videolan.org>
+In-Reply-To: <20171115113336.3756-1-funman@videolan.org>
+References: <20171115113336.3756-1-funman@videolan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+---
+ utils/dvb/dvbv5-daemon.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Results of the daily build of media_tree:
-
-date:			Thu Nov  2 05:00:16 CET 2017
-media-tree git hash:	9917fbcfa20ab987d6381fd0365665e5c1402d75
-media_build git hash:	c93534951f5d66bef7f17f16293acf2be346b726
-v4l-utils git hash:	814949be25dffaffa5d6354ce3aaf61f9d3dbbaa
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.12.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12.1-i686: ERRORS
-linux-4.13-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12.1-x86_64: ERRORS
-linux-4.13-x86_64: ERRORS
-apps: OK
-spec-git: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/utils/dvb/dvbv5-daemon.c b/utils/dvb/dvbv5-daemon.c
+index 58485ac6..711694e0 100644
+--- a/utils/dvb/dvbv5-daemon.c
++++ b/utils/dvb/dvbv5-daemon.c
+@@ -570,7 +570,7 @@ void dvb_remote_log(void *priv, int level, const char *fmt, ...)
+ 
+ 	va_end(ap);
+ 
+-	if (fd > 0)
++	if (fd >= 0)
+ 		send_data(fd, "%i%s%i%s", 0, "log", level, buf);
+ 	else
+ 		local_log(level, buf);
+-- 
+2.14.1
