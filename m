@@ -1,171 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:45295 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933987AbdKPQQv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 11:16:51 -0500
-Date: Thu, 16 Nov 2017 18:16:31 +0200
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-To: "Sharma, Shashank" <shashank.sharma@intel.com>
-Cc: dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 01/10] video/hdmi: Allow "empty" HDMI infoframes
-Message-ID: <20171116161631.GV10981@intel.com>
-References: <20171113170427.4150-1-ville.syrjala@linux.intel.com>
- <20171113170427.4150-2-ville.syrjala@linux.intel.com>
- <6e738687-62f2-c803-a64c-7364bae3eacf@intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47132 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752171AbdKOMgg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Nov 2017 07:36:36 -0500
+Date: Wed, 15 Nov 2017 14:36:33 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v1 02/10] include: media: Add Renesas CEU driver interface
+Message-ID: <20171115123633.zvkokelhwwyro42y@valkosipuli.retiisi.org.uk>
+References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1510743363-25798-3-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <6e738687-62f2-c803-a64c-7364bae3eacf@intel.com>
+In-Reply-To: <1510743363-25798-3-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 16, 2017 at 08:06:18PM +0530, Sharma, Shashank wrote:
-> Regards
-> 
-> Shashank
-> 
-> 
-> On 11/13/2017 10:34 PM, Ville Syrjala wrote:
-> > From: Ville Syrjälä <ville.syrjala@linux.intel.com>
-> >
-> > HDMI 2.0 Appendix F suggest that we should keep sending the infoframe
-> > when switching from 3D to 2D mode, even if the infoframe isn't strictly
-> > necessary (ie. not needed to transmit the VIC or stereo information).
-> > This is a workaround against some sinks that fail to realize that they
-> > should switch from 3D to 2D mode when the source stop transmitting
-> > the infoframe.
-> >
-> > v2: Handle unpack() as well
-> >      Pull the length calculation into a helper
-> >
-> > Cc: Shashank Sharma <shashank.sharma@intel.com>
-> > Cc: Andrzej Hajda <a.hajda@samsung.com>
-> > Cc: Thierry Reding <thierry.reding@gmail.com>
-> > Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> > Cc: linux-media@vger.kernel.org
-> > Reviewed-by: Andrzej Hajda <a.hajda@samsung.com> #v1
-> > Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
-> > ---
-> >   drivers/video/hdmi.c | 51 +++++++++++++++++++++++++++++++--------------------
-> >   1 file changed, 31 insertions(+), 20 deletions(-)
-> >
-> > diff --git a/drivers/video/hdmi.c b/drivers/video/hdmi.c
-> > index 1cf907ecded4..111a0ab6280a 100644
-> > --- a/drivers/video/hdmi.c
-> > +++ b/drivers/video/hdmi.c
-> > @@ -321,6 +321,17 @@ int hdmi_vendor_infoframe_init(struct hdmi_vendor_infoframe *frame)
-> >   }
-> >   EXPORT_SYMBOL(hdmi_vendor_infoframe_init);
-> >   
-> > +static int hdmi_vendor_infoframe_length(const struct hdmi_vendor_infoframe *frame)
-> > +{
-> > +	/* for side by side (half) we also need to provide 3D_Ext_Data */
-> > +	if (frame->s3d_struct >= HDMI_3D_STRUCTURE_SIDE_BY_SIDE_HALF)
-> > +		return 6;
-> > +	else if (frame->vic != 0 || frame->s3d_struct != HDMI_3D_STRUCTURE_INVALID)
-> > +		return 5;
-> > +	else
-> > +		return 4;
-> > +}
-> > +
-> >   /**
-> >    * hdmi_vendor_infoframe_pack() - write a HDMI vendor infoframe to binary buffer
-> >    * @frame: HDMI infoframe
-> > @@ -341,19 +352,11 @@ ssize_t hdmi_vendor_infoframe_pack(struct hdmi_vendor_infoframe *frame,
-> >   	u8 *ptr = buffer;
-> >   	size_t length;
-> >   
-> > -	/* empty info frame */
-> > -	if (frame->vic == 0 && frame->s3d_struct == HDMI_3D_STRUCTURE_INVALID)
-> > -		return -EINVAL;
-> > -
-> >   	/* only one of those can be supplied */
-> >   	if (frame->vic != 0 && frame->s3d_struct != HDMI_3D_STRUCTURE_INVALID)
-> >   		return -EINVAL;
-> >   
-> > -	/* for side by side (half) we also need to provide 3D_Ext_Data */
-> > -	if (frame->s3d_struct >= HDMI_3D_STRUCTURE_SIDE_BY_SIDE_HALF)
-> > -		frame->length = 6;
-> > -	else
-> > -		frame->length = 5;
-> > +	frame->length = hdmi_vendor_infoframe_length(frame);
-> >   
-> >   	length = HDMI_INFOFRAME_HEADER_SIZE + frame->length;
-> >   
-> > @@ -372,14 +375,16 @@ ssize_t hdmi_vendor_infoframe_pack(struct hdmi_vendor_infoframe *frame,
-> >   	ptr[5] = 0x0c;
-> >   	ptr[6] = 0x00;
-> >   
-> > -	if (frame->vic) {
-> > -		ptr[7] = 0x1 << 5;	/* video format */
-> > -		ptr[8] = frame->vic;
-> > -	} else {
-> > +	if (frame->s3d_struct != HDMI_3D_STRUCTURE_INVALID) {
-> >   		ptr[7] = 0x2 << 5;	/* video format */
-> >   		ptr[8] = (frame->s3d_struct & 0xf) << 4;
-> >   		if (frame->s3d_struct >= HDMI_3D_STRUCTURE_SIDE_BY_SIDE_HALF)
-> >   			ptr[9] = (frame->s3d_ext_data & 0xf) << 4;
-> > +	} else if (frame->vic) {
-> Please correct me if I dint understand this properly, but for a HDMI 2.0 
-> sink + 3D transmission, wouldn't I be sending
-> HDMI 2.0 VIC = 94 as well as some valid s3d flag (like side by side) ?
+Hi Jacopo,
 
-That vic will be in the AVI infoframe. Here we're concerned about the
-VIC in the HDMI vendor infoframe.
+On Wed, Nov 15, 2017 at 11:55:55AM +0100, Jacopo Mondi wrote:
+> Add renesas-ceu header file.
+> 
+> Do not remove the existing sh_mobile_ceu.h one as long as the original
+> driver does not go away.
+
+Hmm. This isn't really not about not removing a file but adding a new one.
+Do you really need it outside the driver's own directory?
 
 > 
-> - Shashank
-> > +		ptr[7] = 0x1 << 5;	/* video format */
-> > +		ptr[8] = frame->vic;
-> > +	} else {
-> > +		ptr[7] = 0x0 << 5;	/* video format */
-> >   	}
-> >   
-> >   	hdmi_infoframe_set_checksum(buffer, length);
-> > @@ -1165,7 +1170,7 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
-> >   
-> >   	if (ptr[0] != HDMI_INFOFRAME_TYPE_VENDOR ||
-> >   	    ptr[1] != 1 ||
-> > -	    (ptr[2] != 5 && ptr[2] != 6))
-> > +	    (ptr[2] != 4 && ptr[2] != 5 && ptr[2] != 6))
-> >   		return -EINVAL;
-> >   
-> >   	length = ptr[2];
-> > @@ -1193,16 +1198,22 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
-> >   
-> >   	hvf->length = length;
-> >   
-> > -	if (hdmi_video_format == 0x1) {
-> > -		hvf->vic = ptr[4];
-> > -	} else if (hdmi_video_format == 0x2) {
-> > +	if (hdmi_video_format == 0x2) {
-> > +		if (length != 5 && length != 6)
-> > +			return -EINVAL;
-> >   		hvf->s3d_struct = ptr[4] >> 4;
-> >   		if (hvf->s3d_struct >= HDMI_3D_STRUCTURE_SIDE_BY_SIDE_HALF) {
-> > -			if (length == 6)
-> > -				hvf->s3d_ext_data = ptr[5] >> 4;
-> > -			else
-> > +			if (length != 6)
-> >   				return -EINVAL;
-> > +			hvf->s3d_ext_data = ptr[5] >> 4;
-> >   		}
-> > +	} else if (hdmi_video_format == 0x1) {
-> > +		if (length != 5)
-> > +			return -EINVAL;
-> > +		hvf->vic = ptr[4];
-> > +	} else {
-> > +		if (length != 4)
-> > +			return -EINVAL;
-> >   	}
-> >   
-> >   	return 0;
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  include/media/drv-intf/renesas-ceu.h | 23 +++++++++++++++++++++++
+>  1 file changed, 23 insertions(+)
+>  create mode 100644 include/media/drv-intf/renesas-ceu.h
+> 
+> diff --git a/include/media/drv-intf/renesas-ceu.h b/include/media/drv-intf/renesas-ceu.h
+> new file mode 100644
+> index 0000000..f2da78c
+> --- /dev/null
+> +++ b/include/media/drv-intf/renesas-ceu.h
+> @@ -0,0 +1,23 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+> +#ifndef __ASM_RENESAS_CEU_H__
+> +#define __ASM_RENESAS_CEU_H__
+> +
+> +#include <media/v4l2-mediabus.h>
+> +
+> +#define CEU_FLAG_PRIMARY_SENS	BIT(0)
+> +#define CEU_MAX_SENS		2
+> +
+> +struct ceu_async_subdev {
+> +	unsigned long flags;
+> +	unsigned char bus_width;
+> +	unsigned char bus_shift;
+> +	unsigned int i2c_adapter_id;
+> +	unsigned int i2c_address;
+> +};
+> +
+> +struct ceu_info {
+> +	unsigned int num_subdevs;
+> +	struct ceu_async_subdev subdevs[CEU_MAX_SENS];
+> +};
+> +
+> +#endif /* __ASM_RENESAS_CEU_H__ */
+> --
+> 2.7.4
+> 
 
 -- 
-Ville Syrjälä
-Intel OTC
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
