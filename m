@@ -1,88 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kadath.azazel.net ([81.187.231.250]:36930 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752221AbdK0Mpn (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36051 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757683AbdKOLc4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Nov 2017 07:45:43 -0500
-From: Jeremy Sowden <jeremy@azazel.net>
-To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Cc: Jeremy Sowden <jeremy@azazel.net>
-Subject: [PATCH v2 2/3] media: staging: atomisp: fixes for "symbol was not declared. Should it be static?" sparse warnings.
-Date: Mon, 27 Nov 2017 12:44:49 +0000
-Message-Id: <20171127124450.28799-3-jeremy@azazel.net>
-In-Reply-To: <20171127124450.28799-1-jeremy@azazel.net>
-References: <20171127122125.GB8561@kroah.com>
- <20171127124450.28799-1-jeremy@azazel.net>
+        Wed, 15 Nov 2017 06:32:56 -0500
+Subject: Re: [PATCH v1 01/10] dt-bindings: media: Add Renesas CEU bindings
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1510743363-25798-2-git-send-email-jacopo+renesas@jmondi.org>
+Reply-To: kieran.bingham@ideasonboard.com
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <8d6fe1c0-f1cd-346e-6277-7e382a57ce98@ideasonboard.com>
+Date: Wed, 15 Nov 2017 11:32:51 +0000
+MIME-Version: 1.0
+In-Reply-To: <1510743363-25798-2-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Defined some const arrays as static since they don't need external linkage.
+Hi Jacopo,
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- .../isp/kernels/eed1_8/ia_css_eed1_8.host.c        | 24 +++++++++++-----------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+A couple of minor language fixups inline.
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8.host.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8.host.c
-index 682f8b709ff9..47bb5042381b 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8.host.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8.host.c
-@@ -32,44 +32,44 @@
- #define NUMBER_OF_TCINV_POINTS 9
- #define NUMBER_OF_FCINV_POINTS 9
- 
--const int16_t chgrinv_x[NUMBER_OF_CHGRINV_POINTS] = {
-+static const int16_t chgrinv_x[NUMBER_OF_CHGRINV_POINTS] = {
- 0, 16, 64, 144, 272, 448, 672, 976,
- 1376, 1888, 2528, 3312, 4256, 5376, 6688};
- 
--const int16_t chgrinv_a[NUMBER_OF_CHGRINV_POINTS] = {
-+static const int16_t chgrinv_a[NUMBER_OF_CHGRINV_POINTS] = {
- -7171, -256, -29, -3456, -1071, -475, -189, -102,
- -48, -38, -10, -9, -7, -6, 0};
- 
--const int16_t chgrinv_b[NUMBER_OF_CHGRINV_POINTS] = {
-+static const int16_t chgrinv_b[NUMBER_OF_CHGRINV_POINTS] = {
- 8191, 1021, 256, 114, 60, 37, 24, 17,
- 12, 9, 6, 5, 4, 3, 2};
- 
--const int16_t chgrinv_c[NUMBER_OF_CHGRINV_POINTS] = {
-+static const int16_t chgrinv_c[NUMBER_OF_CHGRINV_POINTS] = {
- 1, 1, 1, 0, 0, 0, 0, 0,
- 0, 0, 0, 0, 0, 0, 0};
- 
--const int16_t tcinv_x[NUMBER_OF_TCINV_POINTS] = {
-+static const int16_t tcinv_x[NUMBER_OF_TCINV_POINTS] = {
- 0, 4, 11, 23, 42, 68, 102, 148, 205};
- 
--const int16_t tcinv_a[NUMBER_OF_TCINV_POINTS] = {
-+static const int16_t tcinv_a[NUMBER_OF_TCINV_POINTS] = {
- -6364, -631, -126, -34, -13, -6, -4452, -2156, 0};
- 
--const int16_t tcinv_b[NUMBER_OF_TCINV_POINTS] = {
-+static const int16_t tcinv_b[NUMBER_OF_TCINV_POINTS] = {
- 8191, 1828, 726, 352, 197, 121, 80, 55, 40};
- 
--const int16_t tcinv_c[NUMBER_OF_TCINV_POINTS] = {
-+static const int16_t tcinv_c[NUMBER_OF_TCINV_POINTS] = {
- 1, 1, 1, 1, 1, 1, 0, 0, 0};
- 
--const int16_t fcinv_x[NUMBER_OF_FCINV_POINTS] = {
-+static const int16_t fcinv_x[NUMBER_OF_FCINV_POINTS] = {
- 0, 80, 216, 456, 824, 1344, 2040, 2952, 4096};
- 
--const int16_t fcinv_a[NUMBER_OF_FCINV_POINTS] = {
-+static const int16_t fcinv_a[NUMBER_OF_FCINV_POINTS] = {
- -5244, -486, -86, -2849, -961, -400, -180, -86, 0};
- 
--const int16_t fcinv_b[NUMBER_OF_FCINV_POINTS] = {
-+static const int16_t fcinv_b[NUMBER_OF_FCINV_POINTS] = {
- 8191, 1637, 607, 287, 159, 98, 64, 44, 32};
- 
--const int16_t fcinv_c[NUMBER_OF_FCINV_POINTS] = {
-+static const int16_t fcinv_c[NUMBER_OF_FCINV_POINTS] = {
- 1, 1, 1, 0, 0, 0, 0, 0, 0};
- 
- 
--- 
-2.15.0
+On 15/11/17 10:55, Jacopo Mondi wrote:
+> Add bindings documentation for Renesas Capture Engine Unit (CEU).
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  .../devicetree/bindings/media/renesas,ceu.txt      | 87 ++++++++++++++++++++++
+>  1 file changed, 87 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+> new file mode 100644
+> index 0000000..a88e9cb
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+> @@ -0,0 +1,87 @@
+> +Renesas Capture Engine Unit (CEU)
+> +----------------------------------------------
+> +
+> +The Capture Engine Unit is the image capture interface found on Renesas
+> +RZ chip series and on SH Mobile ones.
+> +
+> +The interface supports a single parallel input with up 8/16bits data bus width.
+
+s/with up 8/16bits/with either 8 or 16 bits/ ?
+
+> +
+> +Required properties:
+> +- compatible
+> +	Must be "renesas,renesas-ceu".
+> +- reg
+> +	Physical address base and size.
+> +- interrupts
+> +	The interrupt line number.
+> +- pinctrl-names, pinctrl-0
+> +	phandle of pin controller sub-node configuring pins for CEU operations.
+> +
+> +CEU supports a single parallel input and should contain a single 'port' subnode
+> +with a single 'endpoint'. Optional endpoint properties applicable to parallel
+> +input bus are described in "video-interfaces.txt".
+> +
+> +Example:
+> +
+> +The example describes the connection between the Capture Engine Unit and a
+
+s/and a/and an/
+
+> +OV7670 image sensor sitting on bus i2c1 with an on-board 24Mhz clock.
+> +
+> +ceu: ceu@e8210000 {
+> +	reg = <0xe8210000 0x209c>;
+> +	compatible = "renesas,renesas-ceu";
+> +	interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&vio_pins>;
+> +
+> +	status = "okay";
+> +
+> +	port {
+> +		ceu_in: endpoint {
+> +			remote-endpoint = <&ov7670_out>;
+> +
+> +			bus-width = <8>;
+> +			hsync-active = <1>;
+> +			vsync-active = <1>;
+> +			pclk-sample = <1>;
+> +			data-active = <1>;
+> +		};
+> +	};
+> +};
+> +
+> +i2c1: i2c@fcfee400 {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&i2c1_pins>;
+> +
+> +	status = "okay";
+> +	clock-frequency = <100000>;
+> +
+> +	ov7670: camera@21 {
+> +		compatible = "ovti,ov7670";
+> +		reg = <0x21>;
+> +
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&vio_pins>;
+> +
+> +		reset-gpios = <&port3 11 GPIO_ACTIVE_LOW>;
+> +		powerdown-gpios = <&port3 12 GPIO_ACTIVE_HIGH>;
+> +
+> +		clocks = <&xclk>;
+> +		clock-names = "xclk";
+> +
+> +		xclk: fixed_clk {
+> +			compatible = "fixed-clock";
+> +			#clock-cells = <0>;
+> +			clock-frequency = <24000000>;
+> +		};
+> +
+> +		port {
+> +			ov7670_out: endpoint {
+> +				remote-endpoint = <&ceu_in>;
+> +
+> +				bus-width = <8>;
+> +				hsync-active = <1>;
+> +				vsync-active = <1>;
+> +				pclk-sample = <1>;
+> +				data-active = <1>;
+> +			};
+> +		};
+> +	};
+> 
