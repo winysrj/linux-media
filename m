@@ -1,134 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:35663 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750772AbdKUFD4 (ORCPT
+Received: from mail-wr0-f174.google.com ([209.85.128.174]:55607 "EHLO
+        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752629AbdKOOZp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Nov 2017 00:03:56 -0500
-Message-ID: <57e9473ab33ebeee06877d82bb07d851@smtp-cloud8.xs4all.net>
-Date: Tue, 21 Nov 2017 06:03:53 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Wed, 15 Nov 2017 09:25:45 -0500
+Received: by mail-wr0-f174.google.com with SMTP id l8so20589814wre.12
+        for <linux-media@vger.kernel.org>; Wed, 15 Nov 2017 06:25:45 -0800 (PST)
+Received: from localhost.localdomain ([62.147.246.169])
+        by smtp.gmail.com with ESMTPSA id k13sm18727650wrd.95.2017.11.15.06.25.43
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 15 Nov 2017 06:25:43 -0800 (PST)
+From: =?UTF-8?q?Rafa=C3=ABl=20Carr=C3=A9?= <funman@videolan.org>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Subject: [PATCH v2] dvb_dev_get_fd(): return fd of local devices
+Date: Wed, 15 Nov 2017 15:25:39 +0100
+Message-Id: <20171115142539.18032-1-funman@videolan.org>
+In-Reply-To: <20171115104711.5418-1-funman@videolan.org>
+References: <20171115104711.5418-1-funman@videolan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This makes it possible to poll a local device.
+Getting the fd is preferrable to adding a dvb_dev_poll() function,
+because we can poll several fds together in an event-based program.
 
-Results of the daily build of media_tree:
+This is not implemented for remote devices, as polling a remote fd
+does not make sense.
+We could instead return the socket to know when to expect messages
+from the remote device, but the current implementation in
+dvb-dev-remote.c already runs a thread to receive remote messages
+as soon as possible.
+---
+v2: get the private dvb_device_priv correctly
 
-date:			Tue Nov 21 05:00:17 CET 2017
-media-tree git hash:	30b4e122d71cbec2944a5f8b558b88936ee42f10
-media_build git hash:	097aaf3e4e4bfdeff130db9697dec1befeb3221b
-v4l-utils git hash:	a8a04d397e929381a2150bee2100fc28ad2cfbec
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		0.5.1 (Debian: 0.5.1-2)
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.13.0-164
+ lib/include/libdvbv5/dvb-dev.h | 12 ++++++++++++
+ lib/libdvbv5/dvb-dev-local.c   |  6 ++++++
+ lib/libdvbv5/dvb-dev-priv.h    |  1 +
+ lib/libdvbv5/dvb-dev.c         | 11 +++++++++++
+ 4 files changed, 30 insertions(+)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-4.14-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-linux-4.14-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/lib/include/libdvbv5/dvb-dev.h b/lib/include/libdvbv5/dvb-dev.h
+index 98bee5e7..55e0f065 100644
+--- a/lib/include/libdvbv5/dvb-dev.h
++++ b/lib/include/libdvbv5/dvb-dev.h
+@@ -289,6 +289,18 @@ struct dvb_open_descriptor *dvb_dev_open(struct dvb_device *dvb,
+  */
+ void dvb_dev_close(struct dvb_open_descriptor *open_dev);
+ 
++/**
++ * @brief returns fd from a local device
++ * This will not work for remote devices.
++ * @ingroup dvb_device
++ *
++ * @param open_dev	Points to the struct dvb_open_descriptor
++ *
++ * @return On success, returns the fd.
++ * Returns -1 on error.
++ */
++int dvb_dev_get_fd(struct dvb_open_descriptor *open_dev);
++
+ /**
+  * @brief read from a dvb demux or dvr file
+  * @ingroup dvb_device
+diff --git a/lib/libdvbv5/dvb-dev-local.c b/lib/libdvbv5/dvb-dev-local.c
+index b50b61b4..eb2f0775 100644
+--- a/lib/libdvbv5/dvb-dev-local.c
++++ b/lib/libdvbv5/dvb-dev-local.c
+@@ -775,6 +775,11 @@ static void dvb_dev_local_free(struct dvb_device_priv *dvb)
+ 	free(priv);
+ }
+ 
++static int dvb_local_get_fd(struct dvb_open_descriptor *open_dev)
++{
++    return open_dev->fd;
++}
++
+ /* Initialize for local usage */
+ void dvb_dev_local_init(struct dvb_device_priv *dvb)
+ {
+@@ -788,6 +793,7 @@ void dvb_dev_local_init(struct dvb_device_priv *dvb)
+ 	ops->stop_monitor = dvb_local_stop_monitor;
+ 	ops->open = dvb_local_open;
+ 	ops->close = dvb_local_close;
++	ops->get_fd = dvb_local_get_fd;
+ 
+ 	ops->dmx_stop = dvb_local_dmx_stop;
+ 	ops->set_bufsize = dvb_local_set_bufsize;
+diff --git a/lib/libdvbv5/dvb-dev-priv.h b/lib/libdvbv5/dvb-dev-priv.h
+index e05fcad2..2e69f766 100644
+--- a/lib/libdvbv5/dvb-dev-priv.h
++++ b/lib/libdvbv5/dvb-dev-priv.h
+@@ -72,6 +72,7 @@ struct dvb_dev_ops {
+ 	int (*fe_get_stats)(struct dvb_v5_fe_parms *p);
+ 
+ 	void (*free)(struct dvb_device_priv *dvb);
++	int (*get_fd)(struct dvb_open_descriptor *dvb);
+ };
+ 
+ struct dvb_device_priv {
+diff --git a/lib/libdvbv5/dvb-dev.c b/lib/libdvbv5/dvb-dev.c
+index 7e2da1fb..e6a8fc76 100644
+--- a/lib/libdvbv5/dvb-dev.c
++++ b/lib/libdvbv5/dvb-dev.c
+@@ -218,6 +218,17 @@ struct dvb_open_descriptor *dvb_dev_open(struct dvb_device *d,
+ 	return ops->open(dvb, sysname, flags);
+ }
+ 
++int dvb_dev_get_fd(struct dvb_open_descriptor *open_dev)
++{
++	struct dvb_device_priv *dvb = open_dev->dvb;
++	struct dvb_dev_ops *ops = &dvb->ops;
++
++	if (!ops->get_fd)
++		return -1;
++
++	return ops->get_fd(open_dev);
++}
++
+ void dvb_dev_close(struct dvb_open_descriptor *open_dev)
+ {
+ 	struct dvb_device_priv *dvb = open_dev->dvb;
+-- 
+2.14.1
