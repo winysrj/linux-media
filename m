@@ -1,74 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:50924 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751665AbdKVHwF (ORCPT
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:48128 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932193AbdKONHd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Nov 2017 02:52:05 -0500
-Subject: Re: [PATCH] media: mtk-vcodec: add missing MODULE_LICENSE/DESCRIPTION
-To: kbuild test robot <lkp@intel.com>, Jesse Chan <jc@linux.com>
-Cc: kbuild-all@01.org, Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org
-References: <20171120062607.124734-1-jc@linux.com>
- <201711221521.lmq1l8ci%fengguang.wu@intel.com>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <835d88de-989e-03c7-e647-819f8f200f1b@infradead.org>
-Date: Tue, 21 Nov 2017 23:51:57 -0800
+        Wed, 15 Nov 2017 08:07:33 -0500
 MIME-Version: 1.0
-In-Reply-To: <201711221521.lmq1l8ci%fengguang.wu@intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1510743363-25798-2-git-send-email-jacopo+renesas@jmondi.org>
+References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org> <1510743363-25798-2-git-send-email-jacopo+renesas@jmondi.org>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 15 Nov 2017 14:07:31 +0100
+Message-ID: <CAMuHMdUG6gAEyyC0ANBzmj3KA-940+C7e9Nv_rLkBSjtfeKR1g@mail.gmail.com>
+Subject: Re: [PATCH v1 01/10] dt-bindings: media: Add Renesas CEU bindings
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/21/17 23:41, kbuild test robot wrote:
-> Hi Jesse,
-> 
-> Thank you for the patch! Yet something to improve:
+Hi Jacopo,
 
-missing
-#include <linux/module.h>
+CC devicetree folks
 
-Jesse, did you build all of these driver changes?
-
-
-> [auto build test ERROR on linuxtv-media/master]
-> [also build test ERROR on v4.14 next-20171121]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Jesse-Chan/media-mtk-vcodec-add-missing-MODULE_LICENSE-DESCRIPTION/20171122-124620
-> base:   git://linuxtv.org/media_tree.git master
-> config: xtensa-allmodconfig (attached as .config)
-> compiler: xtensa-linux-gcc (GCC) 4.9.0
-> reproduce:
->         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
->         make.cross ARCH=xtensa 
-> 
-> All errors (new ones prefixed by >>):
-> 
->>> drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.c:55:16: error: expected declaration specifiers or '...' before string constant
->     MODULE_LICENSE("GPL v2");
->                    ^
->    drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.c:56:20: error: expected declaration specifiers or '...' before string constant
->     MODULE_DESCRIPTION("Mediatek video codec driver");
->                        ^
-> 
-> vim +55 drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.c
-> 
->     54	
->   > 55	MODULE_LICENSE("GPL v2");
-> 
+On Wed, Nov 15, 2017 at 11:55 AM, Jacopo Mondi
+<jacopo+renesas@jmondi.org> wrote:
+> Add bindings documentation for Renesas Capture Engine Unit (CEU).
+>
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 > ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
-> 
+>  .../devicetree/bindings/media/renesas,ceu.txt      | 87 ++++++++++++++++++++++
+>  1 file changed, 87 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
+>
+> diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+> new file mode 100644
+> index 0000000..a88e9cb
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+> @@ -0,0 +1,87 @@
+> +Renesas Capture Engine Unit (CEU)
+> +----------------------------------------------
+> +
+> +The Capture Engine Unit is the image capture interface found on Renesas
+> +RZ chip series and on SH Mobile ones.
+> +
+> +The interface supports a single parallel input with up 8/16bits data bus width.
 
+... with data bus widths up to 8/16 bits?
 
--- 
-~Randy
+> +
+> +Required properties:
+> +- compatible
+> +       Must be "renesas,renesas-ceu".
+
+The double "renesas" part looks odd to me. What about "renesas,ceu"?
+Shouldn't you add SoC-specific compatible values like "renesas,r7s72100-ceu",
+too?
+
+> +- reg
+> +       Physical address base and size.
+> +- interrupts
+> +       The interrupt line number.
+
+interrupt specifier
+
+> +- pinctrl-names, pinctrl-0
+> +       phandle of pin controller sub-node configuring pins for CEU operations.
+> +
+> +CEU supports a single parallel input and should contain a single 'port' subnode
+> +with a single 'endpoint'. Optional endpoint properties applicable to parallel
+> +input bus are described in "video-interfaces.txt".
+> +
+> +Example:
+> +
+> +The example describes the connection between the Capture Engine Unit and a
+
+... an
+
+> +OV7670 image sensor sitting on bus i2c1 with an on-board 24Mhz clock.
+> +
+> +ceu: ceu@e8210000 {
+> +       reg = <0xe8210000 0x209c>;
+> +       compatible = "renesas,renesas-ceu";
+> +       interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
+> +       pinctrl-names = "default";
+> +       pinctrl-0 = <&vio_pins>;
+> +
+> +       status = "okay";
+> +
+> +       port {
+> +               ceu_in: endpoint {
+> +                       remote-endpoint = <&ov7670_out>;
+> +
+> +                       bus-width = <8>;
+> +                       hsync-active = <1>;
+> +                       vsync-active = <1>;
+> +                       pclk-sample = <1>;
+> +                       data-active = <1>;
+> +               };
+> +       };
+> +};
+> +
+> +i2c1: i2c@fcfee400 {
+> +       pinctrl-names = "default";
+> +       pinctrl-0 = <&i2c1_pins>;
+> +
+> +       status = "okay";
+> +       clock-frequency = <100000>;
+> +
+> +       ov7670: camera@21 {
+> +               compatible = "ovti,ov7670";
+> +               reg = <0x21>;
+> +
+> +               pinctrl-names = "default";
+> +               pinctrl-0 = <&vio_pins>;
+> +
+> +               reset-gpios = <&port3 11 GPIO_ACTIVE_LOW>;
+> +               powerdown-gpios = <&port3 12 GPIO_ACTIVE_HIGH>;
+> +
+> +               clocks = <&xclk>;
+> +               clock-names = "xclk";
+> +
+> +               xclk: fixed_clk {
+> +                       compatible = "fixed-clock";
+> +                       #clock-cells = <0>;
+> +                       clock-frequency = <24000000>;
+> +               };
+> +
+> +               port {
+> +                       ov7670_out: endpoint {
+> +                               remote-endpoint = <&ceu_in>;
+> +
+> +                               bus-width = <8>;
+> +                               hsync-active = <1>;
+> +                               vsync-active = <1>;
+> +                               pclk-sample = <1>;
+> +                               data-active = <1>;
+> +                       };
+> +               };
+> +       };
+> --
+> 2.7.4
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
