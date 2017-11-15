@@ -1,52 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:43013 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751887AbdKXCiM (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:54688 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757555AbdKOXAc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Nov 2017 21:38:12 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org,
-        Jacob Chen <jacob-chen@iotwrt.com>
-Subject: [PATCH v2 08/11] ARM: dts: rockchip: add rx0 mipi-phy for rk3288
-Date: Fri, 24 Nov 2017 10:37:03 +0800
-Message-Id: <20171124023706.5702-9-jacob-chen@iotwrt.com>
-In-Reply-To: <20171124023706.5702-1-jacob-chen@iotwrt.com>
-References: <20171124023706.5702-1-jacob-chen@iotwrt.com>
+        Wed, 15 Nov 2017 18:00:32 -0500
+Received: by mail-lf0-f67.google.com with SMTP id w23so4402197lfd.11
+        for <linux-media@vger.kernel.org>; Wed, 15 Nov 2017 15:00:32 -0800 (PST)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Thu, 16 Nov 2017 00:00:30 +0100
+To: Rob Herring <robh@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v11 1/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2
+ receiver documentation
+Message-ID: <20171115230029.GK12677@bigcity.dyn.berto.se>
+References: <20171111002526.2646-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171111002526.2646-2-niklas.soderlund+renesas@ragnatech.se>
+ <20171115195936.jkq4ssgfp4tko3lv@rob-hp-laptop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171115195936.jkq4ssgfp4tko3lv@rob-hp-laptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It's a Designware MIPI D-PHY, used by ISP in rk3288.
+Hi Rob,
 
-Signed-off-by: Jacob Chen <jacob-chen@iotwrt.com>
----
- arch/arm/boot/dts/rk3288.dtsi | 7 +++++++
- 1 file changed, 7 insertions(+)
+Thanks for your feedback.
 
-diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
-index 30677a0167fe..8b7d5a9b521f 100644
---- a/arch/arm/boot/dts/rk3288.dtsi
-+++ b/arch/arm/boot/dts/rk3288.dtsi
-@@ -864,6 +864,13 @@
- 			status = "disabled";
- 		};
- 
-+		mipi_phy_rx0: mipi-phy-rx0 {
-+			compatible = "rockchip,rk3288-mipi-dphy";
-+			clocks = <&cru SCLK_MIPIDSI_24M>, <&cru PCLK_MIPI_CSI>;
-+			clock-names = "dphy-ref", "pclk";
-+			status = "disabled";
-+		};
-+
- 		io_domains: io-domains {
- 			compatible = "rockchip,rk3288-io-voltage-domain";
- 			status = "disabled";
+On 2017-11-15 13:59:36 -0600, Rob Herring wrote:
+> On Sat, Nov 11, 2017 at 01:25:25AM +0100, Niklas Söderlund wrote:
+> > Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
+> > are located between the video sources (CSI-2 transmitters) and the video
+> > grabbers (VIN) on Gen3 of Renesas R-Car SoC.
+> > 
+> > Each CSI-2 device is connected to more then one VIN device which
+> > simultaneously can receive video from the same CSI-2 device. Each VIN
+> > device can also be connected to more then one CSI-2 device. The routing
+> > of which link are used are controlled by the VIN devices. There are only
+> > a few possible routes which are set by hardware limitations, which are
+> > different for each SoC in the Gen3 family.
+> > 
+> > To work with the limitations of routing possibilities it is necessary
+> > for the DT bindings to describe which VIN device is connected to which
+> > CSI-2 device. This is why port 1 needs to to assign reg numbers for each
+> > VIN device that be connected to it. To setup and to know which links are
+> > valid for each SoC is the responsibility of the VIN driver since the
+> > register to configure it belongs to the VIN hardware.
+> > 
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  .../bindings/media/renesas,rcar-csi2.txt           | 104 +++++++++++++++++++++
+> >  MAINTAINERS                                        |   1 +
+> >  2 files changed, 105 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+> > new file mode 100644
+> > index 0000000000000000..24705d8997b14a10
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+> > @@ -0,0 +1,104 @@
+> > +Renesas R-Car MIPI CSI-2
+> > +------------------------
+> > +
+> > +The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesas R-Car
+> > +family of devices. It is to be used in conjunction with the R-Car VIN module,
+> > +which provides the video capture capabilities.
+> > +
+> > +Mandatory properties
+> > +--------------------
+> > + - compatible: Must be one or more of the following
+> > +   - "renesas,r8a7795-csi2" for the R8A7795 device.
+> > +   - "renesas,r8a7796-csi2" for the R8A7796 device.
+> > +
+> > + - reg: the register base and size for the device registers
+> > + - interrupts: the interrupt for the device
+> > + - clocks: Reference to the parent clock
+> > +
+> > +The device node shall contain two 'port' child nodes according to the
+> > +bindings defined in Documentation/devicetree/bindings/media/
+> > +video-interfaces.txt. Port 0 shall connect the node that is the video
+> > +source for to the CSI-2. Port 1 shall connect all the R-Car VIN
+> > +modules, which can make use of the CSI-2 module.
+> > +
+> > +- Port 0 - Video source (Mandatory)
+> > +	- Endpoint 0 - sub-node describing the endpoint that is the video source
+> > +
+> > +- Port 1 - VIN instances (Mandatory for all VIN present in the SoC)
+> > +	- Endpoint 0 - sub-node describing the endpoint that is VIN0
+> > +	- Endpoint 1 - sub-node describing the endpoint that is VIN1
+> > +	- Endpoint 2 - sub-node describing the endpoint that is VIN2
+> > +	- Endpoint 3 - sub-node describing the endpoint that is VIN3
+> > +	- Endpoint 4 - sub-node describing the endpoint that is VIN4
+> > +	- Endpoint 5 - sub-node describing the endpoint that is VIN5
+> > +	- Endpoint 6 - sub-node describing the endpoint that is VIN6
+> > +	- Endpoint 7 - sub-node describing the endpoint that is VIN7
+> > +
+> > +Example:
+> > +
+> > +	csi20: csi2@fea80000 {
+> > +		compatible = "renesas,r8a7796-csi2", "renesas,rcar-gen3-csi2";
+> > +		reg = <0 0xfea80000 0 0x10000>;
+> > +		interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
+> > +		clocks = <&cpg CPG_MOD 714>;
+> > +		power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
+> > +		resets = <&cpg 714>;
+> > +
+> > +		ports {
+> > +			#address-cells = <1>;
+> > +			#size-cells = <0>;
+> > +
+> > +			port@0 {
+> > +				#address-cells = <1>;
+> > +				#size-cells = <0>;
+> > +
+> > +				reg = <0>;
+> > +
+> > +				csi20_in: endpoint@0 {
+> 
+> unit-address without reg property is not valid.
+
+Ops, my bad thanks for noticing.
+
+> 
+> Otherwise,
+> 
+> Acked-by: Rob Herring <robh@kernel.org>
+
+Thanks, will fix the above and re-send.
+
+> 
+> 
+> > +					clock-lanes = <0>;
+> > +					data-lanes = <1>;
+> > +					remote-endpoint = <&adv7482_txb>;
+> > +				};
+> > +			};
+> > +
+> > +			port@1 {
+> > +				#address-cells = <1>;
+> > +				#size-cells = <0>;
+> > +
+> > +				reg = <1>;
+> > +
+> > +				csi20vin0: endpoint@0 {
+> > +					reg = <0>;
+> > +					remote-endpoint = <&vin0csi20>;
+> > +				};
+> > +				csi20vin1: endpoint@1 {
+> > +					reg = <1>;
+> > +					remote-endpoint = <&vin1csi20>;
+> > +				};
+> > +				csi20vin2: endpoint@2 {
+> > +					reg = <2>;
+> > +					remote-endpoint = <&vin2csi20>;
+> > +				};
+> > +				csi20vin3: endpoint@3 {
+> > +					reg = <3>;
+> > +					remote-endpoint = <&vin3csi20>;
+> > +				};
+> > +				csi20vin4: endpoint@4 {
+> > +					reg = <4>;
+> > +					remote-endpoint = <&vin4csi20>;
+> > +				};
+> > +				csi20vin5: endpoint@5 {
+> > +					reg = <5>;
+> > +					remote-endpoint = <&vin5csi20>;
+> > +				};
+> > +				csi20vin6: endpoint@6 {
+> > +					reg = <6>;
+> > +					remote-endpoint = <&vin6csi20>;
+> > +				};
+> > +				csi20vin7: endpoint@7 {
+> > +					reg = <7>;
+> > +					remote-endpoint = <&vin7csi20>;
+> > +				};
+> > +			};
+> > +		};
+> > +	};
+> > diff --git a/MAINTAINERS b/MAINTAINERS
+> > index adbf69306e9ee3d2..fe999e9de76e3cb3 100644
+> > --- a/MAINTAINERS
+> > +++ b/MAINTAINERS
+> > @@ -8565,6 +8565,7 @@ L:	linux-media@vger.kernel.org
+> >  L:	linux-renesas-soc@vger.kernel.org
+> >  T:	git git://linuxtv.org/media_tree.git
+> >  S:	Supported
+> > +F:	Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+> >  F:	Documentation/devicetree/bindings/media/rcar_vin.txt
+> >  F:	drivers/media/platform/rcar-vin/
+> >  
+> > -- 
+> > 2.15.0
+> > 
+
 -- 
-2.15.0
+Regards,
+Niklas Söderlund
