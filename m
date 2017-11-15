@@ -1,52 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:51153 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752952AbdKIVdn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Nov 2017 16:33:43 -0500
-Received: by mail-wm0-f67.google.com with SMTP id s66so19869494wmf.5
-        for <linux-media@vger.kernel.org>; Thu, 09 Nov 2017 13:33:42 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <c0f1eacb1871395845a89668f18a6663c9dabbfd.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
- <c0f1eacb1871395845a89668f18a6663c9dabbfd.1509569763.git.mchehab@s-opensource.com>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Thu, 9 Nov 2017 21:33:11 +0000
-Message-ID: <CA+V-a8t0viUc2BePvuvEJS-FqYgA=VgVH_fi906Mtnyj5dS2BA@mail.gmail.com>
-Subject: Re: [PATCH v2 12/26] media: davinci: fix a debug printk
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:54299 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933281AbdKORLW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Nov 2017 12:11:22 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC v5 04/11] [media] vivid: mark vivid queues as ordered_in_driver
+Date: Wed, 15 Nov 2017 15:10:50 -0200
+Message-Id: <20171115171057.17340-5-gustavo@padovan.org>
+In-Reply-To: <20171115171057.17340-1-gustavo@padovan.org>
+References: <20171115171057.17340-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 1, 2017 at 9:05 PM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> Two orthogonal changesets caused a breakage at a printk
-> inside davinci. Changeset a2d17962c9ca
-> ("[media] davinci: Switch from V4L2 OF to V4L2 fwnode")
-> made davinci to use struct fwnode_handle instead of
-> struct device_node. Changeset 68d9c47b1679
-> ("media: Convert to using %pOF instead of full_name")
-> changed the printk to not use ->full_name, but, instead,
-> to rely on %pOF.
->
-> With both patches applied, the Kernel will do the wrong
-> thing, as warned by smatch:
->         drivers/media/platform/davinci/vpif_capture.c:1399 vpif_async_bound() error: '%pOF' expects argument of type 'struct device_node*', argument 5 has type 'void*'
->
-> So, change the logic to actually print the device name
-> that was obtained before the print logic.
->
-> Fixes: 68d9c47b1679 ("media: Convert to using %pOF instead of full_name")
-> Fixes: a2d17962c9ca ("[media] davinci: Switch from V4L2 OF to V4L2 fwnode")
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/platform/davinci/vpif_capture.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+ordered_in_driver is used to optimize the use of explicit synchronization
+when the driver guarantees ordering we can use the same fence context for
+out-fences. In this case userspace will know that the buffers won't be
+signaling out of order. vivid queues are already ordered by default so no
+changes are needed.
 
-Cheers,
---Prabhakar Lad
+v2: rename 'ordered' to 'ordered_in_driver' to avoid confusion.
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ drivers/media/platform/vivid/vivid-core.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index f19391fa2d6a..1b830ebe1cd8 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -1068,6 +1068,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE :
+ 			V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
++		q->ordered_in_driver = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vid_cap_qops;
+@@ -1088,6 +1089,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
+ 			V4L2_BUF_TYPE_VIDEO_OUTPUT;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
++		q->ordered_in_driver = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vid_out_qops;
+@@ -1108,6 +1110,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->has_raw_vbi_cap ? V4L2_BUF_TYPE_VBI_CAPTURE :
+ 					      V4L2_BUF_TYPE_SLICED_VBI_CAPTURE;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
++		q->ordered_in_driver = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vbi_cap_qops;
+@@ -1128,6 +1131,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->type = dev->has_raw_vbi_out ? V4L2_BUF_TYPE_VBI_OUTPUT :
+ 					      V4L2_BUF_TYPE_SLICED_VBI_OUTPUT;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
++		q->ordered_in_driver = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vbi_out_qops;
+@@ -1147,6 +1151,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q = &dev->vb_sdr_cap_q;
+ 		q->type = V4L2_BUF_TYPE_SDR_CAPTURE;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
++		q->ordered_in_driver = 1;
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_sdr_cap_qops;
+-- 
+2.13.6
