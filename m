@@ -1,119 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:46013 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751816AbdKZWOp (ORCPT
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:46131 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755597AbdKORLF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 26 Nov 2017 17:14:45 -0500
-Date: Sun, 26 Nov 2017 16:14:39 -0600
-From: Rob Herring <robh@kernel.org>
-To: Jacob Chen <jacob-chen@iotwrt.com>
-Cc: linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, mchehab@kernel.org,
-        linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com, tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
-        heiko@sntech.de, Jacob Chen <jacob2.chen@rock-chips.com>
-Subject: Re: [PATCH v2 05/11] dt-bindings: Document the Rockchip ISP1 bindings
-Message-ID: <20171126221439.iodzrhdmd6nu6vga@rob-hp-laptop>
-References: <20171124023706.5702-1-jacob-chen@iotwrt.com>
- <20171124023706.5702-6-jacob-chen@iotwrt.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171124023706.5702-6-jacob-chen@iotwrt.com>
+        Wed, 15 Nov 2017 12:11:05 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC v5 00/11] V4L2 Explicit Synchronization
+Date: Wed, 15 Nov 2017 15:10:46 -0200
+Message-Id: <20171115171057.17340-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 24, 2017 at 10:37:00AM +0800, Jacob Chen wrote:
-> From: Jacob Chen <jacob2.chen@rock-chips.com>
-> 
-> Add DT bindings documentation for Rockchip ISP1
-> 
-> Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
-> ---
->  .../devicetree/bindings/media/rockchip-isp1.txt    | 61 ++++++++++++++++++++++
->  1 file changed, 61 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/rockchip-isp1.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/rockchip-isp1.txt b/Documentation/devicetree/bindings/media/rockchip-isp1.txt
-> new file mode 100644
-> index 000000000000..5e5b72edcf81
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/rockchip-isp1.txt
-> @@ -0,0 +1,61 @@
-> +Rockchip SoC Image Signal Processing unit v1
-> +----------------------------------------------
-> +
-> +Rockchip ISP1 is the Camera interface for the Rockchip series of SoCs
-> +which contains image processing, scaling, and compression funcitons.
-> +
-> +Currently device tree nodes for the Rockchip ISP1 driver includes:
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Bindings describe the h/w, not drivers.
+Hi,
 
-> +MIPI D-PHY, ISP.
-> +
-> +Required properties:
-> +  - compatible: value should be one of the following
-> +      "rockchip,rk3288-cif-isp";
-> +      "rockchip,rk3399-cif-isp";
-> +  - reg : offset and length of the register set for the device.
-> +  - interrupts: should contain ISP interrupt.
-> +  - clocks: phandle to the required clocks.
-> +  - clock-names: required clock name.
-> +  - iommus: required a iommu node.
-> +
-> +The device node should contain one 'port' child node with child 'endpoint'
-> +nodes, according to the bindings defined in Documentation/devicetree/bindings/
-> +media/video-interfaces.txt.
+After the comments received in the last patchset[1] and 
+during the media summit [2] here is the new and improved version
+of the patchset. The implementation is simpler, smaller and cover
+a lot more cases.
 
-You need to enumerate the endpoints (mipi and parallel), too.
- 
-> +
-> +Example:
-> +SoC-specific DT entry:
-> +	isp0: isp0@ff910000 {
-> +		compatible = "rockchip,rk3399-cif-isp";
-> +		reg = <0x0 0xff910000 0x0 0x4000>;
-> +		interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH 0>;
-> +		clocks = <&cru SCLK_ISP0>,
-> +			 <&cru ACLK_ISP0>, <&cru ACLK_ISP0_WRAPPER>,
-> +			 <&cru HCLK_ISP0>, <&cru HCLK_ISP0_WRAPPER>;
-> +		clock-names = "clk_isp",
-> +			      "aclk_isp", "aclk_isp_wrap",
-> +			      "hclk_isp", "hclk_isp_wrap";
-> +		power-domains = <&power RK3399_PD_ISP0>;
-> +		iommus = <&isp0_mmu>;
-> +		status = "disabled";
-> +	};
-> +
-> +Board-specific:
+If you look to the last patchset I got rid of a few things, the main
+one is the OUT_FENCE event, one thing that we decided in Prague was
+that, when using fences, we would keep ordering of all buffers queued
+to vb2. That means they would be queued to the drivers in the same order
+that the QBUF calls happen, just like it already happens when not using
+fences. Fences can signal in whatever order, so we need this guarantee
+here. Drivers can, however, not keep ordering when processing the
+buffers.
 
-Just show the complete example. The SoC and board split is purely source 
-level convention.
+But there is one conclusion of that that we didn't reached at the
+summit, maybe because of the order we discussed things, and that is: we do
+not need the OUT_FENCE event anymore, because now at the QBUF call time
+we *always* know the order in which the buffers will be queued to the
+v4l2 driver. So the out-fence fd is now returned using the fence_fd
+field as a return argument, thus the event is not necessary anymore.
 
-> +	isp0: isp0@ff910000 {
-> +		port {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +
-> +			/* mipi */
-> +			isp0_mipi_in: endpoint@0 {
-> +				reg = <0>;
-> +				remote-endpoint = <&dphy_rx0_out>;
-> +			};
-> +
-> +			/* parallel */
-> +			isp0_parallel_in: endpoint@1 {
-> +				reg = <1>;
-> +				remote-endpoint = <&ov5640_out>;
-> +			};
-> +		};
-> +	};
-> +
-> +The MIPI-DPHY device binding is defined in rockchip-mipi-dphy.txt.
-> -- 
-> 2.15.0
-> 
+The fence_fd field is now used to comunicate both in-fences and
+out-fences, just like we do for GPU drivers. We pass in-fences as input
+arguments and get out-fences as return arguments on the QBUF call.
+The approach is documented.
+
+I also added a capability flag, V4L2_CAP_ORDERED, to tell userspace if
+the v4l2 drivers keep the buffers ordered or not. 
+
+We still have the 'ordered_in_driver' property for queues, but its
+meaning has changed. When set videobuf2 will know that the driver can
+keep the order of the buffers, thus videobuf2 can use the same fence
+context for all out-fences. Fences inside the same context should signal
+in order, so 'ordered_in_driver' is a optimization for that case.
+When not set, a context for each out-fence is created.
+
+So now explicit synchronization also works for drivers that do not keep
+the ordering of buffers.
+
+Another thing is that we do not allow videobuf2 to requeue buffers
+internally when using fences, they have a fence associated to it and
+we need to finish the job on them, i.e., signal the fence, even if an
+error happened.
+
+The rest of the changes are documented in each patch separated.
+
+There a test app at:
+
+https://gitlab.collabora.com/padovan/v4l2-fences-test
+
+Among my next steps is to create a v4l2->drm test app using fences as a
+PoC, and also look into how to support it in ChromeOS.
+
+Open Questions
+--------------
+
+* Do drivers reorder buffers internally? How to handle that with fences?
+
+* How to handle audio/video syncronization? Fences aren't enough, we  need 
+  to know things like the start of capture timestamp.
+
+Regards,
+
+Gustavo
+--
+
+[1] https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1518928.html
+[2] http://muistio.tieke.fi/p/media-summit-2017
+
+Gustavo Padovan (10):
+  [media] v4l: add V4L2_CAP_ORDERED to the uapi
+  [media] vivid: add the V4L2_CAP_ORDERED capability
+  [media] vb2: add 'ordered_in_driver' property to queues
+  [media] vivid: mark vivid queues as ordered_in_driver
+  [media] vb2: check earlier if stream can be started
+  [media] vb2: add explicit fence user API
+  [media] vb2: add in-fence support to QBUF
+  [media] vb2: add infrastructure to support out-fences
+  [media] vb2: add out-fence support to QBUF
+  [media] v4l: Document explicit synchronization behavior
+
+Javier Martinez Canillas (1):
+  [media] vb2: add videobuf2 dma-buf fence helpers
+
+ Documentation/media/uapi/v4l/buffer.rst          |  15 ++
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst     |  42 +++-
+ Documentation/media/uapi/v4l/vidioc-querybuf.rst |   9 +-
+ Documentation/media/uapi/v4l/vidioc-querycap.rst |   3 +
+ drivers/media/platform/vivid/vivid-core.c        |  24 +-
+ drivers/media/usb/cpia2/cpia2_v4l.c              |   2 +-
+ drivers/media/v4l2-core/Kconfig                  |   1 +
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c    |   4 +-
+ drivers/media/v4l2-core/videobuf2-core.c         | 274 +++++++++++++++++++++--
+ drivers/media/v4l2-core/videobuf2-v4l2.c         |  48 +++-
+ include/media/videobuf2-core.h                   |  44 +++-
+ include/media/videobuf2-fence.h                  |  48 ++++
+ include/uapi/linux/videodev2.h                   |   8 +-
+ 13 files changed, 485 insertions(+), 37 deletions(-)
+ create mode 100644 include/media/videobuf2-fence.h
+
+-- 
+2.13.6
