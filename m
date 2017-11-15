@@ -1,166 +1,598 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:37687 "EHLO
-        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750952AbdKTKTD (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:47868 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754505AbdKOHbp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Nov 2017 05:19:03 -0500
-MIME-Version: 1.0
-In-Reply-To: <20171115171057.17340-1-gustavo@padovan.org>
-References: <20171115171057.17340-1-gustavo@padovan.org>
-From: Smitha T Murthy <smithatmurthy@gmail.com>
-Date: Mon, 20 Nov 2017 15:49:01 +0530
-Message-ID: <CAAjVqpqNhJy_zdCQUjfmLs7acQfMTS_3Uug8cfjxg39x7DGijg@mail.gmail.com>
-Subject: Re: [RFC v5 00/11] V4L2 Explicit Synchronization
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Wed, 15 Nov 2017 02:31:45 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, heiko@sntech.de,
+        mchehab@kernel.org, laurent.pinchart+renesas@ideasonboard.com,
+        hans.verkuil@cisco.com, tfiga@chromium.org, nicolas@ndufresne.ca,
+        sakari.ailus@linux.intel.com, zhengsq@rock-chips.com,
+        zyc@rock-chips.com, eddie.cai.linux@gmail.com,
+        jeffy.chen@rock-chips.com, allon.huang@rock-chips.com,
+        p.zabel@pengutronix.de, slongerbeam@gmail.com,
+        linux@armlinux.org.uk, Jacob Chen <jacob2.chen@rock-chips.com>
+Subject: [RFC PATCH 2/5] media: rkisp1: Add user space ABI definitions
+Date: Wed, 15 Nov 2017 15:31:29 +0800
+Message-Id: <20171115073132.30123-2-jacob-chen@iotwrt.com>
+In-Reply-To: <20171115073132.30123-1-jacob-chen@iotwrt.com>
+References: <20171115073132.30123-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gustavo,
+From: Jeffy Chen <jeffy.chen@rock-chips.com>
 
-I am currently referring to your implementation for explicit
-synchronisation. For the same I needed your testapp, but I am unable
-to download the same at the link provided
-=E2=80=9Chttps://gitlab.collabora.com/padovan/v4l2-fences-test=E2=80=9D
+Add the header for userspace
 
-Could you please help me out with the same.
+Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
+Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+---
+ include/uapi/linux/rkisp1-config.h | 554 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 554 insertions(+)
+ create mode 100644 include/uapi/linux/rkisp1-config.h
 
-Regards
-Smitha
-
-On Wednesday, November 15, 2017, Gustavo Padovan <gustavo@padovan.org> wrot=
-e:
->
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
->
-> Hi,
->
-> After the comments received in the last patchset[1] and
-> during the media summit [2] here is the new and improved version
-> of the patchset. The implementation is simpler, smaller and cover
-> a lot more cases.
->
-> If you look to the last patchset I got rid of a few things, the main
-> one is the OUT_FENCE event, one thing that we decided in Prague was
-> that, when using fences, we would keep ordering of all buffers queued
-> to vb2. That means they would be queued to the drivers in the same order
-> that the QBUF calls happen, just like it already happens when not using
-> fences. Fences can signal in whatever order, so we need this guarantee
-> here. Drivers can, however, not keep ordering when processing the
-> buffers.
->
-> But there is one conclusion of that that we didn't reached at the
-> summit, maybe because of the order we discussed things, and that is: we d=
-o
-> not need the OUT_FENCE event anymore, because now at the QBUF call time
-> we *always* know the order in which the buffers will be queued to the
-> v4l2 driver. So the out-fence fd is now returned using the fence_fd
-> field as a return argument, thus the event is not necessary anymore.
->
-> The fence_fd field is now used to comunicate both in-fences and
-> out-fences, just like we do for GPU drivers. We pass in-fences as input
-> arguments and get out-fences as return arguments on the QBUF call.
-> The approach is documented.
->
-> I also added a capability flag, V4L2_CAP_ORDERED, to tell userspace if
-> the v4l2 drivers keep the buffers ordered or not.
->
-> We still have the 'ordered_in_driver' property for queues, but its
-> meaning has changed. When set videobuf2 will know that the driver can
-> keep the order of the buffers, thus videobuf2 can use the same fence
-> context for all out-fences. Fences inside the same context should signal
-> in order, so 'ordered_in_driver' is a optimization for that case.
-> When not set, a context for each out-fence is created.
->
-> So now explicit synchronization also works for drivers that do not keep
-> the ordering of buffers.
->
-> Another thing is that we do not allow videobuf2 to requeue buffers
-> internally when using fences, they have a fence associated to it and
-> we need to finish the job on them, i.e., signal the fence, even if an
-> error happened.
->
-> The rest of the changes are documented in each patch separated.
->
-> There a test app at:
->
-> https://gitlab.collabora.com/padovan/v4l2-fences-test
->
-> Among my next steps is to create a v4l2->drm test app using fences as a
-> PoC, and also look into how to support it in ChromeOS.
->
-> Open Questions
-> --------------
->
-> * Do drivers reorder buffers internally? How to handle that with fences?
->
-> * How to handle audio/video syncronization? Fences aren't enough, we=C2=
-=A0 need
-> =C2=A0 to know things like the start of capture timestamp.
->
-> Regards,
->
-> Gustavo
-> --
->
-> [1] https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1518928.=
-html
-> [2] http://muistio.tieke.fi/p/media-summit-2017
->
-> Gustavo Padovan (10):
-> =C2=A0 [media] v4l: add V4L2_CAP_ORDERED to the uapi
-> =C2=A0 [media] vivid: add the V4L2_CAP_ORDERED capability
-> =C2=A0 [media] vb2: add 'ordered_in_driver' property to queues
-> =C2=A0 [media] vivid: mark vivid queues as ordered_in_driver
-> =C2=A0 [media] vb2: check earlier if stream can be started
-> =C2=A0 [media] vb2: add explicit fence user API
-> =C2=A0 [media] vb2: add in-fence support to QBUF
-> =C2=A0 [media] vb2: add infrastructure to support out-fences
-> =C2=A0 [media] vb2: add out-fence support to QBUF
-> =C2=A0 [media] v4l: Document explicit synchronization behavior
->
-> Javier Martinez Canillas (1):
-> =C2=A0 [media] vb2: add videobuf2 dma-buf fence helpers
->
-> =C2=A0Documentation/media/uapi/v4l/buffer.rst=C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 |=C2=A0 15 ++
-> =C2=A0Documentation/media/uapi/v4l/vidioc-qbuf.rst=C2=A0 =C2=A0 =C2=A0|=
-=C2=A0 42 +++-
-> =C2=A0Documentation/media/uapi/v4l/vidioc-querybuf.rst |=C2=A0 =C2=A09 +-
-> =C2=A0Documentation/media/uapi/v4l/vidioc-querycap.rst |=C2=A0 =C2=A03 +
-> =C2=A0drivers/media/platform/vivid/vivid-core.c=C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 |=C2=A0 24 +-
-> =C2=A0drivers/media/usb/cpia2/cpia2_v4l.c=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 |=C2=A0 =C2=A02 +-
-> =C2=A0drivers/media/v4l2-core/Kconfig=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 |=C2=A0 =C2=A01 +
-> =C2=A0drivers/media/v4l2-core/v4l2-compat-ioctl32.c=C2=A0 =C2=A0 |=C2=A0 =
-=C2=A04 +-
-> =C2=A0drivers/media/v4l2-core/videobuf2-core.c=C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0| 274 +++++++++++++++++++++--
-> =C2=A0drivers/media/v4l2-core/videobuf2-v4l2.c=C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0|=C2=A0 48 +++-
-> =C2=A0include/media/videobuf2-core.h=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0|=C2=A0 44 +++-
-> =C2=A0include/media/videobuf2-fence.h=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 |=C2=A0 48 ++++
-> =C2=A0include/uapi/linux/videodev2.h=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0|=C2=A0 =C2=A08 +-
-> =C2=A013 files changed, 485 insertions(+), 37 deletions(-)
-> =C2=A0create mode 100644 include/media/videobuf2-fence.h
->
-> --
-> 2.13.6
->
+diff --git a/include/uapi/linux/rkisp1-config.h b/include/uapi/linux/rkisp1-config.h
+new file mode 100644
+index 000000000000..a801fbc9ef47
+--- /dev/null
++++ b/include/uapi/linux/rkisp1-config.h
+@@ -0,0 +1,554 @@
++/*
++ * Rockchip isp1 driver
++ *
++ * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef _UAPI_RKISP1_CONFIG_H
++#define _UAPI_RKISP1_CONFIG_H
++
++#include <linux/types.h>
++#include <linux/v4l2-controls.h>
++
++#define CIFISP_MODULE_DPCC              (1 << 0)
++#define CIFISP_MODULE_BLS               (1 << 1)
++#define CIFISP_MODULE_SDG               (1 << 2)
++#define CIFISP_MODULE_HST               (1 << 3)
++#define CIFISP_MODULE_LSC               (1 << 4)
++#define CIFISP_MODULE_AWB_GAIN          (1 << 5)
++#define CIFISP_MODULE_FLT               (1 << 6)
++#define CIFISP_MODULE_BDM               (1 << 7)
++#define CIFISP_MODULE_CTK               (1 << 8)
++#define CIFISP_MODULE_GOC               (1 << 9)
++#define CIFISP_MODULE_CPROC             (1 << 10)
++#define CIFISP_MODULE_AFC               (1 << 11)
++#define CIFISP_MODULE_AWB               (1 << 12)
++#define CIFISP_MODULE_IE                (1 << 13)
++#define CIFISP_MODULE_AEC               (1 << 14)
++#define CIFISP_MODULE_WDR               (1 << 15)
++#define CIFISP_MODULE_DPF               (1 << 16)
++#define CIFISP_MODULE_DPF_STRENGTH      (1 << 17)
++
++#define CIFISP_CTK_COEFF_MAX            0x100
++#define CIFISP_CTK_OFFSET_MAX           0x800
++
++#define CIFISP_AE_MEAN_MAX              25
++#define CIFISP_HIST_BIN_N_MAX           16
++#define CIFISP_AFM_MAX_WINDOWS          3
++#define CIFISP_DEGAMMA_CURVE_SIZE       17
++
++#define CIFISP_BDM_MAX_TH               0xFF
++
++/* maximum value for horizontal start address */
++#define CIFISP_BLS_START_H_MAX             0x00000FFF
++/* maximum value for horizontal stop address */
++#define CIFISP_BLS_STOP_H_MAX              0x00000FFF
++/* maximum value for vertical start address */
++#define CIFISP_BLS_START_V_MAX             0x00000FFF
++/* maximum value for vertical stop address */
++#define CIFISP_BLS_STOP_V_MAX              0x00000FFF
++/* maximum is 2^18 = 262144*/
++#define CIFISP_BLS_SAMPLES_MAX             0x00000012
++/* maximum value for fixed black level */
++#define CIFISP_BLS_FIX_SUB_MAX             0x00000FFF
++/* minimum value for fixed black level */
++#define CIFISP_BLS_FIX_SUB_MIN             0xFFFFF000
++/* 13 bit range (signed)*/
++#define CIFISP_BLS_FIX_MASK                0x00001FFF
++/* AWB */
++#define CIFISP_AWB_MAX_GRID                1
++#define CIFISP_AWB_MAX_FRAMES              7
++
++/* Gamma out*/
++/* Maximum number of color samples supported */
++#define CIFISP_GAMMA_OUT_MAX_SAMPLES       17
++
++/* LSC */
++#define CIFISP_LSC_GRAD_TBL_SIZE           8
++#define CIFISP_LSC_SIZE_TBL_SIZE           8
++/*
++ * The following matches the tuning process,
++ * not the max capabilities of the chip.
++ * Last value unused.
++ */
++#define	CIFISP_LSC_DATA_TBL_SIZE           290
++/* HIST */
++/* Last 3 values unused. */
++#define CIFISP_HISTOGRAM_WEIGHT_GRIDS_SIZE 28
++
++/* DPCC */
++#define CIFISP_DPCC_METHODS_MAX       3
++
++/* DPF */
++#define CIFISP_DPF_MAX_NLF_COEFFS      17
++#define CIFISP_DPF_MAX_SPATIAL_COEFFS  6
++
++/* measurement types */
++#define CIFISP_STAT_AWB           (1 << 0)
++#define CIFISP_STAT_AUTOEXP       (1 << 1)
++#define CIFISP_STAT_AFM_FIN       (1 << 2)
++#define CIFISP_STAT_HIST          (1 << 3)
++
++enum cifisp_histogram_mode {
++	CIFISP_HISTOGRAM_MODE_DISABLE,
++	CIFISP_HISTOGRAM_MODE_RGB_COMBINED,
++	CIFISP_HISTOGRAM_MODE_R_HISTOGRAM,
++	CIFISP_HISTOGRAM_MODE_G_HISTOGRAM,
++	CIFISP_HISTOGRAM_MODE_B_HISTOGRAM,
++	CIFISP_HISTOGRAM_MODE_Y_HISTOGRAM
++};
++
++enum cifisp_exp_meas_mode {
++/* < Y = 16 + 0.25R + 0.5G + 0.1094B */
++	CIFISP_EXP_MEASURING_MODE_0,
++/* < Y = (R + G + B) x (85/256) */
++	CIFISP_EXP_MEASURING_MODE_1,
++};
++
++enum cifisp_exp_ctrl_auotostop {
++	CIFISP_EXP_CTRL_AUTOSTOP_0 = 0,
++	CIFISP_EXP_CTRL_AUTOSTOP_1 = 1,
++};
++
++struct cifisp_window {
++	unsigned short h_offs;
++	unsigned short v_offs;
++	unsigned short h_size;
++	unsigned short v_size;
++};
++
++enum cifisp_awb_mode_type {
++	CIFISP_AWB_MODE_MANUAL,
++	CIFISP_AWB_MODE_RGB,
++	CIFISP_AWB_MODE_YCBCR
++};
++
++enum cifisp_flt_mode {
++	CIFISP_FLT_STATIC_MODE,
++	CIFISP_FLT_DYNAMIC_MODE
++};
++
++/*
++ * BLS fixed subtraction values. The values will be subtracted from the sensor
++ * values. Therefore a negative value means addition instead of subtraction!
++ */
++struct cifisp_bls_fixed_val {
++	/*! Fixed (signed!) subtraction value for Bayer pattern R. */
++	signed short r;
++	/*! Fixed (signed!) subtraction value for Bayer pattern Gr. */
++	signed short gr;
++	/*! Fixed (signed!) subtraction value for Bayer pattern Gb. */
++	signed short gb;
++	/*! Fixed (signed!) subtraction value for Bayer pattern B. */
++	signed short b;
++};
++
++/* Configuration used by black level subtraction */
++struct cifisp_bls_config {
++	/*
++	 * Automatic mode activated means that the measured values
++	 * are subtracted.Otherwise the fixed subtraction
++	 * values will be subtracted.
++	 */
++	bool enable_auto;
++	unsigned char en_windows;
++	struct cifisp_window bls_window1;	/* < Measurement window 1. */
++	struct cifisp_window bls_window2;	/* !< Measurement window 2 */
++	/*
++	 * Set amount of measured pixels for each Bayer position
++	 * (A, B,C and D) to 2^bls_samples.
++	 */
++	unsigned char bls_samples;
++	/* !< Fixed subtraction values. */
++	struct cifisp_bls_fixed_val fixed_val;
++};
++
++struct cifisp_dpcc_methods_config {
++	unsigned int method;
++	unsigned int line_thresh;
++	unsigned int line_mad_fac;
++	unsigned int pg_fac;
++	unsigned int rnd_thresh;
++	unsigned int rg_fac;
++};
++
++struct cifisp_dpcc_config {
++	unsigned int mode;
++	unsigned int output_mode;
++	unsigned int set_use;
++	struct cifisp_dpcc_methods_config methods[CIFISP_DPCC_METHODS_MAX];
++	unsigned int ro_limits;
++	unsigned int rnd_offs;
++};
++
++struct cifisp_gamma_corr_curve {
++	unsigned short gamma_y[CIFISP_DEGAMMA_CURVE_SIZE];
++};
++
++struct cifisp_gamma_curve_x_axis_pnts {
++	unsigned int gamma_dx0;
++	unsigned int gamma_dx1;
++};
++
++/* Configuration used by sensor degamma */
++struct cifisp_sdg_config {
++	struct cifisp_gamma_corr_curve curve_r;
++	struct cifisp_gamma_corr_curve curve_g;
++	struct cifisp_gamma_corr_curve curve_b;
++	struct cifisp_gamma_curve_x_axis_pnts xa_pnts;
++};
++
++/* Configuration used by Lens shading correction */
++struct cifisp_lsc_config {
++	unsigned int r_data_tbl[CIFISP_LSC_DATA_TBL_SIZE];
++	unsigned int gr_data_tbl[CIFISP_LSC_DATA_TBL_SIZE];
++	unsigned int gb_data_tbl[CIFISP_LSC_DATA_TBL_SIZE];
++	unsigned int b_data_tbl[CIFISP_LSC_DATA_TBL_SIZE];
++
++	unsigned int x_grad_tbl[CIFISP_LSC_GRAD_TBL_SIZE];
++	unsigned int y_grad_tbl[CIFISP_LSC_GRAD_TBL_SIZE];
++
++	unsigned int x_size_tbl[CIFISP_LSC_SIZE_TBL_SIZE];
++	unsigned int y_size_tbl[CIFISP_LSC_SIZE_TBL_SIZE];
++	unsigned short config_width;
++	unsigned short config_height;
++};
++
++struct cifisp_ie_config {
++	enum v4l2_colorfx effect;
++	unsigned short color_sel;
++	/* 3x3 Matrix Coefficients for Emboss Effect 1 */
++	unsigned short eff_mat_1;
++	/* 3x3 Matrix Coefficients for Emboss Effect 2 */
++	unsigned short eff_mat_2;
++	/* 3x3 Matrix Coefficients for Emboss 3/Sketch 1 */
++	unsigned short eff_mat_3;
++	/* 3x3 Matrix Coefficients for Sketch Effect 2 */
++	unsigned short eff_mat_4;
++	/* 3x3 Matrix Coefficients for Sketch Effect 3 */
++	unsigned short eff_mat_5;
++	/* Chrominance increment values of tint (used for sepia effect) */
++	unsigned short eff_tint;
++};
++
++struct cifisp_cproc_config {
++	unsigned char c_out_range;
++	unsigned char y_in_range;
++	unsigned char y_out_range;
++	unsigned char contrast;
++	unsigned char brightness;
++	unsigned char sat;
++	unsigned char hue;
++};
++
++/* Configuration used by auto white balance */
++struct cifisp_awb_meas_config {
++	/*
++	 * white balance measurement window (in pixels)
++	 * Note: currently the h and v offsets are mapped to grid offsets
++	 */
++	struct cifisp_window awb_wnd;
++	enum cifisp_awb_mode_type awb_mode;
++	/*
++	 * only pixels values < max_y contribute to awb measurement
++	 * (set to 0 to disable this feature)
++	 */
++	unsigned char max_y;
++	/* only pixels values > min_y contribute to awb measurement */
++	unsigned char min_y;
++	/*
++	 * Chrominance sum maximum value, only consider pixels with Cb+Cr
++	 * smaller than threshold for awb measurements
++	 */
++	unsigned char max_csum;
++	/*
++	 * Chrominance minimum value, only consider pixels with Cb/Cr
++	 * each greater than threshold value for awb measurements
++	 */
++	unsigned char min_c;
++	/*
++	 * number of frames - 1 used for mean value calculation
++	 * (ucFrames=0 means 1 Frame)
++	 */
++	unsigned char frames;
++	/* reference Cr value for AWB regulation, target for AWB */
++	unsigned char awb_ref_cr;
++	/* reference Cb value for AWB regulation, target for AWB */
++	unsigned char awb_ref_cb;
++	bool enable_ymax_cmp;
++};
++
++struct cifisp_awb_gain_config {
++	unsigned short gain_red;
++	unsigned short gain_green_r;
++	unsigned short gain_blue;
++	unsigned short gain_green_b;
++};
++
++/* Configuration used by ISP filtering */
++struct cifisp_flt_config {
++	enum cifisp_flt_mode mode;	/* ISP_FILT_MODE register fields */
++	unsigned char grn_stage1;	/* ISP_FILT_MODE register fields */
++	unsigned char chr_h_mode;	/* ISP_FILT_MODE register fields */
++	unsigned char chr_v_mode;	/* ISP_FILT_MODE register fields */
++	unsigned int thresh_bl0;
++	unsigned int thresh_bl1;
++	unsigned int thresh_sh0;
++	unsigned int thresh_sh1;
++	unsigned int lum_weight;
++	unsigned int fac_sh1;
++	unsigned int fac_sh0;
++	unsigned int fac_mid;
++	unsigned int fac_bl0;
++	unsigned int fac_bl1;
++};
++
++/* Configuration used by Bayer DeMosaic */
++struct cifisp_bdm_config {
++	unsigned char demosaic_th;
++};
++
++/* Configuration used by Cross Talk correction */
++struct cifisp_ctk_config {
++	unsigned short coeff0;
++	unsigned short coeff1;
++	unsigned short coeff2;
++	unsigned short coeff3;
++	unsigned short coeff4;
++	unsigned short coeff5;
++	unsigned short coeff6;
++	unsigned short coeff7;
++	unsigned short coeff8;
++	/* offset for the crosstalk correction matrix */
++	unsigned short ct_offset_r;
++	unsigned short ct_offset_g;
++	unsigned short ct_offset_b;
++};
++
++enum cifisp_goc_mode {
++	CIFISP_GOC_MODE_LOGARITHMIC,
++	CIFISP_GOC_MODE_EQUIDISTANT
++};
++
++/* Configuration used by Gamma Out correction */
++struct cifisp_goc_config {
++	enum cifisp_goc_mode mode;
++	unsigned short gamma_y[CIFISP_GAMMA_OUT_MAX_SAMPLES];
++};
++
++/* Configuration used by Histogram */
++struct cifisp_hst_config {
++	enum cifisp_histogram_mode mode;
++	unsigned char histogram_predivider;
++	struct cifisp_window meas_window;
++	unsigned char hist_weight[CIFISP_HISTOGRAM_WEIGHT_GRIDS_SIZE];
++};
++
++/* Configuration used by Auto Exposure Control */
++struct cifisp_aec_config {
++	enum cifisp_exp_meas_mode mode;
++	__u32 autostop;
++	struct cifisp_window meas_window;
++};
++
++struct cifisp_afc_config {
++	unsigned char num_afm_win;	/* max CIFISP_AFM_MAX_WINDOWS */
++	struct cifisp_window afm_win[CIFISP_AFM_MAX_WINDOWS];
++	unsigned int thres;
++	unsigned int var_shift;
++};
++
++enum cifisp_dpf_gain_usage {
++/* don't use any gains in preprocessing stage */
++	CIFISP_DPF_GAIN_USAGE_DISABLED,
++/* use only the noise function gains  from registers DPF_NF_GAIN_R, ... */
++	CIFISP_DPF_GAIN_USAGE_NF_GAINS,
++/* use only the gains from LSC module */
++	CIFISP_DPF_GAIN_USAGE_LSC_GAINS,
++/* use the moise function gains and the gains from LSC module */
++	CIFISP_DPF_GAIN_USAGE_NF_LSC_GAINS,
++/* use only the gains from AWB module */
++	CIFISP_DPF_GAIN_USAGE_AWB_GAINS,
++/* use the gains from AWB and LSC module */
++	CIFISP_DPF_GAIN_USAGE_AWB_LSC_GAINS,
++/* upper border (only for an internal evaluation) */
++	CIFISP_DPF_GAIN_USAGE_MAX
++};
++
++enum cifisp_dpf_rb_filtersize {
++/* red and blue filter kernel size 13x9 (means 7x5 active pixel) */
++	CIFISP_DPF_RB_FILTERSIZE_13x9,
++/* red and blue filter kernel size 9x9 (means 5x5 active pixel) */
++	CIFISP_DPF_RB_FILTERSIZE_9x9,
++};
++
++enum cifisp_dpf_nll_scale_mode {
++/* use a linear scaling */
++	CIFISP_NLL_SCALE_LINEAR,
++/* use a logarithmic scaling */
++	CIFISP_NLL_SCALE_LOGARITHMIC,
++};
++
++struct cifisp_dpf_nll {
++	unsigned short coeff[CIFISP_DPF_MAX_NLF_COEFFS];
++	enum cifisp_dpf_nll_scale_mode scale_mode;
++};
++
++struct cifisp_dpf_rb_flt {
++	enum cifisp_dpf_rb_filtersize fltsize;
++	unsigned char spatial_coeff[CIFISP_DPF_MAX_SPATIAL_COEFFS];
++	bool r_enable;
++	bool b_enable;
++};
++
++struct cifisp_dpf_g_flt {
++	unsigned char spatial_coeff[CIFISP_DPF_MAX_SPATIAL_COEFFS];
++	bool gr_enable;
++	bool gb_enable;
++};
++
++struct cifisp_dpf_gain {
++	enum cifisp_dpf_gain_usage mode;
++	unsigned short nf_r_gain;
++	unsigned short nf_b_gain;
++	unsigned short nf_gr_gain;
++	unsigned short nf_gb_gain;
++};
++
++struct cifisp_dpf_config {
++	struct cifisp_dpf_gain gain;
++	struct cifisp_dpf_g_flt g_flt;
++	struct cifisp_dpf_rb_flt rb_flt;
++	struct cifisp_dpf_nll nll;
++};
++
++struct cifisp_dpf_strength_config {
++	unsigned char r;
++	unsigned char g;
++	unsigned char b;
++};
++
++struct cifisp_isp_other_cfg {
++	struct cifisp_dpcc_config dpcc_config;
++	struct cifisp_bls_config bls_config;
++	struct cifisp_sdg_config sdg_config;
++	struct cifisp_lsc_config lsc_config;
++	struct cifisp_awb_gain_config awb_gain_config;
++	struct cifisp_flt_config flt_config;
++	struct cifisp_bdm_config bdm_config;
++	struct cifisp_ctk_config ctk_config;
++	struct cifisp_goc_config goc_config;
++	struct cifisp_dpf_config dpf_config;
++	struct cifisp_dpf_strength_config dpf_strength_config;
++	/* post process configs, including hue, sharpness, brightness, contrast, color effect */
++	/* TODO: removed from here ? set by standard v4l2 controls ? */
++	struct cifisp_cproc_config cproc_config;
++	struct cifisp_ie_config ie_config;
++};
++
++struct cifisp_isp_meas_cfg {
++	struct cifisp_awb_meas_config awb_meas_config;
++	struct cifisp_hst_config hst_config;
++	struct cifisp_aec_config aec_config;
++	struct cifisp_afc_config afc_config;
++};
++
++struct rkisp1_isp_params_cfg {
++	/* mask the enable bits of which module  should be updated */
++	unsigned int module_en_update;
++	/* mask the enable value of each module, only update the module which correspond
++	  * bit was set in module_en_update
++	  */
++	unsigned int module_ens;
++	/* mask the config bits of which module  should be updated */
++	unsigned int module_cfg_update;
++
++	struct cifisp_isp_meas_cfg meas;
++	struct cifisp_isp_other_cfg others;
++};
++
++/* measurement statistics */
++
++struct cifisp_awb_meas {
++	unsigned int cnt;
++	unsigned char mean_y_or_g;
++	unsigned char mean_cb_or_b;
++	unsigned char mean_cr_or_r;
++};
++
++struct cifisp_awb_stat {
++	struct cifisp_awb_meas awb_mean[CIFISP_AWB_MAX_GRID];
++};
++
++struct cifisp_hist_stat {
++	unsigned short hist_bins[CIFISP_HIST_BIN_N_MAX];
++};
++
++/*! BLS mean measured values */
++struct cifisp_bls_meas_val {
++	/*! Mean measured value for Bayer pattern R. */
++	unsigned short meas_r;
++	/*! Mean measured value for Bayer pattern Gr. */
++	unsigned short meas_gr;
++	/*! Mean measured value for Bayer pattern Gb. */
++	unsigned short meas_gb;
++	/*! Mean measured value for Bayer pattern B. */
++	unsigned short meas_b;
++};
++
++struct cifisp_ae_stat {
++	unsigned char exp_mean[CIFISP_AE_MEAN_MAX];
++	struct cifisp_bls_meas_val bls_val;	/* available wit exposure results */
++};
++
++struct cifisp_af_meas_val {
++	unsigned int sum;
++	unsigned int lum;
++};
++
++struct cifisp_af_stat {
++	struct cifisp_af_meas_val window[CIFISP_AFM_MAX_WINDOWS];
++};
++
++struct cifisp_stat {
++	struct cifisp_awb_stat awb;
++	struct cifisp_ae_stat ae;
++	struct cifisp_af_stat af;
++	struct cifisp_hist_stat hist;
++};
++
++struct rkisp1_stat_buffer {
++	unsigned int meas_type;
++	unsigned int frame_id;
++	struct cifisp_stat params;
++};
++
++#endif /* _UAPI_RKISP1_CONFIG_H */
+-- 
+2.14.2
