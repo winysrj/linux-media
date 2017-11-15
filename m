@@ -1,106 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f45.google.com ([74.125.83.45]:50789 "EHLO
-        mail-pg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752394AbdKEATE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Nov 2017 20:19:04 -0400
-Received: by mail-pg0-f45.google.com with SMTP id y5so5437446pgq.7
-        for <linux-media@vger.kernel.org>; Sat, 04 Nov 2017 17:19:03 -0700 (PDT)
-Received: from ubuntu.windy (c122-106-151-124.carlnfd1.nsw.optusnet.com.au. [122.106.151.124])
-        by smtp.gmail.com with ESMTPSA id b22sm17167137pfj.123.2017.11.04.17.19.00
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sat, 04 Nov 2017 17:19:01 -0700 (PDT)
-Date: Sun, 5 Nov 2017 11:18:49 +1100
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: broken build against 4.4.0
-Message-ID: <20171105001846.GA10360@ubuntu.windy>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:42880 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933136AbdKOR72 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Nov 2017 12:59:28 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH] v4l: sh_mobile_ceu: Return buffers on streamoff()
+Date: Wed, 15 Nov 2017 18:59:12 +0100
+Message-Id: <1510768752-7588-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-can someone take a look please?
+videobuf2 core reports an error when not all buffers have been returned
+to the framework:
 
-+ uname -a
-Linux ubuntu 4.4.0-97-generic #120-Ubuntu SMP Tue Sep 19 17:28:18 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
-+ cat /proc/version_signature
-Ubuntu 4.4.0-97.120-generic 4.4.87
+drivers/media/v4l2-core/videobuf2-core.c:1651
+WARN_ON(atomic_read(&q->owned_by_drv_count))
 
-This was with a fresh clone,
+Fix this returning all buffers currently in capture queue.
 
-+ git --no-pager log -1
-commit c93534951f5d66bef7f17f16293acf2be346b726
-Author: Jasmin Jessich <jasmin@anw.at>
-Date:   Sat Oct 14 01:41:32 2017 +0200
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 
-    build: Fixed patches for Kernel 2.6.35
-    
-    Signed-off-by: Jasmin Jessich <jasmin@anw.at>
-    Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
 
-...
+I know I'm working to get rid of this driver, but while I was trying to have
+it working again on mainline, I found this had to be fixed.
 
-make[2]: Leaving directory '/home/me/git/clones/media_build/linux'
-make -C /lib/modules/4.4.0-97-generic/build SUBDIRS=/home/me/git/clones/media_buildmodules
-make[2]: Entering directory '/usr/src/linux-headers-4.4.0-97-generic'
-  CC [M]  /home/me/git/clones/media_build/v4l/msp3400-driver.o
-  CC [M]  /home/me/git/clones/media_build/v4l/msp3400-kthreads.o
-  LD [M]  /home/me/git/clones/media_build/v4l/msp3400.o
-  CC [M]  /home/me/git/clones/media_build/v4l/smiapp-core.o
-  CC [M]  /home/me/git/clones/media_build/v4l/smiapp-regs.o
-  CC [M]  /home/me/git/clones/media_build/v4l/smiapp-quirk.o
-  CC [M]  /home/me/git/clones/media_build/v4l/smiapp-limits.o
-  LD [M]  /home/me/git/clones/media_build/v4l/smiapp.o
-  CC [M]  /home/me/git/clones/media_build/v4l/et8ek8_mode.o
-  CC [M]  /home/me/git/clones/media_build/v4l/et8ek8_driver.o
-  LD [M]  /home/me/git/clones/media_build/v4l/et8ek8.o
-  CC [M]  /home/me/git/clones/media_build/v4l/cx25840-core.o
-  CC [M]  /home/me/git/clones/media_build/v4l/cx25840-audio.o
-  CC [M]  /home/me/git/clones/media_build/v4l/cx25840-firmware.o
-  CC [M]  /home/me/git/clones/media_build/v4l/cx25840-vbi.o
-  CC [M]  /home/me/git/clones/media_build/v4l/cx25840-ir.o
-  LD [M]  /home/me/git/clones/media_build/v4l/cx25840.o
-  CC [M]  /home/me/git/clones/media_build/v4l/m5mols_core.o
-  CC [M]  /home/me/git/clones/media_build/v4l/m5mols_controls.o
-  CC [M]  /home/me/git/clones/media_build/v4l/m5mols_capture.o
-  LD [M]  /home/me/git/clones/media_build/v4l/m5mols.o
-  CC [M]  /home/me/git/clones/media_build/v4l/imx074.o
-  CC [M]  /home/me/git/clones/media_build/v4l/mt9m001.o
-  CC [M]  /home/me/git/clones/media_build/v4l/mt9t031.o
-  CC [M]  /home/me/git/clones/media_build/v4l/mt9t112.o
-  CC [M]  /home/me/git/clones/media_build/v4l/mt9v022.o
-  CC [M]  /home/me/git/clones/media_build/v4l/ov5642.o
-  CC [M]  /home/me/git/clones/media_build/v4l/ov772x.o
-  CC [M]  /home/me/git/clones/media_build/v4l/ov9640.o
-  CC [M]  /home/me/git/clones/media_build/v4l/ov9740.o
-  CC [M]  /home/me/git/clones/media_build/v4l/rj54n1cb0c.o
-  CC [M]  /home/me/git/clones/media_build/v4l/tw9910.o
-  CC [M]  /home/me/git/clones/media_build/v4l/aptina-pll.o
-  CC [M]  /home/me/git/clones/media_build/v4l/tvaudio.o
-/home/me/git/clones/media_build/v4l/tvaudio.c: In function 'chip_thread_wake':
-/home/me/git/clones/media_build/v4l/tvaudio.c:305:27: error: implicit declaration of function 'from_timer' [-Werror=implicit-function-declaration]
-  struct CHIPSTATE *chip = from_timer(chip, t, wt);
-                           ^
-/home/me/git/clones/media_build/v4l/tvaudio.c:305:47: error: 'wt' undeclared (first use in this function)
-  struct CHIPSTATE *chip = from_timer(chip, t, wt);
-                                               ^
-/home/me/git/clones/media_build/v4l/tvaudio.c:305:47: note: each undeclared identifier is reported only once for each function it appears in
-/home/me/git/clones/media_build/v4l/tvaudio.c: In function 'tvaudio_probe':
-/home/me/git/clones/media_build/v4l/tvaudio.c:1998:2: error: implicit declaration of function 'timer_setup' [-Werror=implicit-function-declaration]
-  timer_setup(&chip->wt, chip_thread_wake, 0);
-  ^
-cc1: some warnings being treated as errors
-scripts/Makefile.build:264: recipe for target '/home/me/git/clones/media_build/v4l/o.o' failed
-make[3]: *** [/home/me/git/clones/media_build/v4l/tvaudio.o] Error 1
-Makefile:1423: recipe for target '_module_/home/me/git/clones/media_build/v4l' fail
-make[2]: *** [_module_/home/me/git/clones/media_build/v4l] Error 2
-make[2]: Leaving directory '/usr/src/linux-headers-4.4.0-97-generic'
-Makefile:51: recipe for target 'default' failed
-make[1]: *** [default] Error 2
-make[1]: Leaving directory '/home/me/git/clones/media_build/v4l'
-Makefile:26: recipe for target 'all' failed
-make: *** [all] Error 2
-build failed at ./build line 526
+Thanks
+  j
+
+---
+ drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+index 36762ec..9180a1d 100644
+--- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
++++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+@@ -451,13 +451,18 @@ static void sh_mobile_ceu_stop_streaming(struct vb2_queue *q)
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
+ 	struct list_head *buf_head, *tmp;
++	struct vb2_v4l2_buffer *vbuf;
+
+ 	spin_lock_irq(&pcdev->lock);
+
+ 	pcdev->active = NULL;
+
+-	list_for_each_safe(buf_head, tmp, &pcdev->capture)
++	list_for_each_safe(buf_head, tmp, &pcdev->capture) {
++		vbuf = &list_entry(buf_head, struct sh_mobile_ceu_buffer,
++				   queue)->vb;
++		vb2_buffer_done(&vbuf->vb2_buf, VB2_BUF_STATE_DONE);
+ 		list_del_init(buf_head);
++	}
+
+ 	spin_unlock_irq(&pcdev->lock);
+
+--
+2.7.4
