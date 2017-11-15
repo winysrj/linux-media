@@ -1,46 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35823 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753450AbdKXMxg (ORCPT
+Received: from slow1-d.mail.gandi.net ([217.70.178.86]:36221 "EHLO
+        slow1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932342AbdKOLPE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Nov 2017 07:53:36 -0500
-Received: by mail-wm0-f68.google.com with SMTP id y80so22385022wmd.0
-        for <linux-media@vger.kernel.org>; Fri, 24 Nov 2017 04:53:35 -0800 (PST)
-Subject: Re: [PATCH 1/2] media: venus: venc: configure entropy mode
-To: Loic Poulain <loic.poulain@linaro.org>,
-        stanimir.varbanov@linaro.org, mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org
-References: <1511516042-11415-1-git-send-email-loic.poulain@linaro.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <52e7d38d-645b-0bef-86df-4d7bd707a2da@linaro.org>
-Date: Fri, 24 Nov 2017 14:53:33 +0200
-MIME-Version: 1.0
-In-Reply-To: <1511516042-11415-1-git-send-email-loic.poulain@linaro.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 15 Nov 2017 06:15:04 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v1 06/10] sh: sh7722: Rename CEU clock
+Date: Wed, 15 Nov 2017 11:55:59 +0100
+Message-Id: <1510743363-25798-7-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Loic,
+Rename CEU clock to match the new platform driver name used in Migo-R.
 
-Thanks for the patch!
+There are no other sh7722 based devices Migo-R apart, so we can safely
+rename this.
 
-On 11/24/2017 11:34 AM, Loic Poulain wrote:
-> H264 entropy mode can be selected via V4L2 API but is eventually not
-> applied. Configure encoder with selected mode, CALVC (def) or CABAC.
-> 
-> Note that hw/firmware also expects a CABAC model configuration which
-> currently doesn't have existing V4L2 API control. For now, use model_0
-> which seems always supported and so the default one.
-> 
-> Signed-off-by: Loic Poulain <loic.poulain@linaro.org>
-> ---
->  drivers/media/platform/qcom/venus/venc.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ arch/sh/kernel/cpu/sh4a/clock-sh7722.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Reviewed-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-
+diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7722.c b/arch/sh/kernel/cpu/sh4a/clock-sh7722.c
+index 8f07a1a..d85091e 100644
+--- a/arch/sh/kernel/cpu/sh4a/clock-sh7722.c
++++ b/arch/sh/kernel/cpu/sh4a/clock-sh7722.c
+@@ -223,7 +223,7 @@ static struct clk_lookup lookups[] = {
+ 	CLKDEV_DEV_ID("sh-vou.0", &mstp_clks[HWBLK_VOU]),
+ 	CLKDEV_CON_ID("jpu0", &mstp_clks[HWBLK_JPU]),
+ 	CLKDEV_CON_ID("beu0", &mstp_clks[HWBLK_BEU]),
+-	CLKDEV_DEV_ID("sh_mobile_ceu.0", &mstp_clks[HWBLK_CEU]),
++	CLKDEV_DEV_ID("renesas-ceu.0", &mstp_clks[HWBLK_CEU]),
+ 	CLKDEV_CON_ID("veu0", &mstp_clks[HWBLK_VEU]),
+ 	CLKDEV_CON_ID("vpu0", &mstp_clks[HWBLK_VPU]),
+ 	CLKDEV_DEV_ID("sh_mobile_lcdc_fb.0", &mstp_clks[HWBLK_LCDC]),
 -- 
-regards,
-Stan
+2.7.4
