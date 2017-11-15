@@ -1,127 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:9208 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753801AbdKMRFK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Nov 2017 12:05:10 -0500
-From: Ville Syrjala <ville.syrjala@linux.intel.com>
-To: dri-devel@lists.freedesktop.org
-Cc: intel-gfx@lists.freedesktop.org,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 09/10] video/hdmi: Constify 'buffer' to the unpack functions
-Date: Mon, 13 Nov 2017 19:04:26 +0200
-Message-Id: <20171113170427.4150-10-ville.syrjala@linux.intel.com>
-In-Reply-To: <20171113170427.4150-1-ville.syrjala@linux.intel.com>
-References: <20171113170427.4150-1-ville.syrjala@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:53451 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755597AbdKORLP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Nov 2017 12:11:15 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC v5 02/11] [media] vivid: add the V4L2_CAP_ORDERED capability
+Date: Wed, 15 Nov 2017 15:10:48 -0200
+Message-Id: <20171115171057.17340-3-gustavo@padovan.org>
+In-Reply-To: <20171115171057.17340-1-gustavo@padovan.org>
+References: <20171115171057.17340-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ville Syrjälä <ville.syrjala@linux.intel.com>
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-The unpack functions just read from the passed in buffer,
-so make it const.
+vivid guarantees the ordering of buffer when processing then, so add the
+V4L2_CAP_ORDERED capability to inform userspace of that.
 
-Cc: Thierry Reding <thierry.reding@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- drivers/video/hdmi.c | 23 ++++++++++++-----------
- include/linux/hdmi.h |  3 ++-
- 2 files changed, 14 insertions(+), 12 deletions(-)
+ drivers/media/platform/vivid/vivid-core.c | 19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/video/hdmi.c b/drivers/video/hdmi.c
-index 38716eb50408..65b915ea4936 100644
---- a/drivers/video/hdmi.c
-+++ b/drivers/video/hdmi.c
-@@ -31,7 +31,7 @@
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 5f316a5e38db..f19391fa2d6a 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -801,7 +801,8 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		dev->vid_cap_caps = dev->multiplanar ?
+ 			V4L2_CAP_VIDEO_CAPTURE_MPLANE :
+ 			V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OVERLAY;
+-		dev->vid_cap_caps |= V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
++		dev->vid_cap_caps |= V4L2_CAP_STREAMING | V4L2_CAP_READWRITE |
++				     V4L2_CAP_ORDERED;
+ 		if (dev->has_audio_inputs)
+ 			dev->vid_cap_caps |= V4L2_CAP_AUDIO;
+ 		if (in_type_counter[TV])
+@@ -814,7 +815,8 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 			V4L2_CAP_VIDEO_OUTPUT;
+ 		if (dev->has_fb)
+ 			dev->vid_out_caps |= V4L2_CAP_VIDEO_OUTPUT_OVERLAY;
+-		dev->vid_out_caps |= V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
++		dev->vid_out_caps |= V4L2_CAP_STREAMING | V4L2_CAP_READWRITE |
++				     V4L2_CAP_ORDERED;
+ 		if (dev->has_audio_outputs)
+ 			dev->vid_out_caps |= V4L2_CAP_AUDIO;
+ 	}
+@@ -822,7 +824,8 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		/* set up the capabilities of the vbi capture device */
+ 		dev->vbi_cap_caps = (dev->has_raw_vbi_cap ? V4L2_CAP_VBI_CAPTURE : 0) |
+ 				    (dev->has_sliced_vbi_cap ? V4L2_CAP_SLICED_VBI_CAPTURE : 0);
+-		dev->vbi_cap_caps |= V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
++		dev->vbi_cap_caps |= V4L2_CAP_STREAMING | V4L2_CAP_READWRITE |
++				     V4L2_CAP_ORDERED;
+ 		if (dev->has_audio_inputs)
+ 			dev->vbi_cap_caps |= V4L2_CAP_AUDIO;
+ 		if (in_type_counter[TV])
+@@ -832,24 +835,26 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		/* set up the capabilities of the vbi output device */
+ 		dev->vbi_out_caps = (dev->has_raw_vbi_out ? V4L2_CAP_VBI_OUTPUT : 0) |
+ 				    (dev->has_sliced_vbi_out ? V4L2_CAP_SLICED_VBI_OUTPUT : 0);
+-		dev->vbi_out_caps |= V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
++		dev->vbi_out_caps |= V4L2_CAP_STREAMING | V4L2_CAP_READWRITE |
++				     V4L2_CAP_ORDERED;
+ 		if (dev->has_audio_outputs)
+ 			dev->vbi_out_caps |= V4L2_CAP_AUDIO;
+ 	}
+ 	if (dev->has_sdr_cap) {
+ 		/* set up the capabilities of the sdr capture device */
+ 		dev->sdr_cap_caps = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_TUNER;
+-		dev->sdr_cap_caps |= V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
++		dev->sdr_cap_caps |= V4L2_CAP_STREAMING | V4L2_CAP_READWRITE |
++				     V4L2_CAP_ORDERED;
+ 	}
+ 	/* set up the capabilities of the radio receiver device */
+ 	if (dev->has_radio_rx)
+ 		dev->radio_rx_caps = V4L2_CAP_RADIO | V4L2_CAP_RDS_CAPTURE |
+ 				     V4L2_CAP_HW_FREQ_SEEK | V4L2_CAP_TUNER |
+-				     V4L2_CAP_READWRITE;
++				     V4L2_CAP_READWRITE | V4L2_CAP_ORDERED;
+ 	/* set up the capabilities of the radio transmitter device */
+ 	if (dev->has_radio_tx)
+ 		dev->radio_tx_caps = V4L2_CAP_RDS_OUTPUT | V4L2_CAP_MODULATOR |
+-				     V4L2_CAP_READWRITE;
++				     V4L2_CAP_READWRITE | V4L2_CAP_ORDERED;
  
- #define hdmi_log(fmt, ...) dev_printk(level, dev, fmt, ##__VA_ARGS__)
- 
--static u8 hdmi_infoframe_checksum(u8 *ptr, size_t size)
-+static u8 hdmi_infoframe_checksum(const u8 *ptr, size_t size)
- {
- 	u8 csum = 0;
- 	size_t i;
-@@ -1016,9 +1016,9 @@ EXPORT_SYMBOL(hdmi_infoframe_log);
-  * Returns 0 on success or a negative error code on failure.
-  */
- static int hdmi_avi_infoframe_unpack(struct hdmi_avi_infoframe *frame,
--				     void *buffer)
-+				     const void *buffer)
- {
--	u8 *ptr = buffer;
-+	const u8 *ptr = buffer;
- 	int ret;
- 
- 	if (ptr[0] != HDMI_INFOFRAME_TYPE_AVI ||
-@@ -1079,9 +1079,9 @@ static int hdmi_avi_infoframe_unpack(struct hdmi_avi_infoframe *frame,
-  * Returns 0 on success or a negative error code on failure.
-  */
- static int hdmi_spd_infoframe_unpack(struct hdmi_spd_infoframe *frame,
--				     void *buffer)
-+				     const void *buffer)
- {
--	u8 *ptr = buffer;
-+	const u8 *ptr = buffer;
- 	int ret;
- 
- 	if (ptr[0] != HDMI_INFOFRAME_TYPE_SPD ||
-@@ -1117,9 +1117,9 @@ static int hdmi_spd_infoframe_unpack(struct hdmi_spd_infoframe *frame,
-  * Returns 0 on success or a negative error code on failure.
-  */
- static int hdmi_audio_infoframe_unpack(struct hdmi_audio_infoframe *frame,
--				       void *buffer)
-+				       const void *buffer)
- {
--	u8 *ptr = buffer;
-+	const u8 *ptr = buffer;
- 	int ret;
- 
- 	if (ptr[0] != HDMI_INFOFRAME_TYPE_AUDIO ||
-@@ -1163,9 +1163,9 @@ static int hdmi_audio_infoframe_unpack(struct hdmi_audio_infoframe *frame,
-  */
- static int
- hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
--				 void *buffer)
-+				 const void *buffer)
- {
--	u8 *ptr = buffer;
-+	const u8 *ptr = buffer;
- 	size_t length;
- 	int ret;
- 	u8 hdmi_video_format;
-@@ -1234,10 +1234,11 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
-  *
-  * Returns 0 on success or a negative error code on failure.
-  */
--int hdmi_infoframe_unpack(union hdmi_infoframe *frame, void *buffer)
-+int hdmi_infoframe_unpack(union hdmi_infoframe *frame,
-+			  const void *buffer)
- {
- 	int ret;
--	u8 *ptr = buffer;
-+	const u8 *ptr = buffer;
- 
- 	switch (ptr[0]) {
- 	case HDMI_INFOFRAME_TYPE_AVI:
-diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
-index d271ff23984f..d3816170c062 100644
---- a/include/linux/hdmi.h
-+++ b/include/linux/hdmi.h
-@@ -332,7 +332,8 @@ union hdmi_infoframe {
- 
- ssize_t
- hdmi_infoframe_pack(union hdmi_infoframe *frame, void *buffer, size_t size);
--int hdmi_infoframe_unpack(union hdmi_infoframe *frame, void *buffer);
-+int hdmi_infoframe_unpack(union hdmi_infoframe *frame,
-+			  const void *buffer);
- void hdmi_infoframe_log(const char *level, struct device *dev,
- 			union hdmi_infoframe *frame);
- 
+ 	ret = -ENOMEM;
+ 	/* initialize the test pattern generator */
 -- 
 2.13.6
