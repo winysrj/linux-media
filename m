@@ -1,84 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f194.google.com ([74.125.82.194]:47722 "EHLO
-        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755702AbdKOUC2 (ORCPT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:43060 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933271AbdKORL3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 15:02:28 -0500
-Date: Wed, 15 Nov 2017 14:02:26 -0600
-From: Rob Herring <robh@kernel.org>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v7 01/25] rcar-vin: add Gen3 devicetree bindings
- documentation
-Message-ID: <20171115200226.wd343hd3a52jjhdd@rob-hp-laptop>
-References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
- <20171111003835.4909-2-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171111003835.4909-2-niklas.soderlund+renesas@ragnatech.se>
+        Wed, 15 Nov 2017 12:11:29 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC v5 06/11] [media] vb2: add explicit fence user API
+Date: Wed, 15 Nov 2017 15:10:52 -0200
+Message-Id: <20171115171057.17340-7-gustavo@padovan.org>
+In-Reply-To: <20171115171057.17340-1-gustavo@padovan.org>
+References: <20171115171057.17340-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 11, 2017 at 01:38:11AM +0100, Niklas Söderlund wrote:
-> Document the devicetree bindings for the CSI-2 inputs available on Gen3.
-> 
-> There is a need to add a custom property 'renesas,id' and to define
-> which CSI-2 input is described in which endpoint under the port@1 node.
-> This information is needed since there are a set of predefined routes
-> between each VIN and CSI-2 block. This routing table will be kept
-> inside the driver but in order for it to act on it it must know which
-> VIN and CSI-2 is which.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  .../devicetree/bindings/media/rcar_vin.txt         | 116 ++++++++++++++++++---
->  1 file changed, 104 insertions(+), 12 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> index 6e4ef8caf759e5d3..df1abd0fb20386f8 100644
-> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -2,8 +2,12 @@ Renesas R-Car Video Input driver (rcar_vin)
->  -------------------------------------------
->  
->  The rcar_vin device provides video input capabilities for the Renesas R-Car
-> -family of devices. The current blocks are always slaves and suppot one input
-> -channel which can be either RGB, YUYV or BT656.
-> +family of devices.
-> +
-> +Each VIN instance has a single parallel input that supports RGB and YUV video,
-> +with both external synchronization and BT.656 synchronization for the latter.
-> +Depending on the instance the VIN input is connected to external SoC pins, or
-> +on Gen3 to a CSI-2 receiver.
->  
->   - compatible: Must be one or more of the following
->     - "renesas,vin-r8a7795" for the R8A7795 device
-> @@ -28,21 +32,38 @@ channel which can be either RGB, YUYV or BT656.
->  Additionally, an alias named vinX will need to be created to specify
->  which video input device this is.
->  
-> -The per-board settings:
-> +The per-board settings Gen2:
->   - port sub-node describing a single endpoint connected to the vin
->     as described in video-interfaces.txt[1]. Only the first one will
->     be considered as each vin interface has one input port.
->  
-> -   These settings are used to work out video input format and widths
-> -   into the system.
-> +The per-board settings Gen3:
-> +
-> +Gen3 can support both a single connected parallel input source from
-> +external SoC pins (port0) and/or multiple parallel input sources from
-> +local SoC CSI-2 receivers (port1) depending on SoC.
->  
-> +- renesas,id - ID number of the VIN, VINx in the documentation.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Why is this needed? We try to avoid indexes unless that's the only way a 
-device is addressed (and then we use reg).
+Turn the reserved2 field into fence_fd that we will use to send
+an in-fence to the kernel and return an out-fence from the kernel to
+userspace.
+
+Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+when sending a fence to the kernel to be waited on, and
+V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
+
+v4:
+	- make it a union with reserved2 and fence_fd (Hans Verkuil)
+
+v3:
+	- make the out_fence refer to the current buffer (Hans Verkuil)
+
+v2: add documentation
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ Documentation/media/uapi/v4l/buffer.rst       | 15 +++++++++++++++
+ drivers/media/usb/cpia2/cpia2_v4l.c           |  2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  4 ++--
+ drivers/media/v4l2-core/videobuf2-v4l2.c      |  2 +-
+ include/uapi/linux/videodev2.h                |  7 ++++++-
+ 5 files changed, 25 insertions(+), 5 deletions(-)
+
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index ae6ee73f151c..eeefbd2547e7 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -648,6 +648,21 @@ Buffer Flags
+       - Start Of Exposure. The buffer timestamp has been taken when the
+ 	exposure of the frame has begun. This is only valid for the
+ 	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
++    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
++
++      - ``V4L2_BUF_FLAG_IN_FENCE``
++      - 0x00200000
++      - Ask V4L2 to wait on fence passed in ``fence_fd`` field. The buffer
++	won't be queued to the driver until the fence signals.
++
++    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
++
++      - ``V4L2_BUF_FLAG_OUT_FENCE``
++      - 0x00400000
++      - Request a fence to be attached to the buffer. The ``fence_fd``
++	field on
++	:ref:`VIDIOC_QBUF` is used as a return argument to send the out-fence
++	fd to userspace.
+ 
+ 
+ 
+diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+index 3dedd83f0b19..6cde686bf44c 100644
+--- a/drivers/media/usb/cpia2/cpia2_v4l.c
++++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+@@ -948,7 +948,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	buf->sequence = cam->buffers[buf->index].seq;
+ 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+ 	buf->length = cam->frame_size;
+-	buf->reserved2 = 0;
++	buf->fence_fd = -1;
+ 	buf->reserved = 0;
+ 	memset(&buf->timecode, 0, sizeof(buf->timecode));
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 821f2aa299ae..3a31d318df2a 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -370,7 +370,7 @@ struct v4l2_buffer32 {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__s32			fence_fd;
+ 	__u32			reserved;
+ };
+ 
+@@ -533,7 +533,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+ 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+ 		put_user(kp->sequence, &up->sequence) ||
+-		put_user(kp->reserved2, &up->reserved2) ||
++		put_user(kp->fence_fd, &up->fence_fd) ||
+ 		put_user(kp->reserved, &up->reserved) ||
+ 		put_user(kp->length, &up->length))
+ 			return -EFAULT;
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 0c0669976bdc..110fb45fef6f 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->timestamp = ns_to_timeval(vb->timestamp);
+ 	b->timecode = vbuf->timecode;
+ 	b->sequence = vbuf->sequence;
+-	b->reserved2 = 0;
++	b->fence_fd = -1;
+ 	b->reserved = 0;
+ 
+ 	if (q->is_multiplanar) {
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index cd6fc1387f47..311c3a331eda 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -925,7 +925,10 @@ struct v4l2_buffer {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	union {
++		__s32		fence_fd;
++		__u32		reserved2;
++	};
+ 	__u32			reserved;
+ };
+ 
+@@ -962,6 +965,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+ /* mem2mem encoder/decoder */
+ #define V4L2_BUF_FLAG_LAST			0x00100000
++#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
++#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
+ 
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+-- 
+2.13.6
