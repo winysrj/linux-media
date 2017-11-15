@@ -1,84 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:44720 "EHLO smtp.gentoo.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751307AbdKEOZc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 5 Nov 2017 09:25:32 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: mchehab@kernel.org, linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 14/15] si2165: Add DVBv3 wrapper for ber statistics
-Date: Sun,  5 Nov 2017 15:25:10 +0100
-Message-Id: <20171105142511.16563-14-zzam@gentoo.org>
-In-Reply-To: <20171105142511.16563-1-zzam@gentoo.org>
-References: <20171105142511.16563-1-zzam@gentoo.org>
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:47111 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933318AbdKORLl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Nov 2017 12:11:41 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC v5 10/11] [media] vb2: add out-fence support to QBUF
+Date: Wed, 15 Nov 2017 15:10:56 -0200
+Message-Id: <20171115171057.17340-11-gustavo@padovan.org>
+In-Reply-To: <20171115171057.17340-1-gustavo@padovan.org>
+References: <20171115171057.17340-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add read_ber function that reads from property cache to support DVBv3.
-The implementation is inspired by the cx24120 driver.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+If V4L2_BUF_FLAG_OUT_FENCE flag is present on the QBUF call we create
+an out_fence and send its fd to userspace on the fence_fd field as a
+return arg for the QBUF call.
+
+The fence is signaled on buffer_done(), when the job on the buffer is
+finished.
+
+With out-fences we do not allow drivers to requeue buffers through vb2,
+instead we flag an error on the buffer, signals it fence with error and
+return it to userspace.
+
+v6
+	- get rid of the V4L2_EVENT_OUT_FENCE event. We always keep the
+	ordering in vb2 for queueing in the driver, so the event is not
+	necessary anymore and the out_fence_fd is sent back to userspace
+	on QBUF call return arg
+	- do not allow requeueing with out-fences, instead mark the buffer
+	with an error and wake up to userspace.
+	- send the out_fence_fd back to userspace on the fence_fd field
+
+v5:
+	- delay fd_install to DQ_EVENT (Hans)
+	- if queue is fully ordered send OUT_FENCE event right away
+	(Brian)
+	- rename 'q->ordered' to 'q->ordered_in_driver'
+	- merge change to implement OUT_FENCE event here
+
+v4:
+	- return the out_fence_fd in the BUF_QUEUED event(Hans)
+
+v3:	- add WARN_ON_ONCE(q->ordered) on requeueing (Hans)
+	- set the OUT_FENCE flag if there is a fence pending (Hans)
+	- call fd_install() after vb2_core_qbuf() (Hans)
+	- clean up fence if vb2_core_qbuf() fails (Hans)
+	- add list to store sync_file and fence for the next queued buffer
+
+v2: check if the queue is ordered.
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- drivers/media/dvb-frontends/si2165.c | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ drivers/media/v4l2-core/videobuf2-core.c | 42 +++++++++++++++++++++++++++++---
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 21 +++++++++++++++-
+ 2 files changed, 58 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index ceb5a2bb0dea..2ad6409dd6b1 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -57,6 +57,9 @@ struct si2165_state {
- 	u32 sys_clk;
- 	u32 adc_clk;
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 8b4f0e9bcb36..2eb5ffa8e028 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -354,6 +354,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+ 			vb->planes[plane].length = plane_sizes[plane];
+ 			vb->planes[plane].min_length = plane_sizes[plane];
+ 		}
++		vb->out_fence_fd = -1;
+ 		q->bufs[vb->index] = vb;
  
-+	/* DVBv3 stats */
-+	u64 ber_prev;
+ 		/* Allocate video buffer memory for the MMAP type */
+@@ -934,10 +935,26 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	case VB2_BUF_STATE_QUEUED:
+ 		return;
+ 	case VB2_BUF_STATE_REQUEUEING:
+-		if (q->start_streaming_called)
+-			__enqueue_in_driver(vb);
+-		return;
 +
- 	bool has_dvbc;
- 	bool has_dvbt;
- 	bool firmware_loaded;
-@@ -757,6 +760,12 @@ static int si2165_read_status(struct dvb_frontend *fe, enum fe_status *status)
- 			c->post_bit_error.stat[0].uvalue = 0;
- 			c->post_bit_count.stat[0].uvalue = 0;
++		if (!vb->out_fence) {
++			if (q->start_streaming_called)
++				__enqueue_in_driver(vb);
++			return;
++		}
++
++		/* Do not allow requeuing with explicit synchronization,
++		 * report it as an error to userspace */
++		state = VB2_BUF_STATE_ERROR;
++
++		/* fall through */
+ 	default:
++		if (state == VB2_BUF_STATE_ERROR)
++			dma_fence_set_error(vb->out_fence, -EFAULT);
++		dma_fence_signal(vb->out_fence);
++		dma_fence_put(vb->out_fence);
++		vb->out_fence = NULL;
++		vb->out_fence_fd = -1;
++
+ 		/* Inform any processes that may be waiting for buffers */
+ 		wake_up(&q->done_wq);
+ 		break;
+@@ -1325,12 +1342,18 @@ EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
+ int vb2_setup_out_fence(struct vb2_queue *q, unsigned int index)
+ {
+ 	struct vb2_buffer *vb;
++	u64 context;
  
-+			/*
-+			 * reset DVBv3 value to deliver a good result
-+			 * for the first call
-+			 */
-+			state->ber_prev = 0;
+ 	vb = q->bufs[index];
+ 
+ 	vb->out_fence_fd = get_unused_fd_flags(O_CLOEXEC);
+ 
+-	vb->out_fence = vb2_fence_alloc(q->out_fence_context);
++	if (q->ordered_in_driver)
++		context = q->out_fence_context;
++	else
++		context = dma_fence_context_alloc(1);
 +
- 		} else {
- 			ret = si2165_readreg8(state, REG_BER_AVAIL, &u8tmp);
- 			if (ret < 0)
-@@ -805,6 +814,22 @@ static int si2165_read_snr(struct dvb_frontend *fe, u16 *snr)
++	vb->out_fence = vb2_fence_alloc(context);
+ 	if (!vb->out_fence) {
+ 		put_unused_fd(vb->out_fence_fd);
+ 		return -ENOMEM;
+@@ -1594,6 +1617,9 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
+ 	if (pb)
+ 		call_void_bufop(q, fill_user_buffer, vb, pb);
+ 
++	fd_install(vb->out_fence_fd, vb->sync_file->file);
++	vb->sync_file = NULL;
++
+ 	dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
  	return 0;
- }
  
-+static int si2165_read_ber(struct dvb_frontend *fe, u32 *ber)
-+{
-+	struct si2165_state *state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+@@ -1860,6 +1886,12 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	}
+ 
+ 	/*
++	 * Renew out-fence context.
++	 */
++	if (q->ordered_in_driver)
++		q->out_fence_context = dma_fence_context_alloc(1);
 +
-+	if (c->post_bit_error.stat[0].scale != FE_SCALE_COUNTER) {
-+		*ber = 0;
-+		return 0;
++	/*
+ 	 * Remove all buffers from videobuf's list...
+ 	 */
+ 	INIT_LIST_HEAD(&q->queued_list);
+@@ -2191,6 +2223,8 @@ int vb2_core_queue_init(struct vb2_queue *q)
+ 	spin_lock_init(&q->done_lock);
+ 	mutex_init(&q->mmap_lock);
+ 	init_waitqueue_head(&q->done_wq);
++	if (q->ordered_in_driver)
++		q->out_fence_context = dma_fence_context_alloc(1);
+ 
+ 	if (q->buf_struct_size == 0)
+ 		q->buf_struct_size = sizeof(struct vb2_buffer);
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 4c09ea007d90..f2e60d2908ae 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -212,7 +212,13 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->sequence = vbuf->sequence;
+ 	b->reserved = 0;
+ 
+-	b->fence_fd = -1;
++	if (vb->out_fence) {
++		b->flags |= V4L2_BUF_FLAG_OUT_FENCE;
++		b->fence_fd = vb->out_fence_fd;
++	} else {
++		b->fence_fd = -1;
 +	}
 +
-+	*ber = c->post_bit_error.stat[0].uvalue - state->ber_prev;
-+	state->ber_prev = c->post_bit_error.stat[0].uvalue;
+ 	if (vb->in_fence)
+ 		b->flags |= V4L2_BUF_FLAG_IN_FENCE;
+ 	else
+@@ -489,6 +495,10 @@ int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 	ret = __verify_planes_array(vb, b);
+ 	if (!ret)
+ 		vb2_core_querybuf(q, b->index, b);
 +
-+	return 0;
-+}
-+
- static int si2165_set_oversamp(struct si2165_state *state, u32 dvb_rate)
- {
- 	u64 oversamp;
-@@ -1123,6 +1148,7 @@ static const struct dvb_frontend_ops si2165_ops = {
- 	.set_frontend      = si2165_set_frontend,
- 	.read_status       = si2165_read_status,
- 	.read_snr          = si2165_read_snr,
-+	.read_ber          = si2165_read_ber,
- };
++	/* Do not return the out-fence fd on querybuf */
++	if (vb->out_fence)
++		b->fence_fd = -1;
+ 	return ret;
+ }
+ EXPORT_SYMBOL(vb2_querybuf);
+@@ -593,6 +603,15 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		}
+ 	}
  
- static int si2165_probe(struct i2c_client *client,
++	if (b->flags & V4L2_BUF_FLAG_OUT_FENCE) {
++		ret = vb2_setup_out_fence(q, b->index);
++		if (ret) {
++			dprintk(1, "failed to set up out-fence\n");
++			dma_fence_put(fence);
++			return ret;
++		}
++	}
++
+ 	return vb2_core_qbuf(q, b->index, b, fence);
+ }
+ EXPORT_SYMBOL_GPL(vb2_qbuf);
 -- 
-2.15.0
+2.13.6
