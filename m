@@ -1,238 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:39470 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934270AbdKQHiJ (ORCPT
+Received: from slow1-d.mail.gandi.net ([217.70.178.86]:52215 "EHLO
+        slow1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932355AbdKOLPE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 02:38:09 -0500
-Received: by mail-pg0-f66.google.com with SMTP id 70so1356349pgf.6
-        for <linux-media@vger.kernel.org>; Thu, 16 Nov 2017 23:38:09 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        <linux-kernel@vger.kernel.org>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [RFC v5 10/11] [media] vb2: add out-fence support to QBUF
-Date: Fri, 17 Nov 2017 16:38:04 +0900
-MIME-Version: 1.0
-Message-ID: <4c1a4932-87af-4593-94f5-94739cc61084@chromium.org>
-In-Reply-To: <20171115171057.17340-11-gustavo@padovan.org>
-References: <20171115171057.17340-1-gustavo@padovan.org>
- <20171115171057.17340-11-gustavo@padovan.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8BIT
+        Wed, 15 Nov 2017 06:15:04 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v1 10/10] media: i2c: tw9910: Remove soc_camera dependencies
+Date: Wed, 15 Nov 2017 11:56:03 +0100
+Message-Id: <1510743363-25798-11-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday, November 16, 2017 2:10:56 AM JST, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
->
-> If V4L2_BUF_FLAG_OUT_FENCE flag is present on the QBUF call we create
-> an out_fence and send its fd to userspace on the fence_fd field as a
-> return arg for the QBUF call.
->
-> The fence is signaled on buffer_done(), when the job on the buffer is
-> finished.
->
-> With out-fences we do not allow drivers to requeue buffers through vb2,
-> instead we flag an error on the buffer, signals it fence with error and
+Remove soc_camera framework dependencies from tw9910 sensor driver.
+- Handle clock directly
+- Register async subdevice
+- Add platform specific enable/disable functions
+- Adjust build system
 
-s/it/its
+This commit does not remove the original soc_camera based driver.
 
-> return it to userspace.
->
-> v6
-> 	- get rid of the V4L2_EVENT_OUT_FENCE event. We always keep the
-> 	ordering in vb2 for queueing in the driver, so the event is not
-> 	necessary anymore and the out_fence_fd is sent back to userspace
-> 	on QBUF call return arg
-> 	- do not allow requeueing with out-fences, instead mark the buffer
-> 	with an error and wake up to userspace.
-> 	- send the out_fence_fd back to userspace on the fence_fd field
->
-> v5:
-> 	- delay fd_install to DQ_EVENT (Hans)
-> 	- if queue is fully ordered send OUT_FENCE event right away
-> 	(Brian)
-> 	- rename 'q->ordered' to 'q->ordered_in_driver'
-> 	- merge change to implement OUT_FENCE event here
->
-> v4:
-> 	- return the out_fence_fd in the BUF_QUEUED event(Hans)
->
-> v3:	- add WARN_ON_ONCE(q->ordered) on requeueing (Hans)
-> 	- set the OUT_FENCE flag if there is a fence pending (Hans)
-> 	- call fd_install() after vb2_core_qbuf() (Hans)
-> 	- clean up fence if vb2_core_qbuf() fails (Hans)
-> 	- add list to store sync_file and fence for the next queued buffer
->
-> v2: check if the queue is ordered.
->
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 42 
-> +++++++++++++++++++++++++++++---
->  drivers/media/v4l2-core/videobuf2-v4l2.c | 21 +++++++++++++++-
->  2 files changed, 58 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c 
-> b/drivers/media/v4l2-core/videobuf2-core.c
-> index 8b4f0e9bcb36..2eb5ffa8e028 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -354,6 +354,7 @@ static int __vb2_queue_alloc(struct 
-> vb2_queue *q, enum vb2_memory memory,
->  			vb->planes[plane].length = plane_sizes[plane];
->  			vb->planes[plane].min_length = plane_sizes[plane];
->  		}
-> +		vb->out_fence_fd = -1;
->  		q->bufs[vb->index] = vb;
->  
->  		/* Allocate video buffer memory for the MMAP type */
-> @@ -934,10 +935,26 @@ void vb2_buffer_done(struct vb2_buffer 
-> *vb, enum vb2_buffer_state state)
->  	case VB2_BUF_STATE_QUEUED:
->  		return;
->  	case VB2_BUF_STATE_REQUEUEING:
-> -		if (q->start_streaming_called)
-> -			__enqueue_in_driver(vb);
-> -		return;
-> +
-> +		if (!vb->out_fence) {
-> +			if (q->start_streaming_called)
-> +				__enqueue_in_driver(vb);
-> +			return;
-> +		}
-> +
-> +		/* Do not allow requeuing with explicit synchronization,
-> +		 * report it as an error to userspace */
-> +		state = VB2_BUF_STATE_ERROR;
-> +
-> +		/* fall through */
->  	default:
-> +		if (state == VB2_BUF_STATE_ERROR)
-> +			dma_fence_set_error(vb->out_fence, -EFAULT);
-> +		dma_fence_signal(vb->out_fence);
-> +		dma_fence_put(vb->out_fence);
-> +		vb->out_fence = NULL;
-> +		vb->out_fence_fd = -1;
-> +
->  		/* Inform any processes that may be waiting for buffers */
->  		wake_up(&q->done_wq);
->  		break;
-> @@ -1325,12 +1342,18 @@ EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
->  int vb2_setup_out_fence(struct vb2_queue *q, unsigned int index)
->  {
->  	struct vb2_buffer *vb;
-> +	u64 context;
->  
->  	vb = q->bufs[index];
->  
->  	vb->out_fence_fd = get_unused_fd_flags(O_CLOEXEC);
->  
-> -	vb->out_fence = vb2_fence_alloc(q->out_fence_context);
-> +	if (q->ordered_in_driver)
-> +		context = q->out_fence_context;
-> +	else
-> +		context = dma_fence_context_alloc(1);
-> +
-> +	vb->out_fence = vb2_fence_alloc(context);
->  	if (!vb->out_fence) {
->  		put_unused_fd(vb->out_fence_fd);
->  		return -ENOMEM;
-> @@ -1594,6 +1617,9 @@ int vb2_core_qbuf(struct vb2_queue *q, 
-> unsigned int index, void *pb,
->  	if (pb)
->  		call_void_bufop(q, fill_user_buffer, vb, pb);
->  
-> +	fd_install(vb->out_fence_fd, vb->sync_file->file);
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ drivers/media/i2c/Kconfig  |  9 ++++++
+ drivers/media/i2c/Makefile |  1 +
+ drivers/media/i2c/tw9910.c | 80 ++++++++++++++++++++++++++++++++++------------
+ include/media/i2c/tw9910.h |  6 ++++
+ 4 files changed, 75 insertions(+), 21 deletions(-)
 
-What happens if the buffer does not have an output fence? Shouldn't this be 
-protected by a check on whether the buffer has been queued with 
-V4L2_BUF_FLAG_OUT_FENCE?
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index ff251ce..bbd77ee 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -415,6 +415,15 @@ config VIDEO_TW9906
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called tw9906.
 
-(... or maybe move this to vb2_setup_out_fence() after all, where we know 
-for sure an output fence exists).
++config VIDEO_TW9910
++	tristate "Techwell TW9910 video decoder"
++	depends on VIDEO_V4L2 && I2C
++	---help---
++	  Support for Techwell TW9910 NTSC/PAL/SECAM video decoder.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called tw9910.
++
+ config VIDEO_VPX3220
+ 	tristate "vpx3220a, vpx3216b & vpx3214c video decoders"
+ 	depends on VIDEO_V4L2 && I2C
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index b2459a1..835784a 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -48,6 +48,7 @@ obj-$(CONFIG_VIDEO_TVP7002) += tvp7002.o
+ obj-$(CONFIG_VIDEO_TW2804) += tw2804.o
+ obj-$(CONFIG_VIDEO_TW9903) += tw9903.o
+ obj-$(CONFIG_VIDEO_TW9906) += tw9906.o
++obj-$(CONFIG_VIDEO_TW9910) += tw9910.o
+ obj-$(CONFIG_VIDEO_CS3308) += cs3308.o
+ obj-$(CONFIG_VIDEO_CS5345) += cs5345.o
+ obj-$(CONFIG_VIDEO_CS53L32A) += cs53l32a.o
+diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
+index bdb5e0a..f422da2 100644
+--- a/drivers/media/i2c/tw9910.c
++++ b/drivers/media/i2c/tw9910.c
+@@ -16,6 +16,7 @@
+  * published by the Free Software Foundation.
+  */
 
-> +	vb->sync_file = NULL;
-> +
->  	dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
->  	return 0;
->  
-> @@ -1860,6 +1886,12 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
->  	}
->  
->  	/*
-> +	 * Renew out-fence context.
-> +	 */
-> +	if (q->ordered_in_driver)
-> +		q->out_fence_context = dma_fence_context_alloc(1);
-> +
-> +	/*
->  	 * Remove all buffers from videobuf's list...
->  	 */
->  	INIT_LIST_HEAD(&q->queued_list);
-> @@ -2191,6 +2223,8 @@ int vb2_core_queue_init(struct vb2_queue *q)
->  	spin_lock_init(&q->done_lock);
->  	mutex_init(&q->mmap_lock);
->  	init_waitqueue_head(&q->done_wq);
-> +	if (q->ordered_in_driver)
-> +		q->out_fence_context = dma_fence_context_alloc(1);
->  
->  	if (q->buf_struct_size == 0)
->  		q->buf_struct_size = sizeof(struct vb2_buffer);
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c 
-> b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> index 4c09ea007d90..f2e60d2908ae 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -212,7 +212,13 @@ static void __fill_v4l2_buffer(struct 
-> vb2_buffer *vb, void *pb)
->  	b->sequence = vbuf->sequence;
->  	b->reserved = 0;
->  
-> -	b->fence_fd = -1;
-> +	if (vb->out_fence) {
-> +		b->flags |= V4L2_BUF_FLAG_OUT_FENCE;
-> +		b->fence_fd = vb->out_fence_fd;
-> +	} else {
-> +		b->fence_fd = -1;
-> +	}
-> +
->  	if (vb->in_fence)
->  		b->flags |= V4L2_BUF_FLAG_IN_FENCE;
->  	else
-> @@ -489,6 +495,10 @@ int vb2_querybuf(struct vb2_queue *q, 
-> struct v4l2_buffer *b)
->  	ret = __verify_planes_array(vb, b);
->  	if (!ret)
->  		vb2_core_querybuf(q, b->index, b);
-> +
-> +	/* Do not return the out-fence fd on querybuf */
-> +	if (vb->out_fence)
-> +		b->fence_fd = -1;
->  	return ret;
->  }
->  EXPORT_SYMBOL(vb2_querybuf);
-> @@ -593,6 +603,15 @@ int vb2_qbuf(struct vb2_queue *q, struct 
-> v4l2_buffer *b)
->  		}
->  	}
->  
-> +	if (b->flags & V4L2_BUF_FLAG_OUT_FENCE) {
-> +		ret = vb2_setup_out_fence(q, b->index);
-> +		if (ret) {
-> +			dprintk(1, "failed to set up out-fence\n");
-> +			dma_fence_put(fence);
-> +			return ret;
-> +		}
-> +	}
-> +
->  	return vb2_core_qbuf(q, b->index, b, fence);
->  }
->  EXPORT_SYMBOL_GPL(vb2_qbuf);
++#include <linux/clk.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/i2c.h>
+@@ -25,9 +26,7 @@
+ #include <linux/v4l2-mediabus.h>
+ #include <linux/videodev2.h>
+
+-#include <media/soc_camera.h>
+ #include <media/i2c/tw9910.h>
+-#include <media/v4l2-clk.h>
+ #include <media/v4l2-subdev.h>
+
+ #define GET_ID(val)  ((val & 0xF8) >> 3)
+@@ -228,7 +227,7 @@ struct tw9910_scale_ctrl {
+
+ struct tw9910_priv {
+ 	struct v4l2_subdev		subdev;
+-	struct v4l2_clk			*clk;
++	struct clk			*clk;
+ 	struct tw9910_video_info	*info;
+ 	const struct tw9910_scale_ctrl	*scale;
+ 	v4l2_std_id			norm;
+@@ -582,13 +581,40 @@ static int tw9910_s_register(struct v4l2_subdev *sd,
+ }
+ #endif
+
++static int tw9910_power_on(struct tw9910_priv *priv)
++{
++	int ret;
++
++	if (priv->info->platform_enable) {
++		ret = priv->info->platform_enable();
++		if (ret)
++			return ret;
++	}
++
++	if (priv->clk)
++		return clk_enable(priv->clk);
++
++	return 0;
++}
++
++static int tw9910_power_off(struct tw9910_priv *priv)
++{
++	if (priv->info->platform_enable)
++		priv->info->platform_disable();
++
++	if (priv->clk)
++		clk_disable(priv->clk);
++
++	return 0;
++}
++
+ static int tw9910_s_power(struct v4l2_subdev *sd, int on)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	struct tw9910_priv *priv = to_tw9910(client);
+
+-	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
++	return on ? tw9910_power_on(priv) :
++		    tw9910_power_off(priv);
+ }
+
+ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
+@@ -614,7 +640,7 @@ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
+ 	 * set bus width
+ 	 */
+ 	val = 0x00;
+-	if (SOCAM_DATAWIDTH_16 == priv->info->buswidth)
++	if (priv->info->buswidth == TW9910_DATAWIDTH_16)
+ 		val = LEN;
+
+ 	ret = tw9910_mask_set(client, OPFORM, LEN, val);
+@@ -799,8 +825,8 @@ static int tw9910_video_probe(struct i2c_client *client)
+ 	/*
+ 	 * tw9910 only use 8 or 16 bit bus width
+ 	 */
+-	if (SOCAM_DATAWIDTH_16 != priv->info->buswidth &&
+-	    SOCAM_DATAWIDTH_8  != priv->info->buswidth) {
++	if (priv->info->buswidth != TW9910_DATAWIDTH_16 &&
++	    priv->info->buswidth != TW9910_DATAWIDTH_8) {
+ 		dev_err(&client->dev, "bus width error\n");
+ 		return -ENODEV;
+ 	}
+@@ -859,15 +885,11 @@ static int tw9910_enum_mbus_code(struct v4l2_subdev *sd,
+ static int tw9910_g_mbus_config(struct v4l2_subdev *sd,
+ 				struct v4l2_mbus_config *cfg)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+-
+ 	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
+ 		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_LOW |
+ 		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_LOW |
+ 		V4L2_MBUS_DATA_ACTIVE_HIGH;
+ 	cfg->type = V4L2_MBUS_PARALLEL;
+-	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
+
+ 	return 0;
+ }
+@@ -876,9 +898,8 @@ static int tw9910_s_mbus_config(struct v4l2_subdev *sd,
+ 				const struct v4l2_mbus_config *cfg)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	u8 val = VSSL_VVALID | HSSL_DVALID;
+-	unsigned long flags = soc_camera_apply_board_flags(ssdd, cfg);
++	unsigned long flags = cfg->flags;
+
+ 	/*
+ 	 * set OUTCTR1
+@@ -935,15 +956,14 @@ static int tw9910_probe(struct i2c_client *client,
+ 	struct tw9910_video_info	*info;
+ 	struct i2c_adapter		*adapter =
+ 		to_i2c_adapter(client->dev.parent);
+-	struct soc_camera_subdev_desc	*ssdd = soc_camera_i2c_to_desc(client);
+ 	int ret;
+
+-	if (!ssdd || !ssdd->drv_priv) {
++	if (!client->dev.platform_data) {
+ 		dev_err(&client->dev, "TW9910: missing platform data!\n");
+ 		return -EINVAL;
+ 	}
+
+-	info = ssdd->drv_priv;
++	info = client->dev.platform_data;
+
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
+ 		dev_err(&client->dev,
+@@ -959,13 +979,27 @@ static int tw9910_probe(struct i2c_client *client,
+
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &tw9910_subdev_ops);
+
+-	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+-	if (IS_ERR(priv->clk))
++	priv->clk = clk_get(&client->dev, "mclk");
++	if (PTR_ERR(priv->clk) == -ENOENT) {
++		priv->clk = NULL;
++	} else if (IS_ERR(priv->clk)) {
++		dev_err(&client->dev, "Unable to get mclk clock\n");
+ 		return PTR_ERR(priv->clk);
++	}
+
+ 	ret = tw9910_video_probe(client);
+ 	if (ret < 0)
+-		v4l2_clk_put(priv->clk);
++		goto error_put_clk;
++
++	ret = v4l2_async_register_subdev(&priv->subdev);
++	if (ret)
++		goto error_put_clk;
++
++	return ret;
++
++error_put_clk:
++	if (priv->clk)
++		clk_put(priv->clk);
+
+ 	return ret;
+ }
+@@ -973,7 +1007,11 @@ static int tw9910_probe(struct i2c_client *client,
+ static int tw9910_remove(struct i2c_client *client)
+ {
+ 	struct tw9910_priv *priv = to_tw9910(client);
+-	v4l2_clk_put(priv->clk);
++
++	if (priv->clk)
++		clk_put(priv->clk);
++	v4l2_device_unregister_subdev(&priv->subdev);
++
+ 	return 0;
+ }
+
+diff --git a/include/media/i2c/tw9910.h b/include/media/i2c/tw9910.h
+index 90bcf1f..b80e45c 100644
+--- a/include/media/i2c/tw9910.h
++++ b/include/media/i2c/tw9910.h
+@@ -18,6 +18,9 @@
+
+ #include <media/soc_camera.h>
+
++#define TW9910_DATAWIDTH_8	BIT(0)
++#define TW9910_DATAWIDTH_16	BIT(1)
++
+ enum tw9910_mpout_pin {
+ 	TW9910_MPO_VLOSS,
+ 	TW9910_MPO_HLOCK,
+@@ -32,6 +35,9 @@ enum tw9910_mpout_pin {
+ struct tw9910_video_info {
+ 	unsigned long		buswidth;
+ 	enum tw9910_mpout_pin	mpout;
++
++	int (*platform_enable)(void);
++	void (*platform_disable)(void);
+ };
+
+
+--
+2.7.4
