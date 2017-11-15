@@ -1,49 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:52995 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751741AbdKKSCB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Nov 2017 13:02:01 -0500
-Date: Sat, 11 Nov 2017 18:01:59 +0000
-From: Sean Young <sean@mess.org>
-To: Laurent Caumont <lcaumont2@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        linux-media@vger.kernel.org
-Subject: Re: 'LITE-ON USB2.0 DVB-T Tune' driver crash with kernel 4.13 /
- ubuntu 17.10
-Message-ID: <20171111180159.fb33mc2t467ygfqw@gofer.mess.org>
-References: <20171023094305.nxrxsqjrrwtygupc@gofer.mess.org>
- <CACG2urzPV2q63-bLP98cHDDqzP3a-oydDScPqG=tVKSCzxREBg@mail.gmail.com>
- <20171023185750.5m5qo575myogzbhz@gofer.mess.org>
- <CACG2urzH5dAtnasGfjiK1Y8owGcsn0VtRSEWX75A6mb0pyuSRw@mail.gmail.com>
- <20171029193121.p2q6dxxz376cpx5y@gofer.mess.org>
- <CACG2urwdnXs2v8hv24R3+sNW6qOifh6Gtt+semez_c8QC58-gA@mail.gmail.com>
- <20171107084245.47dce306@vento.lan>
- <CACG2ury9Ab3pHGVyNLQeOH03TF3r_oeX1h3=AuJ5XzNgjx+yag@mail.gmail.com>
- <20171111105643.ozwukzmdhalxhoho@gofer.mess.org>
- <CACG2urwv1dTtEW5vuspTF5A3t2F1s-iRPZE5SiCt9o8k+k71hA@mail.gmail.com>
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:55042 "EHLO
+        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752629AbdKOOZS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Nov 2017 09:25:18 -0500
+Date: Wed, 15 Nov 2017 15:25:11 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v1 03/10] v4l: platform: Add Renesas CEU driver
+Message-ID: <20171115142511.GJ19070@w540>
+References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1510743363-25798-4-git-send-email-jacopo+renesas@jmondi.org>
+ <20171115124551.xrmrd34l4u4qgcms@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CACG2urwv1dTtEW5vuspTF5A3t2F1s-iRPZE5SiCt9o8k+k71hA@mail.gmail.com>
+In-Reply-To: <20171115124551.xrmrd34l4u4qgcms@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Sakari,
+   thanks for review!
 
-On Sat, Nov 11, 2017 at 06:53:54PM +0100, Laurent Caumont wrote:
-> Hi Sean,
-> 
-> I just realized that files in media_build/linux/driver are not
-> associate with a git repository. They are retrieved by the build
-> command.
-> So, I cloned the linux-stable repository to generate the patch.
+On Wed, Nov 15, 2017 at 02:45:51PM +0200, Sakari Ailus wrote:
+> Hi Jacopo,
+>
+> Could you remove the original driver and send the patch using git
+> send-email -C ? That way a single patch would address converting it to a
+> proper V4L2 driver as well as move it to the correct location. The changes
+> would be easier to review that way since then, well, it'd be easier to see
+> the changes. :-)
 
-Great, thank you.
+Actually I prefer not to remove the existing driver at the moment. See
+the cover letter for reasons why not to do so right now...
 
-We need a Signed-off-by: line to accept your patch, see part 11 of
+Also, there's not that much code from the old driver in here, surely
+less than the default 50% -C and -M options of 'git format-patch' use
+as a threshold for detecting copies iirc..
 
-https://www.kernel.org/doc/html/latest/process/submitting-patches.html
+I would prefer this to be reviewed as new driver, I know it's a bit
+more painful, but irq handler and a couple of other routines apart,
+there's not that much code shared between the two...
 
-Thanks,
+>
+> The same goes for the two V4L2 SoC camera sensor / video decoder drivers at
+> the end of the set.
+>
 
-Sean
+Also in this case I prefer not to remove existing code, as long as
+there are platforms using it..
+
+> On Wed, Nov 15, 2017 at 11:55:56AM +0100, Jacopo Mondi wrote:
+> > Add driver for Renesas Capture Engine Unit (CEU).
+> >
+> > The CEU interface supports capturing 'data' (YUV422) and 'images'
+> > (NV[12|21|16|61]).
+> >
+> > This driver aims to replace the soc_camera based sh_mobile_ceu one.
+> >
+> > Tested with ov7670 camera sensor, providing YUYV_2X8 data on Renesas RZ
+> > platform GR-Peach.
+> >
+> > Tested with ov7725 camera sensor on SH4 platform Migo-R.
+>
+> Nice!
+>
+> >
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> > +#include <linux/completion.h>
+>
+> Do you need this header? There would seem some that I wouldn't expect to be
+> needed below, such as linux/init.h.
+
+It's probably a leftover, I'll remove it...
+
+[snip]
+>
+> > +#if IS_ENABLED(CONFIG_OF)
+> > +static const struct of_device_id ceu_of_match[] = {
+> > +	{ .compatible = "renesas,renesas-ceu" },
+>
+> Even if you add support for new hardware, shouldn't you maintain support
+> for renesas,sh-mobile-ceu?
+>
+
+As you noticed already, the old driver did not support OF, so there
+are no compatibility issues here
+
+Thanks
+   j
