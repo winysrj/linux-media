@@ -1,71 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.219]:20458 "EHLO
-        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753828AbdKXOCc (ORCPT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:53220 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932660AbdKORLZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Nov 2017 09:02:32 -0500
-Date: Fri, 24 Nov 2017 15:02:30 +0100
-From: Wolfgang Rohdewald <wolfgang@rohdewald.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: dvb_frontend: dvb_unregister_frontend must not call
- dvb_detach for fe->ops.release
-Message-ID: <20171124140230.saeqbltjkdjkwtyo@rohdewald.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Wed, 15 Nov 2017 12:11:25 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC v5 05/11] [media] vb2: check earlier if stream can be started
+Date: Wed, 15 Nov 2017 15:10:51 -0200
+Message-Id: <20171115171057.17340-6-gustavo@padovan.org>
+In-Reply-To: <20171115171057.17340-1-gustavo@padovan.org>
+References: <20171115171057.17340-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-because ops.release was never dvb_attached.
-Which makes sense because f->ops.release does not attach anything.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Now, rmmod dvb_usb_pctv452e correctly sets counters for
-stb6100/stb0899 to 0.
+To support explicit synchronization we need to run all operations that can
+fail before we queue the buffer to the driver. With fences the queueing
+will be delayed if the fence is not signaled yet and it will be better if
+such callback do not fail.
 
-Before, stb0899 got a counter -1, and for my 4 receivers I got 3 OOPses
-like
+For that we move the vb2_start_streaming() before the queuing for the
+buffer may happen.
 
-Nov 24 14:40:41 s5 kernel: [  194.211014] WARNING: CPU: 6 PID: 3055 at
-   module_put.part.45+0x132/0x1a0
-Call Trace:
- ? _stb0899_read_reg+0x100/0x100 [stb0899]
- ? _stb0899_read_reg+0x100/0x100 [stb0899]
- symbol_put_addr+0x38/0x60
- dvb_frontend_put+0x42/0x60 [dvb_core]
- ? stb0899_sleep+0x50/0x50 [stb0899]
- dvb_frontend_detach+0x7c/0x90 [dvb_core]
- dvb_usb_adapter_frontend_exit+0x57/0x80 [dvb_usb]
- dvb_usb_exit+0x39/0xb0 [dvb_usb]
- dvb_usb_device_exit+0x3f/0x60 [dvb_usb]
- pctv452e_usb_disconnect+0x6f/0x80 [dvb_usb_pctv452e]
- usb_unbind_interface+0x75/0x290
- ? _raw_spin_unlock_irqrestore+0x4a/0x80
- device_release_driver_internal+0x160/0x210
- driver_detach+0x40/0x80
- bus_remove_driver+0x5c/0xd0
- driver_unregister+0x2c/0x40
- usb_deregister+0x6c/0xf0
- pctv452e_usb_driver_exit+0x10/0xec0 [dvb_usb_pctv452e]
-
-Signed-off-by: Wolfgang Rohdewald <wolfgang@rohdewald.de>
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- drivers/media/dvb-core/dvb_frontend.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 9139d01ba7ed..c2cc794299c9 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -150,7 +150,8 @@ static void __dvb_frontend_free(struct dvb_frontend *fe)
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index cb115ba6a1d2..60f8b582396a 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1399,29 +1399,27 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	trace_vb2_qbuf(q, vb);
  
- 	dvb_free_device(fepriv->dvbdev);
+ 	/*
+-	 * If already streaming, give the buffer to driver for processing.
+-	 * If not, the buffer will be given to driver on next streamon.
+-	 */
+-	if (q->start_streaming_called)
+-		__enqueue_in_driver(vb);
+-
+-	/* Fill buffer information for the userspace */
+-	if (pb)
+-		call_void_bufop(q, fill_user_buffer, vb, pb);
+-
+-	/*
+ 	 * If streamon has been called, and we haven't yet called
+ 	 * start_streaming() since not enough buffers were queued, and
+ 	 * we now have reached the minimum number of queued buffers,
+ 	 * then we can finally call start_streaming().
++	 *
++	 * If already streaming, give the buffer to driver for processing.
++	 * If not, the buffer will be given to driver on next streamon.
+ 	 */
+ 	if (q->streaming && !q->start_streaming_called &&
+ 	    q->queued_count >= q->min_buffers_needed) {
+ 		ret = vb2_start_streaming(q);
+ 		if (ret)
+ 			return ret;
++	} else if (q->start_streaming_called) {
++		__enqueue_in_driver(vb);
+ 	}
  
--	dvb_frontend_invoke_release(fe, fe->ops.release);
-+	if (fe->ops.release)
-+		fe->ops.release(fe);
- 
- 	kfree(fepriv);
- 	fe->frontend_priv = NULL;
++	/* Fill buffer information for the userspace */
++	if (pb)
++		call_void_bufop(q, fill_user_buffer, vb, pb);
++
+ 	dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
+ 	return 0;
+ }
 -- 
-2.11.0
+2.13.6
