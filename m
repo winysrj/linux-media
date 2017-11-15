@@ -1,198 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:54334 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751960AbdK2ToF (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41846 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932843AbdKOWtH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 14:44:05 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Wed, 15 Nov 2017 17:49:07 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
         =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Subject: [PATCH v8 01/28] rcar-vin: add Gen3 devicetree bindings documentation
-Date: Wed, 29 Nov 2017 20:43:15 +0100
-Message-Id: <20171129194342.26239-2-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH] v4l: rcar-vin: Implement V4L2 video node release handler
+Date: Thu, 16 Nov 2017 00:49:07 +0200
+Message-Id: <20171115224907.392-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the devicetree bindings for the CSI-2 inputs available on Gen3.
+The rvin_dev data structure contains driver private data for an instance
+of the VIN. It is allocated dynamically at probe time, and must be freed
+once all users are gone.
 
-There is a need to add a custom property 'renesas,id' and to define
-which CSI-2 input is described in which endpoint under the port@1 node.
-This information is needed since there are a set of predefined routes
-between each VIN and CSI-2 block. This routing table will be kept
-inside the driver but in order for it to act on it it must know which
-VIN and CSI-2 is which.
+The structure is currently allocated with devm_kzalloc(), which results
+in memory being freed when the device is unbound. If a userspace
+application is currently performing an ioctl call, or just keeps the
+device node open and closes it later, this will lead to accessing freed
+memory.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Acked-by: Rob Herring <robh@kernel.org>
+Fix the problem by implementing a V4L2 release handler for the video
+node associated with the VIN instance (called when the last user of the
+video node releases it), and freeing memory explicitly from the release
+handler.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- .../devicetree/bindings/media/rcar_vin.txt         | 116 ++++++++++++++++++---
- 1 file changed, 104 insertions(+), 12 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-core.c | 29 +++++++++++++++++++----------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  9 ++++++++-
+ 2 files changed, 27 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-index ff9697ed81396e64..5a95d9668d2c7dfd 100644
---- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-+++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-@@ -2,8 +2,12 @@ Renesas R-Car Video Input driver (rcar_vin)
- -------------------------------------------
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 495610949457..bd7976efa1fb 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -1208,7 +1208,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	struct resource *mem;
+ 	int irq, ret;
  
- The rcar_vin device provides video input capabilities for the Renesas R-Car
--family of devices. The current blocks are always slaves and suppot one input
--channel which can be either RGB, YUYV or BT656.
-+family of devices.
-+
-+Each VIN instance has a single parallel input that supports RGB and YUV video,
-+with both external synchronization and BT.656 synchronization for the latter.
-+Depending on the instance the VIN input is connected to external SoC pins, or
-+on Gen3 to a CSI-2 receiver.
+-	vin = devm_kzalloc(&pdev->dev, sizeof(*vin), GFP_KERNEL);
++	vin = kzalloc(sizeof(*vin), GFP_KERNEL);
+ 	if (!vin)
+ 		return -ENOMEM;
  
-  - compatible: Must be one or more of the following
-    - "renesas,vin-r8a7743" for the R8A7743 device
-@@ -31,21 +35,38 @@ channel which can be either RGB, YUYV or BT656.
- Additionally, an alias named vinX will need to be created to specify
- which video input device this is.
+@@ -1224,20 +1224,26 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 		vin->info = attr->data;
  
--The per-board settings:
-+The per-board settings Gen2:
-  - port sub-node describing a single endpoint connected to the vin
-    as described in video-interfaces.txt[1]. Only the first one will
-    be considered as each vin interface has one input port.
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (mem == NULL)
+-		return -EINVAL;
++	if (mem == NULL) {
++		ret = -EINVAL;
++		goto error_free;
++	}
  
--   These settings are used to work out video input format and widths
--   into the system.
-+The per-board settings Gen3:
-+
-+Gen3 can support both a single connected parallel input source from
-+external SoC pins (port0) and/or multiple parallel input sources from
-+local SoC CSI-2 receivers (port1) depending on SoC.
+ 	vin->base = devm_ioremap_resource(vin->dev, mem);
+-	if (IS_ERR(vin->base))
+-		return PTR_ERR(vin->base);
++	if (IS_ERR(vin->base)) {
++		ret = PTR_ERR(vin->base);
++		goto error_free;
++	}
  
-+- renesas,id - ID number of the VIN, VINx in the documentation.
-+- ports
-+    - port0 - sub-node describing a single endpoint connected to the VIN
-+      from external SoC pins described in video-interfaces.txt[1]. Only
-+      the first one will be considered as each VIN interface has at most
-+      one set of SoC external input pins.
-+    - port1 - sub-nodes describing one or more endpoints connected to
-+      the VIN from local SoC CSI-2 receivers. The endpoint numbers must
-+      use the following schema.
+ 	irq = platform_get_irq(pdev, 0);
+-	if (irq < 0)
+-		return irq;
++	if (irq < 0) {
++		ret = irq;
++		goto error_free;
++	}
  
--Device node example
---------------------
-+        - Endpoint 0 - sub-node describing the endpoint which is CSI20
-+        - Endpoint 1 - sub-node describing the endpoint which is CSI21
-+        - Endpoint 2 - sub-node describing the endpoint which is CSI40
-+        - Endpoint 3 - sub-node describing the endpoint which is CSI41
+ 	ret = rvin_dma_probe(vin, irq);
+ 	if (ret)
+-		return ret;
++		goto error_free;
  
--	aliases {
--	       vin0 = &vin0;
--	};
-+Device node example Gen2
-+------------------------
-+
-+        aliases {
-+                vin0 = &vin0;
-+        };
+ 	platform_set_drvdata(pdev, vin);
+ 	if (vin->info->use_mc)
+@@ -1245,15 +1251,18 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	else
+ 		ret = rvin_digital_graph_init(vin);
+ 	if (ret < 0)
+-		goto error;
++		goto error_dma;
  
-         vin0: vin@0xe6ef0000 {
-                 compatible = "renesas,vin-r8a7790", "renesas,rcar-gen2-vin";
-@@ -55,8 +76,8 @@ Device node example
-                 status = "disabled";
-         };
+ 	pm_suspend_ignore_children(&pdev->dev, true);
+ 	pm_runtime_enable(&pdev->dev);
  
--Board setup example (vin1 composite video input)
--------------------------------------------------
-+Board setup example Gen2 (vin1 composite video input)
-+-----------------------------------------------------
+ 	return 0;
+-error:
++
++error_dma:
+ 	rvin_dma_remove(vin);
+ 	v4l2_async_notifier_cleanup(&vin->notifier);
++error_free:
++	kfree(vin);
  
- &i2c2   {
-         status = "ok";
-@@ -95,6 +116,77 @@ Board setup example (vin1 composite video input)
-         };
- };
+ 	return ret;
+ }
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 2c14d44950b2..25f1d24c1d2d 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -1026,6 +1026,13 @@ static void rvin_notify(struct v4l2_subdev *sd,
+ 	}
+ }
  
-+Device node example Gen3
-+------------------------
++static void rvin_v4l2_release(struct video_device *vdev)
++{
++	struct rvin_dev *vin = container_of(vdev, struct rvin_dev, vdev);
 +
-+        vin0: video@e6ef0000 {
-+                compatible = "renesas,vin-r8a7795";
-+                reg = <0 0xe6ef0000 0 0x1000>;
-+                interrupts = <GIC_SPI 188 IRQ_TYPE_LEVEL_HIGH>;
-+                clocks = <&cpg CPG_MOD 811>;
-+                power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+                resets = <&cpg 811>;
-+                renesas,id = <0>;
++	kfree(vin);
++}
 +
-+                ports {
-+                        #address-cells = <1>;
-+                        #size-cells = <0>;
-+
-+                        port@1 {
-+                                #address-cells = <1>;
-+                                #size-cells = <0>;
-+
-+                                reg = <1>;
-+
-+                                vin0csi20: endpoint@0 {
-+                                        reg = <0>;
-+                                        remote-endpoint= <&csi20vin0>;
-+                                };
-+                                vin0csi21: endpoint@1 {
-+                                        reg = <1>;
-+                                        remote-endpoint= <&csi21vin0>;
-+                                };
-+                                vin0csi40: endpoint@2 {
-+                                        reg = <2>;
-+                                        remote-endpoint= <&csi40vin0>;
-+                                };
-+                        };
-+                };
-+        };
-+
-+        csi20: csi2@fea80000 {
-+                compatible = "renesas,r8a7795-csi2";
-+                reg = <0 0xfea80000 0 0x10000>;
-+                interrupts = <GIC_SPI 184 IRQ_TYPE_LEVEL_HIGH>;
-+                clocks = <&cpg CPG_MOD 714>;
-+                power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+                resets = <&cpg 714>;
-+
-+                ports {
-+                        #address-cells = <1>;
-+                        #size-cells = <0>;
-+
-+                        port@0 {
-+                                reg = <0>;
-+                                csi20_in: endpoint {
-+                                        clock-lanes = <0>;
-+                                        data-lanes = <1>;
-+                                        remote-endpoint = <&adv7482_txb>;
-+                                };
-+                        };
-+
-+                        port@1 {
-+                                #address-cells = <1>;
-+                                #size-cells = <0>;
- 
-+                                reg = <1>;
-+
-+                                csi20vin0: endpoint@0 {
-+                                        reg = <0>;
-+                                        remote-endpoint = <&vin0csi20>;
-+                                };
-+                        };
-+                };
-+        };
- 
- [1] video-interfaces.txt common video media interface
+ int rvin_v4l2_register(struct rvin_dev *vin)
+ {
+ 	struct video_device *vdev = &vin->vdev;
+@@ -1038,7 +1045,7 @@ int rvin_v4l2_register(struct rvin_dev *vin)
+ 	vdev->queue = &vin->queue;
+ 	snprintf(vdev->name, sizeof(vdev->name), "%s %s", KBUILD_MODNAME,
+ 		 dev_name(vin->dev));
+-	vdev->release = video_device_release_empty;
++	vdev->release = rvin_v4l2_release;
+ 	vdev->lock = &vin->lock;
+ 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+ 		V4L2_CAP_READWRITE;
 -- 
-2.15.0
+Regards,
+
+Laurent Pinchart
