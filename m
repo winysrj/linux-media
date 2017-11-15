@@ -1,610 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57718 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753923AbdK1PzV (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:45159 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750998AbdKOHby (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 10:55:21 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-Subject: Re: [PATCH 2/3 v7] uvcvideo: add extensible device information
-Date: Tue, 28 Nov 2017 17:55:26 +0200
-Message-ID: <4235306.7C2kvEcLJA@avalon>
-In-Reply-To: <1510156814-28645-3-git-send-email-g.liakhovetski@gmx.de>
-References: <1510156814-28645-1-git-send-email-g.liakhovetski@gmx.de> <1510156814-28645-3-git-send-email-g.liakhovetski@gmx.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Wed, 15 Nov 2017 02:31:54 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, heiko@sntech.de,
+        mchehab@kernel.org, laurent.pinchart+renesas@ideasonboard.com,
+        hans.verkuil@cisco.com, tfiga@chromium.org, nicolas@ndufresne.ca,
+        sakari.ailus@linux.intel.com, zhengsq@rock-chips.com,
+        zyc@rock-chips.com, eddie.cai.linux@gmail.com,
+        jeffy.chen@rock-chips.com, allon.huang@rock-chips.com,
+        p.zabel@pengutronix.de, slongerbeam@gmail.com,
+        linux@armlinux.org.uk, Jacob Chen <jacob2.chen@rock-chips.com>
+Subject: [RFC PATCH 4/5] arm64: dts: rockchip: add isp0 node for rk3399
+Date: Wed, 15 Nov 2017 15:31:31 +0800
+Message-Id: <20171115073132.30123-4-jacob-chen@iotwrt.com>
+In-Reply-To: <20171115073132.30123-1-jacob-chen@iotwrt.com>
+References: <20171115073132.30123-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+From: Shunqian Zheng <zhengsq@rock-chips.com>
 
-Thank you for the patch.
+rk3399 have two ISP, but we havn't test isp1, so just add isp0 at present.
 
-On Wednesday, 8 November 2017 18:00:13 EET Guennadi Liakhovetski wrote:
-> From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> 
-> Currently the UVC driver assigns a quirk bitmask to the .driver_info
-> field of struct usb_device_id. This patch instroduces a struct to store
-> quirks and possibly other per-device parameters in the future.
+Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-I'd drop the "possibly" as I'm fairly certain we will have other parameters in 
-the future. Otherwise the patch would be a bit pointless :-)
-
-> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> ---
-> 
-> v7: this is a new patch in the series. Needed to enable specifying
-> private camera metadata formats
-> 
->  drivers/media/usb/uvc/uvc_driver.c | 127 ++++++++++++++++++++--------------
->  1 file changed, 78 insertions(+), 49 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index 6d22b22..cbf79b9 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -2001,11 +2001,18 @@ static int uvc_register_chains(struct uvc_device
-> *dev) * USB probe, disconnect, suspend and resume
->   */
-> 
-> +struct uvc_device_info {
-> +	u32	quirks;
-> +};
-> +
->  static int uvc_probe(struct usb_interface *intf,
->  		     const struct usb_device_id *id)
->  {
->  	struct usb_device *udev = interface_to_usbdev(intf);
->  	struct uvc_device *dev;
-> +	const struct uvc_device_info *info =
-> +		(const struct uvc_device_info *)id->driver_info;
-> +	u32 quirks = info ? info->quirks : 0;
->  	int function;
->  	int ret;
-> 
-> @@ -2032,7 +2039,7 @@ static int uvc_probe(struct usb_interface *intf,
->  	dev->intf = usb_get_intf(intf);
->  	dev->intfnum = intf->cur_altsetting->desc.bInterfaceNumber;
->  	dev->quirks = (uvc_quirks_param == -1)
-> -		    ? id->driver_info : uvc_quirks_param;
-> +		    ? quirks : uvc_quirks_param;
-> 
->  	if (udev->product != NULL)
->  		strlcpy(dev->name, udev->product, sizeof dev->name);
-> @@ -2073,7 +2080,7 @@ static int uvc_probe(struct usb_interface *intf,
->  		le16_to_cpu(udev->descriptor.idVendor),
->  		le16_to_cpu(udev->descriptor.idProduct));
-> 
-> -	if (dev->quirks != id->driver_info) {
-> +	if (dev->quirks != quirks) {
->  		uvc_printk(KERN_INFO, "Forcing device quirks to 0x%x by module "
->  			"parameter for testing purpose.\n", dev->quirks);
->  		uvc_printk(KERN_INFO, "Please report required quirks to the "
-> @@ -2271,6 +2278,28 @@ static int uvc_clock_param_set(const char *val,
-> struct kernel_param *kp) * Driver initialization and cleanup
->   */
-> 
-> +static struct uvc_device_info uvc_quirk_probe_minmax = {
-> +	.quirks = UVC_QUIRK_PROBE_MINMAX,
-> +};
-> +
-> +static struct uvc_device_info uvc_quirk_fix_bandwidth = {
-> +	.quirks = UVC_QUIRK_FIX_BANDWIDTH,
-> +};
-> +
-> +static struct uvc_device_info uvc_quirk_probe_def = {
-> +	.quirks = UVC_QUIRK_PROBE_DEF,
-> +};
-> +
-> +static struct uvc_device_info uvc_quirk_stream_no_fid = {
-> +	.quirks = UVC_QUIRK_STREAM_NO_FID,
-> +};
-> +
-> +static struct uvc_device_info uvc_quirk_force_y8 = {
-> +	.quirks = UVC_QUIRK_FORCE_Y8,
-> +};
-
-You can make all of these static const.
-
-> +#define UVC_QUIRK_INFO(q) (kernel_ulong_t)&(struct uvc_device_info){.quirks
-> = q}
-> +
->  /*
->   * The Logitech cameras listed below have their interface class set to
->   * VENDOR_SPEC because they don't announce themselves as UVC devices, even
-> @@ -2285,7 +2314,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
->  	/* Genius eFace 2025 */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2294,7 +2323,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
->  	/* Microsoft Lifecam NX-6000 */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2303,7 +2332,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
->  	/* Microsoft Lifecam NX-3000 */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2312,7 +2341,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_DEF },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_def },
->  	/* Microsoft Lifecam VX-7000 */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2321,7 +2350,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
->  	/* Logitech Quickcam Fusion */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2378,7 +2407,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_RESTORE_CTRLS_ON_INIT },
-> +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_RESTORE_CTRLS_ON_INIT) },
->  	/* Chicony CNF7129 (Asus EEE 100HE) */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2387,7 +2416,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_RESTRICT_FRAME_RATE },
-> +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_RESTRICT_FRAME_RATE) },
->  	/* Alcor Micro AU3820 (Future Boy PC USB Webcam) */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2396,7 +2425,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
->  	/* Dell XPS m1530 */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2405,7 +2434,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info 		= UVC_QUIRK_PROBE_DEF },
-> +	  .driver_info 		= (kernel_ulong_t)&uvc_quirk_probe_def },
->  	/* Dell SP2008WFP Monitor */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2414,7 +2443,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info 		= UVC_QUIRK_PROBE_DEF },
-> +	  .driver_info 		= (kernel_ulong_t)&uvc_quirk_probe_def },
->  	/* Dell Alienware X51 */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2423,7 +2452,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info	= UVC_QUIRK_PROBE_DEF },
-> +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_DEF) },
-
-This one can be (kernel_ulong_t)&uvc_quirk_probe_def.
-
-If you're fine with those changes there's no need to resubmit, I'll update the 
-patch when applying, and
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
->  	/* Dell Studio Hybrid 140g (OmniVision webcam) */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2432,7 +2461,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_DEF },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_def },
->  	/* Dell XPS M1330 (OmniVision OV7670 webcam) */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2441,7 +2470,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_DEF },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_def },
->  	/* Apple Built-In iSight */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2450,8 +2479,8 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info 		= UVC_QUIRK_PROBE_MINMAX
-> -				| UVC_QUIRK_BUILTIN_ISIGHT },
-> +	  .driver_info 		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
-> +					| UVC_QUIRK_BUILTIN_ISIGHT) },
->  	/* Apple Built-In iSight via iBridge */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2460,7 +2489,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_DEF },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_def },
->  	/* Foxlink ("HP Webcam" on HP Mini 5103) */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2469,7 +2498,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_FIX_BANDWIDTH },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_fix_bandwidth },
->  	/* Genesys Logic USB 2.0 PC Camera */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2478,7 +2507,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
->  	/* Hercules Classic Silver */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2487,7 +2516,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_FIX_BANDWIDTH },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_fix_bandwidth },
->  	/* ViMicro Vega */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2496,7 +2525,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_FIX_BANDWIDTH },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_fix_bandwidth },
->  	/* ViMicro - Minoru3D */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2505,7 +2534,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_FIX_BANDWIDTH },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_fix_bandwidth },
->  	/* ViMicro Venus - Minoru3D */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2514,7 +2543,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_FIX_BANDWIDTH },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_fix_bandwidth },
->  	/* Ophir Optronics - SPCAM 620U */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2523,7 +2552,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
->  	/* MT6227 */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2532,8 +2561,8 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX
-> -				| UVC_QUIRK_PROBE_DEF },
-> +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
-> +					| UVC_QUIRK_PROBE_DEF) },
->  	/* IMC Networks (Medion Akoya) */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2542,7 +2571,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
->  	/* JMicron USB2.0 XGA WebCam */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2551,7 +2580,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
->  	/* Syntek (HP Spartan) */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2560,7 +2589,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
->  	/* Syntek (Samsung Q310) */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2569,7 +2598,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
->  	/* Syntek (Packard Bell EasyNote MX52 */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2578,7 +2607,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
->  	/* Syntek (Asus F9SG) */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2587,7 +2616,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
->  	/* Syntek (Asus U3S) */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2596,7 +2625,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
->  	/* Syntek (JAOtech Smart Terminal) */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2605,7 +2634,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
->  	/* Miricle 307K */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2614,7 +2643,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
->  	/* Lenovo Thinkpad SL400/SL500 */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2623,7 +2652,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
->  	/* Aveo Technology USB 2.0 Camera */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2632,8 +2661,8 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX
-> -				| UVC_QUIRK_PROBE_EXTRAFIELDS },
-> +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
-> +					| UVC_QUIRK_PROBE_EXTRAFIELDS) },
->  	/* Aveo Technology USB 2.0 Camera (Tasco USB Microscope) */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2650,7 +2679,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_EXTRAFIELDS },
-> +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_EXTRAFIELDS) },
->  	/* Manta MM-353 Plako */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2659,7 +2688,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
->  	/* FSC WebCam V30S */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2668,7 +2697,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
->  	/* Arkmicro unbranded */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2677,7 +2706,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_DEF },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_def },
->  	/* The Imaging Source USB CCD cameras */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2696,7 +2725,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_STATUS_INTERVAL },
-> +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_STATUS_INTERVAL) },
->  	/* MSI StarCam 370i */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2705,7 +2734,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
->  	/* SiGma Micro USB Web Camera */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2714,8 +2743,8 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX
-> -				| UVC_QUIRK_IGNORE_SELECTOR_UNIT },
-> +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
-> +					| UVC_QUIRK_IGNORE_SELECTOR_UNIT) },
->  	/* Oculus VR Positional Tracker DK2 */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2724,7 +2753,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_FORCE_Y8 },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_force_y8 },
->  	/* Oculus VR Rift Sensor */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
-> @@ -2733,7 +2762,7 @@ static int uvc_clock_param_set(const char *val, struct
-> kernel_param *kp) .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
-> -	  .driver_info		= UVC_QUIRK_FORCE_Y8 },
-> +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_force_y8 },
->  	/* Generic USB Video Class */
->  	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_UNDEFINED) },
->  	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_15) },
-
-
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+index ab7629c5b856..f696e62d09dd 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+@@ -1577,6 +1577,32 @@
+ 		status = "disabled";
+ 	};
+ 
++	isp0: isp0@ff910000 {
++		compatible = "rockchip,rk3399-cif-isp";
++		reg = <0x0 0xff910000 0x0 0x4000>;
++		interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH 0>;
++		clocks = <&cru SCLK_ISP0>,
++			 <&cru ACLK_ISP0>, <&cru ACLK_ISP0_WRAPPER>,
++			 <&cru HCLK_ISP0>, <&cru HCLK_ISP0_WRAPPER>;
++		clock-names = "clk_isp",
++			      "aclk_isp", "aclk_isp_wrap",
++			      "hclk_isp", "hclk_isp_wrap";
++		power-domains = <&power RK3399_PD_ISP0>;
++		iommus = <&isp0_mmu>;
++		status = "disabled";
++
++		isp_mipi_dphy_rx0: isp-mipi-dphy-rx0 {
++			compatible = "rockchip,rk3399-mipi-dphy";
++			rockchip,grf = <&grf>;
++			clocks = <&cru SCLK_MIPIDPHY_REF>,
++				 <&cru SCLK_DPHY_RX0_CFG>,
++				 <&cru PCLK_VIO_GRF>;
++			clock-names = "dphy-ref", "dphy-cfg", "grf";
++			power-domains = <&power RK3399_PD_VIO>;
++			status = "disabled";
++		};
++	};
++
+ 	isp0_mmu: iommu@ff914000 {
+ 		compatible = "rockchip,iommu";
+ 		reg = <0x0 0xff914000 0x0 0x100>, <0x0 0xff915000 0x0 0x100>;
 -- 
-Regards,
-
-Laurent Pinchart
+2.14.2
