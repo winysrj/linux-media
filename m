@@ -1,83 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:40679 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934234AbdKQO7C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 09:59:02 -0500
-Date: Fri, 17 Nov 2017 12:58:47 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:49800 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933303AbdKORLf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Nov 2017 12:11:35 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Johan Hovold <johan@kernel.org>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Philippe Ombredanne <pombredanne@nexb.com>
-Subject: Re: [PATCH] media: usbvision: remove unneeded DRIVER_LICENSE
- #define
-Message-ID: <20171117125847.28004106@vento.lan>
-In-Reply-To: <20171117141826.GC17880@kroah.com>
-References: <20171117141826.GC17880@kroah.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [RFC v5 08/11] [media] vb2: add videobuf2 dma-buf fence helpers
+Date: Wed, 15 Nov 2017 15:10:54 -0200
+Message-Id: <20171115171057.17340-9-gustavo@padovan.org>
+In-Reply-To: <20171115171057.17340-1-gustavo@padovan.org>
+References: <20171115171057.17340-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 17 Nov 2017 15:18:26 +0100
-Greg Kroah-Hartman <gregkh@linuxfoundation.org> escreveu:
+From: Javier Martinez Canillas <javier@osg.samsung.com>
 
-> There is no need to #define the license of the driver, just put it in
-> the MODULE_LICENSE() line directly as a text string.
-> 
-> This allows tools that check that the module license matches the source
-> code license to work properly, as there is no need to unwind the
-> unneeded dereference.
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: Johan Hovold <johan@kernel.org>
-> Cc: Davidlohr Bueso <dave@stgolabs.net>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reported-by: Philippe Ombredanne <pombredanne@nexb.com>
-> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> ---
->  drivers/media/usb/usbvision/usbvision-video.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-> index 960272d3c924..0f5954a1fea2 100644
-> --- a/drivers/media/usb/usbvision/usbvision-video.c
-> +++ b/drivers/media/usb/usbvision/usbvision-video.c
-> @@ -72,7 +72,6 @@
->  #define DRIVER_NAME "usbvision"
->  #define DRIVER_ALIAS "USBVision"
->  #define DRIVER_DESC "USBVision USB Video Device Driver for Linux"
-> -#define DRIVER_LICENSE "GPL"
->  #define USBVISION_VERSION_STRING "0.9.11"
->  
->  #define	ENABLE_HEXDUMP	0	/* Enable if you need it */
-> @@ -141,7 +140,7 @@ MODULE_PARM_DESC(radio_nr, "Set radio device number (/dev/radioX).  Default: -1
->  /* Misc stuff */
->  MODULE_AUTHOR(DRIVER_AUTHOR);
->  MODULE_DESCRIPTION(DRIVER_DESC);
-> -MODULE_LICENSE(DRIVER_LICENSE);
-> +MODULE_LICENSE("GPL");
+Add a videobuf2-fence.h header file that contains different helpers
+for DMA buffer sharing explicit fence support in videobuf2.
 
-Makes sense to me, but, if we look at the header of this file:
+v2:	- use fence context provided by the caller in vb2_fence_alloc()
 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ include/media/videobuf2-fence.h | 48 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
+ create mode 100644 include/media/videobuf2-fence.h
 
-Its license is actually GPL 2.0+
-
-So, I would actually change it to:
-
-MODULE_LICENSE("GPL v2");
-
-Regard
-
-Thanks,
-Mauro
+diff --git a/include/media/videobuf2-fence.h b/include/media/videobuf2-fence.h
+new file mode 100644
+index 000000000000..b49cc1bf6bb4
+--- /dev/null
++++ b/include/media/videobuf2-fence.h
+@@ -0,0 +1,48 @@
++/*
++ * videobuf2-fence.h - DMA buffer sharing fence helpers for videobuf 2
++ *
++ * Copyright (C) 2016 Samsung Electronics
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#include <linux/dma-fence.h>
++#include <linux/slab.h>
++
++static DEFINE_SPINLOCK(vb2_fence_lock);
++
++static inline const char *vb2_fence_get_driver_name(struct dma_fence *fence)
++{
++	return "vb2_fence";
++}
++
++static inline const char *vb2_fence_get_timeline_name(struct dma_fence *fence)
++{
++	return "vb2_fence_timeline";
++}
++
++static inline bool vb2_fence_enable_signaling(struct dma_fence *fence)
++{
++	return true;
++}
++
++static const struct dma_fence_ops vb2_fence_ops = {
++	.get_driver_name = vb2_fence_get_driver_name,
++	.get_timeline_name = vb2_fence_get_timeline_name,
++	.enable_signaling = vb2_fence_enable_signaling,
++	.wait = dma_fence_default_wait,
++};
++
++static inline struct dma_fence *vb2_fence_alloc(u64 context)
++{
++	struct dma_fence *vb2_fence = kzalloc(sizeof(*vb2_fence), GFP_KERNEL);
++
++	if (!vb2_fence)
++		return NULL;
++
++	dma_fence_init(vb2_fence, &vb2_fence_ops, &vb2_fence_lock, context, 1);
++
++	return vb2_fence;
++}
+-- 
+2.13.6
