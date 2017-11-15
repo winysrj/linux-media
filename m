@@ -1,284 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:37356 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752691AbdK2LZl (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:43476 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750962AbdKOHaP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 06:25:41 -0500
-Date: Wed, 29 Nov 2017 12:25:37 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [RFC] v4l: i2c: ov7670: Implement mbus configuration
-Message-ID: <20171129112537.GC17767@w540>
-References: <1511778413-27348-1-git-send-email-jacopo+renesas@jmondi.org>
- <20171129110430.rqydysqrfaxu7ufc@valkosipuli.retiisi.org.uk>
- <20171129110648.vkqj2ijnryuhl4dq@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20171129110648.vkqj2ijnryuhl4dq@valkosipuli.retiisi.org.uk>
+        Wed, 15 Nov 2017 02:30:15 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, heiko@sntech.de,
+        mchehab@kernel.org, laurent.pinchart+renesas@ideasonboard.com,
+        hans.verkuil@cisco.com, tfiga@chromium.org, nicolas@ndufresne.ca,
+        sakari.ailus@linux.intel.com, zhengsq@rock-chips.com,
+        zyc@rock-chips.com, eddie.cai.linux@gmail.com,
+        jeffy.chen@rock-chips.com, allon.huang@rock-chips.com,
+        p.zabel@pengutronix.de, slongerbeam@gmail.com,
+        linux@armlinux.org.uk, Jacob Chen <jacob-chen@iotwrt.com>
+Subject: [RFC PATCH 0/5] Rockchip ISP1 Driver
+Date: Wed, 15 Nov 2017 15:29:22 +0800
+Message-Id: <20171115072927.29367-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-   thanks for the reply
+This patch series add a ISP(Camera) v4l2 driver for rockchip rk3288/rk3399 SoC.
 
-On Wed, Nov 29, 2017 at 01:06:49PM +0200, Sakari Ailus wrote:
-> On Wed, Nov 29, 2017 at 01:04:30PM +0200, Sakari Ailus wrote:
-> > Hi Jacopo,
-> >
-> > On Mon, Nov 27, 2017 at 11:26:53AM +0100, Jacopo Mondi wrote:
-> > > ov7670 currently supports configuration of a few parameters only through
-> > > platform data. Implement media bus configuration by parsing DT properties
-> > > at probe() time and opportunely configure REG_COM10 during s_format().
-> > >
-> > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > >
-> > > ---
-> > >
-> > > Hi linux-media,
-> > >    I'm using this sensor to test the CEU driver I have submitted some time ago
-> > > and I would like to change synchronization signal polarities to test them in
-> > > combination with that driver.
-> > >
-> > > So I added support for retrieving some properties listed in the device tree
-> > > bindings documentation from sensor's DT node and made a patch, BUT I'm
-> > > slightly confused about this (and that's why this is an RFC).
-> > >
-> > > I did a grep for "sync-active" in drivers/media/i2c/ and no sensor driver
-> > > implements any property parsing, so I guess I'm doing something wrong here.
-> >
-> > :-)
-> >
-> > The standard properties are parsed in the V4L2 fwnode framework, and
-> > gathered to v4l2_fwnode_endpoint struct for drivers to use. Please see e.g.
-> > the smiapp driver how to do this.
-> >
-> > You'll still need to parse device specific properties in the driver.
+TODO:
+  - Thomas is rewriting the binding code between isp, phy, sensors, i hope we could get suggestions.
+        https://chromium-review.googlesource.com/c/chromiumos/third_party/kernel/+/768633/2
+    rules:
+      - There are many mipi interfaces("rx0", "dxrx0")(actually it also could be parallel interface) in SoC and isp can decide which one will be used.
+      - Sometimes there will be more than one senor in a mipi phy, the sofrware should decide which one is used(media link).
+      - rk3399 have two isp.
+  - Add a dummy buffer(dma_alloc_coherent) so drvier won't hold buffer.
+  - Finish all TODO comments(mostly about hardware) in driver.
 
-I totally misinterpreted this!
+To help do a quick review, i have push source code to my Github.
+  https://github.com/wzyy2/linux/tree/rkisp1/drivers/media/platform/rockchip/isp1
 
-My understanding was that v4l2_fwnode_endpoint_parse() was supposed to
-be used to parse the -remote- endpoint configuration, so that a
-platform driver would know how the sensor is configured and adjust its
-settings accordingly (and eventually configure the remote endpoint with
-s_mbus_confi()).
+Below are some infomations about driver/hardware:
 
-Instead, if I got this right, -both- sensor and platform parse
-their own endpoints, and they don't care how the remote is configured
-because of, as you said, wirings..
+Rockchip ISP1 have many Hardware Blocks(simplied):
 
-I'm going to re-submit this using the v4l2_fwnode framework utilities
-in the sensor driver!
+  MIPI      --> ISP --> DCrop(Mainpath) --> RSZ(Mainpath) --> DMA(Mainpath)
+  DMA-Input -->     --> DCrop(Selfpath) --> RSZ(Selfpath) --> DMA(Selfpath);)
 
-Thanks for the clarification
-   j
+(Acutally the TRM(rk3288, isp) could be found online...... which contains a more detailed block diagrams ;-P)
 
-> >
-> > >
-> > > I thought that maybe sensor media bus configuration should come from the
-> > > platform driver, through the s_mbus_config() operation in v4l2_subdev_video_ops,
->
-> It's specified in the sensor's local endpoint. The corresponding
-> configuration needs to be present in the remote endpoint. These are not
-> necessarily always the same due to e.g. wiring.
->
-> > > but that's said to be deprecated. So maybe is the framework providing support
-> > > for parsing those properties? Another grep there and I found only v4l2-fwnode.c
-> > > has support for parsing serial/parallel bus properties, but my understanding is
-> > > that those functions are meant to be used by the platform driver when
-> > > parsing the remote fw node.
-> > >
-> > > So please help me out here: where should I implement media bus configuration
-> > > for sensor drivers?
-> > >
-> > > Thanks
-> > >    j
-> > >
-> > > PS: being this just an RFC I have not updated dt bindings, and only
-> > > compile-tested the patch
-> > >
-> > > ---
-> > >  drivers/media/i2c/ov7670.c | 108 ++++++++++++++++++++++++++++++++++++++++++---
-> > >  1 file changed, 101 insertions(+), 7 deletions(-)
-> > >
-> > > diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-> > > index e88549f..7e2de7e 100644
-> > > --- a/drivers/media/i2c/ov7670.c
-> > > +++ b/drivers/media/i2c/ov7670.c
-> > > @@ -88,6 +88,7 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
-> > >  #define REG_COM10	0x15	/* Control 10 */
-> > >  #define   COM10_HSYNC	  0x40	  /* HSYNC instead of HREF */
-> > >  #define   COM10_PCLK_HB	  0x20	  /* Suppress PCLK on horiz blank */
-> > > +#define   COM10_PCLK_REV  0x10	  /* Latch data on PCLK rising edge */
-> > >  #define   COM10_HREF_REV  0x08	  /* Reverse HREF */
-> > >  #define   COM10_VS_LEAD	  0x04	  /* VSYNC on clock leading edge */
-> > >  #define   COM10_VS_NEG	  0x02	  /* VSYNC negative */
-> > > @@ -233,6 +234,7 @@ struct ov7670_info {
-> > >  	struct clk *clk;
-> > >  	struct gpio_desc *resetb_gpio;
-> > >  	struct gpio_desc *pwdn_gpio;
-> > > +	unsigned int mbus_config;	/* Media bus configuration flags */
-> > >  	int min_width;			/* Filter out smaller sizes */
-> > >  	int min_height;			/* Filter out smaller sizes */
-> > >  	int clock_speed;		/* External clock speed (MHz) */
-> > > @@ -985,7 +987,7 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
-> > >  	struct ov7670_format_struct *ovfmt;
-> > >  	struct ov7670_win_size *wsize;
-> > >  	struct ov7670_info *info = to_state(sd);
-> > > -	unsigned char com7;
-> > > +	unsigned char com7, com10;
-> > >  	int ret;
-> > >
-> > >  	if (format->pad)
-> > > @@ -1021,6 +1023,9 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
-> > >  	ret = 0;
-> > >  	if (wsize->regs)
-> > >  		ret = ov7670_write_array(sd, wsize->regs);
-> > > +	if (ret)
-> > > +		return ret;
-> > > +
-> > >  	info->fmt = ovfmt;
-> > >
-> > >  	/*
-> > > @@ -1033,8 +1038,26 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
-> > >  	 * to write it unconditionally, and that will make the frame
-> > >  	 * rate persistent too.
-> > >  	 */
-> > > -	if (ret == 0)
-> > > -		ret = ov7670_write(sd, REG_CLKRC, info->clkrc);
-> > > +	ret = ov7670_write(sd, REG_CLKRC, info->clkrc);
-> > > +	if (ret)
-> > > +		return ret;
-> > > +
-> > > +	/* Configure the media bus after the image format */
-> > > +	com10 = 0;
-> > > +	if (info->mbus_config & V4L2_MBUS_VSYNC_ACTIVE_LOW)
-> > > +		com10 |= COM10_VS_NEG;
-> > > +	if (info->mbus_config & V4L2_MBUS_HSYNC_ACTIVE_LOW)
-> > > +		com10 |= COM10_HS_NEG;
-> > > +	if (info->mbus_config & V4L2_MBUS_PCLK_SAMPLE_RISING)
-> > > +		com10 |= COM10_PCLK_REV;
-> > > +	if (info->pclk_hb_disable)
-> > > +		com10 |= COM10_PCLK_HB;
-> > > +
-> > > +	if (com10)
-> > > +		ret = ov7670_write(sd, REG_COM10, com10);
-> > > +	if (ret)
-> > > +		return ret;
-> > > +
-> > >  	return 0;
-> > >  }
-> > >
-> > > @@ -1572,6 +1595,29 @@ static int ov7670_init_gpio(struct i2c_client *client, struct ov7670_info *info)
-> > >  	return 0;
-> > >  }
-> > >
-> > > +/**
-> > > + * ov7670_parse_dt_prop() - parse property "prop_name" in OF node
-> > > + *
-> > > + * @return The property value or < 0 if property not present
-> > > + *	   or wrongly specified.
-> > > + */
-> > > +static int ov7670_parse_dt_prop(struct device *dev, char *prop_name)
-> > > +{
-> > > +	struct device_node *np = dev->of_node;
-> > > +	u32 prop_val;
-> > > +	int ret;
-> > > +
-> > > +	ret = of_property_read_u32(np, prop_name, &prop_val);
-> > > +	if (ret) {
-> > > +		if (ret != -EINVAL)
-> > > +			dev_err(dev, "Unable to parse property %s: %d\n",
-> > > +				prop_name, ret);
-> > > +		return ret;
-> > > +	}
-> > > +
-> > > +	return prop_val;
-> > > +}
-> > > +
-> > >  static int ov7670_probe(struct i2c_client *client,
-> > >  			const struct i2c_device_id *id)
-> > >  {
-> > > @@ -1587,7 +1633,58 @@ static int ov7670_probe(struct i2c_client *client,
-> > >  	v4l2_i2c_subdev_init(sd, client, &ov7670_ops);
-> > >
-> > >  	info->clock_speed = 30; /* default: a guess */
-> > > -	if (client->dev.platform_data) {
-> > > +
-> > > +	if (IS_ENABLED(CONFIG_OF) && client->dev.of_node) {
-> > > +		/*
-> > > +		 * Parse OF properties to initialize media bus configuration.
-> > > +		 *
-> > > +		 * Use sensor's default configuration if a property is not
-> > > +		 * specified (ret == -EINVAL):
-> > > +		 */
-> > > +		info->mbus_config = 0;
-> > > +
-> > > +		ret = ov7670_parse_dt_prop(&client->dev, "hsync-active");
-> > > +		if (ret < 0 && ret != -EINVAL)
-> > > +			return ret;
-> > > +		else if (ret == 0)
-> > > +			info->mbus_config |= V4L2_MBUS_HSYNC_ACTIVE_LOW;
-> > > +		else
-> > > +			info->mbus_config |= V4L2_MBUS_HSYNC_ACTIVE_HIGH;
-> > > +
-> > > +		ret = ov7670_parse_dt_prop(&client->dev, "vsync-active");
-> > > +		if (ret < 0 && ret != -EINVAL)
-> > > +			return ret;
-> > > +		else if (ret == 0)
-> > > +			info->mbus_config |= V4L2_MBUS_VSYNC_ACTIVE_LOW;
-> > > +		else
-> > > +			info->mbus_config |= V4L2_MBUS_VSYNC_ACTIVE_HIGH;
-> > > +
-> > > +		ret = ov7670_parse_dt_prop(&client->dev, "pclk-sample");
-> > > +		if (ret < 0 && ret != -EINVAL)
-> > > +			return ret;
-> > > +		else if (ret > 0)
-> > > +			info->mbus_config |= V4L2_MBUS_PCLK_SAMPLE_RISING;
-> > > +		else
-> > > +			info->mbus_config |= V4L2_MBUS_PCLK_SAMPLE_FALLING;
-> > > +
-> > > +		ret = ov7670_parse_dt_prop(&client->dev,
-> > > +					    "ov7670,pclk-hb-disable");
-> > > +		if (ret < 0 && ret != -EINVAL)
-> > > +			return ret;
-> > > +		else if (ret > 0)
-> > > +			info->pclk_hb_disable = true;
-> > > +		else
-> > > +			info->pclk_hb_disable = false;
-> > > +
-> > > +		ret = ov7670_parse_dt_prop(&client->dev, "ov7670,pll-bypass");
-> > > +		if (ret < 0 && ret != -EINVAL)
-> > > +			return ret;
-> > > +		else if (ret > 0)
-> > > +			info->pll_bypass = true;
-> > > +		else
-> > > +			info->pll_bypass = false;
-> > > +
-> > > +	} else if (client->dev.platform_data) {
-> > >  		struct ov7670_config *config = client->dev.platform_data;
-> > >
-> > >  		/*
-> > > @@ -1649,9 +1746,6 @@ static int ov7670_probe(struct i2c_client *client,
-> > >  	tpf.denominator = 30;
-> > >  	info->devtype->set_framerate(sd, &tpf);
-> > >
-> > > -	if (info->pclk_hb_disable)
-> > > -		ov7670_write(sd, REG_COM10, COM10_PCLK_HB);
-> > > -
-> > >  	v4l2_ctrl_handler_init(&info->hdl, 10);
-> > >  	v4l2_ctrl_new_std(&info->hdl, &ov7670_ctrl_ops,
-> > >  			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
-> > > --
-> > > 2.7.4
-> > >
-> >
-> > --
-> > Sakari Ailus
-> > e-mail: sakari.ailus@iki.fi
->
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi
+The funcitons of each hardware block:
+
+  Mainpath : up to 4k resolution, support raw/yuv format
+  Selfpath : up tp 1080p, support rotate, support rgb/yuv format
+  RSZ: scaling 
+  DCrop: crop
+  ISP: 3A, Color processing, Crop
+  MIPI: MIPI Camera interface
+
+Media pipelines:
+
+  Mainpath, Selfpath <-- ISP subdev <-- MIPI  <-- Sensor
+  3A stats           <--            <-- 3A parms
+
+Code struct:
+
+  capture.c : Mainpath, Selfpath, RSZ, DCROP : capture device.
+  rkisp1.c : ISP : v4l2 sub-device.
+  isp_params.c : 3A parms : output device.
+  isp_stats.c : 3A stats : capture device.
+  mipi_dphy_sy.c : MIPI : sperated v4l2 sub-device.
+
+Usage:
+  ChromiumOS:
+    use below v4l2-ctl command to capture frames.
+
+      v4l2-ctl --verbose -d /dev/video4 --stream-mmap=2
+      --stream-to=/tmp/stream.out --stream-count=60 --stream-poll
+
+    use below command to playback the video on your PC.
+
+      mplayer /tmp/stream.out -loop 0 --demuxer=rawvideo
+      --rawvideo=w=800:h=600:size=$((800*600*2)):format=yuy2
+    or
+      mplayer ./stream.out -loop 0 -demuxer rawvideo -rawvideo
+      w=800:h=600:size=$((800*600*2)):format=yuy2
+
+  Linux:
+    use rkcamsrc gstreamer plugin(just a modified v4l2src) to preview.
+
+      gst-launch-1.0 rkcamsrc device=/dev/video0 io-mode=4 disable-3A=true
+      videoconvert ! video/x-raw,format=NV12,width=640,height=480 ! kmssink
+
+Jacob Chen (2):
+  media: rkisp1: add rockchip isp1 driver
+  ARM: dts: rockchip: add isp node for rk3288
+
+Jeffy Chen (1):
+  media: rkisp1: Add user space ABI definitions
+
+Shunqian Zheng (2):
+  media: videodev2.h, v4l2-ioctl: add rkisp1 meta buffer format
+  arm64: dts: rockchip: add isp0 node for rk3399
+
+ arch/arm/boot/dts/rk3288.dtsi                      |   24 +
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   26 +
+ drivers/media/platform/Kconfig                     |   10 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/rockchip/isp1/Makefile      |    9 +
+ drivers/media/platform/rockchip/isp1/capture.c     | 1678 ++++++++++++++++++++
+ drivers/media/platform/rockchip/isp1/capture.h     |   46 +
+ drivers/media/platform/rockchip/isp1/common.h      |  327 ++++
+ drivers/media/platform/rockchip/isp1/dev.c         |  728 +++++++++
+ drivers/media/platform/rockchip/isp1/isp_params.c  | 1556 ++++++++++++++++++
+ drivers/media/platform/rockchip/isp1/isp_params.h  |   81 +
+ drivers/media/platform/rockchip/isp1/isp_stats.c   |  537 +++++++
+ drivers/media/platform/rockchip/isp1/isp_stats.h   |   81 +
+ .../media/platform/rockchip/isp1/mipi_dphy_sy.c    |  619 ++++++++
+ .../media/platform/rockchip/isp1/mipi_dphy_sy.h    |   42 +
+ drivers/media/platform/rockchip/isp1/regs.c        |  251 +++
+ drivers/media/platform/rockchip/isp1/regs.h        | 1578 ++++++++++++++++++
+ drivers/media/platform/rockchip/isp1/rkisp1.c      | 1132 +++++++++++++
+ drivers/media/platform/rockchip/isp1/rkisp1.h      |  130 ++
+ drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +
+ include/uapi/linux/rkisp1-config.h                 |  554 +++++++
+ include/uapi/linux/videodev2.h                     |    4 +
+ 22 files changed, 9416 insertions(+)
+ create mode 100644 drivers/media/platform/rockchip/isp1/Makefile
+ create mode 100644 drivers/media/platform/rockchip/isp1/capture.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/capture.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/common.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/dev.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/regs.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/regs.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.h
+ create mode 100644 include/uapi/linux/rkisp1-config.h
+
+-- 
+2.14.2
