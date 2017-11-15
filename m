@@ -1,52 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:47686 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754777AbdKKAjE (ORCPT
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:58877 "EHLO
+        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932180AbdKOMBk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Nov 2017 19:39:04 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Wed, 15 Nov 2017 07:01:40 -0500
+Subject: Re: [PATCH] uvcvideo: Apply flags from device to actual properties
+To: Kieran Bingham <kieranbingham@gmail.com>,
         Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v7 05/25] rcar-vin: change name of video device
-Date: Sat, 11 Nov 2017 01:38:15 +0100
-Message-Id: <20171111003835.4909-6-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+References: <ca483e75-4519-2bc3-eb11-db647fc60860@edgarthier.net>
+ <1516233.pKQSzG3xyp@avalon>
+ <e6c92808-82e7-05bc-28b4-370ca51aa2de@edgarthier.net>
+ <bf6ced8e-6fbb-5054-bbf6-1186d52459b9@ideasonboard.com>
+ <443c86f9-0973-cf52-c0c3-be662a8fee74@ideasonboard.com>
+ <ae5ca43a-1ccd-b1fd-c699-f9f1d4f96dc3@edgarthier.net>
+ <8b32b0f3-e442-6761-ef1c-34ac535080d0@ideasonboard.com>
+ <7342af02-0158-a99e-caf1-6c394842296b@edgarthier.net>
+ <430ebf60-395c-08ff-5500-dedcda91e3b1@ideasonboard.com>
+ <7807bf0a-a0a1-65ad-1a10-3a3234e566e9@edgarthier.net>
+ <9aa56510-cb42-a905-7402-9483067d2971@edgarthier.net>
+ <828a7c41-1309-5b19-6ff4-6e787ab5cd7a@gmail.com>
+From: Edgar Thier <info@edgarthier.net>
+Message-ID: <902fc2f1-4dcb-92a8-049c-6f6c5bb9bdb8@edgarthier.net>
+Date: Wed, 15 Nov 2017 13:01:38 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <828a7c41-1309-5b19-6ff4-6e787ab5cd7a@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The rcar-vin driver needs to be part of a media controller to support
-Gen3. Give each VIN instance a unique name so it can be referenced from
-userspace.
+Hi Kieran,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+> I think it's easier to see updated patches if they are posted as a new thread,
+> with an increased version number. [PATCH v2], [PATCH v3] etc...
+>
+> Not a problem now - but might help your updated patches get seen next time.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 76c0b8fa8602d08d..f501da9df48c288b 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -878,7 +878,8 @@ int rvin_v4l2_register(struct rvin_dev *vin)
- 	vdev->fops = &rvin_fops;
- 	vdev->v4l2_dev = &vin->v4l2_dev;
- 	vdev->queue = &vin->queue;
--	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
-+	snprintf(vdev->name, sizeof(vdev->name), "%s %s", KBUILD_MODNAME,
-+		 dev_name(vin->dev));
- 	vdev->release = video_device_release_empty;
- 	vdev->ioctl_ops = &rvin_ioctl_ops;
- 	vdev->lock = &vin->lock;
--- 
-2.15.0
+I will keep that in mind for next time. :)
+
+> Looks like my concerns were addressed, so that's a Reviewed-by: tag from me.
+
+Thanks!
+
+Regards,
+
+Edgar
