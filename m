@@ -1,164 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:47736 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754179AbdKKAjG (ORCPT
+Received: from slow1-d.mail.gandi.net ([217.70.178.86]:36997 "EHLO
+        slow1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757762AbdKOLPB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Nov 2017 19:39:06 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v7 11/25] rcar-vin: fix handling of single field frames (top, bottom and alternate fields)
-Date: Sat, 11 Nov 2017 01:38:21 +0100
-Message-Id: <20171111003835.4909-12-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Wed, 15 Nov 2017 06:15:01 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v1 00/10] Renesas Capture Engine Unit (CEU) V4L2 driver
+Date: Wed, 15 Nov 2017 11:55:53 +0100
+Message-Id: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There was never proper support in the VIN driver to deliver ALTERNATING
-field format to user-space, remove this field option. For sources using
-this field format instead use the VIN hardware feature of combining the
-fields to an interlaced format. This mode of operation was previously
-the default behavior and ALTERNATING was only delivered to user-space if
-explicitly requested. Allowing this to be explicitly requested was a
-mistake and was never properly tested and never worked due to the
-constraints put on the field format when it comes to sequence numbers and
-timestamps etc.
+Hello,
+   this series implementes a modern V4L2 driver for Renesas Capture Engine
+Unit (CEU). CEU is currently supported by the soc_camera based driver
+drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
 
-The height should not be cut in half for the format for TOP or BOTTOM
-fields settings. This was a mistake and it was made visible by the
-scaling refactoring. Correct behavior is that the user should request a
-frame size that fits the half height frame reflected in the field
-setting. If not the VIN will do its best to scale the top or bottom to
-the requested format and cropping and scaling do not work as expected.
+The driver supports capturing images in planar formats (NV12/21 and NV16/61)
+and non-planar YUYV422 format.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/rcar-vin/rcar-dma.c  | 15 +--------
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 48 +++++++++++------------------
- 2 files changed, 19 insertions(+), 44 deletions(-)
+It had been tested with OV7670/OV7725 images sensor capturing images at
+different resolutions (VGA and QVGA)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index b478eda84a27bf09..506d51a13b4f5f40 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -617,7 +617,6 @@ static int rvin_setup(struct rvin_dev *vin)
- 	case V4L2_FIELD_INTERLACED_BT:
- 		vnmc = VNMC_IM_FULL | VNMC_FOC;
- 		break;
--	case V4L2_FIELD_ALTERNATE:
- 	case V4L2_FIELD_NONE:
- 		if (vin->continuous) {
- 			vnmc = VNMC_IM_ODD_EVEN;
-@@ -757,18 +756,6 @@ static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
- 	return 0;
- }
- 
--static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
--{
--	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
--		/* If FS is set it's a Even field */
--		if (vnms & VNMS_FS)
--			return V4L2_FIELD_BOTTOM;
--		return V4L2_FIELD_TOP;
--	}
--
--	return vin->format.field;
--}
--
- static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
- {
- 	const struct rvin_video_format *fmt;
-@@ -941,7 +928,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
- 		goto done;
- 
- 	/* Capture frame */
--	vin->queue_buf[slot]->field = rvin_get_active_field(vin, vnms);
-+	vin->queue_buf[slot]->field = vin->format.field;
- 	vin->queue_buf[slot]->sequence = sequence;
- 	vin->queue_buf[slot]->vb2_buf.timestamp = ktime_get_ns();
- 	vb2_buffer_done(&vin->queue_buf[slot]->vb2_buf, VB2_BUF_STATE_DONE);
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index ee5df05df2e9561f..b4e96e18ab845f8b 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -102,6 +102,24 @@ static int rvin_get_sd_format(struct rvin_dev *vin, struct v4l2_pix_format *pix)
- 	if (ret)
- 		return ret;
- 
-+	switch (fmt.format.field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_INTERLACED:
-+		break;
-+	case V4L2_FIELD_ALTERNATE:
-+		/* Use VIN hardware to combine the two fields */
-+		fmt.format.field = V4L2_FIELD_INTERLACED;
-+		fmt.format.height *= 2;
-+		break;
-+	default:
-+		vin->format.field = V4L2_FIELD_NONE;
-+		break;
-+	}
-+
- 	v4l2_fill_pix_format(pix, &fmt.format);
- 
- 	return 0;
-@@ -115,33 +133,6 @@ int rvin_reset_format(struct rvin_dev *vin)
- 	if (ret)
- 		return ret;
- 
--	/*
--	 * If the subdevice uses ALTERNATE field mode and G_STD is
--	 * implemented use the VIN HW to combine the two fields to
--	 * one INTERLACED frame. The ALTERNATE field mode can still
--	 * be requested in S_FMT and be respected, this is just the
--	 * default which is applied at probing or when S_STD is called.
--	 */
--	if (vin->format.field == V4L2_FIELD_ALTERNATE &&
--	    v4l2_subdev_has_op(vin_to_source(vin), video, g_std))
--		vin->format.field = V4L2_FIELD_INTERLACED;
--
--	switch (vin->format.field) {
--	case V4L2_FIELD_TOP:
--	case V4L2_FIELD_BOTTOM:
--	case V4L2_FIELD_ALTERNATE:
--		vin->format.height /= 2;
--		break;
--	case V4L2_FIELD_NONE:
--	case V4L2_FIELD_INTERLACED_TB:
--	case V4L2_FIELD_INTERLACED_BT:
--	case V4L2_FIELD_INTERLACED:
--		break;
--	default:
--		vin->format.field = V4L2_FIELD_NONE;
--		break;
--	}
--
- 	vin->crop.top = vin->crop.left = 0;
- 	vin->crop.width = vin->format.width;
- 	vin->crop.height = vin->format.height;
-@@ -226,9 +217,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	switch (pix->field) {
- 	case V4L2_FIELD_TOP:
- 	case V4L2_FIELD_BOTTOM:
--	case V4L2_FIELD_ALTERNATE:
--		pix->height /= 2;
--		break;
- 	case V4L2_FIELD_NONE:
- 	case V4L2_FIELD_INTERLACED_TB:
- 	case V4L2_FIELD_INTERLACED_BT:
--- 
-2.15.0
+The series:
+- Adds a new driver under drivers/media/platform/renesas-ceu.c and a new driver
+  interface under include/media/drv-intf/renesas-ceu.h
+- Adds device tree bindings for renesas-ceu
+- Adds CEU to Renesas RZ/A1 dtsi
+- Ports Migo-R SH4 based platform to make use of the new driver
+- Ports image sensor drivers used by Migo-R (ov772x and tw9910) away from
+  soc_camera
+
+While this driver aims to replace the existing one, which is the last platform
+driver making use of soc_camera framework, this series does not delete any of
+the existing code, just because there are other SH4 users of the existing
+soc_camera based driver: (mach-ap325rxa, mach-ecovec24, mach-kfr2r09 and
+mach-se/7724)
+
+As I only have access to Migo-R board, I have ported that one first, while all
+other boards can be compile-ported later, once this new driver will eventually
+be accepted mainline.
+
+This series is based on v4.14-rc8 with a few patches applied on top:
+https://www.spinics.net/lists/linux-sh/msg51739.html
+
+These patches are required for mainline Migo-R board and sh_mobile_ceu_camera
+driver to work properly with SH4 architecture on modern kernels, and I have
+based my series on top of them.
+
+A tag with those patches already applied on top of v4.14-rc8 is available at
+git://jmondi.org/linux v4.14-rc8-migor-ceu-base
+
+A note on testing:
+The CEU IP block is found on both Renesas RZ series devices (single core ARM
+platforms) and on older SH4 devices (such as Migo-R).
+I have developed and tested the driver on RZ platforms, specifically on
+GR-Peach with an OV7670 based camera module. More details on:
+https://elinux.org/RZ-A/Boards/GR-PEACH-audiocamerashield
+
+As we aim to replace the soc_camera based driver, I have also tested the
+new one on Migo-R, capturing images from the OV7725 sensor installed on
+that board (I've not been able to test TW9910 video decoder as the sensor does
+not probe on the platform I have access to).
+Hans, as you told me, you have a Migo-R and if you eventually would like to
+give this series a spin on that platform feel free to ping me, as to run a
+modern mainline kernel on SH4 you may need the above mentioned patches and some
+attention to configuration option for SH4.
+
+A note on sensor drivers:
+As I need ov772x and tw9910 driver to be ported away from soc_camera for testing
+on Migo-R, for each of them I have copied the driver first in
+drivers/media/i2c/ from drivers/media/i2c/soc_camera without any modification
+and then removed soc_camera dependencies in a separate commit to ease review.
+As per the soc_camera based CEU platform driver, I have not removed the original
+soc_camera based sensor drivers in this series.
+
+Output of v4l2-compliance is available at:
+https://paste.debian.net/995838/
+I'm slightly confused about what the test application complains for
+TRY_FMT/S_FMT but I judged this good enough for a first submission.
+
+Thanks
+  j
+
+Jacopo Mondi (10):
+  dt-bindings: media: Add Renesas CEU bindings
+  include: media: Add Renesas CEU driver interface
+  v4l: platform: Add Renesas CEU driver
+  ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
+  arch: sh: migor: Use new renesas-ceu camera driver
+  sh: sh7722: Rename CEU clock
+  v4l: i2c: Copy ov772x soc_camera sensor driver
+  media: i2c: ov772x: Remove soc_camera dependencies
+  v4l: i2c: Copy tw9910 soc_camera sensor driver
+  media: i2c: tw9910: Remove soc_camera dependencies
+
+ .../devicetree/bindings/media/renesas,ceu.txt      |   87 +
+ arch/arm/boot/dts/r7s72100.dtsi                    |   12 +-
+ arch/sh/boards/mach-migor/setup.c                  |  164 +-
+ arch/sh/kernel/cpu/sh4a/clock-sh7722.c             |    2 +-
+ drivers/media/i2c/Kconfig                          |   21 +
+ drivers/media/i2c/Makefile                         |    2 +
+ drivers/media/i2c/ov772x.c                         | 1156 +++++++++++++
+ drivers/media/i2c/tw9910.c                         | 1037 ++++++++++++
+ drivers/media/platform/Kconfig                     |    9 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/renesas-ceu.c               | 1766 ++++++++++++++++++++
+ include/media/drv-intf/renesas-ceu.h               |   23 +
+ include/media/i2c/ov772x.h                         |    3 +
+ include/media/i2c/tw9910.h                         |    6 +
+ 14 files changed, 4199 insertions(+), 91 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
+ create mode 100644 drivers/media/i2c/ov772x.c
+ create mode 100644 drivers/media/i2c/tw9910.c
+ create mode 100644 drivers/media/platform/renesas-ceu.c
+ create mode 100644 include/media/drv-intf/renesas-ceu.h
+
+--
+2.7.4
