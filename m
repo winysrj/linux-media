@@ -1,248 +1,380 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.73]:49954 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750926AbdK3Q5g (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:38836 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932287AbdKOLdn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Nov 2017 11:57:36 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, stable@vger.kernel.org,
-        Sergey Kozlov <serjk@netup.ru>, Abylay Ospan <aospan@netup.ru>,
-        Daniel Scheller <d.scheller@gmx.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Masanari Iida <standby24x7@gmail.com>,
-        Jiri Kosina <jkosina@suse.cz>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2] dvb-frontends: fix i2c access helpers for KASAN
-Date: Thu, 30 Nov 2017 17:55:46 +0100
-Message-Id: <20171130165656.2405881-1-arnd@arndb.de>
+        Wed, 15 Nov 2017 06:33:43 -0500
+Received: by mail-wm0-f66.google.com with SMTP id z3so2329602wme.3
+        for <linux-media@vger.kernel.org>; Wed, 15 Nov 2017 03:33:43 -0800 (PST)
+Received: from localhost.localdomain ([62.147.246.169])
+        by smtp.gmail.com with ESMTPSA id m37sm24217424wrm.4.2017.11.15.03.33.40
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 15 Nov 2017 03:33:40 -0800 (PST)
+From: =?UTF-8?q?Rafa=C3=ABl=20Carr=C3=A9?= <funman@videolan.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/2] dvb_logfunc: add a user private parameter
+Date: Wed, 15 Nov 2017 12:33:35 +0100
+Message-Id: <20171115113336.3756-1-funman@videolan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A typical code fragment was copied across many dvb-frontend drivers and
-causes large stack frames when built with with CONFIG_KASAN on gcc-5/6/7:
-
-drivers/media/dvb-frontends/cxd2841er.c:3225:1: error: the frame size of 3992 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-drivers/media/dvb-frontends/cxd2841er.c:3404:1: error: the frame size of 3136 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-drivers/media/dvb-frontends/stv0367.c:3143:1: error: the frame size of 4016 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-drivers/media/dvb-frontends/stv090x.c:3430:1: error: the frame size of 5312 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-drivers/media/dvb-frontends/stv090x.c:4248:1: error: the frame size of 4872 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-
-gcc-8 now solves this by consolidating the stack slots for the argument
-variables, but on older compilers we can get the same behavior by taking
-the pointer of a local variable rather than the inline function argument.
-
-Cc: stable@vger.kernel.org
-Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81715
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
-v2: add a comment for each instance of the problem, linking
-to the gcc bugzilla (I left out the http:// so it would fit
-in one line)
----
- drivers/media/dvb-frontends/ascot2e.c     | 4 +++-
- drivers/media/dvb-frontends/cxd2841er.c   | 4 +++-
- drivers/media/dvb-frontends/helene.c      | 4 +++-
- drivers/media/dvb-frontends/horus3a.c     | 4 +++-
- drivers/media/dvb-frontends/itd1000.c     | 5 +++--
- drivers/media/dvb-frontends/mt312.c       | 5 ++++-
- drivers/media/dvb-frontends/stb0899_drv.c | 3 ++-
- drivers/media/dvb-frontends/stb6100.c     | 6 ++++--
- drivers/media/dvb-frontends/stv0367.c     | 4 +++-
- drivers/media/dvb-frontends/stv090x.c     | 4 +++-
- drivers/media/dvb-frontends/stv6110x.c    | 4 +++-
- drivers/media/dvb-frontends/zl10039.c     | 4 +++-
- 12 files changed, 37 insertions(+), 14 deletions(-)
+ lib/include/libdvbv5/dvb-dev.h |  3 ++-
+ lib/include/libdvbv5/dvb-fe.h  |  9 +++++++--
+ lib/include/libdvbv5/dvb-log.h | 33 +++++++++++++++++----------------
+ lib/libdvbv5/dvb-dev.c         |  3 ++-
+ lib/libdvbv5/dvb-fe.c          | 15 ++++++++-------
+ lib/libdvbv5/dvb-log.c         |  3 ++-
+ utils/dvb/dvb-fe-tool.c        |  2 +-
+ utils/dvb/dvbv5-daemon.c       |  9 +++++----
+ utils/dvb/dvbv5-scan.c         |  2 +-
+ utils/dvb/dvbv5-zap.c          |  2 +-
+ 10 files changed, 46 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/ascot2e.c b/drivers/media/dvb-frontends/ascot2e.c
-index 0ee0df53b91b..79d5d89bc95e 100644
---- a/drivers/media/dvb-frontends/ascot2e.c
-+++ b/drivers/media/dvb-frontends/ascot2e.c
-@@ -155,7 +155,9 @@ static int ascot2e_write_regs(struct ascot2e_priv *priv,
+diff --git a/lib/include/libdvbv5/dvb-dev.h b/lib/include/libdvbv5/dvb-dev.h
+index 55e0f065..396fcd07 100644
+--- a/lib/include/libdvbv5/dvb-dev.h
++++ b/lib/include/libdvbv5/dvb-dev.h
+@@ -243,6 +243,7 @@ void dvb_dev_stop_monitor(struct dvb_device *dvb);
+  * @param logfunc	Callback function to be called when a log event
+  *			happens. Can either store the event into a file or
+  *			to print it at the TUI/GUI. Can be null.
++ * @param logpriv   Private data for log function
+  *
+  * @details Sets the function to report log errors and to set the verbosity
+  *	level of debug report messages. If not called, or if logfunc is
+@@ -252,7 +253,7 @@ void dvb_dev_stop_monitor(struct dvb_device *dvb);
+  */
+ void dvb_dev_set_log(struct dvb_device *dvb,
+ 		     unsigned verbose,
+-		     dvb_logfunc logfunc);
++		     dvb_logfunc logfunc, void *logpriv);
  
- static int ascot2e_write_reg(struct ascot2e_priv *priv, u8 reg, u8 val)
- {
--	return ascot2e_write_regs(priv, reg, &val, 1);
-+	u8 tmp = val; /* see gcc.gnu.org/bugzilla/show_bug.cgi?id=81715 */
-+
-+	return ascot2e_write_regs(priv, reg, &tmp, 1);
- }
+ /**
+  * @brief Opens a dvb device
+diff --git a/lib/include/libdvbv5/dvb-fe.h b/lib/include/libdvbv5/dvb-fe.h
+index 1d3565ec..107cb03d 100644
+--- a/lib/include/libdvbv5/dvb-fe.h
++++ b/lib/include/libdvbv5/dvb-fe.h
+@@ -107,6 +107,7 @@
+  * @param freq_bpf		SCR/Unicable band-pass filter frequency to use, in kHz
+  * @param verbose		Verbosity level of the library (RW)
+  * @param dvb_logfunc		Function used to write log messages (RO)
++ * @param logpriv			Private data for logging function (RO)
+  * @param default_charset	Name of the charset used by the DVB standard (RW)
+  * @param output_charset	Name of the charset to output (system specific) (RW)
+  *
+@@ -140,7 +141,8 @@ struct dvb_v5_fe_parms {
  
- static int ascot2e_read_regs(struct ascot2e_priv *priv,
-diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
-index 48ee9bc00c06..ccbd84fd6428 100644
---- a/drivers/media/dvb-frontends/cxd2841er.c
-+++ b/drivers/media/dvb-frontends/cxd2841er.c
-@@ -257,7 +257,9 @@ static int cxd2841er_write_regs(struct cxd2841er_priv *priv,
- static int cxd2841er_write_reg(struct cxd2841er_priv *priv,
- 			       u8 addr, u8 reg, u8 val)
- {
--	return cxd2841er_write_regs(priv, addr, reg, &val, 1);
-+	u8 tmp = val; /* see gcc.gnu.org/bugzilla/show_bug.cgi?id=81715 */
-+
-+	return cxd2841er_write_regs(priv, addr, reg, &tmp, 1);
- }
+ 	/* Function to write DVB logs */
+ 	unsigned			verbose;
+-	dvb_logfunc                     logfunc;
++	dvb_logfunc			logfunc;
++	void				*logpriv;
  
- static int cxd2841er_read_regs(struct cxd2841er_priv *priv,
-diff --git a/drivers/media/dvb-frontends/helene.c b/drivers/media/dvb-frontends/helene.c
-index 4bf5a551ba40..2ab8d83e5576 100644
---- a/drivers/media/dvb-frontends/helene.c
-+++ b/drivers/media/dvb-frontends/helene.c
-@@ -331,7 +331,9 @@ static int helene_write_regs(struct helene_priv *priv,
+ 	/* Charsets to be used by the conversion utilities */
+ 	char				*default_charset;
+@@ -176,6 +178,7 @@ struct dvb_v5_fe_parms *dvb_fe_dummy(void);
+  *				happens. Can either store the event into a file
+  *				or to print it at the TUI/GUI. If NULL, the
+  *				library will use its internal handler.
++ * @param logpriv		Private data for dvb_logfunc
+  * @param flags			Flags to be passed to open. Currently only two
+  *				flags are supported: O_RDONLY or O_RDWR.
+  *				Using O_NONBLOCK may hit unexpected issues.
+@@ -195,6 +198,7 @@ struct dvb_v5_fe_parms *dvb_fe_open_flags(int adapter, int frontend,
+ 					  unsigned verbose,
+ 					  unsigned use_legacy_call,
+ 					  dvb_logfunc logfunc,
++					  void *logpriv,
+ 					  int flags);
  
- static int helene_write_reg(struct helene_priv *priv, u8 reg, u8 val)
- {
--	return helene_write_regs(priv, reg, &val, 1);
-+	u8 tmp = val; /* see gcc.gnu.org/bugzilla/show_bug.cgi?id=81715 */
-+
-+	return helene_write_regs(priv, reg, &tmp, 1);
- }
+ /**
+@@ -231,6 +235,7 @@ struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend,
+  * @param logfunc		Callback function to be called when a log event
+  *				happens. Can either store the event into a file
+  *				or to print it at the TUI/GUI.
++ * @param logpriv		Private data for dvb_logfunc
+  *
+  * @details This function should be called before using any other function at
+  * the frontend library (or the other alternatives: dvb_fe_open() or
+@@ -240,7 +245,7 @@ struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend,
+  */
+ struct dvb_v5_fe_parms *dvb_fe_open2(int adapter, int frontend,
+ 				    unsigned verbose, unsigned use_legacy_call,
+-				    dvb_logfunc logfunc);
++				    dvb_logfunc logfunc, void *logpriv);
  
- static int helene_read_regs(struct helene_priv *priv,
-diff --git a/drivers/media/dvb-frontends/horus3a.c b/drivers/media/dvb-frontends/horus3a.c
-index 68d759c4c52e..5c8b405f2ddc 100644
---- a/drivers/media/dvb-frontends/horus3a.c
-+++ b/drivers/media/dvb-frontends/horus3a.c
-@@ -89,7 +89,9 @@ static int horus3a_write_regs(struct horus3a_priv *priv,
+ /**
+  * @brief Closes the frontend and frees allocated resources
+diff --git a/lib/include/libdvbv5/dvb-log.h b/lib/include/libdvbv5/dvb-log.h
+index 181a23c8..beba7aba 100644
+--- a/lib/include/libdvbv5/dvb-log.h
++++ b/lib/include/libdvbv5/dvb-log.h
+@@ -36,12 +36,12 @@
+  */
  
- static int horus3a_write_reg(struct horus3a_priv *priv, u8 reg, u8 val)
- {
--	return horus3a_write_regs(priv, reg, &val, 1);
-+	u8 tmp = val; /* see gcc.gnu.org/bugzilla/show_bug.cgi?id=81715 */
-+
-+	return horus3a_write_regs(priv, reg, &tmp, 1);
- }
+ /**
+- * @typedef void (*dvb_logfunc)(int level, const char *fmt, ...)
++ * @typedef void (*dvb_logfunc)(void *logpriv, int level, const char *fmt, ...)
+  * @brief typedef used by dvb_fe_open2 for the log function
+  * @ingroup ancillary
+  */
  
- static int horus3a_enter_power_save(struct horus3a_priv *priv)
-diff --git a/drivers/media/dvb-frontends/itd1000.c b/drivers/media/dvb-frontends/itd1000.c
-index 5bb1e73a10b4..ce7c443d3eac 100644
---- a/drivers/media/dvb-frontends/itd1000.c
-+++ b/drivers/media/dvb-frontends/itd1000.c
-@@ -95,8 +95,9 @@ static int itd1000_read_reg(struct itd1000_state *state, u8 reg)
- 
- static inline int itd1000_write_reg(struct itd1000_state *state, u8 r, u8 v)
- {
--	int ret = itd1000_write_regs(state, r, &v, 1);
--	state->shadow[r] = v;
-+	u8 tmp = v; /* see gcc.gnu.org/bugzilla/show_bug.cgi?id=81715 */
-+	int ret = itd1000_write_regs(state, r, &tmp, 1);
-+	state->shadow[r] = tmp;
- 	return ret;
- }
- 
-diff --git a/drivers/media/dvb-frontends/mt312.c b/drivers/media/dvb-frontends/mt312.c
-index 961b9a2508e0..0b23cbc021b8 100644
---- a/drivers/media/dvb-frontends/mt312.c
-+++ b/drivers/media/dvb-frontends/mt312.c
-@@ -142,7 +142,10 @@ static inline int mt312_readreg(struct mt312_state *state,
- static inline int mt312_writereg(struct mt312_state *state,
- 				 const enum mt312_reg_addr reg, const u8 val)
- {
--	return mt312_write(state, reg, &val, 1);
-+	u8 tmp = val; /* see gcc.gnu.org/bugzilla/show_bug.cgi?id=81715 */
-+
-+
-+	return mt312_write(state, reg, &tmp, 1);
- }
- 
- static inline u32 mt312_div(u32 a, u32 b)
-diff --git a/drivers/media/dvb-frontends/stb0899_drv.c b/drivers/media/dvb-frontends/stb0899_drv.c
-index 02347598277a..db5dde3215f0 100644
---- a/drivers/media/dvb-frontends/stb0899_drv.c
-+++ b/drivers/media/dvb-frontends/stb0899_drv.c
-@@ -539,7 +539,8 @@ int stb0899_write_regs(struct stb0899_state *state, unsigned int reg, u8 *data,
- 
- int stb0899_write_reg(struct stb0899_state *state, unsigned int reg, u8 data)
- {
--	return stb0899_write_regs(state, reg, &data, 1);
-+	u8 tmp = data;
-+	return stb0899_write_regs(state, reg, &tmp, 1);
- }
+-typedef void (*dvb_logfunc)(int level, const char *fmt, ...) __attribute__ (( format( printf, 2, 3 )));
++typedef void (*dvb_logfunc)(void *logpriv, int level, const char *fmt, ...) __attribute__ (( format( printf, 3, 4 )));
  
  /*
-diff --git a/drivers/media/dvb-frontends/stb6100.c b/drivers/media/dvb-frontends/stb6100.c
-index 17a955d0031b..75509bec66e4 100644
---- a/drivers/media/dvb-frontends/stb6100.c
-+++ b/drivers/media/dvb-frontends/stb6100.c
-@@ -226,12 +226,14 @@ static int stb6100_write_reg_range(struct stb6100_state *state, u8 buf[], int st
+  * Macros used internally inside libdvbv5 frontend part, to output logs
+@@ -52,48 +52,48 @@ typedef void (*dvb_logfunc)(int level, const char *fmt, ...) __attribute__ (( fo
+ #ifndef __DVB_FE_PRIV_H
  
- static int stb6100_write_reg(struct stb6100_state *state, u8 reg, u8 data)
+ #define dvb_log(fmt, arg...) do {\
+-	parms->logfunc(LOG_INFO, fmt, ##arg); \
++	parms->logfunc(parms->logpriv, LOG_INFO, fmt, ##arg); \
+ } while (0)
+ #define dvb_logerr(fmt, arg...) do {\
+-	parms->logfunc(LOG_ERR, fmt, ##arg); \
++	parms->logfunc(parms->logpriv, LOG_ERR, fmt, ##arg); \
+ } while (0)
+ #define dvb_logdbg(fmt, arg...) do {\
+-	parms->logfunc(LOG_DEBUG, fmt, ##arg); \
++	parms->logfunc(parms->logpriv, LOG_DEBUG, fmt, ##arg); \
+ } while (0)
+ #define dvb_logwarn(fmt, arg...) do {\
+-	parms->logfunc(LOG_WARNING, fmt, ##arg); \
++	parms->logfunc(parms->logpriv, LOG_WARNING, fmt, ##arg); \
+ } while (0)
+ #define dvb_loginfo(fmt, arg...) do {\
+-	parms->logfunc(LOG_NOTICE, fmt, ##arg); \
++	parms->logfunc(parms->logpriv, LOG_NOTICE, fmt, ##arg); \
+ } while (0)
+ 
+ #define dvb_perror(msg) do {\
+-	parms->logfunc(LOG_ERR, "%s: %s", msg, strerror(errno)); \
++	parms->logfunc(parms->logpriv, LOG_ERR, "%s: %s", msg, strerror(errno)); \
+ } while (0)
+ 
+ #else
+ 
+ #define dvb_log(fmt, arg...) do {\
+-	parms->p.logfunc(LOG_INFO, fmt, ##arg); \
++	parms->p.logfunc(parms->p.logpriv, LOG_INFO, fmt, ##arg); \
+ } while (0)
+ #define dvb_logerr(fmt, arg...) do {\
+-	parms->p.logfunc(LOG_ERR, fmt, ##arg); \
++	parms->p.logfunc(parms->p.logpriv, LOG_ERR, fmt, ##arg); \
+ } while (0)
+ #define dvb_logdbg(fmt, arg...) do {\
+-	parms->p.logfunc(LOG_DEBUG, fmt, ##arg); \
++	parms->p.logfunc(parms->p.logpriv, LOG_DEBUG, fmt, ##arg); \
+ } while (0)
+ #define dvb_logwarn(fmt, arg...) do {\
+-	parms->p.logfunc(LOG_WARNING, fmt, ##arg); \
++	parms->p.logfunc(parms->p.logpriv, LOG_WARNING, fmt, ##arg); \
+ } while (0)
+ #define dvb_loginfo(fmt, arg...) do {\
+-	parms->p.logfunc(LOG_NOTICE, fmt, ##arg); \
++	parms->p.logfunc(parms->p.logpriv, LOG_NOTICE, fmt, ##arg); \
+ } while (0)
+ #define dvb_loglevel(level, fmt, arg...) do {\
+-	parms->p.logfunc(level, fmt, ##arg); \
++	parms->p.logfunc(parms->p.logpriv, level, fmt, ##arg); \
+ } while (0)
+ 
+ #define dvb_perror(msg) do {\
+-	parms->p.logfunc(LOG_ERR, "%s: %s", msg, strerror(errno)); \
++	parms->p.logfunc(parms->p.logpriv, LOG_ERR, "%s: %s", msg, strerror(errno)); \
+ } while (0)
+ 
+ #endif
+@@ -105,9 +105,10 @@ typedef void (*dvb_logfunc)(int level, const char *fmt, ...) __attribute__ (( fo
+  *	  if the library client doesn't desire to override with something else.
+  * @ingroup ancillary
+  *
++ * @param logpriv 		private data, unused by the default function
+  * @param level		level of the message, as defined at syslog.h
+  * @param fmt		format string (same as format string on sprintf)
+  */
+-void dvb_default_log(int level, const char *fmt, ...) __attribute__ (( format( printf, 2, 3 )));
++void dvb_default_log(void *logpriv, int level, const char *fmt, ...) __attribute__ (( format( printf, 3, 4 )));
+ 
+ #endif
+diff --git a/lib/libdvbv5/dvb-dev.c b/lib/libdvbv5/dvb-dev.c
+index 447c9fd5..d642c49c 100644
+--- a/lib/libdvbv5/dvb-dev.c
++++ b/lib/libdvbv5/dvb-dev.c
+@@ -163,12 +163,13 @@ struct dvb_dev_list *dvb_dev_seek_by_adapter(struct dvb_device *d,
+ }
+ 
+ void dvb_dev_set_log(struct dvb_device *dvb, unsigned verbose,
+-		     dvb_logfunc logfunc)
++		     dvb_logfunc logfunc, void *logpriv)
  {
-+	u8 tmp = data; /* see gcc.gnu.org/bugzilla/show_bug.cgi?id=81715 */
-+
- 	if (unlikely(reg >= STB6100_NUMREGS)) {
- 		dprintk(verbose, FE_ERROR, 1, "Invalid register offset 0x%x", reg);
- 		return -EREMOTEIO;
+ 	struct dvb_v5_fe_parms_priv *parms = (void *)dvb->fe_parms;
+ 
+ 	/* FIXME: how to get remote logs and set verbosity? */
+ 	parms->p.verbose = verbose;
++	parms->p.logpriv = logpriv;
+ 
+ 	if (logfunc != NULL)
+ 			parms->p.logfunc = logfunc;
+diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
+index 5cad6955..1088df7e 100644
+--- a/lib/libdvbv5/dvb-fe.c
++++ b/lib/libdvbv5/dvb-fe.c
+@@ -113,22 +113,22 @@ struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend,
+ 						  unsigned use_legacy_call)
+ {
+ 	return dvb_fe_open_flags(adapter, frontend, verbose, use_legacy_call,
+-				 NULL, O_RDWR);
++				 NULL, NULL, O_RDWR);
+ 
+ }
+ 
+ struct dvb_v5_fe_parms *dvb_fe_open2(int adapter, int frontend,
+ 				    unsigned verbose, unsigned use_legacy_call,
+-				    dvb_logfunc logfunc)
++				    dvb_logfunc logfunc, void *logpriv)
+ {
+ 	return dvb_fe_open_flags(adapter, frontend, verbose, use_legacy_call,
+-				 logfunc, O_RDWR);
++				 logfunc, logpriv, O_RDWR);
+ }
+ 
+ struct dvb_v5_fe_parms *dvb_fe_open_flags(int adapter, int frontend,
+ 					  unsigned verbose,
+ 					  unsigned use_legacy_call,
+-					  dvb_logfunc logfunc,
++					  dvb_logfunc logfunc, void *logpriv,
+ 					  int flags)
+ {
+ 	int ret;
+@@ -147,7 +147,7 @@ struct dvb_v5_fe_parms *dvb_fe_open_flags(int adapter, int frontend,
+ 	dvb_dev = dvb_dev_seek_by_adapter(dvb, adapter, frontend,
+ 				     DVB_DEVICE_FRONTEND);
+ 	if (!dvb_dev) {
+-		logfunc(LOG_ERR, _("adapter %d, frontend %d not found"),
++		logfunc(logpriv, LOG_ERR, _("adapter %d, frontend %d not found"),
+ 			adapter, frontend);
+ 		dvb_dev_free(dvb);
+ 		return NULL;
+@@ -155,12 +155,12 @@ struct dvb_v5_fe_parms *dvb_fe_open_flags(int adapter, int frontend,
+ 	fname = strdup(dvb_dev->path);
+ 	dvb_dev_free(dvb);
+ 	if (!fname) {
+-		logfunc(LOG_ERR, _("fname calloc: %s"), strerror(errno));
++		logfunc(logpriv, LOG_ERR, _("fname calloc: %s"), strerror(errno));
+ 		return NULL;
  	}
--	data = (data & stb6100_template[reg].mask) | stb6100_template[reg].set;
--	return stb6100_write_reg_range(state, &data, reg, 1);
-+	tmp = (tmp & stb6100_template[reg].mask) | stb6100_template[reg].set;
-+	return stb6100_write_reg_range(state, &tmp, reg, 1);
- }
+ 	parms = calloc(sizeof(*parms), 1);
+ 	if (!parms) {
+-		logfunc(LOG_ERR, _("parms calloc: %s"), strerror(errno));
++		logfunc(logpriv, LOG_ERR, _("parms calloc: %s"), strerror(errno));
+ 		free(fname);
+ 		return NULL;
+ 	}
+@@ -168,6 +168,7 @@ struct dvb_v5_fe_parms *dvb_fe_open_flags(int adapter, int frontend,
+ 	parms->p.default_charset = "iso-8859-1";
+ 	parms->p.output_charset = "utf-8";
+ 	parms->p.logfunc = logfunc;
++	parms->p.logpriv = logpriv;
+ 	parms->p.lna = LNA_AUTO;
+ 	parms->p.sat_number = -1;
+ 	parms->p.abort = 0;
+diff --git a/lib/libdvbv5/dvb-log.c b/lib/libdvbv5/dvb-log.c
+index f92da5f8..c5cf0b64 100644
+--- a/lib/libdvbv5/dvb-log.c
++++ b/lib/libdvbv5/dvb-log.c
+@@ -55,8 +55,9 @@ static const struct loglevel {
+ };
+ #define LOG_COLOROFF 8
  
- 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index f3529df8211d..1a726196c126 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -166,7 +166,9 @@ int stv0367_writeregs(struct stv0367_state *state, u16 reg, u8 *data, int len)
- 
- static int stv0367_writereg(struct stv0367_state *state, u16 reg, u8 data)
+-void dvb_default_log(int level, const char *fmt, ...)
++void dvb_default_log(void *logpriv, int level, const char *fmt, ...)
  {
--	return stv0367_writeregs(state, reg, &data, 1);
-+	u8 tmp = data; /* see gcc.gnu.org/bugzilla/show_bug.cgi?id=81715 */
-+
-+	return stv0367_writeregs(state, reg, &tmp, 1);
- }
++    (void)logpriv; /* unused by default function */
+ 	if(level > sizeof(loglevels) / sizeof(struct loglevel) - 2) // ignore LOG_COLOROFF as well
+ 		level = LOG_INFO;
+ 	va_list ap;
+diff --git a/utils/dvb/dvb-fe-tool.c b/utils/dvb/dvb-fe-tool.c
+index ef2fee16..1d5f19ad 100644
+--- a/utils/dvb/dvb-fe-tool.c
++++ b/utils/dvb/dvb-fe-tool.c
+@@ -349,7 +349,7 @@ int main(int argc, char *argv[])
+ 			return -1;
+ 	}
  
- static u8 stv0367_readreg(struct stv0367_state *state, u16 reg)
-diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
-index 7ef469c0c866..2695e1eb6d9c 100644
---- a/drivers/media/dvb-frontends/stv090x.c
-+++ b/drivers/media/dvb-frontends/stv090x.c
-@@ -755,7 +755,9 @@ static int stv090x_write_regs(struct stv090x_state *state, unsigned int reg, u8
- 
- static int stv090x_write_reg(struct stv090x_state *state, unsigned int reg, u8 data)
+-	dvb_dev_set_log(dvb, verbose, NULL);
++	dvb_dev_set_log(dvb, verbose, NULL, NULL);
+ 	if (device_mon) {
+ 		dvb_dev_find(dvb, &dev_change_monitor, NULL);
+ 		while (1) {
+diff --git a/utils/dvb/dvbv5-daemon.c b/utils/dvb/dvbv5-daemon.c
+index 23b2e456..58485ac6 100644
+--- a/utils/dvb/dvbv5-daemon.c
++++ b/utils/dvb/dvbv5-daemon.c
+@@ -553,12 +553,13 @@ static ssize_t scan_data(char *buf, int buf_size, const char *fmt, ...)
+ /*
+  * Remote log
+  */
+-void dvb_remote_log(int level, const char *fmt, ...)
++void dvb_remote_log(void *priv, int level, const char *fmt, ...)
  {
--	return stv090x_write_regs(state, reg, &data, 1);
-+	u8 tmp = data; /* see gcc.gnu.org/bugzilla/show_bug.cgi?id=81715 */
-+
-+	return stv090x_write_regs(state, reg, &tmp, 1);
- }
+ 	int ret;
+ 	char *buf;
  
- static int stv090x_i2c_gate_ctrl(struct stv090x_state *state, int enable)
-diff --git a/drivers/media/dvb-frontends/stv6110x.c b/drivers/media/dvb-frontends/stv6110x.c
-index 66eba38f1014..7e8e01389c55 100644
---- a/drivers/media/dvb-frontends/stv6110x.c
-+++ b/drivers/media/dvb-frontends/stv6110x.c
-@@ -97,7 +97,9 @@ static int stv6110x_write_regs(struct stv6110x_state *stv6110x, int start, u8 da
+ 	va_list ap;
++    int fd = *(int*)priv;
  
- static int stv6110x_write_reg(struct stv6110x_state *stv6110x, u8 reg, u8 data)
- {
--	return stv6110x_write_regs(stv6110x, reg, &data, 1);
-+	u8 tmp = data; /* see gcc.gnu.org/bugzilla/show_bug.cgi?id=81715 */
-+
-+	return stv6110x_write_regs(stv6110x, reg, &tmp, 1);
- }
+ 	va_start(ap, fmt);
+ 	ret = vasprintf(&buf, fmt, ap);
+@@ -569,8 +570,8 @@ void dvb_remote_log(int level, const char *fmt, ...)
  
- static int stv6110x_init(struct dvb_frontend *fe)
-diff --git a/drivers/media/dvb-frontends/zl10039.c b/drivers/media/dvb-frontends/zl10039.c
-index 623355fc2666..3208b866d1cb 100644
---- a/drivers/media/dvb-frontends/zl10039.c
-+++ b/drivers/media/dvb-frontends/zl10039.c
-@@ -134,7 +134,9 @@ static inline int zl10039_writereg(struct zl10039_state *state,
- 				const enum zl10039_reg_addr reg,
- 				const u8 val)
- {
--	return zl10039_write(state, reg, &val, 1);
-+	const u8 tmp = val; /* see gcc.gnu.org/bugzilla/show_bug.cgi?id=81715 */
-+
-+	return zl10039_write(state, reg, &tmp, 1);
- }
+ 	va_end(ap);
  
- static int zl10039_init(struct dvb_frontend *fe)
+-	if (dvb_fd > 0)
+-		send_data(dvb_fd, "%i%s%i%s", 0, "log", level, buf);
++	if (fd > 0)
++		send_data(fd, "%i%s%i%s", 0, "log", level, buf);
+ 	else
+ 		local_log(level, buf);
+ 
+@@ -1486,7 +1487,7 @@ int main(int argc, char *argv[])
+ 	}
+ 
+ 	/* FIXME: should allow the caller to set the verbosity */
+-	dvb_dev_set_log(dvb, 1, dvb_remote_log);
++	dvb_dev_set_log(dvb, 1, dvb_remote_log, &dvb_fd);
+ 
+ 	/* Listen up to 5 connections */
+ 	listen(sockfd, 5);
+diff --git a/utils/dvb/dvbv5-scan.c b/utils/dvb/dvbv5-scan.c
+index a9b131e1..49b1b657 100644
+--- a/utils/dvb/dvbv5-scan.c
++++ b/utils/dvb/dvbv5-scan.c
+@@ -520,7 +520,7 @@ int main(int argc, char **argv)
+ 	dvb = dvb_dev_alloc();
+ 	if (!dvb)
+ 		return -1;
+-	dvb_dev_set_log(dvb, verbose, NULL);
++	dvb_dev_set_log(dvb, verbose, NULL, NULL);
+ 	dvb_dev_find(dvb, NULL, NULL);
+ 	parms = dvb->fe_parms;
+ 
+diff --git a/utils/dvb/dvbv5-zap.c b/utils/dvb/dvbv5-zap.c
+index a88500d1..b2eb5aa4 100644
+--- a/utils/dvb/dvbv5-zap.c
++++ b/utils/dvb/dvbv5-zap.c
+@@ -884,7 +884,7 @@ int main(int argc, char **argv)
+ 			return -1;
+ 	}
+ 
+-	dvb_dev_set_log(dvb, args.verbose, NULL);
++	dvb_dev_set_log(dvb, args.verbose, NULL, NULL);
+ 	dvb_dev_find(dvb, NULL, NULL);
+ 	parms = dvb->fe_parms;
+ 
 -- 
-2.9.0
+2.14.1
