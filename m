@@ -1,162 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:47551 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934561AbdKCAnD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 20:43:03 -0400
+Received: from mail.free-electrons.com ([62.4.15.54]:41017 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934802AbdKPMxN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Nov 2017 07:53:13 -0500
+Date: Thu, 16 Nov 2017 13:53:10 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Giulio Benetti <giulio.benetti@micronovasrl.com>
+Cc: Andreas Baierl <list@imkreisrum.de>,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        linux@armlinux.org.uk, wens@csie.org, linux-kernel@vger.kernel.org,
+        thomas@vitsch.nl, linux-media@vger.kernel.org
+Subject: Re: [linux-sunxi] Cedrus driver
+Message-ID: <20171116125310.yavjs7352nw2sm7r@flea>
+References: <1510059543-7064-1-git-send-email-giulio.benetti@micronovasrl.com>
+ <1b12fa21-bfe6-9ba7-ae1d-8131ac6f4668@micronovasrl.com>
+ <6fcdc0d9-d0f8-785a-bb00-b1b41c684e59@imkreisrum.de>
+ <693e8786-af83-9d77-0fd4-50fa1f6a135f@micronovasrl.com>
+ <20171116110204.poakahqjz4sj7pmu@flea>
+ <5fcf64db-c654-37d0-5863-20379c04f99c@micronovasrl.com>
 MIME-Version: 1.0
-In-Reply-To: <93d0668e-1fa6-ac2b-d998-9e0317469dd1@osg.samsung.com>
-References: <cover.1507325072.git.shuahkh@osg.samsung.com> <CGME20171006213016epcas3p20e34abea60ca43f7c3f79a68fc7a38d7@epcas3p2.samsung.com>
- <fab205fc9ba1bc00e5dda4db6d426fde69116c37.1507325072.git.shuahkh@osg.samsung.com>
- <c1704d1b-95e8-e6a2-9086-3079f78daa00@samsung.com> <93d0668e-1fa6-ac2b-d998-9e0317469dd1@osg.samsung.com>
-From: Marian Mihailescu <marian.mihailescu@adelaide.edu.au>
-Date: Fri, 3 Nov 2017 11:13:01 +1030
-Message-ID: <CAM3PiRxjO-sP22v5ZSRvKUCwn7B8S_G_GVWW_Uk75aZd3CsoMQ@mail.gmail.com>
-Subject: Re: [PATCH 2/2] media: s5p-mfc: fix lock confection -
- request_firmware() once and keep state
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>, kamil@wypas.org,
-        jtp.park@samsung.com, mchehab@kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="tf5l7i4srtoaupbd"
+Content-Disposition: inline
+In-Reply-To: <5fcf64db-c654-37d0-5863-20379c04f99c@micronovasrl.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I can confirm, with this patch, there is always error loading MFC in
-boot log, since FS is not mounted.
 
--Marian
+--tf5l7i4srtoaupbd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Nov 3, 2017 at 10:57 AM, Shuah Khan <shuahkh@osg.samsung.com> wrote:
-> On 11/02/2017 02:31 AM, Andrzej Hajda wrote:
->> On 06.10.2017 23:30, Shuah Khan wrote:
->>> Driver calls request_firmware() whenever the device is opened for the
->>> first time. As the device gets opened and closed, dev->num_inst == 1
->>> is true several times. This is not necessary since the firmware is saved
->>> in the fw_buf. s5p_mfc_load_firmware() copies the buffer returned by
->>> the request_firmware() to dev->fw_buf.
->>>
->>> fw_buf sticks around until it gets released from s5p_mfc_remove(), hence
->>> there is no need to keep requesting firmware and copying it to fw_buf.
->>>
->>> This might have been overlooked when changes are made to free fw_buf from
->>> the device release interface s5p_mfc_release().
->>>
->>> Fix s5p_mfc_load_firmware() to call request_firmware() once and keep state.
->>> Change _probe() to load firmware once fw_buf has been allocated.
->>>
->>> s5p_mfc_open() and it continues to call s5p_mfc_load_firmware() and init
->>> hardware which is the step where firmware is written to the device.
->>>
->>> This addresses the mfc_mutex contention due to repeated request_firmware()
->>> calls from open() in the following circular locking warning:
->>>
->>> [  552.194115] qtdemux0:sink/2710 is trying to acquire lock:
->>> [  552.199488]  (&dev->mfc_mutex){+.+.}, at: [<bf145544>] s5p_mfc_mmap+0x28/0xd4 [s5p_mfc]
->>> [  552.207459]
->>>                but task is already holding lock:
->>> [  552.213264]  (&mm->mmap_sem){++++}, at: [<c01df2e4>] vm_mmap_pgoff+0x44/0xb8
->>> [  552.220284]
->>>                which lock already depends on the new lock.
->>>
->>> [  552.228429]
->>>                the existing dependency chain (in reverse order) is:
->>> [  552.235881]
->>>                -> #2 (&mm->mmap_sem){++++}:
->>> [  552.241259]        __might_fault+0x80/0xb0
->>> [  552.245331]        filldir64+0xc0/0x2f8
->>> [  552.249144]        call_filldir+0xb0/0x14c
->>> [  552.253214]        ext4_readdir+0x768/0x90c
->>> [  552.257374]        iterate_dir+0x74/0x168
->>> [  552.261360]        SyS_getdents64+0x7c/0x1a0
->>> [  552.265608]        ret_fast_syscall+0x0/0x28
->>> [  552.269850]
->>>                -> #1 (&type->i_mutex_dir_key#2){++++}:
->>> [  552.276180]        down_read+0x48/0x90
->>> [  552.279904]        lookup_slow+0x74/0x178
->>> [  552.283889]        walk_component+0x1a4/0x2e4
->>> [  552.288222]        link_path_walk+0x174/0x4a0
->>> [  552.292555]        path_openat+0x68/0x944
->>> [  552.296541]        do_filp_open+0x60/0xc4
->>> [  552.300528]        file_open_name+0xe4/0x114
->>> [  552.304772]        filp_open+0x28/0x48
->>> [  552.308499]        kernel_read_file_from_path+0x30/0x78
->>> [  552.313700]        _request_firmware+0x3ec/0x78c
->>> [  552.318291]        request_firmware+0x3c/0x54
->>> [  552.322642]        s5p_mfc_load_firmware+0x54/0x150 [s5p_mfc]
->>> [  552.328358]        s5p_mfc_open+0x4e4/0x550 [s5p_mfc]
->>> [  552.333394]        v4l2_open+0xa0/0x104 [videodev]
->>> [  552.338137]        chrdev_open+0xa4/0x18c
->>> [  552.342121]        do_dentry_open+0x208/0x310
->>> [  552.346454]        path_openat+0x28c/0x944
->>> [  552.350526]        do_filp_open+0x60/0xc4
->>> [  552.354512]        do_sys_open+0x118/0x1c8
->>> [  552.358586]        ret_fast_syscall+0x0/0x28
->>> [  552.362830]
->>>                -> #0 (&dev->mfc_mutex){+.+.}:
->>>                -> #0 (&dev->mfc_mutex){+.+.}:
->>> [  552.368379]        lock_acquire+0x6c/0x88
->>> [  552.372364]        __mutex_lock+0x68/0xa34
->>> [  552.376437]        mutex_lock_interruptible_nested+0x1c/0x24
->>> [  552.382086]        s5p_mfc_mmap+0x28/0xd4 [s5p_mfc]
->>> [  552.386939]        v4l2_mmap+0x54/0x88 [videodev]
->>> [  552.391601]        mmap_region+0x3a8/0x638
->>> [  552.395673]        do_mmap+0x330/0x3a4
->>> [  552.399400]        vm_mmap_pgoff+0x90/0xb8
->>> [  552.403472]        SyS_mmap_pgoff+0x90/0xc0
->>> [  552.407632]        ret_fast_syscall+0x0/0x28
->>> [  552.411876]
->>>                other info that might help us debug this:
->>>
->>> [  552.419848] Chain exists of:
->>>                  &dev->mfc_mutex --> &type->i_mutex_dir_key#2 --> &mm->mmap_sem
->>>
->>> [  552.431200]  Possible unsafe locking scenario:
->>>
->>> [  552.437092]        CPU0                    CPU1
->>> [  552.441598]        ----                    ----
->>> [  552.446104]   lock(&mm->mmap_sem);
->>> [  552.449484]                                lock(&type->i_mutex_dir_key#2);
->>> [  552.456329]                                lock(&mm->mmap_sem);
->>> [  552.462222]   lock(&dev->mfc_mutex);
->>> [  552.465775]
->>>                 *** DEADLOCK ***
->>
->> I am not 100% but it looks like false positive. Could you describe
->> scenario when it deadlocks?
->>
->>>
->>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->>> ---
->>>  drivers/media/platform/s5p-mfc/s5p_mfc.c        | 4 ++++
->>>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 3 +++
->>>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   | 5 +++++
->>>  3 files changed, 12 insertions(+)
->>>
->>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->>> index 1afde50..4c253fb 100644
->>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
->>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->>> @@ -1315,6 +1315,10 @@ static int s5p_mfc_probe(struct platform_device *pdev)
->>>              goto err_dma;
->>>      }
->>>
->>> +    ret = s5p_mfc_load_firmware(dev);
->>> +    if (ret)
->>> +            mfc_err("Failed to load FW - try loading from open()\n");
->>> +
->>
->> What is the point of adding it? It will produce error log in case
->> filesystem is not yet mounted, and as I remember it was the reason to
->> put fw load to open callback.
->
-> "What is the point of adding it" does it mean the error message or the
-> attempt to load the firmware. Would it be okay to just try to load and
-> not print error if it fails? If it works at this stage, _open() doesn't
-> have to take time hit trying to load it.
->
-> thanks,
-> -- Shuah
->
+On Thu, Nov 16, 2017 at 01:30:52PM +0100, Giulio Benetti wrote:
+> > On Thu, Nov 16, 2017 at 11:37:30AM +0100, Giulio Benetti wrote:
+> > > Il 16/11/2017 11:31, Andreas Baierl ha scritto:
+> > > > Am 16.11.2017 um 11:13 schrieb Giulio Benetti:
+> > > > > Hello,
+> > > > >=20
+> > > > Hello,
+> > > > > I'm wondering why cedrus
+> > > > > https://github.com/FlorentRevest/linux-sunxi-cedrus has never been
+> > > > > merged with linux-sunxi sunxi-next.
+> > > > >=20
+> > > > Because it is not ready to be merged. It depends on the v4l2 request
+> > > > API, which was not merged and which is re-worked atm.
+> > > > Also, sunxi-cedrus itself is not in a finished state and is not as
+> > > > feature-complete to be merged. Anyway it might be something for
+> > > > staging... Has there been a [RFC] on the mailing list at all?
+> > >=20
+> > > Where can I find a list of TODOs to get it ready to be merged?
+> >=20
+> > Assuming that the request API is in, we'd need to:
+> >    - Finish the MPEG4 support
+> >    - Work on more useful codecs (H264 comes to my mind)
+> >    - Implement the DRM planes support for the custom frame format
+> >    - Implement the DRM planes support for scaling
+> >    - Test it on more SoCs
+> >=20
+> > Or something along those lines.
+>=20
+> Lot of work to do
+
+Well... If it was fast and easy it would have been done already :)
+
+> > > > > I see it seems to be dead, no commit in 1 year.
+> > > >=20
+> > > > Yes, because the author did this during an internship, which ended =
+=2E..
+> > > > Afaik nobody picked up his work yet.
+> >=20
+> > That's not entirely true. Some work has been done by Thomas (in CC),
+> > especially on the display engine side, but last time we talked his
+> > work was not really upstreamable.
+> >=20
+> > We will also resume that effort starting next march.
+>=20
+> Is it possible a preview on a separate Reporitory to start working on now?
+> Expecially to start porting everything done by FlorentRevest to mainline,
+> admitted you've not already done.
+
+I'm not sure what you're asking for. Florent's work *was* on mainline.
+
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--tf5l7i4srtoaupbd
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJaDYo2AAoJEBx+YmzsjxAgTusQAJWuy3WmddWpDU14I2f2He8z
+Lk1aYzZZP1/yupDqWm7rCwwQZfokFOuK/Z/NY9qzU+4ucCbO36XeTYL6D27V0Xy8
+v/Ww+hsk3F6iRPZV88CAvfKhSAa44Ns+9KFyFgGlLrADHgxf5eFK4aTsbwFoL+1B
+gOOmv+PqHftfRyS6up1quzvAlhlCzhk4KTTgvVsDXXlITrwQQYLpQSQ+iPJe6n2p
+5th9IrZ+ivy//mWNcldq4MGHlgxvj+d3i5GgLjayqspSqZp7g+ISTSprQpH8j/xf
+zg9ZsKlJkY0PYMiYkpwPveOVjf6gREQNRFOKDXpq+byCyxm1xO6qzm72yW0edyVm
+ShGuTY5qzvdcR/Irc5xwIhywXrh4pDG5d8/WtavAvzCf960aboCiwMMUNuRNGwq0
+wdtWUUuf+3NFpYJsmuDiqQrC87H6x7oCeMI+Qapxn0k6mUDw0AGDVcOdemVJrrXt
+bICRDq7VGJlaMvk0Q0CXkMi/13LTECWYkll78GdrmWE/+2Z9t82o+ZzOs3PFGcrj
+E3fOR1Q8x5nyDpt8/iHCcxXsYLeQ0WutpHW/EmKWYkagw81ai/Lofu8+N8AGm418
+wJOqIfVK258P1EpCo0JlluMVbLTTDOggg38LjeygHKI1caAL30i3dVBGkhfdBF3l
+JtsIkBtiymC0dfkiJy9T
+=jDRX
+-----END PGP SIGNATURE-----
+
+--tf5l7i4srtoaupbd--
