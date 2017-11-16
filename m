@@ -1,45 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:57545 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751115AbdKUNvL (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42604 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932594AbdKPAd4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Nov 2017 08:51:11 -0500
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] stb0899: remove redundant self assignment of k_indirect
-Date: Tue, 21 Nov 2017 13:51:10 +0000
-Message-Id: <20171121135110.16665-1-colin.king@canonical.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+        Wed, 15 Nov 2017 19:33:56 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH/RFC 2/2] v4l: rcar-vin: Wait for device access to complete before unplugging
+Date: Thu, 16 Nov 2017 02:33:49 +0200
+Message-Id: <20171116003349.19235-3-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+To avoid races between device access and unplug, call the
+video_device_unplug() function in the platform driver remove handler.
+This will unsure that all device access completes before the remove
+handler proceeds to free resources.
 
-The self assignment of k_indirect is redundant and can be removed.
-Detected using coccinelle.
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/dvb-frontends/stb0899_algo.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-core.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/dvb-frontends/stb0899_algo.c b/drivers/media/dvb-frontends/stb0899_algo.c
-index 3012f196e9bd..222ee51b90ef 100644
---- a/drivers/media/dvb-frontends/stb0899_algo.c
-+++ b/drivers/media/dvb-frontends/stb0899_algo.c
-@@ -925,8 +925,7 @@ static void stb0899_dvbs2_set_btr_loopbw(struct stb0899_state *state)
- 		wn = (4 * zeta * zeta) + 1000000;
- 		wn = (2 * (loopbw_percent * 1000) * 40 * zeta) /wn;  /*wn =wn 10^-8*/
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index bd7976efa1fb..c5210f1d09ed 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -1273,6 +1273,7 @@ static int rcar_vin_remove(struct platform_device *pdev)
  
--		k_indirect = (wn * wn) / K;
--		k_indirect = k_indirect;	  /*kindirect = kindirect 10^-6*/
-+		k_indirect = (wn * wn) / K;	/*kindirect = kindirect 10^-6*/
- 		k_direct   = (2 * wn * zeta) / K;	/*kDirect = kDirect 10^-2*/
- 		k_direct  *= 100;
+ 	pm_runtime_disable(&pdev->dev);
  
++	video_device_unplug(&vin->vdev);
+ 
+ 	if (!vin->info->use_mc) {
+ 		v4l2_async_notifier_unregister(&vin->notifier);
 -- 
-2.14.1
+Regards,
+
+Laurent Pinchart
