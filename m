@@ -1,73 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:30140 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751365AbdKTO4C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Nov 2017 09:56:02 -0500
-Date: Mon, 20 Nov 2017 16:55:57 +0200
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 10/10] video/hdmi: Pass buffer size to infoframe unpack
- functions
-Message-ID: <20171120145557.GX10981@intel.com>
-References: <20171113170427.4150-1-ville.syrjala@linux.intel.com>
- <20171113170427.4150-11-ville.syrjala@linux.intel.com>
- <7722c9f6-4bad-7698-da5d-41fe50974562@xs4all.nl>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:57299 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935243AbdKPPtM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Nov 2017 10:49:12 -0500
+Received: by mail-lf0-f66.google.com with SMTP id g35so16442452lfi.13
+        for <linux-media@vger.kernel.org>; Thu, 16 Nov 2017 07:49:11 -0800 (PST)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Thu, 16 Nov 2017 16:49:09 +0100
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH/RFC 2/2] v4l: rcar-vin: Wait for device access to
+ complete before unplugging
+Message-ID: <20171116154909.GO12677@bigcity.dyn.berto.se>
+References: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20171116003349.19235-3-laurent.pinchart+renesas@ideasonboard.com>
+ <20171116123624.swjichq5hcywaht4@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <7722c9f6-4bad-7698-da5d-41fe50974562@xs4all.nl>
+In-Reply-To: <20171116123624.swjichq5hcywaht4@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 20, 2017 at 02:36:20PM +0100, Hans Verkuil wrote:
-> On 11/13/2017 06:04 PM, Ville Syrjala wrote:
-> > From: Ville Syrjälä <ville.syrjala@linux.intel.com>
-<snip>
-> > @@ -1163,7 +1176,7 @@ static int hdmi_audio_infoframe_unpack(struct hdmi_audio_infoframe *frame,
-> >   */
-> >  static int
-> >  hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
-> > -				 const void *buffer)
-> > +				 const void *buffer, size_t size)
-> >  {
-> >  	const u8 *ptr = buffer;
-> >  	size_t length;
-> > @@ -1171,6 +1184,9 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
-> >  	u8 hdmi_video_format;
-> >  	struct hdmi_vendor_infoframe *hvf = &frame->hdmi;
+Hi Sakari,
+
+On 2017-11-16 14:36:24 +0200, Sakari Ailus wrote:
+> On Thu, Nov 16, 2017 at 02:33:49AM +0200, Laurent Pinchart wrote:
+> > To avoid races between device access and unplug, call the
+> > video_device_unplug() function in the platform driver remove handler.
+> > This will unsure that all device access completes before the remove
+> > handler proceeds to free resources.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> > ---
+> >  drivers/media/platform/rcar-vin/rcar-core.c | 1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> > index bd7976efa1fb..c5210f1d09ed 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> > @@ -1273,6 +1273,7 @@ static int rcar_vin_remove(struct platform_device *pdev)
 > >  
-> > +	if (size < HDMI_INFOFRAME_HEADER_SIZE)
-> > +		return -EINVAL;
-> > +
+> >  	pm_runtime_disable(&pdev->dev);
+> >  
+> > +	video_device_unplug(&vin->vdev);
 > 
-> This check is not needed since that is already done in hdmi_infoframe_unpack().
+> Does this depend on another patch?
 
-Hmm. True. Somehow I was expecting that this function would have been
-exported on its own, but it's static so clearly I was mistaken.
-
-The pack functions are individually exported, which is where I got
-this idea probably.
+I believe this patch is on top of the R-Car VIN Gen3 enablement series.
 
 > 
-> >  	if (ptr[0] != HDMI_INFOFRAME_TYPE_VENDOR ||
-> >  	    ptr[1] != 1 ||
-> >  	    (ptr[2] != 4 && ptr[2] != 5 && ptr[2] != 6))
-> > @@ -1178,6 +1194,9 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
 > >  
-> >  	length = ptr[2];
-> >  
-> > +	if (size < HDMI_INFOFRAME_HEADER_SIZE + length)
-> > +		return -EINVAL;
-> > +
-> >  	if (hdmi_infoframe_checksum(buffer,
-> >  				    HDMI_INFOFRAME_HEADER_SIZE + length) != 0)
-> >  		return -EINVAL;
+> >  	if (!vin->info->use_mc) {
+> >  		v4l2_async_notifier_unregister(&vin->notifier);
+> > -- 
+> > Regards,
+> > 
+> > Laurent Pinchart
+> > 
+> 
+> -- 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi
 
 -- 
-Ville Syrjälä
-Intel OTC
+Regards,
+Niklas Söderlund
