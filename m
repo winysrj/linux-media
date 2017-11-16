@@ -1,74 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:62305 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756405AbdKQNTS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 08:19:18 -0500
-Date: Fri, 17 Nov 2017 11:19:05 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [RFC v5 07/11] [media] vb2: add in-fence support to QBUF
-Message-ID: <20171117111905.5070bacd@vento.lan>
-In-Reply-To: <20171117130801.GH19033@jade>
-References: <20171115171057.17340-1-gustavo@padovan.org>
-        <20171115171057.17340-8-gustavo@padovan.org>
-        <422c5326-374b-487f-9ef1-594f239438f1@chromium.org>
-        <20171117110025.2a49db49@vento.lan>
-        <20171117130801.GH19033@jade>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:60720 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934990AbdKPNmQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Nov 2017 08:42:16 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v1 1/4] media: ov5640: switch to gpiod_set_value_cansleep()
+Date: Thu, 16 Nov 2017 14:41:39 +0100
+Message-ID: <1510839702-2454-2-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1510839702-2454-1-git-send-email-hugues.fruchet@st.com>
+References: <1510839702-2454-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 17 Nov 2017 11:08:01 -0200
-Gustavo Padovan <gustavo@padovan.org> escreveu:
+Switch gpiod_set_value to gpiod_set_value_cansleep to avoid
+warnings when powering sensor.
 
-> 2017-11-17 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
-> 
-> > Em Fri, 17 Nov 2017 15:49:23 +0900
-> > Alexandre Courbot <acourbot@chromium.org> escreveu:
-> >   
-> > > > @@ -178,6 +179,12 @@ static int vb2_queue_or_prepare_buf(struct 
-> > > > vb2_queue *q, struct v4l2_buffer *b,
-> > > >  		return -EINVAL;
-> > > >  	}
-> > > >  
-> > > > +	if ((b->fence_fd != 0 && b->fence_fd != -1) &&    
-> > > 
-> > > Why do we need to consider both values invalid? Can 0 ever be a valid fence 
-> > > fd?  
-> > 
-> > Programs that don't use fences will initialize reserved2/fence_fd field
-> > at the uAPI call to zero.
-> > 
-> > So, I guess using fd=0 here could be a problem. Anyway, I would, instead,
-> > do:
-> > 
-> > 	if ((b->fence_fd < 1) &&
-> > 		...
-> > 
-> > as other negative values are likely invalid as well.  
-> 
-> We are checking when the fence_fd is set but the flag wasn't. Checking
-> for < 1 is exactly the opposite. so we keep as is or do it fence_fd > 0.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov5640.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Ah, yes. Anyway, I would stick with:
-	if ((b->fence_fd > 0) &&
-		...
-
-> 
-> Gustavo
-
-
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index c89ed66..61071f5 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -1524,7 +1524,7 @@ static int ov5640_restore_mode(struct ov5640_dev *sensor)
+ 
+ static void ov5640_power(struct ov5640_dev *sensor, bool enable)
+ {
+-	gpiod_set_value(sensor->pwdn_gpio, enable ? 0 : 1);
++	gpiod_set_value_cansleep(sensor->pwdn_gpio, enable ? 0 : 1);
+ }
+ 
+ static void ov5640_reset(struct ov5640_dev *sensor)
+@@ -1532,7 +1532,7 @@ static void ov5640_reset(struct ov5640_dev *sensor)
+ 	if (!sensor->reset_gpio)
+ 		return;
+ 
+-	gpiod_set_value(sensor->reset_gpio, 0);
++	gpiod_set_value_cansleep(sensor->reset_gpio, 0);
+ 
+ 	/* camera power cycle */
+ 	ov5640_power(sensor, false);
+@@ -1540,10 +1540,10 @@ static void ov5640_reset(struct ov5640_dev *sensor)
+ 	ov5640_power(sensor, true);
+ 	usleep_range(5000, 10000);
+ 
+-	gpiod_set_value(sensor->reset_gpio, 1);
++	gpiod_set_value_cansleep(sensor->reset_gpio, 1);
+ 	usleep_range(1000, 2000);
+ 
+-	gpiod_set_value(sensor->reset_gpio, 0);
++	gpiod_set_value_cansleep(sensor->reset_gpio, 0);
+ 	usleep_range(5000, 10000);
+ }
+ 
 -- 
-Thanks,
-Mauro
+1.9.1
