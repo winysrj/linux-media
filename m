@@ -1,94 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:4231 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753801AbdKMREh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Nov 2017 12:04:37 -0500
-From: Ville Syrjala <ville.syrjala@linux.intel.com>
-To: dri-devel@lists.freedesktop.org
-Cc: intel-gfx@lists.freedesktop.org,
-        Akashdeep Sharma <akashdeep.sharma@intel.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Emil Velikov <emil.l.velikov@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Jim Bride <jim.bride@linux.intel.com>,
-        Jose Abreu <Jose.Abreu@synopsys.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Lin, Jia" <lin.a.jia@intel.com>, linux-media@vger.kernel.org,
-        Sean Paul <seanpaul@chromium.org>,
-        Shashank Sharma <shashank.sharma@intel.com>,
-        Thierry Reding <thierry.reding@gmail.com>
-Subject: [PATCH 00/10] drm/edid: Infoframe cleanups and fixes
-Date: Mon, 13 Nov 2017 19:04:17 +0200
-Message-Id: <20171113170427.4150-1-ville.syrjala@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42590 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932594AbdKPAdv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Nov 2017 19:33:51 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH/RFC 0/2] V4L2: Handle the race condition between device access and unbind
+Date: Thu, 16 Nov 2017 02:33:47 +0200
+Message-Id: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Hello,
 
-This series tries to fix some issues with HDMI infoframes. In particular
-we can currently send a bogus picture aspect ratio in the infoframe. I
-included stuff to to make the infoframe unpakc more robust, evne though
-we don't (yet) use it in drm. Additionally I included my earlier "empty"
-HDMI infoframe support.
+This small RFC is an attempt to handle the race condition that exists between
+device access and device unbind.
 
-I have further work piled up on top which allows us to precompuet the
-infoframes during the atomic check phase. But the series would have
-become rather big, so I wanted to post these fixes and cleanups first.
+Devices can be unbound from drivers in three different ways:
 
-Entire series (with the infoframe precompute) is available here:
-git://github.com/vsyrjala/linux.git infoframe_precompute
+- When the driver module is unloaded, the driver is unregistered and unbound
+  from all devices it was bound to. As module unloading can't happen as long
+  as the module reference count is not zero, no concurrent access to the
+  device from userspace access can be ongoing. This patch series isn't needed
+  to address this case.
 
-Cc: Akashdeep Sharma <akashdeep.sharma@intel.com>
-Cc: Andrzej Hajda <a.hajda@samsung.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Emil Velikov <emil.l.velikov@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Jim Bride <jim.bride@linux.intel.com>
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "Lin, Jia" <lin.a.jia@intel.com>
-Cc: linux-media@vger.kernel.org
-Cc: Sean Paul <seanpaul@chromium.org>
-Cc: Shashank Sharma <shashank.sharma@intel.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>
+- When the device is removed either physically (for instance with USB or
+  hotpluggable PCI) or logically (for instance by unloading a DT overlay), the
+  device is unbound from its driver.
 
-Ville Syrjälä (10):
-  video/hdmi: Allow "empty" HDMI infoframes
-  drm/edid: Allow HDMI infoframe without VIC or S3D
-  drm/modes: Introduce drm_mode_match()
-  drm/edid: Use drm_mode_match_no_clocks_no_stereo() for consistentcy
-  drm/edid: Fix up edid_cea_modes[] formatting
-  drm/edid: Fix cea mode aspect ratio handling
-  drm/edid: Don't send bogus aspect ratios in AVI infoframes
-  video/hdmi: Reject illegal picture aspect ratios
-  video/hdmi: Constify 'buffer' to the unpack functions
-  video/hdmi: Pass buffer size to infoframe unpack functions
+- When userspace initiates a manual unbind through the driver sysfs unbind
+  file the device is also unbound from its driver.
 
- drivers/gpu/drm/bridge/sil-sii8620.c      |   3 +-
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c |   4 +-
- drivers/gpu/drm/drm_edid.c                | 159 +++++++++++++++++++-----------
- drivers/gpu/drm/drm_modes.c               | 134 +++++++++++++++++++------
- drivers/gpu/drm/exynos/exynos_hdmi.c      |   2 +-
- drivers/gpu/drm/i915/intel_hdmi.c         |  14 +--
- drivers/gpu/drm/mediatek/mtk_hdmi.c       |   3 +-
- drivers/gpu/drm/nouveau/nv50_display.c    |   3 +-
- drivers/gpu/drm/rockchip/inno_hdmi.c      |   1 +
- drivers/gpu/drm/sti/sti_hdmi.c            |   4 +-
- drivers/gpu/drm/zte/zx_hdmi.c             |   1 +
- drivers/media/i2c/adv7511.c               |   2 +-
- drivers/media/i2c/adv7604.c               |   2 +-
- drivers/media/i2c/adv7842.c               |   2 +-
- drivers/media/i2c/tc358743.c              |   2 +-
- drivers/video/hdmi.c                      | 118 ++++++++++++++--------
- include/drm/drm_connector.h               |   5 +
- include/drm/drm_edid.h                    |   1 +
- include/drm/drm_modes.h                   |   9 ++
- include/linux/hdmi.h                      |   3 +-
- 20 files changed, 326 insertions(+), 146 deletions(-)
+The last two cases can occur at any time and are not synchronized with device
+access from userspace through video device nodes. This is the race that the
+patch series tries to address.
+
+Drivers need to ensure that no access to internal resources can occur before
+freeing those resources in the unbind handler. To do so, we need to both block
+all new accesses to device resources, and wait for all ongoing accesses to
+complete before freeing resources.
+
+This series achieves this by marking code sections that access device
+resources with the new video_device_enter() and video_device_exit() functions.
+The function internally keep a count of the number of such sections currently
+being executed in order to delay device unbind. Driver must call the
+video_device_unplug() function in their unbind handler before cleaning up any
+resource that can be accessed through the function marked with enter/exit. The
+video_device_unplug() function marks the device is being unbound, preventing
+subsequent calls to video_device_enter() from succeeding, and then waits for
+all device access code sections to be exited before returning.
+
+Several issues haven't been addressed yet, hence the RFC status of the series:
+
+- Only the video_device ioctl handler is currently protected by
+  video_device_enter() and video_device_exit(). This needs to be extended to
+  other file operations.
+
+- Blocking operations (such a VIDIOC_DQBUF for instance) need to be unblocked
+  at unbind time. Whether this can be handled entirely inside
+  video_device_unplug() needs to be researched.
+
+- While the above mechanism should be usable for subdevs too as the
+  v4l2_subdev structure contains a video_device structure, the subdev
+  .release() file operation handler subdev_close() accesses the v4l2_subdev
+  structure, which is currently freed by drivers at unbind time due to the
+  lack of a structure release operation in the v4l2_subdev structure. Fixing
+  this will likely require major refactoring of the subdev registration API,
+  which might not be considered worth it as the long term goal is to replace
+  subdev device nodes with the request API anyway.
+
+I would like to receive feedback on this initial version, and will then work
+on a second version that addresses at least the first two problems listed
+above.
+
+Laurent Pinchart (2):
+  v4l: v4l2-dev: Add infrastructure to protect device unplug race
+  v4l: rcar-vin: Wait for device access to complete before unplugging
+
+ drivers/media/platform/rcar-vin/rcar-core.c |  1 +
+ drivers/media/v4l2-core/v4l2-dev.c          | 57 +++++++++++++++++++++++++++++
+ include/media/v4l2-dev.h                    | 47 ++++++++++++++++++++++++
+ 3 files changed, 105 insertions(+)
 
 -- 
-2.13.6
+Regards,
+
+Laurent Pinchart
