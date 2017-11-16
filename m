@@ -1,58 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42567 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753083AbdKPA1p (ORCPT
+Received: from mail.micronovasrl.com ([212.103.203.10]:49196 "EHLO
+        mail.micronovasrl.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934994AbdKPNmZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 19:27:45 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] v4l: rcar-vin: Implement V4L2 video node release handler
-Date: Thu, 16 Nov 2017 02:27:53 +0200
-Message-ID: <2234965.HDk880jUUl@avalon>
-In-Reply-To: <20171115233433.GL12677@bigcity.dyn.berto.se>
-References: <20171115224907.392-1-laurent.pinchart+renesas@ideasonboard.com> <20171115233433.GL12677@bigcity.dyn.berto.se>
+        Thu, 16 Nov 2017 08:42:25 -0500
+Received: from mail.micronovasrl.com (mail.micronovasrl.com [127.0.0.1])
+        by mail.micronovasrl.com (Postfix) with ESMTP id C7EC4B012D4
+        for <linux-media@vger.kernel.org>; Thu, 16 Nov 2017 14:42:23 +0100 (CET)
+Received: from mail.micronovasrl.com ([127.0.0.1])
+        by mail.micronovasrl.com (mail.micronovasrl.com [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP id RCIN9w9sZNRf for <linux-media@vger.kernel.org>;
+        Thu, 16 Nov 2017 14:42:23 +0100 (CET)
+Subject: Re: [linux-sunxi] Cedrus driver
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Andreas Baierl <list@imkreisrum.de>,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        linux@armlinux.org.uk, wens@csie.org, linux-kernel@vger.kernel.org,
+        thomas@vitsch.nl, linux-media@vger.kernel.org
+References: <1510059543-7064-1-git-send-email-giulio.benetti@micronovasrl.com>
+ <1b12fa21-bfe6-9ba7-ae1d-8131ac6f4668@micronovasrl.com>
+ <6fcdc0d9-d0f8-785a-bb00-b1b41c684e59@imkreisrum.de>
+ <693e8786-af83-9d77-0fd4-50fa1f6a135f@micronovasrl.com>
+ <20171116110204.poakahqjz4sj7pmu@flea>
+ <5fcf64db-c654-37d0-5863-20379c04f99c@micronovasrl.com>
+ <20171116125310.yavjs7352nw2sm7r@flea>
+ <e03cfdb5-57b3-fefd-75c3-6b97348682ff@micronovasrl.com>
+ <6f94505d-69bb-6688-4b13-6a0ed2af8dd4@xs4all.nl>
+ <d0b7f6e5-8758-ac92-e6a2-9ed4ff3cbc63@micronovasrl.com>
+ <20171116133906.xsrpkdflgf34kkoy@flea>
+From: Giulio Benetti <giulio.benetti@micronovasrl.com>
+Message-ID: <b5c23ea7-4efa-1565-0c53-014c8a1ee37d@micronovasrl.com>
+Date: Thu, 16 Nov 2017 14:42:23 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <20171116133906.xsrpkdflgf34kkoy@flea>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Language: it
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hi,
 
-On Thursday, 16 November 2017 01:34:33 EET Niklas S=F6derlund wrote:
-> On 2017-11-16 00:49:07 +0200, Laurent Pinchart wrote:
-> > The rvin_dev data structure contains driver private data for an instance
-> > of the VIN. It is allocated dynamically at probe time, and must be freed
-> > once all users are gone.
-> >=20
-> > The structure is currently allocated with devm_kzalloc(), which results
-> > in memory being freed when the device is unbound. If a userspace
-> > application is currently performing an ioctl call, or just keeps the
-> > device node open and closes it later, this will lead to accessing freed
-> > memory.
-> >=20
-> > Fix the problem by implementing a V4L2 release handler for the video
-> > node associated with the VIN instance (called when the last user of the
-> > video node releases it), and freeing memory explicitly from the release
-> > handler.
-> >=20
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
->=20
-> Acked-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
->=20
-> This patch is based on-top of the VIN Gen3 enablement series not yet
-> upstream. This is OK for me, just wanted to check that this was the
-> intention as to minimize conflicts between the two.
+Il 16/11/2017 14:39, Maxime Ripard ha scritto:
+> On Thu, Nov 16, 2017 at 02:17:08PM +0100, Giulio Benetti wrote:
+>> Hi Hans,
+>>
+>> Il 16/11/2017 14:12, Hans Verkuil ha scritto:
+>>> On 16/11/17 13:57, Giulio Benetti wrote:
+>>>> Il 16/11/2017 13:53, Maxime Ripard ha scritto:
+>>>>> On Thu, Nov 16, 2017 at 01:30:52PM +0100, Giulio Benetti wrote:
+>>>>>>> On Thu, Nov 16, 2017 at 11:37:30AM +0100, Giulio Benetti wrote:
+>>>>>>>> Il 16/11/2017 11:31, Andreas Baierl ha scritto:
+>>>>>>>>> Am 16.11.2017 um 11:13 schrieb Giulio Benetti:
+>>>>>>>>>> Hello,
+>>>>>>>>>>
+>>>>>>>>> Hello,
+>>>>>>>>>> I'm wondering why cedrus
+>>>>>>>>>> https://github.com/FlorentRevest/linux-sunxi-cedrus has never been
+>>>>>>>>>> merged with linux-sunxi sunxi-next.
+>>>>>>>>>>
+>>>>>>>>> Because it is not ready to be merged. It depends on the v4l2 request
+>>>>>>>>> API, which was not merged and which is re-worked atm.
+>>>>>>>>> Also, sunxi-cedrus itself is not in a finished state and is not as
+>>>>>>>>> feature-complete to be merged. Anyway it might be something for
+>>>>>>>>> staging... Has there been a [RFC] on the mailing list at all?
+>>>>>>>>
+>>>>>>>> Where can I find a list of TODOs to get it ready to be merged?
+>>>>>>>
+>>>>>>> Assuming that the request API is in, we'd need to:
+>>>>>>>       - Finish the MPEG4 support
+>>>>>>>       - Work on more useful codecs (H264 comes to my mind)
+>>>>>>>       - Implement the DRM planes support for the custom frame format
+>>>>>>>       - Implement the DRM planes support for scaling
+>>>>>>>       - Test it on more SoCs
+>>>>>>>
+>>>>>>> Or something along those lines.
+>>>>>>
+>>>>>> Lot of work to do
+>>>>>
+>>>>> Well... If it was fast and easy it would have been done already :)
+>>>>
+>>>> :))
+>>>>
+>>>>>
+>>>>>>>>>> I see it seems to be dead, no commit in 1 year.
+>>>>>>>>>
+>>>>>>>>> Yes, because the author did this during an internship, which ended ...
+>>>>>>>>> Afaik nobody picked up his work yet.
+>>>>>>>
+>>>>>>> That's not entirely true. Some work has been done by Thomas (in CC),
+>>>>>>> especially on the display engine side, but last time we talked his
+>>>>>>> work was not really upstreamable.
+>>>>>>>
+>>>>>>> We will also resume that effort starting next march.
+>>>>>>
+>>>>>> Is it possible a preview on a separate Reporitory to start working on now?
+>>>>>> Expecially to start porting everything done by FlorentRevest to mainline,
+>>>>>> admitted you've not already done.
+>>>>>
+>>>>> I'm not sure what you're asking for. Florent's work *was* on mainline.
+>>>>
+>>>> and then they took it off because it was unmantained?
+>>>> You've spoken about Thomas(in CC) not ready,
+>>>> maybe I could help on that if it's public to accelerate.
+>>>> If I'm able to of course, this is my primary concern.
+>>>>
+>>>> Otherwise, in which way can I help improving it to make it accept to linux-sunxi?
+>>>> Starting from Florent's work and porting it to sunxi-next to begin?
+>>>> And after that adding all features you've listed?
+>>>> Tell me what I can do(I repeat, if I'm able to).
+>>>
+>>> The bottleneck is that the Request API is not mainlined. We restarted work
+>>> on it after a meeting a few weeks back where we all agreed on the roadmap
+>>> so hopefully it will go into mainline Q1 or Q2 next year.
+>>>
+>>> That said, you can use Florent's patch series for further development.
+>>> It should be relatively easy to convert it to the final version of the
+>>> Request API. Just note that the public API of the final Request API will
+>>> be somewhat different from the old version Florent's patch series is using.
+>>
+>> So I'm going to try soon to :
+>> 1) adapt that patchset to sunxi-next
+>> 2) add A20 support
+>> 3) add A33 support
+>> 4) after mainlined APIs, merge
+> 
+> That sounds good. Thomas already has the support for the A20, and as I
+> was saying, there is someone that is going to work full time on this
+> in a couple monthes on our side.
+> 
+> I'll set up a git repo on github so that we can collaborate until the
+> request API is ready.
 
-Yes, that's my intention. The patch should be included, or possibly squashe=
-d=20
-in, your development branch.
+Great!
+Write me when you've got news.
 
-=2D-=20
-Regards,
+Thank you very much!
 
-Laurent Pinchart
+> 
+> Maxime
+> 
+
+
+-- 
+Giulio Benetti
+R&D Manager &
+Advanced Research
+
+MICRONOVA SRL
+Sede: Via A. Niedda 3 - 35010 Vigonza (PD)
+Tel. 049/8931563 - Fax 049/8931346
+Cod.Fiscale - P.IVA 02663420285
+Capitale Sociale € 26.000 i.v.
+Iscritta al Reg. Imprese di Padova N. 02663420285
+Numero R.E.A. 258642
