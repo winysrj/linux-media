@@ -1,61 +1,381 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:43138 "EHLO
-        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751603AbdKYQyU (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51645 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966688AbdKPSTI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Nov 2017 11:54:20 -0500
-Received: by mail-wm0-f50.google.com with SMTP id x63so27051521wmf.2
-        for <linux-media@vger.kernel.org>; Sat, 25 Nov 2017 08:54:19 -0800 (PST)
-Subject: Re: dvbv5-scan: Missing NID, TID, and RID in VDR channel output
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <f65773a8-603a-ba10-b420-896efc70c26a@googlemail.com>
- <20171125090819.1a55e11a@vento.lan> <20171125095435.75c982f4@vento.lan>
-From: Gregor Jasny <gjasny@googlemail.com>
-Message-ID: <e7dfa685-e3f9-d0fe-5a33-5a994b7fea88@googlemail.com>
-Date: Sat, 25 Nov 2017 17:54:16 +0100
+        Thu, 16 Nov 2017 13:19:08 -0500
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH v2 7/8] v4l: vsp1: Move video configuration to a cached
+ dlb
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <f72d5230fa26bc11849e02950d1ad6e6e6f34130.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <1722443.jmMTHdodlH@avalon>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <9cc64f5d-3847-8724-4047-83894edc370a@ideasonboard.com>
+Date: Thu, 16 Nov 2017 18:19:03 +0000
 MIME-Version: 1.0
-In-Reply-To: <20171125095435.75c982f4@vento.lan>
+In-Reply-To: <1722443.jmMTHdodlH@avalon>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+Hi Laurent,
 
-On 11/25/17 12:54 PM, Mauro Carvalho Chehab wrote:
-> Em Sat, 25 Nov 2017 09:08:19 -0200
-> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
->> Em Wed, 22 Nov 2017 20:50:56 +0100
->> Gregor Jasny <gjasny@googlemail.com> escreveu:
->>>
->>> Mauro, do you think it would be possible to parse / output NID, TID, and
->>> RID from dvbv5_scan? It would greatly improve usability.  
->>
->> It is possible. Not sure how much efforts it would take. Could you please
->> send me, in priv, a capture of ~30-60 seconds of a recent DVB-T2 channel
->> in Germany with those fields, and the corresponding output from w_scan,
->> for all channels at the same frequency?
->>
->> I'll use it to test it with my RF generator here, and see if I can tweak
->> dvbv5-scan to produce the same output.
->>
->> The syntax to capture the full MPEG-TS is:
->>
->> 	$ dvbv5-zap -P -o channel.ts -t 60 scan_file.conf
+Thankyou for the review, and your patience on the long awaited response on these
+remaining patches.
 
-I captured all DVB-T2 frequencies I observed so far:
-https://drive.google.com/open?id=1As5Ek0iN0n9FgH7xU-HsrFIRBE0hGOWQ
-(that is in Germany / Saxony / Dresden)
-
-> Btw, it follows a quick hack that should output network and transport ID.
+On 17/08/17 19:10, Laurent Pinchart wrote:
+> Hi Kieran,
 > 
-> Please test. It should be noticed that it adds two new fields on a struct
-> that it is part of the API. I didn't care to check if this patch would break
-> userspace API.
+> Thank you for the patch.
+> 
+> On Monday 14 Aug 2017 16:13:30 Kieran Bingham wrote:
+>> We are now able to configure a pipeline directly into a local display
+>> list body. Take advantage of this fact, and create a cacheable body to
+>> store the configuration of the pipeline in the video object.
+>>
+>> vsp1_video_pipeline_run() is now the last user of the pipe->dl object.
+>> Convert this function to use the cached video->config body and obtain a
+>> local display list reference.
+>>
+>> Attach the video->config body to the display list when needed before
+>> committing to hardware.
+>>
+>> The pipe object is marked as un-configured when entering a suspend. This
+>> ensures that upon resume, where the hardware is reset - our cached
+>> configuration will be re-attached to the next committed DL.
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>> ---
+>>
+>> Our video DL usage now looks like the below output:
+>>
+>> dl->body0 contains our disposable runtime configuration. Max 41.
+>> dl_child->body0 is our partition specific configuration. Max 12.
+>> dl->fragments shows our constant configuration and LUTs.
+>>
+>>   These two are LUT/CLU:
+>>      * dl->fragments[x]->num_entries 256 / max 256
+>>      * dl->fragments[x]->num_entries 4914 / max 4914
+>>
+>> Which shows that our 'constant' configuration cache is currently
+>> utilised to a maximum of 64 entries.
+>>
+>> trace-cmd report | \
+>>     grep max | sed 's/.*vsp1_dl_list_commit://g' | sort | uniq;
+>>
+>>   dl->body0->num_entries 13 / max 128
+>>   dl->body0->num_entries 14 / max 128
+>>   dl->body0->num_entries 16 / max 128
+>>   dl->body0->num_entries 20 / max 128
+>>   dl->body0->num_entries 27 / max 128
+>>   dl->body0->num_entries 34 / max 128
+>>   dl->body0->num_entries 41 / max 128
+>>   dl_child->body0->num_entries 10 / max 128
+>>   dl_child->body0->num_entries 12 / max 128
+>>   dl->fragments[x]->num_entries 15 / max 128
+>>   dl->fragments[x]->num_entries 16 / max 128
+>>   dl->fragments[x]->num_entries 17 / max 128
+>>   dl->fragments[x]->num_entries 18 / max 128
+>>   dl->fragments[x]->num_entries 20 / max 128
+>>   dl->fragments[x]->num_entries 21 / max 128
+>>   dl->fragments[x]->num_entries 256 / max 256
+>>   dl->fragments[x]->num_entries 31 / max 128
+>>   dl->fragments[x]->num_entries 32 / max 128
+>>   dl->fragments[x]->num_entries 39 / max 128
+>>   dl->fragments[x]->num_entries 40 / max 128
+>>   dl->fragments[x]->num_entries 47 / max 128
+>>   dl->fragments[x]->num_entries 48 / max 128
+>>   dl->fragments[x]->num_entries 4914 / max 4914
+>>   dl->fragments[x]->num_entries 55 / max 128
+>>   dl->fragments[x]->num_entries 56 / max 128
+>>   dl->fragments[x]->num_entries 63 / max 128
+>>   dl->fragments[x]->num_entries 64 / max 128
+>> ---
+>>  drivers/media/platform/vsp1/vsp1_pipe.c  |  4 +-
+>>  drivers/media/platform/vsp1/vsp1_pipe.h  |  4 +-
+>>  drivers/media/platform/vsp1/vsp1_video.c | 67 ++++++++++++++++---------
+>>  drivers/media/platform/vsp1/vsp1_video.h |  2 +-
+>>  4 files changed, 51 insertions(+), 26 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c
+>> b/drivers/media/platform/vsp1/vsp1_pipe.c index 5012643583b6..7d1f7ba43060
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_pipe.c
+>> +++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+>> @@ -249,6 +249,7 @@ void vsp1_pipeline_run(struct vsp1_pipeline *pipe)
+>>  		vsp1_write(vsp1, VI6_CMD(pipe->output->entity.index),
+>>  			   VI6_CMD_STRCMD);
+>>  		pipe->state = VSP1_PIPELINE_RUNNING;
+>> +		pipe->configured = true;
+>>  	}
+>>
+>>  	pipe->buffers_ready = 0;
+>> @@ -430,6 +431,9 @@ void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
+>>  		spin_lock_irqsave(&pipe->irqlock, flags);
+>>  		if (pipe->state == VSP1_PIPELINE_RUNNING)
+>>  			pipe->state = VSP1_PIPELINE_STOPPING;
+>> +
+>> +		/* After a suspend, the hardware will be reset */
+>> +		pipe->configured = false;
+> 
+> It shouldn't make a difference in practice, but I think it would be more 
+> logical to set the configured field to false after the hardware has been 
+> reset. I'd move this to the resume handler and update the comment to "The 
+> hardware might have been reset during suspend and need a full 
+> reconfiguration". 
 
-That works like a charm! Thank you for writing it.
+Agreed, and Done.
 
-Thanks,
-Gregor
+
+> 
+>>  		spin_unlock_irqrestore(&pipe->irqlock, flags);
+>>  	}
+>>
+>> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h
+>> b/drivers/media/platform/vsp1/vsp1_pipe.h index 90d29492b9b9..e7ad6211b4d0
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
+>> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+>> @@ -90,6 +90,7 @@ struct vsp1_partition {
+>>   * @irqlock: protects the pipeline state
+>>   * @state: current state
+>>   * @wq: wait queue to wait for state change completion
+>> + * @configured: flag determining if the hardware has run since reset
+>>   * @frame_end: frame end interrupt handler
+>>   * @lock: protects the pipeline use count and stream count
+>>   * @kref: pipeline reference count
+>> @@ -117,6 +118,7 @@ struct vsp1_pipeline {
+>>  	spinlock_t irqlock;
+>>  	enum vsp1_pipeline_state state;
+>>  	wait_queue_head_t wq;
+>> +	bool configured;
+>>
+>>  	void (*frame_end)(struct vsp1_pipeline *pipe, bool completed);
+>>
+>> @@ -143,8 +145,6 @@ struct vsp1_pipeline {
+>>  	 */
+>>  	struct list_head entities;
+>>
+>> -	struct vsp1_dl_list *dl;
+>> -
+>>  	unsigned int partitions;
+>>  	struct vsp1_partition *partition;
+>>  	struct vsp1_partition *part_table;
+>> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+>> b/drivers/media/platform/vsp1/vsp1_video.c index 7e825f3360bf..42b70b8465ba
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_video.c
+>> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+>> @@ -394,37 +394,43 @@ static void vsp1_video_pipeline_run_partition(struct
+>> vsp1_pipeline *pipe, static void vsp1_video_pipeline_run(struct
+>> vsp1_pipeline *pipe)
+>>  {
+>>  	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+>> +	struct vsp1_video *video = pipe->output->video;
+>>  	unsigned int partition;
+>> +	struct vsp1_dl_list *dl;
+>> +
+>> +	dl = vsp1_dl_list_get(pipe->output->dlm);
+>>
+>> -	if (!pipe->dl)
+>> -		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+>> +	/* Attach our pipe configuration to fully initialise the hardware */
+>> +	if (!pipe->configured) {
+>> +		vsp1_dl_list_add_fragment(dl, video->pipe_config);
+>> +		pipe->configured = true;
+>> +	}
+>>
+>>  	/* Run the first partition */
+>> -	vsp1_video_pipeline_run_partition(pipe, pipe->dl, 0);
+>> +	vsp1_video_pipeline_run_partition(pipe, dl, 0);
+>>
+>>  	/* Process consecutive partitions as necessary */
+>>  	for (partition = 1; partition < pipe->partitions; ++partition) {
+>> -		struct vsp1_dl_list *dl;
+>> +		struct vsp1_dl_list *dl_child;
+> 
+> Is this really a child ? From a chaining point of view, it's more of a 
+> sibling. Maybe dl_next or dl_partition ?
+> 
+
+Updated to dl_next.
+
+>>
+>> -		dl = vsp1_dl_list_get(pipe->output->dlm);
+>> +		dl_child = vsp1_dl_list_get(pipe->output->dlm);
+>>
+>>  		/*
+>>  		 * An incomplete chain will still function, but output only
+>>  		 * the partitions that had a dl available. The frame end
+>>  		 * interrupt will be marked on the last dl in the chain.
+>>  		 */
+>> -		if (!dl) {
+>> +		if (!dl_child) {
+>>  			dev_err(vsp1->dev, "Failed to obtain a dl list. Frame
+>> will be incomplete\n");
+>>  			break;
+>>  		}
+>>
+>> -		vsp1_video_pipeline_run_partition(pipe, dl, partition);
+>> -		vsp1_dl_list_add_chain(pipe->dl, dl);
+>> +		vsp1_video_pipeline_run_partition(pipe, dl_child, partition);
+>> +		vsp1_dl_list_add_chain(dl, dl_child);
+>>  	}
+>>
+>>  	/* Complete, and commit the head display list. */
+>> -	vsp1_dl_list_commit(pipe->dl);
+>> -	pipe->dl = NULL;
+>> +	vsp1_dl_list_commit(dl);
+>>
+>>  	vsp1_pipeline_run(pipe);
+>>  }
+>> @@ -790,8 +796,8 @@ static void vsp1_video_buffer_queue(struct vb2_buffer
+>> *vb)
+>>
+>>  static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+>>  {
+>> +	struct vsp1_video *video = pipe->output->video;
+>>  	struct vsp1_entity *entity;
+>> -	struct vsp1_dl_body *dlb;
+>>  	int ret;
+>>
+>>  	/* Determine this pipelines sizes for image partitioning support. */
+>> @@ -799,14 +805,6 @@ static int vsp1_video_setup_pipeline(struct
+>> vsp1_pipeline *pipe)
+>>  	if (ret < 0)
+>>  		return ret;
+>>
+>> -	/* Prepare the display list. */
+>> -	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+>> -	if (!pipe->dl)
+>> -		return -ENOMEM;
+>> -
+>> -	/* Retrieve the default DLB from the list */
+>> -	dlb = vsp1_dl_list_get_body(pipe->dl);
+>> -
+>>  	if (pipe->uds) {
+>>  		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
+>>
+>> @@ -828,11 +826,20 @@ static int vsp1_video_setup_pipeline(struct
+>> vsp1_pipeline *pipe) }
+>>  	}
+>>
+>> +	/* Obtain a clean body from our pool */
+>> +	video->pipe_config = vsp1_dl_fragment_get(video->dlbs);
+>> +	if (!video->pipe_config)
+>> +		return -ENOMEM;
+> 
+> Is there a reason to store the pipe configuration in the video object instead 
+> of the pipeline object ?
+
+At the moment, yes,
+
+If this is allocated as part of the pipe, then the vsp1_pipeline_init() changes
+from a function that simply initialises the existing structures, to a function
+that can fail to allocate. I didn't want this to be that invasive.
+
+Also - the pipe_configuration cache is local only to the vsp1_video object - not
+the vsp1_drm object.
+
+If you'd prefer this to be allocated as part of the pipe object I can update
+this, however it then means that we are allocating these bodies for the DRM use
+case as well.
+
+
+>> +	/* Configure the entities into our cached pipe configuration */
+>>  	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+>> -		vsp1_entity_route_setup(entity, pipe, dlb);
+>> -		vsp1_entity_prepare(entity, pipe, dlb);
+>> +		vsp1_entity_route_setup(entity, pipe, video->pipe_config);
+>> +		vsp1_entity_prepare(entity, pipe, video->pipe_config);
+>>  	}
+>>
+>> +	/* Ensure that our cached configuration is updated in the next DL */
+>> +	pipe->configured = false;
+> 
+> I'm tempted to move this at pipeline stop time (either to 
+> vsp1_video_stop_streaming() right after the vsp1_pipeline_stop() call, or in 
+> vsp1_pipeline_stop() itself), possibly with a WARN_ON() here to catch bugs in 
+> the driver.
+
+Do you mean just setting the flag? or the pipe_configuration? This is a setup
+task - not a stop task ... ? We are doing this as part of
+vsp1_video_start_streaming().
+
+IMO, The flag should only be updated after the configuration has been updated to
+signal that the new configuration should be written out to the hardware.
+
+Unless you mean to mark the pipe->configured = false; at vsp1_pipeline_stop()
+time because we reset the pipe to halt it ?
+
+> 
+>>  	return 0;
+>>  }
+>>
+>> @@ -842,6 +849,9 @@ static void vsp1_video_cleanup_pipeline(struct
+>> vsp1_pipeline *pipe) struct vsp1_vb2_buffer *buffer;
+>>  	unsigned long flags;
+>>
+>> +	/* Release any cached configuration */
+>> +	vsp1_dl_fragment_put(video->pipe_config);
+>> +
+>>  	/* Remove all buffers from the IRQ queue. */
+>>  	spin_lock_irqsave(&video->irqlock, flags);
+>>  	list_for_each_entry(buffer, &video->irqqueue, queue)
+>> @@ -918,9 +928,6 @@ static void vsp1_video_stop_streaming(struct vb2_queue
+>> *vq) ret = vsp1_pipeline_stop(pipe);
+>>  		if (ret == -ETIMEDOUT)
+>>  			dev_err(video->vsp1->dev, "pipeline stop timeout\n");
+>> -
+>> -		vsp1_dl_list_put(pipe->dl);
+>> -		pipe->dl = NULL;
+>>  	}
+>>  	mutex_unlock(&pipe->lock);
+>>
+>> @@ -1240,6 +1247,16 @@ struct vsp1_video *vsp1_video_create(struct
+>> vsp1_device *vsp1, goto error;
+>>  	}
+>>
+>> +	/*
+>> +	 * Create a fragment pool to cache the constant configuration of the
+>> +	 * pipeline object
+>> +	 */
+>> +	video->dlbs = vsp1_dl_fragment_pool_alloc(vsp1, 2, 128, 0);
+>> +	if (!video->dlbs) {
+>> +		ret = -ENOMEM;
+>> +		goto error;
+>> +	}
+>> +
+>>  	return video;
+>>
+>>  error:
+>> @@ -1249,6 +1266,8 @@ struct vsp1_video *vsp1_video_create(struct
+>> vsp1_device *vsp1,
+>>
+>>  void vsp1_video_cleanup(struct vsp1_video *video)
+>>  {
+>> +	vsp1_dl_fragment_pool_free(video->dlbs);
+>> +
+>>  	if (video_is_registered(&video->video))
+>>  		video_unregister_device(&video->video);
+>>
+>> diff --git a/drivers/media/platform/vsp1/vsp1_video.h
+>> b/drivers/media/platform/vsp1/vsp1_video.h index 50ea7f02205f..2499d3d792b4
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_video.h
+>> +++ b/drivers/media/platform/vsp1/vsp1_video.h
+>> @@ -43,6 +43,8 @@ struct vsp1_video {
+>>
+>>  	struct mutex lock;
+>>
+>> +	struct vsp1_dl_fragment_pool *dlbs;
+>> +	struct vsp1_dl_body *pipe_config;
+>>  	unsigned int pipe_index;
+>>
+>>  	struct vb2_queue queue;
+> 
