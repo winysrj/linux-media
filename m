@@ -1,54 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33620 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60102 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753838AbdK2J1B (ORCPT
+        by vger.kernel.org with ESMTP id S934509AbdKPMg1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 04:27:01 -0500
-Date: Wed, 29 Nov 2017 11:26:59 +0200
+        Thu, 16 Nov 2017 07:36:27 -0500
+Date: Thu, 16 Nov 2017 14:36:24 +0200
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Jeremy Sowden <jeremy@azazel.net>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH 2/3] media: staging: atomisp: defined as static some
- const arrays which don't need external linkage.
-Message-ID: <20171129092659.n2r2zpkeattjntxc@valkosipuli.retiisi.org.uk>
-References: <20171127113054.27657-1-jeremy@azazel.net>
- <20171127113054.27657-3-jeremy@azazel.net>
- <20171127122125.GB8561@kroah.com>
- <20171129090817.3u7bfxa3dapue44t@valkosipuli.retiisi.org.uk>
- <20171129091506.GB4414@kroah.com>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH/RFC 2/2] v4l: rcar-vin: Wait for device access to
+ complete before unplugging
+Message-ID: <20171116123624.swjichq5hcywaht4@valkosipuli.retiisi.org.uk>
+References: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20171116003349.19235-3-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20171129091506.GB4414@kroah.com>
+In-Reply-To: <20171116003349.19235-3-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 29, 2017 at 10:15:06AM +0100, Greg KH wrote:
-> On Wed, Nov 29, 2017 at 11:08:17AM +0200, Sakari Ailus wrote:
-> > Hi Greg,
-> > 
-> > On Mon, Nov 27, 2017 at 01:21:25PM +0100, Greg KH wrote:
-> > > On Mon, Nov 27, 2017 at 11:30:53AM +0000, Jeremy Sowden wrote:
-> > > > Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
-> > > > ---
-> > > >  .../isp/kernels/eed1_8/ia_css_eed1_8.host.c        | 24 +++++++++++-----------
-> > > >  1 file changed, 12 insertions(+), 12 deletions(-)
-> > > 
-> > > I can never take patches without any changelog text, and so no one
-> > > should write them that way :)
-> > 
-> > I've been applying the atomisp patches to my tree for some time now,
-> > further on passing them to Mauro to be merged via the media tree. To avoid
-> > conflicts, I suggest to avoid merging them via the staging tree.
+On Thu, Nov 16, 2017 at 02:33:49AM +0200, Laurent Pinchart wrote:
+> To avoid races between device access and unplug, call the
+> video_device_unplug() function in the platform driver remove handler.
+> This will unsure that all device access completes before the remove
+> handler proceeds to free resources.
 > 
-> I'm not touching any of these patches, just commenting that patches
-> without changelogs should not be written :)
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index bd7976efa1fb..c5210f1d09ed 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -1273,6 +1273,7 @@ static int rcar_vin_remove(struct platform_device *pdev)
+>  
+>  	pm_runtime_disable(&pdev->dev);
+>  
+> +	video_device_unplug(&vin->vdev);
 
-Ack, just wanted to avoid potential mege conflicts. Thanks.
+Does this depend on another patch?
+
+>  
+>  	if (!vin->info->use_mc) {
+>  		v4l2_async_notifier_unregister(&vin->notifier);
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
 -- 
-Kind regards,
-
 Sakari Ailus
 e-mail: sakari.ailus@iki.fi
