@@ -1,150 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:33931 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752218AbdK1Jxu (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:18003 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932599AbdKPNmT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 04:53:50 -0500
-Date: Tue, 28 Nov 2017 10:53:47 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Riccardo Schirone <sirmy15@gmail.com>
-Cc: alan@linux.intel.com, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/4] staging: add missing blank line after declarations
- in atomisp-ov5693
-Message-ID: <20171128095347.GE675@w540>
-References: <20171127214413.10749-1-sirmy15@gmail.com>
- <20171127214413.10749-2-sirmy15@gmail.com>
+        Thu, 16 Nov 2017 08:42:19 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v1 4/4] media: ov5640: add support of RGB565 and YUYV formats
+Date: Thu, 16 Nov 2017 14:41:42 +0100
+Message-ID: <1510839702-2454-5-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1510839702-2454-1-git-send-email-hugues.fruchet@st.com>
+References: <1510839702-2454-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20171127214413.10749-2-sirmy15@gmail.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Riccardo,
+Add RGB565 (LE & BE) and YUV422 YUYV format in addition
+to existing YUV422 UYVY format.
 
-On Mon, Nov 27, 2017 at 10:44:10PM +0100, Riccardo Schirone wrote:
-> Signed-off-by: Riccardo Schirone <sirmy15@gmail.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov5640.c | 79 +++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 71 insertions(+), 8 deletions(-)
 
-No patch can be accepted without a commit message. I know subject is
-self-explanatory here, but please add some lines eg. reporting
-checkpatch warnings.
-
-Thanks
-   j
-
-> ---
->  drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c | 13 +++++++++++++
->  1 file changed, 13 insertions(+)
->
-> diff --git a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
-> index 3e7c3851280f..387c65be10f4 100644
-> --- a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
-> +++ b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
-> @@ -82,6 +82,7 @@ static int ad5823_i2c_write(struct i2c_client *client, u8 reg, u8 val)
->  {
->  	struct i2c_msg msg;
->  	u8 buf[2];
-> +
->  	buf[0] = reg;
->  	buf[1] = val;
->  	msg.addr = AD5823_VCM_ADDR;
-> @@ -98,6 +99,7 @@ static int ad5823_i2c_read(struct i2c_client *client, u8 reg, u8 *val)
->  {
->  	struct i2c_msg msg[2];
->  	u8 buf[2];
-> +
->  	buf[0] = reg;
->  	buf[1] = 0;
->
-> @@ -228,6 +230,7 @@ static int vcm_detect(struct i2c_client *client)
->  	int i, ret;
->  	struct i2c_msg msg;
->  	u16 data0 = 0, data;
-> +
->  	for (i = 0; i < 4; i++) {
->  		msg.addr = VCM_ADDR;
->  		msg.flags = I2C_M_RD;
-> @@ -690,6 +693,7 @@ static long ov5693_s_exposure(struct v4l2_subdev *sd,
->  	/* we should not accept the invalid value below */
->  	if (analog_gain == 0) {
->  		struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +
->  		v4l2_err(client, "%s: invalid value\n", __func__);
->  		return -EINVAL;
->  	}
-> @@ -722,6 +726,7 @@ static int __ov5693_otp_read(struct v4l2_subdev *sd, u8 *buf)
->  	int ret;
->  	int i;
->  	u8 *b = buf;
-> +
->  	dev->otp_size = 0;
->  	for (i = 1; i < OV5693_OTP_BANK_MAX; i++) {
->  		/*set bank NO and OTP read mode. */
-> @@ -984,6 +989,7 @@ static int ov5693_t_focus_abs(struct v4l2_subdev *sd, s32 value)
->  static int ov5693_t_focus_rel(struct v4l2_subdev *sd, s32 value)
->  {
->  	struct ov5693_device *dev = to_ov5693_sensor(sd);
-> +
->  	return ov5693_t_focus_abs(sd, dev->focus + value);
->  }
->
-> @@ -1033,6 +1039,7 @@ static int ov5693_q_focus_abs(struct v4l2_subdev *sd, s32 *value)
->  static int ov5693_t_vcm_slew(struct v4l2_subdev *sd, s32 value)
->  {
->  	struct ov5693_device *dev = to_ov5693_sensor(sd);
-> +
->  	dev->number_of_steps = value;
->  	dev->vcm_update = true;
->  	return 0;
-> @@ -1041,6 +1048,7 @@ static int ov5693_t_vcm_slew(struct v4l2_subdev *sd, s32 value)
->  static int ov5693_t_vcm_timing(struct v4l2_subdev *sd, s32 value)
->  {
->  	struct ov5693_device *dev = to_ov5693_sensor(sd);
-> +
->  	dev->number_of_steps = value;
->  	dev->vcm_update = true;
->  	return 0;
-> @@ -1563,6 +1571,7 @@ static int ov5693_set_fmt(struct v4l2_subdev *sd,
->  	struct camera_mipi_info *ov5693_info = NULL;
->  	int ret = 0;
->  	int idx;
-> +
->  	if (format->pad)
->  		return -EINVAL;
->  	if (!fmt)
-> @@ -1599,6 +1608,7 @@ static int ov5693_set_fmt(struct v4l2_subdev *sd,
->  	ret = startup(sd);
->  	if (ret) {
->  		int i = 0;
-> +
->  		dev_err(&client->dev, "ov5693 startup err, retry to power up\n");
->  		for (i = 0; i < OV5693_POWER_UP_RETRY_NUM; i++) {
->  			dev_err(&client->dev,
-> @@ -1655,6 +1665,7 @@ static int ov5693_get_fmt(struct v4l2_subdev *sd,
->  {
->  	struct v4l2_mbus_framefmt *fmt = &format->format;
->  	struct ov5693_device *dev = to_ov5693_sensor(sd);
-> +
->  	if (format->pad)
->  		return -EINVAL;
->
-> @@ -1818,6 +1829,7 @@ static int ov5693_s_parm(struct v4l2_subdev *sd,
->  			struct v4l2_streamparm *param)
->  {
->  	struct ov5693_device *dev = to_ov5693_sensor(sd);
-> +
->  	dev->run_mode = param->parm.capture.capturemode;
->
->  	mutex_lock(&dev->input_lock);
-> @@ -1907,6 +1919,7 @@ static int ov5693_remove(struct i2c_client *client)
->  {
->  	struct v4l2_subdev *sd = i2c_get_clientdata(client);
->  	struct ov5693_device *dev = to_ov5693_sensor(sd);
-> +
->  	dev_dbg(&client->dev, "ov5693_remove...\n");
->
->  	dev->platform_data->csi_cfg(sd, 0);
-> --
-> 2.14.3
->
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index fb519ad..086a451 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -77,8 +77,10 @@
+ #define OV5640_REG_HZ5060_CTRL01	0x3c01
+ #define OV5640_REG_SIGMADELTA_CTRL0C	0x3c0c
+ #define OV5640_REG_FRAME_CTRL01		0x4202
++#define OV5640_REG_FORMAT_CONTROL00	0x4300
+ #define OV5640_REG_MIPI_CTRL00		0x4800
+ #define OV5640_REG_DEBUG_MODE		0x4814
++#define OV5640_REG_ISP_FORMAT_MUX_CTRL	0x501f
+ #define OV5640_REG_PRE_ISP_TEST_SET1	0x503d
+ #define OV5640_REG_SDE_CTRL0		0x5580
+ #define OV5640_REG_SDE_CTRL1		0x5581
+@@ -106,6 +108,18 @@ enum ov5640_frame_rate {
+ 	OV5640_NUM_FRAMERATES,
+ };
+ 
++struct ov5640_pixfmt {
++	u32 code;
++	u32 colorspace;
++};
++
++static const struct ov5640_pixfmt ov5640_formats[] = {
++	{ MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_SRGB, },
++	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_SRGB, },
++	{ MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB, },
++	{ MEDIA_BUS_FMT_RGB565_2X8_BE, V4L2_COLORSPACE_SRGB, },
++};
++
+ /*
+  * FIXME: remove this when a subdev API becomes available
+  * to set the MIPI CSI-2 virtual channel.
+@@ -1798,17 +1812,23 @@ static int ov5640_try_fmt_internal(struct v4l2_subdev *sd,
+ {
+ 	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+ 	const struct ov5640_mode_info *mode;
++	int i;
+ 
+ 	mode = ov5640_find_mode(sensor, fr, fmt->width, fmt->height, true);
+ 	if (!mode)
+ 		return -EINVAL;
+-
+ 	fmt->width = mode->width;
+ 	fmt->height = mode->height;
+-	fmt->code = sensor->fmt.code;
+ 
+ 	if (new_mode)
+ 		*new_mode = mode;
++
++	for (i = 0; i < ARRAY_SIZE(ov5640_formats); i++)
++		if (ov5640_formats[i].code == fmt->code)
++			break;
++	if (i >= ARRAY_SIZE(ov5640_formats))
++		fmt->code = ov5640_formats[0].code;
++
+ 	return 0;
+ }
+ 
+@@ -1851,6 +1871,49 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
++static int ov5640_set_framefmt(struct ov5640_dev *sensor,
++			       struct v4l2_mbus_framefmt *format)
++{
++	int ret = 0;
++	bool is_rgb = false;
++	u8 val;
++
++	switch (format->code) {
++	case MEDIA_BUS_FMT_UYVY8_2X8:
++		/* YUV422, UYVY */
++		val = 0x3f;
++		break;
++	case MEDIA_BUS_FMT_YUYV8_2X8:
++		/* YUV422, YUYV */
++		val = 0x30;
++		break;
++	case MEDIA_BUS_FMT_RGB565_2X8_LE:
++		/* RGB565 {g[2:0],b[4:0]},{r[4:0],g[5:3]} */
++		val = 0x6F;
++		is_rgb = true;
++		break;
++	case MEDIA_BUS_FMT_RGB565_2X8_BE:
++		/* RGB565 {r[4:0],g[5:3]},{g[2:0],b[4:0]} */
++		val = 0x61;
++		is_rgb = true;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	/* FORMAT CONTROL00: YUV and RGB formatting */
++	ret = ov5640_write_reg(sensor, OV5640_REG_FORMAT_CONTROL00, val);
++	if (ret)
++		return ret;
++
++	/* FORMAT MUX CONTROL: ISP YUV or RGB */
++	ret = ov5640_write_reg(sensor, OV5640_REG_ISP_FORMAT_MUX_CTRL,
++			       is_rgb ? 0x01 : 0x00);
++	if (ret)
++		return ret;
++
++	return ret;
++}
+ 
+ /*
+  * Sensor Controls.
+@@ -2236,15 +2299,12 @@ static int ov5640_enum_mbus_code(struct v4l2_subdev *sd,
+ 				  struct v4l2_subdev_pad_config *cfg,
+ 				  struct v4l2_subdev_mbus_code_enum *code)
+ {
+-	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+-
+ 	if (code->pad != 0)
+ 		return -EINVAL;
+-	if (code->index != 0)
++	if (code->index >= ARRAY_SIZE(ov5640_formats))
+ 		return -EINVAL;
+ 
+-	code->code = sensor->fmt.code;
+-
++	code->code = ov5640_formats[code->index].code;
+ 	return 0;
+ }
+ 
+@@ -2254,12 +2314,15 @@ static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
+ 	int ret = 0;
+ 
+ 	mutex_lock(&sensor->lock);
+-
+ 	if (sensor->streaming == !enable) {
+ 		if (enable && sensor->pending_mode_change) {
+ 			ret = ov5640_set_mode(sensor, sensor->current_mode);
+ 			if (ret)
+ 				goto out;
++
++			ret = ov5640_set_framefmt(sensor, &sensor->fmt);
++			if (ret)
++				goto out;
+ 		}
+ 
+ 		if (sensor->ep.bus_type == V4L2_MBUS_CSI2)
+-- 
+1.9.1
