@@ -1,160 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:39237 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750725AbdKEMgl (ORCPT
+Received: from mail-ot0-f194.google.com ([74.125.82.194]:56757 "EHLO
+        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759344AbdKPLiV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 5 Nov 2017 07:36:41 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cec: add the adap_monitor_pin_enable op
-Message-ID: <b3b358ca-df79-a363-69b9-0e5e0b718447@xs4all.nl>
-Date: Sun, 5 Nov 2017 13:36:36 +0100
+        Thu, 16 Nov 2017 06:38:21 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1510829480-24760-1-git-send-email-geert@linux-m68k.org>
+References: <1510829480-24760-1-git-send-email-geert@linux-m68k.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 16 Nov 2017 12:38:20 +0100
+Message-ID: <CAK8P3a0suV4at56Uu6N9Y8urumUnqLw8ZRuLAqp9FOK_OvJw7A@mail.gmail.com>
+Subject: Re: [PATCH] media: dvb_frontend: Fix uninitialized error in dvb_frontend_handle_ioctl()
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some devices can monitor the CEC pin using an interrupt, but you
-only want to enable the interrupt if you actually switch to pin
-monitoring mode.
+On Thu, Nov 16, 2017 at 11:51 AM, Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+> With gcc-4.1.2:
+>
+>     drivers/media/dvb-core/dvb_frontend.c: In function =E2=80=98dvb_front=
+end_handle_ioctl=E2=80=99:
+>     drivers/media/dvb-core/dvb_frontend.c:2110: warning: =E2=80=98err=E2=
+=80=99 may be used uninitialized in this function
+>
+> Indeed, there are 13 cases where err is used initialized if one of the
+> dvb_frontend_ops is not implemented.
+>
+> Preinitialize err to -EOPNOTSUPP like before to fix this.
+>
+> Fixes: d73dcf0cdb95a47f ("media: dvb_frontend: cleanup ioctl handling log=
+ic")
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-So add a new op that is called when pin monitoring needs to be
-switched on or off.
+Good catch!
 
-Also fix a small bug where the initial CEC pin event was sent
-again when calling S_MODE twice with the same CEC_MODE_MONITOR_PIN
-mode.
+This one shows up on x86 allmdoconfig with gcc-4.5 or older but not gcc-4.6=
+.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
----
- drivers/media/cec/cec-adap.c | 23 +++++++++++++++++++++++
- drivers/media/cec/cec-api.c  | 21 ++++++++++++++++-----
- drivers/media/cec/cec-priv.h |  2 ++
- include/media/cec.h          |  1 +
- 4 files changed, 42 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index 98f88c43f62c..9219dc96d575 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -2053,6 +2053,29 @@ void cec_monitor_all_cnt_dec(struct cec_adapter *adap)
- 		WARN_ON(call_op(adap, adap_monitor_all_enable, 0));
- }
-
-+/*
-+ * Helper functions to keep track of the 'monitor pin' use count.
-+ *
-+ * These functions are called with adap->lock held.
-+ */
-+int cec_monitor_pin_cnt_inc(struct cec_adapter *adap)
-+{
-+	int ret = 0;
-+
-+	if (adap->monitor_pin_cnt == 0)
-+		ret = call_op(adap, adap_monitor_pin_enable, 1);
-+	if (ret == 0)
-+		adap->monitor_pin_cnt++;
-+	return ret;
-+}
-+
-+void cec_monitor_pin_cnt_dec(struct cec_adapter *adap)
-+{
-+	adap->monitor_pin_cnt--;
-+	if (adap->monitor_pin_cnt == 0)
-+		WARN_ON(call_op(adap, adap_monitor_pin_enable, 0));
-+}
-+
- #ifdef CONFIG_DEBUG_FS
- /*
-  * Log the current state of the CEC adapter.
-diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
-index 3dba3aa34a43..3eb4a069cde8 100644
---- a/drivers/media/cec/cec-api.c
-+++ b/drivers/media/cec/cec-api.c
-@@ -354,6 +354,7 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
- 	u32 mode;
- 	u8 mode_initiator;
- 	u8 mode_follower;
-+	bool send_pin_event = false;
- 	long err = 0;
-
- 	if (copy_from_user(&mode, parg, sizeof(mode)))
-@@ -433,6 +434,19 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
- 		}
- 	}
-
-+	if (!err) {
-+		bool old_mon_pin = fh->mode_follower == CEC_MODE_MONITOR_PIN;
-+		bool new_mon_pin = mode_follower == CEC_MODE_MONITOR_PIN;
-+
-+		if (old_mon_pin != new_mon_pin) {
-+			send_pin_event = new_mon_pin;
-+			if (new_mon_pin)
-+				err = cec_monitor_pin_cnt_inc(adap);
-+			else
-+				cec_monitor_pin_cnt_dec(adap);
-+		}
-+	}
-+
- 	if (err) {
- 		mutex_unlock(&adap->lock);
- 		return err;
-@@ -440,11 +454,9 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
-
- 	if (fh->mode_follower == CEC_MODE_FOLLOWER)
- 		adap->follower_cnt--;
--	if (fh->mode_follower == CEC_MODE_MONITOR_PIN)
--		adap->monitor_pin_cnt--;
- 	if (mode_follower == CEC_MODE_FOLLOWER)
- 		adap->follower_cnt++;
--	if (mode_follower == CEC_MODE_MONITOR_PIN) {
-+	if (send_pin_event) {
- 		struct cec_event ev = {
- 			.flags = CEC_EVENT_FL_INITIAL_STATE,
- 		};
-@@ -452,7 +464,6 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
- 		ev.event = adap->cec_pin_is_high ? CEC_EVENT_PIN_CEC_HIGH :
- 						   CEC_EVENT_PIN_CEC_LOW;
- 		cec_queue_event_fh(fh, &ev, 0);
--		adap->monitor_pin_cnt++;
- 	}
- 	if (mode_follower == CEC_MODE_EXCL_FOLLOWER ||
- 	    mode_follower == CEC_MODE_EXCL_FOLLOWER_PASSTHRU) {
-@@ -608,7 +619,7 @@ static int cec_release(struct inode *inode, struct file *filp)
- 	if (fh->mode_follower == CEC_MODE_FOLLOWER)
- 		adap->follower_cnt--;
- 	if (fh->mode_follower == CEC_MODE_MONITOR_PIN)
--		adap->monitor_pin_cnt--;
-+		cec_monitor_pin_cnt_dec(adap);
- 	if (fh->mode_follower == CEC_MODE_MONITOR_ALL)
- 		cec_monitor_all_cnt_dec(adap);
- 	mutex_unlock(&adap->lock);
-diff --git a/drivers/media/cec/cec-priv.h b/drivers/media/cec/cec-priv.h
-index 70767a7900f2..daf597643af8 100644
---- a/drivers/media/cec/cec-priv.h
-+++ b/drivers/media/cec/cec-priv.h
-@@ -40,6 +40,8 @@ void cec_put_device(struct cec_devnode *devnode);
- /* cec-adap.c */
- int cec_monitor_all_cnt_inc(struct cec_adapter *adap);
- void cec_monitor_all_cnt_dec(struct cec_adapter *adap);
-+int cec_monitor_pin_cnt_inc(struct cec_adapter *adap);
-+void cec_monitor_pin_cnt_dec(struct cec_adapter *adap);
- int cec_adap_status(struct seq_file *file, void *priv);
- int cec_thread_func(void *_adap);
- void __cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block);
-diff --git a/include/media/cec.h b/include/media/cec.h
-index 16341210d3ba..dd781e928b72 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -122,6 +122,7 @@ struct cec_adap_ops {
- 	/* Low-level callbacks */
- 	int (*adap_enable)(struct cec_adapter *adap, bool enable);
- 	int (*adap_monitor_all_enable)(struct cec_adapter *adap, bool enable);
-+	int (*adap_monitor_pin_enable)(struct cec_adapter *adap, bool enable);
- 	int (*adap_log_addr)(struct cec_adapter *adap, u8 logical_addr);
- 	int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
- 			     u32 signal_free_time, struct cec_msg *msg);
--- 
-2.14.1
+Acked-by: Arnd Bergmann <arnd@arndb.de>
