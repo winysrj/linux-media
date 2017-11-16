@@ -1,58 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:35691 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751546AbdK2Hij (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 02:38:39 -0500
-Date: Wed, 29 Nov 2017 05:38:30 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
-Cc: "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "tbird20d@gmail.com" <tbird20d@gmail.com>,
-        "frowand.list@gmail.com" <frowand.list@gmail.com>,
-        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
-        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
-        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
-        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
-        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
-        Sean Young <sean@mess.org>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>,
-        "Bird, Timothy" <Tim.Bird@sony.com>
-Subject: Re: [PATCH v4 00/12] [dt-bindings] [media] Add document file and
- driver for Sony CXD2880 DVB-T2/T tuner + demodulator
-Message-ID: <20171129053830.7900d933@recife.lan>
-In-Reply-To: <3e2f788b-3e4a-eb9b-eb36-2f65ffce669a@sony.com>
-References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
-        <67ca63fc-4675-8a97-e43e-6336bbc9fada@sony.com>
-        <3e2f788b-3e4a-eb9b-eb36-2f65ffce669a@sony.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtprelay0125.hostedemail.com ([216.40.44.125]:37192 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1759056AbdKPP1i (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Nov 2017 10:27:38 -0500
+From: Joe Perches <joe@perches.com>
+To: Chanwoo Choi <cw00.choi@samsung.com>, linux-pm@vger.kernel.org,
+        linux-integrity@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-security-module@vger.kernel.org
+Subject: [PATCH 0/4] treewide: Fix line continuation formats
+Date: Thu, 16 Nov 2017 07:27:25 -0800
+Message-Id: <cover.1510845910.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 22 Nov 2017 13:17:14 +0900
-"Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com> escreveu:
+Avoid using line continations in formats as that causes unexpected
+output.
 
-Hi Takiguchi-san,
+Joe Perches (4):
+  rk3399_dmc: Fix line continuation format
+  drm: amd: Fix line continuation formats
+  [media] dibx000_common: Fix line continuation format
+  ima: Fix line continuation format
 
-> Hi, all
-> 
-> I sent the patch series of Sony CXD2880 DVB-T2/T tuner + demodulator driver version 4 on 13th/Oct.
-> I'd like to get better understanding of current review status for our codes.
-> 
-> Are there any comments, advices and review results for them?
+ drivers/devfreq/rk3399_dmc.c                       |  4 ++--
+ drivers/gpu/drm/amd/display/dc/core/dc_link_dp.c   | 11 ++++-----
+ .../amd/powerplay/hwmgr/process_pptables_v1_0.c    |  6 ++---
+ drivers/gpu/drm/amd/powerplay/hwmgr/vega10_hwmgr.c | 27 ++++++++--------------
+ drivers/gpu/drm/amd/powerplay/smumgr/ci_smumgr.c   |  6 ++---
+ .../gpu/drm/amd/powerplay/smumgr/iceland_smumgr.c  |  9 +++-----
+ .../gpu/drm/amd/powerplay/smumgr/vega10_smumgr.c   |  6 ++---
+ drivers/media/dvb-frontends/dibx000_common.c       |  8 +++----
+ security/integrity/ima/ima_template.c              | 11 ++++-----
+ 9 files changed, 33 insertions(+), 55 deletions(-)
 
-October was a month crowded of trips for everybody. I had some trips in
-November too, and a merge window to take care of, with ended by delaying
-patch reviews. We didn't even had the time yet to finish the summit report.
-Anyway, now Sean and Michael are helping with DVB patch review. 
-
-Michael/Sean, could you please take a look on this patch series?
-
-I'll try to take a look on it myself next week.
-
-Thanks,
-Mauro
+-- 
+2.15.0
