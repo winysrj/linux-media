@@ -1,169 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:9815 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932649AbdK2RLz (ORCPT
+Received: from relmlor3.renesas.com ([210.160.252.173]:44318 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S935076AbdKPNqD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 12:11:55 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v2 4/4] media: ov5640: add support of RGB565 and YUYV formats
-Date: Wed, 29 Nov 2017 18:11:12 +0100
-Message-ID: <1511975472-26659-5-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1511975472-26659-1-git-send-email-hugues.fruchet@st.com>
-References: <1511975472-26659-1-git-send-email-hugues.fruchet@st.com>
+        Thu, 16 Nov 2017 08:46:03 -0500
+From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        =?utf-8?B?TmlrbGFzIFPDtmRlcmx1bmQ=?=
+        <niklas.soderlund@ragnatech.se>,
+        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Simon Horman <horms+renesas@verge.net.au>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        Biju Das <biju.das@bp.renesas.com>
+Subject: RE: [PATCH 1/2] dt-bindings: media: rcar_vin: add device tree support
+ for r8a774[35]
+Date: Thu, 16 Nov 2017 13:45:59 +0000
+Message-ID: <TY1PR06MB089529F042099069AD960093C02E0@TY1PR06MB0895.apcprd06.prod.outlook.com>
+References: <1510834290-25434-1-git-send-email-fabrizio.castro@bp.renesas.com>
+ <1510834290-25434-2-git-send-email-fabrizio.castro@bp.renesas.com>
+ <CAMuHMdW+krUp5ELO4NFxGi8NZ5-H4vrtm-=OXyvZKMCk2f-WcQ@mail.gmail.com>
+In-Reply-To: <CAMuHMdW+krUp5ELO4NFxGi8NZ5-H4vrtm-=OXyvZKMCk2f-WcQ@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add RGB565 (LE & BE) and YUV422 YUYV format in addition
-to existing YUV422 UYVY format.
-
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/i2c/ov5640.c | 74 +++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 67 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 826b102..70239bb 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -77,8 +77,10 @@
- #define OV5640_REG_HZ5060_CTRL01	0x3c01
- #define OV5640_REG_SIGMADELTA_CTRL0C	0x3c0c
- #define OV5640_REG_FRAME_CTRL01		0x4202
-+#define OV5640_REG_FORMAT_CONTROL00	0x4300
- #define OV5640_REG_MIPI_CTRL00		0x4800
- #define OV5640_REG_DEBUG_MODE		0x4814
-+#define OV5640_REG_ISP_FORMAT_MUX_CTRL	0x501f
- #define OV5640_REG_PRE_ISP_TEST_SET1	0x503d
- #define OV5640_REG_SDE_CTRL0		0x5580
- #define OV5640_REG_SDE_CTRL1		0x5581
-@@ -106,6 +108,18 @@ enum ov5640_frame_rate {
- 	OV5640_NUM_FRAMERATES,
- };
- 
-+struct ov5640_pixfmt {
-+	u32 code;
-+	u32 colorspace;
-+};
-+
-+static const struct ov5640_pixfmt ov5640_formats[] = {
-+	{ MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_SRGB, },
-+	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_SRGB, },
-+	{ MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB, },
-+	{ MEDIA_BUS_FMT_RGB565_2X8_BE, V4L2_COLORSPACE_SRGB, },
-+};
-+
- /*
-  * FIXME: remove this when a subdev API becomes available
-  * to set the MIPI CSI-2 virtual channel.
-@@ -1787,17 +1801,23 @@ static int ov5640_try_fmt_internal(struct v4l2_subdev *sd,
- {
- 	struct ov5640_dev *sensor = to_ov5640_dev(sd);
- 	const struct ov5640_mode_info *mode;
-+	int i;
- 
- 	mode = ov5640_find_mode(sensor, fr, fmt->width, fmt->height, true);
- 	if (!mode)
- 		return -EINVAL;
--
- 	fmt->width = mode->width;
- 	fmt->height = mode->height;
--	fmt->code = sensor->fmt.code;
- 
- 	if (new_mode)
- 		*new_mode = mode;
-+
-+	for (i = 0; i < ARRAY_SIZE(ov5640_formats); i++)
-+		if (ov5640_formats[i].code == fmt->code)
-+			break;
-+	if (i >= ARRAY_SIZE(ov5640_formats))
-+		fmt->code = ov5640_formats[0].code;
-+
- 	return 0;
- }
- 
-@@ -1840,6 +1860,45 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
- 	return ret;
- }
- 
-+static int ov5640_set_framefmt(struct ov5640_dev *sensor,
-+			       struct v4l2_mbus_framefmt *format)
-+{
-+	int ret = 0;
-+	bool is_rgb = false;
-+	u8 val;
-+
-+	switch (format->code) {
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
-+		/* YUV422, UYVY */
-+		val = 0x3f;
-+		break;
-+	case MEDIA_BUS_FMT_YUYV8_2X8:
-+		/* YUV422, YUYV */
-+		val = 0x30;
-+		break;
-+	case MEDIA_BUS_FMT_RGB565_2X8_LE:
-+		/* RGB565 {g[2:0],b[4:0]},{r[4:0],g[5:3]} */
-+		val = 0x6F;
-+		is_rgb = true;
-+		break;
-+	case MEDIA_BUS_FMT_RGB565_2X8_BE:
-+		/* RGB565 {r[4:0],g[5:3]},{g[2:0],b[4:0]} */
-+		val = 0x61;
-+		is_rgb = true;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	/* FORMAT CONTROL00: YUV and RGB formatting */
-+	ret = ov5640_write_reg(sensor, OV5640_REG_FORMAT_CONTROL00, val);
-+	if (ret)
-+		return ret;
-+
-+	/* FORMAT MUX CONTROL: ISP YUV or RGB */
-+	return ov5640_write_reg(sensor, OV5640_REG_ISP_FORMAT_MUX_CTRL,
-+				is_rgb ? 0x01 : 0x00);
-+}
- 
- /*
-  * Sensor Controls.
-@@ -2225,15 +2284,12 @@ static int ov5640_enum_mbus_code(struct v4l2_subdev *sd,
- 				  struct v4l2_subdev_pad_config *cfg,
- 				  struct v4l2_subdev_mbus_code_enum *code)
- {
--	struct ov5640_dev *sensor = to_ov5640_dev(sd);
--
- 	if (code->pad != 0)
- 		return -EINVAL;
--	if (code->index != 0)
-+	if (code->index >= ARRAY_SIZE(ov5640_formats))
- 		return -EINVAL;
- 
--	code->code = sensor->fmt.code;
--
-+	code->code = ov5640_formats[code->index].code;
- 	return 0;
- }
- 
-@@ -2249,6 +2305,10 @@ static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
- 			ret = ov5640_set_mode(sensor, sensor->current_mode);
- 			if (ret)
- 				goto out;
-+
-+			ret = ov5640_set_framefmt(sensor, &sensor->fmt);
-+			if (ret)
-+				goto out;
- 		}
- 
- 		if (sensor->ep.bus_type == V4L2_MBUS_CSI2)
--- 
-1.9.1
+SGVsbG8gR2VlcnQsDQoNCnRoYW5rIHlvdSBmb3IgeW91ciBjb21tZW50IQ0KDQo+IFN1YmplY3Q6
+IFJlOiBbUEFUQ0ggMS8yXSBkdC1iaW5kaW5nczogbWVkaWE6IHJjYXJfdmluOiBhZGQgZGV2aWNl
+IHRyZWUgc3VwcG9ydCBmb3IgcjhhNzc0WzM1XQ0KPg0KPiBPbiBUaHUsIE5vdiAxNiwgMjAxNyBh
+dCAxOjExIFBNLCBGYWJyaXppbyBDYXN0cm8NCj4gPGZhYnJpemlvLmNhc3Ryb0BicC5yZW5lc2Fz
+LmNvbT4gd3JvdGU6DQo+ID4gLS0tIGEvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdz
+L21lZGlhL3JjYXJfdmluLnR4dA0KPiA+ICsrKyBiL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9i
+aW5kaW5ncy9tZWRpYS9yY2FyX3Zpbi50eHQNCj4gPiBAQCAtMTQsNyArMTQsMTAgQEAgY2hhbm5l
+bCB3aGljaCBjYW4gYmUgZWl0aGVyIFJHQiwgWVVZViBvciBCVDY1Ni4NCj4gPiAgICAgLSAicmVu
+ZXNhcyx2aW4tcjhhNzc5MCIgZm9yIHRoZSBSOEE3NzkwIGRldmljZQ0KPiA+ICAgICAtICJyZW5l
+c2FzLHZpbi1yOGE3Nzc5IiBmb3IgdGhlIFI4QTc3NzkgZGV2aWNlDQo+ID4gICAgIC0gInJlbmVz
+YXMsdmluLXI4YTc3NzgiIGZvciB0aGUgUjhBNzc3OCBkZXZpY2UNCj4gPiAtICAgLSAicmVuZXNh
+cyxyY2FyLWdlbjItdmluIiBmb3IgYSBnZW5lcmljIFItQ2FyIEdlbjIgY29tcGF0aWJsZSBkZXZp
+Y2UuDQo+ID4gKyAgIC0gInJlbmVzYXMsdmluLXI4YTc3NDUiIGZvciB0aGUgUjhBNzc0NSBkZXZp
+Y2UNCj4gPiArICAgLSAicmVuZXNhcyx2aW4tcjhhNzc0MyIgZm9yIHRoZSBSOEE3NzQzIGRldmlj
+ZQ0KPg0KPiBQbGVhc2Uga2VlcCB0aGUgbGlzdCBzb3J0ZWQgYnkgU29DIHBhcnQgbnVtYmVyLg0K
+Pg0KDQpJdCBpcyBzb3J0ZWQsIGp1c3QgaW4gZGVzY2VuZGluZyBvcmRlci4gRG8geW91IHdhbnQg
+bWUgdG8gcmUtb3JkZXIgdGhlIGZ1bGwgbGlzdCBpbiBhc2NlbmRpbmcgb3JkZXI/DQoNClRoYW5r
+cywNCkZhYg0KDQoNCg0KDQoNClJlbmVzYXMgRWxlY3Ryb25pY3MgRXVyb3BlIEx0ZCwgRHVrZXMg
+TWVhZG93LCBNaWxsYm9hcmQgUm9hZCwgQm91cm5lIEVuZCwgQnVja2luZ2hhbXNoaXJlLCBTTDgg
+NUZILCBVSy4gUmVnaXN0ZXJlZCBpbiBFbmdsYW5kICYgV2FsZXMgdW5kZXIgUmVnaXN0ZXJlZCBO
+by4gMDQ1ODY3MDkuDQo=
