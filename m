@@ -1,56 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:45838 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934882AbdKPNTf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 08:19:35 -0500
+Received: from mga03.intel.com ([134.134.136.65]:45295 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933987AbdKPQQv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Nov 2017 11:16:51 -0500
+Date: Thu, 16 Nov 2017 18:16:31 +0200
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+To: "Sharma, Shashank" <shashank.sharma@intel.com>
+Cc: dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 01/10] video/hdmi: Allow "empty" HDMI infoframes
+Message-ID: <20171116161631.GV10981@intel.com>
+References: <20171113170427.4150-1-ville.syrjala@linux.intel.com>
+ <20171113170427.4150-2-ville.syrjala@linux.intel.com>
+ <6e738687-62f2-c803-a64c-7364bae3eacf@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <1510834290-25434-2-git-send-email-fabrizio.castro@bp.renesas.com>
-References: <1510834290-25434-1-git-send-email-fabrizio.castro@bp.renesas.com> <1510834290-25434-2-git-send-email-fabrizio.castro@bp.renesas.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Thu, 16 Nov 2017 14:19:33 +0100
-Message-ID: <CAMuHMdXVb9xE5toLGHnaFX9y+-qVzz2_NzK6qEebaDiXxAec7w@mail.gmail.com>
-Subject: Re: [PATCH 1/2] dt-bindings: media: rcar_vin: add device tree support
- for r8a774[35]
-To: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Simon Horman <horms+renesas@verge.net.au>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Biju Das <biju.das@bp.renesas.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <6e738687-62f2-c803-a64c-7364bae3eacf@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 16, 2017 at 1:11 PM, Fabrizio Castro
-<fabrizio.castro@bp.renesas.com> wrote:
-> Add compatible strings for r8a7743 and r8a7745. No driver change
-> change is needed as "renesas,rcar-gen2-vin" will activate the right
+On Thu, Nov 16, 2017 at 08:06:18PM +0530, Sharma, Shashank wrote:
+> Regards
+> 
+> Shashank
+> 
+> 
+> On 11/13/2017 10:34 PM, Ville Syrjala wrote:
+> > From: Ville Syrjälä <ville.syrjala@linux.intel.com>
+> >
+> > HDMI 2.0 Appendix F suggest that we should keep sending the infoframe
+> > when switching from 3D to 2D mode, even if the infoframe isn't strictly
+> > necessary (ie. not needed to transmit the VIC or stereo information).
+> > This is a workaround against some sinks that fail to realize that they
+> > should switch from 3D to 2D mode when the source stop transmitting
+> > the infoframe.
+> >
+> > v2: Handle unpack() as well
+> >      Pull the length calculation into a helper
+> >
+> > Cc: Shashank Sharma <shashank.sharma@intel.com>
+> > Cc: Andrzej Hajda <a.hajda@samsung.com>
+> > Cc: Thierry Reding <thierry.reding@gmail.com>
+> > Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> > Cc: linux-media@vger.kernel.org
+> > Reviewed-by: Andrzej Hajda <a.hajda@samsung.com> #v1
+> > Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+> > ---
+> >   drivers/video/hdmi.c | 51 +++++++++++++++++++++++++++++++--------------------
+> >   1 file changed, 31 insertions(+), 20 deletions(-)
+> >
+> > diff --git a/drivers/video/hdmi.c b/drivers/video/hdmi.c
+> > index 1cf907ecded4..111a0ab6280a 100644
+> > --- a/drivers/video/hdmi.c
+> > +++ b/drivers/video/hdmi.c
+> > @@ -321,6 +321,17 @@ int hdmi_vendor_infoframe_init(struct hdmi_vendor_infoframe *frame)
+> >   }
+> >   EXPORT_SYMBOL(hdmi_vendor_infoframe_init);
+> >   
+> > +static int hdmi_vendor_infoframe_length(const struct hdmi_vendor_infoframe *frame)
+> > +{
+> > +	/* for side by side (half) we also need to provide 3D_Ext_Data */
+> > +	if (frame->s3d_struct >= HDMI_3D_STRUCTURE_SIDE_BY_SIDE_HALF)
+> > +		return 6;
+> > +	else if (frame->vic != 0 || frame->s3d_struct != HDMI_3D_STRUCTURE_INVALID)
+> > +		return 5;
+> > +	else
+> > +		return 4;
+> > +}
+> > +
+> >   /**
+> >    * hdmi_vendor_infoframe_pack() - write a HDMI vendor infoframe to binary buffer
+> >    * @frame: HDMI infoframe
+> > @@ -341,19 +352,11 @@ ssize_t hdmi_vendor_infoframe_pack(struct hdmi_vendor_infoframe *frame,
+> >   	u8 *ptr = buffer;
+> >   	size_t length;
+> >   
+> > -	/* empty info frame */
+> > -	if (frame->vic == 0 && frame->s3d_struct == HDMI_3D_STRUCTURE_INVALID)
+> > -		return -EINVAL;
+> > -
+> >   	/* only one of those can be supplied */
+> >   	if (frame->vic != 0 && frame->s3d_struct != HDMI_3D_STRUCTURE_INVALID)
+> >   		return -EINVAL;
+> >   
+> > -	/* for side by side (half) we also need to provide 3D_Ext_Data */
+> > -	if (frame->s3d_struct >= HDMI_3D_STRUCTURE_SIDE_BY_SIDE_HALF)
+> > -		frame->length = 6;
+> > -	else
+> > -		frame->length = 5;
+> > +	frame->length = hdmi_vendor_infoframe_length(frame);
+> >   
+> >   	length = HDMI_INFOFRAME_HEADER_SIZE + frame->length;
+> >   
+> > @@ -372,14 +375,16 @@ ssize_t hdmi_vendor_infoframe_pack(struct hdmi_vendor_infoframe *frame,
+> >   	ptr[5] = 0x0c;
+> >   	ptr[6] = 0x00;
+> >   
+> > -	if (frame->vic) {
+> > -		ptr[7] = 0x1 << 5;	/* video format */
+> > -		ptr[8] = frame->vic;
+> > -	} else {
+> > +	if (frame->s3d_struct != HDMI_3D_STRUCTURE_INVALID) {
+> >   		ptr[7] = 0x2 << 5;	/* video format */
+> >   		ptr[8] = (frame->s3d_struct & 0xf) << 4;
+> >   		if (frame->s3d_struct >= HDMI_3D_STRUCTURE_SIDE_BY_SIDE_HALF)
+> >   			ptr[9] = (frame->s3d_ext_data & 0xf) << 4;
+> > +	} else if (frame->vic) {
+> Please correct me if I dint understand this properly, but for a HDMI 2.0 
+> sink + 3D transmission, wouldn't I be sending
+> HDMI 2.0 VIC = 94 as well as some valid s3d flag (like side by side) ?
 
-double "change"
+That vic will be in the AVI infoframe. Here we're concerned about the
+VIC in the HDMI vendor infoframe.
 
-> code. However, it is good practice to document compatible strings
-> for the specific SoC as this allows SoC specific changes to the
-> driver if needed, in addition to document SoC support and therefore
-> allow checkpatch.pl to validate compatible string values.
->
-> Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-> Reviewed-by: Biju Das <biju.das@bp.renesas.com>
+> 
+> - Shashank
+> > +		ptr[7] = 0x1 << 5;	/* video format */
+> > +		ptr[8] = frame->vic;
+> > +	} else {
+> > +		ptr[7] = 0x0 << 5;	/* video format */
+> >   	}
+> >   
+> >   	hdmi_infoframe_set_checksum(buffer, length);
+> > @@ -1165,7 +1170,7 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
+> >   
+> >   	if (ptr[0] != HDMI_INFOFRAME_TYPE_VENDOR ||
+> >   	    ptr[1] != 1 ||
+> > -	    (ptr[2] != 5 && ptr[2] != 6))
+> > +	    (ptr[2] != 4 && ptr[2] != 5 && ptr[2] != 6))
+> >   		return -EINVAL;
+> >   
+> >   	length = ptr[2];
+> > @@ -1193,16 +1198,22 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
+> >   
+> >   	hvf->length = length;
+> >   
+> > -	if (hdmi_video_format == 0x1) {
+> > -		hvf->vic = ptr[4];
+> > -	} else if (hdmi_video_format == 0x2) {
+> > +	if (hdmi_video_format == 0x2) {
+> > +		if (length != 5 && length != 6)
+> > +			return -EINVAL;
+> >   		hvf->s3d_struct = ptr[4] >> 4;
+> >   		if (hvf->s3d_struct >= HDMI_3D_STRUCTURE_SIDE_BY_SIDE_HALF) {
+> > -			if (length == 6)
+> > -				hvf->s3d_ext_data = ptr[5] >> 4;
+> > -			else
+> > +			if (length != 6)
+> >   				return -EINVAL;
+> > +			hvf->s3d_ext_data = ptr[5] >> 4;
+> >   		}
+> > +	} else if (hdmi_video_format == 0x1) {
+> > +		if (length != 5)
+> > +			return -EINVAL;
+> > +		hvf->vic = ptr[4];
+> > +	} else {
+> > +		if (length != 4)
+> > +			return -EINVAL;
+> >   	}
+> >   
+> >   	return 0;
 
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+-- 
+Ville Syrjälä
+Intel OTC
