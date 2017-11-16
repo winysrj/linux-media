@@ -1,73 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:60273 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753736AbdKGKtS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Nov 2017 05:49:18 -0500
-Date: Tue, 7 Nov 2017 08:49:08 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org
-Subject: Re: [PATCH] [media] dvb-core: dvb_frontend_handle_ioctl(): init err
- to -EOPNOTSUPP
-Message-ID: <20171107084908.48985365@vento.lan>
-In-Reply-To: <20171030221808.4642-1-d.scheller.oss@gmail.com>
-References: <20171030221808.4642-1-d.scheller.oss@gmail.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:52687 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934991AbdKPNmQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Nov 2017 08:42:16 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v1 2/4] media: ov5640: check chip id
+Date: Thu, 16 Nov 2017 14:41:40 +0100
+Message-ID: <1510839702-2454-3-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1510839702-2454-1-git-send-email-hugues.fruchet@st.com>
+References: <1510839702-2454-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 30 Oct 2017 23:18:08 +0100
-Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+Verify that chip identifier is correct before starting streaming
 
-> From: Daniel Scheller <d.scheller@gmx.net>
-> 
-> Fixes: d73dcf0cdb95 ("media: dvb_frontend: cleanup ioctl handling logic")
-> 
-> The mentioned commit cleaned up the ioctl handling, but caused an issue
-> with the DVBv3 when they're not defined in a frontend's fe_ops: When a
-> userspace application checks for existence and success of a fe_ops with ie.
-> 
->   if (!ioctl(fd, FE_READ_BER, &val))
-> 
-> this will not report failure anymore since in dvb_frontend_handle_ioctl(),
-> err is unitialised and thus zero, and "case FE_READ_BER" (and the
-> following) doesn't care about the case that fe_op isn't set by the frontend
-> driver. So, success is always reported while the value at the passed ptr
-> isn't updated. This breaks userspace applications relying on v3 stats.
-> 
-> Fix this by initialising err to -EOPNOTSUPP like it was before the commit.
-> This only affects (and fixes) the DVBv3 stat ioctls, every other handled
-> ioctl sets err to a proper return value.
-> 
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
-> Discovered and tested with TVHeadend (current GIT master HEAD) which does
-> fallback to DVBv3 stats inquiry when v5 is absent.
-> 
->  drivers/media/dvb-core/dvb_frontend.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-> index daaf969719e4..cc64fa38a1df 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb-core/dvb_frontend.c
-> @@ -2113,6 +2113,8 @@ static int dvb_frontend_handle_ioctl(struct file *file,
->  
->  	dev_dbg(fe->dvb->device, "%s:\n", __func__);
->  
-> +	err = -EOPNOTSUPP;
-> +
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov5640.c | 30 +++++++++++++++++++++++++++++-
+ 1 file changed, 29 insertions(+), 1 deletion(-)
 
-This patch is incomplete and will cause troubles with DVBv5. The
-right fix is:
-
-	https://patchwork.linuxtv.org/patch/45277/
-
-
-Could you please test reply to its tread with a tested-by if it passes 
-on your tests?
-
-Thanks,
-Mauro
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 61071f5..a576d11 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -34,7 +34,8 @@
+ 
+ #define OV5640_DEFAULT_SLAVE_ID 0x3c
+ 
+-#define OV5640_REG_CHIP_ID		0x300a
++#define OV5640_REG_CHIP_ID_HIGH		0x300a
++#define OV5640_REG_CHIP_ID_LOW		0x300b
+ #define OV5640_REG_PAD_OUTPUT00		0x3019
+ #define OV5640_REG_SC_PLL_CTRL0		0x3034
+ #define OV5640_REG_SC_PLL_CTRL1		0x3035
+@@ -926,6 +927,29 @@ static int ov5640_load_regs(struct ov5640_dev *sensor,
+ 	return ret;
+ }
+ 
++static int ov5640_check_chip_id(struct ov5640_dev *sensor)
++{
++	struct i2c_client *client = sensor->i2c_client;
++	int ret;
++	u8 chip_id_h, chip_id_l;
++
++	ret = ov5640_read_reg(sensor, OV5640_REG_CHIP_ID_HIGH, &chip_id_h);
++	if (ret)
++		return ret;
++
++	ret = ov5640_read_reg(sensor, OV5640_REG_CHIP_ID_LOW, &chip_id_l);
++	if (ret)
++		return ret;
++
++	if (!(chip_id_h == 0x56 && chip_id_l == 0x40)) {
++		dev_err(&client->dev, "%s: wrong chip identifier, expected 0x5640, got 0x%x%x\n",
++			__func__, chip_id_h, chip_id_l);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ /* read exposure, in number of line periods */
+ static int ov5640_get_exposure(struct ov5640_dev *sensor)
+ {
+@@ -1562,6 +1586,10 @@ static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
+ 		ov5640_reset(sensor);
+ 		ov5640_power(sensor, true);
+ 
++		ret = ov5640_check_chip_id(sensor);
++		if (ret)
++			goto power_off;
++
+ 		ret = ov5640_init_slave_id(sensor);
+ 		if (ret)
+ 			goto power_off;
+-- 
+1.9.1
