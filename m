@@ -1,47 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:36570 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752282AbdK0NMv (ORCPT
+Received: from albert.telenet-ops.be ([195.130.137.90]:54840 "EHLO
+        albert.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933950AbdKPKvX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Nov 2017 08:12:51 -0500
-Date: Tue, 28 Nov 2017 00:12:41 +1100
-From: Simon Shields <simon@lineageos.org>
-To: linux-media@vger.kernel.org
-Cc: Krzysztof Kozlowski <krzk@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH] media: exynos4-is: check pipe is valid before calling subdev
-Message-ID: <20171127131241.GA32492@lineageos.org>
+        Thu, 16 Nov 2017 05:51:23 -0500
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Shuah Khan <shuah@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH] media: dvb_frontend: Fix uninitialized error in dvb_frontend_handle_ioctl()
+Date: Thu, 16 Nov 2017 11:51:20 +0100
+Message-Id: <1510829480-24760-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-if the subdev is not yet present (probably because the subdev
-module has not yet been loaded), the pipe will be NULL. Make sure
-that this is not the case before attempting to call the op.
+With gcc-4.1.2:
 
-Signed-off-by: Simon Shields <simon@lineageos.org>
+    drivers/media/dvb-core/dvb_frontend.c: In function ‘dvb_frontend_handle_ioctl’:
+    drivers/media/dvb-core/dvb_frontend.c:2110: warning: ‘err’ may be used uninitialized in this function
+
+Indeed, there are 13 cases where err is used initialized if one of the
+dvb_frontend_ops is not implemented.
+
+Preinitialize err to -EOPNOTSUPP like before to fix this.
+
+Fixes: d73dcf0cdb95a47f ("media: dvb_frontend: cleanup ioctl handling logic")
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 ---
- include/media/drv-intf/exynos-fimc.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/dvb-core/dvb_frontend.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/media/drv-intf/exynos-fimc.h b/include/media/drv-intf/exynos-fimc.h
-index 69bcd2a07d5c..f9c64338841f 100644
---- a/include/media/drv-intf/exynos-fimc.h
-+++ b/include/media/drv-intf/exynos-fimc.h
-@@ -155,7 +155,8 @@ static inline struct exynos_video_entity *vdev_to_exynos_video_entity(
- }
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 3ad83359098bde79..9eff8ce60d535379 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -2107,7 +2107,7 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+ 	struct dvb_frontend *fe = dvbdev->priv;
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-	int i, err;
++	int i, err = -ENOTSUPP;
  
- #define fimc_pipeline_call(ent, op, args...)				  \
--	(!(ent) ? -ENOENT : (((ent)->pipe->ops && (ent)->pipe->ops->op) ? \
-+	((!(ent) || !(ent)->pipe) ? -ENOENT : \
-+	(((ent)->pipe->ops && (ent)->pipe->ops->op) ? \
- 	(ent)->pipe->ops->op(((ent)->pipe), ##args) : -ENOIOCTLCMD))	  \
+ 	dev_dbg(fe->dvb->device, "%s:\n", __func__);
  
- #endif /* S5P_FIMC_H_ */
 -- 
-2.15.0
+2.7.4
