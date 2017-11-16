@@ -1,398 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:59959 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752622AbdKIA30 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 8 Nov 2017 19:29:26 -0500
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        hyungwoo.yang@intel.com, chiranjeevi.rapolu@intel.com,
-        jerry.w.hu@intel.com, Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v8 0/4] add IPU3 CIO2 CSI2 driver
-Date: Wed,  8 Nov 2017 16:30:35 -0800
-Message-Id: <1510187439-19125-1-git-send-email-yong.zhi@intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42595 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932594AbdKPAdx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Nov 2017 19:33:53 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH/RFC 1/2] v4l: v4l2-dev: Add infrastructure to protect device unplug race
+Date: Thu, 16 Nov 2017 02:33:48 +0200
+Message-Id: <20171116003349.19235-2-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Device unplug being asynchronous, it naturally races with operations
+performed by userspace through ioctls or other file operations on video
+device nodes.
 
-This is patch series(version 8) of Intel IPU3 CIO2 driver, the driver exposes
-V4L2, V4L2 sub-device and Media controller interfaces to the user space.
+This leads to potential access to freed memory or to other resources
+during device access if unplug occurs during device access. To solve
+this, we need to wait until all device access completes when unplugging
+the device, and block all further access when the device is being
+unplugged.
 
-This series was tested on Kaby Lake based platform with 2 sensor configurations,
-media topology was pasted at end for reference.
+Three new functions are introduced. The video_device_enter() and
+video_device_exit() functions must be used to mark entry and exit from
+all code sections where the device can be accessed. The
+video_device_unplug() function is then used in the unplug handler to
+mark the device as being unplugged and wait for all access to complete.
 
-Link to user space implementation:
+As an example mark the ioctl handler as a device access section. Other
+file operations need to be protected too, and blocking ioctls (such as
+VIDIOC_DQBUF) need to be handled as well.
 
-<URL:https://chromium.googlesource.com/chromiumos/platform/arc-camera/+/master>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c | 57 ++++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-dev.h           | 47 +++++++++++++++++++++++++++++++
+ 2 files changed, 104 insertions(+)
 
-===========
-= history =
-===========
-
-version 8:
-- cio2_fbpt_rearrange(): change return type and move function closer to caller.(Sakari)
-- cio2_vb2_start_streaming(): call pm_runtime_put() on failures.(Sakari)
-- cio2_queue_init(): remove colon in sub-device and video node names (Sakari)
-- Add MAINTAINER's entry for this driver.
-
-version 7:
-- cio2_subdev_open(): Assign variable at init time. (Sakari)
-- cio2_subdev_get_fmt(): Retrieve subdev fmt from subdev not sensor. (Sakari)
-- cio2_fbpt_rearrange(): Use in-place swapping of FBPT entries and queue buffers.
-  (implemented by Sakari).
-
-version 6:
-- Replaced NUM_FORMATS with ARRAY_SIZE(formats). (Sakari)
-- cio2_fbpt_rearrange(): skip fbpt re-arrange when not needed.
-- cio2_resume(): move cio2_fbpt_rearrange() to cio2_suspend() to avoid mem alloc
-  at resume time.(Sakari)
-- cio2_pci_probe(): call cio2_fbpt_init_dummy() before v4l2_device_register().(Sakari)
-- Fixed checkpatch.pl reported checks with --strict option.
-- Added static keyword to cio2_queue_init().
-- cio2_buffer_done(): assign ns in variable initialization.(Sakari)
-- cio2_notifier_bound(): create hard link between cio2 queues and CSI-2 port.(Sakari)
-- cio2_notifier_unbount(): remove obsolete comments.(Sakari)
-- cio2_notifier_init(): return error when no subdevs found.(Sakari)
-- cio2_find_queue_by_sensor_node(): remove the function (Tomasz Figa)
-- ipu3-cio2.h:
-  Change CIO2_QUEUES 4 to match IPU3 capability.(Sakari)
-  Remove un-used "other_entries" in struct cio2_fbpt_entry.(Sakari)
-- pixfmt-srggb10-ipu3.rst: Changed tabularcolumns to 4.(Sakari)
-- Enable x86 32bit build (Sakari)
-
-version 5:
-- cio2_vb2_start_streaming():
-- cio2_vb2_stop_streaming(): removed redundant call of csi2 sub-dev for s_stream.
-- cio2_vb2_buf_queue(): disabled interrupts for the duration of the buf queue,
-  to prevent this code from being pre-empted, as suggested by Tomasz Figa,
-  to mitigate the effects of race conditions around vb2 buf queuing code.
-  Switched to a finite loop to check for the first free buffer and errored
-  out, when there are no buffers available. Removed calls to vb2_plane_vaddr()
-  Maintain correct buf queued count, in error cases.
-- Implemented system sleep pm ops to support cio2 driver suspend/resume.
-- Made the v4l2 buffer and SOF event use sequence from same source.
-- cio2_vb2_queue_setup(): remove validating pixelformat suggested by Tomasz
-  Figa.
-- cio2_v4l2_g_fmt()/cio2_v4l2_s_fmt(): seperated formats on sub-dev and video
-  device suggested by Sakari Ailus.
-- cio2_v4l2_try_fmt(): seperated video node and subdev format in the get_fmt,
-  try_fmt and set_fmt callbacks.
-- cio2_queue_event_sof(): added comments suggested by Hans Verkuil
-- cio2_queue_init(): re-ordered q->subdev_pads settings. remove 4 lines for
-  quantization init.
-- cio2_subdev_get_fmt(): get colorspace/xfer_func/ycbcr_enc/quantization
-  from sensor suggested by Hans Verkuil.
-- cio2_fbpt_entry_init_buf(): stored offset of the first sg_list entry to
-  remove calls to vb2_plane_vaddr().
-- cio2_subdev_open(): added new callback to intialize the try format.
-- cio2_subdev_video_ops(): removed empty implementation suggested by Sakari Ailus.
-- cio2_notifier_init(): added fwnode binding support for subdevices using
-  v4l2_async_notifier_parse_fwnode_endpoints()
-  Patch series v15 Unified fwnode endpoint parser, async sub-device notifier
-  support, N9 flash DTS is needed for the fwnode binding code to compile.
-  https://www.mail-archive.com/linux-media@vger.kernel.org/msg120239.html
-  This also requires the following patch (v1) for the fwnode binding to work
-  https://patchwork.kernel.org/patch/9986445/
-- cio2_notifier_complete(): removed redundant call of
-  fwnode_graph_get_remote_endpoint() and fwnode_graph_parse_endpoint().
-- Switched to Multi Plane APIs suggested by Tomasz Figa.
-  User space changes supporting multi plane APIs can be found here
-  https://chromium-review.googlesource.com/c/chromiumos/platform/arc-camera/+/683802
-- ipu3-cio.h: moved macros out of struct cio2_fbpt_entry suggested by Hans Verkuil.
-- cio2_hw_mbus_to_mipicode(): replaced with cio2_find_format().
-- cio2_pci_probe(): cleaned up goto logic on error conditions suggested by Tomasz Figa.
-- Fixed v4l2_compliance test failures
-  added 3 dummy function to pass v4l2_compliance test.
-- Extended format example in pixfmt-srggb10-ipu3.rst to show DMA word boundary.
-
-version 4:
-- add cio2_video_link_validate() for video entity suggested by Sakari Ailus
-- cio2_notifier_complete(): fix comments suggested by Sakari Ailus
-- cio2_vb2_buf_queue(): fix the forever loop suggested by Tomasz Figa
-- cio2_v4l2_querycap(): use vdev device_caps commented by Hans Verkuil
-- cio2_vb2_buf_init(): allocate LOP table per page suggested by Tomasz Figa
-- cio2_hw_init(): call cio2_csi2_calc_timing() earlier suggested by Tomasz Figa
-- cio2_csi2_calc_timing(): add defalt settings for rx term/settle
-- cio2_vb2_queue_setup(): remove num_planes checking suggested by Tomasz Figa
-- cio2_buffer_done(): remove setting b->vbb.flags to V4L2_BUF_FLAG_DONE and
-  memset of vbb.timecode, also move vb2_set_plane_payload() to
-  cio2_vb2_buf_queue() suggested by Sakari Ailus
-- cio2_queue_init(): export VB2_DMABUF io_modes suggested by Tomasz Figa
-- cio2_vb2_return_all_buffers(): remove state from param list
-  suggested by Tomasz Figa
-- cio2_vb2_buf_queue(): use vb2_is_streaming() instead of
-  vb2_start_streaming_called() suggested by Tomasz Figa
-- cio2_pci_probe(): replace hard-coded linux driver version
-  suggested by Hans Verkuil
-- ipu3-cio2.h: re-order the reg macros suggested by Sakari Ailus
-- ipu3-cio2.h: add inline vb2q_to_cio2_queue() suggested by Sakari Ailus
-- ipu3-cio2.h: add comments for CIO2_INT_IOC suggested by Tomasz Figa
-- ipu3-cio2.h: adjust PBM watermark threshold from 53 to 48 (internal bugfix)
-- run v4l2_compliance suggested by Hans Verkuil
-
-Todo list:
-
-- fix possible racy code in cio2_vb2_buf_queue()
-- fix v4l2_compliance test failure
-- switch to v4l2_pix_format_mplane API if future needs arise
-
-version 3:
-- remove cio2_set_power().
-- replace dma_alloc_noncoherent() with dma_alloc_coherent().
-- apply ffs tricks at possible places.
-- change sensor_vc to local variable.
-- move ktime_get_ns() a little earlier in the calling order.
-- fix multiple assignments(I.e a = b =c)
-- define CIO2_PAGE_SIZE for CIO2 PAGE_SIZE, SENSOR_VIR_CH_DFLT for default sensor virtual ch.
-- rework cio2_csi2_calc_timing().
-- update v4l2 async subdev field name from match.fwnode.fwn
-   to match.fwnode.fwnode.
-- cherry-pick internal fix for triggering different irq on SOF and EOF.
-- return -ENOMEM for vb2_dma_sg_plane_desc() in cio2_vb2_buf_init().
-- add cio2_link_validate() placeholder for vdev.
-
-version 2:
-- remove all explicit DMA flush operations
-- change dma_free_noncoherent() to dma_free_coherent()
-- remove cio2_hw_mipi_lanes()
-- replace v4l2_g_ext_ctrls() with v4l2_ctrl_g_ctrl()
-  in cio2_csi2_calc_timing().
-- use ffs() to iterate the port_status in cio2_irq()
-- add static inline file_to_cio2_queue() function
-- comment dma_wmb(), cio2_rx_timing() and few other places
-- use ktime_get_ns() for vb2_buf.timestamp in cio2_buffer_done()
-- use of SET_RUNTIME_PM_OPS() macro for cio2_pm_ops
-- use BIT() macro for bit difinitions
-- remove un-used macros such as CIO2_QUEUE_WIDTH() in ipu3-cio2.h
-- move the MODULE_AUTHOR() to the end of the file
-- change file path to drivers/media/pci/intel/ipu3
-
-version 1:
-- Initial submission
-
-Media device topology:
-
-localhost bin # ./media-ctl -d /dev/media0 -p
-Media controller API version 4.14.0
-
-Media device information
-------------------------
-driver          ipu3-cio2
-model           Intel IPU3 CIO2
-serial          
-bus info        PCI:0000:00:14.3
-hw revision     0x0
-driver version  4.14.0
-
-Device topology
-- entity 1: ipu3-csi2 0 (2 pads, 2 links)
-            type V4L2 subdev subtype Unknown flags 0
-            device node name /dev/v4l-subdev0
-	pad0: Sink
-		[fmt:SGRBG10_1X10/1936x1096 field:none]
-		<- "ov13858 8-0010":0 []
-	pad1: Source
-		[fmt:SGRBG10_1X10/1936x1096 field:none]
-		-> "ipu3-cio2 0":0 [ENABLED,IMMUTABLE]
-
-- entity 4: ipu3-cio2 0 (1 pad, 1 link)
-            type Node subtype V4L flags 0
-            device node name /dev/video0
-	pad0: Sink
-		<- "ipu3-csi2 0":1 [ENABLED,IMMUTABLE]
-
-- entity 10: ipu3-csi2 1 (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev1
-	pad0: Sink
-		[fmt:SGRBG10_1X10/1936x1096 field:none]
-		<- "ov5670 10-0036":0 []
-	pad1: Source
-		[fmt:SGRBG10_1X10/1936x1096 field:none]
-		-> "ipu3-cio2 1":0 [ENABLED,IMMUTABLE]
-
-- entity 13: ipu3-cio2 1 (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video1
-	pad0: Sink
-		<- "ipu3-csi2 1":1 [ENABLED,IMMUTABLE]
-
-- entity 19: ipu3-csi2 2 (2 pads, 1 link)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev2
-	pad0: Sink
-		[fmt:SGRBG10_1X10/1936x1096 field:none]
-	pad1: Source
-		[fmt:SGRBG10_1X10/1936x1096 field:none]
-		-> "ipu3-cio2 2":0 [ENABLED,IMMUTABLE]
-
-- entity 22: ipu3-cio2 2 (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video2
-	pad0: Sink
-		<- "ipu3-csi2 2":1 [ENABLED,IMMUTABLE]
-
-- entity 28: ipu3-csi2 3 (2 pads, 1 link)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev3
-	pad0: Sink
-		[fmt:SGRBG10_1X10/1936x1096 field:none]
-	pad1: Source
-		[fmt:SGRBG10_1X10/1936x1096 field:none]
-		-> "ipu3-cio2 3":0 [ENABLED,IMMUTABLE]
-
-- entity 31: ipu3-cio2 3 (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video3
-	pad0: Sink
-		<- "ipu3-csi2 3":1 [ENABLED,IMMUTABLE]
-
-- entity 37: ov13858 8-0010 (1 pad, 1 link)
-             type V4L2 subdev subtype Sensor flags 0
-             device node name /dev/v4l-subdev4
-	pad0: Source
-		[fmt:SGRBG10_1X10/4224x3136 field:none]
-		-> "ipu3-csi2 0":0 []
-
-- entity 39: dw9714 8-000c (0 pad, 0 link)
-             type V4L2 subdev subtype Lens flags 0
-             device node name /dev/v4l-subdev5
-
-- entity 40: ov5670 10-0036 (1 pad, 1 link)
-             type V4L2 subdev subtype Sensor flags 0
-             device node name /dev/v4l-subdev6
-	pad0: Source
-		[fmt:SGRBG10_1X10/2592x1944 field:none]
-		-> "ipu3-csi2 1":0 []
-
-localhost bin # ./v4l2-compliance -d /dev/video0
-v4l2-compliance SHA   : not available
-
-Driver Info:
-	Driver name   : ipu3-cio2
-	Card type     : Intel IPU3 CIO2
-	Bus info      : PCI:0000:00:14.3
-	Driver version: 4.14.0
-	Capabilities  : 0x84201000
-		Video Capture Multiplanar
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04201000
-		Video Capture Multiplanar
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-		test VIDIOC_QUERYCTRL: OK (Not Supported)
-		test VIDIOC_G/S_CTRL: OK (Not Supported)
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 0 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK (Not Supported)
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		test VIDIOC_TRY_FMT: OK
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		test Composing: OK (Not Supported)
-		test Scaling: OK
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-
-Note:
-
-Same results with other 3 video nodes.
-
-Running v4l2_compliance test with -f option will fail, we can only run
-stream test with the help of media controller to link, configure and enable the
-sub-dev/pads first.
-
-Yong Zhi (4):
-  videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
-  doc-rst: add IPU3 raw10 bayer pixel format definitions
-  intel-ipu3: cio2: add new MIPI-CSI2 driver
-  MAINTAINERS: add entry for Intel IPU3 driver
-
- Documentation/media/uapi/v4l/pixfmt-rgb.rst        |    1 +
- .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         |  335 ++++
- MAINTAINERS                                        |    8 +
- drivers/media/pci/Kconfig                          |    2 +
- drivers/media/pci/Makefile                         |    3 +-
- drivers/media/pci/intel/Makefile                   |    5 +
- drivers/media/pci/intel/ipu3/Kconfig               |   19 +
- drivers/media/pci/intel/ipu3/Makefile              |    1 +
- drivers/media/pci/intel/ipu3/ipu3-cio2.c           | 2052 ++++++++++++++++++++
- drivers/media/pci/intel/ipu3/ipu3-cio2.h           |  449 +++++
- drivers/media/v4l2-core/v4l2-ioctl.c               |    4 +
- include/uapi/linux/videodev2.h                     |    6 +
- 12 files changed, 2884 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
- create mode 100644 drivers/media/pci/intel/Makefile
- create mode 100644 drivers/media/pci/intel/ipu3/Kconfig
- create mode 100644 drivers/media/pci/intel/ipu3/Makefile
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.h
-
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index c647ba648805..c73c6d49e7cf 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -156,6 +156,52 @@ void video_device_release_empty(struct video_device *vdev)
+ }
+ EXPORT_SYMBOL(video_device_release_empty);
+ 
++int video_device_enter(struct video_device *vdev)
++{
++	bool unplugged;
++
++	spin_lock(&vdev->unplug_lock);
++	unplugged = vdev->unplugged;
++	if (!unplugged)
++		vdev->access_refcount++;
++	spin_unlock(&vdev->unplug_lock);
++
++	return unplugged ? -ENODEV : 0;
++}
++EXPORT_SYMBOL_GPL(video_device_enter);
++
++void video_device_exit(struct video_device *vdev)
++{
++	bool wake_up;
++
++	spin_lock(&vdev->unplug_lock);
++	WARN_ON(--vdev->access_refcount < 0);
++	wake_up = vdev->access_refcount == 0;
++	spin_unlock(&vdev->unplug_lock);
++
++	if (wake_up)
++		wake_up(&vdev->unplug_wait);
++}
++EXPORT_SYMBOL_GPL(video_device_exit);
++
++void video_device_unplug(struct video_device *vdev)
++{
++	bool unplug_blocked;
++
++	spin_lock(&vdev->unplug_lock);
++	unplug_blocked = vdev->access_refcount > 0;
++	vdev->unplugged = true;
++	spin_unlock(&vdev->unplug_lock);
++
++	if (!unplug_blocked)
++		return;
++
++	if (!wait_event_timeout(vdev->unplug_wait, !vdev->access_refcount,
++				msecs_to_jiffies(150000)))
++		WARN(1, "Timeout waiting for device access to complete\n");
++}
++EXPORT_SYMBOL_GPL(video_device_unplug);
++
+ static inline void video_get(struct video_device *vdev)
+ {
+ 	get_device(&vdev->dev);
+@@ -351,6 +397,10 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 	struct video_device *vdev = video_devdata(filp);
+ 	int ret = -ENODEV;
+ 
++	ret = video_device_enter(vdev);
++	if (ret < 0)
++		return ret;
++
+ 	if (vdev->fops->unlocked_ioctl) {
+ 		struct mutex *lock = v4l2_ioctl_get_lock(vdev, cmd);
+ 
+@@ -358,11 +408,14 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 			return -ERESTARTSYS;
+ 		if (video_is_registered(vdev))
+ 			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
++		else
++			ret = -ENODEV;
+ 		if (lock)
+ 			mutex_unlock(lock);
+ 	} else
+ 		ret = -ENOTTY;
+ 
++	video_device_exit(vdev);
+ 	return ret;
+ }
+ 
+@@ -841,6 +894,10 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 	if (WARN_ON(!vdev->v4l2_dev))
+ 		return -EINVAL;
+ 
++	/* unplug support */
++	spin_lock_init(&vdev->unplug_lock);
++	init_waitqueue_head(&vdev->unplug_wait);
++
+ 	/* v4l2_fh support */
+ 	spin_lock_init(&vdev->fh_lock);
+ 	INIT_LIST_HEAD(&vdev->fh_list);
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index e657614521e3..365a94f91dc9 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -15,6 +15,7 @@
+ #include <linux/cdev.h>
+ #include <linux/mutex.h>
+ #include <linux/videodev2.h>
++#include <linux/wait.h>
+ 
+ #include <media/media-entity.h>
+ 
+@@ -178,6 +179,12 @@ struct v4l2_file_operations {
+  * @pipe: &struct media_pipeline
+  * @fops: pointer to &struct v4l2_file_operations for the video device
+  * @device_caps: device capabilities as used in v4l2_capabilities
++ * @unplugged: when set the device has been unplugged and no device access
++ *	section can be entered
++ * @access_refcount: number of device access section currently running for the
++ *	device
++ * @unplug_lock: protects unplugged and access_refcount
++ * @unplug_wait: wait queue to wait for device access sections to complete
+  * @dev: &struct device for the video device
+  * @cdev: character device
+  * @v4l2_dev: pointer to &struct v4l2_device parent
+@@ -221,6 +228,12 @@ struct video_device
+ 
+ 	u32 device_caps;
+ 
++	/* unplug handling */
++	bool unplugged;
++	int access_refcount;
++	spinlock_t unplug_lock;
++	wait_queue_head_t unplug_wait;
++
+ 	/* sysfs */
+ 	struct device dev;
+ 	struct cdev *cdev;
+@@ -506,4 +519,38 @@ static inline int video_is_registered(struct video_device *vdev)
+ 	return test_bit(V4L2_FL_REGISTERED, &vdev->flags);
+ }
+ 
++/**
++ * video_device_enter - enter a device access section
++ * @vdev: the video device
++ *
++ * This function marks and protects the beginning of a section that should not
++ * be entered after the device has been unplugged. The section end is marked
++ * with a call to video_device_exit(). Calls to this function can be nested.
++ *
++ * Returns:
++ * 0 on success or a negative error code if the device has been unplugged.
++ */
++int video_device_enter(struct video_device *vdev);
++
++/**
++ * video_device_exit - exit a device access section
++ * @vdev: the video device
++ *
++ * This function marks the end of a section entered with video_device_enter().
++ * It wakes up all tasks waiting on video_device_unplug() for device access
++ * sections to be exited.
++ */
++void video_device_exit(struct video_device *vdev);
++
++/**
++ * video_device_unplug - mark a device as unplugged
++ * @vdev: the video device
++ *
++ * Mark a device as unplugged, causing all subsequent calls to
++ * video_device_enter() to return an error. If a device access section is
++ * currently being executed the function waits until the section is exited as
++ * marked by a call to video_device_exit().
++ */
++void video_device_unplug(struct video_device *vdev);
++
+ #endif /* _V4L2_DEV_H */
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
