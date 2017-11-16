@@ -1,120 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:43796 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751950AbdKZMq3 (ORCPT
+Received: from mail-it0-f45.google.com ([209.85.214.45]:41548 "EHLO
+        mail-it0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932612AbdKPEdq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 26 Nov 2017 07:46:29 -0500
-Subject: Re: [PATCH v4] drm: bridge: synopsys/dw-hdmi: Enable cec clock
-To: Pierre-Hugues Husson <phh@phh.me>,
-        linux-rockchip@lists.infradead.org
-Cc: heiko@sntech.de, linux@armlinux.org.uk,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <20171125201844.11353-1-phh@phh.me>
-From: Archit Taneja <architt@codeaurora.org>
-Message-ID: <bc8b4aea-eb0d-4d96-0e55-62afce664dc4@codeaurora.org>
-Date: Sun, 26 Nov 2017 18:16:23 +0530
+        Wed, 15 Nov 2017 23:33:46 -0500
 MIME-Version: 1.0
-In-Reply-To: <20171125201844.11353-1-phh@phh.me>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20171115222806.5c86b85f@vento.lan>
+References: <20171115222806.5c86b85f@vento.lan>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Wed, 15 Nov 2017 20:33:45 -0800
+Message-ID: <CA+55aFxG5jWvCajaoJvZQXcVMGtsYuywDiJSc1psCkxB3sbJzQ@mail.gmail.com>
+Subject: Re: [GIT PULL for v4.15-rc1] media updates
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, Nov 15, 2017 at 4:28 PM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+>
+> PS.: This time, there is a merge from staging tree, from the same commit
+>      you pulled on your tree, in order to solve a conflict at the
+>      atomisp driver, as reported by Stephen Rothwell.
 
+Please don't do that.
 
-On 11/26/2017 01:48 AM, Pierre-Hugues Husson wrote:
-> Support the "cec" optional clock. The documentation already mentions "cec"
-> optional clock and it is used by several boards, but currently the driver
-> doesn't enable it, thus preventing cec from working on those boards.
-> 
-> And even worse: a /dev/cecX device will appear for those boards, but it
-> won't be functioning without configuring this clock.
+I got conflicts anyway, and I'd rather see them. Honestly, I want to
+know, but I also am quite possibly better at resolving those conflicts
+than most developers, because I do a *lot* of merges.
 
-Thanks for the updating the commit message. I will queue this to drm-misc-fixes once
-it's updated with the 4.15-rc1 tag.
+Why do I have to say this *every* single merge window?
 
-Thanks,
-Archit
+Stop trying to hide your conflicts. Stop thinking that I prefer them
+hidden over being there. Stop doing crazy merges from trees that
+aren't yours and you were not asked to pull!
 
-> 
-> Changes:
-> v4:
-> - Change commit message to stress the importance of this patch
-> 
-> v3:
-> - Drop useless braces
-> 
-> v2:
-> - Separate ENOENT errors from others
-> - Propagate other errors (especially -EPROBE_DEFER)
-> 
-> Signed-off-by: Pierre-Hugues Husson <phh@phh.me>
-> ---
->   drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 25 +++++++++++++++++++++++++
->   1 file changed, 25 insertions(+)
-> 
-> diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-> index bf14214fa464..d82b9747a979 100644
-> --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-> +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-> @@ -138,6 +138,7 @@ struct dw_hdmi {
->   	struct device *dev;
->   	struct clk *isfr_clk;
->   	struct clk *iahb_clk;
-> +	struct clk *cec_clk;
->   	struct dw_hdmi_i2c *i2c;
->   
->   	struct hdmi_data_info hdmi_data;
-> @@ -2382,6 +2383,26 @@ __dw_hdmi_probe(struct platform_device *pdev,
->   		goto err_isfr;
->   	}
->   
-> +	hdmi->cec_clk = devm_clk_get(hdmi->dev, "cec");
-> +	if (PTR_ERR(hdmi->cec_clk) == -ENOENT) {
-> +		hdmi->cec_clk = NULL;
-> +	} else if (IS_ERR(hdmi->cec_clk)) {
-> +		ret = PTR_ERR(hdmi->cec_clk);
-> +		if (ret != -EPROBE_DEFER)
-> +			dev_err(hdmi->dev, "Cannot get HDMI cec clock: %d\n",
-> +					ret);
-> +
-> +		hdmi->cec_clk = NULL;
-> +		goto err_iahb;
-> +	} else {
-> +		ret = clk_prepare_enable(hdmi->cec_clk);
-> +		if (ret) {
-> +			dev_err(hdmi->dev, "Cannot enable HDMI cec clock: %d\n",
-> +					ret);
-> +			goto err_iahb;
-> +		}
-> +	}
-> +
->   	/* Product and revision IDs */
->   	hdmi->version = (hdmi_readb(hdmi, HDMI_DESIGN_ID) << 8)
->   		      | (hdmi_readb(hdmi, HDMI_REVISION_ID) << 0);
-> @@ -2518,6 +2539,8 @@ __dw_hdmi_probe(struct platform_device *pdev,
->   		cec_notifier_put(hdmi->cec_notifier);
->   
->   	clk_disable_unprepare(hdmi->iahb_clk);
-> +	if (hdmi->cec_clk)
-> +		clk_disable_unprepare(hdmi->cec_clk);
->   err_isfr:
->   	clk_disable_unprepare(hdmi->isfr_clk);
->   err_res:
-> @@ -2541,6 +2564,8 @@ static void __dw_hdmi_remove(struct dw_hdmi *hdmi)
->   
->   	clk_disable_unprepare(hdmi->iahb_clk);
->   	clk_disable_unprepare(hdmi->isfr_clk);
-> +	if (hdmi->cec_clk)
-> +		clk_disable_unprepare(hdmi->cec_clk);
->   
->   	if (hdmi->i2c)
->   		i2c_del_adapter(&hdmi->i2c->adap);
-> 
+Really.
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+                Linus
