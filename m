@@ -1,84 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f177.google.com ([209.85.216.177]:34400 "EHLO
-        mail-qt0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751967AbdKWJlX (ORCPT
+Received: from relmlor3.renesas.com ([210.160.252.173]:63534 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S935118AbdKPSXF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Nov 2017 04:41:23 -0500
-MIME-Version: 1.0
-In-Reply-To: <1510743363-25798-5-git-send-email-jacopo+renesas@jmondi.org>
-References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org> <1510743363-25798-5-git-send-email-jacopo+renesas@jmondi.org>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Thu, 23 Nov 2017 10:41:22 +0100
-Message-ID: <CAMuHMdVvMvM8+yFwQVPvR+Sfei7OAEDCLfxX=V0qfdozmdQB6A@mail.gmail.com>
-Subject: Re: [PATCH v1 04/10] ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Thu, 16 Nov 2017 13:23:05 -0500
+From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Fabrizio Castro <fabrizio.castro@bp.renesas.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        devicetree@vger.kernel.org,
+        Simon Horman <horms+renesas@verge.net.au>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        Biju Das <biju.das@bp.renesas.com>
+Subject: [PATCH v2 2/4] dt-bindings: media: rcar_vin: add device tree support for r8a774[35]
+Date: Thu, 16 Nov 2017 18:22:49 +0000
+Message-Id: <1510856571-30281-3-git-send-email-fabrizio.castro@bp.renesas.com>
+In-Reply-To: <1510856571-30281-1-git-send-email-fabrizio.castro@bp.renesas.com>
+References: <1510856571-30281-1-git-send-email-fabrizio.castro@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+Add compatible strings for r8a7743 and r8a7745. No driver change
+is needed as "renesas,rcar-gen2-vin" will activate the right code.
+However, it is good practice to document compatible strings for the
+specific SoC as this allows SoC specific changes to the driver if
+needed, in addition to document SoC support and therefore allow
+checkpatch.pl to validate compatible string values.
 
-On Wed, Nov 15, 2017 at 11:55 AM, Jacopo Mondi
-<jacopo+renesas@jmondi.org> wrote:
-> Add Capture Engine Unit (CEU) node to device tree.
->
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Reviewed-by: Biju Das <biju.das@bp.renesas.com>
+---
+v1->v2:
+* Fixed double "change" in changelog
 
-Thanks for your patch!
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-> --- a/arch/arm/boot/dts/r7s72100.dtsi
-> +++ b/arch/arm/boot/dts/r7s72100.dtsi
-> @@ -136,8 +136,8 @@
->                         compatible = "renesas,r7s72100-mstp-clocks", "renesas,cpg-mstp-clocks";
->                         reg = <0xfcfe042c 4>;
->                         clocks = <&p0_clk>;
-
-You forgot to add an entry to clocks.
-The parent clock of the CEU module clock is b_clk.
-
-> -                       clock-indices = <R7S72100_CLK_RTC>;
-> -                       clock-output-names = "rtc";
-> +                       clock-indices = <R7S72100_CLK_RTC R7S72100_CLK_CEU>;
-> +                       clock-output-names = "rtc", "ceu";
-
-Usually we follow the order from <dt-bindings/clock/r7s72100-clock.h>,
-so CEU should come before RTC.
-
-> @@ -666,4 +666,12 @@
->                 power-domains = <&cpg_clocks>;
->                 status = "disabled";
->         };
-> +
-> +       ceu: ceu@e8210000 {
-> +               reg = <0xe8210000 0x209c>;
-> +               compatible = "renesas,renesas-ceu";
-> +               interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
-> +               power-domains = <&cpg_clocks>;
-
-if you describe the device to be part of the CPG clock domain, you should
-provide a clocks property:
-
-        clocks = <&mstp6_clks R7S72100_CLK_CEU>;
-
-> +               status = "disabled";
-> +       };
->  };
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index 98931f5..ff9697e 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -6,6 +6,8 @@ family of devices. The current blocks are always slaves and suppot one input
+ channel which can be either RGB, YUYV or BT656.
+ 
+  - compatible: Must be one or more of the following
++   - "renesas,vin-r8a7743" for the R8A7743 device
++   - "renesas,vin-r8a7745" for the R8A7745 device
+    - "renesas,vin-r8a7778" for the R8A7778 device
+    - "renesas,vin-r8a7779" for the R8A7779 device
+    - "renesas,vin-r8a7790" for the R8A7790 device
+@@ -14,7 +16,8 @@ channel which can be either RGB, YUYV or BT656.
+    - "renesas,vin-r8a7793" for the R8A7793 device
+    - "renesas,vin-r8a7794" for the R8A7794 device
+    - "renesas,vin-r8a7795" for the R8A7795 device
+-   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
++   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
++     device.
+    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+ 
+    When compatible with the generic version nodes must list the
+-- 
+2.7.4
