@@ -1,50 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:37501 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754180AbdK2Kql (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 05:46:41 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>, James Hogan <jhogan@kernel.org>,
-        =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Jasmin Jessich <jasmin@anw.at>
-Subject: [PATCH 08/12] media: rc-ir-raw: cleanup kernel-doc markups
-Date: Wed, 29 Nov 2017 05:46:29 -0500
-Message-Id: <c4365922d5cd9720cb114f75089bc290571993a3.1511952372.git.mchehab@s-opensource.com>
-In-Reply-To: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-References: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-In-Reply-To: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-References: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-qt0-f172.google.com ([209.85.216.172]:43477 "EHLO
+        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934366AbdKPUAA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Nov 2017 15:00:00 -0500
+Received: by mail-qt0-f172.google.com with SMTP id n61so521988qte.10
+        for <linux-media@vger.kernel.org>; Thu, 16 Nov 2017 12:00:00 -0800 (PST)
+Message-ID: <1510862395.8053.39.camel@ndufresne.ca>
+Subject: Re: [linux-sunxi] Cedrus driver
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Giulio Benetti <giulio.benetti@micronovasrl.com>
+Cc: Andreas Baierl <list@imkreisrum.de>, linux-sunxi@googlegroups.com,
+        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
+        wens@csie.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        thomas@vitsch.nl, linux-media@vger.kernel.org
+Date: Thu, 16 Nov 2017 14:59:55 -0500
+In-Reply-To: <20171116110204.poakahqjz4sj7pmu@flea>
+References: <1510059543-7064-1-git-send-email-giulio.benetti@micronovasrl.com>
+         <1b12fa21-bfe6-9ba7-ae1d-8131ac6f4668@micronovasrl.com>
+         <6fcdc0d9-d0f8-785a-bb00-b1b41c684e59@imkreisrum.de>
+         <693e8786-af83-9d77-0fd4-50fa1f6a135f@micronovasrl.com>
+         <20171116110204.poakahqjz4sj7pmu@flea>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-pt46Lg9YAHMlu1JVn4N1"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cleanup those warnings:
-	drivers/media/rc/rc-ir-raw.c:141: warning: No description found for parameter 'ev'
-	drivers/media/rc/rc-ir-raw.c:141: warning: Excess function parameter 'type' description in 'ir_raw_event_store_with_filter'
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/rc/rc-ir-raw.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+--=-pt46Lg9YAHMlu1JVn4N1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index f6e5ba4fbb49..d78483a504c9 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -128,7 +128,7 @@ EXPORT_SYMBOL_GPL(ir_raw_event_store_edge);
- /**
-  * ir_raw_event_store_with_filter() - pass next pulse/space to decoders with some processing
-  * @dev:	the struct rc_dev device descriptor
-- * @type:	the type of the event that has occurred
-+ * @ev:		the event that has occurred
-  *
-  * This routine (which may be called from an interrupt context) works
-  * in similar manner to ir_raw_event_store_edge.
--- 
-2.14.3
+Le jeudi 16 novembre 2017 =C3=A0 12:02 +0100, Maxime Ripard a =C3=A9crit :
+> Assuming that the request API is in, we'd need to:
+>   - Finish the MPEG4 support
+>   - Work on more useful codecs (H264 comes to my mind)
+
+For which we will have to review the tables and make sure they match
+the spec (the easy part). But as an example, that branch uses a table
+that merge Mpeg4 VOP and VOP Short Header. We need to make sure it does
+not pause problems or split it up. On top of that, ST and Rockchip
+teams should give some help and sync with these tables on their side.
+We also need to consider decoder like Tegra 2. In H264, they don't need
+frame parsing, but just the PPS/SPS data (might just be parsed in the
+driver, like CODA ?). There is other mode of operation, specially in
+H264/HEVC low latency, where the decoder will be similar, but will
+accept and process slices right away, without waiting for the full
+frame.
+
+We also need some doc, to be able to tell the GStreamer and FFMPEG team
+how to detect and handle these decoder. I doubt the libv4l2 proposed
+approach will be used for these two projects since they already have
+their own parser and would like to not parse twice. As an example, we
+need to document that V4L2_PIX_FMT_MPEG2_FRAME implies using the
+Request API and specific CID. We should probably also ping the Chrome
+Devs, which probably have couple of pending branches around this.
+
+regards,
+Nicolas
+
+
+
+--=-pt46Lg9YAHMlu1JVn4N1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCWg3uOwAKCRBxUwItrAao
+HHECAJwOUnKhoJ9VFvV+vJrW0glC6f4t/wCfZP+7PkLnwxrO2BUgXXTJ3ZJdnCM=
+=UWFg
+-----END PGP SIGNATURE-----
+
+--=-pt46Lg9YAHMlu1JVn4N1--
