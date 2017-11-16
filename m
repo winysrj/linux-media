@@ -1,62 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout02.posteo.de ([185.67.36.66]:34269 "EHLO mout02.posteo.de"
+Received: from osg.samsung.com ([64.30.133.232]:43064 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933700AbdKQOaY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 09:30:24 -0500
-Received: from submission (posteo.de [89.146.220.130])
-        by mout02.posteo.de (Postfix) with ESMTPS id D236720A06
-        for <linux-media@vger.kernel.org>; Fri, 17 Nov 2017 15:30:21 +0100 (CET)
-From: Martin Kepplinger <martink@posteo.de>
-To: p.zabel@pengutronix.de
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Martin Kepplinger <martink@posteo.de>
-Subject: [PATCH] media: coda: fix comparision of decoded frames' indexes
-Date: Fri, 17 Nov 2017 15:30:10 +0100
-Message-Id: <20171117143010.501-1-martink@posteo.de>
+        id S1751413AbdKPL0E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Nov 2017 06:26:04 -0500
+Date: Thu, 16 Nov 2017 09:25:58 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: =?UTF-8?B?UmFmYcOrbCBDYXJyw6k=?= <funman@videolan.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] dvb_dev_get_fd(): return fd of local devices
+Message-ID: <20171116092558.2213205e@vento.lan>
+In-Reply-To: <20171115104711.5418-1-funman@videolan.org>
+References: <20171115104711.5418-1-funman@videolan.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-At this point the driver looks the currently decoded frame's index
-and compares is to VPU-specific state values. Directly before this
-if and else statements the indexes are read (index for decoded and
-for displayed frame).
+Em Wed, 15 Nov 2017 11:47:11 +0100
+Rafaël Carré <funman@videolan.org> escreveu:
 
-Now what is saved in ctx->display_idx is an older value at this point!
-During these index checks, the current values apply, so fix this by
-taking display_idx instead of ctx->display_idx.
+> This makes it possible to poll a local device.
+> Getting the fd is preferrable to adding a dvb_dev_poll() function,
+> because we can poll several fds together in an event-based program.
+> 
+> This is not implemented for remote devices, as polling a remote fd
+> does not make sense.
+> We could instead return the socket to know when to expect messages
+> from the remote device, but the current implementation in
+> dvb-dev-remote.c already runs a thread to receive remote messages
+> as soon as possible.
 
-ctx->display_idx is updated later in the same function.
+Patch looks OK.
 
-Signed-off-by: Martin Kepplinger <martink@posteo.de>
----
+Just a SOB (signed-off-by) is missing.
 
-Please review this thoroughly, but in case I am wrong here, this is
-at least very strange to read and *should* be accompanied with a
-comment about what's going on with that index value!
+> ---
+> 
+> Note, after reading README, I did not bump the library version.
+> 
+> Comments welcome
+> 
+>  lib/include/libdvbv5/dvb-dev.h | 12 ++++++++++++
+>  lib/libdvbv5/dvb-dev-local.c   |  6 ++++++
+>  lib/libdvbv5/dvb-dev-priv.h    |  1 +
+>  lib/libdvbv5/dvb-dev.c         | 11 +++++++++++
+>  4 files changed, 30 insertions(+)
+> 
+> diff --git a/lib/include/libdvbv5/dvb-dev.h b/lib/include/libdvbv5/dvb-dev.h
+> index 98bee5e7..55e0f065 100644
+> --- a/lib/include/libdvbv5/dvb-dev.h
+> +++ b/lib/include/libdvbv5/dvb-dev.h
+> @@ -289,6 +289,18 @@ struct dvb_open_descriptor *dvb_dev_open(struct dvb_device *dvb,
+>   */
+>  void dvb_dev_close(struct dvb_open_descriptor *open_dev);
+>  
+> +/**
+> + * @brief returns fd from a local device
+> + * This will not work for remote devices.
+> + * @ingroup dvb_device
+> + *
+> + * @param open_dev	Points to the struct dvb_open_descriptor
+> + *
+> + * @return On success, returns the fd.
+> + * Returns -1 on error.
+> + */
+> +int dvb_dev_get_fd(struct dvb_open_descriptor *open_dev);
+> +
+>  /**
+>   * @brief read from a dvb demux or dvr file
+>   * @ingroup dvb_device
+> diff --git a/lib/libdvbv5/dvb-dev-local.c b/lib/libdvbv5/dvb-dev-local.c
+> index b50b61b4..eb2f0775 100644
+> --- a/lib/libdvbv5/dvb-dev-local.c
+> +++ b/lib/libdvbv5/dvb-dev-local.c
+> @@ -775,6 +775,11 @@ static void dvb_dev_local_free(struct dvb_device_priv *dvb)
+>  	free(priv);
+>  }
+>  
+> +static int dvb_local_get_fd(struct dvb_open_descriptor *open_dev)
+> +{
+> +    return open_dev->fd;
+> +}
+> +
+>  /* Initialize for local usage */
+>  void dvb_dev_local_init(struct dvb_device_priv *dvb)
+>  {
+> @@ -788,6 +793,7 @@ void dvb_dev_local_init(struct dvb_device_priv *dvb)
+>  	ops->stop_monitor = dvb_local_stop_monitor;
+>  	ops->open = dvb_local_open;
+>  	ops->close = dvb_local_close;
+> +	ops->get_fd = dvb_local_get_fd;
+>  
+>  	ops->dmx_stop = dvb_local_dmx_stop;
+>  	ops->set_bufsize = dvb_local_set_bufsize;
+> diff --git a/lib/libdvbv5/dvb-dev-priv.h b/lib/libdvbv5/dvb-dev-priv.h
+> index e05fcad2..2e69f766 100644
+> --- a/lib/libdvbv5/dvb-dev-priv.h
+> +++ b/lib/libdvbv5/dvb-dev-priv.h
+> @@ -72,6 +72,7 @@ struct dvb_dev_ops {
+>  	int (*fe_get_stats)(struct dvb_v5_fe_parms *p);
+>  
+>  	void (*free)(struct dvb_device_priv *dvb);
+> +	int (*get_fd)(struct dvb_open_descriptor *dvb);
+>  };
+>  
+>  struct dvb_device_priv {
+> diff --git a/lib/libdvbv5/dvb-dev.c b/lib/libdvbv5/dvb-dev.c
+> index 7e2da1fb..447c9fd5 100644
+> --- a/lib/libdvbv5/dvb-dev.c
+> +++ b/lib/libdvbv5/dvb-dev.c
+> @@ -218,6 +218,17 @@ struct dvb_open_descriptor *dvb_dev_open(struct dvb_device *d,
+>  	return ops->open(dvb, sysname, flags);
+>  }
+>  
+> +int dvb_dev_get_fd(struct dvb_open_descriptor *open_dev)
+> +{
+> +	struct dvb_device_priv *dvb = (void *)open_dev;
+> +	struct dvb_dev_ops *ops = &dvb->ops;
+> +
+> +	if (!ops->get_fd)
+> +		return -1;
+> +
+> +	return ops->get_fd(open_dev);
+> +}
+> +
+>  void dvb_dev_close(struct dvb_open_descriptor *open_dev)
+>  {
+>  	struct dvb_device_priv *dvb = open_dev->dvb;
 
-I don't think it matter that much here because at least playing h264
-worked before and works with this change, but I've tested it anyways.
-
-thanks
-
-                               martin
 
 
- drivers/media/platform/coda/coda-bit.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index bfc4ecf6f068..fe38527a90e2 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -2089,7 +2089,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		/* no frame was decoded, but we might have a display frame */
- 		if (display_idx >= 0 && display_idx < ctx->num_internal_frames)
- 			ctx->sequence_offset++;
--		else if (ctx->display_idx < 0)
-+		else if (display_idx < 0)
- 			ctx->hold = true;
- 	} else if (decoded_idx == -2) {
- 		/* no frame was decoded, we still return remaining buffers */
--- 
-2.11.0
+Thanks,
+Mauro
