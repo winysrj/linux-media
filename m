@@ -1,71 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:46392 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753470AbdKOHb5 (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:48711 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932931AbdKPEit (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 02:31:57 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, heiko@sntech.de,
-        mchehab@kernel.org, laurent.pinchart+renesas@ideasonboard.com,
-        hans.verkuil@cisco.com, tfiga@chromium.org, nicolas@ndufresne.ca,
-        sakari.ailus@linux.intel.com, zhengsq@rock-chips.com,
-        zyc@rock-chips.com, eddie.cai.linux@gmail.com,
-        jeffy.chen@rock-chips.com, allon.huang@rock-chips.com,
-        p.zabel@pengutronix.de, slongerbeam@gmail.com,
-        linux@armlinux.org.uk, Jacob Chen <jacob2.chen@rock-chips.com>
-Subject: [RFC PATCH 5/5] ARM: dts: rockchip: add isp node for rk3288
-Date: Wed, 15 Nov 2017 15:31:32 +0800
-Message-Id: <20171115073132.30123-5-jacob-chen@iotwrt.com>
-In-Reply-To: <20171115073132.30123-1-jacob-chen@iotwrt.com>
-References: <20171115073132.30123-1-jacob-chen@iotwrt.com>
+        Wed, 15 Nov 2017 23:38:49 -0500
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: david@hardeman.nu, mchehab@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH] [media] winbond-cir: Fix pnp_irq's error checking for wbcir_probe
+Date: Thu, 16 Nov 2017 10:07:51 +0530
+Message-Id: <72c69922ccb3b83c47d0a824bdaeba335ab1cdb5.1510806986.git.arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacob Chen <jacob2.chen@rock-chips.com>
+The pnp_irq() function returns -1 if an error occurs.
+pnp_irq() error checking for zero is not correct.
 
-rk3288 have a Embedded 13M ISP and MIPI-CSI2 interface.
-
-Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- arch/arm/boot/dts/rk3288.dtsi | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ drivers/media/rc/winbond-cir.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
-index 60658c5c9a48..f9a81137146d 100644
---- a/arch/arm/boot/dts/rk3288.dtsi
-+++ b/arch/arm/boot/dts/rk3288.dtsi
-@@ -962,6 +962,30 @@
- 		status = "disabled";
- 	};
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index 3ca7ab4..0adf099 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -1044,7 +1044,7 @@ struct wbcir_data {
+ 	data->irq = pnp_irq(device, 0);
  
-+	isp: isp@ff910000 {
-+		compatible = "rockchip,rk3288-cif-isp";
-+		reg = <0x0 0xff910000 0x0 0x4000>;
-+		interrupts = <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cru SCLK_ISP>, <&cru ACLK_ISP>,
-+			 <&cru HCLK_ISP>, <&cru PCLK_ISP_IN>,
-+			 <&cru SCLK_ISP_JPE>;
-+		clock-names = "clk_isp", "aclk_isp",
-+			      "hclk_isp", "pclk_isp_in",
-+			      "sclk_isp_jpe";
-+		assigned-clocks = <&cru SCLK_ISP>;
-+		assigned-clock-rates = <400000000>;
-+		power-domains = <&power RK3288_PD_VIO>;
-+		iommus = <&isp_mmu>;
-+		status = "disabled";
-+		isp_mipi_phy_rx0: isp-mipi-phy-rx0 {
-+			compatible = "rockchip,rk3288-mipi-dphy";
-+			rockchip,grf = <&grf>;
-+			clocks = <&cru SCLK_MIPIDSI_24M>, <&cru PCLK_MIPI_CSI>;
-+			clock-names = "dphy-ref", "pclk";
-+			status = "disabled";
-+		};
-+	};
-+
- 	isp_mmu: iommu@ff914000 {
- 		compatible = "rockchip,iommu";
- 		reg = <0x0 0xff914000 0x0 0x100>, <0x0 0xff915000 0x0 0x100>;
+ 	if (data->wbase == 0 || data->ebase == 0 ||
+-	    data->sbase == 0 || data->irq == 0) {
++	    data->sbase == 0 || data->irq == -1) {
+ 		err = -ENODEV;
+ 		dev_err(dev, "Invalid resources\n");
+ 		goto exit_free_data;
 -- 
-2.14.2
+1.9.1
