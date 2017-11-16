@@ -1,47 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:33932 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752172AbdK2TIr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 14:08:47 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 06/22] media: s5k6a3: document some fields at struct s5k6a3
-Date: Wed, 29 Nov 2017 14:08:24 -0500
-Message-Id: <dcdd4b5f48e6c9bd786c698215136f10ee0d2f5c.1511982439.git.mchehab@s-opensource.com>
-In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-cys01nam02on0090.outbound.protection.outlook.com ([104.47.37.90]:23232
+        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1756902AbdKPBHa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Nov 2017 20:07:30 -0500
+Subject: Re: [PATCH v4 00/12] [dt-bindings] [media] Add document file and
+ driver for Sony CXD2880 DVB-T2/T tuner + demodulator
+To: "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
+CC: "tbird20d@gmail.com" <tbird20d@gmail.com>,
+        "frowand.list@gmail.com" <frowand.list@gmail.com>,
+        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
+        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
+        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
+        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
+        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
+        <yasunari.takiguchi@sony.com>
+From: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
+Message-ID: <67ca63fc-4675-8a97-e43e-6336bbc9fada@sony.com>
+Date: Thu, 16 Nov 2017 10:07:04 +0900
+MIME-Version: 1.0
+In-Reply-To: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/i2c/s5k6a3.c:68: warning: No description found for parameter 'clock'
-drivers/media/i2c/s5k6a3.c:68: warning: No description found for parameter 'clock_frequency'
-drivers/media/i2c/s5k6a3.c:68: warning: No description found for parameter 'power_count'
+Hi, all
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/i2c/s5k6a3.c | 3 +++
- 1 file changed, 3 insertions(+)
+I sent the patch series of Sony CXD2880 DVB-T2/T tuner + demodulator driver version 4 on 13th/Oct.
+Are there any comments, advices and review results for them?
 
-diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
-index 67dcca76f981..2e140272794b 100644
---- a/drivers/media/i2c/s5k6a3.c
-+++ b/drivers/media/i2c/s5k6a3.c
-@@ -53,6 +53,9 @@ enum {
-  * @gpio_reset: GPIO connected to the sensor's reset pin
-  * @lock: mutex protecting the structure's members below
-  * @format: media bus format at the sensor's source pad
-+ * @clock: pointer to &struct clk.
-+ * @clock_frequency: clock frequency
-+ * @power_count: stores state if device is powered
-  */
- struct s5k6a3 {
- 	struct device *dev;
--- 
-2.14.3
+I'd like to get better understanding of current review status for our codes.
+
+Regards,
+Takiguchi
