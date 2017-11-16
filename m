@@ -1,134 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:53277 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753341AbdK2J04 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 04:26:56 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/2] keytable: fail more gracefully when commandline cannot be parsed
-Date: Wed, 29 Nov 2017 09:26:54 +0000
-Message-Id: <20171129092655.17201-1-sean@mess.org>
+Received: from mail-qt0-f172.google.com ([209.85.216.172]:50401 "EHLO
+        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964817AbdKPNUV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Nov 2017 08:20:21 -0500
+MIME-Version: 1.0
+In-Reply-To: <1510834290-25434-2-git-send-email-fabrizio.castro@bp.renesas.com>
+References: <1510834290-25434-1-git-send-email-fabrizio.castro@bp.renesas.com> <1510834290-25434-2-git-send-email-fabrizio.castro@bp.renesas.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Thu, 16 Nov 2017 14:20:20 +0100
+Message-ID: <CAMuHMdW+krUp5ELO4NFxGi8NZ5-H4vrtm-=OXyvZKMCk2f-WcQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] dt-bindings: media: rcar_vin: add device tree support
+ for r8a774[35]
+To: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Simon Horman <horms+renesas@verge.net.au>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        Biju Das <biju.das@bp.renesas.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If there is a problem during argp_parse, you get:
+On Thu, Nov 16, 2017 at 1:11 PM, Fabrizio Castro
+<fabrizio.castro@bp.renesas.com> wrote:
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -14,7 +14,10 @@ channel which can be either RGB, YUYV or BT656.
+>     - "renesas,vin-r8a7790" for the R8A7790 device
+>     - "renesas,vin-r8a7779" for the R8A7779 device
+>     - "renesas,vin-r8a7778" for the R8A7778 device
+> -   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
+> +   - "renesas,vin-r8a7745" for the R8A7745 device
+> +   - "renesas,vin-r8a7743" for the R8A7743 device
 
-$ ir-keytable -p foo
-Invalid parameter(s)
-ir-keytable: -p: (PROGRAM ERROR) Option should have been recognized!?
-Try `ir-keytable --help' or `ir-keytable --usage' for more information.
-Try `ir-keytable --help' or `ir-keytable --usage' for more information.
-Found /sys/class/rc/rc0/ (/dev/input/event6) with:
-	Driver winbond-cir, table rc-rc6-mce
-	Supported protocols: lirc rc-5 rc-5-sz jvc sony nec sanyo mce_kbd rc-6 sharp xmp
-	Enabled protocols: lirc rc-6
-	Extra capabilities: <access denied>
+Please keep the list sorted by SoC part number.
 
-So, ARGP_ERR_UNKNOWN is not correct and it should exit on parse failures.
+> +   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
+> +     device.
+>     - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+>
+>     When compatible with the generic version nodes must list the
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- utils/keytable/keytable.c | 33 ++++++++++++++++++---------------
- 1 file changed, 18 insertions(+), 15 deletions(-)
+Gr{oetje,eeting}s,
 
-diff --git a/utils/keytable/keytable.c b/utils/keytable/keytable.c
-index 64db7703..4c1e8641 100644
---- a/utils/keytable/keytable.c
-+++ b/utils/keytable/keytable.c
-@@ -496,7 +496,7 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
- 
- 		rc = parse_keyfile(arg, &name);
- 		if (rc)
--			goto err_inval;
-+			argp_error(state, _("Failed to read table file %s"), arg);
- 		if (name)
- 			fprintf(stderr, _("Read %s table\n"), name);
- 		break;
-@@ -504,7 +504,7 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
- 	case 'a': {
- 		rc = parse_cfgfile(arg);
- 		if (rc)
--			goto err_inval;
-+			argp_error(state, _("Failed to read config file %s"), arg);
- 		break;
- 	}
- 	case 'k':
-@@ -512,8 +512,10 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
- 		do {
- 			struct keytable_entry *ke;
- 
--			if (!p)
--				goto err_inval;
-+			if (!p) {
-+				argp_error(state, _("Missing scancode: %s"), arg);
-+				break;
-+			}
- 
- 			ke = calloc(1, sizeof(*ke));
- 			if (!ke) {
-@@ -524,13 +526,15 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
- 			ke->scancode = strtoul(p, NULL, 0);
- 			if (errno) {
- 				free(ke);
--				goto err_inval;
-+				argp_error(state, _("Invalid scancode: %s"), p);
-+				break;
- 			}
- 
- 			p = strtok(NULL, ",;");
- 			if (!p) {
- 				free(ke);
--				goto err_inval;
-+				argp_error(state, _("Missing keycode"));
-+				break;
- 			}
- 
- 			key = parse_code(p);
-@@ -538,7 +542,8 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
- 				key = strtol(p, NULL, 0);
- 				if (errno) {
- 					free(ke);
--					goto err_inval;
-+					argp_error(state, _("Unknown keycode: %s"), p);
-+					break;
- 				}
- 			}
- 
-@@ -559,8 +564,10 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
- 			enum sysfs_protocols protocol;
- 
- 			protocol = parse_sysfs_protocol(p, true);
--			if (protocol == SYSFS_INVALID)
--				goto err_inval;
-+			if (protocol == SYSFS_INVALID) {
-+				argp_error(state, _("Unknown protocol: %s"), p);
-+				break;
-+			}
- 
- 			ch_proto |= protocol;
- 		}
-@@ -580,12 +587,8 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
- 	default:
- 		return ARGP_ERR_UNKNOWN;
- 	}
--	return 0;
--
--err_inval:
--	fprintf(stderr, _("Invalid parameter(s)\n"));
--	return ARGP_ERR_UNKNOWN;
- 
-+	return 0;
- }
- 
- static struct argp argp = {
-@@ -1507,7 +1510,7 @@ int main(int argc, char *argv[])
- 	textdomain (PACKAGE);
- #endif
- 
--	argp_parse(&argp, argc, argv, ARGP_NO_HELP | ARGP_NO_EXIT, 0, 0);
-+	argp_parse(&argp, argc, argv, ARGP_NO_HELP, 0, 0);
- 
- 	/* Just list all devices */
- 	if (!clear && !readtable && !keytable && !ch_proto && !cfg.next && !test && !delay && !period) {
--- 
-2.14.3
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
