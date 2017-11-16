@@ -1,75 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from heliosphere.sirena.org.uk ([172.104.155.198]:37994 "EHLO
-        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753799AbdK1Peu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 10:34:50 -0500
-Date: Tue, 28 Nov 2017 15:34:46 +0000
-From: Mark Brown <broonie@kernel.org>
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v6 0/9] i2c: document DMA handling and add helpers for it
-Message-ID: <20171128153446.6pyqtkcvuepil5gi@sirena.org.uk>
-References: <20171104202009.3818-1-wsa+renesas@sang-engineering.com>
- <20171108225037.i4dx5iu5zxc542oq@sirena.co.uk>
- <20171127185116.j2vmkhbik33vk4f7@ninjato>
+Received: from osg.samsung.com ([64.30.133.232]:47937 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934475AbdKPLre (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Nov 2017 06:47:34 -0500
+Date: Thu, 16 Nov 2017 09:47:29 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: =?UTF-8?B?UmFmYcOrbCBDYXJyw6k=?= <funman@videolan.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] dvbv5-daemon: 0 is a valid fd
+Message-ID: <20171116094729.1526db2f@vento.lan>
+In-Reply-To: <7f84667f-ef2c-03b5-db09-c932d270c343@videolan.org>
+References: <20171115113336.3756-1-funman@videolan.org>
+        <20171115113336.3756-2-funman@videolan.org>
+        <20171116092509.7b521fbe@vento.lan>
+        <7f84667f-ef2c-03b5-db09-c932d270c343@videolan.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="g4qm2fugrwbwjqft"
-Content-Disposition: inline
-In-Reply-To: <20171127185116.j2vmkhbik33vk4f7@ninjato>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Thu, 16 Nov 2017 12:36:24 +0100
+Rafaël Carré <funman@videolan.org> escreveu:
 
---g4qm2fugrwbwjqft
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> On 16/11/2017 12:25, Mauro Carvalho Chehab wrote:
+> > Em Wed, 15 Nov 2017 12:33:36 +0100
+> > Rafaël Carré <funman@videolan.org> escreveu:
+> >   
+> >> ---
+> >>  utils/dvb/dvbv5-daemon.c | 2 +-
+> >>  1 file changed, 1 insertion(+), 1 deletion(-)
+> >>
+> >> diff --git a/utils/dvb/dvbv5-daemon.c b/utils/dvb/dvbv5-daemon.c
+> >> index 58485ac6..711694e0 100644
+> >> --- a/utils/dvb/dvbv5-daemon.c
+> >> +++ b/utils/dvb/dvbv5-daemon.c
+> >> @@ -570,7 +570,7 @@ void dvb_remote_log(void *priv, int level, const char *fmt, ...)
+> >>  
+> >>  	va_end(ap);
+> >>  
+> >> -	if (fd > 0)
+> >> +	if (fd >= 0)
+> >>  		send_data(fd, "%i%s%i%s", 0, "log", level, buf);
+> >>  	else
+> >>  		local_log(level, buf);  
+> 
+> Signed-off-by: Rafaël Carré <funman@videolan.org>
+> 
+> > 
+> > Patch looks OK. Just need a description explaining why we
+> > need to consider fd == 0 and a SOB.  
+> 
+> Sorry, I am not used to do sign-off, will try to remember.
+> 
+> fd == 0 can happen if the application closes stdin/out/err then opens a
+> new fd.
+> 
+> Should I put this in the commit log?
 
-On Mon, Nov 27, 2017 at 07:51:16PM +0100, Wolfram Sang wrote:
-> On Wed, Nov 08, 2017 at 10:50:37PM +0000, Mark Brown wrote:
+For this one, no need. Next time, the best is to resend, as I usually
+use patchwork also to pick the patches. Patchwork won't automatically
+pick new patch descriptions.
 
-> > We pretty much assume everything is DMA safe already, the majority of
-> > transfers go to/from kmalloc()ed scratch buffers so actually are DMA
-> > safe but for bulk transfers we use the caller buffer and there might be
-> > some problem users.
+> 
+> > Thanks,
+> > Mauro
+> >   
+> 
 
-> So, pretty much the situation I2C was in before this patch set: we
-> pretty much assume DMA safety but there might be problem users.
 
-It's a bit different in that it's much more likely that a SPI controller
-will actually do DMA than an I2C one since the speeds are higher and
-there's frequent applications that do large transfers so it's more
-likely that people will do the right thing as issues would tend to come
-up if they don't.
 
-> > I can't really think of a particularly good way of
-> > handling it off the top of my head, obviously not setting the flag is
-> > easy but doesn't get the benefit while always using a bounce buffer
-> > would involve lots of unneeded memcpy().  Doing _dmasafe() isn't
-> > particularly appealing either but might be what we end up with.
-
-> Okay. That sounds you are fine with the approach taken here, in general?
-
-It's hard to summon enthusiasm but yes, without changes to the DMA stuff
-it's probably as good as we can do.
-
---g4qm2fugrwbwjqft
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlodghYACgkQJNaLcl1U
-h9DF7Qf/RFs7DXkOGZIsos7EWmLKM4MQxypTYejz8u46jh7yQ9XNHHZMhhr8at6D
-J4bSqVSfTI4wQHzUwWK9tfzM3v1BT1ZnEFU8zvTTLMwVyZO9tVIPqjunnGR3vHvf
-/N+bbI1NKK6zWlp5vaV8OaVL0Utzm0DEY+2mpWVn3I5Q9OI5JkJ0KlZV+xOE5kLk
-5alC3IStVFb+3TiaSXJY9WEiLe21Xau6/xA51iQOdenUgIHfeg2TnLuJiMyvPIRq
-6VH1Hm9AQoNx+SuF4fWIVfzsMtz41iU7GBuJRFtdM6Jp+OftlBCIaUaO19GyqipF
-EOuxWHDGqOCs0wINJJ9EhR07XVDQZA==
-=RZ/Y
------END PGP SIGNATURE-----
-
---g4qm2fugrwbwjqft--
+Thanks,
+Mauro
