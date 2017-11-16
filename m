@@ -1,103 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38416 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1756057AbdKCLoC (ORCPT
+Received: from relmlor2.renesas.com ([210.160.252.172]:45669 "EHLO
+        relmlie1.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S934499AbdKPMLj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Nov 2017 07:44:02 -0400
-Date: Fri, 3 Nov 2017 13:43:58 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Rob Herring <robh@kernel.org>
-Cc: Wenyou Yang <wenyou.yang@microchip.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Thu, 16 Nov 2017 07:11:39 -0500
+From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        devicetree@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-arm-kernel@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v4 2/3] media: ov7740: Document device tree bindings
-Message-ID: <20171103114358.a2guahtnqyka7t7b@valkosipuli.retiisi.org.uk>
-References: <20171031011146.6899-1-wenyou.yang@microchip.com>
- <20171031011146.6899-3-wenyou.yang@microchip.com>
- <20171101215157.5hemcpuplikvtpqx@rob-hp-laptop>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171101215157.5hemcpuplikvtpqx@rob-hp-laptop>
+        Rob Herring <robh+dt@kernel.org>,
+        Russell King <linux@armlinux.org.uk>
+Cc: Fabrizio Castro <fabrizio.castro@bp.renesas.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Simon Horman <horms+renesas@verge.net.au>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        Biju Das <biju.das@bp.renesas.com>
+Subject: [PATCH 0/2] Add VIN support to r8a7743
+Date: Thu, 16 Nov 2017 12:11:28 +0000
+Message-Id: <1510834290-25434-1-git-send-email-fabrizio.castro@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+Hello,
 
-On Wed, Nov 01, 2017 at 04:51:57PM -0500, Rob Herring wrote:
-> On Tue, Oct 31, 2017 at 09:11:44AM +0800, Wenyou Yang wrote:
-> > Add the device tree binding documentation for the ov7740 sensor driver.
-> > 
-> > Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
-> > ---
-> > 
-> > Changes in v4: None
-> > Changes in v3:
-> >  - Explicitly document the "remote-endpoint" property.
-> > 
-> > Changes in v2: None
-> > 
-> >  .../devicetree/bindings/media/i2c/ov7740.txt       | 47 ++++++++++++++++++++++
-> >  1 file changed, 47 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7740.txt
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/i2c/ov7740.txt b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
-> > new file mode 100644
-> > index 000000000000..af781c3a5f0e
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
-> > @@ -0,0 +1,47 @@
-> > +* Omnivision OV7740 CMOS image sensor
-> > +
-> > +The Omnivision OV7740 image sensor supports multiple output image
-> > +size, such as VGA, and QVGA, CIF and any size smaller. It also
-> > +supports the RAW RGB and YUV output formats.
-> > +
-> > +The common video interfaces bindings (see video-interfaces.txt) should
-> > +be used to specify link to the image data receiver. The OV7740 device
-> > +node should contain one 'port' child node with an 'endpoint' subnode.
-> > +
-> > +Required Properties:
-> > +- compatible:	"ovti,ov7740".
-> > +- reg:		I2C slave address of the sensor.
-> > +- clocks:	Reference to the xvclk input clock.
-> > +- clock-names:	"xvclk".
-> > +
-> > +Optional Properties:
-> > +- reset-gpios: Rreference to the GPIO connected to the reset_b pin,
-> > +  if any. Active low with pull-ip resistor.
-> > +- powerdown-gpios: Reference to the GPIO connected to the pwdn pin,
-> > +  if any. Active high with pull-down resistor.
-> > +
-> > +Endpoint node mandatory properties:
-> > +- remote-endpoint: A phandle to the bus receiver's endpoint node.
-> 
-> This is not really necessary. What's required is documenting how many 
-> ports and how many endpoints for each port which you have above.
+this series documents VIN related dt-bindings for r8a774[35], and adds VIN[012]
+nodes to the r8a7743 SoC dtsi.
 
-I actually requested adding that as the practice, as far as I've understood
-it, has been to document all properties relevant for the hardware (apart
-from things such as assigned-clocks etc.).
+Best regards,
 
-The port and endpoints have been elaborated above and I think that should
-be fine as-is.
+Fabrizio Castro (2):
+  dt-bindings: media: rcar_vin: add device tree support for r8a774[35]
+  ARM: dts: r8a7743: add VIN dt support
 
-The graph bindings document (referred by video-interfaces.txt) the
-remote-endpoint property in an endpoint as an optional property, however
-you can't really use the sensor if it's not connected to anything. The same
-goes for video-interfaces.txt: remote-endpoint in an endpoint is optional.
-
-I have no objections removing remote-endpoint here, though, if you think
-it's not relevant here.
+ .../devicetree/bindings/media/rcar_vin.txt         |  5 ++-
+ arch/arm/boot/dts/r8a7743.dtsi                     | 36 ++++++++++++++++++++++
+ 2 files changed, 40 insertions(+), 1 deletion(-)
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
