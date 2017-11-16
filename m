@@ -1,177 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:44376 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751661AbdKJNcE (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:41638 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932244AbdKPNjJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Nov 2017 08:32:04 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v10 1/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
-Date: Fri, 10 Nov 2017 14:31:36 +0100
-Message-Id: <20171110133137.9137-2-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171110133137.9137-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171110133137.9137-1-niklas.soderlund+renesas@ragnatech.se>
+        Thu, 16 Nov 2017 08:39:09 -0500
+Date: Thu, 16 Nov 2017 14:39:06 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Giulio Benetti <giulio.benetti@micronovasrl.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Andreas Baierl <list@imkreisrum.de>,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        linux@armlinux.org.uk, wens@csie.org, linux-kernel@vger.kernel.org,
+        thomas@vitsch.nl, linux-media@vger.kernel.org
+Subject: Re: [linux-sunxi] Cedrus driver
+Message-ID: <20171116133906.xsrpkdflgf34kkoy@flea>
+References: <1510059543-7064-1-git-send-email-giulio.benetti@micronovasrl.com>
+ <1b12fa21-bfe6-9ba7-ae1d-8131ac6f4668@micronovasrl.com>
+ <6fcdc0d9-d0f8-785a-bb00-b1b41c684e59@imkreisrum.de>
+ <693e8786-af83-9d77-0fd4-50fa1f6a135f@micronovasrl.com>
+ <20171116110204.poakahqjz4sj7pmu@flea>
+ <5fcf64db-c654-37d0-5863-20379c04f99c@micronovasrl.com>
+ <20171116125310.yavjs7352nw2sm7r@flea>
+ <e03cfdb5-57b3-fefd-75c3-6b97348682ff@micronovasrl.com>
+ <6f94505d-69bb-6688-4b13-6a0ed2af8dd4@xs4all.nl>
+ <d0b7f6e5-8758-ac92-e6a2-9ed4ff3cbc63@micronovasrl.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="tlowwgvkbkxut4gn"
+Content-Disposition: inline
+In-Reply-To: <d0b7f6e5-8758-ac92-e6a2-9ed4ff3cbc63@micronovasrl.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
-are located between the video sources (CSI-2 transmitters) and the video
-grabbers (VIN) on Gen3 of Renesas R-Car SoC.
 
-Each CSI-2 device is connected to more then one VIN device which
-simultaneously can receive video from the same CSI-2 device. Each VIN
-device can also be connected to more then one CSI-2 device. The routing
-of which link are used are controlled by the VIN devices. There are only
-a few possible routes which are set by hardware limitations, which are
-different for each SoC in the Gen3 family.
+--tlowwgvkbkxut4gn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-To work with the limitations of routing possibilities it is necessary
-for the DT bindings to describe which VIN device is connected to which
-CSI-2 device. This is why port 1 needs to to assign reg numbers for each
-VIN device that be connected to it. To setup and to know which links are
-valid for each SoC is the responsibility of the VIN driver since the
-register to configure it belongs to the VIN hardware.
+On Thu, Nov 16, 2017 at 02:17:08PM +0100, Giulio Benetti wrote:
+> Hi Hans,
+>=20
+> Il 16/11/2017 14:12, Hans Verkuil ha scritto:
+> > On 16/11/17 13:57, Giulio Benetti wrote:
+> > > Il 16/11/2017 13:53, Maxime Ripard ha scritto:
+> > > > On Thu, Nov 16, 2017 at 01:30:52PM +0100, Giulio Benetti wrote:
+> > > > > > On Thu, Nov 16, 2017 at 11:37:30AM +0100, Giulio Benetti wrote:
+> > > > > > > Il 16/11/2017 11:31, Andreas Baierl ha scritto:
+> > > > > > > > Am 16.11.2017 um 11:13 schrieb Giulio Benetti:
+> > > > > > > > > Hello,
+> > > > > > > > >=20
+> > > > > > > > Hello,
+> > > > > > > > > I'm wondering why cedrus
+> > > > > > > > > https://github.com/FlorentRevest/linux-sunxi-cedrus has n=
+ever been
+> > > > > > > > > merged with linux-sunxi sunxi-next.
+> > > > > > > > >=20
+> > > > > > > > Because it is not ready to be merged. It depends on the v4l=
+2 request
+> > > > > > > > API, which was not merged and which is re-worked atm.
+> > > > > > > > Also, sunxi-cedrus itself is not in a finished state and is=
+ not as
+> > > > > > > > feature-complete to be merged. Anyway it might be something=
+ for
+> > > > > > > > staging... Has there been a [RFC] on the mailing list at al=
+l?
+> > > > > > >=20
+> > > > > > > Where can I find a list of TODOs to get it ready to be merged?
+> > > > > >=20
+> > > > > > Assuming that the request API is in, we'd need to:
+> > > > > >      - Finish the MPEG4 support
+> > > > > >      - Work on more useful codecs (H264 comes to my mind)
+> > > > > >      - Implement the DRM planes support for the custom frame fo=
+rmat
+> > > > > >      - Implement the DRM planes support for scaling
+> > > > > >      - Test it on more SoCs
+> > > > > >=20
+> > > > > > Or something along those lines.
+> > > > >=20
+> > > > > Lot of work to do
+> > > >=20
+> > > > Well... If it was fast and easy it would have been done already :)
+> > >=20
+> > > :))
+> > >=20
+> > > >=20
+> > > > > > > > > I see it seems to be dead, no commit in 1 year.
+> > > > > > > >=20
+> > > > > > > > Yes, because the author did this during an internship, whic=
+h ended ...
+> > > > > > > > Afaik nobody picked up his work yet.
+> > > > > >=20
+> > > > > > That's not entirely true. Some work has been done by Thomas (in=
+ CC),
+> > > > > > especially on the display engine side, but last time we talked =
+his
+> > > > > > work was not really upstreamable.
+> > > > > >=20
+> > > > > > We will also resume that effort starting next march.
+> > > > >=20
+> > > > > Is it possible a preview on a separate Reporitory to start workin=
+g on now?
+> > > > > Expecially to start porting everything done by FlorentRevest to m=
+ainline,
+> > > > > admitted you've not already done.
+> > > >=20
+> > > > I'm not sure what you're asking for. Florent's work *was* on mainli=
+ne.
+> > >=20
+> > > and then they took it off because it was unmantained?
+> > > You've spoken about Thomas(in CC) not ready,
+> > > maybe I could help on that if it's public to accelerate.
+> > > If I'm able to of course, this is my primary concern.
+> > >=20
+> > > Otherwise, in which way can I help improving it to make it accept to =
+linux-sunxi?
+> > > Starting from Florent's work and porting it to sunxi-next to begin?
+> > > And after that adding all features you've listed?
+> > > Tell me what I can do(I repeat, if I'm able to).
+> >=20
+> > The bottleneck is that the Request API is not mainlined. We restarted w=
+ork
+> > on it after a meeting a few weeks back where we all agreed on the roadm=
+ap
+> > so hopefully it will go into mainline Q1 or Q2 next year.
+> >=20
+> > That said, you can use Florent's patch series for further development.
+> > It should be relatively easy to convert it to the final version of the
+> > Request API. Just note that the public API of the final Request API will
+> > be somewhat different from the old version Florent's patch series is us=
+ing.
+>=20
+> So I'm going to try soon to :
+> 1) adapt that patchset to sunxi-next
+> 2) add A20 support
+> 3) add A33 support
+> 4) after mainlined APIs, merge
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- .../devicetree/bindings/media/rcar-csi2.txt        | 104 +++++++++++++++++++++
- MAINTAINERS                                        |   1 +
- 2 files changed, 105 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
+That sounds good. Thomas already has the support for the A20, and as I
+was saying, there is someone that is going to work full time on this
+in a couple monthes on our side.
 
-diff --git a/Documentation/devicetree/bindings/media/rcar-csi2.txt b/Documentation/devicetree/bindings/media/rcar-csi2.txt
-new file mode 100644
-index 0000000000000000..24705d8997b14a10
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/rcar-csi2.txt
-@@ -0,0 +1,104 @@
-+Renesas R-Car MIPI CSI-2
-+------------------------
-+
-+The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesas R-Car
-+family of devices. It is to be used in conjunction with the R-Car VIN module,
-+which provides the video capture capabilities.
-+
-+Mandatory properties
-+--------------------
-+ - compatible: Must be one or more of the following
-+   - "renesas,r8a7795-csi2" for the R8A7795 device.
-+   - "renesas,r8a7796-csi2" for the R8A7796 device.
-+
-+ - reg: the register base and size for the device registers
-+ - interrupts: the interrupt for the device
-+ - clocks: Reference to the parent clock
-+
-+The device node shall contain two 'port' child nodes according to the
-+bindings defined in Documentation/devicetree/bindings/media/
-+video-interfaces.txt. Port 0 shall connect the node that is the video
-+source for to the CSI-2. Port 1 shall connect all the R-Car VIN
-+modules, which can make use of the CSI-2 module.
-+
-+- Port 0 - Video source (Mandatory)
-+	- Endpoint 0 - sub-node describing the endpoint that is the video source
-+
-+- Port 1 - VIN instances (Mandatory for all VIN present in the SoC)
-+	- Endpoint 0 - sub-node describing the endpoint that is VIN0
-+	- Endpoint 1 - sub-node describing the endpoint that is VIN1
-+	- Endpoint 2 - sub-node describing the endpoint that is VIN2
-+	- Endpoint 3 - sub-node describing the endpoint that is VIN3
-+	- Endpoint 4 - sub-node describing the endpoint that is VIN4
-+	- Endpoint 5 - sub-node describing the endpoint that is VIN5
-+	- Endpoint 6 - sub-node describing the endpoint that is VIN6
-+	- Endpoint 7 - sub-node describing the endpoint that is VIN7
-+
-+Example:
-+
-+	csi20: csi2@fea80000 {
-+		compatible = "renesas,r8a7796-csi2", "renesas,rcar-gen3-csi2";
-+		reg = <0 0xfea80000 0 0x10000>;
-+		interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 714>;
-+		power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
-+		resets = <&cpg 714>;
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				reg = <0>;
-+
-+				csi20_in: endpoint@0 {
-+					clock-lanes = <0>;
-+					data-lanes = <1>;
-+					remote-endpoint = <&adv7482_txb>;
-+				};
-+			};
-+
-+			port@1 {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				reg = <1>;
-+
-+				csi20vin0: endpoint@0 {
-+					reg = <0>;
-+					remote-endpoint = <&vin0csi20>;
-+				};
-+				csi20vin1: endpoint@1 {
-+					reg = <1>;
-+					remote-endpoint = <&vin1csi20>;
-+				};
-+				csi20vin2: endpoint@2 {
-+					reg = <2>;
-+					remote-endpoint = <&vin2csi20>;
-+				};
-+				csi20vin3: endpoint@3 {
-+					reg = <3>;
-+					remote-endpoint = <&vin3csi20>;
-+				};
-+				csi20vin4: endpoint@4 {
-+					reg = <4>;
-+					remote-endpoint = <&vin4csi20>;
-+				};
-+				csi20vin5: endpoint@5 {
-+					reg = <5>;
-+					remote-endpoint = <&vin5csi20>;
-+				};
-+				csi20vin6: endpoint@6 {
-+					reg = <6>;
-+					remote-endpoint = <&vin6csi20>;
-+				};
-+				csi20vin7: endpoint@7 {
-+					reg = <7>;
-+					remote-endpoint = <&vin7csi20>;
-+				};
-+			};
-+		};
-+	};
-diff --git a/MAINTAINERS b/MAINTAINERS
-index adbf69306e9ee3d2..fa81ee6e80274646 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8565,6 +8565,7 @@ L:	linux-media@vger.kernel.org
- L:	linux-renesas-soc@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
- S:	Supported
-+F:	Documentation/devicetree/bindings/media/rcar-csi2.txt
- F:	Documentation/devicetree/bindings/media/rcar_vin.txt
- F:	drivers/media/platform/rcar-vin/
- 
--- 
-2.15.0
+I'll set up a git repo on github so that we can collaborate until the
+request API is ready.
+
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--tlowwgvkbkxut4gn
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJaDZT6AAoJEBx+YmzsjxAgx9IP/0NQ+kyIaRpLlWr2NicgfSYg
+zFBpCQRc0N7hCGpGrgySSiIMLEXdYlGLezj1K8BDAWBc9HuKVKpD8Rwx9Y27tgHw
+4K9TPD6Ksj7butsYoUK5Af7EP3ZV8SCGJUrk8Oxq5/kongs/hmNHicogwBFm+639
+oinll9hn9hG+LUpwCt3NKSKTrCDMuopxZeWeWsCLSPif8hhWfLPviWVOA4EckHM2
+qHFdE473f5Nga04AZTGDJvwPacm1zDZxmeixGyygEJ3cBV00XnkQbpRXsuFvQ8xM
+LxlrlQChNbdDSR6lhtYU+pARqvVBAt5fRBH1JAHhkICKGbera7h01j/mPF5OCFZ3
+/yHk6VCGB3ZaLsgKoXw3JszbVmoJv4ppWzm/yOKQSmFA38SYW1XBKafe5e0bvxvJ
+1Bn81fNYS3koshtmL5cxGFdWUpXTd0RWr0cA6BtaFLitGVFKCjW0/OTpPCZIUExl
+sB5Ni4LlyajmX9hh3qe+9mcsj6NiwLYZD/eS9UjboDq4TN6w3ROaMS8hhxw27iwp
+OEtMdsFKD8yQiraONT1tPTltD1eukj3R4cosFtTAyYVl9sPqPA7oZEjiszQspgxB
+IhyTrmjeBIQamQfl19UOHbMIhdjcQ6u5myX/BUU7wMjYZdO871wmljWP1Bv+W7LJ
+/xauUuaUXg84x//EVF+P
+=yirU
+-----END PGP SIGNATURE-----
+
+--tlowwgvkbkxut4gn--
