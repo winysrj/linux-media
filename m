@@ -1,147 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58562 "EHLO mail.kernel.org"
+Received: from osg.samsung.com ([64.30.133.232]:43883 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965777AbdKQPrp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 10:47:45 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v4 5/9] v4l: vsp1: Use reference counting for bodies
-Date: Fri, 17 Nov 2017 15:47:28 +0000
-Message-Id: <e465323b2e2c0717edf3d62dd969bbbffb32ac82.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
+        id S1751425AbdKQRBT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Nov 2017 12:01:19 -0500
+Date: Fri, 17 Nov 2017 15:01:02 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Philippe Ombredanne <pombredanne@nexb.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Johan Hovold <johan@kernel.org>,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] media: usbvision: remove unneeded DRIVER_LICENSE
+ #define
+Message-ID: <20171117150102.1f5faeda@vento.lan>
+In-Reply-To: <CAOFm3uE9NmPV6diYcTodBKRr0CXFYs7uvVPrLTyLaa_3VKV7rA@mail.gmail.com>
+References: <20171117141826.GC17880@kroah.com>
+        <20171117125847.28004106@vento.lan>
+        <CAOFm3uE9NmPV6diYcTodBKRr0CXFYs7uvVPrLTyLaa_3VKV7rA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extend the display list body with a reference count, allowing bodies to
-be kept as long as a reference is maintained. This provides the ability
-to keep a cached copy of bodies which will not change, so that they can
-be re-applied to multiple display lists.
+Em Fri, 17 Nov 2017 16:01:41 +0100
+Philippe Ombredanne <pombredanne@nexb.com> escreveu:
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> On Fri, Nov 17, 2017 at 3:58 PM, Mauro Carvalho Chehab
+> <mchehab@s-opensource.com> wrote:
+> > Em Fri, 17 Nov 2017 15:18:26 +0100
+> > Greg Kroah-Hartman <gregkh@linuxfoundation.org> escreveu:
+> >  
+> >> There is no need to #define the license of the driver, just put it in
+> >> the MODULE_LICENSE() line directly as a text string.
+> >>
+> >> This allows tools that check that the module license matches the source
+> >> code license to work properly, as there is no need to unwind the
+> >> unneeded dereference.
+> >>
+> >> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> >> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> >> Cc: Johan Hovold <johan@kernel.org>
+> >> Cc: Davidlohr Bueso <dave@stgolabs.net>
+> >> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> Reported-by: Philippe Ombredanne <pombredanne@nexb.com>
+> >> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
----
-This could be squashed into the body update code, but it's not a
-straightforward squash as the refcounts will affect both:
-  v4l: vsp1: Provide a body pool
-and
-  v4l: vsp1: Convert display lists to use new body pool
-therefore, I have kept this separate to prevent breaking bisectability
-of the vsp-tests.
+Acked-by: Mauro Carvalho Chehab <mchehab@kernel.org>
 
-v3:
- - 's/fragment/body/'
+> >> ---
+> >>  drivers/media/usb/usbvision/usbvision-video.c | 3 +--
+> >>  1 file changed, 1 insertion(+), 2 deletions(-)
+> >>
+> >> diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
+> >> index 960272d3c924..0f5954a1fea2 100644
+> >> --- a/drivers/media/usb/usbvision/usbvision-video.c
+> >> +++ b/drivers/media/usb/usbvision/usbvision-video.c
+> >> @@ -72,7 +72,6 @@
+> >>  #define DRIVER_NAME "usbvision"
+> >>  #define DRIVER_ALIAS "USBVision"
+> >>  #define DRIVER_DESC "USBVision USB Video Device Driver for Linux"
+> >> -#define DRIVER_LICENSE "GPL"
+> >>  #define USBVISION_VERSION_STRING "0.9.11"
+> >>
+> >>  #define      ENABLE_HEXDUMP  0       /* Enable if you need it */
+> >> @@ -141,7 +140,7 @@ MODULE_PARM_DESC(radio_nr, "Set radio device number (/dev/radioX).  Default: -1
+> >>  /* Misc stuff */
+> >>  MODULE_AUTHOR(DRIVER_AUTHOR);
+> >>  MODULE_DESCRIPTION(DRIVER_DESC);
+> >> -MODULE_LICENSE(DRIVER_LICENSE);
+> >> +MODULE_LICENSE("GPL");  
+> >
+> > Makes sense to me, but, if we look at the header of this file:
+> >
+> >  * This program is free software; you can redistribute it and/or modify
+> >  * it under the terms of the GNU General Public License as published by
+> >  * the Free Software Foundation; either version 2 of the License, or
+> >  * (at your option) any later version.
+> >
+> > Its license is actually GPL 2.0+
+> >
+> > So, I would actually change it to:
+> >
+> > MODULE_LICENSE("GPL v2");  
+> 
+> Mauro:
+> 
+> actually even if it sounds weird the module.h doc [1] is clear on this topic:
+> 
+>  * "GPL" [GNU Public License v2 or later]
+>  * "GPL v2" [GNU Public License v2]
+> 
+> So it should be "GPL" IMHO.
+> 
+> 
+> [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/linux/module.h?id=refs/tags/v4.10#n175
+> 
 
-v4:
- - Fix up reference handling comments.
----
- drivers/media/platform/vsp1/vsp1_clu.c |  7 ++++++-
- drivers/media/platform/vsp1/vsp1_dl.c  | 15 ++++++++++++++-
- drivers/media/platform/vsp1/vsp1_lut.c |  7 ++++++-
- 3 files changed, 26 insertions(+), 3 deletions(-)
+Oh! Yeah, you're right. I would add that on the Kernel documentation
+somewhere, perhaps with the new document that Thomas is writing
+about SPFX. 
 
-diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
-index 2018144470c5..b2a39a6ef7e4 100644
---- a/drivers/media/platform/vsp1/vsp1_clu.c
-+++ b/drivers/media/platform/vsp1/vsp1_clu.c
-@@ -257,8 +257,13 @@ static void clu_configure(struct vsp1_entity *entity,
- 		clu->clu = NULL;
- 		spin_unlock_irqrestore(&clu->lock, flags);
- 
--		if (dlb)
-+		if (dlb) {
- 			vsp1_dl_list_add_body(dl, dlb);
-+
-+			/* release our local reference */
-+			vsp1_dl_body_put(dlb);
-+		}
-+
- 		break;
- 	}
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index a64a80f8085f..fb54cbe4c682 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -14,6 +14,7 @@
- #include <linux/device.h>
- #include <linux/dma-mapping.h>
- #include <linux/gfp.h>
-+#include <linux/refcount.h>
- #include <linux/slab.h>
- #include <linux/workqueue.h>
- 
-@@ -58,6 +59,8 @@ struct vsp1_dl_body {
- 	struct list_head list;
- 	struct list_head free;
- 
-+	refcount_t refcnt;
-+
- 	struct vsp1_dl_body_pool *pool;
- 	struct vsp1_device *vsp1;
- 
-@@ -258,6 +261,7 @@ struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool)
- 	if (!list_empty(&pool->free)) {
- 		dlb = list_first_entry(&pool->free, struct vsp1_dl_body, free);
- 		list_del(&dlb->free);
-+		refcount_set(&dlb->refcnt, 1);
- 	}
- 
- 	spin_unlock_irqrestore(&pool->lock, flags);
-@@ -278,6 +282,9 @@ void vsp1_dl_body_put(struct vsp1_dl_body *dlb)
- 	if (!dlb)
- 		return;
- 
-+	if (!refcount_dec_and_test(&dlb->refcnt))
-+		return;
-+
- 	dlb->num_entries = 0;
- 
- 	spin_lock_irqsave(&dlb->pool->lock, flags);
-@@ -464,7 +471,11 @@ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
-  * in the order in which bodies are added.
-  *
-  * Adding a body to a display list passes ownership of the body to the list. The
-- * caller must not touch the body after this call.
-+ * caller retains its reference to the fragment when adding it to the display
-+ * list, but is not allowed to add new entries to the body.
-+ *
-+ * The reference must be explicitly released by a call to vsp1_dl_body_put()
-+ * when the body isn't needed anymore.
-  *
-  * Additional bodies are only usable for display lists in header mode.
-  * Attempting to add a body to a header-less display list will return an error.
-@@ -476,6 +487,8 @@ int vsp1_dl_list_add_body(struct vsp1_dl_list *dl,
- 	if (dl->dlm->mode != VSP1_DL_MODE_HEADER)
- 		return -EINVAL;
- 
-+	refcount_inc(&dlb->refcnt);
-+
- 	list_add_tail(&dlb->list, &dl->bodies);
- 	return 0;
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index 262cb72139d6..77cf7137a0f2 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -213,8 +213,13 @@ static void lut_configure(struct vsp1_entity *entity,
- 		lut->lut = NULL;
- 		spin_unlock_irqrestore(&lut->lock, flags);
- 
--		if (dlb)
-+		if (dlb) {
- 			vsp1_dl_list_add_body(dl, dlb);
-+
-+			/* release our local reference */
-+			vsp1_dl_body_put(dlb);
-+		}
-+
- 		break;
- 	}
- }
--- 
-git-series 0.9.1
+The Documentation/kernel-hacking/hacking.rst doc mentions 
+MODULE_LICENSE, but doesn't define the expected values for it.
+
+Thanks,
+Mauro
