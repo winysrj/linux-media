@@ -1,108 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:54502 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752701AbdK2ToM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 14:44:12 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v8 20/28] rcar-vin: prepare for media controller mode initialization
-Date: Wed, 29 Nov 2017 20:43:34 +0100
-Message-Id: <20171129194342.26239-21-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail.horus.com ([78.46.148.228]:35169 "EHLO mail.horus.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757172AbdKQOwx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Nov 2017 09:52:53 -0500
+Date: Fri, 17 Nov 2017 15:52:50 +0100
+From: Matthias Reichl <hias@horus.com>
+To: Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: rc: double keypresses due to timeout expiring to
+ early
+Message-ID: <20171117145249.wc4ql2hw46enxu7d@camel2.lan>
+References: <20171116152700.filid3ask3gowegl@camel2.lan>
+ <20171116163920.ouxinvde5ai4fle3@gofer.mess.org>
+ <20171116215451.min7sqdo7itiyyif@gofer.mess.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171116215451.min7sqdo7itiyyif@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When running in media controller mode a media pad is needed, register
-one. Also set the media bus format to CSI-2.
+Hi Sean!
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 24 ++++++++++++++++++++++--
- drivers/media/platform/rcar-vin/rcar-vin.h  |  4 ++++
- 2 files changed, 26 insertions(+), 2 deletions(-)
+On Thu, Nov 16, 2017 at 09:54:51PM +0000, Sean Young wrote:
+> Since commit d57ea877af38 ("media: rc: per-protocol repeat period"),
+> double keypresses are reported on the ite-cir driver. This is due
+> two factors: that commit reduced the timeout used for some protocols
+> (it became protocol dependant) and the high default IR timeout used
+> by the ite-cir driver.
+> 
+> Some of the IR decoders wait for a trailing space, as that is
+> the only way to know if the bit stream has ended (e.g. rc-6 can be
+> 16, 20 or 32 bits). The longer the IR timeout, the longer it will take
+> to receive the trailing space, delaying decoding and pushing it past the
+> keyup timeout.
+> 
+> So, add the IR timeout to the keyup timeout.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 61f48ecc1ab815ec..45de4079fd835759 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -46,6 +46,10 @@ static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
- 	return -EINVAL;
- }
- 
-+/* -----------------------------------------------------------------------------
-+ * Digital async notifier
-+ */
-+
- static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- {
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
-@@ -226,6 +230,20 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
- 	return 0;
- }
- 
-+/* -----------------------------------------------------------------------------
-+ * Group async notifier
-+ */
-+
-+static int rvin_group_init(struct rvin_dev *vin)
-+{
-+	/* All our sources are CSI-2 */
-+	vin->mbus_cfg.type = V4L2_MBUS_CSI2;
-+	vin->mbus_cfg.flags = 0;
-+
-+	vin->pad.flags = MEDIA_PAD_FL_SINK;
-+	return media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
-+}
-+
- /* -----------------------------------------------------------------------------
-  * Platform Device Driver
-  */
-@@ -314,8 +332,10 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 		return ret;
- 
- 	platform_set_drvdata(pdev, vin);
--
--	ret = rvin_digital_graph_init(vin);
-+	if (vin->info->use_mc)
-+		ret = rvin_group_init(vin);
-+	else
-+		ret = rvin_digital_graph_init(vin);
- 	if (ret < 0)
- 		goto error;
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index fd3cd781be0ab1cf..07d270a976893cdb 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -103,6 +103,8 @@ struct rvin_info {
-  * @notifier:		V4L2 asynchronous subdevs notifier
-  * @digital:		entity in the DT for local digital subdevice
-  *
-+ * @pad:		pad for media controller
-+ *
-  * @lock:		protects @queue
-  * @queue:		vb2 buffers queue
-  *
-@@ -132,6 +134,8 @@ struct rvin_dev {
- 	struct v4l2_async_notifier notifier;
- 	struct rvin_graph_entity *digital;
- 
-+	struct media_pad pad;
-+
- 	struct mutex lock;
- 	struct vb2_queue queue;
- 
--- 
-2.15.0
+Thanks a lot for the patch, I've asked the people with ite-cir
+receivers to test it.
+
+In the meanwhile I ran some tests with gpio-ir-recv and timeout
+set to 200ms with a rc-5 remote (that's as close to the original
+setup as I can test right now).
+
+While the patch fixes the additional key down/up event on longer
+presses, I still get a repeated key event on a short button
+press - which makes it hard to do a single click with the
+remote.
+
+Test on kernel 4.14 with your patch:
+1510927844.292126: event type EV_MSC(0x04): scancode = 0x1015
+1510927844.292126: event type EV_KEY(0x01) key_down: KEY_ENTER(0x001c)
+1510927844.292126: event type EV_SYN(0x00).
+1510927844.498773: event type EV_MSC(0x04): scancode = 0x1015
+1510927844.498773: event type EV_SYN(0x00).
+1510927844.795410: event type EV_KEY(0x01) key_down: KEY_ENTER(0x001c)
+1510927844.795410: event type EV_SYN(0x00).
+1510927844.875412: event type EV_KEY(0x01) key_up: KEY_ENTER(0x001c)
+1510927844.875412: event type EV_SYN(0x00).
+
+Same signal received on kernel 4.9:
+1510927844.280350: event type EV_MSC(0x04): scancode = 0x1015
+1510927844.280350: event type EV_KEY(0x01) key_down: KEY_OK(0x0160)
+1510927844.280350: event type EV_SYN(0x00).
+1510927844.506477: event type EV_MSC(0x04): scancode = 0x1015
+1510927844.506477: event type EV_SYN(0x00).
+1510927844.763111: event type EV_KEY(0x01) key_up: KEY_OK(0x0160)
+1510927844.763111: event type EV_SYN(0x00).
+
+If I understand it correctly it's the input layer repeat (500ms delay)
+kicking in, because time between initial scancode and timeout is
+now signal time + 200ms + 164ms + 200ms (about 570-580ms).
+On older kernels this was signal time + 200ms + 250ms, so typically
+just below the 500ms default repeat delay.
+
+I'm still trying to wrap my head around the timeout code in the
+rc layer. One problem seems to be that we apply the rather large
+timeout twice. Maybe detecting scancodes generated via timeout
+(sth like timestamp - last_timestamp > protocol_repeat_period)
+and in that case immediately signalling keyup could help? Could well
+be that I'm missing somehting important and this is a bad idea.
+I guess I'd better let you figure something out :)
+
+so long,
+
+Hias
+
+> 
+> Cc: <stable@vger.kernel.org> # 4.14
+> Reported-by: Matthias Reichl <hias@horus.com>
+> Signed-off-by: Sean Young <sean@mess.org>
+> ---
+>  drivers/media/rc/rc-main.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 17950e29d4e3..fae721534517 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -672,7 +672,8 @@ void rc_repeat(struct rc_dev *dev)
+>  	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
+>  	input_sync(dev->input_dev);
+>  
+> -	dev->keyup_jiffies = jiffies + msecs_to_jiffies(timeout);
+> +	dev->keyup_jiffies = jiffies + msecs_to_jiffies(timeout) +
+> +					nsecs_to_jiffies(dev->timeout);
+>  	mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
+>  
+>  out:
+> @@ -744,7 +745,8 @@ void rc_keydown(struct rc_dev *dev, enum rc_proto protocol, u32 scancode,
+>  
+>  	if (dev->keypressed) {
+>  		dev->keyup_jiffies = jiffies +
+> -			msecs_to_jiffies(protocols[protocol].repeat_period);
+> +			msecs_to_jiffies(protocols[protocol].repeat_period) +
+> +			nsecs_to_jiffies(dev->timeout);
+>  		mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
+>  	}
+>  	spin_unlock_irqrestore(&dev->keylock, flags);
+> -- 
+> 2.14.3
+> 
