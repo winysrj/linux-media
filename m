@@ -1,86 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:59046 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751615AbdK1MwO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 07:52:14 -0500
-Date: Tue, 28 Nov 2017 13:52:03 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Giulio Benetti <giulio.benetti@micronovasrl.com>
-Cc: Thomas van Kleef <thomas@vitsch.nl>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andreas Baierl <list@imkreisrum.de>,
-        linux-sunxi <linux-sunxi@googlegroups.com>,
-        linux@armlinux.org.uk, wens@csie.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [linux-sunxi] Cedrus driver
-Message-ID: <20171128125203.h7cnu3gkfmogqhxu@flea.home>
-References: <1511868558-1962148761.366cc20c7e@prakkezator.vehosting.nl>
- <d8135c3d-7ba8-2b88-11cb-5b81dfa04be2@vitsch.nl>
- <f8cc0633-8c29-e3b0-0216-f8f5c69ebb34@micronovasrl.com>
+Received: from mail.horus.com ([78.46.148.228]:60367 "EHLO mail.horus.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1161094AbdKQRtI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Nov 2017 12:49:08 -0500
+Date: Fri, 17 Nov 2017 18:49:06 +0100
+From: Matthias Reichl <hias@horus.com>
+To: Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: rc: double keypresses due to timeout expiring to
+ early
+Message-ID: <20171117174906.fouyirka4tho3guf@camel2.lan>
+References: <20171116152700.filid3ask3gowegl@camel2.lan>
+ <20171116163920.ouxinvde5ai4fle3@gofer.mess.org>
+ <20171116215451.min7sqdo7itiyyif@gofer.mess.org>
+ <20171117145249.wc4ql2hw46enxu7d@camel2.lan>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="m6tmdi5rkxxqjkdl"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <f8cc0633-8c29-e3b0-0216-f8f5c69ebb34@micronovasrl.com>
+In-Reply-To: <20171117145249.wc4ql2hw46enxu7d@camel2.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, Nov 17, 2017 at 03:52:50PM +0100, Matthias Reichl wrote:
+> Hi Sean!
+> 
+> On Thu, Nov 16, 2017 at 09:54:51PM +0000, Sean Young wrote:
+> > Since commit d57ea877af38 ("media: rc: per-protocol repeat period"),
+> > double keypresses are reported on the ite-cir driver. This is due
+> > two factors: that commit reduced the timeout used for some protocols
+> > (it became protocol dependant) and the high default IR timeout used
+> > by the ite-cir driver.
+> > 
+> > Some of the IR decoders wait for a trailing space, as that is
+> > the only way to know if the bit stream has ended (e.g. rc-6 can be
+> > 16, 20 or 32 bits). The longer the IR timeout, the longer it will take
+> > to receive the trailing space, delaying decoding and pushing it past the
+> > keyup timeout.
+> > 
+> > So, add the IR timeout to the keyup timeout.
+> 
+> Thanks a lot for the patch, I've asked the people with ite-cir
+> receivers to test it.
 
---m6tmdi5rkxxqjkdl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Just got the first test results from ite-cir + rc-6 remote back,
+events were the same as I was seeing with gpio-ir-recv with 200ms
+timeout - key repeat event from input layer.
 
-On Tue, Nov 28, 2017 at 12:54:08PM +0100, Giulio Benetti wrote:
-> > > > Should I be working in sunxi-next I wonder?
-> > >=20
-> > > Yes, this is the best way, cedrus is very specific to sunxi.
-> > > So before working on mainline, I think the best is to work un sunxi-n=
-ext branch.
-> >
-> > Is the requests2 api in sunxi-next?
->=20
-> It should be there,
-> take a look at latest commit of yesterday:
-> https://github.com/linux-sunxi/linux-sunxi/commit/df7cacd062cd84c551d7e72=
-f15b1af6d71abc198
+Kernel 4.14 + your patch:
+Event: time 1510938801.797335, type 4 (EV_MSC), code 4 (MSC_SCAN), value 800f041f
+Event: time 1510938801.797335, type 1 (EV_KEY), code 108 (KEY_DOWN), value 1
+Event: time 1510938801.797335, -------------- SYN_REPORT ------------
+Event: time 1510938802.034331, type 4 (EV_MSC), code 4 (MSC_SCAN), value 800f041f
+Event: time 1510938802.034331, -------------- SYN_REPORT ------------
+Event: time 1510938802.301333, type 1 (EV_KEY), code 108 (KEY_DOWN), value 2
+Event: time 1510938802.301333, -------------- SYN_REPORT ------------
+Event: time 1510938802.408003, type 1 (EV_KEY), code 108 (KEY_DOWN), value 0
+Event: time 1510938802.408003, -------------- SYN_REPORT ------------
 
-No, it shouldn't. sunxi-next is about patches that are related to
-sunxi that have been accepted in their respective maintainers'
-branches.
+Kernel 4.13.2:
+Event: time 1510938637.791450, type 4 (EV_MSC), code 4 (MSC_SCAN), value 800f041f
+Event: time 1510938637.791450, type 1 (EV_KEY), code 108 (KEY_DOWN), value 1
+Event: time 1510938637.791450, -------------- SYN_REPORT ------------
+Event: time 1510938638.028301, type 4 (EV_MSC), code 4 (MSC_SCAN), value 800f041f
+Event: time 1510938638.028301, -------------- SYN_REPORT ------------
+Event: time 1510938638.292323, type 1 (EV_KEY), code 108 (KEY_DOWN), value 0
+Event: time 1510938638.292323, -------------- SYN_REPORT ------------
 
-While we could argue about the first criteria, the second one is not
-respected.
+so long,
 
-And really, just develop against 4.14. sunxi-next is rebased, and it's
-just not something you can base some work on.
+Hias
 
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---m6tmdi5rkxxqjkdl
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlodW+8ACgkQ0rTAlCFN
-r3Syzw/8DUBEkwdKCZmNouH15B01DNZn63q0o8UBmgOngccpjcufnkxt0cX9jqJ4
-RQ/tqN4TtYfuPirob3XEHcHHcdqrkAu6FAN0EG6+fQjbDLYwcfZdml4uz+kB6Kcb
-TvONni9dh+5oqJRFzARVho/b3XNRyrRfCPIvtkCfZ0mlNgonrxNJThfomJvolA3a
-oTism1M9N4zhuvyHTogi7RdmXJCLUyY6G8B1pb5i0uQJhXytzQvjhXEPhFPFpml1
-kuZ4luH44siLj5apS5U2wPn+dVKUzzBz3lMEsXWjcyAj64sA6hQjkbpHQO0lUQlX
-xU/wwjFEFha5Kj+DGvxnd3i32H1X1GUxCFh8Fp7nkx27hHPUQyuEaewWktbMC59s
-+S0ggtnPwOAAZ29OHcHYq4fBaQLnu1A/4YUTG84F7iBfOPfTOrdfqmoWEwy4EL62
-Mc+r4Ecu4NUJ8cQsv8QEomzk+L7xbv17TsTXKexwAIG6aL1pLkH+BQpHBz8O9k6k
-XZQdkPD7dqrVH71M3LLd/V29SCM/G13VETmeFhSDa9DmDxJAt4i6KFXRZWB6HJl8
-NpxCJiGnZ41FIzqxSODW4CMLBnREZoIzY7esYqjjQFwaM6V/nnSviUAFge3vsS8J
-9j3o+OSintpwWo739HNRzOoXwMenxscy895N1rxEb6d91kS5hY4=
-=VENF
------END PGP SIGNATURE-----
-
---m6tmdi5rkxxqjkdl--
+> 
+> In the meanwhile I ran some tests with gpio-ir-recv and timeout
+> set to 200ms with a rc-5 remote (that's as close to the original
+> setup as I can test right now).
+> 
+> While the patch fixes the additional key down/up event on longer
+> presses, I still get a repeated key event on a short button
+> press - which makes it hard to do a single click with the
+> remote.
+> 
+> Test on kernel 4.14 with your patch:
+> 1510927844.292126: event type EV_MSC(0x04): scancode = 0x1015
+> 1510927844.292126: event type EV_KEY(0x01) key_down: KEY_ENTER(0x001c)
+> 1510927844.292126: event type EV_SYN(0x00).
+> 1510927844.498773: event type EV_MSC(0x04): scancode = 0x1015
+> 1510927844.498773: event type EV_SYN(0x00).
+> 1510927844.795410: event type EV_KEY(0x01) key_down: KEY_ENTER(0x001c)
+> 1510927844.795410: event type EV_SYN(0x00).
+> 1510927844.875412: event type EV_KEY(0x01) key_up: KEY_ENTER(0x001c)
+> 1510927844.875412: event type EV_SYN(0x00).
+> 
+> Same signal received on kernel 4.9:
+> 1510927844.280350: event type EV_MSC(0x04): scancode = 0x1015
+> 1510927844.280350: event type EV_KEY(0x01) key_down: KEY_OK(0x0160)
+> 1510927844.280350: event type EV_SYN(0x00).
+> 1510927844.506477: event type EV_MSC(0x04): scancode = 0x1015
+> 1510927844.506477: event type EV_SYN(0x00).
+> 1510927844.763111: event type EV_KEY(0x01) key_up: KEY_OK(0x0160)
+> 1510927844.763111: event type EV_SYN(0x00).
+> 
+> If I understand it correctly it's the input layer repeat (500ms delay)
+> kicking in, because time between initial scancode and timeout is
+> now signal time + 200ms + 164ms + 200ms (about 570-580ms).
+> On older kernels this was signal time + 200ms + 250ms, so typically
+> just below the 500ms default repeat delay.
+> 
+> I'm still trying to wrap my head around the timeout code in the
+> rc layer. One problem seems to be that we apply the rather large
+> timeout twice. Maybe detecting scancodes generated via timeout
+> (sth like timestamp - last_timestamp > protocol_repeat_period)
+> and in that case immediately signalling keyup could help? Could well
+> be that I'm missing somehting important and this is a bad idea.
+> I guess I'd better let you figure something out :)
+> 
+> so long,
+> 
+> Hias
+> 
+> > 
+> > Cc: <stable@vger.kernel.org> # 4.14
+> > Reported-by: Matthias Reichl <hias@horus.com>
+> > Signed-off-by: Sean Young <sean@mess.org>
+> > ---
+> >  drivers/media/rc/rc-main.c | 6 ++++--
+> >  1 file changed, 4 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> > index 17950e29d4e3..fae721534517 100644
+> > --- a/drivers/media/rc/rc-main.c
+> > +++ b/drivers/media/rc/rc-main.c
+> > @@ -672,7 +672,8 @@ void rc_repeat(struct rc_dev *dev)
+> >  	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
+> >  	input_sync(dev->input_dev);
+> >  
+> > -	dev->keyup_jiffies = jiffies + msecs_to_jiffies(timeout);
+> > +	dev->keyup_jiffies = jiffies + msecs_to_jiffies(timeout) +
+> > +					nsecs_to_jiffies(dev->timeout);
+> >  	mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
+> >  
+> >  out:
+> > @@ -744,7 +745,8 @@ void rc_keydown(struct rc_dev *dev, enum rc_proto protocol, u32 scancode,
+> >  
+> >  	if (dev->keypressed) {
+> >  		dev->keyup_jiffies = jiffies +
+> > -			msecs_to_jiffies(protocols[protocol].repeat_period);
+> > +			msecs_to_jiffies(protocols[protocol].repeat_period) +
+> > +			nsecs_to_jiffies(dev->timeout);
+> >  		mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
+> >  	}
+> >  	spin_unlock_irqrestore(&dev->keylock, flags);
+> > -- 
+> > 2.14.3
+> > 
