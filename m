@@ -1,173 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:47424 "EHLO
-        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751239AbdKJJa0 (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:46907 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933761AbdKQHDA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Nov 2017 04:30:26 -0500
+        Fri, 17 Nov 2017 02:03:00 -0500
+Received: by mail-pg0-f65.google.com with SMTP id z184so1283626pgd.13
+        for <linux-media@vger.kernel.org>; Thu, 16 Nov 2017 23:03:00 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        <linux-kernel@vger.kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: Re: [RFC v5 08/11] [media] vb2: add videobuf2 dma-buf fence helpers
+Date: Fri, 17 Nov 2017 16:02:56 +0900
 MIME-Version: 1.0
-In-Reply-To: <20171109234320.13016-3-niklas.soderlund+renesas@ragnatech.se>
-References: <20171109234320.13016-1-niklas.soderlund+renesas@ragnatech.se> <20171109234320.13016-3-niklas.soderlund+renesas@ragnatech.se>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Fri, 10 Nov 2017 10:30:24 +0100
-Message-ID: <CAMuHMdWgUNeJPkORSKRQJfxkarRdSnzu2Q9cSB7E1nJzV2oFSQ@mail.gmail.com>
-Subject: Re: [PATCH v9 2/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2
- receiver driver
-To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Fukawa <tomoharu.fukawa.eb@renesas.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Message-ID: <a5b0e0e6-4912-4aec-ac6f-f7744a856d3d@chromium.org>
+In-Reply-To: <20171115171057.17340-9-gustavo@padovan.org>
+References: <20171115171057.17340-1-gustavo@padovan.org>
+ <20171115171057.17340-9-gustavo@padovan.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
-
-On Fri, Nov 10, 2017 at 12:43 AM, Niklas S=C3=B6derlund
-<niklas.soderlund+renesas@ragnatech.se> wrote:
-> A V4L2 driver for Renesas R-Car MIPI CSI-2 receiver. The driver
-> supports the rcar-vin driver on R-Car Gen3 SoCs where separate CSI-2
-> hardware blocks are connected between the video sources and the video
-> grabbers (VIN).
+On Thursday, November 16, 2017 2:10:54 AM JST, Gustavo Padovan wrote:
+> From: Javier Martinez Canillas <javier@osg.samsung.com>
 >
-> Driver is based on a prototype by Koji Matsuoka in the Renesas BSP.
+> Add a videobuf2-fence.h header file that contains different helpers
+> for DMA buffer sharing explicit fence support in videobuf2.
 >
-> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
-se>
-
-Thanks for your patch!
-
+> v2:	- use fence context provided by the caller in vb2_fence_alloc()
+>
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  include/media/videobuf2-fence.h | 48 
+> +++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 48 insertions(+)
+>  create mode 100644 include/media/videobuf2-fence.h
+>
+> diff --git a/include/media/videobuf2-fence.h 
+> b/include/media/videobuf2-fence.h
+> new file mode 100644
+> index 000000000000..b49cc1bf6bb4
 > --- /dev/null
-> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> @@ -0,0 +1,933 @@
-
-> +/* Control Timing Select */
-> +#define TREF_REG                       0x00
-> +#define TREF_TREF                      (1 << 0)
-
-BIT(0)? (many more)
-
-> +struct phypll_hsfreqrange {
-> +       unsigned int    mbps;
-> +       unsigned char   reg;
-
-The "unsigned char" doesn't buy you much, due to alignment rules.
-What about making both u16 instead?
-
-> +static const struct rcar_csi2_format *rcar_csi2_code_to_fmt(unsigned int=
- code)
+> +++ b/include/media/videobuf2-fence.h
+> @@ -0,0 +1,48 @@
+> +/*
+> + * videobuf2-fence.h - DMA buffer sharing fence helpers for videobuf 2
+> + *
+> + * Copyright (C) 2016 Samsung Electronics
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation.
+> + */
+> +
+> +#include <linux/dma-fence.h>
+> +#include <linux/slab.h>
+> +
+> +static DEFINE_SPINLOCK(vb2_fence_lock);
+> +
+> +static inline const char *vb2_fence_get_driver_name(struct 
+> dma_fence *fence)
 > +{
-> +       int i;
+> +	return "vb2_fence";
+> +}
+> +
+> +static inline const char *vb2_fence_get_timeline_name(struct 
+> dma_fence *fence)
+> +{
+> +	return "vb2_fence_timeline";
+> +}
+> +
+> +static inline bool vb2_fence_enable_signaling(struct dma_fence *fence)
+> +{
+> +	return true;
+> +}
+> +
+> +static const struct dma_fence_ops vb2_fence_ops = {
+> +	.get_driver_name = vb2_fence_get_driver_name,
+> +	.get_timeline_name = vb2_fence_get_timeline_name,
+> +	.enable_signaling = vb2_fence_enable_signaling,
+> +	.wait = dma_fence_default_wait,
+> +};
 
-unsigned int
+It is probably not a good idea to define that struct here since it will be
+deduplicated for every source file that includes it.
+
+Maybe change it to a simple declaration, and move the definition to
+videobuf2-core.c or a dedicated videobuf2-fence.c file?
 
 > +
-> +       for (i =3D 0; i < ARRAY_SIZE(rcar_csi2_formats); i++)
-> +               if (rcar_csi2_formats[i].code =3D=3D code)
-> +                       return rcar_csi2_formats + i;
-> +       return NULL;
+> +static inline struct dma_fence *vb2_fence_alloc(u64 context)
+> +{
+> +	struct dma_fence *vb2_fence = kzalloc(sizeof(*vb2_fence), GFP_KERNEL);
+> +
+> +	if (!vb2_fence)
+> +		return NULL;
+> +
+> +	dma_fence_init(vb2_fence, &vb2_fence_ops, &vb2_fence_lock, context, 1);
+> +
+> +	return vb2_fence;
 > +}
 
-> +struct rcar_csi2_info {
-> +       const struct phypll_hsfreqrange *hsfreqrange;
-> +       bool clear_ulps;
-> +       bool have_phtw;
-> +       unsigned int csi0clkfreqrange;
-
-I'd sort by decreasing size/alignment, i.e. the bools last.
-
-> +};
-> +
-> +struct rcar_csi2 {
-> +       struct device *dev;
-> +       void __iomem *base;
-> +       const struct rcar_csi2_info *info;
-> +
-> +       unsigned short lanes;
-> +       unsigned char lane_swap[4];
-> +
-> +       struct v4l2_subdev subdev;
-> +       struct media_pad pads[NR_OF_RCAR_CSI2_PAD];
-> +
-> +       struct v4l2_mbus_framefmt mf;
-> +
-> +       struct mutex lock;
-> +       int stream_count;
-> +
-> +       struct v4l2_async_notifier notifier;
-> +       struct v4l2_async_subdev remote;
-
-Likewise.
-
-> +static int rcar_csi2_start(struct rcar_csi2 *priv)
-> +{
-
-> +       dev_dbg(priv->dev, "Input size (%dx%d%c)\n", mf->width,
-
-%u for __u32
-
-> +               mf->height, mf->field =3D=3D V4L2_FIELD_NONE ? 'p' : 'i')=
-;
-
-> +static int rcar_csi2_probe_resources(struct rcar_csi2 *priv,
-> +                                    struct platform_device *pdev)
-> +{
-> +       struct resource *mem;
-> +       int irq;
-> +
-> +       mem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +       if (!mem)
-
-No need to check mem, platform_get_resource() and devm_ioremap_resource()
-are designed to be pipelined.
-
-> +               return -ENODEV;
-> +
-> +       priv->base =3D devm_ioremap_resource(&pdev->dev, mem);
-
-
-> +static const struct soc_device_attribute r8a7795es1[] =3D {
-> +       { .soc_id =3D "r8a7795", .revision =3D "ES1.*" },
-> +       { /* sentinel */ }
-> +};
-> +
-> +static int rcar_csi2_probe(struct platform_device *pdev)
-> +{
-> +       struct rcar_csi2 *priv;
-> +       unsigned int i;
-> +       int ret;
-> +
-> +       priv =3D devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-> +       if (!priv)
-> +               return -ENOMEM;
-> +
-> +       priv->info =3D of_device_get_match_data(&pdev->dev);
-> +
-> +       /* r8a7795 ES1.x behaves different then ES2.0+ but no own compat =
-*/
-> +       if (priv->info =3D=3D &rcar_csi2_info_r8a7795 &&
-> +           soc_device_match(r8a7795es1))
-> +               priv->info =3D &rcar_csi2_info_r8a7795es1;
-
-Please store &rcar_csi2_info_r8a7795es1 in r8a7795es1[0].data instead.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
+Not sure we gain a lot by having this function static inline, but your 
+call.
