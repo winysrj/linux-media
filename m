@@ -1,115 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:53497 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752260AbdKMOeL (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:54463 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753528AbdKQLXB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Nov 2017 09:34:11 -0500
+        Fri, 17 Nov 2017 06:23:01 -0500
+Subject: Re: [PATCH v7 14/25] rcar-vin: add function to manipulate Gen3 CHSEL
+ value
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171111003835.4909-15-niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 4/6] v4l2-ctrls: use ref in helper instead of ctrl
-Date: Mon, 13 Nov 2017 15:34:06 +0100
-Message-Id: <20171113143408.19644-5-hverkuil@xs4all.nl>
-In-Reply-To: <20171113143408.19644-1-hverkuil@xs4all.nl>
-References: <20171113143408.19644-1-hverkuil@xs4all.nl>
+Message-ID: <9365f2dd-10f5-5947-e52e-95c077ba6891@xs4all.nl>
+Date: Fri, 17 Nov 2017 12:22:58 +0100
+MIME-Version: 1.0
+In-Reply-To: <20171111003835.4909-15-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 11/11/17 01:38, Niklas Söderlund wrote:
+> On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. One
+> feature of this register is that it's only present in the VIN0 and VIN4
+> instances. The register in VIN0 controls the routing for VIN0-3 and the
+> register in VIN4 controls routing for VIN4-7.
+> 
+> To be able to control routing from a media device this function is need
+> to control runtime PM for the subgroup master (VIN0 and VIN4). The
+> subgroup master must be switched on before the register is manipulated,
+> once the operation is complete it's safe to switch the master off and
+> the new routing will still be in effect.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-The next patch needs the reference to a control instead of the
-control itself, so change struct v4l2_ctrl_helper accordingly.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+Regards,
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 710a75a2e19d..f8de43032b78 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -37,8 +37,8 @@
- struct v4l2_ctrl_helper {
- 	/* Pointer to the control reference of the master control */
- 	struct v4l2_ctrl_ref *mref;
--	/* The control corresponding to the v4l2_ext_control ID field. */
--	struct v4l2_ctrl *ctrl;
-+	/* The control ref corresponding to the v4l2_ext_control ID field. */
-+	struct v4l2_ctrl_ref *ref;
- 	/* v4l2_ext_control index of the next control belonging to the
- 	   same cluster, or 0 if there isn't any. */
- 	u32 next;
-@@ -2860,6 +2860,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 		ref = find_ref_lock(hdl, id);
- 		if (ref == NULL)
- 			return -EINVAL;
-+		h->ref = ref;
- 		ctrl = ref->ctrl;
- 		if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
- 			return -EINVAL;
-@@ -2882,7 +2883,6 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 		}
- 		/* Store the ref to the master control of the cluster */
- 		h->mref = ref;
--		h->ctrl = ctrl;
- 		/* Initially set next to 0, meaning that there is no other
- 		   control in this helper array belonging to the same
- 		   cluster */
-@@ -2967,7 +2967,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 	cs->error_idx = cs->count;
- 
- 	for (i = 0; !ret && i < cs->count; i++)
--		if (helpers[i].ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
-+		if (helpers[i].ref->ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
- 			ret = -EACCES;
- 
- 	for (i = 0; !ret && i < cs->count; i++) {
-@@ -3002,7 +3002,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 
- 			do {
- 				ret = ctrl_to_user(cs->controls + idx,
--						   helpers[idx].ctrl);
-+						   helpers[idx].ref->ctrl);
- 				idx = helpers[idx].next;
- 			} while (!ret && idx);
- 		}
-@@ -3141,7 +3141,7 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
- 
- 	cs->error_idx = cs->count;
- 	for (i = 0; i < cs->count; i++) {
--		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
-+		struct v4l2_ctrl *ctrl = helpers[i].ref->ctrl;
- 		union v4l2_ctrl_ptr p_new;
- 
- 		cs->error_idx = i;
-@@ -3253,7 +3253,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 			do {
- 				/* Check if the auto control is part of the
- 				   list, and remember the new value. */
--				if (helpers[tmp_idx].ctrl == master)
-+				if (helpers[tmp_idx].ref->ctrl == master)
- 					new_auto_val = cs->controls[tmp_idx].value;
- 				tmp_idx = helpers[tmp_idx].next;
- 			} while (tmp_idx);
-@@ -3266,7 +3266,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 		/* Copy the new caller-supplied control values.
- 		   user_to_new() sets 'is_new' to 1. */
- 		do {
--			struct v4l2_ctrl *ctrl = helpers[idx].ctrl;
-+			struct v4l2_ctrl *ctrl = helpers[idx].ref->ctrl;
- 
- 			ret = user_to_new(cs->controls + idx, ctrl);
- 			if (!ret && ctrl->is_ptr)
-@@ -3282,7 +3282,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 			idx = i;
- 			do {
- 				ret = new_to_user(cs->controls + idx,
--						helpers[idx].ctrl);
-+						helpers[idx].ref->ctrl);
- 				idx = helpers[idx].next;
- 			} while (!ret && idx);
- 		}
--- 
-2.14.1
+	Hans
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 25 +++++++++++++++++++++++++
+>  drivers/media/platform/rcar-vin/rcar-vin.h |  2 ++
+>  2 files changed, 27 insertions(+)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index c4f8e81e88c99e28..463c656b9878be52 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -16,6 +16,7 @@
+>  
+>  #include <linux/delay.h>
+>  #include <linux/interrupt.h>
+> +#include <linux/pm_runtime.h>
+>  
+>  #include <media/videobuf2-dma-contig.h>
+>  
+> @@ -1228,3 +1229,27 @@ int rvin_dma_probe(struct rvin_dev *vin, int irq)
+>  
+>  	return ret;
+>  }
+> +
+> +/* -----------------------------------------------------------------------------
+> + * Gen3 CHSEL manipulation
+> + */
+> +
+> +void rvin_set_chsel(struct rvin_dev *vin, u8 chsel)
+> +{
+> +	u32 ifmd, vnmc;
+> +
+> +	pm_runtime_get_sync(vin->dev);
+> +
+> +	/* Make register writes take effect immediately */
+> +	vnmc = rvin_read(vin, VNMC_REG) & ~VNMC_VUP;
+> +	rvin_write(vin, vnmc, VNMC_REG);
+> +
+> +	ifmd = VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
+> +		VNCSI_IFMD_CSI_CHSEL(chsel);
+> +
+> +	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
+> +
+> +	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
+> +
+> +	pm_runtime_put(vin->dev);
+> +}
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index 1f761518a6cc60b8..8a7c51724a90786c 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -164,4 +164,6 @@ int rvin_reset_format(struct rvin_dev *vin);
+>  
+>  const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+>  
+> +void rvin_set_chsel(struct rvin_dev *vin, u8 chsel);
+> +
+>  #endif
+> 
