@@ -1,66 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:58683 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932075AbdK1SgI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 13:36:08 -0500
-Date: Tue, 28 Nov 2017 16:35:54 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Soeren Moch <smoch@web.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andreas Regel <andreas.regel@gmx.de>,
-        Manu Abraham <manu@linuxtv.org>,
-        Oliver Endriss <o.endriss@gmx.de>, linux-media@vger.kernel.org,
-        Eugene Syromiatnikov <esyr@redhat.com>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] SAA716x DVB driver
-Message-ID: <20171128163554.449dcb72@vento.lan>
-In-Reply-To: <fab215f8-29f3-1857-6f33-c45e78bb5e3c@web.de>
-References: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de>
-        <d693cf1b-de3d-5994-5ef0-eeb0e37065a3@web.de>
-        <20170827073040.6e96d79a@vento.lan>
-        <e9d87f55-18fc-e57b-f9aa-a41c7f983b34@web.de>
-        <20170909181123.392cfbb0@vento.lan>
-        <a44b8eb0-cdd5-aa28-ad30-68db0126b6f6@web.de>
-        <20170916125042.78c4abad@recife.lan>
-        <fab215f8-29f3-1857-6f33-c45e78bb5e3c@web.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mout02.posteo.de ([185.67.36.66]:34269 "EHLO mout02.posteo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933700AbdKQOaY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Nov 2017 09:30:24 -0500
+Received: from submission (posteo.de [89.146.220.130])
+        by mout02.posteo.de (Postfix) with ESMTPS id D236720A06
+        for <linux-media@vger.kernel.org>; Fri, 17 Nov 2017 15:30:21 +0100 (CET)
+From: Martin Kepplinger <martink@posteo.de>
+To: p.zabel@pengutronix.de
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Martin Kepplinger <martink@posteo.de>
+Subject: [PATCH] media: coda: fix comparision of decoded frames' indexes
+Date: Fri, 17 Nov 2017 15:30:10 +0100
+Message-Id: <20171117143010.501-1-martink@posteo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 25 Sep 2017 00:17:00 +0200
-Soeren Moch <smoch@web.de> escreveu:
+At this point the driver looks the currently decoded frame's index
+and compares is to VPU-specific state values. Directly before this
+if and else statements the indexes are read (index for decoded and
+for displayed frame).
 
-> >  What I'm saying is that,
-> > if we're adding it on staging, we need to have a plan to reimplement
-> > it to whatever API replaces the DVB video API, as this API likely
-> > won't stay upstream much longer.  
-> AFAIK it is not usual linux policy to remove existing drivers
-> with happy users and even someone who volunteered to
-> maintain this.
+Now what is saved in ctx->display_idx is an older value at this point!
+During these index checks, the current values apply, so fix this by
+taking display_idx instead of ctx->display_idx.
 
-The usual Linux policy doesn't apply to staging. The goal of staging is
-to add drivers that have problems, but are fixable, and whose someone
-is working to solve those issues. 
+ctx->display_idx is updated later in the same function.
 
-The staging policies include adding a TODO file describing the problems
-that should be solved for the driver to be promoted. If such problems
-aren't solved, the driver can be removed.
+Signed-off-by: Martin Kepplinger <martink@posteo.de>
+---
 
-For example, this year, we removed some lirc staging drivers because
-no developers were interested (and/or had the hardware) to convert
-them to use the RC core (with is a Kernel's internal API).
+Please review this thoroughly, but in case I am wrong here, this is
+at least very strange to read and *should* be accompanied with a
+comment about what's going on with that index value!
 
-In the case of saa716x, the issue is that it uses a deprecated
-and undocumented userspace API, with is a way more serious issue.
+I don't think it matter that much here because at least playing h264
+worked before and works with this change, but I've tested it anyways.
 
-I'm ok to add this driver to staging if we can agree on what
-should be fixed, and if someone commits to try fixing it, knowing,
-in advance, that, if it doesn't get fixed on a reasonable time, it
-can be removed on later Kernel versions.
+thanks
 
-Thanks,
-Mauro
+                               martin
+
+
+ drivers/media/platform/coda/coda-bit.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index bfc4ecf6f068..fe38527a90e2 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -2089,7 +2089,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 		/* no frame was decoded, but we might have a display frame */
+ 		if (display_idx >= 0 && display_idx < ctx->num_internal_frames)
+ 			ctx->sequence_offset++;
+-		else if (ctx->display_idx < 0)
++		else if (display_idx < 0)
+ 			ctx->hold = true;
+ 	} else if (decoded_idx == -2) {
+ 		/* no frame was decoded, we still return remaining buffers */
+-- 
+2.11.0
