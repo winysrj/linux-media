@@ -1,91 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:55696 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932915AbdKQEme (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 23:42:34 -0500
-Date: Fri, 17 Nov 2017 06:42:29 +0200
-From: Baruch Siach <baruch@tkos.co.il>
-To: Dan Gopstein <dgopstein@nyu.edu>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH] media: ABS macro parameter parenthesization
-Message-ID: <20171117044229.qxhllojkghxcgd7i@tarshish>
-References: <CAAqN1Z6YN2y3kvKu+SOsSh8EozY1+J_k3XHnH9F0F5z8bB402g@mail.gmail.com>
+Received: from osg.samsung.com ([64.30.133.232]:54754 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754955AbdKQMQH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Nov 2017 07:16:07 -0500
+Date: Fri, 17 Nov 2017 10:15:59 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [RFC v5 03/11] [media] vb2: add 'ordered_in_driver' property to
+ queues
+Message-ID: <20171117101559.455cced3@vento.lan>
+In-Reply-To: <20171115171057.17340-4-gustavo@padovan.org>
+References: <20171115171057.17340-1-gustavo@padovan.org>
+        <20171115171057.17340-4-gustavo@padovan.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAqN1Z6YN2y3kvKu+SOsSh8EozY1+J_k3XHnH9F0F5z8bB402g@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
+Em Wed, 15 Nov 2017 15:10:49 -0200
+Gustavo Padovan <gustavo@padovan.org> escreveu:
 
-On Thu, Nov 16, 2017 at 06:09:20PM -0500, Dan Gopstein wrote:
-> From: Dan Gopstein <dgopstein@nyu.edu>
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
 > 
-> Two definitions of the ABS (absolute value) macro fail to parenthesize their
-> parameter properly. This can lead to a bad expansion for low-precedence
-> expression arguments. Add parens to protect against troublesome arguments.
+> We use ordered_in_driver property to optimize for the case where
+> the driver can deliver the buffers in an ordered fashion. When it
+> is ordered we can use the same fence context for all fences, but
+> when it is not we need to a new context for each out-fence.
 > 
-> Signed-off-by: Dan Gopstein <dgopstein@nyu.edu>
+> So the ordered_in_driver flag will help us with identifying the queues
+> that can be optimized and use the same fence context.
+> 
+> v4: make the property a vector for optimization and not a mandatory thing
+> that drivers need to set if they want to use explicit synchronization.
+> 
+> v3: improve doc (Hans Verkuil)
+> 
+> v2: rename property to 'ordered_in_driver' to avoid confusion
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 > ---
-> See an example bad usage in
-> drivers/media/dvb-frontends/mb86a16.c b/drivers/media/dvb-frontends/mb86a16.c
-> on line 1204:
+>  include/media/videobuf2-core.h | 7 +++++++
+>  1 file changed, 7 insertions(+)
 > 
-> ABS(prev_swp_freq[j] - swp_freq)
->
-> For example: ABS(1-2) currently expands to ((1-2) < 0 ? (-1-2) : (1-2)) which
-> evaluates to -3. But the correct expansion would be ((1-2) < 0 ? -(1-2) : (1-2))
-> which evaluates to 1.
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index ef9b64398c8c..38b9c8dd42c6 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -440,6 +440,12 @@ struct vb2_buf_ops {
+>   * @fileio_read_once:		report EOF after reading the first buffer
+>   * @fileio_write_immediately:	queue buffer after each write() call
+>   * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
+> + * @ordered_in_driver: if the driver can guarantee that the queue will be
+> + *		ordered or not, i.e., the buffers are dequeued from the driver
+> + *		in the same order they are queued to the driver. The default
+> + *		is not ordered unless the driver sets this flag. Setting it
+> + *		when ordering can be guaranted helps to optimize explicit
+> + *		fences.
+>   * @quirk_poll_must_check_waiting_for_buffers: Return POLLERR at poll when QBUF
+>   *              has not been called. This is a vb1 idiom that has been adopted
+>   *              also by vb2.
+> @@ -510,6 +516,7 @@ struct vb2_queue {
+>  	unsigned			fileio_read_once:1;
+>  	unsigned			fileio_write_immediately:1;
+>  	unsigned			allow_zero_bytesused:1;
+> +	unsigned			ordered_in_driver:1;
 
-This example would be nice to have in the commit log.
+As this may depend on the format, it is probably a good idea to set
+this flag either via a function argument or by a function that
+would be meant to update it, as video format changes.
 
-> I found this issue as part of the "Atoms of Confusion" research at NYU's Secure
-> Systems Lab. As the work continues, hopefully we'll be able to find more issues
-> like this one.
-> 
-> diff --git a/drivers/media/dvb-frontends/dibx000_common.h
-> b/drivers/media/dvb-frontends/dibx000_common.h
+>  	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
+>  
+>  	struct mutex			*lock;
 
-Unfortunately, your email client (gmail?) mangled the patch by splitting lines 
-like the above. So 'git am', or the 'patch' utility can't apply your patch as 
-is.
-
-I suggest you to use 'git send-email' to send patches. You can find gmail 
-specific setup instructions in the git-send-email man page[1] under EXAMPLE.
-
-[1] https://git-scm.com/docs/git-send-email
-
-baruch
-
-> index 8784af9..ae60f5d 100644
-> --- a/drivers/media/dvb-frontends/dibx000_common.h
-> +++ b/drivers/media/dvb-frontends/dibx000_common.h
-> @@ -223,7 +223,7 @@ struct dvb_frontend_parametersContext {
-> 
-> #define FE_CALLBACK_TIME_NEVER 0xffffffff
-> 
-> -#define ABS(x) ((x < 0) ? (-x) : (x))
-> +#define ABS(x) (((x) < 0) ? -(x) : (x))
-> 
-> #define DATA_BUS_ACCESS_MODE_8BIT                 0x01
-> #define DATA_BUS_ACCESS_MODE_16BIT                0x02
-> diff --git a/drivers/media/dvb-frontends/mb86a16.c
-> b/drivers/media/dvb-frontends/mb86a16.c
-> index dfe322e..2d921c7 100644
-> --- a/drivers/media/dvb-frontends/mb86a16.c
-> +++ b/drivers/media/dvb-frontends/mb86a16.c
-> @@ -31,7 +31,7 @@
-> static unsigned int verbose = 5;
-> module_param(verbose, int, 0644);
-> 
-> -#define ABS(x)         ((x) < 0 ? (-x) : (x))
-> +#define ABS(x)         ((x) < 0 ? -(x) : (x))
-> 
-> struct mb86a16_state {
->         struct i2c_adapter              *i2c_adap;
 
 -- 
-     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.52.368.4656, http://www.tkos.co.il -
+Thanks,
+Mauro
