@@ -1,102 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:38743 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752951AbdK3NVB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Nov 2017 08:21:01 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>
-Subject: [PATCH 1/2] media: RC docs: add enum rc_proto description at the docs
-Date: Thu, 30 Nov 2017 08:20:55 -0500
-Message-Id: <44530601e2f49433690aeec1c76e425907ae6842.1512048047.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35712 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756904AbdKQOSW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Nov 2017 09:18:22 -0500
+Date: Fri, 17 Nov 2017 15:18:26 +0100
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Johan Hovold <johan@kernel.org>,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Philippe Ombredanne <pombredanne@nexb.com>
+Subject: [PATCH] media: usbvision: remove unneeded DRIVER_LICENSE #define
+Message-ID: <20171117141826.GC17880@kroah.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is part of the uAPI. Add it to the documentation again,
-and fix cross-references.
+There is no need to #define the license of the driver, just put it in
+the MODULE_LICENSE() line directly as a text string.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+This allows tools that check that the module license matches the source
+code license to work properly, as there is no need to unwind the
+unneeded dereference.
+
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Johan Hovold <johan@kernel.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reported-by: Philippe Ombredanne <pombredanne@nexb.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- Documentation/media/uapi/rc/lirc-dev-intro.rst | 19 +++++++++++++------
- Documentation/media/uapi/rc/lirc-read.rst      |  2 +-
- Documentation/media/uapi/rc/lirc-write.rst     |  4 ++--
- 3 files changed, 16 insertions(+), 9 deletions(-)
+ drivers/media/usb/usbvision/usbvision-video.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/Documentation/media/uapi/rc/lirc-dev-intro.rst b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-index 47c6c218e72a..3a74fec66d69 100644
---- a/Documentation/media/uapi/rc/lirc-dev-intro.rst
-+++ b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-@@ -46,13 +46,13 @@ on the following table.
-     This mode is for both sending and receiving IR.
+diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
+index 960272d3c924..0f5954a1fea2 100644
+--- a/drivers/media/usb/usbvision/usbvision-video.c
++++ b/drivers/media/usb/usbvision/usbvision-video.c
+@@ -72,7 +72,6 @@
+ #define DRIVER_NAME "usbvision"
+ #define DRIVER_ALIAS "USBVision"
+ #define DRIVER_DESC "USBVision USB Video Device Driver for Linux"
+-#define DRIVER_LICENSE "GPL"
+ #define USBVISION_VERSION_STRING "0.9.11"
  
-     For transmitting (aka sending), create a ``struct lirc_scancode`` with
--    the desired scancode set in the ``scancode`` member, ``rc_proto`` set
--    the IR protocol, and all other members set to 0. Write this struct to
-+    the desired scancode set in the ``scancode`` member, :c:type:`rc_proto`
-+    set the IR protocol, and all other members set to 0. Write this struct to
-     the lirc device.
+ #define	ENABLE_HEXDUMP	0	/* Enable if you need it */
+@@ -141,7 +140,7 @@ MODULE_PARM_DESC(radio_nr, "Set radio device number (/dev/radioX).  Default: -1
+ /* Misc stuff */
+ MODULE_AUTHOR(DRIVER_AUTHOR);
+ MODULE_DESCRIPTION(DRIVER_DESC);
+-MODULE_LICENSE(DRIVER_LICENSE);
++MODULE_LICENSE("GPL");
+ MODULE_VERSION(USBVISION_VERSION_STRING);
+ MODULE_ALIAS(DRIVER_ALIAS);
  
-     For receiving, you read ``struct lirc_scancode`` from the lirc device,
-     with ``scancode`` set to the received scancode and the IR protocol
--    ``rc_proto``. If the scancode maps to a valid key code, this is set
-+    :c:type:`rc_proto`. If the scancode maps to a valid key code, this is set
-     in the ``keycode`` field, else it is set to ``KEY_RESERVED``.
- 
-     The ``flags`` can have ``LIRC_SCANCODE_FLAG_TOGGLE`` set if the toggle
-@@ -74,9 +74,6 @@ on the following table.
-     The ``timestamp`` field is filled with the time nanoseconds
-     (in ``CLOCK_MONOTONIC``) when the scancode was decoded.
- 
--    An ``enum rc_proto`` in the :ref:`lirc_header` lists all the supported
--    IR protocols.
--
- .. _lirc-mode-mode2:
- 
- ``LIRC_MODE_MODE2``
-@@ -125,3 +122,13 @@ on the following table.
-     of entries.
- 
-     This mode is used only for IR send.
-+
-+
-+**************************
-+Remote Controller protocol
-+**************************
-+
-+An enum :c:type:`rc_proto` in the :ref:`lirc_header` lists all the
-+supported IR protocols:
-+
-+.. kernel-doc:: include/uapi/linux/lirc.h
-diff --git a/Documentation/media/uapi/rc/lirc-read.rst b/Documentation/media/uapi/rc/lirc-read.rst
-index 51d37ed10194..c024aaffb8ad 100644
---- a/Documentation/media/uapi/rc/lirc-read.rst
-+++ b/Documentation/media/uapi/rc/lirc-read.rst
-@@ -54,7 +54,7 @@ read from the chardev.
- 
- Alternatively, :ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` can be available,
- in this mode scancodes which are either decoded by software decoders, or
--by hardware decoders. The ``rc_proto`` member is set to the
-+by hardware decoders. The :c:type:`rc_proto` member is set to the
- protocol used for transmission, and ``scancode`` to the decoded scancode,
- and the ``keycode`` set to the keycode or ``KEY_RESERVED``.
- 
-diff --git a/Documentation/media/uapi/rc/lirc-write.rst b/Documentation/media/uapi/rc/lirc-write.rst
-index 3d7541bad8b9..dd3d1fe807a6 100644
---- a/Documentation/media/uapi/rc/lirc-write.rst
-+++ b/Documentation/media/uapi/rc/lirc-write.rst
-@@ -57,8 +57,8 @@ driver returns ``EINVAL``.
- When in :ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` mode, one
- ``struct lirc_scancode`` must be written to the chardev at a time, else
- ``EINVAL`` is returned. Set the desired scancode in the ``scancode`` member,
--and the protocol in the ``rc_proto`` member. All other members must be set
--to 0, else ``EINVAL`` is returned. If there is no protocol encoder
-+and the protocol in the :c:type:`rc_proto`: member. All other members must be
-+set to 0, else ``EINVAL`` is returned. If there is no protocol encoder
- for the protocol or the scancode is not valid for the specified protocol,
- ``EINVAL`` is returned. The write function may not wait until the scancode
- is transmitted.
 -- 
-2.14.3
+2.15.0
