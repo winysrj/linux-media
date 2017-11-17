@@ -1,174 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:46226 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751540AbdKFKUF (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:44402 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S935138AbdKQObv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Nov 2017 05:20:05 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Helen Koike <helen.koike@collabora.com>
+        Fri, 17 Nov 2017 09:31:51 -0500
+Subject: Re: [RFC v5 06/11] [media] vb2: add explicit fence user API
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <20171115171057.17340-1-gustavo@padovan.org>
+ <20171115171057.17340-7-gustavo@padovan.org>
+ <6fb67083-7417-0137-9449-36a4cfdb1b9d@xs4all.nl>
+ <20171117115307.1b1a5a76@vento.lan>
+Cc: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv2] vimc: add test_pattern and h/vflip controls to the sensor
-Message-ID: <b0144ca0-c64d-dacc-0f50-43748699f954@xs4all.nl>
-Date: Mon, 6 Nov 2017 11:20:01 +0100
+Message-ID: <62f5db4a-ce47-fdee-15cc-5be1cc9daf4c@xs4all.nl>
+Date: Fri, 17 Nov 2017 15:31:48 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <20171117115307.1b1a5a76@vento.lan>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the test_pattern control and the h/vflip controls.
+On 17/11/17 14:53, Mauro Carvalho Chehab wrote:
+> Em Fri, 17 Nov 2017 14:29:23 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 15/11/17 18:10, Gustavo Padovan wrote:
+>>> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+>>>
+>>> Turn the reserved2 field into fence_fd that we will use to send
+>>> an in-fence to the kernel and return an out-fence from the kernel to
+>>> userspace.
+>>>
+>>> Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+>>> when sending a fence to the kernel to be waited on, and
+>>> V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
+>>>
+>>> v4:
+>>> 	- make it a union with reserved2 and fence_fd (Hans Verkuil)
+>>>
+>>> v3:
+>>> 	- make the out_fence refer to the current buffer (Hans Verkuil)
+>>>
+>>> v2: add documentation
+>>>
+>>> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+>>> ---
+>>>  Documentation/media/uapi/v4l/buffer.rst       | 15 +++++++++++++++
+>>>  drivers/media/usb/cpia2/cpia2_v4l.c           |  2 +-
+>>>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  4 ++--
+>>>  drivers/media/v4l2-core/videobuf2-v4l2.c      |  2 +-
+>>>  include/uapi/linux/videodev2.h                |  7 ++++++-
+>>>  5 files changed, 25 insertions(+), 5 deletions(-)
+>>>
+>>> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+>>> index ae6ee73f151c..eeefbd2547e7 100644
+>>> --- a/Documentation/media/uapi/v4l/buffer.rst
+>>> +++ b/Documentation/media/uapi/v4l/buffer.rst
+>>> @@ -648,6 +648,21 @@ Buffer Flags
+>>>        - Start Of Exposure. The buffer timestamp has been taken when the
+>>>  	exposure of the frame has begun. This is only valid for the
+>>>  	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
+>>> +    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
+>>> +
+>>> +      - ``V4L2_BUF_FLAG_IN_FENCE``
+>>> +      - 0x00200000
+>>> +      - Ask V4L2 to wait on fence passed in ``fence_fd`` field. The buffer
+>>> +	won't be queued to the driver until the fence signals.
+>>> +
+>>> +    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
+>>> +
+>>> +      - ``V4L2_BUF_FLAG_OUT_FENCE``
+>>> +      - 0x00400000
+>>> +      - Request a fence to be attached to the buffer. The ``fence_fd``
+>>> +	field on
+>>> +	:ref:`VIDIOC_QBUF` is used as a return argument to send the out-fence
+>>> +	fd to userspace.  
+>>
+>> How would userspace know if fences are not supported? E.g. any driver that does
+>> not use vb2 will have no support for it.
+>>
+>> While the driver could clear the flag on return, the problem is that it is a bit
+>> late for applications to discover lack of fence support.
+>>
+>> Perhaps we do need a capability flag for this? I wonder what others think.
+> 
+> We're almost running out of flags at v4l2 caps (and at struct v4l2_buffer).
 
-This makes it possible to switch to more interesting test patterns and to
-test control handling in v4l-subdevs.
+struct v4l2_capability has more than enough room to add a new device_caps2 field.
+So I see no problem there, and it is very useful for applications to know what
+features are supported up front and not when you start to use them.
 
-There are more tpg-related controls that can be added, but this is a good
-start.
+Think about it: you're setting up complete fence support in your application, only
+to discover when you queue the first buffer that there is no fence support! That
+doesn't work.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-Changes since v2:
-- dropped ops field for the custom vimc control class, it's not needed.
----
- drivers/media/platform/vimc/vimc-common.h |  5 +++
- drivers/media/platform/vimc/vimc-sensor.c | 63 ++++++++++++++++++++++++++++++-
- 2 files changed, 67 insertions(+), 1 deletion(-)
+The reserved[] array wasn't added for nothing to v4l2_capability.
 
-diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
-index dca528a316e7..2e9981b18166 100644
---- a/drivers/media/platform/vimc/vimc-common.h
-+++ b/drivers/media/platform/vimc/vimc-common.h
-@@ -22,6 +22,11 @@
- #include <media/media-device.h>
- #include <media/v4l2-device.h>
+struct v4l2_buffer is indeed very full. But I posted an RFC on October 26 introducing
+a struct v4l2_ext_buffer, designed from scratch. We can switch to a u64 flags there.
 
-+/* VIMC-specific controls */
-+#define VIMC_CID_VIMC_BASE		(0x00f00000 | 0xf000)
-+#define VIMC_CID_VIMC_CLASS		(0x00f00000 | 1)
-+#define VIMC_CID_TEST_PATTERN		(VIMC_CID_VIMC_BASE + 0)
-+
- #define VIMC_FRAME_MAX_WIDTH 4096
- #define VIMC_FRAME_MAX_HEIGHT 2160
- #define VIMC_FRAME_MIN_WIDTH 16
-diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
-index 02e68c8fc02b..1ab52a821b8e 100644
---- a/drivers/media/platform/vimc/vimc-sensor.c
-+++ b/drivers/media/platform/vimc/vimc-sensor.c
-@@ -22,6 +22,7 @@
- #include <linux/platform_device.h>
- #include <linux/v4l2-mediabus.h>
- #include <linux/vmalloc.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-tpg.h>
+See here: https://www.mail-archive.com/linux-media@vger.kernel.org/msg121215.html
 
-@@ -38,6 +39,7 @@ struct vimc_sen_device {
- 	u8 *frame;
- 	/* The active format */
- 	struct v4l2_mbus_framefmt mbus_format;
-+	struct v4l2_ctrl_handler hdl;
- };
+I am waiting for fences and the request API to go in before continuing with that
+RFC series, unless we think it is better to only support fences/request API with
+this redesign. Let me know and I can pick up development of that RFC.
 
- static const struct v4l2_mbus_framefmt fmt_default = {
-@@ -291,6 +293,31 @@ static const struct v4l2_subdev_ops vimc_sen_ops = {
- 	.video = &vimc_sen_video_ops,
- };
+> 
+> So, I would prefer to not add more flags on those structs if there is
+> another way.
+> 
+> As the fences out of order flags should go to ENUM_FMT (and, currently
+> there's just one flag defined there), I wander if it would make sense
+> to also add CAN_IN_FENCES/CAN_OUT_FENCES flags there, as maybe we
+> would want to disable/enable fences based on the format.
 
-+static int vimc_sen_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct vimc_sen_device *vsen =
-+		container_of(ctrl->handler, struct vimc_sen_device, hdl);
-+
-+	switch (ctrl->id) {
-+	case VIMC_CID_TEST_PATTERN:
-+		tpg_s_pattern(&vsen->tpg, ctrl->val);
-+		break;
-+	case V4L2_CID_HFLIP:
-+		tpg_s_hflip(&vsen->tpg, ctrl->val);
-+		break;
-+	case V4L2_CID_VFLIP:
-+		tpg_s_vflip(&vsen->tpg, ctrl->val);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops vimc_sen_ctrl_ops = {
-+	.s_ctrl = vimc_sen_s_ctrl,
-+};
-+
- static void vimc_sen_comp_unbind(struct device *comp, struct device *master,
- 				 void *master_data)
- {
-@@ -299,10 +326,28 @@ static void vimc_sen_comp_unbind(struct device *comp, struct device *master,
- 				container_of(ved, struct vimc_sen_device, ved);
+I don't see a reason for that. There is no relationship between formats
+and fences. Fences apply to buffers, not formats. Whereas the 'ordered'
+value can be specific to a format.
 
- 	vimc_ent_sd_unregister(ved, &vsen->sd);
-+	v4l2_ctrl_handler_free(&vsen->hdl);
- 	tpg_free(&vsen->tpg);
- 	kfree(vsen);
- }
+Regards,
 
-+/* Image Processing Controls */
-+static const struct v4l2_ctrl_config vimc_sen_ctrl_class = {
-+	.flags = V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY,
-+	.id = VIMC_CID_VIMC_CLASS,
-+	.name = "VIMC Controls",
-+	.type = V4L2_CTRL_TYPE_CTRL_CLASS,
-+};
-+
-+static const struct v4l2_ctrl_config vimc_sen_ctrl_test_pattern = {
-+	.ops = &vimc_sen_ctrl_ops,
-+	.id = VIMC_CID_TEST_PATTERN,
-+	.name = "Test Pattern",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.max = TPG_PAT_NOISE,
-+	.qmenu = tpg_pattern_strings,
-+};
-+
- static int vimc_sen_comp_bind(struct device *comp, struct device *master,
- 			      void *master_data)
- {
-@@ -316,6 +361,20 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
- 	if (!vsen)
- 		return -ENOMEM;
-
-+	v4l2_ctrl_handler_init(&vsen->hdl, 4);
-+
-+	v4l2_ctrl_new_custom(&vsen->hdl, &vimc_sen_ctrl_class, NULL);
-+	v4l2_ctrl_new_custom(&vsen->hdl, &vimc_sen_ctrl_test_pattern, NULL);
-+	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
-+			V4L2_CID_VFLIP, 0, 1, 1, 0);
-+	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
-+			V4L2_CID_HFLIP, 0, 1, 1, 0);
-+	vsen->sd.ctrl_handler = &vsen->hdl;
-+	if (vsen->hdl.error) {
-+		ret = vsen->hdl.error;
-+		goto err_free_vsen;
-+	}
-+
- 	/* Initialize ved and sd */
- 	ret = vimc_ent_sd_register(&vsen->ved, &vsen->sd, v4l2_dev,
- 				   pdata->entity_name,
-@@ -323,7 +382,7 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
- 				   (const unsigned long[1]) {MEDIA_PAD_FL_SOURCE},
- 				   &vimc_sen_ops);
- 	if (ret)
--		goto err_free_vsen;
-+		goto err_free_hdl;
-
- 	dev_set_drvdata(comp, &vsen->ved);
- 	vsen->dev = comp;
-@@ -342,6 +401,8 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
-
- err_unregister_ent_sd:
- 	vimc_ent_sd_unregister(&vsen->ved,  &vsen->sd);
-+err_free_hdl:
-+	v4l2_ctrl_handler_free(&vsen->hdl);
- err_free_vsen:
- 	kfree(vsen);
-
--- 
-2.14.1
+	Hans
