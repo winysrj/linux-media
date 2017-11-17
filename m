@@ -1,56 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:13689 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753175AbdKMWFw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Nov 2017 17:05:52 -0500
-Date: Tue, 14 Nov 2017 00:05:48 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Alan <alan@linux.intel.com>
-Cc: vincent.hervieux@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] atomisp: fix vfree of bogus data on unload
-Message-ID: <20171113220548.ji4z4e5neehxg4wn@kekkonen.localdomain>
-References: <151001137594.77201.4306351721772580664.stgit@alans-desktop>
- <151001140261.77201.8823780763771880199.stgit@alans-desktop>
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:44506 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758578AbdKQOxA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Nov 2017 09:53:00 -0500
+Received: by mail-wr0-f193.google.com with SMTP id l22so2321155wrc.11
+        for <linux-media@vger.kernel.org>; Fri, 17 Nov 2017 06:52:59 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <151001140261.77201.8823780763771880199.stgit@alans-desktop>
+In-Reply-To: <20171117141826.GC17880@kroah.com>
+References: <20171117141826.GC17880@kroah.com>
+From: Philippe Ombredanne <pombredanne@nexb.com>
+Date: Fri, 17 Nov 2017 15:52:18 +0100
+Message-ID: <CAOFm3uGJS7Qno_xtnPNd3TpcuGXbXYj-mMenBhZKp6cXTFqDxw@mail.gmail.com>
+Subject: Re: [PATCH] media: usbvision: remove unneeded DRIVER_LICENSE #define
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Johan Hovold <johan@kernel.org>,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alan,
+On Fri, Nov 17, 2017 at 3:18 PM, Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
+> There is no need to #define the license of the driver, just put it in
+> the MODULE_LICENSE() line directly as a text string.
+>
+> This allows tools that check that the module license matches the source
+> code license to work properly, as there is no need to unwind the
+> unneeded dereference.
+>
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: Johan Hovold <johan@kernel.org>
+> Cc: Davidlohr Bueso <dave@stgolabs.net>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reported-by: Philippe Ombredanne <pombredanne@nexb.com>
+> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-On Mon, Nov 06, 2017 at 11:36:45PM +0000, Alan wrote:
-> We load the firmware once, set pointers to it and then at some point release
-> it. We should not be doing a vfree() on the pointers into the firmware.
-> 
-> Signed-off-by: Alan Cox <alan@linux.intel.com>
-> ---
->  .../atomisp/pci/atomisp2/css2400/sh_css_firmware.c |    2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-> index 8158ea40d069..f181bd8fcee2 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-> @@ -288,8 +288,6 @@ void sh_css_unload_firmware(void)
->  		for (i = 0; i < sh_css_num_binaries; i++) {
->  			if (fw_minibuffer[i].name)
->  				kfree((void *)fw_minibuffer[i].name);
-> -			if (fw_minibuffer[i].buffer)
-> -				vfree((void *)fw_minibuffer[i].buffer);
 
-You shouldn't end up here if the firmware is just loaded once. If multiple
-times, then yes.
-
-The memory appears to have been allocated using kmalloc() in some cases.
-How about kvfree(), or changing that kmalloc() to vmalloc()?
-
->  		}
->  		kfree(fw_minibuffer);
->  		fw_minibuffer = NULL;
-> 
-
+Reviewed-by: Philippe Ombredanne <pombredanne@nexb.com>
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Cordially
+Philippe Ombredanne
