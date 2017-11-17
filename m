@@ -1,120 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47356 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751344AbdKQRP1 (ORCPT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:36471 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751950AbdKQMXN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 12:15:27 -0500
-Date: Fri, 17 Nov 2017 18:15:32 +0100
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Philippe Ombredanne <pombredanne@nexb.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Johan Hovold <johan@kernel.org>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media: usbvision: remove unneeded DRIVER_LICENSE #define
-Message-ID: <20171117171532.GB17018@kroah.com>
-References: <20171117141826.GC17880@kroah.com>
- <20171117125847.28004106@vento.lan>
- <CAOFm3uE9NmPV6diYcTodBKRr0CXFYs7uvVPrLTyLaa_3VKV7rA@mail.gmail.com>
- <20171117150102.1f5faeda@vento.lan>
+        Fri, 17 Nov 2017 07:23:13 -0500
+Date: Fri, 17 Nov 2017 10:23:05 -0200
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [RFC v5 01/11] [media] v4l: add V4L2_CAP_ORDERED to the uapi
+Message-ID: <20171117122305.GE19033@jade>
+References: <20171115171057.17340-1-gustavo@padovan.org>
+ <20171115171057.17340-2-gustavo@padovan.org>
+ <20171117095731.2172c3c2@vento.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20171117150102.1f5faeda@vento.lan>
+In-Reply-To: <20171117095731.2172c3c2@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 17, 2017 at 03:01:02PM -0200, Mauro Carvalho Chehab wrote:
-> Em Fri, 17 Nov 2017 16:01:41 +0100
-> Philippe Ombredanne <pombredanne@nexb.com> escreveu:
-> 
-> > On Fri, Nov 17, 2017 at 3:58 PM, Mauro Carvalho Chehab
-> > <mchehab@s-opensource.com> wrote:
-> > > Em Fri, 17 Nov 2017 15:18:26 +0100
-> > > Greg Kroah-Hartman <gregkh@linuxfoundation.org> escreveu:
-> > >  
-> > >> There is no need to #define the license of the driver, just put it in
-> > >> the MODULE_LICENSE() line directly as a text string.
-> > >>
-> > >> This allows tools that check that the module license matches the source
-> > >> code license to work properly, as there is no need to unwind the
-> > >> unneeded dereference.
-> > >>
-> > >> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> > >> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> > >> Cc: Johan Hovold <johan@kernel.org>
-> > >> Cc: Davidlohr Bueso <dave@stgolabs.net>
-> > >> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > >> Reported-by: Philippe Ombredanne <pombredanne@nexb.com>
-> > >> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> 
-> Acked-by: Mauro Carvalho Chehab <mchehab@kernel.org>
-> 
-> > >> ---
-> > >>  drivers/media/usb/usbvision/usbvision-video.c | 3 +--
-> > >>  1 file changed, 1 insertion(+), 2 deletions(-)
-> > >>
-> > >> diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-> > >> index 960272d3c924..0f5954a1fea2 100644
-> > >> --- a/drivers/media/usb/usbvision/usbvision-video.c
-> > >> +++ b/drivers/media/usb/usbvision/usbvision-video.c
-> > >> @@ -72,7 +72,6 @@
-> > >>  #define DRIVER_NAME "usbvision"
-> > >>  #define DRIVER_ALIAS "USBVision"
-> > >>  #define DRIVER_DESC "USBVision USB Video Device Driver for Linux"
-> > >> -#define DRIVER_LICENSE "GPL"
-> > >>  #define USBVISION_VERSION_STRING "0.9.11"
-> > >>
-> > >>  #define      ENABLE_HEXDUMP  0       /* Enable if you need it */
-> > >> @@ -141,7 +140,7 @@ MODULE_PARM_DESC(radio_nr, "Set radio device number (/dev/radioX).  Default: -1
-> > >>  /* Misc stuff */
-> > >>  MODULE_AUTHOR(DRIVER_AUTHOR);
-> > >>  MODULE_DESCRIPTION(DRIVER_DESC);
-> > >> -MODULE_LICENSE(DRIVER_LICENSE);
-> > >> +MODULE_LICENSE("GPL");  
-> > >
-> > > Makes sense to me, but, if we look at the header of this file:
-> > >
-> > >  * This program is free software; you can redistribute it and/or modify
-> > >  * it under the terms of the GNU General Public License as published by
-> > >  * the Free Software Foundation; either version 2 of the License, or
-> > >  * (at your option) any later version.
-> > >
-> > > Its license is actually GPL 2.0+
-> > >
-> > > So, I would actually change it to:
-> > >
-> > > MODULE_LICENSE("GPL v2");  
-> > 
-> > Mauro:
-> > 
-> > actually even if it sounds weird the module.h doc [1] is clear on this topic:
-> > 
-> >  * "GPL" [GNU Public License v2 or later]
-> >  * "GPL v2" [GNU Public License v2]
-> > 
-> > So it should be "GPL" IMHO.
-> > 
-> > 
-> > [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/linux/module.h?id=refs/tags/v4.10#n175
-> > 
-> 
-> Oh! Yeah, you're right. I would add that on the Kernel documentation
-> somewhere, perhaps with the new document that Thomas is writing
-> about SPFX. 
-> 
-> The Documentation/kernel-hacking/hacking.rst doc mentions 
-> MODULE_LICENSE, but doesn't define the expected values for it.
+2017-11-17 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
 
-It's buried in the code comments in include/linux/module.h.  One of
-these days I want to just make a #define for the licenses that makes it
-a bit more obvious what each should be, but for now, we have lots of
-other things to clean up before dealing with this :)
+> Em Wed, 15 Nov 2017 15:10:47 -0200
+> Gustavo Padovan <gustavo@padovan.org> escreveu:
+> 
+> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > 
+> > When using explicit synchronization userspace needs to know if
+> > the queue can deliver everything back in the same order, so we added
+> > a new capability that drivers can use to report that they are capable
+> > of keeping ordering.
+> > 
+> > In videobuf2 core when using fences we also make sure to keep the ordering
+> > of buffers, so if the driver guarantees it too the whole pipeline inside
+> > V4L2 will be ordered and the V4L2_CAP_ORDERED should be used.
+> > 
+> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > ---
+> >  Documentation/media/uapi/v4l/vidioc-querycap.rst | 3 +++
+> >  include/uapi/linux/videodev2.h                   | 1 +
+> >  2 files changed, 4 insertions(+)
+> > 
+> > diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+> > index 66fb1b3d6e6e..ed3daa814da9 100644
+> > --- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
+> > +++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
+> > @@ -254,6 +254,9 @@ specification the ioctl returns an ``EINVAL`` error code.
+> >      * - ``V4L2_CAP_TOUCH``
+> >        - 0x10000000
+> >        - This is a touch device.
+> > +    * - ``V4L2_CAP_ORDERED``
+> > +      - 0x20000000
+> > +      - The device queue is ordered.
+> >      * - ``V4L2_CAP_DEVICE_CAPS``
+> >        - 0x80000000
+> >        - The driver fills the ``device_caps`` field. This capability can
+> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> > index 185d6a0acc06..cd6fc1387f47 100644
+> > --- a/include/uapi/linux/videodev2.h
+> > +++ b/include/uapi/linux/videodev2.h
+> > @@ -459,6 +459,7 @@ struct v4l2_capability {
+> >  #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
+> >  
+> >  #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
+> > +#define V4L2_CAP_ORDERED                0x20000000  /* Is the device queue ordered */
+> 
+> I guess we discussed that at the Linux Media summit.
+> The problem of making it a global flag is that drivers may support
+> ordered formats only for some of the formats. E. g., a driver that
+> delivers both MPEG and RGB output formats may deliver ordered
+> buffers for RGB, and unordered ones for MPEG.
+> 
+> So, instead of doing a global format at v4l2_capability, it is probably
+> better to use the flags field at struct v4l2_fmtdesc.
+> 
+> That would allow userspace to know in advance what formats support
+> it, by calling VIDIOC_ENUM_FMT.
 
-thanks,
+Thanks for clarifying, Mauro. I'll work on making it part of
+v4l2_fmtdesc.
 
-greg k-h
+Gustavo
