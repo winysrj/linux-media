@@ -1,454 +1,316 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:54087 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753867AbdKISpt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Nov 2017 13:45:49 -0500
-Received: by mail-pf0-f193.google.com with SMTP id b6so4628368pff.10
-        for <linux-media@vger.kernel.org>; Thu, 09 Nov 2017 10:45:49 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v3 0/5] TDA1997x HDMI video receiver
-Date: Thu,  9 Nov 2017 10:45:31 -0800
-Message-Id: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
+Received: from mail.kernel.org ([198.145.29.99]:58582 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965813AbdKQPrt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Nov 2017 10:47:49 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v4 8/9] v4l: vsp1: Move video configuration to a cached dlb
+Date: Fri, 17 Nov 2017 15:47:31 +0000
+Message-Id: <c77d217a3fdddf2d7fda030c0e76b9a1619c53d2.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a v4l2 subdev driver supporting the TDA1997x HDMI video receiver.
+We are now able to configure a pipeline directly into a local display
+list body. Take advantage of this fact, and create a cacheable body to
+store the configuration of the pipeline in the video object.
 
-I've tested this on a Gateworks GW54xx with an IMX6Q which uses the TDA19971
-with 16bits connected to the IMX6 CSI. For this configuration I've tested
-both 16bit YUV422 and 8bit BT656 mode. While the driver should support the
-TDA1993 I do not have one for testing.
+vsp1_video_pipeline_run() is now the last user of the pipe->dl object.
+Convert this function to use the cached video->config body and obtain a
+local display list reference.
 
-Further potential development efforts include:
- - CEC support
- - HDCP support
- - mbus format selection support for bus widths that support multiple formats
- - TDA19972 support (2 inputs)
+Attach the video->config body to the display list when needed before
+committing to hardware.
 
-History:
+The pipe object is marked as un-configured when resuming from a suspend.
+This ensures that when the hardware is reset - our cached configuration
+will be re-attached to the next committed DL.
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+
 v3:
- - fix typo in dt bindings
- - added dt bindings for GW551x
- - use V4L2_DV_BT_FRAME_WIDTH/HEIGHT macros
- - fixed missing break
- - use only hdmi_infoframe_log for infoframe logging
- - simplify tda1997x_s_stream error handling
- - add delayed work proc to handle hotplug enable/disable
- - fix set_edid (disable HPD before writing, enable after)
- - remove enabling edid by default
- - initialize timings
- - take quant range into account in colorspace conversion
- - remove vendor/product tracking (we provide this in log_status via infoframes)
- - add v4l_controls
- - add more detail to log_status
- - calculate vhref generator timings
- - timing detection fixes (rounding errors, hswidth errors)
- - rename configure_input/configure_conv functions
+ - 's/fragment/body/', 's/fragments/bodies/'
+ - video dlb cache allocation increased from 2 to 3 dlbs
 
-v2:
- - encorporate feedback into dt bindings
- - change audio dt bindings
- - implement dv timings enum/cap
- - remove deprecated g_mbus_config op
- - fix dv_query_timings
- - add EDID get/set handling
- - remove max-pixel-rate support
- - add audio codec DAI support
- - added media-ctl and v4l2-compliance details
+Our video DL usage now looks like the below output:
 
-v1:
- - initial RFC
+dl->body0 contains our disposable runtime configuration. Max 41.
+dl_child->body0 is our partition specific configuration. Max 12.
+dl->bodies shows our constant configuration and LUTs.
 
-Media device topology:
-# media-ctl -d /dev/media0 -p
-Media controller API version 4.13.0
+  These two are LUT/CLU:
+     * dl->bodies[x]->num_entries 256 / max 256
+     * dl->bodies[x]->num_entries 4914 / max 4914
 
-Media device information
-------------------------
-driver          imx-media
-model           imx-media
-serial          
-bus info        
-hw revision     0x0
-driver version  4.13.0
+Which shows that our 'constant' configuration cache is currently
+utilised to a maximum of 64 entries.
 
-Device topology
-- entity 1: adv7180 2-0020 (1 pad, 1 link)
-            type V4L2 subdev subtype Unknown flags 20004
-            device node name /dev/v4l-subdev0
-	pad0: Source
-		[fmt:UYVY8_2X8/720x480 field:interlaced colorspace:smpte170m]
-		-> "ipu2_csi1_mux":1 []
+trace-cmd report | \
+    grep max | sed 's/.*vsp1_dl_list_commit://g' | sort | uniq;
 
-- entity 3: tda19971 2-0048 (1 pad, 1 link)
-            type V4L2 subdev subtype Unknown flags 0
-            device node name /dev/v4l-subdev1
-	pad0: Source
-		[fmt:UYVY8_1X16/640x480 field:none colorspace:srgb]
-		[dv.caps:BT.656/1120 min:640x480@13000000 max:1920x1080@165000000 stds:CEA-861,DMT caps:progressive]
-		[dv.detect:BT.656/1120 640x480p59 (800x525) stds:CEA-861,DMT flags:has-cea861-vic]
-		[dv.current:BT.656/1120 1920x1080p60 (2200x1125) stds:CEA-861,DMT flags:can-reduce-fps,CE-video,has-cea861-vic]
-		-> "ipu1_csi0_mux":1 []
+  dl->body0->num_entries 13 / max 128
+  dl->body0->num_entries 14 / max 128
+  dl->body0->num_entries 16 / max 128
+  dl->body0->num_entries 20 / max 128
+  dl->body0->num_entries 27 / max 128
+  dl->body0->num_entries 34 / max 128
+  dl->body0->num_entries 41 / max 128
+  dl_child->body0->num_entries 10 / max 128
+  dl_child->body0->num_entries 12 / max 128
+  dl->bodies[x]->num_entries 15 / max 128
+  dl->bodies[x]->num_entries 16 / max 128
+  dl->bodies[x]->num_entries 17 / max 128
+  dl->bodies[x]->num_entries 18 / max 128
+  dl->bodies[x]->num_entries 20 / max 128
+  dl->bodies[x]->num_entries 21 / max 128
+  dl->bodies[x]->num_entries 256 / max 256
+  dl->bodies[x]->num_entries 31 / max 128
+  dl->bodies[x]->num_entries 32 / max 128
+  dl->bodies[x]->num_entries 39 / max 128
+  dl->bodies[x]->num_entries 40 / max 128
+  dl->bodies[x]->num_entries 47 / max 128
+  dl->bodies[x]->num_entries 48 / max 128
+  dl->bodies[x]->num_entries 4914 / max 4914
+  dl->bodies[x]->num_entries 55 / max 128
+  dl->bodies[x]->num_entries 56 / max 128
+  dl->bodies[x]->num_entries 63 / max 128
+  dl->bodies[x]->num_entries 64 / max 128
 
-- entity 5: ipu1_vdic (3 pads, 3 links)
-            type V4L2 subdev subtype Unknown flags 0
-            device node name /dev/v4l-subdev2
-	pad0: Sink
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		<- "ipu1_csi0":1 []
-		<- "ipu1_csi1":1 []
-	pad1: Sink
-		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-	pad2: Source
-		[fmt:AYUV8_1X32/640x480@1/60 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu1_ic_prp":0 []
+v4:
+ - Adjust pipe configured flag to be reset on resume rather than suspend
+ - rename dl_child, dl_next
+---
+ drivers/media/platform/vsp1/vsp1_pipe.c  |  7 +++-
+ drivers/media/platform/vsp1/vsp1_pipe.h  |  4 +-
+ drivers/media/platform/vsp1/vsp1_video.c | 67 ++++++++++++++++---------
+ drivers/media/platform/vsp1/vsp1_video.h |  2 +-
+ 4 files changed, 54 insertions(+), 26 deletions(-)
 
-- entity 9: ipu2_vdic (3 pads, 3 links)
-            type V4L2 subdev subtype Unknown flags 0
-            device node name /dev/v4l-subdev3
-	pad0: Sink
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		<- "ipu2_csi0":1 []
-		<- "ipu2_csi1":1 []
-	pad1: Sink
-		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-	pad2: Source
-		[fmt:AYUV8_1X32/640x480@1/60 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu2_ic_prp":0 []
-
-- entity 13: ipu1_ic_prp (3 pads, 5 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev4
-	pad0: Sink
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		<- "ipu1_vdic":2 []
-		<- "ipu1_csi0":1 []
-		<- "ipu1_csi1":1 []
-	pad1: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu1_ic_prpenc":0 []
-	pad2: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu1_ic_prpvf":0 []
-
-- entity 17: ipu1_ic_prpenc (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev5
-	pad0: Sink
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		<- "ipu1_ic_prp":1 []
-	pad1: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu1_ic_prpenc capture":0 []
-
-- entity 20: ipu1_ic_prpenc capture (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video0
-	pad0: Sink
-		<- "ipu1_ic_prpenc":1 []
-
-- entity 26: ipu1_ic_prpvf (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev6
-	pad0: Sink
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		<- "ipu1_ic_prp":2 []
-	pad1: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu1_ic_prpvf capture":0 []
-
-- entity 29: ipu1_ic_prpvf capture (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video1
-	pad0: Sink
-		<- "ipu1_ic_prpvf":1 []
-
-- entity 35: ipu2_ic_prp (3 pads, 5 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev7
-	pad0: Sink
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		<- "ipu2_vdic":2 []
-		<- "ipu2_csi0":1 []
-		<- "ipu2_csi1":1 []
-	pad1: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu2_ic_prpenc":0 []
-	pad2: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu2_ic_prpvf":0 []
-
-- entity 39: ipu2_ic_prpenc (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev8
-	pad0: Sink
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		<- "ipu2_ic_prp":1 []
-	pad1: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu2_ic_prpenc capture":0 []
-
-- entity 42: ipu2_ic_prpenc capture (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video2
-	pad0: Sink
-		<- "ipu2_ic_prpenc":1 []
-
-- entity 48: ipu2_ic_prpvf (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev9
-	pad0: Sink
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		<- "ipu2_ic_prp":2 []
-	pad1: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu2_ic_prpvf capture":0 []
-
-- entity 51: ipu2_ic_prpvf capture (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video3
-	pad0: Sink
-		<- "ipu2_ic_prpvf":1 []
-
-- entity 57: ipu1_csi0 (3 pads, 4 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev10
-	pad0: Sink
-		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range
-		 crop.bounds:(0,0)/640x480
-		 crop:(0,0)/640x480
-		 compose.bounds:(0,0)/640x480
-		 compose:(0,0)/640x480]
-		<- "ipu1_csi0_mux":2 []
-	pad1: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu1_ic_prp":0 []
-		-> "ipu1_vdic":0 []
-	pad2: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu1_csi0 capture":0 []
-
-- entity 61: ipu1_csi0 capture (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video4
-	pad0: Sink
-		<- "ipu1_csi0":2 []
-
-- entity 67: ipu1_csi1 (3 pads, 3 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev11
-	pad0: Sink
-		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range
-		 crop.bounds:(0,0)/640x480
-		 crop:(0,0)/640x480
-		 compose.bounds:(0,0)/640x480
-		 compose:(0,0)/640x480]
-	pad1: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu1_ic_prp":0 []
-		-> "ipu1_vdic":0 []
-	pad2: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu1_csi1 capture":0 []
-
-- entity 71: ipu1_csi1 capture (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video5
-	pad0: Sink
-		<- "ipu1_csi1":2 []
-
-- entity 77: ipu2_csi0 (3 pads, 3 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev12
-	pad0: Sink
-		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range
-		 crop.bounds:(0,0)/640x480
-		 crop:(0,0)/640x480
-		 compose.bounds:(0,0)/640x480
-		 compose:(0,0)/640x480]
-	pad1: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu2_ic_prp":0 []
-		-> "ipu2_vdic":0 []
-	pad2: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu2_csi0 capture":0 []
-
-- entity 81: ipu2_csi0 capture (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video6
-	pad0: Sink
-		<- "ipu2_csi0":2 []
-
-- entity 87: ipu2_csi1 (3 pads, 4 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev13
-	pad0: Sink
-		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range
-		 crop.bounds:(0,0)/640x480
-		 crop:(0,0)/640x480
-		 compose.bounds:(0,0)/640x480
-		 compose:(0,0)/640x480]
-		<- "ipu2_csi1_mux":2 []
-	pad1: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu2_ic_prp":0 []
-		-> "ipu2_vdic":0 []
-	pad2: Source
-		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
-		-> "ipu2_csi1 capture":0 []
-
-- entity 91: ipu2_csi1 capture (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video7
-	pad0: Sink
-		<- "ipu2_csi1":2 []
-
-- entity 97: ipu1_csi0_mux (3 pads, 2 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev14
-	pad0: Sink
-		[fmt:unknown/0x0]
-	pad1: Sink
-		[fmt:unknown/0x0]
-		<- "tda19971 2-0048":0 []
-	pad2: Source
-		[fmt:unknown/0x0]
-		-> "ipu1_csi0":0 []
-
-- entity 101: ipu2_csi1_mux (3 pads, 2 links)
-              type V4L2 subdev subtype Unknown flags 0
-              device node name /dev/v4l-subdev15
-	pad0: Sink
-		[fmt:unknown/0x0]
-	pad1: Sink
-		[fmt:unknown/0x0]
-		<- "adv7180 2-0020":0 []
-	pad2: Source
-		[fmt:unknown/0x0]
-		-> "ipu2_csi1":0 []
-
-
-v4l2-compliance test results:
-(on /dev/video6 as v4l2-compliance doesn't yet support subdevs)
-Driver Info:
-	Driver name   : imx-media-captu
-	Card type     : imx-media-capture
-	Bus info      : platform:ipu2_csi0
-	Driver version: 4.13.0
-	Capabilities  : 0x84200001
-		Video Capture
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04200001
-		Video Capture
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/video6 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-		fail: v4l2-test-input-output.cpp(418): G_INPUT not supported for a capture device
-	test VIDIOC_G/S/ENUMINPUT: FAIL
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-		test VIDIOC_QUERYCTRL: OK
-		test VIDIOC_G/S_CTRL: OK
-		fail: v4l2-test-controls.cpp(574): g_ext_ctrls does not support count == 0
-		test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 0 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		test VIDIOC_TRY_FMT: OK
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		test Composing: OK (Not Supported)
-		test Scaling: OK (Not Supported)
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-
-Total: 42, Succeeded: 40, Failed: 2, Warnings: 0
-
-
-Tim Harvey (5):
-  MAINTAINERS: add entry for NXP TDA1997x driver
-  media: dt-bindings: Add bindings for TDA1997X
-  media: i2c: Add TDA1997x HDMI receiver driver
-  ARM: dts: imx: Add TDA19971 HDMI Receiver to GW54xx
-  ARM: dts: imx: Add TDA19971 HDMI Receiver to GW551x
-
- .../devicetree/bindings/media/i2c/tda1997x.txt     |  179 +
- MAINTAINERS                                        |    8 +
- arch/arm/boot/dts/imx6q-gw54xx.dts                 |  102 +
- arch/arm/boot/dts/imx6qdl-gw54xx.dtsi              |   29 +-
- arch/arm/boot/dts/imx6qdl-gw551x.dtsi              |   85 +
- drivers/media/i2c/Kconfig                          |    9 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/tda1997x.c                       | 3485 ++++++++++++++++++++
- include/dt-bindings/media/tda1997x.h               |   78 +
- include/media/i2c/tda1997x.h                       |   53 +
- 10 files changed, 4026 insertions(+), 3 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
- create mode 100644 drivers/media/i2c/tda1997x.c
- create mode 100644 include/dt-bindings/media/tda1997x.h
- create mode 100644 include/media/i2c/tda1997x.h
-
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index 5012643583b6..fa445b1a2e38 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -249,6 +249,7 @@ void vsp1_pipeline_run(struct vsp1_pipeline *pipe)
+ 		vsp1_write(vsp1, VI6_CMD(pipe->output->entity.index),
+ 			   VI6_CMD_STRCMD);
+ 		pipe->state = VSP1_PIPELINE_RUNNING;
++		pipe->configured = true;
+ 	}
+ 
+ 	pipe->buffers_ready = 0;
+@@ -470,6 +471,12 @@ void vsp1_pipelines_resume(struct vsp1_device *vsp1)
+ 			continue;
+ 
+ 		spin_lock_irqsave(&pipe->irqlock, flags);
++		/*
++		 * The hardware may have been reset during a suspend and will
++		 * need a full reconfiguration
++		 */
++		pipe->configured = false;
++
+ 		if (vsp1_pipeline_ready(pipe))
+ 			vsp1_pipeline_run(pipe);
+ 		spin_unlock_irqrestore(&pipe->irqlock, flags);
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+index 90d29492b9b9..e7ad6211b4d0 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.h
++++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+@@ -90,6 +90,7 @@ struct vsp1_partition {
+  * @irqlock: protects the pipeline state
+  * @state: current state
+  * @wq: wait queue to wait for state change completion
++ * @configured: flag determining if the hardware has run since reset
+  * @frame_end: frame end interrupt handler
+  * @lock: protects the pipeline use count and stream count
+  * @kref: pipeline reference count
+@@ -117,6 +118,7 @@ struct vsp1_pipeline {
+ 	spinlock_t irqlock;
+ 	enum vsp1_pipeline_state state;
+ 	wait_queue_head_t wq;
++	bool configured;
+ 
+ 	void (*frame_end)(struct vsp1_pipeline *pipe, bool completed);
+ 
+@@ -143,8 +145,6 @@ struct vsp1_pipeline {
+ 	 */
+ 	struct list_head entities;
+ 
+-	struct vsp1_dl_list *dl;
+-
+ 	unsigned int partitions;
+ 	struct vsp1_partition *partition;
+ 	struct vsp1_partition *part_table;
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 9c9dcb7daecf..ed2618c94498 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -394,37 +394,43 @@ static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
+ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+ {
+ 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
++	struct vsp1_video *video = pipe->output->video;
+ 	unsigned int partition;
++	struct vsp1_dl_list *dl;
++
++	dl = vsp1_dl_list_get(pipe->output->dlm);
+ 
+-	if (!pipe->dl)
+-		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
++	/* Attach our pipe configuration to fully initialise the hardware */
++	if (!pipe->configured) {
++		vsp1_dl_list_add_body(dl, video->pipe_config);
++		pipe->configured = true;
++	}
+ 
+ 	/* Run the first partition */
+-	vsp1_video_pipeline_run_partition(pipe, pipe->dl, 0);
++	vsp1_video_pipeline_run_partition(pipe, dl, 0);
+ 
+ 	/* Process consecutive partitions as necessary */
+ 	for (partition = 1; partition < pipe->partitions; ++partition) {
+-		struct vsp1_dl_list *dl;
++		struct vsp1_dl_list *dl_next;
+ 
+-		dl = vsp1_dl_list_get(pipe->output->dlm);
++		dl_next = vsp1_dl_list_get(pipe->output->dlm);
+ 
+ 		/*
+ 		 * An incomplete chain will still function, but output only
+ 		 * the partitions that had a dl available. The frame end
+ 		 * interrupt will be marked on the last dl in the chain.
+ 		 */
+-		if (!dl) {
++		if (!dl_next) {
+ 			dev_err(vsp1->dev, "Failed to obtain a dl list. Frame will be incomplete\n");
+ 			break;
+ 		}
+ 
+-		vsp1_video_pipeline_run_partition(pipe, dl, partition);
+-		vsp1_dl_list_add_chain(pipe->dl, dl);
++		vsp1_video_pipeline_run_partition(pipe, dl_next, partition);
++		vsp1_dl_list_add_chain(dl, dl_next);
+ 	}
+ 
+ 	/* Complete, and commit the head display list. */
+-	vsp1_dl_list_commit(pipe->dl);
+-	pipe->dl = NULL;
++	vsp1_dl_list_commit(dl);
+ 
+ 	vsp1_pipeline_run(pipe);
+ }
+@@ -790,8 +796,8 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
+ 
+ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+ {
++	struct vsp1_video *video = pipe->output->video;
+ 	struct vsp1_entity *entity;
+-	struct vsp1_dl_body *dlb;
+ 	int ret;
+ 
+ 	/* Determine this pipelines sizes for image partitioning support. */
+@@ -799,14 +805,6 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	/* Prepare the display list. */
+-	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+-	if (!pipe->dl)
+-		return -ENOMEM;
+-
+-	/* Retrieve the default DLB from the list */
+-	dlb = vsp1_dl_list_get_body0(pipe->dl);
+-
+ 	if (pipe->uds) {
+ 		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
+ 
+@@ -828,11 +826,20 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+ 		}
+ 	}
+ 
++	/* Obtain a clean body from our pool */
++	video->pipe_config = vsp1_dl_body_get(video->dlbs);
++	if (!video->pipe_config)
++		return -ENOMEM;
++
++	/* Configure the entities into our cached pipe configuration */
+ 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+-		vsp1_entity_route_setup(entity, pipe, dlb);
+-		vsp1_entity_prepare(entity, pipe, dlb);
++		vsp1_entity_route_setup(entity, pipe, video->pipe_config);
++		vsp1_entity_prepare(entity, pipe, video->pipe_config);
+ 	}
+ 
++	/* Ensure that our cached configuration is updated in the next DL */
++	pipe->configured = false;
++
+ 	return 0;
+ }
+ 
+@@ -842,6 +849,9 @@ static void vsp1_video_cleanup_pipeline(struct vsp1_pipeline *pipe)
+ 	struct vsp1_vb2_buffer *buffer;
+ 	unsigned long flags;
+ 
++	/* Release any cached configuration */
++	vsp1_dl_body_put(video->pipe_config);
++
+ 	/* Remove all buffers from the IRQ queue. */
+ 	spin_lock_irqsave(&video->irqlock, flags);
+ 	list_for_each_entry(buffer, &video->irqqueue, queue)
+@@ -918,9 +928,6 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
+ 		ret = vsp1_pipeline_stop(pipe);
+ 		if (ret == -ETIMEDOUT)
+ 			dev_err(video->vsp1->dev, "pipeline stop timeout\n");
+-
+-		vsp1_dl_list_put(pipe->dl);
+-		pipe->dl = NULL;
+ 	}
+ 	mutex_unlock(&pipe->lock);
+ 
+@@ -1240,6 +1247,16 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
+ 		goto error;
+ 	}
+ 
++	/*
++	 * Utilise a body pool to cache the constant configuration of the
++	 * pipeline object.
++	 */
++	video->dlbs = vsp1_dl_body_pool_create(vsp1, 3, 128, 0);
++	if (!video->dlbs) {
++		ret = -ENOMEM;
++		goto error;
++	}
++
+ 	return video;
+ 
+ error:
+@@ -1249,6 +1266,8 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
+ 
+ void vsp1_video_cleanup(struct vsp1_video *video)
+ {
++	vsp1_dl_body_pool_destroy(video->dlbs);
++
+ 	if (video_is_registered(&video->video))
+ 		video_unregister_device(&video->video);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
+index 50ea7f02205f..e84f8ee902c1 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.h
++++ b/drivers/media/platform/vsp1/vsp1_video.h
+@@ -43,6 +43,8 @@ struct vsp1_video {
+ 
+ 	struct mutex lock;
+ 
++	struct vsp1_dl_body_pool *dlbs;
++	struct vsp1_dl_body *pipe_config;
+ 	unsigned int pipe_index;
+ 
+ 	struct vb2_queue queue;
 -- 
-2.7.4
+git-series 0.9.1
