@@ -1,84 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:54540 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752631AbdK2ToI (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57045 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933397AbdKQNka (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 14:44:08 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v8 10/28] rcar-vin: do not reset crop and compose when setting format
-Date: Wed, 29 Nov 2017 20:43:24 +0100
-Message-Id: <20171129194342.26239-11-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 17 Nov 2017 08:40:30 -0500
+Subject: Re: [PATCH v2 6/8] v4l: vsp1: Adapt entities to configure into a body
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <1807083.ZJnR2iqIOD@avalon>
+ <112c0f66-4918-40d0-d2dd-17f9bbd03f12@ideasonboard.com>
+ <4353515.cR2bnzc1Fq@avalon>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <6dffaedc-75b4-f817-d91c-304f7cd54f1f@ideasonboard.com>
+Date: Fri, 17 Nov 2017 13:40:26 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <4353515.cR2bnzc1Fq@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It was a bad idea to reset the crop and compose settings when a new
-format is set. This would overwrite any crop/compose set by s_select and
-cause unexpected behaviors, remove it. Also fold the reset helper in to
-the only remaining caller.
+Hi Laurent,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+On 12/09/17 20:18, Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> On Tuesday, 12 September 2017 00:42:09 EEST Kieran Bingham wrote:
+>> On 17/08/17 18:58, Laurent Pinchart wrote:
+>>> On Monday 14 Aug 2017 16:13:29 Kieran Bingham wrote:
+>>>> Currently the entities store their configurations into a display list.
+>>>> Adapt this such that the code can be configured into a body fragment
+>>>> directly, allowing greater flexibility and control of the content.
+>>>>
+>>>> All users of vsp1_dl_list_write() are removed in this process, thus it
+>>>> too is removed.
+>>>>
+>>>> A helper, vsp1_dl_list_body() is provided to access the internal body0
+>>>> from the display list.
+>>>>
+>>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>>> ---
+>>>>
+>>>>  drivers/media/platform/vsp1/vsp1_bru.c    | 22 ++++++------
+>>>>  drivers/media/platform/vsp1/vsp1_clu.c    | 22 ++++++------
+>>>>  drivers/media/platform/vsp1/vsp1_dl.c     | 12 ++-----
+>>>>  drivers/media/platform/vsp1/vsp1_dl.h     |  2 +-
+>>>>  drivers/media/platform/vsp1/vsp1_drm.c    | 14 +++++---
+>>>>  drivers/media/platform/vsp1/vsp1_entity.c | 16 ++++-----
+>>>>  drivers/media/platform/vsp1/vsp1_entity.h | 12 ++++---
+>>>>  drivers/media/platform/vsp1/vsp1_hgo.c    | 16 ++++-----
+>>>>  drivers/media/platform/vsp1/vsp1_hgt.c    | 18 +++++-----
+>>>>  drivers/media/platform/vsp1/vsp1_hsit.c   | 10 +++---
+>>>>  drivers/media/platform/vsp1/vsp1_lif.c    | 13 +++----
+>>>>  drivers/media/platform/vsp1/vsp1_lut.c    | 21 ++++++------
+>>>>  drivers/media/platform/vsp1/vsp1_pipe.c   |  4 +-
+>>>>  drivers/media/platform/vsp1/vsp1_pipe.h   |  3 +-
+>>>>  drivers/media/platform/vsp1/vsp1_rpf.c    | 43 +++++++++++-------------
+>>>>  drivers/media/platform/vsp1/vsp1_sru.c    | 14 ++++----
+>>>>  drivers/media/platform/vsp1/vsp1_uds.c    | 24 +++++++------
+>>>>  drivers/media/platform/vsp1/vsp1_uds.h    |  2 +-
+>>>>  drivers/media/platform/vsp1/vsp1_video.c  | 11 ++++--
+>>>>  drivers/media/platform/vsp1/vsp1_wpf.c    | 42 ++++++++++++-----------
+>>>>  20 files changed, 168 insertions(+), 153 deletions(-)
+>>>
+>>> This is quite intrusive, and it bothers me slightly that we need to pass
+>>> both the DL and the DLB to the configure function in order to add
+>>> fragments to the DL in the CLU and LUT modules. Wouldn't it be simpler to
+>>> add a pointer to the current body in the DL structure, and modify
+>>> vsp1_dl_list_write() to write to the current fragment ?
+>>
+>> No doubt about it, 168+, 153- is certainly intrusive.
+>>
+>> Yes, now I'm looking back at this, I think this does look like this part is
+>> not quite the right approach.
+>>
+>> Which otherwise stalls the series until I have time to reconsider. I will
+>> likely repost the work I have done on the earlier patches, including the
+>> 's/fragment/body/g' changes and ready myself for a v4 which will contain the
+>> heavier reworks.
+> 
+> Fine with me. Could you make sure to mention the open issues in the cover 
+> letter ? I want to avoid commenting on them if you know already that you will 
+> rework them later.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 1c5e7f6d5b963740..254fa1c8770275a5 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -90,17 +90,6 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
-  * V4L2
-  */
- 
--static void rvin_reset_crop_compose(struct rvin_dev *vin)
--{
--	vin->crop.top = vin->crop.left = 0;
--	vin->crop.width = vin->source.width;
--	vin->crop.height = vin->source.height;
--
--	vin->compose.top = vin->compose.left = 0;
--	vin->compose.width = vin->format.width;
--	vin->compose.height = vin->format.height;
--}
--
- static int rvin_reset_format(struct rvin_dev *vin)
- {
- 	struct v4l2_subdev_format fmt = {
-@@ -147,7 +136,13 @@ static int rvin_reset_format(struct rvin_dev *vin)
- 		break;
- 	}
- 
--	rvin_reset_crop_compose(vin);
-+	vin->crop.top = vin->crop.left = 0;
-+	vin->crop.width = mf->width;
-+	vin->crop.height = mf->height;
-+
-+	vin->compose.top = vin->compose.left = 0;
-+	vin->compose.width = mf->width;
-+	vin->compose.height = mf->height;
- 
- 	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
- 	vin->format.sizeimage = rvin_format_sizeimage(&vin->format);
-@@ -317,8 +312,6 @@ static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
- 
- 	vin->format = f->fmt.pix;
- 
--	rvin_reset_crop_compose(vin);
--
- 	return 0;
- }
- 
--- 
-2.15.0
+I've been trying to tackle this today, but I think I've come up a bit stuck on a
+key part.
+
+The reason for this patch, is to allow the functions to configure directly into
+a display list body, even when that body *is not part* of a display list.
+
+So - converting vsp1_dl_list_write() to configure into the 'current' body (was
+fragment) of a display list would not work for writing to the cached objects -
+which do not have a display list. They are simply body objects.
+
+It seems a bit extraneous to create holding display lists to contain a single
+body, when the display list itself will never be used, but I can't think of an
+alternative.
+
+Would you prefer this 'container display list' approach? or do you have another
+idea?
+
+--
+Regards
+
+Kieran
