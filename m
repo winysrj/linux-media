@@ -1,152 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57602 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753014AbdK1PUI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 10:20:08 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-Subject: Re: [PATCH 1/3 v7] V4L: Add a UVC Metadata format
-Date: Tue, 28 Nov 2017 17:20:13 +0200
-Message-ID: <6959169.cj8yPDWWnC@avalon>
-In-Reply-To: <1510156814-28645-2-git-send-email-g.liakhovetski@gmx.de>
-References: <1510156814-28645-1-git-send-email-g.liakhovetski@gmx.de> <1510156814-28645-2-git-send-email-g.liakhovetski@gmx.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kernel.org ([198.145.29.99]:58538 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965332AbdKQPrk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Nov 2017 10:47:40 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v4 2/9] v4l: vsp1: Protect bodies against overflow
+Date: Fri, 17 Nov 2017 15:47:25 +0000
+Message-Id: <a1a8c17836b5f6b07f2d5bbc983bfb188e424127.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+The body write function relies on the code never asking it to write more
+than the entries available in the list.
 
-Thank you for the patch.
+Currently with each list body containing 256 entries, this is fine, but
+we can reduce this number greatly saving memory. In preparation of this
+add a level of protection to catch any buffer overflows.
 
-Overall this looks good to me. Please see below for one small comment.
-
-On Wednesday, 8 November 2017 18:00:12 EET Guennadi Liakhovetski wrote:
-> From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> 
-> Add a pixel format, used by the UVC driver to stream metadata.
-> 
-> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> ---
-> 
-> v7: alphabetic order, update documentation.
-> 
->  Documentation/media/uapi/v4l/meta-formats.rst    |  1 +
->  Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst | 50 +++++++++++++++++++++
->  include/uapi/linux/videodev2.h                   |  1 +
->  3 files changed, 52 insertions(+)
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
-> 
-> diff --git a/Documentation/media/uapi/v4l/meta-formats.rst
-> b/Documentation/media/uapi/v4l/meta-formats.rst index 01e24e3..0c4e1ec
-> 100644
-> --- a/Documentation/media/uapi/v4l/meta-formats.rst
-> +++ b/Documentation/media/uapi/v4l/meta-formats.rst
-> @@ -12,5 +12,6 @@ These formats are used for the :ref:`metadata` interface
-> only.
->  .. toctree::
->      :maxdepth: 1
-> 
-> +    pixfmt-meta-uvc
->      pixfmt-meta-vsp1-hgo
->      pixfmt-meta-vsp1-hgt
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
-> b/Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst new file mode 100644
-> index 0000000..06f603c
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
-> @@ -0,0 +1,50 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _v4l2-meta-fmt-uvc:
-> +
-> +*******************************
-> +V4L2_META_FMT_UVC ('UVCH')
-> +*******************************
-> +
-> +UVC Payload Header Data
-> +
-> +
-> +Description
-> +===========
-> +
-> +This format describes standard UVC metadata, extracted from UVC packet
-> headers +and provided by the UVC driver through metadata video nodes. That
-> data includes +exact copies of the standard part of UVC Payload Header
-> contents and auxiliary +timing information, required for precise
-> interpretation of timestamps, contained +in those headers. See section
-> "2.4.3.3 Video and Still Image Payload Headers" of +the "UVC 1.5 Class
-> specification" for details.
-> +
-> +Each UVC payload header can be between 2 and 12 bytes large. Buffers can
-> contain +multiple headers, if multiple such headers have been transmitted
-> by the camera +for the respective frame. However, headers, containing no
-> useful information, +e.g. those without the SCR field or with that field
-> identical to the previous +header, will be dropped by the driver.
-
-If the driver receives too many headers with different SCR (more than the 
-buffer can hold for instance) it will have to drop some of them. The simplest 
-implementation would be to start dropping them when the buffer is full, but 
-I'd like to leave room for the driver to be a bit more clever and drop headers 
-that have a SCR too close to the previous one for instance. I propose wording 
-the above paragraph as follows.
-
-"Each UVC payload header can be between 2 and 12 bytes large. Buffers can
-contain multiple headers, if multiple such headers have been transmitted
-by the camera for the respective frame. However, the driver may drop headers 
-when the buffer is full, when they contain no useful information (e.g. those 
-without the SCR field or with that field identical to the previous header), or 
-generally to perform rate limiting when the device sends a large number of 
-headers".
-
-If you're fine with this there's no need to resent, I can update the 
-documentation when applying, and
-
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> +Each individual block contains the following fields:
-> +
-> +.. flat-table:: UVC Metadata Block
-> +    :widths: 1 4
-> +    :header-rows:  1
-> +    :stub-columns: 0
-> +
-> +    * - Field
-> +      - Description
-> +    * - __u64 ts;
-> +      - system timestamp in host byte order, measured by the driver upon
-> +        reception of the payload
-> +    * - __u16 sof;
-> +      - USB Frame Number in host byte order, also obtained by the driver as
-> +        close as possible to the above timestamp to enable correlation
-> between +        them
-> +    * - :cspan:`1` *The rest is an exact copy of the UVC payload header:*
-> +    * - __u8 length;
-> +      - length of the rest of the block, including this field
-> +    * - __u8 flags;
-> +      - Flags, indicating presence of other standard UVC fields
-> +    * - __u8 buf[];
-> +      - The rest of the header, possibly including UVC PTS and SCR fields
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 185d6a0..0d07b2d 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -687,6 +687,7 @@ struct v4l2_pix_format {
->  /* Meta-data formats */
->  #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car
-> VSP1 1-D Histogram */ #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V',
-> 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */ +#define V4L2_META_FMT_UVC   
->      v4l2_fourcc('U', 'V', 'C', 'H') /* UVC Payload Header metadata */
-> 
->  /* priv field value to indicates that subsequent fields are valid. */
->  #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
+---
 
+v3:
+ - adapt for new 'body' terminology
+ - simplify WARN_ON macro usage
+---
+ drivers/media/platform/vsp1/vsp1_dl.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 643f7ea3af24..a45d35aa676e 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -50,6 +50,7 @@ struct vsp1_dl_entry {
+  * @dma: DMA address of the entries
+  * @size: size of the DMA memory in bytes
+  * @num_entries: number of stored entries
++ * @max_entries: number of entries available
+  */
+ struct vsp1_dl_body {
+ 	struct list_head list;
+@@ -60,6 +61,7 @@ struct vsp1_dl_body {
+ 	size_t size;
+ 
+ 	unsigned int num_entries;
++	unsigned int max_entries;
+ };
+ 
+ /**
+@@ -138,6 +140,7 @@ static int vsp1_dl_body_init(struct vsp1_device *vsp1,
+ 
+ 	dlb->vsp1 = vsp1;
+ 	dlb->size = size;
++	dlb->max_entries = num_entries;
+ 
+ 	dlb->entries = dma_alloc_wc(vsp1->bus_master, dlb->size, &dlb->dma,
+ 				    GFP_KERNEL);
+@@ -219,6 +222,10 @@ void vsp1_dl_body_free(struct vsp1_dl_body *dlb)
+  */
+ void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ {
++	if (WARN_ONCE(dlb->num_entries >= dlb->max_entries,
++		      "DLB size exceeded (max %u)", dlb->max_entries))
++		return;
++
+ 	dlb->entries[dlb->num_entries].addr = reg;
+ 	dlb->entries[dlb->num_entries].data = data;
+ 	dlb->num_entries++;
 -- 
-Regards,
-
-Laurent Pinchart
+git-series 0.9.1
