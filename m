@@ -1,117 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:45549 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751577AbdKLQTT (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:43250 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965045AbdKQPi6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Nov 2017 11:19:19 -0500
-Subject: Re: [PATCH v4 2/5] media: dt: bindings: Add binding for NVIDIA Tegra
- Video Decoder Engine
-To: Vladimir Zapolskiy <vz@mleia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Warren <swarren@wwwdotorg.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <cover.1508448293.git.digetx@gmail.com>
- <bf5b91666229f9e46ed8c73d6ca2e4b65f86b5ab.1508448293.git.digetx@gmail.com>
- <6492d1af-19fa-253f-2b75-2c37ccd44cbe@mleia.com>
-From: Dmitry Osipenko <digetx@gmail.com>
-Message-ID: <619c789c-decc-ae80-aed6-c93c594847a3@gmail.com>
-Date: Sun, 12 Nov 2017 19:19:15 +0300
+        Fri, 17 Nov 2017 10:38:58 -0500
+Received: by mail-wm0-f66.google.com with SMTP id x63so7265593wmf.2
+        for <linux-media@vger.kernel.org>; Fri, 17 Nov 2017 07:38:57 -0800 (PST)
+From: Romain Reignier <r.reignier@robopec.com>
+To: linux-media@vger.kernel.org
+Cc: r.reignier@robopec.com
+Subject: [PATCH] media: cx231xx: add support for TheImagingSource DFG/USB2pro
+Date: Fri, 17 Nov 2017 16:38:55 +0100
+Message-ID: <1674718.MAKsif4q92@xps-rre>
 MIME-Version: 1.0
-In-Reply-To: <6492d1af-19fa-253f-2b75-2c37ccd44cbe@mleia.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11.11.2017 17:21, Vladimir Zapolskiy wrote:
-> Hi Dmitry,
-> 
-> On 10/20/2017 12:34 AM, Dmitry Osipenko wrote:
->> Add binding documentation for the Video Decoder Engine which is found
->> on NVIDIA Tegra20/30/114/124/132 SoC's.
->>
->> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
->> ---
->>  .../devicetree/bindings/media/nvidia,tegra-vde.txt | 55 ++++++++++++++++++++++
->>  1 file changed, 55 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt b/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
->> new file mode 100644
->> index 000000000000..470237ed6fe5
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
->> @@ -0,0 +1,55 @@
->> +NVIDIA Tegra Video Decoder Engine
->> +
->> +Required properties:
->> +- compatible : Must contain one of the following values:
->> +   - "nvidia,tegra20-vde"
->> +   - "nvidia,tegra30-vde"
->> +   - "nvidia,tegra114-vde"
->> +   - "nvidia,tegra124-vde"
->> +   - "nvidia,tegra132-vde"
->> +- reg : Must contain an entry for each entry in reg-names.
->> +- reg-names : Must include the following entries:
->> +  - sxe
->> +  - bsev
->> +  - mbe
->> +  - ppe
->> +  - mce
->> +  - tfe
->> +  - ppb
->> +  - vdma
->> +  - frameid
-> 
-> I've already mentioned it in my review of the driver code, but the
-> version from v3 with a single region is more preferable.
-> 
-> Also it implies that "reg-names" property will be removed.
-> 
+Hello,
 
-Please see my reply to the drivers code review.
+This is my first patch to the kernel so please be indulgent if I have done 
+anything wrong and help me produce a better submission.
 
->> +- iram : Must contain phandle to the mmio-sram device node that represents
->> +         IRAM region used by VDE.
->> +- interrupts : Must contain an entry for each entry in interrupt-names.
->> +- interrupt-names : Must include the following entries:
->> +  - sync-token
->> +  - bsev
->> +  - sxe
->> +- clocks : Must include the following entries:
->> +  - vde
->> +- resets : Must include the following entries:
->> +  - vde
->> +
->> +Example:
->> +
->> +video-codec@6001a000 {
->> +	compatible = "nvidia,tegra20-vde";
->> +	reg = <0x6001a000 0x1000 /* Syntax Engine */
->> +	       0x6001b000 0x1000 /* Video Bitstream Engine */
->> +	       0x6001c000  0x100 /* Macroblock Engine */
->> +	       0x6001c200  0x100 /* Post-processing Engine */
->> +	       0x6001c400  0x100 /* Motion Compensation Engine */
->> +	       0x6001c600  0x100 /* Transform Engine */
->> +	       0x6001c800  0x100 /* Pixel prediction block */
->> +	       0x6001ca00  0x100 /* Video DMA */
->> +	       0x6001d800  0x300 /* Video frame controls */>;
->> +	reg-names = "sxe", "bsev", "mbe", "ppe", "mce",
->> +		    "tfe", "ppb", "vdma", "frameid";
->> +	iram = <&vde_pool>; /* IRAM region */
->> +	interrupts = <GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
->> +		     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
->> +		     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
->> +	interrupt-names = "sync-token", "bsev", "sxe";
->> +	clocks = <&tegra_car TEGRA20_CLK_VDE>;
->> +	resets = <&tegra_car 61>;
->> +};
->>
+This is a patch to add the support for The Imaging Source DFG/USB2pro USB 
+capture device. It is based on the Conexant CX23102 chip do the patch only 
+consists in adding one entry in the devices list.
+
+Note that the inputs for the Composite and S-Video are inverted in regard to 
+most of the other boards.
+
+I could test the Composite input that is working for several months in some of 
+our products. But did not have the chance to try the S-Video input because I 
+do not own any device with that standard (I have tried a simple Composite to 
+S-Video cable but it does not work, even on Windows). So I have applied the 
+same settings as the Windows driver.
+
+I have created a page on the Wiki to describe the board:
+https://www.linuxtv.org/wiki/index.php/The_Imaging_Source_DFG-USB2pro
+
+Sincerely,
+
+Romain Reignier
+
+---
+
+>From 13d83af3e6e5c01b43875d67cdcc3312ebbc6c7a Mon Sep 17 00:00:00 2001
+From: Romain Reignier <r.reignier@robopec.com>
+Date: Fri, 17 Nov 2017 15:52:40 +0100
+Subject: [PATCH] media: cx231xx: add support for TheImagingSource DFG/USB2pro
+
+Signed-off-by: Romain Reignier <r.reignier@robopec.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 28 ++++++++++++++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx.h       |  1 +
+ 2 files changed, 29 insertions(+)
+
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 54d9d0c..99c8b1a 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -896,6 +896,32 @@ struct cx231xx_board cx231xx_boards[] = {
+ 			},
+ 		},
+ 	},
++	[CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO] = {
++		.name = "The Imaging Source DFG/USB2pro",
++		.tuner_type = TUNER_ABSENT,
++		.decoder = CX231XX_AVDECODER,
++		.output_mode = OUT_MODE_VIP11,
++		.demod_xfer_mode = 0,
++		.ctl_pin_status_mask = 0xFFFFFFC4,
++		.agc_analog_digital_select_gpio = 0x0c,
++		.gpio_pin_status_mask = 0x4001000,
++		.norm = V4L2_STD_PAL,
++		.no_alt_vanc = 1,
++		.external_av = 1,
++		.input = {{
++			.type = CX231XX_VMUX_COMPOSITE1,
++			.vmux = CX231XX_VIN_1_1,
++			.amux = CX231XX_AMUX_LINE_IN,
++			.gpio = NULL,
++		}, {
++			.type = CX231XX_VMUX_SVIDEO,
++			.vmux = CX231XX_VIN_2_1 |
++				(CX231XX_VIN_2_2 << 8) |
++				CX25840_SVIDEO_ON,
++			.amux = CX231XX_AMUX_LINE_IN,
++			.gpio = NULL,
++		} },
++	},
+ };
+ const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+ 
+@@ -967,6 +993,8 @@ struct usb_device_id cx231xx_id_table[] = {
+ 	.driver_info = CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD},
+ 	{USB_DEVICE(0x15f4, 0x0135),
+ 	.driver_info = CX231XX_BOARD_ASTROMETA_T2HYBRID},
++	{USB_DEVICE(0x199e, 0x8002),
++	 .driver_info = CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO},
+ 	{},
+ };
+ 
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 72d5937..65b039c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -80,6 +80,7 @@
+ #define CX231XX_BOARD_TERRATEC_GRABBY 22
+ #define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
+ #define CX231XX_BOARD_ASTROMETA_T2HYBRID 24
++#define CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO 25
+ 
+ /* Limits minimum and default number of buffers */
+ #define CX231XX_MIN_BUF                 4
+-- 
+2.7.4
