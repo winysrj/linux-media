@@ -1,87 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:58051 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753386AbdK2L57 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 06:57:59 -0500
-Date: Wed, 29 Nov 2017 11:57:57 +0000
-From: Sean Young <sean@mess.org>
-To: Martin Homuth <martin@martinhomuth.de>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH Resend] staging: media: lirc: style fix - replace
- hard-coded function names
-Message-ID: <20171129115757.kbijvbp7xxiiyty7@gofer.mess.org>
-References: <8bfec3aa-8f12-365c-9cf2-10d97f54adec@martinhomuth.de>
- <671e53b1-5cfd-ee34-1680-e7c5f1722137@martinhomuth.de>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47356 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751344AbdKQRP1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Nov 2017 12:15:27 -0500
+Date: Fri, 17 Nov 2017 18:15:32 +0100
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Philippe Ombredanne <pombredanne@nexb.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Johan Hovold <johan@kernel.org>,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] media: usbvision: remove unneeded DRIVER_LICENSE #define
+Message-ID: <20171117171532.GB17018@kroah.com>
+References: <20171117141826.GC17880@kroah.com>
+ <20171117125847.28004106@vento.lan>
+ <CAOFm3uE9NmPV6diYcTodBKRr0CXFYs7uvVPrLTyLaa_3VKV7rA@mail.gmail.com>
+ <20171117150102.1f5faeda@vento.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <671e53b1-5cfd-ee34-1680-e7c5f1722137@martinhomuth.de>
+In-Reply-To: <20171117150102.1f5faeda@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 28, 2017 at 06:47:08PM +0100, Martin Homuth wrote:
-> This patch fixes the remaining coding style warnings in the lirc module.
-> Instead of hard coding the function name the __func__ variable
-> should be used.
+On Fri, Nov 17, 2017 at 03:01:02PM -0200, Mauro Carvalho Chehab wrote:
+> Em Fri, 17 Nov 2017 16:01:41 +0100
+> Philippe Ombredanne <pombredanne@nexb.com> escreveu:
 > 
-> It fixes the following checkpatch.pl warning:
+> > On Fri, Nov 17, 2017 at 3:58 PM, Mauro Carvalho Chehab
+> > <mchehab@s-opensource.com> wrote:
+> > > Em Fri, 17 Nov 2017 15:18:26 +0100
+> > > Greg Kroah-Hartman <gregkh@linuxfoundation.org> escreveu:
+> > >  
+> > >> There is no need to #define the license of the driver, just put it in
+> > >> the MODULE_LICENSE() line directly as a text string.
+> > >>
+> > >> This allows tools that check that the module license matches the source
+> > >> code license to work properly, as there is no need to unwind the
+> > >> unneeded dereference.
+> > >>
+> > >> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> > >> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> > >> Cc: Johan Hovold <johan@kernel.org>
+> > >> Cc: Davidlohr Bueso <dave@stgolabs.net>
+> > >> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > >> Reported-by: Philippe Ombredanne <pombredanne@nexb.com>
+> > >> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 > 
-> WARNING: Prefer using '"%s...", __func__' to using 'read', this
-> function's name, in a string
+> Acked-by: Mauro Carvalho Chehab <mchehab@kernel.org>
 > 
-> Signed-off-by: Martin Homuth <martin@martinhomuth.de>
-> ---
->  drivers/staging/media/lirc/lirc_zilog.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
+> > >> ---
+> > >>  drivers/media/usb/usbvision/usbvision-video.c | 3 +--
+> > >>  1 file changed, 1 insertion(+), 2 deletions(-)
+> > >>
+> > >> diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
+> > >> index 960272d3c924..0f5954a1fea2 100644
+> > >> --- a/drivers/media/usb/usbvision/usbvision-video.c
+> > >> +++ b/drivers/media/usb/usbvision/usbvision-video.c
+> > >> @@ -72,7 +72,6 @@
+> > >>  #define DRIVER_NAME "usbvision"
+> > >>  #define DRIVER_ALIAS "USBVision"
+> > >>  #define DRIVER_DESC "USBVision USB Video Device Driver for Linux"
+> > >> -#define DRIVER_LICENSE "GPL"
+> > >>  #define USBVISION_VERSION_STRING "0.9.11"
+> > >>
+> > >>  #define      ENABLE_HEXDUMP  0       /* Enable if you need it */
+> > >> @@ -141,7 +140,7 @@ MODULE_PARM_DESC(radio_nr, "Set radio device number (/dev/radioX).  Default: -1
+> > >>  /* Misc stuff */
+> > >>  MODULE_AUTHOR(DRIVER_AUTHOR);
+> > >>  MODULE_DESCRIPTION(DRIVER_DESC);
+> > >> -MODULE_LICENSE(DRIVER_LICENSE);
+> > >> +MODULE_LICENSE("GPL");  
+> > >
+> > > Makes sense to me, but, if we look at the header of this file:
+> > >
+> > >  * This program is free software; you can redistribute it and/or modify
+> > >  * it under the terms of the GNU General Public License as published by
+> > >  * the Free Software Foundation; either version 2 of the License, or
+> > >  * (at your option) any later version.
+> > >
+> > > Its license is actually GPL 2.0+
+> > >
+> > > So, I would actually change it to:
+> > >
+> > > MODULE_LICENSE("GPL v2");  
+> > 
+> > Mauro:
+> > 
+> > actually even if it sounds weird the module.h doc [1] is clear on this topic:
+> > 
+> >  * "GPL" [GNU Public License v2 or later]
+> >  * "GPL v2" [GNU Public License v2]
+> > 
+> > So it should be "GPL" IMHO.
+> > 
+> > 
+> > [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/linux/module.h?id=refs/tags/v4.10#n175
+> > 
 > 
-> diff --git a/drivers/staging/media/lirc/lirc_zilog.c
-> b/drivers/staging/media/lirc/lirc_zilog.c
-> index 6bd0717bf76e..be68ee652071 100644
-> --- a/drivers/staging/media/lirc/lirc_zilog.c
-> +++ b/drivers/staging/media/lirc/lirc_zilog.c
+> Oh! Yeah, you're right. I would add that on the Kernel documentation
+> somewhere, perhaps with the new document that Thomas is writing
+> about SPFX. 
+> 
+> The Documentation/kernel-hacking/hacking.rst doc mentions 
+> MODULE_LICENSE, but doesn't define the expected values for it.
 
-I'm afraid that lirc_zilog has been re-written.
+It's buried in the code comments in include/linux/module.h.  One of
+these days I want to just make a #define for the licenses that makes it
+a bit more obvious what each should be, but for now, we have lots of
+other things to clean up before dealing with this :)
 
-https://patchwork.linuxtv.org/patch/45189/
+thanks,
 
-It hasn't been merged yet, but I suspect that is imminent.
-
-
-Sean
-
-> @@ -888,9 +888,9 @@ static ssize_t read(struct file *filep, char __user
-> *outbuf, size_t n,
->  	unsigned int m;
->  	DECLARE_WAITQUEUE(wait, current);
-> 
-> -	dev_dbg(ir->dev, "read called\n");
-> +	dev_dbg(ir->dev, "%s called\n", __func__);
->  	if (n % rbuf->chunk_size) {
-> -		dev_dbg(ir->dev, "read result = -EINVAL\n");
-> +		dev_dbg(ir->dev, "%s result = -EINVAL\n", __func__);
->  		return -EINVAL;
->  	}
-> 
-> @@ -949,7 +949,7 @@ static ssize_t read(struct file *filep, char __user
-> *outbuf, size_t n,
->  				retries++;
->  			}
->  			if (retries >= 5) {
-> -				dev_err(ir->dev, "Buffer read failed!\n");
-> +				dev_err(ir->dev, "%s failed!\n", __func__);
->  				ret = -EIO;
->  			}
->  		}
-> @@ -959,7 +959,7 @@ static ssize_t read(struct file *filep, char __user
-> *outbuf, size_t n,
->  	put_ir_rx(rx, false);
->  	set_current_state(TASK_RUNNING);
-> 
-> -	dev_dbg(ir->dev, "read result = %d (%s)\n", ret,
-> +	dev_dbg(ir->dev, "%s result = %d (%s)\n", __func__, ret,
->  		ret ? "Error" : "OK");
-> 
->  	return ret ? ret : written;
-> -- 
-> 2.13.6
+greg k-h
