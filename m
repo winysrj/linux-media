@@ -1,51 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f48.google.com ([209.85.218.48]:52659 "EHLO
-        mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751712AbdKFVps (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Nov 2017 16:45:48 -0500
-Date: Mon, 6 Nov 2017 15:45:46 -0600
-From: Rob Herring <robh@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: devicetree@vger.kernel.org, mchehab@s-opensource.com,
-        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        hyun.kwon@xilinx.com, soren.brinkmann@xilinx.com,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [RESEND PATCH 1/1] of: Make return types of to_of_node and
- of_fwnode_handle macros consistent
-Message-ID: <20171106214546.br4excrvclrxfd7f@rob-hp-laptop>
-References: <2117711.dO2rQLXOup@avalon>
- <20171102095918.7041-1-sakari.ailus@linux.intel.com>
+Received: from kirsty.vergenet.net ([202.4.237.240]:58875 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751253AbdKQPfx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Nov 2017 10:35:53 -0500
+Date: Fri, 17 Nov 2017 07:35:43 -0800
+From: Simon Horman <horms@verge.net.au>
+To: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        devicetree@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        Biju Das <biju.das@bp.renesas.com>
+Subject: Re: [PATCH v2 1/4] dt-bindings: media: rcar_vin: Reverse SoC part
+ number list
+Message-ID: <20171117153539.5war64h5sc27bwos@verge.net.au>
+References: <1510856571-30281-1-git-send-email-fabrizio.castro@bp.renesas.com>
+ <1510856571-30281-2-git-send-email-fabrizio.castro@bp.renesas.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20171102095918.7041-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <1510856571-30281-2-git-send-email-fabrizio.castro@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 02, 2017 at 11:59:18AM +0200, Sakari Ailus wrote:
-> (Fixed Mauro's e-mail.)
+On Thu, Nov 16, 2017 at 06:22:48PM +0000, Fabrizio Castro wrote:
+> Change the sorting of the part numbers from descending to ascending to
+> match with other documentation.
 > 
-> to_of_node() macro checks whether the fwnode_handle passed to it is not an
-> OF node, and if so, returns NULL in order to be NULL-safe. Otherwise it
-> returns the pointer to the OF node which the fwnode_handle contains.
-> 
-> The problem with returning NULL is that its type was void *, which
-> sometimes matters. Explicitly return struct device_node * instead.
-> 
-> Make a similar change to of_fwnode_handle() as well.
-> 
-> Fixes: d20dc1493db4 ("of: Support const and non-const use for to_of_node()")
-> Fixes: debd3a3b27c7 ("of: Make of_fwnode_handle() safer")
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> Hi Mauro,
-> 
-> Could you check whether this addresses the smatch issue with the xilinx
-> driver?
-> 
-> Thanks.
-> 
->  include/linux/of.h | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+> Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+> Reviewed-by: Biju Das <biju.das@bp.renesas.com>
 
-Acked-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
