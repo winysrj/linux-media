@@ -1,43 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:37422 "EHLO
-        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751249AbdKVTvB (ORCPT
+Received: from mail-wr0-f181.google.com ([209.85.128.181]:33771 "EHLO
+        mail-wr0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751060AbdKQLy5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Nov 2017 14:51:01 -0500
-Received: by mail-wm0-f49.google.com with SMTP id v186so12465540wma.2
-        for <linux-media@vger.kernel.org>; Wed, 22 Nov 2017 11:51:00 -0800 (PST)
-From: Gregor Jasny <gjasny@googlemail.com>
-Subject: dvbv5-scan: Missing NID, TID, and RID in VDR channel output
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <f65773a8-603a-ba10-b420-896efc70c26a@googlemail.com>
-Date: Wed, 22 Nov 2017 20:50:56 +0100
+        Fri, 17 Nov 2017 06:54:57 -0500
+Received: by mail-wr0-f181.google.com with SMTP id 4so1904765wrt.0
+        for <linux-media@vger.kernel.org>; Fri, 17 Nov 2017 03:54:56 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <fd92263a2c04a10d58ce465058391e6e8703dc90.1510913595.git.mchehab@s-opensource.com>
+References: <e0917bf82693b0a7383310f9d8fb3aea10ef6615.1510913595.git.mchehab@s-opensource.com>
+ <fd92263a2c04a10d58ce465058391e6e8703dc90.1510913595.git.mchehab@s-opensource.com>
+From: Philippe Ombredanne <pombredanne@nexb.com>
+Date: Fri, 17 Nov 2017 12:54:15 +0100
+Message-ID: <CAOFm3uFQGftabX93YEiLfpAoR+7kEvwuLudH+A7Bo4zKa60TOQ@mail.gmail.com>
+Subject: Re: [PATCH 6/6] media: usb: add SPDX identifiers to some code I wrote
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sean Young <sean@mess.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        Santosh Kumar Singh <kumar.san1093@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro and list,
+On Fri, Nov 17, 2017 at 11:21 AM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+> As we're now using SPDX identifiers, on several
+> media drivers I wrote, add the proper SPDX, identifying
+> the license I meant.
+>
+> As we're now using the short license, it doesn't make sense to
+> keep the original license text.
+>
+> Also, fix MODULE_LICENSE to properly identify GPL v2.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-since some days my region in Germany finally got DVB-T2 coverage.
-Something in the broadcasted tabled makes w_scan only find a subset each
-time. dvbv5-scan is somewhat more reliable.  But with the VDR compatible
-channel list exported from dvbv5-scan I cannot make VDR produce any EPG.
->From skimming over the VDR code I think this is due to missing NID and TID.
+Mauro,
+Thanks ++ .... I can now get rid of a special license detection rule I
+had added for the specific language of your notices in the
+scancode-toolkit!
 
-The upper one is from dvbv5-scan, the lower one from w_scan:
+FWIW for this 6 patch series:
 
->                                                                       VPID    APID                   TPID  CA SID  NID   TID    RID
-> arte HD    :618000:B8 C999 D999 G19128 I999 M999 S1 T16 Y0   :T:27500 :210    :220,221               :0    :0 :770 :0    :0     :0
-> arte HD;ARD:618000:B8      D0   G19256           S1 T32 Y0 P0:T:27500 :210=36 :220=deu@17,221=fra    :230  :0 :770 :8468 :15106 :0
+Reviewed-by: Philippe Ombredanne <pombredanne@nexb.com>
 
-Mauro, do you think it would be possible to parse / output NID, TID, and
-RID from dvbv5_scan? It would greatly improve usability. Now that w_scan
-is unmaintained, dvb5-scan is the only maintained DVB-T2 scanning app:
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-https://linuxtv.org/wiki/index.php/Frequency_scan#Comparison_of_DVB_frequency_scanning_commandline_utilities
-
-Thanks,
-Gregor
+-- 
+Cordially
+Philippe Ombredanne
