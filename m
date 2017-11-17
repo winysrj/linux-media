@@ -1,173 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:63968 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752881AbdKQKVk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 05:21:40 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>
-Subject: [PATCH 5/6] media: tuners: add SPDX identifiers to the code I wrote
-Date: Fri, 17 Nov 2017 08:21:32 -0200
-Message-Id: <6ac4ea66b5c3edb1d374b84ecb1270e2f1b0687d.1510913595.git.mchehab@s-opensource.com>
-In-Reply-To: <e0917bf82693b0a7383310f9d8fb3aea10ef6615.1510913595.git.mchehab@s-opensource.com>
-References: <e0917bf82693b0a7383310f9d8fb3aea10ef6615.1510913595.git.mchehab@s-opensource.com>
-In-Reply-To: <e0917bf82693b0a7383310f9d8fb3aea10ef6615.1510913595.git.mchehab@s-opensource.com>
-References: <e0917bf82693b0a7383310f9d8fb3aea10ef6615.1510913595.git.mchehab@s-opensource.com>
+Received: from mail-qt0-f181.google.com ([209.85.216.181]:38036 "EHLO
+        mail-qt0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966075AbdKQRUp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Nov 2017 12:20:45 -0500
+Date: Fri, 17 Nov 2017 15:20:36 -0200
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [RFC v5 07/11] [media] vb2: add in-fence support to QBUF
+Message-ID: <20171117172036.GJ19033@jade>
+References: <20171115171057.17340-1-gustavo@padovan.org>
+ <20171115171057.17340-8-gustavo@padovan.org>
+ <20171117105351.3bb0af32@vento.lan>
+ <20171117131248.GI19033@jade>
+ <20171117114751.2dc10542@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171117114751.2dc10542@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we're now using SPDX identifiers, on the several
-media drivers I wrote, add the proper SPDX, identifying
-the license I meant.
+2017-11-17 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
 
-As we're now using the short license, it doesn't make sense to
-keep the original license text.
+> Em Fri, 17 Nov 2017 11:12:48 -0200
+> Gustavo Padovan <gustavo@padovan.org> escreveu:
+> 
+> > > >  	/*
+> > > >  	 * If streamon has been called, and we haven't yet called
+> > > >  	 * start_streaming() since not enough buffers were queued, and
+> > > >  	 * we now have reached the minimum number of queued buffers,
+> > > >  	 * then we can finally call start_streaming().
+> > > > -	 *
+> > > > -	 * If already streaming, give the buffer to driver for processing.
+> > > > -	 * If not, the buffer will be given to driver on next streamon.
+> > > >  	 */
+> > > >  	if (q->streaming && !q->start_streaming_called &&
+> > > > -	    q->queued_count >= q->min_buffers_needed) {
+> > > > +	    __get_num_ready_buffers(q) >= q->min_buffers_needed) {  
+> > > 
+> > > I guess the case where fences is not used is not covered here.
+> > > 
+> > > You probably should add a check at __get_num_ready_buffers(q)
+> > > as well, making it just return q->queued_count if fences isn't
+> > > used.  
+> > 
+> > We can't know that beforehand, some buffer ahead may have a fence,
+> > but there is already a check for !fence for each buffer. If none of
+> > them have fences the return will be equal to q->queued_count.
+> 
+> Hmm... are we willing to support the case where just some
+> buffers have fences? Why?
 
-Also, fix MODULE_LICENSE to properly identify GPL v2.
+It may be that some fences are already signaled before the QBUF call
+happens, so the app may just pass -1 instead.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/tuners/r820t.c              | 14 ++------------
- drivers/media/tuners/tea5761.c            |  5 ++---
- drivers/media/tuners/tea5767.c            |  4 ++--
- drivers/media/tuners/tuner-xc2028-types.h |  2 +-
- drivers/media/tuners/tuner-xc2028.c       |  5 ++---
- drivers/media/tuners/tuner-xc2028.h       |  2 +-
- 6 files changed, 10 insertions(+), 22 deletions(-)
+> In any case, we should add a notice at the documentation telling
+> about what happens if not all buffers have fences, and if fences
+> are required to be setup before starting streaming, or if it is
+> possible to dynamically change the fances behavior while streaming.
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index ba80376a3b86..d80297adbf68 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Rafael Micro R820T driver
-  *
-@@ -19,17 +20,6 @@
-  *		improve reception. This was not implemented here yet.
-  *
-  *	RF Gain set/get is not implemented.
-- *
-- *    This program is free software; you can redistribute it and/or modify
-- *    it under the terms of the GNU General Public License as published by
-- *    the Free Software Foundation; either version 2 of the License, or
-- *    (at your option) any later version.
-- *
-- *    This program is distributed in the hope that it will be useful,
-- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *    GNU General Public License for more details.
-- *
-  */
- 
- #include <linux/videodev2.h>
-@@ -2388,4 +2378,4 @@ EXPORT_SYMBOL_GPL(r820t_attach);
- 
- MODULE_DESCRIPTION("Rafael Micro r820t silicon tuner driver");
- MODULE_AUTHOR("Mauro Carvalho Chehab");
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/media/tuners/tea5761.c b/drivers/media/tuners/tea5761.c
-index a9b1bb134409..455b7dbad6ca 100644
---- a/drivers/media/tuners/tea5761.c
-+++ b/drivers/media/tuners/tea5761.c
-@@ -1,10 +1,9 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * For Philips TEA5761 FM Chip
-  * I2C address is allways 0x20 (0x10 at 7-bit mode).
-  *
-  * Copyright (c) 2005-2007 Mauro Carvalho Chehab (mchehab@infradead.org)
-- * This code is placed under the terms of the GNUv2 General Public License
-- *
-  */
- 
- #include <linux/i2c.h>
-@@ -341,4 +340,4 @@ EXPORT_SYMBOL_GPL(tea5761_autodetection);
- 
- MODULE_DESCRIPTION("Philips TEA5761 FM tuner driver");
- MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@infradead.org>");
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/media/tuners/tea5767.c b/drivers/media/tuners/tea5767.c
-index 525b7ab90c80..d89764ad9209 100644
---- a/drivers/media/tuners/tea5767.c
-+++ b/drivers/media/tuners/tea5767.c
-@@ -1,10 +1,10 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * For Philips TEA5767 FM Chip used on some TV Cards like Prolink Pixelview
-  * I2C address is allways 0xC0.
-  *
-  *
-  * Copyright (c) 2005 Mauro Carvalho Chehab (mchehab@infradead.org)
-- * This code is placed under the terms of the GNU General Public License
-  *
-  * tea5767 autodetection thanks to Torsten Seeboth and Atsushi Nakagawa
-  * from their contributions on DScaler.
-@@ -473,4 +473,4 @@ EXPORT_SYMBOL_GPL(tea5767_autodetection);
- 
- MODULE_DESCRIPTION("Philips TEA5767 FM tuner driver");
- MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@infradead.org>");
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/media/tuners/tuner-xc2028-types.h b/drivers/media/tuners/tuner-xc2028-types.h
-index 7e4798783db7..43949ff69e67 100644
---- a/drivers/media/tuners/tuner-xc2028-types.h
-+++ b/drivers/media/tuners/tuner-xc2028-types.h
-@@ -1,10 +1,10 @@
-+// SPDX-License-Identifier: GPL-2.0
- /* tuner-xc2028_types
-  *
-  * This file includes internal tipes to be used inside tuner-xc2028.
-  * Shouldn't be included outside tuner-xc2028
-  *
-  * Copyright (c) 2007-2008 Mauro Carvalho Chehab (mchehab@infradead.org)
-- * This code is placed under the terms of the GNU General Public License v2
-  */
- 
- /* xc3028 firmware types */
-diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
-index b5b62b08159e..d2870fba4591 100644
---- a/drivers/media/tuners/tuner-xc2028.c
-+++ b/drivers/media/tuners/tuner-xc2028.c
-@@ -1,11 +1,10 @@
-+// SPDX-License-Identifier: GPL-2.0
- /* tuner-xc2028
-  *
-  * Copyright (c) 2007-2008 Mauro Carvalho Chehab (mchehab@infradead.org)
-  *
-  * Copyright (c) 2007 Michel Ludwig (michel.ludwig@gmail.com)
-  *       - frontend interface
-- *
-- * This code is placed under the terms of the GNU General Public License v2
-  */
- 
- #include <linux/i2c.h>
-@@ -1521,6 +1520,6 @@ EXPORT_SYMBOL(xc2028_attach);
- MODULE_DESCRIPTION("Xceive xc2028/xc3028 tuner driver");
- MODULE_AUTHOR("Michel Ludwig <michel.ludwig@gmail.com>");
- MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@infradead.org>");
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("GPL v2");
- MODULE_FIRMWARE(XC2028_DEFAULT_FIRMWARE);
- MODULE_FIRMWARE(XC3028L_DEFAULT_FIRMWARE);
-diff --git a/drivers/media/tuners/tuner-xc2028.h b/drivers/media/tuners/tuner-xc2028.h
-index 98e4effca896..b3c25dff96d8 100644
---- a/drivers/media/tuners/tuner-xc2028.h
-+++ b/drivers/media/tuners/tuner-xc2028.h
-@@ -1,7 +1,7 @@
-+// SPDX-License-Identifier: GPL-2.0
- /* tuner-xc2028
-  *
-  * Copyright (c) 2007-2008 Mauro Carvalho Chehab (mchehab@infradead.org)
-- * This code is placed under the terms of the GNU General Public License v2
-  */
- 
- #ifndef __TUNER_XC2028_H__
--- 
-2.14.3
+We don't have such thing. The fence behavior is tied to each QBUF call,
+the stream can be setup without knowing anything about if fences are
+going to be used or not. I think we need a good reason to do otherwise.
+Yet, I can add something to the docs saying that fences are exclusively
+per QBUF call.
+
+Gustavo
