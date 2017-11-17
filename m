@@ -1,44 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:59489 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751897AbdK2TIx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 14:08:53 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        linux-samsung-soc@vger.kernel.org
-Subject: [PATCH 12/22] media: s3c-camif: add missing description at s3c_camif_find_format()
-Date: Wed, 29 Nov 2017 14:08:30 -0500
-Message-Id: <2ec72455321f17abb27438af36db2185ffc13540.1511982439.git.mchehab@s-opensource.com>
-In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:50807 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965309AbdKQJO5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Nov 2017 04:14:57 -0500
+Date: Fri, 17 Nov 2017 10:14:51 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v1 08/10] media: i2c: ov772x: Remove soc_camera
+ dependencies
+Message-ID: <20171117091451.GC4668@w540>
+References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1510743363-25798-9-git-send-email-jacopo+renesas@jmondi.org>
+ <20171117004315.gyc2j6x2orhxulcv@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20171117004315.gyc2j6x2orhxulcv@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix this warning:
-	drivers/media/platform/s3c-camif/camif-core.c:112: warning: No description found for parameter 'vp'
+Hi Sakari!
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/platform/s3c-camif/camif-core.c | 1 +
- 1 file changed, 1 insertion(+)
+On Fri, Nov 17, 2017 at 02:43:15AM +0200, Sakari Ailus wrote:
+> Hi Jacopo,
+>
+> On Wed, Nov 15, 2017 at 11:56:01AM +0100, Jacopo Mondi wrote:
+> >
 
-diff --git a/drivers/media/platform/s3c-camif/camif-core.c b/drivers/media/platform/s3c-camif/camif-core.c
-index c4ab63986c8f..79bc0ef6bb41 100644
---- a/drivers/media/platform/s3c-camif/camif-core.c
-+++ b/drivers/media/platform/s3c-camif/camif-core.c
-@@ -103,6 +103,7 @@ static const struct camif_fmt camif_formats[] = {
- 
- /**
-  * s3c_camif_find_format() - lookup camif color format by fourcc or an index
-+ * @vp: video path (DMA) description (codec/preview)
-  * @pixelformat: fourcc to match, ignored if null
-  * @index: index to the camif_formats array, ignored if negative
-  */
--- 
-2.14.3
+[snip]
+
+> > +#include <linux/clk.h>
+> >  #include <linux/init.h>
+> >  #include <linux/kernel.h>
+> >  #include <linux/module.h>
+> > @@ -25,8 +26,8 @@
+> >  #include <linux/videodev2.h>
+> >
+> >  #include <media/i2c/ov772x.h>
+> > -#include <media/soc_camera.h>
+> > -#include <media/v4l2-clk.h>
+> > +
+> > +#include <media/v4l2-device.h>
+>
+> Alphabetical order would be nice.
+
+ups!
+
+>
+> >  #include <media/v4l2-ctrls.h>
+> >  #include <media/v4l2-subdev.h>
+> >  #include <media/v4l2-image-sizes.h>
+> > @@ -393,7 +394,7 @@ struct ov772x_win_size {
+> >  struct ov772x_priv {
+> >  	struct v4l2_subdev                subdev;
+> >  	struct v4l2_ctrl_handler	  hdl;
+> > -	struct v4l2_clk			 *clk;
+> > +	struct clk			 *clk;
+> >  	struct ov772x_camera_info        *info;
+> >  	const struct ov772x_color_format *cfmt;
+> >  	const struct ov772x_win_size     *win;
+> > @@ -550,7 +551,7 @@ static int ov772x_reset(struct i2c_client *client)
+> >  }
+> >
+> >  /*
+> > - * soc_camera_ops function
+> > + * subdev ops
+> >   */
+> >
+> >  static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
+> > @@ -650,13 +651,36 @@ static int ov772x_s_register(struct v4l2_subdev *sd,
+> >  }
+> >  #endif
+> >
+> > +static int ov772x_power_on(struct ov772x_priv *priv)
+> > +{
+> > +	int ret;
+> > +
+> > +	if (priv->info->platform_enable) {
+> > +		ret = priv->info->platform_enable();
+> > +		if (ret)
+> > +			return ret;
+>
+> What does this do, enable the regulator?
+
+Well, it depends on what function the platform code stores in
+'platform_enable' pointer, doesn't it?
+
+As you can see in [05/10] of this series, for Migo-R it's not about
+a regulator, but switching between the two available video inputs
+(OV7725 and TW9910) toggling their 'enable' pins.
+
+Thanks
+   j
