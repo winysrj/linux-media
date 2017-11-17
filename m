@@ -1,112 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:43883 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751425AbdKQRBT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 12:01:19 -0500
-Date: Fri, 17 Nov 2017 15:01:02 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Philippe Ombredanne <pombredanne@nexb.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Johan Hovold <johan@kernel.org>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media: usbvision: remove unneeded DRIVER_LICENSE
- #define
-Message-ID: <20171117150102.1f5faeda@vento.lan>
-In-Reply-To: <CAOFm3uE9NmPV6diYcTodBKRr0CXFYs7uvVPrLTyLaa_3VKV7rA@mail.gmail.com>
-References: <20171117141826.GC17880@kroah.com>
-        <20171117125847.28004106@vento.lan>
-        <CAOFm3uE9NmPV6diYcTodBKRr0CXFYs7uvVPrLTyLaa_3VKV7rA@mail.gmail.com>
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:35146 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751950AbdKQM1Q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Nov 2017 07:27:16 -0500
+Date: Fri, 17 Nov 2017 10:27:10 -0200
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [RFC v5 03/11] [media] vb2: add 'ordered_in_driver' property to
+ queues
+Message-ID: <20171117122710.GF19033@jade>
+References: <20171115171057.17340-1-gustavo@padovan.org>
+ <20171115171057.17340-4-gustavo@padovan.org>
+ <20171117101559.455cced3@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171117101559.455cced3@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 17 Nov 2017 16:01:41 +0100
-Philippe Ombredanne <pombredanne@nexb.com> escreveu:
+Hi Mauro,
 
-> On Fri, Nov 17, 2017 at 3:58 PM, Mauro Carvalho Chehab
-> <mchehab@s-opensource.com> wrote:
-> > Em Fri, 17 Nov 2017 15:18:26 +0100
-> > Greg Kroah-Hartman <gregkh@linuxfoundation.org> escreveu:
-> >  
-> >> There is no need to #define the license of the driver, just put it in
-> >> the MODULE_LICENSE() line directly as a text string.
-> >>
-> >> This allows tools that check that the module license matches the source
-> >> code license to work properly, as there is no need to unwind the
-> >> unneeded dereference.
-> >>
-> >> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> >> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> >> Cc: Johan Hovold <johan@kernel.org>
-> >> Cc: Davidlohr Bueso <dave@stgolabs.net>
-> >> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> Reported-by: Philippe Ombredanne <pombredanne@nexb.com>
-> >> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+2017-11-17 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
 
-Acked-by: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Em Wed, 15 Nov 2017 15:10:49 -0200
+> Gustavo Padovan <gustavo@padovan.org> escreveu:
+> 
+> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > 
+> > We use ordered_in_driver property to optimize for the case where
+> > the driver can deliver the buffers in an ordered fashion. When it
+> > is ordered we can use the same fence context for all fences, but
+> > when it is not we need to a new context for each out-fence.
+> > 
+> > So the ordered_in_driver flag will help us with identifying the queues
+> > that can be optimized and use the same fence context.
+> > 
+> > v4: make the property a vector for optimization and not a mandatory thing
+> > that drivers need to set if they want to use explicit synchronization.
+> > 
+> > v3: improve doc (Hans Verkuil)
+> > 
+> > v2: rename property to 'ordered_in_driver' to avoid confusion
+> > 
+> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > ---
+> >  include/media/videobuf2-core.h | 7 +++++++
+> >  1 file changed, 7 insertions(+)
+> > 
+> > diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> > index ef9b64398c8c..38b9c8dd42c6 100644
+> > --- a/include/media/videobuf2-core.h
+> > +++ b/include/media/videobuf2-core.h
+> > @@ -440,6 +440,12 @@ struct vb2_buf_ops {
+> >   * @fileio_read_once:		report EOF after reading the first buffer
+> >   * @fileio_write_immediately:	queue buffer after each write() call
+> >   * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
+> > + * @ordered_in_driver: if the driver can guarantee that the queue will be
+> > + *		ordered or not, i.e., the buffers are dequeued from the driver
+> > + *		in the same order they are queued to the driver. The default
+> > + *		is not ordered unless the driver sets this flag. Setting it
+> > + *		when ordering can be guaranted helps to optimize explicit
+> > + *		fences.
+> >   * @quirk_poll_must_check_waiting_for_buffers: Return POLLERR at poll when QBUF
+> >   *              has not been called. This is a vb1 idiom that has been adopted
+> >   *              also by vb2.
+> > @@ -510,6 +516,7 @@ struct vb2_queue {
+> >  	unsigned			fileio_read_once:1;
+> >  	unsigned			fileio_write_immediately:1;
+> >  	unsigned			allow_zero_bytesused:1;
+> > +	unsigned			ordered_in_driver:1;
+> 
+> As this may depend on the format, it is probably a good idea to set
+> this flag either via a function argument or by a function that
+> would be meant to update it, as video format changes.
 
-> >> ---
-> >>  drivers/media/usb/usbvision/usbvision-video.c | 3 +--
-> >>  1 file changed, 1 insertion(+), 2 deletions(-)
-> >>
-> >> diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-> >> index 960272d3c924..0f5954a1fea2 100644
-> >> --- a/drivers/media/usb/usbvision/usbvision-video.c
-> >> +++ b/drivers/media/usb/usbvision/usbvision-video.c
-> >> @@ -72,7 +72,6 @@
-> >>  #define DRIVER_NAME "usbvision"
-> >>  #define DRIVER_ALIAS "USBVision"
-> >>  #define DRIVER_DESC "USBVision USB Video Device Driver for Linux"
-> >> -#define DRIVER_LICENSE "GPL"
-> >>  #define USBVISION_VERSION_STRING "0.9.11"
-> >>
-> >>  #define      ENABLE_HEXDUMP  0       /* Enable if you need it */
-> >> @@ -141,7 +140,7 @@ MODULE_PARM_DESC(radio_nr, "Set radio device number (/dev/radioX).  Default: -1
-> >>  /* Misc stuff */
-> >>  MODULE_AUTHOR(DRIVER_AUTHOR);
-> >>  MODULE_DESCRIPTION(DRIVER_DESC);
-> >> -MODULE_LICENSE(DRIVER_LICENSE);
-> >> +MODULE_LICENSE("GPL");  
-> >
-> > Makes sense to me, but, if we look at the header of this file:
-> >
-> >  * This program is free software; you can redistribute it and/or modify
-> >  * it under the terms of the GNU General Public License as published by
-> >  * the Free Software Foundation; either version 2 of the License, or
-> >  * (at your option) any later version.
-> >
-> > Its license is actually GPL 2.0+
-> >
-> > So, I would actually change it to:
-> >
-> > MODULE_LICENSE("GPL v2");  
-> 
-> Mauro:
-> 
-> actually even if it sounds weird the module.h doc [1] is clear on this topic:
-> 
->  * "GPL" [GNU Public License v2 or later]
->  * "GPL v2" [GNU Public License v2]
-> 
-> So it should be "GPL" IMHO.
-> 
-> 
-> [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/linux/module.h?id=refs/tags/v4.10#n175
-> 
+Right, and maybe I can find a way to store this in only one place,
+istead of what I did here (having to set explicitely both the 
+ordered_in_driver and the flag separatedly)
 
-Oh! Yeah, you're right. I would add that on the Kernel documentation
-somewhere, perhaps with the new document that Thomas is writing
-about SPFX. 
-
-The Documentation/kernel-hacking/hacking.rst doc mentions 
-MODULE_LICENSE, but doesn't define the expected values for it.
-
-Thanks,
-Mauro
+Gustavo
