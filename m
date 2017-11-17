@@ -1,216 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:6271 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752880AbdK2M3G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 07:29:06 -0500
-Date: Wed, 29 Nov 2017 14:29:03 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Jacob Chen <jacob-chen@iotwrt.com>
-Cc: Tomasz Figa <tfiga@chromium.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: notifier is skipped in some situations
-Message-ID: <20171129122903.2lotgehifhs66bvh@paasikivi.fi.intel.com>
-References: <CAFLEztQg2R0oLcSfRKsQGFWTC1pTzPVqoksdKtGAYEYV6nAf9A@mail.gmail.com>
- <CAAFQd5Cz0VfZB-JMf3YESAb4z0i+koQq=BRSzu7vy9Sdwi157A@mail.gmail.com>
- <1725377.6lDSOU2C5Q@macbookair>
- <7578236.BQvekhbvUq@macbookair>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57677 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964890AbdKQPHN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Nov 2017 10:07:13 -0500
+Subject: Re: [PATCH v2 5/8] v4l: vsp1: Refactor display list configure
+ operations
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+References: <cover.4457988ad8b64b5c7636e35039ef61d507af3648.1502723341.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <9223590.WNj3Hrfh0H@avalon>
+ <70512969-8fca-3056-1a0e-d294549b827d@ideasonboard.com>
+ <3974720.2jhbfEKCZX@avalon>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reply-To: kieran.bingham@ideasonboard.com
+Message-ID: <adf83d35-3ccf-d0cc-747e-20b29f8aa629@ideasonboard.com>
+Date: Fri, 17 Nov 2017 15:07:08 +0000
 MIME-Version: 1.0
+In-Reply-To: <3974720.2jhbfEKCZX@avalon>
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <7578236.BQvekhbvUq@macbookair>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacob,
+Hi Laurent,
 
-On Mon, Nov 27, 2017 at 03:03:59PM +0800, Jacob Chen wrote:
-> Hi,
-> 
-> On 2017年11月25日星期六 CST 下午1:05:42 you wrote:
-> > Hi,
-> > 
-> > On 2017年11月24日星期五 CST 下午6:19:36 you wrote:
-> > > On Fri, Nov 24, 2017 at 6:17 PM, Sakari Ailus
-> > > 
-> > > <sakari.ailus@linux.intel.com> wrote:
-> > > > Hi Tomasz,
-> > > > 
-> > > > On Fri, Nov 24, 2017 at 06:03:26PM +0900, Tomasz Figa wrote:
-> > > >> Hi Sakari,
-> > > >> 
-> > > >> We have the following graph:
-> > > >>     ISP (registers notifier for v4l2_dev)
-> > > >>     
-> > > >>     
-> > > >>     
-> > > >>     PHY (registers notifier for v4l2_subdev, just like sensors for
-> > > >> 
-> > > >> flash/focuser)
-> > > >> 
-> > > >>   |       \
-> > > >> 
-> > > >> sensor0   sensor1
-> > > >> 
-> > > >> ...
-> > > >> 
-> > > >> Both ISP and PHY are completely separate drivers not directly aware of
-> > > >> each other, since we have several different PHY IP blocks that we need
-> > > >> to support and some of them are multi-functional, such as CSI+DSI PHY
-> > > >> and need to be supported by drivers independent from the ISP driver.
-> > > > 
-> > > > That should work fine. In the above case there are two notifiers,
-> > > > indeed,
-> > > > but they're not expecting the *same* sub-devices.
-> > > 
-> > > Got it.
-> > > 
-> > > Jacob, could you make sure there are no mistakes in the Device Tree
-> > > source?
-> > > 
-> > > Best regards,
-> > > Tomasz
-> > 
-> > I see...
-> > This problem might be sloved by moving `v4l2_async_subdev_notifier_register`
-> > after `v4l2_async_register_subdev`. I will test it.
-> > 
-> > > > What this could be about is that in some version of the set I disabled
-> > > > the
-> > > > complete callback on the sub-notifiers for two reasons: there was no
-> > > > need
-> > > > seen for them and the complete callback is problematic in general
-> > > > (there's
-> > > > been discussion on that, mostly related to earlier versions of the
-> > > > fwnode
-> > > > parsing patchset, on #v4l and along the Renesas rcar-csi2 patchsets).
-> > > > 
-> > > >> Best regards,
-> > > >> Tomasz
-> > > >> 
-> > > >> 
-> > > >> On Fri, Nov 24, 2017 at 5:55 PM, Sakari Ailus
-> > > >> 
-> > > >> <sakari.ailus@linux.intel.com> wrote:
-> > > >> > Hi Jacob,
-> > > >> > 
-> > > >> > On Fri, Nov 24, 2017 at 09:00:14AM +0800, Jacob Chen wrote:
-> > > >> >> Hi Sakari,
-> > > >> >> 
-> > > >> >> I encountered a problem when using async sub-notifiers.
-> > > >> >> 
-> > > >> >> It's like that:
-> > > >> >>     There are two notifiers, and they are waiting for one subdev.
-> > > >> >>     When this subdev is probing, only one notifier is completed and
-> > > >> >> 
-> > > >> >> the other one is skipped.
-> > > >> > 
-> > > >> > Do you have a graph that has two master drivers (that register the
-> > > >> > notifier) and both are connected to the same sub-device? Could you
-> > > >> > provide
-> > > >> > exact graph you have?
-> > > >> > 
-> > > >> >> I found that in v15 of patch "v4l: async: Allow binding notifiers to
-> > > >> >> sub-devices", "v4l2_async_notifier_complete" is replaced by
-> > > >> >> v4l2_async_notifier_call_complete, which make it only complete one
-> > > >> >> notifier.
-> > > >> >> 
-> > > >> >> Why is it changed? Can this be fixed?
-> > > >> > 
-> > > >> > --
-> > > >> > Sakari Ailus
-> > > >> > sakari.ailus@linux.intel.com
-> > > > 
-> > > > --
-> > > > Sakari Ailus
-> > > > sakari.ailus@linux.intel.com
-> 
-> I make a mistake, they are not expecting same subdev.....
-> 
-> The problem is that a notifier regsitered by  
-> `v4l2_async_subdev_notifier_register` will never be completed, becuase 
-> 1.`notifier->waiting` is always not empty, so v4l2_async_notifier_try_complete 
-> won't be called.
-> 2. In old code, it's called by its parent, but now it won't.
+Just a query on your bikeshedding here.
 
-Could you provide a bit more context, what exactly fails and in which order
-the notifiers are registered and async sub-device matches are found?
+Choose your colours wisely :)
+
+--
+Kieran
+
+On 12/09/17 20:19, Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> On Tuesday, 12 September 2017 00:16:50 EEST Kieran Bingham wrote:
+>> On 17/08/17 19:13, Laurent Pinchart wrote:
+>>> On Monday 14 Aug 2017 16:13:28 Kieran Bingham wrote:
+>>>> The entities provide a single .configure operation which configures the
+>>>> object into the target display list, based on the vsp1_entity_params
+>>>> selection.
+>>>>
+>>>> This restricts us to a single function prototype for both static
+>>>> configuration (the pre-stream INIT stage) and the dynamic runtime stages
+>>>> for both each frame - and each partition therein.
+>>>>
+>>>> Split the configure function into two parts, '.prepare()' and
+>>>> '.configure()', merging both the VSP1_ENTITY_PARAMS_RUNTIME and
+>>>> VSP1_ENTITY_PARAMS_PARTITION stages into a single call through the
+>>>> .configure(). The configuration for individual partitions is handled by
+>>>> passing the partition number to the configure call, and processing any
+>>>> runtime stage actions on the first partition only.
+>>>>
+>>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>>> ---
+>>>>
+>>>>  drivers/media/platform/vsp1/vsp1_bru.c    |  12 +-
+>>>>  drivers/media/platform/vsp1/vsp1_clu.c    |  43 +--
+>>>>  drivers/media/platform/vsp1/vsp1_drm.c    |  11 +-
+>>>>  drivers/media/platform/vsp1/vsp1_entity.c |  15 +-
+>>>>  drivers/media/platform/vsp1/vsp1_entity.h |  27 +--
+>>>>  drivers/media/platform/vsp1/vsp1_hgo.c    |  12 +-
+>>>>  drivers/media/platform/vsp1/vsp1_hgt.c    |  12 +-
+>>>>  drivers/media/platform/vsp1/vsp1_hsit.c   |  12 +-
+>>>>  drivers/media/platform/vsp1/vsp1_lif.c    |  12 +-
+>>>>  drivers/media/platform/vsp1/vsp1_lut.c    |  24 +-
+>>>>  drivers/media/platform/vsp1/vsp1_rpf.c    | 162 ++++++-------
+>>>>  drivers/media/platform/vsp1/vsp1_sru.c    |  12 +-
+>>>>  drivers/media/platform/vsp1/vsp1_uds.c    |  55 ++--
+>>>>  drivers/media/platform/vsp1/vsp1_video.c  |  24 +--
+>>>>  drivers/media/platform/vsp1/vsp1_wpf.c    | 297 ++++++++++++-----------
+>>>>  15 files changed, 359 insertions(+), 371 deletions(-)
+>>>
+>>> [snip]
+>>>
+>>>> diff --git a/drivers/media/platform/vsp1/vsp1_clu.c
+>>>> b/drivers/media/platform/vsp1/vsp1_clu.c index 175717018e11..5f65ce3ad97f
+>>>> 100644
+>>>> --- a/drivers/media/platform/vsp1/vsp1_clu.c
+>>>> +++ b/drivers/media/platform/vsp1/vsp1_clu.c
+>>>> @@ -213,37 +213,37 @@ static const struct v4l2_subdev_ops clu_ops = {
+>>>>
+>>>>  /*
+>>>>  -----------------------------------------------------------------------
+>>>>  -
+>>>>  
+>>>>   * VSP1 Entity Operations
+>>>>   */
+>>>>
+>>>> +static void clu_prepare(struct vsp1_entity *entity,
+>>>> +			struct vsp1_pipeline *pipe,
+>>>> +			struct vsp1_dl_list *dl)
+>>>> +{
+>>>> +	struct vsp1_clu *clu = to_clu(&entity->subdev);
+>>>> +
+>>>> +	/*
+>>>> +	 * The format can't be changed during streaming, only verify it
+>>>> +	 * at setup time and store the information internally for future
+>>>> +	 * runtime configuration calls.
+>>>> +	 */
+>>>
+>>> I know you're just moving the comment around, but let's fix it at the same
+>>> time. There's no verification here (and no "setup time" either). I'd write
+>>> it as
+>>>
+>>> 	/*
+>>> 	
+>>> 	 * The format can't be changed during streaming. Cache it internally
+>>> 	 * for future runtime configuration calls.
+>>> 	 */
+>>
+>> I think I'm ok with that and I've updated the patch - but I'm not sure we
+>> are really caching the 'format' here, as much as the yuv_mode ...
+> 
+> Yes, it's the YUV mode we're caching, feel free to update the comment.
+
+Done.
 
 > 
-> 
-> > static int v4l2_async_notifier_try_complete(
-> > 	struct v4l2_async_notifier *notifier)
-> > {
-> > 	/* Quick check whether there are still more sub-devices here. */
-> > 	if (!list_empty(&notifier->waiting))
-> > 		return 0;
-> 
-> not empty
-> 
-> > static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-> > 				   struct v4l2_device *v4l2_dev,
-> > 				   struct v4l2_subdev *sd,
-> > 				   struct v4l2_async_subdev *asd)
-> > {
-> > 	struct v4l2_async_notifier *subdev_notifier;
-> > 	int ret;
-> > 
-> > 	ret = v4l2_device_register_subdev(v4l2_dev, sd);
-> > 	if (ret < 0)
-> > 		return ret;
-> > 
-> > 	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
-> > 	if (ret < 0) {
-> > 		v4l2_device_unregister_subdev(sd);
-> > 		return ret;
-> > 	}
-> > 
-> > 	/* Remove from the waiting list */
-> > 	list_del(&asd->list);
-> 
-> asd is removed from the waiting list in `v4l2_async_match_notify`, but
-> 
-> >static int v4l2_async_notifier_try_all_subdevs(
-> >	struct v4l2_async_notifier *notifier)
-> >{
-> >	...
-> >	if (!v4l2_dev)
-> >		return 0;
-> 
-> A notifier regsitered by  `v4l2_async_subdev_notifier_register` will return in 
-> here.
-> 
-> >	...
-> >		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
->     
-> 
-> >int v4l2_async_register_subdev(struct v4l2_subdev *sd)
-> >{
-> >	...
-> >	list_for_each_entry(notifier, &notifier_list, list) {
-> >		struct v4l2_device *v4l2_dev =
-> >			v4l2_async_notifier_find_v4l2_dev(notifier);
-> >		struct v4l2_async_subdev *asd;
-> >
-> >		if (!v4l2_dev)
-> >			continue;
-> >
-> 
-> same
-> 
-> >		asd = v4l2_async_find_match(notifier, sd);
-> >		if (!asd)
-> >			continue;
-> >
-> >		ret = v4l2_async_match_notify(notifier, notifier->v4l2_dev, sd,
-> >					      asd);
-> 
-> 
-> 
-> 
+>> I'll ponder ...
+>>
+>>>> +	struct v4l2_mbus_framefmt *format;
+>>>> +
+>>>> +	format = vsp1_entity_get_pad_format(&clu->entity,
+>>>> +					    clu->entity.config,
+>>>> +					    CLU_PAD_SINK);
+>>>> +	clu->yuv_mode = format->code == MEDIA_BUS_FMT_AYUV8_1X32;
+>>>> +}
+>>>
+>>> [snip]
+>>>
+>>>> diff --git a/drivers/media/platform/vsp1/vsp1_entity.h
+>>>> b/drivers/media/platform/vsp1/vsp1_entity.h index
+>>>> 408602ebeb97..2f33e343ccc6 100644
+>>>> --- a/drivers/media/platform/vsp1/vsp1_entity.h
+>>>> +++ b/drivers/media/platform/vsp1/vsp1_entity.h
+>>>
+>>> [snip]
+>>>
+>>>> @@ -80,8 +68,10 @@ struct vsp1_route {
+>>>>
+>>>>  /**
+>>>>  
+>>>>   * struct vsp1_entity_operations - Entity operations
+>>>>   * @destroy:	Destroy the entity.
+>>>>
+>>>> - * @configure:	Setup the hardware based on the entity state
+>>>> (pipeline, formats,
+>>>> - *		selection rectangles, ...)
+>>>> + * @prepare:	Setup the initial hardware parameters for the stream
+>>>> (pipeline,
+>>>> + *		formats)
+>>>> + * @configure:	Configure the runtime parameters for each partition
+>>>> (rectangles,
+>>>> + *		buffer addresses, ...)
+>>>
+>>> Now moving to the bikeshedding territory, I'm not sure if prepare and
+>>> configure are the best names for those operations.
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+
+Would init() and configure() be more suitable for you ?
+
+Or 'setup()' and 'configure() or perhaps 'runtime()' ?
+
+I'm not convinced on either init() or setup() yet, as they might refer to
+'initialising' the object, rather than portraying the configuration of the
+object into a body...
+
+>>> I'd like to also point
+>>> out that we could go one step further by caching the partition-related
+>>> parameters too, in which case we would need a third operation (or
+>>> possibly passing the partition number to the prepare operation). While I
+>>> won't mind if you implement this now, the issue could also be addressed
+>>> later, but I'd like the operations to already support that use case to
+>>> avoid yet another painful rename patch.
+>>
+>> Ok, understood - but I think I'll have to defer to a v4 for now ... I'm
+>> running out of time.>>>
+>>>>   * @max_width:	Return the max supported width of data that the entity
+>>>>
+>>>> can
+>>>>
+>>>>   *		process in a single operation.
+>>>>   * @partition:	Process the partition construction based on this
+>>>>
+>>>> entity's
+>>>
+>>> [snip]
+>>>
+>>> The rest of the patch looks good to me.
+> 
