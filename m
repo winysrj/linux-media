@@ -1,65 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:42880 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933136AbdKOR72 (ORCPT
+Received: from mail-qt0-f180.google.com ([209.85.216.180]:34124 "EHLO
+        mail-qt0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753602AbdKQLX7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 12:59:28 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH] v4l: sh_mobile_ceu: Return buffers on streamoff()
-Date: Wed, 15 Nov 2017 18:59:12 +0100
-Message-Id: <1510768752-7588-1-git-send-email-jacopo+renesas@jmondi.org>
+        Fri, 17 Nov 2017 06:23:59 -0500
+Date: Fri, 17 Nov 2017 09:23:50 -0200
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Alexandre Courbot <acourbot@chromium.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [RFC v5 03/11] [media] vb2: add 'ordered_in_driver' property to
+ queues
+Message-ID: <20171117112350.GA19033@jade>
+References: <20171115171057.17340-1-gustavo@padovan.org>
+ <20171115171057.17340-4-gustavo@padovan.org>
+ <42409bb3-a6b6-43e7-a915-7e8e5f1f2198@chromium.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <42409bb3-a6b6-43e7-a915-7e8e5f1f2198@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-videobuf2 core reports an error when not all buffers have been returned
-to the framework:
+2017-11-17 Alexandre Courbot <acourbot@chromium.org>:
 
-drivers/media/v4l2-core/videobuf2-core.c:1651
-WARN_ON(atomic_read(&q->owned_by_drv_count))
+> On Thursday, November 16, 2017 2:10:49 AM JST, Gustavo Padovan wrote:
+> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > 
+> > We use ordered_in_driver property to optimize for the case where
+> > the driver can deliver the buffers in an ordered fashion. When it
+> > is ordered we can use the same fence context for all fences, but
+> > when it is not we need to a new context for each out-fence.
+> 
+> "we need to a new context" looks like it is missing a word.
 
-Fix this returning all buffers currently in capture queue.
+oh
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+"we need to create a new context" 
 
----
+Thanks for reviewing the patches!
 
-I know I'm working to get rid of this driver, but while I was trying to have
-it working again on mainline, I found this had to be fixed.
-
-Thanks
-  j
-
----
- drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-index 36762ec..9180a1d 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-@@ -451,13 +451,18 @@ static void sh_mobile_ceu_stop_streaming(struct vb2_queue *q)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
- 	struct list_head *buf_head, *tmp;
-+	struct vb2_v4l2_buffer *vbuf;
-
- 	spin_lock_irq(&pcdev->lock);
-
- 	pcdev->active = NULL;
-
--	list_for_each_safe(buf_head, tmp, &pcdev->capture)
-+	list_for_each_safe(buf_head, tmp, &pcdev->capture) {
-+		vbuf = &list_entry(buf_head, struct sh_mobile_ceu_buffer,
-+				   queue)->vb;
-+		vb2_buffer_done(&vbuf->vb2_buf, VB2_BUF_STATE_DONE);
- 		list_del_init(buf_head);
-+	}
-
- 	spin_unlock_irq(&pcdev->lock);
-
---
-2.7.4
+Gustavo
