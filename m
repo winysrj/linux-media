@@ -1,182 +1,282 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:65136 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751336AbdKKK3q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Nov 2017 05:29:46 -0500
-Date: Sat, 11 Nov 2017 08:29:21 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Ralph Metzler <rjkm@metzlerbros.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: DVB-S2 and S2X API extensions
-Message-ID: <20171111082231.57cd5537@vela.lan>
-In-Reply-To: <23044.29714.500132.822313@morden.metzler>
-References: <23044.29714.500132.822313@morden.metzler>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40358 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751173AbdKQAnS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Nov 2017 19:43:18 -0500
+Date: Fri, 17 Nov 2017 02:43:15 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v1 08/10] media: i2c: ov772x: Remove soc_camera
+ dependencies
+Message-ID: <20171117004315.gyc2j6x2orhxulcv@valkosipuli.retiisi.org.uk>
+References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1510743363-25798-9-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1510743363-25798-9-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 9 Nov 2017 16:28:18 +0100
-Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+Hi Jacopo,
 
-> Hi,
+On Wed, Nov 15, 2017 at 11:56:01AM +0100, Jacopo Mondi wrote:
+> Remove soc_camera framework dependencies from ov772x sensor driver.
+> - Handle clock directly
+> - Register async subdevice
+> - Add platform specific enable/disable functions
+> - Adjust build system
 > 
-> I have a few RFCs regarding new needed enums and
-> properties for DVB-S2 and DVB-S2X:
+> This commit does not remove the original soc_camera based driver.
 > 
-> - DVB-S2/X physical layer scrambling
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  drivers/media/i2c/Kconfig  | 12 +++++++
+>  drivers/media/i2c/Makefile |  1 +
+>  drivers/media/i2c/ov772x.c | 88 +++++++++++++++++++++++++++++++---------------
+>  include/media/i2c/ov772x.h |  3 ++
+>  4 files changed, 76 insertions(+), 28 deletions(-)
 > 
-> I currently use the inofficial DTV_PLS for setting the scrambling
-> sequence index (cf. ETSI EN 300 468 table 41) of
-> the physical layer scrambling in DVB-S2 and DVB-S2X.
-> Some drivers already misuse bits 8-27 of the DTV_STREAM_ID
-> for setting this. They also differentiate between gold, root
-> and combo codes.
-> The gold code is the actual scrambling sequence index.
-> The root code is just an intermediate calculation
-> accepted by some chips, but derived from the gold code.
-> It can be easily mapped one-to-one to the gold code.
-> (see https://github.com/DigitalDevices/dddvb/blob/master/apps/pls.c,
-> A more optimized version of this could be added to dvb-math.c)
-> The combo code does not really exist but is a by-product
-> of the buggy usage of a gold to root code conversion in ST chips.
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index 9415389..ff251ce 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -629,6 +629,18 @@ config VIDEO_OV5670
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called ov5670.
 > 
-> So, I would propose to officially introduce a property
-> for the scrambling sequence index (=gold code).
-> Should it be called DTV_PLS (which I already used in the dddvb package)
-> or rather DTV_SSI?
-> I realized PLS can be confused with physical layer signalling which
-> uses the acronym PLS in the DVB-S2 specs.
-
-Yes, it makes sense to have a DTV property for the PLS gold code.
-
-I would prefer to use a clearer name, like DTV_PLS_GOLD_CODE,
-to make easier to identify what it means.
-
-At documentation, we should point to EN 302 307 section 5.5.4 and
-to EN 300 468 table 41, with a good enough description to make
-clear that it is the gold code, and not the root code (or
-a chipset-specific "combo" code).
-
-> DVB-S2X also defines 7 preferred scrambling code sequences
-> (EN 302 307-2 5.5.4) which should be checked during tuning.
-> If the demod does not do this, should the DVB kernel layer or
-> application do this?
-
-IMHO, it should be up to the kernel to check if the received
-gold code is one of those 7 codes from EM 302 307 part 2 spec,
-if the delivery system is DVB_S2X (btw, we likely need to add it
-to the list of delivery systems). Not sure what would be the
-best way to implement it. Perhaps via some ancillary routine
-that the demods would be using.
-
-> - slices
+> +config VIDEO_OV772X
+> +	tristate "OmniVision OV772x sensor support"
+> +	depends on I2C && VIDEO_V4L2
+> +	depends on MEDIA_CAMERA_SUPPORT
+> +	---help---
+> +	  This is a Video4Linux2 sensor-level driver for the OmniVision
+> +	  OV772x camera.
+> +
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called ov772x.
+> +
+> +
+>  config VIDEO_OV7640
+>  	tristate "OmniVision OV7640 sensor support"
+>  	depends on I2C && VIDEO_V4L2
+> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+> index f104650..b2459a1 100644
+> --- a/drivers/media/i2c/Makefile
+> +++ b/drivers/media/i2c/Makefile
+> @@ -66,6 +66,7 @@ obj-$(CONFIG_VIDEO_OV5645) += ov5645.o
+>  obj-$(CONFIG_VIDEO_OV5647) += ov5647.o
+>  obj-$(CONFIG_VIDEO_OV5670) += ov5670.o
+>  obj-$(CONFIG_VIDEO_OV6650) += ov6650.o
+> +obj-$(CONFIG_VIDEO_OV772X) += ov772x.o
+>  obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
+>  obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
+>  obj-$(CONFIG_VIDEO_OV9650) += ov9650.o
+> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+> index 8063835..9be7e4e 100644
+> --- a/drivers/media/i2c/ov772x.c
+> +++ b/drivers/media/i2c/ov772x.c
+> @@ -15,6 +15,7 @@
+>   * published by the Free Software Foundation.
+>   */
 > 
-> DVB-S2 and DVB-C2, additionally to ISI/PLP, also can have
-> slicing. For DVB-C2 I currently use bits 8-15 of DTV_STREAM_ID as slice id.
-
-Better to use a separate property for that. On the documentation
-patches I wrote, I made clear that, for DVB-S2, only 8 bits of
-DTV_STREAM_ID are valid.
-
-We need to add DVB-C2 delivery system and update documentation
-accordingly. I made an effort to document, per DTV property,
-what delivery systems accept them, and what are the valid
-values, per standard.
-
-> For DVB-S2/X the misuse of bits 8-27 by some drivers for selecting
-> the scrambling sequence index code could cause problems.
-> Should there be a new property for slice selection?
-
-Yes.
-
-> It is recommended that slice id and ISI/PLP id are identical but they
-> can be different.
-
-The new property should reserve a value (0 or (unsigned)-1) to mean "AUTO",
-in the sense that slice ID will be identical to ISI/PLP, being the default.
-
-> - new DVB-S2X features
+> +#include <linux/clk.h>
+>  #include <linux/init.h>
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+> @@ -25,8 +26,8 @@
+>  #include <linux/videodev2.h>
 > 
-> DVB-S2X needs some more roll-offs, FECs and modulations. I guess adding those
-> should be no problem?
+>  #include <media/i2c/ov772x.h>
+> -#include <media/soc_camera.h>
+> -#include <media/v4l2-clk.h>
+> +
+> +#include <media/v4l2-device.h>
 
-Yes, just adding those are OK. We should just document what values are 
-valid for DVB-S2X at the spec.
+Alphabetical order would be nice.
 
-Ok, this is actually already at the specs, but it helps application
-developers to ensure that their apps will only send valid values to the
-Kernel, if we keep such information at the uAPI documentation.
-
-> Do we need FE_CAN_SLICES, FE_CAN_3G_MODULATION, etc?
-
-That is a good question. On my opinion, yes, we should add new
-capabilities there, but we're out of space at the u32 caps that we
-use for capabilities (there are other missing caps there for other
-new standards).
-
-We could start using a DTV property for capabilities, or define
-a variant of FE_GET_INFO that would use an u64 value for
-the caps field.
-
-> Or would a new delivery system type for S2X make sense?
-
-IMHO, it makes sense to have a new delivery system type for S2X.
-A FE_CAN_3G_MODULATION (and, in the future, CAN_4G, CAN_5G, ...)
-could work too, but not sure how this would scale in the future,
-as support for older variants could be removed from some devices,
-e. g. a given demod could, for instance, support 3G, 4G and 5G
-but won't be able to work with 1G or 2G.
-
-My guess is that multiple delivery systems would scale better.
-
-> -DVB-S2 base band frame support
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-subdev.h>
+>  #include <media/v4l2-image-sizes.h>
+> @@ -393,7 +394,7 @@ struct ov772x_win_size {
+>  struct ov772x_priv {
+>  	struct v4l2_subdev                subdev;
+>  	struct v4l2_ctrl_handler	  hdl;
+> -	struct v4l2_clk			 *clk;
+> +	struct clk			 *clk;
+>  	struct ov772x_camera_info        *info;
+>  	const struct ov772x_color_format *cfmt;
+>  	const struct ov772x_win_size     *win;
+> @@ -550,7 +551,7 @@ static int ov772x_reset(struct i2c_client *client)
+>  }
 > 
-> There are some older patches which allowed to switch the demod
-> to a raw BB frame mode (if it and the bridge support this) and
-> have those parsed in the DVB layer.
+>  /*
+> - * soc_camera_ops function
+> + * subdev ops
+>   */
 > 
-> See
-> https://patchwork.linuxtv.org/patch/10402/
-> or
-> https://linuxtv.org/pipermail/linux-dvb/2007-December/022217.html
+>  static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
+> @@ -650,13 +651,36 @@ static int ov772x_s_register(struct v4l2_subdev *sd,
+>  }
+>  #endif
 > 
-> Chris Lee seems to have a tree based on those:
-> https://bitbucket.org/updatelee/v4l-updatelee
+> +static int ov772x_power_on(struct ov772x_priv *priv)
+> +{
+> +	int ret;
+> +
+> +	if (priv->info->platform_enable) {
+> +		ret = priv->info->platform_enable();
+> +		if (ret)
+> +			return ret;
+
+What does this do, enable the regulator?
+
+> +	}
+> +
+> +	/*  drivers/sh/clk/core.c returns -EINVAL if clk is NULL */
+> +	return clk_enable(priv->clk) <= 0 ? 0 : 1;
+> +}
+> +
+> +static int ov772x_power_off(struct ov772x_priv *priv)
+> +{
+> +	if (priv->info->platform_enable)
+> +		priv->info->platform_disable();
+> +
+> +	clk_disable(priv->clk);
+> +
+> +	return 0;
+> +}
+> +
+>  static int ov772x_s_power(struct v4l2_subdev *sd, int on)
+>  {
+> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+>  	struct ov772x_priv *priv = to_ov772x(sd);
 > 
+> -	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
+> +	return on ? ov772x_power_on(priv) :
+> +		    ov772x_power_off(priv);
+>  }
 > 
-> Another method to support this is to wrap the BB frames
-> into sections and deliver them as a normal transport stream.
-> Some demods and/or PCIe bridges support this in hardware.
-> This has the advantage that it would even work with SAT>IP.
+>  static const struct ov772x_win_size *ov772x_select_win(u32 width, u32 height)
+> @@ -1000,14 +1024,10 @@ static int ov772x_enum_mbus_code(struct v4l2_subdev *sd,
+>  static int ov772x_g_mbus_config(struct v4l2_subdev *sd,
+>  				struct v4l2_mbus_config *cfg)
+>  {
+> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+> -
+>  	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
+>  		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
+>  		V4L2_MBUS_DATA_ACTIVE_HIGH;
+>  	cfg->type = V4L2_MBUS_PARALLEL;
+> -	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
 > 
-> How should the latter method be supported in the DVB API?
-> With a special stream id or separate porperty?
-> Switching to this mode could even be done automatically
-> in case of non-TS streams.
+>  	return 0;
+>  }
+> @@ -1038,12 +1058,11 @@ static int ov772x_probe(struct i2c_client *client,
+>  			const struct i2c_device_id *did)
+>  {
+>  	struct ov772x_priv	*priv;
+> -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+> -	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
+> +	struct i2c_adapter	*adapter = client->adapter;
+>  	int			ret;
+> 
+> -	if (!ssdd || !ssdd->drv_priv) {
+> -		dev_err(&client->dev, "OV772X: missing platform data!\n");
+> +	if (!client->dev.platform_data) {
+> +		dev_err(&adapter->dev, "Missing OV7725 platform data\n");
+>  		return -EINVAL;
+>  	}
+> 
+> @@ -1059,7 +1078,7 @@ static int ov772x_probe(struct i2c_client *client,
+>  	if (!priv)
+>  		return -ENOMEM;
+> 
+> -	priv->info = ssdd->drv_priv;
+> +	priv->info = client->dev.platform_data;
+> 
+>  	v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
+>  	v4l2_ctrl_handler_init(&priv->hdl, 3);
+> @@ -1073,21 +1092,33 @@ static int ov772x_probe(struct i2c_client *client,
+>  	if (priv->hdl.error)
+>  		return priv->hdl.error;
+> 
+> -	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+> -	if (IS_ERR(priv->clk)) {
+> +	priv->clk = clk_get(&client->dev, "mclk");
+> +	if (PTR_ERR(priv->clk) == -ENOENT) {
+> +		priv->clk = NULL;
+> +	} else if (IS_ERR(priv->clk)) {
+> +		dev_err(&client->dev, "Unable to get mclk clock\n");
+>  		ret = PTR_ERR(priv->clk);
+> -		goto eclkget;
+> +		goto error_clk_enable;
+>  	}
+> 
+>  	ret = ov772x_video_probe(priv);
+> -	if (ret < 0) {
+> -		v4l2_clk_put(priv->clk);
+> -eclkget:
+> -		v4l2_ctrl_handler_free(&priv->hdl);
+> -	} else {
+> -		priv->cfmt = &ov772x_cfmts[0];
+> -		priv->win = &ov772x_win_sizes[0];
+> -	}
+> +	if (ret < 0)
+> +		goto error_video_probe;
+> +
+> +	priv->cfmt = &ov772x_cfmts[0];
+> +	priv->win = &ov772x_win_sizes[0];
+> +
+> +	ret = v4l2_async_register_subdev(&priv->subdev);
+> +	if (ret)
+> +		goto error_video_probe;
+> +
+> +	return 0;
+> +
+> +error_video_probe:
+> +	if (priv->clk)
+> +		clk_put(priv->clk);
+> +error_clk_enable:
+> +	v4l2_ctrl_handler_free(&priv->hdl);
+> 
+>  	return ret;
+>  }
+> @@ -1096,7 +1127,8 @@ static int ov772x_remove(struct i2c_client *client)
+>  {
+>  	struct ov772x_priv *priv = to_ov772x(i2c_get_clientdata(client));
+> 
+> -	v4l2_clk_put(priv->clk);
+> +	if (priv->clk)
+> +		clk_put(priv->clk);
+>  	v4l2_device_unregister_subdev(&priv->subdev);
+>  	v4l2_ctrl_handler_free(&priv->hdl);
+>  	return 0;
+> diff --git a/include/media/i2c/ov772x.h b/include/media/i2c/ov772x.h
+> index 00dbb7c..5896dff 100644
+> --- a/include/media/i2c/ov772x.h
+> +++ b/include/media/i2c/ov772x.h
+> @@ -54,6 +54,9 @@ struct ov772x_edge_ctrl {
+>  struct ov772x_camera_info {
+>  	unsigned long		flags;
+>  	struct ov772x_edge_ctrl	edgectrl;
+> +
+> +	int (*platform_enable)(void);
+> +	void (*platform_disable)(void);
+>  };
+> 
+>  #endif /* __OV772X_H__ */
+> --
+> 2.7.4
+> 
 
-That's a very good question. 
-
-I guess we'll need to add support at the demux API to inform/select
-the output format anyway, in order to support, for example, ATSC
-version 3, with is based on MMT, instead of MPEG-TS.
-
-One thing that it is on my todo list for a while (with very low priority)
-would be to allow userspace to select between 188 or 204 packet sizes,
-as recording full mpeg-TS with 204 size makes easy to reproduce ISDB-T
-data on my Dectec RF modulators :-) The dtplay default command line
-application doesn't allow specifying layer information (there is a fork
-of it that does, though). Yet, as this would require to change the
-ISDB-T demod as well to be useful (and this is just meant to
-avoid me the need to run the MS application), this is something that I've
-been systematically postponing, in favor of things that would be more
-useful for the general audience.
-
-Anyway, IMHO, it is time to work at the demux API to add a way to list
-what kind of output types it supports and to let userspace select the
-one that it is more adequate for its usecase, if multiple ones are
-supported.
-
-Regards,
-Mauro
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
