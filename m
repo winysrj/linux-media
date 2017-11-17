@@ -1,56 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:38920 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752160AbdKZNAR (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:37744 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753711AbdKQLZC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 26 Nov 2017 08:00:17 -0500
-Received: by mail-wm0-f65.google.com with SMTP id x63so29771220wmf.4
-        for <linux-media@vger.kernel.org>; Sun, 26 Nov 2017 05:00:17 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: rjkm@metzlerbros.de, rascobie@slingshot.co.nz, jasmin@anw.at
-Subject: [PATCH 4/7] [media] dvb-frontends/stv0910: remove unneeded check/call to get_if_freq
-Date: Sun, 26 Nov 2017 14:00:06 +0100
-Message-Id: <20171126130009.6798-5-d.scheller.oss@gmail.com>
-In-Reply-To: <20171126130009.6798-1-d.scheller.oss@gmail.com>
-References: <20171126130009.6798-1-d.scheller.oss@gmail.com>
+        Fri, 17 Nov 2017 06:25:02 -0500
+Subject: Re: [PATCH v7 20/25] rcar-vin: add chsel information to rvin_info
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171111003835.4909-21-niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <725fc456-9f82-935b-c539-3c3c6f75b8c3@xs4all.nl>
+Date: Fri, 17 Nov 2017 12:25:00 +0100
+MIME-Version: 1.0
+In-Reply-To: <20171111003835.4909-21-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On 11/11/17 01:38, Niklas Söderlund wrote:
+> Each Gen3 SoC has a limited set of predefined routing possibilities for
+> which CSI-2 device and virtual channel can be routed to which VIN
+> instance. Prepare to store this information in the struct rvin_info.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-The result (if any) isn't used anywhere besides being assigned to a local
-variable (and the only current companion stv6111 doesn't even implement
-get_if_frequency()), thus remove the ptr check and the call, and also
-remove the now unused iffreq variable.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Reported-by: Richard Scobie <rascobie@slingshot.co.nz>
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Tested-by: Richard Scobie <rascobie@slingshot.co.nz>
----
- drivers/media/dvb-frontends/stv0910.c | 3 ---
- 1 file changed, 3 deletions(-)
+Regards,
 
-diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-index cd247ab9c62d..074374fe00be 100644
---- a/drivers/media/dvb-frontends/stv0910.c
-+++ b/drivers/media/dvb-frontends/stv0910.c
-@@ -1273,14 +1273,11 @@ static int set_parameters(struct dvb_frontend *fe)
- {
- 	int stat = 0;
- 	struct stv *state = fe->demodulator_priv;
--	u32 iffreq;
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 
- 	stop(state);
- 	if (fe->ops.tuner_ops.set_params)
- 		fe->ops.tuner_ops.set_params(fe);
--	if (fe->ops.tuner_ops.get_if_frequency)
--		fe->ops.tuner_ops.get_if_frequency(fe, &iffreq);
- 	state->symbol_rate = p->symbol_rate;
- 	stat = start(state, p);
- 	return stat;
--- 
-2.13.6
+	Hans
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-vin.h | 25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index a9bd570d6635fd47..41c81b8d9fb8e851 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -35,6 +35,9 @@
+>  /* Max number on VIN instances that can be in a system */
+>  #define RCAR_VIN_NUM 8
+>  
+> +/* Max number of CHSEL values for any Gen3 SoC */
+> +#define RCAR_CHSEL_MAX 6
+> +
+>  enum chip_id {
+>  	RCAR_H1,
+>  	RCAR_M1,
+> @@ -91,6 +94,22 @@ struct rvin_graph_entity {
+>  
+>  struct rvin_group;
+>  
+> +/** struct rvin_group_chsel - Map a CSI-2 receiver and channel to a CHSEL value
+> + * @csi:		VIN internal number for CSI-2 device
+> + * @chan:		Output channel of the CSI-2 receiver. Each R-Car CSI-2
+> + *			receiver has four output channels facing the VIN
+> + *			devices, each channel can carry one CSI-2 Virtual
+> + *			Channel (VC) and there are no correlation between
+> + *			output channel number and CSI-2 VC. It's up to the
+> + *			CSI-2 receiver driver to configure which VC is
+> + *			outputted on which channel, the VIN devices only
+> + *			cares about output channels.
+> + */
+> +struct rvin_group_chsel {
+> +	enum rvin_csi_id csi;
+> +	unsigned int chan;
+> +};
+> +
+>  /**
+>   * struct rvin_info - Information about the particular VIN implementation
+>   * @chip:		type of VIN chip
+> @@ -98,6 +117,9 @@ struct rvin_group;
+>   *
+>   * max_width:		max input width the VIN supports
+>   * max_height:		max input height the VIN supports
+> + *
+> + * num_chsels:		number of possible chsel values for this VIN
+> + * chsels:		routing table VIN <-> CSI-2 for the chsel values
+>   */
+>  struct rvin_info {
+>  	enum chip_id chip;
+> @@ -105,6 +127,9 @@ struct rvin_info {
+>  
+>  	unsigned int max_width;
+>  	unsigned int max_height;
+> +
+> +	unsigned int num_chsels;
+> +	struct rvin_group_chsel chsels[RCAR_VIN_NUM][RCAR_CHSEL_MAX];
+>  };
+>  
+>  /**
+> 
