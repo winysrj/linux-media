@@ -1,73 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:59960 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933430AbdKQOcx (ORCPT
+Received: from mail-io0-f195.google.com ([209.85.223.195]:40978 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933995AbdKQHLU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 09:32:53 -0500
-Subject: Re: [PATCH] media: usbvision: remove unneeded DRIVER_LICENSE #define
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <20171117141826.GC17880@kroah.com>
-Cc: Johan Hovold <johan@kernel.org>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Philippe Ombredanne <pombredanne@nexb.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cca54dd4-c4f2-639d-54ba-595cf6d68be8@xs4all.nl>
-Date: Fri, 17 Nov 2017 15:32:50 +0100
+        Fri, 17 Nov 2017 02:11:20 -0500
+Received: by mail-io0-f195.google.com with SMTP id g73so7799899ioj.8
+        for <linux-media@vger.kernel.org>; Thu, 16 Nov 2017 23:11:20 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        <linux-kernel@vger.kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: Re: [RFC v5 08/11] [media] vb2: add videobuf2 dma-buf fence helpers
+Date: Fri, 17 Nov 2017 16:11:14 +0900
 MIME-Version: 1.0
-In-Reply-To: <20171117141826.GC17880@kroah.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Message-ID: <71b364e6-967b-4ede-adcc-2c5d4e70af8e@chromium.org>
+In-Reply-To: <a5b0e0e6-4912-4aec-ac6f-f7744a856d3d@chromium.org>
+References: <20171115171057.17340-1-gustavo@padovan.org>
+ <20171115171057.17340-9-gustavo@padovan.org>
+ <a5b0e0e6-4912-4aec-ac6f-f7744a856d3d@chromium.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17/11/17 15:18, Greg Kroah-Hartman wrote:
-> There is no need to #define the license of the driver, just put it in
-> the MODULE_LICENSE() line directly as a text string.
-> 
-> This allows tools that check that the module license matches the source
-> code license to work properly, as there is no need to unwind the
-> unneeded dereference.
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: Johan Hovold <johan@kernel.org>
-> Cc: Davidlohr Bueso <dave@stgolabs.net>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reported-by: Philippe Ombredanne <pombredanne@nexb.com>
-> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+On Friday, November 17, 2017 4:02:56 PM JST, Alexandre Courbot wrote:
+> On Thursday, November 16, 2017 2:10:54 AM JST, Gustavo Padovan wrote:
+>> From: Javier Martinez Canillas <javier@osg.samsung.com>
+>> 
+>> Add a videobuf2-fence.h header file that contains different helpers
+>> for DMA buffer sharing explicit fence support in videobuf2.
+>> 
+>> v2:	- use fence context provided by the caller in vb2_fence_alloc()
+>> 
+>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com> ...
+>
+> It is probably not a good idea to define that struct here since it will be
+> deduplicated for every source file that includes it.
+>
+> Maybe change it to a simple declaration, and move the definition to
+> videobuf2-core.c or a dedicated videobuf2-fence.c file?
+>
+>> +
+>> +static inline struct dma_fence *vb2_fence_alloc(u64 context)
+>> +{
+>> +	struct dma_fence *vb2_fence = kzalloc(sizeof(*vb2_fence), GFP_KERNEL);
+>> + ...
+>
+> Not sure we gain a lot by having this function static inline, but your call.
+>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Thanks!
-
-	Hans
-
-> ---
->  drivers/media/usb/usbvision/usbvision-video.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-> index 960272d3c924..0f5954a1fea2 100644
-> --- a/drivers/media/usb/usbvision/usbvision-video.c
-> +++ b/drivers/media/usb/usbvision/usbvision-video.c
-> @@ -72,7 +72,6 @@
->  #define DRIVER_NAME "usbvision"
->  #define DRIVER_ALIAS "USBVision"
->  #define DRIVER_DESC "USBVision USB Video Device Driver for Linux"
-> -#define DRIVER_LICENSE "GPL"
->  #define USBVISION_VERSION_STRING "0.9.11"
->  
->  #define	ENABLE_HEXDUMP	0	/* Enable if you need it */
-> @@ -141,7 +140,7 @@ MODULE_PARM_DESC(radio_nr, "Set radio device number (/dev/radioX).  Default: -1
->  /* Misc stuff */
->  MODULE_AUTHOR(DRIVER_AUTHOR);
->  MODULE_DESCRIPTION(DRIVER_DESC);
-> -MODULE_LICENSE(DRIVER_LICENSE);
-> +MODULE_LICENSE("GPL");
->  MODULE_VERSION(USBVISION_VERSION_STRING);
->  MODULE_ALIAS(DRIVER_ALIAS);
->  
-> 
+Looking at the following patch, since it seems that this function is only 
+to be
+called from vb2_setup_out_fence() anyway, you may as well make it static in
+videobuf2-core.c or even inline it in vb2_setup_out_fence() - it would only
+add a few extra lines to this function.
