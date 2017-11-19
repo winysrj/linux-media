@@ -1,320 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-110.mail.aliyun.com ([115.124.20.110]:39010 "EHLO
-        out20-110.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751732AbdKWBPD (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.10]:56573 "EHLO
+        mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750865AbdKSMrv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Nov 2017 20:15:03 -0500
-Date: Thu, 23 Nov 2017 09:14:44 +0800
-From: Yong <yong.deng@magewell.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
-Message-Id: <20171123091444.4bed66dffeb36ecea8dfa706@magewell.com>
-In-Reply-To: <20171122094526.nqxfy2e5jzxw7nl4@flea.lan>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
-        <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
-        <20171121154827.5a35xa6zlqrrvkxx@flea.lan>
-        <20171122093306.d30fe641f269d62daa1f66b4@magewell.com>
-        <20171122094526.nqxfy2e5jzxw7nl4@flea.lan>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="Multipart=_Thu__23_Nov_2017_09_14_44_+0800_Po+9.1tqSRKHktjD"
+        Sun, 19 Nov 2017 07:47:51 -0500
+Date: Sun, 19 Nov 2017 13:47:43 +0100
+From: Luc Verhaegen <libv@skynet.be>
+To: xorg-devel@lists.x.org, xorg-announce@lists.freedesktop.org,
+        mesa-dev@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        wayland-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Subject: FOSDEM 2018: Graphics DevRoom: Call for speaker.
+Message-ID: <20171119124743.GA8754@skynet.be>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
-
---Multipart=_Thu__23_Nov_2017_09_14_44_+0800_Po+9.1tqSRKHktjD
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
 Hi,
 
-On Wed, 22 Nov 2017 10:45:26 +0100
-Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
+At FOSDEM on saturday the 3rd of february 2018, there will be another 
+graphics DevRoom. URL: https://fosdem.org/2018/
 
-> Hi,
-> 
-> On Wed, Nov 22, 2017 at 09:33:06AM +0800, Yong wrote:
-> > > On Thu, Jul 27, 2017 at 01:01:35PM +0800, Yong Deng wrote:
-> > > > Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI interface
-> > > > and CSI1 is used for parallel interface. This is not documented in
-> > > > datasheet but by testing and guess.
-> > > > 
-> > > > This patch implement a v4l2 framework driver for it.
-> > > > 
-> > > > Currently, the driver only support the parallel interface. MIPI-CSI2,
-> > > > ISP's support are not included in this patch.
-> > > > 
-> > > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> > > 
-> > > Thanks again for this driver.
-> > > 
-> > > It seems like at least this iteration is behaving in a weird way with
-> > > DMA transfers for at least YU12 and NV12 (and I would assume YV12).
-> > > 
-> > > Starting a transfer of multiple frames in either of these formats,
-> > > using either ffmpeg (ffmpeg -f v4l2 -video_size 640x480 -framerate 30
-> > > -i /dev/video0 output.mkv) or yavta (yavta -c80 -p -F --skip 0 -f NV12
-> > > -s 640x480 $(media-c tl -e 'sun6i-csi')) will end up in a panic.
-> > > 
-> > > The panic seems to be generated with random data going into parts of
-> > > the kernel memory, the pattern being in my case something like
-> > > 0x8287868a which is very odd (always around 0x88)
-> > > 
-> > > It turns out that when you cover the sensor, the values change to
-> > > around 0x28, so it really seems like it's pixels that have been copied
-> > > there.
-> > > 
-> > > I've looked quickly at the DMA setup, and it seems reasonable to
-> > > me. Do you have the same issue on your side? Have you been able to
-> > > test those formats using your hardware?
-> > 
-> > I had tested the following formats with BT1120 input:
-> > V4L2_PIX_FMT_NV12		-> NV12
-> > V4L2_PIX_FMT_NV21		-> NV21
-> > V4L2_PIX_FMT_NV16		-> NV16
-> > V4L2_PIX_FMT_NV61		-> NV61
-> > V4L2_PIX_FMT_YUV420		-> YU12
-> > V4L2_PIX_FMT_YVU420		-> YV12
-> > V4L2_PIX_FMT_YUV422P		-> 422P
-> > And they all work fine.
-> 
-> Ok, that's good to know.
-> 
-> > > Given that they all are planar formats and YUYV and the likes work
-> > > just fine, maybe we can leave them aside for now?
-> > 
-> > V4L2_PIX_FMT_YUV422P and V4L2_PIX_FMT_YUYV is OK, and V4L2_PIX_FMT_NV12
-> > is bad? It's really weird.
-> > 
-> > What's your input bus code format, type and width?
-> 
-> The sensor is an ov5640, so the MBUS code for the bus is
-> MEDIA_BUS_FMT_YUYV8_2X8.
+The focus of this DevRoom is of course the same as the previous 
+editions, namely:
+* Graphics drivers: from display to media to 3d drivers, both in kernel 
+or userspace. Be it part of DRM, KMS, (direct)FB, V4L, Xorg, Mesa...
+* Input drivers: kernel and userspace.
+* Windowing systems: X, Wayland, Mir, directFB, ...
+* Even colour management, low level toolkit stuff, and other areas which 
+i might have overlooked above are accepted.
 
-Did you test on V3s?
-I haven't tested it with MEDIA_BUS_FMT_YUYV8_2X8.
+Slots will be handed out on a first come, first serve basis. The best 
+slots will go to those who apply the earliest. We have the devroom from 
+10:30 til 19:00, giving us 8h30, so eight 50 minute talkes and one 20 
+minute talk are available.
 
-The Allwinner CSI's DMA is definitely weird. Ondřej Jirman thought
-that CSI has an internal queue (Ondřej's commit has explained in detail).
-I think CSI just pick up the buffer address before the frame done 
-interrupt triggered. 
-The patch in attachment can deal with this. You can see if it is
-useful to solve your problem.
+Talk Submission:
+----------------
 
-Thanks,
-Yong
+Like the last few years, the pentabarf system will be used for talk 
+submission.
 
---Multipart=_Thu__23_Nov_2017_09_14_44_+0800_Po+9.1tqSRKHktjD
-Content-Type: application/octet-stream;
- name="sun6i_csi_fix_writing_to_incorrect_buffer.patch"
-Content-Disposition: attachment;
- filename="sun6i_csi_fix_writing_to_incorrect_buffer.patch"
-Content-Transfer-Encoding: base64
+https://penta.fosdem.org/submission/FOSDEM18
 
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc3VueGkvc3VuNmktY3NpL3N1bjZp
-X2NzaS5jIGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdW54aS9zdW42aS1jc2kvc3VuNmlfY3Np
-LmMKaW5kZXggM2Y0ZGUwOS4uODBiYzQwYiAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS9wbGF0
-Zm9ybS9zdW54aS9zdW42aS1jc2kvc3VuNmlfY3NpLmMKKysrIGIvZHJpdmVycy9tZWRpYS9wbGF0
-Zm9ybS9zdW54aS9zdW42aS1jc2kvc3VuNmlfY3NpLmMKQEAgLTU2Niw3ICs1NjYsNyBAQCBpbnQg
-c3VuNmlfY3NpX3VwZGF0ZV9jb25maWcoc3RydWN0IHN1bjZpX2NzaSAqY3NpLAogCXJldHVybiAw
-OwogfQogCi1pbnQgc3VuNmlfY3NpX3VwZGF0ZV9idWZfYWRkcihzdHJ1Y3Qgc3VuNmlfY3NpICpj
-c2ksIGRtYV9hZGRyX3QgYWRkcikKK3ZvaWQgc3VuNmlfY3NpX3VwZGF0ZV9idWZfYWRkcihzdHJ1
-Y3Qgc3VuNmlfY3NpICpjc2ksIGRtYV9hZGRyX3QgYWRkcikKIHsKIAlzdHJ1Y3Qgc3VuNmlfY3Np
-X2RldiAqc2RldiA9IHN1bjZpX2NzaV90b19kZXYoY3NpKTsKIAkvKiB0cmFuc2Zvcm0gcGh5c2lj
-YWwgYWRkcmVzcyB0byBidXMgYWRkcmVzcyAqLwpAQCAtNTgwLDExICs1ODAsOSBAQCBpbnQgc3Vu
-NmlfY3NpX3VwZGF0ZV9idWZfYWRkcihzdHJ1Y3Qgc3VuNmlfY3NpICpjc2ksIGRtYV9hZGRyX3Qg
-YWRkcikKIAlpZiAoc2Rldi0+cGxhbmFyX29mZnNldFsyXSAhPSAtMSkKIAkJcmVnbWFwX3dyaXRl
-KHNkZXYtPnJlZ21hcCwgQ1NJX0NIX0YyX0JVRkFfUkVHLAogCQkJICAgICAoYnVzX2FkZHIgKyBz
-ZGV2LT5wbGFuYXJfb2Zmc2V0WzJdKSA+PiAyKTsKLQotCXJldHVybiAwOwogfQogCi1pbnQgc3Vu
-NmlfY3NpX3NldF9zdHJlYW0oc3RydWN0IHN1bjZpX2NzaSAqY3NpLCBib29sIGVuYWJsZSkKK3Zv
-aWQgc3VuNmlfY3NpX3NldF9zdHJlYW0oc3RydWN0IHN1bjZpX2NzaSAqY3NpLCBib29sIGVuYWJs
-ZSkKIHsKIAlzdHJ1Y3Qgc3VuNmlfY3NpX2RldiAqc2RldiA9IHN1bjZpX2NzaV90b19kZXYoY3Np
-KTsKIAlzdHJ1Y3QgcmVnbWFwICpyZWdtYXAgPSBzZGV2LT5yZWdtYXA7CkBAIC01OTIsNyArNTkw
-LDcgQEAgaW50IHN1bjZpX2NzaV9zZXRfc3RyZWFtKHN0cnVjdCBzdW42aV9jc2kgKmNzaSwgYm9v
-bCBlbmFibGUpCiAJaWYgKCFlbmFibGUpIHsKIAkJcmVnbWFwX3VwZGF0ZV9iaXRzKHJlZ21hcCwg
-Q1NJX0NBUF9SRUcsIENTSV9DQVBfQ0gwX1ZDQVBfT04sIDApOwogCQlyZWdtYXBfd3JpdGUocmVn
-bWFwLCBDU0lfQ0hfSU5UX0VOX1JFRywgMCk7Ci0JCXJldHVybiAwOworCQlyZXR1cm47CiAJfQog
-CiAJcmVnbWFwX3dyaXRlKHJlZ21hcCwgQ1NJX0NIX0lOVF9TVEFfUkVHLCAweEZGKTsKQEAgLTYw
-Niw4ICs2MDQsNiBAQCBpbnQgc3VuNmlfY3NpX3NldF9zdHJlYW0oc3RydWN0IHN1bjZpX2NzaSAq
-Y3NpLCBib29sIGVuYWJsZSkKIAogCXJlZ21hcF91cGRhdGVfYml0cyhyZWdtYXAsIENTSV9DQVBf
-UkVHLCBDU0lfQ0FQX0NIMF9WQ0FQX09OLAogCQkJICAgQ1NJX0NBUF9DSDBfVkNBUF9PTik7Ci0K
-LQlyZXR1cm4gMDsKIH0KIAogLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvbWVkaWEvcGxhdGZvcm0vc3VueGkvc3VuNmktY3NpL3N1bjZpX2NzaS5oIGIvZHJpdmVy
-cy9tZWRpYS9wbGF0Zm9ybS9zdW54aS9zdW42aS1jc2kvc3VuNmlfY3NpLmgKaW5kZXggMTI1MDhm
-Zi4uOWJjNzU4YiAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdW54aS9zdW42
-aS1jc2kvc3VuNmlfY3NpLmgKKysrIGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdW54aS9zdW42
-aS1jc2kvc3VuNmlfY3NpLmgKQEAgLTkyLDE0ICs5MiwxNCBAQCBpbnQgc3VuNmlfY3NpX3VwZGF0
-ZV9jb25maWcoc3RydWN0IHN1bjZpX2NzaSAqY3NpLAogICogQGNzaToJcG9pbnRlciB0byB0aGUg
-Y3NpCiAgKiBAYWRkcjoJZnJhbWUgYnVmZmVyJ3MgcGh5c2ljYWwgYWRkcmVzcwogICovCi1pbnQg
-c3VuNmlfY3NpX3VwZGF0ZV9idWZfYWRkcihzdHJ1Y3Qgc3VuNmlfY3NpICpjc2ksIGRtYV9hZGRy
-X3QgYWRkcik7Cit2b2lkIHN1bjZpX2NzaV91cGRhdGVfYnVmX2FkZHIoc3RydWN0IHN1bjZpX2Nz
-aSAqY3NpLCBkbWFfYWRkcl90IGFkZHIpOwogCiAvKioKICAqIHN1bjZpX2NzaV9zZXRfc3RyZWFt
-KCkgLSBzdGFydC9zdG9wIGNzaSBzdHJlYW1pbmcKICAqIEBjc2k6CXBvaW50ZXIgdG8gdGhlIGNz
-aQogICogQGVuYWJsZToJc3RhcnQvc3RvcAogICovCi1pbnQgc3VuNmlfY3NpX3NldF9zdHJlYW0o
-c3RydWN0IHN1bjZpX2NzaSAqY3NpLCBib29sIGVuYWJsZSk7Cit2b2lkIHN1bjZpX2NzaV9zZXRf
-c3RyZWFtKHN0cnVjdCBzdW42aV9jc2kgKmNzaSwgYm9vbCBlbmFibGUpOwogCiBzdGF0aWMgaW5s
-aW5lIGludCB2NGwyX3BpeGZvcm1hdF9nZXRfYnBwKHVuc2lnbmVkIGludCBwaXhmb3JtYXQpCiB7
-CmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3N1bnhpL3N1bjZpLWNzaS9zdW42
-aV92aWRlby5jIGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdW54aS9zdW42aS1jc2kvc3VuNmlf
-dmlkZW8uYwppbmRleCAwY2ViY2JkLi4wODE5YjcxIDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlh
-L3BsYXRmb3JtL3N1bnhpL3N1bjZpLWNzaS9zdW42aV92aWRlby5jCisrKyBiL2RyaXZlcnMvbWVk
-aWEvcGxhdGZvcm0vc3VueGkvc3VuNmktY3NpL3N1bjZpX3ZpZGVvLmMKQEAgLTI5LDYgKzI5LDcg
-QEAgc3RydWN0IHN1bjZpX2NzaV9idWZmZXIgewogCXN0cnVjdCBsaXN0X2hlYWQJCWxpc3Q7CiAK
-IAlkbWFfYWRkcl90CQkJZG1hX2FkZHI7CisJYm9vbAkJCQlxdWV1ZWRfdG9fY3NpOwogfTsKIAog
-c3RhdGljIHN0cnVjdCBzdW42aV9jc2lfZm9ybWF0ICoKQEAgLTEzNSw2ICsxMzYsNyBAQCBzdGF0
-aWMgaW50IHN1bjZpX3ZpZGVvX3N0YXJ0X3N0cmVhbWluZyhzdHJ1Y3QgdmIyX3F1ZXVlICp2cSwg
-dW5zaWduZWQgaW50IGNvdW50KQogewogCXN0cnVjdCBzdW42aV92aWRlbyAqdmlkZW8gPSB2YjJf
-Z2V0X2Rydl9wcml2KHZxKTsKIAlzdHJ1Y3Qgc3VuNmlfY3NpX2J1ZmZlciAqYnVmOworCXN0cnVj
-dCBzdW42aV9jc2lfYnVmZmVyICpuZXh0X2J1ZjsKIAlzdHJ1Y3Qgc3VuNmlfY3NpX2NvbmZpZyBj
-b25maWc7CiAJdW5zaWduZWQgbG9uZyBmbGFnczsKIAlpbnQgcmV0OwpAQCAtMTQzLDExICsxNDUs
-NyBAQCBzdGF0aWMgaW50IHN1bjZpX3ZpZGVvX3N0YXJ0X3N0cmVhbWluZyhzdHJ1Y3QgdmIyX3F1
-ZXVlICp2cSwgdW5zaWduZWQgaW50IGNvdW50KQogCiAJcmV0ID0gbWVkaWFfcGlwZWxpbmVfc3Rh
-cnQoJnZpZGVvLT52ZGV2LmVudGl0eSwgJnZpZGVvLT52ZGV2LnBpcGUpOwogCWlmIChyZXQgPCAw
-KQotCQlnb3RvIGVycl9zdGFydF9waXBlbGluZTsKLQotCXJldCA9IHN1bjZpX3BpcGVsaW5lX3Nl
-dF9zdHJlYW0odmlkZW8sIHRydWUpOwotCWlmIChyZXQgPCAwKQotCQlnb3RvIGVycl9zdGFydF9z
-dHJlYW07CisJCWdvdG8gY2xlYXJfZG1hX3F1ZXVlOwogCiAJY29uZmlnLnBpeGVsZm9ybWF0ID0g
-dmlkZW8tPmZtdC5mbXQucGl4LnBpeGVsZm9ybWF0OwogCWNvbmZpZy5jb2RlID0gdmlkZW8tPmN1
-cnJlbnRfZm10LT5tYnVzX2NvZGU7CkBAIC0xNTcsMzEgKzE1NSw1MCBAQCBzdGF0aWMgaW50IHN1
-bjZpX3ZpZGVvX3N0YXJ0X3N0cmVhbWluZyhzdHJ1Y3QgdmIyX3F1ZXVlICp2cSwgdW5zaWduZWQg
-aW50IGNvdW50KQogCiAJcmV0ID0gc3VuNmlfY3NpX3VwZGF0ZV9jb25maWcodmlkZW8tPmNzaSwg
-JmNvbmZpZyk7CiAJaWYgKHJldCA8IDApCi0JCWdvdG8gZXJyX3VwZGF0ZV9jb25maWc7CisJCWdv
-dG8gc3RvcF9tZWRpYV9waXBlbGluZTsKIAogCXNwaW5fbG9ja19pcnFzYXZlKCZ2aWRlby0+ZG1h
-X3F1ZXVlX2xvY2ssIGZsYWdzKTsKLQl2aWRlby0+Y3VyX2ZybSA9IGxpc3RfZmlyc3RfZW50cnko
-JnZpZGVvLT5kbWFfcXVldWUsCi0JCQkJCSAgc3RydWN0IHN1bjZpX2NzaV9idWZmZXIsIGxpc3Qp
-OwotCWxpc3RfZGVsKCZ2aWRlby0+Y3VyX2ZybS0+bGlzdCk7Ci0Jc3Bpbl91bmxvY2tfaXJxcmVz
-dG9yZSgmdmlkZW8tPmRtYV9xdWV1ZV9sb2NrLCBmbGFncyk7CiAKLQlyZXQgPSBzdW42aV9jc2lf
-dXBkYXRlX2J1Zl9hZGRyKHZpZGVvLT5jc2ksIHZpZGVvLT5jdXJfZnJtLT5kbWFfYWRkcik7Ci0J
-aWYgKHJldCA8IDApCi0JCWdvdG8gZXJyX3VwZGF0ZV9hZGRyOworCWJ1ZiA9IGxpc3RfZmlyc3Rf
-ZW50cnkoJnZpZGVvLT5kbWFfcXVldWUsCisJCQkgICAgICAgc3RydWN0IHN1bjZpX2NzaV9idWZm
-ZXIsIGxpc3QpOworCWJ1Zi0+cXVldWVkX3RvX2NzaSA9IHRydWU7CisJc3VuNmlfY3NpX3VwZGF0
-ZV9idWZfYWRkcih2aWRlby0+Y3NpLCBidWYtPmRtYV9hZGRyKTsKKworCXN1bjZpX2NzaV9zZXRf
-c3RyZWFtKHZpZGVvLT5jc2ksIHRydWUpOworCisJLyogQ1NJIHdpbGwgbG9va3VwIHRoZSBuZXh0
-IGRtYSBidWZmZXIgZm9yIG5leHQgZnJhbWUgYmVmb3JlIHRoZQorCSAqIHRoZSBjdXJyZW50IGZy
-YW1lIGRvbmUgSVJRIHRyaWdnZXJlZC4gVGhpcyBpcyBub3QgZG9jdW1lbnRlZAorCSAqIGJ1dCBy
-ZXBvcnRlZCBieSBPbmTFmWVqIEppcm1hbi4KKwkgKiBUaGUgQlNQIGNvZGUgaGFzIHdvcmthcm91
-bmQgZm9yIHRoaXMgdG9vLiBJdCBza2lwIHRvIG1hcmsgdGhlCisJICogZmlyc3QgYnVmZmVyIGFz
-IGZyYW1lIGRvbmUgZm9yIFZCMiBhbmQgcGFzcyB0aGUgc2Vjb25kIGJ1ZmZlcgorCSAqIHRvIENT
-SSBpbiB0aGUgZmlyc3QgZnJhbWUgZG9uZSBJU1IgY2FsbC4gVGhlbiBpbiBzZWNvbmQgZnJhbWUK
-KwkgKiBkb25lIElTUiBjYWxsLCBpdCBtYXJrIHRoZSBmaXJzdCBidWZmZXIgYXMgZnJhbWUgZG9u
-ZSBmb3IgVkIyCisJICogYW5kIHBhc3MgdGhlIHRoaXJkIGJ1ZmZlciB0byBDU0kuIEFuZCBzbyBv
-bi4gVGhlIGJhZCB0aGluZyBpcworCSAqIHRoYXQgdGhlIGZpcnN0IGJ1ZmZlciB3aWxsIGJlIHdy
-aXR0ZW4gdHdpY2UgYW5kIHRoZSBmaXJzdCBmcmFtZQorCSAqIGlzIGRyb3BwZWQgZXZlbiB0aGUg
-cXVldWVkIGJ1ZmZlciBpcyBzdWZmaWNpZW50LgorCSAqIFNvLCBJIG1ha2Ugc29tZSBpbXByb3Zl
-bWVudCBoZXJlLiBQYXNzIHRoZSBuZXh0IGJ1ZmZlciB0byBDU0kKKwkgKiBqdXN0IGZvbGxvdyBz
-dGFydGluZyB0aGUgQ1NJLiBJbiB0aGlzIGNhc2UsIHRoZSBmaXJzdCBmcmFtZQorCSAqIHdpbGwg
-YmUgc3RvcmVkIGluIGZpcnN0IGJ1ZmZlciwgc2Vjb25kIGZyYW1lIGluIHNlY29uZCBidWZmZXIu
-CisJICogVGhpcyBtb3RoZWQgaXMgdXNlZCB0byBhdm9pZCBkcm9wcGluZyB0aGUgZmlyc3QgZnJh
-bWUsIGl0CisJICogd291bGQgYWxzbyBkcm9wIGZyYW1lIHdoZW4gbGFjayBvZiBxdWV1ZWQgYnVm
-ZmVyLgorCSAqLworCW5leHRfYnVmID0gbGlzdF9uZXh0X2VudHJ5KGJ1ZiwgbGlzdCk7CisJbmV4
-dF9idWYtPnF1ZXVlZF90b19jc2kgPSB0cnVlOworCXN1bjZpX2NzaV91cGRhdGVfYnVmX2FkZHIo
-dmlkZW8tPmNzaSwgbmV4dF9idWYtPmRtYV9hZGRyKTsKIAotCXJldCA9IHN1bjZpX2NzaV9zZXRf
-c3RyZWFtKHZpZGVvLT5jc2ksIHRydWUpOworCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJnZpZGVv
-LT5kbWFfcXVldWVfbG9jaywgZmxhZ3MpOworCisJcmV0ID0gc3VuNmlfcGlwZWxpbmVfc2V0X3N0
-cmVhbSh2aWRlbywgdHJ1ZSk7CiAJaWYgKHJldCA8IDApCi0JCWdvdG8gZXJyX2NzaV9zdHJlYW07
-CisJCWdvdG8gc3RvcF9jc2lfc3RyZWFtOwogCiAJcmV0dXJuIDA7CiAKLWVycl9jc2lfc3RyZWFt
-OgotZXJyX3VwZGF0ZV9hZGRyOgotZXJyX3VwZGF0ZV9jb25maWc6Ci0Jc3VuNmlfcGlwZWxpbmVf
-c2V0X3N0cmVhbSh2aWRlbywgZmFsc2UpOwotZXJyX3N0YXJ0X3N0cmVhbToKK3N0b3BfY3NpX3N0
-cmVhbToKKwlzdW42aV9jc2lfc2V0X3N0cmVhbSh2aWRlby0+Y3NpLCBmYWxzZSk7CitzdG9wX21l
-ZGlhX3BpcGVsaW5lOgogCW1lZGlhX3BpcGVsaW5lX3N0b3AoJnZpZGVvLT52ZGV2LmVudGl0eSk7
-Ci1lcnJfc3RhcnRfcGlwZWxpbmU6CitjbGVhcl9kbWFfcXVldWU6CiAJc3Bpbl9sb2NrX2lycXNh
-dmUoJnZpZGVvLT5kbWFfcXVldWVfbG9jaywgZmxhZ3MpOwogCWxpc3RfZm9yX2VhY2hfZW50cnko
-YnVmLCAmdmlkZW8tPmRtYV9xdWV1ZSwgbGlzdCkKIAkJdmIyX2J1ZmZlcl9kb25lKCZidWYtPnZi
-LnZiMl9idWYsIFZCMl9CVUZfU1RBVEVfUVVFVUVEKTsKQEAgLTIwNSwxMSArMjIyLDYgQEAgc3Rh
-dGljIHZvaWQgc3VuNmlfdmlkZW9fc3RvcF9zdHJlYW1pbmcoc3RydWN0IHZiMl9xdWV1ZSAqdnEp
-CiAKIAkvKiBSZWxlYXNlIGFsbCBhY3RpdmUgYnVmZmVycyAqLwogCXNwaW5fbG9ja19pcnFzYXZl
-KCZ2aWRlby0+ZG1hX3F1ZXVlX2xvY2ssIGZsYWdzKTsKLQlpZiAodW5saWtlbHkodmlkZW8tPmN1
-cl9mcm0pKSB7Ci0JCXZiMl9idWZmZXJfZG9uZSgmdmlkZW8tPmN1cl9mcm0tPnZiLnZiMl9idWYs
-Ci0JCQkJVkIyX0JVRl9TVEFURV9FUlJPUik7Ci0JCXZpZGVvLT5jdXJfZnJtID0gTlVMTDsKLQl9
-CiAJbGlzdF9mb3JfZWFjaF9lbnRyeShidWYsICZ2aWRlby0+ZG1hX3F1ZXVlLCBsaXN0KQogCQl2
-YjJfYnVmZmVyX2RvbmUoJmJ1Zi0+dmIudmIyX2J1ZiwgVkIyX0JVRl9TVEFURV9FUlJPUik7CiAJ
-SU5JVF9MSVNUX0hFQUQoJnZpZGVvLT5kbWFfcXVldWUpOwpAQCAtMjI1LDM5ICsyMzcsNTggQEAg
-c3RhdGljIHZvaWQgc3VuNmlfdmlkZW9fYnVmZmVyX3F1ZXVlKHN0cnVjdCB2YjJfYnVmZmVyICp2
-YikKIAl1bnNpZ25lZCBsb25nIGZsYWdzOwogCiAJc3Bpbl9sb2NrX2lycXNhdmUoJnZpZGVvLT5k
-bWFfcXVldWVfbG9jaywgZmxhZ3MpOwotCWlmICghdmlkZW8tPmN1cl9mcm0gJiYgbGlzdF9lbXB0
-eSgmdmlkZW8tPmRtYV9xdWV1ZSkgJiYKLQkJdmIyX2lzX3N0cmVhbWluZyh2Yi0+dmIyX3F1ZXVl
-KSkgewotCQl2aWRlby0+Y3VyX2ZybSA9IGJ1ZjsKLQkJc3VuNmlfY3NpX3VwZGF0ZV9idWZfYWRk
-cih2aWRlby0+Y3NpLCB2aWRlby0+Y3VyX2ZybS0+ZG1hX2FkZHIpOwotCQlzdW42aV9jc2lfc2V0
-X3N0cmVhbSh2aWRlby0+Y3NpLCAxKTsKLQl9IGVsc2UKLQkJbGlzdF9hZGRfdGFpbCgmYnVmLT5s
-aXN0LCAmdmlkZW8tPmRtYV9xdWV1ZSk7CisJYnVmLT5xdWV1ZWRfdG9fY3NpID0gZmFsc2U7CisJ
-bGlzdF9hZGRfdGFpbCgmYnVmLT5saXN0LCAmdmlkZW8tPmRtYV9xdWV1ZSk7CiAJc3Bpbl91bmxv
-Y2tfaXJxcmVzdG9yZSgmdmlkZW8tPmRtYV9xdWV1ZV9sb2NrLCBmbGFncyk7CiB9CiAKIHZvaWQg
-c3VuNmlfdmlkZW9fZnJhbWVfZG9uZShzdHJ1Y3Qgc3VuNmlfdmlkZW8gKnZpZGVvKQogeworCXN0
-cnVjdCBzdW42aV9jc2lfYnVmZmVyICpidWY7CisJc3RydWN0IHN1bjZpX2NzaV9idWZmZXIgKm5l
-eHRfYnVmOworCXN0cnVjdCB2YjJfdjRsMl9idWZmZXIgKnZidWYgOworCiAJc3Bpbl9sb2NrKCZ2
-aWRlby0+ZG1hX3F1ZXVlX2xvY2spOwogCi0JaWYgKHZpZGVvLT5jdXJfZnJtKSB7Ci0JCXN0cnVj
-dCB2YjJfdjRsMl9idWZmZXIgKnZidWYgPSAmdmlkZW8tPmN1cl9mcm0tPnZiOwotCQlzdHJ1Y3Qg
-dmIyX2J1ZmZlciAqdmIgPSAmdmJ1Zi0+dmIyX2J1ZjsKKwl2aWRlby0+c2VxdWVuY2UrKzsKKwor
-CWJ1ZiA9IGxpc3RfZmlyc3RfZW50cnkoJnZpZGVvLT5kbWFfcXVldWUsCisJCQkgICAgICAgc3Ry
-dWN0IHN1bjZpX2NzaV9idWZmZXIsIGxpc3QpOworCWlmIChsaXN0X2lzX2xhc3QoJmJ1Zi0+bGlz
-dCwgJnZpZGVvLT5kbWFfcXVldWUpKSB7CisJCWRldl9kYmcodmlkZW8tPmNzaS0+ZGV2LCAiRnJh
-bWUgZHJvcGVkIVxuIik7CisJCWdvdG8gdW5sb2NrOworCX0KIAotCQl2Yi0+dGltZXN0YW1wID0g
-a3RpbWVfZ2V0X25zKCk7Ci0JCXZidWYtPnNlcXVlbmNlID0gdmlkZW8tPnNlcXVlbmNlKys7Ci0J
-CXZiMl9idWZmZXJfZG9uZSh2YiwgVkIyX0JVRl9TVEFURV9ET05FKTsKLQkJdmlkZW8tPmN1cl9m
-cm0gPSBOVUxMOworCW5leHRfYnVmID0gbGlzdF9uZXh0X2VudHJ5KGJ1ZiwgbGlzdCk7CisJLyog
-SWYgYSBuZXcgYnVmZmVyICgjbmV4dF9idWYpIGhhZCBub3QgYmVlbiBxdWV1ZWQgdG8gQ1NJLCB0
-aGUgb2xkCisJICogYnVmZmVyICgjYnVmKSBpcyBzdGlsbCBob2xkaW5nIGJ5IENTSSBmb3Igc3Rv
-cmluZyB0aGUgbmV4dAorCSAqIGZyYW1lLiBTbywgd2UgcXVldWUgYSBuZXcgYnVmZmVyICgjbmV4
-dF9idWYpIHRvIENTSSB0aGVuIHdhaXQKKwkgKiBmb3IgbmV4dCBJU1IgY2FsbC4KKwkgKi8KKwlp
-ZiAoIW5leHRfYnVmLT5xdWV1ZWRfdG9fY3NpKSB7CisJCW5leHRfYnVmLT5xdWV1ZWRfdG9fY3Np
-ID0gdHJ1ZTsKKwkJc3VuNmlfY3NpX3VwZGF0ZV9idWZfYWRkcih2aWRlby0+Y3NpLCBuZXh0X2J1
-Zi0+ZG1hX2FkZHIpOworCQlkZXZfZGJnKHZpZGVvLT5jc2ktPmRldiwgIkZyYW1lIGRyb3BlZCFc
-biIpOworCQlnb3RvIHVubG9jazsKIAl9CiAKLQlpZiAoIWxpc3RfZW1wdHkoJnZpZGVvLT5kbWFf
-cXVldWUpCi0JICAgICYmIHZiMl9pc19zdHJlYW1pbmcoJnZpZGVvLT52YjJfdmlkcSkpIHsKLQkJ
-dmlkZW8tPmN1cl9mcm0gPSBsaXN0X2ZpcnN0X2VudHJ5KCZ2aWRlby0+ZG1hX3F1ZXVlLAotCQkJ
-CXN0cnVjdCBzdW42aV9jc2lfYnVmZmVyLCBsaXN0KTsKLQkJbGlzdF9kZWwoJnZpZGVvLT5jdXJf
-ZnJtLT5saXN0KTsKLQkJc3VuNmlfY3NpX3VwZGF0ZV9idWZfYWRkcih2aWRlby0+Y3NpLCB2aWRl
-by0+Y3VyX2ZybS0+ZG1hX2FkZHIpOwotCX0gZWxzZQotCQlzdW42aV9jc2lfc2V0X3N0cmVhbSh2
-aWRlby0+Y3NpLCAwKTsKKwlsaXN0X2RlbCgmYnVmLT5saXN0KTsKKwl2YnVmID0gJmJ1Zi0+dmI7
-CisJdmJ1Zi0+dmIyX2J1Zi50aW1lc3RhbXAgPSBrdGltZV9nZXRfbnMoKTsKKwl2YnVmLT5zZXF1
-ZW5jZSA9IHZpZGVvLT5zZXF1ZW5jZTsKKwl2YjJfYnVmZmVyX2RvbmUoJnZidWYtPnZiMl9idWYs
-IFZCMl9CVUZfU1RBVEVfRE9ORSk7CiAKKwlpZiAobGlzdF9pc19sYXN0KCZuZXh0X2J1Zi0+bGlz
-dCwgJnZpZGVvLT5kbWFfcXVldWUpKQorCQlnb3RvIHVubG9jazsKKworCS8qIFByZXBhcmUgYnVm
-ZmVyIGZvciBuZXh0IGZyYW1lIGJ1dCBvbmUuICAqLworCW5leHRfYnVmID0gbGlzdF9uZXh0X2Vu
-dHJ5KG5leHRfYnVmLCBsaXN0KTsKKwlpZiAoIWxpc3RfaXNfbGFzdCgmbmV4dF9idWYtPmxpc3Qs
-ICZ2aWRlby0+ZG1hX3F1ZXVlKSkgeworCQluZXh0X2J1Zi0+cXVldWVkX3RvX2NzaSA9IHRydWU7
-CisJCXN1bjZpX2NzaV91cGRhdGVfYnVmX2FkZHIodmlkZW8tPmNzaSwgbmV4dF9idWYtPmRtYV9h
-ZGRyKTsKKwl9CisKK3VubG9jazoKIAlzcGluX3VubG9jaygmdmlkZW8tPmRtYV9xdWV1ZV9sb2Nr
-KTsKIH0KIApAQCAtNjY0LDcgKzY5NSw2IEBAIGludCBzdW42aV92aWRlb19pbml0KHN0cnVjdCBz
-dW42aV92aWRlbyAqdmlkZW8sIHN0cnVjdCBzdW42aV9jc2kgKmNzaSwKIAlJTklUX0xJU1RfSEVB
-RCgmdmlkZW8tPmRtYV9xdWV1ZSk7CiAJc3Bpbl9sb2NrX2luaXQoJnZpZGVvLT5kbWFfcXVldWVf
-bG9jayk7CiAKLQl2aWRlby0+Y3VyX2ZybSA9IE5VTEw7CiAJdmlkZW8tPnNlcXVlbmNlID0gMDsK
-IAl2aWRlby0+bnVtX2Zvcm1hdHMgPSAwOwogCkBAIC02NzcsNyArNzA3LDcgQEAgaW50IHN1bjZp
-X3ZpZGVvX2luaXQoc3RydWN0IHN1bjZpX3ZpZGVvICp2aWRlbywgc3RydWN0IHN1bjZpX2NzaSAq
-Y3NpLAogCXZpZHEtPm1lbV9vcHMJCQk9ICZ2YjJfZG1hX2NvbnRpZ19tZW1vcHM7CiAJdmlkcS0+
-dGltZXN0YW1wX2ZsYWdzCQk9IFY0TDJfQlVGX0ZMQUdfVElNRVNUQU1QX01PTk9UT05JQzsKIAl2
-aWRxLT5sb2NrCQkJPSAmdmlkZW8tPmxvY2s7Ci0JdmlkcS0+bWluX2J1ZmZlcnNfbmVlZGVkCT0g
-MTsKKwl2aWRxLT5taW5fYnVmZmVyc19uZWVkZWQJPSAyOwogCXZpZHEtPmRldgkJCT0gY3NpLT5k
-ZXY7CiAKIAlyZXQgPSB2YjJfcXVldWVfaW5pdCh2aWRxKTsKZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-bWVkaWEvcGxhdGZvcm0vc3VueGkvc3VuNmktY3NpL3N1bjZpX3ZpZGVvLmggYi9kcml2ZXJzL21l
-ZGlhL3BsYXRmb3JtL3N1bnhpL3N1bjZpLWNzaS9zdW42aV92aWRlby5oCmluZGV4IDE0ZWFjNmUu
-LmI1YTNkMzQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc3VueGkvc3VuNmkt
-Y3NpL3N1bjZpX3ZpZGVvLmgKKysrIGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdW54aS9zdW42
-aS1jc2kvc3VuNmlfdmlkZW8uaApAQCAtNDMsNyArNDMsNiBAQCBzdHJ1Y3Qgc3VuNmlfdmlkZW8g
-ewogCXNwaW5sb2NrX3QJCQlkbWFfcXVldWVfbG9jazsKIAlzdHJ1Y3QgbGlzdF9oZWFkCQlkbWFf
-cXVldWU7CiAKLQlzdHJ1Y3Qgc3VuNmlfY3NpX2J1ZmZlcgkJKmN1cl9mcm07CiAJdW5zaWduZWQg
-aW50CQkJc2VxdWVuY2U7CiAKIAlzdHJ1Y3Qgc3VuNmlfY3NpX2Zvcm1hdAkJKmZvcm1hdHM7Cg==
+Remember that FOSDEM is not like XDC, it's not some 50 odd people 
+meeting with a sliding schedule which only gets filled out on the last 
+day. Upwards of 10000 people are visiting this event, and most of them 
+get a printed booklet or use the schedule on the FOSDEM website or an 
+app for their phone to figure out what to watch or participate in next. 
+So please put some effort in your talk submission and details.
 
---Multipart=_Thu__23_Nov_2017_09_14_44_+0800_Po+9.1tqSRKHktjD--
+Since this an open source community event, please refrain from turning 
+in a talk that is a pure corporate or product commercial. Also, if you 
+are unsure on whether you can come or not (this is FOSDEM, why are you 
+not there anyway?), please wait with submitting your talk. Submitting a 
+talk and then not turning up because you could not be bothered is a 
+sure-fire way to get larted and then to never be allowed to talk again.
+
+When in pentabarf, please give the abstract and description, for both 
+the event and the speaker, some thought. The abstract should be a 
+shortened description, and the event abstract will sometimes even be 
+printed directly in the booklet. BUT, on the website the abstract is 
+immediately followed by the full description. If your abstract is fully 
+descriptive, while terse, you might get away with just the abstract.
+
+All talks will be recorded, and will be streamed out live, and will 
+later be made available as CC-BY after a few days.
+
+As for deadlines, the fosdem organizers want to have a finished schedule 
+by the 15th of december. Don't count on this deadline: first come first 
+serve! The worst slots will be assigned to those who come last, which 
+could be pretty dire given that there is the traditional FOSDEM beer 
+event the night before ;)
+
+Please try to re-use your accounts from the previous years, i hope that 
+this year you can actually recycle your data. If you have forgotten your 
+password, then you can reset it here: 
+https://penta.fosdem.org/user/forgot_password If there are any issues, 
+just poke me here or on IRC.
+
+Necessary information:
+----------------------
+
+Below is a list of what i need to see filled in in pentabarf when you 
+apply for a devroom before i consider it a valid submission. Remember: 
+first come, first serve. The best slots (which are on saturday 
+afternoon) are for the earliest submissions.
+
+On your personal page:
+* General:
+  * First and last name
+  * Nickname
+  * Image
+* Contact:
+  * email address
+  * mobile number (this is a very hard requirement as there will be no
+   other reliable form of emergency communication on the day)
+* Description:
+  * Abstract
+  * Description
+
+Create an event:
+* On the General page:
+  * Event title
+  * Event subtitle.
+  * Track: Graphics Devroom
+  * Event type: Lecture (talk) or Meeting (BoF)
+* Persons:
+  * Add yourself as speaker.
+* Description:
+  * Abstract:
+  * Full Description
+* Links:
+  * Add relevant links.
+
+Everything else can be ignored or will be filled in by me or the FOSDEM 
+organizers. Remember, i will only schedule your talk after the basics 
+are somewhat filled in (you still can change them until december 15th).
+
+I will be keeping a keen eye on your submissions and will come back with 
+further questions or make small fixes as needed. Feel free to poke me 
+with any questions or anything, both on irc (libv@freenode) and on 
+email.
+
+That's about it. Hope to see you all at FOSDEM :)
+
+Luc Verhaegen.
