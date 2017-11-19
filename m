@@ -1,217 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60066 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751607AbdKKXcg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Nov 2017 18:32:36 -0500
-Date: Sun, 12 Nov 2017 01:32:31 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v10 2/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2
- receiver driver
-Message-ID: <20171111233230.zbrt6mkfcplccuuw@valkosipuli.retiisi.org.uk>
-References: <20171110133137.9137-1-niklas.soderlund+renesas@ragnatech.se>
- <20171110133137.9137-3-niklas.soderlund+renesas@ragnatech.se>
- <20171110223227.pug7d4qi7rdi4b4b@valkosipuli.retiisi.org.uk>
- <20171111001113.GB13042@bigcity.dyn.berto.se>
+Received: from gofer.mess.org ([88.97.38.141]:54921 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750915AbdKSV53 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 19 Nov 2017 16:57:29 -0500
+Date: Sun, 19 Nov 2017 21:57:27 +0000
+From: Sean Young <sean@mess.org>
+To: Matthias Reichl <hias@horus.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: rc: double keypresses due to timeout expiring to
+ early
+Message-ID: <20171119215727.slnzxumlun5lh6ae@gofer.mess.org>
+References: <20171116152700.filid3ask3gowegl@camel2.lan>
+ <20171116163920.ouxinvde5ai4fle3@gofer.mess.org>
+ <20171116215451.min7sqdo7itiyyif@gofer.mess.org>
+ <20171117145249.wc4ql2hw46enxu7d@camel2.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171111001113.GB13042@bigcity.dyn.berto.se>
+In-Reply-To: <20171117145249.wc4ql2hw46enxu7d@camel2.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hejssan, Niklas!
-
-On Sat, Nov 11, 2017 at 01:11:13AM +0100, Niklas Söderlund wrote:
-> Hej Sakari,
+On Fri, Nov 17, 2017 at 03:52:50PM +0100, Matthias Reichl wrote:
+> Hi Sean!
 > 
-> On 2017-11-11 00:32:27 +0200, Sakari Ailus wrote:
-> > Hej Niklas,
+> On Thu, Nov 16, 2017 at 09:54:51PM +0000, Sean Young wrote:
+> > Since commit d57ea877af38 ("media: rc: per-protocol repeat period"),
+> > double keypresses are reported on the ite-cir driver. This is due
+> > two factors: that commit reduced the timeout used for some protocols
+> > (it became protocol dependant) and the high default IR timeout used
+> > by the ite-cir driver.
 > > 
-> > Tack för uppdaterade lappar! Jag har några kommentar nedan... det ser bra
-> > ut överallt.
-> 
-> Tack för din feedback!
-
-Var så god!
-
-...
-
-> > > +static int rcar_csi2_calc_phypll(struct rcar_csi2 *priv,
-> > > +				 struct v4l2_subdev *source,
-> > > +				 struct v4l2_mbus_framefmt *mf,
-> > > +				 u32 *phypll)
-> > > +{
-> > > +	const struct phypll_hsfreqrange *hsfreq;
-> > > +	const struct rcar_csi2_format *format;
-> > > +	struct v4l2_ctrl *ctrl;
-> > > +	u64 mbps;
-> > > +
-> > > +	ctrl = v4l2_ctrl_find(source->ctrl_handler, V4L2_CID_PIXEL_RATE);
+> > Some of the IR decoders wait for a trailing space, as that is
+> > the only way to know if the bit stream has ended (e.g. rc-6 can be
+> > 16, 20 or 32 bits). The longer the IR timeout, the longer it will take
+> > to receive the trailing space, delaying decoding and pushing it past the
+> > keyup timeout.
 > > 
-> > How about LINK_FREQ instead? It'd be more straightforward to calculate
-> > this. Up to you.
+> > So, add the IR timeout to the keyup timeout.
 > 
-> I need to use PIXEL_RATE as my test setup uses the adv748x driver which 
-> only implement that control. In the short term I would like to support 
-> both, but I need a setup to test that before I can add support for it.  
-> In the long term, maybe we should deprecate one of the controls?
-
-Hmm. At least we musn't give the responsibility to calculate the pixel rate
-to the end user: this depends on the bus and that is not visible to the
-user space.
-
-The link frequency is usually chosen from a few alternatives (or there's
-just a single choice). And the pixel rate depends on the pixel code chosen
---- so you'd have a menu with menu entries changing based on format. That'd
-be odd.
-
-Perhaps just leave it as-is, as suggested by Laurent?
-
-...
-
-> > > +
-> > > +	dev_dbg(priv->dev, "Using source %s pad: %u\n", source->name,
-> > > +		source_pad->index);
-> > > +
-> > > +	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > > +	fmt.pad = source_pad->index;
-> > > +	ret = v4l2_subdev_call(source, pad, get_fmt, NULL, &fmt);
-> > > +	if (ret)
-> > > +		return ret;
-> > 
-> > The link format has been validated already by this point this isn't
-> > supposed to fail or produce different results than in link validation.
-> > 
-> > You could get the same format from the local pad, too.
+> Thanks a lot for the patch, I've asked the people with ite-cir
+> receivers to test it.
 > 
-> Another good catch, I will use the format stored locally to make the 
-> code simpler. As you state the formats are already validated so it's 
-> safe to do so. I still need to get the remote subdevice to be able to 
-> read the PIXEL_RATE control, but I can move that to 
-> rcar_csi2_calc_phypll() where it's actually used.
-
-Sounds good to me.
- 
-...
-
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +static int rcar_csi2_set_pad_format(struct v4l2_subdev *sd,
-> > > +				    struct v4l2_subdev_pad_config *cfg,
-> > > +				    struct v4l2_subdev_format *format)
-> > > +{
-> > > +	struct rcar_csi2 *priv = sd_to_csi2(sd);
-> > > +	struct v4l2_mbus_framefmt *framefmt;
-> > > +
-> > 
-> > Is everything possible? For instance, are there limits regarding width or
-> > height? Or the pixel code? They should be checked here.
+> In the meanwhile I ran some tests with gpio-ir-recv and timeout
+> set to 200ms with a rc-5 remote (that's as close to the original
+> setup as I can test right now).
 > 
-> Yes it do care about pixel code which was only validated at s_stream() 
-> time, will move the check here thanks!
+> While the patch fixes the additional key down/up event on longer
+> presses, I still get a repeated key event on a short button
+> press - which makes it hard to do a single click with the
+> remote.
+
+Yes, I've started to notice that too.
+
+> Test on kernel 4.14 with your patch:
+> 1510927844.292126: event type EV_MSC(0x04): scancode = 0x1015
+> 1510927844.292126: event type EV_KEY(0x01) key_down: KEY_ENTER(0x001c)
+> 1510927844.292126: event type EV_SYN(0x00).
+> 1510927844.498773: event type EV_MSC(0x04): scancode = 0x1015
+> 1510927844.498773: event type EV_SYN(0x00).
+> 1510927844.795410: event type EV_KEY(0x01) key_down: KEY_ENTER(0x001c)
+> 1510927844.795410: event type EV_SYN(0x00).
+> 1510927844.875412: event type EV_KEY(0x01) key_up: KEY_ENTER(0x001c)
+> 1510927844.875412: event type EV_SYN(0x00).
+
+There is 875 - 498 = 378ms, which is 200ms IR timeout + 164ms protocol
+repeat. This is so long that the repeat delay expired, and that's
+where the second keydown comes from.
+
+> Same signal received on kernel 4.9:
+> 1510927844.280350: event type EV_MSC(0x04): scancode = 0x1015
+> 1510927844.280350: event type EV_KEY(0x01) key_down: KEY_OK(0x0160)
+> 1510927844.280350: event type EV_SYN(0x00).
+> 1510927844.506477: event type EV_MSC(0x04): scancode = 0x1015
+> 1510927844.506477: event type EV_SYN(0x00).
+> 1510927844.763111: event type EV_KEY(0x01) key_up: KEY_OK(0x0160)
+> 1510927844.763111: event type EV_SYN(0x00).
+
+There it is simply 763 - 506 = 250ms.
+
+> If I understand it correctly it's the input layer repeat (500ms delay)
+> kicking in, because time between initial scancode and timeout is
+> now signal time + 200ms + 164ms + 200ms (about 570-580ms).
+> On older kernels this was signal time + 200ms + 250ms, so typically
+> just below the 500ms default repeat delay.
 > 
-> > 
-> > Also the format on the source pad is, presumably, dependent on the format
-> > on the sink pad.
-> 
-> Yes, but since this driver can't change the format in any way is there 
-> any harm in mirror whatever is set on one pad on the other(s)? This will 
-> change once multiple stream support is added in a later series.
+> I'm still trying to wrap my head around the timeout code in the
+> rc layer. One problem seems to be that we apply the rather large
+> timeout twice. Maybe detecting scancodes generated via timeout
+> (sth like timestamp - last_timestamp > protocol_repeat_period)
+> and in that case immediately signalling keyup could help? Could well
+> be that I'm missing somehting important and this is a bad idea.
+> I guess I'd better let you figure something out :)
 
-If the hardware does not have functionality that may affect the size or the
-pixel code, then the format on the source pad shouldn't be settable.
+So there is a few complications. For rc-6, if you hold a button down,
+there IR repeated every 110ms, which means there is a 69ms space between
+the IR keypresses. The trailing space is needed for IR decode.
 
-Yes, this will change when support for multiple streams is added. You'll
-get more pads, and the sink pad no longer will have a format. But... it's a
-good question how to prepare for this --- is it possible without changing
-the user space API? I'm sure we'll have other such cases, such as the
-smiapp driver with sensor embedded data.
+So with IR timeout of 200ms this will happen:
 
-...
+0.000 rc-6 IR message 1 begins
+0.041 rc-6 IR message 1 ends
+space
+0.110 rc-6 IR message 2 begins; this means that message 1 is decoded now
+0.151 rc-6 IR message 2 ends;
+space
+0.220 rc-6 IR message 3 begins; this means that message 2 is decoded now
+0.261 rc-6 IR message 3 ends 
+space
+0.461 IR timeout occurs; this means that message 3 is decoded now
 
-> > > +static int rcar_csi2_parse_dt(struct rcar_csi2 *priv)
-> > > +{
-> > > +	struct device_node *ep;
-> > > +	struct v4l2_fwnode_endpoint v4l2_ep;
-> > > +	int ret;
-> > > +
-> > > +	ep = of_graph_get_endpoint_by_regs(priv->dev->of_node, 0, 0);
-> > > +	if (!ep) {
-> > > +		dev_err(priv->dev, "Not connected to subdevice\n");
-> > > +		return -EINVAL;
-> > > +	}
-> > > +
-> > > +	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
-> > > +	if (ret) {
-> > > +		dev_err(priv->dev, "Could not parse v4l2 endpoint\n");
-> > > +		of_node_put(ep);
-> > > +		return -EINVAL;
-> > > +	}
-> > > +
-> > > +	ret = rcar_csi2_parse_v4l2(priv, &v4l2_ep);
-> > > +	if (ret)
-> > > +		return ret;
-> > > +
-> > > +	priv->remote.match.fwnode.fwnode =
-> > > +		fwnode_graph_get_remote_endpoint(of_fwnode_handle(ep));
-> > > +	priv->remote.match_type = V4L2_ASYNC_MATCH_FWNODE;
-> > > +
-> > > +	of_node_put(ep);
-> > > +
-> > > +	priv->notifier.subdevs = devm_kzalloc(priv->dev,
-> > > +					      sizeof(*priv->notifier.subdevs),
-> > > +					      GFP_KERNEL);
-> > > +	if (priv->notifier.subdevs == NULL)
-> > > +		return -ENOMEM;
-> > > +
-> > > +	priv->notifier.num_subdevs = 1;
-> > > +	priv->notifier.subdevs[0] = &priv->remote;
-> > > +	priv->notifier.ops = &rcar_csi2_notify_ops;
-> > > +
-> > > +	dev_dbg(priv->dev, "Found '%pOF'\n",
-> > > +		to_of_node(priv->remote.match.fwnode.fwnode));
-> > > +
-> > > +	return v4l2_async_subdev_notifier_register(&priv->subdev,
-> > > +						   &priv->notifier);
-> > 
-> > Could you use v4l2_async_notifier_parse_fwnode_endpoints_by_port() or does
-> > something bad happen if you do? The intent with that was to avoid functions
-> > like the above in drivers.
-> 
-> Unfortunately not :-(
-> 
-> I have a local patch which do this, but it won't work since this driver 
-> needs to register remote endpoints (fwnode_graph_get_remote_endpoint() 
-> above) and not the remote parent in the async framework. The reason for 
-> this is that that is what the adv748x driver registers with the async 
-> framework given that it only have one node in DT but registers multiple 
-> subdevices. I would love to in the future resolve this in the helper 
-> functions and switch to such a helper here.
+So really the timeout should be length of IR message + IR timeout + error 
+margin (e.g. rc thread scheduling), unless that is less than the repeat
+time.
 
-Right. How does the fwnode matching work then? Don't you need to do
-endpoint node matching here, i.e. the patch for the fwnode framework, too?
+But this only applies for raw IR decoding; different rules apply for
+hardware decoders.
 
-Could you change how the framework assigns the matched fwnode?
+I think for now the best solution is to revert to 250ms for all protocols
+(except for cec which needs 550ms), and reconsider for another kernel.
 
-What I'd like to do still is to decouple registering async sub-devices and
-parsing the endpoints. The two are quite entangled and I just haven't been
-able to come up with a good API for that yet.
+Thanks,
+Sean
+----
+>From 2f1135f3f9873778ca5c013d1118710152840cb2 Mon Sep 17 00:00:00 2001
+From: Sean Young <sean@mess.org>
+Date: Sun, 19 Nov 2017 21:11:17 +0000
+Subject: [PATCH] media: rc: partial revert of "media: rc: per-protocol repeat
+ period"
 
+Since commit d57ea877af38 ("media: rc: per-protocol repeat period"), most
+IR protocols have a lower keyup timeout. This causes problems on the
+ite-cir, which has default IR timeout of 200ms.
+
+Since the IR decoders read the trailing space, with a IR timeout of 200ms,
+the last keydown will have at least a delay of 200ms. This is more than
+the protocol timeout of e.g. rc-6 (which is 164ms). As a result the last
+IR will be interpreted as a new keydown event, and we get two keypresses.
+
+Revert the protocol timeout to 250ms, except for cec which needs a timeout
+of 550ms.
+
+Fixes: d57ea877af38 ("media: rc: per-protocol repeat period")
+Cc: <stable@vger.kernel.org> # 4.14
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/rc-main.c | 32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 17950e29d4e3..5057b2ba0c10 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -39,41 +39,41 @@ static const struct {
+ 	[RC_PROTO_UNKNOWN] = { .name = "unknown", .repeat_period = 250 },
+ 	[RC_PROTO_OTHER] = { .name = "other", .repeat_period = 250 },
+ 	[RC_PROTO_RC5] = { .name = "rc-5",
+-		.scancode_bits = 0x1f7f, .repeat_period = 164 },
++		.scancode_bits = 0x1f7f, .repeat_period = 250 },
+ 	[RC_PROTO_RC5X_20] = { .name = "rc-5x-20",
+-		.scancode_bits = 0x1f7f3f, .repeat_period = 164 },
++		.scancode_bits = 0x1f7f3f, .repeat_period = 250 },
+ 	[RC_PROTO_RC5_SZ] = { .name = "rc-5-sz",
+-		.scancode_bits = 0x2fff, .repeat_period = 164 },
++		.scancode_bits = 0x2fff, .repeat_period = 250 },
+ 	[RC_PROTO_JVC] = { .name = "jvc",
+ 		.scancode_bits = 0xffff, .repeat_period = 250 },
+ 	[RC_PROTO_SONY12] = { .name = "sony-12",
+-		.scancode_bits = 0x1f007f, .repeat_period = 100 },
++		.scancode_bits = 0x1f007f, .repeat_period = 250 },
+ 	[RC_PROTO_SONY15] = { .name = "sony-15",
+-		.scancode_bits = 0xff007f, .repeat_period = 100 },
++		.scancode_bits = 0xff007f, .repeat_period = 250 },
+ 	[RC_PROTO_SONY20] = { .name = "sony-20",
+-		.scancode_bits = 0x1fff7f, .repeat_period = 100 },
++		.scancode_bits = 0x1fff7f, .repeat_period = 250 },
+ 	[RC_PROTO_NEC] = { .name = "nec",
+-		.scancode_bits = 0xffff, .repeat_period = 160 },
++		.scancode_bits = 0xffff, .repeat_period = 250 },
+ 	[RC_PROTO_NECX] = { .name = "nec-x",
+-		.scancode_bits = 0xffffff, .repeat_period = 160 },
++		.scancode_bits = 0xffffff, .repeat_period = 250 },
+ 	[RC_PROTO_NEC32] = { .name = "nec-32",
+-		.scancode_bits = 0xffffffff, .repeat_period = 160 },
++		.scancode_bits = 0xffffffff, .repeat_period = 250 },
+ 	[RC_PROTO_SANYO] = { .name = "sanyo",
+ 		.scancode_bits = 0x1fffff, .repeat_period = 250 },
+ 	[RC_PROTO_MCIR2_KBD] = { .name = "mcir2-kbd",
+-		.scancode_bits = 0xffff, .repeat_period = 150 },
++		.scancode_bits = 0xffff, .repeat_period = 250 },
+ 	[RC_PROTO_MCIR2_MSE] = { .name = "mcir2-mse",
+-		.scancode_bits = 0x1fffff, .repeat_period = 150 },
++		.scancode_bits = 0x1fffff, .repeat_period = 250 },
+ 	[RC_PROTO_RC6_0] = { .name = "rc-6-0",
+-		.scancode_bits = 0xffff, .repeat_period = 164 },
++		.scancode_bits = 0xffff, .repeat_period = 250 },
+ 	[RC_PROTO_RC6_6A_20] = { .name = "rc-6-6a-20",
+-		.scancode_bits = 0xfffff, .repeat_period = 164 },
++		.scancode_bits = 0xfffff, .repeat_period = 250 },
+ 	[RC_PROTO_RC6_6A_24] = { .name = "rc-6-6a-24",
+-		.scancode_bits = 0xffffff, .repeat_period = 164 },
++		.scancode_bits = 0xffffff, .repeat_period = 250 },
+ 	[RC_PROTO_RC6_6A_32] = { .name = "rc-6-6a-32",
+-		.scancode_bits = 0xffffffff, .repeat_period = 164 },
++		.scancode_bits = 0xffffffff, .repeat_period = 250 },
+ 	[RC_PROTO_RC6_MCE] = { .name = "rc-6-mce",
+-		.scancode_bits = 0xffff7fff, .repeat_period = 164 },
++		.scancode_bits = 0xffff7fff, .repeat_period = 250 },
+ 	[RC_PROTO_SHARP] = { .name = "sharp",
+ 		.scancode_bits = 0x1fff, .repeat_period = 250 },
+ 	[RC_PROTO_XMP] = { .name = "xmp", .repeat_period = 250 },
 -- 
-Trevliga hälsningar,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.3
