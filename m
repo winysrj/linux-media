@@ -1,40 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:53548 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751133AbdKJQFz (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:46118 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751152AbdKTMae (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Nov 2017 11:05:55 -0500
-Received: by mail-wr0-f196.google.com with SMTP id u40so9001591wrf.10
-        for <linux-media@vger.kernel.org>; Fri, 10 Nov 2017 08:05:55 -0800 (PST)
-Received: from localhost.localdomain ([62.147.246.169])
-        by smtp.gmail.com with ESMTPSA id 56sm5153746wrx.2.2017.11.10.08.05.53
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 10 Nov 2017 08:05:53 -0800 (PST)
-From: =?UTF-8?q?Rafa=C3=ABl=20Carr=C3=A9?= <funman@videolan.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/2] sdlcam: fix linking
-Date: Fri, 10 Nov 2017 17:05:46 +0100
-Message-Id: <20171110160547.32639-1-funman@videolan.org>
+        Mon, 20 Nov 2017 07:30:34 -0500
+Subject: Re: [PATCH v3] drm: bridge: synopsys/dw-hdmi: Enable cec clock
+To: Pierre-Hugues Husson <phh@phh.me>,
+        linux-rockchip@lists.infradead.org
+Cc: heiko@sntech.de, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux@armlinux.org.uk, Archit Taneja <architt@codeaurora.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        dri-devel@lists.freedesktop.org
+References: <20171026181942.9516-1-phh@phh.me>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <75adf743-18a2-2c55-b4bb-95d83bd26f03@xs4all.nl>
+Date: Mon, 20 Nov 2017 13:30:27 +0100
+MIME-Version: 1.0
+In-Reply-To: <20171026181942.9516-1-phh@phh.me>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- contrib/test/Makefile.am | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I didn't see this merged for 4.15, is it too late to include this?
+All other changes needed to get CEC to work on rk3288 and rk3399 are all merged.
 
-diff --git a/contrib/test/Makefile.am b/contrib/test/Makefile.am
-index 6a4303d7..0188fe21 100644
---- a/contrib/test/Makefile.am
-+++ b/contrib/test/Makefile.am
-@@ -37,7 +37,7 @@ v4l2gl_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconver
- 
- sdlcam_LDFLAGS = $(JPEG_LIBS) $(SDL2_LIBS) -lm -ldl -lrt
- sdlcam_CFLAGS = -I../.. $(SDL2_CFLAGS)
--sdlcam_LDADD = ../../lib/libv4l2/.libs/libv4l2.a  ../../lib/libv4lconvert/.libs/libv4lconvert.a
-+sdlcam_LDADD = ../../lib/libv4l2/libv4l2.la  ../../lib/libv4lconvert/libv4lconvert.la
- 
- mc_nextgen_test_CFLAGS = $(LIBUDEV_CFLAGS)
- mc_nextgen_test_LDFLAGS = $(LIBUDEV_LIBS)
--- 
-2.14.1
+Regards,
+
+	Hans
+
+On 10/26/2017 08:19 PM, Pierre-Hugues Husson wrote:
+> The documentation already mentions "cec" optional clock, but
+> currently the driver doesn't enable it.
+> 
+> Changes:
+> v3:
+> - Drop useless braces
+> 
+> v2:
+> - Separate ENOENT errors from others
+> - Propagate other errors (especially -EPROBE_DEFER)
+> 
+> Signed-off-by: Pierre-Hugues Husson <phh@phh.me>
+> ---
+>  drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
+> 
+> diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+> index bf14214fa464..d82b9747a979 100644
+> --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+> +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+> @@ -138,6 +138,7 @@ struct dw_hdmi {
+>  	struct device *dev;
+>  	struct clk *isfr_clk;
+>  	struct clk *iahb_clk;
+> +	struct clk *cec_clk;
+>  	struct dw_hdmi_i2c *i2c;
+>  
+>  	struct hdmi_data_info hdmi_data;
+> @@ -2382,6 +2383,26 @@ __dw_hdmi_probe(struct platform_device *pdev,
+>  		goto err_isfr;
+>  	}
+>  
+> +	hdmi->cec_clk = devm_clk_get(hdmi->dev, "cec");
+> +	if (PTR_ERR(hdmi->cec_clk) == -ENOENT) {
+> +		hdmi->cec_clk = NULL;
+> +	} else if (IS_ERR(hdmi->cec_clk)) {
+> +		ret = PTR_ERR(hdmi->cec_clk);
+> +		if (ret != -EPROBE_DEFER)
+> +			dev_err(hdmi->dev, "Cannot get HDMI cec clock: %d\n",
+> +					ret);
+> +
+> +		hdmi->cec_clk = NULL;
+> +		goto err_iahb;
+> +	} else {
+> +		ret = clk_prepare_enable(hdmi->cec_clk);
+> +		if (ret) {
+> +			dev_err(hdmi->dev, "Cannot enable HDMI cec clock: %d\n",
+> +					ret);
+> +			goto err_iahb;
+> +		}
+> +	}
+> +
+>  	/* Product and revision IDs */
+>  	hdmi->version = (hdmi_readb(hdmi, HDMI_DESIGN_ID) << 8)
+>  		      | (hdmi_readb(hdmi, HDMI_REVISION_ID) << 0);
+> @@ -2518,6 +2539,8 @@ __dw_hdmi_probe(struct platform_device *pdev,
+>  		cec_notifier_put(hdmi->cec_notifier);
+>  
+>  	clk_disable_unprepare(hdmi->iahb_clk);
+> +	if (hdmi->cec_clk)
+> +		clk_disable_unprepare(hdmi->cec_clk);
+>  err_isfr:
+>  	clk_disable_unprepare(hdmi->isfr_clk);
+>  err_res:
+> @@ -2541,6 +2564,8 @@ static void __dw_hdmi_remove(struct dw_hdmi *hdmi)
+>  
+>  	clk_disable_unprepare(hdmi->iahb_clk);
+>  	clk_disable_unprepare(hdmi->isfr_clk);
+> +	if (hdmi->cec_clk)
+> +		clk_disable_unprepare(hdmi->cec_clk);
+>  
+>  	if (hdmi->i2c)
+>  		i2c_del_adapter(&hdmi->i2c->adap);
+> 
