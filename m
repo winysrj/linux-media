@@ -1,161 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:54079 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751770AbdK1P0b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 10:26:31 -0500
-Date: Tue, 28 Nov 2017 16:26:26 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 1/3 v7] V4L: Add a UVC Metadata format
-In-Reply-To: <6959169.cj8yPDWWnC@avalon>
-Message-ID: <alpine.DEB.2.20.1711281625280.16991@axis700.grange>
-References: <1510156814-28645-1-git-send-email-g.liakhovetski@gmx.de> <1510156814-28645-2-git-send-email-g.liakhovetski@gmx.de> <6959169.cj8yPDWWnC@avalon>
+Received: from mail-wm0-f48.google.com ([74.125.82.48]:41936 "EHLO
+        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750969AbdKTIcP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Nov 2017 03:32:15 -0500
+Received: by mail-wm0-f48.google.com with SMTP id b189so16981982wmd.0
+        for <linux-media@vger.kernel.org>; Mon, 20 Nov 2017 00:32:14 -0800 (PST)
+Subject: Re: camss: camera controls missing on vfe interfaces
+To: Daniel Mack <daniel@zonque.org>,
+        "laurent.pinchart" <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org
+References: <79ac06f5-0c68-14d9-673c-7781881f81b8@zonque.org>
+ <bc991d7c-e204-334a-1135-d10757405e08@zonque.org>
+From: Todor Tomov <todor.tomov@linaro.org>
+Message-ID: <9ac5306d-c048-5d04-4ea9-2d5d08165350@linaro.org>
+Date: Mon, 20 Nov 2017 10:32:12 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <bc991d7c-e204-334a-1135-d10757405e08@zonque.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Daniel,
 
-Thanks for the review.
+Sorry for my late reply. This is actually an important question that you ask.
 
-On Tue, 28 Nov 2017, Laurent Pinchart wrote:
+On 15.11.2017 21:31, Daniel Mack wrote:
+> Todor et all,
+> 
+> Any hint on how to tackle this?
+> 
+> I can contribute patches, but I'd like to understand what the idea is.
+> 
+> 
+> Thanks,
+> Daniel
+> 
+> 
+> On Thursday, October 26, 2017 06:11 PM, Daniel Mack wrote:
+>> Hi Todor,
+>>
+>> When using the camss driver trough one of its /dev/videoX device nodes,
+>> applications are currently unable to see the video controls the camera
+>> sensor exposes.
+>>
+>> Same goes for other ioctls such as VIDIOC_ENUM_FMT, so the only valid
+>> resolution setting for applications to use is the one that was
+>> previously set through the media controller layer. Applications usually
+>> query the available formats and then pick one using the standard V4L2
+>> APIs, and many can't easily be forced to use a specific one.
+>>
+>> If I'm getting this right, could you explain what's the rationale here?
+>> Is that simply a missing feature or was that approach chosen on purpose?
+>>
 
-> Hi Guennadi,
-> 
-> Thank you for the patch.
-> 
-> Overall this looks good to me. Please see below for one small comment.
+It is not a missing feature, it is more of a missing userspace implementation.
+When working with a media oriented device driver, the userspace has to
+config the media pipeline too and if controls are exposed by the subdev nodes,
+the userspace has to configure them on the subdev nodes.
 
-Yes, looks good to me, feel free to use your wording.
+As there weren't a lot of media oriented drivers there is no generic
+implementation/support for this in the userspace (at least I'm not aware of
+any). There have been discussions about adding such functionality in libv4l
+so that applications which do not support media configuration can still
+use these drivers. I'm not sure if decision for this was taken or not or
+is it just that there was noone to actually do the work. Probably Laurent,
+Mauro or Hans know more about what were the plans for this.
 
-Thanks
-Guennadi
-
-> On Wednesday, 8 November 2017 18:00:12 EET Guennadi Liakhovetski wrote:
-> > From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> > 
-> > Add a pixel format, used by the UVC driver to stream metadata.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> > ---
-> > 
-> > v7: alphabetic order, update documentation.
-> > 
-> >  Documentation/media/uapi/v4l/meta-formats.rst    |  1 +
-> >  Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst | 50 +++++++++++++++++++++
-> >  include/uapi/linux/videodev2.h                   |  1 +
-> >  3 files changed, 52 insertions(+)
-> >  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
-> > 
-> > diff --git a/Documentation/media/uapi/v4l/meta-formats.rst
-> > b/Documentation/media/uapi/v4l/meta-formats.rst index 01e24e3..0c4e1ec
-> > 100644
-> > --- a/Documentation/media/uapi/v4l/meta-formats.rst
-> > +++ b/Documentation/media/uapi/v4l/meta-formats.rst
-> > @@ -12,5 +12,6 @@ These formats are used for the :ref:`metadata` interface
-> > only.
-> >  .. toctree::
-> >      :maxdepth: 1
-> > 
-> > +    pixfmt-meta-uvc
-> >      pixfmt-meta-vsp1-hgo
-> >      pixfmt-meta-vsp1-hgt
-> > diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
-> > b/Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst new file mode 100644
-> > index 0000000..06f603c
-> > --- /dev/null
-> > +++ b/Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
-> > @@ -0,0 +1,50 @@
-> > +.. -*- coding: utf-8; mode: rst -*-
-> > +
-> > +.. _v4l2-meta-fmt-uvc:
-> > +
-> > +*******************************
-> > +V4L2_META_FMT_UVC ('UVCH')
-> > +*******************************
-> > +
-> > +UVC Payload Header Data
-> > +
-> > +
-> > +Description
-> > +===========
-> > +
-> > +This format describes standard UVC metadata, extracted from UVC packet
-> > headers +and provided by the UVC driver through metadata video nodes. That
-> > data includes +exact copies of the standard part of UVC Payload Header
-> > contents and auxiliary +timing information, required for precise
-> > interpretation of timestamps, contained +in those headers. See section
-> > "2.4.3.3 Video and Still Image Payload Headers" of +the "UVC 1.5 Class
-> > specification" for details.
-> > +
-> > +Each UVC payload header can be between 2 and 12 bytes large. Buffers can
-> > contain +multiple headers, if multiple such headers have been transmitted
-> > by the camera +for the respective frame. However, headers, containing no
-> > useful information, +e.g. those without the SCR field or with that field
-> > identical to the previous +header, will be dropped by the driver.
-> 
-> If the driver receives too many headers with different SCR (more than the 
-> buffer can hold for instance) it will have to drop some of them. The simplest 
-> implementation would be to start dropping them when the buffer is full, but 
-> I'd like to leave room for the driver to be a bit more clever and drop headers 
-> that have a SCR too close to the previous one for instance. I propose wording 
-> the above paragraph as follows.
-> 
-> "Each UVC payload header can be between 2 and 12 bytes large. Buffers can
-> contain multiple headers, if multiple such headers have been transmitted
-> by the camera for the respective frame. However, the driver may drop headers 
-> when the buffer is full, when they contain no useful information (e.g. those 
-> without the SCR field or with that field identical to the previous header), or 
-> generally to perform rate limiting when the device sends a large number of 
-> headers".
-> 
-> If you're fine with this there's no need to resent, I can update the 
-> documentation when applying, and
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> > +Each individual block contains the following fields:
-> > +
-> > +.. flat-table:: UVC Metadata Block
-> > +    :widths: 1 4
-> > +    :header-rows:  1
-> > +    :stub-columns: 0
-> > +
-> > +    * - Field
-> > +      - Description
-> > +    * - __u64 ts;
-> > +      - system timestamp in host byte order, measured by the driver upon
-> > +        reception of the payload
-> > +    * - __u16 sof;
-> > +      - USB Frame Number in host byte order, also obtained by the driver as
-> > +        close as possible to the above timestamp to enable correlation
-> > between +        them
-> > +    * - :cspan:`1` *The rest is an exact copy of the UVC payload header:*
-> > +    * - __u8 length;
-> > +      - length of the rest of the block, including this field
-> > +    * - __u8 flags;
-> > +      - Flags, indicating presence of other standard UVC fields
-> > +    * - __u8 buf[];
-> > +      - The rest of the header, possibly including UVC PTS and SCR fields
-> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> > index 185d6a0..0d07b2d 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -687,6 +687,7 @@ struct v4l2_pix_format {
-> >  /* Meta-data formats */
-> >  #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car
-> > VSP1 1-D Histogram */ #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V',
-> > 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */ +#define V4L2_META_FMT_UVC   
-> >      v4l2_fourcc('U', 'V', 'C', 'H') /* UVC Payload Header metadata */
-> > 
-> >  /* priv field value to indicates that subsequent fields are valid. */
-> >  #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
-> 
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+-- 
+Best regards,
+Todor Tomov
