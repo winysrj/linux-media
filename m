@@ -1,80 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:55880 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754885AbdKBIPs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 04:15:48 -0400
-Received: by mail-lf0-f66.google.com with SMTP id e143so5375124lfg.12
-        for <linux-media@vger.kernel.org>; Thu, 02 Nov 2017 01:15:48 -0700 (PDT)
-Date: Thu, 2 Nov 2017 09:15:45 +0100
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 13/26] media: rcar: fix a debug printk
-Message-ID: <20171102081545.GB24132@bigcity.dyn.berto.se>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
- <ef0a1dc7f902c8ed9cc8aa454bd07a8fcda66dfa.1509569763.git.mchehab@s-opensource.com>
+Received: from foss.arm.com ([217.140.101.70]:56168 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751151AbdKTLl2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Nov 2017 06:41:28 -0500
+Date: Mon, 20 Nov 2017 11:41:17 +0000
+From: Brian Starkey <brian.starkey@arm.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Gustavo Padovan <gustavo@padovan.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [RFC v5 07/11] [media] vb2: add in-fence support to QBUF
+Message-ID: <20171120114101.GA37281@e107564-lin.cambridge.arm.com>
+References: <20171115171057.17340-1-gustavo@padovan.org>
+ <20171115171057.17340-8-gustavo@padovan.org>
+ <422c5326-374b-487f-9ef1-594f239438f1@chromium.org>
+ <20171117110025.2a49db49@vento.lan>
+ <20171117130801.GH19033@jade>
+ <20171117111905.5070bacd@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <ef0a1dc7f902c8ed9cc8aa454bd07a8fcda66dfa.1509569763.git.mchehab@s-opensource.com>
+In-Reply-To: <20171117111905.5070bacd@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Fri, Nov 17, 2017 at 11:19:05AM -0200, Mauro Carvalho Chehab wrote:
+>Em Fri, 17 Nov 2017 11:08:01 -0200
+>Gustavo Padovan <gustavo@padovan.org> escreveu:
+>
+>> 2017-11-17 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+>>
+>> > Em Fri, 17 Nov 2017 15:49:23 +0900
+>> > Alexandre Courbot <acourbot@chromium.org> escreveu:
+>> >
+>> > > > @@ -178,6 +179,12 @@ static int vb2_queue_or_prepare_buf(struct
+>> > > > vb2_queue *q, struct v4l2_buffer *b,
+>> > > >  		return -EINVAL;
+>> > > >  	}
+>> > > >
+>> > > > +	if ((b->fence_fd != 0 && b->fence_fd != -1) &&
+>> > >
+>> > > Why do we need to consider both values invalid? Can 0 ever be a valid fence
+>> > > fd?
+>> >
+>> > Programs that don't use fences will initialize reserved2/fence_fd field
+>> > at the uAPI call to zero.
+>> >
+>> > So, I guess using fd=0 here could be a problem. Anyway, I would, instead,
+>> > do:
+>> >
+>> > 	if ((b->fence_fd < 1) &&
+>> > 		...
+>> >
+>> > as other negative values are likely invalid as well.
+>>
+>> We are checking when the fence_fd is set but the flag wasn't. Checking
+>> for < 1 is exactly the opposite. so we keep as is or do it fence_fd > 0.
+>
+>Ah, yes. Anyway, I would stick with:
+>	if ((b->fence_fd > 0) &&
+>		...
+>
 
-Thanks for your patch.
+0 is a valid fence_fd right? If I close stdin, and create a sync_file,
+couldn't I get a fence with fd zero?
 
-On 2017-11-01 17:05:50 -0400, Mauro Carvalho Chehab wrote:
-> Two orthogonal changesets caused a breakage at a printk
-> inside rcar. Changeset 859969b38e2e
-> ("[media] v4l: Switch from V4L2 OF not V4L2 fwnode API")
-> made davinci to use struct fwnode_handle instead of
-> struct device_node. Changeset 68d9c47b1679
-> ("media: Convert to using %pOF instead of full_name")
-> changed the printk to not use ->full_name, but, instead,
-> to rely on %pOF.
-> 
-> With both patches applied, the Kernel will do the wrong
-> thing, as warned by smatch:
-> 	drivers/media/platform/rcar-vin/rcar-core.c:189 rvin_digital_graph_init() error: '%pOF' expects argument of type 'struct device_node*', argument 4 has type 'void*'
-> 
-> So, change the logic to actually print the device name
-> that was obtained before the print logic.
-> 
-> Fixes: 68d9c47b1679 ("media: Convert to using %pOF instead of full_name")
-> Fixes: 859969b38e2e ("[media] v4l: Switch from V4L2 OF not V4L2 fwnode API")
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index 108d776f3265..ce5914f7a056 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -186,8 +186,8 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
->  	if (!vin->digital)
->  		return -ENODEV;
->  
-> -	vin_dbg(vin, "Found digital subdevice %pOF\n",
-> -		to_of_node(vin->digital->asd.match.fwnode.fwnode));
-> +	vin_dbg(vin, "Found digital subdevice %s\n",
-> +		to_of_node(vin->digital->asd.match.fwnode.fwnode)->full_name);
+-Brian
 
-For the same reasons as Laurent brings up in patch 14/26 I'm a bit 
-sceptical to this change.
-
->  
->  	vin->notifier.ops = &rvin_digital_notify_ops;
->  	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
-> -- 
-> 2.13.6
-> 
-
--- 
-Regards,
-Niklas Söderlund
+>>
+>> Gustavo
+>
+>
+>-- 
+>Thanks,
+>Mauro
