@@ -1,287 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58542 "EHLO mail.kernel.org"
+Received: from mga03.intel.com ([134.134.136.65]:30140 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965733AbdKQPrl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 10:47:41 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v4 3/9] v4l: vsp1: Provide a body pool
-Date: Fri, 17 Nov 2017 15:47:26 +0000
-Message-Id: <80e6c027728132af089d445453559d06802ecbd5.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
+        id S1751365AbdKTO4C (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Nov 2017 09:56:02 -0500
+Date: Mon, 20 Nov 2017 16:55:57 +0200
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 10/10] video/hdmi: Pass buffer size to infoframe unpack
+ functions
+Message-ID: <20171120145557.GX10981@intel.com>
+References: <20171113170427.4150-1-ville.syrjala@linux.intel.com>
+ <20171113170427.4150-11-ville.syrjala@linux.intel.com>
+ <7722c9f6-4bad-7698-da5d-41fe50974562@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <7722c9f6-4bad-7698-da5d-41fe50974562@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each display list allocates a body to store register values in a dma
-accessible buffer from a dma_alloc_wc() allocation. Each of these
-results in an entry in the TLB, and a large number of display list
-allocations adds pressure to this resource.
+On Mon, Nov 20, 2017 at 02:36:20PM +0100, Hans Verkuil wrote:
+> On 11/13/2017 06:04 PM, Ville Syrjala wrote:
+> > From: Ville Syrjälä <ville.syrjala@linux.intel.com>
+<snip>
+> > @@ -1163,7 +1176,7 @@ static int hdmi_audio_infoframe_unpack(struct hdmi_audio_infoframe *frame,
+> >   */
+> >  static int
+> >  hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
+> > -				 const void *buffer)
+> > +				 const void *buffer, size_t size)
+> >  {
+> >  	const u8 *ptr = buffer;
+> >  	size_t length;
+> > @@ -1171,6 +1184,9 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
+> >  	u8 hdmi_video_format;
+> >  	struct hdmi_vendor_infoframe *hvf = &frame->hdmi;
+> >  
+> > +	if (size < HDMI_INFOFRAME_HEADER_SIZE)
+> > +		return -EINVAL;
+> > +
+> 
+> This check is not needed since that is already done in hdmi_infoframe_unpack().
 
-Reduce TLB pressure on the IPMMUs by allocating multiple display list
-bodies in a single allocation, and providing these to the display list
-through a 'body pool'. A pool can be allocated by the display list
-manager or entities which require their own body allocations.
+Hmm. True. Somehow I was expecting that this function would have been
+exported on its own, but it's static so clearly I was mistaken.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+The pack functions are individually exported, which is where I got
+this idea probably.
 
----
-v4:
- - Provide comment explaining extra allocation on body pool
-   highlighting area for optimisation later.
+> 
+> >  	if (ptr[0] != HDMI_INFOFRAME_TYPE_VENDOR ||
+> >  	    ptr[1] != 1 ||
+> >  	    (ptr[2] != 4 && ptr[2] != 5 && ptr[2] != 6))
+> > @@ -1178,6 +1194,9 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
+> >  
+> >  	length = ptr[2];
+> >  
+> > +	if (size < HDMI_INFOFRAME_HEADER_SIZE + length)
+> > +		return -EINVAL;
+> > +
+> >  	if (hdmi_infoframe_checksum(buffer,
+> >  				    HDMI_INFOFRAME_HEADER_SIZE + length) != 0)
+> >  		return -EINVAL;
 
-v3:
- - s/fragment/body/, s/fragments/bodies/
- - qty -> num_bodies
- - indentation fix
- - s/vsp1_dl_body_pool_{alloc,free}/vsp1_dl_body_pool_{create,destroy}/'
- - Add kerneldoc to non-static functions
-
-v2:
- - assign dlb->dma correctly
----
- drivers/media/platform/vsp1/vsp1_dl.c | 163 +++++++++++++++++++++++++++-
- drivers/media/platform/vsp1/vsp1_dl.h |   8 +-
- 2 files changed, 171 insertions(+)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index a45d35aa676e..0047030483e1 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -45,6 +45,8 @@ struct vsp1_dl_entry {
- /**
-  * struct vsp1_dl_body - Display list body
-  * @list: entry in the display list list of bodies
-+ * @free: entry in the pool free body list
-+ * @pool: pool to which this body belongs
-  * @vsp1: the VSP1 device
-  * @entries: array of entries
-  * @dma: DMA address of the entries
-@@ -54,6 +56,9 @@ struct vsp1_dl_entry {
-  */
- struct vsp1_dl_body {
- 	struct list_head list;
-+	struct list_head free;
-+
-+	struct vsp1_dl_body_pool *pool;
- 	struct vsp1_device *vsp1;
- 
- 	struct vsp1_dl_entry *entries;
-@@ -65,6 +70,30 @@ struct vsp1_dl_body {
- };
- 
- /**
-+ * struct vsp1_dl_body_pool - display list body pool
-+ * @dma: DMA address of the entries
-+ * @size: size of the full DMA memory pool in bytes
-+ * @mem: CPU memory pointer for the pool
-+ * @bodies: Array of DLB structures for the pool
-+ * @free: List of free DLB entries
-+ * @lock: Protects the pool and free list
-+ * @vsp1: the VSP1 device
-+ */
-+struct vsp1_dl_body_pool {
-+	/* DMA allocation */
-+	dma_addr_t dma;
-+	size_t size;
-+	void *mem;
-+
-+	/* Body management */
-+	struct vsp1_dl_body *bodies;
-+	struct list_head free;
-+	spinlock_t lock;
-+
-+	struct vsp1_device *vsp1;
-+};
-+
-+/**
-  * struct vsp1_dl_list - Display list
-  * @list: entry in the display list manager lists
-  * @dlm: the display list manager
-@@ -104,6 +133,7 @@ enum vsp1_dl_mode {
-  * @active: list currently being processed (loaded) by hardware
-  * @queued: list queued to the hardware (written to the DL registers)
-  * @pending: list waiting to be queued to the hardware
-+ * @pool: body pool for the display list bodies
-  * @gc_work: bodies garbage collector work struct
-  * @gc_bodies: array of display list bodies waiting to be freed
-  */
-@@ -119,6 +149,8 @@ struct vsp1_dl_manager {
- 	struct vsp1_dl_list *queued;
- 	struct vsp1_dl_list *pending;
- 
-+	struct vsp1_dl_body_pool *pool;
-+
- 	struct work_struct gc_work;
- 	struct list_head gc_bodies;
- };
-@@ -127,6 +159,137 @@ struct vsp1_dl_manager {
-  * Display List Body Management
-  */
- 
-+/**
-+ * vsp1_dl_body_pool_create - Create a pool of bodies from a single allocation
-+ * @vsp1: The VSP1 device
-+ * @num_bodies: The quantity of bodies to allocate
-+ * @num_entries: The maximum number of entries that the body can contain
-+ * @extra_size: Extra allocation provided for the bodies
-+ *
-+ * Allocate a pool of display list bodies each with enough memory to contain the
-+ * requested number of entries.
-+ *
-+ * Return a pointer to a pool on success or NULL if memory can't be allocated.
-+ */
-+struct vsp1_dl_body_pool *
-+vsp1_dl_body_pool_create(struct vsp1_device *vsp1, unsigned int num_bodies,
-+			 unsigned int num_entries, size_t extra_size)
-+{
-+	struct vsp1_dl_body_pool *pool;
-+	size_t dlb_size;
-+	unsigned int i;
-+
-+	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
-+	if (!pool)
-+		return NULL;
-+
-+	pool->vsp1 = vsp1;
-+
-+	/*
-+	 * Todo: 'extra_size' is only used by vsp1_dlm_create(), to allocate
-+	 * extra memory for the display list header. We need only one header per
-+	 * display list, not per display list body, thus this allocation is
-+	 * extraneous and should be reworked in the future.
-+	 */
-+	dlb_size = num_entries * sizeof(struct vsp1_dl_entry) + extra_size;
-+	pool->size = dlb_size * num_bodies;
-+
-+	pool->bodies = kcalloc(num_bodies, sizeof(*pool->bodies), GFP_KERNEL);
-+	if (!pool->bodies) {
-+		kfree(pool);
-+		return NULL;
-+	}
-+
-+	pool->mem = dma_alloc_wc(vsp1->bus_master, pool->size, &pool->dma,
-+				 GFP_KERNEL);
-+	if (!pool->mem) {
-+		kfree(pool->bodies);
-+		kfree(pool);
-+		return NULL;
-+	}
-+
-+	spin_lock_init(&pool->lock);
-+	INIT_LIST_HEAD(&pool->free);
-+
-+	for (i = 0; i < num_bodies; ++i) {
-+		struct vsp1_dl_body *dlb = &pool->bodies[i];
-+
-+		dlb->pool = pool;
-+		dlb->max_entries = num_entries;
-+
-+		dlb->dma = pool->dma + i * dlb_size;
-+		dlb->entries = pool->mem + i * dlb_size;
-+
-+		list_add_tail(&dlb->free, &pool->free);
-+	}
-+
-+	return pool;
-+}
-+
-+/**
-+ * vsp1_dl_body_pool_destroy - Release a body pool
-+ * @pool: The body pool
-+ *
-+ * Release all components of a pool allocation.
-+ */
-+void vsp1_dl_body_pool_destroy(struct vsp1_dl_body_pool *pool)
-+{
-+	if (!pool)
-+		return;
-+
-+	if (pool->mem)
-+		dma_free_wc(pool->vsp1->bus_master, pool->size, pool->mem,
-+			    pool->dma);
-+
-+	kfree(pool->bodies);
-+	kfree(pool);
-+}
-+
-+/**
-+ * vsp1_dl_body_get - Obtain a body from a pool
-+ * @pool: The body pool
-+ *
-+ * Obtain a body from the pool allocation without blocking.
-+ *
-+ * Returns a display list body or NULL if there are none available.
-+ */
-+struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool)
-+{
-+	struct vsp1_dl_body *dlb = NULL;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&pool->lock, flags);
-+
-+	if (!list_empty(&pool->free)) {
-+		dlb = list_first_entry(&pool->free, struct vsp1_dl_body, free);
-+		list_del(&dlb->free);
-+	}
-+
-+	spin_unlock_irqrestore(&pool->lock, flags);
-+
-+	return dlb;
-+}
-+
-+/**
-+ * vsp1_dl_body_put - Return a body back to its pool
-+ * @dlb: The display list body
-+ *
-+ * Return a body back to the pool, and reset the num_entries to clear the list.
-+ */
-+void vsp1_dl_body_put(struct vsp1_dl_body *dlb)
-+{
-+	unsigned long flags;
-+
-+	if (!dlb)
-+		return;
-+
-+	dlb->num_entries = 0;
-+
-+	spin_lock_irqsave(&dlb->pool->lock, flags);
-+	list_add_tail(&dlb->free, &dlb->pool->free);
-+	spin_unlock_irqrestore(&dlb->pool->lock, flags);
-+}
-+
- /*
-  * Initialize a display list body object and allocate DMA memory for the body
-  * data. The display list body object is expected to have been initialized to
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-index d4f7695c4ed3..785b88472375 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.h
-+++ b/drivers/media/platform/vsp1/vsp1_dl.h
-@@ -17,6 +17,7 @@
- 
- struct vsp1_device;
- struct vsp1_dl_body;
-+struct vsp1_dl_body_pool;
- struct vsp1_dl_list;
- struct vsp1_dl_manager;
- 
-@@ -34,6 +35,13 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl);
- void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data);
- void vsp1_dl_list_commit(struct vsp1_dl_list *dl);
- 
-+struct vsp1_dl_body_pool *
-+vsp1_dl_body_pool_create(struct vsp1_device *vsp1, unsigned int num_bodies,
-+			 unsigned int num_entries, size_t extra_size);
-+void vsp1_dl_body_pool_destroy(struct vsp1_dl_body_pool *pool);
-+struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool);
-+void vsp1_dl_body_put(struct vsp1_dl_body *dlb);
-+
- struct vsp1_dl_body *vsp1_dl_body_alloc(struct vsp1_device *vsp1,
- 					unsigned int num_entries);
- void vsp1_dl_body_free(struct vsp1_dl_body *dlb);
 -- 
-git-series 0.9.1
+Ville Syrjälä
+Intel OTC
