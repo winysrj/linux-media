@@ -1,188 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50300 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753648AbdKJWLR (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:46607 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751189AbdKTLmW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Nov 2017 17:11:17 -0500
-Date: Sat, 11 Nov 2017 00:11:13 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v10 1/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2
- receiver documentation
-Message-ID: <20171110221113.asnpanymn3toytqf@valkosipuli.retiisi.org.uk>
-References: <20171110133137.9137-1-niklas.soderlund+renesas@ragnatech.se>
- <20171110133137.9137-2-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171110133137.9137-2-niklas.soderlund+renesas@ragnatech.se>
+        Mon, 20 Nov 2017 06:42:22 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        dri-devel@lists.freedesktop.org,
+        =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?=
+        <ville.syrjala@linux.intel.com>,
+        Carlos Santa <carlos.santa@intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv5 3/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
+Date: Mon, 20 Nov 2017 12:42:11 +0100
+Message-Id: <20171120114211.21825-4-hverkuil@xs4all.nl>
+In-Reply-To: <20171120114211.21825-1-hverkuil@xs4all.nl>
+References: <20171120114211.21825-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hejssan,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Fri, Nov 10, 2017 at 02:31:36PM +0100, Niklas Söderlund wrote:
-> Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
-> are located between the video sources (CSI-2 transmitters) and the video
-> grabbers (VIN) on Gen3 of Renesas R-Car SoC.
-> 
-> Each CSI-2 device is connected to more then one VIN device which
-> simultaneously can receive video from the same CSI-2 device. Each VIN
-> device can also be connected to more then one CSI-2 device. The routing
-> of which link are used are controlled by the VIN devices. There are only
-> a few possible routes which are set by hardware limitations, which are
-> different for each SoC in the Gen3 family.
-> 
-> To work with the limitations of routing possibilities it is necessary
-> for the DT bindings to describe which VIN device is connected to which
-> CSI-2 device. This is why port 1 needs to to assign reg numbers for each
-> VIN device that be connected to it. To setup and to know which links are
-> valid for each SoC is the responsibility of the VIN driver since the
-> register to configure it belongs to the VIN hardware.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  .../devicetree/bindings/media/rcar-csi2.txt        | 104 +++++++++++++++++++++
->  MAINTAINERS                                        |   1 +
->  2 files changed, 105 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/rcar-csi2.txt b/Documentation/devicetree/bindings/media/rcar-csi2.txt
-> new file mode 100644
-> index 0000000000000000..24705d8997b14a10
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/rcar-csi2.txt
+Implement support for this DisplayPort feature.
 
-How about using vendor prefix and comma for the file name? Most others in
-the directory do so, including other Renesas bindings.
+The cec device is created whenever it detects an adapter that
+has this feature. It is only removed when a new adapter is connected
+that does not support this. If a new adapter is connected that has
+different properties than the previous one, then the old cec device is
+unregistered and a new one is registered to replace the old one.
 
-> @@ -0,0 +1,104 @@
-> +Renesas R-Car MIPI CSI-2
-> +------------------------
-> +
-> +The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesas R-Car
-> +family of devices. It is to be used in conjunction with the R-Car VIN module,
-> +which provides the video capture capabilities.
-> +
-> +Mandatory properties
-> +--------------------
-> + - compatible: Must be one or more of the following
-> +   - "renesas,r8a7795-csi2" for the R8A7795 device.
-> +   - "renesas,r8a7796-csi2" for the R8A7796 device.
-> +
-> + - reg: the register base and size for the device registers
-> + - interrupts: the interrupt for the device
-> + - clocks: Reference to the parent clock
-> +
-> +The device node shall contain two 'port' child nodes according to the
-> +bindings defined in Documentation/devicetree/bindings/media/
-> +video-interfaces.txt. Port 0 shall connect the node that is the video
-> +source for to the CSI-2. Port 1 shall connect all the R-Car VIN
-> +modules, which can make use of the CSI-2 module.
-> +
-> +- Port 0 - Video source (Mandatory)
-> +	- Endpoint 0 - sub-node describing the endpoint that is the video source
-> +
-> +- Port 1 - VIN instances (Mandatory for all VIN present in the SoC)
-> +	- Endpoint 0 - sub-node describing the endpoint that is VIN0
-> +	- Endpoint 1 - sub-node describing the endpoint that is VIN1
-> +	- Endpoint 2 - sub-node describing the endpoint that is VIN2
-> +	- Endpoint 3 - sub-node describing the endpoint that is VIN3
-> +	- Endpoint 4 - sub-node describing the endpoint that is VIN4
-> +	- Endpoint 5 - sub-node describing the endpoint that is VIN5
-> +	- Endpoint 6 - sub-node describing the endpoint that is VIN6
-> +	- Endpoint 7 - sub-node describing the endpoint that is VIN7
-> +
-> +Example:
-> +
-> +	csi20: csi2@fea80000 {
-> +		compatible = "renesas,r8a7796-csi2", "renesas,rcar-gen3-csi2";
-> +		reg = <0 0xfea80000 0 0x10000>;
-> +		interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
-> +		clocks = <&cpg CPG_MOD 714>;
-> +		power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
-> +		resets = <&cpg 714>;
-> +
-> +		ports {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +
-> +			port@0 {
-> +				#address-cells = <1>;
-> +				#size-cells = <0>;
-> +
-> +				reg = <0>;
-> +
-> +				csi20_in: endpoint@0 {
-> +					clock-lanes = <0>;
-> +					data-lanes = <1>;
-> +					remote-endpoint = <&adv7482_txb>;
-> +				};
-> +			};
-> +
-> +			port@1 {
-> +				#address-cells = <1>;
-> +				#size-cells = <0>;
-> +
-> +				reg = <1>;
-> +
-> +				csi20vin0: endpoint@0 {
-> +					reg = <0>;
-> +					remote-endpoint = <&vin0csi20>;
-> +				};
-> +				csi20vin1: endpoint@1 {
-> +					reg = <1>;
-> +					remote-endpoint = <&vin1csi20>;
-> +				};
-> +				csi20vin2: endpoint@2 {
-> +					reg = <2>;
-> +					remote-endpoint = <&vin2csi20>;
-> +				};
-> +				csi20vin3: endpoint@3 {
-> +					reg = <3>;
-> +					remote-endpoint = <&vin3csi20>;
-> +				};
-> +				csi20vin4: endpoint@4 {
-> +					reg = <4>;
-> +					remote-endpoint = <&vin4csi20>;
-> +				};
-> +				csi20vin5: endpoint@5 {
-> +					reg = <5>;
-> +					remote-endpoint = <&vin5csi20>;
-> +				};
-> +				csi20vin6: endpoint@6 {
-> +					reg = <6>;
-> +					remote-endpoint = <&vin6csi20>;
-> +				};
-> +				csi20vin7: endpoint@7 {
-> +					reg = <7>;
-> +					remote-endpoint = <&vin7csi20>;
-> +				};
-> +			};
-> +		};
-> +	};
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index adbf69306e9ee3d2..fa81ee6e80274646 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -8565,6 +8565,7 @@ L:	linux-media@vger.kernel.org
->  L:	linux-renesas-soc@vger.kernel.org
->  T:	git git://linuxtv.org/media_tree.git
->  S:	Supported
-> +F:	Documentation/devicetree/bindings/media/rcar-csi2.txt
->  F:	Documentation/devicetree/bindings/media/rcar_vin.txt
->  F:	drivers/media/platform/rcar-vin/
->  
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+Changes since v4:
 
+Reworked the last patch (adding CEC to i915) based on Ville's comments
+and my MST testing:
+	- register/unregister CEC in intel_dp_connector_register/unregister
+	- add comment and check if connector is registered in long_pulse
+	- unregister CEC if an MST 'connector' is detected.
+---
+ drivers/gpu/drm/i915/intel_dp.c | 47 ++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 46 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
+index 09f274419eea..853346e8c5e9 100644
+--- a/drivers/gpu/drm/i915/intel_dp.c
++++ b/drivers/gpu/drm/i915/intel_dp.c
+@@ -32,6 +32,7 @@
+ #include <linux/notifier.h>
+ #include <linux/reboot.h>
+ #include <asm/byteorder.h>
++#include <media/cec.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_atomic_helper.h>
+ #include <drm/drm_crtc.h>
+@@ -4690,6 +4691,7 @@ intel_dp_set_edid(struct intel_dp *intel_dp)
+ 	intel_connector->detect_edid = edid;
+ 
+ 	intel_dp->has_audio = drm_detect_monitor_audio(edid);
++	cec_s_phys_addr_from_edid(intel_dp->aux.cec_adap, edid);
+ }
+ 
+ static void
+@@ -4699,6 +4701,7 @@ intel_dp_unset_edid(struct intel_dp *intel_dp)
+ 
+ 	kfree(intel_connector->detect_edid);
+ 	intel_connector->detect_edid = NULL;
++	cec_phys_addr_invalidate(intel_dp->aux.cec_adap);
+ 
+ 	intel_dp->has_audio = false;
+ }
+@@ -4773,6 +4776,14 @@ intel_dp_long_pulse(struct intel_connector *intel_connector)
+ 		 * with EDID on it
+ 		 */
+ 		status = connector_status_disconnected;
++		if (connector->registered) {
++			/*
++			 * CEC is not supported for an MST device, unregister
++			 * the existing CEC adapter, if any.
++			 */
++			cec_unregister_adapter(intel_dp->aux.cec_adap);
++			intel_dp->aux.cec_adap = NULL;
++		}
+ 		goto out;
+ 	} else {
+ 		/*
+@@ -4822,6 +4833,25 @@ intel_dp_long_pulse(struct intel_connector *intel_connector)
+ 	if (status != connector_status_connected && !intel_dp->is_mst)
+ 		intel_dp_unset_edid(intel_dp);
+ 
++	if (status == connector_status_connected && connector->registered) {
++		/*
++		 * A new DP-to-HDMI adapter could have been plugged in, so
++		 * call drm_dp_cec_configure_adapter to check if a CEC device
++		 * should be unregistered and/or registered, depending on the
++		 * CEC capabilities of the adapter.
++		 *
++		 * The CEC device is associated with the connector, so it
++		 * sticks around when the adapter is unplugged and is only
++		 * unregistered if the connector is unregistered or if another
++		 * adapter is plugged in with no or different CEC capabilities.
++		 *
++		 * This is what CEC applications expect.
++		 */
++		drm_dp_cec_configure_adapter(&intel_dp->aux,
++					     connector->name, dev->dev,
++					     intel_connector->detect_edid);
++	}
++
+ 	intel_display_power_put(to_i915(dev), intel_dp->aux_power_domain);
+ 	return status;
+ }
+@@ -4902,6 +4932,7 @@ static int
+ intel_dp_connector_register(struct drm_connector *connector)
+ {
+ 	struct intel_dp *intel_dp = intel_attached_dp(connector);
++	struct drm_device *dev = connector->dev;
+ 	int ret;
+ 
+ 	ret = intel_connector_register(connector);
+@@ -4913,6 +4944,15 @@ intel_dp_connector_register(struct drm_connector *connector)
+ 	DRM_DEBUG_KMS("registering %s bus for %s\n",
+ 		      intel_dp->aux.name, connector->kdev->kobj.name);
+ 
++	if (connector->status == connector_status_connected &&
++	    !intel_dp->is_mst && !intel_dp->aux.cec_adap) {
++		struct intel_connector *intel_connector =
++			intel_dp->attached_connector;
++
++		drm_dp_cec_configure_adapter(&intel_dp->aux,
++					     connector->name, dev->dev,
++					     intel_connector->detect_edid);
++	}
+ 	intel_dp->aux.dev = connector->kdev;
+ 	return drm_dp_aux_register(&intel_dp->aux);
+ }
+@@ -4920,7 +4960,11 @@ intel_dp_connector_register(struct drm_connector *connector)
+ static void
+ intel_dp_connector_unregister(struct drm_connector *connector)
+ {
+-	drm_dp_aux_unregister(&intel_attached_dp(connector)->aux);
++	struct intel_dp *intel_dp = intel_attached_dp(connector);
++
++	cec_unregister_adapter(intel_dp->aux.cec_adap);
++	intel_dp->aux.cec_adap = NULL;
++	drm_dp_aux_unregister(&intel_dp->aux);
+ 	intel_connector_unregister(connector);
+ }
+ 
+@@ -5129,6 +5173,7 @@ intel_dp_hpd_pulse(struct intel_digital_port *intel_dig_port, bool long_hpd)
+ 	}
+ 
+ 	if (!intel_dp->is_mst) {
++		drm_dp_cec_irq(&intel_dp->aux);
+ 		if (!intel_dp_short_pulse(intel_dp)) {
+ 			intel_dp->detect_done = false;
+ 			goto put_power;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.1
