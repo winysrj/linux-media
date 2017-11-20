@@ -1,56 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:37527 "EHLO osg.samsung.com"
+Received: from mga03.intel.com ([134.134.136.65]:63018 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933262AbdKAVGI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 17:06:08 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Michael Krufky <mkrufky@linuxtv.org>
-Subject: [PATCH v2 04/26] media: tda8290: initialize agc gain
-Date: Wed,  1 Nov 2017 17:05:41 -0400
-Message-Id: <b2551ab8a898cf051566173234a94d7dca5d1bd8.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        id S1751155AbdKTOwD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Nov 2017 09:52:03 -0500
+Date: Mon, 20 Nov 2017 16:51:54 +0200
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [PATCH 1/2] drivers/video/hdmi: allow for larger-than-needed
+ vendor IF
+Message-ID: <20171120145154.GW10981@intel.com>
+References: <20171120134129.26161-1-hverkuil@xs4all.nl>
+ <20171120134129.26161-2-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171120134129.26161-2-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The tuning logic at tda8290 relies on agc_stat and
-adc_sat to be initialized. However, as warned by smatch:
+On Mon, Nov 20, 2017 at 02:41:28PM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hansverk@cisco.com>
+> 
+> Some devices (Windows Intel driver!) send a Vendor InfoFrame that
+> uses a payload length of 0x1b instead of the length of 5 or 6
+> that the unpack code expects. The InfoFrame is padded with 0 by
+> the source.
 
-	drivers/media/tuners/tda8290.c:261 tda8290_set_params() error: uninitialized symbol 'agc_stat'.
-	drivers/media/tuners/tda8290.c:261 tda8290_set_params() error: uninitialized symbol 'adc_sat'.
-	drivers/media/tuners/tda8290.c:262 tda8290_set_params() error: uninitialized symbol 'adc_sat'.
+So it doesn't put any 3D_Metadata stuff in there? We don't see to
+have code to parse/generate any of that.
 
-That could cause an erratic behavior if PLL is not locked,
-as the code will only work if
-	!(pll_stat & 0x80) && (adc_sat < 20)
+Sadly the spec doesn't seem to forbid sending an overly long infoframe
+as long it's padded with 0. Would have been nicer for extending it if
+that sort of thing was forbidden. But I guess everything can be solved
+with flags. Not that I expect anyone to extend it anymore now that
+HDMI 2.0 has specified a totally new infoframe.
 
-So, initialize it to zero, in order to let the code below
-to be called, with should give more chances to adjust the
-tuner gain, in order to get a PLL lock.
+> 
+> The current code thinks anything other than 5 or 6 is an error,
+> but larger values are allowed by the specification. So support
+> that here as well.
+> 
+> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+> ---
+>  drivers/video/hdmi.c | 3 +--
+>  include/linux/hdmi.h | 1 +
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/video/hdmi.c b/drivers/video/hdmi.c
+> index 1cf907ecded4..61f803f75a47 100644
+> --- a/drivers/video/hdmi.c
+> +++ b/drivers/video/hdmi.c
+> @@ -1164,8 +1164,7 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
+>  	struct hdmi_vendor_infoframe *hvf = &frame->hdmi;
+>  
+>  	if (ptr[0] != HDMI_INFOFRAME_TYPE_VENDOR ||
+> -	    ptr[1] != 1 ||
+> -	    (ptr[2] != 5 && ptr[2] != 6))
+> +	    ptr[1] != 1 || ptr[2] < 5 || ptr[2] > HDMI_VENDOR_INFOFRAME_SIZE)
+>  		return -EINVAL;
+>  
+>  	length = ptr[2];
+> diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
+> index d271ff23984f..14d3531a0eda 100644
+> --- a/include/linux/hdmi.h
+> +++ b/include/linux/hdmi.h
+> @@ -40,6 +40,7 @@ enum hdmi_infoframe_type {
+>  #define HDMI_AVI_INFOFRAME_SIZE    13
+>  #define HDMI_SPD_INFOFRAME_SIZE    25
+>  #define HDMI_AUDIO_INFOFRAME_SIZE  10
+> +#define HDMI_VENDOR_INFOFRAME_SIZE 31
+>  
+>  #define HDMI_INFOFRAME_SIZE(type)	\
+>  	(HDMI_INFOFRAME_HEADER_SIZE + HDMI_ ## type ## _INFOFRAME_SIZE)
+> -- 
+> 2.14.1
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/tuners/tda8290.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/tuners/tda8290.c b/drivers/media/tuners/tda8290.c
-index a59c567c55d6..f226e6ecc175 100644
---- a/drivers/media/tuners/tda8290.c
-+++ b/drivers/media/tuners/tda8290.c
-@@ -196,7 +196,7 @@ static void tda8290_set_params(struct dvb_frontend *fe,
- 	unsigned char addr_adc_sat  = 0x1a;
- 	unsigned char addr_agc_stat = 0x1d;
- 	unsigned char addr_pll_stat = 0x1b;
--	unsigned char adc_sat, agc_stat,
-+	unsigned char adc_sat = 0, agc_stat = 0,
- 		      pll_stat;
- 	int i;
- 
 -- 
-2.13.6
+Ville Syrjälä
+Intel OTC
