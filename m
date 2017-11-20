@@ -1,50 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.73]:60782 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932324AbdK1Ki4 (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:46823 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752720AbdKTU4e (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 05:38:56 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] media: ov13858: select V4L2_FWNODE
-Date: Tue, 28 Nov 2017 11:38:00 +0100
-Message-Id: <20171128103841.490119-1-arnd@arndb.de>
+        Mon, 20 Nov 2017 15:56:34 -0500
+From: Jesse Chan <jc@linux.com>
+Cc: Jesse Chan <jc@linux.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] soc_camera: soc_scale_crop: add missing MODULE_DESCRIPTION/AUTHOR/LICENSE
+Date: Mon, 20 Nov 2017 12:56:28 -0800
+Message-Id: <20171120205628.85855-1-jc@linux.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_async_register_subdev_sensor_common() is only provided when
-CONFIG_V4L2_FWNODE is enabled, otherwise we get a link failure:
+This change resolves a new compile-time warning
+when built as a loadable module:
 
-drivers/media/i2c/ov13858.o: In function `ov13858_probe':
-ov13858.c:(.text+0xf74): undefined reference to `v4l2_async_register_subdev_sensor_common'
+WARNING: modpost: missing MODULE_LICENSE() in drivers/media/platform/soc_camera/soc_scale_crop.o
+see include/linux/module.h for more information
 
-This adds a Kconfig 'select' statement like all the other users of
-this interface have.
+This adds the license as "GPL", which matches the header of the file.
 
-Fixes: 2e8a9fbb7950 ("media: ov13858: Add support for flash and lens devices")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+MODULE_DESCRIPTION and MODULE_AUTHOR are also added.
+
+Signed-off-by: Jesse Chan <jc@linux.com>
 ---
-This is the same patch I submitted for et8ek8 earlier. Both
-are needed for 4.15.
----
- drivers/media/i2c/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/platform/soc_camera/soc_scale_crop.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 3c6d6428f525..cb5d7ff82915 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -676,6 +676,7 @@ config VIDEO_OV13858
- 	tristate "OmniVision OV13858 sensor support"
- 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
- 	depends on MEDIA_CAMERA_SUPPORT
-+	select V4L2_FWNODE
- 	---help---
- 	  This is a Video4Linux2 sensor-level driver for the OmniVision
- 	  OV13858 camera.
+diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
+index 0116097c0c0f..092c73f24589 100644
+--- a/drivers/media/platform/soc_camera/soc_scale_crop.c
++++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
+@@ -419,3 +419,7 @@ void soc_camera_calc_client_output(struct soc_camera_device *icd,
+ 	mf->height = soc_camera_shift_scale(rect->height, shift, scale_v);
+ }
+ EXPORT_SYMBOL(soc_camera_calc_client_output);
++
++MODULE_DESCRIPTION("soc-camera scaling-cropping functions");
++MODULE_AUTHOR("Guennadi Liakhovetski <kernel@pengutronix.de>");
++MODULE_LICENSE("GPL");
 -- 
-2.9.0
+2.14.1
