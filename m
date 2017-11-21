@@ -1,80 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58316 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933202AbdKGDkh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Nov 2017 22:40:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] uvc: Add D3DFMT_L8 support
-Date: Tue, 07 Nov 2017 05:40:39 +0200
-Message-ID: <1796861.IONRWI83yA@avalon>
-In-Reply-To: <20171106201328.8875-1-nicolas.dufresne@collabora.com>
-References: <7297726.O69fnl4949@avalon> <20171106201328.8875-1-nicolas.dufresne@collabora.com>
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:43383 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751232AbdKUJuH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Nov 2017 04:50:07 -0500
+Received: by mail-wm0-f50.google.com with SMTP id x63so1949264wmf.2
+        for <linux-media@vger.kernel.org>; Tue, 21 Nov 2017 01:50:06 -0800 (PST)
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Subject: iMX6q/coda encoder failures with ffmpeg/gstreamer m2m encoders
+Message-ID: <8bfe88cc-28ec-fa07-5da3-614745ac125f@baylibre.com>
+Date: Tue, 21 Nov 2017 10:50:03 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
+Hi,
 
-Thank you for the patch.
+I'm trying to make the coda960 h.264 encoder work on an i.MX6q SoC with Linux 4.14 and the 3.1.1 firmware.
 
-On Monday, 6 November 2017 22:13:28 EET Nicolas Dufresne wrote:
-> Microsoft HoloLense UVC sensor uses D3DFMT instead of FOURCC when
-> exposing formats. This adds support for D3DFMT_L8 as exposed from
-> the Acer Windows Mixed Reality Headset.
-> 
-> Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+# dmesg | grep coda
+[    4.846574] coda 2040000.vpu: Direct firmware load for vpu_fw_imx6q.bin failed with error -2
+[    4.901351] coda 2040000.vpu: Using fallback firmware vpu/vpu_fw_imx6q.bin
+[    4.916039] coda 2040000.vpu: Firmware code revision: 46072
+[    4.921641] coda 2040000.vpu: Initialized CODA960.
+[    4.926589] coda 2040000.vpu: Firmware version: 3.1.1
+[    4.932223] coda 2040000.vpu: codec registered as /dev/video[8-9]
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Using gstreamer-plugins-good and the m2m v4l2 encoder, I have :
 
-and applied to my tree with "uvc" replaced by "uvcvideo" in the subject to 
-match other commits.
+# gst-launch-1.0 videotestsrc num-buffers=1000 pattern=snow ! video/x-raw, framerate=30/1, width=1280, height=720 ! v4l2h264enc ! h264parse ! mp4mux ! filesink location=/dev/null
+Setting pipeline to PAUSED ...
+Pipeline is PREROLLING ...
+Redistribute latency...
+[ 1569.473717] coda 2040000.vpu: coda_s_fmt queue busy
+ERROR: from element /GstPipeline:pipeline0/v4l2h264enc:v4l2h264enc0: Device '/dev/video8' is busy
+Additional debug info:
+../../../gst-plugins-good-1.12.3/sys/v4l2/gstv4l2object.c(3609): gst_v4l2_object_set_format_full (): /GstPipeline:pipeline0/v4l2h264enc:v4l2h264enc0:
+Call to S_FMT failed for YU12 @ 1280x720: Device or resource busy
+ERROR: pipeline doesn't want to preroll.
+Setting pipeline to NULL ...
+Freeing pipeline ...
 
-> ---
->  drivers/media/usb/uvc/uvc_driver.c | 5 +++++
->  drivers/media/usb/uvc/uvcvideo.h   | 5 +++++
->  2 files changed, 10 insertions(+)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index 6d22b22cb35b..113130b6b2d6
-> 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -94,6 +94,11 @@ static struct uvc_format_desc uvc_fmts[] = {
->  		.fcc		= V4L2_PIX_FMT_GREY,
->  	},
->  	{
-> +		.name		= "Greyscale 8-bit (D3DFMT_L8)",
-> +		.guid		= UVC_GUID_FORMAT_D3DFMT_L8,
-> +		.fcc		= V4L2_PIX_FMT_GREY,
-> +	},
-> +	{
->  		.name		= "Greyscale 10-bit (Y10 )",
->  		.guid		= UVC_GUID_FORMAT_Y10,
->  		.fcc		= V4L2_PIX_FMT_Y10,
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index 34c7ee6cc9e5..fbc1f433ff05 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -153,6 +153,11 @@
->  	{ 'I',  'N',  'V',  'I', 0xdb, 0x57, 0x49, 0x5e, \
->  	 0x8e, 0x3f, 0xf4, 0x79, 0x53, 0x2b, 0x94, 0x6f}
-> 
-> +#define UVC_GUID_FORMAT_D3DFMT_L8 \
-> +	{0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, \
-> +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> +
-> +
->  /* ------------------------------------------------------------------------
-> * Driver specific constants.
->   */
+And with ffmpeg :
 
+# ffmpeg -f lavfi -i nullsrc=s=1280x720:d=5 -vf "geq=random(1)*255:128:128" -vcodec h264_v4l2m2m -f null -
+Input #0, lavfi, from 'nullsrc=s=1280x720:d=5':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+    Stream #0:0: Video: rawvideo (I420 / 0x30323449), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 25 tbr, 25 tbn, 25 tbc
+Stream mapping:
+  Stream #0:0 -> #0:0 (rawvideo (native) -> h264 (h264_v4l2m2m))
+Press [q] to stop, [?] for help
+[h264_v4l2m2m @ 0x146f700] driver 'coda' on card 'CODA960'
+    Last message repeated 1 times
+[h264_v4l2m2m @ 0x146f700] Using device /dev/video8
+[h264_v4l2m2m @ 0x146f700] driver 'coda' on card 'CODA960'
+[h264_v4l2m2m @ 0x146f700] Failed to set number of B-frames
+    Last message repeated 1 times
+[h264_v4l2m2m @ 0x146f700] Failed to set header mode
+[h264_v4l2m2m @ 0x146f700] h264 profile not found
+[h264_v4l2m2m[  787.690832] coda 2040000.vpu: CODA_COMMAND_SEQ_INIT failed
+ @ 0x146f700] Encoder adjusted: qmin (0), qmax (51)
+[h264_v4l2m2m @ 0x146f700] Failed to set minimum video quantizer scale
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf57.71.100
+    Stream #0:0: Video: h264 (h264_v4l2m2m), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn, 25 tbc
+    Metadata:
+      encoder         : Lavc57.89.100 h264_v4l2m2m
+[h264_v4l2m2m @ 0x146f700] output  POLLERR
+[h264_v4l2m2m @ 0x146f700] VIDIOC_STREAMON failed on capture context
+Video encoding failed
+
+Decoder iws working OK with gstreamer, but fails to allocate memory with ffmpeg (unrelated).
+
+Is there missing patches to make encoder work, or some specific parameters  ?
+
+Thanks,
+Neil
 
 -- 
-Regards,
-
-Laurent Pinchart
+Neil Armstrong
+Embedded Linux Software Engineer
+BayLibre - At the Heart of Embedded Linux
+www.baylibre.com
