@@ -1,101 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:39598 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750819AbdKYUTC (ORCPT
+Received: from mail.fireflyinternet.com ([109.228.58.192]:52893 "EHLO
+        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751067AbdKUP6Y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Nov 2017 15:19:02 -0500
-From: Pierre-Hugues Husson <phh@phh.me>
-To: linux-rockchip@lists.infradead.org
-Cc: heiko@sntech.de, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux@armlinux.org.uk, Archit Taneja <architt@codeaurora.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        dri-devel@lists.freedesktop.org, Pierre-Hugues Husson <phh@phh.me>
-Subject: [PATCH v4] drm: bridge: synopsys/dw-hdmi: Enable cec clock
-Date: Sat, 25 Nov 2017 21:18:44 +0100
-Message-Id: <20171125201844.11353-1-phh@phh.me>
+        Tue, 21 Nov 2017 10:58:24 -0500
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+To: christian.koenig@amd.com,
+        =?utf-8?q?Christian_K=C3=B6nig?= <ckoenig.leichtzumerken@gmail.com>,
+        "Rob Clark" <robdclark@gmail.com>
+From: Chris Wilson <chris@chris-wilson.co.uk>
+In-Reply-To: <83c7c887-0d40-69b5-2ad2-67d0af6eda71@gmail.com>
+Cc: "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        "Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <20171121140850.23401-1-robdclark@gmail.com>
+ <151127508188.436.3320065005004428970@mail.alporthouse.com>
+ <CAF6AEGuo=e8rOnLHX3rL9qGTenSRDO2D=S7GQs9rq+=5SVqS0g@mail.gmail.com>
+ <83c7c887-0d40-69b5-2ad2-67d0af6eda71@gmail.com>
+Message-ID: <151127989753.436.17300151969206767494@mail.alporthouse.com>
+Subject: Re: [PATCH] reservation: don't wait when timeout=0
+Date: Tue, 21 Nov 2017 15:58:17 +0000
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Support the "cec" optional clock. The documentation already mentions "cec"
-optional clock and it is used by several boards, but currently the driver
-doesn't enable it, thus preventing cec from working on those boards.
+Quoting Christian König (2017-11-21 15:49:55)
+> Am 21.11.2017 um 15:59 schrieb Rob Clark:
+> > On Tue, Nov 21, 2017 at 9:38 AM, Chris Wilson <chris@chris-wilson.co.uk> wrote:
+> >> Quoting Rob Clark (2017-11-21 14:08:46)
+> >>> If we are testing if a reservation object's fences have been
+> >>> signaled with timeout=0 (non-blocking), we need to pass 0 for
+> >>> timeout to dma_fence_wait_timeout().
+> >>>
+> >>> Plus bonus spelling correction.
+> >>>
+> >>> Signed-off-by: Rob Clark <robdclark@gmail.com>
+> >>> ---
+> >>>   drivers/dma-buf/reservation.c | 11 +++++++++--
+> >>>   1 file changed, 9 insertions(+), 2 deletions(-)
+> >>>
+> >>> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+> >>> index dec3a815455d..71f51140a9ad 100644
+> >>> --- a/drivers/dma-buf/reservation.c
+> >>> +++ b/drivers/dma-buf/reservation.c
+> >>> @@ -420,7 +420,7 @@ EXPORT_SYMBOL_GPL(reservation_object_get_fences_rcu);
+> >>>    *
+> >>>    * RETURNS
+> >>>    * Returns -ERESTARTSYS if interrupted, 0 if the wait timed out, or
+> >>> - * greater than zer on success.
+> >>> + * greater than zero on success.
+> >>>    */
+> >>>   long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
+> >>>                                           bool wait_all, bool intr,
+> >>> @@ -483,7 +483,14 @@ long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
+> >>>                          goto retry;
+> >>>                  }
+> >>>
+> >>> -               ret = dma_fence_wait_timeout(fence, intr, ret);
+> >>> +               /*
+> >>> +                * Note that dma_fence_wait_timeout() will return 1 if
+> >>> +                * the fence is already signaled, so in the wait_all
+> >>> +                * case when we go through the retry loop again, ret
+> >>> +                * will be greater than 0 and we don't want this to
+> >>> +                * cause _wait_timeout() to block
+> >>> +                */
+> >>> +               ret = dma_fence_wait_timeout(fence, intr, timeout ? ret : 0);
+> >> One should ask if we should just fix the interface to stop returning
+> >> incorrect results (stop "correcting" a completion with 0 jiffies remaining
+> >> as 1). A timeout can be distinguished by -ETIME (or your pick of errno).
+> > perhaps -EBUSY, if we go that route (although maybe it should be a
+> > follow-on patch, this one is suitable for backport to stable/lts if
+> > one should so choose..)
+> >
+> > I think current approach was chosen to match schedule_timeout() and
+> > other such functions that take a timeout in jiffies.  Not making a
+> > judgement on whether that is a good or bad reason..
+> 
+> We intentionally switched away from that to be in sync with the 
+> wait_event_* interface.
+> 
+> Returning 1 when a function with a zero timeout succeeds is actually 
+> quite common in the kernel.
 
-And even worse: a /dev/cecX device will appear for those boards, but it
-won't be functioning without configuring this clock.
-
-Changes:
-v4:
-- Change commit message to stress the importance of this patch
-
-v3:
-- Drop useless braces
-
-v2:
-- Separate ENOENT errors from others
-- Propagate other errors (especially -EPROBE_DEFER)
-
-Signed-off-by: Pierre-Hugues Husson <phh@phh.me>
----
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
-
-diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-index bf14214fa464..d82b9747a979 100644
---- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-+++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-@@ -138,6 +138,7 @@ struct dw_hdmi {
- 	struct device *dev;
- 	struct clk *isfr_clk;
- 	struct clk *iahb_clk;
-+	struct clk *cec_clk;
- 	struct dw_hdmi_i2c *i2c;
- 
- 	struct hdmi_data_info hdmi_data;
-@@ -2382,6 +2383,26 @@ __dw_hdmi_probe(struct platform_device *pdev,
- 		goto err_isfr;
- 	}
- 
-+	hdmi->cec_clk = devm_clk_get(hdmi->dev, "cec");
-+	if (PTR_ERR(hdmi->cec_clk) == -ENOENT) {
-+		hdmi->cec_clk = NULL;
-+	} else if (IS_ERR(hdmi->cec_clk)) {
-+		ret = PTR_ERR(hdmi->cec_clk);
-+		if (ret != -EPROBE_DEFER)
-+			dev_err(hdmi->dev, "Cannot get HDMI cec clock: %d\n",
-+					ret);
-+
-+		hdmi->cec_clk = NULL;
-+		goto err_iahb;
-+	} else {
-+		ret = clk_prepare_enable(hdmi->cec_clk);
-+		if (ret) {
-+			dev_err(hdmi->dev, "Cannot enable HDMI cec clock: %d\n",
-+					ret);
-+			goto err_iahb;
-+		}
-+	}
-+
- 	/* Product and revision IDs */
- 	hdmi->version = (hdmi_readb(hdmi, HDMI_DESIGN_ID) << 8)
- 		      | (hdmi_readb(hdmi, HDMI_REVISION_ID) << 0);
-@@ -2518,6 +2539,8 @@ __dw_hdmi_probe(struct platform_device *pdev,
- 		cec_notifier_put(hdmi->cec_notifier);
- 
- 	clk_disable_unprepare(hdmi->iahb_clk);
-+	if (hdmi->cec_clk)
-+		clk_disable_unprepare(hdmi->cec_clk);
- err_isfr:
- 	clk_disable_unprepare(hdmi->isfr_clk);
- err_res:
-@@ -2541,6 +2564,8 @@ static void __dw_hdmi_remove(struct dw_hdmi *hdmi)
- 
- 	clk_disable_unprepare(hdmi->iahb_clk);
- 	clk_disable_unprepare(hdmi->isfr_clk);
-+	if (hdmi->cec_clk)
-+		clk_disable_unprepare(hdmi->cec_clk);
- 
- 	if (hdmi->i2c)
- 		i2c_del_adapter(&hdmi->i2c->adap);
--- 
-2.15.0
+We actually had this conversation last time, and outside of that it
+isn't. Looking at all the convolution to first return 1, then undo the
+damage in the caller, it looks pretty silly.
+-Chris
