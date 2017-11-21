@@ -1,38 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kadath.azazel.net ([81.187.231.250]:45296 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753170AbdK1K2A (ORCPT
+Received: from mail-io0-f196.google.com ([209.85.223.196]:33569 "EHLO
+        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751221AbdKUO7V (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 05:28:00 -0500
-From: Jeremy Sowden <jeremy@azazel.net>
-To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Cc: Jeremy Sowden <jeremy@azazel.net>
-Subject: [PATCH v2 0/3] Sparse fixes for the Atom ISP Staging Driver
-Date: Tue, 28 Nov 2017 10:27:24 +0000
-Message-Id: <20171128102726.30542-1-jeremy@azazel.net>
-In-Reply-To: <20171127190938.73c6b15a@alans-desktop>
-References: <20171127190938.73c6b15a@alans-desktop>
+        Tue, 21 Nov 2017 09:59:21 -0500
+MIME-Version: 1.0
+In-Reply-To: <151127508188.436.3320065005004428970@mail.alporthouse.com>
+References: <20171121140850.23401-1-robdclark@gmail.com> <151127508188.436.3320065005004428970@mail.alporthouse.com>
+From: Rob Clark <robdclark@gmail.com>
+Date: Tue, 21 Nov 2017 09:59:19 -0500
+Message-ID: <CAF6AEGuo=e8rOnLHX3rL9qGTenSRDO2D=S7GQs9rq+=5SVqS0g@mail.gmail.com>
+Subject: Re: [PATCH] reservation: don't wait when timeout=0
+To: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed some sparse warnings in the Atom ISP staging driver.
+On Tue, Nov 21, 2017 at 9:38 AM, Chris Wilson <chris@chris-wilson.co.uk> wrote:
+> Quoting Rob Clark (2017-11-21 14:08:46)
+>> If we are testing if a reservation object's fences have been
+>> signaled with timeout=0 (non-blocking), we need to pass 0 for
+>> timeout to dma_fence_wait_timeout().
+>>
+>> Plus bonus spelling correction.
+>>
+>> Signed-off-by: Rob Clark <robdclark@gmail.com>
+>> ---
+>>  drivers/dma-buf/reservation.c | 11 +++++++++--
+>>  1 file changed, 9 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+>> index dec3a815455d..71f51140a9ad 100644
+>> --- a/drivers/dma-buf/reservation.c
+>> +++ b/drivers/dma-buf/reservation.c
+>> @@ -420,7 +420,7 @@ EXPORT_SYMBOL_GPL(reservation_object_get_fences_rcu);
+>>   *
+>>   * RETURNS
+>>   * Returns -ERESTARTSYS if interrupted, 0 if the wait timed out, or
+>> - * greater than zer on success.
+>> + * greater than zero on success.
+>>   */
+>>  long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
+>>                                          bool wait_all, bool intr,
+>> @@ -483,7 +483,14 @@ long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
+>>                         goto retry;
+>>                 }
+>>
+>> -               ret = dma_fence_wait_timeout(fence, intr, ret);
+>> +               /*
+>> +                * Note that dma_fence_wait_timeout() will return 1 if
+>> +                * the fence is already signaled, so in the wait_all
+>> +                * case when we go through the retry loop again, ret
+>> +                * will be greater than 0 and we don't want this to
+>> +                * cause _wait_timeout() to block
+>> +                */
+>> +               ret = dma_fence_wait_timeout(fence, intr, timeout ? ret : 0);
+>
+> One should ask if we should just fix the interface to stop returning
+> incorrect results (stop "correcting" a completion with 0 jiffies remaining
+> as 1). A timeout can be distinguished by -ETIME (or your pick of errno).
 
-This time with longer commit messages. :)
+perhaps -EBUSY, if we go that route (although maybe it should be a
+follow-on patch, this one is suitable for backport to stable/lts if
+one should so choose..)
 
-I've chosen to ignore checkpatch.pl's suggestion to change the types of
-the arrays in the second patch from int16_t to s16.
+I think current approach was chosen to match schedule_timeout() and
+other such functions that take a timeout in jiffies.  Not making a
+judgement on whether that is a good or bad reason..
 
-Jeremy Sowden (2):
-  media: staging: atomisp: fix for sparse "using plain integer as NULL
-    pointer" warnings.
-  media: staging: atomisp: fixes for "symbol was not declared. Should it
-    be static?" sparse warnings.
+BR,
+-R
 
- .../isp/kernels/eed1_8/ia_css_eed1_8.host.c        | 24 +++++++++++-----------
- .../isp_param/interface/ia_css_isp_param_types.h   |  2 +-
- 2 files changed, 13 insertions(+), 13 deletions(-)
-
-
-base-commit: 844056fd74ebdd826bd23a7d989597e15f478acb
--- 
-2.15.0
+> -Chris
