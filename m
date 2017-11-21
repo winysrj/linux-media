@@ -1,69 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f53.google.com ([74.125.82.53]:42409 "EHLO
-        mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752054AbdK2JbZ (ORCPT
+Received: from mail.fireflyinternet.com ([109.228.58.192]:50580 "EHLO
+        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751260AbdKUOiG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 04:31:25 -0500
-Received: by mail-wm0-f53.google.com with SMTP id l141so4790138wmg.1
-        for <linux-media@vger.kernel.org>; Wed, 29 Nov 2017 01:31:25 -0800 (PST)
-Date: Wed, 29 Nov 2017 10:31:17 +0100
-From: "Riccardo S." <sirmy15@gmail.com>
-To: jacopo@jmondi.org
-Cc: alan@linux.intel.com, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/4] fix some checkpatch style issues in atomisp driver
-Message-ID: <20171129093117.GB58504@rschirone-mbp.local>
-References: <20171127214413.10749-1-sirmy15@gmail.com>
+        Tue, 21 Nov 2017 09:38:06 -0500
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171127214413.10749-1-sirmy15@gmail.com>
+Content-Transfer-Encoding: 8BIT
+To: Rob Clark <robdclark@gmail.com>, dri-devel@lists.freedesktop.org
+From: Chris Wilson <chris@chris-wilson.co.uk>
+In-Reply-To: <20171121140850.23401-1-robdclark@gmail.com>
+Cc: linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+References: <20171121140850.23401-1-robdclark@gmail.com>
+Message-ID: <151127508188.436.3320065005004428970@mail.alporthouse.com>
+Subject: Re: [PATCH] reservation: don't wait when timeout=0
+Date: Tue, 21 Nov 2017 14:38:01 +0000
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
-
-for some reason your comment about "[PATCH 3/4] staging: improves
-comparisons readability in atomisp-ov5693" did not reach my inbox.
-
-Unfortunately I already sent PATCHv2 and it has been accepted.
-Anyway...
-
-> > @@ -780,7 +780,7 @@ static int __ov5693_otp_read(struct v4l2_subdev *sd, u8 *buf)
-> >  				b = buf;
-> >  				continue;
-> >  			}
-> > -		} else if (27 == i) {		//if the prvious 32bytes data doesn't exist, try to read the next 32bytes data again.
-> > +		} else if (i == 27) {		//if the prvious 32bytes data doesn't exist, try to read the next 32bytes data again.
->
-> I wonder why checkpatch does not complain about these C++ style
-> comments clearly exceeding 80 columns...
->
-
-It complained, but I didn't put that fix in this series. Should I have
-cleaned those lines in the same commit since I was already touching
-that part of the code? Or better in a separate patch?
-
-> >  			if ((*b) == 0) {
-> >  				dev->otp_size = 32;
-> >  				break;
-> > @@ -1351,7 +1351,7 @@ static int __power_up(struct v4l2_subdev *sd)
-> >  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> >  	int ret;
-> >
-> > -	if (NULL == dev->platform_data) {
-> > +	if (!dev->platform_data) {
-
-> Please mention in changelog that you're also substituting a comparison to
-> NULL with this.
+Quoting Rob Clark (2017-11-21 14:08:46)
+> If we are testing if a reservation object's fences have been
+> signaled with timeout=0 (non-blocking), we need to pass 0 for
+> timeout to dma_fence_wait_timeout().
 > 
-> Checkpatch points this out, didn't it?
+> Plus bonus spelling correction.
+> 
+> Signed-off-by: Rob Clark <robdclark@gmail.com>
+> ---
+>  drivers/dma-buf/reservation.c | 11 +++++++++--
+>  1 file changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+> index dec3a815455d..71f51140a9ad 100644
+> --- a/drivers/dma-buf/reservation.c
+> +++ b/drivers/dma-buf/reservation.c
+> @@ -420,7 +420,7 @@ EXPORT_SYMBOL_GPL(reservation_object_get_fences_rcu);
+>   *
+>   * RETURNS
+>   * Returns -ERESTARTSYS if interrupted, 0 if the wait timed out, or
+> - * greater than zer on success.
+> + * greater than zero on success.
+>   */
+>  long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
+>                                          bool wait_all, bool intr,
+> @@ -483,7 +483,14 @@ long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
+>                         goto retry;
+>                 }
+>  
+> -               ret = dma_fence_wait_timeout(fence, intr, ret);
+> +               /*
+> +                * Note that dma_fence_wait_timeout() will return 1 if
+> +                * the fence is already signaled, so in the wait_all
+> +                * case when we go through the retry loop again, ret
+> +                * will be greater than 0 and we don't want this to
+> +                * cause _wait_timeout() to block
+> +                */
+> +               ret = dma_fence_wait_timeout(fence, intr, timeout ? ret : 0);
 
-It actually warned about the comparison that should place the constant
-on the right side of the test. When fixing this, I used the "!foo"
-syntax. I got your point though.
-
-Thanks for your review!
-
-
-Riccardo Schirone
+One should ask if we should just fix the interface to stop returning
+incorrect results (stop "correcting" a completion with 0 jiffies remaining
+as 1). A timeout can be distinguished by -ETIME (or your pick of errno).
+-Chris
