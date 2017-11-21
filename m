@@ -1,162 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:54105 "EHLO osg.samsung.com"
+Received: from mga01.intel.com ([192.55.52.88]:38823 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751942AbdKGKbQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Nov 2017 05:31:16 -0500
-Date: Tue, 7 Nov 2017 08:31:05 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Matthias Schwarzott <zzam@gentoo.org>,
-        Andrey Konovalov <andreyknvl@google.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        syzkaller <syzkaller@googlegroups.com>
-Subject: Re: usb/media/dtt200u: use-after-free in __dvb_frontend_free
-Message-ID: <20171107083105.6998b182@vento.lan>
-In-Reply-To: <c4ad7f4e-c838-aa44-5f0d-f8072ed41904@gentoo.org>
-References: <CAAeHK+zRfmghESqdKBqFw1CQnrkEkCxCLNgDQKzPqzZS=onEpg@mail.gmail.com>
-        <c4ad7f4e-c838-aa44-5f0d-f8072ed41904@gentoo.org>
+        id S1751281AbdKURV5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Nov 2017 12:21:57 -0500
+Date: Tue, 21 Nov 2017 19:21:54 +0200
+From: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
+To: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        "Zhi, Yong" <yong.zhi@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>
+Subject: Re: [PATCH v4 04/12] intel-ipu3: Add user space ABI definitions
+Message-ID: <20171121172154.h6bzixu4phmqiria@paasikivi.fi.intel.com>
+References: <1508298896-26096-1-git-send-email-yong.zhi@intel.com>
+ <20171020093020.jo2vktc62sx52w4v@valkosipuli.retiisi.org.uk>
+ <6F87890CF0F5204F892DEA1EF0D77A5972FD24A5@FMSMSX114.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A5972FD24A5@FMSMSX114.amr.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 23 Oct 2017 20:58:09 +0200
-Matthias Schwarzott <zzam@gentoo.org> escreveu:
+Hi Rajmohan,
 
-> Am 23.10.2017 um 16:41 schrieb Andrey Konovalov:
-> > Hi!
-> > 
-> > I've got the following report while fuzzing the kernel with syzkaller.
-> > 
-> > On commit 3e0cc09a3a2c40ec1ffb6b4e12da86e98feccb11 (4.14-rc5+).
-> > 
-> > dvb-usb: found a 'WideView WT-220U PenType Receiver (based on ZL353)'
-> > in warm state.
-> > dvb-usb: bulk message failed: -22 (2/1102416563)
-> > dvb-usb: will use the device's hardware PID filter (table count: 15).
-> > dvbdev: DVB: registering new adapter (WideView WT-220U PenType
-> > Receiver (based on ZL353))
-> > usb 1-1: media controller created
-> > dvbdev: dvb_create_media_entity: media entity 'dvb-demux' registered.
-> > usb 1-1: DVB: registering adapter 0 frontend 0 (WideView USB DVB-T)...
-> > dvbdev: dvb_create_media_entity: media entity 'WideView USB DVB-T' registered.
-> > Registered IR keymap rc-dtt200u
-> > rc rc1: IR-receiver inside an USB DVB receiver as
-> > /devices/platform/dummy_hcd.0/usb1/1-1/rc/rc1
-> > input: IR-receiver inside an USB DVB receiver as
-> > /devices/platform/dummy_hcd.0/usb1/1-1/rc/rc1/input9
-> > dvb-usb: schedule remote query interval to 300 msecs.
-> > dvb-usb: WideView WT-220U PenType Receiver (based on ZL353)
-> > successfully initialized and connected.
-> > dvb-usb: bulk message failed: -22 (1/1807119384)
-> > dvb-usb: error -22 while querying for an remote control event.
-> > dvb-usb: bulk message failed: -22 (1/1807119384)
-> > dvb-usb: error -22 while querying for an remote control event.
-> > dvb-usb: bulk message failed: -22 (1/1807119384)
-> > dvb-usb: error -22 while querying for an remote control event.
-> > dvb-usb: bulk message failed: -22 (1/1807119384)
-> > dvb-usb: error -22 while querying for an remote control event.
-> > dvb-usb: bulk message failed: -22 (1/1807119384)
-> > dvb-usb: error -22 while querying for an remote control event.
-> > dvb-usb: bulk message failed: -22 (1/1807119384)
-> > dvb-usb: error -22 while querying for an remote control event.
-> > usb 1-1: USB disconnect, device number 2
-> > ==================================================================
-> > BUG: KASAN: use-after-free in __dvb_frontend_free+0x113/0x120
-> > Write of size 8 at addr ffff880067d45a00 by task kworker/0:1/24
-> > 
-> > CPU: 0 PID: 24 Comm: kworker/0:1 Not tainted 4.14.0-rc5-43687-g06ab8a23e0e6 #545
-> > Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-> > Workqueue: usb_hub_wq hub_event
-> > Call Trace:
-> >  __dump_stack lib/dump_stack.c:16
-> >  dump_stack+0x292/0x395 lib/dump_stack.c:52
-> >  print_address_description+0x78/0x280 mm/kasan/report.c:252
-> >  kasan_report_error mm/kasan/report.c:351
-> >  kasan_report+0x23d/0x350 mm/kasan/report.c:409
-> >  __asan_report_store8_noabort+0x1c/0x20 mm/kasan/report.c:435
-> >  __dvb_frontend_free+0x113/0x120 drivers/media/dvb-core/dvb_frontend.c:156
-> >  dvb_frontend_put+0x59/0x70 drivers/media/dvb-core/dvb_frontend.c:176
-> >  dvb_frontend_detach+0x120/0x150 drivers/media/dvb-core/dvb_frontend.c:2803
-> >  dvb_usb_adapter_frontend_exit+0xd6/0x160
-> > drivers/media/usb/dvb-usb/dvb-usb-dvb.c:340
-> >  dvb_usb_adapter_exit drivers/media/usb/dvb-usb/dvb-usb-init.c:116
-> >  dvb_usb_exit+0x9b/0x200 drivers/media/usb/dvb-usb/dvb-usb-init.c:132
-> >  dvb_usb_device_exit+0xa5/0xf0 drivers/media/usb/dvb-usb/dvb-usb-init.c:295
-> >  usb_unbind_interface+0x21c/0xa90 drivers/usb/core/driver.c:423
-> >  __device_release_driver drivers/base/dd.c:861
-> >  device_release_driver_internal+0x4f1/0x5c0 drivers/base/dd.c:893
-> >  device_release_driver+0x1e/0x30 drivers/base/dd.c:918
-> >  bus_remove_device+0x2f4/0x4b0 drivers/base/bus.c:565
-> >  device_del+0x5c4/0xab0 drivers/base/core.c:1985
-> >  usb_disable_device+0x1e9/0x680 drivers/usb/core/message.c:1170
-> >  usb_disconnect+0x260/0x7a0 drivers/usb/core/hub.c:2124
-> >  hub_port_connect drivers/usb/core/hub.c:4754
-> >  hub_port_connect_change drivers/usb/core/hub.c:5009
-> >  port_event drivers/usb/core/hub.c:5115
-> >  hub_event+0x1318/0x3740 drivers/usb/core/hub.c:5195
-> >  process_one_work+0xc73/0x1d90 kernel/workqueue.c:2119
-> >  worker_thread+0x221/0x1850 kernel/workqueue.c:2253
-> >  kthread+0x363/0x440 kernel/kthread.c:231
-> >  ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
-> >   
-> It looks like this is caused by commit
-> ead666000a5fe34bdc82d61838e4df2d416ea15e ("media: dvb_frontend: only use
-> kref after initialized").
+My apologies for the late reply.
+
+On Sat, Nov 11, 2017 at 04:07:22AM +0000, Mani, Rajmohan wrote:
+> Hi Sakari,
 > 
-> The writing to "fe->frontend_priv" in dvb_frontend.c:156 is a
-> use-after-free in case the object dvb_frontend *fe is already freed by
-> the release callback called in line 153.
-> Only if the demod driver is based on new style i2c_client the memory is
-> still accessible.
+> > -----Original Message-----
+> > From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
+> > Sent: Friday, October 20, 2017 2:30 AM
+> > To: Zhi, Yong <yong.zhi@intel.com>
+> > Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; Zheng, Jian Xu
+> > <jian.xu.zheng@intel.com>; Mani, Rajmohan <rajmohan.mani@intel.com>;
+> > Toivonen, Tuukka <tuukka.toivonen@intel.com>; Hu, Jerry W
+> > <jerry.w.hu@intel.com>
+> > Subject: Re: [PATCH v4 04/12] intel-ipu3: Add user space ABI definitions
+> > 
+> > Hi Yong,
+> > 
+> > On Tue, Oct 17, 2017 at 10:54:49PM -0500, Yong Zhi wrote:
+
+...
+
+> > > +struct ipu3_uapi_params {
+> > > +	__u32 fourcc;			/* V4L2_PIX_FMT_IPU3_PARAMS */
+> > > +	__u32 version;			/* Must be 0x100 */
+> > 
+> > These were called padding1 and padding2 in the previous version. What
+> > happened?
+> > 
+> > I'd just call them reserved, and maybe also make the use field the first
+> > member of the struct.
+> > 
 > 
-> There are two possible solutions:
-> 1. Clear fe->frontend_priv earlier (before line 153).
-> 2. Do not clear fe->frontend_priv
-> 
-> Can you try if the following patch (solution 1) fixes the issue?
+> These fields were repurposed after v3 of this patch series. Please see the user space code that uses these fields.
+> https://chromium.googlesource.com/chromiumos/platform/arc-camera/+/master/hal/intel/psl/ipu3/workers/IPU3AicToFwEncoder.cpp
 
-The problem with (1) is that drivers may need to use frontend_priv
-on their own release callbacks.
+They were fourcc and version in the beginning, and then replaced by
+padding1 and padding 2. Is there a particular reason for changing them
+back?
 
-So, I don't think this is the right fix.
-
-I guess option (2) is the best one here.
-
-Andrey,
-
-Could you please test the enclosed patch?
-
-Thanks!
-Mauro
-
-dvb_frontend: don't use-after-free the frontend struct
-
-dvb_frontend_invoke_release() may free the frontend struct.
-So, we can't update it anymore after calling it.
-That's OK, as __dvb_frontend_free() is called only when the
-krefs are zeroed, so nobody is using it anymore.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index daaf969719e4..80191a15cd89 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -153,7 +153,6 @@ static void __dvb_frontend_free(struct dvb_frontend *fe)
- 	dvb_frontend_invoke_release(fe, fe->ops.release);
- 
- 	kfree(fepriv);
--	fe->frontend_priv = NULL;
- }
- 
- static void dvb_frontend_free(struct kref *ref)
-
-
-Thanks,
-Mauro
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
