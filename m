@@ -1,103 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:37695 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933262AbdKAVGM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 17:06:12 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH v2 06/26] media: xc5000: better handle I2C error messages
-Date: Wed,  1 Nov 2017 17:05:43 -0400
-Message-Id: <2849e18196b46bf89516ee5c9077c7f0468e89ed.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34257 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751187AbdKUQLd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Nov 2017 11:11:33 -0500
+Reply-To: christian.koenig@amd.com
+Subject: Re: [PATCH] reservation: don't wait when timeout=0
+To: Chris Wilson <chris@chris-wilson.co.uk>, christian.koenig@amd.com,
+        Rob Clark <robdclark@gmail.com>
+Cc: "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <20171121140850.23401-1-robdclark@gmail.com>
+ <151127508188.436.3320065005004428970@mail.alporthouse.com>
+ <CAF6AEGuo=e8rOnLHX3rL9qGTenSRDO2D=S7GQs9rq+=5SVqS0g@mail.gmail.com>
+ <83c7c887-0d40-69b5-2ad2-67d0af6eda71@gmail.com>
+ <151127989753.436.17300151969206767494@mail.alporthouse.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+Message-ID: <3ab1ad07-4ed0-e533-2df1-d9a04cf6dc0a@gmail.com>
+Date: Tue, 21 Nov 2017 17:11:29 +0100
+MIME-Version: 1.0
+In-Reply-To: <151127989753.436.17300151969206767494@mail.alporthouse.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As warned by smatch, there are several places where the I2C
-transfer may fail, leading into inconsistent behavior:
+Am 21.11.2017 um 16:58 schrieb Chris Wilson:
+> Quoting Christian König (2017-11-21 15:49:55)
+>> Am 21.11.2017 um 15:59 schrieb Rob Clark:
+>>> On Tue, Nov 21, 2017 at 9:38 AM, Chris Wilson <chris@chris-wilson.co.uk> wrote:
+>>>> Quoting Rob Clark (2017-11-21 14:08:46)
+>>>>> If we are testing if a reservation object's fences have been
+>>>>> signaled with timeout=0 (non-blocking), we need to pass 0 for
+>>>>> timeout to dma_fence_wait_timeout().
+>>>>>
+>>>>> Plus bonus spelling correction.
+>>>>>
+>>>>> Signed-off-by: Rob Clark <robdclark@gmail.com>
+>>>>> ---
+>>>>>    drivers/dma-buf/reservation.c | 11 +++++++++--
+>>>>>    1 file changed, 9 insertions(+), 2 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+>>>>> index dec3a815455d..71f51140a9ad 100644
+>>>>> --- a/drivers/dma-buf/reservation.c
+>>>>> +++ b/drivers/dma-buf/reservation.c
+>>>>> @@ -420,7 +420,7 @@ EXPORT_SYMBOL_GPL(reservation_object_get_fences_rcu);
+>>>>>     *
+>>>>>     * RETURNS
+>>>>>     * Returns -ERESTARTSYS if interrupted, 0 if the wait timed out, or
+>>>>> - * greater than zer on success.
+>>>>> + * greater than zero on success.
+>>>>>     */
+>>>>>    long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
+>>>>>                                            bool wait_all, bool intr,
+>>>>> @@ -483,7 +483,14 @@ long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
+>>>>>                           goto retry;
+>>>>>                   }
+>>>>>
+>>>>> -               ret = dma_fence_wait_timeout(fence, intr, ret);
+>>>>> +               /*
+>>>>> +                * Note that dma_fence_wait_timeout() will return 1 if
+>>>>> +                * the fence is already signaled, so in the wait_all
+>>>>> +                * case when we go through the retry loop again, ret
+>>>>> +                * will be greater than 0 and we don't want this to
+>>>>> +                * cause _wait_timeout() to block
+>>>>> +                */
+>>>>> +               ret = dma_fence_wait_timeout(fence, intr, timeout ? ret : 0);
+>>>> One should ask if we should just fix the interface to stop returning
+>>>> incorrect results (stop "correcting" a completion with 0 jiffies remaining
+>>>> as 1). A timeout can be distinguished by -ETIME (or your pick of errno).
+>>> perhaps -EBUSY, if we go that route (although maybe it should be a
+>>> follow-on patch, this one is suitable for backport to stable/lts if
+>>> one should so choose..)
+>>>
+>>> I think current approach was chosen to match schedule_timeout() and
+>>> other such functions that take a timeout in jiffies.  Not making a
+>>> judgement on whether that is a good or bad reason..
+>> We intentionally switched away from that to be in sync with the
+>> wait_event_* interface.
+>>
+>> Returning 1 when a function with a zero timeout succeeds is actually
+>> quite common in the kernel.
+> We actually had this conversation last time, and outside of that it
+> isn't. Looking at all the convolution to first return 1, then undo the
+> damage in the caller, it looks pretty silly.
 
-	drivers/media/tuners/xc5000.c:689 xc_debug_dump() error: uninitialized symbol 'regval'.
-	drivers/media/tuners/xc5000.c:841 xc5000_is_firmware_loaded() error: uninitialized symbol 'id'.
-	drivers/media/tuners/xc5000.c:939 xc5000_set_tv_freq() error: uninitialized symbol 'pll_lock_status'.
-	drivers/media/tuners/xc5000.c:1195 xc_load_fw_and_init_tuner() error: uninitialized symbol 'pll_lock_status'.
+I don't find that very intuitive either, but you would also have to 
+handle the error code in the calling function as well.
 
-Handle the return codes from the I2C transfer, in order to
-address those issues.
+And it is what the whole kernel does all over the place with it's 
+wait_event_* and scheduler timeouts as well.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/tuners/xc5000.c | 22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+Regards,
+Christian.
 
-diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
-index 0e7e4fdf9e50..98ba177dbc29 100644
---- a/drivers/media/tuners/xc5000.c
-+++ b/drivers/media/tuners/xc5000.c
-@@ -685,8 +685,8 @@ static void xc_debug_dump(struct xc5000_priv *priv)
- 		(totalgain % 256) * 100 / 256);
- 
- 	if (priv->pll_register_no) {
--		xc5000_readreg(priv, priv->pll_register_no, &regval);
--		dprintk(1, "*** PLL lock status = 0x%04x\n", regval);
-+		if (!xc5000_readreg(priv, priv->pll_register_no, &regval))
-+			dprintk(1, "*** PLL lock status = 0x%04x\n", regval);
- 	}
- }
- 
-@@ -831,15 +831,16 @@ static int xc5000_is_firmware_loaded(struct dvb_frontend *fe)
- 	u16 id;
- 
- 	ret = xc5000_readreg(priv, XREG_PRODUCT_ID, &id);
--	if (ret == 0) {
-+	if (!ret) {
- 		if (id == XC_PRODUCT_ID_FW_NOT_LOADED)
- 			ret = -ENOENT;
- 		else
- 			ret = 0;
-+		dprintk(1, "%s() returns id = 0x%x\n", __func__, id);
-+	} else {
-+		dprintk(1, "%s() returns error %d\n", __func__, ret);
- 	}
- 
--	dprintk(1, "%s() returns %s id = 0x%x\n", __func__,
--		ret == 0 ? "True" : "False", id);
- 	return ret;
- }
- 
-@@ -935,7 +936,10 @@ static int xc5000_set_tv_freq(struct dvb_frontend *fe)
- 
- 	if (priv->pll_register_no != 0) {
- 		msleep(20);
--		xc5000_readreg(priv, priv->pll_register_no, &pll_lock_status);
-+		ret = xc5000_readreg(priv, priv->pll_register_no,
-+				     &pll_lock_status);
-+		if (ret)
-+			return ret;
- 		if (pll_lock_status > 63) {
- 			/* PLL is unlocked, force reload of the firmware */
- 			dprintk(1, "xc5000: PLL not locked (0x%x).  Reloading...\n",
-@@ -1190,8 +1194,10 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe, int force)
- 		}
- 
- 		if (priv->pll_register_no) {
--			xc5000_readreg(priv, priv->pll_register_no,
--				       &pll_lock_status);
-+			ret = xc5000_readreg(priv, priv->pll_register_no,
-+					     &pll_lock_status);
-+			if (ret)
-+				continue;
- 			if (pll_lock_status > 63) {
- 				/* PLL is unlocked, force reload of the firmware */
- 				printk(KERN_ERR
--- 
-2.13.6
+> -Chris
