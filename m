@@ -1,50 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway30.websitewelcome.com ([192.185.151.58]:32727 "EHLO
-        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752017AbdKWDzh (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:57545 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751115AbdKUNvL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Nov 2017 22:55:37 -0500
-Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
-        by gateway30.websitewelcome.com (Postfix) with ESMTP id E1657F80D
-        for <linux-media@vger.kernel.org>; Wed, 22 Nov 2017 21:35:06 -0600 (CST)
-Date: Wed, 22 Nov 2017 21:34:44 -0600
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] davinci: vpif_capture: add NULL check on devm_kzalloc return
- value
-Message-ID: <20171123033444.GA22637@embeddedor.com>
+        Tue, 21 Nov 2017 08:51:11 -0500
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] stb0899: remove redundant self assignment of k_indirect
+Date: Tue, 21 Nov 2017 13:51:10 +0000
+Message-Id: <20171121135110.16665-1-colin.king@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Check return value from call to devm_kzalloc() in order to prevent
-a NULL pointer dereference.
+From: Colin Ian King <colin.king@canonical.com>
 
-This issue was detected with the help of Coccinelle.
+The self assignment of k_indirect is redundant and can be removed.
+Detected using coccinelle.
 
-Fixes: 4a5f8ae50b66 ("[media] davinci: vpif_capture: get subdevs from DT when available")
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- drivers/media/platform/davinci/vpif_capture.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/dvb-frontends/stb0899_algo.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index a89367a..3879c7c 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -1550,6 +1550,8 @@ vpif_capture_get_pdata(struct platform_device *pdev)
- 					    sizeof(*chan->inputs) *
- 					    VPIF_CAPTURE_NUM_CHANNELS,
- 					    GFP_KERNEL);
-+		if (!chan->inputs)
-+			return NULL;
+diff --git a/drivers/media/dvb-frontends/stb0899_algo.c b/drivers/media/dvb-frontends/stb0899_algo.c
+index 3012f196e9bd..222ee51b90ef 100644
+--- a/drivers/media/dvb-frontends/stb0899_algo.c
++++ b/drivers/media/dvb-frontends/stb0899_algo.c
+@@ -925,8 +925,7 @@ static void stb0899_dvbs2_set_btr_loopbw(struct stb0899_state *state)
+ 		wn = (4 * zeta * zeta) + 1000000;
+ 		wn = (2 * (loopbw_percent * 1000) * 40 * zeta) /wn;  /*wn =wn 10^-8*/
  
- 		chan->input_count++;
- 		chan->inputs[i].input.type = V4L2_INPUT_TYPE_CAMERA;
+-		k_indirect = (wn * wn) / K;
+-		k_indirect = k_indirect;	  /*kindirect = kindirect 10^-6*/
++		k_indirect = (wn * wn) / K;	/*kindirect = kindirect 10^-6*/
+ 		k_direct   = (2 * wn * zeta) / K;	/*kDirect = kDirect 10^-2*/
+ 		k_direct  *= 100;
+ 
 -- 
-2.7.4
+2.14.1
