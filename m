@@ -1,47 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:44674 "EHLO smtp.gentoo.org"
+Received: from gofer.mess.org ([88.97.38.141]:34985 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751141AbdKEOZX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 5 Nov 2017 09:25:23 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: mchehab@kernel.org, linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 07/15] si2165: Write const value for lock timeout
-Date: Sun,  5 Nov 2017 15:25:03 +0100
-Message-Id: <20171105142511.16563-7-zzam@gentoo.org>
-In-Reply-To: <20171105142511.16563-1-zzam@gentoo.org>
-References: <20171105142511.16563-1-zzam@gentoo.org>
+        id S1751067AbdKUVD0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Nov 2017 16:03:26 -0500
+Date: Tue, 21 Nov 2017 21:03:23 +0000
+From: Sean Young <sean@mess.org>
+To: Laurent Caumont <lcaumont2@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org
+Subject: Re: 'LITE-ON USB2.0 DVB-T Tune' driver crash with kernel 4.13 /
+ ubuntu 17.10
+Message-ID: <20171121210323.ii7pniffyq4fnx3i@gofer.mess.org>
+References: <20171029193121.p2q6dxxz376cpx5y@gofer.mess.org>
+ <CACG2urwdnXs2v8hv24R3+sNW6qOifh6Gtt+semez_c8QC58-gA@mail.gmail.com>
+ <20171107084245.47dce306@vento.lan>
+ <CACG2ury9Ab3pHGVyNLQeOH03TF3r_oeX1h3=AuJ5XzNgjx+yag@mail.gmail.com>
+ <20171111105643.ozwukzmdhalxhoho@gofer.mess.org>
+ <CACG2urwv1dTtEW5vuspTF5A3t2F1s-iRPZE5SiCt9o8k+k71hA@mail.gmail.com>
+ <20171111180159.fb33mc2t467ygfqw@gofer.mess.org>
+ <CACG2uryHHu-vvHj0B1wGRYZuczB5_8cbD3LBscaBmbN-LFJQMg@mail.gmail.com>
+ <20171111205527.g5dach2rmhlxmr5x@gofer.mess.org>
+ <CACG2urxfW-O_AEhOKFApxxSdoSxJRkaTd1TNQ-6jNxouquB2fA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CACG2urxfW-O_AEhOKFApxxSdoSxJRkaTd1TNQ-6jNxouquB2fA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The lock timeout should not depend on the bandwidth.
-It should be either constant or depend on xtal frequency.
+Hi Laurent,
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/dvb-frontends/si2165.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+On Sun, Nov 12, 2017 at 09:38:47AM +0100, Laurent Caumont wrote:
+> Thank you for the changes, It's better like this, I will test it.
 
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index f8d7595a25d4..0b801bad5802 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -850,7 +850,6 @@ static int si2165_set_frontend_dvbc(struct dvb_frontend *fe)
- 	int ret;
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	const u32 dvb_rate = p->symbol_rate;
--	const u32 bw_hz = p->bandwidth_hz;
- 
- 	if (!state->has_dvbc)
- 		return -EINVAL;
-@@ -867,7 +866,7 @@ static int si2165_set_frontend_dvbc(struct dvb_frontend *fe)
- 	if (ret < 0)
- 		return ret;
- 
--	ret = si2165_writereg32(state, REG_LOCK_TIMEOUT, bw_hz);
-+	ret = si2165_writereg32(state, REG_LOCK_TIMEOUT, 0x007a1200);
- 	if (ret < 0)
- 		return ret;
- 
--- 
-2.15.0
+Just wondering if you have had the time to test this patch. It would be
+great if it could be included after being tested.
+
+Thanks,
+
+Sean
