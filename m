@@ -1,39 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:43419 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753402AbdKXLoD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Nov 2017 06:44:03 -0500
-From: Sean Young <sean@mess.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+Received: from smtp.codeaurora.org ([198.145.29.96]:48742 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751274AbdKVOGT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 22 Nov 2017 09:06:19 -0500
+Subject: Re: [PATCH 23/30] [media] atomisp: deprecate pci_get_bus_and_slot()
+To: Alan Cox <alan@linux.intel.com>, linux-pci@vger.kernel.org,
+        timur@codeaurora.org
+Cc: linux-arm-msm@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 0/3] Improve CEC autorepeat handling
-Date: Fri, 24 Nov 2017 11:43:58 +0000
-Message-Id: <cover.1511523174.git.sean@mess.org>
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        kbuild test robot <fengguang.wu@intel.com>,
+        Arushi Singhal <arushisinghal19971997@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Avraham Shukron <avraham.shukron@gmail.com>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Valentin Vidic <Valentin.Vidic@CARNet.hr>,
+        "open list:MEDIA INPUT INFRASTRUCTURE (V4L/DVB)"
+        <linux-media@vger.kernel.org>,
+        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
+        open list <linux-kernel@vger.kernel.org>
+References: <1511328675-21981-1-git-send-email-okaya@codeaurora.org>
+ <1511328675-21981-24-git-send-email-okaya@codeaurora.org>
+ <1511353247.3539.10.camel@linux.intel.com>
+ <b87604f8-07f5-5cdc-b022-286c17ea66eb@codeaurora.org>
+From: Sinan Kaya <okaya@codeaurora.org>
+Message-ID: <be055774-b9b8-3a7a-8894-f9f8faebe3b5@codeaurora.org>
+Date: Wed, 22 Nov 2017 09:06:15 -0500
+MIME-Version: 1.0
+In-Reply-To: <b87604f8-07f5-5cdc-b022-286c17ea66eb@codeaurora.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the slowness of the CEC bus, autorepeat handling rather special
-on CEC. If the repeated user control pressed message is received, a 
-keydown repeat should be sent immediately.
+On 11/22/2017 9:05 AM, Sinan Kaya wrote:
+> Hi Alex,
 
-By handling this in the input layer, we can remove some ugly code from
-cec, which also sends a keyup event after the first keydown, to prevent
-autorepeat.
+I tried to mean Alan. Sorry about that. 
 
-Sean Young (3):
-  input: remove redundant check for EV_REP
-  input: handle case whether first repeated key triggers repeat
-  media: cec: move cec autorepeat handling to rc-core
-
- Documentation/input/input.rst |  4 +++-
- drivers/input/input.c         | 21 ++++++++++++----
- drivers/media/cec/cec-adap.c  | 56 ++++---------------------------------------
- drivers/media/cec/cec-core.c  | 12 ----------
- drivers/media/rc/rc-main.c    | 10 +++++++-
- include/media/cec.h           |  5 ----
- 6 files changed, 33 insertions(+), 75 deletions(-)
+Apparently, I didn't have enough coffee this morning. I shouldn't touch the
+code for a few hours.
 
 -- 
-2.14.3
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
