@@ -1,49 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:49964 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754103AbdKCGlN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Nov 2017 02:41:13 -0400
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Leon Luo <leonl@leopardimaging.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: imx274: fix missing return assignment from call to imx274_mode_regs
-Date: Fri,  3 Nov 2017 06:41:06 +0000
-Message-Id: <20171103064106.25593-1-colin.king@canonical.com>
+Received: from mail-dm3nam03on0100.outbound.protection.outlook.com ([104.47.41.100]:64128
+        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751409AbdKVER2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Nov 2017 23:17:28 -0500
+Subject: Re: [PATCH v4 00/12] [dt-bindings] [media] Add document file and
+ driver for Sony CXD2880 DVB-T2/T tuner + demodulator
+To: "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "Mauro Carvalho Chehab" <mchehab@s-opensource.com>
+References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
+ <67ca63fc-4675-8a97-e43e-6336bbc9fada@sony.com>
+CC: "tbird20d@gmail.com" <tbird20d@gmail.com>,
+        "frowand.list@gmail.com" <frowand.list@gmail.com>,
+        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
+        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
+        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
+        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
+        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
+        <yasunari.takiguchi@sony.com>
+From: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
+Message-ID: <3e2f788b-3e4a-eb9b-eb36-2f65ffce669a@sony.com>
+Date: Wed, 22 Nov 2017 13:17:14 +0900
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <67ca63fc-4675-8a97-e43e-6336bbc9fada@sony.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+Hi, all
 
-The variable ret is being checked for failure however it is not being set
-from the return status from the call to imx274_mode_regs. Currently ret is
-alwayus zero and the check is redundant. Fix this by assigning it.
+I sent the patch series of Sony CXD2880 DVB-T2/T tuner + demodulator driver version 4 on 13th/Oct.
+I'd like to get better understanding of current review status for our codes.
 
-Detected by CoverityScan, CID#1460278 ("Logically dead code")
+Are there any comments, advices and review results for them?
 
-Fixes: 0985dd306f72 ("media: imx274: V4l2 driver for Sony imx274 CMOS sensor")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/media/i2c/imx274.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-index ab6a5f31da74..800b9bf9cdd3 100644
---- a/drivers/media/i2c/imx274.c
-+++ b/drivers/media/i2c/imx274.c
-@@ -1059,7 +1059,7 @@ static int imx274_s_stream(struct v4l2_subdev *sd, int on)
- 
- 	if (on) {
- 		/* load mode registers */
--		imx274_mode_regs(imx274, imx274->mode_index);
-+		ret = imx274_mode_regs(imx274, imx274->mode_index);
- 		if (ret)
- 			goto fail;
- 
--- 
-2.14.1
+Regards,
+Takiguchi
