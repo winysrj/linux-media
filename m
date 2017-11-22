@@ -1,316 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58582 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965813AbdKQPrt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 10:47:49 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v4 8/9] v4l: vsp1: Move video configuration to a cached dlb
-Date: Fri, 17 Nov 2017 15:47:31 +0000
-Message-Id: <c77d217a3fdddf2d7fda030c0e76b9a1619c53d2.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:1858 "EHLO
+        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751259AbdKVQjZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 22 Nov 2017 11:39:25 -0500
+Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
+        by mx07-00252a01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id vAMGaC2N012974
+        for <linux-media@vger.kernel.org>; Wed, 22 Nov 2017 16:39:24 GMT
+Received: from mail-pg0-f69.google.com (mail-pg0-f69.google.com [74.125.83.69])
+        by mx07-00252a01.pphosted.com with ESMTP id 2ecvybgdh6-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Wed, 22 Nov 2017 16:39:24 +0000
+Received: by mail-pg0-f69.google.com with SMTP id x202so16687520pgx.1
+        for <linux-media@vger.kernel.org>; Wed, 22 Nov 2017 08:39:24 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <87bmjvcpyv.fsf@anholt.net>
+References: <cover.1505916622.git.dave.stevenson@raspberrypi.org>
+ <fae3d29bba67825030c0077dd9c79534b6888512.1505916622.git.dave.stevenson@raspberrypi.org>
+ <1814950930.414004.1506062733728@email.1und1.de> <CAAoAYcMFm82vo5k-iCCpARbndyrLDt1UMV_kRUDHiHA0iMzhMg@mail.gmail.com>
+ <20170927215124.6k3j54qf2qscnzc2@rob-hp-laptop> <CAAoAYcM0m6Z8hUDn+FuNb-O28geAYJqHWrhKPDP_Jvh2P-YE3A@mail.gmail.com>
+ <877euje8mc.fsf@anholt.net> <CAL_JsqJ51jd8nkYAKvLUEf8n7+eJsd8JxW-8YJ6gfx1_Y1LzdA@mail.gmail.com>
+ <87bmjvcpyv.fsf@anholt.net>
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Wed, 22 Nov 2017 16:39:21 +0000
+Message-ID: <CAAoAYcMaL9m9fN8XHAYaUhVsrWxH7rwuYW1F+K9Wjjde_E242w@mail.gmail.com>
+Subject: Re: [PATCH v3 2/4] [media] dt-bindings: Document BCM283x CSI2/CCP2 receiver
+To: Eric Anholt <eric@anholt.net>
+Cc: Rob Herring <robh@kernel.org>,
+        Stefan Wahren <stefan.wahren@i2se.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "moderated list:BROADCOM BCM2835 ARM ARCHITECTURE"
+        <linux-rpi-kernel@lists.infradead.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We are now able to configure a pipeline directly into a local display
-list body. Take advantage of this fact, and create a cacheable body to
-store the configuration of the pipeline in the video object.
+On 21 November 2017 at 20:54, Eric Anholt <eric@anholt.net> wrote:
+> Rob Herring <robh@kernel.org> writes:
+>
+>> On Tue, Nov 21, 2017 at 1:26 PM, Eric Anholt <eric@anholt.net> wrote:
+>>> Dave Stevenson <dave.stevenson@raspberrypi.org> writes:
+>>>
+>>>> Hi Rob
+>>>>
+>>>> On 27 September 2017 at 22:51, Rob Herring <robh@kernel.org> wrote:
+>>>>> On Fri, Sep 22, 2017 at 05:07:22PM +0100, Dave Stevenson wrote:
+>>>>>> Hi Stefan
+>>>>>>
+>>>>>> On 22 September 2017 at 07:45, Stefan Wahren <stefan.wahren@i2se.com> wrote:
+>>>>>> > Hi Dave,
+>>>>>> >
+>>>>>> >> Dave Stevenson <dave.stevenson@raspberrypi.org> hat am 20. September 2017 um 18:07 geschrieben:
+>>>>>> >>
+>>>>>> >>
+>>>>>> >> Document the DT bindings for the CSI2/CCP2 receiver peripheral
+>>>>>> >> (known as Unicam) on BCM283x SoCs.
+>>>>>> >>
+>>>>>> >> Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+>>>>>> >> ---
+>>>>>> >>
+>>>>>> >> Changes since v2
+>>>>>> >> - Removed all references to Linux drivers.
+>>>>>> >> - Reworded section about disabling the firmware driver.
+>>>>>> >> - Renamed clock from "lp_clock" to "lp" in description and example.
+>>>>>> >> - Referred to video-interfaces.txt and stated requirements on remote-endpoint
+>>>>>> >>   and data-lanes.
+>>>>>> >> - Corrected typo in example from csi to csi1.
+>>>>>> >> - Removed unnecessary #address-cells and #size-cells in example.
+>>>>>> >> - Removed setting of status from the example.
+>>>>>> >>
+>>>>>> >>  .../devicetree/bindings/media/bcm2835-unicam.txt   | 85 ++++++++++++++++++++++
+>>>>>> >>  1 file changed, 85 insertions(+)
+>>>>>> >>  create mode 100644 Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+>>>>>> >>
+>>>>>> >> diff --git a/Documentation/devicetree/bindings/media/bcm2835-unicam.txt b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+>>>>>> >> new file mode 100644
+>>>>>> >> index 0000000..7714fb3
+>>>>>> >> --- /dev/null
+>>>>>> >> +++ b/Documentation/devicetree/bindings/media/bcm2835-unicam.txt
+>>>>>> >> @@ -0,0 +1,85 @@
+>>>>>> >> +Broadcom BCM283x Camera Interface (Unicam)
+>>>>>> >> +------------------------------------------
+>>>>>> >> +
+>>>>>> >> +The Unicam block on BCM283x SoCs is the receiver for either
+>>>>>> >> +CSI-2 or CCP2 data from image sensors or similar devices.
+>>>>>> >> +
+>>>>>> >> +The main platform using this SoC is the Raspberry Pi family of boards.
+>>>>>> >> +On the Pi the VideoCore firmware can also control this hardware block,
+>>>>>> >> +and driving it from two different processors will cause issues.
+>>>>>> >> +To avoid this, the firmware checks the device tree configuration
+>>>>>> >> +during boot. If it finds device tree nodes called csi0 or csi1 then
+>>>>>> >> +it will stop the firmware accessing the block, and it can then
+>>>>>> >> +safely be used via the device tree binding.
+>>>>>> >> +
+>>>>>> >> +Required properties:
+>>>>>> >> +===================
+>>>>>> >> +- compatible : must be "brcm,bcm2835-unicam".
+>>>>>> >> +- reg                : physical base address and length of the register sets for the
+>>>>>> >> +               device.
+>>>>>> >> +- interrupts : should contain the IRQ line for this Unicam instance.
+>>>>>> >> +- clocks     : list of clock specifiers, corresponding to entries in
+>>>>>> >> +               clock-names property.
+>>>>>> >> +- clock-names        : must contain an "lp" entry, matching entries in the
+>>>>>> >> +               clocks property.
+>>>>>> >> +
+>>>>>> >> +Unicam supports a single port node. It should contain one 'port' child node
+>>>>>> >> +with child 'endpoint' node. Please refer to the bindings defined in
+>>>>>> >> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+>>>>>> >> +
+>>>>>> >> +Within the endpoint node the "remote-endpoint" and "data-lanes" properties
+>>>>>> >> +are mandatory.
+>>>>>> >> +Data lane reordering is not supported so the data lanes must be in order,
+>>>>>> >> +starting at 1. The number of data lanes should represent the number of
+>>>>>> >> +usable lanes for the hardware block. That may be limited by either the SoC or
+>>>>>> >> +how the platform presents the interface, and the lower value must be used.
+>>>>>> >> +
+>>>>>> >> +Lane reordering is not supported on the clock lane either, so the optional
+>>>>>> >> +property "clock-lane" will implicitly be <0>.
+>>>>>> >> +Similarly lane inversion is not supported, therefore "lane-polarities" will
+>>>>>> >> +implicitly be <0 0 0 0 0>.
+>>>>>> >> +Neither of these values will be checked.
+>>>>>> >> +
+>>>>>> >> +Example:
+>>>>>> >> +     csi1: csi1@7e801000 {
+>>>>>> >> +             compatible = "brcm,bcm2835-unicam";
+>>>>>> >> +             reg = <0x7e801000 0x800>,
+>>>>>> >> +                   <0x7e802004 0x4>;
+>>>>>> >
+>>>>>> > sorry, i didn't noticed this before. I'm afraid this is using a small range of the CMI. Are there possible other users of this range? Does it make sense to handle this by a separate clock driver?
+>>>>>>
+>>>>>> CMI (Clock Manager Image) consists of a total of 4 registers.
+>>>>>> 0x7e802000 is CMI_CAM0, with only bits 0-5 used for gating and
+>>>>>> inversion of the clock and data lanes (2 data lanes available on
+>>>>>> CAM0).
+>>>>>> 0x7e802004 is CMI_CAM1, with only bits 0-9 used for gating and
+>>>>>> inversion of the clock and data lanes (4 data lanes available on
+>>>>>> CAM1).
+>>>>>> 0x7e802008 is CMI_CAMTEST which I have no documentation or drivers for.
+>>>>>> 0x7e802010 is CMI_USBCTL. Only bit 6 is documented and is a reset. The
+>>>>>> default value is the required value. Nothing touches it that I can
+>>>>>> find.
+>>>>>>
+>>>>>> The range listed only covers the one register associated with that
+>>>>>> Unicam instance, so no other users. The other two aren't touched.
+>>>>>> Do 16 active register bits solely for camera clock gating really
+>>>>>> warrant a full clock driver?
+>>>>>
+>>>>> You should describe all the registers in DT, not just what the driver
+>>>>> (currently) uses.
+>>>>
+>>>> I'm not clear what you're asking for here.
+>>>>
+>>>> This binding is for the Unicam block, not for CMI (Clock Manager
+>>>> Imaging). In order for a Unicam instance to work, it needs to enable
+>>>> the relevant clock gating via 1 CMI register, and it will only ever be
+>>>> one register.
+>>>
+>>> Rob, the CMI just a small bit of glue required by the crossing of a
+>>> power domain in a unicam instance, and the two unicam instances in this
+>>> HW have their CMI regs next to each other.  It's not really a separate
+>>> block, and I think describing the unicam's CMI reg in the unicam binding
+>>> is appropriate.
+>>>
+>>> What would you need from Dave to ack this binding?
+>>
+>> Sorry, had started to reply on this and got distracted.
+>>
+>> I guess since there seems to be only 1 other bit that could possibly
+>> be used (CMI_USBCTL) it is fine like this. However, my concern would
+>> be if the CMI registers are integrated in a different way in some
+>> future chip that has the same unicam instances. Or just if the
+>> register bits are rearranged. Those are not an uncommon occurrence.
+>> You would have to provide access to those registers in some other way.
+>> It can be dealt with, but then you have to support both cases in the
+>> driver. If you all are fine with that, then:
+>
+> The bigisland chips match bcm2835.  For capri the lane enables are
+> shifted down by two and the clock is up at bit 20.  That would be
+> trivial to handle based on the compatible string, except that we can't
+> talk to capri's hardware from ARM anyway :(
 
-vsp1_video_pipeline_run() is now the last user of the pipe->dl object.
-Convert this function to use the cached video->config body and obtain a
-local display list reference.
+Thank you both.
 
-Attach the video->config body to the display list when needed before
-committing to hardware.
+The Java and Hawaii chips also have the same Unicam block, but appear
+to be missing CMI totally based on the BCM Android kernel source.
+They aren't chips I have any interest in, but as Eric says it can be
+supported easily via the compatible string, or by making the resource
+optional. The latter is easy to do, so I'll add that to v4 of the
+patch set.
 
-The pipe object is marked as un-configured when resuming from a suspend.
-This ensures that when the hardware is reset - our cached configuration
-will be re-attached to the next committed DL.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
-
-v3:
- - 's/fragment/body/', 's/fragments/bodies/'
- - video dlb cache allocation increased from 2 to 3 dlbs
-
-Our video DL usage now looks like the below output:
-
-dl->body0 contains our disposable runtime configuration. Max 41.
-dl_child->body0 is our partition specific configuration. Max 12.
-dl->bodies shows our constant configuration and LUTs.
-
-  These two are LUT/CLU:
-     * dl->bodies[x]->num_entries 256 / max 256
-     * dl->bodies[x]->num_entries 4914 / max 4914
-
-Which shows that our 'constant' configuration cache is currently
-utilised to a maximum of 64 entries.
-
-trace-cmd report | \
-    grep max | sed 's/.*vsp1_dl_list_commit://g' | sort | uniq;
-
-  dl->body0->num_entries 13 / max 128
-  dl->body0->num_entries 14 / max 128
-  dl->body0->num_entries 16 / max 128
-  dl->body0->num_entries 20 / max 128
-  dl->body0->num_entries 27 / max 128
-  dl->body0->num_entries 34 / max 128
-  dl->body0->num_entries 41 / max 128
-  dl_child->body0->num_entries 10 / max 128
-  dl_child->body0->num_entries 12 / max 128
-  dl->bodies[x]->num_entries 15 / max 128
-  dl->bodies[x]->num_entries 16 / max 128
-  dl->bodies[x]->num_entries 17 / max 128
-  dl->bodies[x]->num_entries 18 / max 128
-  dl->bodies[x]->num_entries 20 / max 128
-  dl->bodies[x]->num_entries 21 / max 128
-  dl->bodies[x]->num_entries 256 / max 256
-  dl->bodies[x]->num_entries 31 / max 128
-  dl->bodies[x]->num_entries 32 / max 128
-  dl->bodies[x]->num_entries 39 / max 128
-  dl->bodies[x]->num_entries 40 / max 128
-  dl->bodies[x]->num_entries 47 / max 128
-  dl->bodies[x]->num_entries 48 / max 128
-  dl->bodies[x]->num_entries 4914 / max 4914
-  dl->bodies[x]->num_entries 55 / max 128
-  dl->bodies[x]->num_entries 56 / max 128
-  dl->bodies[x]->num_entries 63 / max 128
-  dl->bodies[x]->num_entries 64 / max 128
-
-v4:
- - Adjust pipe configured flag to be reset on resume rather than suspend
- - rename dl_child, dl_next
----
- drivers/media/platform/vsp1/vsp1_pipe.c  |  7 +++-
- drivers/media/platform/vsp1/vsp1_pipe.h  |  4 +-
- drivers/media/platform/vsp1/vsp1_video.c | 67 ++++++++++++++++---------
- drivers/media/platform/vsp1/vsp1_video.h |  2 +-
- 4 files changed, 54 insertions(+), 26 deletions(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index 5012643583b6..fa445b1a2e38 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -249,6 +249,7 @@ void vsp1_pipeline_run(struct vsp1_pipeline *pipe)
- 		vsp1_write(vsp1, VI6_CMD(pipe->output->entity.index),
- 			   VI6_CMD_STRCMD);
- 		pipe->state = VSP1_PIPELINE_RUNNING;
-+		pipe->configured = true;
- 	}
- 
- 	pipe->buffers_ready = 0;
-@@ -470,6 +471,12 @@ void vsp1_pipelines_resume(struct vsp1_device *vsp1)
- 			continue;
- 
- 		spin_lock_irqsave(&pipe->irqlock, flags);
-+		/*
-+		 * The hardware may have been reset during a suspend and will
-+		 * need a full reconfiguration
-+		 */
-+		pipe->configured = false;
-+
- 		if (vsp1_pipeline_ready(pipe))
- 			vsp1_pipeline_run(pipe);
- 		spin_unlock_irqrestore(&pipe->irqlock, flags);
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index 90d29492b9b9..e7ad6211b4d0 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -90,6 +90,7 @@ struct vsp1_partition {
-  * @irqlock: protects the pipeline state
-  * @state: current state
-  * @wq: wait queue to wait for state change completion
-+ * @configured: flag determining if the hardware has run since reset
-  * @frame_end: frame end interrupt handler
-  * @lock: protects the pipeline use count and stream count
-  * @kref: pipeline reference count
-@@ -117,6 +118,7 @@ struct vsp1_pipeline {
- 	spinlock_t irqlock;
- 	enum vsp1_pipeline_state state;
- 	wait_queue_head_t wq;
-+	bool configured;
- 
- 	void (*frame_end)(struct vsp1_pipeline *pipe, bool completed);
- 
-@@ -143,8 +145,6 @@ struct vsp1_pipeline {
- 	 */
- 	struct list_head entities;
- 
--	struct vsp1_dl_list *dl;
--
- 	unsigned int partitions;
- 	struct vsp1_partition *partition;
- 	struct vsp1_partition *part_table;
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 9c9dcb7daecf..ed2618c94498 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -394,37 +394,43 @@ static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
- static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
- {
- 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
-+	struct vsp1_video *video = pipe->output->video;
- 	unsigned int partition;
-+	struct vsp1_dl_list *dl;
-+
-+	dl = vsp1_dl_list_get(pipe->output->dlm);
- 
--	if (!pipe->dl)
--		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-+	/* Attach our pipe configuration to fully initialise the hardware */
-+	if (!pipe->configured) {
-+		vsp1_dl_list_add_body(dl, video->pipe_config);
-+		pipe->configured = true;
-+	}
- 
- 	/* Run the first partition */
--	vsp1_video_pipeline_run_partition(pipe, pipe->dl, 0);
-+	vsp1_video_pipeline_run_partition(pipe, dl, 0);
- 
- 	/* Process consecutive partitions as necessary */
- 	for (partition = 1; partition < pipe->partitions; ++partition) {
--		struct vsp1_dl_list *dl;
-+		struct vsp1_dl_list *dl_next;
- 
--		dl = vsp1_dl_list_get(pipe->output->dlm);
-+		dl_next = vsp1_dl_list_get(pipe->output->dlm);
- 
- 		/*
- 		 * An incomplete chain will still function, but output only
- 		 * the partitions that had a dl available. The frame end
- 		 * interrupt will be marked on the last dl in the chain.
- 		 */
--		if (!dl) {
-+		if (!dl_next) {
- 			dev_err(vsp1->dev, "Failed to obtain a dl list. Frame will be incomplete\n");
- 			break;
- 		}
- 
--		vsp1_video_pipeline_run_partition(pipe, dl, partition);
--		vsp1_dl_list_add_chain(pipe->dl, dl);
-+		vsp1_video_pipeline_run_partition(pipe, dl_next, partition);
-+		vsp1_dl_list_add_chain(dl, dl_next);
- 	}
- 
- 	/* Complete, and commit the head display list. */
--	vsp1_dl_list_commit(pipe->dl);
--	pipe->dl = NULL;
-+	vsp1_dl_list_commit(dl);
- 
- 	vsp1_pipeline_run(pipe);
- }
-@@ -790,8 +796,8 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
- 
- static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- {
-+	struct vsp1_video *video = pipe->output->video;
- 	struct vsp1_entity *entity;
--	struct vsp1_dl_body *dlb;
- 	int ret;
- 
- 	/* Determine this pipelines sizes for image partitioning support. */
-@@ -799,14 +805,6 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- 	if (ret < 0)
- 		return ret;
- 
--	/* Prepare the display list. */
--	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
--	if (!pipe->dl)
--		return -ENOMEM;
--
--	/* Retrieve the default DLB from the list */
--	dlb = vsp1_dl_list_get_body0(pipe->dl);
--
- 	if (pipe->uds) {
- 		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
- 
-@@ -828,11 +826,20 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- 		}
- 	}
- 
-+	/* Obtain a clean body from our pool */
-+	video->pipe_config = vsp1_dl_body_get(video->dlbs);
-+	if (!video->pipe_config)
-+		return -ENOMEM;
-+
-+	/* Configure the entities into our cached pipe configuration */
- 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
--		vsp1_entity_route_setup(entity, pipe, dlb);
--		vsp1_entity_prepare(entity, pipe, dlb);
-+		vsp1_entity_route_setup(entity, pipe, video->pipe_config);
-+		vsp1_entity_prepare(entity, pipe, video->pipe_config);
- 	}
- 
-+	/* Ensure that our cached configuration is updated in the next DL */
-+	pipe->configured = false;
-+
- 	return 0;
- }
- 
-@@ -842,6 +849,9 @@ static void vsp1_video_cleanup_pipeline(struct vsp1_pipeline *pipe)
- 	struct vsp1_vb2_buffer *buffer;
- 	unsigned long flags;
- 
-+	/* Release any cached configuration */
-+	vsp1_dl_body_put(video->pipe_config);
-+
- 	/* Remove all buffers from the IRQ queue. */
- 	spin_lock_irqsave(&video->irqlock, flags);
- 	list_for_each_entry(buffer, &video->irqqueue, queue)
-@@ -918,9 +928,6 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
- 		ret = vsp1_pipeline_stop(pipe);
- 		if (ret == -ETIMEDOUT)
- 			dev_err(video->vsp1->dev, "pipeline stop timeout\n");
--
--		vsp1_dl_list_put(pipe->dl);
--		pipe->dl = NULL;
- 	}
- 	mutex_unlock(&pipe->lock);
- 
-@@ -1240,6 +1247,16 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 		goto error;
- 	}
- 
-+	/*
-+	 * Utilise a body pool to cache the constant configuration of the
-+	 * pipeline object.
-+	 */
-+	video->dlbs = vsp1_dl_body_pool_create(vsp1, 3, 128, 0);
-+	if (!video->dlbs) {
-+		ret = -ENOMEM;
-+		goto error;
-+	}
-+
- 	return video;
- 
- error:
-@@ -1249,6 +1266,8 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 
- void vsp1_video_cleanup(struct vsp1_video *video)
- {
-+	vsp1_dl_body_pool_destroy(video->dlbs);
-+
- 	if (video_is_registered(&video->video))
- 		video_unregister_device(&video->video);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index 50ea7f02205f..e84f8ee902c1 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -43,6 +43,8 @@ struct vsp1_video {
- 
- 	struct mutex lock;
- 
-+	struct vsp1_dl_body_pool *dlbs;
-+	struct vsp1_dl_body *pipe_config;
- 	unsigned int pipe_index;
- 
- 	struct vb2_queue queue;
--- 
-git-series 0.9.1
+Cheers,
+  Dave
