@@ -1,92 +1,247 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:44678 "EHLO smtp.gentoo.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751141AbdKEOZY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 5 Nov 2017 09:25:24 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: mchehab@kernel.org, linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 08/15] si2165: Use constellation from property cache instead of hardcoded QAM256
-Date: Sun,  5 Nov 2017 15:25:04 +0100
-Message-Id: <20171105142511.16563-8-zzam@gentoo.org>
-In-Reply-To: <20171105142511.16563-1-zzam@gentoo.org>
-References: <20171105142511.16563-1-zzam@gentoo.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36146 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751148AbdKVHgL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 22 Nov 2017 02:36:11 -0500
+Date: Wed, 22 Nov 2017 09:36:06 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Tim Harvey <tharvey@gateworks.com>
+Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 2/5] media: dt-bindings: Add bindings for TDA1997X
+Message-ID: <20171122073606.56ldk3bzg23dkkfm@valkosipuli.retiisi.org.uk>
+References: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
+ <1510253136-14153-3-git-send-email-tharvey@gateworks.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1510253136-14153-3-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use constellation from property cache instead of always setting it to
-QAM256.
+Hi Tim,
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/dvb-frontends/si2165.c | 29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
+On Thu, Nov 09, 2017 at 10:45:33AM -0800, Tim Harvey wrote:
+> Cc: Rob Herring <robh@kernel.org>
+> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+> ---
+> v3:
+>  - fix typo
+> 
+> v2:
+>  - add vendor prefix and remove _ from vidout-portcfg
+>  - remove _ from labels
+>  - remove max-pixel-rate property
+>  - describe and provide example for single output port
+>  - update to new audio port bindings
+> ---
+>  .../devicetree/bindings/media/i2c/tda1997x.txt     | 179 +++++++++++++++++++++
+>  1 file changed, 179 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/tda1997x.txt b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+> new file mode 100644
+> index 0000000..dd37f14
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+> @@ -0,0 +1,179 @@
+> +Device-Tree bindings for the NXP TDA1997x HDMI receiver
+> +
+> +The TDA19971/73 are HDMI video receivers.
+> +
+> +The TDA19971 Video port output pins can be used as follows:
+> + - RGB 8bit per color (24 bits total): R[11:4] B[11:4] G[11:4]
+> + - YUV444 8bit per color (24 bits total): Y[11:4] Cr[11:4] Cb[11:4]
+> + - YUV422 semi-planar 8bit per component (16 bits total): Y[11:4] CbCr[11:4]
+> + - YUV422 semi-planar 10bit per component (20 bits total): Y[11:2] CbCr[11:2]
+> + - YUV422 semi-planar 12bit per component (24 bits total): - Y[11:0] CbCr[11:0]
+> + - YUV422 BT656 8bit per component (8 bits total): YCbCr[11:4] (2-cycles)
+> + - YUV422 BT656 10bit per component (10 bits total): YCbCr[11:2] (2-cycles)
+> + - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
+> +
+> +The TDA19973 Video port output pins can be used as follows:
+> + - RGB 12bit per color (36 bits total): R[11:0] B[11:0] G[11:0]
+> + - YUV444 12bit per color (36 bits total): Y[11:0] Cb[11:0] Cr[11:0]
+> + - YUV422 semi-planar 12bit per component (24 bits total): Y[11:0] CbCr[11:0]
+> + - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
+> +
+> +The Video port output pins are mapped via 4-bit 'pin groups' allowing
+> +for a variety of connection possibilities including swapping pin order within
+> +pin groups. The video_portcfg device-tree property consists of register mapping
+> +pairs which map a chip-specific VP output register to a 4-bit pin group. If
+> +the pin group needs to be bit-swapped you can use the *_S pin-group defines.
+> +
+> +Required Properties:
+> + - compatible          :
+> +  - "nxp,tda19971" for the TDA19971
+> +  - "nxp,tda19973" for the TDA19973
+> + - reg                 : I2C slave address
+> + - interrupts          : The interrupt number
+> + - DOVDD-supply        : Digital I/O supply
+> + - DVDD-supply         : Digital Core supply
+> + - AVDD-supply         : Analog supply
+> + - nxp,vidout-portcfg  : array of pairs mapping VP output pins to pin groups.
+> +
+> +Optional Properties:
+> + - nxp,audout-format   : DAI bus format: "i2s" or "spdif".
+> + - nxp,audout-width    : width of audio output data bus (1-4).
+> + - nxp,audout-layout   : data layout (0=AP0 used, 1=AP0/AP1/AP2/AP3 used).
+> + - nxp,audout-mclk-fs  : Multiplication factor between stream rate and codec
+> +                         mclk.
+> +
+> +The device node must contain one 'port' child node for its digital output
+> +video port, in accordance with the video interface bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
 
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index 0b801bad5802..30ceba664f5f 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -834,13 +834,11 @@ static const struct si2165_reg_value_pair dvbc_regs[] = {
- 	{ REG_KP_LOCK, 0x05 },
- 	{ REG_CENTRAL_TAP, 0x09 },
- 	REG16(REG_UNKNOWN_350, 0x3e80),
--	{ REG_REQ_CONSTELLATION, 0x00 },
- 
- 	{ REG_AUTO_RESET, 0x01 },
- 	REG16(REG_UNKNOWN_24C, 0x0000),
- 	REG16(REG_UNKNOWN_27C, 0x0000),
- 	{ REG_SWEEP_STEP, 0x03 },
--	{ REG_REQ_CONSTELLATION, 0x0b },
- 	{ REG_AGC_IF_TRI, 0x00 },
- };
- 
-@@ -850,6 +848,7 @@ static int si2165_set_frontend_dvbc(struct dvb_frontend *fe)
- 	int ret;
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	const u32 dvb_rate = p->symbol_rate;
-+	u8 u8tmp;
- 
- 	if (!state->has_dvbc)
- 		return -EINVAL;
-@@ -866,6 +865,31 @@ static int si2165_set_frontend_dvbc(struct dvb_frontend *fe)
- 	if (ret < 0)
- 		return ret;
- 
-+	switch (p->modulation) {
-+	case QPSK:
-+		u8tmp = 0x3;
-+		break;
-+	case QAM_16:
-+		u8tmp = 0x7;
-+		break;
-+	case QAM_32:
-+		u8tmp = 0x8;
-+		break;
-+	case QAM_64:
-+		u8tmp = 0x9;
-+		break;
-+	case QAM_128:
-+		u8tmp = 0xa;
-+		break;
-+	case QAM_256:
-+	default:
-+		u8tmp = 0xb;
-+		break;
-+	}
-+	ret = si2165_writereg8(state, REG_REQ_CONSTELLATION, u8tmp);
-+	if (ret < 0)
-+		return ret;
-+
- 	ret = si2165_writereg32(state, REG_LOCK_TIMEOUT, 0x007a1200);
- 	if (ret < 0)
- 		return ret;
-@@ -981,7 +1005,6 @@ static const struct dvb_frontend_ops si2165_ops = {
- 			FE_CAN_QAM_64 |
- 			FE_CAN_QAM_128 |
- 			FE_CAN_QAM_256 |
--			FE_CAN_QAM_AUTO |
- 			FE_CAN_GUARD_INTERVAL_AUTO |
- 			FE_CAN_HIERARCHY_AUTO |
- 			FE_CAN_MUTE_TS |
+Could you add that this port has one endpoint node as well? (Unless you
+support multiple, that is.)
+
+> +
+> +Optional Endpoint Properties:
+> +  The following three properties are defined in video-interfaces.txt and
+> +  are valid for source endpoints only:
+
+Transmitters? Don't you have an endpoint only in the port representing the
+transmitter?
+
+> +  - hsync-active: Horizontal synchronization polarity. Defaults to active high.
+> +  - vsync-active: Vertical synchronization polarity. Defaults to active high.
+> +  - data-active: Data polarity. Defaults to active high.
+> +
+> +Examples:
+> + - VP[15:0] connected to IMX6 CSI_DATA[19:4] for 16bit YUV422
+> +   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
+> +	hdmi-receiver@48 {
+> +		compatible = "nxp,tda19971";
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&pinctrl_tda1997x>;
+> +		reg = <0x48>;
+> +		interrupt-parent = <&gpio1>;
+> +		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+> +		DOVDD-supply = <&reg_3p3v>;
+> +		AVDD-supply = <&reg_1p8v>;
+> +		DVDD-supply = <&reg_1p8v>;
+> +		/* audio */
+> +		#sound-dai-cells = <0>;
+> +		nxp,audout-format = "i2s";
+> +		nxp,audout-layout = <0>;
+> +		nxp,audout-width = <16>;
+> +		nxp,audout-mclk-fs = <128>;
+> +		/*
+> +		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
+> +		 * and Y[11:4] across 16bits in the same pixclk cycle.
+> +		 */
+> +		nxp,vidout-portcfg =
+> +			/* Y[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
+> +			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
+> +			/* Y[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
+> +			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
+> +			/* CbCc[11:8]<->VP[07:04]<->CSI_DATA[11:8] */
+> +			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
+> +			/* CbCr[7:4]<->VP[03:00]<->CSI_DATA[7:4] */
+> +			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
+> +
+> +		port {
+> +			tda1997x_to_ipu1_csi0_mux: endpoint {
+> +				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
+> +				bus-width = <16>;
+> +				hsync-active = <1>;
+> +				vsync-active = <1>;
+> +				data-active = <1>;
+> +			};
+> +		};
+> +	};
+> + - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
+> +   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
+> +	hdmi-receiver@48 {
+> +		compatible = "nxp,tda19971";
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&pinctrl_tda1997x>;
+> +		reg = <0x48>;
+> +		interrupt-parent = <&gpio1>;
+> +		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+> +		DOVDD-supply = <&reg_3p3v>;
+> +		AVDD-supply = <&reg_1p8v>;
+> +		DVDD-supply = <&reg_1p8v>;
+> +		/* audio */
+> +		#sound-dai-cells = <0>;
+> +		nxp,audout-format = "i2s";
+> +		nxp,audout-layout = <0>;
+> +		nxp,audout-width = <16>;
+> +		nxp,audout-mclk-fs = <128>;
+> +		/*
+> +		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
+> +		 * and Y[11:4] across 16bits in the same pixclk cycle.
+> +		 */
+> +		nxp,vidout-portcfg =
+> +			/* Y[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
+> +			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
+> +			/* Y[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
+> +			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
+> +			/* CbCc[11:8]<->VP[07:04]<->CSI_DATA[11:8] */
+> +			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
+> +			/* CbCr[7:4]<->VP[03:00]<->CSI_DATA[7:4] */
+> +			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
+> +
+> +		port {
+> +			tda1997x_to_ipu1_csi0_mux: endpoint {
+> +				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
+> +				bus-width = <16>;
+> +				hsync-active = <1>;
+> +				vsync-active = <1>;
+> +				data-active = <1>;
+> +			};
+> +		};
+> +	};
+> + - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
+> +   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
+> +	hdmi-receiver@48 {
+> +		compatible = "nxp,tda19971";
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&pinctrl_tda1997x>;
+> +		reg = <0x48>;
+> +		interrupt-parent = <&gpio1>;
+> +		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+> +		DOVDD-supply = <&reg_3p3v>;
+> +		AVDD-supply = <&reg_1p8v>;
+> +		DVDD-supply = <&reg_1p8v>;
+> +		/* audio */
+> +		#sound-dai-cells = <0>;
+> +		nxp,audout-format = "i2s";
+> +		nxp,audout-layout = <0>;
+> +		nxp,audout-width = <16>;
+> +		nxp,audout-mclk-fs = <128>;
+> +		/*
+> +		 * The 8bpp BT656 mode outputs YCbCr[11:4] across 8bits over
+> +		 * 2 pixclk cycles.
+> +		 */
+> +		nxp,vidout-portcfg =
+> +			/* YCbCr[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
+> +			< TDA1997X_VP24_V15_12 TDA1997X_R_CR_CBCR_11_8 >,
+> +			/* YCbCr[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
+> +			< TDA1997X_VP24_V11_08 TDA1997X_R_CR_CBCR_7_4 >,
+> +
+> +		port {
+> +			tda1997x_to_ipu1_csi0_mux: endpoint {
+> +				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
+> +				bus-width = <16>;
+> +				hsync-active = <1>;
+> +				vsync-active = <1>;
+> +				data-active = <1>;
+> +			};
+> +		};
+> +	};
+> +
+> -- 
+> 2.7.4
+> 
+
 -- 
-2.15.0
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
