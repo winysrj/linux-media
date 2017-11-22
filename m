@@ -1,81 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:37695 "EHLO osg.samsung.com"
+Received: from gofer.mess.org ([88.97.38.141]:51357 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933333AbdKAVGL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 17:06:11 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Ingo Molnar <mingo@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v2 15/26] media: pt1: fix logic when pt1_nr_tables is zero or negative
-Date: Wed,  1 Nov 2017 17:05:52 -0400
-Message-Id: <0fb02c4a7a0f7d98a5c97a8f1fe125445e1a6b2c.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        id S1751646AbdKVSgZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 22 Nov 2017 13:36:25 -0500
+Date: Wed, 22 Nov 2017 18:36:24 +0000
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [GIT FIXES FOR v4.15] RC repeat and DVB fix
+Message-ID: <20171122183623.mukjrjkqbpsslyxj@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pt1_nr_tables is a modprobe parameter. The way the logic
-handles it, it can't be negative. However, user can
-set it to zero.
+Hi Mauro,
 
-If set to zero, however, it will cause troubles at
-pt1_init_tables(), as reported by smatch:
-	drivers/media/pci/pt1/pt1.c:468 pt1_init_tables() error: uninitialized symbol 'first_pfn'.
+Here are two fixes which would be nice to have in v4.15. I am working on
+a better rework of the repeat stuff (including moving cec repeats into
+rc-core), but it is far too much change for v4.15 or the stable tree.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/pci/pt1/pt1.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+Thanks,
 
-diff --git a/drivers/media/pci/pt1/pt1.c b/drivers/media/pci/pt1/pt1.c
-index b6b1a8d20d86..acc3afeb6224 100644
---- a/drivers/media/pci/pt1/pt1.c
-+++ b/drivers/media/pci/pt1/pt1.c
-@@ -116,8 +116,8 @@ static u32 pt1_read_reg(struct pt1 *pt1, int reg)
- 	return readl(pt1->regs + reg * 4);
- }
- 
--static int pt1_nr_tables = 8;
--module_param_named(nr_tables, pt1_nr_tables, int, 0);
-+static unsigned int pt1_nr_tables = 8;
-+module_param_named(nr_tables, pt1_nr_tables, uint, 0);
- 
- static void pt1_increment_table_count(struct pt1 *pt1)
- {
-@@ -443,6 +443,9 @@ static int pt1_init_tables(struct pt1 *pt1)
- 	int i, ret;
- 	u32 first_pfn, pfn;
- 
-+	if (!pt1_nr_tables)
-+		return 0;
-+
- 	tables = vmalloc(sizeof(struct pt1_table) * pt1_nr_tables);
- 	if (tables == NULL)
- 		return -ENOMEM;
-@@ -450,12 +453,10 @@ static int pt1_init_tables(struct pt1 *pt1)
- 	pt1_init_table_count(pt1);
- 
- 	i = 0;
--	if (pt1_nr_tables) {
--		ret = pt1_init_table(pt1, &tables[0], &first_pfn);
--		if (ret)
--			goto err;
--		i++;
--	}
-+	ret = pt1_init_table(pt1, &tables[0], &first_pfn);
-+	if (ret)
-+		goto err;
-+	i++;
- 
- 	while (i < pt1_nr_tables) {
- 		ret = pt1_init_table(pt1, &tables[i], &pfn);
--- 
-2.13.6
+Sean
+
+The following changes since commit 30b4e122d71cbec2944a5f8b558b88936ee42f10:
+
+  media: rc: sir_ir: detect presence of port (2017-11-15 08:57:34 -0500)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/syoung/media_tree.git for-v4.15e
+
+for you to fetch changes up to 27a7a06b95cd0995b81915606e832fafca2c92ed:
+
+  media: rc: partial revert of "media: rc: per-protocol repeat period" (2017-11-22 18:29:33 +0000)
+
+----------------------------------------------------------------
+Laurent Caumont (1):
+      media: dvb: i2c transfers over usb cannot be done from stack
+
+Sean Young (1):
+      media: rc: partial revert of "media: rc: per-protocol repeat period"
+
+ drivers/media/rc/rc-main.c                | 32 +++++++++++++++----------------
+ drivers/media/usb/dvb-usb/dibusb-common.c | 16 ++++++++++++++--
+ 2 files changed, 30 insertions(+), 18 deletions(-)
