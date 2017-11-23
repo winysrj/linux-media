@@ -1,214 +1,1204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:47111 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933318AbdKORLl (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:38370 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751468AbdKWIY5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 12:11:41 -0500
-From: Gustavo Padovan <gustavo@padovan.org>
+        Thu, 23 Nov 2017 03:24:57 -0500
+Received: by mail-lf0-f66.google.com with SMTP id c188so13571057lfd.5
+        for <linux-media@vger.kernel.org>; Thu, 23 Nov 2017 00:24:56 -0800 (PST)
+From: olli.salonen@iki.fi
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC v5 10/11] [media] vb2: add out-fence support to QBUF
-Date: Wed, 15 Nov 2017 15:10:56 -0200
-Message-Id: <20171115171057.17340-11-gustavo@padovan.org>
-In-Reply-To: <20171115171057.17340-1-gustavo@padovan.org>
-References: <20171115171057.17340-1-gustavo@padovan.org>
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCHv4 1/2] tda18250: support for new silicon tuner
+Date: Thu, 23 Nov 2017 10:24:45 +0200
+Message-Id: <1511425486-2318-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+From: Olli Salonen <olli.salonen@iki.fi>
 
-If V4L2_BUF_FLAG_OUT_FENCE flag is present on the QBUF call we create
-an out_fence and send its fd to userspace on the fence_fd field as a
-return arg for the QBUF call.
+NXP TDA18250 silicon tuner driver.
 
-The fence is signaled on buffer_done(), when the job on the buffer is
-finished.
+Version 4 includes some checkpatch fixes.
 
-With out-fences we do not allow drivers to requeue buffers through vb2,
-instead we flag an error on the buffer, signals it fence with error and
-return it to userspace.
-
-v6
-	- get rid of the V4L2_EVENT_OUT_FENCE event. We always keep the
-	ordering in vb2 for queueing in the driver, so the event is not
-	necessary anymore and the out_fence_fd is sent back to userspace
-	on QBUF call return arg
-	- do not allow requeueing with out-fences, instead mark the buffer
-	with an error and wake up to userspace.
-	- send the out_fence_fd back to userspace on the fence_fd field
-
-v5:
-	- delay fd_install to DQ_EVENT (Hans)
-	- if queue is fully ordered send OUT_FENCE event right away
-	(Brian)
-	- rename 'q->ordered' to 'q->ordered_in_driver'
-	- merge change to implement OUT_FENCE event here
-
-v4:
-	- return the out_fence_fd in the BUF_QUEUED event(Hans)
-
-v3:	- add WARN_ON_ONCE(q->ordered) on requeueing (Hans)
-	- set the OUT_FENCE flag if there is a fence pending (Hans)
-	- call fd_install() after vb2_core_qbuf() (Hans)
-	- clean up fence if vb2_core_qbuf() fails (Hans)
-	- add list to store sync_file and fence for the next queued buffer
-
-v2: check if the queue is ordered.
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 42 +++++++++++++++++++++++++++++---
- drivers/media/v4l2-core/videobuf2-v4l2.c | 21 +++++++++++++++-
- 2 files changed, 58 insertions(+), 5 deletions(-)
+ MAINTAINERS                          |   9 +
+ drivers/media/tuners/Kconfig         |   7 +
+ drivers/media/tuners/Makefile        |   1 +
+ drivers/media/tuners/tda18250.c      | 902 +++++++++++++++++++++++++++++++++++
+ drivers/media/tuners/tda18250.h      |  51 ++
+ drivers/media/tuners/tda18250_priv.h | 145 ++++++
+ 6 files changed, 1115 insertions(+)
+ create mode 100644 drivers/media/tuners/tda18250.c
+ create mode 100644 drivers/media/tuners/tda18250.h
+ create mode 100644 drivers/media/tuners/tda18250_priv.h
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 8b4f0e9bcb36..2eb5ffa8e028 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -354,6 +354,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
- 			vb->planes[plane].length = plane_sizes[plane];
- 			vb->planes[plane].min_length = plane_sizes[plane];
- 		}
-+		vb->out_fence_fd = -1;
- 		q->bufs[vb->index] = vb;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index ff987d8..f26204e 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -13086,6 +13086,15 @@ T:	git git://linuxtv.org/anttip/media_tree.git
+ S:	Maintained
+ F:	drivers/media/tuners/tda18218*
  
- 		/* Allocate video buffer memory for the MMAP type */
-@@ -934,10 +935,26 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	case VB2_BUF_STATE_QUEUED:
- 		return;
- 	case VB2_BUF_STATE_REQUEUEING:
--		if (q->start_streaming_called)
--			__enqueue_in_driver(vb);
--		return;
++TDA18250 MEDIA DRIVER
++M:	Olli Salonen <olli.salonen@iki.fi>
++L:	linux-media@vger.kernel.org
++W:	https://linuxtv.org
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/tuners/tda18250*
 +
-+		if (!vb->out_fence) {
-+			if (q->start_streaming_called)
-+				__enqueue_in_driver(vb);
-+			return;
+ TDA18271 MEDIA DRIVER
+ M:	Michael Krufky <mkrufky@linuxtv.org>
+ L:	linux-media@vger.kernel.org
+diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
+index 05998f0..6687514 100644
+--- a/drivers/media/tuners/Kconfig
++++ b/drivers/media/tuners/Kconfig
+@@ -26,6 +26,13 @@ config MEDIA_TUNER_SIMPLE
+ 	help
+ 	  Say Y here to include support for various simple tuners.
+ 
++config MEDIA_TUNER_TDA18250
++	tristate "NXP TDA18250 silicon tuner"
++	depends on MEDIA_SUPPORT && I2C
++	default m if !MEDIA_SUBDRV_AUTOSELECT
++	help
++	  Say Y here to include support for TDA18250 tuner.
++
+ config MEDIA_TUNER_TDA8290
+ 	tristate "TDA 8290/8295 + 8275(a)/18271 tuner combo"
+ 	depends on MEDIA_SUPPORT && I2C
+diff --git a/drivers/media/tuners/Makefile b/drivers/media/tuners/Makefile
+index 06a9ab6..4b9444b 100644
+--- a/drivers/media/tuners/Makefile
++++ b/drivers/media/tuners/Makefile
+@@ -41,6 +41,7 @@ obj-$(CONFIG_MEDIA_TUNER_R820T) += r820t.o
+ obj-$(CONFIG_MEDIA_TUNER_MXL301RF) += mxl301rf.o
+ obj-$(CONFIG_MEDIA_TUNER_QM1D1C0042) += qm1d1c0042.o
+ obj-$(CONFIG_MEDIA_TUNER_M88RS6000T) += m88rs6000t.o
++obj-$(CONFIG_MEDIA_TUNER_TDA18250) += tda18250.o
+ 
+ ccflags-y += -I$(srctree)/drivers/media/dvb-core
+ ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
+diff --git a/drivers/media/tuners/tda18250.c b/drivers/media/tuners/tda18250.c
+new file mode 100644
+index 0000000..20d12b0
+--- /dev/null
++++ b/drivers/media/tuners/tda18250.c
+@@ -0,0 +1,902 @@
++/*
++ * NXP TDA18250 silicon tuner driver
++ *
++ * Copyright (C) 2017 Olli Salonen <olli.salonen@iki.fi>
++ *
++ *    This program is free software; you can redistribute it and/or modify
++ *    it under the terms of the GNU General Public License as published by
++ *    the Free Software Foundation; either version 2 of the License, or
++ *    (at your option) any later version.
++ *
++ *    This program is distributed in the hope that it will be useful,
++ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *    GNU General Public License for more details.
++ *
++ */
++
++#include "tda18250_priv.h"
++#include <linux/regmap.h>
++
++static const struct dvb_tuner_ops tda18250_ops;
++
++static int tda18250_power_control(struct dvb_frontend *fe,
++		unsigned int power_state)
++{
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++	int ret;
++	unsigned int utmp;
++
++	dev_dbg(&client->dev, "power state: %d", power_state);
++
++	switch (power_state) {
++	case TDA18250_POWER_NORMAL:
++		ret = regmap_write_bits(dev->regmap, R06_POWER2, 0x07, 0x00);
++		if (ret)
++			goto err;
++		ret = regmap_write_bits(dev->regmap, R25_REF, 0xc0, 0xc0);
++		if (ret)
++			goto err;
++		break;
++	case TDA18250_POWER_STANDBY:
++		if (dev->loopthrough) {
++			ret = regmap_write_bits(dev->regmap,
++					R25_REF, 0xc0, 0x80);
++			if (ret)
++				goto err;
++			ret = regmap_write_bits(dev->regmap,
++					R06_POWER2, 0x07, 0x02);
++			if (ret)
++				goto err;
++			ret = regmap_write_bits(dev->regmap,
++					R10_LT1, 0x80, 0x00);
++			if (ret)
++				goto err;
++		} else {
++			ret = regmap_write_bits(dev->regmap,
++					R25_REF, 0xc0, 0x80);
++			if (ret)
++				goto err;
++			ret = regmap_write_bits(dev->regmap,
++					R06_POWER2, 0x07, 0x01);
++			if (ret)
++				goto err;
++			ret = regmap_read(dev->regmap,
++					R0D_AGC12, &utmp);
++			if (ret)
++				goto err;
++			ret = regmap_write_bits(dev->regmap,
++					R0D_AGC12, 0x03, 0x03);
++			if (ret)
++				goto err;
++			ret = regmap_write_bits(dev->regmap,
++					R10_LT1, 0x80, 0x80);
++			if (ret)
++				goto err;
++			ret = regmap_write_bits(dev->regmap,
++					R0D_AGC12, 0x03, utmp & 0x03);
++			if (ret)
++				goto err;
 +		}
++		break;
++	default:
++		ret = -EINVAL;
++		goto err;
++	}
 +
-+		/* Do not allow requeuing with explicit synchronization,
-+		 * report it as an error to userspace */
-+		state = VB2_BUF_STATE_ERROR;
++	return 0;
++err:
++	return ret;
++}
 +
-+		/* fall through */
- 	default:
-+		if (state == VB2_BUF_STATE_ERROR)
-+			dma_fence_set_error(vb->out_fence, -EFAULT);
-+		dma_fence_signal(vb->out_fence);
-+		dma_fence_put(vb->out_fence);
-+		vb->out_fence = NULL;
-+		vb->out_fence_fd = -1;
++static int tda18250_wait_for_irq(struct dvb_frontend *fe,
++		int maxwait, int step, u8 irq)
++{
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++	int ret;
++	unsigned long timeout;
++	bool triggered;
++	unsigned int utmp;
 +
- 		/* Inform any processes that may be waiting for buffers */
- 		wake_up(&q->done_wq);
- 		break;
-@@ -1325,12 +1342,18 @@ EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
- int vb2_setup_out_fence(struct vb2_queue *q, unsigned int index)
- {
- 	struct vb2_buffer *vb;
-+	u64 context;
- 
- 	vb = q->bufs[index];
- 
- 	vb->out_fence_fd = get_unused_fd_flags(O_CLOEXEC);
- 
--	vb->out_fence = vb2_fence_alloc(q->out_fence_context);
-+	if (q->ordered_in_driver)
-+		context = q->out_fence_context;
-+	else
-+		context = dma_fence_context_alloc(1);
++	triggered = false;
++	timeout = jiffies + msecs_to_jiffies(maxwait);
++	while (!time_after(jiffies, timeout)) {
++		// check for the IRQ
++		ret = regmap_read(dev->regmap, R08_IRQ1, &utmp);
++		if (ret)
++			goto err;
++		if ((utmp & irq) == irq) {
++			triggered = true;
++			break;
++		}
++		msleep(step);
++	}
 +
-+	vb->out_fence = vb2_fence_alloc(context);
- 	if (!vb->out_fence) {
- 		put_unused_fd(vb->out_fence_fd);
- 		return -ENOMEM;
-@@ -1594,6 +1617,9 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
- 	if (pb)
- 		call_void_bufop(q, fill_user_buffer, vb, pb);
- 
-+	fd_install(vb->out_fence_fd, vb->sync_file->file);
-+	vb->sync_file = NULL;
++	dev_dbg(&client->dev, "waited IRQ (0x%02x) %d ms, triggered: %s", irq,
++			jiffies_to_msecs(jiffies) -
++			(jiffies_to_msecs(timeout) - maxwait),
++			triggered ? "true" : "false");
 +
- 	dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
- 	return 0;
- 
-@@ -1860,6 +1886,12 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	}
- 
- 	/*
-+	 * Renew out-fence context.
-+	 */
-+	if (q->ordered_in_driver)
-+		q->out_fence_context = dma_fence_context_alloc(1);
++	if (!triggered)
++		return -ETIMEDOUT;
++
++	return 0;
++err:
++	return ret;
++}
++
++static int tda18250_init(struct dvb_frontend *fe)
++{
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++	int ret, i;
++
++	/* default values for various regs */
++	static const u8 init_regs[][2] = {
++		{ R0C_AGC11, 0xc7 },
++		{ R0D_AGC12, 0x5d },
++		{ R0E_AGC13, 0x40 },
++		{ R0F_AGC14, 0x0e },
++		{ R10_LT1, 0x47 },
++		{ R11_LT2, 0x4e },
++		{ R12_AGC21, 0x26 },
++		{ R13_AGC22, 0x60 },
++		{ R18_AGC32, 0x37 },
++		{ R19_AGC33, 0x09 },
++		{ R1A_AGCK, 0x00 },
++		{ R1E_WI_FI, 0x29 },
++		{ R1F_RF_BPF, 0x06 },
++		{ R20_IR_MIX, 0xc6 },
++		{ R21_IF_AGC, 0x00 },
++		{ R2C_PS1, 0x75 },
++		{ R2D_PS2, 0x06 },
++		{ R2E_PS3, 0x07 },
++		{ R30_RSSI2, 0x0e },
++		{ R31_IRQ_CTRL, 0x00 },
++		{ R39_SD5, 0x00 },
++		{ R3B_REGU, 0x55 },
++		{ R3C_RCCAL1, 0xa7 },
++		{ R3F_IRCAL2, 0x85 },
++		{ R40_IRCAL3, 0x87 },
++		{ R41_IRCAL4, 0xc0 },
++		{ R43_PD1, 0x40 },
++		{ R44_PD2, 0xc0 },
++		{ R46_CPUMP, 0x0c },
++		{ R47_LNAPOL, 0x64 },
++		{ R4B_XTALOSC1, 0x30 },
++		{ R59_AGC2_UP2, 0x05 },
++		{ R5B_AGC_AUTO, 0x07 },
++		{ R5C_AGC_DEBUG, 0x00 },
++	};
++
++	/* crystal related regs depend on frequency */
++	static const u8 xtal_regs[][5] = {
++					/* reg:   4d    4e    4f    50    51 */
++		[TDA18250_XTAL_FREQ_16MHZ]  = { 0x3e, 0x80, 0x50, 0x00, 0x20 },
++		[TDA18250_XTAL_FREQ_24MHZ]  = { 0x5d, 0xc0, 0xec, 0x00, 0x18 },
++		[TDA18250_XTAL_FREQ_25MHZ]  = { 0x61, 0xa8, 0xec, 0x80, 0x19 },
++		[TDA18250_XTAL_FREQ_27MHZ]  = { 0x69, 0x78, 0x8d, 0x80, 0x1b },
++		[TDA18250_XTAL_FREQ_30MHZ]  = { 0x75, 0x30, 0x8f, 0x00, 0x1e },
++	};
++
++	dev_dbg(&client->dev, "\n");
++
++	ret = tda18250_power_control(fe, TDA18250_POWER_NORMAL);
++	if (ret)
++		goto err;
++
++	msleep(20);
++
++	if (dev->warm)
++		goto warm;
++
++	/* set initial register values */
++	for (i = 0; i < ARRAY_SIZE(init_regs); i++) {
++		ret = regmap_write(dev->regmap, init_regs[i][0],
++				init_regs[i][1]);
++		if (ret)
++			goto err;
++	}
++
++	/* set xtal related regs */
++	ret = regmap_bulk_write(dev->regmap, R4D_XTALFLX1,
++			xtal_regs[dev->xtal_freq], 5);
++	if (ret)
++		goto err;
++
++	ret = regmap_write_bits(dev->regmap, R10_LT1, 0x80,
++			dev->loopthrough ? 0x00 : 0x80);
++	if (ret)
++		goto err;
++
++	/* clear IRQ */
++	ret = regmap_write(dev->regmap, R0A_IRQ3, TDA18250_IRQ_HW_INIT);
++	if (ret)
++		goto err;
++
++	/* start HW init */
++	ret = regmap_write(dev->regmap, R2A_MSM1, 0x70);
++	if (ret)
++		goto err;
++
++	ret = regmap_write(dev->regmap, R2B_MSM2, 0x01);
++	if (ret)
++		goto err;
++
++	ret = tda18250_wait_for_irq(fe, 500, 10, TDA18250_IRQ_HW_INIT);
++	if (ret)
++		goto err;
++
++	/* tuner calibration */
++	ret = regmap_write(dev->regmap, R2A_MSM1, 0x02);
++	if (ret)
++		goto err;
++
++	ret = regmap_write(dev->regmap, R2B_MSM2, 0x01);
++	if (ret)
++		goto err;
++
++	ret = tda18250_wait_for_irq(fe, 500, 10, TDA18250_IRQ_CAL);
++	if (ret)
++		goto err;
++
++	dev->warm = true;
++
++warm:
++	/* power up LNA */
++	ret = regmap_write_bits(dev->regmap, R0C_AGC11, 0x80, 0x00);
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	dev_dbg(&client->dev, "failed=%d", ret);
++	return ret;
++}
++
++static int tda18250_set_agc(struct dvb_frontend *fe)
++{
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int ret;
++	u8 utmp, utmp2;
++
++	dev_dbg(&client->dev, "\n");
++
++	ret = regmap_write_bits(dev->regmap, R1F_RF_BPF, 0x87, 0x06);
++	if (ret)
++		goto err;
++
++	utmp = ((c->frequency < 100000000) &&
++			((c->delivery_system == SYS_DVBC_ANNEX_A) ||
++			(c->delivery_system == SYS_DVBC_ANNEX_C)) &&
++			(c->bandwidth_hz == 6000000)) ? 0x80 : 0x00;
++	ret = regmap_write(dev->regmap, R5A_H3H5, utmp);
++	if (ret)
++		goto err;
++
++	/* AGC1 */
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		utmp = 4;
++		break;
++	default: /* DVB-C/QAM */
++		switch (c->bandwidth_hz) {
++		case 6000000:
++			utmp = (c->frequency < 800000000) ? 6 : 4;
++			break;
++		default: /* 7.935 and 8 MHz */
++			utmp = (c->frequency < 100000000) ? 2 : 3;
++			break;
++		}
++		break;
++	}
++
++	ret = regmap_write_bits(dev->regmap, R0C_AGC11, 0x07, utmp);
++	if (ret)
++		goto err;
++
++	/* AGC2 */
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		utmp = (c->frequency < 320000000) ? 20 : 16;
++		utmp2 = (c->frequency < 320000000) ? 22 : 18;
++		break;
++	default: /* DVB-C/QAM */
++		switch (c->bandwidth_hz) {
++		case 6000000:
++			if (c->frequency < 600000000) {
++				utmp = 18;
++				utmp2 = 22;
++			} else if (c->frequency < 800000000) {
++				utmp = 16;
++				utmp2 = 20;
++			} else {
++				utmp = 14;
++				utmp2 = 16;
++			}
++			break;
++		default: /* 7.935 and 8 MHz */
++			utmp = (c->frequency < 320000000) ? 16 : 18;
++			utmp2 = (c->frequency < 320000000) ? 18 : 20;
++			break;
++		}
++		break;
++	}
++	ret = regmap_write_bits(dev->regmap, R58_AGC2_UP1, 0x1f, utmp2+8);
++	if (ret)
++		goto err;
++	ret = regmap_write_bits(dev->regmap, R13_AGC22, 0x1f, utmp);
++	if (ret)
++		goto err;
++	ret = regmap_write_bits(dev->regmap, R14_AGC23, 0x1f, utmp2);
++	if (ret)
++		goto err;
++
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		utmp = 98;
++		break;
++	default: /* DVB-C/QAM */
++		utmp = 90;
++		break;
++	}
++	ret = regmap_write_bits(dev->regmap, R16_AGC25, 0xf8, utmp);
++	if (ret)
++		goto err;
++
++	ret = regmap_write_bits(dev->regmap, R12_AGC21, 0x60,
++			(c->frequency > 800000000) ? 0x40 : 0x20);
++	if (ret)
++		goto err;
++
++	/* AGC3 */
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		utmp = (c->frequency < 320000000) ? 5 : 7;
++		utmp2 = (c->frequency < 320000000) ? 10 : 12;
++		break;
++	default: /* DVB-C/QAM */
++		utmp = 7;
++		utmp2 = 12;
++		break;
++	}
++	ret = regmap_write(dev->regmap, R17_AGC31, (utmp << 4) | utmp2);
++	if (ret)
++		goto err;
++
++	/* S2D */
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		if (c->bandwidth_hz == 8000000)
++			utmp = 0x04;
++		else
++			utmp = (c->frequency < 320000000) ? 0x04 : 0x02;
++		break;
++	default: /* DVB-C/QAM */
++		if (c->bandwidth_hz == 6000000)
++			utmp = ((c->frequency > 172544000) &&
++				(c->frequency < 320000000)) ? 0x04 : 0x02;
++		else /* 7.935 and 8 MHz */
++			utmp = ((c->frequency > 320000000) &&
++				(c->frequency < 600000000)) ? 0x02 : 0x04;
++		break;
++	}
++	ret = regmap_write_bits(dev->regmap, R20_IR_MIX, 0x06, utmp);
++	if (ret)
++		goto err;
++
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		utmp = 0;
++		break;
++	default: /* DVB-C/QAM */
++		utmp = (c->frequency < 600000000) ? 0 : 3;
++		break;
++	}
++	ret = regmap_write_bits(dev->regmap, R16_AGC25, 0x03, utmp);
++	if (ret)
++		goto err;
++
++	utmp = 0x09;
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		if (c->bandwidth_hz == 8000000)
++			utmp = 0x0c;
++		break;
++	default: /* DVB-C/QAM */
++		utmp = 0x0c;
++		break;
++	}
++	ret = regmap_write_bits(dev->regmap, R0F_AGC14, 0x3f, utmp);
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	dev_dbg(&client->dev, "failed=%d", ret);
++	return ret;
++}
++
++static int tda18250_pll_calc(struct dvb_frontend *fe, u8 *rdiv,
++		u8 *ndiv, u8 *icp)
++{
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int ret;
++	unsigned int uval, exp, lopd, scale;
++	unsigned long fvco;
++
++	ret = regmap_read(dev->regmap, R34_MD1, &uval);
++	if (ret)
++		goto err;
++
++	exp = (uval & 0x70) >> 4;
++	if (exp > 5)
++		exp = 0;
++	lopd = 1 << (exp - 1);
++	scale = uval & 0x0f;
++	fvco = lopd * scale * ((c->frequency / 1000) + dev->if_frequency);
++
++	switch (dev->xtal_freq) {
++	case TDA18250_XTAL_FREQ_16MHZ:
++		*rdiv = 1;
++		*ndiv = 0;
++		*icp = (fvco < 6622000) ? 0x05 : 0x02;
++	break;
++	case TDA18250_XTAL_FREQ_24MHZ:
++	case TDA18250_XTAL_FREQ_25MHZ:
++		*rdiv = 3;
++		*ndiv = 1;
++		*icp = (fvco < 6622000) ? 0x05 : 0x02;
++	break;
++	case TDA18250_XTAL_FREQ_27MHZ:
++		if (fvco < 6643000) {
++			*rdiv = 2;
++			*ndiv = 0;
++			*icp = 0x05;
++		} else if (fvco < 6811000) {
++			*rdiv = 2;
++			*ndiv = 0;
++			*icp = 0x06;
++		} else {
++			*rdiv = 3;
++			*ndiv = 1;
++			*icp = 0x02;
++		}
++	break;
++	case TDA18250_XTAL_FREQ_30MHZ:
++		*rdiv = 2;
++		*ndiv = 0;
++		*icp = (fvco < 6811000) ? 0x05 : 0x02;
++	break;
++	default:
++		return -EINVAL;
++	}
++
++	dev_dbg(&client->dev,
++			"lopd=%d scale=%u fvco=%lu, rdiv=%d ndiv=%d icp=%d",
++			lopd, scale, fvco, *rdiv, *ndiv, *icp);
++	return 0;
++err:
++	return ret;
++}
++
++static int tda18250_set_params(struct dvb_frontend *fe)
++{
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	u32 if_khz;
++	int ret;
++	unsigned int i, j;
++	u8 utmp;
++	u8 buf[3];
++
++	#define REG      0
++	#define MASK     1
++	#define DVBT_6   2
++	#define DVBT_7   3
++	#define DVBT_8   4
++	#define DVBC_6   5
++	#define DVBC_8   6
++	#define ATSC     7
++
++	static const u8 delsys_params[][16] = {
++		[REG]    = { 0x22, 0x23, 0x24, 0x21, 0x0d, 0x0c, 0x0f, 0x14,
++			     0x0e, 0x12, 0x58, 0x59, 0x1a, 0x19, 0x1e, 0x30 },
++		[MASK]   = { 0x77, 0xff, 0xff, 0x87, 0xf0, 0x78, 0x07, 0xe0,
++			     0x60, 0x0f, 0x60, 0x0f, 0x33, 0x30, 0x80, 0x06 },
++		[DVBT_6] = { 0x51, 0x03, 0x83, 0x82, 0x40, 0x48, 0x01, 0xe0,
++			     0x60, 0x0f, 0x60, 0x05, 0x03, 0x10, 0x00, 0x04 },
++		[DVBT_7] = { 0x52, 0x03, 0x85, 0x82, 0x40, 0x48, 0x01, 0xe0,
++			     0x60, 0x0f, 0x60, 0x05, 0x03, 0x10, 0x00, 0x04 },
++		[DVBT_8] = { 0x53, 0x03, 0x87, 0x82, 0x40, 0x48, 0x06, 0xe0,
++			     0x60, 0x07, 0x60, 0x05, 0x03, 0x10, 0x00, 0x04 },
++		[DVBC_6] = { 0x32, 0x05, 0x86, 0x82, 0x50, 0x00, 0x06, 0x60,
++			     0x40, 0x0e, 0x60, 0x05, 0x33, 0x10, 0x00, 0x04 },
++		[DVBC_8] = { 0x53, 0x03, 0x88, 0x82, 0x50, 0x00, 0x06, 0x60,
++			     0x40, 0x0e, 0x60, 0x05, 0x33, 0x10, 0x00, 0x04 },
++		[ATSC]   = { 0x51, 0x03, 0x83, 0x82, 0x40, 0x48, 0x01, 0xe0,
++			     0x40, 0x0e, 0x60, 0x05, 0x03, 0x00, 0x80, 0x04 },
++	};
++
++	dev_dbg(&client->dev,
++			"delivery_system=%d frequency=%u bandwidth_hz=%u",
++			c->delivery_system, c->frequency, c->bandwidth_hz);
++
++
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++		j = ATSC;
++		if_khz = dev->if_atsc;
++		break;
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		if (c->bandwidth_hz == 0) {
++			ret = -EINVAL;
++			goto err;
++		} else if (c->bandwidth_hz <= 6000000) {
++			j = DVBT_6;
++			if_khz = dev->if_dvbt_6;
++		} else if (c->bandwidth_hz <= 7000000) {
++			j = DVBT_7;
++			if_khz = dev->if_dvbt_7;
++		} else if (c->bandwidth_hz <= 8000000) {
++			j = DVBT_8;
++			if_khz = dev->if_dvbt_8;
++		} else {
++			ret = -EINVAL;
++			goto err;
++		}
++		break;
++	case SYS_DVBC_ANNEX_A:
++	case SYS_DVBC_ANNEX_C:
++		if (c->bandwidth_hz == 0) {
++			ret = -EINVAL;
++			goto err;
++		} else if (c->bandwidth_hz <= 6000000) {
++			j = DVBC_6;
++			if_khz = dev->if_dvbc_6;
++		} else if (c->bandwidth_hz <= 8000000) {
++			j = DVBC_8;
++			if_khz = dev->if_dvbc_8;
++		} else {
++			ret = -EINVAL;
++			goto err;
++		}
++		break;
++	default:
++		ret = -EINVAL;
++		dev_err(&client->dev, "unsupported delivery system=%d",
++				c->delivery_system);
++		goto err;
++	}
++
++	/* set delivery system dependent registers */
++	for (i = 0; i < 16; i++) {
++		ret = regmap_write_bits(dev->regmap, delsys_params[REG][i],
++			 delsys_params[MASK][i],  delsys_params[j][i]);
++		if (ret)
++			goto err;
++	}
++
++	/* set IF if needed */
++	if (dev->if_frequency != if_khz) {
++		utmp = DIV_ROUND_CLOSEST(if_khz, 50);
++		ret = regmap_write(dev->regmap, R26_IF, utmp);
++		if (ret)
++			goto err;
++		dev->if_frequency = if_khz;
++		dev_dbg(&client->dev, "set IF=%u kHz", if_khz);
++
++	}
++
++	ret = tda18250_set_agc(fe);
++	if (ret)
++		goto err;
++
++	ret = regmap_write_bits(dev->regmap, R1A_AGCK, 0x03, 0x01);
++	if (ret)
++		goto err;
++
++	ret = regmap_write_bits(dev->regmap, R14_AGC23, 0x40, 0x00);
++	if (ret)
++		goto err;
++
++	/* set frequency */
++	buf[0] = ((c->frequency / 1000) >> 16) & 0xff;
++	buf[1] = ((c->frequency / 1000) >>  8) & 0xff;
++	buf[2] = ((c->frequency / 1000) >>  0) & 0xff;
++	ret = regmap_bulk_write(dev->regmap, R27_RF1, buf, 3);
++	if (ret)
++		goto err;
++
++	ret = regmap_write(dev->regmap, R0A_IRQ3, TDA18250_IRQ_TUNE);
++	if (ret)
++		goto err;
++
++	/* initial tune */
++	ret = regmap_write(dev->regmap, R2A_MSM1, 0x01);
++	if (ret)
++		goto err;
++
++	ret = regmap_write(dev->regmap, R2B_MSM2, 0x01);
++	if (ret)
++		goto err;
++
++	ret = tda18250_wait_for_irq(fe, 500, 10, TDA18250_IRQ_TUNE);
++	if (ret)
++		goto err;
++
++	/* calc ndiv and rdiv */
++	ret = tda18250_pll_calc(fe, &buf[0], &buf[1], &buf[2]);
++	if (ret)
++		goto err;
++
++	ret = regmap_write_bits(dev->regmap, R4F_XTALFLX3, 0xe0,
++			(buf[0] << 6) | (buf[1] << 5));
++	if (ret)
++		goto err;
++
++	/* clear IRQ */
++	ret = regmap_write(dev->regmap, R0A_IRQ3, TDA18250_IRQ_TUNE);
++	if (ret)
++		goto err;
++
++	ret = regmap_write_bits(dev->regmap, R46_CPUMP, 0x07, 0x00);
++	if (ret)
++		goto err;
++
++	ret = regmap_write_bits(dev->regmap, R39_SD5, 0x03, 0x00);
++	if (ret)
++		goto err;
++
++	/* tune again */
++	ret = regmap_write(dev->regmap, R2A_MSM1, 0x01); /* tune */
++	if (ret)
++		goto err;
++
++	ret = regmap_write(dev->regmap, R2B_MSM2, 0x01); /* go */
++	if (ret)
++		goto err;
++
++	ret = tda18250_wait_for_irq(fe, 500, 10, TDA18250_IRQ_TUNE);
++	if (ret)
++		goto err;
++
++	/* pll locking */
++	msleep(20);
++
++	ret = regmap_write_bits(dev->regmap, R2B_MSM2, 0x04, 0x04);
++	if (ret)
++		goto err;
++
++	msleep(20);
++
++	/* restore AGCK */
++	ret = regmap_write_bits(dev->regmap, R1A_AGCK, 0x03, 0x03);
++	if (ret)
++		goto err;
++
++	ret = regmap_write_bits(dev->regmap, R14_AGC23, 0x40, 0x40);
++	if (ret)
++		goto err;
++
++	/* charge pump */
++	ret = regmap_write_bits(dev->regmap, R46_CPUMP, 0x07, buf[2]);
++
++	return 0;
++err:
++	return ret;
++}
++
++static int tda18250_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
++{
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++
++	*frequency = dev->if_frequency * 1000;
++	return 0;
++}
++
++static int tda18250_sleep(struct dvb_frontend *fe)
++{
++	struct i2c_client *client = fe->tuner_priv;
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++	int ret;
++
++	dev_dbg(&client->dev, "\n");
++
++	/* power down LNA */
++	ret = regmap_write_bits(dev->regmap, R0C_AGC11, 0x80, 0x00);
++	if (ret)
++		return ret;
++
++	/* set if freq to 0 in order to make sure it's set after wake up */
++	dev->if_frequency = 0;
++
++	ret = tda18250_power_control(fe, TDA18250_POWER_STANDBY);
++	return ret;
++}
++
++static const struct dvb_tuner_ops tda18250_ops = {
++	.info = {
++		.name           = "NXP TDA18250",
++		.frequency_min  = 42000000,
++		.frequency_max  = 870000000,
++	},
++
++	.init = tda18250_init,
++	.set_params = tda18250_set_params,
++	.get_if_frequency = tda18250_get_if_frequency,
++	.sleep = tda18250_sleep,
++};
++
++static int tda18250_probe(struct i2c_client *client,
++		const struct i2c_device_id *id)
++{
++	struct tda18250_config *cfg = client->dev.platform_data;
++	struct dvb_frontend *fe = cfg->fe;
++	struct tda18250_dev *dev;
++	int ret;
++	unsigned char chip_id[3];
++
++	/* some registers are always read from HW */
++	static const struct regmap_range tda18250_yes_ranges[] = {
++		regmap_reg_range(R05_POWER1, R0B_IRQ4),
++		regmap_reg_range(R21_IF_AGC, R21_IF_AGC),
++		regmap_reg_range(R2A_MSM1, R2B_MSM2),
++		regmap_reg_range(R2F_RSSI1, R31_IRQ_CTRL),
++	};
++
++	static const struct regmap_access_table tda18250_volatile_table = {
++		.yes_ranges = tda18250_yes_ranges,
++		.n_yes_ranges = ARRAY_SIZE(tda18250_yes_ranges),
++	};
++
++	static const struct regmap_config tda18250_regmap_config = {
++		.reg_bits = 8,
++		.val_bits = 8,
++		.max_register = TDA18250_NUM_REGS - 1,
++		.volatile_table = &tda18250_volatile_table,
++	};
++
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	if (!dev) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	i2c_set_clientdata(client, dev);
++
++	dev->fe = cfg->fe;
++	dev->loopthrough = cfg->loopthrough;
++	if (cfg->xtal_freq < TDA18250_XTAL_FREQ_MAX) {
++		dev->xtal_freq = cfg->xtal_freq;
++	} else {
++		ret = -EINVAL;
++		dev_err(&client->dev, "xtal_freq invalid=%d", cfg->xtal_freq);
++		goto err_kfree;
++	}
++	dev->if_dvbt_6 = cfg->if_dvbt_6;
++	dev->if_dvbt_7 = cfg->if_dvbt_7;
++	dev->if_dvbt_8 = cfg->if_dvbt_8;
++	dev->if_dvbc_6 = cfg->if_dvbc_6;
++	dev->if_dvbc_8 = cfg->if_dvbc_8;
++	dev->if_atsc = cfg->if_atsc;
++
++	dev->if_frequency = 0;
++	dev->warm = false;
++
++	dev->regmap = devm_regmap_init_i2c(client, &tda18250_regmap_config);
++	if (IS_ERR(dev->regmap)) {
++		ret = PTR_ERR(dev->regmap);
++		goto err_kfree;
++	}
++
++	/* read the three chip ID registers */
++	regmap_bulk_read(dev->regmap, R00_ID1, &chip_id, 3);
++	dev_dbg(&client->dev, "chip_id=%02x:%02x:%02x",
++			chip_id[0], chip_id[1], chip_id[2]);
++
++	switch (chip_id[0]) {
++	case 0xc7:
++		dev->slave = false;
++		break;
++	case 0x47:
++		dev->slave = true;
++		break;
++	default:
++		ret = -ENODEV;
++		goto err_kfree;
++	}
++
++	if (chip_id[1] != 0x4a) {
++		ret = -ENODEV;
++		goto err_kfree;
++	}
++
++	switch (chip_id[2]) {
++	case 0x20:
++		dev_info(&client->dev,
++				"NXP TDA18250AHN/%s successfully identified",
++				dev->slave ? "S" : "M");
++		break;
++	case 0x21:
++		dev_info(&client->dev,
++				"NXP TDA18250BHN/%s successfully identified",
++				dev->slave ? "S" : "M");
++		break;
++	default:
++		ret = -ENODEV;
++		goto err_kfree;
++	}
++
++	fe->tuner_priv = client;
++	memcpy(&fe->ops.tuner_ops, &tda18250_ops,
++			sizeof(struct dvb_tuner_ops));
++
++	/* put the tuner in standby */
++	tda18250_power_control(fe, TDA18250_POWER_STANDBY);
++
++	return 0;
++err_kfree:
++	kfree(dev);
++err:
++	dev_dbg(&client->dev, "failed=%d", ret);
++	return ret;
++}
++
++static int tda18250_remove(struct i2c_client *client)
++{
++	struct tda18250_dev *dev = i2c_get_clientdata(client);
++	struct dvb_frontend *fe = dev->fe;
++
++	dev_dbg(&client->dev, "\n");
++
++	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
++	fe->tuner_priv = NULL;
++	kfree(dev);
++
++	return 0;
++}
++
++static const struct i2c_device_id tda18250_id_table[] = {
++	{"tda18250", 0},
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, tda18250_id_table);
++
++static struct i2c_driver tda18250_driver = {
++	.driver = {
++		.name	= "tda18250",
++	},
++	.probe		= tda18250_probe,
++	.remove		= tda18250_remove,
++	.id_table	= tda18250_id_table,
++};
++
++module_i2c_driver(tda18250_driver);
++
++MODULE_DESCRIPTION("NXP TDA18250 silicon tuner driver");
++MODULE_AUTHOR("Olli Salonen <olli.salonen@iki.fi>");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/media/tuners/tda18250.h b/drivers/media/tuners/tda18250.h
+new file mode 100644
+index 0000000..fb56906
+--- /dev/null
++++ b/drivers/media/tuners/tda18250.h
+@@ -0,0 +1,51 @@
++/*
++ * NXP TDA18250BHN silicon tuner driver
++ *
++ * Copyright (C) 2017 Olli Salonen <olli.salonen@iki.fi>
++ *
++ *    This program is free software; you can redistribute it and/or modify
++ *    it under the terms of the GNU General Public License as published by
++ *    the Free Software Foundation; either version 2 of the License, or
++ *    (at your option) any later version.
++ *
++ *    This program is distributed in the hope that it will be useful,
++ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *    GNU General Public License for more details.
++ */
++
++#ifndef TDA18250_H
++#define TDA18250_H
++
++#include <linux/kconfig.h>
++#include <media/media-device.h>
++#include "dvb_frontend.h"
++
++#define TDA18250_XTAL_FREQ_16MHZ 0
++#define TDA18250_XTAL_FREQ_24MHZ 1
++#define TDA18250_XTAL_FREQ_25MHZ 2
++#define TDA18250_XTAL_FREQ_27MHZ 3
++#define TDA18250_XTAL_FREQ_30MHZ 4
++#define TDA18250_XTAL_FREQ_MAX 5
++
++struct tda18250_config {
++	u16 if_dvbt_6;
++	u16 if_dvbt_7;
++	u16 if_dvbt_8;
++	u16 if_dvbc_6;
++	u16 if_dvbc_8;
++	u16 if_atsc;
++	u8 xtal_freq;
++	bool loopthrough;
 +
 +	/*
- 	 * Remove all buffers from videobuf's list...
- 	 */
- 	INIT_LIST_HEAD(&q->queued_list);
-@@ -2191,6 +2223,8 @@ int vb2_core_queue_init(struct vb2_queue *q)
- 	spin_lock_init(&q->done_lock);
- 	mutex_init(&q->mmap_lock);
- 	init_waitqueue_head(&q->done_wq);
-+	if (q->ordered_in_driver)
-+		q->out_fence_context = dma_fence_context_alloc(1);
- 
- 	if (q->buf_struct_size == 0)
- 		q->buf_struct_size = sizeof(struct vb2_buffer);
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 4c09ea007d90..f2e60d2908ae 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -212,7 +212,13 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	b->sequence = vbuf->sequence;
- 	b->reserved = 0;
- 
--	b->fence_fd = -1;
-+	if (vb->out_fence) {
-+		b->flags |= V4L2_BUF_FLAG_OUT_FENCE;
-+		b->fence_fd = vb->out_fence_fd;
-+	} else {
-+		b->fence_fd = -1;
-+	}
++	 * frontend
++	 */
++	struct dvb_frontend *fe;
 +
- 	if (vb->in_fence)
- 		b->flags |= V4L2_BUF_FLAG_IN_FENCE;
- 	else
-@@ -489,6 +495,10 @@ int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	ret = __verify_planes_array(vb, b);
- 	if (!ret)
- 		vb2_core_querybuf(q, b->index, b);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_device *mdev;
++#endif
++};
 +
-+	/* Do not return the out-fence fd on querybuf */
-+	if (vb->out_fence)
-+		b->fence_fd = -1;
- 	return ret;
- }
- EXPORT_SYMBOL(vb2_querybuf);
-@@ -593,6 +603,15 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 		}
- 	}
- 
-+	if (b->flags & V4L2_BUF_FLAG_OUT_FENCE) {
-+		ret = vb2_setup_out_fence(q, b->index);
-+		if (ret) {
-+			dprintk(1, "failed to set up out-fence\n");
-+			dma_fence_put(fence);
-+			return ret;
-+		}
-+	}
++#endif
+diff --git a/drivers/media/tuners/tda18250_priv.h b/drivers/media/tuners/tda18250_priv.h
+new file mode 100644
+index 0000000..4a6f801
+--- /dev/null
++++ b/drivers/media/tuners/tda18250_priv.h
+@@ -0,0 +1,145 @@
++/*
++ * NXP TDA18250BHN silicon tuner driver
++ *
++ * Copyright (C) 2017 Olli Salonen <olli.salonen@iki.fi>
++ *
++ *    This program is free software; you can redistribute it and/or modify
++ *    it under the terms of the GNU General Public License as published by
++ *    the Free Software Foundation; either version 2 of the License, or
++ *    (at your option) any later version.
++ *
++ *    This program is distributed in the hope that it will be useful,
++ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *    GNU General Public License for more details.
++ */
 +
- 	return vb2_core_qbuf(q, b->index, b, fence);
- }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
++#ifndef TDA18250_PRIV_H
++#define TDA18250_PRIV_H
++
++#include "tda18250.h"
++
++#define R00_ID1		0x00	/* ID byte 1 */
++#define R01_ID2		0x01	/* ID byte 2 */
++#define R02_ID3		0x02	/* ID byte 3 */
++#define R03_THERMO1	0x03	/* Thermo byte 1 */
++#define R04_THERMO2	0x04	/* Thermo byte 2 */
++#define R05_POWER1	0x05	/* Power byte 1 */
++#define R06_POWER2	0x06	/* Power byte 2 */
++#define R07_GPIO	0x07	/* GPIO */
++#define R08_IRQ1	0x08	/* IRQ */
++#define R09_IRQ2	0x09	/* IRQ */
++#define R0A_IRQ3	0x0a	/* IRQ */
++#define R0B_IRQ4	0x0b	/* IRQ */
++#define R0C_AGC11	0x0c	/* AGC1 byte 1 */
++#define R0D_AGC12	0x0d	/* AGC1 byte 2 */
++#define R0E_AGC13	0x0e	/* AGC1 byte 3 */
++#define R0F_AGC14	0x0f	/* AGC1 byte 4 */
++#define R10_LT1		0x10	/* LT byte 1 */
++#define R11_LT2		0x11	/* LT byte 2 */
++#define R12_AGC21	0x12	/* AGC2 byte 1 */
++#define R13_AGC22	0x13	/* AGC2 byte 2 */
++#define R14_AGC23	0x14	/* AGC2 byte 3 */
++#define R15_AGC24	0x15	/* AGC2 byte 4 */
++#define R16_AGC25	0x16	/* AGC2 byte 5 */
++#define R17_AGC31	0x17	/* AGC3 byte 1 */
++#define R18_AGC32	0x18	/* AGC3 byte 2 */
++#define R19_AGC33	0x19	/* AGC3 byte 3 */
++#define R1A_AGCK	0x1a
++#define R1B_GAIN1	0x1b
++#define R1C_GAIN2	0x1c
++#define R1D_GAIN3	0x1d
++#define R1E_WI_FI	0x1e	/* Wireless Filter */
++#define R1F_RF_BPF	0x1f	/* RF Band Pass Filter */
++#define R20_IR_MIX	0x20	/* IR Mixer */
++#define R21_IF_AGC	0x21
++#define R22_IF1		0x22	/* IF byte 1 */
++#define R23_IF2		0x23	/* IF byte 2 */
++#define R24_IF3		0x24	/* IF byte 3 */
++#define R25_REF		0x25	/* reference byte */
++#define R26_IF		0x26	/* IF frequency */
++#define R27_RF1		0x27	/* RF frequency byte 1 */
++#define R28_RF2		0x28	/* RF frequency byte 2 */
++#define R29_RF3		0x29	/* RF frequency byte 3 */
++#define R2A_MSM1	0x2a
++#define R2B_MSM2	0x2b
++#define R2C_PS1		0x2c	/* power saving mode byte 1 */
++#define R2D_PS2		0x2d	/* power saving mode byte 2 */
++#define R2E_PS3		0x2e	/* power saving mode byte 3 */
++#define R2F_RSSI1	0x2f
++#define R30_RSSI2	0x30
++#define R31_IRQ_CTRL	0x31
++#define R32_DUMMY	0x32
++#define R33_TEST	0x33
++#define R34_MD1		0x34
++#define R35_SD1		0x35
++#define R36_SD2		0x36
++#define R37_SD3		0x37
++#define R38_SD4		0x38
++#define R39_SD5		0x39
++#define R3A_SD_TEST	0x3a
++#define R3B_REGU	0x3b
++#define R3C_RCCAL1	0x3c
++#define R3D_RCCAL2	0x3d
++#define R3E_IRCAL1	0x3e
++#define R3F_IRCAL2	0x3f
++#define R40_IRCAL3	0x40
++#define R41_IRCAL4	0x41
++#define R42_IRCAL5	0x42
++#define R43_PD1		0x43	/* power down byte 1 */
++#define R44_PD2		0x44	/* power down byte 2 */
++#define R45_PD		0x45	/* power down */
++#define R46_CPUMP	0x46	/* charge pump */
++#define R47_LNAPOL	0x47	/* LNA polar casc */
++#define R48_SMOOTH1	0x48	/* smooth test byte 1 */
++#define R49_SMOOTH2	0x49	/* smooth test byte 2 */
++#define R4A_SMOOTH3	0x4a	/* smooth test byte 3 */
++#define R4B_XTALOSC1	0x4b
++#define R4C_XTALOSC2	0x4c
++#define R4D_XTALFLX1	0x4d
++#define R4E_XTALFLX2	0x4e
++#define R4F_XTALFLX3	0x4f
++#define R50_XTALFLX4	0x50
++#define R51_XTALFLX5	0x51
++#define R52_IRLOOP0	0x52
++#define R53_IRLOOP1	0x53
++#define R54_IRLOOP2	0x54
++#define R55_IRLOOP3	0x55
++#define R56_IRLOOP4	0x56
++#define R57_PLL_LOG	0x57
++#define R58_AGC2_UP1	0x58
++#define R59_AGC2_UP2	0x59
++#define R5A_H3H5	0x5a
++#define R5B_AGC_AUTO	0x5b
++#define R5C_AGC_DEBUG	0x5c
++
++#define TDA18250_NUM_REGS 93
++
++#define TDA18250_POWER_STANDBY 0
++#define TDA18250_POWER_NORMAL 1
++
++#define TDA18250_IRQ_CAL     0x81
++#define TDA18250_IRQ_HW_INIT 0x82
++#define TDA18250_IRQ_TUNE    0x88
++
++struct tda18250_dev {
++	struct mutex i2c_mutex;
++	struct dvb_frontend *fe;
++	struct i2c_adapter *i2c;
++	struct regmap *regmap;
++	u8 xtal_freq;
++	/* IF in kHz */
++	u16 if_dvbt_6;
++	u16 if_dvbt_7;
++	u16 if_dvbt_8;
++	u16 if_dvbc_6;
++	u16 if_dvbc_8;
++	u16 if_atsc;
++	u16 if_frequency;
++	bool slave;
++	bool loopthrough;
++	bool warm;
++	u8 regs[TDA18250_NUM_REGS];
++};
++
++#endif
 -- 
-2.13.6
+2.7.4
